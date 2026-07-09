@@ -14,13 +14,13 @@ Sandhi sutras are arranged by Ashtadhyayi location:
   dev.sanskrit.patha.adhyaya1.pada1
     1.1.1 - 1.1.10
 
-dev.sanskrit.sandhi.patha.adhyaya6.pada1
+dev.sanskrit.patha.adhyaya6.pada1
   6.1.77
   6.1.78
   6.1.87
   6.1.101
 
-dev.sanskrit.sandhi.patha.adhyaya8.pada3
+dev.sanskrit.patha.adhyaya8.pada3
   8.3.15
   8.3.34
 ```
