@@ -4,6 +4,11 @@ import dev.sanskrit.sutra.SutraAvastha
 import dev.sanskrit.sutra.SutraMetadata
 import dev.sanskrit.sutra.SutraType
 
+/**
+ * English: Sounds with the same place of articulation and effort are called सवर्ण.
+ * हिन्दी: समान आस्य और समान प्रयत्न वाले वर्ण सवर्ण कहलाते हैं।
+ * Code reference: dev.sanskrit.samjna.VarnaSamjna.isSavarna.
+ */
 object TulyasyaprayatnamSavarnamSutra {
     val metadata = SutraMetadata(
         sutraNumber = "1.1.9",

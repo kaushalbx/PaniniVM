@@ -4,6 +4,11 @@ import dev.sanskrit.sutra.SutraAvastha
 import dev.sanskrit.sutra.SutraMetadata
 import dev.sanskrit.sutra.SutraType
 
+/**
+ * English: A sound pronounced through both mouth and nose is called अनुनासिक.
+ * हिन्दी: मुख और नासिका दोनों से उच्चरित वर्ण अनुनासिक कहलाता है।
+ * Code reference: dev.sanskrit.samjna.VarnaSamjna.isAnunasika.
+ */
 object MukhanasikavacanoAnunasikahSutra {
     val metadata = SutraMetadata(
         sutraNumber = "1.1.8",

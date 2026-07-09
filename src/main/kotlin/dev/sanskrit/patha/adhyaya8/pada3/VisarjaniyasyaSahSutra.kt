@@ -12,6 +12,11 @@ import dev.sanskrit.shiksha.Vyanjana
 import dev.sanskrit.sutra.SutraMetadata
 import dev.sanskrit.sutra.SutraType
 
+/**
+ * English: A visarga is replaced by स् when followed by a खर् sound.
+ * हिन्दी: विसर्ग के बाद खर् वर्ण आए तो विसर्ग के स्थान पर स् आदेश होता है।
+ * Code reference: dev.sanskrit.pratyahara.Pratyahara.KHAR and dev.sanskrit.sandhi.Shiksha.khar.
+ */
 object VisarjaniyasyaSahSutra : BaseSandhiSutra(
     SutraMetadata(
         sutraNumber = "8.3.34",

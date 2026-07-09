@@ -4,6 +4,11 @@ import dev.sanskrit.sutra.SutraAvastha
 import dev.sanskrit.sutra.SutraMetadata
 import dev.sanskrit.sutra.SutraType
 
+/**
+ * English: Consecutive हल् sounds with no intervening vowel are called संयोग.
+ * हिन्दी: बिना स्वर-व्यवधान के लगे हुए हल् वर्णों को संयोग संज्ञा मिलती है।
+ * Code reference: dev.sanskrit.pratyahara.Pratyahara.HAL and dev.sanskrit.samjna.VarnaSamjna.isSamyoga.
+ */
 object HaloAnantarahSamyogahSutra {
     val metadata = SutraMetadata(
         sutraNumber = "1.1.7",

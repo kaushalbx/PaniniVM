@@ -9,6 +9,11 @@ import dev.sanskrit.shiksha.Vyanjana
 import dev.sanskrit.sutra.SutraMetadata
 import dev.sanskrit.sutra.SutraType
 
+/**
+ * English: Before an अच् vowel, एच् vowels take the य्/व् based अय्, अव्, आय्, or आव् substitutes.
+ * हिन्दी: अच् के आने पर एच् वर्णों के स्थान पर क्रम से अय्, अव्, आय् या आव् आदेश होता है।
+ * Code reference: dev.sanskrit.pratyahara.Pratyahara.AC and EC.
+ */
 object EcoYavayavahSutra : BaseSandhiSutra(
     SutraMetadata(
         sutraNumber = "6.1.78",

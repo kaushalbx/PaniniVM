@@ -4,6 +4,11 @@ import dev.sanskrit.sutra.SutraAvastha
 import dev.sanskrit.sutra.SutraMetadata
 import dev.sanskrit.sutra.SutraType
 
+/**
+ * English: Defines the वृद्धि vowels as आ, ऐ, and औ.
+ * हिन्दी: आ, ऐ और औ स्वर वृद्धि संज्ञा वाले माने जाते हैं।
+ * Code reference: dev.sanskrit.samjna.SvaraSamjna.vrddhi.
+ */
 object VrddhirAdaicSutra {
     val metadata = SutraMetadata(
         sutraNumber = "1.1.1",

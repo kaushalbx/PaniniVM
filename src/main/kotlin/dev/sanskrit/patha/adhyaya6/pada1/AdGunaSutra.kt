@@ -13,6 +13,11 @@ import dev.sanskrit.shiksha.Vyanjana
 import dev.sanskrit.sutra.SutraMetadata
 import dev.sanskrit.sutra.SutraType
 
+/**
+ * English: After अ or आ, following इक् vowels take their गुण substitute in sandhi.
+ * हिन्दी: अ या आ के बाद इक् स्वर आए तो संधि में उसका गुणादेश होता है।
+ * Code reference: dev.sanskrit.pratyahara.Pratyahara.IK and dev.sanskrit.samjna.SvaraSamjna.gunaForIk.
+ */
 object AdGunaSutra : BaseSandhiSutra(
     SutraMetadata(
         sutraNumber = "6.1.87",

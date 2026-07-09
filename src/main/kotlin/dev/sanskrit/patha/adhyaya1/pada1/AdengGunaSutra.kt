@@ -4,6 +4,11 @@ import dev.sanskrit.sutra.SutraAvastha
 import dev.sanskrit.sutra.SutraMetadata
 import dev.sanskrit.sutra.SutraType
 
+/**
+ * English: Defines the गुण vowels as अ, ए, and ओ.
+ * हिन्दी: अ, ए और ओ स्वर गुण संज्ञा वाले माने जाते हैं।
+ * Code reference: dev.sanskrit.samjna.SvaraSamjna.guna.
+ */
 object AdengGunaSutra {
     val metadata = SutraMetadata(
         sutraNumber = "1.1.2",

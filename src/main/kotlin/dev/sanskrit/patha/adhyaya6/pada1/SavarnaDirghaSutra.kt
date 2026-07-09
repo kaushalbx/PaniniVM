@@ -12,6 +12,11 @@ import dev.sanskrit.shiksha.Svara
 import dev.sanskrit.sutra.SutraMetadata
 import dev.sanskrit.sutra.SutraType
 
+/**
+ * English: Two adjacent सवर्ण अक् vowels combine into the corresponding long vowel.
+ * हिन्दी: पास-पास आए सवर्ण अक् स्वरों के स्थान पर संबंधित दीर्घ स्वर होता है।
+ * Code reference: dev.sanskrit.samjna.VarnaSamjna.isSavarna; अक् is handled directly by the sandhi rule's vowel mapping.
+ */
 object SavarnaDirghaSutra : BaseSandhiSutra(
     SutraMetadata(
         sutraNumber = "6.1.101",

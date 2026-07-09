@@ -13,6 +13,11 @@ import dev.sanskrit.shiksha.Vyanjana
 import dev.sanskrit.sutra.SutraMetadata
 import dev.sanskrit.sutra.SutraType
 
+/**
+ * English: Before an अच् vowel, an इक् vowel is replaced by its यण् counterpart.
+ * हिन्दी: अच् के आने पर इक् स्वर के स्थान पर उसका यण् आदेश होता है।
+ * Code reference: dev.sanskrit.pratyahara.Pratyahara.AC, IK, and YAN.
+ */
 object IkoYanAciSutra : BaseSandhiSutra(
     SutraMetadata(
         sutraNumber = "6.1.77",

@@ -9,6 +9,11 @@ import dev.sanskrit.shiksha.Vyanjana
 import dev.sanskrit.sutra.SutraMetadata
 import dev.sanskrit.sutra.SutraType
 
+/**
+ * English: र् or स् becomes visarga before खर् sounds or at पद-final pause.
+ * हिन्दी: खर् वर्ण या पद-अवसान के प्रसंग में र् अथवा स् के स्थान पर विसर्ग होता है।
+ * Code reference: dev.sanskrit.pratyahara.Pratyahara.KHAR and dev.sanskrit.sandhi.Shiksha.khar.
+ */
 object KharavasanayorVisarjaniyahSutra : BaseSandhiSutra(
     SutraMetadata(
         sutraNumber = "8.3.15",
