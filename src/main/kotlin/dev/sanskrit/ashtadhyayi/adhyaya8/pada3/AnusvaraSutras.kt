@@ -1,0 +1,110 @@
+package dev.sanskrit.ashtadhyayi.adhyaya8.pada3
+
+import dev.sanskrit.ashtadhyayi.Ashtadhyayi
+import dev.sanskrit.derivation.DerivationChange
+import dev.sanskrit.derivation.DerivationState
+import dev.sanskrit.derivation.DerivationSutra
+import dev.sanskrit.derivation.Samjna
+import dev.sanskrit.pratyahara.Pratyahara
+import dev.sanskrit.shiksha.Ayogavaha
+import dev.sanskrit.sutra.Sutra
+import dev.sanskrit.sutra.SutraAction
+import dev.sanskrit.sutra.SutraRole
+import dev.sanskrit.sutra.SutraScope
+import dev.sanskrit.sutra.SutraType
+
+/**
+ * 8.3.23: mo'nusvāraḥ.
+ * Word-final 'm' becomes Anusvāra when followed by a consonant (hal).
+ */
+object MonusvarahSutra : Sutra<DerivationState, DerivationChange>(
+    number = "8.3.23",
+    text = "मोऽनुस्वारः",
+    hindiExplanation = "पदान्त मकार के स्थान पर अनुस्वार होता है यदि बाद में कोई व्यञ्जन हो।",
+    type = SutraType.NITYA,
+    chapter = 8,
+    pada = 3,
+    optional = false,
+    kramaValue = 830023,
+    role = SutraRole.Vidhi,
+    action = SutraAction.ADESHA,
+    scope = SutraScope.VARNA,
+), DerivationSutra {
+    override fun matches(context: DerivationState): Boolean {
+        if (context.terms.size < 2) return false
+        val left = context.terms[context.terms.size - 2]
+        val right = context.terms.last()
+
+        // 1. Left must be a Pada and end in 'm'
+        val isPada = context.samjnas.any { it.targetId == left.id && it.samjna == Samjna.PADA }
+        if (!isPada || !left.surface.endsWith("म्")) return false
+
+        // 2. Right must start with a consonant (hal)
+        val firstChar = right.surface.firstOrNull() ?: return false
+        return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, firstChar)
+    }
+
+    override fun apply(context: DerivationState): DerivationChange {
+        val left = context.terms[context.terms.size - 2]
+        val newSurface = left.surface.dropLast(1) + Ayogavaha.ANUSVARA.devanagari
+        
+        return DerivationChange(
+            state = context.replaceTerm(left.id, left.copy(surface = newSurface)),
+            explanation = "8.3.23: Final 'm' became Anusvāra before consonant."
+        )
+    }
+}
+
+/**
+ * 8.3.24: naścāpadāntasya jhali.
+ * Non-word-final 'n' and 'm' become Anusvāra when followed by a jhal sound.
+ */
+object NashcapadantasyaSutra : Sutra<DerivationState, DerivationChange>(
+    number = "8.3.24",
+    text = "नश्चापदान्तस्य झलि",
+    hindiExplanation = "अपदान्त 'न' और 'म' के स्थान पर अनुस्वार होता है यदि बाद में झल् वर्ण हो।",
+    type = SutraType.NITYA,
+    chapter = 8,
+    pada = 3,
+    optional = false,
+    kramaValue = 830024,
+    role = SutraRole.Vidhi,
+    action = SutraAction.ADESHA,
+    scope = SutraScope.VARNA,
+), DerivationSutra {
+    override fun matches(context: DerivationState): Boolean {
+        val surface = context.surface
+        val nIndex = surface.indexOfAny(setOf('न', 'म'))
+        if (nIndex == -1 || nIndex == surface.length - 1) return false
+        
+        val nextChar = surface[nIndex + 1]
+        return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAL, nextChar)
+    }
+
+    override fun apply(context: DerivationState): DerivationChange {
+        val surface = context.surface
+        val index = surface.indexOfAny(setOf('न', 'म'))
+        
+        var offset = 0
+        val targetTerm = context.terms.find { 
+            val start = offset
+            offset += it.surface.length
+            index in start until offset
+        } ?: return DerivationChange(context, "8.3.24: Target not found.")
+
+        val charAt = surface[index]
+        val newSurface = targetTerm.surface.replaceFirst(charAt.toString(), "ं")
+        
+        return DerivationChange(
+            state = context.replaceTerm(targetTerm.id, targetTerm.copy(surface = newSurface)),
+            explanation = "8.3.24: Internal '$charAt' became Anusvāra before jhal."
+        )
+    }
+
+    private fun String.indexOfAny(chars: Set<Char>): Int {
+        for (i in indices) {
+            if (this[i] in chars) return i
+        }
+        return -1
+    }
+}

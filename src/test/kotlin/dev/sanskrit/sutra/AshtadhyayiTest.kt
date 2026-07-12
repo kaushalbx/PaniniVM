@@ -1,29 +1,49 @@
 package dev.sanskrit.sutra
 
+import dev.sanskrit.ashtadhyayi.Ashtadhyayi
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class AshtadhyayiTest {
     @Test
     fun `tracks current patha coverage truthfully`() {
         assertEquals(3959, Ashtadhyayi.expectedSutraCount)
-        assertEquals(16, Ashtadhyayi.pathitaCount)
-        assertEquals(13, Ashtadhyayi.kriyavatCount)
+        assertEquals(39, Ashtadhyayi.pathitaCount)
+        assertEquals(39, Ashtadhyayi.kriyavatCount)
         assertTrue(Ashtadhyayi.remainingCount > 3900)
+        assertTrue(Ashtadhyayi.catalogIssues.isEmpty())
     }
 
     @Test
-    fun `exposes executable sandhi sutras by sutra number`() {
-        val metadata = Ashtadhyayi.patha.get("6.1.101")
+    fun `exposes executable derivation sutras by sutra number`() {
+        val sutra = Ashtadhyayi.registry.require("6.1.101")
 
-        assertNotNull(metadata)
-        assertEquals("अकः सवर्णे दीर्घः", metadata.sutraText)
-        assertEquals(
-            "अक् प्रत्याहार के स्वर के बाद उसी सवर्ण का स्वर आए तो दोनों के स्थान पर दीर्घ स्वर होता है।",
-            metadata.hindiVyakhya,
-        )
-        assertEquals(SutraAvastha.KRIYAVAT, metadata.avastha)
+        assertEquals("अकः सवर्णे दीर्घः", sutra.sutraText)
+        assertEquals("6.1.101", sutra.sutra)
     }
+
+    @Test
+    fun `navigates loaded sutras by purpose and dependency`() {
+        assertEquals(
+            listOf("1.1.3"),
+            Ashtadhyayi.registry.dependentsOf("1.1.2").map { it.sutra },
+        )
+        assertEquals(
+            emptyList(),
+            Ashtadhyayi.registry.dependenciesOf("6.1.87").map { it.sutra },
+        )
+        assertTrue(Ashtadhyayi.registry.withAction(SutraAction.NISHEDHA).isNotEmpty())
+        assertEquals("4.1.2", Ashtadhyayi.registry.require("4.1.2").sutra)
+        assertEquals(
+            listOf("1.3.9", "3.1.68", "3.2.123", "3.4.78", "4.1.2", "6.1.78", "6.1.87", "6.1.88", "6.1.101", "6.1.102", "6.1.107", "7.1.3", "7.1.9", "7.1.12", "7.1.13", "7.1.54", "7.3.84", "7.3.102", "7.3.103", "7.3.104", "8.2.66", "8.3.15", "8.3.59", "8.4.1", "8.4.2"),
+            Ashtadhyayi.registry.withRole(SutraRole.Vidhi).map { it.sutra },
+        )
+    }
+
+    @Test
+    fun `every executable sutra is registered through the derivation patha`() {
+        assertTrue(Ashtadhyayi.kriyavatSutras.all { it.sutra in Ashtadhyayi.registry.sutras.map { registered -> registered.sutra } })
+    }
+
 }

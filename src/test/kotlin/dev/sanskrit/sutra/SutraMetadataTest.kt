@@ -2,32 +2,29 @@ package dev.sanskrit.sutra
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import dev.sanskrit.ashtadhyayi.adhyaya6.pada1.AdGunaSutra
+import dev.sanskrit.ashtadhyayi.adhyaya1.pada1.AdengGunaSutra
 
-class SutraMetadataTest {
+class SutraTest {
     @Test
-    fun `metadata identity is the sutra number`() {
-        val first = SutraMetadata(
-            "6.1.101",
-            "अकः सवर्णे दीर्घः",
-            "अक् प्रत्याहार के स्वर के बाद उसी सवर्ण का स्वर आए तो दोनों के स्थान पर दीर्घ स्वर होता है।",
-            SutraType.NITYA,
-            6,
-            1,
-            false,
-            1,
-        )
-        val second = SutraMetadata(
-            "6.1.101",
-            "भिन्न सूत्र-पाठ",
-            "भिन्न हिन्दी व्याख्या",
-            SutraType.APAVADA,
-            6,
-            1,
-            true,
-            99,
-        )
+    fun `executable derivation sutra exposes direct rule fields`() {
+        assertEquals(SutraAction.ADESHA, AdGunaSutra.action)
+        assertEquals(SutraScope.DERIVATION, AdGunaSutra.scope)
+        assertEquals(SutraRole.Vidhi, AdGunaSutra.role)
+    }
 
-        assertEquals(first, second)
-        assertEquals(first.hashCode(), second.hashCode())
+    @Test
+    fun `base sutra carries execution context and learning examples`() {
+        assertEquals(setOf(SutraInput.VARNA), AdengGunaSutra.inputs)
+        assertEquals(SutraStage.SAMJNA, AdengGunaSutra.stage)
+        assertEquals("ए [गुण]", AdengGunaSutra.examples.single().output)
+        assertEquals("{sutra} assigns गुण संज्ञा to {target}.", AdengGunaSutra.traceTemplate)
+    }
+
+    @Test
+    fun `base sutra owns its identity fields`() {
+        assertEquals("6.1.87", AdGunaSutra.number)
+        assertEquals("आद्गुणः", AdGunaSutra.text)
+        assertEquals(610087, AdGunaSutra.kramaValue)
     }
 }

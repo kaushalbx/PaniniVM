@@ -1,10 +1,10 @@
 package dev.sanskrit.sutra
 
 class SutraPatha(
-    entries: List<SutraMetadata>,
+    entries: List<Sutra<*, *>>,
 ) {
-    private val byNumber = entries.associateBy { it.sutraNumber }
-    val entries: List<SutraMetadata> = entries.sortedBy { it.krama }
+    private val byNumber = entries.associateBy { it.sutra }
+    val entries: List<Sutra<*, *>> = entries.sortedBy { it.krama }
 
     init {
         require(byNumber.size == entries.size) { "Duplicate sutra numbers are not allowed." }
@@ -16,8 +16,8 @@ class SutraPatha(
     val kriyavatCount: Int
         get() = entries.count { it.avastha == SutraAvastha.KRIYAVAT }
 
-    fun get(sutraNumber: String): SutraMetadata? = byNumber[sutraNumber]
+    fun get(sutraNumber: String): Sutra<*, *>? = byNumber[sutraNumber]
 
-    fun require(sutraNumber: String): SutraMetadata =
+    fun require(sutraNumber: String): Sutra<*, *> =
         get(sutraNumber) ?: error("Sutra $sutraNumber is not present in this patha.")
 }

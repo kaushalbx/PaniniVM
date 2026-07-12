@@ -1,0 +1,42 @@
+package dev.sanskrit.ashtadhyayi.adhyaya1.pada3
+
+import dev.sanskrit.derivation.DerivationChange
+import dev.sanskrit.derivation.DerivationState
+import dev.sanskrit.derivation.DerivationSutra
+import dev.sanskrit.sutra.Sutra
+import dev.sanskrit.sutra.SutraAction
+import dev.sanskrit.sutra.SutraRole
+import dev.sanskrit.sutra.SutraScope
+import dev.sanskrit.sutra.SutraType
+
+/**
+ * 1.3.10: yathāsaṃkhyamanudeśaḥ samānām.
+ * Substitutes are mapped to their sources in order when the counts match.
+ */
+object YathasamkhyamSutra : Sutra<DerivationState, DerivationChange>(
+    number = "1.3.10",
+    text = "यथासंख्यमनुदेशः समानाम्",
+    hindiExplanation = "समान संख्या वाले उद्देश्य और विधेय का सम्बन्ध क्रम के अनुसार होता है।",
+    type = SutraType.PARIBHASHA,
+    chapter = 1,
+    pada = 3,
+    optional = false,
+    kramaValue = 130010,
+    role = SutraRole.Paribhasha,
+    action = SutraAction.PARIBHASHA,
+    scope = SutraScope.VARNA,
+), DerivationSutra {
+
+    override fun matches(context: DerivationState): Boolean = false
+
+    override fun apply(context: DerivationState): DerivationChange = 
+        error("Paribhasha sutra 1.3.10 should not be applied directly.")
+
+    /**
+     * Maps an item at a specific index in a source list to the item at the same index in the target list.
+     */
+    fun <T, R> map(item: T, sources: List<T>, targets: List<R>): R? {
+        val index = sources.indexOf(item)
+        return if (index != -1 && index < targets.size) targets[index] else null
+    }
+}

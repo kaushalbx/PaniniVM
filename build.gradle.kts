@@ -11,7 +11,7 @@ kotlin {
 }
 
 application {
-    mainClass.set("dev.sanskrit.sandhi.MainKt")
+    mainClass.set("dev.sanskrit.MainKt")
 }
 
 dependencies {

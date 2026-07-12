@@ -10,4 +10,5 @@ enum class SutraType {
     SAMJNA,
     PARIBHASHA,
     NISHEDHA,
+    ADHIKARA,
 }
