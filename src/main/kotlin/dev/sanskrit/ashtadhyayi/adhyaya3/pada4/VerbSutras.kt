@@ -24,11 +24,14 @@ object TiptasjhiSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.PRATYAYA,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
-        context.terms.lastOrNull()?.id == "lat" && TingAffix.fromFeatures(context.semanticFeatures) != null
+        context.terms.lastOrNull()?.id == "lat" &&
+            context.effectiveContext.rupa.let { it.purusha != null && it.vacana != null }
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
         context.replaceTerm(
-            "lat", requireNotNull(TingAffix.fromFeatures(context.semanticFeatures)).term()
+            "lat", context.effectiveContext.rupa.let { morphology ->
+                requireNotNull(TingAffix.select(requireNotNull(morphology.purusha), requireNotNull(morphology.vacana))).term()
+            }
         ),
         "3.4.78 substitutes the requested tiṅ termination for लट्.",
     )

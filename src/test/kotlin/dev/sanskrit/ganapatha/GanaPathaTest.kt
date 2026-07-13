@@ -31,6 +31,10 @@ import dev.sanskrit.ashtadhyayi.adhyaya4.pada3.DigadibhyoYatSutra
 import dev.sanskrit.ashtadhyayi.adhyaya4.pada3.RgayandibhyoAnSutra
 import dev.sanskrit.ashtadhyayi.adhyaya4.pada3.ShundikadibhyoAnSutra
 import dev.sanskrit.ashtadhyayi.adhyaya4.pada3.ShandikadibhyoNyahSutra
+import dev.sanskrit.ashtadhyayi.adhyaya4.pada2.VunchhankathajilasenirSutra
+import dev.sanskrit.derivation.DerivationalContext
+import dev.sanskrit.derivation.DerivationalMeaning
+import dev.sanskrit.derivation.TaddhitaDerivationRequest
 import dev.sanskrit.ashtadhyayi.adhyaya4.pada1.AjadyatastapSutra
 import dev.sanskrit.ashtadhyayi.adhyaya4.pada1.BahvadibhyashCaSutra
 import dev.sanskrit.ashtadhyayi.adhyaya4.pada1.NadadibhyahPhakSutra
@@ -163,7 +167,7 @@ class GanaPathaTest {
 
     @Test
     fun `implemented gana sutras resolve to concrete ashtadhyayi rules`() {
-        listOf(1, 2, 3, 4, 5, 6, 32, 33, 34, 35, 36, 37, 38, 41, 42, 44, 45, 46, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 74, 76, 77, 78, 79, 80, 81, 82, 83, 103, 105, 106, 112, 113, 116, 117, 118).forEach { sourceIndex ->
+        listOf(1, 2, 3, 4, 5, 6, 32, 33, 34, 35, 36, 37, 38, 41, 42, 44, 45, 46, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 74, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 103, 105, 106, 112, 113, 116, 117, 118).forEach { sourceIndex ->
             val gana = GanaPatha.require(sourceIndex)
             assertEquals(gana.sutra, Ashtadhyayi.sutraFor(gana).sutra)
         }
@@ -198,6 +202,8 @@ class GanaPathaTest {
         assertEquals(RgayandibhyoAnSutra, Ashtadhyayi.sutraFor(GanaPatha.require(116)))
         assertEquals(ShundikadibhyoAnSutra, Ashtadhyayi.sutraFor(GanaPatha.require(117)))
         assertEquals(ShandikadibhyoNyahSutra, Ashtadhyayi.sutraFor(GanaPatha.require(118)))
+        assertEquals(VunchhankathajilasenirSutra, Ashtadhyayi.sutraFor(GanaPatha.require(84)))
+        assertEquals(VunchhankathajilasenirSutra, Ashtadhyayi.sutraFor(GanaPatha.require(100)))
         assertEquals(AjadyatastapSutra, Ashtadhyayi.sutraFor(GanaPatha.require(45)))
         assertEquals(NaShatsvasradibhyahSutra, Ashtadhyayi.sutraFor(GanaPatha.require(46)))
         assertEquals(ShidGauradibhyashCaSutra, Ashtadhyayi.sutraFor(GanaPatha.require(48)))
@@ -243,6 +249,22 @@ class GanaPathaTest {
         assertTrue("सर्व" in sarvadi.memberTexts)
         assertTrue("किम्" in sarvadi.normalizedMemberTexts)
         assertTrue(sarvadi.hasMeaning())
+    }
+
+    @Test
+    fun `instruction members match their licensed suffix patterns`() {
+        assertTrue(GanaPatha.contains(2, "ब्राह्मणवत्"))
+        assertTrue(GanaPatha.contains(2, "कृत्वा"))
+        assertTrue(GanaPatha.isEligibleMember(2, "कृत्वा"))
+        assertTrue(
+            GanaPatha.isEligibleMember(
+                sourceIndex = 2,
+                text = "राम",
+                suffixUpadeshas = setOf("तसिल्"),
+            ),
+        )
+        assertFalse(GanaPatha.contains(2, "राम"))
+        assertFalse(GanaPatha.isEligibleMember(2, "राम"))
     }
 
     @Test
@@ -559,6 +581,7 @@ class GanaPathaTest {
             semanticFeatures = setOf(SemanticFeature.VISHAYA_DESE),
         )
         assertEquals("वुञ्", RajanyadibhyoVunSutra.apply(rajanyadi).state.terms.last().upadesha)
+        assertTrue(RajanyadibhyoVunSutra.matches(TaddhitaDerivationRequest("राजन्य", DerivationalMeaning.VISHAYA_DESE).initialState()))
 
         val bhaurikyadi = DerivationState(
             listOf(DerivationTerm("stem", "भौरिकि", TermKind.PRATIPADIKA)),
@@ -600,12 +623,21 @@ class GanaPathaTest {
         val digadi = DerivationState(listOf(DerivationTerm("stem", "दिश्", TermKind.PRATIPADIKA)), semanticFeatures = setOf(SemanticFeature.TATRA_BHAVA))
         assertEquals("अण्", SandhiveladyRtunakshatrebhyoAnSutra.apply(sandhiveladi).state.terms.last().upadesha)
         assertEquals("यत्", DigadibhyoYatSutra.apply(digadi).state.terms.last().upadesha)
+        val typedDigadi = DerivationState(
+            listOf(DerivationTerm("stem", "दिश्", TermKind.PRATIPADIKA)),
+            context = DerivationalContext(requestedMeaning = DerivationalMeaning.TATRA_BHAVA),
+        )
+        assertTrue(DigadibhyoYatSutra.matches(typedDigadi))
         val rgayanadi = DerivationState(listOf(DerivationTerm("stem", "ऋगयन", TermKind.PRATIPADIKA)), semanticFeatures = setOf(SemanticFeature.VYAKHYANA))
         val shundikadi = DerivationState(listOf(DerivationTerm("stem", "शुण्डिक", TermKind.PRATIPADIKA)), semanticFeatures = setOf(SemanticFeature.TATAH_AGATA))
         assertEquals("अण्", RgayandibhyoAnSutra.apply(rgayanadi).state.terms.last().upadesha)
         assertEquals("अण्", ShundikadibhyoAnSutra.apply(shundikadi).state.terms.last().upadesha)
         val shandikadi = DerivationState(listOf(DerivationTerm("stem", "शण्डिक", TermKind.PRATIPADIKA)), semanticFeatures = setOf(SemanticFeature.ABHIJANA))
         assertEquals("ञ्य", ShandikadibhyoNyahSutra.apply(shandikadi).state.terms.last().upadesha)
+        val arihanadi = DerivationState(listOf(DerivationTerm("stem", "अरीहण", TermKind.PRATIPADIKA)), semanticFeatures = setOf(SemanticFeature.CHATURARTHIKA))
+        val varahadi = DerivationState(listOf(DerivationTerm("stem", "वराह", TermKind.PRATIPADIKA)), semanticFeatures = setOf(SemanticFeature.CHATURARTHIKA))
+        assertEquals("वुञ्", VunchhankathajilasenirSutra.apply(arihanadi).state.terms.last().upadesha)
+        assertEquals("कक्", VunchhankathajilasenirSutra.apply(varahadi).state.terms.last().upadesha)
 
         val sharngaravadi = DerivationState(listOf(DerivationTerm("stem", "शार्ङ्गरव", TermKind.PRATIPADIKA)), semanticFeatures = setOf(SemanticFeature.STRI))
         assertEquals("ङीन्", SharngaravadyanyoNginSutra.apply(sharngaravadi).state.terms.last().upadesha)

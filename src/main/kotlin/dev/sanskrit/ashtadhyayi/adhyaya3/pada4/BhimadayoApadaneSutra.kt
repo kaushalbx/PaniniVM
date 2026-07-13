@@ -1,11 +1,14 @@
 package dev.sanskrit.ashtadhyayi.adhyaya3.pada4
 
 import dev.sanskrit.derivation.DerivationChange
+import dev.sanskrit.derivation.DerivationalEnvironment
+import dev.sanskrit.derivation.DerivationalMeaning
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
+import dev.sanskrit.derivation.HasDerivationalEnvironment
+import dev.sanskrit.derivation.HasRequestedMeaning
 import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.ganapatha.GanaPatha
-import dev.sanskrit.shiksha.SemanticFeature
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -20,12 +23,16 @@ object BhimadayoApadaneSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Atidesha, action = SutraAction.ATIDESHA, scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
-        SemanticFeature.APADANA in context.semanticFeatures &&
-            SemanticFeature.UNADI_LICENSED !in context.semanticFeatures &&
+        HasRequestedMeaning(DerivationalMeaning.APADANA).matches(context) &&
+            !HasDerivationalEnvironment(DerivationalEnvironment.UNADI_LICENSED).matches(context) &&
             context.terms.any { it.kind == TermKind.PRATIPADIKA && GanaPatha.isEligibleMember(44, it.surface, it.lexicalUses) }
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
-        context.copy(semanticFeatures = context.semanticFeatures + SemanticFeature.UNADI_LICENSED),
+        context.copy(
+            context = context.context.copy(
+                environments = context.context.environments + DerivationalEnvironment.UNADI_LICENSED,
+            ),
+        ),
         "3.4.74 licenses the eligible भीमादि lexical formation in an apādāna relation.",
     )
 }

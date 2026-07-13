@@ -1,13 +1,14 @@
 package dev.sanskrit.ashtadhyayi.adhyaya4.pada1
 
 import dev.sanskrit.derivation.DerivationChange
+import dev.sanskrit.derivation.DerivationalMeaning
 import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.DerivationTerm
+import dev.sanskrit.derivation.HasRequestedMeaning
 import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.ganapatha.GanaPatha
-import dev.sanskrit.shiksha.SemanticFeature
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -29,7 +30,7 @@ object GargadibhyoYanySutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
-        SemanticFeature.APATYA in context.semanticFeatures &&
+        HasRequestedMeaning(DerivationalMeaning.APATYA).matches(context) &&
             context.terms.any { term ->
                 term.kind == TermKind.PRATIPADIKA &&
                     GanaPatha.isEligibleMember(59, term.surface, term.lexicalUses)

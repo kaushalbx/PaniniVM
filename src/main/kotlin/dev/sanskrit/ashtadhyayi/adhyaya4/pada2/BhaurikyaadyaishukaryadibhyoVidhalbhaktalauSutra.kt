@@ -4,9 +4,10 @@ import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.DerivationTerm
+import dev.sanskrit.derivation.DerivationalMeaning
+import dev.sanskrit.derivation.HasRequestedMeaning
 import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.ganapatha.GanaPatha
-import dev.sanskrit.shiksha.SemanticFeature
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -24,7 +25,7 @@ object BhaurikyaadyaishukaryadibhyoVidhalbhaktalauSutra : Sutra<DerivationState,
     private val selections = listOf(Selection(77, "विधल्", "विध"), Selection(78, "भक्तल्", "भक्त"))
 
     override fun matches(context: DerivationState): Boolean =
-        SemanticFeature.VISHAYA_DESE in context.semanticFeatures && context.terms.any { term ->
+        HasRequestedMeaning(DerivationalMeaning.VISHAYA_DESE).matches(context) && context.terms.any { term ->
             term.kind == TermKind.PRATIPADIKA && selectionFor(term) != null &&
                 context.terms.none { it.id == "${term.id}-4-2-54" }
         }

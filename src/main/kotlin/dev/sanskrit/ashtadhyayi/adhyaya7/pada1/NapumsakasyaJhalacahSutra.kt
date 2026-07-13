@@ -6,10 +6,11 @@ import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.DerivationTerm
-import dev.sanskrit.derivation.SemanticFeature
+import dev.sanskrit.derivation.HasMorphosyntax
 import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.pratyahara.Pratyahara
 import dev.sanskrit.shiksha.Varnamala
+import dev.sanskrit.shiksha.Linga
 import dev.sanskrit.sutra.NimittaScope
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
@@ -39,7 +40,7 @@ object NapumsakasyaJhalacahSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if ("6.4.1" !in context.activeAdhikaras) return false
-        if (SemanticFeature.NAPUMSAKA !in context.semanticFeatures) return false
+        if (!HasMorphosyntax(linga = Linga.NAPUMSAKA).matches(context)) return false
         if (context.terms.size < 2) return false
 
         val stem = context.terms[context.terms.size - 2]

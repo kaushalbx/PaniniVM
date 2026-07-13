@@ -2,7 +2,6 @@ package dev.sanskrit.ashtadhyayi.adhyaya4.pada3
 
 import dev.sanskrit.derivation.*
 import dev.sanskrit.ganapatha.GanaPatha
-import dev.sanskrit.shiksha.SemanticFeature
 import dev.sanskrit.sutra.*
 
 /** 4.3.76: शुण्डिकादिभ्योऽण्. */
@@ -12,6 +11,6 @@ object ShundikadibhyoAnSutra : Sutra<DerivationState, DerivationChange>(
     type = SutraType.APAVADA, chapter = 4, pada = 3, optional = false, kramaValue = 430076,
     role = SutraRole.Vidhi, action = SutraAction.PRATYAYA_SELECTION, scope = SutraScope.DERIVATION,
 ), DerivationSutra {
-    override fun matches(context: DerivationState) = SemanticFeature.TATAH_AGATA in context.semanticFeatures && context.terms.any { it.kind == TermKind.PRATIPADIKA && GanaPatha.isEligibleMember(117, it.surface, it.lexicalUses) } && context.allEffectiveTerms.none { it.upadesha == "अण्" }
+    override fun matches(context: DerivationState) = HasRequestedMeaning(DerivationalMeaning.TATAH_AGATA).matches(context) && context.terms.any { it.kind == TermKind.PRATIPADIKA && GanaPatha.isEligibleMember(117, it.surface, it.lexicalUses) } && context.allEffectiveTerms.none { it.upadesha == "अण्" }
     override fun apply(context: DerivationState) = DerivationChange(context.addTerm(DerivationTerm("an-suffix", "अ", TermKind.PRATYAYA, upadesha = "अण्")), "4.3.76 introduces अण् after an eligible शुण्डिकादि source term.")
 }

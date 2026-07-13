@@ -1,8 +1,8 @@
 ﻿package dev.sanskrit.ganapatha
 
 import dev.sanskrit.shiksha.Samjna
-import dev.sanskrit.shiksha.SemanticFeature
 import dev.sanskrit.shiksha.LexicalUse
+import dev.sanskrit.shiksha.Linga
 
 abstract class Gana(
     val name: String,
@@ -21,7 +21,7 @@ abstract class Gana(
     val vartika: String = "",
     val rawWords: String = members.joinToString(" । ", postfix = " ॥") { it.text },
     val notes: String? = null,
-    val genders: Set<SemanticFeature> = emptySet(),
+    val genders: Set<Linga> = emptySet(),
     val resultSamjnas: Set<Samjna> = emptySet(),
     val references: List<String> = emptyList(),
     val adhikara: Adhikara? = null,
@@ -45,7 +45,10 @@ abstract class Gana(
     }
 
     fun contains(text: String): Boolean =
-        findMember(text) != null
+        contains(GanaInstructionContext(text))
+
+    fun contains(context: GanaInstructionContext): Boolean =
+        findMember(context.text) != null || matchesInstruction(context)
 
     fun findMember(text: String): GanaMember? =
         membersByNormalized[GanaNormalizer.normalize(text)]
@@ -56,7 +59,10 @@ abstract class Gana(
         }
 
     fun isEligible(text: String, lexicalUses: Set<LexicalUse> = emptySet()): Boolean =
-        eligibleMember(text, lexicalUses) != null || isAntarGanaMember(text)
+        isEligible(GanaInstructionContext(text), lexicalUses)
+
+    fun isEligible(context: GanaInstructionContext, lexicalUses: Set<LexicalUse> = emptySet()): Boolean =
+        eligibleMember(context.text, lexicalUses) != null || matchesInstruction(context) || isAntarGanaMember(context.text)
 
     fun requireMember(text: String): GanaMember =
         findMember(text) ?: error("Member $text is not present in gana ${sourceIndex}.")
@@ -69,6 +75,11 @@ abstract class Gana(
 
     fun hasMeaning(): Boolean =
         sanskritMeaning.isNotBlank() || hindiMeaning.isNotBlank() || englishMeaning.isNotBlank()
+
+    private fun matchesInstruction(context: GanaInstructionContext): Boolean =
+        members.asSequence()
+            .filter { it.isInstruction }
+            .any { GanaInstructionMatcher.matches(it.text, context) }
 }
 
 /** A governing scope introduced by the gaṇa's associated sūtra. */

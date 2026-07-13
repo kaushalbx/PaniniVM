@@ -4,9 +4,10 @@ import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.DerivationTerm
+import dev.sanskrit.derivation.DerivationalMeaning
+import dev.sanskrit.derivation.HasRequestedMeaning
 import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.ganapatha.GanaPatha
-import dev.sanskrit.shiksha.SemanticFeature
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -21,7 +22,7 @@ object RajanyadibhyoVunSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi, action = SutraAction.PRATYAYA_SELECTION, scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
-        SemanticFeature.VISHAYA_DESE in context.semanticFeatures &&
+        HasRequestedMeaning(DerivationalMeaning.VISHAYA_DESE).matches(context) &&
             context.terms.any { it.kind == TermKind.PRATIPADIKA && GanaPatha.isEligibleMember(76, it.surface, it.lexicalUses) } &&
             context.allEffectiveTerms.none { it.upadesha == "वुञ्" }
 

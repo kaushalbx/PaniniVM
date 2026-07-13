@@ -4,9 +4,10 @@ import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.DerivationTerm
+import dev.sanskrit.derivation.HasMorphosyntax
 import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.ganapatha.GanaPatha
-import dev.sanskrit.shiksha.SemanticFeature
+import dev.sanskrit.shiksha.Linga
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -21,7 +22,7 @@ object ShidbhidadibhyoAngSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi, action = SutraAction.PRATYAYA_SELECTION, scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
-        SemanticFeature.STRI in context.semanticFeatures && context.terms.any { term ->
+        HasMorphosyntax(linga = Linga.STRI).matches(context) && context.terms.any { term ->
             term.kind == TermKind.PRATIPADIKA &&
                 GanaPatha.isEligibleMember(42, term.surface, term.lexicalUses) &&
                 context.terms.none { it.id == "${term.id}-ang" }

@@ -1,6 +1,6 @@
 ﻿package dev.sanskrit.ganapatha
 
-import dev.sanskrit.shiksha.SemanticFeature
+import dev.sanskrit.shiksha.Linga
 
 object ArdharcadiGana : Gana(
     name = "अर्धर्चादिः",
@@ -10,7 +10,7 @@ object ArdharcadiGana : Gana(
     sutraText = "अर्धर्चाः पुंसि च",
     sutraTransliteration = "ardharchaahapumsicha",
     kind = GanaKind.PATHA,
-    genders = setOf(SemanticFeature.PUMS, SemanticFeature.NAPUMSAKA),
+    genders = setOf(Linga.PUMS, Linga.NAPUMSAKA),
     members = ganaMembers {
         member("अर्धर्च")
         member("गोमय")

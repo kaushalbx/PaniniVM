@@ -8,8 +8,67 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.assertFailsWith
+import dev.sanskrit.ashtadhyayi.adhyaya7.pada2.ArdhadhatukasyedValadehSutra
+import dev.sanskrit.ashtadhyayi.adhyaya3.pada2.VartamaneLatSutra
+import dev.sanskrit.ashtadhyayi.adhyaya4.pada1.StriyamAdhikaraSutra
+import dev.sanskrit.shiksha.ItStatus
+import dev.sanskrit.dhatupatha.DhatuPatha
+import dev.sanskrit.shiksha.Linga
 
 class DerivationEngineTest {
+    @Test
+    fun `lakāra inventory retains every upadeśa`() {
+        assertEquals(
+            setOf("लट्", "लिट्", "लुट्", "लृट्", "लेट्", "लोट्", "लङ्", "लिङ्", "लुङ्", "लृङ्"),
+            Lakara.entries.mapTo(mutableSetOf()) { it.upadesha },
+        )
+    }
+
+    @Test
+    fun `kāla inventory contains present past and future`() {
+        assertEquals(setOf(Kala.VARTAMANA, Kala.BHUTA, Kala.BHAVISYAT), Kala.entries.toSet())
+    }
+
+    @Test
+    fun `dhatu factory carries dhatupatha iṭ status into derivation`() {
+        val dhatu = requireNotNull(DhatuPatha.find("01.0001"))
+        val term = DerivationTerm.fromDhatu(dhatu)
+        assertEquals("भू", term.surface)
+        assertEquals(ItStatus.SET, term.itStatus)
+    }
+
+    @Test
+    fun `seṭ root receives iṭ before consonant-initial ārddhadhātuka affix`() {
+        val state = DerivationState(
+            listOf(
+                DerivationTerm("root", "भू", TermKind.DHATU, itStatus = ItStatus.SET),
+                DerivationTerm("suffix", "त", TermKind.PRATYAYA),
+            ),
+            context = DerivationalContext(environments = setOf(DerivationalEnvironment.ARDHADHATUKA)),
+        )
+        assertTrue(ArdhadhatukasyedValadehSutra.matches(state))
+        assertEquals("इट्", ArdhadhatukasyedValadehSutra.apply(state).state.terms.single { it.id == "it-agama" }.upadesha)
+    }
+
+    @Test
+    fun `aniṭ root does not receive iṭ under 7 2 35`() {
+        val state = DerivationState(
+            listOf(DerivationTerm("root", "भू", TermKind.DHATU, itStatus = ItStatus.ANIT), DerivationTerm("suffix", "त", TermKind.PRATYAYA)),
+            semanticFeatures = setOf(SemanticFeature.ARDHADHATUKA),
+        )
+        assertTrue(!ArdhadhatukasyedValadehSutra.matches(state))
+    }
+
+    @Test
+    fun `derivation engine applies 7 2 35 for an eligible seṭ root`() {
+        val state = DerivationState(
+            listOf(DerivationTerm("root", "भू", TermKind.DHATU, itStatus = ItStatus.SET), DerivationTerm("suffix", "त", TermKind.PRATYAYA)),
+            semanticFeatures = setOf(SemanticFeature.ARDHADHATUKA),
+        )
+        val result = DerivationEngine(listOf(ArdhadhatukasyedValadehSutra)).derive(state)
+        assertTrue(result.applications.any { it.sutra == "7.2.35" })
+        assertEquals("इ", result.final.terms.single { it.id == "it-agama" }.surface)
+    }
     @Test
     fun `nominal request creates a structured prātipadika derivation state`() {
         val state = SubantaDerivationRequest("राम", Vibhakti.PRATHAMA, Vacana.EKAVACANA).initialState()
@@ -17,6 +76,70 @@ class DerivationEngineTest {
         assertEquals(TermKind.PRATIPADIKA, state.terms.single().kind)
         assertTrue(HasSemanticFeature(SemanticFeature.PRATHAMA).matches(state))
         assertTrue(HasSemanticFeature(SemanticFeature.EKAVACANA).matches(state))
+        assertEquals(Vibhakti.PRATHAMA, state.context.rupa.vibhakti)
+        assertEquals(Vacana.EKAVACANA, state.context.rupa.vacana)
+        assertEquals(Linga.PUMS, state.context.rupa.linga)
+    }
+
+    @Test
+    fun `taddhita request keeps requested meaning separate from grammatical facts`() {
+        val state = TaddhitaDerivationRequest("पाश", DerivationalMeaning.SAMUHA).initialState()
+        assertEquals(DerivationalMeaning.SAMUHA, state.context.requestedMeaning)
+        assertTrue(state.semanticFeatures.isEmpty())
+    }
+
+    @Test
+    fun `legacy features project into typed effective context during migration`() {
+        val state = DerivationState(
+            listOf(DerivationTerm("stem", "पाश", TermKind.PRATIPADIKA)),
+            semanticFeatures = setOf(SemanticFeature.SAMUHA, SemanticFeature.STRI, SemanticFeature.SAPTAMI),
+        )
+        assertEquals(DerivationalMeaning.SAMUHA, state.effectiveContext.requestedMeaning)
+        assertEquals(Linga.STRI, state.effectiveContext.rupa.linga)
+        assertEquals(Vibhakti.SAPTAMI, state.effectiveContext.rupa.vibhakti)
+    }
+
+    @Test
+    fun `legacy bhāve and vartamāna features project to their distinct typed axes`() {
+        val state = DerivationState(
+            listOf(DerivationTerm("stem", "लोहित", TermKind.PRATIPADIKA)),
+            semanticFeatures = setOf(SemanticFeature.BHAVE, SemanticFeature.VARTAMANA),
+        )
+
+        assertEquals(DerivationalMeaning.BHAVA, state.effectiveContext.requestedMeaning)
+        assertEquals(Kala.VARTAMANA, state.effectiveContext.kala)
+        assertEquals(Prayoga.BHAVE, state.effectiveContext.rupa.prayoga)
+    }
+
+    @Test
+    fun `legacy guṇa and vṛddhi requests project to a typed phonological request`() {
+        val guna = DerivationState(
+            listOf(DerivationTerm("stem", "इ", TermKind.PRATIPADIKA)),
+            semanticFeatures = setOf(SemanticFeature.GUNA_REQUEST),
+        )
+        val vrddhi = guna.copy(semanticFeatures = setOf(SemanticFeature.VRDDHI_REQUEST))
+
+        assertEquals(PhonologicalRequest.GUNA, guna.effectiveContext.phonologicalRequest)
+        assertEquals(PhonologicalRequest.VRDDHI, vrddhi.effectiveContext.phonologicalRequest)
+        assertTrue(HasPhonologicalRequest(PhonologicalRequest.VRDDHI).matches(vrddhi))
+    }
+
+    @Test
+    fun `typed declarative conditions query derivational context`() {
+        val state = TaddhitaDerivationRequest("पाश", DerivationalMeaning.SAMUHA).initialState()
+        assertTrue(HasRequestedMeaning(DerivationalMeaning.SAMUHA).matches(state))
+        assertTrue(!HasDerivationalEnvironment(DerivationalEnvironment.ARDHADHATUKA).matches(state))
+    }
+
+    @Test
+    fun `typed tense and gender contexts drive executable sutras`() {
+        assertTrue(VartamaneLatSutra.matches(TingantaDerivationRequest("भू").initialState()))
+
+        val feminine = DerivationState(
+            terms = listOf(DerivationTerm("stem", "रमा", TermKind.PRATIPADIKA)),
+            context = DerivationalContext(rupa = Rupa(linga = Linga.STRI)),
+        )
+        assertTrue(StriyamAdhikaraSutra.matches(feminine))
     }
 
     @Test

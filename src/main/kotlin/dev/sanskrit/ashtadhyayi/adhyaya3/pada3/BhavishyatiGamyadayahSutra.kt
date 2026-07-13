@@ -1,11 +1,11 @@
 package dev.sanskrit.ashtadhyayi.adhyaya3.pada3
 
 import dev.sanskrit.derivation.DerivationChange
+import dev.sanskrit.derivation.DerivationalMeaning
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.ganapatha.GanaPatha
-import dev.sanskrit.shiksha.SemanticFeature
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -20,11 +20,15 @@ object BhavishyatiGamyadayahSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
-        SemanticFeature.BHAVISYAT !in context.semanticFeatures &&
+        DerivationalMeaning.BHAVISYAT !in context.context.derivedMeanings &&
             context.terms.any { it.kind == TermKind.PRATIPADIKA && GanaPatha.isEligibleMember(41, it.surface, it.lexicalUses) }
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
-        context.copy(semanticFeatures = context.semanticFeatures + SemanticFeature.BHAVISYAT),
+        context.copy(
+            context = context.context.copy(
+                derivedMeanings = context.context.derivedMeanings + DerivationalMeaning.BHAVISYAT,
+            ),
+        ),
         "3.3.3 records the future-time interpretation licensed for an eligible गम्यादि expression.",
     )
 }

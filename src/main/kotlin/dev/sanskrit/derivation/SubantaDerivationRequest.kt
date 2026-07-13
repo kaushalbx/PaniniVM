@@ -3,6 +3,7 @@ package dev.sanskrit.derivation
 import dev.sanskrit.shiksha.Ayogavaha
 import dev.sanskrit.shiksha.Svara
 import dev.sanskrit.shiksha.Vyanjana
+import dev.sanskrit.shiksha.Linga
 
 /** Typed input for a nominal (sup) derivation. */
 data class SubantaDerivationRequest(
@@ -20,17 +21,19 @@ data class SubantaDerivationRequest(
 
     fun initialState(): DerivationState = DerivationState(
         terms = listOf(DerivationTerm("pratipadika", pratipadika, TermKind.PRATIPADIKA)),
-        semanticFeatures = setOf(vibhakti.semanticFeature, vacana.semanticFeature, stemClass.genderFeature),
+        context = DerivationalContext(
+            rupa = Rupa(linga = stemClass.linga, vibhakti = vibhakti, vacana = vacana),
+        ),
     )
 }
 
 /** The nominal morphology currently implemented by the executable patha. */
 enum class SubantaStemClass(
     val displayName: String,
-    val genderFeature: SemanticFeature,
+    val linga: Linga,
 ) {
-    A_STEM_MASCULINE("a-stem masculine", SemanticFeature.PUMS),
-    A_STEM_NEUTER("a-stem neuter", SemanticFeature.NAPUMSAKA),
+    A_STEM_MASCULINE("a-stem masculine", Linga.PUMS),
+    A_STEM_NEUTER("a-stem neuter", Linga.NAPUMSAKA),
     ;
 
     fun accepts(pratipadika: String): Boolean = when (this) {
@@ -53,18 +56,10 @@ enum class SubantaStemClass(
     }
 }
 
-enum class Vibhakti(val semanticFeature: SemanticFeature) {
-    PRATHAMA(SemanticFeature.PRATHAMA),
-    DVITIYA(SemanticFeature.DVITIYA),
-    TRTIYA(SemanticFeature.TRTIYA),
-    CHATURTHI(SemanticFeature.CHATURTHI),
-    PANCHAMI(SemanticFeature.PANCHAMI),
-    SASTHI(SemanticFeature.SASTHI),
-    SAPTAMI(SemanticFeature.SAPTAMI),
+enum class Vibhakti {
+    PRATHAMA, DVITIYA, TRTIYA, CHATURTHI, PANCHAMI, SASTHI, SAPTAMI,
 }
 
-enum class Vacana(val semanticFeature: SemanticFeature) {
-    EKAVACANA(SemanticFeature.EKAVACANA),
-    DVIVACANA(SemanticFeature.DVIVACANA),
-    BAHUVACANA(SemanticFeature.BAHUVACANA),
+enum class Vacana {
+    EKAVACANA, DVIVACANA, BAHUVACANA,
 }

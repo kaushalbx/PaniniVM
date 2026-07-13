@@ -3,9 +3,10 @@ package dev.sanskrit.ashtadhyayi.adhyaya1.pada1
 import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
+import dev.sanskrit.derivation.HasMorphosyntax
 import dev.sanskrit.shiksha.Samjna
 import dev.sanskrit.derivation.SamjnaAssignment
-import dev.sanskrit.derivation.SemanticFeature
+import dev.sanskrit.shiksha.Linga
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -30,7 +31,7 @@ object ShiSarvanamasthanamSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        if (SemanticFeature.NAPUMSAKA !in context.semanticFeatures) return false
+        if (!HasMorphosyntax(linga = Linga.NAPUMSAKA).matches(context)) return false
         
         return context.terms.any { term ->
             term.upadesha == "शि" && 
@@ -70,7 +71,7 @@ object SudAnapumsakasyaSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        if (SemanticFeature.NAPUMSAKA in context.semanticFeatures) return false
+        if (HasMorphosyntax(linga = Linga.NAPUMSAKA).matches(context)) return false
         
         return context.terms.any { term ->
             term.upadesha in firstFive && 

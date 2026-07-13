@@ -41,5 +41,9 @@ object SvaujasamauTchastaSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     private fun selectionFor(context: DerivationState): SupAffix? =
-        SupAffix.fromFeatures(context.semanticFeatures)
+        context.effectiveContext.rupa.let { morphology ->
+            if (morphology.vibhakti != null && morphology.vacana != null) {
+                SupAffix.select(morphology.vibhakti, morphology.vacana)
+            } else null
+        }
 }

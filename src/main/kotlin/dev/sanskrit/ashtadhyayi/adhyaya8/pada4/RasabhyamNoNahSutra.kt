@@ -4,8 +4,9 @@ import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
-import dev.sanskrit.derivation.SemanticFeature
-import dev.sanskrit.shiksha.Vyanjana
+import dev.sanskrit.derivation.HasMorphosyntax
+import dev.sanskrit.shiksha.Vacana
+import dev.sanskrit.shiksha.Vibhakti
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -31,9 +32,7 @@ object RasabhyamNoNahSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        if (SemanticFeature.DVITIYA in context.semanticFeatures &&
-            SemanticFeature.BAHUVACANA in context.semanticFeatures
-        ) return false
+        if (HasMorphosyntax(vibhakti = Vibhakti.DVITIYA, vacana = Vacana.BAHUVACANA).matches(context)) return false
 
         val surface = context.surface
         

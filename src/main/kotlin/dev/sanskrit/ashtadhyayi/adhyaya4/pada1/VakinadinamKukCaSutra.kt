@@ -1,13 +1,16 @@
 package dev.sanskrit.ashtadhyayi.adhyaya4.pada1
 
 import dev.sanskrit.derivation.DerivationChange
+import dev.sanskrit.derivation.DerivationalEnvironment
+import dev.sanskrit.derivation.DerivationalMeaning
 import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.DerivationTerm
+import dev.sanskrit.derivation.HasDerivationalEnvironment
+import dev.sanskrit.derivation.HasRequestedMeaning
 import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.ganapatha.GanaPatha
-import dev.sanskrit.shiksha.SemanticFeature
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -26,7 +29,8 @@ object VakinadinamKukCaSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun matches(context: DerivationState): Boolean =
-        SemanticFeature.APATYA in context.semanticFeatures && SemanticFeature.UDICYA in context.semanticFeatures &&
+        HasRequestedMeaning(DerivationalMeaning.APATYA).matches(context) &&
+            HasDerivationalEnvironment(DerivationalEnvironment.UDICYA).matches(context) &&
             bases(context).isNotEmpty() && context.allEffectiveTerms.none { it.upadesha == "फिञ्" }
 
     override fun apply(context: DerivationState): DerivationChange {

@@ -75,7 +75,5 @@ enum class SupAffix(
         fun select(vibhakti: Vibhakti, vacana: Vacana): SupAffix =
             entries.single { it.vibhakti == vibhakti && it.vacana == vacana }
 
-        fun fromFeatures(features: Set<SemanticFeature>): SupAffix? =
-            entries.singleOrNull { it.vibhakti.semanticFeature in features && it.vacana.semanticFeature in features }
     }
 }

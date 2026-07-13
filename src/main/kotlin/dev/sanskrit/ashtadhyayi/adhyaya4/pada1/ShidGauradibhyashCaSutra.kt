@@ -5,10 +5,11 @@ import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.DerivationTerm
+import dev.sanskrit.derivation.HasMorphosyntax
 import dev.sanskrit.derivation.ItMarker
 import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.ganapatha.GanaPatha
-import dev.sanskrit.shiksha.SemanticFeature
+import dev.sanskrit.shiksha.Linga
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -31,7 +32,7 @@ object ShidGauradibhyashCaSutra : Sutra<DerivationState, DerivationChange>(
     dependencies = setOf("4.1.3"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
-        SemanticFeature.STRI in context.semanticFeatures &&
+        HasMorphosyntax(linga = Linga.STRI).matches(context) &&
             "4.1.3" in context.activeAdhikaras &&
             context.terms.any { term ->
                 term.kind == TermKind.PRATIPADIKA &&

@@ -1,8 +1,9 @@
 package dev.sanskrit.derivation
 
 import dev.sanskrit.shiksha.Samjna
-import dev.sanskrit.shiksha.SemanticFeature
 import dev.sanskrit.shiksha.LexicalUse
+import dev.sanskrit.shiksha.ItStatus
+import dev.sanskrit.dhatupatha.Dhatu
 
 /**
  * The shared state passed through an Ashtadhyayi derivation.
@@ -12,7 +13,7 @@ data class DerivationState(
     val droppedTerms: List<DerivationTerm> = emptyList(),
     val samjnas: Set<SamjnaAssignment> = emptySet(),
     val stage: DerivationStage = DerivationStage.INITIAL,
-    val semanticFeatures: Set<SemanticFeature> = emptySet(),
+    val context: DerivationalContext = DerivationalContext(),
     val activeAdhikaras: Set<String> = emptySet(),
     val inheritedAnuvrtti: Set<String> = emptySet(),
     val blockedSutras: Map<String, String> = emptyMap(),
@@ -28,6 +29,9 @@ data class DerivationState(
 
     val allEffectiveTerms: List<DerivationTerm>
         get() = terms + droppedTerms
+
+    val effectiveContext: DerivationalContext
+        get() = context
 
     fun withSamjnas(additions: Set<SamjnaAssignment>): DerivationState =
         copy(samjnas = samjnas + additions)
@@ -62,6 +66,7 @@ data class DerivationState(
 
     fun addSubstitution(substitution: VarnaSubstitution): DerivationState =
         copy(substitutions = substitutions + substitution)
+
 }
 
 data class VarnaComparison(
@@ -86,7 +91,19 @@ data class DerivationTerm(
     val deletionType: LopaType? = null,
     val sthaniProps: SthaniProperties? = null,
     val lexicalUses: Set<LexicalUse> = emptySet(),
+    val itStatus: ItStatus? = null,
 ) {
+    companion object {
+        /** Preserves Dhātupāṭha metadata when a root enters a derivation. */
+        fun fromDhatu(dhatu: Dhatu, id: String = "dhatu"): DerivationTerm = DerivationTerm(
+            id = id,
+            surface = dhatu.mula,
+            kind = TermKind.DHATU,
+            upadesha = dhatu.upadesha,
+            itStatus = dhatu.itStatus,
+        )
+    }
+
     fun hasEffectiveMarker(marker: ItMarker): Boolean =
         marker in itMarkers || (sthaniProps?.itMarkers?.contains(marker) == true)
 

@@ -4,7 +4,7 @@ import dev.sanskrit.ashtadhyayi.Ashtadhyayi
 import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
-import dev.sanskrit.derivation.SemanticFeature
+import dev.sanskrit.derivation.PhonologicalRequest
 import dev.sanskrit.derivation.VarnaSubstitution
 import dev.sanskrit.pratyahara.Pratyahara
 import dev.sanskrit.shiksha.Svara
@@ -41,8 +41,7 @@ object IkoGunaVrddhiSutra : Sutra<DerivationState, DerivationChange>(
     traceTemplateValue = "{sutra} substitutes the requested गुण or वृद्धि form of इक्.",
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        val hasRequest = SemanticFeature.GUNA_REQUEST in context.semanticFeatures || 
-                         SemanticFeature.VRDDHI_REQUEST in context.semanticFeatures
+        val hasRequest = context.effectiveContext.phonologicalRequest != null
         if (!hasRequest) return false
 
         val engine = Ashtadhyayi.pratyaharaEngine
@@ -52,7 +51,7 @@ object IkoGunaVrddhiSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val isVrddhi = SemanticFeature.VRDDHI_REQUEST in context.semanticFeatures
+        val isVrddhi = context.effectiveContext.phonologicalRequest == PhonologicalRequest.VRDDHI
         val candidates = if (isVrddhi) vrddhiVowels else gunaVowels
         
         var state = context

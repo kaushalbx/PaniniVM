@@ -11,6 +11,7 @@ import dev.sanskrit.ashtadhyayi.adhyaya3.pada4.Adhyaya3Pada4
 import dev.sanskrit.ashtadhyayi.adhyaya4.pada1.Adhyaya4Pada1
 import dev.sanskrit.ashtadhyayi.adhyaya4.pada2.Adhyaya4Pada2
 import dev.sanskrit.ashtadhyayi.adhyaya4.pada3.Adhyaya4Pada3
+import dev.sanskrit.ashtadhyayi.adhyaya4.pada4.Adhyaya4Pada4
 import dev.sanskrit.ashtadhyayi.adhyaya6.pada1.Adhyaya6Pada1
 import dev.sanskrit.ashtadhyayi.adhyaya6.pada4.Adhyaya6Pada4
 import dev.sanskrit.ashtadhyayi.adhyaya7.pada1.Adhyaya7Pada1
@@ -39,6 +40,7 @@ object Ashtadhyayi {
         Adhyaya3Pada1.sutras, Adhyaya3Pada2.sutras, Adhyaya3Pada3.sutras, Adhyaya3Pada4.sutras, Adhyaya4Pada1.sutras,
         Adhyaya4Pada2.sutras,
         Adhyaya4Pada3.sutras,
+        Adhyaya4Pada4.sutras,
         Adhyaya6Pada1.sutras, Adhyaya6Pada4.sutras, Adhyaya7Pada1.sutras, Adhyaya7Pada2.sutras,
         Adhyaya7Pada3.sutras, Adhyaya8Pada2.sutras, Adhyaya8Pada3.sutras, Adhyaya8Pada4.sutras,
     ).flatten()

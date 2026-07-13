@@ -5,7 +5,8 @@ import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.DerivationTerm
-import dev.sanskrit.derivation.SemanticFeature
+import dev.sanskrit.derivation.HasKala
+import dev.sanskrit.derivation.Kala
 import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
@@ -27,7 +28,7 @@ object VartamaneLatSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION
 ), DerivationSutra {
     override fun matches(c: DerivationState) =
-        SemanticFeature.VARTAMANA in c.semanticFeatures && c.stage == DerivationStage.INITIAL
+        HasKala(Kala.VARTAMANA).matches(c) && c.stage == DerivationStage.INITIAL
 
     override fun apply(c: DerivationState) = DerivationChange(
         c.addTerm(DerivationTerm("lat", "लट्", TermKind.PRATYAYA))

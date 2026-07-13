@@ -4,9 +4,10 @@ import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
+import dev.sanskrit.derivation.HasMorphosyntax
 import dev.sanskrit.derivation.VarnaSubstitution
 import dev.sanskrit.shiksha.Samjna
-import dev.sanskrit.derivation.SemanticFeature
+import dev.sanskrit.shiksha.Vacana
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -36,7 +37,7 @@ object BahuvacaneJhalyetSutra : Sutra<DerivationState, DerivationChange>(
         val isAEnding = dev.sanskrit.shiksha.Varnamala.endsWithA(stem.surface) || dev.sanskrit.shiksha.Varnamala.endsWithAA(stem.surface)
         val firstChar = affix.surface.firstOrNull() ?: return false
         
-        val isPlural = SemanticFeature.BAHUVACANA in context.semanticFeatures
+        val isPlural = HasMorphosyntax(vacana = Vacana.BAHUVACANA).matches(context)
         
         return isAEnding && isPlural && isJhal(firstChar) && 
                 context.samjnas.any { it.targetId == affix.id && it.samjna == Samjna.PRATYAYA }

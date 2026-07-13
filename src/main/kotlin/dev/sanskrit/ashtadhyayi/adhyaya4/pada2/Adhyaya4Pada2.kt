@@ -7,6 +7,7 @@ object Adhyaya4Pada2 {
         PashadibhyoYahSutra, RajanyadibhyoVunSutra, BhaurikyaadyaishukaryadibhyoVidhalbhaktalauSutra,
         KratukthadisutrantatThakSutra, KramadibhyoVunSutra, VasantadibhyashThakSutra,
         SankaladibhyashCaSutra, SuvastvadibhyoAnSutra,
+        VunchhankathajilasenirSutra,
         UtkaradibhyashChahSutra, KattrayadibhyoDhakanySutra, NadyadibhyoDhakSutra,
     )
 }

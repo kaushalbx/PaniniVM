@@ -2,4 +2,4 @@ package dev.sanskrit.ashtadhyayi.adhyaya7.pada2
 
 import dev.sanskrit.sutra.Sutra
 
-object Adhyaya7Pada2 { val sutras: List<Sutra<*, *>> = listOf(AcoNnitiSutra) }
+object Adhyaya7Pada2 { val sutras: List<Sutra<*, *>> = listOf(AcoNnitiSutra, ArdhadhatukasyedValadehSutra) }

@@ -5,9 +5,10 @@ import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.DerivationTerm
+import dev.sanskrit.derivation.HasMorphosyntax
 import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.ganapatha.GanaPatha
-import dev.sanskrit.shiksha.SemanticFeature
+import dev.sanskrit.shiksha.Linga
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -32,7 +33,7 @@ object StriyamAdhikaraSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
-        SemanticFeature.STRI in context.semanticFeatures && "4.1.3" !in context.activeAdhikaras
+        HasMorphosyntax(linga = Linga.STRI).matches(context) && "4.1.3" !in context.activeAdhikaras
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
         state = context.activateAdhikara("4.1.3"),

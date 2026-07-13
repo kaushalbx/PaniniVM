@@ -5,9 +5,12 @@ import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
-import dev.sanskrit.derivation.SemanticFeature
+import dev.sanskrit.derivation.HasMorphosyntax
 import dev.sanskrit.derivation.VarnaSubstitution
 import dev.sanskrit.pratyahara.Pratyahara
+import dev.sanskrit.shiksha.Linga
+import dev.sanskrit.shiksha.Vacana
+import dev.sanskrit.shiksha.Vibhakti
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraPriority
@@ -91,9 +94,11 @@ object TasmacChasoNahPumsiSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
         context.stage == DerivationStage.PADA_FORMED &&
-                SemanticFeature.PUMS in context.semanticFeatures &&
-                SemanticFeature.DVITIYA in context.semanticFeatures &&
-                SemanticFeature.BAHUVACANA in context.semanticFeatures &&
+                HasMorphosyntax(
+                    linga = Linga.PUMS,
+                    vibhakti = Vibhakti.DVITIYA,
+                    vacana = Vacana.BAHUVACANA,
+                ).matches(context) &&
                 context.terms.lastOrNull()?.surface?.endsWith("ास्") == true
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(

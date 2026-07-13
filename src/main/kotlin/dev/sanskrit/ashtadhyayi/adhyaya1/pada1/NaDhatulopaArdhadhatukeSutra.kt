@@ -2,9 +2,10 @@ package dev.sanskrit.ashtadhyayi.adhyaya1.pada1
 
 import dev.sanskrit.derivation.BlockSutra
 import dev.sanskrit.derivation.DerivationChange
+import dev.sanskrit.derivation.DerivationalEnvironment
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
-import dev.sanskrit.derivation.SemanticFeature
+import dev.sanskrit.derivation.HasDerivationalEnvironment
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraInput
@@ -33,8 +34,8 @@ object NaDhatulopaArdhadhatukeSutra : Sutra<DerivationState, DerivationChange>(
     traceTemplateValue = "{sutra} blocks गुण-वृद्धि caused only by dhātu loss.",
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
-        SemanticFeature.DHATU_LOPA in context.semanticFeatures &&
-                SemanticFeature.ARDHADHATUKA in context.semanticFeatures &&
+        HasDerivationalEnvironment(DerivationalEnvironment.DHATU_LOPA).matches(context) &&
+                HasDerivationalEnvironment(DerivationalEnvironment.ARDHADHATUKA).matches(context) &&
                 context.blockedSutras["1.1.3"] != sutra
 
     override fun apply(context: DerivationState): DerivationChange =

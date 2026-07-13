@@ -3,7 +3,8 @@ package dev.sanskrit.ashtadhyayi.adhyaya7.pada1
 import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
-import dev.sanskrit.derivation.SemanticFeature
+import dev.sanskrit.derivation.HasMorphosyntax
+import dev.sanskrit.shiksha.Linga
 import dev.sanskrit.sutra.NimittaScope
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
@@ -32,7 +33,7 @@ object AtomSutra : Sutra<DerivationState, DerivationChange>(
     dependencies = setOf("6.4.1")
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        if (SemanticFeature.NAPUMSAKA !in context.semanticFeatures) return false
+        if (!HasMorphosyntax(linga = Linga.NAPUMSAKA).matches(context)) return false
         if ("6.4.1" !in context.activeAdhikaras) return false
 
         val stem = context.terms.getOrNull(context.terms.size - 2) ?: return false

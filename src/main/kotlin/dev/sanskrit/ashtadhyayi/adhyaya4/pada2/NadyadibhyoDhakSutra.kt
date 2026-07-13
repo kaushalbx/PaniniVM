@@ -2,7 +2,6 @@ package dev.sanskrit.ashtadhyayi.adhyaya4.pada2
 
 import dev.sanskrit.derivation.*
 import dev.sanskrit.ganapatha.GanaPatha
-import dev.sanskrit.shiksha.SemanticFeature
 import dev.sanskrit.sutra.*
 
 /** 4.2.97: नद्यादिभ्यो ढक्. */
@@ -12,7 +11,7 @@ object NadyadibhyoDhakSutra : Sutra<DerivationState, DerivationChange>(
     type = SutraType.APAVADA, chapter = 4, pada = 2, optional = false, kramaValue = 420097,
     role = SutraRole.Vidhi, action = SutraAction.PRATYAYA_SELECTION, scope = SutraScope.DERIVATION,
 ), DerivationSutra {
-    override fun matches(context: DerivationState) = SemanticFeature.JATA in context.semanticFeatures &&
+    override fun matches(context: DerivationState) = HasRequestedMeaning(DerivationalMeaning.JATA).matches(context) &&
         context.terms.any { it.kind == TermKind.PRATIPADIKA && GanaPatha.isEligibleMember(106, it.surface, it.lexicalUses) } &&
         context.allEffectiveTerms.none { it.upadesha == "ढक्" }
 

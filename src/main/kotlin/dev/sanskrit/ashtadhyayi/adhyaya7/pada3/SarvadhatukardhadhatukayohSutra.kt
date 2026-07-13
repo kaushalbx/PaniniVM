@@ -5,7 +5,8 @@ import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
-import dev.sanskrit.derivation.SemanticFeature
+import dev.sanskrit.derivation.DerivationalEnvironment
+import dev.sanskrit.derivation.HasDerivationalEnvironment
 import dev.sanskrit.derivation.VarnaSubstitution
 import dev.sanskrit.pratyahara.Pratyahara
 import dev.sanskrit.shiksha.Varnamala
@@ -42,7 +43,7 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
         val stem = context.terms.first()
         val affix = context.terms.getOrNull(1) ?: return false
 
-        val isSarvaOrArdha = SemanticFeature.ARDHADHATUKA in context.semanticFeatures || 
+        val isSarvaOrArdha = HasDerivationalEnvironment(DerivationalEnvironment.ARDHADHATUKA).matches(context) ||
                              affix.id == "shap" || 
                              affix.id.startsWith("ting-")
 

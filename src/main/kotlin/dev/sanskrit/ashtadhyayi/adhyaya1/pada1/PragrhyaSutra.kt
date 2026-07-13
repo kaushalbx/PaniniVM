@@ -3,9 +3,10 @@ package dev.sanskrit.ashtadhyayi.adhyaya1.pada1
 import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
+import dev.sanskrit.derivation.HasMorphosyntax
 import dev.sanskrit.shiksha.Samjna
 import dev.sanskrit.derivation.SamjnaAssignment
-import dev.sanskrit.derivation.SemanticFeature
+import dev.sanskrit.shiksha.Vacana
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -31,7 +32,7 @@ object PragrhyaSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         // Must be in a dual context
-        if (SemanticFeature.DVIVACANA !in context.semanticFeatures) return false
+        if (!HasMorphosyntax(vacana = Vacana.DVIVACANA).matches(context)) return false
 
         return context.terms.any { term ->
             val surface = term.surface

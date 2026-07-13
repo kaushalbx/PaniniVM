@@ -28,9 +28,8 @@ object KarmanyAnSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         if ("3.1.91" !in context.activeAdhikaras) return false
         
-        // Match if 'KARTARI' feature is present (generic agentive derivation)
-        // and we have a root but no kṛt suffix yet.
-        return SemanticFeature.KARTARI in context.semanticFeatures && 
+        // Match an agentive derivation with a root but no kṛt suffix yet.
+        return HasMorphosyntax(prayoga = Prayoga.KARTARI).matches(context) &&
                context.terms.any { it.kind == TermKind.DHATU } &&
                context.allEffectiveTerms.none { it.kind == TermKind.PRATYAYA }
     }

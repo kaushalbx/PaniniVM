@@ -1,12 +1,13 @@
 package dev.sanskrit.ashtadhyayi.adhyaya1.pada4
 
 import dev.sanskrit.derivation.DerivationChange
+import dev.sanskrit.derivation.DerivationalEnvironment
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
+import dev.sanskrit.derivation.HasDerivationalEnvironment
 import dev.sanskrit.derivation.SamjnaAssignment
 import dev.sanskrit.ganapatha.GanaPatha
 import dev.sanskrit.shiksha.Samjna
-import dev.sanskrit.shiksha.SemanticFeature
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -14,10 +15,10 @@ import dev.sanskrit.sutra.SutraScope
 import dev.sanskrit.sutra.SutraType
 
  fun isAsattva(state: DerivationState): Boolean =
-    SemanticFeature.ASATTVA in state.semanticFeatures
+    HasDerivationalEnvironment(DerivationalEnvironment.ASATTVA).matches(state)
 
  fun hasKriyayoga(state: DerivationState): Boolean =
-    SemanticFeature.KRIYAYOGA in state.semanticFeatures
+    HasDerivationalEnvironment(DerivationalEnvironment.KRIYAYOGA).matches(state)
 
 /** 1.4.57: चादयोऽसत्त्वे. */
 object ChadayoAsattveSutra : Sutra<DerivationState, DerivationChange>(

@@ -3,7 +3,8 @@ package dev.sanskrit.ashtadhyayi.adhyaya7.pada1
 import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
-import dev.sanskrit.derivation.SemanticFeature
+import dev.sanskrit.derivation.HasMorphosyntax
+import dev.sanskrit.shiksha.Linga
 import dev.sanskrit.sutra.NimittaScope
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
@@ -30,7 +31,7 @@ object JapsasohShihSutra : Sutra<DerivationState, DerivationChange>(
     nimittaScope = NimittaScope.EXTERNAL
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        if (SemanticFeature.NAPUMSAKA !in context.semanticFeatures) return false
+        if (!HasMorphosyntax(linga = Linga.NAPUMSAKA).matches(context)) return false
         
         val affix = context.terms.lastOrNull() ?: return false
         return affix.upadesha == "जस्" || affix.upadesha == "शस्"

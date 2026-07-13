@@ -4,9 +4,10 @@ import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.DerivationTerm
+import dev.sanskrit.derivation.HasMorphosyntax
+import dev.sanskrit.derivation.Prayoga
 import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.ganapatha.GanaPatha
-import dev.sanskrit.shiksha.SemanticFeature
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -36,7 +37,7 @@ object NandigrahipacadibhyoLyuninyacahSutra : Sutra<DerivationState, DerivationC
     )
 
     override fun matches(context: DerivationState): Boolean =
-        SemanticFeature.KARTARI in context.semanticFeatures && context.terms.any { term ->
+        HasMorphosyntax(prayoga = Prayoga.KARTARI).matches(context) && context.terms.any { term ->
             term.kind == TermKind.PRATIPADIKA &&
                 selectionFor(term) != null &&
                 context.terms.none { it.id == "${term.id}-3-1-134" }

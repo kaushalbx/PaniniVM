@@ -26,7 +26,11 @@ object GanaPatha {
         sourceIndex: Int,
         text: String,
         lexicalUses: Set<LexicalUse> = emptySet(),
-    ): Boolean = get(sourceIndex)?.isEligible(text, lexicalUses) == true
+        suffixUpadeshas: Set<String> = emptySet(),
+    ): Boolean = get(sourceIndex)?.isEligible(
+        GanaInstructionContext(text, suffixUpadeshas),
+        lexicalUses,
+    ) == true
 
     fun ganasContaining(text: String): List<Gana> {
         return all.filter { it.contains(text) }

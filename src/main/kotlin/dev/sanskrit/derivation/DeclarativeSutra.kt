@@ -95,10 +95,49 @@ class HasItMarker(
     override fun matches(state: DerivationState): Boolean = state.terms.any { marker in it.itMarkers }
 }
 
-class HasSemanticFeature(
-    private val feature: SemanticFeature,
+class HasRequestedMeaning(
+    private val meaning: DerivationalMeaning,
 ) : DerivationCondition {
-    override fun matches(state: DerivationState): Boolean = feature in state.semanticFeatures
+    override fun matches(state: DerivationState): Boolean =
+        state.effectiveContext.requestedMeaning == meaning
+}
+
+class HasDerivationalEnvironment(
+    private val environment: DerivationalEnvironment,
+) : DerivationCondition {
+    override fun matches(state: DerivationState): Boolean =
+        state.effectiveContext.has(environment)
+}
+
+class HasKala(
+    private val kala: Kala,
+) : DerivationCondition {
+    override fun matches(state: DerivationState): Boolean = state.effectiveContext.kala == kala
+}
+
+class HasPhonologicalRequest(
+    private val request: PhonologicalRequest,
+) : DerivationCondition {
+    override fun matches(state: DerivationState): Boolean =
+        state.effectiveContext.phonologicalRequest == request
+}
+
+class HasMorphosyntax(
+    private val linga: dev.sanskrit.shiksha.Linga? = null,
+    private val vibhakti: Vibhakti? = null,
+    private val vacana: Vacana? = null,
+    private val purusha: Purusha? = null,
+    private val prayoga: Prayoga? = null,
+    private val lakara: Lakara? = null,
+) : DerivationCondition {
+    override fun matches(state: DerivationState): Boolean = state.effectiveContext.rupa.let { morphology ->
+        (linga == null || morphology.linga == linga) &&
+            (vibhakti == null || morphology.vibhakti == vibhakti) &&
+            (vacana == null || morphology.vacana == vacana) &&
+            (purusha == null || morphology.purusha == purusha) &&
+            (prayoga == null || morphology.prayoga == prayoga) &&
+            (lakara == null || morphology.lakara == lakara)
+    }
 }
 
 class HasSamjna(
