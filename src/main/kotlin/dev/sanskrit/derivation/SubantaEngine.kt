@@ -37,7 +37,11 @@ class SubantaEngine(
         pratipadika = pratipadika,
         stemClass = stemClass,
         forms = SubantaFormPlans.all().associate { plan ->
-            plan.affix to derive(SubantaDerivationRequest(pratipadika, plan.affix.vibhakti, plan.affix.vacana, stemClass))
+            plan.affix to try {
+                derive(SubantaDerivationRequest(pratipadika, plan.affix.vibhakti, plan.affix.vacana, stemClass))
+            } catch (exception: IllegalArgumentException) {
+                throw IllegalArgumentException("Failed to derive ${plan.affix}: ${exception.message}", exception)
+            }
         },
     )
 }
@@ -48,6 +52,27 @@ data class SubantaParadigm(
     val stemClass: SubantaStemClass,
     val forms: Map<SupAffix, DerivationResult>,
 ) {
-    val surfaces: Map<SupAffix, String>
+    val derivationSurfaces: Map<SupAffix, String>
         get() = forms.mapValues { (_, result) -> result.final.surface }
+
+    val surfaces: Map<SupAffix, String>
+        get() = derivationSurfaces
+
+    val coverage: List<SubantaCoverageRow>
+        get() = forms.map { (affix, result) ->
+            val actual = result.final.surface
+            SubantaCoverageRow(
+                affix = affix,
+                actualSurface = actual,
+                appliedSutras = result.applications.map { it.sutra },
+                note = "derived",
+            )
+        }
 }
+
+data class SubantaCoverageRow(
+    val affix: SupAffix,
+    val actualSurface: String,
+    val appliedSutras: List<String>,
+    val note: String,
+)

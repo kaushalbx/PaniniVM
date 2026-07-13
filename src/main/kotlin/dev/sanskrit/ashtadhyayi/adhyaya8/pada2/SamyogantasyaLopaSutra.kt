@@ -38,28 +38,12 @@ object SamyogantasyaLopaSutra : Sutra<DerivationState, DerivationChange>(
         // 1. Must be a pada (per 1.4.14)
         val isPada = context.samjnas.any { it.targetId == lastTerm.id && it.samjna == Samjna.PADA }
         if (!isPada) return false
-
+ 
         // 2. Must end in a consonant cluster (saṃyoga, per 1.1.7)
         val surface = lastTerm.surface
-        if (surface.length < 2) return false
+        if (surface.length < 3) return false
         
-        // Simplified check: last two characters are consonants
-        val last = surface.last()
-        val secondLast = if (last == Vyanjana.VIRAMA) {
-             if (surface.length >= 3) surface[surface.length - 2] else return false
-        } else last
-        
-        // Find the actual sound before the final virama or vowel
-        var count = 0
-        for (i in surface.indices.reversed()) {
-            if (Varnamala.isConsonant(surface[i])) {
-                count++
-            } else if (surface[i] != Vyanjana.VIRAMA) {
-                break
-            }
-        }
-        
-        return count >= 2
+        return surface.endsWith('्') && surface[surface.length - 3] == '्'
     }
 
     override fun apply(context: DerivationState): DerivationChange {

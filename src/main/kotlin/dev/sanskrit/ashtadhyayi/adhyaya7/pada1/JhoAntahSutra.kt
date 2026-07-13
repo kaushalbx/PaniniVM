@@ -43,8 +43,9 @@ object JhoAntahSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
-        // Replace 'jh' with 'ant'
-        val newSurface = "अन्त्" + affix.surface.drop(1)
+        val suffix = affix.surface.drop(1)
+        val isMatra = suffix.firstOrNull() in setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ', 'े', 'ै', 'ो', 'ौ')
+        val newSurface = (if (isMatra) "अन्त" else "अन्त्") + suffix
         
         return DerivationChange(
             state = context.replaceTerm(affix.id, affix.copy(surface = newSurface)),

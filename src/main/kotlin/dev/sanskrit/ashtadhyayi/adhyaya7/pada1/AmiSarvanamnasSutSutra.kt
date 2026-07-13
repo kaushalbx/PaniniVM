@@ -49,7 +49,7 @@ object AmiSarvanamnasSutSutra : Sutra<DerivationState, DerivationChange>(
         val endsInA = stem.surface.endsWith('अ') || stem.surface.endsWith('ा')
         
         // 3. Affix must be 'ām' and 'suṭ' not already added
-        return endsInA && affix.upadesha == "आम्" && context.terms.none { it.upadesha == "सुट्" }
+        return endsInA && affix.upadesha == "आम्" && context.allEffectiveTerms.none { it.upadesha == "सुट्" }
     }
 
     override fun apply(context: DerivationState): DerivationChange {

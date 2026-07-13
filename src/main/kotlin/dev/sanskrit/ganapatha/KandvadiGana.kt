@@ -1,0 +1,75 @@
+﻿package dev.sanskrit.ganapatha
+
+object KandvadiGana : Gana(
+    id = GanaIds.KANDVADI,
+    name = "कण्ड्वादिः",
+    sourceIndex = 35,
+    sutra = "3.1.27",
+    sutraId = "31027",
+    sutraText = "कण्ड्वादिभ्यो यक्",
+    sutraTransliteration = "kandvaadibhyoyak",
+    sutraType = "V\$\$",
+    kind = GanaKind.AKRTI,
+    members = ganaMembers {
+        member("कण्डूञ्")
+        member("मन्तु")
+        member("हृणीङ्")
+        member("वल्गु")
+        member("असु")
+        member("नस")
+        member("महीङ्")
+        member("लोट्")
+        member("लेट्")
+        member("इरस्")
+        member("इरज्")
+        member("इरञ्")
+        member("उवस्")
+        member("उषस्")
+        member("वेट्")
+        member("मेधा")
+        member("कुषुभ")
+        member("नमस्")
+        member("मगध")
+        member("तन्तस्")
+        member("पम्पस्")
+        member("पपस्")
+        member("सुख")
+        member("दुःख")
+        member("भिक्ष")
+        member("चरण")
+        member("चरम")
+        member("अवर")
+        member("सपर")
+        member("अरर")
+        member("अरर्")
+        member("भिषज्")
+        member("भिष्णुज्")
+        member("अपर")
+        member("आर")
+        member("इषुध")
+        member("वरण")
+        member("चुरण")
+        member("चुरण")
+        member("भुरण")
+        member("गद्गद")
+        member("एला")
+        member("केला")
+        member("खेला")
+        member("वेला")
+        member("शेला")
+        member("लिट्")
+        member("लाट्")
+        member("लेखा")
+        member("लेख")
+        member("रेखा")
+        member("द्रवस्")
+        member("तिरस्")
+        member("अगद")
+        member("उरस्")
+        member("तरण")
+        member("तरिण")
+        member("पयस्")
+        member("संभूयस्")
+        member("सम्बर")
+    },
+)

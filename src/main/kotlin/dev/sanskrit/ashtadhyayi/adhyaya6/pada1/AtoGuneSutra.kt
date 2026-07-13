@@ -32,12 +32,13 @@ object AtoGuneSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
+        if (context.stage == DerivationStage.INITIAL || context.stage == DerivationStage.PRATYAYA_SELECTED) return false
         if (context.terms.size < 2) return false
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
         
         // 1. Stem must end in short 'a'
-        if (!stem.surface.endsWith('अ')) return false
+        if (!dev.sanskrit.shiksha.Varnamala.endsWithA(stem.surface)) return false
         
         // 2. Affix must start with a Guṇa vowel
         val firstChar = affix.surface.firstOrNull() ?: return false
@@ -55,7 +56,12 @@ object AtoGuneSutra : Sutra<DerivationState, DerivationChange>(
         val firstChar = affix.surface.first()
         val replacement = firstChar.toString()
         
-        val newSurface = stem.surface.dropLast(1) + replacement + affix.surface.drop(1)
+        val lastChar = stem.surface.last()
+        val newSurface = if (lastChar !in dev.sanskrit.shiksha.Varnamala.independentVowelsOrMarks) {
+            stem.surface + affix.surface.drop(1)
+        } else {
+            stem.surface.dropLast(1) + replacement + affix.surface.drop(1)
+        }
         
         return DerivationChange(
             state = context.copy(

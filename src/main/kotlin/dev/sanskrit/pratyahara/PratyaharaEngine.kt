@@ -32,12 +32,15 @@ class PratyaharaEngine(
     }
 
     fun contains(pratyahara: Pratyahara, char: Char): Boolean {
-        val varna = Varnamala.fromChar(char) ?: return false
+        val normalizedChar = Varnamala.normalize(char)
+        val varna = Varnamala.fromChar(normalizedChar) ?: return false
         val set = derive(pratyahara)
         
         // Handle matras and independent vowels as equivalent for matching
         return when (varna) {
-            is Svara -> set.any { it is Svara && (it == varna) }
+            is Svara -> set.any { 
+                it is Svara && (it == varna || Varnamala.normalize(it.devanagari.single()) == Varnamala.normalize(varna.devanagari.single())) 
+            }
             is Vyanjana -> set.contains(varna)
             else -> false
         }

@@ -23,8 +23,17 @@ gradle run --args="--sutra 7.1.54"
 `--derive` prints the resulting form followed by the ordered sūtra trace.
 `--sutra` prints the direct `BaseSutra` fields for a loaded rule.
 
+`SubantaParadigm.surfaces` is produced by executable derivations. Use
+`coverage` when you need the applied sūtra trace for each supported form.
+
 ## Test
 
 ```sh
 gradle test
 ```
+
+## Text encoding
+
+Source, tests, and documentation are UTF-8. Sanskrit literals are part of the
+executable specification, so editors and terminals should be configured for
+UTF-8 before changing Devanagari text.

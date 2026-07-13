@@ -8,8 +8,11 @@ import dev.sanskrit.derivation.SamjnaAssignment
 import dev.sanskrit.shiksha.Svara
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
+import dev.sanskrit.sutra.SutraExample
+import dev.sanskrit.sutra.SutraInput
 import dev.sanskrit.sutra.SutraRole
 import dev.sanskrit.sutra.SutraScope
+import dev.sanskrit.sutra.SutraStage
 import dev.sanskrit.sutra.SutraType
 
 /** 
@@ -28,6 +31,10 @@ object AdengGunaSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Samjna,
     action = SutraAction.SAMJNA,
     scope = SutraScope.VARNA,
+    inputs = setOf(SutraInput.VARNA),
+    stage = SutraStage.SAMJNA,
+    traceTemplateValue = "{sutra} assigns गुण संज्ञा to {target}.",
+    examplesValue = listOf(SutraExample(Svara.E.devanagari, "${Svara.E.devanagari} [गुण]")),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
         context.terms.any { term ->

@@ -30,20 +30,25 @@ object OsiCaSutra : Sutra<DerivationState, DerivationChange>(
     dependencies = setOf("6.4.1")
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
+        if (context.stage == DerivationStage.INITIAL || context.stage == DerivationStage.PRATYAYA_SELECTED) return false
         if ("6.4.1" !in context.activeAdhikaras) return false
         if (context.terms.size < 2) return false
         
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        return (stem.surface.endsWith('अ') || stem.surface.endsWith('ा')) && 
+        return (dev.sanskrit.shiksha.Varnamala.endsWithA(stem.surface) || dev.sanskrit.shiksha.Varnamala.endsWithAA(stem.surface)) && 
                 affix.upadesha == "ओस्"
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         val oldChar = stem.surface.last()
-        val newSurface = stem.surface.dropLast(1) + "े"
+        val newSurface = if (oldChar !in dev.sanskrit.shiksha.Varnamala.independentVowelsOrMarks) {
+            stem.surface + "े"
+        } else {
+            stem.surface.dropLast(1) + "े"
+        }
         
         return DerivationChange(
             state = context.replaceTerm(stem.id, stem.copy(surface = newSurface))

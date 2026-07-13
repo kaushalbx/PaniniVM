@@ -39,7 +39,7 @@ object ViramoAvasanamSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         // We use a special ID to mark the 'end' of the derivation as having avasāna status.
         return DerivationChange(
-            state = context, // Currently a virtual state in matching
+            state = context.withSamjnas(setOf(SamjnaAssignment("avasana", Samjna.AC))),
             explanation = "1.4.108: Recognized avasāna (end of word)."
         )
     }

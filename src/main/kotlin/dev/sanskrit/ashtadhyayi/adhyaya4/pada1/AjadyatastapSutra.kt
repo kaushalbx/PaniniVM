@@ -67,7 +67,7 @@ object AjadyatastapSutra : Sutra<DerivationState, DerivationChange>(
         val endsInA = stem.surface.endsWith('अ')
         
         // Match if it ends in 'a' and no feminine suffix has been added yet
-        return endsInA && context.terms.none { it.upadesha == "टाप्" }
+        return endsInA && context.allEffectiveTerms.none { it.upadesha == "टाप्" }
     }
 
     override fun apply(context: DerivationState): DerivationChange {

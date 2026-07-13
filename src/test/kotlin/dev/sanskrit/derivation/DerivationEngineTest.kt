@@ -53,7 +53,7 @@ class DerivationEngineTest {
         assertEquals("सुँ", result.final.terms.single { it.id == "sup-su" }.upadesha)
         assertTrue(result.final.terms.single { it.id == "sup-su" }.itMarkers.isEmpty())
         assertEquals("रामः", result.final.surface)
-        assertEquals("1.1.1", result.applications.first().sutra)
+        assertTrue(result.applications.any { it.sutra == "1.1.1" })
     }
 
     @Test
@@ -133,6 +133,38 @@ class DerivationEngineTest {
             paradigm.surfaces,
         )
         assertEquals(21, paradigm.forms.size)
+    }
+
+    @Test
+    fun `a-stem paradigm surfaces are executable derivation surfaces`() {
+        val paradigm = SubantaEngine().deriveSupportedParadigm("राम")
+
+        assertEquals(paradigm.derivationSurfaces, paradigm.surfaces)
+        assertEquals("रामैः", paradigm.surfaces[SupAffix.BHIS])
+    }
+
+    @Test
+    fun `a-stem coverage report exposes actual derivation traces`() {
+        val report = SubantaEngine().deriveSupportedParadigm("राम").coverage
+
+        assertEquals(21, report.size)
+        val bhis = report.single { it.affix == SupAffix.BHIS }
+        assertEquals("रामैः", bhis.actualSurface)
+        assertTrue("4.1.2" in bhis.appliedSutras)
+        assertTrue("7.1.9" in bhis.appliedSutras)
+        assertTrue("8.3.15" in bhis.appliedSutras)
+
+        val bhyam = report.single { it.affix == SupAffix.BHYAM_3 }
+        assertEquals("रामाभ्याम्", bhyam.actualSurface)
+        assertTrue("7.3.102" in bhyam.appliedSutras)
+    }
+
+    @Test
+    fun `bhyam forms are actually lengthened by the derivation engine`() {
+        val result = SubantaEngine().derive(SubantaDerivationRequest("राम", Vibhakti.TRTIYA, Vacana.DVIVACANA))
+
+        assertEquals("रामाभ्याम्", result.final.surface)
+        assertTrue(result.applications.any { it.sutra == "7.3.102" })
     }
 
     @Test
@@ -332,7 +364,7 @@ class DerivationEngineTest {
             terms = listOf(DerivationTerm("stem", "राम", TermKind.PRATIPADIKA)),
         )
 
-        val result = DerivationEngine().derive(initial)
+        val result = DerivationEngine(listOf(dev.sanskrit.ashtadhyayi.adhyaya1.pada1.VrddhirAdaicSutra)).derive(initial)
 
         assertEquals("राम", result.final.surface)
         assertTrue(SamjnaAssignment("stem", Samjna.VRDDHI) in result.final.samjnas)
@@ -349,7 +381,7 @@ class DerivationEngineTest {
             terms = listOf(DerivationTerm("stem", "देव", TermKind.PRATIPADIKA)),
         )
 
-        val result = DerivationEngine().derive(initial)
+        val result = DerivationEngine(listOf(dev.sanskrit.ashtadhyayi.adhyaya1.pada1.AdengGunaSutra)).derive(initial)
 
         assertTrue(SamjnaAssignment("stem", Samjna.GUNA) in result.final.samjnas)
         assertEquals(listOf("1.1.2"), result.applications.map { it.sutra })

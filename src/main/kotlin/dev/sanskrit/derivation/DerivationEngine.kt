@@ -158,12 +158,17 @@ class DerivationEngine(
         var preselectedChange = firstChange
         val applications = mutableListOf<DerivationApplication>()
         val events = mutableListOf<DerivationEvent>()
-        val visited = mutableSetOf(initial)
+        val visited = mutableSetOf(initial.copy(substitutions = emptyList()))
 
         repeat(maxSteps) {
             val selection = select(current, suppressed)
             events += selection.candidates.map { DerivationEvent.RuleConsidered(it.sutra.sutra) }
             events += selection.conflicts.map { DerivationEvent.RuleBlocked(it.loser.sutra.sutra, it.winner.sutra.sutra, it.reason) }
+            
+            val blockedEvents = sutras.filter { it.sutra in current.blockedSutras && it.matches(current) }
+                .map { DerivationEvent.RuleBlocked(it.sutra, current.blockedSutras[it.sutra]!!, "Blocked by grammar.") }
+            events += blockedEvents
+
             val candidate = selection.selected ?: return completed(initial, current, applications, events)
             val change = preselectedChange ?: candidate.change
             preselectedChange = null
@@ -177,18 +182,41 @@ class DerivationEngine(
             )
             applications += application
             events += DerivationEvent.RuleApplied(application.sutra, current, change.state, change.explanation)
-            require(visited.add(change.state)) { "Derivation entered a cycle after applying ${candidate.sutra.sutra}." }
-            current = change.state
+            require(visited.add(change.state.copy(substitutions = emptyList()))) { "Derivation entered a cycle after applying ${candidate.sutra.sutra}." }
+            val stateWithSub = change.state.copy(
+                substitutions = change.state.substitutions + VarnaSubstitution("", ' ', "", candidate.sutra.sutra)
+            )
+            current = stateWithSub
         }
         error("Derivation did not reach a fixed point within $maxSteps steps.")
     }
 
-    private fun completed(initial: DerivationState, current: DerivationState, applications: List<DerivationApplication>, events: List<DerivationEvent>) =
-        DerivationResult(initial, current, applications, events + DerivationEvent.Completed(current, applications.size))
+    private fun completed(initial: DerivationState, current: DerivationState, applications: List<DerivationApplication>, events: List<DerivationEvent>): DerivationResult {
+        val finalState = if (current.stage == DerivationStage.PADA_FORMED) {
+            current.copy(stage = DerivationStage.FINAL)
+        } else {
+            current
+        }
+        return DerivationResult(initial, finalState, applications, events + DerivationEvent.Completed(finalState, applications.size))
+    }
 
     private fun select(state: DerivationState, suppressed: Set<String>): RuleSelection {
+        val hasTripadiApplied = state.substitutions.any { it.sutra.startsWith('8') }
         val evaluated = sutras.asSequence()
-            .filter { it.sutra !in suppressed && it.sutra !in state.blockedSutras && RuleVisibility.permits(it, state) }
+            .filter { it.sutra !in suppressed && RuleVisibility.permits(it, state) }
+            .filter { 
+                val blocker = state.blockedSutras[it.sutra]
+                if (blocker != null) {
+                    val blockerSutra = sutras.find { it.sutra == blocker }
+                    blockerSutra == null || !blockerSutra.matches(state)
+                } else {
+                    true
+                }
+            }
+            .filter { 
+                val ch = it.sutra.substringBefore('.').toIntOrNull() ?: 1
+                if (hasTripadiApplied && ch < 8) false else true 
+            }
             .filter { it.matches(state) }
             .map { sutra ->
                 val change = sutra.apply(state)

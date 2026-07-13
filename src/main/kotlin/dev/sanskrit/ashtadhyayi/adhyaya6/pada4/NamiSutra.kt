@@ -47,26 +47,31 @@ object NamiSutra : Sutra<DerivationState, DerivationChange>(
 
         // 2. Stem must end in a short vowel
         val lastChar = stem.surface.lastOrNull() ?: return false
+        val isConsonant = lastChar !in Varnamala.independentVowelsOrMarks
+        if (isConsonant) return true
         return Varnamala.isVowel(lastChar) && !isAlreadyLong(lastChar)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         val lastChar = stem.surface.last()
-        val lengthened = when (lastChar) {
-            'अ' -> "ा"
-            'इ', 'ि' -> "ी"
-            'उ', 'ु' -> "ू"
-            'ऋ', 'ृ' -> "ॄ"
-            else -> lastChar.toString()
+        val (newSurface, sourceChar, replacement) = if (lastChar !in Varnamala.independentVowelsOrMarks) {
+            Triple(stem.surface + "ा", 'अ', "ा")
+        } else {
+            val lengthened = when (lastChar) {
+                'अ' -> "ा"
+                'इ', 'ि' -> "ी"
+                'उ', 'ु' -> "ू"
+                'ऋ', 'ृ' -> "ॄ"
+                else -> lastChar.toString()
+            }
+            Triple(stem.surface.dropLast(1) + lengthened, lastChar, lengthened)
         }
-
-        val newSurface = stem.surface.dropLast(1) + lengthened
 
         return DerivationChange(
             state = context.replaceTerm(stem.id, stem.copy(surface = newSurface))
                 .copy(stage = DerivationStage.ANGAKARYA)
-                .addSubstitution(VarnaSubstitution(stem.id, lastChar, lengthened, sutra)),
+                .addSubstitution(VarnaSubstitution(stem.id, sourceChar, replacement, sutra)),
             explanation = "6.4.3: Lengthened stem vowel before 'nām'."
         )
     }

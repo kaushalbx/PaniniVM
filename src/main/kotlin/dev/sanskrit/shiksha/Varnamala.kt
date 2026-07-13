@@ -12,8 +12,8 @@ object Varnamala {
 
     fun getSthana(c: Char): Set<Sthana> {
         return when (val varna = fromChar(c)) {
-            is Svara -> setOf(varna.sthana)
-            is Vyanjana -> varna.sthana
+            is Svara -> varna.sthana.constituents()
+            is Vyanjana -> varna.sthana.flatMap { it.constituents() }.toSet()
             else -> emptySet()
         }
     }
@@ -31,11 +31,17 @@ object Varnamala {
         val v1 = fromChar(c1) ?: return false
         val v2 = fromChar(c2) ?: return false
         if ((v1 is Svara && v2 is Vyanjana) || (v1 is Vyanjana && v2 is Svara)) return false
+        
+        if (v1 is Svara && v2 is Svara) {
+            val n1 = normalize(c1)
+            val n2 = normalize(c2)
+            return n1 == n2 || (n1 == 'ऋ' && n2 == 'ऌ') || (n1 == 'ऌ' && n2 == 'ऋ')
+        }
+        
         val s1 = getSthana(c1)
         val s2 = getSthana(c2)
         val p1 = getAbhyantaraPrayatna(c1)
         val p2 = getAbhyantaraPrayatna(c2)
-        if ((normalize(c1) == 'ऋ' && normalize(c2) == 'ऌ') || (normalize(c1) == 'ऌ' && normalize(c2) == 'ऋ')) return true
         return (s1 intersect s2).isNotEmpty() && p1 == p2
     }
 
@@ -87,6 +93,7 @@ object Varnamala {
     }
 
     fun getVrddhi(c: Char): String? = when (normalize(c)) {
+        'अ' -> Svara.AA.devanagari
         'इ' -> Svara.AI.devanagari
         'उ' -> Svara.AU.devanagari
         'ऋ' -> Svara.AA.devanagari + Vyanjana.RA.halanta
@@ -94,12 +101,47 @@ object Varnamala {
         else -> null
     }
 
-    private fun normalize(c: Char): Char = when (c) {
+    fun normalize(c: Char): Char = when (c) {
         'अ', 'आ', 'ा' -> 'अ'
         'इ', 'ई', 'ि', 'ी' -> 'इ'
         'उ', 'ऊ', 'ु', 'ू' -> 'उ'
         'ऋ', 'ॠ', 'ृ', 'ॄ' -> 'ऋ'
         'ऌ', 'ॢ' -> 'ऌ'
         else -> c
+    }
+
+    val independentVowelsOrMarks: Set<Char> = buildSet {
+        Svara.entries.forEach { svara ->
+            add(svara.devanagari.single())
+            svara.matra?.single()?.let(::add)
+        }
+        Ayogavaha.entries.forEach { add(it.devanagari.single()) }
+        add('ँ')
+        add(Vyanjana.VIRAMA)
+    }
+
+    fun endsWithA(surface: String): Boolean {
+        if (surface.isEmpty()) return false
+        val last = surface.last()
+        if (last == 'अ') return true
+        return last !in independentVowelsOrMarks
+    }
+
+    fun endsWithAA(surface: String): Boolean {
+        if (surface.isEmpty()) return false
+        val last = surface.last()
+        return last == 'आ' || last == 'ा'
+    }
+
+    fun endsWithI(surface: String): Boolean {
+        if (surface.isEmpty()) return false
+        val last = surface.last()
+        return last == 'इ' || last == 'ि'
+    }
+
+    fun endsWithU(surface: String): Boolean {
+        if (surface.isEmpty()) return false
+        val last = surface.last()
+        return last == 'उ' || last == 'ु'
     }
 }

@@ -4,6 +4,7 @@ import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
+import dev.sanskrit.derivation.SemanticFeature
 import dev.sanskrit.shiksha.Vyanjana
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
@@ -30,6 +31,10 @@ object RasabhyamNoNahSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
+        if (SemanticFeature.DVITIYA in context.semanticFeatures &&
+            SemanticFeature.BAHUVACANA in context.semanticFeatures
+        ) return false
+
         val surface = context.surface
         
         // Find triggers: र (r) or ष (ṣ)

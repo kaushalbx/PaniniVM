@@ -29,7 +29,7 @@ object PrathamayohPurvaSavarnahSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
-        context.stage == DerivationStage.IT_PROCESSED && context.terms.lastOrNull()?.id in setOf(
+        (context.stage == DerivationStage.IT_PROCESSED || context.stage == DerivationStage.PADA_FORMED) && context.terms.lastOrNull()?.id in setOf(
             "sup-jas",
             "sup-sas"
         )

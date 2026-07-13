@@ -29,12 +29,17 @@ object SavarnaDirghaSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
+        if (context.stage == DerivationStage.INITIAL || context.stage == DerivationStage.PRATYAYA_SELECTED) return false
         if (context.terms.size < 2) return false
-        val left = context.terms[context.terms.size - 2].surface.lastOrNull() ?: return false
+        val leftTerm = context.terms[context.terms.size - 2]
+        val leftChar = leftTerm.surface.lastOrNull() ?: return false
         val right = context.terms.last().surface.firstOrNull() ?: return false
         
+        val leftPhoneme = if (leftChar !in Varnamala.independentVowelsOrMarks) 'अ' else leftChar
         val engine = Ashtadhyayi.pratyaharaEngine
-        return engine.contains(Pratyahara.AK, left) && Varnamala.areSavarna(left, right)
+        return engine.contains(Pratyahara.AK, leftPhoneme) &&
+            normalize(leftPhoneme) == normalize(right) &&
+            Varnamala.areSavarna(leftPhoneme, right)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -43,16 +48,22 @@ object SavarnaDirghaSutra : Sutra<DerivationState, DerivationChange>(
         val rightTerm = terms.last()
         
         val leftChar = leftTerm.surface.last()
-        val substitute = getDirgha(leftChar)
+        val leftPhoneme = if (leftChar !in dev.sanskrit.shiksha.Varnamala.independentVowelsOrMarks) 'अ' else leftChar
+        val substitute = getDirgha(leftPhoneme)
         
-        val newSurface = leftTerm.surface.dropLast(1) + substitute + rightTerm.surface.drop(1)
+        val newSurface = if (leftChar !in dev.sanskrit.shiksha.Varnamala.independentVowelsOrMarks) {
+            leftTerm.surface + substitute + rightTerm.surface.drop(1)
+        } else {
+            leftTerm.surface.dropLast(1) + substitute + rightTerm.surface.drop(1)
+        }
         
         return DerivationChange(
             state = context.copy(
                 terms = terms.dropLast(2) + leftTerm.copy(surface = newSurface),
-                stage = DerivationStage.ANGAKARYA
-            ).addSubstitution(VarnaSubstitution(leftTerm.id, leftChar, substitute, sutra)),
-            explanation = "6.1.101: Savarṇa Dīrgha substitution ($substitute) for $leftChar + ${rightTerm.surface.first()}."
+                droppedTerms = context.droppedTerms + terms.last().copy(surface = ""),
+                stage = DerivationStage.PADA_FORMED
+            ).addSubstitution(VarnaSubstitution(leftTerm.id, leftPhoneme, substitute, sutra)),
+            explanation = "6.1.101: Savarṇa Dīrgha substitution ($substitute) for $leftPhoneme + ${rightTerm.surface.first()}."
         )
     }
 

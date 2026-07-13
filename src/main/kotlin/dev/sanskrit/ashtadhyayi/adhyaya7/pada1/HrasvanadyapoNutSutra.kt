@@ -39,26 +39,19 @@ object HrasvanadyapoNutSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
 
         // Match short 'a' for Rama
-        val isShortVowel = stem.surface.endsWith('अ')
+        val isShortVowel = dev.sanskrit.shiksha.Varnamala.endsWithA(stem.surface)
         
-        return isShortVowel && affix.upadesha == "आम्" && context.terms.none { it.upadesha == "नुट्" }
+        return isShortVowel && affix.upadesha == "आम्" && context.allEffectiveTerms.none { it.upadesha == "नुट्" }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        // 1.1.46: Tit (marked with T) goes to the beginning (Adi) of the term it is attached to.
-        val nut = DerivationTerm(
-            id = "nut-augment",
-            surface = "नुट्",
-            kind = TermKind.AGAMA,
-            upadesha = "नुट्"
-        )
-        
-        // Insert 'nut' before 'am'
-        val newTerms = context.terms.dropLast(1) + nut + context.terms.last()
+        val affix = context.terms.last()
+        val newSurface = "नाम्"
+        val newTerms = context.terms.dropLast(1) + affix.copy(surface = newSurface)
         
         return DerivationChange(
             state = context.copy(terms = newTerms),
-            explanation = "7.1.54: Added 'nuṭ' augment before 'ām' (Ṭit = Ādi)."
+            explanation = "7.1.54: Added 'nuṭ' augment before 'ām' and merged into 'nām'."
         )
     }
 }

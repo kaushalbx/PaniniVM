@@ -39,10 +39,10 @@ object TangasingsamInatsyahSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
 
         // 1. Stem must end in 'a'
-        if (!stem.surface.endsWith('अ') && !stem.surface.endsWith('ा')) return false
+        if (!dev.sanskrit.shiksha.Varnamala.endsWithA(stem.surface) && !dev.sanskrit.shiksha.Varnamala.endsWithAA(stem.surface)) return false
 
-        // 2. Affix must be one of the three sources
-        return affix.upadesha in sources
+        val replacement = YathasamkhyamSutra.map(affix.upadesha, sources, targets) ?: return false
+        return affix.surface != replacement
     }
 
     override fun apply(context: DerivationState): DerivationChange {

@@ -28,11 +28,12 @@ object BahuvacaneJhalyetSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
+        if (context.stage == DerivationStage.INITIAL || context.stage == DerivationStage.PRATYAYA_SELECTED) return false
         if (context.terms.size < 2) return false
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        val isAEnding = stem.surface.endsWith('अ') || stem.surface.endsWith('ा')
+        val isAEnding = dev.sanskrit.shiksha.Varnamala.endsWithA(stem.surface) || dev.sanskrit.shiksha.Varnamala.endsWithAA(stem.surface)
         val firstChar = affix.surface.firstOrNull() ?: return false
         
         val isPlural = SemanticFeature.BAHUVACANA in context.semanticFeatures
@@ -45,13 +46,27 @@ object BahuvacaneJhalyetSutra : Sutra<DerivationState, DerivationChange>(
         val terms = context.terms
         val stem = terms[terms.size - 2]
         val oldChar = stem.surface.last()
-        val newSurface = stem.surface.dropLast(1) + "े"
+        val newSurface = if (oldChar !in dev.sanskrit.shiksha.Varnamala.independentVowelsOrMarks) {
+            stem.surface + "े"
+        } else {
+            stem.surface.dropLast(1) + "े"
+        }
         
-        return DerivationChange(
-            state = context.copy(
+        val changedState = if (terms.last().upadesha == "भ्यस्") {
+            context.copy(
+                terms = terms.dropLast(2) + stem.copy(surface = newSurface + terms.last().surface),
+                droppedTerms = context.droppedTerms + terms.last().copy(surface = ""),
+                stage = DerivationStage.PADA_FORMED,
+            )
+        } else {
+            context.copy(
                 terms = terms.dropLast(2) + stem.copy(surface = newSurface) + terms.last(),
                 stage = DerivationStage.ANGAKARYA
-            ).addSubstitution(VarnaSubstitution(stem.id, oldChar, "े", sutra)),
+            )
+        }
+
+        return DerivationChange(
+            state = changedState.addSubstitution(VarnaSubstitution(stem.id, oldChar, "े", sutra)),
             explanation = "7.3.103: Substituted 'e' for final 'a' before plural jhal-initial sup."
         )
     }

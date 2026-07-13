@@ -31,6 +31,7 @@ object SuptingantamPadamSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
+        if (context.stage != DerivationStage.IT_PROCESSED && context.stage != DerivationStage.ANGAKARYA) return false
         // Find if any term sequence is ready to be a Pada. 
         // For simplicity, we check if a term is a PRATYAYA that is a vibhakti.
         return context.terms.any { term ->

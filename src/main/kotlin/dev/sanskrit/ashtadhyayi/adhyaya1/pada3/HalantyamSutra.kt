@@ -31,18 +31,27 @@ object HalantyamSutra : Sutra<DerivationState, DerivationChange>(
         if (context.stage != DerivationStage.PRATYAYA_SELECTED) return false
         
         return context.terms.any { term ->
-            val lastChar = term.surface.lastOrNull() ?: return@any false
-            // Check if it's a consonant and not already marked (simplified marker logic)
+            if (term.kind == TermKind.PRATIPADIKA) return@any false
+            val last = term.surface.lastOrNull() ?: return@any false
+            val lastChar = if (last == '्' && term.surface.length >= 2) {
+                term.surface[term.surface.length - 2]
+            } else {
+                last
+            }
             Varnamala.isConsonant(lastChar) && term.itMarkers.isEmpty() 
         }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val newTerms = context.terms.map { term ->
-            val lastChar = term.surface.lastOrNull()
+            if (term.kind == TermKind.PRATIPADIKA) return@map term
+            val last = term.surface.lastOrNull()
+            val lastChar = if (last == '्' && term.surface.length >= 2) {
+                term.surface[term.surface.length - 2]
+            } else {
+                last
+            }
             if (lastChar != null && Varnamala.isConsonant(lastChar) && term.itMarkers.isEmpty()) {
-                // Map the specific consonant to a generic marker for now, 
-                // or extend ItMarker to store the actual character.
                 term.copy(itMarkers = term.itMarkers + ItMarker.KIT) 
             } else {
                 term

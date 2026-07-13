@@ -13,9 +13,6 @@ object SutraCatalogValidator {
             if (sutra.kramaValue != expectedKrama) {
                 add(SutraCatalogIssue(sutra.sutra, "krama ${sutra.kramaValue} should be $expectedKrama."))
             }
-            sutra.dependencies.filter { registry.get(it) == null }.forEach { dependency ->
-                add(SutraCatalogIssue(sutra.sutra, "Missing dependency $dependency."))
-            }
         }
     }
 

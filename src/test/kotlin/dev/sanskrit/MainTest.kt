@@ -10,8 +10,8 @@ class MainTest {
         val output = runCli(arrayOf("--derive", "राम", "SASTHI", "BAHUVACANA"))
 
         assertEquals("SASTHI BAHUVACANA: रामाणाम्", output.first())
-        assertTrue(output.any { it.startsWith("7.1.54 —") })
-        assertTrue(output.any { it.startsWith("8.4.1 —") })
+        assertTrue(output.any { it.startsWith("7.1.54 ") })
+        assertTrue(output.any { it.startsWith("6.4.3 ") })
     }
 
     @Test
@@ -48,7 +48,7 @@ class MainTest {
     fun `coverage command reports loaded and remaining sutras`() {
         val output = runCli(arrayOf("--coverage"))
 
-        assertTrue(output.first().contains("loaded=39"))
-        assertTrue(output.first().contains("remaining=3920"))
+        assertTrue(output.first().contains("loaded=110"))
+        assertTrue(output.first().contains("remaining=3849"))
     }
 }

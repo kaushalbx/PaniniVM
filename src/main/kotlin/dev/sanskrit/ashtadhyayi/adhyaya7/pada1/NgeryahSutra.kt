@@ -39,7 +39,8 @@ object NgeryahSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
 
         // 1. Stem must end in 'a'
-        val endsInA = stem.surface.endsWith('अ') || stem.surface.endsWith('ा')
+        val endsInA = dev.sanskrit.shiksha.Varnamala.endsWithA(stem.surface) ||
+            dev.sanskrit.shiksha.Varnamala.endsWithAA(stem.surface)
         
         // 2. Affix must be 'ṅe' (upadesha)
         return endsInA && affix.upadesha == "ङे"

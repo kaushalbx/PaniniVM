@@ -9,5 +9,13 @@ enum class Sthana {
     NASIKA,    // Nasal
     KANTHATALU,
     KANTHOSTHA,
-    DANTOSTHA
+    DANTOSTHA;
+
+    fun constituents(): Set<Sthana> = when (this) {
+        KANTHATALU -> setOf(KANTHA, TALU)
+        KANTHOSTHA -> setOf(KANTHA, OSTHA)
+        DANTOSTHA -> setOf(DANTA, OSTHA)
+        else -> setOf(this)
+    }
 }
+

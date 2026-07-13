@@ -39,9 +39,14 @@ object AdesapratyayayohSutra : Sutra<DerivationState, DerivationChange>(
         
         // Find 's' and check the character before it
         val sIndex = surface.indexOf('स')
-        if (sIndex <= 0) return false // Must have something before it
+        if (sIndex == -1) return false
         
-        val preChar = surface[sIndex - 1]
+        val preChar = if (sIndex == 0) {
+            if (context.terms.size < 2) return false
+            context.terms[context.terms.size - 2].surface.lastOrNull() ?: return false
+        } else {
+            surface[sIndex - 1]
+        }
         val engine = Ashtadhyayi.pratyaharaEngine
         
         // Check if preChar is in Iṇ or Ku

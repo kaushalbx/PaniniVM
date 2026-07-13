@@ -43,7 +43,7 @@ object HalngyabbhyoSutra : Sutra<DerivationState, DerivationChange>(
         if (stemSurface.isEmpty()) return false
         val lastChar = stemSurface.last()
         
-        val endsInHal = lastChar == '्' || Varnamala.isConsonant(lastChar)
+        val endsInHal = stemSurface.endsWith('्')
         val endsInDirghaFeminine = lastChar == 'ी' || lastChar == 'ा'
         
         return endsInHal || endsInDirghaFeminine

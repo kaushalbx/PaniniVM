@@ -30,6 +30,17 @@ object NajjhalauSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean = false // Interpretive rule handled by Varnamala
 
-    override fun apply(context: DerivationState): DerivationChange =
-        error("Nishedha sutra 1.1.10 is interpretive and should not be applied directly.")
+    override fun apply(context: DerivationState): DerivationChange {
+        val updated = context.varnaComparisons.map { comparison ->
+            if (comparison.leftIsVowel != comparison.rightIsVowel) {
+                comparison.copy(forbidden = true)
+            } else {
+                comparison
+            }
+        }.toSet()
+        return DerivationChange(
+            context.copy(varnaComparisons = updated),
+            "1.1.10: Vowels and consonants are not savarna."
+        )
+    }
 }

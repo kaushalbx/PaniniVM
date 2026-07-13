@@ -5,6 +5,7 @@ import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
+import dev.sanskrit.derivation.SemanticFeature
 import dev.sanskrit.pratyahara.Pratyahara
 import dev.sanskrit.shiksha.Varnamala
 import dev.sanskrit.shiksha.Vyanjana
@@ -34,6 +35,10 @@ object AtkupvangnumvyavayePiSutra : Sutra<DerivationState, DerivationChange>(
     dependencies = setOf("8.4.1")
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
+        if (SemanticFeature.DVITIYA in context.semanticFeatures &&
+            SemanticFeature.BAHUVACANA in context.semanticFeatures
+        ) return false
+
         // Matches if there is an 'n' preceded by 'r' or 'ṣ' with only allowed intervenors.
         val surface = context.surface
         val rIndex = surface.lastIndexOfAny(setOf('र', 'ष'))

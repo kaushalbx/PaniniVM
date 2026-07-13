@@ -30,31 +30,84 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.VARNA,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        if (context.terms.size < 2) return false
-        val left = context.terms[context.terms.size - 2].surface.lastOrNull() ?: return false
-        val right = context.terms.last().surface.firstOrNull() ?: return false
+        if (context.stage == DerivationStage.INITIAL || context.stage == DerivationStage.PRATYAYA_SELECTED) return false
         
         val engine = Ashtadhyayi.pratyaharaEngine
-        return engine.contains(Pratyahara.EC, left) && engine.contains(Pratyahara.AC, right)
+        for (i in 0 until context.terms.size - 1) {
+            val left = context.terms[i].surface.lastOrNull() ?: continue
+            val right = context.terms[i+1].surface.firstOrNull() ?: continue
+            if (engine.contains(Pratyahara.EC, left) && engine.contains(Pratyahara.AC, right)) {
+                return true
+            }
+        }
+        return false
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val terms = context.terms
-        val leftTerm = terms[terms.size - 2]
-        val rightTerm = terms.last()
+        val engine = Ashtadhyayi.pratyaharaEngine
+        for (i in 0 until context.terms.size - 1) {
+            val leftTerm = context.terms[i]
+            val rightTerm = context.terms[i+1]
+            val leftChar = leftTerm.surface.lastOrNull() ?: continue
+            val rightChar = rightTerm.surface.firstOrNull() ?: continue
+            if (engine.contains(Pratyahara.EC, leftChar) && engine.contains(Pratyahara.AC, rightChar)) {
+                val replacement = getAdesha(leftChar)
+                val base = leftTerm.surface.dropLast(1)
+                val s1 = concatDevanagari(base, replacement)
+                val newSurface = concatDevanagari(s1, rightTerm.surface)
+                val newTerms = context.terms.subList(0, i) + leftTerm.copy(surface = newSurface) + context.terms.subList(i + 2, context.terms.size)
+                return DerivationChange(
+                    state = context.copy(
+                        terms = newTerms,
+                        droppedTerms = context.droppedTerms + rightTerm.copy(surface = ""),
+                        stage = DerivationStage.PADA_FORMED
+                    ).addSubstitution(VarnaSubstitution(leftTerm.id, leftChar, replacement, sutra)),
+                    explanation = "6.1.78: substituted $replacement for $leftChar before vowel."
+                )
+            }
+        }
+        return DerivationChange(context, "6.1.78: No match found")
+    }
+
+    private fun concatDevanagari(s1: String, s2: String): String {
+        if (s1.isEmpty()) return s2
+        if (s2.isEmpty()) return s1
         
-        val leftChar = leftTerm.surface.last()
-        val replacement = getAdesha(leftChar)
+        if (s1.endsWith('्')) {
+            val firstChar = s2.first()
+            if (firstChar == 'अ') {
+                return s1.dropLast(1) + s2.drop(1)
+            }
+            if (firstChar in setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ', 'े', 'ै', 'ो', 'ौ')) {
+                return s1.dropLast(1) + s2
+            }
+            val matra = getMatra(firstChar)
+            if (matra != null) {
+                return s1.dropLast(1) + matra + s2.drop(1)
+            }
+        }
         
-        val newSurface = leftTerm.surface.dropLast(1) + replacement + rightTerm.surface
+        if (s1.last() !in dev.sanskrit.shiksha.Varnamala.independentVowelsOrMarks && s2.startsWith('अ')) {
+            return s1 + s2.drop(1)
+        }
         
-        return DerivationChange(
-            state = context.copy(
-                terms = terms.dropLast(2) + leftTerm.copy(surface = newSurface),
-                stage = DerivationStage.ANGAKARYA
-            ).addSubstitution(VarnaSubstitution(leftTerm.id, leftChar, replacement, sutra)),
-            explanation = "6.1.78: substituted $replacement for $leftChar before vowel."
-        )
+        return s1 + s2
+    }
+
+    private fun getMatra(c: Char): Char? = when (c) {
+        'आ' -> 'ा'
+        'इ' -> 'ि'
+        'ई' -> 'ी'
+        'उ' -> 'ु'
+        'ऊ' -> 'ू'
+        'ऋ' -> 'ृ'
+        'ॠ' -> 'ॄ'
+        'ऌ' -> 'ॢ'
+        'ए' -> 'े'
+        'ऐ' -> 'ै'
+        'ओ' -> 'ो'
+        'औ' -> 'ौ'
+        else -> null
     }
 
     private fun getAdesha(c: Char): String = when (c) {

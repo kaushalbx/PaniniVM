@@ -1,0 +1,22 @@
+﻿package dev.sanskrit.ganapatha
+
+object MulavibhujadiGana : Gana(
+    id = GanaIds.MULAVIBHUJADI,
+    name = "मूलविभुजादिः",
+    sourceIndex = 39,
+    sutra = "3.2.5",
+    sutraId = "32005",
+    sutraText = "तुन्दशोकयोः परिमृजापनुदोः",
+    sutraTransliteration = "tundashokayohaparimrujaapanudoh",
+    sutraType = "V\$\$",
+    kind = GanaKind.AKRTI,
+    members = ganaMembers {
+        member("मूलविभुज")
+        member("नखमुच")
+        member("काकगुह")
+        member("कुमुद")
+        member("महीध्र")
+        member("कुध्र")
+        member("गिघ्र")
+    },
+)

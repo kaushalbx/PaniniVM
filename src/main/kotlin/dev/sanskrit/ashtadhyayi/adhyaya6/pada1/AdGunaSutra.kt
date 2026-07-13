@@ -28,13 +28,14 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
+        if (context.stage == DerivationStage.INITIAL || context.stage == DerivationStage.PRATYAYA_SELECTED) return false
         if (context.terms.size < 2) return false
-        val left = context.terms[context.terms.size - 2].surface.lastOrNull() ?: return false
+        val leftTerm = context.terms[context.terms.size - 2]
         val right = context.terms.last().surface.firstOrNull() ?: return false
         
         val engine = Ashtadhyayi.pratyaharaEngine
-        // Match a/ā (not a formal pratyahara for just a, but 'avarna' is used in grammar)
-        val isA = left == 'अ' || left == 'आ' || left == 'ा'
+        // Match a/ā
+        val isA = dev.sanskrit.shiksha.Varnamala.endsWithA(leftTerm.surface) || dev.sanskrit.shiksha.Varnamala.endsWithAA(leftTerm.surface)
         return isA && engine.contains(Pratyahara.AC, right)
     }
 
@@ -48,12 +49,17 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
         
         val substitute = getGuna(rightChar)
         
-        val newSurface = leftTerm.surface.dropLast(1) + substitute + rightTerm.surface.drop(1)
+        val newSurface = if (leftChar !in dev.sanskrit.shiksha.Varnamala.independentVowelsOrMarks) {
+            leftTerm.surface + substitute + rightTerm.surface.drop(1)
+        } else {
+            leftTerm.surface.dropLast(1) + substitute + rightTerm.surface.drop(1)
+        }
         
         return DerivationChange(
             state = context.copy(
                 terms = terms.dropLast(2) + leftTerm.copy(surface = newSurface),
-                stage = DerivationStage.ANGAKARYA
+                droppedTerms = context.droppedTerms + terms.last().copy(surface = ""),
+                stage = DerivationStage.PADA_FORMED
             ).addSubstitution(VarnaSubstitution(leftTerm.id, leftChar, substitute, sutra)),
             explanation = "6.1.87: Guṇa substitution ($substitute) for $leftChar + $rightChar."
         )

@@ -32,7 +32,7 @@ object KarmanyAnSutra : Sutra<DerivationState, DerivationChange>(
         // and we have a root but no kṛt suffix yet.
         return SemanticFeature.KARTARI in context.semanticFeatures && 
                context.terms.any { it.kind == TermKind.DHATU } &&
-               context.terms.none { it.kind == TermKind.PRATYAYA }
+               context.allEffectiveTerms.none { it.kind == TermKind.PRATYAYA }
     }
 
     override fun apply(context: DerivationState): DerivationChange {

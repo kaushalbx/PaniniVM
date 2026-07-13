@@ -80,9 +80,9 @@ data class DerivationTerm(
     val itMarkers: Set<ItMarker> = emptySet(),
     val upadesha: String? = null,
     val deletionType: LopaType? = null,
-    val sthaniProps: SthaniProperties? = null 
+    val sthaniProps: SthaniProperties? = null
 ) {
-    fun hasEffectiveMarker(marker: ItMarker): Boolean = 
+    fun hasEffectiveMarker(marker: ItMarker): Boolean =
         marker in itMarkers || (sthaniProps?.itMarkers?.contains(marker) == true)
 
     fun matchesUpadesha(value: String): Boolean =
@@ -101,9 +101,9 @@ enum class DerivationStage { INITIAL, PRATYAYA_SELECTED, IT_PROCESSED, ANGAKARYA
 
 data class SamjnaAssignment(val targetId: String, val samjna: Samjna)
 
-enum class Samjna { 
-    VRDDHI, GUNA, IK, AC, HAL, SAMYOGA, ANUNASIKA, SAVARNA, 
-    DHATU, PRATYAYA, ANGA, PADA, PRAGRHYA, SARVANAMA, BHA, GHI, 
+enum class Samjna {
+    VRDDHI, GUNA, IK, AC, HAL, SAMYOGA, ANUNASIKA, SAVARNA,
+    DHATU, PRATYAYA, ANGA, PADA, PRAGRHYA, SARVANAMA, BHA, GHI,
     NADI, APRUKTA, SAMBUDDHI, SARVANAMASTHANA, GHU, PRATIPADIKA
 }
 

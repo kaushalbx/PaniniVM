@@ -66,6 +66,9 @@ object AnusvarasyaYayiParasavarnahSutra : Sutra<DerivationState, DerivationChang
         } ?: return DerivationChange(context, "8.4.58: Target anusvāra not found.")
 
         val newSurface = targetTerm.surface.replaceFirst('ं', substitute.first())
+        if (newSurface == targetTerm.surface) {
+            return DerivationChange(context, "8.4.58: Parasavarṇa substitution already reflected in this term.")
+        }
 
         return DerivationChange(
             state = context.replaceTerm(targetTerm.id, targetTerm.copy(surface = newSurface)),

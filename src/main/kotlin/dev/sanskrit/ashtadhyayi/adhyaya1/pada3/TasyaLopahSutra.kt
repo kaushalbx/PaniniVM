@@ -31,8 +31,7 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.PRATYAYA,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
-        context.stage == DerivationStage.PRATYAYA_SELECTED && 
-        context.terms.any { it.itMarkers.isNotEmpty() }
+        context.stage == DerivationStage.PRATYAYA_SELECTED || context.terms.any { it.itMarkers.isNotEmpty() }
 
     override fun apply(context: DerivationState): DerivationChange {
         val newTerms = context.terms.map { term ->
@@ -40,21 +39,38 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
             
             var newSurface = term.surface
             
-            // This is a simplified logic: if it has markers, we process the surface.
-            // Traditionally, it-markers are always at the boundaries (except vowels in roots).
-            
-            // 1. Handle final markers (Halantyam)
-            while (newSurface.isNotEmpty() && Varnamala.isConsonant(newSurface.last())) {
-                newSurface = newSurface.dropLast(1)
-                // In Devanagari strings, a consonant might be followed by a virama, or be a full syllable.
-                // If it ends in a virama, we need to drop that too.
-                if (newSurface.endsWith('्')) {
+            // 0. Handle vowel U marker (anunasika U in supi/ting)
+            if (term.itMarkers.contains(ItMarker.U)) {
+                newSurface = newSurface.replace("ुँ", "्").replace("ु", "्").replace("ँ", "")
+                if (newSurface.endsWith("््")) {
                     newSurface = newSurface.dropLast(1)
                 }
             }
             
-            // 2. Handle initial markers (Chutu, Lashakvataddhite)
-            // (Similar logic could be added for startsWith)
+            // 1. Handle final markers (Halantyam)
+            if (term.itMarkers.contains(ItMarker.KIT)) {
+                if (newSurface.endsWith('्')) {
+                    newSurface = newSurface.dropLast(1)
+                }
+                while (newSurface.isNotEmpty() && Varnamala.isConsonant(newSurface.last())) {
+                    newSurface = newSurface.dropLast(1)
+                    if (newSurface.endsWith('्')) {
+                        newSurface = newSurface.dropLast(1)
+                    }
+                }
+            }
+            
+            // 2. Handle initial markers (Chutu, Lashakvataddhite, etc.)
+            if (term.itMarkers.any { it == ItMarker.J || it == ItMarker.T || it == ItMarker.SH || it == ItMarker.KIT }) {
+                if (newSurface.isNotEmpty() && (newSurface.first() in setOf('च', 'छ', 'ज', 'झ', 'ञ', 'ट', 'ठ', 'ड', 'ढ', 'ण', 'ल', 'श', 'क', 'ख', 'ग', 'घ', 'ङ'))) {
+                    val hasVirama = newSurface.getOrNull(1) == '्'
+                    if (hasVirama) {
+                        newSurface = newSurface.drop(2)
+                    } else {
+                        newSurface = "अ" + newSurface.drop(1)
+                    }
+                }
+            }
             
             term.copy(surface = newSurface, itMarkers = emptySet()) // Markers are consumed after lopa
         }

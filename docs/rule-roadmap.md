@@ -1,4 +1,4 @@
-# Sandhi Sutra Roadmap
+# Derivation Sutra Roadmap
 
 This project is organized so Paninian sutras can be added one at a time.
 

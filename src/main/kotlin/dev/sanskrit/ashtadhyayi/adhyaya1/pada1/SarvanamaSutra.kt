@@ -6,6 +6,8 @@ import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.Samjna
 import dev.sanskrit.derivation.SamjnaAssignment
 import dev.sanskrit.derivation.TermKind
+import dev.sanskrit.ganapatha.GanaIds
+import dev.sanskrit.ganapatha.GanaPatha
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -32,13 +34,13 @@ object SarvanamaSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean =
         context.terms.any { term ->
             term.kind == TermKind.PRATIPADIKA && 
-            term.surface in sarvaList &&
+            GanaPatha.contains(GanaIds.SARVADI, term.surface) &&
             context.samjnas.none { it.targetId == term.id && it.samjna == Samjna.SARVANAMA }
         }
 
     override fun apply(context: DerivationState): DerivationChange {
         val assignments = context.terms
-            .filter { it.kind == TermKind.PRATIPADIKA && it.surface in sarvaList }
+            .filter { it.kind == TermKind.PRATIPADIKA && GanaPatha.contains(GanaIds.SARVADI, it.surface) }
             .map { SamjnaAssignment(it.id, Samjna.SARVANAMA) }
             .toSet()
 
@@ -47,6 +49,4 @@ object SarvanamaSutra : Sutra<DerivationState, DerivationChange>(
             explanation = "1.1.27 assigns सर्वनाम संज्ञा to eligible stems."
         )
     }
-
-    private val sarvaList = setOf("सर्व", "विश्व", "यद्", "तद्", "एतद्", "इदम्", "अस्मद्", "युष्मद्")
 }

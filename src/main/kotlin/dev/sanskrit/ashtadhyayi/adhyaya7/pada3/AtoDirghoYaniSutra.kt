@@ -33,13 +33,15 @@ object AtoDirghoYaniSutra : Sutra<DerivationState, DerivationChange>(
     dependencies = setOf("6.4.1")
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
+        if (context.stage == DerivationStage.INITIAL || context.stage == DerivationStage.PRATYAYA_SELECTED) return false
         if ("6.4.1" !in context.activeAdhikaras) return false
         if (context.terms.size < 2) return false
         
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
+        if (affix.upadesha == "ङि") return false
 
-        val isAEnding = stem.surface.endsWith('अ')
+        val isAEnding = dev.sanskrit.shiksha.Varnamala.endsWithA(stem.surface)
         val startsWithYan = affix.surface.firstOrNull() in setOf('य', 'व', 'र', 'ल', 'ञ', 'म', 'ङ', 'ण', 'न')
         
         return isAEnding && startsWithYan
@@ -47,7 +49,12 @@ object AtoDirghoYaniSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
-        val newSurface = stem.surface.dropLast(1) + "ा"
+        val lastChar = stem.surface.last()
+        val newSurface = if (lastChar !in dev.sanskrit.shiksha.Varnamala.independentVowelsOrMarks) {
+            stem.surface + "ा"
+        } else {
+            stem.surface.dropLast(1) + "ा"
+        }
         
         return DerivationChange(
             state = context.replaceTerm(stem.id, stem.copy(surface = newSurface))

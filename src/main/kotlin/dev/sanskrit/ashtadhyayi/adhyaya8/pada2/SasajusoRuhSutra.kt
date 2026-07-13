@@ -32,7 +32,7 @@ object SasajusoRuhSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
         context.copy(
             terms = context.terms.dropLast(1) + context.terms.last()
-                .copy(surface = context.terms.last().surface.dropLast(2) + Vyanjana.RA.halanta)
+                .copy(surface = context.terms.last().surface.dropLast(2) + Vyanjana.RA.devanagari)
         ), "8.2.66 replaces final स् with र्."
     )
 }

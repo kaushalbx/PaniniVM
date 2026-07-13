@@ -35,7 +35,8 @@ object AtoBhisAisSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
         
-        val isAEnding = stem.surface.endsWith('अ') || stem.surface.endsWith('ा')
+        val isAEnding = dev.sanskrit.shiksha.Varnamala.endsWithA(stem.surface) ||
+            dev.sanskrit.shiksha.Varnamala.endsWithAA(stem.surface)
         
         return isAEnding && affix.surface == "भिस्" && 
                 context.samjnas.any { it.targetId == affix.id && it.samjna == Samjna.PRATYAYA }

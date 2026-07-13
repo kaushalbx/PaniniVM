@@ -5,6 +5,7 @@ import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.Samjna
+import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.pratyahara.Pratyahara
 import dev.sanskrit.shiksha.Ayogavaha
 import dev.sanskrit.sutra.Sutra
@@ -31,6 +32,7 @@ object MonusvarahSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.VARNA,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
+        if (context.terms.any { it.kind == TermKind.PRATYAYA }) return false
         if (context.terms.size < 2) return false
         val left = context.terms[context.terms.size - 2]
         val right = context.terms.last()
@@ -73,6 +75,7 @@ object NashcapadantasyaSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.VARNA,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
+        if (context.terms.any { it.kind == TermKind.PRATYAYA }) return false
         val surface = context.surface
         val nIndex = surface.indexOfAny(setOf('न', 'म'))
         if (nIndex == -1 || nIndex == surface.length - 1) return false
