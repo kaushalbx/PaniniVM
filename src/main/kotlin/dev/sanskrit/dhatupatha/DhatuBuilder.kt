@@ -1,5 +1,9 @@
 package dev.sanskrit.dhatupatha
 
+import dev.sanskrit.shiksha.Accent
+import dev.sanskrit.shiksha.ItStatus
+import dev.sanskrit.shiksha.Karmatva
+
 /** Small DSL used by each gaṇa file to preserve Dhātupāṭha order. */
 class DhatuBuilder(private val gana: Gana) {
     private val dhatus = mutableListOf<Dhatu>()
@@ -8,17 +12,34 @@ class DhatuBuilder(private val gana: Gana) {
         id: String,
         krama: Int,
         upadesha: String,
+        mula: String,
         artha: String,
         arthaHindi: String,
         arthaEnglish: String,
         pada: PadaType? = null,
+        itStatus: ItStatus? = null,
+        karmatva: Karmatva? = null,
+        svara: Accent? = null,
     ) {
         require(id.isNotBlank()) { "A dhātu id is required." }
         require(krama > 0) { "Dhātu krama must be positive." }
         require(upadesha.isNotBlank()) { "Dhātu upadeśa is required." }
         require(dhatus.none { it.id == id }) { "Duplicate dhātu id in $gana: $id" }
         require(dhatus.none { it.krama == krama }) { "Duplicate dhātu krama in $gana: $krama" }
-        dhatus += Dhatu(id, krama, upadesha, artha, arthaHindi, arthaEnglish, gana, pada)
+        dhatus += Dhatu(
+            id = id,
+            krama = krama,
+            upadesha = upadesha,
+            mula = mula,
+            artha = artha,
+            arthaHindi = arthaHindi,
+            arthaEnglish = arthaEnglish,
+            gana = gana,
+            pada = pada,
+            itStatus = itStatus,
+            karmatva = karmatva,
+            svara = svara
+        )
     }
 
     fun build(): List<Dhatu> = dhatus.toList()

@@ -1,17 +1,61 @@
 package dev.sanskrit.dhatupatha
 
+import dev.sanskrit.shiksha.Accent
+import dev.sanskrit.shiksha.ItStatus
+import dev.sanskrit.shiksha.Karmatva
+
 /** Complete Tanadi-gaṇa imported from the MIT-shared ashtadhyayi-com data set. */
 object TanadiDhatus {
     val all: List<Dhatu> = dhatuPatha(Gana.TANADI) {
-        dhatu("08.0001", 1, "तनुँ", "विस्तारे", "फैलाना, बढ़ाना", "to spread, to stretch, to expand, to increase", PadaType.UBHAYAPADA)
-        dhatu("08.0002", 2, "षणुँ", "दाने", "देना, दान करना", "to give, to donate", PadaType.UBHAYAPADA)
-        dhatu("08.0003", 3, "क्षणुँ", "हिंसायाम्", "मारना, जान से मार देना", "to kill, to destroy, to irritate, to cause pain, to hurt, to break", PadaType.UBHAYAPADA)
-        dhatu("08.0004", 4, "क्षिणुँ", "हिंसायाम्", "मारना, जान से मारना, दुःख देना, सताना, तोड़ना", "to kill, to destroy, to irritate, to cause pain, to hurt, to break", PadaType.UBHAYAPADA)
-        dhatu("08.0005", 5, "ऋणुँ", "गतौ", "जाना", "to go", PadaType.UBHAYAPADA)
-        dhatu("08.0006", 6, "तृणुँ", "अदने", "खाना", "to eat,to graze", PadaType.UBHAYAPADA)
-        dhatu("08.0007", 7, "घृणुँ", "दीप्तौ", "चमकना, प्रकाशित होना", "to shine,to glow", PadaType.UBHAYAPADA)
-        dhatu("08.0008", 8, "वनुँ", "याचने", "याचना करना, मांगना", "to act,to beg,to request,to seek", PadaType.ATMANEPADA)
-        dhatu("08.0009", 9, "मनुँ", "अवबोधने", "जानना, समझना, विचार करना, मानना", "to understand, to regard, to think, to believe, to assume", PadaType.ATMANEPADA)
-        dhatu("08.0010", 10, "डुकृञ्", "करणे", "करना", "to do, to act, to make", PadaType.UBHAYAPADA)
+        dhatu(
+            "08.0001", 1, "तनुँ", "तन्",
+            "विस्तारे", "फैलाना, बढ़ाना", "to spread, to stretch, to expand, to increase",
+            PadaType.UBHAYAPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
+        )
+        dhatu(
+            "08.0002", 2, "षणुँ", "सन्",
+            "दाने", "देना, दान करना", "to give, to donate",
+            PadaType.UBHAYAPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
+        )
+        dhatu(
+            "08.0003", 3, "क्षणुँ", "क्षण्",
+            "हिंसायाम्", "मारना, जान से मार देना", "to kill, to destroy, to irritate, to cause pain, to hurt, to break",
+            PadaType.UBHAYAPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
+        )
+        dhatu(
+            "08.0004", 4, "क्षिणुँ", "क्षिण्",
+            "हिंसायाम्", "मारना, जान से मारना, दुःख देना, सताना, तोड़ना", "to kill, to destroy, to irritate, to cause pain, to hurt, to break",
+            PadaType.UBHAYAPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
+        )
+        dhatu(
+            "08.0005", 5, "ऋणुँ", "ऋण्",
+            "गतौ", "जाना", "to go",
+            PadaType.UBHAYAPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
+        )
+        dhatu(
+            "08.0006", 6, "तृणुँ", "तृण्",
+            "अदने", "खाना", "to eat,to graze",
+            PadaType.UBHAYAPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
+        )
+        dhatu(
+            "08.0007", 7, "घृणुँ", "घृण्",
+            "दीप्तौ", "चमकना, प्रकाशित होना", "to shine,to glow",
+            PadaType.UBHAYAPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
+        )
+        dhatu(
+            "08.0008", 8, "वनुँ", "वन्",
+            "याचने", "याचना करना, मांगना", "to act,to beg,to request,to seek",
+            PadaType.ATMANEPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
+        )
+        dhatu(
+            "08.0009", 9, "मनुँ", "मन्",
+            "अवबोधने", "जानना, समझना, विचार करना, मानना", "to understand, to regard, to think, to believe, to assume",
+            PadaType.ATMANEPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
+        )
+        dhatu(
+            "08.0010", 10, "डुकृञ्", "कृ",
+            "करणे", "करना", "to do, to act, to make",
+            PadaType.UBHAYAPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
+        )
     }
 }

@@ -4,7 +4,7 @@ import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
-import dev.sanskrit.derivation.Samjna
+import dev.sanskrit.shiksha.Samjna
 import dev.sanskrit.derivation.SamjnaAssignment
 import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.sutra.Sutra

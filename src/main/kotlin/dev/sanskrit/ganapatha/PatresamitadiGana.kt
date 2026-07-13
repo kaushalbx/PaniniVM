@@ -1,14 +1,12 @@
 ﻿package dev.sanskrit.ganapatha
 
 object PatresamitadiGana : Gana(
-        id = GanaIds.PATRESAMITADI,
         name = "पात्रेसमितादिः",
         sourceIndex = 9,
         sutra = "2.1.48",
         sutraId = "21048",
         sutraText = "पात्रेसमितादयश्च",
         sutraTransliteration = "paatresamitaadayashcha",
-        sutraType = "V${'$'}${'$'}",
         kind = GanaKind.AKRTI,
         sanskritMeaning = "",
         englishMeaning = "",

@@ -1,14 +1,16 @@
 ﻿package dev.sanskrit.ganapatha
 
+import dev.sanskrit.shiksha.Samjna
+import dev.sanskrit.shiksha.SemanticFeature
+import dev.sanskrit.shiksha.LexicalUse
+
 abstract class Gana(
-    val id: GanaIds,
     val name: String,
     val sourceIndex: Int,
     val sutra: String,
     val sutraId: String,
     val sutraText: String,
     val sutraTransliteration: String,
-    val sutraType: String,
     val kind: GanaKind,
     val sanskritMeaning: String = "",
     val hindiMeaning: String = "",
@@ -19,6 +21,11 @@ abstract class Gana(
     val vartika: String = "",
     val rawWords: String = members.joinToString(" । ", postfix = " ॥") { it.text },
     val notes: String? = null,
+    val genders: Set<SemanticFeature> = emptySet(),
+    val resultSamjnas: Set<Samjna> = emptySet(),
+    val references: List<String> = emptyList(),
+    val adhikara: Adhikara? = null,
+    val antarGanas: List<AntarGana> = emptyList(),
 ) {
     private val membersByNormalized: Map<String, GanaMember> =
         members.associateBy { it.normalized }
@@ -29,18 +36,46 @@ abstract class Gana(
     val normalizedMemberTexts: Set<String>
         get() = membersByNormalized.keys
 
+    init {
+        antarGanas.forEach { antarGana ->
+            require(antarGana.members.all { member -> contains(member) }) {
+                "Antargaṇa ${antarGana.name} contains a member absent from ${sourceIndex}."
+            }
+        }
+    }
+
     fun contains(text: String): Boolean =
         findMember(text) != null
 
     fun findMember(text: String): GanaMember? =
         membersByNormalized[GanaNormalizer.normalize(text)]
 
+    fun eligibleMember(text: String, lexicalUses: Set<LexicalUse> = emptySet()): GanaMember? =
+        findMember(text)?.takeIf { member ->
+            member.ganaCondition?.matches(lexicalUses) ?: true
+        }
+
+    fun isEligible(text: String, lexicalUses: Set<LexicalUse> = emptySet()): Boolean =
+        eligibleMember(text, lexicalUses) != null || isAntarGanaMember(text)
+
     fun requireMember(text: String): GanaMember =
-        findMember(text) ?: error("Member $text is not present in gana ${id.key}.")
+        findMember(text) ?: error("Member $text is not present in gana ${sourceIndex}.")
+
+    fun antarGanasContaining(text: String): List<AntarGana> =
+        antarGanas.filter { it.contains(text) }
+
+    fun isAntarGanaMember(text: String): Boolean =
+        antarGanasContaining(text).isNotEmpty()
 
     fun hasMeaning(): Boolean =
         sanskritMeaning.isNotBlank() || hindiMeaning.isNotBlank() || englishMeaning.isNotBlank()
 }
+
+/** A governing scope introduced by the gaṇa's associated sūtra. */
+data class Adhikara(
+    val name: String,
+    val endsAtSutra: String,
+)
 
 enum class GanaSource {
     GANAPATHA_DATA,
@@ -49,80 +84,8 @@ enum class GanaSource {
 enum class GanaKind {
     PATHA,
     AKRTI,
-}
-
-enum class GanaIds(val key: String) {
-    SARVADI("sarvadi"),
-    SVARADI("svaradi"),
-    CHADI("chadi"),
-    PRADI("pradi"),
-    URYADI("uryadi"),
-    SAKSHATPRABHRTI("sakshatprabhrti"),
-    TISHTHADGUPRABHRTI("tishthadguprabhrti"),
-    SHAUNDADI("shaundadi"),
-    PATRESAMITADI("patresamitadi"),
-    VYAGHRADI("vyaghradi"),
-    SHRENYADI("shrenyadi"),
-    KRTADI("krtadi"),
-    SHAKAPARTHIVADI("shakaparthivadi"),
-    SHRAMANADI("shramanadi"),
-    MAYURAVYAMSAKADI("mayuravyamsakadi"),
-    YAJAKADI("yajakadi"),
-    RAJADANTADI("rajadantadi"),
-    AHITAGNYADI("ahitagnyadi"),
-    KADARADI("kadaradi"),
-    NAVADI("navadi"),
-    PRAKRTYADI("prakrtyadi"),
-    PRATYADI("pratyadi"),
-    GAVASHVADI("gavashvadi"),
-    DADHIPAYASYADI("dadhipayasyadi"),
-    ARDHARCADI("ardharcadi"),
-    PAILADI("pailadi"),
-    TAULVALYADI("taulvalyadi"),
-    YASKADI("yaskadi"),
-    GOPAVANADI("gopavanadi"),
-    TIKAKITAVADI("tikakitavadi"),
-    UPAKADI("upakadi"),
-    BHRSHADI("bhrshadi"),
-    LOHITADI("lohitadi"),
-    SUKHADI("sukhadi"),
-    KANDVADI("kandvadi"),
-    NANDYADI("nandyadi"),
-    GRAHYADI("grahyadi"),
-    PACADI("pacadi"),
-    MULAVIBHUJADI("mulavibhujadi"),
-    PARSHVADI("parshvadi"),
-    GAMYADI("gamyadi"),
-    BHIDADI("bhidadi"),
-    SAMPADADI("sampadadi"),
-    BHIMADI("bhimadi"),
-    AJADI("ajadi"),
-    SVASRADI("svasradi"),
-    SAMANADI("samanadi"),
-    GAURADI("gauradi"),
-    BAHVADI("bahvadi"),
-    KRODADI("krodadi"),
-    SHARNGARAVADI("sharngaravadi"),
-    KRAUDYADI("kraudyadi"),
-    ASHVAPATYADI("ashvapatyadi"),
-    UTSADI("utsadi"),
-    BAAHVADI("baahvadi"),
-    KUNJADI("kunjadi"),
-    NADADI("nadadi"),
-    BIDADI("bidadi"),
-    GARGADI("gargadi"),
-    ASHVADI("ashvadi"),
-    SHIVADI("shivadi"),
-    SHUBHRADI("shubhradi"),
-    KALYANYADI("kalyanyadi"),
-    GRSHTYADI("grshtyadi"),
-    REVATYADI("revatyadi"),
-    KURVADI("kurvadi"),
-    TIKADI("tikadi"),
-    VAKINADI("vakinadi"),
-    KAMBOJADI("kambojadi"),
-    BHARGADI("bhargadi"),
-    YAUDHEYADI("yaudheyadi"),
+    /** The source lists this gaṇa without a pāṭha/ākṛti classification. */
+    UNSPECIFIED,
 }
 
 object GanaPathaSources {
@@ -135,4 +98,3 @@ object GanaNormalizer {
     fun normalize(value: String): String =
         value.trim()
 }
-

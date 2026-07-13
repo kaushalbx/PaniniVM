@@ -1,0 +1,12 @@
+package dev.sanskrit.ashtadhyayi.adhyaya4.pada2
+
+import dev.sanskrit.sutra.Sutra
+
+object Adhyaya4Pada2 {
+    val sutras: List<Sutra<*, *>> = listOf(
+        PashadibhyoYahSutra, RajanyadibhyoVunSutra, BhaurikyaadyaishukaryadibhyoVidhalbhaktalauSutra,
+        KratukthadisutrantatThakSutra, KramadibhyoVunSutra, VasantadibhyashThakSutra,
+        SankaladibhyashCaSutra, SuvastvadibhyoAnSutra,
+        UtkaradibhyashChahSutra, KattrayadibhyoDhakanySutra, NadyadibhyoDhakSutra,
+    )
+}

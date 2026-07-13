@@ -1,31 +1,38 @@
 package dev.sanskrit.ganapatha
 
+import dev.sanskrit.shiksha.LexicalUse
+
 object GanaPatha {
     val all: List<Gana> = GanaPathaData.all
 
-    private val byId: Map<GanaIds, Gana> = all.associateBy { it.id }
-    private val byKey: Map<String, Gana> = all.associateBy { it.id.key }
+    private val bySourceIndex: Map<Int, Gana> = all.associateBy { it.sourceIndex }
 
     init {
-        require(byId.size == all.size) { "Duplicate gana ids are not allowed." }
-        require(byKey.size == all.size) { "Duplicate gana id keys are not allowed." }
+        require(bySourceIndex.size == all.size) { "Duplicate gaṇa source indices are not allowed." }
     }
 
-    fun get(id: GanaIds): Gana? = byId[id]
+    fun get(sourceIndex: Int): Gana? = bySourceIndex[sourceIndex]
 
-    fun get(key: String): Gana? = byKey[key]
+    fun findByName(name: String): List<Gana> = all.filter { it.name == name }
 
-    fun require(id: GanaIds): Gana =
-        get(id) ?: error("Gana $id is not present in this Gaṇapāṭha.")
+    fun require(sourceIndex: Int): Gana =
+        get(sourceIndex) ?: error("Gaṇa at source index $sourceIndex is not present in this Gaṇapāṭha.")
 
-    fun require(key: String): Gana =
-        get(key) ?: error("Gana $key is not present in this Gaṇapāṭha.")
-
-    fun contains(ganaId: GanaIds, text: String): Boolean {
-        return get(ganaId)?.contains(text) == true
+    fun contains(sourceIndex: Int, text: String): Boolean {
+        return get(sourceIndex)?.contains(text) == true
     }
+
+    fun isEligibleMember(
+        sourceIndex: Int,
+        text: String,
+        lexicalUses: Set<LexicalUse> = emptySet(),
+    ): Boolean = get(sourceIndex)?.isEligible(text, lexicalUses) == true
 
     fun ganasContaining(text: String): List<Gana> {
         return all.filter { it.contains(text) }
     }
+
+    /** Finds subgroups that contain [text], paired with their parent gaṇa. */
+    fun antarGanasContaining(text: String): List<Pair<Gana, AntarGana>> =
+        all.flatMap { gana -> gana.antarGanasContaining(text).map { antarGana -> gana to antarGana } }
 }

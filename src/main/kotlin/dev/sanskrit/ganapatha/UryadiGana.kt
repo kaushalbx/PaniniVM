@@ -1,15 +1,14 @@
 ﻿package dev.sanskrit.ganapatha
 
 object UryadiGana : Gana(
-        id = GanaIds.URYADI,
         name = "ऊर्यादिः",
         sourceIndex = 5,
         sutra = "1.4.61",
         sutraId = "14061",
         sutraText = "ऊर्यादिच्विडाचश्च",
         sutraTransliteration = "ooryaadichvidaachashcha",
-        sutraType = "S${'$'}निपातसंज्ञा${'$'}##S${'$'}गतिसंज्ञा${'$'}",
         kind = GanaKind.PATHA,
+        resultSamjnas = setOf(dev.sanskrit.shiksha.Samjna.GATI),
         sanskritMeaning = "ऊर्यादिगणस्य शब्दाः, च्वि-प्रत्ययान्तशब्दाः, तथा डाच्-प्रत्ययान्तशब्दाः क्रियायोगे गतिसंज्ञकाः भवन्ति । यथा - ऊरीकृत्य, शुक्लीकृत्य, पटपटाकृत्य ।",
         englishMeaning = "",
         members = ganaMembers {
@@ -54,4 +53,3 @@ object UryadiGana : Gana(
             member("आविस्")
         },
 )
-

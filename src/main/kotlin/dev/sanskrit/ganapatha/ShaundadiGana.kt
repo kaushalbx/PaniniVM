@@ -1,14 +1,12 @@
 ﻿package dev.sanskrit.ganapatha
 
 object ShaundadiGana : Gana(
-        id = GanaIds.SHAUNDADI,
         name = "शौण्डादिः",
         sourceIndex = 8,
         sutra = "2.1.40",
         sutraId = "21040",
         sutraText = "सप्तमी शौण्डैः",
         sutraTransliteration = "saptameeshaundaih",
-        sutraType = "V${'$'}${'$'}",
         kind = GanaKind.PATHA,
         sanskritMeaning = "",
         englishMeaning = "",

@@ -6,7 +6,7 @@ import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.DerivationTerm
 import dev.sanskrit.derivation.TermKind
-import dev.sanskrit.derivation.Samjna
+import dev.sanskrit.shiksha.Samjna
 import dev.sanskrit.sutra.NimittaScope
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction

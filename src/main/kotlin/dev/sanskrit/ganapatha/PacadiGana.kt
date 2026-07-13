@@ -1,14 +1,12 @@
 ﻿package dev.sanskrit.ganapatha
 
 object PacadiGana : Gana(
-    id = GanaIds.PACADI,
     name = "पचादिः",
     sourceIndex = 38,
     sutra = "3.1.134",
     sutraId = "31134",
     sutraText = "नन्दिग्रहिपचादिभ्यो ल्युणिन्यचः",
     sutraTransliteration = "nandigrahipachaadibhyolyuninyachah",
-    sutraType = "V\$\$",
     kind = GanaKind.AKRTI,
     members = ganaMembers {
         member("पच")

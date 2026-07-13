@@ -3,10 +3,9 @@ package dev.sanskrit.ashtadhyayi.adhyaya1.pada1
 import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
-import dev.sanskrit.derivation.Samjna
+import dev.sanskrit.shiksha.Samjna
 import dev.sanskrit.derivation.SamjnaAssignment
 import dev.sanskrit.derivation.TermKind
-import dev.sanskrit.ganapatha.GanaIds
 import dev.sanskrit.ganapatha.GanaPatha
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
@@ -34,13 +33,16 @@ object SarvanamaSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean =
         context.terms.any { term ->
             term.kind == TermKind.PRATIPADIKA && 
-            GanaPatha.contains(GanaIds.SARVADI, term.surface) &&
+            GanaPatha.isEligibleMember(1, term.surface, term.lexicalUses) &&
             context.samjnas.none { it.targetId == term.id && it.samjna == Samjna.SARVANAMA }
         }
 
     override fun apply(context: DerivationState): DerivationChange {
         val assignments = context.terms
-            .filter { it.kind == TermKind.PRATIPADIKA && GanaPatha.contains(GanaIds.SARVADI, it.surface) }
+            .filter {
+                it.kind == TermKind.PRATIPADIKA &&
+                    GanaPatha.isEligibleMember(1, it.surface, it.lexicalUses)
+            }
             .map { SamjnaAssignment(it.id, Samjna.SARVANAMA) }
             .toSet()
 

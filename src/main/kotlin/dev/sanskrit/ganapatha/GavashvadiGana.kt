@@ -1,14 +1,12 @@
 ﻿package dev.sanskrit.ganapatha
 
 object GavashvadiGana : Gana(
-    id = GanaIds.GAVASHVADI,
     name = "गवाश्वादिः",
     sourceIndex = 23,
     sutra = "2.4.11",
     sutraId = "24011",
     sutraText = "गवाश्वप्रभृतीनि च",
     sutraTransliteration = "gavaashvaprabhruteenicha",
-    sutraType = "V\$\$",
     kind = GanaKind.PATHA,
     members = ganaMembers {
         member("गवाश्वम्")

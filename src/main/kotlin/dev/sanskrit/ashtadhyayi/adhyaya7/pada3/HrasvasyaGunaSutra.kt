@@ -4,7 +4,7 @@ import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
-import dev.sanskrit.derivation.Samjna
+import dev.sanskrit.shiksha.Samjna
 import dev.sanskrit.derivation.VarnaSubstitution
 import dev.sanskrit.shiksha.Varnamala
 import dev.sanskrit.sutra.NimittaScope

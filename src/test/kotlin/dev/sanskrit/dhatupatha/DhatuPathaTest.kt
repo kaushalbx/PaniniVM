@@ -2,6 +2,7 @@ package dev.sanskrit.dhatupatha
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 class DhatuPathaTest {
     @Test
@@ -25,5 +26,23 @@ class DhatuPathaTest {
         assertEquals(10, TanadiDhatus.all.size)
         assertEquals(71, KryadiDhatus.all.size)
         assertEquals(509, CuradiDhatus.all.size)
+    }
+
+    @Test
+    fun `all entries expose a root after the metadata extension`() {
+        assertEquals(2259, DhatuPatha.all.size)
+        assertEquals("भू", DhatuPatha.find("01.0001")?.mula)
+        assertEquals(dev.sanskrit.shiksha.ItStatus.SET, DhatuPatha.find("01.0001")?.itStatus)
+        assertEquals(dev.sanskrit.shiksha.Karmatva.AKARMAKA, DhatuPatha.find("01.0001")?.karmatva)
+        assertEquals(dev.sanskrit.shiksha.Accent.UDATTA, DhatuPatha.find("01.0001")?.svara)
+
+        val annotatedDhatu = assertNotNull(DhatuPatha.find("02.0001"))
+        assertEquals("अद्", annotatedDhatu.mula)
+        assertEquals(dev.sanskrit.shiksha.ItStatus.ANIT, annotatedDhatu.itStatus)
+        assertEquals(dev.sanskrit.shiksha.Karmatva.SAKARMAKA, annotatedDhatu.karmatva)
+
+        val ganaSutra = assertNotNull(DhatuPatha.find("02.0076"))
+        assertEquals("चर्करीतं च", ganaSutra.mula)
+        assertEquals(null, ganaSutra.itStatus)
     }
 }

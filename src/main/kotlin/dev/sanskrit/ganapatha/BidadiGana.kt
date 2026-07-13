@@ -1,14 +1,12 @@
 ﻿package dev.sanskrit.ganapatha
 
 object BidadiGana : Gana(
-    id = GanaIds.BIDADI,
     name = "बिदादिः",
     sourceIndex = 58,
     sutra = "4.1.104",
     sutraId = "41104",
     sutraText = "अनृष्यानन्तर्ये बिदादिभ्योऽञ्",
     sutraTransliteration = "anrushyaanantaryebidaadibhyony",
-    sutraType = "V\$\$",
     kind = GanaKind.PATHA,
     notes = "Source row contains contextual annotations; only member entries are modeled here.",
     members = ganaMembers {

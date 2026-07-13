@@ -73,6 +73,5 @@ object GanaPathaData {
         KambojadiGana,
         BhargadiGana,
         YaudheyadiGana,
-    )
+    ) + AdditionalGanas.all
 }
-

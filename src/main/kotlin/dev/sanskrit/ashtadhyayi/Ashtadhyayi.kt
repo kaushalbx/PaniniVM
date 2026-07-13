@@ -6,8 +6,11 @@ import dev.sanskrit.ashtadhyayi.adhyaya1.pada3.Adhyaya1Pada3
 import dev.sanskrit.ashtadhyayi.adhyaya1.pada4.Adhyaya1Pada4
 import dev.sanskrit.ashtadhyayi.adhyaya3.pada1.Adhyaya3Pada1
 import dev.sanskrit.ashtadhyayi.adhyaya3.pada2.Adhyaya3Pada2
+import dev.sanskrit.ashtadhyayi.adhyaya3.pada3.Adhyaya3Pada3
 import dev.sanskrit.ashtadhyayi.adhyaya3.pada4.Adhyaya3Pada4
 import dev.sanskrit.ashtadhyayi.adhyaya4.pada1.Adhyaya4Pada1
+import dev.sanskrit.ashtadhyayi.adhyaya4.pada2.Adhyaya4Pada2
+import dev.sanskrit.ashtadhyayi.adhyaya4.pada3.Adhyaya4Pada3
 import dev.sanskrit.ashtadhyayi.adhyaya6.pada1.Adhyaya6Pada1
 import dev.sanskrit.ashtadhyayi.adhyaya6.pada4.Adhyaya6Pada4
 import dev.sanskrit.ashtadhyayi.adhyaya7.pada1.Adhyaya7Pada1
@@ -17,6 +20,8 @@ import dev.sanskrit.ashtadhyayi.adhyaya8.pada2.Adhyaya8Pada2
 import dev.sanskrit.ashtadhyayi.adhyaya8.pada3.Adhyaya8Pada3
 import dev.sanskrit.ashtadhyayi.adhyaya8.pada4.Adhyaya8Pada4
 import dev.sanskrit.derivation.DerivationSutra
+import dev.sanskrit.ganapatha.Gana
+import dev.sanskrit.ganapatha.GanaPatha
 import dev.sanskrit.pratyahara.PratyaharaEngine
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAvastha
@@ -29,12 +34,15 @@ object Ashtadhyayi {
     const val expectedSutraCount: Int = 3959
     val pratyaharaEngine = PratyaharaEngine()
 
-    val cataloguedSutras: List<Sutra<*, *>> = listOf(
+    private val implementedSutras: List<Sutra<*, *>> = listOf(
         Adhyaya1Pada1.sutras, Adhyaya1Pada2.sutras, Adhyaya1Pada3.sutras, Adhyaya1Pada4.sutras,
-        Adhyaya3Pada1.sutras, Adhyaya3Pada2.sutras, Adhyaya3Pada4.sutras, Adhyaya4Pada1.sutras,
+        Adhyaya3Pada1.sutras, Adhyaya3Pada2.sutras, Adhyaya3Pada3.sutras, Adhyaya3Pada4.sutras, Adhyaya4Pada1.sutras,
+        Adhyaya4Pada2.sutras,
+        Adhyaya4Pada3.sutras,
         Adhyaya6Pada1.sutras, Adhyaya6Pada4.sutras, Adhyaya7Pada1.sutras, Adhyaya7Pada2.sutras,
         Adhyaya7Pada3.sutras, Adhyaya8Pada2.sutras, Adhyaya8Pada3.sutras, Adhyaya8Pada4.sutras,
-    ).flatten().distinctBy { it.sutra }
+    ).flatten()
+    val cataloguedSutras: List<Sutra<*, *>> = implementedSutras
 
     val registry = SutraRegistry(cataloguedSutras)
     val executableSutras: List<DerivationSutra> = registry.sutras.filterIsInstance<DerivationSutra>()
@@ -46,4 +54,7 @@ object Ashtadhyayi {
     val pathitaCount: Int get() = patha.pathitaCount
     val kriyavatCount: Int get() = patha.kriyavatCount
     val remainingCount: Int get() = expectedSutraCount - pathitaCount
+
+    /** Resolves an implemented sūtra associated with a Gaṇapāṭha entry. */
+    fun sutraFor(gana: Gana): Sutra<*, *> = registry.require(gana.sutra)
 }

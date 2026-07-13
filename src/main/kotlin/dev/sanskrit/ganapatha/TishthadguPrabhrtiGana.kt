@@ -1,14 +1,12 @@
 ﻿package dev.sanskrit.ganapatha
 
 object TishthadguPrabhrtiGana : Gana(
-        id = GanaIds.TISHTHADGUPRABHRTI,
         name = "तिष्ठद्गुप्रभृतिः",
         sourceIndex = 7,
         sutra = "2.1.17",
         sutraId = "21017",
         sutraText = "तिष्ठद्गुप्रभृतीनि च",
         sutraTransliteration = "tishthadguprabhruteenicha",
-        sutraType = "V${'$'}${'$'}",
         kind = GanaKind.PATHA,
         sanskritMeaning = "",
         englishMeaning = "",

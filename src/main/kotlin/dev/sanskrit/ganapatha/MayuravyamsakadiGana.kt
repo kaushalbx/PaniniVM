@@ -1,14 +1,12 @@
 package dev.sanskrit.ganapatha
 
 object MayuravyamsakadiGana : Gana(
-    id = GanaIds.MAYURAVYAMSAKADI,
     name = "मयूरव्यंसकादिः",
     sourceIndex = 15,
     sutra = "2.1.72",
     sutraId = "21072",
     sutraText = "मयूरव्यंसकादयश्च",
     sutraTransliteration = "mayooravyamsakaadayashcha",
-    sutraType = "V${'$'}${'$'}",
     kind = GanaKind.AKRTI,
     notes = "Source row contains several contextual annotations; only member entries are modeled here.",
     members = ganaMembers {

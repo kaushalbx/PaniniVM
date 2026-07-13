@@ -1,14 +1,12 @@
 ﻿package dev.sanskrit.ganapatha
 
 object VyaghradiGana : Gana(
-        id = GanaIds.VYAGHRADI,
         name = "व्याघ्रादिः",
         sourceIndex = 10,
         sutra = "2.1.56",
         sutraId = "21056",
         sutraText = "उपमितं व्याघ्रादिभिः सामान्याप्रयोगे",
         sutraTransliteration = "upamitamvyaaghraadibhihasaamaanyaaprayoge",
-        sutraType = "V${'$'}${'$'}",
         kind = GanaKind.AKRTI,
         sanskritMeaning = "",
         englishMeaning = "",

@@ -1,15 +1,14 @@
 ﻿package dev.sanskrit.ganapatha
 
 object ChadiGana : Gana(
-    id = GanaIds.CHADI,
     name = "चादिः",
     sourceIndex = 3,
     sutra = "1.4.57",
     sutraId = "14057",
     sutraText = "चादयोऽसत्त्वे",
     sutraTransliteration = "chaadayosattve",
-    sutraType = "S${'$'}निपातसंज्ञा${'$'}",
     kind = GanaKind.AKRTI,
+    resultSamjnas = setOf(dev.sanskrit.shiksha.Samjna.NIPATA),
     sanskritMeaning = "चादिगणे निर्दिष्टाः शब्दाः अद्रव्यवाचिनि अर्थे निपातसंज्ञकाः भवन्ति ।",
     hindiMeaning = "चादिगण में निर्दिष्ट शब्द द्रव्यवाचक अर्थ न होने पर निपात कहलाते हैं।",
     englishMeaning = "The words included in the चादिगण are called निपात when used in a sense that does not denote an object.",
@@ -169,4 +168,3 @@ object ChadiGana : Gana(
         member("वै", "निश्चय ही", "indeed, truly")
     },
 )
-

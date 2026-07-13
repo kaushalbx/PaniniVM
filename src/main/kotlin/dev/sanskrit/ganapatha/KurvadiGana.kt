@@ -1,14 +1,12 @@
 ﻿package dev.sanskrit.ganapatha
 
 object KurvadiGana : Gana(
-    id = GanaIds.KURVADI,
     name = "कुर्वादिः",
     sourceIndex = 66,
     sutra = "4.1.151",
     sutraId = "41151",
     sutraText = "कुर्वादिभ्यो ण्यः",
     sutraTransliteration = "kurvaadibhyonyah",
-    sutraType = "V\$\$",
     kind = GanaKind.PATHA,
     notes = "Source row contains contextual annotations; only member entries are modeled here.",
     members = ganaMembers {

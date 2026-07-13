@@ -1,5 +1,9 @@
 package dev.sanskrit.derivation
 
+import dev.sanskrit.shiksha.Samjna
+import dev.sanskrit.shiksha.SemanticFeature
+import dev.sanskrit.shiksha.LexicalUse
+
 /**
  * The shared state passed through an Ashtadhyayi derivation.
  */
@@ -80,7 +84,8 @@ data class DerivationTerm(
     val itMarkers: Set<ItMarker> = emptySet(),
     val upadesha: String? = null,
     val deletionType: LopaType? = null,
-    val sthaniProps: SthaniProperties? = null
+    val sthaniProps: SthaniProperties? = null,
+    val lexicalUses: Set<LexicalUse> = emptySet(),
 ) {
     fun hasEffectiveMarker(marker: ItMarker): Boolean =
         marker in itMarkers || (sthaniProps?.itMarkers?.contains(marker) == true)
@@ -100,13 +105,3 @@ enum class ItMarker { U, J, T, P, SH, NG, KIT, NGIT, NIT, SIT }
 enum class DerivationStage { INITIAL, PRATYAYA_SELECTED, IT_PROCESSED, ANGAKARYA, PADA_FORMED, FINAL }
 
 data class SamjnaAssignment(val targetId: String, val samjna: Samjna)
-
-enum class Samjna {
-    VRDDHI, GUNA, IK, AC, HAL, SAMYOGA, ANUNASIKA, SAVARNA,
-    DHATU, PRATYAYA, ANGA, PADA, PRAGRHYA, SARVANAMA, BHA, GHI,
-    NADI, APRUKTA, SAMBUDDHI, SARVANAMASTHANA, GHU, PRATIPADIKA
-}
-
-enum class SemanticFeature {
-    KARTARI, KARMANI, BHAVE, GUNA_REQUEST, VRDDHI_REQUEST, DHATU_LOPA, ARDHADHATUKA, VARTAMANA, LAT, PRATHAMA_PURUSHA, PUMS, STRI, NAPUMSAKA, PRATHAMA, DVITIYA, TRTIYA, CHATURTHI, PANCHAMI, SASTHI, SAPTAMI, SAMBODHANA, EKAVACANA, DVIVACANA, BAHUVACANA
-}

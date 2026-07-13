@@ -5,9 +5,9 @@ import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.DerivationTerm
-import dev.sanskrit.derivation.SemanticFeature
 import dev.sanskrit.derivation.TermKind
-import dev.sanskrit.sutra.NimittaScope
+import dev.sanskrit.ganapatha.GanaPatha
+import dev.sanskrit.shiksha.SemanticFeature
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -42,7 +42,7 @@ object StriyamAdhikaraSutra : Sutra<DerivationState, DerivationChange>(
 
 /**
  * 4.1.4: ajādyataṣṭāp.
- * The suffix 'ṭāp' is added to stems in the 'aja' group and to stems ending in short 'a' 
+ * The suffix 'ṭāp' is added to stems in the 'aja' group and to stems ending in short 'a'
  * to express the feminine gender.
  */
 object AjadyatastapSutra : Sutra<DerivationState, DerivationChange>(
@@ -62,12 +62,13 @@ object AjadyatastapSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         if ("4.1.3" !in context.activeAdhikaras) return false
         if (context.terms.none { it.kind == TermKind.PRATIPADIKA }) return false
-        
+
         val stem = context.terms.first { it.kind == TermKind.PRATIPADIKA }
+        val isAjadiMember = GanaPatha.isEligibleMember(45, stem.surface, stem.lexicalUses)
         val endsInA = stem.surface.endsWith('अ')
-        
+
         // Match if it ends in 'a' and no feminine suffix has been added yet
-        return endsInA && context.allEffectiveTerms.none { it.upadesha == "टाप्" }
+        return (isAjadiMember || endsInA) && context.allEffectiveTerms.none { it.upadesha == "टाप्" }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
