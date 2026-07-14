@@ -35,14 +35,24 @@ enum class SubantaStemClass(
     A_STEM_MASCULINE("a-stem masculine", Linga.PUMS),
     A_STEM_NEUTER("a-stem neuter", Linga.NAPUMSAKA),
     I_STEM_MASCULINE("i-stem masculine", Linga.PUMS),
+    I_STEM_FEMININE("i-stem feminine", Linga.STRI),
     U_STEM_MASCULINE("u-stem masculine", Linga.PUMS),
+    U_STEM_FEMININE("u-stem feminine", Linga.STRI),
+    R_STEM_MASCULINE("ṛ-stem masculine", Linga.PUMS),
+    N_STEM_MASCULINE("n-stem masculine", Linga.PUMS),
+    S_STEM_NEUTER("s-stem neuter", Linga.NAPUMSAKA),
+    II_STEM_FEMININE("ī-stem feminine", Linga.STRI),
     A_STEM_FEMININE("ā-stem feminine", Linga.STRI),
     ;
 
     fun accepts(pratipadika: String): Boolean = when (this) {
         A_STEM_MASCULINE, A_STEM_NEUTER -> pratipadika.last() !in independentVowelsOrMarks
-        I_STEM_MASCULINE -> pratipadika.endsWith(Svara.I.matra!!) || pratipadika.endsWith(Svara.I.devanagari)
-        U_STEM_MASCULINE -> pratipadika.endsWith(Svara.U.matra!!) || pratipadika.endsWith(Svara.U.devanagari)
+        I_STEM_MASCULINE, I_STEM_FEMININE -> pratipadika.endsWith(Svara.I.matra!!) || pratipadika.endsWith(Svara.I.devanagari)
+        U_STEM_MASCULINE, U_STEM_FEMININE -> pratipadika.endsWith(Svara.U.matra!!) || pratipadika.endsWith(Svara.U.devanagari)
+        R_STEM_MASCULINE -> pratipadika.endsWith(Svara.R.matra!!) || pratipadika.endsWith(Svara.R.devanagari)
+        N_STEM_MASCULINE -> pratipadika.endsWith("न्")
+        S_STEM_NEUTER -> pratipadika.endsWith("स्")
+        II_STEM_FEMININE -> pratipadika.endsWith(Svara.II.matra!!) || pratipadika.endsWith(Svara.II.devanagari)
         A_STEM_FEMININE -> pratipadika.endsWith(Svara.AA.matra!!) || pratipadika.endsWith(Svara.AA.devanagari)
     }
 

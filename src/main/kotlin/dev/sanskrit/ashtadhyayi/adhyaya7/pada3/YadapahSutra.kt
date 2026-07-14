@@ -38,11 +38,16 @@ object YadapahSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
+        val isNadiGenitivePlural = context.samjnas.any { it.targetId == stem.id && it.samjna == dev.sanskrit.shiksha.Samjna.NADI } &&
+            affix.upadesha == "आम्"
+        if (isNadiGenitivePlural) return false
+
         // 1. Stem must end in 'ā' (representing Āp)
         if (!stem.surface.endsWith('ा') && !stem.surface.endsWith('आ')) return false
 
         // 2. Affix must be ṅit
-        val isNgit = affix.hasEffectiveMarker(ItMarker.NGIT) || affix.upadesha == "ङि" || affix.surface == "आम्"
+        val isNgit = affix.hasEffectiveMarker(ItMarker.NGIT) ||
+            affix.upadesha in setOf("ङि", "टा") || affix.surface == "आम्"
         
         // Prevent infinite loop by checking if we already applied 'yā'
         val alreadyApplied = affix.surface.startsWith("या") || affix.surface.startsWith("यै")
@@ -51,16 +56,31 @@ object YadapahSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
+        val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
-        val newSurface = when (affix.surface) {
+        if (affix.upadesha == "टा") {
+            return DerivationChange(
+                state = context.replaceTerm(stem.id, stem.copy(surface = stem.surface.dropLast(1)))
+                    .replaceTerm(affix.id, affix.copy(surface = "या"))
+                    .blockSutra(sutra, sutra)
+                    .copy(stage = DerivationStage.PADA_FORMED),
+                explanation = "7.3.113: Formed the instrumental singular -या after an āp stem.",
+            )
+        }
+        val newSurface = when (affix.upadesha) {
+            "ङसि", "ङस्" -> "याः"
+            else -> when (affix.surface) {
+            "ङे" -> "यै"
             "अे" -> "यै"
             "अस्" -> "यास्"
             "आम्" -> "याम्"
             else -> "या" + affix.surface
+            }
         }
         
         return DerivationChange(
             state = context.replaceTerm(affix.id, affix.copy(surface = newSurface))
+                .blockSutra(sutra, sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.113: Added 'yāṭ' augment before ṅit affix and merged."
         )

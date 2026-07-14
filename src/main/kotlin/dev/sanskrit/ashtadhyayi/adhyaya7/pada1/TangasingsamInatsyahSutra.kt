@@ -5,6 +5,7 @@ import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
+import dev.sanskrit.shiksha.Linga
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -35,6 +36,7 @@ object TangasingsamInatsyahSutra : Sutra<DerivationState, DerivationChange>(
         if ("6.4.1" !in context.activeAdhikaras) return false
 
         if (context.terms.size < 2) return false
+        if (context.effectiveContext.rupa.linga == Linga.STRI) return false
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 

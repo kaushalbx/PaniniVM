@@ -6,6 +6,7 @@ import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.HasMorphosyntax
 import dev.sanskrit.shiksha.Samjna
 import dev.sanskrit.derivation.SamjnaAssignment
+import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.derivation.Vacana
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
@@ -35,6 +36,9 @@ object PragrhyaSutra : Sutra<DerivationState, DerivationChange>(
         if (!HasMorphosyntax(vacana = Vacana.DVIVACANA).matches(context)) return false
 
         return context.terms.any { term ->
+            val isNonNadiStem = term.kind == TermKind.PRATIPADIKA &&
+                context.samjnas.none { it.targetId == term.id && it.samjna == Samjna.NADI }
+            if (term.kind != TermKind.PRATYAYA && !isNonNadiStem) return@any false
             val surface = term.surface
             val isEligibleVowel = surface.endsWith('ई') || surface.endsWith('ी') ||
                                  surface.endsWith('ऊ') || surface.endsWith('ू') ||
@@ -46,6 +50,9 @@ object PragrhyaSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val assignments = context.terms.filter { term ->
+            val isNonNadiStem = term.kind == TermKind.PRATIPADIKA &&
+                context.samjnas.none { it.targetId == term.id && it.samjna == Samjna.NADI }
+            if (term.kind != TermKind.PRATYAYA && !isNonNadiStem) return@filter false
             val surface = term.surface
             surface.endsWith('ई') || surface.endsWith('ी') ||
             surface.endsWith('ऊ') || surface.endsWith('ू') ||

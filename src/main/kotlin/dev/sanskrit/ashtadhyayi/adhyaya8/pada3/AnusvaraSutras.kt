@@ -79,8 +79,11 @@ object NashcapadantasyaSutra : Sutra<DerivationState, DerivationChange>(
         val surface = context.surface
         val nIndex = surface.indexOfAny(setOf('न', 'म'))
         if (nIndex == -1 || nIndex == surface.length - 1) return false
-        
-        val nextChar = surface[nIndex + 1]
+        // A bare consonant carries its inherent vowel; only a halanta nasal is
+        // immediately followed by the next consonant for this sandhi rule.
+        if (surface.getOrNull(nIndex + 1) != '्') return false
+
+        val nextChar = surface.getOrNull(nIndex + 2) ?: return false
         return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAL, nextChar)
     }
 

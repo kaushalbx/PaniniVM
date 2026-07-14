@@ -7,6 +7,7 @@ import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.VarnaSubstitution
 import dev.sanskrit.pratyahara.Pratyahara
+import dev.sanskrit.shiksha.Varnamala
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -36,17 +37,21 @@ object KhariCaSutra : Sutra<DerivationState, DerivationChange>(
         
         val left = context.terms[context.terms.size - 2].surface.lastOrNull() ?: return false
         val right = context.terms.last().surface.firstOrNull() ?: return false
+        // A plain final consonant is followed by its inherent अ (फल + स्य),
+        // so it is not a direct hal–khar contact.
+        if (Varnamala.isConsonant(left)) return false
         
         val engine = Ashtadhyayi.pratyaharaEngine
-        return engine.contains(Pratyahara.JHAL, left) && engine.contains(Pratyahara.KHAR, right)
+        return engine.contains(Pratyahara.JHAL, left) &&
+            engine.contains(Pratyahara.KHAR, right) &&
+            substituteFor(left) != left.toString()
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val leftTerm = context.terms[context.terms.size - 2]
         val leftChar = leftTerm.surface.last()
         
-        val potentialSubstitutes = setOf("च", "ट", "त", "क", "प")
-        val substitute = SthaneAntaratamahSutra.selectBest(leftChar, potentialSubstitutes)
+        val substitute = substituteFor(leftChar)
         
         val newSurface = leftTerm.surface.dropLast(1) + substitute
         
@@ -55,4 +60,7 @@ object KhariCaSutra : Sutra<DerivationState, DerivationChange>(
             explanation = "8.4.55: Devoiced $leftChar to $substitute before voiceless sound."
         ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(leftTerm.id, leftChar, substitute, sutra))) }
     }
+
+    private fun substituteFor(source: Char): String =
+        SthaneAntaratamahSutra.selectBest(source, setOf("च", "ट", "त", "क", "प"))
 }

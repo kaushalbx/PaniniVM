@@ -43,7 +43,8 @@ object SarvanamasthaneCasambuddhauSutra : Sutra<DerivationState, DerivationChang
         // 2. Affix must be Sarvanāmasthāna
         val isSarvanamasthana = affix.upadesha == "शि" || affix.id in setOf("sup-su", "sup-au", "sup-jas", "sup-am", "sup-aut")
         
-        // 3. Penultimate must be a vowel that can be lengthened
+        // 3. The upadhā may be an explicit vowel or a consonant carrying an
+        // inherent a (फलन्/फलन).
         val surface = stem.surface
         if (surface.length < 2) return false
         val penultimateChar = if (surface.endsWith("्")) {
@@ -52,7 +53,8 @@ object SarvanamasthaneCasambuddhauSutra : Sutra<DerivationState, DerivationChang
              surface[surface.length - 2]
         }
 
-        return isSarvanamasthana && Varnamala.isVowel(penultimateChar)
+        return penultimateChar != 'ा' && isSarvanamasthana &&
+            (Varnamala.isVowel(penultimateChar) || Varnamala.isConsonant(penultimateChar))
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -65,7 +67,7 @@ object SarvanamasthaneCasambuddhauSutra : Sutra<DerivationState, DerivationChang
             'अ' -> "ा"
             'इ', 'ि' -> "ी"
             'उ', 'ु' -> "ू"
-            else -> charToLengthen.toString()
+            else -> "${charToLengthen}ा"
         }
 
         val newSurface = surface.substring(0, index) + lengthened + surface.substring(index + 1)

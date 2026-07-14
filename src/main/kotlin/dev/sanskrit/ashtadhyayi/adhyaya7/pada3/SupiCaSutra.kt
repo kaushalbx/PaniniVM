@@ -37,7 +37,8 @@ object SupiCaSutra : Sutra<DerivationState, DerivationChange>(
         val firstChar = affix.surface.firstOrNull() ?: return false
 
         val isSupEnvironment = context.samjnas.any { it.targetId == affix.id && it.samjna == Samjna.PRATYAYA }
-        return isAEnding && isSupEnvironment && (isYan(firstChar) || affix.upadesha in completePadaAffixes)
+        return isAEnding && affix.upadesha != "टा" && isSupEnvironment &&
+            (isYan(firstChar) || affix.upadesha in completePadaAffixes)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -76,7 +77,8 @@ object SupiCaSutra : Sutra<DerivationState, DerivationChange>(
         )
     }
 
-    private fun isYan(c: Char): Boolean = c in setOf('य', 'व', 'र', 'ल', 'ञ', 'म', 'ङ', 'ण', 'न')
+    /** यण् is य्, व्, र्, ल्; the nasals do not license 7.3.102. */
+    private fun isYan(c: Char): Boolean = c in setOf('य', 'व', 'र', 'ल')
 
     private val completePadaAffixes = setOf("भ्याम्", "ङे", "ङि")
 }

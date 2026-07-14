@@ -6,6 +6,7 @@ import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.ItMarker
 import dev.sanskrit.shiksha.Varnamala
+import dev.sanskrit.shiksha.Linga
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -67,8 +68,16 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
                     val hasVirama = newSurface.getOrNull(1) == '्'
                     if (hasVirama) {
                         newSurface = newSurface.drop(2)
-                    } else {
+        } else if (term.upadesha == "जस्" ||
+            (term.upadesha == "शस्" && context.effectiveContext.rupa.linga == Linga.PUMS)
+        ) {
+                        // The initial it of जस्/शस् is removed; the following अ belongs to the
+                        // surviving suffix and licenses the later यण् sandhi.
                         newSurface = "अ" + newSurface.drop(1)
+                    } else {
+                        // A non-virāma initial it consonant is removed; it does not
+                        // contribute an inherent अ to the remaining pratyaya.
+                        newSurface = newSurface.drop(1)
                     }
                 }
             }

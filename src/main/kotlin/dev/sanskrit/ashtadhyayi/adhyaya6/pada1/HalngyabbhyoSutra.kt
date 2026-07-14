@@ -33,7 +33,9 @@ object HalngyabbhyoSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
 
         val surface = affix.surface
-        val isApṛktaHal = surface.length == 1 && Varnamala.isConsonant(surface[0])
+        val isApṛktaHal =
+            (surface.length == 1 && Varnamala.isConsonant(surface[0])) ||
+                (surface.length == 2 && surface.last() == '्' && Varnamala.isConsonant(surface.first()))
         if (!isApṛktaHal) return false
 
         val isEligibleAffix = affix.upadesha in setOf("सुँ", "तिप्", "सिप्")

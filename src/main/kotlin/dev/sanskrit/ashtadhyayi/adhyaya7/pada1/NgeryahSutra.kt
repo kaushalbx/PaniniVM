@@ -39,11 +39,11 @@ object NgeryahSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
 
         // 1. Stem must end in 'a'
-        val endsInA = dev.sanskrit.shiksha.Varnamala.endsWithA(stem.surface) ||
-            dev.sanskrit.shiksha.Varnamala.endsWithAA(stem.surface)
+        val endsInA = dev.sanskrit.shiksha.Varnamala.endsWithA(stem.surface) &&
+            !dev.sanskrit.shiksha.Varnamala.endsWithAA(stem.surface)
         
         // 2. Affix must be 'ṅe' (upadesha)
-        return endsInA && affix.upadesha == "ङे"
+        return endsInA && affix.upadesha == "ङे" && affix.surface != "य"
     }
 
     override fun apply(context: DerivationState): DerivationChange {

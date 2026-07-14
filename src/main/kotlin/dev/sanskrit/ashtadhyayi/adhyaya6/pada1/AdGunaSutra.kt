@@ -36,7 +36,9 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
         val engine = Ashtadhyayi.pratyaharaEngine
         // Match a/ā
         val isA = dev.sanskrit.shiksha.Varnamala.endsWithA(leftTerm.surface) || dev.sanskrit.shiksha.Varnamala.endsWithAA(leftTerm.surface)
-        return isA && engine.contains(Pratyahara.AC, right)
+        // The न of the neuter नुम् augment bears the following vowel itself
+        // (फलान् + इ -> फलानि); it is not an aṅga-final अ for 6.1.87.
+        return !leftTerm.surface.endsWith('न') && isA && engine.contains(Pratyahara.AC, right)
     }
 
     override fun apply(context: DerivationState): DerivationChange {

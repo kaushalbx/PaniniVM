@@ -39,15 +39,22 @@ object AtomSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms.getOrNull(context.terms.size - 2) ?: return false
         val affix = context.terms.last()
 
-        val endsInA = stem.surface.endsWith('अ') || stem.surface.endsWith('ा')
-        return endsInA && (affix.upadesha == "सुँ" || affix.upadesha == "अम्")
+        // A consonant without a virāma carries the inherent a; e.g. फल is a-final.
+        val endsInA = dev.sanskrit.shiksha.Varnamala.endsWithA(stem.surface)
+        return endsInA &&
+            (affix.upadesha == "सुँ" || affix.upadesha == "अम्") &&
+            affix.surface != "म्"
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
         return DerivationChange(
-            state = context.replaceTerm(affix.id, affix.copy(surface = "अम्", upadesha = "अम्")),
-            explanation = "7.1.24: Substituted 'am' for neuter 'su/am' after a-stem."
+            // The aṅga already supplies अ; the visible remainder of अम् is म्.
+            state = context.replaceTerm(
+                affix.id,
+                affix.copy(surface = "म्", upadesha = "अम्", itMarkers = emptySet()),
+            ),
+            explanation = "7.1.24: Substituted the visible remainder म् of अम् for neuter सु/अम् after an a-stem."
         )
     }
 }

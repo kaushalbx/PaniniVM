@@ -34,12 +34,15 @@ object BahuvacaneJhalyetSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        val isAEnding = dev.sanskrit.shiksha.Varnamala.endsWithA(stem.surface) || dev.sanskrit.shiksha.Varnamala.endsWithAA(stem.surface)
+        // 7.3.103 applies to a-final aṅgas; feminine ā-stems retain their ā.
+        val isAEnding = dev.sanskrit.shiksha.Varnamala.endsWithA(stem.surface) &&
+            !dev.sanskrit.shiksha.Varnamala.endsWithAA(stem.surface)
         val firstChar = affix.surface.firstOrNull() ?: return false
         
         val isPlural = HasMorphosyntax(vacana = Vacana.BAHUVACANA).matches(context)
         
-        return isAEnding && isPlural && isJhal(firstChar) && 
+        return affix.upadesha != "शि" &&
+            isAEnding && isPlural && isJhal(firstChar) &&
                 context.samjnas.any { it.targetId == affix.id && it.samjna == Samjna.PRATYAYA }
     }
 

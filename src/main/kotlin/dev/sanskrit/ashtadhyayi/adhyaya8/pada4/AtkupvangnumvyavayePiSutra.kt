@@ -41,7 +41,7 @@ object AtkupvangnumvyavayePiSutra : Sutra<DerivationState, DerivationChange>(
 
         // Matches if there is an 'n' preceded by 'r' or 'ṣ' with only allowed intervenors.
         val surface = context.surface
-        val rIndex = surface.lastIndexOfAny(setOf('र', 'ष'))
+        val rIndex = surface.lastIndexOfAny(setOf('र', 'ष', 'ऋ', 'ृ', 'ॠ', 'ॄ'))
         if (rIndex == -1) return false
         
         val nIndex = surface.indexOf('न', rIndex)
@@ -54,7 +54,7 @@ object AtkupvangnumvyavayePiSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         // Find the term containing the 'n' and replace it
         val surface = context.surface
-        val rIndex = surface.lastIndexOfAny(setOf('र', 'ष'))
+        val rIndex = surface.lastIndexOfAny(setOf('र', 'ष', 'ऋ', 'ृ', 'ॠ', 'ॄ'))
         val nIndex = surface.indexOf('न', rIndex)
         
         // We find which term owns the 'n'

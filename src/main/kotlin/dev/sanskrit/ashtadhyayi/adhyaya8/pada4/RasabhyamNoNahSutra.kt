@@ -37,7 +37,7 @@ object RasabhyamNoNahSutra : Sutra<DerivationState, DerivationChange>(
         val surface = context.surface
         
         // Find triggers: र (r) or ष (ṣ)
-        val triggerIndex = surface.lastIndexOfAny(setOf('र', 'ष'))
+        val triggerIndex = surface.lastIndexOfAny(setOf('र', 'ष', 'ऋ', 'ृ', 'ॠ', 'ॄ'))
         if (triggerIndex == -1) return false
         
         // Find target: न (n)
@@ -51,7 +51,7 @@ object RasabhyamNoNahSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val surface = context.surface
-        val triggerIndex = surface.lastIndexOfAny(setOf('र', 'ष'))
+        val triggerIndex = surface.lastIndexOfAny(setOf('र', 'ष', 'ऋ', 'ृ', 'ॠ', 'ॄ'))
         val targetIndex = surface.indexOf('न', triggerIndex)
         
         var offset = 0

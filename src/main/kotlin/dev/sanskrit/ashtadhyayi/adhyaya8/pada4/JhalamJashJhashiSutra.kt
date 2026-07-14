@@ -41,7 +41,9 @@ object JhalamJashJhashiSutra : Sutra<DerivationState, DerivationChange>(
         val right = context.terms.last().surface.firstOrNull() ?: return false
         
         val engine = Ashtadhyayi.pratyaharaEngine
-        return engine.contains(Pratyahara.JHAL, left) && engine.contains(Pratyahara.JHASH, right)
+        return engine.contains(Pratyahara.JHAL, left) &&
+            engine.contains(Pratyahara.JHASH, right) &&
+            substituteFor(left) != left.toString()
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -51,13 +53,7 @@ object JhalamJashJhashiSutra : Sutra<DerivationState, DerivationChange>(
         
         val leftChar = leftTerm.surface.last()
         
-        val engine = Ashtadhyayi.pratyaharaEngine
-        val jasChars = engine.derive(Pratyahara.JHASH).filter { !it.devanagari.contains("ह") }.map { it.devanagari }.toSet() // Simple JAŚ proxy
-        // Better: define Pratyahara.JAS in Pratyahara companion
-        
-        // Use 1.1.50 logic to pick the best JAŚ substitute
-        val potentialSubstitutes = setOf("ज", "ब", "ग", "ड", "द")
-        val substitute = SthaneAntaratamahSutra.selectBest(leftChar, potentialSubstitutes)
+        val substitute = substituteFor(leftChar)
         
         val newSurface = leftTerm.surface.dropLast(1) + substitute
         
@@ -67,4 +63,7 @@ object JhalamJashJhashiSutra : Sutra<DerivationState, DerivationChange>(
             explanation = "8.4.53: Substituted voiced $substitute for $leftChar before ${rightTerm.surface.first()}."
         )
     }
+
+    private fun substituteFor(source: Char): String =
+        SthaneAntaratamahSutra.selectBest(source, setOf("ज", "ब", "ग", "ड", "द"))
 }

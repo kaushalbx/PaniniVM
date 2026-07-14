@@ -6,6 +6,7 @@ import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.shiksha.Samjna
 import dev.sanskrit.derivation.VarnaSubstitution
+import dev.sanskrit.shiksha.Linga
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -31,6 +32,7 @@ object AtoBhisAisSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.PRATYAYA,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
+        if (context.effectiveContext.rupa.linga == Linga.STRI) return false
         if (context.terms.size < 2) return false
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()

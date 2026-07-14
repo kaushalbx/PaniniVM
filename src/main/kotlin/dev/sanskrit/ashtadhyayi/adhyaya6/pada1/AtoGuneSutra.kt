@@ -42,8 +42,7 @@ object AtoGuneSutra : Sutra<DerivationState, DerivationChange>(
         
         // 2. Affix must start with a Guṇa vowel
         val firstChar = affix.surface.firstOrNull() ?: return false
-        val isGuna = context.samjnas.any { it.targetId == affix.id && it.samjna == Samjna.GUNA } || 
-                     firstChar in setOf('अ', 'ए', 'ओ', 'े', 'ो')
+        val isGuna = firstChar in setOf('अ', 'ए', 'ओ', 'े', 'ो')
         
         return isGuna
     }

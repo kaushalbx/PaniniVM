@@ -5,6 +5,7 @@ import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
+import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.derivation.VarnaSubstitution
 import dev.sanskrit.pratyahara.Pratyahara
 import dev.sanskrit.sutra.Sutra
@@ -35,6 +36,7 @@ object AdesapratyayayohSutra : Sutra<DerivationState, DerivationChange>(
         // This rule applies in the Tripadi section (8.2.1 onwards)
         // It matches an 's' that is part of a suffix.
         val term = context.terms.lastOrNull() ?: return false
+        if (term.kind != TermKind.PRATYAYA) return false
         val surface = term.surface
         
         // Find 's' and check the character before it
@@ -43,7 +45,10 @@ object AdesapratyayayohSutra : Sutra<DerivationState, DerivationChange>(
         
         val preChar = if (sIndex == 0) {
             if (context.terms.size < 2) return false
-            context.terms[context.terms.size - 2].surface.lastOrNull() ?: return false
+            val stemFinal = context.terms[context.terms.size - 2].surface.lastOrNull() ?: return false
+            // An unmarked final consonant carries inherent अ.  Thus फल + स्य
+            // has the environment -अस्य-, not -ल्स्य-.
+            if (stemFinal !in dev.sanskrit.shiksha.Varnamala.independentVowelsOrMarks) 'अ' else stemFinal
         } else {
             surface[sIndex - 1]
         }

@@ -39,8 +39,10 @@ object NeramNadyaPoNibhyahSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        // 1. Stem must end in 'ā' (representing Āp)
-        if (!stem.surface.endsWith('ा') && !stem.surface.endsWith('आ')) return false
+        // The rule covers nadī, āp, and nī.  A nadī stem need not be ā-final.
+        val isNadi = context.samjnas.any { it.targetId == stem.id && it.samjna == dev.sanskrit.shiksha.Samjna.NADI }
+        val isAp = stem.surface.endsWith('ा') || stem.surface.endsWith('आ')
+        if (!isNadi && !isAp && stem.surface != "नी") return false
 
         // 2. Affix must be 'ṅi' (Locative Singular)
         return affix.upadesha == "ङि" && affix.surface != "आम्" && !affix.surface.startsWith("या")

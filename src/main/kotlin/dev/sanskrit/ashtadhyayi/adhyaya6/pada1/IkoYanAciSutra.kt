@@ -6,7 +6,10 @@ import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.VarnaSubstitution
+import dev.sanskrit.derivation.Vacana
+import dev.sanskrit.derivation.Vibhakti
 import dev.sanskrit.pratyahara.Pratyahara
+import dev.sanskrit.shiksha.Samjna
 import dev.sanskrit.shiksha.Svara
 import dev.sanskrit.shiksha.Vyanjana
 import dev.sanskrit.sutra.Sutra
@@ -30,13 +33,17 @@ object IkoYanAciSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.VARNA,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        if (context.stage != DerivationStage.ANGAKARYA && context.stage != DerivationStage.PADA_FORMED) return false
+        if (context.stage !in setOf(DerivationStage.IT_PROCESSED, DerivationStage.ANGAKARYA, DerivationStage.PADA_FORMED)) return false
         
         val terms = context.terms
         if (terms.size < 2) return false
         
         val left = terms[terms.size - 2].surface.lastOrNull() ?: return false
         val right = terms.last().surface.firstOrNull() ?: return false
+        val isGhiFirstOrSecondDual = context.effectiveContext.rupa.vacana == Vacana.DVIVACANA &&
+            context.effectiveContext.rupa.vibhakti in setOf(Vibhakti.PRATHAMA, Vibhakti.DVITIYA) &&
+            context.samjnas.any { it.targetId == terms[terms.size - 2].id && it.samjna == Samjna.GHI }
+        if (isGhiFirstOrSecondDual) return false
         
         val engine = Ashtadhyayi.pratyaharaEngine
         return engine.contains(Pratyahara.IK, left) && 
@@ -87,6 +94,18 @@ object IkoYanAciSutra : Sutra<DerivationState, DerivationChange>(
                 'ऐ' -> "ै"
                 'ओ' -> "ो"
                 'औ' -> "ौ"
+                'ा' -> "ा"
+                'ि' -> "ि"
+                'ी' -> "ी"
+                'ु' -> "ु"
+                'ू' -> "ू"
+                'ृ' -> "ृ"
+                'ॄ' -> "ॄ"
+                'ॢ' -> "ॢ"
+                'े' -> "े"
+                'ै' -> "ै"
+                'ो' -> "ो"
+                'ौ' -> "ौ"
                 else -> null
             }
             if (matra != null) {

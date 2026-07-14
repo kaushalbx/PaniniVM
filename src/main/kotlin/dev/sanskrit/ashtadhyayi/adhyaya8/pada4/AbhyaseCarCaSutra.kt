@@ -6,6 +6,7 @@ import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
+import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.derivation.VarnaSubstitution
 import dev.sanskrit.pratyahara.Pratyahara
 import dev.sanskrit.sutra.Sutra
@@ -38,6 +39,7 @@ object AbhyaseCarCaSutra : Sutra<DerivationState, DerivationChange>(
         // Simplified check: first term in a multi-term verbal stem
         if (context.terms.size < 2) return false
         val firstTerm = context.terms.first()
+        if (firstTerm.kind != TermKind.DHATU) return false
         
         // Target: Must contain a Jhal sound (aspirated or fricative)
         val lastChar = firstTerm.surface.lastOrNull() ?: return false

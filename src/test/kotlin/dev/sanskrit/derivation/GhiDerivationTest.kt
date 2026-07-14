@@ -52,6 +52,45 @@ class GhiDerivationTest {
     }
 
     @Test
+    fun `derive full masculine i-stem paradigm for rishi`() {
+        val cases = listOf(
+            // Prathama
+            Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, "ऋषिः"),
+            Triple(Vibhakti.PRATHAMA, Vacana.DVIVACANA, "ऋषी"),
+            Triple(Vibhakti.PRATHAMA, Vacana.BAHUVACANA, "ऋषयः"),
+            // Dvitiya
+            Triple(Vibhakti.DVITIYA, Vacana.EKAVACANA, "ऋषिम्"),
+            Triple(Vibhakti.DVITIYA, Vacana.DVIVACANA, "ऋषी"),
+            Triple(Vibhakti.DVITIYA, Vacana.BAHUVACANA, "ऋषीन्"),
+            // Trtiya
+            Triple(Vibhakti.TRTIYA, Vacana.EKAVACANA, "ऋषिणा"),
+            Triple(Vibhakti.TRTIYA, Vacana.DVIVACANA, "ऋषिभ्याम्"),
+            Triple(Vibhakti.TRTIYA, Vacana.BAHUVACANA, "ऋषिभिः"),
+            // Chaturthi
+            Triple(Vibhakti.CHATURTHI, Vacana.EKAVACANA, "ऋषये"),
+            Triple(Vibhakti.CHATURTHI, Vacana.DVIVACANA, "ऋषिभ्याम्"),
+            Triple(Vibhakti.CHATURTHI, Vacana.BAHUVACANA, "ऋषिभ्यः"),
+            // Panchami
+            Triple(Vibhakti.PANCHAMI, Vacana.EKAVACANA, "ऋषेऽः"),
+            Triple(Vibhakti.PANCHAMI, Vacana.DVIVACANA, "ऋषिभ्याम्"),
+            Triple(Vibhakti.PANCHAMI, Vacana.BAHUVACANA, "ऋषिभ्यः"),
+            // Sasthi
+            Triple(Vibhakti.SASTHI, Vacana.EKAVACANA, "ऋषेऽः"),
+            Triple(Vibhakti.SASTHI, Vacana.DVIVACANA, "ऋष्योः"),
+            Triple(Vibhakti.SASTHI, Vacana.BAHUVACANA, "ऋषीणाम्"),
+            // Saptami
+            Triple(Vibhakti.SAPTAMI, Vacana.EKAVACANA, "ऋषौ"),
+            Triple(Vibhakti.SAPTAMI, Vacana.DVIVACANA, "ऋष्योः"),
+            Triple(Vibhakti.SAPTAMI, Vacana.BAHUVACANA, "ऋषिषु")
+        )
+
+        for ((vibhakti, vacana, expected) in cases) {
+            val actual = deriveForm("ऋषि", vibhakti, vacana, SubantaStemClass.I_STEM_MASCULINE)
+            assertEquals(expected, actual, "Failed for $vibhakti $vacana")
+        }
+    }
+
+    @Test
     fun `derive full masculine u-stem paradigm for bhanu`() {
         val cases = listOf(
             // Prathama

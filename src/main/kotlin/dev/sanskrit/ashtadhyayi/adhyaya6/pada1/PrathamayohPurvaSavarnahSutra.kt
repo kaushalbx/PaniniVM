@@ -43,6 +43,10 @@ object PrathamayohPurvaSavarnahSutra : Sutra<DerivationState, DerivationChange>(
         val leftChar = stem.surface.lastOrNull() ?: return false
         val leftPhoneme = if (leftChar !in dev.sanskrit.shiksha.Varnamala.independentVowelsOrMarks) 'अ' else leftChar
 
+        // The implemented scope of 6.1.102 is a/ā + vowel.  Ik-final
+        // aṅgas take their own यण् path under 6.1.77.
+        if (leftPhoneme !in setOf('अ', 'आ', 'ा')) return false
+
         val engine = Ashtadhyayi.pratyaharaEngine
         if (!engine.contains(dev.sanskrit.pratyahara.Pratyahara.AK, leftPhoneme)) return false
 

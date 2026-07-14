@@ -3,6 +3,7 @@ package dev.sanskrit.ashtadhyayi.adhyaya1.pada4
 import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
+import dev.sanskrit.derivation.DerivationTerm
 import dev.sanskrit.shiksha.Samjna
 import dev.sanskrit.derivation.SamjnaAssignment
 import dev.sanskrit.derivation.TermKind
@@ -32,18 +33,12 @@ object GhiSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
         context.terms.any { term ->
-            term.kind == TermKind.PRATIPADIKA && 
-            term.surface != "सखि" &&
-            (term.surface.endsWith('इ') || term.surface.endsWith('ि') || 
-             term.surface.endsWith('उ') || term.surface.endsWith('ु')) &&
-            context.samjnas.none { it.targetId == term.id && it.samjna == Samjna.GHI }
+            isEligibleGhiTerm(context, term)
         }
 
     override fun apply(context: DerivationState): DerivationChange {
         val assignments = context.terms
-            .filter { it.kind == TermKind.PRATIPADIKA && it.surface != "सखि" &&
-                      (it.surface.endsWith('इ') || it.surface.endsWith('ि') || 
-                       it.surface.endsWith('उ') || it.surface.endsWith('ु')) }
+            .filter { isEligibleGhiTerm(context, it) }
             .map { SamjnaAssignment(it.id, Samjna.GHI) }
             .toSet()
 
@@ -52,4 +47,14 @@ object GhiSutra : Sutra<DerivationState, DerivationChange>(
             explanation = "1.4.7 assigns घि संज्ञा to short i/u stems."
         )
     }
+
+    /**
+     * "śeṣa" restricts घि to the short i/u stems left after the नदी
+     * designation has been taken into account; सखि is explicitly excepted.
+     */
+    private fun isEligibleGhiTerm(context: DerivationState, term: DerivationTerm): Boolean =
+        term.kind == TermKind.PRATIPADIKA &&
+            term.surface != "सखि" &&
+            term.surface.lastOrNull() in setOf('इ', 'ि', 'उ', 'ु') &&
+            context.samjnas.none { it.targetId == term.id && it.samjna in setOf(Samjna.NADI, Samjna.GHI) }
 }

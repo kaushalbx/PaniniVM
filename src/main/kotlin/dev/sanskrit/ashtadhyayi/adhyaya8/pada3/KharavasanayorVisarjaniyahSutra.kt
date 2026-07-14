@@ -36,8 +36,8 @@ object KharavasanayorVisarjaniyahSutra : Sutra<DerivationState, DerivationChange
         val lastTerm = context.terms.lastOrNull() ?: return false
         val surface = lastTerm.surface
         
-        // Target: word-final 'r' (actually 'ru')
-        if (!surface.endsWith('र')) return false
+        // Target: word-final ru (rendered र) or the terminal ष् produced from a suffixal स्.
+        if (!surface.endsWith('र') && !surface.endsWith("ष्")) return false
 
         // Nimitta 1: Avasāna (End of derivation)
         // In this engine, we treat the PADA_FORMED stage with no following terms as avasāna.
@@ -50,7 +50,11 @@ object KharavasanayorVisarjaniyahSutra : Sutra<DerivationState, DerivationChange
 
     override fun apply(context: DerivationState): DerivationChange {
         val lastTerm = context.terms.last()
-        val newSurface = lastTerm.surface.dropLast(1) + Ayogavaha.VISARGA.devanagari
+        val newSurface = if (lastTerm.surface.endsWith("ष्")) {
+            lastTerm.surface.dropLast(2) + Ayogavaha.VISARGA.devanagari
+        } else {
+            lastTerm.surface.dropLast(1) + Ayogavaha.VISARGA.devanagari
+        }
         
         return DerivationChange(
             state = context.replaceTerm(lastTerm.id, lastTerm.copy(surface = newSurface))

@@ -8,6 +8,7 @@ import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.DerivationTerm
 import dev.sanskrit.derivation.HasMorphosyntax
 import dev.sanskrit.derivation.TermKind
+import dev.sanskrit.derivation.VarnaSubstitution
 import dev.sanskrit.pratyahara.Pratyahara
 import dev.sanskrit.shiksha.Varnamala
 import dev.sanskrit.shiksha.Linga
@@ -55,7 +56,7 @@ object NapumsakasyaJhalacahSutra : Sutra<DerivationState, DerivationChange>(
         val engine = Ashtadhyayi.pratyaharaEngine
         val endsInAcOrJhal = engine.contains(Pratyahara.AC, lastChar) || engine.contains(Pratyahara.JHAL, lastChar)
 
-        return endsInAcOrJhal && context.terms.none { it.upadesha == "नुम्" }
+        return endsInAcOrJhal && context.substitutions.none { it.sutra == sutra }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -72,8 +73,9 @@ object NapumsakasyaJhalacahSutra : Sutra<DerivationState, DerivationChange>(
         }
 
         // If no vowel (unlikely for jhal/ac), we'd fallback. 
-        // Here we insert 'n' (the essence of num).
-        val numSurface = "न्"
+        // Before शि, the m-it augment is realised as न; retaining a virāma
+        // here would leave the following इ-mātrā unattached (फलन्ि).
+        val numSurface = "न"
         val newStemSurface = if (lastVowelIndex != -1) {
             surface.substring(0, lastVowelIndex + 1) + numSurface + surface.substring(lastVowelIndex + 1)
         } else {
@@ -82,7 +84,8 @@ object NapumsakasyaJhalacahSutra : Sutra<DerivationState, DerivationChange>(
 
         return DerivationChange(
             state = context.replaceTerm(stem.id, stem.copy(surface = newStemSurface))
-                .copy(stage = DerivationStage.ANGAKARYA),
+                .copy(stage = DerivationStage.ANGAKARYA)
+                .addSubstitution(VarnaSubstitution(stem.id, 'अ', "न", sutra)),
             explanation = "7.1.72: Added 'num' augment (न्) after the last vowel of the neuter stem."
         )
     }

@@ -125,7 +125,9 @@ object AmiPurvahSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
-        context.stage == DerivationStage.PRATYAYA_SELECTED && context.terms.lastOrNull()?.id == "sup-am"
+        context.stage == DerivationStage.PRATYAYA_SELECTED &&
+            context.effectiveContext.rupa.linga != Linga.NAPUMSAKA &&
+            context.terms.lastOrNull()?.id == "sup-am"
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]

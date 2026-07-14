@@ -33,6 +33,7 @@ object PlutaPragrhyahSutra : Sutra<DerivationState, DerivationChange>(
     blocks = setOf("6.1.77", "6.1.78", "6.1.87", "6.1.88", "6.1.101")
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
+        if (context.stage == DerivationStage.FINAL) return false
         if (context.terms.size < 2) return false
         val left = context.terms[context.terms.size - 2]
         val right = context.terms.last()
