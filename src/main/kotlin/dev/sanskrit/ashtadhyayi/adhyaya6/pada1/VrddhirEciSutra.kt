@@ -9,8 +9,8 @@ import dev.sanskrit.derivation.HasMorphosyntax
 import dev.sanskrit.derivation.VarnaSubstitution
 import dev.sanskrit.pratyahara.Pratyahara
 import dev.sanskrit.shiksha.Linga
-import dev.sanskrit.shiksha.Vacana
-import dev.sanskrit.shiksha.Vibhakti
+import dev.sanskrit.derivation.Vacana
+import dev.sanskrit.derivation.Vibhakti
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraPriority

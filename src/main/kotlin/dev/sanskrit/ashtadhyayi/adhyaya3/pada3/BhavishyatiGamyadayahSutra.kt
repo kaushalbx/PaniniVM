@@ -20,13 +20,13 @@ object BhavishyatiGamyadayahSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
-        DerivationalMeaning.BHAVISYAT !in context.context.derivedMeanings &&
+        DerivationalMeaning.BHAVISYAT !in context.effectiveContext.derivedMeanings &&
             context.terms.any { it.kind == TermKind.PRATIPADIKA && GanaPatha.isEligibleMember(41, it.surface, it.lexicalUses) }
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
         context.copy(
-            context = context.context.copy(
-                derivedMeanings = context.context.derivedMeanings + DerivationalMeaning.BHAVISYAT,
+            context = context.effectiveContext.copy(
+                derivedMeanings = context.effectiveContext.derivedMeanings + DerivationalMeaning.BHAVISYAT,
             ),
         ),
         "3.3.3 records the future-time interpretation licensed for an eligible गम्यादि expression.",

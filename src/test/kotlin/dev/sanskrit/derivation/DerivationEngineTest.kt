@@ -14,6 +14,8 @@ import dev.sanskrit.ashtadhyayi.adhyaya4.pada1.StriyamAdhikaraSutra
 import dev.sanskrit.shiksha.ItStatus
 import dev.sanskrit.dhatupatha.DhatuPatha
 import dev.sanskrit.shiksha.Linga
+import dev.sanskrit.shiksha.SemanticFeature
+import dev.sanskrit.shiksha.Samjna
 
 class DerivationEngineTest {
     @Test
@@ -510,3 +512,10 @@ class DerivationEngineTest {
         assertEquals(listOf("1.1.2"), result.applications.map { it.sutra })
     }
 }
+
+class HasSemanticFeature(
+    private val feature: dev.sanskrit.shiksha.SemanticFeature,
+) : DerivationCondition {
+    override fun matches(state: DerivationState): Boolean = feature in state.semanticFeatures
+}
+

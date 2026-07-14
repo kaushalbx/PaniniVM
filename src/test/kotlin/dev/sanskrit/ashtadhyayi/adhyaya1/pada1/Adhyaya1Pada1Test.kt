@@ -7,7 +7,7 @@ import kotlin.test.assertEquals
 class Adhyaya1Pada1Test {
     @Test
     fun `patha retains opening sutra objects`() {
-        assertEquals(22, Adhyaya1Pada1.rules.size)
+        assertEquals(23, Adhyaya1Pada1.rules.size)
     }
 
     @Test

@@ -29,8 +29,8 @@ object BhimadayoApadaneSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
         context.copy(
-            context = context.context.copy(
-                environments = context.context.environments + DerivationalEnvironment.UNADI_LICENSED,
+            context = context.effectiveContext.copy(
+                environments = context.effectiveContext.environments + DerivationalEnvironment.UNADI_LICENSED,
             ),
         ),
         "3.4.74 licenses the eligible भीमादि lexical formation in an apādāna relation.",

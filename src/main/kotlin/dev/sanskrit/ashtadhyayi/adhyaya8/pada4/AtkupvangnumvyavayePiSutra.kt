@@ -8,8 +8,8 @@ import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.HasMorphosyntax
 import dev.sanskrit.pratyahara.Pratyahara
 import dev.sanskrit.shiksha.Varnamala
-import dev.sanskrit.shiksha.Vacana
-import dev.sanskrit.shiksha.Vibhakti
+import dev.sanskrit.derivation.Vacana
+import dev.sanskrit.derivation.Vibhakti
 import dev.sanskrit.shiksha.Vyanjana
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction

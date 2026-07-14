@@ -8,8 +8,8 @@ import dev.sanskrit.sutra.*
 object ArdhadhatukasyedValadehSutra : Sutra<DerivationState, DerivationChange>(
     number = "7.2.35", text = "आर्धधातुकस्येड्वलादेः",
     hindiExplanation = "सेट् धातु के बाद वलादि आर्धधातुक प्रत्यय से पहले इट् आगम होता है।",
-    type = SutraType.VIDHI, chapter = 7, pada = 2, optional = false, kramaValue = 720035,
-    role = SutraRole.Vidhi, action = SutraAction.AUGMENT, scope = SutraScope.DERIVATION,
+    type = SutraType.NITYA, chapter = 7, pada = 2, optional = false, kramaValue = 720035,
+    role = SutraRole.Vidhi, action = SutraAction.AGAMA, scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     private val vowels = setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ऌ', 'ए', 'ऐ', 'ओ', 'औ')
     override fun matches(context: DerivationState): Boolean =

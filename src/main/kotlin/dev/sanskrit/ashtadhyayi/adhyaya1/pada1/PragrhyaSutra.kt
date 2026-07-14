@@ -6,7 +6,7 @@ import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.HasMorphosyntax
 import dev.sanskrit.shiksha.Samjna
 import dev.sanskrit.derivation.SamjnaAssignment
-import dev.sanskrit.shiksha.Vacana
+import dev.sanskrit.derivation.Vacana
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole

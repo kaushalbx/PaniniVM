@@ -1,5 +1,7 @@
 package dev.sanskrit.derivation
 
+import dev.sanskrit.shiksha.Samjna
+
 
 /** Conditions and operations shared by sutras whose grammar is data-like. */
 fun interface DerivationCondition {

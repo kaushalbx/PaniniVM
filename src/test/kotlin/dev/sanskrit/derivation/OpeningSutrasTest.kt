@@ -5,6 +5,8 @@ import dev.sanskrit.ashtadhyayi.adhyaya1.pada1.IkoGunaVrddhiSutra
 import dev.sanskrit.ashtadhyayi.adhyaya1.pada1.KngitiCaSutra
 import dev.sanskrit.ashtadhyayi.adhyaya1.pada1.NajjhalauSutra
 import dev.sanskrit.ashtadhyayi.adhyaya1.pada1.TulyasyaprayatnamSavarnamSutra
+import dev.sanskrit.shiksha.SemanticFeature
+import dev.sanskrit.shiksha.Samjna
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

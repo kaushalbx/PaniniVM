@@ -4,9 +4,6 @@ import dev.sanskrit.shiksha.Accent
 import dev.sanskrit.shiksha.ItStatus
 import dev.sanskrit.shiksha.Karmatva
 
-import dev.sanskrit.shiksha.ItStatus
-import dev.sanskrit.shiksha.Karmatva
-
 /** Complete Svadi-gaṇa imported from the MIT-shared ashtadhyayi-com data set. */
 object SvadiDhatus {
     val all: List<Dhatu> = dhatuPatha(Gana.SVADI) {

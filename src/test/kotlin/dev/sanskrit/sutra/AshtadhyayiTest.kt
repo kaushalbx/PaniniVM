@@ -11,7 +11,7 @@ class AshtadhyayiTest {
         assertEquals(3959, Ashtadhyayi.expectedSutraCount)
         assertEquals(169, Ashtadhyayi.pathitaCount)
         assertEquals(169, Ashtadhyayi.kriyavatCount)
-        assertTrue(Ashtadhyayi.remainingCount > 3800)
+        assertTrue(Ashtadhyayi.remainingCount > 3700)
         assertTrue(Ashtadhyayi.catalogIssues.isEmpty())
     }
 
