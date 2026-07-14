@@ -14,8 +14,10 @@ import dev.sanskrit.sutra.SutraRole
 import dev.sanskrit.sutra.SutraScope
 import dev.sanskrit.sutra.SutraType
 
+import dev.sanskrit.sutra.SutraPriority
+
 /**
- * 6.1.110: ṅasi-ṅasoś ca.
+ * 6.1.100: ṅasi-ṅasoś ca.
  * When 'e' or 'o' (Eṅ) is followed by the short 'a' of the affixes ṅasi or ṅas, 
  * a single substitute of the former (pūrvarūpa) replaces both.
  * This is crucial for i/u stems (e.g., Muneḥ).
@@ -32,6 +34,8 @@ object NasiNgasoshCaSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.DERIVATION,
+    priority = SutraPriority.APAVADA,
+    blocks = setOf("6.1.78")
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.terms.size < 2) return false
@@ -60,7 +64,7 @@ object NasiNgasoshCaSutra : Sutra<DerivationState, DerivationChange>(
         
         return DerivationChange(
             state = context.replaceTerm(right.id, right.copy(surface = newRightSurface))
-                .copy(stage = DerivationStage.FINAL),
+                .copy(stage = DerivationStage.PADA_FORMED),
             explanation = "6.1.110: Pūrvarūpa substitution for final vowel + ङसि/ङस्."
         )
     }

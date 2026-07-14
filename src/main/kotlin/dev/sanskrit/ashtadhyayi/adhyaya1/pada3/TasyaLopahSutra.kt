@@ -42,6 +42,7 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
             // 0. Handle vowel U marker (anunasika U in supi/ting)
             if (term.itMarkers.contains(ItMarker.U)) {
                 newSurface = newSurface.replace("ुँ", "्").replace("ु", "्").replace("ँ", "")
+                    .replace("ि", "्").replace("इ", "्")
                 if (newSurface.endsWith("््")) {
                     newSurface = newSurface.dropLast(1)
                 }
@@ -61,7 +62,7 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
             }
             
             // 2. Handle initial markers (Chutu, Lashakvataddhite, etc.)
-            if (term.itMarkers.any { it == ItMarker.J || it == ItMarker.T || it == ItMarker.SH || it == ItMarker.KIT }) {
+            if (term.itMarkers.any { it == ItMarker.J || it == ItMarker.T || it == ItMarker.SH || it == ItMarker.KIT || it == ItMarker.NGIT }) {
                 if (newSurface.isNotEmpty() && (newSurface.first() in setOf('च', 'छ', 'ज', 'झ', 'ञ', 'ट', 'ठ', 'ड', 'ढ', 'ण', 'ल', 'श', 'क', 'ख', 'ग', 'घ', 'ङ'))) {
                     val hasVirama = newSurface.getOrNull(1) == '्'
                     if (hasVirama) {

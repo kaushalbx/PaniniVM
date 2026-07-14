@@ -45,9 +45,12 @@ object GherNitiSutra : Sutra<DerivationState, DerivationChange>(
         val isGhi = context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.GHI }
         if (!isGhi) return false
 
+        val lastChar = stem.surface.lastOrNull() ?: return false
+        if (lastChar != 'इ' && lastChar != 'ि' && lastChar != 'उ' && lastChar != 'ु') return false
+
         // 2. Affix must be 'ṅit' (marked with ṅ)
         // 1.1.56: Check effective markers
-        val isNgit = affix.hasEffectiveMarker(ItMarker.NG)
+        val isNgit = affix.hasEffectiveMarker(ItMarker.NGIT)
         
         return isNgit
     }

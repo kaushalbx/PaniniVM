@@ -99,7 +99,7 @@ object TasmacChasoNahPumsiSutra : Sutra<DerivationState, DerivationChange>(
                     vibhakti = Vibhakti.DVITIYA,
                     vacana = Vacana.BAHUVACANA,
                 ).matches(context) &&
-                context.terms.lastOrNull()?.surface?.endsWith("ास्") == true
+                context.terms.lastOrNull()?.surface?.let { s -> s.endsWith("ास्") || s.endsWith("ीस्") || s.endsWith("ूस्") } == true
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
         state = context.copy(
@@ -107,7 +107,7 @@ object TasmacChasoNahPumsiSutra : Sutra<DerivationState, DerivationChange>(
                 .copy(surface = context.terms.last().surface.dropLast(2) + "न्"),
             stage = DerivationStage.FINAL,
         ),
-        explanation = "6.1.103 replaces final स् with न् after the lengthened a-stem in masculine accusative plural.",
+        explanation = "6.1.103 replaces final स् with न् after the lengthened stem in masculine accusative plural.",
     )
 }
 

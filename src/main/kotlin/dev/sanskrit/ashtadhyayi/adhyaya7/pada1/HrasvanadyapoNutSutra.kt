@@ -38,10 +38,13 @@ object HrasvanadyapoNutSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        // Match short 'a' for Rama
-        val isShortVowel = dev.sanskrit.shiksha.Varnamala.endsWithA(stem.surface)
+        // Match any short vowel or ā-stem (āp-stem)
+        val lastChar = stem.surface.lastOrNull() ?: return false
+        val isShortVowel = lastChar !in dev.sanskrit.shiksha.Varnamala.independentVowelsOrMarks ||
+                lastChar in setOf('इ', 'ि', 'उ', 'ु', 'ऋ', 'ृ', 'ऌ', 'ॢ')
+        val isApStem = lastChar == 'ा' || lastChar == 'आ'
         
-        return isShortVowel && affix.upadesha == "आम्" && context.allEffectiveTerms.none { it.upadesha == "नुट्" }
+        return (isShortVowel || isApStem) && affix.upadesha == "आम्" && affix.surface != "नाम्" && context.allEffectiveTerms.none { it.upadesha == "नुट्" }
     }
 
     override fun apply(context: DerivationState): DerivationChange {

@@ -4,6 +4,8 @@ import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
+import dev.sanskrit.derivation.VarnaSubstitution
+import dev.sanskrit.ashtadhyayi.Ashtadhyayi
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -28,19 +30,78 @@ object PrathamayohPurvaSavarnahSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.ADESHA,
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean =
-        (context.stage == DerivationStage.IT_PROCESSED || context.stage == DerivationStage.PADA_FORMED) && context.terms.lastOrNull()?.id in setOf(
-            "sup-jas",
-            "sup-sas"
-        )
+    override fun matches(context: DerivationState): Boolean {
+        if (context.stage != DerivationStage.IT_PROCESSED && context.stage != DerivationStage.PADA_FORMED) return false
+        if (context.terms.size < 2) return false
+
+        val stem = context.terms[context.terms.size - 2]
+        val suffix = context.terms.last()
+
+        val suffixId = suffix.id
+        if (suffixId !in setOf("sup-au", "sup-jas", "sup-aut", "sup-sas")) return false
+
+        val leftChar = stem.surface.lastOrNull() ?: return false
+        val leftPhoneme = if (leftChar !in dev.sanskrit.shiksha.Varnamala.independentVowelsOrMarks) 'अ' else leftChar
+
+        val engine = Ashtadhyayi.pratyaharaEngine
+        if (!engine.contains(dev.sanskrit.pratyahara.Pratyahara.AK, leftPhoneme)) return false
+
+        val rightChar = suffix.surface.firstOrNull() ?: return false
+        if (!engine.contains(dev.sanskrit.pratyahara.Pratyahara.AC, rightChar)) return false
+
+        // Ami Purvah (6.1.107) has precedence for sup-am.
+        // Nadici (6.1.104) block:
+        if ((leftPhoneme == 'अ' || leftPhoneme == 'आ' || leftPhoneme == 'ा') &&
+            engine.contains(dev.sanskrit.pratyahara.Pratyahara.IC, rightChar)) {
+            return false
+        }
+
+        return true
+    }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
+        val suffix = context.terms.last()
+        
+        val leftChar = stem.surface.last()
+        val leftPhoneme = if (leftChar !in dev.sanskrit.shiksha.Varnamala.independentVowelsOrMarks) 'अ' else leftChar
+        
+        val substitute = getDirgha(leftPhoneme)
+        
+        val newStemSurface = if (leftChar !in dev.sanskrit.shiksha.Varnamala.independentVowelsOrMarks) {
+            stem.surface + substitute
+        } else {
+            stem.surface.dropLast(1) + substitute
+        }
+        
+        val remainingSuffix = suffix.surface.drop(1)
+        val newSurface = newStemSurface + remainingSuffix
+        
         return DerivationChange(
-            context.copy(
-                terms = context.terms.dropLast(2) + stem.copy(surface = stem.surface + "ास्"),
+            state = context.copy(
+                terms = context.terms.dropLast(2) + stem.copy(surface = newSurface),
+                droppedTerms = context.droppedTerms + suffix.copy(surface = ""),
                 stage = DerivationStage.PADA_FORMED
-            ), "6.1.102 combines अ + अ as आ."
+            ).addSubstitution(VarnaSubstitution(stem.id, leftPhoneme, substitute, sutra)),
+            explanation = "6.1.102: Combined $leftPhoneme + ${suffix.surface.first()} into long $substitute."
         )
+    }
+
+    private fun getDirgha(c: Char): String = when (normalize(c)) {
+        'अ' -> "ा"
+        'इ' -> "ी"
+        'उ' -> "ू"
+        'ऋ' -> "ॄ"
+        'ऌ' -> "ॄ"
+        else -> c.toString()
+    }
+
+    private fun normalize(c: Char): Char = when (c) {
+        'अ', 'आ', 'ा' -> 'अ'
+        'इ', 'ई', 'ि', 'ी' -> 'इ'
+        'उ', 'ऊ', 'ु', 'ू' -> 'उ'
+        'ऋ', 'ॠ', 'ृ', 'ॄ' -> 'ऋ'
+        'ऌ', 'ॢ' -> 'ऌ'
+        else -> c
     }
 }

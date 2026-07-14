@@ -84,19 +84,25 @@ object Varnamala {
         }
     }
 
-    fun getGuna(c: Char): String? = when (normalize(c)) {
-        'इ' -> Svara.E.devanagari
-        'उ' -> Svara.O.devanagari
-        'ऋ' -> Svara.A.devanagari + Vyanjana.RA.halanta
+    fun getGuna(c: Char): String? = when (c) {
+        'ि', 'ी' -> "े"
+        'ु', 'ू' -> "ो"
+        'ृ', 'ॄ' -> "र्"
+        'इ', 'ई' -> Svara.E.devanagari
+        'उ', 'ऊ' -> Svara.O.devanagari
+        'ऋ', 'ॠ' -> Svara.A.devanagari + Vyanjana.RA.halanta
         'ऌ' -> Svara.A.devanagari + Vyanjana.LA.halanta
         else -> null
     }
 
-    fun getVrddhi(c: Char): String? = when (normalize(c)) {
-        'अ' -> Svara.AA.devanagari
-        'इ' -> Svara.AI.devanagari
-        'उ' -> Svara.AU.devanagari
-        'ऋ' -> Svara.AA.devanagari + Vyanjana.RA.halanta
+    fun getVrddhi(c: Char): String? = when (c) {
+        'अ', 'आ' -> Svara.AA.devanagari
+        'ा' -> "ा"
+        'ि', 'ी' -> "ै"
+        'ु', 'ू' -> "ौ"
+        'इ', 'ई' -> Svara.AI.devanagari
+        'उ', 'ऊ' -> Svara.AU.devanagari
+        'ऋ', 'ॠ' -> Svara.AA.devanagari + Vyanjana.RA.halanta
         'ऌ' -> Svara.AA.devanagari + Vyanjana.LA.halanta
         else -> null
     }

@@ -43,7 +43,7 @@ object HrasvasyaGunaSutra : Sutra<DerivationState, DerivationChange>(
         // 1. Affix must be Sambuddhi (Vocative Singular Su)
         // In our engine, Sambuddhi is marked by semantic features or upadesha.
         // For now, we check the upadesha "सुँ" and context likely having a feature.
-        val isSambuddhi = affix.upadesha == "सुँ" // This is simplified; usually needs a feature check too.
+        val isSambuddhi = context.samjnas.any { it.targetId == affix.id && it.samjna == Samjna.SAMBUDDHI }
 
         // 2. Stem must end in a short vowel
         val lastChar = stem.surface.lastOrNull() ?: return false

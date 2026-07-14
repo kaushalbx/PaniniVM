@@ -34,10 +34,16 @@ enum class SubantaStemClass(
 ) {
     A_STEM_MASCULINE("a-stem masculine", Linga.PUMS),
     A_STEM_NEUTER("a-stem neuter", Linga.NAPUMSAKA),
+    I_STEM_MASCULINE("i-stem masculine", Linga.PUMS),
+    U_STEM_MASCULINE("u-stem masculine", Linga.PUMS),
+    A_STEM_FEMININE("ā-stem feminine", Linga.STRI),
     ;
 
     fun accepts(pratipadika: String): Boolean = when (this) {
         A_STEM_MASCULINE, A_STEM_NEUTER -> pratipadika.last() !in independentVowelsOrMarks
+        I_STEM_MASCULINE -> pratipadika.endsWith(Svara.I.matra!!) || pratipadika.endsWith(Svara.I.devanagari)
+        U_STEM_MASCULINE -> pratipadika.endsWith(Svara.U.matra!!) || pratipadika.endsWith(Svara.U.devanagari)
+        A_STEM_FEMININE -> pratipadika.endsWith(Svara.AA.matra!!) || pratipadika.endsWith(Svara.AA.devanagari)
     }
 
     private companion object {

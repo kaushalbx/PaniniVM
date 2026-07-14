@@ -6,11 +6,11 @@ import kotlin.test.Test
 class ScratchTest {
     @Test
     fun testDerivationTrace() {
-        val request = SubantaDerivationRequest("राम", Vibhakti.TRTIYA, Vacana.DVIVACANA)
+        val request = SubantaDerivationRequest("कवि", Vibhakti.PRATHAMA, Vacana.EKAVACANA, SubantaStemClass.I_STEM_MASCULINE)
         var current = request.initialState()
         val engine = DerivationEngine()
         
-        println("=== STARTING STEP-BY-STEP TRACE FOR RAMABHYAM ===")
+        println("=== STARTING STEP-BY-STEP TRACE FOR KAVIH ===")
         val visited = mutableSetOf(current)
         for (step in 1..40) {
             val selectMethod = DerivationEngine::class.java.getDeclaredMethod("select", DerivationState::class.java, Set::class.java)

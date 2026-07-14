@@ -52,15 +52,48 @@ object IkoYanAciSutra : Sutra<DerivationState, DerivationChange>(
         val leftVowel = leftTerm.surface.last()
         val replacement = yanFor(leftVowel)
         
-        val newLeftSurface = leftTerm.surface.dropLast(1) + replacement
+        val isMatra = leftVowel in setOf('ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ')
+        val newLeftSurface = if (isMatra) {
+            leftTerm.surface.dropLast(1) + "्" + replacement
+        } else {
+            leftTerm.surface.dropLast(1) + replacement
+        }
+        val mergedSurface = merge(newLeftSurface, rightTerm.surface)
         
         return DerivationChange(
             state = context.copy(
-                terms = terms.dropLast(2) + leftTerm.copy(surface = newLeftSurface) + rightTerm,
-                stage = DerivationStage.FINAL
+                terms = terms.dropLast(2) + leftTerm.copy(surface = mergedSurface),
+                droppedTerms = context.droppedTerms + rightTerm.copy(surface = ""),
+                stage = DerivationStage.PADA_FORMED
             ).addSubstitution(VarnaSubstitution(leftTerm.id, leftVowel, replacement, sutra)),
-            explanation = "6.1.77: substituted $replacement for $leftVowel before vowel."
+            explanation = "6.1.77: substituted $replacement for $leftVowel before vowel and merged terms."
         )
+    }
+
+    private fun merge(left: String, right: String): String {
+        if (left.endsWith('्') && right.isNotEmpty()) {
+            val first = right.first()
+            val matra = when (first) {
+                'अ' -> ""
+                'आ' -> "ा"
+                'इ' -> "ि"
+                'ई' -> "ी"
+                'उ' -> "ु"
+                'ऊ' -> "ू"
+                'ऋ' -> "ृ"
+                'ॠ' -> "ॄ"
+                'ऌ' -> "ॢ"
+                'ए' -> "े"
+                'ऐ' -> "ै"
+                'ओ' -> "ो"
+                'औ' -> "ौ"
+                else -> null
+            }
+            if (matra != null) {
+                return left.dropLast(1) + matra + right.drop(1)
+            }
+        }
+        return left + right
     }
 
     private fun isSavarna(left: Char, right: Char): Boolean {

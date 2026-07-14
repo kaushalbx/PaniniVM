@@ -45,6 +45,7 @@ object LasakvataddhiteSutra : Sutra<DerivationState, DerivationChange>(
                     val marker = when (firstChar.toString()) {
                         "ल" -> ItMarker.KIT
                         "श" -> ItMarker.SH
+                        "ङ" -> ItMarker.NGIT
                         else -> if (isKu(firstChar)) ItMarker.KIT else ItMarker.KIT
                     }
                     term.copy(itMarkers = term.itMarkers + marker)

@@ -12,6 +12,7 @@ data class Pratyahara(
         val AC = Pratyahara(Svara.A, ItMarker.C)
         val AK = Pratyahara(Svara.A, ItMarker.K)
         val IK = Pratyahara(Svara.I, ItMarker.K)
+        val IC = Pratyahara(Svara.I, ItMarker.C)
         val EC = Pratyahara(Svara.E, ItMarker.C)
         val EN = Pratyahara(Svara.E, ItMarker.NG)
         val IN = Pratyahara(Svara.I, ItMarker.NN)
