@@ -11,10 +11,6 @@ class TingantaEngineTest {
     fun `conjugation engine derives individual forms for bhu`() {
         val engine = TingantaEngine()
 
-        // Lat (Present)
-        assertEquals("भवति", engine.derive(TingantaDerivationRequest("भू", Vacana.EKAVACANA, Purusha.PRATHAMA, Lakara.LAT)).final.surface)
-        assertEquals("भवन्ति", engine.derive(TingantaDerivationRequest("भू", Vacana.BAHUVACANA, Purusha.PRATHAMA, Lakara.LAT)).final.surface)
-        assertEquals("भवामि", engine.derive(TingantaDerivationRequest("भू", Vacana.EKAVACANA, Purusha.UTTAMA, Lakara.LAT)).final.surface)
 
         // Lat (Present)
         assertEquals("भवति", engine.derive(TingantaDerivationRequest("भू", Vacana.EKAVACANA, Purusha.PRATHAMA, Lakara.LAT)).final.surface)
@@ -70,6 +66,31 @@ class TingantaEngineTest {
             assertTrue("3.4.78" in row.appliedSutras, "Form for ${row.affix} is missing 3.4.78")
             assertTrue("3.1.33" in row.appliedSutras, "Form for ${row.affix} is missing 3.1.33")
             assertTrue("8.3.59" in row.appliedSutras, "Form for ${row.affix} is missing 8.3.59")
+            assertEquals("derived", row.note)
+        }
+    }
+
+    @Test
+    fun `conjugation engine derives complete imperfect past paradigm for bhu`() {
+
+        val paradigm = TingantaEngine().deriveSupportedParadigm("भू", lakara = Lakara.LANG)
+        val forms = paradigm.surfaces
+
+        assertEquals(9, forms.size)
+        assertEquals("अभवत्", forms[TingAffix.TIP])
+        assertEquals("अभवताम्", forms[TingAffix.TAS])
+        assertEquals("अभवन्", forms[TingAffix.JHI])
+        assertEquals("अभवः", forms[TingAffix.SIP])
+        assertEquals("अभवतम्", forms[TingAffix.THAS])
+        assertEquals("अभवत", forms[TingAffix.THA])
+        assertEquals("अभवम्", forms[TingAffix.MIP])
+        assertEquals("अभवाव", forms[TingAffix.VAS])
+        assertEquals("अभवाम", forms[TingAffix.MAS])
+        
+        paradigm.coverage.forEach { row ->
+            assertTrue("3.4.78" in row.appliedSutras, "Form for ${row.affix} is missing 3.4.78")
+            assertTrue("3.2.111" in row.appliedSutras, "Form for ${row.affix} is missing 3.2.111")
+            assertTrue("6.4.71" in row.appliedSutras, "Form for ${row.affix} is missing 6.4.71")
             assertEquals("derived", row.note)
         }
     }

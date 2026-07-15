@@ -48,8 +48,8 @@ object SamyogantasyaLopaSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val lastTerm = context.terms.last()
-        // 1.1.52: Delete only the final member of the cluster
-        val newSurface = lastTerm.surface.dropLast(1)
+        // 1.1.52: Delete only the final member of the cluster (consonant + virama)
+        val newSurface = lastTerm.surface.dropLast(2)
         
         return DerivationChange(
             state = context.replaceTerm(lastTerm.id, lastTerm.copy(surface = newSurface))

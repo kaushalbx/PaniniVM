@@ -26,6 +26,10 @@ object TingantaFormPlans {
             // For LRT, AdesapratyayayohSutra (8.3.59) runs at the very end and advances the stage to FINAL.
             add(TingantaFormPlan(affix, Lakara.LRT, setOf("3.4.78"), DerivationStage.FINAL))
         }
+        // LANG (imperfect past tense) plans
+        TingAffix.entries.forEach { affix ->
+            add(TingantaFormPlan(affix, Lakara.LANG, setOf("3.4.78"), DerivationStage.FINAL))
+        }
     }
 
     fun find(purusha: Purusha, vacana: Vacana, pada: PadaType, lakara: Lakara): TingantaFormPlan? =

@@ -63,10 +63,19 @@ object AtoGuneSutra : Sutra<DerivationState, DerivationChange>(
             stem.surface.dropLast(1) + replacement + affix.surface.drop(1)
         }
         
+        val mergedTerm = stem.copy(
+            surface = newSurface,
+            sthaniProps = stem.sthaniProps ?: affix.sthaniProps
+        )
+        val newSamjnas = context.samjnas.map { 
+            if (it.targetId == affix.id && it.samjna != Samjna.PRATYAYA) it.copy(targetId = stem.id) else it
+        }.toSet()
+        
         return DerivationChange(
             state = context.copy(
-                terms = terms.dropLast(2) + stem.copy(surface = newSurface),
-                stage = DerivationStage.ANGAKARYA
+                terms = terms.dropLast(2) + mergedTerm,
+                stage = DerivationStage.ANGAKARYA,
+                samjnas = newSamjnas
             ).addSubstitution(VarnaSubstitution(stem.id, 'अ', replacement, sutra)),
             explanation = "6.1.97: Pararūpa substitution ($replacement) for a + $firstChar."
         )

@@ -9,6 +9,7 @@ import dev.sanskrit.derivation.VarnaSubstitution
 import dev.sanskrit.pratyahara.Pratyahara
 import dev.sanskrit.shiksha.Svara
 import dev.sanskrit.shiksha.Vyanjana
+import dev.sanskrit.shiksha.Samjna
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -55,12 +56,21 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
                 val base = leftTerm.surface.dropLast(1)
                 val s1 = concatDevanagari(base, replacement)
                 val newSurface = concatDevanagari(s1, rightTerm.surface)
-                val newTerms = context.terms.subList(0, i) + leftTerm.copy(surface = newSurface) + context.terms.subList(i + 2, context.terms.size)
+                val mergedTerm = leftTerm.copy(
+                    surface = newSurface,
+                    sthaniProps = leftTerm.sthaniProps ?: rightTerm.sthaniProps
+                )
+                val newTerms = context.terms.subList(0, i) + mergedTerm + context.terms.subList(i + 2, context.terms.size)
+                val newSamjnas = context.samjnas.map { 
+                    if (it.targetId == rightTerm.id && it.samjna != Samjna.PRATYAYA) it.copy(targetId = leftTerm.id) else it
+                }.toSet()
+                
                 return DerivationChange(
                     state = context.copy(
                         terms = newTerms,
                         droppedTerms = context.droppedTerms + rightTerm.copy(surface = ""),
-                        stage = DerivationStage.PADA_FORMED
+                        stage = DerivationStage.PADA_FORMED,
+                        samjnas = newSamjnas
                     ).addSubstitution(VarnaSubstitution(leftTerm.id, leftChar, replacement, sutra)),
                     explanation = "6.1.78: substituted $replacement for $leftChar before vowel."
                 )
