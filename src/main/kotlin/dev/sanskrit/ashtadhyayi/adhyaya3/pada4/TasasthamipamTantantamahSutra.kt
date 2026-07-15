@@ -27,6 +27,7 @@ object TasasthamipamTantantamahSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.PRATYAYA,
+    blocks = setOf("7.2.80"),
 ), DerivationSutra {
     private val ELIGIBLE_ENDINGS = setOf("तस्", "थस्", "थ", "मिप्")
 

@@ -15,11 +15,12 @@ data class TingantaDerivationRequest(
                 Lakara.LAT -> Kala.VARTAMANA
                 Lakara.LRT -> Kala.BHAVISYAT
                 Lakara.LANG -> Kala.BHUTA
+                Lakara.LIT -> Kala.BHUTA
                 else -> Kala.VARTAMANA
             },
             rupa = Rupa(purusha = purusha, prayoga = Prayoga.KARTARI, vacana = vacana, lakara = lakara),
             environments = when (lakara) {
-                Lakara.LRT -> setOf(DerivationalEnvironment.ARDHADHATUKA)
+                Lakara.LRT, Lakara.LIT -> setOf(DerivationalEnvironment.ARDHADHATUKA)
                 else -> emptySet()
             }
         ),
@@ -34,11 +35,12 @@ fun TingantaDerivationRequest.initialState(dhatu: Dhatu) = DerivationState(
             Lakara.LAT -> Kala.VARTAMANA
             Lakara.LRT -> Kala.BHAVISYAT
             Lakara.LANG -> Kala.BHUTA
+            Lakara.LIT -> Kala.BHUTA
             else -> Kala.VARTAMANA
         },
         rupa = Rupa(purusha = purusha, prayoga = Prayoga.KARTARI, vacana = vacana, lakara = lakara),
         environments = when (lakara) {
-            Lakara.LRT -> setOf(DerivationalEnvironment.ARDHADHATUKA)
+            Lakara.LRT, Lakara.LIT -> setOf(DerivationalEnvironment.ARDHADHATUKA)
             else -> emptySet()
         }
     ),

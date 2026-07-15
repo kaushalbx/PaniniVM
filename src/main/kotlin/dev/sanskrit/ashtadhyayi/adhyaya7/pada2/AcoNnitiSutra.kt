@@ -6,6 +6,7 @@ import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.ItMarker
+import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.derivation.VarnaSubstitution
 import dev.sanskrit.pratyahara.Pratyahara
 import dev.sanskrit.shiksha.Varnamala
@@ -34,14 +35,16 @@ object AcoNnitiSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.ADESHA,
     scope = SutraScope.DHATU,
     nimittaScope = NimittaScope.EXTERNAL,
-    dependencies = setOf("6.4.1")
+    dependencies = setOf("6.4.1"),
+    blocks = setOf("7.3.84"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if ("6.4.1" !in context.activeAdhikaras) return false
-        if (context.terms.size < 2) return false
-
-        val stem = context.terms[context.terms.size - 2]
-        val affix = context.terms.last()
+        val stemIndex = context.terms.indexOfFirst { it.kind == TermKind.DHATU && it.id != "abhyasa" }
+        if (stemIndex < 0) return false
+        val stem = context.terms[stemIndex]
+        val affix = context.terms.getOrNull(stemIndex + 1) ?: return false
+        if (affix.kind != TermKind.PRATYAYA) return false
 
         val isNniti = affix.hasEffectiveMarker(ItMarker.NG) || 
                       affix.hasEffectiveMarker(ItMarker.NIT) || 
@@ -53,7 +56,7 @@ object AcoNnitiSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val stem = context.terms[context.terms.size - 2]
+        val stem = context.terms.first { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         val lastChar = stem.surface.last()
         val replacement = requireNotNull(Varnamala.getVrddhi(lastChar))
 

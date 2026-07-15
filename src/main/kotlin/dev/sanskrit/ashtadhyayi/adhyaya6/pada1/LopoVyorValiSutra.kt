@@ -4,6 +4,7 @@ import dev.sanskrit.ashtadhyayi.Ashtadhyayi
 import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
+import dev.sanskrit.derivation.Lakara
 import dev.sanskrit.pratyahara.Pratyahara
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
@@ -27,8 +28,15 @@ object LopoVyorValiSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         for (index in 0 until context.terms.lastIndex) {
-            val left = context.terms[index].surface
-            val right = context.terms[index + 1].surface.firstOrNull() ?: continue
+            val leftTerm = context.terms[index]
+            if (leftTerm.id == "yasut") continue
+            val left = leftTerm.surface
+            val rightTerm = context.terms[index + 1]
+            if (context.effectiveContext.rupa.lakara == Lakara.LING &&
+                rightTerm.matchesUpadesha("मिप्") &&
+                context.allEffectiveTerms.any { it.matchesUpadesha("यासुट्") }
+            ) continue
+            val right = rightTerm.surface.firstOrNull() ?: continue
             if ((left.endsWith("व्") || left.endsWith("य्")) &&
                 Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, right)
             ) return true
@@ -39,7 +47,13 @@ object LopoVyorValiSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         for (index in 0 until context.terms.lastIndex) {
             val left = context.terms[index]
-            val right = context.terms[index + 1].surface.firstOrNull() ?: continue
+            if (left.id == "yasut") continue
+            val rightTerm = context.terms[index + 1]
+            if (context.effectiveContext.rupa.lakara == Lakara.LING &&
+                rightTerm.matchesUpadesha("मिप्") &&
+                context.allEffectiveTerms.any { it.matchesUpadesha("यासुट्") }
+            ) continue
+            val right = rightTerm.surface.firstOrNull() ?: continue
             if ((left.surface.endsWith("व्") || left.surface.endsWith("य्")) &&
                 Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, right)
             ) {

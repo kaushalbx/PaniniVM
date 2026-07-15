@@ -5,8 +5,11 @@ import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
+import dev.sanskrit.derivation.Lakara
+import dev.sanskrit.shiksha.ItStatus
 import dev.sanskrit.derivation.DerivationalEnvironment
 import dev.sanskrit.derivation.HasDerivationalEnvironment
+import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.derivation.VarnaSubstitution
 import dev.sanskrit.pratyahara.Pratyahara
 import dev.sanskrit.shiksha.Varnamala
@@ -39,12 +42,16 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
         // Jurisdictional check: Must be in the Aṅga section
         if ("6.4.1" !in context.activeAdhikaras) return false
 
-        if (context.terms.size < 2) return false
-        val stem = context.terms.first()
-        val affix = context.terms.getOrNull(1) ?: return false
+        val stemIndex = context.terms.indexOfFirst { it.kind == TermKind.DHATU && it.id != "abhyasa" }
+        if (stemIndex < 0) return false
+        val stem = context.terms[stemIndex]
+        val affix = context.terms.getOrNull(stemIndex + 1) ?: return false
+        if (affix.kind != TermKind.PRATYAYA) return false
+        if (context.effectiveContext.rupa.lakara == Lakara.LIT && affix.surface == affix.upadesha) return false
+        if (context.effectiveContext.rupa.lakara == Lakara.LIT && stem.itStatus == ItStatus.SET) return false
 
         val isSarvaOrArdha = HasDerivationalEnvironment(DerivationalEnvironment.ARDHADHATUKA).matches(context) ||
-            context.terms.drop(1).any { it.id == "shap" || it.id.startsWith("ting-") }
+            affix.id == "shap" || affix.id.startsWith("ting-")
 
         if (!isSarvaOrArdha) return false
 
@@ -56,7 +63,7 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val stem = context.terms.first()
+        val stem = context.terms.first { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         val lastChar = stem.surface.last()
         val replacement = requireNotNull(Varnamala.getGuna(lastChar))
         val newSurface = stem.surface.dropLast(1) + replacement

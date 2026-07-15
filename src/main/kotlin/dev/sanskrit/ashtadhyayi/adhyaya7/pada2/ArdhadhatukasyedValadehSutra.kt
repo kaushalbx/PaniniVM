@@ -12,16 +12,27 @@ object ArdhadhatukasyedValadehSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi, action = SutraAction.AGAMA, scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     private val vowels = setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ऌ', 'ए', 'ऐ', 'ओ', 'औ')
-    override fun matches(context: DerivationState): Boolean =
-        HasDerivationalEnvironment(DerivationalEnvironment.ARDHADHATUKA).matches(context) &&
+    override fun matches(context: DerivationState): Boolean {
+        val ending = context.terms.lastOrNull() ?: return false
+        val isTransformedLitEnding = context.effectiveContext.rupa.lakara != Lakara.LIT ||
+            (ending.upadesha != null && ending.surface != ending.upadesha)
+        return HasDerivationalEnvironment(DerivationalEnvironment.ARDHADHATUKA).matches(context) &&
             context.terms.any { it.kind == TermKind.DHATU && it.itStatus == ItStatus.SET } &&
-            context.terms.any { it.kind == TermKind.PRATYAYA && it.surface.firstOrNull()?.let { char -> char !in vowels } == true } &&
+            ending.kind == TermKind.PRATYAYA &&
+            ending.surface.firstOrNull()?.let { char -> char !in vowels } == true &&
+            isTransformedLitEnding &&
             context.allEffectiveTerms.none { it.id == "it-agama" }
+    }
 
-    override fun apply(context: DerivationState): DerivationChange = DerivationChange(
-        context.copy(terms = context.terms.flatMap { term ->
-            if (term.kind == TermKind.DHATU) listOf(term, DerivationTerm("it-agama", "इ", TermKind.AGAMA, upadesha = "इट्")) else listOf(term)
-        }, stage = DerivationStage.IT_PROCESSED),
-        "7.2.35 inserts इट् after a seṭ root before a consonant-initial (valādi) ārddhadhātuka affix.",
-    )
+    override fun apply(context: DerivationState): DerivationChange {
+        val dhatuIndex = context.terms.indexOfFirst { it.kind == TermKind.DHATU && it.id != "abhyasa" }
+        val itAgama = DerivationTerm("it-agama", "इ", TermKind.AGAMA, upadesha = "इट्")
+        return DerivationChange(
+            context.copy(
+                terms = context.terms.take(dhatuIndex + 1) + itAgama + context.terms.drop(dhatuIndex + 1),
+                stage = DerivationStage.IT_PROCESSED,
+            ),
+            "7.2.35 inserts इट् after the seṭ root before a consonant-initial (valādi) ārddhadhātuka affix.",
+        )
+    }
 }

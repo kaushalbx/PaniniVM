@@ -18,11 +18,13 @@ object BhuvoVuglunglitoSutra : Sutra<DerivationState, DerivationChange>(
     hindiExplanation = "लुङ् और लिट् में भू धातु के बाद वुक् का आगम होता है।",
     type = SutraType.NITYA, chapter = 6, pada = 4, optional = false, kramaValue = 640088,
     role = SutraRole.Vidhi, action = SutraAction.AGAMA, scope = SutraScope.DHATU,
+    blocks = setOf("7.2.115", "7.3.84"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
         context.effectiveContext.rupa.lakara in setOf(Lakara.LUNG, Lakara.LIT) &&
-            context.terms.any { it.kind == TermKind.DHATU && it.id != "abhyasa" && it.matchesUpadesha("भू") } &&
-            context.terms.lastOrNull()?.surface?.firstOrNull() in setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ए', 'ऐ', 'ओ', 'औ') &&
+            context.terms.indexOfFirst { it.kind == TermKind.DHATU && it.id != "abhyasa" && it.matchesUpadesha("भू") }.let { index ->
+                index >= 0 && context.terms.getOrNull(index + 1)?.surface?.firstOrNull() in setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ए', 'ऐ', 'ओ', 'औ')
+            } &&
             context.terms.none { it.id == "vuk" }
 
     override fun apply(context: DerivationState): DerivationChange {

@@ -56,14 +56,8 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
             
             // 1. Handle final markers (Halantyam)
             if (term.itMarkers.contains(ItMarker.KIT)) {
-                if (newSurface.endsWith('्')) {
-                    newSurface = newSurface.dropLast(1)
-                }
-                while (newSurface.isNotEmpty() && Varnamala.isConsonant(newSurface.last())) {
-                    newSurface = newSurface.dropLast(1)
-                    if (newSurface.endsWith('्')) {
-                        newSurface = newSurface.dropLast(1)
-                    }
+                if (newSurface.endsWith('्') && newSurface.length >= 2) {
+                    newSurface = newSurface.dropLast(2)
                 }
             }
             

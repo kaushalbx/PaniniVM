@@ -53,6 +53,22 @@ class DerivationState(
                 rendered.dropLast(1) + next.drop(1)
             } else if (rendered.endsWith('्') && next.firstOrNull() == 'आ') {
                 rendered.dropLast(1) + "ा" + next.drop(1)
+            } else if (rendered.endsWith('्') && next.firstOrNull() in setOf('इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ऌ', 'ए', 'ऐ', 'ओ', 'औ')) {
+                val vowelSign = when (next.first()) {
+                    'इ' -> "ि"
+                    'ई' -> "ी"
+                    'उ' -> "ु"
+                    'ऊ' -> "ू"
+                    'ऋ' -> "ृ"
+                    'ॠ' -> "ॄ"
+                    'ऌ' -> "ॢ"
+                    'ए' -> "े"
+                    'ऐ' -> "ै"
+                    'ओ' -> "ो"
+                    'औ' -> "ौ"
+                    else -> error("Unsupported independent vowel ${next.first()}")
+                }
+                rendered.dropLast(1) + vowelSign + next.drop(1)
             } else if (rendered.endsWith('्') && next.firstOrNull() in setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ', 'े', 'ै', 'ो', 'ौ')) {
                 rendered.dropLast(1) + next
             } else {

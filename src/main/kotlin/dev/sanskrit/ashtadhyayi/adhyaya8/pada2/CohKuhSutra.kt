@@ -35,17 +35,24 @@ object CohKuhSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         val surface = context.surface
         if (surface.isEmpty()) return false
+        val abhyasa = context.terms.firstOrNull { term ->
+            context.samjnas.any { it.targetId == term.id && it.samjna == dev.sanskrit.shiksha.Samjna.ABHYASA }
+        }
+        val abhyasaStart = abhyasa?.let { target ->
+            context.terms.takeWhile { it.id != target.id }.sumOf { it.surface.length }
+        }
+        val abhyasaRange = abhyasaStart?.let { start -> start until start + abhyasa.surface.length } ?: IntRange.EMPTY
 
         // Check for cu-varga (c, ch, j, jh, ñ)
         val cuChars = setOf('च', 'छ', 'ज', 'झ', 'ञ')
         
         // Nimitta 1: End of Pada
         val lastChar = surface.last()
-        if (lastChar in cuChars) return true
+        if (lastChar in cuChars && surface.lastIndex !in abhyasaRange) return true
 
         // Nimitta 2: Before Jhal
         for (i in 0 until surface.length - 1) {
-            if (surface[i] in cuChars) {
+            if (surface[i] in cuChars && i !in abhyasaRange) {
                 val nextChar = surface[i + 1]
                 if (Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAL, nextChar)) {
                     return true
@@ -59,15 +66,22 @@ object CohKuhSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val surface = context.surface
         val cuChars = setOf('च', 'छ', 'ज', 'झ', 'ञ')
+        val abhyasa = context.terms.firstOrNull { term ->
+            context.samjnas.any { it.targetId == term.id && it.samjna == dev.sanskrit.shiksha.Samjna.ABHYASA }
+        }
+        val abhyasaStart = abhyasa?.let { target ->
+            context.terms.takeWhile { it.id != target.id }.sumOf { it.surface.length }
+        }
+        val abhyasaRange = abhyasaStart?.let { start -> start until start + abhyasa.surface.length } ?: IntRange.EMPTY
         
         var targetIndex = -1
         // Priority to later occurrences? Tripadi usually applies word-internally first or word-end.
         // For word-end:
-        if (surface.last() in cuChars) {
+        if (surface.last() in cuChars && surface.lastIndex !in abhyasaRange) {
             targetIndex = surface.length - 1
         } else {
             for (i in 0 until surface.length - 1) {
-                if (surface[i] in cuChars) {
+            if (surface[i] in cuChars && i !in abhyasaRange) {
                     val nextChar = surface[i + 1]
                     if (Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAL, nextChar)) {
                         targetIndex = i
