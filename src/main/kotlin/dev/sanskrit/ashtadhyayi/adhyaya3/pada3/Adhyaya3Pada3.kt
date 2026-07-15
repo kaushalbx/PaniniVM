@@ -7,5 +7,6 @@ object Adhyaya3Pada3 {
         BhavishyatiGamyadayahSutra,
         ShidbhidadibhyoAngSutra,
         BhavishyatiLrtSutra,
+        LotCaSutra,
     )
 }

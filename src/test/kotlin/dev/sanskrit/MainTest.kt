@@ -45,10 +45,19 @@ class MainTest {
     }
 
     @Test
+    fun `verb command derives the loṭ imperative`() {
+        val output = runCli(arrayOf("--verb", "भू", "LOT", "बहुवचन"))
+
+        assertEquals("भू: भवन्तु", output.first())
+        assertTrue(output.any { it.startsWith("3.3.162 —") })
+        assertTrue(output.any { it.startsWith("3.4.90 —") })
+    }
+
+    @Test
     fun `coverage command reports loaded and remaining sutras`() {
         val output = runCli(arrayOf("--coverage"))
 
-        assertTrue(output.first().contains("loaded=225"))
-        assertTrue(output.first().contains("remaining=3734"))
+        assertTrue(output.first().contains("loaded=232"))
+        assertTrue(output.first().contains("remaining=3727"))
     }
 }

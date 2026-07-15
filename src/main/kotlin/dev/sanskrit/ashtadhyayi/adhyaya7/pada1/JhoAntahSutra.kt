@@ -3,6 +3,7 @@ package dev.sanskrit.ashtadhyayi.adhyaya7.pada1
 import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
+import dev.sanskrit.derivation.Lakara
 import dev.sanskrit.shiksha.Samjna
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
@@ -30,6 +31,10 @@ object JhoAntahSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val affix = context.terms.lastOrNull() ?: return false
+        if (context.effectiveContext.rupa.lakara == Lakara.LOT &&
+            affix.upadesha == "झि" &&
+            context.terms.none { it.id == "shap" } &&
+            context.droppedTerms.none { it.id == "shap" }) return false
         
         // 1. Affix must start with 'jh'
         val surface = affix.surface

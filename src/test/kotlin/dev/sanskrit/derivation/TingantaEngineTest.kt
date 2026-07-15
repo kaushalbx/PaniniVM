@@ -96,6 +96,27 @@ class TingantaEngineTest {
     }
 
     @Test
+    fun `conjugation engine derives complete imperative paradigm for bhu`() {
+        val paradigm = TingantaEngine().deriveSupportedParadigm("भू", lakara = Lakara.LOT)
+        val forms = paradigm.surfaces
+
+        assertEquals(9, forms.size)
+        assertEquals("भवतु", forms[TingAffix.TIP])
+        assertEquals("भवताम्", forms[TingAffix.TAS])
+        assertEquals("भवन्तु", forms[TingAffix.JHI])
+        assertEquals("भव", forms[TingAffix.SIP])
+        assertEquals("भवतम्", forms[TingAffix.THAS])
+        assertEquals("भवत", forms[TingAffix.THA])
+        assertEquals("भवानि", forms[TingAffix.MIP])
+        assertEquals("भवाव", forms[TingAffix.VAS])
+        assertEquals("भवाम", forms[TingAffix.MAS])
+
+        paradigm.coverage.forEach { row ->
+            assertTrue("3.3.162" in row.appliedSutras, "Form for ${row.affix} is missing 3.3.162")
+        }
+    }
+
+    @Test
     fun `conjugation engine rejects unknown dhatu`() {
         assertFailsWith<IllegalArgumentException> {
             TingantaEngine().derive(TingantaDerivationRequest("unknown_dhatu"))

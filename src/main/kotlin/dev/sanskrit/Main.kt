@@ -6,6 +6,7 @@ import dev.sanskrit.derivation.Vacana
 import dev.sanskrit.derivation.Vibhakti
 import dev.sanskrit.derivation.TingantaDerivationRequest
 import dev.sanskrit.derivation.TingantaEngine
+import dev.sanskrit.derivation.Lakara
 import dev.sanskrit.ashtadhyayi.Ashtadhyayi
 import dev.sanskrit.sutra.Sutra
 
@@ -47,9 +48,12 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
         }
     }
     "--verb" -> {
-        val dhatu = args.getOrNull(1) ?: error("Usage: --verb भू [EKAVACANA|DVIVACANA|BAHUVACANA]")
-        val vacana = args.getOrNull(2)?.let(::parseVacana) ?: Vacana.EKAVACANA
-        val result = TingantaEngine().derive(TingantaDerivationRequest(dhatu, vacana))
+        val dhatu = args.getOrNull(1) ?: error("Usage: --verb भू [LAT|LRT|LOT|LANG] [EKAVACANA|DVIVACANA|BAHUVACANA]")
+        val requestedLakara = args.getOrNull(2)?.let(::findLakara)
+        val lakara = requestedLakara ?: Lakara.LAT
+        val vacanaIndex = if (requestedLakara == null) 2 else 3
+        val vacana = args.getOrNull(vacanaIndex)?.let(::parseVacana) ?: Vacana.EKAVACANA
+        val result = TingantaEngine().derive(TingantaDerivationRequest(dhatu, vacana, lakara = lakara))
         buildList {
             add("$dhatu: ${result.final.surface}")
             addTrace(result)
@@ -78,6 +82,10 @@ private fun parseVacana(value: String): Vacana = when (value.uppercase()) {
     "DVIVACANA", "द्विवचन" -> Vacana.DVIVACANA
     "BAHUVACANA", "बहुवचन" -> Vacana.BAHUVACANA
     else -> error("Unknown vacana: $value")
+}
+
+private fun findLakara(value: String): Lakara? = Lakara.entries.firstOrNull {
+    it.name == value.uppercase() || it.upadesha == value
 }
 
 private fun MutableList<String>.addTrace(result: dev.sanskrit.derivation.DerivationResult, includeRole: Boolean = false) {

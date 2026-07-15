@@ -30,6 +30,10 @@ object TingantaFormPlans {
         TingAffix.entries.forEach { affix ->
             add(TingantaFormPlan(affix, Lakara.LANG, setOf("3.4.78"), DerivationStage.FINAL))
         }
+        // LOT (imperative) plans
+        TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.forEach { affix ->
+            add(TingantaFormPlan(affix, Lakara.LOT, setOf("3.3.162", "3.4.78"), DerivationStage.FINAL))
+        }
     }
 
     fun find(purusha: Purusha, vacana: Vacana, pada: PadaType, lakara: Lakara): TingantaFormPlan? =

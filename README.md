@@ -11,16 +11,19 @@ selected nominal transformations, and all 21 sup forms of masculine a-stem
 ## Run
 
 ```sh
-gradle run --args="--paradigm राम"
-gradle run --args="--derive राम SASTHI BAHUVACANA"
-gradle run --args="--derive राम षष्ठी बहुवचन"
-gradle run --args="--verb भू"
-gradle run --args="--verb भू बहुवचन"
-gradle run --args="--coverage"
-gradle run --args="--sutra 7.1.54"
+./gradlew run --args="--paradigm राम"
+./gradlew run --args="--derive राम SASTHI BAHUVACANA"
+./gradlew run --args="--derive राम षष्ठी बहुवचन"
+./gradlew run --args="--verb भू"
+./gradlew run --args="--verb भू बहुवचन"
+./gradlew run --args="--verb भू LOT बहुवचन"
+./gradlew run --args="--coverage"
+./gradlew run --args="--sutra 7.1.54"
 ```
 
 `--derive` prints the resulting form followed by the ordered sūtra trace.
+`--verb` accepts an optional lakāra (`LAT`, `LRT`, `LOT`, or `LANG`) before
+the optional number; for example, `भू LOT बहुवचन` derives `भवन्तु`.
 `--sutra` prints the direct `BaseSutra` fields for a loaded rule.
 
 `SubantaParadigm.surfaces` is produced by executable derivations. Use
@@ -29,7 +32,7 @@ gradle run --args="--sutra 7.1.54"
 ## Test
 
 ```sh
-gradle test
+./gradlew test
 ```
 
 ## Text encoding

@@ -4,6 +4,7 @@ import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
+import dev.sanskrit.derivation.Lakara
 import dev.sanskrit.derivation.VarnaSubstitution
 import dev.sanskrit.sutra.NimittaScope
 import dev.sanskrit.sutra.Sutra
@@ -39,6 +40,7 @@ object AtoDirghoYaniSutra : Sutra<DerivationState, DerivationChange>(
         
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
+        if (context.effectiveContext.rupa.lakara == Lakara.LOT && affix.upadesha == "झि") return false
         if (!affix.id.startsWith("ting-")) return false
         if (affix.upadesha == "ङि") return false
 
