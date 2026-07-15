@@ -5,6 +5,7 @@ import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
+import dev.sanskrit.derivation.DerivationTerm
 import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.derivation.VarnaSubstitution
 import dev.sanskrit.pratyahara.Pratyahara
@@ -32,8 +33,20 @@ object AdesapratyayayohSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.ADESHA,
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean {
-        if (context.stage != DerivationStage.PADA_FORMED && context.stage != DerivationStage.FINAL) return false
+    override fun matches(context: DerivationState): Boolean = findRetroflexTarget(context) != null
+
+    override fun apply(context: DerivationState): DerivationChange {
+        val term = findRetroflexTarget(context) ?: return DerivationChange(context, "8.3.59: No match found")
+        val newSurface = term.surface.replace('स', 'ष')
+        return DerivationChange(
+            state = context.replaceTerm(term.id, term.copy(surface = newSurface))
+                .copy(stage = DerivationStage.FINAL),
+            explanation = "8.3.59: Retroflexed 's' to 'ṣ' after Iṇ/Ku."
+        )
+    }
+
+    private fun findRetroflexTarget(context: DerivationState): DerivationTerm? {
+        if (context.stage != DerivationStage.PADA_FORMED && context.stage != DerivationStage.FINAL) return null
         
         val engine = Ashtadhyayi.pratyaharaEngine
         val surface = context.surface
@@ -63,50 +76,9 @@ object AdesapratyayayohSutra : Sutra<DerivationState, DerivationChange>(
             val isInIn = engine.contains(Pratyahara.IN, preChar)
             val isInKu = isKu(preChar)
             
-            if (isInIn || isInKu) return true
+            if (isInIn || isInKu) return term
         }
-        return false
-    }
-
-    override fun apply(context: DerivationState): DerivationChange {
-        val engine = Ashtadhyayi.pratyaharaEngine
-        val surface = context.surface
-        for (i in 0 until context.terms.size) {
-            val term = context.terms[i]
-            if (term.kind != TermKind.PRATYAYA) continue
-            val termSurface = term.surface
-            
-            val sIndex = termSurface.indexOf('स')
-            if (sIndex == -1) continue
-            
-            // 8.3.55: apādāntasya - target must not be at the end of the word
-            val prefixLength = context.terms.take(i).sumOf { it.surface.length }
-            val absoluteSIndex = prefixLength + sIndex
-            val isAtEnd = absoluteSIndex == surface.length - 1 || 
-                          (absoluteSIndex == surface.length - 2 && surface.endsWith('्'))
-            if (isAtEnd) continue
-            
-            val preChar = if (sIndex == 0) {
-                if (i == 0) continue
-                val stemFinal = context.terms[i - 1].surface.lastOrNull() ?: continue
-                if (stemFinal !in dev.sanskrit.shiksha.Varnamala.independentVowelsOrMarks) 'अ' else stemFinal
-            } else {
-                termSurface[sIndex - 1]
-            }
-            
-            val isInIn = engine.contains(Pratyahara.IN, preChar)
-            val isInKu = isKu(preChar)
-            
-            if (isInIn || isInKu) {
-                val newSurface = term.surface.replace('स', 'ष')
-                return DerivationChange(
-                    state = context.replaceTerm(term.id, term.copy(surface = newSurface))
-                        .copy(stage = DerivationStage.FINAL),
-                    explanation = "8.3.59: Retroflexed 's' to 'ṣ' after Iṇ/Ku."
-                )
-            }
-        }
-        return DerivationChange(context, "8.3.59: No match found")
+        return null
     }
 
     private fun isKu(c: Char): Boolean = c in setOf('क', 'ख', 'ग', 'घ', 'ङ')

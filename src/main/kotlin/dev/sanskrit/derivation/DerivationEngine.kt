@@ -122,6 +122,7 @@ internal object RuleVisibility {
 class DerivationEngine(
     private val sutras: List<DerivationSutra> = Ashtadhyayi.executableSutras,
 ) {
+    private val sutraMap = sutras.associateBy { it.sutra }
     fun derive(initial: DerivationState, maxSteps: Int = 100): DerivationResult =
         deriveInternal(initial, emptySet(), maxSteps)
 
@@ -211,7 +212,7 @@ class DerivationEngine(
 
     private fun select(state: DerivationState, suppressed: Set<String>): RuleSelection {
         val tripadiKramasApplied = state.substitutions.mapNotNull { sub ->
-            sutras.find { it.sutra == sub.sutra }?.krama
+            sutraMap[sub.sutra]?.krama
         }.filter { it >= 820000 }
         val maxTripadiKrama = tripadiKramasApplied.maxOrNull() ?: 0
 
@@ -220,7 +221,7 @@ class DerivationEngine(
             .filter { 
                 val blocker = state.blockedSutras[it.sutra]
                 if (blocker != null) {
-                    val blockerSutra = sutras.find { it.sutra == blocker }
+                    val blockerSutra = sutraMap[blocker]
                     blockerSutra == null || !blockerSutra.matches(state)
                 } else {
                     true
@@ -279,3 +280,27 @@ private data class RuleSelection(
     val conflicts: List<RuleConflict>,
     val selected: RuleCandidate?,
 )
+
+fun DerivationResult.verifyDerivation(
+    selectionSutra: String,
+    expectedAffixUpadesha: String,
+    requiredSutras: Set<String>,
+    expectedStage: DerivationStage
+) {
+    val selectedAffix = applications
+        .singleOrNull { it.sutra == selectionSutra }
+        ?.delta
+        ?.addedTerms
+        ?.singleOrNull()
+        ?.upadesha
+    require(selectedAffix == expectedAffixUpadesha) {
+        "$selectionSutra selected $selectedAffix, but $expectedAffixUpadesha was required."
+    }
+    val appliedSutras = applications.mapTo(mutableSetOf()) { it.sutra }
+    require(requiredSutras.all { it in appliedSutras }) {
+        "Incomplete derivation for $expectedAffixUpadesha; missing ${requiredSutras - appliedSutras}."
+    }
+    require(final.stage == expectedStage) {
+        "Incomplete derivation for $expectedAffixUpadesha; expected $expectedStage, reached ${final.stage}."
+    }
+}

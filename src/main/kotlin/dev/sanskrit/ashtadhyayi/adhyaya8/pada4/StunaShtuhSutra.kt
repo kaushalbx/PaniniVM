@@ -31,41 +31,11 @@ object StunaShtuhSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.VARNA,
     dependencies = setOf("8.4.40")
 ), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean {
-        val surface = context.surface
-        
-        for (i in 0 until surface.length - 1) {
-            val curr = surface[i]
-            val next = surface[i+1]
-            
-            // Check for STU followed or preceded by SHTU
-            if (isStu(curr) && isShtu(next)) return true
-            if (isShtu(curr) && isStu(next)) return true
-        }
-        return false
-    }
+    override fun matches(context: DerivationState): Boolean = findMatch(context.surface) != null
 
     override fun apply(context: DerivationState): DerivationChange {
-        val surface = context.surface
-        var targetIndex = -1
-        var triggerChar = ' '
-        
-        for (i in 0 until surface.length - 1) {
-            val curr = surface[i]
-            val next = surface[i+1]
-            if (isStu(curr) && isShtu(next)) {
-                targetIndex = i
-                triggerChar = next
-                break
-            }
-            if (isShtu(curr) && isStu(next)) {
-                targetIndex = i + 1
-                triggerChar = curr
-                break
-            }
-        }
-
-        val targetChar = surface[targetIndex]
+        val (targetIndex, triggerChar) = findMatch(context.surface)!!
+        val targetChar = context.surface[targetIndex]
         val replacement = getReplacement(targetChar)
 
         // Find the term containing targetIndex
@@ -82,6 +52,20 @@ object StunaShtuhSutra : Sutra<DerivationState, DerivationChange>(
             state = context.replaceTerm(targetTerm.id, targetTerm.copy(surface = newSurface)),
             explanation = "8.4.41: Retroflexed $targetChar to $replacement in contact with $triggerChar."
         ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(targetTerm.id, targetChar, replacement, sutra))) }
+    }
+
+    private fun findMatch(surface: String): Pair<Int, Char>? {
+        for (i in 0 until surface.length - 1) {
+            val curr = surface[i]
+            val next = surface[i+1]
+            if (isStu(curr) && isShtu(next)) {
+                return Pair(i, next)
+            }
+            if (isShtu(curr) && isStu(next)) {
+                return Pair(i + 1, curr)
+            }
+        }
+        return null
     }
 
     private fun isStu(c: Char): Boolean = c in setOf('स', 'त', 'थ', 'द', 'ध', 'न') || c.toString().startsWithAny(setOf("स", "त", "थ", "द", "ध", "न"))

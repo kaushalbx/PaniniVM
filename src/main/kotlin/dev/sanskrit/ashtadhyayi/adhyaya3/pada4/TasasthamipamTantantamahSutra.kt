@@ -27,13 +27,15 @@ object TasasthamipamTantantamahSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.ADESHA,
     scope = SutraScope.PRATYAYA,
 ), DerivationSutra {
+    private val ELIGIBLE_ENDINGS = setOf("तस्", "थस्", "थ", "मिप्")
+
     override fun matches(context: DerivationState): Boolean {
         if (context.stage == DerivationStage.INITIAL || context.stage == DerivationStage.PRATYAYA_SELECTED) return false
         val lastTerm = context.terms.lastOrNull() ?: return false
         
         val isNit = lastTerm.matchesUpadesha("लङ्") || lastTerm.matchesUpadesha("लृङ्") || lastTerm.matchesUpadesha("लुङ्")
         val targetUpadesha = lastTerm.upadesha ?: ""
-        val eligible = targetUpadesha in setOf("तस्", "थस्", "थ", "मिप्")
+        val eligible = targetUpadesha in ELIGIBLE_ENDINGS
         
         val isAlreadyApplied = when (targetUpadesha) {
             "तस्" -> lastTerm.surface == "ताम्"

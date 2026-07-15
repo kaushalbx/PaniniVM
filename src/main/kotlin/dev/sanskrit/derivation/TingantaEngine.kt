@@ -6,42 +6,17 @@ import dev.sanskrit.dhatupatha.PadaType
 class TingantaEngine(private val engine: DerivationEngine = DerivationEngine()) {
 
     fun derive(request: TingantaDerivationRequest): DerivationResult {
-        val dhatus = DhatuPatha.all.filter { it.upadesha == request.dhatu || it.mula == request.dhatu }
-        require(dhatus.isNotEmpty()) {
-            "Unknown dhatu: ${request.dhatu}"
-        }
-        val dhatu = dhatus.first()
-        val targetPada = when (dhatu.pada ?: PadaType.PARASMAIPADA) {
-            PadaType.PARASMAIPADA -> PadaType.PARASMAIPADA
+        val dhatu = findDhatu(request.dhatu)
+        val targetPada = when (dhatu.pada) {
             PadaType.ATMANEPADA -> PadaType.ATMANEPADA
-            PadaType.UBHAYAPADA -> PadaType.PARASMAIPADA
+            else -> PadaType.PARASMAIPADA
         }
-        
         val plan = requireNotNull(TingantaFormPlans.find(request.purusha, request.vacana, targetPada, request.lakara)) {
             "No complete downstream plan exists for ${TingAffix.select(request.purusha, request.vacana, targetPada)?.upadesha}."
         }
-        
-        val result = engine.derive(request.initialState(dhatu))
-        val appliedSutras = result.applications.mapTo(mutableSetOf()) { it.sutra }
-        
-        val selectedAffix = result.applications
-            .singleOrNull { it.sutra == "3.4.78" }
-            ?.delta
-            ?.addedTerms
-            ?.singleOrNull()
-            ?.upadesha
-            
-        require(selectedAffix == plan.affix.upadesha) {
-            "3.4.78 selected $selectedAffix, but ${plan.affix.upadesha} was required."
+        return engine.derive(request.initialState(dhatu)).apply {
+            verifyDerivation("3.4.78", plan.affix.upadesha, plan.requiredSutras, plan.finalStage)
         }
-        require(plan.requiredSutras.all { it in appliedSutras }) {
-            "Incomplete derivation for ${plan.affix.upadesha}; missing ${plan.requiredSutras - appliedSutras}."
-        }
-        require(result.final.stage == plan.finalStage) {
-            "Incomplete derivation for ${plan.affix.upadesha}; expected ${plan.finalStage}, reached ${result.final.stage}."
-        }
-        
-        return result
     }
 
     fun deriveSupportedParadigm(
@@ -49,19 +24,11 @@ class TingantaEngine(private val engine: DerivationEngine = DerivationEngine()) 
         pada: PadaType? = null,
         lakara: Lakara = Lakara.LAT,
     ): TingantaParadigm {
-        val targetPada = pada ?: run {
-            val dhatus = DhatuPatha.all.filter { it.upadesha == dhatu || it.mula == dhatu }
-            require(dhatus.isNotEmpty()) { "Unknown dhatu: $dhatu" }
-            val p = dhatus.first().pada ?: PadaType.PARASMAIPADA
-            when (p) {
-                PadaType.PARASMAIPADA -> PadaType.PARASMAIPADA
-                PadaType.ATMANEPADA -> PadaType.ATMANEPADA
-                PadaType.UBHAYAPADA -> PadaType.PARASMAIPADA
-            }
+        val targetPada = pada ?: when (findDhatu(dhatu).pada) {
+            PadaType.ATMANEPADA -> PadaType.ATMANEPADA
+            else -> PadaType.PARASMAIPADA
         }
-        
         val matchingPlans = TingantaFormPlans.all().filter { it.affix.pada == targetPada && it.lakara == lakara }
-        
         return TingantaParadigm(
             dhatu = dhatu,
             pada = targetPada,
@@ -74,6 +41,10 @@ class TingantaEngine(private val engine: DerivationEngine = DerivationEngine()) 
             }
         )
     }
+
+    private fun findDhatu(dhatu: String) =
+        DhatuPatha.all.firstOrNull { it.upadesha == dhatu || it.mula == dhatu }
+            ?: throw IllegalArgumentException("Unknown dhatu: $dhatu")
 }
 
 /** The executable portion of a verbal paradigm, retaining its rule traces. */

@@ -31,38 +31,11 @@ object StosShcunaShcuhSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.ADESHA,
     scope = SutraScope.VARNA,
 ), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean {
-        val surface = context.surface
-        for (i in 0 until surface.length - 1) {
-            val curr = surface[i]
-            val next = surface[i+1]
-            if (isStu(curr, surface, i) && isShcu(next, surface, i+1)) return true
-            if (isShcu(curr, surface, i) && isStu(next, surface, i+1)) return true
-        }
-        return false
-    }
+    override fun matches(context: DerivationState): Boolean = findMatch(context.surface) != null
 
     override fun apply(context: DerivationState): DerivationChange {
-        val surface = context.surface
-        var targetIndex = -1
-        var triggerChar = ' '
-        
-        for (i in 0 until surface.length - 1) {
-            val curr = surface[i]
-            val next = surface[i+1]
-            if (isStu(curr, surface, i) && isShcu(next, surface, i+1)) {
-                targetIndex = i
-                triggerChar = next
-                break
-            }
-            if (isShcu(curr, surface, i) && isStu(next, surface, i+1)) {
-                targetIndex = i + 1
-                triggerChar = curr
-                break
-            }
-        }
-
-        val targetChar = surface[targetIndex]
+        val (targetIndex, triggerChar) = findMatch(context.surface)!!
+        val targetChar = context.surface[targetIndex]
         val replacement = getReplacement(targetChar)
 
         var offset = 0
@@ -78,6 +51,20 @@ object StosShcunaShcuhSutra : Sutra<DerivationState, DerivationChange>(
             state = context.replaceTerm(targetTerm.id, targetTerm.copy(surface = newSurface)),
             explanation = "8.4.40: Palatalized $targetChar to $replacement in contact with $triggerChar."
         ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(targetTerm.id, targetChar, replacement, sutra))) }
+    }
+
+    private fun findMatch(surface: String): Pair<Int, Char>? {
+        for (i in 0 until surface.length - 1) {
+            val curr = surface[i]
+            val next = surface[i+1]
+            if (isStu(curr, surface, i) && isShcu(next, surface, i+1)) {
+                return Pair(i, next)
+            }
+            if (isShcu(curr, surface, i) && isStu(next, surface, i+1)) {
+                return Pair(i + 1, curr)
+            }
+        }
+        return null
     }
 
     private fun isStu(c: Char, surface: String, index: Int): Boolean {

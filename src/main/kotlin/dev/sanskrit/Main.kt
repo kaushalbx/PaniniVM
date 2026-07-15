@@ -28,13 +28,7 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
         
         buildList {
             add("$vibhakti $vacana: ${result.final.surface}")
-            add("----------------------------------------")
-            result.applications.forEach { app ->
-                add("${app.sutra} [${app.role::class.simpleName}] — ${app.explanation}")
-                if (app.conflictTrace.isNotEmpty()) {
-                    app.conflictTrace.forEach { add("  ↳ $it") }
-                }
-            }
+            addTrace(result, includeRole = true)
         }
     }
     "--sutra" -> {
@@ -58,13 +52,7 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
         val result = TingantaEngine().derive(TingantaDerivationRequest(dhatu, vacana))
         buildList {
             add("$dhatu: ${result.final.surface}")
-            add("----------------------------------------")
-            result.applications.forEach { app ->
-                add("${app.sutra} — ${app.explanation}")
-                if (app.conflictTrace.isNotEmpty()) {
-                    app.conflictTrace.forEach { add("  ↳ $it") }
-                }
-            }
+            addTrace(result)
         }
     }
     "--coverage" -> listOf(
@@ -90,4 +78,13 @@ private fun parseVacana(value: String): Vacana = when (value.uppercase()) {
     "DVIVACANA", "द्विवचन" -> Vacana.DVIVACANA
     "BAHUVACANA", "बहुवचन" -> Vacana.BAHUVACANA
     else -> error("Unknown vacana: $value")
+}
+
+private fun MutableList<String>.addTrace(result: dev.sanskrit.derivation.DerivationResult, includeRole: Boolean = false) {
+    add("----------------------------------------")
+    result.applications.forEach { app ->
+        val prefix = if (includeRole) " [${app.role::class.simpleName}]" else ""
+        add("${app.sutra}$prefix — ${app.explanation}")
+        app.conflictTrace.forEach { add("  ↳ $it") }
+    }
 }

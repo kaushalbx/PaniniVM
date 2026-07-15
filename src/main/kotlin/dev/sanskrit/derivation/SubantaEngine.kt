@@ -10,24 +10,9 @@ class SubantaEngine(
         val plan = requireNotNull(SubantaFormPlans.find(request.vibhakti, request.vacana)) {
             "No complete downstream plan exists for ${SupAffix.select(request.vibhakti, request.vacana).upadesha}."
         }
-        val result = engine.derive(request.initialState())
-        val appliedSutras = result.applications.mapTo(mutableSetOf()) { it.sutra }
-        val selectedAffix = result.applications
-            .singleOrNull { it.sutra == "4.1.2" }
-            ?.delta
-            ?.addedTerms
-            ?.singleOrNull()
-            ?.upadesha
-        require(selectedAffix == plan.affix.upadesha) {
-            "4.1.2 selected $selectedAffix, but ${plan.affix.upadesha} was required."
+        return engine.derive(request.initialState()).apply {
+            verifyDerivation("4.1.2", plan.affix.upadesha, plan.requiredSutras, plan.finalStage)
         }
-        require(plan.requiredSutras.all { it in appliedSutras }) {
-            "Incomplete derivation for ${plan.affix.upadesha}; missing ${plan.requiredSutras - appliedSutras}."
-        }
-        require(result.final.stage == plan.finalStage) {
-            "Incomplete derivation for ${plan.affix.upadesha}; expected ${plan.finalStage}, reached ${result.final.stage}."
-        }
-        return result
     }
 
     fun deriveSupportedParadigm(
