@@ -315,4 +315,25 @@ class TingantaEngineTest {
             forms,
         )
     }
+
+    @Test
+    fun `conjugation engine derives complete atmanepada present paradigm for labh`() {
+        val paradigm = TingantaEngine().deriveSupportedParadigm("लभ्", lakara = Lakara.LAT)
+        val forms = paradigm.surfaces
+
+        assertEquals(
+            mapOf(
+                TingAffix.TA to "लभते",
+                TingAffix.ATAM to "लभेते",
+                TingAffix.JHA to "लभन्ते",
+                TingAffix.THAS_A to "लभसे",
+                TingAffix.ATHAM to "लभेथे",
+                TingAffix.DHVAM to "लभध्वे",
+                TingAffix.IT to "लभे",
+                TingAffix.VAHI to "लभावहे",
+                TingAffix.MAHING to "लभामहे",
+            ),
+            forms,
+        )
+    }
 }

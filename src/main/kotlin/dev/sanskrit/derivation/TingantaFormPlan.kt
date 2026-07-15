@@ -18,7 +18,13 @@ object TingantaFormPlans {
             val hasItMarkers = affix.upadesha.endsWith("प्") || 
                                affix.upadesha.endsWith("ट्") || 
                                affix.upadesha.endsWith("ङ्")
-            val expectedStage = if (hasItMarkers) DerivationStage.IT_PROCESSED else DerivationStage.FINAL
+            val expectedStage = if (affix.pada == PadaType.ATMANEPADA) {
+                DerivationStage.FINAL
+            } else if (hasItMarkers) {
+                DerivationStage.IT_PROCESSED
+            } else {
+                DerivationStage.FINAL
+            }
             add(TingantaFormPlan(affix, Lakara.LAT, setOf("3.4.78"), expectedStage))
         }
         // LRT (future tense) plans
