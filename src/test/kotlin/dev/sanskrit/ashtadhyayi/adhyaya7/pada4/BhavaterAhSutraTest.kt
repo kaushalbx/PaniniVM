@@ -1,29 +1,31 @@
-package dev.sanskrit.ashtadhyayi.adhyaya6.pada4
+package dev.sanskrit.ashtadhyayi.adhyaya7.pada4
 
 import dev.sanskrit.derivation.DerivationalContext
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationTerm
 import dev.sanskrit.derivation.Lakara
 import dev.sanskrit.derivation.Rupa
+import dev.sanskrit.derivation.SamjnaAssignment
 import dev.sanskrit.derivation.TermKind
+import dev.sanskrit.shiksha.Samjna
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class BhuvoVuglunglitoSutraTest {
+class BhavaterAhSutraTest {
     @Test
-    fun `6 4 88 inserts the effective vuk after bhu in lit`() {
+    fun `7 4 73 replaces final u of bhu abhyasa with inherent a in lit`() {
         val state = DerivationState(
             listOf(
+                DerivationTerm("abhyasa", "भु", TermKind.DHATU, upadesha = "भू"),
                 DerivationTerm("dhatu", "भू", TermKind.DHATU, upadesha = "भू"),
-                DerivationTerm("ending", "अ", TermKind.PRATYAYA, upadesha = "तिप्"),
             ),
+            samjnas = setOf(SamjnaAssignment("abhyasa", Samjna.ABHYASA)),
             context = DerivationalContext(rupa = Rupa(lakara = Lakara.LIT)),
         )
 
-        assertTrue(BhuvoVuglunglitoSutra.matches(state))
-        val result = BhuvoVuglunglitoSutra.apply(state).state
-        assertEquals(listOf("भू", "व्", "अ"), result.terms.map { it.surface })
-        assertEquals("वुक्", result.terms[1].upadesha)
+        assertTrue(BhavaterAhSutra.matches(state))
+        val result = BhavaterAhSutra.apply(state).state
+        assertEquals(listOf("भ", "भू"), result.terms.map { it.surface })
     }
 }

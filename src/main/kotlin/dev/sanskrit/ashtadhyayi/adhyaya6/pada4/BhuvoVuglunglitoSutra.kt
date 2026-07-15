@@ -21,11 +21,12 @@ object BhuvoVuglunglitoSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
         context.effectiveContext.rupa.lakara in setOf(Lakara.LUNG, Lakara.LIT) &&
-            context.terms.any { it.kind == TermKind.DHATU && it.matchesUpadesha("भू") } &&
+            context.terms.any { it.kind == TermKind.DHATU && it.id != "abhyasa" && it.matchesUpadesha("भू") } &&
+            context.terms.lastOrNull()?.surface?.firstOrNull() in setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ए', 'ऐ', 'ओ', 'औ') &&
             context.terms.none { it.id == "vuk" }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val index = context.terms.indexOfFirst { it.kind == TermKind.DHATU && it.matchesUpadesha("भू") }
+        val index = context.terms.indexOfFirst { it.kind == TermKind.DHATU && it.id != "abhyasa" && it.matchesUpadesha("भू") }
         val vuk = DerivationTerm("vuk", "व्", TermKind.AGAMA, upadesha = "वुक्")
         return DerivationChange(
             context.copy(terms = context.terms.take(index + 1) + vuk + context.terms.drop(index + 1)),

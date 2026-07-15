@@ -1,14 +1,10 @@
 package dev.sanskrit.ashtadhyayi.adhyaya8.pada4
 
-import dev.sanskrit.ashtadhyayi.Ashtadhyayi
-import dev.sanskrit.ashtadhyayi.adhyaya1.pada1.SthaneAntaratamahSutra
 import dev.sanskrit.derivation.DerivationChange
-import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
-import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.derivation.VarnaSubstitution
-import dev.sanskrit.pratyahara.Pratyahara
+import dev.sanskrit.shiksha.Samjna
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -17,9 +13,7 @@ import dev.sanskrit.sutra.SutraType
 
 /**
  * 8.4.54: abhyāse car ca.
- * In the reduplicated syllable (abhyāsa), a jhal sound is replaced by 
- * a car sound (voiceless) or a jaś sound (voiced).
- * Effectively: Aspirated becomes Unaspirated.
+ * A jhal consonant in an abhyāsa receives its nearest car or jaś substitute.
  */
 object AbhyaseCarCaSutra : Sutra<DerivationState, DerivationChange>(
     number = "8.4.54",
@@ -34,33 +28,29 @@ object AbhyaseCarCaSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.ADESHA,
     scope = SutraScope.VARNA,
 ), DerivationSutra {
+    private val carOrJash = mapOf(
+        'क' to 'क', 'ख' to 'क', 'ग' to 'ग', 'घ' to 'ग',
+        'च' to 'च', 'छ' to 'च', 'ज' to 'ज', 'झ' to 'ज',
+        'ट' to 'ट', 'ठ' to 'ट', 'ड' to 'ड', 'ढ' to 'ड',
+        'त' to 'त', 'थ' to 'त', 'द' to 'द', 'ध' to 'द',
+        'प' to 'प', 'फ' to 'प', 'ब' to 'ब', 'भ' to 'ब',
+    )
+
     override fun matches(context: DerivationState): Boolean {
-        // Condition: The term must be an 'abhyāsa' (reduplication)
-        // Simplified check: first term in a multi-term verbal stem
-        if (context.terms.size < 2) return false
-        val firstTerm = context.terms.first()
-        if (firstTerm.kind != TermKind.DHATU) return false
-        
-        // Target: Must contain a Jhal sound (aspirated or fricative)
-        val lastChar = firstTerm.surface.lastOrNull() ?: return false
-        val engine = Ashtadhyayi.pratyaharaEngine
-        
-        return engine.contains(Pratyahara.JHAL, lastChar)
+        val abhyasa = context.terms.firstOrNull { it.id == "abhyasa" } ?: return false
+        return context.samjnas.any { it.targetId == abhyasa.id && it.samjna == Samjna.ABHYASA } &&
+            abhyasa.surface.firstOrNull() in carOrJash &&
+            carOrJash.getValue(abhyasa.surface.first()) != abhyasa.surface.first()
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val abhyasa = context.terms.first()
-        val lastChar = abhyasa.surface.last()
-        
-        // Potential substitutes: JAŚ (voiced) + CAR (voiceless)
-        val potentialSubstitutes = setOf("ज", "ब", "ग", "ड", "द", "च", "ट", "त", "क", "प")
-        val substitute = SthaneAntaratamahSutra.selectBest(lastChar, potentialSubstitutes)
-        
-        val newSurface = abhyasa.surface.dropLast(1) + substitute
-        
+        val abhyasa = context.terms.first { it.id == "abhyasa" }
+        val source = abhyasa.surface.first()
+        val substitute = carOrJash.getValue(source)
+        val newSurface = substitute + abhyasa.surface.drop(1)
         return DerivationChange(
             state = context.replaceTerm(abhyasa.id, abhyasa.copy(surface = newSurface)),
-            explanation = "8.4.54: Simplified aspirated sound in abhyāsa to $substitute."
-        ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(abhyasa.id, lastChar, substitute, sutra))) }
+            explanation = "8.4.54 changes $source to its nearest $substitute substitute in the abhyāsa.",
+        ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(abhyasa.id, source, substitute.toString(), sutra))) }
     }
 }

@@ -32,9 +32,9 @@ object HalantyamSutra : Sutra<DerivationState, DerivationChange>(
         
         return context.terms.any { term ->
             if (term.kind == TermKind.PRATIPADIKA) return@any false
-            // 3.4.102 has already resolved the final ट् of सीयुट्; its
-            // remaining य् is part of the effective augment, not a new it.
-            if (term.id == "siyut") return@any false
+            // सीयुट् and वुक् are already resolved to their effective
+            // augment surfaces; their final य् and व् are not new it-markers.
+            if (term.id == "siyut" || term.id == "vuk") return@any false
             val last = term.surface.lastOrNull() ?: return@any false
             if (last != '्' || term.surface.length < 2) return@any false
             val lastChar = term.surface[term.surface.length - 2]
@@ -45,7 +45,7 @@ object HalantyamSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val newTerms = context.terms.map { term ->
             if (term.kind == TermKind.PRATIPADIKA) return@map term
-            if (term.id == "siyut") return@map term
+            if (term.id == "siyut" || term.id == "vuk") return@map term
             val last = term.surface.lastOrNull()
             if (last == '्' && term.surface.length >= 2) {
                 val lastChar = term.surface[term.surface.length - 2]

@@ -4,6 +4,7 @@ import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.DerivationTerm
+import dev.sanskrit.derivation.Lakara
 import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.derivation.TingAffix
 import dev.sanskrit.shiksha.Svara
@@ -27,7 +28,8 @@ object KartariShapSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
-        context.terms.lastOrNull()?.upadesha in TingAffix.entries.map { it.upadesha } &&
+        context.effectiveContext.rupa.lakara != Lakara.LIT &&
+                context.terms.lastOrNull()?.upadesha in TingAffix.entries.map { it.upadesha } &&
                 context.allEffectiveTerms.none { it.upadesha == "शप्" || it.upadesha == "स्य" }
 
     override fun apply(context: DerivationState): DerivationChange {
