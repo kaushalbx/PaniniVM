@@ -29,20 +29,20 @@ class DhatuPathaTest {
     }
 
     @Test
-    fun `all entries expose a root after the metadata extension`() {
+    fun `all entries expose canonical upadesha after the metadata extension`() {
         assertEquals(2259, DhatuPatha.all.size)
-        assertEquals("भू", DhatuPatha.find("01.0001")?.mula)
+        assertEquals("भू", DhatuPatha.find("01.0001")?.upadesha)
         assertEquals(dev.sanskrit.shiksha.ItStatus.SET, DhatuPatha.find("01.0001")?.itStatus)
         assertEquals(dev.sanskrit.shiksha.Karmatva.AKARMAKA, DhatuPatha.find("01.0001")?.karmatva)
         assertEquals(dev.sanskrit.shiksha.Accent.UDATTA, DhatuPatha.find("01.0001")?.svara)
 
         val annotatedDhatu = assertNotNull(DhatuPatha.find("02.0001"))
-        assertEquals("अद्", annotatedDhatu.mula)
+        assertEquals("अदँ", annotatedDhatu.upadesha)
         assertEquals(dev.sanskrit.shiksha.ItStatus.ANIT, annotatedDhatu.itStatus)
         assertEquals(dev.sanskrit.shiksha.Karmatva.SAKARMAKA, annotatedDhatu.karmatva)
 
         val ganaSutra = assertNotNull(DhatuPatha.find("02.0076"))
-        assertEquals("चर्करीतं च", ganaSutra.mula)
+        assertEquals("-", ganaSutra.upadesha)
         assertEquals(null, ganaSutra.itStatus)
     }
 }

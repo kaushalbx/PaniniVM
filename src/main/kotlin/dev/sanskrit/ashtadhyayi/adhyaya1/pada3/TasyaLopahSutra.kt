@@ -5,6 +5,7 @@ import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.ItMarker
+import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.shiksha.Varnamala
 import dev.sanskrit.shiksha.Linga
 import dev.sanskrit.sutra.Sutra
@@ -37,6 +38,10 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val newTerms = context.terms.map { term ->
             if (term.itMarkers.isEmpty()) return@map term
+            // A dhātu enters the derivation with its normalized mūla already
+            // separated from the Dhātupāṭha upadeśa. Its recorded it-status
+            // must not delete actual root sounds from that normalized surface.
+            if (term.kind == TermKind.DHATU) return@map term.copy(itMarkers = emptySet())
             
             var newSurface = term.surface
             

@@ -51,6 +51,8 @@ class DerivationState(
             val next = term.surface
             if (rendered.endsWith('्') && next.firstOrNull() == 'अ') {
                 rendered.dropLast(1) + next.drop(1)
+            } else if (rendered.endsWith('्') && next.firstOrNull() == 'आ') {
+                rendered.dropLast(1) + "ा" + next.drop(1)
             } else if (rendered.endsWith('्') && next.firstOrNull() in setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ', 'े', 'ै', 'ो', 'ौ')) {
                 rendered.dropLast(1) + next
             } else {
@@ -201,7 +203,7 @@ data class DerivationTerm(
         /** Preserves Dhātupāṭha metadata when a root enters a derivation. */
         fun fromDhatu(dhatu: Dhatu, id: String = "dhatu"): DerivationTerm = DerivationTerm(
             id = id,
-            surface = dhatu.mula,
+            surface = dhatu.derivationalSurface,
             kind = TermKind.DHATU,
             upadesha = dhatu.upadesha,
             itStatus = dhatu.itStatus,

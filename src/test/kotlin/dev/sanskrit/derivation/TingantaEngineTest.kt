@@ -214,4 +214,105 @@ class TingantaEngineTest {
         assertEquals("भवेव", forms[TingAffix.VAS])
         assertEquals("भवेम", forms[TingAffix.MAS])
     }
+
+    @Test
+    fun `atmanepada ling selects siyut for labh`() {
+        val dhatu = dev.sanskrit.dhatupatha.DhatuPatha.all.first { it.upadesha == "डुलभँष्" }
+        val result = DerivationEngine().derive(TingantaDerivationRequest("लभ्", lakara = Lakara.LING).initialState(dhatu))
+
+        assertTrue(result.applications.any { it.sutra == "3.4.102" })
+        assertTrue(result.applications.any { it.sutra == "7.2.79" })
+        assertEquals("लभेत", result.final.surface)
+    }
+
+    @Test
+    fun `atmanepada ling third dual derives labheyatam`() {
+        val dhatu = dev.sanskrit.dhatupatha.DhatuPatha.all.first { it.upadesha == "डुलभँष्" }
+        val result = DerivationEngine().derive(
+            TingantaDerivationRequest("लभ्", purusha = Purusha.PRATHAMA, vacana = Vacana.DVIVACANA, lakara = Lakara.LING)
+                .initialState(dhatu),
+        )
+
+        assertEquals("लभेयाताम्", result.final.surface)
+    }
+
+    @Test
+    fun `atmanepada ling third plural derives labheran`() {
+        val dhatu = dev.sanskrit.dhatupatha.DhatuPatha.all.first { it.upadesha == "डुलभँष्" }
+        val result = DerivationEngine().derive(
+            TingantaDerivationRequest("लभ्", purusha = Purusha.PRATHAMA, vacana = Vacana.BAHUVACANA, lakara = Lakara.LING)
+                .initialState(dhatu),
+        )
+
+        assertTrue(result.applications.any { it.sutra == "3.4.105" })
+        assertEquals("लभेरन्", result.final.surface)
+    }
+
+    @Test
+    fun `atmanepada ling first singular derives labheya`() {
+        val dhatu = dev.sanskrit.dhatupatha.DhatuPatha.all.first { it.upadesha == "डुलभँष्" }
+        val result = DerivationEngine().derive(
+            TingantaDerivationRequest("लभ्", purusha = Purusha.UTTAMA, vacana = Vacana.EKAVACANA, lakara = Lakara.LING)
+                .initialState(dhatu),
+        )
+
+        assertTrue(result.applications.any { it.sutra == "3.4.106" })
+        assertEquals("लभेय", result.final.surface)
+    }
+
+    @Test
+    fun `atmanepada ling second singular derives labhethah`() {
+        val dhatu = dev.sanskrit.dhatupatha.DhatuPatha.all.first { it.upadesha == "डुलभँष्" }
+        val result = DerivationEngine().derive(
+            TingantaDerivationRequest("लभ्", purusha = Purusha.MADHYAMA, vacana = Vacana.EKAVACANA, lakara = Lakara.LING)
+                .initialState(dhatu),
+        )
+
+        assertTrue(result.applications.any { it.sutra == "1.3.4" }, result.applications.joinToString { it.sutra })
+        assertTrue(result.applications.any { it.sutra == "8.2.66" }, result.applications.joinToString { it.sutra })
+        assertTrue(result.applications.any { it.sutra == "8.3.15" }, result.applications.joinToString { it.sutra })
+        assertEquals("लभेथाः", result.final.surface)
+    }
+
+    @Test
+    fun `atmanepada ling remaining endings derive complete forms`() {
+        val dhatu = dev.sanskrit.dhatupatha.DhatuPatha.all.first { it.upadesha == "डुलभँष्" }
+        val engine = DerivationEngine()
+        val expectedForms = mapOf(
+            Purusha.MADHYAMA to Vacana.DVIVACANA to "लभेयाथाम्",
+            Purusha.MADHYAMA to Vacana.BAHUVACANA to "लभेध्वम्",
+            Purusha.UTTAMA to Vacana.DVIVACANA to "लभेवहि",
+            Purusha.UTTAMA to Vacana.BAHUVACANA to "लभेमहि",
+        )
+
+        expectedForms.forEach { (personAndNumber, expectedSurface) ->
+            val (purusha, vacana) = personAndNumber
+            val result = engine.derive(
+                TingantaDerivationRequest("लभ्", purusha = purusha, vacana = vacana, lakara = Lakara.LING)
+                    .initialState(dhatu),
+            )
+
+            assertEquals(expectedSurface, result.final.surface, "$purusha $vacana")
+        }
+    }
+
+    @Test
+    fun `conjugation engine derives complete atmanepada vidhi ling paradigm for labh`() {
+        val forms = TingantaEngine().deriveSupportedParadigm("लभ्", lakara = Lakara.LING).surfaces
+
+        assertEquals(
+            mapOf(
+                TingAffix.TA to "लभेत",
+                TingAffix.ATAM to "लभेयाताम्",
+                TingAffix.JHA to "लभेरन्",
+                TingAffix.THAS_A to "लभेथाः",
+                TingAffix.ATHAM to "लभेयाथाम्",
+                TingAffix.DHVAM to "लभेध्वम्",
+                TingAffix.IT to "लभेय",
+                TingAffix.VAHI to "लभेवहि",
+                TingAffix.MAHING to "लभेमहि",
+            ),
+            forms,
+        )
+    }
 }

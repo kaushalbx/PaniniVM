@@ -34,6 +34,10 @@ object RasabhyamNoNahSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         if (HasMorphosyntax(vibhakti = Vibhakti.DVITIYA, vacana = Vacana.BAHUVACANA).matches(context)) return false
 
+        // 3.4.105 substitutes रन् for the liṅ Ātmanepada झ ending. The
+        // attested potential ending remains dental, e.g. लभेरन्.
+        if (context.terms.any { it.surface == "रन्" }) return false
+
         val surface = context.surface
         
         // Find triggers: र (r) or ष (ṣ)

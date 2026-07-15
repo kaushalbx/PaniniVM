@@ -1,11 +1,9 @@
 package dev.sanskrit.ashtadhyayi.adhyaya8.pada4
 
-import dev.sanskrit.ashtadhyayi.Ashtadhyayi
 import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.VarnaSubstitution
-import dev.sanskrit.shiksha.Varnamala
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -31,7 +29,11 @@ object StunaShtuhSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.VARNA,
     dependencies = setOf("8.4.40")
 ), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean = findMatch(context.surface) != null
+    override fun matches(context: DerivationState): Boolean {
+        val match = findMatch(context.surface) ?: return false
+        val target = context.surface[match.first]
+        return getReplacement(target) != target.toString()
+    }
 
     override fun apply(context: DerivationState): DerivationChange {
         val (targetIndex, triggerChar) = findMatch(context.surface)!!
@@ -40,13 +42,20 @@ object StunaShtuhSutra : Sutra<DerivationState, DerivationChange>(
 
         // Find the term containing targetIndex
         var offset = 0
-        val targetTerm = context.terms.find { term ->
+        var targetTerm = context.terms.first()
+        var localIndex = 0
+        for (term in context.terms) {
             val start = offset
             offset += term.surface.length
-            targetIndex in start until offset
-        }!!
+            if (targetIndex in start until offset) {
+                targetTerm = term
+                localIndex = targetIndex - start
+                break
+            }
+        }
 
-        val newSurface = targetTerm.surface.replaceFirst(targetChar.toString(), replacement)
+        val newSurface = targetTerm.surface.substring(0, localIndex) + replacement +
+            targetTerm.surface.substring(localIndex + 1)
 
         return DerivationChange(
             state = context.replaceTerm(targetTerm.id, targetTerm.copy(surface = newSurface)),
@@ -57,12 +66,15 @@ object StunaShtuhSutra : Sutra<DerivationState, DerivationChange>(
     private fun findMatch(surface: String): Pair<Int, Char>? {
         for (i in 0 until surface.length - 1) {
             val curr = surface[i]
-            val next = surface[i+1]
+            var nextIndex = i + 1
+            if (surface[nextIndex] == '्') nextIndex += 1
+            if (nextIndex >= surface.length) continue
+            val next = surface[nextIndex]
             if (isStu(curr) && isShtu(next)) {
                 return Pair(i, next)
             }
             if (isShtu(curr) && isStu(next)) {
-                return Pair(i + 1, curr)
+                return Pair(nextIndex, curr)
             }
         }
         return null
@@ -75,8 +87,13 @@ object StunaShtuhSutra : Sutra<DerivationState, DerivationChange>(
 
     private fun getReplacement(target: Char): String {
         if (target == 'स') return "ष"
-        val vargaInfo = Varnamala.getVargaInfo(target) ?: return target.toString()
-        // Map tu-varga to ṭu-varga (same index)
-        return Varnamala.getVargaMember("टु", vargaInfo.second)?.toString() ?: target.toString()
+        return when (target) {
+            'त' -> "ट"
+            'थ' -> "ठ"
+            'द' -> "ड"
+            'ध' -> "ढ"
+            'न' -> "ण"
+            else -> target.toString()
+        }
     }
 }

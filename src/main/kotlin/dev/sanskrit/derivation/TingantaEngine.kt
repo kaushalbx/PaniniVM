@@ -43,7 +43,7 @@ class TingantaEngine(private val engine: DerivationEngine = DerivationEngine()) 
     }
 
     private fun findDhatu(dhatu: String) =
-        DhatuPatha.all.firstOrNull { it.upadesha == dhatu || it.mula == dhatu }
+        DhatuPatha.all.firstOrNull { it.upadesha == dhatu || it.derivationalSurface == dhatu }
             ?: throw IllegalArgumentException("Unknown dhatu: $dhatu")
 }
 

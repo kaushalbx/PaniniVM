@@ -14,7 +14,7 @@ import dev.sanskrit.sutra.SutraRole
 import dev.sanskrit.sutra.SutraScope
 import dev.sanskrit.sutra.SutraType
 
-/** 3.4.102: liṅaḥ sīyuṭ. Inserts सीयुट् before a liṅ tiṅ termination. */
+/** 3.4.102: liṅaḥ sīyuṭ. Inserts the effective augment सीय् before an Ātmanepada liṅ termination. */
 object LingasSiyutSutra : Sutra<DerivationState, DerivationChange>(
     number = "3.4.102",
     text = "लिङः सीयुट्",
@@ -41,7 +41,9 @@ object LingasSiyutSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val ting = context.terms.last()
-        val siyut = DerivationTerm("siyut", "सीयुट्", TermKind.AGAMA, upadesha = "सीयुट्")
+        // उ is only present for pronunciation and ट् is an it-marker; the
+        // effective augment introduced into the derivation is सीय्.
+        val siyut = DerivationTerm("siyut", "सीय्", TermKind.AGAMA, upadesha = "सीयुट्")
         return DerivationChange(
             context.copy(terms = context.terms.dropLast(1) + siyut + ting),
             "3.4.102 inserts सीयुट् before the liṅ tiṅ termination.",

@@ -9,7 +9,7 @@ data class Dhatu(
     val id: String,
     val krama: Int,
     val upadesha: String,
-    val mula: String,
+    private val sourceSurface: String,
     val artha: String,
     val arthaHindi: String,
     val arthaEnglish: String,
@@ -18,7 +18,10 @@ data class Dhatu(
     val itStatus: ItStatus? = null,
     val karmatva: Karmatva? = null,
     val svara: Accent? = null,
-)
+) {
+    /** Normalized root spelling used only by the derivation engine. */
+    internal val derivationalSurface: String get() = sourceSurface
+}
 
 /** The ten traditional gaṇas of the Dhātupāṭha. */
 enum class Gana {

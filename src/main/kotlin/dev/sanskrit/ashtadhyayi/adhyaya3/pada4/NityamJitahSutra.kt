@@ -34,10 +34,19 @@ object NityamJitahSutra : Sutra<DerivationState, DerivationChange>(
         
         val isNit = lastTerm.matchesUpadesha("लङ्") || lastTerm.matchesUpadesha("लृङ्") ||
             lastTerm.matchesUpadesha("लुङ्") || context.effectiveContext.rupa.lakara == Lakara.LING
+        // The rule concerns the Parasmaipada tiṅ endings introduced here.
+        // The Ātmanepada थास् ending must retain its स् so that 8.2.66 and
+        // 8.3.15 can derive the final visarga in forms such as लभेथाः.
+        val isParasmaipadaEnding = lastTerm.id in setOf(
+            "ting-tas",
+            "ting-thas",
+            "ting-vas",
+            "ting-mas",
+        )
         val isUpadeshaS = lastTerm.upadesha?.endsWith("स्") == true
         val endsWithS = lastTerm.surface.endsWith("स्")
-        
-        return isNit && isUpadeshaS && endsWithS
+
+        return isNit && isParasmaipadaEnding && isUpadeshaS && endsWithS
     }
 
     override fun apply(context: DerivationState): DerivationChange {
