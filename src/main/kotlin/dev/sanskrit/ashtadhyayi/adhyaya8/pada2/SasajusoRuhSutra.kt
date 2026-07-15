@@ -25,9 +25,8 @@ object SasajusoRuhSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
-        context.stage == DerivationStage.PADA_FORMED && context.terms.last().surface.endsWith(
-            Vyanjana.SA.halanta
-        )
+        (context.stage == DerivationStage.PADA_FORMED || context.stage == DerivationStage.FINAL) && 
+        context.terms.last().surface.endsWith(Vyanjana.SA.halanta)
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
         context.copy(

@@ -32,8 +32,9 @@ object SuptingantamPadamSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.stage != DerivationStage.IT_PROCESSED && context.stage != DerivationStage.ANGAKARYA) return false
-        // Find if any term sequence is ready to be a Pada. 
-        // For simplicity, we check if a term is a PRATYAYA that is a vibhakti.
+        
+        if (context.stage == DerivationStage.ANGAKARYA) return true
+        
         return context.terms.any { term ->
             val isVibhakti = context.samjnas.any { it.targetId == term.id && it.samjna == Samjna.PRATYAYA }
             isVibhakti && context.samjnas.none { it.targetId == term.id && it.samjna == Samjna.PADA }

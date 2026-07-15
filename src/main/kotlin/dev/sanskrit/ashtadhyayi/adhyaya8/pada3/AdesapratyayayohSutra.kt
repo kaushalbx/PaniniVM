@@ -33,21 +33,31 @@ object AdesapratyayayohSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
+        if (context.stage != DerivationStage.PADA_FORMED && context.stage != DerivationStage.FINAL) return false
+        
         val engine = Ashtadhyayi.pratyaharaEngine
+        val surface = context.surface
         for (i in 0 until context.terms.size) {
             val term = context.terms[i]
             if (term.kind != TermKind.PRATYAYA) continue
-            val surface = term.surface
+            val termSurface = term.surface
             
-            val sIndex = surface.indexOf('स')
+            val sIndex = termSurface.indexOf('स')
             if (sIndex == -1) continue
+            
+            // 8.3.55: apādāntasya - target must not be at the end of the word
+            val prefixLength = context.terms.take(i).sumOf { it.surface.length }
+            val absoluteSIndex = prefixLength + sIndex
+            val isAtEnd = absoluteSIndex == surface.length - 1 || 
+                          (absoluteSIndex == surface.length - 2 && surface.endsWith('्'))
+            if (isAtEnd) continue
             
             val preChar = if (sIndex == 0) {
                 if (i == 0) continue
                 val stemFinal = context.terms[i - 1].surface.lastOrNull() ?: continue
                 if (stemFinal !in dev.sanskrit.shiksha.Varnamala.independentVowelsOrMarks) 'अ' else stemFinal
             } else {
-                surface[sIndex - 1]
+                termSurface[sIndex - 1]
             }
             
             val isInIn = engine.contains(Pratyahara.IN, preChar)
@@ -60,20 +70,28 @@ object AdesapratyayayohSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val engine = Ashtadhyayi.pratyaharaEngine
+        val surface = context.surface
         for (i in 0 until context.terms.size) {
             val term = context.terms[i]
             if (term.kind != TermKind.PRATYAYA) continue
-            val surface = term.surface
+            val termSurface = term.surface
             
-            val sIndex = surface.indexOf('स')
+            val sIndex = termSurface.indexOf('स')
             if (sIndex == -1) continue
+            
+            // 8.3.55: apādāntasya - target must not be at the end of the word
+            val prefixLength = context.terms.take(i).sumOf { it.surface.length }
+            val absoluteSIndex = prefixLength + sIndex
+            val isAtEnd = absoluteSIndex == surface.length - 1 || 
+                          (absoluteSIndex == surface.length - 2 && surface.endsWith('्'))
+            if (isAtEnd) continue
             
             val preChar = if (sIndex == 0) {
                 if (i == 0) continue
                 val stemFinal = context.terms[i - 1].surface.lastOrNull() ?: continue
                 if (stemFinal !in dev.sanskrit.shiksha.Varnamala.independentVowelsOrMarks) 'अ' else stemFinal
             } else {
-                surface[sIndex - 1]
+                termSurface[sIndex - 1]
             }
             
             val isInIn = engine.contains(Pratyahara.IN, preChar)

@@ -38,7 +38,7 @@ object VavasaneSutra : Sutra<DerivationState, DerivationChange>(
         
         val lastTerm = context.terms.lastOrNull() ?: return false
         val finalConsonant = getFinalConsonant(lastTerm.surface) ?: return false
-        if (finalConsonant in setOf('च', 'ट', 'त', 'क', 'प')) return false
+        if (finalConsonant in setOf('च', 'ट', 'त', 'क', 'प', 'श', 'ष', 'स', 'ह')) return false
         
         val engine = Ashtadhyayi.pratyaharaEngine
         return engine.contains(Pratyahara.JHAL, finalConsonant)

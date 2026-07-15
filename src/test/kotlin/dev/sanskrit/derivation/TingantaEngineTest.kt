@@ -16,11 +16,13 @@ class TingantaEngineTest {
         assertEquals("भवन्ति", engine.derive(TingantaDerivationRequest("भू", Vacana.BAHUVACANA, Purusha.PRATHAMA, Lakara.LAT)).final.surface)
         assertEquals("भवामि", engine.derive(TingantaDerivationRequest("भू", Vacana.EKAVACANA, Purusha.UTTAMA, Lakara.LAT)).final.surface)
 
+        // Lat (Present)
+        assertEquals("भवति", engine.derive(TingantaDerivationRequest("भू", Vacana.EKAVACANA, Purusha.PRATHAMA, Lakara.LAT)).final.surface)
+        assertEquals("भवतः", engine.derive(TingantaDerivationRequest("भू", Vacana.DVIVACANA, Purusha.PRATHAMA, Lakara.LAT)).final.surface)
+        assertEquals("भवन्ति", engine.derive(TingantaDerivationRequest("भू", Vacana.BAHUVACANA, Purusha.PRATHAMA, Lakara.LAT)).final.surface)
+        assertEquals("भवामि", engine.derive(TingantaDerivationRequest("भू", Vacana.EKAVACANA, Purusha.UTTAMA, Lakara.LAT)).final.surface)
+
         // Lrt (Future)
-        val resultLrt = engine.derive(TingantaDerivationRequest("भू", Vacana.DVIVACANA, Purusha.UTTAMA, Lakara.LRT))
-        println("--- LRT VAS DERIVATION TRACE ---")
-        resultLrt.applications.forEach { println("${it.sutra} — ${it.explanation}") }
-        println("Final terms: " + resultLrt.final.terms.map { "${it.id}: ${it.surface} (kind=${it.kind}, upadesha=${it.upadesha}, it=${it.itMarkers})" })
         assertEquals("भविष्यति", engine.derive(TingantaDerivationRequest("भू", Vacana.EKAVACANA, Purusha.PRATHAMA, Lakara.LRT)).final.surface)
         assertEquals("भविष्यन्ति", engine.derive(TingantaDerivationRequest("भू", Vacana.BAHUVACANA, Purusha.PRATHAMA, Lakara.LRT)).final.surface)
         assertEquals("भविष्यामि", engine.derive(TingantaDerivationRequest("भू", Vacana.EKAVACANA, Purusha.UTTAMA, Lakara.LRT)).final.surface)
