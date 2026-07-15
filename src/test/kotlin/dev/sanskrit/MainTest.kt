@@ -66,7 +66,7 @@ class MainTest {
     fun `coverage command reports loaded and remaining sutras`() {
         val output = runCli(arrayOf("--coverage"))
 
-        assertTrue(output.first().contains("loaded=251"))
-        assertTrue(output.first().contains("remaining=3708"))
+        assertTrue(output.first().contains("loaded=255"))
+        assertTrue(output.first().contains("remaining=3704"))
     }
 }
