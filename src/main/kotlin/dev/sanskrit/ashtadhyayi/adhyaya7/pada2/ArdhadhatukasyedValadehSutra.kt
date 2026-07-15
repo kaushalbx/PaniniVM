@@ -16,7 +16,7 @@ object ArdhadhatukasyedValadehSutra : Sutra<DerivationState, DerivationChange>(
         HasDerivationalEnvironment(DerivationalEnvironment.ARDHADHATUKA).matches(context) &&
             context.terms.any { it.kind == TermKind.DHATU && it.itStatus == ItStatus.SET } &&
             context.terms.any { it.kind == TermKind.PRATYAYA && it.surface.firstOrNull()?.let { char -> char !in vowels } == true } &&
-            context.terms.none { it.id == "it-agama" }
+            context.allEffectiveTerms.none { it.id == "it-agama" }
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
         context.copy(terms = context.terms.flatMap { term ->

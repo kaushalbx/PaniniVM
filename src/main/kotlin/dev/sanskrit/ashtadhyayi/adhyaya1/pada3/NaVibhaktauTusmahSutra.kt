@@ -54,7 +54,8 @@ object NaVibhaktauTusmahSutra : Sutra<DerivationState, DerivationChange>(
     private fun isTuSMa(surface: String): Boolean {
         return surface.endsWith("त्") || surface.endsWith("थ्") || surface.endsWith("द्") || 
                surface.endsWith("ध्") || surface.endsWith("न्") || surface.endsWith("स्") || 
-               surface.endsWith("म्") || surface.endsWith("त") || surface.endsWith("न") ||
+               surface.endsWith("म्") || surface.endsWith("त") || surface.endsWith("थ") ||
+               surface.endsWith("द") || surface.endsWith("ध") || surface.endsWith("न") ||
                surface.endsWith("स") || surface.endsWith("म")
     }
 }

@@ -39,6 +39,7 @@ object AtoDirghoYaniSutra : Sutra<DerivationState, DerivationChange>(
         
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
+        if (!affix.id.startsWith("ting-")) return false
         if (affix.upadesha == "ङि") return false
 
         val isAEnding = dev.sanskrit.shiksha.Varnamala.endsWithA(stem.surface)

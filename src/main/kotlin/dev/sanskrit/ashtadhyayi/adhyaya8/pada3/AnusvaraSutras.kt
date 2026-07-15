@@ -99,7 +99,14 @@ object NashcapadantasyaSutra : Sutra<DerivationState, DerivationChange>(
         } ?: return DerivationChange(context, "8.3.24: Target not found.")
 
         val charAt = surface[index]
-        val newSurface = targetTerm.surface.replaceFirst(charAt.toString(), "ं")
+        val termStart = offset - targetTerm.surface.length
+        val localIndex = index - termStart
+        val hasViramaInTerm = localIndex + 1 < targetTerm.surface.length && targetTerm.surface[localIndex + 1] == '्'
+        val newSurface = if (hasViramaInTerm) {
+            targetTerm.surface.substring(0, localIndex) + "ं" + targetTerm.surface.substring(localIndex + 2)
+        } else {
+            targetTerm.surface.substring(0, localIndex) + "ं" + targetTerm.surface.substring(localIndex + 1)
+        }
         
         return DerivationChange(
             state = context.replaceTerm(targetTerm.id, targetTerm.copy(surface = newSurface)),

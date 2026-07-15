@@ -33,43 +33,62 @@ object AdesapratyayayohSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        // This rule applies in the Tripadi section (8.2.1 onwards)
-        // It matches an 's' that is part of a suffix.
-        val term = context.terms.lastOrNull() ?: return false
-        if (term.kind != TermKind.PRATYAYA) return false
-        val surface = term.surface
-        
-        // Find 's' and check the character before it
-        val sIndex = surface.indexOf('स')
-        if (sIndex == -1) return false
-        
-        val preChar = if (sIndex == 0) {
-            if (context.terms.size < 2) return false
-            val stemFinal = context.terms[context.terms.size - 2].surface.lastOrNull() ?: return false
-            // An unmarked final consonant carries inherent अ.  Thus फल + स्य
-            // has the environment -अस्य-, not -ल्स्य-.
-            if (stemFinal !in dev.sanskrit.shiksha.Varnamala.independentVowelsOrMarks) 'अ' else stemFinal
-        } else {
-            surface[sIndex - 1]
-        }
         val engine = Ashtadhyayi.pratyaharaEngine
-        
-        // Check if preChar is in Iṇ or Ku
-        val isInIn = engine.contains(Pratyahara.IN, preChar)
-        val isInKu = isKu(preChar)
-        
-        return isInIn || isInKu
+        for (i in 0 until context.terms.size) {
+            val term = context.terms[i]
+            if (term.kind != TermKind.PRATYAYA) continue
+            val surface = term.surface
+            
+            val sIndex = surface.indexOf('स')
+            if (sIndex == -1) continue
+            
+            val preChar = if (sIndex == 0) {
+                if (i == 0) continue
+                val stemFinal = context.terms[i - 1].surface.lastOrNull() ?: continue
+                if (stemFinal !in dev.sanskrit.shiksha.Varnamala.independentVowelsOrMarks) 'अ' else stemFinal
+            } else {
+                surface[sIndex - 1]
+            }
+            
+            val isInIn = engine.contains(Pratyahara.IN, preChar)
+            val isInKu = isKu(preChar)
+            
+            if (isInIn || isInKu) return true
+        }
+        return false
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val term = context.terms.last()
-        val newSurface = term.surface.replace('स', 'ष')
-        
-        return DerivationChange(
-            state = context.replaceTerm(term.id, term.copy(surface = newSurface))
-                .copy(stage = DerivationStage.FINAL),
-            explanation = "8.3.59: Retroflexed 's' to 'ṣ' after Iṇ/Ku."
-        )
+        val engine = Ashtadhyayi.pratyaharaEngine
+        for (i in 0 until context.terms.size) {
+            val term = context.terms[i]
+            if (term.kind != TermKind.PRATYAYA) continue
+            val surface = term.surface
+            
+            val sIndex = surface.indexOf('स')
+            if (sIndex == -1) continue
+            
+            val preChar = if (sIndex == 0) {
+                if (i == 0) continue
+                val stemFinal = context.terms[i - 1].surface.lastOrNull() ?: continue
+                if (stemFinal !in dev.sanskrit.shiksha.Varnamala.independentVowelsOrMarks) 'अ' else stemFinal
+            } else {
+                surface[sIndex - 1]
+            }
+            
+            val isInIn = engine.contains(Pratyahara.IN, preChar)
+            val isInKu = isKu(preChar)
+            
+            if (isInIn || isInKu) {
+                val newSurface = term.surface.replace('स', 'ष')
+                return DerivationChange(
+                    state = context.replaceTerm(term.id, term.copy(surface = newSurface))
+                        .copy(stage = DerivationStage.FINAL),
+                    explanation = "8.3.59: Retroflexed 's' to 'ṣ' after Iṇ/Ku."
+                )
+            }
+        }
+        return DerivationChange(context, "8.3.59: No match found")
     }
 
     private fun isKu(c: Char): Boolean = c in setOf('क', 'ख', 'ग', 'घ', 'ङ')

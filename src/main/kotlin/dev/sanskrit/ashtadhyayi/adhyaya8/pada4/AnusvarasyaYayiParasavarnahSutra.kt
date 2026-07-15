@@ -51,7 +51,8 @@ object AnusvarasyaYayiParasavarnahSutra : Sutra<DerivationState, DerivationChang
         // For Anusvāra, we look for the Nasal member of the varga of nextChar.
         val vargaInfo = Varnamala.getVargaInfo(nextChar)
         val substitute = if (vargaInfo != null) {
-            Varnamala.getVargaMember(vargaInfo.first, 4)?.toString() ?: "न्" // 5th member is nasal
+            val member = Varnamala.getVargaMember(vargaInfo.first, 4)
+            if (member != null) member.toString() + "्" else "न्"
         } else {
             // Semivowels (y, l, v) have nasalized counterparts (anunāsika).
             // Simplified here to just use the base nasal or the char itself.
@@ -65,7 +66,7 @@ object AnusvarasyaYayiParasavarnahSutra : Sutra<DerivationState, DerivationChang
             index in start until offset
         } ?: return DerivationChange(context, "8.4.58: Target anusvāra not found.")
 
-        val newSurface = targetTerm.surface.replaceFirst('ं', substitute.first())
+        val newSurface = targetTerm.surface.replaceFirst("ं", substitute)
         if (newSurface == targetTerm.surface) {
             return DerivationChange(context, "8.4.58: Parasavarṇa substitution already reflected in this term.")
         }

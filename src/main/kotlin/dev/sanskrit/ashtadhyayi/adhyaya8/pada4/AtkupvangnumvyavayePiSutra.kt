@@ -47,6 +47,13 @@ object AtkupvangnumvyavayePiSutra : Sutra<DerivationState, DerivationChange>(
         val nIndex = surface.indexOf('न', rIndex)
         if (nIndex == -1) return false
 
+        // 8.4.35: No retroflexion if 'n' is followed by a dental consonant (t-varga: t, th, d, dh, n)
+        val nextCharIndex = if (nIndex + 1 < surface.length && surface[nIndex + 1] == '्') nIndex + 2 else nIndex + 1
+        if (nextCharIndex < surface.length) {
+            val nextChar = surface[nextCharIndex]
+            if (nextChar in setOf('त', 'थ', 'द', 'ध', 'न')) return false
+        }
+
         val intervenors = surface.substring(rIndex + 1, nIndex)
         return intervenors.all { isAllowed(it) }
     }

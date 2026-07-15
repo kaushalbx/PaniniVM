@@ -182,7 +182,16 @@ class DerivationEngine(
             )
             applications += application
             events += DerivationEvent.RuleApplied(application.sutra, current, change.state, change.explanation)
-            require(visited.add(change.state.copy(substitutions = emptyList()))) { "Derivation entered a cycle after applying ${candidate.sutra.sutra}." }
+            
+            val nextStateKey = change.state.copy(substitutions = emptyList())
+            if (nextStateKey in visited) {
+                val nextSelection = select(change.state, suppressed)
+                require(nextSelection.selected == null) {
+                    "Derivation entered a cycle after applying ${candidate.sutra.sutra}. History: ${applications.map { "${it.sutra} (${it.before.surface} -> ${it.after.surface})" }}"
+                }
+            }
+            visited.add(nextStateKey)
+
             val stateWithSub = change.state.copy(
                 substitutions = change.state.substitutions + VarnaSubstitution("", ' ', "", candidate.sutra.sutra)
             )
@@ -201,7 +210,11 @@ class DerivationEngine(
     }
 
     private fun select(state: DerivationState, suppressed: Set<String>): RuleSelection {
-        val hasTripadiApplied = state.substitutions.any { it.sutra.startsWith('8') }
+        val tripadiKramasApplied = state.substitutions.mapNotNull { sub ->
+            sutras.find { it.sutra == sub.sutra }?.krama
+        }.filter { it >= 820000 }
+        val maxTripadiKrama = tripadiKramasApplied.maxOrNull() ?: 0
+
         val evaluated = sutras.asSequence()
             .filter { it.sutra !in suppressed && RuleVisibility.permits(it, state) }
             .filter { 
@@ -214,8 +227,11 @@ class DerivationEngine(
                 }
             }
             .filter { 
-                val ch = it.sutra.substringBefore('.').toIntOrNull() ?: 1
-                if (hasTripadiApplied && ch < 8) false else true 
+                if (it.isTripadi()) {
+                    it.krama >= maxTripadiKrama
+                } else {
+                    maxTripadiKrama == 0
+                }
             }
             .filter { it.matches(state) }
             .map { sutra ->

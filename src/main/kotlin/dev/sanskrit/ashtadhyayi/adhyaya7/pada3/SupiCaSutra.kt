@@ -36,7 +36,7 @@ object SupiCaSutra : Sutra<DerivationState, DerivationChange>(
         val isAEnding = dev.sanskrit.shiksha.Varnamala.endsWithA(stem.surface)
         val firstChar = affix.surface.firstOrNull() ?: return false
 
-        val isSupEnvironment = context.samjnas.any { it.targetId == affix.id && it.samjna == Samjna.PRATYAYA }
+        val isSupEnvironment = affix.id.startsWith("sup-") && context.samjnas.any { it.targetId == affix.id && it.samjna == Samjna.PRATYAYA }
         return isAEnding && affix.upadesha != "टा" && isSupEnvironment &&
             (isYan(firstChar) || affix.upadesha in completePadaAffixes)
     }

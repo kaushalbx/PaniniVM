@@ -33,11 +33,8 @@ object HalantyamSutra : Sutra<DerivationState, DerivationChange>(
         return context.terms.any { term ->
             if (term.kind == TermKind.PRATIPADIKA) return@any false
             val last = term.surface.lastOrNull() ?: return@any false
-            val lastChar = if (last == '्' && term.surface.length >= 2) {
-                term.surface[term.surface.length - 2]
-            } else {
-                last
-            }
+            if (last != '्' || term.surface.length < 2) return@any false
+            val lastChar = term.surface[term.surface.length - 2]
             Varnamala.isConsonant(lastChar) && term.itMarkers.isEmpty() 
         }
     }
@@ -46,13 +43,13 @@ object HalantyamSutra : Sutra<DerivationState, DerivationChange>(
         val newTerms = context.terms.map { term ->
             if (term.kind == TermKind.PRATIPADIKA) return@map term
             val last = term.surface.lastOrNull()
-            val lastChar = if (last == '्' && term.surface.length >= 2) {
-                term.surface[term.surface.length - 2]
-            } else {
-                last
-            }
-            if (lastChar != null && Varnamala.isConsonant(lastChar) && term.itMarkers.isEmpty()) {
-                term.copy(itMarkers = term.itMarkers + ItMarker.KIT) 
+            if (last == '्' && term.surface.length >= 2) {
+                val lastChar = term.surface[term.surface.length - 2]
+                if (Varnamala.isConsonant(lastChar) && term.itMarkers.isEmpty()) {
+                    term.copy(itMarkers = term.itMarkers + ItMarker.KIT)
+                } else {
+                    term
+                }
             } else {
                 term
             }

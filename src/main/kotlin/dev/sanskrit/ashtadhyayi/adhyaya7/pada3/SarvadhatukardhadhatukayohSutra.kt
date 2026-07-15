@@ -49,6 +49,9 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
 
         if (!isSarvaOrArdha) return false
 
+        // Guna should not apply to the it-augment
+        if (context.allEffectiveTerms.any { it.id == "it-agama" }) return false
+
         val lastChar = stem.surface.lastOrNull() ?: return false
         return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.IK, lastChar)
     }

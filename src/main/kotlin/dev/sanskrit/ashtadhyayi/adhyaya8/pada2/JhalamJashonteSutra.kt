@@ -35,27 +35,40 @@ object JhalamJashonteSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         // Must be a Pada (per 1.4.14)
         val lastTerm = context.terms.lastOrNull() ?: return false
-        
-        val lastChar = lastTerm.surface.lastOrNull() ?: return false
+        val finalConsonant = getFinalConsonant(lastTerm.surface) ?: return false
+        if (finalConsonant == 'स') return false
+        if (finalConsonant in setOf('ज', 'ब', 'ग', 'ड', 'द')) return false
         val engine = Ashtadhyayi.pratyaharaEngine
-        
-        return engine.contains(Pratyahara.JHAL, lastChar)
+        return engine.contains(Pratyahara.JHAL, finalConsonant)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val lastTerm = context.terms.last()
-        val lastChar = lastTerm.surface.last()
+        val finalConsonant = getFinalConsonant(lastTerm.surface)!!
         
         // Use 1.1.50 logic to pick the best voiced substitute
         val potentialSubstitutes = setOf("ज", "ब", "ग", "ड", "द")
-        val substitute = SthaneAntaratamahSutra.selectBest(lastChar, potentialSubstitutes)
+        val substitute = SthaneAntaratamahSutra.selectBest(finalConsonant, potentialSubstitutes)
         
-        val newSurface = lastTerm.surface.dropLast(1) + substitute
+        val newSurface = if (lastTerm.surface.endsWith('र')) {
+            lastTerm.surface.dropLast(1) + substitute
+        } else {
+            lastTerm.surface.dropLast(2) + substitute + '्'
+        }
         
         return DerivationChange(
             state = context.replaceTerm(lastTerm.id, lastTerm.copy(surface = newSurface))
                 .copy(stage = DerivationStage.FINAL),
-            explanation = "8.2.39: Voiced the final consonant $lastChar to $substitute."
-        ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(lastTerm.id, lastChar, substitute, sutra))) }
+            explanation = "8.2.39: Voiced the final consonant $finalConsonant to $substitute."
+        ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(lastTerm.id, finalConsonant, substitute, sutra))) }
+    }
+
+    private fun getFinalConsonant(surface: String): Char? {
+        if (surface.isEmpty()) return null
+        if (surface.endsWith('र')) return 'र'
+        if (surface.endsWith('्') && surface.length >= 2) {
+            return surface[surface.length - 2]
+        }
+        return null
     }
 }

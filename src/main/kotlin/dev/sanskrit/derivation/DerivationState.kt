@@ -228,7 +228,8 @@ private fun mapFeaturesToContext(features: Set<SemanticFeature>, baseContext: De
             SemanticFeature.EKAVACANA -> ctx.copy(rupa = ctx.rupa.copy(vacana = Vacana.EKAVACANA))
             SemanticFeature.BHAVISYAT -> ctx.copy(
                 requestedMeaning = DerivationalMeaning.BHAVISYAT,
-                derivedMeanings = ctx.derivedMeanings + DerivationalMeaning.BHAVISYAT
+                derivedMeanings = ctx.derivedMeanings + DerivationalMeaning.BHAVISYAT,
+                kala = Kala.BHAVISYAT
             )
             SemanticFeature.APADANA -> ctx.copy(requestedMeaning = DerivationalMeaning.APADANA)
             SemanticFeature.UNADI_LICENSED -> ctx.copy(environments = ctx.environments + DerivationalEnvironment.UNADI_LICENSED)
@@ -298,7 +299,7 @@ private fun mapContextToFeatures(context: DerivationalContext): Set<SemanticFeat
     if (context.rupa.linga == Linga.STRI) features.add(SemanticFeature.STRI)
     if (context.rupa.vibhakti == Vibhakti.PRATHAMA) features.add(SemanticFeature.PRATHAMA)
     if (context.rupa.vacana == Vacana.EKAVACANA) features.add(SemanticFeature.EKAVACANA)
-    if (DerivationalMeaning.BHAVISYAT in context.derivedMeanings) features.add(SemanticFeature.BHAVISYAT)
+    if (DerivationalMeaning.BHAVISYAT in context.derivedMeanings || context.kala == Kala.BHAVISYAT) features.add(SemanticFeature.BHAVISYAT)
     if (DerivationalEnvironment.UNADI_LICENSED in context.environments) features.add(SemanticFeature.UNADI_LICENSED)
     if (DerivationalEnvironment.CHATURARTHIKA in context.environments) features.add(SemanticFeature.CHATURARTHIKA)
     if (DerivationalEnvironment.KALAVRTTI in context.environments) features.add(SemanticFeature.KALAVRTTI)

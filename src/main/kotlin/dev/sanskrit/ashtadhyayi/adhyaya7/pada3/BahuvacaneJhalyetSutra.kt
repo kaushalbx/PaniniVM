@@ -41,7 +41,8 @@ object BahuvacaneJhalyetSutra : Sutra<DerivationState, DerivationChange>(
         
         val isPlural = HasMorphosyntax(vacana = Vacana.BAHUVACANA).matches(context)
         
-        return affix.upadesha != "शि" &&
+        return affix.id.startsWith("sup-") &&
+            affix.upadesha != "शि" &&
             isAEnding && isPlural && isJhal(firstChar) &&
                 context.samjnas.any { it.targetId == affix.id && it.samjna == Samjna.PRATYAYA }
     }

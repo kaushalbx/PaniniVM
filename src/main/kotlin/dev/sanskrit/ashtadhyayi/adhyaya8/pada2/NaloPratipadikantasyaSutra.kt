@@ -36,8 +36,7 @@ object NaloPratipadikantasyaSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = stem.surface.dropLast(2)))
-                .copy(stage = DerivationStage.ANGAKARYA),
+            state = context.replaceTerm(stem.id, stem.copy(surface = stem.surface.dropLast(2))),
             explanation = "8.2.7: Deleted final न् of the prātipadika before the bhy-/sup ending.",
         )
     }
