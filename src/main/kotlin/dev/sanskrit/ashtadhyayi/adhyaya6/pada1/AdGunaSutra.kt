@@ -30,21 +30,33 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         if (context.stage == DerivationStage.INITIAL || context.stage == DerivationStage.PRATYAYA_SELECTED) return false
         if (context.terms.size < 2) return false
-        val leftTerm = context.terms[context.terms.size - 2]
-        val right = context.terms.last().surface.firstOrNull() ?: return false
-        
         val engine = Ashtadhyayi.pratyaharaEngine
-        // Match a/ā
-        val isA = dev.sanskrit.shiksha.Varnamala.endsWithA(leftTerm.surface) || dev.sanskrit.shiksha.Varnamala.endsWithAA(leftTerm.surface)
-        // The न of the neuter नुम् augment bears the following vowel itself
-        // (फलान् + इ -> फलानि); it is not an aṅga-final अ for 6.1.87.
-        return !leftTerm.surface.endsWith('न') && isA && engine.contains(Pratyahara.AC, right)
+        return context.terms.indices.any { index ->
+            if (index == context.terms.lastIndex) return@any false
+            val leftTerm = context.terms[index]
+            val rightTerm = context.terms[index + 1]
+            val right = rightTerm.surface.firstOrNull() ?: return@any false
+            val isA = dev.sanskrit.shiksha.Varnamala.endsWithA(leftTerm.surface) ||
+                dev.sanskrit.shiksha.Varnamala.endsWithAA(leftTerm.surface)
+            val previousEndsInEc = index > 0 && engine.contains(Pratyahara.EC, context.terms[index - 1].surface.lastOrNull() ?: return@any false)
+            !previousEndsInEc && !leftTerm.surface.endsWith('न') && isA && engine.contains(Pratyahara.AC, right)
+        }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val terms = context.terms
-        val leftTerm = terms[terms.size - 2]
-        val rightTerm = terms.last()
+        val index = terms.indices.first { position ->
+            position < terms.lastIndex &&
+                (dev.sanskrit.shiksha.Varnamala.endsWithA(terms[position].surface) ||
+                    dev.sanskrit.shiksha.Varnamala.endsWithAA(terms[position].surface)) &&
+                !terms[position].surface.endsWith('न') &&
+                (position == 0 || !Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.EC, terms[position - 1].surface.lastOrNull() ?: return@first false)) &&
+                terms[position + 1].surface.firstOrNull()?.let {
+                    Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.AC, it)
+                } == true
+        }
+        val leftTerm = terms[index]
+        val rightTerm = terms[index + 1]
         
         val leftChar = leftTerm.surface.last()
         val rightChar = rightTerm.surface.first()
@@ -59,8 +71,8 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
         
         return DerivationChange(
             state = context.copy(
-                terms = terms.dropLast(2) + leftTerm.copy(surface = newSurface),
-                droppedTerms = context.droppedTerms + terms.last().copy(surface = ""),
+                terms = terms.take(index) + leftTerm.copy(surface = newSurface) + terms.drop(index + 2),
+                droppedTerms = context.droppedTerms + rightTerm.copy(surface = ""),
                 stage = DerivationStage.PADA_FORMED
             ).addSubstitution(VarnaSubstitution(leftTerm.id, leftChar, substitute, sutra)),
             explanation = "6.1.87: Guṇa substitution ($substitute) for $leftChar + $rightChar."

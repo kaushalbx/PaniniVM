@@ -127,14 +127,91 @@ class TingantaEngineTest {
     fun `liṅ selection uses 3 3 161`() {
         val dhatu = dev.sanskrit.dhatupatha.DhatuPatha.all.first { it.upadesha == "भू" }
         val result = DerivationEngine().derive(TingantaDerivationRequest("भू", lakara = Lakara.LING).initialState(dhatu))
+        assertEquals("भवेत्", result.final.surface)
 
         assertTrue(result.applications.any { it.sutra == "3.3.161" })
         assertTrue(result.applications.any { it.sutra == "3.4.103" })
-        assertTrue(result.applications.any { it.sutra == "7.2.79" })
+        assertTrue(result.applications.any { it.sutra == "7.2.80" })
+        assertTrue(result.applications.none { it.sutra == "7.2.79" })
+        assertTrue(result.applications.any { it.sutra == "7.3.84" })
+
+        val shapApplication = result.applications.first { it.sutra == "3.1.68" }
+        val termsAfterShap = shapApplication.after.terms
+        assertTrue(termsAfterShap.indexOfFirst { it.id == "shap" } < termsAfterShap.indexOfFirst { it.id == "yasut" })
 
         val trace = result.applications.map { it.sutra }
         assertTrue(trace.indexOf("3.3.161") < trace.indexOf("3.4.78"))
         assertTrue(trace.indexOf("3.4.78") < trace.indexOf("3.4.103"))
-        assertTrue(trace.indexOf("3.4.103") < trace.indexOf("7.2.79"))
+        assertTrue(trace.indexOf("3.4.103") < trace.indexOf("7.2.80"))
+    }
+
+    @Test
+    fun `liṅ first plural selects jus through 3 4 108`() {
+        val dhatu = dev.sanskrit.dhatupatha.DhatuPatha.all.first { it.upadesha == "भू" }
+        val result = DerivationEngine().derive(
+            TingantaDerivationRequest("भू", purusha = Purusha.PRATHAMA, vacana = Vacana.BAHUVACANA, lakara = Lakara.LING)
+                .initialState(dhatu),
+        )
+
+        assertTrue(result.applications.any { it.sutra == "3.4.108" })
+        assertEquals("भवेयुः", result.final.surface)
+    }
+
+    @Test
+    fun `liṅ third dual derives bhavetam`() {
+        val dhatu = dev.sanskrit.dhatupatha.DhatuPatha.all.first { it.upadesha == "भू" }
+        val result = DerivationEngine().derive(
+            TingantaDerivationRequest("भू", purusha = Purusha.PRATHAMA, vacana = Vacana.DVIVACANA, lakara = Lakara.LING)
+                .initialState(dhatu),
+        )
+
+        assertTrue(result.applications.any { it.sutra == "3.4.101" })
+        assertEquals("भवेताम्", result.final.surface)
+    }
+
+    @Test
+    fun `liṅ second singular derives bhaveh`() {
+        val dhatu = dev.sanskrit.dhatupatha.DhatuPatha.all.first { it.upadesha == "भू" }
+        val result = DerivationEngine().derive(
+            TingantaDerivationRequest("भू", purusha = Purusha.MADHYAMA, vacana = Vacana.EKAVACANA, lakara = Lakara.LING)
+                .initialState(dhatu),
+        )
+
+        assertEquals("भवेः", result.final.surface)
+    }
+
+    @Test
+    fun `liṅ remaining parasmaipada endings derive their expected forms`() {
+        val dhatu = dev.sanskrit.dhatupatha.DhatuPatha.all.first { it.upadesha == "भू" }
+        val expected = listOf(
+            Purusha.MADHYAMA to Vacana.DVIVACANA to "भवेतम्",
+            Purusha.MADHYAMA to Vacana.BAHUVACANA to "भवेत",
+            Purusha.UTTAMA to Vacana.EKAVACANA to "भवेयम्",
+            Purusha.UTTAMA to Vacana.DVIVACANA to "भवेव",
+            Purusha.UTTAMA to Vacana.BAHUVACANA to "भवेम",
+        )
+
+        expected.forEach { (personAndNumber, form) ->
+            val (purusha, vacana) = personAndNumber
+            val result = DerivationEngine().derive(
+                TingantaDerivationRequest("भू", purusha = purusha, vacana = vacana, lakara = Lakara.LING).initialState(dhatu),
+            )
+            assertEquals(form, result.final.surface)
+        }
+    }
+
+    @Test
+    fun `conjugation engine derives complete vidhi ling paradigm for bhu`() {
+        val forms = TingantaEngine().deriveSupportedParadigm("भू", lakara = Lakara.LING).surfaces
+
+        assertEquals("भवेत्", forms[TingAffix.TIP])
+        assertEquals("भवेताम्", forms[TingAffix.TAS])
+        assertEquals("भवेयुः", forms[TingAffix.JHI])
+        assertEquals("भवेः", forms[TingAffix.SIP])
+        assertEquals("भवेतम्", forms[TingAffix.THAS])
+        assertEquals("भवेत", forms[TingAffix.THA])
+        assertEquals("भवेयम्", forms[TingAffix.MIP])
+        assertEquals("भवेव", forms[TingAffix.VAS])
+        assertEquals("भवेम", forms[TingAffix.MAS])
     }
 }

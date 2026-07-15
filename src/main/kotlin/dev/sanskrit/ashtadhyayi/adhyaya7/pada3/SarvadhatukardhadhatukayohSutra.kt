@@ -44,8 +44,7 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
         val affix = context.terms.getOrNull(1) ?: return false
 
         val isSarvaOrArdha = HasDerivationalEnvironment(DerivationalEnvironment.ARDHADHATUKA).matches(context) ||
-                             affix.id == "shap" || 
-                             affix.id.startsWith("ting-")
+            context.terms.drop(1).any { it.id == "shap" || it.id.startsWith("ting-") }
 
         if (!isSarvaOrArdha) return false
 

@@ -54,10 +54,19 @@ class MainTest {
     }
 
     @Test
+    fun `verb command derives the vidhi ling`() {
+        val output = runCli(arrayOf("--verb", "भू", "LING"))
+
+        assertEquals("भू: भवेत्", output.first())
+        assertTrue(output.any { it.startsWith("3.3.161 —") })
+        assertTrue(output.any { it.startsWith("3.4.103 —") })
+    }
+
+    @Test
     fun `coverage command reports loaded and remaining sutras`() {
         val output = runCli(arrayOf("--coverage"))
 
-        assertTrue(output.first().contains("loaded=236"))
-        assertTrue(output.first().contains("remaining=3723"))
+        assertTrue(output.first().contains("loaded=239"))
+        assertTrue(output.first().contains("remaining=3720"))
     }
 }

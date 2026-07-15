@@ -4,6 +4,7 @@ import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
+import dev.sanskrit.derivation.Lakara
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -32,7 +33,8 @@ object ItasCaSutra : Sutra<DerivationState, DerivationChange>(
         val lastTerm = context.terms.lastOrNull() ?: return false
         if (lastTerm.matchesUpadesha("मिप्")) return false // 3.4.101 takes priority
         
-        val isNit = lastTerm.matchesUpadesha("लङ्") || lastTerm.matchesUpadesha("लृङ्") || lastTerm.matchesUpadesha("लुङ्")
+        val isNit = lastTerm.matchesUpadesha("लङ्") || lastTerm.matchesUpadesha("लृङ्") ||
+            lastTerm.matchesUpadesha("लुङ्") || context.effectiveContext.rupa.lakara == Lakara.LING
         val isParasmaipada = true
         
         return isNit && isParasmaipada && lastTerm.surface.endsWith('ि')

@@ -10,11 +10,11 @@ import dev.sanskrit.sutra.SutraRole
 import dev.sanskrit.sutra.SutraScope
 import dev.sanskrit.sutra.SutraType
 
-/** 7.2.79: liṅaḥ salopo 'nantyasya. Removes the non-final स् of यासुट्. */
+/** 7.2.79: liṅaḥ salopo 'nantyasya. Removes the non-final स् of यास्. */
 object LingasSalopoAnantyasyaSutra : Sutra<DerivationState, DerivationChange>(
     number = "7.2.79",
     text = "लिङः सलोपोऽनन्त्यस्य",
-    hindiExplanation = "लिङ् में यासुट् का अन्त्येतर स् लोप होता है।",
+    hindiExplanation = "लिङ् में यास् का अन्त्येतर स् लोप होता है।",
     type = SutraType.NITYA,
     chapter = 7,
     pada = 2,
@@ -26,14 +26,16 @@ object LingasSalopoAnantyasyaSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val yasut = context.terms.firstOrNull { it.id == "yasut" } ?: return false
-        return context.effectiveContext.rupa.lakara == Lakara.LING && yasut.surface.contains("सु")
+        return context.effectiveContext.rupa.lakara == Lakara.LING &&
+            context.terms.any { it.id == "shap" } &&
+            yasut.surface.endsWith("स्")
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val yasut = context.terms.first { it.id == "yasut" }
         return DerivationChange(
-            context.replaceTerm(yasut.id, yasut.copy(surface = yasut.surface.replace("सु", ""))),
-            "7.2.79 removes the स् and its उ of यासुट्.",
+            context.replaceTerm(yasut.id, yasut.copy(surface = yasut.surface.dropLast(1))),
+            "7.2.79 removes the non-final स् of यास्.",
         )
     }
 }

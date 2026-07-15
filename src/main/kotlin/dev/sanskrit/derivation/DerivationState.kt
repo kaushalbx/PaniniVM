@@ -47,7 +47,16 @@ class DerivationState(
     }
 
     val surface: String
-        get() = terms.joinToString(separator = "") { it.surface }
+        get() = terms.fold("") { rendered, term ->
+            val next = term.surface
+            if (rendered.endsWith('्') && next.firstOrNull() == 'अ') {
+                rendered.dropLast(1) + next.drop(1)
+            } else if (rendered.endsWith('्') && next.firstOrNull() in setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ', 'े', 'ै', 'ो', 'ौ')) {
+                rendered.dropLast(1) + next
+            } else {
+                rendered + next
+            }
+        }
 
     val allEffectiveTerms: List<DerivationTerm>
         get() = terms + droppedTerms

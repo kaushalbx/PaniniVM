@@ -48,7 +48,7 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
         }
     }
     "--verb" -> {
-        val dhatu = args.getOrNull(1) ?: error("Usage: --verb भू [LAT|LRT|LOT|LANG] [EKAVACANA|DVIVACANA|BAHUVACANA]")
+        val dhatu = args.getOrNull(1) ?: error("Usage: --verb भू [LAT|LRT|LOT|LANG|LING] [EKAVACANA|DVIVACANA|BAHUVACANA]")
         val requestedLakara = args.getOrNull(2)?.let(::findLakara)
         val lakara = requestedLakara ?: Lakara.LAT
         val vacanaIndex = if (requestedLakara == null) 2 else 3

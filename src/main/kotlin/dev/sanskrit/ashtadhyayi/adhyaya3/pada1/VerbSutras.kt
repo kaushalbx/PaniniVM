@@ -30,17 +30,17 @@ object KartariShapSutra : Sutra<DerivationState, DerivationChange>(
         context.terms.lastOrNull()?.upadesha in TingAffix.entries.map { it.upadesha } &&
                 context.allEffectiveTerms.none { it.upadesha == "शप्" || it.upadesha == "स्य" }
 
-    override fun apply(context: DerivationState): DerivationChange = DerivationChange(
-        state = context.copy(
-            terms = context.terms.dropLast(1) +
-                    DerivationTerm(
-                        "shap",
-                        Svara.A.devanagari,
-                        TermKind.PRATYAYA,
-                        upadesha = "शप्"
-                    ) +
-                    context.terms.last(),
-        ),
+    override fun apply(context: DerivationState): DerivationChange {
+        val shap = DerivationTerm("shap", Svara.A.devanagari, TermKind.PRATYAYA, upadesha = "शप्")
+        val terms = if (context.terms.any { it.id == "yasut" }) {
+            // 3.4.103 has already placed यासुट् before tiṅ; शप् still follows the dhātu.
+            listOf(context.terms.first()) + shap + context.terms.drop(1)
+        } else {
+            context.terms.dropLast(1) + shap + context.terms.last()
+        }
+        return DerivationChange(
+        state = context.copy(terms = terms),
         explanation = "3.1.68 introduces शप् after the dhātu.",
-    )
+        )
+    }
 }
