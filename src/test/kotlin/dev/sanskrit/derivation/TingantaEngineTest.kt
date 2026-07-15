@@ -122,4 +122,19 @@ class TingantaEngineTest {
             TingantaEngine().derive(TingantaDerivationRequest("unknown_dhatu"))
         }
     }
+
+    @Test
+    fun `liṅ selection uses 3 3 161`() {
+        val dhatu = dev.sanskrit.dhatupatha.DhatuPatha.all.first { it.upadesha == "भू" }
+        val result = DerivationEngine().derive(TingantaDerivationRequest("भू", lakara = Lakara.LING).initialState(dhatu))
+
+        assertTrue(result.applications.any { it.sutra == "3.3.161" })
+        assertTrue(result.applications.any { it.sutra == "3.4.103" })
+        assertTrue(result.applications.any { it.sutra == "7.2.79" })
+
+        val trace = result.applications.map { it.sutra }
+        assertTrue(trace.indexOf("3.3.161") < trace.indexOf("3.4.78"))
+        assertTrue(trace.indexOf("3.4.78") < trace.indexOf("3.4.103"))
+        assertTrue(trace.indexOf("3.4.103") < trace.indexOf("7.2.79"))
+    }
 }
