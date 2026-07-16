@@ -124,6 +124,34 @@ class TingantaEngineTest {
     }
 
     @Test
+    fun `conjugation engine derives complete atmanepada imperfect paradigm for labh`() {
+        val paradigm = TingantaEngine().deriveSupportedParadigm("लभ्", lakara = Lakara.LANG)
+
+        assertEquals(
+            mapOf(
+                TingAffix.TA to "अलभत",
+                TingAffix.ATAM to "अलभेताम्",
+                TingAffix.JHA to "अलभन्त",
+                TingAffix.THAS_A to "अलभथाः",
+                TingAffix.ATHAM to "अलभेथाम्",
+                TingAffix.DHVAM to "अलभध्वम्",
+                TingAffix.IT to "अलभे",
+                TingAffix.VAHI to "अलभावहि",
+                TingAffix.MAHING to "अलभामहि",
+            ),
+            paradigm.surfaces,
+        )
+
+        paradigm.forms.values.forEach { result ->
+            assertTrue(result.applications.any { it.sutra == "6.4.71" })
+        }
+        listOf(TingAffix.ATAM, TingAffix.ATHAM).forEach { affix ->
+            assertTrue(paradigm.forms.getValue(affix).applications.any { it.sutra == "7.2.81" })
+        }
+        assertTrue(paradigm.forms.getValue(TingAffix.JHA).applications.any { it.sutra == "7.1.3" })
+    }
+
+    @Test
     fun `conjugation engine derives complete imperative paradigm for bhu`() {
         val paradigm = TingantaEngine().deriveSupportedParadigm("भू", lakara = Lakara.LOT)
         val forms = paradigm.surfaces

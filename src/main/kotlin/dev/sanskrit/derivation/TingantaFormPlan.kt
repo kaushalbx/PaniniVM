@@ -28,8 +28,19 @@ object TingantaFormPlans {
             add(TingantaFormPlan(affix, Lakara.LRT, required, DerivationStage.FINAL))
         }
         // LANG (imperfect past tense) plans
-        TingAffix.entries.forEach { affix ->
+        TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.forEach { affix ->
             add(TingantaFormPlan(affix, Lakara.LANG, setOf("3.4.78"), DerivationStage.FINAL))
+        }
+        TingAffix.entries.filter { it.pada == PadaType.ATMANEPADA }.forEach { affix ->
+            val required = mutableSetOf("3.4.78", "6.4.71")
+            if (affix in setOf(TingAffix.ATAM, TingAffix.ATHAM)) required += "7.2.81"
+            if (affix == TingAffix.JHA) required += "7.1.3"
+            val finalStage = if (affix in setOf(TingAffix.TA, TingAffix.DHVAM, TingAffix.VAHI, TingAffix.MAHING)) {
+                DerivationStage.IT_PROCESSED
+            } else {
+                DerivationStage.FINAL
+            }
+            add(TingantaFormPlan(affix, Lakara.LANG, required, finalStage))
         }
         // LOT (imperative) plans
         TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.forEach { affix ->
