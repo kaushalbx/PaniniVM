@@ -4,9 +4,6 @@ class SubantaEngine(
     private val engine: DerivationEngine = DerivationEngine(),
 ) {
     fun derive(request: SubantaDerivationRequest): DerivationResult {
-        require(request.stemClass == SubantaStemClass.A_STEM_MASCULINE) {
-            "Only a-stem masculine nominal morphology is executable today."
-        }
         val plan = requireNotNull(SubantaFormPlans.find(request.vibhakti, request.vacana)) {
             "No complete downstream plan exists for ${SupAffix.select(request.vibhakti, request.vacana).upadesha}."
         }
@@ -17,7 +14,7 @@ class SubantaEngine(
 
     fun deriveSupportedParadigm(
         pratipadika: String,
-        stemClass: SubantaStemClass = SubantaStemClass.A_STEM_MASCULINE,
+        stemClass: SubantaStemClass = SubantaStemClass.guess(pratipadika),
     ): SubantaParadigm = SubantaParadigm(
         pratipadika = pratipadika,
         stemClass = stemClass,

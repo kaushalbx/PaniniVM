@@ -2,6 +2,7 @@ package dev.sanskrit
 
 import dev.sanskrit.derivation.SubantaDerivationRequest
 import dev.sanskrit.derivation.SubantaEngine
+import dev.sanskrit.derivation.SubantaStemClass
 import dev.sanskrit.derivation.Vacana
 import dev.sanskrit.derivation.Vibhakti
 import dev.sanskrit.derivation.TingantaDerivationRequest
@@ -25,7 +26,14 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
         val pratipadika = args.getOrNull(1) ?: error("Usage: --derive राम SASTHI BAHUVACANA")
         val vibhakti = parseVibhakti(args.getOrNull(2) ?: error("Missing vibhakti."))
         val vacana = parseVacana(args.getOrNull(3) ?: error("Missing vacana."))
-        val result = SubantaEngine().derive(SubantaDerivationRequest(pratipadika, vibhakti, vacana))
+        val result = SubantaEngine().derive(
+            SubantaDerivationRequest(
+                pratipadika,
+                vibhakti,
+                vacana,
+                SubantaStemClass.guess(pratipadika)
+            )
+        )
         
         buildList {
             add("$vibhakti $vacana: ${result.final.surface}")

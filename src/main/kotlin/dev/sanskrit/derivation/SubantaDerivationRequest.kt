@@ -56,7 +56,29 @@ enum class SubantaStemClass(
         A_STEM_FEMININE -> pratipadika.endsWith(Svara.AA.matra!!) || pratipadika.endsWith(Svara.AA.devanagari)
     }
 
-    private companion object {
+    companion object {
+        fun guess(pratipadika: String): SubantaStemClass {
+            return when {
+                pratipadika.endsWith("न्") -> N_STEM_MASCULINE
+                pratipadika.endsWith("स्") -> S_STEM_NEUTER
+                pratipadika.endsWith("ी") -> II_STEM_FEMININE
+                pratipadika.endsWith("ा") -> A_STEM_FEMININE
+                pratipadika.endsWith("ि") -> {
+                    if (pratipadika == "मति" || pratipadika == "भूमि" || pratipadika == "धूलि") I_STEM_FEMININE
+                    else I_STEM_MASCULINE
+                }
+                pratipadika.endsWith("ु") -> {
+                    if (pratipadika == "धेनु" || pratipadika == "तनु") U_STEM_FEMININE
+                    else U_STEM_MASCULINE
+                }
+                pratipadika.endsWith("ृ") -> R_STEM_MASCULINE
+                else -> {
+                    if (pratipadika == "फल" || pratipadika == "वन" || pratipadika == "गृह" || pratipadika == "पुस्तक" || pratipadika == "जल") A_STEM_NEUTER
+                    else A_STEM_MASCULINE
+                }
+            }
+        }
+
         val independentVowelsOrMarks: Set<Char> = buildSet {
             Svara.entries.forEach { svara ->
                 add(svara.devanagari.single())
