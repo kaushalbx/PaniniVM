@@ -1,16 +1,19 @@
 package dev.sanskrit
 
 import dev.sanskrit.derivation.*
+import dev.sanskrit.dhatupatha.PadaType
 import kotlin.test.Test
 
 class ScratchTest {
 
     @Test
     fun testDerivationTrace() {
-        val requests = Purusha.entries.flatMap { purusha ->
-            Vacana.entries.map { vacana ->
-                "LABH LRNG $purusha $vacana" to
-                    TingantaDerivationRequest("लभ्", vacana, purusha, Lakara.LRNG)
+        val requests = listOf(PadaType.PARASMAIPADA, PadaType.ATMANEPADA).flatMap { pada ->
+            Purusha.entries.flatMap { purusha ->
+                Vacana.entries.map { vacana ->
+                    "SRAMBH LAT $pada $purusha $vacana" to
+                        TingantaDerivationRequest("स्रम्भ्", vacana, purusha, Lakara.LAT, pada = pada)
+                }
             }
         }
         requests.forEach { (label, request) ->

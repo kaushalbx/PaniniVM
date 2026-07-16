@@ -1,5 +1,6 @@
 package dev.sanskrit.derivation
 
+import dev.sanskrit.dhatupatha.PadaType
 import dev.sanskrit.shiksha.Linga
 
 /** The requested taddhita/kṛt meaning; distinct from grammatical facts established by rules. */
@@ -44,6 +45,7 @@ data class Rupa(
     val purusha: Purusha? = null,
     val prayoga: Prayoga? = null,
     val lakara: Lakara? = null,
+    val pada: PadaType? = null,
 )
 
 data class DerivationalContext(

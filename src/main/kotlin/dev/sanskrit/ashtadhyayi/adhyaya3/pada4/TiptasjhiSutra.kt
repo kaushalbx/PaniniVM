@@ -39,7 +39,7 @@ object TiptasjhiSutra : Sutra<DerivationState, DerivationChange>(
         val lookupName = dhatuTerm?.upadesha ?: dhatuTerm?.surface ?: ""
         val dhatus = dev.sanskrit.dhatupatha.DhatuPatha.all.filter { it.upadesha == lookupName || it.derivationalSurface == lookupName }
         val pada = dhatus.firstOrNull()?.pada ?: dev.sanskrit.dhatupatha.PadaType.PARASMAIPADA
-        val targetPada = when (pada) {
+        val targetPada = context.effectiveContext.rupa.pada ?: when (pada) {
             dev.sanskrit.dhatupatha.PadaType.PARASMAIPADA -> dev.sanskrit.dhatupatha.PadaType.PARASMAIPADA
             dev.sanskrit.dhatupatha.PadaType.ATMANEPADA -> dev.sanskrit.dhatupatha.PadaType.ATMANEPADA
             dev.sanskrit.dhatupatha.PadaType.UBHAYAPADA -> dev.sanskrit.dhatupatha.PadaType.PARASMAIPADA

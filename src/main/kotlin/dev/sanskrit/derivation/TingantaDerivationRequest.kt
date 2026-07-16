@@ -1,6 +1,7 @@
 package dev.sanskrit.derivation
 
 import dev.sanskrit.dhatupatha.Dhatu
+import dev.sanskrit.dhatupatha.PadaType
 
 data class TingantaDerivationRequest(
     val dhatu: String,
@@ -10,6 +11,7 @@ data class TingantaDerivationRequest(
     val letAugment: LetAugment = LetAugment.AAT,
     val letFormation: LetFormation = LetFormation.PRESENT_STEM,
     val letEOption: LetEOption = LetEOption.E,
+    val pada: PadaType? = null,
 ) {
     fun initialState() = DerivationState(
         listOf(DerivationTerm("dhatu", dhatu, TermKind.DHATU)),
@@ -24,7 +26,7 @@ data class TingantaDerivationRequest(
                 Lakara.LUNG -> Kala.BHUTA
                 else -> Kala.VARTAMANA
             },
-            rupa = Rupa(purusha = purusha, prayoga = Prayoga.KARTARI, vacana = vacana, lakara = lakara),
+            rupa = Rupa(purusha = purusha, prayoga = Prayoga.KARTARI, vacana = vacana, lakara = lakara, pada = pada),
             letAugment = letAugment,
             letFormation = letFormation,
             letEOption = letEOption,
@@ -50,7 +52,7 @@ fun TingantaDerivationRequest.initialState(dhatu: Dhatu) = DerivationState(
             Lakara.LUNG -> Kala.BHUTA
             else -> Kala.VARTAMANA
         },
-        rupa = Rupa(purusha = purusha, prayoga = Prayoga.KARTARI, vacana = vacana, lakara = lakara),
+        rupa = Rupa(purusha = purusha, prayoga = Prayoga.KARTARI, vacana = vacana, lakara = lakara, pada = pada),
         letAugment = letAugment,
         letFormation = letFormation,
         letEOption = letEOption,

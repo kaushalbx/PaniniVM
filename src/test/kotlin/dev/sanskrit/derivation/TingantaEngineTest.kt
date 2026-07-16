@@ -4,8 +4,35 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
+import dev.sanskrit.dhatupatha.PadaType
 
 class TingantaEngineTest {
+
+    @Test
+    fun `ubhayapada roots derive in either explicitly requested pada`() {
+        val engine = TingantaEngine()
+        val parasmaipada = engine.deriveSupportedParadigm("स्रम्भ्", pada = PadaType.PARASMAIPADA, lakara = Lakara.LAT)
+        val atmanepada = engine.deriveSupportedParadigm("स्रम्भ्", pada = PadaType.ATMANEPADA, lakara = Lakara.LAT)
+
+        assertEquals(PadaType.PARASMAIPADA, parasmaipada.pada)
+        assertEquals(PadaType.ATMANEPADA, atmanepada.pada)
+        assertEquals(TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.toSet(), parasmaipada.forms.keys)
+        assertEquals(TingAffix.entries.filter { it.pada == PadaType.ATMANEPADA }.toSet(), atmanepada.forms.keys)
+        assertEquals("स्रम्भति", parasmaipada.surfaces[TingAffix.TIP])
+        assertEquals("स्रम्भते", atmanepada.surfaces[TingAffix.TA])
+    }
+
+    @Test
+    fun `tinganta requests reject a pada unavailable to the root`() {
+        val engine = TingantaEngine()
+
+        assertFailsWith<IllegalArgumentException> {
+            engine.derive(TingantaDerivationRequest("भू", pada = PadaType.ATMANEPADA))
+        }
+        assertFailsWith<IllegalArgumentException> {
+            engine.derive(TingantaDerivationRequest("एध्", pada = PadaType.PARASMAIPADA))
+        }
+    }
 
     @Test
     fun `conjugation engine derives individual forms for bhu`() {
