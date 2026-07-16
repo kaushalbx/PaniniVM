@@ -29,7 +29,7 @@ object BhuvoVuglunglitoSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val index = context.terms.indexOfFirst { it.kind == TermKind.DHATU && it.id != "abhyasa" && it.matchesUpadesha("भू") }
-        val vuk = DerivationTerm("vuk", "व्", TermKind.AGAMA, upadesha = "वुक्")
+        val vuk = DerivationTerm("vuk", "व्", TermKind.AGAMA, upadesha = "वुक्", createdBySutra = "6.4.88")
         return DerivationChange(
             context.copy(terms = context.terms.take(index + 1) + vuk + context.terms.drop(index + 1)),
             "6.4.88 inserts the effective व् of वुक् after भू in ${context.effectiveContext.rupa.lakara}.",

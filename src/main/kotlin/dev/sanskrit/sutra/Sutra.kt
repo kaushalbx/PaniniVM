@@ -25,7 +25,11 @@ abstract class Sutra<C, R>(
     override val restrictions: Set<String> = emptySet(),
     override val exceptions: Set<String> = emptySet(),
     val priority: SutraPriority = SutraPriority.NORMAL,
-    val visibility: SutraVisibility = SutraVisibility.NORMAL,
+    val visibility: SutraVisibility = when {
+        kramaValue >= 820000 -> SutraVisibility.ASIDDHA
+        kramaValue in 640022..640129 -> SutraVisibility.ASIDDHAVAT
+        else -> SutraVisibility.NORMAL
+    },
     val blocks: Set<String> = emptySet(),
     private val traceTemplateValue: String? = null,
     private val examplesValue: List<SutraExample> = emptyList(),

@@ -511,6 +511,92 @@ class DerivationEngineTest {
         assertTrue(SamjnaAssignment("stem", Samjna.GUNA) in result.final.samjnas)
         assertEquals(listOf("1.1.2"), result.applications.map { it.sutra })
     }
+
+    @Test
+    fun `asiddhavat visibility reverts substitutions and restores dropped terms from other abhiya rules`() {
+        val ruleA = object : Sutra<DerivationState, DerivationChange>(
+            number = "6.4.70", text = "RuleA", hindiExplanation = "", type = SutraType.NITYA,
+            chapter = 6, pada = 4, optional = false, kramaValue = 640070,
+            role = dev.sanskrit.sutra.SutraRole.Vidhi, action = SutraAction.ADESHA, scope = SutraScope.VARNA,
+        ), DerivationSutra {
+            override fun matches(context: DerivationState): Boolean = context.terms.any { it.id == "marker" }
+            override fun apply(context: DerivationState): DerivationChange {
+                val root = context.terms.first { it.id == "root" }
+                return DerivationChange(
+                    context.removeTerm("marker", sutra = "6.4.70")
+                        .replaceTerm("root", root.copy(surface = "रा"))
+                        .addSubstitution(VarnaSubstitution("root", 'र', "रा", "6.4.70")),
+                    "Rule A applied"
+                )
+            }
+        }
+
+        val ruleB = object : Sutra<DerivationState, DerivationChange>(
+            number = "6.4.60", text = "RuleB", hindiExplanation = "", type = SutraType.NITYA,
+            chapter = 6, pada = 4, optional = false, kramaValue = 640060,
+            role = dev.sanskrit.sutra.SutraRole.Vidhi, action = SutraAction.ADESHA, scope = SutraScope.VARNA,
+        ), DerivationSutra {
+            override fun matches(context: DerivationState): Boolean {
+                return context.terms.any { it.id == "root" && it.surface == "र" } &&
+                       context.terms.any { it.id == "marker" }
+            }
+            override fun apply(context: DerivationState): DerivationChange {
+                val root = context.terms.first { it.id == "root" }
+                return DerivationChange(
+                    context.replaceTerm("root", root.copy(surface = "म")),
+                    "Rule B applied"
+                )
+            }
+        }
+
+        val initial = DerivationState(
+            listOf(
+                DerivationTerm("root", "र", TermKind.DHATU),
+                DerivationTerm("marker", "म्", TermKind.PRATYAYA)
+            )
+        )
+
+        val stateAfterA = ruleA.apply(initial).state
+        assertEquals("रा", stateAfterA.terms.single().surface)
+        assertTrue(stateAfterA.droppedTerms.any { it.id == "marker" })
+
+        val visibleStateForB = RuleVisibility.view(ruleB, stateAfterA, mapOf("6.4.70" to ruleA, "6.4.60" to ruleB))
+        assertTrue(ruleB.matches(visibleStateForB))
+
+        val engine = DerivationEngine(listOf(ruleA, ruleB))
+        val result = engine.derive(initial)
+        println("APPLICATIONS: " + result.applications.map { "${it.sutra}: ${it.before.surface} -> ${it.after.surface}" })
+        println("EVENTS: " + result.events)
+        assertEquals("म", result.final.surface)
+    }
+
+    @Test
+    fun `optional branching config skips or applies optional rules`() {
+        val optionalRule = object : Sutra<DerivationState, DerivationChange>(
+            number = "1.2.3", text = "OptRule", hindiExplanation = "", type = SutraType.NITYA,
+            chapter = 1, pada = 2, optional = true, kramaValue = 120003,
+            role = dev.sanskrit.sutra.SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.DERIVATION,
+        ), DerivationSutra {
+            override fun matches(context: DerivationState): Boolean = context.stage == DerivationStage.INITIAL
+            override fun apply(context: DerivationState): DerivationChange =
+                DerivationChange(context.copy(stage = DerivationStage.FINAL), "Applied optional rule")
+        }
+
+        val initial = DerivationState(listOf(DerivationTerm("stem", "राम", TermKind.PRATIPADIKA)))
+        val engine = DerivationEngine(listOf(optionalRule))
+
+        val resultApply = engine.derive(initial, DerivationConfig(OptionalRulePolicy.APPLY_ALL))
+        assertEquals(DerivationStage.FINAL, resultApply.final.stage)
+
+        val resultSkip = engine.derive(initial, DerivationConfig(OptionalRulePolicy.SKIP_ALL))
+        assertEquals(DerivationStage.INITIAL, resultSkip.final.stage)
+
+        val resultCustomFalse = engine.derive(initial, DerivationConfig(OptionalRulePolicy.CUSTOM, optionalRuleSelector = { false }))
+        assertEquals(DerivationStage.INITIAL, resultCustomFalse.final.stage)
+
+        val resultCustomTrue = engine.derive(initial, DerivationConfig(OptionalRulePolicy.CUSTOM, optionalRuleSelector = { it == "1.2.3" }))
+        assertEquals(DerivationStage.FINAL, resultCustomTrue.final.stage)
+    }
 }
 
 class HasSemanticFeature(

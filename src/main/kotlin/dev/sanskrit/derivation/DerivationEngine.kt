@@ -117,14 +117,129 @@ internal object RuleVisibility {
         SutraVisibility.ASIDDHAVAT -> sutra.isAbhiya()
         SutraVisibility.ASIDDHA -> sutra.isTripadi()
     }
+
+    fun view(sutra: DerivationSutra, state: DerivationState, sutraMap: Map<String, DerivationSutra> = emptyMap()): DerivationState {
+        if (sutra.visibility != SutraVisibility.ASIDDHAVAT) {
+            return state
+        }
+        
+        // We revert any changes made by other Abhīya rules (sutra krama in 640022..640129, not equal to sutra.sutra).
+        val invisibleSutras = mutableSetOf<String>()
+        
+        // 1. Revert character substitutions
+        val toRevert = state.substitutions.filter { sub ->
+            val subSutra = sutraMap[sub.sutra]
+            val krama = if (subSutra != null) {
+                subSutra.krama
+            } else {
+                Ashtadhyayi.registry.get(sub.sutra)?.kramaValue ?: return@filter false
+            }
+            val isOtherAbhiya = krama in 640022..640129 && sub.sutra != sutra.sutra
+            if (isOtherAbhiya) {
+                invisibleSutras.add(sub.sutra)
+                true
+            } else {
+                false
+            }
+        }
+        
+        // 2. Find any terms added by other Abhīya rules
+        val termsToRemove = state.terms.filter { term ->
+            term.createdBySutra?.let { createdBy ->
+                val subSutra = sutraMap[createdBy]
+                val krama = if (subSutra != null) {
+                    subSutra.krama
+                } else {
+                    Ashtadhyayi.registry.get(createdBy)?.kramaValue
+                }
+                krama != null && krama in 640022..640129 && createdBy != sutra.sutra
+            } ?: false
+        }
+        
+        // 3. Find any terms dropped by other Abhīya rules
+        val termsToRestore = state.droppedTerms.filter { dropped ->
+            dropped.droppedBySutra?.let { droppedBy ->
+                val subSutra = sutraMap[droppedBy]
+                val krama = if (subSutra != null) {
+                    subSutra.krama
+                } else {
+                    Ashtadhyayi.registry.get(droppedBy)?.kramaValue
+                }
+                krama != null && krama in 640022..640129 && droppedBy != sutra.sutra
+            } ?: false
+        }
+
+        if (toRevert.isEmpty() && termsToRemove.isEmpty() && termsToRestore.isEmpty()) {
+            return state
+        }
+
+        var visibleTerms = state.terms
+        
+        // Remove added terms
+        if (termsToRemove.isNotEmpty()) {
+            visibleTerms = visibleTerms.filter { it !in termsToRemove }
+        }
+
+        // Restore dropped terms (restore them with their original surface)
+        if (termsToRestore.isNotEmpty()) {
+            termsToRestore.forEach { dropped ->
+                // Restore the original surface
+                val restored = dropped.copy(
+                    surface = dropped.originalSurfaceBeforeDrop ?: "",
+                    droppedBySutra = null,
+                    originalSurfaceBeforeDrop = null
+                )
+                visibleTerms = visibleTerms + restored
+            }
+        }
+
+        // Revert substitutions
+        if (toRevert.isNotEmpty()) {
+            toRevert.asReversed().forEach { sub ->
+                visibleTerms = visibleTerms.map { term ->
+                    if (term.id == sub.targetId) {
+                        val index = term.surface.lastIndexOf(sub.replacement)
+                        if (index >= 0) {
+                            val newSurface = term.surface.substring(0, index) + sub.source + term.surface.substring(index + sub.replacement.length)
+                            term.copy(surface = newSurface)
+                        } else {
+                            term
+                        }
+                    } else {
+                        term
+                    }
+                }
+            }
+        }
+
+        return state.copy(
+            terms = visibleTerms,
+            droppedTerms = state.droppedTerms.filter { it !in termsToRestore }
+        )
+    }
 }
+
+enum class OptionalRulePolicy {
+    APPLY_ALL,
+    SKIP_ALL,
+    CUSTOM
+}
+
+data class DerivationConfig(
+    val optionalRulePolicy: OptionalRulePolicy = OptionalRulePolicy.APPLY_ALL,
+    val optionalRuleSelector: (String) -> Boolean = { true }
+)
 
 class DerivationEngine(
     private val sutras: List<DerivationSutra> = Ashtadhyayi.executableSutras,
 ) {
     private val sutraMap = sutras.associateBy { it.sutra }
+
     fun derive(initial: DerivationState, maxSteps: Int = 100): DerivationResult =
-        deriveInternal(initial, emptySet(), maxSteps)
+        derive(initial, DerivationConfig(), maxSteps)
+
+    fun derive(initial: DerivationState, config: DerivationConfig, maxSteps: Int = 100): DerivationResult =
+        deriveInternal(initial, emptySet(), config, maxSteps)
 
     /** Produces both outcomes for each optional sūtra instead of silently choosing one. */
     fun deriveAll(initial: DerivationState, maxSteps: Int = 100): List<DerivationResult> {
@@ -136,12 +251,12 @@ class DerivationEngine(
             val selection = select(branch.state, branch.suppressed)
             val optional = selection.selected?.takeIf { it.sutra.optional }
             if (optional == null) {
-                val result = deriveInternal(branch.state, branch.suppressed, maxSteps)
+                val result = deriveInternal(branch.state, branch.suppressed, DerivationConfig(), maxSteps)
                 results += result.copy(events = branch.events + result.events)
                 continue
             }
-            val applied = deriveInternal(branch.state, branch.suppressed, maxSteps, firstChange = optional.change)
-            val skipped = deriveInternal(branch.state, branch.suppressed + optional.sutra.sutra, maxSteps)
+            val applied = deriveInternal(branch.state, branch.suppressed, DerivationConfig(OptionalRulePolicy.APPLY_ALL), maxSteps, firstChange = optional.change)
+            val skipped = deriveInternal(branch.state, branch.suppressed + optional.sutra.sutra, DerivationConfig(OptionalRulePolicy.SKIP_ALL), maxSteps)
             val event = DerivationEvent.BranchCreated(optional.sutra.sutra, 2)
             results += applied.copy(events = branch.events + event + applied.events)
             results += skipped.copy(events = branch.events + event + skipped.events)
@@ -152,6 +267,7 @@ class DerivationEngine(
     private fun deriveInternal(
         initial: DerivationState,
         suppressed: Set<String>,
+        config: DerivationConfig = DerivationConfig(),
         maxSteps: Int,
         firstChange: DerivationChange? = null,
     ): DerivationResult {
@@ -160,9 +276,10 @@ class DerivationEngine(
         val applications = mutableListOf<DerivationApplication>()
         val events = mutableListOf<DerivationEvent>()
         val visited = mutableSetOf(initial.copy(substitutions = emptyList()))
+        val suppressedRules = suppressed.toMutableSet()
 
         repeat(maxSteps) {
-            val selection = select(current, suppressed)
+            val selection = select(current, suppressedRules)
             events += selection.candidates.map { DerivationEvent.RuleConsidered(it.sutra.sutra) }
             events += selection.conflicts.map { DerivationEvent.RuleBlocked(it.loser.sutra.sutra, it.winner.sutra.sutra, it.reason) }
             
@@ -171,6 +288,22 @@ class DerivationEngine(
             events += blockedEvents
 
             val candidate = selection.selected ?: return completed(initial, current, applications, events)
+            
+            val shouldApply = if (candidate.sutra.optional) {
+                when (config.optionalRulePolicy) {
+                    OptionalRulePolicy.APPLY_ALL -> true
+                    OptionalRulePolicy.SKIP_ALL -> false
+                    OptionalRulePolicy.CUSTOM -> config.optionalRuleSelector(candidate.sutra.sutra)
+                }
+            } else {
+                true
+            }
+
+            if (!shouldApply) {
+                suppressedRules.add(candidate.sutra.sutra)
+                return@repeat
+            }
+
             val change = preselectedChange ?: candidate.change
             preselectedChange = null
             require(change.applied) { "Non-branching derivation cannot decline selected sutra ${candidate.sutra.sutra}." }
@@ -186,7 +319,7 @@ class DerivationEngine(
             
             val nextStateKey = change.state.copy(substitutions = emptyList())
             if (nextStateKey in visited) {
-                val nextSelection = select(change.state, suppressed)
+                val nextSelection = select(change.state, suppressedRules)
                 require(nextSelection.selected == null) {
                     "Derivation entered a cycle after applying ${candidate.sutra.sutra}. History: ${applications.map { "${it.sutra} (${it.before.surface} -> ${it.after.surface})" }}"
                 }
@@ -234,16 +367,15 @@ class DerivationEngine(
                     maxTripadiKrama == 0
                 }
             }
-            .filter { it.matches(state) }
+            .filter { 
+                val visibleState = RuleVisibility.view(it, state, sutraMap)
+                it.matches(visibleState)
+            }
             .map { sutra ->
                 val change = sutra.apply(state)
                 RuleCandidate(sutra, change, DerivationDelta.between(state, change.state))
             }
             .toList()
-        // A broad catalogue rule may match without changing this state.  It is
-        // not a competing operation and therefore cannot starve a real rule.
-        // If it is the only match, preserve the contract failure that exposes
-        // its incomplete implementation.
         val candidates = evaluated.filter { it.change.state != state }
         val conflicts = RuleConflictResolver.resolve(candidates)
         val losers = conflicts.mapTo(mutableSetOf()) { it.loser }

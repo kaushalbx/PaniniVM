@@ -89,11 +89,15 @@ class DerivationState(
     fun replaceTerm(id: String, replacement: DerivationTerm): DerivationState =
         copy(terms = terms.map { if (it.id == id) replacement else it })
 
-    fun removeTerm(id: String): DerivationState {
+    fun removeTerm(id: String, sutra: String? = null): DerivationState {
         val term = terms.find { it.id == id } ?: return this
         return copy(
             terms = terms.filter { it.id != id },
-            droppedTerms = droppedTerms + term.copy(surface = "")
+            droppedTerms = droppedTerms + term.copy(
+                surface = "",
+                droppedBySutra = sutra,
+                originalSurfaceBeforeDrop = term.surface
+            )
         )
     }
 
@@ -216,6 +220,9 @@ data class DerivationTerm(
     val lexicalUses: Set<LexicalUse> = emptySet(),
     val itStatus: ItStatus? = null,
     val gana: Gana? = null,
+    val droppedBySutra: String? = null,
+    val originalSurfaceBeforeDrop: String? = null,
+    val createdBySutra: String? = null,
 ) {
     companion object {
         /** Preserves Dhātupāṭha metadata when a root enters a derivation. */

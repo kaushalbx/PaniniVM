@@ -20,7 +20,7 @@ object AtaEkahalmadhyeAnadesaderLitiSutra : Sutra<DerivationState, DerivationCha
     override fun apply(context: DerivationState): DerivationChange {
         val dhatu = context.terms.first { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         return DerivationChange(
-            context.removeTerm("abhyasa").replaceTerm(dhatu.id, dhatu.copy(surface = "लेभ्")),
+            context.removeTerm("abhyasa", sutra = "6.4.120").replaceTerm(dhatu.id, dhatu.copy(surface = "लेभ्")),
             "6.4.120 deletes the abhyāsa and changes the root vowel अ to ए in the weak perfect stem लेभ्.",
         )
     }
