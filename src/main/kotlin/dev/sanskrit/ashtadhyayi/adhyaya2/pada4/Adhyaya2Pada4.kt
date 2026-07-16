@@ -4,6 +4,7 @@ import dev.sanskrit.sutra.Sutra
 
 object Adhyaya2Pada4 {
     val sutras: List<Sutra<*, *>> = listOf(
+        AdiprabhritibhyahShapahSutra,
         GatisthaghupabhubhyahSicahParasmaipadesuSutra,
         LutahPrathamasyaDarauRasahSutra
     )

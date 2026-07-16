@@ -8,7 +8,7 @@ class TingantaEngine(private val engine: DerivationEngine = DerivationEngine()) 
     fun derive(request: TingantaDerivationRequest): DerivationResult {
         val dhatu = findDhatu(request.dhatu)
         val targetPada = resolvePada(requireNotNull(dhatu.pada), request.pada)
-        val plan = requireNotNull(TingantaFormPlans.find(request.purusha, request.vacana, targetPada, request.lakara)) {
+        val plan = requireNotNull(TingantaFormPlans.find(request.purusha, request.vacana, targetPada, request.lakara, dhatu.gana)) {
             "No complete downstream plan exists for ${TingAffix.select(request.purusha, request.vacana, targetPada)?.upadesha}."
         }
         return engine.derive(request.initialState(dhatu)).apply {
@@ -21,8 +21,15 @@ class TingantaEngine(private val engine: DerivationEngine = DerivationEngine()) 
         pada: PadaType? = null,
         lakara: Lakara = Lakara.LAT,
     ): TingantaParadigm {
-        val targetPada = resolvePada(requireNotNull(findDhatu(dhatu).pada), pada)
-        val matchingPlans = TingantaFormPlans.all().filter { it.affix.pada == targetPada && it.lakara == lakara }
+        val dhatuEntry = findDhatu(dhatu)
+        val targetPada = resolvePada(requireNotNull(dhatuEntry.pada), pada)
+        val matchingPlans = TingantaFormPlans.all().filter {
+            it.affix.pada == targetPada && it.lakara == lakara &&
+                (it.supportedGanas == null || dhatuEntry.gana in it.supportedGanas)
+        }
+        require(matchingPlans.isNotEmpty()) {
+            "No complete $lakara paradigm plan exists for ${dhatuEntry.gana}."
+        }
         return TingantaParadigm(
             dhatu = dhatu,
             pada = targetPada,

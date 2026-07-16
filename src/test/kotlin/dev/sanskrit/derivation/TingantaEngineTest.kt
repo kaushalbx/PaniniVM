@@ -9,6 +9,41 @@ import dev.sanskrit.dhatupatha.PadaType
 class TingantaEngineTest {
 
     @Test
+    fun `conjugation engine derives complete Adadi present paradigm for ad`() {
+        val paradigm = TingantaEngine().deriveSupportedParadigm("अद्", lakara = Lakara.LAT)
+
+        assertEquals(
+            mapOf(
+                TingAffix.TIP to "अत्ति",
+                TingAffix.TAS to "अत्तः",
+                TingAffix.JHI to "अदन्ति",
+                TingAffix.SIP to "अत्सि",
+                TingAffix.THAS to "अत्थः",
+                TingAffix.THA to "अत्थ",
+                TingAffix.MIP to "अद्मि",
+                TingAffix.VAS to "अद्वः",
+                TingAffix.MAS to "अद्मः",
+            ),
+            paradigm.surfaces,
+        )
+
+        paradigm.forms.values.forEach { result ->
+            assertTrue(result.applications.any { it.sutra == "2.4.72" })
+            assertTrue(result.final.droppedTerms.any { it.upadesha == "शप्" && it.deletionType == LopaType.LUK })
+        }
+        listOf(TingAffix.TIP, TingAffix.TAS, TingAffix.SIP, TingAffix.THAS, TingAffix.THA).forEach { affix ->
+            assertTrue(paradigm.forms.getValue(affix).applications.any { it.sutra == "8.4.55" })
+        }
+    }
+
+    @Test
+    fun `present paradigms reject ganas without implemented stem formation`() {
+        assertFailsWith<IllegalArgumentException> {
+            TingantaEngine().deriveSupportedParadigm("दिव्", lakara = Lakara.LAT)
+        }
+    }
+
+    @Test
     fun `ubhayapada roots derive in either explicitly requested pada`() {
         val engine = TingantaEngine()
         val parasmaipada = engine.deriveSupportedParadigm("स्रम्भ्", pada = PadaType.PARASMAIPADA, lakara = Lakara.LAT)

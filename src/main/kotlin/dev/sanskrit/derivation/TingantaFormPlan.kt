@@ -1,6 +1,7 @@
 package dev.sanskrit.derivation
 
 import dev.sanskrit.dhatupatha.PadaType
+import dev.sanskrit.dhatupatha.Gana
 
 /** A form slot that the current verbal compiler can derive end to end. */
 data class TingantaFormPlan(
@@ -8,6 +9,7 @@ data class TingantaFormPlan(
     val lakara: Lakara,
     val requiredSutras: Set<String>,
     val finalStage: DerivationStage = DerivationStage.FINAL,
+    val supportedGanas: Set<Gana>? = null,
 )
 
 /** Declared coverage for the complete 18-slot tiṅ inventory across multiple lakāras. */
@@ -15,7 +17,8 @@ object TingantaFormPlans {
     private val supported = buildList {
         // LAT (present tense) plans
         TingAffix.entries.forEach { affix ->
-            add(TingantaFormPlan(affix, Lakara.LAT, setOf("3.4.78"), DerivationStage.FINAL))
+            add(TingantaFormPlan(affix, Lakara.LAT, setOf("3.4.78"), DerivationStage.FINAL, setOf(Gana.BHVADI)))
+            add(TingantaFormPlan(affix, Lakara.LAT, setOf("3.4.78", "2.4.72"), DerivationStage.FINAL, setOf(Gana.ADADI)))
         }
         // LRT (future tense) plans
         TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.forEach { affix ->
@@ -138,8 +141,11 @@ object TingantaFormPlans {
         }
     }
 
-    fun find(purusha: Purusha, vacana: Vacana, pada: PadaType, lakara: Lakara): TingantaFormPlan? =
-        supported.singleOrNull { it.affix.purusha == purusha && it.affix.vacana == vacana && it.affix.pada == pada && it.lakara == lakara }
+    fun find(purusha: Purusha, vacana: Vacana, pada: PadaType, lakara: Lakara, gana: Gana): TingantaFormPlan? =
+        supported.singleOrNull {
+            it.affix.purusha == purusha && it.affix.vacana == vacana && it.affix.pada == pada &&
+                it.lakara == lakara && (it.supportedGanas == null || gana in it.supportedGanas)
+        }
 
     fun all(): List<TingantaFormPlan> = supported
 }

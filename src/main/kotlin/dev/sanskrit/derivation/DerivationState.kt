@@ -6,6 +6,7 @@ import dev.sanskrit.shiksha.ItStatus
 import dev.sanskrit.shiksha.SemanticFeature
 import dev.sanskrit.shiksha.Linga
 import dev.sanskrit.dhatupatha.Dhatu
+import dev.sanskrit.dhatupatha.Gana
 
 /**
  * The shared state passed through an Ashtadhyayi derivation.
@@ -214,6 +215,7 @@ data class DerivationTerm(
     val sthaniProps: SthaniProperties? = null,
     val lexicalUses: Set<LexicalUse> = emptySet(),
     val itStatus: ItStatus? = null,
+    val gana: Gana? = null,
 ) {
     companion object {
         /** Preserves Dhātupāṭha metadata when a root enters a derivation. */
@@ -223,6 +225,7 @@ data class DerivationTerm(
             kind = TermKind.DHATU,
             upadesha = dhatu.upadesha,
             itStatus = dhatu.itStatus,
+            gana = dhatu.gana,
         )
     }
 
