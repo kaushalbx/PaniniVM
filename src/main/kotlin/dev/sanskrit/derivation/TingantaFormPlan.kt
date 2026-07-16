@@ -71,6 +71,18 @@ object TingantaFormPlans {
             if (affix.purusha == Purusha.PRATHAMA) required += "2.4.85"
             add(TingantaFormPlan(affix, Lakara.LUT, required, DerivationStage.FINAL))
         }
+        TingAffix.entries.filter { it.pada == PadaType.ATMANEPADA }.forEach { affix ->
+            val required = mutableSetOf("3.3.15", "3.1.33", "3.4.78")
+            if (affix.purusha == Purusha.PRATHAMA) required += "2.4.85"
+            when (affix) {
+                TingAffix.THAS_A -> required += setOf("3.4.80", "7.4.50")
+                TingAffix.ATHAM, TingAffix.VAHI, TingAffix.MAHING -> required += "3.4.79"
+                TingAffix.DHVAM -> required += setOf("3.4.79", "8.2.25")
+                TingAffix.IT -> required += setOf("3.4.79", "7.4.52")
+                else -> Unit
+            }
+            add(TingantaFormPlan(affix, Lakara.LUT, required, DerivationStage.FINAL))
+        }
         // LUNG (general aorist) plans
         TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.forEach { affix ->
             add(TingantaFormPlan(affix, Lakara.LUNG, setOf("3.2.110", "3.1.43", "3.1.44", "2.4.77", "3.4.78", "6.4.71"), DerivationStage.FINAL))

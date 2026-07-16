@@ -24,7 +24,7 @@ object SyatasiLrlrtohSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.PRATYAYA_SELECTION,
     scope = SutraScope.DERIVATION,
-    blocks = setOf("3.1.68", "6.1.77"),
+    blocks = setOf("3.1.68", "6.1.77", "6.1.101"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val lastTerm = context.terms.lastOrNull() ?: return false

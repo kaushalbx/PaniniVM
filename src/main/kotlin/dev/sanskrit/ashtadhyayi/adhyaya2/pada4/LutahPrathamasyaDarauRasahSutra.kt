@@ -14,7 +14,7 @@ import dev.sanskrit.sutra.SutraType
 
 /**
  * 2.4.85: luṭaḥ prathamasyadāraurasaḥ.
- * In luṭ, the first-person (3rd person) endings TIP, TAS, JHI are replaced by ḍā, rau, ras.
+ * In luṭ, the prathama-puruṣa endings are replaced by ḍā, rau, ras in both padas.
  */
 object LutahPrathamasyaDarauRasahSutra : Sutra<DerivationState, DerivationChange>(
     number = "2.4.85",
@@ -29,7 +29,10 @@ object LutahPrathamasyaDarauRasahSutra : Sutra<DerivationState, DerivationChange
     action = SutraAction.ADESHA,
     scope = SutraScope.PRATYAYA,
 ), DerivationSutra {
-    private val replacements = mapOf("तिप्" to "डा", "तस्" to "रौ", "झि" to "रस्")
+    private val replacements = mapOf(
+        "तिप्" to "डा", "तस्" to "रौ", "झि" to "रस्",
+        "त" to "डा", "आताम्" to "रौ", "झ" to "रस्",
+    )
 
     override fun matches(context: DerivationState): Boolean {
         val ending = context.terms.lastOrNull() ?: return false
