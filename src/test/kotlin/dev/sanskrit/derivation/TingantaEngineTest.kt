@@ -71,6 +71,34 @@ class TingantaEngineTest {
     }
 
     @Test
+    fun `conjugation engine derives complete atmanepada future paradigm for labh`() {
+        val paradigm = TingantaEngine().deriveSupportedParadigm("लभ्", lakara = Lakara.LRT)
+
+        assertEquals(
+            mapOf(
+                TingAffix.TA to "लप्स्यते",
+                TingAffix.ATAM to "लप्स्येते",
+                TingAffix.JHA to "लप्स्यन्ते",
+                TingAffix.THAS_A to "लप्स्यसे",
+                TingAffix.ATHAM to "लप्स्येथे",
+                TingAffix.DHVAM to "लप्स्यध्वे",
+                TingAffix.IT to "लप्स्ये",
+                TingAffix.VAHI to "लप्स्यावहे",
+                TingAffix.MAHING to "लप्स्यामहे",
+            ),
+            paradigm.surfaces,
+        )
+
+        paradigm.forms.values.forEach { result ->
+            assertTrue(result.applications.any { it.sutra == "8.4.55" })
+        }
+        assertTrue(paradigm.forms.getValue(TingAffix.THAS_A).applications.any { it.sutra == "3.4.80" })
+        TingAffix.entries.filter { it.pada == dev.sanskrit.dhatupatha.PadaType.ATMANEPADA && it != TingAffix.THAS_A }.forEach { affix ->
+            assertTrue(paradigm.forms.getValue(affix).applications.any { it.sutra == "3.4.79" })
+        }
+    }
+
+    @Test
     fun `conjugation engine derives complete imperfect past paradigm for bhu`() {
 
         val paradigm = TingantaEngine().deriveSupportedParadigm("भू", lakara = Lakara.LANG)

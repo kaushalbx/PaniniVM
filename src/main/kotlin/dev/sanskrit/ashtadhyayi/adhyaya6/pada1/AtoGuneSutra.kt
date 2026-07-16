@@ -58,7 +58,12 @@ object AtoGuneSutra : Sutra<DerivationState, DerivationChange>(
         
         val lastChar = stem.surface.last()
         val newSurface = if (lastChar !in dev.sanskrit.shiksha.Varnamala.independentVowelsOrMarks) {
-            stem.surface + affix.surface.drop(1)
+            val vowelMark = when (firstChar) {
+                'ए' -> "े"
+                'ओ' -> "ो"
+                else -> ""
+            }
+            stem.surface + vowelMark + affix.surface.drop(1)
         } else {
             stem.surface.dropLast(1) + replacement + affix.surface.drop(1)
         }

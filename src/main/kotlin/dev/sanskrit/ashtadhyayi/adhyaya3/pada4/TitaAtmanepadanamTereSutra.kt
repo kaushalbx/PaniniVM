@@ -24,11 +24,11 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.PRATYAYA,
-    blocks = setOf("6.1.78"),
+    blocks = setOf("6.1.78", "8.2.23"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val lakara = context.effectiveContext.rupa.lakara
-        if (lakara !in setOf(Lakara.LAT, Lakara.LET, Lakara.LIT, Lakara.LOT, Lakara.LUT)) return false
+        if (lakara !in setOf(Lakara.LAT, Lakara.LET, Lakara.LIT, Lakara.LOT, Lakara.LRT, Lakara.LUT)) return false
         val ending = context.terms.last()
         val atoNgitahCompleted = context.droppedTerms.any { it.id == "ato-ngit-it" }
         if (lakara == Lakara.LOT && context.substitutions.any { it.sutra in setOf("3.4.90", "3.4.91", "3.4.93") }) return false
@@ -40,8 +40,8 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
             context.substitutions.any { it.sutra == "3.4.95" }) return false
         val replacement = when (ending.upadesha) {
             "त" -> "ते"
-            "आताम्" -> if (lakara == Lakara.LOT) "एते" else if (lakara == Lakara.LAT && atoNgitahCompleted) "ते" else "आते"
-            "आथाम्" -> if (lakara == Lakara.LOT) "एथे" else if (lakara == Lakara.LAT && atoNgitahCompleted) "थे" else "आथे"
+            "आताम्" -> if (lakara in setOf(Lakara.LOT, Lakara.LRT)) "एते" else if (lakara == Lakara.LAT && atoNgitahCompleted) "ते" else "आते"
+            "आथाम्" -> if (lakara in setOf(Lakara.LOT, Lakara.LRT)) "एथे" else if (lakara == Lakara.LAT && atoNgitahCompleted) "थे" else "आथे"
             "ध्वम्" -> "ध्वे"
             "वहि" -> "वहे"
             "महिङ्" -> "महे"
@@ -50,11 +50,11 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
         }
         if (replacement != null) {
             val requiresAtoNgitah = ending.upadesha in setOf("आताम्", "आथाम्")
-            return ending.surface != replacement && (lakara in setOf(Lakara.LET, Lakara.LIT, Lakara.LOT, Lakara.LUT) || !requiresAtoNgitah || atoNgitahCompleted)
+            return ending.surface != replacement && (lakara in setOf(Lakara.LET, Lakara.LIT, Lakara.LOT, Lakara.LRT, Lakara.LUT) || !requiresAtoNgitah || atoNgitahCompleted)
         }
         return ending.surface.endsWith("न्त्") &&
             context.substitutions.any { it.sutra == "7.1.3" } &&
-            ending.upadesha == "शप्"
+            ending.upadesha in setOf("झ", "शप्")
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -70,8 +70,8 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
         val lakara = context.effectiveContext.rupa.lakara
         val replacement = when (ending.upadesha) {
             "त" -> "ते"
-            "आताम्" -> if (lakara == Lakara.LOT) "एते" else if (lakara == Lakara.LAT && atoNgitahCompleted) "ते" else "आते"
-            "आथाम्" -> if (lakara == Lakara.LOT) "एथे" else if (lakara == Lakara.LAT && atoNgitahCompleted) "थे" else "आथे"
+            "आताम्" -> if (lakara in setOf(Lakara.LOT, Lakara.LRT)) "एते" else if (lakara == Lakara.LAT && atoNgitahCompleted) "ते" else "आते"
+            "आथाम्" -> if (lakara in setOf(Lakara.LOT, Lakara.LRT)) "एथे" else if (lakara == Lakara.LAT && atoNgitahCompleted) "थे" else "आथे"
             "ध्वम्" -> "ध्वे"
             "वहि" -> "वहे"
             "महिङ्" -> "महे"

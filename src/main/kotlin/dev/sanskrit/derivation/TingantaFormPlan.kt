@@ -18,9 +18,14 @@ object TingantaFormPlans {
             add(TingantaFormPlan(affix, Lakara.LAT, setOf("3.4.78"), DerivationStage.FINAL))
         }
         // LRT (future tense) plans
-        TingAffix.entries.forEach { affix ->
+        TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.forEach { affix ->
             // For LRT, AdesapratyayayohSutra (8.3.59) runs at the very end and advances the stage to FINAL.
             add(TingantaFormPlan(affix, Lakara.LRT, setOf("3.4.78"), DerivationStage.FINAL))
+        }
+        TingAffix.entries.filter { it.pada == PadaType.ATMANEPADA }.forEach { affix ->
+            val required = mutableSetOf("3.4.78")
+            required += if (affix == TingAffix.THAS_A) "3.4.80" else "3.4.79"
+            add(TingantaFormPlan(affix, Lakara.LRT, required, DerivationStage.FINAL))
         }
         // LANG (imperfect past tense) plans
         TingAffix.entries.forEach { affix ->

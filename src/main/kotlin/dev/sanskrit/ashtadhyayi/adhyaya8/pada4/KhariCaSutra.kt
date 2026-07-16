@@ -32,28 +32,16 @@ object KhariCaSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.ADESHA,
     scope = SutraScope.VARNA,
 ), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean {
-        if (context.terms.size < 2) return false
-        
-        val left = context.terms[context.terms.size - 2].surface.lastOrNull() ?: return false
-        val right = context.terms.last().surface.firstOrNull() ?: return false
-        // A plain final consonant is followed by its inherent अ (फल + स्य),
-        // so it is not a direct hal–khar contact.
-        if (Varnamala.isConsonant(left)) return false
-        
-        val engine = Ashtadhyayi.pratyaharaEngine
-        return engine.contains(Pratyahara.JHAL, left) &&
-            engine.contains(Pratyahara.KHAR, right) &&
-            substituteFor(left) != left.toString()
-    }
+    override fun matches(context: DerivationState): Boolean = findTarget(context) != null
 
     override fun apply(context: DerivationState): DerivationChange {
-        val leftTerm = context.terms[context.terms.size - 2]
-        val leftChar = leftTerm.surface.last()
+        val target = requireNotNull(findTarget(context))
+        val leftTerm = context.terms[target.termIndex]
+        val leftChar = leftTerm.surface[target.charIndex]
         
         val substitute = substituteFor(leftChar)
         
-        val newSurface = leftTerm.surface.dropLast(1) + substitute
+        val newSurface = leftTerm.surface.replaceRange(target.charIndex, target.charIndex + 1, substitute)
         
         return DerivationChange(
             state = context.replaceTerm(leftTerm.id, leftTerm.copy(surface = newSurface)),
@@ -61,6 +49,34 @@ object KhariCaSutra : Sutra<DerivationState, DerivationChange>(
         ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(leftTerm.id, leftChar, substitute, sutra))) }
     }
 
-    private fun substituteFor(source: Char): String =
-        SthaneAntaratamahSutra.selectBest(source, setOf("च", "ट", "त", "क", "प"))
+    private fun substituteFor(source: Char): String = when (source) {
+        'श', 'ष', 'स' -> source.toString()
+        else -> SthaneAntaratamahSutra.selectBest(source, setOf("च", "ट", "त", "क", "प"))
+    }
+
+    private fun findTarget(context: DerivationState): Target? {
+        val engine = Ashtadhyayi.pratyaharaEngine
+        for (termIndex in 0 until context.terms.lastIndex) {
+            val leftSurface = context.terms[termIndex].surface
+            val charIndex = finalConsonantIndex(leftSurface) ?: continue
+            val left = leftSurface[charIndex]
+            val right = context.terms[termIndex + 1].surface.firstOrNull() ?: continue
+            // A plain final consonant is followed by its inherent अ (फल + स्य),
+            // so it is not a direct hal–khar contact.
+            if (charIndex == leftSurface.lastIndex && Varnamala.isConsonant(left)) continue
+            if (engine.contains(Pratyahara.JHAL, left) &&
+                engine.contains(Pratyahara.KHAR, right) &&
+                substituteFor(left) != left.toString()
+            ) return Target(termIndex, charIndex)
+        }
+        return null
+    }
+
+    private fun finalConsonantIndex(surface: String): Int? = when {
+        surface.isEmpty() -> null
+        surface.endsWith("्") && surface.length >= 2 -> surface.lastIndex - 1
+        else -> surface.lastIndex
+    }
+
+    private data class Target(val termIndex: Int, val charIndex: Int)
 }
