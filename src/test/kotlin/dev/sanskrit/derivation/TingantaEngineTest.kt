@@ -9,6 +9,32 @@ import dev.sanskrit.dhatupatha.PadaType
 class TingantaEngineTest {
 
     @Test
+    fun `conjugation engine derives complete Divadi present paradigm for div`() {
+        val paradigm = TingantaEngine().deriveSupportedParadigm("दिव्", lakara = Lakara.LAT)
+
+        assertEquals(
+            mapOf(
+                TingAffix.TIP to "दिव्यति",
+                TingAffix.TAS to "दिव्यतः",
+                TingAffix.JHI to "दिव्यन्ति",
+                TingAffix.SIP to "दिव्यसि",
+                TingAffix.THAS to "दिव्यथः",
+                TingAffix.THA to "दिव्यथ",
+                TingAffix.MIP to "दिव्यामि",
+                TingAffix.VAS to "दिव्यावः",
+                TingAffix.MAS to "दिव्यामः",
+            ),
+            paradigm.surfaces,
+        )
+
+        paradigm.forms.values.forEach { result ->
+            assertTrue(result.applications.any { it.sutra == "3.1.69" })
+            assertTrue(result.applications.none { it.sutra == "3.1.68" })
+            assertTrue(result.final.terms.any { it.upadesha == "श्यन्" })
+        }
+    }
+
+    @Test
     fun `conjugation engine derives complete Adadi present paradigm for ad`() {
         val paradigm = TingantaEngine().deriveSupportedParadigm("अद्", lakara = Lakara.LAT)
 
@@ -39,7 +65,7 @@ class TingantaEngineTest {
     @Test
     fun `present paradigms reject ganas without implemented stem formation`() {
         assertFailsWith<IllegalArgumentException> {
-            TingantaEngine().deriveSupportedParadigm("दिव्", lakara = Lakara.LAT)
+            TingantaEngine().deriveSupportedParadigm("हु", lakara = Lakara.LAT)
         }
     }
 

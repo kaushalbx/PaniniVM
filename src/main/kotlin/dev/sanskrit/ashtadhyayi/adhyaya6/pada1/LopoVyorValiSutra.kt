@@ -5,6 +5,7 @@ import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.Lakara
+import dev.sanskrit.shiksha.Samjna
 import dev.sanskrit.pratyahara.Pratyahara
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
@@ -29,7 +30,8 @@ object LopoVyorValiSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         for (index in 0 until context.terms.lastIndex) {
             val leftTerm = context.terms[index]
-            if (leftTerm.id == "yasut") continue
+            if (leftTerm.id == "yasut" || leftTerm.upadesha == "श्यन्") continue
+            if (context.samjnas.none { it.targetId == leftTerm.id && it.samjna == Samjna.PADA }) continue
             val left = leftTerm.surface
             val rightTerm = context.terms[index + 1]
             if (context.effectiveContext.rupa.lakara == Lakara.LUNG &&
@@ -50,7 +52,8 @@ object LopoVyorValiSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         for (index in 0 until context.terms.lastIndex) {
             val left = context.terms[index]
-            if (left.id == "yasut") continue
+            if (left.id == "yasut" || left.upadesha == "श्यन्") continue
+            if (context.samjnas.none { it.targetId == left.id && it.samjna == Samjna.PADA }) continue
             val rightTerm = context.terms[index + 1]
             if (context.effectiveContext.rupa.lakara == Lakara.LUNG &&
                 left.id == "vuk" && rightTerm.upadesha in setOf("च्लि", "सिच्")

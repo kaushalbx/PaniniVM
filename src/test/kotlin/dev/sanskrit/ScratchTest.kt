@@ -9,7 +9,7 @@ class ScratchTest {
     fun testDerivationTrace() {
         val requests = Purusha.entries.flatMap { purusha ->
             Vacana.entries.map { vacana ->
-                "AD LAT $purusha $vacana" to TingantaDerivationRequest("अद्", vacana, purusha, Lakara.LAT)
+                "DIV LAT $purusha $vacana" to TingantaDerivationRequest("दिव्", vacana, purusha, Lakara.LAT)
             }
         }
         requests.forEach { (label, request) ->
