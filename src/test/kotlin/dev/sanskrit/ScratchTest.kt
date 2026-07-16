@@ -9,8 +9,8 @@ class ScratchTest {
     fun testDerivationTrace() {
         val requests = Purusha.entries.flatMap { purusha ->
             Vacana.entries.map { vacana ->
-                "LABH LOT $purusha $vacana" to
-                    TingantaDerivationRequest("लभ्", vacana, purusha, Lakara.LOT)
+                "LABH LUNG $purusha $vacana" to
+                    TingantaDerivationRequest("लभ्", vacana, purusha, Lakara.LUNG)
             }
         }
         requests.forEach { (label, request) ->

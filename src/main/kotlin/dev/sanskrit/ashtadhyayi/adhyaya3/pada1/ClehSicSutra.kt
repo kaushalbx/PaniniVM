@@ -1,9 +1,11 @@
 package dev.sanskrit.ashtadhyayi.adhyaya3.pada1
 
 import dev.sanskrit.derivation.DerivationChange
+import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.DerivationTerm
+import dev.sanskrit.derivation.ItMarker
 import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
@@ -34,10 +36,11 @@ object ClehSicSutra : Sutra<DerivationState, DerivationChange>(
             id = cli.id,
             surface = "सिच्",
             kind = TermKind.PRATYAYA,
+            itMarkers = setOf(ItMarker.U, ItMarker.KIT),
             upadesha = "सिच्",
         )
         return DerivationChange(
-            context.replaceTerm(cli.id, sic),
+            context.replaceTerm(cli.id, sic).copy(stage = DerivationStage.PRATYAYA_SELECTED),
             "3.1.44 substitutes सिच् for च्लि.",
         )
     }

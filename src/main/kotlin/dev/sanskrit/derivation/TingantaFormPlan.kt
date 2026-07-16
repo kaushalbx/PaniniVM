@@ -75,6 +75,14 @@ object TingantaFormPlans {
         TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.forEach { affix ->
             add(TingantaFormPlan(affix, Lakara.LUNG, setOf("3.2.110", "3.1.43", "3.1.44", "2.4.77", "3.4.78", "6.4.71"), DerivationStage.FINAL))
         }
+        TingAffix.entries.filter { it.pada == PadaType.ATMANEPADA }.forEach { affix ->
+            val required = mutableSetOf("3.2.110", "3.1.43", "3.1.44", "3.4.78", "6.4.71", "7.2.42")
+            if (affix != TingAffix.DHVAM) required += "8.3.59"
+            if (affix == TingAffix.JHA) required += "7.1.5"
+            if (affix in setOf(TingAffix.TA, TingAffix.THAS_A)) required += "8.4.41"
+            if (affix == TingAffix.DHVAM) required += setOf("8.2.25", "8.3.79")
+            add(TingantaFormPlan(affix, Lakara.LUNG, required, DerivationStage.FINAL))
+        }
         // LET (Vedic subjunctive) plans
         TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.forEach { affix ->
             val required = mutableSetOf("3.4.7", "3.4.78", "3.4.94")

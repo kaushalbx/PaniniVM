@@ -480,6 +480,34 @@ class TingantaEngineTest {
     }
 
     @Test
+    fun `conjugation engine derives complete atmanepada ish aorist paradigm for labh`() {
+        val paradigm = TingantaEngine().deriveSupportedParadigm("लभ्", lakara = Lakara.LUNG)
+
+        assertEquals(
+            mapOf(
+                TingAffix.TA to "अलभिष्ट",
+                TingAffix.ATAM to "अलभिषाताम्",
+                TingAffix.JHA to "अलभिषत",
+                TingAffix.THAS_A to "अलभिष्ठाः",
+                TingAffix.ATHAM to "अलभिषाथाम्",
+                TingAffix.DHVAM to "अलभिढ्वम्",
+                TingAffix.IT to "अलभिषि",
+                TingAffix.VAHI to "अलभिष्वहि",
+                TingAffix.MAHING to "अलभिष्महि",
+            ),
+            paradigm.surfaces,
+        )
+
+        paradigm.forms.values.forEach { result ->
+            val applied = result.applications.mapTo(mutableSetOf()) { it.sutra }
+            assertTrue(applied.containsAll(setOf("3.2.110", "3.1.43", "3.1.44", "3.4.78", "6.4.71", "7.2.42")))
+        }
+        assertTrue(paradigm.forms.getValue(TingAffix.JHA).applications.any { it.sutra == "7.1.5" })
+        assertTrue(paradigm.forms.getValue(TingAffix.DHVAM).applications.map { it.sutra }
+            .containsAll(setOf("8.2.25", "8.3.79")))
+    }
+
+    @Test
     fun `conjugation engine derives complete Vedic subjunctive paradigm for bhu`() {
         val paradigm = TingantaEngine().deriveSupportedParadigm("भू", lakara = Lakara.LET)
 
