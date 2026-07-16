@@ -27,21 +27,26 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
     blocks = setOf("6.1.78"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        if (context.effectiveContext.rupa.lakara != Lakara.LAT) return false
+        val lakara = context.effectiveContext.rupa.lakara
+        if (lakara !in setOf(Lakara.LAT, Lakara.LET)) return false
         val ending = context.terms.last()
         val atoNgitahCompleted = context.droppedTerms.any { it.id == "ato-ngit-it" }
+        if (lakara == Lakara.LET && context.substitutions.any { it.sutra == "3.4.96" }) return false
+        if (lakara == Lakara.LET && ending.upadesha in setOf("आताम्", "आथाम्") &&
+            context.substitutions.any { it.sutra == "3.4.95" }) return false
         val replacement = when (ending.upadesha) {
             "त" -> "ते"
-            "आताम्" -> if (atoNgitahCompleted) "ते" else "आते"
-            "आथाम्" -> if (atoNgitahCompleted) "थे" else "आथे"
+            "आताम्" -> if (lakara == Lakara.LAT && atoNgitahCompleted) "ते" else "आते"
+            "आथाम्" -> if (lakara == Lakara.LAT && atoNgitahCompleted) "थे" else "आथे"
             "ध्वम्" -> "ध्वे"
             "वहि" -> "वहे"
             "महिङ्" -> "महे"
+            "इट्" -> "ए"
             else -> null
         }
         if (replacement != null) {
             val requiresAtoNgitah = ending.upadesha in setOf("आताम्", "आथाम्")
-            return ending.surface != replacement && (!requiresAtoNgitah || atoNgitahCompleted)
+            return ending.surface != replacement && (lakara == Lakara.LET || !requiresAtoNgitah || atoNgitahCompleted)
         }
         return ending.surface.endsWith("न्त्") &&
             context.substitutions.any { it.sutra == "7.1.3" } &&
@@ -58,13 +63,15 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
         }
 
         val atoNgitahCompleted = context.droppedTerms.any { it.id == "ato-ngit-it" }
+        val lakara = context.effectiveContext.rupa.lakara
         val replacement = when (ending.upadesha) {
             "त" -> "ते"
-            "आताम्" -> if (atoNgitahCompleted) "ते" else "आते"
-            "आथाम्" -> if (atoNgitahCompleted) "थे" else "आथे"
+            "आताम्" -> if (lakara == Lakara.LAT && atoNgitahCompleted) "ते" else "आते"
+            "आथाम्" -> if (lakara == Lakara.LAT && atoNgitahCompleted) "थे" else "आथे"
             "ध्वम्" -> "ध्वे"
             "वहि" -> "वहे"
             "महिङ्" -> "महे"
+            "इट्" -> "ए"
             else -> error("3.4.79 received a non-Ātmanepada ending: ${ending.upadesha}")
         }
         return DerivationChange(

@@ -46,7 +46,14 @@ object AdesapratyayayohSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     private fun findRetroflexTarget(context: DerivationState): DerivationTerm? {
-        if (context.stage != DerivationStage.PADA_FORMED && context.stage != DerivationStage.FINAL) return null
+        val isSipLet = context.allEffectiveTerms.any { it.id == "sip-aorist" }
+        if (context.stage != DerivationStage.PADA_FORMED && context.stage != DerivationStage.FINAL && !isSipLet) return null
+        if (isSipLet) {
+            val sipIndex = context.terms.indexOfFirst { it.id == "sip-aorist" && 'स' in it.surface }
+            if (sipIndex > 0 && context.terms[sipIndex - 1].surface.endsWith("इ")) {
+                return context.terms[sipIndex]
+            }
+        }
         
         val engine = Ashtadhyayi.pratyaharaEngine
         val surface = context.surface

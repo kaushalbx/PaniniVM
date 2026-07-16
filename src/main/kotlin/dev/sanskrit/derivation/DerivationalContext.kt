@@ -32,6 +32,9 @@ enum class Lakara(val upadesha: String) {
 }
 enum class Kala { VARTAMANA, BHUTA, BHAVISYAT }
 enum class PhonologicalRequest { GUNA, VRDDHI }
+enum class LetAugment { AT, AAT }
+enum class LetFormation { PRESENT_STEM, SIP_AORIST }
+enum class LetEOption { E, AI }
 
 /** Typed morphosyntactic axes replace independent boolean-like feature flags. */
 data class Rupa(
@@ -51,6 +54,9 @@ data class DerivationalContext(
     val environments: Set<DerivationalEnvironment> = emptySet(),
     val kala: Kala? = null,
     val phonologicalRequest: PhonologicalRequest? = null,
+    val letAugment: LetAugment = LetAugment.AAT,
+    val letFormation: LetFormation = LetFormation.PRESENT_STEM,
+    val letEOption: LetEOption = LetEOption.E,
     val rupa: Rupa = Rupa(),
 ) {
     fun has(environment: DerivationalEnvironment): Boolean = environment in environments

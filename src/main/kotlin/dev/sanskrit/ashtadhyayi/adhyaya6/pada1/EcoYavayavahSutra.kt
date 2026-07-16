@@ -38,7 +38,7 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
         for (i in 0 until context.terms.size - 1) {
             val rightTerm = context.terms[i + 1]
             if (context.effectiveContext.rupa.lakara == Lakara.LET &&
-                rightTerm.upadesha == "झि" && !rightTerm.surface.startsWith("आ")
+                rightTerm.upadesha == "झि" && context.substitutions.none { it.sutra == "3.4.94" }
             ) continue
             val left = context.terms[i].surface.lastOrNull() ?: continue
             val right = rightTerm.surface.firstOrNull() ?: continue
@@ -55,7 +55,7 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
             val leftTerm = context.terms[i]
             val rightTerm = context.terms[i+1]
             if (context.effectiveContext.rupa.lakara == Lakara.LET &&
-                rightTerm.upadesha == "झि" && !rightTerm.surface.startsWith("आ")
+                rightTerm.upadesha == "झि" && context.substitutions.none { it.sutra == "3.4.94" }
             ) continue
             val leftChar = leftTerm.surface.lastOrNull() ?: continue
             val rightChar = rightTerm.surface.firstOrNull() ?: continue

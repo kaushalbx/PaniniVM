@@ -16,7 +16,8 @@ object ArdhadhatukasyedValadehSutra : Sutra<DerivationState, DerivationChange>(
         val ending = context.terms.lastOrNull() ?: return false
         val isTransformedLitEnding = context.effectiveContext.rupa.lakara != Lakara.LIT ||
             (ending.upadesha != null && ending.surface != ending.upadesha)
-        return HasDerivationalEnvironment(DerivationalEnvironment.ARDHADHATUKA).matches(context) &&
+        val isSipLet = context.allEffectiveTerms.any { it.id == "sip-aorist" }
+        return (HasDerivationalEnvironment(DerivationalEnvironment.ARDHADHATUKA).matches(context) || isSipLet) &&
             context.terms.any { it.kind == TermKind.DHATU && it.itStatus == ItStatus.SET } &&
             ending.kind == TermKind.PRATYAYA &&
             ending.surface.firstOrNull()?.let { char -> char !in vowels } == true &&

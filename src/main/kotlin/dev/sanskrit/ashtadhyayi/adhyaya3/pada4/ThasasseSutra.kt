@@ -26,7 +26,8 @@ object ThasasseSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val ending = context.terms.last()
-        return context.effectiveContext.rupa.lakara == Lakara.LAT &&
+        return context.effectiveContext.rupa.lakara in setOf(Lakara.LAT, Lakara.LET) &&
+            context.substitutions.none { it.sutra == "3.4.96" } &&
             ending.matchesUpadesha("थास्") &&
             ending.surface != "से"
     }

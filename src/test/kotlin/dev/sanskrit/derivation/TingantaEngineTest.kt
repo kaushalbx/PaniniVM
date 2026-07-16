@@ -455,4 +455,52 @@ class TingantaEngineTest {
         }
     }
 
+    @Test
+    fun `LET exposes the alternative at augment branch`() {
+        val result = TingantaEngine().derive(
+            TingantaDerivationRequest(
+                "भू", Vacana.EKAVACANA, Purusha.PRATHAMA, Lakara.LET,
+                letAugment = LetAugment.AT,
+            )
+        )
+
+        assertEquals("भवत्", result.final.surface)
+        assertTrue(result.applications.any { it.sutra == "3.4.94" && "अट्" in it.explanation })
+    }
+
+    @Test
+    fun `LET derives atmanepada ai forms under 3 4 95 and 96`() {
+        val obligatoryDual = TingantaEngine().derive(
+            TingantaDerivationRequest(
+                "लभ्", Vacana.DVIVACANA, Purusha.PRATHAMA, Lakara.LET,
+                letAugment = LetAugment.AT,
+            )
+        )
+        val optionalSingular = TingantaEngine().derive(
+            TingantaDerivationRequest(
+                "लभ्", Vacana.EKAVACANA, Purusha.PRATHAMA, Lakara.LET,
+                letEOption = LetEOption.AI,
+            )
+        )
+
+        assertEquals("लभैते", obligatoryDual.final.surface)
+        assertTrue(obligatoryDual.applications.any { it.sutra == "3.4.95" })
+        assertEquals("लभातै", optionalSingular.final.surface)
+        assertTrue(optionalSingular.applications.any { it.sutra == "3.4.96" })
+    }
+
+    @Test
+    fun `LET inserts sip for the attested aorist subjunctive of tr`() {
+        val result = TingantaEngine().derive(
+            TingantaDerivationRequest(
+                "तॄ", Vacana.EKAVACANA, Purusha.PRATHAMA, Lakara.LET,
+                letAugment = LetAugment.AT,
+                letFormation = LetFormation.SIP_AORIST,
+            )
+        )
+
+        assertEquals("तारिषत्", result.final.surface)
+        assertTrue(result.applications.map { it.sutra }.containsAll(setOf("3.1.34", "3.4.94", "7.2.35", "8.3.59")))
+    }
+
 }

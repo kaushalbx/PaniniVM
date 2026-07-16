@@ -63,6 +63,12 @@ object TingantaFormPlans {
             if (affix in setOf(TingAffix.VAS, TingAffix.MAS)) required += "3.4.98"
             add(TingantaFormPlan(affix, Lakara.LET, required, DerivationStage.FINAL))
         }
+        TingAffix.entries.filter { it.pada == PadaType.ATMANEPADA }.forEach { affix ->
+            val required = mutableSetOf("3.4.7", "3.4.78", "3.4.94", "3.4.79")
+            if (affix == TingAffix.THAS_A) required += "3.4.80"
+            if (affix in setOf(TingAffix.ATAM, TingAffix.ATHAM)) required += "3.4.95"
+            add(TingantaFormPlan(affix, Lakara.LET, required, DerivationStage.FINAL))
+        }
     }
 
     fun find(purusha: Purusha, vacana: Vacana, pada: PadaType, lakara: Lakara): TingantaFormPlan? =

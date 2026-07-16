@@ -30,6 +30,9 @@ object StunaShtuhSutra : Sutra<DerivationState, DerivationChange>(
     dependencies = setOf("8.4.40")
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
+        // In the LET सिप् formation the following त् belongs to अट् + त्;
+        // the intervening अ prevents actual ṣṭutva (तारिषत्, not *तारिषट्).
+        if (context.terms.any { it.id == "sip-aorist" && 'ष' in it.surface }) return false
         val match = findMatch(context.surface) ?: return false
         val target = context.surface[match.first]
         return getReplacement(target) != target.toString()

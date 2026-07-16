@@ -7,6 +7,9 @@ data class TingantaDerivationRequest(
     val vacana: Vacana = Vacana.EKAVACANA,
     val purusha: Purusha = Purusha.PRATHAMA,
     val lakara: Lakara = Lakara.LAT,
+    val letAugment: LetAugment = LetAugment.AAT,
+    val letFormation: LetFormation = LetFormation.PRESENT_STEM,
+    val letEOption: LetEOption = LetEOption.E,
 ) {
     fun initialState() = DerivationState(
         listOf(DerivationTerm("dhatu", dhatu, TermKind.DHATU)),
@@ -22,6 +25,9 @@ data class TingantaDerivationRequest(
                 else -> Kala.VARTAMANA
             },
             rupa = Rupa(purusha = purusha, prayoga = Prayoga.KARTARI, vacana = vacana, lakara = lakara),
+            letAugment = letAugment,
+            letFormation = letFormation,
+            letEOption = letEOption,
             environments = when (lakara) {
                 Lakara.LRT, Lakara.LIT, Lakara.LRNG, Lakara.LUT -> setOf(DerivationalEnvironment.ARDHADHATUKA)
                 else -> emptySet()
@@ -45,6 +51,9 @@ fun TingantaDerivationRequest.initialState(dhatu: Dhatu) = DerivationState(
             else -> Kala.VARTAMANA
         },
         rupa = Rupa(purusha = purusha, prayoga = Prayoga.KARTARI, vacana = vacana, lakara = lakara),
+        letAugment = letAugment,
+        letFormation = letFormation,
+        letEOption = letEOption,
         environments = when (lakara) {
             Lakara.LRT, Lakara.LIT, Lakara.LRNG, Lakara.LUT -> setOf(DerivationalEnvironment.ARDHADHATUKA)
             else -> emptySet()
