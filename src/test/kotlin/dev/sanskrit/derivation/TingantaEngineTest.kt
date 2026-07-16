@@ -9,6 +9,48 @@ import dev.sanskrit.dhatupatha.PadaType
 class TingantaEngineTest {
 
     @Test
+    fun `conjugation engine derives complete Tanadi present paradigms for tan`() {
+        val engine = TingantaEngine()
+        val parasmaipada = engine.deriveSupportedParadigm("तनुँ", pada = PadaType.PARASMAIPADA, lakara = Lakara.LAT)
+        val atmanepada = engine.deriveSupportedParadigm("तनुँ", pada = PadaType.ATMANEPADA, lakara = Lakara.LAT)
+
+        assertEquals(
+            mapOf(
+                TingAffix.TIP to "तनोति",
+                TingAffix.TAS to "तनुतः",
+                TingAffix.JHI to "तन्वन्ति",
+                TingAffix.SIP to "तनोसि",
+                TingAffix.THAS to "तनुथः",
+                TingAffix.THA to "तनुथ",
+                TingAffix.MIP to "तनोमि",
+                TingAffix.VAS to "तनुवः",
+                TingAffix.MAS to "तनुमः",
+            ),
+            parasmaipada.surfaces,
+        )
+        assertEquals(
+            mapOf(
+                TingAffix.TA to "तनुते",
+                TingAffix.ATAM to "तन्वाते",
+                TingAffix.JHA to "तन्वते",
+                TingAffix.THAS_A to "तनुषे",
+                TingAffix.ATHAM to "तन्वाथे",
+                TingAffix.DHVAM to "तनुध्वे",
+                TingAffix.IT to "तन्वे",
+                TingAffix.VAHI to "तनुवहे",
+                TingAffix.MAHING to "तनुमहे",
+            ),
+            atmanepada.surfaces,
+        )
+
+        (parasmaipada.forms.values + atmanepada.forms.values).forEach { result ->
+            assertTrue(result.applications.any { it.sutra == "3.1.79" })
+            assertTrue(result.applications.none { it.sutra == "3.1.68" })
+            assertTrue(result.final.terms.any { it.id == "tanadi-u" && it.upadesha == "उ" })
+        }
+    }
+
+    @Test
     fun `conjugation engine derives complete Svadi present paradigms for su`() {
         val engine = TingantaEngine()
         val parasmaipada = engine.deriveSupportedParadigm("षुञ्", pada = PadaType.PARASMAIPADA, lakara = Lakara.LAT)

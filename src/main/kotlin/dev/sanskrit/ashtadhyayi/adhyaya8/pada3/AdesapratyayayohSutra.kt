@@ -84,9 +84,11 @@ object AdesapratyayayohSutra : Sutra<DerivationState, DerivationChange>(
             // 8.3.55: apādāntasya - target must not be at the end of the word
             val prefixLength = context.terms.take(i).sumOf { it.surface.length }
             val absoluteSIndex = prefixLength + sIndex
-            val isAtEnd = absoluteSIndex == surface.length - 1 || 
-                          (absoluteSIndex == surface.length - 2 && surface.endsWith('्'))
-            if (isAtEnd) continue
+            val isAtEnd = absoluteSIndex == surface.length - 1 ||
+                (absoluteSIndex == surface.length - 2 && surface.endsWith('्'))
+            val followsStandaloneTanadiU = i > 0 &&
+                context.terms[i - 1].id == "tanadi-u" && context.terms[i - 1].surface == "उ"
+            if (isAtEnd && !followsStandaloneTanadiU) continue
             
             val preChar = if (sIndex == 0) {
                 if (i == 0) continue
@@ -96,12 +98,29 @@ object AdesapratyayayohSutra : Sutra<DerivationState, DerivationChange>(
                 termSurface[sIndex - 1]
             }
             
-            val isInIn = engine.contains(Pratyahara.IN, preChar)
+            val isInIn = engine.contains(Pratyahara.IN, independentVowel(preChar))
             val isInKu = isKu(preChar)
-            
-            if (isInIn || isInKu) return term
+            val isTanadiStrongStem = i > 0 &&
+                context.terms[i - 1].id == "tanadi-u" && context.terms[i - 1].surface == "ओ"
+
+            if (!isTanadiStrongStem && (isInIn || isInKu)) return term
         }
         return null
+    }
+
+    private fun independentVowel(c: Char): Char = when (c) {
+        'ि' -> 'इ'
+        'ी' -> 'ई'
+        'ु' -> 'उ'
+        'ू' -> 'ऊ'
+        'ृ' -> 'ऋ'
+        'ॄ' -> 'ॠ'
+        'ॢ' -> 'ऌ'
+        'े' -> 'ए'
+        'ै' -> 'ऐ'
+        'ो' -> 'ओ'
+        'ौ' -> 'औ'
+        else -> c
     }
 
     private fun isKu(c: Char): Boolean = c in setOf('क', 'ख', 'ग', 'घ', 'ङ')

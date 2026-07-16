@@ -43,8 +43,8 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
         // Jurisdictional check: Must be in the Aṅga section
         if ("6.4.1" !in context.activeAdhikaras) return false
 
-        val shnu = strongShnu(context)
-        if (shnu != null) return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.IK, shnu.surface.last())
+        val strongUGrade = strongUGrade(context)
+        if (strongUGrade != null) return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.IK, strongUGrade.surface.last())
 
         val stemIndex = context.terms.indexOfFirst { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         if (stemIndex < 0) return false
@@ -68,7 +68,7 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val stem = strongShnu(context)
+        val stem = strongUGrade(context)
             ?: context.terms.first { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         val lastChar = stem.surface.last()
         val replacement = requireNotNull(Varnamala.getGuna(lastChar))
@@ -82,8 +82,8 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
         )
     }
 
-    private fun strongShnu(context: DerivationState) =
-        context.terms.firstOrNull { it.id == "shnu" }?.takeIf {
+    private fun strongUGrade(context: DerivationState) =
+        context.terms.firstOrNull { it.id in setOf("shnu", "tanadi-u") }?.takeIf {
             context.terms.lastOrNull()?.upadesha in setOf(
                 TingAffix.TIP.upadesha,
                 TingAffix.SIP.upadesha,
