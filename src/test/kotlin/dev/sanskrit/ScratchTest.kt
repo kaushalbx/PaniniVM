@@ -8,11 +8,11 @@ class ScratchTest {
     @Test
     fun testDerivationTrace() {
         val dhatu = dev.sanskrit.dhatupatha.DhatuPatha.all.first { it.upadesha == "भू" }
-        val request = TingantaDerivationRequest("भू", Vacana.EKAVACANA, Purusha.PRATHAMA, Lakara.LUT)
+        val request = TingantaDerivationRequest("भू", Vacana.BAHUVACANA, Purusha.PRATHAMA, Lakara.LUNG)
         var current = request.initialState(dhatu)
         val engine = DerivationEngine()
 
-        println("=== STARTING STEP-BY-STEP TRACE FOR BHAVITA ===")
+        println("=== STARTING STEP-BY-STEP TRACE FOR ABHUVAN ===")
         val visited = mutableSetOf(current)
         for (step in 1..40) {
             val selectMethod = DerivationEngine::class.java.getDeclaredMethod("select", DerivationState::class.java, Set::class.java)

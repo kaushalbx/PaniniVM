@@ -396,4 +396,30 @@ class TingantaEngineTest {
             assertTrue(paradigm.forms.getValue(affix).applications.any { it.sutra == "7.4.50" })
         }
     }
+
+    @Test
+    fun `conjugation engine derives complete root aorist paradigm for bhu`() {
+        val paradigm = TingantaEngine().deriveSupportedParadigm("भू", lakara = Lakara.LUNG)
+        val forms = paradigm.surfaces
+
+        assertEquals(
+            mapOf(
+                TingAffix.TIP to "अभूत्",
+                TingAffix.TAS to "अभूताम्",
+                TingAffix.JHI to "अभूवन्",
+                TingAffix.SIP to "अभूः",
+                TingAffix.THAS to "अभूतम्",
+                TingAffix.THA to "अभूत",
+                TingAffix.MIP to "अभूवम्",
+                TingAffix.VAS to "अभूव",
+                TingAffix.MAS to "अभूम",
+            ),
+            forms,
+        )
+
+        paradigm.forms.values.forEach { result ->
+            val applied = result.applications.mapTo(mutableSetOf()) { it.sutra }
+            assertTrue(applied.containsAll(setOf("3.2.110", "3.1.43", "3.1.44", "2.4.77", "3.4.78")))
+        }
+    }
 }

@@ -51,6 +51,10 @@ object TingantaFormPlans {
             if (affix.purusha == Purusha.PRATHAMA) required += "2.4.85"
             add(TingantaFormPlan(affix, Lakara.LUT, required, DerivationStage.FINAL))
         }
+        // LUNG (general aorist) plans
+        TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.forEach { affix ->
+            add(TingantaFormPlan(affix, Lakara.LUNG, setOf("3.2.110", "3.1.43", "3.1.44", "2.4.77", "3.4.78", "6.4.71"), DerivationStage.FINAL))
+        }
     }
 
     fun find(purusha: Purusha, vacana: Vacana, pada: PadaType, lakara: Lakara): TingantaFormPlan? =

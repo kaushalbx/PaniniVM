@@ -28,7 +28,7 @@ object KartariShapSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
-        context.effectiveContext.rupa.lakara != Lakara.LIT &&
+        context.effectiveContext.rupa.lakara !in setOf(Lakara.LIT, Lakara.LUNG) &&
                 context.terms.lastOrNull()?.upadesha in TingAffix.entries.map { it.upadesha } &&
                 context.allEffectiveTerms.none { it.upadesha in setOf("शप्", "स्य", "तासि") }
 

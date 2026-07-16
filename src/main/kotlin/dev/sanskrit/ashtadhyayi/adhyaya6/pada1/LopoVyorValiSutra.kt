@@ -32,6 +32,9 @@ object LopoVyorValiSutra : Sutra<DerivationState, DerivationChange>(
             if (leftTerm.id == "yasut") continue
             val left = leftTerm.surface
             val rightTerm = context.terms[index + 1]
+            if (context.effectiveContext.rupa.lakara == Lakara.LUNG &&
+                leftTerm.id == "vuk" && rightTerm.upadesha in setOf("च्लि", "सिच्")
+            ) continue
             if (context.effectiveContext.rupa.lakara == Lakara.LING &&
                 rightTerm.matchesUpadesha("मिप्") &&
                 context.allEffectiveTerms.any { it.matchesUpadesha("यासुट्") }
@@ -49,6 +52,9 @@ object LopoVyorValiSutra : Sutra<DerivationState, DerivationChange>(
             val left = context.terms[index]
             if (left.id == "yasut") continue
             val rightTerm = context.terms[index + 1]
+            if (context.effectiveContext.rupa.lakara == Lakara.LUNG &&
+                left.id == "vuk" && rightTerm.upadesha in setOf("च्लि", "सिच्")
+            ) continue
             if (context.effectiveContext.rupa.lakara == Lakara.LING &&
                 rightTerm.matchesUpadesha("मिप्") &&
                 context.allEffectiveTerms.any { it.matchesUpadesha("यासुट्") }

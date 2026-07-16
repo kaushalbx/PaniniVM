@@ -49,6 +49,7 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
         if (affix.kind != TermKind.PRATYAYA) return false
         if (context.effectiveContext.rupa.lakara == Lakara.LIT && affix.surface == affix.upadesha) return false
         if (context.effectiveContext.rupa.lakara == Lakara.LIT && stem.itStatus == ItStatus.SET) return false
+        if (context.effectiveContext.rupa.lakara == Lakara.LUNG && stem.matchesUpadesha("भू")) return false
 
         val isSarvaOrArdha = HasDerivationalEnvironment(DerivationalEnvironment.ARDHADHATUKA).matches(context) ||
             affix.id == "shap" || affix.id.startsWith("ting-")

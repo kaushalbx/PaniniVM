@@ -18,6 +18,7 @@ data class TingantaDerivationRequest(
                 Lakara.LUT -> Kala.BHAVISYAT
                 Lakara.LANG -> Kala.BHUTA
                 Lakara.LIT -> Kala.BHUTA
+                Lakara.LUNG -> Kala.BHUTA
                 else -> Kala.VARTAMANA
             },
             rupa = Rupa(purusha = purusha, prayoga = Prayoga.KARTARI, vacana = vacana, lakara = lakara),
@@ -40,6 +41,7 @@ fun TingantaDerivationRequest.initialState(dhatu: Dhatu) = DerivationState(
             Lakara.LUT -> Kala.BHAVISYAT
             Lakara.LANG -> Kala.BHUTA
             Lakara.LIT -> Kala.BHUTA
+            Lakara.LUNG -> Kala.BHUTA
             else -> Kala.VARTAMANA
         },
         rupa = Rupa(purusha = purusha, prayoga = Prayoga.KARTARI, vacana = vacana, lakara = lakara),
