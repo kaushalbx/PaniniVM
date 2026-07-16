@@ -9,6 +9,49 @@ import dev.sanskrit.dhatupatha.PadaType
 class TingantaEngineTest {
 
     @Test
+    fun `conjugation engine derives complete Curadi present paradigms for cur`() {
+        val engine = TingantaEngine()
+        val parasmaipada = engine.deriveSupportedParadigm("चुरँ", pada = PadaType.PARASMAIPADA, lakara = Lakara.LAT)
+        val atmanepada = engine.deriveSupportedParadigm("चुरँ", pada = PadaType.ATMANEPADA, lakara = Lakara.LAT)
+
+        assertEquals(
+            mapOf(
+                TingAffix.TIP to "चोरयति",
+                TingAffix.TAS to "चोरयतः",
+                TingAffix.JHI to "चोरयन्ति",
+                TingAffix.SIP to "चोरयसि",
+                TingAffix.THAS to "चोरयथः",
+                TingAffix.THA to "चोरयथ",
+                TingAffix.MIP to "चोरयामि",
+                TingAffix.VAS to "चोरयावः",
+                TingAffix.MAS to "चोरयामः",
+            ),
+            parasmaipada.surfaces,
+        )
+        assertEquals(
+            mapOf(
+                TingAffix.TA to "चोरयते",
+                TingAffix.ATAM to "चोरयेते",
+                TingAffix.JHA to "चोरयन्ते",
+                TingAffix.THAS_A to "चोरयसे",
+                TingAffix.ATHAM to "चोरयेथे",
+                TingAffix.DHVAM to "चोरयध्वे",
+                TingAffix.IT to "चोरये",
+                TingAffix.VAHI to "चोरयावहे",
+                TingAffix.MAHING to "चोरयामहे",
+            ),
+            atmanepada.surfaces,
+        )
+
+        (parasmaipada.forms.values + atmanepada.forms.values).forEach { result ->
+            assertTrue(result.applications.any { it.sutra == "3.1.25" })
+            assertTrue(result.applications.any { it.sutra == "7.3.86" })
+            assertTrue(result.applications.any { it.sutra == "3.1.68" })
+            assertTrue(result.final.terms.any { it.upadesha == "णिच्" })
+        }
+    }
+
+    @Test
     fun `conjugation engine derives complete Tanadi present paradigms for tan`() {
         val engine = TingantaEngine()
         val parasmaipada = engine.deriveSupportedParadigm("तनुँ", pada = PadaType.PARASMAIPADA, lakara = Lakara.LAT)

@@ -31,6 +31,9 @@ object TingantaFormPlans {
             if (affix in setOf(TingAffix.TIP, TingAffix.SIP, TingAffix.MIP)) tanadiRequired += "7.3.84"
             if (affix == TingAffix.JHA) tanadiRequired += "7.1.5"
             add(TingantaFormPlan(affix, Lakara.LAT, tanadiRequired, DerivationStage.FINAL, setOf(Gana.TANADI)))
+            val curadiRequired = mutableSetOf("3.4.78", "3.1.25", "7.3.86")
+            if (affix in setOf(TingAffix.ATAM, TingAffix.ATHAM)) curadiRequired += "7.2.81"
+            add(TingantaFormPlan(affix, Lakara.LAT, curadiRequired, DerivationStage.FINAL, setOf(Gana.CURADI)))
         }
         // LRT (future tense) plans
         TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.forEach { affix ->
