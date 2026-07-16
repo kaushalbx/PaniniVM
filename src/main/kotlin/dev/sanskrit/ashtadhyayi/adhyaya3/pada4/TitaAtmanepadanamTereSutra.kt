@@ -31,6 +31,7 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
         if (lakara !in setOf(Lakara.LAT, Lakara.LET, Lakara.LIT, Lakara.LOT, Lakara.LRT, Lakara.LUT)) return false
         val ending = context.terms.last()
         val atoNgitahCompleted = context.droppedTerms.any { it.id == "ato-ngit-it" }
+        val isNonAStem = context.terms.any { it.id == "shnu" }
         if (lakara == Lakara.LOT && context.substitutions.any { it.sutra in setOf("3.4.90", "3.4.91", "3.4.93") }) return false
         if (lakara == Lakara.LIT && ending.upadesha in setOf("त", "झ")) return false
         if (lakara == Lakara.LUT && ending.upadesha in setOf("त", "आताम्", "झ")) return false
@@ -50,11 +51,12 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
         }
         if (replacement != null) {
             val requiresAtoNgitah = ending.upadesha in setOf("आताम्", "आथाम्")
-            return ending.surface != replacement && (lakara in setOf(Lakara.LET, Lakara.LIT, Lakara.LOT, Lakara.LRT, Lakara.LUT) || !requiresAtoNgitah || atoNgitahCompleted)
+            return ending.surface != replacement && (lakara in setOf(Lakara.LET, Lakara.LIT, Lakara.LOT, Lakara.LRT, Lakara.LUT) || !requiresAtoNgitah || atoNgitahCompleted || isNonAStem)
         }
         return ending.surface.endsWith("न्त्") &&
             context.substitutions.any { it.sutra == "7.1.3" } &&
-            ending.upadesha in setOf("झ", "शप्")
+            ending.upadesha in setOf("झ", "शप्") ||
+            (ending.surface.endsWith("अत") && context.substitutions.any { it.sutra == "7.1.5" })
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -63,6 +65,12 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
             return DerivationChange(
                 context.replaceTerm(ending.id, ending.copy(surface = ending.surface.dropLast(2) + "ते")),
                 "3.4.79 replaces the final टि of the झ्-अन्ति outcome with ए.",
+            )
+        }
+        if (ending.surface.endsWith("अत") && context.substitutions.any { it.sutra == "7.1.5" }) {
+            return DerivationChange(
+                context.replaceTerm(ending.id, ending.copy(surface = ending.surface + "े")),
+                "3.4.79 replaces the टि portion of the 7.1.5 अत् outcome with ए.",
             )
         }
 

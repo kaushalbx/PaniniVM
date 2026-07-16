@@ -10,6 +10,7 @@ import dev.sanskrit.shiksha.ItStatus
 import dev.sanskrit.derivation.DerivationalEnvironment
 import dev.sanskrit.derivation.HasDerivationalEnvironment
 import dev.sanskrit.derivation.TermKind
+import dev.sanskrit.derivation.TingAffix
 import dev.sanskrit.derivation.VarnaSubstitution
 import dev.sanskrit.pratyahara.Pratyahara
 import dev.sanskrit.shiksha.Varnamala
@@ -42,6 +43,9 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
         // Jurisdictional check: Must be in the Aṅga section
         if ("6.4.1" !in context.activeAdhikaras) return false
 
+        val shnu = strongShnu(context)
+        if (shnu != null) return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.IK, shnu.surface.last())
+
         val stemIndex = context.terms.indexOfFirst { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         if (stemIndex < 0) return false
         val stem = context.terms[stemIndex]
@@ -64,7 +68,8 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val stem = context.terms.first { it.kind == TermKind.DHATU && it.id != "abhyasa" }
+        val stem = strongShnu(context)
+            ?: context.terms.first { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         val lastChar = stem.surface.last()
         val replacement = requireNotNull(Varnamala.getGuna(lastChar))
         val newSurface = stem.surface.dropLast(1) + replacement
@@ -76,4 +81,13 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
             explanation = "7.3.84: Applied guna ($replacement) within Aṅgasya jurisdiction."
         )
     }
+
+    private fun strongShnu(context: DerivationState) =
+        context.terms.firstOrNull { it.id == "shnu" }?.takeIf {
+            context.terms.lastOrNull()?.upadesha in setOf(
+                TingAffix.TIP.upadesha,
+                TingAffix.SIP.upadesha,
+                TingAffix.MIP.upadesha,
+            )
+        }
 }

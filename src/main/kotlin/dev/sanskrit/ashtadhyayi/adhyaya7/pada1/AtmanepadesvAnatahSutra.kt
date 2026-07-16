@@ -12,9 +12,9 @@ object AtmanepadesvAnatahSutra : Sutra<DerivationState, DerivationChange>(
     blocks = setOf("7.1.3"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        // This executable slice covers the non-a-final LUNG anga. In the
-        // present system, nitya shap must be introduced before this test.
-        if (context.effectiveContext.rupa.lakara != Lakara.LUNG) return false
+        val lakara = context.effectiveContext.rupa.lakara
+        if (lakara !in setOf(Lakara.LAT, Lakara.LUNG)) return false
+        if (lakara == Lakara.LAT && context.terms.none { it.id == "shnu" }) return false
         val endingIndex = context.terms.indexOfLast { it.upadesha == "झ" && it.surface.startsWith("झ") }
         if (endingIndex <= 0) return false
         return !context.terms[endingIndex - 1].surface.endsWith("अ")

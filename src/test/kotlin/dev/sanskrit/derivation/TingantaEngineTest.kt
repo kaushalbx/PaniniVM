@@ -9,6 +9,48 @@ import dev.sanskrit.dhatupatha.PadaType
 class TingantaEngineTest {
 
     @Test
+    fun `conjugation engine derives complete Svadi present paradigms for su`() {
+        val engine = TingantaEngine()
+        val parasmaipada = engine.deriveSupportedParadigm("षुञ्", pada = PadaType.PARASMAIPADA, lakara = Lakara.LAT)
+        val atmanepada = engine.deriveSupportedParadigm("षुञ्", pada = PadaType.ATMANEPADA, lakara = Lakara.LAT)
+
+        assertEquals(
+            mapOf(
+                TingAffix.TIP to "सुनोति",
+                TingAffix.TAS to "सुनुतः",
+                TingAffix.JHI to "सुन्वन्ति",
+                TingAffix.SIP to "सुनोषि",
+                TingAffix.THAS to "सुनुथः",
+                TingAffix.THA to "सुनुथ",
+                TingAffix.MIP to "सुनोमि",
+                TingAffix.VAS to "सुनुवः",
+                TingAffix.MAS to "सुनुमः",
+            ),
+            parasmaipada.surfaces,
+        )
+        assertEquals(
+            mapOf(
+                TingAffix.TA to "सुनुते",
+                TingAffix.ATAM to "सुन्वाते",
+                TingAffix.JHA to "सुन्वते",
+                TingAffix.THAS_A to "सुनुषे",
+                TingAffix.ATHAM to "सुन्वाथे",
+                TingAffix.DHVAM to "सुनुध्वे",
+                TingAffix.IT to "सुन्वे",
+                TingAffix.VAHI to "सुनुवहे",
+                TingAffix.MAHING to "सुनुमहे",
+            ),
+            atmanepada.surfaces,
+        )
+
+        (parasmaipada.forms.values + atmanepada.forms.values).forEach { result ->
+            assertTrue(result.applications.any { it.sutra == "3.1.73" })
+            assertTrue(result.applications.none { it.sutra == "3.1.68" })
+            assertTrue(result.final.terms.any { it.upadesha == "श्नु" })
+        }
+    }
+
+    @Test
     fun `conjugation engine derives complete Tudadi present paradigms for tud`() {
         val engine = TingantaEngine()
         val parasmaipada = engine.deriveSupportedParadigm("तुद्", pada = PadaType.PARASMAIPADA, lakara = Lakara.LAT)

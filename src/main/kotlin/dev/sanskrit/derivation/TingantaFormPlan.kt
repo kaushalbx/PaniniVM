@@ -20,6 +20,10 @@ object TingantaFormPlans {
             add(TingantaFormPlan(affix, Lakara.LAT, setOf("3.4.78"), DerivationStage.FINAL, setOf(Gana.BHVADI)))
             add(TingantaFormPlan(affix, Lakara.LAT, setOf("3.4.78", "2.4.72"), DerivationStage.FINAL, setOf(Gana.ADADI)))
             add(TingantaFormPlan(affix, Lakara.LAT, setOf("3.4.78", "3.1.69"), DerivationStage.FINAL, setOf(Gana.DIVADI)))
+            val svadiRequired = mutableSetOf("3.4.78", "3.1.73")
+            if (affix in setOf(TingAffix.TIP, TingAffix.SIP, TingAffix.MIP)) svadiRequired += "7.3.84"
+            if (affix == TingAffix.JHA) svadiRequired += "7.1.5"
+            add(TingantaFormPlan(affix, Lakara.LAT, svadiRequired, DerivationStage.FINAL, setOf(Gana.SVADI)))
             val tudadiRequired = mutableSetOf("3.4.78", "3.1.77")
             if (affix in setOf(TingAffix.ATAM, TingAffix.ATHAM)) tudadiRequired += "7.2.81"
             add(TingantaFormPlan(affix, Lakara.LAT, tudadiRequired, DerivationStage.FINAL, setOf(Gana.TUDADI)))

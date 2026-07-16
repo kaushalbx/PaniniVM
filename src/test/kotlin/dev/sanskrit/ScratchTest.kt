@@ -9,11 +9,13 @@ class ScratchTest {
     fun testDerivationTrace() {
         val requests = Purusha.entries.flatMap { purusha ->
             Vacana.entries.map { vacana ->
-                "TUD LAT $purusha $vacana" to TingantaDerivationRequest("तुद्", vacana, purusha, Lakara.LAT)
+                "SU LAT $purusha $vacana" to TingantaDerivationRequest("षुञ्", vacana, purusha, Lakara.LAT)
             }
         }
         requests.forEach { (label, request) ->
-            val dhatu = dev.sanskrit.dhatupatha.DhatuPatha.all.first { it.derivationalSurface == request.dhatu }
+            val dhatu = dev.sanskrit.dhatupatha.DhatuPatha.all.first {
+                it.upadesha == request.dhatu || it.derivationalSurface == request.dhatu
+            }
             val result = DerivationEngine().derive(request.initialState(dhatu))
             println("=== $label ===")
             result.applications.forEachIndexed { index, application ->
