@@ -20,11 +20,13 @@ object SerHyapicCaSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         val affix = context.terms.lastOrNull() ?: return false
         return context.effectiveContext.rupa.lakara == Lakara.LOT && affix.upadesha == "सिप्" &&
+            context.substitutions.none { it.sutra == "3.4.87" } &&
             ((context.stage == DerivationStage.PADA_FORMED && affix.surface.isNotEmpty()) ||
                 (context.stage == DerivationStage.IT_PROCESSED && affix.surface.isEmpty()))
     }
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
-        return DerivationChange(context.replaceTerm(affix.id, affix.copy(surface = "")).copy(stage = DerivationStage.PADA_FORMED), "3.4.87 replaces सिप् in loṭ.")
+        val replacement = if (context.terms.any { it.id == "shna" }) "हि" else ""
+        return DerivationChange(context.replaceTerm(affix.id, affix.copy(surface = replacement)).copy(stage = DerivationStage.PADA_FORMED), "3.4.87 replaces सिप् in loṭ.")
     }
 }

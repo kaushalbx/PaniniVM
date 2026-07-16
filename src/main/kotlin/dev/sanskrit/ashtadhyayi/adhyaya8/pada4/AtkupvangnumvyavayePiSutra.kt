@@ -102,12 +102,14 @@ object AtkupvangnumvyavayePiSutra : Sutra<DerivationState, DerivationChange>(
 
     private fun targetIndices(context: DerivationState): Pair<Int, Int>? {
         val surface = context.surface
-        val shna = context.terms.firstOrNull { it.id == "shna" && 'न' in it.surface }
+        val shna = context.terms.firstOrNull { it.id == "shna" }
         if (shna != null) {
+            if ('ण' in shna.surface || 'न' !in shna.surface) return null
             val shnaIndex = context.terms.indexOf(shna)
             val nIndex = context.copy(terms = context.terms.take(shnaIndex)).surface.length
             val triggerIndex = surface.substring(0, nIndex).lastIndexOfAny(setOf('र', 'ष', 'ऋ', 'ृ', 'ॠ', 'ॄ'))
             if (triggerIndex >= 0) return triggerIndex to nIndex
+            return null
         }
         val triggerIndex = surface.lastIndexOfAny(setOf('र', 'ष', 'ऋ', 'ृ', 'ॠ', 'ॄ'))
         if (triggerIndex < 0) return null

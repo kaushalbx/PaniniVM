@@ -42,8 +42,8 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
             context.substitutions.any { it.sutra == "3.4.95" }) return false
         val replacement = when (ending.upadesha) {
             "त" -> "ते"
-            "आताम्" -> if (lakara in setOf(Lakara.LOT, Lakara.LRT)) "एते" else if (lakara == Lakara.LAT && atoNgitahCompleted) "ते" else "आते"
-            "आथाम्" -> if (lakara in setOf(Lakara.LOT, Lakara.LRT)) "एथे" else if (lakara == Lakara.LAT && atoNgitahCompleted) "थे" else "आथे"
+            "आताम्" -> if (lakara in setOf(Lakara.LOT, Lakara.LRT) && !isNonAStem) "एते" else if (lakara == Lakara.LAT && atoNgitahCompleted) "ते" else "आते"
+            "आथाम्" -> if (lakara in setOf(Lakara.LOT, Lakara.LRT) && !isNonAStem) "एथे" else if (lakara == Lakara.LAT && atoNgitahCompleted) "थे" else "आथे"
             "ध्वम्" -> "ध्वे"
             "वहि" -> "वहे"
             "महिङ्" -> "महे"
@@ -77,10 +77,12 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
 
         val atoNgitahCompleted = context.droppedTerms.any { it.id == "ato-ngit-it" }
         val lakara = context.effectiveContext.rupa.lakara
+        val isNonAStem = context.terms.any { it.id in setOf("shnu", "tanadi-u", "shna") } ||
+            context.droppedTerms.any { it.upadesha == "श्नम्" }
         val replacement = when (ending.upadesha) {
             "त" -> "ते"
-            "आताम्" -> if (lakara in setOf(Lakara.LOT, Lakara.LRT)) "एते" else if (lakara == Lakara.LAT && atoNgitahCompleted) "ते" else "आते"
-            "आथाम्" -> if (lakara in setOf(Lakara.LOT, Lakara.LRT)) "एथे" else if (lakara == Lakara.LAT && atoNgitahCompleted) "थे" else "आथे"
+            "आताम्" -> if (lakara in setOf(Lakara.LOT, Lakara.LRT) && !isNonAStem) "एते" else if (lakara == Lakara.LAT && atoNgitahCompleted) "ते" else "आते"
+            "आथाम्" -> if (lakara in setOf(Lakara.LOT, Lakara.LRT) && !isNonAStem) "एथे" else if (lakara == Lakara.LAT && atoNgitahCompleted) "थे" else "आथे"
             "ध्वम्" -> "ध्वे"
             "वहि" -> "वहे"
             "महिङ्" -> "महे"

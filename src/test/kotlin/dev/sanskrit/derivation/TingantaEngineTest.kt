@@ -9,6 +9,48 @@ import dev.sanskrit.dhatupatha.PadaType
 class TingantaEngineTest {
 
     @Test
+    fun `conjugation engine derives complete Kryadi imperative paradigms for kri`() {
+        val engine = TingantaEngine()
+        val parasmaipada = engine.deriveSupportedParadigm("डुक्रीञ्", pada = PadaType.PARASMAIPADA, lakara = Lakara.LOT)
+        val atmanepada = engine.deriveSupportedParadigm("डुक्रीञ्", pada = PadaType.ATMANEPADA, lakara = Lakara.LOT)
+
+        assertEquals(
+            mapOf(
+                TingAffix.TIP to "क्रीणातु",
+                TingAffix.TAS to "क्रीणीताम्",
+                TingAffix.JHI to "क्रीणन्तु",
+                TingAffix.SIP to "क्रीणीहि",
+                TingAffix.THAS to "क्रीणीतम्",
+                TingAffix.THA to "क्रीणीत",
+                TingAffix.MIP to "क्रीणानि",
+                TingAffix.VAS to "क्रीणाव",
+                TingAffix.MAS to "क्रीणाम",
+            ),
+            parasmaipada.surfaces,
+        )
+        assertEquals(
+            mapOf(
+                TingAffix.TA to "क्रीणीताम्",
+                TingAffix.ATAM to "क्रीणाताम्",
+                TingAffix.JHA to "क्रीणताम्",
+                TingAffix.THAS_A to "क्रीणीष्व",
+                TingAffix.ATHAM to "क्रीणाथाम्",
+                TingAffix.DHVAM to "क्रीणीध्वम्",
+                TingAffix.IT to "क्रीणै",
+                TingAffix.VAHI to "क्रीणावहै",
+                TingAffix.MAHING to "क्रीणामहै",
+            ),
+            atmanepada.surfaces,
+        )
+
+        (parasmaipada.forms.values + atmanepada.forms.values).forEach { result ->
+            assertTrue(result.applications.any { it.sutra == "3.1.81" })
+            assertTrue(result.applications.any { it.sutra == "8.4.2" })
+            assertTrue(result.applications.none { it.sutra == "3.1.68" })
+        }
+    }
+
+    @Test
     fun `conjugation engine derives complete Kryadi present paradigms for kri`() {
         val engine = TingantaEngine()
         val parasmaipada = engine.deriveSupportedParadigm("डुक्रीञ्", pada = PadaType.PARASMAIPADA, lakara = Lakara.LAT)

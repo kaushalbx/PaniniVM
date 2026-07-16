@@ -6,6 +6,7 @@ import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.DerivationTerm
 import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.derivation.TingAffix
+import dev.sanskrit.derivation.Lakara
 import dev.sanskrit.dhatupatha.Gana
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
@@ -28,7 +29,15 @@ object KryadibhyahShnaSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
     blocks = setOf("3.1.68", "7.3.84"),
 ), DerivationSutra {
-    private val strongAffixes = setOf(TingAffix.TIP, TingAffix.SIP, TingAffix.MIP)
+    private val latStrongAffixes = setOf(TingAffix.TIP, TingAffix.SIP, TingAffix.MIP)
+    private val lotStrongAffixes = setOf(
+        TingAffix.TIP,
+        TingAffix.MIP,
+        TingAffix.VAS,
+        TingAffix.MAS,
+        TingAffix.VAHI,
+        TingAffix.MAHING,
+    )
     private val vowelInitialAffixes = setOf(
         TingAffix.JHI,
         TingAffix.ATAM,
@@ -46,6 +55,7 @@ object KryadibhyahShnaSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val affix = TingAffix.entries.single { it.upadesha == context.terms.last().upadesha }
+        val strongAffixes = if (context.effectiveContext.rupa.lakara == Lakara.LOT) lotStrongAffixes else latStrongAffixes
         val surface = when (affix) {
             in strongAffixes -> "ना"
             in vowelInitialAffixes -> "न्"

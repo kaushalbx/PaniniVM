@@ -80,8 +80,9 @@ object TingantaFormPlans {
             add(TingantaFormPlan(affix, Lakara.LANG, required, finalStage))
         }
         // LOT (imperative) plans
+        val nonKryadiGanas = Gana.entries.toSet() - Gana.KRYADI
         TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.forEach { affix ->
-            add(TingantaFormPlan(affix, Lakara.LOT, setOf("3.3.162", "3.4.78"), DerivationStage.FINAL))
+            add(TingantaFormPlan(affix, Lakara.LOT, setOf("3.3.162", "3.4.78"), DerivationStage.FINAL, nonKryadiGanas))
         }
         TingAffix.entries.filter { it.pada == PadaType.ATMANEPADA }.forEach { affix ->
             val required = mutableSetOf("3.3.162", "3.4.78")
@@ -92,7 +93,20 @@ object TingantaFormPlans {
                 TingAffix.IT, TingAffix.VAHI, TingAffix.MAHING -> required += setOf("3.4.79", "3.4.92", "3.4.93")
                 else -> Unit
             }
-            add(TingantaFormPlan(affix, Lakara.LOT, required, DerivationStage.FINAL))
+            add(TingantaFormPlan(affix, Lakara.LOT, required, DerivationStage.FINAL, nonKryadiGanas))
+        }
+        TingAffix.entries.forEach { affix ->
+            val required = mutableSetOf("3.3.162", "3.4.78", "3.1.81", "8.4.2")
+            if (affix.pada == PadaType.ATMANEPADA) {
+                when (affix) {
+                    TingAffix.TA, TingAffix.ATAM, TingAffix.JHA, TingAffix.ATHAM -> required += setOf("3.4.79", "3.4.90")
+                    TingAffix.THAS_A -> required += setOf("3.4.80", "3.4.91", "8.3.59")
+                    TingAffix.DHVAM -> required += setOf("3.4.79", "3.4.91")
+                    TingAffix.IT, TingAffix.VAHI, TingAffix.MAHING -> required += setOf("3.4.79", "3.4.92", "3.4.93")
+                    else -> Unit
+                }
+            }
+            add(TingantaFormPlan(affix, Lakara.LOT, required, DerivationStage.FINAL, setOf(Gana.KRYADI)))
         }
         // LING (vidhi-liṅ) plans
         TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.forEach { affix ->

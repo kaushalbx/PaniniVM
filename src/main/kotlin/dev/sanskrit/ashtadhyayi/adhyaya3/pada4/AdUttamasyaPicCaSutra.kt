@@ -22,8 +22,9 @@ object AdUttamasyaPicCaSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
         val agama = DerivationTerm("lot-at-agama", "", TermKind.AGAMA, upadesha = "आट्")
+        val strongKryadiStem = context.terms.any { it.id == "shna" }
         val augmented = when (ending.upadesha) {
-            "वहि", "महिङ्" -> ending.copy(surface = "आ${ending.surface}")
+            "वहि", "महिङ्" -> if (strongKryadiStem) ending else ending.copy(surface = "आ${ending.surface}")
             else -> ending
         }
         return DerivationChange(
