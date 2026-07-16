@@ -1,27 +1,75 @@
-# Full Ashtadhyayi Implementation Plan
+# Full Aṣṭādhyāyī Implementation Plan
 
-The full Ashtadhyayi is tracked as a target of 3959 sutras.
+The project tracks a target of 3,959 implemented sūtras.
 
-## Order of work
+## Current status
 
-1. Build a complete `SutraPatha` catalog from a reviewed source.
-2. Add adhikara and anuvritti metadata.
-3. Add paribhasha and asiddha/asiddhavat governance.
-4. Implement domain engines:
-   - shiksha and pratyahara
-   - sup and ting pratyaya
-   - dhatu, lakara, and pada generation
-   - krdanta
+| Measure | Count |
+| --- | ---: |
+| Target sūtras | 3,959 |
+| Implemented sūtras | 292 |
+| Remaining | 3,667 |
+
+The implemented subset supports end-to-end nominal and verbal derivations,
+but the count does not imply complete linguistic coverage of every rule
+environment.
+
+## Implementation principles
+
+1. Implement each sūtra from reviewed sources as a typed derivation rule.
+2. Represent adhikāra, anuvṛtti, dependency, blocking, and ordering metadata.
+3. Implement paribhāṣā and asiddha/asiddhavat governance in the engine.
+4. Count a sūtra only when its executable logic and tests are complete.
+5. Require supported form plans to name the sūtras needed for a complete
+   derivation.
+6. Preserve the full rule trace so every surface can be audited.
+
+## Domain milestones
+
+1. Śikṣā and pratyāhāra
+   - varṇa inventory and Māheśvara-sūtra tokenization
+   - savarṇa and articulatory relations
+   - Vedic accent support
+
+2. Sup morphology
+   - masculine a-stems
+   - remaining vowel and consonant stems
+   - feminine, neuter, pronoun, and numeral paradigms
+
+3. Tiṅ morphology
+   - all ten lakāras and both padas
+   - gaṇa-aware present-system stems
+   - passive, bhāve, causative, desiderative, and intensive derivations
+   - lexical and optional alternatives
+
+4. Derived morphology
+   - kṛdanta
    - taddhita
-   - samasa
-5. Promote sutras from `PATHITA` to `KRIYAVAT` only with tests.
+   - strī-pratyaya
 
-## Current executable scope
+5. Syntax and compounds
+   - kāraka and vibhakti selection
+   - samāsa formation
+   - semantic conditions and optional readings
 
-The current code executes six external sandhi sutras. Use:
+6. Phonology and governance
+   - internal and external sandhi
+   - Tripādī ordering
+   - vipratiṣedha, asiddha, exceptions, and optional branches
 
-```powershell
-gradle run --args="--coverage"
+## Reporting and verification
+
+Print the live implementation count:
+
+```sh
+./gradlew run --args="--coverage"
 ```
 
-to see the current patha/kriyavat counts.
+Run the complete verification suite:
+
+```sh
+./gradlew test
+```
+
+Counts in this document must be updated together with
+`AshtadhyayiTest.kt` whenever the registered sūtra set changes.

@@ -1,52 +1,65 @@
-# Derivation Sutra Roadmap
+# Derivation Sūtra Roadmap
 
-This project is organized so Paninian sutras can be added one at a time.
+The project adds Pāṇinian rules as typed, executable state transitions. A rule
+is counted as executable when it is registered and implements the derivation
+rule interface; supported forms additionally verify required rules end to end.
 
 ## Current scope
 
-The current engine handles a small external sandhi subset at pada boundaries:
+- 292 implemented sūtras.
+- Typed rule metadata: number, text, role, action, scope, stage, ordering,
+  dependencies, blockers, restrictions, and exceptions.
+- Māheśvara-sūtra and pratyāhāra support with explicit varṇa and it markers.
+- It-processing, pada and pratyaya selection, āgama, ādeśa, lopa, guṇa,
+  vṛddhi, reduplication, and selected Tripādī phonology.
+- Complete masculine a-stem `sup` paradigms.
+- Declared `tiṅ` paradigms across all ten lakāras, including Parasmaipada and
+  Ātmanepada coverage for representative roots.
+- Gaṇa-specific `LAT` stem formation for all ten Dhātupāṭha gaṇas.
+- Kryādi `LOT` support in both padas, verified with all 18 forms of
+  `डुक्रीञ्`.
+- A complete ten-gaṇa Dhātupāṭha catalogue with pada metadata.
 
-- svara + svara transformations
-- final visarga before `khar` vyanjanas derived by `PratyaharaEngine`
-- sutra tracing with sutra numbers
-- typed sutra metadata with krama, vaikalpika status, adhyaya, pada, and sutra type
-- typed Maheshvara Sutra tokens with real varnas separated from it markers
+## Near-term work
 
-## Next sutra groups
+1. Extend gaṇa-aware stem formation beyond `LAT`.
+   - carry each class rule into `LOT`, `LANG`, and `LING`
+   - preserve strong/weak stem selection per ending
+   - add complete paradigms rather than isolated forms
 
-1. Svara sandhi completion
-   - vrddhi sutras
-   - purvarupa and pararupa cases
-   - pragrihya exceptions
+2. Broaden root validation.
+   - test representative vowel-final and consonant-final roots
+   - test anudātta/anudāttet and Ubhayapada behavior
+   - record known lexical exceptions explicitly
 
-2. Visarga sandhi
-   - `रामः गच्छति -> रामो गच्छति`
-   - sibilant-specific variants
-   - pause and pada-end handling
+3. Complete verbal alternatives.
+   - optional aorist and subjunctive branches
+   - additional perfect and periphrastic-future environments
+   - passive and bhāve derivations
 
-3. Vyanjana sandhi
-   - `स्तोः श्चुना श्चुः`
-   - जश्त्व
-   - अनुस्वार and परसवर्ण
+4. Expand nominal morphology.
+   - additional stem classes and genders
+   - pronouns and numerals
+   - feminine formation, kṛdanta, and taddhita integration
 
-4. Sutra governance
-   - asiddha/asiddhavat ordering
-   - vaikalpika sutras
-   - environment-specific blocking sutras
+5. Strengthen rule governance.
+   - asiddha/asiddhavat visibility
+   - vipratiṣedha and environment-specific blocking
+   - deterministic handling of optional derivation branches
 
-5. Akshara tokenization
-   - independent svaras
-   - vyanjana + virama
-   - matra normalization
-   - anusvara, visarga, Vedic accent signs
+6. Continue phonological coverage.
+   - remaining svara, visarga, and vyañjana sandhi environments
+   - pada-end and pause behavior
+   - Vedic accent-aware tokenization
 
-## Design sutra
+## Definition of done for a rule
 
-Each sutra should include:
+Each implemented sūtra should include:
 
-- sutra number
-- readable sutra name
-- `SutraType`
-- krama
-- focused unit tests
-- notes for known exceptions or blocked environments
+- authoritative number and text
+- typed role, action, scope, stage, and ordering metadata
+- explicit applicability and state transition logic
+- dependencies, blockers, restrictions, or exceptions where applicable
+- focused unit tests and at least one end-to-end derivation when the rule is
+  part of a supported form
+- documentation of deliberate simplifications or unsupported environments
