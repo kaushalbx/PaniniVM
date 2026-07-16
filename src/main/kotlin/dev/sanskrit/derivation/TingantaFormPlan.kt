@@ -30,6 +30,17 @@ object TingantaFormPlans {
         TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.forEach { affix ->
             add(TingantaFormPlan(affix, Lakara.LOT, setOf("3.3.162", "3.4.78"), DerivationStage.FINAL))
         }
+        TingAffix.entries.filter { it.pada == PadaType.ATMANEPADA }.forEach { affix ->
+            val required = mutableSetOf("3.3.162", "3.4.78")
+            when (affix) {
+                TingAffix.TA, TingAffix.ATAM, TingAffix.JHA, TingAffix.ATHAM -> required += setOf("3.4.79", "3.4.90")
+                TingAffix.THAS_A -> required += setOf("3.4.80", "3.4.91")
+                TingAffix.DHVAM -> required += setOf("3.4.79", "3.4.91")
+                TingAffix.IT, TingAffix.VAHI, TingAffix.MAHING -> required += setOf("3.4.79", "3.4.92", "3.4.93")
+                else -> Unit
+            }
+            add(TingantaFormPlan(affix, Lakara.LOT, required, DerivationStage.FINAL))
+        }
         // LING (vidhi-liṅ) plans
         TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.forEach { affix ->
             add(TingantaFormPlan(affix, Lakara.LING, setOf("3.3.161", "3.4.78", "3.4.103"), DerivationStage.FINAL))

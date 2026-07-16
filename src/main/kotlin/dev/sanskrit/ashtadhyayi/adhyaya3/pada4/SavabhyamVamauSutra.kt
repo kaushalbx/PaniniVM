@@ -22,15 +22,23 @@ object SavabhyamVamauSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun matches(context: DerivationState): Boolean {
         val affix = context.terms.lastOrNull() ?: return false
-        val replacement = replacements[affix.upadesha] ?: return false
-        return context.effectiveContext.rupa.lakara == Lakara.LOT &&
+        if (context.effectiveContext.rupa.lakara != Lakara.LOT) return false
+        val replacement = replacements[affix.upadesha]
+        val active = replacement != null &&
             ((context.stage == DerivationStage.PADA_FORMED && affix.surface != replacement) ||
                 (context.stage == DerivationStage.IT_PROCESSED && affix.surface == replacement))
+        val middle = (affix.upadesha == "थास्" && affix.surface == "से") ||
+            (affix.upadesha == "ध्वम्" && affix.surface == "ध्वे")
+        return active || middle
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
-        val replacement = replacements.getValue(requireNotNull(affix.upadesha))
+        val replacement = when (affix.upadesha) {
+            "थास्" -> "स्व"
+            "ध्वम्" -> "ध्वम्"
+            else -> replacements.getValue(requireNotNull(affix.upadesha))
+        }
         return DerivationChange(context.replaceTerm(affix.id, affix.copy(surface = replacement)).copy(stage = DerivationStage.PADA_FORMED), "3.4.91 supplies the loṭ first-person termination.")
     }
 }

@@ -21,12 +21,20 @@ object AmetahSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         val affix = context.terms.lastOrNull() ?: return false
         val shapEstablished = context.terms.any { it.id == "shap" } || context.droppedTerms.any { it.id == "shap" }
-        return context.effectiveContext.rupa.lakara == Lakara.LOT && affix.upadesha == "झि" && shapEstablished &&
+        if (context.effectiveContext.rupa.lakara != Lakara.LOT || !shapEstablished) return false
+        val activeJhi = affix.upadesha == "झि" &&
             ((context.stage == DerivationStage.PADA_FORMED && affix.surface != "न्तु") ||
                 (context.stage == DerivationStage.IT_PROCESSED && affix.surface == "न्तु"))
+        val middleE = affix.surface in setOf("ते", "एते", "न्ते", "अन्ते", "एथे") &&
+            context.substitutions.none { it.sutra == "3.4.90" }
+        return activeJhi || middleE
     }
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
-        return DerivationChange(context.replaceTerm(affix.id, affix.copy(surface = "न्तु")).copy(stage = DerivationStage.PADA_FORMED), "3.4.90 replaces झि in loṭ.")
+        val replacement = if (affix.upadesha == "झि") "न्तु" else affix.surface.dropLast(1) + "ाम्"
+        return DerivationChange(
+            context.replaceTerm(affix.id, affix.copy(surface = replacement)).copy(stage = DerivationStage.PADA_FORMED),
+            "3.4.90 replaces the LOT ending's ए with आम्.",
+        )
     }
 }
