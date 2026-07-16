@@ -5,6 +5,7 @@ import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
+import dev.sanskrit.derivation.Lakara
 import dev.sanskrit.derivation.VarnaSubstitution
 import dev.sanskrit.pratyahara.Pratyahara
 import dev.sanskrit.shiksha.Svara
@@ -35,8 +36,12 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
         
         val engine = Ashtadhyayi.pratyaharaEngine
         for (i in 0 until context.terms.size - 1) {
+            val rightTerm = context.terms[i + 1]
+            if (context.effectiveContext.rupa.lakara == Lakara.LET &&
+                rightTerm.upadesha == "झि" && !rightTerm.surface.startsWith("आ")
+            ) continue
             val left = context.terms[i].surface.lastOrNull() ?: continue
-            val right = context.terms[i+1].surface.firstOrNull() ?: continue
+            val right = rightTerm.surface.firstOrNull() ?: continue
             if (engine.contains(Pratyahara.EC, left) && engine.contains(Pratyahara.AC, right)) {
                 return true
             }
@@ -49,6 +54,9 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
         for (i in 0 until context.terms.size - 1) {
             val leftTerm = context.terms[i]
             val rightTerm = context.terms[i+1]
+            if (context.effectiveContext.rupa.lakara == Lakara.LET &&
+                rightTerm.upadesha == "झि" && !rightTerm.surface.startsWith("आ")
+            ) continue
             val leftChar = leftTerm.surface.lastOrNull() ?: continue
             val rightChar = rightTerm.surface.firstOrNull() ?: continue
             if (engine.contains(Pratyahara.EC, leftChar) && engine.contains(Pratyahara.AC, rightChar)) {

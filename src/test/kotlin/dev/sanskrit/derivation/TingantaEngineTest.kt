@@ -422,4 +422,37 @@ class TingantaEngineTest {
             assertTrue(applied.containsAll(setOf("3.2.110", "3.1.43", "3.1.44", "2.4.77", "3.4.78")))
         }
     }
+
+    @Test
+    fun `conjugation engine derives complete Vedic subjunctive paradigm for bhu`() {
+        val paradigm = TingantaEngine().deriveSupportedParadigm("भू", lakara = Lakara.LET)
+
+        assertEquals(
+            mapOf(
+                TingAffix.TIP to "भवात्",
+                TingAffix.TAS to "भवातः",
+                TingAffix.JHI to "भवान्",
+                TingAffix.SIP to "भवाः",
+                TingAffix.THAS to "भवाथः",
+                TingAffix.THA to "भवाथ",
+                TingAffix.MIP to "भवानि",
+                TingAffix.VAS to "भवाव",
+                TingAffix.MAS to "भवाम",
+            ),
+            paradigm.surfaces,
+        )
+
+        paradigm.forms.values.forEach { result ->
+            val applied = result.applications.mapTo(mutableSetOf()) { it.sutra }
+            assertTrue(applied.containsAll(setOf("3.4.7", "3.4.78", "3.4.94")))
+        }
+        assertTrue(paradigm.forms.getValue(TingAffix.MIP).applications.any { it.sutra == "3.1.85" })
+        listOf(TingAffix.TIP, TingAffix.JHI, TingAffix.SIP).forEach { affix ->
+            assertTrue(paradigm.forms.getValue(affix).applications.any { it.sutra == "3.4.97" })
+        }
+        listOf(TingAffix.VAS, TingAffix.MAS).forEach { affix ->
+            assertTrue(paradigm.forms.getValue(affix).applications.any { it.sutra == "3.4.98" })
+        }
+    }
+
 }
