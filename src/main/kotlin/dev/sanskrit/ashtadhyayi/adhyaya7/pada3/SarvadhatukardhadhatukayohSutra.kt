@@ -12,6 +12,7 @@ import dev.sanskrit.derivation.HasDerivationalEnvironment
 import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.derivation.TingAffix
 import dev.sanskrit.derivation.VarnaSubstitution
+import dev.sanskrit.dhatupatha.Gana
 import dev.sanskrit.pratyahara.Pratyahara
 import dev.sanskrit.shiksha.Varnamala
 import dev.sanskrit.sutra.Sutra
@@ -50,6 +51,12 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
         if (stemIndex < 0) return false
         val stem = context.terms[stemIndex]
         val affix = context.terms.getOrNull(stemIndex + 1) ?: return false
+        if (stem.gana == Gana.JUHOTYADI && context.terms.lastOrNull()?.upadesha !in setOf(
+                TingAffix.TIP.upadesha,
+                TingAffix.SIP.upadesha,
+                TingAffix.MIP.upadesha,
+            )
+        ) return false
         if (affix.kind != TermKind.PRATYAYA) return false
         if (context.effectiveContext.rupa.lakara == Lakara.LIT && affix.surface == affix.upadesha) return false
         if (context.effectiveContext.rupa.lakara == Lakara.LIT && stem.itStatus == ItStatus.SET) return false

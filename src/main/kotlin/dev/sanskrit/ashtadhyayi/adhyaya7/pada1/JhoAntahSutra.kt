@@ -4,6 +4,8 @@ import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.Lakara
+import dev.sanskrit.derivation.TermKind
+import dev.sanskrit.dhatupatha.Gana
 import dev.sanskrit.shiksha.Samjna
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
@@ -31,6 +33,8 @@ object JhoAntahSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val affix = context.terms.lastOrNull() ?: return false
+        val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU }
+        if (dhatu?.gana == Gana.JUHOTYADI && affix.upadesha == "झि") return false
         if (context.effectiveContext.rupa.lakara == Lakara.LOT &&
             affix.upadesha == "झि" &&
             context.terms.none { it.id == "shap" } &&
