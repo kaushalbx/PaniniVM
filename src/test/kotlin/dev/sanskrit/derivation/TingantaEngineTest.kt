@@ -9,6 +9,48 @@ import dev.sanskrit.dhatupatha.PadaType
 class TingantaEngineTest {
 
     @Test
+    fun `conjugation engine derives complete Tudadi present paradigms for tud`() {
+        val engine = TingantaEngine()
+        val parasmaipada = engine.deriveSupportedParadigm("तुद्", pada = PadaType.PARASMAIPADA, lakara = Lakara.LAT)
+        val atmanepada = engine.deriveSupportedParadigm("तुद्", pada = PadaType.ATMANEPADA, lakara = Lakara.LAT)
+
+        assertEquals(
+            mapOf(
+                TingAffix.TIP to "तुदति",
+                TingAffix.TAS to "तुदतः",
+                TingAffix.JHI to "तुदन्ति",
+                TingAffix.SIP to "तुदसि",
+                TingAffix.THAS to "तुदथः",
+                TingAffix.THA to "तुदथ",
+                TingAffix.MIP to "तुदामि",
+                TingAffix.VAS to "तुदावः",
+                TingAffix.MAS to "तुदामः",
+            ),
+            parasmaipada.surfaces,
+        )
+        assertEquals(
+            mapOf(
+                TingAffix.TA to "तुदते",
+                TingAffix.ATAM to "तुदेते",
+                TingAffix.JHA to "तुदन्ते",
+                TingAffix.THAS_A to "तुदसे",
+                TingAffix.ATHAM to "तुदेथे",
+                TingAffix.DHVAM to "तुदध्वे",
+                TingAffix.IT to "तुदे",
+                TingAffix.VAHI to "तुदावहे",
+                TingAffix.MAHING to "तुदामहे",
+            ),
+            atmanepada.surfaces,
+        )
+
+        (parasmaipada.forms.values + atmanepada.forms.values).forEach { result ->
+            assertTrue(result.applications.any { it.sutra == "3.1.77" })
+            assertTrue(result.applications.none { it.sutra == "3.1.68" })
+            assertTrue(result.final.terms.any { it.upadesha == "श" })
+        }
+    }
+
+    @Test
     fun `conjugation engine derives complete Divadi present paradigm for div`() {
         val paradigm = TingantaEngine().deriveSupportedParadigm("दिव्", lakara = Lakara.LAT)
 

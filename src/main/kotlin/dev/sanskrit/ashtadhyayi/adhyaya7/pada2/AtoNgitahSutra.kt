@@ -29,7 +29,7 @@ object AtoNgitahSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         val ending = context.terms.last()
         val hasAEndingAnga = context.terms.any {
-            it.id in setOf("shap", "sya") && dev.sanskrit.shiksha.Varnamala.endsWithA(it.surface)
+            it.id in setOf("shap", "sha", "sya") && dev.sanskrit.shiksha.Varnamala.endsWithA(it.surface)
         }
         return context.effectiveContext.rupa.lakara in setOf(Lakara.LAT, Lakara.LANG, Lakara.LRNG) &&
             ending.upadesha in setOf("आताम्", "आथाम्") &&
@@ -48,7 +48,7 @@ object AtoNgitahSutra : Sutra<DerivationState, DerivationChange>(
         val augment = DerivationTerm("ato-ngit-it", "इ", TermKind.AGAMA, upadesha = "इट्")
         return DerivationChange(
             context.copy(terms = context.terms.dropLast(1) + augment + ending),
-            "7.2.81 inserts इट् after the शप् अ before ${ending.upadesha}.",
+            "7.2.81 inserts इट् after an a-ending अङ्ग before ${ending.upadesha}.",
         )
     }
 }

@@ -32,7 +32,7 @@ object KartariShapSutra : Sutra<DerivationState, DerivationChange>(
         context.effectiveContext.rupa.lakara !in setOf(Lakara.LIT, Lakara.LUNG) &&
                 !(context.effectiveContext.rupa.lakara == Lakara.LET && context.effectiveContext.letFormation == LetFormation.SIP_AORIST) &&
                 context.terms.lastOrNull()?.upadesha in TingAffix.entries.map { it.upadesha } &&
-                context.allEffectiveTerms.none { it.upadesha in setOf("शप्", "श्यन्", "स्य", "तासि") }
+                context.allEffectiveTerms.none { it.upadesha in setOf("शप्", "श्यन्", "श", "स्य", "तासि") }
 
     override fun apply(context: DerivationState): DerivationChange {
         val shap = DerivationTerm("shap", Svara.A.devanagari, TermKind.PRATYAYA, upadesha = "शप्")
