@@ -4,6 +4,7 @@ import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.DerivationTerm
+import dev.sanskrit.derivation.Lakara
 import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.derivation.TingAffix
 import dev.sanskrit.dhatupatha.Gana
@@ -28,7 +29,19 @@ object RudhadibhyahShnamSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DHATU,
     blocks = setOf("3.1.68", "7.3.84"),
 ), DerivationSutra {
-    private val strongAffixes = setOf(TingAffix.TIP, TingAffix.SIP, TingAffix.MIP)
+    /** Strong affixes for LAT and other lakāras (TIP, SIP, MIP). */
+    private val latStrongAffixes = setOf(TingAffix.TIP, TingAffix.SIP, TingAffix.MIP)
+
+    /**
+     * Strong affixes for LOT — same expanded set as Kryādi: the 1st-person
+     * Ātmanepada affixes that receive ā-initial substitutes (3.4.92–3.4.93)
+     * also condition guṇa/strong nasal in the imperative.
+     */
+    private val lotStrongAffixes = setOf(
+        TingAffix.TIP, TingAffix.MIP,
+        TingAffix.VAS, TingAffix.MAS,
+        TingAffix.VAHI, TingAffix.MAHING,
+    )
 
     override fun matches(context: DerivationState): Boolean {
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU } ?: return false
@@ -40,6 +53,7 @@ object RudhadibhyahShnamSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val dhatu = context.terms.first { it.kind == TermKind.DHATU }
         val affix = TingAffix.entries.single { it.upadesha == context.terms.last().upadesha }
+        val strongAffixes = if (context.effectiveContext.rupa.lakara == Lakara.LOT) lotStrongAffixes else latStrongAffixes
         val nasal = if (affix in strongAffixes) "न" else "न्"
         val insertionIndex = requireNotNull(finalVowelEnd(dhatu.surface)) {
             "3.1.78 requires a vowel in ${dhatu.surface}."

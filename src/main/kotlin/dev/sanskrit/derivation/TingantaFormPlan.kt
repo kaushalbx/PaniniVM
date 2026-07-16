@@ -64,37 +64,43 @@ object TingantaFormPlans {
             required += if (affix == TingAffix.THAS_A) "3.4.80" else "3.4.79"
             add(TingantaFormPlan(affix, Lakara.LRT, required, DerivationStage.FINAL))
         }
-        // LANG (imperfect past tense) plans
-        TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.forEach { affix ->
-            add(TingantaFormPlan(affix, Lakara.LANG, setOf("3.4.78"), DerivationStage.FINAL))
-        }
-        TingAffix.entries.filter { it.pada == PadaType.ATMANEPADA }.forEach { affix ->
-            val required = mutableSetOf("3.4.78", "6.4.71")
-            if (affix in setOf(TingAffix.ATAM, TingAffix.ATHAM)) required += "7.2.81"
-            if (affix == TingAffix.JHA) required += "7.1.3"
-            val finalStage = if (affix in setOf(TingAffix.TA, TingAffix.DHVAM, TingAffix.VAHI, TingAffix.MAHING)) {
-                DerivationStage.IT_PROCESSED
-            } else {
-                DerivationStage.FINAL
+        // LANG (imperfect past tense) plans — per-gaṇa, so requiredSutras enforces vikaraṇa
+        Gana.entries.forEach { gana ->
+            TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.forEach { affix ->
+                val required = mutableSetOf("3.4.78") + vikaranaSutras(gana)
+                add(TingantaFormPlan(affix, Lakara.LANG, required, DerivationStage.FINAL, setOf(gana)))
             }
-            add(TingantaFormPlan(affix, Lakara.LANG, required, finalStage))
-        }
-        // LOT (imperative) plans
-        val nonKryadiGanas = Gana.entries.toSet() - Gana.KRYADI
-        TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.forEach { affix ->
-            add(TingantaFormPlan(affix, Lakara.LOT, setOf("3.3.162", "3.4.78"), DerivationStage.FINAL, nonKryadiGanas))
-        }
-        TingAffix.entries.filter { it.pada == PadaType.ATMANEPADA }.forEach { affix ->
-            val required = mutableSetOf("3.3.162", "3.4.78")
-            when (affix) {
-                TingAffix.TA, TingAffix.ATAM, TingAffix.JHA, TingAffix.ATHAM -> required += setOf("3.4.79", "3.4.90")
-                TingAffix.THAS_A -> required += setOf("3.4.80", "3.4.91")
-                TingAffix.DHVAM -> required += setOf("3.4.79", "3.4.91")
-                TingAffix.IT, TingAffix.VAHI, TingAffix.MAHING -> required += setOf("3.4.79", "3.4.92", "3.4.93")
-                else -> Unit
+            TingAffix.entries.filter { it.pada == PadaType.ATMANEPADA }.forEach { affix ->
+                val required = (mutableSetOf("3.4.78", "6.4.71") + vikaranaSutras(gana)).toMutableSet()
+                if (affix in setOf(TingAffix.ATAM, TingAffix.ATHAM)) required += "7.2.81"
+                if (affix == TingAffix.JHA) required += "7.1.3"
+                val finalStage = if (affix in setOf(TingAffix.TA, TingAffix.DHVAM, TingAffix.VAHI, TingAffix.MAHING)) {
+                    DerivationStage.IT_PROCESSED
+                } else {
+                    DerivationStage.FINAL
+                }
+                add(TingantaFormPlan(affix, Lakara.LANG, required, finalStage, setOf(gana)))
             }
-            add(TingantaFormPlan(affix, Lakara.LOT, required, DerivationStage.FINAL, nonKryadiGanas))
         }
+        // LOT (imperative) plans — per-gaṇa for non-Kryādi, Kryādi kept separate
+        Gana.entries.filter { it != Gana.KRYADI }.forEach { gana ->
+            TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.forEach { affix ->
+                val required = mutableSetOf("3.3.162", "3.4.78") + vikaranaSutras(gana)
+                add(TingantaFormPlan(affix, Lakara.LOT, required, DerivationStage.FINAL, setOf(gana)))
+            }
+            TingAffix.entries.filter { it.pada == PadaType.ATMANEPADA }.forEach { affix ->
+                val required = (mutableSetOf("3.3.162", "3.4.78") + vikaranaSutras(gana)).toMutableSet()
+                when (affix) {
+                    TingAffix.TA, TingAffix.ATAM, TingAffix.JHA, TingAffix.ATHAM -> required += setOf("3.4.79", "3.4.90")
+                    TingAffix.THAS_A -> required += setOf("3.4.80", "3.4.91")
+                    TingAffix.DHVAM -> required += setOf("3.4.79", "3.4.91")
+                    TingAffix.IT, TingAffix.VAHI, TingAffix.MAHING -> required += setOf("3.4.79", "3.4.92", "3.4.93")
+                    else -> Unit
+                }
+                add(TingantaFormPlan(affix, Lakara.LOT, required, DerivationStage.FINAL, setOf(gana)))
+            }
+        }
+        // Kryādi LOT (unchanged — separate because 3.1.81 + 8.4.2 are both required)
         TingAffix.entries.forEach { affix ->
             val required = mutableSetOf("3.3.162", "3.4.78", "3.1.81", "8.4.2")
             if (affix.pada == PadaType.ATMANEPADA) {
@@ -108,12 +114,16 @@ object TingantaFormPlans {
             }
             add(TingantaFormPlan(affix, Lakara.LOT, required, DerivationStage.FINAL, setOf(Gana.KRYADI)))
         }
-        // LING (vidhi-liṅ) plans
-        TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.forEach { affix ->
-            add(TingantaFormPlan(affix, Lakara.LING, setOf("3.3.161", "3.4.78", "3.4.103"), DerivationStage.FINAL))
-        }
-        TingAffix.entries.filter { it.pada == PadaType.ATMANEPADA }.forEach { affix ->
-            add(TingantaFormPlan(affix, Lakara.LING, setOf("3.3.161", "3.4.78", "3.4.102"), DerivationStage.FINAL))
+        // LING (vidhi-liṅ) plans — per-gaṇa, so requiredSutras enforces vikaraṇa
+        Gana.entries.forEach { gana ->
+            TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.forEach { affix ->
+                val required = mutableSetOf("3.3.161", "3.4.78", "3.4.103") + vikaranaSutras(gana)
+                add(TingantaFormPlan(affix, Lakara.LING, required, DerivationStage.FINAL, setOf(gana)))
+            }
+            TingAffix.entries.filter { it.pada == PadaType.ATMANEPADA }.forEach { affix ->
+                val required = mutableSetOf("3.3.161", "3.4.78", "3.4.102") + vikaranaSutras(gana)
+                add(TingantaFormPlan(affix, Lakara.LING, required, DerivationStage.FINAL, setOf(gana)))
+            }
         }
         // LRNG (conditional) plans
         TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.forEach { affix ->
@@ -196,4 +206,21 @@ object TingantaFormPlans {
         }
 
     fun all(): List<TingantaFormPlan> = supported
+
+    /**
+     * Returns the sūtra numbers that select the vikaraṇa for a given gaṇa.
+     * Used as the gaṇa-specific component of requiredSutras for LANG, LOT, and LING plans.
+     */
+    private fun vikaranaSutras(gana: Gana): Set<String> = when (gana) {
+        Gana.BHVADI    -> emptySet()          // शप् is selected automatically; LAT plan only required 3.4.78
+        Gana.ADADI     -> setOf("2.4.72")
+        Gana.JUHOTYADI -> setOf("2.4.75", "6.1.10", "6.1.4", "7.4.62")
+        Gana.DIVADI    -> setOf("3.1.69")
+        Gana.SVADI     -> setOf("3.1.73")
+        Gana.TUDADI    -> setOf("3.1.77")
+        Gana.RUDHADI   -> setOf("3.1.78")
+        Gana.TANADI    -> setOf("3.1.79")
+        Gana.KRYADI    -> setOf("3.1.81")
+        Gana.CURADI    -> setOf("3.1.25", "7.3.86")
+    }
 }
