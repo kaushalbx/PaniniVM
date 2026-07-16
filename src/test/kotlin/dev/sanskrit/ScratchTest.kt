@@ -7,12 +7,12 @@ class ScratchTest {
 
     @Test
     fun testDerivationTrace() {
-        val requests = listOf(
-            "BHŪ + अट्" to TingantaDerivationRequest("भू", Vacana.EKAVACANA, Purusha.PRATHAMA, Lakara.LET, letAugment = LetAugment.AT),
-            "LABH ĀTMANEPADA DUAL" to TingantaDerivationRequest("लभ्", Vacana.DVIVACANA, Purusha.PRATHAMA, Lakara.LET, letAugment = LetAugment.AT),
-            "LABH ĀTMANEPADA OPTIONAL ऐ" to TingantaDerivationRequest("लभ्", Vacana.EKAVACANA, Purusha.PRATHAMA, Lakara.LET, letEOption = LetEOption.AI),
-            "TṜ̄ + सिप् + अट्" to TingantaDerivationRequest("तॄ", Vacana.EKAVACANA, Purusha.PRATHAMA, Lakara.LET, LetAugment.AT, LetFormation.SIP_AORIST),
-        )
+        val requests = Purusha.entries.flatMap { purusha ->
+            Vacana.entries.map { vacana ->
+                "LABH LIT $purusha $vacana" to
+                    TingantaDerivationRequest("लभ्", vacana, purusha, Lakara.LIT)
+            }
+        }
         requests.forEach { (label, request) ->
             val dhatu = dev.sanskrit.dhatupatha.DhatuPatha.all.first {
                 it.upadesha == request.dhatu || it.derivationalSurface == request.dhatu

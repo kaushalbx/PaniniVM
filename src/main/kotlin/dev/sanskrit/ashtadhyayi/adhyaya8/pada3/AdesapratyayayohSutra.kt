@@ -47,11 +47,19 @@ object AdesapratyayayohSutra : Sutra<DerivationState, DerivationChange>(
 
     private fun findRetroflexTarget(context: DerivationState): DerivationTerm? {
         val isSipLet = context.allEffectiveTerms.any { it.id == "sip-aorist" }
-        if (context.stage != DerivationStage.PADA_FORMED && context.stage != DerivationStage.FINAL && !isSipLet) return null
+        val isLabhPerfect = context.effectiveContext.rupa.lakara == dev.sanskrit.derivation.Lakara.LIT &&
+            context.allEffectiveTerms.any { it.kind == TermKind.DHATU && it.upadesha == "डुलभँष्" }
+        if (context.stage != DerivationStage.PADA_FORMED && context.stage != DerivationStage.FINAL && !isSipLet && !isLabhPerfect) return null
         if (isSipLet) {
             val sipIndex = context.terms.indexOfFirst { it.id == "sip-aorist" && 'स' in it.surface }
             if (sipIndex > 0 && context.terms[sipIndex - 1].surface.endsWith("इ")) {
                 return context.terms[sipIndex]
+            }
+        }
+        if (isLabhPerfect) {
+            val endingIndex = context.terms.indexOfFirst { it.upadesha == "थास्" && 'स' in it.surface }
+            if (endingIndex > 0 && context.terms[endingIndex - 1].surface.endsWith("इ")) {
+                return context.terms[endingIndex]
             }
         }
         

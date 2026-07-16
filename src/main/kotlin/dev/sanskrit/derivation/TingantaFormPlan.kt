@@ -45,6 +45,15 @@ object TingantaFormPlans {
         TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.forEach { affix ->
             add(TingantaFormPlan(affix, Lakara.LIT, setOf("3.4.78", "3.4.82"), DerivationStage.FINAL))
         }
+        TingAffix.entries.filter { it.pada == PadaType.ATMANEPADA }.forEach { affix ->
+            val required = mutableSetOf("3.4.78")
+            when (affix) {
+                TingAffix.TA, TingAffix.JHA -> required += "3.4.81"
+                TingAffix.THAS_A -> required += "3.4.80"
+                else -> required += "3.4.79"
+            }
+            add(TingantaFormPlan(affix, Lakara.LIT, required, DerivationStage.FINAL))
+        }
         // LUT (periphrastic future) plans
         TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.forEach { affix ->
             val required = mutableSetOf("3.3.15", "3.1.33", "3.4.78")

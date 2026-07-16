@@ -28,9 +28,10 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val lakara = context.effectiveContext.rupa.lakara
-        if (lakara !in setOf(Lakara.LAT, Lakara.LET)) return false
+        if (lakara !in setOf(Lakara.LAT, Lakara.LET, Lakara.LIT)) return false
         val ending = context.terms.last()
         val atoNgitahCompleted = context.droppedTerms.any { it.id == "ato-ngit-it" }
+        if (lakara == Lakara.LIT && ending.upadesha in setOf("त", "झ")) return false
         if (lakara == Lakara.LET && context.substitutions.any { it.sutra == "3.4.96" }) return false
         if (lakara == Lakara.LET && ending.upadesha in setOf("आताम्", "आथाम्") &&
             context.substitutions.any { it.sutra == "3.4.95" }) return false
@@ -46,7 +47,7 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
         }
         if (replacement != null) {
             val requiresAtoNgitah = ending.upadesha in setOf("आताम्", "आथाम्")
-            return ending.surface != replacement && (lakara == Lakara.LET || !requiresAtoNgitah || atoNgitahCompleted)
+            return ending.surface != replacement && (lakara in setOf(Lakara.LET, Lakara.LIT) || !requiresAtoNgitah || atoNgitahCompleted)
         }
         return ending.surface.endsWith("न्त्") &&
             context.substitutions.any { it.sutra == "7.1.3" } &&

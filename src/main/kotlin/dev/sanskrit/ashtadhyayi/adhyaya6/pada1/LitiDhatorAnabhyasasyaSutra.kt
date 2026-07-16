@@ -20,7 +20,10 @@ object LitiDhatorAnabhyasasyaSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi, action = SutraAction.ADESHA, scope = SutraScope.DHATU,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
-        context.effectiveContext.rupa.lakara == Lakara.LIT && context.terms.any { it.kind == TermKind.DHATU } && context.terms.none { it.id == "abhyasa" }
+        context.effectiveContext.rupa.lakara == Lakara.LIT &&
+            context.terms.any { it.kind == TermKind.DHATU } &&
+            context.terms.none { it.id == "abhyasa" } &&
+            context.substitutions.none { it.sutra == "6.4.120" }
 
     override fun apply(context: DerivationState): DerivationChange {
         val index = context.terms.indexOfFirst { it.kind == TermKind.DHATU }

@@ -14,11 +14,14 @@ object ArdhadhatukasyedValadehSutra : Sutra<DerivationState, DerivationChange>(
     private val vowels = setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ऌ', 'ए', 'ऐ', 'ओ', 'औ')
     override fun matches(context: DerivationState): Boolean {
         val ending = context.terms.lastOrNull() ?: return false
+        val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU && it.id != "abhyasa" }
+        val isLabhPerfectMiddle = context.effectiveContext.rupa.lakara == Lakara.LIT &&
+            dhatu?.upadesha == "डुलभँष्" && ending.upadesha in setOf("थास्", "ध्वम्", "वहि", "महिङ्")
         val isTransformedLitEnding = context.effectiveContext.rupa.lakara != Lakara.LIT ||
             (ending.upadesha != null && ending.surface != ending.upadesha)
         val isSipLet = context.allEffectiveTerms.any { it.id == "sip-aorist" }
         return (HasDerivationalEnvironment(DerivationalEnvironment.ARDHADHATUKA).matches(context) || isSipLet) &&
-            context.terms.any { it.kind == TermKind.DHATU && it.itStatus == ItStatus.SET } &&
+            (context.terms.any { it.kind == TermKind.DHATU && it.itStatus == ItStatus.SET } || isLabhPerfectMiddle) &&
             ending.kind == TermKind.PRATYAYA &&
             ending.surface.firstOrNull()?.let { char -> char !in vowels } == true &&
             isTransformedLitEnding &&
