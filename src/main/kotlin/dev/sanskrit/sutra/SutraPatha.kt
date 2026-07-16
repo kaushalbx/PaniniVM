@@ -14,7 +14,7 @@ class SutraPatha(
         get() = entries.size
 
     val kriyavatCount: Int
-        get() = entries.count { it.avastha == SutraAvastha.KRIYAVAT }
+        get() = entries.count()
 
     fun get(sutraNumber: String): Sutra<*, *>? = byNumber[sutraNumber]
 

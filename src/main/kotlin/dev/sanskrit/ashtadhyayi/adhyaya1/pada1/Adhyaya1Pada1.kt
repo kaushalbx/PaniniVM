@@ -13,9 +13,9 @@ object Adhyaya1Pada1 {
         HaloAnantarahSamyogahSutra,
         MukhanasikavacanoAnunasikahSutra,
         TulyasyaprayatnamSavarnamSutra,
-        NajjhalauSutra, SthaneAntaratamahSutra, UranRaparahSutra, AlontyasyaSutra, AdehParashyaSutra,
-        NgitScaSutra, AnekalShitSarvasyaSutra, PragrhyaSutra, PratyayalopePratyayalaksanamSutra,
-        NaLumatangasyaSutra, SarvanamaSutra, SvaradiNipatamAvyayamSutra, AdarsanamLopaSutra, LukShluLupSutra,
+        NajjhalauSutra, SthaneAntaratamahSutra, UranRaparahSutra,
+        NgitScaSutra,  PragrhyaSutra, PratyayalopePratyayalaksanamSutra,
+        NaLumatangasyaSutra, SarvanamaSutra, SvaradiNipatamAvyayamSutra, AdarsanamLopaSutra,
     )
 
     val sutras: List<Sutra<*, *>> = rules

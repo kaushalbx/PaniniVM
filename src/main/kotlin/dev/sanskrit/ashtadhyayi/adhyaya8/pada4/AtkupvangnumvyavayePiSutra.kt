@@ -49,6 +49,10 @@ object AtkupvangnumvyavayePiSutra : Sutra<DerivationState, DerivationChange>(
         val nIndex = surface.indexOf('न', rIndex)
         if (nIndex == -1) return false
 
+        // 8.4.37: padāntasya blocks retroflexion at the end of a word (ending in 'न्')
+        val isPadanta = nIndex == surface.length - 2 && surface[nIndex + 1] == '्'
+        if (isPadanta) return false
+
         // 8.4.35: No retroflexion if 'n' is followed by a dental consonant (t-varga: t, th, d, dh, n)
         val nextCharIndex = if (nIndex + 1 < surface.length && surface[nIndex + 1] == '्') nIndex + 2 else nIndex + 1
         if (nextCharIndex < surface.length) {

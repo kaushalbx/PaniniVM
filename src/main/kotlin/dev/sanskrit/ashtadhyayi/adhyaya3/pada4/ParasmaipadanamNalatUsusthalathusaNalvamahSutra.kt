@@ -25,7 +25,7 @@ object ParasmaipadanamNalatUsusthalathusaNalvamahSutra : Sutra<DerivationState, 
         val ending = context.terms.last()
         val replacement = replacements[ending.upadesha] ?: return false
         return context.effectiveContext.rupa.lakara == Lakara.LIT &&
-            context.stage != DerivationStage.IT_PROCESSED && ending.surface != replacement
+            context.stage.ordinal <= DerivationStage.PRATYAYA_SELECTED.ordinal && ending.surface != replacement
     }
 
     override fun apply(context: DerivationState): DerivationChange {

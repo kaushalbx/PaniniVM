@@ -30,7 +30,7 @@ object KartariShapSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean =
         context.effectiveContext.rupa.lakara != Lakara.LIT &&
                 context.terms.lastOrNull()?.upadesha in TingAffix.entries.map { it.upadesha } &&
-                context.allEffectiveTerms.none { it.upadesha == "शप्" || it.upadesha == "स्य" }
+                context.allEffectiveTerms.none { it.upadesha in setOf("शप्", "स्य", "तासि") }
 
     override fun apply(context: DerivationState): DerivationChange {
         val shap = DerivationTerm("shap", Svara.A.devanagari, TermKind.PRATYAYA, upadesha = "शप्")

@@ -84,10 +84,16 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
             term.copy(surface = newSurface, itMarkers = emptySet()) // Markers are consumed after lopa
         }
         
+        val nextStage = if (context.stage.ordinal > DerivationStage.IT_PROCESSED.ordinal) {
+            context.stage
+        } else {
+            DerivationStage.IT_PROCESSED
+        }
+
         return DerivationChange(
             state = context.copy(
                 terms = newTerms,
-                stage = DerivationStage.IT_PROCESSED
+                stage = nextStage
             ),
             explanation = "1.3.9: Performed lopa of it-marked sounds."
         )

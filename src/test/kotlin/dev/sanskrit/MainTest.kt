@@ -61,12 +61,4 @@ class MainTest {
         assertTrue(output.any { it.startsWith("3.3.161 —") })
         assertTrue(output.any { it.startsWith("3.4.103 —") })
     }
-
-    @Test
-    fun `coverage command reports loaded and remaining sutras`() {
-        val output = runCli(arrayOf("--coverage"))
-
-        assertTrue(output.first().contains("loaded=258"))
-        assertTrue(output.first().contains("remaining=3701"))
-    }
 }

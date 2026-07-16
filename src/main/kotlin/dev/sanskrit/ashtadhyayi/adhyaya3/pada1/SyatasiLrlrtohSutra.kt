@@ -28,23 +28,46 @@ object SyatasiLrlrtohSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val lastTerm = context.terms.lastOrNull() ?: return false
-        val isLrt = lastTerm.matchesUpadesha("लृट्")
-        val hasSya = context.allEffectiveTerms.any { it.upadesha == "स्य" }
-        return isLrt && !hasSya
+        val isLrlr = lastTerm.matchesUpadesha("लृट्") || lastTerm.matchesUpadesha("लृङ्")
+        val isLut = lastTerm.matchesUpadesha("लुट्")
+
+        return if (isLrlr) {
+            val hasSya = context.allEffectiveTerms.any { it.upadesha == "स्य" }
+            !hasSya
+        } else if (isLut) {
+            val hasTasi = context.allEffectiveTerms.any { it.upadesha == "तासि" }
+            !hasTasi
+        } else {
+            false
+        }
     }
 
-    override fun apply(context: DerivationState): DerivationChange = DerivationChange(
-        state = context.copy(
-            terms = context.terms.dropLast(1) +
-                    DerivationTerm(
-                        "sya",
-                        "स्य",
-                        TermKind.PRATYAYA,
-                        upadesha = "स्य"
-                    ) +
-                    context.terms.last(),
-            stage = DerivationStage.PRATYAYA_SELECTED
-        ),
-        explanation = "3.1.33 introduces स्य before लृट्.",
-    )
+    override fun apply(context: DerivationState): DerivationChange {
+        val lastTerm = context.terms.last()
+        val isLut = lastTerm.matchesUpadesha("लुट्")
+        val newTerm = if (isLut) {
+            DerivationTerm(
+                "tasi",
+                "तासि",
+                TermKind.PRATYAYA,
+                upadesha = "तासि",
+                itMarkers = setOf(dev.sanskrit.derivation.ItMarker.U)
+            )
+        } else {
+            DerivationTerm(
+                "sya",
+                "स्य",
+                TermKind.PRATYAYA,
+                upadesha = "स्य"
+            )
+        }
+        val targetText = if (isLut) "तासि" else "स्य"
+        return DerivationChange(
+            state = context.copy(
+                terms = context.terms.dropLast(1) + newTerm + lastTerm,
+                stage = DerivationStage.PRATYAYA_SELECTED
+            ),
+            explanation = "3.1.33 introduces $targetText before ${lastTerm.upadesha}.",
+        )
+    }
 }

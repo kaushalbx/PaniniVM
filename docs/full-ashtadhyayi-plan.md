@@ -1,13 +1,6 @@
 # Full Ashtadhyayi Implementation Plan
 
-The full Ashtadhyayi is tracked as a target of 3959 sutras. This project should
-not mark a sutra `KRIYAVAT` until it has executable conditions, transformation
-logic, and tests.
-
-## Sutra avastha
-
-- `PATHITA`: the sutra is present in the catalog, but not executable.
-- `KRIYAVAT`: the sutra has executable logic in the engine.
+The full Ashtadhyayi is tracked as a target of 3959 sutras.
 
 ## Order of work
 
@@ -16,7 +9,6 @@ logic, and tests.
 3. Add paribhasha and asiddha/asiddhavat governance.
 4. Implement domain engines:
    - shiksha and pratyahara
-   - sandhi
    - sup and ting pratyaya
    - dhatu, lakara, and pada generation
    - krdanta

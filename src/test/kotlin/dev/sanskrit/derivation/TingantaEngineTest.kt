@@ -336,4 +336,64 @@ class TingantaEngineTest {
             forms,
         )
     }
+
+    @Test
+    fun `conjugation engine derives complete conditional paradigm for bhu`() {
+        val paradigm = TingantaEngine().deriveSupportedParadigm("भू", lakara = Lakara.LRNG)
+        val forms = paradigm.surfaces
+
+        assertEquals(9, forms.size)
+        assertEquals("अभविष्यत्", forms[TingAffix.TIP])
+        assertEquals("अभविष्यताम्", forms[TingAffix.TAS])
+        assertEquals("अभविष्यन्", forms[TingAffix.JHI])
+        assertEquals("अभविष्यः", forms[TingAffix.SIP])
+        assertEquals("अभविष्यतम्", forms[TingAffix.THAS])
+        assertEquals("अभविष्यत", forms[TingAffix.THA])
+        assertEquals("अभविष्यम्", forms[TingAffix.MIP])
+        assertEquals("अभविष्याव", forms[TingAffix.VAS])
+        assertEquals("अभविष्याम", forms[TingAffix.MAS])
+    }
+
+    @Test
+    fun `conjugation engine derives complete perfect paradigm for bhu`() {
+        val paradigm = TingantaEngine().deriveSupportedParadigm("भू", lakara = Lakara.LIT)
+        val forms = paradigm.surfaces
+
+        assertEquals(9, forms.size)
+        assertEquals("बभूव", forms[TingAffix.TIP])
+        assertEquals("बभूवतुः", forms[TingAffix.TAS])
+        assertEquals("बभूवुः", forms[TingAffix.JHI])
+        assertEquals("बभूविथ", forms[TingAffix.SIP])
+        assertEquals("बभूवथुः", forms[TingAffix.THAS])
+        assertEquals("बभूव", forms[TingAffix.THA])
+        assertEquals("बभूव", forms[TingAffix.MIP])
+        assertEquals("बभूविव", forms[TingAffix.VAS])
+        assertEquals("बभूविम", forms[TingAffix.MAS])
+    }
+
+    @Test
+    fun `conjugation engine derives complete periphrastic future paradigm for bhu`() {
+        val paradigm = TingantaEngine().deriveSupportedParadigm("भू", lakara = Lakara.LUT)
+        val forms = paradigm.surfaces
+
+        assertEquals(9, forms.size)
+        assertEquals("भविता", forms[TingAffix.TIP])
+        assertEquals("भवितारौ", forms[TingAffix.TAS])
+        assertEquals("भवितारः", forms[TingAffix.JHI])
+        assertEquals("भवितासि", forms[TingAffix.SIP])
+        assertEquals("भवितास्थः", forms[TingAffix.THAS])
+        assertEquals("भवितास्थ", forms[TingAffix.THA])
+        assertEquals("भवितास्मि", forms[TingAffix.MIP])
+        assertEquals("भवितास्वः", forms[TingAffix.VAS])
+        assertEquals("भवितास्मः", forms[TingAffix.MAS])
+
+        paradigm.forms.values.forEach { result ->
+            assertTrue(result.applications.any { it.sutra == "3.3.15" })
+            assertTrue(result.applications.any { it.sutra == "3.1.33" })
+        }
+        assertTrue(paradigm.forms.getValue(TingAffix.TIP).applications.any { it.sutra == "6.4.143" })
+        listOf(TingAffix.TAS, TingAffix.JHI, TingAffix.SIP).forEach { affix ->
+            assertTrue(paradigm.forms.getValue(affix).applications.any { it.sutra == "7.4.50" })
+        }
+    }
 }

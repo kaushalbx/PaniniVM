@@ -1,0 +1,102 @@
+package dev.sanskrit.ashtadhyayi.adhyaya1.pada1
+
+import dev.sanskrit.derivation.DerivationChange
+import dev.sanskrit.derivation.DerivationState
+import dev.sanskrit.derivation.DerivationSutra
+import dev.sanskrit.derivation.DerivationTerm
+import dev.sanskrit.derivation.ItMarker
+import dev.sanskrit.derivation.TermKind
+import dev.sanskrit.sutra.Sutra
+import dev.sanskrit.sutra.SutraAction
+import dev.sanskrit.sutra.SutraRole
+import dev.sanskrit.sutra.SutraScope
+import dev.sanskrit.sutra.SutraType
+
+/**
+ * 1.1.46: ādyantau ṭakitau.
+ * An augment (āgama) marked with 'ṭ' is placed at the beginning of the term.
+ * An augment marked with 'k' is placed at the end of the term.
+ */
+object AdyantauTakitauSutra : Sutra<DerivationState, DerivationChange>(
+    number = "1.1.46",
+    text = "आद्यन्तौ टकितौ",
+    hindiExplanation = "टकार-इत् आगम आदि में और ककार-इत् आगम अन्त में जुड़ता है।",
+    type = SutraType.PARIBHASHA,
+    chapter = 1,
+    pada = 1,
+    optional = false,
+    kramaValue = 110046,
+    role = SutraRole.Paribhasha,
+    action = SutraAction.PARIBHASHA,
+    scope = SutraScope.DERIVATION,
+), DerivationSutra {
+    override fun matches(context: DerivationState): Boolean {
+        val terms = context.terms
+        for (i in terms.indices) {
+            val term = terms[i]
+            if (term.kind == TermKind.AGAMA) {
+                val isTit = term.itMarkers.contains(ItMarker.T) || term.upadesha?.endsWith("ट्") == true
+                val isKit = term.itMarkers.contains(ItMarker.KIT) || term.upadesha?.endsWith("क्") == true
+
+                if (isTit) {
+                    val targetIndex = findTargetIndex(term, terms)
+                    if (targetIndex != -1 && i > targetIndex) {
+                        return true
+                    }
+                } else if (isKit) {
+                    val targetIndex = findTargetIndex(term, terms)
+                    if (targetIndex != -1 && i < targetIndex) {
+                        return true
+                    }
+                }
+            }
+        }
+        return false
+    }
+
+    override fun apply(context: DerivationState): DerivationChange {
+        val terms = context.terms.toMutableList()
+        for (i in terms.indices) {
+            val term = terms[i]
+            if (term.kind == TermKind.AGAMA) {
+                val isTit = term.itMarkers.contains(ItMarker.T) || term.upadesha?.endsWith("ट्") == true
+                val isKit = term.itMarkers.contains(ItMarker.KIT) || term.upadesha?.endsWith("क्") == true
+
+                if (isTit) {
+                    val targetIndex = findTargetIndex(term, terms)
+                    if (targetIndex != -1 && i > targetIndex) {
+                        val item = terms.removeAt(i)
+                        val newTargetIndex = terms.indexOfFirst { it.id == terms[targetIndex].id }
+                        terms.add(newTargetIndex, item)
+                        return DerivationChange(
+                            state = context.copy(terms = terms),
+                            explanation = "1.1.46 (ādyantau ṭakitau) places the ṭit augment ${term.surface} before its target."
+                        )
+                    }
+                } else if (isKit) {
+                    val targetIndex = findTargetIndex(term, terms)
+                    if (targetIndex != -1 && i < targetIndex) {
+                        val item = terms.removeAt(i)
+                        val newTargetIndex = terms.indexOfFirst { it.id == terms[targetIndex - 1].id }
+                        terms.add(newTargetIndex + 1, item)
+                        return DerivationChange(
+                            state = context.copy(terms = terms),
+                            explanation = "1.1.46 (ādyantau ṭakitau) places the kit augment ${term.surface} after its target."
+                        )
+                    }
+                }
+            }
+        }
+        return DerivationChange(context, "No positioning change needed.")
+    }
+
+    private fun findTargetIndex(agama: DerivationTerm, terms: List<DerivationTerm>): Int {
+        val isTit = agama.itMarkers.contains(ItMarker.T) || agama.upadesha?.endsWith("ट्") == true
+        return if (isTit) {
+            terms.indexOfFirst { it.kind != TermKind.AGAMA && it.id != "abhyasa" }
+        } else {
+            terms.indexOfLast { it.kind != TermKind.AGAMA && it.id != "abhyasa" }
+        }
+    }
+}
+

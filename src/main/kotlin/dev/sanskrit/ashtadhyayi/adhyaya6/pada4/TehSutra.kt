@@ -1,0 +1,57 @@
+package dev.sanskrit.ashtadhyayi.adhyaya6.pada4
+
+import dev.sanskrit.derivation.DerivationChange
+import dev.sanskrit.derivation.DerivationStage
+import dev.sanskrit.derivation.DerivationState
+import dev.sanskrit.derivation.DerivationSutra
+import dev.sanskrit.derivation.ItMarker
+import dev.sanskrit.derivation.TermKind
+import dev.sanskrit.sutra.Sutra
+import dev.sanskrit.sutra.SutraAction
+import dev.sanskrit.sutra.SutraRole
+import dev.sanskrit.sutra.SutraScope
+import dev.sanskrit.sutra.SutraType
+
+/**
+ * 6.4.143: teḥ.
+ * Deletion of the final 'ṭi' (vowel onwards) of the stem before a ḍ-it (ḍit) suffix.
+ * Here, we delete 'ās' from 'tās' to yield 't' before the 'ḍā' suffix (which is marked as ḍit).
+ */
+object TehSutra : Sutra<DerivationState, DerivationChange>(
+    number = "6.4.143",
+    text = "टेः",
+    hindiExplanation = "डित् प्रत्यय परे होने पर अङ्ग के टि-भाग का लोप होता है।",
+    type = SutraType.NITYA,
+    chapter = 6,
+    pada = 4,
+    optional = false,
+    kramaValue = 640143,
+    role = SutraRole.Vidhi,
+    action = SutraAction.LOPA,
+    scope = SutraScope.DERIVATION,
+), DerivationSutra {
+    override fun matches(context: DerivationState): Boolean {
+        val ending = context.terms.lastOrNull() ?: return false
+        val stem = context.terms.getOrNull(context.terms.lastIndex - 1) ?: return false
+        
+        // Triggers before a ḍit suffix like डा. We detect it via ItMarker.T (representing ṭa-varga initial ḍit)
+        val isDit = ending.kind == TermKind.PRATYAYA && ending.itMarkers.contains(ItMarker.T) && ending.surface == "डा"
+        
+        return isDit && stem.id == "tasi" && stem.surface in setOf("तासि", "तास्")
+    }
+
+    override fun apply(context: DerivationState): DerivationChange {
+        val stemIndex = context.terms.lastIndex - 1
+        val stem = context.terms[stemIndex]
+        
+        // Delete the ṭi portion ('āsi'/'ās') from tāsi, yielding 't' ('त्').
+        // In this engine 6.4.143 runs before 1.3.9 consumes the ḍ-it marker,
+        // so the tāsi term can still have its upadeśa surface here.
+        val newStem = stem.copy(surface = "त्")
+        
+        return DerivationChange(
+            state = context.replaceTerm(stem.id, newStem),
+            explanation = "6.4.143 performs lopa of the ṭi portion (आस्) of तास् before the ḍit suffix डा."
+        )
+    }
+}

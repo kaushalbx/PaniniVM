@@ -13,7 +13,6 @@ abstract class Sutra<C, R>(
     val chapter: Int, val pada: Int,
     val optional: Boolean,
     val kramaValue: Int,
-    val avastha: SutraAvastha = SutraAvastha.KRIYAVAT,
     val role: SutraRole,
     val action: SutraAction,
     val scope: SutraScope,

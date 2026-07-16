@@ -15,17 +15,7 @@ object TingantaFormPlans {
     private val supported = buildList {
         // LAT (present tense) plans
         TingAffix.entries.forEach { affix ->
-            val hasItMarkers = affix.upadesha.endsWith("प्") || 
-                               affix.upadesha.endsWith("ट्") || 
-                               affix.upadesha.endsWith("ङ्")
-            val expectedStage = if (affix.pada == PadaType.ATMANEPADA) {
-                DerivationStage.FINAL
-            } else if (hasItMarkers) {
-                DerivationStage.IT_PROCESSED
-            } else {
-                DerivationStage.FINAL
-            }
-            add(TingantaFormPlan(affix, Lakara.LAT, setOf("3.4.78"), expectedStage))
+            add(TingantaFormPlan(affix, Lakara.LAT, setOf("3.4.78"), DerivationStage.FINAL))
         }
         // LRT (future tense) plans
         TingAffix.entries.forEach { affix ->
@@ -46,6 +36,20 @@ object TingantaFormPlans {
         }
         TingAffix.entries.filter { it.pada == PadaType.ATMANEPADA }.forEach { affix ->
             add(TingantaFormPlan(affix, Lakara.LING, setOf("3.3.161", "3.4.78", "3.4.102"), DerivationStage.FINAL))
+        }
+        // LRNG (conditional) plans
+        TingAffix.entries.forEach { affix ->
+            add(TingantaFormPlan(affix, Lakara.LRNG, setOf("3.4.78"), DerivationStage.FINAL))
+        }
+        // LIT (perfect tense) plans
+        TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.forEach { affix ->
+            add(TingantaFormPlan(affix, Lakara.LIT, setOf("3.4.78", "3.4.82"), DerivationStage.FINAL))
+        }
+        // LUT (periphrastic future) plans
+        TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.forEach { affix ->
+            val required = mutableSetOf("3.3.15", "3.1.33", "3.4.78")
+            if (affix.purusha == Purusha.PRATHAMA) required += "2.4.85"
+            add(TingantaFormPlan(affix, Lakara.LUT, required, DerivationStage.FINAL))
         }
     }
 

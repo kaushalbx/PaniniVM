@@ -7,7 +7,6 @@ import dev.sanskrit.sutra.SutraRole
 import dev.sanskrit.sutra.SutraScope
 import dev.sanskrit.sutra.SutraType
 import dev.sanskrit.sutra.SutraVisibility
-import dev.sanskrit.sutra.SutraAvastha
 
 interface DerivationSutra {
     val sutra: String
@@ -19,7 +18,6 @@ interface DerivationSutra {
     val nimittaScope: NimittaScope
     val priority: SutraPriority
     val visibility: SutraVisibility
-    val avastha: SutraAvastha
     val optional: Boolean
     val blocks: Set<String>
     val traceTemplate: String?
@@ -27,7 +25,7 @@ interface DerivationSutra {
     fun apply(context: DerivationState): DerivationChange
 
     fun isTripadi(): Boolean = krama >= 820000
-    
+
     /** 6.4.22 - 6.4.129: Asiddhavat section. */
     fun isAbhiya(): Boolean = krama in 640022..640129
 
