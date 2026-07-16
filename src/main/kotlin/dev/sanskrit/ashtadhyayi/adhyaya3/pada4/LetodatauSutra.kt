@@ -57,7 +57,8 @@ object LetodatauSutra : Sutra<DerivationState, DerivationChange>(
             LetAugment.AAT -> if (ending.surface.startsWith("अ")) "आ${ending.surface.drop(1)}" else "आ${ending.surface}"
         }
         return DerivationChange(
-            context.replaceTerm(ending.id, ending.copy(surface = augmentedSurface)),
+            context.replaceTerm(ending.id, ending.copy(surface = augmentedSurface))
+                .addSubstitution(dev.sanskrit.derivation.VarnaSubstitution(ending.id, ending.surface.first(), augmentedSurface, sutra)),
             "3.4.94 attaches the ${if (augment == LetAugment.AT) "अट्" else "आट्"} augment at the beginning of the LET ending.",
         )
     }

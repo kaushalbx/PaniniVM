@@ -36,6 +36,9 @@ object EngahPadantadatiSutra : Sutra<DerivationState, DerivationChange>(
         if (context.terms.size < 2) return false
         val left = context.terms[context.terms.size - 2]
         val right = context.terms.last()
+        if (context.effectiveContext.rupa.lakara == dev.sanskrit.derivation.Lakara.LING &&
+            right.matchesUpadesha("मिप्") && context.substitutions.any { it.sutra == "3.4.101" }
+        ) return false
 
         // 1. Left term must be a 'pada' (per 1.4.14)
         val isPada = context.samjnas.any { it.targetId == left.id && it.samjna == Samjna.PADA }

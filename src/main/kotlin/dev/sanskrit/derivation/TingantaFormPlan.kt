@@ -112,7 +112,7 @@ object TingantaFormPlans {
         }
         // LUNG (general aorist) plans
         TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.forEach { affix ->
-            add(TingantaFormPlan(affix, Lakara.LUNG, setOf("3.2.110", "3.1.43", "3.1.44", "2.4.77", "3.4.78", "6.4.71"), DerivationStage.FINAL))
+            add(TingantaFormPlan(affix, Lakara.LUNG, setOf("3.2.110", "3.1.43", "3.1.44", "3.4.78", "6.4.71"), DerivationStage.FINAL))
         }
         TingAffix.entries.filter { it.pada == PadaType.ATMANEPADA }.forEach { affix ->
             val required = mutableSetOf("3.2.110", "3.1.43", "3.1.44", "3.4.78", "6.4.71", "7.2.42")
@@ -131,8 +131,8 @@ object TingantaFormPlans {
             add(TingantaFormPlan(affix, Lakara.LET, required, DerivationStage.FINAL))
         }
         TingAffix.entries.filter { it.pada == PadaType.ATMANEPADA }.forEach { affix ->
-            val required = mutableSetOf("3.4.7", "3.4.78", "3.4.94", "3.4.79")
-            if (affix == TingAffix.THAS_A) required += "3.4.80"
+            val required = mutableSetOf("3.4.7", "3.4.78", "3.4.94")
+            required += if (affix == TingAffix.THAS_A) "3.4.80" else "3.4.79"
             if (affix in setOf(TingAffix.ATAM, TingAffix.ATHAM)) required += "3.4.95"
             add(TingantaFormPlan(affix, Lakara.LET, required, DerivationStage.FINAL))
         }

@@ -24,7 +24,7 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.PRATYAYA,
-    blocks = setOf("6.1.78", "8.2.23"),
+    blocks = setOf("3.4.94", "6.1.78", "8.2.23"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val lakara = context.effectiveContext.rupa.lakara
@@ -34,7 +34,7 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
         if (lakara == Lakara.LOT && context.substitutions.any { it.sutra in setOf("3.4.90", "3.4.91", "3.4.93") }) return false
         if (lakara == Lakara.LIT && ending.upadesha in setOf("त", "झ")) return false
         if (lakara == Lakara.LUT && ending.upadesha in setOf("त", "आताम्", "झ")) return false
-        if (lakara == Lakara.LET && context.substitutions.any { it.sutra == "3.4.96" }) return false
+        if (lakara == Lakara.LET && context.substitutions.any { it.sutra in setOf("3.4.94", "3.4.96") }) return false
         if (lakara == Lakara.LUT && context.substitutions.any { it.sutra == "7.4.52" }) return false
         if (lakara == Lakara.LET && ending.upadesha in setOf("आताम्", "आथाम्") &&
             context.substitutions.any { it.sutra == "3.4.95" }) return false

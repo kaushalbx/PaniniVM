@@ -8,24 +8,27 @@ class ScratchTest {
 
     @Test
     fun testDerivationTrace() {
-        val requests = listOf(PadaType.PARASMAIPADA, PadaType.ATMANEPADA).flatMap { pada ->
-            Purusha.entries.flatMap { purusha ->
-                Vacana.entries.map { vacana ->
-                    "SRAMBH LAT $pada $purusha $vacana" to
-                        TingantaDerivationRequest("स्रम्भ्", vacana, purusha, Lakara.LAT, pada = pada)
+        Lakara.entries.forEach { lakara ->
+            listOf(PadaType.PARASMAIPADA, PadaType.ATMANEPADA).forEach { pada ->
+                try {
+                    val paradigm = TingantaEngine().deriveSupportedParadigm("स्रम्भ्", pada = pada, lakara = lakara)
+                    println("=== SRAMBH $lakara $pada ===")
+                    paradigm.forms.forEach { (affix, result) ->
+                        println("$affix (${result.final.stage}): ${result.final.surface}")
+                    }
+                } catch (exception: IllegalArgumentException) {
+                    println("=== SRAMBH $lakara $pada FAILED ===")
+                    println(exception.message)
                 }
             }
         }
-        requests.forEach { (label, request) ->
-            val dhatu = dev.sanskrit.dhatupatha.DhatuPatha.all.first {
-                it.upadesha == request.dhatu || it.derivationalSurface == request.dhatu
-            }
-            val result = DerivationEngine().derive(request.initialState(dhatu))
-            println("=== $label ===")
-            result.applications.forEachIndexed { index, application ->
-                println("${index + 1}. ${application.sutra}: ${application.before.surface} -> ${application.after.surface}")
-            }
-            println("FINAL (${result.final.stage}): ${result.final.surface}")
+        val request = TingantaDerivationRequest("भू", Vacana.EKAVACANA, Purusha.UTTAMA, Lakara.LING)
+        val dhatu = dev.sanskrit.dhatupatha.DhatuPatha.all.first { it.derivationalSurface == request.dhatu }
+        val result = DerivationEngine().derive(request.initialState(dhatu))
+        println("=== BHU LING MIP TRACE ===")
+        result.applications.forEachIndexed { index, application ->
+            println("${index + 1}. ${application.sutra}: ${application.before.surface} -> ${application.after.surface}")
         }
+        println("FINAL (${result.final.stage}): ${result.final.surface}")
     }
 }

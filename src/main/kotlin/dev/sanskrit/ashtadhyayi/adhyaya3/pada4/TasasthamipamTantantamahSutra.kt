@@ -39,6 +39,7 @@ object TasasthamipamTantantamahSutra : Sutra<DerivationState, DerivationChange>(
             lastTerm.matchesUpadesha("लुङ्") || context.effectiveContext.rupa.lakara == Lakara.LING
         val targetUpadesha = lastTerm.upadesha ?: ""
         val eligible = targetUpadesha in ELIGIBLE_ENDINGS
+        val substitutionRecorded = context.substitutions.any { it.sutra == sutra && it.targetId == lastTerm.id }
         
         val isAlreadyApplied = when (targetUpadesha) {
             "तस्" -> lastTerm.surface == "ताम्"
@@ -48,7 +49,7 @@ object TasasthamipamTantantamahSutra : Sutra<DerivationState, DerivationChange>(
             else -> false
         }
         
-        return isNit && eligible && !isAlreadyApplied
+        return isNit && eligible && !isAlreadyApplied && !substitutionRecorded
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -61,7 +62,8 @@ object TasasthamipamTantantamahSutra : Sutra<DerivationState, DerivationChange>(
             else -> lastTerm.surface
         }
         return DerivationChange(
-            state = context.replaceTerm(lastTerm.id, lastTerm.copy(surface = substitute))
+            state = context.replaceTerm(lastTerm.id, lastTerm.copy(surface = substitute, itMarkers = emptySet()))
+                .addSubstitution(dev.sanskrit.derivation.VarnaSubstitution(lastTerm.id, lastTerm.surface.first(), substitute, sutra))
                 .copy(stage = DerivationStage.PADA_FORMED),
             explanation = "3.4.101: Replaced ending ${lastTerm.upadesha} with $substitute."
         )

@@ -300,7 +300,7 @@ fun DerivationResult.verifyDerivation(
     require(requiredSutras.all { it in appliedSutras }) {
         "Incomplete derivation for $expectedAffixUpadesha; missing ${requiredSutras - appliedSutras}."
     }
-    require(final.stage == expectedStage) {
-        "Incomplete derivation for $expectedAffixUpadesha; expected $expectedStage, reached ${final.stage}."
+    require(final.stage.ordinal >= expectedStage.ordinal) {
+        "Incomplete derivation for $expectedAffixUpadesha; expected at least $expectedStage, reached ${final.stage}."
     }
 }

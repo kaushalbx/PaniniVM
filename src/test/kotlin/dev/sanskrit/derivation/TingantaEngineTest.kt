@@ -23,6 +23,21 @@ class TingantaEngineTest {
     }
 
     @Test
+    fun `ubhayapada roots derive both padas across every supported lakara`() {
+        val engine = TingantaEngine()
+
+        Lakara.entries.forEach { lakara ->
+            listOf(PadaType.PARASMAIPADA, PadaType.ATMANEPADA).forEach { pada ->
+                val paradigm = engine.deriveSupportedParadigm("स्रम्भ्", pada = pada, lakara = lakara)
+                val expectedAffixes = TingAffix.entries.filter { it.pada == pada }.toSet()
+
+                assertEquals(expectedAffixes, paradigm.forms.keys, "$lakara $pada")
+                assertEquals(9, paradigm.surfaces.size, "$lakara $pada")
+            }
+        }
+    }
+
+    @Test
     fun `tinganta requests reject a pada unavailable to the root`() {
         val engine = TingantaEngine()
 
