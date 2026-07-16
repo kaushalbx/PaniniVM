@@ -9,6 +9,49 @@ import dev.sanskrit.dhatupatha.PadaType
 class TingantaEngineTest {
 
     @Test
+    fun `conjugation engine derives complete Kryadi present paradigms for kri`() {
+        val engine = TingantaEngine()
+        val parasmaipada = engine.deriveSupportedParadigm("डुक्रीञ्", pada = PadaType.PARASMAIPADA, lakara = Lakara.LAT)
+        val atmanepada = engine.deriveSupportedParadigm("डुक्रीञ्", pada = PadaType.ATMANEPADA, lakara = Lakara.LAT)
+
+        assertEquals(
+            mapOf(
+                TingAffix.TIP to "क्रीणाति",
+                TingAffix.TAS to "क्रीणीतः",
+                TingAffix.JHI to "क्रीणन्ति",
+                TingAffix.SIP to "क्रीणासि",
+                TingAffix.THAS to "क्रीणीथः",
+                TingAffix.THA to "क्रीणीथ",
+                TingAffix.MIP to "क्रीणामि",
+                TingAffix.VAS to "क्रीणीवः",
+                TingAffix.MAS to "क्रीणीमः",
+            ),
+            parasmaipada.surfaces,
+        )
+        assertEquals(
+            mapOf(
+                TingAffix.TA to "क्रीणीते",
+                TingAffix.ATAM to "क्रीणाते",
+                TingAffix.JHA to "क्रीणते",
+                TingAffix.THAS_A to "क्रीणीषे",
+                TingAffix.ATHAM to "क्रीणाथे",
+                TingAffix.DHVAM to "क्रीणीध्वे",
+                TingAffix.IT to "क्रीणे",
+                TingAffix.VAHI to "क्रीणीवहे",
+                TingAffix.MAHING to "क्रीणीमहे",
+            ),
+            atmanepada.surfaces,
+        )
+
+        (parasmaipada.forms.values + atmanepada.forms.values).forEach { result ->
+            assertTrue(result.applications.any { it.sutra == "3.1.81" })
+            assertTrue(result.applications.any { it.sutra == "8.4.2" })
+            assertTrue(result.applications.none { it.sutra == "3.1.68" })
+            assertTrue(result.final.terms.any { it.upadesha == "श्ना" })
+        }
+    }
+
+    @Test
     fun `conjugation engine derives complete Rudhadi present paradigms for rudh`() {
         val engine = TingantaEngine()
         val parasmaipada = engine.deriveSupportedParadigm("रुधिँर्", pada = PadaType.PARASMAIPADA, lakara = Lakara.LAT)
@@ -302,9 +345,11 @@ class TingantaEngineTest {
     }
 
     @Test
-    fun `present paradigms reject ganas without implemented stem formation`() {
-        assertFailsWith<IllegalArgumentException> {
-            TingantaEngine().deriveSupportedParadigm("डुक्रीञ्", lakara = Lakara.LAT)
+    fun `all ten ganas expose an implemented present paradigm`() {
+        dev.sanskrit.dhatupatha.Gana.entries.forEach { gana ->
+            val dhatu = dev.sanskrit.dhatupatha.DhatuPatha.all.first { it.gana == gana && it.pada != null }
+            val concretePada = if (dhatu.pada == PadaType.ATMANEPADA) PadaType.ATMANEPADA else PadaType.PARASMAIPADA
+            assertEquals(9, TingantaEngine().deriveSupportedParadigm(dhatu.upadesha, concretePada, Lakara.LAT).forms.size)
         }
     }
 

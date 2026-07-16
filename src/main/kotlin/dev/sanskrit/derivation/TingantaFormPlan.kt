@@ -43,6 +43,13 @@ object TingantaFormPlans {
             if (affix in setOf(TingAffix.TIP, TingAffix.SIP, TingAffix.MIP)) tanadiRequired += "7.3.84"
             if (affix == TingAffix.JHA) tanadiRequired += "7.1.5"
             add(TingantaFormPlan(affix, Lakara.LAT, tanadiRequired, DerivationStage.FINAL, setOf(Gana.TANADI)))
+            val kryadiRequired = mutableSetOf("3.4.78", "3.1.81", "8.4.2")
+            if (affix.pada == PadaType.ATMANEPADA) {
+                kryadiRequired += if (affix == TingAffix.THAS_A) "3.4.80" else "3.4.79"
+                if (affix == TingAffix.JHA) kryadiRequired += "7.1.5"
+            }
+            if (affix == TingAffix.THAS_A) kryadiRequired += "8.3.59"
+            add(TingantaFormPlan(affix, Lakara.LAT, kryadiRequired, DerivationStage.FINAL, setOf(Gana.KRYADI)))
             val curadiRequired = mutableSetOf("3.4.78", "3.1.25", "7.3.86")
             if (affix in setOf(TingAffix.ATAM, TingAffix.ATHAM)) curadiRequired += "7.2.81"
             add(TingantaFormPlan(affix, Lakara.LAT, curadiRequired, DerivationStage.FINAL, setOf(Gana.CURADI)))

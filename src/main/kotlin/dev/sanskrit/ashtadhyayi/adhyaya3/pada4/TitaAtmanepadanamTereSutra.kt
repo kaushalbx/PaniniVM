@@ -31,7 +31,7 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
         if (lakara !in setOf(Lakara.LAT, Lakara.LET, Lakara.LIT, Lakara.LOT, Lakara.LRT, Lakara.LUT)) return false
         val ending = context.terms.last()
         val atoNgitahCompleted = context.droppedTerms.any { it.id == "ato-ngit-it" }
-        val isNonAStem = context.terms.any { it.id in setOf("shnu", "tanadi-u") } ||
+        val isNonAStem = context.terms.any { it.id in setOf("shnu", "tanadi-u", "shna") } ||
             context.droppedTerms.any { it.upadesha == "श्नम्" }
         if (lakara == Lakara.LOT && context.substitutions.any { it.sutra in setOf("3.4.90", "3.4.91", "3.4.93") }) return false
         if (lakara == Lakara.LIT && ending.upadesha in setOf("त", "झ")) return false

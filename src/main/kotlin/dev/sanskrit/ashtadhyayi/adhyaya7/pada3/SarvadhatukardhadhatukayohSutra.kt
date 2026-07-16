@@ -51,6 +51,7 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
         if (stemIndex < 0) return false
         val stem = context.terms[stemIndex]
         val affix = context.terms.getOrNull(stemIndex + 1) ?: return false
+        if (stem.gana == Gana.KRYADI && context.terms.any { it.upadesha == "श्ना" }) return false
         if (stem.gana == Gana.JUHOTYADI && context.terms.lastOrNull()?.upadesha !in setOf(
                 TingAffix.TIP.upadesha,
                 TingAffix.SIP.upadesha,

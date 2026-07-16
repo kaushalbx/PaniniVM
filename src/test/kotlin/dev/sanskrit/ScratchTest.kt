@@ -10,8 +10,8 @@ class ScratchTest {
         val requests = listOf(dev.sanskrit.dhatupatha.PadaType.PARASMAIPADA, dev.sanskrit.dhatupatha.PadaType.ATMANEPADA).flatMap { pada ->
             Purusha.entries.flatMap { purusha ->
                 Vacana.entries.map { vacana ->
-                    "RUDH LAT $pada $purusha $vacana" to TingantaDerivationRequest(
-                        "रुधिँर्", vacana, purusha, Lakara.LAT, pada = pada,
+                    "KRI LAT $pada $purusha $vacana" to TingantaDerivationRequest(
+                        "डुक्रीञ्", vacana, purusha, Lakara.LAT, pada = pada,
                     )
                 }
             }
