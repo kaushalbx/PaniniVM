@@ -9,6 +9,48 @@ import dev.sanskrit.dhatupatha.PadaType
 class TingantaEngineTest {
 
     @Test
+    fun `conjugation engine derives complete Rudhadi present paradigms for rudh`() {
+        val engine = TingantaEngine()
+        val parasmaipada = engine.deriveSupportedParadigm("रुधिँर्", pada = PadaType.PARASMAIPADA, lakara = Lakara.LAT)
+        val atmanepada = engine.deriveSupportedParadigm("रुधिँर्", pada = PadaType.ATMANEPADA, lakara = Lakara.LAT)
+
+        assertEquals(
+            mapOf(
+                TingAffix.TIP to "रुणद्धि",
+                TingAffix.TAS to "रुन्द्धः",
+                TingAffix.JHI to "रुन्धन्ति",
+                TingAffix.SIP to "रुणत्सि",
+                TingAffix.THAS to "रुन्द्धः",
+                TingAffix.THA to "रुन्द्ध",
+                TingAffix.MIP to "रुणध्मि",
+                TingAffix.VAS to "रुन्ध्वः",
+                TingAffix.MAS to "रुन्ध्मः",
+            ),
+            parasmaipada.surfaces,
+        )
+        assertEquals(
+            mapOf(
+                TingAffix.TA to "रुन्द्धे",
+                TingAffix.ATAM to "रुन्धाते",
+                TingAffix.JHA to "रुन्धते",
+                TingAffix.THAS_A to "रुन्त्से",
+                TingAffix.ATHAM to "रुन्धाथे",
+                TingAffix.DHVAM to "रुन्द्ध्वे",
+                TingAffix.IT to "रुन्धे",
+                TingAffix.VAHI to "रुन्ध्वहे",
+                TingAffix.MAHING to "रुन्ध्महे",
+            ),
+            atmanepada.surfaces,
+        )
+
+        (parasmaipada.forms.values + atmanepada.forms.values).forEach { result ->
+            assertTrue(result.applications.any { it.sutra == "3.1.78" })
+            assertTrue(result.applications.none { it.sutra == "3.1.68" })
+            assertTrue(result.final.droppedTerms.any { it.upadesha == "श्नम्" })
+        }
+    }
+
+    @Test
     fun `conjugation engine derives complete Juhotyadi present paradigm for hu`() {
         val paradigm = TingantaEngine().deriveSupportedParadigm("हु", lakara = Lakara.LAT)
 
@@ -262,7 +304,7 @@ class TingantaEngineTest {
     @Test
     fun `present paradigms reject ganas without implemented stem formation`() {
         assertFailsWith<IllegalArgumentException> {
-            TingantaEngine().deriveSupportedParadigm("रुधिँर्", lakara = Lakara.LAT)
+            TingantaEngine().deriveSupportedParadigm("डुक्रीञ्", lakara = Lakara.LAT)
         }
     }
 

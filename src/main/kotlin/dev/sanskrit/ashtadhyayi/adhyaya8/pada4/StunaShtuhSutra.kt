@@ -79,11 +79,10 @@ object StunaShtuhSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     private fun findMatch(surface: String): Pair<Int, Char>? {
-        for (i in 0 until surface.length - 1) {
+        for (i in 0 until surface.length - 2) {
             val curr = surface[i]
-            var nextIndex = i + 1
-            if (surface[nextIndex] == '्') nextIndex += 1
-            if (nextIndex >= surface.length) continue
+            if (surface[i + 1] != '्') continue
+            val nextIndex = i + 2
             val next = surface[nextIndex]
             if (isStu(curr) && isShtu(next)) {
                 return Pair(i, next)

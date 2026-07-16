@@ -14,7 +14,9 @@ object AtmanepadesvAnatahSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         val lakara = context.effectiveContext.rupa.lakara
         if (lakara !in setOf(Lakara.LAT, Lakara.LUNG)) return false
-        if (lakara == Lakara.LAT && context.terms.none { it.id in setOf("shnu", "tanadi-u") }) return false
+        val hasNonAStemVikarana = context.terms.any { it.id in setOf("shnu", "tanadi-u") } ||
+            context.droppedTerms.any { it.upadesha == "श्नम्" }
+        if (lakara == Lakara.LAT && !hasNonAStemVikarana) return false
         val endingIndex = context.terms.indexOfLast { it.upadesha == "झ" && it.surface.startsWith("झ") }
         if (endingIndex <= 0) return false
         return !context.terms[endingIndex - 1].surface.endsWith("अ")

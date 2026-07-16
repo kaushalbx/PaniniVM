@@ -10,6 +10,8 @@ import dev.sanskrit.pratyahara.Pratyahara
 import dev.sanskrit.shiksha.Varnamala
 import dev.sanskrit.derivation.Vacana
 import dev.sanskrit.derivation.Vibhakti
+import dev.sanskrit.derivation.TermKind
+import dev.sanskrit.dhatupatha.Gana
 import dev.sanskrit.shiksha.Vyanjana
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
@@ -55,9 +57,14 @@ object AtkupvangnumvyavayePiSutra : Sutra<DerivationState, DerivationChange>(
 
         // 8.4.35: No retroflexion if 'n' is followed by a dental consonant (t-varga: t, th, d, dh, n)
         val nextCharIndex = if (nIndex + 1 < surface.length && surface[nIndex + 1] == '्') nIndex + 2 else nIndex + 1
+        val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU && it.gana == Gana.RUDHADI }
+        val dhatuEnd = dhatu?.surface?.length ?: -1
+        val isStrongRudhadiShnam = nIndex < dhatuEnd &&
+            surface.getOrNull(nIndex + 1) != '्' &&
+            context.droppedTerms.any { it.upadesha == "श्नम्" }
         if (nextCharIndex < surface.length) {
             val nextChar = surface[nextCharIndex]
-            if (nextChar in setOf('त', 'थ', 'द', 'ध', 'न')) return false
+            if (!isStrongRudhadiShnam && nextChar in setOf('त', 'थ', 'द', 'ध', 'न')) return false
         }
 
         val intervenors = surface.substring(rIndex + 1, nIndex)

@@ -37,7 +37,9 @@ object JhalamJashJhashiSutra : Sutra<DerivationState, DerivationChange>(
         // For simplicity, we check across term boundaries.
         if (context.terms.size < 2) return false
         
-        val left = context.terms[context.terms.size - 2].surface.lastOrNull() ?: return false
+        val leftSurface = context.terms[context.terms.size - 2].surface
+        val leftIndex = finalConsonantIndex(leftSurface) ?: return false
+        val left = leftSurface[leftIndex]
         val right = context.terms.last().surface.firstOrNull() ?: return false
         
         val engine = Ashtadhyayi.pratyaharaEngine
@@ -51,11 +53,12 @@ object JhalamJashJhashiSutra : Sutra<DerivationState, DerivationChange>(
         val leftTerm = terms[terms.size - 2]
         val rightTerm = terms.last()
         
-        val leftChar = leftTerm.surface.last()
+        val leftIndex = requireNotNull(finalConsonantIndex(leftTerm.surface))
+        val leftChar = leftTerm.surface[leftIndex]
         
         val substitute = substituteFor(leftChar)
         
-        val newSurface = leftTerm.surface.dropLast(1) + substitute
+        val newSurface = leftTerm.surface.replaceRange(leftIndex, leftIndex + 1, substitute)
         
         return DerivationChange(
             state = context.replaceTerm(leftTerm.id, leftTerm.copy(surface = newSurface))
@@ -66,4 +69,10 @@ object JhalamJashJhashiSutra : Sutra<DerivationState, DerivationChange>(
 
     private fun substituteFor(source: Char): String =
         SthaneAntaratamahSutra.selectBest(source, setOf("ज", "ब", "ग", "ड", "द"))
+
+    private fun finalConsonantIndex(surface: String): Int? = when {
+        surface.isEmpty() -> null
+        surface.endsWith('्') && surface.length >= 2 -> surface.lastIndex - 1
+        else -> surface.lastIndex
+    }
 }
