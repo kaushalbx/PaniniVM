@@ -50,8 +50,9 @@ object JhoAntahSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
         val suffix = affix.surface.drop(1)
         val isMatra = suffix.firstOrNull() in setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ', 'े', 'ै', 'ो', 'ौ')
-        val isLangAtmanepadaJha = context.effectiveContext.rupa.lakara == Lakara.LANG && affix.upadesha == "झ"
-        val newSurface = (if (isMatra || isLangAtmanepadaJha) "अन्त" else "अन्त्") + suffix
+        val isSecondaryAtmanepadaJha = context.effectiveContext.rupa.lakara in setOf(Lakara.LANG, Lakara.LRNG) &&
+            affix.upadesha == "झ"
+        val newSurface = (if (isMatra || isSecondaryAtmanepadaJha) "अन्त" else "अन्त्") + suffix
         
         return DerivationChange(
             state = context.replaceTerm(affix.id, affix.copy(surface = newSurface)),

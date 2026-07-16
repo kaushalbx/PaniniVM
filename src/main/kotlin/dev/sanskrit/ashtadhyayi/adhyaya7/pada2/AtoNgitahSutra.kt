@@ -28,18 +28,21 @@ object AtoNgitahSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val ending = context.terms.last()
-        return context.effectiveContext.rupa.lakara in setOf(Lakara.LAT, Lakara.LANG) &&
+        val hasAEndingAnga = context.terms.any {
+            it.id in setOf("shap", "sya") && dev.sanskrit.shiksha.Varnamala.endsWithA(it.surface)
+        }
+        return context.effectiveContext.rupa.lakara in setOf(Lakara.LAT, Lakara.LANG, Lakara.LRNG) &&
             ending.upadesha in setOf("आताम्", "आथाम्") &&
-            context.terms.any { it.id == "shap" && it.surface.endsWith('अ') } &&
+            hasAEndingAnga &&
             context.terms.none { it.id == "ato-ngit-it" }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
-        if (context.effectiveContext.rupa.lakara == Lakara.LANG) {
+        if (context.effectiveContext.rupa.lakara in setOf(Lakara.LANG, Lakara.LRNG)) {
             return DerivationChange(
                 context.replaceTerm(ending.id, ending.copy(surface = "इ${ending.surface.drop(1)}")),
-                "7.2.81 replaces the initial आ of ${ending.upadesha} with इ after the शप् अ.",
+                "7.2.81 replaces the initial आ of ${ending.upadesha} with इ after an a-ending अङ्ग.",
             )
         }
         val augment = DerivationTerm("ato-ngit-it", "इ", TermKind.AGAMA, upadesha = "इट्")
