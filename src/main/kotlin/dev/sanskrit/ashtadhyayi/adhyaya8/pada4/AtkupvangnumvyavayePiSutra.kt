@@ -11,6 +11,7 @@ import dev.sanskrit.shiksha.Varnamala
 import dev.sanskrit.derivation.Vacana
 import dev.sanskrit.derivation.Vibhakti
 import dev.sanskrit.derivation.TermKind
+import dev.sanskrit.derivation.TingAffix
 import dev.sanskrit.dhatupatha.Gana
 import dev.sanskrit.shiksha.Vyanjana
 import dev.sanskrit.sutra.Sutra
@@ -59,10 +60,29 @@ object AtkupvangnumvyavayePiSutra : Sutra<DerivationState, DerivationChange>(
             surface.getOrNull(nIndex + 1) != '्' &&
             context.droppedTerms.any { it.upadesha == "श्नम्" }
         val isKryadiShnaNasal = context.terms.any { it.id == "shna" && 'न' in it.surface }
+
+        // Guard: do not retroflex a nasal that lives inside a tiṅ affix term that is not
+        // part of a known vikaraṇa nasal (Rudhādi श्नम् infix or Kryādi श्ना).
+        // Without this, the 'न' in endings like आनि (LOT MIP) would be mistakenly
+        // retroflexed when the root happens to contain र/ष (e.g. Curādi चोर-).
+        // Vibhakti endings (रामाणाम्, ऋषिणा) are also PRATYAYA but are NOT tiṅ affixes,
+        // so we specifically exclude only the tiṅ-affix family by upadeśa membership.
+        if (!isStrongRudhadiShnam && !isKryadiShnaNasal) {
+            val tingUpadeshas = TingAffix.entries.mapTo(mutableSetOf()) { it.upadesha }
+            var charCount = 0
+            val targetTerm = context.terms.find { term ->
+                val start = charCount
+                charCount += term.surface.length
+                nIndex in start until charCount
+            }
+            if (targetTerm?.kind == TermKind.PRATYAYA && targetTerm.upadesha in tingUpadeshas) return false
+        }
+
         if (nextCharIndex < surface.length) {
             val nextChar = surface[nextCharIndex]
             if (!isStrongRudhadiShnam && !isKryadiShnaNasal && nextChar in setOf('त', 'थ', 'द', 'ध', 'न')) return false
         }
+
 
         val intervenors = surface.substring(rIndex + 1, nIndex)
         return intervenors.all { isAllowed(it) }
