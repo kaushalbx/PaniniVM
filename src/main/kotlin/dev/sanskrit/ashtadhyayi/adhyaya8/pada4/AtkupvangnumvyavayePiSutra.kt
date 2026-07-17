@@ -114,7 +114,37 @@ object AtkupvangnumvyavayePiSutra : Sutra<DerivationState, DerivationChange>(
         val triggerIndex = surface.lastIndexOfAny(setOf('र', 'ष', 'ऋ', 'ृ', 'ॠ', 'ॄ'))
         if (triggerIndex < 0) return null
         val nIndex = surface.indexOf('न', triggerIndex)
-        return nIndex.takeIf { it >= 0 }?.let { triggerIndex to it }
+        if (nIndex < 0) return null
+
+        // Guard: if the r/ṣ trigger is inside a DHATU term but the target न is in a
+        // *different* (non-DHATU / suffix) term, the dhātu's internal r/ṣ cannot serve
+        // as a cross-term Ṇatva trigger.  This prevents spurious matching in Curādi
+        // forms like चोर-य-आनि where र is buried in the stem and न is a suffix sound.
+        // Note: when both trigger and target are in the same DHATU (e.g. Rudhadi's
+        // शनम्-infixed forms like रुनध्), the rule should still fire.
+        var charCount = 0
+        var triggerTermId: String? = null
+        var nTermId: String? = null
+        for (term in context.terms) {
+            val termStart = charCount
+            charCount += term.surface.length
+            if (triggerTermId == null && triggerIndex in termStart until charCount) {
+                triggerTermId = term.id
+            }
+            if (nTermId == null && nIndex in termStart until charCount) {
+                nTermId = term.id
+            }
+            if (triggerTermId != null && nTermId != null) break
+        }
+
+        // If the trigger is in a DHATU term but the न is in a different term,
+        // the r/ṣ is dhātu-internal and cannot drive cross-term retroflexion.
+        if (triggerTermId != null && nTermId != null && triggerTermId != nTermId) {
+            val triggerTerm = context.terms.find { it.id == triggerTermId }
+            if (triggerTerm?.kind == TermKind.DHATU) return null
+        }
+
+        return triggerIndex to nIndex
     }
 
     private fun String.lastIndexOfAny(chars: Set<Char>): Int {
