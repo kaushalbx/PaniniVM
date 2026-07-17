@@ -8,73 +8,54 @@ import kotlin.test.Test
 
 class ScratchTest {
 
-    /**
-     * Prints the full derivation trace for every gaṇa × {LOT, LANG, LING} paradigm.
-     * Run with:  ./gradlew test --tests "dev.sanskrit.ScratchTest.traceGanaLakaraParadigms" --info
-     */
-    @Test
-    fun traceGanaLakaraParadigms() {
-        // Representative root for each gaṇa (Parasmaipada preferred)
-        val ganaRoots: List<Pair<Gana, String>> = listOf(
-            Gana.BHVADI    to "भू",
-            Gana.ADADI     to "अद्",
-            Gana.JUHOTYADI to "हु",
-            Gana.DIVADI    to "दिव्",
-            Gana.SVADI     to "षुञ्",
-            Gana.TUDADI    to "तुद्",
-            Gana.RUDHADI   to "रुधिँर्",
-            Gana.TANADI    to "तनुँ",
-            Gana.KRYADI    to "डुक्रीञ्",
-            Gana.CURADI    to "चुरँ",
-        )
-
-        val lakaras = listOf(Lakara.LOT, Lakara.LANG, Lakara.LING)
-        val engine  = TingantaEngine()
-
-        for ((gana, upadesha) in ganaRoots) {
-            val dhatu = DhatuPatha.all.first {
-                it.gana == gana && (it.upadesha == upadesha || it.derivationalSurface == upadesha)
-            }
-            val pada = if (dhatu.pada == PadaType.ATMANEPADA) PadaType.ATMANEPADA else PadaType.PARASMAIPADA
-
-            for (lakara in lakaras) {
-                println("\n========================================")
-                println("  $gana  |  ${dhatu.upadesha}  |  $lakara  |  $pada")
-                println("========================================")
-                try {
-                    val paradigm = engine.deriveSupportedParadigm(dhatu.upadesha, pada, lakara)
-                    paradigm.forms.forEach { (affix, result) ->
-                        val sutras = result.applications.map { it.sutra }.joinToString(" -> ")
-                        println("  ${affix.name.padEnd(8)} = ${result.final.surface.padEnd(20)}  [$sutras]")
-                    }
-                } catch (e: Exception) {
-                    println("  ERROR: ${e.message}")
-                }
-            }
-        }
-    }
 
     @Test
     fun testDerivationTrace() {
-        val requests = listOf(PadaType.PARASMAIPADA, PadaType.ATMANEPADA).flatMap { pada ->
-            Purusha.entries.flatMap { purusha ->
-                Vacana.entries.map { vacana ->
-                    "KRI LOT $pada $purusha $vacana" to TingantaDerivationRequest(
-                        "डुक्रीञ्", vacana, purusha, Lakara.LOT, pada = pada,
-                    )
-                }
+        val request = SubantaDerivationRequest("राम", Vibhakti.TRTIYA, Vacana.DVIVACANA)
+        var current = request.initialState()
+
+//        val dhatu = DhatuPatha.all.first { it.upadesha == "भू" }
+//        val request = TingantaDerivationRequest("भू", Vacana.EKAVACANA, Purusha.PRATHAMA, Lakara.LUT)
+
+        val engine = DerivationEngine()
+
+        println("=== STARTING STEP-BY-STEP TRACE FOR RAMABHYAM ===")
+//         println("=== STARTING STEP-BY-STEP TRACE FOR BHAVITA ===")
+        val visited = mutableSetOf(current)
+        for (step in 1..40) {
+            val selectMethod = DerivationEngine::class.java.getDeclaredMethod(
+                "select",
+                DerivationState::class.java,
+                Set::class.java
+            )
+            selectMethod.isAccessible = true
+            val selection = selectMethod.invoke(engine, current, emptySet<String>())
+
+            val selectedField = selection.javaClass.getDeclaredField("selected")
+            selectedField.isAccessible = true
+            val candidate = selectedField.get(selection)
+            if (candidate == null) {
+                println("Step $step: No candidate selected! Derivation finished. Final surface: ${current.surface} stage: ${current.stage}")
+                break
             }
-        }
-        requests.forEach { (label, request) ->
-            val dhatu = DhatuPatha.all.first {
-                it.upadesha == request.dhatu || it.derivationalSurface == request.dhatu
+
+            val sutraField = candidate.javaClass.getDeclaredField("sutra")
+            sutraField.isAccessible = true
+            val sutra = sutraField.get(candidate) as DerivationSutra
+
+            val changeField = candidate.javaClass.getDeclaredField("change")
+            changeField.isAccessible = true
+            val change = changeField.get(candidate) as DerivationChange
+
+            println("Step $step: Selected sutra ${sutra.sutra} -> ${change.state.terms.map { it.surface }} stage: ${change.state.stage}")
+
+            if (change.state in visited) {
+                println("  CYCLE DETECTED when transitioning to: ${change.state.terms.map { it.surface }}")
+                break
             }
-            val result = DerivationEngine().derive(request.initialState(dhatu))
-            println("=== $label ===")
-            result.applications.forEachIndexed { index, application ->
-                println("${index + 1}. ${application.sutra}: ${application.before.surface} -> ${application.after.surface}")
-            }
-            println("FINAL (${result.final.stage}): ${result.final.surface}")
+            visited.add(change.state)
+            current = change.state
+
         }
     }
 }

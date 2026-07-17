@@ -565,8 +565,8 @@ class DerivationEngineTest {
 
         val engine = DerivationEngine(listOf(ruleA, ruleB))
         val result = engine.derive(initial)
-        println("APPLICATIONS: " + result.applications.map { "${it.sutra}: ${it.before.surface} -> ${it.after.surface}" })
-        println("EVENTS: " + result.events)
+//        println("APPLICATIONS: " + result.applications.map { "${it.sutra}: ${it.before.surface} -> ${it.after.surface}" })
+//        println("EVENTS: " + result.events)
         assertEquals("म", result.final.surface)
     }
 
