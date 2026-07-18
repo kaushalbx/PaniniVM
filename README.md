@@ -19,7 +19,7 @@ blocked alternatives where available.
   ten Dhātupāṭha gaṇas, with class-specific strong/weak stem selection.
 - Complete representative `LAT`, `LOT`, `LANG`, and `LING` paradigms in both padas
   across all ten gaṇas, including class-specific strong and weak stems.
-- Exact `LAT` and `LOT` root-shape coverage includes vowel-final, consonant-final,
+- Exact `LAT`, `LOT`, and `LANG` root-shape coverage includes vowel-final, consonant-final,
   irregular `गम् → गच्छ्`, and Ubhayapada representatives.
 
 Coverage is deliberately plan-based: a declared form is accepted only when
