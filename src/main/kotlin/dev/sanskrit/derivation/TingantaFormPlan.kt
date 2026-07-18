@@ -19,7 +19,7 @@ object TingantaFormPlans {
         TingAffix.entries.forEach { affix ->
             add(TingantaFormPlan(affix, Lakara.LAT, setOf("3.4.78"), DerivationStage.FINAL, setOf(Gana.BHVADI)))
             add(TingantaFormPlan(affix, Lakara.LAT, setOf("3.4.78", "2.4.72"), DerivationStage.FINAL, setOf(Gana.ADADI)))
-            val juhotyadiRequired = mutableSetOf("3.4.78", "2.4.75", "6.1.10", "6.1.4", "7.4.62")
+            val juhotyadiRequired = mutableSetOf("3.4.78", "2.4.75", "6.1.10", "6.1.4")
             if (affix in setOf(TingAffix.TIP, TingAffix.SIP, TingAffix.MIP)) juhotyadiRequired += "7.3.84"
             if (affix == TingAffix.JHI) juhotyadiRequired += "7.1.4"
             add(TingantaFormPlan(affix, Lakara.LAT, juhotyadiRequired, DerivationStage.FINAL, setOf(Gana.JUHOTYADI)))

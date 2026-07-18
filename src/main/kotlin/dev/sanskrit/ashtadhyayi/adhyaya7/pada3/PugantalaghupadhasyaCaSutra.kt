@@ -38,6 +38,7 @@ object PugantalaghupadhasyaCaSutra : Sutra<DerivationState, DerivationChange>(
         val isCuradiNic = dhatu.gana == Gana.CURADI && context.terms.any { it.upadesha == "णिच्" }
         val ending = TingAffix.entries.firstOrNull { it.upadesha == context.terms.lastOrNull()?.upadesha }
         val isAdadiStrong = ending != null && dhatu.gana == Gana.ADADI && when (context.effectiveContext.rupa.lakara) {
+            Lakara.LAT -> ending in setOf(TingAffix.TIP, TingAffix.SIP, TingAffix.MIP)
             Lakara.LOT -> ending.purusha == Purusha.UTTAMA || ending == TingAffix.TIP
             Lakara.LANG -> ending in setOf(TingAffix.TIP, TingAffix.SIP, TingAffix.MIP)
             else -> false
