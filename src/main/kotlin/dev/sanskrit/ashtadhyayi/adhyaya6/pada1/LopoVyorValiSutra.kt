@@ -31,13 +31,14 @@ object LopoVyorValiSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         for (index in 0 until context.terms.lastIndex) {
             val leftTerm = context.terms[index]
-            if (leftTerm.id in setOf("yasut", "nic") || leftTerm.upadesha == "श्यन्") continue
+            if (leftTerm.id in setOf("yasut", "nic")) continue
             val left = leftTerm.surface
             val rightTerm = context.terms[index + 1]
             val hasPadaScope = context.samjnas.any { it.targetId == leftTerm.id && it.samjna == Samjna.PADA }
-            val isLateLingShap = context.effectiveContext.rupa.lakara == Lakara.LING &&
-                leftTerm.upadesha == "शप्" && TingAffix.entries.any { it.upadesha == rightTerm.upadesha }
-            if (!hasPadaScope && !isLateLingShap) continue
+            val isLateLingVikarana = context.effectiveContext.rupa.lakara == Lakara.LING &&
+                leftTerm.upadesha in setOf("शप्", "श्यन्", "श") &&
+                TingAffix.entries.any { it.upadesha == rightTerm.upadesha }
+            if (!hasPadaScope && !isLateLingVikarana) continue
             if (context.effectiveContext.rupa.lakara == Lakara.LUNG &&
                 leftTerm.id == "vuk" && rightTerm.upadesha in setOf("च्लि", "सिच्")
             ) continue
@@ -56,12 +57,13 @@ object LopoVyorValiSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         for (index in 0 until context.terms.lastIndex) {
             val left = context.terms[index]
-            if (left.id in setOf("yasut", "nic") || left.upadesha == "श्यन्") continue
+            if (left.id in setOf("yasut", "nic")) continue
             val rightTerm = context.terms[index + 1]
             val hasPadaScope = context.samjnas.any { it.targetId == left.id && it.samjna == Samjna.PADA }
-            val isLateLingShap = context.effectiveContext.rupa.lakara == Lakara.LING &&
-                left.upadesha == "शप्" && TingAffix.entries.any { it.upadesha == rightTerm.upadesha }
-            if (!hasPadaScope && !isLateLingShap) continue
+            val isLateLingVikarana = context.effectiveContext.rupa.lakara == Lakara.LING &&
+                left.upadesha in setOf("शप्", "श्यन्", "श") &&
+                TingAffix.entries.any { it.upadesha == rightTerm.upadesha }
+            if (!hasPadaScope && !isLateLingVikarana) continue
             if (context.effectiveContext.rupa.lakara == Lakara.LUNG &&
                 left.id == "vuk" && rightTerm.upadesha in setOf("च्लि", "सिच्")
             ) continue

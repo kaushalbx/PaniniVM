@@ -173,25 +173,24 @@ class TingantaEngineTest {
     }
 
     @Test
-    fun `all ganas derive representative parasmaipada optatives`() {
+    fun `all ganas derive complete representative parasmaipada optatives`() {
         val expected = mapOf(
-            "भू" to "भवेत्",
-            "अद्" to "अद्यात्",
-            "हु" to "जुहुयात्",
-            "दिव्" to "दिव्येत्",
-            "षुञ्" to "सुनुयात्",
-            "नुद्" to "नुदेत्",
-            "रुधिँर्" to "रुन्ध्यात्",
-            "तनुँ" to "तनुयात्",
-            "डुक्रीञ्" to "क्रीणीयात्",
-            "चुरँ" to "चोरयेत्",
+            "भू" to "भवेत् भवेताम् भवेयुः भवेः भवेतम् भवेत भवेयम् भवेव भवेम",
+            "अद्" to "अद्यात् अद्याताम् अद्युः अद्याः अद्यातम् अद्यात अद्याम् अद्याव अद्याम",
+            "हु" to "जुहुयात् जुहुयाताम् जुहुयुः जुहुयाः जुहुयातम् जुहुयात जुहुयाम् जुहुयाव जुहुयाम",
+            "दिव्" to "दिव्येत् दिव्येताम् दिव्येयुः दिव्येः दिव्येतम् दिव्येत दिव्येयम् दिव्येव दिव्येम",
+            "षुञ्" to "सुनुयात् सुनुयाताम् सुनुयुः सुनुयाः सुनुयातम् सुनुयात सुनुयाम् सुनुयाव सुनुयाम",
+            "नुद्" to "नुदेत् नुदेताम् नुदेयुः नुदेः नुदेतम् नुदेत नुदेयम् नुदेव नुदेम",
+            "रुधिँर्" to "रुन्ध्यात् रुन्ध्याताम् रुन्ध्युः रुन्ध्याः रुन्ध्यातम् रुन्ध्यात रुन्ध्याम् रुन्ध्याव रुन्ध्याम",
+            "तनुँ" to "तनुयात् तनुयाताम् तनुयुः तनुयाः तनुयातम् तनुयात तनुयाम् तनुयाव तनुयाम",
+            "डुक्रीञ्" to "क्रीणीयात् क्रीणीयाताम् क्रीणीयुः क्रीणीयाः क्रीणीयातम् क्रीणीयात क्रीणीयाम् क्रीणीयाव क्रीणीयाम",
+            "चुरँ" to "चोरयेत् चोरयेताम् चोरयेयुः चोरयेः चोरयेतम् चोरयेत चोरयेयम् चोरयेव चोरयेम",
         )
 
-        expected.forEach { (root, surface) ->
-            val result = TingantaEngine().derive(
-                TingantaDerivationRequest(root, lakara = Lakara.LING, pada = PadaType.PARASMAIPADA),
-            )
-            assertEquals(surface, result.final.surface, root)
+        expected.forEach { (root, surfaces) ->
+            TingantaEngine()
+                .deriveSupportedParadigm(root, PadaType.PARASMAIPADA, Lakara.LING)
+                .assertSurfaces(surfaces)
         }
     }
 

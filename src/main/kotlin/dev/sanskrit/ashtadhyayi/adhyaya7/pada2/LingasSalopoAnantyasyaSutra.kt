@@ -32,10 +32,11 @@ object LingasSalopoAnantyasyaSutra : Sutra<DerivationState, DerivationChange>(
         if (siyut != null) return siyut.surface.startsWith('स')
 
         val yasut = context.terms.firstOrNull { it.id == "yasut" } ?: return false
-        val gana = context.terms.firstOrNull { it.kind == TermKind.DHATU }?.gana
+        val gana = context.terms.firstOrNull { it.kind == TermKind.DHATU && it.gana != null }?.gana
         val stemFormationComplete = when (gana) {
             Gana.CURADI -> context.terms.any { it.id == "shap" }
             Gana.RUDHADI -> context.droppedTerms.any { it.id == "shnam" }
+            Gana.ADADI, Gana.JUHOTYADI -> context.allEffectiveTerms.any { it.id == "shap" }
             else -> context.terms.any {
                 it.id in setOf("shap", "shyan", "shnu", "sha", "tanadi-u", "shna")
             }
@@ -53,8 +54,13 @@ object LingasSalopoAnantyasyaSutra : Sutra<DerivationState, DerivationChange>(
         }
 
         val yasut = context.terms.first { it.id == "yasut" }
+        val surface = if (context.terms.last().matchesUpadesha("झि")) {
+            "य्"
+        } else {
+            yasut.surface.removeSuffix("स्")
+        }
         return DerivationChange(
-            context.replaceTerm(yasut.id, yasut.copy(surface = yasut.surface.removeSuffix("स्"))),
+            context.replaceTerm(yasut.id, yasut.copy(surface = surface, itMarkers = emptySet())),
             "7.2.79 removes the non-final स् of यास्.",
         )
     }

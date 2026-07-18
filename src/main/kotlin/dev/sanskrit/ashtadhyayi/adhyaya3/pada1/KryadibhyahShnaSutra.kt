@@ -8,6 +8,7 @@ import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.derivation.TingAffix
 import dev.sanskrit.derivation.Lakara
 import dev.sanskrit.dhatupatha.Gana
+import dev.sanskrit.dhatupatha.PadaType
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -60,10 +61,17 @@ object KryadibhyahShnaSutra : Sutra<DerivationState, DerivationChange>(
             Lakara.LING -> emptySet()
             else -> latStrongAffixes
         }
-        val surface = when (affix) {
-            in strongAffixes -> "ना"
-            in vowelInitialAffixes -> "न्"
-            else -> "नी"
+        val surface = if (
+            context.effectiveContext.rupa.lakara == Lakara.LING &&
+            affix.pada == PadaType.PARASMAIPADA
+        ) {
+            "नी"
+        } else {
+            when (affix) {
+                in strongAffixes -> "ना"
+                in vowelInitialAffixes -> "न्"
+                else -> "नी"
+            }
         }
         val shna = DerivationTerm("shna", surface, TermKind.PRATYAYA, upadesha = "श्ना")
         return DerivationChange(
