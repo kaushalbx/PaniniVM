@@ -29,7 +29,7 @@ object AtoNgitahSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         val ending = context.terms.last()
         val hasAEndingAnga = context.terms.any {
-            it.id in setOf("shap", "sha", "sya") && dev.sanskrit.shiksha.Varnamala.endsWithA(it.surface)
+            it.id in setOf("shap", "shyan", "sha", "sya") && dev.sanskrit.shiksha.Varnamala.endsWithA(it.surface)
         }
         return context.effectiveContext.rupa.lakara in setOf(Lakara.LAT, Lakara.LANG, Lakara.LRNG) &&
             ending.upadesha in setOf("आताम्", "आथाम्") &&

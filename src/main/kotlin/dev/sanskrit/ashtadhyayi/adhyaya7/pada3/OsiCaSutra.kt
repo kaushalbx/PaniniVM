@@ -37,8 +37,9 @@ object OsiCaSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        return (dev.sanskrit.shiksha.Varnamala.endsWithA(stem.surface) || dev.sanskrit.shiksha.Varnamala.endsWithAA(stem.surface)) && 
-                affix.upadesha == "ओस्"
+        return dev.sanskrit.shiksha.Varnamala.endsWithA(stem.surface) &&
+            affix.upadesha == "ओस्" &&
+            affix.surface == "ओस्"
     }
 
     override fun apply(context: DerivationState): DerivationChange {

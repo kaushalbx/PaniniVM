@@ -21,8 +21,9 @@ object EtaAiSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
         val replacement = if (ending.surface == "ए") "ऐ" else ending.surface.dropLast(1) + "ै"
+        val replaced = context.replaceTerm(ending.id, ending.copy(surface = replacement))
         return DerivationChange(
-            context.replaceTerm(ending.id, ending.copy(surface = replacement)),
+            replaced.removeTerm("lot-at-agama"),
             "3.4.93 replaces the ending's ए with ऐ in the LOT first person.",
         )
     }

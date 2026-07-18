@@ -50,6 +50,7 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
         val stemIndex = context.terms.indexOfFirst { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         if (stemIndex < 0) return false
         val stem = context.terms[stemIndex]
+        if (stem.gana == Gana.JUHOTYADI && context.droppedTerms.none { it.upadesha == "शप्" }) return false
         val affix = context.terms.getOrNull(stemIndex + 1) ?: return false
         if (stem.gana == Gana.KRYADI && context.terms.any { it.upadesha == "श्ना" }) return false
         if (stem.gana == Gana.JUHOTYADI && context.terms.lastOrNull()?.upadesha !in setOf(

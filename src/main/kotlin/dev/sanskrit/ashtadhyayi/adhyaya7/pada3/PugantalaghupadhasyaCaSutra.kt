@@ -4,6 +4,7 @@ import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
+import dev.sanskrit.derivation.Lakara
 import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.derivation.VarnaSubstitution
 import dev.sanskrit.dhatupatha.Gana
@@ -30,6 +31,8 @@ object PugantalaghupadhasyaCaSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU } ?: return false
+        if (context.effectiveContext.rupa.lakara == Lakara.LING &&
+            context.terms.none { it.id == "yasut" || it.id == "siyut" }) return false
         return dhatu.gana == Gana.CURADI &&
             context.terms.any { it.upadesha == "णिच्" } &&
             lightUpadhaIndex(dhatu.surface) != null

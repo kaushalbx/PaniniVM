@@ -4,6 +4,8 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
+import dev.sanskrit.dhatupatha.DhatuPatha
+import dev.sanskrit.dhatupatha.Gana
 import dev.sanskrit.dhatupatha.PadaType
 
 class TingantaEngineTest {
@@ -14,34 +16,8 @@ class TingantaEngineTest {
         val parasmaipada = engine.deriveSupportedParadigm("डुक्रीञ्", pada = PadaType.PARASMAIPADA, lakara = Lakara.LOT)
         val atmanepada = engine.deriveSupportedParadigm("डुक्रीञ्", pada = PadaType.ATMANEPADA, lakara = Lakara.LOT)
 
-        assertEquals(
-            mapOf(
-                TingAffix.TIP to "क्रीणातु",
-                TingAffix.TAS to "क्रीणीताम्",
-                TingAffix.JHI to "क्रीणन्तु",
-                TingAffix.SIP to "क्रीणीहि",
-                TingAffix.THAS to "क्रीणीतम्",
-                TingAffix.THA to "क्रीणीत",
-                TingAffix.MIP to "क्रीणानि",
-                TingAffix.VAS to "क्रीणाव",
-                TingAffix.MAS to "क्रीणाम",
-            ),
-            parasmaipada.surfaces,
-        )
-        assertEquals(
-            mapOf(
-                TingAffix.TA to "क्रीणीताम्",
-                TingAffix.ATAM to "क्रीणाताम्",
-                TingAffix.JHA to "क्रीणताम्",
-                TingAffix.THAS_A to "क्रीणीष्व",
-                TingAffix.ATHAM to "क्रीणाथाम्",
-                TingAffix.DHVAM to "क्रीणीध्वम्",
-                TingAffix.IT to "क्रीणै",
-                TingAffix.VAHI to "क्रीणावहै",
-                TingAffix.MAHING to "क्रीणामहै",
-            ),
-            atmanepada.surfaces,
-        )
+        parasmaipada.assertSurfaces("क्रीणातु क्रीणीताम् क्रीणन्तु क्रीणीहि क्रीणीतम् क्रीणीत क्रीणानि क्रीणाव क्रीणाम")
+        atmanepada.assertSurfaces("क्रीणीताम् क्रीणाताम् क्रीणताम् क्रीणीष्व क्रीणाथाम् क्रीणीध्वम् क्रीणै क्रीणावहै क्रीणामहै")
 
         (parasmaipada.forms.values + atmanepada.forms.values).forEach { result ->
             assertTrue(result.applications.any { it.sutra == "3.1.81" })
@@ -56,34 +32,8 @@ class TingantaEngineTest {
         val parasmaipada = engine.deriveSupportedParadigm("डुक्रीञ्", pada = PadaType.PARASMAIPADA, lakara = Lakara.LAT)
         val atmanepada = engine.deriveSupportedParadigm("डुक्रीञ्", pada = PadaType.ATMANEPADA, lakara = Lakara.LAT)
 
-        assertEquals(
-            mapOf(
-                TingAffix.TIP to "क्रीणाति",
-                TingAffix.TAS to "क्रीणीतः",
-                TingAffix.JHI to "क्रीणन्ति",
-                TingAffix.SIP to "क्रीणासि",
-                TingAffix.THAS to "क्रीणीथः",
-                TingAffix.THA to "क्रीणीथ",
-                TingAffix.MIP to "क्रीणामि",
-                TingAffix.VAS to "क्रीणीवः",
-                TingAffix.MAS to "क्रीणीमः",
-            ),
-            parasmaipada.surfaces,
-        )
-        assertEquals(
-            mapOf(
-                TingAffix.TA to "क्रीणीते",
-                TingAffix.ATAM to "क्रीणाते",
-                TingAffix.JHA to "क्रीणते",
-                TingAffix.THAS_A to "क्रीणीषे",
-                TingAffix.ATHAM to "क्रीणाथे",
-                TingAffix.DHVAM to "क्रीणीध्वे",
-                TingAffix.IT to "क्रीणे",
-                TingAffix.VAHI to "क्रीणीवहे",
-                TingAffix.MAHING to "क्रीणीमहे",
-            ),
-            atmanepada.surfaces,
-        )
+        parasmaipada.assertSurfaces("क्रीणाति क्रीणीतः क्रीणन्ति क्रीणासि क्रीणीथः क्रीणीथ क्रीणामि क्रीणीवः क्रीणीमः")
+        atmanepada.assertSurfaces("क्रीणीते क्रीणाते क्रीणते क्रीणीषे क्रीणाथे क्रीणीध्वे क्रीणे क्रीणीवहे क्रीणीमहे")
 
         (parasmaipada.forms.values + atmanepada.forms.values).forEach { result ->
             assertTrue(result.applications.any { it.sutra == "3.1.81" })
@@ -99,34 +49,8 @@ class TingantaEngineTest {
         val parasmaipada = engine.deriveSupportedParadigm("रुधिँर्", pada = PadaType.PARASMAIPADA, lakara = Lakara.LAT)
         val atmanepada = engine.deriveSupportedParadigm("रुधिँर्", pada = PadaType.ATMANEPADA, lakara = Lakara.LAT)
 
-        assertEquals(
-            mapOf(
-                TingAffix.TIP to "रुणद्धि",
-                TingAffix.TAS to "रुन्द्धः",
-                TingAffix.JHI to "रुन्धन्ति",
-                TingAffix.SIP to "रुणत्सि",
-                TingAffix.THAS to "रुन्द्धः",
-                TingAffix.THA to "रुन्द्ध",
-                TingAffix.MIP to "रुणध्मि",
-                TingAffix.VAS to "रुन्ध्वः",
-                TingAffix.MAS to "रुन्ध्मः",
-            ),
-            parasmaipada.surfaces,
-        )
-        assertEquals(
-            mapOf(
-                TingAffix.TA to "रुन्द्धे",
-                TingAffix.ATAM to "रुन्धाते",
-                TingAffix.JHA to "रुन्धते",
-                TingAffix.THAS_A to "रुन्त्से",
-                TingAffix.ATHAM to "रुन्धाथे",
-                TingAffix.DHVAM to "रुन्द्ध्वे",
-                TingAffix.IT to "रुन्धे",
-                TingAffix.VAHI to "रुन्ध्वहे",
-                TingAffix.MAHING to "रुन्ध्महे",
-            ),
-            atmanepada.surfaces,
-        )
+        parasmaipada.assertSurfaces("रुणद्धि रुन्द्धः रुन्धन्ति रुणत्सि रुन्द्धः रुन्द्ध रुणध्मि रुन्ध्वः रुन्ध्मः")
+        atmanepada.assertSurfaces("रुन्द्धे रुन्धाते रुन्धते रुन्त्से रुन्धाथे रुन्द्ध्वे रुन्धे रुन्ध्वहे रुन्ध्महे")
 
         (parasmaipada.forms.values + atmanepada.forms.values).forEach { result ->
             assertTrue(result.applications.any { it.sutra == "3.1.78" })
@@ -139,20 +63,7 @@ class TingantaEngineTest {
     fun `conjugation engine derives complete Juhotyadi present paradigm for hu`() {
         val paradigm = TingantaEngine().deriveSupportedParadigm("हु", lakara = Lakara.LAT)
 
-        assertEquals(
-            mapOf(
-                TingAffix.TIP to "जुहोति",
-                TingAffix.TAS to "जुहुतः",
-                TingAffix.JHI to "जुह्वति",
-                TingAffix.SIP to "जुहोषि",
-                TingAffix.THAS to "जुहुथः",
-                TingAffix.THA to "जुहुथ",
-                TingAffix.MIP to "जुहोमि",
-                TingAffix.VAS to "जुहुवः",
-                TingAffix.MAS to "जुहुमः",
-            ),
-            paradigm.surfaces,
-        )
+        paradigm.assertSurfaces("जुहोति जुहुतः जुह्वति जुहोषि जुहुथः जुहुथ जुहोमि जुहुवः जुहुमः")
 
         paradigm.forms.values.forEach { result ->
             assertTrue(result.applications.any { it.sutra == "2.4.75" })
@@ -169,34 +80,8 @@ class TingantaEngineTest {
         val parasmaipada = engine.deriveSupportedParadigm("चुरँ", pada = PadaType.PARASMAIPADA, lakara = Lakara.LAT)
         val atmanepada = engine.deriveSupportedParadigm("चुरँ", pada = PadaType.ATMANEPADA, lakara = Lakara.LAT)
 
-        assertEquals(
-            mapOf(
-                TingAffix.TIP to "चोरयति",
-                TingAffix.TAS to "चोरयतः",
-                TingAffix.JHI to "चोरयन्ति",
-                TingAffix.SIP to "चोरयसि",
-                TingAffix.THAS to "चोरयथः",
-                TingAffix.THA to "चोरयथ",
-                TingAffix.MIP to "चोरयामि",
-                TingAffix.VAS to "चोरयावः",
-                TingAffix.MAS to "चोरयामः",
-            ),
-            parasmaipada.surfaces,
-        )
-        assertEquals(
-            mapOf(
-                TingAffix.TA to "चोरयते",
-                TingAffix.ATAM to "चोरयेते",
-                TingAffix.JHA to "चोरयन्ते",
-                TingAffix.THAS_A to "चोरयसे",
-                TingAffix.ATHAM to "चोरयेथे",
-                TingAffix.DHVAM to "चोरयध्वे",
-                TingAffix.IT to "चोरये",
-                TingAffix.VAHI to "चोरयावहे",
-                TingAffix.MAHING to "चोरयामहे",
-            ),
-            atmanepada.surfaces,
-        )
+        parasmaipada.assertSurfaces("चोरयति चोरयतः चोरयन्ति चोरयसि चोरयथः चोरयथ चोरयामि चोरयावः चोरयामः")
+        atmanepada.assertSurfaces("चोरयते चोरयेते चोरयन्ते चोरयसे चोरयेथे चोरयध्वे चोरये चोरयावहे चोरयामहे")
 
         (parasmaipada.forms.values + atmanepada.forms.values).forEach { result ->
             assertTrue(result.applications.any { it.sutra == "3.1.25" })
@@ -212,34 +97,8 @@ class TingantaEngineTest {
         val parasmaipada = engine.deriveSupportedParadigm("तनुँ", pada = PadaType.PARASMAIPADA, lakara = Lakara.LAT)
         val atmanepada = engine.deriveSupportedParadigm("तनुँ", pada = PadaType.ATMANEPADA, lakara = Lakara.LAT)
 
-        assertEquals(
-            mapOf(
-                TingAffix.TIP to "तनोति",
-                TingAffix.TAS to "तनुतः",
-                TingAffix.JHI to "तन्वन्ति",
-                TingAffix.SIP to "तनोसि",
-                TingAffix.THAS to "तनुथः",
-                TingAffix.THA to "तनुथ",
-                TingAffix.MIP to "तनोमि",
-                TingAffix.VAS to "तनुवः",
-                TingAffix.MAS to "तनुमः",
-            ),
-            parasmaipada.surfaces,
-        )
-        assertEquals(
-            mapOf(
-                TingAffix.TA to "तनुते",
-                TingAffix.ATAM to "तन्वाते",
-                TingAffix.JHA to "तन्वते",
-                TingAffix.THAS_A to "तनुषे",
-                TingAffix.ATHAM to "तन्वाथे",
-                TingAffix.DHVAM to "तनुध्वे",
-                TingAffix.IT to "तन्वे",
-                TingAffix.VAHI to "तनुवहे",
-                TingAffix.MAHING to "तनुमहे",
-            ),
-            atmanepada.surfaces,
-        )
+        parasmaipada.assertSurfaces("तनोति तनुतः तन्वन्ति तनोसि तनुथः तनुथ तनोमि तनुवः तनुमः")
+        atmanepada.assertSurfaces("तनुते तन्वाते तन्वते तनुषे तन्वाथे तनुध्वे तन्वे तनुवहे तनुमहे")
 
         (parasmaipada.forms.values + atmanepada.forms.values).forEach { result ->
             assertTrue(result.applications.any { it.sutra == "3.1.79" })
@@ -254,34 +113,8 @@ class TingantaEngineTest {
         val parasmaipada = engine.deriveSupportedParadigm("षुञ्", pada = PadaType.PARASMAIPADA, lakara = Lakara.LAT)
         val atmanepada = engine.deriveSupportedParadigm("षुञ्", pada = PadaType.ATMANEPADA, lakara = Lakara.LAT)
 
-        assertEquals(
-            mapOf(
-                TingAffix.TIP to "सुनोति",
-                TingAffix.TAS to "सुनुतः",
-                TingAffix.JHI to "सुन्वन्ति",
-                TingAffix.SIP to "सुनोषि",
-                TingAffix.THAS to "सुनुथः",
-                TingAffix.THA to "सुनुथ",
-                TingAffix.MIP to "सुनोमि",
-                TingAffix.VAS to "सुनुवः",
-                TingAffix.MAS to "सुनुमः",
-            ),
-            parasmaipada.surfaces,
-        )
-        assertEquals(
-            mapOf(
-                TingAffix.TA to "सुनुते",
-                TingAffix.ATAM to "सुन्वाते",
-                TingAffix.JHA to "सुन्वते",
-                TingAffix.THAS_A to "सुनुषे",
-                TingAffix.ATHAM to "सुन्वाथे",
-                TingAffix.DHVAM to "सुनुध्वे",
-                TingAffix.IT to "सुन्वे",
-                TingAffix.VAHI to "सुनुवहे",
-                TingAffix.MAHING to "सुनुमहे",
-            ),
-            atmanepada.surfaces,
-        )
+        parasmaipada.assertSurfaces("सुनोति सुनुतः सुन्वन्ति सुनोषि सुनुथः सुनुथ सुनोमि सुनुवः सुनुमः")
+        atmanepada.assertSurfaces("सुनुते सुन्वाते सुन्वते सुनुषे सुन्वाथे सुनुध्वे सुन्वे सुनुवहे सुनुमहे")
 
         (parasmaipada.forms.values + atmanepada.forms.values).forEach { result ->
             assertTrue(result.applications.any { it.sutra == "3.1.73" })
@@ -296,34 +129,8 @@ class TingantaEngineTest {
         val parasmaipada = engine.deriveSupportedParadigm("तुद्", pada = PadaType.PARASMAIPADA, lakara = Lakara.LAT)
         val atmanepada = engine.deriveSupportedParadigm("तुद्", pada = PadaType.ATMANEPADA, lakara = Lakara.LAT)
 
-        assertEquals(
-            mapOf(
-                TingAffix.TIP to "तुदति",
-                TingAffix.TAS to "तुदतः",
-                TingAffix.JHI to "तुदन्ति",
-                TingAffix.SIP to "तुदसि",
-                TingAffix.THAS to "तुदथः",
-                TingAffix.THA to "तुदथ",
-                TingAffix.MIP to "तुदामि",
-                TingAffix.VAS to "तुदावः",
-                TingAffix.MAS to "तुदामः",
-            ),
-            parasmaipada.surfaces,
-        )
-        assertEquals(
-            mapOf(
-                TingAffix.TA to "तुदते",
-                TingAffix.ATAM to "तुदेते",
-                TingAffix.JHA to "तुदन्ते",
-                TingAffix.THAS_A to "तुदसे",
-                TingAffix.ATHAM to "तुदेथे",
-                TingAffix.DHVAM to "तुदध्वे",
-                TingAffix.IT to "तुदे",
-                TingAffix.VAHI to "तुदावहे",
-                TingAffix.MAHING to "तुदामहे",
-            ),
-            atmanepada.surfaces,
-        )
+        parasmaipada.assertSurfaces("तुदति तुदतः तुदन्ति तुदसि तुदथः तुदथ तुदामि तुदावः तुदामः")
+        atmanepada.assertSurfaces("तुदते तुदेते तुदन्ते तुदसे तुदेथे तुदध्वे तुदे तुदावहे तुदामहे")
 
         (parasmaipada.forms.values + atmanepada.forms.values).forEach { result ->
             assertTrue(result.applications.any { it.sutra == "3.1.77" })
@@ -333,23 +140,58 @@ class TingantaEngineTest {
     }
 
     @Test
+    fun `Tudadi imperative derives both complete padas`() {
+        val engine = TingantaEngine()
+        val parasmaipada = engine.deriveSupportedParadigm("तुद्", PadaType.PARASMAIPADA, Lakara.LOT)
+        val atmanepada = engine.deriveSupportedParadigm("तुद्", PadaType.ATMANEPADA, Lakara.LOT)
+
+        parasmaipada.assertSurfaces("तुदतु तुदताम् तुदन्तु तुद तुदतम् तुदत तुदानि तुदाव तुदाम")
+        atmanepada.assertSurfaces("तुदताम् तुदेताम् तुदन्ताम् तुदस्व तुदेथाम् तुदध्वम् तुदै तुदावहै तुदामहै")
+        (parasmaipada.forms.values + atmanepada.forms.values).forEach { result ->
+            assertTrue(result.applications.any { it.sutra == "3.1.77" })
+            assertTrue(result.applications.none { it.sutra == "3.1.68" })
+        }
+    }
+
+    @Test
+    fun `all ganas derive every LOT LANG and LING slot`() {
+        val roots = mapOf(
+            Gana.BHVADI to "भू",
+            Gana.ADADI to "अद्",
+            Gana.JUHOTYADI to "हु",
+            Gana.DIVADI to "दिव्",
+            Gana.SVADI to "षुञ्",
+            Gana.TUDADI to "नुद्",
+            Gana.RUDHADI to "रुधिँर्",
+            Gana.TANADI to "तनुँ",
+            Gana.KRYADI to "डुक्रीञ्",
+            Gana.CURADI to "चुरँ",
+        )
+
+        roots.forEach { (gana, root) ->
+            val dhatu = DhatuPatha.all.first { it.gana == gana && (it.upadesha == root || it.derivationalSurface == root) }
+            val padas = when (dhatu.pada) {
+                PadaType.UBHAYAPADA -> listOf(PadaType.PARASMAIPADA, PadaType.ATMANEPADA)
+                else -> listOf(requireNotNull(dhatu.pada))
+            }
+            padas.forEach { pada ->
+                listOf(Lakara.LOT, Lakara.LANG, Lakara.LING).forEach { lakara ->
+                    val paradigm = try {
+                        TingantaEngine().deriveSupportedParadigm(root, pada, lakara)
+                    } catch (error: IllegalArgumentException) {
+                        throw AssertionError("$gana $lakara $pada: ${error.message}", error)
+                    }
+                    assertEquals(9, paradigm.forms.size, "$gana $lakara $pada")
+                }
+            }
+        }
+    }
+
+    @Test
     fun `conjugation engine derives complete Divadi present paradigm for div`() {
         val paradigm = TingantaEngine().deriveSupportedParadigm("दिव्", lakara = Lakara.LAT)
 
-        assertEquals(
-            mapOf(
-                TingAffix.TIP to "दिव्यति",
-                TingAffix.TAS to "दिव्यतः",
-                TingAffix.JHI to "दिव्यन्ति",
-                TingAffix.SIP to "दिव्यसि",
-                TingAffix.THAS to "दिव्यथः",
-                TingAffix.THA to "दिव्यथ",
-                TingAffix.MIP to "दिव्यामि",
-                TingAffix.VAS to "दिव्यावः",
-                TingAffix.MAS to "दिव्यामः",
-            ),
-            paradigm.surfaces,
-        )
+        paradigm.assertSurfaces("दिव्यति दिव्यतः दिव्यन्ति दिव्यसि दिव्यथः दिव्यथ दिव्यामि दिव्यावः दिव्यामः")
 
         paradigm.forms.values.forEach { result ->
             assertTrue(result.applications.any { it.sutra == "3.1.69" })
@@ -362,20 +204,7 @@ class TingantaEngineTest {
     fun `conjugation engine derives complete Adadi present paradigm for ad`() {
         val paradigm = TingantaEngine().deriveSupportedParadigm("अद्", lakara = Lakara.LAT)
 
-        assertEquals(
-            mapOf(
-                TingAffix.TIP to "अत्ति",
-                TingAffix.TAS to "अत्तः",
-                TingAffix.JHI to "अदन्ति",
-                TingAffix.SIP to "अत्सि",
-                TingAffix.THAS to "अत्थः",
-                TingAffix.THA to "अत्थ",
-                TingAffix.MIP to "अद्मि",
-                TingAffix.VAS to "अद्वः",
-                TingAffix.MAS to "अद्मः",
-            ),
-            paradigm.surfaces,
-        )
+        paradigm.assertSurfaces("अत्ति अत्तः अदन्ति अत्सि अत्थः अत्थ अद्मि अद्वः अद्मः")
 
         paradigm.forms.values.forEach { result ->
             assertTrue(result.applications.any { it.sutra == "2.4.72" })
@@ -437,37 +266,9 @@ class TingantaEngineTest {
     }
 
     @Test
-    fun `conjugation engine derives individual forms for bhu`() {
-        val engine = TingantaEngine()
-
-
-        // Lat (Present)
-        assertEquals("भवति", engine.derive(TingantaDerivationRequest("भू", Vacana.EKAVACANA, Purusha.PRATHAMA, Lakara.LAT)).final.surface)
-        assertEquals("भवतः", engine.derive(TingantaDerivationRequest("भू", Vacana.DVIVACANA, Purusha.PRATHAMA, Lakara.LAT)).final.surface)
-        assertEquals("भवन्ति", engine.derive(TingantaDerivationRequest("भू", Vacana.BAHUVACANA, Purusha.PRATHAMA, Lakara.LAT)).final.surface)
-        assertEquals("भवामि", engine.derive(TingantaDerivationRequest("भू", Vacana.EKAVACANA, Purusha.UTTAMA, Lakara.LAT)).final.surface)
-
-        // Lrt (Future)
-        assertEquals("भविष्यति", engine.derive(TingantaDerivationRequest("भू", Vacana.EKAVACANA, Purusha.PRATHAMA, Lakara.LRT)).final.surface)
-        assertEquals("भविष्यन्ति", engine.derive(TingantaDerivationRequest("भू", Vacana.BAHUVACANA, Purusha.PRATHAMA, Lakara.LRT)).final.surface)
-        assertEquals("भविष्यामि", engine.derive(TingantaDerivationRequest("भू", Vacana.EKAVACANA, Purusha.UTTAMA, Lakara.LRT)).final.surface)
-    }
-
-    @Test
     fun `conjugation engine derives complete paradigm for bhu`() {
         val paradigm = TingantaEngine().deriveSupportedParadigm("भू", lakara = Lakara.LAT)
-        val forms = paradigm.surfaces
-
-        assertEquals(9, forms.size)
-        assertEquals("भवति", forms[TingAffix.TIP])
-        assertEquals("भवतः", forms[TingAffix.TAS])
-        assertEquals("भवन्ति", forms[TingAffix.JHI])
-        assertEquals("भवसि", forms[TingAffix.SIP])
-        assertEquals("भवथः", forms[TingAffix.THAS])
-        assertEquals("भवथ", forms[TingAffix.THA])
-        assertEquals("भवामि", forms[TingAffix.MIP])
-        assertEquals("भवावः", forms[TingAffix.VAS])
-        assertEquals("भवामः", forms[TingAffix.MAS])
+        paradigm.assertSurfaces("भवति भवतः भवन्ति भवसि भवथः भवथ भवामि भवावः भवामः")
         
         paradigm.coverage.forEach { row ->
             assertTrue("3.4.78" in row.appliedSutras, "Form for ${row.affix} is missing 3.4.78")
@@ -478,18 +279,7 @@ class TingantaEngineTest {
     @Test
     fun `conjugation engine derives complete future paradigm for bhu`() {
         val paradigm = TingantaEngine().deriveSupportedParadigm("भू", lakara = Lakara.LRT)
-        val forms = paradigm.surfaces
-
-        assertEquals(9, forms.size)
-        assertEquals("भविष्यति", forms[TingAffix.TIP])
-        assertEquals("भविष्यतः", forms[TingAffix.TAS])
-        assertEquals("भविष्यन्ति", forms[TingAffix.JHI])
-        assertEquals("भविष्यसि", forms[TingAffix.SIP])
-        assertEquals("भविष्यथः", forms[TingAffix.THAS])
-        assertEquals("भविष्यथ", forms[TingAffix.THA])
-        assertEquals("भविष्यामि", forms[TingAffix.MIP])
-        assertEquals("भविष्यावः", forms[TingAffix.VAS])
-        assertEquals("भविष्यामः", forms[TingAffix.MAS])
+        paradigm.assertSurfaces("भविष्यति भविष्यतः भविष्यन्ति भविष्यसि भविष्यथः भविष्यथ भविष्यामि भविष्यावः भविष्यामः")
         
         paradigm.coverage.forEach { row ->
             assertTrue("3.4.78" in row.appliedSutras, "Form for ${row.affix} is missing 3.4.78")
@@ -503,20 +293,7 @@ class TingantaEngineTest {
     fun `conjugation engine derives complete atmanepada future paradigm for labh`() {
         val paradigm = TingantaEngine().deriveSupportedParadigm("लभ्", lakara = Lakara.LRT)
 
-        assertEquals(
-            mapOf(
-                TingAffix.TA to "लप्स्यते",
-                TingAffix.ATAM to "लप्स्येते",
-                TingAffix.JHA to "लप्स्यन्ते",
-                TingAffix.THAS_A to "लप्स्यसे",
-                TingAffix.ATHAM to "लप्स्येथे",
-                TingAffix.DHVAM to "लप्स्यध्वे",
-                TingAffix.IT to "लप्स्ये",
-                TingAffix.VAHI to "लप्स्यावहे",
-                TingAffix.MAHING to "लप्स्यामहे",
-            ),
-            paradigm.surfaces,
-        )
+        paradigm.assertSurfaces("लप्स्यते लप्स्येते लप्स्यन्ते लप्स्यसे लप्स्येथे लप्स्यध्वे लप्स्ये लप्स्यावहे लप्स्यामहे")
 
         paradigm.forms.values.forEach { result ->
             assertTrue(result.applications.any { it.sutra == "8.4.55" })
@@ -529,20 +306,8 @@ class TingantaEngineTest {
 
     @Test
     fun `conjugation engine derives complete imperfect past paradigm for bhu`() {
-
         val paradigm = TingantaEngine().deriveSupportedParadigm("भू", lakara = Lakara.LANG)
-        val forms = paradigm.surfaces
-
-        assertEquals(9, forms.size)
-        assertEquals("अभवत्", forms[TingAffix.TIP])
-        assertEquals("अभवताम्", forms[TingAffix.TAS])
-        assertEquals("अभवन्", forms[TingAffix.JHI])
-        assertEquals("अभवः", forms[TingAffix.SIP])
-        assertEquals("अभवतम्", forms[TingAffix.THAS])
-        assertEquals("अभवत", forms[TingAffix.THA])
-        assertEquals("अभवम्", forms[TingAffix.MIP])
-        assertEquals("अभवाव", forms[TingAffix.VAS])
-        assertEquals("अभवाम", forms[TingAffix.MAS])
+        paradigm.assertSurfaces("अभवत् अभवताम् अभवन् अभवः अभवतम् अभवत अभवम् अभवाव अभवाम")
         
         paradigm.coverage.forEach { row ->
             assertTrue("3.4.78" in row.appliedSutras, "Form for ${row.affix} is missing 3.4.78")
@@ -556,20 +321,7 @@ class TingantaEngineTest {
     fun `conjugation engine derives complete atmanepada imperfect paradigm for labh`() {
         val paradigm = TingantaEngine().deriveSupportedParadigm("लभ्", lakara = Lakara.LANG)
 
-        assertEquals(
-            mapOf(
-                TingAffix.TA to "अलभत",
-                TingAffix.ATAM to "अलभेताम्",
-                TingAffix.JHA to "अलभन्त",
-                TingAffix.THAS_A to "अलभथाः",
-                TingAffix.ATHAM to "अलभेथाम्",
-                TingAffix.DHVAM to "अलभध्वम्",
-                TingAffix.IT to "अलभे",
-                TingAffix.VAHI to "अलभावहि",
-                TingAffix.MAHING to "अलभामहि",
-            ),
-            paradigm.surfaces,
-        )
+        paradigm.assertSurfaces("अलभत अलभेताम् अलभन्त अलभथाः अलभेथाम् अलभध्वम् अलभे अलभावहि अलभामहि")
 
         paradigm.forms.values.forEach { result ->
             assertTrue(result.applications.any { it.sutra == "6.4.71" })
@@ -583,18 +335,7 @@ class TingantaEngineTest {
     @Test
     fun `conjugation engine derives complete imperative paradigm for bhu`() {
         val paradigm = TingantaEngine().deriveSupportedParadigm("भू", lakara = Lakara.LOT)
-        val forms = paradigm.surfaces
-
-        assertEquals(9, forms.size)
-        assertEquals("भवतु", forms[TingAffix.TIP])
-        assertEquals("भवताम्", forms[TingAffix.TAS])
-        assertEquals("भवन्तु", forms[TingAffix.JHI])
-        assertEquals("भव", forms[TingAffix.SIP])
-        assertEquals("भवतम्", forms[TingAffix.THAS])
-        assertEquals("भवत", forms[TingAffix.THA])
-        assertEquals("भवानि", forms[TingAffix.MIP])
-        assertEquals("भवाव", forms[TingAffix.VAS])
-        assertEquals("भवाम", forms[TingAffix.MAS])
+        paradigm.assertSurfaces("भवतु भवताम् भवन्तु भव भवतम् भवत भवानि भवाव भवाम")
 
         paradigm.coverage.forEach { row ->
             assertTrue("3.3.162" in row.appliedSutras, "Form for ${row.affix} is missing 3.3.162")
@@ -605,20 +346,7 @@ class TingantaEngineTest {
     fun `conjugation engine derives complete atmanepada imperative paradigm for labh`() {
         val paradigm = TingantaEngine().deriveSupportedParadigm("लभ्", lakara = Lakara.LOT)
 
-        assertEquals(
-            mapOf(
-                TingAffix.TA to "लभताम्",
-                TingAffix.ATAM to "लभेताम्",
-                TingAffix.JHA to "लभन्ताम्",
-                TingAffix.THAS_A to "लभस्व",
-                TingAffix.ATHAM to "लभेथाम्",
-                TingAffix.DHVAM to "लभध्वम्",
-                TingAffix.IT to "लभै",
-                TingAffix.VAHI to "लभावहै",
-                TingAffix.MAHING to "लभामहै",
-            ),
-            paradigm.surfaces,
-        )
+        paradigm.assertSurfaces("लभताम् लभेताम् लभन्ताम् लभस्व लभेथाम् लभध्वम् लभै लभावहै लभामहै")
 
         paradigm.forms.values.forEach { result ->
             assertTrue(result.applications.any { it.sutra == "3.3.162" })
@@ -659,232 +387,40 @@ class TingantaEngineTest {
     }
 
     @Test
-    fun `liṅ first plural selects jus through 3 4 108`() {
-        val dhatu = dev.sanskrit.dhatupatha.DhatuPatha.all.first { it.upadesha == "भू" }
-        val result = DerivationEngine().derive(
-            TingantaDerivationRequest("भू", purusha = Purusha.PRATHAMA, vacana = Vacana.BAHUVACANA, lakara = Lakara.LING)
-                .initialState(dhatu),
-        )
-
-        assertTrue(result.applications.any { it.sutra == "3.4.108" })
-        assertEquals("भवेयुः", result.final.surface)
-    }
-
-    @Test
-    fun `liṅ third dual derives bhavetam`() {
-        val dhatu = dev.sanskrit.dhatupatha.DhatuPatha.all.first { it.upadesha == "भू" }
-        val result = DerivationEngine().derive(
-            TingantaDerivationRequest("भू", purusha = Purusha.PRATHAMA, vacana = Vacana.DVIVACANA, lakara = Lakara.LING)
-                .initialState(dhatu),
-        )
-
-        assertTrue(result.applications.any { it.sutra == "3.4.101" })
-        assertEquals("भवेताम्", result.final.surface)
-    }
-
-    @Test
-    fun `liṅ second singular derives bhaveh`() {
-        val dhatu = dev.sanskrit.dhatupatha.DhatuPatha.all.first { it.upadesha == "भू" }
-        val result = DerivationEngine().derive(
-            TingantaDerivationRequest("भू", purusha = Purusha.MADHYAMA, vacana = Vacana.EKAVACANA, lakara = Lakara.LING)
-                .initialState(dhatu),
-        )
-
-        assertEquals("भवेः", result.final.surface)
-    }
-
-    @Test
-    fun `liṅ remaining parasmaipada endings derive their expected forms`() {
-        val dhatu = dev.sanskrit.dhatupatha.DhatuPatha.all.first { it.upadesha == "भू" }
-        val expected = listOf(
-            Purusha.MADHYAMA to Vacana.DVIVACANA to "भवेतम्",
-            Purusha.MADHYAMA to Vacana.BAHUVACANA to "भवेत",
-            Purusha.UTTAMA to Vacana.EKAVACANA to "भवेयम्",
-            Purusha.UTTAMA to Vacana.DVIVACANA to "भवेव",
-            Purusha.UTTAMA to Vacana.BAHUVACANA to "भवेम",
-        )
-
-        expected.forEach { (personAndNumber, form) ->
-            val (purusha, vacana) = personAndNumber
-            val result = DerivationEngine().derive(
-                TingantaDerivationRequest("भू", purusha = purusha, vacana = vacana, lakara = Lakara.LING).initialState(dhatu),
-            )
-            assertEquals(form, result.final.surface)
-        }
-    }
-
-    @Test
     fun `conjugation engine derives complete vidhi ling paradigm for bhu`() {
-        val forms = TingantaEngine().deriveSupportedParadigm("भू", lakara = Lakara.LING).surfaces
-
-        assertEquals("भवेत्", forms[TingAffix.TIP])
-        assertEquals("भवेताम्", forms[TingAffix.TAS])
-        assertEquals("भवेयुः", forms[TingAffix.JHI])
-        assertEquals("भवेः", forms[TingAffix.SIP])
-        assertEquals("भवेतम्", forms[TingAffix.THAS])
-        assertEquals("भवेत", forms[TingAffix.THA])
-        assertEquals("भवेयम्", forms[TingAffix.MIP])
-        assertEquals("भवेव", forms[TingAffix.VAS])
-        assertEquals("भवेम", forms[TingAffix.MAS])
-    }
-
-    @Test
-    fun `atmanepada ling selects siyut for labh`() {
-        val dhatu = dev.sanskrit.dhatupatha.DhatuPatha.all.first { it.upadesha == "डुलभँष्" }
-        val result = DerivationEngine().derive(TingantaDerivationRequest("लभ्", lakara = Lakara.LING).initialState(dhatu))
-
-        assertTrue(result.applications.any { it.sutra == "3.4.102" })
-        assertTrue(result.applications.any { it.sutra == "7.2.79" })
-        assertEquals("लभेत", result.final.surface)
-    }
-
-    @Test
-    fun `atmanepada ling third dual derives labheyatam`() {
-        val dhatu = dev.sanskrit.dhatupatha.DhatuPatha.all.first { it.upadesha == "डुलभँष्" }
-        val result = DerivationEngine().derive(
-            TingantaDerivationRequest("लभ्", purusha = Purusha.PRATHAMA, vacana = Vacana.DVIVACANA, lakara = Lakara.LING)
-                .initialState(dhatu),
-        )
-
-        assertEquals("लभेयाताम्", result.final.surface)
-    }
-
-    @Test
-    fun `atmanepada ling third plural derives labheran`() {
-        val dhatu = dev.sanskrit.dhatupatha.DhatuPatha.all.first { it.upadesha == "डुलभँष्" }
-        val result = DerivationEngine().derive(
-            TingantaDerivationRequest("लभ्", purusha = Purusha.PRATHAMA, vacana = Vacana.BAHUVACANA, lakara = Lakara.LING)
-                .initialState(dhatu),
-        )
-
-        assertTrue(result.applications.any { it.sutra == "3.4.105" })
-        assertEquals("लभेरन्", result.final.surface)
-    }
-
-    @Test
-    fun `atmanepada ling first singular derives labheya`() {
-        val dhatu = dev.sanskrit.dhatupatha.DhatuPatha.all.first { it.upadesha == "डुलभँष्" }
-        val result = DerivationEngine().derive(
-            TingantaDerivationRequest("लभ्", purusha = Purusha.UTTAMA, vacana = Vacana.EKAVACANA, lakara = Lakara.LING)
-                .initialState(dhatu),
-        )
-
-        assertTrue(result.applications.any { it.sutra == "3.4.106" })
-        assertEquals("लभेय", result.final.surface)
-    }
-
-    @Test
-    fun `atmanepada ling second singular derives labhethah`() {
-        val dhatu = dev.sanskrit.dhatupatha.DhatuPatha.all.first { it.upadesha == "डुलभँष्" }
-        val result = DerivationEngine().derive(
-            TingantaDerivationRequest("लभ्", purusha = Purusha.MADHYAMA, vacana = Vacana.EKAVACANA, lakara = Lakara.LING)
-                .initialState(dhatu),
-        )
-
-        assertTrue(result.applications.any { it.sutra == "1.3.4" }, result.applications.joinToString { it.sutra })
-        assertTrue(result.applications.any { it.sutra == "8.2.66" }, result.applications.joinToString { it.sutra })
-        assertTrue(result.applications.any { it.sutra == "8.3.15" }, result.applications.joinToString { it.sutra })
-        assertEquals("लभेथाः", result.final.surface)
-    }
-
-    @Test
-    fun `atmanepada ling remaining endings derive complete forms`() {
-        val dhatu = dev.sanskrit.dhatupatha.DhatuPatha.all.first { it.upadesha == "डुलभँष्" }
-        val engine = DerivationEngine()
-        val expectedForms = mapOf(
-            Purusha.MADHYAMA to Vacana.DVIVACANA to "लभेयाथाम्",
-            Purusha.MADHYAMA to Vacana.BAHUVACANA to "लभेध्वम्",
-            Purusha.UTTAMA to Vacana.DVIVACANA to "लभेवहि",
-            Purusha.UTTAMA to Vacana.BAHUVACANA to "लभेमहि",
-        )
-
-        expectedForms.forEach { (personAndNumber, expectedSurface) ->
-            val (purusha, vacana) = personAndNumber
-            val result = engine.derive(
-                TingantaDerivationRequest("लभ्", purusha = purusha, vacana = vacana, lakara = Lakara.LING)
-                    .initialState(dhatu),
-            )
-
-            assertEquals(expectedSurface, result.final.surface, "$purusha $vacana")
-        }
+        val paradigm = TingantaEngine().deriveSupportedParadigm("भू", lakara = Lakara.LING)
+        paradigm.assertSurfaces("भवेत् भवेताम् भवेयुः भवेः भवेतम् भवेत भवेयम् भवेव भवेम")
+        assertTrue(paradigm.forms.getValue(TingAffix.TAS).applications.any { it.sutra == "3.4.101" })
+        assertTrue(paradigm.forms.getValue(TingAffix.JHI).applications.any { it.sutra == "3.4.108" })
     }
 
     @Test
     fun `conjugation engine derives complete atmanepada vidhi ling paradigm for labh`() {
-        val forms = TingantaEngine().deriveSupportedParadigm("लभ्", lakara = Lakara.LING).surfaces
-
-        assertEquals(
-            mapOf(
-                TingAffix.TA to "लभेत",
-                TingAffix.ATAM to "लभेयाताम्",
-                TingAffix.JHA to "लभेरन्",
-                TingAffix.THAS_A to "लभेथाः",
-                TingAffix.ATHAM to "लभेयाथाम्",
-                TingAffix.DHVAM to "लभेध्वम्",
-                TingAffix.IT to "लभेय",
-                TingAffix.VAHI to "लभेवहि",
-                TingAffix.MAHING to "लभेमहि",
-            ),
-            forms,
-        )
+        val paradigm = TingantaEngine().deriveSupportedParadigm("लभ्", lakara = Lakara.LING)
+        paradigm.assertSurfaces("लभेत लभेयाताम् लभेरन् लभेथाः लभेयाथाम् लभेध्वम् लभेय लभेवहि लभेमहि")
+        assertTrue(paradigm.forms.getValue(TingAffix.TA).applications.map { it.sutra }.containsAll(setOf("3.4.102", "7.2.79")))
+        assertTrue(paradigm.forms.getValue(TingAffix.JHA).applications.any { it.sutra == "3.4.105" })
+        assertTrue(paradigm.forms.getValue(TingAffix.IT).applications.any { it.sutra == "3.4.106" })
+        assertTrue(paradigm.forms.getValue(TingAffix.THAS_A).applications.map { it.sutra }.containsAll(setOf("1.3.4", "8.2.66", "8.3.15")))
     }
 
     @Test
     fun `conjugation engine derives complete atmanepada present paradigm for labh`() {
         val paradigm = TingantaEngine().deriveSupportedParadigm("लभ्", lakara = Lakara.LAT)
-        val forms = paradigm.surfaces
-
-        assertEquals(
-            mapOf(
-                TingAffix.TA to "लभते",
-                TingAffix.ATAM to "लभेते",
-                TingAffix.JHA to "लभन्ते",
-                TingAffix.THAS_A to "लभसे",
-                TingAffix.ATHAM to "लभेथे",
-                TingAffix.DHVAM to "लभध्वे",
-                TingAffix.IT to "लभे",
-                TingAffix.VAHI to "लभावहे",
-                TingAffix.MAHING to "लभामहे",
-            ),
-            forms,
-        )
+        paradigm.assertSurfaces("लभते लभेते लभन्ते लभसे लभेथे लभध्वे लभे लभावहे लभामहे")
     }
 
     @Test
     fun `conjugation engine derives complete conditional paradigm for bhu`() {
         val paradigm = TingantaEngine().deriveSupportedParadigm("भू", lakara = Lakara.LRNG)
-        val forms = paradigm.surfaces
-
-        assertEquals(9, forms.size)
-        assertEquals("अभविष्यत्", forms[TingAffix.TIP])
-        assertEquals("अभविष्यताम्", forms[TingAffix.TAS])
-        assertEquals("अभविष्यन्", forms[TingAffix.JHI])
-        assertEquals("अभविष्यः", forms[TingAffix.SIP])
-        assertEquals("अभविष्यतम्", forms[TingAffix.THAS])
-        assertEquals("अभविष्यत", forms[TingAffix.THA])
-        assertEquals("अभविष्यम्", forms[TingAffix.MIP])
-        assertEquals("अभविष्याव", forms[TingAffix.VAS])
-        assertEquals("अभविष्याम", forms[TingAffix.MAS])
+        paradigm.assertSurfaces("अभविष्यत् अभविष्यताम् अभविष्यन् अभविष्यः अभविष्यतम् अभविष्यत अभविष्यम् अभविष्याव अभविष्याम")
     }
 
     @Test
     fun `conjugation engine derives complete atmanepada conditional paradigm for labh`() {
         val paradigm = TingantaEngine().deriveSupportedParadigm("लभ्", lakara = Lakara.LRNG)
 
-        assertEquals(
-            mapOf(
-                TingAffix.TA to "अलप्स्यत",
-                TingAffix.ATAM to "अलप्स्येताम्",
-                TingAffix.JHA to "अलप्स्यन्त",
-                TingAffix.THAS_A to "अलप्स्यथाः",
-                TingAffix.ATHAM to "अलप्स्येथाम्",
-                TingAffix.DHVAM to "अलप्स्यध्वम्",
-                TingAffix.IT to "अलप्स्ये",
-                TingAffix.VAHI to "अलप्स्यावहि",
-                TingAffix.MAHING to "अलप्स्यामहि",
-            ),
-            paradigm.surfaces,
-        )
+        paradigm.assertSurfaces("अलप्स्यत अलप्स्येताम् अलप्स्यन्त अलप्स्यथाः अलप्स्येथाम् अलप्स्यध्वम् अलप्स्ये अलप्स्यावहि अलप्स्यामहि")
 
         paradigm.forms.values.forEach { result ->
             val applied = result.applications.mapTo(mutableSetOf()) { it.sutra }
@@ -899,38 +435,14 @@ class TingantaEngineTest {
     @Test
     fun `conjugation engine derives complete perfect paradigm for bhu`() {
         val paradigm = TingantaEngine().deriveSupportedParadigm("भू", lakara = Lakara.LIT)
-        val forms = paradigm.surfaces
-
-        assertEquals(9, forms.size)
-        assertEquals("बभूव", forms[TingAffix.TIP])
-        assertEquals("बभूवतुः", forms[TingAffix.TAS])
-        assertEquals("बभूवुः", forms[TingAffix.JHI])
-        assertEquals("बभूविथ", forms[TingAffix.SIP])
-        assertEquals("बभूवथुः", forms[TingAffix.THAS])
-        assertEquals("बभूव", forms[TingAffix.THA])
-        assertEquals("बभूव", forms[TingAffix.MIP])
-        assertEquals("बभूविव", forms[TingAffix.VAS])
-        assertEquals("बभूविम", forms[TingAffix.MAS])
+        paradigm.assertSurfaces("बभूव बभूवतुः बभूवुः बभूविथ बभूवथुः बभूव बभूव बभूविव बभूविम")
     }
 
     @Test
     fun `conjugation engine derives complete atmanepada perfect paradigm for labh`() {
         val paradigm = TingantaEngine().deriveSupportedParadigm("लभ्", lakara = Lakara.LIT)
 
-        assertEquals(
-            mapOf(
-                TingAffix.TA to "लेभे",
-                TingAffix.ATAM to "लेभाते",
-                TingAffix.JHA to "लेभिरे",
-                TingAffix.THAS_A to "लेभिषे",
-                TingAffix.ATHAM to "लेभाथे",
-                TingAffix.DHVAM to "लेभिध्वे",
-                TingAffix.IT to "लेभे",
-                TingAffix.VAHI to "लेभिवहे",
-                TingAffix.MAHING to "लेभिमहे",
-            ),
-            paradigm.surfaces,
-        )
+        paradigm.assertSurfaces("लेभे लेभाते लेभिरे लेभिषे लेभाथे लेभिध्वे लेभे लेभिवहे लेभिमहे")
 
         paradigm.forms.values.forEach { result ->
             assertTrue(result.applications.any { it.sutra == "6.4.120" })
@@ -944,18 +456,7 @@ class TingantaEngineTest {
     @Test
     fun `conjugation engine derives complete periphrastic future paradigm for bhu`() {
         val paradigm = TingantaEngine().deriveSupportedParadigm("भू", lakara = Lakara.LUT)
-        val forms = paradigm.surfaces
-
-        assertEquals(9, forms.size)
-        assertEquals("भविता", forms[TingAffix.TIP])
-        assertEquals("भवितारौ", forms[TingAffix.TAS])
-        assertEquals("भवितारः", forms[TingAffix.JHI])
-        assertEquals("भवितासि", forms[TingAffix.SIP])
-        assertEquals("भवितास्थः", forms[TingAffix.THAS])
-        assertEquals("भवितास्थ", forms[TingAffix.THA])
-        assertEquals("भवितास्मि", forms[TingAffix.MIP])
-        assertEquals("भवितास्वः", forms[TingAffix.VAS])
-        assertEquals("भवितास्मः", forms[TingAffix.MAS])
+        paradigm.assertSurfaces("भविता भवितारौ भवितारः भवितासि भवितास्थः भवितास्थ भवितास्मि भवितास्वः भवितास्मः")
 
         paradigm.forms.values.forEach { result ->
             assertTrue(result.applications.any { it.sutra == "3.3.15" })
@@ -971,20 +472,7 @@ class TingantaEngineTest {
     fun `conjugation engine derives complete atmanepada periphrastic future paradigm for edh`() {
         val paradigm = TingantaEngine().deriveSupportedParadigm("एध्", lakara = Lakara.LUT)
 
-        assertEquals(
-            mapOf(
-                TingAffix.TA to "एधिता",
-                TingAffix.ATAM to "एधितारौ",
-                TingAffix.JHA to "एधितारः",
-                TingAffix.THAS_A to "एधितासे",
-                TingAffix.ATHAM to "एधितासाथे",
-                TingAffix.DHVAM to "एधिताध्वे",
-                TingAffix.IT to "एधिताहे",
-                TingAffix.VAHI to "एधितास्वहे",
-                TingAffix.MAHING to "एधितास्महे",
-            ),
-            paradigm.surfaces,
-        )
+        paradigm.assertSurfaces("एधिता एधितारौ एधितारः एधितासे एधितासाथे एधिताध्वे एधिताहे एधितास्वहे एधितास्महे")
 
         listOf(TingAffix.TA, TingAffix.ATAM, TingAffix.JHA).forEach { affix ->
             assertTrue(paradigm.forms.getValue(affix).applications.any { it.sutra == "2.4.85" })
@@ -997,22 +485,7 @@ class TingantaEngineTest {
     @Test
     fun `conjugation engine derives complete root aorist paradigm for bhu`() {
         val paradigm = TingantaEngine().deriveSupportedParadigm("भू", lakara = Lakara.LUNG)
-        val forms = paradigm.surfaces
-
-        assertEquals(
-            mapOf(
-                TingAffix.TIP to "अभूत्",
-                TingAffix.TAS to "अभूताम्",
-                TingAffix.JHI to "अभूवन्",
-                TingAffix.SIP to "अभूः",
-                TingAffix.THAS to "अभूतम्",
-                TingAffix.THA to "अभूत",
-                TingAffix.MIP to "अभूवम्",
-                TingAffix.VAS to "अभूव",
-                TingAffix.MAS to "अभूम",
-            ),
-            forms,
-        )
+        paradigm.assertSurfaces("अभूत् अभूताम् अभूवन् अभूः अभूतम् अभूत अभूवम् अभूव अभूम")
 
         paradigm.forms.values.forEach { result ->
             val applied = result.applications.mapTo(mutableSetOf()) { it.sutra }
@@ -1024,20 +497,7 @@ class TingantaEngineTest {
     fun `conjugation engine derives complete atmanepada ish aorist paradigm for labh`() {
         val paradigm = TingantaEngine().deriveSupportedParadigm("लभ्", lakara = Lakara.LUNG)
 
-        assertEquals(
-            mapOf(
-                TingAffix.TA to "अलभिष्ट",
-                TingAffix.ATAM to "अलभिषाताम्",
-                TingAffix.JHA to "अलभिषत",
-                TingAffix.THAS_A to "अलभिष्ठाः",
-                TingAffix.ATHAM to "अलभिषाथाम्",
-                TingAffix.DHVAM to "अलभिढ्वम्",
-                TingAffix.IT to "अलभिषि",
-                TingAffix.VAHI to "अलभिष्वहि",
-                TingAffix.MAHING to "अलभिष्महि",
-            ),
-            paradigm.surfaces,
-        )
+        paradigm.assertSurfaces("अलभिष्ट अलभिषाताम् अलभिषत अलभिष्ठाः अलभिषाथाम् अलभिढ्वम् अलभिषि अलभिष्वहि अलभिष्महि")
 
         paradigm.forms.values.forEach { result ->
             val applied = result.applications.mapTo(mutableSetOf()) { it.sutra }
@@ -1052,20 +512,7 @@ class TingantaEngineTest {
     fun `conjugation engine derives complete Vedic subjunctive paradigm for bhu`() {
         val paradigm = TingantaEngine().deriveSupportedParadigm("भू", lakara = Lakara.LET)
 
-        assertEquals(
-            mapOf(
-                TingAffix.TIP to "भवात्",
-                TingAffix.TAS to "भवातः",
-                TingAffix.JHI to "भवान्",
-                TingAffix.SIP to "भवाः",
-                TingAffix.THAS to "भवाथः",
-                TingAffix.THA to "भवाथ",
-                TingAffix.MIP to "भवानि",
-                TingAffix.VAS to "भवाव",
-                TingAffix.MAS to "भवाम",
-            ),
-            paradigm.surfaces,
-        )
+        paradigm.assertSurfaces("भवात् भवातः भवान् भवाः भवाथः भवाथ भवानि भवाव भवाम")
 
         paradigm.forms.values.forEach { result ->
             val applied = result.applications.mapTo(mutableSetOf()) { it.sutra }
@@ -1126,6 +573,13 @@ class TingantaEngineTest {
 
         assertEquals("तारिषत्", result.final.surface)
         assertTrue(result.applications.map { it.sutra }.containsAll(setOf("3.1.34", "3.4.94", "7.2.35", "8.3.59")))
+    }
+
+    private fun TingantaParadigm.assertSurfaces(expected: String) {
+        val affixes = TingAffix.entries.filter { it.pada == pada }
+        val expectedSurfaces = expected.trim().split(Regex("\\s+"))
+        assertEquals(affixes.size, expectedSurfaces.size, "Expected one surface for each $pada slot")
+        assertEquals(affixes.zip(expectedSurfaces).toMap(), surfaces)
     }
 
 }

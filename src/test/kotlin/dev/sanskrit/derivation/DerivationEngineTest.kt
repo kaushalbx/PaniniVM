@@ -145,52 +145,6 @@ class DerivationEngineTest {
     }
 
     @Test
-    fun `nominal engine exposes the complete first singular result`() {
-        val result = SubantaEngine().derive(
-            SubantaDerivationRequest("राम", Vibhakti.PRATHAMA, Vacana.EKAVACANA),
-        )
-
-        assertEquals("रामः", result.final.surface)
-    }
-
-    @Test
-    fun `nominal engine derives first dual ramaau`() {
-        val result = SubantaEngine().derive(SubantaDerivationRequest("राम", Vibhakti.PRATHAMA, Vacana.DVIVACANA))
-
-        assertEquals("रामौ", result.final.surface)
-        assertTrue(result.applications.any { it.sutra == "6.1.88" })
-        assertEquals(1, result.applications.count { it.sutra == "1.1.1" })
-    }
-
-    @Test
-    fun `nominal engine derives first plural ramaah`() {
-        val result = SubantaEngine().derive(SubantaDerivationRequest("राम", Vibhakti.PRATHAMA, Vacana.BAHUVACANA))
-
-        assertEquals("रामाः", result.final.surface)
-        assertTrue(result.applications.any { it.sutra == "1.3.9" })
-        assertTrue(result.applications.any { it.sutra == "6.1.102" })
-        assertTrue(result.applications.any { it.sutra == "8.2.66" })
-    }
-
-    @Test
-    fun `nominal engine derives accusative singular ramam`() {
-        val result = SubantaEngine().derive(SubantaDerivationRequest("राम", Vibhakti.DVITIYA, Vacana.EKAVACANA))
-
-        assertEquals("रामम्", result.final.surface)
-        assertTrue(result.applications.any { it.sutra == "6.1.107" })
-    }
-
-    @Test
-    fun `nominal engine derives accusative dual ramau through it designation and lopa`() {
-        val result = SubantaEngine().derive(SubantaDerivationRequest("राम", Vibhakti.DVITIYA, Vacana.DVIVACANA))
-
-        assertEquals("रामौ", result.final.surface)
-        assertTrue(result.applications.any { it.sutra == "1.3.3" })
-        assertTrue(result.applications.any { it.sutra == "1.3.9" })
-        assertTrue(result.applications.any { it.sutra == "6.1.88" })
-    }
-
-    @Test
     fun `nominal engine derives the implemented portion of an a-stem paradigm`() {
         val paradigm = SubantaEngine().deriveSupportedParadigm("राम")
 
@@ -221,6 +175,14 @@ class DerivationEngineTest {
             paradigm.surfaces,
         )
         assertEquals(21, paradigm.forms.size)
+
+        fun sutras(affix: SupAffix) = paradigm.forms.getValue(affix).applications.map { it.sutra }
+        assertTrue(sutras(SupAffix.AU).contains("6.1.88"))
+        assertTrue(sutras(SupAffix.JAS).containsAll(setOf("1.3.9", "6.1.102", "8.2.66")))
+        assertTrue(sutras(SupAffix.AM).contains("6.1.107"))
+        assertTrue(sutras(SupAffix.AUT).containsAll(setOf("1.3.3", "1.3.9", "6.1.88")))
+        assertTrue(sutras(SupAffix.BHYAM_3).contains("7.3.102"))
+        assertTrue(sutras(SupAffix.SUP).contains("8.3.59"))
     }
 
     @Test
@@ -245,22 +207,6 @@ class DerivationEngineTest {
         val bhyam = report.single { it.affix == SupAffix.BHYAM_3 }
         assertEquals("रामाभ्याम्", bhyam.actualSurface)
         assertTrue("7.3.102" in bhyam.appliedSutras)
-    }
-
-    @Test
-    fun `bhyam forms are actually lengthened by the derivation engine`() {
-        val result = SubantaEngine().derive(SubantaDerivationRequest("राम", Vibhakti.TRTIYA, Vacana.DVIVACANA))
-
-        assertEquals("रामाभ्याम्", result.final.surface)
-        assertTrue(result.applications.any { it.sutra == "7.3.102" })
-    }
-
-    @Test
-    fun `nominal engine derives locative plural ramesu`() {
-        val result = SubantaEngine().derive(SubantaDerivationRequest("राम", Vibhakti.SAPTAMI, Vacana.BAHUVACANA))
-
-        assertEquals("रामेषु", result.final.surface)
-        assertTrue(result.applications.any { it.sutra == "8.3.59" })
     }
 
     @Test
@@ -561,5 +507,4 @@ class DerivationEngineTest {
         assertEquals(DerivationStage.FINAL, resultCustomTrue.final.stage)
     }
 }
-
 

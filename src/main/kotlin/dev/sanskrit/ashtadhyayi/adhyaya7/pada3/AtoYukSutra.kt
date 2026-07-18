@@ -55,11 +55,14 @@ object AtoYukSutra : Sutra<DerivationState, DerivationChange>(
                 explanation = "7.3.114: Introduced युक् into the merged ā-final dual ओस् form, yielding योः.",
             )
         }
+        val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
         return DerivationChange(
-            state = context.replaceTerm(affix.id, affix.copy(surface = "योः", itMarkers = emptySet()))
+            state = context
+                .replaceTerm(stem.id, stem.copy(surface = stem.surface.dropLast(1)))
+                .replaceTerm(affix.id, affix.copy(surface = "योः", itMarkers = emptySet()))
                 .copy(stage = DerivationStage.ANGAKARYA),
-            explanation = "7.3.114: Introduced युक् before dual ओस् after an ā-final aṅga, yielding योः.",
+            explanation = "7.3.114: Replaced final ā plus dual ओस् with युक् + ओस्, yielding योः.",
         )
     }
 }

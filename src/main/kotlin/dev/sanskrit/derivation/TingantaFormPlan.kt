@@ -72,9 +72,12 @@ object TingantaFormPlans {
             }
             TingAffix.entries.filter { it.pada == PadaType.ATMANEPADA }.forEach { affix ->
                 val required = (mutableSetOf("3.4.78", "6.4.71") + vikaranaSutras(gana)).toMutableSet()
-                if (affix in setOf(TingAffix.ATAM, TingAffix.ATHAM)) required += "7.2.81"
+                val hasAEndingStem = gana in setOf(Gana.BHVADI, Gana.DIVADI, Gana.TUDADI, Gana.CURADI)
+                val usesAtoNgit = hasAEndingStem && affix in setOf(TingAffix.ATAM, TingAffix.ATHAM)
+                if (usesAtoNgit) required += "7.2.81"
                 if (affix == TingAffix.JHA) required += "7.1.3"
-                val finalStage = if (affix in setOf(TingAffix.TA, TingAffix.DHVAM, TingAffix.VAHI, TingAffix.MAHING)) {
+                val finalStage = if (!hasAEndingStem ||
+                    affix in setOf(TingAffix.TA, TingAffix.DHVAM, TingAffix.VAHI, TingAffix.MAHING)) {
                     DerivationStage.IT_PROCESSED
                 } else {
                     DerivationStage.FINAL

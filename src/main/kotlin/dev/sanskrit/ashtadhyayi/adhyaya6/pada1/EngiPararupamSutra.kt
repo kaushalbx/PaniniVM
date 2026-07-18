@@ -4,7 +4,10 @@ import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
+import dev.sanskrit.derivation.SamjnaAssignment
+import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.derivation.VarnaSubstitution
+import dev.sanskrit.shiksha.Samjna
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -34,8 +37,9 @@ object EngiPararupamSutra : Sutra<DerivationState, DerivationChange>(
         if (context.terms.size < 2) return false
         val prefix = context.terms[context.terms.size - 2]
         val root = context.terms.last()
+        if (root.kind != TermKind.DHATU || SamjnaAssignment(prefix.id, Samjna.UPASARGA) !in context.samjnas) return false
 
-        // 1. Must be an a-ending prefix (Simplified check for 'pra', 'upa', etc.)
+        // 1. Must be an a-ending prefix.
         val isAPrefix = prefix.surface.endsWith('अ') || prefix.surface.endsWith('ा')
         if (!isAPrefix) return false
 
