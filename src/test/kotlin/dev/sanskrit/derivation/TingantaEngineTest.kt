@@ -173,6 +173,19 @@ class TingantaEngineTest {
     }
 
     @Test
+    fun `Curadi atmanepada optative contracts late shap plus siyut`() {
+        val result = TingantaEngine().derive(
+            TingantaDerivationRequest(
+                "चुरँ", Vacana.EKAVACANA, Purusha.PRATHAMA, Lakara.LING,
+                pada = PadaType.ATMANEPADA,
+            ),
+        )
+
+        assertEquals("चोरयेत", result.final.surface)
+        assertTrue(result.applications.any { it.sutra == "6.1.66" })
+    }
+
+    @Test
     fun `conjugation engine derives complete Divadi present paradigm for div`() {
         val paradigm = TingantaEngine().deriveSupportedParadigm("दिव्", lakara = Lakara.LAT)
 

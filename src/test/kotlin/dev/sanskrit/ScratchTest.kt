@@ -4,6 +4,7 @@ import dev.sanskrit.derivation.DerivationEngine
 import dev.sanskrit.derivation.Lakara
 import dev.sanskrit.derivation.Purusha
 import dev.sanskrit.derivation.TingantaDerivationRequest
+import dev.sanskrit.derivation.TingantaEngine
 import dev.sanskrit.derivation.Vacana
 import dev.sanskrit.dhatupatha.PadaType
 import kotlin.test.Test
@@ -18,7 +19,7 @@ class ScratchTest {
             Lakara.LING,
             pada = PadaType.ATMANEPADA,
         )
-        val result = DerivationEngine().derive(request.initialState())
+        val result = TingantaEngine().derive(request)
 
         println("=== CURADI LING ATMANEPADA TRACE ===")
         result.applications.forEachIndexed { index, application ->
