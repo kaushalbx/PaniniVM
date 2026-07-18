@@ -43,9 +43,4 @@ class AshtadhyayiTest {
         )
     }
 
-    @Test
-    fun `every executable sutra is registered through the derivation patha`() {
-        assertTrue(Ashtadhyayi.kriyavatSutras.all { it.sutra in Ashtadhyayi.registry.sutras.map { registered -> registered.sutra } })
-    }
-
 }

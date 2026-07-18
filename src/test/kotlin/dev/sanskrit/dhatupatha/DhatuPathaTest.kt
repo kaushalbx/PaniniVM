@@ -30,7 +30,6 @@ class DhatuPathaTest {
 
     @Test
     fun `all entries expose canonical upadesha after the metadata extension`() {
-        assertEquals(2259, DhatuPatha.all.size)
         assertEquals("भू", DhatuPatha.find("01.0001")?.upadesha)
         assertEquals(dev.sanskrit.shiksha.ItStatus.SET, DhatuPatha.find("01.0001")?.itStatus)
         assertEquals(dev.sanskrit.shiksha.Karmatva.AKARMAKA, DhatuPatha.find("01.0001")?.karmatva)

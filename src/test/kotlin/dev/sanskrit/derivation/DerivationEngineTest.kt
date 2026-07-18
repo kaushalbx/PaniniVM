@@ -84,14 +84,9 @@ class DerivationEngineTest {
     }
 
     @Test
-    fun `taddhita request keeps requested meaning separate from grammatical facts`() {
-        val state = TaddhitaDerivationRequest("पाश", DerivationalMeaning.SAMUHA).initialState()
-        assertEquals(DerivationalMeaning.SAMUHA, state.context.requestedMeaning)
-    }
-
-    @Test
     fun `typed declarative conditions query derivational context`() {
         val state = TaddhitaDerivationRequest("पाश", DerivationalMeaning.SAMUHA).initialState()
+        assertEquals(DerivationalMeaning.SAMUHA, state.context.requestedMeaning)
         assertTrue(HasRequestedMeaning(DerivationalMeaning.SAMUHA).matches(state))
         assertTrue(!HasDerivationalEnvironment(DerivationalEnvironment.ARDHADHATUKA).matches(state))
     }
@@ -183,20 +178,8 @@ class DerivationEngineTest {
         assertTrue(sutras(SupAffix.AUT).containsAll(setOf("1.3.3", "1.3.9", "6.1.88")))
         assertTrue(sutras(SupAffix.BHYAM_3).contains("7.3.102"))
         assertTrue(sutras(SupAffix.SUP).contains("8.3.59"))
-    }
 
-    @Test
-    fun `a-stem paradigm surfaces are executable derivation surfaces`() {
-        val paradigm = SubantaEngine().deriveSupportedParadigm("राम")
-
-        assertEquals(paradigm.derivationSurfaces, paradigm.surfaces)
-        assertEquals("रामैः", paradigm.surfaces[SupAffix.BHIS])
-    }
-
-    @Test
-    fun `a-stem coverage report exposes actual derivation traces`() {
-        val report = SubantaEngine().deriveSupportedParadigm("राम").coverage
-
+        val report = paradigm.coverage
         assertEquals(21, report.size)
         val bhis = report.single { it.affix == SupAffix.BHIS }
         assertEquals("रामैः", bhis.actualSurface)
@@ -507,4 +490,3 @@ class DerivationEngineTest {
         assertEquals(DerivationStage.FINAL, resultCustomTrue.final.stage)
     }
 }
-

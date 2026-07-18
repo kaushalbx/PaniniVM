@@ -8,8 +8,10 @@ class MainTest {
     @Test
     fun `derive command returns the form and its sutra trace`() {
         val output = runCli(arrayOf("--derive", "राम", "SASTHI", "BAHUVACANA"))
+        val sanskritLabels = runCli(arrayOf("--derive", "राम", "षष्ठी", "बहुवचन"))
 
         assertEquals("SASTHI BAHUVACANA: रामाणाम्", output.first())
+        assertEquals(output.first(), sanskritLabels.first())
         assertTrue(output.any { it.startsWith("7.1.54 ") })
         assertTrue(output.any { it.startsWith("6.4.3 ") })
     }
@@ -23,25 +25,13 @@ class MainTest {
     }
 
     @Test
-    fun `derive command accepts Sanskrit vibhakti and vacana labels`() {
-        val output = runCli(arrayOf("--derive", "राम", "षष्ठी", "बहुवचन"))
-
-        assertEquals("SASTHI BAHUVACANA: रामाणाम्", output.first())
-    }
-
-    @Test
     fun `verb command returns bhavati with its sutra trace`() {
         val output = runCli(arrayOf("--verb", "भू"))
+        val plural = runCli(arrayOf("--verb", "भू", "बहुवचन"))
 
         assertEquals("भू: भवति", output.first())
+        assertEquals("भू: भवन्ति", plural.first())
         assertTrue(output.any { it.startsWith("7.3.84 —") })
-    }
-
-    @Test
-    fun `verb command accepts Sanskrit number labels`() {
-        val output = runCli(arrayOf("--verb", "भू", "बहुवचन"))
-
-        assertEquals("भू: भवन्ति", output.first())
     }
 
     @Test

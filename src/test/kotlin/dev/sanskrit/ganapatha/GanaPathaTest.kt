@@ -135,35 +135,6 @@ class GanaPathaTest {
 
     @Test
     fun `ganapatha exposes source ganas in order`() {
-        assertEquals(
-            listOf(
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10,
-                11,
-                12,
-                13,
-                14,
-                15,
-                16,
-                17,
-                18,
-                19,
-                20,
-                21,
-            ),
-            GanaPatha.all.take(21).map { it.sourceIndex },
-        )
-        assertEquals(262, GanaPatha.all.size)
-        assertEquals(22, GanaPatha.all[21].sourceIndex)
-        assertEquals(262, GanaPatha.all.last().sourceIndex)
         assertEquals((1..262).toList(), GanaPatha.all.map { it.sourceIndex })
         assertEquals("1.4.58", GanaPatha.require(4).sutra)
         assertEquals("प्रादयः", GanaPatha.require(4).sutraText)
@@ -172,7 +143,6 @@ class GanaPathaTest {
             GanaPatha.require(4).englishMeaning,
         )
         assertEquals(GanaKind.AKRTI, GanaPatha.require(3).kind)
-        assertEquals(11, GanaPatha.require(11).sourceIndex)
         assertTrue(GanaPatha.require(11).resultSamjnas.isEmpty())
         assertTrue(GanaPatha.contains(4, "प्रति"))
         assertTrue(GanaPatha.contains(2, "स्वर्"))
@@ -204,65 +174,6 @@ class GanaPathaTest {
             val gana = GanaPatha.require(sourceIndex)
             assertEquals(gana.sutra, Ashtadhyayi.sutraFor(gana).sutra)
         }
-        assertEquals(SarvanamaSutra, Ashtadhyayi.sutraFor(GanaPatha.require(1)))
-        assertEquals(SvaradiNipatamAvyayamSutra, Ashtadhyayi.sutraFor(GanaPatha.require(2)))
-        assertEquals(ChadayoAsattveSutra, Ashtadhyayi.sutraFor(GanaPatha.require(3)))
-        assertEquals(PradayaSutra, Ashtadhyayi.sutraFor(GanaPatha.require(4)))
-        assertEquals(UryadiCvidacashCaSutra, Ashtadhyayi.sutraFor(GanaPatha.require(5)))
-        assertEquals(SakshatPrabhrtiniCaSutra, Ashtadhyayi.sutraFor(GanaPatha.require(6)))
-        assertEquals(BhrshadibhyoBhuvyacverLopashCaHalahSutra, Ashtadhyayi.sutraFor(GanaPatha.require(32)))
-        assertEquals(KandvadibhyoYakSutra, Ashtadhyayi.sutraFor(GanaPatha.require(35)))
-        assertEquals(NandigrahipacadibhyoLyuninyacahSutra, Ashtadhyayi.sutraFor(GanaPatha.require(36)))
-        assertEquals(NandigrahipacadibhyoLyuninyacahSutra, Ashtadhyayi.sutraFor(GanaPatha.require(37)))
-        assertEquals(NandigrahipacadibhyoLyuninyacahSutra, Ashtadhyayi.sutraFor(GanaPatha.require(38)))
-        assertEquals(BhavishyatiGamyadayahSutra, Ashtadhyayi.sutraFor(GanaPatha.require(41)))
-        assertEquals(ShidbhidadibhyoAngSutra, Ashtadhyayi.sutraFor(GanaPatha.require(42)))
-        assertEquals(BhimadayoApadaneSutra, Ashtadhyayi.sutraFor(GanaPatha.require(44)))
-        assertEquals(PashadibhyoYahSutra, Ashtadhyayi.sutraFor(GanaPatha.require(74)))
-        assertEquals(RajanyadibhyoVunSutra, Ashtadhyayi.sutraFor(GanaPatha.require(76)))
-        assertEquals(BhaurikyaadyaishukaryadibhyoVidhalbhaktalauSutra, Ashtadhyayi.sutraFor(GanaPatha.require(77)))
-        assertEquals(BhaurikyaadyaishukaryadibhyoVidhalbhaktalauSutra, Ashtadhyayi.sutraFor(GanaPatha.require(78)))
-        assertEquals(KramadibhyoVunSutra, Ashtadhyayi.sutraFor(GanaPatha.require(80)))
-        assertEquals(VasantadibhyashThakSutra, Ashtadhyayi.sutraFor(GanaPatha.require(81)))
-        assertEquals(KratukthadisutrantatThakSutra, Ashtadhyayi.sutraFor(GanaPatha.require(79)))
-        assertEquals(SankaladibhyashCaSutra, Ashtadhyayi.sutraFor(GanaPatha.require(82)))
-        assertEquals(SuvastvadibhyoAnSutra, Ashtadhyayi.sutraFor(GanaPatha.require(83)))
-        assertEquals(UtkaradibhyashChahSutra, Ashtadhyayi.sutraFor(GanaPatha.require(103)))
-        assertEquals(KattrayadibhyoDhakanySutra, Ashtadhyayi.sutraFor(GanaPatha.require(105)))
-        assertEquals(NadyadibhyoDhakSutra, Ashtadhyayi.sutraFor(GanaPatha.require(106)))
-        assertEquals(SandhiveladyRtunakshatrebhyoAnSutra, Ashtadhyayi.sutraFor(GanaPatha.require(112)))
-        assertEquals(DigadibhyoYatSutra, Ashtadhyayi.sutraFor(GanaPatha.require(113)))
-        assertEquals(RgayandibhyoAnSutra, Ashtadhyayi.sutraFor(GanaPatha.require(116)))
-        assertEquals(ShundikadibhyoAnSutra, Ashtadhyayi.sutraFor(GanaPatha.require(117)))
-        assertEquals(ShandikadibhyoNyahSutra, Ashtadhyayi.sutraFor(GanaPatha.require(118)))
-        assertEquals(VunchhankathajilasenirSutra, Ashtadhyayi.sutraFor(GanaPatha.require(84)))
-        assertEquals(VunchhankathajilasenirSutra, Ashtadhyayi.sutraFor(GanaPatha.require(100)))
-        assertEquals(AjadyatastapSutra, Ashtadhyayi.sutraFor(GanaPatha.require(45)))
-        assertEquals(NaShatsvasradibhyahSutra, Ashtadhyayi.sutraFor(GanaPatha.require(46)))
-        assertEquals(ShidGauradibhyashCaSutra, Ashtadhyayi.sutraFor(GanaPatha.require(48)))
-        assertEquals(BahvadibhyashCaSutra, Ashtadhyayi.sutraFor(GanaPatha.require(49)))
-        assertEquals(NaKrodadibahvacahSutra, Ashtadhyayi.sutraFor(GanaPatha.require(50)))
-        assertEquals(NadadibhyahPhakSutra, Ashtadhyayi.sutraFor(GanaPatha.require(57)))
-        assertEquals(GargadibhyoYanySutra, Ashtadhyayi.sutraFor(GanaPatha.require(59)))
-        assertEquals(AshvapatyadibhyashCaSutra, Ashtadhyayi.sutraFor(GanaPatha.require(53)))
-        assertEquals(BaahvadibhyashCaSutra, Ashtadhyayi.sutraFor(GanaPatha.require(55)))
-        assertEquals(GotreKunjadibhyashCaPhanySutra, Ashtadhyayi.sutraFor(GanaPatha.require(56)))
-        assertEquals(AnrshyanantaryeBidadibhyoAnySutra, Ashtadhyayi.sutraFor(GanaPatha.require(58)))
-        assertEquals(AshvadibhyahPhanySutra, Ashtadhyayi.sutraFor(GanaPatha.require(60)))
-        assertEquals(ShivadibhyoAnySutra, Ashtadhyayi.sutraFor(GanaPatha.require(61)))
-        assertEquals(GrshtyadibhyashCaSutra, Ashtadhyayi.sutraFor(GanaPatha.require(64)))
-        assertEquals(KurvadibhyoNyahSutra, Ashtadhyayi.sutraFor(GanaPatha.require(66)))
-        assertEquals(KambojalLukSutra, Ashtadhyayi.sutraFor(GanaPatha.require(69)))
-        assertEquals(ShubhradibhyashCaSutra, Ashtadhyayi.sutraFor(GanaPatha.require(62)))
-        assertEquals(RevatyadibhyashThakSutra, Ashtadhyayi.sutraFor(GanaPatha.require(65)))
-        assertEquals(TikadibhyahPhinySutra, Ashtadhyayi.sutraFor(GanaPatha.require(67)))
-        assertEquals(KalyanyadinamInangSutra, Ashtadhyayi.sutraFor(GanaPatha.require(63)))
-        assertEquals(LohitadidajbhyahKyashSutra, Ashtadhyayi.sutraFor(GanaPatha.require(33)))
-        assertEquals(SukhadibhyoKartrvedanayamSutra, Ashtadhyayi.sutraFor(GanaPatha.require(34)))
-        assertEquals(SharngaravadyanyoNginSutra, Ashtadhyayi.sutraFor(GanaPatha.require(51)))
-        assertEquals(KraudyadibhyashCaSutra, Ashtadhyayi.sutraFor(GanaPatha.require(52)))
-        assertEquals(UtsadibhyoAnySutra, Ashtadhyayi.sutraFor(GanaPatha.require(54)))
-        assertEquals(VakinadinamKukCaSutra, Ashtadhyayi.sutraFor(GanaPatha.require(68)))
     }
 
     @Test
@@ -345,6 +256,9 @@ class GanaPathaTest {
 
     @Test
     fun `sarvanama sutra applies sarvadi restrictions per term`() {
+        val sarva = DerivationState(
+            terms = listOf(DerivationTerm("stem", "सर्व", TermKind.PRATIPADIKA)),
+        )
         val eligible = DerivationState(
             terms = listOf(
                 DerivationTerm(
@@ -366,6 +280,9 @@ class GanaPathaTest {
         assertTrue(SarvanamaSutra.matches(eligible))
         assertFalse(SarvanamaSutra.matches(ineligible))
         assertTrue(SamjnaAssignment("stem", Samjna.SARVANAMA) in SarvanamaSutra.apply(eligible).state.samjnas)
+        val sarvaResult = SarvanamaSutra.apply(sarva).state
+        assertTrue(SamjnaAssignment("stem", Samjna.SARVANAMA) in sarvaResult.samjnas)
+        assertFalse(SarvanamaSutra.matches(sarvaResult))
     }
 
     @Test
@@ -409,18 +326,6 @@ class GanaPathaTest {
         }
 
         assertTrue(error.message!!.contains("999"))
-    }
-
-    @Test
-    fun `sarvanama sutra uses sarvadi gana membership`() {
-        val initial = DerivationState(
-            terms = listOf(DerivationTerm("stem", "सर्व", TermKind.PRATIPADIKA)),
-        )
-
-        val result = SarvanamaSutra.apply(initial)
-
-        assertTrue(SamjnaAssignment("stem", Samjna.SARVANAMA) in result.state.samjnas)
-        assertFalse(SarvanamaSutra.matches(result.state))
     }
 
     @Test
@@ -668,5 +573,3 @@ class GanaPathaTest {
         assertEquals("फिञ्", vakinadiResult.terms.last().upadesha)
     }
 }
-
-

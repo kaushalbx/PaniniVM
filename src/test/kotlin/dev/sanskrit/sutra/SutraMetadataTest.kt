@@ -7,24 +7,16 @@ import dev.sanskrit.ashtadhyayi.adhyaya1.pada1.AdengGunaSutra
 
 class SutraTest {
     @Test
-    fun `executable derivation sutra exposes direct rule fields`() {
+    fun `sutras expose identity execution and learning metadata`() {
         assertEquals(SutraAction.ADESHA, AdGunaSutra.action)
         assertEquals(SutraScope.DERIVATION, AdGunaSutra.scope)
         assertEquals(SutraRole.Vidhi, AdGunaSutra.role)
-    }
-
-    @Test
-    fun `base sutra carries execution context and learning examples`() {
+        assertEquals("6.1.87", AdGunaSutra.number)
+        assertEquals("आद्गुणः", AdGunaSutra.text)
+        assertEquals(610087, AdGunaSutra.kramaValue)
         assertEquals(setOf(SutraInput.VARNA), AdengGunaSutra.inputs)
         assertEquals(SutraStage.SAMJNA, AdengGunaSutra.stage)
         assertEquals("ए [गुण]", AdengGunaSutra.examples.single().output)
         assertEquals("{sutra} assigns गुण संज्ञा to {target}.", AdengGunaSutra.traceTemplate)
-    }
-
-    @Test
-    fun `base sutra owns its identity fields`() {
-        assertEquals("6.1.87", AdGunaSutra.number)
-        assertEquals("आद्गुणः", AdGunaSutra.text)
-        assertEquals(610087, AdGunaSutra.kramaValue)
     }
 }
