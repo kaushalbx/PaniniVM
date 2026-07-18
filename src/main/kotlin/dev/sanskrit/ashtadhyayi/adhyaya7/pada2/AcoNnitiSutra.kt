@@ -52,7 +52,8 @@ object AcoNnitiSutra : Sutra<DerivationState, DerivationChange>(
         if (!isNniti) return false
 
         val lastChar = stem.surface.lastOrNull() ?: return false
-        return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.AC, lastChar)
+        val replacement = Varnamala.getVrddhi(lastChar) ?: return false
+        return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.AC, lastChar) && replacement != lastChar.toString()
     }
 
     override fun apply(context: DerivationState): DerivationChange {

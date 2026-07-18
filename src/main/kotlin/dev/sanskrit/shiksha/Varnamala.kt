@@ -100,8 +100,12 @@ object Varnamala {
         'ा' -> "ा"
         'ि', 'ी' -> "ै"
         'ु', 'ू' -> "ौ"
+        'े', 'ै' -> "ै"
+        'ो', 'ौ' -> "ौ"
         'इ', 'ई' -> Svara.AI.devanagari
         'उ', 'ऊ' -> Svara.AU.devanagari
+        'ए', 'ऐ' -> Svara.AI.devanagari
+        'ओ', 'औ' -> Svara.AU.devanagari
         'ृ', 'ॄ' -> Svara.AA.matra + Vyanjana.RA.halanta
         'ऋ', 'ॠ' -> Svara.AA.devanagari + Vyanjana.RA.halanta
         'ऌ' -> Svara.AA.devanagari + Vyanjana.LA.halanta

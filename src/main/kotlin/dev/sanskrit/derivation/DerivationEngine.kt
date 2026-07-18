@@ -396,7 +396,7 @@ class DerivationEngine(
         )
 
         fun agendaDomain(sutra: DerivationSutra): Int = when (sutra.role) {
-            SutraRole.Samjna, SutraRole.Paribhasha -> 0
+            SutraRole.Samjna, SutraRole.Paribhasha, SutraRole.Atidesha -> 0
             SutraRole.Adhikara, SutraRole.Anuvrtti -> 1
             SutraRole.Nishedha, SutraRole.Niyama, SutraRole.Apavada -> 2
             else -> 3

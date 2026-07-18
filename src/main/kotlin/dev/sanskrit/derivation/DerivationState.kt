@@ -197,6 +197,7 @@ data class DerivationTerm(
     val droppedBySutra: String? = null,
     val originalSurfaceBeforeDrop: String? = null,
     val createdBySutra: String? = null,
+    val establishedBySutras: Set<String> = emptySet(),
 ) {
     companion object {
         /** Preserves Dhātupāṭha metadata when a root enters a derivation. */
@@ -228,4 +229,3 @@ enum class ItMarker { U, J, T, P, SH, NG, KIT, NGIT, NIT, SIT }
 enum class DerivationStage { INITIAL, PRATYAYA_SELECTED, IT_PROCESSED, ANGAKARYA, PADA_FORMED, FINAL }
 
 data class SamjnaAssignment(val targetId: String, val samjna: Samjna)
-

@@ -1,6 +1,7 @@
 package dev.sanskrit.ashtadhyayi.adhyaya7.pada3
 
 import dev.sanskrit.ashtadhyayi.Ashtadhyayi
+import dev.sanskrit.ashtadhyayi.adhyaya1.pada2.AsamyogallitKitSutra
 import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
@@ -65,6 +66,7 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
             ) return false
         }
         if (affix.kind != TermKind.PRATYAYA) return false
+        if ("1.2.5" in affix.establishedBySutras || AsamyogallitKitSutra.matches(context)) return false
         if (context.effectiveContext.rupa.lakara == Lakara.LIT && affix.surface == affix.upadesha) return false
         if (context.effectiveContext.rupa.lakara == Lakara.LIT && stem.itStatus == ItStatus.SET) return false
         if (context.effectiveContext.rupa.lakara == Lakara.LUNG && stem.matchesUpadesha("भू")) return false

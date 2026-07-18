@@ -626,6 +626,21 @@ class TingantaEngineTest {
     }
 
     @Test
+    fun `perfect handles vowel-final ubhayapada root ni`() {
+        listOf(
+            PadaType.PARASMAIPADA to "निनाय निन्यतुः निन्युः निनेथ निन्यथुः निन्य निनय निन्यिव निन्यिम",
+            PadaType.ATMANEPADA to "निन्ये निन्याते निन्यिरे निन्यिषे निन्याथे निन्यिध्वे निन्ये निन्यिवहे निन्यिमहे",
+        ).forEach { (pada, surfaces) ->
+            TingantaEngine().deriveSupportedParadigm("णीञ्", pada, Lakara.LIT).assertSurfaces(surfaces)
+        }
+
+        val weak = TingantaEngine().derive(
+            TingantaDerivationRequest("णीञ्", Vacana.DVIVACANA, Purusha.PRATHAMA, Lakara.LIT),
+        ).applications.map { it.sutra }
+        assertTrue(weak.containsAll(setOf("1.2.5", "6.4.82")))
+    }
+
+    @Test
     fun `conjugation engine derives complete periphrastic future paradigm for bhu`() {
         val paradigm = TingantaEngine().deriveSupportedParadigm("भू", lakara = Lakara.LUT)
         paradigm.assertSurfaces("भविता भवितारौ भवितारः भवितासि भवितास्थः भवितास्थ भवितास्मि भवितास्वः भवितास्मः")

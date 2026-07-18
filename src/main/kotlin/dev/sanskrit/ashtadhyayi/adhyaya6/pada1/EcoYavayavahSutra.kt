@@ -112,6 +112,11 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
         if (s1.last() !in dev.sanskrit.shiksha.Varnamala.independentVowelsOrMarks && s2.startsWith('अ')) {
             return s1 + s2.drop(1)
         }
+
+        if (s1.last() !in dev.sanskrit.shiksha.Varnamala.independentVowelsOrMarks) {
+            val matra = getMatra(s2.first())
+            if (matra != null) return s1 + matra + s2.drop(1)
+        }
         
         return s1 + s2
     }

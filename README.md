@@ -7,7 +7,7 @@ blocked alternatives where available.
 
 ## Current coverage
 
-- 300 implemented sūtras out of the 3,959-rule target.
+- 303 implemented sūtras out of the 3,959-rule target.
 - It-marker processing, grammatical saṃjñās, rule ordering, substitutions,
   augment insertion, deletion, and selected Tripādī transformations.
 - All 21 `sup` forms for masculine a-stems such as `राम` and `देव`.

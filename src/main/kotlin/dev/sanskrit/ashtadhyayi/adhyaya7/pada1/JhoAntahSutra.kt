@@ -34,6 +34,7 @@ object JhoAntahSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         val affix = context.terms.lastOrNull() ?: return false
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU }
+        if (context.effectiveContext.rupa.lakara == Lakara.LIT && affix.upadesha == "झि") return false
         if (dhatu?.gana == Gana.JUHOTYADI && affix.upadesha == "झि") return false
         if (context.effectiveContext.rupa.lakara == Lakara.LOT && affix.upadesha == "झ" &&
             dhatu?.gana in setOf(Gana.ADADI, Gana.JUHOTYADI, Gana.SVADI, Gana.RUDHADI, Gana.TANADI, Gana.KRYADI)
