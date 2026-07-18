@@ -38,7 +38,7 @@ object SvadibhyahShnuhSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val shnu = DerivationTerm("shnu", "नु", TermKind.PRATYAYA, upadesha = "श्नु")
         return DerivationChange(
-            state = context.copy(terms = context.terms.dropLast(1) + shnu + context.terms.last()),
+            state = context.insertBeforeTingOrLingAugment(shnu),
             explanation = "3.1.73 introduces श्नु after a Svādi root.",
         )
     }

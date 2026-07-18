@@ -4,6 +4,8 @@ import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.Lakara
+import dev.sanskrit.derivation.TermKind
+import dev.sanskrit.dhatupatha.Gana
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraPriority
@@ -33,11 +35,14 @@ object AtoYeyahSutra : Sutra<DerivationState, DerivationChange>(
         val yasutIndex = context.terms.indexOfFirst { it.id == "yasut" }
         if (yasutIndex <= 0) return false
 
+        val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU }
+        if (dhatu?.gana in setOf(Gana.ADADI, Gana.JUHOTYADI)) return false
+
         val precedingAnga = context.terms[yasutIndex - 1]
         val yasut = context.terms[yasutIndex]
         val endsInA = precedingAnga.surface.endsWith('अ') ||
             precedingAnga.surface.endsWith('a') ||
-            precedingAnga.surface.endsWith('व')
+            precedingAnga.id in setOf("shyan", "sha")
         return endsInA && yasut.surface == "यास्"
     }
 

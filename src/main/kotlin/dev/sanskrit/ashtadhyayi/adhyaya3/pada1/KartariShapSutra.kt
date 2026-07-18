@@ -36,16 +36,9 @@ object KartariShapSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val shap = DerivationTerm("shap", Svara.A.devanagari, TermKind.PRATYAYA, upadesha = "शप्")
-        val terms = if (context.terms.any { it.id == "yasut" || it.id == "siyut" }) {
-            // The liṅ augment has already been placed before tiṅ; शप् still precedes that augment.
-            val augmentIndex = context.terms.indexOfFirst { it.id == "yasut" || it.id == "siyut" }
-            context.terms.take(augmentIndex) + shap + context.terms.drop(augmentIndex)
-        } else {
-            context.terms.dropLast(1) + shap + context.terms.last()
-        }
         return DerivationChange(
-        state = context.copy(terms = terms),
-        explanation = "3.1.68 introduces शप् after the dhātu.",
+            state = context.insertBeforeTingOrLingAugment(shap),
+            explanation = "3.1.68 introduces शप् after the dhātu.",
         )
     }
 }

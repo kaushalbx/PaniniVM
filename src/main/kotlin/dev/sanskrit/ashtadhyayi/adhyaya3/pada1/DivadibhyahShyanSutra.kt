@@ -39,7 +39,7 @@ object DivadibhyahShyanSutra : Sutra<DerivationState, DerivationChange>(
         // श् and final न् are it; retain the effective य् as the vikaraṇa surface.
         val shyan = DerivationTerm("shyan", "य", TermKind.PRATYAYA, upadesha = "श्यन्")
         return DerivationChange(
-            state = context.copy(terms = context.terms.dropLast(1) + shyan + context.terms.last()),
+            state = context.insertBeforeTingOrLingAugment(shyan),
             explanation = "3.1.69 introduces श्यन् after a Divādi root.",
         )
     }

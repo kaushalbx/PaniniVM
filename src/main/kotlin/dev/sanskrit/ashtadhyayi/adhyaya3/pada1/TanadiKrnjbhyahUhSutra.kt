@@ -38,7 +38,7 @@ object TanadiKrnjbhyahUhSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val u = DerivationTerm("tanadi-u", "उ", TermKind.PRATYAYA, upadesha = "उ")
         return DerivationChange(
-            state = context.copy(terms = context.terms.dropLast(1) + u + context.terms.last()),
+            state = context.insertBeforeTingOrLingAugment(u),
             explanation = "3.1.79 introduces उ after a Tanādi root.",
         )
     }

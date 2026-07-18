@@ -39,7 +39,7 @@ object CuradibhyoNicSutra : Sutra<DerivationState, DerivationChange>(
         // Effective अय् reflects it-lopa and 6.1.77 before the following शप् vowel.
         val nic = DerivationTerm("nic", "अय्", TermKind.PRATYAYA, upadesha = "णिच्")
         return DerivationChange(
-            state = context.copy(terms = context.terms.dropLast(1) + nic + context.terms.last()),
+            state = context.insertBeforeTingOrLingAugment(nic),
             explanation = "3.1.25 introduces णिच् after a Curādi root.",
         )
     }

@@ -53,7 +53,11 @@ object RudhadibhyahShnamSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val dhatu = context.terms.first { it.kind == TermKind.DHATU }
         val affix = TingAffix.entries.single { it.upadesha == context.terms.last().upadesha }
-        val strongAffixes = if (context.effectiveContext.rupa.lakara == Lakara.LOT) lotStrongAffixes else latStrongAffixes
+        val strongAffixes = when (context.effectiveContext.rupa.lakara) {
+            Lakara.LOT -> lotStrongAffixes
+            Lakara.LING -> emptySet()
+            else -> latStrongAffixes
+        }
         val nasal = if (affix in strongAffixes) "न" else "न्"
         val insertionIndex = requireNotNull(finalVowelEnd(dhatu.surface)) {
             "3.1.78 requires a vowel in ${dhatu.surface}."

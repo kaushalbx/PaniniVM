@@ -4,6 +4,8 @@ import dev.sanskrit.derivation.DerivationChange
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.Lakara
+import dev.sanskrit.derivation.TermKind
+import dev.sanskrit.dhatupatha.Gana
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -30,7 +32,15 @@ object LingasSalopoAnantyasyaSutra : Sutra<DerivationState, DerivationChange>(
         if (siyut != null) return siyut.surface.startsWith('स')
 
         val yasut = context.terms.firstOrNull { it.id == "yasut" } ?: return false
-        return context.terms.any { it.id == "shap" } && yasut.surface.endsWith("स्")
+        val gana = context.terms.firstOrNull { it.kind == TermKind.DHATU }?.gana
+        val stemFormationComplete = when (gana) {
+            Gana.CURADI -> context.terms.any { it.id == "shap" }
+            Gana.RUDHADI -> context.droppedTerms.any { it.id == "shnam" }
+            else -> context.terms.any {
+                it.id in setOf("shap", "shyan", "shnu", "sha", "tanadi-u", "shna")
+            }
+        }
+        return stemFormationComplete && yasut.surface.endsWith("स्")
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -44,7 +54,7 @@ object LingasSalopoAnantyasyaSutra : Sutra<DerivationState, DerivationChange>(
 
         val yasut = context.terms.first { it.id == "yasut" }
         return DerivationChange(
-            context.replaceTerm(yasut.id, yasut.copy(surface = yasut.surface.dropLast(1))),
+            context.replaceTerm(yasut.id, yasut.copy(surface = yasut.surface.removeSuffix("स्"))),
             "7.2.79 removes the non-final स् of यास्.",
         )
     }

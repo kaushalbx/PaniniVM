@@ -86,6 +86,15 @@ class DerivationState(
         return copy(terms = terms + term)
     }
 
+    /** Inserts a stem-forming affix before a liṅ augment, or directly before tiṅ. */
+    fun insertBeforeTingOrLingAugment(term: DerivationTerm): DerivationState {
+        require(terms.none { it.id == term.id }) { "A derivation term id must be unique: ${term.id}" }
+        val insertionIndex = terms.indexOfFirst { it.id == "yasut" || it.id == "siyut" }
+            .takeIf { it >= 0 }
+            ?: terms.lastIndex
+        return copy(terms = terms.take(insertionIndex) + term + terms.drop(insertionIndex))
+    }
+
     fun activateAdhikara(sutraNumber: String): DerivationState =
         copy(activeAdhikaras = activeAdhikaras + sutraNumber)
 
@@ -219,5 +228,4 @@ enum class ItMarker { U, J, T, P, SH, NG, KIT, NGIT, NIT, SIT }
 enum class DerivationStage { INITIAL, PRATYAYA_SELECTED, IT_PROCESSED, ANGAKARYA, PADA_FORMED, FINAL }
 
 data class SamjnaAssignment(val targetId: String, val samjna: Samjna)
-
 

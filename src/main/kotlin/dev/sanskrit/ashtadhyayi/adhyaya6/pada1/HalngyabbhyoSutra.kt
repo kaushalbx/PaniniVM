@@ -35,6 +35,7 @@ object HalngyabbhyoSutra : Sutra<DerivationState, DerivationChange>(
         if (context.terms.size < 2) return false
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
+        if (stem.id in setOf("yasut", "shna")) return false
 
         val surface = affix.surface
         val isApṛktaHal =

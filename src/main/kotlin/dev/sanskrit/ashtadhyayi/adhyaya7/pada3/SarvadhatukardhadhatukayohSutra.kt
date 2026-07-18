@@ -93,6 +93,7 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
 
     private fun strongUGrade(context: DerivationState) =
         context.terms.firstOrNull { it.id in setOf("shnu", "tanadi-u") }?.takeIf {
+            context.terms.none { term -> term.id == "yasut" || term.id == "siyut" } &&
             context.terms.lastOrNull()?.upadesha in setOf(
                 TingAffix.TIP.upadesha,
                 TingAffix.SIP.upadesha,

@@ -173,6 +173,29 @@ class TingantaEngineTest {
     }
 
     @Test
+    fun `all ganas derive representative parasmaipada optatives`() {
+        val expected = mapOf(
+            "भू" to "भवेत्",
+            "अद्" to "अद्यात्",
+            "हु" to "जुहुयात्",
+            "दिव्" to "दिव्येत्",
+            "षुञ्" to "सुनुयात्",
+            "नुद्" to "नुदेत्",
+            "रुधिँर्" to "रुन्ध्यात्",
+            "तनुँ" to "तनुयात्",
+            "डुक्रीञ्" to "क्रीणीयात्",
+            "चुरँ" to "चोरयेत्",
+        )
+
+        expected.forEach { (root, surface) ->
+            val result = TingantaEngine().derive(
+                TingantaDerivationRequest(root, lakara = Lakara.LING, pada = PadaType.PARASMAIPADA),
+            )
+            assertEquals(surface, result.final.surface, root)
+        }
+    }
+
+    @Test
     fun `Curadi atmanepada optative contracts late shap plus siyut`() {
         val result = TingantaEngine().derive(
             TingantaDerivationRequest(

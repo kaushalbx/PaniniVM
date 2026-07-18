@@ -55,7 +55,11 @@ object KryadibhyahShnaSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val affix = TingAffix.entries.single { it.upadesha == context.terms.last().upadesha }
-        val strongAffixes = if (context.effectiveContext.rupa.lakara == Lakara.LOT) lotStrongAffixes else latStrongAffixes
+        val strongAffixes = when (context.effectiveContext.rupa.lakara) {
+            Lakara.LOT -> lotStrongAffixes
+            Lakara.LING -> emptySet()
+            else -> latStrongAffixes
+        }
         val surface = when (affix) {
             in strongAffixes -> "ना"
             in vowelInitialAffixes -> "न्"
@@ -63,7 +67,7 @@ object KryadibhyahShnaSutra : Sutra<DerivationState, DerivationChange>(
         }
         val shna = DerivationTerm("shna", surface, TermKind.PRATYAYA, upadesha = "श्ना")
         return DerivationChange(
-            context.copy(terms = context.terms.dropLast(1) + shna + context.terms.last()),
+            context.insertBeforeTingOrLingAugment(shna),
             "3.1.81 introduces the $surface allomorph of श्ना after a Kryādi root.",
         )
     }

@@ -39,7 +39,7 @@ object TudadibhyahShahSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val sha = DerivationTerm("sha", Svara.A.devanagari, TermKind.PRATYAYA, upadesha = "श")
         return DerivationChange(
-            state = context.copy(terms = context.terms.dropLast(1) + sha + context.terms.last()),
+            state = context.insertBeforeTingOrLingAugment(sha),
             explanation = "3.1.77 introduces श after a Tudādi root.",
         )
     }

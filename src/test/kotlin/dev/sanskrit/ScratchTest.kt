@@ -1,6 +1,5 @@
 package dev.sanskrit
 
-import dev.sanskrit.derivation.DerivationEngine
 import dev.sanskrit.derivation.Lakara
 import dev.sanskrit.derivation.Purusha
 import dev.sanskrit.derivation.TingantaDerivationRequest
