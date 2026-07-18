@@ -12,4 +12,4 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ashtadhyayi-sandhi"
+rootProject.name = "PaniniVM"

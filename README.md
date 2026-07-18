@@ -81,7 +81,7 @@ complete derivation for every supported slot.
 To print the step-by-step Curādi Ātmanepada `LING` derivation:
 
 ```sh
-./gradlew test --tests "dev.sanskrit.ScratchTest.testDerivationTrace" --info
+./gradlew test --tests "dev.panini.ScratchTest.testDerivationTrace" --info
 ```
 
 ## Text encoding

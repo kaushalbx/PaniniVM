@@ -3,7 +3,7 @@ plugins {
     application
 }
 
-group = "dev.sanskrit"
+group = "dev.panini"
 version = "0.1.0"
 
 kotlin {
@@ -11,7 +11,7 @@ kotlin {
 }
 
 application {
-    mainClass.set("dev.sanskrit.MainKt")
+    mainClass.set("dev.panini.MainKt")
 }
 
 dependencies {

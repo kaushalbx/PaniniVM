@@ -1,0 +1,5 @@
+package dev.panini.ashtadhyayi.adhyaya7.pada3
+
+import dev.panini.sutra.Sutra
+
+object Adhyaya7Pada3 { val sutras: List<Sutra<*, *>> = listOf(IshugamiyamamChahSutra, SarvadhatukardhadhatukayohSutra, PugantalaghupadhasyaCaSutra, SupiCaSutra, BahuvacaneJhalyetSutra, OsiCaSutra, HrasvasyaGunaSutra, JasiCaSutra, GherNitiSutra, AccaGhehSutra, AngoNastriyamSutra, SambuddhauCaSutra, YadapahSutra, AtoYukSutra, NeramNadyaPoNibhyahSutra, NadyahNgeSutra, NadyahNgasiSutra, NadyahNgasSutra, NadyahAmSutra, GherAuoSutra, GherShasiSutra, GherNgasyoSutra, GherShasiStriyamSutra, GherNgeStriyamSutra, GherNgasyosStriyamSutra, GherNgiStriyamSutra, RtoSuhSutra, RtoAuoSutra, RtoJasiSutra, RtoAmiSutra, RtoShasiSutra, RtoNgasyosSutra, RtoNgiSutra, NtoSuhSutra, NtoAuoSutra, NtoJasiSutra, NtoAmiSutra, NtoShasiSutra, NtoTaSutra, NtoNgeSutra, NtoNgasyosSutra, NtoOsiSutra, NtoAamSutra, NtoNgiSutra, StanapumsakayohSutra, StanapumsakayorDvivacaneSutra, StanapumsakayorBahuvacaneSutra, StoTaSutra, StoBhyadiSutra, StoNgeSutra, StoNgasyosSutra, StoOsiSutra, StoAamSutra, StoNgiSutra, StoSupiSutra, AtoDirghoYaniSutra) }

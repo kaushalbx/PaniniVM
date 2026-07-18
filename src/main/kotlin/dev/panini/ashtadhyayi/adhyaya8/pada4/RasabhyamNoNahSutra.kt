@@ -1,0 +1,85 @@
+package dev.panini.ashtadhyayi.adhyaya8.pada4
+
+import dev.panini.derivation.DerivationChange
+import dev.panini.derivation.DerivationStage
+import dev.panini.derivation.DerivationState
+import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.HasMorphosyntax
+import dev.panini.derivation.Vacana
+import dev.panini.derivation.Vibhakti
+import dev.panini.sutra.Sutra
+import dev.panini.sutra.SutraAction
+import dev.panini.sutra.SutraRole
+import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraType
+
+/**
+ * 8.4.1: ra-ṣābhyāṃ no ṇaḥ samānapade.
+ * Changes dental 'n' to retroflex 'ṇ' if immediately preceded by 'r' or 'ṣ'
+ * in the same word (pada).
+ */
+object RasabhyamNoNahSutra : Sutra<DerivationState, DerivationChange>(
+    number = "8.4.1",
+    text = "रषाभ्यां नो णः समानपदे",
+    hindiExplanation = "एक ही पद में र् या ष् के ठीक बाद आने वाले 'न' का 'ण' हो जाता है।",
+    type = SutraType.NITYA,
+    chapter = 8,
+    pada = 4,
+    optional = false,
+    kramaValue = 840001,
+    role = SutraRole.Vidhi,
+    action = SutraAction.ADESHA,
+    scope = SutraScope.DERIVATION,
+), DerivationSutra {
+    override fun matches(context: DerivationState): Boolean {
+        if (HasMorphosyntax(vibhakti = Vibhakti.DVITIYA, vacana = Vacana.BAHUVACANA).matches(context)) return false
+
+        // 3.4.105 substitutes रन् for the liṅ Ātmanepada झ ending. The
+        // attested potential ending remains dental, e.g. लभेरन्.
+        if (context.terms.any { it.surface == "रन्" }) return false
+
+        val surface = context.surface
+
+        // Find triggers: र (r) or ष (ṣ)
+        val triggerIndex = surface.lastIndexOfAny(setOf('र', 'ष', 'ऋ', 'ृ', 'ॠ', 'ॄ'))
+        if (triggerIndex == -1) return false
+        if (surface[triggerIndex] in setOf('र', 'ष') && surface.getOrNull(triggerIndex + 1) != '्') return false
+
+        // Find target: न (n)
+        val targetIndex = surface.indexOf('न', triggerIndex)
+        if (targetIndex == -1) return false
+
+        // 8.4.1 requires NO intervening characters except virama
+        val intervenors = surface.substring(triggerIndex + 1, targetIndex).replace("्", "")
+        return intervenors.isEmpty()
+    }
+
+    override fun apply(context: DerivationState): DerivationChange {
+        val surface = context.surface
+        val triggerIndex = surface.lastIndexOfAny(setOf('र', 'ष', 'ऋ', 'ृ', 'ॠ', 'ॄ'))
+        val targetIndex = surface.indexOf('न', triggerIndex)
+
+        var offset = 0
+        val targetTerm = context.terms.find { term ->
+            val start = offset
+            offset += term.surface.length
+            targetIndex in start until offset
+        } ?: return DerivationChange(context, "8.4.1: Target 'n' not found.")
+
+        if ('न' !in targetTerm.surface) return DerivationChange(context, "8.4.1: Target 'n' not found in its term.")
+        val newSurface = targetTerm.surface.replaceFirst('न', 'ण')
+
+        return DerivationChange(
+            state = context.replaceTerm(targetTerm.id, targetTerm.copy(surface = newSurface))
+                .copy(stage = DerivationStage.FINAL),
+            explanation = "8.4.1: Retroflexed 'n' to 'ṇ' immediately following '${surface[triggerIndex]}'."
+        )
+    }
+
+    private fun String.lastIndexOfAny(chars: Set<Char>): Int {
+        for (i in length - 1 downTo 0) {
+            if (this[i] in chars) return i
+        }
+        return -1
+    }
+}

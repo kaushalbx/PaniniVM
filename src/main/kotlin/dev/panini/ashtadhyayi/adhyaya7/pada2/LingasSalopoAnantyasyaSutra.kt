@@ -1,0 +1,67 @@
+package dev.panini.ashtadhyayi.adhyaya7.pada2
+
+import dev.panini.derivation.DerivationChange
+import dev.panini.derivation.DerivationState
+import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.Lakara
+import dev.panini.derivation.TermKind
+import dev.panini.dhatupatha.Gana
+import dev.panini.sutra.Sutra
+import dev.panini.sutra.SutraAction
+import dev.panini.sutra.SutraRole
+import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraType
+
+/** 7.2.79: liṅaḥ salopo 'nantyasya. Removes the non-final स् of a liṅ augment. */
+object LingasSalopoAnantyasyaSutra : Sutra<DerivationState, DerivationChange>(
+    number = "7.2.79",
+    text = "लिङः सलोपोऽनन्त्यस्य",
+    hindiExplanation = "लिङ् में आगम का अन्त्येतर स् लोप होता है।",
+    type = SutraType.NITYA,
+    chapter = 7,
+    pada = 2,
+    optional = false,
+    kramaValue = 720079,
+    role = SutraRole.Vidhi,
+    action = SutraAction.LOPA,
+    scope = SutraScope.PRATYAYA,
+), DerivationSutra {
+    override fun matches(context: DerivationState): Boolean {
+        if (context.effectiveContext.rupa.lakara != Lakara.LING) return false
+        val siyut = context.terms.firstOrNull { it.id == "siyut" }
+        if (siyut != null) return siyut.surface.startsWith('स')
+
+        val yasut = context.terms.firstOrNull { it.id == "yasut" } ?: return false
+        val gana = context.terms.firstOrNull { it.kind == TermKind.DHATU && it.gana != null }?.gana
+        val stemFormationComplete = when (gana) {
+            Gana.CURADI -> context.terms.any { it.id == "shap" }
+            Gana.RUDHADI -> context.droppedTerms.any { it.id == "shnam" }
+            Gana.ADADI, Gana.JUHOTYADI -> context.allEffectiveTerms.any { it.id == "shap" }
+            else -> context.terms.any {
+                it.id in setOf("shap", "shyan", "shnu", "sha", "tanadi-u", "shna")
+            }
+        }
+        return stemFormationComplete && yasut.surface.endsWith("स्")
+    }
+
+    override fun apply(context: DerivationState): DerivationChange {
+        val siyut = context.terms.firstOrNull { it.id == "siyut" }
+        if (siyut != null) {
+            return DerivationChange(
+                context.replaceTerm(siyut.id, siyut.copy(surface = siyut.surface.drop(1))),
+                "7.2.79 removes the initial स् of सीय्.",
+            )
+        }
+
+        val yasut = context.terms.first { it.id == "yasut" }
+        val surface = if (context.terms.last().matchesUpadesha("झि")) {
+            "य्"
+        } else {
+            yasut.surface.removeSuffix("स्")
+        }
+        return DerivationChange(
+            context.replaceTerm(yasut.id, yasut.copy(surface = surface, itMarkers = emptySet())),
+            "7.2.79 removes the non-final स् of यास्.",
+        )
+    }
+}
