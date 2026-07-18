@@ -13,17 +13,21 @@ data class TingantaDerivationRequest(
     val letEOption: LetEOption = LetEOption.E,
     val pada: PadaType? = null,
 ) {
-    fun initialState() = DerivationState(
-        listOf(DerivationTerm("dhatu", dhatu, TermKind.DHATU)),
+    fun initialState(): DerivationState = initialState(
+        DerivationTerm("dhatu", dhatu, TermKind.DHATU),
+    )
+
+    /** Builds a state from the authoritative Dhātupāṭha entry, including iṭ-status. */
+    fun initialState(dhatu: Dhatu): DerivationState = initialState(
+        DerivationTerm.fromDhatu(dhatu),
+    )
+
+    private fun initialState(dhatuTerm: DerivationTerm) = DerivationState(
+        listOf(dhatuTerm),
         context = DerivationalContext(
             kala = when (lakara) {
-                Lakara.LAT -> Kala.VARTAMANA
-                Lakara.LRT -> Kala.BHAVISYAT
-                Lakara.LRNG -> Kala.BHAVISYAT
-                Lakara.LUT -> Kala.BHAVISYAT
-                Lakara.LANG -> Kala.BHUTA
-                Lakara.LIT -> Kala.BHUTA
-                Lakara.LUNG -> Kala.BHUTA
+                Lakara.LRT, Lakara.LRNG, Lakara.LUT -> Kala.BHAVISYAT
+                Lakara.LANG, Lakara.LIT, Lakara.LUNG -> Kala.BHUTA
                 else -> Kala.VARTAMANA
             },
             rupa = Rupa(purusha = purusha, prayoga = Prayoga.KARTARI, vacana = vacana, lakara = lakara, pada = pada),
@@ -33,32 +37,7 @@ data class TingantaDerivationRequest(
             environments = when (lakara) {
                 Lakara.LRT, Lakara.LIT, Lakara.LRNG, Lakara.LUT -> setOf(DerivationalEnvironment.ARDHADHATUKA)
                 else -> emptySet()
-            }
+            },
         ),
     )
 }
-
-/** Builds a derivation state from the authoritative Dhātupāṭha entry, including iṭ-status. */
-fun TingantaDerivationRequest.initialState(dhatu: Dhatu) = DerivationState(
-    listOf(DerivationTerm.fromDhatu(dhatu)),
-    context = DerivationalContext(
-        kala = when (lakara) {
-            Lakara.LAT -> Kala.VARTAMANA
-            Lakara.LRT -> Kala.BHAVISYAT
-            Lakara.LRNG -> Kala.BHAVISYAT
-            Lakara.LUT -> Kala.BHAVISYAT
-            Lakara.LANG -> Kala.BHUTA
-            Lakara.LIT -> Kala.BHUTA
-            Lakara.LUNG -> Kala.BHUTA
-            else -> Kala.VARTAMANA
-        },
-        rupa = Rupa(purusha = purusha, prayoga = Prayoga.KARTARI, vacana = vacana, lakara = lakara, pada = pada),
-        letAugment = letAugment,
-        letFormation = letFormation,
-        letEOption = letEOption,
-        environments = when (lakara) {
-            Lakara.LRT, Lakara.LIT, Lakara.LRNG, Lakara.LUT -> setOf(DerivationalEnvironment.ARDHADHATUKA)
-            else -> emptySet()
-        }
-    ),
-)
