@@ -1,6 +1,7 @@
 package dev.sanskrit.ashtadhyayi.adhyaya7.pada1
 
 import dev.sanskrit.derivation.*
+import dev.sanskrit.dhatupatha.Gana
 import dev.sanskrit.sutra.*
 
 /** 7.1.5: आत्मनेपदेष्वनतः. */
@@ -13,10 +14,11 @@ object AtmanepadesvAnatahSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val lakara = context.effectiveContext.rupa.lakara
-        if (lakara !in setOf(Lakara.LAT, Lakara.LUNG)) return false
-        val hasNonAStemVikarana = context.terms.any { it.id in setOf("shnu", "tanadi-u", "shna") } ||
-            context.droppedTerms.any { it.upadesha == "श्नम्" }
-        if (lakara == Lakara.LAT && !hasNonAStemVikarana) return false
+        if (lakara !in setOf(Lakara.LAT, Lakara.LOT, Lakara.LUNG)) return false
+        val hasNonAStemVikarana = context.terms.firstOrNull { it.kind == TermKind.DHATU }?.gana in setOf(
+            Gana.ADADI, Gana.JUHOTYADI, Gana.SVADI, Gana.RUDHADI, Gana.TANADI, Gana.KRYADI,
+        )
+        if (lakara in setOf(Lakara.LAT, Lakara.LOT) && !hasNonAStemVikarana) return false
         val endingIndex = context.terms.indexOfLast { it.upadesha == "झ" && it.surface.startsWith("झ") }
         if (endingIndex <= 0) return false
         return !context.terms[endingIndex - 1].surface.endsWith("अ")

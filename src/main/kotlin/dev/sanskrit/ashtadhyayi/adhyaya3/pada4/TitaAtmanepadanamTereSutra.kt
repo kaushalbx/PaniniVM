@@ -5,6 +5,7 @@ import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.Lakara
 import dev.sanskrit.derivation.TermKind
+import dev.sanskrit.dhatupatha.Gana
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -31,8 +32,7 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
         if (lakara !in setOf(Lakara.LAT, Lakara.LET, Lakara.LIT, Lakara.LOT, Lakara.LRT, Lakara.LUT)) return false
         val ending = context.terms.last()
         val atoNgitahCompleted = context.droppedTerms.any { it.id == "ato-ngit-it" }
-        val isNonAStem = context.terms.any { it.id in setOf("shnu", "tanadi-u", "shna") } ||
-            context.droppedTerms.any { it.upadesha == "श्नम्" }
+        val isNonAStem = context.terms.firstOrNull { it.kind == TermKind.DHATU }?.gana in nonAStemGanas
         if (lakara == Lakara.LOT && context.substitutions.any { it.sutra in setOf("3.4.90", "3.4.91", "3.4.93") }) return false
         if (lakara == Lakara.LIT && ending.upadesha in setOf("त", "झ")) return false
         if (lakara == Lakara.LUT && ending.upadesha in setOf("त", "आताम्", "झ")) return false
@@ -77,8 +77,7 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
 
         val atoNgitahCompleted = context.droppedTerms.any { it.id == "ato-ngit-it" }
         val lakara = context.effectiveContext.rupa.lakara
-        val isNonAStem = context.terms.any { it.id in setOf("shnu", "tanadi-u", "shna") } ||
-            context.droppedTerms.any { it.upadesha == "श्नम्" }
+        val isNonAStem = context.terms.firstOrNull { it.kind == TermKind.DHATU }?.gana in nonAStemGanas
         val replacement = when (ending.upadesha) {
             "त" -> "ते"
             "आताम्" -> if (lakara in setOf(Lakara.LOT, Lakara.LRT) && !isNonAStem) "एते" else if (lakara == Lakara.LAT && atoNgitahCompleted) "ते" else "आते"
@@ -94,4 +93,8 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
             "3.4.79 replaces the टि portion of ${ending.upadesha} with ए.",
         )
     }
+
+    private val nonAStemGanas = setOf(
+        Gana.ADADI, Gana.JUHOTYADI, Gana.SVADI, Gana.RUDHADI, Gana.TANADI, Gana.KRYADI,
+    )
 }

@@ -7,6 +7,8 @@ import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.Lakara
 import dev.sanskrit.derivation.VarnaSubstitution
+import dev.sanskrit.derivation.TermKind
+import dev.sanskrit.dhatupatha.Gana
 import dev.sanskrit.pratyahara.Pratyahara
 import dev.sanskrit.shiksha.Varnamala
 import dev.sanskrit.sutra.Sutra
@@ -33,6 +35,7 @@ object SavarnaDirghaSutra : Sutra<DerivationState, DerivationChange>(
         if (context.stage == DerivationStage.INITIAL || context.stage == DerivationStage.PRATYAYA_SELECTED) return false
         if (context.terms.size < 2) return false
         val leftTerm = context.terms[context.terms.size - 2]
+        if (leftTerm.id == "shap" && context.terms.any { it.kind == TermKind.DHATU && it.gana == Gana.ADADI }) return false
         if (context.effectiveContext.rupa.lakara == Lakara.LOT && context.terms.last().upadesha == "झि") return false
         val leftChar = leftTerm.surface.lastOrNull() ?: return false
         val right = context.terms.last().surface.firstOrNull() ?: return false

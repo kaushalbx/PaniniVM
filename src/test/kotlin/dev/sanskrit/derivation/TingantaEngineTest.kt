@@ -11,16 +11,14 @@ import dev.sanskrit.dhatupatha.PadaType
 class TingantaEngineTest {
 
     @Test
-    fun `conjugation engine derives complete Kryadi imperative paradigms for kri`() {
+    fun `Kryadi imperative uses shna without shap`() {
         val engine = TingantaEngine()
         val parasmaipada = engine.deriveSupportedParadigm("डुक्रीञ्", pada = PadaType.PARASMAIPADA, lakara = Lakara.LOT)
         val atmanepada = engine.deriveSupportedParadigm("डुक्रीञ्", pada = PadaType.ATMANEPADA, lakara = Lakara.LOT)
 
-        parasmaipada.assertSurfaces("क्रीणातु क्रीणीताम् क्रीणन्तु क्रीणीहि क्रीणीतम् क्रीणीत क्रीणानि क्रीणाव क्रीणाम")
-        atmanepada.assertSurfaces("क्रीणीताम् क्रीणाताम् क्रीणताम् क्रीणीष्व क्रीणाथाम् क्रीणीध्वम् क्रीणै क्रीणावहै क्रीणामहै")
-
         (parasmaipada.forms.values + atmanepada.forms.values).forEach { result ->
             assertTrue(result.applications.none { it.sutra == "3.1.68" })
+            assertTrue(result.final.terms.any { it.upadesha == "श्ना" })
         }
     }
 
@@ -126,15 +124,14 @@ class TingantaEngineTest {
     }
 
     @Test
-    fun `Tudadi imperative derives both complete padas`() {
+    fun `Tudadi imperative uses sha without shap`() {
         val engine = TingantaEngine()
         val parasmaipada = engine.deriveSupportedParadigm("तुद्", PadaType.PARASMAIPADA, Lakara.LOT)
         val atmanepada = engine.deriveSupportedParadigm("तुद्", PadaType.ATMANEPADA, Lakara.LOT)
 
-        parasmaipada.assertSurfaces("तुदतु तुदताम् तुदन्तु तुद तुदतम् तुदत तुदानि तुदाव तुदाम")
-        atmanepada.assertSurfaces("तुदताम् तुदेताम् तुदन्ताम् तुदस्व तुदेथाम् तुदध्वम् तुदै तुदावहै तुदामहै")
         (parasmaipada.forms.values + atmanepada.forms.values).forEach { result ->
             assertTrue(result.applications.none { it.sutra == "3.1.68" })
+            assertTrue(result.final.terms.any { it.upadesha == "श" })
         }
     }
 
@@ -169,6 +166,50 @@ class TingantaEngineTest {
                     assertEquals(9, paradigm.forms.size, "$gana $lakara $pada")
                 }
             }
+        }
+    }
+
+    @Test
+    fun `all ganas derive complete representative parasmaipada imperatives`() {
+        val expected = mapOf(
+            "भू" to "भवतु भवताम् भवन्तु भव भवतम् भवत भवानि भवाव भवाम",
+            "अद्" to "अत्तु अत्ताम् अदन्तु अद्धि अत्तम् अत्त अदानि अदाव अदाम",
+            "हु" to "जुहोतु जुहुताम् जुह्वतु जुहुधि जुहुतम् जुहुत जुहवानि जुहवाव जुहवाम",
+            "दिव्" to "दिव्यतु दिव्यताम् दिव्यन्तु दिव्य दिव्यतम् दिव्यत दिव्यानि दिव्याव दिव्याम",
+            "षुञ्" to "सुनोतु सुनुताम् सुन्वन्तु सुनु सुनुतम् सुनुत सुनवानि सुनवाव सुनवाम",
+            "नुद्" to "नुदतु नुदताम् नुदन्तु नुद नुदतम् नुदत नुदानि नुदाव नुदाम",
+            "रुधिँर्" to "रुणद्धु रुन्द्धाम् रुन्धन्तु रुन्द्धि रुन्द्धम् रुन्द्ध रुणधानि रुणधाव रुणधाम",
+            "तनुँ" to "तनोतु तनुताम् तन्वन्तु तनु तनुतम् तनुत तनवानि तनवाव तनवाम",
+            "डुक्रीञ्" to "क्रीणातु क्रीणीताम् क्रीणन्तु क्रीणीहि क्रीणीतम् क्रीणीत क्रीणानि क्रीणाव क्रीणाम",
+            "चुरँ" to "चोरयतु चोरयताम् चोरयन्तु चोरय चोरयतम् चोरयत चोरयानि चोरयाव चोरयाम",
+        )
+
+        expected.forEach { (root, surfaces) ->
+            TingantaEngine()
+                .deriveSupportedParadigm(root, PadaType.PARASMAIPADA, Lakara.LOT)
+                .assertSurfaces(surfaces)
+        }
+    }
+
+    @Test
+    fun `all ganas derive complete representative atmanepada imperatives`() {
+        val expected = mapOf(
+            "एधँ" to "एधताम् एधेताम् एधन्ताम् एधस्व एधेथाम् एधध्वम् एधै एधावहै एधामहै",
+            "द्विषँ" to "द्विष्टाम् द्विषाताम् द्विषताम् द्विक्ष्व द्विषाथाम् द्विड्ढ्वम् द्वेषै द्वेषावहै द्वेषामहै",
+            "डुभृञ्" to "बिभृताम् बिभ्राताम् बिभ्रताम् बिभृष्व बिभ्राथाम् बिभृध्वम् बिभरै बिभरावहै बिभरामहै",
+            "दूङ्" to "दूयताम् दूयेताम् दूयन्ताम् दूयस्व दूयेथाम् दूयध्वम् दूयै दूयावहै दूयामहै",
+            "षुञ्" to "सुनुताम् सुन्वाताम् सुन्वताम् सुनुष्व सुन्वाथाम् सुनुध्वम् सुनवै सुनवावहै सुनवामहै",
+            "तुदँ" to "तुदताम् तुदेताम् तुदन्ताम् तुदस्व तुदेथाम् तुदध्वम् तुदै तुदावहै तुदामहै",
+            "रुधिँर्" to "रुन्द्धाम् रुन्धाताम् रुन्धताम् रुन्त्स्व रुन्धाथाम् रुन्द्ध्वम् रुणधै रुणधावहै रुणधामहै",
+            "तनुँ" to "तनुताम् तन्वाताम् तन्वताम् तनुष्व तन्वाथाम् तनुध्वम् तनवै तनवावहै तनवामहै",
+            "डुक्रीञ्" to "क्रीणीताम् क्रीणाताम् क्रीणताम् क्रीणीष्व क्रीणाथाम् क्रीणीध्वम् क्रीणै क्रीणावहै क्रीणामहै",
+            "चुरँ" to "चोरयताम् चोरयेताम् चोरयन्ताम् चोरयस्व चोरयेथाम् चोरयध्वम् चोरयै चोरयावहै चोरयामहै",
+        )
+
+        expected.forEach { (root, surfaces) ->
+            TingantaEngine()
+                .deriveSupportedParadigm(root, PadaType.ATMANEPADA, Lakara.LOT)
+                .assertSurfaces(surfaces)
         }
     }
 
@@ -345,21 +386,6 @@ class TingantaEngineTest {
         val paradigm = TingantaEngine().deriveSupportedParadigm("लभ्", lakara = Lakara.LANG)
 
         paradigm.assertSurfaces("अलभत अलभेताम् अलभन्त अलभथाः अलभेथाम् अलभध्वम् अलभे अलभावहि अलभामहि")
-
-    }
-
-    @Test
-    fun `conjugation engine derives complete imperative paradigm for bhu`() {
-        val paradigm = TingantaEngine().deriveSupportedParadigm("भू", lakara = Lakara.LOT)
-        paradigm.assertSurfaces("भवतु भवताम् भवन्तु भव भवतम् भवत भवानि भवाव भवाम")
-
-    }
-
-    @Test
-    fun `conjugation engine derives complete atmanepada imperative paradigm for labh`() {
-        val paradigm = TingantaEngine().deriveSupportedParadigm("लभ्", lakara = Lakara.LOT)
-
-        paradigm.assertSurfaces("लभताम् लभेताम् लभन्ताम् लभस्व लभेथाम् लभध्वम् लभै लभावहै लभामहै")
 
     }
 

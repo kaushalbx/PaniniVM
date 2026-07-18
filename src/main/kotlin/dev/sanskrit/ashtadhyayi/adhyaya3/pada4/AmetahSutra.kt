@@ -5,6 +5,8 @@ import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.Lakara
+import dev.sanskrit.derivation.TermKind
+import dev.sanskrit.dhatupatha.Gana
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -23,9 +25,7 @@ object AmetahSutra : Sutra<DerivationState, DerivationChange>(
         val presentStemEstablished = context.terms.any { it.id in setOf("shap", "shyan", "shnu", "sha", "tanadi-u", "shna", "nic") } ||
             context.droppedTerms.any { it.id == "shap" || it.upadesha in setOf("श्नम्", "श्लु") }
         if (context.effectiveContext.rupa.lakara != Lakara.LOT || !presentStemEstablished) return false
-        val activeJhi = affix.upadesha == "झि" &&
-            ((context.stage == DerivationStage.PADA_FORMED && affix.surface != "न्तु") ||
-                (context.stage == DerivationStage.IT_PROCESSED && affix.surface == "न्तु"))
+        val activeJhi = affix.upadesha == "झि" && affix.surface !in setOf("न्तु", "अन्तु", "अतु")
         val middleE = affix.surface in setOf("ते", "एते", "आते", "न्ते", "अन्ते", "अते", "एथे", "आथे") &&
             context.substitutions.none { it.sutra == "3.4.90" }
         return activeJhi || middleE
@@ -33,7 +33,11 @@ object AmetahSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
         val replacement = if (affix.upadesha == "झि") {
-            if (context.terms.any { it.id == "shna" }) "अन्तु" else "न्तु"
+            when (context.terms.firstOrNull { it.kind == TermKind.DHATU && it.id != "abhyasa" }?.gana) {
+                Gana.JUHOTYADI -> "अतु"
+                Gana.ADADI, Gana.SVADI, Gana.RUDHADI, Gana.TANADI, Gana.KRYADI -> "अन्तु"
+                else -> "न्तु"
+            }
         } else if (affix.upadesha == "झ" && context.terms.any { it.id == "shna" }) {
             "अताम्"
         } else {

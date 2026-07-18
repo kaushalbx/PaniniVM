@@ -6,6 +6,8 @@ import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.Lakara
 import dev.sanskrit.derivation.TermKind
+import dev.sanskrit.derivation.Purusha
+import dev.sanskrit.derivation.TingAffix
 import dev.sanskrit.derivation.VarnaSubstitution
 import dev.sanskrit.dhatupatha.Gana
 import dev.sanskrit.shiksha.Varnamala
@@ -33,9 +35,12 @@ object PugantalaghupadhasyaCaSutra : Sutra<DerivationState, DerivationChange>(
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU } ?: return false
         if (context.effectiveContext.rupa.lakara == Lakara.LING &&
             context.terms.none { it.id == "yasut" || it.id == "siyut" }) return false
-        return dhatu.gana == Gana.CURADI &&
-            context.terms.any { it.upadesha == "णिच्" } &&
-            lightUpadhaIndex(dhatu.surface) != null
+        val isCuradiNic = dhatu.gana == Gana.CURADI && context.terms.any { it.upadesha == "णिच्" }
+        val ending = TingAffix.entries.firstOrNull { it.upadesha == context.terms.lastOrNull()?.upadesha }
+        val isLotAdadiStrong = ending != null && dhatu.gana == Gana.ADADI &&
+            context.effectiveContext.rupa.lakara == Lakara.LOT &&
+            (ending.purusha == Purusha.UTTAMA || ending == TingAffix.TIP)
+        return (isCuradiNic || isLotAdadiStrong) && lightUpadhaIndex(dhatu.surface) != null
     }
 
     override fun apply(context: DerivationState): DerivationChange {

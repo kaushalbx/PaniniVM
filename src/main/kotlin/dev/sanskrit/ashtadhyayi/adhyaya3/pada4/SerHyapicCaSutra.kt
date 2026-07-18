@@ -5,6 +5,8 @@ import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.Lakara
+import dev.sanskrit.derivation.TermKind
+import dev.sanskrit.dhatupatha.Gana
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -26,7 +28,11 @@ object SerHyapicCaSutra : Sutra<DerivationState, DerivationChange>(
     }
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
-        val replacement = if (context.terms.any { it.id == "shna" }) "हि" else ""
+        val replacement = when (context.terms.firstOrNull { it.kind == TermKind.DHATU && it.id != "abhyasa" }?.gana) {
+            Gana.ADADI, Gana.JUHOTYADI, Gana.RUDHADI -> "धि"
+            Gana.KRYADI -> "हि"
+            else -> ""
+        }
         return DerivationChange(context.replaceTerm(affix.id, affix.copy(surface = replacement)).copy(stage = DerivationStage.PADA_FORMED), "3.4.87 replaces सिप् in loṭ.")
     }
 }

@@ -35,6 +35,9 @@ object JhoAntahSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.lastOrNull() ?: return false
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU }
         if (dhatu?.gana == Gana.JUHOTYADI && affix.upadesha == "झि") return false
+        if (context.effectiveContext.rupa.lakara == Lakara.LOT && affix.upadesha == "झ" &&
+            dhatu?.gana in setOf(Gana.ADADI, Gana.JUHOTYADI, Gana.SVADI, Gana.RUDHADI, Gana.TANADI, Gana.KRYADI)
+        ) return false
         if (context.effectiveContext.rupa.lakara == Lakara.LOT &&
             affix.upadesha == "झि" &&
             context.terms.none { it.id == "shap" } &&

@@ -53,11 +53,8 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
         if (stem.gana == Gana.JUHOTYADI && context.droppedTerms.none { it.upadesha == "शप्" }) return false
         val affix = context.terms.getOrNull(stemIndex + 1) ?: return false
         if (stem.gana == Gana.KRYADI && context.terms.any { it.upadesha == "श्ना" }) return false
-        if (stem.gana == Gana.JUHOTYADI && context.terms.lastOrNull()?.upadesha !in setOf(
-                TingAffix.TIP.upadesha,
-                TingAffix.SIP.upadesha,
-                TingAffix.MIP.upadesha,
-            )
+        if (stem.gana == Gana.JUHOTYADI &&
+            (context.terms.lastOrNull()?.upadesha !in strongAffixes(context).map { it.upadesha } || !lotAtmanepadaReady(context))
         ) return false
         if (affix.kind != TermKind.PRATYAYA) return false
         if (context.effectiveContext.rupa.lakara == Lakara.LIT && affix.surface == affix.upadesha) return false
@@ -94,10 +91,24 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
     private fun strongUGrade(context: DerivationState) =
         context.terms.firstOrNull { it.id in setOf("shnu", "tanadi-u") }?.takeIf {
             context.terms.none { term -> term.id == "yasut" || term.id == "siyut" } &&
-            context.terms.lastOrNull()?.upadesha in setOf(
-                TingAffix.TIP.upadesha,
-                TingAffix.SIP.upadesha,
-                TingAffix.MIP.upadesha,
-            )
+                context.terms.lastOrNull()?.upadesha in strongAffixes(context).map { affix -> affix.upadesha } &&
+                lotAtmanepadaReady(context)
         }
+
+    private fun strongAffixes(context: DerivationState): Set<TingAffix> =
+        when (context.effectiveContext.rupa.lakara) {
+            Lakara.LOT -> setOf(
+                TingAffix.TIP, TingAffix.MIP, TingAffix.VAS, TingAffix.MAS,
+                TingAffix.IT, TingAffix.VAHI, TingAffix.MAHING,
+            )
+            Lakara.LING -> emptySet()
+            else -> setOf(TingAffix.TIP, TingAffix.SIP, TingAffix.MIP)
+        }
+
+    private fun lotAtmanepadaReady(context: DerivationState): Boolean {
+        if (context.effectiveContext.rupa.lakara != Lakara.LOT) return true
+        val affix = TingAffix.entries.firstOrNull { it.upadesha == context.terms.lastOrNull()?.upadesha } ?: return true
+        return affix.pada != dev.sanskrit.dhatupatha.PadaType.ATMANEPADA ||
+            context.allEffectiveTerms.any { it.id == "lot-at-agama" }
+    }
 }

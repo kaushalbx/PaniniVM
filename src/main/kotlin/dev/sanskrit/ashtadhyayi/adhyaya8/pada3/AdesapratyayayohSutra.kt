@@ -92,8 +92,13 @@ object AdesapratyayayohSutra : Sutra<DerivationState, DerivationChange>(
             
             val preChar = if (sIndex == 0) {
                 if (i == 0) continue
-                val stemFinal = context.terms[i - 1].surface.lastOrNull() ?: continue
-                if (stemFinal !in dev.sanskrit.shiksha.Varnamala.independentVowelsOrMarks) 'अ' else stemFinal
+                val stem = context.terms[i - 1].surface
+                val stemFinal = stem.lastOrNull() ?: continue
+                when {
+                    stemFinal == '्' && stem.length >= 2 -> stem[stem.length - 2]
+                    stemFinal !in dev.sanskrit.shiksha.Varnamala.independentVowelsOrMarks -> 'अ'
+                    else -> stemFinal
+                }
             } else {
                 termSurface[sIndex - 1]
             }

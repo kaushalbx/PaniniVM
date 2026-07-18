@@ -7,6 +7,8 @@ import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.shiksha.Samjna
 import dev.sanskrit.derivation.VarnaSubstitution
+import dev.sanskrit.derivation.TermKind
+import dev.sanskrit.dhatupatha.Gana
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -37,6 +39,7 @@ object AtoGuneSutra : Sutra<DerivationState, DerivationChange>(
         if (context.terms.size < 2) return false
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
+        if (stem.id == "shap" && context.terms.any { it.kind == TermKind.DHATU && it.gana == Gana.ADADI }) return false
         
         // 1. Stem must end in short 'a'
         if (!dev.sanskrit.shiksha.Varnamala.endsWithA(stem.surface)) return false

@@ -40,7 +40,7 @@ object RudhadibhyahShnamSutra : Sutra<DerivationState, DerivationChange>(
     private val lotStrongAffixes = setOf(
         TingAffix.TIP, TingAffix.MIP,
         TingAffix.VAS, TingAffix.MAS,
-        TingAffix.VAHI, TingAffix.MAHING,
+        TingAffix.IT, TingAffix.VAHI, TingAffix.MAHING,
     )
 
     override fun matches(context: DerivationState): Boolean {
