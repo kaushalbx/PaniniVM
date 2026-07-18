@@ -33,8 +33,9 @@ object ItasCaSutra : Sutra<DerivationState, DerivationChange>(
         val lastTerm = context.terms.lastOrNull() ?: return false
         if (lastTerm.matchesUpadesha("मिप्")) return false // 3.4.101 takes priority
         
-        val isNit = lastTerm.matchesUpadesha("लङ्") || lastTerm.matchesUpadesha("लृङ्") ||
-            lastTerm.matchesUpadesha("लुङ्") || context.effectiveContext.rupa.lakara == Lakara.LING
+        val isNit = context.effectiveContext.rupa.lakara in setOf(
+            Lakara.LANG, Lakara.LRNG, Lakara.LUNG, Lakara.LING,
+        )
         // The rule applies only to the nine Parasmaipada tiṅ endings. It
         // therefore removes the surviving इ in ति and सि, but cannot target
         // the Ātmanepada वहि termination.
@@ -52,8 +53,7 @@ object ItasCaSutra : Sutra<DerivationState, DerivationChange>(
         // After the झि initial-it lopa, 7.1.3's अन्ति is joined to the
         // aṅga and the original झि remains in droppedTerms. That resulting
         // final इ is still the Parasmaipada tiṅ इ governed by this sūtra.
-        val isJhiJoinedToAnga = lastTerm.kind == dev.sanskrit.derivation.TermKind.DHATU &&
-            context.droppedTerms.any { it.matchesUpadesha("झि") }
+        val isJhiJoinedToAnga = context.droppedTerms.any { it.matchesUpadesha("झि") }
         
         return isNit && (isParasmaipadaTing || isJhiJoinedToAnga) && lastTerm.surface.endsWith('ि')
     }

@@ -38,6 +38,7 @@ object VrddhirEciSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         if (context.stage == DerivationStage.INITIAL || context.stage == DerivationStage.PRATYAYA_SELECTED) return false
         if (context.terms.size < 2) return false
+        if (augmentRootPair(context) != null) return true
         val leftTerm = context.terms[context.terms.size - 2]
         if (leftTerm.id == "shap" && context.terms.any { it.kind == TermKind.DHATU && it.gana == Gana.ADADI }) return false
         val right = context.terms.last().surface.firstOrNull() ?: return false
@@ -49,6 +50,24 @@ object VrddhirEciSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val terms = context.terms
+        augmentRootPair(context)?.let { index ->
+            val augment = terms[index]
+            val root = terms[index + 1]
+            val substitute = when (root.surface.first()) {
+                'ए', 'ऐ' -> "ऐ"
+                'ओ', 'औ' -> "औ"
+                else -> error("Unsupported ec vowel in ${root.surface}")
+            }
+            val newRoot = root.copy(surface = substitute + root.surface.drop(1))
+            return DerivationChange(
+                state = context.copy(
+                    terms = terms.take(index) + newRoot + terms.drop(index + 2),
+                    droppedTerms = context.droppedTerms + augment.copy(surface = ""),
+                    stage = DerivationStage.PADA_FORMED,
+                ).addSubstitution(VarnaSubstitution(root.id, root.surface.first(), substitute, sutra)),
+                explanation = "6.1.88: Vṛddhi substitution ($substitute) for augment अ + ${root.surface.first()}.",
+            )
+        }
         val leftTerm = terms[terms.size - 2]
         val rightTerm = terms.last()
         
@@ -77,6 +96,16 @@ object VrddhirEciSutra : Sutra<DerivationState, DerivationChange>(
         'ए', 'ऐ', 'े', 'ै' -> "ै"
         'ओ', 'औ', 'ो', 'ौ' -> "ौ"
         else -> "ा"
+    }
+
+    private fun augmentRootPair(context: DerivationState): Int? {
+        val engine = Ashtadhyayi.pratyaharaEngine
+        return (0 until context.terms.lastIndex).firstOrNull { index ->
+            val left = context.terms[index]
+            val right = context.terms[index + 1]
+            left.id == "at-agama" && right.kind == TermKind.DHATU &&
+                right.surface.firstOrNull()?.let { engine.contains(Pratyahara.EC, it) } == true
+        }
     }
 }
 

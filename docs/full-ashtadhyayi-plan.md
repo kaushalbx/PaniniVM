@@ -7,8 +7,8 @@ The project tracks a target of 3,959 implemented sūtras.
 | Measure | Count |
 | --- | ---: |
 | Target sūtras | 3,959 |
-| Implemented sūtras | 295 |
-| Remaining | 3,664 |
+| Implemented sūtras | 296 |
+| Remaining | 3,663 |
 
 The implemented subset supports end-to-end nominal and verbal derivations,
 but the count does not imply complete linguistic coverage of every rule

@@ -36,7 +36,12 @@ object EngahPadantadatiSutra : Sutra<DerivationState, DerivationChange>(
         if (context.terms.size < 2) return false
         val left = context.terms[context.terms.size - 2]
         val right = context.terms.last()
-        if (context.effectiveContext.rupa.lakara == dev.sanskrit.derivation.Lakara.LING &&
+        if (context.effectiveContext.rupa.lakara in setOf(
+                dev.sanskrit.derivation.Lakara.LANG,
+                dev.sanskrit.derivation.Lakara.LRNG,
+                dev.sanskrit.derivation.Lakara.LUNG,
+                dev.sanskrit.derivation.Lakara.LING,
+            ) &&
             right.matchesUpadesha("मिप्") && context.substitutions.any { it.sutra == "3.4.101" }
         ) return false
 

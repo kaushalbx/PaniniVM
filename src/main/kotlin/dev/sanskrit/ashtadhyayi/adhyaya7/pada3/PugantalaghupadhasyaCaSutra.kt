@@ -37,10 +37,12 @@ object PugantalaghupadhasyaCaSutra : Sutra<DerivationState, DerivationChange>(
             context.terms.none { it.id == "yasut" || it.id == "siyut" }) return false
         val isCuradiNic = dhatu.gana == Gana.CURADI && context.terms.any { it.upadesha == "णिच्" }
         val ending = TingAffix.entries.firstOrNull { it.upadesha == context.terms.lastOrNull()?.upadesha }
-        val isLotAdadiStrong = ending != null && dhatu.gana == Gana.ADADI &&
-            context.effectiveContext.rupa.lakara == Lakara.LOT &&
-            (ending.purusha == Purusha.UTTAMA || ending == TingAffix.TIP)
-        return (isCuradiNic || isLotAdadiStrong) && lightUpadhaIndex(dhatu.surface) != null
+        val isAdadiStrong = ending != null && dhatu.gana == Gana.ADADI && when (context.effectiveContext.rupa.lakara) {
+            Lakara.LOT -> ending.purusha == Purusha.UTTAMA || ending == TingAffix.TIP
+            Lakara.LANG -> ending in setOf(TingAffix.TIP, TingAffix.SIP, TingAffix.MIP)
+            else -> false
+        }
+        return (isCuradiNic || isAdadiStrong) && lightUpadhaIndex(dhatu.surface) != null
     }
 
     override fun apply(context: DerivationState): DerivationChange {

@@ -7,7 +7,7 @@ blocked alternatives where available.
 
 ## Current coverage
 
-- 295 implemented sūtras out of the 3,959-rule target.
+- 296 implemented sūtras out of the 3,959-rule target.
 - It-marker processing, grammatical saṃjñās, rule ordering, substitutions,
   augment insertion, deletion, and selected Tripādī transformations.
 - All 21 `sup` forms for masculine a-stems such as `राम` and `देव`.
@@ -17,8 +17,8 @@ blocked alternatives where available.
   verbal API.
 - Gaṇa-aware stem derivation for `LAT`, `LOT`, `LANG`, and `LING` across all
   ten Dhātupāṭha gaṇas, with class-specific strong/weak stem selection.
-- Complete representative `LOT` and `LING` paradigms in both padas across all
-  ten gaṇas, including class-specific strong and weak stems.
+- Complete representative `LOT`, `LANG`, and `LING` paradigms in both padas
+  across all ten gaṇas, including class-specific strong and weak stems.
 
 Coverage is deliberately plan-based: a declared form is accepted only when
 its required sūtras occur in an end-to-end derivation. This is not yet a

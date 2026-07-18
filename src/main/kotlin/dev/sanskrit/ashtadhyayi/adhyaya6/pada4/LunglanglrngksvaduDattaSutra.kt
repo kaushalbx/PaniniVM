@@ -34,7 +34,7 @@ object LunglanglrngksvaduDattaSutra : Sutra<DerivationState, DerivationChange>(
         val lastTerm = context.terms.lastOrNull() ?: return false
         
         val isNgLakara = lastTerm.matchesUpadesha("लङ्") || lastTerm.matchesUpadesha("लृङ्") || lastTerm.matchesUpadesha("लुङ्")
-        val noAgamaYet = context.terms.none { it.id == "at-agama" }
+        val noAgamaYet = context.allEffectiveTerms.none { it.id == "at-agama" }
         
         return isNgLakara && noAgamaYet
     }

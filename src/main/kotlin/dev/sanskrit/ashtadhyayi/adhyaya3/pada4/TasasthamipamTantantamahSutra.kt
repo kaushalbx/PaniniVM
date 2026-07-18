@@ -35,8 +35,9 @@ object TasasthamipamTantantamahSutra : Sutra<DerivationState, DerivationChange>(
         if (context.stage == DerivationStage.INITIAL || context.stage == DerivationStage.PRATYAYA_SELECTED) return false
         val lastTerm = context.terms.lastOrNull() ?: return false
         
-        val isNit = lastTerm.matchesUpadesha("लङ्") || lastTerm.matchesUpadesha("लृङ्") ||
-            lastTerm.matchesUpadesha("लुङ्") || context.effectiveContext.rupa.lakara == Lakara.LING
+        val isNit = context.effectiveContext.rupa.lakara in setOf(
+            Lakara.LANG, Lakara.LRNG, Lakara.LUNG, Lakara.LING,
+        )
         val targetUpadesha = lastTerm.upadesha ?: ""
         val eligible = targetUpadesha in ELIGIBLE_ENDINGS
         val substitutionRecorded = context.substitutions.any { it.sutra == sutra && it.targetId == lastTerm.id }

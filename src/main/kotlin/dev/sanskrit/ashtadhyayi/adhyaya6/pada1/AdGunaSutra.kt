@@ -40,6 +40,7 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
             if (index == context.terms.lastIndex) return@any false
             val leftTerm = context.terms[index]
             val rightTerm = context.terms[index + 1]
+            if (rightTerm.upadesha == "इट्" && rightTerm.surface.endsWith("ट्")) return@any false
             val right = rightTerm.surface.firstOrNull() ?: return@any false
             val isA = dev.sanskrit.shiksha.Varnamala.endsWithA(leftTerm.surface) ||
                 dev.sanskrit.shiksha.Varnamala.endsWithAA(leftTerm.surface)
@@ -56,6 +57,7 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
                 (dev.sanskrit.shiksha.Varnamala.endsWithA(terms[position].surface) ||
                     dev.sanskrit.shiksha.Varnamala.endsWithAA(terms[position].surface)) &&
                 !(terms[position].id == "shap" && terms.any { it.kind == TermKind.DHATU && it.gana == Gana.ADADI }) &&
+                !(terms[position + 1].upadesha == "इट्" && terms[position + 1].surface.endsWith("ट्")) &&
                 !terms[position].surface.endsWith('न') &&
                 (position == 0 || !Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.EC, terms[position - 1].surface.lastOrNull() ?: return@first false)) &&
                 terms[position + 1].surface.firstOrNull()?.let {
@@ -71,7 +73,8 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
         val substitute = getGuna(rightChar)
         
         val newSurface = if (leftChar !in dev.sanskrit.shiksha.Varnamala.independentVowelsOrMarks) {
-            leftTerm.surface + substitute + rightTerm.surface.drop(1)
+            if (substitute == "अ") leftTerm.surface + rightTerm.surface.drop(1)
+            else leftTerm.surface + substitute + rightTerm.surface.drop(1)
         } else {
             leftTerm.surface.dropLast(1) + substitute + rightTerm.surface.drop(1)
         }

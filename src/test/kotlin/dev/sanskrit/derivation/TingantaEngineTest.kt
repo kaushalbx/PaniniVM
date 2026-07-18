@@ -170,6 +170,50 @@ class TingantaEngineTest {
     }
 
     @Test
+    fun `all ganas derive complete representative parasmaipada imperfects`() {
+        val expected = mapOf(
+            "भू" to "अभवत् अभवताम् अभवन् अभवः अभवतम् अभवत अभवम् अभवाव अभवाम",
+            "द्विषँ" to "अद्वेट् अद्विष्टाम् अद्विषन् अद्वेट् अद्विष्टम् अद्विष्ट अद्वेषम् अद्विष्व अद्विष्म",
+            "हु" to "अजुहोत् अजुहुताम् अजुहवुः अजुहोः अजुहुतम् अजुहुत अजुहवम् अजुहुव अजुहुम",
+            "नृतीँ" to "अनृत्यत् अनृत्यताम् अनृत्यन् अनृत्यः अनृत्यतम् अनृत्यत अनृत्यम् अनृत्याव अनृत्याम",
+            "षुञ्" to "असुनोत् असुनुताम् असुन्वन् असुनोः असुनुतम् असुनुत असुनवम् असुनुव असुनुम",
+            "नुद्" to "अनुदत् अनुदताम् अनुदन् अनुदः अनुदतम् अनुदत अनुदम् अनुदाव अनुदाम",
+            "रुधिँर्" to "अरुणत् अरुन्द्धाम् अरुन्धन् अरुणत् अरुन्द्धम् अरुन्द्ध अरुणधम् अरुन्ध्व अरुन्ध्म",
+            "तनुँ" to "अतनोत् अतनुताम् अतन्वन् अतनोः अतनुतम् अतनुत अतनवम् अतनुव अतनुम",
+            "डुक्रीञ्" to "अक्रीणात् अक्रीणीताम् अक्रीणन् अक्रीणाः अक्रीणीतम् अक्रीणीत अक्रीणाम् अक्रीणीव अक्रीणीम",
+            "चुरँ" to "अचोरयत् अचोरयताम् अचोरयन् अचोरयः अचोरयतम् अचोरयत अचोरयम् अचोरयाव अचोरयाम",
+        )
+
+        expected.forEach { (root, surfaces) ->
+            TingantaEngine()
+                .deriveSupportedParadigm(root, PadaType.PARASMAIPADA, Lakara.LANG)
+                .assertSurfaces(surfaces)
+        }
+    }
+
+    @Test
+    fun `all ganas derive complete representative atmanepada imperfects`() {
+        val expected = mapOf(
+            "एधँ" to "ऐधत ऐधेताम् ऐधन्त ऐधथाः ऐधेथाम् ऐधध्वम् ऐधे ऐधावहि ऐधामहि",
+            "द्विषँ" to "अद्विष्ट अद्विषाताम् अद्विषत अद्विष्ठाः अद्विषाथाम् अद्विड्ढ्वम् अद्विषि अद्विष्वहि अद्विष्महि",
+            "डुभृञ्" to "अबिभृत अबिभ्राताम् अबिभ्रत अबिभृथाः अबिभ्राथाम् अबिभृध्वम् अबिभ्रि अबिभृवहि अबिभृमहि",
+            "दूङ्" to "अदूयत अदूयेताम् अदूयन्त अदूयथाः अदूयेथाम् अदूयध्वम् अदूये अदूयावहि अदूयामहि",
+            "षुञ्" to "असुनुत असुन्वाताम् असुन्वत असुनुथाः असुन्वाथाम् असुनुध्वम् असुन्वि असुनुवहि असुनुमहि",
+            "तुदँ" to "अतुदत अतुदेताम् अतुदन्त अतुदथाः अतुदेथाम् अतुदध्वम् अतुदे अतुदावहि अतुदामहि",
+            "रुधिँर्" to "अरुन्द्ध अरुन्धाताम् अरुन्धत अरुन्द्धाः अरुन्धाथाम् अरुन्द्ध्वम् अरुन्धि अरुन्ध्वहि अरुन्ध्महि",
+            "तनुँ" to "अतनुत अतन्वाताम् अतन्वत अतनुथाः अतन्वाथाम् अतनुध्वम् अतन्वि अतनुवहि अतनुमहि",
+            "डुक्रीञ्" to "अक्रीणीत अक्रीणाताम् अक्रीणत अक्रीणीथाः अक्रीणाथाम् अक्रीणीध्वम् अक्रीणि अक्रीणीवहि अक्रीणीमहि",
+            "चुरँ" to "अचोरयत अचोरयेताम् अचोरयन्त अचोरयथाः अचोरयेथाम् अचोरयध्वम् अचोरये अचोरयावहि अचोरयामहि",
+        )
+
+        expected.forEach { (root, surfaces) ->
+            TingantaEngine()
+                .deriveSupportedParadigm(root, PadaType.ATMANEPADA, Lakara.LANG)
+                .assertSurfaces(surfaces)
+        }
+    }
+
+    @Test
     fun `all ganas derive complete representative parasmaipada imperatives`() {
         val expected = mapOf(
             "भू" to "भवतु भवताम् भवन्तु भव भवतम् भवत भवानि भवाव भवाम",
@@ -368,25 +412,6 @@ class TingantaEngineTest {
         paradigm.forms.values.forEach { result ->
             assertTrue(result.applications.any { it.sutra == "8.4.55" })
         }
-    }
-
-    @Test
-    fun `conjugation engine derives complete imperfect past paradigm for bhu`() {
-        val paradigm = TingantaEngine().deriveSupportedParadigm("भू", lakara = Lakara.LANG)
-        paradigm.assertSurfaces("अभवत् अभवताम् अभवन् अभवः अभवतम् अभवत अभवम् अभवाव अभवाम")
-        
-        paradigm.coverage.forEach { row ->
-            assertTrue("3.2.111" in row.appliedSutras, "Form for ${row.affix} is missing 3.2.111")
-            assertTrue("6.4.71" in row.appliedSutras, "Form for ${row.affix} is missing 6.4.71")
-        }
-    }
-
-    @Test
-    fun `conjugation engine derives complete atmanepada imperfect paradigm for labh`() {
-        val paradigm = TingantaEngine().deriveSupportedParadigm("लभ्", lakara = Lakara.LANG)
-
-        paradigm.assertSurfaces("अलभत अलभेताम् अलभन्त अलभथाः अलभेथाम् अलभध्वम् अलभे अलभावहि अलभामहि")
-
     }
 
     @Test

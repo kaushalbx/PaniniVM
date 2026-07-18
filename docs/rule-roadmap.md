@@ -6,7 +6,7 @@ rule interface; supported forms additionally verify required rules end to end.
 
 ## Current scope
 
-- 295 implemented sūtras.
+- 296 implemented sūtras.
 - Typed rule metadata: number, text, role, action, scope, stage, ordering,
   dependencies, blockers, restrictions, and exceptions.
 - Māheśvara-sūtra and pratyāhāra support with explicit varṇa and it markers.
@@ -17,19 +17,19 @@ rule interface; supported forms additionally verify required rules end to end.
   Ātmanepada coverage for representative roots.
 - Gaṇa-specific `LAT`, `LOT`, `LANG`, and `LING` stem formation for all ten
   Dhātupāṭha gaṇas, including strong/weak stem selection.
-- Representative `LOT` and `LING` surfaces verified in both padas across all
-  ten gaṇas with concise, table-driven paradigm tests.
+- Representative `LOT`, `LANG`, and `LING` surfaces verified in both padas
+  across all ten gaṇas with concise, table-driven paradigm tests.
 - A complete ten-gaṇa Dhātupāṭha catalogue with pada metadata.
 
 ## Near-term work
 
-1. Continue exact gaṇa-paradigm validation.
-   - repeat the completed `LOT` and `LING` audits for `LANG`
+1. Broaden exact root validation.
+   - add vowel-final, consonant-final, and Ubhayapada representatives
    - keep the regression coverage concise and data-driven
 
-2. Broaden root validation.
-   - test representative vowel-final and consonant-final roots
+2. Record lexical and optional behavior.
    - test anudātta/anudāttet and Ubhayapada behavior
+   - preserve optional derivations as explicit branches
    - record known lexical exceptions explicitly
 
 3. Complete verbal alternatives.

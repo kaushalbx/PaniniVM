@@ -53,9 +53,13 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
         if (stem.gana == Gana.JUHOTYADI && context.droppedTerms.none { it.upadesha == "शप्" }) return false
         val affix = context.terms.getOrNull(stemIndex + 1) ?: return false
         if (stem.gana == Gana.KRYADI && context.terms.any { it.upadesha == "श्ना" }) return false
-        if (stem.gana == Gana.JUHOTYADI &&
-            (context.terms.lastOrNull()?.upadesha !in strongAffixes(context).map { it.upadesha } || !lotAtmanepadaReady(context))
-        ) return false
+        if (stem.gana == Gana.JUHOTYADI) {
+            val isLangJus = context.effectiveContext.rupa.lakara == Lakara.LANG &&
+                context.terms.lastOrNull()?.upadesha == TingAffix.JHI.upadesha
+            if ((!isLangJus && context.terms.lastOrNull()?.upadesha !in strongAffixes(context).map { it.upadesha }) ||
+                !lotAtmanepadaReady(context)
+            ) return false
+        }
         if (affix.kind != TermKind.PRATYAYA) return false
         if (context.effectiveContext.rupa.lakara == Lakara.LIT && affix.surface == affix.upadesha) return false
         if (context.effectiveContext.rupa.lakara == Lakara.LIT && stem.itStatus == ItStatus.SET) return false

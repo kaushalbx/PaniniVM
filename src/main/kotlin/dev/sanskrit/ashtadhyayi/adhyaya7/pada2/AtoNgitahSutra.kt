@@ -6,6 +6,7 @@ import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.DerivationTerm
 import dev.sanskrit.derivation.Lakara
 import dev.sanskrit.derivation.TermKind
+import dev.sanskrit.dhatupatha.Gana
 import dev.sanskrit.sutra.Sutra
 import dev.sanskrit.sutra.SutraAction
 import dev.sanskrit.sutra.SutraRole
@@ -28,6 +29,7 @@ object AtoNgitahSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val ending = context.terms.last()
+        if (context.terms.any { it.kind == TermKind.DHATU && it.gana == Gana.ADADI }) return false
         val hasAEndingAnga = context.terms.any {
             it.id in setOf("shap", "shyan", "sha", "sya") && dev.sanskrit.shiksha.Varnamala.endsWithA(it.surface)
         }

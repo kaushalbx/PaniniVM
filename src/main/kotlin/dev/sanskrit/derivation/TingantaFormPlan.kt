@@ -67,7 +67,8 @@ object TingantaFormPlans {
         // LANG (imperfect past tense) plans — per-gaṇa, so requiredSutras enforces vikaraṇa
         Gana.entries.forEach { gana ->
             TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.forEach { affix ->
-                val required = mutableSetOf("3.4.78") + vikaranaSutras(gana)
+                val required = (mutableSetOf("3.4.78", "6.4.71") + vikaranaSutras(gana)).toMutableSet()
+                if (gana == Gana.JUHOTYADI && affix == TingAffix.JHI) required += "3.4.109"
                 add(TingantaFormPlan(affix, Lakara.LANG, required, DerivationStage.FINAL, setOf(gana)))
             }
             TingAffix.entries.filter { it.pada == PadaType.ATMANEPADA }.forEach { affix ->
@@ -75,7 +76,7 @@ object TingantaFormPlans {
                 val hasAEndingStem = gana in setOf(Gana.BHVADI, Gana.DIVADI, Gana.TUDADI, Gana.CURADI)
                 val usesAtoNgit = hasAEndingStem && affix in setOf(TingAffix.ATAM, TingAffix.ATHAM)
                 if (usesAtoNgit) required += "7.2.81"
-                if (affix == TingAffix.JHA) required += "7.1.3"
+                if (affix == TingAffix.JHA) required += if (hasAEndingStem) "7.1.3" else "7.1.5"
                 val finalStage = if (!hasAEndingStem ||
                     affix in setOf(TingAffix.TA, TingAffix.DHVAM, TingAffix.VAHI, TingAffix.MAHING)) {
                     DerivationStage.IT_PROCESSED

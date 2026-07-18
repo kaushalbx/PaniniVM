@@ -14,11 +14,11 @@ object AtmanepadesvAnatahSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val lakara = context.effectiveContext.rupa.lakara
-        if (lakara !in setOf(Lakara.LAT, Lakara.LOT, Lakara.LUNG)) return false
+        if (lakara !in setOf(Lakara.LAT, Lakara.LOT, Lakara.LANG, Lakara.LUNG)) return false
         val hasNonAStemVikarana = context.terms.firstOrNull { it.kind == TermKind.DHATU }?.gana in setOf(
             Gana.ADADI, Gana.JUHOTYADI, Gana.SVADI, Gana.RUDHADI, Gana.TANADI, Gana.KRYADI,
         )
-        if (lakara in setOf(Lakara.LAT, Lakara.LOT) && !hasNonAStemVikarana) return false
+        if (lakara in setOf(Lakara.LAT, Lakara.LOT, Lakara.LANG) && !hasNonAStemVikarana) return false
         val endingIndex = context.terms.indexOfLast { it.upadesha == "झ" && it.surface.startsWith("झ") }
         if (endingIndex <= 0) return false
         return !context.terms[endingIndex - 1].surface.endsWith("अ")

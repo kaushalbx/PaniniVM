@@ -43,6 +43,7 @@ object RasabhyamNoNahSutra : Sutra<DerivationState, DerivationChange>(
         // Find triggers: र (r) or ष (ṣ)
         val triggerIndex = surface.lastIndexOfAny(setOf('र', 'ष', 'ऋ', 'ृ', 'ॠ', 'ॄ'))
         if (triggerIndex == -1) return false
+        if (surface[triggerIndex] in setOf('र', 'ष') && surface.getOrNull(triggerIndex + 1) != '्') return false
         
         // Find target: न (n)
         val targetIndex = surface.indexOf('न', triggerIndex)
@@ -65,6 +66,7 @@ object RasabhyamNoNahSutra : Sutra<DerivationState, DerivationChange>(
             targetIndex in start until offset
         } ?: return DerivationChange(context, "8.4.1: Target 'n' not found.")
 
+        if ('न' !in targetTerm.surface) return DerivationChange(context, "8.4.1: Target 'n' not found in its term.")
         val newSurface = targetTerm.surface.replaceFirst('न', 'ण')
         
         return DerivationChange(

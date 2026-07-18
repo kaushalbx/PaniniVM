@@ -41,6 +41,9 @@ object AtoDirghoYaniSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
         if (context.effectiveContext.rupa.lakara == Lakara.LOT && affix.upadesha == "झि") return false
+        if (context.effectiveContext.rupa.lakara in setOf(Lakara.LANG, Lakara.LRNG, Lakara.LUNG, Lakara.LING) &&
+            affix.upadesha == "मिप्" && context.substitutions.none { it.sutra == "3.4.101" }
+        ) return false
         if (!affix.id.startsWith("ting-")) return false
         if (affix.upadesha == "ङि") return false
 

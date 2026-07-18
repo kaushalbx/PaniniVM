@@ -82,6 +82,7 @@ object AtoGuneSutra : Sutra<DerivationState, DerivationChange>(
         return DerivationChange(
             state = context.copy(
                 terms = terms.dropLast(2) + mergedTerm,
+                droppedTerms = context.droppedTerms + affix.copy(surface = ""),
                 stage = DerivationStage.ANGAKARYA,
                 samjnas = newSamjnas
             ).addSubstitution(VarnaSubstitution(stem.id, 'अ', replacement, sutra)),
