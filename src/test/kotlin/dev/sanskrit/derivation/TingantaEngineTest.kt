@@ -278,6 +278,29 @@ class TingantaEngineTest {
     }
 
     @Test
+    fun `LRT handles vowel consonant irregular and ubhayapada roots`() {
+        val expected = listOf(
+            Triple("णीञ्", PadaType.PARASMAIPADA, "नेष्यति नेष्यतः नेष्यन्ति नेष्यसि नेष्यथः नेष्यथ नेष्यामि नेष्यावः नेष्यामः"),
+            Triple("णीञ्", PadaType.ATMANEPADA, "नेष्यते नेष्येते नेष्यन्ते नेष्यसे नेष्येथे नेष्यध्वे नेष्ये नेष्यावहे नेष्यामहे"),
+            Triple("डुपचँष्", PadaType.PARASMAIPADA, "पक्ष्यति पक्ष्यतः पक्ष्यन्ति पक्ष्यसि पक्ष्यथः पक्ष्यथ पक्ष्यामि पक्ष्यावः पक्ष्यामः"),
+            Triple("डुपचँष्", PadaType.ATMANEPADA, "पक्ष्यते पक्ष्येते पक्ष्यन्ते पक्ष्यसे पक्ष्येथे पक्ष्यध्वे पक्ष्ये पक्ष्यावहे पक्ष्यामहे"),
+            Triple("गमॢँ", PadaType.PARASMAIPADA, "गमिष्यति गमिष्यतः गमिष्यन्ति गमिष्यसि गमिष्यथः गमिष्यथ गमिष्यामि गमिष्यावः गमिष्यामः"),
+            Triple("स्रन्भुँ", PadaType.PARASMAIPADA, "स्रम्भिष्यति स्रम्भिष्यतः स्रम्भिष्यन्ति स्रम्भिष्यसि स्रम्भिष्यथः स्रम्भिष्यथ स्रम्भिष्यामि स्रम्भिष्यावः स्रम्भिष्यामः"),
+            Triple("स्रन्भुँ", PadaType.ATMANEPADA, "स्रम्भिष्यते स्रम्भिष्येते स्रम्भिष्यन्ते स्रम्भिष्यसे स्रम्भिष्येथे स्रम्भिष्यध्वे स्रम्भिष्ये स्रम्भिष्यावहे स्रम्भिष्यामहे"),
+        )
+
+        expected.forEach { (root, pada, surfaces) ->
+            TingantaEngine().deriveSupportedParadigm(root, pada, Lakara.LRT).assertSurfaces(surfaces)
+        }
+
+        TingantaEngine().deriveSupportedParadigm("गमॢँ", lakara = Lakara.LRT).forms.values.forEach { result ->
+            val sutras = result.applications.map { it.sutra }
+            assertTrue("7.2.58" in sutras)
+            assertTrue(sutras.none { it in setOf("7.3.77", "6.1.73", "8.4.40") })
+        }
+    }
+
+    @Test
     fun `all ganas derive complete representative parasmaipada imperfects`() {
         val expected = mapOf(
             "भू" to "अभवत् अभवताम् अभवन् अभवः अभवतम् अभवत अभवम् अभवाव अभवाम",

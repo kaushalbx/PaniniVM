@@ -33,6 +33,7 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.stage == DerivationStage.INITIAL || context.stage == DerivationStage.PRATYAYA_SELECTED) return false
+        if (futureStemPending(context)) return false
         
         val engine = Ashtadhyayi.pratyaharaEngine
         for (i in 0 until context.terms.size - 1) {
@@ -51,6 +52,7 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
+        if (futureStemPending(context)) return DerivationChange(context, "6.1.78: future stem formation is still pending")
         val engine = Ashtadhyayi.pratyaharaEngine
         for (i in 0 until context.terms.size - 1) {
             val leftTerm = context.terms[i]
@@ -142,4 +144,8 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
         context.effectiveContext.rupa.lakara == Lakara.LOT &&
             surface in setOf("ते", "एते", "आते", "न्ते", "अन्ते", "अते", "एथे", "आथे") &&
             context.substitutions.none { it.sutra == "3.4.90" }
+
+    private fun futureStemPending(context: DerivationState): Boolean =
+        context.effectiveContext.rupa.lakara in setOf(Lakara.LRT, Lakara.LRNG) &&
+            context.allEffectiveTerms.none { it.upadesha == "स्य" }
 }
