@@ -85,6 +85,29 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class GanaPathaTest {
+    private fun pratipadikaState(
+        stem: String,
+        meaning: DerivationalMeaning? = null,
+        environment: DerivationalEnvironment? = null,
+        environments: Set<DerivationalEnvironment> = emptySet(),
+        linga: Linga? = null,
+        prayoga: Prayoga? = null,
+        activeAdhikaras: Set<String> = emptySet()
+    ): DerivationState {
+        return DerivationState(
+            terms = listOf(DerivationTerm("stem", stem, TermKind.PRATIPADIKA)),
+            context = DerivationalContext(
+                requestedMeaning = meaning,
+                environments = if (environment != null) environments + environment else environments,
+                rupa = Rupa(linga = linga, prayoga = prayoga)
+            ),
+            activeAdhikaras = activeAdhikaras
+        )
+    }
+
+    private fun apatyaState(stem: String) = pratipadikaState(stem, meaning = DerivationalMeaning.APATYA)
+    private fun gotraState(stem: String) = pratipadikaState(stem, meaning = DerivationalMeaning.GOTRA)
+    private fun striState(stem: String, activeAdhikaras: Set<String> = emptySet()) = pratipadikaState(stem, linga = Linga.STRI, activeAdhikaras = activeAdhikaras)
     @Test
     fun `sarvadi gana exposes source pronoun stems`() {
         val sarvadi = GanaPatha.require(1)
@@ -404,23 +427,23 @@ class GanaPathaTest {
     fun `gana driven nipata and gati sutras enforce their semantic gates`() {
         val chadi = DerivationState(
             terms = listOf(DerivationTerm("term", "च", TermKind.PRATIPADIKA)),
-            semanticFeatures = setOf(SemanticFeature.ASATTVA),
+            context = DerivationalContext(environments = setOf(DerivationalEnvironment.ASATTVA)),
         )
         assertTrue(ChadayoAsattveSutra.matches(chadi))
         assertTrue(SamjnaAssignment("term", Samjna.NIPATA) in ChadayoAsattveSutra.apply(chadi).state.samjnas)
-        assertFalse(ChadayoAsattveSutra.matches(chadi.copy(semanticFeatures = emptySet())))
+        assertFalse(ChadayoAsattveSutra.matches(chadi.copy(context = DerivationalContext())))
 
         val gati = DerivationState(
             terms = listOf(DerivationTerm("term", "ऊरी", TermKind.PRATIPADIKA)),
-            semanticFeatures = setOf(SemanticFeature.KRIYAYOGA),
+            context = DerivationalContext(environments = setOf(DerivationalEnvironment.KRIYAYOGA)),
         )
         assertTrue(UryadiCvidacashCaSutra.matches(gati))
         assertTrue(SamjnaAssignment("term", Samjna.GATI) in UryadiCvidacashCaSutra.apply(gati).state.samjnas)
-        assertFalse(UryadiCvidacashCaSutra.matches(gati.copy(semanticFeatures = emptySet())))
+        assertFalse(UryadiCvidacashCaSutra.matches(gati.copy(context = DerivationalContext())))
 
         val pradi = DerivationState(
             terms = listOf(DerivationTerm("term", "प्र", TermKind.PRATIPADIKA)),
-            semanticFeatures = setOf(SemanticFeature.KRIYAYOGA),
+            context = DerivationalContext(environments = setOf(DerivationalEnvironment.KRIYAYOGA)),
         )
         assertTrue(UpasargahKriyayogeSutra.matches(pradi))
         assertTrue(GatishCaSutra.matches(pradi))
@@ -443,11 +466,7 @@ class GanaPathaTest {
 
     @Test
     fun `ajadyatastap includes ajadi members that do not end in short a`() {
-        val state = DerivationState(
-            terms = listOf(DerivationTerm("stem", "अजा", TermKind.PRATIPADIKA)),
-            semanticFeatures = setOf(SemanticFeature.STRI),
-            activeAdhikaras = setOf("4.1.3"),
-        )
+        val state = striState("अजा", activeAdhikaras = setOf("4.1.3"))
 
         assertTrue(AjadyatastapSutra.matches(state))
         assertEquals("टाप्", AjadyatastapSutra.apply(state).state.terms.last().upadesha)
@@ -455,11 +474,7 @@ class GanaPathaTest {
 
     @Test
     fun `shid gauradibhyash ca introduces ngish for a gauradi stem`() {
-        val state = DerivationState(
-            terms = listOf(DerivationTerm("stem", "गौर", TermKind.PRATIPADIKA)),
-            semanticFeatures = setOf(SemanticFeature.STRI),
-            activeAdhikaras = setOf("4.1.3"),
-        )
+        val state = striState("गौर", activeAdhikaras = setOf("4.1.3"))
 
         assertTrue(ShidGauradibhyashCaSutra.matches(state))
         assertEquals("ङीष्", ShidGauradibhyashCaSutra.apply(state).state.terms.last().upadesha)
@@ -467,11 +482,7 @@ class GanaPathaTest {
 
     @Test
     fun `bahvadibhyash ca offers an optional ngish branch`() {
-        val state = DerivationState(
-            terms = listOf(DerivationTerm("stem", "बहु", TermKind.PRATIPADIKA)),
-            semanticFeatures = setOf(SemanticFeature.STRI),
-            activeAdhikaras = setOf("4.1.3"),
-        )
+        val state = striState("बहु", activeAdhikaras = setOf("4.1.3"))
 
         assertTrue(BahvadibhyashCaSutra.matches(state))
         assertEquals("ङीष्", BahvadibhyashCaSutra.apply(state).state.terms.last().upadesha)
@@ -480,22 +491,16 @@ class GanaPathaTest {
 
     @Test
     fun `nadadibhyah phak selects phak in the apatya sense`() {
-        val state = DerivationState(
-            terms = listOf(DerivationTerm("stem", "नड", TermKind.PRATIPADIKA)),
-            semanticFeatures = setOf(SemanticFeature.APATYA),
-        )
+        val state = apatyaState("नड")
 
         assertTrue(NadadibhyahPhakSutra.matches(state))
         assertEquals("फक्", NadadibhyahPhakSutra.apply(state).state.terms.last().upadesha)
-        assertFalse(NadadibhyahPhakSutra.matches(state.copy(semanticFeatures = emptySet())))
+        assertFalse(NadadibhyahPhakSutra.matches(state.copy(context = DerivationalContext())))
     }
 
     @Test
     fun `gargadibhyo yany selects yany in the apatya sense`() {
-        val state = DerivationState(
-            terms = listOf(DerivationTerm("stem", "गर्ग", TermKind.PRATIPADIKA)),
-            semanticFeatures = setOf(SemanticFeature.APATYA),
-        )
+        val state = apatyaState("गर्ग")
 
         assertTrue(GargadibhyoYanySutra.matches(state))
         assertEquals("यञ्", GargadibhyoYanySutra.apply(state).state.terms.last().upadesha)
@@ -503,26 +508,25 @@ class GanaPathaTest {
 
     @Test
     fun `batch patronymic sutras select their distinct affixes`() {
-        val apatya = setOf(SemanticFeature.APATYA)
-        val ashvapati = DerivationState(listOf(DerivationTerm("stem", "अश्वपति", TermKind.PRATIPADIKA)), semanticFeatures = apatya)
-        val baahvadi = DerivationState(listOf(DerivationTerm("stem", "बाहु", TermKind.PRATIPADIKA)), semanticFeatures = apatya)
-        val gotra = DerivationState(listOf(DerivationTerm("stem", "कुञ्ज", TermKind.PRATIPADIKA)), semanticFeatures = setOf(SemanticFeature.GOTRA))
+        val ashvapati = apatyaState("अश्वपति")
+        val baahvadi = apatyaState("बाहु")
+        val gotra = gotraState("कुञ्ज")
 
         assertEquals("अण्", AshvapatyadibhyashCaSutra.apply(ashvapati).state.terms.last().upadesha)
         assertEquals("इञ्", BaahvadibhyashCaSutra.apply(baahvadi).state.terms.last().upadesha)
         assertEquals("च्फञ्", GotreKunjadibhyashCaPhanySutra.apply(gotra).state.terms.last().upadesha)
 
-        val bidadi = DerivationState(listOf(DerivationTerm("stem", "बिद", TermKind.PRATIPADIKA)), semanticFeatures = setOf(SemanticFeature.GOTRA))
-        val ashvadi = DerivationState(listOf(DerivationTerm("stem", "अश्व", TermKind.PRATIPADIKA)), semanticFeatures = setOf(SemanticFeature.GOTRA))
+        val bidadi = gotraState("बिद")
+        val ashvadi = gotraState("अश्व")
         assertEquals("अञ्", AnrshyanantaryeBidadibhyoAnySutra.apply(bidadi).state.terms.last().upadesha)
         assertEquals("फञ्", AshvadibhyahPhanySutra.apply(ashvadi).state.terms.last().upadesha)
 
-        val shivadi = DerivationState(listOf(DerivationTerm("stem", "शिव", TermKind.PRATIPADIKA)), semanticFeatures = apatya)
-        val grshtyadi = DerivationState(listOf(DerivationTerm("stem", "गृष्टि", TermKind.PRATIPADIKA)), semanticFeatures = apatya)
+        val shivadi = apatyaState("शिव")
+        val grshtyadi = apatyaState("गृष्टि")
         assertEquals("अण्", ShivadibhyoAnySutra.apply(shivadi).state.terms.last().upadesha)
         assertEquals("ढञ्", GrshtyadibhyashCaSutra.apply(grshtyadi).state.terms.last().upadesha)
 
-        val kurvadi = DerivationState(listOf(DerivationTerm("stem", "कुरु", TermKind.PRATIPADIKA)), semanticFeatures = apatya)
+        val kurvadi = apatyaState("कुरु")
         assertEquals("ण्य", KurvadibhyoNyahSutra.apply(kurvadi).state.terms.last().upadesha)
 
         val kamboja = DerivationState(
@@ -530,107 +534,101 @@ class GanaPathaTest {
                 DerivationTerm("stem", "कम्बोज", TermKind.PRATIPADIKA),
                 DerivationTerm("any", "अ", TermKind.PRATYAYA, upadesha = "अञ्"),
             ),
-            semanticFeatures = setOf(SemanticFeature.TADRAJA),
+            context = DerivationalContext(
+                requestedMeaning = DerivationalMeaning.TADRAJA,
+                derivedMeanings = setOf(DerivationalMeaning.TADRAJA)
+            ),
         )
         assertTrue(KambojalLukSutra.matches(kamboja))
         assertTrue(KambojalLukSutra.apply(kamboja).state.terms.none { it.id == "any" })
 
-        val shubhradi = DerivationState(listOf(DerivationTerm("stem", "शुभ्र", TermKind.PRATIPADIKA)), semanticFeatures = apatya)
-        val revatyadi = DerivationState(listOf(DerivationTerm("stem", "रेवती", TermKind.PRATIPADIKA)), semanticFeatures = apatya)
-        val tikadi = DerivationState(listOf(DerivationTerm("stem", "तिक", TermKind.PRATIPADIKA)), semanticFeatures = apatya)
+        val shubhradi = apatyaState("शुभ्र")
+        val revatyadi = apatyaState("रेवती")
+        val tikadi = apatyaState("तिक")
         assertEquals("ढक्", ShubhradibhyashCaSutra.apply(shubhradi).state.terms.last().upadesha)
         assertEquals("ठक्", RevatyadibhyashThakSutra.apply(revatyadi).state.terms.last().upadesha)
         assertEquals("फिञ्", TikadibhyahPhinySutra.apply(tikadi).state.terms.last().upadesha)
 
-        val kalyanyadi = DerivationState(listOf(DerivationTerm("stem", "कल्याणी", TermKind.PRATIPADIKA)), semanticFeatures = apatya)
+        val kalyanyadi = apatyaState("कल्याणी")
         val kalyanyadiResult = KalyanyadinamInangSutra.apply(kalyanyadi).state
         assertEquals("कल्याणिन्", kalyanyadiResult.terms.first().surface)
         assertEquals("ढक्", kalyanyadiResult.terms.last().upadesha)
 
-        val lohitadi = DerivationState(listOf(DerivationTerm("stem", "लोहित", TermKind.PRATIPADIKA)), semanticFeatures = setOf(SemanticFeature.BHAVE))
+        val lohitadi = DerivationState(
+            listOf(DerivationTerm("stem", "लोहित", TermKind.PRATIPADIKA)),
+            context = DerivationalContext(
+                requestedMeaning = DerivationalMeaning.BHAVA,
+                rupa = Rupa(prayoga = Prayoga.BHAVE)
+            )
+        )
         assertEquals("क्यष्", LohitadidajbhyahKyashSutra.apply(lohitadi).state.terms.last().upadesha)
 
-        val bhrshadi = DerivationState(listOf(DerivationTerm("stem", "सुमनस्", TermKind.PRATIPADIKA)), semanticFeatures = setOf(SemanticFeature.BHAVE))
+        val bhrshadi = DerivationState(
+            listOf(DerivationTerm("stem", "सुमनस्", TermKind.PRATIPADIKA)),
+            context = DerivationalContext(
+                requestedMeaning = DerivationalMeaning.BHAVA,
+                rupa = Rupa(prayoga = Prayoga.BHAVE)
+            )
+        )
         val bhrshadiResult = BhrshadibhyoBhuvyacverLopashCaHalahSutra.apply(bhrshadi).state
         assertEquals("सुमन", bhrshadiResult.terms.first().surface)
         assertEquals("क्यङ्", bhrshadiResult.terms.last().upadesha)
 
-        val sukhadi = DerivationState(listOf(DerivationTerm("stem", "सुख", TermKind.PRATIPADIKA)), semanticFeatures = setOf(SemanticFeature.KARTR_VEDANA))
+        val sukhadi = pratipadikaState("सुख", meaning = DerivationalMeaning.KARTR_VEDANA)
         assertEquals("क्यङ्", SukhadibhyoKartrvedanayamSutra.apply(sukhadi).state.terms.last().upadesha)
 
-        val nandyadi = DerivationState(listOf(DerivationTerm("stem", "नन्दनः", TermKind.PRATIPADIKA)), semanticFeatures = setOf(SemanticFeature.KARTARI))
-        val grahyadi = DerivationState(listOf(DerivationTerm("stem", "ग्राही", TermKind.PRATIPADIKA)), semanticFeatures = setOf(SemanticFeature.KARTARI))
-        val pacadi = DerivationState(listOf(DerivationTerm("stem", "पच", TermKind.PRATIPADIKA)), semanticFeatures = setOf(SemanticFeature.KARTARI))
+        val nandyadi = pratipadikaState("नन्दनः", prayoga = Prayoga.KARTARI)
+        val grahyadi = pratipadikaState("ग्राही", prayoga = Prayoga.KARTARI)
+        val pacadi = pratipadikaState("पच", prayoga = Prayoga.KARTARI)
         assertEquals("ल्यु", NandigrahipacadibhyoLyuninyacahSutra.apply(nandyadi).state.terms.last().upadesha)
         assertEquals("णिनि", NandigrahipacadibhyoLyuninyacahSutra.apply(grahyadi).state.terms.last().upadesha)
         assertEquals("अच्", NandigrahipacadibhyoLyuninyacahSutra.apply(pacadi).state.terms.last().upadesha)
 
         val gamyadi = DerivationState(listOf(DerivationTerm("stem", "गमी", TermKind.PRATIPADIKA)))
-        assertTrue(SemanticFeature.BHAVISYAT in BhavishyatiGamyadayahSutra.apply(gamyadi).state.semanticFeatures)
+        assertTrue(DerivationalMeaning.BHAVISYAT in BhavishyatiGamyadayahSutra.apply(gamyadi).state.context.derivedMeanings)
 
-        val bhidadi = DerivationState(
-            listOf(DerivationTerm("stem", "विदा", TermKind.PRATIPADIKA)),
-            semanticFeatures = setOf(SemanticFeature.STRI),
-        )
+        val bhidadi = striState("विदा")
         assertEquals("अङ्", ShidbhidadibhyoAngSutra.apply(bhidadi).state.terms.last().upadesha)
 
         val bhimadi = DerivationState(
             listOf(DerivationTerm("stem", "भीम", TermKind.PRATIPADIKA)),
-            semanticFeatures = setOf(SemanticFeature.APADANA),
+            context = DerivationalContext(requestedMeaning = DerivationalMeaning.APADANA),
         )
-        assertTrue(SemanticFeature.UNADI_LICENSED in BhimadayoApadaneSutra.apply(bhimadi).state.semanticFeatures)
+        assertTrue(DerivationalEnvironment.UNADI_LICENSED in BhimadayoApadaneSutra.apply(bhimadi).state.context.environments)
 
-        val pashadi = DerivationState(
-            listOf(DerivationTerm("stem", "पाश", TermKind.PRATIPADIKA)),
-            semanticFeatures = setOf(SemanticFeature.SAMUHA),
-        )
+        val pashadi = pratipadikaState("पाश", meaning = DerivationalMeaning.SAMUHA)
         assertEquals("य", PashadibhyoYahSutra.apply(pashadi).state.terms.last().upadesha)
 
-        val rajanyadi = DerivationState(
-            listOf(DerivationTerm("stem", "राजन्य", TermKind.PRATIPADIKA)),
-            semanticFeatures = setOf(SemanticFeature.VISHAYA_DESE),
-        )
+        val rajanyadi = pratipadikaState("राजन्य", meaning = DerivationalMeaning.VISHAYA_DESE)
         assertEquals("वुञ्", RajanyadibhyoVunSutra.apply(rajanyadi).state.terms.last().upadesha)
         assertTrue(RajanyadibhyoVunSutra.matches(TaddhitaDerivationRequest("राजन्य", DerivationalMeaning.VISHAYA_DESE).initialState()))
 
-        val bhaurikyadi = DerivationState(
-            listOf(DerivationTerm("stem", "भौरिकि", TermKind.PRATIPADIKA)),
-            semanticFeatures = setOf(SemanticFeature.VISHAYA_DESE),
-        )
-        val aishukaryadi = DerivationState(
-            listOf(DerivationTerm("stem", "ऐषुकारि", TermKind.PRATIPADIKA)),
-            semanticFeatures = setOf(SemanticFeature.VISHAYA_DESE),
-        )
+        val bhaurikyadi = pratipadikaState("भौरिकि", meaning = DerivationalMeaning.VISHAYA_DESE)
+        val aishukaryadi = pratipadikaState("ऐषुकारि", meaning = DerivationalMeaning.VISHAYA_DESE)
         assertEquals("विधल्", BhaurikyaadyaishukaryadibhyoVidhalbhaktalauSutra.apply(bhaurikyadi).state.terms.last().upadesha)
         assertEquals("भक्तल्", BhaurikyaadyaishukaryadibhyoVidhalbhaktalauSutra.apply(aishukaryadi).state.terms.last().upadesha)
 
-        val kramadi = DerivationState(listOf(DerivationTerm("stem", "क्रम", TermKind.PRATIPADIKA)), semanticFeatures = setOf(SemanticFeature.ADHYAYANA_VEDANA))
-        val vasantadi = DerivationState(listOf(DerivationTerm("stem", "वसन्त", TermKind.PRATIPADIKA)), semanticFeatures = setOf(SemanticFeature.ADHYAYANA_VEDANA))
+        val kramadi = pratipadikaState("क्रम", meaning = DerivationalMeaning.ADHYAYANA_VEDANA)
+        val vasantadi = pratipadikaState("वसन्त", meaning = DerivationalMeaning.ADHYAYANA_VEDANA)
         assertEquals("वुन्", KramadibhyoVunSutra.apply(kramadi).state.terms.last().upadesha)
         assertEquals("ठक्", VasantadibhyashThakSutra.apply(vasantadi).state.terms.last().upadesha)
-        val ukthadi = DerivationState(listOf(DerivationTerm("stem", "उक्थ", TermKind.PRATIPADIKA)), semanticFeatures = setOf(SemanticFeature.ADHYAYANA_VEDANA))
+        val ukthadi = pratipadikaState("उक्थ", meaning = DerivationalMeaning.ADHYAYANA_VEDANA)
         assertEquals("ठक्", KratukthadisutrantatThakSutra.apply(ukthadi).state.terms.last().upadesha)
 
-        val sankaladi = DerivationState(
-            listOf(DerivationTerm("stem", "संकल", TermKind.PRATIPADIKA)),
-            semanticFeatures = setOf(SemanticFeature.NIVASA),
-        )
-        val suvastvadi = DerivationState(
-            listOf(DerivationTerm("stem", "सुवास्तु", TermKind.PRATIPADIKA)),
-            semanticFeatures = setOf(SemanticFeature.NIVASA),
-        )
+        val sankaladi = pratipadikaState("संकल", meaning = DerivationalMeaning.NIVASA)
+        val suvastvadi = pratipadikaState("सुवास्तु", meaning = DerivationalMeaning.NIVASA)
         assertEquals("अण्", SankaladibhyashCaSutra.apply(sankaladi).state.terms.last().upadesha)
         assertEquals("अण्", SuvastvadibhyoAnSutra.apply(suvastvadi).state.terms.last().upadesha)
 
-        val utkaradi = DerivationState(listOf(DerivationTerm("stem", "उत्कर", TermKind.PRATIPADIKA)), semanticFeatures = setOf(SemanticFeature.CHATURARTHIKA))
-        val kattryadi = DerivationState(listOf(DerivationTerm("stem", "कत्रि", TermKind.PRATIPADIKA)), semanticFeatures = setOf(SemanticFeature.CHATURARTHIKA))
-        val nadyadi = DerivationState(listOf(DerivationTerm("stem", "नदी", TermKind.PRATIPADIKA)), semanticFeatures = setOf(SemanticFeature.JATA))
+        val utkaradi = pratipadikaState("उत्कर", environment = DerivationalEnvironment.CHATURARTHIKA)
+        val kattryadi = pratipadikaState("कत्रि", environment = DerivationalEnvironment.CHATURARTHIKA)
+        val nadyadi = pratipadikaState("नदी", meaning = DerivationalMeaning.JATA)
         assertEquals("छ", UtkaradibhyashChahSutra.apply(utkaradi).state.terms.last().upadesha)
         assertEquals("ढकञ्", KattrayadibhyoDhakanySutra.apply(kattryadi).state.terms.last().upadesha)
         assertEquals("ढक्", NadyadibhyoDhakSutra.apply(nadyadi).state.terms.last().upadesha)
 
-        val sandhiveladi = DerivationState(listOf(DerivationTerm("stem", "संध्या", TermKind.PRATIPADIKA)), semanticFeatures = setOf(SemanticFeature.KALAVRTTI))
-        val digadi = DerivationState(listOf(DerivationTerm("stem", "दिश्", TermKind.PRATIPADIKA)), semanticFeatures = setOf(SemanticFeature.TATRA_BHAVA))
+        val sandhiveladi = pratipadikaState("संध्या", environment = DerivationalEnvironment.KALAVRTTI)
+        val digadi = pratipadikaState("दिश्", meaning = DerivationalMeaning.TATRA_BHAVA)
         assertEquals("अण्", SandhiveladyRtunakshatrebhyoAnSutra.apply(sandhiveladi).state.terms.last().upadesha)
         assertEquals("यत्", DigadibhyoYatSutra.apply(digadi).state.terms.last().upadesha)
         val typedDigadi = DerivationState(
@@ -638,203 +636,37 @@ class GanaPathaTest {
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.TATRA_BHAVA),
         )
         assertTrue(DigadibhyoYatSutra.matches(typedDigadi))
-        val rgayanadi = DerivationState(listOf(DerivationTerm("stem", "ऋगयन", TermKind.PRATIPADIKA)), semanticFeatures = setOf(SemanticFeature.VYAKHYANA))
-        val shundikadi = DerivationState(listOf(DerivationTerm("stem", "शुण्डिक", TermKind.PRATIPADIKA)), semanticFeatures = setOf(SemanticFeature.TATAH_AGATA))
+        val rgayanadi = pratipadikaState("ऋगयन", meaning = DerivationalMeaning.VYAKHYANA)
+        val shundikadi = pratipadikaState("शुण्डिक", meaning = DerivationalMeaning.TATAH_AGATA)
         assertEquals("अण्", RgayandibhyoAnSutra.apply(rgayanadi).state.terms.last().upadesha)
         assertEquals("अण्", ShundikadibhyoAnSutra.apply(shundikadi).state.terms.last().upadesha)
-        val shandikadi = DerivationState(listOf(DerivationTerm("stem", "शण्डिक", TermKind.PRATIPADIKA)), semanticFeatures = setOf(SemanticFeature.ABHIJANA))
+        val shandikadi = pratipadikaState("शण्डिक", meaning = DerivationalMeaning.ABHIJANA)
         assertEquals("ञ्य", ShandikadibhyoNyahSutra.apply(shandikadi).state.terms.last().upadesha)
-        val arihanadi = DerivationState(listOf(DerivationTerm("stem", "अरीहण", TermKind.PRATIPADIKA)), semanticFeatures = setOf(SemanticFeature.CHATURARTHIKA))
-        val varahadi = DerivationState(listOf(DerivationTerm("stem", "वराह", TermKind.PRATIPADIKA)), semanticFeatures = setOf(SemanticFeature.CHATURARTHIKA))
+        val arihanadi = pratipadikaState("अरीहण", environment = DerivationalEnvironment.CHATURARTHIKA)
+        val varahadi = pratipadikaState("वराह", environment = DerivationalEnvironment.CHATURARTHIKA)
         assertEquals("वुञ्", VunchhankathajilasenirSutra.apply(arihanadi).state.terms.last().upadesha)
         assertEquals("कक्", VunchhankathajilasenirSutra.apply(varahadi).state.terms.last().upadesha)
 
-        val sharngaravadi = DerivationState(listOf(DerivationTerm("stem", "शार्ङ्गरव", TermKind.PRATIPADIKA)), semanticFeatures = setOf(SemanticFeature.STRI))
+        val sharngaravadi = striState("शार्ङ्गरव")
         assertEquals("ङीन्", SharngaravadyanyoNginSutra.apply(sharngaravadi).state.terms.last().upadesha)
 
-        val kraudyadi = DerivationState(
-            listOf(DerivationTerm("stem", "क्रौडि", TermKind.PRATIPADIKA)),
-            semanticFeatures = setOf(SemanticFeature.STRI, SemanticFeature.GOTRA),
-        )
+        val kraudyadi = pratipadikaState("क्रौडि", meaning = DerivationalMeaning.GOTRA, linga = Linga.STRI)
         assertEquals("ष्यङ्", KraudyadibhyashCaSutra.apply(kraudyadi).state.terms.last().upadesha)
 
-        val utsadi = DerivationState(
-            listOf(DerivationTerm("stem", "उत्स", TermKind.PRATIPADIKA)),
-            semanticFeatures = setOf(SemanticFeature.PRAGDIVYATIYA),
-        )
+        val utsadi = pratipadikaState("उत्स", environment = DerivationalEnvironment.PRAGDIVYATIYA)
         assertEquals("अञ्", UtsadibhyoAnySutra.apply(utsadi).state.terms.last().upadesha)
 
-        val svasradi = DerivationState(
-            listOf(DerivationTerm("stem", "स्वसृ", TermKind.PRATIPADIKA)),
-            semanticFeatures = setOf(SemanticFeature.STRI),
-        )
+        val svasradi = striState("स्वसृ")
         assertEquals("4.1.10", NaShatsvasradibhyahSutra.apply(svasradi).state.blockedSutras["STRI_PRATYAYA"])
 
-        val krodadi = DerivationState(
-            listOf(DerivationTerm("stem", "क्रोडा", TermKind.PRATIPADIKA)),
-            semanticFeatures = setOf(SemanticFeature.STRI, SemanticFeature.SVANGA),
-        )
+        val krodadi = pratipadikaState("क्रोडा", environment = DerivationalEnvironment.SVANGA, linga = Linga.STRI)
         assertEquals("4.1.56", NaKrodadibahvacahSutra.apply(krodadi).state.blockedSutras["4.1.54"])
 
-        val vakinadi = DerivationState(
-            listOf(DerivationTerm("stem", "वाकिन", TermKind.PRATIPADIKA)),
-            semanticFeatures = setOf(SemanticFeature.APATYA, SemanticFeature.UDICYA),
-        )
+        val vakinadi = pratipadikaState("वाकिन", meaning = DerivationalMeaning.APATYA, environment = DerivationalEnvironment.UDICYA)
         val vakinadiResult = VakinadinamKukCaSutra.apply(vakinadi).state
         assertEquals("वाकिनक", vakinadiResult.terms.first().surface)
         assertEquals("फिञ्", vakinadiResult.terms.last().upadesha)
     }
 }
 
-private enum class SemanticFeature {
-    KARTARI, STRI, PRATHAMA, EKAVACANA, BHAVISYAT, APADANA, UNADI_LICENSED,
-    SAMUHA, VISHAYA_DESE, ADHYAYANA_VEDANA, NIVASA, CHATURARTHIKA, JATA,
-    KALAVRTTI, TATRA_BHAVA, VYAKHYANA, TATAH_AGATA, ABHIJANA, GOTRA,
-    PRAGDIVYATIYA, SVANGA, APATYA, UDICYA, GUNA_REQUEST, VRDDHI_REQUEST,
-    ARDHADHATUKA, ASATTVA, KRIYAYOGA, TADRAJA, BHAVE, KARTR_VEDANA,
-    SAPTAMI, BAHUVACANA, VARTAMANA,
-    DVITIYA, TRTIYA, CHATURTHI, PANCHAMI, SASTHI, DVIVACANA
-}
-
-private fun DerivationState(
-    terms: List<DerivationTerm>,
-    droppedTerms: List<DerivationTerm> = emptyList(),
-    samjnas: Set<SamjnaAssignment> = emptySet(),
-    stage: DerivationStage = DerivationStage.INITIAL,
-    activeAdhikaras: Set<String> = emptySet(),
-    inheritedAnuvrtti: Set<String> = emptySet(),
-    blockedSutras: Map<String, String> = emptyMap(),
-    varnaComparisons: Set<VarnaComparison> = emptySet(),
-    substitutions: List<VarnaSubstitution> = emptyList(),
-    semanticFeatures: Set<SemanticFeature> = emptySet(),
-): DerivationState {
-    return DerivationState(
-        terms = terms,
-        droppedTerms = droppedTerms,
-        samjnas = samjnas,
-        stage = stage,
-        context = mapFeaturesToContext(semanticFeatures, DerivationalContext()),
-        activeAdhikaras = activeAdhikaras,
-        inheritedAnuvrtti = inheritedAnuvrtti,
-        blockedSutras = blockedSutras,
-        varnaComparisons = varnaComparisons,
-        substitutions = substitutions
-    )
-}
-
-private val DerivationState.semanticFeatures: Set<SemanticFeature>
-    get() = mapContextToFeatures(this.context)
-
-private fun DerivationState.copy(
-    semanticFeatures: Set<SemanticFeature>
-): DerivationState {
-    return this.copy(context = mapFeaturesToContext(semanticFeatures, this.context))
-}
-
-private fun mapFeaturesToContext(features: Set<SemanticFeature>, baseContext: DerivationalContext): DerivationalContext {
-    var ctx = clearFeaturesFromContext(baseContext)
-    features.forEach { feature ->
-        ctx = when (feature) {
-            SemanticFeature.KARTARI -> ctx.copy(rupa = ctx.rupa.copy(prayoga = Prayoga.KARTARI))
-            SemanticFeature.STRI -> ctx.copy(rupa = ctx.rupa.copy(linga = Linga.STRI))
-            SemanticFeature.PRATHAMA -> ctx.copy(rupa = ctx.rupa.copy(vibhakti = Vibhakti.PRATHAMA))
-            SemanticFeature.EKAVACANA -> ctx.copy(rupa = ctx.rupa.copy(vacana = Vacana.EKAVACANA))
-            SemanticFeature.BHAVISYAT -> ctx.copy(
-                requestedMeaning = DerivationalMeaning.BHAVISYAT,
-                derivedMeanings = ctx.derivedMeanings + DerivationalMeaning.BHAVISYAT,
-                kala = Kala.BHAVISYAT
-            )
-            SemanticFeature.APADANA -> ctx.copy(requestedMeaning = DerivationalMeaning.APADANA)
-            SemanticFeature.UNADI_LICENSED -> ctx.copy(environments = ctx.environments + DerivationalEnvironment.UNADI_LICENSED)
-            SemanticFeature.SAMUHA -> ctx.copy(requestedMeaning = DerivationalMeaning.SAMUHA)
-            SemanticFeature.VISHAYA_DESE -> ctx.copy(requestedMeaning = DerivationalMeaning.VISHAYA_DESE)
-            SemanticFeature.ADHYAYANA_VEDANA -> ctx.copy(requestedMeaning = DerivationalMeaning.ADHYAYANA_VEDANA)
-            SemanticFeature.NIVASA -> ctx.copy(requestedMeaning = DerivationalMeaning.NIVASA)
-            SemanticFeature.CHATURARTHIKA -> ctx.copy(environments = ctx.environments + DerivationalEnvironment.CHATURARTHIKA)
-            SemanticFeature.JATA -> ctx.copy(requestedMeaning = DerivationalMeaning.JATA)
-            SemanticFeature.KALAVRTTI -> ctx.copy(environments = ctx.environments + DerivationalEnvironment.KALAVRTTI)
-            SemanticFeature.TATRA_BHAVA -> ctx.copy(requestedMeaning = DerivationalMeaning.TATRA_BHAVA)
-            SemanticFeature.VYAKHYANA -> ctx.copy(requestedMeaning = DerivationalMeaning.VYAKHYANA)
-            SemanticFeature.TATAH_AGATA -> ctx.copy(requestedMeaning = DerivationalMeaning.TATAH_AGATA)
-            SemanticFeature.ABHIJANA -> ctx.copy(requestedMeaning = DerivationalMeaning.ABHIJANA)
-            SemanticFeature.GOTRA -> ctx.copy(requestedMeaning = DerivationalMeaning.GOTRA)
-            SemanticFeature.PRAGDIVYATIYA -> ctx.copy(environments = ctx.environments + DerivationalEnvironment.PRAGDIVYATIYA)
-            SemanticFeature.SVANGA -> ctx.copy(environments = ctx.environments + DerivationalEnvironment.SVANGA)
-            SemanticFeature.APATYA -> ctx.copy(requestedMeaning = DerivationalMeaning.APATYA)
-            SemanticFeature.UDICYA -> ctx.copy(environments = ctx.environments + DerivationalEnvironment.UDICYA)
-            SemanticFeature.GUNA_REQUEST -> ctx.copy(phonologicalRequest = PhonologicalRequest.GUNA)
-            SemanticFeature.VRDDHI_REQUEST -> ctx.copy(phonologicalRequest = PhonologicalRequest.VRDDHI)
-            SemanticFeature.ARDHADHATUKA -> ctx.copy(environments = ctx.environments + DerivationalEnvironment.ARDHADHATUKA)
-            SemanticFeature.ASATTVA -> ctx.copy(environments = ctx.environments + DerivationalEnvironment.ASATTVA)
-            SemanticFeature.KRIYAYOGA -> ctx.copy(environments = ctx.environments + DerivationalEnvironment.KRIYAYOGA)
-            SemanticFeature.TADRAJA -> ctx.copy(
-                requestedMeaning = DerivationalMeaning.TADRAJA,
-                derivedMeanings = ctx.derivedMeanings + DerivationalMeaning.TADRAJA
-            )
-            SemanticFeature.BHAVE -> ctx.copy(
-                requestedMeaning = DerivationalMeaning.BHAVA,
-                rupa = ctx.rupa.copy(prayoga = Prayoga.BHAVE)
-            )
-            SemanticFeature.KARTR_VEDANA -> ctx.copy(requestedMeaning = DerivationalMeaning.KARTR_VEDANA)
-            SemanticFeature.SAPTAMI -> ctx.copy(rupa = ctx.rupa.copy(vibhakti = Vibhakti.SAPTAMI))
-            SemanticFeature.BAHUVACANA -> ctx.copy(rupa = ctx.rupa.copy(vacana = Vacana.BAHUVACANA))
-            SemanticFeature.VARTAMANA -> ctx.copy(kala = Kala.VARTAMANA)
-            SemanticFeature.DVITIYA -> ctx.copy(rupa = ctx.rupa.copy(vibhakti = Vibhakti.DVITIYA))
-            SemanticFeature.TRTIYA -> ctx.copy(rupa = ctx.rupa.copy(vibhakti = Vibhakti.TRTIYA))
-            SemanticFeature.CHATURTHI -> ctx.copy(rupa = ctx.rupa.copy(vibhakti = Vibhakti.CHATURTHI))
-            SemanticFeature.PANCHAMI -> ctx.copy(rupa = ctx.rupa.copy(vibhakti = Vibhakti.PANCHAMI))
-            SemanticFeature.SASTHI -> ctx.copy(rupa = ctx.rupa.copy(vibhakti = Vibhakti.SASTHI))
-            SemanticFeature.DVIVACANA -> ctx.copy(rupa = ctx.rupa.copy(vacana = Vacana.DVIVACANA))
-        }
-    }
-    return ctx
-}
-
-private fun clearFeaturesFromContext(context: DerivationalContext): DerivationalContext {
-    return context.copy(
-        rupa = context.rupa.copy(
-            vibhakti = null,
-            vacana = null,
-            prayoga = null,
-            linga = if (context.rupa.linga == Linga.STRI) null else context.rupa.linga
-        ),
-        environments = emptySet(),
-        derivedMeanings = emptySet(),
-        requestedMeaning = null,
-        phonologicalRequest = null,
-        kala = null
-    )
-}
-
-private fun mapContextToFeatures(context: DerivationalContext): Set<SemanticFeature> {
-    val features = mutableSetOf<SemanticFeature>()
-    if (context.rupa.prayoga == Prayoga.KARTARI) features.add(SemanticFeature.KARTARI)
-    if (context.rupa.linga == Linga.STRI) features.add(SemanticFeature.STRI)
-    if (context.rupa.vibhakti == Vibhakti.PRATHAMA) features.add(SemanticFeature.PRATHAMA)
-    if (context.rupa.vacana == Vacana.EKAVACANA) features.add(SemanticFeature.EKAVACANA)
-    if (DerivationalMeaning.BHAVISYAT in context.derivedMeanings || context.kala == Kala.BHAVISYAT) features.add(SemanticFeature.BHAVISYAT)
-    if (DerivationalEnvironment.UNADI_LICENSED in context.environments) features.add(SemanticFeature.UNADI_LICENSED)
-    if (DerivationalEnvironment.CHATURARTHIKA in context.environments) features.add(SemanticFeature.CHATURARTHIKA)
-    if (DerivationalEnvironment.KALAVRTTI in context.environments) features.add(SemanticFeature.KALAVRTTI)
-    if (DerivationalEnvironment.PRAGDIVYATIYA in context.environments) features.add(SemanticFeature.PRAGDIVYATIYA)
-    if (DerivationalEnvironment.SVANGA in context.environments) features.add(SemanticFeature.SVANGA)
-    if (DerivationalEnvironment.UDICYA in context.environments) features.add(SemanticFeature.UDICYA)
-    if (context.phonologicalRequest == PhonologicalRequest.GUNA) features.add(SemanticFeature.GUNA_REQUEST)
-    if (context.phonologicalRequest == PhonologicalRequest.VRDDHI) features.add(SemanticFeature.VRDDHI_REQUEST)
-    if (DerivationalEnvironment.ARDHADHATUKA in context.environments) features.add(SemanticFeature.ARDHADHATUKA)
-    if (DerivationalEnvironment.ASATTVA in context.environments) features.add(SemanticFeature.ASATTVA)
-    if (DerivationalEnvironment.KRIYAYOGA in context.environments) features.add(SemanticFeature.KRIYAYOGA)
-    if (DerivationalMeaning.TADRAJA in context.derivedMeanings || context.requestedMeaning == DerivationalMeaning.TADRAJA) features.add(SemanticFeature.TADRAJA)
-    if (context.rupa.prayoga == Prayoga.BHAVE || context.requestedMeaning == DerivationalMeaning.BHAVA) features.add(SemanticFeature.BHAVE)
-    if (context.rupa.vibhakti == Vibhakti.SAPTAMI) features.add(SemanticFeature.SAPTAMI)
-    if (context.rupa.vacana == Vacana.BAHUVACANA) features.add(SemanticFeature.BAHUVACANA)
-    if (context.kala == Kala.VARTAMANA) features.add(SemanticFeature.VARTAMANA)
-    if (context.rupa.vibhakti == Vibhakti.DVITIYA) features.add(SemanticFeature.DVITIYA)
-    if (context.rupa.vibhakti == Vibhakti.TRTIYA) features.add(SemanticFeature.TRTIYA)
-    if (context.rupa.vibhakti == Vibhakti.CHATURTHI) features.add(SemanticFeature.CHATURTHI)
-    if (context.rupa.vibhakti == Vibhakti.PANCHAMI) features.add(SemanticFeature.PANCHAMI)
-    if (context.rupa.vibhakti == Vibhakti.SASTHI) features.add(SemanticFeature.SASTHI)
-    if (context.rupa.vacana == Vacana.DVIVACANA) features.add(SemanticFeature.DVIVACANA)
-    return features
-}
 
