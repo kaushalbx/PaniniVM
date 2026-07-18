@@ -194,6 +194,27 @@ class TingantaEngineTest {
     }
 
     @Test
+    fun `LAT handles vowel consonant irregular and ubhayapada roots`() {
+        val expected = listOf(
+            Triple("णीञ्", PadaType.PARASMAIPADA, "नयति नयतः नयन्ति नयसि नयथः नयथ नयामि नयावः नयामः"),
+            Triple("णीञ्", PadaType.ATMANEPADA, "नयते नयेते नयन्ते नयसे नयेथे नयध्वे नये नयावहे नयामहे"),
+            Triple("डुपचँष्", PadaType.PARASMAIPADA, "पचति पचतः पचन्ति पचसि पचथः पचथ पचामि पचावः पचामः"),
+            Triple("डुपचँष्", PadaType.ATMANEPADA, "पचते पचेते पचन्ते पचसे पचेथे पचध्वे पचे पचावहे पचामहे"),
+            Triple("गमॢँ", PadaType.PARASMAIPADA, "गच्छति गच्छतः गच्छन्ति गच्छसि गच्छथः गच्छथ गच्छामि गच्छावः गच्छामः"),
+            Triple("स्रन्भुँ", PadaType.PARASMAIPADA, "स्रम्भति स्रम्भतः स्रम्भन्ति स्रम्भसि स्रम्भथः स्रम्भथ स्रम्भामि स्रम्भावः स्रम्भामः"),
+            Triple("स्रन्भुँ", PadaType.ATMANEPADA, "स्रम्भते स्रम्भेते स्रम्भन्ते स्रम्भसे स्रम्भेथे स्रम्भध्वे स्रम्भे स्रम्भावहे स्रम्भामहे"),
+        )
+
+        expected.forEach { (root, pada, surfaces) ->
+            TingantaEngine().deriveSupportedParadigm(root, pada, Lakara.LAT).assertSurfaces(surfaces)
+        }
+
+        TingantaEngine().deriveSupportedParadigm("गमॢँ", lakara = Lakara.LAT).forms.values.forEach { result ->
+            assertTrue(result.applications.map { it.sutra }.containsAll(setOf("7.3.77", "6.1.73", "8.4.40")))
+        }
+    }
+
+    @Test
     fun `all ganas derive complete representative parasmaipada imperfects`() {
         val expected = mapOf(
             "भू" to "अभवत् अभवताम् अभवन् अभवः अभवतम् अभवत अभवम् अभवाव अभवाम",
@@ -359,20 +380,6 @@ class TingantaEngineTest {
         listOf(TingAffix.TIP, TingAffix.TAS, TingAffix.SIP, TingAffix.THAS, TingAffix.THA).forEach { affix ->
             assertTrue(paradigm.forms.getValue(affix).applications.any { it.sutra == "8.4.55" })
         }
-    }
-
-    @Test
-    fun `ubhayapada roots derive in either explicitly requested pada`() {
-        val engine = TingantaEngine()
-        val parasmaipada = engine.deriveSupportedParadigm("स्रम्भ्", pada = PadaType.PARASMAIPADA, lakara = Lakara.LAT)
-        val atmanepada = engine.deriveSupportedParadigm("स्रम्भ्", pada = PadaType.ATMANEPADA, lakara = Lakara.LAT)
-
-        assertEquals(PadaType.PARASMAIPADA, parasmaipada.pada)
-        assertEquals(PadaType.ATMANEPADA, atmanepada.pada)
-        assertEquals(TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.toSet(), parasmaipada.forms.keys)
-        assertEquals(TingAffix.entries.filter { it.pada == PadaType.ATMANEPADA }.toSet(), atmanepada.forms.keys)
-        assertEquals("स्रम्भति", parasmaipada.surfaces[TingAffix.TIP])
-        assertEquals("स्रम्भते", atmanepada.surfaces[TingAffix.TA])
     }
 
     @Test

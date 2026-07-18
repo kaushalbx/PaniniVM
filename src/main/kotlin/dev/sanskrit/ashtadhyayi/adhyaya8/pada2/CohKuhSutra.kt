@@ -2,7 +2,6 @@ package dev.sanskrit.ashtadhyayi.adhyaya8.pada2
 
 import dev.sanskrit.ashtadhyayi.Ashtadhyayi
 import dev.sanskrit.derivation.DerivationChange
-import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.VarnaSubstitution
@@ -32,81 +31,48 @@ object CohKuhSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.ADESHA,
     scope = SutraScope.VARNA,
 ), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean {
-        val surface = context.surface
-        if (surface.isEmpty()) return false
-        val abhyasa = context.terms.firstOrNull { term ->
-            context.samjnas.any { it.targetId == term.id && it.samjna == dev.sanskrit.shiksha.Samjna.ABHYASA }
-        }
-        val abhyasaStart = abhyasa?.let { target ->
-            context.terms.takeWhile { it.id != target.id }.sumOf { it.surface.length }
-        }
-        val abhyasaRange = abhyasaStart?.let { start -> start until start + abhyasa.surface.length } ?: IntRange.EMPTY
-
-        // Check for cu-varga (c, ch, j, jh, ñ)
-        val cuChars = setOf('च', 'छ', 'ज', 'झ', 'ञ')
-        
-        // Nimitta 1: End of Pada
-        val lastChar = surface.last()
-        if (lastChar in cuChars && surface.lastIndex !in abhyasaRange) return true
-
-        // Nimitta 2: Before Jhal
-        for (i in 0 until surface.length - 1) {
-            if (surface[i] in cuChars && i !in abhyasaRange) {
-                val nextChar = surface[i + 1]
-                if (Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAL, nextChar)) {
-                    return true
-                }
-            }
-        }
-        
-        return false
-    }
+    override fun matches(context: DerivationState): Boolean = findMatch(context) != null
 
     override fun apply(context: DerivationState): DerivationChange {
-        val surface = context.surface
-        val cuChars = setOf('च', 'छ', 'ज', 'झ', 'ञ')
-        val abhyasa = context.terms.firstOrNull { term ->
-            context.samjnas.any { it.targetId == term.id && it.samjna == dev.sanskrit.shiksha.Samjna.ABHYASA }
-        }
-        val abhyasaStart = abhyasa?.let { target ->
-            context.terms.takeWhile { it.id != target.id }.sumOf { it.surface.length }
-        }
-        val abhyasaRange = abhyasaStart?.let { start -> start until start + abhyasa.surface.length } ?: IntRange.EMPTY
-        
-        var targetIndex = -1
-        // Priority to later occurrences? Tripadi usually applies word-internally first or word-end.
-        // For word-end:
-        if (surface.last() in cuChars && surface.lastIndex !in abhyasaRange) {
-            targetIndex = surface.length - 1
-        } else {
-            for (i in 0 until surface.length - 1) {
-            if (surface[i] in cuChars && i !in abhyasaRange) {
-                    val nextChar = surface[i + 1]
-                    if (Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAL, nextChar)) {
-                        targetIndex = i
-                        break
-                    }
-                }
-            }
-        }
-
-        val targetChar = surface[targetIndex]
+        val match = findMatch(context)!!
+        val targetTerm = context.terms[match.termIndex]
+        val targetChar = targetTerm.surface[match.charIndex]
         val vargaInfo = Varnamala.getVargaInfo(targetChar)!!
         val replacement = Varnamala.getVargaMember("कु", vargaInfo.second)!!.toString()
-
-        var offset = 0
-        val targetTerm = context.terms.find { term ->
-            val start = offset
-            offset += term.surface.length
-            targetIndex in start until offset
-        }!!
-
-        val newSurface = targetTerm.surface.replaceFirst(targetChar.toString(), replacement)
+        val newSurface = targetTerm.surface.replaceRange(match.charIndex, match.charIndex + 1, replacement)
 
         return DerivationChange(
             state = context.replaceTerm(targetTerm.id, targetTerm.copy(surface = newSurface)),
             explanation = "8.2.30: Substituted ka-varga '$replacement' for ca-varga '$targetChar'."
         ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(targetTerm.id, targetChar, replacement, sutra))) }
     }
+
+    private fun findMatch(context: DerivationState): Match? {
+        val abhyasaIds = context.samjnas
+            .filter { it.samjna == dev.sanskrit.shiksha.Samjna.ABHYASA }
+            .mapTo(mutableSetOf()) { it.targetId }
+        val characters = context.terms.flatMapIndexed { termIndex, term ->
+            term.surface.mapIndexed { charIndex, char -> OwnedChar(termIndex, charIndex, term.id, char) }
+        }
+        val finalConsonant = characters.getOrNull(characters.lastIndex - 1)
+        if (characters.lastOrNull()?.char == '्' && finalConsonant != null &&
+            finalConsonant.char in CU_CHARS && finalConsonant.termId !in abhyasaIds
+        ) {
+            return Match(finalConsonant.termIndex, finalConsonant.charIndex)
+        }
+        for (i in 0 until characters.size - 2) {
+            val target = characters[i]
+            if (target.char !in CU_CHARS || target.termId in abhyasaIds) continue
+            if (characters[i + 1].char != '्') continue
+            if (Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAL, characters[i + 2].char)) {
+                return Match(target.termIndex, target.charIndex)
+            }
+        }
+        return null
+    }
+
+    private data class OwnedChar(val termIndex: Int, val charIndex: Int, val termId: String, val char: Char)
+    private data class Match(val termIndex: Int, val charIndex: Int)
+
+    private val CU_CHARS = setOf('च', 'छ', 'ज', 'झ', 'ञ')
 }
