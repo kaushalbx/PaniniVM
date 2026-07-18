@@ -19,7 +19,7 @@ rule interface; supported forms additionally verify required rules end to end.
   Dhātupāṭha gaṇas, including strong/weak stem selection.
 - Representative `LAT`, `LOT`, `LANG`, and `LING` surfaces verified in both padas
   across all ten gaṇas with concise, table-driven paradigm tests.
-- Additional `LAT`, `LOT`, `LANG`, `LING`, and `LRT` root-shape coverage for vowel-final, consonant-final,
+- Additional `LAT`, `LOT`, `LANG`, `LING`, `LRT`, and `LRNG` root-shape coverage for vowel-final, consonant-final,
   irregular `गम् → गच्छ्`, and Ubhayapada roots.
 - A complete ten-gaṇa Dhātupāṭha catalogue with pada metadata.
 

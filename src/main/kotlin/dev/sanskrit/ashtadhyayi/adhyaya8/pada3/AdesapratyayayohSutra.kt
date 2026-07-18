@@ -6,6 +6,7 @@ import dev.sanskrit.derivation.DerivationStage
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationSutra
 import dev.sanskrit.derivation.DerivationTerm
+import dev.sanskrit.derivation.Lakara
 import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.derivation.VarnaSubstitution
 import dev.sanskrit.pratyahara.Pratyahara
@@ -51,7 +52,11 @@ object AdesapratyayayohSutra : Sutra<DerivationState, DerivationChange>(
             context.allEffectiveTerms.any { it.upadesha == "सिच्" }
         val isLabhPerfect = context.effectiveContext.rupa.lakara == dev.sanskrit.derivation.Lakara.LIT &&
             context.allEffectiveTerms.any { it.kind == TermKind.DHATU && it.upadesha == "डुलभँष्" }
-        if (context.stage != DerivationStage.PADA_FORMED && context.stage != DerivationStage.FINAL && !isSipLet && !isLungSic && !isLabhPerfect) return null
+        val isFutureSya = context.effectiveContext.rupa.lakara in setOf(Lakara.LRT, Lakara.LRNG) &&
+            context.allEffectiveTerms.any { it.upadesha == "स्य" }
+        if (context.stage != DerivationStage.PADA_FORMED && context.stage != DerivationStage.FINAL &&
+            !isSipLet && !isLungSic && !isLabhPerfect && !isFutureSya
+        ) return null
         if (isSipLet) {
             val sipIndex = context.terms.indexOfFirst { it.id == "sip-aorist" && 'स' in it.surface }
             if (sipIndex > 0 && context.terms[sipIndex - 1].surface.endsWith("इ")) {

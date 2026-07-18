@@ -45,8 +45,11 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
             val isA = dev.sanskrit.shiksha.Varnamala.endsWithA(leftTerm.surface) ||
                 dev.sanskrit.shiksha.Varnamala.endsWithAA(leftTerm.surface)
             val previousEndsInEc = index > 0 && engine.contains(Pratyahara.EC, context.terms[index - 1].surface.lastOrNull() ?: return@any false)
+            val isFutureSya = leftTerm.upadesha == "स्य" &&
+                context.effectiveContext.rupa.lakara in setOf(Lakara.LRT, Lakara.LRNG)
             val isAdadiShap = leftTerm.id == "shap" && context.terms.any { it.kind == TermKind.DHATU && it.gana == Gana.ADADI }
-            !isAdadiShap && !previousEndsInEc && !leftTerm.surface.endsWith('न') && isA && engine.contains(Pratyahara.AC, right)
+            !isAdadiShap && (!previousEndsInEc || isFutureSya) && !leftTerm.surface.endsWith('न') &&
+                isA && engine.contains(Pratyahara.AC, right)
         }
     }
 
@@ -59,7 +62,9 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
                 !(terms[position].id == "shap" && terms.any { it.kind == TermKind.DHATU && it.gana == Gana.ADADI }) &&
                 !(terms[position + 1].upadesha == "इट्" && terms[position + 1].surface.endsWith("ट्")) &&
                 !terms[position].surface.endsWith('न') &&
-                (position == 0 || !Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.EC, terms[position - 1].surface.lastOrNull() ?: return@first false)) &&
+                (position == 0 ||
+                    !Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.EC, terms[position - 1].surface.lastOrNull() ?: return@first false) ||
+                    (terms[position].upadesha == "स्य" && context.effectiveContext.rupa.lakara in setOf(Lakara.LRT, Lakara.LRNG))) &&
                 terms[position + 1].surface.firstOrNull()?.let {
                     Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.AC, it)
                 } == true

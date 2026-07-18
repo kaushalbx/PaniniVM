@@ -301,6 +301,29 @@ class TingantaEngineTest {
     }
 
     @Test
+    fun `LRNG handles vowel consonant irregular and ubhayapada roots`() {
+        val expected = listOf(
+            Triple("णीञ्", PadaType.PARASMAIPADA, "अनेष्यत् अनेष्यताम् अनेष्यन् अनेष्यः अनेष्यतम् अनेष्यत अनेष्यम् अनेष्याव अनेष्याम"),
+            Triple("णीञ्", PadaType.ATMANEPADA, "अनेष्यत अनेष्येताम् अनेष्यन्त अनेष्यथाः अनेष्येथाम् अनेष्यध्वम् अनेष्ये अनेष्यावहि अनेष्यामहि"),
+            Triple("डुपचँष्", PadaType.PARASMAIPADA, "अपक्ष्यत् अपक्ष्यताम् अपक्ष्यन् अपक्ष्यः अपक्ष्यतम् अपक्ष्यत अपक्ष्यम् अपक्ष्याव अपक्ष्याम"),
+            Triple("डुपचँष्", PadaType.ATMANEPADA, "अपक्ष्यत अपक्ष्येताम् अपक्ष्यन्त अपक्ष्यथाः अपक्ष्येथाम् अपक्ष्यध्वम् अपक्ष्ये अपक्ष्यावहि अपक्ष्यामहि"),
+            Triple("गमॢँ", PadaType.PARASMAIPADA, "अगमिष्यत् अगमिष्यताम् अगमिष्यन् अगमिष्यः अगमिष्यतम् अगमिष्यत अगमिष्यम् अगमिष्याव अगमिष्याम"),
+            Triple("स्रन्भुँ", PadaType.PARASMAIPADA, "अस्रम्भिष्यत् अस्रम्भिष्यताम् अस्रम्भिष्यन् अस्रम्भिष्यः अस्रम्भिष्यतम् अस्रम्भिष्यत अस्रम्भिष्यम् अस्रम्भिष्याव अस्रम्भिष्याम"),
+            Triple("स्रन्भुँ", PadaType.ATMANEPADA, "अस्रम्भिष्यत अस्रम्भिष्येताम् अस्रम्भिष्यन्त अस्रम्भिष्यथाः अस्रम्भिष्येथाम् अस्रम्भिष्यध्वम् अस्रम्भिष्ये अस्रम्भिष्यावहि अस्रम्भिष्यामहि"),
+        )
+
+        expected.forEach { (root, pada, surfaces) ->
+            TingantaEngine().deriveSupportedParadigm(root, pada, Lakara.LRNG).assertSurfaces(surfaces)
+        }
+
+        TingantaEngine().deriveSupportedParadigm("गमॢँ", lakara = Lakara.LRNG).forms.values.forEach { result ->
+            val sutras = result.applications.map { it.sutra }
+            assertTrue("7.2.58" in sutras)
+            assertTrue(sutras.none { it in setOf("7.3.77", "6.1.73", "8.4.40") })
+        }
+    }
+
+    @Test
     fun `all ganas derive complete representative parasmaipada imperfects`() {
         val expected = mapOf(
             "भू" to "अभवत् अभवताम् अभवन् अभवः अभवतम् अभवत अभवम् अभवाव अभवाम",
