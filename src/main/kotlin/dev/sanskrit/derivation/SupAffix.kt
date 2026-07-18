@@ -40,37 +40,9 @@ enum class SupAffix(
         fun select(vibhakti: Vibhakti, vacana: Vacana): SupAffix =
             entries.single { it.vibhakti == vibhakti && it.vacana == vacana }
 
-        fun fromFeatures(features: Set<dev.sanskrit.shiksha.SemanticFeature>): SupAffix? {
-            val vibhakti = when {
-                dev.sanskrit.shiksha.SemanticFeature.PRATHAMA in features -> Vibhakti.PRATHAMA
-                dev.sanskrit.shiksha.SemanticFeature.DVITIYA in features -> Vibhakti.DVITIYA
-                dev.sanskrit.shiksha.SemanticFeature.TRTIYA in features -> Vibhakti.TRTIYA
-                dev.sanskrit.shiksha.SemanticFeature.CHATURTHI in features -> Vibhakti.CHATURTHI
-                dev.sanskrit.shiksha.SemanticFeature.PANCHAMI in features -> Vibhakti.PANCHAMI
-                dev.sanskrit.shiksha.SemanticFeature.SASTHI in features -> Vibhakti.SASTHI
-                dev.sanskrit.shiksha.SemanticFeature.SAPTAMI in features -> Vibhakti.SAPTAMI
-                else -> null
-            }
-            val vacana = when {
-                dev.sanskrit.shiksha.SemanticFeature.EKAVACANA in features -> Vacana.EKAVACANA
-                dev.sanskrit.shiksha.SemanticFeature.DVIVACANA in features -> Vacana.DVIVACANA
-                dev.sanskrit.shiksha.SemanticFeature.BAHUVACANA in features -> Vacana.BAHUVACANA
-                else -> null
-            }
-            if (vibhakti == null || vacana == null) return null
-            val expectedFeaturesCount = (if (features.contains(dev.sanskrit.shiksha.SemanticFeature.PRATHAMA) ||
-                features.contains(dev.sanskrit.shiksha.SemanticFeature.DVITIYA) ||
-                features.contains(dev.sanskrit.shiksha.SemanticFeature.TRTIYA) ||
-                features.contains(dev.sanskrit.shiksha.SemanticFeature.CHATURTHI) ||
-                features.contains(dev.sanskrit.shiksha.SemanticFeature.PANCHAMI) ||
-                features.contains(dev.sanskrit.shiksha.SemanticFeature.SASTHI) ||
-                features.contains(dev.sanskrit.shiksha.SemanticFeature.SAPTAMI)
-            ) 1 else 0) +
-                    (if (features.contains(dev.sanskrit.shiksha.SemanticFeature.EKAVACANA) ||
-                        features.contains(dev.sanskrit.shiksha.SemanticFeature.DVIVACANA) ||
-                        features.contains(dev.sanskrit.shiksha.SemanticFeature.BAHUVACANA)
-                    ) 1 else 0)
-            if (features.size > expectedFeaturesCount) return null
+        fun fromContext(context: DerivationalContext): SupAffix? {
+            val vibhakti = context.rupa.vibhakti ?: return null
+            val vacana = context.rupa.vacana ?: return null
             return entries.singleOrNull { it.vibhakti == vibhakti && it.vacana == vacana }
         }
 

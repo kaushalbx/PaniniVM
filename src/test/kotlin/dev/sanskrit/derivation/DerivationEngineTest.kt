@@ -14,7 +14,6 @@ import dev.sanskrit.ashtadhyayi.adhyaya4.pada1.StriyamAdhikaraSutra
 import dev.sanskrit.shiksha.ItStatus
 import dev.sanskrit.dhatupatha.DhatuPatha
 import dev.sanskrit.shiksha.Linga
-import dev.sanskrit.shiksha.SemanticFeature
 import dev.sanskrit.shiksha.Samjna
 
 class DerivationEngineTest {
@@ -56,7 +55,7 @@ class DerivationEngineTest {
     fun `aniṭ root does not receive iṭ under 7 2 35`() {
         val state = DerivationState(
             listOf(DerivationTerm("root", "भू", TermKind.DHATU, itStatus = ItStatus.ANIT), DerivationTerm("suffix", "त", TermKind.PRATYAYA)),
-            semanticFeatures = setOf(SemanticFeature.ARDHADHATUKA),
+            context = DerivationalContext(environments = setOf(DerivationalEnvironment.ARDHADHATUKA)),
         )
         assertTrue(!ArdhadhatukasyedValadehSutra.matches(state))
     }
@@ -65,19 +64,20 @@ class DerivationEngineTest {
     fun `derivation engine applies 7 2 35 for an eligible seṭ root`() {
         val state = DerivationState(
             listOf(DerivationTerm("root", "भू", TermKind.DHATU, itStatus = ItStatus.SET), DerivationTerm("suffix", "त", TermKind.PRATYAYA)),
-            semanticFeatures = setOf(SemanticFeature.ARDHADHATUKA),
+            context = DerivationalContext(environments = setOf(DerivationalEnvironment.ARDHADHATUKA)),
         )
         val result = DerivationEngine(listOf(ArdhadhatukasyedValadehSutra)).derive(state)
         assertTrue(result.applications.any { it.sutra == "7.2.35" })
         assertEquals("इ", result.final.terms.single { it.id == "it-agama" }.surface)
     }
+
     @Test
     fun `nominal request creates a structured prātipadika derivation state`() {
         val state = SubantaDerivationRequest("राम", Vibhakti.PRATHAMA, Vacana.EKAVACANA).initialState()
 
         assertEquals(TermKind.PRATIPADIKA, state.terms.single().kind)
-        assertTrue(HasSemanticFeature(SemanticFeature.PRATHAMA).matches(state))
-        assertTrue(HasSemanticFeature(SemanticFeature.EKAVACANA).matches(state))
+        assertTrue(HasMorphosyntax(vibhakti = Vibhakti.PRATHAMA).matches(state))
+        assertTrue(HasMorphosyntax(vacana = Vacana.EKAVACANA).matches(state))
         assertEquals(Vibhakti.PRATHAMA, state.context.rupa.vibhakti)
         assertEquals(Vacana.EKAVACANA, state.context.rupa.vacana)
         assertEquals(Linga.PUMS, state.context.rupa.linga)
@@ -87,43 +87,6 @@ class DerivationEngineTest {
     fun `taddhita request keeps requested meaning separate from grammatical facts`() {
         val state = TaddhitaDerivationRequest("पाश", DerivationalMeaning.SAMUHA).initialState()
         assertEquals(DerivationalMeaning.SAMUHA, state.context.requestedMeaning)
-        assertTrue(state.semanticFeatures.isEmpty())
-    }
-
-    @Test
-    fun `legacy features project into typed effective context during migration`() {
-        val state = DerivationState(
-            listOf(DerivationTerm("stem", "पाश", TermKind.PRATIPADIKA)),
-            semanticFeatures = setOf(SemanticFeature.SAMUHA, SemanticFeature.STRI, SemanticFeature.SAPTAMI),
-        )
-        assertEquals(DerivationalMeaning.SAMUHA, state.effectiveContext.requestedMeaning)
-        assertEquals(Linga.STRI, state.effectiveContext.rupa.linga)
-        assertEquals(Vibhakti.SAPTAMI, state.effectiveContext.rupa.vibhakti)
-    }
-
-    @Test
-    fun `legacy bhāve and vartamāna features project to their distinct typed axes`() {
-        val state = DerivationState(
-            listOf(DerivationTerm("stem", "लोहित", TermKind.PRATIPADIKA)),
-            semanticFeatures = setOf(SemanticFeature.BHAVE, SemanticFeature.VARTAMANA),
-        )
-
-        assertEquals(DerivationalMeaning.BHAVA, state.effectiveContext.requestedMeaning)
-        assertEquals(Kala.VARTAMANA, state.effectiveContext.kala)
-        assertEquals(Prayoga.BHAVE, state.effectiveContext.rupa.prayoga)
-    }
-
-    @Test
-    fun `legacy guṇa and vṛddhi requests project to a typed phonological request`() {
-        val guna = DerivationState(
-            listOf(DerivationTerm("stem", "इ", TermKind.PRATIPADIKA)),
-            semanticFeatures = setOf(SemanticFeature.GUNA_REQUEST),
-        )
-        val vrddhi = guna.copy(semanticFeatures = setOf(SemanticFeature.VRDDHI_REQUEST))
-
-        assertEquals(PhonologicalRequest.GUNA, guna.effectiveContext.phonologicalRequest)
-        assertEquals(PhonologicalRequest.VRDDHI, vrddhi.effectiveContext.phonologicalRequest)
-        assertTrue(HasPhonologicalRequest(PhonologicalRequest.VRDDHI).matches(vrddhi))
     }
 
     @Test
@@ -149,9 +112,9 @@ class DerivationEngineTest {
         assertEquals(21, SupAffix.entries.size)
         assertEquals(SupAffix.SU, SupAffix.select(Vibhakti.PRATHAMA, Vacana.EKAVACANA))
         assertEquals(SupAffix.SUP, SupAffix.select(Vibhakti.SAPTAMI, Vacana.BAHUVACANA))
-        assertEquals(SupAffix.SUP, SupAffix.fromFeatures(setOf(SemanticFeature.SAPTAMI, SemanticFeature.BAHUVACANA)))
-        assertEquals(null, SupAffix.fromFeatures(setOf(SemanticFeature.SAPTAMI)))
-        assertEquals(null, SupAffix.fromFeatures(setOf(SemanticFeature.SAPTAMI, SemanticFeature.EKAVACANA, SemanticFeature.BAHUVACANA)))
+        assertEquals(SupAffix.SUP, SupAffix.fromContext(DerivationalContext(rupa = Rupa(vibhakti = Vibhakti.SAPTAMI, vacana = Vacana.BAHUVACANA))))
+        assertEquals(null, SupAffix.fromContext(DerivationalContext(rupa = Rupa(vibhakti = Vibhakti.SAPTAMI))))
+        assertEquals(null, SupAffix.fromContext(DerivationalContext(rupa = Rupa(vacana = Vacana.BAHUVACANA))))
         assertEquals(SupAffix.AUT, SubantaFormPlans.find(Vibhakti.DVITIYA, Vacana.DVIVACANA)?.affix)
         assertEquals(SupAffix.SAS, SubantaFormPlans.find(Vibhakti.DVITIYA, Vacana.BAHUVACANA)?.affix)
         assertEquals(DerivationStage.FINAL, SubantaFormPlans.find(Vibhakti.PRATHAMA, Vacana.EKAVACANA)?.finalStage)
@@ -313,7 +276,7 @@ class DerivationEngineTest {
     fun `typed conditions inspect grammatical state and operations introduce an affix`() {
         val state = DerivationState(
             terms = listOf(DerivationTerm("bhu", "भू", TermKind.DHATU)),
-            semanticFeatures = setOf(SemanticFeature.KARTARI),
+            context = DerivationalContext(rupa = Rupa(prayoga = Prayoga.KARTARI)),
         )
         val condition = HasTermKind(TermKind.DHATU)
         val operation = IntroduceTerm(
@@ -322,7 +285,7 @@ class DerivationEngineTest {
         )
 
         assertTrue(condition.matches(state))
-        assertTrue(HasSemanticFeature(SemanticFeature.KARTARI).matches(state))
+        assertTrue(HasMorphosyntax(prayoga = Prayoga.KARTARI).matches(state))
 
         val result = operation.apply(state)
 
@@ -335,11 +298,11 @@ class DerivationEngineTest {
     fun `conditions compose into a precise grammatical environment`() {
         val state = DerivationState(
             terms = listOf(DerivationTerm("bhu", "भू", TermKind.DHATU)),
-            semanticFeatures = setOf(SemanticFeature.KARTARI),
+            context = DerivationalContext(rupa = Rupa(prayoga = Prayoga.KARTARI)),
         )
         val condition = AllOf(
             HasTermKind(TermKind.DHATU),
-            HasSemanticFeature(SemanticFeature.KARTARI),
+            HasMorphosyntax(prayoga = Prayoga.KARTARI),
             Not(HasItMarker(ItMarker.KIT)),
         )
 
@@ -599,9 +562,4 @@ class DerivationEngineTest {
     }
 }
 
-class HasSemanticFeature(
-    private val feature: dev.sanskrit.shiksha.SemanticFeature,
-) : DerivationCondition {
-    override fun matches(state: DerivationState): Boolean = feature in state.semanticFeatures
-}
 

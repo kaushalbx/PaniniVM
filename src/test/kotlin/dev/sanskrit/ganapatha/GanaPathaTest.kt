@@ -63,11 +63,21 @@ import dev.sanskrit.ashtadhyayi.adhyaya4.pada1.NaKrodadibahvacahSutra
 import dev.sanskrit.ashtadhyayi.Ashtadhyayi
 import dev.sanskrit.derivation.DerivationState
 import dev.sanskrit.derivation.DerivationTerm
+import dev.sanskrit.derivation.DerivationStage
+import dev.sanskrit.derivation.VarnaComparison
+import dev.sanskrit.derivation.VarnaSubstitution
 import dev.sanskrit.shiksha.Samjna
 import dev.sanskrit.derivation.SamjnaAssignment
 import dev.sanskrit.derivation.TermKind
 import dev.sanskrit.shiksha.LexicalUse
-import dev.sanskrit.shiksha.SemanticFeature
+import dev.sanskrit.derivation.DerivationalEnvironment
+import dev.sanskrit.derivation.Prayoga
+import dev.sanskrit.derivation.Kala
+import dev.sanskrit.derivation.Rupa
+import dev.sanskrit.derivation.PhonologicalRequest
+import dev.sanskrit.derivation.Vibhakti
+import dev.sanskrit.derivation.Vacana
+import dev.sanskrit.shiksha.Linga
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -675,3 +685,156 @@ class GanaPathaTest {
         assertEquals("फिञ्", vakinadiResult.terms.last().upadesha)
     }
 }
+
+private enum class SemanticFeature {
+    KARTARI, STRI, PRATHAMA, EKAVACANA, BHAVISYAT, APADANA, UNADI_LICENSED,
+    SAMUHA, VISHAYA_DESE, ADHYAYANA_VEDANA, NIVASA, CHATURARTHIKA, JATA,
+    KALAVRTTI, TATRA_BHAVA, VYAKHYANA, TATAH_AGATA, ABHIJANA, GOTRA,
+    PRAGDIVYATIYA, SVANGA, APATYA, UDICYA, GUNA_REQUEST, VRDDHI_REQUEST,
+    ARDHADHATUKA, ASATTVA, KRIYAYOGA, TADRAJA, BHAVE, KARTR_VEDANA,
+    SAPTAMI, BAHUVACANA, VARTAMANA,
+    DVITIYA, TRTIYA, CHATURTHI, PANCHAMI, SASTHI, DVIVACANA
+}
+
+private fun DerivationState(
+    terms: List<DerivationTerm>,
+    droppedTerms: List<DerivationTerm> = emptyList(),
+    samjnas: Set<SamjnaAssignment> = emptySet(),
+    stage: DerivationStage = DerivationStage.INITIAL,
+    activeAdhikaras: Set<String> = emptySet(),
+    inheritedAnuvrtti: Set<String> = emptySet(),
+    blockedSutras: Map<String, String> = emptyMap(),
+    varnaComparisons: Set<VarnaComparison> = emptySet(),
+    substitutions: List<VarnaSubstitution> = emptyList(),
+    semanticFeatures: Set<SemanticFeature> = emptySet(),
+): DerivationState {
+    return DerivationState(
+        terms = terms,
+        droppedTerms = droppedTerms,
+        samjnas = samjnas,
+        stage = stage,
+        context = mapFeaturesToContext(semanticFeatures, DerivationalContext()),
+        activeAdhikaras = activeAdhikaras,
+        inheritedAnuvrtti = inheritedAnuvrtti,
+        blockedSutras = blockedSutras,
+        varnaComparisons = varnaComparisons,
+        substitutions = substitutions
+    )
+}
+
+private val DerivationState.semanticFeatures: Set<SemanticFeature>
+    get() = mapContextToFeatures(this.context)
+
+private fun DerivationState.copy(
+    semanticFeatures: Set<SemanticFeature>
+): DerivationState {
+    return this.copy(context = mapFeaturesToContext(semanticFeatures, this.context))
+}
+
+private fun mapFeaturesToContext(features: Set<SemanticFeature>, baseContext: DerivationalContext): DerivationalContext {
+    var ctx = clearFeaturesFromContext(baseContext)
+    features.forEach { feature ->
+        ctx = when (feature) {
+            SemanticFeature.KARTARI -> ctx.copy(rupa = ctx.rupa.copy(prayoga = Prayoga.KARTARI))
+            SemanticFeature.STRI -> ctx.copy(rupa = ctx.rupa.copy(linga = Linga.STRI))
+            SemanticFeature.PRATHAMA -> ctx.copy(rupa = ctx.rupa.copy(vibhakti = Vibhakti.PRATHAMA))
+            SemanticFeature.EKAVACANA -> ctx.copy(rupa = ctx.rupa.copy(vacana = Vacana.EKAVACANA))
+            SemanticFeature.BHAVISYAT -> ctx.copy(
+                requestedMeaning = DerivationalMeaning.BHAVISYAT,
+                derivedMeanings = ctx.derivedMeanings + DerivationalMeaning.BHAVISYAT,
+                kala = Kala.BHAVISYAT
+            )
+            SemanticFeature.APADANA -> ctx.copy(requestedMeaning = DerivationalMeaning.APADANA)
+            SemanticFeature.UNADI_LICENSED -> ctx.copy(environments = ctx.environments + DerivationalEnvironment.UNADI_LICENSED)
+            SemanticFeature.SAMUHA -> ctx.copy(requestedMeaning = DerivationalMeaning.SAMUHA)
+            SemanticFeature.VISHAYA_DESE -> ctx.copy(requestedMeaning = DerivationalMeaning.VISHAYA_DESE)
+            SemanticFeature.ADHYAYANA_VEDANA -> ctx.copy(requestedMeaning = DerivationalMeaning.ADHYAYANA_VEDANA)
+            SemanticFeature.NIVASA -> ctx.copy(requestedMeaning = DerivationalMeaning.NIVASA)
+            SemanticFeature.CHATURARTHIKA -> ctx.copy(environments = ctx.environments + DerivationalEnvironment.CHATURARTHIKA)
+            SemanticFeature.JATA -> ctx.copy(requestedMeaning = DerivationalMeaning.JATA)
+            SemanticFeature.KALAVRTTI -> ctx.copy(environments = ctx.environments + DerivationalEnvironment.KALAVRTTI)
+            SemanticFeature.TATRA_BHAVA -> ctx.copy(requestedMeaning = DerivationalMeaning.TATRA_BHAVA)
+            SemanticFeature.VYAKHYANA -> ctx.copy(requestedMeaning = DerivationalMeaning.VYAKHYANA)
+            SemanticFeature.TATAH_AGATA -> ctx.copy(requestedMeaning = DerivationalMeaning.TATAH_AGATA)
+            SemanticFeature.ABHIJANA -> ctx.copy(requestedMeaning = DerivationalMeaning.ABHIJANA)
+            SemanticFeature.GOTRA -> ctx.copy(requestedMeaning = DerivationalMeaning.GOTRA)
+            SemanticFeature.PRAGDIVYATIYA -> ctx.copy(environments = ctx.environments + DerivationalEnvironment.PRAGDIVYATIYA)
+            SemanticFeature.SVANGA -> ctx.copy(environments = ctx.environments + DerivationalEnvironment.SVANGA)
+            SemanticFeature.APATYA -> ctx.copy(requestedMeaning = DerivationalMeaning.APATYA)
+            SemanticFeature.UDICYA -> ctx.copy(environments = ctx.environments + DerivationalEnvironment.UDICYA)
+            SemanticFeature.GUNA_REQUEST -> ctx.copy(phonologicalRequest = PhonologicalRequest.GUNA)
+            SemanticFeature.VRDDHI_REQUEST -> ctx.copy(phonologicalRequest = PhonologicalRequest.VRDDHI)
+            SemanticFeature.ARDHADHATUKA -> ctx.copy(environments = ctx.environments + DerivationalEnvironment.ARDHADHATUKA)
+            SemanticFeature.ASATTVA -> ctx.copy(environments = ctx.environments + DerivationalEnvironment.ASATTVA)
+            SemanticFeature.KRIYAYOGA -> ctx.copy(environments = ctx.environments + DerivationalEnvironment.KRIYAYOGA)
+            SemanticFeature.TADRAJA -> ctx.copy(
+                requestedMeaning = DerivationalMeaning.TADRAJA,
+                derivedMeanings = ctx.derivedMeanings + DerivationalMeaning.TADRAJA
+            )
+            SemanticFeature.BHAVE -> ctx.copy(
+                requestedMeaning = DerivationalMeaning.BHAVA,
+                rupa = ctx.rupa.copy(prayoga = Prayoga.BHAVE)
+            )
+            SemanticFeature.KARTR_VEDANA -> ctx.copy(requestedMeaning = DerivationalMeaning.KARTR_VEDANA)
+            SemanticFeature.SAPTAMI -> ctx.copy(rupa = ctx.rupa.copy(vibhakti = Vibhakti.SAPTAMI))
+            SemanticFeature.BAHUVACANA -> ctx.copy(rupa = ctx.rupa.copy(vacana = Vacana.BAHUVACANA))
+            SemanticFeature.VARTAMANA -> ctx.copy(kala = Kala.VARTAMANA)
+            SemanticFeature.DVITIYA -> ctx.copy(rupa = ctx.rupa.copy(vibhakti = Vibhakti.DVITIYA))
+            SemanticFeature.TRTIYA -> ctx.copy(rupa = ctx.rupa.copy(vibhakti = Vibhakti.TRTIYA))
+            SemanticFeature.CHATURTHI -> ctx.copy(rupa = ctx.rupa.copy(vibhakti = Vibhakti.CHATURTHI))
+            SemanticFeature.PANCHAMI -> ctx.copy(rupa = ctx.rupa.copy(vibhakti = Vibhakti.PANCHAMI))
+            SemanticFeature.SASTHI -> ctx.copy(rupa = ctx.rupa.copy(vibhakti = Vibhakti.SASTHI))
+            SemanticFeature.DVIVACANA -> ctx.copy(rupa = ctx.rupa.copy(vacana = Vacana.DVIVACANA))
+        }
+    }
+    return ctx
+}
+
+private fun clearFeaturesFromContext(context: DerivationalContext): DerivationalContext {
+    return context.copy(
+        rupa = context.rupa.copy(
+            vibhakti = null,
+            vacana = null,
+            prayoga = null,
+            linga = if (context.rupa.linga == Linga.STRI) null else context.rupa.linga
+        ),
+        environments = emptySet(),
+        derivedMeanings = emptySet(),
+        requestedMeaning = null,
+        phonologicalRequest = null,
+        kala = null
+    )
+}
+
+private fun mapContextToFeatures(context: DerivationalContext): Set<SemanticFeature> {
+    val features = mutableSetOf<SemanticFeature>()
+    if (context.rupa.prayoga == Prayoga.KARTARI) features.add(SemanticFeature.KARTARI)
+    if (context.rupa.linga == Linga.STRI) features.add(SemanticFeature.STRI)
+    if (context.rupa.vibhakti == Vibhakti.PRATHAMA) features.add(SemanticFeature.PRATHAMA)
+    if (context.rupa.vacana == Vacana.EKAVACANA) features.add(SemanticFeature.EKAVACANA)
+    if (DerivationalMeaning.BHAVISYAT in context.derivedMeanings || context.kala == Kala.BHAVISYAT) features.add(SemanticFeature.BHAVISYAT)
+    if (DerivationalEnvironment.UNADI_LICENSED in context.environments) features.add(SemanticFeature.UNADI_LICENSED)
+    if (DerivationalEnvironment.CHATURARTHIKA in context.environments) features.add(SemanticFeature.CHATURARTHIKA)
+    if (DerivationalEnvironment.KALAVRTTI in context.environments) features.add(SemanticFeature.KALAVRTTI)
+    if (DerivationalEnvironment.PRAGDIVYATIYA in context.environments) features.add(SemanticFeature.PRAGDIVYATIYA)
+    if (DerivationalEnvironment.SVANGA in context.environments) features.add(SemanticFeature.SVANGA)
+    if (DerivationalEnvironment.UDICYA in context.environments) features.add(SemanticFeature.UDICYA)
+    if (context.phonologicalRequest == PhonologicalRequest.GUNA) features.add(SemanticFeature.GUNA_REQUEST)
+    if (context.phonologicalRequest == PhonologicalRequest.VRDDHI) features.add(SemanticFeature.VRDDHI_REQUEST)
+    if (DerivationalEnvironment.ARDHADHATUKA in context.environments) features.add(SemanticFeature.ARDHADHATUKA)
+    if (DerivationalEnvironment.ASATTVA in context.environments) features.add(SemanticFeature.ASATTVA)
+    if (DerivationalEnvironment.KRIYAYOGA in context.environments) features.add(SemanticFeature.KRIYAYOGA)
+    if (DerivationalMeaning.TADRAJA in context.derivedMeanings || context.requestedMeaning == DerivationalMeaning.TADRAJA) features.add(SemanticFeature.TADRAJA)
+    if (context.rupa.prayoga == Prayoga.BHAVE || context.requestedMeaning == DerivationalMeaning.BHAVA) features.add(SemanticFeature.BHAVE)
+    if (context.rupa.vibhakti == Vibhakti.SAPTAMI) features.add(SemanticFeature.SAPTAMI)
+    if (context.rupa.vacana == Vacana.BAHUVACANA) features.add(SemanticFeature.BAHUVACANA)
+    if (context.kala == Kala.VARTAMANA) features.add(SemanticFeature.VARTAMANA)
+    if (context.rupa.vibhakti == Vibhakti.DVITIYA) features.add(SemanticFeature.DVITIYA)
+    if (context.rupa.vibhakti == Vibhakti.TRTIYA) features.add(SemanticFeature.TRTIYA)
+    if (context.rupa.vibhakti == Vibhakti.CHATURTHI) features.add(SemanticFeature.CHATURTHI)
+    if (context.rupa.vibhakti == Vibhakti.PANCHAMI) features.add(SemanticFeature.PANCHAMI)
+    if (context.rupa.vibhakti == Vibhakti.SASTHI) features.add(SemanticFeature.SASTHI)
+    if (context.rupa.vacana == Vacana.DVIVACANA) features.add(SemanticFeature.DVIVACANA)
+    return features
+}
+

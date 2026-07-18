@@ -5,7 +5,6 @@ import dev.sanskrit.ashtadhyayi.adhyaya1.pada1.IkoGunaVrddhiSutra
 import dev.sanskrit.ashtadhyayi.adhyaya1.pada1.KngitiCaSutra
 import dev.sanskrit.ashtadhyayi.adhyaya1.pada1.NajjhalauSutra
 import dev.sanskrit.ashtadhyayi.adhyaya1.pada1.TulyasyaprayatnamSavarnamSutra
-import dev.sanskrit.shiksha.SemanticFeature
 import dev.sanskrit.shiksha.Samjna
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -16,7 +15,7 @@ class OpeningSutrasTest {
     fun `iko guna vrddhi performs the requested substitution and records it`() {
         val state = DerivationState(
             terms = listOf(DerivationTerm("root", "इ", TermKind.DHATU)),
-            semanticFeatures = setOf(SemanticFeature.GUNA_REQUEST),
+            context = DerivationalContext(phonologicalRequest = PhonologicalRequest.GUNA),
         )
 
         val change = IkoGunaVrddhiSutra.apply(state)
