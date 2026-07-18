@@ -15,17 +15,23 @@ rule interface; supported forms additionally verify required rules end to end.
 - Complete masculine a-stem `sup` paradigms.
 - Declared `tiṅ` paradigms across all ten lakāras, including Parasmaipada and
   Ātmanepada coverage for representative roots.
-- Gaṇa-specific `LAT` stem formation for all ten Dhātupāṭha gaṇas.
+- Gaṇa-specific `LAT`, `LOT`, `LANG`, and `LING` stem formation for all ten
+  Dhātupāṭha gaṇas, including strong/weak stem selection.
 - Kryādi `LOT` support in both padas, verified with all 18 forms of
   `डुक्रीञ्`.
+- Representative Parasmaipada `LING` surfaces verified across all ten gaṇas,
+  including `अद्यात्`, `जुहुयात्`, `सुनुयात्`, `रुन्ध्यात्`, `क्रीणीयात्`,
+  and `चोरयेत्`.
 - A complete ten-gaṇa Dhātupāṭha catalogue with pada metadata.
 
 ## Near-term work
 
-1. Extend gaṇa-aware stem formation beyond `LAT`.
-   - carry each class rule into `LOT`, `LANG`, and `LING`
-   - preserve strong/weak stem selection per ending
-   - add complete paradigms rather than isolated forms
+1. Complete exact gaṇa-paradigm validation.
+   - verify all nine Parasmaipada `LING` surfaces for a representative root
+     from each gaṇa
+   - extend exact validation to applicable Ātmanepada paradigms
+   - repeat the surface audit for `LOT` and `LANG`
+   - keep the regression coverage concise and data-driven
 
 2. Broaden root validation.
    - test representative vowel-final and consonant-final roots

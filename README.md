@@ -15,9 +15,13 @@ blocked alternatives where available.
   `LUNG`, and `LRNG`.
 - Parasmaipada, Ātmanepada, and explicit Ubhayapada selection through the
   verbal API.
-- Gaṇa-aware present-stem derivation for all ten Dhātupāṭha gaṇas.
+- Gaṇa-aware stem derivation for `LAT`, `LOT`, `LANG`, and `LING` across all
+  ten Dhātupāṭha gaṇas, with class-specific strong/weak stem selection.
 - Complete Kryādi present and imperative paradigms for `डुक्रीञ्`, including
   strong/weak `श्ना` formation and the expected `क्रीणातु`/`क्रीणीताम्` forms.
+- Representative Parasmaipada optatives verified across all ten gaṇas,
+  including `अद्यात्`, `जुहुयात्`, `सुनुयात्`, `रुन्ध्यात्`, `क्रीणीयात्`,
+  and `चोरयेत्`.
 
 Coverage is deliberately plan-based: a declared form is accepted only when
 its required sūtras occur in an end-to-end derivation. This is not yet a
@@ -27,21 +31,43 @@ Aṣṭādhyāyī.
 ## Run
 
 ```sh
+# Nominal paradigms and individual derivations
 ./gradlew run --args="--paradigm राम"
+./gradlew run --args="--paradigm देव"
 ./gradlew run --args="--derive राम SASTHI BAHUVACANA"
 ./gradlew run --args="--derive राम षष्ठी बहुवचन"
+./gradlew run --args="--derive देव SAPTAMI EKAVACANA"
+
+# Verbal derivations (defaults to LAT and EKAVACANA)
 ./gradlew run --args="--verb भू"
+./gradlew run --args="--verb भू LING EKAVACANA"
+./gradlew run --args="--verb भू लिङ् बहुवचन"
 ./gradlew run --args="--verb भू LOT बहुवचन"
+./gradlew run --args="--verb अद् LING EKAVACANA"
+./gradlew run --args="--verb हु LOT EKAVACANA"
+./gradlew run --args="--verb रुधिँर् LANG EKAVACANA"
 ./gradlew run --args="--verb डुक्रीञ् LOT एकवचन"
+./gradlew run --args="--verb चुरँ LING EKAVACANA"
+
+# Other supported lakāras
+./gradlew run --args="--verb भू LIT EKAVACANA"
+./gradlew run --args="--verb भू LUT DVIVACANA"
+./gradlew run --args="--verb भू LRT BAHUVACANA"
+./gradlew run --args="--verb भू LET EKAVACANA"
+./gradlew run --args="--verb भू LUNG EKAVACANA"
+./gradlew run --args="--verb भू LRNG EKAVACANA"
+
+# Registry inspection and implementation coverage
 ./gradlew run --args="--coverage"
 ./gradlew run --args="--sutra 7.1.54"
+./gradlew run --args="--sutra 3.4.103"
 ```
 
 `--derive` prints a nominal form followed by its ordered sūtra trace.
-`--verb` accepts any `Lakara` enum name or its Devanagari upadeśa, followed by
-an optional number. It defaults to `LAT` and singular. `--sutra` prints the
-typed metadata for an implemented rule, and `--coverage` prints the current
-implementation count.
+`--verb` derives prathama-puruṣa and accepts any `Lakara` enum name or its
+Devanagari upadeśa, followed by an optional number. It defaults to `LAT` and
+singular. `--sutra` prints the typed metadata for an implemented rule, and
+`--coverage` prints the current implementation count.
 
 Programmatic paradigm generation is available through `SubantaEngine` and
 `TingantaEngine`. Their paradigm results expose both final surfaces and the
@@ -53,7 +79,7 @@ complete derivation for every supported slot.
 ./gradlew test
 ```
 
-To print the step-by-step Kryādi LOT derivations for both padas:
+To print the step-by-step Curādi Ātmanepada `LING` derivation:
 
 ```sh
 ./gradlew test --tests "dev.sanskrit.ScratchTest.testDerivationTrace" --info
