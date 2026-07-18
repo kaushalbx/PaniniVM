@@ -1,4 +1,4 @@
-# Aṣṭādhyāyī Compiler
+# PaniniVM
 
 Kotlin implementation of an executable Pāṇinian derivation system. Implemented
 sūtras carry typed metadata and executable eligibility and state-transition
