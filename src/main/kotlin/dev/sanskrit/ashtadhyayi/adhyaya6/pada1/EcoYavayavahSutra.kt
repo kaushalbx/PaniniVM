@@ -40,6 +40,7 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
             if (context.effectiveContext.rupa.lakara == Lakara.LET &&
                 rightTerm.upadesha == "झि" && context.substitutions.none { it.sutra == "3.4.94" }
             ) continue
+            if (lotEndingReplacementPending(context, rightTerm.surface)) continue
             val left = context.terms[i].surface.lastOrNull() ?: continue
             val right = rightTerm.surface.firstOrNull() ?: continue
             if (engine.contains(Pratyahara.EC, left) && engine.contains(Pratyahara.AC, right)) {
@@ -57,6 +58,7 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
             if (context.effectiveContext.rupa.lakara == Lakara.LET &&
                 rightTerm.upadesha == "झि" && context.substitutions.none { it.sutra == "3.4.94" }
             ) continue
+            if (lotEndingReplacementPending(context, rightTerm.surface)) continue
             val leftChar = leftTerm.surface.lastOrNull() ?: continue
             val rightChar = rightTerm.surface.firstOrNull() ?: continue
             if (engine.contains(Pratyahara.EC, leftChar) && engine.contains(Pratyahara.AC, rightChar)) {
@@ -135,4 +137,9 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
         'औ', 'ौ' -> "आव्"
         else -> ""
     }
+
+    private fun lotEndingReplacementPending(context: DerivationState, surface: String): Boolean =
+        context.effectiveContext.rupa.lakara == Lakara.LOT &&
+            surface in setOf("ते", "एते", "आते", "न्ते", "अन्ते", "अते", "एथे", "आथे") &&
+            context.substitutions.none { it.sutra == "3.4.90" }
 }
