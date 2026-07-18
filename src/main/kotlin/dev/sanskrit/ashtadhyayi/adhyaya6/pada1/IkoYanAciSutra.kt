@@ -36,13 +36,12 @@ object IkoYanAciSutra : Sutra<DerivationState, DerivationChange>(
         if (context.stage !in setOf(DerivationStage.IT_PROCESSED, DerivationStage.ANGAKARYA, DerivationStage.PADA_FORMED)) return false
         
         val terms = context.terms
-        if (terms.size < 2) return false
-        
-        val left = terms[terms.size - 2].surface.lastOrNull() ?: return false
-        val right = terms.last().surface.firstOrNull() ?: return false
+        val (leftIndex, rightIndex) = targetPair(context) ?: return false
+        val left = terms[leftIndex].surface.lastOrNull() ?: return false
+        val right = terms[rightIndex].surface.firstOrNull() ?: return false
         val isGhiFirstOrSecondDual = context.effectiveContext.rupa.vacana == Vacana.DVIVACANA &&
             context.effectiveContext.rupa.vibhakti in setOf(Vibhakti.PRATHAMA, Vibhakti.DVITIYA) &&
-            context.samjnas.any { it.targetId == terms[terms.size - 2].id && it.samjna == Samjna.GHI }
+            context.samjnas.any { it.targetId == terms[leftIndex].id && it.samjna == Samjna.GHI }
         if (isGhiFirstOrSecondDual) return false
         
         val engine = Ashtadhyayi.pratyaharaEngine
@@ -53,8 +52,9 @@ object IkoYanAciSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val terms = context.terms
-        val leftTerm = terms[terms.size - 2]
-        val rightTerm = terms.last()
+        val (leftIndex, rightIndex) = requireNotNull(targetPair(context))
+        val leftTerm = terms[leftIndex]
+        val rightTerm = terms[rightIndex]
         
         val leftVowel = leftTerm.surface.last()
         val replacement = yanFor(leftVowel)
@@ -65,6 +65,17 @@ object IkoYanAciSutra : Sutra<DerivationState, DerivationChange>(
         } else {
             leftTerm.surface.dropLast(1) + replacement
         }
+        if (rightTerm.id == "siyut") {
+            val newTerms = terms.toMutableList()
+            newTerms[leftIndex] = leftTerm.copy(surface = merge(newLeftSurface, rightTerm.surface.take(1)))
+            newTerms[rightIndex] = rightTerm.copy(surface = rightTerm.surface.drop(1))
+            return DerivationChange(
+                state = context.copy(terms = newTerms, stage = DerivationStage.PADA_FORMED)
+                    .addSubstitution(VarnaSubstitution(leftTerm.id, leftVowel, replacement, sutra)),
+                explanation = "6.1.77: substituted $replacement for $leftVowel before the vowel of सीयुट्.",
+            )
+        }
+
         val mergedSurface = merge(newLeftSurface, rightTerm.surface)
         
         return DerivationChange(
@@ -75,6 +86,13 @@ object IkoYanAciSutra : Sutra<DerivationState, DerivationChange>(
             ).addSubstitution(VarnaSubstitution(leftTerm.id, leftVowel, replacement, sutra)),
             explanation = "6.1.77: substituted $replacement for $leftVowel before vowel and merged terms."
         )
+    }
+
+    private fun targetPair(context: DerivationState): Pair<Int, Int>? {
+        val siyutIndex = context.terms.indexOfFirst { it.id == "siyut" && it.surface.isNotEmpty() }
+        if (siyutIndex > 0) return (siyutIndex - 1) to siyutIndex
+        if (context.terms.size < 2) return null
+        return (context.terms.lastIndex - 1) to context.terms.lastIndex
     }
 
     private fun merge(left: String, right: String): String {

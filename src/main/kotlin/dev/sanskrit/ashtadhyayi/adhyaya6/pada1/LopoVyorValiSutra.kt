@@ -38,7 +38,9 @@ object LopoVyorValiSutra : Sutra<DerivationState, DerivationChange>(
             val isLateLingVikarana = context.effectiveContext.rupa.lakara == Lakara.LING &&
                 leftTerm.upadesha in setOf("शप्", "श्यन्", "श") &&
                 TingAffix.entries.any { it.upadesha == rightTerm.upadesha }
-            if (!hasPadaScope && !isLateLingVikarana) continue
+            val isLingSiyut = context.effectiveContext.rupa.lakara == Lakara.LING &&
+                leftTerm.id == "siyut" && TingAffix.entries.any { it.upadesha == rightTerm.upadesha }
+            if (!hasPadaScope && !isLateLingVikarana && !isLingSiyut) continue
             if (context.effectiveContext.rupa.lakara == Lakara.LUNG &&
                 leftTerm.id == "vuk" && rightTerm.upadesha in setOf("च्लि", "सिच्")
             ) continue
@@ -63,7 +65,9 @@ object LopoVyorValiSutra : Sutra<DerivationState, DerivationChange>(
             val isLateLingVikarana = context.effectiveContext.rupa.lakara == Lakara.LING &&
                 left.upadesha in setOf("शप्", "श्यन्", "श") &&
                 TingAffix.entries.any { it.upadesha == rightTerm.upadesha }
-            if (!hasPadaScope && !isLateLingVikarana) continue
+            val isLingSiyut = context.effectiveContext.rupa.lakara == Lakara.LING &&
+                left.id == "siyut" && TingAffix.entries.any { it.upadesha == rightTerm.upadesha }
+            if (!hasPadaScope && !isLateLingVikarana && !isLingSiyut) continue
             if (context.effectiveContext.rupa.lakara == Lakara.LUNG &&
                 left.id == "vuk" && rightTerm.upadesha in setOf("च्लि", "सिच्")
             ) continue

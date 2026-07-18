@@ -217,7 +217,7 @@ object TingantaFormPlans {
     private fun vikaranaSutras(gana: Gana): Set<String> = when (gana) {
         Gana.BHVADI    -> emptySet()          // शप् is selected automatically; LAT plan only required 3.4.78
         Gana.ADADI     -> setOf("2.4.72")
-        Gana.JUHOTYADI -> setOf("2.4.75", "6.1.10", "6.1.4", "7.4.62")
+        Gana.JUHOTYADI -> setOf("2.4.75", "6.1.10", "6.1.4")
         Gana.DIVADI    -> setOf("3.1.69")
         Gana.SVADI     -> setOf("3.1.73")
         Gana.TUDADI    -> setOf("3.1.77")

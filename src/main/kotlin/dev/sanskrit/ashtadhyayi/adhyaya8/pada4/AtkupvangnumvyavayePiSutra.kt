@@ -41,9 +41,6 @@ object AtkupvangnumvyavayePiSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (HasMorphosyntax(vibhakti = Vibhakti.DVITIYA, vacana = Vacana.BAHUVACANA).matches(context)) return false
-        // 3.4.105's liṅ substitute रन् retains a dental न्: लभेरन्.
-        if (context.terms.any { it.surface == "रन्" }) return false
-
         // Matches if there is an 'n' preceded by 'r' or 'ṣ' with only allowed intervenors.
         val surface = context.surface
         val (rIndex, nIndex) = targetIndices(context) ?: return false

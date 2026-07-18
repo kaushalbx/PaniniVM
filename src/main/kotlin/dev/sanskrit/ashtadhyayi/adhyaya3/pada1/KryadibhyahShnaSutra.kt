@@ -66,6 +66,8 @@ object KryadibhyahShnaSutra : Sutra<DerivationState, DerivationChange>(
             affix.pada == PadaType.PARASMAIPADA
         ) {
             "नी"
+        } else if (context.effectiveContext.rupa.lakara == Lakara.LING) {
+            "न्"
         } else {
             when (affix) {
                 in strongAffixes -> "ना"
