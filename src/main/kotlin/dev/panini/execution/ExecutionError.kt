@@ -1,0 +1,12 @@
+package dev.panini.execution
+
+enum class ExecutionError {
+    DHATU_NOT_EXECUTABLE,
+    OPERATION_NOT_FOUND,
+    AMBIGUOUS_OPERATION,
+    MISSING_KARAKA,
+    UNRESOLVED_REFERENCE,
+    INVALID_VALUE,
+    ACTION_NOT_REGISTERED,
+    ACTION_FAILED,
+}

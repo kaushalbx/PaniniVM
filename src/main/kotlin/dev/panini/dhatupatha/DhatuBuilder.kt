@@ -38,8 +38,16 @@ class DhatuBuilder(private val gana: Gana) {
             pada = pada,
             itStatus = itStatus,
             karmatva = karmatva,
-            svara = svara
+            svara = svara,
         )
+    }
+
+    /** Adds a specialized executable dhātu while preserving gaṇa invariants. */
+    fun dhatu(dhatu: Dhatu) {
+        require(dhatu.gana == gana) { "Dhātu ${dhatu.id} belongs to ${dhatu.gana}, not $gana." }
+        require(dhatus.none { it.id == dhatu.id }) { "Duplicate dhātu id in $gana: ${dhatu.id}" }
+        require(dhatus.none { it.krama == dhatu.krama }) { "Duplicate dhātu krama in $gana: ${dhatu.krama}" }
+        dhatus += dhatu
     }
 
     fun build(): List<Dhatu> = dhatus.toList()

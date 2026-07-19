@@ -37,11 +37,7 @@ object RudhadiDhatus {
             "सम्पेषणे", "कूटना, पीसना, चूर्ण बनाना", "to crush, to grind, to powder",
             PadaType.UBHAYAPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
         )
-        dhatu(
-            "07.0007", 7, "युजिँर्", "युज्",
-            "योगे", "जुड़ना, मिलाप करना,एकत्र करना", "to bind,to restrain,to join,to unite,to apply, to combine",
-            PadaType.UBHAYAPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
-        )
+        dhatu(YujirDhatu())
         dhatu(
             "07.0008", 8, "उँछृदिँर्", "छृद्",
             "दीप्तिदेवनयोः", "चमकना, प्रकाशित होना, क्रीड़ा करना, खेलना", "to glow, to shine,to play",

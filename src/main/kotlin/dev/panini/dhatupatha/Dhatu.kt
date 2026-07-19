@@ -1,11 +1,12 @@
 package dev.panini.dhatupatha
 
+import dev.panini.execution.DhatuOperation
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
 
 /** One source entry from the Pāṇinian Dhātupāṭha. */
-data class Dhatu(
+open class Dhatu(
     val id: String,
     val krama: Int,
     val upadesha: String,
@@ -21,6 +22,9 @@ data class Dhatu(
 ) {
     /** Normalized root spelling used only by the derivation engine. */
     internal val derivationalSurface: String get() = sourceSurface
+
+    /** Declarative overloads available to the execution engine. */
+    open val operations: List<DhatuOperation> = emptyList()
 }
 
 /** The ten traditional gaṇas of the Dhātupāṭha. */
