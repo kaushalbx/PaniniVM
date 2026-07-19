@@ -2,18 +2,6 @@ package dev.panini.execution
 
 import dev.panini.derivation.Lakara
 
-data class SanskritUktiInput(
-    val speaker: String,
-    val listener: String,
-    val text: String,
-)
-
-sealed interface VakyaAnalysisResult {
-    data class Analyzed(val analysis: VakyaAnalysis, val trace: List<String>) : VakyaAnalysisResult
-    data class NeedsClarification(val question: String) : VakyaAnalysisResult
-    data class Unsupported(val message: String) : VakyaAnalysisResult
-}
-
 /**
  * First controlled language slice. It recognizes imperative युजिँर् sentences
  * whose coordinated operands are supported Sanskrit numeral forms.

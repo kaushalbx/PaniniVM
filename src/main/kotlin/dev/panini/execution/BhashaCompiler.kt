@@ -1,35 +1,6 @@
 package dev.panini.execution
 
-import dev.panini.derivation.Lakara
 import dev.panini.dhatupatha.DhatuPatha
-
-/** Output contract expected from a future Sanskrit sentence analyzer. */
-data class VakyaAnalysis(
-    val speaker: String,
-    val listener: String,
-    val sourceText: String,
-    val prayojana: VakyaPrayojana,
-    val polarity: Polarity = Polarity.POSITIVE,
-    val lakara: Lakara? = null,
-    val kriyas: List<KriyaAnalysis>,
-    val dependencies: Set<ActionDependency> = kriyas.zipWithNext { before, after ->
-        ActionDependency(before.id, after.id)
-    }.toSet(),
-)
-
-data class KriyaAnalysis(
-    val id: String,
-    /** Stable Dhātupāṭha identity; surface spelling is not sufficient. */
-    val dhatuId: String,
-    val karakas: Map<Karaka, ExecutionExpression>,
-    val selectedOperation: String? = null,
-    val metadata: Map<String, String> = emptyMap(),
-)
-
-sealed interface UktiCompilation {
-    data class Compiled(val ukti: Ukti, val trace: List<String>) : UktiCompilation
-    data class Invalid(val message: String) : UktiCompilation
-}
 
 /** Converts analyzed language into the stable semantic input of the runtime. */
 object BhashaCompiler {

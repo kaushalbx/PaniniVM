@@ -1,12 +1,5 @@
 package dev.panini.execution
 
-sealed interface OperationResolution {
-    data class Resolved(val value: ResolvedOperation) : OperationResolution
-    data class MissingInput(val karakas: Set<Karaka>, val message: String) : OperationResolution
-    data class Invalid(val error: ExecutionError, val message: String) : OperationResolution
-    data class Ambiguous(val operations: List<String>, val message: String) : OperationResolution
-}
-
 object OperationResolver {
     fun resolve(
         invocation: DhatuInvocation,
@@ -44,9 +37,9 @@ object OperationResolver {
                     "Required kārakas are missing for dhātu ${dhatu.upadesha}: $missing",
                 )
             }
-            val reason = evaluations.mapNotNull { (_, result) ->
+            val reason = evaluations.firstNotNullOfOrNull { (_, result) ->
                 (result as? SignatureEvaluation.Incompatible)?.reason
-            }.firstOrNull() ?: "No operation signature accepts this invocation."
+            } ?: "No operation signature accepts this invocation."
             return OperationResolution.Invalid(ExecutionError.INVALID_VALUE, reason)
         }
 
