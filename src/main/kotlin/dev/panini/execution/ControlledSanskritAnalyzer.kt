@@ -54,11 +54,15 @@ object ControlledSanskritAnalyzer {
                 "शेषय" -> "07.0014" to "सङ्ख्याशेषः"
                 "वर्धय" -> "01.0863" to "सङ्ख्याघातः"
                 "तुलय" -> "07.0013" to "सङ्ख्यातुलना"
-                else -> return VakyaAnalysisResult.Unsupported("Only controlled योजय, वियोजय, हर, गुणय, गणय, कुरु, निष्पादय, शेषय, वर्धय, and तुलय clauses are currently analyzed.")
+                "मूलय" -> "01.0607" to "सङ्ख्यामूलम्"
+                "समय" -> "10.0391" to "सङ्ख्यासाम्यम्"
+                "भज" -> "01.1153" to "सङ्ख्याभागः"
+                "न्यूनय" -> "07.0013" to "सङ्ख्यान्यूनत्वम्"
+                else -> return VakyaAnalysisResult.Unsupported("Only controlled mathematical and execution clauses are currently analyzed.")
             }
             clause.removeAt(clause.lastIndex)
             val operandForms = clause.filterNot { it == "च" }
-            val minOperands = if (selectedOp in setOf("सङ्ख्यागणनम्", "पदनिष्पत्तिः", "सङ्ख्यातुलना")) 1 else 2
+            val minOperands = if (selectedOp in setOf("सङ्ख्यागणनम्", "पदनिष्पत्तिः", "सङ्ख्यातुलना", "सङ्ख्यामूलम्", "सङ्ख्यासाम्यम्", "सङ्ख्यान्यूनत्वम्")) 1 else 2
             if (operandForms.size < minOperands) {
                 return VakyaAnalysisResult.NeedsClarification("क्रियायै न्यूनातिन्यूनं $minOperands सङ्ख्ये/पदानि अपेक्षिते।")
             }

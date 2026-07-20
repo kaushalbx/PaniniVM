@@ -897,7 +897,129 @@ class DhatuExecutionTest {
         val result = assertIs<Phala.Siddha>(response.phala)
         assertEquals("पञ्च", result.values["योग-१"])
     }
+
+    @Test
+    fun `mul computes square root of Sanskrit number word`() {
+        val mul = requireNotNull(DhatuPatha.find("01.0607"))
+        val context = ExecutionContext(
+            bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Literal("नव", setOf(ExecutionSamjna.SANKHYA)),
+            ),
+            selectedOperation = "सङ्ख्यामूलम्",
+        )
+
+        val result = assertIs<ExecutionResult.Success>(ExecutionEngine.execute(mul, context))
+
+        assertEquals("त्रि", result.value)
+        assertEquals("सङ्ख्यामूलम्", result.operation)
+    }
+
+    @Test
+    fun `gan computes average of Sanskrit number words`() {
+        val gan = requireNotNull(DhatuPatha.find("10.0391"))
+        val context = ExecutionContext(
+            bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Coordination(
+                    ExecutionExpression.Literal("द्वि", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.Literal("चतुर्", setOf(ExecutionSamjna.SANKHYA)),
+                )
+            ),
+            selectedOperation = "सङ्ख्यासाम्यम्",
+        )
+
+        val result = assertIs<ExecutionResult.Success>(ExecutionEngine.execute(gan, context))
+
+        assertEquals("त्रि", result.value)
+        assertEquals("सङ्ख्यासाम्यम्", result.operation)
+    }
+
+    @Test
+    fun `bhaj computes fraction of Sanskrit number words`() {
+        val bhaj = requireNotNull(DhatuPatha.find("01.1153"))
+        val context = ExecutionContext(
+            bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Coordination(
+                    ExecutionExpression.Literal("दश", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.Literal("द्वि", setOf(ExecutionSamjna.SANKHYA)),
+                )
+            ),
+            selectedOperation = "सङ्ख्याभागः",
+        )
+
+        val result = assertIs<ExecutionResult.Success>(ExecutionEngine.execute(bhaj, context))
+
+        assertEquals("पञ्च", result.value)
+        assertEquals("सङ्ख्याभागः", result.operation)
+    }
+
+    @Test
+    fun `vid computes minimum of Sanskrit number words`() {
+        val vid = requireNotNull(DhatuPatha.find("07.0013"))
+        val context = ExecutionContext(
+            bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Coordination(
+                    ExecutionExpression.Literal("पञ्च", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.Literal("त्रि", setOf(ExecutionSamjna.SANKHYA)),
+                )
+            ),
+            selectedOperation = "सङ्ख्यान्यूनत्वम्",
+        )
+
+        val result = assertIs<ExecutionResult.Success>(ExecutionEngine.execute(vid, context))
+
+        assertEquals("त्रि", result.value)
+        assertEquals("सङ्ख्यान्यूनत्वम्", result.operation)
+    }
+
+    @Test
+    fun `raw Sanskrit square root utterance is executed`() {
+        val response = BhashaExecutionEngine.executeAndRespond(
+            SanskritUktiInput("प्रयोक्ता", "यन्त्रम्", "हे यन्त्र, नव मूलय।"),
+            SambhashanaContext("प्रयोक्ता", "यन्त्रम्"),
+            ExecutionScope(authorizedSpeakers = setOf("प्रयोक्ता")),
+        )
+
+        val result = assertIs<Phala.Siddha>(response.phala)
+        assertEquals("त्रि", result.values["योग-१"])
+    }
+
+    @Test
+    fun `raw Sanskrit average utterance is executed`() {
+        val response = BhashaExecutionEngine.executeAndRespond(
+            SanskritUktiInput("प्रयोक्ता", "यन्त्रम्", "हे यन्त्र, द्वि चत्वारि च समय।"),
+            SambhashanaContext("प्रयोक्ता", "यन्त्रम्"),
+            ExecutionScope(authorizedSpeakers = setOf("प्रयोक्ता")),
+        )
+
+        val result = assertIs<Phala.Siddha>(response.phala)
+        assertEquals("त्रि", result.values["योग-१"])
+    }
+
+    @Test
+    fun `raw Sanskrit fraction utterance is executed`() {
+        val response = BhashaExecutionEngine.executeAndRespond(
+            SanskritUktiInput("प्रयोक्ता", "यन्त्रम्", "हे यन्त्र, दश द्वि च भज।"),
+            SambhashanaContext("प्रयोक्ता", "यन्त्रम्"),
+            ExecutionScope(authorizedSpeakers = setOf("प्रयोक्ता")),
+        )
+
+        val result = assertIs<Phala.Siddha>(response.phala)
+        assertEquals("पञ्च", result.values["योग-१"])
+    }
+
+    @Test
+    fun `raw Sanskrit minimum utterance is executed`() {
+        val response = BhashaExecutionEngine.executeAndRespond(
+            SanskritUktiInput("प्रयोक्ता", "यन्त्रम्", "हे यन्त्र, पञ्च त्रि च न्यूनय।"),
+            SambhashanaContext("प्रयोक्ता", "यन्त्रम्"),
+            ExecutionScope(authorizedSpeakers = setOf("प्रयोक्ता")),
+        )
+
+        val result = assertIs<Phala.Siddha>(response.phala)
+        assertEquals("त्रि", result.values["योग-१"])
+    }
 }
+
 
 
 

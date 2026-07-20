@@ -5337,11 +5337,7 @@ object BhvadiDhatus {
                 "सङ्घाते", "ढेर करना, बटोरना, सञ्चित करना", "to collect,to gather,to heap up,to assemble",
                 PadaType.PARASMAIPADA, ItStatus.SET, Karmatva.AKARMAKA, Accent.UDATTA,
             )
-            dhatu(
-                "01.0607", 607, "मूलँ", "मूल्",
-                "प्रतिष्ठायाम्", "जड़ जमाना", "to root, to be firm, to establish",
-                PadaType.PARASMAIPADA, ItStatus.SET, Karmatva.AKARMAKA, Accent.UDATTA,
-            )
+            dhatu(MulDhatu())
             dhatu(
                 "01.0608", 608, "फलँ", "फल्",
                 "निष्पत्तौ", "सफल होना", "to succeed, to complete, to conclude, to get good results",
@@ -8707,11 +8703,7 @@ object BhvadiDhatus {
                 Karmatva.SAKARMAKA,
                 Accent.UDATTA,
             )
-            dhatu(
-                "01.1153", 1153, "भजँ", "भज्",
-                "सेवायाम्", "भजना, भजन करना", "to worship,to honour,to pray, to serve",
-                PadaType.UBHAYAPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
-            )
+            dhatu(BhajDhatu())
             dhatu(
                 "01.1154", 1154, "रन्जँ", "रञ्ज्",
                 "रागे", "रंग देना, रंगना", "to paint, to color",

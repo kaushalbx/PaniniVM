@@ -10,6 +10,7 @@ import dev.panini.execution.Karaka
 import dev.panini.execution.KarakaRequirement
 import dev.panini.execution.OperationSignature
 import dev.panini.execution.SanskritComparisonAction
+import dev.panini.execution.SanskritMinAction
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
@@ -45,6 +46,22 @@ class VidDhatu : Dhatu(
             ),
             action = SanskritComparisonAction,
             resultSamjnas = setOf(ExecutionSamjna.SANKHYA),
-        )
+        ),
+        DhatuOperation(
+            id = "सङ्ख्यान्यूनत्वम्",
+            description = "सङ्ख्यानां न्यूनत्वम् (Minimum)",
+            signature = OperationSignature(
+                requirements = listOf(
+                    KarakaRequirement(
+                        karaka = Karaka.KARMAN,
+                        minimumMembers = 1,
+                        shape = ExpressionShape.COORDINATION,
+                        memberSamjnas = setOf(ExecutionSamjna.SANKHYA),
+                    )
+                )
+            ),
+            action = SanskritMinAction,
+            resultSamjnas = setOf(ExecutionSamjna.SANKHYA),
+        ),
     )
 }

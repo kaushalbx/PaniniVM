@@ -460,6 +460,174 @@ object SanskritComparisonAction : DhatuAction {
     }
 }
 
+/** Square Root (mūla) over Sanskrit number words. */
+object SanskritSquareRootAction : DhatuAction {
+    const val ID = "sankhya.mula"
+
+    override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
+        val expression = requireNotNull(context.bindings[Karaka.KARMAN])
+        val operands = context.resolve(expression)
+        val inputStr = operands.firstOrNull() ?: return ExecutionResult.Failure(
+            ExecutionError.INVALID_VALUE,
+            "Square root requires a number operand in KARMAN.",
+            listOf("Selected operation ${operation.id}."),
+        )
+        val value = SanskritNumbers.valueOf(inputStr) ?: return ExecutionResult.Failure(
+            ExecutionError.INVALID_VALUE,
+            "'$inputStr' is not a supported canonical Sanskrit number word.",
+            listOf("Selected operation ${operation.id}."),
+        )
+        if (value < 0) {
+            return ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                "Square root of negative number $value is undefined.",
+                listOf("Selected operation ${operation.id}."),
+            )
+        }
+        val root = kotlin.math.sqrt(value.toDouble()).toInt()
+        val result = SanskritNumbers.wordFor(root) ?: return ExecutionResult.Failure(
+            ExecutionError.INVALID_VALUE,
+            "The root result $root is outside the supported Sanskrit number vocabulary.",
+            listOf("Sqrt($value).")
+        )
+        return ExecutionResult.Success(
+            result,
+            operation.id,
+            listOf(
+                "Selected operation ${operation.id}.",
+                "Calculated sqrt($value).",
+                "Produced $result.",
+            ),
+        )
+    }
+}
+
+/** Averaging (sāmyakaraṇa / mādhyama) over Sanskrit number words. */
+object SanskritAverageAction : DhatuAction {
+    const val ID = "sankhya.samya"
+
+    override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
+        val expression = requireNotNull(context.bindings[Karaka.KARMAN])
+        val operands = context.resolve(expression)
+        val values = operands.map { operand ->
+            SanskritNumbers.valueOf(operand) ?: return ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                "'$operand' is not a supported canonical Sanskrit number word.",
+                listOf("Selected operation ${operation.id}."),
+            )
+        }
+        if (values.isEmpty()) {
+            return ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                "Averaging requires at least 1 number operand.",
+                listOf("Selected operation ${operation.id}."),
+            )
+        }
+        val avg = values.sum() / values.size
+        val result = SanskritNumbers.wordFor(avg) ?: return ExecutionResult.Failure(
+            ExecutionError.INVALID_VALUE,
+            "The average result $avg is outside the supported Sanskrit number vocabulary.",
+            listOf("Averaged ${operands.joinToString()}."),
+        )
+        return ExecutionResult.Success(
+            result,
+            operation.id,
+            listOf(
+                "Selected operation ${operation.id}.",
+                "Averaged ${operands.joinToString()}.",
+                "Produced $result.",
+            ),
+        )
+    }
+}
+
+/** Fraction / Ratio / Proportion (bhāga / trairāśika) over Sanskrit number words. */
+object SanskritFractionAction : DhatuAction {
+    const val ID = "sankhya.bhaga"
+
+    override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
+        val expression = requireNotNull(context.bindings[Karaka.KARMAN])
+        val operands = context.resolve(expression)
+        val values = operands.map { operand ->
+            SanskritNumbers.valueOf(operand) ?: return ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                "'$operand' is not a supported canonical Sanskrit number word.",
+                listOf("Selected operation ${operation.id}."),
+            )
+        }
+        if (values.size < 2) {
+            return ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                "Fraction/Ratio requires at least 2 number operands.",
+                listOf("Selected operation ${operation.id}."),
+            )
+        }
+        val res = if (values.size >= 3) {
+            val divisor = values[2]
+            if (divisor == 0) return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Division by zero in proportion.", listOf("Selected operation ${operation.id}."))
+            (values[0] * values[1]) / divisor
+        } else {
+            val divisor = values[1]
+            if (divisor == 0) return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Division by zero in fraction.", listOf("Selected operation ${operation.id}."))
+            values[0] / divisor
+        }
+        val result = SanskritNumbers.wordFor(res) ?: return ExecutionResult.Failure(
+            ExecutionError.INVALID_VALUE,
+            "The fraction result $res is outside the supported Sanskrit number vocabulary.",
+            listOf("Calculated fraction/proportion."),
+        )
+        return ExecutionResult.Success(
+            result,
+            operation.id,
+            listOf(
+                "Selected operation ${operation.id}.",
+                "Calculated ratio/proportion ${operands.joinToString()}.",
+                "Produced $result.",
+            ),
+        )
+    }
+}
+
+/** Minimum Selection (kaniṣṭhatva / nyūnatva) over Sanskrit number words. */
+object SanskritMinAction : DhatuAction {
+    const val ID = "sankhya.nyunatva"
+
+    override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
+        val expression = requireNotNull(context.bindings[Karaka.KARMAN])
+        val operands = context.resolve(expression)
+        val values = operands.map { operand ->
+            SanskritNumbers.valueOf(operand) ?: return ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                "'$operand' is not a supported canonical Sanskrit number word.",
+                listOf("Selected operation ${operation.id}."),
+            )
+        }
+        if (values.isEmpty()) {
+            return ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                "Minimum selection requires at least 1 number operand.",
+                listOf("Selected operation ${operation.id}."),
+            )
+        }
+        val minVal = values.minOrNull() ?: 0
+        val result = SanskritNumbers.wordFor(minVal) ?: return ExecutionResult.Failure(
+            ExecutionError.INVALID_VALUE,
+            "The min result $minVal is outside the supported Sanskrit number vocabulary.",
+            listOf("Calculated minimum of ${operands.joinToString()}."),
+        )
+        return ExecutionResult.Success(
+            result,
+            operation.id,
+            listOf(
+                "Selected operation ${operation.id}.",
+                "Found minimum among ${operands.joinToString()}.",
+                "Produced $result.",
+            ),
+        )
+    }
+}
+
+
 
 
 
