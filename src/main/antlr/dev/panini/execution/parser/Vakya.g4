@@ -4,152 +4,171 @@ grammar Vakya;
 package dev.panini.execution.parser;
 }
 
-// ----------------------------------------------------
-// Top-Level Sentence & Discourse Rules
-// ----------------------------------------------------
+// ====================================================
+// Top-level sentence structure
+// ====================================================
+
 utterance
-    : salutation? vakya (CONNECTIVE vakya)* DANDA? EOF
+    : sambodhana? vakya (CONNECTIVE vakya)* DANDA? EOF
     ;
 
-salutation
-    : HE IDENTIFIER COMMA?
+sambodhana
+    : HE subantaPada COMMA?
     ;
 
 vakya
-    : pada* (tingantaPada | avyayaKridantaPada) pada*     # StandardVakya
+    : pada* tingantaPada pada*
     ;
 
 pada
-    : coordinatedSubanta                                  # CoordinatedPada
-    | samasaSubanta                                       # SamasaPada
-    | subantaPada                                         # SingleSubantaPada
-    | avyayaKridantaPada                                  # KridantaAvyayaPada
-    | avyayaPada                                          # AvyayaPadaRule
+    : coordinatedSubanta
+    | subantaPada
+    | avyayaKridantaPada
+    | avyayaPada
     ;
 
-// ----------------------------------------------------
-// 1. Subantapada & Direct Kāraka AST Alternatives
-// ----------------------------------------------------
+// ====================================================
+// Nominal expressions
+// ====================================================
+
+/*
+ * Parses:
+ *
+ * एक + अम् द्वि + औट् त्रि + शस् च
+ *
+ * All members belong to one coordinated expression.
+ */
 coordinatedSubanta
-    : subantaPada (COMMA? subantaPada)* CHA subantaPada
+    : subantaPada (COMMA? subantaPada)+ CHA
     ;
 
-samasaSubanta
-    : samasaPratipadika (PLUS supPratyaya)?
-    ;
-
-samasaPratipadika
-    : pratipadika (COMPOUND_SEP pratipadika)+
-    ;
-
+/*
+ * Kāraka is intentionally not determined here.
+ *
+ * ANTLR identifies the nominal form. A later semantic
+ * analysis stage determines कर्तृ, कर्म, करण, etc.
+ */
 subantaPada
-    : karmanSubanta                                       # KarmanPada
-    | kartrSubanta                                        # KartrPada
-    | karanaSubanta                                       # KaranaPada
-    | sampradanaSubanta                                   # SampradanaPada
-    | apadanaSubanta                                      # ApadanaPada
-    | adhikaranaSubanta                                   # AdhikaranaPada
-    | numeralSubanta                                      # NumeralSubantaPada
-    | resultSubanta                                       # ResultSubantaPada
-    | kridantaPratipadika (PLUS supPratyaya)?             # KridantaSubantaDerivation
-    | taddhitaPratipadika (PLUS supPratyaya)?             # TaddhitaSubantaDerivation
-    | basePratipadika PLUS supPratyaya                    # BaseSubantaDerivation
-    | IDENTIFIER                                          # SurfaceSubanta
+    : nominalBase PLUS supPratyaya
+    | nominalBase
     ;
 
-karmanSubanta
-    : (pratipadika | IDENTIFIER) (PLUS SUP_DVITIYA | DVITIYA_END)
-    ;
-
-kartrSubanta
-    : (pratipadika | IDENTIFIER) (PLUS SUP_TRTIYA | TRTIYA_END)
-    ;
-
-karanaSubanta
-    : (pratipadika | IDENTIFIER) (PLUS SUP_TRTIYA | TRTIYA_END)
-    ;
-
-sampradanaSubanta
-    : (pratipadika | IDENTIFIER) (PLUS SUP_CHATURTHI | CHATURTHI_END)
-    ;
-
-apadanaSubanta
-    : (pratipadika | IDENTIFIER) (PLUS SUP_PANCHAMI | PANCHAMI_END)
-    ;
-
-adhikaranaSubanta
-    : (pratipadika | IDENTIFIER) (PLUS SUP_SAPTAMI | SAPTAMI_END)
-    ;
-
-numeralSubanta
-    : NUMERAL_LEAF (PLUS supPratyaya)?
-    ;
-
-resultSubanta
-    : RESULT_LEAF (PLUS supPratyaya)?
-    ;
-
-basePratipadika
-    : NUMERAL_LEAF
-    | RESULT_LEAF
+nominalBase
+    : taddhitaPratipadika
+    | kridantaPratipadika
+    | samasaPratipadika
+    | NUMERAL
+    | RESULT_REFERENCE
     | IDENTIFIER
     ;
 
-pratipadika
-    : basePratipadika
-    | kridantaPratipadika
+samasaPratipadika
+    : simplePratipadika (COMPOUND_SEPARATOR simplePratipadika)+
     ;
 
-// ----------------------------------------------------
-// 2. Kṛdanta Derivations (Primary Verbal Suffixes)
-// ----------------------------------------------------
+simplePratipadika
+    : NUMERAL
+    | RESULT_REFERENCE
+    | IDENTIFIER
+    ;
+
+// ====================================================
+// Kṛdanta derivations
+// ====================================================
+
 kridantaPratipadika
-    : dhatu (PLUS VIKARANA)? PLUS krtPratyaya
+    : dhatu (PLUS vikarana)? PLUS krtPratyaya
     ;
 
 avyayaKridantaPada
-    : (dhatu (PLUS VIKARANA)? PLUS avyayaKrtPratyaya)     # ExplicitAvyayaKridanta
-    | IDENTIFIER                                          # SurfaceAvyayaKridanta
+    : dhatu (PLUS vikarana)? PLUS avyayaKrtPratyaya
     ;
 
 krtPratyaya
-    : KTA | KTAVATU | TAVYAT | ANIYAR | SHATRI | SHANACH | GHANJ | LYUT | NVUL | KRT_PRATYAYA
+    : KTA
+    | KTAVATU
+    | TAVYAT
+    | ANIYAR
+    | SHATR
+    | SHANACH
+    | GHANJ
+    | LYUT
+    | NVUL
+    | TRICH
+    | ANIN
+    | KYAP
+    | YAT
+    | NYAT
     ;
 
 avyayaKrtPratyaya
-    : KTVAA | LYAP | TUMUN
+    : KTVA
+    | LYAP
+    | TUMUN
     ;
 
-// ----------------------------------------------------
-// 3. Taddhitānta Derivations (Secondary Nominal Suffixes)
-// ----------------------------------------------------
+// ====================================================
+// Taddhitānta derivations
+// ====================================================
+
 taddhitaPratipadika
-    : pratipadika PLUS taddhitaPratyaya
+    : simplePratipadika PLUS taddhitaPratyaya
     ;
 
 taddhitaPratyaya
-    : MATUP | INI | TVA | TAL | TARAP | TAMAP | MAYAT | TASI | TADDHITA_PRATYAYA
+    : MATUP
+    | VATUP
+    | INI
+    | TVA
+    | TAL
+    | TARAP
+    | TAMAP
+    | MAYAT
+    | TASIL
+    | AN
+    | INJ
+    | DHAK
+    | THAJ
+    | CHA_SUFFIX
     ;
 
-// ----------------------------------------------------
-// 4. Tiṅantapada (Verbal Expressions & Derivations)
-// ----------------------------------------------------
+// ====================================================
+// Verbal expressions
+// ====================================================
+
+/*
+ * Parses:
+ *
+ * युज् + णिच् + लोट् + सिप्
+ *
+ * Multiple sanādi suffixes are allowed because a verbal
+ * derivation may contain more than one such suffix.
+ */
 tingantaPada
-    : dhatu (PLUS SANADI)? (PLUS VIKARANA)? PLUS lakara (PLUS tingPratyaya)?  # ExplicitTingantaDerivation
-    | IDENTIFIER                                                               # SurfaceTinganta
+    : dhatu
+      (PLUS sanadiPratyaya)*
+      (PLUS vikarana)?
+      PLUS lakara
+      (PLUS tingPratyaya)?
+    | IDENTIFIER
     ;
 
 dhatu
     : IDENTIFIER
     ;
 
-supPratyaya
-    : SUP
-    | SUP_DVITIYA
-    | SUP_TRTIYA
-    | SUP_CHATURTHI
-    | SUP_PANCHAMI
-    | SUP_SAPTAMI
+sanadiPratyaya
+    : NIC
+    | SAN
+    | YANG
+    ;
+
+vikarana
+    : SHAP
+    | SHYAN
+    | SHNAM
+    | SHNU
+    | SNU
     ;
 
 lakara
@@ -160,100 +179,378 @@ tingPratyaya
     : TING
     ;
 
-// ----------------------------------------------------
-// 5. Avyayapada (Invariables, Modifiers & Connectives)
-// ----------------------------------------------------
+// ====================================================
+// Sup suffixes
+// ====================================================
+
+supPratyaya
+    : SUP_PRATHAMA
+    | SUP_DVITIYA
+    | SUP_TRTIYA
+    | SUP_CHATURTHI
+    | SUP_PANCHAMI
+    | SUP_SHASTHI
+    | SUP_SAPTAMI
+    ;
+
+// ====================================================
+// Indeclinables
+// ====================================================
+
 avyayaPada
-    : KRPAYA                                              # PrarthanaAvyaya
-    | MAA                                                 # NishedhaAvyaya
-    | CHA                                                 # SamuccayaAvyaya
+    : MAA
+    | KRPAYA
     ;
 
-// ----------------------------------------------------
-// Lexer Tokens
-// ----------------------------------------------------
-HE        : 'हे' ;
-CHA       : 'च' ;
-MAA       : 'मा' ;
-KRPAYA    : 'कृपया' ;
-CONNECTIVE: 'ततः' | 'अथ' | 'अनन्तरम्' ;
+// ====================================================
+// Lexer rules: punctuation and indeclinables
+// ====================================================
 
-PLUS      : '+' ;
-COMMA     : ',' | '،' ;
-COMPOUND_SEP : '-' | '—' ;
-DANDA     : '\u0964' | '\u0965' | '.' ;
-
-// Concrete Numeral & Result Leaves
-NUMERAL_LEAF
-    : 'शून्य' | 'शून्यम्' | 'शून्यं'
-    | 'एक' | 'एकम्' | 'एकं'
-    | 'द्वि' | 'द्वे'
-    | 'त्रि' | 'त्रीणि'
-    | 'चतुर्' | 'चत्वारि'
-    | 'पञ्च' | 'षट्' | 'सप्त' | 'अष्ट' | 'नव' | 'दश'
+HE
+    : 'हे'
     ;
 
-RESULT_LEAF
-    : 'फल' | 'फलम्' | 'फलं' | 'फले' | 'फलानि'
-    | 'पूर्वफल' | 'पूर्वफलम्' | 'पूर्वफलं' | 'पूर्वफले' | 'पूर्वफलानि'
+CHA
+    : 'च'
     ;
 
-// Vibhakti Case Endings (Lexer Suffix Tokens)
-DVITIYA_END  : 'म्' | 'ं' ;
-TRTIYA_END   : 'ेण' | 'ेना' | 'ैः' ;
-CHATURTHI_END: 'ाय' | 'ये' | 'भ्यः' | 'मह्यम्' | 'तुभ्यम्' ;
-PANCHAMI_END : 'ात्' ;
-SAPTAMI_END  : 'ेषु' ;
+MAA
+    : 'मा'
+    ;
 
-SUP_DVITIYA  : 'अम्' | 'औट्' | 'शस्' ;
-SUP_TRTIYA   : 'टा' | 'भ्याम्' | 'भिस्' ;
-SUP_CHATURTHI: 'ङे' | 'भ्यस्' ;
-SUP_PANCHAMI : 'ङसिँ' ;
-SUP_SAPTAMI  : 'ङि' | 'सुप्' ;
+KRPAYA
+    : 'कृपया'
+    ;
 
-// Affix Classes
-SANADI    : 'णिच्' | 'सँन्' | 'यँङ्' ;
-VIKARANA  : 'शप्' | 'श्यन्' | 'श्नम्' | 'उ' | 'स्नु' ;
+CONNECTIVE
+    : 'ततः'
+    | 'अथ'
+    | 'अनन्तरम्'
+    ;
 
-// Kṛt Affixes (Primary Verbal Suffixes)
-KTA       : 'क्त' ;
-KTAVATU   : 'क्तवतुँ' ;
-TAVYAT    : 'तव्यत्' | 'तव्य' ;
-ANIYAR    : 'अनीयर्' ;
-SHATRI    : 'शतृँ' ;
-SHANACH   : 'शानच्' ;
-GHANJ     : 'घञ्' ;
-LYUT      : 'ल्युट्' ;
-NVUL      : 'ण्वुल्' ;
-KTVAA     : 'क्त्वा' ;
-LYAP      : 'ल्यप्' ;
-TUMUN     : 'तुमुन्' ;
-KRT_PRATYAYA : 'तृच्' | 'अणिन्' | 'क्यप्' | 'यत' | 'ण्यत्' ;
+PLUS
+    : '+'
+    ;
 
-// Sup Case Endings
-SUP       : 'सुँ' | 'औ' | 'जस्' | 'ओस्' | 'आम्' ;
+COMMA
+    : ','
+    | '،'
+    ;
 
-// Lakāra Moods/Tenses
-LAKARA    : 'लट्' | 'लिट्' | 'लुट्' | 'लृट्' | 'लेट्' 
-          | 'लोट्' | 'लङ्' | 'लिङ्' | 'लुङ्' | 'लृङ्' ;
+COMPOUND_SEPARATOR
+    : '-'
+    | '—'
+    ;
 
-// Tiṅ Verbal Suffixes
-TING      : 'तिप्' | 'तस्' | 'झि' | 'सिप्' | 'थस्' | 'थ' 
-          | 'मिप्' | 'वस्' | 'मस्' | 'त' | 'आताम्' | 'झ' 
-          | 'थास्' | 'आथाम्' | 'ध्वम्' | 'इट्' | 'वहिके' | 'महिङ्' ;
+DANDA
+    : '।'
+    | '॥'
+    | '.'
+    ;
 
-// Taddhita Affixes (Secondary Nominal Suffixes)
-MATUP     : 'मतुँप्' | 'वतुँप्' ;
-INI       : 'इिनिँ' ;
-TVA       : 'त्व' ;
-TAL       : 'तल्' ;
-TARAP     : 'तरप्' ;
-TAMAP     : 'तमप्' ;
-MAYAT     : 'मयट्' ;
-TASI      : 'तसिल्' ;
-TADDHITA_PRATYAYA : 'अण्' | 'इञ्' | 'ढक्' | 'यत्' | 'ठञ्' | 'छ' ;
+// ====================================================
+// Canonical number and execution-reference tokens
+// ====================================================
 
-IDENTIFIER: DEVANAGARI+ ;
+NUMERAL
+    : 'शून्य'
+    | 'शून्यम्'
+    | 'शून्यं'
+    | 'एक'
+    | 'एकम्'
+    | 'एकं'
+    | 'द्वि'
+    | 'द्वे'
+    | 'त्रि'
+    | 'त्रीणि'
+    | 'चतुर्'
+    | 'चत्वारि'
+    | 'पञ्च'
+    | 'षट्'
+    | 'सप्त'
+    | 'अष्ट'
+    | 'नव'
+    | 'दश'
+    ;
 
-fragment DEVANAGARI : [\u0900-\u0963\u0966-\u097Fa-zA-Z0-9_-] ;
-WS        : [ \t\r\n]+ -> skip ;
+RESULT_REFERENCE
+    : 'फल'
+    | 'फलम्'
+    | 'फलं'
+    | 'फले'
+    | 'फलानि'
+    | 'पूर्वफल'
+    | 'पूर्वफलम्'
+    | 'पूर्वफलं'
+    | 'पूर्वफले'
+    | 'पूर्वफलानि'
+    ;
+
+// ====================================================
+// Sup suffix tokens
+// ====================================================
+
+SUP_PRATHAMA
+    : 'सुँ'
+    | 'औ'
+    | 'जस्'
+    ;
+
+SUP_DVITIYA
+    : 'अम्'
+    | 'औट्'
+    | 'शस्'
+    ;
+
+SUP_TRTIYA
+    : 'टा'
+    | 'भ्याम्'
+    | 'भिस्'
+    ;
+
+SUP_CHATURTHI
+    : 'ङे'
+    | 'भ्याम्'
+    | 'भ्यस्'
+    ;
+
+SUP_PANCHAMI
+    : 'ङसिँ'
+    | 'भ्याम्'
+    | 'भ्यस्'
+    ;
+
+SUP_SHASTHI
+    : 'ङस्'
+    | 'ओस्'
+    | 'आम्'
+    ;
+
+SUP_SAPTAMI
+    : 'ङि'
+    | 'ओस्'
+    | 'सुप्'
+    ;
+
+// ====================================================
+// Sanādi and vikaraṇa suffixes
+// ====================================================
+
+NIC
+    : 'णिच्'
+    ;
+
+SAN
+    : 'सँन्'
+    ;
+
+YANG
+    : 'यँङ्'
+    ;
+
+SHAP
+    : 'शप्'
+    ;
+
+SHYAN
+    : 'श्यन्'
+    ;
+
+SHNAM
+    : 'श्नम्'
+    ;
+
+SHNU
+    : 'श्नु'
+    ;
+
+SNU
+    : 'स्नु'
+    ;
+
+// ====================================================
+// Kṛt suffixes
+// ====================================================
+
+KTA
+    : 'क्त'
+    ;
+
+KTAVATU
+    : 'क्तवतुँ'
+    ;
+
+TAVYAT
+    : 'तव्यत्'
+    | 'तव्य'
+    ;
+
+ANIYAR
+    : 'अनीयर्'
+    ;
+
+SHATR
+    : 'शतृँ'
+    ;
+
+SHANACH
+    : 'शानच्'
+    ;
+
+GHANJ
+    : 'घञ्'
+    ;
+
+LYUT
+    : 'ल्युट्'
+    ;
+
+NVUL
+    : 'ण्वुल्'
+    ;
+
+KTVA
+    : 'क्त्वा'
+    ;
+
+LYAP
+    : 'ल्यप्'
+    ;
+
+TUMUN
+    : 'तुमुन्'
+    ;
+
+TRICH
+    : 'तृच्'
+    ;
+
+ANIN
+    : 'अणिन्'
+    ;
+
+KYAP
+    : 'क्यप्'
+    ;
+
+YAT
+    : 'यत्'
+    ;
+
+NYAT
+    : 'ण्यत्'
+    ;
+
+// ====================================================
+// Taddhita suffixes
+// ====================================================
+
+MATUP
+    : 'मतुँप्'
+    ;
+
+VATUP
+    : 'वतुँप्'
+    ;
+
+INI
+    : 'इनिँ'
+    ;
+
+TVA
+    : 'त्व'
+    ;
+
+TAL
+    : 'तल्'
+    ;
+
+TARAP
+    : 'तरप्'
+    ;
+
+TAMAP
+    : 'तमप्'
+    ;
+
+MAYAT
+    : 'मयट्'
+    ;
+
+TASIL
+    : 'तसिल्'
+    ;
+
+AN
+    : 'अण्'
+    ;
+
+INJ
+    : 'इञ्'
+    ;
+
+DHAK
+    : 'ढक्'
+    ;
+
+THAJ
+    : 'ठञ्'
+    ;
+
+CHA_SUFFIX
+    : 'छ'
+    ;
+
+// ====================================================
+// Lakāra and tiṅ suffixes
+// ====================================================
+
+LAKARA
+    : 'लट्'
+    | 'लिट्'
+    | 'लुट्'
+    | 'लृट्'
+    | 'लेट्'
+    | 'लोट्'
+    | 'लङ्'
+    | 'लिङ्'
+    | 'लुङ्'
+    | 'लृङ्'
+    ;
+
+TING
+    : 'तिप्'
+    | 'तस्'
+    | 'झि'
+    | 'सिप्'
+    | 'थस्'
+    | 'थ'
+    | 'मिप्'
+    | 'वस्'
+    | 'मस्'
+    | 'त'
+    | 'आताम्'
+    | 'झ'
+    | 'थास्'
+    | 'आथाम्'
+    | 'ध्वम्'
+    | 'इट्'
+    | 'वहि'
+    | 'महिङ्'
+    ;
+
+// ====================================================
+// Generic identifiers
+// ====================================================
+
+IDENTIFIER
+    : DEVANAGARI_CHARACTER+
+    ;
+
+fragment DEVANAGARI_CHARACTER
+    : [\u0900-\u097F]
+    ;
+
+WS
+    : [ \t\r\n]+ -> skip
+    ;
