@@ -583,4 +583,322 @@ class DhatuExecutionTest {
         )
         assertEquals(listOf("त्रि", "पञ्च"), second.context.resultHistory.map { it.value })
     }
+
+    @Test
+    fun `yuj subtracts coordinated expression of Sanskrit number words`() {
+        val context = ExecutionContext(
+            bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Coordination(
+                    ExecutionExpression.Literal("दश", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.Literal("त्रि", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.Literal("द्वि", setOf(ExecutionSamjna.SANKHYA)),
+                )
+            ),
+            selectedOperation = "सङ्ख्यावियोगः",
+        )
+
+        val result = assertIs<ExecutionResult.Success>(ExecutionEngine.execute(yuj, context))
+
+        assertEquals("पञ्च", result.value)
+        assertEquals("सङ्ख्यावियोगः", result.operation)
+    }
+
+    @Test
+    fun `subtraction reports error when result is negative`() {
+        val context = ExecutionContext(
+            bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Coordination(
+                    ExecutionExpression.Literal("एक", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.Literal("दश", setOf(ExecutionSamjna.SANKHYA)),
+                )
+            ),
+            selectedOperation = "सङ्ख्यावियोगः",
+        )
+
+        val result = assertIs<ExecutionResult.Failure>(ExecutionEngine.execute(yuj, context))
+
+        assertEquals(ExecutionError.INVALID_VALUE, result.error)
+        assertTrue(result.message.contains("outside the supported Sanskrit number vocabulary"))
+    }
+
+    @Test
+    fun `hr divides coordinated expression of Sanskrit number words`() {
+        val hr = requireNotNull(DhatuPatha.find("01.1046"))
+        val context = ExecutionContext(
+            bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Coordination(
+                    ExecutionExpression.Literal("दश", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.Literal("द्वि", setOf(ExecutionSamjna.SANKHYA)),
+                )
+            ),
+            selectedOperation = "सङ्ख्याहरणम्",
+        )
+
+        val result = assertIs<ExecutionResult.Success>(ExecutionEngine.execute(hr, context))
+
+        assertEquals("पञ्च", result.value)
+        assertEquals("सङ्ख्याहरणम्", result.operation)
+    }
+
+    @Test
+    fun `division by zero reports error`() {
+        val hr = requireNotNull(DhatuPatha.find("01.1046"))
+        val context = ExecutionContext(
+            bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Coordination(
+                    ExecutionExpression.Literal("दश", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.Literal("शून्य", setOf(ExecutionSamjna.SANKHYA)),
+                )
+            ),
+            selectedOperation = "सङ्ख्याहरणम्",
+        )
+
+        val result = assertIs<ExecutionResult.Failure>(ExecutionEngine.execute(hr, context))
+
+        assertEquals(ExecutionError.INVALID_VALUE, result.error)
+        assertTrue(result.message.contains("Division by zero"))
+    }
+
+    @Test
+    fun `raw Sanskrit subtraction utterance is executed`() {
+        val response = BhashaExecutionEngine.executeAndRespond(
+            SanskritUktiInput("प्रयोक्ता", "यन्त्रम्", "हे यन्त्र, दश त्रि च वियोजय।"),
+            SambhashanaContext("प्रयोक्ता", "यन्त्रम्"),
+            ExecutionScope(authorizedSpeakers = setOf("प्रयोक्ता")),
+        )
+
+        val result = assertIs<Phala.Siddha>(response.phala)
+        assertEquals("सप्त", result.values["योग-१"])
+    }
+
+    @Test
+    fun `raw Sanskrit division utterance is executed`() {
+        val response = BhashaExecutionEngine.executeAndRespond(
+            SanskritUktiInput("प्रयोक्ता", "यन्त्रम्", "हे यन्त्र, दश द्वि च हर।"),
+            SambhashanaContext("प्रयोक्ता", "यन्त्रम्"),
+            ExecutionScope(authorizedSpeakers = setOf("प्रयोक्ता")),
+        )
+
+        val result = assertIs<Phala.Siddha>(response.phala)
+        assertEquals("पञ्च", result.values["योग-१"])
+    }
+
+    @Test
+    fun `gan multiplies coordinated expression of Sanskrit number words`() {
+        val gan = requireNotNull(DhatuPatha.find("10.0391"))
+        val context = ExecutionContext(
+            bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Coordination(
+                    ExecutionExpression.Literal("त्रि", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.Literal("द्वि", setOf(ExecutionSamjna.SANKHYA)),
+                )
+            ),
+            selectedOperation = "सङ्ख्यागुणनम्",
+        )
+
+        val result = assertIs<ExecutionResult.Success>(ExecutionEngine.execute(gan, context))
+
+        assertEquals("षट्", result.value)
+        assertEquals("सङ्ख्यागुणनम्", result.operation)
+    }
+
+    @Test
+    fun `gan counts elements in a coordinated expression`() {
+        val gan = requireNotNull(DhatuPatha.find("10.0391"))
+        val context = ExecutionContext(
+            bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Coordination(
+                    ExecutionExpression.Literal("एक", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.Literal("द्वि", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.Literal("त्रि", setOf(ExecutionSamjna.SANKHYA)),
+                )
+            ),
+            selectedOperation = "सङ्ख्यागणनम्",
+        )
+
+        val result = assertIs<ExecutionResult.Success>(ExecutionEngine.execute(gan, context))
+
+        assertEquals("त्रि", result.value)
+        assertEquals("सङ्ख्यागणनम्", result.operation)
+    }
+
+    @Test
+    fun `raw Sanskrit multiplication utterance is executed`() {
+        val response = BhashaExecutionEngine.executeAndRespond(
+            SanskritUktiInput("प्रयोक्ता", "यन्त्रम्", "हे यन्त्र, त्रि द्वे च गुणय।"),
+            SambhashanaContext("प्रयोक्ता", "यन्त्रम्"),
+            ExecutionScope(authorizedSpeakers = setOf("प्रयोक्ता")),
+        )
+
+        val result = assertIs<Phala.Siddha>(response.phala)
+        assertEquals("षट्", result.values["योग-१"])
+    }
+
+    @Test
+    fun `raw Sanskrit counting utterance is executed`() {
+        val response = BhashaExecutionEngine.executeAndRespond(
+            SanskritUktiInput("प्रयोक्ता", "यन्त्रम्", "हे यन्त्र, एकं द्वे त्रीणि च गणय।"),
+            SambhashanaContext("प्रयोक्ता", "यन्त्रम्"),
+            ExecutionScope(authorizedSpeakers = setOf("प्रयोक्ता")),
+        )
+
+        val result = assertIs<Phala.Siddha>(response.phala)
+        assertEquals("त्रि", result.values["योग-१"])
+    }
+
+    @Test
+    fun `kru performs sandhi joining on text operands`() {
+        val kru = requireNotNull(DhatuPatha.find("08.0010"))
+        val context = ExecutionContext(
+            bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Coordination(
+                    ExecutionExpression.Literal("राम", setOf(ExecutionSamjna.SHABDA)),
+                    ExecutionExpression.Literal("इति", setOf(ExecutionSamjna.SHABDA)),
+                )
+            ),
+            selectedOperation = "संहिताकरणम्",
+        )
+
+        val result = assertIs<ExecutionResult.Success>(ExecutionEngine.execute(kru, context))
+
+        assertEquals("रामेति", result.value)
+        assertEquals("संहिताकरणम्", result.operation)
+    }
+
+    @Test
+    fun `kru derives subanta form for nominal stem`() {
+        val kru = requireNotNull(DhatuPatha.find("08.0010"))
+        val context = ExecutionContext(
+            bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Literal("राम", setOf(ExecutionSamjna.SHABDA)),
+            ),
+            selectedOperation = "पदनिष्पत्तिः",
+        )
+
+        val result = assertIs<ExecutionResult.Success>(ExecutionEngine.execute(kru, context))
+
+        assertEquals("रामः", result.value)
+        assertEquals("पदनिष्पत्तिः", result.operation)
+    }
+
+    @Test
+    fun `raw Sanskrit sandhi utterance is executed`() {
+        val response = BhashaExecutionEngine.executeAndRespond(
+            SanskritUktiInput("प्रयोक्ता", "यन्त्रम्", "हे यन्त्र, राम इति च कुरु।"),
+            SambhashanaContext("प्रयोक्ता", "यन्त्रम्"),
+            ExecutionScope(authorizedSpeakers = setOf("प्रयोक्ता")),
+        )
+
+        val result = assertIs<Phala.Siddha>(response.phala)
+        assertEquals("रामेति", result.values["योग-१"])
+    }
+
+    @Test
+    fun `raw Sanskrit subanta derivation utterance is executed`() {
+        val response = BhashaExecutionEngine.executeAndRespond(
+            SanskritUktiInput("प्रयोक्ता", "यन्त्रम्", "हे यन्त्र, राम निष्पादय।"),
+            SambhashanaContext("प्रयोक्ता", "यन्त्रम्"),
+            ExecutionScope(authorizedSpeakers = setOf("प्रयोक्ता")),
+        )
+
+        val result = assertIs<Phala.Siddha>(response.phala)
+        assertEquals("रामः", result.values["योग-१"])
+    }
+
+    @Test
+    fun `shish computes modulo remainder of Sanskrit number words`() {
+        val shish = requireNotNull(DhatuPatha.find("07.0014"))
+        val context = ExecutionContext(
+            bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Coordination(
+                    ExecutionExpression.Literal("दश", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.Literal("त्रि", setOf(ExecutionSamjna.SANKHYA)),
+                )
+            ),
+            selectedOperation = "सङ्ख्याशेषः",
+        )
+
+        val result = assertIs<ExecutionResult.Success>(ExecutionEngine.execute(shish, context))
+
+        assertEquals("एक", result.value)
+        assertEquals("सङ्ख्याशेषः", result.operation)
+    }
+
+    @Test
+    fun `vridh computes exponentiation power of Sanskrit number words`() {
+        val vridh = requireNotNull(DhatuPatha.find("01.0863"))
+        val context = ExecutionContext(
+            bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Coordination(
+                    ExecutionExpression.Literal("त्रि", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.Literal("द्वि", setOf(ExecutionSamjna.SANKHYA)),
+                )
+            ),
+            selectedOperation = "सङ्ख्याघातः",
+        )
+
+        val result = assertIs<ExecutionResult.Success>(ExecutionEngine.execute(vridh, context))
+
+        assertEquals("नव", result.value)
+        assertEquals("सङ्ख्याघातः", result.operation)
+    }
+
+    @Test
+    fun `vid compares Sanskrit number words and returns maximum`() {
+        val vid = requireNotNull(DhatuPatha.find("07.0013"))
+        val context = ExecutionContext(
+            bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Coordination(
+                    ExecutionExpression.Literal("त्रि", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.Literal("पञ्च", setOf(ExecutionSamjna.SANKHYA)),
+                )
+            ),
+            selectedOperation = "सङ्ख्यातुलना",
+        )
+
+        val result = assertIs<ExecutionResult.Success>(ExecutionEngine.execute(vid, context))
+
+        assertEquals("पञ्च", result.value)
+        assertEquals("सङ्ख्यातुलना", result.operation)
+    }
+
+    @Test
+    fun `raw Sanskrit modulo utterance is executed`() {
+        val response = BhashaExecutionEngine.executeAndRespond(
+            SanskritUktiInput("प्रयोक्ता", "यन्त्रम्", "हे यन्त्र, दश त्रि च शेषय।"),
+            SambhashanaContext("प्रयोक्ता", "यन्त्रम्"),
+            ExecutionScope(authorizedSpeakers = setOf("प्रयोक्ता")),
+        )
+
+        val result = assertIs<Phala.Siddha>(response.phala)
+        assertEquals("एक", result.values["योग-१"])
+    }
+
+    @Test
+    fun `raw Sanskrit exponentiation utterance is executed`() {
+        val response = BhashaExecutionEngine.executeAndRespond(
+            SanskritUktiInput("प्रयोक्ता", "यन्त्रम्", "हे यन्त्र, त्रि द्वे च वर्धय।"),
+            SambhashanaContext("प्रयोक्ता", "यन्त्रम्"),
+            ExecutionScope(authorizedSpeakers = setOf("प्रयोक्ता")),
+        )
+
+        val result = assertIs<Phala.Siddha>(response.phala)
+        assertEquals("नव", result.values["योग-१"])
+    }
+
+    @Test
+    fun `raw Sanskrit comparison utterance is executed`() {
+        val response = BhashaExecutionEngine.executeAndRespond(
+            SanskritUktiInput("प्रयोक्ता", "यन्त्रम्", "हे यन्त्र, त्रि पञ्च च तुलय।"),
+            SambhashanaContext("प्रयोक्ता", "यन्त्रम्"),
+            ExecutionScope(authorizedSpeakers = setOf("प्रयोक्ता")),
+        )
+
+        val result = assertIs<Phala.Siddha>(response.phala)
+        assertEquals("पञ्च", result.values["योग-१"])
+    }
 }
+
+
+
+

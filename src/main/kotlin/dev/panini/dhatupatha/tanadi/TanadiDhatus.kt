@@ -55,10 +55,6 @@ object TanadiDhatus {
             "अवबोधने", "जानना, समझना, विचार करना, मानना", "to understand, to regard, to think, to believe, to assume",
             PadaType.ATMANEPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
         )
-        dhatu(
-            "08.0010", 10, "डुकृञ्", "कृ",
-            "करणे", "करना", "to do, to act, to make",
-            PadaType.UBHAYAPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
-        )
+        dhatu(KruDhatu())
     }
 }

@@ -46,14 +46,17 @@ object OperationResolver {
         val maximal = compatible.filter { candidate ->
             compatible.none { other -> other !== candidate && moreSpecific(other.signature, candidate.signature) }
         }
-        if (maximal.size != 1) {
+        val operation = if (maximal.size == 1) {
+            maximal.single()
+        } else if (invocation.selectedOperation == null && maximal.isNotEmpty()) {
+            dhatu.operations.first { it in maximal }
+        } else {
             return OperationResolution.Ambiguous(
                 maximal.map { it.id },
                 "More than one incomparable operation signature matches dhātu ${dhatu.upadesha}.",
             )
         }
 
-        val operation = maximal.single()
         return OperationResolution.Resolved(
             ResolvedOperation(
                 invocation,

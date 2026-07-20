@@ -1,4 +1,4 @@
-package dev.panini.dhatupatha.rudhadi
+package dev.panini.dhatupatha.curadi
 
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.dhatupatha.Gana
@@ -9,31 +9,31 @@ import dev.panini.execution.ExpressionShape
 import dev.panini.execution.Karaka
 import dev.panini.execution.KarakaRequirement
 import dev.panini.execution.OperationSignature
-import dev.panini.execution.SanskritAdditionAction
-import dev.panini.execution.SanskritSubtractionAction
+import dev.panini.execution.SanskritCountingAction
+import dev.panini.execution.SanskritMultiplicationAction
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
 
-/** Executable Rudhādi धātu युजिँर् योगे. */
-class YujirDhatu : Dhatu(
-    id = "07.0007",
-    krama = 7,
-    upadesha = "युजिँर्",
-    sourceSurface = "युज्",
-    artha = "योगे",
-    arthaHindi = "जुड़ना, मिलाप करना,एकत्र करना",
-    arthaEnglish = "to bind,to restrain,to join,to unite,to apply, to combine",
-    gana = Gana.RUDHADI,
+/** Executable Curādi dhātu गण संख्याने. */
+class GanDhatu : Dhatu(
+    id = "10.0391",
+    krama = 391,
+    upadesha = "गण",
+    sourceSurface = "गण",
+    artha = "सङ्ख्याने",
+    arthaHindi = "गिनना, गुणा करना",
+    arthaEnglish = "to count, to enumerate, to multiply",
+    gana = Gana.CURADI,
     pada = PadaType.UBHAYAPADA,
-    itStatus = ItStatus.ANIT,
+    itStatus = ItStatus.SET,
     karmatva = Karmatva.SAKARMAKA,
-    svara = Accent.ANUDATTA,
+    svara = Accent.UDATTA,
 ) {
     override val operations: List<DhatuOperation> = listOf(
         DhatuOperation(
-            id = "सङ्ख्यायोजनम्",
-            description = "सङ्ख्यानां योगः",
+            id = "सङ्ख्यागुणनम्",
+            description = "सङ्ख्यानां गुणनम्",
             signature = OperationSignature(
                 requirements = listOf(
                     KarakaRequirement(
@@ -44,23 +44,22 @@ class YujirDhatu : Dhatu(
                     )
                 )
             ),
-            action = SanskritAdditionAction,
+            action = SanskritMultiplicationAction,
             resultSamjnas = setOf(ExecutionSamjna.SANKHYA),
         ),
         DhatuOperation(
-            id = "सङ्ख्यावियोगः",
-            description = "सङ्ख्यानां वियोगः",
+            id = "सङ्ख्यागणनम्",
+            description = "पदार्थानां / सङ्ख्यानां गणनम् (सङ्ख्यानम्)",
             signature = OperationSignature(
                 requirements = listOf(
                     KarakaRequirement(
                         karaka = Karaka.KARMAN,
-                        minimumMembers = 2,
+                        minimumMembers = 1,
                         shape = ExpressionShape.COORDINATION,
-                        memberSamjnas = setOf(ExecutionSamjna.SANKHYA),
                     )
                 )
             ),
-            action = SanskritSubtractionAction,
+            action = SanskritCountingAction,
             resultSamjnas = setOf(ExecutionSamjna.SANKHYA),
         ),
     )

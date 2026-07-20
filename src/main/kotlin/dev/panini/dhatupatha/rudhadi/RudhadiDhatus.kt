@@ -66,16 +66,8 @@ object RudhadiDhatus {
             "दैन्ये", "खिन्न होना, दुःखी होना", "to be sad, to be distressed, to have sorrow",
             PadaType.ATMANEPADA, ItStatus.ANIT, Karmatva.AKARMAKA, Accent.ANUDATTA,
         )
-        dhatu(
-            "07.0013", 13, "विदँ", "विद्",
-            "विचारणे", "मनन करना, विचार करना", "to think, to meditate, to analyze, to reason upon",
-            PadaType.ATMANEPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
-        )
-        dhatu(
-            "07.0014", 14, "शिषॢँ", "शिष्",
-            "विशेषणे", "विशेषता बताना, भिन्नता दिखाना, गुण दोष दिखाना", "to distinguish,to criticize, to characterize",
-            PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
-        )
+        dhatu(VidDhatu())
+        dhatu(ShishDhatu())
         dhatu(
             "07.0015", 15, "पिषॢँ", "पिष्",
             "सञ्चूर्णने हिंसायाम् च", "चूर्ण करना, पीसना, मारना", "to grind,to powder,to crush, to kill, to destroy",

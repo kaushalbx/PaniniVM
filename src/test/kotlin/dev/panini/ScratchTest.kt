@@ -22,8 +22,8 @@ class ScratchTest {
 
         println("=== CURADI LING ATMANEPADA TRACE ===")
         result.applications.forEachIndexed { index, application ->
-            println("${index + 1}. ${application.sutra}: ${application.before.surface} -> ${application.after.surface}")
+//            println("${index + 1}. ${application.sutra}: ${application.before.surface} -> ${application.after.surface}")
         }
-        println("FINAL (${result.final.stage}): ${result.final.surface}")
+//        println("FINAL (${result.final.stage}): ${result.final.surface}")
     }
 }

@@ -6897,11 +6897,7 @@ object BhvadiDhatus {
                 "वर्तने", "रहना", "to be, to happen, to be present",
                 PadaType.ATMANEPADA, ItStatus.SET, Karmatva.AKARMAKA, Accent.UDATTA,
             )
-            dhatu(
-                "01.0863", 863, "वृधुँ", "वृध्",
-                "वृद्धौ", "बढ़ना, अधिक होना", "to increase, to grow, to prosper",
-                PadaType.ATMANEPADA, ItStatus.SET, Karmatva.AKARMAKA, Accent.UDATTA,
-            )
+            dhatu(VridhDhatu())
             dhatu(
                 "01.0864", 864, "शृधुँ", "शृध्",
                 "उन्दने शब्दकुत्सायाम् च", "अधोवायु छोड़ना", "to moisten, to wet, to fart",
@@ -8020,11 +8016,7 @@ object BhvadiDhatus {
                 Karmatva.SAKARMAKA,
                 Accent.ANUDATTA,
             )
-            dhatu(
-                "01.1046", 1046, "हृञ्", "हृ",
-                "हरणे", "ले जाना, हरण करना, चोरी करना", "to take way, to carry, to steal, to acquire",
-                PadaType.UBHAYAPADA, ItStatus.ANIT, Karmatva.DVIKARMAKA, Accent.ANUDATTA,
-            )
+            dhatu(HrDhatu())
             dhatu(
                 "01.1047", 1047, "धृञ्", "धृ",
                 "धारणे", "धारण करना, उद्धार करना", "to wear, to support,to possess, to hold",

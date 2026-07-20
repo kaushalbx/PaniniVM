@@ -42,13 +42,25 @@ object ControlledSanskritAnalyzer {
         val normalizedTrace = mutableListOf<String>()
         clauses.forEachIndexed { index, clauseTokens ->
             val clause = clauseTokens.toMutableList()
-            if (clause.lastOrNull() != "योजय") {
-                return VakyaAnalysisResult.Unsupported("Only controlled योजय clauses are currently analyzed.")
+            val verb = clause.lastOrNull()
+            val (dhatuId, selectedOp) = when (verb) {
+                "योजय" -> "07.0007" to "सङ्ख्यायोजनम्"
+                "वियोजय" -> "07.0007" to "सङ्ख्यावियोगः"
+                "हर", "विभाजय" -> "01.1046" to "सङ्ख्याहरणम्"
+                "गुणय" -> "10.0391" to "सङ्ख्यागुणनम्"
+                "गणय" -> "10.0391" to "सङ्ख्यागणनम्"
+                "कुरु", "करोतु" -> "08.0010" to "संहिताकरणम्"
+                "निष्पादय" -> "08.0010" to "पदनिष्पत्तिः"
+                "शेषय" -> "07.0014" to "सङ्ख्याशेषः"
+                "वर्धय" -> "01.0863" to "सङ्ख्याघातः"
+                "तुलय" -> "07.0013" to "सङ्ख्यातुलना"
+                else -> return VakyaAnalysisResult.Unsupported("Only controlled योजय, वियोजय, हर, गुणय, गणय, कुरु, निष्पादय, शेषय, वर्धय, and तुलय clauses are currently analyzed.")
             }
             clause.removeAt(clause.lastIndex)
             val operandForms = clause.filterNot { it == "च" }
-            if (operandForms.size < 2) {
-                return VakyaAnalysisResult.NeedsClarification("योजनाय न्यूनातिन्यूनं द्वे सङ्ख्ये अपेक्षिते।")
+            val minOperands = if (selectedOp in setOf("सङ्ख्यागणनम्", "पदनिष्पत्तिः", "सङ्ख्यातुलना")) 1 else 2
+            if (operandForms.size < minOperands) {
+                return VakyaAnalysisResult.NeedsClarification("क्रियायै न्यूनातिन्यूनं $minOperands सङ्ख्ये/पदानि अपेक्षिते।")
             }
             val operands = operandForms.map { form ->
                 if (form in resultReferences) {
@@ -62,17 +74,21 @@ object ControlledSanskritAnalyzer {
                     }
                 } else {
                     val canonical = canonicalNumbers[form]
-                        ?: return VakyaAnalysisResult.Unsupported("'$form' इति सङ्ख्यारूपम् असमर्थितम्।")
-                    ExecutionExpression.Literal(canonical, setOf(ExecutionSamjna.SANKHYA))
+                    if (canonical != null) {
+                        ExecutionExpression.Literal(canonical, setOf(ExecutionSamjna.SANKHYA, ExecutionSamjna.SHABDA))
+                    } else {
+                        ExecutionExpression.Literal(form, setOf(ExecutionSamjna.SHABDA))
+                    }
                 }
             }
             val id = yogaId(index)
             kriyas += KriyaAnalysis(
                 id = id,
-                dhatuId = "07.0007",
+                dhatuId = dhatuId,
+                selectedOperation = selectedOp,
                 karakas = mapOf(Karaka.KARMAN to ExecutionExpression.Coordination(operands)),
             )
-            normalizedTrace += "Recognized $id with operands ${operandForms.joinToString()}."
+            normalizedTrace += "Recognized $id ($verb) with operands ${operandForms.joinToString()}."
         }
 
         return VakyaAnalysisResult.Analyzed(

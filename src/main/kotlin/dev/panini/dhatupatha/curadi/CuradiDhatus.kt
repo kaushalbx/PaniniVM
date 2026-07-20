@@ -2496,11 +2496,7 @@ object CuradiDhatus {
                 "ईप्सायाम्", "इच्छा करना, चाहना, आशा करना", "to wish, to desire, to hope",
                 PadaType.UBHAYAPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
             )
-            dhatu(
-                "10.0391", 391, "गण", "गण",
-                "सङ्ख्याने", "गिनना", "to count, to enumerate",
-                PadaType.UBHAYAPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
-            )
+            dhatu(GanDhatu())
             dhatu(
                 "10.0392",
                 392,
