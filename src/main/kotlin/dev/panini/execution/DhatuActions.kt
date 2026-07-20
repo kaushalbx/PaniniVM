@@ -627,6 +627,55 @@ object SanskritMinAction : DhatuAction {
     }
 }
 
+/** Variable Assignment & Value Binding (dā / मूल्यदानम्). */
+object SanskritVariableAssignAction : DhatuAction {
+    const val ID = "value.assign"
+
+    override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
+        val expression = requireNotNull(context.bindings[Karaka.KARMAN])
+        val operands = context.resolve(expression)
+        val value = operands.firstOrNull() ?: return ExecutionResult.Failure(
+            ExecutionError.INVALID_VALUE,
+            "Variable assignment requires a value operand in KARMAN.",
+            listOf("Selected operation ${operation.id}."),
+        )
+        return ExecutionResult.Success(
+            value,
+            operation.id,
+            listOf(
+                "Selected operation ${operation.id}.",
+                "Assigned value '$value'.",
+                "Produced $value.",
+            ),
+        )
+    }
+}
+
+/** Variable Inspection & Querying (dṛś / मूल्यदर्शनम्). */
+object SanskritVariableInspectAction : DhatuAction {
+    const val ID = "value.inspect"
+
+    override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
+        val expression = requireNotNull(context.bindings[Karaka.KARMAN])
+        val operands = context.resolve(expression)
+        val target = operands.firstOrNull() ?: return ExecutionResult.Failure(
+            ExecutionError.INVALID_VALUE,
+            "Variable inspection requires an operand in KARMAN.",
+            listOf("Selected operation ${operation.id}."),
+        )
+        return ExecutionResult.Success(
+            target,
+            operation.id,
+            listOf(
+                "Selected operation ${operation.id}.",
+                "Inspected target '$target'.",
+                "Produced $target.",
+            ),
+        )
+    }
+}
+
+
 
 
 

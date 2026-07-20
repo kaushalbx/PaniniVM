@@ -8637,11 +8637,7 @@ object BhvadiDhatus {
                 Karmatva.SAKARMAKA,
                 Accent.ANUDATTA,
             )
-            dhatu(
-                "01.1143", 1143, "दृशिँर्", "दृश्",
-                "प्रेक्षणे", "देखना", "to see,to look",
-                PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
-            )
+            dhatu(DrshDhatu())
             dhatu(
                 "01.1144", 1144, "दन्शँ", "दंश्",
                 "दशने", "काटना, डसना, दंश मारना", "to bite,to sting",

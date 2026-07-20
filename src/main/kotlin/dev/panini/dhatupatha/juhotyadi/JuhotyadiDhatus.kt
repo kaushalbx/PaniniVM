@@ -103,11 +103,7 @@ object JuhotyadiDhatus {
                 "त्यागे", "त्यागना, छोड़ना, परित्याग करना", "to abandon,to leave,to desert,to omit,to neglect",
                 PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
             )
-            dhatu(
-                "03.0010", 10, "डुदाञ्", "दा",
-                "दाने", "देना, सौंपना", "to give, to provide, to donate, to handover",
-                PadaType.UBHAYAPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
-            )
+            dhatu(DaDhatu())
             dhatu(
                 "03.0011",
                 11,

@@ -1018,7 +1018,71 @@ class DhatuExecutionTest {
         val result = assertIs<Phala.Siddha>(response.phala)
         assertEquals("त्रि", result.values["योग-१"])
     }
+
+    @Test
+    fun `da assigns variable value`() {
+        val da = requireNotNull(DhatuPatha.find("03.0010"))
+        val context = ExecutionContext(
+            bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Literal("दश", setOf(ExecutionSamjna.SANKHYA)),
+            ),
+            selectedOperation = "मूल्यदानम्",
+        )
+
+        val result = assertIs<ExecutionResult.Success>(ExecutionEngine.execute(da, context))
+
+        assertEquals("दश", result.value)
+        assertEquals("मूल्यदानम्", result.operation)
+    }
+
+    @Test
+    fun `drsh inspects variable target`() {
+        val drsh = requireNotNull(DhatuPatha.find("01.1143"))
+        val context = ExecutionContext(
+            bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Literal("योग-१", setOf(ExecutionSamjna.SHABDA)),
+            ),
+            selectedOperation = "मूल्यदर्शनम्",
+        )
+
+        val result = assertIs<ExecutionResult.Success>(ExecutionEngine.execute(drsh, context))
+
+        assertEquals("योग-१", result.value)
+        assertEquals("मूल्यदर्शनम्", result.operation)
+    }
+
+    @Test
+    fun `raw Sanskrit variable assignment utterance is executed`() {
+        val response = BhashaExecutionEngine.executeAndRespond(
+            SanskritUktiInput("प्रयोक्ता", "यन्त्रम्", "हे यन्त्र, दश देहि।"),
+            SambhashanaContext("प्रयोक्ता", "यन्त्रम्"),
+            ExecutionScope(authorizedSpeakers = setOf("प्रयोक्ता")),
+        )
+
+        val result = assertIs<Phala.Siddha>(response.phala)
+        assertEquals("दश", result.values["योग-१"])
+    }
+
+    @Test
+    fun `raw Sanskrit variable inspection utterance is executed`() {
+        val conversation = SambhashanaContext(
+            speaker = "प्रयोक्ता",
+            listener = "यन्त्रम्",
+            previousResults = linkedMapOf("पूर्व-योग" to "पञ्च"),
+            previousResultSamjnas = mapOf("पूर्व-योग" to setOf(ExecutionSamjna.SANKHYA)),
+        )
+
+        val response = BhashaExecutionEngine.executeAndRespond(
+            SanskritUktiInput("प्रयोक्ता", "यन्त्रम्", "हे यन्त्र, पूर्वफलं पश्य।"),
+            conversation,
+            ExecutionScope(authorizedSpeakers = setOf("प्रयोक्ता")),
+        )
+
+        val result = assertIs<Phala.Siddha>(response.phala)
+        assertEquals("पञ्च", result.values["योग-१"])
+    }
 }
+
 
 
 

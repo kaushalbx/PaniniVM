@@ -58,11 +58,13 @@ object ControlledSanskritAnalyzer {
                 "समय" -> "10.0391" to "सङ्ख्यासाम्यम्"
                 "भज" -> "01.1153" to "सङ्ख्याभागः"
                 "न्यूनय" -> "07.0013" to "सङ्ख्यान्यूनत्वम्"
+                "देहि", "ददातु" -> "03.0010" to "मूल्यदानम्"
+                "पश्य", "दर्शय" -> "01.1143" to "मूल्यदर्शनम्"
                 else -> return VakyaAnalysisResult.Unsupported("Only controlled mathematical and execution clauses are currently analyzed.")
             }
             clause.removeAt(clause.lastIndex)
             val operandForms = clause.filterNot { it == "च" }
-            val minOperands = if (selectedOp in setOf("सङ्ख्यागणनम्", "पदनिष्पत्तिः", "सङ्ख्यातुलना", "सङ्ख्यामूलम्", "सङ्ख्यासाम्यम्", "सङ्ख्यान्यूनत्वम्")) 1 else 2
+            val minOperands = if (selectedOp in setOf("सङ्ख्यागणनम्", "पदनिष्पत्तिः", "सङ्ख्यातुलना", "सङ्ख्यामूलम्", "सङ्ख्यासाम्यम्", "सङ्ख्यान्यूनत्वम्", "मूल्यदानम्", "मूल्यदर्शनम्")) 1 else 2
             if (operandForms.size < minOperands) {
                 return VakyaAnalysisResult.NeedsClarification("क्रियायै न्यूनातिन्यूनं $minOperands सङ्ख्ये/पदानि अपेक्षिते।")
             }
@@ -139,5 +141,5 @@ object ControlledSanskritAnalyzer {
         "अष्ट" to "अष्ट", "नव" to "नव", "दश" to "दश",
     )
 
-    private val resultReferences = setOf("फलम्", "फलं", "फले", "पूर्वफलम्", "पूर्वफले")
+    private val resultReferences = setOf("फलम्", "फलं", "फले", "पूर्वफलम्", "पूर्वफलं", "पूर्वफले")
 }
