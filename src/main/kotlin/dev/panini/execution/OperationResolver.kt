@@ -3,11 +3,23 @@ package dev.panini.execution
 object OperationResolver {
     fun resolve(
         invocation: DhatuInvocation,
+        variables: Map<String, SanskritValue>,
+    ): OperationResolution {
+        val context = invocation.executionContext(variables)
+        return resolveInvocation(invocation, context)
+    }
+
+    fun resolve(
+        invocation: DhatuInvocation,
         variables: Map<String, String>,
         variableSamjnas: Map<String, Set<ExecutionSamjna>> = emptyMap(),
     ): OperationResolution {
-        val dhatu = invocation.dhatu
         val context = invocation.executionContext(variables, variableSamjnas)
+        return resolveInvocation(invocation, context)
+    }
+
+    private fun resolveInvocation(invocation: DhatuInvocation, context: ExecutionContext): OperationResolution {
+        val dhatu = invocation.dhatu
         if (dhatu.operations.isEmpty()) {
             return OperationResolution.Invalid(
                 ExecutionError.DHATU_NOT_EXECUTABLE,
@@ -102,15 +114,17 @@ object OperationResolver {
             if (requirement.shape != null && requirement.shape != shape) {
                 return SignatureEvaluation.Incompatible("${requirement.karaka} requires ${requirement.shape}, but received $shape.")
             }
-            val literals = context.literals(expression)
-                ?: return SignatureEvaluation.Incompatible("${requirement.karaka} contains an unresolved reference.")
-            if (literals.size < requirement.minimumMembers) {
+            val typedValues = context.resolveValues(expression)
+            if (typedValues.isEmpty()) {
+                return SignatureEvaluation.Incompatible("${requirement.karaka} contains an unresolved reference.")
+            }
+            if (typedValues.size < requirement.minimumMembers) {
                 return SignatureEvaluation.Incompatible("${requirement.karaka} requires at least ${requirement.minimumMembers} members.")
             }
-            if (requirement.maximumMembers != null && literals.size > requirement.maximumMembers) {
+            if (requirement.maximumMembers != null && typedValues.size > requirement.maximumMembers) {
                 return SignatureEvaluation.Incompatible("${requirement.karaka} accepts at most ${requirement.maximumMembers} members.")
             }
-            if (literals.any { !it.samjnas.containsAll(requirement.memberSamjnas) }) {
+            if (typedValues.any { !it.samjnas.containsAll(requirement.memberSamjnas) }) {
                 return SignatureEvaluation.Incompatible("Every ${requirement.karaka} member requires saṃjñās ${requirement.memberSamjnas}.")
             }
         }

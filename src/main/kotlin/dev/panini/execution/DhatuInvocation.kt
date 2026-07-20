@@ -15,12 +15,21 @@ data class DhatuInvocation(
     }
 
     fun executionContext(
+        variables: Map<String, SanskritValue>,
+    ): ExecutionContext = ExecutionContext(
+        bindings = bindings,
+        selectedOperation = selectedOperation,
+        variables = variables,
+        metadata = metadata,
+    )
+
+    fun executionContext(
         variables: Map<String, String>,
         variableSamjnas: Map<String, Set<ExecutionSamjna>> = emptyMap(),
     ): ExecutionContext = ExecutionContext(
         bindings = bindings,
         selectedOperation = selectedOperation,
-        variables = variables,
+        rawVariables = variables,
         variableSamjnas = variableSamjnas,
         metadata = metadata,
     )

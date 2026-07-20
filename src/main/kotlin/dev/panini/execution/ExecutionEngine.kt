@@ -12,7 +12,7 @@ object ExecutionEngine {
             selectedOperation = context.selectedOperation,
             metadata = context.metadata,
         )
-        return when (val resolution = OperationResolver.resolve(invocation, context.variables, context.variableSamjnas)) {
+        return when (val resolution = OperationResolver.resolve(invocation, context.variables)) {
             is OperationResolution.Resolved -> resolution.value.operation.action.execute(
                 resolution.value.context,
                 resolution.value.operation,

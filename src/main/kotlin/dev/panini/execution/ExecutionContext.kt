@@ -4,16 +4,36 @@ package dev.panini.execution
 data class ExecutionContext(
     val bindings: Map<Karaka, ExecutionExpression> = emptyMap(),
     val selectedOperation: String? = null,
-    val variables: Map<String, String> = emptyMap(),
-    val variableSamjnas: Map<String, Set<ExecutionSamjna>> = emptyMap(),
+    val variables: Map<String, SanskritValue> = emptyMap(),
     val metadata: Map<String, String> = emptyMap(),
 ) {
-    fun resolve(expression: ExecutionExpression): List<String> = when (expression) {
-        is ExecutionExpression.Literal -> listOf(expression.value)
-        is ExecutionExpression.Coordination -> expression.members.flatMap(::resolve)
+    constructor(
+        bindings: Map<Karaka, ExecutionExpression> = emptyMap(),
+        selectedOperation: String? = null,
+        rawVariables: Map<String, String>,
+        variableSamjnas: Map<String, Set<ExecutionSamjna>> = emptyMap(),
+        metadata: Map<String, String> = emptyMap(),
+    ) : this(
+        bindings = bindings,
+        selectedOperation = selectedOperation,
+        variables = rawVariables.mapValues { (key, value) ->
+            SanskritValue.of(value, variableSamjnas[key].orEmpty())
+        },
+        metadata = metadata,
+    )
+
+    val variableSamjnas: Map<String, Set<ExecutionSamjna>>
+        get() = variables.mapValues { it.value.samjnas }
+
+    fun resolveValues(expression: ExecutionExpression): List<SanskritValue> = when (expression) {
+        is ExecutionExpression.Literal -> listOf(SanskritValue.of(expression.value, expression.samjnas))
+        is ExecutionExpression.Coordination -> expression.members.flatMap(::resolveValues)
         is ExecutionExpression.Reference -> variables[expression.name]?.let(::listOf)
             ?: emptyList()
     }
+
+    fun resolve(expression: ExecutionExpression): List<String> =
+        resolveValues(expression).map { it.toDisplayText() }
 
     fun literals(expression: ExecutionExpression): List<ExecutionExpression.Literal>? = when (expression) {
         is ExecutionExpression.Literal -> listOf(expression)
@@ -21,8 +41,8 @@ data class ExecutionContext(
             val resolved = literals(member) ?: return null
             accumulated + resolved
         }
-        is ExecutionExpression.Reference -> variables[expression.name]?.let {
-            listOf(ExecutionExpression.Literal(it, variableSamjnas[expression.name].orEmpty()))
+        is ExecutionExpression.Reference -> variables[expression.name]?.let { typed ->
+            listOf(ExecutionExpression.Literal(typed.toDisplayText(), typed.samjnas))
         }
     }
 }
