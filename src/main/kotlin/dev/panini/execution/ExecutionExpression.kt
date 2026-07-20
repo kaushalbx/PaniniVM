@@ -5,12 +5,12 @@ package dev.panini.execution
  * represented structurally so an action need not parse punctuation.
  */
 sealed interface ExecutionExpression {
-    data class Literal(
-        val value: String,
+    data class Pada(
+        val prakriti: String,
         val samjnas: Set<ExecutionSamjna> = emptySet(),
     ) : ExecutionExpression {
         init {
-            require(value.isNotBlank()) { "An execution literal cannot be blank." }
+            require(prakriti.isNotBlank()) { "An execution prakriti cannot be blank." }
         }
     }
 

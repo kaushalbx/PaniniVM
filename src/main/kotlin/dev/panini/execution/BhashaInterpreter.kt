@@ -13,7 +13,7 @@ object BhashaInterpreter {
             if (ukti.prayojana in setOf(VakyaPrayojana.AJNA, VakyaPrayojana.PRARTHANA) &&
                 Karaka.KARTR !in bindings
             ) {
-                bindings[Karaka.KARTR] = ExecutionExpression.Literal(context.listener)
+                bindings[Karaka.KARTR] = ExecutionExpression.Pada(context.listener)
             }
             invocation.copy(bindings = bindings)
         }

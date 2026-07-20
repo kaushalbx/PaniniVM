@@ -117,12 +117,12 @@ object SanskritMorphologicalParser {
                     val previous = conversation?.resultHistory?.lastOrNull()?.id
                         ?: conversation?.previousResults?.keys?.lastOrNull()
                     if (previous != null) ExecutionExpression.Reference(previous)
-                    else ExecutionExpression.Literal(token.originalText, token.samjnas)
+                    else ExecutionExpression.Pada(token.originalText, token.samjnas)
                 } else {
                     ExecutionExpression.Reference(yogaIdSupplier(clauseIndex - 1))
                 }
             } else {
-                ExecutionExpression.Literal(token.stem, token.samjnas)
+                ExecutionExpression.Pada(token.stem, token.samjnas)
             }
 
             karakaMap.getOrPut(token.inferredKaraka) { mutableListOf() }.add(expr)

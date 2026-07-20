@@ -1,5 +1,7 @@
 package dev.panini.execution
 
+import dev.panini.parser.VakyaCompiler
+
 /**
  * Controlled language analyzer powered by ANTLR4 parser and
  * morphological Subanta & Kāraka analysis.

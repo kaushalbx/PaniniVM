@@ -26,7 +26,7 @@ data class ExecutionContext(
         get() = variables.mapValues { it.value.samjnas }
 
     fun resolveValues(expression: ExecutionExpression): List<SanskritValue> = when (expression) {
-        is ExecutionExpression.Literal -> listOf(SanskritValue.of(expression.value, expression.samjnas))
+        is ExecutionExpression.Pada -> listOf(SanskritValue.of(expression.prakriti, expression.samjnas))
         is ExecutionExpression.Coordination -> expression.members.flatMap(::resolveValues)
         is ExecutionExpression.Reference -> variables[expression.name]?.let(::listOf)
             ?: emptyList()
@@ -35,14 +35,14 @@ data class ExecutionContext(
     fun resolve(expression: ExecutionExpression): List<String> =
         resolveValues(expression).map { it.toDisplayText() }
 
-    fun literals(expression: ExecutionExpression): List<ExecutionExpression.Literal>? = when (expression) {
-        is ExecutionExpression.Literal -> listOf(expression)
+    fun literals(expression: ExecutionExpression): List<ExecutionExpression.Pada>? = when (expression) {
+        is ExecutionExpression.Pada -> listOf(expression)
         is ExecutionExpression.Coordination -> expression.members.fold(emptyList()) { accumulated, member ->
             val resolved = literals(member) ?: return null
             accumulated + resolved
         }
         is ExecutionExpression.Reference -> variables[expression.name]?.let { typed ->
-            listOf(ExecutionExpression.Literal(typed.toDisplayText(), typed.samjnas))
+            listOf(ExecutionExpression.Pada(typed.toDisplayText(), typed.samjnas))
         }
     }
 }

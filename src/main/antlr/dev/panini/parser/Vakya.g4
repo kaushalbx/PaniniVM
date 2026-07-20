@@ -1,7 +1,7 @@
 grammar Vakya;
 
 @header {
-package dev.panini.execution.parser;
+package dev.panini.parser;
 }
 
 // ====================================================
@@ -184,13 +184,7 @@ tingPratyaya
 // ====================================================
 
 supPratyaya
-    : SUP_PRATHAMA
-    | SUP_DVITIYA
-    | SUP_TRTIYA
-    | SUP_CHATURTHI
-    | SUP_PANCHAMI
-    | SUP_SHASTHI
-    | SUP_SAPTAMI
+    : SUP_SUFFIX
     ;
 
 // ====================================================
@@ -290,45 +284,23 @@ RESULT_REFERENCE
 // Sup suffix tokens
 // ====================================================
 
-SUP_PRATHAMA
+SUP_SUFFIX
     : 'सुँ'
     | 'औ'
     | 'जस्'
-    ;
-
-SUP_DVITIYA
-    : 'अम्'
+    | 'अम्'
     | 'औट्'
     | 'शस्'
-    ;
-
-SUP_TRTIYA
-    : 'टा'
+    | 'टा'
     | 'भ्याम्'
     | 'भिस्'
-    ;
-
-SUP_CHATURTHI
-    : 'ङे'
-    | 'भ्याम्'
+    | 'ङे'
     | 'भ्यस्'
-    ;
-
-SUP_PANCHAMI
-    : 'ङसिँ'
-    | 'भ्याम्'
-    | 'भ्यस्'
-    ;
-
-SUP_SHASTHI
-    : 'ङस्'
+    | 'ङसिँ'
+    | 'ङस्'
     | 'ओस्'
     | 'आम्'
-    ;
-
-SUP_SAPTAMI
-    : 'ङि'
-    | 'ओस्'
+    | 'ङि'
     | 'सुप्'
     ;
 

@@ -107,7 +107,7 @@ object OperationResolver {
         signature.requirements.forEach { requirement ->
             val expression = requireNotNull(context.bindings[requirement.karaka])
             val shape = when (expression) {
-                is ExecutionExpression.Literal -> ExpressionShape.LITERAL
+                is ExecutionExpression.Pada -> ExpressionShape.LITERAL
                 is ExecutionExpression.Coordination -> ExpressionShape.COORDINATION
                 is ExecutionExpression.Reference -> ExpressionShape.REFERENCE
             }

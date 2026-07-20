@@ -56,8 +56,8 @@ class SanskritValueTest {
         val context = ExecutionContext(
             bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.Coordination(
-                    ExecutionExpression.Literal("दश", setOf(ExecutionSamjna.SANKHYA)),
-                    ExecutionExpression.Literal("द्वि", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.Pada("दश", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.Pada("द्वि", setOf(ExecutionSamjna.SANKHYA)),
                 )
             )
         )
