@@ -9,7 +9,7 @@ import org.antlr.v4.runtime.CommonTokenStream
 
 /**
  * ANTLR4-powered parser for Sanskrit execution utterances.
- * Traverses concrete Pāṇinian morphological AST parse trees (Subanta, Tiṅanta, Kṛdanta, Taddhitānta, Samāsa).
+ * Traverses concrete Pāṇinian morphological AST parse trees (Subanta, Tiṅanta, Kṛdanta, Taddhitānta, Samāsa, Kāraka AST nodes).
  */
 object SanskritAntlrParser {
 
@@ -111,12 +111,13 @@ object SanskritAntlrParser {
                 .map { item: String -> item.replace(Regex("[।॥,.!?+]"), "").trim() }
                 .filter { item: String -> item.isNotBlank() && item != "च" && item != "+" && item != "कृपया" && item != "मा" }
 
-            val minOperands = if (selectedOp in setOf("सङ्ख्यागणनम्", "पदनिष्पत्तिः", "सङ्ख्यातुलना", "सङ्ख्यामूलम्", "सङ्ख्यासाम्यम्", "सङ्ख्यान्यूनत्वम्", "मूल्यदानम्", "मूल्यदर्शनम्")) 1 else 2
+            val minOperands = if (selectedOp in setOf("सङ्ख्यागणनम्", "पदनिष्पत्तिः", "सङ्ख्यातुलना", "सङ्ख्यामूलम्", "सङ्ख्यासाम्यम्", "सङ्ख्यान्यूनत्वम्", "मूल्यदानम्", "मूल्यदर्शनम्", "स्मृतिरक्षणम्", "स्मृतिपुनर्प्राप्तिः", "बाह्यप्रेषणम्")) 1 else 2
             if (operandTexts.size < minOperands) {
                 return VakyaAnalysisResult.NeedsClarification("क्रियायै न्यूनातिन्यूनं $minOperands सङ्ख्ये/पदानि अपेक्षिते।")
             }
 
-            val parsedTokens = operandTexts.map { tokenText: String -> SanskritMorphologicalParser.parseToken(tokenText) }
+            val prayoga = SanskritMorphologicalParser.inferPrayoga(verbText)
+            val parsedTokens = operandTexts.map { tokenText: String -> SanskritMorphologicalParser.parseToken(tokenText, prayoga) }
             val karakaMap = SanskritMorphologicalParser.groupKarakas(
                 parsedTokens,
                 resultReferences,
@@ -177,6 +178,12 @@ object SanskritAntlrParser {
 
         private fun extractPratipadika(ctx: VakyaParser.SubantaPadaContext): String {
             return when (ctx) {
+                is VakyaParser.KarmanPadaContext -> ctx.karmanSubanta()?.text ?: ctx.text
+                is VakyaParser.KartrPadaContext -> ctx.kartrSubanta()?.text ?: ctx.text
+                is VakyaParser.KaranaPadaContext -> ctx.karanaSubanta()?.text ?: ctx.text
+                is VakyaParser.SampradanaPadaContext -> ctx.sampradanaSubanta()?.text ?: ctx.text
+                is VakyaParser.ApadanaPadaContext -> ctx.apadanaSubanta()?.text ?: ctx.text
+                is VakyaParser.AdhikaranaPadaContext -> ctx.adhikaranaSubanta()?.text ?: ctx.text
                 is VakyaParser.NumeralSubantaPadaContext -> ctx.numeralSubanta()?.text ?: ctx.text
                 is VakyaParser.ResultSubantaPadaContext -> ctx.resultSubanta()?.text ?: ctx.text
                 is VakyaParser.BaseSubantaDerivationContext -> ctx.basePratipadika()?.text ?: ctx.text

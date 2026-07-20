@@ -28,7 +28,7 @@ pada
     ;
 
 // ----------------------------------------------------
-// 1. Subantapada (Nominals, Kṛdantas, Taddhitāntas & Samāsa)
+// 1. Subantapada & Direct Kāraka AST Alternatives
 // ----------------------------------------------------
 coordinatedSubanta
     : subantaPada (COMMA? subantaPada)* CHA subantaPada
@@ -43,12 +43,42 @@ samasaPratipadika
     ;
 
 subantaPada
-    : numeralSubanta                                      # NumeralSubantaPada
+    : karmanSubanta                                       # KarmanPada
+    | kartrSubanta                                        # KartrPada
+    | karanaSubanta                                       # KaranaPada
+    | sampradanaSubanta                                   # SampradanaPada
+    | apadanaSubanta                                      # ApadanaPada
+    | adhikaranaSubanta                                   # AdhikaranaPada
+    | numeralSubanta                                      # NumeralSubantaPada
     | resultSubanta                                       # ResultSubantaPada
     | kridantaPratipadika (PLUS supPratyaya)?             # KridantaSubantaDerivation
     | taddhitaPratipadika (PLUS supPratyaya)?             # TaddhitaSubantaDerivation
     | basePratipadika PLUS supPratyaya                    # BaseSubantaDerivation
     | IDENTIFIER                                          # SurfaceSubanta
+    ;
+
+karmanSubanta
+    : (pratipadika | IDENTIFIER) (PLUS SUP_DVITIYA | DVITIYA_END)
+    ;
+
+kartrSubanta
+    : (pratipadika | IDENTIFIER) (PLUS SUP_TRTIYA | TRTIYA_END)
+    ;
+
+karanaSubanta
+    : (pratipadika | IDENTIFIER) (PLUS SUP_TRTIYA | TRTIYA_END)
+    ;
+
+sampradanaSubanta
+    : (pratipadika | IDENTIFIER) (PLUS SUP_CHATURTHI | CHATURTHI_END)
+    ;
+
+apadanaSubanta
+    : (pratipadika | IDENTIFIER) (PLUS SUP_PANCHAMI | PANCHAMI_END)
+    ;
+
+adhikaranaSubanta
+    : (pratipadika | IDENTIFIER) (PLUS SUP_SAPTAMI | SAPTAMI_END)
     ;
 
 numeralSubanta
@@ -115,6 +145,11 @@ dhatu
 
 supPratyaya
     : SUP
+    | SUP_DVITIYA
+    | SUP_TRTIYA
+    | SUP_CHATURTHI
+    | SUP_PANCHAMI
+    | SUP_SAPTAMI
     ;
 
 lakara
@@ -163,6 +198,19 @@ RESULT_LEAF
     | 'पूर्वफल' | 'पूर्वफलम्' | 'पूर्वफलं' | 'पूर्वफले' | 'पूर्वफलानि'
     ;
 
+// Vibhakti Case Endings (Lexer Suffix Tokens)
+DVITIYA_END  : 'म्' | 'ं' ;
+TRTIYA_END   : 'ेण' | 'ेना' | 'ैः' ;
+CHATURTHI_END: 'ाय' | 'ये' | 'भ्यः' | 'मह्यम्' | 'तुभ्यम्' ;
+PANCHAMI_END : 'ात्' ;
+SAPTAMI_END  : 'ेषु' ;
+
+SUP_DVITIYA  : 'अम्' | 'औट्' | 'शस्' ;
+SUP_TRTIYA   : 'टा' | 'भ्याम्' | 'भिस्' ;
+SUP_CHATURTHI: 'ङे' | 'भ्यस्' ;
+SUP_PANCHAMI : 'ङसिँ' ;
+SUP_SAPTAMI  : 'ङि' | 'सुप्' ;
+
 // Affix Classes
 SANADI    : 'णिच्' | 'सँन्' | 'यँङ्' ;
 VIKARANA  : 'शप्' | 'श्यन्' | 'श्नम्' | 'उ' | 'स्नु' ;
@@ -183,9 +231,7 @@ TUMUN     : 'तुमुन्' ;
 KRT_PRATYAYA : 'तृच्' | 'अणिन्' | 'क्यप्' | 'यत' | 'ण्यत्' ;
 
 // Sup Case Endings
-SUP       : 'सुँ' | 'औ' | 'जस्' | 'अम्' | 'औट्' | 'शस्' 
-          | 'टा' | 'भ्याम्' | 'भिस्' | 'ङे' | 'भ्यस्' 
-          | 'ङसिँ' | 'ओस्' | 'आम्' | 'ङि' | 'सुप्' ;
+SUP       : 'सुँ' | 'औ' | 'जस्' | 'ओस्' | 'आम्' ;
 
 // Lakāra Moods/Tenses
 LAKARA    : 'लट्' | 'लिट्' | 'लुट्' | 'लृट्' | 'लेट्' 

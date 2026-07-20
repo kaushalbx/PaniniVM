@@ -23,8 +23,8 @@ class SanskritMorphologicalParserTest {
     }
 
     @Test
-    fun `parses instrumental case endings into kartr karaka`() {
-        val token = SanskritMorphologicalParser.parseToken("रामेण")
+    fun `parses instrumental case endings in passive into kartr karaka`() {
+        val token = SanskritMorphologicalParser.parseToken("रामेण", SanskritMorphologicalParser.Prayoga.KARMANI)
         assertEquals("राम", token.stem)
         assertEquals(Vibhakti.TRTIYA, token.vibhakti)
         assertEquals(Karaka.KARTR, token.inferredKaraka)
@@ -36,6 +36,22 @@ class SanskritMorphologicalParserTest {
         assertEquals("यन्त्र", token.stem)
         assertEquals(Vibhakti.CHATURTHI, token.vibhakti)
         assertEquals(Karaka.SAMPRADANA, token.inferredKaraka)
+    }
+
+    @Test
+    fun `parses ablative case endings into apadana karaka`() {
+        val token = SanskritMorphologicalParser.parseToken("ग्रामात्")
+        assertEquals("ग्राम", token.stem)
+        assertEquals(Vibhakti.PANCHAMI, token.vibhakti)
+        assertEquals(Karaka.APADANA, token.inferredKaraka)
+    }
+
+    @Test
+    fun `parses locative case endings into adhikarana karaka`() {
+        val token = SanskritMorphologicalParser.parseToken("गृहेषु")
+        assertEquals("गृह", token.stem)
+        assertEquals(Vibhakti.SAPTAMI, token.vibhakti)
+        assertEquals(Karaka.ADHIKARANA, token.inferredKaraka)
     }
 
     @Test

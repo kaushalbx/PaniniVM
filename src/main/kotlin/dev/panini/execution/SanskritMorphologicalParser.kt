@@ -4,10 +4,12 @@ import dev.panini.derivation.Vibhakti
 
 /**
  * Morphological Subanta and Kāraka analyzer.
- * Uses Pāṇinian case endings (vibhakti) and semantic rules to map nominal
- * expressions to their respective Kāraka roles.
+ * Uses Pāṇinian case endings (vibhakti), voice awareness (prayoga), and semantic rules
+ * to map nominal expressions to their respective Kāraka roles.
  */
 object SanskritMorphologicalParser {
+
+    enum class Prayoga { KARTARI, KARMANI, BHAVE }
 
     data class MorphologicalToken(
         val originalText: String,
@@ -17,7 +19,17 @@ object SanskritMorphologicalParser {
         val samjnas: Set<ExecutionSamjna>,
     )
 
-    fun parseToken(token: String): MorphologicalToken {
+    fun inferPrayoga(verbText: String): Prayoga {
+        val clean = verbText.trim().replace(Regex("[।॥,.!?+]"), "")
+        return when {
+            clean.endsWith("यते") || clean.endsWith("यन्ते") || clean.endsWith("यसे") || clean.endsWith("ये") -> Prayoga.KARMANI
+            clean.contains("+कर्मणि") -> Prayoga.KARMANI
+            clean.contains("+भावे") -> Prayoga.BHAVE
+            else -> Prayoga.KARTARI
+        }
+    }
+
+    fun parseToken(token: String, prayoga: Prayoga = Prayoga.KARTARI): MorphologicalToken {
         val canonical = canonicalNumbers[token]
         if (canonical != null) {
             return MorphologicalToken(
@@ -29,7 +41,7 @@ object SanskritMorphologicalParser {
             )
         }
 
-        val (stem, vibhakti, karaka) = analyzeVibhakti(token)
+        val (stem, vibhakti, karaka) = analyzeVibhakti(token, prayoga)
         return MorphologicalToken(
             originalText = token,
             stem = stem,
@@ -39,32 +51,52 @@ object SanskritMorphologicalParser {
         )
     }
 
-    private fun analyzeVibhakti(word: String): Triple<String, Vibhakti?, Karaka> {
+    private fun analyzeVibhakti(word: String, prayoga: Prayoga): Triple<String, Vibhakti?, Karaka> {
         if (word in setOf("फलम्", "फलं", "फले", "फलानि")) {
             return Triple("फल", Vibhakti.DVITIYA, Karaka.KARMAN)
         }
         if (word in setOf("पूर्वफलम्", "पूर्वफलं", "पूर्वफले", "पूर्वफलानि")) {
             return Triple("पूर्वफल", Vibhakti.DVITIYA, Karaka.KARMAN)
         }
+
         return when {
-            // Instrumental (Tṛtīyā) -> KARTR / KARANA
-            word.endsWith("ेण") || word.endsWith("ेना") || word.endsWith("ा") || word.endsWith("ैः") ->
-                Triple(word.removeSuffix("ेण").removeSuffix("ेना").removeSuffix("ैः"), Vibhakti.TRTIYA, Karaka.KARTR)
+            // Instrumental (Tṛtīyā) -> KARTR in Passive, KARANA in Active
+            word.endsWith("ेण") || word.endsWith("ेना") || word.endsWith("ैः") -> {
+                val stem = word.removeSuffix("ेण").removeSuffix("ेना").removeSuffix("ैः")
+                val karaka = if (prayoga == Prayoga.KARMANI) Karaka.KARTR else Karaka.KARANA
+                Triple(stem, Vibhakti.TRTIYA, karaka)
+            }
             // Dative (Caturthī) -> SAMPRADANA
-            word.endsWith("ाय") || word.endsWith("ये") || word.endsWith("भ्यः") || word == "मह्यम्" || word == "तुभ्यम्" ->
-                Triple(word.removeSuffix("ाय").removeSuffix("ये").removeSuffix("भ्यः"), Vibhakti.CHATURTHI, Karaka.SAMPRADANA)
+            word.endsWith("ाय") || word.endsWith("ये") || word.endsWith("भ्यः") || word == "मह्यम्" || word == "तुभ्यम्" -> {
+                val stem = word.removeSuffix("ाय").removeSuffix("ये").removeSuffix("भ्यः")
+                Triple(stem, Vibhakti.CHATURTHI, Karaka.SAMPRADANA)
+            }
             // Ablative (Pañcamī) -> APADANA
-            word.endsWith("ात्") || word.endsWith("ात्") ->
-                Triple(word.removeSuffix("ात्"), Vibhakti.PANCHAMI, Karaka.APADANA)
+            word.endsWith("ात्") -> {
+                val stem = word.removeSuffix("ात्")
+                Triple(stem, Vibhakti.PANCHAMI, Karaka.APADANA)
+            }
+            // Genitive (Ṣaṣṭhī) -> Relational / KARMAN fallback
+            word.endsWith("स्य") || word.endsWith("योः") || word.endsWith("नाम्") || word.endsWith("णाम्") -> {
+                val stem = word.removeSuffix("स्य").removeSuffix("योः").removeSuffix("नाम्").removeSuffix("णाम्")
+                Triple(stem, Vibhakti.SASTHI, Karaka.KARMAN)
+            }
             // Locative (Saptamī) -> ADHIKARANA
-            word.endsWith("ेषु") ->
-                Triple(word.removeSuffix("ेषु"), Vibhakti.SAPTAMI, Karaka.ADHIKARANA)
+            word.endsWith("ेषु") || word.endsWith("े") -> {
+                val stem = word.removeSuffix("ेषु")
+                Triple(stem, Vibhakti.SAPTAMI, Karaka.ADHIKARANA)
+            }
             // Accusative (Dvitīyā) -> KARMAN
-            word.endsWith("म्") || word.endsWith("ं") ->
-                Triple(word.removeSuffix("म्").removeSuffix("ं"), Vibhakti.DVITIYA, Karaka.KARMAN)
-            // Nominative (Prathamā) -> KARMAN / KARTR
-            word.endsWith("ः") || word.endsWith("ौ") || word.endsWith("ाः") ->
-                Triple(word.removeSuffix("ः").removeSuffix("ौ").removeSuffix("ाः"), Vibhakti.PRATHAMA, Karaka.KARMAN)
+            word.endsWith("म्") || word.endsWith("ं") -> {
+                val stem = word.removeSuffix("म्").removeSuffix("ं")
+                Triple(stem, Vibhakti.DVITIYA, Karaka.KARMAN)
+            }
+            // Nominative (Prathamā) -> KARMAN in Passive/Math, KARTR in Active
+            word.endsWith("ः") || word.endsWith("ौ") || word.endsWith("ाः") -> {
+                val stem = word.removeSuffix("ः").removeSuffix("ौ").removeSuffix("ाः")
+                val karaka = if (prayoga == Prayoga.KARMANI) Karaka.KARMAN else Karaka.KARMAN
+                Triple(stem, Vibhakti.PRATHAMA, karaka)
+            }
             else -> Triple(word, null, Karaka.KARMAN)
         }
     }
