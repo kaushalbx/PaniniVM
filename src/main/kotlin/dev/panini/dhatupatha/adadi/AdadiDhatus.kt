@@ -1,10 +1,13 @@
-package dev.panini.dhatupatha
+package dev.panini.dhatupatha.adadi
 
+import dev.panini.dhatupatha.Dhatu
+import dev.panini.dhatupatha.Gana
+import dev.panini.dhatupatha.PadaType
+import dev.panini.dhatupatha.dhatuPatha
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
 
-/** Complete Adadi-gaṇa imported from the MIT-shared ashtadhyayi-com data set. */
 object AdadiDhatus {
     val all: List<Dhatu> = dhatuPatha(Gana.ADADI) {
         dhatu(
@@ -103,9 +106,17 @@ object AdadiDhatus {
             PadaType.ATMANEPADA, ItStatus.SET, Karmatva.AKARMAKA, Accent.UDATTA,
         )
         dhatu(
-            "02.0020", 20, "पिजिँ", "पिञ्ज्",
-            "वर्णे सम्पर्चने अवयवे अव्यक्ते शब्दे च", "रंगना, चमकीला करना, धुंधुरुओंका शब्द होना, टुकड़े टुकड़े करना, अस्पष्ट शब्द होना", "to color, to paint, to make shine, to murmur",
-            PadaType.ATMANEPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
+            "02.0020",
+            20,
+            "पिजिँ",
+            "पिञ्ज्",
+            "वर्णे सम्पर्चने अवयवे अव्यक्ते शब्दे च",
+            "रंगना, चमकीला करना, धुंधुरुओंका शब्द होना, टुकड़े टुकड़े करना, अस्पष्ट शब्द होना",
+            "to color, to paint, to make shine, to murmur",
+            PadaType.ATMANEPADA,
+            ItStatus.SET,
+            Karmatva.SAKARMAKA,
+            Accent.UDATTA,
         )
         dhatu(
             "02.0021", 21, "पृजिँ", "पृञ्ज्",
@@ -183,9 +194,17 @@ object AdadiDhatus {
             PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
         )
         dhatu(
-            "02.0036", 36, "षु", "सु",
-            "प्रसवैश्वर्ययोः", "उत्पन्न करना, पैदा करना, जनना, गर्भ धारण करना, अद्भुत सामर्थ्य होना", "to give birth, to procreate, to become pregnant, to possess power, to possess supremacy",
-            PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
+            "02.0036",
+            36,
+            "षु",
+            "सु",
+            "प्रसवैश्वर्ययोः",
+            "उत्पन्न करना, पैदा करना, जनना, गर्भ धारण करना, अद्भुत सामर्थ्य होना",
+            "to give birth, to procreate, to become pregnant, to possess power, to possess supremacy",
+            PadaType.PARASMAIPADA,
+            ItStatus.ANIT,
+            Karmatva.SAKARMAKA,
+            Accent.ANUDATTA,
         )
         dhatu(
             "02.0037", 37, "कु", "कु",
@@ -193,9 +212,17 @@ object AdadiDhatus {
             PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.AKARMAKA, Accent.ANUDATTA,
         )
         dhatu(
-            "02.0038", 38, "ष्टुञ्", "स्तु",
-            "स्तुतौ", "प्रार्थना करना, स्तुति करना, प्रशंसा करना, भजन करना", "to pray, to worship, to glorify, to praise",
-            PadaType.UBHAYAPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
+            "02.0038",
+            38,
+            "ष्टुञ्",
+            "स्तु",
+            "स्तुतौ",
+            "प्रार्थना करना, स्तुति करना, प्रशंसा करना, भजन करना",
+            "to pray, to worship, to glorify, to praise",
+            PadaType.UBHAYAPADA,
+            ItStatus.ANIT,
+            Karmatva.SAKARMAKA,
+            Accent.ANUDATTA,
         )
         dhatu(
             "02.0039", 39, "ब्रूञ्", "ब्रू",
@@ -218,9 +245,17 @@ object AdadiDhatus {
             PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
         )
         dhatu(
-            "02.0043", 43, "वी", "वी",
-            "गतिव्याप्तिप्रजनकान्त्यसनखादनेषु", "जनजाति, घेरना, आक्रमण करना, गर्भवती होना, गर्भधारण करना, चमकना, फेंकना, खाना, भक्षण करना", "to go, to pervade, to surround, to attack, to be pregnant, to conceive, to glow, to shine, to throw, to eat",
-            PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
+            "02.0043",
+            43,
+            "वी",
+            "वी",
+            "गतिव्याप्तिप्रजनकान्त्यसनखादनेषु",
+            "जनजाति, घेरना, आक्रमण करना, गर्भवती होना, गर्भधारण करना, चमकना, फेंकना, खाना, भक्षण करना",
+            "to go, to pervade, to surround, to attack, to be pregnant, to conceive, to glow, to shine, to throw, to eat",
+            PadaType.PARASMAIPADA,
+            ItStatus.ANIT,
+            Karmatva.SAKARMAKA,
+            Accent.ANUDATTA,
         )
         dhatu(
             "02.0044", 44, "या", "या",
@@ -248,9 +283,17 @@ object AdadiDhatus {
             PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
         )
         dhatu(
-            "02.0049", 49, "द्रा", "द्रा",
-            "कुत्सायां गतौ", "बुरी चाल चलना, भागना, उड़ जाना, सोना", "to be spoiled, to act crucked, to fly, to run away, to sleep",
-            PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.AKARMAKA, Accent.ANUDATTA,
+            "02.0049",
+            49,
+            "द्रा",
+            "द्रा",
+            "कुत्सायां गतौ",
+            "बुरी चाल चलना, भागना, उड़ जाना, सोना",
+            "to be spoiled, to act crucked, to fly, to run away, to sleep",
+            PadaType.PARASMAIPADA,
+            ItStatus.ANIT,
+            Karmatva.AKARMAKA,
+            Accent.ANUDATTA,
         )
         dhatu(
             "02.0050", 50, "प्सा", "प्सा",
@@ -298,9 +341,17 @@ object AdadiDhatus {
             PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.DVIKARMAKA, Accent.ANUDATTA,
         )
         dhatu(
-            "02.0059", 59, "विदँ", "विद्",
-            "ज्ञाने", "समझना, जानना, दुःखी होना, ध्यान करना, मनन करना", "to understand, to learn, to know, to realize, to experience, to be sad, to meditate, to think",
-            PadaType.PARASMAIPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
+            "02.0059",
+            59,
+            "विदँ",
+            "विद्",
+            "ज्ञाने",
+            "समझना, जानना, दुःखी होना, ध्यान करना, मनन करना",
+            "to understand, to learn, to know, to realize, to experience, to be sad, to meditate, to think",
+            PadaType.PARASMAIPADA,
+            ItStatus.SET,
+            Karmatva.SAKARMAKA,
+            Accent.UDATTA,
         )
         dhatu(
             "02.0060", 60, "असँ", "अस्",
@@ -353,9 +404,17 @@ object AdadiDhatus {
             PadaType.PARASMAIPADA, ItStatus.SET, Karmatva.AKARMAKA, Accent.UDATTA,
         )
         dhatu(
-            "02.0070", 70, "शासुँ", "शास्",
-            "अनुशिष्टौ", "आज्ञा करना, कहना, बोध करना, अधिकार करना, शासन करना, शासक होना", "to order, to tell, to explain, to educate, to inform, to rule, to command to punish",
-            PadaType.PARASMAIPADA, ItStatus.SET, Karmatva.DVIKARMAKA, Accent.UDATTA,
+            "02.0070",
+            70,
+            "शासुँ",
+            "शास्",
+            "अनुशिष्टौ",
+            "आज्ञा करना, कहना, बोध करना, अधिकार करना, शासन करना, शासक होना",
+            "to order, to tell, to explain, to educate, to inform, to rule, to command to punish",
+            PadaType.PARASMAIPADA,
+            ItStatus.SET,
+            Karmatva.DVIKARMAKA,
+            Accent.UDATTA,
         )
         dhatu(
             "02.0071", 71, "दीधीङ्", "दीधी",
@@ -363,9 +422,17 @@ object AdadiDhatus {
             PadaType.ATMANEPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
         )
         dhatu(
-            "02.0072", 72, "वेवीङ्", "वेवी",
-            "गतिव्याप्तिप्रजनकान्त्यसनस्वादनेषु", "जाना, चलना, व्याप्त होना, गर्भवती होना, इच्छा करना, भेजना, खाना, स्वाद लेना", "to go, to walk to pervade, to become pregnant, to conceive, to wish, to desire, to send, to eat, to taste",
-            PadaType.ATMANEPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
+            "02.0072",
+            72,
+            "वेवीङ्",
+            "वेवी",
+            "गतिव्याप्तिप्रजनकान्त्यसनस्वादनेषु",
+            "जाना, चलना, व्याप्त होना, गर्भवती होना, इच्छा करना, भेजना, खाना, स्वाद लेना",
+            "to go, to walk to pervade, to become pregnant, to conceive, to wish, to desire, to send, to eat, to taste",
+            PadaType.ATMANEPADA,
+            ItStatus.SET,
+            Karmatva.SAKARMAKA,
+            Accent.UDATTA,
         )
         dhatu(
             "02.0073", 73, "षसँ", "सस्",

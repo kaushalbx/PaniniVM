@@ -1,5 +1,8 @@
-package dev.panini.dhatupatha
+package dev.panini.dhatupatha.rudhadi
 
+import dev.panini.dhatupatha.Dhatu
+import dev.panini.dhatupatha.Gana
+import dev.panini.dhatupatha.PadaType
 import dev.panini.execution.DhatuOperation
 import dev.panini.execution.ExecutionSamjna
 import dev.panini.execution.ExpressionShape

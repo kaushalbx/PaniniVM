@@ -1,10 +1,13 @@
-package dev.panini.dhatupatha
+package dev.panini.dhatupatha.svadi
 
+import dev.panini.dhatupatha.Dhatu
+import dev.panini.dhatupatha.Gana
+import dev.panini.dhatupatha.PadaType
+import dev.panini.dhatupatha.dhatuPatha
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
 
-/** Complete Svadi-gaṇa imported from the MIT-shared ashtadhyayi-com data set. */
 object SvadiDhatus {
     val all: List<Dhatu> = dhatuPatha(Gana.SVADI) {
         dhatu(

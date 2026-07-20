@@ -3,7 +3,7 @@ package dev.panini.execution
 import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.dhatupatha.Gana
-import dev.panini.dhatupatha.YujirDhatu
+import dev.panini.dhatupatha.rudhadi.YujirDhatu
 import dev.panini.derivation.Lakara
 import kotlin.test.Test
 import kotlin.test.assertEquals
