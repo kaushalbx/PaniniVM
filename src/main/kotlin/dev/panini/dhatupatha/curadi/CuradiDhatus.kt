@@ -3250,10 +3250,6 @@ object CuradiDhatus {
                 "", "", "",
                 null, null, null, null,
             )
-            dhatu(
-                "10.0509", 509, "-", "पुच्छादिषु धात्वर्थ इत्येव सिद्धम्",
-                "", "", "",
-                null, null, null, null,
-            )
+            dhatu(PreshDhatu())
         }
 }

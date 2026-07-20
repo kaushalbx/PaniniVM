@@ -5291,19 +5291,7 @@ object BhvadiDhatus {
                 "वर्णे", "रंगना, रंगाना, नील रंग लगाना", "to color, to dye, to paint, to darken",
                 PadaType.PARASMAIPADA, ItStatus.SET, Karmatva.AKARMAKA, Accent.UDATTA,
             )
-            dhatu(
-                "01.0601",
-                601,
-                "शीलँ",
-                "शील्",
-                "समाधौ",
-                "मनन करना, मन को एकाग्र करना, पूजा करना",
-                "to meditate,to practise, to concentrate, to think, to pray, to worship",
-                PadaType.PARASMAIPADA,
-                ItStatus.SET,
-                Karmatva.AKARMAKA,
-                Accent.UDATTA,
-            )
+            dhatu(SmrDhatu())
             dhatu(
                 "01.0602", 602, "कीलँ", "कील्",
                 "बन्धने", "बांधना, कीलोंसे मजबूत करना", "to nail",
