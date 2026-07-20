@@ -1,15 +1,15 @@
 package dev.panini.execution
 
 import dev.panini.derivation.Lakara
-import dev.panini.execution.parser.SanskritExecutionBaseVisitor
-import dev.panini.execution.parser.SanskritExecutionLexer
-import dev.panini.execution.parser.SanskritExecutionParser
+import dev.panini.execution.parser.VakyaBaseVisitor
+import dev.panini.execution.parser.VakyaLexer
+import dev.panini.execution.parser.VakyaParser
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 
 /**
  * ANTLR4-powered parser for Sanskrit execution utterances.
- * Uses SanskritExecutionLexer and SanskritExecutionParser.
+ * Traverses concrete Pāṇinian morphological AST parse trees (Subanta, Tiṅanta, Kṛdanta, Taddhitānta, Samāsa).
  */
 object SanskritAntlrParser {
 
@@ -33,9 +33,9 @@ object SanskritAntlrParser {
                 text += "।"
             }
 
-            val lexer = SanskritExecutionLexer(CharStreams.fromString(text))
+            val lexer = VakyaLexer(CharStreams.fromString(text))
             val tokens = CommonTokenStream(lexer)
-            val parser = SanskritExecutionParser(tokens)
+            val parser = VakyaParser(tokens)
 
             val tree = parser.utterance()
             if (parser.numberOfSyntaxErrors > 0) {
@@ -75,7 +75,7 @@ object SanskritAntlrParser {
     }
 
     private fun splitClauses(text: String): List<String> {
-        val rawClauses = text.split(Regex("[,\\s]*ततः[,\\s]*"))
+        val rawClauses = text.split(Regex("[,\\s]*ततः[,\\s]*|[,\\s]*अथ[,\\s]*|[,\\s]*अनन्तरम्[,\\s]*"))
         return rawClauses.filter { it.isNotBlank() }
     }
 
@@ -87,17 +87,23 @@ object SanskritAntlrParser {
         private val conversation: SambhashanaContext?,
         private val clauseIndex: Int,
         private val yogaIdSupplier: (Int) -> String,
-    ) : SanskritExecutionBaseVisitor<VakyaAnalysisResult>() {
+    ) : VakyaBaseVisitor<VakyaAnalysisResult>() {
 
-        override fun visitUtterance(ctx: SanskritExecutionParser.UtteranceContext?): VakyaAnalysisResult? {
+        override fun visitUtterance(ctx: VakyaParser.UtteranceContext?): VakyaAnalysisResult? {
             if (ctx == null) return null
-            val vakyaCtx: SanskritExecutionParser.VakyaContext = ctx.vakya()
+            val vakyaCtx = ctx.vakya().firstOrNull() as? VakyaParser.StandardVakyaContext
                 ?: return VakyaAnalysisResult.Unsupported("Empty vakya.")
-            val padas: List<SanskritExecutionParser.PadaContext> = vakyaCtx.pada() ?: emptyList()
-            val tingantaCtx: SanskritExecutionParser.TingantaPadaContext = vakyaCtx.tingantaPada()
-                ?: return VakyaAnalysisResult.Unsupported("Vakya missing verb (tiṅanta).")
 
-            val verbText: String = tingantaCtx.text.trim().replace(Regex("[।॥,.!?+]"), "")
+            val padas: List<VakyaParser.PadaContext> = vakyaCtx.pada() ?: emptyList()
+            val tingantaCtx: VakyaParser.TingantaPadaContext? = vakyaCtx.tingantaPada()
+            val avyayaKridantaCtx: VakyaParser.AvyayaKridantaPadaContext? = vakyaCtx.avyayaKridantaPada()
+
+            val verbText: String = when {
+                tingantaCtx != null -> tingantaCtx.text.trim().replace(Regex("[।॥,.!?+]"), "")
+                avyayaKridantaCtx != null -> avyayaKridantaCtx.text.trim().replace(Regex("[।॥,.!?+]"), "")
+                else -> return VakyaAnalysisResult.Unsupported("Vakya missing verb (tiṅanta/kṛdanta).")
+            }
+
             val (dhatuId, selectedOp) = resolveVerb(verbText)
                 ?: return VakyaAnalysisResult.Unsupported("Verb '$verbText' is not a supported mathematical or execution verb.")
 
@@ -150,32 +156,44 @@ object SanskritAntlrParser {
             )
         }
 
-        private fun extractSubantaTexts(ctx: SanskritExecutionParser.PadaContext): List<String> {
-            val coordinated: SanskritExecutionParser.CoordinatedSubantaContext? = ctx.coordinatedSubanta()
-            if (coordinated != null) {
-                val subantas: List<SanskritExecutionParser.SubantaPadaContext> = coordinated.subantaPada() ?: emptyList()
-                return subantas.map { subanta -> extractPratipadika(subanta) }
+        private fun extractSubantaTexts(ctx: VakyaParser.PadaContext): List<String> {
+            return when (ctx) {
+                is VakyaParser.CoordinatedPadaContext -> {
+                    val coordinated = ctx.coordinatedSubanta()
+                    val subantas = coordinated?.subantaPada() ?: emptyList()
+                    subantas.map { extractPratipadika(it) }
+                }
+                is VakyaParser.SingleSubantaPadaContext -> {
+                    val subanta = ctx.subantaPada()
+                    if (subanta != null) listOf(extractPratipadika(subanta)) else emptyList()
+                }
+                is VakyaParser.SamasaPadaContext -> {
+                    val samasa = ctx.samasaSubanta()
+                    if (samasa != null) listOf(samasa.text) else emptyList()
+                }
+                else -> emptyList()
             }
-            val subanta: SanskritExecutionParser.SubantaPadaContext? = ctx.subantaPada()
-            if (subanta != null) {
-                return listOf(extractPratipadika(subanta))
-            }
-            return emptyList()
         }
 
-        private fun extractPratipadika(ctx: SanskritExecutionParser.SubantaPadaContext): String {
-            val pratipadika: SanskritExecutionParser.PratipadikaContext? = ctx.pratipadika()
-            if (pratipadika != null) return pratipadika.text
-            return ctx.text
+        private fun extractPratipadika(ctx: VakyaParser.SubantaPadaContext): String {
+            return when (ctx) {
+                is VakyaParser.NumeralSubantaPadaContext -> ctx.numeralSubanta()?.text ?: ctx.text
+                is VakyaParser.ResultSubantaPadaContext -> ctx.resultSubanta()?.text ?: ctx.text
+                is VakyaParser.BaseSubantaDerivationContext -> ctx.basePratipadika()?.text ?: ctx.text
+                is VakyaParser.KridantaSubantaDerivationContext -> ctx.kridantaPratipadika()?.text ?: ctx.text
+                is VakyaParser.TaddhitaSubantaDerivationContext -> ctx.taddhitaPratipadika()?.text ?: ctx.text
+                is VakyaParser.SurfaceSubantaContext -> ctx.text
+                else -> ctx.text
+            }
         }
 
         private fun resolveVerb(verb: String): Pair<String, String>? = when (verb) {
-            "योजय" -> "07.0007" to "सङ्ख्यायोजनम्"
+            "योजय", "युज्+णिच्+लोट्+तिप्" -> "07.0007" to "सङ्ख्यायोजनम्"
             "वियोजय" -> "07.0007" to "सङ्ख्यावियोगः"
-            "हर", "विभाजय" -> "01.1046" to "सङ्ख्याहरणम्"
-            "गुणय" -> "10.0391" to "सङ्ख्यागुणनम्"
+            "हर", "विभाजय", "हृ+लोट्+तिप्" -> "01.1046" to "सङ्ख्याहरणम्"
+            "गुणय", "गण+णिच्+लोट्+तिप्" -> "10.0391" to "सङ्ख्यागुणनम्"
             "गणय" -> "10.0391" to "सङ्ख्यागणनम्"
-            "कुरु", "करोतु" -> "08.0010" to "संहिताकरणम्"
+            "कुरु", "करोतु", "कृ+लोट्+तिप्" -> "08.0010" to "संहिताकरणम्"
             "निष्पादय" -> "08.0010" to "पदनिष्पत्तिः"
             "शेषय" -> "07.0014" to "सङ्ख्याशेषः"
             "वर्धय" -> "01.0863" to "सङ्ख्याघातः"
@@ -184,8 +202,8 @@ object SanskritAntlrParser {
             "समय" -> "10.0391" to "सङ्ख्यासाम्यम्"
             "भज" -> "01.1153" to "सङ्ख्याभागः"
             "न्यूनय" -> "07.0013" to "सङ्ख्यान्यूनत्वम्"
-            "देहि", "ददातु" -> "03.0010" to "मूल्यदानम्"
-            "पश्य", "दर्शय" -> "01.1143" to "मूल्यदर्शनम्"
+            "देहि", "ददातु", "दा+लोट्+तिप्" -> "03.0010" to "मूल्यदानम्"
+            "पश्य", "दर्शय", "दृश्+लोट्+तिप्" -> "01.1143" to "मूल्यदर्शनम्"
             else -> null
         }
 
