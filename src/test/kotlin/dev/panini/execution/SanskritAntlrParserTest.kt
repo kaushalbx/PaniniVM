@@ -52,5 +52,39 @@ class SanskritAntlrParserTest {
         assertEquals(2, analyzed.analysis.dependencies.size)
     }
 
+    @Test
+    fun `ANTLR4 parses nominal-only sentence`() {
+        val input = SanskritUktiInput(
+            speaker = "प्रयोक्ता",
+            listener = "यन्त्रम्",
+            text = "राम + सुँ लक्ष्मण + सुँ च ।",
+        )
+        val result = SanskritAntlrParser.parse(input)
+        val analyzed = assertIs<VakyaAnalysisResult.Analyzed>(result)
+        // No verbs (kriyas) in a nominal sentence currently in this parser's logic
+        assertEquals(0, analyzed.analysis.kriyas.size)
+    }
 
+    @Test
+    fun `ANTLR4 parses complex compound members`() {
+        // gachat (kridanta) - putra (simple)
+        val input = SanskritUktiInput(
+            speaker = "प्रयोक्ता",
+            listener = "यन्त्रम्",
+            text = "गम् + शतृ-पुत्र + सुँ अत्र अस्ति ।",
+        )
+        val result = SanskritAntlrParser.parse(input)
+        assertIs<VakyaAnalysisResult.Analyzed>(result)
+    }
+
+    @Test
+    fun `ANTLR4 parses stri pratyaya derivations`() {
+        val input = SanskritUktiInput(
+            speaker = "प्रयोक्ता",
+            listener = "यन्त्रम्",
+            text = "अश्व + टाप् + सुँ ।",
+        )
+        val result = SanskritAntlrParser.parse(input)
+        assertIs<VakyaAnalysisResult.Analyzed>(result)
+    }
 }

@@ -15,7 +15,7 @@ sealed interface ParsedNominalBase {
     }
 
     data class Samasa(
-        val members: List<String>,
+        val members: List<ParsedNominalBase>,
         val separator: String,
     ) : ParsedNominalBase {
         init {
@@ -25,7 +25,7 @@ sealed interface ParsedNominalBase {
         }
 
         override val segmentedText: String
-            get() = members.joinToString(separator)
+            get() = members.joinToString(separator) { it.segmentedText }
     }
 
     data class Kridanta(
@@ -44,10 +44,18 @@ sealed interface ParsedNominalBase {
     }
 
     data class Taddhita(
-        val prakriti: String,
+        val prakriti: ParsedNominalBase,
         val pratyaya: String,
     ) : ParsedNominalBase {
         override val segmentedText: String
-            get() = "$prakriti + $pratyaya"
+            get() = "${prakriti.segmentedText} + $pratyaya"
+    }
+
+    data class Stri(
+        val prakriti: ParsedNominalBase,
+        val pratyaya: String,
+    ) : ParsedNominalBase {
+        override val segmentedText: String
+            get() = "${prakriti.segmentedText} + $pratyaya"
     }
 }

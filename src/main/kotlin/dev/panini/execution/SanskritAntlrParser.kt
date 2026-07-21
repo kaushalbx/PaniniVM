@@ -112,6 +112,11 @@ object SanskritAntlrParser {
                 }
             }
 
+            if (tinganta == null) {
+                trace += "Nominal clause detected without an explicit verb."
+                return@forEachIndexed
+            }
+
             val resolvedDhatu = resolveDhatu(tinganta)
                 ?: return VakyaAnalysisResult.Unsupported("Unknown verbal action/dhātu: ${tinganta.segmentedText}")
 
@@ -137,7 +142,7 @@ object SanskritAntlrParser {
             trace += "Analyzed clause $kriyaId with Dhātu ${resolvedDhatu.upadesha} (${resolvedDhatu.id}), operation: $selectedOp"
         }
 
-        val primaryLakara = utterance.statements.firstOrNull()?.let { resolveLakara(it.tinganta) } ?: Lakara.LOT
+        val primaryLakara = utterance.statements.firstOrNull()?.tinganta?.let { resolveLakara(it) } ?: Lakara.LOT
         val prayojana = when {
             hasNishedha -> VakyaPrayojana.NISHEDHA
             hasPrarthana -> VakyaPrayojana.PRARTHANA
@@ -298,7 +303,7 @@ object SanskritAntlrParser {
         }
 
         is ParsedNominalBase.Samasa -> {
-            val combined = base.members.joinToString(base.separator)
+            val combined = base.members.joinToString(base.separator) { it.text }
             ExecutionExpression.Pada(combined, setOf(ExecutionSamjna.SAMASA, ExecutionSamjna.SHABDA))
         }
 
@@ -307,7 +312,11 @@ object SanskritAntlrParser {
         }
 
         is ParsedNominalBase.Taddhita -> {
-            ExecutionExpression.Pada(base.prakriti, setOf(ExecutionSamjna.TADDHITA, ExecutionSamjna.SHABDA))
+            ExecutionExpression.Pada(base.prakriti.text, setOf(ExecutionSamjna.TADDHITA, ExecutionSamjna.SHABDA))
+        }
+
+        is ParsedNominalBase.Stri -> {
+            ExecutionExpression.Pada(base.prakriti.text, setOf(ExecutionSamjna.STRI_PRATYAYA, ExecutionSamjna.SHABDA))
         }
     }
 
@@ -379,9 +388,10 @@ object SanskritAntlrParser {
     private val ParsedNominalBase.text: String
         get() = when (this) {
             is ParsedNominalBase.Simple -> value
-            is ParsedNominalBase.Samasa -> members.joinToString(separator)
+            is ParsedNominalBase.Samasa -> members.joinToString(separator) { it.text }
             is ParsedNominalBase.Kridanta -> dhatu
-            is ParsedNominalBase.Taddhita -> prakriti
+            is ParsedNominalBase.Taddhita -> prakriti.text
+            is ParsedNominalBase.Stri -> prakriti.text
         }
 
     private val ParsedSubanta.text: String

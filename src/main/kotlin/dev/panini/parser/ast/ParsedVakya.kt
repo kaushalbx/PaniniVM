@@ -9,5 +9,8 @@ data class ParsedVakya(
      */
     val padas: List<ParsedPada>,
 
-    val tinganta: ParsedTinganta,
+    /**
+     * The main verb of the sentence. Optional in Sanskrit (e.g., nominal sentences).
+     */
+    val tinganta: ParsedTinganta? = null,
 )

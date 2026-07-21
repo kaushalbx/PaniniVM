@@ -8,4 +8,5 @@ enum class ExecutionSamjna {
     KRIDANTA,
     TADDHITA,
     SAMASA,
+    STRI_PRATYAYA,
 }

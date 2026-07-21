@@ -44,6 +44,9 @@ class DefaultSubantaAnalyzer(
 
                 is ParsedNominalBase.Samasa ->
                     add(ExecutionSamjna.SAMASA)
+
+                is ParsedNominalBase.Stri ->
+                    add(ExecutionSamjna.STRI_PRATYAYA)
             }
         }
 }

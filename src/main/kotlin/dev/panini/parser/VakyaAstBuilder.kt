@@ -49,16 +49,17 @@ class VakyaAstBuilder {
 
     private fun buildVakya(
         context: VakyaParser.VakyaContext,
-    ): ParsedVakya =
-        ParsedVakya(
-            padas = context.pada().map(::buildPada),
-            tinganta = buildTinganta(
-                context = requireContext(
-                    value = context.tingantaPada(),
-                    description = "tinganta pada",
-                ),
-            ),
+    ): ParsedVakya {
+        val padas = context.pada().map(::buildPada)
+
+        // A vakya now allows zero or more verbs.
+        val tinganta = context.tingantaPada().firstOrNull()?.let(::buildTinganta)
+
+        return ParsedVakya(
+            padas = padas,
+            tinganta = tinganta,
         )
+    }
 
     private fun buildPada(
         context: VakyaParser.PadaContext,
@@ -108,66 +109,68 @@ class VakyaAstBuilder {
     private fun buildNominalBase(
         context: VakyaParser.NominalBaseContext,
     ): ParsedNominalBase =
-        when {
-            context.taddhitaPratipadika() != null -> {
-                val taddhitaCtx = context.taddhitaPratipadika()
-                ParsedNominalBase.Taddhita(
-                    prakriti = requireText(
-                        value = taddhitaCtx.simplePratipadika()?.text,
-                        description = "taddhita prakriti",
-                    ),
+        when (context) {
+            is VakyaParser.SimpleBaseContext ->
+                buildSimplePratipadika(context.simplePratipadika())
+
+            is VakyaParser.KridantaBaseContext ->
+                buildKridanta(context.kridantaPratipadika())
+
+            is VakyaParser.StriBaseContext ->
+                ParsedNominalBase.Stri(
+                    prakriti = buildNominalBase(context.nominalBase()),
                     pratyaya = requireText(
-                        value = taddhitaCtx.taddhitaPratyaya()?.text,
+                        value = context.striPratyaya().text,
+                        description = "stri pratyaya",
+                    ),
+                )
+
+            is VakyaParser.TaddhitaBaseContext ->
+                ParsedNominalBase.Taddhita(
+                    prakriti = buildNominalBase(context.nominalBase()),
+                    pratyaya = requireText(
+                        value = context.taddhitaPratyaya().text,
                         description = "taddhita pratyaya",
                     ),
                 )
-            }
 
-            context.kridantaPratipadika() != null -> {
-                val kridantaCtx = context.kridantaPratipadika()
-                ParsedNominalBase.Kridanta(
-                    upasargas = kridantaCtx.upasarga().map { it.text },
-                    dhatu = requireText(
-                        value = kridantaCtx.dhatu()?.text,
-                        description = "kridanta dhatu",
-                    ),
-                    vikarana = kridantaCtx.vikarana()?.text,
-                    pratyaya = requireText(
-                        value = kridantaCtx.krtPratyaya()?.text,
-                        description = "krt pratyaya",
-                    ),
-                )
-            }
-
-            context.samasaPratipadika() != null -> {
-                val samasaCtx = context.samasaPratipadika()
+            is VakyaParser.SamasaBaseContext ->
                 ParsedNominalBase.Samasa(
-                    members = samasaCtx.simplePratipadika().map { it.text },
-                    separator = samasaCtx.COMPOUND_SEPARATOR()?.firstOrNull()?.text ?: "-",
-                )
-            }
-
-            context.NUMERAL() != null ->
-                ParsedNominalBase.Simple(
-                    value = context.NUMERAL().text,
-                    kind = SimpleNominalKind.NUMERAL,
-                )
-
-            context.RESULT_REFERENCE() != null ->
-                ParsedNominalBase.Simple(
-                    value = context.RESULT_REFERENCE().text,
-                    kind = SimpleNominalKind.RESULT_REFERENCE,
-                )
-
-            context.IDENTIFIER() != null ->
-                ParsedNominalBase.Simple(
-                    value = context.IDENTIFIER().text,
-                    kind = SimpleNominalKind.IDENTIFIER,
+                    members = listOf(
+                        buildNominalBase(context.nominalBase(0)),
+                        buildNominalBase(context.nominalBase(1)),
+                    ),
+                    separator = context.COMPOUND_SEPARATOR().text,
                 )
 
             else ->
-                error("Unsupported nominal base structure in AST builder.")
+                error("Unsupported nominal base structure: ${context.javaClass.simpleName}")
         }
+
+    private fun buildSimplePratipadika(
+        context: VakyaParser.SimplePratipadikaContext
+    ): ParsedNominalBase.Simple = when {
+        context.NUMERAL() != null -> ParsedNominalBase.Simple(context.NUMERAL().text, SimpleNominalKind.NUMERAL)
+        context.RESULT_REFERENCE() != null -> ParsedNominalBase.Simple(context.RESULT_REFERENCE().text, SimpleNominalKind.RESULT_REFERENCE)
+        context.IDENTIFIER() != null -> ParsedNominalBase.Simple(context.IDENTIFIER().text, SimpleNominalKind.IDENTIFIER)
+        else -> error("Unsupported simple pratipadika structure.")
+    }
+
+    private fun buildKridanta(
+        context: VakyaParser.KridantaPratipadikaContext
+    ): ParsedNominalBase.Kridanta =
+        ParsedNominalBase.Kridanta(
+            upasargas = context.upasarga().map { it.text },
+            dhatu = requireText(
+                value = context.dhatu()?.text,
+                description = "kridanta dhatu",
+            ),
+            vikarana = context.vikarana()?.text,
+            pratyaya = requireText(
+                value = context.krtPratyaya()?.text,
+                description = "krt pratyaya",
+            ),
+        )
 
     private fun buildAvyayaKridanta(
         context: VakyaParser.AvyayaKridantaPadaContext,
