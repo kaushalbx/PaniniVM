@@ -1,0 +1,52 @@
+package dev.panini.ashtadhyayi.adhyaya5.pada2
+
+import dev.panini.derivation.DerivationChange
+import dev.panini.derivation.DerivationState
+import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.TermKind
+import dev.panini.shiksha.Samjna
+import dev.panini.sutra.Sutra
+import dev.panini.sutra.SutraAction
+import dev.panini.sutra.SutraRole
+import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraType
+
+/** 5.2.48: तस्य पूरणे डटौ */
+object TasyaPuraneDatSutra : Sutra<DerivationState, DerivationChange>(
+    number = "5.2.48",
+    text = "तस्य पूरणे डट्",
+    hindiExplanation = "संख्यावाची प्रातिपदिक से पूरण (क्रमसूचक) अर्थ में डट् प्रत्यय होता है।",
+    type = SutraType.UTSARGA,
+    chapter = 5,
+    pada = 2,
+    optional = false,
+    kramaValue = 520048,
+    role = SutraRole.Vidhi,
+    action = SutraAction.PRATYAYA_SELECTION,
+    scope = SutraScope.DERIVATION
+), DerivationSutra {
+
+    override fun matches(context: DerivationState): Boolean {
+        val lastTerm = context.terms.lastOrNull() ?: return false
+        val hasPuranaRequest = context.samjnas.any { it.samjna == Samjna.PURANA }
+        val isAlreadyApplied = context.terms.any { it.surface == "अ" || it.upadesha == "डट्" }
+        return hasPuranaRequest && !isAlreadyApplied && lastTerm.surface in setOf(
+            "एकादशन्", "द्वादशन्", "त्रयोदशन्", "चतुर्दशन्", "पञ्चदशन्", "षोडशन्",
+            "सप्तदशन्", "अष्टादशन्", "एकोनविंशति", "विंशति", "त्रिंशत्", "चत्वारिंशत्", "पञ्चाशत्"
+        )
+    }
+
+    override fun apply(context: DerivationState): DerivationChange {
+        val datTerm = DerivationTerm(
+            id = "dat_${System.currentTimeMillis()}",
+            surface = "अ",
+            kind = TermKind.PRATYAYA,
+            upadesha = "डट्"
+        )
+        return DerivationChange(
+            state = context.copy(terms = context.terms + datTerm),
+            explanation = "$text: added suffix डट् (अ)"
+        )
+    }
+}

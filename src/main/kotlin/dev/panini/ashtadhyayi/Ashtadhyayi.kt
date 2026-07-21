@@ -13,7 +13,9 @@ import dev.panini.ashtadhyayi.adhyaya4.pada1.Adhyaya4Pada1
 import dev.panini.ashtadhyayi.adhyaya4.pada2.Adhyaya4Pada2
 import dev.panini.ashtadhyayi.adhyaya4.pada3.Adhyaya4Pada3
 import dev.panini.ashtadhyayi.adhyaya4.pada4.Adhyaya4Pada4
+import dev.panini.ashtadhyayi.adhyaya5.pada2.Adhyaya5Pada2
 import dev.panini.ashtadhyayi.adhyaya6.pada1.Adhyaya6Pada1
+import dev.panini.ashtadhyayi.adhyaya6.pada3.Adhyaya6Pada3
 import dev.panini.ashtadhyayi.adhyaya6.pada4.Adhyaya6Pada4
 import dev.panini.ashtadhyayi.adhyaya7.pada1.Adhyaya7Pada1
 import dev.panini.ashtadhyayi.adhyaya7.pada2.Adhyaya7Pada2
@@ -43,7 +45,8 @@ object Ashtadhyayi {
         Adhyaya4Pada2.sutras,
         Adhyaya4Pada3.sutras,
         Adhyaya4Pada4.sutras,
-        Adhyaya6Pada1.sutras, Adhyaya6Pada4.sutras, Adhyaya7Pada1.sutras, Adhyaya7Pada2.sutras,
+        Adhyaya5Pada2.sutras,
+        Adhyaya6Pada1.sutras, Adhyaya6Pada3.sutras, Adhyaya6Pada4.sutras, Adhyaya7Pada1.sutras, Adhyaya7Pada2.sutras,
         Adhyaya7Pada3.sutras, Adhyaya7Pada4.sutras, Adhyaya8Pada2.sutras, Adhyaya8Pada3.sutras, Adhyaya8Pada4.sutras,
     ).flatten()
     val cataloguedSutras: List<Sutra<*, *>> = implementedSutras

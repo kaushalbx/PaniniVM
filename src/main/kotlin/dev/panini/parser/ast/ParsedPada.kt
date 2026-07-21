@@ -19,6 +19,7 @@ sealed interface ParsedPada {
     }
 
     data class AvyayaKridanta(
+        val upasargas: List<String> = emptyList(),
         val dhatu: String,
         val vikarana: String?,
         val pratyaya: String,

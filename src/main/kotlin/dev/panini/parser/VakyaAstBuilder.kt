@@ -126,6 +126,7 @@ class VakyaAstBuilder {
             context.kridantaPratipadika() != null -> {
                 val kridantaCtx = context.kridantaPratipadika()
                 ParsedNominalBase.Kridanta(
+                    upasargas = kridantaCtx.upasarga().map { it.text },
                     dhatu = requireText(
                         value = kridantaCtx.dhatu()?.text,
                         description = "kridanta dhatu",
@@ -172,6 +173,7 @@ class VakyaAstBuilder {
         context: VakyaParser.AvyayaKridantaPadaContext,
     ): ParsedPada.AvyayaKridanta =
         ParsedPada.AvyayaKridanta(
+            upasargas = context.upasarga().map { it.text },
             dhatu = requireText(
                 value = context.dhatu()?.text,
                 description = "avyaya kridanta dhatu",
@@ -188,6 +190,7 @@ class VakyaAstBuilder {
     ): ParsedTinganta =
         if (context.dhatu() != null) {
             ParsedTinganta(
+                upasargas = context.upasarga().map { it.text },
                 dhatu = context.dhatu().text,
                 sanadiPratyayas = context.sanadiPratyaya().map { it.text },
                 vikarana = context.vikarana()?.text,

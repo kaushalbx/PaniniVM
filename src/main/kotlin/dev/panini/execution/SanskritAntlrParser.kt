@@ -160,28 +160,28 @@ object SanskritAntlrParser {
     }
 
     private fun getCleanVerb(tinganta: ParsedTinganta): String {
-        val raw = tinganta.unresolvedIdentifier ?: tinganta.dhatu ?: ""
+        val raw = tinganta.unresolvedIdentifier ?: (tinganta.upasargas.joinToString("") + (tinganta.dhatu ?: ""))
         return raw.trim().replace(Regex("[।॥,.!?+]"), "")
     }
 
     private fun resolveDhatu(tinganta: ParsedTinganta): Dhatu? {
-        tinganta.dhatu?.let { rawDhatu ->
-            val matches = DhatuPatha.all.filter {
+        val rawDhatu = tinganta.dhatu
+        val matches = if (rawDhatu != null) {
+            DhatuPatha.all.filter {
                 it.upadesha == rawDhatu || it.derivationalSurface == rawDhatu || it.id == rawDhatu
             }
-            val executableMatch = matches.find { it.operations.isNotEmpty() }
-            if (executableMatch != null) return executableMatch
-            if (matches.isNotEmpty()) return matches.first()
+        } else emptyList()
 
-            val byUpadesha = DhatuPatha.findByUpadesha(rawDhatu)
-            val execByUpadesha = byUpadesha.find { it.operations.isNotEmpty() }
-            if (execByUpadesha != null) return execByUpadesha
-            if (byUpadesha.isNotEmpty()) return byUpadesha.first()
-        }
+        val executableMatch = matches.find { it.operations.isNotEmpty() }
+        if (executableMatch != null) return executableMatch
+
+        val byUpadesha = rawDhatu?.let { DhatuPatha.findByUpadesha(it) } ?: emptyList()
+        val execByUpadesha = byUpadesha.find { it.operations.isNotEmpty() }
+        if (execByUpadesha != null) return execByUpadesha
 
         val clean = getCleanVerb(tinganta)
 
-        return when {
+        val explicitMapping = when {
             clean.startsWith("वियोज") -> DhatuPatha.find("07.0007")
             clean.startsWith("योज") || clean == "युङ्क्ते" || clean == "युनक्ति" || clean == "युज्" -> DhatuPatha.find("07.0007")
             clean.startsWith("सम") || clean.startsWith("गुण") || clean.startsWith("गण") -> DhatuPatha.find("10.0391")
@@ -194,14 +194,20 @@ object SanskritAntlrParser {
             clean.startsWith("भज") -> DhatuPatha.find("01.1153")
             clean == "देहि" || clean.startsWith("ददा") || clean.startsWith("दा") -> DhatuPatha.find("03.0010")
             clean == "पश्य" || clean.startsWith("पश्यति") || clean.startsWith("दृश्") -> DhatuPatha.find("01.1143")
-            clean.startsWith("प्रेष") -> DhatuPatha.all.find { it.upadesha.contains("प्रेष") || it.id == "10.0050" } ?: DhatuPatha.find("10.0050")
+            clean.startsWith("प्रेष") -> DhatuPatha.find("01.1049")
             clean == "स्मर" || clean.startsWith("स्मरति") || clean.startsWith("स्मृ") -> DhatuPatha.find("01.0924")
+            else -> null
+        }
 
-            else -> DhatuPatha.all.find {
-                it.operations.isNotEmpty() && (clean.startsWith(it.derivationalSurface) || clean.startsWith(it.upadesha))
-            } ?: DhatuPatha.all.find {
-                clean.startsWith(it.derivationalSurface) || clean.startsWith(it.upadesha)
-            }
+        if (explicitMapping != null) return explicitMapping
+
+        if (matches.isNotEmpty()) return matches.first()
+        if (byUpadesha.isNotEmpty()) return byUpadesha.first()
+
+        return DhatuPatha.all.find {
+            it.operations.isNotEmpty() && (clean.startsWith(it.derivationalSurface) || clean.startsWith(it.upadesha))
+        } ?: DhatuPatha.all.find {
+            clean.startsWith(it.derivationalSurface) || clean.startsWith(it.upadesha)
         }
     }
 
@@ -327,7 +333,7 @@ object SanskritAntlrParser {
             "07.0007" -> if (verbClean.startsWith("वियोज")) "सङ्ख्यावियोगः" else "सङ्ख्यायोजनम्"
             "10.0391" -> when {
                 verbClean.startsWith("सम") -> "सङ्ख्यासाम्यम्"
-                verbClean.startsWith("गण") -> "सङ्ख्यागणनम्"
+                verbClean.startsWith("गण") -> "सङ्ख्यागुणनम्"
                 else -> "सङ्ख्यागुणनम्"
             }
             "08.0010" -> {

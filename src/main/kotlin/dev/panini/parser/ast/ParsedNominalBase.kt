@@ -29,12 +29,14 @@ sealed interface ParsedNominalBase {
     }
 
     data class Kridanta(
+        val upasargas: List<String> = emptyList(),
         val dhatu: String,
         val vikarana: String?,
         val pratyaya: String,
     ) : ParsedNominalBase {
         override val segmentedText: String
             get() = buildList {
+                addAll(upasargas)
                 add(dhatu)
                 vikarana?.let(::add)
                 add(pratyaya)

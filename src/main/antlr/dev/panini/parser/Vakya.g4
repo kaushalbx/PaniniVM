@@ -82,11 +82,11 @@ simplePratipadika
 // ====================================================
 
 kridantaPratipadika
-    : dhatu (PLUS vikarana)? PLUS krtPratyaya
+    : (upasarga PLUS)* dhatu (PLUS vikarana)? PLUS krtPratyaya
     ;
 
 avyayaKridantaPada
-    : dhatu (PLUS vikarana)? PLUS avyayaKrtPratyaya
+    : (upasarga PLUS)* dhatu (PLUS vikarana)? PLUS avyayaKrtPratyaya
     ;
 
 krtPratyaya
@@ -150,7 +150,7 @@ taddhitaPratyaya
  * derivation may contain more than one such suffix.
  */
 tingantaPada
-    : dhatu
+    : (upasarga PLUS)* dhatu
       (PLUS sanadiPratyaya)*
       (PLUS vikarana)?
       PLUS lakara
@@ -160,6 +160,10 @@ tingantaPada
 
 dhatu
     : IDENTIFIER
+    ;
+
+upasarga
+    : UPASARGA
     ;
 
 sanadiPratyaya
@@ -297,6 +301,33 @@ LAKARA
     | 'लिङ्'
     | 'लुङ्'
     | 'लृङ्'
+    ;
+
+UPASARGA
+    : 'प्र'
+    | 'परा'
+    | 'अप'
+    | 'सम्'
+    | 'अनु'
+    | 'अव'
+    | 'निस्'
+    | 'निर्'
+    | 'दुस्'
+    | 'दुर्'
+    | 'वि'
+    | 'आङ्'
+    | 'आ'
+    | 'नि'
+    | 'अधि'
+    | 'अपि'
+    | 'अति'
+    | 'सु'
+    | 'उद्'
+    | 'उत्'
+    | 'अभि'
+    | 'प्रति'
+    | 'परि'
+    | 'उप'
     ;
 
 TING

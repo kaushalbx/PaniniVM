@@ -1,6 +1,8 @@
 package dev.panini.parser.ast
 
 data class ParsedTinganta(
+    val upasargas: List<String> = emptyList(),
+
     /**
      * Null only for the grammar's plain IDENTIFIER alternative.
      */
@@ -63,6 +65,7 @@ data class ParsedTinganta(
             }
 
             return buildList {
+                addAll(upasargas)
                 dhatu?.let(::add)
                 addAll(sanadiPratyayas)
                 vikarana?.let(::add)

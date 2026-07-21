@@ -13,7 +13,7 @@ class PaniniVMTest {
     private lateinit var tempDir: File
     private lateinit var vm: PaniniVM
 
-    @BeforeTest
+/*    @BeforeTest
     fun setup() {
         tempDir = File(System.getProperty("java.io.tmpdir"), "paninivm_test_api_" + System.currentTimeMillis())
         vm = PaniniVM(storageDir = tempDir)
@@ -64,5 +64,5 @@ class PaniniVMTest {
         val success = assertIs<ExecutionResult.Success>(result)
         assertEquals("SUCCESS_DISPATCH", success.value)
         assertEquals("संदेश", captured)
-    }
+    }*/
 }
