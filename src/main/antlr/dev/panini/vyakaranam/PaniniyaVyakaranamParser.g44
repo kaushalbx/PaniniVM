@@ -1,0 +1,607 @@
+parser grammar PaniniyaVyakaranamParser;
+
+options {
+    tokenVocab = PaniniyaVyakaranamLexer;
+}
+
+@header {
+package dev.panini.vyakaranam;
+}
+
+// ============================================================================
+// उक्तिः
+// ============================================================================
+
+ukti
+    : sambodhana?
+      vakya
+      (vakyaSambandha vakya)*
+      DANDA?
+      EOF
+    ;
+
+// ============================================================================
+// वाक्यम्
+// ============================================================================
+
+vakya
+    : akhyataVakya
+    | namaVakya
+    ;
+
+/*
+ * A finite sentence must contain at least one तिङन्तपदम्.
+ *
+ * Examples:
+ *
+ * राम + सुँ फल + अम् खाद् + लट् + तिप्
+ * फल + अम् राम + सुँ खाद् + लट् + तिप्
+ * खाद् + लट् + तिप् राम + सुँ फल + अम्
+ */
+akhyataVakya
+    : purvaVakyaPada*
+      tingantaPada
+      uttaraVakyaPada*
+    ;
+
+purvaVakyaPada
+    : vakyaPada
+    ;
+
+uttaraVakyaPada
+    : vakyaPada
+    ;
+
+/*
+ * Nominal sentence containing an understood copular verb.
+ *
+ * Example:
+ *
+ * राम + सुँ राजा + सुँ
+ */
+namaVakya
+    : subantaVakyaPada
+      subantaVakyaPada+
+    ;
+
+vakyaPada
+    : subantaVakyaPada
+    | avyayaPada
+    ;
+
+subantaVakyaPada
+    : subantaPada
+    | samuccitaSubanta
+    ;
+
+vakyaSambandha
+    : CHA
+    | VAA
+    | ATHA
+    | TATAH
+    | ANANTARAM
+    | KINTU
+    | ATAH
+    | YATAH
+    | DANDA
+    ;
+
+// ============================================================================
+// सम्बोधनम्
+// ============================================================================
+
+sambodhana
+    : sambodhanaSuchaka?
+      subantaPada
+      COMMA?
+    ;
+
+sambodhanaSuchaka
+    : HE
+    | BHOH
+    ;
+
+// ============================================================================
+// पदम्
+// ============================================================================
+
+pada
+    : subantaPada
+    | tingantaPada
+    | avyayaPada
+    ;
+
+// ============================================================================
+// सुबन्तपदम्
+// ============================================================================
+
+subantaPada
+    : pratipadika
+      PLUS supPratyaya
+    ;
+
+// ============================================================================
+// प्रातिपदिकम्
+// ============================================================================
+
+pratipadika
+    : pratipadikaMula
+      pratipadikaVikara*
+    ;
+
+pratipadikaMula
+    : mulaPratipadika
+    | kridantaPratipadika
+    | unadyantaPratipadika
+    | samasaPratipadika
+    | LPAREN pratipadika RPAREN
+    ;
+
+pratipadikaVikara
+    : PLUS taddhitaPratyaya
+    | PLUS striPratyaya
+    ;
+
+mulaPratipadika
+    : IDENTIFIER
+    ;
+
+// ============================================================================
+// कृदन्तप्रातिपदिकम्
+// ============================================================================
+
+kridantaPratipadika
+    : upasargaKrama?
+      dhatuPrakriti
+      PLUS krtPratyaya
+    ;
+
+// ============================================================================
+// उणाद्यन्तप्रातिपदिकम्
+// ============================================================================
+
+unadyantaPratipadika
+    : upasargaKrama?
+      dhatuPrakriti
+      PLUS unadiPratyaya
+    ;
+
+unadiPratyaya
+    : UNADI LPAREN IDENTIFIER RPAREN
+    ;
+
+// ============================================================================
+// तद्धितप्रत्ययाः
+// ============================================================================
+
+taddhitaPratyaya
+    : MATUP
+    | VATUP
+    | INI
+    | TVA
+    | TAL
+    | TARAP
+    | TAMAP
+    | MAYAT
+    | TASIL
+    | AN
+    | INJ
+    | DHAK
+    | THAJ
+    | CHA_TADDHITA
+    | KA_TADDHITA
+    | KAN
+    | YAT_TADDHITA
+    | AYANA
+    | IYA
+    | INA
+    ;
+
+// ============================================================================
+// स्त्रीप्रत्ययाः
+// ============================================================================
+
+striPratyaya
+    : TAAP
+    | DAAP
+    | CHAAP
+    | NEEP
+    | NEESH
+    | NEEN
+    | UUNG
+    | TICH
+    ;
+
+// ============================================================================
+// समासप्रातिपदिकम्
+// ============================================================================
+
+samasaPratipadika
+    : samasaAnga
+      (SAMASA_SEPARATOR samasaAnga)+
+    ;
+
+samasaAnga
+    : asamasikaPratipadika
+      samasaSupAvastha?
+    ;
+
+samasaSupAvastha
+    : PLUS supPratyaya
+      PLUS supAvastha
+    ;
+
+supAvastha
+    : LUK
+    | SHLU
+    | LUP
+    | ALUK
+    ;
+
+asamasikaPratipadika
+    : asamasikaPratipadikaMula
+      pratipadikaVikara*
+    ;
+
+asamasikaPratipadikaMula
+    : mulaPratipadika
+    | kridantaPratipadika
+    | unadyantaPratipadika
+    | LPAREN samasaPratipadika RPAREN
+    ;
+
+// ============================================================================
+// समुच्चितसुबन्तम्
+// ============================================================================
+
+samuccitaSubanta
+    : subantaPada
+      (COMMA? subantaPada)+
+      CHA
+    ;
+
+// ============================================================================
+// धातुप्रकृतिः
+// ============================================================================
+
+dhatuPrakriti
+    : dhatuMula
+      (PLUS sanadiPratyaya)*
+    ;
+
+dhatuMula
+    : IDENTIFIER
+    ;
+
+// ============================================================================
+// सनादिप्रत्ययाः
+// ============================================================================
+
+sanadiPratyaya
+    : SAN
+    | NIC
+    | YANG
+    | YANGLUK
+    | KYACH
+    | KAMYACH
+    | KYASH
+    | KYANG
+    | KYA
+    | AAY
+    | IIYANG
+    ;
+
+// ============================================================================
+// उपसर्गाः
+// ============================================================================
+
+upasargaKrama
+    : upasarga PLUS
+      (upasarga PLUS)*
+    ;
+
+upasarga
+    : PRA
+    | PARA
+    | APA
+    | SAM
+    | ANU
+    | AVA
+    | NIS
+    | NIR
+    | DUS
+    | DUR
+    | VI
+    | AANG
+    | AA
+    | NI
+    | ADHI
+    | API
+    | ATI
+    | SU_UPASARGA
+    | UD
+    | UT
+    | ABHI
+    | PRATI
+    | PARI
+    | UPA
+    ;
+
+// ============================================================================
+// तिङन्तपदम्
+// ============================================================================
+
+tingantaPada
+    : upasargaKrama?
+      dhatuPrakriti
+      PLUS lakara
+      PLUS tingPratyaya
+    ;
+
+// ============================================================================
+// विस्तृतव्युत्पत्तिः
+// ============================================================================
+
+vyutpattiTinganta
+    : vyutpattiAnga
+      PLUS lakara
+      PLUS tingPratyaya
+      EOF
+    ;
+
+vyutpattiAnga
+    : vyutpattiAvayava
+      (PLUS vyutpattiAvayava)*
+    ;
+
+vyutpattiAvayava
+    : upasarga
+    | dhatuPrakriti
+    | agama
+    | vikarana
+    | abhyasa
+    | adesham
+    ;
+
+abhyasa
+    : ABHYASA LPAREN IDENTIFIER RPAREN
+    ;
+
+adesham
+    : ADESHA LPAREN IDENTIFIER RPAREN
+    ;
+
+// ============================================================================
+// लकाराः
+// ============================================================================
+
+lakara
+    : LAT
+    | LIT
+    | LUT
+    | LRT
+    | LET
+    | LOT
+    | LANG
+    | LING
+    | LUNG
+    | LRNG
+    ;
+
+// ============================================================================
+// तिङ्प्रत्ययाः
+// ============================================================================
+
+tingPratyaya
+    : TIP
+    | TAS
+    | JHI
+    | SIP
+    | THAS
+    | THA
+    | MIP
+    | VAS
+    | MAS
+    | TING_TA
+    | AATAM
+    | JHA
+    | THAAS
+    | AATHAM
+    | DHVAM
+    | ID
+    | VAHI
+    | MAHING
+    ;
+
+// ============================================================================
+// सुप्प्रत्ययाः
+// ============================================================================
+
+supPratyaya
+    : SUP_SU
+    | AU
+    | JAS
+    | AM
+    | AUT
+    | SHAS
+    | TAA
+    | BHYAM
+    | BHIS
+    | NGE
+    | BHYAS
+    | NGASI
+    | NGAS
+    | OS
+    | AAM
+    | NGI
+    | SUP
+    ;
+
+// ============================================================================
+// विकरणाः
+// ============================================================================
+
+vikarana
+    : SHAP
+    | SHYAN
+    | SHNU
+    | SHNAM
+    | SHNA
+    | U_VIKARANA
+    | SHNAAM
+    | YAK
+    | SHAH
+    | SYA
+    | TAS_VIKARANA
+    | CLI
+    | SIC
+    | ANG
+    | CHANG
+    | KSA
+    ;
+
+// ============================================================================
+// आगमाः
+// ============================================================================
+
+agama
+    : AT
+    | IT_AGAMA
+    | IIT_AGAMA
+    | NUM
+    | TUK
+    | MUT
+    | NUT
+    | YASUT
+    | SIYUT
+    | SUK
+    | RUK
+    | RIK
+    | PUK
+    | YUK
+    | VUK
+    ;
+
+// ============================================================================
+// कृत्प्रत्ययाः
+// ============================================================================
+
+krtPratyaya
+    : KTA
+    | KTAVATU
+    | TAVYAT
+    | ANIYAR
+    | YAT_KRT
+    | NYAT
+    | KYAP
+    | SHATR
+    | SHANACH
+    | GHANJ
+    | LYUT
+    | NVUL
+    | TRICH
+    | ANIN
+    | KHAL
+    | KWIP
+    | KTIN
+    | AC
+    | AP_KRT
+    | KA_KRT
+    | NIN
+    | NINI
+    | IN_KRT
+    | TI_KRT
+    | TRA_KRT
+    | ITRA
+    | ISHNUCH
+    | UK
+    ;
+
+// ============================================================================
+// अव्ययकृदन्तम्
+// ============================================================================
+
+avyayaKrtPratyaya
+    : KTVA
+    | LYAP
+    | TUMUN
+    | NAMUL
+    | KASUN
+    | KTVOS
+    ;
+
+avyayaKridanta
+    : upasargaKrama?
+      dhatuPrakriti
+      PLUS avyayaKrtPratyaya
+    ;
+
+// ============================================================================
+// अव्ययपदम्
+// ============================================================================
+
+avyayaPada
+    : mulaAvyaya
+    | avyayaKridanta
+    | avyayaTaddhitanta
+    | avyayibhavaPada
+    ;
+
+mulaAvyaya
+    : MAA
+    | NA
+    | ITI
+    | API
+    | EVA
+    | CHA
+    | VAA
+    | TU_AVYAYA
+    | HI
+    | KHALU
+    | NANU
+    | ATHA
+    | TATAH
+    | ANANTARAM
+    | KINTU
+    | ATAH
+    | YATAH
+    | YATHA
+    | TATHA
+    | YADA
+    | TADA
+    | YATRA
+    | TATRA
+    | KADA
+    | KUTRA
+    | SARVATRA
+    | KATHAM
+    | KUTAH
+    | KRPAYA
+    | SAHASAA
+    | SHANAIH
+    | PUNAH
+    | ADYA
+    | SHVAH
+    | HYAH
+    | INTERJECTION
+    ;
+
+avyayaTaddhitanta
+    : mulaPratipadika
+      PLUS avyayaTaddhitaPratyaya
+    ;
+
+avyayaTaddhitaPratyaya
+    : TASIL
+    | TRA_TADDHITA
+    | HA
+    | DAA
+    | THAAL
+    | THAMU
+    | VAT
+    | DHAA
+    ;
+
+avyayibhavaPada
+    : samasaPratipadika
+    ;

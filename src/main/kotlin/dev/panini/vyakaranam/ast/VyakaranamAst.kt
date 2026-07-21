@@ -1,0 +1,142 @@
+package dev.panini.vyakaranam.ast
+
+sealed interface VyakaranamNode {
+    val sourceText: String
+}
+
+data class Ukti(
+    override val sourceText: String,
+    val sambodhana: Sambodhana? = null,
+    val vakyas: List<Vakya>,
+    val sambandhas: List<String> = emptyList(),
+) : VyakaranamNode
+
+data class Sambodhana(
+    override val sourceText: String,
+    val suchaka: String?,
+    val subanta: SubantaPada,
+) : VyakaranamNode
+
+sealed interface Vakya : VyakaranamNode {
+    val padas: List<Pada>
+}
+
+data class AkhyataVakya(
+    override val sourceText: String,
+    override val padas: List<Pada>,
+    val tinganta: TingantaPada,
+) : Vakya
+
+data class NamaVakya(
+    override val sourceText: String,
+    override val padas: List<Pada>,
+) : Vakya
+
+sealed interface Pada : VyakaranamNode
+
+data class SubantaPada(
+    override val sourceText: String,
+    val pratipadika: Pratipadika,
+    val sup: SupPratyaya,
+) : Pada
+
+data class TingantaPada(
+    override val sourceText: String,
+    val upasargas: List<String>,
+    val dhatu: DhatuPrakriti,
+    val lakara: Lakara,
+    val ting: TingPratyaya,
+) : Pada
+
+data class AvyayaPada(
+    override val sourceText: String,
+    val form: String,
+    val derivation: AvyayaDerivation? = null,
+) : Pada
+
+data class SamuccitaSubanta(
+    override val sourceText: String,
+    val members: List<SubantaPada>,
+) : Pada
+
+sealed interface Pratipadika : VyakaranamNode
+
+data class MulaPratipadika(
+    override val sourceText: String,
+    val text: String,
+    val vikaras: List<PratipadikaVikara> = emptyList(),
+) : Pratipadika
+
+data class KridantaPratipadika(
+    override val sourceText: String,
+    val upasargas: List<String>,
+    val dhatu: DhatuPrakriti,
+    val krtPratyaya: String,
+    val vikaras: List<PratipadikaVikara> = emptyList(),
+) : Pratipadika
+
+data class UnadyantaPratipadika(
+    override val sourceText: String,
+    val upasargas: List<String>,
+    val dhatu: DhatuPrakriti,
+    val unadiPratyaya: String,
+    val vikaras: List<PratipadikaVikara> = emptyList(),
+) : Pratipadika
+
+data class SamasaPratipadika(
+    override val sourceText: String,
+    val angas: List<SamasaAnga>,
+    val vikaras: List<PratipadikaVikara> = emptyList(),
+) : Pratipadika
+
+data class SamasaAnga(
+    override val sourceText: String,
+    val pratipadika: Pratipadika,
+    val sup: SupPratyaya? = null,
+    val supLopa: SupLopa? = null,
+) : VyakaranamNode
+
+sealed interface PratipadikaVikara : VyakaranamNode
+
+data class TaddhitaVikara(
+    override val sourceText: String,
+    val pratyaya: String,
+) : PratipadikaVikara
+
+data class StriVikara(
+    override val sourceText: String,
+    val pratyaya: String,
+) : PratipadikaVikara
+
+data class DhatuPrakriti(
+    override val sourceText: String,
+    val mulaDhatu: String,
+    val sanadiPratyayas: List<String> = emptyList(),
+) : VyakaranamNode
+
+data class SupPratyaya(
+    override val sourceText: String,
+    val text: String,
+) : VyakaranamNode
+
+data class TingPratyaya(
+    override val sourceText: String,
+    val text: String,
+) : VyakaranamNode
+
+sealed interface AvyayaDerivation
+
+data class AvyayaKridantaDerivation(
+    val upasargas: List<String>,
+    val dhatu: DhatuPrakriti,
+    val pratyaya: String,
+) : AvyayaDerivation
+
+data class AvyayaTaddhitaDerivation(
+    val pratipadika: String,
+    val pratyaya: String,
+) : AvyayaDerivation
+
+data class AvyayibhavaDerivation(
+    val samasa: SamasaPratipadika,
+) : AvyayaDerivation
