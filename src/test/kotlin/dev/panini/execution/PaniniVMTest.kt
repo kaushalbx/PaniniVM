@@ -10,7 +10,7 @@ import kotlin.test.assertNotNull
 
 class PaniniVMTest {
 
-   /* private lateinit var tempDir: File
+    private lateinit var tempDir: File
     private lateinit var vm: PaniniVM
 
     @BeforeTest
@@ -26,23 +26,30 @@ class PaniniVMTest {
 
     @Test
     fun `PaniniVM evaluates addition utterance`() {
-        val result = vm.eval("दश द्वि च योजय।")
+        val result = vm.eval("दश + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।")
         val success = assertIs<ExecutionResult.Success>(result)
         assertEquals("द्वादश", success.value)
     }
 
     @Test
     fun `PaniniVM evaluates multi-clause chain and persists session`() {
-        val res1 = vm.eval("दश द्वि च योजय।", sessionKey = "session_math")
+        val res1 = vm.eval("दश + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।", sessionKey = "session_math")
         assertIs<ExecutionResult.Success>(res1)
 
-        val res2 = vm.eval("पूर्वफलं द्वि च गुणय।", sessionKey = "session_math")
+        val res2 = vm.eval("पूर्वफल + अम् द्वि + औट् च गण + णिच् + लोट् + सिप् ।", sessionKey = "session_math")
         val success2 = assertIs<ExecutionResult.Success>(res2)
         assertEquals("चतुर्विंशतिः", success2.value)
 
         val loaded = vm.loadSession("session_math")
         assertNotNull(loaded)
         assertEquals("चतुर्विंशतिः", loaded.mentionedEntities["योग-१"])
+    }
+
+    @Test
+    fun `PaniniVM evaluates 3-clause chained utterance`() {
+        val result = vm.eval("एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् । फल + अम् द्वि + औट् च गण + णिच् + लोट् + सिप् । फल + अम् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।")
+        val success = assertIs<ExecutionResult.Success>(result)
+        assertEquals("नव", success.value)
     }
 
     @Test
@@ -53,9 +60,9 @@ class PaniniVMTest {
             "SUCCESS_DISPATCH"
         }
 
-        val result = vm.eval("संदेशम् प्रेषय।")
+        val result = vm.eval("संदेश + अम् प्रेष + णिच् + लोट् + सिप् ।")
         val success = assertIs<ExecutionResult.Success>(result)
         assertEquals("SUCCESS_DISPATCH", success.value)
-        assertEquals("संदेशम्", captured)
-    }*/
+        assertEquals("संदेश", captured)
+    }
 }

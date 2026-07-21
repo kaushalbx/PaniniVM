@@ -34,7 +34,7 @@ class PaniniVM(
 
     private val sessions = mutableMapOf<String, SambhashanaContext>()
 
-   /* fun eval(
+    fun eval(
         utterance: String,
         sessionKey: String? = null,
         scope: ExecutionScope = defaultScope,
@@ -59,6 +59,7 @@ class PaniniVM(
                 trace = phala.trace,
             )
             is Phala.Asiddha -> phala.result
+            else -> ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Execution resulted in $phala")
         }
 
         if (phala is Phala.Siddha && sessionKey != null) {
@@ -76,7 +77,34 @@ class PaniniVM(
 
         return result
     }
-*/
+
+    fun evalScript(
+        scriptContent: String,
+        sessionKey: String? = null,
+        scope: ExecutionScope = defaultScope,
+        speaker: String = "प्रयोक्ता",
+        listener: String = "यन्त्रम्",
+    ): List<ExecutionResult> {
+        val lines = scriptContent.lines()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() && !it.startsWith("#") && !it.startsWith("//") }
+
+        return lines.map { line ->
+            eval(line, sessionKey = sessionKey, scope = scope, speaker = speaker, listener = listener)
+        }
+    }
+
+    fun evalFile(
+        file: File,
+        sessionKey: String? = null,
+        scope: ExecutionScope = defaultScope,
+        speaker: String = "प्रयोक्ता",
+        listener: String = "यन्त्रम्",
+    ): List<ExecutionResult> {
+        require(file.exists()) { "PaniniVM script file not found: ${file.absolutePath}" }
+        return evalScript(file.readText(), sessionKey = sessionKey, scope = scope, speaker = speaker, listener = listener)
+    }
+
     fun loadSession(sessionKey: String): SambhashanaContext? {
         val loaded = store.load(sessionKey)
         if (loaded != null) {

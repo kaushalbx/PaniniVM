@@ -20,13 +20,14 @@ class VakyaAstBuilder {
     ): ParsedUtterance {
         val vakyas = context.vakya().map(::buildVakya)
 
-        val connectives = context.CONNECTIVE()
+        val connectives = context.vakyaChain()
             .mapNotNull { it.text }
 
         return ParsedUtterance(
             sambodhana = context.sambodhana()?.let(::buildSambodhana),
             statements = vakyas,
             connectives = connectives,
+            hasDanda = context.DANDA() != null,
         )
     }
 
@@ -38,20 +39,25 @@ class VakyaAstBuilder {
                 value = context.HE()?.text,
                 description = "sambodhana particle",
             ),
-            pada = buildSubanta(context.subantaPada()),
+            pada = buildSubanta(
+                context = requireContext(
+                    value = context.subantaPada(),
+                    description = "sambodhana subanta pada",
+                ),
+            ),
         )
 
     private fun buildVakya(
         context: VakyaParser.VakyaContext,
     ): ParsedVakya =
         ParsedVakya(
-            /*
-             * Because both occurrences of `pada*` use the same rule name,
-             * ANTLR exposes them through one combined `pada()` collection.
-             * ANTLR retains their source order.
-             */
             padas = context.pada().map(::buildPada),
-            tinganta = buildTinganta(context.tingantaPada()),
+            tinganta = buildTinganta(
+                context = requireContext(
+                    value = context.tingantaPada(),
+                    description = "tinganta pada",
+                ),
+            ),
         )
 
     private fun buildPada(
@@ -59,30 +65,27 @@ class VakyaAstBuilder {
     ): ParsedPada =
         when {
             context.coordinatedSubanta() != null ->
-                buildCoordination(context.coordinatedSubanta()!!)
+                buildCoordinatedSubanta(context.coordinatedSubanta())
 
             context.subantaPada() != null ->
-                ParsedPada.Subanta(
-                    buildSubanta(context.subantaPada()!!),
-                )
+                ParsedPada.Subanta(buildSubanta(context.subantaPada()))
 
             context.avyayaKridantaPada() != null ->
-                buildAvyayaKridanta(context.avyayaKridantaPada()!!)
+                buildAvyayaKridanta(context.avyayaKridantaPada())
 
             context.avyayaPada() != null ->
                 ParsedPada.Avyaya(
                     value = requireText(
-                        context.avyayaPada()?.text,
-                        "avyaya",
+                        value = context.avyayaPada().text,
+                        description = "avyaya pada text",
                     ),
                 )
 
-            else -> throw IllegalStateException(
-                "Unsupported pada parse-tree alternative: ${context.text}",
-            )
+            else ->
+                error("Unsupported pada structure in AST builder.")
         }
 
-    private fun buildCoordination(
+    private fun buildCoordinatedSubanta(
         context: VakyaParser.CoordinatedSubantaContext,
     ): ParsedPada.Coordination =
         ParsedPada.Coordination(
@@ -93,7 +96,12 @@ class VakyaAstBuilder {
         context: VakyaParser.SubantaPadaContext,
     ): ParsedSubanta =
         ParsedSubanta(
-            base = buildNominalBase(context.nominalBase()),
+            base = buildNominalBase(
+                context = requireContext(
+                    value = context.nominalBase(),
+                    description = "nominal base",
+                ),
+            ),
             supPratyaya = context.supPratyaya()?.text,
         )
 
@@ -101,97 +109,64 @@ class VakyaAstBuilder {
         context: VakyaParser.NominalBaseContext,
     ): ParsedNominalBase =
         when {
-            context.taddhitaPratipadika() != null ->
-                buildTaddhita(context.taddhitaPratipadika()!!)
+            context.taddhitaPratipadika() != null -> {
+                val taddhitaCtx = context.taddhitaPratipadika()
+                ParsedNominalBase.Taddhita(
+                    prakriti = requireText(
+                        value = taddhitaCtx.simplePratipadika()?.text,
+                        description = "taddhita prakriti",
+                    ),
+                    pratyaya = requireText(
+                        value = taddhitaCtx.taddhitaPratyaya()?.text,
+                        description = "taddhita pratyaya",
+                    ),
+                )
+            }
 
-            context.kridantaPratipadika() != null ->
-                buildKridanta(context.kridantaPratipadika()!!)
+            context.kridantaPratipadika() != null -> {
+                val kridantaCtx = context.kridantaPratipadika()
+                ParsedNominalBase.Kridanta(
+                    dhatu = requireText(
+                        value = kridantaCtx.dhatu()?.text,
+                        description = "kridanta dhatu",
+                    ),
+                    vikarana = kridantaCtx.vikarana()?.text,
+                    pratyaya = requireText(
+                        value = kridantaCtx.krtPratyaya()?.text,
+                        description = "krt pratyaya",
+                    ),
+                )
+            }
 
-            context.samasaPratipadika() != null ->
-                buildSamasa(context.samasaPratipadika()!!)
+            context.samasaPratipadika() != null -> {
+                val samasaCtx = context.samasaPratipadika()
+                ParsedNominalBase.Samasa(
+                    members = samasaCtx.simplePratipadika().map { it.text },
+                    separator = samasaCtx.COMPOUND_SEPARATOR()?.firstOrNull()?.text ?: "-",
+                )
+            }
 
             context.NUMERAL() != null ->
                 ParsedNominalBase.Simple(
-                    value = requireText(
-                        context.NUMERAL()?.text,
-                        "numeral",
-                    ),
+                    value = context.NUMERAL().text,
                     kind = SimpleNominalKind.NUMERAL,
                 )
 
             context.RESULT_REFERENCE() != null ->
                 ParsedNominalBase.Simple(
-                    value = requireText(
-                        context.RESULT_REFERENCE()?.text,
-                        "result reference",
-                    ),
+                    value = context.RESULT_REFERENCE().text,
                     kind = SimpleNominalKind.RESULT_REFERENCE,
                 )
 
             context.IDENTIFIER() != null ->
                 ParsedNominalBase.Simple(
-                    value = requireText(
-                        context.IDENTIFIER()?.text,
-                        "nominal identifier",
-                    ),
+                    value = context.IDENTIFIER().text,
                     kind = SimpleNominalKind.IDENTIFIER,
                 )
 
-            else -> throw IllegalStateException(
-                "Unsupported nominal-base alternative: ${context.text}",
-            )
+            else ->
+                error("Unsupported nominal base structure in AST builder.")
         }
-
-    private fun buildSamasa(
-        context: VakyaParser.SamasaPratipadikaContext,
-    ): ParsedNominalBase.Samasa {
-        val members = context.simplePratipadika()
-            .map { simple ->
-                requireText(
-                    value = simple.text,
-                    description = "samāsa member",
-                )
-            }
-
-        val separator = context.COMPOUND_SEPARATOR()
-            .firstOrNull()
-            ?.text
-            ?: "-"
-
-        return ParsedNominalBase.Samasa(
-            members = members,
-            separator = separator,
-        )
-    }
-
-    private fun buildKridanta(
-        context: VakyaParser.KridantaPratipadikaContext,
-    ): ParsedNominalBase.Kridanta =
-        ParsedNominalBase.Kridanta(
-            dhatu = requireText(
-                value = context.dhatu()?.text,
-                description = "kṛdanta dhātu",
-            ),
-            vikarana = context.vikarana()?.text,
-            pratyaya = requireText(
-                value = context.krtPratyaya()?.text,
-                description = "kṛt suffix",
-            ),
-        )
-
-    private fun buildTaddhita(
-        context: VakyaParser.TaddhitaPratipadikaContext,
-    ): ParsedNominalBase.Taddhita =
-        ParsedNominalBase.Taddhita(
-            prakriti = requireText(
-                value = context.simplePratipadika()?.text,
-                description = "taddhita prakṛti",
-            ),
-            pratyaya = requireText(
-                value = context.taddhitaPratyaya()?.text,
-                description = "taddhita suffix",
-            ),
-        )
 
     private fun buildAvyayaKridanta(
         context: VakyaParser.AvyayaKridantaPadaContext,
@@ -199,57 +174,50 @@ class VakyaAstBuilder {
         ParsedPada.AvyayaKridanta(
             dhatu = requireText(
                 value = context.dhatu()?.text,
-                description = "avyaya-kṛdanta dhātu",
+                description = "avyaya kridanta dhatu",
             ),
             vikarana = context.vikarana()?.text,
             pratyaya = requireText(
                 value = context.avyayaKrtPratyaya()?.text,
-                description = "avyaya kṛt suffix",
+                description = "avyaya krt pratyaya",
             ),
         )
 
     private fun buildTinganta(
         context: VakyaParser.TingantaPadaContext,
-    ): ParsedTinganta {
-        /*
-         * Second grammar alternative:
-         *
-         *     tingantaPada : IDENTIFIER
-         */
-        if (context.dhatu() == null) {
-            return ParsedTinganta(
+    ): ParsedTinganta =
+        if (context.dhatu() != null) {
+            ParsedTinganta(
+                dhatu = context.dhatu().text,
+                sanadiPratyayas = context.sanadiPratyaya().map { it.text },
+                vikarana = context.vikarana()?.text,
+                lakara = context.lakara()?.text,
+                tingPratyaya = context.tingPratyaya()?.text,
+                unresolvedIdentifier = null,
+            )
+        } else {
+            ParsedTinganta(
                 dhatu = null,
+                sanadiPratyayas = emptyList(),
+                vikarana = null,
                 lakara = null,
+                tingPratyaya = null,
                 unresolvedIdentifier = requireText(
                     value = context.IDENTIFIER()?.text,
-                    description = "unresolved tiṅanta",
+                    description = "unresolved tinganta identifier",
                 ),
             )
         }
 
-        return ParsedTinganta(
-            dhatu = requireText(
-                value = context.dhatu()?.text,
-                description = "tiṅanta dhātu",
-            ),
-            sanadiPratyayas = context.sanadiPratyaya()
-                .mapNotNull { it.text },
-            vikarana = context.vikarana()?.text,
-            lakara = requireText(
-                value = context.lakara()?.text,
-                description = "lakāra",
-            ),
-            tingPratyaya = context.tingPratyaya()?.text,
-        )
-    }
+    private fun <T> requireContext(
+        value: T?,
+        description: String,
+    ): T =
+        value ?: error("Missing parse-tree context for $description.")
 
     private fun requireText(
         value: String?,
         description: String,
     ): String =
-        value
-            ?.takeIf(String::isNotBlank)
-            ?: throw IllegalStateException(
-                "The parser produced a blank or missing $description.",
-            )
+        value ?: error("Missing text token for $description.")
 }

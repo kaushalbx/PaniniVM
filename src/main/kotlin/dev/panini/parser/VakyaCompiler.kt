@@ -1,8 +1,10 @@
 package dev.panini.parser
 
 import dev.panini.parser.ast.ParsedUtterance
+import java.io.File
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
+
 /**
  * Public entry point for compiling segmented Sanskrit source into the
  * parser-level AST.
@@ -63,6 +65,9 @@ class VakyaCompiler(
 
         return astBuilder.build(tree)
     }
+
+    fun compileFile(file: File): ParsedUtterance =
+        compile(file.readText(), sourceName = file.name)
 
     /**
      * Useful for callers that want a result instead of an exception.

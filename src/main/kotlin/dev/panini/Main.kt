@@ -10,12 +10,43 @@ import dev.panini.derivation.TingantaEngine
 import dev.panini.derivation.Lakara
 import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.sutra.Sutra
+import dev.panini.execution.ExecutionResult
+import dev.panini.execution.PaniniVM
+import java.io.File
 
 fun main(args: Array<String>) {
     runCli(args).forEach(::println)
 }
 
 internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull()) {
+    "--eval", "--pvm", "--exec" -> {
+        val filePath = args.getOrNull(1) ?: error("Usage: --eval path/to/file.pvm")
+        val file = File(filePath)
+        require(file.exists()) { "PaniniVM script file not found: $filePath" }
+        val vm = PaniniVM()
+        val results = vm.evalFile(file)
+        buildList {
+            add("=== PaniniVM Script Execution: ${file.name} ===")
+            results.forEachIndexed { index, res ->
+                add("Line ${index + 1}:")
+                when (res) {
+                    is ExecutionResult.Success -> {
+                        add("  ✓ Result: ${res.value}")
+                        add("  ↳ Operation: ${res.operation}")
+                    }
+                    is ExecutionResult.Failure -> {
+                        add("  ✗ Error: ${res.error} - ${res.message}")
+                    }
+                    is ExecutionResult.NeedsInput -> {
+                        add("  ? Needs input: ${res.message} (missing: ${res.missingKarakas})")
+                    }
+                    is ExecutionResult.Ambiguous -> {
+                        add("  ? Ambiguous: ${res.message} (matches: ${res.matchingOperations})")
+                    }
+                }
+            }
+        }
+    }
     "--paradigm" -> {
         val pratipadika = args.getOrNull(1) ?: error("Usage: --paradigm राम")
         SubantaEngine().deriveSupportedParadigm(pratipadika).surfaces.map { (affix, surface) ->
@@ -71,7 +102,7 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
         "loaded=${Ashtadhyayi.pathitaCount}; executable=${Ashtadhyayi.kriyavatCount}; total=${Ashtadhyayi.expectedSutraCount}; remaining=${Ashtadhyayi.remainingCount}",
         "roles=" + Ashtadhyayi.registry.sutras.groupingBy { it.role::class.simpleName }.eachCount().entries.joinToString { "${it.key}=${it.value}" },
     )
-    else -> listOf("Usage: --paradigm राम | --derive राम SASTHI BAHUVACANA | --verb भू | --sutra 7.1.54 | --coverage")
+    else -> listOf("Usage: --eval file.pvm | --paradigm राम | --derive राम SASTHI BAHUVACANA | --verb भू | --sutra 7.1.54 | --coverage")
 }
 
 private fun parseVibhakti(value: String): Vibhakti = when (value.uppercase()) {

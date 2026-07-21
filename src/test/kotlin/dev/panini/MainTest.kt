@@ -6,6 +6,15 @@ import kotlin.test.assertTrue
 
 class MainTest {
     @Test
+    fun `eval command executes pvm script file and formats results`() {
+        val output = runCli(arrayOf("--eval", "src/test/kotlin/dev/panini/parser/addition.pvm"))
+
+        assertEquals("=== PaniniVM Script Execution: addition.pvm ===", output.first())
+        assertTrue(output.any { it.contains("✓ Result: षट्") })
+        assertTrue(output.any { it.contains("✓ Result: पञ्च") })
+    }
+
+    @Test
     fun `derive command returns the form and its sutra trace`() {
         val output = runCli(arrayOf("--derive", "राम", "SASTHI", "BAHUVACANA"))
         val sanskritLabels = runCli(arrayOf("--derive", "राम", "षष्ठी", "बहुवचन"))

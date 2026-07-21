@@ -30,10 +30,38 @@ object SanskritMorphologicalParser {
     }
 
     fun parseToken(token: String, prayoga: Prayoga = Prayoga.KARTARI): MorphologicalToken {
-        val canonical = canonicalNumbers[token]
+        val raw = token.trim()
+
+        if (raw.contains("+")) {
+            val parts = raw.split("+").map { it.trim() }
+            val stemPart = parts[0]
+            val supPart = parts.getOrNull(1)
+
+            val canonical = canonicalNumbers[stemPart] ?: stemPart
+            val isNumber = canonicalNumbers.containsKey(stemPart) || canonicalNumbers.containsKey(canonical)
+            val isRef = stemPart in setOf("फल", "फले", "पूर्वफल", "पूर्वफले")
+
+            val (vibhakti, karaka) = resolveSupSuffix(supPart, prayoga)
+
+            val samjnas = buildSet {
+                add(ExecutionSamjna.SHABDA)
+                if (isNumber) add(ExecutionSamjna.SANKHYA)
+                if (isRef) add(ExecutionSamjna.REFERENCE)
+            }
+
+            return MorphologicalToken(
+                originalText = raw,
+                stem = canonical,
+                vibhakti = vibhakti,
+                inferredKaraka = karaka,
+                samjnas = samjnas,
+            )
+        }
+
+        val canonical = canonicalNumbers[raw]
         if (canonical != null) {
             return MorphologicalToken(
-                originalText = token,
+                originalText = raw,
                 stem = canonical,
                 vibhakti = Vibhakti.PRATHAMA,
                 inferredKaraka = Karaka.KARMAN,
@@ -41,14 +69,28 @@ object SanskritMorphologicalParser {
             )
         }
 
-        val (stem, vibhakti, karaka) = analyzeVibhakti(token, prayoga)
+        val (stem, vibhakti, karaka) = analyzeVibhakti(raw, prayoga)
         return MorphologicalToken(
-            originalText = token,
+            originalText = raw,
             stem = stem,
             vibhakti = vibhakti,
             inferredKaraka = karaka,
             samjnas = setOf(ExecutionSamjna.SHABDA),
         )
+    }
+
+    private fun resolveSupSuffix(sup: String?, prayoga: Prayoga): Pair<Vibhakti?, Karaka> {
+        if (sup == null) return Pair(null, Karaka.KARMAN)
+        return when (sup) {
+            "सुँ", "औ", "जस्" -> Pair(Vibhakti.PRATHAMA, if (prayoga == Prayoga.KARMANI) Karaka.KARMAN else Karaka.KARTR)
+            "अम्", "औट्", "शस्" -> Pair(Vibhakti.DVITIYA, Karaka.KARMAN)
+            "टा", "भ्याम्", "भिस्" -> Pair(Vibhakti.TRTIYA, if (prayoga == Prayoga.KARMANI) Karaka.KARTR else Karaka.KARANA)
+            "ङे", "भ्यस्" -> Pair(Vibhakti.CHATURTHI, Karaka.SAMPRADANA)
+            "ङसिँ" -> Pair(Vibhakti.PANCHAMI, Karaka.APADANA)
+            "ङस्", "ओस्", "आम्" -> Pair(Vibhakti.SASTHI, Karaka.KARMAN)
+            "ङि", "सुप्" -> Pair(Vibhakti.SAPTAMI, Karaka.ADHIKARANA)
+            else -> Pair(null, Karaka.KARMAN)
+        }
     }
 
     private fun analyzeVibhakti(word: String, prayoga: Prayoga): Triple<String, Vibhakti?, Karaka> {
