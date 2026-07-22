@@ -26,7 +26,7 @@ object OperationResolver {
         }
 
         val named = invocation.selectedOperation?.let { selected ->
-            operations.filter { it.id == selected }
+            operations.filter { it.name == selected }
         } ?: operations.filter { it.trigger.matches(invocation.grammaticalFeatures) }
         if (named.isEmpty()) {
             val message = invocation.selectedOperation?.let {
@@ -66,7 +66,7 @@ object OperationResolver {
             maximal.single()
         } else {
             return OperationResolution.Ambiguous(
-                maximal.map { it.first.id },
+                maximal.map { it.first.name },
                 "More than one incomparable operation signature matches dhātu ${dhatu.upadesha}.",
             )
         }
@@ -78,7 +78,7 @@ object OperationResolver {
                 invocation,
                 operation,
                 context,
-                invocation.karakaTrace + "Resolved ${dhatu.upadesha} to operation ${operation.id}.",
+                invocation.karakaTrace + "Resolved ${dhatu.upadesha} to operation ${operation.name}.",
             )
         )
     }

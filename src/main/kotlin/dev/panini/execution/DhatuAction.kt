@@ -1,6 +1,8 @@
 package dev.panini.execution
 
-fun interface DhatuAction {
-    fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult
+abstract class DhatuAction(
+    val name: String,
+    val description: String,
+) {
+    abstract fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult
 }
-

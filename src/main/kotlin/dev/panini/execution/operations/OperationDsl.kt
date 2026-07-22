@@ -7,17 +7,13 @@ internal data class OperationRegistration(val dhatuId: String, val operation: Dh
 
 internal fun operation(
     dhatuId: String,
-    id: String,
-    description: String,
     action: DhatuAction,
-    definition: OperationDefinition.() -> Unit,
+    definition: OperationDefinition.() -> Unit = {},
 ): OperationRegistration {
     val builder = OperationDefinition().apply(definition)
     return OperationRegistration(
         dhatuId,
         DhatuOperation(
-            id = id,
-            description = description,
             signature = OperationSignature(builder.requirements, builder.optionalKarakas),
             action = action,
             trigger = builder.trigger,

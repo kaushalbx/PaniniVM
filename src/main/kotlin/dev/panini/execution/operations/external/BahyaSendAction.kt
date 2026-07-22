@@ -3,9 +3,7 @@ package dev.panini.execution
 import dev.panini.core.Karaka
 
 /** External System Dispatch Action (preṣ / बाह्यप्रेषणम्). */
-object BahyaSendAction : DhatuAction {
-    const val ID = "बाह्यप्रेषणम्"
-
+object BahyaSendAction : DhatuAction("बाह्यप्रेषणम्", "बाह्यतन्त्राय सन्देशप्रेषणम्") {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
         val expression = context.bindings[Karaka.KARMAN]
             ?: return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "External dispatch requires a payload/command in KARMAN.")
@@ -23,8 +21,8 @@ object BahyaSendAction : DhatuAction {
 
         return ExecutionResult.Success(
             output,
-            operation.id,
-            listOf("Selected operation ${operation.id}.", "Dispatched external effect $effect with payload '$payload'."),
+            operation.name,
+            listOf("Selected operation ${operation.name}.", "Dispatched external effect $effect with payload '$payload'."),
         )
     }
 }

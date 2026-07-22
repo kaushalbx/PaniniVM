@@ -26,8 +26,8 @@ class NumericOverflowTest {
             ).value.operation
         }
 
-        assertEquals("सङ्ख्यायोजनम्", resolve(emptySet()).id)
-        assertEquals("सङ्ख्यावियोगः", resolve(setOf("वि")).id)
+        assertEquals("सङ्ख्यायोजनम्", resolve(emptySet()).name)
+        assertEquals("सङ्ख्यावियोगः", resolve(setOf("वि")).name)
     }
 
     @Test

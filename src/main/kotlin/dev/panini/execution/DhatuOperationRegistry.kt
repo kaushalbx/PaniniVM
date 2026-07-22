@@ -2,6 +2,7 @@ package dev.panini.execution
 
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.dhatupatha.DhatuPatha
+import dev.panini.execution.operations.linguistic.LinguisticOperationRegistrations
 
 class DhatuOperationRegistry internal constructor(
     private val registrations: Map<String, List<DhatuOperation>>,
@@ -11,8 +12,8 @@ class DhatuOperationRegistry internal constructor(
             require(dhatuId.isNotBlank()) { "A registry entry requires a dhātu id." }
             require(DhatuPatha.find(dhatuId) != null) { "Unknown dhātu id: $dhatuId." }
             require(operations.isNotEmpty()) { "Dhātu $dhatuId must register at least one operation." }
-            require(operations.map { it.id }.distinct().size == operations.size) {
-                "Dhātu $dhatuId registers duplicate operation ids."
+            require(operations.map { it.name }.distinct().size == operations.size) {
+                "Dhātu $dhatuId registers duplicate operations."
             }
             require(operations.groupBy { it.signature to it.trigger }.none { it.value.size > 1 }) {
                 "Dhātu $dhatuId has indistinguishable operations."

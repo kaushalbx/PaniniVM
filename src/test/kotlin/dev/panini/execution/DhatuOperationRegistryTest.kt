@@ -10,8 +10,10 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class DhatuOperationRegistryTest {
-    private val action = DhatuAction { _, operation ->
-        ExecutionResult.Success("सिद्धम्", operation.id)
+    private val action = object : DhatuAction("परीक्षण-क्रिया", "परीक्षणम्") {
+        override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
+            return ExecutionResult.Success("सिद्धम्", operation.name)
+        }
     }
 
     @Test
@@ -73,20 +75,22 @@ class DhatuOperationRegistryTest {
                 requirement.karaka to expressionFor(requirement, variables)
             }
             val resolution = OperationResolver.resolve(
-                DhatuInvocation("test", dhatu, bindings, selectedOperation = operation.id),
+                DhatuInvocation("test", dhatu, bindings, selectedOperation = operation.name),
                 variables,
             )
-            assertIs<OperationResolution.Resolved>(resolution, "${dhatu.id}/${operation.id}: $resolution")
+            assertIs<OperationResolution.Resolved>(resolution, "${dhatu.id}/${operation.name}: $resolution")
         }
     }
 
     @Test
     fun `operation signature resolves a syncretic binding by required karaka`() {
+        val customAction = object : DhatuAction("सम्प्रदान-परीक्षा", "test") {
+            override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult =
+                ExecutionResult.Success("सिद्धम्", operation.name)
+        }
         val operation = DhatuOperation(
-            id = "सम्प्रदान-परीक्षा",
-            description = "test",
             signature = OperationSignature(listOf(KarakaRequirement(Karaka.SAMPRADANA))),
-            action = action,
+            action = customAction,
         )
         val registry = DhatuOperationRegistry(mapOf("07.0007" to listOf(operation)))
         val expression = ExecutionExpression.Pada("रामाभ्याम्")
@@ -94,7 +98,7 @@ class DhatuOperationRegistryTest {
             id = "test",
             dhatu = YujirDhatu(),
             bindings = emptyMap(),
-            selectedOperation = operation.id,
+            selectedOperation = operation.name,
             ambiguousBindings = listOf(
                 AmbiguousKarakaBinding(
                     expression,
@@ -110,11 +114,11 @@ class DhatuOperationRegistryTest {
         assertEquals(expression, resolved.value.context.bindings[Karaka.SAMPRADANA])
     }
 
-    private fun testOperation(id: String) = DhatuOperation(
-        id = id,
-        description = "test",
+    private fun testOperation(name: String) = DhatuOperation(
         signature = OperationSignature(listOf(KarakaRequirement(Karaka.KARMAN))),
-        action = action,
+        action = object : DhatuAction(name, "test") {
+            override fun execute(context: ExecutionContext, operation: DhatuOperation) = ExecutionResult.Success("ok", operation.name)
+        },
     )
 
     private fun expressionFor(
