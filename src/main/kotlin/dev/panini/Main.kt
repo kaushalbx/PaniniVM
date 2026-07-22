@@ -3,11 +3,11 @@ package dev.panini
 import dev.panini.derivation.SubantaDerivationRequest
 import dev.panini.derivation.SubantaEngine
 import dev.panini.derivation.SubantaStemClass
-import dev.panini.derivation.Vacana
-import dev.panini.derivation.Vibhakti
+import dev.panini.core.Vacana
+import dev.panini.core.Vibhakti
 import dev.panini.derivation.TingantaDerivationRequest
 import dev.panini.derivation.TingantaEngine
-import dev.panini.derivation.Lakara
+import dev.panini.core.Lakara
 import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.sutra.Sutra
 import dev.panini.execution.ExecutionResult

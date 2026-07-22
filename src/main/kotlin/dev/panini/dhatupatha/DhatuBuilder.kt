@@ -1,11 +1,13 @@
 package dev.panini.dhatupatha
 
+import dev.panini.core.DhatuGana
+import dev.panini.core.PadaType
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
 
 /** Small DSL used by each gaṇa file to preserve Dhātupāṭha order. */
-class DhatuBuilder(private val gana: Gana) {
+class DhatuBuilder(private val gana: DhatuGana) {
     private val dhatus = mutableListOf<Dhatu>()
 
     fun dhatu(
@@ -53,5 +55,5 @@ class DhatuBuilder(private val gana: Gana) {
     fun build(): List<Dhatu> = dhatus.toList()
 }
 
-fun dhatuPatha(gana: Gana, entries: DhatuBuilder.() -> Unit): List<Dhatu> =
+fun dhatuPatha(gana: DhatuGana, entries: DhatuBuilder.() -> Unit): List<Dhatu> =
     DhatuBuilder(gana).apply(entries).build()

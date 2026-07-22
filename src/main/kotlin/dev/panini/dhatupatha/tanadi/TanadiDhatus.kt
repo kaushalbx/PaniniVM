@@ -1,15 +1,15 @@
 package dev.panini.dhatupatha.tanadi
 
 import dev.panini.dhatupatha.Dhatu
-import dev.panini.dhatupatha.Gana
-import dev.panini.dhatupatha.PadaType
+import dev.panini.core.DhatuGana
+import dev.panini.core.PadaType
 import dev.panini.dhatupatha.dhatuPatha
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
 
 object TanadiDhatus {
-    val all: List<Dhatu> = dhatuPatha(Gana.TANADI) {
+    val all: List<Dhatu> = dhatuPatha(DhatuGana.TANADI) {
         dhatu(
             "08.0001", 1, "तनुँ", "तन्",
             "विस्तारे", "फैलाना, बढ़ाना", "to spread, to stretch, to expand, to increase",

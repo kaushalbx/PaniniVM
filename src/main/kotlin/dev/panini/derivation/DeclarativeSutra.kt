@@ -1,5 +1,12 @@
 package dev.panini.derivation
 
+import dev.panini.core.Kala
+import dev.panini.core.Lakara
+import dev.panini.core.Linga
+import dev.panini.core.Prayoga
+import dev.panini.core.Purusha
+import dev.panini.core.Vacana
+import dev.panini.core.Vibhakti
 import dev.panini.shiksha.Samjna
 
 
@@ -125,7 +132,7 @@ class HasPhonologicalRequest(
 }
 
 class HasMorphosyntax(
-    private val linga: dev.panini.shiksha.Linga? = null,
+    private val linga: Linga? = null,
     private val vibhakti: Vibhakti? = null,
     private val vacana: Vacana? = null,
     private val purusha: Purusha? = null,

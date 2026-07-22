@@ -4,12 +4,12 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.Lakara
+import dev.panini.core.Lakara
 import dev.panini.derivation.TermKind
-import dev.panini.derivation.Purusha
+import dev.panini.core.Purusha
 import dev.panini.derivation.TingAffix
 import dev.panini.derivation.VarnaSubstitution
-import dev.panini.dhatupatha.Gana
+import dev.panini.core.DhatuGana
 import dev.panini.shiksha.Varnamala
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -35,9 +35,9 @@ object PugantalaghupadhasyaCaSutra : Sutra<DerivationState, DerivationChange>(
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU } ?: return false
         if (context.effectiveContext.rupa.lakara == Lakara.LING &&
             context.terms.none { it.id == "yasut" || it.id == "siyut" }) return false
-        val isCuradiNic = dhatu.gana == Gana.CURADI && context.terms.any { it.upadesha == "णिच्" }
+        val isCuradiNic = dhatu.gana == DhatuGana.CURADI && context.terms.any { it.upadesha == "णिच्" }
         val ending = TingAffix.entries.firstOrNull { it.upadesha == context.terms.lastOrNull()?.upadesha }
-        val isAdadiStrong = ending != null && dhatu.gana == Gana.ADADI && when (context.effectiveContext.rupa.lakara) {
+        val isAdadiStrong = ending != null && dhatu.gana == DhatuGana.ADADI && when (context.effectiveContext.rupa.lakara) {
             Lakara.LAT -> ending in setOf(TingAffix.TIP, TingAffix.SIP, TingAffix.MIP)
             Lakara.LOT -> ending.purusha == Purusha.UTTAMA || ending == TingAffix.TIP
             Lakara.LANG -> ending in setOf(TingAffix.TIP, TingAffix.SIP, TingAffix.MIP)

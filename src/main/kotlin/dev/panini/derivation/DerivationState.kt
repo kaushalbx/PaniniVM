@@ -3,9 +3,8 @@ package dev.panini.derivation
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.LexicalUse
 import dev.panini.shiksha.ItStatus
-import dev.panini.shiksha.Linga
 import dev.panini.dhatupatha.Dhatu
-import dev.panini.dhatupatha.Gana
+import dev.panini.core.DhatuGana
 
 /**
  * The shared state passed through an Ashtadhyayi derivation.
@@ -193,7 +192,7 @@ data class DerivationTerm(
     val sthaniProps: SthaniProperties? = null,
     val lexicalUses: Set<LexicalUse> = emptySet(),
     val itStatus: ItStatus? = null,
-    val gana: Gana? = null,
+    val gana: DhatuGana? = null,
     val droppedBySutra: String? = null,
     val originalSurfaceBeforeDrop: String? = null,
     val createdBySutra: String? = null,

@@ -1,5 +1,7 @@
 package dev.panini.execution
 
+import dev.panini.core.Karaka
+
 /** Inputs visible while one dhātu meaning is executed. */
 data class ExecutionContext(
     val bindings: Map<Karaka, ExecutionExpression> = emptyMap(),

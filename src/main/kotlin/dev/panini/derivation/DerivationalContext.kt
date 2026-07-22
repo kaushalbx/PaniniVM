@@ -1,7 +1,13 @@
 package dev.panini.derivation
 
-import dev.panini.dhatupatha.PadaType
-import dev.panini.shiksha.Linga
+import dev.panini.core.Kala
+import dev.panini.core.Lakara
+import dev.panini.core.PadaType
+import dev.panini.core.Linga
+import dev.panini.core.Prayoga
+import dev.panini.core.Purusha
+import dev.panini.core.Vacana
+import dev.panini.core.Vibhakti
 
 /** The requested taddhita/kṛt meaning; distinct from grammatical facts established by rules. */
 enum class DerivationalMeaning {
@@ -16,22 +22,6 @@ enum class DerivationalEnvironment {
     KALAVRTTI, CHATURARTHIKA, UNADI_LICENSED, DHATU_LOPA,
 }
 
-enum class Prayoga { KARTARI, KARMANI, BHAVE }
-enum class Purusha { PRATHAMA, MADHYAMA, UTTAMA }
-/** The ten lakāras, retaining their grammatical upadeśa forms. */
-enum class Lakara(val upadesha: String) {
-    LAT("लट्"),
-    LIT("लिट्"),
-    LUT("लुट्"),
-    LRT("लृट्"),
-    LET("लेट्"),
-    LOT("लोट्"),
-    LANG("लङ्"),
-    LING("लिङ्"),
-    LUNG("लुङ्"),
-    LRNG("लृङ्"),
-}
-enum class Kala { VARTAMANA, BHUTA, BHAVISYAT }
 enum class PhonologicalRequest { GUNA, VRDDHI }
 enum class LetAugment { AT, AAT }
 enum class LetFormation { PRESENT_STEM, SIP_AORIST }

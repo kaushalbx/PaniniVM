@@ -1,6 +1,9 @@
 package dev.panini.vyakaranam.analysis
 
-import dev.panini.vyakaranam.ast.*
+import dev.panini.core.Purusha
+import dev.panini.core.Vacana
+import dev.panini.core.Vibhakti
+import dev.panini.core.PadaType
 
 data class SupMetadata(
     val vibhakti: Vibhakti,
@@ -10,7 +13,7 @@ data class SupMetadata(
 data class TingMetadata(
     val purusha: Purusha,
     val vacana: Vacana,
-    val pada: PadaPrakara,
+    val pada: PadaType,
 )
 
 object PratyayaMetadata {
@@ -24,9 +27,9 @@ object PratyayaMetadata {
         "औट्" to SupMetadata(Vibhakti.DVITIYA, Vacana.DVIVACANA),
         "शस्" to SupMetadata(Vibhakti.DVITIYA, Vacana.BAHUVACANA),
 
-        "टा" to SupMetadata(Vibhakti.TRITIYA, Vacana.EKAVACANA),
-        "भ्याम्" to SupMetadata(Vibhakti.TRITIYA, Vacana.DVIVACANA),
-        "भिस्" to SupMetadata(Vibhakti.TRITIYA, Vacana.BAHUVACANA),
+        "टा" to SupMetadata(Vibhakti.TRTIYA, Vacana.EKAVACANA),
+        "भ्याम्" to SupMetadata(Vibhakti.TRTIYA, Vacana.DVIVACANA),
+        "भिस्" to SupMetadata(Vibhakti.TRTIYA, Vacana.BAHUVACANA),
 
         "ङे" to SupMetadata(Vibhakti.CHATURTHI, Vacana.EKAVACANA),
 
@@ -43,9 +46,9 @@ object PratyayaMetadata {
          * Therefore a raw surface map cannot uniquely determine all cases.
          */
         "ङसिँ" to SupMetadata(Vibhakti.PANCHAMI, Vacana.EKAVACANA),
-        "ङस्" to SupMetadata(Vibhakti.SHASTHI, Vacana.EKAVACANA),
-        "ओस्" to SupMetadata(Vibhakti.SHASTHI, Vacana.DVIVACANA),
-        "आम्" to SupMetadata(Vibhakti.SHASTHI, Vacana.BAHUVACANA),
+        "ङस्" to SupMetadata(Vibhakti.SASTHI, Vacana.EKAVACANA),
+        "ओस्" to SupMetadata(Vibhakti.SASTHI, Vacana.DVIVACANA),
+        "आम्" to SupMetadata(Vibhakti.SASTHI, Vacana.BAHUVACANA),
         "ङि" to SupMetadata(Vibhakti.SAPTAMI, Vacana.EKAVACANA),
         "सुप्" to SupMetadata(Vibhakti.SAPTAMI, Vacana.BAHUVACANA),
     )
@@ -54,93 +57,93 @@ object PratyayaMetadata {
         "तिप्" to TingMetadata(
             Purusha.PRATHAMA,
             Vacana.EKAVACANA,
-            PadaPrakara.PARASMAIPADA,
+            PadaType.PARASMAIPADA,
         ),
         "तस्" to TingMetadata(
             Purusha.PRATHAMA,
             Vacana.DVIVACANA,
-            PadaPrakara.PARASMAIPADA,
+            PadaType.PARASMAIPADA,
         ),
         "झि" to TingMetadata(
             Purusha.PRATHAMA,
             Vacana.BAHUVACANA,
-            PadaPrakara.PARASMAIPADA,
+            PadaType.PARASMAIPADA,
         ),
         "सिप्" to TingMetadata(
             Purusha.MADHYAMA,
             Vacana.EKAVACANA,
-            PadaPrakara.PARASMAIPADA,
+            PadaType.PARASMAIPADA,
         ),
         "थस्" to TingMetadata(
             Purusha.MADHYAMA,
             Vacana.DVIVACANA,
-            PadaPrakara.PARASMAIPADA,
+            PadaType.PARASMAIPADA,
         ),
         "थ" to TingMetadata(
             Purusha.MADHYAMA,
             Vacana.BAHUVACANA,
-            PadaPrakara.PARASMAIPADA,
+            PadaType.PARASMAIPADA,
         ),
         "मिप्" to TingMetadata(
             Purusha.UTTAMA,
             Vacana.EKAVACANA,
-            PadaPrakara.PARASMAIPADA,
+            PadaType.PARASMAIPADA,
         ),
         "वस्" to TingMetadata(
             Purusha.UTTAMA,
             Vacana.DVIVACANA,
-            PadaPrakara.PARASMAIPADA,
+            PadaType.PARASMAIPADA,
         ),
         "मस्" to TingMetadata(
             Purusha.UTTAMA,
             Vacana.BAHUVACANA,
-            PadaPrakara.PARASMAIPADA,
+            PadaType.PARASMAIPADA,
         ),
 
         "त" to TingMetadata(
             Purusha.PRATHAMA,
             Vacana.EKAVACANA,
-            PadaPrakara.ATMANEPADA,
+            PadaType.ATMANEPADA,
         ),
         "आताम्" to TingMetadata(
             Purusha.PRATHAMA,
             Vacana.DVIVACANA,
-            PadaPrakara.ATMANEPADA,
+            PadaType.ATMANEPADA,
         ),
         "झ" to TingMetadata(
             Purusha.PRATHAMA,
             Vacana.BAHUVACANA,
-            PadaPrakara.ATMANEPADA,
+            PadaType.ATMANEPADA,
         ),
         "थास्" to TingMetadata(
             Purusha.MADHYAMA,
             Vacana.EKAVACANA,
-            PadaPrakara.ATMANEPADA,
+            PadaType.ATMANEPADA,
         ),
         "आथाम्" to TingMetadata(
             Purusha.MADHYAMA,
             Vacana.DVIVACANA,
-            PadaPrakara.ATMANEPADA,
+            PadaType.ATMANEPADA,
         ),
         "ध्वम्" to TingMetadata(
             Purusha.MADHYAMA,
             Vacana.BAHUVACANA,
-            PadaPrakara.ATMANEPADA,
+            PadaType.ATMANEPADA,
         ),
         "इट्" to TingMetadata(
             Purusha.UTTAMA,
             Vacana.EKAVACANA,
-            PadaPrakara.ATMANEPADA,
+            PadaType.ATMANEPADA,
         ),
         "वहि" to TingMetadata(
             Purusha.UTTAMA,
             Vacana.DVIVACANA,
-            PadaPrakara.ATMANEPADA,
+            PadaType.ATMANEPADA,
         ),
         "महिङ्" to TingMetadata(
             Purusha.UTTAMA,
             Vacana.BAHUVACANA,
-            PadaPrakara.ATMANEPADA,
+            PadaType.ATMANEPADA,
         ),
     )
 

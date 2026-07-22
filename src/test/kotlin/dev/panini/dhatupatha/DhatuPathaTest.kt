@@ -1,5 +1,6 @@
 package dev.panini.dhatupatha
 
+import dev.panini.core.PadaType
 import dev.panini.dhatupatha.adadi.AdadiDhatus
 import dev.panini.dhatupatha.bhvadi.BhvadiDhatus
 import dev.panini.dhatupatha.curadi.CuradiDhatus

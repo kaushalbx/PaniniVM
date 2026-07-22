@@ -1,6 +1,6 @@
 package dev.panini.analysis
 
-import dev.panini.derivation.Lakara
+import dev.panini.core.Lakara
 import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.parser.ast.ParsedTinganta
 

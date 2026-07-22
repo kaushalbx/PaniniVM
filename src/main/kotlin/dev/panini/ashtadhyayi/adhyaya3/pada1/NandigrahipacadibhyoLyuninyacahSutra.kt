@@ -5,7 +5,7 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.HasMorphosyntax
-import dev.panini.derivation.Prayoga
+import dev.panini.core.Prayoga
 import dev.panini.derivation.TermKind
 import dev.panini.ganapatha.GanaPatha
 import dev.panini.sutra.Sutra

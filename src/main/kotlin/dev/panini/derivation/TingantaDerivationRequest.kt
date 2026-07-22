@@ -1,7 +1,12 @@
 package dev.panini.derivation
 
+import dev.panini.core.Kala
+import dev.panini.core.Lakara
 import dev.panini.dhatupatha.Dhatu
-import dev.panini.dhatupatha.PadaType
+import dev.panini.core.PadaType
+import dev.panini.core.Prayoga
+import dev.panini.core.Purusha
+import dev.panini.core.Vacana
 
 data class TingantaDerivationRequest(
     val dhatu: String,

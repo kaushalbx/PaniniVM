@@ -4,9 +4,9 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.Lakara
+import dev.panini.core.Lakara
 import dev.panini.derivation.TermKind
-import dev.panini.dhatupatha.Gana
+import dev.panini.core.DhatuGana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -34,8 +34,8 @@ object AmetahSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
         val replacement = if (affix.upadesha == "झि") {
             when (context.terms.firstOrNull { it.kind == TermKind.DHATU && it.id != "abhyasa" }?.gana) {
-                Gana.JUHOTYADI -> "अतु"
-                Gana.ADADI, Gana.SVADI, Gana.RUDHADI, Gana.TANADI, Gana.KRYADI -> "अन्तु"
+                DhatuGana.JUHOTYADI -> "अतु"
+                DhatuGana.ADADI, DhatuGana.SVADI, DhatuGana.RUDHADI, DhatuGana.TANADI, DhatuGana.KRYADI -> "अन्तु"
                 else -> "न्तु"
             }
         } else if (affix.upadesha == "झ" && context.terms.any { it.id == "shna" }) {

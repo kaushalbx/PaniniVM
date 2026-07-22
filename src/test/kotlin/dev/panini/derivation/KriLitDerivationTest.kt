@@ -1,5 +1,8 @@
 package dev.panini.derivation
 
+import dev.panini.core.Lakara
+import dev.panini.core.Purusha
+import dev.panini.core.Vacana
 import dev.panini.dhatupatha.DhatuPatha
 import kotlin.test.Test
 import kotlin.test.assertEquals

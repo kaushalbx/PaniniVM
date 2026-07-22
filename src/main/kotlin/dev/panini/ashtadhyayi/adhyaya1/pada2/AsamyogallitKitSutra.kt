@@ -3,7 +3,7 @@ package dev.panini.ashtadhyayi.adhyaya1.pada2
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.Lakara
+import dev.panini.core.Lakara
 import dev.panini.derivation.TermKind
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction

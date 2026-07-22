@@ -1,7 +1,8 @@
 package dev.panini.derivation
 
+import dev.panini.core.Lakara
 import dev.panini.dhatupatha.DhatuPatha
-import dev.panini.dhatupatha.PadaType
+import dev.panini.core.PadaType
 
 class TingantaEngine(private val engine: DerivationEngine = DerivationEngine()) {
 

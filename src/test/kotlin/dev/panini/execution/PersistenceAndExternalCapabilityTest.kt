@@ -1,5 +1,6 @@
 package dev.panini.execution
 
+import dev.panini.core.Karaka
 import dev.panini.dhatupatha.bhvadi.SmrDhatu
 import dev.panini.dhatupatha.curadi.PreshDhatu
 import dev.panini.execution.external.ExternalCapabilityDispatcher

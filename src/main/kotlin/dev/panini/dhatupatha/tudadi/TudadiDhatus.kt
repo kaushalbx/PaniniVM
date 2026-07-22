@@ -1,15 +1,15 @@
 package dev.panini.dhatupatha.tudadi
 
 import dev.panini.dhatupatha.Dhatu
-import dev.panini.dhatupatha.Gana
-import dev.panini.dhatupatha.PadaType
+import dev.panini.core.DhatuGana
+import dev.panini.core.PadaType
 import dev.panini.dhatupatha.dhatuPatha
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
 
 object TudadiDhatus {
-    val all: List<Dhatu> = dhatuPatha(Gana.TUDADI) {
+    val all: List<Dhatu> = dhatuPatha(DhatuGana.TUDADI) {
         dhatu(
             "06.0001", 1, "तुदँ", "तुद्",
             "व्यथने", "दुःख देना, पीड़ा करना, घाव करना", "to wound,to strike,to pain,to irritate, to hurt, to cause pain, to attack",

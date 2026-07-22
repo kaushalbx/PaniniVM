@@ -1,6 +1,6 @@
 ﻿package dev.panini.ganapatha
 
-import dev.panini.shiksha.Linga
+import dev.panini.core.Linga
 
 object ArdharcadiGana : Gana(
     name = "अर्धर्चादिः",

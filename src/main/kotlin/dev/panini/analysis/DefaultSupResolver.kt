@@ -1,7 +1,7 @@
 package dev.panini.analysis
 
-import dev.panini.derivation.Vacana
-import dev.panini.derivation.Vibhakti
+import dev.panini.core.Vacana
+import dev.panini.core.Vibhakti
 
 class DefaultSupResolver : SupResolver {
 

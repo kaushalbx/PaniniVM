@@ -3,9 +3,9 @@ package dev.panini.ashtadhyayi.adhyaya3.pada4
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.Lakara
+import dev.panini.core.Lakara
 import dev.panini.derivation.TermKind
-import dev.panini.dhatupatha.Gana
+import dev.panini.core.DhatuGana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -95,6 +95,6 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     private val nonAStemGanas = setOf(
-        Gana.ADADI, Gana.JUHOTYADI, Gana.SVADI, Gana.RUDHADI, Gana.TANADI, Gana.KRYADI,
+        DhatuGana.ADADI, DhatuGana.JUHOTYADI, DhatuGana.SVADI, DhatuGana.RUDHADI, DhatuGana.TANADI, DhatuGana.KRYADI,
     )
 }

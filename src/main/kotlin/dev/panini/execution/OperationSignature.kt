@@ -1,5 +1,7 @@
 package dev.panini.execution
 
+import dev.panini.core.Karaka
+
 data class OperationSignature(
     val requirements: List<KarakaRequirement>,
     val optionalKarakas: Set<Karaka> = emptySet(),

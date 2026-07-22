@@ -4,7 +4,7 @@ import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.Lakara
+import dev.panini.core.Lakara
 import dev.panini.derivation.TingAffix
 import dev.panini.shiksha.Samjna
 import dev.panini.pratyahara.Pratyahara

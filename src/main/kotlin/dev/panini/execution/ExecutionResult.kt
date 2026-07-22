@@ -1,5 +1,7 @@
 package dev.panini.execution
 
+import dev.panini.core.Karaka
+
 /** The value of a successful execution is always a Sanskrit string. */
 sealed interface ExecutionResult {
     val trace: List<String>

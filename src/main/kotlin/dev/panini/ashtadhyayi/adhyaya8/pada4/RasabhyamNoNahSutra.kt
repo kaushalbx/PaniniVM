@@ -5,8 +5,8 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.HasMorphosyntax
-import dev.panini.derivation.Vacana
-import dev.panini.derivation.Vibhakti
+import dev.panini.core.Vacana
+import dev.panini.core.Vibhakti
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole

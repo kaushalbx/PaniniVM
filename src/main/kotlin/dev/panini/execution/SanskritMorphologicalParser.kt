@@ -1,6 +1,8 @@
 package dev.panini.execution
 
-import dev.panini.derivation.Vibhakti
+import dev.panini.core.Karaka
+import dev.panini.core.Prayoga
+import dev.panini.core.Vibhakti
 
 /**
  * Morphological Subanta and Kāraka analyzer.
@@ -9,7 +11,6 @@ import dev.panini.derivation.Vibhakti
  */
 object SanskritMorphologicalParser {
 
-    enum class Prayoga { KARTARI, KARMANI, BHAVE }
 
     data class MorphologicalToken(
         val originalText: String,

@@ -1,11 +1,11 @@
 package dev.panini.dhatupatha.bhvadi
 
 import dev.panini.dhatupatha.Dhatu
-import dev.panini.dhatupatha.Gana
-import dev.panini.dhatupatha.PadaType
+import dev.panini.core.DhatuGana
+import dev.panini.core.PadaType
 import dev.panini.execution.DhatuOperation
 import dev.panini.execution.ExecutionSamjna
-import dev.panini.execution.Karaka
+import dev.panini.core.Karaka
 import dev.panini.execution.KarakaRequirement
 import dev.panini.execution.OperationSignature
 import dev.panini.execution.SanskritSquareRootAction
@@ -22,7 +22,7 @@ class MulDhatu : Dhatu(
     artha = "प्रतिष्ठायाम्",
     arthaHindi = "जड़ जमाना, वर्गमूल निकालना",
     arthaEnglish = "to root, to establish, to compute square root",
-    gana = Gana.BHVADI,
+    gana = DhatuGana.BHVADI,
     pada = PadaType.PARASMAIPADA,
     itStatus = ItStatus.SET,
     karmatva = Karmatva.AKARMAKA,

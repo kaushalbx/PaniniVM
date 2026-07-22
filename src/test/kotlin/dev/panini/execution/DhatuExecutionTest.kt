@@ -1,14 +1,8 @@
 package dev.panini.execution
 
 import dev.panini.dhatupatha.DhatuPatha
-import dev.panini.dhatupatha.Dhatu
-import dev.panini.dhatupatha.Gana
 import dev.panini.dhatupatha.rudhadi.YujirDhatu
-import dev.panini.derivation.Lakara
-import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlin.test.assertIs
-import kotlin.test.assertTrue
 
 class DhatuExecutionTest {
     private val yuj = assertIs<YujirDhatu>(DhatuPatha.find("07.0007"))

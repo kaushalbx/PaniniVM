@@ -6,7 +6,7 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.HasMorphosyntax
 import dev.panini.shiksha.Samjna
 import dev.panini.derivation.SamjnaAssignment
-import dev.panini.shiksha.Linga
+import dev.panini.core.Linga
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole

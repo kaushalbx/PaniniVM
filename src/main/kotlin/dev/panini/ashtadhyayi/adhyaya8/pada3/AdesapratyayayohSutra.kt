@@ -6,9 +6,8 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
-import dev.panini.derivation.Lakara
+import dev.panini.core.Lakara
 import dev.panini.derivation.TermKind
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -48,9 +47,9 @@ object AdesapratyayayohSutra : Sutra<DerivationState, DerivationChange>(
 
     private fun findRetroflexTarget(context: DerivationState): DerivationTerm? {
         val isSipLet = context.allEffectiveTerms.any { it.id == "sip-aorist" }
-        val isLungSic = context.effectiveContext.rupa.lakara == dev.panini.derivation.Lakara.LUNG &&
+        val isLungSic = context.effectiveContext.rupa.lakara == Lakara.LUNG &&
             context.allEffectiveTerms.any { it.upadesha == "सिच्" }
-        val isLabhPerfect = context.effectiveContext.rupa.lakara == dev.panini.derivation.Lakara.LIT &&
+        val isLabhPerfect = context.effectiveContext.rupa.lakara == Lakara.LIT &&
             context.allEffectiveTerms.any { it.kind == TermKind.DHATU && it.upadesha == "डुलभँष्" }
         val isFutureSya = context.effectiveContext.rupa.lakara in setOf(Lakara.LRT, Lakara.LRNG) &&
             context.allEffectiveTerms.any { it.upadesha == "स्य" }

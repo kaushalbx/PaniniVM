@@ -1,5 +1,8 @@
 package dev.panini.vyakaranam.analysis
 
+import dev.panini.core.Prayoga
+import dev.panini.core.Vibhakti
+import dev.panini.core.Karaka
 import dev.panini.vyakaranam.ast.*
 
 data class KarakaAssignment(
@@ -125,7 +128,7 @@ class VakyaAnalyzer(
             Vibhakti.PRATHAMA ->
                 KarakaAssignment(
                     pada = subanta.pada,
-                    karaka = Karaka.KARTA,
+                    karaka = Karaka.KARTR,
                     confidence = 0.90,
                     reason = "कर्तरिप्रयोगे प्रथमा तथा तिङन्तसामञ्जस्यम्।",
                 )
@@ -134,7 +137,7 @@ class VakyaAnalyzer(
                 if (tinganta.lexicalEntry?.sakarmaka == true) {
                     KarakaAssignment(
                         pada = subanta.pada,
-                        karaka = Karaka.KARMA,
+                        karaka = Karaka.KARMAN,
                         confidence = 0.85,
                         reason = "सकर्मकधातोः द्वितीयान्तपदम्।",
                     )
@@ -142,7 +145,7 @@ class VakyaAnalyzer(
                     null
                 }
 
-            Vibhakti.TRITIYA ->
+            Vibhakti.TRTIYA ->
                 KarakaAssignment(
                     pada = subanta.pada,
                     karaka = Karaka.KARANA,
@@ -166,7 +169,7 @@ class VakyaAnalyzer(
                     reason = "पञ्चमीविभक्तेः सामान्यं अपादानसम्बन्धम्।",
                 )
 
-            Vibhakti.SHASTHI ->
+            Vibhakti.SASTHI ->
                 KarakaAssignment(
                     pada = subanta.pada,
                     karaka = Karaka.SAMBANDHA,
@@ -190,15 +193,15 @@ class VakyaAnalyzer(
             Vibhakti.PRATHAMA ->
                 KarakaAssignment(
                     pada = subanta.pada,
-                    karaka = Karaka.KARMA,
+                    karaka = Karaka.KARMAN,
                     confidence = 0.80,
                     reason = "कर्मणिप्रयोगे अभिहितं कर्म प्रथमान्तं भवति।",
                 )
 
-            Vibhakti.TRITIYA ->
+            Vibhakti.TRTIYA ->
                 KarakaAssignment(
                     pada = subanta.pada,
-                    karaka = Karaka.KARTA,
+                    karaka = Karaka.KARTR,
                     confidence = 0.80,
                     reason = "कर्मणिप्रयोगे अनभिहितः कर्ता तृतीयान्तः भवति।",
                 )
@@ -212,7 +215,7 @@ class VakyaAnalyzer(
         karakas: List<KarakaAssignment>,
     ): List<String> {
         val karta = karakas.firstOrNull {
-            it.karaka == Karaka.KARTA
+            it.karaka == Karaka.KARTR
         } ?: return emptyList()
 
         val kartaAnalysis =

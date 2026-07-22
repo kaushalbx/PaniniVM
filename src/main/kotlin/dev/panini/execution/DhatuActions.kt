@@ -1,5 +1,9 @@
 package dev.panini.execution
 
+import dev.panini.core.Karaka
+import dev.panini.core.Vacana
+import dev.panini.core.Vibhakti
+
 fun interface DhatuAction {
     fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult
 }
@@ -306,8 +310,8 @@ object SanskritSubantaDerivationAction : DhatuAction {
             val engine = dev.panini.derivation.SubantaEngine()
             val request = dev.panini.derivation.SubantaDerivationRequest(
                 pratipadika = stem,
-                vibhakti = dev.panini.derivation.Vibhakti.PRATHAMA,
-                vacana = dev.panini.derivation.Vacana.EKAVACANA,
+                vibhakti = Vibhakti.PRATHAMA,
+                vacana = Vacana.EKAVACANA,
                 stemClass = dev.panini.derivation.SubantaStemClass.guess(stem),
             )
             val result = engine.derive(request).final.surface

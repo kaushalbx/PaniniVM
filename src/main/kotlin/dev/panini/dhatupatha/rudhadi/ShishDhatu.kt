@@ -1,12 +1,12 @@
 package dev.panini.dhatupatha.rudhadi
 
 import dev.panini.dhatupatha.Dhatu
-import dev.panini.dhatupatha.Gana
-import dev.panini.dhatupatha.PadaType
+import dev.panini.core.DhatuGana
+import dev.panini.core.PadaType
 import dev.panini.execution.DhatuOperation
 import dev.panini.execution.ExecutionSamjna
 import dev.panini.execution.ExpressionShape
-import dev.panini.execution.Karaka
+import dev.panini.core.Karaka
 import dev.panini.execution.KarakaRequirement
 import dev.panini.execution.OperationSignature
 import dev.panini.execution.SanskritModuloAction
@@ -23,7 +23,7 @@ class ShishDhatu : Dhatu(
     artha = "विशेषणे",
     arthaHindi = "विशेषता बताना, भिन्नता दिखाना, शेष बचना",
     arthaEnglish = "to distinguish, to characterize, to remain as remainder",
-    gana = Gana.RUDHADI,
+    gana = DhatuGana.RUDHADI,
     pada = PadaType.PARASMAIPADA,
     itStatus = ItStatus.ANIT,
     karmatva = Karmatva.SAKARMAKA,

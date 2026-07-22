@@ -1,5 +1,7 @@
 package dev.panini.vyakaranam.analysis
 
+import dev.panini.core.Lakara
+import dev.panini.core.Linga
 import dev.panini.vyakaranam.ast.*
 import dev.panini.vyakaranam.lexicon.DhatuEntry
 import dev.panini.vyakaranam.lexicon.PratipadikaEntry
@@ -80,7 +82,7 @@ class PadaAnalyzer(
             pada = pada,
             lexicalEntry = lexicalEntry,
             sup = PratyayaMetadata.requireSup(pada.sup.text),
-            linga = lexicalEntry?.linga ?: setOf(Linga.ANIRDHARITA),
+            linga = lexicalEntry?.linga ?: setOf(),
         )
     }
 

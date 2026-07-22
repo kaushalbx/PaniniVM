@@ -1,15 +1,15 @@
 package dev.panini.dhatupatha.svadi
 
 import dev.panini.dhatupatha.Dhatu
-import dev.panini.dhatupatha.Gana
-import dev.panini.dhatupatha.PadaType
+import dev.panini.core.DhatuGana
+import dev.panini.core.PadaType
 import dev.panini.dhatupatha.dhatuPatha
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
 
 object SvadiDhatus {
-    val all: List<Dhatu> = dhatuPatha(Gana.SVADI) {
+    val all: List<Dhatu> = dhatuPatha(DhatuGana.SVADI) {
         dhatu(
             "05.0001", 1, "षुञ्", "सु",
             "अभिषवे", "स्नान करना, यंत्रादि द्वारा अर्क निकालना, मथना, मद्य चुआना", "to bathe, to extract, to distill, to juice, to agitate, to churn",

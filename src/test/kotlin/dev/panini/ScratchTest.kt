@@ -1,11 +1,11 @@
 package dev.panini
 
-import dev.panini.derivation.Lakara
-import dev.panini.derivation.Purusha
+import dev.panini.core.Lakara
+import dev.panini.core.Purusha
 import dev.panini.derivation.TingantaDerivationRequest
 import dev.panini.derivation.TingantaEngine
-import dev.panini.derivation.Vacana
-import dev.panini.dhatupatha.PadaType
+import dev.panini.core.Vacana
+import dev.panini.core.PadaType
 import kotlin.test.Test
 
 class ScratchTest {

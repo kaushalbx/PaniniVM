@@ -1,5 +1,7 @@
 package dev.panini.execution
 
+import dev.panini.core.Karaka
+
 /** Declarative requirement for one kāraka in an operation signature. */
 data class KarakaRequirement(
     val karaka: Karaka,

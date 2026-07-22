@@ -1,15 +1,15 @@
 package dev.panini.dhatupatha.rudhadi
 
 import dev.panini.dhatupatha.Dhatu
-import dev.panini.dhatupatha.Gana
-import dev.panini.dhatupatha.PadaType
+import dev.panini.core.DhatuGana
+import dev.panini.core.PadaType
 import dev.panini.dhatupatha.dhatuPatha
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
 
 object RudhadiDhatus {
-    val all: List<Dhatu> = dhatuPatha(Gana.RUDHADI) {
+    val all: List<Dhatu> = dhatuPatha(DhatuGana.RUDHADI) {
         dhatu(
             "07.0001", 1, "रुधिँर्", "रुध्",
             "आवरणे", "रोकना, घेर लेना, घेरना", "to obstruct, to surround, to besiege, to enclose, to obscure",

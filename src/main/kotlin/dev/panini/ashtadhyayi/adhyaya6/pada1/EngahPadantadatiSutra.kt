@@ -5,8 +5,8 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.core.Lakara
 import dev.panini.shiksha.Samjna
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -37,10 +37,10 @@ object EngahPadantadatiSutra : Sutra<DerivationState, DerivationChange>(
         val left = context.terms[context.terms.size - 2]
         val right = context.terms.last()
         if (context.effectiveContext.rupa.lakara in setOf(
-                dev.panini.derivation.Lakara.LANG,
-                dev.panini.derivation.Lakara.LRNG,
-                dev.panini.derivation.Lakara.LUNG,
-                dev.panini.derivation.Lakara.LING,
+                Lakara.LANG,
+                Lakara.LRNG,
+                Lakara.LUNG,
+                Lakara.LING,
             ) &&
             right.matchesUpadesha("मिप्") && context.substitutions.any { it.sutra == "3.4.101" }
         ) return false

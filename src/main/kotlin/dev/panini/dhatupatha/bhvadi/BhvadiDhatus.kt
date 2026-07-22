@@ -1,8 +1,8 @@
 package dev.panini.dhatupatha.bhvadi
 
 import dev.panini.dhatupatha.Dhatu
-import dev.panini.dhatupatha.Gana
-import dev.panini.dhatupatha.PadaType
+import dev.panini.core.DhatuGana
+import dev.panini.core.PadaType
 import dev.panini.dhatupatha.dhatuPatha
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
@@ -10,7 +10,7 @@ import dev.panini.shiksha.Karmatva
 
 object BhvadiDhatus {
     val all: List<Dhatu> =
-        dhatuPatha(Gana.BHVADI) {
+        dhatuPatha(DhatuGana.BHVADI) {
             dhatu(
                 "01.0001",
                 1,

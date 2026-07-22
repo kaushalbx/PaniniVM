@@ -11,7 +11,7 @@ import dev.panini.derivation.TermKind
 import dev.panini.derivation.VarnaSubstitution
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Varnamala
-import dev.panini.shiksha.Linga
+import dev.panini.core.Linga
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction

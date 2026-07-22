@@ -1,5 +1,7 @@
 package dev.panini.execution
 
+import dev.panini.core.Karaka
+
 sealed interface OperationResolution {
     data class Resolved(val value: ResolvedOperation) : OperationResolution
     data class MissingInput(val karakas: Set<Karaka>, val message: String) : OperationResolution

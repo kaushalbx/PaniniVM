@@ -1,12 +1,12 @@
 package dev.panini.dhatupatha.bhvadi
 
 import dev.panini.dhatupatha.Dhatu
-import dev.panini.dhatupatha.Gana
-import dev.panini.dhatupatha.PadaType
+import dev.panini.core.DhatuGana
+import dev.panini.core.PadaType
 import dev.panini.execution.DhatuOperation
 import dev.panini.execution.ExecutionSamjna
 import dev.panini.execution.ExpressionShape
-import dev.panini.execution.Karaka
+import dev.panini.core.Karaka
 import dev.panini.execution.KarakaRequirement
 import dev.panini.execution.OperationSignature
 import dev.panini.execution.SanskritExponentiationAction
@@ -23,7 +23,7 @@ class VridhDhatu : Dhatu(
     artha = "वृद्धौ",
     arthaHindi = "बढ़ना, वृद्धि करना, घात करना",
     arthaEnglish = "to grow, to increase, to elevate, to raise to power",
-    gana = Gana.BHVADI,
+    gana = DhatuGana.BHVADI,
     pada = PadaType.ATMANEPADA,
     itStatus = ItStatus.SET,
     karmatva = Karmatva.AKARMAKA,

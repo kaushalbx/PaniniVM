@@ -10,7 +10,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
-import dev.panini.derivation.Lakara
+import dev.panini.core.Lakara
+import dev.panini.core.PadaType
 
 object TiptasjhiSutra : Sutra<DerivationState, DerivationChange>(
     number = "3.4.78",
@@ -38,11 +39,11 @@ object TiptasjhiSutra : Sutra<DerivationState, DerivationChange>(
         val dhatuTerm = context.terms.firstOrNull { it.kind == dev.panini.derivation.TermKind.DHATU }
         val lookupName = dhatuTerm?.upadesha ?: dhatuTerm?.surface ?: ""
         val dhatus = dev.panini.dhatupatha.DhatuPatha.all.filter { it.upadesha == lookupName || it.derivationalSurface == lookupName }
-        val pada = dhatus.firstOrNull()?.pada ?: dev.panini.dhatupatha.PadaType.PARASMAIPADA
+        val pada = dhatus.firstOrNull()?.pada ?: PadaType.PARASMAIPADA
         val targetPada = context.effectiveContext.rupa.pada ?: when (pada) {
-            dev.panini.dhatupatha.PadaType.PARASMAIPADA -> dev.panini.dhatupatha.PadaType.PARASMAIPADA
-            dev.panini.dhatupatha.PadaType.ATMANEPADA -> dev.panini.dhatupatha.PadaType.ATMANEPADA
-            dev.panini.dhatupatha.PadaType.UBHAYAPADA -> dev.panini.dhatupatha.PadaType.PARASMAIPADA
+            PadaType.PARASMAIPADA -> PadaType.PARASMAIPADA
+            PadaType.ATMANEPADA -> PadaType.ATMANEPADA
+            PadaType.UBHAYAPADA -> PadaType.PARASMAIPADA
         }
 
         val baseTerm = context.effectiveContext.rupa.let { morphology ->

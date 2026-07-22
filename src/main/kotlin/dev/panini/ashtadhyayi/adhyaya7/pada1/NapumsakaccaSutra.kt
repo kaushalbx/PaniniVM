@@ -4,8 +4,8 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.HasMorphosyntax
-import dev.panini.derivation.Vacana
-import dev.panini.shiksha.Linga
+import dev.panini.core.Vacana
+import dev.panini.core.Linga
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction

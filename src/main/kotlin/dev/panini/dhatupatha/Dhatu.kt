@@ -1,5 +1,7 @@
 package dev.panini.dhatupatha
 
+import dev.panini.core.DhatuGana
+import dev.panini.core.PadaType
 import dev.panini.execution.DhatuOperation
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
@@ -14,7 +16,7 @@ open class Dhatu(
     val artha: String,
     val arthaHindi: String,
     val arthaEnglish: String,
-    val gana: Gana,
+    val gana: DhatuGana,
     val pada: PadaType? = null,
     val itStatus: ItStatus? = null,
     val karmatva: Karmatva? = null,
@@ -26,11 +28,3 @@ open class Dhatu(
     /** Declarative overloads available to the execution engine. */
     open val operations: List<DhatuOperation> = emptyList()
 }
-
-/** The ten traditional gaṇas of the Dhātupāṭha. */
-enum class Gana {
-    BHVADI, ADADI, JUHOTYADI, DIVADI, SVADI,
-    TUDADI, RUDHADI, TANADI, KRYADI, CURADI,
-}
-
-enum class PadaType { PARASMAIPADA, ATMANEPADA, UBHAYAPADA }

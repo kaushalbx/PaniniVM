@@ -1,6 +1,6 @@
 package dev.panini.execution
 
-import dev.panini.derivation.Lakara
+import dev.panini.core.Lakara
 
 data class Nirdesha(
     val speaker: String,

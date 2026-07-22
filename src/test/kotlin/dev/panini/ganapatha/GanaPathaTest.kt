@@ -1,11 +1,8 @@
 package dev.panini.ganapatha
 
 import dev.panini.ashtadhyayi.adhyaya1.pada1.SarvanamaSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada1.SvaradiNipatamAvyayamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.ChadayoAsattveSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.GatishCaSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.PradayaSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.SakshatPrabhrtiniCaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.UryadiCvidacashCaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.UpasargahKriyayogeSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada1.KandvadibhyoYakSutra
@@ -63,21 +60,14 @@ import dev.panini.ashtadhyayi.adhyaya4.pada1.NaKrodadibahvacahSutra
 import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationTerm
-import dev.panini.derivation.DerivationStage
-import dev.panini.derivation.VarnaComparison
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.shiksha.Samjna
 import dev.panini.derivation.SamjnaAssignment
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.LexicalUse
 import dev.panini.derivation.DerivationalEnvironment
-import dev.panini.derivation.Prayoga
-import dev.panini.derivation.Kala
+import dev.panini.core.Prayoga
 import dev.panini.derivation.Rupa
-import dev.panini.derivation.PhonologicalRequest
-import dev.panini.derivation.Vibhakti
-import dev.panini.derivation.Vacana
-import dev.panini.shiksha.Linga
+import dev.panini.core.Linga
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

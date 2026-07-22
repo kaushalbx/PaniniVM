@@ -3,7 +3,9 @@ package dev.panini.derivation
 import dev.panini.shiksha.Ayogavaha
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Vyanjana
-import dev.panini.shiksha.Linga
+import dev.panini.core.Linga
+import dev.panini.core.Vacana
+import dev.panini.core.Vibhakti
 
 /** Typed input for a nominal (sup) derivation. */
 data class SubantaDerivationRequest(
@@ -94,10 +96,3 @@ enum class SubantaStemClass(
     }
 }
 
-enum class Vibhakti {
-    PRATHAMA, DVITIYA, TRTIYA, CHATURTHI, PANCHAMI, SASTHI, SAPTAMI,
-}
-
-enum class Vacana {
-    EKAVACANA, DVIVACANA, BAHUVACANA,
-}

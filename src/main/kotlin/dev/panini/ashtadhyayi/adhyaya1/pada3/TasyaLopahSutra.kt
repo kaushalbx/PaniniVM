@@ -7,7 +7,7 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.ItMarker
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Varnamala
-import dev.panini.shiksha.Linga
+import dev.panini.core.Linga
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole

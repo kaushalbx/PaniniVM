@@ -2,7 +2,7 @@
 
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.LexicalUse
-import dev.panini.shiksha.Linga
+import dev.panini.core.Linga
 
 abstract class Gana(
     val name: String,

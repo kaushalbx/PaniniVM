@@ -6,7 +6,7 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
 import dev.panini.derivation.TingAffix
-import dev.panini.dhatupatha.Gana
+import dev.panini.core.DhatuGana
 import dev.panini.shiksha.Svara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -31,7 +31,7 @@ object TudadibhyahShahSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU } ?: return false
-        return dhatu.gana == Gana.TUDADI &&
+        return dhatu.gana == DhatuGana.TUDADI &&
             context.terms.lastOrNull()?.upadesha in TingAffix.entries.map { it.upadesha } &&
             context.allEffectiveTerms.none { it.upadesha == "श" }
     }

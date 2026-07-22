@@ -7,7 +7,7 @@ import dev.panini.derivation.HasMorphosyntax
 import dev.panini.shiksha.Samjna
 import dev.panini.derivation.SamjnaAssignment
 import dev.panini.derivation.TermKind
-import dev.panini.derivation.Vacana
+import dev.panini.core.Vacana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole

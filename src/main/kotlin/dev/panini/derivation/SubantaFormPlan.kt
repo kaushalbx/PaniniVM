@@ -1,5 +1,8 @@
 package dev.panini.derivation
 
+import dev.panini.core.Vacana
+import dev.panini.core.Vibhakti
+
 /** A form slot that the current nominal compiler can derive end to end. */
 data class SubantaFormPlan(
     val affix: SupAffix,

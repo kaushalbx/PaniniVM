@@ -1,12 +1,12 @@
 package dev.panini.dhatupatha.bhvadi
 
 import dev.panini.dhatupatha.Dhatu
-import dev.panini.dhatupatha.Gana
-import dev.panini.dhatupatha.PadaType
+import dev.panini.core.DhatuGana
+import dev.panini.core.PadaType
 import dev.panini.execution.DhatuOperation
 import dev.panini.execution.ExecutionEffect
 import dev.panini.execution.ExecutionSamjna
-import dev.panini.execution.Karaka
+import dev.panini.core.Karaka
 import dev.panini.execution.KarakaRequirement
 import dev.panini.execution.OperationSignature
 import dev.panini.execution.SmritiLoadAction
@@ -26,7 +26,7 @@ class SmrDhatu : Dhatu(
     artha = "आध्याने",
     arthaHindi = "याद करना, स्मरण रखना",
     arthaEnglish = "to remember, to keep in mind, to retain context",
-    gana = Gana.BHVADI,
+    gana = DhatuGana.BHVADI,
     pada = PadaType.PARASMAIPADA,
     itStatus = ItStatus.SET,
     karmatva = Karmatva.SAKARMAKA,

@@ -5,10 +5,10 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.Lakara
+import dev.panini.core.Lakara
 import dev.panini.derivation.VarnaSubstitution
 import dev.panini.derivation.TermKind
-import dev.panini.dhatupatha.Gana
+import dev.panini.core.DhatuGana
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -47,7 +47,7 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
             val previousEndsInEc = index > 0 && engine.contains(Pratyahara.EC, context.terms[index - 1].surface.lastOrNull() ?: return@any false)
             val isFutureSya = leftTerm.upadesha == "स्य" &&
                 context.effectiveContext.rupa.lakara in setOf(Lakara.LRT, Lakara.LRNG)
-            val isAdadiShap = leftTerm.id == "shap" && context.terms.any { it.kind == TermKind.DHATU && it.gana == Gana.ADADI }
+            val isAdadiShap = leftTerm.id == "shap" && context.terms.any { it.kind == TermKind.DHATU && it.gana == DhatuGana.ADADI }
             !isAdadiShap && (!previousEndsInEc || isFutureSya) && !leftTerm.surface.endsWith('न') &&
                 isA && engine.contains(Pratyahara.AC, right)
         }
@@ -59,7 +59,7 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
             position < terms.lastIndex &&
                 (dev.panini.shiksha.Varnamala.endsWithA(terms[position].surface) ||
                     dev.panini.shiksha.Varnamala.endsWithAA(terms[position].surface)) &&
-                !(terms[position].id == "shap" && terms.any { it.kind == TermKind.DHATU && it.gana == Gana.ADADI }) &&
+                !(terms[position].id == "shap" && terms.any { it.kind == TermKind.DHATU && it.gana == DhatuGana.ADADI }) &&
                 !(terms[position + 1].upadesha == "इट्" && terms[position + 1].surface.endsWith("ट्")) &&
                 !terms[position].surface.endsWith('न') &&
                 (position == 0 ||

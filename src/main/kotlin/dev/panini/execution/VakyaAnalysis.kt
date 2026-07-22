@@ -1,6 +1,6 @@
 package dev.panini.execution
 
-import dev.panini.derivation.Lakara
+import dev.panini.core.Lakara
 
 /** Output contract expected from a future Sanskrit sentence analyzer. */
 data class VakyaAnalysis(

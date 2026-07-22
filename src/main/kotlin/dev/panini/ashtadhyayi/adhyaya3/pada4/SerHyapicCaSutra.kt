@@ -4,9 +4,9 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.Lakara
+import dev.panini.core.Lakara
 import dev.panini.derivation.TermKind
-import dev.panini.dhatupatha.Gana
+import dev.panini.core.DhatuGana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -29,8 +29,8 @@ object SerHyapicCaSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
         val replacement = when (context.terms.firstOrNull { it.kind == TermKind.DHATU && it.id != "abhyasa" }?.gana) {
-            Gana.ADADI, Gana.JUHOTYADI, Gana.RUDHADI -> "धि"
-            Gana.KRYADI -> "हि"
+            DhatuGana.ADADI, DhatuGana.JUHOTYADI, DhatuGana.RUDHADI -> "धि"
+            DhatuGana.KRYADI -> "हि"
             else -> ""
         }
         return DerivationChange(context.replaceTerm(affix.id, affix.copy(surface = replacement)).copy(stage = DerivationStage.PADA_FORMED), "3.4.87 replaces सिप् in loṭ.")

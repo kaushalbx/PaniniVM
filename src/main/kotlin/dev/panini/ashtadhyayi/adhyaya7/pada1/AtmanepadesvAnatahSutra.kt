@@ -1,7 +1,8 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada1
 
 import dev.panini.derivation.*
-import dev.panini.dhatupatha.Gana
+import dev.panini.core.DhatuGana
+import dev.panini.core.Lakara
 import dev.panini.sutra.*
 
 /** 7.1.5: आत्मनेपदेष्वनतः. */
@@ -16,7 +17,7 @@ object AtmanepadesvAnatahSutra : Sutra<DerivationState, DerivationChange>(
         val lakara = context.effectiveContext.rupa.lakara
         if (lakara !in setOf(Lakara.LAT, Lakara.LOT, Lakara.LANG, Lakara.LUNG)) return false
         val hasNonAStemVikarana = context.terms.firstOrNull { it.kind == TermKind.DHATU }?.gana in setOf(
-            Gana.ADADI, Gana.JUHOTYADI, Gana.SVADI, Gana.RUDHADI, Gana.TANADI, Gana.KRYADI,
+            DhatuGana.ADADI, DhatuGana.JUHOTYADI, DhatuGana.SVADI, DhatuGana.RUDHADI, DhatuGana.TANADI, DhatuGana.KRYADI,
         )
         if (lakara in setOf(Lakara.LAT, Lakara.LOT, Lakara.LANG) && !hasNonAStemVikarana) return false
         val endingIndex = context.terms.indexOfLast { it.upadesha == "झ" && it.surface.startsWith("झ") }

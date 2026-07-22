@@ -1,5 +1,6 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada2
 
+import dev.panini.core.Lakara
 import dev.panini.derivation.*
 import dev.panini.shiksha.ItStatus
 import dev.panini.sutra.*

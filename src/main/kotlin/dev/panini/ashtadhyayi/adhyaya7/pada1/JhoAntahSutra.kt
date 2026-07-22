@@ -3,9 +3,9 @@ package dev.panini.ashtadhyayi.adhyaya7.pada1
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.Lakara
+import dev.panini.core.Lakara
 import dev.panini.derivation.TermKind
-import dev.panini.dhatupatha.Gana
+import dev.panini.core.DhatuGana
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -35,9 +35,9 @@ object JhoAntahSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.lastOrNull() ?: return false
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU }
         if (context.effectiveContext.rupa.lakara == Lakara.LIT && affix.upadesha == "झि") return false
-        if (dhatu?.gana == Gana.JUHOTYADI && affix.upadesha == "झि") return false
+        if (dhatu?.gana == DhatuGana.JUHOTYADI && affix.upadesha == "झि") return false
         if (context.effectiveContext.rupa.lakara == Lakara.LOT && affix.upadesha == "झ" &&
-            dhatu?.gana in setOf(Gana.ADADI, Gana.JUHOTYADI, Gana.SVADI, Gana.RUDHADI, Gana.TANADI, Gana.KRYADI)
+            dhatu?.gana in setOf(DhatuGana.ADADI, DhatuGana.JUHOTYADI, DhatuGana.SVADI, DhatuGana.RUDHADI, DhatuGana.TANADI, DhatuGana.KRYADI)
         ) return false
         if (context.effectiveContext.rupa.lakara == Lakara.LOT &&
             affix.upadesha == "झि" &&

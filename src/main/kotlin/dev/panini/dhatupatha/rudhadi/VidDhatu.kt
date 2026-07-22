@@ -1,12 +1,12 @@
 package dev.panini.dhatupatha.rudhadi
 
 import dev.panini.dhatupatha.Dhatu
-import dev.panini.dhatupatha.Gana
-import dev.panini.dhatupatha.PadaType
+import dev.panini.core.DhatuGana
+import dev.panini.core.PadaType
 import dev.panini.execution.DhatuOperation
 import dev.panini.execution.ExecutionSamjna
 import dev.panini.execution.ExpressionShape
-import dev.panini.execution.Karaka
+import dev.panini.core.Karaka
 import dev.panini.execution.KarakaRequirement
 import dev.panini.execution.OperationSignature
 import dev.panini.execution.SanskritComparisonAction
@@ -24,7 +24,7 @@ class VidDhatu : Dhatu(
     artha = "विचारणे",
     arthaHindi = "मनन करना, विचार करना, तुलना करना",
     arthaEnglish = "to think, to analyze, to compare",
-    gana = Gana.RUDHADI,
+    gana = DhatuGana.RUDHADI,
     pada = PadaType.ATMANEPADA,
     itStatus = ItStatus.ANIT,
     karmatva = Karmatva.SAKARMAKA,

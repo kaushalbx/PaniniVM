@@ -1,5 +1,8 @@
 package dev.panini.vyakaranam.ast
 
+import dev.panini.core.SupLopa
+import dev.panini.core.Lakara
+
 sealed interface VyakaranamNode {
     val sourceText: String
 }

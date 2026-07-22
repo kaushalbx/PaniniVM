@@ -1,5 +1,6 @@
 package dev.panini.execution
 
+import dev.panini.core.Karaka
 import dev.panini.dhatupatha.Dhatu
 
 /** One occurrence of a verb in an utterance. */

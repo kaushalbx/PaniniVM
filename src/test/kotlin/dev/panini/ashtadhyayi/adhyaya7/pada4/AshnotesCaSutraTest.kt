@@ -3,7 +3,7 @@ package dev.panini.ashtadhyayi.adhyaya7.pada4
 import dev.panini.derivation.DerivationalContext
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationTerm
-import dev.panini.derivation.Lakara
+import dev.panini.core.Lakara
 import dev.panini.derivation.Rupa
 import dev.panini.derivation.TermKind
 import kotlin.test.Test

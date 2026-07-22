@@ -1,5 +1,7 @@
 package dev.panini.execution
 
+import dev.panini.core.Karaka
+
 object BhashaInterpreter {
     fun interpret(ukti: Ukti, context: SambhashanaContext): UktiInterpretation {
         if (ukti.speaker != context.speaker || ukti.listener != context.listener) {

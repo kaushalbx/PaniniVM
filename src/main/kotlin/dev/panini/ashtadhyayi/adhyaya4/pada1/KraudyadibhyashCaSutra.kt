@@ -10,7 +10,7 @@ import dev.panini.derivation.HasMorphosyntax
 import dev.panini.derivation.HasRequestedMeaning
 import dev.panini.derivation.TermKind
 import dev.panini.ganapatha.GanaPatha
-import dev.panini.shiksha.Linga
+import dev.panini.core.Linga
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole

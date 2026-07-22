@@ -2,9 +2,9 @@ package dev.panini.sankhya
 
 import dev.panini.derivation.DerivationEngine
 import dev.panini.derivation.DerivationResult
-import dev.panini.derivation.Vacana
-import dev.panini.derivation.Vibhakti
-import dev.panini.shiksha.Linga
+import dev.panini.core.Vacana
+import dev.panini.core.Vibhakti
+import dev.panini.core.Linga
 import java.math.BigInteger
 
 class SanskritSankhyaGenerator(

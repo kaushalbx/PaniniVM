@@ -6,14 +6,15 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.Lakara
+import dev.panini.core.Lakara
 import dev.panini.shiksha.ItStatus
 import dev.panini.derivation.DerivationalEnvironment
 import dev.panini.derivation.HasDerivationalEnvironment
 import dev.panini.derivation.TermKind
 import dev.panini.derivation.TingAffix
 import dev.panini.derivation.VarnaSubstitution
-import dev.panini.dhatupatha.Gana
+import dev.panini.core.DhatuGana
+import dev.panini.core.PadaType
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Varnamala
 import dev.panini.sutra.Sutra
@@ -51,14 +52,14 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
         val stemIndex = context.terms.indexOfFirst { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         if (stemIndex < 0) return false
         val stem = context.terms[stemIndex]
-        if (stem.gana == Gana.JUHOTYADI && context.droppedTerms.none { it.upadesha == "शप्" }) return false
-        if (stem.gana == Gana.BHVADI &&
+        if (stem.gana == DhatuGana.JUHOTYADI && context.droppedTerms.none { it.upadesha == "शप्" }) return false
+        if (stem.gana == DhatuGana.BHVADI &&
             context.effectiveContext.rupa.lakara in setOf(Lakara.LAT, Lakara.LOT, Lakara.LANG, Lakara.LING, Lakara.LET) &&
             context.allEffectiveTerms.none { it.upadesha == "शप्" }
         ) return false
         val affix = context.terms.getOrNull(stemIndex + 1) ?: return false
-        if (stem.gana == Gana.KRYADI && context.terms.any { it.upadesha == "श्ना" }) return false
-        if (stem.gana == Gana.JUHOTYADI) {
+        if (stem.gana == DhatuGana.KRYADI && context.terms.any { it.upadesha == "श्ना" }) return false
+        if (stem.gana == DhatuGana.JUHOTYADI) {
             val isLangJus = context.effectiveContext.rupa.lakara == Lakara.LANG &&
                 context.terms.lastOrNull()?.upadesha == TingAffix.JHI.upadesha
             if ((!isLangJus && context.terms.lastOrNull()?.upadesha !in strongAffixes(context).map { it.upadesha }) ||
@@ -118,7 +119,7 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
     private fun lotAtmanepadaReady(context: DerivationState): Boolean {
         if (context.effectiveContext.rupa.lakara != Lakara.LOT) return true
         val affix = TingAffix.entries.firstOrNull { it.upadesha == context.terms.lastOrNull()?.upadesha } ?: return true
-        return affix.pada != dev.panini.dhatupatha.PadaType.ATMANEPADA ||
+        return affix.pada != PadaType.ATMANEPADA ||
             context.allEffectiveTerms.any { it.id == "lot-at-agama" }
     }
 }

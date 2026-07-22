@@ -5,7 +5,7 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.LopaType
 import dev.panini.derivation.TermKind
-import dev.panini.dhatupatha.Gana
+import dev.panini.core.DhatuGana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -28,7 +28,7 @@ object AdiprabhritibhyahShapahSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU } ?: return false
-        return dhatu.gana == Gana.ADADI && context.terms.any { it.upadesha == "शप्" }
+        return dhatu.gana == DhatuGana.ADADI && context.terms.any { it.upadesha == "शप्" }
     }
 
     override fun apply(context: DerivationState): DerivationChange {

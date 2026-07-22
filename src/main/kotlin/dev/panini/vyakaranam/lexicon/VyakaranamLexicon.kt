@@ -1,7 +1,7 @@
 package dev.panini.vyakaranam.lexicon
 
-import dev.panini.vyakaranam.ast.Linga
-import dev.panini.vyakaranam.ast.PadaPrakara
+import dev.panini.core.PadaType
+import dev.panini.core.Linga
 
 data class PratipadikaEntry(
     val text: String,
@@ -14,7 +14,7 @@ data class DhatuEntry(
     val upadesha: String,
     val derivationalSurface: String,
     val gana: String,
-    val pada: Set<PadaPrakara>,
+    val pada: Set<PadaType>,
     val sakarmaka: Boolean,
 )
 

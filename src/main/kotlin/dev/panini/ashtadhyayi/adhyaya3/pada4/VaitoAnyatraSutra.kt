@@ -1,5 +1,6 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada4
 
+import dev.panini.core.Lakara
 import dev.panini.derivation.*
 import dev.panini.sutra.*
 

@@ -1,6 +1,8 @@
 package dev.panini.derivation
 
-import dev.panini.dhatupatha.PadaType
+import dev.panini.core.PadaType
+import dev.panini.core.Purusha
+import dev.panini.core.Vacana
 
 /** Executable tiṅ inventory used by 3.4.78. */
 enum class TingAffix(

@@ -3,9 +3,9 @@ package dev.panini.ashtadhyayi.adhyaya7.pada2
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.Lakara
+import dev.panini.core.Lakara
 import dev.panini.derivation.TermKind
-import dev.panini.dhatupatha.Gana
+import dev.panini.core.DhatuGana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -34,9 +34,9 @@ object LingasSalopoAnantyasyaSutra : Sutra<DerivationState, DerivationChange>(
         val yasut = context.terms.firstOrNull { it.id == "yasut" } ?: return false
         val gana = context.terms.firstOrNull { it.kind == TermKind.DHATU && it.gana != null }?.gana
         val stemFormationComplete = when (gana) {
-            Gana.CURADI -> context.terms.any { it.id == "shap" }
-            Gana.RUDHADI -> context.droppedTerms.any { it.id == "shnam" }
-            Gana.ADADI, Gana.JUHOTYADI -> context.allEffectiveTerms.any { it.id == "shap" }
+            DhatuGana.CURADI -> context.terms.any { it.id == "shap" }
+            DhatuGana.RUDHADI -> context.droppedTerms.any { it.id == "shnam" }
+            DhatuGana.ADADI, DhatuGana.JUHOTYADI -> context.allEffectiveTerms.any { it.id == "shap" }
             else -> context.terms.any {
                 it.id in setOf("shap", "shyan", "shnu", "sha", "tanadi-u", "shna")
             }

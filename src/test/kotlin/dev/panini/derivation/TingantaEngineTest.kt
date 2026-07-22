@@ -5,8 +5,11 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 import dev.panini.dhatupatha.DhatuPatha
-import dev.panini.dhatupatha.Gana
-import dev.panini.dhatupatha.PadaType
+import dev.panini.core.DhatuGana
+import dev.panini.core.Lakara
+import dev.panini.core.PadaType
+import dev.panini.core.Purusha
+import dev.panini.core.Vacana
 
 class TingantaEngineTest {
 
@@ -118,16 +121,16 @@ class TingantaEngineTest {
     @Test
     fun `all ganas derive every LOT LANG and LING slot`() {
         val roots = mapOf(
-            Gana.BHVADI to "भू",
-            Gana.ADADI to "अद्",
-            Gana.JUHOTYADI to "हु",
-            Gana.DIVADI to "दिव्",
-            Gana.SVADI to "षुञ्",
-            Gana.TUDADI to "नुद्",
-            Gana.RUDHADI to "रुधिँर्",
-            Gana.TANADI to "तनुँ",
-            Gana.KRYADI to "डुक्रीञ्",
-            Gana.CURADI to "चुरँ",
+            DhatuGana.BHVADI to "भू",
+            DhatuGana.ADADI to "अद्",
+            DhatuGana.JUHOTYADI to "हु",
+            DhatuGana.DIVADI to "दिव्",
+            DhatuGana.SVADI to "षुञ्",
+            DhatuGana.TUDADI to "नुद्",
+            DhatuGana.RUDHADI to "रुधिँर्",
+            DhatuGana.TANADI to "तनुँ",
+            DhatuGana.KRYADI to "डुक्रीञ्",
+            DhatuGana.CURADI to "चुरँ",
         )
 
         roots.forEach { (gana, root) ->

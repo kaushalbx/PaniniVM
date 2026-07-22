@@ -3,9 +3,9 @@ package dev.panini.ashtadhyayi.adhyaya7.pada2
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.Lakara
+import dev.panini.core.Lakara
 import dev.panini.derivation.TermKind
-import dev.panini.dhatupatha.Gana
+import dev.panini.core.DhatuGana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraPriority
@@ -36,7 +36,7 @@ object AtoYeyahSutra : Sutra<DerivationState, DerivationChange>(
         if (yasutIndex <= 0) return false
 
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU }
-        if (dhatu?.gana in setOf(Gana.ADADI, Gana.JUHOTYADI)) return false
+        if (dhatu?.gana in setOf(DhatuGana.ADADI, DhatuGana.JUHOTYADI)) return false
 
         val precedingAnga = context.terms[yasutIndex - 1]
         val yasut = context.terms[yasutIndex]

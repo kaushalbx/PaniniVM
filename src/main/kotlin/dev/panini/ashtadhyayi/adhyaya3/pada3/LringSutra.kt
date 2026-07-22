@@ -6,8 +6,8 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.HasKala
-import dev.panini.derivation.Kala
-import dev.panini.derivation.Lakara
+import dev.panini.core.Kala
+import dev.panini.core.Lakara
 import dev.panini.derivation.TermKind
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction

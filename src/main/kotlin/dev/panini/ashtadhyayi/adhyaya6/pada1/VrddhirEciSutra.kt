@@ -8,11 +8,11 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.HasMorphosyntax
 import dev.panini.derivation.VarnaSubstitution
 import dev.panini.derivation.TermKind
-import dev.panini.dhatupatha.Gana
+import dev.panini.core.DhatuGana
 import dev.panini.pratyahara.Pratyahara
-import dev.panini.shiksha.Linga
-import dev.panini.derivation.Vacana
-import dev.panini.derivation.Vibhakti
+import dev.panini.core.Linga
+import dev.panini.core.Vacana
+import dev.panini.core.Vibhakti
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraPriority
@@ -40,7 +40,7 @@ object VrddhirEciSutra : Sutra<DerivationState, DerivationChange>(
         if (context.terms.size < 2) return false
         if (augmentRootPair(context) != null) return true
         val leftTerm = context.terms[context.terms.size - 2]
-        if (leftTerm.id == "shap" && context.terms.any { it.kind == TermKind.DHATU && it.gana == Gana.ADADI }) return false
+        if (leftTerm.id == "shap" && context.terms.any { it.kind == TermKind.DHATU && it.gana == DhatuGana.ADADI }) return false
         val right = context.terms.last().surface.firstOrNull() ?: return false
 
         val engine = Ashtadhyayi.pratyaharaEngine

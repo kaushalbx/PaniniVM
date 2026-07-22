@@ -4,13 +4,12 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.Lakara
+import dev.panini.core.Lakara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
-import dev.panini.sutra.SutraPriority
 
 /** 3.4.86: er uḥ. Replaces loṭ तिप् with तु. */
 object ErUhSutra : Sutra<DerivationState, DerivationChange>(

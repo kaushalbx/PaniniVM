@@ -1,6 +1,8 @@
 package dev.panini.execution
 
-import dev.panini.derivation.Lakara
+import dev.panini.core.Karaka
+import dev.panini.core.Lakara
+import dev.panini.core.Prayoga
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.parser.VakyaAstBuilder
@@ -11,7 +13,6 @@ import dev.panini.parser.ast.ParsedPada
 import dev.panini.parser.ast.ParsedSubanta
 import dev.panini.parser.ast.ParsedTinganta
 import dev.panini.parser.ast.ParsedUtterance
-import dev.panini.parser.ast.ParsedVakya
 import dev.panini.parser.ast.SimpleNominalKind
 
 import org.antlr.v4.runtime.BaseErrorListener
@@ -234,7 +235,7 @@ object SanskritAntlrParser {
 
     private fun extractKarakas(
         padas: List<ParsedPada>,
-        prayoga: SanskritMorphologicalParser.Prayoga,
+        prayoga: Prayoga,
         conversation: SambhashanaContext?,
         clauseIndex: Int,
     ): Map<Karaka, ExecutionExpression> {
@@ -322,7 +323,7 @@ object SanskritAntlrParser {
 
     private fun inferSubantaKaraka(
         subanta: ParsedSubanta,
-        prayoga: SanskritMorphologicalParser.Prayoga,
+        prayoga: Prayoga,
     ): Karaka {
         val rawText = subanta.text
         val token = SanskritMorphologicalParser.parseToken(rawText, prayoga)

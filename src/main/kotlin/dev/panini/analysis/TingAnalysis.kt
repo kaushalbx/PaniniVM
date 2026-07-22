@@ -1,7 +1,8 @@
 package dev.panini.analysis
 
-import dev.panini.derivation.Purusha
-import dev.panini.derivation.Vacana
+import dev.panini.core.PadaType
+import dev.panini.core.Purusha
+import dev.panini.core.Vacana
 
 data class TingAnalysis(
     val pratyaya: String,

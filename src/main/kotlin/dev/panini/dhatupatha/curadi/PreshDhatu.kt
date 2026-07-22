@@ -1,13 +1,13 @@
 package dev.panini.dhatupatha.curadi
 
 import dev.panini.dhatupatha.Dhatu
-import dev.panini.dhatupatha.Gana
-import dev.panini.dhatupatha.PadaType
+import dev.panini.core.DhatuGana
+import dev.panini.core.PadaType
 import dev.panini.execution.BahyaSendAction
 import dev.panini.execution.DhatuOperation
 import dev.panini.execution.ExecutionEffect
 import dev.panini.execution.ExecutionSamjna
-import dev.panini.execution.Karaka
+import dev.panini.core.Karaka
 import dev.panini.execution.KarakaRequirement
 import dev.panini.execution.OperationSignature
 import dev.panini.shiksha.Accent
@@ -25,7 +25,7 @@ class PreshDhatu : Dhatu(
     artha = "प्रेषणे",
     arthaHindi = "भेजना, प्रेषित करना",
     arthaEnglish = "to send, to dispatch, to invoke external capability",
-    gana = Gana.CURADI,
+    gana = DhatuGana.CURADI,
     pada = PadaType.UBHAYAPADA,
     itStatus = ItStatus.SET,
     karmatva = Karmatva.SAKARMAKA,

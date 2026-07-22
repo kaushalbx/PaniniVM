@@ -1,8 +1,8 @@
 package dev.panini.dhatupatha.curadi
 
 import dev.panini.dhatupatha.Dhatu
-import dev.panini.dhatupatha.Gana
-import dev.panini.dhatupatha.PadaType
+import dev.panini.core.DhatuGana
+import dev.panini.core.PadaType
 import dev.panini.dhatupatha.dhatuPatha
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
@@ -10,7 +10,7 @@ import dev.panini.shiksha.Karmatva
 
 object CuradiDhatus {
     val all: List<Dhatu> =
-        dhatuPatha(Gana.CURADI) {
+        dhatuPatha(DhatuGana.CURADI) {
             dhatu("10.0001", 1, "चुरँ", "चुर्",
                 "स्तेये", "चोरी करना", "to steal",
                 PadaType.UBHAYAPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,

@@ -1,6 +1,7 @@
 package dev.panini.execution
 
-import dev.panini.derivation.Vibhakti
+import dev.panini.core.Karaka
+import dev.panini.core.Vibhakti
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

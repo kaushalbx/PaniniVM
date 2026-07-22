@@ -8,12 +8,11 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.HasMorphosyntax
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Varnamala
-import dev.panini.derivation.Vacana
-import dev.panini.derivation.Vibhakti
+import dev.panini.core.Vacana
+import dev.panini.core.Vibhakti
 import dev.panini.derivation.TermKind
 import dev.panini.derivation.TingAffix
-import dev.panini.dhatupatha.Gana
-import dev.panini.shiksha.Vyanjana
+import dev.panini.core.DhatuGana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -51,7 +50,7 @@ object AtkupvangnumvyavayePiSutra : Sutra<DerivationState, DerivationChange>(
 
         // 8.4.35: No retroflexion if 'n' is followed by a dental consonant (t-varga: t, th, d, dh, n)
         val nextCharIndex = if (nIndex + 1 < surface.length && surface[nIndex + 1] == '्') nIndex + 2 else nIndex + 1
-        val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU && it.gana == Gana.RUDHADI }
+        val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU && it.gana == DhatuGana.RUDHADI }
         val dhatuEnd = dhatu?.surface?.length ?: -1
         val isStrongRudhadiShnam = nIndex < dhatuEnd &&
             surface.getOrNull(nIndex + 1) != '्' &&

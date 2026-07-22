@@ -1,5 +1,7 @@
 package dev.panini.derivation
 
+import dev.panini.core.Vacana
+import dev.panini.core.Vibhakti
 import dev.panini.shiksha.Svara
 
 /** The 21 sup slots of 4.1.2; each enum entry is its one executable source. */

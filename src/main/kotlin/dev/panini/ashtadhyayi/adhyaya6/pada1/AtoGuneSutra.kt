@@ -1,6 +1,5 @@
 package dev.panini.ashtadhyayi.adhyaya6.pada1
 
-import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
@@ -8,7 +7,7 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
 import dev.panini.derivation.VarnaSubstitution
 import dev.panini.derivation.TermKind
-import dev.panini.dhatupatha.Gana
+import dev.panini.core.DhatuGana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -39,7 +38,7 @@ object AtoGuneSutra : Sutra<DerivationState, DerivationChange>(
         if (context.terms.size < 2) return false
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
-        if (stem.id == "shap" && context.terms.any { it.kind == TermKind.DHATU && it.gana == Gana.ADADI }) return false
+        if (stem.id == "shap" && context.terms.any { it.kind == TermKind.DHATU && it.gana == DhatuGana.ADADI }) return false
 
         // 1. Stem must end in short 'a'
         if (!dev.panini.shiksha.Varnamala.endsWithA(stem.surface)) return false

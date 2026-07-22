@@ -5,10 +5,10 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.Lakara
+import dev.panini.core.Lakara
 import dev.panini.derivation.VarnaSubstitution
 import dev.panini.derivation.TermKind
-import dev.panini.dhatupatha.Gana
+import dev.panini.core.DhatuGana
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Varnamala
 import dev.panini.sutra.Sutra
@@ -35,7 +35,7 @@ object SavarnaDirghaSutra : Sutra<DerivationState, DerivationChange>(
         if (context.stage == DerivationStage.INITIAL || context.stage == DerivationStage.PRATYAYA_SELECTED) return false
         if (context.terms.size < 2) return false
         val leftTerm = context.terms[context.terms.size - 2]
-        if (leftTerm.id == "shap" && context.terms.any { it.kind == TermKind.DHATU && it.gana == Gana.ADADI }) return false
+        if (leftTerm.id == "shap" && context.terms.any { it.kind == TermKind.DHATU && it.gana == DhatuGana.ADADI }) return false
         if (context.effectiveContext.rupa.lakara == Lakara.LOT && context.terms.last().upadesha == "झि") return false
         val leftChar = leftTerm.surface.lastOrNull() ?: return false
         val right = context.terms.last().surface.firstOrNull() ?: return false
