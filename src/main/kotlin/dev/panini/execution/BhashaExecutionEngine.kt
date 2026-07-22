@@ -6,25 +6,27 @@ object BhashaExecutionEngine {
         input: SanskritUktiInput,
         conversation: SambhashanaContext,
         scope: ExecutionScope,
-    ): Phala = when (val analysis = VyakaranamExecutionAnalyzer.analyze(input, conversation)) {
-        is VakyaAnalysisResult.Analyzed -> execute(analysis.analysis, conversation, scope)
-        is VakyaAnalysisResult.NeedsClarification -> Phala.Asiddha(
+    ): Phala = when (val analysis = VyakaranamExecutionAdapter.analyze(input, conversation)) {
+        is ExecutionAnalysisResult.Analyzed -> execute(analysis.analysis, conversation, scope)
+            .prependTrace(analysis.trace)
+        is ExecutionAnalysisResult.NeedsClarification -> Phala.Asiddha(
             ExecutionResult.NeedsInput(emptySet(), analysis.question),
             emptyList(),
         )
-        is VakyaAnalysisResult.Unsupported -> Phala.Asiddha(
+        is ExecutionAnalysisResult.Unsupported -> Phala.Asiddha(
             ExecutionResult.Failure(ExecutionError.INVALID_VALUE, analysis.message),
             emptyList(),
         )
     }
 
     fun execute(
-        analysis: VakyaAnalysis,
+        analysis: ExecutionUtteranceAnalysis,
         conversation: SambhashanaContext,
         scope: ExecutionScope,
-    ): Phala = when (val compilation = BhashaCompiler.compile(analysis)) {
-        is UktiCompilation.Compiled -> execute(compilation.ukti, conversation, scope)
-        is UktiCompilation.Invalid -> Phala.Asiddha(
+    ): Phala = when (val compilation = ExecutionCompiler.compile(analysis)) {
+        is ExecutionCompilation.Compiled -> execute(compilation.ukti, conversation, scope)
+            .prependTrace(compilation.trace)
+        is ExecutionCompilation.Invalid -> Phala.Asiddha(
             ExecutionResult.Failure(ExecutionError.INVALID_VALUE, compilation.message),
             emptyList(),
         )
@@ -43,20 +45,23 @@ object BhashaExecutionEngine {
             )
             is UktiInterpretation.Understood -> error("Unreachable")
         }
-        val program = BhashaProgram(
-            understood.nirdesha,
-            understood.nirdesha.invocations,
-            ukti.dependencies,
-        )
+        val program = BhashaProgram(understood.ukti, ukti.dependencies)
         val historicalValues = conversation.resultHistory.associate { it.id to it.value }
         val historicalSamjnas = conversation.resultHistory.associate { it.id to it.samjnas }
+        val historicalTypedValues = conversation.resultHistory.mapNotNull { result ->
+            result.typedValue?.let { result.id to it }
+        }.toMap()
         val variables = historicalValues + conversation.mentionedEntities + conversation.previousResults + scope.variables
         val variableSamjnas = conversation.mentionedEntitySamjnas +
             historicalSamjnas + conversation.previousResultSamjnas + scope.variableSamjnas
-        return when (val planning = ExecutionPlanner.plan(program, variables, variableSamjnas)) {
+        val typedVariables = historicalTypedValues + conversation.previousTypedResults + scope.typedVariables
+        return when (val planning = ExecutionPlanner.plan(program, variables, variableSamjnas, typedVariables)) {
             is PlanningResult.Planned -> ExecutionRuntime.execute(
-                planning,
-                scope.copy(variables = variables, variableSamjnas = variableSamjnas),
+                planning, scope.copy(
+                    variables = variables,
+                    variableSamjnas = variableSamjnas,
+                    typedVariables = typedVariables,
+                ),
             )
             is PlanningResult.Failed -> Phala.Asiddha(planning.result, understood.trace)
         }
@@ -72,7 +77,7 @@ object BhashaExecutionEngine {
     ): Prativacana = SanskritPrativacanaRenderer.render(execute(ukti, conversation, scope))
 
     fun executeAndRespond(
-        analysis: VakyaAnalysis,
+        analysis: ExecutionUtteranceAnalysis,
         conversation: SambhashanaContext,
         scope: ExecutionScope,
     ): Prativacana = SanskritPrativacanaRenderer.render(execute(analysis, conversation, scope))
@@ -103,6 +108,7 @@ object BhashaExecutionEngine {
                 invocationId = invocationId,
                 value = value,
                 samjnas = success.samjnas[invocationId].orEmpty(),
+                typedValue = success.typedValues[invocationId],
             )
         }
         return SambhashanaTurn(
@@ -110,9 +116,23 @@ object BhashaExecutionEngine {
             conversation.copy(
                 previousResults = conversation.previousResults + success.values,
                 previousResultSamjnas = conversation.previousResultSamjnas + success.samjnas,
+                previousTypedResults = conversation.previousTypedResults + success.typedValues,
                 resultHistory = conversation.resultHistory + remembered,
                 turnNumber = nextTurn,
             ),
         )
+    }
+
+    private fun Phala.prependTrace(prefix: List<String>): Phala = when (this) {
+        is Phala.Siddha -> copy(trace = prefix + trace)
+        is Phala.Asiddha -> copy(trace = prefix + trace)
+        is Phala.Avagata -> copy(trace = prefix + trace)
+        is Phala.AnumatiApekshita -> copy(
+            continuation = continuation.copy(trace = prefix + continuation.trace),
+        )
+        is Phala.SvikaraApekshita -> copy(
+            continuation = continuation.copy(trace = prefix + continuation.trace),
+        )
+        is Phala.Nirasta -> this
     }
 }

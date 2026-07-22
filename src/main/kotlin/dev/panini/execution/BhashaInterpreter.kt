@@ -19,17 +19,8 @@ object BhashaInterpreter {
             }
             invocation.copy(bindings = bindings)
         }
-        val nirdesha = Nirdesha(
-            ukti.speaker,
-            ukti.listener,
-            ukti.prayojana,
-            ukti.polarity,
-            ukti.lakara,
-            resolvedInvocations,
-            ukti.text,
-        )
         return UktiInterpretation.Understood(
-            nirdesha,
+            ukti.copy(invocations = resolvedInvocations),
             listOf(
                 "Resolved speaker ${ukti.speaker} and listener ${ukti.listener}.",
                 "Interpreted purpose as ${ukti.prayojana} with ${ukti.polarity} polarity.",
@@ -37,4 +28,3 @@ object BhashaInterpreter {
         )
     }
 }
-

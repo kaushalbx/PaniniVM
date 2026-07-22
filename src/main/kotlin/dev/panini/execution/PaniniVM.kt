@@ -50,29 +50,23 @@ class PaniniVM(
         }
 
         val input = SanskritUktiInput(text = utterance, speaker = activeContext.speaker, listener = activeContext.listener)
-        val phala = BhashaExecutionEngine.execute(input, activeContext, scope)
+        val turn = BhashaExecutionEngine.executeTurn(input, activeContext, scope)
+        val phala = turn.response.phala
 
         val result = when (phala) {
             is Phala.Siddha -> ExecutionResult.Success(
                 value = phala.values.values.lastOrNull() ?: "",
                 operation = "panini.eval",
                 trace = phala.trace,
+                typedValue = phala.typedValues.values.lastOrNull(),
             )
             is Phala.Asiddha -> phala.result
             else -> ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Execution resulted in $phala")
         }
 
         if (phala is Phala.Siddha && sessionKey != null) {
-            val nextTurn = activeContext.turnNumber + 1
-            val updatedEntities = activeContext.mentionedEntities + phala.values
-            val updatedContext = activeContext.copy(
-                mentionedEntities = updatedEntities,
-                previousResults = activeContext.previousResults + phala.values,
-                previousResultSamjnas = activeContext.previousResultSamjnas + phala.samjnas,
-                turnNumber = nextTurn,
-            )
-            sessions[sessionKey] = updatedContext
-            store.save(sessionKey, updatedContext)
+            sessions[sessionKey] = turn.context
+            store.save(sessionKey, turn.context)
         }
 
         return result

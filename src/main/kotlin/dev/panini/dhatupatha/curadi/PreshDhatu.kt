@@ -15,11 +15,11 @@ import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
 
 /**
- * 01.1049 प्रेषँ (प्रेषणे / प्र-इष्) - External system capability dispatch.
+ * Executable Curādi extension for external capability dispatch.
  */
 class PreshDhatu : Dhatu(
-    id = "01.1049",
-    krama = 1049,
+    id = "10.0509",
+    krama = 509,
     upadesha = "प्रेषँ",
     sourceSurface = "प्रेष्",
     artha = "प्रेषणे",

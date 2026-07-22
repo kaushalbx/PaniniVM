@@ -13,7 +13,7 @@ class PaniniVMTest {
     private lateinit var tempDir: File
     private lateinit var vm: PaniniVM
 
-/*    @BeforeTest
+    @BeforeTest
     fun setup() {
         tempDir = File(System.getProperty("java.io.tmpdir"), "paninivm_test_api_" + System.currentTimeMillis())
         vm = PaniniVM(storageDir = tempDir)
@@ -27,7 +27,7 @@ class PaniniVMTest {
     @Test
     fun `PaniniVM evaluates addition utterance`() {
         val result = vm.eval("दश + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।")
-        val success = assertIs<ExecutionResult.Success>(result)
+        val success = assertIs<ExecutionResult.Success>(result, result.toString())
         assertEquals("द्वादश", success.value)
     }
 
@@ -37,18 +37,20 @@ class PaniniVMTest {
         assertIs<ExecutionResult.Success>(res1)
 
         val res2 = vm.eval("पूर्वफल + अम् द्वि + औट् च गण + णिच् + लोट् + सिप् ।", sessionKey = "session_math")
-        val success2 = assertIs<ExecutionResult.Success>(res2)
+        val success2 = assertIs<ExecutionResult.Success>(res2, res2.toString())
         assertEquals("चतुर्विंशतिः", success2.value)
 
         val loaded = vm.loadSession("session_math")
         assertNotNull(loaded)
-        assertEquals("चतुर्विंशतिः", loaded.mentionedEntities["योग-१"])
+        assertEquals(2, loaded.turnNumber)
+        assertEquals(2, loaded.resultHistory.size)
+        assertEquals("चतुर्विंशतिः", loaded.resultHistory.last().value)
     }
 
     @Test
     fun `PaniniVM evaluates 3-clause chained utterance`() {
         val result = vm.eval("एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् । फल + अम् द्वि + औट् च गण + णिच् + लोट् + सिप् । फल + अम् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।")
-        val success = assertIs<ExecutionResult.Success>(result)
+        val success = assertIs<ExecutionResult.Success>(result, result.toString())
         assertEquals("नव", success.value)
     }
 
@@ -61,8 +63,8 @@ class PaniniVMTest {
         }
 
         val result = vm.eval("संदेश + अम् प्रेष + णिच् + लोट् + सिप् ।")
-        val success = assertIs<ExecutionResult.Success>(result)
+        val success = assertIs<ExecutionResult.Success>(result, result.toString())
         assertEquals("SUCCESS_DISPATCH", success.value)
         assertEquals("संदेश", captured)
-    }*/
+    }
 }

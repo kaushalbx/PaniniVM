@@ -18,7 +18,7 @@ object ExecutionRuntime {
                 values = scope.variables,
                 valueSamjnas = scope.variableSamjnas,
                 trace = emptyList(),
-                typedValues = emptyMap(),
+                typedValues = scope.typedVariables,
             ),
             scope,
         )
@@ -28,7 +28,7 @@ object ExecutionRuntime {
         val values = (scope.variables + continuation.values).toMutableMap()
         val valueSamjnas = (scope.variableSamjnas + continuation.valueSamjnas).toMutableMap()
         val trace = continuation.trace.toMutableList()
-        val typedValues = continuation.typedValues.toMutableMap()
+        val typedValues = (scope.typedVariables + continuation.typedValues).toMutableMap()
         val plans = continuation.planning.plans
         for (index in continuation.nextPlanIndex until plans.size) {
             val plan = plans[index]

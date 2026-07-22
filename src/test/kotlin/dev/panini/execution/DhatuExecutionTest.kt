@@ -338,20 +338,16 @@ class DhatuExecutionTest {
                 )
             ),
         )
-        val nirdesha = Nirdesha(
+        val resolvedUkti = Ukti(
             speaker = "प्रयोक्ता",
             listener = "यन्त्रम्",
+            text = "योजय।",
             prayojana = VakyaPrayojana.AJNA,
             polarity = Polarity.POSITIVE,
             lakara = Lakara.LOT,
             invocations = listOf(invocation),
-            sourceText = "योजय।",
         )
-        val program = BhashaProgram(
-            nirdesha,
-            listOf(invocation),
-            setOf(ActionDependency("योग-१", "योग-१")),
-        )
+        val program = BhashaProgram(resolvedUkti, setOf(ActionDependency("योग-१", "योग-१")))
 
         val planning = assertIs<PlanningResult.Failed>(ExecutionPlanner.plan(program, emptyMap()))
 
@@ -421,14 +417,14 @@ class DhatuExecutionTest {
 
     @Test
     fun `analyzed Sanskrit sentence compiles into executable utterance`() {
-        val analysis = VakyaAnalysis(
+        val analysis = ExecutionUtteranceAnalysis(
             speaker = "प्रयोक्ता",
             listener = "यन्त्रम्",
             sourceText = "एकं द्वे त्रीणि च योजय।",
             prayojana = VakyaPrayojana.AJNA,
             lakara = Lakara.LOT,
             kriyas = listOf(
-                KriyaAnalysis(
+                ExecutionKriyaAnalysis(
                     id = "योग-१",
                     dhatuId = "07.0007",
                     karakas = mapOf(
@@ -453,15 +449,15 @@ class DhatuExecutionTest {
 
     @Test
     fun `compiler rejects unknown dhatupatha identity`() {
-        val analysis = VakyaAnalysis(
+        val analysis = ExecutionUtteranceAnalysis(
             speaker = "प्रयोक्ता",
             listener = "यन्त्रम्",
             sourceText = "कुरु।",
             prayojana = VakyaPrayojana.AJNA,
-            kriyas = listOf(KriyaAnalysis("क्रिया-१", "unknown", emptyMap())),
+            kriyas = listOf(ExecutionKriyaAnalysis("क्रिया-१", "unknown", emptyMap())),
         )
 
-        val compilation = assertIs<UktiCompilation.Invalid>(BhashaCompiler.compile(analysis))
+        val compilation = assertIs<ExecutionCompilation.Invalid>(ExecutionCompiler.compile(analysis))
 
         assertTrue("Unknown Dhātupāṭha identity" in compilation.message)
     }
@@ -490,7 +486,7 @@ class DhatuExecutionTest {
             SanskritUktiInput("प्रयोक्ता", "यन्त्रम्", "एकं योजय।")
         )
 
-        assertIs<VakyaAnalysisResult.NeedsClarification>(analysis)
+        assertIs<ExecutionAnalysisResult.NeedsClarification>(analysis)
     }
 
     @Test
@@ -1076,9 +1072,6 @@ class DhatuExecutionTest {
         assertEquals("पञ्च", result.values["योग-१"])
     }*/
 }
-
-
-
 
 
 

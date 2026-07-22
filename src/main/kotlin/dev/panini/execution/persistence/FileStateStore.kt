@@ -2,106 +2,130 @@ package dev.panini.execution.persistence
 
 import dev.panini.execution.ExecutionSamjna
 import dev.panini.execution.SambhashanaContext
+import dev.panini.execution.SanskritValue
+import dev.panini.execution.SmrtaPhala
 import java.io.File
+import java.nio.charset.StandardCharsets
+import java.util.Base64
 
-/**
- * File-backed implementation of StateStore.
- * Persists session context (entities, history) into key-value JSON files on disk.
- */
+/** Versioned file store that round-trips complete conversation state. */
 class FileStateStore(private val storageDir: File) : StateStore {
-
     init {
-        if (!storageDir.exists()) {
-            storageDir.mkdirs()
-        }
+        require(storageDir.exists() || storageDir.mkdirs()) { "Cannot create state directory: $storageDir" }
+        require(storageDir.isDirectory) { "State path is not a directory: $storageDir" }
     }
 
     override fun save(key: String, context: SambhashanaContext) {
-        val file = getFileForKey(key)
-        val sb = StringBuilder()
-        sb.appendLine("{")
-        sb.appendLine("  \"speaker\": \"${context.speaker}\",")
-        sb.appendLine("  \"listener\": \"${context.listener}\",")
-
-        // Entities
-        sb.appendLine("  \"mentionedEntities\": {")
-        val varEntries = context.mentionedEntities.entries.toList()
-        varEntries.forEachIndexed { i, (k, v) ->
-            val comma = if (i < varEntries.size - 1) "," else ""
-            sb.appendLine("    \"$k\": \"$v\"$comma")
+        val lines = mutableListOf("PANINI_STATE_V2")
+        lines += record("CONTEXT", context.speaker, context.listener, context.turnNumber.toString())
+        context.mentionedEntities.forEach { (name, value) ->
+            lines += record("ENTITY", name, value, encodeSamjnas(context.mentionedEntitySamjnas[name].orEmpty()))
         }
-        sb.appendLine("  },")
-
-        // Previous results
-        sb.appendLine("  \"previousResults\": {")
-        val prevEntries = context.previousResults.entries.toList()
-        prevEntries.forEachIndexed { i, (k, v) ->
-            val comma = if (i < prevEntries.size - 1) "," else ""
-            sb.appendLine("    \"$k\": \"$v\"$comma")
+        context.previousResults.forEach { (name, value) ->
+            lines += record(
+                "RESULT", name, value, encodeSamjnas(context.previousResultSamjnas[name].orEmpty()),
+                encodeTyped(context.previousTypedResults[name]),
+            )
         }
-        sb.appendLine("  }")
-        sb.appendLine("}")
-
-        file.writeText(sb.toString())
+        context.resultHistory.forEach { result ->
+            lines += record(
+                "HISTORY", result.id, result.turnNumber.toString(), result.invocationId,
+                result.value, encodeSamjnas(result.samjnas), encodeTyped(result.typedValue),
+            )
+        }
+        context.metadata.forEach { (name, value) -> lines += record("META", name, value) }
+        fileFor(key).writeText(lines.joinToString("\n", postfix = "\n"))
     }
 
     override fun load(key: String): SambhashanaContext? {
-        val file = getFileForKey(key)
+        val file = fileFor(key)
         if (!file.exists()) return null
+        val lines = file.readLines()
+        if (lines.firstOrNull() != "PANINI_STATE_V2") return null
 
-        val json = file.readText()
-        val speakerStr = extractJsonString(json, "speaker") ?: "प्रयोक्ता"
-        val listenerStr = extractJsonString(json, "listener") ?: "यन्त्रम्"
+        var speaker = "प्रयोक्ता"
+        var listener = "यन्त्रम्"
+        var turnNumber = 0
+        val entities = linkedMapOf<String, String>()
+        val entitySamjnas = linkedMapOf<String, Set<ExecutionSamjna>>()
+        val results = linkedMapOf<String, String>()
+        val resultSamjnas = linkedMapOf<String, Set<ExecutionSamjna>>()
+        val typedResults = linkedMapOf<String, SanskritValue>()
+        val history = mutableListOf<SmrtaPhala>()
+        val metadata = linkedMapOf<String, String>()
 
-        val entitiesMap = extractJsonMap(json, "mentionedEntities")
-        val previousResultsMap = extractJsonMap(json, "previousResults")
-
-        // This legacy file format stores display text only. Do not guess runtime
-        // types by reverse-parsing Sanskrit surface forms.
-        val entitySamjnas = entitiesMap.mapValues { setOf(ExecutionSamjna.SHABDA) }
-        val previousSamjnas = previousResultsMap.mapValues { setOf(ExecutionSamjna.SHABDA) }
-
+        lines.drop(1).filter(String::isNotBlank).forEach { line ->
+            val fields = decodeRecord(line)
+            when (fields.firstOrNull()) {
+                "CONTEXT" -> {
+                    speaker = fields[1]; listener = fields[2]; turnNumber = fields[3].toInt()
+                }
+                "ENTITY" -> {
+                    entities[fields[1]] = fields[2]; entitySamjnas[fields[1]] = decodeSamjnas(fields[3])
+                }
+                "RESULT" -> {
+                    val name = fields[1]
+                    results[name] = fields[2]
+                    resultSamjnas[name] = decodeSamjnas(fields[3])
+                    decodeTyped(fields[4], fields[2], resultSamjnas.getValue(name))?.let { typedResults[name] = it }
+                }
+                "HISTORY" -> history += SmrtaPhala(
+                    id = fields[1], turnNumber = fields[2].toInt(), invocationId = fields[3],
+                    value = fields[4], samjnas = decodeSamjnas(fields[5]),
+                    typedValue = decodeTyped(fields[6], fields[4], decodeSamjnas(fields[5])),
+                )
+                "META" -> metadata[fields[1]] = fields[2]
+            }
+        }
         return SambhashanaContext(
-            speaker = speakerStr,
-            listener = listenerStr,
-            mentionedEntities = entitiesMap,
-            mentionedEntitySamjnas = entitySamjnas,
-            previousResults = LinkedHashMap(previousResultsMap),
-            previousResultSamjnas = previousSamjnas,
+            speaker, listener, entities, entitySamjnas, results, resultSamjnas,
+            typedResults, history, turnNumber, metadata,
         )
     }
 
-    override fun delete(key: String): Boolean {
-        val file = getFileForKey(key)
-        return if (file.exists()) file.delete() else false
+    override fun delete(key: String): Boolean = fileFor(key).let { it.exists() && it.delete() }
+
+    override fun listKeys(): List<String> = storageDir.listFiles { _, name -> name.endsWith(EXTENSION) }
+        ?.mapNotNull { file ->
+            runCatching { decode(file.name.removeSuffix(EXTENSION)) }.getOrNull()
+        }.orEmpty()
+
+    private fun fileFor(key: String): File {
+        val safe = Base64.getUrlEncoder().withoutPadding().encodeToString(key.toByteArray(StandardCharsets.UTF_8))
+        return File(storageDir, safe + EXTENSION)
     }
 
-    override fun listKeys(): List<String> {
-        return storageDir.listFiles { _, name -> name.endsWith(".json") }
-            ?.map { it.name.removeSuffix(".json") }
-            ?: emptyList()
+    private fun record(type: String, vararg values: String): String =
+        (listOf(type) + values.map(::encode)).joinToString("\t")
+
+    private fun decodeRecord(line: String): List<String> = line.split('\t').mapIndexed { index, field ->
+        if (index == 0) field else decode(field)
     }
 
-    private fun getFileForKey(key: String): File {
-        val sanitized = key.replace(Regex("[^a-zA-Z0-9_-]"), "_")
-        return File(storageDir, "$sanitized.json")
+    private fun encode(value: String): String =
+        Base64.getUrlEncoder().withoutPadding().encodeToString(value.toByteArray(StandardCharsets.UTF_8))
+
+    private fun decode(value: String): String =
+        String(Base64.getUrlDecoder().decode(value), StandardCharsets.UTF_8)
+
+    private fun encodeSamjnas(values: Set<ExecutionSamjna>): String = values.joinToString(",") { it.name }
+    private fun decodeSamjnas(value: String): Set<ExecutionSamjna> = value.split(',').filter(String::isNotEmpty)
+        .mapTo(mutableSetOf(), ExecutionSamjna::valueOf)
+
+    private fun encodeTyped(value: SanskritValue?): String = when (value) {
+        is SanskritValue.Sankhya -> "SANKHYA:${value.value}"
+        is SanskritValue.Satya -> "SATYA:${value.boolean}"
+        is SanskritValue.Shabda -> "SHABDA"
+        is SanskritValue.Gana -> "GANA"
+        null -> ""
     }
 
-    private fun extractJsonString(json: String, key: String): String? {
-        val regex = Regex("\"$key\"\\s*:\\s*\"([^\"]+)\"")
-        return regex.find(json)?.groupValues?.get(1)
+    private fun decodeTyped(type: String, display: String, samjnas: Set<ExecutionSamjna>): SanskritValue? = when {
+        type.startsWith("SANKHYA:") -> SanskritValue.Sankhya(type.substringAfter(':').toLong(), display)
+        type.startsWith("SATYA:") -> SanskritValue.Satya(type.substringAfter(':').toBooleanStrict())
+        type == "SHABDA" || type == "GANA" -> SanskritValue.Shabda(display, samjnas)
+        else -> null
     }
 
-    private fun extractJsonMap(json: String, sectionKey: String): Map<String, String> {
-        val sectionRegex = Regex("\"$sectionKey\"\\s*:\\s*\\{([^}]*)\\}")
-        val match = sectionRegex.find(json) ?: return emptyMap()
-        val content = match.groupValues[1]
-
-        val entryRegex = Regex("\"([^\"]+)\"\\s*:\\s*\"([^\"]+)\"")
-        val result = mutableMapOf<String, String>()
-        entryRegex.findAll(content).forEach { entry ->
-            result[entry.groupValues[1]] = entry.groupValues[2]
-        }
-        return result
-    }
+    private companion object { const val EXTENSION = ".state" }
 }

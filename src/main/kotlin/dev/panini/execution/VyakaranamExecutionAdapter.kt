@@ -3,25 +3,29 @@ package dev.panini.execution
 import dev.panini.core.Karaka
 import dev.panini.core.Lakara
 import dev.panini.core.SupAffix
-import dev.panini.core.Vibhakti
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.vyakaranam.ast.*
 import dev.panini.vyakaranam.parser.PaniniParseException
 import dev.panini.vyakaranam.parser.PaniniParser
+import dev.panini.vyakaranam.analysis.KarakaInference
+import dev.panini.core.Prayoga
 import dev.panini.sankhya.SankhyaGenerator
 
-/** Converts the canonical annotated-vyākaraṇa AST into execution semantics. */
-object VyakaranamExecutionAnalyzer {
+/**
+ * Thin bridge from canonical vyākaraṇa analysis to execution semantics.
+ * Grammatical case-to-kāraka policy remains owned by the vyākaraṇa package.
+ */
+object VyakaranamExecutionAdapter {
     private val parser = PaniniParser()
     private val sankhyaGenerator = SankhyaGenerator()
 
-    fun analyze(input: SanskritUktiInput, conversation: SambhashanaContext? = null): VakyaAnalysisResult {
-        if (input.text.isBlank()) return VakyaAnalysisResult.Unsupported("The Sanskrit utterance is empty.")
+    fun analyze(input: SanskritUktiInput, conversation: SambhashanaContext? = null): ExecutionAnalysisResult {
+        if (input.text.isBlank()) return ExecutionAnalysisResult.Unsupported("The Sanskrit utterance is empty.")
         val ukti = try {
             parser.parse(input.text)
         } catch (e: PaniniParseException) {
-            return VakyaAnalysisResult.Unsupported(e.message ?: "Invalid annotated Sanskrit morphology.")
+            return ExecutionAnalysisResult.Unsupported(e.message ?: "Invalid annotated Sanskrit morphology.")
         }
 
         var listener = input.listener
@@ -29,7 +33,7 @@ object VyakaranamExecutionAnalyzer {
             if (!input.listener.startsWith(addressed)) listener = addressed
         }
 
-        val kriyas = mutableListOf<KriyaAnalysis>()
+        val kriyas = mutableListOf<ExecutionKriyaAnalysis>()
         var prayer = false
         var prohibition = false
 
@@ -40,13 +44,10 @@ object VyakaranamExecutionAnalyzer {
             }
             val tinganta = (vakya as? AkhyataVakya)?.tinganta ?: return@forEachIndexed
             val dhatu = resolveDhatu(tinganta)
-                ?: return VakyaAnalysisResult.Unsupported("Unknown verbal action/dhātu: ${tinganta.sourceText}")
+                ?: return ExecutionAnalysisResult.Unsupported("Unknown verbal action/dhātu: ${tinganta.sourceText}")
             val bindings = extractKarakas(vakya.padas, conversation, index)
             val operation = selectOperation(dhatu, tinganta, vakya.padas)
-            missingRequirement(dhatu, operation, bindings)?.let {
-                return VakyaAnalysisResult.NeedsClarification(it)
-            }
-            kriyas += KriyaAnalysis(
+            kriyas += ExecutionKriyaAnalysis(
                 id = "योग-${index + 1}",
                 dhatuId = dhatu.id,
                 karakas = bindings,
@@ -62,8 +63,8 @@ object VyakaranamExecutionAnalyzer {
             lakara == Lakara.LOT -> VakyaPrayojana.AJNA
             else -> VakyaPrayojana.VIDHANA
         }
-        return VakyaAnalysisResult.Analyzed(
-            VakyaAnalysis(
+        return ExecutionAnalysisResult.Analyzed(
+            ExecutionUtteranceAnalysis(
                 speaker = input.speaker,
                 listener = listener,
                 sourceText = input.text,
@@ -84,16 +85,8 @@ object VyakaranamExecutionAnalyzer {
         val grouped = mutableMapOf<Karaka, MutableList<ExecutionExpression>>()
         fun add(subanta: SubantaPada) {
             val affix = SupAffix.fromUpadesha(subanta.sup.text)
-            val karaka = when (affix?.vibhakti) {
-                Vibhakti.PRATHAMA -> Karaka.KARTR
-                Vibhakti.DVITIYA -> Karaka.KARMAN
-                Vibhakti.TRTIYA -> Karaka.KARANA
-                Vibhakti.CHATURTHI -> Karaka.SAMPRADANA
-                Vibhakti.PANCHAMI -> Karaka.APADANA
-                Vibhakti.SASTHI -> Karaka.SAMBANDHA
-                Vibhakti.SAPTAMI -> Karaka.ADHIKARANA
-                null -> Karaka.ANIRDHARITA
-            }
+            val karaka = affix?.vibhakti?.let { KarakaInference.infer(it, Prayoga.KARTARI) }
+                ?: Karaka.ANIRDHARITA
             grouped.getOrPut(karaka) { mutableListOf() } += expression(subanta, conversation, clauseIndex)
         }
         padas.forEach { pada ->
@@ -102,15 +95,9 @@ object VyakaranamExecutionAnalyzer {
                 is SamuccitaSubanta -> {
                     val members = pada.members.map { expression(it, conversation, clauseIndex) }
                     val karaka = pada.members.firstOrNull()?.let {
-                        when (SupAffix.fromUpadesha(it.sup.text)?.vibhakti) {
-                            Vibhakti.PRATHAMA -> Karaka.KARTR
-                            Vibhakti.TRTIYA -> Karaka.KARANA
-                            Vibhakti.CHATURTHI -> Karaka.SAMPRADANA
-                            Vibhakti.PANCHAMI -> Karaka.APADANA
-                            Vibhakti.SASTHI -> Karaka.SAMBANDHA
-                            Vibhakti.SAPTAMI -> Karaka.ADHIKARANA
-                            else -> Karaka.KARMAN
-                        }
+                        SupAffix.fromUpadesha(it.sup.text)?.vibhakti
+                            ?.let { vibhakti -> KarakaInference.infer(vibhakti, Prayoga.KARTARI) }
+                            ?: Karaka.ANIRDHARITA
                     } ?: Karaka.KARMAN
                     grouped.getOrPut(karaka) { mutableListOf() } += ExecutionExpression.Coordination(members)
                 }
@@ -180,6 +167,7 @@ object VyakaranamExecutionAnalyzer {
         text.startsWith("भज") -> DhatuPatha.find("01.1153")
         text.startsWith("दा") -> DhatuPatha.find("03.0010")
         text.startsWith("दृश्") -> DhatuPatha.find("01.1143")
+        text.startsWith("प्रेष") -> DhatuPatha.find("10.0509")
         else -> null
     }
 
@@ -198,20 +186,4 @@ object VyakaranamExecutionAnalyzer {
         }
     }
 
-    private fun missingRequirement(
-        dhatu: Dhatu,
-        operationId: String?,
-        bindings: Map<Karaka, ExecutionExpression>,
-    ): String? {
-        val operation = dhatu.operations.find { it.id == operationId } ?: return null
-        operation.signature.requirements.forEach { requirement ->
-            val expression = bindings[requirement.karaka]
-                ?: return "Required kārakas are missing for dhātu ${dhatu.upadesha}: setOf(${requirement.karaka})"
-            val count = (expression as? ExecutionExpression.Coordination)?.members?.size ?: 1
-            if (count < requirement.minimumMembers) {
-                return "Required kārakas are missing for dhātu ${dhatu.upadesha}: setOf(${requirement.karaka})"
-            }
-        }
-        return null
-    }
 }

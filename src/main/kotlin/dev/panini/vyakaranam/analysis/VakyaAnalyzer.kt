@@ -43,10 +43,13 @@ class VakyaAnalyzer(
 
         val prayoga = inferPrayoga(tingantaAnalysis)
 
-        val subantas =
-            padaAnalyses
-                .filterIsInstance<AnalyzedSubanta>()
-                .map { it.analysis }
+        val subantas = padaAnalyses.flatMap { analysis ->
+            when (analysis) {
+                is AnalyzedSubanta -> listOf(analysis.analysis)
+                is AnalyzedSamuccita -> analysis.members
+                else -> emptyList()
+            }
+        }
 
         val karakas = assignKarakas(
             subantas = subantas,
@@ -124,8 +127,8 @@ class VakyaAnalyzer(
         subanta: SubantaAnalysis,
         tinganta: TingantaAnalysis,
     ): KarakaAssignment? =
-        when (subanta.sup.vibhakti) {
-            Vibhakti.PRATHAMA ->
+        when (KarakaInference.infer(subanta.sup.vibhakti, Prayoga.KARTARI, tinganta.lexicalEntry?.sakarmaka == true)) {
+            Karaka.KARTR ->
                 KarakaAssignment(
                     pada = subanta.pada,
                     karaka = Karaka.KARTR,
@@ -133,19 +136,14 @@ class VakyaAnalyzer(
                     reason = "कर्तरिप्रयोगे प्रथमा तथा तिङन्तसामञ्जस्यम्।",
                 )
 
-            Vibhakti.DVITIYA ->
-                if (tinganta.lexicalEntry?.sakarmaka == true) {
-                    KarakaAssignment(
-                        pada = subanta.pada,
-                        karaka = Karaka.KARMAN,
-                        confidence = 0.85,
-                        reason = "सकर्मकधातोः द्वितीयान्तपदम्।",
-                    )
-                } else {
-                    null
-                }
+            Karaka.KARMAN -> KarakaAssignment(
+                pada = subanta.pada,
+                karaka = Karaka.KARMAN,
+                confidence = 0.85,
+                reason = "सकर्मकधातोः द्वितीयान्तपदम्।",
+            )
 
-            Vibhakti.TRTIYA ->
+            Karaka.KARANA ->
                 KarakaAssignment(
                     pada = subanta.pada,
                     karaka = Karaka.KARANA,
@@ -153,7 +151,7 @@ class VakyaAnalyzer(
                     reason = "तृतीयाविभक्तेः सामान्यं करणसम्बन्धम्।",
                 )
 
-            Vibhakti.CHATURTHI ->
+            Karaka.SAMPRADANA ->
                 KarakaAssignment(
                     pada = subanta.pada,
                     karaka = Karaka.SAMPRADANA,
@@ -161,7 +159,7 @@ class VakyaAnalyzer(
                     reason = "चतुर्थीविभक्तेः सामान्यं सम्प्रदानसम्बन्धम्।",
                 )
 
-            Vibhakti.PANCHAMI ->
+            Karaka.APADANA ->
                 KarakaAssignment(
                     pada = subanta.pada,
                     karaka = Karaka.APADANA,
@@ -169,7 +167,7 @@ class VakyaAnalyzer(
                     reason = "पञ्चमीविभक्तेः सामान्यं अपादानसम्बन्धम्।",
                 )
 
-            Vibhakti.SASTHI ->
+            Karaka.SAMBANDHA ->
                 KarakaAssignment(
                     pada = subanta.pada,
                     karaka = Karaka.SAMBANDHA,
@@ -177,20 +175,22 @@ class VakyaAnalyzer(
                     reason = "षष्ठी सामान्यतः सम्बन्धं सूचयति, कारकं न।",
                 )
 
-            Vibhakti.SAPTAMI ->
+            Karaka.ADHIKARANA ->
                 KarakaAssignment(
                     pada = subanta.pada,
                     karaka = Karaka.ADHIKARANA,
                     confidence = 0.70,
                     reason = "सप्तमीविभक्तेः सामान्यं अधिकरणसम्बन्धम्।",
                 )
+
+            else -> null
         }
 
     private fun assignKarmaniKaraka(
         subanta: SubantaAnalysis,
     ): KarakaAssignment? =
-        when (subanta.sup.vibhakti) {
-            Vibhakti.PRATHAMA ->
+        when (KarakaInference.infer(subanta.sup.vibhakti, Prayoga.KARMANI)) {
+            Karaka.KARMAN ->
                 KarakaAssignment(
                     pada = subanta.pada,
                     karaka = Karaka.KARMAN,
@@ -198,7 +198,7 @@ class VakyaAnalyzer(
                     reason = "कर्मणिप्रयोगे अभिहितं कर्म प्रथमान्तं भवति।",
                 )
 
-            Vibhakti.TRTIYA ->
+            Karaka.KARTR ->
                 KarakaAssignment(
                     pada = subanta.pada,
                     karaka = Karaka.KARTR,

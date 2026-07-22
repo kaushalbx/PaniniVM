@@ -7,4 +7,5 @@ data class SmrtaPhala(
     val invocationId: String,
     val value: String,
     val samjnas: Set<ExecutionSamjna>,
+    val typedValue: SanskritValue? = null,
 )

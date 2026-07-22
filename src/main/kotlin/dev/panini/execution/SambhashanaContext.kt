@@ -8,6 +8,7 @@ data class SambhashanaContext(
     val mentionedEntitySamjnas: Map<String, Set<ExecutionSamjna>> = emptyMap(),
     val previousResults: Map<String, String> = emptyMap(),
     val previousResultSamjnas: Map<String, Set<ExecutionSamjna>> = emptyMap(),
+    val previousTypedResults: Map<String, SanskritValue> = emptyMap(),
     val resultHistory: List<SmrtaPhala> = emptyList(),
     val turnNumber: Int = 0,
     val metadata: Map<String, String> = emptyMap(),

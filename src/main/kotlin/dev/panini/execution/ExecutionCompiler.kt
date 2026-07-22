@@ -3,18 +3,18 @@ package dev.panini.execution
 import dev.panini.dhatupatha.DhatuPatha
 
 /** Converts analyzed language into the stable semantic input of the runtime. */
-object BhashaCompiler {
-    fun compile(analysis: VakyaAnalysis): UktiCompilation {
+object ExecutionCompiler {
+    fun compile(analysis: ExecutionUtteranceAnalysis): ExecutionCompilation {
         if (analysis.kriyas.isEmpty()) {
-            return UktiCompilation.Invalid("No verbal action was identified in the sentence analysis.")
+            return ExecutionCompilation.Invalid("No verbal action was identified in the sentence analysis.")
         }
         if (analysis.kriyas.map { it.id }.distinct().size != analysis.kriyas.size) {
-            return UktiCompilation.Invalid("Every analyzed verbal occurrence requires a unique id.")
+            return ExecutionCompilation.Invalid("Every analyzed verbal occurrence requires a unique id.")
         }
 
         val invocations = analysis.kriyas.map { kriya ->
             val dhatu = DhatuPatha.find(kriya.dhatuId)
-                ?: return UktiCompilation.Invalid("Unknown Dhātupāṭha identity: ${kriya.dhatuId}")
+                ?: return ExecutionCompilation.Invalid("Unknown Dhātupāṭha identity: ${kriya.dhatuId}")
             DhatuInvocation(
                 id = kriya.id,
                 dhatu = dhatu,
@@ -23,7 +23,7 @@ object BhashaCompiler {
                 metadata = kriya.metadata,
             )
         }
-        return UktiCompilation.Compiled(
+        return ExecutionCompilation.Compiled(
             Ukti(
                 speaker = analysis.speaker,
                 listener = analysis.listener,
@@ -41,3 +41,4 @@ object BhashaCompiler {
         )
     }
 }
+
