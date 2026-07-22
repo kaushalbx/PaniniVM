@@ -1,5 +1,6 @@
 package dev.panini.derivation
 
+import dev.panini.core.SupAffix
 import kotlin.test.assertEquals
 
 internal fun assertSubantaParadigm(

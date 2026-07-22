@@ -7,7 +7,7 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.core.Lakara
 import dev.panini.derivation.TermKind
 import dev.panini.core.Purusha
-import dev.panini.derivation.TingAffix
+import dev.panini.core.TingAffix
 import dev.panini.derivation.VarnaSubstitution
 import dev.panini.core.DhatuGana
 import dev.panini.shiksha.Varnamala

@@ -1,8 +1,7 @@
-/*
 package dev.panini.vyakaranam
 
-import dev.panini.vyakaranam.ast.Linga
-import dev.panini.vyakaranam.ast.PadaPrakara
+import dev.panini.core.Linga
+import dev.panini.core.PadaType
 import dev.panini.vyakaranam.lexicon.DhatuEntry
 import dev.panini.vyakaranam.lexicon.InMemoryVyakaranamLexicon
 import dev.panini.vyakaranam.lexicon.PratipadikaEntry
@@ -12,7 +11,7 @@ fun main() {
         pratipadikas = listOf(
             PratipadikaEntry(
                 text = "राम",
-                linga = setOf(Linga.PUM),
+                linga = setOf(Linga.PUMS),
                 stemClass = "अकारान्त",
             ),
             PratipadikaEntry(
@@ -26,7 +25,7 @@ fun main() {
                 upadesha = "खाद्",
                 derivationalSurface = "खाद्",
                 gana = "भ्वादिगण",
-                pada = setOf(PadaPrakara.PARASMAIPADA),
+                pada = setOf(PadaType.PARASMAIPADA),
                 sakarmaka = true,
             ),
         ),
@@ -58,4 +57,3 @@ fun main() {
         }
     }
 }
-*/

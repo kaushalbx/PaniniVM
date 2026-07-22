@@ -7,8 +7,10 @@ import kotlin.test.assertTrue
 import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.core.DhatuGana
 import dev.panini.core.Lakara
+import dev.panini.core.LopaType
 import dev.panini.core.PadaType
 import dev.panini.core.Purusha
+import dev.panini.core.TingAffix
 import dev.panini.core.Vacana
 
 class TingantaEngineTest {

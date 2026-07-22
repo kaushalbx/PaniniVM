@@ -6,7 +6,7 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.HasMorphosyntax
-import dev.panini.derivation.ItMarker
+import dev.panini.core.ItMarker
 import dev.panini.derivation.TermKind
 import dev.panini.ganapatha.GanaPatha
 import dev.panini.core.Linga

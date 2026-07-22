@@ -11,7 +11,7 @@ import dev.panini.shiksha.Varnamala
 import dev.panini.core.Vacana
 import dev.panini.core.Vibhakti
 import dev.panini.derivation.TermKind
-import dev.panini.derivation.TingAffix
+import dev.panini.core.TingAffix
 import dev.panini.core.DhatuGana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction

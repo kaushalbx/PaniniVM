@@ -5,6 +5,7 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
+import dev.panini.core.ItMarker
 import dev.panini.derivation.TermKind
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -51,7 +52,7 @@ object SyatasiLrlrtohSutra : Sutra<DerivationState, DerivationChange>(
                 "तासि",
                 TermKind.PRATYAYA,
                 upadesha = "तासि",
-                itMarkers = setOf(dev.panini.derivation.ItMarker.U)
+                itMarkers = setOf(ItMarker.U)
             )
         } else {
             DerivationTerm(

@@ -11,12 +11,14 @@ import kotlin.test.assertFailsWith
 import dev.panini.ashtadhyayi.adhyaya7.pada2.ArdhadhatukasyedValadehSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada2.VartamaneLatSutra
 import dev.panini.ashtadhyayi.adhyaya4.pada1.StriyamAdhikaraSutra
+import dev.panini.core.ItMarker
 import dev.panini.core.Kala
 import dev.panini.core.Lakara
 import dev.panini.shiksha.ItStatus
 import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.core.Linga
 import dev.panini.core.Prayoga
+import dev.panini.core.SupAffix
 import dev.panini.core.Vacana
 import dev.panini.core.Vibhakti
 import dev.panini.shiksha.Samjna

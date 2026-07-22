@@ -4,6 +4,7 @@ import dev.panini.core.PadaType
 import dev.panini.core.DhatuGana
 import dev.panini.core.Lakara
 import dev.panini.core.Purusha
+import dev.panini.core.TingAffix
 import dev.panini.core.Vacana
 
 /** A form slot that the current verbal compiler can derive end to end. */

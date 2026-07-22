@@ -11,5 +11,10 @@ enum class Lakara(val upadesha: String) {
     LANG("लङ्"),
     LING("लिङ्"),
     LUNG("लुङ्"),
-    LRNG("लृङ्"),
+    LRNG("लृङ्");
+
+    companion object {
+        private val upadeshaMap = entries.associateBy { it.upadesha }
+        fun fromUpadesha(value: String) = upadeshaMap[value] ?: error("अज्ञातः लकारः: $value")
+    }
 }

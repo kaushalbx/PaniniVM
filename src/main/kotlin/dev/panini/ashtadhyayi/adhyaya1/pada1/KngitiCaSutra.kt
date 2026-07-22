@@ -3,13 +3,11 @@ package dev.panini.ashtadhyayi.adhyaya1.pada1
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.ItMarker
+import dev.panini.core.ItMarker
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
-import dev.panini.sutra.SutraInput
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
-import dev.panini.sutra.SutraStage
 import dev.panini.sutra.SutraType
 
 /**

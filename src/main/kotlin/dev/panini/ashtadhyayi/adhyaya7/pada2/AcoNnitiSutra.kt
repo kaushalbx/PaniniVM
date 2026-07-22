@@ -5,7 +5,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.ItMarker
+import dev.panini.core.ItMarker
 import dev.panini.derivation.TermKind
 import dev.panini.derivation.VarnaSubstitution
 import dev.panini.pratyahara.Pratyahara

@@ -1,5 +1,6 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada2
 
+import dev.panini.core.ItMarker
 import dev.panini.core.Prayoga
 import dev.panini.derivation.*
 import dev.panini.sutra.Sutra

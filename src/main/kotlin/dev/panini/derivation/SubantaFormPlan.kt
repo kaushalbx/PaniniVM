@@ -1,5 +1,6 @@
 package dev.panini.derivation
 
+import dev.panini.core.SupAffix
 import dev.panini.core.Vacana
 import dev.panini.core.Vibhakti
 

@@ -1,5 +1,7 @@
 package dev.panini.derivation
 
+import dev.panini.core.SupAffix
+
 class SubantaEngine(
     private val engine: DerivationEngine = DerivationEngine(),
 ) {

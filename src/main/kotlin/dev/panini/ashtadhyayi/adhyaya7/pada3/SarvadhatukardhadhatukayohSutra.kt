@@ -11,7 +11,7 @@ import dev.panini.shiksha.ItStatus
 import dev.panini.derivation.DerivationalEnvironment
 import dev.panini.derivation.HasDerivationalEnvironment
 import dev.panini.derivation.TermKind
-import dev.panini.derivation.TingAffix
+import dev.panini.core.TingAffix
 import dev.panini.derivation.VarnaSubstitution
 import dev.panini.core.DhatuGana
 import dev.panini.core.PadaType

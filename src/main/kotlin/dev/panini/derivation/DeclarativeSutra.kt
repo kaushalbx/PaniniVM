@@ -1,5 +1,6 @@
 package dev.panini.derivation
 
+import dev.panini.core.ItMarker
 import dev.panini.core.Kala
 import dev.panini.core.Lakara
 import dev.panini.core.Linga

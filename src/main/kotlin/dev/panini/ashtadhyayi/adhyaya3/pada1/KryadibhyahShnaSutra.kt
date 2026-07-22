@@ -5,7 +5,7 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
-import dev.panini.derivation.TingAffix
+import dev.panini.core.TingAffix
 import dev.panini.core.Lakara
 import dev.panini.core.DhatuGana
 import dev.panini.core.PadaType

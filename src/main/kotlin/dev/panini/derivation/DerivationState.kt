@@ -5,6 +5,8 @@ import dev.panini.shiksha.LexicalUse
 import dev.panini.shiksha.ItStatus
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.core.DhatuGana
+import dev.panini.core.ItMarker
+import dev.panini.core.LopaType
 
 /**
  * The shared state passed through an Ashtadhyayi derivation.
@@ -222,9 +224,7 @@ data class SthaniProperties(
     val itMarkers: Set<ItMarker>
 )
 
-enum class LopaType { LOPA, LUK, SHLU, LUP }
 enum class TermKind { DHATU, PRATIPADIKA, PRATYAYA, AGAMA, AUGMENT }
-enum class ItMarker { U, J, T, P, SH, NG, KIT, NGIT, NIT, SIT }
 enum class DerivationStage { INITIAL, PRATYAYA_SELECTED, IT_PROCESSED, ANGAKARYA, PADA_FORMED, FINAL }
 
 data class SamjnaAssignment(val targetId: String, val samjna: Samjna)

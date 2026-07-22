@@ -1,4 +1,3 @@
-/*
 package dev.panini.vyakaranam
 
 import dev.panini.vyakaranam.analysis.PadaAnalyzer
@@ -33,4 +32,3 @@ class PaniniyaVyakaranamEngine(
         )
     }
 }
-*/

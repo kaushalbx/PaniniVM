@@ -5,6 +5,7 @@ import dev.panini.ashtadhyayi.adhyaya1.pada1.IkoGunaVrddhiSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada1.KngitiCaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada1.NajjhalauSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada1.TulyasyaprayatnamSavarnamSutra
+import dev.panini.core.ItMarker
 import dev.panini.shiksha.Samjna
 import kotlin.test.Test
 import kotlin.test.assertEquals

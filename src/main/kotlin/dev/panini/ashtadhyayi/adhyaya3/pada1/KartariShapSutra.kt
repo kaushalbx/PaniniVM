@@ -7,7 +7,7 @@ import dev.panini.derivation.DerivationTerm
 import dev.panini.core.Lakara
 import dev.panini.derivation.LetFormation
 import dev.panini.derivation.TermKind
-import dev.panini.derivation.TingAffix
+import dev.panini.core.TingAffix
 import dev.panini.shiksha.Svara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction

@@ -4,7 +4,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
-import dev.panini.derivation.LopaType
+import dev.panini.core.LopaType
 import dev.panini.derivation.TermKind
 import dev.panini.core.DhatuGana
 import dev.panini.sutra.Sutra

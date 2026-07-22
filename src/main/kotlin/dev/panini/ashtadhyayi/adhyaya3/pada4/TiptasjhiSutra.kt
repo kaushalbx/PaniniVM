@@ -3,7 +3,7 @@ package dev.panini.ashtadhyayi.adhyaya3.pada4
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.TingAffix
+import dev.panini.core.TingAffix
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
