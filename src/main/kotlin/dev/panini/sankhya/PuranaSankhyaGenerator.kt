@@ -49,10 +49,7 @@ class PuranaSankhyaGenerator(
     fun generateVariants(value: BigInteger): List<DerivationResult> {
         requireSupported(value)
         val initial = initialState(value)
-        return listOf(
-            taddhitaEngine.derive(initial, DerivationConfig(OptionalRulePolicy.APPLY_ALL)),
-            taddhitaEngine.derive(initial, DerivationConfig(OptionalRulePolicy.SKIP_ALL)),
-        )
+        return taddhitaEngine.deriveAll(initial)
             .map { complete(initial, it) }
             .distinctBy { it.final.surface to it.applications.map(DerivationApplication::sutra) }
     }
@@ -76,7 +73,13 @@ class PuranaSankhyaGenerator(
         val base = if (value == BigInteger.ONE) "प्रथम" else PrimitiveSankhya.fromValue(value)?.pratipadika
             ?: cardinalGenerator.generate(value).final.surface
         val underlyingHead = if (value == BigInteger.ONE) base else expressionBuilder.build(value).headPrimitive().pratipadika
-        val term = DerivationTerm("purana_base", base, TermKind.PRATIPADIKA, upadesha = underlyingHead)
+        val term = DerivationTerm(
+            id = "purana_base",
+            surface = base,
+            kind = TermKind.PRATIPADIKA,
+            upadesha = base,
+            compoundHeadUpadesha = underlyingHead,
+        )
         val initial = DerivationState(
             terms = listOf(term),
             samjnas = setOf(

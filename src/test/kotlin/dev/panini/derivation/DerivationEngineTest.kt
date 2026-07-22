@@ -320,6 +320,35 @@ class DerivationEngineTest {
     }
 
     @Test
+    fun `deriveAll branches when an optional rule becomes eligible after a mandatory rule`() {
+        val mandatory = object : Sutra<DerivationState, DerivationChange>(
+            number = "9.1.10", text = "mandatory", hindiExplanation = "test", type = SutraType.NITYA,
+            chapter = 9, pada = 1, optional = false, kramaValue = 910010,
+            role = dev.panini.sutra.SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.DERIVATION,
+        ), DerivationSutra {
+            override fun matches(context: DerivationState) = context.stage == DerivationStage.INITIAL
+            override fun apply(context: DerivationState) =
+                DerivationChange(context.copy(stage = DerivationStage.PRATYAYA_SELECTED), "Mandatory preparation.")
+        }
+        val optional = object : Sutra<DerivationState, DerivationChange>(
+            number = "9.1.11", text = "optional", hindiExplanation = "test", type = SutraType.VIBHASHA,
+            chapter = 9, pada = 1, optional = true, kramaValue = 910011,
+            role = dev.panini.sutra.SutraRole.Vibhasha, action = SutraAction.VIKALPA, scope = SutraScope.DERIVATION,
+        ), DerivationSutra {
+            override fun matches(context: DerivationState) = context.stage == DerivationStage.PRATYAYA_SELECTED
+            override fun apply(context: DerivationState) =
+                DerivationChange(context.copy(stage = DerivationStage.FINAL), "Optional completion.")
+        }
+        val initial = DerivationState(listOf(DerivationTerm("stem", "राम", TermKind.PRATIPADIKA)))
+
+        val results = DerivationEngine(listOf(mandatory, optional)).deriveAll(initial)
+
+        assertEquals(setOf(DerivationStage.PRATYAYA_SELECTED, DerivationStage.FINAL), results.map { it.final.stage }.toSet())
+        assertEquals(setOf(listOf("9.1.10"), listOf("9.1.10", "9.1.11")), results.map { it.applications.map { app -> app.sutra } }.toSet())
+        assertTrue(results.all { result -> result.events.any { it == DerivationEvent.BranchCreated("9.1.11", 2) } })
+    }
+
+    @Test
     fun `engine rejects a selected sutra that performs no grammatical operation`() {
         val noOpSutra = object : Sutra<DerivationState, DerivationChange>(
             number = "9.1.2", text = "test", hindiExplanation = "test", type = SutraType.NITYA,

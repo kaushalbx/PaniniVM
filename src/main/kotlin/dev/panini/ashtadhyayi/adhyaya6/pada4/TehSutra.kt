@@ -4,6 +4,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.core.ItMarker
+import dev.panini.ashtadhyayi.adhyaya5.pada2.PuranaNumeralClasses
 import dev.panini.derivation.TermKind
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -40,8 +41,8 @@ object TehSutra : Sutra<DerivationState, DerivationChange>(
         return isDit && (
             (stem.id == "tasi" && stem.surface in setOf("तासि", "तास्")) ||
                 stem.surface.endsWith("त्") ||
-                (stem.surface.endsWith("ि") && stem.upadesha in
-                    setOf("षष्टि", "सप्तति", "अशीति", "नवति"))
+                (stem.surface.endsWith("ि") && stem.compoundHeadUpadesha in
+                    PuranaNumeralClasses.shashtyadiHeads)
             )
     }
 

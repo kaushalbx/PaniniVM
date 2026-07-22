@@ -207,6 +207,10 @@ class SanskritSankhyaGeneratorTest {
                 assertEquals(short, sut.generateOrdinalSurface(value), "$number default")
             }
         }
+
+        val eightyOne = sut.generateOrdinal(BigInteger.valueOf(81))
+        assertEquals("एकाशीति", eightyOne.initial.terms.single().upadesha)
+        assertEquals("अशीति", eightyOne.initial.terms.single().compoundHeadUpadesha)
     }
 
     @Test
@@ -226,6 +230,10 @@ class SanskritSankhyaGeneratorTest {
         }
 
         assertFailsWith<IllegalArgumentException> { sut.generateOrdinal(BigInteger.ZERO) }
+
+        val hundredAndOne = sut.generateOrdinal(BigInteger.valueOf(101))
+        assertEquals("एकाधिकशत", hundredAndOne.initial.terms.single().upadesha)
+        assertEquals("शत", hundredAndOne.initial.terms.single().compoundHeadUpadesha)
     }
 
     @Test

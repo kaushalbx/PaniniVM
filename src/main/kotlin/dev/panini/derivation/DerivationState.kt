@@ -199,6 +199,8 @@ data class DerivationTerm(
     val originalSurfaceBeforeDrop: String? = null,
     val createdBySutra: String? = null,
     val establishedBySutras: Set<String> = emptySet(),
+    /** Underlying lexical head of a compound term, when rules target head identity after surface sandhi. */
+    val compoundHeadUpadesha: String? = null,
 ) {
     companion object {
         /** Preserves Dhātupāṭha metadata when a root enters a derivation. */

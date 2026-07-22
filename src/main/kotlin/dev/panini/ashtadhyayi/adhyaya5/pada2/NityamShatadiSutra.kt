@@ -19,19 +19,14 @@ object NityamShatadiSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
     blocks = setOf("5.2.56"),
 ), DerivationSutra {
-    private val shatadiHeads = setOf("शत", "सहस्र", "अयुत", "लक्ष", "प्रयुत", "कोटि")
-
     override fun matches(context: DerivationState): Boolean {
         if (context.samjnas.none { it.samjna == Samjna.PURANA }) return false
-        if (context.terms.any { it.upadesha == "तमट्" }) return false
-        val datIndex = context.terms.indexOfLast { it.upadesha == "डट्" }
-        return datIndex > 0 && context.terms[datIndex - 1].upadesha in shatadiHeads
+        if (context.hasTamat()) return false
+        val datIndex = context.datIndex()
+        return datIndex > 0 && context.terms[datIndex - 1].compoundHeadUpadesha in PuranaNumeralClasses.shatadiHeads
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val datIndex = context.terms.indexOfLast { it.upadesha == "डट्" }
-        val tamat = DerivationTerm("purana_tamat", "तम", TermKind.AGAMA, upadesha = "तमट्")
-        val terms = context.terms.toMutableList().apply { add(datIndex, tamat) }
-        return DerivationChange(context.copy(terms = terms), "$text: डट् में नित्य तमट् आगम।")
+        return context.insertTamat("$text: डट् में नित्य तमट् आगम।")
     }
 }

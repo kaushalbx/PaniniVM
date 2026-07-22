@@ -243,25 +243,35 @@ class DerivationEngine(
 
     /** Produces both outcomes for each optional sūtra instead of silently choosing one. */
     fun deriveAll(initial: DerivationState, maxSteps: Int = 100): List<DerivationResult> {
-        data class Branch(val state: DerivationState, val suppressed: Set<String>, val events: List<DerivationEvent>)
-        val pending = ArrayDeque(listOf(Branch(initial, emptySet(), emptyList())))
+        val pending = ArrayDeque<Set<String>>().apply { add(emptySet()) }
+        val visitedSuppressions = mutableSetOf<Set<String>>()
+        val branchedSutras = linkedSetOf<String>()
         val results = mutableListOf<DerivationResult>()
         while (pending.isNotEmpty()) {
-            val branch = pending.removeFirst()
-            val selection = select(branch.state, branch.suppressed)
-            val optional = selection.selected?.takeIf { it.sutra.optional }
-            if (optional == null) {
-                val result = deriveInternal(branch.state, branch.suppressed, DerivationConfig(), maxSteps)
-                results += result.copy(events = branch.events + result.events)
-                continue
-            }
-            val applied = deriveInternal(branch.state, branch.suppressed, DerivationConfig(OptionalRulePolicy.APPLY_ALL), maxSteps, firstChange = optional.change)
-            val skipped = deriveInternal(branch.state, branch.suppressed + optional.sutra.sutra, DerivationConfig(OptionalRulePolicy.SKIP_ALL), maxSteps)
-            val event = DerivationEvent.BranchCreated(optional.sutra.sutra, 2)
-            results += applied.copy(events = branch.events + event + applied.events)
-            results += skipped.copy(events = branch.events + event + skipped.events)
+            val suppressed = pending.removeFirst()
+            if (!visitedSuppressions.add(suppressed)) continue
+
+            val result = deriveInternal(
+                initial = initial,
+                suppressed = suppressed,
+                config = DerivationConfig(OptionalRulePolicy.APPLY_ALL),
+                maxSteps = maxSteps,
+            )
+            results += result
+
+            result.applications
+                .asSequence()
+                .mapNotNull { application -> sutraMap[application.sutra]?.takeIf { it.optional }?.sutra }
+                .forEach { optionalSutra ->
+                    branchedSutras += optionalSutra
+                    pending += suppressed + optionalSutra
+                }
         }
+
+        val branchEvents = branchedSutras.map { DerivationEvent.BranchCreated(it, 2) }
         return results
+            .distinctBy { it.final to it.applications.map(DerivationApplication::sutra) }
+            .map { result -> result.copy(events = branchEvents + result.events) }
     }
 
     private fun deriveInternal(

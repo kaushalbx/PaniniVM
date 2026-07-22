@@ -20,25 +20,14 @@ object VimshatyadibhyasTamadAnyatarasyamSutra : Sutra<DerivationState, Derivatio
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.samjnas.none { it.samjna == Samjna.PURANA }) return false
-        if (context.terms.any { it.upadesha == "तमट्" }) return false
-        val datIndex = context.terms.indexOfLast { it.upadesha == "डट्" }
+        if (context.hasTamat()) return false
+        val datIndex = context.datIndex()
         if (datIndex <= 0) return false
         val base = context.terms[datIndex - 1]
-        return base.upadesha in setOf(
-            "विंशति", "त्रिंशत्", "चत्वारिंशत्", "पञ्चाशत्",
-            "षष्टि", "सप्तति", "अशीति", "नवति",
-        )
+        return base.compoundHeadUpadesha in PuranaNumeralClasses.vimshatyadiHeads
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val datIndex = context.terms.indexOfLast { it.upadesha == "डट्" }
-        val tamat = DerivationTerm(
-            id = "purana_tamat",
-            surface = "तम",
-            kind = TermKind.AGAMA,
-            upadesha = "तमट्",
-        )
-        val terms = context.terms.toMutableList().apply { add(datIndex, tamat) }
-        return DerivationChange(context.copy(terms = terms), "$text: डट् में तमट् आगम।")
+        return context.insertTamat("$text: डट् में तमट् आगम।")
     }
 }

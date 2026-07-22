@@ -34,11 +34,8 @@ object TasyaPuraneDatSutra : Sutra<DerivationState, DerivationChange>(
         val supportedBase = lastTerm.surface in setOf(
             "एकादश", "द्वादश", "त्रयोदश", "चतुर्दश", "पञ्चदश", "षोडश",
             "सप्तदश", "अष्टादश", "नवदश",
-        ) || lastTerm.upadesha in setOf(
-            "विंशति", "त्रिंशत्", "चत्वारिंशत्", "पञ्चाशत्",
-            "षष्टि", "सप्तति", "अशीति", "नवति",
-            "शत", "सहस्र", "अयुत", "लक्ष", "प्रयुत", "कोटि",
-        )
+        ) || lastTerm.compoundHeadUpadesha in
+            (PuranaNumeralClasses.vimshatyadiHeads + PuranaNumeralClasses.shatadiHeads)
         return hasPuranaRequest && !isAlreadyApplied && supportedBase
     }
 
