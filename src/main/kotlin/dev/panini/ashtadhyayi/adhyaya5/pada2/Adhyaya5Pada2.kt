@@ -9,5 +9,6 @@ object Adhyaya5Pada2 {
         ShatKatiKatipayaChaturamThukSutra,
         DvesTiyahSutra,
         TresSamprasaranamCaSutra,
+        VimshatyadibhyasTamadAnyatarasyamSutra,
     )
 }

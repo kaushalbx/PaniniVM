@@ -36,6 +36,8 @@ class SanskritSankhyaGenerator(
 
     fun generateOrdinal(value: BigInteger): DerivationResult = puranaGenerator.generate(value)
 
+    fun generateOrdinalVariants(value: BigInteger): List<DerivationResult> = puranaGenerator.generateVariants(value)
+
     fun generateOrdinalSurface(value: BigInteger): String = generateOrdinal(value).final.surface
 
 

@@ -34,9 +34,13 @@ object TehSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms.getOrNull(context.terms.lastIndex - 1) ?: return false
 
         // Triggers before a ḍit suffix like डा. We detect it via ItMarker.T (representing ṭa-varga initial ḍit)
-        val isDit = ending.kind == TermKind.PRATYAYA && ending.itMarkers.contains(ItMarker.T) && ending.surface == "डा"
+        val isDit = ending.kind == TermKind.PRATYAYA &&
+            ((ending.itMarkers.contains(ItMarker.T) && ending.surface == "डा") || ending.upadesha == "डट्")
 
-        return isDit && stem.id == "tasi" && stem.surface in setOf("तासि", "तास्")
+        return isDit && (
+            (stem.id == "tasi" && stem.surface in setOf("तासि", "तास्")) ||
+                stem.surface.endsWith("त्")
+            )
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -46,11 +50,15 @@ object TehSutra : Sutra<DerivationState, DerivationChange>(
         // Delete the ṭi portion ('āsi'/'ās') from tāsi, yielding 't' ('त्').
         // In this engine 6.4.143 runs before 1.3.9 consumes the ḍ-it marker,
         // so the tāsi term can still have its upadeśa surface here.
-        val newStem = stem.copy(surface = "त्")
+        val newStem = if (stem.id == "tasi") {
+            stem.copy(surface = "त्")
+        } else {
+            stem.copy(surface = stem.surface.dropLast(2))
+        }
 
         return DerivationChange(
             state = context.replaceTerm(stem.id, newStem),
-            explanation = "6.4.143 performs lopa of the ṭi portion (आस्) of तास् before the ḍit suffix डा."
+            explanation = "6.4.143 performs lopa of the ṭi portion of ${stem.surface} before a ḍit suffix."
         )
     }
 }

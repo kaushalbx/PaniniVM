@@ -6,31 +6,67 @@ import dev.panini.ashtadhyayi.adhyaya5.pada2.ShatKatiKatipayaChaturamThukSutra
 import dev.panini.ashtadhyayi.adhyaya5.pada2.TresSamprasaranamCaSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada2.NaloPratipadikantasyaSutra
 import dev.panini.ashtadhyayi.adhyaya6.pada4.TiVimshaterDitiSutra
+import dev.panini.ashtadhyayi.adhyaya6.pada4.TehSutra
 import dev.panini.ashtadhyayi.adhyaya5.pada2.TasyaPuraneDatSutra
+import dev.panini.ashtadhyayi.adhyaya5.pada2.VimshatyadibhyasTamadAnyatarasyamSutra
 import dev.panini.derivation.*
 import dev.panini.shiksha.Samjna
 import java.math.BigInteger
 
-/** Derives the currently implemented pūraṇa numerals through A.5.2.49–55. */
+/** Derives the currently implemented pūraṇa numerals through A.5.2.48–56. */
 class PuranaSankhyaGenerator(
     private val cardinalGenerator: SanskritSankhyaGenerator,
 ) {
-    private val engine = DerivationEngine(
+    private val taddhitaEngine = DerivationEngine(
         listOf(
             ShatKatiKatipayaChaturamThukSutra,
             DvesTiyahSutra,
             TresSamprasaranamCaSutra,
             NantadAsankhyaderMatSutra,
             TasyaPuraneDatSutra,
+            VimshatyadibhyasTamadAnyatarasyamSutra,
+        )
+    )
+    private val angaEngine = DerivationEngine(
+        listOf(
             TiVimshaterDitiSutra,
+            TehSutra,
             NaloPratipadikantasyaSutra,
         )
     )
 
     fun generate(value: BigInteger): DerivationResult {
-        require(value in BigInteger.ONE..BigInteger.valueOf(29)) {
-            "Pūraṇa derivation is currently complete only for 1–29: $value"
-        }
+        val initial = initialState(value)
+        val taddhita = taddhitaEngine.derive(initial, DerivationConfig(OptionalRulePolicy.SKIP_ALL))
+        return complete(initial, taddhita)
+    }
+
+    fun generateVariants(value: BigInteger): List<DerivationResult> {
+        requireSupported(value)
+        val initial = initialState(value)
+        return listOf(
+            taddhitaEngine.derive(initial, DerivationConfig(OptionalRulePolicy.APPLY_ALL)),
+            taddhitaEngine.derive(initial, DerivationConfig(OptionalRulePolicy.SKIP_ALL)),
+        )
+            .map { complete(initial, it) }
+            .distinctBy { it.final.surface to it.applications.map(DerivationApplication::sutra) }
+    }
+
+    private fun complete(initial: DerivationState, taddhita: DerivationResult): DerivationResult {
+        val anga = angaEngine.derive(taddhita.final.copy(stage = DerivationStage.PADA_FORMED))
+        val applications = taddhita.applications + anga.applications
+        val events = taddhita.events.filterNot { it is DerivationEvent.Completed } +
+            anga.events.filterNot { it is DerivationEvent.Completed }
+        return DerivationResult(
+            initial = initial,
+            final = anga.final,
+            applications = applications,
+            events = events + DerivationEvent.Completed(anga.final, applications.size),
+        )
+    }
+
+    private fun initialState(value: BigInteger): DerivationState {
+        requireSupported(value)
 
         val base = if (value == BigInteger.ONE) "प्रथम" else PrimitiveSankhya.fromValue(value)?.pratipadika
             ?: cardinalGenerator.generate(value).final.surface
@@ -45,7 +81,13 @@ class PuranaSankhyaGenerator(
             stage = DerivationStage.PADA_FORMED,
         )
         // प्रथम is lexical; the rule engine must preserve it without fabricating a sūtra application.
-        return engine.derive(initial)
+        return initial
+    }
+
+    private fun requireSupported(value: BigInteger) {
+        require(value in BigInteger.ONE..BigInteger.valueOf(59)) {
+            "Pūraṇa derivation is currently complete only for 1–59: $value"
+        }
     }
 
     fun generateSurface(value: BigInteger): String = generate(value).final.surface

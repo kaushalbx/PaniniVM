@@ -161,6 +161,29 @@ class SanskritSankhyaGeneratorTest {
     }
 
     @Test
+    fun `derives both dat and optional tamat ordinals from twenty through fifty nine`() {
+        val sut = SanskritSankhyaGenerator()
+
+        (20L..59L).forEach { number ->
+            val value = BigInteger.valueOf(number)
+            val cardinal = sut.generateSurface(value)
+            val short = if (cardinal.endsWith("विंशति")) cardinal.dropLast(2) else cardinal.dropLast(2)
+            val tamat = "${cardinal}तम"
+            val variants = sut.generateOrdinalVariants(value)
+
+            assertEquals(
+                setOf(short, tamat),
+                variants.map { it.final.surface }.toSet(),
+                "$number: ${variants.map { result -> result.final.surface to result.applications.map { it.sutra } }}",
+            )
+            assertTrue(variants.all { result -> result.applications.any { it.sutra == "5.2.48" } }, "$number")
+            assertTrue(variants.any { result -> result.applications.any { it.sutra == "5.2.56" } }, "$number")
+            assertTrue(variants.any { result -> result.applications.none { it.sutra == "5.2.56" } }, "$number")
+            assertEquals(short, sut.generateOrdinalSurface(value), "$number default")
+        }
+    }
+
+    @Test
     fun `generates gender declensions for numbers`() {
         assertEquals("एकः", generator.generateDeclined(BigInteger.ONE, Linga.PUMS, Vibhakti.PRATHAMA))
         assertEquals("एका", generator.generateDeclined(BigInteger.ONE, Linga.STRI, Vibhakti.PRATHAMA))

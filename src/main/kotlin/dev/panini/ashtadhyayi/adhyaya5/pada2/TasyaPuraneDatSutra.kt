@@ -34,7 +34,7 @@ object TasyaPuraneDatSutra : Sutra<DerivationState, DerivationChange>(
         val supportedBase = lastTerm.surface in setOf(
             "एकादश", "द्वादश", "त्रयोदश", "चतुर्दश", "पञ्चदश", "षोडश",
             "सप्तदश", "अष्टादश", "नवदश",
-        ) || lastTerm.surface.endsWith("विंशति")
+        ) || lastTerm.surface.endsWith("विंशति") || lastTerm.surface.endsWith("त्")
         return hasPuranaRequest && !isAlreadyApplied && supportedBase
     }
 
