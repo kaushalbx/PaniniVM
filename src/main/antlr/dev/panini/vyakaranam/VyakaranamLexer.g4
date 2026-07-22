@@ -79,6 +79,7 @@ KRPAYA      : 'कृपया';
 SAHASAA     : 'सहसा';
 SHANAIH     : 'शनैः';
 PUNAH       : 'पुनः';
+NYUNATAYA   : 'न्यूनतया';
 ADYA        : 'अद्य';
 SHVAH       : 'श्वः';
 HYAH        : 'ह्यः';

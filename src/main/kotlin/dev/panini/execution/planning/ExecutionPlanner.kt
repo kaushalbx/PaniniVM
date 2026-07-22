@@ -1,8 +1,8 @@
 package dev.panini.execution
 
-object ExecutionPlanner {
+internal object ExecutionPlanner {
     fun plan(
-        program: BhashaProgram,
+        program: ExecutionProgram,
         environment: ValueEnvironment,
     ): PlanningResult {
         val disposition = DispositionResolver.resolve(program.ukti)
@@ -43,7 +43,7 @@ object ExecutionPlanner {
         return PlanningResult.Planned(program, plans)
     }
 
-    private fun order(program: BhashaProgram): List<DhatuInvocation>? {
+    private fun order(program: ExecutionProgram): List<DhatuInvocation>? {
         val byId = program.invocations.associateBy { it.id }
         if (byId.size != program.invocations.size) return null
         if (program.dependencies.any { it.before !in byId || it.after !in byId }) return null

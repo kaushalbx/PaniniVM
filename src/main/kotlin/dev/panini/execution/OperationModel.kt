@@ -15,13 +15,24 @@ data class OperationTrigger(
     val forbiddenUpasargas: Set<String> = emptySet(),
     val requiredSanadi: Set<String> = emptySet(),
     val requiredAvyayas: Set<String> = emptySet(),
+    val forbiddenAvyayas: Set<String> = emptySet(),
     val allowedLakaras: Set<Lakara> = emptySet(),
 ) {
+    init {
+        require(requiredUpasargas.intersect(forbiddenUpasargas).isEmpty()) {
+            "An operation trigger cannot require and forbid the same upasarga."
+        }
+        require(requiredAvyayas.intersect(forbiddenAvyayas).isEmpty()) {
+            "An operation trigger cannot require and forbid the same avyaya."
+        }
+    }
+
     fun matches(features: GrammaticalFeatures): Boolean =
         features.upasargas.containsAll(requiredUpasargas) &&
             features.upasargas.none { it in forbiddenUpasargas } &&
             features.sanadi.containsAll(requiredSanadi) &&
             features.avyayas.containsAll(requiredAvyayas) &&
+            features.avyayas.none { it in forbiddenAvyayas } &&
             (allowedLakaras.isEmpty() || features.lakara in allowedLakaras)
 }
 

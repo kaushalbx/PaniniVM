@@ -4,11 +4,7 @@ object ExecutionRuntime {
     fun execute(
         planning: PlanningResult.Planned,
         scope: ExecutionScope,
-        environment: ValueEnvironment = ValueEnvironment.from(
-            scope.variables,
-            scope.variableSamjnas,
-            scope.typedVariables,
-        ),
+        environment: ValueEnvironment = scope.environment,
     ): Phala {
         if (planning.plans.any { it.disposition !in setOf(ExecutionDisposition.EXECUTE, ExecutionDisposition.REQUEST_EXECUTION) }) {
             val disposition = requireNotNull(planning.plans.firstOrNull()?.disposition)
@@ -31,8 +27,7 @@ object ExecutionRuntime {
     }
 
     fun resume(continuation: ExecutionContinuation, scope: ExecutionScope): Phala {
-        val values = ValueEnvironment.from(scope.variables, scope.variableSamjnas, scope.typedVariables)
-            .mergedWith(continuation.environment).values.toMutableMap()
+        val values = scope.environment.mergedWith(continuation.environment).values.toMutableMap()
         val trace = continuation.trace.toMutableList()
         val plans = continuation.planning.plans
         for (index in continuation.nextPlanIndex until plans.size) {

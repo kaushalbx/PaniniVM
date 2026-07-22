@@ -11,9 +11,7 @@ enum class ExecutionEffect {
 /** Capabilities and trusted identities supplied by the host. */
 data class ExecutionScope(
     val capabilities: Set<ExecutionEffect> = setOf(ExecutionEffect.PURE),
-    val variables: Map<String, String> = emptyMap(),
-    val variableSamjnas: Map<String, Set<ExecutionSamjna>> = emptyMap(),
-    val typedVariables: Map<String, SanskritValue> = emptyMap(),
+    val environment: ValueEnvironment = ValueEnvironment(),
     val stateStore: StateStore? = null,
     val externalDispatcher: ExternalCapabilityDispatcher? = null,
     val authorizedSpeakers: Set<String> = emptySet(),

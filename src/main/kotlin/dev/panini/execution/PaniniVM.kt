@@ -46,7 +46,7 @@ class PaniniVM(
         }
 
         val input = SanskritUktiInput(text = utterance, speaker = activeContext.speaker, listener = activeContext.listener)
-        val turn = BhashaExecutionEngine.executeTurn(
+        val turn = ExecutionPipeline.executeTurn(
             input,
             activeContext,
             scope.copy(

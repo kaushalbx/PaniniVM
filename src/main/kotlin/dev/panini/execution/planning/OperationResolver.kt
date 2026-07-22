@@ -12,15 +12,6 @@ object OperationResolver {
         return resolveInvocation(invocation, context)
     }
 
-    fun resolve(
-        invocation: DhatuInvocation,
-        variables: Map<String, String>,
-        variableSamjnas: Map<String, Set<ExecutionSamjna>> = emptyMap(),
-    ): OperationResolution {
-        val context = invocation.executionContext(variables, variableSamjnas)
-        return resolveInvocation(invocation, context)
-    }
-
     private fun resolveInvocation(invocation: DhatuInvocation, context: ExecutionContext): OperationResolution {
         val dhatu = invocation.dhatu
         val operations = registry.operationsFor(dhatu)

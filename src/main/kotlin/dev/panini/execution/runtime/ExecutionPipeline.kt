@@ -1,7 +1,7 @@
 package dev.panini.execution
 
 /** End-to-end entry point from structured utterance to execution result. */
-object BhashaExecutionEngine {
+internal object ExecutionPipeline {
     fun execute(
         input: SanskritUktiInput,
         conversation: SambhashanaContext,
@@ -29,16 +29,16 @@ object BhashaExecutionEngine {
                 emptyList(),
             )
         }
-        val program = BhashaProgram(ukti, ukti.dependencies)
+        val program = ExecutionProgram(ukti, ukti.dependencies)
         val historicalValues = conversation.resultHistory.associate { result ->
             result.id to (result.typedValue ?: SanskritValue.of(result.value, result.samjnas))
         }
-        val variableSamjnas = conversation.mentionedEntitySamjnas + conversation.previousResultSamjnas + scope.variableSamjnas
-        val environment = ValueEnvironment.from(
-            displayValues = conversation.mentionedEntities + conversation.previousResults + scope.variables,
-            samjnas = variableSamjnas,
-            typedValues = historicalValues + conversation.previousTypedResults + scope.typedVariables,
+        val conversationEnvironment = ValueEnvironment.from(
+            displayValues = conversation.mentionedEntities + conversation.previousResults,
+            samjnas = conversation.mentionedEntitySamjnas + conversation.previousResultSamjnas,
+            typedValues = historicalValues + conversation.previousTypedResults,
         )
+        val environment = conversationEnvironment.mergedWith(scope.environment)
         return when (val planning = ExecutionPlanner.plan(program, environment)) {
             is PlanningResult.Planned -> ExecutionRuntime.execute(
                 planning,

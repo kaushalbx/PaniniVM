@@ -7,6 +7,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class PaniniVMTest {
 
@@ -36,6 +37,24 @@ class PaniniVMTest {
         val result = vm.eval("त्रि + अम् एक + औट् च वि + युज् + णिच् + लोट् + सिप् ।")
         val success = assertIs<ExecutionResult.Success>(result, result.toString())
         assertEquals("द्वे", success.value)
+    }
+
+    @Test
+    fun `parsed nyunataya selects minimum operation`() {
+        val result = vm.eval("त्रि + अम् एक + औट् च न्यूनतया विद् + लोट् + सिप् ।")
+        val success = assertIs<ExecutionResult.Success>(result, result.toString())
+        val number = assertIs<SanskritValue.Sankhya>(success.typedValue)
+        assertEquals(1, number.value)
+        assertTrue(success.trace.any { "सङ्ख्यान्यूनत्वम्" in it })
+    }
+
+    @Test
+    fun `parsed punah selects memory load after save`() {
+        assertIs<ExecutionResult.Success>(vm.eval("सत्र + अम् स्मृ + लोट् + सिप् ।"))
+
+        val result = vm.eval("पुनः सत्र + अम् स्मृ + लोट् + सिप् ।")
+        val success = assertIs<ExecutionResult.Success>(result, result.toString())
+        assertTrue(success.trace.any { "स्मृतिपुनर्प्राप्तिः" in it })
     }
 
     @Test

@@ -28,14 +28,35 @@ finished surface word.
 
 Numeral handling has two distinct directions:
 
-- `VyakaranamExecutionAnalyzer` recognizes a canonical numeral prātipadika in
-  the parsed annotated AST and creates a typed `SanskritValue.Sankhya`.
+- `VyakaranamExecutionAdapter` binds a canonical numeral prātipadika from the
+  parsed AST directly to a typed `SanskritValue.Sankhya`.
 - `SankhyaGenerator` derives a Sanskrit cardinal or ordinal form from a numeric
   value and retains its grammatical derivation trace.
 
 Arithmetic actions consume the numeric value carried by `SanskritValue.Sankhya`.
 They never convert a Sanskrit output word back into a number. Typed results are
 preserved when `फल + ...` refers to an earlier clause.
+
+The execution path has one direction:
+
+```text
+segmented input → vyākaraṇa AST → binding → operation resolution → planning → runtime
+```
+
+The implementation is organized accordingly:
+
+```text
+execution/
+  binding/       AST-to-invocation binding
+  planning/      operation resolution, ordering, and disposition
+  runtime/       execution, continuations, and the typed value environment
+  operations/    numeric, linguistic, state, and external meanings
+  persistence/   host-provided state storage
+  external/      host-provided capability dispatch
+```
+
+Dhātupāṭha entries remain linguistic catalogue data. Executable meanings live
+only under `execution/operations` and are connected to dhātus by registry ID.
 
 ---
 

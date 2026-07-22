@@ -579,6 +579,7 @@ mulaAvyaya
     | SAHASAA
     | SHANAIH
     | PUNAH
+    | NYUNATAYA
     | ADYA
     | SHVAH
     | HYAH

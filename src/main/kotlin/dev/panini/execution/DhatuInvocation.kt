@@ -31,18 +31,4 @@ data class DhatuInvocation(
         externalDispatcher = externalDispatcher,
     )
 
-    fun executionContext(
-        variables: Map<String, String>,
-        variableSamjnas: Map<String, Set<ExecutionSamjna>> = emptyMap(),
-        stateStore: StateStore? = null,
-        externalDispatcher: ExternalCapabilityDispatcher? = null,
-    ): ExecutionContext = ExecutionContext(
-        bindings = bindings,
-        selectedOperation = selectedOperation,
-        rawVariables = variables,
-        variableSamjnas = variableSamjnas,
-        metadata = metadata,
-        stateStore = stateStore,
-        externalDispatcher = externalDispatcher,
-    )
 }

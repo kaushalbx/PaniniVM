@@ -13,28 +13,6 @@ data class ExecutionContext(
     val stateStore: StateStore? = null,
     val externalDispatcher: ExternalCapabilityDispatcher? = null,
 ) {
-    constructor(
-        bindings: Map<Karaka, ExecutionExpression> = emptyMap(),
-        selectedOperation: String? = null,
-        rawVariables: Map<String, String>,
-        variableSamjnas: Map<String, Set<ExecutionSamjna>> = emptyMap(),
-        metadata: Map<String, String> = emptyMap(),
-        stateStore: StateStore? = null,
-        externalDispatcher: ExternalCapabilityDispatcher? = null,
-    ) : this(
-        bindings = bindings,
-        selectedOperation = selectedOperation,
-        variables = rawVariables.mapValues { (key, value) ->
-            SanskritValue.of(value, variableSamjnas[key].orEmpty())
-        },
-        metadata = metadata,
-        stateStore = stateStore,
-        externalDispatcher = externalDispatcher,
-    )
-
-    val variableSamjnas: Map<String, Set<ExecutionSamjna>>
-        get() = variables.mapValues { it.value.samjnas }
-
     fun resolveValues(expression: ExecutionExpression): List<SanskritValue> = when (expression) {
         is ExecutionExpression.Pada -> listOf(
             expression.value ?: SanskritValue.of(expression.prakriti, expression.samjnas),
