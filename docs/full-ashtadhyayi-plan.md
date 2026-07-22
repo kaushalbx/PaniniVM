@@ -7,8 +7,10 @@ The project tracks a target of 3,959 implemented sūtras.
 | Measure | Count |
 | --- | ---: |
 | Target sūtras | 3,959 |
-| Implemented sūtras | 303 |
-| Remaining | 3,656 |
+| Registered executable sūtras | 324 |
+| Derivation-state sūtras | 316 |
+| Sentence-level kāraka/vibhakti sūtras | 8 |
+| Remaining | 3,635 |
 
 The implemented subset supports end-to-end nominal and verbal derivations,
 but the count does not imply complete linguistic coverage of every rule
@@ -49,7 +51,10 @@ environment.
    - strī-pratyaya
 
 5. Syntax and compounds
-   - kāraka and vibhakti selection
+   - initial kāraka and vibhakti constraint engine: 1.4.24, 1.4.32, 1.4.42,
+     2.3.2, 2.3.13, 2.3.18, 2.3.28, and 2.3.36
+   - remaining kāraka definitions, lexical exceptions, `anabhihita`
+     environments, and voice-sensitive assignments
    - samāsa formation
    - semantic conditions and optional readings
 

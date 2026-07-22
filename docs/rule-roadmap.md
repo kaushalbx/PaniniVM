@@ -1,12 +1,14 @@
 # Derivation Sūtra Roadmap
 
-The project adds Pāṇinian rules as typed, executable state transitions. A rule
-is counted as executable when it is registered and implements the derivation
-rule interface; supported forms additionally verify required rules end to end.
+The project adds Pāṇinian rules as typed executable transformations. A rule is
+counted when it is registered through the common `Sutra<C, R>` model and has
+tested applicability and output. Derivation rules operate on derivation state;
+sentence rules operate on typed kāraka or vibhakti contexts.
 
 ## Current scope
 
-- 303 implemented sūtras.
+- 324 registered executable sūtras: 316 derivation-state rules and 8
+  sentence-level kāraka/vibhakti rules.
 - Typed rule metadata: number, text, role, action, scope, stage, ordering,
   dependencies, blockers, restrictions, and exceptions.
 - Māheśvara-sūtra and pratyāhāra support with explicit varṇa and it markers.
@@ -24,6 +26,8 @@ rule interface; supported forms additionally verify required rules end to end.
   irregular `गम् → गच्छ्`, and Ubhayapada roots.
 - Initial `LIT` root-shape coverage for vowel-final `णीञ्` in both padas, including weak-ending kit, yaṇ, and iṭ behavior.
 - A complete ten-gaṇa Dhātupāṭha catalogue with pada metadata.
+- Initial syntax coverage for `भ्याम्` syncretism through 1.4.24, 1.4.32,
+  1.4.42, 2.3.13, 2.3.18, and 2.3.28, with evidence retained in the rule trace.
 
 The numeral subsystem keeps generation and execution typing separate.
 `SankhyaGenerator` produces auditable cardinal and ordinal derivations, while
@@ -59,7 +63,12 @@ this boundary.
    - vipratiṣedha and environment-specific blocking
    - deterministic handling of optional derivation branches
 
-6. Continue phonological coverage.
+6. Expand kāraka and vibhakti analysis.
+   - implement the remaining 1.4.23 kāraka domain and lexical exceptions
+   - model `anabhihita` and voice-sensitive realization explicitly
+   - expand dhātu valency profiles without deriving semantics from case endings
+
+7. Continue phonological coverage.
    - remaining svara, visarga, and vyañjana sandhi environments
    - pada-end and pause behavior
    - Vedic accent-aware tokenization

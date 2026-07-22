@@ -15,6 +15,11 @@ segmented utterance
 
 Executable meanings are registered in the execution package. Dhātupāṭha entries contain linguistic data only and do not depend on runtime actions.
 
+Kāraka and vibhakti rules use the same `Sutra<C, R>` model as the rest of the
+Aṣṭādhyāyī catalogue. Each rule occupies its own source file under its chapter
+and pāda. Sentence rules use `SutraScope.VAKYA`; no separate kāraka-rule base
+class or parallel rule framework exists.
+
 ---
 
 ## 1. Grammatical Form Specification (सुप्तिङन्तं पदम्)
@@ -40,7 +45,43 @@ In accordance with Pāṇini's definition *सुप्तिङन्तं प
 
 ---
 
-## 2. Multi-Vākya Sentence Chaining & Result References
+## 2. Syncretic Sup Endings and Kāraka Resolution
+
+A sup surface may represent more than one slot. In particular:
+
+```text
+भ्याम् → {तृतीया-द्विवचन, चतुर्थी-द्विवचन, पञ्चमी-द्विवचन}
+```
+
+`PadaAnalyzer` preserves all candidates. The sentence analyzer then applies
+semantic dhātu-valency facts and ordered sūtras:
+
+```text
+राम + भ्याम् … दा
+  → 1.4.32 सम्प्रदान
+  → 2.3.13 चतुर्थी
+
+लेखनी + भ्याम् … लिख्
+  → 1.4.42 करण
+  → 2.3.18 तृतीया
+
+राम + भ्याम् … पलाय्
+  → 1.4.24 अपादान
+  → 2.3.28 पञ्चमी
+```
+
+If semantic and operation constraints do not select exactly one candidate,
+the execution binder carries an `AmbiguousKarakaBinding`. Operation signatures
+may resolve it later; otherwise ambiguity is reported instead of defaulting to
+the first `SupAffix` entry.
+
+The currently registered sentence rules are stored in
+`adhyaya1/pada4/*Sutra.kt` and `adhyaya2/pada3/*Sutra.kt` and are included in
+the global Aṣṭādhyāyī registry.
+
+---
+
+## 3. Multi-Vākya Sentence Chaining & Result References
 
 A single utterance can contain multiple vākyas chained by connectives (`ततः`, `अथ`, `अनन्तरम्`) or sentence daṇḍas (`।`, `॥`):
 
@@ -54,7 +95,7 @@ A single utterance can contain multiple vākyas chained by connectives (`तत�
 
 ---
 
-## 3. Typed numeral execution
+## 4. Typed numeral execution
 
 The grammar deliberately does not parse ordinary surface Sanskrit. A finished
 word such as `पञ्च` is not reverse-analyzed to discover a number; accepted input
@@ -93,7 +134,7 @@ Runtime invariants:
 
 ---
 
-## 4. `.pvm` Script File Format
+## 5. `.pvm` Script File Format
 
 `.pvm` files store sequential PaniniVM program instructions. Blank lines and comments (`#`, `//`) are automatically ignored.
 
@@ -104,7 +145,7 @@ Runtime invariants:
 
 ---
 
-## 5. Verification
+## 6. Verification
 
 Run the full test suite:
 ```powershell

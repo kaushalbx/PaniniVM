@@ -7,12 +7,13 @@ sūtras carry typed metadata, executable eligibility, and state-transition logic
 
 ## Features
 
-- **Executable Ashtadhyayi Engine**: 303 implemented sūtras with complete rule traces across nominal (`sup`) and verbal (`tiṅ`) paradigms.
+- **Executable Ashtadhyayi Engine**: 324 registered sūtras across derivation and sentence-analysis scopes, including 316 derivation-state rules.
 - **ANTLR4 Segmented Sanskrit Parser (`VyakaranamLexer.g4` + `VyakaranamParser.g4`)**: Parses strictly segmented Pāṇinian words (`Prakṛti + Pratyaya`) through one canonical grammar:
   - Nominal Subanta: `एक + अम्`, `द्वि + औट्`, `त्रि + शस्`, `यन्त्र + सुँ`, `फल + अम्`, `पूर्वफल + अम्`
   - Verbal Tiṅanta: `युज् + णिच् + लोट् + सिप्`, `गण + णिच् + लोट् + सिप्`, `हृ + लोट् + सिप्`
 - **Multi-Vākya Sentence Chaining**: Parse and execute multi-clause sentences separated by connectives (`ततः`, `अथ`, `अनन्तरम्`) or daṇḍas (`।`, `॥`).
 - **Dynamic Inter-Clause Result References**: Refer to intermediate calculation results (`फल + अम्`) across clauses (`योग-1`, `योग-2`) or session history (`पूर्वफल + अम्`).
+- **Kāraka Constraint Analysis**: Preserves syncretic sup endings such as `भ्याम्` and resolves them through executable 1.4 kāraka-saṃjñā and 2.3 vibhakti sūtras.
 - **PaniniVM Program Script Runner (`.pvm`)**: Evaluate multi-line `.pvm` program script files with turn history and session persistence.
 - **CLI Runner**: Command-line execution for `.pvm` scripts, verb derivations, nominal paradigms, and sūtra inspection.
 
@@ -58,6 +59,12 @@ execution/
 Dhātupāṭha entries remain linguistic catalogue data. Executable meanings live
 only under `execution/operations` and are connected to dhātus by registry ID.
 
+Sentence analysis does not infer a kāraka from one arbitrarily selected sup
+slot. For example, `भ्याम्` initially retains तृतीया, चतुर्थी, and पञ्चमी as
+possibilities. Dhātu valency and semantic relations select a kāraka through an
+Aṣṭādhyāyī 1.4 rule; an applicable 2.3 rule then validates the corresponding
+vibhakti. Both sūtras are retained in the analysis and execution trace.
+
 ---
 
 ## CLI Usage
@@ -70,7 +77,7 @@ Execute PaniniVM `.pvm` program script files directly via CLI:
 ./gradlew run --args="--eval src/test/kotlin/dev/panini/parser/addition.pvm"
 ```
 
-Sample `.pvm` Script ([addition.pvm](file:///src/test/kotlin/dev/panini/parser/addition.pvm)):
+Sample `.pvm` script: [`addition.pvm`](src/test/kotlin/dev/panini/parser/addition.pvm)
 ```text
 हे यन्त्र + सुँ, एक + अम् द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।
 एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ततः फल + औट् द्वि + औट् युज् + णिच् + लोट् + सिप् ।
@@ -169,7 +176,8 @@ To print step-by-step derivation traces:
 
 ## Current Ashtadhyayi Coverage
 
-- 303 implemented sūtras out of the 3,959-rule target.
+- 324 registered sūtras out of the 3,959-rule target: 316 derivation-state
+  rules and 8 sentence-level kāraka/vibhakti rules.
 - It-marker processing, grammatical saṃjñās, rule ordering, substitutions, augment insertion, deletion, and selected Tripādī transformations.
 - Complete 21-slot `sup` paradigms for all 11 implemented stem-class/gender
   combinations (231 tested slots): masculine a (`राम`, `देव`), neuter a
