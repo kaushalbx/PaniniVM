@@ -1,6 +1,7 @@
 package dev.panini.ashtadhyayi.adhyaya1.pada4
 
 import dev.panini.core.Karaka
+import dev.panini.core.Vibhakti
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraInput
@@ -20,11 +21,19 @@ object KarmanaYamAbhipraitiSampradanamSutra : Sutra<KarakaRuleContext, KarakaRul
     inputs = setOf(SutraInput.DHATU, SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA_CANDIDATE),
     adhikara = setOf("1.4.23"),
 ) {
-    override fun matches(context: KarakaRuleContext): Boolean =
-        SemanticRelation.RECIPIENT in context.participant.semanticRelations && Karaka.SAMPRADANA in context.candidates
+    override fun matches(context: KarakaRuleContext): Boolean {
+        val hasKarmanCoArgument = context.allParticipants.any { other ->
+            other.id != context.participant.id &&
+                (SemanticRelation.DESIRED_OBJECT in other.semanticRelations ||
+                    other.possibleVibhaktis.contains(Vibhakti.DVITIYA))
+        }
+        val isRecipient = SemanticRelation.RECIPIENT in context.participant.semanticRelations
+        val isCandidate = Karaka.SAMPRADANA in context.candidates
+        return isRecipient && isCandidate && (hasKarmanCoArgument || context.allParticipants.size <= 1)
+    }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(
         Karaka.SAMPRADANA,
-        KarakaEvidence(number, text, "The participant is the intended recipient of the object."),
+        KarakaEvidence(number, text, "The participant is the intended recipient of the object (कर्मणा यम् अभिप्रैति)."),
     )
 }

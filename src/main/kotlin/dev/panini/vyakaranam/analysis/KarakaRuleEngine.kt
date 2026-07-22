@@ -2,6 +2,7 @@ package dev.panini.vyakaranam.analysis
 
 import dev.panini.ashtadhyayi.adhyaya1.pada4.AdharoAdhikaranamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.DhruvamApayeApadanamSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada4.KarakeSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.KarmanaYamAbhipraitiSampradanamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.KarturIpsitatamamKarmaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.SadhakatamamKaranamSutra
@@ -64,6 +65,7 @@ sealed interface VibhaktiRuleResult {
 /** Semantic kāraka assignment (1.4) followed by nominal-case validation (2.3). */
 object KarakaRuleEngine {
     val karakaRules: List<Sutra<KarakaRuleContext, KarakaRuleResult>> = listOf(
+        KarakeSutra,
         DhruvamApayeApadanamSutra,
         KarmanaYamAbhipraitiSampradanamSutra,
         SadhakatamamKaranamSutra,
