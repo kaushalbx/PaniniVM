@@ -18,6 +18,27 @@ sūtras carry typed metadata, executable eligibility, and state-transition logic
 
 ---
 
+## Input boundary
+
+PaniniVM accepts annotated morphological notation, not ordinary surface Sanskrit.
+Declinable and conjugable inputs must expose their grammatical components, for
+example `एक + अम्` and `युज् + णिच् + लोट् + सिप्`. The execution layer does not
+attempt to recover a number, suffix, dhātu, or compound structure by parsing a
+finished surface word.
+
+Numeral handling has two distinct directions:
+
+- `VyakaranamExecutionAnalyzer` recognizes a canonical numeral prātipadika in
+  the parsed annotated AST and creates a typed `SanskritValue.Sankhya`.
+- `SankhyaGenerator` derives a Sanskrit cardinal or ordinal form from a numeric
+  value and retains its grammatical derivation trace.
+
+Arithmetic actions consume the numeric value carried by `SanskritValue.Sankhya`.
+They never convert a Sanskrit output word back into a number. Typed results are
+preserved when `फल + ...` refers to an earlier clause.
+
+---
+
 ## CLI Usage
 
 ### Executing `.pvm` Script Files
@@ -92,6 +113,18 @@ results.forEach { res ->
 
 ---
 
+For direct execution API tests or host-created invocations, construct a numeral
+explicitly instead of tagging an untyped string:
+
+```kotlin
+val operand = ExecutionExpression.sankhya(5, "पञ्च")
+```
+
+`SanskritValue.of("पञ्च")` intentionally creates a `Shabda`; it does not guess
+that arbitrary Sanskrit text is numeric.
+
+---
+
 ## Test Suite
 
 Run all automated unit and integration tests:
@@ -112,7 +145,11 @@ To print step-by-step derivation traces:
 
 - 303 implemented sūtras out of the 3,959-rule target.
 - It-marker processing, grammatical saṃjñās, rule ordering, substitutions, augment insertion, deletion, and selected Tripādī transformations.
-- All 21 `sup` forms for masculine a-stems such as `राम` and `देव`.
+- Complete 21-slot `sup` paradigms for all 11 implemented stem-class/gender
+  combinations (231 tested slots): masculine a (`राम`, `देव`), neuter a
+  (`फल`), masculine i (`कवि`, `ऋषि`), feminine i (`मति`), masculine u
+  (`भानु`), feminine u (`धेनु`), masculine ṛ (`पितृ`), masculine n
+  (`आत्मन्`), neuter s (`मनस्`), feminine ī (`नदी`), and feminine ā (`रमा`).
 - All ten lakāras: `LAT`, `LIT`, `LUT`, `LRT`, `LET`, `LOT`, `LANG`, `LING`, `LUNG`, and `LRNG`.
 - Parasmaipada, Ātmanepada, and explicit Ubhayapada selection through the verbal API.
 - Gaṇa-aware stem derivation for `LAT`, `LOT`, `LANG`, and `LING` across all ten Dhātupāṭha gaṇas.

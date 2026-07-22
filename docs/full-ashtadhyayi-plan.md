@@ -32,9 +32,10 @@ environment.
    - Vedic accent support
 
 2. Sup morphology
-   - masculine a-stems
-   - remaining vowel and consonant stems
-   - feminine, neuter, pronoun, and numeral paradigms
+   - complete implemented paradigms: masculine a/i/u/ṛ/n, feminine i/u/ī/ā,
+     and neuter a/s stems
+   - remaining vowel and consonant stem classes and irregular paradigms
+   - pronoun and numeral paradigms
 
 3. Tiṅ morphology
    - all ten lakāras and both padas
@@ -56,6 +57,17 @@ environment.
    - internal and external sandhi
    - Tripādī ordering
    - vipratiṣedha, asiddha, exceptions, and optional branches
+
+## Numeral architecture constraint
+
+Numeral generation proceeds from a numeric value to a grammatical derivation.
+Execution input proceeds from an explicitly segmented numeral prātipadika to a
+typed numeric value. Neither direction authorizes parsing ordinary surface
+Sanskrit, ad-hoc arithmetic notation, or generated output words back into
+numbers.
+
+Generated numeral prātipadikas should eventually enter the regular `sup`
+derivation pipeline while retaining their typed numeric identity.
 
 ## Reporting and verification
 

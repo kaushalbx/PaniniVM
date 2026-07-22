@@ -43,7 +43,46 @@ A single utterance can contain multiple vākyas chained by connectives (`तत�
 
 ---
 
-## 3. `.pvm` Script File Format
+## 3. Typed numeral execution
+
+The grammar deliberately does not parse ordinary surface Sanskrit. A finished
+word such as `पञ्च` is not reverse-analyzed to discover a number; accepted input
+supplies morphological segmentation, such as `पञ्च + शस्`.
+
+```text
+annotated subanta
+    -> VyakaranamParser AST
+    -> canonical numeral-prātipadika identity
+    -> ExecutionExpression.Pada(value = SanskritValue.Sankhya)
+    -> arithmetic action consumes Sankhya.value
+    -> SankhyaGenerator derives the result word
+    -> ExecutionResult retains display text and typed value
+```
+
+The numeric identity is assigned exactly once from the annotated AST. Result
+references carry that typed value directly, so chained operations need no
+word-to-number dictionary. `SankhyaWordLexicon` and `SanskritNumbers` are not
+part of this architecture.
+
+`SankhyaGenerator.annotatedPratipadikaValue` accepts only canonical annotated
+numeral prātipadikas known to the numeral domain. It is not a surface-form parser
+and does not accept arithmetic notation such as `त्रि + द्वि × शत` or wrapper
+syntax such as `एकोन(विंशति)`.
+
+Runtime invariants:
+
+- Use `ExecutionExpression.sankhya(value, prakriti)` for an explicitly typed
+  numeral leaf.
+- `SanskritValue.of(text)` never infers `Sankhya` from Sanskrit text.
+- Arithmetic actions reject `Shabda`, even if its display text resembles a
+  numeral.
+- Generated numeral words are outputs; they are not reparsed as inputs.
+- Legacy text-only persisted state remains text rather than receiving a guessed
+  numeric type.
+
+---
+
+## 4. `.pvm` Script File Format
 
 `.pvm` files store sequential PaniniVM program instructions. Blank lines and comments (`#`, `//`) are automatically ignored.
 
@@ -54,7 +93,7 @@ A single utterance can contain multiple vākyas chained by connectives (`तत�
 
 ---
 
-## 4. Verification
+## 5. Verification
 
 Run the full test suite:
 ```powershell

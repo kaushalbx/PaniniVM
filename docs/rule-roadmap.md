@@ -12,7 +12,8 @@ rule interface; supported forms additionally verify required rules end to end.
 - Māheśvara-sūtra and pratyāhāra support with explicit varṇa and it markers.
 - It-processing, pada and pratyaya selection, āgama, ādeśa, lopa, guṇa,
   vṛddhi, reduplication, and selected Tripādī phonology.
-- Complete masculine a-stem `sup` paradigms.
+- Complete 21-slot `sup` paradigms for 11 stem-class/gender combinations:
+  masculine a, i, u, ṛ, and n; feminine i, u, ī, and ā; and neuter a and s.
 - Declared `tiṅ` paradigms across all ten lakāras, including Parasmaipada and
   Ātmanepada coverage for representative roots.
 - Gaṇa-specific `LAT`, `LOT`, `LANG`, and `LING` stem formation for all ten
@@ -23,6 +24,13 @@ rule interface; supported forms additionally verify required rules end to end.
   irregular `गम् → गच्छ्`, and Ubhayapada roots.
 - Initial `LIT` root-shape coverage for vowel-final `णीञ्` in both padas, including weak-ending kit, yaṇ, and iṭ behavior.
 - A complete ten-gaṇa Dhātupāṭha catalogue with pada metadata.
+
+The numeral subsystem keeps generation and execution typing separate.
+`SankhyaGenerator` produces auditable cardinal and ordinal derivations, while
+annotated execution operands carry numeric identity as `SanskritValue.Sankhya`.
+Surface numeral words are not reverse-parsed. Future numeral inflection should
+connect generated prātipadikas to the regular `sup` pipeline without weakening
+this boundary.
 
 ## Near-term work
 
@@ -41,7 +49,8 @@ rule interface; supported forms additionally verify required rules end to end.
    - passive and bhāve derivations
 
 4. Expand nominal morphology.
-   - additional stem classes and genders
+   - additional consonant stems, irregular classes, and gender/class
+     combinations beyond the 11 complete paradigms
    - pronouns and numerals
    - feminine formation, kṛdanta, and taddhita integration
 
