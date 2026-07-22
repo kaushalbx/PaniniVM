@@ -1,9 +1,9 @@
 package dev.panini.parser
 
 import dev.panini.parser.ast.ParsedUtterance
+import dev.panini.vyakaranam.parser.PaniniParseException
+import dev.panini.vyakaranam.parser.PaniniParser
 import java.io.File
-import org.antlr.v4.runtime.CharStreams
-import org.antlr.v4.runtime.CommonTokenStream
 
 /**
  * Public entry point for compiling segmented Sanskrit source into the
@@ -22,6 +22,7 @@ import org.antlr.v4.runtime.CommonTokenStream
  */
 class VakyaCompiler(
     private val astBuilder: VakyaAstBuilder = VakyaAstBuilder(),
+    private val parser: PaniniParser = PaniniParser(),
 ) {
 
     fun compile(
@@ -32,38 +33,23 @@ class VakyaCompiler(
             "Vākya source cannot be blank."
         }
 
-        val errorListener = VakyaErrorListener()
-
-        val input = CharStreams.fromString(source)
-        val lexer = VakyaLexer(input)
-
-        /*
-         * Capture lexer errors such as an unsupported character instead of
-         * allowing ANTLR to print them to stderr.
-         */
-        lexer.removeErrorListeners()
-        lexer.addErrorListener(errorListener)
-
-        val tokenStream = CommonTokenStream(lexer)
-        val parser = VakyaParser(tokenStream)
-
-        /*
-         * Capture parser errors such as missing suffixes, misplaced '+' or
-         * invalid sentence structure.
-         */
-        parser.removeErrorListeners()
-        parser.addErrorListener(errorListener)
-
-        val tree = parser.utterance()
-
-        if (errorListener.hasErrors) {
+        val ukti = try {
+            parser.parse(source)
+        } catch (exception: PaniniParseException) {
             throw VakyaSyntaxException(
-                diagnostics = errorListener.diagnostics,
+                diagnostics = exception.errors.map {
+                    VakyaSyntaxDiagnostic(
+                        line = it.line,
+                        column = it.column,
+                        offendingText = it.offendingText,
+                        message = it.message,
+                    )
+                },
                 sourceName = sourceName,
             )
         }
 
-        return astBuilder.build(tree)
+        return astBuilder.build(ukti)
     }
 
     fun compileFile(file: File): ParsedUtterance =

@@ -60,8 +60,7 @@ uttaraVakyaPada
  * राम + सुँ राजा + सुँ
  */
 namaVakya
-    : subantaVakyaPada
-      subantaVakyaPada+
+    : subantaVakyaPada+
     ;
 
 vakyaPada
@@ -91,7 +90,7 @@ vakyaSambandha
 // ============================================================================
 
 sambodhana
-    : sambodhanaSuchaka?
+    : sambodhanaSuchaka
       subantaPada
       COMMA?
     ;

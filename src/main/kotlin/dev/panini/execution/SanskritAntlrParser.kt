@@ -5,9 +5,8 @@ import dev.panini.core.Lakara
 import dev.panini.core.Prayoga
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.dhatupatha.DhatuPatha
-import dev.panini.parser.VakyaAstBuilder
-import dev.panini.parser.VakyaLexer
-import dev.panini.parser.VakyaParser
+import dev.panini.parser.VakyaCompiler
+import dev.panini.parser.VakyaSyntaxException
 import dev.panini.parser.ast.ParsedNominalBase
 import dev.panini.parser.ast.ParsedPada
 import dev.panini.parser.ast.ParsedSubanta
@@ -15,11 +14,6 @@ import dev.panini.parser.ast.ParsedTinganta
 import dev.panini.parser.ast.ParsedUtterance
 import dev.panini.parser.ast.SimpleNominalKind
 
-import org.antlr.v4.runtime.BaseErrorListener
-import org.antlr.v4.runtime.CharStreams
-import org.antlr.v4.runtime.CommonTokenStream
-import org.antlr.v4.runtime.RecognitionException
-import org.antlr.v4.runtime.Recognizer
 
 /**
  * End-to-end ANTLR4 parser bridge for Sanskrit utterances.
@@ -35,40 +29,13 @@ object SanskritAntlrParser {
             return VakyaAnalysisResult.Unsupported("The Sanskrit utterance is empty.")
         }
 
-        val charStream = CharStreams.fromString(input.text)
-        val lexer = VakyaLexer(charStream)
-        val tokenStream = CommonTokenStream(lexer)
-        val parser = VakyaParser(tokenStream)
-
-        val syntaxErrors = mutableListOf<String>()
-        val errorListener = object : BaseErrorListener() {
-            override fun syntaxError(
-                recognizer: Recognizer<*, *>?,
-                offendingSymbol: Any?,
-                line: Int,
-                charPositionInLine: Int,
-                msg: String?,
-                e: RecognitionException?,
-            ) {
-                syntaxErrors += "Line $line:$charPositionInLine ${msg.orEmpty()}"
-            }
-        }
-
-        lexer.removeErrorListeners()
-        lexer.addErrorListener(errorListener)
-
-        parser.removeErrorListeners()
-        parser.addErrorListener(errorListener)
-
-        val parseTree = parser.utterance()
-
-        if (syntaxErrors.isNotEmpty()) {
+        val parsedUtterance: ParsedUtterance = try {
+            VakyaCompiler().compile(input.text)
+        } catch (exception: VakyaSyntaxException) {
             return VakyaAnalysisResult.Unsupported(
-                syntaxErrors.joinToString(separator = "\n"),
+                exception.message ?: "Invalid annotated Sanskrit morphology.",
             )
         }
-
-        val parsedUtterance: ParsedUtterance = VakyaAstBuilder().build(parseTree)
 
         return analyzeUtterance(parsedUtterance, input, conversation)
     }
