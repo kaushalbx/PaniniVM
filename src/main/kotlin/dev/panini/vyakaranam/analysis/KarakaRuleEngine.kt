@@ -12,6 +12,7 @@ import dev.panini.ashtadhyayi.adhyaya2.pada3.AnabhihiteSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.ApadanePancamiSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.ChaturthiSampradaneSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.KarmaniDvitiyaSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada3.KartrKarmanohKrtiSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.KartrkaranayostrtiyaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.SaptamyAdhikaraneCaSutra
 import dev.panini.core.Karaka
@@ -82,6 +83,7 @@ object KarakaRuleEngine {
         KartrkaranayostrtiyaSutra,
         ApadanePancamiSutra,
         SaptamyAdhikaraneCaSutra,
+        KartrKarmanohKrtiSutra,
     ).sortedBy { it.krama }
 
     fun resolve(context: KarakaRuleContext): KarakaResolution {
