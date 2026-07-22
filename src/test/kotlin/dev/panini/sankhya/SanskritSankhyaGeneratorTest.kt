@@ -3,6 +3,7 @@ package dev.panini.sankhya
 import dev.panini.core.Vacana
 import dev.panini.core.Vibhakti
 import dev.panini.core.Linga
+import dev.panini.derivation.TermKind
 import java.math.BigInteger
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -134,13 +135,34 @@ class SanskritSankhyaGeneratorTest {
         val sut = SanskritSankhyaGenerator()
 
         assertTrue(sut.generateOrdinal(BigInteger.ONE).applications.isEmpty())
-        assertEquals(listOf("5.2.54"), sut.generateOrdinal(BigInteger.TWO).applications.map { it.sutra })
-        assertEquals(listOf("5.2.55"), sut.generateOrdinal(BigInteger.valueOf(3)).applications.map { it.sutra })
-        assertEquals(listOf("5.2.51"), sut.generateOrdinal(BigInteger.valueOf(4)).applications.map { it.sutra })
+        val second = sut.generateOrdinal(BigInteger.TWO)
+        assertEquals(listOf("5.2.54"), second.applications.map { it.sutra })
+        assertEquals(listOf("द्वि", "तीय"), second.final.terms.map { it.surface })
+        assertEquals(TermKind.PRATYAYA, second.final.terms.last().kind)
+        assertEquals("5.2.54", second.final.terms.last().createdBySutra)
+
+        val third = sut.generateOrdinal(BigInteger.valueOf(3))
+        assertEquals(listOf("5.2.55"), third.applications.map { it.sutra })
+        assertEquals(listOf("तृ", "तीय"), third.final.terms.map { it.surface })
+        assertEquals("5.2.55", third.final.terms.last().createdBySutra)
+        val fourth = sut.generateOrdinal(BigInteger.valueOf(4))
+        assertEquals(listOf("5.2.51"), fourth.applications.map { it.sutra })
+        assertEquals(listOf("चतुर्", "थ", ""), fourth.final.terms.map { it.surface })
+        assertEquals("5.2.51", fourth.final.terms.single { it.upadesha == "थुक्" }.createdBySutra)
+
+        val sixth = sut.generateOrdinal(BigInteger.valueOf(6))
+        assertEquals("षष्ठ", sixth.final.surface)
+        assertEquals(listOf("5.2.51", "8.4.41"), sixth.applications.map { it.sutra })
+        assertEquals(listOf("षष्", "ठ", ""), sixth.final.terms.map { it.surface })
         assertEquals(
             listOf("5.2.49", "8.2.7"),
             sut.generateOrdinal(BigInteger.valueOf(5)).applications.map { it.sutra },
         )
+
+        val twentiethTamat = sut.generateOrdinalVariants(BigInteger.valueOf(20))
+            .single { result -> result.applications.any { it.sutra == "5.2.56" } }
+        assertEquals("5.2.48", twentiethTamat.final.terms.single { it.upadesha == "डट्" }.createdBySutra)
+        assertEquals("5.2.56", twentiethTamat.final.terms.single { it.upadesha == "तमट्" }.createdBySutra)
     }
 
     @Test

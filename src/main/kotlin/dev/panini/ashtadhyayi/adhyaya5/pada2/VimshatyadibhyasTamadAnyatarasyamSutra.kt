@@ -28,6 +28,6 @@ object VimshatyadibhyasTamadAnyatarasyamSutra : Sutra<DerivationState, Derivatio
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        return context.insertTamat("$text: डट् में तमट् आगम।")
+        return context.insertTamat(sutra, "$text: डट् में तमट् आगम।")
     }
 }

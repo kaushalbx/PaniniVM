@@ -46,7 +46,8 @@ object TasyaPuraneDatSutra : Sutra<DerivationState, DerivationChange>(
             // represented by the final consonant of the Devanāgarī base.
             surface = "",
             kind = TermKind.PRATYAYA,
-            upadesha = "डट्"
+            upadesha = "डट्",
+            createdBySutra = sutra,
         )
         return DerivationChange(
             state = context.copy(terms = context.terms + datTerm),

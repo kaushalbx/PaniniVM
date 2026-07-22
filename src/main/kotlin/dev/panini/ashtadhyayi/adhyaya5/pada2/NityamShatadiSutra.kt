@@ -27,6 +27,6 @@ object NityamShatadiSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        return context.insertTamat("$text: डट् में नित्य तमट् आगम।")
+        return context.insertTamat(sutra, "$text: डट् में नित्य तमट् आगम।")
     }
 }

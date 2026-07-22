@@ -41,7 +41,8 @@ object NantadAsankhyaderMatSutra : Sutra<DerivationState, DerivationChange>(
             id = "purana_mat",
             surface = "म",
             kind = TermKind.AGAMA,
-            upadesha = "मट्"
+            upadesha = "मट्",
+            createdBySutra = sutra,
         )
         return DerivationChange(
             state = context.copy(terms = context.terms + matTerm),

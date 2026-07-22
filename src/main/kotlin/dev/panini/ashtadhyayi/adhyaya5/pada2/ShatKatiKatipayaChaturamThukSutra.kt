@@ -17,7 +17,23 @@ object ShatKatiKatipayaChaturamThukSutra : Sutra<DerivationState, DerivationChan
 
     override fun apply(context: DerivationState): DerivationChange {
         val target = context.terms.single()
-        val surface = if (target.surface == "चतुर्") "चतुर्थ" else "षष्ठ"
-        return DerivationChange(context.replaceTerm(target.id, target.copy(surface = surface)), "$text: ${target.surface} → $surface.")
+        val thuk = DerivationTerm(
+            id = "purana_thuk",
+            surface = "थ",
+            kind = TermKind.AGAMA,
+            upadesha = "थुक्",
+            createdBySutra = sutra,
+        )
+        val dat = DerivationTerm(
+            id = "purana_dat",
+            surface = "",
+            kind = TermKind.PRATYAYA,
+            upadesha = "डट्",
+            createdBySutra = sutra,
+        )
+        return DerivationChange(
+            context.copy(terms = listOf(target, thuk, dat)),
+            "$text: ${target.surface} के पूरणार्थक डट् में थुक् आगम।",
+        )
     }
 }

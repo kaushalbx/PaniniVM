@@ -12,9 +12,15 @@ object DvesTiyahSutra : Sutra<DerivationState, DerivationChange>(
     blocks = setOf("5.2.48"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean = context.samjnas.any { it.samjna == Samjna.PURANA } &&
-        context.terms.singleOrNull()?.surface == "द्वि"
+        context.terms.singleOrNull()?.surface == "द्वि" && context.terms.none { it.upadesha == "तीय" }
     override fun apply(context: DerivationState): DerivationChange {
-        val target = context.terms.single()
-        return DerivationChange(context.replaceTerm(target.id, target.copy(surface = "द्वितीय")), "$text: द्वि → द्वितीय।")
+        val tiya = DerivationTerm(
+            id = "purana_tiya",
+            surface = "तीय",
+            kind = TermKind.PRATYAYA,
+            upadesha = "तीय",
+            createdBySutra = sutra,
+        )
+        return DerivationChange(context.copy(terms = context.terms + tiya), "$text: द्वि के बाद तीय प्रत्यय।")
     }
 }

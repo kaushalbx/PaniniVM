@@ -18,7 +18,7 @@ internal fun DerivationState.hasTamat(): Boolean = terms.any { it.upadesha == "�
 
 internal fun DerivationState.datIndex(): Int = terms.indexOfLast { it.upadesha == "डट्" }
 
-internal fun DerivationState.insertTamat(explanation: String): DerivationChange {
+internal fun DerivationState.insertTamat(sutra: String, explanation: String): DerivationChange {
     val index = datIndex()
     require(index > 0) { "तमट् requires an existing ordinal डट् suffix." }
     require(!hasTamat()) { "An ordinal derivation can contain only one तमट् augment." }
@@ -27,6 +27,7 @@ internal fun DerivationState.insertTamat(explanation: String): DerivationChange 
         surface = "तम",
         kind = TermKind.AGAMA,
         upadesha = "तमट्",
+        createdBySutra = sutra,
     )
     val changedTerms = terms.toMutableList().apply { add(index, tamat) }
     return DerivationChange(copy(terms = changedTerms), explanation)
