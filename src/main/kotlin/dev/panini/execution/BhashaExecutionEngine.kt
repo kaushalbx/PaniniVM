@@ -6,7 +6,7 @@ object BhashaExecutionEngine {
         input: SanskritUktiInput,
         conversation: SambhashanaContext,
         scope: ExecutionScope,
-    ): Phala = when (val analysis = SanskritAntlrParser.parse(input, conversation)) {
+    ): Phala = when (val analysis = VyakaranamExecutionAnalyzer.analyze(input, conversation)) {
         is VakyaAnalysisResult.Analyzed -> execute(analysis.analysis, conversation, scope)
         is VakyaAnalysisResult.NeedsClarification -> Phala.Asiddha(
             ExecutionResult.NeedsInput(emptySet(), analysis.question),

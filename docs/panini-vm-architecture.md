@@ -2,7 +2,7 @@
 
 ## Overview
 
-PaniniVM provides a complete execution virtual machine for Sanskrit utterances specified in Pāṇinian segmented form (`Prakṛti + Pratyaya`). The parser front-end is implemented in ANTLR4 (`Vakya.g4`) and backed by typed AST compilation (`VakyaAstBuilder`), semantic karaka extraction (`SanskritAntlrParser`), and rule execution (`BhashaExecutionEngine`).
+PaniniVM provides a complete execution virtual machine for Sanskrit utterances specified in Pāṇinian segmented form (`Prakṛti + Pratyaya`). The parser front-end is implemented by the canonical ANTLR4 pair `VyakaranamLexer.g4` and `VyakaranamParser.g4`. `VyakaranamAstBuilder` constructs the canonical typed AST, `VyakaranamExecutionAnalyzer` derives execution semantics directly from it, and `BhashaExecutionEngine` performs rule execution.
 
 ---
 
@@ -21,7 +21,7 @@ In accordance with Pāṇini's definition *सुप्तिङन्तं प
   - `पूर्वफल + अम्` (Historical reference `पूर्वफल` + 2nd Vibhakti singular `अम्`)
 
 ### Verbal Tiṅanta Padas (`tingantaPada`)
-- **Format**: `dhatu (+ sanadiPratyaya)* (+ vikarana)? + lakara (+ tingPratyaya)?`
+- **Format**: `(upasarga +)* dhatu (+ sanadiPratyaya)* + lakara + tingPratyaya`
 - **Examples**:
   - `युज् + णिच् + लोट् + सिप्` (Dhātu `युज्` + Causal `णिच्` + Imperative `लोट्` + 2nd person singular `सिप्`)
   - `गण + णिच् + लोट् + सिप्` (Dhātu `गण` + Causal `णिच्` + Imperative `लोट्` + 2nd person singular `सिप्`)
@@ -34,12 +34,12 @@ In accordance with Pāṇini's definition *सुप्तिङन्तं प
 A single utterance can contain multiple vākyas chained by connectives (`ततः`, `अथ`, `अनन्तरम्`) or sentence daṇḍas (`।`, `॥`):
 
 ```text
-एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ततः फले द्वि + औट् युज् + णिच् + लोट् + सिप् ।
+एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ततः फल + औट् द्वि + औट् युज् + णिच् + लोट् + सिप् ।
 ```
 
 ### Execution Flow:
 1. **Clause 1** (`योग-1`): Computes $1 + 2 = 3$ (`त्रीणि`).
-2. **Clause 2** (`योग-2`): `फले` references `योग-1` ($3$). Computes $3 + 2 = 5$ (`पञ्च`).
+2. **Clause 2** (`योग-2`): `फल + औट्` references `योग-1` ($3$). Computes $3 + 2 = 5$ (`पञ्च`).
 
 ---
 

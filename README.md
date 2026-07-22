@@ -8,11 +8,11 @@ sūtras carry typed metadata, executable eligibility, and state-transition logic
 ## Features
 
 - **Executable Ashtadhyayi Engine**: 303 implemented sūtras with complete rule traces across nominal (`sup`) and verbal (`tiṅ`) paradigms.
-- **ANTLR4 Segmented Sanskrit Parser (`Vakya.g4`)**: Parses strictly segmented Pāṇinian words (`Prakṛti + Pratyaya`):
+- **ANTLR4 Segmented Sanskrit Parser (`VyakaranamLexer.g4` + `VyakaranamParser.g4`)**: Parses strictly segmented Pāṇinian words (`Prakṛti + Pratyaya`) through one canonical grammar:
   - Nominal Subanta: `एक + अम्`, `द्वि + औट्`, `त्रि + शस्`, `यन्त्र + सुँ`, `फल + अम्`, `पूर्वफल + अम्`
   - Verbal Tiṅanta: `युज् + णिच् + लोट् + सिप्`, `गण + णिच् + लोट् + सिप्`, `हृ + लोट् + सिप्`
 - **Multi-Vākya Sentence Chaining**: Parse and execute multi-clause sentences separated by connectives (`ततः`, `अथ`, `अनन्तरम्`) or daṇḍas (`।`, `॥`).
-- **Dynamic Inter-Clause Result References**: Refer to intermediate calculation results (`फल + अम्`, `फले`) across clauses (`योग-1`, `योग-2`) or session history (`पूर्वफल + अम्`).
+- **Dynamic Inter-Clause Result References**: Refer to intermediate calculation results (`फल + अम्`) across clauses (`योग-1`, `योग-2`) or session history (`पूर्वफल + अम्`).
 - **PaniniVM Program Script Runner (`.pvm`)**: Evaluate multi-line `.pvm` program script files with turn history and session persistence.
 - **CLI Runner**: Command-line execution for `.pvm` scripts, verb derivations, nominal paradigms, and sūtra inspection.
 
@@ -31,7 +31,7 @@ Execute PaniniVM `.pvm` program script files directly via CLI:
 Sample `.pvm` Script ([addition.pvm](file:///src/test/kotlin/dev/panini/parser/addition.pvm)):
 ```text
 हे यन्त्र + सुँ, एक + अम् द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।
-एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ततः फले द्वि + औट् युज् + णिच् + लोट् + सिप् ।
+एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ततः फल + औट् द्वि + औट् युज् + णिच् + लोट् + सिप् ।
 ```
 
 Formatted CLI Output:
