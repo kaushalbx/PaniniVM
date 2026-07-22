@@ -36,10 +36,7 @@ sealed interface SanskritValue {
 
     companion object {
         fun of(text: String, samjnas: Set<ExecutionSamjna> = emptySet()): SanskritValue {
-            val num = SanskritNumbers.valueOf(text)
-            return if (num != null && (samjnas.isEmpty() || ExecutionSamjna.SANKHYA in samjnas)) {
-                Sankhya(num.toLong(), text)
-            } else if (text == "सत्यम्" || text == "असत्यम्") {
+            return if (text == "सत्यम्" || text == "असत्यम्") {
                 Satya(text == "सत्यम्")
             } else {
                 Shabda(text, if (samjnas.isEmpty()) setOf(ExecutionSamjna.SHABDA) else samjnas)

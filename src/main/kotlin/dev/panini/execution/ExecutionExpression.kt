@@ -8,10 +8,19 @@ sealed interface ExecutionExpression {
     data class Pada(
         val prakriti: String,
         val samjnas: Set<ExecutionSamjna> = emptySet(),
+        val value: SanskritValue? = null,
     ) : ExecutionExpression {
         init {
             require(prakriti.isNotBlank()) { "An execution prakriti cannot be blank." }
         }
+    }
+
+    companion object {
+        fun sankhya(value: Long, prakriti: String): Pada = Pada(
+            prakriti = prakriti,
+            samjnas = setOf(ExecutionSamjna.SANKHYA, ExecutionSamjna.SHABDA),
+            value = SanskritValue.Sankhya(value, prakriti),
+        )
     }
 
     data class Coordination(val members: List<ExecutionExpression>) : ExecutionExpression {
@@ -28,4 +37,3 @@ sealed interface ExecutionExpression {
         }
     }
 }
-

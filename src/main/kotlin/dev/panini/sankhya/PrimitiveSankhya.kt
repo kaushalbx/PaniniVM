@@ -45,10 +45,16 @@ enum class PrimitiveSankhya(
     companion object {
         private val byValue = entries.associateBy(PrimitiveSankhya::value)
         private val byPratipadika = entries.associateBy(PrimitiveSankhya::pratipadika)
+        private val annotatedPratipadikas = entries.flatMap { sankhya ->
+            setOf(sankhya.pratipadika, sankhya.purvapada, sankhya.uttarapada).map { it to sankhya }
+        }.toMap()
 
         fun fromValue(value: BigInteger): PrimitiveSankhya? = byValue[value]
 
         fun fromPratipadika(text: String): PrimitiveSankhya? = byPratipadika[text]
+
+        /** Resolves only an explicitly annotated numeral prātipadika, never a surface subanta. */
+        fun fromAnnotatedPratipadika(text: String): PrimitiveSankhya? = annotatedPratipadikas[text]
     }
 }
 

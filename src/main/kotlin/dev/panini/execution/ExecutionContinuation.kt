@@ -7,4 +7,5 @@ data class ExecutionContinuation(
     val values: Map<String, String>,
     val valueSamjnas: Map<String, Set<ExecutionSamjna>>,
     val trace: List<String>,
+    val typedValues: Map<String, SanskritValue> = emptyMap(),
 )

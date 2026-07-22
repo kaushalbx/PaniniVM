@@ -1,4 +1,4 @@
-package dev.panini.execution
+﻿package dev.panini.execution
 
 import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.dhatupatha.rudhadi.YujirDhatu
@@ -12,9 +12,9 @@ class DhatuExecutionTest {
         val context = ExecutionContext(
             bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.Coordination(
-                    ExecutionExpression.Pada("एक", setOf(ExecutionSamjna.SANKHYA)),
-                    ExecutionExpression.Pada("द्वि", setOf(ExecutionSamjna.SANKHYA)),
-                    ExecutionExpression.Pada("त्रि", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.sankhya(1, "एक"),
+                    ExecutionExpression.sankhya(2, "द्वि"),
+                    ExecutionExpression.sankhya(3, "त्रि"),
                 )
             ),
             selectedOperation = "सङ्ख्यायोजनम्",
@@ -54,7 +54,7 @@ class DhatuExecutionTest {
     fun `operation signature requires a coordinated expression`() {
         val context = ExecutionContext(
             bindings = mapOf(
-                Karaka.KARMAN to ExecutionExpression.Pada("एक", setOf(ExecutionSamjna.SANKHYA))
+                Karaka.KARMAN to ExecutionExpression.sankhya(1, "एक")
             )
         )
 
@@ -79,9 +79,9 @@ class DhatuExecutionTest {
             dhatu = yuj,
             bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.Coordination(
-                    ExecutionExpression.Pada("एक", setOf(ExecutionSamjna.SANKHYA)),
-                    ExecutionExpression.Pada("द्वि", setOf(ExecutionSamjna.SANKHYA)),
-                    ExecutionExpression.Pada("त्रि", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.sankhya(1, "एक"),
+                    ExecutionExpression.sankhya(2, "द्वि"),
+                    ExecutionExpression.sankhya(3, "त्रि"),
                 )
             ),
         )
@@ -111,8 +111,8 @@ class DhatuExecutionTest {
             dhatu = yuj,
             bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.Coordination(
-                    ExecutionExpression.Pada("एक", setOf(ExecutionSamjna.SANKHYA)),
-                    ExecutionExpression.Pada("द्वि", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.sankhya(1, "एक"),
+                    ExecutionExpression.sankhya(2, "द्वि"),
                 )
             ),
         )
@@ -142,8 +142,8 @@ class DhatuExecutionTest {
             dhatu = yuj,
             bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.Coordination(
-                    ExecutionExpression.Pada("एक", setOf(ExecutionSamjna.SANKHYA)),
-                    ExecutionExpression.Pada("द्वि", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.sankhya(1, "एक"),
+                    ExecutionExpression.sankhya(2, "द्वि"),
                 )
             ),
         )
@@ -153,7 +153,7 @@ class DhatuExecutionTest {
             bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.Coordination(
                     ExecutionExpression.Reference("योग-१"),
-                    ExecutionExpression.Pada("द्वि", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.sankhya(2, "द्वि"),
                 )
             ),
         )
@@ -184,8 +184,8 @@ class DhatuExecutionTest {
             dhatu = yuj,
             bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.Coordination(
-                    ExecutionExpression.Pada("एक", setOf(ExecutionSamjna.SANKHYA)),
-                    ExecutionExpression.Pada("द्वि", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.sankhya(1, "एक"),
+                    ExecutionExpression.sankhya(2, "द्वि"),
                 )
             ),
         )
@@ -267,8 +267,8 @@ class DhatuExecutionTest {
             dhatu = yuj,
             bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.Coordination(
-                    ExecutionExpression.Pada("एक", setOf(ExecutionSamjna.SANKHYA)),
-                    ExecutionExpression.Pada("द्वि", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.sankhya(1, "एक"),
+                    ExecutionExpression.sankhya(2, "द्वि"),
                 )
             ),
         )
@@ -297,8 +297,8 @@ class DhatuExecutionTest {
             dhatu = yuj,
             bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.Coordination(
-                    ExecutionExpression.Pada("एक", setOf(ExecutionSamjna.SANKHYA)),
-                    ExecutionExpression.Pada("द्वि", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.sankhya(1, "एक"),
+                    ExecutionExpression.sankhya(2, "द्वि"),
                 )
             ),
         )
@@ -333,8 +333,8 @@ class DhatuExecutionTest {
             dhatu = yuj,
             bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.Coordination(
-                    ExecutionExpression.Pada("एक", setOf(ExecutionSamjna.SANKHYA)),
-                    ExecutionExpression.Pada("द्वि", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.sankhya(1, "एक"),
+                    ExecutionExpression.sankhya(2, "द्वि"),
                 )
             ),
         )
@@ -365,8 +365,8 @@ class DhatuExecutionTest {
             dhatu = yuj,
             bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.Coordination(
-                    ExecutionExpression.Pada("एक", setOf(ExecutionSamjna.SANKHYA)),
-                    ExecutionExpression.Pada("द्वि", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.sankhya(1, "एक"),
+                    ExecutionExpression.sankhya(2, "द्वि"),
                 )
             ),
         )
@@ -396,8 +396,8 @@ class DhatuExecutionTest {
             dhatu = yuj,
             bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.Coordination(
-                    ExecutionExpression.Pada("एक", setOf(ExecutionSamjna.SANKHYA)),
-                    ExecutionExpression.Pada("द्वि", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.sankhya(1, "एक"),
+                    ExecutionExpression.sankhya(2, "द्वि"),
                 )
             ),
         )
@@ -433,9 +433,9 @@ class DhatuExecutionTest {
                     dhatuId = "07.0007",
                     karakas = mapOf(
                         Karaka.KARMAN to ExecutionExpression.Coordination(
-                            ExecutionExpression.Pada("एक", setOf(ExecutionSamjna.SANKHYA)),
-                            ExecutionExpression.Pada("द्वि", setOf(ExecutionSamjna.SANKHYA)),
-                            ExecutionExpression.Pada("त्रि", setOf(ExecutionSamjna.SANKHYA)),
+                            ExecutionExpression.sankhya(1, "एक"),
+                            ExecutionExpression.sankhya(2, "द्वि"),
+                            ExecutionExpression.sankhya(3, "त्रि"),
                         )
                     ),
                 )
@@ -583,9 +583,9 @@ class DhatuExecutionTest {
         val context = ExecutionContext(
             bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.Coordination(
-                    ExecutionExpression.Pada("दश", setOf(ExecutionSamjna.SANKHYA)),
-                    ExecutionExpression.Pada("त्रि", setOf(ExecutionSamjna.SANKHYA)),
-                    ExecutionExpression.Pada("द्वि", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.sankhya(10, "दश"),
+                    ExecutionExpression.sankhya(3, "त्रि"),
+                    ExecutionExpression.sankhya(2, "द्वि"),
                 )
             ),
             selectedOperation = "सङ्ख्यावियोगः",
@@ -602,8 +602,8 @@ class DhatuExecutionTest {
         val context = ExecutionContext(
             bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.Coordination(
-                    ExecutionExpression.Pada("एक", setOf(ExecutionSamjna.SANKHYA)),
-                    ExecutionExpression.Pada("दश", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.sankhya(1, "एक"),
+                    ExecutionExpression.sankhya(10, "दश"),
                 )
             ),
             selectedOperation = "सङ्ख्यावियोगः",
@@ -621,8 +621,8 @@ class DhatuExecutionTest {
         val context = ExecutionContext(
             bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.Coordination(
-                    ExecutionExpression.Pada("दश", setOf(ExecutionSamjna.SANKHYA)),
-                    ExecutionExpression.Pada("द्वि", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.sankhya(10, "दश"),
+                    ExecutionExpression.sankhya(2, "द्वि"),
                 )
             ),
             selectedOperation = "सङ्ख्याहरणम्",
@@ -640,8 +640,8 @@ class DhatuExecutionTest {
         val context = ExecutionContext(
             bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.Coordination(
-                    ExecutionExpression.Pada("दश", setOf(ExecutionSamjna.SANKHYA)),
-                    ExecutionExpression.Pada("शून्य", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.sankhya(10, "दश"),
+                    ExecutionExpression.sankhya(0, "शून्य"),
                 )
             ),
             selectedOperation = "सङ्ख्याहरणम्",
@@ -683,8 +683,8 @@ class DhatuExecutionTest {
         val context = ExecutionContext(
             bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.Coordination(
-                    ExecutionExpression.Pada("त्रि", setOf(ExecutionSamjna.SANKHYA)),
-                    ExecutionExpression.Pada("द्वि", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.sankhya(3, "त्रि"),
+                    ExecutionExpression.sankhya(2, "द्वि"),
                 )
             ),
             selectedOperation = "सङ्ख्यागुणनम्",
@@ -702,9 +702,9 @@ class DhatuExecutionTest {
         val context = ExecutionContext(
             bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.Coordination(
-                    ExecutionExpression.Pada("एक", setOf(ExecutionSamjna.SANKHYA)),
-                    ExecutionExpression.Pada("द्वि", setOf(ExecutionSamjna.SANKHYA)),
-                    ExecutionExpression.Pada("त्रि", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.sankhya(1, "एक"),
+                    ExecutionExpression.sankhya(2, "द्वि"),
+                    ExecutionExpression.sankhya(3, "त्रि"),
                 )
             ),
             selectedOperation = "सङ्ख्यागणनम्",
@@ -805,8 +805,8 @@ class DhatuExecutionTest {
         val context = ExecutionContext(
             bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.Coordination(
-                    ExecutionExpression.Pada("दश", setOf(ExecutionSamjna.SANKHYA)),
-                    ExecutionExpression.Pada("त्रि", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.sankhya(10, "दश"),
+                    ExecutionExpression.sankhya(3, "त्रि"),
                 )
             ),
             selectedOperation = "सङ्ख्याशेषः",
@@ -824,8 +824,8 @@ class DhatuExecutionTest {
         val context = ExecutionContext(
             bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.Coordination(
-                    ExecutionExpression.Pada("त्रि", setOf(ExecutionSamjna.SANKHYA)),
-                    ExecutionExpression.Pada("द्वि", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.sankhya(3, "त्रि"),
+                    ExecutionExpression.sankhya(2, "द्वि"),
                 )
             ),
             selectedOperation = "सङ्ख्याघातः",
@@ -843,8 +843,8 @@ class DhatuExecutionTest {
         val context = ExecutionContext(
             bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.Coordination(
-                    ExecutionExpression.Pada("त्रि", setOf(ExecutionSamjna.SANKHYA)),
-                    ExecutionExpression.Pada("पञ्च", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.sankhya(3, "त्रि"),
+                    ExecutionExpression.sankhya(5, "पञ्च"),
                 )
             ),
             selectedOperation = "सङ्ख्यातुलना",
@@ -897,7 +897,7 @@ class DhatuExecutionTest {
         val mul = requireNotNull(DhatuPatha.find("01.0607"))
         val context = ExecutionContext(
             bindings = mapOf(
-                Karaka.KARMAN to ExecutionExpression.Pada("नव", setOf(ExecutionSamjna.SANKHYA)),
+                Karaka.KARMAN to ExecutionExpression.sankhya(9, "नव"),
             ),
             selectedOperation = "सङ्ख्यामूलम्",
         )
@@ -914,8 +914,8 @@ class DhatuExecutionTest {
         val context = ExecutionContext(
             bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.Coordination(
-                    ExecutionExpression.Pada("द्वि", setOf(ExecutionSamjna.SANKHYA)),
-                    ExecutionExpression.Pada("चतुर्", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.sankhya(2, "द्वि"),
+                    ExecutionExpression.sankhya(4, "चतुर्"),
                 )
             ),
             selectedOperation = "सङ्ख्यासाम्यम्",
@@ -933,8 +933,8 @@ class DhatuExecutionTest {
         val context = ExecutionContext(
             bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.Coordination(
-                    ExecutionExpression.Pada("दश", setOf(ExecutionSamjna.SANKHYA)),
-                    ExecutionExpression.Pada("द्वि", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.sankhya(10, "दश"),
+                    ExecutionExpression.sankhya(2, "द्वि"),
                 )
             ),
             selectedOperation = "सङ्ख्याभागः",
@@ -952,8 +952,8 @@ class DhatuExecutionTest {
         val context = ExecutionContext(
             bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.Coordination(
-                    ExecutionExpression.Pada("पञ्च", setOf(ExecutionSamjna.SANKHYA)),
-                    ExecutionExpression.Pada("त्रि", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.sankhya(5, "पञ्च"),
+                    ExecutionExpression.sankhya(3, "त्रि"),
                 )
             ),
             selectedOperation = "सङ्ख्यान्यूनत्वम्",
@@ -1018,7 +1018,7 @@ class DhatuExecutionTest {
         val da = requireNotNull(DhatuPatha.find("03.0010"))
         val context = ExecutionContext(
             bindings = mapOf(
-                Karaka.KARMAN to ExecutionExpression.Pada("दश", setOf(ExecutionSamjna.SANKHYA)),
+                Karaka.KARMAN to ExecutionExpression.sankhya(10, "दश"),
             ),
             selectedOperation = "मूल्यदानम्",
         )
@@ -1076,6 +1076,7 @@ class DhatuExecutionTest {
         assertEquals("पञ्च", result.values["योग-१"])
     }*/
 }
+
 
 
 

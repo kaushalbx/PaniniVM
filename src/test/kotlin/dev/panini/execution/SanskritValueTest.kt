@@ -1,4 +1,4 @@
-package dev.panini.execution
+﻿package dev.panini.execution
 
 import dev.panini.core.Karaka
 import kotlin.test.Test
@@ -46,10 +46,9 @@ class SanskritValueTest {
     }
 
     @Test
-    fun `factory creates Sankhya automatically for number words`() {
+    fun `factory does not guess Sankhya from surface text`() {
         val created = SanskritValue.of("पञ्च")
-        val sankhya = assertIs<SanskritValue.Sankhya>(created)
-        assertEquals(5L, sankhya.value)
+        assertIs<SanskritValue.Shabda>(created)
     }
 
     @Test
@@ -57,8 +56,8 @@ class SanskritValueTest {
         val context = ExecutionContext(
             bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.Coordination(
-                    ExecutionExpression.Pada("दश", setOf(ExecutionSamjna.SANKHYA)),
-                    ExecutionExpression.Pada("द्वि", setOf(ExecutionSamjna.SANKHYA)),
+                    ExecutionExpression.sankhya(10, "दश"),
+                    ExecutionExpression.sankhya(2, "द्वि"),
                 )
             )
         )
@@ -69,3 +68,4 @@ class SanskritValueTest {
         assertEquals(2L, assertIs<SanskritValue.Sankhya>(resolved[1]).value)
     }
 }
+

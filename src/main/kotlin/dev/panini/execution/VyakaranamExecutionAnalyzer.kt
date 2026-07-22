@@ -9,10 +9,12 @@ import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.vyakaranam.ast.*
 import dev.panini.vyakaranam.parser.PaniniParseException
 import dev.panini.vyakaranam.parser.PaniniParser
+import dev.panini.sankhya.SankhyaGenerator
 
 /** Converts the canonical annotated-vyākaraṇa AST into execution semantics. */
 object VyakaranamExecutionAnalyzer {
     private val parser = PaniniParser()
+    private val sankhyaGenerator = SankhyaGenerator()
 
     fun analyze(input: SanskritUktiInput, conversation: SambhashanaContext? = null): VakyaAnalysisResult {
         if (input.text.isBlank()) return VakyaAnalysisResult.Unsupported("The Sanskrit utterance is empty.")
@@ -131,9 +133,12 @@ object VyakaranamExecutionAnalyzer {
                 conversation?.resultHistory?.lastOrNull()?.id ?: conversation?.previousResults?.keys?.lastOrNull()
             if (id != null) return ExecutionExpression.Reference(id)
         }
+        val sankhyaValue = (pada.pratipadika as? MulaPratipadika)?.let {
+            sankhyaGenerator.annotatedPratipadikaValue(it.text)
+        }
         val samjnas = buildSet {
             add(ExecutionSamjna.SHABDA)
-            if (SanskritNumbers.valueOf(text) != null) add(ExecutionSamjna.SANKHYA)
+            if (sankhyaValue != null) add(ExecutionSamjna.SANKHYA)
             if (text in setOf("फल", "पूर्वफल")) add(ExecutionSamjna.REFERENCE)
             when (pada.pratipadika) {
                 is KridantaPratipadika -> add(ExecutionSamjna.KRIDANTA)
@@ -141,7 +146,11 @@ object VyakaranamExecutionAnalyzer {
                 else -> Unit
             }
         }
-        return ExecutionExpression.Pada(text, samjnas)
+        return if (sankhyaValue != null) {
+            ExecutionExpression.sankhya(sankhyaValue.longValueExact(), text)
+        } else {
+            ExecutionExpression.Pada(text, samjnas)
+        }
     }
 
     private fun Pratipadika.baseText(): String = when (this) {

@@ -10,6 +10,7 @@ sealed interface ExecutionResult {
         val value: String,
         val operation: String,
         override val trace: List<String> = emptyList(),
+        val typedValue: SanskritValue? = null,
     ) : ExecutionResult
 
     data class Failure(

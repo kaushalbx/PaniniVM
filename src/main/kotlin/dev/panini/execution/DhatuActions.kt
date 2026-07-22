@@ -3,9 +3,23 @@ package dev.panini.execution
 import dev.panini.core.Karaka
 import dev.panini.core.Vacana
 import dev.panini.core.Vibhakti
+import java.math.BigInteger
 
 fun interface DhatuAction {
     fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult
+}
+
+private val sankhyaResultRenderer = SankhyaCountingFormRenderer()
+
+private fun renderSankhyaResult(value: Int): String? {
+    if (value < 0) return null
+    return runCatching { sankhyaResultRenderer.render(BigInteger.valueOf(value.toLong())) }.getOrNull()
+}
+
+private fun ExecutionContext.resolveSankhyaValues(expression: ExecutionExpression): List<Int>? {
+    val values = resolveValues(expression)
+    if (values.any { it !is SanskritValue.Sankhya }) return null
+    return values.map { (it as SanskritValue.Sankhya).value.toInt() }
 }
 
 /** Addition over a coordinated expression of canonical Sanskrit number words. */
@@ -16,15 +30,13 @@ object SanskritAdditionAction : DhatuAction {
         val expression = requireNotNull(context.bindings[Karaka.KARMAN])
         val operands = context.resolve(expression)
 
-        val values = operands.map { operand ->
-            SanskritNumbers.valueOf(operand) ?: return ExecutionResult.Failure(
-                ExecutionError.INVALID_VALUE,
-                "'$operand' is not a supported canonical Sanskrit number word.",
-                listOf("Selected operation ${operation.id}."),
-            )
-        }
+        val values = context.resolveSankhyaValues(expression) ?: return ExecutionResult.Failure(
+            ExecutionError.INVALID_VALUE,
+            "The operand is not an annotated saṅkhyā value.",
+            listOf("Selected operation ${operation.id}."),
+        )
         val sum = values.sum()
-        val result = SanskritNumbers.wordFor(sum) ?: return ExecutionResult.Failure(
+        val result = renderSankhyaResult(sum) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The result $sum is outside the supported Sanskrit number vocabulary.",
             listOf("Resolved ${operands.joinToString(" + ")}.")
@@ -37,6 +49,7 @@ object SanskritAdditionAction : DhatuAction {
                 "Resolved ${operands.joinToString(" + ")}.",
                 "Produced $result.",
             ),
+            SanskritValue.Sankhya(sum.toLong(), result),
         )
     }
 }
@@ -49,13 +62,9 @@ object SanskritSubtractionAction : DhatuAction {
         val expression = requireNotNull(context.bindings[Karaka.KARMAN])
         val operands = context.resolve(expression)
 
-        val values = operands.map { operand ->
-            SanskritNumbers.valueOf(operand) ?: return ExecutionResult.Failure(
-                ExecutionError.INVALID_VALUE,
-                "'$operand' is not a supported canonical Sanskrit number word.",
-                listOf("Selected operation ${operation.id}."),
-            )
-        }
+        val values = context.resolveSankhyaValues(expression) ?: return ExecutionResult.Failure(
+            ExecutionError.INVALID_VALUE, "The operand is not an annotated saṅkhyā value."
+        )
         if (values.size < 2) {
             return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
@@ -64,7 +73,7 @@ object SanskritSubtractionAction : DhatuAction {
             )
         }
         val diff = values.drop(1).fold(values.first()) { acc, v -> acc - v }
-        val result = SanskritNumbers.wordFor(diff) ?: return ExecutionResult.Failure(
+        val result = renderSankhyaResult(diff) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The result $diff is outside the supported Sanskrit number vocabulary.",
             listOf("Resolved ${operands.joinToString(" - ")}.")
@@ -77,6 +86,7 @@ object SanskritSubtractionAction : DhatuAction {
                 "Resolved ${operands.joinToString(" - ")}.",
                 "Produced $result.",
             ),
+            SanskritValue.Sankhya(diff.toLong(), result),
         )
     }
 }
@@ -89,13 +99,9 @@ object SanskritDivisionAction : DhatuAction {
         val expression = requireNotNull(context.bindings[Karaka.KARMAN])
         val operands = context.resolve(expression)
 
-        val values = operands.map { operand ->
-            SanskritNumbers.valueOf(operand) ?: return ExecutionResult.Failure(
-                ExecutionError.INVALID_VALUE,
-                "'$operand' is not a supported canonical Sanskrit number word.",
-                listOf("Selected operation ${operation.id}."),
-            )
-        }
+        val values = context.resolveSankhyaValues(expression) ?: return ExecutionResult.Failure(
+            ExecutionError.INVALID_VALUE, "The operand is not an annotated saṅkhyā value."
+        )
         if (values.size < 2) {
             return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
@@ -111,7 +117,7 @@ object SanskritDivisionAction : DhatuAction {
             )
         }
         val quotient = values.drop(1).fold(values.first()) { acc, v -> acc / v }
-        val result = SanskritNumbers.wordFor(quotient) ?: return ExecutionResult.Failure(
+        val result = renderSankhyaResult(quotient) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The result $quotient is outside the supported Sanskrit number vocabulary.",
             listOf("Resolved ${operands.joinToString(" / ")}.")
@@ -124,6 +130,7 @@ object SanskritDivisionAction : DhatuAction {
                 "Resolved ${operands.joinToString(" / ")}.",
                 "Produced $result.",
             ),
+            SanskritValue.Sankhya(quotient.toLong(), result),
         )
     }
 }
@@ -136,13 +143,9 @@ object SanskritMultiplicationAction : DhatuAction {
         val expression = requireNotNull(context.bindings[Karaka.KARMAN])
         val operands = context.resolve(expression)
 
-        val values = operands.map { operand ->
-            SanskritNumbers.valueOf(operand) ?: return ExecutionResult.Failure(
-                ExecutionError.INVALID_VALUE,
-                "'$operand' is not a supported canonical Sanskrit number word.",
-                listOf("Selected operation ${operation.id}."),
-            )
-        }
+        val values = context.resolveSankhyaValues(expression) ?: return ExecutionResult.Failure(
+            ExecutionError.INVALID_VALUE, "The operand is not an annotated saṅkhyā value."
+        )
         if (values.size < 2) {
             return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
@@ -151,7 +154,7 @@ object SanskritMultiplicationAction : DhatuAction {
             )
         }
         val product = values.fold(1) { acc, v -> acc * v }
-        val result = SanskritNumbers.wordFor(product) ?: return ExecutionResult.Failure(
+        val result = renderSankhyaResult(product) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The result $product is outside the supported Sanskrit number vocabulary.",
             listOf("Resolved ${operands.joinToString(" * ")}.")
@@ -164,6 +167,7 @@ object SanskritMultiplicationAction : DhatuAction {
                 "Resolved ${operands.joinToString(" * ")}.",
                 "Produced $result.",
             ),
+            SanskritValue.Sankhya(product.toLong(), result),
         )
     }
 }
@@ -176,7 +180,7 @@ object SanskritCountingAction : DhatuAction {
         val expression = requireNotNull(context.bindings[Karaka.KARMAN])
         val operands = context.resolve(expression)
         val count = operands.size
-        val result = SanskritNumbers.wordFor(count) ?: return ExecutionResult.Failure(
+        val result = renderSankhyaResult(count) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The count $count is outside the supported Sanskrit number vocabulary.",
             listOf("Counted ${operands.size} elements."),
@@ -189,6 +193,7 @@ object SanskritCountingAction : DhatuAction {
                 "Counted ${operands.size} element(s).",
                 "Produced $result.",
             ),
+            SanskritValue.Sankhya(count.toLong(), result),
         )
     }
 }
@@ -341,13 +346,9 @@ object SanskritModuloAction : DhatuAction {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
         val expression = requireNotNull(context.bindings[Karaka.KARMAN])
         val operands = context.resolve(expression)
-        val values = operands.map { operand ->
-            SanskritNumbers.valueOf(operand) ?: return ExecutionResult.Failure(
-                ExecutionError.INVALID_VALUE,
-                "'$operand' is not a supported canonical Sanskrit number word.",
-                listOf("Selected operation ${operation.id}."),
-            )
-        }
+        val values = context.resolveSankhyaValues(expression) ?: return ExecutionResult.Failure(
+            ExecutionError.INVALID_VALUE, "The operand is not an annotated saṅkhyā value."
+        )
         if (values.size < 2) {
             return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
@@ -364,7 +365,7 @@ object SanskritModuloAction : DhatuAction {
             )
         }
         val rem = values[0] % divisor
-        val result = SanskritNumbers.wordFor(rem) ?: return ExecutionResult.Failure(
+        val result = renderSankhyaResult(rem) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The result $rem is outside the supported Sanskrit number vocabulary.",
             listOf("Resolved ${operands[0]} % ${operands[1]}.")
@@ -377,6 +378,7 @@ object SanskritModuloAction : DhatuAction {
                 "Resolved ${operands[0]} % ${operands[1]}.",
                 "Produced $result.",
             ),
+            SanskritValue.Sankhya(rem.toLong(), result),
         )
     }
 }
@@ -388,13 +390,9 @@ object SanskritExponentiationAction : DhatuAction {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
         val expression = requireNotNull(context.bindings[Karaka.KARMAN])
         val operands = context.resolve(expression)
-        val values = operands.map { operand ->
-            SanskritNumbers.valueOf(operand) ?: return ExecutionResult.Failure(
-                ExecutionError.INVALID_VALUE,
-                "'$operand' is not a supported canonical Sanskrit number word.",
-                listOf("Selected operation ${operation.id}."),
-            )
-        }
+        val values = context.resolveSankhyaValues(expression) ?: return ExecutionResult.Failure(
+            ExecutionError.INVALID_VALUE, "The operand is not an annotated saṅkhyā value."
+        )
         if (values.size < 2) {
             return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
@@ -408,7 +406,7 @@ object SanskritExponentiationAction : DhatuAction {
         for (i in 0 until exp) {
             pow *= base
         }
-        val result = SanskritNumbers.wordFor(pow) ?: return ExecutionResult.Failure(
+        val result = renderSankhyaResult(pow) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The result $pow ($base^$exp) is outside the supported Sanskrit number vocabulary.",
             listOf("Resolved $base ^ $exp.")
@@ -421,6 +419,7 @@ object SanskritExponentiationAction : DhatuAction {
                 "Resolved $base ^ $exp.",
                 "Produced $result.",
             ),
+            SanskritValue.Sankhya(pow.toLong(), result),
         )
     }
 }
@@ -432,13 +431,9 @@ object SanskritComparisonAction : DhatuAction {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
         val expression = requireNotNull(context.bindings[Karaka.KARMAN])
         val operands = context.resolve(expression)
-        val values = operands.map { operand ->
-            SanskritNumbers.valueOf(operand) ?: return ExecutionResult.Failure(
-                ExecutionError.INVALID_VALUE,
-                "'$operand' is not a supported canonical Sanskrit number word.",
-                listOf("Selected operation ${operation.id}."),
-            )
-        }
+        val values = context.resolveSankhyaValues(expression) ?: return ExecutionResult.Failure(
+            ExecutionError.INVALID_VALUE, "The operand is not an annotated saṅkhyā value."
+        )
         if (values.isEmpty()) {
             return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
@@ -447,7 +442,7 @@ object SanskritComparisonAction : DhatuAction {
             )
         }
         val maxVal = values.maxOrNull() ?: 0
-        val result = SanskritNumbers.wordFor(maxVal) ?: return ExecutionResult.Failure(
+        val result = renderSankhyaResult(maxVal) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The max result $maxVal is outside the supported Sanskrit number vocabulary.",
             listOf("Compared ${operands.joinToString()}."),
@@ -460,6 +455,7 @@ object SanskritComparisonAction : DhatuAction {
                 "Compared ${operands.joinToString()}.",
                 "Produced $result.",
             ),
+            SanskritValue.Sankhya(maxVal.toLong(), result),
         )
     }
 }
@@ -476,9 +472,9 @@ object SanskritSquareRootAction : DhatuAction {
             "Square root requires a number operand in KARMAN.",
             listOf("Selected operation ${operation.id}."),
         )
-        val value = SanskritNumbers.valueOf(inputStr) ?: return ExecutionResult.Failure(
+        val value = context.resolveSankhyaValues(expression)?.firstOrNull() ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
-            "'$inputStr' is not a supported canonical Sanskrit number word.",
+            "'$inputStr' is not an annotated saṅkhyā value.",
             listOf("Selected operation ${operation.id}."),
         )
         if (value < 0) {
@@ -489,7 +485,7 @@ object SanskritSquareRootAction : DhatuAction {
             )
         }
         val root = kotlin.math.sqrt(value.toDouble()).toInt()
-        val result = SanskritNumbers.wordFor(root) ?: return ExecutionResult.Failure(
+        val result = renderSankhyaResult(root) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The root result $root is outside the supported Sanskrit number vocabulary.",
             listOf("Sqrt($value).")
@@ -502,6 +498,7 @@ object SanskritSquareRootAction : DhatuAction {
                 "Calculated sqrt($value).",
                 "Produced $result.",
             ),
+            SanskritValue.Sankhya(root.toLong(), result),
         )
     }
 }
@@ -513,13 +510,9 @@ object SanskritAverageAction : DhatuAction {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
         val expression = requireNotNull(context.bindings[Karaka.KARMAN])
         val operands = context.resolve(expression)
-        val values = operands.map { operand ->
-            SanskritNumbers.valueOf(operand) ?: return ExecutionResult.Failure(
-                ExecutionError.INVALID_VALUE,
-                "'$operand' is not a supported canonical Sanskrit number word.",
-                listOf("Selected operation ${operation.id}."),
-            )
-        }
+        val values = context.resolveSankhyaValues(expression) ?: return ExecutionResult.Failure(
+            ExecutionError.INVALID_VALUE, "The operand is not an annotated saṅkhyā value."
+        )
         if (values.isEmpty()) {
             return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
@@ -528,7 +521,7 @@ object SanskritAverageAction : DhatuAction {
             )
         }
         val avg = values.sum() / values.size
-        val result = SanskritNumbers.wordFor(avg) ?: return ExecutionResult.Failure(
+        val result = renderSankhyaResult(avg) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The average result $avg is outside the supported Sanskrit number vocabulary.",
             listOf("Averaged ${operands.joinToString()}."),
@@ -541,6 +534,7 @@ object SanskritAverageAction : DhatuAction {
                 "Averaged ${operands.joinToString()}.",
                 "Produced $result.",
             ),
+            SanskritValue.Sankhya(avg.toLong(), result),
         )
     }
 }
@@ -552,13 +546,9 @@ object SanskritFractionAction : DhatuAction {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
         val expression = requireNotNull(context.bindings[Karaka.KARMAN])
         val operands = context.resolve(expression)
-        val values = operands.map { operand ->
-            SanskritNumbers.valueOf(operand) ?: return ExecutionResult.Failure(
-                ExecutionError.INVALID_VALUE,
-                "'$operand' is not a supported canonical Sanskrit number word.",
-                listOf("Selected operation ${operation.id}."),
-            )
-        }
+        val values = context.resolveSankhyaValues(expression) ?: return ExecutionResult.Failure(
+            ExecutionError.INVALID_VALUE, "The operand is not an annotated saṅkhyā value."
+        )
         if (values.size < 2) {
             return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
@@ -575,7 +565,7 @@ object SanskritFractionAction : DhatuAction {
             if (divisor == 0) return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Division by zero in fraction.", listOf("Selected operation ${operation.id}."))
             values[0] / divisor
         }
-        val result = SanskritNumbers.wordFor(res) ?: return ExecutionResult.Failure(
+        val result = renderSankhyaResult(res) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The fraction result $res is outside the supported Sanskrit number vocabulary.",
             listOf("Calculated fraction/proportion."),
@@ -588,6 +578,7 @@ object SanskritFractionAction : DhatuAction {
                 "Calculated ratio/proportion ${operands.joinToString()}.",
                 "Produced $result.",
             ),
+            SanskritValue.Sankhya(res.toLong(), result),
         )
     }
 }
@@ -599,13 +590,9 @@ object SanskritMinAction : DhatuAction {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
         val expression = requireNotNull(context.bindings[Karaka.KARMAN])
         val operands = context.resolve(expression)
-        val values = operands.map { operand ->
-            SanskritNumbers.valueOf(operand) ?: return ExecutionResult.Failure(
-                ExecutionError.INVALID_VALUE,
-                "'$operand' is not a supported canonical Sanskrit number word.",
-                listOf("Selected operation ${operation.id}."),
-            )
-        }
+        val values = context.resolveSankhyaValues(expression) ?: return ExecutionResult.Failure(
+            ExecutionError.INVALID_VALUE, "The operand is not an annotated saṅkhyā value."
+        )
         if (values.isEmpty()) {
             return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
@@ -614,7 +601,7 @@ object SanskritMinAction : DhatuAction {
             )
         }
         val minVal = values.minOrNull() ?: 0
-        val result = SanskritNumbers.wordFor(minVal) ?: return ExecutionResult.Failure(
+        val result = renderSankhyaResult(minVal) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The min result $minVal is outside the supported Sanskrit number vocabulary.",
             listOf("Calculated minimum of ${operands.joinToString()}."),
@@ -627,6 +614,7 @@ object SanskritMinAction : DhatuAction {
                 "Found minimum among ${operands.joinToString()}.",
                 "Produced $result.",
             ),
+            SanskritValue.Sankhya(minVal.toLong(), result),
         )
     }
 }
@@ -763,11 +751,5 @@ object BahyaSendAction : DhatuAction {
         )
     }
 }
-
-
-
-
-
-
 
 

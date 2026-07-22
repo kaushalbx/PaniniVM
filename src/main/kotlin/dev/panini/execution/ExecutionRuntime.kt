@@ -18,6 +18,7 @@ object ExecutionRuntime {
                 values = scope.variables,
                 valueSamjnas = scope.variableSamjnas,
                 trace = emptyList(),
+                typedValues = emptyMap(),
             ),
             scope,
         )
@@ -27,6 +28,7 @@ object ExecutionRuntime {
         val values = (scope.variables + continuation.values).toMutableMap()
         val valueSamjnas = (scope.variableSamjnas + continuation.valueSamjnas).toMutableMap()
         val trace = continuation.trace.toMutableList()
+        val typedValues = continuation.typedValues.toMutableMap()
         val plans = continuation.planning.plans
         for (index in continuation.nextPlanIndex until plans.size) {
             val plan = plans[index]
@@ -36,6 +38,7 @@ object ExecutionRuntime {
                 values.toMap(),
                 valueSamjnas.toMap(),
                 trace.toList(),
+                typedValues.toMap(),
             )
             when (val authority = AuthorityPolicy.authorize(plan, scope)) {
                 AuthorityDecision.Authorized -> Unit
@@ -52,11 +55,15 @@ object ExecutionRuntime {
                 )
                 is AuthorityDecision.Denied -> return Phala.Nirasta(plan.invocationId, authority.reason)
             }
-            val refreshedContext = plan.resolved.invocation.executionContext(values, valueSamjnas)
+            val untypedValues = values.mapValues { (name, value) ->
+                SanskritValue.of(value, valueSamjnas[name].orEmpty())
+            }
+            val refreshedContext = plan.resolved.invocation.executionContext(untypedValues + typedValues)
             when (val result = plan.resolved.operation.action.execute(refreshedContext, plan.resolved.operation)) {
                 is ExecutionResult.Success -> {
                     values[plan.invocationId] = result.value
                     valueSamjnas[plan.invocationId] = plan.resolved.operation.resultSamjnas
+                    result.typedValue?.let { typedValues[plan.invocationId] = it }
                     trace += plan.resolved.resolutionTrace + result.trace
                 }
                 else -> return Phala.Asiddha(result, trace + result.trace)
@@ -67,6 +74,7 @@ object ExecutionRuntime {
             values.filterKeys { it in invocationIds },
             valueSamjnas.filterKeys { it in invocationIds },
             trace,
+            typedValues.filterKeys { it in invocationIds },
         )
     }
 }

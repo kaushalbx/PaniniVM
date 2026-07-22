@@ -56,21 +56,10 @@ class FileStateStore(private val storageDir: File) : StateStore {
         val entitiesMap = extractJsonMap(json, "mentionedEntities")
         val previousResultsMap = extractJsonMap(json, "previousResults")
 
-        val entitySamjnas = entitiesMap.mapValues { (_, v) ->
-            if (v.toLongOrNull() != null || dev.panini.execution.SanskritNumbers.valueOf(v) != null) {
-                setOf(ExecutionSamjna.SANKHYA)
-            } else {
-                setOf(ExecutionSamjna.SHABDA)
-            }
-        }
-
-        val previousSamjnas = previousResultsMap.mapValues { (_, v) ->
-            if (v.toLongOrNull() != null || dev.panini.execution.SanskritNumbers.valueOf(v) != null) {
-                setOf(ExecutionSamjna.SANKHYA)
-            } else {
-                setOf(ExecutionSamjna.SHABDA)
-            }
-        }
+        // This legacy file format stores display text only. Do not guess runtime
+        // types by reverse-parsing Sanskrit surface forms.
+        val entitySamjnas = entitiesMap.mapValues { setOf(ExecutionSamjna.SHABDA) }
+        val previousSamjnas = previousResultsMap.mapValues { setOf(ExecutionSamjna.SHABDA) }
 
         return SambhashanaContext(
             speaker = speakerStr,
