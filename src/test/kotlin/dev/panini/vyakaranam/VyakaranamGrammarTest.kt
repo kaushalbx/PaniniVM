@@ -10,7 +10,15 @@ import dev.panini.dhatupatha.bhvadi.PalayDhatu
 import dev.panini.dhatupatha.juhotyadi.DaDhatu
 import dev.panini.dhatupatha.tudadi.LikhDhatu
 import dev.panini.dhatupatha.rudhadi.YujirDhatu
+import dev.panini.core.Prayoga
+import dev.panini.core.Vibhakti
 import dev.panini.vyakaranam.analysis.AnalyzedSamuccita
+import dev.panini.vyakaranam.analysis.DhatuIdentity
+import dev.panini.vyakaranam.analysis.KarakaRuleContext
+import dev.panini.vyakaranam.analysis.KarakaRuleEngine
+import dev.panini.vyakaranam.analysis.ParticipantFacts
+import dev.panini.vyakaranam.analysis.SemanticRelation
+import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.lexicon.InMemoryVyakaranamLexicon
 import dev.panini.vyakaranam.lexicon.PratipadikaEntry
 import org.antlr.v4.runtime.BaseErrorListener
@@ -110,6 +118,67 @@ class VyakaranamGrammarTest {
 
         val recipient = vakyas.karakas.single { it.pada.sourceText.startsWith("राम") }
         assertEquals(Karaka.SAMPRADANA, recipient.karaka)
+    }
+
+    @Test
+    fun `verifies general karaka sutras and explicit anabhihite governing behavior`() {
+        val possible = setOf(Vibhakti.PRATHAMA, Vibhakti.DVITIYA, Vibhakti.TRTIYA, Vibhakti.SAPTAMI)
+        
+        // 1.4.45 (Adhikarana)
+        val locContext = KarakaRuleContext(
+            dhatu = DhatuIdentity("स्था"),
+            participant = ParticipantFacts("p1", AvyayaPada("गृहे", "गृहे"), possible, setOf(SemanticRelation.LOCATION)),
+            allParticipants = emptyList(),
+            prayoga = Prayoga.KARTARI,
+        )
+        val locRes = KarakaRuleEngine.resolve(locContext)
+        assertEquals(Karaka.ADHIKARANA, locRes.resolved)
+        assertTrue(locRes.evidence.any { it.sutra == "1.4.45" })
+
+        // 1.4.49 (Karma)
+        val objContext = KarakaRuleContext(
+            dhatu = DhatuIdentity("कृ"),
+            participant = ParticipantFacts("p2", AvyayaPada("कटम्", "कटम्"), possible, setOf(SemanticRelation.DESIRED_OBJECT)),
+            allParticipants = emptyList(),
+            prayoga = Prayoga.KARTARI,
+        )
+        val objRes = KarakaRuleEngine.resolve(objContext)
+        assertEquals(Karaka.KARMAN, objRes.resolved)
+        assertTrue(objRes.evidence.any { it.sutra == "1.4.49" })
+        assertTrue(objRes.evidence.any { it.sutra == "2.3.2" })
+
+        // 2.3.1 (Anabhihite - Abhihita Karma in Karmani Prayoga gets Prathama via 2.3.1 blocking)
+        val abhihitaObjContext = KarakaRuleContext(
+            dhatu = DhatuIdentity("कृ"),
+            participant = ParticipantFacts("p3", AvyayaPada("कटः", "कटः"), setOf(Vibhakti.PRATHAMA, Vibhakti.DVITIYA), setOf(SemanticRelation.DESIRED_OBJECT)),
+            allParticipants = emptyList(),
+            prayoga = Prayoga.KARMANI,
+        )
+        val abhihitaRes = KarakaRuleEngine.resolve(abhihitaObjContext)
+        assertEquals(Karaka.KARMAN, abhihitaRes.resolved)
+        assertTrue(abhihitaRes.evidence.any { it.sutra == "2.3.1" })
+
+        // 1.4.54 (Svatantrah Karta)
+        val agentContext = KarakaRuleContext(
+            dhatu = DhatuIdentity("पच्"),
+            participant = ParticipantFacts("p4", AvyayaPada("देवदत्तभ्", "देवदत्तः"), possible, setOf(SemanticRelation.INDEPENDENT_AGENT)),
+            allParticipants = emptyList(),
+            prayoga = Prayoga.KARTARI,
+        )
+        val agentRes = KarakaRuleEngine.resolve(agentContext)
+        assertEquals(Karaka.KARTR, agentRes.resolved)
+        assertTrue(agentRes.evidence.any { it.sutra == "1.4.54" })
+
+        // 1.4.55 (Tat Prayojako Hetus Ca)
+        val causeContext = KarakaRuleContext(
+            dhatu = DhatuIdentity("कारयति"),
+            participant = ParticipantFacts("p5", AvyayaPada("यज्ञदत्तः", "यज्ञदत्तः"), possible, setOf(SemanticRelation.PROMPTER_CAUSE)),
+            allParticipants = emptyList(),
+            prayoga = Prayoga.CAUSATIVE,
+        )
+        val causeRes = KarakaRuleEngine.resolve(causeContext)
+        assertEquals(Karaka.KARTR, causeRes.resolved)
+        assertTrue(causeRes.evidence.any { it.sutra == "1.4.55" })
     }
 
     private fun assertParsesUkti(source: String) {

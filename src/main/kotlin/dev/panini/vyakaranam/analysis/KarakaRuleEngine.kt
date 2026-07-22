@@ -1,8 +1,13 @@
 package dev.panini.vyakaranam.analysis
 
+import dev.panini.ashtadhyayi.adhyaya1.pada4.AdharoAdhikaranamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.DhruvamApayeApadanamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.KarmanaYamAbhipraitiSampradanamSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada4.KarturIpsitatamamKarmaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.SadhakatamamKaranamSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada4.SvatantrahKartaSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada4.TatPrayojakoHetusCaSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada3.AnabhihiteSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.ApadanePancamiSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.ChaturthiSampradaneSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.KarmaniDvitiyaSutra
@@ -62,9 +67,14 @@ object KarakaRuleEngine {
         DhruvamApayeApadanamSutra,
         KarmanaYamAbhipraitiSampradanamSutra,
         SadhakatamamKaranamSutra,
+        AdharoAdhikaranamSutra,
+        KarturIpsitatamamKarmaSutra,
+        SvatantrahKartaSutra,
+        TatPrayojakoHetusCaSutra,
     ).sortedBy { it.krama }
 
     val vibhaktiRules: List<Sutra<VibhaktiRuleContext, VibhaktiRuleResult>> = listOf(
+        AnabhihiteSutra,
         KarmaniDvitiyaSutra,
         ChaturthiSampradaneSutra,
         KartrkaranayostrtiyaSutra,
@@ -86,7 +96,14 @@ object KarakaRuleEngine {
         val evidence = buildList {
             semantic?.let { add(it.evidence) }
             resolved?.let { karaka ->
-                val vibhaktiContext = VibhaktiRuleContext(karaka, possibleVibhaktis)
+                val isAbhihita = when (context.prayoga) {
+                    Prayoga.KARTARI -> karaka == Karaka.KARTR
+                    Prayoga.KARMANI -> karaka == Karaka.KARMAN
+                    Prayoga.CAUSATIVE -> karaka == Karaka.KARTR
+                    Prayoga.BHAVE -> false
+                    Prayoga.ANIRDHARITA -> false
+                }
+                val vibhaktiContext = VibhaktiRuleContext(karaka, possibleVibhaktis, abhihita = isAbhihita)
                 val assignment = vibhaktiRules.firstOrNull { it.matches(vibhaktiContext) }
                     ?.apply(vibhaktiContext) as? VibhaktiRuleResult.Assigned
                 assignment?.let { add(it.evidence) }

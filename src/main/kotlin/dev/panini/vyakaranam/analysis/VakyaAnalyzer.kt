@@ -91,18 +91,16 @@ class VakyaAnalyzer(
     private fun inferPrayoga(
         tinganta: TingantaAnalysis,
     ): Prayoga {
-        /*
-         * Ātmanepada does not by itself mean karmani-prayoga.
-         *
-         * The real decision must be made from:
-         * - lakāra
-         * - yak/cin or other derivational markers
-         * - dhātu properties
-         * - derivation trace
-         *
-         * Therefore the basic segmented input cannot always determine
-         * prayoga conclusively.
-         */
+        val text = tinganta.pada.sourceText
+        val isCausative = text.contains("णिच्") || text.contains("इ") || text.contains("यि")
+        if (isCausative) return Prayoga.CAUSATIVE
+
+        val isKarmaniOrBhave = text.contains("यक्") || text.contains("चिण्")
+        if (isKarmaniOrBhave) {
+            val isAkarmaka = tinganta.lexicalEntry?.karmatva == dev.panini.shiksha.Karmatva.AKARMAKA
+            return if (isAkarmaka) Prayoga.BHAVE else Prayoga.KARMANI
+        }
+
         return Prayoga.KARTARI
     }
 

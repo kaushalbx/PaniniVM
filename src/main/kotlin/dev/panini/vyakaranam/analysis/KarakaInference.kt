@@ -35,6 +35,16 @@ object KarakaInference {
                 Vibhakti.DVITIYA -> null
             }
 
+            Prayoga.CAUSATIVE -> when (vibhakti) {
+                Vibhakti.PRATHAMA -> Karaka.KARTR
+                Vibhakti.DVITIYA -> Karaka.KARMAN.takeIf { sakarmaka }
+                Vibhakti.TRTIYA -> Karaka.KARTR
+                Vibhakti.CHATURTHI -> Karaka.SAMPRADANA
+                Vibhakti.PANCHAMI -> Karaka.APADANA
+                Vibhakti.SASTHI -> Karaka.SAMBANDHA
+                Vibhakti.SAPTAMI -> Karaka.ADHIKARANA
+            }
+
             Prayoga.BHAVE,
             Prayoga.ANIRDHARITA,
                 -> null

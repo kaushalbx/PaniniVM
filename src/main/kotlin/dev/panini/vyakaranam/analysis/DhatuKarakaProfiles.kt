@@ -1,6 +1,14 @@
 package dev.panini.vyakaranam.analysis
 
-enum class SemanticRelation { RECIPIENT, INSTRUMENT, SOURCE }
+enum class SemanticRelation {
+    RECIPIENT,
+    INSTRUMENT,
+    SOURCE,
+    LOCATION,
+    DESIRED_OBJECT,
+    INDEPENDENT_AGENT,
+    PROMPTER_CAUSE,
+}
 
 data class DhatuKarakaProfile(
     val surfaces: Set<String>,
