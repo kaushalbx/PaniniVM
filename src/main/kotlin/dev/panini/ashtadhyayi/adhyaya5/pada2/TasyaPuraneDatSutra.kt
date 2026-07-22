@@ -37,6 +37,7 @@ object TasyaPuraneDatSutra : Sutra<DerivationState, DerivationChange>(
         ) || lastTerm.upadesha in setOf(
             "विंशति", "त्रिंशत्", "चत्वारिंशत्", "पञ्चाशत्",
             "षष्टि", "सप्तति", "अशीति", "नवति",
+            "शत", "सहस्र", "अयुत", "लक्ष", "प्रयुत", "कोटि",
         )
         return hasPuranaRequest && !isAlreadyApplied && supportedBase
     }

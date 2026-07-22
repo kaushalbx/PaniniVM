@@ -10,6 +10,7 @@ import dev.panini.ashtadhyayi.adhyaya6.pada4.TehSutra
 import dev.panini.ashtadhyayi.adhyaya5.pada2.TasyaPuraneDatSutra
 import dev.panini.ashtadhyayi.adhyaya5.pada2.VimshatyadibhyasTamadAnyatarasyamSutra
 import dev.panini.ashtadhyayi.adhyaya5.pada2.ShashtyadeshCasankhyadehSutra
+import dev.panini.ashtadhyayi.adhyaya5.pada2.NityamShatadiSutra
 import dev.panini.derivation.*
 import dev.panini.shiksha.Samjna
 import java.math.BigInteger
@@ -27,6 +28,7 @@ class PuranaSankhyaGenerator(
             NantadAsankhyaderMatSutra,
             TasyaPuraneDatSutra,
             VimshatyadibhyasTamadAnyatarasyamSutra,
+            NityamShatadiSutra,
             ShashtyadeshCasankhyadehSutra,
         )
     )
@@ -89,9 +91,7 @@ class PuranaSankhyaGenerator(
     }
 
     private fun requireSupported(value: BigInteger) {
-        require(value in BigInteger.ONE..BigInteger.valueOf(99)) {
-            "Pūraṇa derivation is currently complete only for 1–99: $value"
-        }
+        require(value.signum() > 0) { "Pūraṇa numerals require a positive cardinal: $value" }
     }
 
     fun generateSurface(value: BigInteger): String = generate(value).final.surface

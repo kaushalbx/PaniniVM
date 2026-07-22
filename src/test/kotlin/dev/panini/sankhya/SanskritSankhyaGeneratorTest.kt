@@ -210,6 +210,25 @@ class SanskritSankhyaGeneratorTest {
     }
 
     @Test
+    fun `makes tamat obligatory for shatadi ordinals and their compounds`() {
+        val sut = SanskritSankhyaGenerator()
+        val values = listOf(100L, 101L, 124L, 200L, 999L, 1_000L, 1_001L, 10_000L, 100_000L, 1_000_000L, 10_000_000L, 10_000_001L)
+
+        values.forEach { number ->
+            val value = BigInteger.valueOf(number)
+            val expected = "${sut.generateSurface(value)}तम"
+            val variants = sut.generateOrdinalVariants(value)
+
+            assertEquals(setOf(expected), variants.map { it.final.surface }.toSet(), "$number")
+            assertTrue(variants.all { result -> result.applications.any { it.sutra == "5.2.48" } }, "$number")
+            assertTrue(variants.all { result -> result.applications.any { it.sutra == "5.2.57" } }, "$number")
+            assertEquals(expected, sut.generateOrdinalSurface(value), "$number default")
+        }
+
+        assertFailsWith<IllegalArgumentException> { sut.generateOrdinal(BigInteger.ZERO) }
+    }
+
+    @Test
     fun `generates gender declensions for numbers`() {
         assertEquals("एकः", generator.generateDeclined(BigInteger.ONE, Linga.PUMS, Vibhakti.PRATHAMA))
         assertEquals("एका", generator.generateDeclined(BigInteger.ONE, Linga.STRI, Vibhakti.PRATHAMA))
