@@ -1,7 +1,15 @@
 package dev.panini.execution
 
 object ExecutionRuntime {
-    fun execute(planning: PlanningResult.Planned, scope: ExecutionScope): Phala {
+    fun execute(
+        planning: PlanningResult.Planned,
+        scope: ExecutionScope,
+        environment: ValueEnvironment = ValueEnvironment.from(
+            scope.variables,
+            scope.variableSamjnas,
+            scope.typedVariables,
+        ),
+    ): Phala {
         if (planning.plans.any { it.disposition !in setOf(ExecutionDisposition.EXECUTE, ExecutionDisposition.REQUEST_EXECUTION) }) {
             val disposition = requireNotNull(planning.plans.firstOrNull()?.disposition)
             return Phala.Avagata(
@@ -15,30 +23,25 @@ object ExecutionRuntime {
             ExecutionContinuation(
                 planning,
                 nextPlanIndex = 0,
-                values = scope.variables,
-                valueSamjnas = scope.variableSamjnas,
+                environment = environment,
                 trace = emptyList(),
-                typedValues = scope.typedVariables,
             ),
             scope,
         )
     }
 
     fun resume(continuation: ExecutionContinuation, scope: ExecutionScope): Phala {
-        val values = (scope.variables + continuation.values).toMutableMap()
-        val valueSamjnas = (scope.variableSamjnas + continuation.valueSamjnas).toMutableMap()
+        val values = ValueEnvironment.from(scope.variables, scope.variableSamjnas, scope.typedVariables)
+            .mergedWith(continuation.environment).values.toMutableMap()
         val trace = continuation.trace.toMutableList()
-        val typedValues = (scope.typedVariables + continuation.typedValues).toMutableMap()
         val plans = continuation.planning.plans
         for (index in continuation.nextPlanIndex until plans.size) {
             val plan = plans[index]
             val paused = ExecutionContinuation(
                 continuation.planning,
                 index,
-                values.toMap(),
-                valueSamjnas.toMap(),
+                ValueEnvironment(values.toMap()),
                 trace.toList(),
-                typedValues.toMap(),
             )
             when (val authority = AuthorityPolicy.authorize(plan, scope)) {
                 AuthorityDecision.Authorized -> Unit
@@ -55,30 +58,29 @@ object ExecutionRuntime {
                 )
                 is AuthorityDecision.Denied -> return Phala.Nirasta(plan.invocationId, authority.reason)
             }
-            val untypedValues = values.mapValues { (name, value) ->
-                SanskritValue.of(value, valueSamjnas[name].orEmpty())
-            }
             val refreshedContext = plan.resolved.invocation.executionContext(
-                untypedValues + typedValues,
+                values,
                 scope.stateStore,
                 scope.externalDispatcher,
             )
             when (val result = plan.resolved.operation.action.execute(refreshedContext, plan.resolved.operation)) {
                 is ExecutionResult.Success -> {
-                    values[plan.invocationId] = result.value
-                    valueSamjnas[plan.invocationId] = plan.resolved.operation.resultSamjnas
-                    result.typedValue?.let { typedValues[plan.invocationId] = it }
+                    values[plan.invocationId] = result.typedValue ?: SanskritValue.of(
+                        result.value,
+                        plan.resolved.operation.resultSamjnas,
+                    )
                     trace += plan.resolved.resolutionTrace + result.trace
                 }
                 else -> return Phala.Asiddha(result, trace + result.trace)
             }
         }
         val invocationIds = continuation.planning.plans.mapTo(mutableSetOf()) { it.invocationId }
+        val results = ValueEnvironment(values.filterKeys { it in invocationIds })
         return Phala.Siddha(
-            values.filterKeys { it in invocationIds },
-            valueSamjnas.filterKeys { it in invocationIds },
+            results.displayValues(),
+            results.samjnas(),
             trace,
-            typedValues.filterKeys { it in invocationIds },
+            results.values,
         )
     }
 }

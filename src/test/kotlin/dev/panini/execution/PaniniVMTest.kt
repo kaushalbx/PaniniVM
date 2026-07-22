@@ -32,6 +32,13 @@ class PaniniVMTest {
     }
 
     @Test
+    fun `parsed vi upasarga selects yuj subtraction`() {
+        val result = vm.eval("त्रि + अम् एक + औट् च वि + युज् + णिच् + लोट् + सिप् ।")
+        val success = assertIs<ExecutionResult.Success>(result, result.toString())
+        assertEquals("द्वे", success.value)
+    }
+
+    @Test
     fun `PaniniVM evaluates multi-clause chain and persists session`() {
         val res1 = vm.eval("दश + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।", sessionKey = "session_math")
         assertIs<ExecutionResult.Success>(res1)

@@ -4,8 +4,6 @@ package dev.panini.execution
 data class ExecutionContinuation(
     val planning: PlanningResult.Planned,
     val nextPlanIndex: Int,
-    val values: Map<String, String>,
-    val valueSamjnas: Map<String, Set<ExecutionSamjna>>,
+    val environment: ValueEnvironment,
     val trace: List<String>,
-    val typedValues: Map<String, SanskritValue> = emptyMap(),
 )

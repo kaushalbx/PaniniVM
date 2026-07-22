@@ -30,22 +30,20 @@ object BhashaExecutionEngine {
             )
         }
         val program = BhashaProgram(ukti, ukti.dependencies)
-        val historicalValues = conversation.resultHistory.associate { it.id to it.value }
-        val historicalSamjnas = conversation.resultHistory.associate { it.id to it.samjnas }
-        val historicalTypedValues = conversation.resultHistory.mapNotNull { result ->
-            result.typedValue?.let { result.id to it }
-        }.toMap()
-        val variables = historicalValues + conversation.mentionedEntities + conversation.previousResults + scope.variables
-        val variableSamjnas = conversation.mentionedEntitySamjnas +
-            historicalSamjnas + conversation.previousResultSamjnas + scope.variableSamjnas
-        val typedVariables = historicalTypedValues + conversation.previousTypedResults + scope.typedVariables
-        return when (val planning = ExecutionPlanner.plan(program, variables, variableSamjnas, typedVariables)) {
+        val historicalValues = conversation.resultHistory.associate { result ->
+            result.id to (result.typedValue ?: SanskritValue.of(result.value, result.samjnas))
+        }
+        val variableSamjnas = conversation.mentionedEntitySamjnas + conversation.previousResultSamjnas + scope.variableSamjnas
+        val environment = ValueEnvironment.from(
+            displayValues = conversation.mentionedEntities + conversation.previousResults + scope.variables,
+            samjnas = variableSamjnas,
+            typedValues = historicalValues + conversation.previousTypedResults + scope.typedVariables,
+        )
+        return when (val planning = ExecutionPlanner.plan(program, environment)) {
             is PlanningResult.Planned -> ExecutionRuntime.execute(
-                planning, scope.copy(
-                    variables = variables,
-                    variableSamjnas = variableSamjnas,
-                    typedVariables = typedVariables,
-                ),
+                planning,
+                scope,
+                environment,
             )
             is PlanningResult.Failed -> Phala.Asiddha(planning.result, emptyList())
         }

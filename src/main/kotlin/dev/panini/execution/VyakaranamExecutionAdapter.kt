@@ -167,26 +167,18 @@ object VyakaranamExecutionAdapter {
 
     private fun resolveDhatu(tinganta: TingantaPada): Dhatu? {
         val text = tinganta.dhatu.mulaDhatu
-        val matches = DhatuPatha.all.filter {
-            it.upadesha == text || it.derivationalSurface == text || it.id == text
-        }
-        return matches.firstOrNull { DhatuOperationRegistry.DEFAULT.operationsFor(it).isNotEmpty() }
-            ?: DhatuPatha.findByUpadesha(text).firstOrNull {
-                DhatuOperationRegistry.DEFAULT.operationsFor(it).isNotEmpty()
+        val normalizedText = text.normalizeDhatuSurface()
+        return DhatuPatha.all.asSequence()
+            .filter(DhatuOperationRegistry.DEFAULT::isExecutable)
+            .firstOrNull { dhatu ->
+                text == dhatu.id ||
+                    text == dhatu.upadesha ||
+                    text == dhatu.derivationalSurface ||
+                    normalizedText == dhatu.upadesha.normalizeDhatuSurface() ||
+                    normalizedText == dhatu.derivationalSurface.normalizeDhatuSurface()
             }
-            ?: explicitDhatu(text)
     }
 
-    private fun explicitDhatu(text: String): Dhatu? = when {
-        text.startsWith("युज्") -> DhatuPatha.find("07.0007")
-        text.startsWith("गण") -> DhatuPatha.find("10.0391")
-        text.startsWith("हृ") -> DhatuPatha.find("01.0002")
-        text.startsWith("कृ") -> DhatuPatha.find("08.0010")
-        text.startsWith("भज") -> DhatuPatha.find("01.1153")
-        text.startsWith("दा") -> DhatuPatha.find("03.0010")
-        text.startsWith("दृश्") -> DhatuPatha.find("01.1143")
-        text.startsWith("प्रेष") -> DhatuPatha.find("10.0509")
-        else -> null
-    }
+    private fun String.normalizeDhatuSurface(): String = trimEnd('्', 'ँ')
 
 }

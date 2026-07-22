@@ -3,17 +3,11 @@ package dev.panini.execution
 object ExecutionPlanner {
     fun plan(
         program: BhashaProgram,
-        variables: Map<String, String>,
-        variableSamjnas: Map<String, Set<ExecutionSamjna>> = emptyMap(),
-        typedVariables: Map<String, SanskritValue> = emptyMap(),
+        environment: ValueEnvironment,
     ): PlanningResult {
         val disposition = DispositionResolver.resolve(program.ukti)
         val plans = mutableListOf<ExecutionPlan>()
-        val symbolicValues = variables.toMutableMap()
-        val symbolicSamjnas = variableSamjnas.toMutableMap()
-        val symbolicTypedValues = variables.mapValues { (name, value) ->
-            SanskritValue.of(value, variableSamjnas[name].orEmpty())
-        }.toMutableMap().apply { putAll(typedVariables) }
+        val symbolicValues = environment.values.toMutableMap()
         val orderedInvocations = order(program) ?: return PlanningResult.Failed(
             ExecutionResult.Failure(
                 ExecutionError.ACTION_FAILED,
@@ -21,7 +15,7 @@ object ExecutionPlanner {
             )
         )
         orderedInvocations.forEach { invocation ->
-            when (val resolution = OperationResolver.resolve(invocation, symbolicTypedValues)) {
+            when (val resolution = OperationResolver.resolve(invocation, symbolicValues)) {
                 is OperationResolution.Resolved -> {
                     plans += ExecutionPlan(
                         invocation.id,
@@ -31,9 +25,7 @@ object ExecutionPlanner {
                         program.ukti.speaker,
                         program.ukti.listener,
                     )
-                    symbolicValues[invocation.id] = "<${invocation.id}>"
-                    symbolicSamjnas[invocation.id] = resolution.value.operation.resultSamjnas
-                    symbolicTypedValues[invocation.id] = SanskritValue.Shabda(
+                    symbolicValues[invocation.id] = SanskritValue.Shabda(
                         "<${invocation.id}>", resolution.value.operation.resultSamjnas,
                     )
                 }

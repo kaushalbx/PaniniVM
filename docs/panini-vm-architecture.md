@@ -2,7 +2,18 @@
 
 ## Overview
 
-PaniniVM provides a complete execution virtual machine for Sanskrit utterances specified in Pāṇinian segmented form (`Prakṛti + Pratyaya`). The parser front-end is implemented by the canonical ANTLR4 pair `VyakaranamLexer.g4` and `VyakaranamParser.g4`. `VyakaranamAstBuilder` constructs the canonical typed AST, `VyakaranamExecutionAnalyzer` derives execution semantics directly from it, and `BhashaExecutionEngine` performs rule execution.
+PaniniVM provides an execution runtime for Sanskrit utterances specified in Pāṇinian segmented form (`Prakṛti + Pratyaya`). The canonical ANTLR4 pair `VyakaranamLexer.g4` and `VyakaranamParser.g4` creates the grammar parse tree, and `VyakaranamAstBuilder` constructs the typed AST. `VyakaranamExecutionAdapter` binds that AST directly to dhātu invocations. `OperationResolver` selects a registered executable meaning from grammatical features and kāraka signatures, after which the planner and runtime execute it.
+
+```text
+segmented utterance
+    -> canonical vyākaraṇa AST
+    -> direct execution binding
+    -> registered dhātu-operation resolution
+    -> planning and authority checks
+    -> action execution
+```
+
+Executable meanings are registered in the execution package. Dhātupāṭha entries contain linguistic data only and do not depend on runtime actions.
 
 ---
 

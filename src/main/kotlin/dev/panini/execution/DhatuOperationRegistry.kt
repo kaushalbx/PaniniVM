@@ -19,6 +19,8 @@ class DhatuOperationRegistry private constructor(
     fun operationsFor(dhatu: Dhatu): List<DhatuOperation> =
         registrations[dhatu.id].orEmpty()
 
+    fun isExecutable(dhatu: Dhatu): Boolean = dhatu.id in registrations
+
     companion object {
         private val coordinatedNumbers = OperationSignature(
             requirements = listOf(
