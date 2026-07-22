@@ -96,6 +96,22 @@ class VyakaranamGrammarTest {
         assertTrue("1.4.24" in source.reason && "2.3.28" in source.reason)
     }
 
+    @Test
+    fun `multi-participant sentence disambiguates distinct ambiguous syncretic arguments`() {
+        val lexicon = InMemoryVyakaranamLexicon(
+            pratipadikas = listOf(
+                PratipadikaEntry("राम", setOf(Linga.PUMS)),
+                PratipadikaEntry("पुस्तक", setOf(Linga.NAPUMSAKA)),
+            ),
+            dhatus = listOf(DaDhatu()),
+        )
+        val engine = PaniniyaVyakaranamEngine(lexicon)
+        val vakyas = engine.analyze("राम + भ्याम् पुस्तक + अम् दा + लट् + तिप् ।").vakyas.single()
+
+        val recipient = vakyas.karakas.single { it.pada.sourceText.startsWith("राम") }
+        assertEquals(Karaka.SAMPRADANA, recipient.karaka)
+    }
+
     private fun assertParsesUkti(source: String) {
         val errors = mutableListOf<String>()
         val listener = object : BaseErrorListener() {

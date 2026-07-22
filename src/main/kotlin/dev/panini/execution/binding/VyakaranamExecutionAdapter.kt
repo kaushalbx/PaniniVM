@@ -6,8 +6,12 @@ import dev.panini.core.Prayoga
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.sankhya.SankhyaGenerator
+import dev.panini.core.SupAffix
+import dev.panini.vyakaranam.analysis.DhatuIdentity
+import dev.panini.vyakaranam.analysis.DhatuKarakaProfiles
 import dev.panini.vyakaranam.analysis.KarakaRuleContext
 import dev.panini.vyakaranam.analysis.KarakaRuleEngine
+import dev.panini.vyakaranam.analysis.ParticipantFacts
 import dev.panini.vyakaranam.ast.AkhyataVakya
 import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.KridantaPratipadika
@@ -120,9 +124,22 @@ object VyakaranamExecutionAdapter {
         val trace = mutableListOf<String>()
         val requiredKarakas = dhatu.operations
             .flatMapTo(mutableSetOf()) { operation -> operation.signature.requirements.map { it.karaka } }
-        fun inferKarakas(sup: String): Set<Karaka> {
+        fun inferKarakas(pada: SubantaPada): Set<Karaka> {
+            val possibleVibhaktis = SupAffix.candidates(pada.sup.text).mapTo(mutableSetOf()) { it.vibhakti }
+            val profile = DhatuKarakaProfiles.forSurface(dhatu.sourceSurface)
+            val participant = ParticipantFacts(
+                id = pada.sourceText,
+                expression = pada,
+                possibleVibhaktis = possibleVibhaktis,
+                semanticRelations = profile?.relations.orEmpty(),
+            )
             val resolution = KarakaRuleEngine.resolve(
-                KarakaRuleContext(tinganta.dhatu.mulaDhatu, Prayoga.KARTARI, sup),
+                KarakaRuleContext(
+                    dhatu = DhatuIdentity(dhatu.sourceSurface, dhatu.karmatva != dev.panini.shiksha.Karmatva.AKARMAKA),
+                    participant = participant,
+                    allParticipants = listOf(participant),
+                    prayoga = Prayoga.KARTARI,
+                ),
             )
             trace += resolution.evidence.map { "${it.sutra} ${it.text}: ${it.reason}" }
             resolution.resolved?.let { return setOf(it) }
@@ -138,14 +155,14 @@ object VyakaranamExecutionAdapter {
             }
         }
         fun add(subanta: SubantaPada) {
-            addBinding(expression(subanta, conversation, clauseIndex), inferKarakas(subanta.sup.text))
+            addBinding(expression(subanta, conversation, clauseIndex), inferKarakas(subanta))
         }
         padas.forEach { pada ->
             when (pada) {
                 is SubantaPada -> add(pada)
                 is SamuccitaSubanta -> {
                     val members = pada.members.map { expression(it, conversation, clauseIndex) }
-                    val candidates = pada.members.firstOrNull()?.let { inferKarakas(it.sup.text) }.orEmpty()
+                    val candidates = pada.members.firstOrNull()?.let { inferKarakas(it) }.orEmpty()
                     addBinding(ExecutionExpression.Coordination(members), candidates)
                 }
                 else -> Unit

@@ -26,13 +26,17 @@ data class KarakaResolution(
     val evidence: List<KarakaEvidence>,
 )
 
-data class KarakaRuleContext(
-    val dhatuSurface: String,
-    val prayoga: Prayoga,
-    val supUpadesha: String,
+data class DhatuIdentity(
+    val surface: String,
     val sakarmaka: Boolean = true,
+)
+
+data class KarakaRuleContext(
+    val dhatu: DhatuIdentity,
+    val participant: ParticipantFacts,
+    val allParticipants: List<ParticipantFacts>,
+    val prayoga: Prayoga,
     val candidates: Set<Karaka> = emptySet(),
-    val semanticRelations: Set<SemanticRelation> = emptySet(),
 )
 
 sealed interface KarakaRuleResult {
@@ -69,13 +73,13 @@ object KarakaRuleEngine {
     ).sortedBy { it.krama }
 
     fun resolve(context: KarakaRuleContext): KarakaResolution {
-        val possibleVibhaktis = dev.panini.core.SupAffix.candidates(context.supUpadesha)
-            .mapTo(mutableSetOf()) { it.vibhakti }
-        val candidates = KarakaInference.candidates(context.supUpadesha, context.prayoga, context.sakarmaka)
-        val semanticContext = context.copy(
-            candidates = candidates,
-            semanticRelations = DhatuKarakaProfiles.forSurface(context.dhatuSurface)?.relations.orEmpty(),
-        )
+        val possibleVibhaktis = context.participant.possibleVibhaktis
+        val candidates = context.candidates.ifEmpty {
+            context.participant.possibleVibhaktis.mapNotNull { vibhakti ->
+                KarakaInference.infer(vibhakti, context.prayoga, context.dhatu.sakarmaka)
+            }.toSet()
+        }
+        val semanticContext = context.copy(candidates = candidates)
         val semantic = karakaRules.firstOrNull { it.matches(semanticContext) }?.apply(semanticContext)
             as? KarakaRuleResult.Assigned
         val resolved = semantic?.karaka ?: candidates.singleOrNull()
@@ -90,5 +94,4 @@ object KarakaRuleEngine {
         }
         return KarakaResolution(candidates, resolved, possibleVibhaktis, evidence)
     }
-
 }

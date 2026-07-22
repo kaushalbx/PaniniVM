@@ -53,7 +53,7 @@ class VakyaAnalyzer(
             }
         }
 
-        val karakas = assignKarakas(
+        val karakas = analyzeKarakas(
             subantas = subantas,
             tinganta = tingantaAnalysis,
             prayoga = prayoga,
@@ -106,25 +106,45 @@ class VakyaAnalyzer(
         return Prayoga.KARTARI
     }
 
-    private fun assignKarakas(
+    private fun analyzeKarakas(
         subantas: List<SubantaAnalysis>,
         tinganta: TingantaAnalysis,
         prayoga: Prayoga,
-    ): List<KarakaAssignment> =
-        subantas.mapNotNull { subanta -> assignKaraka(subanta, tinganta, prayoga) }
+    ): List<KarakaAssignment> {
+        val dhatuSurface = tinganta.lexicalEntry?.sourceSurface ?: tinganta.pada.dhatu.mulaDhatu
+        val profile = DhatuKarakaProfiles.forSurface(dhatuSurface)
+        val allParticipants = subantas.mapIndexed { index, sub ->
+            val possibleVibhaktis = sub.supCandidates.mapTo(mutableSetOf()) { it.vibhakti }
+            val relations = profile?.relations.orEmpty()
+            ParticipantFacts(
+                id = "p_$index",
+                expression = sub.pada,
+                possibleVibhaktis = possibleVibhaktis,
+                semanticRelations = relations,
+            )
+        }
+        return subantas.mapIndexedNotNull { index, sub ->
+            assignKaraka(sub, tinganta, prayoga, allParticipants[index], allParticipants)
+        }
+    }
 
     private fun assignKaraka(
         subanta: SubantaAnalysis,
         tinganta: TingantaAnalysis,
         prayoga: Prayoga,
+        participant: ParticipantFacts,
+        allParticipants: List<ParticipantFacts>,
     ): KarakaAssignment? {
         if (prayoga == Prayoga.BHAVE || prayoga == Prayoga.ANIRDHARITA) return null
         val resolution = KarakaRuleEngine.resolve(
             KarakaRuleContext(
-                dhatuSurface = tinganta.lexicalEntry?.sourceSurface ?: tinganta.pada.dhatu.mulaDhatu,
+                dhatu = DhatuIdentity(
+                    surface = tinganta.lexicalEntry?.sourceSurface ?: tinganta.pada.dhatu.mulaDhatu,
+                    sakarmaka = tinganta.lexicalEntry?.karmatva != dev.panini.shiksha.Karmatva.AKARMAKA,
+                ),
+                participant = participant,
+                allParticipants = allParticipants,
                 prayoga = prayoga,
-                supUpadesha = subanta.pada.sup.text,
-                sakarmaka = tinganta.lexicalEntry?.karmatva != dev.panini.shiksha.Karmatva.AKARMAKA,
             ),
         )
         val karaka = resolution.resolved ?: return null

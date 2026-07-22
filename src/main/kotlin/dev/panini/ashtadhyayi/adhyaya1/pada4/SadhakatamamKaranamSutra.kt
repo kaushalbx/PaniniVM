@@ -21,7 +21,7 @@ object SadhakatamamKaranamSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     adhikara = setOf("1.4.23"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean =
-        SemanticRelation.INSTRUMENT in context.semanticRelations && Karaka.KARANA in context.candidates
+        SemanticRelation.INSTRUMENT in context.participant.semanticRelations && Karaka.KARANA in context.candidates
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(
         Karaka.KARANA,

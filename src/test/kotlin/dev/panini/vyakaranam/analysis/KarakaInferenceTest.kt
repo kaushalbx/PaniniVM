@@ -45,7 +45,22 @@ class KarakaInferenceTest {
         semanticSutra: String,
         vibhaktiSutra: String,
     ) {
-        val resolution = KarakaRuleEngine.resolve(KarakaRuleContext(dhatu, Prayoga.KARTARI, "भ्याम्"))
+        val profile = DhatuKarakaProfiles.forSurface(dhatu)
+        val possibleVibhaktis = dev.panini.core.SupAffix.candidates("भ्याम्").mapTo(mutableSetOf()) { it.vibhakti }
+        val participant = ParticipantFacts(
+            id = "test_p",
+            expression = dev.panini.vyakaranam.ast.AvyayaPada("भ्याम्", "भ्याम्"),
+            possibleVibhaktis = possibleVibhaktis,
+            semanticRelations = profile?.relations.orEmpty(),
+        )
+        val resolution = KarakaRuleEngine.resolve(
+            KarakaRuleContext(
+                dhatu = DhatuIdentity(dhatu),
+                participant = participant,
+                allParticipants = listOf(participant),
+                prayoga = Prayoga.KARTARI,
+            ),
+        )
         assertEquals(karaka, resolution.resolved)
         assertEquals(setOf(Vibhakti.TRTIYA, Vibhakti.CHATURTHI, Vibhakti.PANCHAMI), resolution.possibleVibhaktis)
         assertEquals(listOf(semanticSutra, vibhaktiSutra), resolution.evidence.map { it.sutra })
