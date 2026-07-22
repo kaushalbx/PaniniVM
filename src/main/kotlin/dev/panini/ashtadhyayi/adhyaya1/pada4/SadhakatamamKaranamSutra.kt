@@ -1,0 +1,22 @@
+package dev.panini.ashtadhyayi.adhyaya1.pada4
+
+import dev.panini.core.Karaka
+import dev.panini.sutra.*
+import dev.panini.vyakaranam.analysis.*
+
+object SadhakatamamKaranamSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
+    number = "1.4.42", text = "साधकतमं करणम्",
+    hindiExplanation = "क्रियासिद्धि में प्रकृष्ट साधन की करणसंज्ञा होती है।",
+    type = SutraType.SAMJNA, chapter = 1, pada = 4, optional = false, kramaValue = 140042,
+    role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.VAKYA,
+    inputs = setOf(SutraInput.DHATU, SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA_CANDIDATE),
+    adhikara = setOf("1.4.23"),
+) {
+    override fun matches(context: KarakaRuleContext): Boolean =
+        SemanticRelation.INSTRUMENT in context.semanticRelations && Karaka.KARANA in context.candidates
+
+    override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(
+        Karaka.KARANA,
+        KarakaEvidence(number, text, "The participant is construed as the most effective instrument."),
+    )
+}

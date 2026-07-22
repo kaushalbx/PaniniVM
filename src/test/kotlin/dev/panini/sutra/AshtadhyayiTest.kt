@@ -10,9 +10,9 @@ class AshtadhyayiTest {
     fun `tracks current patha coverage truthfully`() {
         assertEquals(3959, Ashtadhyayi.expectedSutraCount)
         assertEquals(316, Ashtadhyayi.executableSutras.size)
-        assertEquals(316, Ashtadhyayi.pathitaCount)
-        assertEquals(316, Ashtadhyayi.kriyavatCount)
-        assertEquals(3643, Ashtadhyayi.remainingCount)
+        assertEquals(324, Ashtadhyayi.pathitaCount)
+        assertEquals(324, Ashtadhyayi.kriyavatCount)
+        assertEquals(3635, Ashtadhyayi.remainingCount)
         assertTrue(Ashtadhyayi.catalogIssues.isEmpty())
     }
 
