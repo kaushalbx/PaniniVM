@@ -1,7 +1,6 @@
 package dev.panini.vyakaranam.analysis
 
 import dev.panini.core.Prayoga
-import dev.panini.core.Vibhakti
 import dev.panini.core.Karaka
 import dev.panini.vyakaranam.ast.*
 
@@ -109,105 +108,31 @@ class VakyaAnalyzer(
         tinganta: TingantaAnalysis,
         prayoga: Prayoga,
     ): List<KarakaAssignment> =
-        subantas.mapNotNull { subanta ->
-            when (prayoga) {
-                Prayoga.KARTARI ->
-                    assignKartariKaraka(subanta, tinganta)
+        subantas.mapNotNull { subanta -> assignKaraka(subanta, tinganta, prayoga) }
 
-                Prayoga.KARMANI ->
-                    assignKarmaniKaraka(subanta)
-
-                Prayoga.BHAVE,
-                Prayoga.ANIRDHARITA,
-                    -> null
-            }
-        }
-
-    private fun assignKartariKaraka(
+    private fun assignKaraka(
         subanta: SubantaAnalysis,
         tinganta: TingantaAnalysis,
-    ): KarakaAssignment? =
-        when (KarakaInference.infer(subanta.sup.vibhakti, Prayoga.KARTARI, tinganta.lexicalEntry?.sakarmaka == true)) {
-            Karaka.KARTR ->
-                KarakaAssignment(
-                    pada = subanta.pada,
-                    karaka = Karaka.KARTR,
-                    confidence = 0.90,
-                    reason = "कर्तरिप्रयोगे प्रथमा तथा तिङन्तसामञ्जस्यम्।",
-                )
-
-            Karaka.KARMAN -> KarakaAssignment(
-                pada = subanta.pada,
-                karaka = Karaka.KARMAN,
-                confidence = 0.85,
-                reason = "सकर्मकधातोः द्वितीयान्तपदम्।",
-            )
-
-            Karaka.KARANA ->
-                KarakaAssignment(
-                    pada = subanta.pada,
-                    karaka = Karaka.KARANA,
-                    confidence = 0.65,
-                    reason = "तृतीयाविभक्तेः सामान्यं करणसम्बन्धम्।",
-                )
-
-            Karaka.SAMPRADANA ->
-                KarakaAssignment(
-                    pada = subanta.pada,
-                    karaka = Karaka.SAMPRADANA,
-                    confidence = 0.70,
-                    reason = "चतुर्थीविभक्तेः सामान्यं सम्प्रदानसम्बन्धम्।",
-                )
-
-            Karaka.APADANA ->
-                KarakaAssignment(
-                    pada = subanta.pada,
-                    karaka = Karaka.APADANA,
-                    confidence = 0.70,
-                    reason = "पञ्चमीविभक्तेः सामान्यं अपादानसम्बन्धम्।",
-                )
-
-            Karaka.SAMBANDHA ->
-                KarakaAssignment(
-                    pada = subanta.pada,
-                    karaka = Karaka.SAMBANDHA,
-                    confidence = 0.90,
-                    reason = "षष्ठी सामान्यतः सम्बन्धं सूचयति, कारकं न।",
-                )
-
-            Karaka.ADHIKARANA ->
-                KarakaAssignment(
-                    pada = subanta.pada,
-                    karaka = Karaka.ADHIKARANA,
-                    confidence = 0.70,
-                    reason = "सप्तमीविभक्तेः सामान्यं अधिकरणसम्बन्धम्।",
-                )
-
-            else -> null
-        }
-
-    private fun assignKarmaniKaraka(
-        subanta: SubantaAnalysis,
-    ): KarakaAssignment? =
-        when (KarakaInference.infer(subanta.sup.vibhakti, Prayoga.KARMANI)) {
-            Karaka.KARMAN ->
-                KarakaAssignment(
-                    pada = subanta.pada,
-                    karaka = Karaka.KARMAN,
-                    confidence = 0.80,
-                    reason = "कर्मणिप्रयोगे अभिहितं कर्म प्रथमान्तं भवति।",
-                )
-
-            Karaka.KARTR ->
-                KarakaAssignment(
-                    pada = subanta.pada,
-                    karaka = Karaka.KARTR,
-                    confidence = 0.80,
-                    reason = "कर्मणिप्रयोगे अनभिहितः कर्ता तृतीयान्तः भवति।",
-                )
-
-            else -> null
-        }
+        prayoga: Prayoga,
+    ): KarakaAssignment? {
+        if (prayoga == Prayoga.BHAVE || prayoga == Prayoga.ANIRDHARITA) return null
+        val resolution = KarakaRuleEngine.resolve(
+            KarakaRuleContext(
+                dhatuSurface = tinganta.pada.dhatu.mulaDhatu,
+                prayoga = prayoga,
+                supUpadesha = subanta.pada.sup.text,
+                sakarmaka = tinganta.lexicalEntry?.sakarmaka != false,
+            ),
+        )
+        val karaka = resolution.resolved ?: return null
+        return KarakaAssignment(
+            pada = subanta.pada,
+            karaka = karaka,
+            confidence = if (resolution.evidence.any { it.sutra.startsWith("1.4.") }) 0.95 else 0.75,
+            reason = resolution.evidence.joinToString(" ") { "${it.sutra} ${it.text}: ${it.reason}" }
+                .ifEmpty { "एकमात्रं सम्भावितं कारकम्: $karaka" },
+        )
+    }
 
     private fun agreementWarnings(
         subantas: List<SubantaAnalysis>,

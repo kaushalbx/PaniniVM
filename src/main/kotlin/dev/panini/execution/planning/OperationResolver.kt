@@ -78,7 +78,7 @@ object OperationResolver {
                 invocation,
                 operation,
                 context,
-                listOf("Resolved ${dhatu.upadesha} to operation ${operation.id}."),
+                invocation.karakaTrace + "Resolved ${dhatu.upadesha} to operation ${operation.id}.",
             )
         )
     }

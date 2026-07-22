@@ -7,7 +7,8 @@ import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.vyakaranam.ast.*
 import dev.panini.vyakaranam.parser.PaniniParseException
 import dev.panini.vyakaranam.parser.PaniniParser
-import dev.panini.vyakaranam.analysis.KarakaInference
+import dev.panini.vyakaranam.analysis.KarakaRuleContext
+import dev.panini.vyakaranam.analysis.KarakaRuleEngine
 import dev.panini.core.Prayoga
 import dev.panini.sankhya.SankhyaGenerator
 
@@ -47,7 +48,7 @@ object VyakaranamExecutionAdapter {
             val tinganta = (vakya as? AkhyataVakya)?.tinganta ?: return@forEachIndexed
             val dhatu = resolveDhatu(tinganta)
                 ?: return ExecutionBindingResult.Invalid("Unknown verbal action/dhātu: ${tinganta.sourceText}")
-            val extracted = extractKarakas(vakya.padas, conversation, index, dhatu)
+            val extracted = extractKarakas(vakya.padas, conversation, index, dhatu, tinganta)
             val bindings = extracted.bindings.toMutableMap()
             if (purposeRequiresListenerAsAgent(prayer, tinganta.lakara) && Karaka.KARTR !in bindings) {
                 bindings[Karaka.KARTR] = ExecutionExpression.Pada(listener)
@@ -65,6 +66,7 @@ object VyakaranamExecutionAdapter {
                     lakara = tinganta.lakara,
                 ),
                 ambiguousBindings = extracted.ambiguous,
+                karakaTrace = extracted.trace,
             )
         }
 
@@ -101,13 +103,20 @@ object VyakaranamExecutionAdapter {
         conversation: SambhashanaContext?,
         clauseIndex: Int,
         dhatu: Dhatu,
+        tinganta: TingantaPada,
     ): ExtractedBindings {
         val grouped = mutableMapOf<Karaka, MutableList<ExecutionExpression>>()
         val ambiguous = mutableListOf<AmbiguousKarakaBinding>()
+        val trace = mutableListOf<String>()
         val requiredKarakas = DhatuOperationRegistry.DEFAULT.operationsFor(dhatu)
             .flatMapTo(mutableSetOf()) { operation -> operation.signature.requirements.map { it.karaka } }
         fun inferKarakas(sup: String): Set<Karaka> {
-            val candidates = KarakaInference.candidates(sup, Prayoga.KARTARI)
+            val resolution = KarakaRuleEngine.resolve(
+                KarakaRuleContext(tinganta.dhatu.mulaDhatu, Prayoga.KARTARI, sup),
+            )
+            trace += resolution.evidence.map { "${it.sutra} ${it.text}: ${it.reason}" }
+            resolution.resolved?.let { return setOf(it) }
+            val candidates = resolution.candidates
             val requiredCandidates = candidates intersect requiredKarakas
             return requiredCandidates.takeIf { it.size == 1 } ?: candidates
         }
@@ -135,12 +144,13 @@ object VyakaranamExecutionAdapter {
         val bindings = grouped.mapValues { (_, values) ->
             if (values.size == 1) values.single() else ExecutionExpression.Coordination(values)
         }
-        return ExtractedBindings(bindings, ambiguous)
+        return ExtractedBindings(bindings, ambiguous, trace.distinct())
     }
 
     private data class ExtractedBindings(
         val bindings: Map<Karaka, ExecutionExpression>,
         val ambiguous: List<AmbiguousKarakaBinding>,
+        val trace: List<String>,
     )
 
     private fun expression(

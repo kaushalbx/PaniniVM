@@ -10,6 +10,7 @@ import org.antlr.v4.runtime.Recognizer
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertTrue
 import dev.panini.core.Karaka
 import dev.panini.core.Linga
 import dev.panini.core.PadaType
@@ -57,6 +58,38 @@ class VyakaranamGrammarTest {
 
         assertIs<AnalyzedSamuccita>(analysis.padaAnalyses.first())
         assertEquals(2, analysis.karakas.count { it.karaka == Karaka.KARTR })
+    }
+
+    @Test
+    fun `vakya analysis resolves bhyam from dhatu semantics with sutra trace`() {
+        val lexicon = InMemoryVyakaranamLexicon(
+            pratipadikas = listOf(
+                PratipadikaEntry("राम", setOf(Linga.PUMS)),
+                PratipadikaEntry("पुस्तक", setOf(Linga.NAPUMSAKA)),
+                PratipadikaEntry("लेखनी", setOf(Linga.STRI)),
+            ),
+            dhatus = listOf(
+                DhatuEntry("दा", "दा", "जुहोत्यादिगण", setOf(PadaType.PARASMAIPADA), true),
+                DhatuEntry("लिख्", "लिख्", "तुदादिगण", setOf(PadaType.PARASMAIPADA), true),
+                DhatuEntry("पलाय्", "पलाय्", "भ्वादिगण", setOf(PadaType.PARASMAIPADA), false),
+            ),
+        )
+        val engine = PaniniyaVyakaranamEngine(lexicon)
+
+        fun assignment(source: String) = engine.analyze(source).vakyas.single().karakas
+            .single { it.pada.sup.text == "भ्याम्" }
+
+        val recipient = assignment("राम + भ्याम् पुस्तक + अम् दा + लट् + तिप् ।")
+        assertEquals(Karaka.SAMPRADANA, recipient.karaka)
+        assertTrue("1.4.32" in recipient.reason && "2.3.13" in recipient.reason)
+
+        val instrument = assignment("लेखनी + भ्याम् लिख् + लट् + तिप् ।")
+        assertEquals(Karaka.KARANA, instrument.karaka)
+        assertTrue("1.4.42" in instrument.reason && "2.3.18" in instrument.reason)
+
+        val source = assignment("राम + भ्याम् पलाय् + लट् + तिप् ।")
+        assertEquals(Karaka.APADANA, source.karaka)
+        assertTrue("1.4.24" in source.reason && "2.3.28" in source.reason)
     }
 
     private fun assertParsesUkti(source: String) {

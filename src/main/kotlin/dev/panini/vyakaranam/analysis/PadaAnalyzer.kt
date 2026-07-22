@@ -12,9 +12,12 @@ import dev.panini.vyakaranam.lexicon.VyakaranamLexicon
 data class SubantaAnalysis(
     val pada: SubantaPada,
     val lexicalEntry: PratipadikaEntry?,
-    val sup: SupAffix,
+    val supCandidates: List<SupAffix>,
     val linga: Set<Linga>,
-)
+) {
+    /** Compatibility view; semantic analysis must use [supCandidates]. */
+    val sup: SupAffix get() = supCandidates.first()
+}
 
 data class TingantaAnalysis(
     val pada: TingantaPada,
@@ -83,9 +86,9 @@ class PadaAnalyzer(
         return SubantaAnalysis(
             pada = pada,
             lexicalEntry = lexicalEntry,
-            sup = requireNotNull(SupAffix.fromUpadesha(pada.sup.text)) {
+            supCandidates = SupAffix.candidates(pada.sup.text).takeIf { it.isNotEmpty() } ?: error(
                 "सुप्प्रत्ययस्य विवरणं न प्राप्तम्: ${pada.sup.text}"
-            },
+            ),
             linga = lexicalEntry?.linga ?: setOf(),
         )
     }
