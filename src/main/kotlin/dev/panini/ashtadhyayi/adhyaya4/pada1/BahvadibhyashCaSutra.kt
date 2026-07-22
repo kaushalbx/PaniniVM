@@ -1,5 +1,6 @@
 package dev.panini.ashtadhyayi.adhyaya4.pada1
 
+import dev.panini.core.Linga
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
@@ -8,7 +9,6 @@ import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.HasMorphosyntax
 import dev.panini.derivation.TermKind
 import dev.panini.ganapatha.GanaPatha
-import dev.panini.core.Linga
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole

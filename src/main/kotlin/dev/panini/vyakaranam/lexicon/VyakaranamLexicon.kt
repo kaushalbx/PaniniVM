@@ -1,7 +1,7 @@
 package dev.panini.vyakaranam.lexicon
 
-import dev.panini.core.PadaType
 import dev.panini.core.Linga
+import dev.panini.core.PadaType
 
 data class PratipadikaEntry(
     val text: String,

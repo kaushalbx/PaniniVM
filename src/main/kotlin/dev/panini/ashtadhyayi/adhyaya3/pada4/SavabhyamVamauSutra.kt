@@ -1,16 +1,15 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada4
 
+import dev.panini.core.Lakara
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.core.Lakara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
-import kotlin.collections.get
 
 /** 3.4.91: savābhyāṃ vāmau. */
 object SavabhyamVamauSutra : Sutra<DerivationState, DerivationChange>(

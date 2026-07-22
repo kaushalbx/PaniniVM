@@ -7,7 +7,6 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.PhonologicalRequest
 import dev.panini.derivation.VarnaSubstitution
 import dev.panini.pratyahara.Pratyahara
-import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction

@@ -1,7 +1,6 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada1
 
 import dev.panini.derivation.DerivationChange
-import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.sutra.NimittaScope

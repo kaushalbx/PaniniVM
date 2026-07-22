@@ -1,8 +1,8 @@
 package dev.panini.core
 
+import dev.panini.core.SupAffix.Companion.candidates
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.DerivationalContext
-import dev.panini.core.ItMarker
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Svara
 

@@ -1,8 +1,18 @@
 package dev.panini.ashtadhyayi.adhyaya4.pada2
 
-import dev.panini.derivation.*
+import dev.panini.derivation.DerivationChange
+import dev.panini.derivation.DerivationState
+import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.DerivationalEnvironment
+import dev.panini.derivation.HasDerivationalEnvironment
+import dev.panini.derivation.TermKind
 import dev.panini.ganapatha.GanaPatha
-import dev.panini.sutra.*
+import dev.panini.sutra.Sutra
+import dev.panini.sutra.SutraAction
+import dev.panini.sutra.SutraRole
+import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraType
 
 /** 4.2.80: वुञ्छण्कठजिलशेनिरढञ्ण्ययफक्फिञिञ्ञ्यकक्ठकोऽरीहणकृशाश्वर्ष्यकुमुदकाशतृणप्रेक्षाश्मसखिसंकाशबलपक्षकर्णसुतङ्गमप्रगदिन्वराहकुमुदादिभ्यः. */
 object VunchhankathajilasenirSutra : Sutra<DerivationState, DerivationChange>(

@@ -1,8 +1,14 @@
 package dev.panini.ashtadhyayi.adhyaya5.pada2
 
-import dev.panini.derivation.*
+import dev.panini.derivation.DerivationChange
+import dev.panini.derivation.DerivationState
+import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
-import dev.panini.sutra.*
+import dev.panini.sutra.Sutra
+import dev.panini.sutra.SutraAction
+import dev.panini.sutra.SutraRole
+import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraType
 
 /** 5.2.57: नित्यं शतादिमासार्धमाससंवत्सराच्च — obligatory तमट् after शत etc. */
 object NityamShatadiSutra : Sutra<DerivationState, DerivationChange>(

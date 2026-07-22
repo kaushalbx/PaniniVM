@@ -1,9 +1,20 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada2
 
 import dev.panini.core.Lakara
-import dev.panini.derivation.*
+import dev.panini.derivation.DerivationChange
+import dev.panini.derivation.DerivationStage
+import dev.panini.derivation.DerivationState
+import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.DerivationalEnvironment
+import dev.panini.derivation.HasDerivationalEnvironment
+import dev.panini.derivation.TermKind
 import dev.panini.shiksha.ItStatus
-import dev.panini.sutra.*
+import dev.panini.sutra.Sutra
+import dev.panini.sutra.SutraAction
+import dev.panini.sutra.SutraRole
+import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraType
 
 /** 7.2.35: आर्धधातुकस्येड्वलादेः. */
 object ArdhadhatukasyedValadehSutra : Sutra<DerivationState, DerivationChange>(

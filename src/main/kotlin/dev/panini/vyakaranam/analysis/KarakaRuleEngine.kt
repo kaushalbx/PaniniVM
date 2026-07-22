@@ -1,11 +1,17 @@
 package dev.panini.vyakaranam.analysis
 
+import dev.panini.ashtadhyayi.adhyaya1.pada4.DhruvamApayeApadanamSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada4.KarmanaYamAbhipraitiSampradanamSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada4.SadhakatamamKaranamSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada3.ApadanePancamiSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada3.ChaturthiSampradaneSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada3.KarmaniDvitiyaSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada3.KartrkaranayostrtiyaSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada3.SaptamyAdhikaraneCaSutra
 import dev.panini.core.Karaka
 import dev.panini.core.Prayoga
 import dev.panini.core.Vibhakti
 import dev.panini.sutra.Sutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.*
-import dev.panini.ashtadhyayi.adhyaya2.pada3.*
 
 data class KarakaEvidence(
     val sutra: String,

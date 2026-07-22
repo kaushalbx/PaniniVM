@@ -1,8 +1,15 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada4
 
 import dev.panini.core.Lakara
-import dev.panini.derivation.*
-import dev.panini.sutra.*
+import dev.panini.derivation.DerivationChange
+import dev.panini.derivation.DerivationState
+import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.LetEOption
+import dev.panini.sutra.Sutra
+import dev.panini.sutra.SutraAction
+import dev.panini.sutra.SutraRole
+import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraType
 
 /** 3.4.96: वैतोऽन्यत्र. Outside 3.4.95, LET optionally changes ending ए to ऐ. */
 object VaitoAnyatraSutra : Sutra<DerivationState, DerivationChange>(

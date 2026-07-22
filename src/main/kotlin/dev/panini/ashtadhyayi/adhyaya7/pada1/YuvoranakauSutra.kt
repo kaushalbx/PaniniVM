@@ -1,10 +1,9 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada1
 
+import dev.panini.ashtadhyayi.adhyaya1.pada3.YathasamkhyamSutra
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada3.YathasamkhyamSutra
-import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole

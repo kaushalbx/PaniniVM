@@ -1,7 +1,13 @@
-package dev.panini.execution
+package dev.panini.actions.numeric
 
 import dev.panini.core.Karaka
-import dev.panini.execution.operations.numeric.renderSankhyaResult
+import dev.panini.execution.DhatuAction
+import dev.panini.execution.DhatuOperation
+import dev.panini.execution.ExecutionContext
+import dev.panini.execution.ExecutionError
+import dev.panini.execution.ExecutionResult
+import dev.panini.execution.SanskritValue
+import dev.panini.execution.renderSankhyaResult
 
 /** Counting elements in a coordinated expression or collection. */
 object SanskritCountingAction : DhatuAction("सङ्ख्यागणनम्", "पदार्थानां सङ्ख्यानम्") {

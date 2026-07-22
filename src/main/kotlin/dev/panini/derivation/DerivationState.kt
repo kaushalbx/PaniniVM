@@ -1,12 +1,12 @@
 package dev.panini.derivation
 
-import dev.panini.shiksha.Samjna
-import dev.panini.shiksha.LexicalUse
-import dev.panini.shiksha.ItStatus
-import dev.panini.dhatupatha.Dhatu
 import dev.panini.core.DhatuGana
 import dev.panini.core.ItMarker
 import dev.panini.core.LopaType
+import dev.panini.dhatupatha.Dhatu
+import dev.panini.shiksha.ItStatus
+import dev.panini.shiksha.LexicalUse
+import dev.panini.shiksha.Samjna
 
 /**
  * The shared state passed through an Ashtadhyayi derivation.

@@ -1,8 +1,17 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada1
 
 import dev.panini.core.Lakara
-import dev.panini.derivation.*
-import dev.panini.sutra.*
+import dev.panini.derivation.DerivationChange
+import dev.panini.derivation.DerivationState
+import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.LetFormation
+import dev.panini.derivation.TermKind
+import dev.panini.sutra.Sutra
+import dev.panini.sutra.SutraAction
+import dev.panini.sutra.SutraRole
+import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraType
 
 /** 3.1.34: सिब्बहुलं लेटि. The request selects this optional aorist-subjunctive formation. */
 object SibbahulamLetiSutra : Sutra<DerivationState, DerivationChange>(

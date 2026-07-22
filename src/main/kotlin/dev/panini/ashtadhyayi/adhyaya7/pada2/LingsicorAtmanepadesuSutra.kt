@@ -1,7 +1,16 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada2
 
-import dev.panini.derivation.*
-import dev.panini.sutra.*
+import dev.panini.derivation.DerivationChange
+import dev.panini.derivation.DerivationStage
+import dev.panini.derivation.DerivationState
+import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.TermKind
+import dev.panini.sutra.Sutra
+import dev.panini.sutra.SutraAction
+import dev.panini.sutra.SutraRole
+import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraType
 
 /** 7.2.42: लिङ्सिचोरात्मनेपदेषु. */
 object LingsicorAtmanepadesuSutra : Sutra<DerivationState, DerivationChange>(

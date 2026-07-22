@@ -1,8 +1,16 @@
 package dev.panini.ashtadhyayi.adhyaya1.pada4
 
 import dev.panini.core.Karaka
-import dev.panini.sutra.*
-import dev.panini.vyakaranam.analysis.*
+import dev.panini.sutra.Sutra
+import dev.panini.sutra.SutraAction
+import dev.panini.sutra.SutraInput
+import dev.panini.sutra.SutraRole
+import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraType
+import dev.panini.vyakaranam.analysis.KarakaEvidence
+import dev.panini.vyakaranam.analysis.KarakaRuleContext
+import dev.panini.vyakaranam.analysis.KarakaRuleResult
+import dev.panini.vyakaranam.analysis.SemanticRelation
 
 object SadhakatamamKaranamSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     number = "1.4.42", text = "साधकतमं करणम्",

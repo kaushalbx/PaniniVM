@@ -1,11 +1,11 @@
 package dev.panini.derivation
 
-import dev.panini.shiksha.Ayogavaha
-import dev.panini.shiksha.Svara
-import dev.panini.shiksha.Vyanjana
 import dev.panini.core.Linga
 import dev.panini.core.Vacana
 import dev.panini.core.Vibhakti
+import dev.panini.shiksha.Ayogavaha
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 
 /** Typed input for a nominal (sup) derivation. */
 data class SubantaDerivationRequest(

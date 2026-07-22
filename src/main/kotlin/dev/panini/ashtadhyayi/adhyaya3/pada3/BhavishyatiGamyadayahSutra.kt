@@ -1,9 +1,9 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada3
 
 import dev.panini.derivation.DerivationChange
-import dev.panini.derivation.DerivationalMeaning
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.DerivationalMeaning
 import dev.panini.derivation.TermKind
 import dev.panini.ganapatha.GanaPatha
 import dev.panini.sutra.Sutra

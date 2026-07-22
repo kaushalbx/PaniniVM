@@ -1,8 +1,8 @@
 package dev.panini.pratyahara
 
-import dev.panini.shiksha.Vyanjana
-import dev.panini.shiksha.Varna
 import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
 
 data class Pratyahara(
     val start: Varna,

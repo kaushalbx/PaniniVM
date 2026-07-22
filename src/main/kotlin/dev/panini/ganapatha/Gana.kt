@@ -1,8 +1,8 @@
 ﻿package dev.panini.ganapatha
 
-import dev.panini.shiksha.Samjna
-import dev.panini.shiksha.LexicalUse
 import dev.panini.core.Linga
+import dev.panini.shiksha.LexicalUse
+import dev.panini.shiksha.Samjna
 
 abstract class Gana(
     val name: String,

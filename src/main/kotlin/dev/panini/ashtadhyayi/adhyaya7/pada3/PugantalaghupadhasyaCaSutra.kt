@@ -1,15 +1,15 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada3
 
+import dev.panini.core.DhatuGana
+import dev.panini.core.Lakara
+import dev.panini.core.Purusha
+import dev.panini.core.TingAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.core.Lakara
 import dev.panini.derivation.TermKind
-import dev.panini.core.Purusha
-import dev.panini.core.TingAffix
 import dev.panini.derivation.VarnaSubstitution
-import dev.panini.core.DhatuGana
 import dev.panini.shiksha.Varnamala
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction

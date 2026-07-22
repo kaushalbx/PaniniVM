@@ -1,13 +1,13 @@
 package dev.panini.ashtadhyayi.adhyaya6.pada1
 
 import dev.panini.ashtadhyayi.Ashtadhyayi
+import dev.panini.core.Lakara
+import dev.panini.core.TingAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.core.Lakara
-import dev.panini.core.TingAffix
-import dev.panini.shiksha.Samjna
 import dev.panini.pratyahara.Pratyahara
+import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole

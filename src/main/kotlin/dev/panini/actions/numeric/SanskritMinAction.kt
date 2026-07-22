@@ -1,4 +1,4 @@
-package dev.panini.execution.operations.numeric
+package dev.panini.actions.numeric
 
 import dev.panini.core.Karaka
 import dev.panini.execution.DhatuAction
@@ -7,6 +7,8 @@ import dev.panini.execution.ExecutionContext
 import dev.panini.execution.ExecutionError
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.SanskritValue
+import dev.panini.execution.renderSankhyaResult
+import dev.panini.execution.resolveSankhyaValues
 
 /** Minimum Selection (kaniṣṭhatva / nyūnatva) over Sanskrit number words. */
 object SanskritMinAction : DhatuAction("सङ्ख्यान्यूनत्वम्", "सङ्ख्यानां न्यूनत्वम्") {

@@ -1,5 +1,7 @@
 package dev.panini.execution
 
+import dev.panini.actions.external.BahyaSendAction
+import dev.panini.actions.state.SmritiSaveAction
 import dev.panini.core.Karaka
 import dev.panini.dhatupatha.bhvadi.SmrDhatu
 import dev.panini.dhatupatha.curadi.PreshDhatu
@@ -52,7 +54,7 @@ class PersistenceAndExternalCapabilityTest {
     @Test
     fun `SmritiSaveAction saves context under session key`() {
         val smr = SmrDhatu()
-        val op = DhatuOperationRegistry.DEFAULT.operationsFor(smr).first { it.name == SmritiSaveAction.name }
+        val op = smr.operations.first { it.name == SmritiSaveAction.name }
         val context = ExecutionContext(
             bindings = mapOf(Karaka.KARMAN to ExecutionExpression.Pada("परीक्षण-सत्रम्", setOf(ExecutionSamjna.SHABDA))),
             variables = mapOf("फलं" to SanskritValue.Sankhya(5L, "पञ्च")),
@@ -79,7 +81,7 @@ class PersistenceAndExternalCapabilityTest {
         }
 
         val presh = PreshDhatu()
-        val op = DhatuOperationRegistry.DEFAULT.operationsFor(presh).first()
+        val op = presh.operations.first()
         val context = ExecutionContext(
             bindings = mapOf(Karaka.KARMAN to ExecutionExpression.Pada("संदेशम्_प्रेषय", setOf(ExecutionSamjna.SHABDA))),
             externalDispatcher = dispatcher,

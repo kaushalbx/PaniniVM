@@ -1,8 +1,15 @@
 package dev.panini.ashtadhyayi.adhyaya6.pada4
 
 import dev.panini.core.Lakara
-import dev.panini.derivation.*
-import dev.panini.sutra.*
+import dev.panini.derivation.DerivationChange
+import dev.panini.derivation.DerivationState
+import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.TermKind
+import dev.panini.sutra.Sutra
+import dev.panini.sutra.SutraAction
+import dev.panini.sutra.SutraRole
+import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraType
 
 /** 6.4.120: अत एकहल्मध्येऽनादेशादेर्लिटि. Implements the weak perfect stem exemplified by लभ् → लेभ्. */
 object AtaEkahalmadhyeAnadesaderLitiSutra : Sutra<DerivationState, DerivationChange>(

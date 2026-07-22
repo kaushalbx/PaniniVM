@@ -4,7 +4,11 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
-import dev.panini.sutra.*
+import dev.panini.sutra.Sutra
+import dev.panini.sutra.SutraAction
+import dev.panini.sutra.SutraRole
+import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraType
 
 /** 6.3.76: एकादिश्चैकस्य चादुक्। */
 object EkadishCaikasyaCadukSutra : Sutra<DerivationState, DerivationChange>(

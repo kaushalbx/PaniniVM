@@ -1,8 +1,8 @@
 package dev.panini.execution
 
 import dev.panini.core.Karaka
-import dev.panini.execution.persistence.StateStore
 import dev.panini.execution.external.ExternalCapabilityDispatcher
+import dev.panini.execution.persistence.StateStore
 
 /** Inputs visible while one dhātu meaning is executed. */
 data class ExecutionContext(

@@ -6,18 +6,16 @@ object OperationResolver {
     fun resolve(
         invocation: DhatuInvocation,
         variables: Map<String, SanskritValue>,
-        registry: DhatuOperationRegistry = DhatuOperationRegistry.DEFAULT,
     ): OperationResolution {
-        return resolveInvocation(invocation, variables, registry)
+        return resolveInvocation(invocation, variables)
     }
 
     private fun resolveInvocation(
         invocation: DhatuInvocation,
         variables: Map<String, SanskritValue>,
-        registry: DhatuOperationRegistry,
     ): OperationResolution {
         val dhatu = invocation.dhatu
-        val operations = registry.operationsFor(dhatu)
+        val operations = dhatu.operations
         if (operations.isEmpty()) {
             return OperationResolution.Invalid(
                 ExecutionError.DHATU_NOT_EXECUTABLE,

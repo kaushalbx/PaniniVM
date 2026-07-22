@@ -20,6 +20,7 @@ open class Dhatu(
     val itStatus: ItStatus? = null,
     val karmatva: Karmatva? = null,
     val svara: Accent? = null,
+    open val operations: List<dev.panini.execution.DhatuOperation> = emptyList(),
 ) {
     /** Normalized root spelling used only by the derivation engine. */
     internal val derivationalSurface: String get() = sourceSurface

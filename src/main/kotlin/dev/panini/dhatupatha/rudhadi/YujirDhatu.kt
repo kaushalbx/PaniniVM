@@ -1,14 +1,18 @@
 package dev.panini.dhatupatha.rudhadi
 
+import dev.panini.actions.numeric.SanskritAdditionAction
+import dev.panini.actions.numeric.SanskritSubtractionAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.PadaType
 import dev.panini.dhatupatha.Dhatu
+import dev.panini.execution.ExecutionSamjna
+import dev.panini.execution.numericOp
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
 
-/** Canonical Rudhādi entry युजिँर् योगे; executable meanings live in execution registry. */
-class YujirDhatu : Dhatu(
+/** Canonical Rudhādi entry युजिँर् योगे. */
+open class YujirDhatu : Dhatu(
     id = "07.0007",
     krama = 7,
     upadesha = "युजिँर्",
@@ -21,4 +25,14 @@ class YujirDhatu : Dhatu(
     itStatus = ItStatus.ANIT,
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.ANUDATTA,
+    operations = listOf(
+        SanskritAdditionAction.numericOp {
+            triggeredBy(forbiddenUpasargas = setOf("वि"))
+            returns(ExecutionSamjna.SANKHYA, ExecutionSamjna.SHABDA)
+        },
+        SanskritSubtractionAction.numericOp {
+            triggeredBy(requiredUpasargas = setOf("वि"))
+            returns(ExecutionSamjna.SANKHYA, ExecutionSamjna.SHABDA)
+        },
+    ),
 )

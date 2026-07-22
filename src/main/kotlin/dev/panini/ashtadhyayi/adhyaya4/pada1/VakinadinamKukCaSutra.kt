@@ -1,12 +1,12 @@
 package dev.panini.ashtadhyayi.adhyaya4.pada1
 
 import dev.panini.derivation.DerivationChange
-import dev.panini.derivation.DerivationalEnvironment
-import dev.panini.derivation.DerivationalMeaning
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.DerivationalEnvironment
+import dev.panini.derivation.DerivationalMeaning
 import dev.panini.derivation.HasDerivationalEnvironment
 import dev.panini.derivation.HasRequestedMeaning
 import dev.panini.derivation.TermKind

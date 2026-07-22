@@ -1,7 +1,14 @@
 package dev.panini.vyakaranam
 
+import dev.panini.core.Karaka
+import dev.panini.core.Linga
+import dev.panini.core.PadaType
 import dev.panini.parser.VyakaranamLexer
 import dev.panini.parser.VyakaranamParser
+import dev.panini.vyakaranam.analysis.AnalyzedSamuccita
+import dev.panini.vyakaranam.lexicon.DhatuEntry
+import dev.panini.vyakaranam.lexicon.InMemoryVyakaranamLexicon
+import dev.panini.vyakaranam.lexicon.PratipadikaEntry
 import org.antlr.v4.runtime.BaseErrorListener
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
@@ -11,13 +18,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
-import dev.panini.core.Karaka
-import dev.panini.core.Linga
-import dev.panini.core.PadaType
-import dev.panini.vyakaranam.analysis.AnalyzedSamuccita
-import dev.panini.vyakaranam.lexicon.DhatuEntry
-import dev.panini.vyakaranam.lexicon.InMemoryVyakaranamLexicon
-import dev.panini.vyakaranam.lexicon.PratipadikaEntry
 
 class VyakaranamGrammarTest {
 

@@ -1,9 +1,12 @@
 package dev.panini.dhatupatha.curadi
 
-import dev.panini.dhatupatha.Dhatu
 import dev.panini.core.DhatuGana
-import dev.panini.core.PadaType
 import dev.panini.core.Karaka
+import dev.panini.core.PadaType
+import dev.panini.dhatupatha.Dhatu
+import dev.panini.execution.ExecutionEffect
+import dev.panini.execution.ExecutionSamjna
+import dev.panini.execution.op
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
@@ -24,6 +27,11 @@ class PreshDhatu : Dhatu(
     itStatus = ItStatus.SET,
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.UDATTA,
-) {
-
-}
+    operations = listOf(
+        _root_ide_package_.dev.panini.actions.external.BahyaSendAction.op {
+            requires(Karaka.KARMAN)
+            effects(ExecutionEffect.NETWORK, ExecutionEffect.EXECUTE_PROCESS, ExecutionEffect.SEND_MESSAGE)
+            returns(ExecutionSamjna.SHABDA)
+        },
+    ),
+)

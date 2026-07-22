@@ -1,10 +1,10 @@
 package dev.panini.ashtadhyayi.adhyaya6.pada4
 
+import dev.panini.ashtadhyayi.adhyaya5.pada2.PuranaNumeralClasses
+import dev.panini.core.ItMarker
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.core.ItMarker
-import dev.panini.ashtadhyayi.adhyaya5.pada2.PuranaNumeralClasses
 import dev.panini.derivation.TermKind
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction

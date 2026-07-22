@@ -1,7 +1,7 @@
 package dev.panini.pratyahara
 
-import dev.panini.shiksha.Vyanjana
 import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 
 object MaheshvaraSutras {
     val all: List<MaheshvaraSutra> = listOf(

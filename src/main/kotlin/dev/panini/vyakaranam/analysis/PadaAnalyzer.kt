@@ -4,7 +4,16 @@ import dev.panini.core.Lakara
 import dev.panini.core.Linga
 import dev.panini.core.SupAffix
 import dev.panini.core.TingAffix
-import dev.panini.vyakaranam.ast.*
+import dev.panini.vyakaranam.ast.AvyayaPada
+import dev.panini.vyakaranam.ast.KridantaPratipadika
+import dev.panini.vyakaranam.ast.MulaPratipadika
+import dev.panini.vyakaranam.ast.Pada
+import dev.panini.vyakaranam.ast.Pratipadika
+import dev.panini.vyakaranam.ast.SamasaPratipadika
+import dev.panini.vyakaranam.ast.SamuccitaSubanta
+import dev.panini.vyakaranam.ast.SubantaPada
+import dev.panini.vyakaranam.ast.TingantaPada
+import dev.panini.vyakaranam.ast.UnadyantaPratipadika
 import dev.panini.vyakaranam.lexicon.DhatuEntry
 import dev.panini.vyakaranam.lexicon.PratipadikaEntry
 import dev.panini.vyakaranam.lexicon.VyakaranamLexicon

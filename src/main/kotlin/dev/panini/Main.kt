@@ -1,18 +1,18 @@
 package dev.panini
 
+import dev.panini.ashtadhyayi.Ashtadhyayi
+import dev.panini.core.Lakara
+import dev.panini.core.Vacana
+import dev.panini.core.Vibhakti
 import dev.panini.derivation.SubantaDerivationRequest
 import dev.panini.derivation.SubantaEngine
 import dev.panini.derivation.SubantaStemClass
-import dev.panini.core.Vacana
-import dev.panini.core.Vibhakti
 import dev.panini.derivation.TingantaDerivationRequest
 import dev.panini.derivation.TingantaEngine
-import dev.panini.core.Lakara
-import dev.panini.ashtadhyayi.Ashtadhyayi
-import dev.panini.sutra.Sutra
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.PaniniVM
 import dev.panini.sankhya.SankhyaGenerator
+import dev.panini.sutra.Sutra
 import java.io.File
 import java.math.BigInteger
 

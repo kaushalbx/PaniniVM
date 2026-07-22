@@ -1,14 +1,14 @@
 package dev.panini.ashtadhyayi.adhyaya6.pada1
 
 import dev.panini.ashtadhyayi.Ashtadhyayi
+import dev.panini.core.DhatuGana
+import dev.panini.core.Lakara
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.core.Lakara
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.derivation.TermKind
-import dev.panini.core.DhatuGana
+import dev.panini.derivation.VarnaSubstitution
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction

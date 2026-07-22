@@ -1,4 +1,4 @@
-package dev.panini.execution.operations.numeric
+package dev.panini.actions.numeric
 
 import dev.panini.core.Karaka
 import dev.panini.execution.DhatuAction
@@ -7,9 +7,11 @@ import dev.panini.execution.ExecutionContext
 import dev.panini.execution.ExecutionError
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.SanskritValue
+import dev.panini.execution.renderSankhyaResult
+import dev.panini.execution.resolveSankhyaValues
 
-/** Exponentiation (power / ghāta) over Sanskrit number words. */
-object SanskritExponentiationAction : DhatuAction("सङ्ख्याघातः", "सङ्ख्यायाः घातवर्धनम्") {
+/** Modulo (remainder after division) over Sanskrit number words. */
+object SanskritModuloAction : DhatuAction("सङ्ख्याशेषः", "सङ्ख्याविभाजनात् शेषः") {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
         val expression = requireNotNull(context.bindings[Karaka.KARMAN])
         val operands = context.resolve(expression)
@@ -19,34 +21,34 @@ object SanskritExponentiationAction : DhatuAction("सङ्ख्याघा�
         if (values.size < 2) {
             return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
-                "Exponentiation requires at least 2 number operands (base and exponent).",
+                "Modulo requires at least 2 number operands.",
                 listOf("Selected operation ${operation.name}."),
             )
         }
-        val base = values[0]
-        val exp = values[1]
-        if (exp < 0 || exp > Int.MAX_VALUE) {
-            return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Exponent $exp is unsupported.")
+        val divisor = values[1]
+        if (divisor == 0L) {
+            return ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                "Modulo by zero (शून्य) is undefined.",
+                listOf("Selected operation ${operation.name}."),
+            )
         }
-        val pow = runCatching {
-            var value = 1L
-            repeat(exp.toInt()) { value = Math.multiplyExact(value, base) }
-            value
-        }.getOrElse { return numericOverflow(operation) }
-        val result = renderSankhyaResult(pow) ?: return ExecutionResult.Failure(
+        val rem = values[0] % divisor
+        val result = renderSankhyaResult(rem) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
-            "The result $pow ($base^$exp) is outside the supported Sanskrit number vocabulary.",
-            listOf("Resolved $base ^ $exp.")
+            "The result $rem is outside the supported Sanskrit number vocabulary.",
+            listOf("Resolved ${operands[0]} % ${operands[1]}.")
         )
         return ExecutionResult.Success(
             result,
             operation.name,
             listOf(
                 "Selected operation ${operation.name}.",
-                "Resolved $base ^ $exp.",
+                "Resolved ${operands[0]} % ${operands[1]}.",
                 "Produced $result.",
             ),
-            SanskritValue.Sankhya(pow, result),
+            SanskritValue.Sankhya(rem, result),
         )
     }
 }
+

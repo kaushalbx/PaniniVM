@@ -1,12 +1,12 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada3
 
+import dev.panini.core.ItMarker
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.core.ItMarker
-import dev.panini.shiksha.Samjna
 import dev.panini.derivation.VarnaSubstitution
+import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Varnamala
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra

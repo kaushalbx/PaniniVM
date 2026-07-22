@@ -1,9 +1,9 @@
 package dev.panini.pratyahara
 
-import dev.panini.shiksha.Varna
 import dev.panini.shiksha.Svara
-import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.Varna
 import dev.panini.shiksha.Varnamala
+import dev.panini.shiksha.Vyanjana
 
 class PratyaharaEngine(
     sutras: List<MaheshvaraSutra> = MaheshvaraSutras.all,

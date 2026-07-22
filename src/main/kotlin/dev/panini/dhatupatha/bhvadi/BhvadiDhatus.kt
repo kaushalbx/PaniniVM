@@ -1,8 +1,8 @@
 package dev.panini.dhatupatha.bhvadi
 
-import dev.panini.dhatupatha.Dhatu
 import dev.panini.core.DhatuGana
 import dev.panini.core.PadaType
+import dev.panini.dhatupatha.Dhatu
 import dev.panini.dhatupatha.dhatuPatha
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus

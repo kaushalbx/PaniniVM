@@ -1,9 +1,10 @@
 package dev.panini.dhatupatha.bhvadi
 
-import dev.panini.dhatupatha.Dhatu
+import dev.panini.actions.numeric.SanskritFractionAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.PadaType
-import dev.panini.core.Karaka
+import dev.panini.dhatupatha.Dhatu
+import dev.panini.execution.numericOp
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
@@ -22,6 +23,7 @@ class BhajDhatu : Dhatu(
     itStatus = ItStatus.ANIT,
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.ANUDATTA,
-) {
-
-}
+    operations = listOf(
+        SanskritFractionAction.numericOp(),
+    ),
+)

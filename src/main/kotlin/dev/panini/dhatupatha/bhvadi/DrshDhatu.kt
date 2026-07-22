@@ -1,9 +1,12 @@
 package dev.panini.dhatupatha.bhvadi
 
-import dev.panini.dhatupatha.Dhatu
+import dev.panini.actions.state.SanskritVariableInspectAction
 import dev.panini.core.DhatuGana
-import dev.panini.core.PadaType
 import dev.panini.core.Karaka
+import dev.panini.core.PadaType
+import dev.panini.dhatupatha.Dhatu
+import dev.panini.execution.ExecutionSamjna
+import dev.panini.execution.op
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
@@ -22,6 +25,9 @@ class DrshDhatu : Dhatu(
     itStatus = ItStatus.ANIT,
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.ANUDATTA,
-) {
-
-}
+    operations = listOf(
+        SanskritVariableInspectAction.op {
+            requires(Karaka.KARMAN); returns(ExecutionSamjna.SHABDA)
+        },
+    ),
+)

@@ -3,44 +3,12 @@ package dev.panini.execution
 import dev.panini.core.Karaka
 import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.dhatupatha.rudhadi.YujirDhatu
-import kotlin.test.assertEquals
-import kotlin.test.assertIs
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
+import kotlin.test.assertIs
 
-class DhatuOperationRegistryTest {
-    private val action = object : DhatuAction("परीक्षण-क्रिया", "परीक्षणम्") {
-        override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
-            return ExecutionResult.Success("सिद्धम्", operation.name)
-        }
-    }
-
-    @Test
-    fun `registry rejects unknown dhatu ids`() {
-        val error = assertFailsWith<IllegalArgumentException> {
-            DhatuOperationRegistry(mapOf("unknown" to listOf(testOperation("one"))))
-        }
-        assertTrue("Unknown dhātu id" in error.message.orEmpty())
-    }
-
-    @Test
-    fun `registry rejects duplicate operation ids for one dhatu`() {
-        assertFailsWith<IllegalArgumentException> {
-            DhatuOperationRegistry(
-                mapOf("07.0007" to listOf(testOperation("same"), testOperation("same"))),
-            )
-        }
-    }
-
-    @Test
-    fun `registry rejects indistinguishable operations`() {
-        assertFailsWith<IllegalArgumentException> {
-            DhatuOperationRegistry(
-                mapOf("07.0007" to listOf(testOperation("one"), testOperation("two"))),
-            )
-        }
-    }
+class DhatuOperationTest {
 
     @Test
     fun `trigger rejects contradictory upasarga requirements`() {
@@ -65,7 +33,7 @@ class DhatuOperationRegistryTest {
     @Test
     fun `every built-in operation is explicitly resolvable`() {
         val registered = DhatuPatha.all.flatMap { dhatu ->
-            DhatuOperationRegistry.DEFAULT.operationsFor(dhatu).map { dhatu to it }
+            dhatu.operations.map { dhatu to it }
         }
         assertEquals(19, registered.size)
 
@@ -92,11 +60,13 @@ class DhatuOperationRegistryTest {
             signature = OperationSignature(listOf(KarakaRequirement(Karaka.SAMPRADANA))),
             action = customAction,
         )
-        val registry = DhatuOperationRegistry(mapOf("07.0007" to listOf(operation)))
+        val yujirWithCustomOp = object : YujirDhatu() {
+            override val operations = listOf(operation)
+        }
         val expression = ExecutionExpression.Pada("रामाभ्याम्")
         val invocation = DhatuInvocation(
             id = "test",
-            dhatu = YujirDhatu(),
+            dhatu = yujirWithCustomOp,
             bindings = emptyMap(),
             selectedOperation = operation.name,
             ambiguousBindings = listOf(
@@ -108,18 +78,11 @@ class DhatuOperationRegistryTest {
         )
 
         val resolved = assertIs<OperationResolution.Resolved>(
-            OperationResolver.resolve(invocation, emptyMap(), registry),
+            OperationResolver.resolve(invocation, emptyMap()),
         )
 
         assertEquals(expression, resolved.value.context.bindings[Karaka.SAMPRADANA])
     }
-
-    private fun testOperation(name: String) = DhatuOperation(
-        signature = OperationSignature(listOf(KarakaRequirement(Karaka.KARMAN))),
-        action = object : DhatuAction(name, "test") {
-            override fun execute(context: ExecutionContext, operation: DhatuOperation) = ExecutionResult.Success("ok", operation.name)
-        },
-    )
 
     private fun expressionFor(
         requirement: KarakaRequirement,

@@ -2,8 +2,16 @@ package dev.panini.ashtadhyayi.adhyaya3.pada4
 
 import dev.panini.core.Lakara
 import dev.panini.core.Purusha
-import dev.panini.derivation.*
-import dev.panini.sutra.*
+import dev.panini.derivation.DerivationChange
+import dev.panini.derivation.DerivationState
+import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.TermKind
+import dev.panini.sutra.Sutra
+import dev.panini.sutra.SutraAction
+import dev.panini.sutra.SutraRole
+import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraType
 
 /** 3.4.92: आडुत्तमस्य पिच्च. Adds आट् to first-person LOT endings. */
 object AdUttamasyaPicCaSutra : Sutra<DerivationState, DerivationChange>(

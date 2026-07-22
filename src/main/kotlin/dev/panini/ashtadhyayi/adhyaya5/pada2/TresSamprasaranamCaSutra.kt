@@ -1,8 +1,16 @@
 package dev.panini.ashtadhyayi.adhyaya5.pada2
 
-import dev.panini.derivation.*
+import dev.panini.derivation.DerivationChange
+import dev.panini.derivation.DerivationState
+import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
-import dev.panini.sutra.*
+import dev.panini.sutra.Sutra
+import dev.panini.sutra.SutraAction
+import dev.panini.sutra.SutraRole
+import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraType
 
 /** 5.2.55: त्रेः सम्प्रसारणं च। */
 object TresSamprasaranamCaSutra : Sutra<DerivationState, DerivationChange>(

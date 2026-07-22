@@ -1,11 +1,11 @@
 package dev.panini.sutra
 
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import dev.panini.ashtadhyayi.adhyaya6.pada1.AdGunaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada1.AdengGunaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.SadhakatamamKaranamSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.ChaturthiSampradaneSutra
+import dev.panini.ashtadhyayi.adhyaya6.pada1.AdGunaSutra
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class SutraTest {
     @Test

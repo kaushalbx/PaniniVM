@@ -1,17 +1,15 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada1
 
 import dev.panini.ashtadhyayi.Ashtadhyayi
+import dev.panini.core.Linga
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.HasMorphosyntax
-import dev.panini.derivation.TermKind
 import dev.panini.derivation.VarnaSubstitution
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Varnamala
-import dev.panini.core.Linga
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction

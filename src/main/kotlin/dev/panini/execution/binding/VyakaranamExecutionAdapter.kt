@@ -2,15 +2,25 @@ package dev.panini.execution
 
 import dev.panini.core.Karaka
 import dev.panini.core.Lakara
+import dev.panini.core.Prayoga
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.dhatupatha.DhatuPatha
-import dev.panini.vyakaranam.ast.*
-import dev.panini.vyakaranam.parser.PaniniParseException
-import dev.panini.vyakaranam.parser.PaniniParser
+import dev.panini.sankhya.SankhyaGenerator
 import dev.panini.vyakaranam.analysis.KarakaRuleContext
 import dev.panini.vyakaranam.analysis.KarakaRuleEngine
-import dev.panini.core.Prayoga
-import dev.panini.sankhya.SankhyaGenerator
+import dev.panini.vyakaranam.ast.AkhyataVakya
+import dev.panini.vyakaranam.ast.AvyayaPada
+import dev.panini.vyakaranam.ast.KridantaPratipadika
+import dev.panini.vyakaranam.ast.MulaPratipadika
+import dev.panini.vyakaranam.ast.Pada
+import dev.panini.vyakaranam.ast.Pratipadika
+import dev.panini.vyakaranam.ast.SamasaPratipadika
+import dev.panini.vyakaranam.ast.SamuccitaSubanta
+import dev.panini.vyakaranam.ast.SubantaPada
+import dev.panini.vyakaranam.ast.TingantaPada
+import dev.panini.vyakaranam.ast.UnadyantaPratipadika
+import dev.panini.vyakaranam.parser.PaniniParseException
+import dev.panini.vyakaranam.parser.PaniniParser
 
 /**
  * Thin bridge from canonical vyākaraṇa analysis to execution semantics.
@@ -108,7 +118,7 @@ object VyakaranamExecutionAdapter {
         val grouped = mutableMapOf<Karaka, MutableList<ExecutionExpression>>()
         val ambiguous = mutableListOf<AmbiguousKarakaBinding>()
         val trace = mutableListOf<String>()
-        val requiredKarakas = DhatuOperationRegistry.DEFAULT.operationsFor(dhatu)
+        val requiredKarakas = dhatu.operations
             .flatMapTo(mutableSetOf()) { operation -> operation.signature.requirements.map { it.karaka } }
         fun inferKarakas(sup: String): Set<Karaka> {
             val resolution = KarakaRuleEngine.resolve(
@@ -195,7 +205,7 @@ object VyakaranamExecutionAdapter {
         val text = tinganta.dhatu.mulaDhatu
         val normalizedText = text.normalizeDhatuSurface()
         return DhatuPatha.all.asSequence()
-            .filter(DhatuOperationRegistry.DEFAULT::isExecutable)
+            .filter { it.operations.isNotEmpty() }
             .firstOrNull { dhatu ->
                 text == dhatu.id ||
                     text == dhatu.upadesha ||

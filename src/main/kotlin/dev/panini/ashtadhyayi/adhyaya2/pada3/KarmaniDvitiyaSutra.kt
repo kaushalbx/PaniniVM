@@ -8,9 +8,9 @@ import dev.panini.sutra.SutraInput
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.vyakaranam.analysis.KarakaEvidence
 import dev.panini.vyakaranam.analysis.VibhaktiRuleContext
 import dev.panini.vyakaranam.analysis.VibhaktiRuleResult
-import dev.panini.vyakaranam.analysis.KarakaEvidence
 
 object KarmaniDvitiyaSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     number = "2.3.2", text = "कर्मणि द्वितीया", hindiExplanation = "अनभिहित कर्म में द्वितीया होती है।",

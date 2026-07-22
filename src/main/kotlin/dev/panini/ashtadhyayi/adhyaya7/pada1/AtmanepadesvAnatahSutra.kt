@@ -1,9 +1,16 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada1
 
-import dev.panini.derivation.*
 import dev.panini.core.DhatuGana
 import dev.panini.core.Lakara
-import dev.panini.sutra.*
+import dev.panini.derivation.DerivationChange
+import dev.panini.derivation.DerivationState
+import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.TermKind
+import dev.panini.sutra.Sutra
+import dev.panini.sutra.SutraAction
+import dev.panini.sutra.SutraRole
+import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraType
 
 /** 7.1.5: आत्मनेपदेष्वनतः. */
 object AtmanepadesvAnatahSutra : Sutra<DerivationState, DerivationChange>(

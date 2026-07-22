@@ -8,9 +8,9 @@ import dev.panini.sutra.SutraInput
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.vyakaranam.analysis.KarakaEvidence
 import dev.panini.vyakaranam.analysis.VibhaktiRuleContext
 import dev.panini.vyakaranam.analysis.VibhaktiRuleResult
-import dev.panini.vyakaranam.analysis.KarakaEvidence
 
 object ApadanePancamiSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     number = "2.3.28", text = "अपादाने पञ्चमी", hindiExplanation = "अनभिहित अपादान में पञ्चमी होती है।",

@@ -1,9 +1,14 @@
 package dev.panini.dhatupatha.bhvadi
 
-import dev.panini.dhatupatha.Dhatu
+import dev.panini.actions.state.SmritiLoadAction
+import dev.panini.actions.state.SmritiSaveAction
 import dev.panini.core.DhatuGana
-import dev.panini.core.PadaType
 import dev.panini.core.Karaka
+import dev.panini.core.PadaType
+import dev.panini.dhatupatha.Dhatu
+import dev.panini.execution.ExecutionEffect
+import dev.panini.execution.ExecutionSamjna
+import dev.panini.execution.op
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
@@ -24,6 +29,18 @@ class SmrDhatu : Dhatu(
     itStatus = ItStatus.SET,
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.UDATTA,
-) {
-
-}
+    operations = listOf(
+       SmritiSaveAction.op {
+            requires(Karaka.KARMAN)
+            triggeredBy(forbiddenAvyayas = setOf("पुनः"))
+            effects(ExecutionEffect.WRITE_RESOURCE)
+            returns(ExecutionSamjna.SHABDA)
+        },
+        SmritiLoadAction.op {
+            requires(Karaka.KARMAN)
+            triggeredBy(requiredAvyayas = setOf("पुनः"))
+            effects(ExecutionEffect.READ_RESOURCE)
+            returns(ExecutionSamjna.SHABDA)
+        },
+    ),
+)

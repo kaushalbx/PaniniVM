@@ -1,12 +1,12 @@
 package dev.panini.derivation
 
+import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraPriority
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.sutra.SutraVisibility
-import dev.panini.ashtadhyayi.Ashtadhyayi
 
 data class DerivationApplication(
     val sutra: String,

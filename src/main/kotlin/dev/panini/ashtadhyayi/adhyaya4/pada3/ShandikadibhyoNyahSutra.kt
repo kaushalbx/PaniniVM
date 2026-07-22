@@ -1,8 +1,18 @@
 package dev.panini.ashtadhyayi.adhyaya4.pada3
 
-import dev.panini.derivation.*
+import dev.panini.derivation.DerivationChange
+import dev.panini.derivation.DerivationState
+import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.DerivationalMeaning
+import dev.panini.derivation.HasRequestedMeaning
+import dev.panini.derivation.TermKind
 import dev.panini.ganapatha.GanaPatha
-import dev.panini.sutra.*
+import dev.panini.sutra.Sutra
+import dev.panini.sutra.SutraAction
+import dev.panini.sutra.SutraRole
+import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraType
 
 /** 4.3.92: शण्डिकादिभ्यो ञ्यः. */
 object ShandikadibhyoNyahSutra : Sutra<DerivationState, DerivationChange>(

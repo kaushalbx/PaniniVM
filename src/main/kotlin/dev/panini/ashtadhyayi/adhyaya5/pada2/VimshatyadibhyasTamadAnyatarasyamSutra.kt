@@ -1,8 +1,14 @@
 package dev.panini.ashtadhyayi.adhyaya5.pada2
 
-import dev.panini.derivation.*
+import dev.panini.derivation.DerivationChange
+import dev.panini.derivation.DerivationState
+import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
-import dev.panini.sutra.*
+import dev.panini.sutra.Sutra
+import dev.panini.sutra.SutraAction
+import dev.panini.sutra.SutraRole
+import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraType
 
 /** 5.2.56: विंशत्यादिभ्यस्तमडन्यतरस्याम् — optional तमट् augment of ordinal डट्. */
 object VimshatyadibhyasTamadAnyatarasyamSutra : Sutra<DerivationState, DerivationChange>(

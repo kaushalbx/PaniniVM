@@ -1,7 +1,7 @@
 package dev.panini.execution
 
-import dev.panini.execution.persistence.StateStore
 import dev.panini.execution.external.ExternalCapabilityDispatcher
+import dev.panini.execution.persistence.StateStore
 
 enum class ExecutionEffect {
     PURE, READ_MEMORY, WRITE_MEMORY, READ_RESOURCE, WRITE_RESOURCE,

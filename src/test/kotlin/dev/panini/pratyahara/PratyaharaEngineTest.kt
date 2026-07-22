@@ -1,8 +1,8 @@
 package dev.panini.pratyahara
 
-import dev.panini.shiksha.Vyanjana
-import dev.panini.shiksha.Varna
 import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

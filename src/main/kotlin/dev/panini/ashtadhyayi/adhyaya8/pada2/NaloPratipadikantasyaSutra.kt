@@ -1,16 +1,15 @@
 package dev.panini.ashtadhyayi.adhyaya8.pada2
 
 import dev.panini.derivation.DerivationChange
-import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
+import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
-import dev.panini.shiksha.Samjna
 
 /** 8.2.7: Delete a final n of a prātipadika before the bhy- and sup endings. */
 object NaloPratipadikantasyaSutra : Sutra<DerivationState, DerivationChange>(

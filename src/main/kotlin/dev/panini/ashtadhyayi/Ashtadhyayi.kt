@@ -4,8 +4,8 @@ import dev.panini.ashtadhyayi.adhyaya1.pada1.Adhyaya1Pada1
 import dev.panini.ashtadhyayi.adhyaya1.pada2.Adhyaya1Pada2
 import dev.panini.ashtadhyayi.adhyaya1.pada3.Adhyaya1Pada3
 import dev.panini.ashtadhyayi.adhyaya1.pada4.Adhyaya1Pada4
-import dev.panini.ashtadhyayi.adhyaya2.pada4.Adhyaya2Pada4
 import dev.panini.ashtadhyayi.adhyaya2.pada3.Adhyaya2Pada3
+import dev.panini.ashtadhyayi.adhyaya2.pada4.Adhyaya2Pada4
 import dev.panini.ashtadhyayi.adhyaya3.pada1.Adhyaya3Pada1
 import dev.panini.ashtadhyayi.adhyaya3.pada2.Adhyaya3Pada2
 import dev.panini.ashtadhyayi.adhyaya3.pada3.Adhyaya3Pada3
@@ -27,7 +27,6 @@ import dev.panini.ashtadhyayi.adhyaya8.pada3.Adhyaya8Pada3
 import dev.panini.ashtadhyayi.adhyaya8.pada4.Adhyaya8Pada4
 import dev.panini.derivation.DerivationSutra
 import dev.panini.ganapatha.Gana
-import dev.panini.ganapatha.GanaPatha
 import dev.panini.pratyahara.PratyaharaEngine
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraCatalogIssue

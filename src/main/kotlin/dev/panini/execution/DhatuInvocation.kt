@@ -2,8 +2,8 @@ package dev.panini.execution
 
 import dev.panini.core.Karaka
 import dev.panini.dhatupatha.Dhatu
-import dev.panini.execution.persistence.StateStore
 import dev.panini.execution.external.ExternalCapabilityDispatcher
+import dev.panini.execution.persistence.StateStore
 
 /** One occurrence of a verb in an utterance. */
 data class DhatuInvocation(

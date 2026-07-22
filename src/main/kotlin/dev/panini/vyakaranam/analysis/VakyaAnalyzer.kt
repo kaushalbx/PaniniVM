@@ -1,8 +1,11 @@
 package dev.panini.vyakaranam.analysis
 
-import dev.panini.core.Prayoga
 import dev.panini.core.Karaka
-import dev.panini.vyakaranam.ast.*
+import dev.panini.core.Prayoga
+import dev.panini.vyakaranam.ast.AkhyataVakya
+import dev.panini.vyakaranam.ast.NamaVakya
+import dev.panini.vyakaranam.ast.SubantaPada
+import dev.panini.vyakaranam.ast.Vakya
 
 data class KarakaAssignment(
     val pada: SubantaPada,

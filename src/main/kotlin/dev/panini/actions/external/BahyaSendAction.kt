@@ -1,6 +1,12 @@
-package dev.panini.execution
+package dev.panini.actions.external
 
 import dev.panini.core.Karaka
+import dev.panini.execution.DhatuAction
+import dev.panini.execution.DhatuOperation
+import dev.panini.execution.ExecutionContext
+import dev.panini.execution.ExecutionEffect
+import dev.panini.execution.ExecutionError
+import dev.panini.execution.ExecutionResult
 
 /** External System Dispatch Action (preṣ / बाह्यप्रेषणम्). */
 object BahyaSendAction : DhatuAction("बाह्यप्रेषणम्", "बाह्यतन्त्राय सन्देशप्रेषणम्") {

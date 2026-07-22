@@ -1,8 +1,15 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada2
 
 import dev.panini.core.Lakara
-import dev.panini.derivation.*
-import dev.panini.sutra.*
+import dev.panini.derivation.DerivationChange
+import dev.panini.derivation.DerivationState
+import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.TermKind
+import dev.panini.sutra.Sutra
+import dev.panini.sutra.SutraAction
+import dev.panini.sutra.SutraRole
+import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraType
 
 /** 7.2.13: कृसृभृवृस्तुद्रुस्रुश्रुवो लिटि. Restricts the LIṬ iṭ prohibition to the eight krādi roots. */
 object KrsrbhrvrstudrusrusruvoLitiSutra : Sutra<DerivationState, DerivationChange>(

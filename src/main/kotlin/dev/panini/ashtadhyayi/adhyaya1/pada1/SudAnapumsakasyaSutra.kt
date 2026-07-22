@@ -1,11 +1,11 @@
 package dev.panini.ashtadhyayi.adhyaya1.pada1
 
+import dev.panini.core.Linga
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.HasMorphosyntax
 import dev.panini.derivation.SamjnaAssignment
-import dev.panini.core.Linga
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction

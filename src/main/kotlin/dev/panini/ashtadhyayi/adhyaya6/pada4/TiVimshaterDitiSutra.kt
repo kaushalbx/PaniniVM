@@ -1,7 +1,14 @@
 package dev.panini.ashtadhyayi.adhyaya6.pada4
 
-import dev.panini.derivation.*
-import dev.panini.sutra.*
+import dev.panini.derivation.DerivationChange
+import dev.panini.derivation.DerivationState
+import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.TermKind
+import dev.panini.sutra.Sutra
+import dev.panini.sutra.SutraAction
+import dev.panini.sutra.SutraRole
+import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraType
 
 /** 6.4.142: ति विंशतेर्डिति — final ति of विंशति is deleted before a डित् suffix. */
 object TiVimshaterDitiSutra : Sutra<DerivationState, DerivationChange>(

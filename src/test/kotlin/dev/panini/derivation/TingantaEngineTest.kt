@@ -1,10 +1,5 @@
 package dev.panini.derivation
 
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
-import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.core.DhatuGana
 import dev.panini.core.Lakara
 import dev.panini.core.LopaType
@@ -12,6 +7,11 @@ import dev.panini.core.PadaType
 import dev.panini.core.Purusha
 import dev.panini.core.TingAffix
 import dev.panini.core.Vacana
+import dev.panini.dhatupatha.DhatuPatha
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 class TingantaEngineTest {
 

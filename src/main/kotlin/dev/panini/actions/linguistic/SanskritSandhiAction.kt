@@ -1,16 +1,15 @@
-package dev.panini.execution.operations.linguistic
+package dev.panini.actions.linguistic
 
 import dev.panini.core.Karaka
+import dev.panini.derivation.DerivationEngine
+import dev.panini.derivation.DerivationState
+import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.TermKind
 import dev.panini.execution.DhatuAction
 import dev.panini.execution.DhatuOperation
 import dev.panini.execution.ExecutionContext
 import dev.panini.execution.ExecutionError
 import dev.panini.execution.ExecutionResult
-
-import dev.panini.derivation.DerivationEngine
-import dev.panini.derivation.DerivationState
-import dev.panini.derivation.DerivationTerm
-import dev.panini.derivation.TermKind
 
 /** Sandhi joining (saṃhitā) over text operands using the Panini Ashtadhyayi DerivationEngine. */
 object SanskritSandhiAction : DhatuAction("संहिताकरणम्", "पदानां सन्धियोगः") {

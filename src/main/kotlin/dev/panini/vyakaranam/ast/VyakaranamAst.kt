@@ -1,7 +1,7 @@
 package dev.panini.vyakaranam.ast
 
-import dev.panini.core.SupLopa
 import dev.panini.core.Lakara
+import dev.panini.core.SupLopa
 
 sealed interface VyakaranamNode {
     val sourceText: String

@@ -1,6 +1,13 @@
-package dev.panini.execution
+package dev.panini.actions.state
 
 import dev.panini.core.Karaka
+import dev.panini.execution.DhatuAction
+import dev.panini.execution.DhatuOperation
+import dev.panini.execution.ExecutionContext
+import dev.panini.execution.ExecutionError
+import dev.panini.execution.ExecutionResult
+import dev.panini.execution.SambhashanaContext
+import dev.panini.execution.SanskritValue
 
 /** Variable Assignment & Value Binding (dā / मूल्यदानम्). */
 object SanskritVariableAssignAction : DhatuAction("मूल्यदानम्", "मूल्यस्य संविभाजनम्") {

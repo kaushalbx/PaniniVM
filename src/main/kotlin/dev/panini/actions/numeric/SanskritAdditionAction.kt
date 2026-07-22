@@ -1,4 +1,4 @@
-package dev.panini.execution.operations.numeric
+package dev.panini.actions.numeric
 
 import dev.panini.core.Karaka
 import dev.panini.execution.DhatuAction
@@ -7,6 +7,9 @@ import dev.panini.execution.ExecutionContext
 import dev.panini.execution.ExecutionError
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.SanskritValue
+import dev.panini.execution.numericOverflow
+import dev.panini.execution.renderSankhyaResult
+import dev.panini.execution.resolveSankhyaValues
 
 /** Addition over a coordinated expression of canonical Sanskrit number words. */
 object SanskritAdditionAction : DhatuAction("सङ्ख्यायोजनम्", "सङ्ख्यानां योगः") {

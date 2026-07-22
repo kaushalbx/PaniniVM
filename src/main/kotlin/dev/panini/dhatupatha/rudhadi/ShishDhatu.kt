@@ -1,9 +1,10 @@
 package dev.panini.dhatupatha.rudhadi
 
-import dev.panini.dhatupatha.Dhatu
+import dev.panini.actions.numeric.SanskritModuloAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.PadaType
-import dev.panini.core.Karaka
+import dev.panini.dhatupatha.Dhatu
+import dev.panini.execution.numericOp
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
@@ -22,6 +23,7 @@ class ShishDhatu : Dhatu(
     itStatus = ItStatus.ANIT,
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.ANUDATTA,
-) {
-
-}
+    operations = listOf(
+        SanskritModuloAction.numericOp(),
+    ),
+)

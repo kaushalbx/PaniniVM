@@ -3,27 +3,27 @@ package dev.panini.execution
 import dev.panini.core.Karaka
 import dev.panini.core.Lakara
 
-internal data class OperationRegistration(val dhatuId: String, val operation: DhatuOperation)
-
-internal fun operation(
-    dhatuId: String,
-    action: DhatuAction,
-    definition: OperationDefinition.() -> Unit = {},
-): OperationRegistration {
+fun DhatuAction.op(definition: OperationDefinition.() -> Unit = {}): DhatuOperation {
     val builder = OperationDefinition().apply(definition)
-    return OperationRegistration(
-        dhatuId,
-        DhatuOperation(
-            signature = OperationSignature(builder.requirements, builder.optionalKarakas),
-            action = action,
-            trigger = builder.trigger,
-            effects = builder.effects,
-            resultSamjnas = builder.resultSamjnas,
-        ),
+    return DhatuOperation(
+        signature = OperationSignature(builder.requirements, builder.optionalKarakas),
+        action = this,
+        trigger = builder.trigger,
+        effects = builder.effects,
+        resultSamjnas = builder.resultSamjnas,
     )
 }
 
-internal class OperationDefinition {
+fun DhatuAction.numericOp(
+    minimum: Int = 2,
+    definition: OperationDefinition.() -> Unit = {},
+): DhatuOperation = op {
+    requiresNumbers(minimum = minimum, shape = ExpressionShape.COORDINATION)
+    returns(ExecutionSamjna.SANKHYA)
+    definition()
+}
+
+class OperationDefinition {
     internal val requirements = mutableListOf<KarakaRequirement>()
     internal val optionalKarakas = mutableSetOf<Karaka>()
     internal var trigger = OperationTrigger()
@@ -74,6 +74,3 @@ internal class OperationDefinition {
         resultSamjnas = samjnas.toSet()
     }
 }
-
-internal fun registrations(vararg groups: List<OperationRegistration>): Map<String, List<DhatuOperation>> =
-    groups.asSequence().flatten().groupBy({ it.dhatuId }, { it.operation })

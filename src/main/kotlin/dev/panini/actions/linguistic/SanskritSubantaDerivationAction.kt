@@ -1,4 +1,4 @@
-package dev.panini.execution.operations.linguistic
+package dev.panini.actions.linguistic
 
 import dev.panini.core.Karaka
 import dev.panini.core.Vacana

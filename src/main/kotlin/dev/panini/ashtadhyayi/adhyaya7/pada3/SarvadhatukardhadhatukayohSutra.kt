@@ -2,20 +2,20 @@ package dev.panini.ashtadhyayi.adhyaya7.pada3
 
 import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.ashtadhyayi.adhyaya1.pada2.AsamyogallitKitSutra
+import dev.panini.core.DhatuGana
+import dev.panini.core.Lakara
+import dev.panini.core.PadaType
+import dev.panini.core.TingAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.core.Lakara
-import dev.panini.shiksha.ItStatus
 import dev.panini.derivation.DerivationalEnvironment
 import dev.panini.derivation.HasDerivationalEnvironment
 import dev.panini.derivation.TermKind
-import dev.panini.core.TingAffix
 import dev.panini.derivation.VarnaSubstitution
-import dev.panini.core.DhatuGana
-import dev.panini.core.PadaType
 import dev.panini.pratyahara.Pratyahara
+import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Varnamala
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
