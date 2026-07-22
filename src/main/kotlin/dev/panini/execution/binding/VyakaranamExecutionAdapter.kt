@@ -2,7 +2,6 @@ package dev.panini.execution
 
 import dev.panini.core.Karaka
 import dev.panini.core.Lakara
-import dev.panini.core.SupAffix
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.vyakaranam.ast.*
@@ -48,7 +47,8 @@ object VyakaranamExecutionAdapter {
             val tinganta = (vakya as? AkhyataVakya)?.tinganta ?: return@forEachIndexed
             val dhatu = resolveDhatu(tinganta)
                 ?: return ExecutionBindingResult.Invalid("Unknown verbal action/dhātu: ${tinganta.sourceText}")
-            val bindings = extractKarakas(vakya.padas, conversation, index).toMutableMap()
+            val extracted = extractKarakas(vakya.padas, conversation, index, dhatu)
+            val bindings = extracted.bindings.toMutableMap()
             if (purposeRequiresListenerAsAgent(prayer, tinganta.lakara) && Karaka.KARTR !in bindings) {
                 bindings[Karaka.KARTR] = ExecutionExpression.Pada(listener)
             }
@@ -64,6 +64,7 @@ object VyakaranamExecutionAdapter {
                     avyayas = vakya.padas.filterIsInstance<AvyayaPada>().mapTo(mutableSetOf()) { it.form },
                     lakara = tinganta.lakara,
                 ),
+                ambiguousBindings = extracted.ambiguous,
             )
         }
 
@@ -99,33 +100,48 @@ object VyakaranamExecutionAdapter {
         padas: List<Pada>,
         conversation: SambhashanaContext?,
         clauseIndex: Int,
-    ): Map<Karaka, ExecutionExpression> {
+        dhatu: Dhatu,
+    ): ExtractedBindings {
         val grouped = mutableMapOf<Karaka, MutableList<ExecutionExpression>>()
+        val ambiguous = mutableListOf<AmbiguousKarakaBinding>()
+        val requiredKarakas = DhatuOperationRegistry.DEFAULT.operationsFor(dhatu)
+            .flatMapTo(mutableSetOf()) { operation -> operation.signature.requirements.map { it.karaka } }
+        fun inferKarakas(sup: String): Set<Karaka> {
+            val candidates = KarakaInference.candidates(sup, Prayoga.KARTARI)
+            val requiredCandidates = candidates intersect requiredKarakas
+            return requiredCandidates.takeIf { it.size == 1 } ?: candidates
+        }
+        fun addBinding(expression: ExecutionExpression, candidates: Set<Karaka>) {
+            when (candidates.size) {
+                0 -> grouped.getOrPut(Karaka.ANIRDHARITA) { mutableListOf() } += expression
+                1 -> grouped.getOrPut(candidates.single()) { mutableListOf() } += expression
+                else -> ambiguous += AmbiguousKarakaBinding(expression, candidates)
+            }
+        }
         fun add(subanta: SubantaPada) {
-            val affix = SupAffix.fromUpadesha(subanta.sup.text)
-            val karaka = affix?.vibhakti?.let { KarakaInference.infer(it, Prayoga.KARTARI) }
-                ?: Karaka.ANIRDHARITA
-            grouped.getOrPut(karaka) { mutableListOf() } += expression(subanta, conversation, clauseIndex)
+            addBinding(expression(subanta, conversation, clauseIndex), inferKarakas(subanta.sup.text))
         }
         padas.forEach { pada ->
             when (pada) {
                 is SubantaPada -> add(pada)
                 is SamuccitaSubanta -> {
                     val members = pada.members.map { expression(it, conversation, clauseIndex) }
-                    val karaka = pada.members.firstOrNull()?.let {
-                        SupAffix.fromUpadesha(it.sup.text)?.vibhakti
-                            ?.let { vibhakti -> KarakaInference.infer(vibhakti, Prayoga.KARTARI) }
-                            ?: Karaka.ANIRDHARITA
-                    } ?: Karaka.KARMAN
-                    grouped.getOrPut(karaka) { mutableListOf() } += ExecutionExpression.Coordination(members)
+                    val candidates = pada.members.firstOrNull()?.let { inferKarakas(it.sup.text) }.orEmpty()
+                    addBinding(ExecutionExpression.Coordination(members), candidates)
                 }
                 else -> Unit
             }
         }
-        return grouped.mapValues { (_, values) ->
+        val bindings = grouped.mapValues { (_, values) ->
             if (values.size == 1) values.single() else ExecutionExpression.Coordination(values)
         }
+        return ExtractedBindings(bindings, ambiguous)
     }
+
+    private data class ExtractedBindings(
+        val bindings: Map<Karaka, ExecutionExpression>,
+        val ambiguous: List<AmbiguousKarakaBinding>,
+    )
 
     private fun expression(
         pada: SubantaPada,

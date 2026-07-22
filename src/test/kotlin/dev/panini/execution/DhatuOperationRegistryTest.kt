@@ -2,6 +2,7 @@ package dev.panini.execution
 
 import dev.panini.core.Karaka
 import dev.panini.dhatupatha.DhatuPatha
+import dev.panini.dhatupatha.rudhadi.YujirDhatu
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.Test
@@ -77,6 +78,36 @@ class DhatuOperationRegistryTest {
             )
             assertIs<OperationResolution.Resolved>(resolution, "${dhatu.id}/${operation.id}: $resolution")
         }
+    }
+
+    @Test
+    fun `operation signature resolves a syncretic binding by required karaka`() {
+        val operation = DhatuOperation(
+            id = "सम्प्रदान-परीक्षा",
+            description = "test",
+            signature = OperationSignature(listOf(KarakaRequirement(Karaka.SAMPRADANA))),
+            action = action,
+        )
+        val registry = DhatuOperationRegistry(mapOf("07.0007" to listOf(operation)))
+        val expression = ExecutionExpression.Pada("रामाभ्याम्")
+        val invocation = DhatuInvocation(
+            id = "test",
+            dhatu = YujirDhatu(),
+            bindings = emptyMap(),
+            selectedOperation = operation.id,
+            ambiguousBindings = listOf(
+                AmbiguousKarakaBinding(
+                    expression,
+                    setOf(Karaka.KARANA, Karaka.SAMPRADANA, Karaka.APADANA),
+                ),
+            ),
+        )
+
+        val resolved = assertIs<OperationResolution.Resolved>(
+            OperationResolver.resolve(invocation, emptyMap(), registry),
+        )
+
+        assertEquals(expression, resolved.value.context.bindings[Karaka.SAMPRADANA])
     }
 
     private fun testOperation(id: String) = DhatuOperation(

@@ -13,6 +13,7 @@ data class DhatuInvocation(
     val selectedOperation: String? = null,
     val metadata: Map<String, String> = emptyMap(),
     val grammaticalFeatures: GrammaticalFeatures = GrammaticalFeatures(),
+    val ambiguousBindings: List<AmbiguousKarakaBinding> = emptyList(),
 ) {
     init {
         require(id.isNotBlank()) { "A dhātu invocation requires an id." }
@@ -31,4 +32,14 @@ data class DhatuInvocation(
         externalDispatcher = externalDispatcher,
     )
 
+}
+
+/** A syncretic nominal whose surface ending licenses more than one kāraka. */
+data class AmbiguousKarakaBinding(
+    val expression: ExecutionExpression,
+    val candidates: Set<Karaka>,
+) {
+    init {
+        require(candidates.size > 1) { "An ambiguous binding requires multiple kāraka candidates." }
+    }
 }

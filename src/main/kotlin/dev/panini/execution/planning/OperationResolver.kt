@@ -3,16 +3,19 @@ package dev.panini.execution
 import dev.panini.core.Karaka
 
 object OperationResolver {
-    private val registry = DhatuOperationRegistry.DEFAULT
     fun resolve(
         invocation: DhatuInvocation,
         variables: Map<String, SanskritValue>,
+        registry: DhatuOperationRegistry = DhatuOperationRegistry.DEFAULT,
     ): OperationResolution {
-        val context = invocation.executionContext(variables)
-        return resolveInvocation(invocation, context)
+        return resolveInvocation(invocation, variables, registry)
     }
 
-    private fun resolveInvocation(invocation: DhatuInvocation, context: ExecutionContext): OperationResolution {
+    private fun resolveInvocation(
+        invocation: DhatuInvocation,
+        variables: Map<String, SanskritValue>,
+        registry: DhatuOperationRegistry,
+    ): OperationResolution {
         val dhatu = invocation.dhatu
         val operations = registry.operationsFor(dhatu)
         if (operations.isEmpty()) {
@@ -35,10 +38,13 @@ object OperationResolver {
             )
         }
 
-        val evaluations = named.map { it to evaluate(it.signature, context) }
-        val compatible = evaluations.filter { it.second == SignatureEvaluation.Compatible }.map { it.first }
+        val evaluations = named.map { operation ->
+            val context = contextFor(invocation, operation, variables)
+            Triple(operation, context, evaluate(operation.signature, context))
+        }
+        val compatible = evaluations.filter { it.third == SignatureEvaluation.Compatible }
         if (compatible.isEmpty()) {
-            val missing = evaluations.flatMap { (_, result) ->
+            val missing = evaluations.flatMap { (_, _, result) ->
                 (result as? SignatureEvaluation.Missing)?.karakas.orEmpty()
             }.toSet()
             if (missing.isNotEmpty()) {
@@ -47,23 +53,25 @@ object OperationResolver {
                     "Required kārakas are missing for dhātu ${dhatu.upadesha}: $missing",
                 )
             }
-            val reason = evaluations.firstNotNullOfOrNull { (_, result) ->
+            val reason = evaluations.firstNotNullOfOrNull { (_, _, result) ->
                 (result as? SignatureEvaluation.Incompatible)?.reason
             } ?: "No operation signature accepts this invocation."
             return OperationResolution.Invalid(ExecutionError.INVALID_VALUE, reason)
         }
 
         val maximal = compatible.filter { candidate ->
-            compatible.none { other -> other !== candidate && moreSpecific(other.signature, candidate.signature) }
+            compatible.none { other -> other !== candidate && moreSpecific(other.first.signature, candidate.first.signature) }
         }
-        val operation = if (maximal.size == 1) {
+        val selected = if (maximal.size == 1) {
             maximal.single()
         } else {
             return OperationResolution.Ambiguous(
-                maximal.map { it.id },
+                maximal.map { it.first.id },
                 "More than one incomparable operation signature matches dhātu ${dhatu.upadesha}.",
             )
         }
+        val operation = selected.first
+        val context = selected.second
 
         return OperationResolution.Resolved(
             ResolvedOperation(
@@ -73,6 +81,26 @@ object OperationResolver {
                 listOf("Resolved ${dhatu.upadesha} to operation ${operation.id}."),
             )
         )
+    }
+
+    private fun contextFor(
+        invocation: DhatuInvocation,
+        operation: DhatuOperation,
+        variables: Map<String, SanskritValue>,
+    ): ExecutionContext {
+        val acceptedKarakas = operation.signature.requirements.mapTo(mutableSetOf()) { it.karaka } +
+            operation.signature.optionalKarakas
+        val bindings = invocation.bindings.toMutableMap()
+        invocation.ambiguousBindings.forEach { ambiguous ->
+            val matches = ambiguous.candidates intersect acceptedKarakas
+            if (matches.size == 1) {
+                val karaka = matches.single()
+                bindings[karaka] = bindings[karaka]?.let { existing ->
+                    ExecutionExpression.Coordination(listOf(existing, ambiguous.expression))
+                } ?: ambiguous.expression
+            }
+        }
+        return invocation.executionContext(variables).copy(bindings = bindings)
     }
 
     private fun moreSpecific(left: OperationSignature, right: OperationSignature): Boolean {

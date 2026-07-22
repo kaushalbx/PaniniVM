@@ -53,10 +53,10 @@ object ExecutionRuntime {
                 )
                 is AuthorityDecision.Denied -> return Phala.Nirasta(plan.invocationId, authority.reason)
             }
-            val refreshedContext = plan.resolved.invocation.executionContext(
-                values,
-                scope.stateStore,
-                scope.externalDispatcher,
+            val refreshedContext = plan.resolved.context.copy(
+                variables = values,
+                stateStore = scope.stateStore,
+                externalDispatcher = scope.externalDispatcher,
             )
             when (val result = plan.resolved.operation.action.execute(refreshedContext, plan.resolved.operation)) {
                 is ExecutionResult.Success -> {

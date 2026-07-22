@@ -1,5 +1,6 @@
 package dev.panini.execution
 
+import dev.panini.core.Karaka
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -32,6 +33,28 @@ class VyakaranamExecutionAdapterTest {
         )
         val bound = assertIs<ExecutionBindingResult.Bound>(VyakaranamExecutionAdapter.bind(input, conversation))
         assertEquals(listOf("07.0007", "07.0007"), bound.ukti.invocations.map { it.dhatu.id })
+    }
+
+    @Test
+    fun `syncretic bhyam is not collapsed to trtiya without matching verbal semantics`() {
+        val input = SanskritUktiInput(
+            speaker = "प्रयोक्ता",
+            listener = "यन्त्रम्",
+            text = "एक + भ्याम् द्वि + भ्याम् च युज् + णिच् + लोट् + सिप् ।",
+        )
+        val bound = assertIs<ExecutionBindingResult.Bound>(
+            VyakaranamExecutionAdapter.bind(input, conversation),
+        )
+
+        val invocation = bound.ukti.invocations.single()
+        assertEquals(setOf(Karaka.KARTR), invocation.bindings.keys)
+        assertEquals(2, invocation.ambiguousBindings.size)
+        invocation.ambiguousBindings.forEach {
+            assertEquals(
+                setOf(Karaka.KARANA, Karaka.SAMPRADANA, Karaka.APADANA),
+                it.candidates,
+            )
+        }
     }
 
     @Test
