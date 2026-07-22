@@ -184,6 +184,32 @@ class SanskritSankhyaGeneratorTest {
     }
 
     @Test
+    fun `makes tamat obligatory only for unprefixed shashti through navati`() {
+        val sut = SanskritSankhyaGenerator()
+        val unprefixed = setOf(60L, 70L, 80L, 90L)
+
+        (60L..99L).forEach { number ->
+            val value = BigInteger.valueOf(number)
+            val cardinal = sut.generateSurface(value)
+            val tamat = "${cardinal}तम"
+            val variants = sut.generateOrdinalVariants(value)
+
+            if (number in unprefixed) {
+                assertEquals(setOf(tamat), variants.map { it.final.surface }.toSet(), "$number")
+                assertTrue(variants.all { result -> result.applications.any { it.sutra == "5.2.58" } }, "$number")
+                assertTrue(variants.all { result -> result.applications.none { it.sutra == "5.2.56" } }, "$number")
+                assertEquals(tamat, sut.generateOrdinalSurface(value), "$number default")
+            } else {
+                val short = cardinal.dropLast(1)
+                assertEquals(setOf(short, tamat), variants.map { it.final.surface }.toSet(), "$number")
+                assertTrue(variants.any { result -> result.applications.any { it.sutra == "5.2.56" } }, "$number")
+                assertTrue(variants.all { result -> result.applications.none { it.sutra == "5.2.58" } }, "$number")
+                assertEquals(short, sut.generateOrdinalSurface(value), "$number default")
+            }
+        }
+    }
+
+    @Test
     fun `generates gender declensions for numbers`() {
         assertEquals("एकः", generator.generateDeclined(BigInteger.ONE, Linga.PUMS, Vibhakti.PRATHAMA))
         assertEquals("एका", generator.generateDeclined(BigInteger.ONE, Linga.STRI, Vibhakti.PRATHAMA))

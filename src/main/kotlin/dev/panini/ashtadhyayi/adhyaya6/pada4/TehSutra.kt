@@ -39,7 +39,9 @@ object TehSutra : Sutra<DerivationState, DerivationChange>(
 
         return isDit && (
             (stem.id == "tasi" && stem.surface in setOf("तासि", "तास्")) ||
-                stem.surface.endsWith("त्")
+                stem.surface.endsWith("त्") ||
+                (stem.surface.endsWith("ि") && stem.upadesha in
+                    setOf("षष्टि", "सप्तति", "अशीति", "नवति"))
             )
     }
 
@@ -52,8 +54,10 @@ object TehSutra : Sutra<DerivationState, DerivationChange>(
         // so the tāsi term can still have its upadeśa surface here.
         val newStem = if (stem.id == "tasi") {
             stem.copy(surface = "त्")
-        } else {
+        } else if (stem.surface.endsWith("त्")) {
             stem.copy(surface = stem.surface.dropLast(2))
+        } else {
+            stem.copy(surface = stem.surface.dropLast(1))
         }
 
         return DerivationChange(

@@ -10,5 +10,6 @@ object Adhyaya5Pada2 {
         DvesTiyahSutra,
         TresSamprasaranamCaSutra,
         VimshatyadibhyasTamadAnyatarasyamSutra,
+        ShashtyadeshCasankhyadehSutra,
     )
 }

@@ -9,6 +9,7 @@ import dev.panini.ashtadhyayi.adhyaya6.pada4.TiVimshaterDitiSutra
 import dev.panini.ashtadhyayi.adhyaya6.pada4.TehSutra
 import dev.panini.ashtadhyayi.adhyaya5.pada2.TasyaPuraneDatSutra
 import dev.panini.ashtadhyayi.adhyaya5.pada2.VimshatyadibhyasTamadAnyatarasyamSutra
+import dev.panini.ashtadhyayi.adhyaya5.pada2.ShashtyadeshCasankhyadehSutra
 import dev.panini.derivation.*
 import dev.panini.shiksha.Samjna
 import java.math.BigInteger
@@ -17,6 +18,7 @@ import java.math.BigInteger
 class PuranaSankhyaGenerator(
     private val cardinalGenerator: SanskritSankhyaGenerator,
 ) {
+    private val expressionBuilder = SankhyaExpressionBuilder()
     private val taddhitaEngine = DerivationEngine(
         listOf(
             ShatKatiKatipayaChaturamThukSutra,
@@ -25,6 +27,7 @@ class PuranaSankhyaGenerator(
             NantadAsankhyaderMatSutra,
             TasyaPuraneDatSutra,
             VimshatyadibhyasTamadAnyatarasyamSutra,
+            ShashtyadeshCasankhyadehSutra,
         )
     )
     private val angaEngine = DerivationEngine(
@@ -70,7 +73,8 @@ class PuranaSankhyaGenerator(
 
         val base = if (value == BigInteger.ONE) "प्रथम" else PrimitiveSankhya.fromValue(value)?.pratipadika
             ?: cardinalGenerator.generate(value).final.surface
-        val term = DerivationTerm("purana_base", base, TermKind.PRATIPADIKA, upadesha = base)
+        val underlyingHead = if (value == BigInteger.ONE) base else expressionBuilder.build(value).headPrimitive().pratipadika
+        val term = DerivationTerm("purana_base", base, TermKind.PRATIPADIKA, upadesha = underlyingHead)
         val initial = DerivationState(
             terms = listOf(term),
             samjnas = setOf(
@@ -85,8 +89,8 @@ class PuranaSankhyaGenerator(
     }
 
     private fun requireSupported(value: BigInteger) {
-        require(value in BigInteger.ONE..BigInteger.valueOf(59)) {
-            "Pūraṇa derivation is currently complete only for 1–59: $value"
+        require(value in BigInteger.ONE..BigInteger.valueOf(99)) {
+            "Pūraṇa derivation is currently complete only for 1–99: $value"
         }
     }
 

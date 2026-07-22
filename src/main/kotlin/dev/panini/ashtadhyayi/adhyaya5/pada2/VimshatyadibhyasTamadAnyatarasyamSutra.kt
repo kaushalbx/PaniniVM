@@ -23,8 +23,11 @@ object VimshatyadibhyasTamadAnyatarasyamSutra : Sutra<DerivationState, Derivatio
         if (context.terms.any { it.upadesha == "तमट्" }) return false
         val datIndex = context.terms.indexOfLast { it.upadesha == "डट्" }
         if (datIndex <= 0) return false
-        val base = context.terms[datIndex - 1].surface
-        return base.endsWith("विंशति") || base.endsWith("त्")
+        val base = context.terms[datIndex - 1]
+        return base.upadesha in setOf(
+            "विंशति", "त्रिंशत्", "चत्वारिंशत्", "पञ्चाशत्",
+            "षष्टि", "सप्तति", "अशीति", "नवति",
+        )
     }
 
     override fun apply(context: DerivationState): DerivationChange {
