@@ -2,7 +2,6 @@ package dev.panini.dhatupatha
 
 import dev.panini.core.DhatuGana
 import dev.panini.core.PadaType
-import dev.panini.execution.DhatuOperation
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
@@ -24,7 +23,4 @@ open class Dhatu(
 ) {
     /** Normalized root spelling used only by the derivation engine. */
     internal val derivationalSurface: String get() = sourceSurface
-
-    /** Declarative overloads available to the execution engine. */
-    open val operations: List<DhatuOperation> = emptyList()
 }

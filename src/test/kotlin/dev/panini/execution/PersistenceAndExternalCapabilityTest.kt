@@ -52,7 +52,7 @@ class PersistenceAndExternalCapabilityTest {
     @Test
     fun `SmritiSaveAction saves context under session key`() {
         val smr = SmrDhatu()
-        val op = smr.operations.first { it.id == SmritiSaveAction.ID }
+        val op = DhatuOperationRegistry.DEFAULT.operationsFor(smr).first { it.id == SmritiSaveAction.ID }
         val context = ExecutionContext(
             bindings = mapOf(Karaka.KARMAN to ExecutionExpression.Pada("परीक्षण-सत्रम्", setOf(ExecutionSamjna.SHABDA))),
             variables = mapOf("फलं" to SanskritValue.Sankhya(5L, "पञ्च")),
@@ -79,7 +79,7 @@ class PersistenceAndExternalCapabilityTest {
         }
 
         val presh = PreshDhatu()
-        val op = presh.operations.first()
+        val op = DhatuOperationRegistry.DEFAULT.operationsFor(presh).first()
         val context = ExecutionContext(
             bindings = mapOf(Karaka.KARMAN to ExecutionExpression.Pada("संदेशम्_प्रेषय", setOf(ExecutionSamjna.SHABDA))),
             externalDispatcher = dispatcher,

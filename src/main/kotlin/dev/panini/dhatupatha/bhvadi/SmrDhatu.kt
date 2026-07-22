@@ -3,14 +3,7 @@ package dev.panini.dhatupatha.bhvadi
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.core.DhatuGana
 import dev.panini.core.PadaType
-import dev.panini.execution.DhatuOperation
-import dev.panini.execution.ExecutionEffect
-import dev.panini.execution.ExecutionSamjna
 import dev.panini.core.Karaka
-import dev.panini.execution.KarakaRequirement
-import dev.panini.execution.OperationSignature
-import dev.panini.execution.SmritiLoadAction
-import dev.panini.execution.SmritiSaveAction
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
@@ -32,36 +25,5 @@ class SmrDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.UDATTA,
 ) {
-    override val operations: List<DhatuOperation> = listOf(
-        DhatuOperation(
-            id = "स्मृतिरक्षणम्",
-            description = "Saves active context state to persistent storage.",
-            signature = OperationSignature(
-                requirements = listOf(
-                    KarakaRequirement(
-                        karaka = Karaka.KARMAN,
-                        minimumMembers = 1,
-                    )
-                )
-            ),
-            effects = setOf(ExecutionEffect.WRITE_RESOURCE),
-            action = SmritiSaveAction,
-            resultSamjnas = setOf(ExecutionSamjna.SHABDA),
-        ),
-        DhatuOperation(
-            id = "स्मृतिपुनर्प्राप्तिः",
-            description = "Restores context state from persistent storage.",
-            signature = OperationSignature(
-                requirements = listOf(
-                    KarakaRequirement(
-                        karaka = Karaka.KARMAN,
-                        minimumMembers = 1,
-                    )
-                )
-            ),
-            effects = setOf(ExecutionEffect.READ_RESOURCE),
-            action = SmritiLoadAction,
-            resultSamjnas = setOf(ExecutionSamjna.SHABDA),
-        ),
-    )
+
 }

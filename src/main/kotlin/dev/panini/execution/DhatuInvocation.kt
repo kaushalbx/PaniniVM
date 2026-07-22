@@ -12,6 +12,7 @@ data class DhatuInvocation(
     val bindings: Map<Karaka, ExecutionExpression>,
     val selectedOperation: String? = null,
     val metadata: Map<String, String> = emptyMap(),
+    val grammaticalFeatures: GrammaticalFeatures = GrammaticalFeatures(),
 ) {
     init {
         require(id.isNotBlank()) { "A dhātu invocation requires an id." }

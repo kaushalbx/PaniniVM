@@ -6,46 +6,30 @@ object BhashaExecutionEngine {
         input: SanskritUktiInput,
         conversation: SambhashanaContext,
         scope: ExecutionScope,
-    ): Phala = when (val analysis = VyakaranamExecutionAdapter.analyze(input, conversation)) {
-        is ExecutionAnalysisResult.Analyzed -> execute(analysis.analysis, conversation, scope)
-            .prependTrace(analysis.trace)
-        is ExecutionAnalysisResult.NeedsClarification -> Phala.Asiddha(
-            ExecutionResult.NeedsInput(emptySet(), analysis.question),
+    ): Phala = when (val binding = VyakaranamExecutionAdapter.bind(input, conversation)) {
+        is ExecutionBindingResult.Bound -> execute(binding.ukti, conversation, scope)
+            .prependTrace(binding.trace)
+        is ExecutionBindingResult.NeedsInput -> Phala.Asiddha(
+            ExecutionResult.NeedsInput(emptySet(), binding.message),
             emptyList(),
         )
-        is ExecutionAnalysisResult.Unsupported -> Phala.Asiddha(
-            ExecutionResult.Failure(ExecutionError.INVALID_VALUE, analysis.message),
-            emptyList(),
-        )
-    }
-
-    fun execute(
-        analysis: ExecutionUtteranceAnalysis,
-        conversation: SambhashanaContext,
-        scope: ExecutionScope,
-    ): Phala = when (val compilation = ExecutionCompiler.compile(analysis)) {
-        is ExecutionCompilation.Compiled -> execute(compilation.ukti, conversation, scope)
-            .prependTrace(compilation.trace)
-        is ExecutionCompilation.Invalid -> Phala.Asiddha(
-            ExecutionResult.Failure(ExecutionError.INVALID_VALUE, compilation.message),
+        is ExecutionBindingResult.Invalid -> Phala.Asiddha(
+            ExecutionResult.Failure(ExecutionError.INVALID_VALUE, binding.message),
             emptyList(),
         )
     }
 
     fun execute(ukti: Ukti, conversation: SambhashanaContext, scope: ExecutionScope): Phala {
-        val interpretation = BhashaInterpreter.interpret(ukti, conversation)
-        val understood = interpretation as? UktiInterpretation.Understood ?: return when (interpretation) {
-            is UktiInterpretation.NeedsClarification -> Phala.Asiddha(
-                ExecutionResult.Failure(ExecutionError.MISSING_KARAKA, interpretation.question),
+        if (ukti.speaker != conversation.speaker || ukti.listener != conversation.listener) {
+            return Phala.Asiddha(
+                ExecutionResult.Failure(
+                    ExecutionError.INVALID_VALUE,
+                    "Utterance participants do not match the trusted conversation context.",
+                ),
                 emptyList(),
             )
-            is UktiInterpretation.Contradictory -> Phala.Asiddha(
-                ExecutionResult.Failure(ExecutionError.INVALID_VALUE, interpretation.reason),
-                emptyList(),
-            )
-            is UktiInterpretation.Understood -> error("Unreachable")
         }
-        val program = BhashaProgram(understood.ukti, ukti.dependencies)
+        val program = BhashaProgram(ukti, ukti.dependencies)
         val historicalValues = conversation.resultHistory.associate { it.id to it.value }
         val historicalSamjnas = conversation.resultHistory.associate { it.id to it.samjnas }
         val historicalTypedValues = conversation.resultHistory.mapNotNull { result ->
@@ -63,7 +47,7 @@ object BhashaExecutionEngine {
                     typedVariables = typedVariables,
                 ),
             )
-            is PlanningResult.Failed -> Phala.Asiddha(planning.result, understood.trace)
+            is PlanningResult.Failed -> Phala.Asiddha(planning.result, emptyList())
         }
     }
 
@@ -75,12 +59,6 @@ object BhashaExecutionEngine {
         conversation: SambhashanaContext,
         scope: ExecutionScope,
     ): Prativacana = SanskritPrativacanaRenderer.render(execute(ukti, conversation, scope))
-
-    fun executeAndRespond(
-        analysis: ExecutionUtteranceAnalysis,
-        conversation: SambhashanaContext,
-        scope: ExecutionScope,
-    ): Prativacana = SanskritPrativacanaRenderer.render(execute(analysis, conversation, scope))
 
     fun executeAndRespond(
         input: SanskritUktiInput,

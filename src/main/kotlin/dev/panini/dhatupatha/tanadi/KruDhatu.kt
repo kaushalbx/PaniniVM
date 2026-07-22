@@ -3,14 +3,7 @@ package dev.panini.dhatupatha.tanadi
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.core.DhatuGana
 import dev.panini.core.PadaType
-import dev.panini.execution.DhatuOperation
-import dev.panini.execution.ExecutionSamjna
-import dev.panini.execution.ExpressionShape
 import dev.panini.core.Karaka
-import dev.panini.execution.KarakaRequirement
-import dev.panini.execution.OperationSignature
-import dev.panini.execution.SanskritSandhiAction
-import dev.panini.execution.SanskritSubantaDerivationAction
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
@@ -30,35 +23,5 @@ class KruDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.ANUDATTA,
 ) {
-    override val operations: List<DhatuOperation> = listOf(
-        DhatuOperation(
-            id = "संहिताकरणम्",
-            description = "पदानां संहिताकरणम् (सन्धियोगः)",
-            signature = OperationSignature(
-                requirements = listOf(
-                    KarakaRequirement(
-                        karaka = Karaka.KARMAN,
-                        minimumMembers = 2,
-                        shape = ExpressionShape.COORDINATION,
-                    )
-                )
-            ),
-            action = SanskritSandhiAction,
-            resultSamjnas = setOf(ExecutionSamjna.SHABDA),
-        ),
-        DhatuOperation(
-            id = "पदनिष्पत्तिः",
-            description = "प्रातिपदिकस्य सुबन्तरूपसिद्धिः",
-            signature = OperationSignature(
-                requirements = listOf(
-                    KarakaRequirement(
-                        karaka = Karaka.KARMAN,
-                        minimumMembers = 1,
-                    )
-                )
-            ),
-            action = SanskritSubantaDerivationAction,
-            resultSamjnas = setOf(ExecutionSamjna.SHABDA),
-        ),
-    )
+
 }

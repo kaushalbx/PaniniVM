@@ -3,15 +3,7 @@ package dev.panini.dhatupatha.curadi
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.core.DhatuGana
 import dev.panini.core.PadaType
-import dev.panini.execution.DhatuOperation
-import dev.panini.execution.ExecutionSamjna
-import dev.panini.execution.ExpressionShape
 import dev.panini.core.Karaka
-import dev.panini.execution.KarakaRequirement
-import dev.panini.execution.OperationSignature
-import dev.panini.execution.SanskritAverageAction
-import dev.panini.execution.SanskritCountingAction
-import dev.panini.execution.SanskritMultiplicationAction
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
@@ -31,53 +23,5 @@ class GanDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.UDATTA,
 ) {
-    override val operations: List<DhatuOperation> = listOf(
-        DhatuOperation(
-            id = "सङ्ख्यागुणनम्",
-            description = "सङ्ख्यानां गुणनम्",
-            signature = OperationSignature(
-                requirements = listOf(
-                    KarakaRequirement(
-                        karaka = Karaka.KARMAN,
-                        minimumMembers = 2,
-                        shape = ExpressionShape.COORDINATION,
-                        memberSamjnas = setOf(ExecutionSamjna.SANKHYA),
-                    )
-                )
-            ),
-            action = SanskritMultiplicationAction,
-            resultSamjnas = setOf(ExecutionSamjna.SANKHYA),
-        ),
-        DhatuOperation(
-            id = "सङ्ख्यागणनम्",
-            description = "पदार्थानां / सङ्ख्यानां गणनम् (सङ्ख्यानम्)",
-            signature = OperationSignature(
-                requirements = listOf(
-                    KarakaRequirement(
-                        karaka = Karaka.KARMAN,
-                        minimumMembers = 1,
-                        shape = ExpressionShape.COORDINATION,
-                    )
-                )
-            ),
-            action = SanskritCountingAction,
-            resultSamjnas = setOf(ExecutionSamjna.SANKHYA),
-        ),
-        DhatuOperation(
-            id = "सङ्ख्यासाम्यम्",
-            description = "सङ्ख्यानां साम्यम् (माध्यमम् / Average)",
-            signature = OperationSignature(
-                requirements = listOf(
-                    KarakaRequirement(
-                        karaka = Karaka.KARMAN,
-                        minimumMembers = 1,
-                        shape = ExpressionShape.COORDINATION,
-                        memberSamjnas = setOf(ExecutionSamjna.SANKHYA),
-                    )
-                )
-            ),
-            action = SanskritAverageAction,
-            resultSamjnas = setOf(ExecutionSamjna.SANKHYA),
-        ),
-    )
+
 }

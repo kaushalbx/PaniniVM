@@ -3,6 +3,7 @@ package dev.panini.execution
 import dev.panini.core.Karaka
 
 object OperationResolver {
+    private val registry = DhatuOperationRegistry.DEFAULT
     fun resolve(
         invocation: DhatuInvocation,
         variables: Map<String, SanskritValue>,
@@ -22,7 +23,8 @@ object OperationResolver {
 
     private fun resolveInvocation(invocation: DhatuInvocation, context: ExecutionContext): OperationResolution {
         val dhatu = invocation.dhatu
-        if (dhatu.operations.isEmpty()) {
+        val operations = registry.operationsFor(dhatu)
+        if (operations.isEmpty()) {
             return OperationResolution.Invalid(
                 ExecutionError.DHATU_NOT_EXECUTABLE,
                 "Dhātu ${dhatu.upadesha} has no executable operations.",
@@ -30,12 +32,15 @@ object OperationResolver {
         }
 
         val named = invocation.selectedOperation?.let { selected ->
-            dhatu.operations.filter { it.id == selected }
-        } ?: dhatu.operations
+            operations.filter { it.id == selected }
+        } ?: operations.filter { it.trigger.matches(invocation.grammaticalFeatures) }
         if (named.isEmpty()) {
+            val message = invocation.selectedOperation?.let {
+                "Dhātu ${dhatu.upadesha} has no operation '$it'."
+            } ?: "No operation of dhātu ${dhatu.upadesha} matches the parsed grammatical features."
             return OperationResolution.Invalid(
                 ExecutionError.OPERATION_NOT_FOUND,
-                "Dhātu ${dhatu.upadesha} has no operation '${invocation.selectedOperation}'.",
+                message,
             )
         }
 
@@ -62,8 +67,6 @@ object OperationResolver {
         }
         val operation = if (maximal.size == 1) {
             maximal.single()
-        } else if (invocation.selectedOperation == null && maximal.isNotEmpty()) {
-            dhatu.operations.first { it in maximal }
         } else {
             return OperationResolution.Ambiguous(
                 maximal.map { it.id },

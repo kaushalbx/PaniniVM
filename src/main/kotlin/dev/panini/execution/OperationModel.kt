@@ -1,6 +1,29 @@
 package dev.panini.execution
 
 import dev.panini.core.Karaka
+import dev.panini.core.Lakara
+
+data class GrammaticalFeatures(
+    val upasargas: Set<String> = emptySet(),
+    val sanadi: Set<String> = emptySet(),
+    val avyayas: Set<String> = emptySet(),
+    val lakara: Lakara? = null,
+)
+
+data class OperationTrigger(
+    val requiredUpasargas: Set<String> = emptySet(),
+    val forbiddenUpasargas: Set<String> = emptySet(),
+    val requiredSanadi: Set<String> = emptySet(),
+    val requiredAvyayas: Set<String> = emptySet(),
+    val allowedLakaras: Set<Lakara> = emptySet(),
+) {
+    fun matches(features: GrammaticalFeatures): Boolean =
+        features.upasargas.containsAll(requiredUpasargas) &&
+            features.upasargas.none { it in forbiddenUpasargas } &&
+            features.sanadi.containsAll(requiredSanadi) &&
+            features.avyayas.containsAll(requiredAvyayas) &&
+            (allowedLakaras.isEmpty() || features.lakara in allowedLakaras)
+}
 
 enum class ExpressionShape { LITERAL, COORDINATION, REFERENCE }
 
@@ -46,6 +69,7 @@ data class DhatuOperation(
     val description: String,
     val signature: OperationSignature,
     val action: DhatuAction,
+    val trigger: OperationTrigger = OperationTrigger(),
     val effects: Set<ExecutionEffect> = setOf(ExecutionEffect.PURE),
     val resultSamjnas: Set<ExecutionSamjna> = emptySet(),
 ) {

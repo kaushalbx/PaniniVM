@@ -20,12 +20,12 @@ object VyakaranamExecutionAdapter {
     private val parser = PaniniParser()
     private val sankhyaGenerator = SankhyaGenerator()
 
-    fun analyze(input: SanskritUktiInput, conversation: SambhashanaContext? = null): ExecutionAnalysisResult {
-        if (input.text.isBlank()) return ExecutionAnalysisResult.Unsupported("The Sanskrit utterance is empty.")
+    fun bind(input: SanskritUktiInput, conversation: SambhashanaContext): ExecutionBindingResult {
+        if (input.text.isBlank()) return ExecutionBindingResult.Invalid("The Sanskrit utterance is empty.")
         val ukti = try {
             parser.parse(input.text)
         } catch (e: PaniniParseException) {
-            return ExecutionAnalysisResult.Unsupported(e.message ?: "Invalid annotated Sanskrit morphology.")
+            return ExecutionBindingResult.Invalid(e.message ?: "Invalid annotated Sanskrit morphology.")
         }
 
         var listener = input.listener
@@ -33,7 +33,10 @@ object VyakaranamExecutionAdapter {
             if (!input.listener.startsWith(addressed)) listener = addressed
         }
 
-        val kriyas = mutableListOf<ExecutionKriyaAnalysis>()
+        if (input.speaker != conversation.speaker) {
+            return ExecutionBindingResult.Invalid("Utterance speaker does not match the trusted conversation context.")
+        }
+        val invocations = mutableListOf<DhatuInvocation>()
         var prayer = false
         var prohibition = false
 
@@ -44,15 +47,23 @@ object VyakaranamExecutionAdapter {
             }
             val tinganta = (vakya as? AkhyataVakya)?.tinganta ?: return@forEachIndexed
             val dhatu = resolveDhatu(tinganta)
-                ?: return ExecutionAnalysisResult.Unsupported("Unknown verbal action/dhātu: ${tinganta.sourceText}")
-            val bindings = extractKarakas(vakya.padas, conversation, index)
-            val operation = selectOperation(dhatu, tinganta, vakya.padas)
-            kriyas += ExecutionKriyaAnalysis(
+                ?: return ExecutionBindingResult.Invalid("Unknown verbal action/dhātu: ${tinganta.sourceText}")
+            val bindings = extractKarakas(vakya.padas, conversation, index).toMutableMap()
+            if (purposeRequiresListenerAsAgent(prayer, tinganta.lakara) && Karaka.KARTR !in bindings) {
+                bindings[Karaka.KARTR] = ExecutionExpression.Pada(listener)
+            }
+            invocations += DhatuInvocation(
                 id = "योग-${index + 1}",
-                dhatuId = dhatu.id,
-                karakas = bindings,
-                selectedOperation = operation,
+                dhatu = dhatu,
+                bindings = bindings,
+                selectedOperation = null,
                 metadata = mapOf("dhatuName" to dhatu.upadesha),
+                grammaticalFeatures = GrammaticalFeatures(
+                    upasargas = tinganta.upasargas.toSet(),
+                    sanadi = tinganta.dhatu.sanadiPratyayas.toSet(),
+                    avyayas = vakya.padas.filterIsInstance<AvyayaPada>().mapTo(mutableSetOf()) { it.form },
+                    lakara = tinganta.lakara,
+                ),
             )
         }
 
@@ -63,19 +74,26 @@ object VyakaranamExecutionAdapter {
             lakara == Lakara.LOT -> VakyaPrayojana.AJNA
             else -> VakyaPrayojana.VIDHANA
         }
-        return ExecutionAnalysisResult.Analyzed(
-            ExecutionUtteranceAnalysis(
+        if (invocations.isEmpty()) return ExecutionBindingResult.Invalid("No executable verbal action was identified.")
+        if (listener != conversation.listener) {
+            return ExecutionBindingResult.Invalid("Addressed listener does not match the trusted conversation context.")
+        }
+        return ExecutionBindingResult.Bound(
+            Ukti(
                 speaker = input.speaker,
                 listener = listener,
-                sourceText = input.text,
+                text = input.text,
                 prayojana = purpose,
                 polarity = if (prohibition) Polarity.NEGATIVE else Polarity.POSITIVE,
                 lakara = lakara,
-                kriyas = kriyas,
+                invocations = invocations,
             ),
-            listOf("Analyzed canonical vyākaraṇa AST with ${ukti.vakyas.size} clause(s)."),
+            listOf("Bound canonical vyākaraṇa AST with ${ukti.vakyas.size} clause(s) directly to execution."),
         )
     }
+
+    private fun purposeRequiresListenerAsAgent(prayer: Boolean, lakara: Lakara): Boolean =
+        prayer || lakara == Lakara.LOT
 
     private fun extractKarakas(
         padas: List<Pada>,
@@ -152,11 +170,11 @@ object VyakaranamExecutionAdapter {
         val matches = DhatuPatha.all.filter {
             it.upadesha == text || it.derivationalSurface == text || it.id == text
         }
-        return matches.firstOrNull { it.operations.isNotEmpty() }
-            ?: DhatuPatha.findByUpadesha(text).firstOrNull { it.operations.isNotEmpty() }
+        return matches.firstOrNull { DhatuOperationRegistry.DEFAULT.operationsFor(it).isNotEmpty() }
+            ?: DhatuPatha.findByUpadesha(text).firstOrNull {
+                DhatuOperationRegistry.DEFAULT.operationsFor(it).isNotEmpty()
+            }
             ?: explicitDhatu(text)
-            ?: matches.firstOrNull()
-            ?: DhatuPatha.findByUpadesha(text).firstOrNull()
     }
 
     private fun explicitDhatu(text: String): Dhatu? = when {
@@ -169,21 +187,6 @@ object VyakaranamExecutionAdapter {
         text.startsWith("दृश्") -> DhatuPatha.find("01.1143")
         text.startsWith("प्रेष") -> DhatuPatha.find("10.0509")
         else -> null
-    }
-
-    private fun selectOperation(dhatu: Dhatu, tinganta: TingantaPada, padas: List<Pada>): String? {
-        if (dhatu.operations.size <= 1) return dhatu.operations.firstOrNull()?.id
-        val text = tinganta.dhatu.mulaDhatu
-        return when (dhatu.id) {
-            "07.0007" -> if (tinganta.upasargas.contains("वि")) "सङ्ख्यावियोगः" else "सङ्ख्यायोजनम्"
-            "10.0391" -> if (text.startsWith("सम")) "सङ्ख्यासाम्यम्" else "सङ्ख्यागुणनम्"
-            "08.0010" -> if (padas.filterIsInstance<AvyayaPada>().any { it.form == "इति" }) "संहिताकरणम्" else "पदनिष्पत्तिः"
-            "01.0002" -> "सङ्ख्याहरणम्"
-            "01.1153" -> "सङ्ख्याभागः"
-            "03.0010" -> "मूल्यदानम्"
-            "01.1143" -> "मूल्यदर्शनम्"
-            else -> dhatu.operations.first().id
-        }
     }
 
 }

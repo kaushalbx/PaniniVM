@@ -3,13 +3,7 @@ package dev.panini.dhatupatha.curadi
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.core.DhatuGana
 import dev.panini.core.PadaType
-import dev.panini.execution.BahyaSendAction
-import dev.panini.execution.DhatuOperation
-import dev.panini.execution.ExecutionEffect
-import dev.panini.execution.ExecutionSamjna
 import dev.panini.core.Karaka
-import dev.panini.execution.KarakaRequirement
-import dev.panini.execution.OperationSignature
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
@@ -31,21 +25,5 @@ class PreshDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.UDATTA,
 ) {
-    override val operations: List<DhatuOperation> = listOf(
-        DhatuOperation(
-            id = "बाह्यप्रेषणम्",
-            description = "Dispatches command or message to external system capability.",
-            signature = OperationSignature(
-                requirements = listOf(
-                    KarakaRequirement(
-                        karaka = Karaka.KARMAN,
-                        minimumMembers = 1,
-                    )
-                )
-            ),
-            effects = setOf(ExecutionEffect.NETWORK, ExecutionEffect.EXECUTE_PROCESS, ExecutionEffect.SEND_MESSAGE),
-            action = BahyaSendAction,
-            resultSamjnas = setOf(ExecutionSamjna.SHABDA),
-        )
-    )
+
 }
