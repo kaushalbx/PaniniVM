@@ -45,7 +45,15 @@ class SankhyaDerivationEngine {
     }
 
     private fun complete(initial: DerivationState, compoundResult: DerivationResult): DerivationResult {
-        val stages = listOf(pratipadikaLopa, vowelSandhi, rutva, postRutva, finalConsonantSandhi, visarjaniya, sibilantSandhi)
+        val stages = if (initial.terms.size == 1) emptyList() else buildList {
+            add(pratipadikaLopa)
+            add(vowelSandhi)
+            add(rutva)
+            add(postRutva)
+            add(finalConsonantSandhi)
+            add(visarjaniya)
+            add(sibilantSandhi)
+        }
         var state = compoundResult.final
         val applications = compoundResult.applications.toMutableList()
         val events = compoundResult.events.filterNot { it is DerivationEvent.Completed }.toMutableList()

@@ -49,3 +49,11 @@ sealed interface SankhyaExpression {
         override val value: BigInteger = coefficient.value * magnitude.value
     }
 }
+
+fun SankhyaExpression.headPrimitive(): PrimitiveSankhya = when (this) {
+    is SankhyaExpression.Primitive -> sankhya
+    is SankhyaExpression.Add -> higher.headPrimitive()
+    is SankhyaExpression.Adhika -> base.headPrimitive()
+    is SankhyaExpression.Ekona -> base.headPrimitive()
+    is SankhyaExpression.Multiply -> magnitude.headPrimitive()
+}

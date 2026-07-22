@@ -31,16 +31,19 @@ object TasyaPuraneDatSutra : Sutra<DerivationState, DerivationChange>(
         val lastTerm = context.terms.lastOrNull() ?: return false
         val hasPuranaRequest = context.samjnas.any { it.samjna == Samjna.PURANA }
         val isAlreadyApplied = context.terms.any { it.surface == "अ" || it.upadesha == "डट्" }
-        return hasPuranaRequest && !isAlreadyApplied && lastTerm.surface in setOf(
-            "एकादशन्", "द्वादशन्", "त्रयोदशन्", "चतुर्दशन्", "पञ्चदशन्", "षोडशन्",
-            "सप्तदशन्", "अष्टादशन्", "एकोनविंशति", "विंशति", "त्रिंशत्", "चत्वारिंशत्", "पञ्चाशत्"
-        )
+        val supportedBase = lastTerm.surface in setOf(
+            "एकादश", "द्वादश", "त्रयोदश", "चतुर्दश", "पञ्चदश", "षोडश",
+            "सप्तदश", "अष्टादश", "नवदश",
+        ) || lastTerm.surface.endsWith("विंशति")
+        return hasPuranaRequest && !isAlreadyApplied && supportedBase
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val datTerm = DerivationTerm(
-            id = "dat_${System.currentTimeMillis()}",
-            surface = "अ",
+            id = "purana_dat",
+            // After its it-markers are removed, डट् contributes the inherent a already
+            // represented by the final consonant of the Devanāgarī base.
+            surface = "",
             kind = TermKind.PRATYAYA,
             upadesha = "डट्"
         )

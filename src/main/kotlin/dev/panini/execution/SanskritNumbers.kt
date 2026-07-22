@@ -1,26 +1,34 @@
 package dev.panini.execution
 
 import dev.panini.sankhya.SanskritSankhyaGenerator
-import dev.panini.sankhya.SanskritSankhyaParser
 import java.math.BigInteger
 
-/** Canonical number lookup delegating to SanskritSankhyaGenerator and SanskritSankhyaParser. */
+/** Canonical VM number lexicon; generation is delegated to SanskritSankhyaGenerator. */
 object SanskritNumbers {
     private val generator = SanskritSankhyaGenerator()
-    private val parser = SanskritSanskritParserWrapper()
 
     private val words = listOf(
         "शून्य", "एक", "द्वि", "त्रि", "चतुर्", "पञ्च", "षट्", "सप्त", "अष्ट", "नव", "दश",
         "एकादश", "द्वादश", "त्रयोदश", "चतुर्दश", "पञ्चदश", "षोडश", "सप्तदश", "अष्टादश", "नवदश", "विंशति",
     )
     private val values = words.withIndex().associate { (value, word) -> word to value }
+    private val inflectedValues = mapOf(
+        "शून्यम्" to 0,
+        "एकः" to 1,
+        "एका" to 1,
+        "एकम्" to 1,
+        "द्वे" to 2,
+        "त्रयः" to 3,
+        "तिस्रः" to 3,
+        "त्रीणि" to 3,
+        "चत्वारः" to 4,
+        "चतस्रः" to 4,
+        "चत्वारि" to 4,
+    )
 
     fun valueOf(word: String): Int? {
-        val parsed = parser.parse(word).firstOrNull()?.value?.toInt()
-        if (parsed != null) return parsed
+        inflectedValues[word]?.let { return it }
         val cleanWord = word.removeSuffix("ः").removeSuffix("म्")
-        val cleanParsed = parser.parse(cleanWord).firstOrNull()?.value?.toInt()
-        if (cleanParsed != null) return cleanParsed
         return values[word] ?: values[cleanWord]
     }
 
@@ -32,9 +40,4 @@ object SanskritNumbers {
             words.getOrNull(value)
         }
     }
-}
-
-private class SanskritSanskritParserWrapper {
-    private val p = SanskritSankhyaParser()
-    fun parse(s: String) = p.parse(s)
 }

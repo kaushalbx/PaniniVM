@@ -6,12 +6,12 @@ import dev.panini.core.Linga
 import java.math.BigInteger
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class SanskritSankhyaGeneratorTest {
 
     private val generator = SanskritSanskritGeneratorWrapper()
-    private val parser = SanskritSanskritParserWrapper()
 
     @Test
     fun `generates primitives correctly`() {
@@ -19,6 +19,11 @@ class SanskritSankhyaGeneratorTest {
         assertEquals("द्वि", generator.generateSurface(BigInteger.valueOf(2)))
         assertEquals("दशन्", generator.generateSurface(BigInteger.TEN))
         assertEquals("विंशति", generator.generateSurface(BigInteger.valueOf(20)))
+        assertEquals("पञ्चन्", generator.generateSurface(BigInteger.valueOf(5)))
+        assertEquals("षष्", generator.generateSurface(BigInteger.valueOf(6)))
+        assertEquals("सप्तन्", generator.generateSurface(BigInteger.valueOf(7)))
+        assertEquals("अष्टन्", generator.generateSurface(BigInteger.valueOf(8)))
+        assertEquals("नवन्", generator.generateSurface(BigInteger.valueOf(9)))
     }
 
     @Test
@@ -117,20 +122,95 @@ class SanskritSankhyaGeneratorTest {
     }
 
     @Test
+    fun `derives purana numerals one through ten`() {
+        val expected = listOf("प्रथम", "द्वितीय", "तृतीय", "चतुर्थ", "पञ्चम", "षष्ठ", "सप्तम", "अष्टम", "नवम", "दशम")
+        expected.forEachIndexed { index, surface ->
+            assertEquals(surface, SanskritSankhyaGenerator().generateOrdinalSurface(BigInteger.valueOf((index + 1).toLong())))
+        }
+    }
+
+    @Test
+    fun `purana results retain their actual sutra provenance`() {
+        val sut = SanskritSankhyaGenerator()
+
+        assertTrue(sut.generateOrdinal(BigInteger.ONE).applications.isEmpty())
+        assertEquals(listOf("5.2.54"), sut.generateOrdinal(BigInteger.TWO).applications.map { it.sutra })
+        assertEquals(listOf("5.2.55"), sut.generateOrdinal(BigInteger.valueOf(3)).applications.map { it.sutra })
+        assertEquals(listOf("5.2.51"), sut.generateOrdinal(BigInteger.valueOf(4)).applications.map { it.sutra })
+        assertEquals(
+            listOf("5.2.49", "8.2.7"),
+            sut.generateOrdinal(BigInteger.valueOf(5)).applications.map { it.sutra },
+        )
+    }
+
+    @Test
+    fun `derives purana numerals eleven through twenty nine with dat`() {
+        val expected = listOf(
+            "एकादश", "द्वादश", "त्रयोदश", "चतुर्दश", "पञ्चदश", "षोडश", "सप्तदश", "अष्टादश", "नवदश",
+            "विंश", "एकविंश", "द्वाविंश", "त्रयोविंश", "चतुर्विंश", "पञ्चविंश", "षड्विंश", "सप्तविंश", "अष्टाविंश", "नवविंश",
+        )
+        val sut = SanskritSankhyaGenerator()
+
+        expected.forEachIndexed { index, surface ->
+            val value = BigInteger.valueOf((index + 11).toLong())
+            val result = sut.generateOrdinal(value)
+            assertEquals(surface, result.final.surface, "$value")
+            assertTrue(result.applications.any { it.sutra == "5.2.48" }, "$value")
+            assertEquals(value >= BigInteger.valueOf(20), result.applications.any { it.sutra == "6.4.142" }, "$value")
+        }
+    }
+
+    @Test
     fun `generates gender declensions for numbers`() {
         assertEquals("एकः", generator.generateDeclined(BigInteger.ONE, Linga.PUMS, Vibhakti.PRATHAMA))
         assertEquals("एका", generator.generateDeclined(BigInteger.ONE, Linga.STRI, Vibhakti.PRATHAMA))
         assertEquals("एकम्", generator.generateDeclined(BigInteger.ONE, Linga.NAPUMSAKA, Vibhakti.PRATHAMA))
 
-        assertEquals("त्रयः", generator.generateDeclined(BigInteger.valueOf(3), Linga.PUMS))
-        assertEquals("तिस्रः", generator.generateDeclined(BigInteger.valueOf(3), Linga.STRI))
-        assertEquals("त्रीणि", generator.generateDeclined(BigInteger.valueOf(3), Linga.NAPUMSAKA))
+        assertEquals("द्वौ", generator.generateDeclined(BigInteger.TWO, Linga.PUMS, vacana = Vacana.DVIVACANA))
+        assertEquals("द्वे", generator.generateDeclined(BigInteger.TWO, Linga.STRI, vacana = Vacana.DVIVACANA))
+        assertEquals("त्रयः", generator.generateDeclined(BigInteger.valueOf(3), Linga.PUMS, vacana = Vacana.BAHUVACANA))
+        assertEquals("तिस्रः", generator.generateDeclined(BigInteger.valueOf(3), Linga.STRI, vacana = Vacana.BAHUVACANA))
+        assertEquals("त्रीणि", generator.generateDeclined(BigInteger.valueOf(3), Linga.NAPUMSAKA, vacana = Vacana.BAHUVACANA))
+
+        assertFailsWith<IllegalArgumentException> {
+            generator.generateDeclined(BigInteger.valueOf(3), Linga.PUMS, Vibhakti.SASTHI, Vacana.BAHUVACANA)
+        }
+        assertFailsWith<IllegalArgumentException> {
+            generator.generateDeclined(BigInteger.valueOf(4), Linga.PUMS, vacana = Vacana.EKAVACANA)
+        }
+    }
+
+    @Test
+    fun `declines cardinals according to the grammatical class of their head`() {
+        val sut = SanskritSankhyaGenerator()
+        val expected = mapOf(
+            0L to "शून्यम्",
+            2L to "द्वे",
+            3L to "त्रीणि",
+            4L to "चत्वारि",
+            5L to "पञ्च",
+            6L to "षट्",
+            10L to "दश",
+            16L to "षोडश",
+            20L to "विंशतिः",
+            30L to "त्रिंशत्",
+            42L to "द्वाचत्वारिंशत्",
+            60L to "षष्टिः",
+            82L to "द्व्यशीतिः",
+            100L to "शतम्",
+            124L to "चतुर्विंशत्यधिकशतम्",
+            10_000_000L to "कोटिः",
+        )
+
+        expected.forEach { (value, surface) ->
+            assertEquals(surface, sut.generateDeclinedSurface(BigInteger.valueOf(value)), "$value")
+        }
     }
 
     @Test
     fun `generates adhika compound phrasing`() {
         val adhika = generator.generateAdhikaSurface(BigInteger.valueOf(124))
-        assertTrue(adhika.contains("धिकशत"))
+        assertEquals("चतुर्विंशत्यधिकशत", adhika)
     }
 }
 
@@ -138,11 +218,11 @@ private class SanskritSanskritGeneratorWrapper {
     private val g = SanskritSankhyaGenerator()
     fun generate(v: BigInteger) = g.generate(v)
     fun generateSurface(v: BigInteger) = g.generateSurface(v)
-    fun generateDeclined(v: BigInteger, l: Linga = Linga.PUMS, vi: Vibhakti = Vibhakti.PRATHAMA, va: Vacana = Vacana.EKAVACANA) = g.generateDeclined(v, l, vi, va)
+    fun generateDeclined(
+        value: BigInteger,
+        linga: Linga = Linga.PUMS,
+        vibhakti: Vibhakti = Vibhakti.PRATHAMA,
+        vacana: Vacana = Vacana.EKAVACANA,
+    ) = g.generateDeclined(value, linga, vibhakti, vacana)
     fun generateAdhikaSurface(v: BigInteger) = g.generateAdhikaSurface(v)
-}
-
-class SanskritSanskritParserWrapper {
-    private val parser = SanskritSankhyaParser()
-    fun parse(surface: String) = parser.parse(surface)
 }

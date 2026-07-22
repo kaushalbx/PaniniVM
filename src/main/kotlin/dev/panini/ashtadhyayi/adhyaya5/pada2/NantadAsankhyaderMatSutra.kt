@@ -38,7 +38,7 @@ object NantadAsankhyaderMatSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val matTerm = DerivationTerm(
-            id = "mat_${System.currentTimeMillis()}",
+            id = "purana_mat",
             surface = "म",
             kind = TermKind.AGAMA,
             upadesha = "मट्"

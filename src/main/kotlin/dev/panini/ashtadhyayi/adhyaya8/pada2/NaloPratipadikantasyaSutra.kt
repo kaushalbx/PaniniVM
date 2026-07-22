@@ -33,7 +33,7 @@ object NaloPratipadikantasyaSutra : Sutra<DerivationState, DerivationChange>(
         val insideSankhyaCompound = context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SANKHYA } &&
             context.samjnas.any { it.targetId == affix.id && it.samjna == Samjna.SANKHYA }
         return stem.kind == TermKind.PRATIPADIKA && stem.surface.endsWith("न्") &&
-            (affix.upadesha in setOf("भ्याम्", "भिस्", "भ्यस्", "सुप्") || insideSankhyaCompound)
+            (affix.upadesha in setOf("भ्याम्", "भिस्", "भ्यस्", "सुप्", "मट्") || insideSankhyaCompound)
     }
 
     override fun apply(context: DerivationState): DerivationChange {

@@ -1,6 +1,5 @@
 package dev.panini.sankhya
 
-import dev.panini.derivation.DerivationEngine
 import dev.panini.derivation.DerivationResult
 import dev.panini.core.Vacana
 import dev.panini.core.Vibhakti
@@ -12,6 +11,8 @@ class SanskritSankhyaGenerator(
     private val derivationFactory: SankhyaDerivationFactory = SankhyaDerivationFactory(),
     private val derivationEngine: SankhyaDerivationEngine = SankhyaDerivationEngine()
 ) {
+    private val puranaGenerator by lazy { PuranaSankhyaGenerator(this) }
+
     fun generate(value: BigInteger): DerivationResult {
         require(value.signum() >= 0) {
             "Negative numbers are not supported: $value"
@@ -33,27 +34,14 @@ class SanskritSankhyaGenerator(
         return derivationEngine.deriveAll(derivationFactory.create(expression))
     }
 
+    fun generateOrdinal(value: BigInteger): DerivationResult = puranaGenerator.generate(value)
+
+    fun generateOrdinalSurface(value: BigInteger): String = generateOrdinal(value).final.surface
+
 
     fun generateAdhikaSurface(value: BigInteger): String {
-        if (value < BigInteger.valueOf(100)) {
-            return generateDeclinedSurface(value)
-        }
-        val hundreds = value.divide(BigInteger.valueOf(100)).multiply(BigInteger.valueOf(100))
-        val remainder = value.mod(BigInteger.valueOf(100))
-        if (remainder == BigInteger.ZERO) {
-            return generateDeclinedSurface(value)
-        }
-        val remSurface = generateSurface(remainder)
-        val hundredSurface = generateSurface(hundreds)
-
-        val sandhiPrefix = when {
-            remSurface.endsWith("इ") -> remSurface.dropLast(1) + "्य"
-            remSurface.endsWith("त्रि") -> remSurface.dropLast(3) + "त्र्य"
-            remSurface.endsWith("न्") -> remSurface.dropLast(1)
-            remSurface.endsWith("त्") -> remSurface.dropLast(1) + "द्"
-            else -> remSurface
-        }
-        return "${sandhiPrefix}धिक$hundredSurface"
+        require(value.signum() >= 0) { "Negative numbers are not supported: $value" }
+        return generateSurface(value)
     }
 
     fun generateDeclined(
@@ -63,6 +51,7 @@ class SanskritSankhyaGenerator(
         vacana: Vacana = Vacana.EKAVACANA
     ): String {
         if (value == BigInteger.ONE) {
+            require(vacana == Vacana.EKAVACANA) { "एक is singular; requested $vacana" }
             return when (linga) {
                 Linga.PUMS -> when (vibhakti) {
                     Vibhakti.PRATHAMA -> "एकः"
@@ -93,7 +82,19 @@ class SanskritSankhyaGenerator(
             }
         }
 
+        if (value == BigInteger.TWO) {
+            require(vacana == Vacana.DVIVACANA) { "द्वि is dual; requested $vacana" }
+            require(vibhakti == Vibhakti.PRATHAMA) {
+                "Declension of द्वि is currently implemented only for prathamā; requested $vibhakti"
+            }
+            return if (linga == Linga.PUMS) "द्वौ" else "द्वे"
+        }
+
         if (value == BigInteger.valueOf(3)) {
+            require(vacana == Vacana.BAHUVACANA) { "त्रि is plural; requested $vacana" }
+            require(vibhakti == Vibhakti.PRATHAMA) {
+                "Declension of त्रि is currently implemented only for prathamā; requested $vibhakti"
+            }
             return when (linga) {
                 Linga.PUMS -> "त्रयः"
                 Linga.STRI -> "तिस्रः"
@@ -102,6 +103,10 @@ class SanskritSankhyaGenerator(
         }
 
         if (value == BigInteger.valueOf(4)) {
+            require(vacana == Vacana.BAHUVACANA) { "चतुर् is plural; requested $vacana" }
+            require(vibhakti == Vibhakti.PRATHAMA) {
+                "Declension of चतुर् is currently implemented only for prathamā; requested $vibhakti"
+            }
             return when (linga) {
                 Linga.PUMS -> "चत्वारः"
                 Linga.STRI -> "चतस्रः"
@@ -109,26 +114,32 @@ class SanskritSankhyaGenerator(
             }
         }
 
+        require(vibhakti == Vibhakti.PRATHAMA) {
+            "Numeral declension beyond prathamā is not yet implemented for $value"
+        }
         return generateDeclinedSurface(value)
     }
 
     fun generateDeclinedSurface(value: BigInteger): String {
-        if (value == BigInteger.valueOf(5)) return "पञ्च"
-        if (value == BigInteger.valueOf(6)) return "षट्"
-        if (value == BigInteger.valueOf(7)) return "सप्त"
-        if (value == BigInteger.valueOf(8)) return "अष्ट"
-        if (value == BigInteger.valueOf(9)) return "नव"
-        if (value == BigInteger.valueOf(10)) return "दश"
-
-        val stem = generateSurface(value)
-        return when {
-            stem.endsWith("विंशति") || stem.endsWith("षष्टि") || stem.endsWith("सप्तति") ||
-            stem.endsWith("अशीति") || stem.endsWith("नवति") -> stem + "ः"
-            stem.endsWith("इ") || stem.endsWith("उ") || stem.endsWith("ऋ") -> stem + "ः"
-            stem.endsWith("अ") -> stem + "ः"
-            stem.endsWith("न्") -> stem.dropLast(1)
-            stem.endsWith("त्") -> stem + "ः"
-            else -> stem
+        val expression = expressionBuilder.build(value)
+        val stem = generate(value).final.surface
+        return when (expression.headPrimitive().inflectionClass) {
+            SankhyaInflectionClass.COUNT_FIVE_TO_NINETEEN -> when {
+                stem.endsWith("न्") -> stem.dropLast(2)
+                stem == "षष्" -> "षट्"
+                else -> stem
+            }
+            SankhyaInflectionClass.FEMININE_I -> "$stemः"
+            SankhyaInflectionClass.FEMININE_T -> stem
+            SankhyaInflectionClass.NEUTER_A -> "${stem}म्"
+            SankhyaInflectionClass.SPECIAL -> when (value) {
+                BigInteger.ZERO -> "शून्यम्"
+                BigInteger.ONE -> "एकम्"
+                BigInteger.TWO -> "द्वे"
+                BigInteger.valueOf(3) -> "त्रीणि"
+                BigInteger.valueOf(4) -> "चत्वारि"
+                else -> stem
+            }
         }
     }
 }

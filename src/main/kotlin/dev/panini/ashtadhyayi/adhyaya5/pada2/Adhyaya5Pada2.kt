@@ -5,6 +5,9 @@ import dev.panini.sutra.Sutra
 object Adhyaya5Pada2 {
     val sutras: List<Sutra<*, *>> = listOf(
         TasyaPuraneDatSutra,
-        NantadAsankhyaderMatSutra
+        NantadAsankhyaderMatSutra,
+        ShatKatiKatipayaChaturamThukSutra,
+        DvesTiyahSutra,
+        TresSamprasaranamCaSutra,
     )
 }

@@ -10,8 +10,8 @@ class MainTest {
         val output = runCli(arrayOf("--eval", "src/test/kotlin/dev/panini/parser/addition.pvm"))
 
         assertEquals("=== PaniniVM Script Execution: addition.pvm ===", output.first())
-        assertTrue(output.any { it.contains("✓ Result: षट्") })
-        assertTrue(output.any { it.contains("✓ Result: पञ्च") })
+        assertTrue(output.any { it.contains("✓ Result: षट्") }, output.joinToString("\n"))
+        assertTrue(output.any { it.contains("✓ Result: पञ्च") }, output.joinToString("\n"))
     }
 
     @Test
