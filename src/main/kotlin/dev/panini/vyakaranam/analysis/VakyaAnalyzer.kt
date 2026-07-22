@@ -113,12 +113,18 @@ class VakyaAnalyzer(
         val profile = DhatuKarakaProfiles.forSurface(dhatuSurface)
         val allParticipants = subantas.mapIndexed { index, sub ->
             val possibleVibhaktis = sub.supCandidates.mapTo(mutableSetOf()) { it.vibhakti }
-            val relations = profile?.relations.orEmpty()
+            val relations = ParticipantRelationInferrer.infer(
+                lexicalEntry = sub.lexicalEntry,
+                possibleVibhaktis = possibleVibhaktis,
+                dhatuRelations = profile?.relations.orEmpty(),
+            )
             ParticipantFacts(
                 id = "p_$index",
                 expression = sub.pada,
                 possibleVibhaktis = possibleVibhaktis,
                 semanticRelations = relations,
+                linga = sub.lexicalEntry?.linga.orEmpty(),
+                categories = sub.lexicalEntry?.categories.orEmpty(),
             )
         }
         return subantas.mapIndexedNotNull { index, sub ->

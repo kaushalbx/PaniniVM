@@ -3,11 +3,16 @@ package dev.panini.vyakaranam.lexicon
 import dev.panini.core.Linga
 import dev.panini.dhatupatha.Dhatu
 
+import dev.panini.core.NominalCategory
+import dev.panini.vyakaranam.analysis.SemanticRelation
+
 data class PratipadikaEntry(
     val text: String,
     val linga: Set<Linga>,
     val stemClass: String? = null,
     val ganaNames: Set<String> = emptySet(),
+    val categories: Set<NominalCategory> = emptySet(),
+    val semanticRelations: Set<SemanticRelation> = emptySet(),
 )
 
 interface PratipadikaLexicon {

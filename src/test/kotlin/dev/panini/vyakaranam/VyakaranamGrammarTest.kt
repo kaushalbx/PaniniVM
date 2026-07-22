@@ -10,7 +10,9 @@ import dev.panini.dhatupatha.bhvadi.PalayDhatu
 import dev.panini.dhatupatha.juhotyadi.DaDhatu
 import dev.panini.dhatupatha.tudadi.LikhDhatu
 import dev.panini.dhatupatha.rudhadi.YujirDhatu
+import dev.panini.core.NominalCategory
 import dev.panini.core.Prayoga
+import dev.panini.vyakaranam.analysis.ParticipantRelationInferrer
 import dev.panini.core.Vibhakti
 import dev.panini.vyakaranam.analysis.AnalyzedSamuccita
 import dev.panini.vyakaranam.analysis.DhatuIdentity
@@ -179,6 +181,17 @@ class VyakaranamGrammarTest {
         val causeRes = KarakaRuleEngine.resolve(causeContext)
         assertEquals(Karaka.KARTR, causeRes.resolved)
         assertTrue(causeRes.evidence.any { it.sutra == "1.4.55" })
+    }
+
+    @Test
+    fun `verifies dynamic participant relation inferencing from nominal categories`() {
+        val locEntry = PratipadikaEntry("गृह", setOf(Linga.NAPUMSAKA), categories = setOf(NominalCategory.PLACE_LOCATION))
+        val locRelations = ParticipantRelationInferrer.infer(locEntry, setOf(Vibhakti.SAPTAMI), emptySet())
+        assertTrue(SemanticRelation.LOCATION in locRelations)
+
+        val toolEntry = PratipadikaEntry("लेखनी", setOf(Linga.STRI), categories = setOf(NominalCategory.INSTRUMENT_TOOL))
+        val toolRelations = ParticipantRelationInferrer.infer(toolEntry, setOf(Vibhakti.TRTIYA), emptySet())
+        assertTrue(SemanticRelation.INSTRUMENT in toolRelations)
     }
 
     private fun assertParsesUkti(source: String) {
