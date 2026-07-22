@@ -1,6 +1,8 @@
 package dev.panini.execution
 
 import dev.panini.core.Karaka
+import dev.panini.execution.persistence.StateStore
+import dev.panini.execution.external.ExternalCapabilityDispatcher
 
 /** Inputs visible while one dhātu meaning is executed. */
 data class ExecutionContext(
@@ -8,6 +10,8 @@ data class ExecutionContext(
     val selectedOperation: String? = null,
     val variables: Map<String, SanskritValue> = emptyMap(),
     val metadata: Map<String, String> = emptyMap(),
+    val stateStore: StateStore? = null,
+    val externalDispatcher: ExternalCapabilityDispatcher? = null,
 ) {
     constructor(
         bindings: Map<Karaka, ExecutionExpression> = emptyMap(),
@@ -15,6 +19,8 @@ data class ExecutionContext(
         rawVariables: Map<String, String>,
         variableSamjnas: Map<String, Set<ExecutionSamjna>> = emptyMap(),
         metadata: Map<String, String> = emptyMap(),
+        stateStore: StateStore? = null,
+        externalDispatcher: ExternalCapabilityDispatcher? = null,
     ) : this(
         bindings = bindings,
         selectedOperation = selectedOperation,
@@ -22,6 +28,8 @@ data class ExecutionContext(
             SanskritValue.of(value, variableSamjnas[key].orEmpty())
         },
         metadata = metadata,
+        stateStore = stateStore,
+        externalDispatcher = externalDispatcher,
     )
 
     val variableSamjnas: Map<String, Set<ExecutionSamjna>>

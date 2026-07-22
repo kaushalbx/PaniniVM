@@ -5,16 +5,22 @@ import java.math.BigInteger
 
 internal val sankhyaResultRenderer = SankhyaCountingFormRenderer()
 
-internal fun renderSankhyaResult(value: Int): String? {
+internal fun renderSankhyaResult(value: Long): String? {
     if (value < 0) return null
-    return runCatching { sankhyaResultRenderer.render(BigInteger.valueOf(value.toLong())) }.getOrNull()
+    return runCatching { sankhyaResultRenderer.render(BigInteger.valueOf(value)) }.getOrNull()
 }
 
-internal fun ExecutionContext.resolveSankhyaValues(expression: ExecutionExpression): List<Int>? {
+internal fun ExecutionContext.resolveSankhyaValues(expression: ExecutionExpression): List<Long>? {
     val values = resolveValues(expression)
     if (values.any { it !is SanskritValue.Sankhya }) return null
-    return values.map { (it as SanskritValue.Sankhya).value.toInt() }
+    return values.map { (it as SanskritValue.Sankhya).value }
 }
+
+internal fun numericOverflow(operation: DhatuOperation): ExecutionResult.Failure = ExecutionResult.Failure(
+    ExecutionError.INVALID_VALUE,
+    "Numeric overflow while executing ${operation.id}.",
+    listOf("Selected operation ${operation.id}."),
+)
 
 /** Addition over a coordinated expression of canonical Sanskrit number words. */
 object SanskritAdditionAction : DhatuAction {
@@ -29,7 +35,9 @@ object SanskritAdditionAction : DhatuAction {
             "The operand is not an annotated saṅkhyā value.",
             listOf("Selected operation ${operation.id}."),
         )
-        val sum = values.sum()
+        val sum = runCatching { values.fold(0L, Math::addExact) }.getOrElse {
+            return numericOverflow(operation)
+        }
         val result = renderSankhyaResult(sum) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The result $sum is outside the supported Sanskrit number vocabulary.",
@@ -43,7 +51,7 @@ object SanskritAdditionAction : DhatuAction {
                 "Resolved ${operands.joinToString(" + ")}.",
                 "Produced $result.",
             ),
-            SanskritValue.Sankhya(sum.toLong(), result),
+            SanskritValue.Sankhya(sum, result),
         )
     }
 }
@@ -66,7 +74,9 @@ object SanskritSubtractionAction : DhatuAction {
                 listOf("Selected operation ${operation.id}."),
             )
         }
-        val diff = values.drop(1).fold(values.first()) { acc, v -> acc - v }
+        val diff = runCatching { values.drop(1).fold(values.first(), Math::subtractExact) }.getOrElse {
+            return numericOverflow(operation)
+        }
         val result = renderSankhyaResult(diff) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The result $diff is outside the supported Sanskrit number vocabulary.",
@@ -80,7 +90,7 @@ object SanskritSubtractionAction : DhatuAction {
                 "Resolved ${operands.joinToString(" - ")}.",
                 "Produced $result.",
             ),
-            SanskritValue.Sankhya(diff.toLong(), result),
+            SanskritValue.Sankhya(diff, result),
         )
     }
 }
@@ -103,7 +113,7 @@ object SanskritDivisionAction : DhatuAction {
                 listOf("Selected operation ${operation.id}."),
             )
         }
-        if (values.drop(1).any { it == 0 }) {
+        if (values.drop(1).any { it == 0L }) {
             return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
                 "Division by zero (शून्य) is undefined.",
@@ -124,7 +134,7 @@ object SanskritDivisionAction : DhatuAction {
                 "Resolved ${operands.joinToString(" / ")}.",
                 "Produced $result.",
             ),
-            SanskritValue.Sankhya(quotient.toLong(), result),
+            SanskritValue.Sankhya(quotient, result),
         )
     }
 }
@@ -147,7 +157,9 @@ object SanskritMultiplicationAction : DhatuAction {
                 listOf("Selected operation ${operation.id}."),
             )
         }
-        val product = values.fold(1) { acc, v -> acc * v }
+        val product = runCatching { values.fold(1L, Math::multiplyExact) }.getOrElse {
+            return numericOverflow(operation)
+        }
         val result = renderSankhyaResult(product) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The result $product is outside the supported Sanskrit number vocabulary.",
@@ -161,7 +173,7 @@ object SanskritMultiplicationAction : DhatuAction {
                 "Resolved ${operands.joinToString(" * ")}.",
                 "Produced $result.",
             ),
-            SanskritValue.Sankhya(product.toLong(), result),
+            SanskritValue.Sankhya(product, result),
         )
     }
 }
@@ -173,7 +185,7 @@ object SanskritCountingAction : DhatuAction {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
         val expression = requireNotNull(context.bindings[Karaka.KARMAN])
         val operands = context.resolve(expression)
-        val count = operands.size
+        val count = operands.size.toLong()
         val result = renderSankhyaResult(count) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The count $count is outside the supported Sanskrit number vocabulary.",
@@ -187,8 +199,7 @@ object SanskritCountingAction : DhatuAction {
                 "Counted ${operands.size} element(s).",
                 "Produced $result.",
             ),
-            SanskritValue.Sankhya(count.toLong(), result),
+            SanskritValue.Sankhya(count, result),
         )
     }
 }
-

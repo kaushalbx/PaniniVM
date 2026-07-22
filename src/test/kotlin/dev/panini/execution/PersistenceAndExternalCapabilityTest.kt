@@ -17,22 +17,18 @@ class PersistenceAndExternalCapabilityTest {
 
     private lateinit var tempDir: File
     private lateinit var store: FileStateStore
+    private lateinit var dispatcher: ExternalCapabilityDispatcher
 
     @BeforeTest
     fun setup() {
         tempDir = File(System.getProperty("java.io.tmpdir"), "paninivm_test_store_" + System.currentTimeMillis())
         store = FileStateStore(tempDir)
-        SmritiSaveAction.globalStore = store
-        SmritiLoadAction.globalStore = store
-        ExternalCapabilityDispatcher.clear()
+        dispatcher = ExternalCapabilityDispatcher()
     }
 
     @AfterTest
     fun cleanup() {
         tempDir.deleteRecursively()
-        SmritiSaveAction.globalStore = null
-        SmritiLoadAction.globalStore = null
-        ExternalCapabilityDispatcher.clear()
     }
 
     @Test
@@ -60,6 +56,7 @@ class PersistenceAndExternalCapabilityTest {
         val context = ExecutionContext(
             bindings = mapOf(Karaka.KARMAN to ExecutionExpression.Pada("परीक्षण-सत्रम्", setOf(ExecutionSamjna.SHABDA))),
             variables = mapOf("फलं" to SanskritValue.Sankhya(5L, "पञ्च")),
+            stateStore = store,
         )
 
         val result = assertIs<ExecutionResult.Success>(SmritiSaveAction.execute(context, op))
@@ -75,7 +72,7 @@ class PersistenceAndExternalCapabilityTest {
         var capturedPayload: String? = null
         var capturedEffect: ExecutionEffect? = null
 
-        ExternalCapabilityDispatcher.register(ExecutionEffect.NETWORK) { payload, effect ->
+        dispatcher.register(ExecutionEffect.NETWORK) { payload, effect ->
             capturedPayload = payload
             capturedEffect = effect
             "Response from server: OK"
@@ -85,6 +82,7 @@ class PersistenceAndExternalCapabilityTest {
         val op = presh.operations.first()
         val context = ExecutionContext(
             bindings = mapOf(Karaka.KARMAN to ExecutionExpression.Pada("संदेशम्_प्रेषय", setOf(ExecutionSamjna.SHABDA))),
+            externalDispatcher = dispatcher,
         )
 
         val result = assertIs<ExecutionResult.Success>(BahyaSendAction.execute(context, op))

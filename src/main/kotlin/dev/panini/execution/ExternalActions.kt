@@ -15,7 +15,11 @@ object BahyaSendAction : DhatuAction {
         val effect = operation.effects.firstOrNull { it == ExecutionEffect.NETWORK || it == ExecutionEffect.EXECUTE_PROCESS || it == ExecutionEffect.SEND_MESSAGE }
             ?: ExecutionEffect.NETWORK
 
-        val output = dev.panini.execution.external.ExternalCapabilityDispatcher.dispatch(effect, payload)
+        val dispatcher = context.externalDispatcher ?: return ExecutionResult.Failure(
+            ExecutionError.ACTION_FAILED,
+            "External dispatch requires a dispatcher supplied by the host.",
+        )
+        val output = dispatcher.dispatch(effect, payload)
 
         return ExecutionResult.Success(
             output,
@@ -24,4 +28,3 @@ object BahyaSendAction : DhatuAction {
         )
     }
 }
-

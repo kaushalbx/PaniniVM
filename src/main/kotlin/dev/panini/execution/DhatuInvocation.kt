@@ -2,6 +2,8 @@ package dev.panini.execution
 
 import dev.panini.core.Karaka
 import dev.panini.dhatupatha.Dhatu
+import dev.panini.execution.persistence.StateStore
+import dev.panini.execution.external.ExternalCapabilityDispatcher
 
 /** One occurrence of a verb in an utterance. */
 data class DhatuInvocation(
@@ -17,21 +19,29 @@ data class DhatuInvocation(
 
     fun executionContext(
         variables: Map<String, SanskritValue>,
+        stateStore: StateStore? = null,
+        externalDispatcher: ExternalCapabilityDispatcher? = null,
     ): ExecutionContext = ExecutionContext(
         bindings = bindings,
         selectedOperation = selectedOperation,
         variables = variables,
         metadata = metadata,
+        stateStore = stateStore,
+        externalDispatcher = externalDispatcher,
     )
 
     fun executionContext(
         variables: Map<String, String>,
         variableSamjnas: Map<String, Set<ExecutionSamjna>> = emptyMap(),
+        stateStore: StateStore? = null,
+        externalDispatcher: ExternalCapabilityDispatcher? = null,
     ): ExecutionContext = ExecutionContext(
         bindings = bindings,
         selectedOperation = selectedOperation,
         rawVariables = variables,
         variableSamjnas = variableSamjnas,
         metadata = metadata,
+        stateStore = stateStore,
+        externalDispatcher = externalDispatcher,
     )
 }

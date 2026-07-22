@@ -20,7 +20,7 @@ object SanskritModuloAction : DhatuAction {
             )
         }
         val divisor = values[1]
-        if (divisor == 0) {
+        if (divisor == 0L) {
             return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
                 "Modulo by zero (शून्य) is undefined.",
@@ -41,7 +41,7 @@ object SanskritModuloAction : DhatuAction {
                 "Resolved ${operands[0]} % ${operands[1]}.",
                 "Produced $result.",
             ),
-            SanskritValue.Sankhya(rem.toLong(), result),
+            SanskritValue.Sankhya(rem, result),
         )
     }
 }
@@ -65,10 +65,14 @@ object SanskritExponentiationAction : DhatuAction {
         }
         val base = values[0]
         val exp = values[1]
-        var pow = 1
-        for (i in 0 until exp) {
-            pow *= base
+        if (exp < 0 || exp > Int.MAX_VALUE) {
+            return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Exponent $exp is unsupported.")
         }
+        val pow = runCatching {
+            var value = 1L
+            repeat(exp.toInt()) { value = Math.multiplyExact(value, base) }
+            value
+        }.getOrElse { return numericOverflow(operation) }
         val result = renderSankhyaResult(pow) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The result $pow ($base^$exp) is outside the supported Sanskrit number vocabulary.",
@@ -82,7 +86,7 @@ object SanskritExponentiationAction : DhatuAction {
                 "Resolved $base ^ $exp.",
                 "Produced $result.",
             ),
-            SanskritValue.Sankhya(pow.toLong(), result),
+            SanskritValue.Sankhya(pow, result),
         )
     }
 }
@@ -104,7 +108,7 @@ object SanskritComparisonAction : DhatuAction {
                 listOf("Selected operation ${operation.id}."),
             )
         }
-        val maxVal = values.maxOrNull() ?: 0
+        val maxVal = values.maxOrNull() ?: 0L
         val result = renderSankhyaResult(maxVal) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The max result $maxVal is outside the supported Sanskrit number vocabulary.",
@@ -118,7 +122,7 @@ object SanskritComparisonAction : DhatuAction {
                 "Compared ${operands.joinToString()}.",
                 "Produced $result.",
             ),
-            SanskritValue.Sankhya(maxVal.toLong(), result),
+            SanskritValue.Sankhya(maxVal, result),
         )
     }
 }
@@ -147,7 +151,7 @@ object SanskritSquareRootAction : DhatuAction {
                 listOf("Selected operation ${operation.id}."),
             )
         }
-        val root = kotlin.math.sqrt(value.toDouble()).toInt()
+        val root = kotlin.math.sqrt(value.toDouble()).toLong()
         val result = renderSankhyaResult(root) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The root result $root is outside the supported Sanskrit number vocabulary.",
@@ -161,7 +165,7 @@ object SanskritSquareRootAction : DhatuAction {
                 "Calculated sqrt($value).",
                 "Produced $result.",
             ),
-            SanskritValue.Sankhya(root.toLong(), result),
+            SanskritValue.Sankhya(root, result),
         )
     }
 }
@@ -183,7 +187,10 @@ object SanskritAverageAction : DhatuAction {
                 listOf("Selected operation ${operation.id}."),
             )
         }
-        val avg = values.sum() / values.size
+        val sum = runCatching { values.fold(0L, Math::addExact) }.getOrElse {
+            return numericOverflow(operation)
+        }
+        val avg = sum / values.size
         val result = renderSankhyaResult(avg) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The average result $avg is outside the supported Sanskrit number vocabulary.",
@@ -197,7 +204,7 @@ object SanskritAverageAction : DhatuAction {
                 "Averaged ${operands.joinToString()}.",
                 "Produced $result.",
             ),
-            SanskritValue.Sankhya(avg.toLong(), result),
+            SanskritValue.Sankhya(avg, result),
         )
     }
 }
@@ -221,11 +228,13 @@ object SanskritFractionAction : DhatuAction {
         }
         val res = if (values.size >= 3) {
             val divisor = values[2]
-            if (divisor == 0) return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Division by zero in proportion.", listOf("Selected operation ${operation.id}."))
-            (values[0] * values[1]) / divisor
+            if (divisor == 0L) return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Division by zero in proportion.", listOf("Selected operation ${operation.id}."))
+            val numerator = runCatching { Math.multiplyExact(values[0], values[1]) }
+                .getOrElse { return numericOverflow(operation) }
+            numerator / divisor
         } else {
             val divisor = values[1]
-            if (divisor == 0) return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Division by zero in fraction.", listOf("Selected operation ${operation.id}."))
+            if (divisor == 0L) return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Division by zero in fraction.", listOf("Selected operation ${operation.id}."))
             values[0] / divisor
         }
         val result = renderSankhyaResult(res) ?: return ExecutionResult.Failure(
@@ -241,7 +250,7 @@ object SanskritFractionAction : DhatuAction {
                 "Calculated ratio/proportion ${operands.joinToString()}.",
                 "Produced $result.",
             ),
-            SanskritValue.Sankhya(res.toLong(), result),
+            SanskritValue.Sankhya(res, result),
         )
     }
 }
@@ -263,7 +272,7 @@ object SanskritMinAction : DhatuAction {
                 listOf("Selected operation ${operation.id}."),
             )
         }
-        val minVal = values.minOrNull() ?: 0
+        val minVal = values.minOrNull() ?: 0L
         val result = renderSankhyaResult(minVal) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The min result $minVal is outside the supported Sanskrit number vocabulary.",
@@ -277,9 +286,7 @@ object SanskritMinAction : DhatuAction {
                 "Found minimum among ${operands.joinToString()}.",
                 "Produced $result.",
             ),
-            SanskritValue.Sankhya(minVal.toLong(), result),
+            SanskritValue.Sankhya(minVal, result),
         )
     }
 }
-
-

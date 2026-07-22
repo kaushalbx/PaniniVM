@@ -26,11 +26,7 @@ class PaniniVM(
     ),
 ) {
     val store: StateStore = FileStateStore(storageDir)
-
-    init {
-        SmritiSaveAction.globalStore = store
-        SmritiLoadAction.globalStore = store
-    }
+    private val externalDispatcher = ExternalCapabilityDispatcher()
 
     private val sessions = mutableMapOf<String, SambhashanaContext>()
 
@@ -50,7 +46,14 @@ class PaniniVM(
         }
 
         val input = SanskritUktiInput(text = utterance, speaker = activeContext.speaker, listener = activeContext.listener)
-        val turn = BhashaExecutionEngine.executeTurn(input, activeContext, scope)
+        val turn = BhashaExecutionEngine.executeTurn(
+            input,
+            activeContext,
+            scope.copy(
+                stateStore = scope.stateStore ?: store,
+                externalDispatcher = scope.externalDispatcher ?: externalDispatcher,
+            ),
+        )
         val phala = turn.response.phala
 
         val result = when (phala) {
@@ -117,6 +120,6 @@ class PaniniVM(
     fun listSessions(): List<String> = store.listKeys()
 
     fun registerExternalCapability(effect: ExecutionEffect, handler: ExternalCapabilityDispatcher.CapabilityHandler) {
-        ExternalCapabilityDispatcher.register(effect, handler)
+        externalDispatcher.register(effect, handler)
     }
 }

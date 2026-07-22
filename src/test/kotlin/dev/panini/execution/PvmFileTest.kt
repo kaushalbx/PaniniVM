@@ -9,7 +9,7 @@ import kotlin.test.assertIs
 
 class PvmFileTest {
 
-   /* private lateinit var tempDir: File
+    private lateinit var tempDir: File
     private lateinit var vm: PaniniVM
 
     @BeforeTest
@@ -35,5 +35,5 @@ class PvmFileTest {
 
         val line2Result = assertIs<ExecutionResult.Success>(results[1])
         assertEquals("पञ्च", line2Result.value)
-    }*/
+    }
 }

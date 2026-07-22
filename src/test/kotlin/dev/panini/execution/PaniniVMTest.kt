@@ -67,4 +67,16 @@ class PaniniVMTest {
         assertEquals("SUCCESS_DISPATCH", success.value)
         assertEquals("संदेश", captured)
     }
+
+    @Test
+    fun `PaniniVM instances isolate external capability handlers`() {
+        val first = PaniniVM(File(tempDir, "first"))
+        val second = PaniniVM(File(tempDir, "second"))
+        first.registerExternalCapability(ExecutionEffect.NETWORK) { _, _ -> "FIRST" }
+        second.registerExternalCapability(ExecutionEffect.NETWORK) { _, _ -> "SECOND" }
+        val utterance = "संदेश + अम् प्रेष + णिच् + लोट् + सिप् ।"
+
+        assertEquals("FIRST", assertIs<ExecutionResult.Success>(first.eval(utterance)).value)
+        assertEquals("SECOND", assertIs<ExecutionResult.Success>(second.eval(utterance)).value)
+    }
 }

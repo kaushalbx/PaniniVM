@@ -58,7 +58,11 @@ object ExecutionRuntime {
             val untypedValues = values.mapValues { (name, value) ->
                 SanskritValue.of(value, valueSamjnas[name].orEmpty())
             }
-            val refreshedContext = plan.resolved.invocation.executionContext(untypedValues + typedValues)
+            val refreshedContext = plan.resolved.invocation.executionContext(
+                untypedValues + typedValues,
+                scope.stateStore,
+                scope.externalDispatcher,
+            )
             when (val result = plan.resolved.operation.action.execute(refreshedContext, plan.resolved.operation)) {
                 is ExecutionResult.Success -> {
                     values[plan.invocationId] = result.value

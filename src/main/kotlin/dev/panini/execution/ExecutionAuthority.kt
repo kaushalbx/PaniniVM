@@ -1,5 +1,8 @@
 package dev.panini.execution
 
+import dev.panini.execution.persistence.StateStore
+import dev.panini.execution.external.ExternalCapabilityDispatcher
+
 enum class ExecutionEffect {
     PURE, READ_MEMORY, WRITE_MEMORY, READ_RESOURCE, WRITE_RESOURCE,
     DELETE_RESOURCE, NETWORK, SEND_MESSAGE, EXECUTE_PROCESS,
@@ -11,6 +14,8 @@ data class ExecutionScope(
     val variables: Map<String, String> = emptyMap(),
     val variableSamjnas: Map<String, Set<ExecutionSamjna>> = emptyMap(),
     val typedVariables: Map<String, SanskritValue> = emptyMap(),
+    val stateStore: StateStore? = null,
+    val externalDispatcher: ExternalCapabilityDispatcher? = null,
     val authorizedSpeakers: Set<String> = emptySet(),
     val acceptedInvocations: Set<String> = emptySet(),
 )

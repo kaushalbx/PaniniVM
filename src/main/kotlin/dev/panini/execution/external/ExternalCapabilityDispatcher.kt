@@ -5,13 +5,13 @@ import dev.panini.execution.ExecutionEffect
 /**
  * Registry and dispatcher for executing external system handlers.
  */
-object ExternalCapabilityDispatcher {
+class ExternalCapabilityDispatcher {
 
     fun interface CapabilityHandler {
         fun handle(payload: String, effect: ExecutionEffect): String
     }
 
-    private val handlers = mutableMapOf<ExecutionEffect, CapabilityHandler>()
+    private val handlers = java.util.concurrent.ConcurrentHashMap<ExecutionEffect, CapabilityHandler>()
 
     fun register(effect: ExecutionEffect, handler: CapabilityHandler) {
         handlers[effect] = handler

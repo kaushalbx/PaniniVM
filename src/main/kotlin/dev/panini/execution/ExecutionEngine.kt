@@ -14,7 +14,10 @@ object ExecutionEngine {
         )
         return when (val resolution = OperationResolver.resolve(invocation, context.variables)) {
             is OperationResolution.Resolved -> resolution.value.operation.action.execute(
-                resolution.value.context,
+                resolution.value.context.copy(
+                    stateStore = context.stateStore,
+                    externalDispatcher = context.externalDispatcher,
+                ),
                 resolution.value.operation,
             )
             is OperationResolution.MissingInput -> ExecutionResult.NeedsInput(resolution.karakas, resolution.message)
@@ -23,4 +26,3 @@ object ExecutionEngine {
         }
     }
 }
-

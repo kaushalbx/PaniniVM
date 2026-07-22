@@ -54,15 +54,16 @@ object SanskritVariableInspectAction : DhatuAction {
 object SmritiSaveAction : DhatuAction {
     const val ID = "स्मृतिरक्षणम्"
 
-    var globalStore: dev.panini.execution.persistence.StateStore? = null
-
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
         val expression = context.bindings[Karaka.KARMAN]
             ?: return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Persistence save requires a key in KARMAN.")
         val operands = context.resolve(expression)
         val key = operands.firstOrNull() ?: "default_session"
 
-        val store = globalStore ?: dev.panini.execution.persistence.FileStateStore(java.io.File(System.getProperty("user.home"), ".paninivm/sessions"))
+        val store = context.stateStore ?: return ExecutionResult.Failure(
+            ExecutionError.ACTION_FAILED,
+            "Persistence save requires a StateStore supplied by the host.",
+        )
         val activeContext = SambhashanaContext(
             speaker = "प्रयोक्ता",
             listener = "यन्त्रम्",
@@ -89,15 +90,16 @@ object SmritiSaveAction : DhatuAction {
 object SmritiLoadAction : DhatuAction {
     const val ID = "स्मृतिपुनर्प्राप्तिः"
 
-    var globalStore: dev.panini.execution.persistence.StateStore? = null
-
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
         val expression = context.bindings[Karaka.KARMAN]
             ?: return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Persistence load requires a key in KARMAN.")
         val operands = context.resolve(expression)
         val key = operands.firstOrNull() ?: "default_session"
 
-        val store = globalStore ?: dev.panini.execution.persistence.FileStateStore(java.io.File(System.getProperty("user.home"), ".paninivm/sessions"))
+        val store = context.stateStore ?: return ExecutionResult.Failure(
+            ExecutionError.ACTION_FAILED,
+            "Persistence load requires a StateStore supplied by the host.",
+        )
         val loaded = store.load(key) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "No saved context state found for session key '$key'.",
@@ -111,4 +113,3 @@ object SmritiLoadAction : DhatuAction {
         )
     }
 }
-
