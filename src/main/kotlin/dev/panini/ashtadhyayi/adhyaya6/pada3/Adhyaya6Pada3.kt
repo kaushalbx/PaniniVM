@@ -6,6 +6,7 @@ object Adhyaya6Pada3 {
     val sutras: List<Sutra<*, *>> = listOf(
         TreStrayahSutra,
         DvyashtanahSankhyayamSutra,
-        ShadoDhahSutra
+        VibhashaChatvarimshatPrabhritauSarveshamSutra,
+        EkadishCaikasyaCadukSutra,
     )
 }

@@ -44,8 +44,14 @@ object IkoYanAciSutra : Sutra<DerivationState, DerivationChange>(
         if (isGhiFirstOrSecondDual) return false
 
         val engine = Ashtadhyayi.pratyaharaEngine
-        return engine.contains(Pratyahara.IK, left) &&
-               engine.contains(Pratyahara.AC, right) &&
+        val sankhyaPair = context.samjnas.any { it.targetId == terms[leftIndex].id && it.samjna == Samjna.SANKHYA } &&
+            context.samjnas.any { it.targetId == terms[rightIndex].id && it.samjna == Samjna.SANKHYA }
+        val leftIsIk = engine.contains(Pratyahara.IK, left) ||
+            (sankhyaPair && normalizeIk(left) in setOf('इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ऌ'))
+        val rightIsAc = engine.contains(Pratyahara.AC, right) ||
+            (sankhyaPair && right in setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ऌ', 'ए', 'ऐ', 'ओ', 'औ'))
+        return leftIsIk &&
+               rightIsAc &&
                !isSavarna(left, right) // Savarna-dirgha (6.1.101) takes precedence
     }
 
@@ -79,7 +85,7 @@ object IkoYanAciSutra : Sutra<DerivationState, DerivationChange>(
 
         return DerivationChange(
             state = context.copy(
-                terms = terms.dropLast(2) + leftTerm.copy(surface = mergedSurface),
+                terms = terms.take(leftIndex) + leftTerm.copy(surface = mergedSurface) + terms.drop(rightIndex + 1),
                 droppedTerms = context.droppedTerms + rightTerm.copy(surface = ""),
                 stage = DerivationStage.PADA_FORMED
             ).addSubstitution(VarnaSubstitution(leftTerm.id, leftVowel, replacement, sutra)),
@@ -91,6 +97,14 @@ object IkoYanAciSutra : Sutra<DerivationState, DerivationChange>(
         val siyutIndex = context.terms.indexOfFirst { it.id == "siyut" && it.surface.isNotEmpty() }
         if (siyutIndex > 0) return (siyutIndex - 1) to siyutIndex
         if (context.terms.size < 2) return null
+        if (context.terms.size > 2 && context.terms.all { it.id.startsWith("sankhya_") }) {
+            return (0 until context.terms.lastIndex).firstOrNull { index ->
+                normalizeIk(context.terms[index].surface.lastOrNull() ?: return@firstOrNull false) in
+                    setOf('इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ऌ') &&
+                    context.terms[index + 1].surface.firstOrNull() in
+                    setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ऌ', 'ए', 'ऐ', 'ओ', 'औ')
+            }?.let { it to it + 1 }
+        }
         return (context.terms.lastIndex - 1) to context.terms.lastIndex
     }
 
@@ -146,5 +160,13 @@ object IkoYanAciSutra : Sutra<DerivationState, DerivationChange>(
         'ऋ', 'ॠ', 'ृ', 'ॄ' -> Vyanjana.RA.halanta
         'ऌ', 'ॢ' -> Vyanjana.LA.halanta
         else -> ""
+    }
+
+    private fun normalizeIk(c: Char): Char = when (c) {
+        'ि', 'ी' -> 'इ'
+        'ु', 'ू' -> 'उ'
+        'ृ', 'ॄ' -> 'ऋ'
+        'ॢ' -> 'ऌ'
+        else -> c
     }
 }

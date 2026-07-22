@@ -34,11 +34,12 @@ object SavarnaDirghaSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         if (context.stage == DerivationStage.INITIAL || context.stage == DerivationStage.PRATYAYA_SELECTED) return false
         if (context.terms.size < 2) return false
-        val leftTerm = context.terms[context.terms.size - 2]
+        val (leftIndex, rightIndex) = targetPair(context) ?: return false
+        val leftTerm = context.terms[leftIndex]
         if (leftTerm.id == "shap" && context.terms.any { it.kind == TermKind.DHATU && it.gana == DhatuGana.ADADI }) return false
         if (context.effectiveContext.rupa.lakara == Lakara.LOT && context.terms.last().upadesha == "झि") return false
         val leftChar = leftTerm.surface.lastOrNull() ?: return false
-        val right = context.terms.last().surface.firstOrNull() ?: return false
+        val right = context.terms[rightIndex].surface.firstOrNull() ?: return false
 
         val leftPhoneme = if (leftChar !in Varnamala.independentVowelsOrMarks) 'अ' else leftChar
         val engine = Ashtadhyayi.pratyaharaEngine
@@ -49,8 +50,9 @@ object SavarnaDirghaSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val terms = context.terms
-        val leftTerm = terms[terms.size - 2]
-        val rightTerm = terms.last()
+        val (leftIndex, rightIndex) = requireNotNull(targetPair(context))
+        val leftTerm = terms[leftIndex]
+        val rightTerm = terms[rightIndex]
 
         val leftChar = leftTerm.surface.last()
         val leftPhoneme = if (leftChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks) 'अ' else leftChar
@@ -64,8 +66,8 @@ object SavarnaDirghaSutra : Sutra<DerivationState, DerivationChange>(
 
         return DerivationChange(
             state = context.copy(
-                terms = terms.dropLast(2) + leftTerm.copy(surface = newSurface),
-                droppedTerms = context.droppedTerms + terms.last().copy(surface = ""),
+                terms = terms.take(leftIndex) + leftTerm.copy(surface = newSurface) + terms.drop(rightIndex + 1),
+                droppedTerms = context.droppedTerms + rightTerm.copy(surface = ""),
                 stage = DerivationStage.PADA_FORMED
             ).addSubstitution(VarnaSubstitution(leftTerm.id, leftPhoneme, substitute, sutra)),
             explanation = "6.1.101: Savarṇa Dīrgha substitution ($substitute) for $leftPhoneme + ${rightTerm.surface.first()}."
@@ -88,5 +90,18 @@ object SavarnaDirghaSutra : Sutra<DerivationState, DerivationChange>(
         'ऋ', 'ॠ', 'ृ', 'ॄ' -> 'ऋ'
         'ऌ', 'ॢ' -> 'ऌ'
         else -> c
+    }
+
+    private fun targetPair(context: DerivationState): Pair<Int, Int>? {
+        if (context.terms.size < 2) return null
+        if (context.terms.size > 2 && context.terms.all { it.id.startsWith("sankhya_") }) {
+            return (0 until context.terms.lastIndex).firstOrNull { index ->
+                val left = context.terms[index].surface.lastOrNull() ?: return@firstOrNull false
+                val right = context.terms[index + 1].surface.firstOrNull() ?: return@firstOrNull false
+                val leftPhoneme = if (left !in Varnamala.independentVowelsOrMarks) 'अ' else left
+                normalize(leftPhoneme) == normalize(right) && Varnamala.areSavarna(leftPhoneme, right)
+            }?.let { it to it + 1 }
+        }
+        return (context.terms.lastIndex - 1) to context.terms.lastIndex
     }
 }

@@ -19,11 +19,27 @@ sealed interface SankhyaExpression {
         override val value: BigInteger = lower.value + higher.value
     }
 
-    data class Subtract(
-        val subtrahend: SankhyaExpression,
-        val minuend: SankhyaExpression
+    /** A remainder stated as being अधिक than a completed higher magnitude. */
+    data class Adhika(
+        val remainder: SankhyaExpression,
+        val base: SankhyaExpression,
     ) : SankhyaExpression {
-        override val value: BigInteger = minuend.value - subtrahend.value
+        init {
+            require(remainder.value > BigInteger.ZERO) { "Adhika requires a positive remainder" }
+            require(remainder.value < base.value) { "Adhika remainder must be below its base" }
+        }
+        override val value: BigInteger = remainder.value + base.value
+    }
+
+    /** The Pāṇinian subtractive numeral construction: one less than [base]. */
+    data class Ekona(
+        val base: SankhyaExpression
+    ) : SankhyaExpression {
+        init {
+            require(base.value > BigInteger.ZERO) { "Ekona requires a positive base: ${base.value}" }
+        }
+
+        override val value: BigInteger = base.value - BigInteger.ONE
     }
 
     data class Multiply(

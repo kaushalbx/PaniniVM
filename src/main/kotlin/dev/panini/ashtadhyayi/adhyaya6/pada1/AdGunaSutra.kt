@@ -33,6 +33,8 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.stage == DerivationStage.INITIAL || context.stage == DerivationStage.PRATYAYA_SELECTED) return false
+        if (context.substitutions.lastOrNull()?.sutra == "6.1.114" &&
+            context.terms.any { term -> term.surface.endsWith("ु") && context.samjnas.any { it.targetId == term.id && it.samjna == dev.panini.shiksha.Samjna.SANKHYA } }) return true
         if (context.terms.size < 2) return false
         if (context.effectiveContext.rupa.lakara == Lakara.LOT && context.terms.last().upadesha == "झि") return false
         val engine = Ashtadhyayi.pratyaharaEngine
@@ -54,6 +56,16 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
+        if (context.substitutions.lastOrNull()?.sutra == "6.1.114") {
+            val target = context.terms.firstOrNull { term ->
+                term.surface.endsWith("ु") && context.samjnas.any { it.targetId == term.id && it.samjna == dev.panini.shiksha.Samjna.SANKHYA }
+            }
+            if (target != null) return DerivationChange(
+                state = context.replaceTerm(target.id, target.copy(surface = target.surface.dropLast(1) + "ो"))
+                    .addSubstitution(VarnaSubstitution(target.id, 'ु', "ो", sutra)),
+                explanation = "6.1.87: Guṇa substitution ओ for अ + उ from रुँ."
+            )
+        }
         val terms = context.terms
         val index = terms.indices.first { position ->
             position < terms.lastIndex &&

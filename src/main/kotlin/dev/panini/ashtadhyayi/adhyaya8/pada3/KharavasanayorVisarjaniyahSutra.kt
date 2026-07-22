@@ -8,6 +8,7 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Ayogavaha
 import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -33,7 +34,8 @@ object KharavasanayorVisarjaniyahSutra : Sutra<DerivationState, DerivationChange
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        val lastTerm = context.terms.lastOrNull() ?: return false
+        val internal = internalSankhyaTerm(context)
+        val lastTerm = internal ?: context.terms.lastOrNull() ?: return false
         val surface = lastTerm.surface
 
         // Target: word-final ru (rendered र) or the terminal ष् produced from a suffixal स्.
@@ -41,15 +43,20 @@ object KharavasanayorVisarjaniyahSutra : Sutra<DerivationState, DerivationChange
 
         // Nimitta 1: Avasāna (End of derivation)
         // In this engine, we treat the PADA_FORMED stage with no following terms as avasāna.
-        if (context.terms.size == 1) return true
+        if (internal == null && context.terms.size == 1) return true
 
         // Nimitta 2: Khar (Voiceless consonants)
         // (If there were multiple terms, we'd check the start of the next term)
+        if (internal != null) {
+            val index = context.terms.indexOf(internal)
+            val next = context.terms[index + 1].surface.firstOrNull() ?: return false
+            return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.KHAR, next)
+        }
         return true // Simplified for the single-word derivation case
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val lastTerm = context.terms.last()
+        val lastTerm = internalSankhyaTerm(context) ?: context.terms.last()
         val newSurface = if (lastTerm.surface.endsWith("ष्")) {
             lastTerm.surface.dropLast(2) + Ayogavaha.VISARGA.devanagari
         } else {
@@ -61,5 +68,12 @@ object KharavasanayorVisarjaniyahSutra : Sutra<DerivationState, DerivationChange
                 .copy(stage = DerivationStage.FINAL),
             explanation = "8.3.15: Replaced final 'r' with visarga (Avasāna)."
         )
+    }
+
+    private fun internalSankhyaTerm(context: DerivationState) = context.terms.firstOrNull { term ->
+        val index = context.terms.indexOf(term)
+        index < context.terms.lastIndex && term.surface.endsWith('र') &&
+            context.samjnas.any { it.targetId == term.id && it.samjna == Samjna.SANKHYA } &&
+            context.samjnas.any { it.targetId == context.terms[index + 1].id && it.samjna == Samjna.SANKHYA }
     }
 }

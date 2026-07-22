@@ -10,11 +10,8 @@ import java.math.BigInteger
 class SanskritSankhyaGenerator(
     private val expressionBuilder: SankhyaExpressionBuilder = SankhyaExpressionBuilder(),
     private val derivationFactory: SankhyaDerivationFactory = SankhyaDerivationFactory(),
-    private val derivationEngine: DerivationEngine = DerivationEngine()
+    private val derivationEngine: SankhyaDerivationEngine = SankhyaDerivationEngine()
 ) {
-
-    private val puranaGenerator by lazy { PuranaSankhyaGenerator(this, derivationEngine) }
-
     fun generate(value: BigInteger): DerivationResult {
         require(value.signum() >= 0) {
             "Negative numbers are not supported: $value"
@@ -29,8 +26,13 @@ class SanskritSankhyaGenerator(
     fun generateSurface(value: BigInteger): String =
         generate(value).final.surface
 
-    fun generateOrdinalSurface(value: BigInteger): String =
-        puranaGenerator.generateOrdinalSurface(value)
+    /** All grammatically licensed branches, including vibhāṣā alternatives. */
+    fun generateVariants(value: BigInteger): List<DerivationResult> {
+        require(value.signum() >= 0) { "Negative numbers are not supported: $value" }
+        val expression = expressionBuilder.build(value)
+        return derivationEngine.deriveAll(derivationFactory.create(expression))
+    }
+
 
     fun generateAdhikaSurface(value: BigInteger): String {
         if (value < BigInteger.valueOf(100)) {

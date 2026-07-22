@@ -10,16 +10,16 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
-/** 6.3.46: त्रेस्त्रयः */
+/** 6.3.48: त्रेस्त्रयः */
 object TreStrayahSutra : Sutra<DerivationState, DerivationChange>(
-    number = "6.3.46",
+    number = "6.3.48",
     text = "त्रेस्त्रयः",
     hindiExplanation = "उत्तरपद संख्या होने पर त्रि के स्थान पर त्रयः आदेश होता है।",
     type = SutraType.UTSARGA,
     chapter = 6,
     pada = 3,
     optional = false,
-    kramaValue = 630046,
+    kramaValue = 630048,
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.DERIVATION
@@ -31,15 +31,15 @@ object TreStrayahSutra : Sutra<DerivationState, DerivationChange>(
         val uttarapada = context.terms.getOrNull(1) ?: return false
 
         val purvaMatch = purvapada.surface == "त्रि"
-        val isUttaraSankhya = context.samjnas.any { it.targetId == uttarapada.id && it.samjna == Samjna.SANKHYA } ||
-            uttarapada.surface in setOf("विंशति", "त्रिंशत्", "चत्वारिंशत्", "पञ्चाशत्", "षष्टि", "सप्तति", "नवति", "शत", "सहस्र")
+        val isUttaraSankhya = context.samjnas.any { it.targetId == uttarapada.id && it.samjna == Samjna.SANKHYA } &&
+            uttarapada.surface in setOf("दश", "विंशति", "त्रिंशत्")
 
         return purvaMatch && isUttaraSankhya
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val purvapada = context.terms.first()
-        val replacement = "त्रयो"
+        val replacement = "त्रयस्"
         val updatedTerm = purvapada.copy(surface = replacement)
         val newTerms = listOf(updatedTerm) + context.terms.drop(1)
         return DerivationChange(

@@ -58,13 +58,17 @@ class SankhyaExpressionBuilder {
                 val coeffExpr = build(coeffVal)
                 val magExpr = SankhyaExpression.Primitive(mag)
 
-                val multExpr = SankhyaExpression.Multiply(coeffExpr, magExpr)
+                val multExpr = if (coeffVal == BigInteger.ONE) {
+                    magExpr
+                } else {
+                    SankhyaExpression.Multiply(coeffExpr, magExpr)
+                }
 
                 return if (remVal == BigInteger.ZERO) {
                     multExpr
                 } else {
                     val remExpr = build(remVal)
-                    SankhyaExpression.Add(lower = remExpr, higher = multExpr)
+                    SankhyaExpression.Adhika(remainder = remExpr, base = multExpr)
                 }
             }
         }

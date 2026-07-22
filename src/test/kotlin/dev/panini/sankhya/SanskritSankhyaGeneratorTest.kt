@@ -29,27 +29,91 @@ class SanskritSankhyaGeneratorTest {
     }
 
     @Test
-    fun `generates trayovimshati via Sutra 6_3_46`() {
+    fun `generates trayovimshati via Sutra 6_3_48`() {
         val result = generator.generate(BigInteger.valueOf(23))
         assertEquals("त्रयोविंशति", result.final.surface)
-        assertTrue(result.applications.any { it.sutra == "6.3.46" })
+        assertTrue(result.applications.any { it.sutra == "6.3.48" })
     }
 
     @Test
-    fun `generates shodasha via Sutra 6_3_49`() {
+    fun `generates lexicalized shodasha without a fabricated Sutra trace`() {
         val result = generator.generate(BigInteger.valueOf(16))
         assertEquals("षोडश", result.final.surface)
-        assertTrue(result.applications.any { it.sutra == "6.3.49" })
+        assertTrue(result.applications.none { it.sutra == "6.3.49" })
     }
 
     @Test
-    fun `generates ordinals using Purana rules`() {
-        assertEquals("प्रथम", generator.generateOrdinalSurface(BigInteger.ONE))
-        assertEquals("द्वितीय", generator.generateOrdinalSurface(BigInteger.TWO))
-        assertEquals("तृतीय", generator.generateOrdinalSurface(BigInteger.valueOf(3)))
-        assertEquals("चतुर्थ", generator.generateOrdinalSurface(BigInteger.valueOf(4)))
-        assertEquals("पञ्चम", generator.generateOrdinalSurface(BigInteger.valueOf(5)))
-        assertEquals("दशम", generator.generateOrdinalSurface(BigInteger.TEN))
+    fun `derives the cardinal compounds from eleven through twenty nine`() {
+        val expected = listOf(
+            "एकादश", "द्वादश", "त्रयोदश", "चतुर्दश", "पञ्चदश", "षोडश", "सप्तदश", "अष्टादश", "नवदश",
+            "विंशति", "एकविंशति", "द्वाविंशति", "त्रयोविंशति", "चतुर्विंशति", "पञ्चविंशति",
+            "षड्विंशति", "सप्तविंशति", "अष्टाविंशति", "नवविंशति",
+        )
+
+        expected.forEachIndexed { index, surface ->
+            assertEquals(surface, generator.generateSurface(BigInteger.valueOf((index + 11).toLong())), "${index + 11}")
+        }
+    }
+
+    @Test
+    fun `trayovimshati records each grammatical operation`() {
+        val sutras = generator.generate(BigInteger.valueOf(23)).applications.map { it.sutra }
+
+        assertTrue("6.3.48" in sutras)
+        assertTrue("8.2.66" in sutras)
+        assertTrue("6.1.114" in sutras)
+        assertTrue("6.1.87" in sutras)
+    }
+
+    @Test
+    fun `applies the optional substitutions from forty onward`() {
+        val fortyTwo = generator.generate(BigInteger.valueOf(42))
+        val fortyEight = generator.generate(BigInteger.valueOf(48))
+
+        assertEquals("द्वाचत्वारिंशत्", fortyTwo.final.surface)
+        assertEquals("अष्टाचत्वारिंशत्", fortyEight.final.surface)
+        assertTrue(fortyTwo.applications.any { it.sutra == "6.3.49" })
+        assertTrue(fortyEight.applications.any { it.sutra == "6.3.49" })
+    }
+
+    @Test
+    fun `returns both branches licensed by 6_3_49`() {
+        val fortyTwo = SanskritSankhyaGenerator().generateVariants(BigInteger.valueOf(42))
+        val fortyEight = SanskritSankhyaGenerator().generateVariants(BigInteger.valueOf(48))
+
+        assertEquals(setOf("द्विचत्वारिंशत्", "द्वाचत्वारिंशत्"), fortyTwo.map { it.final.surface }.toSet())
+        assertEquals(setOf("अष्टचत्वारिंशत्", "अष्टाचत्वारिंशत्"), fortyEight.map { it.final.surface }.toSet())
+        assertTrue(fortyTwo.any { result -> result.applications.any { it.sutra == "6.3.49" } })
+        assertTrue(fortyTwo.any { result -> result.applications.none { it.sutra == "6.3.49" } })
+
+        val fortyThree = SanskritSankhyaGenerator().generateVariants(BigInteger.valueOf(43))
+        assertEquals(setOf("त्रिचत्वारिंशत्", "त्रयश्चत्वारिंशत्"), fortyThree.map { it.final.surface }.toSet())
+    }
+
+    @Test
+    fun `derives the ashiti series without 6_3_47 through 49`() {
+        val expected = mapOf(
+            81L to "एकाशीति",
+            82L to "द्व्यशीति",
+            83L to "त्र्यशीति",
+            88L to "अष्टाशीति",
+        )
+
+        expected.forEach { (number, surface) ->
+            val result = generator.generate(BigInteger.valueOf(number))
+            assertEquals(surface, result.final.surface, "$number")
+            assertTrue(result.applications.none { it.sutra in setOf("6.3.47", "6.3.48", "6.3.49") })
+        }
+    }
+
+    @Test
+    fun `uses adhika for remainders above a completed magnitude`() {
+        assertEquals("शत", generator.generateSurface(BigInteger.valueOf(100)))
+        assertEquals("एकाधिकशत", generator.generateSurface(BigInteger.valueOf(101)))
+        assertEquals("चतुर्विंशत्यधिकशत", generator.generateSurface(BigInteger.valueOf(124)))
+        assertEquals("द्विशत", generator.generateSurface(BigInteger.valueOf(200)))
+        assertEquals("त्रिशत", generator.generateSurface(BigInteger.valueOf(300)))
+        assertEquals("अष्टशत", generator.generateSurface(BigInteger.valueOf(800)))
     }
 
     @Test
@@ -74,7 +138,6 @@ private class SanskritSanskritGeneratorWrapper {
     private val g = SanskritSankhyaGenerator()
     fun generate(v: BigInteger) = g.generate(v)
     fun generateSurface(v: BigInteger) = g.generateSurface(v)
-    fun generateOrdinalSurface(v: BigInteger) = g.generateOrdinalSurface(v)
     fun generateDeclined(v: BigInteger, l: Linga = Linga.PUMS, vi: Vibhakti = Vibhakti.PRATHAMA, va: Vacana = Vacana.EKAVACANA) = g.generateDeclined(v, l, vi, va)
     fun generateAdhikaSurface(v: BigInteger) = g.generateAdhikaSurface(v)
 }

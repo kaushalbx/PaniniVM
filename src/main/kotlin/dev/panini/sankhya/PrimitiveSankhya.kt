@@ -4,7 +4,11 @@ import java.math.BigInteger
 
 enum class PrimitiveSankhya(
     val value: BigInteger,
-    val pratipadika: String
+    val pratipadika: String,
+    /** Form supplied as a पूर्वपद before numeral-internal sandhi. */
+    val purvapada: String = pratipadika,
+    /** Form supplied as an उत्तरपद before numeral-internal sandhi. */
+    val uttarapada: String = pratipadika,
 ) {
     SHUNYA(BigInteger.ZERO, "शून्य"),
 
@@ -12,13 +16,14 @@ enum class PrimitiveSankhya(
     DVI(BigInteger.TWO, "द्वि"),
     TRI(BigInteger.valueOf(3), "त्रि"),
     CHATUR(BigInteger.valueOf(4), "चतुर्"),
-    PANCHAN(BigInteger.valueOf(5), "पञ्चन्"),
+    PANCHAN(BigInteger.valueOf(5), "पञ्चन्", purvapada = "पञ्च"),
     SHASH(BigInteger.valueOf(6), "षष्"),
-    SAPTAN(BigInteger.valueOf(7), "सप्तन्"),
+    SAPTAN(BigInteger.valueOf(7), "सप्तन्", purvapada = "सप्त"),
     ASHTAN(BigInteger.valueOf(8), "अष्टन्"),
-    NAVAN(BigInteger.valueOf(9), "नवन्"),
+    NAVAN(BigInteger.valueOf(9), "नवन्", purvapada = "नव"),
 
-    DASHAN(BigInteger.TEN, "दशन्"),
+    DASHAN(BigInteger.TEN, "दशन्", uttarapada = "दश"),
+    SHODASHA(BigInteger.valueOf(16), "षोडश"),
 
     VIMSHATI(BigInteger.valueOf(20), "विंशति"),
     TRIMSHAT(BigInteger.valueOf(30), "त्रिंशत्"),

@@ -13,6 +13,7 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.shiksha.Samjna
 
 /**
  * 8.2.39: jhalāṃ jaśo'nte.
@@ -34,7 +35,9 @@ object JhalamJashonteSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         // Must be a Pada (per 1.4.14)
-        val lastTerm = context.terms.lastOrNull() ?: return false
+        val internal = internalSankhyaTerm(context)
+        if (isSankhyaCompound(context) && internal == null) return false
+        val lastTerm = internal ?: context.terms.lastOrNull() ?: return false
         val finalConsonant = getFinalConsonant(lastTerm.surface) ?: return false
         if (finalConsonant == 'स') return false
         if (finalConsonant in setOf('ज', 'ब', 'ग', 'ड', 'द')) return false
@@ -43,7 +46,7 @@ object JhalamJashonteSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val lastTerm = context.terms.last()
+        val lastTerm = internalSankhyaTerm(context) ?: context.terms.last()
         val finalConsonant = getFinalConsonant(lastTerm.surface)!!
 
         // Use 1.1.50 logic to pick the best voiced substitute
@@ -71,4 +74,12 @@ object JhalamJashonteSutra : Sutra<DerivationState, DerivationChange>(
         }
         return null
     }
+
+    private fun internalSankhyaTerm(context: DerivationState) = context.terms.firstOrNull { term ->
+        term != context.terms.last() && context.samjnas.any { it.targetId == term.id && it.samjna == Samjna.SANKHYA } &&
+            getFinalConsonant(term.surface) != null
+    }
+
+    private fun isSankhyaCompound(context: DerivationState): Boolean = context.terms.size > 1 &&
+        context.terms.all { term -> context.samjnas.any { it.targetId == term.id && it.samjna == Samjna.SANKHYA } }
 }

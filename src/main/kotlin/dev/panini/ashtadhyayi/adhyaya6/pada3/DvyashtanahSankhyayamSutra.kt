@@ -31,8 +31,8 @@ object DvyashtanahSankhyayamSutra : Sutra<DerivationState, DerivationChange>(
         val uttarapada = context.terms.getOrNull(1) ?: return false
 
         val purvaMatch = purvapada.surface in setOf("द्वि", "अष्टन्")
-        val isUttaraSankhya = context.samjnas.any { it.targetId == uttarapada.id && it.samjna == Samjna.SANKHYA } ||
-            uttarapada.surface in setOf("विंशति", "त्रिंशत्", "चत्वारिंशत्", "पञ्चाशत्", "षष्टि", "सप्तति", "नवति", "शत", "सहस्र")
+        val isUttaraSankhya = context.samjnas.any { it.targetId == uttarapada.id && it.samjna == Samjna.SANKHYA } &&
+            uttarapada.surface in setOf("दश", "विंशति", "त्रिंशत्")
         val notAshiti = uttarapada.surface != "अशीति"
 
         return purvaMatch && isUttaraSankhya && notAshiti

@@ -10,6 +10,7 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.shiksha.Samjna
 
 /** 8.2.7: Delete a final n of a prātipadika before the bhy- and sup endings. */
 object NaloPratipadikantasyaSutra : Sutra<DerivationState, DerivationChange>(
@@ -29,8 +30,10 @@ object NaloPratipadikantasyaSutra : Sutra<DerivationState, DerivationChange>(
         if (context.terms.size < 2) return false
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
+        val insideSankhyaCompound = context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SANKHYA } &&
+            context.samjnas.any { it.targetId == affix.id && it.samjna == Samjna.SANKHYA }
         return stem.kind == TermKind.PRATIPADIKA && stem.surface.endsWith("न्") &&
-            affix.upadesha in setOf("भ्याम्", "भिस्", "भ्यस्", "सुप्")
+            (affix.upadesha in setOf("भ्याम्", "भिस्", "भ्यस्", "सुप्") || insideSankhyaCompound)
     }
 
     override fun apply(context: DerivationState): DerivationChange {

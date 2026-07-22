@@ -12,6 +12,7 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.shiksha.Samjna
 
 /**
  * 6.1.114: haśi ca.
@@ -33,6 +34,7 @@ object HashiCaSutra : Sutra<DerivationState, DerivationChange>(
     nimittaScope = NimittaScope.BOTH
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
+        if (internalSankhyaIndex(context) >= 0) return true
         if (context.terms.size < 2) return false
         val left = context.terms[context.terms.size - 2]
         val right = context.terms.last()
@@ -48,7 +50,8 @@ object HashiCaSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val left = context.terms[context.terms.size - 2]
+        val internalIndex = internalSankhyaIndex(context)
+        val left = if (internalIndex >= 0) context.terms[internalIndex] else context.terms[context.terms.size - 2]
         val newSurface = left.surface.dropLast(1) + "ु"
 
         return DerivationChange(
@@ -57,4 +60,14 @@ object HashiCaSutra : Sutra<DerivationState, DerivationChange>(
             explanation = "6.1.114: Substituted 'u' for 'ru' before a voiced consonant."
         )
     }
+
+    private fun internalSankhyaIndex(context: DerivationState): Int = context.terms.indices.firstOrNull { index ->
+        index < context.terms.lastIndex && context.terms[index].surface.endsWith("र") &&
+            dev.panini.shiksha.Varnamala.endsWithA(context.terms[index].surface.dropLast(1)) &&
+            context.samjnas.any { it.targetId == context.terms[index].id && it.samjna == Samjna.SANKHYA } &&
+            context.samjnas.any { it.targetId == context.terms[index + 1].id && it.samjna == Samjna.SANKHYA } &&
+            context.terms[index + 1].surface.firstOrNull()?.let {
+                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAS, it)
+            } == true
+    } ?: -1
 }
