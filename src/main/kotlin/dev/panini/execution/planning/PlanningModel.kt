@@ -3,7 +3,7 @@ package dev.panini.execution
 data class ActionDependency(val before: String, val after: String)
 
 data class ExecutionProgram(
-    val ukti: Ukti,
+    val ukti: ExecutableUkti,
     val dependencies: Set<ActionDependency> = emptySet(),
 ) {
     val invocations: List<DhatuInvocation> get() = ukti.invocations

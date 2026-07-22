@@ -1,8 +1,7 @@
 package dev.panini.vyakaranam
 
 import dev.panini.core.Linga
-import dev.panini.core.PadaType
-import dev.panini.vyakaranam.lexicon.DhatuEntry
+import dev.panini.dhatupatha.rudhadi.YujirDhatu
 import dev.panini.vyakaranam.lexicon.InMemoryVyakaranamLexicon
 import dev.panini.vyakaranam.lexicon.PratipadikaEntry
 
@@ -20,15 +19,7 @@ fun main() {
                 stemClass = "अकारान्त",
             ),
         ),
-        dhatus = listOf(
-            DhatuEntry(
-                upadesha = "खाद्",
-                derivationalSurface = "खाद्",
-                gana = "भ्वादिगण",
-                pada = setOf(PadaType.PARASMAIPADA),
-                sakarmaka = true,
-            ),
-        ),
+        dhatus = listOf(YujirDhatu()),
     )
 
     val engine = PaniniyaVyakaranamEngine(lexicon)

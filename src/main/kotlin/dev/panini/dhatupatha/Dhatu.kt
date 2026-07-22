@@ -11,7 +11,7 @@ open class Dhatu(
     val id: String,
     val krama: Int,
     val upadesha: String,
-    private val sourceSurface: String,
+    val sourceSurface: String,
     val artha: String,
     val arthaHindi: String,
     val arthaEnglish: String,

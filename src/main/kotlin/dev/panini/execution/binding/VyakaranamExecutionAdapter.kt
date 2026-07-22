@@ -92,7 +92,7 @@ object VyakaranamExecutionAdapter {
             return ExecutionBindingResult.Invalid("Addressed listener does not match the trusted conversation context.")
         }
         return ExecutionBindingResult.Bound(
-            Ukti(
+            ExecutableUkti(
                 speaker = input.speaker,
                 listener = listener,
                 text = input.text,

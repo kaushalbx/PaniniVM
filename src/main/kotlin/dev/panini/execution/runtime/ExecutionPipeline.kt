@@ -19,7 +19,7 @@ internal object ExecutionPipeline {
         )
     }
 
-    fun execute(ukti: Ukti, conversation: SambhashanaContext, scope: ExecutionScope): Phala {
+    fun execute(ukti: ExecutableUkti, conversation: SambhashanaContext, scope: ExecutionScope): Phala {
         if (ukti.speaker != conversation.speaker || ukti.listener != conversation.listener) {
             return Phala.Asiddha(
                 ExecutionResult.Failure(
@@ -53,7 +53,7 @@ internal object ExecutionPipeline {
         ExecutionRuntime.resume(continuation, scope)
 
     fun executeAndRespond(
-        ukti: Ukti,
+        ukti: ExecutableUkti,
         conversation: SambhashanaContext,
         scope: ExecutionScope,
     ): Prativacana = SanskritPrativacanaRenderer.render(execute(ukti, conversation, scope))

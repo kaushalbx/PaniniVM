@@ -1,7 +1,7 @@
 package dev.panini.vyakaranam.lexicon
 
 import dev.panini.core.Linga
-import dev.panini.core.PadaType
+import dev.panini.dhatupatha.Dhatu
 
 data class PratipadikaEntry(
     val text: String,
@@ -10,20 +10,12 @@ data class PratipadikaEntry(
     val ganaNames: Set<String> = emptySet(),
 )
 
-data class DhatuEntry(
-    val upadesha: String,
-    val derivationalSurface: String,
-    val gana: String,
-    val pada: Set<PadaType>,
-    val sakarmaka: Boolean,
-)
-
 interface PratipadikaLexicon {
     fun findPratipadika(text: String): PratipadikaEntry?
 }
 
 interface DhatuLexicon {
-    fun findDhatu(text: String): DhatuEntry?
+    fun findDhatu(text: String): Dhatu?
 }
 
 interface VyakaranamLexicon :
@@ -32,7 +24,7 @@ interface VyakaranamLexicon :
 
 class InMemoryVyakaranamLexicon(
     pratipadikas: Collection<PratipadikaEntry>,
-    dhatus: Collection<DhatuEntry>,
+    dhatus: Collection<Dhatu>,
 ) : VyakaranamLexicon {
 
     private val pratipadikaByText =
@@ -42,6 +34,7 @@ class InMemoryVyakaranamLexicon(
         buildMap {
             dhatus.forEach { dhatu ->
                 put(normalize(dhatu.upadesha), dhatu)
+                put(normalize(dhatu.sourceSurface), dhatu)
                 put(normalize(dhatu.derivationalSurface), dhatu)
             }
         }
@@ -49,7 +42,7 @@ class InMemoryVyakaranamLexicon(
     override fun findPratipadika(text: String): PratipadikaEntry? =
         pratipadikaByText[normalize(text)]
 
-    override fun findDhatu(text: String): DhatuEntry? =
+    override fun findDhatu(text: String): Dhatu? =
         dhatuByForm[normalize(text)]
 
     private fun normalize(text: String): String =

@@ -121,10 +121,10 @@ class VakyaAnalyzer(
         if (prayoga == Prayoga.BHAVE || prayoga == Prayoga.ANIRDHARITA) return null
         val resolution = KarakaRuleEngine.resolve(
             KarakaRuleContext(
-                dhatuSurface = tinganta.pada.dhatu.mulaDhatu,
+                dhatuSurface = tinganta.lexicalEntry?.sourceSurface ?: tinganta.pada.dhatu.mulaDhatu,
                 prayoga = prayoga,
                 supUpadesha = subanta.pada.sup.text,
-                sakarmaka = tinganta.lexicalEntry?.sakarmaka != false,
+                sakarmaka = tinganta.lexicalEntry?.karmatva != dev.panini.shiksha.Karmatva.AKARMAKA,
             ),
         )
         val karaka = resolution.resolved ?: return null

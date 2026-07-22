@@ -14,7 +14,6 @@ import dev.panini.vyakaranam.ast.SamuccitaSubanta
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.UnadyantaPratipadika
-import dev.panini.vyakaranam.lexicon.DhatuEntry
 import dev.panini.vyakaranam.lexicon.PratipadikaEntry
 import dev.panini.vyakaranam.lexicon.VyakaranamLexicon
 
@@ -30,7 +29,7 @@ data class SubantaAnalysis(
 
 data class TingantaAnalysis(
     val pada: TingantaPada,
-    val lexicalEntry: DhatuEntry?,
+    val lexicalEntry: dev.panini.dhatupatha.Dhatu?,
     val ting: TingAffix,
     val lakara: Lakara,
 )
@@ -114,7 +113,7 @@ class PadaAnalyzer(
             "तिङ्प्रत्ययस्य विवरणं न प्राप्तम्: ${pada.ting.text}"
         }
 
-        require(tingAffix.pada in dhatu.pada) {
+        require(dhatu.pada == null || dhatu.pada == dev.panini.core.PadaType.UBHAYAPADA || dhatu.pada == tingAffix.pada) {
             buildString {
                 append("धातोः पदविरोधः: ")
                 append(dhatu.upadesha)

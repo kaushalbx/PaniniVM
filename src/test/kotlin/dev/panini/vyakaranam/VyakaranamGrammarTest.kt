@@ -5,8 +5,12 @@ import dev.panini.core.Linga
 import dev.panini.core.PadaType
 import dev.panini.parser.VyakaranamLexer
 import dev.panini.parser.VyakaranamParser
+import dev.panini.dhatupatha.bhvadi.GamDhatu
+import dev.panini.dhatupatha.bhvadi.PalayDhatu
+import dev.panini.dhatupatha.juhotyadi.DaDhatu
+import dev.panini.dhatupatha.tudadi.LikhDhatu
+import dev.panini.dhatupatha.rudhadi.YujirDhatu
 import dev.panini.vyakaranam.analysis.AnalyzedSamuccita
-import dev.panini.vyakaranam.lexicon.DhatuEntry
 import dev.panini.vyakaranam.lexicon.InMemoryVyakaranamLexicon
 import dev.panini.vyakaranam.lexicon.PratipadikaEntry
 import org.antlr.v4.runtime.BaseErrorListener
@@ -49,7 +53,7 @@ class VyakaranamGrammarTest {
                 PratipadikaEntry("लक्ष्मण", setOf(Linga.PUMS)),
             ),
             dhatus = listOf(
-                DhatuEntry("गम्", "गम्", "भ्वादिगण", setOf(PadaType.PARASMAIPADA), false),
+                GamDhatu(),
             ),
         )
         val analysis = PaniniyaVyakaranamEngine(lexicon).analyze(
@@ -69,9 +73,9 @@ class VyakaranamGrammarTest {
                 PratipadikaEntry("लेखनी", setOf(Linga.STRI)),
             ),
             dhatus = listOf(
-                DhatuEntry("दा", "दा", "जुहोत्यादिगण", setOf(PadaType.PARASMAIPADA), true),
-                DhatuEntry("लिख्", "लिख्", "तुदादिगण", setOf(PadaType.PARASMAIPADA), true),
-                DhatuEntry("पलाय्", "पलाय्", "भ्वादिगण", setOf(PadaType.PARASMAIPADA), false),
+                DaDhatu(),
+                LikhDhatu(),
+                PalayDhatu(),
             ),
         )
         val engine = PaniniyaVyakaranamEngine(lexicon)

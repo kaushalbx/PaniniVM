@@ -2,7 +2,7 @@ package dev.panini.execution
 
 import dev.panini.core.Lakara
 
-data class Ukti(
+data class ExecutableUkti(
     val speaker: String,
     val listener: String,
     val text: String,
