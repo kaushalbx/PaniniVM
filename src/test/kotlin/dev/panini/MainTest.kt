@@ -60,4 +60,33 @@ class MainTest {
         assertTrue(output.any { it.startsWith("3.3.161 —") })
         assertTrue(output.any { it.startsWith("3.4.103 —") })
     }
+
+    @Test
+    fun `sankhya command derives a cardinal with its trace`() {
+        val output = runCli(arrayOf("--sankhya", "23"))
+
+        assertEquals("CARDINAL 23: त्रयोविंशति", output.first())
+        assertTrue(output.any { it.startsWith("6.3.48 ") }, output.joinToString("\n"))
+    }
+
+    @Test
+    fun `sankhya command derives an ordinal with its trace`() {
+        val output = runCli(arrayOf("--sankhya", "6", "ordinal"))
+
+        assertEquals("ORDINAL 6: षष्ठ", output.first())
+        assertTrue(output.any { it.startsWith("5.2.51 ") }, output.joinToString("\n"))
+        assertTrue(output.any { it.startsWith("8.4.41 ") }, output.joinToString("\n"))
+    }
+
+    @Test
+    fun `sankhya command exposes licensed variants`() {
+        val output = runCli(arrayOf("--sankhya", "42", "cardinal", "--variants"))
+
+        assertEquals(
+            setOf("द्विचत्वारिंशत्", "द्वाचत्वारिंशत्"),
+            output.filter { it.startsWith("CARDINAL 42 [") }
+                .map { it.substringAfter(": ") }
+                .toSet(),
+        )
+    }
 }

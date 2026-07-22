@@ -12,7 +12,9 @@ import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.sutra.Sutra
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.PaniniVM
+import dev.panini.sankhya.SankhyaGenerator
 import java.io.File
+import java.math.BigInteger
 
 fun main(args: Array<String>) {
     runCli(args).forEach(::println)
@@ -98,12 +100,45 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
             addTrace(result)
         }
     }
+    "--sankhya" -> {
+        val valueText = args.getOrNull(1)
+            ?: error("Usage: --sankhya INTEGER [cardinal|ordinal] [--variants]")
+        val value = valueText.toBigIntegerOrNull()
+            ?: error("Invalid integer for --sankhya: $valueText")
+        require(value >= BigInteger.ZERO) { "Sankhya must be non-negative: $value" }
+
+        val positional = args.drop(2).filterNot { it == "--variants" }
+        require(positional.size <= 1) {
+            "Usage: --sankhya INTEGER [cardinal|ordinal] [--variants]"
+        }
+        val kind = when (positional.firstOrNull()?.lowercase() ?: "cardinal") {
+            "cardinal" -> SankhyaKind.CARDINAL
+            "ordinal" -> SankhyaKind.ORDINAL
+            else -> error("Unknown sankhya kind: ${positional.single()}; expected cardinal or ordinal.")
+        }
+        val variants = "--variants" in args.drop(2)
+        val generator = SankhyaGenerator()
+        val results = when (kind) {
+            SankhyaKind.CARDINAL -> if (variants) generator.cardinalVariants(value) else listOf(generator.cardinal(value))
+            SankhyaKind.ORDINAL -> if (variants) generator.ordinalVariants(value) else listOf(generator.ordinal(value))
+        }
+
+        buildList {
+            results.forEachIndexed { index, result ->
+                val variant = if (results.size > 1) " [${index + 1}/${results.size}]" else ""
+                add("${kind.name} $value$variant: ${result.final.surface}")
+                addTrace(result, includeRole = true)
+            }
+        }
+    }
     "--coverage" -> listOf(
         "loaded=${Ashtadhyayi.pathitaCount}; executable=${Ashtadhyayi.kriyavatCount}; total=${Ashtadhyayi.expectedSutraCount}; remaining=${Ashtadhyayi.remainingCount}",
         "roles=" + Ashtadhyayi.registry.sutras.groupingBy { it.role::class.simpleName }.eachCount().entries.joinToString { "${it.key}=${it.value}" },
     )
-    else -> listOf("Usage: --eval file.pvm | --paradigm राम | --derive राम SASTHI BAHUVACANA | --verb भू | --sutra 7.1.54 | --coverage")
+    else -> listOf("Usage: --eval file.pvm | --paradigm राम | --derive राम SASTHI BAHUVACANA | --verb भू | --sankhya 23 [cardinal|ordinal] [--variants] | --sutra 7.1.54 | --coverage")
 }
+
+private enum class SankhyaKind { CARDINAL, ORDINAL }
 
 private fun parseVibhakti(value: String): Vibhakti = when (value.uppercase()) {
     "PRATHAMA", "प्रथमा" -> Vibhakti.PRATHAMA

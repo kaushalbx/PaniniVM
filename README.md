@@ -79,6 +79,11 @@ Line 2:
 ./gradlew run --args="--verb भू LING EKAVACANA"
 ./gradlew run --args="--verb भू LOT बहुवचन"
 
+# Cardinal and ordinal numeral derivations
+./gradlew run --args="--sankhya 23"
+./gradlew run --args="--sankhya 6 ordinal"
+./gradlew run --args="--sankhya 42 cardinal --variants"
+
 # Registry inspection and implementation coverage
 ./gradlew run --args="--coverage"
 ./gradlew run --args="--sutra 7.1.54"
