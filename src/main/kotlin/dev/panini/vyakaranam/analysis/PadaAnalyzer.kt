@@ -2,6 +2,8 @@ package dev.panini.vyakaranam.analysis
 
 import dev.panini.core.Lakara
 import dev.panini.core.Linga
+import dev.panini.core.SupAffix
+import dev.panini.core.TingAffix
 import dev.panini.vyakaranam.ast.*
 import dev.panini.vyakaranam.lexicon.DhatuEntry
 import dev.panini.vyakaranam.lexicon.PratipadikaEntry
@@ -10,14 +12,14 @@ import dev.panini.vyakaranam.lexicon.VyakaranamLexicon
 data class SubantaAnalysis(
     val pada: SubantaPada,
     val lexicalEntry: PratipadikaEntry?,
-    val sup: SupMetadata,
+    val sup: SupAffix,
     val linga: Set<Linga>,
 )
 
 data class TingantaAnalysis(
     val pada: TingantaPada,
     val lexicalEntry: DhatuEntry?,
-    val ting: TingMetadata,
+    val ting: TingAffix,
     val lakara: Lakara,
 )
 
@@ -81,7 +83,9 @@ class PadaAnalyzer(
         return SubantaAnalysis(
             pada = pada,
             lexicalEntry = lexicalEntry,
-            sup = PratyayaMetadata.requireSup(pada.sup.text),
+            sup = requireNotNull(SupAffix.fromUpadesha(pada.sup.text)) {
+                "सुप्प्रत्ययस्य विवरणं न प्राप्तम्: ${pada.sup.text}"
+            },
             linga = lexicalEntry?.linga ?: setOf(),
         )
     }
@@ -94,10 +98,11 @@ class PadaAnalyzer(
                 "धातुपाठे धातुः न प्राप्तः: ${pada.dhatu.mulaDhatu}",
             )
 
-        val tingMetadata =
-            PratyayaMetadata.requireTing(pada.ting.text)
+        val tingAffix = requireNotNull(TingAffix.fromUpadesha(pada.ting.text)) {
+            "तिङ्प्रत्ययस्य विवरणं न प्राप्तम्: ${pada.ting.text}"
+        }
 
-        require(tingMetadata.pada in dhatu.pada) {
+        require(tingAffix.pada in dhatu.pada) {
             buildString {
                 append("धातोः पदविरोधः: ")
                 append(dhatu.upadesha)
@@ -106,7 +111,7 @@ class PadaAnalyzer(
                 append(" स्वीकरोति, किन्तु ")
                 append(pada.ting.text)
                 append(" ")
-                append(tingMetadata.pada)
+                append(tingAffix.pada)
                 append(" सूचयति।")
             }
         }
@@ -114,7 +119,7 @@ class PadaAnalyzer(
         return TingantaAnalysis(
             pada = pada,
             lexicalEntry = dhatu,
-            ting = tingMetadata,
+            ting = tingAffix,
             lakara = pada.lakara,
         )
     }

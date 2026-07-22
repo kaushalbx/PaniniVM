@@ -1,10 +1,8 @@
-/*
 package dev.panini.vyakaranam.parser
 
-import dev.panini.parser.PaniniyaVyakaranamLexer
-import dev.panini.parser.PaniniyaVyakaranamParser
+import dev.panini.parser.VyakaranamLexer
+import dev.panini.parser.VyakaranamParser
 import dev.panini.vyakaranam.ast.Ukti
-import org.antlr.v4.runtime.BailErrorStrategy
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.ParserRuleContext
@@ -22,7 +20,7 @@ class PaniniParser(
         val normalizedSource = normalize(source)
         val errorListener = PaniniSyntaxErrorListener()
 
-        val lexer = PaniniyaVyakaranamLexer(
+        val lexer = VyakaranamLexer(
             CharStreams.fromString(normalizedSource),
         ).apply {
             removeErrorListeners()
@@ -31,7 +29,7 @@ class PaniniParser(
 
         val tokenStream = CommonTokenStream(lexer)
 
-        val parser = PaniniyaVyakaranamParser(tokenStream).apply {
+        val parser = VyakaranamParser(tokenStream).apply {
             removeErrorListeners()
             addErrorListener(errorListener)
 
@@ -77,7 +75,7 @@ class PaniniParser(
 
     private fun ensureCompletelyParsed(
         context: ParserRuleContext,
-        parser: PaniniyaVyakaranamParser,
+        parser: VyakaranamParser,
     ) {
         if (context.stop == null) {
             throw PaniniParseException(
@@ -93,4 +91,3 @@ class PaniniParser(
         }
     }
 }
-*/

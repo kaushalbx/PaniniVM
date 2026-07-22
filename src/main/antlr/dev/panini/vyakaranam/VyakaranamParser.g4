@@ -1,11 +1,11 @@
-parser grammar PaniniyaVyakaranamParser;
+parser grammar VyakaranamParser;
 
 options {
-    tokenVocab = PaniniyaVyakaranamLexer;
+    tokenVocab = VyakaranamLexer;
 }
 
 @header {
-package dev.panini.vyakaranam;
+package dev.panini.parser;
 }
 
 // ============================================================================

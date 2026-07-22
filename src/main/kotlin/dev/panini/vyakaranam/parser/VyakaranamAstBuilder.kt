@@ -1,8 +1,9 @@
-/*
 package dev.panini.vyakaranam.parser
 
-import dev.panini.parser.PaniniyaVyakaranamParser
+import dev.panini.core.Lakara
+import dev.panini.core.SupLopa
 import dev.panini.vyakaranam.ast.*
+import dev.panini.parser.VyakaranamParser as PaniniyaVyakaranamParser
 
 class VyakaranamAstBuilder {
 
@@ -196,7 +197,7 @@ class VyakaranamAstBuilder {
                 )
             },
             supLopa = supAvastha?.supAvastha()?.let {
-                SupLopa.valueOf(it.text.toSupLopaName())
+                SupLopa.fromUpadesha(it.text)
             },
         )
     }
@@ -257,7 +258,7 @@ class VyakaranamAstBuilder {
             sourceText = context.text,
             upasargas = buildUpasargas(context.upasargaKrama()),
             dhatu = buildDhatu(context.dhatuPrakriti()),
-            lakara = context.lakara().text.toLakara(),
+            lakara = Lakara.fromUpadesha(context.lakara().text),
             ting = TingPratyaya(
                 sourceText = context.tingPratyaya().text,
                 text = context.tingPratyaya().text,
@@ -342,37 +343,14 @@ class VyakaranamAstBuilder {
             is SamasaPratipadika -> pratipadika.copy(vikaras = vikaras)
         }
 
-    */
-/*
+    /*
      * This helper needs the token position. Since the AST nodes currently
      * store only source text, ordering is retained naturally for most input.
      * Replace this with a sourceSpan field when exact source ordering is needed.
-     *//*
+     */
+
 
     private fun startTokenIndex(pada: Pada): Int = 0
 
-    private fun String.toLakara(): Lakara =
-        when (this) {
-            "लट्" -> Lakara.LAT
-            "लिट्" -> Lakara.LIT
-            "लुट्" -> Lakara.LUT
-            "लृट्" -> Lakara.LRT
-            "लेट्" -> Lakara.LET
-            "लोट्" -> Lakara.LOT
-            "लङ्" -> Lakara.LANG
-            "लिङ्" -> Lakara.LING
-            "लुङ्" -> Lakara.LUNG
-            "लृङ्" -> Lakara.LRNG
-            else -> error("अज्ञातः लकारः: $this")
-        }
 
-    private fun String.toSupLopaName(): String =
-        when (this) {
-            "लुक्" -> "LUK"
-            "श्लु" -> "SHLU"
-            "लुप्" -> "LUP"
-            "अलुक्" -> "ALUK"
-            else -> error("अज्ञाता सुपः अवस्था: $this")
-        }
 }
-*/

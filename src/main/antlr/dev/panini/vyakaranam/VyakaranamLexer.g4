@@ -1,7 +1,7 @@
-lexer grammar PaniniyaVyakaranamLexer;
+lexer grammar VyakaranamLexer;
 
 @header {
-package dev.panini.vyakaranam;
+package dev.panini.parser;
 }
 
 // ============================================================================

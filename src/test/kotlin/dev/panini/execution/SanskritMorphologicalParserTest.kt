@@ -1,6 +1,7 @@
 package dev.panini.execution
 
 import dev.panini.core.Karaka
+import dev.panini.core.Prayoga
 import dev.panini.core.Vibhakti
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -25,7 +26,7 @@ class SanskritMorphologicalParserTest {
 
     @Test
     fun `parses instrumental case endings in passive into kartr karaka`() {
-        val token = SanskritMorphologicalParser.parseToken("रामेण", SanskritMorphologicalParser.Prayoga.KARMANI)
+        val token = SanskritMorphologicalParser.parseToken("रामेण", Prayoga.KARMANI)
         assertEquals("राम", token.stem)
         assertEquals(Vibhakti.TRTIYA, token.vibhakti)
         assertEquals(Karaka.KARTR, token.inferredKaraka)
