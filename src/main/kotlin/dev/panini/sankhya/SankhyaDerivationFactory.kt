@@ -9,19 +9,7 @@ import dev.panini.shiksha.Samjna
 class SankhyaDerivationFactory {
 
     fun create(expression: SankhyaExpression): DerivationState {
-        val terms = when (expression) {
-            is SankhyaExpression.Ekona -> {
-                val baseTerms = createTerms(expression.base, "ekona_base", CompoundPosition.UTTARAPADA)
-                val ekonaTerm = DerivationTerm(
-                    id = "sankhya_ekona",
-                    surface = "एकोन",
-                    kind = TermKind.PRATIPADIKA,
-                    upadesha = "एकोन"
-                )
-                listOf(ekonaTerm) + baseTerms
-            }
-            else -> createTerms(expression, "root", CompoundPosition.STANDALONE)
-        }
+        val terms = createTerms(expression, "root", CompoundPosition.STANDALONE)
 
         val samjnas = terms.flatMap { term ->
             buildList {
@@ -65,14 +53,6 @@ class SankhyaDerivationFactory {
                         kind = TermKind.PRATIPADIKA,
                         upadesha = "अधिक",
                     ) + createTerms(expression.base, "${path}_adhika_base", CompoundPosition.UTTARAPADA)
-            is SankhyaExpression.Ekona -> listOf(
-                DerivationTerm(
-                    id = "sankhya_${path}_ekona",
-                    surface = "एकोन",
-                    kind = TermKind.PRATIPADIKA,
-                    upadesha = "एकोन"
-                )
-            ) + createTerms(expression.base, "${path}_ekona_base", CompoundPosition.UTTARAPADA)
             is SankhyaExpression.Multiply ->
                 createTerms(expression.coefficient, "${path}_multiply_coefficient", CompoundPosition.PURVAPADA) +
                     createTerms(expression.magnitude, "${path}_multiply_magnitude", CompoundPosition.UTTARAPADA)
@@ -80,12 +60,4 @@ class SankhyaDerivationFactory {
 
     private enum class CompoundPosition { STANDALONE, PURVAPADA, UTTARAPADA }
 
-    fun flatten(expression: SankhyaExpression): List<PrimitiveSankhya> =
-        when (expression) {
-            is SankhyaExpression.Primitive -> listOf(expression.sankhya)
-            is SankhyaExpression.Add -> flatten(expression.lower) + flatten(expression.higher)
-            is SankhyaExpression.Adhika -> flatten(expression.remainder) + flatten(expression.base)
-            is SankhyaExpression.Ekona -> flatten(expression.base)
-            is SankhyaExpression.Multiply -> flatten(expression.coefficient) + flatten(expression.magnitude)
-        }
 }

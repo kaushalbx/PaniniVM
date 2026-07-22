@@ -17,8 +17,8 @@ import dev.panini.shiksha.Samjna
 import java.math.BigInteger
 
 /** Derives the currently implemented pūraṇa numerals through A.5.2.48–56. */
-class PuranaSankhyaGenerator(
-    private val cardinalGenerator: SanskritSankhyaGenerator,
+class PuranaSankhyaDeriver(
+    private val cardinalDeriver: CardinalSankhyaDeriver,
 ) {
     private val expressionBuilder = SankhyaExpressionBuilder()
     private val taddhitaEngine = DerivationEngine(
@@ -42,13 +42,13 @@ class PuranaSankhyaGenerator(
     )
     private val thukPhonology = DerivationEngine(listOf(StunaShtuhSutra))
 
-    fun generate(value: BigInteger): DerivationResult {
+    fun derive(value: BigInteger): DerivationResult {
         val initial = initialState(value)
         val taddhita = taddhitaEngine.derive(initial, DerivationConfig(OptionalRulePolicy.SKIP_ALL))
         return complete(initial, taddhita)
     }
 
-    fun generateVariants(value: BigInteger): List<DerivationResult> {
+    fun deriveVariants(value: BigInteger): List<DerivationResult> {
         requireSupported(value)
         val initial = initialState(value)
         return taddhitaEngine.deriveAll(initial)
@@ -79,7 +79,7 @@ class PuranaSankhyaGenerator(
         requireSupported(value)
 
         val base = if (value == BigInteger.ONE) "प्रथम" else PrimitiveSankhya.fromValue(value)?.pratipadika
-            ?: cardinalGenerator.generate(value).final.surface
+            ?: cardinalDeriver.derive(value).final.surface
         val underlyingHead = if (value == BigInteger.ONE) base else expressionBuilder.build(value).headPrimitive().pratipadika
         val term = DerivationTerm(
             id = "purana_base",
@@ -105,5 +105,4 @@ class PuranaSankhyaGenerator(
         require(value.signum() > 0) { "Pūraṇa numerals require a positive cardinal: $value" }
     }
 
-    fun generateSurface(value: BigInteger): String = generate(value).final.surface
 }

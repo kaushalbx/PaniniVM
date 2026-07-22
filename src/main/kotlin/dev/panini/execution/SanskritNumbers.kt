@@ -1,11 +1,10 @@
 package dev.panini.execution
 
-import dev.panini.sankhya.SanskritSankhyaGenerator
 import java.math.BigInteger
 
-/** Canonical VM number lexicon; generation is delegated to SanskritSankhyaGenerator. */
+/** Canonical VM number lexicon; grammatical derivation and VM rendering remain separate. */
 object SanskritNumbers {
-    private val generator = SanskritSankhyaGenerator()
+    private val renderer = SankhyaCountingFormRenderer()
 
     private val words = listOf(
         "शून्य", "एक", "द्वि", "त्रि", "चतुर्", "पञ्च", "षट्", "सप्त", "अष्ट", "नव", "दश",
@@ -35,7 +34,7 @@ object SanskritNumbers {
     fun wordFor(value: Int): String? {
         if (value < 0) return null
         return try {
-            generator.generateDeclinedSurface(BigInteger.valueOf(value.toLong()))
+            renderer.render(BigInteger.valueOf(value.toLong()))
         } catch (e: Exception) {
             words.getOrNull(value)
         }

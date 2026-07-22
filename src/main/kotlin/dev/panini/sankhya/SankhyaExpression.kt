@@ -31,17 +31,6 @@ sealed interface SankhyaExpression {
         override val value: BigInteger = remainder.value + base.value
     }
 
-    /** The Pāṇinian subtractive numeral construction: one less than [base]. */
-    data class Ekona(
-        val base: SankhyaExpression
-    ) : SankhyaExpression {
-        init {
-            require(base.value > BigInteger.ZERO) { "Ekona requires a positive base: ${base.value}" }
-        }
-
-        override val value: BigInteger = base.value - BigInteger.ONE
-    }
-
     data class Multiply(
         val coefficient: SankhyaExpression,
         val magnitude: SankhyaExpression
@@ -54,6 +43,5 @@ fun SankhyaExpression.headPrimitive(): PrimitiveSankhya = when (this) {
     is SankhyaExpression.Primitive -> sankhya
     is SankhyaExpression.Add -> higher.headPrimitive()
     is SankhyaExpression.Adhika -> base.headPrimitive()
-    is SankhyaExpression.Ekona -> base.headPrimitive()
     is SankhyaExpression.Multiply -> magnitude.headPrimitive()
 }
