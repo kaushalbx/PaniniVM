@@ -571,21 +571,42 @@ class VyakaranamGrammarTest {
     fun `verifies 1 1 1 vrddhir adaic assigns vrddhi samjna to aa ai au`() {
         val context = dev.panini.vyakaranam.analysis.PhonologicalContext(targetPhoneme = "ऐ")
         val res = dev.panini.vyakaranam.analysis.SamjnaRuleEngine.resolvePhonological(context)
-        assertTrue(res is dev.panini.vyakaranam.analysis.SamjnaRuleResult.Assigned && res.samjna == "VRDDHI")
+        assertTrue(res is dev.panini.vyakaranam.analysis.SamjnaRuleResult.Assigned && res.samjna == dev.panini.shiksha.Samjna.VRDDHI)
     }
 
     @Test
     fun `verifies 1 1 2 adeng gunah assigns guna samjna to a e o`() {
         val context = dev.panini.vyakaranam.analysis.PhonologicalContext(targetPhoneme = "ए")
         val res = dev.panini.vyakaranam.analysis.SamjnaRuleEngine.resolvePhonological(context)
-        assertTrue(res is dev.panini.vyakaranam.analysis.SamjnaRuleResult.Assigned && res.samjna == "GUNA")
+        assertTrue(res is dev.panini.vyakaranam.analysis.SamjnaRuleResult.Assigned && res.samjna == dev.panini.shiksha.Samjna.GUNA)
     }
 
     @Test
     fun `verifies 1 4 14 suptingantam padam assigns pada samjna to word boundary`() {
         val context = dev.panini.vyakaranam.analysis.MorphologicalContext(surface = "रामः", hasSupPratyaya = true)
         val res = dev.panini.vyakaranam.analysis.SamjnaRuleEngine.resolveMorphological(context)
-        assertTrue(res is dev.panini.vyakaranam.analysis.SamjnaRuleResult.Assigned && res.samjna == "PADA")
+        assertTrue(res is dev.panini.vyakaranam.analysis.SamjnaRuleResult.Assigned && res.samjna == dev.panini.shiksha.Samjna.PADA)
+    }
+
+    @Test
+    fun `verifies 1 1 7 halo anantarah samyogah assigns samyoga samjna to conjunct consonants`() {
+        val context = dev.panini.vyakaranam.analysis.PhonologicalContext(targetPhoneme = "क्त्", isConjunctConsonants = true)
+        val res = dev.panini.vyakaranam.analysis.SamjnaRuleEngine.resolvePhonological(context)
+        assertTrue(res is dev.panini.vyakaranam.analysis.SamjnaRuleResult.Assigned && res.samjna == dev.panini.shiksha.Samjna.SAMYOGA)
+    }
+
+    @Test
+    fun `verifies 1 1 8 mukhanasikavacano anunasikah assigns anunasika samjna to nasal phoneme`() {
+        val context = dev.panini.vyakaranam.analysis.PhonologicalContext(targetPhoneme = "म्")
+        val res = dev.panini.vyakaranam.analysis.SamjnaRuleEngine.resolvePhonological(context)
+        assertTrue(res is dev.panini.vyakaranam.analysis.SamjnaRuleResult.Assigned && res.samjna == dev.panini.shiksha.Samjna.ANUNASIKA)
+    }
+
+    @Test
+    fun `verifies 1 2 45 arthavad adhatur apratyayah assigns pratipadika samjna to nominal stem`() {
+        val context = dev.panini.vyakaranam.analysis.MorphologicalContext(surface = "राम", isMeaningfulBase = true)
+        val res = dev.panini.vyakaranam.analysis.SamjnaRuleEngine.resolveMorphological(context)
+        assertTrue(res is dev.panini.vyakaranam.analysis.SamjnaRuleResult.Assigned && res.samjna == dev.panini.shiksha.Samjna.PRATIPADIKA)
     }
 
     private fun assertParsesUkti(source: String) {
