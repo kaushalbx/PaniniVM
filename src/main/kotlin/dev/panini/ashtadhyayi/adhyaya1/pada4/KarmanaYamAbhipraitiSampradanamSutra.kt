@@ -28,13 +28,14 @@ object KarmanaYamAbhipraitiSampradanamSutra : Sutra<KarakaRuleContext, KarakaRul
                     other.possibleVibhaktis.contains(Vibhakti.DVITIYA))
         }
         val normalized = context.dhatu.surface.trimEnd('्', 'ँ')
-        val isAngerVerbOrRuc = normalized.contains("क्रुध") || normalized.contains("द्रुह") ||
+        val isAngerVerbOrRucOrSprha = normalized.contains("क्रुध") || normalized.contains("द्रुह") ||
                                normalized == "ईर्ष्या" || normalized == "असूया" ||
                                normalized.startsWith("ईर्ष्य") || normalized.startsWith("असूय") ||
-                               normalized == "रुच" || normalized == "रोच" || normalized.startsWith("रोच")
+                               normalized == "रुच" || normalized == "रोच" || normalized.startsWith("रोच") ||
+                               normalized == "स्पृह" || normalized == "स्पृहय" || normalized.startsWith("स्पृह")
         val isRecipient = SemanticRelation.RECIPIENT in context.participant.semanticRelations
         val isCandidate = Karaka.SAMPRADANA in context.candidates
-        return !isAngerVerbOrRuc && isRecipient && isCandidate && (hasKarmanCoArgument || context.allParticipants.size <= 1)
+        return !isAngerVerbOrRucOrSprha && isRecipient && isCandidate && (hasKarmanCoArgument || context.allParticipants.size <= 1)
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(

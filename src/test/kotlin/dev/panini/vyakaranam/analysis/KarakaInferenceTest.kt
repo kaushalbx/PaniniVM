@@ -49,6 +49,44 @@ class KarakaInferenceTest {
     }
 
     @Test
+    fun `bhyam is resolved as apadana for paraji`() {
+        assertResolution("पराजि", Karaka.APADANA, Vibhakti.PANCHAMI, "1.4.26", "2.3.28")
+    }
+
+    @Test
+    fun `bhyam is resolved as apadana for adhi`() {
+        assertResolution("अधी", Karaka.APADANA, Vibhakti.PANCHAMI, "1.4.29", "2.3.28")
+    }
+
+    @Test
+    fun `bhyam is resolved as sampradana for sprha`() {
+        assertResolution("स्पृह", Karaka.SAMPRADANA, Vibhakti.CHATURTHI, "1.4.36", "2.3.13")
+    }
+
+    @Test
+    fun `location of prefixed vish is resolved as karman`() {
+        val dhatu = "अभिनिविश"
+        val profile = DhatuKarakaProfiles.forSurface(dhatu)
+        val possibleVibhaktis = setOf(Vibhakti.DVITIYA, Vibhakti.SAPTAMI)
+        val participant = ParticipantFacts(
+            id = "test_p",
+            expression = dev.panini.vyakaranam.ast.AvyayaPada("मार्गम्", "मार्गम्"),
+            possibleVibhaktis = possibleVibhaktis,
+            semanticRelations = profile?.relations.orEmpty(),
+        )
+        val resolution = KarakaRuleEngine.resolve(
+            KarakaRuleContext(
+                dhatu = DhatuIdentity(dhatu),
+                participant = participant,
+                allParticipants = listOf(participant),
+                prayoga = Prayoga.KARTARI,
+            ),
+        )
+        assertEquals(Karaka.KARMAN, resolution.resolved)
+        assertEquals(listOf("1.4.47", "2.3.2"), resolution.evidence.map { it.sutra })
+    }
+
+    @Test
     fun `bhyam is resolved as sampradana for anger target of krudh`() {
         assertResolution("क्रुध्", Karaka.SAMPRADANA, Vibhakti.CHATURTHI, "1.4.37", "2.3.13")
     }

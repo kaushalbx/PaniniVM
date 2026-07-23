@@ -8,6 +8,10 @@ import dev.panini.ashtadhyayi.adhyaya1.pada4.BhitharthanamBhayahetuhSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.RucyarthanamPriyamanahSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.KrudhaDruhorUpasrstayohKarmaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.UpanvadhyangvasahSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada4.ParajerasodhahSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada4.AkhyatopayogeSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada4.SprherIpsitahSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada4.AbhinivishasCaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.AdharoAdhikaranamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.DhruvamApayeApadanamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.KarakeSutra
@@ -77,15 +81,19 @@ object KarakaRuleEngine {
         KarakeSutra,
         DhruvamApayeApadanamSutra,
         BhitharthanamBhayahetuhSutra,
+        ParajerasodhahSutra,
+        AkhyatopayogeSutra,
         JanikartuhPrakrtihSutra,
         BhuvahPrabhavahSutra,
         KarmanaYamAbhipraitiSampradanamSutra,
         RucyarthanamPriyamanahSutra,
+        SprherIpsitahSutra,
         KrudhaDruhersyasuyarthanamYamPratiKopahSutra,
         KrudhaDruhorUpasrstayohKarmaSutra,
         SadhakatamamKaranamSutra,
         AdharoAdhikaranamSutra,
         AdhishingsthasamKarmaSutra,
+        AbhinivishasCaSutra,
         UpanvadhyangvasahSutra,
         KarturIpsitatamamKarmaSutra,
         SvatantrahKartaSutra,

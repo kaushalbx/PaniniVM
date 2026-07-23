@@ -22,12 +22,13 @@ object AdharoAdhikaranamSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
         val normalized = context.dhatu.surface.trimEnd('्', 'ँ')
-        val isAdhishiOrPrefixedVas = normalized == "अधिशी" || normalized == "अधिस्था" || normalized == "अधिआस्" ||
+        val isExcludedLocus = normalized == "अधिशी" || normalized == "अधिस्था" || normalized == "अधिआस्" ||
                         normalized == "अधिशे" || normalized == "अधितिष्ठ्" || normalized == "अध्यास्" ||
                         normalized.startsWith("अधिशे") || normalized.startsWith("अधितिष्ठ") || normalized.startsWith("अध्यास्") ||
                         normalized == "उपवस्" || normalized == "अनुवस्" || normalized == "अधिवस्" || normalized == "आवस्" ||
-                        normalized.startsWith("उपवस") || normalized.startsWith("अनुवस") || normalized.startsWith("अधिवस") || normalized.startsWith("आवस")
-        return !isAdhishiOrPrefixedVas && SemanticRelation.LOCATION in context.participant.semanticRelations && Karaka.ADHIKARANA in context.candidates
+                        normalized.startsWith("उपवस") || normalized.startsWith("अनुवस") || normalized.startsWith("अधिवस") || normalized.startsWith("आवस") ||
+                        normalized == "अभिनिविश" || normalized.startsWith("अभिनिविश")
+        return !isExcludedLocus && SemanticRelation.LOCATION in context.participant.semanticRelations && Karaka.ADHIKARANA in context.candidates
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(
