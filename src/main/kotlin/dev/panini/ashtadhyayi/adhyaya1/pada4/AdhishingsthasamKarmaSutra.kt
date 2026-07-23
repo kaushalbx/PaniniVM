@@ -21,10 +21,18 @@ object AdhishingsthasamKarmaSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     adhikara = setOf("1.4.23"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
-        val normalized = context.dhatu.surface.trimEnd('्', 'ँ')
-        val matchesDhatu = normalized == "अधिशी" || normalized == "अधिस्था" || normalized == "अधिआस्" ||
-                           normalized == "अधिशे" || normalized == "अधितिष्ठ्" || normalized == "अध्यास्" ||
-                           normalized.startsWith("अधिशे") || normalized.startsWith("अधितिष्ठ") || normalized.startsWith("अध्यास्")
+        val matchesDhatu = context.verbNode?.let { node ->
+            val tinganta = node as? dev.panini.vyakaranam.ast.TingantaPada
+            val hasPrefix = tinganta?.upasargas?.any { it == "अधि" } == true
+            val isSheeSthaAs = tinganta?.dhatu?.mulaDhatu == "शी" || tinganta?.dhatu?.mulaDhatu == "स्था" || tinganta?.dhatu?.mulaDhatu == "आस्" ||
+                               tinganta?.dhatu?.mulaDhatu == "शीङ्" || tinganta?.dhatu?.mulaDhatu == "आस"
+            hasPrefix && isSheeSthaAs
+        } ?: run {
+            val normalized = context.dhatu.surface.trimEnd('्', 'ँ')
+            normalized == "अधिशी" || normalized == "अधिस्था" || normalized == "अधिआस्" ||
+            normalized == "अधिशे" || normalized == "अधितिष्ठ्" || normalized == "अध्यास्" ||
+            normalized.startsWith("अधिशे") || normalized.startsWith("अधितिष्ठ") || normalized.startsWith("अध्यास्")
+        }
         return matchesDhatu && SemanticRelation.LOCATION in context.participant.semanticRelations && Karaka.KARMAN in context.candidates
     }
 

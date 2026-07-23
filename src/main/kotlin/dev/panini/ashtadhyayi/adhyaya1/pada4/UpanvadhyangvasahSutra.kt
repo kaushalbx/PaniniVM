@@ -21,9 +21,16 @@ object UpanvadhyangvasahSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     adhikara = setOf("1.4.23"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
-        val normalized = context.dhatu.surface.trimEnd('्', 'ँ')
-        val isPrefixedVas = normalized == "उपवस्" || normalized == "अनुवस्" || normalized == "अधिवस्" || normalized == "आवस्" ||
-                            normalized.startsWith("उपवस") || normalized.startsWith("अनुवस") || normalized.startsWith("अधिवस") || normalized.startsWith("आवस")
+        val isPrefixedVas = context.verbNode?.let { node ->
+            val tinganta = node as? dev.panini.vyakaranam.ast.TingantaPada
+            val hasPrefix = tinganta?.upasargas?.any { it == "उप" || it == "अनु" || it == "अधि" || it == "आ" } == true
+            val isVas = tinganta?.dhatu?.mulaDhatu == "वस" || tinganta?.dhatu?.mulaDhatu == "वस्"
+            hasPrefix && isVas
+        } ?: run {
+            val normalized = context.dhatu.surface.trimEnd('्', 'ँ')
+            normalized == "उपवस्" || normalized == "अनुवस्" || normalized == "अधिवस्" || normalized == "आवस्" ||
+            normalized.startsWith("उपवस") || normalized.startsWith("अनुवस") || normalized.startsWith("अधिवस") || normalized.startsWith("आवस")
+        }
         return isPrefixedVas && SemanticRelation.LOCATION in context.participant.semanticRelations && Karaka.KARMAN in context.candidates
     }
 

@@ -21,9 +21,16 @@ object AnupratigrnasCaSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     adhikara = setOf("1.4.23"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
-        val normalized = context.dhatu.surface.trimEnd('्', 'ँ')
-        val isAnupratigr = normalized == "अनुगृ" || normalized == "प्रतिगृ" ||
-                           normalized.startsWith("अनुगृ") || normalized.startsWith("प्रतिगृ")
+        val isAnupratigr = context.verbNode?.let { node ->
+            val tinganta = node as? dev.panini.vyakaranam.ast.TingantaPada
+            val hasPrefix = tinganta?.upasargas?.any { it == "अनु" || it == "प्रति" } == true
+            val isGri = tinganta?.dhatu?.mulaDhatu == "गृ"
+            hasPrefix && isGri
+        } ?: run {
+            val normalized = context.dhatu.surface.trimEnd('्', 'ँ')
+            normalized == "अनुगृ" || normalized == "प्रतिगृ" ||
+            normalized.startsWith("अनुगृ") || normalized.startsWith("प्रतिगृ")
+        }
         return isAnupratigr && SemanticRelation.RECIPIENT in context.participant.semanticRelations && Karaka.SAMPRADANA in context.candidates
     }
 

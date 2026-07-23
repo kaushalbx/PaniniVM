@@ -65,6 +65,7 @@ data class KarakaRuleContext(
     val allParticipants: List<ParticipantFacts>,
     val prayoga: Prayoga,
     val candidates: Set<Karaka> = emptySet(),
+    val verbNode: dev.panini.vyakaranam.ast.Pada? = null,
 )
 
 sealed interface KarakaRuleResult {
