@@ -7,10 +7,11 @@ The project tracks a target of 3,959 implemented sūtras.
 | Measure | Count |
 | --- | ---: |
 | Target sūtras | 3,959 |
-| Registered executable sūtras | 324 |
+| Registered implemented sūtras | 345 |
 | Derivation-state sūtras | 316 |
 | Sentence-level kāraka/vibhakti sūtras | 8 |
-| Remaining | 3,635 |
+| Other (Saṃjñā/Paribhāṣā/etc.) | 21 |
+| Remaining | 3,614 |
 
 The implemented subset supports end-to-end nominal and verbal derivations,
 but the count does not imply complete linguistic coverage of every rule
@@ -25,6 +26,25 @@ environment.
 5. Require supported form plans to name the sūtras needed for a complete
    derivation.
 6. Preserve the full rule trace so every surface can be audited.
+
+## Sūtra classification
+
+The Aṣṭādhyāyī contains several functional types of sūtras. A single sūtra can sometimes belong to more than one category, but the traditional classification is as follows:
+
+| Type | Sanskrit | Function |
+| :--- | :--- | :--- |
+| **Vidhi** | विधिसूत्र | Prescribes an operation or rule. This is the most common type. Example: add an affix, perform guṇa, substitute a sound. |
+| **Niyama** | नियमसूत्र | Restricts a general rule to a narrower situation. "Do this only here." |
+| **Parisaṅkhyā** | परिसंख्यासूत्र | Excludes all other possibilities, leaving only specified cases. |
+| **Atideśa** | अतिदेशसूत्र | Extends properties or behavior from one item to another ("treat X like Y"). |
+| **Adhikāra** | अधिकारसूत्र | Introduces a governing heading whose effect continues until another adhikāra replaces it. Like a scope or namespace. |
+| **Anuvṛtti** | अनुवृत्ति | Not a separate written sūtra but the carried-forward words from previous sūtras, avoiding repetition. Essential for interpretation. |
+| **Saṃjñā** | संज्ञासूत्र | Defines technical terms used elsewhere. Example: defining what constitutes a pratyāhāra, dhātu, etc. |
+| **Paribhāṣā** | परिभाषासूत्र | Meta-rules that determine how other rules interact, resolve conflicts, precedence, interpretation, and application order. |
+| **Apavāda** | अपवादसूत्र | Exception to a general rule (utsarga-apavāda principle). Overrides the general rule when applicable. |
+| **Vibhāṣā** | विभाषासूत्र | Makes an operation optional. |
+| **Pratiṣedha** | प्रतिषेधसूत्र | Explicitly prohibits or blocks an operation. |
+| **Nipātana** | निपातनसूत्र | Declares an irregular form directly, bypassing normal derivation. |
 
 ## Domain milestones
 
