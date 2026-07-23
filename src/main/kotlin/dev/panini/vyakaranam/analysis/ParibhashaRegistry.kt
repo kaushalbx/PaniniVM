@@ -1,8 +1,13 @@
 package dev.panini.vyakaranam.analysis
 
+import dev.panini.ashtadhyayi.adhyaya1.pada1.AdehParasyaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada1.AdyantauTakitauSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada1.AlAntyasyaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada1.IkoGunaVrddhiSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada1.MidacoAntyatParahSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada1.NgitScaSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada1.SasthiSthaneyogaSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada1.SthaneAntaratamahSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada1.TasmadItyUttarasyaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada1.TasminnitiNirdishtePurvasyaSutra
 import dev.panini.sutra.Sutra
@@ -12,6 +17,10 @@ enum class ParibhashaScope {
     AUGMENT_PLACEMENT,
     LOCATIVE_TRIGGER,
     ABLATIVE_TRIGGER,
+    GENITIVE_RELATION,
+    PHONETIC_SIMILARITY,
+    PHONEME_TARGET_LAST,
+    PHONEME_TARGET_FIRST,
     GENERAL,
 }
 
@@ -28,6 +37,11 @@ object ParibhashaRegistry {
         ParibhashaRule(sutra = IkoGunaVrddhiSutra, targetScope = ParibhashaScope.VOWEL_SUBSTITUTION),
         ParibhashaRule(sutra = AdyantauTakitauSutra, targetScope = ParibhashaScope.AUGMENT_PLACEMENT),
         ParibhashaRule(sutra = MidacoAntyatParahSutra, targetScope = ParibhashaScope.AUGMENT_PLACEMENT),
+        ParibhashaRule(sutra = SasthiSthaneyogaSutra, targetScope = ParibhashaScope.GENITIVE_RELATION),
+        ParibhashaRule(sutra = SthaneAntaratamahSutra, targetScope = ParibhashaScope.PHONETIC_SIMILARITY),
+        ParibhashaRule(sutra = AlAntyasyaSutra, targetScope = ParibhashaScope.PHONEME_TARGET_LAST),
+        ParibhashaRule(sutra = NgitScaSutra, targetScope = ParibhashaScope.PHONEME_TARGET_LAST),
+        ParibhashaRule(sutra = AdehParasyaSutra, targetScope = ParibhashaScope.PHONEME_TARGET_FIRST),
         ParibhashaRule(sutra = TasminnitiNirdishtePurvasyaSutra, targetScope = ParibhashaScope.LOCATIVE_TRIGGER),
         ParibhashaRule(sutra = TasmadItyUttarasyaSutra, targetScope = ParibhashaScope.ABLATIVE_TRIGGER),
     )

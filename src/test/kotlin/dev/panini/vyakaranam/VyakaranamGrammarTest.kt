@@ -793,6 +793,14 @@ class VyakaranamGrammarTest {
         assertEquals(dev.panini.ashtadhyayi.adhyaya1.pada1.TasminnitiNirdishtePurvasyaSutra, rule?.sutra)
         assertEquals("तस्मिन्निति निर्दिष्टे पूर्वस्य", rule?.sutraText)
         assertEquals(dev.panini.vyakaranam.analysis.ParibhashaScope.LOCATIVE_TRIGGER, rule?.targetScope)
+
+        val sasthi = dev.panini.vyakaranam.analysis.ParibhashaRegistry.findByNumber("1.1.49")
+        val sthane = dev.panini.vyakaranam.analysis.ParibhashaRegistry.findByNumber("1.1.50")
+        val alAntyasya = dev.panini.vyakaranam.analysis.ParibhashaRegistry.findByNumber("1.1.52")
+
+        assertEquals(dev.panini.ashtadhyayi.adhyaya1.pada1.SasthiSthaneyogaSutra, sasthi?.sutra)
+        assertEquals(dev.panini.ashtadhyayi.adhyaya1.pada1.SthaneAntaratamahSutra, sthane?.sutra)
+        assertEquals(dev.panini.ashtadhyayi.adhyaya1.pada1.AlAntyasyaSutra, alAntyasya?.sutra)
     }
 
     private fun assertParsesUkti(source: String) {
