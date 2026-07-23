@@ -435,6 +435,7 @@ class VyakaranamGrammarTest {
                 id = "p_gramaya",
                 expression = AvyayaPada("ग्रामाय", "ग्रामाय"),
                 possibleVibhaktis = setOf(Vibhakti.CHATURTHI),
+                semanticRelations = setOf(SemanticRelation.MOTION_GOAL),
             ),
             allParticipants = emptyList(),
             prayoga = Prayoga.KARTARI,
@@ -513,6 +514,57 @@ class VyakaranamGrammarTest {
         )
         val res = KarakaRuleEngine.resolve(context)
         assertTrue(res.evidence.any { it.sutra == "2.3.39" })
+    }
+
+    @Test
+    fun `verifies 2 3 16 namah svasti svaha assigns caturthi for salutation offering`() {
+        val context = KarakaRuleContext(
+            dhatu = DhatuIdentity("अस्ति"),
+            participant = ParticipantFacts(
+                id = "p_haraye",
+                expression = AvyayaPada("हरये", "हरये"),
+                possibleVibhaktis = setOf(Vibhakti.CHATURTHI),
+            ),
+            allParticipants = emptyList(),
+            prayoga = Prayoga.ANIRDHARITA,
+            candidates = setOf(Karaka.ANIRDHARITA),
+        )
+        val res = KarakaRuleEngine.resolve(context)
+        assertTrue(res.evidence.any { it.sutra == "2.3.16" })
+    }
+
+    @Test
+    fun `verifies 2 3 17 manya karmani anadare assigns caturthi or dvitiya to object of man`() {
+        val context = KarakaRuleContext(
+            dhatu = DhatuIdentity("मन्यते"),
+            participant = ParticipantFacts(
+                id = "p_trnaya",
+                expression = AvyayaPada("तृणाय", "तृणाय"),
+                possibleVibhaktis = setOf(Vibhakti.CHATURTHI),
+            ),
+            allParticipants = emptyList(),
+            prayoga = Prayoga.KARTARI,
+            candidates = setOf(Karaka.KARMAN),
+        )
+        val res = KarakaRuleEngine.resolve(context)
+        assertTrue(res.evidence.any { it.sutra == "2.3.17" })
+    }
+
+    @Test
+    fun `verifies 2 3 43 sadhu nipunabhyam assigns saptami in respect context`() {
+        val context = KarakaRuleContext(
+            dhatu = DhatuIdentity("अस्ति"),
+            participant = ParticipantFacts(
+                id = "p_matari",
+                expression = AvyayaPada("मातरि", "मातरि"),
+                possibleVibhaktis = setOf(Vibhakti.SAPTAMI),
+            ),
+            allParticipants = emptyList(),
+            prayoga = Prayoga.ANIRDHARITA,
+            candidates = setOf(Karaka.ANIRDHARITA),
+        )
+        val res = KarakaRuleEngine.resolve(context)
+        assertTrue(res.evidence.any { it.sutra == "2.3.43" })
     }
 
     private fun assertParsesUkti(source: String) {

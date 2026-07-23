@@ -11,14 +11,15 @@ import dev.panini.sutra.SutraType
 import dev.panini.vyakaranam.analysis.KarakaEvidence
 import dev.panini.vyakaranam.analysis.VibhaktiRuleContext
 import dev.panini.vyakaranam.analysis.VibhaktiRuleResult
+import dev.panini.vyakaranam.analysis.SemanticRelation
 
 /**
  * Sūtra 2.3.12 गत्यर्थकर्मणि द्वितीयाचतुर्थ्यौ चेष्टायामनध्वनि.
- * Assigns either Dvitīyā or Caturthī to the destination of verbs of motion (gatyartha).
+ * Assigns Dvitīyā or Caturthī to the destination of motion verbs.
  */
 object GatyarthaKarmaniDvitiyaCaturthyauSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     number = "2.3.12", text = "गत्यर्थकर्मणि द्वितीयाचतुर्थ्यौ चेष्टायामनध्वनि",
-    hindiExplanation = "चेष्टायुक्तध्वभिन्नगत्यर्थकर्मण्यनभिहिते द्वितीयाचतुर्थ्यौ स्तः।",
+    hindiExplanation = "अध्वभिन्नमार्गविषयकायां चेष्टायां गत्यर्थधातूनां कर्मणि द्वितीयाचतुर्थ्यौ स्तः।",
     type = SutraType.NITYA, chapter = 2, pada = 3, optional = true, kramaValue = 230012,
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE),
@@ -27,6 +28,7 @@ object GatyarthaKarmaniDvitiyaCaturthyauSutra : Sutra<VibhaktiRuleContext, Vibha
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
             context.karaka == Karaka.KARMAN &&
+            SemanticRelation.MOTION_GOAL in context.participant?.semanticRelations.orEmpty() &&
             (Vibhakti.DVITIYA in context.morphologicalCandidates || Vibhakti.CHATURTHI in context.morphologicalCandidates)
 
     override fun apply(context: VibhaktiRuleContext): VibhaktiRuleResult {

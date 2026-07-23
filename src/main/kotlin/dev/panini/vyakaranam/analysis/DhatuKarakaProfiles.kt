@@ -19,6 +19,7 @@ enum class SemanticRelation {
     DISREGARD_ANADARA,
     DIRECTIONAL_EXCLUSION,
     ACTION_MARKING,
+    MOTION_GOAL,
 }
 
 data class DhatuKarakaProfile(
