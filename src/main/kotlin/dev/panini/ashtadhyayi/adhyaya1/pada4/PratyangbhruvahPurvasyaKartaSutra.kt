@@ -21,17 +21,10 @@ object PratyangbhruvahPurvasyaKartaSutra : Sutra<KarakaRuleContext, KarakaRuleRe
     adhikara = setOf("1.4.23"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
-        val isPratyangbhru = context.verbNode?.let { node ->
-            val tinganta = node as? dev.panini.vyakaranam.ast.TingantaPada
-            val hasPrefix = tinganta?.upasargas?.any { it == "प्रति" || it == "आ" } == true
-            val isShru = tinganta?.dhatu?.mulaDhatu == "श्रु"
-            hasPrefix && isShru
-        } ?: run {
-            val normalized = context.dhatu.surface.trimEnd('्', 'ँ')
-            normalized == "प्रतिश्रु" || normalized == "आश्रु" ||
-            normalized.startsWith("प्रतिशृ") || normalized.startsWith("आशृ")
-        }
-        return isPratyangbhru && SemanticRelation.RECIPIENT in context.participant.semanticRelations && Karaka.SAMPRADANA in context.candidates
+        val tinganta = context.verbNode as? dev.panini.vyakaranam.ast.TingantaPada ?: return false
+        val hasPrefix = tinganta.upasargas.any { it == "प्रति" || it == "आ" }
+        val isShru = tinganta.dhatu.mulaDhatu == "श्रु"
+        return hasPrefix && isShru && SemanticRelation.RECIPIENT in context.participant.semanticRelations && Karaka.SAMPRADANA in context.candidates
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(

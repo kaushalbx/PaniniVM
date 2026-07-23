@@ -74,6 +74,7 @@ class KarakaInferenceTest {
                 participant = participant,
                 allParticipants = listOf(participant),
                 prayoga = Prayoga.KARTARI,
+                verbNode = buildMockVerbNode(dhatu),
             ),
         )
         assertEquals(Karaka.KARMAN, resolution.resolved)
@@ -102,6 +103,7 @@ class KarakaInferenceTest {
                 participant = participant,
                 allParticipants = listOf(participant),
                 prayoga = Prayoga.KARTARI,
+                verbNode = buildMockVerbNode(dhatu),
             ),
         )
         assertEquals(Karaka.KARMAN, resolution.resolved)
@@ -125,6 +127,7 @@ class KarakaInferenceTest {
                 participant = participant,
                 allParticipants = listOf(participant),
                 prayoga = Prayoga.KARTARI,
+                verbNode = buildMockVerbNode(dhatu),
             ),
         )
         assertEquals(Karaka.SAMPRADANA, resolution.resolved)
@@ -178,6 +181,7 @@ class KarakaInferenceTest {
                 participant = participant,
                 allParticipants = listOf(participant),
                 prayoga = Prayoga.KARTARI,
+                verbNode = buildMockVerbNode(dhatu),
             ),
         )
         assertEquals(Karaka.KARMAN, resolution.resolved)
@@ -216,6 +220,7 @@ class KarakaInferenceTest {
                 participant = participant,
                 allParticipants = listOf(participant),
                 prayoga = Prayoga.KARTARI,
+                verbNode = buildMockVerbNode(dhatu),
             ),
         )
         assertEquals(Karaka.KARMAN, resolution.resolved)
@@ -239,6 +244,7 @@ class KarakaInferenceTest {
                 participant = participant,
                 allParticipants = listOf(participant),
                 prayoga = Prayoga.KARTARI,
+                verbNode = buildMockVerbNode(dhatu),
             ),
         )
         assertEquals(Karaka.KARMAN, resolution.resolved)
@@ -262,6 +268,7 @@ class KarakaInferenceTest {
                 participant = participant,
                 allParticipants = listOf(participant),
                 prayoga = Prayoga.KARTARI,
+                verbNode = buildMockVerbNode(dhatu),
             ),
         )
         assertEquals(Karaka.KARMAN, resolution.resolved)
@@ -289,6 +296,7 @@ class KarakaInferenceTest {
                 participant = participant,
                 allParticipants = listOf(participant),
                 prayoga = Prayoga.KARTARI,
+                verbNode = buildMockVerbNode(dhatu),
             ),
         )
         assertEquals(karaka, resolution.resolved)
@@ -302,5 +310,33 @@ class KarakaInferenceTest {
                 else -> error("Unexpected test kāraka")
             }
         })
+    }
+
+    private fun buildMockVerbNode(dhatu: String): dev.panini.vyakaranam.ast.TingantaPada {
+        val prefixes = listOf("प्रति", "अनु", "अधि", "अभि", "उप", "आ", "अभि-नि", "अभिनि")
+        val matchedPrefix = prefixes.firstOrNull { dhatu.startsWith(it) }
+        val baseDhatu = if (matchedPrefix != null) dhatu.substring(matchedPrefix.length) else dhatu
+        val upasargas = if (matchedPrefix != null) {
+            if (matchedPrefix == "अभिनि" || matchedPrefix == "अभि-नि") listOf("अभि", "नि")
+            else listOf(matchedPrefix)
+        } else emptyList()
+        return dev.panini.vyakaranam.ast.TingantaPada(
+            sourceText = dhatu,
+            upasargas = upasargas,
+            dhatu = dev.panini.vyakaranam.ast.DhatuPrakriti(
+                sourceText = baseDhatu,
+                mulaDhatu = when (baseDhatu) {
+                    "वस", "वस्" -> "वस"
+                    "शृ", "श्रु" -> "श्रु"
+                    "गृ", "गृणाति" -> "गृ"
+                    "शी", "शीङ्" -> "शी"
+                    "स्था", "तिष्ठ" -> "स्था"
+                    "आस्", "आस" -> "आस्"
+                    else -> baseDhatu
+                }
+            ),
+            lakara = dev.panini.core.Lakara.LAT,
+            ting = dev.panini.vyakaranam.ast.TingPratyaya("", "")
+        )
     }
 }
