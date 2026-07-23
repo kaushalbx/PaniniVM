@@ -33,6 +33,7 @@ import dev.panini.ashtadhyayi.adhyaya1.pada4.SadhakatamamKaranamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.SvatantrahKartaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.TatPrayojakoHetusCaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.AnabhihiteSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada3.AnyaraditarartedikshabdaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.ApadanePancamiSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.ChaturthiSampradaneSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.HetauSutra
@@ -42,7 +43,9 @@ import dev.panini.ashtadhyayi.adhyaya2.pada3.KartrKarmanohKrtiSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.KartrkaranayostrtiyaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.SahaYukteApradhaneSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.SaptamyAdhikaraneCaSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada3.SasthiSeseSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.YasyaCaBhavenaBhavalaksanamSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada3.YatasCaNirdharanamSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.YenangavikarahSutra
 import dev.panini.core.Karaka
 import dev.panini.core.Prayoga
@@ -142,8 +145,11 @@ object KarakaRuleEngine {
         YenangavikarahSutra,
         HetauSutra,
         ApadanePancamiSutra,
+        AnyaraditarartedikshabdaSutra,
+        YatasCaNirdharanamSutra,
         YasyaCaBhavenaBhavalaksanamSutra,
         SaptamyAdhikaraneCaSutra,
+        SasthiSeseSutra,
         KartrKarmanohKrtiSutra,
     ).sortedBy { it.krama }
 

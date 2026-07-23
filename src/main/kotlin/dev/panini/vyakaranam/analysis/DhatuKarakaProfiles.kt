@@ -12,6 +12,7 @@ enum class SemanticRelation {
     ACCOMPANIMENT,
     BODY_DEFORMITY,
     CAUSE_HETU,
+    GROUP_SELECTION,
 }
 
 data class DhatuKarakaProfile(
