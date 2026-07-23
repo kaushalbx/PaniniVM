@@ -49,6 +49,57 @@ class KarakaInferenceTest {
     }
 
     @Test
+    fun `bhyam is resolved as sampradana for shlagh`() {
+        assertResolution("श्लाघ", Karaka.SAMPRADANA, Vibhakti.CHATURTHI, "1.4.34", "2.3.13")
+    }
+
+    @Test
+    fun `instrument of div is resolved optionally as karman`() {
+        val dhatu = "दिव"
+        val profile = DhatuKarakaProfiles.forSurface(dhatu)
+        val possibleVibhaktis = setOf(Vibhakti.DVITIYA)
+        val participant = ParticipantFacts(
+            id = "test_p",
+            expression = dev.panini.vyakaranam.ast.AvyayaPada("अक्षान्", "अक्षान्"),
+            possibleVibhaktis = possibleVibhaktis,
+            semanticRelations = profile?.relations.orEmpty(),
+        )
+        val resolution = KarakaRuleEngine.resolve(
+            KarakaRuleContext(
+                dhatu = DhatuIdentity(dhatu),
+                participant = participant,
+                allParticipants = listOf(participant),
+                prayoga = Prayoga.KARTARI,
+            ),
+        )
+        assertEquals(Karaka.KARMAN, resolution.resolved)
+        assertEquals(listOf("1.4.43", "2.3.2"), resolution.evidence.map { it.sutra })
+    }
+
+    @Test
+    fun `instrument of parikri is resolved optionally as sampradana`() {
+        val dhatu = "परिक्री"
+        val profile = DhatuKarakaProfiles.forSurface(dhatu)
+        val possibleVibhaktis = setOf(Vibhakti.CHATURTHI)
+        val participant = ParticipantFacts(
+            id = "test_p",
+            expression = dev.panini.vyakaranam.ast.AvyayaPada("शताय", "शताय"),
+            possibleVibhaktis = possibleVibhaktis,
+            semanticRelations = profile?.relations.orEmpty(),
+        )
+        val resolution = KarakaRuleEngine.resolve(
+            KarakaRuleContext(
+                dhatu = DhatuIdentity(dhatu),
+                participant = participant,
+                allParticipants = listOf(participant),
+                prayoga = Prayoga.KARTARI,
+            ),
+        )
+        assertEquals(Karaka.SAMPRADANA, resolution.resolved)
+        assertEquals(listOf("1.4.44", "2.3.13"), resolution.evidence.map { it.sutra })
+    }
+
+    @Test
     fun `bhyam is resolved as apadana for varay`() {
         assertResolution("वारय", Karaka.APADANA, Vibhakti.PANCHAMI, "1.4.27", "2.3.28")
     }
