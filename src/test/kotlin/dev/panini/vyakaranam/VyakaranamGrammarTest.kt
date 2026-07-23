@@ -407,6 +407,58 @@ class VyakaranamGrammarTest {
         assertTrue(res.evidence.any { it.sutra == "2.3.50" })
     }
 
+    @Test
+    fun `verifies 1 4 53 hr kror anyatarasyam optionally assigns karma to non-causative agent in causative`() {
+        val context = KarakaRuleContext(
+            dhatu = DhatuIdentity("हारयति"),
+            participant = ParticipantFacts(
+                id = "p_devadattam",
+                expression = AvyayaPada("देवदत्तम्", "देवदत्तम्"),
+                possibleVibhaktis = setOf(Vibhakti.DVITIYA),
+            ),
+            allParticipants = emptyList(),
+            prayoga = Prayoga.CAUSATIVE,
+            candidates = setOf(Karaka.KARMAN),
+        )
+        val res = KarakaRuleEngine.resolve(context)
+        assertEquals(Karaka.KARMAN, res.resolved)
+        assertTrue(res.evidence.any { it.sutra == "1.4.53" })
+    }
+
+    @Test
+    fun `verifies 2 3 12 gatyartha karmani assigns caturthi or dvitiya to motion goal`() {
+        val context = KarakaRuleContext(
+            dhatu = DhatuIdentity("गच्छति"),
+            participant = ParticipantFacts(
+                id = "p_gramaya",
+                expression = AvyayaPada("ग्रामाय", "ग्रामाय"),
+                possibleVibhaktis = setOf(Vibhakti.CHATURTHI),
+            ),
+            allParticipants = emptyList(),
+            prayoga = Prayoga.KARTARI,
+            candidates = setOf(Karaka.KARMAN),
+        )
+        val res = KarakaRuleEngine.resolve(context)
+        assertTrue(res.evidence.any { it.sutra == "2.3.12" })
+    }
+
+    @Test
+    fun `verifies 2 3 21 itthambhutalaksane assigns trtiya to characteristic emblem`() {
+        val context = KarakaRuleContext(
+            dhatu = DhatuIdentity("अस्ति"),
+            participant = ParticipantFacts(
+                id = "p_jatabhih",
+                expression = AvyayaPada("जटाभिः", "जटाभिः"),
+                possibleVibhaktis = setOf(Vibhakti.TRTIYA),
+            ),
+            allParticipants = emptyList(),
+            prayoga = Prayoga.KARTARI,
+            candidates = setOf(Karaka.ANIRDHARITA),
+        )
+        val res = KarakaRuleEngine.resolve(context)
+        assertTrue(res.evidence.any { it.sutra == "2.3.21" })
+    }
+
     private fun assertParsesUkti(source: String) {
         val errors = mutableListOf<String>()
         val listener = object : BaseErrorListener() {

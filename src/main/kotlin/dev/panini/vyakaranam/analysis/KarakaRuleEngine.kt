@@ -28,6 +28,7 @@ import dev.panini.ashtadhyayi.adhyaya1.pada4.KarmanaYamAbhipraitiSampradanamSutr
 import dev.panini.ashtadhyayi.adhyaya1.pada4.AkathitamCaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.JugupsaViramaPramadarthanamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.GatiBuddhiAniKartaSaNauSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada4.HrKrorAnyatarasyamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.KarturIpsitatamamKarmaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.SadhakatamamKaranamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.SvatantrahKartaSutra
@@ -36,7 +37,9 @@ import dev.panini.ashtadhyayi.adhyaya2.pada3.AnabhihiteSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.AnyaraditarartedikshabdaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.ApadanePancamiSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.ChaturthiSampradaneSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada3.GatyarthaKarmaniDvitiyaCaturthyauSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.HetauSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada3.ItthambhutalaksaneSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.KaladhvanorAtyantasamyogeSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.KarmaniDvitiyaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.KartrKarmanohKrtiSutra
@@ -130,6 +133,7 @@ object KarakaRuleEngine {
         KarturIpsitatamamKarmaSutra,
         AkathitamCaSutra,
         GatiBuddhiAniKartaSaNauSutra,
+        HrKrorAnyatarasyamSutra,
         TathayuktamCanipsitamSutra,
         SvatantrahKartaSutra,
         TatPrayojakoHetusCaSutra,
@@ -138,11 +142,13 @@ object KarakaRuleEngine {
     val vibhaktiRules: List<Sutra<VibhaktiRuleContext, VibhaktiRuleResult>> = listOf(
         AnabhihiteSutra,
         KarmaniDvitiyaSutra,
+        GatyarthaKarmaniDvitiyaCaturthyauSutra,
         KaladhvanorAtyantasamyogeSutra,
         ChaturthiSampradaneSutra,
         KartrkaranayostrtiyaSutra,
         SahaYukteApradhaneSutra,
         YenangavikarahSutra,
+        ItthambhutalaksaneSutra,
         HetauSutra,
         ApadanePancamiSutra,
         AnyaraditarartedikshabdaSutra,

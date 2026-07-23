@@ -1,6 +1,7 @@
 package dev.panini.ashtadhyayi.adhyaya1.pada4
 
 import dev.panini.core.Karaka
+import dev.panini.core.Prayoga
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraInput
@@ -32,7 +33,7 @@ object AkathitamCaSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     override fun matches(context: KarakaRuleContext): Boolean {
         val root = context.dhatu.surface.trimEnd('्', 'ँ')
         val matchesDhatu = dvikarmakaDhatus.any { d -> root.startsWith(d) || d.startsWith(root) }
-        return matchesDhatu && Karaka.KARMAN in context.candidates
+        return context.prayoga != Prayoga.CAUSATIVE && matchesDhatu && Karaka.KARMAN in context.candidates
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(
