@@ -651,6 +651,16 @@ class VyakaranamGrammarTest {
         assertTrue(res is dev.panini.vyakaranam.analysis.SamjnaRuleResult.Assigned && res.samjna == dev.panini.shiksha.Samjna.UPASARGA)
     }
 
+    @Test
+    fun `verifies 1 1 5 kngiti ca blocks guna and vrddhi for kit ngit affix`() {
+        val context = dev.panini.vyakaranam.analysis.ProhibitionContext(
+            targetSutraNumber = "1.1.2",
+            affixItMarkers = setOf('ङ'),
+        )
+        val res = dev.panini.vyakaranam.analysis.NishedhaRuleEngine.evaluateProhibition(context)
+        assertTrue(res is dev.panini.vyakaranam.analysis.NishedhaRuleResult.Blocked && res.blockerSutraNumber == "1.1.5")
+    }
+
     private fun assertParsesUkti(source: String) {
         val errors = mutableListOf<String>()
         val listener = object : BaseErrorListener() {
