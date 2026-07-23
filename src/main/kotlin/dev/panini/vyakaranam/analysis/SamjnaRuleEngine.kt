@@ -43,12 +43,28 @@ object SamjnaRuleEngine {
         "वि", "आङ्", "नि", "अधि", "अपि", "अति", "सु", "उद्", "अभि", "प्रति", "परि", "उप"
     )
 
+    private val consonants = setOf("क", "ख", "ग", "घ", "ङ", "च", "छ", "ज", "झ", "ञ", "ट", "ठ", "ड", "ढ", "ण", "त", "थ", "द", "ध", "न", "प", "फ", "ब", "भ", "म", "य", "र", "ल", "व", "श", "ष", "स", "ह")
+
     fun resolvePhonological(context: PhonologicalContext): SamjnaRuleResult {
         return when {
-            context.samePlaceAndEffort -> SamjnaRuleResult.Assigned(
-                Samjna.SAVARNA,
-                KarakaEvidence("1.1.9", "तुल्यास्यप्रयत्नं सवर्णम्", "Assigns Savarṇa-saṃjñā to homogeneous sound pair ${context.targetPhoneme} and ${context.secondPhoneme}."),
-            )
+            context.samePlaceAndEffort -> {
+                val isSecondConsonant = consonants.any { c -> context.secondPhoneme.contains(c) }
+                val prohibition = NishedhaRuleEngine.evaluateProhibition(
+                    ProhibitionContext(
+                        targetSutraNumber = "1.1.9",
+                        targetPhonemeIsVowel = true,
+                        secondPhonemeIsConsonant = isSecondConsonant,
+                    )
+                )
+                if (prohibition is NishedhaRuleResult.Blocked) {
+                    SamjnaRuleResult.Unmatched
+                } else {
+                    SamjnaRuleResult.Assigned(
+                        Samjna.SAVARNA,
+                        KarakaEvidence("1.1.9", "तुल्यास्यप्रयत्नं सवर्णम्", "Assigns Savarṇa-saṃjñā to homogeneous sound pair ${context.targetPhoneme} and ${context.secondPhoneme}."),
+                    )
+                }
+            }
             context.targetPhoneme in vrddhiVowels -> SamjnaRuleResult.Assigned(
                 Samjna.VRDDHI,
                 KarakaEvidence("1.1.1", "वृद्धिरादैच्", "Assigns Vṛddhi-saṃjñā to ${context.targetPhoneme}."),

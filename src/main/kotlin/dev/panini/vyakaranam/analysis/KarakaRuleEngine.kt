@@ -44,6 +44,9 @@ import dev.panini.ashtadhyayi.adhyaya2.pada3.KaladhvanorAtyantasamyogeSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.KarmaniDvitiyaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.KartrKarmanohKrtiSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.KartrkaranayostrtiyaSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada3.KasyaCaVartamaneSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada3.PrasitotsukabhyamTrtiyaCaSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada3.AdhigarthaDayesamKarmaniSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.ManyaKarmaniAnadareSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.NamahSvastiSvahaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.PrthagVinaNanabhihSutra
@@ -166,6 +169,9 @@ object KarakaRuleEngine {
         SasthiCanadareSutra,
         SwamyIsvaraAdhipatiSutra,
         SadhuNipunabhyamSutra,
+        KasyaCaVartamaneSutra,
+        PrasitotsukabhyamTrtiyaCaSutra,
+        AdhigarthaDayesamKarmaniSutra,
         SaptamyAdhikaraneCaSutra,
         SasthiSeseSutra,
         KartrKarmanohKrtiSutra,
@@ -179,8 +185,10 @@ object KarakaRuleEngine {
             }.toSet()
         }
         val semanticContext = context.copy(candidates = candidates)
-        val semantic = karakaRules.firstOrNull { it.matches(semanticContext) }?.apply(semanticContext)
-            as? KarakaRuleResult.Assigned
+        val semantic = karakaRules.firstOrNull { rule ->
+            val prohibition = NishedhaRuleEngine.evaluateProhibition(ProhibitionContext(targetSutraNumber = rule.number))
+            prohibition !is NishedhaRuleResult.Blocked && rule.matches(semanticContext)
+        }?.apply(semanticContext) as? KarakaRuleResult.Assigned
         val resolved = semantic?.karaka ?: candidates.singleOrNull()
         val evidence = buildList {
             semantic?.let { add(it.evidence) }
@@ -193,8 +201,10 @@ object KarakaRuleEngine {
                     Prayoga.ANIRDHARITA -> false
                 }
                 val vibhaktiContext = VibhaktiRuleContext(karaka, possibleVibhaktis, abhihita = isAbhihita, participant = context.participant)
-                val assignment = vibhaktiRules.firstOrNull { it.matches(vibhaktiContext) }
-                    ?.apply(vibhaktiContext) as? VibhaktiRuleResult.Assigned
+                val assignment = vibhaktiRules.firstOrNull { rule ->
+                    val prohibition = NishedhaRuleEngine.evaluateProhibition(ProhibitionContext(targetSutraNumber = rule.number))
+                    prohibition !is NishedhaRuleResult.Blocked && rule.matches(vibhaktiContext)
+                }?.apply(vibhaktiContext) as? VibhaktiRuleResult.Assigned
                 assignment?.let { add(it.evidence) }
             }
         }

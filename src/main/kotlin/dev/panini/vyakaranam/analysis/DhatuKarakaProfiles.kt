@@ -20,6 +20,9 @@ enum class SemanticRelation {
     DIRECTIONAL_EXCLUSION,
     ACTION_MARKING,
     MOTION_GOAL,
+    PRESENT_PARTICIPLE_AGENT,
+    ENGROSSED_ATTACHMENT,
+    MEMORY_OR_RULING_OBJECT,
 }
 
 data class DhatuKarakaProfile(

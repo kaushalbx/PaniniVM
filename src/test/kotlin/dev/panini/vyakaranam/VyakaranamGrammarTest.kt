@@ -568,6 +568,60 @@ class VyakaranamGrammarTest {
     }
 
     @Test
+    fun `verifies 2 3 26 ktasya ca vartamane assigns sasthi for present kta agent`() {
+        val context = KarakaRuleContext(
+            dhatu = DhatuIdentity("पूजि"),
+            participant = ParticipantFacts(
+                id = "p_rajnah",
+                expression = AvyayaPada("राज्ञः", "राज्ञः"),
+                semanticRelations = setOf(SemanticRelation.PRESENT_PARTICIPLE_AGENT),
+                possibleVibhaktis = setOf(Vibhakti.SASTHI),
+            ),
+            allParticipants = emptyList(),
+            prayoga = Prayoga.ANIRDHARITA,
+            candidates = setOf(Karaka.KARTR),
+        )
+        val res = KarakaRuleEngine.resolve(context)
+        assertTrue(res.evidence.any { it.sutra == "2.3.26" })
+    }
+
+    @Test
+    fun `verifies 2 3 44 prasitotsukabhyam trtiya ca assigns trtiya or saptami`() {
+        val context = KarakaRuleContext(
+            dhatu = DhatuIdentity("प्रसित"),
+            participant = ParticipantFacts(
+                id = "p_harina",
+                expression = AvyayaPada("हरिणा", "हरिणा"),
+                semanticRelations = setOf(SemanticRelation.ENGROSSED_ATTACHMENT),
+                possibleVibhaktis = setOf(Vibhakti.TRTIYA),
+            ),
+            allParticipants = emptyList(),
+            prayoga = Prayoga.ANIRDHARITA,
+            candidates = setOf(Karaka.ANIRDHARITA),
+        )
+        val res = KarakaRuleEngine.resolve(context)
+        assertTrue(res.evidence.any { it.sutra == "2.3.44" })
+    }
+
+    @Test
+    fun `verifies 2 3 52 adhigarthadayesam karmani assigns sasthi for memory object`() {
+        val context = KarakaRuleContext(
+            dhatu = DhatuIdentity("स्मृ"),
+            participant = ParticipantFacts(
+                id = "p_matuh",
+                expression = AvyayaPada("मातुः", "मातुः"),
+                semanticRelations = setOf(SemanticRelation.MEMORY_OR_RULING_OBJECT),
+                possibleVibhaktis = setOf(Vibhakti.SASTHI),
+            ),
+            allParticipants = emptyList(),
+            prayoga = Prayoga.ANIRDHARITA,
+            candidates = setOf(Karaka.KARMAN),
+        )
+        val res = KarakaRuleEngine.resolve(context)
+        assertTrue(res.evidence.any { it.sutra == "2.3.52" })
+    }
+
+    @Test
     fun `verifies 1 1 1 vrddhir adaic assigns vrddhi samjna to aa ai au`() {
         val context = dev.panini.vyakaranam.analysis.PhonologicalContext(targetPhoneme = "ऐ")
         val res = dev.panini.vyakaranam.analysis.SamjnaRuleEngine.resolvePhonological(context)
@@ -659,6 +713,48 @@ class VyakaranamGrammarTest {
         )
         val res = dev.panini.vyakaranam.analysis.NishedhaRuleEngine.evaluateProhibition(context)
         assertTrue(res is dev.panini.vyakaranam.analysis.NishedhaRuleResult.Blocked && res.blockerSutraNumber == "1.1.5")
+    }
+
+    @Test
+    fun `verifies 1 1 6 didhivevitam blocks guna and vrddhi for it augment`() {
+        val context = dev.panini.vyakaranam.analysis.ProhibitionContext(
+            targetSutraNumber = "1.1.2",
+            isDidhiVeviOrItAugment = true,
+        )
+        val res = dev.panini.vyakaranam.analysis.NishedhaRuleEngine.evaluateProhibition(context)
+        assertTrue(res is dev.panini.vyakaranam.analysis.NishedhaRuleResult.Blocked && res.blockerSutraNumber == "1.1.6")
+    }
+
+    @Test
+    fun `verifies 1 1 10 najjhalau blocks savarna samjna between vowel and consonant`() {
+        val context = dev.panini.vyakaranam.analysis.ProhibitionContext(
+            targetSutraNumber = "1.1.9",
+            targetPhonemeIsVowel = true,
+            secondPhonemeIsConsonant = true,
+        )
+        val res = dev.panini.vyakaranam.analysis.NishedhaRuleEngine.evaluateProhibition(context)
+        assertTrue(res is dev.panini.vyakaranam.analysis.NishedhaRuleResult.Blocked && res.blockerSutraNumber == "1.1.10")
+    }
+
+    @Test
+    fun `verifies 1 2 4 na ktva set blocks kit status for set ktva affix`() {
+        val context = dev.panini.vyakaranam.analysis.ProhibitionContext(
+            targetSutraNumber = "KIT_STATUS",
+            isSetKtvaAffix = true,
+        )
+        val res = dev.panini.vyakaranam.analysis.NishedhaRuleEngine.evaluateProhibition(context)
+        assertTrue(res is dev.panini.vyakaranam.analysis.NishedhaRuleResult.Blocked && res.blockerSutraNumber == "1.2.4")
+    }
+
+    @Test
+    fun `verifies samjna engine integrates nishedha prohibition and blocks savarna for vowel consonant pair`() {
+        val context = dev.panini.vyakaranam.analysis.PhonologicalContext(
+            targetPhoneme = "इ",
+            secondPhoneme = "क",
+            samePlaceAndEffort = true,
+        )
+        val res = dev.panini.vyakaranam.analysis.SamjnaRuleEngine.resolvePhonological(context)
+        assertTrue(res is dev.panini.vyakaranam.analysis.SamjnaRuleResult.Unmatched)
     }
 
     private fun assertParsesUkti(source: String) {

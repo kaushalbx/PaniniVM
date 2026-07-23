@@ -9,6 +9,7 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.vyakaranam.analysis.KarakaEvidence
+import dev.panini.vyakaranam.analysis.SemanticRelation
 import dev.panini.vyakaranam.analysis.VibhaktiRuleContext
 import dev.panini.vyakaranam.analysis.VibhaktiRuleResult
 
@@ -27,7 +28,8 @@ object SadhuNipunabhyamSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
             (context.karaka == Karaka.ADHIKARANA || context.karaka == Karaka.ANIRDHARITA) &&
-            Vibhakti.SAPTAMI in context.morphologicalCandidates
+            Vibhakti.SAPTAMI in context.morphologicalCandidates &&
+            (context.participant?.semanticRelations.orEmpty().isEmpty() || SemanticRelation.ACTION_MARKING in context.participant?.semanticRelations.orEmpty())
 
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(
         Vibhakti.SAPTAMI,

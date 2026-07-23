@@ -28,6 +28,8 @@ object ItthambhutalaksaneSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
             SemanticRelation.BODY_DEFORMITY !in context.participant?.semanticRelations.orEmpty() &&
             SemanticRelation.ACCOMPANIMENT !in context.participant?.semanticRelations.orEmpty() &&
             SemanticRelation.CAUSE_HETU !in context.participant?.semanticRelations.orEmpty() &&
+            SemanticRelation.ENGROSSED_ATTACHMENT !in context.participant?.semanticRelations.orEmpty() &&
+            SemanticRelation.EXCLUSION_VINA !in context.participant?.semanticRelations.orEmpty() &&
             (context.karaka == Karaka.KARANA || context.karaka == Karaka.ANIRDHARITA)
 
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(
