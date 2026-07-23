@@ -20,8 +20,13 @@ object AdharoAdhikaranamSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     inputs = setOf(SutraInput.DHATU, SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA_CANDIDATE),
     adhikara = setOf("1.4.23"),
 ) {
-    override fun matches(context: KarakaRuleContext): Boolean =
-        SemanticRelation.LOCATION in context.participant.semanticRelations && Karaka.ADHIKARANA in context.candidates
+    override fun matches(context: KarakaRuleContext): Boolean {
+        val normalized = context.dhatu.surface.trimEnd('्', 'ँ')
+        val isAdhishi = normalized == "अधिशी" || normalized == "अधिस्था" || normalized == "अधिआस्" ||
+                        normalized == "अधिशे" || normalized == "अधितिष्ठ्" || normalized == "अध्यास्" ||
+                        normalized.startsWith("अधिशे") || normalized.startsWith("अधितिष्ठ") || normalized.startsWith("अध्यास्")
+        return !isAdhishi && SemanticRelation.LOCATION in context.participant.semanticRelations && Karaka.ADHIKARANA in context.candidates
+    }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(
         Karaka.ADHIKARANA,

@@ -1,5 +1,7 @@
 package dev.panini.vyakaranam.analysis
 
+import dev.panini.ashtadhyayi.adhyaya1.pada4.BhuvahPrabhavahSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada4.AdhishingsthasamKarmaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.AdharoAdhikaranamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.DhruvamApayeApadanamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.KarakeSutra
@@ -68,9 +70,11 @@ object KarakaRuleEngine {
     val karakaRules: List<Sutra<KarakaRuleContext, KarakaRuleResult>> = listOf(
         KarakeSutra,
         DhruvamApayeApadanamSutra,
+        BhuvahPrabhavahSutra,
         KarmanaYamAbhipraitiSampradanamSutra,
         SadhakatamamKaranamSutra,
         AdharoAdhikaranamSutra,
+        AdhishingsthasamKarmaSutra,
         KarturIpsitatamamKarmaSutra,
         SvatantrahKartaSutra,
         TatPrayojakoHetusCaSutra,

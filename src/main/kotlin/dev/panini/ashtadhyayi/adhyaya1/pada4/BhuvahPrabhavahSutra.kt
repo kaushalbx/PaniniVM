@@ -12,10 +12,10 @@ import dev.panini.vyakaranam.analysis.KarakaRuleContext
 import dev.panini.vyakaranam.analysis.KarakaRuleResult
 import dev.panini.vyakaranam.analysis.SemanticRelation
 
-object DhruvamApayeApadanamSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
-    number = "1.4.24", text = "ध्रुवमपायेऽपादानम्",
-    hindiExplanation = "अपाय में स्थिर अवधिभूत कारक की अपादानसंज्ञा होती है।",
-    type = SutraType.SAMJNA, chapter = 1, pada = 4, optional = false, kramaValue = 140024,
+object BhuvahPrabhavahSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
+    number = "1.4.31", text = "भुवः प्रभवः",
+    hindiExplanation = "भू धातु के कर्त्ता का जो उत्पत्तिस्थान है, उसकी अपादानसंज्ञा होती है।",
+    type = SutraType.SAMJNA, chapter = 1, pada = 4, optional = false, kramaValue = 140031,
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.DHATU, SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA_CANDIDATE),
     adhikara = setOf("1.4.23"),
@@ -24,7 +24,7 @@ object DhruvamApayeApadanamSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
         val normalized = context.dhatu.surface.trimEnd('्', 'ँ')
         val isBhu = normalized == "भू" || normalized == "भव्" || normalized == "प्रभू" || normalized == "प्रभव्" ||
                     normalized.startsWith("भव") || normalized.startsWith("प्रभव")
-        return !isBhu && SemanticRelation.SOURCE in context.participant.semanticRelations && Karaka.APADANA in context.candidates
+        return isBhu && SemanticRelation.SOURCE in context.participant.semanticRelations && Karaka.APADANA in context.candidates
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(
@@ -32,7 +32,7 @@ object DhruvamApayeApadanamSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
         KarakaEvidence(
             number,
             text,
-            "The participant is the fixed point from which separation occurs."
+            "The participant is the origin/place of first appearance of a generator agent."
         ),
     )
 }

@@ -38,6 +38,34 @@ class KarakaInferenceTest {
         assertResolution("पलाय्", Karaka.APADANA, Vibhakti.PANCHAMI, "1.4.24", "2.3.28")
     }
 
+    @Test
+    fun `bhyam is resolved as apadana for origin of bhu`() {
+        assertResolution("प्रभू", Karaka.APADANA, Vibhakti.PANCHAMI, "1.4.31", "2.3.28")
+    }
+
+    @Test
+    fun `location of adhishi is resolved as karman`() {
+        val dhatu = "अधिशी"
+        val profile = DhatuKarakaProfiles.forSurface(dhatu)
+        val possibleVibhaktis = setOf(Vibhakti.DVITIYA, Vibhakti.SAPTAMI)
+        val participant = ParticipantFacts(
+            id = "test_p",
+            expression = dev.panini.vyakaranam.ast.AvyayaPada("वैकुण्ठम्", "वैकुण्ठम्"),
+            possibleVibhaktis = possibleVibhaktis,
+            semanticRelations = profile?.relations.orEmpty(),
+        )
+        val resolution = KarakaRuleEngine.resolve(
+            KarakaRuleContext(
+                dhatu = DhatuIdentity(dhatu),
+                participant = participant,
+                allParticipants = listOf(participant),
+                prayoga = Prayoga.KARTARI,
+            ),
+        )
+        assertEquals(Karaka.KARMAN, resolution.resolved)
+        assertEquals(listOf("1.4.46", "2.3.2"), resolution.evidence.map { it.sutra })
+    }
+
     private fun assertResolution(
         dhatu: String,
         karaka: Karaka,
