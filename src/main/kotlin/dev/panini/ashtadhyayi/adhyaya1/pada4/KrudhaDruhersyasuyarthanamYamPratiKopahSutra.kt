@@ -1,7 +1,6 @@
 package dev.panini.ashtadhyayi.adhyaya1.pada4
 
 import dev.panini.core.Karaka
-import dev.panini.core.Vibhakti
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraInput
@@ -13,30 +12,27 @@ import dev.panini.vyakaranam.analysis.KarakaRuleContext
 import dev.panini.vyakaranam.analysis.KarakaRuleResult
 import dev.panini.vyakaranam.analysis.SemanticRelation
 
-object KarmanaYamAbhipraitiSampradanamSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
-    number = "1.4.32", text = "कर्मणा यमभिप्रैति स सम्प्रदानम्",
-    hindiExplanation = "कर्म के द्वारा जिसे अभिप्रेत किया जाता है उसकी सम्प्रदानसंज्ञा होती है।",
-    type = SutraType.SAMJNA, chapter = 1, pada = 4, optional = false, kramaValue = 140032,
+object KrudhaDruhersyasuyarthanamYamPratiKopahSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
+    number = "1.4.37", text = "क्रुधद्रुहेर्ष्यासूयार्थानां यं प्रति कोपः",
+    hindiExplanation = "क्रुध्, द्रुह्, ईर्ष्या, असूया धातुओं के योग में जिसके प्रति कोप किया जाए, उसकी सम्प्रदानसंज्ञा होती है।",
+    type = SutraType.SAMJNA, chapter = 1, pada = 4, optional = false, kramaValue = 140037,
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.DHATU, SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA_CANDIDATE),
     adhikara = setOf("1.4.23"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
-        val hasKarmanCoArgument = context.allParticipants.any { other ->
-            other.id != context.participant.id &&
-                (SemanticRelation.DESIRED_OBJECT in other.semanticRelations ||
-                    other.possibleVibhaktis.contains(Vibhakti.DVITIYA))
-        }
         val normalized = context.dhatu.surface.trimEnd('्', 'ँ')
         val isAngerVerb = normalized == "क्रुध्" || normalized == "द्रुह्" || normalized == "ईर्ष्या" || normalized == "असूया" ||
                            normalized.startsWith("क्रुध") || normalized.startsWith("द्रुह") || normalized.startsWith("ईर्ष्य") || normalized.startsWith("असूय")
-        val isRecipient = SemanticRelation.RECIPIENT in context.participant.semanticRelations
-        val isCandidate = Karaka.SAMPRADANA in context.candidates
-        return !isAngerVerb && isRecipient && isCandidate && (hasKarmanCoArgument || context.allParticipants.size <= 1)
+        return isAngerVerb && SemanticRelation.RECIPIENT in context.participant.semanticRelations && Karaka.SAMPRADANA in context.candidates
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(
         Karaka.SAMPRADANA,
-        KarakaEvidence(number, text, "The participant is the intended recipient of the object (कर्मणा यम् अभिप्रैति)."),
+        KarakaEvidence(
+            number,
+            text,
+            "The participant is the recipient of anger, malice, jealousy or detraction."
+        ),
     )
 }

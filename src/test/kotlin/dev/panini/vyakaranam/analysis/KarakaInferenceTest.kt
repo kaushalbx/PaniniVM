@@ -44,6 +44,16 @@ class KarakaInferenceTest {
     }
 
     @Test
+    fun `bhyam is resolved as apadana for birth source of jan`() {
+        assertResolution("जन्", Karaka.APADANA, Vibhakti.PANCHAMI, "1.4.30", "2.3.28")
+    }
+
+    @Test
+    fun `bhyam is resolved as sampradana for anger target of krudh`() {
+        assertResolution("क्रुध्", Karaka.SAMPRADANA, Vibhakti.CHATURTHI, "1.4.37", "2.3.13")
+    }
+
+    @Test
     fun `location of adhishi is resolved as karman`() {
         val dhatu = "अधिशी"
         val profile = DhatuKarakaProfiles.forSurface(dhatu)

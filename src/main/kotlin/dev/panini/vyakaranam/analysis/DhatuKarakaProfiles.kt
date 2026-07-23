@@ -23,6 +23,8 @@ object DhatuKarakaProfiles {
         DhatuKarakaProfile(setOf("पलाय"), setOf(SemanticRelation.SOURCE)),
         DhatuKarakaProfile(setOf("भू", "प्रभू"), setOf(SemanticRelation.SOURCE)),
         DhatuKarakaProfile(setOf("शी", "स्था", "आस्", "अधिशी", "अधिस्था", "अध्यास्"), setOf(SemanticRelation.LOCATION)),
+        DhatuKarakaProfile(setOf("जन", "जाय"), setOf(SemanticRelation.SOURCE)),
+        DhatuKarakaProfile(setOf("क्रुध", "द्रुह", "ईर्ष्या", "असूया"), setOf(SemanticRelation.RECIPIENT)),
     )
 
     fun forSurface(surface: String): DhatuKarakaProfile? {
