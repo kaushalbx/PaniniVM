@@ -796,11 +796,17 @@ class VyakaranamGrammarTest {
 
         val sasthi = dev.panini.vyakaranam.analysis.ParibhashaRegistry.findByNumber("1.1.49")
         val sthane = dev.panini.vyakaranam.analysis.ParibhashaRegistry.findByNumber("1.1.50")
+        val uran = dev.panini.vyakaranam.analysis.ParibhashaRegistry.findByNumber("1.1.51")
         val alAntyasya = dev.panini.vyakaranam.analysis.ParibhashaRegistry.findByNumber("1.1.52")
+        val anekal = dev.panini.vyakaranam.analysis.ParibhashaRegistry.findByNumber("1.1.55")
+        val sthanivat = dev.panini.vyakaranam.analysis.ParibhashaRegistry.findByNumber("1.1.56")
 
         assertEquals(dev.panini.ashtadhyayi.adhyaya1.pada1.SasthiSthaneyogaSutra, sasthi?.sutra)
         assertEquals(dev.panini.ashtadhyayi.adhyaya1.pada1.SthaneAntaratamahSutra, sthane?.sutra)
+        assertEquals(dev.panini.ashtadhyayi.adhyaya1.pada1.UranRaparahSutra, uran?.sutra)
         assertEquals(dev.panini.ashtadhyayi.adhyaya1.pada1.AlAntyasyaSutra, alAntyasya?.sutra)
+        assertEquals(dev.panini.ashtadhyayi.adhyaya1.pada1.AnekalSitSarvasyaSutra, anekal?.sutra)
+        assertEquals(dev.panini.ashtadhyayi.adhyaya1.pada1.SthanivadAdesoAnalvidhauSutra, sthanivat?.sutra)
     }
 
     private fun assertParsesUkti(source: String) {
