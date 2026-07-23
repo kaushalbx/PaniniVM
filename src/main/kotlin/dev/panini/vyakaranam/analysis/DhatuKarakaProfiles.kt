@@ -8,6 +8,7 @@ enum class SemanticRelation {
     DESIRED_OBJECT,
     INDEPENDENT_AGENT,
     PROMPTER_CAUSE,
+    INDIFFERENT_OBJECT,
 }
 
 data class DhatuKarakaProfile(
@@ -38,6 +39,8 @@ object DhatuKarakaProfiles {
         DhatuKarakaProfile(setOf("श्लाघ", "ह्नु", "शप"), setOf(SemanticRelation.RECIPIENT)),
         DhatuKarakaProfile(setOf("दिव", "दीव्"), setOf(SemanticRelation.INSTRUMENT)),
         DhatuKarakaProfile(setOf("परिक्री", "क्री"), setOf(SemanticRelation.INSTRUMENT)),
+        DhatuKarakaProfile(setOf("प्रतिश्रु", "आश्रु"), setOf(SemanticRelation.RECIPIENT)),
+        DhatuKarakaProfile(setOf("अनुगृ", "प्रतिगृ"), setOf(SemanticRelation.RECIPIENT)),
     )
 
     fun forSurface(surface: String): DhatuKarakaProfile? {

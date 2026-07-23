@@ -18,6 +18,9 @@ import dev.panini.ashtadhyayi.adhyaya1.pada4.DharerUttamarnahSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.ShlaghahnusthashapamJnyipsyamanahSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.DivahKarmaCaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.ParikrayaneSampradanamAnyatarasyamSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada4.PratyangbhruvahPurvasyaKartaSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada4.AnupratigrnasCaSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada4.TathayuktamCanipsitamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.AdharoAdhikaranamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.DhruvamApayeApadanamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.KarakeSutra
@@ -99,6 +102,8 @@ object KarakaRuleEngine {
         DharerUttamarnahSutra,
         SprherIpsitahSutra,
         KrudhaDruhersyasuyarthanamYamPratiKopahSutra,
+        PratyangbhruvahPurvasyaKartaSutra,
+        AnupratigrnasCaSutra,
         KrudhaDruhorUpasrstayohKarmaSutra,
         SadhakatamamKaranamSutra,
         DivahKarmaCaSutra,
@@ -108,6 +113,7 @@ object KarakaRuleEngine {
         AbhinivishasCaSutra,
         UpanvadhyangvasahSutra,
         KarturIpsitatamamKarmaSutra,
+        TathayuktamCanipsitamSutra,
         SvatantrahKartaSutra,
         TatPrayojakoHetusCaSutra,
     ).sortedBy { it.krama }

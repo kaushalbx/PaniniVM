@@ -49,6 +49,38 @@ class KarakaInferenceTest {
     }
 
     @Test
+    fun `bhyam is resolved as sampradana for pratishru`() {
+        assertResolution("प्रतिश्रु", Karaka.SAMPRADANA, Vibhakti.CHATURTHI, "1.4.40", "2.3.13")
+    }
+
+    @Test
+    fun `bhyam is resolved as sampradana for anugri`() {
+        assertResolution("अनुगृ", Karaka.SAMPRADANA, Vibhakti.CHATURTHI, "1.4.41", "2.3.13")
+    }
+
+    @Test
+    fun `indifferent target is resolved as karman`() {
+        val dhatu = "पठ"
+        val possibleVibhaktis = setOf(Vibhakti.DVITIYA)
+        val participant = ParticipantFacts(
+            id = "test_p",
+            expression = dev.panini.vyakaranam.ast.AvyayaPada("विषम्", "विषम्"),
+            possibleVibhaktis = possibleVibhaktis,
+            semanticRelations = setOf(SemanticRelation.INDIFFERENT_OBJECT),
+        )
+        val resolution = KarakaRuleEngine.resolve(
+            KarakaRuleContext(
+                dhatu = DhatuIdentity(dhatu),
+                participant = participant,
+                allParticipants = listOf(participant),
+                prayoga = Prayoga.KARTARI,
+            ),
+        )
+        assertEquals(Karaka.KARMAN, resolution.resolved)
+        assertEquals(listOf("1.4.50", "2.3.2"), resolution.evidence.map { it.sutra })
+    }
+
+    @Test
     fun `bhyam is resolved as sampradana for shlagh`() {
         assertResolution("श्लाघ", Karaka.SAMPRADANA, Vibhakti.CHATURTHI, "1.4.34", "2.3.13")
     }
