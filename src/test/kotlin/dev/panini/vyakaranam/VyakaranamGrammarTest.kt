@@ -283,6 +283,78 @@ class VyakaranamGrammarTest {
         assertTrue(res.evidence.any { it.sutra == "2.3.37" })
     }
 
+    @Test
+    fun `verifies 1 4 25 jugupsa virama pramadarthanam assigns apadana samjna`() {
+        val context = KarakaRuleContext(
+            dhatu = DhatuIdentity("जुगुप्सते"),
+            participant = ParticipantFacts(
+                id = "p_papad",
+                expression = AvyayaPada("पापात्", "पापात्"),
+                possibleVibhaktis = setOf(Vibhakti.PANCHAMI),
+            ),
+            allParticipants = emptyList(),
+            prayoga = Prayoga.KARTARI,
+            candidates = setOf(Karaka.APADANA),
+        )
+        val res = KarakaRuleEngine.resolve(context)
+        assertEquals(Karaka.APADANA, res.resolved)
+        assertTrue(res.evidence.any { it.sutra == "1.4.25" })
+    }
+
+    @Test
+    fun `verifies 2 3 19 saha yukte apradhane assigns trtiya for accompaniment`() {
+        val context = KarakaRuleContext(
+            dhatu = DhatuIdentity("गच्छति"),
+            participant = ParticipantFacts(
+                id = "p_putrena",
+                expression = AvyayaPada("पुत्रेण", "पुत्रेण"),
+                possibleVibhaktis = setOf(Vibhakti.TRTIYA),
+                semanticRelations = setOf(SemanticRelation.ACCOMPANIMENT),
+            ),
+            allParticipants = emptyList(),
+            prayoga = Prayoga.KARTARI,
+            candidates = setOf(Karaka.ANIRDHARITA),
+        )
+        val res = KarakaRuleEngine.resolve(context)
+        assertTrue(res.evidence.any { it.sutra == "2.3.19" })
+    }
+
+    @Test
+    fun `verifies 2 3 20 yenangavikarah assigns trtiya for body limb deformity`() {
+        val context = KarakaRuleContext(
+            dhatu = DhatuIdentity("अस्ति"),
+            participant = ParticipantFacts(
+                id = "p_aksna",
+                expression = AvyayaPada("अक्ष्णा", "अक्ष्णा"),
+                possibleVibhaktis = setOf(Vibhakti.TRTIYA),
+                semanticRelations = setOf(SemanticRelation.BODY_DEFORMITY),
+            ),
+            allParticipants = emptyList(),
+            prayoga = Prayoga.KARTARI,
+            candidates = setOf(Karaka.ANIRDHARITA),
+        )
+        val res = KarakaRuleEngine.resolve(context)
+        assertTrue(res.evidence.any { it.sutra == "2.3.20" })
+    }
+
+    @Test
+    fun `verifies 2 3 23 hetau assigns trtiya for motive or cause`() {
+        val context = KarakaRuleContext(
+            dhatu = DhatuIdentity("वसति"),
+            participant = ParticipantFacts(
+                id = "p_punyena",
+                expression = AvyayaPada("पुण्येन", "पुण्येन"),
+                possibleVibhaktis = setOf(Vibhakti.TRTIYA),
+                semanticRelations = setOf(SemanticRelation.CAUSE_HETU),
+            ),
+            allParticipants = emptyList(),
+            prayoga = Prayoga.KARTARI,
+            candidates = setOf(Karaka.ANIRDHARITA),
+        )
+        val res = KarakaRuleEngine.resolve(context)
+        assertTrue(res.evidence.any { it.sutra == "2.3.23" })
+    }
+
     private fun assertParsesUkti(source: String) {
         val errors = mutableListOf<String>()
         val listener = object : BaseErrorListener() {

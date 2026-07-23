@@ -26,6 +26,7 @@ import dev.panini.ashtadhyayi.adhyaya1.pada4.DhruvamApayeApadanamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.KarakeSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.KarmanaYamAbhipraitiSampradanamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.AkathitamCaSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada4.JugupsaViramaPramadarthanamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.GatiBuddhiAniKartaSaNauSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.KarturIpsitatamamKarmaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.SadhakatamamKaranamSutra
@@ -34,12 +35,15 @@ import dev.panini.ashtadhyayi.adhyaya1.pada4.TatPrayojakoHetusCaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.AnabhihiteSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.ApadanePancamiSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.ChaturthiSampradaneSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada3.HetauSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.KaladhvanorAtyantasamyogeSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.KarmaniDvitiyaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.KartrKarmanohKrtiSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.KartrkaranayostrtiyaSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada3.SahaYukteApradhaneSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.SaptamyAdhikaraneCaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.YasyaCaBhavenaBhavalaksanamSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada3.YenangavikarahSutra
 import dev.panini.core.Karaka
 import dev.panini.core.Prayoga
 import dev.panini.core.Vibhakti
@@ -81,6 +85,7 @@ data class VibhaktiRuleContext(
     val karaka: Karaka,
     val morphologicalCandidates: Set<Vibhakti>,
     val abhihita: Boolean = false,
+    val participant: ParticipantFacts? = null,
 ) {
     fun accepts(expectedKaraka: Karaka, vibhakti: Vibhakti): Boolean =
         !abhihita && karaka == expectedKaraka && vibhakti in morphologicalCandidates
@@ -95,6 +100,7 @@ object KarakaRuleEngine {
     val karakaRules: List<Sutra<KarakaRuleContext, KarakaRuleResult>> = listOf(
         KarakeSutra,
         DhruvamApayeApadanamSutra,
+        JugupsaViramaPramadarthanamSutra,
         BhitharthanamBhayahetuhSutra,
         ParajerasodhahSutra,
         VaranarthanamIpsitahSutra,
@@ -132,6 +138,9 @@ object KarakaRuleEngine {
         KaladhvanorAtyantasamyogeSutra,
         ChaturthiSampradaneSutra,
         KartrkaranayostrtiyaSutra,
+        SahaYukteApradhaneSutra,
+        YenangavikarahSutra,
+        HetauSutra,
         ApadanePancamiSutra,
         YasyaCaBhavenaBhavalaksanamSutra,
         SaptamyAdhikaraneCaSutra,
@@ -159,7 +168,7 @@ object KarakaRuleEngine {
                     Prayoga.BHAVE -> false
                     Prayoga.ANIRDHARITA -> false
                 }
-                val vibhaktiContext = VibhaktiRuleContext(karaka, possibleVibhaktis, abhihita = isAbhihita)
+                val vibhaktiContext = VibhaktiRuleContext(karaka, possibleVibhaktis, abhihita = isAbhihita, participant = context.participant)
                 val assignment = vibhaktiRules.firstOrNull { it.matches(vibhaktiContext) }
                     ?.apply(vibhaktiContext) as? VibhaktiRuleResult.Assigned
                 assignment?.let { add(it.evidence) }

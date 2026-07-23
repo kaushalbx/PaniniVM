@@ -9,6 +9,9 @@ enum class SemanticRelation {
     INDEPENDENT_AGENT,
     PROMPTER_CAUSE,
     INDIFFERENT_OBJECT,
+    ACCOMPANIMENT,
+    BODY_DEFORMITY,
+    CAUSE_HETU,
 }
 
 data class DhatuKarakaProfile(
