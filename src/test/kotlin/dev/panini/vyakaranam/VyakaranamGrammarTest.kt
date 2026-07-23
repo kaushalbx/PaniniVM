@@ -775,6 +775,17 @@ class VyakaranamGrammarTest {
         assertEquals("अनभिहिते", domain.sutraText)
     }
 
+    @Test
+    fun `verifies adhikara registry registers dhatoh angasya and padasya domains`() {
+        val dhatoh = dev.panini.vyakaranam.analysis.AdhikaraRegistry.domains.first { it.sutraNumber == "3.1.91" }
+        val angasya = dev.panini.vyakaranam.analysis.AdhikaraRegistry.domains.first { it.sutraNumber == "6.4.1" }
+        val padasya = dev.panini.vyakaranam.analysis.AdhikaraRegistry.domains.first { it.sutraNumber == "8.1.16" }
+
+        assertEquals(dev.panini.ashtadhyayi.adhyaya3.pada1.DhatohAdhikaraSutra, dhatoh.sutra)
+        assertEquals(dev.panini.ashtadhyayi.adhyaya6.pada4.AngasyaAdhikaraSutra, angasya.sutra)
+        assertEquals(dev.panini.ashtadhyayi.adhyaya8.pada1.PadasyaAdhikaraSutra, padasya.sutra)
+    }
+
     private fun assertParsesUkti(source: String) {
         val errors = mutableListOf<String>()
         val listener = object : BaseErrorListener() {

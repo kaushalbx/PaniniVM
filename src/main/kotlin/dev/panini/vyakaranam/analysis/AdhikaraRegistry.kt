@@ -3,7 +3,10 @@ package dev.panini.vyakaranam.analysis
 import dev.panini.ashtadhyayi.adhyaya1.pada4.AkadaradEkaSamjnaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.KarakeSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.AnabhihiteSutra
+import dev.panini.ashtadhyayi.adhyaya3.pada1.DhatohAdhikaraSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada1.PratyayahSutra
+import dev.panini.ashtadhyayi.adhyaya6.pada4.AngasyaAdhikaraSutra
+import dev.panini.ashtadhyayi.adhyaya8.pada1.PadasyaAdhikaraSutra
 import dev.panini.sutra.Sutra
 
 data class AdhikaraDomain(
@@ -36,6 +39,18 @@ object AdhikaraRegistry {
         AdhikaraDomain(
             sutra = PratyayahSutra,
             endKrama = 540160,
+        ),
+        AdhikaraDomain(
+            sutra = DhatohAdhikaraSutra,
+            endKrama = 340117,
+        ),
+        AdhikaraDomain(
+            sutra = AngasyaAdhikaraSutra,
+            endKrama = 740097,
+        ),
+        AdhikaraDomain(
+            sutra = PadasyaAdhikaraSutra,
+            endKrama = 830119,
         ),
     )
 
