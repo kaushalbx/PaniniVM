@@ -567,6 +567,27 @@ class VyakaranamGrammarTest {
         assertTrue(res.evidence.any { it.sutra == "2.3.43" })
     }
 
+    @Test
+    fun `verifies 1 1 1 vrddhir adaic assigns vrddhi samjna to aa ai au`() {
+        val context = dev.panini.vyakaranam.analysis.PhonologicalContext(targetPhoneme = "ऐ")
+        val res = dev.panini.vyakaranam.analysis.SamjnaRuleEngine.resolvePhonological(context)
+        assertTrue(res is dev.panini.vyakaranam.analysis.SamjnaRuleResult.Assigned && res.samjna == "VRDDHI")
+    }
+
+    @Test
+    fun `verifies 1 1 2 adeng gunah assigns guna samjna to a e o`() {
+        val context = dev.panini.vyakaranam.analysis.PhonologicalContext(targetPhoneme = "ए")
+        val res = dev.panini.vyakaranam.analysis.SamjnaRuleEngine.resolvePhonological(context)
+        assertTrue(res is dev.panini.vyakaranam.analysis.SamjnaRuleResult.Assigned && res.samjna == "GUNA")
+    }
+
+    @Test
+    fun `verifies 1 4 14 suptingantam padam assigns pada samjna to word boundary`() {
+        val context = dev.panini.vyakaranam.analysis.MorphologicalContext(surface = "रामः", hasSupPratyaya = true)
+        val res = dev.panini.vyakaranam.analysis.SamjnaRuleEngine.resolveMorphological(context)
+        assertTrue(res is dev.panini.vyakaranam.analysis.SamjnaRuleResult.Assigned && res.samjna == "PADA")
+    }
+
     private fun assertParsesUkti(source: String) {
         val errors = mutableListOf<String>()
         val listener = object : BaseErrorListener() {

@@ -1,0 +1,54 @@
+package dev.panini.vyakaranam.analysis
+
+
+
+data class PhonologicalContext(
+    val targetPhoneme: String,
+    val environment: String = "",
+)
+
+data class MorphologicalContext(
+    val surface: String,
+    val stem: String = "",
+    val hasSupPratyaya: Boolean = false,
+    val hasTingPratyaya: Boolean = false,
+)
+
+sealed class SamjnaRuleResult {
+    data class Assigned(
+        val samjna: String,
+        val evidence: KarakaEvidence,
+    ) : SamjnaRuleResult()
+
+    object Unmatched : SamjnaRuleResult()
+}
+
+object SamjnaRuleEngine {
+    private val vrddhiVowels = setOf("आ", "ऐ", "औ")
+    private val gunaVowels = setOf("अ", "ए", "ओ")
+
+    fun resolvePhonological(context: PhonologicalContext): SamjnaRuleResult {
+        return when {
+            context.targetPhoneme in vrddhiVowels -> SamjnaRuleResult.Assigned(
+                "VRDDHI",
+                KarakaEvidence("1.1.1", "वृद्धिरादैच्", "Assigns Vṛddhi-saṃjñā to ${context.targetPhoneme}."),
+            )
+            context.targetPhoneme in gunaVowels -> SamjnaRuleResult.Assigned(
+                "GUNA",
+                KarakaEvidence("1.1.2", "अदेङ्गुणः", "Assigns Guṇa-saṃjñā to ${context.targetPhoneme}."),
+            )
+            else -> SamjnaRuleResult.Unmatched
+        }
+    }
+
+    fun resolveMorphological(context: MorphologicalContext): SamjnaRuleResult {
+        return if (context.hasSupPratyaya || context.hasTingPratyaya) {
+            SamjnaRuleResult.Assigned(
+                "PADA",
+                KarakaEvidence("1.4.14", "सुप्तिङन्तं पदम्", "Assigns Pada-saṃjñā to suptinganta word."),
+            )
+        } else {
+            SamjnaRuleResult.Unmatched
+        }
+    }
+}
