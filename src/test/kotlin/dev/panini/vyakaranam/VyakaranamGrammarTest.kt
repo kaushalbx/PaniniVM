@@ -625,9 +625,30 @@ class VyakaranamGrammarTest {
 
     @Test
     fun `verifies 1 3 1 bhuvadayo dhatavah assigns dhatu samjna to verbal root`() {
-        val context = dev.panini.vyakaranam.analysis.MorphologicalContext(surface = "भू", isRoot = true)
+        val context = dev.panini.vyakaranam.analysis.MorphologicalContext(surface = "पठ्", isRoot = true)
         val res = dev.panini.vyakaranam.analysis.SamjnaRuleEngine.resolveMorphological(context)
         assertTrue(res is dev.panini.vyakaranam.analysis.SamjnaRuleResult.Assigned && res.samjna == dev.panini.shiksha.Samjna.DHATU)
+    }
+
+    @Test
+    fun `verifies 1 1 20 dadha ghv adap assigns ghu samjna to da dha roots`() {
+        val context = dev.panini.vyakaranam.analysis.MorphologicalContext(surface = "दा")
+        val res = dev.panini.vyakaranam.analysis.SamjnaRuleEngine.resolveMorphological(context)
+        assertTrue(res is dev.panini.vyakaranam.analysis.SamjnaRuleResult.Assigned && res.samjna == dev.panini.shiksha.Samjna.GHU)
+    }
+
+    @Test
+    fun `verifies 1 4 37 yu stryakhyau nadi assigns nadi samjna to feminine stems in long i or u`() {
+        val context = dev.panini.vyakaranam.analysis.MorphologicalContext(surface = "नदी", isFeminineInLongIorU = true)
+        val res = dev.panini.vyakaranam.analysis.SamjnaRuleEngine.resolveMorphological(context)
+        assertTrue(res is dev.panini.vyakaranam.analysis.SamjnaRuleResult.Assigned && res.samjna == dev.panini.shiksha.Samjna.NADI)
+    }
+
+    @Test
+    fun `verifies 1 4 58 pradayah assigns upasarga samjna to verbal prefixes`() {
+        val context = dev.panini.vyakaranam.analysis.MorphologicalContext(surface = "प्र")
+        val res = dev.panini.vyakaranam.analysis.SamjnaRuleEngine.resolveMorphological(context)
+        assertTrue(res is dev.panini.vyakaranam.analysis.SamjnaRuleResult.Assigned && res.samjna == dev.panini.shiksha.Samjna.UPASARGA)
     }
 
     private fun assertParsesUkti(source: String) {

@@ -20,6 +20,7 @@ data class MorphologicalContext(
     val hasSupPratyaya: Boolean = false,
     val hasTingPratyaya: Boolean = false,
     val isDualEndingInIdUdEd: Boolean = false,
+    val isFeminineInLongIorU: Boolean = false,
 )
 
 sealed class SamjnaRuleResult {
@@ -35,7 +36,12 @@ object SamjnaRuleEngine {
     private val vrddhiVowels = setOf("आ", "ऐ", "औ")
     private val gunaVowels = setOf("अ", "ए", "ओ")
     private val nasalPhonemes = setOf("ङ्", "ञ्", "ण्", "न्", "म्", "ँ", "ङ", "ञ", "ण", "न", "म")
-    private val commonRoots = setOf("भू", "पठ्", "गम्", "कृ", "हृ", "स्था", "दा", "दृश्", "वद्", "जि", "नी")
+    private val commonRoots = setOf("भू", "पठ्", "गम्", "कृ", "हृ", "स्था", "दा", "धा", "दृश्", "वद्", "जि", "नी")
+    private val ghuRoots = setOf("दा", "धा", "ददाति", "दधाति")
+    private val pradayaPrefixes = setOf(
+        "प्र", "परा", "अप", "सम्", "अनु", "अव", "निस्", "निर्", "दुस्", "दुर्",
+        "वि", "आङ्", "नि", "अधि", "अपि", "अति", "सु", "उद्", "अभि", "प्रति", "परि", "उप"
+    )
 
     fun resolvePhonological(context: PhonologicalContext): SamjnaRuleResult {
         return when {
@@ -65,9 +71,21 @@ object SamjnaRuleEngine {
 
     fun resolveMorphological(context: MorphologicalContext): SamjnaRuleResult {
         return when {
+            context.surface in ghuRoots -> SamjnaRuleResult.Assigned(
+                Samjna.GHU,
+                KarakaEvidence("1.1.20", "दाधा घ्वदाप्", "Assigns Ghu-saṃjñā to dā/dhā root ${context.surface}."),
+            )
             context.isDualEndingInIdUdEd -> SamjnaRuleResult.Assigned(
                 Samjna.PRAGRHYA,
                 KarakaEvidence("1.1.11", "ईदूदेद्द्विवचनं प्रगृह्यम्", "Assigns Pragṛhya-saṃjñā to dual ending in ī/ū/e (${context.surface})."),
+            )
+            context.isFeminineInLongIorU || context.surface.endsWith("ी") || context.surface.endsWith("ू") -> SamjnaRuleResult.Assigned(
+                Samjna.NADI,
+                KarakaEvidence("1.4.37", "यू स्त्र्याख्यौ नदी", "Assigns Nadī-saṃjñā to feminine stem ending in long ī/ū (${context.surface})."),
+            )
+            context.surface in pradayaPrefixes -> SamjnaRuleResult.Assigned(
+                Samjna.UPASARGA,
+                KarakaEvidence("1.4.58", "प्रादयः", "Assigns Upasarga-saṃjñā to verbal prefix ${context.surface}."),
             )
             context.isRoot || context.surface in commonRoots -> SamjnaRuleResult.Assigned(
                 Samjna.DHATU,
