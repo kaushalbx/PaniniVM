@@ -786,6 +786,15 @@ class VyakaranamGrammarTest {
         assertEquals(dev.panini.ashtadhyayi.adhyaya8.pada1.PadasyaAdhikaraSutra, padasya.sutra)
     }
 
+    @Test
+    fun `verifies paribhasha registry wraps concrete paribhasha sutras`() {
+        val rule = dev.panini.vyakaranam.analysis.ParibhashaRegistry.findByNumber("1.1.66")
+        assertTrue(rule != null)
+        assertEquals(dev.panini.ashtadhyayi.adhyaya1.pada1.TasminnitiNirdishtePurvasyaSutra, rule?.sutra)
+        assertEquals("तस्मिन्निति निर्दिष्टे पूर्वस्य", rule?.sutraText)
+        assertEquals(dev.panini.vyakaranam.analysis.ParibhashaScope.LOCATIVE_TRIGGER, rule?.targetScope)
+    }
+
     private fun assertParsesUkti(source: String) {
         val errors = mutableListOf<String>()
         val listener = object : BaseErrorListener() {
