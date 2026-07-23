@@ -21,6 +21,15 @@ fun main(args: Array<String>) {
 }
 
 internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull()) {
+    "--compile" -> {
+        val filePath = args.getOrNull(1) ?: error("Usage: --compile path/to/file.pvm [ClassName] [OutputDir]")
+        val className = args.getOrNull(2) ?: "CompiledProgram"
+        val outputDirPath = args.getOrNull(3) ?: "build/classes/panini"
+        val file = File(filePath)
+        val outputDir = File(outputDirPath)
+        dev.panini.compiler.BytecodeCompiler.compileFile(file, className, outputDir)
+        listOf("Compiled ${file.name} to $outputDirPath/$className.class successfully.")
+    }
     "--eval", "--pvm", "--exec" -> {
         val filePath = args.getOrNull(1) ?: error("Usage: --eval path/to/file.pvm")
         val file = File(filePath)
@@ -135,7 +144,7 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
         "loaded=${Ashtadhyayi.pathitaCount}; executable=${Ashtadhyayi.kriyavatCount}; total=${Ashtadhyayi.expectedSutraCount}; remaining=${Ashtadhyayi.remainingCount}",
         "roles=" + Ashtadhyayi.registry.sutras.groupingBy { it.role::class.simpleName }.eachCount().entries.joinToString { "${it.key}=${it.value}" },
     )
-    else -> listOf("Usage: --eval file.pvm | --paradigm राम | --derive राम SASTHI BAHUVACANA | --verb भू | --sankhya 23 [cardinal|ordinal] [--variants] | --sutra 7.1.54 | --coverage")
+    else -> listOf("Usage: --eval file.pvm | --compile file.pvm [ClassName] [OutputDir] | --paradigm राम | --derive राम SASTHI BAHUVACANA | --verb भू | --sankhya 23 [cardinal|ordinal] [--variants] | --sutra 7.1.54 | --coverage")
 }
 
 private enum class SankhyaKind { CARDINAL, ORDINAL }

@@ -16,6 +16,7 @@ sūtras carry typed metadata, executable eligibility, and state-transition logic
 - **Kāraka Constraint Analysis**: Preserves syncretic sup endings such as `भ्याम्` and resolves them through executable 1.4 kāraka-saṃjñā and 2.3 vibhakti sūtras.
 - **PaniniVM Program Script Runner (`.pvm`)**: Evaluate multi-line `.pvm` program script files with turn history and session persistence.
 - **CLI Runner**: Command-line execution for `.pvm` scripts, verb derivations, nominal paradigms, and sūtra inspection.
+- **Sanskrit Bytecode Compiler**: Compile multi-clause `.pvm` script files directly into native JVM `.class` bytecode carrying mapped stack constants and resolved operations.
 
 ---
 
@@ -75,6 +76,14 @@ Execute PaniniVM `.pvm` program script files directly via CLI:
 
 ```sh
 ./gradlew run --args="--eval src/test/kotlin/dev/panini/parser/addition.pvm"
+```
+
+### Compiling `.pvm` Script Files to JVM Bytecode
+
+Compile segmented Sanskrit `.pvm` script files into standard JVM class bytecode:
+
+```sh
+./gradlew run --args="--compile src/test/kotlin/dev/panini/parser/addition.pvm SanskritAddition"
 ```
 
 Sample `.pvm` script: [`addition.pvm`](src/test/kotlin/dev/panini/parser/addition.pvm)
