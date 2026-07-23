@@ -54,6 +54,62 @@ class KarakaInferenceTest {
     }
 
     @Test
+    fun `bhyam is resolved as apadana for fear of bhi`() {
+        assertResolution("भी", Karaka.APADANA, Vibhakti.PANCHAMI, "1.4.25", "2.3.28")
+    }
+
+    @Test
+    fun `bhyam is resolved as sampradana for pleasing ruc`() {
+        assertResolution("रुच", Karaka.SAMPRADANA, Vibhakti.CHATURTHI, "1.4.33", "2.3.13")
+    }
+
+    @Test
+    fun `recipient of prefixed anger verb is resolved as karman`() {
+        val dhatu = "अभिक्रुध"
+        val profile = DhatuKarakaProfiles.forSurface(dhatu)
+        val possibleVibhaktis = setOf(Vibhakti.DVITIYA, Vibhakti.CHATURTHI)
+        val participant = ParticipantFacts(
+            id = "test_p",
+            expression = dev.panini.vyakaranam.ast.AvyayaPada("क्रूरम्", "क्रूरम्"),
+            possibleVibhaktis = possibleVibhaktis,
+            semanticRelations = profile?.relations.orEmpty(),
+        )
+        val resolution = KarakaRuleEngine.resolve(
+            KarakaRuleContext(
+                dhatu = DhatuIdentity(dhatu),
+                participant = participant,
+                allParticipants = listOf(participant),
+                prayoga = Prayoga.KARTARI,
+            ),
+        )
+        assertEquals(Karaka.KARMAN, resolution.resolved)
+        assertEquals(listOf("1.4.38", "2.3.2"), resolution.evidence.map { it.sutra })
+    }
+
+    @Test
+    fun `location of prefixed dwelling verb is resolved as karman`() {
+        val dhatu = "अधिवस"
+        val profile = DhatuKarakaProfiles.forSurface(dhatu)
+        val possibleVibhaktis = setOf(Vibhakti.DVITIYA, Vibhakti.SAPTAMI)
+        val participant = ParticipantFacts(
+            id = "test_p",
+            expression = dev.panini.vyakaranam.ast.AvyayaPada("वैकुण्ठम्", "वैकुण्ठम्"),
+            possibleVibhaktis = possibleVibhaktis,
+            semanticRelations = profile?.relations.orEmpty(),
+        )
+        val resolution = KarakaRuleEngine.resolve(
+            KarakaRuleContext(
+                dhatu = DhatuIdentity(dhatu),
+                participant = participant,
+                allParticipants = listOf(participant),
+                prayoga = Prayoga.KARTARI,
+            ),
+        )
+        assertEquals(Karaka.KARMAN, resolution.resolved)
+        assertEquals(listOf("1.4.48", "2.3.2"), resolution.evidence.map { it.sutra })
+    }
+
+    @Test
     fun `location of adhishi is resolved as karman`() {
         val dhatu = "अधिशी"
         val profile = DhatuKarakaProfiles.forSurface(dhatu)

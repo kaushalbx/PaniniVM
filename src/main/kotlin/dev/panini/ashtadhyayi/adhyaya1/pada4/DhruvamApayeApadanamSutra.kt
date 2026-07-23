@@ -22,10 +22,12 @@ object DhruvamApayeApadanamSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
         val normalized = context.dhatu.surface.trimEnd('्', 'ँ')
-        val isBhuOrJan = normalized == "भू" || normalized == "भव्" || normalized == "प्रभू" || normalized == "प्रभव्" ||
+        val isBhuOrJanOrBhiOrTra = normalized == "भू" || normalized == "भव्" || normalized == "प्रभू" || normalized == "प्रभव्" ||
                          normalized.startsWith("भव") || normalized.startsWith("प्रभव") ||
-                         normalized == "जन्" || normalized == "जाय्" || normalized == "जायते" || normalized.startsWith("जन")
-        return !isBhuOrJan && SemanticRelation.SOURCE in context.participant.semanticRelations && Karaka.APADANA in context.candidates
+                         normalized == "जन्" || normalized == "जाय्" || normalized == "जायते" || normalized.startsWith("जन") ||
+                         normalized == "भी" || normalized == "बिभ्" || normalized == "त्रा" || normalized == "त्राय्" ||
+                         normalized.startsWith("बिभे") || normalized.startsWith("त्राय")
+        return !isBhuOrJanOrBhiOrTra && SemanticRelation.SOURCE in context.participant.semanticRelations && Karaka.APADANA in context.candidates
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(

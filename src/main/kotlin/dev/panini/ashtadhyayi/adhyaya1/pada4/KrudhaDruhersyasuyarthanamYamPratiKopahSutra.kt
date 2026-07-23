@@ -22,9 +22,11 @@ object KrudhaDruhersyasuyarthanamYamPratiKopahSutra : Sutra<KarakaRuleContext, K
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
         val normalized = context.dhatu.surface.trimEnd('्', 'ँ')
-        val isAngerVerb = normalized == "क्रुध्" || normalized == "द्रुह्" || normalized == "ईर्ष्या" || normalized == "असूया" ||
-                           normalized.startsWith("क्रुध") || normalized.startsWith("द्रुह") || normalized.startsWith("ईर्ष्य") || normalized.startsWith("असूय")
-        return isAngerVerb && SemanticRelation.RECIPIENT in context.participant.semanticRelations && Karaka.SAMPRADANA in context.candidates
+        val isAngerVerb = normalized.contains("क्रुध") || normalized.contains("द्रुह") ||
+                           normalized == "ईर्ष्या" || normalized == "असूया" ||
+                           normalized.startsWith("ईर्ष्य") || normalized.startsWith("असूय")
+        val hasUpasarga = normalized.startsWith("अभि") || normalized.startsWith("प्र") || normalized.startsWith("प्रति") || normalized.startsWith("अनु")
+        return !hasUpasarga && isAngerVerb && SemanticRelation.RECIPIENT in context.participant.semanticRelations && Karaka.SAMPRADANA in context.candidates
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(

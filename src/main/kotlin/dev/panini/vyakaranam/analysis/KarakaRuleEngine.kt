@@ -4,6 +4,10 @@ import dev.panini.ashtadhyayi.adhyaya1.pada4.BhuvahPrabhavahSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.AdhishingsthasamKarmaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.JanikartuhPrakrtihSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.KrudhaDruhersyasuyarthanamYamPratiKopahSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada4.BhitharthanamBhayahetuhSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada4.RucyarthanamPriyamanahSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada4.KrudhaDruhorUpasrstayohKarmaSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada4.UpanvadhyangvasahSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.AdharoAdhikaranamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.DhruvamApayeApadanamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.KarakeSutra
@@ -72,13 +76,17 @@ object KarakaRuleEngine {
     val karakaRules: List<Sutra<KarakaRuleContext, KarakaRuleResult>> = listOf(
         KarakeSutra,
         DhruvamApayeApadanamSutra,
+        BhitharthanamBhayahetuhSutra,
         JanikartuhPrakrtihSutra,
         BhuvahPrabhavahSutra,
         KarmanaYamAbhipraitiSampradanamSutra,
+        RucyarthanamPriyamanahSutra,
         KrudhaDruhersyasuyarthanamYamPratiKopahSutra,
+        KrudhaDruhorUpasrstayohKarmaSutra,
         SadhakatamamKaranamSutra,
         AdharoAdhikaranamSutra,
         AdhishingsthasamKarmaSutra,
+        UpanvadhyangvasahSutra,
         KarturIpsitatamamKarmaSutra,
         SvatantrahKartaSutra,
         TatPrayojakoHetusCaSutra,
