@@ -23,8 +23,9 @@ object AdhishingsthasamKarmaSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     override fun matches(context: KarakaRuleContext): Boolean {
         val tinganta = context.verbNode as? dev.panini.vyakaranam.ast.TingantaPada ?: return false
         val hasPrefix = tinganta.upasargas.any { it == "अधि" }
-        val isSheeSthaAs = tinganta.dhatu.mulaDhatu == "शी" || tinganta.dhatu.mulaDhatu == "स्था" || tinganta.dhatu.mulaDhatu == "आस्" ||
-                           tinganta.dhatu.mulaDhatu == "शीङ्" || tinganta.dhatu.mulaDhatu == "आस"
+        val isSheeSthaAs = context.baseDhatu?.let {
+            it.upadesha in setOf("शीङ्", "शी", "स्था", "आस", "आस्")
+        } ?: (tinganta.dhatu.mulaDhatu in setOf("शी", "स्था", "आस्", "शीङ्", "आस"))
         return hasPrefix && isSheeSthaAs && SemanticRelation.LOCATION in context.participant.semanticRelations && Karaka.KARMAN in context.candidates
     }
 

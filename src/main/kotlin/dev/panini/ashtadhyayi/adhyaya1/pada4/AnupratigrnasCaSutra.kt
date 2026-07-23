@@ -23,7 +23,8 @@ object AnupratigrnasCaSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     override fun matches(context: KarakaRuleContext): Boolean {
         val tinganta = context.verbNode as? dev.panini.vyakaranam.ast.TingantaPada ?: return false
         val hasPrefix = tinganta.upasargas.any { it == "अनु" || it == "प्रति" }
-        val isGri = tinganta.dhatu.mulaDhatu == "गृ"
+        val isGri = context.baseDhatu?.let { it.upadesha == "गृ" || it.upadesha == "गृँ" || it.sourceSurface == "गृ" }
+                    ?: (tinganta.dhatu.mulaDhatu == "गृ")
         return hasPrefix && isGri && SemanticRelation.RECIPIENT in context.participant.semanticRelations && Karaka.SAMPRADANA in context.candidates
     }
 

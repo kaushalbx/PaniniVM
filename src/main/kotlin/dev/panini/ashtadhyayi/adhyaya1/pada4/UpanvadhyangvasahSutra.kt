@@ -23,7 +23,8 @@ object UpanvadhyangvasahSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     override fun matches(context: KarakaRuleContext): Boolean {
         val tinganta = context.verbNode as? dev.panini.vyakaranam.ast.TingantaPada ?: return false
         val hasPrefix = tinganta.upasargas.any { it == "उप" || it == "अनु" || it == "अधि" || it == "आ" }
-        val isVas = tinganta.dhatu.mulaDhatu == "वस" || tinganta.dhatu.mulaDhatu == "वस्"
+        val isVas = context.baseDhatu?.let { it.upadesha == "वसँ" || it.upadesha == "वस्" || it.upadesha == "वस" }
+                    ?: (tinganta.dhatu.mulaDhatu == "वस" || tinganta.dhatu.mulaDhatu == "वस्")
         return hasPrefix && isVas && SemanticRelation.LOCATION in context.participant.semanticRelations && Karaka.KARMAN in context.candidates
     }
 

@@ -150,6 +150,7 @@ class VakyaAnalyzer(
                 allParticipants = allParticipants,
                 prayoga = prayoga,
                 verbNode = tinganta.pada,
+                baseDhatu = tinganta.lexicalEntry,
             ),
         )
         val karaka = resolution.resolved ?: return null

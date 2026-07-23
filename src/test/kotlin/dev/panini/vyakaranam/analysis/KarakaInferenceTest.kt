@@ -75,6 +75,7 @@ class KarakaInferenceTest {
                 allParticipants = listOf(participant),
                 prayoga = Prayoga.KARTARI,
                 verbNode = buildMockVerbNode(dhatu),
+                baseDhatu = findMockDhatu(dhatu),
             ),
         )
         assertEquals(Karaka.KARMAN, resolution.resolved)
@@ -104,6 +105,7 @@ class KarakaInferenceTest {
                 allParticipants = listOf(participant),
                 prayoga = Prayoga.KARTARI,
                 verbNode = buildMockVerbNode(dhatu),
+                baseDhatu = findMockDhatu(dhatu),
             ),
         )
         assertEquals(Karaka.KARMAN, resolution.resolved)
@@ -128,6 +130,7 @@ class KarakaInferenceTest {
                 allParticipants = listOf(participant),
                 prayoga = Prayoga.KARTARI,
                 verbNode = buildMockVerbNode(dhatu),
+                baseDhatu = findMockDhatu(dhatu),
             ),
         )
         assertEquals(Karaka.SAMPRADANA, resolution.resolved)
@@ -182,6 +185,7 @@ class KarakaInferenceTest {
                 allParticipants = listOf(participant),
                 prayoga = Prayoga.KARTARI,
                 verbNode = buildMockVerbNode(dhatu),
+                baseDhatu = findMockDhatu(dhatu),
             ),
         )
         assertEquals(Karaka.KARMAN, resolution.resolved)
@@ -221,6 +225,7 @@ class KarakaInferenceTest {
                 allParticipants = listOf(participant),
                 prayoga = Prayoga.KARTARI,
                 verbNode = buildMockVerbNode(dhatu),
+                baseDhatu = findMockDhatu(dhatu),
             ),
         )
         assertEquals(Karaka.KARMAN, resolution.resolved)
@@ -245,6 +250,7 @@ class KarakaInferenceTest {
                 allParticipants = listOf(participant),
                 prayoga = Prayoga.KARTARI,
                 verbNode = buildMockVerbNode(dhatu),
+                baseDhatu = findMockDhatu(dhatu),
             ),
         )
         assertEquals(Karaka.KARMAN, resolution.resolved)
@@ -269,6 +275,7 @@ class KarakaInferenceTest {
                 allParticipants = listOf(participant),
                 prayoga = Prayoga.KARTARI,
                 verbNode = buildMockVerbNode(dhatu),
+                baseDhatu = findMockDhatu(dhatu),
             ),
         )
         assertEquals(Karaka.KARMAN, resolution.resolved)
@@ -297,6 +304,7 @@ class KarakaInferenceTest {
                 allParticipants = listOf(participant),
                 prayoga = Prayoga.KARTARI,
                 verbNode = buildMockVerbNode(dhatu),
+                baseDhatu = findMockDhatu(dhatu),
             ),
         )
         assertEquals(karaka, resolution.resolved)
@@ -338,5 +346,24 @@ class KarakaInferenceTest {
             lakara = dev.panini.core.Lakara.LAT,
             ting = dev.panini.vyakaranam.ast.TingPratyaya("", "")
         )
+    }
+
+    private fun findMockDhatu(dhatu: String): dev.panini.dhatupatha.Dhatu? {
+        val prefixes = listOf("प्रति", "अनु", "अधि", "अभि", "उप", "आ", "अभि-नि", "अभिनि")
+        val matchedPrefix = prefixes.firstOrNull { dhatu.startsWith(it) }
+        val baseDhatu = if (matchedPrefix != null) dhatu.substring(matchedPrefix.length) else dhatu
+        val mulaDhatu = when (baseDhatu) {
+            "वस", "वस्" -> "वस"
+            "शृ", "श्रु" -> "श्रु"
+            "गृ", "गृणाति" -> "गृ"
+            "शी", "शीङ्" -> "शी"
+            "स्था", "तिष्ठ" -> "स्था"
+            "आस्", "आस" -> "आस्"
+            else -> baseDhatu
+        }
+        return dev.panini.dhatupatha.DhatuPatha.all.firstOrNull {
+            it.upadesha == mulaDhatu || it.sourceSurface == mulaDhatu || it.upadesha == "${mulaDhatu}ँ" ||
+            (mulaDhatu == "वस" && it.upadesha == "वसँ") || (mulaDhatu == "शी" && it.upadesha == "शीङ्")
+        }
     }
 }

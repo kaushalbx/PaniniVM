@@ -23,7 +23,8 @@ object PratyangbhruvahPurvasyaKartaSutra : Sutra<KarakaRuleContext, KarakaRuleRe
     override fun matches(context: KarakaRuleContext): Boolean {
         val tinganta = context.verbNode as? dev.panini.vyakaranam.ast.TingantaPada ?: return false
         val hasPrefix = tinganta.upasargas.any { it == "प्रति" || it == "आ" }
-        val isShru = tinganta.dhatu.mulaDhatu == "श्रु"
+        val isShru = context.baseDhatu?.let { it.upadesha == "श्रु" || it.upadesha == "श्रुँ" || it.sourceSurface == "श्रु" }
+                     ?: (tinganta.dhatu.mulaDhatu == "श्रु")
         return hasPrefix && isShru && SemanticRelation.RECIPIENT in context.participant.semanticRelations && Karaka.SAMPRADANA in context.candidates
     }
 
