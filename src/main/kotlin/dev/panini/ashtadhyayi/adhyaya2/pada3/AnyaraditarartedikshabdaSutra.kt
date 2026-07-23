@@ -12,6 +12,8 @@ import dev.panini.vyakaranam.analysis.KarakaEvidence
 import dev.panini.vyakaranam.analysis.VibhaktiRuleContext
 import dev.panini.vyakaranam.analysis.VibhaktiRuleResult
 
+import dev.panini.vyakaranam.analysis.SemanticRelation
+
 /**
  * Sūtra 2.3.29 अन्यारादितरर्तेदिक्छब्दाञ्चूत्तरपदाजाहियुक्ते.
  * Assigns Pañcamī in connection with words for other (anya, itara), remote/near (ārāt),
@@ -27,7 +29,7 @@ object AnyaraditarartedikshabdaSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleRe
 ) {
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
-            (context.karaka == Karaka.APADANA || context.karaka == Karaka.ANIRDHARITA) &&
+            SemanticRelation.DIRECTIONAL_EXCLUSION in context.participant?.semanticRelations.orEmpty() &&
             Vibhakti.PANCHAMI in context.morphologicalCandidates
 
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(

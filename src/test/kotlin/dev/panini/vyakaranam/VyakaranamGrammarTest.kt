@@ -274,6 +274,7 @@ class VyakaranamGrammarTest {
                 id = "p_gosu",
                 expression = AvyayaPada("गोषु", "गोषु"),
                 possibleVibhaktis = setOf(Vibhakti.SAPTAMI),
+                semanticRelations = setOf(SemanticRelation.ACTION_MARKING),
             ),
             allParticipants = emptyList(),
             prayoga = Prayoga.KARTARI,
@@ -363,6 +364,7 @@ class VyakaranamGrammarTest {
                 id = "p_jnanat",
                 expression = AvyayaPada("ज्ञानात्", "ज्ञानात्"),
                 possibleVibhaktis = setOf(Vibhakti.PANCHAMI),
+                semanticRelations = setOf(SemanticRelation.DIRECTIONAL_EXCLUSION),
             ),
             allParticipants = emptyList(),
             prayoga = Prayoga.ANIRDHARITA,
@@ -457,6 +459,60 @@ class VyakaranamGrammarTest {
         )
         val res = KarakaRuleEngine.resolve(context)
         assertTrue(res.evidence.any { it.sutra == "2.3.21" })
+    }
+
+    @Test
+    fun `verifies 2 3 32 prthag vina nanabhih assigns trtiya pancami or dvitiya with vina`() {
+        val context = KarakaRuleContext(
+            dhatu = DhatuIdentity("अस्ति"),
+            participant = ParticipantFacts(
+                id = "p_jnanat",
+                expression = AvyayaPada("ज्ञानात्", "ज्ञानात्"),
+                possibleVibhaktis = setOf(Vibhakti.PANCHAMI),
+                semanticRelations = setOf(SemanticRelation.EXCLUSION_VINA),
+            ),
+            allParticipants = emptyList(),
+            prayoga = Prayoga.ANIRDHARITA,
+            candidates = setOf(Karaka.ANIRDHARITA),
+        )
+        val res = KarakaRuleEngine.resolve(context)
+        assertTrue(res.evidence.any { it.sutra == "2.3.32" })
+    }
+
+    @Test
+    fun `verifies 2 3 38 sasthi canadare assigns sasthi or saptami in disregard context`() {
+        val context = KarakaRuleContext(
+            dhatu = DhatuIdentity("प्राव्राजीत्"),
+            participant = ParticipantFacts(
+                id = "p_rudatah",
+                expression = AvyayaPada("रुदतः", "रुदतः"),
+                possibleVibhaktis = setOf(Vibhakti.SASTHI),
+                semanticRelations = setOf(SemanticRelation.DISREGARD_ANADARA),
+            ),
+            allParticipants = emptyList(),
+            prayoga = Prayoga.ANIRDHARITA,
+            candidates = setOf(Karaka.ANIRDHARITA),
+        )
+        val res = KarakaRuleEngine.resolve(context)
+        assertTrue(res.evidence.any { it.sutra == "2.3.38" })
+    }
+
+    @Test
+    fun `verifies 2 3 39 swamy isvara adhipati assigns sasthi or saptami with swamin`() {
+        val context = KarakaRuleContext(
+            dhatu = DhatuIdentity("अस्ति"),
+            participant = ParticipantFacts(
+                id = "p_gosu",
+                expression = AvyayaPada("गोषु", "गोषु"),
+                possibleVibhaktis = setOf(Vibhakti.SAPTAMI),
+                semanticRelations = setOf(SemanticRelation.OWNERSHIP_SWAMIN),
+            ),
+            allParticipants = emptyList(),
+            prayoga = Prayoga.ANIRDHARITA,
+            candidates = setOf(Karaka.ANIRDHARITA),
+        )
+        val res = KarakaRuleEngine.resolve(context)
+        assertTrue(res.evidence.any { it.sutra == "2.3.39" })
     }
 
     private fun assertParsesUkti(source: String) {

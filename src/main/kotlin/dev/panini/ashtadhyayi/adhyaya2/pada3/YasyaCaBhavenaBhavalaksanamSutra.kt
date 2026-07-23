@@ -12,6 +12,8 @@ import dev.panini.vyakaranam.analysis.KarakaEvidence
 import dev.panini.vyakaranam.analysis.VibhaktiRuleContext
 import dev.panini.vyakaranam.analysis.VibhaktiRuleResult
 
+import dev.panini.vyakaranam.analysis.SemanticRelation
+
 /** Sūtra 2.3.37 यस्य च भावेन भावलक्षणम्. Assigns Saptamī (Sati-Saptamī / absolute locative) for action-marking. */
 object YasyaCaBhavenaBhavalaksanamSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     number = "2.3.37", text = "यस्य च भावेन भावलक्षणम्",
@@ -23,7 +25,7 @@ object YasyaCaBhavenaBhavalaksanamSutra : Sutra<VibhaktiRuleContext, VibhaktiRul
 ) {
     override fun matches(context: VibhaktiRuleContext): Boolean =
         !context.abhihita &&
-            context.karaka == Karaka.ANIRDHARITA &&
+            SemanticRelation.ACTION_MARKING in context.participant?.semanticRelations.orEmpty() &&
             Vibhakti.SAPTAMI in context.morphologicalCandidates
 
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(

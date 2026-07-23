@@ -44,9 +44,12 @@ import dev.panini.ashtadhyayi.adhyaya2.pada3.KaladhvanorAtyantasamyogeSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.KarmaniDvitiyaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.KartrKarmanohKrtiSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.KartrkaranayostrtiyaSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada3.PrthagVinaNanabhihSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.SahaYukteApradhaneSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.SaptamyAdhikaraneCaSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada3.SasthiCanadareSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.SasthiSeseSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada3.SwamyIsvaraAdhipatiSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.YasyaCaBhavenaBhavalaksanamSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.YatasCaNirdharanamSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.YenangavikarahSutra
@@ -152,8 +155,11 @@ object KarakaRuleEngine {
         HetauSutra,
         ApadanePancamiSutra,
         AnyaraditarartedikshabdaSutra,
+        PrthagVinaNanabhihSutra,
         YatasCaNirdharanamSutra,
         YasyaCaBhavenaBhavalaksanamSutra,
+        SasthiCanadareSutra,
+        SwamyIsvaraAdhipatiSutra,
         SaptamyAdhikaraneCaSutra,
         SasthiSeseSutra,
         KartrKarmanohKrtiSutra,

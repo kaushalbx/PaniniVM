@@ -14,6 +14,11 @@ enum class SemanticRelation {
     CAUSE_HETU,
     GROUP_SELECTION,
     CHARACTERISTIC_MARK,
+    EXCLUSION_VINA,
+    OWNERSHIP_SWAMIN,
+    DISREGARD_ANADARA,
+    DIRECTIONAL_EXCLUSION,
+    ACTION_MARKING,
 }
 
 data class DhatuKarakaProfile(
