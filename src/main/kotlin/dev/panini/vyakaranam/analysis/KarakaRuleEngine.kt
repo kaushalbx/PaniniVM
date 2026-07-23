@@ -203,7 +203,8 @@ object KarakaRuleEngine {
                 val vibhaktiContext = VibhaktiRuleContext(karaka, possibleVibhaktis, abhihita = isAbhihita, participant = context.participant)
                 val assignment = vibhaktiRules.firstOrNull { rule ->
                     val prohibition = NishedhaRuleEngine.evaluateProhibition(ProhibitionContext(targetSutraNumber = rule.number))
-                    prohibition !is NishedhaRuleResult.Blocked && rule.matches(vibhaktiContext)
+                    val adhikaraEligible = AdhikaraRegistry.isVibhaktiEligible(rule.krama, vibhaktiContext)
+                    prohibition !is NishedhaRuleResult.Blocked && adhikaraEligible && rule.matches(vibhaktiContext)
                 }?.apply(vibhaktiContext) as? VibhaktiRuleResult.Assigned
                 assignment?.let { add(it.evidence) }
             }

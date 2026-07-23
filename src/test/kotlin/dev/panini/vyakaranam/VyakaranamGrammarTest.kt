@@ -757,6 +757,24 @@ class VyakaranamGrammarTest {
         assertTrue(res is dev.panini.vyakaranam.analysis.SamjnaRuleResult.Unmatched)
     }
 
+    @Test
+    fun `verifies 2 3 1 anabhihite adhikara domain blocks vibhakti rules when abhihita is true`() {
+        val vibhaktiContext = dev.panini.vyakaranam.analysis.VibhaktiRuleContext(
+            karaka = Karaka.KARMAN,
+            morphologicalCandidates = setOf(Vibhakti.DVITIYA),
+            abhihita = true, // Abhihita is TRUE!
+        )
+        val isEligible = dev.panini.vyakaranam.analysis.AdhikaraRegistry.isVibhaktiEligible(230002, vibhaktiContext)
+        assertTrue(!isEligible)
+    }
+
+    @Test
+    fun `verifies adhikara registry wraps concrete sutra objects directly`() {
+        val domain = dev.panini.vyakaranam.analysis.AdhikaraRegistry.domains.first { it.sutraNumber == "2.3.1" }
+        assertEquals(dev.panini.ashtadhyayi.adhyaya2.pada3.AnabhihiteSutra, domain.sutra)
+        assertEquals("अनभिहिते", domain.sutraText)
+    }
+
     private fun assertParsesUkti(source: String) {
         val errors = mutableListOf<String>()
         val listener = object : BaseErrorListener() {
