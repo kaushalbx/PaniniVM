@@ -22,14 +22,16 @@ object DhruvamApayeApadanamSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
         val normalized = context.dhatu.surface.trimEnd('्', 'ँ')
-        val isBhuOrJanOrBhiOrTraOrParajiOrAdhi = normalized == "भू" || normalized == "भव्" || normalized == "प्रभू" || normalized == "प्रभव्" ||
+        val isExcludedApadana = normalized == "भू" || normalized == "भव्" || normalized == "प्रभू" || normalized == "प्रभव्" ||
                          normalized.startsWith("भव") || normalized.startsWith("प्रभव") ||
                          normalized == "जन्" || normalized == "जाय्" || normalized == "जायते" || normalized.startsWith("जन") ||
                          normalized == "भी" || normalized == "बिभ" || normalized == "त्रा" || normalized == "त्राय" ||
                          normalized.startsWith("बिभे") || normalized.startsWith("त्राय") ||
                          normalized == "पराजि" || normalized == "पराजय" || normalized.startsWith("पराजय") ||
-                         normalized == "अधी" || normalized == "पठ" || normalized.startsWith("अधी") || normalized.startsWith("पठ")
-        return !isBhuOrJanOrBhiOrTraOrParajiOrAdhi && SemanticRelation.SOURCE in context.participant.semanticRelations && Karaka.APADANA in context.candidates
+                         normalized == "अधी" || normalized == "पठ" || normalized.startsWith("अधी") || normalized.startsWith("पठ") ||
+                         normalized == "वृ" || normalized == "वारय" || normalized.startsWith("वारय") ||
+                         normalized == "निली" || normalized == "तिरोभू" || normalized.startsWith("निली") || normalized.startsWith("तिरोभ")
+        return !isExcludedApadana && SemanticRelation.SOURCE in context.participant.semanticRelations && Karaka.APADANA in context.candidates
     }
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(

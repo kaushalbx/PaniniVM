@@ -49,6 +49,21 @@ class KarakaInferenceTest {
     }
 
     @Test
+    fun `bhyam is resolved as apadana for varay`() {
+        assertResolution("वारय", Karaka.APADANA, Vibhakti.PANCHAMI, "1.4.27", "2.3.28")
+    }
+
+    @Test
+    fun `bhyam is resolved as apadana for nili`() {
+        assertResolution("निली", Karaka.APADANA, Vibhakti.PANCHAMI, "1.4.28", "2.3.28")
+    }
+
+    @Test
+    fun `bhyam is resolved as sampradana for dharay`() {
+        assertResolution("धारय", Karaka.SAMPRADANA, Vibhakti.CHATURTHI, "1.4.35", "2.3.13")
+    }
+
+    @Test
     fun `bhyam is resolved as apadana for paraji`() {
         assertResolution("पराजि", Karaka.APADANA, Vibhakti.PANCHAMI, "1.4.26", "2.3.28")
     }
