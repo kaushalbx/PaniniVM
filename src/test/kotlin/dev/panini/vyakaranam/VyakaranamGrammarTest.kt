@@ -194,6 +194,95 @@ class VyakaranamGrammarTest {
         assertTrue(SemanticRelation.INSTRUMENT in toolRelations)
     }
 
+    @Test
+    fun `verifies 2 3 65 kartrkarmanoh krti assigns sasthi to unexpressed kartr or karman under krt governance`() {
+        val context = KarakaRuleContext(
+            dhatu = DhatuIdentity("कृ"),
+            participant = ParticipantFacts(
+                id = "p_krti",
+                expression = AvyayaPada("कृष्णस्य", "कृष्णस्य"),
+                possibleVibhaktis = setOf(Vibhakti.SASTHI),
+                semanticRelations = setOf(SemanticRelation.INDEPENDENT_AGENT),
+            ),
+            allParticipants = emptyList(),
+            prayoga = Prayoga.ANIRDHARITA,
+            candidates = setOf(Karaka.KARTR),
+        )
+        val res = KarakaRuleEngine.resolve(context)
+        assertEquals(Karaka.KARTR, res.resolved)
+        assertTrue(res.evidence.any { it.sutra == "2.3.65" })
+    }
+
+    @Test
+    fun `verifies 1 4 51 akathitam ca assigns karma samjna to secondary object of dvikarmaka root`() {
+        val context = KarakaRuleContext(
+            dhatu = DhatuIdentity("दुह्"),
+            participant = ParticipantFacts(
+                id = "p_gauNa",
+                expression = AvyayaPada("गाम्", "गाम्"),
+                possibleVibhaktis = setOf(Vibhakti.DVITIYA),
+            ),
+            allParticipants = emptyList(),
+            prayoga = Prayoga.KARTARI,
+            candidates = setOf(Karaka.KARMAN),
+        )
+        val res = KarakaRuleEngine.resolve(context)
+        assertEquals(Karaka.KARMAN, res.resolved)
+        assertTrue(res.evidence.any { it.sutra == "1 4.51" || it.sutra == "1.4.51" })
+    }
+
+    @Test
+    fun `verifies 1 4 52 gati buddhi promotes non-causative agent to karma in causative`() {
+        val context = KarakaRuleContext(
+            dhatu = DhatuIdentity("गमयति"),
+            participant = ParticipantFacts(
+                id = "p_manavaka",
+                expression = AvyayaPada("माणवकम्", "माणवकम्"),
+                possibleVibhaktis = setOf(Vibhakti.DVITIYA),
+            ),
+            allParticipants = emptyList(),
+            prayoga = Prayoga.CAUSATIVE,
+            candidates = setOf(Karaka.KARMAN),
+        )
+        val res = KarakaRuleEngine.resolve(context)
+        assertEquals(Karaka.KARMAN, res.resolved)
+        assertTrue(res.evidence.any { it.sutra == "1.4.52" })
+    }
+
+    @Test
+    fun `verifies 2 3 5 kaladhvanor atyantasamyoge assigns dvitiya for continuous duration`() {
+        val context = KarakaRuleContext(
+            dhatu = DhatuIdentity("स्था"),
+            participant = ParticipantFacts(
+                id = "p_masam",
+                expression = AvyayaPada("मासम्", "मासम्"),
+                possibleVibhaktis = setOf(Vibhakti.DVITIYA),
+            ),
+            allParticipants = emptyList(),
+            prayoga = Prayoga.KARTARI,
+            candidates = setOf(Karaka.ANIRDHARITA),
+        )
+        val res = KarakaRuleEngine.resolve(context)
+        assertTrue(res.evidence.any { it.sutra == "2.3.5" })
+    }
+
+    @Test
+    fun `verifies 2 3 37 yasya ca bhavena bhavalaksanam assigns saptami for absolute locative action marking`() {
+        val context = KarakaRuleContext(
+            dhatu = DhatuIdentity("गम्"),
+            participant = ParticipantFacts(
+                id = "p_gosu",
+                expression = AvyayaPada("गोषु", "गोषु"),
+                possibleVibhaktis = setOf(Vibhakti.SAPTAMI),
+            ),
+            allParticipants = emptyList(),
+            prayoga = Prayoga.KARTARI,
+            candidates = setOf(Karaka.ANIRDHARITA),
+        )
+        val res = KarakaRuleEngine.resolve(context)
+        assertTrue(res.evidence.any { it.sutra == "2.3.37" })
+    }
+
     private fun assertParsesUkti(source: String) {
         val errors = mutableListOf<String>()
         val listener = object : BaseErrorListener() {

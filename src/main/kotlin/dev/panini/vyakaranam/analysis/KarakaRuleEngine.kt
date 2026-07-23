@@ -25,6 +25,8 @@ import dev.panini.ashtadhyayi.adhyaya1.pada4.AdharoAdhikaranamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.DhruvamApayeApadanamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.KarakeSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.KarmanaYamAbhipraitiSampradanamSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada4.AkathitamCaSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada4.GatiBuddhiAniKartaSaNauSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.KarturIpsitatamamKarmaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.SadhakatamamKaranamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.SvatantrahKartaSutra
@@ -32,10 +34,12 @@ import dev.panini.ashtadhyayi.adhyaya1.pada4.TatPrayojakoHetusCaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.AnabhihiteSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.ApadanePancamiSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.ChaturthiSampradaneSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada3.KaladhvanorAtyantasamyogeSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.KarmaniDvitiyaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.KartrKarmanohKrtiSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.KartrkaranayostrtiyaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada3.SaptamyAdhikaraneCaSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada3.YasyaCaBhavenaBhavalaksanamSutra
 import dev.panini.core.Karaka
 import dev.panini.core.Prayoga
 import dev.panini.core.Vibhakti
@@ -115,6 +119,8 @@ object KarakaRuleEngine {
         AbhinivishasCaSutra,
         UpanvadhyangvasahSutra,
         KarturIpsitatamamKarmaSutra,
+        AkathitamCaSutra,
+        GatiBuddhiAniKartaSaNauSutra,
         TathayuktamCanipsitamSutra,
         SvatantrahKartaSutra,
         TatPrayojakoHetusCaSutra,
@@ -123,9 +129,11 @@ object KarakaRuleEngine {
     val vibhaktiRules: List<Sutra<VibhaktiRuleContext, VibhaktiRuleResult>> = listOf(
         AnabhihiteSutra,
         KarmaniDvitiyaSutra,
+        KaladhvanorAtyantasamyogeSutra,
         ChaturthiSampradaneSutra,
         KartrkaranayostrtiyaSutra,
         ApadanePancamiSutra,
+        YasyaCaBhavenaBhavalaksanamSutra,
         SaptamyAdhikaraneCaSutra,
         KartrKarmanohKrtiSutra,
     ).sortedBy { it.krama }
