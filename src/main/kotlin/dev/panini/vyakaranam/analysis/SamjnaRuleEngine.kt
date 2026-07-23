@@ -4,9 +4,11 @@ import dev.panini.shiksha.Samjna
 
 data class PhonologicalContext(
     val targetPhoneme: String,
+    val secondPhoneme: String = "",
     val environment: String = "",
     val isConjunctConsonants: Boolean = false,
     val isNasalized: Boolean = false,
+    val samePlaceAndEffort: Boolean = false,
 )
 
 data class MorphologicalContext(
@@ -17,6 +19,7 @@ data class MorphologicalContext(
     val isAffix: Boolean = false,
     val hasSupPratyaya: Boolean = false,
     val hasTingPratyaya: Boolean = false,
+    val isDualEndingInIdUdEd: Boolean = false,
 )
 
 sealed class SamjnaRuleResult {
@@ -32,9 +35,14 @@ object SamjnaRuleEngine {
     private val vrddhiVowels = setOf("आ", "ऐ", "औ")
     private val gunaVowels = setOf("अ", "ए", "ओ")
     private val nasalPhonemes = setOf("ङ्", "ञ्", "ण्", "न्", "म्", "ँ", "ङ", "ञ", "ण", "न", "म")
+    private val commonRoots = setOf("भू", "पठ्", "गम्", "कृ", "हृ", "स्था", "दा", "दृश्", "वद्", "जि", "नी")
 
     fun resolvePhonological(context: PhonologicalContext): SamjnaRuleResult {
         return when {
+            context.samePlaceAndEffort -> SamjnaRuleResult.Assigned(
+                Samjna.SAVARNA,
+                KarakaEvidence("1.1.9", "तुल्यास्यप्रयत्नं सवर्णम्", "Assigns Savarṇa-saṃjñā to homogeneous sound pair ${context.targetPhoneme} and ${context.secondPhoneme}."),
+            )
             context.targetPhoneme in vrddhiVowels -> SamjnaRuleResult.Assigned(
                 Samjna.VRDDHI,
                 KarakaEvidence("1.1.1", "वृद्धिरादैच्", "Assigns Vṛddhi-saṃjñā to ${context.targetPhoneme}."),
@@ -57,6 +65,14 @@ object SamjnaRuleEngine {
 
     fun resolveMorphological(context: MorphologicalContext): SamjnaRuleResult {
         return when {
+            context.isDualEndingInIdUdEd -> SamjnaRuleResult.Assigned(
+                Samjna.PRAGRHYA,
+                KarakaEvidence("1.1.11", "ईदूदेद्द्विवचनं प्रगृह्यम्", "Assigns Pragṛhya-saṃjñā to dual ending in ī/ū/e (${context.surface})."),
+            )
+            context.isRoot || context.surface in commonRoots -> SamjnaRuleResult.Assigned(
+                Samjna.DHATU,
+                KarakaEvidence("1.3.1", "भूवादयो धातवः", "Assigns Dhātu-saṃjñā to verbal root ${context.surface}."),
+            )
             context.hasSupPratyaya || context.hasTingPratyaya -> SamjnaRuleResult.Assigned(
                 Samjna.PADA,
                 KarakaEvidence("1.4.14", "सुप्तिङन्तं पदम्", "Assigns Pada-saṃjñā to suptinganta word."),
