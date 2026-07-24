@@ -1,6 +1,8 @@
 package dev.panini.derivation
 
+import dev.panini.core.Karaka
 import dev.panini.core.Linga
+import dev.panini.core.Prayoga
 import dev.panini.core.Vacana
 import dev.panini.core.Vibhakti
 import dev.panini.shiksha.Ayogavaha
@@ -95,4 +97,14 @@ enum class SubantaStemClass(
         const val CANDRABINDU: Char = 'ँ'
     }
 }
+
+/** Input request for deriving a nominal form from a semantic Kāraka relation. */
+data class KarakaSubantaDerivationRequest(
+    val pratipadika: String,
+    val karaka: Karaka,
+    val vacana: Vacana,
+    val dhatu: String,
+    val isSakarmaka: Boolean = true,
+    val prayoga: Prayoga = Prayoga.KARTARI
+)
 

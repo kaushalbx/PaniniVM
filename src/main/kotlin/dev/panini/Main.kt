@@ -1,9 +1,12 @@
 package dev.panini
 
 import dev.panini.ashtadhyayi.Ashtadhyayi
+import dev.panini.core.Karaka
 import dev.panini.core.Lakara
+import dev.panini.core.Prayoga
 import dev.panini.core.Vacana
 import dev.panini.core.Vibhakti
+import dev.panini.derivation.KarakaSubantaDerivationRequest
 import dev.panini.derivation.SubantaDerivationRequest
 import dev.panini.derivation.SubantaEngine
 import dev.panini.derivation.SubantaStemClass
@@ -82,6 +85,28 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
             addTrace(result, includeRole = true)
         }
     }
+    "--derive-karaka" -> {
+        val pratipadika = args.getOrNull(1) ?: error("Usage: --derive-karaka <pratipadika> <karaka> <vacana> <dhatu> [prayoga]")
+        val karaka = parseKaraka(args.getOrNull(2) ?: error("Missing karaka."))
+        val vacana = parseVacana(args.getOrNull(3) ?: error("Missing vacana."))
+        val dhatu = args.getOrNull(4) ?: error("Missing dhatu.")
+        val prayoga = args.getOrNull(5)?.let(::parsePrayoga) ?: Prayoga.KARTARI
+        val result = SubantaEngine().deriveFromKaraka(
+            KarakaSubantaDerivationRequest(
+                pratipadika = pratipadika,
+                karaka = karaka,
+                vacana = vacana,
+                dhatu = dhatu,
+                prayoga = prayoga
+            )
+        )
+
+        buildList {
+            val resolvedVibhakti = result.initial.context.rupa.vibhakti ?: Vibhakti.PRATHAMA
+            add("$resolvedVibhakti $vacana: ${result.final.surface}")
+            addTrace(result, includeRole = true)
+        }
+    }
     "--sutra" -> {
         val number = args.getOrNull(1) ?: error("Usage: --sutra 7.1.54")
         val sutra = Ashtadhyayi.registry.require(number) as? Sutra<*, *>
@@ -144,7 +169,7 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
         "loaded=${Ashtadhyayi.pathitaCount}; executable=${Ashtadhyayi.kriyavatCount}; total=${Ashtadhyayi.expectedSutraCount}; remaining=${Ashtadhyayi.remainingCount}",
         "roles=" + Ashtadhyayi.registry.sutras.groupingBy { it.role::class.simpleName }.eachCount().entries.joinToString { "${it.key}=${it.value}" },
     )
-    else -> listOf("Usage: --eval file.pvm | --compile file.pvm [ClassName] [OutputDir] | --paradigm राम | --derive राम SASTHI BAHUVACANA | --verb भू | --sankhya 23 [cardinal|ordinal] [--variants] | --sutra 7.1.54 | --coverage")
+    else -> listOf("Usage: --eval file.pvm | --compile file.pvm [ClassName] [OutputDir] | --paradigm राम | --derive राम SASTHI BAHUVACANA | --derive-karaka राम SAMPRADANA EKAVACANA दा [KARTARI] | --verb भू | --sankhya 23 [cardinal|ordinal] [--variants] | --sutra 7.1.54 | --coverage")
 }
 
 private enum class SankhyaKind { CARDINAL, ORDINAL }
@@ -178,4 +203,26 @@ private fun MutableList<String>.addTrace(result: dev.panini.derivation.Derivatio
         add("${app.sutra}$prefix — ${app.explanation}")
         app.conflictTrace.forEach { add("  ↳ $it") }
     }
+}
+
+private fun parseKaraka(value: String): Karaka = when (value.uppercase()) {
+    "KARTR", "कर्ता" -> Karaka.KARTR
+    "KARMAN", "कर्म" -> Karaka.KARMAN
+    "KARANA", "करण" -> Karaka.KARANA
+    "SAMPRADANA", "सम्प्रदान", "संप्रदान" -> Karaka.SAMPRADANA
+    "APADANA", "अपादान" -> Karaka.APADANA
+    "ADHIKARANA", "अधिकरण" -> Karaka.ADHIKARANA
+    "SAMBANDHA", "सम्बन्ध", "संबंध" -> Karaka.SAMBANDHA
+    "SAMBODHANA", "सम्बोधन", "संबोधन" -> Karaka.SAMBODHANA
+    "ANIRDHARITA" -> Karaka.ANIRDHARITA
+    else -> error("Unknown karaka: $value")
+}
+
+private fun parsePrayoga(value: String): Prayoga = when (value.uppercase()) {
+    "KARTARI", "कर्तरि" -> Prayoga.KARTARI
+    "KARMANI", "कर्मणि" -> Prayoga.KARMANI
+    "BHAVE", "भावे" -> Prayoga.BHAVE
+    "CAUSATIVE" -> Prayoga.CAUSATIVE
+    "ANIRDHARITA" -> Prayoga.ANIRDHARITA
+    else -> error("Unknown prayoga: $value")
 }

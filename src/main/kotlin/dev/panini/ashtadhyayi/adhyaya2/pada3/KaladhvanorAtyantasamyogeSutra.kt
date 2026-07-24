@@ -1,5 +1,6 @@
 package dev.panini.ashtadhyayi.adhyaya2.pada3
 
+import dev.panini.core.Karaka
 import dev.panini.core.Vibhakti
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -21,7 +22,9 @@ object KaladhvanorAtyantasamyogeSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleR
     adhikara = setOf("2.3.1"),
 ) {
     override fun matches(context: VibhaktiRuleContext): Boolean =
-        !context.abhihita && Vibhakti.DVITIYA in context.morphologicalCandidates
+        !context.abhihita &&
+            (context.karaka == Karaka.KARMAN || context.karaka == Karaka.ANIRDHARITA) &&
+            Vibhakti.DVITIYA in context.morphologicalCandidates
 
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(
         Vibhakti.DVITIYA,

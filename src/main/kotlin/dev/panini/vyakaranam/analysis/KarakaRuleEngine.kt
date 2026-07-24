@@ -75,6 +75,7 @@ data class KarakaResolution(
     val resolved: Karaka?,
     val possibleVibhaktis: Set<Vibhakti>,
     val evidence: List<KarakaEvidence>,
+    val resolvedVibhakti: Vibhakti? = null,
 )
 
 data class DhatuIdentity(
@@ -190,6 +191,7 @@ object KarakaRuleEngine {
             prohibition !is NishedhaRuleResult.Blocked && rule.matches(semanticContext)
         }?.apply(semanticContext) as? KarakaRuleResult.Assigned
         val resolved = semantic?.karaka ?: candidates.singleOrNull()
+        var resolvedVibhakti: Vibhakti? = null
         val evidence = buildList {
             semantic?.let { add(it.evidence) }
             resolved?.let { karaka ->
@@ -206,9 +208,12 @@ object KarakaRuleEngine {
                     val adhikaraEligible = AdhikaraRegistry.isVibhaktiEligible(rule.krama, vibhaktiContext)
                     prohibition !is NishedhaRuleResult.Blocked && adhikaraEligible && rule.matches(vibhaktiContext)
                 }?.apply(vibhaktiContext) as? VibhaktiRuleResult.Assigned
-                assignment?.let { add(it.evidence) }
+                assignment?.let {
+                    resolvedVibhakti = it.vibhakti
+                    add(it.evidence)
+                }
             }
         }
-        return KarakaResolution(candidates, resolved, possibleVibhaktis, evidence)
+        return KarakaResolution(candidates, resolved, possibleVibhaktis, evidence, resolvedVibhakti)
     }
 }
