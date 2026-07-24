@@ -48,6 +48,7 @@ object Ashtadhyayi {
         Adhyaya5Pada2.sutras,
         Adhyaya6Pada1.sutras, Adhyaya6Pada3.sutras, Adhyaya6Pada4.sutras, Adhyaya7Pada1.sutras, Adhyaya7Pada2.sutras,
         Adhyaya7Pada3.sutras, Adhyaya7Pada4.sutras, Adhyaya8Pada2.sutras, Adhyaya8Pada3.sutras, Adhyaya8Pada4.sutras,
+        listOf(dev.panini.ashtadhyayi.adhyaya8.pada1.PadasyaAdhikaraSutra),
     ).flatten()
     val cataloguedSutras: List<Sutra<*, *>> = implementedSutras
 

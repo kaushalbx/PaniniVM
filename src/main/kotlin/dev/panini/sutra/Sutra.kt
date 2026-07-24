@@ -1,10 +1,5 @@
 package dev.panini.sutra
 
-data class AdhikaraMetadata(
-    val endKrama: Int,
-    val customStartKrama: Int? = null,
-    val isContextEligible: (Any) -> Boolean = { true },
-)
 
 /**
  * Shared sūtra base. All descriptive information belongs here directly;
@@ -61,3 +56,9 @@ abstract class Sutra<C, R>(
     override val examples: List<SutraExample>
         get() = examplesValue
 }
+
+data class AdhikaraMetadata(
+    val endKrama: Int,
+    val customStartKrama: Int? = null,
+    val isContextEligible: (Any) -> Boolean = { true },
+)
