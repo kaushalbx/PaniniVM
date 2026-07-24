@@ -1,5 +1,11 @@
 package dev.panini.sutra
 
+data class AdhikaraMetadata(
+    val endKrama: Int,
+    val customStartKrama: Int? = null,
+    val isContextEligible: (Any) -> Boolean = { true },
+)
+
 /**
  * Shared sūtra base. All descriptive information belongs here directly;
  * executable subclasses contribute only their condition and operation.
@@ -33,12 +39,8 @@ abstract class Sutra<C, R>(
     val blocks: Set<String> = emptySet(),
     private val traceTemplateValue: String? = null,
     private val examplesValue: List<SutraExample> = emptyList(),
-    val endKrama: Int? = null,
+    val adhikaraMetadata: AdhikaraMetadata? = null,
 ) : ScopedSutra, GovernedSutra, TraceableSutra {
-
-    open val customStartKrama: Int? = null
-
-    open fun isContextEligible(context: Any): Boolean = true
 
     /** Every loaded sūtra must state its own eligibility and grammatical change. */
     abstract fun matches(context: C): Boolean

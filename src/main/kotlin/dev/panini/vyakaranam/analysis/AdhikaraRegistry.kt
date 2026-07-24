@@ -22,10 +22,10 @@ data class AdhikaraDomain(
         }
     },
 ) {
-    val endKrama: Int get() = sutra.endKrama ?: error("Adhikara domain ${sutra.number} must define an endKrama")
+    val endKrama: Int get() = sutra.adhikaraMetadata?.endKrama ?: error("Adhikara domain ${sutra.number} must define an endKrama")
     val sutraNumber: String get() = sutra.number
     val sutraText: String get() = sutra.text
-    val startKrama: Int get() = sutra.customStartKrama ?: sutra.krama
+    val startKrama: Int get() = sutra.adhikaraMetadata?.customStartKrama ?: sutra.krama
 }
 
 object AdhikaraRegistry {
@@ -55,7 +55,7 @@ object AdhikaraRegistry {
 
     fun isVibhaktiEligible(sutraKrama: Int, context: VibhaktiRuleContext): Boolean {
         val activeDomains = domains.filter { sutraKrama in it.startKrama..it.endKrama }
-        return activeDomains.all { it.sutra.isContextEligible(context) }
+        return activeDomains.all { it.sutra.adhikaraMetadata?.isContextEligible?.invoke(context) ?: true }
     }
 
     fun isDerivationEligible(sutraKrama: Int, state: dev.panini.derivation.DerivationState): Boolean {

@@ -6,6 +6,7 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
 import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.shiksha.Samjna
+import dev.panini.sutra.AdhikaraMetadata
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -29,7 +30,7 @@ object DhatohAdhikaraSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Adhikara,
     action = SutraAction.ADHIKARA,
     scope = SutraScope.DERIVATION,
-    endKrama = 340117,
+    adhikaraMetadata = AdhikaraMetadata(endKrama = 340117),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if ("3.1.91" in context.activeAdhikaras) return false

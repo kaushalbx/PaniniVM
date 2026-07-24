@@ -1,6 +1,7 @@
 package dev.panini.ashtadhyayi.adhyaya2.pada3
 
 import dev.panini.core.Vibhakti
+import dev.panini.sutra.AdhikaraMetadata
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraInput
@@ -19,13 +20,14 @@ object AnabhihiteSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     role = SutraRole.Adhikara, action = SutraAction.ADHIKARA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.KARAKA_CANDIDATE),
     adhikara = emptySet(),
-    endKrama = 230073,
+    adhikaraMetadata = AdhikaraMetadata(
+        endKrama = 230073,
+        customStartKrama = 230002,
+        isContextEligible = { context ->
+            (context as? VibhaktiRuleContext)?.let { !it.abhihita } ?: true
+        }
+    ),
 ) {
-    override val customStartKrama: Int = 230002
-
-    override fun isContextEligible(context: Any): Boolean =
-        (context as? VibhaktiRuleContext)?.let { !it.abhihita } ?: true
-
     override fun matches(context: VibhaktiRuleContext): Boolean = context.abhihita
 
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(

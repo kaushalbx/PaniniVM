@@ -1,5 +1,6 @@
 package dev.panini.ashtadhyayi.adhyaya1.pada4
 
+import dev.panini.sutra.AdhikaraMetadata
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraInput
@@ -18,7 +19,7 @@ object KarakeSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     role = SutraRole.Adhikara, action = SutraAction.ADHIKARA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.KARAKA_CANDIDATE),
     adhikara = emptySet(),
-    endKrama = 140055,
+    adhikaraMetadata = AdhikaraMetadata(endKrama = 140055),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean = false
 
