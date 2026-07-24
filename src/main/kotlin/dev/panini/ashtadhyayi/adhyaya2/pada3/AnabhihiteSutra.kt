@@ -21,6 +21,11 @@ object AnabhihiteSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     adhikara = emptySet(),
     endKrama = 230073,
 ) {
+    override val customStartKrama: Int = 230002
+
+    override fun isContextEligible(context: Any): Boolean =
+        (context as? VibhaktiRuleContext)?.let { !it.abhihita } ?: true
+
     override fun matches(context: VibhaktiRuleContext): Boolean = context.abhihita
 
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(

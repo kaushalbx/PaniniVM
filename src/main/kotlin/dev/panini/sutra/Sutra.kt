@@ -36,6 +36,10 @@ abstract class Sutra<C, R>(
     val endKrama: Int? = null,
 ) : ScopedSutra, GovernedSutra, TraceableSutra {
 
+    open val customStartKrama: Int? = null
+
+    open fun isContextEligible(context: Any): Boolean = true
+
     /** Every loaded sūtra must state its own eligibility and grammatical change. */
     abstract fun matches(context: C): Boolean
 

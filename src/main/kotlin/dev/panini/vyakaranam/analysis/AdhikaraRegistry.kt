@@ -13,8 +13,6 @@ import dev.panini.sutra.SutraType
 
 data class AdhikaraDomain(
     val sutra: Sutra<*, *>,
-    val customStartKrama: Int? = null,
-    val isContextEligible: (VibhaktiRuleContext) -> Boolean = { true },
     val isDerivationEligible: (dev.panini.derivation.DerivationState) -> Boolean = { state ->
         if (sutra.type == SutraType.ADHIKARA || sutra.role == SutraRole.Adhikara) {
             val id = sutra.number
@@ -27,7 +25,7 @@ data class AdhikaraDomain(
     val endKrama: Int get() = sutra.endKrama ?: error("Adhikara domain ${sutra.number} must define an endKrama")
     val sutraNumber: String get() = sutra.number
     val sutraText: String get() = sutra.text
-    val startKrama: Int get() = customStartKrama ?: sutra.krama
+    val startKrama: Int get() = sutra.customStartKrama ?: sutra.krama
 }
 
 object AdhikaraRegistry {
@@ -40,8 +38,6 @@ object AdhikaraRegistry {
         ),
         AdhikaraDomain(
             sutra = AnabhihiteSutra,
-            customStartKrama = 230002,
-            isContextEligible = { context -> !context.abhihita },
         ),
         AdhikaraDomain(
             sutra = PratyayahSutra,
@@ -59,7 +55,7 @@ object AdhikaraRegistry {
 
     fun isVibhaktiEligible(sutraKrama: Int, context: VibhaktiRuleContext): Boolean {
         val activeDomains = domains.filter { sutraKrama in it.startKrama..it.endKrama }
-        return activeDomains.all { it.isContextEligible(context) }
+        return activeDomains.all { it.sutra.isContextEligible(context) }
     }
 
     fun isDerivationEligible(sutraKrama: Int, state: dev.panini.derivation.DerivationState): Boolean {
