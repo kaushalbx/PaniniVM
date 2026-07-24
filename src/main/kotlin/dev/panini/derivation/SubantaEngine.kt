@@ -11,6 +11,7 @@ import dev.panini.vyakaranam.analysis.KarakaRuleContext
 import dev.panini.vyakaranam.analysis.DhatuIdentity
 import dev.panini.vyakaranam.analysis.DhatuKarakaProfiles
 import dev.panini.vyakaranam.analysis.ParticipantFacts
+import dev.panini.vyakaranam.analysis.SemanticRelation
 import dev.panini.vyakaranam.analysis.VibhaktiRuleResult
 import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.TingantaPada
@@ -47,11 +48,15 @@ class SubantaEngine(
     fun deriveFromKaraka(request: KarakaSubantaDerivationRequest): DerivationResult {
         val allVibhaktis = Vibhakti.entries.toSet()
         val profile = DhatuKarakaProfiles.forSurface(request.dhatu)
+        val upapadaRelations: Set<SemanticRelation> = when (request.upapada?.lowercase()) {
+            "सह", "साकम्", "सार्धम्", "समम्", "saha", "sakam", "sardham", "samam" -> setOf(SemanticRelation.ACCOMPANIMENT)
+            else -> emptySet()
+        }
         val participant = ParticipantFacts(
             id = request.pratipadika,
             expression = AvyayaPada(request.pratipadika, request.pratipadika),
             possibleVibhaktis = allVibhaktis,
-            semanticRelations = request.semanticRelations ?: profile?.relations.orEmpty(),
+            semanticRelations = request.semanticRelations ?: (profile?.relations.orEmpty() + upapadaRelations),
             categories = request.categories ?: emptySet()
         )
         val dhatuEntry = DhatuPatha.all.firstOrNull { 
@@ -71,7 +76,7 @@ class SubantaEngine(
             KarakaRuleContext(
                 dhatu = DhatuIdentity(request.dhatu, request.isSakarmaka),
                 participant = participant,
-                allParticipants = listOf(participant),
+                allParticipants = listOf(participant) + request.otherParticipants.orEmpty(),
                 prayoga = request.prayoga,
                 candidates = setOf(request.karaka),
                 verbNode = verbNode,

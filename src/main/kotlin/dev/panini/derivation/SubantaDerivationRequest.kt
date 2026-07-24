@@ -110,5 +110,7 @@ data class KarakaSubantaDerivationRequest(
     val prayoga: Prayoga = Prayoga.KARTARI,
     val semanticRelations: Set<SemanticRelation>? = null,
     val categories: Set<NominalCategory>? = null,
+    val upapada: String? = null,
+    val otherParticipants: List<dev.panini.vyakaranam.analysis.ParticipantFacts>? = null,
 )
 

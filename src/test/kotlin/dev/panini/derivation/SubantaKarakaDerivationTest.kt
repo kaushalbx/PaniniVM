@@ -112,4 +112,19 @@ class SubantaKarakaDerivationTest {
         assertEquals(Vibhakti.CHATURTHI, result.initial.context.rupa.vibhakti)
         assertEquals("रामाय", result.final.surface)
     }
+
+    @Test
+    fun `supports upapada accompaniment mapping`() {
+        val result = SubantaEngine().deriveFromKaraka(
+            KarakaSubantaDerivationRequest(
+                pratipadika = "राम",
+                karaka = Karaka.ANIRDHARITA,
+                vacana = Vacana.EKAVACANA,
+                dhatu = "गम्",
+                upapada = "सह"
+            )
+        )
+        assertEquals(Vibhakti.TRTIYA, result.initial.context.rupa.vibhakti)
+        assertEquals("रामेण", result.final.surface)
+    }
 }

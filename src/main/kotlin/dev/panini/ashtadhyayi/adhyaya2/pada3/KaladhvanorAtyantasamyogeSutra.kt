@@ -9,6 +9,7 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.vyakaranam.analysis.KarakaEvidence
+import dev.panini.vyakaranam.analysis.SemanticRelation
 import dev.panini.vyakaranam.analysis.VibhaktiRuleContext
 import dev.panini.vyakaranam.analysis.VibhaktiRuleResult
 
@@ -21,10 +22,15 @@ object KaladhvanorAtyantasamyogeSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleR
     inputs = setOf(SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),
 ) {
-    override fun matches(context: VibhaktiRuleContext): Boolean =
-        !context.abhihita &&
+    override fun matches(context: VibhaktiRuleContext): Boolean {
+        val hasSpecificRelation = context.participant?.semanticRelations.orEmpty().any {
+            it !in setOf(SemanticRelation.DESIRED_OBJECT, SemanticRelation.INDIFFERENT_OBJECT, SemanticRelation.MOTION_GOAL)
+        }
+        return !context.abhihita &&
+            !hasSpecificRelation &&
             (context.karaka == Karaka.KARMAN || context.karaka == Karaka.ANIRDHARITA) &&
             Vibhakti.DVITIYA in context.morphologicalCandidates
+    }
 
     override fun apply(context: VibhaktiRuleContext) = VibhaktiRuleResult.Assigned(
         Vibhakti.DVITIYA,
