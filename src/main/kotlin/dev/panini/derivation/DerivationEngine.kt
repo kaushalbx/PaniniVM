@@ -380,6 +380,7 @@ class DerivationEngine(
             }
             .filter {
                 val visibleState = RuleVisibility.view(it, state, sutraMap)
+                dev.panini.vyakaranam.analysis.AdhikaraRegistry.isDerivationEligible(it.krama, visibleState) &&
                 it.matches(visibleState)
             }
             .map { sutra ->

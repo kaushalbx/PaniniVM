@@ -4,6 +4,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
+import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -29,9 +30,16 @@ object DhatohAdhikaraSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.ADHIKARA,
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean =
-        "3.1.91" !in context.activeAdhikaras &&
-        context.terms.any { it.kind == TermKind.DHATU || context.samjnas.any { s -> s.targetId == it.id && s.samjna == Samjna.DHATU } }
+    override fun matches(context: DerivationState): Boolean {
+        if ("3.1.91" in context.activeAdhikaras) return false
+        val term = context.terms.firstOrNull()
+        val baseSurface = term?.surface.orEmpty()
+        val baseUpadesha = term?.upadesha.orEmpty()
+        return DhatuPatha.all.any { 
+            it.upadesha == baseSurface || it.sourceSurface == baseSurface || it.derivationalSurface == baseSurface ||
+            it.upadesha == baseUpadesha || it.sourceSurface == baseUpadesha || it.derivationalSurface == baseUpadesha
+        }
+    }
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
         state = context.activateAdhikara("3.1.91"),

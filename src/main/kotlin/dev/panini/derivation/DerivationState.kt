@@ -189,7 +189,7 @@ data class DerivationTerm(
     val surface: String,
     val kind: TermKind,
     val itMarkers: Set<ItMarker> = emptySet(),
-    val upadesha: String? = null,
+    val upadesha: String = surface,
     val deletionType: LopaType? = null,
     val sthaniProps: SthaniProperties? = null,
     val lexicalUses: Set<LexicalUse> = emptySet(),

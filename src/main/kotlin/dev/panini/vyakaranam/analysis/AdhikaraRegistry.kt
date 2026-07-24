@@ -14,6 +14,7 @@ data class AdhikaraDomain(
     val endKrama: Int,
     val customStartKrama: Int? = null,
     val isContextEligible: (VibhaktiRuleContext) -> Boolean = { true },
+    val isDerivationEligible: (dev.panini.derivation.DerivationState) -> Boolean = { true },
 ) {
     val sutraNumber: String get() = sutra.number
     val sutraText: String get() = sutra.text
@@ -43,19 +44,31 @@ object AdhikaraRegistry {
         AdhikaraDomain(
             sutra = DhatohAdhikaraSutra,
             endKrama = 340117,
+            isDerivationEligible = { state ->
+                "3.1.91" in state.activeAdhikaras || DhatohAdhikaraSutra.matches(state)
+            }
         ),
         AdhikaraDomain(
             sutra = AngasyaAdhikaraSutra,
             endKrama = 740097,
+            isDerivationEligible = { state ->
+                state.terms.size >= 2 && state.terms.any { it.kind == dev.panini.derivation.TermKind.PRATYAYA }
+            }
         ),
         AdhikaraDomain(
             sutra = PadasyaAdhikaraSutra,
             endKrama = 830119,
+            isDerivationEligible = { true }
         ),
     )
 
     fun isVibhaktiEligible(sutraKrama: Int, context: VibhaktiRuleContext): Boolean {
         val activeDomains = domains.filter { sutraKrama in it.startKrama..it.endKrama }
         return activeDomains.all { it.isContextEligible(context) }
+    }
+
+    fun isDerivationEligible(sutraKrama: Int, state: dev.panini.derivation.DerivationState): Boolean {
+        val activeDomains = domains.filter { sutraKrama in it.startKrama..it.endKrama }
+        return activeDomains.all { it.isDerivationEligible(state) }
     }
 }
