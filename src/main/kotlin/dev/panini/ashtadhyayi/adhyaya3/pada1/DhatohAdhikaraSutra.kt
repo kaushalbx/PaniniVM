@@ -29,6 +29,7 @@ object DhatohAdhikaraSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Adhikara,
     action = SutraAction.ADHIKARA,
     scope = SutraScope.DERIVATION,
+    endKrama = 340117,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if ("3.1.91" in context.activeAdhikaras) return false

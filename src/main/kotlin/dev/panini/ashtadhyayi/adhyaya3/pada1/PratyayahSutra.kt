@@ -29,6 +29,7 @@ object PratyayahSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Samjna,
     action = SutraAction.SAMJNA,
     scope = SutraScope.DERIVATION,
+    endKrama = 540160,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
         context.terms.any { term ->

@@ -23,6 +23,7 @@ object AkadaradEkaSamjnaSutra : Sutra<DerivationState, DerivationChange>(
     pada = 4,
     optional = false,
     kramaValue = 140001,
+    endKrama = 220038,
     role = SutraRole.Adhikara,
     action = SutraAction.ADHIKARA,
     scope = SutraScope.DERIVATION,

@@ -13,7 +13,6 @@ import dev.panini.sutra.SutraType
 
 data class AdhikaraDomain(
     val sutra: Sutra<*, *>,
-    val endKrama: Int,
     val customStartKrama: Int? = null,
     val isContextEligible: (VibhaktiRuleContext) -> Boolean = { true },
     val isDerivationEligible: (dev.panini.derivation.DerivationState) -> Boolean = { state ->
@@ -25,6 +24,7 @@ data class AdhikaraDomain(
         }
     },
 ) {
+    val endKrama: Int get() = sutra.endKrama ?: error("Adhikara domain ${sutra.number} must define an endKrama")
     val sutraNumber: String get() = sutra.number
     val sutraText: String get() = sutra.text
     val startKrama: Int get() = customStartKrama ?: sutra.krama
@@ -34,33 +34,26 @@ object AdhikaraRegistry {
     val domains: List<AdhikaraDomain> = listOf(
         AdhikaraDomain(
             sutra = AkadaradEkaSamjnaSutra,
-            endKrama = 220038,
         ),
         AdhikaraDomain(
             sutra = KarakeSutra,
-            endKrama = 140055,
         ),
         AdhikaraDomain(
             sutra = AnabhihiteSutra,
             customStartKrama = 230002,
-            endKrama = 230073,
             isContextEligible = { context -> !context.abhihita },
         ),
         AdhikaraDomain(
             sutra = PratyayahSutra,
-            endKrama = 540160,
         ),
         AdhikaraDomain(
             sutra = DhatohAdhikaraSutra,
-            endKrama = 340117,
         ),
         AdhikaraDomain(
             sutra = AngasyaAdhikaraSutra,
-            endKrama = 740097,
         ),
         AdhikaraDomain(
             sutra = PadasyaAdhikaraSutra,
-            endKrama = 830119,
         ),
     )
 

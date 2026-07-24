@@ -26,6 +26,7 @@ object AngasyaAdhikaraSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Adhikara,
     action = SutraAction.ADHIKARA,
     scope = SutraScope.DERIVATION,
+    endKrama = 740097,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         // Activate if not already active and we have at least two terms (stem + affix)

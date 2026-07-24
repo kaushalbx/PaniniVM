@@ -33,6 +33,7 @@ abstract class Sutra<C, R>(
     val blocks: Set<String> = emptySet(),
     private val traceTemplateValue: String? = null,
     private val examplesValue: List<SutraExample> = emptyList(),
+    val endKrama: Int? = null,
 ) : ScopedSutra, GovernedSutra, TraceableSutra {
 
     /** Every loaded sūtra must state its own eligibility and grammatical change. */

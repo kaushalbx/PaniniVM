@@ -18,6 +18,7 @@ object KarakeSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     role = SutraRole.Adhikara, action = SutraAction.ADHIKARA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.KARAKA_CANDIDATE),
     adhikara = emptySet(),
+    endKrama = 140055,
 ) {
     override fun matches(context: KarakaRuleContext): Boolean = false
 

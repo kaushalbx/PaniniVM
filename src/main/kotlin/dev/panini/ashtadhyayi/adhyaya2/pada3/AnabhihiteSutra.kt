@@ -19,6 +19,7 @@ object AnabhihiteSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     role = SutraRole.Adhikara, action = SutraAction.ADHIKARA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.KARAKA_CANDIDATE),
     adhikara = emptySet(),
+    endKrama = 230073,
 ) {
     override fun matches(context: VibhaktiRuleContext): Boolean = context.abhihita
 
