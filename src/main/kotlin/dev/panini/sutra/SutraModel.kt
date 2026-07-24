@@ -1,5 +1,6 @@
 package dev.panini.sutra
 
+
 /** Closed vocabulary for a sūtra's primary grammatical function. */
 sealed interface SutraRole {
     data object Samjna : SutraRole
@@ -12,8 +13,12 @@ sealed interface SutraRole {
         val customStartKrama: Int? = null,
         val isContextEligible: (Any) -> Boolean = { true },
     ) : SutraRole
+
     data object Anuvrtti : SutraRole
-    data object Paribhasha : SutraRole
+    data class Paribhasha(
+        val targetScope: ParibhashaScope = ParibhashaScope.GENERAL
+    ) : SutraRole
+
     data object Apavada : SutraRole
     data object Vibhasha : SutraRole
 }
@@ -52,4 +57,19 @@ interface GovernedSutra {
 interface TraceableSutra {
     val traceTemplate: String?
     val examples: List<SutraExample>
+}
+
+enum class ParibhashaScope {
+    VOWEL_SUBSTITUTION,
+    AUGMENT_PLACEMENT,
+    LOCATIVE_TRIGGER,
+    ABLATIVE_TRIGGER,
+    GENITIVE_RELATION,
+    PHONETIC_SIMILARITY,
+    PHONEME_TARGET_LAST,
+    PHONEME_TARGET_FIRST,
+    RAPARA_AUGMENTATION,
+    FULL_TERM_SUBSTITUTION,
+    ORIGINAL_PROPERTY_INHERITANCE,
+    GENERAL,
 }

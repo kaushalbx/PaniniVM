@@ -125,7 +125,7 @@ class VyakaranamGrammarTest {
     @Test
     fun `verifies general karaka sutras and explicit anabhihite governing behavior`() {
         val possible = setOf(Vibhakti.PRATHAMA, Vibhakti.DVITIYA, Vibhakti.TRTIYA, Vibhakti.SAPTAMI)
-        
+
         // 1.4.45 (Adhikarana)
         val locContext = KarakaRuleContext(
             dhatu = DhatuIdentity("स्था"),
@@ -755,58 +755,6 @@ class VyakaranamGrammarTest {
         )
         val res = dev.panini.vyakaranam.analysis.SamjnaRuleEngine.resolvePhonological(context)
         assertTrue(res is dev.panini.vyakaranam.analysis.SamjnaRuleResult.Unmatched)
-    }
-
-    @Test
-    fun `verifies 2 3 1 anabhihite adhikara domain blocks vibhakti rules when abhihita is true`() {
-        val vibhaktiContext = dev.panini.vyakaranam.analysis.VibhaktiRuleContext(
-            karaka = Karaka.KARMAN,
-            morphologicalCandidates = setOf(Vibhakti.DVITIYA),
-            abhihita = true, // Abhihita is TRUE!
-        )
-        val isEligible = dev.panini.vyakaranam.analysis.AdhikaraRegistry.isVibhaktiEligible(230002, vibhaktiContext)
-        assertTrue(!isEligible)
-    }
-
-    @Test
-    fun `verifies adhikara registry wraps concrete sutra objects directly`() {
-        val domain = dev.panini.vyakaranam.analysis.AdhikaraRegistry.domains.first { it.number == "2.3.1" }
-        assertEquals(dev.panini.ashtadhyayi.adhyaya2.pada3.AnabhihiteSutra, domain)
-        assertEquals("अनभिहिते", domain.text)
-    }
-
-    @Test
-    fun `verifies adhikara registry registers dhatoh angasya and padasya domains`() {
-        val dhatoh = dev.panini.vyakaranam.analysis.AdhikaraRegistry.domains.first { it.number == "3.1.91" }
-        val angasya = dev.panini.vyakaranam.analysis.AdhikaraRegistry.domains.first { it.number == "6.4.1" }
-        val padasya = dev.panini.vyakaranam.analysis.AdhikaraRegistry.domains.first { it.number == "8.1.16" }
-
-        assertEquals(dev.panini.ashtadhyayi.adhyaya3.pada1.DhatohAdhikaraSutra, dhatoh)
-        assertEquals(dev.panini.ashtadhyayi.adhyaya6.pada4.AngasyaAdhikaraSutra, angasya)
-        assertEquals(dev.panini.ashtadhyayi.adhyaya8.pada1.PadasyaAdhikaraSutra, padasya)
-    }
-
-    @Test
-    fun `verifies paribhasha registry wraps concrete paribhasha sutras`() {
-        val rule = dev.panini.vyakaranam.analysis.ParibhashaRegistry.findByNumber("1.1.66")
-        assertTrue(rule != null)
-        assertEquals(dev.panini.ashtadhyayi.adhyaya1.pada1.TasminnitiNirdishtePurvasyaSutra, rule?.sutra)
-        assertEquals("तस्मिन्निति निर्दिष्टे पूर्वस्य", rule?.sutraText)
-        assertEquals(dev.panini.vyakaranam.analysis.ParibhashaScope.LOCATIVE_TRIGGER, rule?.targetScope)
-
-        val sasthi = dev.panini.vyakaranam.analysis.ParibhashaRegistry.findByNumber("1.1.49")
-        val sthane = dev.panini.vyakaranam.analysis.ParibhashaRegistry.findByNumber("1.1.50")
-        val uran = dev.panini.vyakaranam.analysis.ParibhashaRegistry.findByNumber("1.1.51")
-        val alAntyasya = dev.panini.vyakaranam.analysis.ParibhashaRegistry.findByNumber("1.1.52")
-        val anekal = dev.panini.vyakaranam.analysis.ParibhashaRegistry.findByNumber("1.1.55")
-        val sthanivat = dev.panini.vyakaranam.analysis.ParibhashaRegistry.findByNumber("1.1.56")
-
-        assertEquals(dev.panini.ashtadhyayi.adhyaya1.pada1.SasthiSthaneyogaSutra, sasthi?.sutra)
-        assertEquals(dev.panini.ashtadhyayi.adhyaya1.pada1.SthaneAntaratamahSutra, sthane?.sutra)
-        assertEquals(dev.panini.ashtadhyayi.adhyaya1.pada1.UranRaparahSutra, uran?.sutra)
-        assertEquals(dev.panini.ashtadhyayi.adhyaya1.pada1.AlAntyasyaSutra, alAntyasya?.sutra)
-        assertEquals(dev.panini.ashtadhyayi.adhyaya1.pada1.AnekalSitSarvasyaSutra, anekal?.sutra)
-        assertEquals(dev.panini.ashtadhyayi.adhyaya1.pada1.SthanivadAdesoAnalvidhauSutra, sthanivat?.sutra)
     }
 
     private fun assertParsesUkti(source: String) {

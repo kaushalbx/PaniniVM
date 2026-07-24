@@ -6,6 +6,7 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
+import dev.panini.sutra.ParibhashaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -26,7 +27,7 @@ object AdyantauTakitauSutra : Sutra<DerivationState, DerivationChange>(
     pada = 1,
     optional = false,
     kramaValue = 110046,
-    role = SutraRole.Paribhasha,
+    role = SutraRole.Paribhasha(targetScope = ParibhashaScope.AUGMENT_PLACEMENT),
     action = SutraAction.PARIBHASHA,
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {

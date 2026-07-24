@@ -1,5 +1,6 @@
 package dev.panini.vyakaranam.analysis
 
+import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.ashtadhyayi.adhyaya1.pada4.BhuvahPrabhavahSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.AdhishingsthasamKarmaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.JanikartuhPrakrtihSutra
@@ -63,6 +64,7 @@ import dev.panini.core.Karaka
 import dev.panini.core.Prayoga
 import dev.panini.core.Vibhakti
 import dev.panini.sutra.Sutra
+import dev.panini.sutra.SutraRole
 
 data class KarakaEvidence(
     val sutra: String,
@@ -205,7 +207,7 @@ object KarakaRuleEngine {
                 val vibhaktiContext = VibhaktiRuleContext(karaka, possibleVibhaktis, abhihita = isAbhihita, participant = context.participant)
                 val assignment = vibhaktiRules.firstOrNull { rule ->
                     val prohibition = NishedhaRuleEngine.evaluateProhibition(ProhibitionContext(targetSutraNumber = rule.number))
-                    val adhikaraEligible = AdhikaraRegistry.isVibhaktiEligible(rule.krama, vibhaktiContext)
+                    val adhikaraEligible = isVibhaktiEligible(rule.krama, vibhaktiContext)
                     prohibition !is NishedhaRuleResult.Blocked && adhikaraEligible && rule.matches(vibhaktiContext)
                 }?.apply(vibhaktiContext) as? VibhaktiRuleResult.Assigned
                 assignment?.let {
@@ -216,4 +218,17 @@ object KarakaRuleEngine {
         }
         return KarakaResolution(candidates, resolved, possibleVibhaktis, evidence, resolvedVibhakti)
     }
+}
+val domains: List<Sutra<*, *>> by lazy {
+    Ashtadhyayi.registry.sutras.filter { it.role is SutraRole.Adhikara }
+}
+
+fun isVibhaktiEligible(sutraKrama: Int, context: VibhaktiRuleContext): Boolean {
+    val activeDomains = domains.filter { domain ->
+        val role = domain.role as SutraRole.Adhikara
+        val start = role.customStartKrama ?: domain.krama
+        val end = role.endKrama
+        sutraKrama in start..end
+    }
+    return activeDomains.all { (it.role as SutraRole.Adhikara).isContextEligible(context) }
 }

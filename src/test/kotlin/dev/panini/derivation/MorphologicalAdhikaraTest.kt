@@ -1,7 +1,5 @@
 package dev.panini.derivation
 
-import dev.panini.core.Vibhakti
-import dev.panini.vyakaranam.analysis.AdhikaraRegistry
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -22,8 +20,8 @@ class MorphologicalAdhikaraTest {
             )
         )
 
-        assertFalse(AdhikaraRegistry.isDerivationEligible(710013, stateWithoutSuffix))
-        assertTrue(AdhikaraRegistry.isDerivationEligible(710013, stateWithSuffix))
+        assertFalse(isDerivationEligible(710013, stateWithoutSuffix))
+        assertTrue(isDerivationEligible(710013, stateWithSuffix))
     }
 
     @Test
@@ -37,8 +35,8 @@ class MorphologicalAdhikaraTest {
             terms = listOf(DerivationTerm("stem", "घट", TermKind.PRATIPADIKA))
         )
 
-        assertTrue(AdhikaraRegistry.isDerivationEligible(320001, stateWithVerbalRoot))
-        assertFalse(AdhikaraRegistry.isDerivationEligible(320001, stateWithNominalRoot))
+        assertTrue(isDerivationEligible(320001, stateWithVerbalRoot))
+        assertFalse(isDerivationEligible(320001, stateWithNominalRoot))
     }
 
     @Test
@@ -55,7 +53,7 @@ class MorphologicalAdhikaraTest {
             )
         )
 
-        assertTrue(AdhikaraRegistry.isDerivationEligible(820016, stateSingleTerm))
-        assertTrue(AdhikaraRegistry.isDerivationEligible(820016, stateWithActiveSuffix))
+        assertTrue(isDerivationEligible(820016, stateSingleTerm))
+        assertTrue(isDerivationEligible(820016, stateWithActiveSuffix))
     }
 }

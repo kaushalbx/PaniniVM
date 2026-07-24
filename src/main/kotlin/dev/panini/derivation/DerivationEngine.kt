@@ -1,12 +1,14 @@
 package dev.panini.derivation
 
 import dev.panini.ashtadhyayi.Ashtadhyayi
+import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraPriority
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.sutra.SutraVisibility
+import dev.panini.vyakaranam.analysis.VibhaktiRuleContext
 
 data class DerivationApplication(
     val sutra: String,
@@ -380,7 +382,7 @@ class DerivationEngine(
             }
             .filter {
                 val visibleState = RuleVisibility.view(it, state, sutraMap)
-                dev.panini.vyakaranam.analysis.AdhikaraRegistry.isDerivationEligible(it.krama, visibleState) &&
+                isDerivationEligible(it.krama, visibleState) &&
                 it.matches(visibleState)
             }
             .map { sutra ->
@@ -408,7 +410,7 @@ class DerivationEngine(
         )
 
         fun agendaDomain(sutra: DerivationSutra): Int = when (sutra.role) {
-            SutraRole.Samjna, SutraRole.Paribhasha, SutraRole.Atidesha -> 0
+            SutraRole.Samjna, is SutraRole.Paribhasha, SutraRole.Atidesha -> 0
             is SutraRole.Adhikara, SutraRole.Anuvrtti -> 1
             SutraRole.Nishedha, SutraRole.Niyama, SutraRole.Apavada -> 2
             else -> 3
@@ -446,5 +448,21 @@ fun DerivationResult.verifyDerivation(
     }
     require(final.stage.ordinal >= expectedStage.ordinal) {
         "Incomplete derivation for $expectedAffixUpadesha; expected at least $expectedStage, reached ${final.stage}."
+    }
+}
+
+val domains: List<Sutra<*, *>> by lazy {
+    Ashtadhyayi.registry.sutras.filter { it.role is SutraRole.Adhikara }
+}
+
+fun isDerivationEligible(sutraKrama: Int, state: dev.panini.derivation.DerivationState): Boolean {
+    val activeDomains = domains.filter { domain ->
+        val role = domain.role as SutraRole.Adhikara
+        val start = role.customStartKrama ?: domain.krama
+        val end = role.endKrama
+        sutraKrama in start..end
+    }
+    return activeDomains.all { domain ->
+        domain.number in state.activeAdhikaras || (domain as? dev.panini.derivation.DerivationSutra)?.matches(state) == true
     }
 }

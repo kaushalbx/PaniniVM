@@ -3,11 +3,7 @@ package dev.panini.ashtadhyayi.adhyaya1.pada1
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.sutra.Sutra
-import dev.panini.sutra.SutraAction
-import dev.panini.sutra.SutraRole
-import dev.panini.sutra.SutraScope
-import dev.panini.sutra.SutraType
+import dev.panini.sutra.*
 
 /**
  * 1.1.49: ṣaṣṭhī sthāneyogā.
@@ -22,7 +18,7 @@ object SasthiSthaneyogaSutra : Sutra<DerivationState, DerivationChange>(
     pada = 1,
     optional = false,
     kramaValue = 110049,
-    role = SutraRole.Paribhasha,
+    role = SutraRole.Paribhasha(targetScope = ParibhashaScope.GENITIVE_RELATION),
     action = SutraAction.PARIBHASHA,
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {

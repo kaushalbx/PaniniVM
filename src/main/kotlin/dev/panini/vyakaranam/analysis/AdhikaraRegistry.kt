@@ -4,6 +4,7 @@ import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraRole
 
+/*
 object AdhikaraRegistry {
     val domains: List<Sutra<*, *>> by lazy {
         Ashtadhyayi.registry.sutras.filter { it.role is SutraRole.Adhikara }
@@ -31,3 +32,4 @@ object AdhikaraRegistry {
         }
     }
 }
+*/

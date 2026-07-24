@@ -23,7 +23,7 @@ object PratyayalopePratyayalaksanamSutra : Sutra<DerivationState, DerivationChan
     pada = 1,
     optional = false,
     kramaValue = 110062,
-    role = SutraRole.Paribhasha,
+    role = SutraRole.Paribhasha(),
     action = SutraAction.PARIBHASHA,
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {

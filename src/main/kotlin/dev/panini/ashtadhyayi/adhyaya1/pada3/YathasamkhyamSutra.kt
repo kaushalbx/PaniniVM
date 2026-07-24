@@ -22,7 +22,7 @@ object YathasamkhyamSutra : Sutra<DerivationState, DerivationChange>(
     pada = 3,
     optional = false,
     kramaValue = 130010,
-    role = SutraRole.Paribhasha,
+    role = SutraRole.Paribhasha(),
     action = SutraAction.PARIBHASHA,
     scope = SutraScope.VARNA,
 ), DerivationSutra {

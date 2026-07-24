@@ -3,6 +3,7 @@ package dev.panini.ashtadhyayi.adhyaya1.pada1
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.sutra.ParibhashaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -22,7 +23,7 @@ object AlAntyasyaSutra : Sutra<DerivationState, DerivationChange>(
     pada = 1,
     optional = false,
     kramaValue = 110052,
-    role = SutraRole.Paribhasha,
+    role = SutraRole.Paribhasha(targetScope = ParibhashaScope.PHONEME_TARGET_LAST),
     action = SutraAction.PARIBHASHA,
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
