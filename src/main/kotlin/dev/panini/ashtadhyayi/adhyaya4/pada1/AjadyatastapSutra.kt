@@ -28,7 +28,7 @@ object StriyamAdhikaraSutra : Sutra<DerivationState, DerivationChange>(
     pada = 1,
     optional = false,
     kramaValue = 410003,
-    role = SutraRole.Adhikara,
+    role = SutraRole.Adhikara(endKrama = 410081),
     action = SutraAction.ADHIKARA,
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {

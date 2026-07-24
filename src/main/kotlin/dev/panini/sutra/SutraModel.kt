@@ -7,7 +7,11 @@ sealed interface SutraRole {
     data object Nishedha : SutraRole
     data object Niyama : SutraRole
     data object Atidesha : SutraRole
-    data object Adhikara : SutraRole
+    data class Adhikara(
+        val endKrama: Int,
+        val customStartKrama: Int? = null,
+        val isContextEligible: (Any) -> Boolean = { true },
+    ) : SutraRole
     data object Anuvrtti : SutraRole
     data object Paribhasha : SutraRole
     data object Apavada : SutraRole

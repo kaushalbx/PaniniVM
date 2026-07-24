@@ -34,7 +34,6 @@ abstract class Sutra<C, R>(
     val blocks: Set<String> = emptySet(),
     private val traceTemplateValue: String? = null,
     private val examplesValue: List<SutraExample> = emptyList(),
-    val adhikaraMetadata: AdhikaraMetadata? = null,
 ) : ScopedSutra, GovernedSutra, TraceableSutra {
 
     /** Every loaded sūtra must state its own eligibility and grammatical change. */
@@ -57,8 +56,6 @@ abstract class Sutra<C, R>(
         get() = examplesValue
 }
 
-data class AdhikaraMetadata(
-    val endKrama: Int,
-    val customStartKrama: Int? = null,
-    val isContextEligible: (Any) -> Boolean = { true },
-)
+
+
+

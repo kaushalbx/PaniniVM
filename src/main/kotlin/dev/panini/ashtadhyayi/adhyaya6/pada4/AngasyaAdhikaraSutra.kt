@@ -3,7 +3,6 @@ package dev.panini.ashtadhyayi.adhyaya6.pada4
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.sutra.AdhikaraMetadata
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -24,10 +23,9 @@ object AngasyaAdhikaraSutra : Sutra<DerivationState, DerivationChange>(
     pada = 4,
     optional = false,
     kramaValue = 640001,
-    role = SutraRole.Adhikara,
+    role = SutraRole.Adhikara(endKrama = 740097),
     action = SutraAction.ADHIKARA,
     scope = SutraScope.DERIVATION,
-    adhikaraMetadata = AdhikaraMetadata(endKrama = 740097),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         // Activate if not already active and we have at least two terms (stem + affix)

@@ -1,6 +1,5 @@
 package dev.panini.ashtadhyayi.adhyaya1.pada4
 
-import dev.panini.sutra.AdhikaraMetadata
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraInput
@@ -16,10 +15,9 @@ object KarakeSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     number = "1.4.23", text = "कारके",
     hindiExplanation = "अधिकारोऽयम्। इत ऊर्ध्वं या इतः प्राक् कडारादुक्ताः ताः कारके इत्यधिकारस्थत्वात् कारकाख्यत्वं लभन्ते। एका च संज्ञेति नियम्यते।",
     type = SutraType.ADHIKARA, chapter = 1, pada = 4, optional = false, kramaValue = 140023,
-    role = SutraRole.Adhikara, action = SutraAction.ADHIKARA, scope = SutraScope.VAKYA,
+    role = SutraRole.Adhikara(endKrama = 140055), action = SutraAction.ADHIKARA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.KARAKA_CANDIDATE),
     adhikara = emptySet(),
-    adhikaraMetadata = AdhikaraMetadata(endKrama = 140055),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean = false
 

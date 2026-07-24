@@ -3,7 +3,6 @@ package dev.panini.ashtadhyayi.adhyaya1.pada4
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.sutra.AdhikaraMetadata
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -24,8 +23,7 @@ object AkadaradEkaSamjnaSutra : Sutra<DerivationState, DerivationChange>(
     pada = 4,
     optional = false,
     kramaValue = 140001,
-    adhikaraMetadata = AdhikaraMetadata(endKrama = 220038),
-    role = SutraRole.Adhikara,
+    role = SutraRole.Adhikara(endKrama = 220038),
     action = SutraAction.ADHIKARA,
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {

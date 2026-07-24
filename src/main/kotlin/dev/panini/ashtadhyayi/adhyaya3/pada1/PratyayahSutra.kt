@@ -6,7 +6,6 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.SamjnaAssignment
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
-import dev.panini.sutra.AdhikaraMetadata
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -30,7 +29,6 @@ object PratyayahSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Samjna,
     action = SutraAction.SAMJNA,
     scope = SutraScope.DERIVATION,
-    adhikaraMetadata = AdhikaraMetadata(endKrama = 540160),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
         context.terms.any { term ->
