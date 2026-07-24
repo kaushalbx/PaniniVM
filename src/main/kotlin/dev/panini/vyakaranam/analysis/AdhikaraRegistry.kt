@@ -8,13 +8,22 @@ import dev.panini.ashtadhyayi.adhyaya3.pada1.PratyayahSutra
 import dev.panini.ashtadhyayi.adhyaya6.pada4.AngasyaAdhikaraSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada1.PadasyaAdhikaraSutra
 import dev.panini.sutra.Sutra
+import dev.panini.sutra.SutraRole
+import dev.panini.sutra.SutraType
 
 data class AdhikaraDomain(
     val sutra: Sutra<*, *>,
     val endKrama: Int,
     val customStartKrama: Int? = null,
     val isContextEligible: (VibhaktiRuleContext) -> Boolean = { true },
-    val isDerivationEligible: (dev.panini.derivation.DerivationState) -> Boolean = { true },
+    val isDerivationEligible: (dev.panini.derivation.DerivationState) -> Boolean = { state ->
+        if (sutra.type == SutraType.ADHIKARA || sutra.role == SutraRole.Adhikara) {
+            val id = sutra.number
+            id in state.activeAdhikaras || (sutra as? dev.panini.derivation.DerivationSutra)?.matches(state) == true
+        } else {
+            true
+        }
+    },
 ) {
     val sutraNumber: String get() = sutra.number
     val sutraText: String get() = sutra.text
@@ -44,21 +53,14 @@ object AdhikaraRegistry {
         AdhikaraDomain(
             sutra = DhatohAdhikaraSutra,
             endKrama = 340117,
-            isDerivationEligible = { state ->
-                "3.1.91" in state.activeAdhikaras || DhatohAdhikaraSutra.matches(state)
-            }
         ),
         AdhikaraDomain(
             sutra = AngasyaAdhikaraSutra,
             endKrama = 740097,
-            isDerivationEligible = { state ->
-                state.terms.size >= 2 && state.terms.any { it.kind == dev.panini.derivation.TermKind.PRATYAYA }
-            }
         ),
         AdhikaraDomain(
             sutra = PadasyaAdhikaraSutra,
             endKrama = 830119,
-            isDerivationEligible = { true }
         ),
     )
 
