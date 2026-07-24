@@ -1,14 +1,12 @@
 package dev.panini.derivation
 
 import dev.panini.ashtadhyayi.Ashtadhyayi
-import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraPriority
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.sutra.SutraVisibility
-import dev.panini.vyakaranam.analysis.VibhaktiRuleContext
 
 data class DerivationApplication(
     val sutra: String,
@@ -451,18 +449,15 @@ fun DerivationResult.verifyDerivation(
     }
 }
 
-val domains: List<Sutra<*, *>> by lazy {
-    Ashtadhyayi.registry.sutras.filter { it.role is SutraRole.Adhikara }
-}
-
-fun isDerivationEligible(sutraKrama: Int, state: dev.panini.derivation.DerivationState): Boolean {
-    val activeDomains = domains.filter { domain ->
+//need to fix it or remove it
+fun isDerivationEligible(sutraKrama: Int, state: DerivationState): Boolean {
+    val activeDomains = Ashtadhyayi.adhikaraSutras.filter { domain ->
         val role = domain.role as SutraRole.Adhikara
         val start = role.customStartKrama ?: domain.krama
         val end = role.endKrama
         sutraKrama in start..end
     }
     return activeDomains.all { domain ->
-        domain.number in state.activeAdhikaras || (domain as? dev.panini.derivation.DerivationSutra)?.matches(state) == true
+        domain.number in state.activeAdhikaras || (domain as? DerivationSutra)?.matches(state) == true
     }
 }

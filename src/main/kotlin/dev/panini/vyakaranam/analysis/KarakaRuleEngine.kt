@@ -219,12 +219,10 @@ object KarakaRuleEngine {
         return KarakaResolution(candidates, resolved, possibleVibhaktis, evidence, resolvedVibhakti)
     }
 }
-val domains: List<Sutra<*, *>> by lazy {
-    Ashtadhyayi.registry.sutras.filter { it.role is SutraRole.Adhikara }
-}
 
+//need to fix it or remove it
 fun isVibhaktiEligible(sutraKrama: Int, context: VibhaktiRuleContext): Boolean {
-    val activeDomains = domains.filter { domain ->
+    val activeDomains = Ashtadhyayi.adhikaraSutras.filter { domain ->
         val role = domain.role as SutraRole.Adhikara
         val start = role.customStartKrama ?: domain.krama
         val end = role.endKrama

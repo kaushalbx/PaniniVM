@@ -28,11 +28,7 @@ import dev.panini.ashtadhyayi.adhyaya8.pada4.Adhyaya8Pada4
 import dev.panini.derivation.DerivationSutra
 import dev.panini.ganapatha.Gana
 import dev.panini.pratyahara.PratyaharaEngine
-import dev.panini.sutra.Sutra
-import dev.panini.sutra.SutraCatalogIssue
-import dev.panini.sutra.SutraCatalogValidator
-import dev.panini.sutra.SutraPatha
-import dev.panini.sutra.SutraRegistry
+import dev.panini.sutra.*
 
 object Ashtadhyayi {
     const val expectedSutraCount: Int = 3959
@@ -54,6 +50,7 @@ object Ashtadhyayi {
 
     val registry = SutraRegistry(cataloguedSutras)
     val executableSutras: List<DerivationSutra> = registry.sutras.filterIsInstance<DerivationSutra>()
+
     /** Compatibility view; derived from the registry and never maintained separately. */
     val kriyavatSutras: List<Sutra<*, *>> = executableSutras.map { it as Sutra<*, *> }
     val catalogIssues: List<SutraCatalogIssue> = SutraCatalogValidator.validate(registry)
@@ -62,6 +59,15 @@ object Ashtadhyayi {
     val kriyavatCount: Int get() = patha.kriyavatCount
     val remainingCount: Int get() = expectedSutraCount - pathitaCount
 
+    val adhikaraSutras: List<Sutra<*, *>> by lazy {
+        registry.sutras.filter { it.role is SutraRole.Adhikara }
+    }
+    val paribhasaSutras: List<Sutra<*, *>> by lazy {
+        registry.sutras.filter { it.role is SutraRole.Paribhasha }
+    }
+
     /** Resolves an implemented sūtra associated with a Gaṇapāṭha entry. */
     fun sutraFor(gana: Gana): Sutra<*, *> = registry.require(gana.sutra)
+
+    fun getSutrasByRole(role: SutraRole): List<Sutra<*, *>> = registry.sutras.filter { it.role == role }
 }
