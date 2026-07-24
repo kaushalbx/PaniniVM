@@ -51,7 +51,8 @@ class SubantaEngine(
             id = request.pratipadika,
             expression = AvyayaPada(request.pratipadika, request.pratipadika),
             possibleVibhaktis = allVibhaktis,
-            semanticRelations = profile?.relations.orEmpty()
+            semanticRelations = request.semanticRelations ?: profile?.relations.orEmpty(),
+            categories = request.categories ?: emptySet()
         )
         val dhatuEntry = DhatuPatha.all.firstOrNull { 
             it.upadesha == request.dhatu || it.derivationalSurface == request.dhatu || it.sourceSurface == request.dhatu
@@ -79,7 +80,7 @@ class SubantaEngine(
         )
         val resolvedVibhakti = resolution.resolvedVibhakti ?: Vibhakti.PRATHAMA
 
-        return derive(
+        val result = derive(
             SubantaDerivationRequest(
                 pratipadika = request.pratipadika,
                 vibhakti = resolvedVibhakti,
@@ -87,6 +88,7 @@ class SubantaEngine(
                 stemClass = SubantaStemClass.guess(request.pratipadika)
             )
         )
+        return result.copy(karakaResolution = resolution)
     }
 }
 

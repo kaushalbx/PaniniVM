@@ -79,4 +79,37 @@ class SubantaKarakaDerivationTest {
         assertEquals(Vibhakti.PRATHAMA, passiveRes.initial.context.rupa.vibhakti)
         assertEquals("रामः", passiveRes.final.surface)
     }
+
+    @Test
+    fun `attaches karaka resolution to derivation result`() {
+        val result = SubantaEngine().deriveFromKaraka(
+            KarakaSubantaDerivationRequest(
+                pratipadika = "राम",
+                karaka = Karaka.SAMPRADANA,
+                vacana = Vacana.EKAVACANA,
+                dhatu = "दा"
+            )
+        )
+        val resolution = result.karakaResolution
+        kotlin.test.assertNotNull(resolution)
+        assertEquals(Karaka.SAMPRADANA, resolution.resolved)
+        assertEquals(Vibhakti.CHATURTHI, resolution.resolvedVibhakti)
+        kotlin.test.assertTrue(resolution.evidence.any { it.sutra == "1.4.32" })
+        kotlin.test.assertTrue(resolution.evidence.any { it.sutra == "2.3.13" })
+    }
+
+    @Test
+    fun `supports custom semantic relations overrides`() {
+        val result = SubantaEngine().deriveFromKaraka(
+            KarakaSubantaDerivationRequest(
+                pratipadika = "राम",
+                karaka = Karaka.SAMPRADANA,
+                vacana = Vacana.EKAVACANA,
+                dhatu = "पठ्",
+                semanticRelations = setOf(dev.panini.vyakaranam.analysis.SemanticRelation.RECIPIENT)
+            )
+        )
+        assertEquals(Vibhakti.CHATURTHI, result.initial.context.rupa.vibhakti)
+        assertEquals("रामाय", result.final.surface)
+    }
 }

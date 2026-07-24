@@ -104,6 +104,12 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
         buildList {
             val resolvedVibhakti = result.initial.context.rupa.vibhakti ?: Vibhakti.PRATHAMA
             add("$resolvedVibhakti $vacana: ${result.final.surface}")
+            result.karakaResolution?.let { res ->
+                add("Semantic Karaka Resolution Trace:")
+                res.evidence.forEach { ev ->
+                    add("  ${ev.sutra} — ${ev.reason} (${ev.text})")
+                }
+            }
             addTrace(result, includeRole = true)
         }
     }

@@ -2,9 +2,11 @@ package dev.panini.derivation
 
 import dev.panini.core.Karaka
 import dev.panini.core.Linga
+import dev.panini.core.NominalCategory
 import dev.panini.core.Prayoga
 import dev.panini.core.Vacana
 import dev.panini.core.Vibhakti
+import dev.panini.vyakaranam.analysis.SemanticRelation
 import dev.panini.shiksha.Ayogavaha
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Vyanjana
@@ -105,6 +107,8 @@ data class KarakaSubantaDerivationRequest(
     val vacana: Vacana,
     val dhatu: String,
     val isSakarmaka: Boolean = true,
-    val prayoga: Prayoga = Prayoga.KARTARI
+    val prayoga: Prayoga = Prayoga.KARTARI,
+    val semanticRelations: Set<SemanticRelation>? = null,
+    val categories: Set<NominalCategory>? = null,
 )
 
