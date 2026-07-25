@@ -60,4 +60,8 @@ tasks.compileTestKotlin {
 
 tasks.test {
     useJUnitPlatform()
+    maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
+    forkEvery = 0          // reuse JVM across test classes (faster startup)
+    maxHeapSize = "512m"
 }
+
