@@ -51,25 +51,68 @@ enum class SubantaStemClass(
     A_STEM_FEMININE("ā-stem feminine", Linga.STRI),
     UU_STEM_FEMININE("ū-stem feminine", Linga.STRI),
     R_STEM_FEMININE("ṛ-stem feminine", Linga.STRI),
+    IN_STEM_MASCULINE("in-stem masculine", Linga.PUMS),
+    MATUP_STEM("matup-stem masculine", Linga.PUMS),
+    T_STEM("t-stem", Linga.PUMS),
+    D_STEM("d-stem", Linga.STRI),
+    C_STEM("c-stem", Linga.STRI),
+    ANCH_STEM("añc-stem", Linga.PUMS),
+    PRONOMINAL_STEM("pronominal stem", Linga.PUMS),
+    PRONOMINAL_PERSONAL("personal pronoun stem", Linga.PUMS),
+    J_STEM("j-stem", Linga.PUMS),
+    SH_STEM("ṣ-stem", Linga.STRI),
+    DIPHTHONG_STEM("diphthong-stem", Linga.PUMS),
+    IRREGULAR_N_STEM("irregular n-stem", Linga.PUMS),
+    PATHIN_STEM("pathin-stem", Linga.PUMS),
+    NUMERAL_CARDINAL("cardinal numeral", Linga.PUMS),
+    NUMERAL_ORDINAL("ordinal numeral", Linga.PUMS),
+    S_STEM_MASCULINE("s-stem masculine", Linga.PUMS),
+    R_CONSONANT_STEM("r-consonant stem", Linga.STRI),
+    H_STEM("h-stem", Linga.PUMS),
     ;
 
     fun accepts(pratipadika: String): Boolean = when (this) {
-        A_STEM_MASCULINE, A_STEM_NEUTER -> pratipadika.last() !in independentVowelsOrMarks
+        A_STEM_MASCULINE, A_STEM_NEUTER, PRONOMINAL_STEM, NUMERAL_ORDINAL -> pratipadika.last() !in independentVowelsOrMarks
         I_STEM_MASCULINE, I_STEM_FEMININE -> pratipadika.endsWith(Svara.I.matra!!) || pratipadika.endsWith(Svara.I.devanagari)
         U_STEM_MASCULINE, U_STEM_FEMININE -> pratipadika.endsWith(Svara.U.matra!!) || pratipadika.endsWith(Svara.U.devanagari)
         R_STEM_MASCULINE, R_STEM_FEMININE -> pratipadika.endsWith(Svara.R.matra!!) || pratipadika.endsWith(Svara.R.devanagari)
-        N_STEM_MASCULINE -> pratipadika.endsWith("न्")
-        S_STEM_NEUTER -> pratipadika.endsWith("स्")
+        N_STEM_MASCULINE, IN_STEM_MASCULINE, IRREGULAR_N_STEM, PATHIN_STEM -> pratipadika.endsWith("न्")
+        S_STEM_NEUTER, S_STEM_MASCULINE -> pratipadika.endsWith("स्")
         II_STEM_FEMININE -> pratipadika.endsWith(Svara.II.matra!!) || pratipadika.endsWith(Svara.II.devanagari)
         A_STEM_FEMININE -> pratipadika.endsWith(Svara.AA.matra!!) || pratipadika.endsWith(Svara.AA.devanagari)
         UU_STEM_FEMININE -> pratipadika.endsWith(Svara.UU.matra!!) || pratipadika.endsWith(Svara.UU.devanagari)
+        MATUP_STEM, T_STEM -> pratipadika.endsWith("त्")
+        D_STEM, PRONOMINAL_PERSONAL -> pratipadika.endsWith("द्") || pratipadika.endsWith("ध्")
+        C_STEM, ANCH_STEM -> pratipadika.endsWith("च्") || pratipadika.endsWith("ञ्च्")
+        J_STEM -> pratipadika.endsWith("ज्")
+        SH_STEM -> pratipadika.endsWith("ष्")
+        DIPHTHONG_STEM -> pratipadika.endsWith("ो") || pratipadika.endsWith("ौ") || pratipadika.endsWith("ै") || pratipadika in setOf("गो", "द्यौ", "नौ")
+        NUMERAL_CARDINAL, R_CONSONANT_STEM -> pratipadika.endsWith("र्") || pratipadika in setOf("द्वि", "त्रि", "चतुर्", "पञ्चन्", "षष्", "सप्तन्", "अष्टन्", "नवन्", "दशन्")
+        H_STEM -> pratipadika.endsWith("ह्")
     }
 
     companion object {
         fun guess(pratipadika: String): SubantaStemClass {
             return when {
+                pratipadika in setOf("चन्द्रमस्", "अङ्गिरस्", "वेधस्", "उशनस्", "पुरोधस्") -> S_STEM_MASCULINE
+                pratipadika in setOf("द्वि", "त्रि", "चतुर्", "पञ्चन्", "षष्", "सप्तन्", "अष्टन्", "नवन्", "दशन्") -> NUMERAL_CARDINAL
+                pratipadika in setOf("गो", "द्यौ", "नौ", "ग्लो") -> DIPHTHONG_STEM
+                pratipadika in setOf("पथिन्", "मथिन्", "ऋभुक्षिन्") -> PATHIN_STEM
+                pratipadika in setOf("अहन्", "श्वन्", "मघवन्", "युवन्") -> IRREGULAR_N_STEM
+                pratipadika.endsWith("र्") -> R_CONSONANT_STEM
+                pratipadika.endsWith("ह्") -> H_STEM
+                pratipadika in setOf("युष्मद्", "अस्मद्", "तद्", "यद्", "एतद्", "किम्") -> PRONOMINAL_PERSONAL
+                pratipadika in setOf("सर्व", "विश्व", "उभय", "अन्य", "अन्यतर", "इतर") -> PRONOMINAL_STEM
+                pratipadika.endsWith("अञ्च्") || pratipadika.endsWith("ञ्च्") -> ANCH_STEM
+                pratipadika.endsWith("िन्") -> IN_STEM_MASCULINE
                 pratipadika.endsWith("न्") -> N_STEM_MASCULINE
                 pratipadika.endsWith("स्") -> S_STEM_NEUTER
+                pratipadika.endsWith("मत्") || pratipadika.endsWith("वत्") -> MATUP_STEM
+                pratipadika.endsWith("त्") -> T_STEM
+                pratipadika.endsWith("द्") || pratipadika.endsWith("ध्") -> D_STEM
+                pratipadika.endsWith("च्") -> C_STEM
+                pratipadika.endsWith("ज्") -> J_STEM
+                pratipadika.endsWith("ष्") -> SH_STEM
                 pratipadika.endsWith("ी") -> II_STEM_FEMININE
                 pratipadika.endsWith("ू") -> UU_STEM_FEMININE
                 pratipadika.endsWith("ा") -> A_STEM_FEMININE
@@ -120,4 +163,3 @@ data class KarakaSubantaDerivationRequest(
     val upapada: String? = null,
     val otherParticipants: List<dev.panini.vyakaranam.analysis.ParticipantFacts>? = null,
 )
-
