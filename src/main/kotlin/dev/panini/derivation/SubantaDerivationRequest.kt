@@ -42,8 +42,10 @@ enum class SubantaStemClass(
     A_STEM_NEUTER("a-stem neuter", Linga.NAPUMSAKA),
     I_STEM_MASCULINE("i-stem masculine", Linga.PUMS),
     I_STEM_FEMININE("i-stem feminine", Linga.STRI),
+    I_STEM_NEUTER("i-stem neuter", Linga.NAPUMSAKA),
     U_STEM_MASCULINE("u-stem masculine", Linga.PUMS),
     U_STEM_FEMININE("u-stem feminine", Linga.STRI),
+    U_STEM_NEUTER("u-stem neuter", Linga.NAPUMSAKA),
     R_STEM_MASCULINE("ṛ-stem masculine", Linga.PUMS),
     N_STEM_MASCULINE("n-stem masculine", Linga.PUMS),
     S_STEM_NEUTER("s-stem neuter", Linga.NAPUMSAKA),
@@ -73,8 +75,8 @@ enum class SubantaStemClass(
 
     fun accepts(pratipadika: String): Boolean = when (this) {
         A_STEM_MASCULINE, A_STEM_NEUTER, PRONOMINAL_STEM, NUMERAL_ORDINAL -> pratipadika.last() !in independentVowelsOrMarks
-        I_STEM_MASCULINE, I_STEM_FEMININE -> pratipadika.endsWith(Svara.I.matra!!) || pratipadika.endsWith(Svara.I.devanagari)
-        U_STEM_MASCULINE, U_STEM_FEMININE -> pratipadika.endsWith(Svara.U.matra!!) || pratipadika.endsWith(Svara.U.devanagari)
+        I_STEM_MASCULINE, I_STEM_FEMININE, I_STEM_NEUTER -> pratipadika.endsWith(Svara.I.matra!!) || pratipadika.endsWith(Svara.I.devanagari)
+        U_STEM_MASCULINE, U_STEM_FEMININE, U_STEM_NEUTER -> pratipadika.endsWith(Svara.U.matra!!) || pratipadika.endsWith(Svara.U.devanagari)
         R_STEM_MASCULINE, R_STEM_FEMININE -> pratipadika.endsWith(Svara.R.matra!!) || pratipadika.endsWith(Svara.R.devanagari)
         N_STEM_MASCULINE, IN_STEM_MASCULINE, IRREGULAR_N_STEM, PATHIN_STEM -> pratipadika.endsWith("न्")
         S_STEM_NEUTER, S_STEM_MASCULINE -> pratipadika.endsWith("स्")
@@ -117,12 +119,18 @@ enum class SubantaStemClass(
                 pratipadika.endsWith("ू") -> UU_STEM_FEMININE
                 pratipadika.endsWith("ा") -> A_STEM_FEMININE
                 pratipadika.endsWith("ि") -> {
-                    if (pratipadika in setOf("मति", "भूमि", "धूलि", "गति", "रात्रि", "कीर्ति", "जाति", "नीति", "शान्ति", "मुक्ति", "स्मृति", "प्रीति")) I_STEM_FEMININE
-                    else I_STEM_MASCULINE
+                    when (pratipadika) {
+                        in setOf("वारि", "अक्षि", "दधि", "सक्थि", "अस्थि") -> I_STEM_NEUTER
+                        in setOf("मति", "भूमि", "धूलि", "गति", "रात्रि", "कीर्ति", "जाति", "नीति", "शान्ति", "मुक्ति", "स्मृति", "प्रीति") -> I_STEM_FEMININE
+                        else -> I_STEM_MASCULINE
+                    }
                 }
                 pratipadika.endsWith("ु") -> {
-                    if (pratipadika in setOf("धेनु", "तनु", "रेणु", "चञ्चु", "रज्जु")) U_STEM_FEMININE
-                    else U_STEM_MASCULINE
+                    when (pratipadika) {
+                        in setOf("मधु", "अम्बु", "जानु", "वस्तु", "अश्रु", "दारु", "तालु") -> U_STEM_NEUTER
+                        in setOf("धेनु", "तनु", "रेणु", "चञ्चु", "रज्जु") -> U_STEM_FEMININE
+                        else -> U_STEM_MASCULINE
+                    }
                 }
                 pratipadika.endsWith("ृ") -> {
                     if (pratipadika in setOf("मातृ", "स्वसृ", "दुहितृ", "यातृ", "ननान्दृ")) R_STEM_FEMININE
