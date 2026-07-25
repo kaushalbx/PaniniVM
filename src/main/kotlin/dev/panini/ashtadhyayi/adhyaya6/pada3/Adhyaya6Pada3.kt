@@ -8,5 +8,6 @@ object Adhyaya6Pada3 {
         DvyashtanahSankhyayamSutra,
         VibhashaChatvarimshatPrabhritauSarveshamSutra,
         EkadishCaikasyaCadukSutra,
+        DhralopePurvasyaDirghonahSutra,
     )
 }

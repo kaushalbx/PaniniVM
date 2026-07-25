@@ -1,6 +1,7 @@
 package dev.panini.ashtadhyayi
 
 import dev.panini.ashtadhyayi.adhyaya6.pada1.EtattadohSulopoKoAnanjparoHaliSutra
+import dev.panini.ashtadhyayi.adhyaya8.pada3.BhoBhagoAghoApurvasyaYoshiSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada3.DhoDheLopaSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada3.HaliSarveshamSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada4.JharoJhariSavarneSutra
@@ -119,5 +120,18 @@ class SandhiPhonologicalTransformationTest {
         assertTrue(DhoDheLopaSutra.matches(state))
         val change = DhoDheLopaSutra.apply(state)
         assertEquals("ली", change.state.terms[0].surface)
+    }
+
+    @Test
+    fun `test BhoBhagoAghoApurvasyaYoshiSutra transforms visarga to y before ash`() {
+        val state = DerivationState(
+            terms = listOf(
+                DerivationTerm("t1", "देवः", TermKind.PRATIPADIKA, upadesha = "देवः"),
+                DerivationTerm("t2", "इह", TermKind.PRATIPADIKA, upadesha = "इह")
+            )
+        )
+        assertTrue(BhoBhagoAghoApurvasyaYoshiSutra.matches(state))
+        val change = BhoBhagoAghoApurvasyaYoshiSutra.apply(state)
+        assertEquals("देवय", change.state.terms[0].surface)
     }
 }
