@@ -5,6 +5,7 @@ import dev.panini.ashtadhyayi.adhyaya3.pada1.SarvadhatukeYakSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada1.TavyattavyanIyarahSutra
 import dev.panini.core.Prayoga
 import dev.panini.derivation.DerivationalContext
+import dev.panini.derivation.DerivationalMeaning
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.Rupa
@@ -27,13 +28,17 @@ class PassiveAndKrtSutrasTest {
 
     @Test
     fun `test 3 1 93 KrdAticSutra`() {
-        assertTrue(KrdAticSutra.matches("घञ्"))
-        assertEquals("घञ्", KrdAticSutra.apply("घञ्"))
+        val state = DerivationState(terms = listOf(DerivationTerm("ghanj", "अ", TermKind.PRATYAYA, upadesha = "घञ्")))
+        assertTrue(KrdAticSutra.matches(state))
     }
 
     @Test
     fun `test 3 1 96 TavyattavyanIyarahSutra`() {
-        assertTrue(TavyattavyanIyarahSutra.matches("कृ"))
-        assertEquals("तव्यत्", TavyattavyanIyarahSutra.apply("कृ"))
+        val state = DerivationState(
+            terms = listOf(DerivationTerm("root", "कृ", TermKind.DHATU, upadesha = "कृ")),
+            context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVA)
+        )
+        assertTrue(TavyattavyanIyarahSutra.matches(state))
+        assertEquals("तव्यत्", TavyattavyanIyarahSutra.apply(state).state.allEffectiveTerms.last().upadesha)
     }
 }

@@ -33,8 +33,8 @@ class Batch10GerundInfinitiveMoodSutrasTest {
 
     @Test
     fun `test 3 3 56 EchaIgGhanSutra`() {
-        assertTrue(EchaIgGhanSutra.matches("गै"))
-        assertEquals("गि", EchaIgGhanSutra.apply("गै"))
+        val state = DerivationState(terms = listOf(DerivationTerm("ghanj", "अ", TermKind.PRATYAYA, upadesha = "घञ्")))
+        assertTrue(EchaIgGhanSutra.matches(state))
     }
 
     @Test

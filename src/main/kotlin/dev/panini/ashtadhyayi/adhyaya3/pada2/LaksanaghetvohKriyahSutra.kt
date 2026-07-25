@@ -1,24 +1,37 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada2
 
+import dev.panini.core.Lakara
+import dev.panini.derivation.DerivationChange
+import dev.panini.derivation.DerivationState
+import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.TermKind
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
-import dev.panini.sutra.SutraInput
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 /**
  * Sūtra 3.2.126 लक्षणहेत्वोः क्रियायाः.
- * Prescribes śatṛ and śānac in continuous/causal conditions.
+ * Prescribes śatṛ / śānac in symptom and cause meanings.
  */
-object LaksanaghetvohKriyahSutra : Sutra<String, String>(
+object LaksanaghetvohKriyahSutra : Sutra<DerivationState, DerivationChange>(
     number = "3.2.126", text = "लक्षणहेत्वोः क्रियायाः",
-    hindiExplanation = "लक्षण तथा हेतु अर्थ प्रकट करने वाली क्रिया से लट् के स्थान पर 'शतृ' व 'शानच्' प्रत्यय होते हैं।",
+    hindiExplanation = "लक्षण तथा हेतु अर्थों में क्रियावाचक धातु से शतृ तथा शानच् प्रत्यय होते हैं।",
     type = SutraType.NITYA, chapter = 3, pada = 2, optional = false, kramaValue = 320126,
-    role = SutraRole.Vidhi, action = SutraAction.PRATYAYA_SELECTION, scope = SutraScope.DHATU,
-    inputs = setOf(SutraInput.DHATU),
-    adhikara = emptySet(),
-) {
-    override fun matches(context: String): Boolean = context in setOf("लक्षण", "हेतु", "कारण")
-    override fun apply(context: String): String = "शतृ"
+    role = SutraRole.Vidhi, action = SutraAction.PRATYAYA_SELECTION, scope = SutraScope.DERIVATION,
+), DerivationSutra {
+    override fun matches(context: DerivationState): Boolean =
+        context.effectiveContext.rupa.lakara == Lakara.LAT &&
+        context.effectiveContext.requestedMeaning != null &&
+        context.allEffectiveTerms.none { it.upadesha in setOf("शतृ", "शानच्") }
+
+    override fun apply(context: DerivationState): DerivationChange {
+        val satri = DerivationTerm("satri", "अत्", TermKind.PRATYAYA, upadesha = "शतृ")
+        return DerivationChange(
+            state = context.addTerm(satri),
+            explanation = "3.2.126 prescribes शतृ / शानच् in lakṣaṇa/hetu.",
+        )
+    }
 }
