@@ -471,7 +471,7 @@ vikarana
 
 agama
     : AT
-    | IT_AGAMA
+    | IT
     | IIT_AGAMA
     | NUM
     | TUK
