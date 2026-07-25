@@ -24,7 +24,6 @@ import dev.panini.derivation.OptionalRulePolicy
 import dev.panini.derivation.SamjnaAssignment
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
-import java.math.BigInteger
 
 /** Derives the currently implemented pūraṇa numerals through A.5.2.48–56. */
 class PuranaSankhyaDeriver(
@@ -52,13 +51,13 @@ class PuranaSankhyaDeriver(
     )
     private val thukPhonology = DerivationEngine(listOf(StunaShtuhSutra))
 
-    fun derive(value: BigInteger): DerivationResult {
+    fun derive(value: Long): DerivationResult {
         val initial = initialState(value)
         val taddhita = taddhitaEngine.derive(initial, DerivationConfig(OptionalRulePolicy.SKIP_ALL))
         return complete(initial, taddhita)
     }
 
-    fun deriveVariants(value: BigInteger): List<DerivationResult> {
+    fun deriveVariants(value: Long): List<DerivationResult> {
         requireSupported(value)
         val initial = initialState(value)
         return taddhitaEngine.deriveAll(initial)
@@ -85,12 +84,12 @@ class PuranaSankhyaDeriver(
         )
     }
 
-    private fun initialState(value: BigInteger): DerivationState {
+    private fun initialState(value: Long): DerivationState {
         requireSupported(value)
 
-        val base = if (value == BigInteger.ONE) "प्रथम" else PrimitiveSankhya.fromValue(value)?.pratipadika
+        val base = if (value == 1L) "प्रथम" else PrimitiveSankhya.fromValue(value)?.pratipadika
             ?: cardinalDeriver.derive(value).final.surface
-        val underlyingHead = if (value == BigInteger.ONE) base else expressionBuilder.build(value).headPrimitive().pratipadika
+        val underlyingHead = if (value == 1L) base else expressionBuilder.build(value).headPrimitive().pratipadika
         val term = DerivationTerm(
             id = "purana_base",
             surface = base,
@@ -111,8 +110,7 @@ class PuranaSankhyaDeriver(
         return initial
     }
 
-    private fun requireSupported(value: BigInteger) {
-        require(value.signum() > 0) { "Pūraṇa numerals require a positive cardinal: $value" }
+    private fun requireSupported(value: Long) {
+        require(value > 0L) { "Pūraṇa numerals require a positive cardinal: $value" }
     }
-
 }

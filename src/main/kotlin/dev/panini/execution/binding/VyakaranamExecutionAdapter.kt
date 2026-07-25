@@ -205,7 +205,7 @@ object VyakaranamExecutionAdapter {
             }
         }
         return if (sankhyaValue != null) {
-            ExecutionExpression.sankhya(sankhyaValue.longValueExact(), text)
+            ExecutionExpression.sankhya(sankhyaValue, text)
         } else {
             ExecutionExpression.Pada(text, samjnas)
         }

@@ -1,9 +1,7 @@
 package dev.panini.sankhya
 
-import java.math.BigInteger
-
 enum class PrimitiveSankhya(
-    val value: BigInteger,
+    val value: Long,
     val pratipadika: String,
     /** Form supplied as a पूर्वपद before numeral-internal sandhi. */
     val purvapada: String = pratipadika,
@@ -11,36 +9,36 @@ enum class PrimitiveSankhya(
     val uttarapada: String = pratipadika,
     val inflectionClass: SankhyaInflectionClass = SankhyaInflectionClass.SPECIAL,
 ) {
-    SHUNYA(BigInteger.ZERO, "शून्य"),
+    SHUNYA(0L, "शून्य"),
 
-    EKA(BigInteger.ONE, "एक"),
-    DVI(BigInteger.TWO, "द्वि"),
-    TRI(BigInteger.valueOf(3), "त्रि"),
-    CHATUR(BigInteger.valueOf(4), "चतुर्"),
-    PANCHAN(BigInteger.valueOf(5), "पञ्चन्", purvapada = "पञ्च", inflectionClass = SankhyaInflectionClass.COUNT_FIVE_TO_NINETEEN),
-    SHASH(BigInteger.valueOf(6), "षष्", inflectionClass = SankhyaInflectionClass.COUNT_FIVE_TO_NINETEEN),
-    SAPTAN(BigInteger.valueOf(7), "सप्तन्", purvapada = "सप्त", inflectionClass = SankhyaInflectionClass.COUNT_FIVE_TO_NINETEEN),
-    ASHTAN(BigInteger.valueOf(8), "अष्टन्", inflectionClass = SankhyaInflectionClass.COUNT_FIVE_TO_NINETEEN),
-    NAVAN(BigInteger.valueOf(9), "नवन्", purvapada = "नव", inflectionClass = SankhyaInflectionClass.COUNT_FIVE_TO_NINETEEN),
+    EKA(1L, "एक"),
+    DVI(2L, "द्वि"),
+    TRI(3L, "त्रि"),
+    CHATUR(4L, "चतुर्"),
+    PANCHAN(5L, "पञ्चन्", purvapada = "पञ्च", inflectionClass = SankhyaInflectionClass.COUNT_FIVE_TO_NINETEEN),
+    SHASH(6L, "षष्", inflectionClass = SankhyaInflectionClass.COUNT_FIVE_TO_NINETEEN),
+    SAPTAN(7L, "सप्तन्", purvapada = "सप्त", inflectionClass = SankhyaInflectionClass.COUNT_FIVE_TO_NINETEEN),
+    ASHTAN(8L, "अष्टन्", inflectionClass = SankhyaInflectionClass.COUNT_FIVE_TO_NINETEEN),
+    NAVAN(9L, "नवन्", purvapada = "नव", inflectionClass = SankhyaInflectionClass.COUNT_FIVE_TO_NINETEEN),
 
-    DASHAN(BigInteger.TEN, "दशन्", uttarapada = "दश", inflectionClass = SankhyaInflectionClass.COUNT_FIVE_TO_NINETEEN),
-    SHODASHA(BigInteger.valueOf(16), "षोडश", inflectionClass = SankhyaInflectionClass.COUNT_FIVE_TO_NINETEEN),
+    DASHAN(10L, "दशन्", uttarapada = "दश", inflectionClass = SankhyaInflectionClass.COUNT_FIVE_TO_NINETEEN),
+    SHODASHA(16L, "षोडश", inflectionClass = SankhyaInflectionClass.COUNT_FIVE_TO_NINETEEN),
 
-    VIMSHATI(BigInteger.valueOf(20), "विंशति", inflectionClass = SankhyaInflectionClass.FEMININE_I),
-    TRIMSHAT(BigInteger.valueOf(30), "त्रिंशत्", inflectionClass = SankhyaInflectionClass.FEMININE_T),
-    CHATVARIMSHAT(BigInteger.valueOf(40), "चत्वारिंशत्", inflectionClass = SankhyaInflectionClass.FEMININE_T),
-    PANCHASHAT(BigInteger.valueOf(50), "पञ्चाशत्", inflectionClass = SankhyaInflectionClass.FEMININE_T),
-    SHASHTI(BigInteger.valueOf(60), "षष्टि", inflectionClass = SankhyaInflectionClass.FEMININE_I),
-    SAPTATI(BigInteger.valueOf(70), "सप्तति", inflectionClass = SankhyaInflectionClass.FEMININE_I),
-    ASHITI(BigInteger.valueOf(80), "अशीति", inflectionClass = SankhyaInflectionClass.FEMININE_I),
-    NAVATI(BigInteger.valueOf(90), "नवति", inflectionClass = SankhyaInflectionClass.FEMININE_I),
+    VIMSHATI(20L, "विंशति", inflectionClass = SankhyaInflectionClass.FEMININE_I),
+    TRIMSHAT(30L, "त्रिंशत्", inflectionClass = SankhyaInflectionClass.FEMININE_T),
+    CHATVARIMSHAT(40L, "चत्वारिंशत्", inflectionClass = SankhyaInflectionClass.FEMININE_T),
+    PANCHASHAT(50L, "पञ्चाशत्", inflectionClass = SankhyaInflectionClass.FEMININE_T),
+    SHASHTI(60L, "षष्टि", inflectionClass = SankhyaInflectionClass.FEMININE_I),
+    SAPTATI(70L, "सप्तति", inflectionClass = SankhyaInflectionClass.FEMININE_I),
+    ASHITI(80L, "अशीति", inflectionClass = SankhyaInflectionClass.FEMININE_I),
+    NAVATI(90L, "नवति", inflectionClass = SankhyaInflectionClass.FEMININE_I),
 
-    SHATA(BigInteger.valueOf(100), "शत", inflectionClass = SankhyaInflectionClass.NEUTER_A),
-    SAHASRA(BigInteger.valueOf(1_000), "सहस्र", inflectionClass = SankhyaInflectionClass.NEUTER_A),
-    AYUTA(BigInteger.valueOf(10_000), "अयुत", inflectionClass = SankhyaInflectionClass.NEUTER_A),
-    LAKSHA(BigInteger.valueOf(100_000), "लक्ष", inflectionClass = SankhyaInflectionClass.NEUTER_A),
-    PRAYUTA(BigInteger.valueOf(1_000_000), "प्रयुत", inflectionClass = SankhyaInflectionClass.NEUTER_A),
-    KOTI(BigInteger.valueOf(10_000_000), "कोटि", inflectionClass = SankhyaInflectionClass.FEMININE_I);
+    SHATA(100L, "शत", inflectionClass = SankhyaInflectionClass.NEUTER_A),
+    SAHASRA(1_000L, "सहस्र", inflectionClass = SankhyaInflectionClass.NEUTER_A),
+    AYUTA(10_000L, "अयुत", inflectionClass = SankhyaInflectionClass.NEUTER_A),
+    LAKSHA(100_000L, "लक्ष", inflectionClass = SankhyaInflectionClass.NEUTER_A),
+    PRAYUTA(1_000_000L, "प्रयुत", inflectionClass = SankhyaInflectionClass.NEUTER_A),
+    KOTI(10_000_000L, "कोटि", inflectionClass = SankhyaInflectionClass.FEMININE_I);
 
     companion object {
         private val byValue = entries.associateBy(PrimitiveSankhya::value)
@@ -49,7 +47,7 @@ enum class PrimitiveSankhya(
             setOf(sankhya.pratipadika, sankhya.purvapada, sankhya.uttarapada).map { it to sankhya }
         }.toMap()
 
-        fun fromValue(value: BigInteger): PrimitiveSankhya? = byValue[value]
+        fun fromValue(value: Long): PrimitiveSankhya? = byValue[value]
 
         fun fromPratipadika(text: String): PrimitiveSankhya? = byPratipadika[text]
 

@@ -17,7 +17,6 @@ import dev.panini.execution.PaniniVM
 import dev.panini.sankhya.SankhyaGenerator
 import dev.panini.sutra.Sutra
 import java.io.File
-import java.math.BigInteger
 
 fun main(args: Array<String>) {
     runCli(args).forEach(::println)
@@ -143,9 +142,9 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
     "--sankhya" -> {
         val valueText = args.getOrNull(1)
             ?: error("Usage: --sankhya INTEGER [cardinal|ordinal] [--variants]")
-        val value = valueText.toBigIntegerOrNull()
+        val value = valueText.toLongOrNull()
             ?: error("Invalid integer for --sankhya: $valueText")
-        require(value >= BigInteger.ZERO) { "Sankhya must be non-negative: $value" }
+        require(value >= 0L) { "Sankhya must be non-negative: $value" }
 
         val positional = args.drop(2).filterNot { it == "--variants" }
         require(positional.size <= 1) {

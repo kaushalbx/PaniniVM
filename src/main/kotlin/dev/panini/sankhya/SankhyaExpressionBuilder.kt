@@ -1,19 +1,17 @@
 package dev.panini.sankhya
 
-import java.math.BigInteger
-
 class SankhyaExpressionBuilder {
 
-    fun build(value: BigInteger): SankhyaExpression {
-        require(value.signum() >= 0) { "Negative numbers are not supported: $value" }
+    fun build(value: Long): SankhyaExpression {
+        require(value >= 0L) { "Negative numbers are not supported: $value" }
 
         val direct = PrimitiveSankhya.fromValue(value)
         if (direct != null) {
             return SankhyaExpression.Primitive(direct)
         }
 
-        if (value < BigInteger.valueOf(20)) {
-            val units = value.subtract(BigInteger.TEN)
+        if (value < 20L) {
+            val units = value - 10L
             val unitPrim = PrimitiveSankhya.fromValue(units)
                 ?: error("Invalid unit value: $units")
             return SankhyaExpression.Add(
@@ -22,13 +20,13 @@ class SankhyaExpressionBuilder {
             )
         }
 
-        if (value < BigInteger.valueOf(100)) {
-            val tensVal = value.divide(BigInteger.TEN).multiply(BigInteger.TEN)
-            val unitsVal = value.mod(BigInteger.TEN)
+        if (value < 100L) {
+            val tensVal = (value / 10L) * 10L
+            val unitsVal = value % 10L
             val tensPrim = PrimitiveSankhya.fromValue(tensVal)
                 ?: error("Invalid tens value: $tensVal")
-            
-            if (unitsVal == BigInteger.ZERO) {
+
+            if (unitsVal == 0L) {
                 return SankhyaExpression.Primitive(tensPrim)
             }
 
@@ -52,19 +50,19 @@ class SankhyaExpressionBuilder {
 
         for (mag in magnitudes) {
             if (value >= mag.value) {
-                val coeffVal = value.divide(mag.value)
-                val remVal = value.mod(mag.value)
+                val coeffVal = value / mag.value
+                val remVal = value % mag.value
 
                 val coeffExpr = build(coeffVal)
                 val magExpr = SankhyaExpression.Primitive(mag)
 
-                val multExpr = if (coeffVal == BigInteger.ONE) {
+                val multExpr = if (coeffVal == 1L) {
                     magExpr
                 } else {
                     SankhyaExpression.Multiply(coeffExpr, magExpr)
                 }
 
-                return if (remVal == BigInteger.ZERO) {
+                return if (remVal == 0L) {
                     multExpr
                 } else {
                     val remExpr = build(remVal)

@@ -1,12 +1,10 @@
 package dev.panini.execution
 
-import java.math.BigInteger
-
 internal val sankhyaResultRenderer = SankhyaCountingFormRenderer()
 
 internal fun renderSankhyaResult(value: Long): String? {
-    if (value < 0) return null
-    return runCatching { sankhyaResultRenderer.render(BigInteger.valueOf(value)) }.getOrNull()
+    if (value < 0L) return null
+    return runCatching { sankhyaResultRenderer.render(value) }.getOrNull()
 }
 
 internal fun ExecutionContext.resolveSankhyaValues(expression: ExecutionExpression): List<Long>? {

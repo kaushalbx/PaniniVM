@@ -1,6 +1,5 @@
 package dev.panini.execution
 
-import java.math.BigInteger
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -28,7 +27,7 @@ class SankhyaCountingFormRendererTest {
         )
 
         expected.forEach { (value, surface) ->
-            assertEquals(surface, renderer.render(BigInteger.valueOf(value)), "$value")
+            assertEquals(surface, renderer.render(value), "$value")
         }
     }
 }
