@@ -49,10 +49,10 @@ object EngahPadantadatiSutra : Sutra<DerivationState, DerivationChange>(
         val isPada = context.samjnas.any { it.targetId == left.id && it.samjna == Samjna.PADA }
         if (!isPada) return false
 
-        // 2. Left term must end in 'e' or 'o'
+        // 2. Left term must end in 'e' or 'o' (Eṅ)
         val lastChar = left.surface.lastOrNull() ?: return false
         val engine = Ashtadhyayi.pratyaharaEngine
-        if (!engine.contains(Pratyahara.EC, lastChar) || (lastChar != 'ए' && lastChar != 'ओ' && lastChar != 'े' && lastChar != 'ो')) return false
+        if (!engine.contains(Pratyahara.EN, lastChar)) return false
 
         // 3. Right term must start with short 'a'
         val nextChar = right.surface.firstOrNull() ?: return false
@@ -65,7 +65,6 @@ object EngahPadantadatiSutra : Sutra<DerivationState, DerivationChange>(
         val right = terms.last()
 
         // Pūrvarūpa: the first vowel stays, the second disappears (represented by avagraha in modern script)
-        val replacement = left.surface.last().toString()
         val newRightSurface = "ऽ" + right.surface.drop(1)
 
         return DerivationChange(
