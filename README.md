@@ -7,7 +7,9 @@ sūtras carry typed metadata, executable eligibility, and state-transition logic
 
 ## Features
 
-- **Executable Ashtadhyayi Engine**: Registered sūtras across derivation and sentence-analysis scopes.
+- **Executable Ashtadhyayi Engine**: Registered sūtras across derivation, compound formation, and sentence-analysis scopes.
+- **Samāsa (Compound Formation) Subsystem**: Executable compound formation Sūtras across Avyayībhāva (2.1.6), Tatpuruṣa (2.1.24, 2.1.37, 2.2.8), Bahuvrīhi (2.2.24), and Dvandva (2.2.29).
+- **Phonological Transformation & Sandhi Engine**: Type-safe Sandhi Sūtras (`6.1.109`, `6.1.132`, `6.3.111`, `8.3.14`, `8.3.17`, `8.3.22`, `8.4.59`, `8.4.60`, `8.4.62`, `8.4.63`, `8.4.65`) driven by `PratyaharaEngine` and inline rule matching.
 - **Adhikāra Domain Registry (`AdhikaraRegistry`)**: Enforces governing heading scopes (`1.4.1`, `1.4.23`, `2.3.1 Anabhihite`, `3.1.1`, `3.1.91`, `6.4.1`, `8.1.16`) wrapping top-level concrete `Sutra` objects.
 - **Paribhāṣā Meta-rule Registry (`ParibhashaRegistry`)**: Manages interpretive meta-rules (`1.1.3`, `1.1.46`, `1.1.47`, `1.1.49`, `1.1.50`, `1.1.51`, `1.1.52`, `1.1.53`, `1.1.54`, `1.1.55`, `1.1.56`, `1.1.66`, `1.1.67`) with type-safe `ParibhashaScope` enums.
 - **Pratiṣedha Prohibition Engine (`NishedhaRuleEngine`)**: Evaluates prohibition sūtras (`1.1.5`, `1.1.6`, `1.1.10`, `1.2.4`) integrated into rule resolution loops.
