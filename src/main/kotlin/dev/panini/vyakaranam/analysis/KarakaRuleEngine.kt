@@ -5,6 +5,7 @@ import dev.panini.ashtadhyayi.adhyaya1.pada4.BhuvahPrabhavahSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.AdhishingsthasamKarmaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.JanikartuhPrakrtihSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.KrudhaDruhersyasuyarthanamYamPratiKopahSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada4.RadhiksyorYasyaViprasnahSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.BhitharthanamBhayahetuhSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.RucyarthanamPriyamanahSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.KrudhaDruhorUpasrstayohKarmaSutra
@@ -107,6 +108,7 @@ object KarakaRuleEngine {
         DharerUttamarnahSutra,
         SprherIpsitahSutra,
         KrudhaDruhersyasuyarthanamYamPratiKopahSutra,
+        RadhiksyorYasyaViprasnahSutra,
         PratyangbhruvahPurvasyaKartaSutra,
         AnupratigrnasCaSutra,
         KrudhaDruhorUpasrstayohKarmaSutra,
@@ -131,6 +133,7 @@ object KarakaRuleEngine {
         KarmaniDvitiyaSutra,
         AntarantarenaYukteSutra,
         KaladhvanorAtyantasamyogeSutra,
+        SaptamiPancamyauKarakamadhyeSutra,
         KarmapravacaniyayukteDvitiyaSutra,
         EnapaDvitiyaSutra,
         PancamyApangParibhihSutra,
@@ -145,6 +148,7 @@ object KarakaRuleEngine {
         SahaYukteApradhaneSutra,
         YenangavikarahSutra,
         ItthambhutalaksaneSutra,
+        SamjnyoAnyatarasyamKarmaniSutra,
         HetauSutra,
         VibhasaGuneAstriyamSutra,
         SasthiHetuprayogeSutra,
@@ -153,6 +157,8 @@ object KarakaRuleEngine {
         AnyaraditarartedikshabdaSutra,
         SasthyAtasarthaPratyayenaSutra,
         PrthagVinaNanabhihSutra,
+        KaranadAkhyatayamSutra,
+        StokanAlpaKrcchraSutra,
         DurantikarthebhyoDvitiyaCaSutra,
         SaptamyAdhikaraneCaSutra,
         YasyaCaBhavenaBhavalaksanamSutra,
@@ -163,13 +169,18 @@ object KarakaRuleEngine {
         PancamiVibhakteSutra,
         SadhuNipunabhyamSutra,
         PrasitotsukabhyamTrtiyaCaSutra,
+        NaksatreCaLupiSutra,
         PratipadikarthalingaparimanavacanamatrePrathamaSutra,
         SambodhaneCaSutra,
         SasthiSeseSutra,
         JnyoAvidarthasyaKaraneSutra,
         AdhigarthaDayesamKarmaniSutra,
+        RujarthanamBhavavacananamAjvarehSutra,
+        AsisiNathahSutra,
+        JasiniPrahanaNatakaKrathaPisarnHimvisayamSutra,
         KartrKarmanohKrtiSutra,
         KasyaCaVartamaneSutra,
+        AdhikaranavacinacCaSutra,
         KrtyanamKartariVaSutra,
         TulyarthairAtulopamabhyamTrtiyanatarasyamSutra,
         CaturthyAsisyAyusyamadraBhadraKusalaSukharthaHitaihSutra,

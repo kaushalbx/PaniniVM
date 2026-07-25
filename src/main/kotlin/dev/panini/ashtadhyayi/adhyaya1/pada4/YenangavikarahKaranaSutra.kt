@@ -18,9 +18,9 @@ import dev.panini.vyakaranam.analysis.SemanticRelation
  * e.g. काणेन पश्यति — "he sees with the (one) eye" (the defective eye is the karaṇa of sight).
  */
 object YenangavikarahKaranaSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
-    number = "1.4.39", text = "येनाङ्गविकारः",
+    number = "1.4.42V", text = "येनाङ्गविकारः",
     hindiExplanation = "येन अङ्गेन अङ्गी विकृतो लक्ष्यते तस्य करणसंज्ञा भवति।",
-    type = SutraType.SAMJNA, chapter = 1, pada = 4, optional = false, kramaValue = 140039,
+    type = SutraType.SAMJNA, chapter = 1, pada = 4, optional = false, kramaValue = 140042,
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.DHATU, SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA_CANDIDATE),
     adhikara = setOf("1.4.23"),
