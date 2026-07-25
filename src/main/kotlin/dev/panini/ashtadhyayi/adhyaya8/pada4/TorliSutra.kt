@@ -1,9 +1,11 @@
 package dev.panini.ashtadhyayi.adhyaya8.pada4
 
+import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.VarnaSubstitution
+import dev.panini.shiksha.Varnamala
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -29,6 +31,8 @@ object TorliSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.VARNA,
 ), DerivationSutra {
     private data class Match(val termIndex: Int, val isNasal: Boolean)
+
+    private val tuVarga = Varnamala.expandUdit("तु")
 
     override fun matches(context: DerivationState): Boolean = findMatch(context) != null
 
@@ -59,13 +63,12 @@ object TorliSutra : Sutra<DerivationState, DerivationChange>(
             val curr = terms[i].surface
             val next = terms[i + 1].surface
 
-            val endsWithTaVarga = curr.endsWith("त्") || curr.endsWith("थ्") || curr.endsWith("द्") || curr.endsWith("ध्") || curr.endsWith("न्") ||
-                    curr.endsWith("त") || curr.endsWith("थ") || curr.endsWith("द") || curr.endsWith("ध") || curr.endsWith("न")
-            val nextStartsWithL = next.startsWith("ल")
-
-            if (endsWithTaVarga && nextStartsWithL) {
-                val isNasal = curr.endsWith("न्") || curr.endsWith("न")
-                return Match(i, isNasal)
+            if (curr.isNotEmpty() && next.startsWith("ल")) {
+                val lastChar = curr.trimEnd('्').lastOrNull() ?: continue
+                if (lastChar in tuVarga) {
+                    val isNasal = lastChar == 'न' || curr.endsWith("न्")
+                    return Match(i, isNasal)
+                }
             }
         }
         return null

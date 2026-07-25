@@ -1,9 +1,12 @@
 package dev.panini.ashtadhyayi.adhyaya8.pada4
 
+import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.VarnaSubstitution
+import dev.panini.pratyahara.Pratyahara
+import dev.panini.shiksha.Varnamala
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -39,13 +42,12 @@ object JharoJhariSavarneSutra : Sutra<DerivationState, DerivationChange>(
 
         val newSurface = when {
             surface.endsWith("त्") || surface.endsWith("द्") || surface.endsWith("क्") || surface.endsWith("ग्") -> surface.dropLast(2)
-            surface.endsWith("त") || surface.endsWith("द") || surface.endsWith("क") || surface.endsWith("ग") -> surface.dropLast(1)
-            else -> surface
+            else -> surface.dropLast(1)
         }
 
         return DerivationChange(
             state = context.replaceTerm(targetTerm.id, targetTerm.copy(surface = newSurface)),
-            explanation = "8.4.65: Elided redundant jhar consonant before homogeneous jhar."
+            explanation = "8.4.65: Elided redundant jhar consonant before savarṇa jhar."
         ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(targetTerm.id, surface.last(), "", sutra))) }
     }
 
@@ -55,12 +57,17 @@ object JharoJhariSavarneSutra : Sutra<DerivationState, DerivationChange>(
             val curr = terms[i].surface
             val next = terms[i + 1].surface
 
-            val doubleStop = curr.endsWith("त्") && next.startsWith("त") ||
-                    curr.endsWith("द्") && next.startsWith("द") ||
-                    curr.endsWith("क्") && next.startsWith("क")
+            if (curr.isNotEmpty() && next.isNotEmpty()) {
+                val jharChar1 = curr.trimEnd('्').lastOrNull() ?: continue
+                val jharChar2 = next.first()
 
-            if (doubleStop) {
-                return Match(i)
+                val isJhar1 = Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAR, jharChar1)
+                val isJhar2 = Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAR, jharChar2)
+                val isSavarna = Varnamala.areSavarna(jharChar1, jharChar2)
+
+                if (isJhar1 && isJhar2 && isSavarna) {
+                    return Match(i)
+                }
             }
         }
         return null

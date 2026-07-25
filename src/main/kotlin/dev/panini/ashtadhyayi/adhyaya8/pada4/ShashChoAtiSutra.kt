@@ -6,6 +6,7 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.VarnaSubstitution
 import dev.panini.pratyahara.Pratyahara
+ import dev.panini.shiksha.Varnamala
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -58,14 +59,14 @@ object ShashChoAtiSutra : Sutra<DerivationState, DerivationChange>(
             val curr = terms[i].surface
             val next = terms[i + 1].surface
 
-            val endsWithJhay = curr.endsWith("त्") || curr.endsWith("द्") || curr.endsWith("क्") || curr.endsWith("ग्") ||
-                    curr.endsWith("च्") || curr.endsWith("ज्") || curr.endsWith("ट्") || curr.endsWith("ड्") ||
-                    curr.endsWith("प्") || curr.endsWith("ब्")
-            val nextStartsWithSha = next.startsWith("श") || next.startsWith("श्")
+            if (curr.isNotEmpty() && (next.startsWith("श") || next.startsWith("श्"))) {
+                val lastChar = curr.trimEnd('्').lastOrNull() ?: continue
+                val isJhay = Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAY, lastChar)
 
-            if (endsWithJhay && nextStartsWithSha && next.length > 1) {
-                val follower = next[1]
-                if (Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.AT, follower) || follower in setOf('ि', 'ी', 'ु', 'ू', 'ृ', 'े', 'ै', 'ो', 'ौ')) {
+                val follower = next.dropWhile { it == 'श' || it == '्' }.firstOrNull()
+                val isAt = follower != null && (Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.AT, follower) || Varnamala.isVowel(follower))
+
+                if (isJhay && isAt) {
                     return Match(i + 1)
                 }
             }

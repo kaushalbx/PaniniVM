@@ -1,11 +1,12 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada1
 
+import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.derivation.DerivationChange
-import dev.panini.derivation.DerivationalMeaning
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
+import dev.panini.pratyahara.Pratyahara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -42,6 +43,6 @@ object IgupadhaJnyaPriKirahKahSutra : Sutra<DerivationState, DerivationChange>(
     private fun isIgupadha(text: String): Boolean {
         if (text.length < 2) return false
         val penult = text[text.length - 2]
-        return penult in setOf('इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ि', 'ी', 'ु', 'ू', 'ृ')
+        return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.IK, penult)
     }
 }
