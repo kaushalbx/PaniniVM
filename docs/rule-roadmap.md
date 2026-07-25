@@ -7,7 +7,7 @@ sentence rules operate on typed kāraka or vibhakti contexts.
 
 ## Current scope
 
-- **Executable Ashtadhyayi Engine**: Integrated across derivation, compound formation, and sentence-analysis scopes.
+- **435+ registered executable sūtras**: Integrated across derivation, compound formation (Samāsa), phonology (Sandhi), and sentence-analysis (Kāraka & Vibhakti) scopes.
 - **100% Full Coverage of Aṣṭādhyāyī 2.3 Vibhakti Sūtras**: All 64 classical non-Vedic sūtras implemented and verified.
 - **100% Full Coverage of Aṣṭādhyāyī 1.4 Kāraka Sūtras**: All 33 classical Kāraka saṃjñā sūtras implemented and verified.
 - **Samāsa (Compound Formation) Subsystem**: Implemented Adhyāya 2.1 & 2.2 Sūtras (`2.1.6` Avyayībhāva, `2.1.24` Dvitīyā Tatpuruṣa, `2.1.37` Pañcamī Tatpuruṣa, `2.2.8` Ṣaṣṭhī Tatpuruṣa, `2.2.24` Bahuvrīhi, `2.2.29` Dvandva).
