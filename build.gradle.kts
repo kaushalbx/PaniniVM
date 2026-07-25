@@ -1,21 +1,21 @@
 plugins {
     kotlin("jvm") version "2.0.21"
     antlr
+    id("com.strumenta.antlr-kotlin") version "1.0.0-RC4"
     application
 }
 
 val generatedAntlrDirectory = layout.buildDirectory.dir("generated-src/antlr/main")
 
-/*
- * A parser grammar using tokenVocab must see the lexer's .tokens file before
- * ANTLR processes it. Gradle otherwise submits both nested grammar files in a
- * single invocation, whose input order is not guaranteed.
- */
 val generateVyakaranamLexer by tasks.registering(AntlrTask::class) {
     source = fileTree("src/main/antlr") {
         include("dev/panini/vyakaranam/VyakaranamLexer.g4")
     }
     outputDirectory = generatedAntlrDirectory.get().asFile
+    arguments = arguments + listOf("-Dlanguage=Kotlin")
+    doFirst {
+        generatedAntlrDirectory.get().asFile.resolve("dev/panini/parser").mkdirs()
+    }
 }
 
 group = "dev.panini"
@@ -30,8 +30,8 @@ application {
 }
 
 dependencies {
-    antlr("org.antlr:antlr4:4.13.2")
-    implementation("org.antlr:antlr4-runtime:4.13.2")
+    antlr("com.strumenta:antlr-kotlin-target:1.0.0-RC4")
+    implementation("com.strumenta:antlr-kotlin-runtime:1.0.0-RC4")
     implementation("org.ow2.asm:asm:9.7")
     compileOnly(gradleApi())
     testImplementation(gradleApi())
@@ -40,15 +40,17 @@ dependencies {
 
 tasks.generateGrammarSource {
     dependsOn(generateVyakaranamLexer)
+    outputDirectory = generatedAntlrDirectory.get().asFile
     source = fileTree("src/main/antlr") {
         exclude("dev/panini/vyakaranam/VyakaranamLexer.g4")
     }
     maxHeapSize = "64m"
     arguments = arguments + listOf(
+        "-Dlanguage=Kotlin",
         "-visitor",
         "-listener",
         "-lib",
-        generatedAntlrDirectory.get().asFile.absolutePath,
+        generatedAntlrDirectory.get().asFile.resolve("dev/panini/parser").absolutePath,
     )
 }
 
@@ -66,4 +68,3 @@ tasks.test {
     forkEvery = 0          // reuse JVM across test classes (faster startup)
     maxHeapSize = "512m"
 }
-

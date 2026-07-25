@@ -21,11 +21,11 @@ import dev.panini.vyakaranam.analysis.SemanticRelation
 import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.lexicon.InMemoryVyakaranamLexicon
 import dev.panini.vyakaranam.lexicon.PratipadikaEntry
-import org.antlr.v4.runtime.BaseErrorListener
-import org.antlr.v4.runtime.CharStreams
-import org.antlr.v4.runtime.CommonTokenStream
-import org.antlr.v4.runtime.RecognitionException
-import org.antlr.v4.runtime.Recognizer
+import org.antlr.v4.kotlinruntime.BaseErrorListener
+import org.antlr.v4.kotlinruntime.CharStreams
+import org.antlr.v4.kotlinruntime.CommonTokenStream
+import org.antlr.v4.kotlinruntime.RecognitionException
+import org.antlr.v4.kotlinruntime.Recognizer
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -221,14 +221,14 @@ class VyakaranamGrammarTest {
         val errors = mutableListOf<String>()
         val listener = object : BaseErrorListener() {
             override fun syntaxError(
-                recognizer: Recognizer<*, *>?,
+                recognizer: Recognizer<*, *>,
                 offendingSymbol: Any?,
                 line: Int,
                 charPositionInLine: Int,
-                msg: String?,
+                msg: String,
                 e: RecognitionException?,
             ) {
-                errors += "$line:$charPositionInLine ${msg.orEmpty()}"
+                errors += "$line:$charPositionInLine $msg"
             }
         }
         val lexer = VyakaranamLexer(CharStreams.fromString(source)).apply {

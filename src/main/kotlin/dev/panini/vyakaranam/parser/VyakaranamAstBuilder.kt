@@ -11,11 +11,11 @@ class VyakaranamAstBuilder {
         context: PaniniyaVyakaranamParser.UktiContext,
     ): Ukti {
         val vakyas = if (context.conditionalClause() != null) {
-            val condCtx = context.conditionalClause()
-            listOf(buildVakya(condCtx.condition)) + listOf(buildVakya(condCtx.consequent)) + (condCtx.alternate?.let { listOf(buildVakya(it)) } ?: emptyList())
+            val condCtx = context.conditionalClause()!!
+            listOf(buildVakya(condCtx.condition!!)) + listOf(buildVakya(condCtx.consequent!!)) + (condCtx.alternate?.let { listOf(buildVakya(it)) } ?: emptyList())
         } else if (context.loopClause() != null) {
-            val loopCtx = context.loopClause()
-            listOf(buildVakya(loopCtx.condition), buildVakya(loopCtx.body))
+            val loopCtx = context.loopClause()!!
+            listOf(buildVakya(loopCtx.condition!!), buildVakya(loopCtx.body!!))
         } else {
             context.vakya().map(::buildVakya)
         }
@@ -33,10 +33,10 @@ class VyakaranamAstBuilder {
     ): Vakya =
         when {
             context.akhyataVakya() != null ->
-                buildAkhyataVakya(context.akhyataVakya())
+                buildAkhyataVakya(context.akhyataVakya()!!)
 
             context.namaVakya() != null ->
-                buildNamaVakya(context.namaVakya())
+                buildNamaVakya(context.namaVakya()!!)
 
             else -> error("अज्ञातः वाक्यप्रकारः: ${context.text}")
         }
@@ -45,12 +45,12 @@ class VyakaranamAstBuilder {
         context: PaniniyaVyakaranamParser.AkhyataVakyaContext,
     ): AkhyataVakya {
         val purvaPadas = context.purvaVakyaPada()
-            .map { buildVakyaPada(it.vakyaPada()) }
+            .map { buildVakyaPada(it.vakyaPada()!!) }
 
-        val tinganta = buildTinganta(context.tingantaPada())
+        val tinganta = buildTinganta(context.tingantaPada()!!)
 
         val uttaraPadas = context.uttaraVakyaPada()
-            .map { buildVakyaPada(it.vakyaPada()) }
+            .map { buildVakyaPada(it.vakyaPada()!!) }
 
         return AkhyataVakya(
             sourceText = context.text,
@@ -76,10 +76,10 @@ class VyakaranamAstBuilder {
     ): Pada =
         when {
             context.subantaVakyaPada() != null ->
-                buildSubantaVakyaPada(context.subantaVakyaPada()).single()
+                buildSubantaVakyaPada(context.subantaVakyaPada()!!).single()
 
             context.avyayaPada() != null ->
-                buildAvyaya(context.avyayaPada())
+                buildAvyaya(context.avyayaPada()!!)
 
             else -> error("अज्ञातं वाक्यपदम्: ${context.text}")
         }
@@ -89,10 +89,10 @@ class VyakaranamAstBuilder {
     ): List<Pada> =
         when {
             context.subantaPada() != null ->
-                listOf(buildSubanta(context.subantaPada()))
+                listOf(buildSubanta(context.subantaPada()!!))
 
             context.samuccitaSubanta() != null ->
-                listOf(buildSamuccitaSubanta(context.samuccitaSubanta()))
+                listOf(buildSamuccitaSubanta(context.samuccitaSubanta()!!))
 
             else -> error("अज्ञातं सुबन्तवाक्यपदम्: ${context.text}")
         }
@@ -111,7 +111,7 @@ class VyakaranamAstBuilder {
         Sambodhana(
             sourceText = context.text,
             suchaka = context.sambodhanaSuchaka()?.text,
-            subanta = buildSubanta(context.subantaPada()),
+            subanta = buildSubanta(context.subantaPada()!!),
         )
 
     private fun buildSubanta(
@@ -119,17 +119,17 @@ class VyakaranamAstBuilder {
     ): SubantaPada =
         SubantaPada(
             sourceText = context.text,
-            pratipadika = buildPratipadika(context.pratipadika()),
+            pratipadika = buildPratipadika(context.pratipadika()!!),
             sup = SupPratyaya(
-                sourceText = context.supPratyaya().text,
-                text = context.supPratyaya().text,
+                sourceText = context.supPratyaya()!!.text,
+                text = context.supPratyaya()!!.text,
             ),
         )
 
     private fun buildPratipadika(
         context: PaniniyaVyakaranamParser.PratipadikaContext,
     ): Pratipadika {
-        val mula = buildPratipadikaMula(context.pratipadikaMula())
+        val mula = buildPratipadikaMula(context.pratipadikaMula()!!)
         val vikaras = context.pratipadikaVikara().map(::buildPratipadikaVikara)
 
         return attachVikaras(mula, vikaras)
@@ -142,20 +142,20 @@ class VyakaranamAstBuilder {
             context.mulaPratipadika() != null ->
                 MulaPratipadika(
                     sourceText = context.text,
-                    text = context.mulaPratipadika().text,
+                    text = context.mulaPratipadika()!!.text,
                 )
 
             context.kridantaPratipadika() != null ->
-                buildKridanta(context.kridantaPratipadika())
+                buildKridanta(context.kridantaPratipadika()!!)
 
             context.unadyantaPratipadika() != null ->
-                buildUnadyanta(context.unadyantaPratipadika())
+                buildUnadyanta(context.unadyantaPratipadika()!!)
 
             context.samasaPratipadika() != null ->
-                buildSamasa(context.samasaPratipadika())
+                buildSamasa(context.samasaPratipadika()!!)
 
             context.pratipadika() != null ->
-                buildPratipadika(context.pratipadika())
+                buildPratipadika(context.pratipadika()!!)
 
             else -> error("अज्ञातं प्रातिपदिकमूलम्: ${context.text}")
         }
@@ -166,8 +166,8 @@ class VyakaranamAstBuilder {
         KridantaPratipadika(
             sourceText = context.text,
             upasargas = buildUpasargas(context.upasargaKrama()),
-            dhatu = buildDhatu(context.dhatuPrakriti()),
-            krtPratyaya = context.krtPratyaya().text,
+            dhatu = buildDhatu(context.dhatuPrakriti()!!),
+            krtPratyaya = context.krtPratyaya()!!.text,
         )
 
     private fun buildUnadyanta(
@@ -176,8 +176,8 @@ class VyakaranamAstBuilder {
         UnadyantaPratipadika(
             sourceText = context.text,
             upasargas = buildUpasargas(context.upasargaKrama()),
-            dhatu = buildDhatu(context.dhatuPrakriti()),
-            unadiPratyaya = context.unadiPratyaya().IDENTIFIER().text,
+            dhatu = buildDhatu(context.dhatuPrakriti()!!),
+            unadiPratyaya = context.unadiPratyaya()!!.IDENTIFIER()!!.text,
         )
 
     private fun buildSamasa(
@@ -196,7 +196,7 @@ class VyakaranamAstBuilder {
         return SamasaAnga(
             sourceText = context.text,
             pratipadika = buildAsamasikaPratipadika(
-                context.asamasikaPratipadika(),
+                context.asamasikaPratipadika()!!,
             ),
             sup = supAvastha?.supPratyaya()?.let {
                 SupPratyaya(
@@ -213,23 +213,23 @@ class VyakaranamAstBuilder {
     private fun buildAsamasikaPratipadika(
         context: PaniniyaVyakaranamParser.AsamasikaPratipadikaContext,
     ): Pratipadika {
-        val mulaContext = context.asamasikaPratipadikaMula()
+        val mulaContext = context.asamasikaPratipadikaMula()!!
 
         val mula = when {
             mulaContext.mulaPratipadika() != null ->
                 MulaPratipadika(
                     sourceText = mulaContext.text,
-                    text = mulaContext.mulaPratipadika().text,
+                    text = mulaContext.mulaPratipadika()!!.text,
                 )
 
             mulaContext.kridantaPratipadika() != null ->
-                buildKridanta(mulaContext.kridantaPratipadika())
+                buildKridanta(mulaContext.kridantaPratipadika()!!)
 
             mulaContext.unadyantaPratipadika() != null ->
-                buildUnadyanta(mulaContext.unadyantaPratipadika())
+                buildUnadyanta(mulaContext.unadyantaPratipadika()!!)
 
             mulaContext.samasaPratipadika() != null ->
-                buildSamasa(mulaContext.samasaPratipadika())
+                buildSamasa(mulaContext.samasaPratipadika()!!)
 
             else -> error("अज्ञातम् असमासिकप्रातिपदिकम्: ${context.text}")
         }
@@ -247,13 +247,13 @@ class VyakaranamAstBuilder {
             context.taddhitaPratyaya() != null ->
                 TaddhitaVikara(
                     sourceText = context.text,
-                    pratyaya = context.taddhitaPratyaya().text,
+                    pratyaya = context.taddhitaPratyaya()!!.text,
                 )
 
             context.striPratyaya() != null ->
                 StriVikara(
                     sourceText = context.text,
-                    pratyaya = context.striPratyaya().text,
+                    pratyaya = context.striPratyaya()!!.text,
                 )
 
             else -> error("अज्ञातः प्रातिपदिकविकारः: ${context.text}")
@@ -265,11 +265,11 @@ class VyakaranamAstBuilder {
         TingantaPada(
             sourceText = context.text,
             upasargas = buildUpasargas(context.upasargaKrama()),
-            dhatu = buildDhatu(context.dhatuPrakriti()),
-            lakara = Lakara.fromUpadesha(context.lakara().text),
+            dhatu = buildDhatu(context.dhatuPrakriti()!!),
+            lakara = Lakara.fromUpadesha(context.lakara()!!.text),
             ting = TingPratyaya(
-                sourceText = context.tingPratyaya().text,
-                text = context.tingPratyaya().text,
+                sourceText = context.tingPratyaya()!!.text,
+                text = context.tingPratyaya()!!.text,
             ),
         )
 
@@ -278,7 +278,7 @@ class VyakaranamAstBuilder {
     ): DhatuPrakriti =
         DhatuPrakriti(
             sourceText = context.text,
-            mulaDhatu = context.dhatuMula().text,
+            mulaDhatu = context.dhatuMula()!!.text,
             sanadiPratyayas = context.sanadiPratyaya().map { it.text },
         )
 
@@ -289,32 +289,32 @@ class VyakaranamAstBuilder {
             context.mulaAvyaya() != null ->
                 AvyayaPada(
                     sourceText = context.text,
-                    form = context.mulaAvyaya().text,
+                    form = context.mulaAvyaya()!!.text,
                 )
 
             context.avyayaKridanta() != null -> {
-                val kridanta = context.avyayaKridanta()
+                val kridanta = context.avyayaKridanta()!!
 
                 AvyayaPada(
                     sourceText = context.text,
                     form = context.text,
                     derivation = AvyayaKridantaDerivation(
                         upasargas = buildUpasargas(kridanta.upasargaKrama()),
-                        dhatu = buildDhatu(kridanta.dhatuPrakriti()),
-                        pratyaya = kridanta.avyayaKrtPratyaya().text,
+                        dhatu = buildDhatu(kridanta.dhatuPrakriti()!!),
+                        pratyaya = kridanta.avyayaKrtPratyaya()!!.text,
                     ),
                 )
             }
 
             context.avyayaTaddhitanta() != null -> {
-                val taddhitanta = context.avyayaTaddhitanta()
+                val taddhitanta = context.avyayaTaddhitanta()!!
 
                 AvyayaPada(
                     sourceText = context.text,
                     form = context.text,
                     derivation = AvyayaTaddhitaDerivation(
-                        pratipadika = taddhitanta.mulaPratipadika().text,
-                        pratyaya = taddhitanta.avyayaTaddhitaPratyaya().text,
+                        pratipadika = taddhitanta.mulaPratipadika()!!.text,
+                        pratyaya = taddhitanta.avyayaTaddhitaPratyaya()!!.text,
                     ),
                 )
             }
@@ -326,8 +326,8 @@ class VyakaranamAstBuilder {
                     derivation = AvyayibhavaDerivation(
                         samasa = buildSamasa(
                             context
-                                .avyayibhavaPada()
-                                .samasaPratipadika(),
+                                .avyayibhavaPada()!!
+                                .samasaPratipadika()!!,
                         ),
                     ),
                 )
@@ -351,14 +351,5 @@ class VyakaranamAstBuilder {
             is SamasaPratipadika -> pratipadika.copy(vikaras = vikaras)
         }
 
-    /*
-     * This helper needs the token position. Since the AST nodes currently
-     * store only source text, ordering is retained naturally for most input.
-     * Replace this with a sourceSpan field when exact source ordering is needed.
-     */
-
-
     private fun startTokenIndex(pada: Pada): Int = 0
-
-
 }

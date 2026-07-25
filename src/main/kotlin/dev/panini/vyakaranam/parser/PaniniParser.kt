@@ -3,10 +3,10 @@ package dev.panini.vyakaranam.parser
 import dev.panini.parser.VyakaranamLexer
 import dev.panini.parser.VyakaranamParser
 import dev.panini.vyakaranam.ast.Ukti
-import org.antlr.v4.runtime.CharStreams
-import org.antlr.v4.runtime.CommonTokenStream
-import org.antlr.v4.runtime.ParserRuleContext
-import org.antlr.v4.runtime.atn.PredictionMode
+import org.antlr.v4.kotlinruntime.CharStreams
+import org.antlr.v4.kotlinruntime.CommonTokenStream
+import org.antlr.v4.kotlinruntime.ParserRuleContext
+import org.antlr.v4.kotlinruntime.atn.PredictionMode
 
 class PaniniParser(
     private val astBuilder: VyakaranamAstBuilder = VyakaranamAstBuilder(),
@@ -81,9 +81,9 @@ class PaniniParser(
             throw PaniniParseException(
                 listOf(
                     PaniniSyntaxError(
-                        line = parser.currentToken.line,
-                        column = parser.currentToken.charPositionInLine,
-                        offendingText = parser.currentToken.text,
+                        line = parser.currentToken?.line ?: 1,
+                        column = parser.currentToken?.charPositionInLine ?: 0,
+                        offendingText = parser.currentToken?.text,
                         message = "उक्तेः पूर्णं विश्लेषणं न जातम्।",
                     ),
                 ),

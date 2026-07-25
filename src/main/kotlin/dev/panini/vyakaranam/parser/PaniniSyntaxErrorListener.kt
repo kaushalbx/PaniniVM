@@ -1,8 +1,8 @@
 package dev.panini.vyakaranam.parser
 
-import org.antlr.v4.runtime.BaseErrorListener
-import org.antlr.v4.runtime.RecognitionException
-import org.antlr.v4.runtime.Recognizer
+import org.antlr.v4.kotlinruntime.BaseErrorListener
+import org.antlr.v4.kotlinruntime.RecognitionException
+import org.antlr.v4.kotlinruntime.Recognizer
 
 class PaniniSyntaxErrorListener : BaseErrorListener() {
 
@@ -12,18 +12,18 @@ class PaniniSyntaxErrorListener : BaseErrorListener() {
         get() = mutableErrors.toList()
 
     override fun syntaxError(
-        recognizer: Recognizer<*, *>?,
+        recognizer: Recognizer<*, *>,
         offendingSymbol: Any?,
         line: Int,
         charPositionInLine: Int,
-        msg: String?,
+        msg: String,
         e: RecognitionException?,
     ) {
         mutableErrors += PaniniSyntaxError(
             line = line,
             column = charPositionInLine,
             offendingText = offendingSymbol?.toString(),
-            message = msg ?: "अज्ञातः व्याकरणदोषः",
+            message = msg,
         )
     }
 
