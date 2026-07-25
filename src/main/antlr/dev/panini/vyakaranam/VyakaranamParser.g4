@@ -204,6 +204,9 @@ taddhitaPratyaya
     | AYANA
     | IYA
     | INA
+    | DAA
+    | DHAA
+    | TRA
     ;
 
 // ============================================================================
@@ -515,7 +518,7 @@ krtPratyaya
     | NINI
     | IN_KRT
     | TI_KRT
-    | TRA_KRT
+    | TRA
     | ITRA
     | ISHNUCH
     | UK
@@ -598,7 +601,7 @@ avyayaTaddhitanta
 
 avyayaTaddhitaPratyaya
     : TASIL
-    | TRA_TADDHITA
+    | TRA
     | HA
     | DAA
     | THAAL
