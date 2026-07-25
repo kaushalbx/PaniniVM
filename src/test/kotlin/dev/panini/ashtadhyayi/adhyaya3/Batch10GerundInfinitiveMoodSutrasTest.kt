@@ -24,7 +24,7 @@ import kotlin.test.assertTrue
 class Batch10GerundInfinitiveMoodSutrasTest {
 
     @Test
-    fun `test 3 3 18 BhaveSutra`() {
+    fun `derives ghañ affix for bhāva via BhaveSutra`() {
         val state = DerivationState(
             terms = listOf(DerivationTerm("root", "पच्", TermKind.DHATU, upadesha = "पच्")),
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVA)
@@ -34,13 +34,19 @@ class Batch10GerundInfinitiveMoodSutrasTest {
     }
 
     @Test
-    fun `test 3 3 56 EchaIgGhanSutra`() {
-        val state = DerivationState(terms = listOf(DerivationTerm("ghanj", "अ", TermKind.PRATYAYA, upadesha = "घञ्")))
+    fun `substitutes ik for ec vowel before ghañ via EchaIgGhanSutra`() {
+        val state = DerivationState(
+            terms = listOf(
+                DerivationTerm("root", "धै", TermKind.DHATU, upadesha = "धै"),
+                DerivationTerm("ghanj", "अ", TermKind.PRATYAYA, upadesha = "घञ्")
+            )
+        )
         assertTrue(EchaIgGhanSutra.matches(state))
+        assertEquals("धि", EchaIgGhanSutra.apply(state).state.allEffectiveTerms.first().surface)
     }
 
     @Test
-    fun `test 3 3 57 RadorApsutra`() {
+    fun `derives ap affix via RadorApsutra`() {
         val state = DerivationState(
             terms = listOf(DerivationTerm("root", "कृ", TermKind.DHATU, upadesha = "कृ")),
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVA)
@@ -50,7 +56,7 @@ class Batch10GerundInfinitiveMoodSutrasTest {
     }
 
     @Test
-    fun `test 3 3 94 StriyamKtinSutra`() {
+    fun `derives ktin affix via StriyamKtinSutra`() {
         val state = DerivationState(
             terms = listOf(DerivationTerm("root", "कृ", TermKind.DHATU, upadesha = "कृ")),
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVA)
@@ -60,7 +66,7 @@ class Batch10GerundInfinitiveMoodSutrasTest {
     }
 
     @Test
-    fun `test 3 3 114 NapumsakeBhaveKtahSutra`() {
+    fun `derives kta affix via NapumsakeBhaveKtahSutra`() {
         val state = DerivationState(
             terms = listOf(DerivationTerm("root", "हस्", TermKind.DHATU, upadesha = "हस्")),
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVA)
@@ -70,7 +76,7 @@ class Batch10GerundInfinitiveMoodSutrasTest {
     }
 
     @Test
-    fun `test 3 3 156 HetuhetumatorLingSutra`() {
+    fun `activates liṅ mood via HetuhetumatorLingSutra`() {
         val state = DerivationState(
             terms = listOf(DerivationTerm("root", "भू", TermKind.DHATU, upadesha = "भू")),
             context = DerivationalContext(rupa = Rupa(lakara = Lakara.LING))
@@ -79,7 +85,7 @@ class Batch10GerundInfinitiveMoodSutrasTest {
     }
 
     @Test
-    fun `test 3 3 167 KalaSamayaVelashuTumunSutra`() {
+    fun `derives tumun affix via KalaSamayaVelashuTumunSutra`() {
         val state = DerivationState(
             terms = listOf(DerivationTerm("root", "पठ्", TermKind.DHATU, upadesha = "पठ्")),
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVISYAT)
@@ -89,7 +95,7 @@ class Batch10GerundInfinitiveMoodSutrasTest {
     }
 
     @Test
-    fun `test 3 4 21 SamanakartrkayohPurvakaleSutra`() {
+    fun `derives ktvā and lyap affixes via SamanakartrkayohPurvakaleSutra`() {
         val state1 = DerivationState(
             terms = listOf(DerivationTerm("root", "भू", TermKind.DHATU, upadesha = "भू")),
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVA)
@@ -104,11 +110,12 @@ class Batch10GerundInfinitiveMoodSutrasTest {
             ),
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVA)
         )
+        assertTrue(SamanakartrkayohPurvakaleSutra.matches(state2))
         assertEquals("ल्पँ", SamanakartrkayohPurvakaleSutra.apply(state2).state.allEffectiveTerms.last().upadesha)
     }
 
     @Test
-    fun `test 3 4 65 ShakaDhrshJnAGlaGhatRabhabhLabhaprakramitumunSutra`() {
+    fun `derives tumun affix via ShakaDhrshJnAGlaGhatRabhabhLabhaprakramitumunSutra`() {
         val state = DerivationState(
             terms = listOf(DerivationTerm("root", "शक्", TermKind.DHATU, upadesha = "शक्")),
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVISYAT)
@@ -118,7 +125,7 @@ class Batch10GerundInfinitiveMoodSutrasTest {
     }
 
     @Test
-    fun `test 3 4 67 KartariKrtSutra`() {
+    fun `establishes kartari sense via KartariKrtSutra`() {
         val state = DerivationState(
             terms = listOf(DerivationTerm("root", "कृ", TermKind.DHATU, upadesha = "कृ")),
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.KARTR_VEDANA)

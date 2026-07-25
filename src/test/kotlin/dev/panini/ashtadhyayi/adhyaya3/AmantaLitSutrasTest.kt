@@ -5,6 +5,7 @@ import dev.panini.ashtadhyayi.adhyaya3.pada1.KasPratyayadAmAmantreLitSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada1.KrnChanuprayujyateLitSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada1.UshavidajabhyashChaSutra
 import dev.panini.core.Lakara
+import dev.panini.derivation.DerivationEngine
 import dev.panini.derivation.DerivationalContext
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationTerm
@@ -16,37 +17,40 @@ import kotlin.test.assertTrue
 class AmantaLitSutrasTest {
 
     @Test
-    fun `test 3 1 35 KasPratyayadAmAmantreLitSutra`() {
+    fun `derives ām affix in Liṭ via KasPratyayadAmAmantreLitSutra`() {
         val state = DerivationState(
             terms = listOf(DerivationTerm("root", "कास्", TermKind.DHATU, upadesha = "कास्")),
             context = DerivationalContext(rupa = Rupa(lakara = Lakara.LIT))
         )
-        assertTrue(KasPratyayadAmAmantreLitSutra.matches(state))
-        assertTrue(KasPratyayadAmAmantreLitSutra.apply(state).state.allEffectiveTerms.any { it.upadesha == "आम्" })
+        val result = DerivationEngine(listOf(KasPratyayadAmAmantreLitSutra)).derive(state)
+        assertTrue(result.applications.any { it.sutra == "3.1.35" })
+        assertTrue(result.final.allEffectiveTerms.any { it.upadesha == "आम्" })
     }
 
     @Test
-    fun `test 3 1 36 IjashChaSutra`() {
+    fun `derives ām affix in Liṭ for ijc roots via IjashChaSutra`() {
         val state = DerivationState(
             terms = listOf(DerivationTerm("root", "ईक्ष्", TermKind.DHATU, upadesha = "ईक्ष्")),
             context = DerivationalContext(rupa = Rupa(lakara = Lakara.LIT))
         )
-        assertTrue(IjashChaSutra.matches(state))
-        assertTrue(IjashChaSutra.apply(state).state.allEffectiveTerms.any { it.upadesha == "आम्" })
+        val result = DerivationEngine(listOf(IjashChaSutra)).derive(state)
+        assertTrue(result.applications.any { it.sutra == "3.1.36" })
+        assertTrue(result.final.allEffectiveTerms.any { it.upadesha == "आम्" })
     }
 
     @Test
-    fun `test 3 1 38 UshavidajabhyashChaSutra`() {
+    fun `derives ām affix in Liṭ for uṣ vid jā via UshavidajabhyashChaSutra`() {
         val state = DerivationState(
             terms = listOf(DerivationTerm("root", "विद्", TermKind.DHATU, upadesha = "विद्")),
             context = DerivationalContext(rupa = Rupa(lakara = Lakara.LIT))
         )
-        assertTrue(UshavidajabhyashChaSutra.matches(state))
-        assertTrue(UshavidajabhyashChaSutra.apply(state).state.allEffectiveTerms.any { it.upadesha == "आम्" })
+        val result = DerivationEngine(listOf(UshavidajabhyashChaSutra)).derive(state)
+        assertTrue(result.applications.any { it.sutra == "3.1.38" })
+        assertTrue(result.final.allEffectiveTerms.any { it.upadesha == "आम्" })
     }
 
     @Test
-    fun `test 3 1 40 KrnChanuprayujyateLitSutra`() {
+    fun `applies auxiliary after ām in Liṭ via KrnChanuprayujyateLitSutra`() {
         val state = DerivationState(
             terms = listOf(
                 DerivationTerm("root", "ईक्ष्", TermKind.DHATU, upadesha = "ईक्ष्"),
@@ -54,6 +58,7 @@ class AmantaLitSutrasTest {
             ),
             context = DerivationalContext(rupa = Rupa(lakara = Lakara.LIT))
         )
-        assertTrue(KrnChanuprayujyateLitSutra.matches(state))
+        val result = DerivationEngine(listOf(KrnChanuprayujyateLitSutra)).derive(state)
+        assertTrue(result.applications.any { it.sutra == "3.1.40" })
     }
 }

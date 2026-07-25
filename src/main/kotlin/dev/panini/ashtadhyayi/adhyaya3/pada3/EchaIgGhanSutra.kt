@@ -3,6 +3,7 @@ package dev.panini.ashtadhyayi.adhyaya3.pada3
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.TermKind
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -20,11 +21,20 @@ object EchaIgGhanSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi, action = SutraAction.ADESHA, scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
-        context.allEffectiveTerms.any { it.upadesha == "घञ्" }
+        context.allEffectiveTerms.any { it.upadesha == "घञ्" } &&
+        "3.3.56" !in context.activeAdhikaras
 
-    override fun apply(context: DerivationState): DerivationChange =
-        DerivationChange(
-            state = context,
+    override fun apply(context: DerivationState): DerivationChange {
+        val root = context.allEffectiveTerms.firstOrNull { it.kind == TermKind.DHATU }
+        val newState = if (root != null && root.surface.endsWith("ै")) {
+            val newSurface = root.surface.dropLast(1) + "ि"
+            context.replaceTerm(root.id, root.copy(surface = newSurface))
+        } else {
+            context.activateAdhikara("3.3.56")
+        }
+        return DerivationChange(
+            state = newState,
             explanation = "3.3.56 substitutes ik for ec vowel before ghañ.",
         )
+    }
 }

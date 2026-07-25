@@ -3,7 +3,7 @@ package dev.panini.ashtadhyayi.adhyaya3.pada1
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.shiksha.Samjna
+import dev.panini.derivation.TermKind
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -21,11 +21,12 @@ object KrdAticSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
-        context.terms.any { term ->
-            term.kind == dev.panini.derivation.TermKind.PRATYAYA &&
-            context.samjnas.none { it.targetId == term.id && it.samjna == Samjna.PRATYAYA }
-        }
+        context.allEffectiveTerms.any { it.kind == TermKind.PRATYAYA } &&
+        "3.1.93" !in context.activeAdhikaras
 
     override fun apply(context: DerivationState): DerivationChange =
-        DerivationChange(state = context, explanation = "3.1.93 assigns Kṛt saṃjñā to non-Tiङ् affixes.")
+        DerivationChange(
+            state = context.activateAdhikara("3.1.93"),
+            explanation = "3.1.93 assigns Kṛt saṃjñā to non-Tiङ् affixes."
+        )
 }

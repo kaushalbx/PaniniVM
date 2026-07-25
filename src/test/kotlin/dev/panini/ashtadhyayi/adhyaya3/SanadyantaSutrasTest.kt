@@ -5,6 +5,7 @@ import dev.panini.ashtadhyayi.adhyaya3.pada1.DhatorEkayacoHaladerKriyasamabhihar
 import dev.panini.ashtadhyayi.adhyaya3.pada1.GupTijKitsadbhyahSanSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada1.HetumatiCaSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada1.SanaadyantaDhatavahSutra
+import dev.panini.derivation.DerivationEngine
 import dev.panini.derivation.DerivationalContext
 import dev.panini.derivation.DerivationalMeaning
 import dev.panini.derivation.DerivationState
@@ -17,53 +18,58 @@ import kotlin.test.assertTrue
 class SanadyantaSutrasTest {
 
     @Test
-    fun `test 3 1 5 GupTijKitsadbhyahSanSutra`() {
+    fun `derives san desiderative affix via GupTijKitsadbhyahSanSutra`() {
         val state = DerivationState(
             terms = listOf(DerivationTerm("root", "गुप्", TermKind.DHATU, upadesha = "गुप्")),
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVA)
         )
-        assertTrue(GupTijKitsadbhyahSanSutra.matches(state))
-        assertEquals("सन्", GupTijKitsadbhyahSanSutra.apply(state).state.allEffectiveTerms.last().upadesha)
+        val result = DerivationEngine(listOf(GupTijKitsadbhyahSanSutra)).derive(state)
+        assertTrue(result.applications.any { it.sutra == "3.1.5" })
+        assertEquals("सन्", result.final.allEffectiveTerms.last().upadesha)
     }
 
     @Test
-    fun `test 3 1 7 DhatohKarmanahSamanakartrkadIcchayamSanSutra`() {
+    fun `derives san desiderative affix via DhatohKarmanahSamanakartrkadIcchayamSanSutra`() {
         val state = DerivationState(
             terms = listOf(DerivationTerm("root", "भू", TermKind.DHATU, upadesha = "भू")),
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVA)
         )
-        assertTrue(DhatohKarmanahSamanakartrkadIcchayamSanSutra.matches(state))
-        assertEquals("सन्", DhatohKarmanahSamanakartrkadIcchayamSanSutra.apply(state).state.allEffectiveTerms.last().upadesha)
+        val result = DerivationEngine(listOf(DhatohKarmanahSamanakartrkadIcchayamSanSutra)).derive(state)
+        assertTrue(result.applications.any { it.sutra == "3.1.7" })
+        assertEquals("सन्", result.final.allEffectiveTerms.last().upadesha)
     }
 
     @Test
-    fun `test 3 1 22 DhatorEkayacoHaladerKriyasamabhihareYangSutra`() {
+    fun `derives yaṅ frequentative affix via DhatorEkayacoHaladerKriyasamabhihareYangSutra`() {
         val state = DerivationState(
             terms = listOf(DerivationTerm("root", "पच्", TermKind.DHATU, upadesha = "पच्")),
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVA)
         )
-        assertTrue(DhatorEkayacoHaladerKriyasamabhihareYangSutra.matches(state))
-        assertEquals("यङ्", DhatorEkayacoHaladerKriyasamabhihareYangSutra.apply(state).state.allEffectiveTerms.last().upadesha)
+        val result = DerivationEngine(listOf(DhatorEkayacoHaladerKriyasamabhihareYangSutra)).derive(state)
+        assertTrue(result.applications.any { it.sutra == "3.1.22" })
+        assertEquals("यङ्", result.final.allEffectiveTerms.last().upadesha)
     }
 
     @Test
-    fun `test 3 1 26 HetumatiCaSutra`() {
+    fun `derives ṇic causative affix via HetumatiCaSutra`() {
         val state = DerivationState(
             terms = listOf(DerivationTerm("root", "कृ", TermKind.DHATU, upadesha = "कृ")),
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVA)
         )
-        assertTrue(HetumatiCaSutra.matches(state))
-        assertEquals("णिच्", HetumatiCaSutra.apply(state).state.allEffectiveTerms.last().upadesha)
+        val result = DerivationEngine(listOf(HetumatiCaSutra)).derive(state)
+        assertTrue(result.applications.any { it.sutra == "3.1.26" })
+        assertEquals("णिच्", result.final.allEffectiveTerms.last().upadesha)
     }
 
     @Test
-    fun `test 3 1 32 SanaadyantaDhatavahSutra`() {
-        val state1 = DerivationState(
+    fun `assigns dhātu saṃjñā via SanaadyantaDhatavahSutra`() {
+        val state = DerivationState(
             terms = listOf(
                 DerivationTerm("root", "भू", TermKind.DHATU, upadesha = "भू"),
                 DerivationTerm("san", "स", TermKind.PRATYAYA, upadesha = "सन्")
             )
         )
-        assertTrue(SanaadyantaDhatavahSutra.matches(state1))
+        val result = DerivationEngine(listOf(SanaadyantaDhatavahSutra)).derive(state)
+        assertTrue(result.applications.any { it.sutra == "3.1.32" })
     }
 }

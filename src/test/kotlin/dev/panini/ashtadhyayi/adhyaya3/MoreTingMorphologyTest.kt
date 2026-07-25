@@ -5,6 +5,7 @@ import dev.panini.ashtadhyayi.adhyaya3.pada1.KamerNingSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada1.RtIyIyAnehKyanSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada4.LanSakatayanasyaIvaSutra
 import dev.panini.core.Lakara
+import dev.panini.derivation.DerivationEngine
 import dev.panini.derivation.DerivationalContext
 import dev.panini.derivation.DerivationalMeaning
 import dev.panini.derivation.DerivationState
@@ -18,7 +19,7 @@ import kotlin.test.assertTrue
 class MoreTingMorphologyTest {
 
     @Test
-    fun `test 3 1 28 GupDhoopVichchhiPaniPanibhyOyaSutra`() {
+    fun `derives āya affix via GupDhoopVichchhiPaniPanibhyOyaSutra`() {
         val state1 = DerivationState(
             terms = listOf(DerivationTerm("root", "गुप्", TermKind.DHATU, upadesha = "गुप्")),
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVA)
@@ -27,33 +28,37 @@ class MoreTingMorphologyTest {
             terms = listOf(DerivationTerm("root", "धूप", TermKind.DHATU, upadesha = "धूप")),
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVA)
         )
-        assertTrue(GupDhoopVichchhiPaniPanibhyOyaSutra.matches(state1))
-        assertTrue(GupDhoopVichchhiPaniPanibhyOyaSutra.matches(state2))
-        assertEquals("आय", GupDhoopVichchhiPaniPanibhyOyaSutra.apply(state1).state.allEffectiveTerms.last().upadesha)
+        val result1 = DerivationEngine(listOf(GupDhoopVichchhiPaniPanibhyOyaSutra)).derive(state1)
+        val result2 = DerivationEngine(listOf(GupDhoopVichchhiPaniPanibhyOyaSutra)).derive(state2)
+        assertTrue(result1.applications.any { it.sutra == "3.1.28" })
+        assertTrue(result2.applications.any { it.sutra == "3.1.28" })
+        assertEquals("आय", result1.final.allEffectiveTerms.last().upadesha)
     }
 
     @Test
-    fun `test 3 1 29 RtIyIyAnehKyanSutra`() {
+    fun `derives kyaṅ affix via RtIyIyAnehKyanSutra`() {
         val state = DerivationState(
             terms = listOf(DerivationTerm("root", "ऋतीय", TermKind.DHATU, upadesha = "ऋतीय")),
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVA)
         )
-        assertTrue(RtIyIyAnehKyanSutra.matches(state))
-        assertEquals("क्यङ्", RtIyIyAnehKyanSutra.apply(state).state.allEffectiveTerms.last().upadesha)
+        val result = DerivationEngine(listOf(RtIyIyAnehKyanSutra)).derive(state)
+        assertTrue(result.applications.any { it.sutra == "3.1.29" })
+        assertEquals("क्यङ्", result.final.allEffectiveTerms.last().upadesha)
     }
 
     @Test
-    fun `test 3 1 30 KamerNingSutra`() {
+    fun `derives ṇiṅ affix via KamerNingSutra`() {
         val state = DerivationState(
             terms = listOf(DerivationTerm("root", "कम्", TermKind.DHATU, upadesha = "कम्")),
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVA)
         )
-        assertTrue(KamerNingSutra.matches(state))
-        assertEquals("णिङ्", KamerNingSutra.apply(state).state.allEffectiveTerms.last().upadesha)
+        val result = DerivationEngine(listOf(KamerNingSutra)).derive(state)
+        assertTrue(result.applications.any { it.sutra == "3.1.30" })
+        assertEquals("णिङ्", result.final.allEffectiveTerms.last().upadesha)
     }
 
     @Test
-    fun `test 3 4 111 LanSakatayanasyaIvaSutra`() {
+    fun `substitutes jus for jhi in Laṅ via LanSakatayanasyaIvaSutra`() {
         val state = DerivationState(
             terms = listOf(
                 DerivationTerm("root", "भू", TermKind.DHATU, upadesha = "भू"),
@@ -61,7 +66,8 @@ class MoreTingMorphologyTest {
             ),
             context = DerivationalContext(rupa = Rupa(lakara = Lakara.LANG))
         ).activateAdhikara("3.4.111")
-        assertTrue(LanSakatayanasyaIvaSutra.matches(state))
-        assertEquals("जुस्", LanSakatayanasyaIvaSutra.apply(state).state.allEffectiveTerms.last().upadesha)
+        val result = DerivationEngine(listOf(LanSakatayanasyaIvaSutra)).derive(state)
+        assertTrue(result.applications.any { it.sutra == "3.4.111" })
+        assertEquals("जुस्", result.final.allEffectiveTerms.last().upadesha)
     }
 }
