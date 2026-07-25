@@ -8800,5 +8800,7 @@ object BhvadiDhatus {
             dhatu(SthaDhatu())
             dhatu(NiDhatu())
             dhatu(PaaDhatu())
+            dhatu(BhuDhatu())
+            dhatu(EdhDhatu())
         }
 }

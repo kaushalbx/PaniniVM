@@ -17,7 +17,7 @@ class PaniniCliTest {
             :dhatu 07.0007
             :trace
             एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।
-            :compile examples/sandhi.pvm SandhiCliTest
+            :compile examples/linguistic/sandhi.pvm SandhiCliTest
             :exit
         """.trimIndent()
 
@@ -44,7 +44,7 @@ class PaniniCliTest {
         val printStream = PrintStream(outputStream)
 
         val cli = PaniniCli(outputStream = printStream)
-        val file = File("examples/sandhi.pvm")
+        val file = File("examples/linguistic/sandhi.pvm")
         val results = cli.executeScriptFile(file)
 
         assertEquals(3, results.size)

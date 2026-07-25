@@ -18,8 +18,8 @@ import kotlin.test.assertNotNull
 class DhatuPathaTest {
     @Test
     fun `complete dhatupatha retains source order and meanings`() {
-        assertEquals(2262, DhatuPatha.all.size)
-        assertEquals(1169, BhvadiDhatus.all.size)
+        assertEquals(2264, DhatuPatha.all.size)
+        assertEquals(1171, BhvadiDhatus.all.size)
         assertEquals(listOf(1, 2, 3), BhvadiDhatus.all.take(3).map { it.krama })
         assertEquals("सत्तायाम्", DhatuPatha.find("01.0001")?.artha)
         assertEquals("होना", DhatuPatha.find("01.0001")?.arthaHindi)

@@ -32,8 +32,8 @@ class SanskritListActionTest {
 
     @Test
     fun `PvmFileTest executes list_demo pvm script`() {
-        val pvmFile = File("examples/list_demo.pvm")
-        val txtFile = File("examples/list_demo.txt")
+        val pvmFile = File("examples/collections/list_demo.pvm")
+        val txtFile = File("examples/collections/list_demo.txt")
         val results = vm.evalFile(pvmFile, sessionKey = "file_list_session")
         val expected = txtFile.readLines().map { it.trim() }
 

@@ -45,4 +45,19 @@ class NewDhatusTest {
         val success = assertIs<ExecutionResult.Success>(result)
         assertEquals("पानम् सम्पन्नम्: जल", success.value)
     }
+
+    @Test
+    fun `BhuDhatu executes state instantiate action`() {
+        val result = vm.eval("राम + अम् भू + णिच् + लोट् + सिप् ।", sessionKey = "bhu_session")
+        val success = assertIs<ExecutionResult.Success>(result)
+        assertEquals("सत्ता संजाता: राम", success.value)
+    }
+
+    @Test
+    fun `EdhDhatu executes scale action`() {
+        val result = vm.eval("पञ्च + अम् एध् + णिच् + लोट् + सिप् ।", sessionKey = "edh_session")
+        println("EdhDhatu result: $result")
+        val success = assertIs<ExecutionResult.Success>(result)
+        assertEquals("दश", success.value)
+    }
 }

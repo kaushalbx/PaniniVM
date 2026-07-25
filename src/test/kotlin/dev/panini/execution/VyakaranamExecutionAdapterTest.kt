@@ -85,7 +85,7 @@ class VyakaranamExecutionAdapterTest {
         val input = SanskritUktiInput(
             speaker = "प्रयोक्ता",
             listener = "यन्त्रम्",
-            text = "गम् + शतृ-पुत्र + सुँ भू + लट् + तिप् ।",
+            text = "गम् + शतृ-पुत्र + सुँ खद् + लट् + तिप् ।",
         )
         assertIs<ExecutionBindingResult.Invalid>(VyakaranamExecutionAdapter.bind(input, conversation))
     }
