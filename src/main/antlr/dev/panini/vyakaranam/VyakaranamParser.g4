@@ -271,6 +271,7 @@ dhatuPrakriti
 dhatuMula
     : IDENTIFIER
     | DAA
+    | DHAA
     ;
 
 // ============================================================================
@@ -280,15 +281,13 @@ dhatuMula
 sanadiPratyaya
     : SAN
     | NIC
-    | YANG
-    | YANGLUK
+    | YAN
+    | YUK_SAN
     | KYACH
-    | KAMYACH
+    | KAAMYACH
     | KYASH
     | KYANG
-    | KYA
-    | AAY
-    | IIYANG
+    | NIC_SAN
     ;
 
 // ============================================================================
@@ -302,25 +301,20 @@ upasargaKrama
 
 upasarga
     : PRA
-    | PARA
-    | APA
+    | PARAA
     | SAM
-    | ANU
+    | ANUU
     | AVA
     | NIS
-    | NIR
     | DUS
-    | DUR
     | VI
     | AANG
-    | AA
     | NI
     | ADHI
-    | API
+    | API_UPASARGA
     | ATI
-    | SU_UPASARGA
+    | SU
     | UD
-    | UT
     | ABHI
     | PRATI
     | PARI
@@ -383,7 +377,7 @@ lakara
     | LET
     | LOT
     | LANG
-    | LING
+    | LIN
     | LUNG
     | LRNG
     ;
@@ -402,13 +396,13 @@ tingPratyaya
     | MIP
     | VAS
     | MAS
-    | TING_TA
-    | AATAM
+    | TA
+    | ATAAM
     | JHA
-    | THAAS
-    | AATHAM
+    | THAS_A
+    | ATHAAM
     | DHVAM
-    | ID
+    | IT
     | VAHI
     | MAHING
     ;
@@ -419,22 +413,22 @@ tingPratyaya
 
 supPratyaya
     : SUP_SU
-    | AU
-    | JAS
-    | AM
-    | AUT
-    | SHAS
-    | TAA
-    | BHYAM
-    | BHIS
-    | NGE
-    | BHYAS
-    | NGASI
-    | NGAS
-    | OS
-    | AAM
-    | NGI
-    | SUP
+    | SUP_AU
+    | SUP_JAS
+    | SUP_AM
+    | SUP_AUT
+    | SUP_SHAS
+    | SUP_TA
+    | SUP_BHYAM
+    | SUP_BHIS
+    | SUP_NGE
+    | SUP_BHYAS
+    | SUP_NGASI
+    | SUP_NGAS
+    | SUP_OS
+    | SUP_AAM
+    | SUP_NGI
+    | SUP_SUP
     ;
 
 // ============================================================================

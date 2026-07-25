@@ -104,19 +104,7 @@ object JuhotyadiDhatus {
                 PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
             )
             dhatu(DaDhatu())
-            dhatu(
-                "03.0011",
-                11,
-                "डुधाञ्",
-                "धा",
-                "धारणपोषणयोः",
-                "धारण करना, पहनना, पालन करना, देना",
-                "to wear, to obey, to wear, to bear,to support,to nourish,to protect",
-                PadaType.UBHAYAPADA,
-                ItStatus.ANIT,
-                Karmatva.SAKARMAKA,
-                Accent.ANUDATTA,
-            )
+            dhatu(DhaDhatu())
             dhatu(
                 "03.0012",
                 12,

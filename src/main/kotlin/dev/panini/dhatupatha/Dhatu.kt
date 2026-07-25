@@ -22,6 +22,7 @@ open class Dhatu(
     val svara: Accent? = null,
     open val operations: List<dev.panini.execution.DhatuOperation> = emptyList(),
     open val semanticRelations: Set<dev.panini.vyakaranam.analysis.SemanticRelation> = emptySet(),
+    open val surfaceAliases: Set<String> = emptySet(),
 ) {
     /** Normalized root spelling used only by the derivation engine. */
     internal val derivationalSurface: String get() = sourceSurface

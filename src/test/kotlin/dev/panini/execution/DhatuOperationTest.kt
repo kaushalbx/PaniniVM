@@ -35,7 +35,7 @@ class DhatuOperationTest {
         val registered = DhatuPatha.all.flatMap { dhatu ->
             dhatu.operations.map { dhatu to it }
         }
-        assertEquals(20, registered.size)
+        assertEquals(21, registered.size)
 
         registered.forEach { (dhatu, operation) ->
             val variables = mutableMapOf<String, SanskritValue>()
@@ -43,7 +43,18 @@ class DhatuOperationTest {
                 requirement.karaka to expressionFor(requirement, variables)
             }
             val resolution = OperationResolver.resolve(
-                DhatuInvocation("test", dhatu, bindings, selectedOperation = operation.name),
+                DhatuInvocation(
+                    "test",
+                    dhatu,
+                    bindings,
+                    selectedOperation = operation.name,
+                    grammaticalFeatures = GrammaticalFeatures(
+                        upasargas = operation.trigger.requiredUpasargas,
+                        sanadi = operation.trigger.requiredSanadi,
+                        avyayas = operation.trigger.requiredAvyayas,
+                        lakara = operation.trigger.allowedLakaras.firstOrNull(),
+                    ),
+                ),
                 variables,
             )
             assertIs<OperationResolution.Resolved>(resolution, "${dhatu.id}/${operation.name}: $resolution")

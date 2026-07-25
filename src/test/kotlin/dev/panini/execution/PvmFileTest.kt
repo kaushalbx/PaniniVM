@@ -63,4 +63,26 @@ class PvmFileTest {
         val line5Result = assertIs<ExecutionResult.Success>(results[4])
         assertEquals("चत्वारि", line5Result.value)
     }
+
+    @Test
+    fun `PaniniVM evaluates sandhi pvm file and performs linguistic Sandhi on operands`() {
+        val pvmFile = File("src/test/kotlin/dev/panini/parser/sandhi.pvm")
+        val txtFile = File("src/test/kotlin/dev/panini/parser/sandhi.txt")
+
+        assertTrue(pvmFile.exists(), "sandhi.pvm should exist")
+        assertTrue(txtFile.exists(), "sandhi.txt should exist")
+
+        val results = vm.evalFile(pvmFile, sessionKey = "sandhi_session")
+
+        assertEquals(3, results.size)
+
+        val line1Result = assertIs<ExecutionResult.Success>(results[0])
+        assertEquals("रामावतार", line1Result.value)
+
+        val line2Result = assertIs<ExecutionResult.Success>(results[1])
+        assertEquals("देवालय", line2Result.value)
+
+        val line3Result = assertIs<ExecutionResult.Success>(results[2])
+        assertEquals("तच्छिव", line3Result.value)
+    }
 }
