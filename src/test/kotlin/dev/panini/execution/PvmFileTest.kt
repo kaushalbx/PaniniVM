@@ -26,6 +26,8 @@ class PvmFileTest {
     @Test
     fun `PaniniVM evaluates addition pvm file containing complex arithmetic utterances`() {
         val pvmFile = File("src/test/kotlin/dev/panini/parser/addition.pvm")
+        val outputFile = File("src/test/kotlin/dev/panini/parser/addition.txt")
+
         val results = vm.evalFile(pvmFile, sessionKey = "addition_session")
 
         assertEquals(5, results.size)
@@ -44,5 +46,8 @@ class PvmFileTest {
 
         val line5Result = assertIs<ExecutionResult.Success>(results[4])
         assertEquals("चत्वारि", line5Result.value)
+
+        val expectedOutput = results.joinToString("\n") { (it as ExecutionResult.Success).value }
+        assertEquals(expectedOutput, outputFile.readText().trim())
     }
 }
