@@ -364,6 +364,8 @@ object KryadiDhatus {
             "09.0071", 71, "ग्रहँ", "ग्रह्",
             "उपादाने", "लेना, स्वीकार करना", "to take, to accept, to obtain",
             PadaType.UBHAYAPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
+            semanticRelations = setOf(dev.panini.vyakaranam.analysis.SemanticRelation.RECIPIENT, dev.panini.vyakaranam.analysis.SemanticRelation.DESIRED_OBJECT),
+            surfaceAliases = setOf("अनुगृ", "प्रतिगृ", "गृह्णाति", "गृह्ण"),
         )
     }
 }

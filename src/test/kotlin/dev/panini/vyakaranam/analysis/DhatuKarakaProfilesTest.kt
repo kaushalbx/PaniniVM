@@ -20,6 +20,15 @@ class DhatuKarakaProfilesTest {
     }
 
     @Test
+    fun `profiles exist for expanded valency dhatus stha vas grah da bhi`() {
+        val dhatus = listOf("स्था", "तिष्ठति", "वस्", "वसति", "ग्रह्", "गृह्णाति", "दा", "ददाति", "भी", "बिभेति")
+        dhatus.forEach { dhatu ->
+            val profile = DhatuKarakaProfiles.forSurface(dhatu)
+            assertNotNull(profile, "Profile should exist for $dhatu")
+        }
+    }
+
+    @Test
     fun `gam resolves destination to motion goal karman`() {
         val profile = DhatuKarakaProfiles.forSurface("गच्छति")
         assertNotNull(profile)

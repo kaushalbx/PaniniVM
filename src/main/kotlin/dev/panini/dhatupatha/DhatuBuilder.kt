@@ -5,6 +5,7 @@ import dev.panini.core.PadaType
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
+import dev.panini.vyakaranam.analysis.SemanticRelation
 
 /** Small DSL used by each gaṇa file to preserve Dhātupāṭha order. */
 class DhatuBuilder(private val gana: DhatuGana) {
@@ -22,6 +23,8 @@ class DhatuBuilder(private val gana: DhatuGana) {
         itStatus: ItStatus? = null,
         karmatva: Karmatva? = null,
         svara: Accent? = null,
+        semanticRelations: Set<SemanticRelation> = emptySet(),
+        surfaceAliases: Set<String> = emptySet(),
     ) {
         require(id.isNotBlank()) { "A dhātu id is required." }
         require(krama > 0) { "Dhātu krama must be positive." }
@@ -41,6 +44,8 @@ class DhatuBuilder(private val gana: DhatuGana) {
             itStatus = itStatus,
             karmatva = karmatva,
             svara = svara,
+            semanticRelations = semanticRelations,
+            surfaceAliases = surfaceAliases,
         )
     }
 

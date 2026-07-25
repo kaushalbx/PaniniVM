@@ -63,16 +63,16 @@ data class DhatuKarakaProfile(
 /** Semantic valency facts consumed by kāraka-saṃjñā rules. */
 object DhatuKarakaProfiles {
     private val profiles = listOf(
-        DhatuKarakaProfile(setOf("दा"), setOf(SemanticRelation.RECIPIENT)),
+        DhatuKarakaProfile(setOf("दा", "ददाति", "यच्छति", "देहि"), setOf(SemanticRelation.RECIPIENT)),
         DhatuKarakaProfile(setOf("लिख्", "लिख"), setOf(SemanticRelation.INSTRUMENT)),
         DhatuKarakaProfile(setOf("पलाय्", "पलाय"), setOf(SemanticRelation.SOURCE)),
         DhatuKarakaProfile(setOf("भू", "प्रभू"), setOf(SemanticRelation.SOURCE)),
-        DhatuKarakaProfile(setOf("शी", "स्था", "आस्", "अधिशी", "अधिस्था", "अध्यास्"), setOf(SemanticRelation.LOCATION)),
+        DhatuKarakaProfile(setOf("शी", "स्था", "तिष्ठति", "तिष्ठ", "आस्", "अधिशी", "अधिस्था", "अध्यास्"), setOf(SemanticRelation.LOCATION)),
         DhatuKarakaProfile(setOf("जन्", "जन", "जाय"), setOf(SemanticRelation.SOURCE)),
         DhatuKarakaProfile(setOf("क्रुध्", "क्रुध", "द्रुह", "ईर्ष्या", "असूया", "अभिक्रुध", "अभिद्रुह"), setOf(SemanticRelation.RECIPIENT)),
-        DhatuKarakaProfile(setOf("भी", "बिभ", "त्रा", "त्राय"), setOf(SemanticRelation.SOURCE)),
+        DhatuKarakaProfile(setOf("भी", "बिभेति", "बिभ्यति", "बिभ्यात्", "भीति", "बिभ", "त्रा", "त्राय"), setOf(SemanticRelation.SOURCE)),
         DhatuKarakaProfile(setOf("रुच", "रोच"), setOf(SemanticRelation.RECIPIENT)),
-        DhatuKarakaProfile(setOf("वस", "उपवस", "अनुवस", "अधिवस", "आवस"), setOf(SemanticRelation.LOCATION)),
+        DhatuKarakaProfile(setOf("वस", "वसति", "वसत", "उपवस", "अनुवस", "अधिवस", "आवस"), setOf(SemanticRelation.LOCATION)),
         DhatuKarakaProfile(setOf("पराजि", "पराजय"), setOf(SemanticRelation.SOURCE)),
         DhatuKarakaProfile(setOf("अधी", "पठ"), setOf(SemanticRelation.SOURCE, SemanticRelation.DESIRED_OBJECT)),
         DhatuKarakaProfile(setOf("स्पृह", "स्पृहय"), setOf(SemanticRelation.RECIPIENT)),
@@ -84,7 +84,7 @@ object DhatuKarakaProfiles {
         DhatuKarakaProfile(setOf("दिव", "दीव्"), setOf(SemanticRelation.INSTRUMENT)),
         DhatuKarakaProfile(setOf("परिक्री", "क्री"), setOf(SemanticRelation.INSTRUMENT)),
         DhatuKarakaProfile(setOf("प्रतिश्रु", "आश्रु"), setOf(SemanticRelation.RECIPIENT)),
-        DhatuKarakaProfile(setOf("अनुगृ", "प्रतिगृ"), setOf(SemanticRelation.RECIPIENT)),
+        DhatuKarakaProfile(setOf("ग्रह्", "गृह्णाति", "गृह्ण", "अनुगृ", "प्रतिगृ"), setOf(SemanticRelation.RECIPIENT, SemanticRelation.DESIRED_OBJECT)),
         // Additional Dhātus
         DhatuKarakaProfile(setOf("कृ", "करोति", "करो", "कुर्व", "कारय", "अकृ"), setOf(SemanticRelation.DESIRED_OBJECT, SemanticRelation.PROMPTER_CAUSE, SemanticRelation.INSTRUMENT)),
         DhatuKarakaProfile(setOf("गम्", "गच्छति", "गच्छ", "आगम्", "आगच्छ", "अनुगम्", "अनुगच्छ", "उपागम्", "उपागच्छ"), setOf(SemanticRelation.MOTION_GOAL, SemanticRelation.DESIRED_OBJECT, SemanticRelation.LOCATION)),
@@ -105,7 +105,7 @@ object DhatuKarakaProfiles {
         val profile = forSurface(dhatu.sourceSurface) ?: forSurface(dhatu.upadesha)
         if (profile != null) return profile
         if (dhatu.semanticRelations.isNotEmpty()) {
-            return DhatuKarakaProfile(setOf(dhatu.sourceSurface, dhatu.upadesha), dhatu.semanticRelations)
+            return DhatuKarakaProfile(setOf(dhatu.sourceSurface, dhatu.upadesha) + dhatu.surfaceAliases, dhatu.semanticRelations)
         }
         return null
     }
@@ -122,7 +122,12 @@ object DhatuKarakaProfiles {
             val normUp = dhatu.upadesha.trimEnd('्', 'ँ')
             val normSrc = dhatu.sourceSurface.trimEnd('्', 'ँ')
             surface == dhatu.upadesha || surface == dhatu.sourceSurface || surface == dhatu.derivationalSurface ||
-                normSurface == normUp || normSurface == normSrc
+                normSurface == normUp || normSurface == normSrc ||
+                dhatu.surfaceAliases.contains(surface) ||
+                dhatu.surfaceAliases.any { entry ->
+                    val normEntry = entry.trimEnd('्', 'ँ')
+                    surface == entry || normSurface == normEntry || surface.startsWith(entry) || entry.startsWith(surface)
+                }
         }
         val dhatuRelations = dhatuEntries.flatMap { it.semanticRelations }.toSet()
         val combinedRelations = (registeredProfile?.relations.orEmpty() + dhatuRelations)

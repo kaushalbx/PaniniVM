@@ -10,6 +10,7 @@ import dev.panini.execution.op
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
+import dev.panini.vyakaranam.analysis.SemanticRelation
 
 /** Executable Juhotyādi dhātu डुदाञ् दाने. */
 class DaDhatu : Dhatu(
@@ -30,4 +31,6 @@ class DaDhatu : Dhatu(
             requires(Karaka.KARMAN); returns(ExecutionSamjna.SHABDA)
         },
     ),
+    semanticRelations = setOf(SemanticRelation.RECIPIENT, SemanticRelation.DESIRED_OBJECT),
+    surfaceAliases = setOf("यच्छति", "ददाति", "दत्त", "देहि"),
 )

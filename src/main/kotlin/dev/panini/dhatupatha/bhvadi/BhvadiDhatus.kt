@@ -8219,6 +8219,8 @@ object BhvadiDhatus {
                 "01.1077", 1077, "ष्ठा", "स्था",
                 "गतिनिवृत्तौ", "स्थिर होना, ठहरना", "to stay, to stand",
                 PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.AKARMAKA, Accent.ANUDATTA,
+                semanticRelations = setOf(dev.panini.vyakaranam.analysis.SemanticRelation.LOCATION),
+                surfaceAliases = setOf("अधिस्था", "तिष्ठति", "तिष्ठ", "स्थायात्"),
             )
             dhatu(
                 "01.1078", 1078, "म्ना", "म्ना",
@@ -8746,6 +8748,8 @@ object BhvadiDhatus {
                 "01.1160", 1160, "वसँ", "वस्",
                 "निवासे", "निवास करना, टिकना", "to dwell,to live, to stay",
                 PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.AKARMAKA, Accent.ANUDATTA,
+                semanticRelations = setOf(dev.panini.vyakaranam.analysis.SemanticRelation.LOCATION),
+                surfaceAliases = setOf("उपवस", "अनुवस", "अधिवस", "आवस", "वसति", "वसत"),
             )
             dhatu(
                 "01.1161", 1161, "वेञ्", "वे",

@@ -35,6 +35,8 @@ object JuhotyadiDhatus {
                 ItStatus.ANIT,
                 Karmatva.AKARMAKA,
                 Accent.ANUDATTA,
+                semanticRelations = setOf(dev.panini.vyakaranam.analysis.SemanticRelation.SOURCE),
+                surfaceAliases = setOf("बिभेति", "बिभ्यति", "बिभ्यात्", "भीति"),
             )
             dhatu(
                 "03.0003",
