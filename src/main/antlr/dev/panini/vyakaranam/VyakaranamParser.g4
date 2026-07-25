@@ -200,7 +200,7 @@ taddhitaPratyaya
     | CHA_TADDHITA
     | KA_TADDHITA
     | KAN
-    | YAT_TADDHITA
+    | YAT
     | AYANA
     | IYA
     | INA
@@ -495,7 +495,7 @@ krtPratyaya
     | KTAVATU
     | TAVYAT
     | ANIYAR
-    | YAT_KRT
+    | YAT
     | NYAT
     | KYAP
     | SHATR
