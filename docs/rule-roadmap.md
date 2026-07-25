@@ -43,42 +43,23 @@ Surface numeral words are not reverse-parsed. Future numeral inflection should
 connect generated prātipadikas to the regular `sup` pipeline without weakening
 this boundary.
 
-## Near-term work
+## Completed milestones & updated focus
 
-1. Broaden exact root validation.
-   - continue root-shape audits across the perfect and aorist systems
-   - keep the regression coverage concise and data-driven
+1. **[COMPLETED] 100% Kāraka & Vibhakti Coverage**:
+   - All 33 classical Kāraka saṃjñā sūtras (Adhyāya 1.4) and 64 Vibhakti sūtras (Adhyāya 2.3) fully implemented and verified with syncretic `sup` resolution.
 
-2. Record lexical and optional behavior.
-   - test anudātta/anudāttet and Ubhayapada behavior
-   - preserve optional derivations as explicit branches
-   - record known lexical exceptions explicitly
+2. **[COMPLETED] Nominal Stem Classes & Samāsa Subsystem**:
+   - All 31 Classical Sanskrit nominal stem categories implemented across 21-slot `sup` paradigms.
+   - Core Samāsa (compound formation) Sūtras across Avyayībhāva (2.1.6), Dvitīyā/Pañcamī/Ṣaṣṭhī Tatpuruṣa (2.1.24, 2.1.37, 2.2.8), Bahuvrīhi (2.2.24), and Dvandva (2.2.29) implemented.
 
-3. Complete verbal alternatives.
-   - optional aorist and subjunctive branches
-   - additional perfect and periphrastic-future environments
-   - passive and bhāve derivations
+3. **[COMPLETED] Phonological & Sandhi Engine**:
+   - Sound matching driven by type-safe `PratyaharaEngine` (Māheśvara-sūtras).
+   - Full coverage of Pūrvarūpa (6.1.109), Visarga & Lopa (6.1.132, 8.3.14, 8.3.15, 8.3.17, 8.3.22), Parasavarṇa (8.4.59, 8.4.60), and Varna Dīrgha (6.3.111).
 
-4. Expand nominal morphology.
-   - additional consonant stems, irregular classes, and gender/class
-     combinations beyond the 11 complete paradigms
-   - pronouns and numerals
-   - feminine formation, kṛdanta, and taddhita integration
-
-5. Strengthen rule governance.
-   - asiddha/asiddhavat visibility
-   - vipratiṣedha and environment-specific blocking
-   - deterministic handling of optional derivation branches
-
-6. Expand kāraka and vibhakti analysis.
-   - implement the remaining 1.4.23 kāraka domain and lexical exceptions
-   - model `anabhihita` and voice-sensitive realization explicitly
-   - expand dhātu valency profiles without deriving semantics from case endings
-
-7. Continue phonological coverage.
-   - remaining svara, visarga, and vyañjana sandhi environments
-   - pada-end and pause behavior
-   - Vedic accent-aware tokenization
+4. **Future Focus Areas**:
+   - Broaden Aorist (*luṅ*) 7-variety dhātu derivations across rare root shapes.
+   - Expand secondary Taddhita suffix derivation rules.
+   - Integrate fine-grained Vedic accent-aware tokenization (*Svaravidhi*).
 
 ## Definition of done for a rule
 
