@@ -100,11 +100,24 @@ object DhatuKarakaProfiles {
 
     fun forSurface(surface: String): DhatuKarakaProfile? {
         val normalized = surface.trimEnd('्', 'ँ')
-        return profiles.firstOrNull { profile ->
+        val registeredProfile = profiles.firstOrNull { profile ->
             profile.surfaces.any { entry ->
                 val normEntry = entry.trimEnd('्', 'ँ')
                 normalized.startsWith(normEntry) || normEntry.startsWith(normalized)
             }
         }
+        val dhatuEntry = dev.panini.dhatupatha.DhatuPatha.all.firstOrNull { dhatu ->
+            val normUpadesha = dhatu.upadesha.trimEnd('्', 'ँ')
+            val normSurface = dhatu.sourceSurface.trimEnd('्', 'ँ')
+            normalized.startsWith(normUpadesha) || normalized.startsWith(normSurface) ||
+                normUpadesha.startsWith(normalized) || normSurface.startsWith(normalized)
+        }
+        val dhatuRelations = dhatuEntry?.semanticRelations.orEmpty()
+        val combinedRelations = (registeredProfile?.relations.orEmpty() + dhatuRelations)
+        if (combinedRelations.isEmpty() && registeredProfile == null) return null
+        return DhatuKarakaProfile(
+            surfaces = registeredProfile?.surfaces ?: setOf(surface),
+            relations = combinedRelations,
+        )
     }
 }

@@ -6,6 +6,7 @@ import dev.panini.core.Vibhakti
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class DhatuKarakaProfilesTest {
 
@@ -58,5 +59,13 @@ class DhatuKarakaProfilesTest {
             ),
         )
         assertEquals(Karaka.KARMAN, resolution.resolved)
+    }
+
+    @Test
+    fun `dhatu instance semantic relations are dynamically merged into profiles`() {
+        val yujirDhatu = dev.panini.dhatupatha.DhatuPatha.all.first { it.sourceSurface == "युज्" }
+        val profile = DhatuKarakaProfiles.forSurface(yujirDhatu.upadesha)
+        assertNotNull(profile)
+        assertTrue(profile.relations.contains(SemanticRelation.DESIRED_OBJECT))
     }
 }
