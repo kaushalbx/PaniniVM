@@ -7,12 +7,13 @@ sentence rules operate on typed kāraka or vibhakti contexts.
 
 ## Current scope
 
-- **435+ registered executable sūtras**: Integrated across derivation, compound formation (Samāsa), phonology (Sandhi), and sentence-analysis (Kāraka & Vibhakti) scopes.
-- **100% Full Coverage of Aṣṭādhyāyī 2.3 Vibhakti Sūtras**: All 64 classical non-Vedic sūtras implemented and verified.
+- **435+ registered executable sūtras**: Integrated across nominal derivation, verbal derivation, compound formation (Samāsa), phonology (Sandhi), and sentence-level Kāraka/Vibhakti scopes.
 - **100% Full Coverage of Aṣṭādhyāyī 1.4 Kāraka Sūtras**: All 33 classical Kāraka saṃjñā sūtras implemented and verified.
+- **100% Full Coverage of Aṣṭādhyāyī 2.3 Vibhakti Sūtras**: All 64 classical non-Vedic Vibhakti sūtras implemented and verified with syncretic `sup` resolution.
 - **Samāsa (Compound Formation) Subsystem**: Implemented Adhyāya 2.1 & 2.2 Sūtras (`2.1.6` Avyayībhāva, `2.1.24` Dvitīyā Tatpuruṣa, `2.1.37` Pañcamī Tatpuruṣa, `2.2.8` Ṣaṣṭhī Tatpuruṣa, `2.2.24` Bahuvrīhi, `2.2.29` Dvandva).
-- **Phonological Transformation Subsystem**: Refactored Sandhi Sūtras (`6.1.109`, `6.1.132`, `6.3.111`, `8.3.14`, `8.3.17`, `8.3.22`, `8.4.59`, `8.4.60`, `8.4.62`, `8.4.63`, `8.4.65`) with `PratyaharaEngine` integration and inline rule matching.
-- **100% Full Coverage of Subanta Nominal Stem Classes**: All 31 Classical Sanskrit nominal stem categories implemented (vowel, consonant, pronominal, numeral).
+- **Phonological Transformation & Sandhi Subsystem**: Refactored Sandhi Sūtras (`6.1.109` Pūrvarūpa, `6.1.132` Su-lopa, `6.3.111` Ḍhralope Dīrgha, `8.3.14` Ḍho ḍhe lopa, `8.3.17` Yo 'śi, `8.3.22` Hali sarveṣām, `8.4.59` Vā padāntasya, `8.4.60` Tor li, `8.4.62` Jhayo ho 'nyatarasyām, `8.4.63` Śaś cho 'ṭi, `8.4.65` Jharo jhari savarṇe) with type-safe `PratyaharaEngine` integration and inline rule matching.
+- **100% Full Coverage of Subanta Nominal Stem Classes**: All 31 Classical Sanskrit nominal stem categories implemented (vowel, consonant, pronominal, numeral) across 21-slot `sup` paradigms.
+- **Verbal Tiṅanta Subsystem**: Full 10-gaṇa Dhātupāṭha catalogue with LAṬ, LOṬ, LAṄ, LIṄ, LṚṬ, LṚṄ, and LIṬ stem formation and paradigm verification in both padas.
 - Centralized **Adhikāra Domain Registry (`AdhikaraRegistry`)**: Enforces scope domain boundaries (`1.4.1`, `1.4.23`, `2.3.1 Anabhihite`, `3.1.1`, `3.1.91`, `6.4.1`, `8.1.16`) wrapping concrete `Sutra` objects directly.
 - Centralized **Paribhāṣā Meta-rule Registry (`ParibhashaRegistry`)**: Manages interpretive meta-rules (`1.1.3`, `1.1.46`, `1.1.47`, `1.1.49`, `1.1.50`, `1.1.51`, `1.1.52`, `1.1.53`, `1.1.54`, `1.1.55`, `1.1.56`, `1.1.64`, `1.1.66`, `1.1.67`, `1.1.68`, `1.1.69`, `1.4.2`) categorized by a type-safe `ParibhashaScope` enum.
 - Centralized **Pratiṣedha Prohibition Engine (`NishedhaRuleEngine`)**: Evaluates prohibition sūtras (`1.1.5`, `1.1.6`, `1.1.10`, `1.2.4`, `2.3.70`) integrated into rule engines.
