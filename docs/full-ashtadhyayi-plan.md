@@ -7,11 +7,11 @@ The project tracks a target of 3,959 implemented sūtras.
 | Measure | Count |
 | --- | ---: |
 | Target sūtras | 3,959 |
-| Registered implemented sūtras | 430 |
-| Derivation-state sūtras | 308 |
+| Registered implemented sūtras | 434 |
+| Derivation-state sūtras | 312 |
 | Sentence-level kāraka/vibhakti sūtras | 64 |
 | Other (Saṃjñā/Paribhāṣā/Adhikāra/etc.) | 58 |
-| Remaining | 3,529 |
+| Remaining | 3,525 |
 
 The implemented subset supports end-to-end nominal and verbal derivations,
 but the count does not imply complete linguistic coverage of every rule
