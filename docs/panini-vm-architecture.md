@@ -134,9 +134,22 @@ Runtime invariants:
 
 ---
 
-## 5. `.pvm` Script File Format
+## 5. `.pvm` Script File Format & `PvmUktiSadhaka` Engine
 
-`.pvm` files store sequential PaniniVM program instructions. Blank lines and comments (`#`, `//`) are automatically ignored.
+`.pvm` (PaniniVM) files store sequential Pāṇinian grammatical and semantic program instructions. Blank lines and script comments (`#`, `//`) are automatically ignored.
+
+### `PvmUktiSadhaka` (Pāṇinian Grammatical Rūpa-Siddhi)
+The `PvmUktiSadhaka` engine evaluates parsed AST nodes to perform full `rūpa-siddhi` (रूपसिद्धि) on segmented `.pvm` script lines:
+- **`sadhayaScript(scriptContent)`**: Processes multi-line script content sequentially.
+- **`sadhayaLine(lineText)`**: Evaluates Pāṇinian `Ukti` ASTs containing optional `Sambodhana` (vocative calling), `Vākya` clauses, and `Pada` sequences.
+- **`sadhayaSubanta(subantaPada)`**: Binds `MūlaPrātipadika`, `KṛdantaPrātipadika`, `UṇādyantaPrātipadika`, or `SamāsaPrātipadika` with `SupAffix` via `SubantaEngine` to derive exact declension surfaces.
+- **`sadhayaTinganta(tingantaPada)`**: Binds Dhātu root, `Upasarga` prefixes, Lakāra mode, and `TingAffix` via `TingantaEngine` to derive exact verbal conjugation surfaces.
+
+### Dhātu Action Resolution Architecture (`DhatuAction` & `DhatuOperation`)
+Semantic execution maps resolved grammatical features to registered `DhatuAction` instances:
+- **`DhatuAction`**: Abstract base carrying operational metadata (`name`, `description`) and `execute(context, operation)` handler logic.
+- **`OperationResolver`**: Resolves Dhātu root signatures, Kāraka roles, and valencies into executable `DhatuOperation` plans.
+- **`ExecutionContext`**: Maintains environment state, discourse models (`DiscourseModel`), active `Samjñā` assignments (`ExecutionSamjna`), typed `SanskritValue` stores, and inter-clause continuations.
 
 ### Running `.pvm` Scripts:
 ```powershell
