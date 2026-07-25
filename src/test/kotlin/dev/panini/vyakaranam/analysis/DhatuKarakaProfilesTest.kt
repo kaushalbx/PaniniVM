@@ -3,7 +3,6 @@ package dev.panini.vyakaranam.analysis
 import dev.panini.core.Karaka
 import dev.panini.core.Prayoga
 import dev.panini.core.Vibhakti
-import dev.panini.dhatupatha.rudhadi.YujirDhatu
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -64,7 +63,7 @@ class DhatuKarakaProfilesTest {
 
     @Test
     fun `dhatu instance semantic relations are dynamically merged into profiles`() {
-        val yujirDhatu = dev.panini.dhatupatha.DhatuPatha.all.first { it is YujirDhatu }
+        val yujirDhatu = dev.panini.dhatupatha.DhatuPatha.all.first { it.sourceSurface == "युज्" }
         val profile = DhatuKarakaProfiles.forSurface(yujirDhatu.upadesha)
         assertNotNull(profile)
         assertTrue(profile.relations.contains(SemanticRelation.DESIRED_OBJECT))
