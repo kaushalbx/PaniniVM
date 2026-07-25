@@ -9,6 +9,7 @@ data class ProhibitionContext(
     val isDidhiVeviOrItAugment: Boolean = false,
     val isSetKtvaAffix: Boolean = false,
     val isKrtProhibitedForSasthi: Boolean = false,
+    val isAkaFutureOrDebtAffix: Boolean = false,
 )
 
 sealed class NishedhaRuleResult {
@@ -29,6 +30,12 @@ object NishedhaRuleEngine {
             'ङ' in context.affixItMarkers
 
         return when {
+            context.isAkaFutureOrDebtAffix && context.targetSutraNumber == "2.3.65" -> NishedhaRuleResult.Blocked(
+                blockerSutraNumber = "2.3.70",
+                blockerSutraText = "अकस्य च भविष्यदाधमर्ण्ययोः",
+                blockedTargetSutraNumber = "2.3.65",
+                evidence = KarakaEvidence("2.3.70", "अकस्य च भविष्यदाधमर्ण्ययोः", "Prohibits Ṣaṣṭhī before -aka affix in future or debt sense."),
+            )
             context.isKrtProhibitedForSasthi && context.targetSutraNumber == "2.3.65" -> NishedhaRuleResult.Blocked(
                 blockerSutraNumber = "2.3.66",
                 blockerSutraText = "न लोकाव्ययनिष्ठानिष्ठाखलर्थतृनाम्",
