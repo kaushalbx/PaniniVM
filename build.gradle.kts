@@ -33,6 +33,8 @@ dependencies {
     antlr("org.antlr:antlr4:4.13.2")
     implementation("org.antlr:antlr4-runtime:4.13.2")
     implementation("org.ow2.asm:asm:9.7")
+    compileOnly(gradleApi())
+    testImplementation(gradleApi())
     testImplementation(kotlin("test"))
 }
 

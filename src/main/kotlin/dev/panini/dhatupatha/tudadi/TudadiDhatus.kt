@@ -30,11 +30,7 @@ object TudadiDhatus {
             "पाके", "पकाना, भुजना", "to fry,to roast,to parch",
             PadaType.UBHAYAPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
         )
-        dhatu(
-            "06.0005", 5, "क्षिपँ", "क्षिप्",
-            "प्रेरणे", "भेजना, फेंकना, उड़ाना", "to throw, to send, to make fly",
-            PadaType.UBHAYAPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
-        )
+        dhatu(KshipDhatu())
         dhatu(
             "06.0006", 6, "कृषँ", "कृष्",
             "विलेखने", "जोतना, हल चलाना", "to plow, to furrow, to cultivate",

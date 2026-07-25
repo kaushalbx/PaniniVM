@@ -117,6 +117,7 @@ class FileStateStore(private val storageDir: File) : StateStore {
         is SanskritValue.Satya -> "SATYA:${value.boolean}"
         is SanskritValue.Shabda -> "SHABDA"
         is SanskritValue.Gana -> "GANA"
+        is SanskritValue.Suchi -> "SUCHI"
         null -> ""
     }
 

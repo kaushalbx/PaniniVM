@@ -27,6 +27,13 @@ sealed interface SanskritValue {
         override fun toDisplayText(): String = elements.joinToString(" ") { it.toDisplayText() }
     }
 
+    data class Suchi(
+        val items: List<SanskritValue>,
+    ) : SanskritValue {
+        override val samjnas: Set<ExecutionSamjna> = items.flatMap { it.samjnas }.toSet() + ExecutionSamjna.GANA
+        override fun toDisplayText(): String = "[${items.joinToString(", ") { it.toDisplayText() }}]"
+    }
+
     data class Satya(
         val boolean: Boolean,
     ) : SanskritValue {
