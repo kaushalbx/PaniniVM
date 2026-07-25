@@ -33,14 +33,13 @@ class SanskritListActionTest {
     @Test
     fun `PvmFileTest executes list_demo pvm script`() {
         val pvmFile = File("examples/collections/list_demo.pvm")
-        val txtFile = File("examples/collections/list_demo.txt")
         val results = vm.evalFile(pvmFile, sessionKey = "file_list_session")
-        val expected = txtFile.readLines().map { it.trim() }
+        assertEquals(2, results.size)
 
-        assertEquals(expected.size, results.size)
-        results.forEachIndexed { idx, res ->
-            val success = assertIs<ExecutionResult.Success>(res)
-            assertEquals(expected[idx], success.value)
-        }
+        val res1 = assertIs<ExecutionResult.Success>(results[0])
+        assertEquals("[राम, फल]", res1.value)
+
+        val res2 = assertIs<ExecutionResult.Success>(results[1])
+        assertEquals("नयनम् सिद्धम्: राम", res2.value)
     }
 }

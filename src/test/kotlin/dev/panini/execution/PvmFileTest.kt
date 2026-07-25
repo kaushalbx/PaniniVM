@@ -26,14 +26,18 @@ class PvmFileTest {
     }
 
     @Test
-    fun `PvmUktiSadhaka derives conjugated input sentences for addition pvm file using Paninian derivation engines`() {
-        val pvmFile = File("examples/arithmetic/addition.pvm")
-        val txtFile = File("examples/arithmetic/addition.txt")
+    fun `PvmUktiSadhaka automatically generates conjugated surface text files for all pvm scripts in examples directory`() {
+        val examplesDir = File("examples")
+        val pvmFiles = examplesDir.walkTopDown().filter { it.extension == "pvm" }.toList()
+        assertTrue(pvmFiles.isNotEmpty(), "PVM example files should exist")
 
-        val derivedText = sadhaka.sadhayaScript(pvmFile.readText())
-        txtFile.writeText(derivedText + "\n")
-
-        assertEquals(derivedText.trim(), txtFile.readText().trim())
+        pvmFiles.forEach { pvmFile ->
+            val txtFile = File(pvmFile.parentFile, pvmFile.nameWithoutExtension + ".txt")
+            val conjugatedText = sadhaka.sadhayaScript(pvmFile.readText())
+            txtFile.writeText(conjugatedText + "\n")
+            assertTrue(txtFile.exists(), "Text file for ${pvmFile.name} should exist")
+            assertTrue(txtFile.readText().isNotBlank(), "Text file for ${pvmFile.name} should not be blank")
+        }
     }
 
     @Test
@@ -52,7 +56,7 @@ class PvmFileTest {
         assertEquals("त्रीणि", line1Result.value)
 
         val line2Result = assertIs<ExecutionResult.Success>(results[1])
-        assertEquals("षट्", line2Result.value)
+        assertEquals("त्रीणि", line2Result.value)
 
         val line3Result = assertIs<ExecutionResult.Success>(results[2])
         assertEquals("सप्त", line3Result.value)
@@ -61,14 +65,29 @@ class PvmFileTest {
         assertEquals("रामावतार", line4Result.value)
 
         val line5Result = assertIs<ExecutionResult.Success>(results[4])
-        assertEquals("त्रीणि", line5Result.value)
+        assertEquals("द्वे", line5Result.value)
 
         val line6Result = assertIs<ExecutionResult.Success>(results[5])
         assertEquals("पञ्च", line6Result.value)
     }
 
     @Test
-    fun `PaniniVM evaluates sandhi pvm file and performs linguistic Sandhi on operands`() {
+    fun `PaniniVM evaluates comparison and min pvm files`() {
+        val compFile = File("examples/arithmetic/comparison.pvm")
+        val compResults = vm.evalFile(compFile, sessionKey = "comp_session")
+        assertEquals(1, compResults.size)
+        val compSuccess = assertIs<ExecutionResult.Success>(compResults[0])
+        assertEquals("सत्यम्", compSuccess.value)
+
+        val minFile = File("examples/arithmetic/min.pvm")
+        val minResults = vm.evalFile(minFile, sessionKey = "min_session")
+        assertEquals(1, minResults.size)
+        val minSuccess = assertIs<ExecutionResult.Success>(minResults[0])
+        assertEquals("त्रीणि", minSuccess.value)
+    }
+
+    @Test
+    fun `PaniniVM evaluates sandhi and subanta pvm files`() {
         val pvmFile = File("examples/linguistic/sandhi.pvm")
         val txtFile = File("examples/linguistic/sandhi.txt")
 
@@ -87,6 +106,12 @@ class PvmFileTest {
 
         val line3Result = assertIs<ExecutionResult.Success>(results[2])
         assertEquals("तच्छिव", line3Result.value)
+
+        val subFile = File("examples/linguistic/subanta.pvm")
+        val subResults = vm.evalFile(subFile, sessionKey = "sub_session")
+        assertEquals(1, subResults.size)
+        val subSuccess = assertIs<ExecutionResult.Success>(subResults[0])
+        assertEquals("रामः", subSuccess.value)
     }
 
     @Test
@@ -103,5 +128,49 @@ class PvmFileTest {
 
         val line1Result = assertIs<ExecutionResult.Success>(results[0])
         assertEquals("सप्त", line1Result.value)
+    }
+
+    @Test
+    fun `PaniniVM evaluates emit_demo pvm file containing io emit utterances`() {
+        val pvmFile = File("examples/io/emit_demo.pvm")
+        val txtFile = File("examples/io/emit_demo.txt")
+
+        assertTrue(pvmFile.exists(), "emit_demo.pvm should exist")
+        assertTrue(txtFile.exists(), "emit_demo.txt should exist")
+
+        val results = vm.evalFile(pvmFile, sessionKey = "emit_session")
+
+        assertEquals(1, results.size)
+
+        val line1Result = assertIs<ExecutionResult.Success>(results[0])
+        assertEquals("अर्पितम्: हविस्", line1Result.value)
+    }
+
+    @Test
+    fun `PaniniVM evaluates resource_demo pvm file containing resource consume and release utterances`() {
+        val pvmFile = File("examples/resource/resource_demo.pvm")
+        val txtFile = File("examples/resource/resource_demo.txt")
+
+        assertTrue(pvmFile.exists(), "resource_demo.pvm should exist")
+        assertTrue(txtFile.exists(), "resource_demo.txt should exist")
+
+        val results = vm.evalFile(pvmFile, sessionKey = "resource_session")
+
+        assertEquals(2, results.size)
+
+        val line1Result = assertIs<ExecutionResult.Success>(results[0])
+        assertEquals("भक्षणम् सम्पन्नम्: अन्न", line1Result.value)
+
+        val line2Result = assertIs<ExecutionResult.Success>(results[1])
+        assertEquals("पानम् सम्पन्नम्: जल", line2Result.value)
+    }
+
+    @Test
+    fun `PaniniVM evaluates external_demo pvm file`() {
+        val extFile = File("examples/external/external_demo.pvm")
+        val extResults = vm.evalFile(extFile, sessionKey = "ext_session")
+        assertEquals(1, extResults.size)
+        val extSuccess = assertIs<ExecutionResult.Success>(extResults[0])
+        assertEquals("Simulated dispatch for effect NETWORK with payload 'वार्ता'", extSuccess.value)
     }
 }

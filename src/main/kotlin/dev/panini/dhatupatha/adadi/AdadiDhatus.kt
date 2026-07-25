@@ -459,5 +459,6 @@ object AdadiDhatus {
             "अपनयने", "छिपाना, लुकाना, चुराना, ले जाना", "to hide, to conceal,to take away,to deny",
             PadaType.ATMANEPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
         )
+        dhatu(AdDhatu())
     }
 }

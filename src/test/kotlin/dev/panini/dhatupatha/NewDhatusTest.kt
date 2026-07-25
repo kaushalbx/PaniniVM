@@ -56,8 +56,21 @@ class NewDhatusTest {
     @Test
     fun `EdhDhatu executes scale action`() {
         val result = vm.eval("पञ्च + अम् एध् + णिच् + लोट् + सिप् ।", sessionKey = "edh_session")
-        println("EdhDhatu result: $result")
         val success = assertIs<ExecutionResult.Success>(result)
         assertEquals("दश", success.value)
+    }
+
+    @Test
+    fun `AdDhatu executes consume action`() {
+        val result = vm.eval("अन्न + अम् अद् + णिच् + लोट् + सिप् ।", sessionKey = "ad_session")
+        val success = assertIs<ExecutionResult.Success>(result)
+        assertEquals("भक्षणम् सम्पन्नम्: अन्न", success.value)
+    }
+
+    @Test
+    fun `HuDhatu executes emit action`() {
+        val result = vm.eval("हविस् + अम् हु + णिच् + लोट् + सिप् ।", sessionKey = "hu_session")
+        val success = assertIs<ExecutionResult.Success>(result)
+        assertEquals("अर्पितम्: हविस्", success.value)
     }
 }

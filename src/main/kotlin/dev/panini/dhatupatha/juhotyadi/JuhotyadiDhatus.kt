@@ -206,5 +206,6 @@ object JuhotyadiDhatus {
                 "स्तुतौ", "प्रशंसा करना, सराहना", "to praise,to acclaim",
                 PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
             )
+            dhatu(HuDhatu())
         }
 }
