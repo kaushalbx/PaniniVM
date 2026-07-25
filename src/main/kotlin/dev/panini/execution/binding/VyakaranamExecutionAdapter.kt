@@ -3,10 +3,10 @@ package dev.panini.execution
 import dev.panini.core.Karaka
 import dev.panini.core.Lakara
 import dev.panini.core.Prayoga
+import dev.panini.core.SupAffix
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.sankhya.SankhyaGenerator
-import dev.panini.core.SupAffix
 import dev.panini.vyakaranam.analysis.DhatuIdentity
 import dev.panini.vyakaranam.analysis.DhatuKarakaProfiles
 import dev.panini.vyakaranam.analysis.KarakaRuleContext
@@ -187,7 +187,7 @@ object VyakaranamExecutionAdapter {
     ): ExecutionExpression {
         val text = pada.pratipadika.baseText()
         if (text == "फल" || text == "पूर्वफल") {
-            val id = if (clauseIndex > 0 && text == "फल") "योग-$clauseIndex" else
+            val id = if (clauseIndex > 0) "योग-$clauseIndex" else
                 conversation?.resultHistory?.lastOrNull()?.id ?: conversation?.previousResults?.keys?.lastOrNull()
             if (id != null) return ExecutionExpression.Reference(id)
         }
@@ -226,8 +226,10 @@ object VyakaranamExecutionAdapter {
             .firstOrNull { dhatu ->
                 text == dhatu.id ||
                     text == dhatu.upadesha ||
+                    text == dhatu.sourceSurface ||
                     text == dhatu.derivationalSurface ||
                     normalizedText == dhatu.upadesha.normalizeDhatuSurface() ||
+                    normalizedText == dhatu.sourceSurface.normalizeDhatuSurface() ||
                     normalizedText == dhatu.derivationalSurface.normalizeDhatuSurface()
             }
     }

@@ -42,10 +42,11 @@ object OperationResolver {
         }
         val compatible = evaluations.filter { it.third == SignatureEvaluation.Compatible }
         if (compatible.isEmpty()) {
-            val missing = evaluations.flatMap { (_, _, result) ->
-                (result as? SignatureEvaluation.Missing)?.karakas.orEmpty()
-            }.toSet()
-            if (missing.isNotEmpty()) {
+            val isAllMissing = evaluations.all { it.third is SignatureEvaluation.Missing }
+            if (isAllMissing) {
+                val missing = evaluations.flatMap { (_, _, result) ->
+                    (result as SignatureEvaluation.Missing).karakas
+                }.toSet()
                 return OperationResolution.MissingInput(
                     missing,
                     "Required kārakas are missing for dhātu ${dhatu.upadesha}: $missing",
