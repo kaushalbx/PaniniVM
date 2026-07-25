@@ -8,6 +8,7 @@ object Adhyaya3Pada2 {
         VartamaneLatSutra,
         KarmanyAnSutra,
         AtoAnupasargeKahSutra,
+        SatsudvisatrusadvisavahaSutra,
         BhuteLungSutra,
         AnadyataneLangSutra,
         LatahSatriShanacauSutra,

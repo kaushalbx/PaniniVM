@@ -5,11 +5,13 @@ import dev.panini.sutra.Sutra
 object Adhyaya3Pada3 {
     val sutras: List<Sutra<*, *>> = listOf(
         BhavishyatiGamyadayahSutra,
+        KrmyoKahSutra,
         BhaveSutra,
         EchaIgGhanSutra,
         RadorApsutra,
         ShidbhidadibhyoAngSutra,
         StriyamKtinSutra,
+        AkartariChaKarakeSamyayamSutra,
         NapumsakeBhaveKtahSutra,
         BhavishyatiLrtSutra,
         LringSutra,

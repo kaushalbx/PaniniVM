@@ -41,6 +41,7 @@ object Adhyaya3Pada1 {
         KrdAticSutra,
         TavyattavyanIyarahSutra,
         AchoYatSutra,
+        EtiStuShaasVriDrJuShyahKyapSutra,
         RhalorNyatSutra,
         NvultrchauSutra,
         GeheKahSutra,

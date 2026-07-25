@@ -9,6 +9,8 @@ object Adhyaya3Pada4 {
         SamanakartrkayohPurvakaleSutra,
         ShakaDhrshJnAGlaGhatRabhabhLabhaprakramitumunSutra,
         KartariKrtSutra,
+        LaKarmaniChaBhaveChakartariChaSutra,
+        TayorevaKtyaktakhalarthahSutra,
         TiptasjhiSutra,
         TitaAtmanepadanamTereSutra,
         ThasasseSutra,
@@ -37,5 +39,9 @@ object Adhyaya3Pada4 {
         JherJusSutra,
         SijabhyastavidibhyashCaSutra,
         LanSakatayanasyaIvaSutra,
+        TinsitSarvadhatukamSutra,
+        ArdhadhatukamSheshahSutra,
+        LitCaSutra,
+        LinAshisiSutra,
     )
 }
