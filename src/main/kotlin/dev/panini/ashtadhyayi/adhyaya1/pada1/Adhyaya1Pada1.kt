@@ -15,7 +15,9 @@ object Adhyaya1Pada1 {
         TulyasyaprayatnamSavarnamSutra,
         NajjhalauSutra, SthaneAntaratamahSutra, UranRaparahSutra,
         NgitScaSutra,  PragrhyaSutra, PratyayalopePratyayalaksanamSutra,
+        KtaKtavatuNisthaSutra,
         NaLumatangasyaSutra, SarvanamaSutra, SvaradiNipatamAvyayamSutra, AdarsanamLopaSutra,
+        TaparasTatKalasyaSutra,
     )
 
     val sutras: List<Sutra<*, *>> = rules

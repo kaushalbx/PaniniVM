@@ -1,0 +1,94 @@
+package dev.panini.ashtadhyayi.adhyaya1
+
+import dev.panini.ashtadhyayi.adhyaya1.pada1.KtaKtavatuNisthaSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada1.TaparasTatKalasyaSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada2.ArthavadAdhaturSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada2.KrtTaddhitaSamasascaSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada3.BhuvadayoDhatavahSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada3.HalantyamSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada3.LasakvataddhiteSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada3.TasyaLopahSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada3.UpadesheAjanunasikaItSutra
+import dev.panini.derivation.DerivationStage
+import dev.panini.derivation.DerivationState
+import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.TermKind
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
+
+class SamjnaSutrasTest {
+
+    @Test
+    fun testKtaKtavatuNisthaSutra() {
+        assertTrue(KtaKtavatuNisthaSutra.matches("क्त"))
+        assertTrue(KtaKtavatuNisthaSutra.matches("क्तवतु"))
+        assertEquals("निष्ठा", KtaKtavatuNisthaSutra.apply("क्त"))
+    }
+
+    @Test
+    fun testTaparasTatKalasyaSutra() {
+        assertTrue(TaparasTatKalasyaSutra.matches("अत्"))
+        assertTrue(TaparasTatKalasyaSutra.apply("अत्"))
+    }
+
+    @Test
+    fun testArthavadAdhaturSutra() {
+        val state = DerivationState(
+            stage = DerivationStage.PRATYAYA_SELECTED,
+            terms = listOf(DerivationTerm(id = "stem", surface = "राम", kind = TermKind.PRATIPADIKA))
+        )
+        assertTrue(ArthavadAdhaturSutra.matches(state))
+    }
+
+    @Test
+    fun testKrtTaddhitaSamasascaSutra() {
+        assertTrue(KrtTaddhitaSamasascaSutra.matches("कर्तृ"))
+        assertEquals("प्रातिपदिकम्", KrtTaddhitaSamasascaSutra.apply("कर्तृ"))
+    }
+
+    @Test
+    fun testBhuvadayoDhatavahSutra() {
+        val state = DerivationState(
+            stage = DerivationStage.INITIAL,
+            terms = listOf(DerivationTerm(id = "dhatu", surface = "भू", kind = TermKind.DHATU))
+        )
+        assertTrue(BhuvadayoDhatavahSutra.matches(state))
+    }
+
+    @Test
+    fun testUpadesheAjanunasikaItSutra() {
+        val state = DerivationState(
+            stage = DerivationStage.PRATYAYA_SELECTED,
+            terms = listOf(DerivationTerm(id = "pratyaya", surface = "सुँ", kind = TermKind.PRATYAYA))
+        )
+        assertTrue(UpadesheAjanunasikaItSutra.matches(state))
+    }
+
+    @Test
+    fun testHalantyamSutra() {
+        val state = DerivationState(
+            stage = DerivationStage.PRATYAYA_SELECTED,
+            terms = listOf(DerivationTerm(id = "pratyaya", surface = "ल्युट्", kind = TermKind.PRATYAYA))
+        )
+        assertTrue(HalantyamSutra.matches(state))
+    }
+
+    @Test
+    fun testLasakvataddhiteSutra() {
+        val state = DerivationState(
+            stage = DerivationStage.PRATYAYA_SELECTED,
+            terms = listOf(DerivationTerm(id = "pratyaya", surface = "ल्युट्", kind = TermKind.PRATYAYA))
+        )
+        assertTrue(LasakvataddhiteSutra.matches(state))
+    }
+
+    @Test
+    fun testTasyaLopahSutra() {
+        val state = DerivationState(
+            stage = DerivationStage.PRATYAYA_SELECTED,
+            terms = listOf(DerivationTerm(id = "pratyaya", surface = "ल्युट्", kind = TermKind.PRATYAYA))
+        )
+        assertTrue(TasyaLopahSutra.matches(state))
+    }
+}
