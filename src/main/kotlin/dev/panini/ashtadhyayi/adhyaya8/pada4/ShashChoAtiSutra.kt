@@ -1,9 +1,11 @@
 package dev.panini.ashtadhyayi.adhyaya8.pada4
 
+import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.VarnaSubstitution
+import dev.panini.pratyahara.Pratyahara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -61,8 +63,11 @@ object ShashChoAtiSutra : Sutra<DerivationState, DerivationChange>(
                     curr.endsWith("प्") || curr.endsWith("ब्")
             val nextStartsWithSha = next.startsWith("श") || next.startsWith("श्")
 
-            if (endsWithJhay && nextStartsWithSha) {
-                return Match(i + 1)
+            if (endsWithJhay && nextStartsWithSha && next.length > 1) {
+                val follower = next[1]
+                if (Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.AT, follower) || follower in setOf('ि', 'ी', 'ु', 'ू', 'ृ', 'े', 'ै', 'ो', 'ौ')) {
+                    return Match(i + 1)
+                }
             }
         }
         return null
