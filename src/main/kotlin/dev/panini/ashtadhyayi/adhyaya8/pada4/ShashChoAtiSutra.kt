@@ -6,6 +6,7 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.VarnaSubstitution
 import dev.panini.pratyahara.Pratyahara
+import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Varnamala
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -40,8 +41,10 @@ object ShashChoAtiSutra : Sutra<DerivationState, DerivationChange>(
             val lastChar = curr.trimEnd('्').lastOrNull() ?: return@any false
             if (!Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAY, lastChar)) return@any false
 
-            val follower = next.dropWhile { it == 'श' || it == '्' }.firstOrNull()
-            follower != null && (Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.AT, follower) || Varnamala.isVowel(follower))
+            val rawFollower = next.dropWhile { it == 'श' || it == '्' }.firstOrNull() ?: return@any false
+            val follower = if (Svara.fromMatra(rawFollower) != null) normalizeVowelMark(rawFollower) else rawFollower
+
+            Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.AT, follower) || Varnamala.isVowel(follower)
         }
     }
 
@@ -53,8 +56,10 @@ object ShashChoAtiSutra : Sutra<DerivationState, DerivationChange>(
             val lastChar = curr.trimEnd('्').lastOrNull() ?: return@first false
             if (!Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAY, lastChar)) return@first false
 
-            val follower = next.dropWhile { it == 'श' || it == '्' }.firstOrNull()
-            follower != null && (Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.AT, follower) || Varnamala.isVowel(follower))
+            val rawFollower = next.dropWhile { it == 'श' || it == '्' }.firstOrNull() ?: return@first false
+            val follower = if (Svara.fromMatra(rawFollower) != null) normalizeVowelMark(rawFollower) else rawFollower
+
+            Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.AT, follower) || Varnamala.isVowel(follower)
         } + 1
 
         val targetTerm = context.terms[targetIndex]
@@ -72,5 +77,20 @@ object ShashChoAtiSutra : Sutra<DerivationState, DerivationChange>(
             state = context.replaceTerm(targetTerm.id, targetTerm.copy(surface = newSurface)),
             explanation = "8.4.63: Substituted 'ś' with 'ch' after jhay stop."
         ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(targetTerm.id, 'श', "छ", sutra))) }
+    }
+
+    private fun normalizeVowelMark(mark: Char): Char = when (mark) {
+        'ा' -> 'आ'
+        'ि' -> 'इ'
+        'ी' -> 'ई'
+        'ु' -> 'उ'
+        'ू' -> 'ऊ'
+        'ृ' -> 'ऋ'
+        'ॄ' -> 'ॠ'
+        'े' -> 'ए'
+        'ै' -> 'ऐ'
+        'ो' -> 'ओ'
+        'ौ' -> 'औ'
+        else -> mark
     }
 }

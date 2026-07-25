@@ -1,18 +1,74 @@
 package dev.panini.actions.linguistic
 
+import dev.panini.ashtadhyayi.adhyaya6.pada1.AdGunaSutra
+import dev.panini.ashtadhyayi.adhyaya6.pada1.EngahPadantadatiSutra
+import dev.panini.ashtadhyayi.adhyaya6.pada1.EtattadohSulopoKoAnanjparoHaliSutra
+import dev.panini.ashtadhyayi.adhyaya6.pada1.IkoYanAciSutra
+import dev.panini.ashtadhyayi.adhyaya6.pada1.SavarnaDirghaSutra
+import dev.panini.ashtadhyayi.adhyaya6.pada1.VrddhirEciSutra
+import dev.panini.ashtadhyayi.adhyaya6.pada3.DhralopePurvasyaDirghonahSutra
+import dev.panini.ashtadhyayi.adhyaya8.pada3.BhoBhagoAghoApurvasyaYoshiSutra
+import dev.panini.ashtadhyayi.adhyaya8.pada3.DhoDheLopaSutra
+import dev.panini.ashtadhyayi.adhyaya8.pada3.HaliSarveshamSutra
+import dev.panini.ashtadhyayi.adhyaya8.pada3.MonusvarahSutra
+import dev.panini.ashtadhyayi.adhyaya8.pada3.NashcapadantasyaSutra
+import dev.panini.ashtadhyayi.adhyaya8.pada4.JharoJhariSavarneSutra
+import dev.panini.ashtadhyayi.adhyaya8.pada4.JhayoHonyatarasyamSutra
+import dev.panini.ashtadhyayi.adhyaya8.pada4.ShashChoAtiSutra
+import dev.panini.ashtadhyayi.adhyaya8.pada4.StosShcunaShcuhSutra
+import dev.panini.ashtadhyayi.adhyaya8.pada4.StunaShtuhSutra
+import dev.panini.ashtadhyayi.adhyaya8.pada4.TorliSutra
+import dev.panini.ashtadhyayi.adhyaya8.pada4.VaPadantasyaSutra
 import dev.panini.core.Karaka
+import dev.panini.derivation.DerivationEngine
+import dev.panini.derivation.DerivationStage
+import dev.panini.derivation.DerivationState
+import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.SamjnaAssignment
+import dev.panini.derivation.TermKind
 import dev.panini.execution.DhatuAction
 import dev.panini.execution.DhatuOperation
 import dev.panini.execution.ExecutionContext
 import dev.panini.execution.ExecutionError
 import dev.panini.execution.ExecutionResult
+import dev.panini.shiksha.Samjna
 
-/** Sandhi joining (saṃhitā) over text operands using the Panini Ashtadhyayi rules. */
+/** Sandhi joining (saṃhitā) over text operands using the Panini Ashtadhyayi rules via DerivationEngine. */
 object SanskritSandhiAction : DhatuAction("संहिताकरणम्", "पदानां सन्धियोगः") {
+    private val sandhiSutras: List<DerivationSutra> = listOf(
+        SavarnaDirghaSutra,
+        IkoYanAciSutra,
+        AdGunaSutra,
+        VrddhirEciSutra,
+        EngahPadantadatiSutra,
+        StosShcunaShcuhSutra,
+        StunaShtuhSutra,
+        TorliSutra,
+        JhayoHonyatarasyamSutra,
+        ShashChoAtiSutra,
+        JharoJhariSavarneSutra,
+        MonusvarahSutra,
+        NashcapadantasyaSutra,
+        VaPadantasyaSutra,
+        DhoDheLopaSutra,
+        DhralopePurvasyaDirghonahSutra,
+        BhoBhagoAghoApurvasyaYoshiSutra,
+        HaliSarveshamSutra,
+        EtattadohSulopoKoAnanjparoHaliSutra,
+    )
+
+    private val derivationEngine = DerivationEngine(sandhiSutras)
 
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
         val expression = requireNotNull(context.bindings[Karaka.KARMAN])
-        val operands = context.resolve(expression)
+        val padas = context.literals(expression)
+        val operands = if (padas != null && padas.size >= 2) {
+            padas.map { it.prakriti }
+        } else {
+            context.resolve(expression)
+        }
+
         if (operands.size < 2) {
             return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
@@ -20,73 +76,36 @@ object SanskritSandhiAction : DhatuAction("संहिताकरणम्", "
                 listOf("Selected operation ${operation.name}."),
             )
         }
-        val result = operands.drop(1).fold(operands.first()) { acc, next -> applySandhi(acc, next) }
+
+        val result = operands.drop(1).fold(operands.first()) { acc, next ->
+            applySandhiPair(acc, next)
+        }
+
         return ExecutionResult.Success(
             result,
             operation.name,
             listOf(
                 "Selected operation ${operation.name}.",
-                "Joined ${operands.joinToString(" + ")}.",
+                "Joined ${operands.joinToString(" + ")} via DerivationEngine.",
                 "Produced $result.",
             ),
         )
     }
 
-    private fun applySandhi(left: String, right: String): String {
-        val l = if (left.trim().endsWith("म्")) left.trim().dropLast(1) else left.trim()
-        val r = if (right.trim().endsWith("म्")) right.trim().dropLast(1) else right.trim()
-        if (l.isEmpty()) return right
-        if (r.isEmpty()) return left
+    private fun applySandhiPair(left: String, right: String): String {
+        if (left.isEmpty()) return right
+        if (right.isEmpty()) return left
 
-        val lastChar = l.last()
-        val firstChar = r.first()
-        val hasVowelEnd = lastChar !in "ािीुूेैोौ्"
+        val terms = listOf(
+            DerivationTerm("term_0", left, TermKind.PRATIPADIKA, upadesha = left),
+            DerivationTerm("term_1", right, TermKind.PRATIPADIKA, upadesha = right)
+        )
+        val initialState = DerivationState(
+            terms = terms,
+            stage = DerivationStage.PADA_FORMED
+        ).withSamjnas(setOf(SamjnaAssignment("term_0", Samjna.PADA), SamjnaAssignment("term_1", Samjna.PADA)))
 
-        // 1. Savarṇa Dīrgha (अकः सवर्णे दीर्घः 6.1.101)
-        if ((hasVowelEnd || lastChar in "अआा") && firstChar in "अआ") {
-            val replaceMark = "ा"
-            val lStem = if (lastChar == 'ा') l.dropLast(1) else l
-            val rStem = r.drop(1)
-            return lStem + replaceMark + rStem
-        }
-        if (lastChar in "इईिी" && firstChar in "इई") {
-            val lStem = if (lastChar in "िी") l.dropLast(1) else l
-            val rStem = r.drop(1)
-            return lStem + "ी" + rStem
-        }
-        if (lastChar in "उऊुू" && firstChar in "उऊ") {
-            val lStem = if (lastChar in "ुू") l.dropLast(1) else l
-            val rStem = r.drop(1)
-            return lStem + "ू" + rStem
-        }
-
-        // 2. Ścutva (स्तोः श्चुना श्चुः 8.4.40 / छत्वम् 8.4.63 - e.g. तत् + शिव -> तच्छिव / तत् + च -> तच्च)
-        if ((lastChar == '्' || lastChar in "त्द्") && (r.startsWith("श") || r.startsWith("च") || r.startsWith("छ") || r.startsWith("ज") || r.startsWith("झ") || r.startsWith("ञ"))) {
-            val lStem = if (l.endsWith("्")) l.dropLast(2) else l.dropLast(1)
-            val subChar = "च्"
-            val rStem = if (r.startsWith("श")) "छ" + r.drop(1) else r
-            return lStem + subChar + rStem
-        }
-
-        // 3. Guṇa (आद्गुणः 6.1.87)
-        if ((hasVowelEnd || lastChar in "अआा") && firstChar in "इईउऊऋॠ") {
-            val replaceMark = when (firstChar) {
-                'इ', 'ई' -> "े"
-                'उ', 'ऊ' -> "ो"
-                else -> "र्"
-            }
-            val lStem = if (lastChar == 'ा') l.dropLast(1) else l
-            val rStem = r.drop(1)
-            return lStem + replaceMark + rStem
-        }
-
-        // 4. Yaṇ (इको यणचि 6.1.77)
-        if (lastChar in "इीुू" && firstChar in "अआइईउऊएऐओऔ") {
-            val semi = if (lastChar in "इी") "्य" else "्व"
-            val lStem = if (lastChar in "िीुू") l.dropLast(1) else l
-            return lStem + semi + r
-        }
-
-        return l + r
+        val derivationResult = derivationEngine.derive(initialState)
+        return derivationResult.final.terms.joinToString("") { it.surface }
     }
 }

@@ -42,6 +42,9 @@ object JharoJhariSavarneSutra : Sutra<DerivationState, DerivationChange>(
             val jharChar1 = curr.trimEnd('्').lastOrNull() ?: return@any false
             val jharChar2 = next.first()
 
+            // 8.4.65 does not delete 'c' before 'ch' produced by 8.4.63 śaś cho'ṭi
+            if (jharChar1 == 'च' && jharChar2 == 'छ') return@any false
+
             val isJhar1 = Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAR, jharChar1)
             val isJhar2 = Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAR, jharChar2)
             val isSavarna = Varnamala.areSavarna(jharChar1, jharChar2)
@@ -59,6 +62,8 @@ object JharoJhariSavarneSutra : Sutra<DerivationState, DerivationChange>(
             val jharChar1 = curr.trimEnd('्').lastOrNull() ?: return@first false
             val jharChar2 = next.first()
 
+            if (jharChar1 == 'च' && jharChar2 == 'छ') return@first false
+
             val isJhar1 = Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAR, jharChar1)
             val isJhar2 = Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAR, jharChar2)
             val isSavarna = Varnamala.areSavarna(jharChar1, jharChar2)
@@ -70,7 +75,7 @@ object JharoJhariSavarneSutra : Sutra<DerivationState, DerivationChange>(
         val surface = targetTerm.surface
 
         val newSurface = when {
-            surface.endsWith("त्") || surface.endsWith("द्") || surface.endsWith("क्") || surface.endsWith("ग्") -> surface.dropLast(2)
+            surface.endsWith("त्") || surface.endsWith("द्") || surface.endsWith("क्") || surface.endsWith("ग्") || surface.endsWith("च्") -> surface.dropLast(2)
             else -> surface.dropLast(1)
         }
 
