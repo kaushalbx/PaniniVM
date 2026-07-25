@@ -9,8 +9,17 @@ import dev.panini.execution.ExecutionResult
 import dev.panini.execution.SanskritValue
 import dev.panini.execution.resolveSankhyaValues
 
+enum class ComparisonType {
+    GREATER_THAN,
+    LESS_THAN,
+    EQUALS,
+}
+
 /** Comparison (<, >, ==) over canonical Sanskrit number values. */
-object SanskritComparisonAction : DhatuAction("सङ्ख्यातुलना", "सङ्ख्यानां तुलना") {
+class SanskritComparisonAction(
+    val comparisonType: ComparisonType = ComparisonType.GREATER_THAN,
+) : DhatuAction("सङ्ख्यातुलना", "सङ्ख्यानां तुलना") {
+
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
         val expression = requireNotNull(context.bindings[Karaka.KARMAN])
         val operands = context.resolve(expression)
@@ -26,17 +35,32 @@ object SanskritComparisonAction : DhatuAction("सङ्ख्यातुलन
                 listOf("Selected operation ${operation.name}."),
             )
         }
-        val isGreater = values[0] > values[1]
-        val resultText = if (isGreater) "सत्यम्" else "असत्यम्"
+        val isTrue = when (comparisonType) {
+            ComparisonType.GREATER_THAN -> values[0] > values[1]
+            ComparisonType.LESS_THAN -> values[0] < values[1]
+            ComparisonType.EQUALS -> values[0] == values[1]
+        }
+        val resultText = if (isTrue) "सत्यम्" else "असत्यम्"
+        val opSymbol = when (comparisonType) {
+            ComparisonType.GREATER_THAN -> ">"
+            ComparisonType.LESS_THAN -> "<"
+            ComparisonType.EQUALS -> "=="
+        }
         return ExecutionResult.Success(
             resultText,
             operation.name,
             listOf(
                 "Selected operation ${operation.name}.",
-                "Compared ${operands[0]} (${values[0]}) > ${operands[1]} (${values[1]}).",
+                "Compared ${operands[0]} (${values[0]}) $opSymbol ${operands[1]} (${values[1]}).",
                 "Produced $resultText.",
             ),
             SanskritValue.Shabda(resultText),
         )
+    }
+
+    companion object {
+        val GreaterThan = SanskritComparisonAction(ComparisonType.GREATER_THAN)
+        val LessThan = SanskritComparisonAction(ComparisonType.LESS_THAN)
+        val Equals = SanskritComparisonAction(ComparisonType.EQUALS)
     }
 }

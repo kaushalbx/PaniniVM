@@ -36,7 +36,7 @@ open class YujirDhatu : Dhatu(
             triggeredBy(requiredUpasargas = setOf("वि"))
             returns(ExecutionSamjna.SANKHYA, ExecutionSamjna.SHABDA)
         },
-        SanskritComparisonAction.numericOp {
+        SanskritComparisonAction.GreaterThan.numericOp {
             triggeredBy(requiredUpasargas = setOf("तुल्"))
             returns(ExecutionSamjna.SHABDA)
         },

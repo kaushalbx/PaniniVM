@@ -27,7 +27,7 @@ class VidDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.ANUDATTA,
     operations = listOf(
-        SanskritComparisonAction.op {
+        SanskritComparisonAction.GreaterThan.op {
             requiresNumbers(shape = ExpressionShape.COORDINATION)
             triggeredBy(forbiddenAvyayas = setOf("न्यूनतया"))
             returns(ExecutionSamjna.SANKHYA)
