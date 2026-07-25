@@ -12,7 +12,7 @@ class PvmFileTest {
 
     private lateinit var tempDir: File
     private lateinit var vm: PaniniVM
-    private val conjugator = PvmConjugator()
+    private val sadhaka = PvmUktiSadhaka()
 
     @BeforeTest
     fun setup() {
@@ -26,14 +26,14 @@ class PvmFileTest {
     }
 
     @Test
-    fun `PvmConjugator generates conjugated input sentences for addition pvm file using derivation engines`() {
+    fun `PvmUktiSadhaka derives conjugated input sentences for addition pvm file using Paninian derivation engines`() {
         val pvmFile = File("src/test/kotlin/dev/panini/parser/addition.pvm")
         val txtFile = File("src/test/kotlin/dev/panini/parser/addition.txt")
 
-        val conjugatedText = conjugator.conjugateScript(pvmFile.readText())
-        txtFile.writeText(conjugatedText + "\n")
+        val derivedText = sadhaka.sadhayaScript(pvmFile.readText())
+        txtFile.writeText(derivedText + "\n")
 
-        assertEquals(conjugatedText.trim(), txtFile.readText().trim())
+        assertEquals(derivedText.trim(), txtFile.readText().trim())
     }
 
     @Test

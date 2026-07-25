@@ -21,49 +21,49 @@ import dev.panini.vyakaranam.ast.UnadyantaPratipadika
 import dev.panini.vyakaranam.parser.PaniniParser
 
 /**
- * Uses SubantaEngine, TingantaEngine, and DerivationEngine to conjugate
- * segmented PVM utterances into fully derived surface text sentences.
+ * Pāninian grammatical sādhaka (उक्तिसाधक) using SubantaEngine, TingantaEngine,
+ * and DerivationEngine to perform rupa-siddhi (रूपसिद्धि) on segmented PVM ASTs.
  */
-class PvmConjugator(
+class PvmUktiSadhaka(
     private val derivationEngine: DerivationEngine = DerivationEngine(),
     private val subantaEngine: SubantaEngine = SubantaEngine(derivationEngine),
     private val tingantaEngine: TingantaEngine = TingantaEngine(derivationEngine),
     private val parser: PaniniParser = PaniniParser(),
 ) {
 
-    fun conjugateScript(scriptContent: String): String {
+    fun sadhayaScript(scriptContent: String): String {
         return scriptContent.lines()
             .map { it.trim() }
             .filter { it.isNotEmpty() && !it.startsWith("#") && !it.startsWith("//") }
-            .joinToString("\n") { line -> conjugateLine(line) }
+            .joinToString("\n") { line -> sadhayaLine(line) }
     }
 
-    fun conjugateLine(lineText: String): String {
+    fun sadhayaLine(lineText: String): String {
         val ukti = parser.parse(lineText)
         val parts = mutableListOf<String>()
 
         ukti.sambodhana?.let { sambodhana ->
             val header = sambodhana.suchaka?.let { "$it " } ?: ""
-            val conjugatedSub = conjugateSubanta(sambodhana.subanta)
-            parts += "$header$conjugatedSub,"
+            val derivedSub = sadhayaSubanta(sambodhana.subanta)
+            parts += "$header$derivedSub,"
         }
 
         ukti.vakyas.forEach { vakya ->
-            val padasText = vakya.padas.joinToString(" ") { pada -> conjugatePada(pada) }
+            val padasText = vakya.padas.joinToString(" ") { pada -> sadhayaPada(pada) }
             parts += "$padasText ।"
         }
 
         return parts.joinToString(" ")
     }
 
-    fun conjugatePada(pada: Pada): String = when (pada) {
-        is SubantaPada -> conjugateSubanta(pada)
-        is SamuccitaSubanta -> pada.members.joinToString(" ") { conjugateSubanta(it) } + " च"
-        is TingantaPada -> conjugateTinganta(pada)
+    fun sadhayaPada(pada: Pada): String = when (pada) {
+        is SubantaPada -> sadhayaSubanta(pada)
+        is SamuccitaSubanta -> pada.members.joinToString(" ") { sadhayaSubanta(it) } + " च"
+        is TingantaPada -> sadhayaTinganta(pada)
         is AvyayaPada -> pada.form
     }
 
-    fun conjugateSubanta(subanta: SubantaPada): String {
+    fun sadhayaSubanta(subanta: SubantaPada): String {
         val baseText = subanta.pratipadika.baseText()
         val supAffix = SupAffix.fromUpadesha(subanta.sup.text) ?: return baseText
         val stemClass = SubantaStemClass.guess(baseText)
@@ -75,7 +75,7 @@ class PvmConjugator(
         }
     }
 
-    fun conjugateTinganta(tinganta: TingantaPada): String {
+    fun sadhayaTinganta(tinganta: TingantaPada): String {
         val rawDhatu = tinganta.dhatu.mulaDhatu
         val tingAffix = TingAffix.fromUpadesha(tinganta.ting.text) ?: return rawDhatu
         return try {
