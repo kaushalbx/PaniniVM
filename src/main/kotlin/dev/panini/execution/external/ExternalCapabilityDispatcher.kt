@@ -11,7 +11,7 @@ class ExternalCapabilityDispatcher {
         fun handle(payload: String, effect: ExecutionEffect): String
     }
 
-    private val handlers = java.util.concurrent.ConcurrentHashMap<ExecutionEffect, CapabilityHandler>()
+    private val handlers = mutableMapOf<ExecutionEffect, CapabilityHandler>()
 
     fun register(effect: ExecutionEffect, handler: CapabilityHandler) {
         handlers[effect] = handler
