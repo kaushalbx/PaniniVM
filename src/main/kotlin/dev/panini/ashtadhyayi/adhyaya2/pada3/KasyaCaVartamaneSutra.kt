@@ -13,18 +13,18 @@ import dev.panini.vyakaranam.analysis.VibhaktiRuleContext
 import dev.panini.vyakaranam.analysis.VibhaktiRuleResult
 
 /**
- * 2.3.26: ktasya ca vartamāne.
- * Assigns genitive (Ṣaṣṭhī) to the agent when ktā-participle denotes present time.
+ * 2.3.67: ktasya ca vartamāne.
+ * Assigns genitive (Ṣaṣṭhī) to the agent when kta-participle denotes present time.
  */
 object KasyaCaVartamaneSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
-    number = "2.3.26",
-    text = "कस्य च वर्तमानी",
+    number = "2.3.67",
+    text = "क्तस्य च वर्त्तमाने",
     hindiExplanation = "वर्तमान अर्थ में प्रयुक्त क्त-प्रत्ययान्त शब्द के योग में कर्ता में षष्ठी विभक्ति होती है।",
     type = SutraType.NITYA,
     chapter = 2,
     pada = 3,
     optional = false,
-    kramaValue = 230026,
+    kramaValue = 230067,
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.VAKYA,

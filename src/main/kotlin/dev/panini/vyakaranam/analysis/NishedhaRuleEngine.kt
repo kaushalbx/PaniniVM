@@ -8,6 +8,7 @@ data class ProhibitionContext(
     val secondPhonemeIsConsonant: Boolean = false,
     val isDidhiVeviOrItAugment: Boolean = false,
     val isSetKtvaAffix: Boolean = false,
+    val isKrtProhibitedForSasthi: Boolean = false,
 )
 
 sealed class NishedhaRuleResult {
@@ -28,6 +29,12 @@ object NishedhaRuleEngine {
             'ङ' in context.affixItMarkers
 
         return when {
+            context.isKrtProhibitedForSasthi && context.targetSutraNumber == "2.3.65" -> NishedhaRuleResult.Blocked(
+                blockerSutraNumber = "2.3.66",
+                blockerSutraText = "न लोकाव्ययनिष्ठानिष्ठाखलर्थतृनाम्",
+                blockedTargetSutraNumber = "2.3.65",
+                evidence = KarakaEvidence("2.3.66", "न लोकाव्ययनिष्ठानिष्ठाखलर्थतृनाम्", "Prohibits Ṣaṣṭhī for la, u, uka, avyaya, niṣṭhā, khalartha, and tṛn affixes."),
+            )
             context.isDidhiVeviOrItAugment && context.targetSutraNumber in setOf("1.1.1", "1.1.2", "1.1.3", "7.3.84") -> NishedhaRuleResult.Blocked(
                 blockerSutraNumber = "1.1.6",
                 blockerSutraText = "दीधीवेवीटाम्",
