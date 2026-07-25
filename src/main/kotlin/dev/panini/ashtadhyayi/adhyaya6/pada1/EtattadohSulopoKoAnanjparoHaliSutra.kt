@@ -30,13 +30,32 @@ object EtattadohSulopoKoAnanjparoHaliSutra : Sutra<DerivationState, DerivationCh
     action = SutraAction.LOPA,
     scope = SutraScope.VARNA,
 ), DerivationSutra {
-    private data class Match(val termIndex: Int)
 
-    override fun matches(context: DerivationState): Boolean = findMatch(context) != null
+    override fun matches(context: DerivationState): Boolean {
+        if (context.terms.size < 2) return false
+        return (0 until context.terms.size - 1).any { i ->
+            val curr = context.terms[i].surface
+            val next = context.terms[i + 1].surface
+
+            val isSaOrEsha = curr == "सः" || curr == "एषः" || curr == "सस्" || curr == "एषस्"
+            val nextStartsWithHal = next.isNotEmpty() && Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, next.first())
+
+            isSaOrEsha && nextStartsWithHal
+        }
+    }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val match = findMatch(context)!!
-        val targetTerm = context.terms[match.termIndex]
+        val targetIndex = (0 until context.terms.size - 1).first { i ->
+            val curr = context.terms[i].surface
+            val next = context.terms[i + 1].surface
+
+            val isSaOrEsha = curr == "सः" || curr == "एषः" || curr == "सस्" || curr == "एषस्"
+            val nextStartsWithHal = next.isNotEmpty() && Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, next.first())
+
+            isSaOrEsha && nextStartsWithHal
+        }
+
+        val targetTerm = context.terms[targetIndex]
         val surface = targetTerm.surface
 
         val newSurface = when {
@@ -50,21 +69,5 @@ object EtattadohSulopoKoAnanjparoHaliSutra : Sutra<DerivationState, DerivationCh
             state = context.replaceTerm(targetTerm.id, targetTerm.copy(surface = newSurface)),
             explanation = "6.1.132: Elided visarga (su-lopa) from ${targetTerm.surface} before hal."
         ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(targetTerm.id, 'ः', "", sutra))) }
-    }
-
-    private fun findMatch(context: DerivationState): Match? {
-        val terms = context.terms
-        for (i in 0 until terms.size - 1) {
-            val curr = terms[i].surface
-            val next = terms[i + 1].surface
-
-            val isSaOrEsha = curr == "सः" || curr == "एषः" || curr == "सस्" || curr == "एषस्"
-            val nextStartsWithHal = next.isNotEmpty() && Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, next.first())
-
-            if (isSaOrEsha && nextStartsWithHal) {
-                return Match(i)
-            }
-        }
-        return null
     }
 }

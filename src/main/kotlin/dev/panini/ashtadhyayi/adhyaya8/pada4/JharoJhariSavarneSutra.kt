@@ -31,13 +31,42 @@ object JharoJhariSavarneSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.LOPA,
     scope = SutraScope.VARNA,
 ), DerivationSutra {
-    private data class Match(val termIndex: Int)
 
-    override fun matches(context: DerivationState): Boolean = findMatch(context) != null
+    override fun matches(context: DerivationState): Boolean {
+        if (context.terms.size < 2) return false
+        return (0 until context.terms.size - 1).any { i ->
+            val curr = context.terms[i].surface
+            val next = context.terms[i + 1].surface
+            if (curr.isEmpty() || next.isEmpty()) return@any false
+
+            val jharChar1 = curr.trimEnd('्').lastOrNull() ?: return@any false
+            val jharChar2 = next.first()
+
+            val isJhar1 = Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAR, jharChar1)
+            val isJhar2 = Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAR, jharChar2)
+            val isSavarna = Varnamala.areSavarna(jharChar1, jharChar2)
+
+            isJhar1 && isJhar2 && isSavarna
+        }
+    }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val match = findMatch(context)!!
-        val targetTerm = context.terms[match.termIndex]
+        val targetIndex = (0 until context.terms.size - 1).first { i ->
+            val curr = context.terms[i].surface
+            val next = context.terms[i + 1].surface
+            if (curr.isEmpty() || next.isEmpty()) return@first false
+
+            val jharChar1 = curr.trimEnd('्').lastOrNull() ?: return@first false
+            val jharChar2 = next.first()
+
+            val isJhar1 = Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAR, jharChar1)
+            val isJhar2 = Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAR, jharChar2)
+            val isSavarna = Varnamala.areSavarna(jharChar1, jharChar2)
+
+            isJhar1 && isJhar2 && isSavarna
+        }
+
+        val targetTerm = context.terms[targetIndex]
         val surface = targetTerm.surface
 
         val newSurface = when {
@@ -49,27 +78,5 @@ object JharoJhariSavarneSutra : Sutra<DerivationState, DerivationChange>(
             state = context.replaceTerm(targetTerm.id, targetTerm.copy(surface = newSurface)),
             explanation = "8.4.65: Elided redundant jhar consonant before savarṇa jhar."
         ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(targetTerm.id, surface.last(), "", sutra))) }
-    }
-
-    private fun findMatch(context: DerivationState): Match? {
-        val terms = context.terms
-        for (i in 0 until terms.size - 1) {
-            val curr = terms[i].surface
-            val next = terms[i + 1].surface
-
-            if (curr.isNotEmpty() && next.isNotEmpty()) {
-                val jharChar1 = curr.trimEnd('्').lastOrNull() ?: continue
-                val jharChar2 = next.first()
-
-                val isJhar1 = Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAR, jharChar1)
-                val isJhar2 = Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAR, jharChar2)
-                val isSavarna = Varnamala.areSavarna(jharChar1, jharChar2)
-
-                if (isJhar1 && isJhar2 && isSavarna) {
-                    return Match(i)
-                }
-            }
-        }
-        return null
     }
 }

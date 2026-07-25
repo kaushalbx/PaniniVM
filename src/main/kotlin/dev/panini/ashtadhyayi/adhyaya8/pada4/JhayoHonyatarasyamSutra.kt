@@ -31,16 +31,39 @@ object JhayoHonyatarasyamSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.ADESHA,
     scope = SutraScope.VARNA,
 ), DerivationSutra {
-    private data class Match(val termIndex: Int, val replacement: String)
 
-    override fun matches(context: DerivationState): Boolean = findMatch(context) != null
+    override fun matches(context: DerivationState): Boolean {
+        if (context.terms.size < 2) return false
+        return (0 until context.terms.size - 1).any { i ->
+            val curr = context.terms[i].surface
+            val next = context.terms[i + 1].surface
+            if (curr.isEmpty() || !next.startsWith("ह")) return@any false
+            val lastChar = curr.trimEnd('्').lastOrNull() ?: return@any false
+            Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAY, lastChar)
+        }
+    }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val match = findMatch(context)!!
-        val targetTerm = context.terms[match.termIndex]
-        val replacement = match.replacement
-        val surface = targetTerm.surface
+        val prevIndex = (0 until context.terms.size - 1).first { i ->
+            val curr = context.terms[i].surface
+            val next = context.terms[i + 1].surface
+            if (curr.isEmpty() || !next.startsWith("ह")) return@first false
+            val lastChar = curr.trimEnd('्').lastOrNull() ?: return@first false
+            Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAY, lastChar)
+        }
 
+        val prevTerm = context.terms[prevIndex]
+        val targetTerm = context.terms[prevIndex + 1]
+        val lastChar = prevTerm.surface.trimEnd('्').last()
+
+        val info = Varnamala.getVargaInfo(lastChar)
+        val replacement = if (info != null) {
+            Varnamala.getVargaMember(info.first, 3)?.toString() ?: "ध"
+        } else {
+            "ध"
+        }
+
+        val surface = targetTerm.surface
         val newSurface = if (surface.startsWith("ह")) {
             replacement + surface.substring(1)
         } else {
@@ -51,27 +74,5 @@ object JhayoHonyatarasyamSutra : Sutra<DerivationState, DerivationChange>(
             state = context.replaceTerm(targetTerm.id, targetTerm.copy(surface = newSurface)),
             explanation = "8.4.62: Replaced 'h' with $replacement after jhay stop."
         ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(targetTerm.id, 'ह', replacement, sutra))) }
-    }
-
-    private fun findMatch(context: DerivationState): Match? {
-        val terms = context.terms
-        for (i in 0 until terms.size - 1) {
-            val curr = terms[i].surface
-            val next = terms[i + 1].surface
-
-            if (curr.isNotEmpty() && next.startsWith("ह")) {
-                val lastChar = curr.trimEnd('्').lastOrNull() ?: continue
-                if (Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAY, lastChar)) {
-                    val info = Varnamala.getVargaInfo(lastChar)
-                    if (info != null) {
-                        val fourthMember = Varnamala.getVargaMember(info.first, 3)
-                        if (fourthMember != null) {
-                            return Match(i + 1, fourthMember.toString())
-                        }
-                    }
-                }
-            }
-        }
-        return null
     }
 }

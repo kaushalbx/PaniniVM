@@ -1,11 +1,13 @@
 package dev.panini.ashtadhyayi
 
 import dev.panini.ashtadhyayi.adhyaya6.pada1.EtattadohSulopoKoAnanjparoHaliSutra
+import dev.panini.ashtadhyayi.adhyaya8.pada3.DhoDheLopaSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada3.HaliSarveshamSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada4.JharoJhariSavarneSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada4.JhayoHonyatarasyamSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada4.ShashChoAtiSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada4.TorliSutra
+import dev.panini.ashtadhyayi.adhyaya8.pada4.VaPadantasyaSutra
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
@@ -91,5 +93,31 @@ class SandhiPhonologicalTransformationTest {
         assertTrue(JharoJhariSavarneSutra.matches(state))
         val change = JharoJhariSavarneSutra.apply(state)
         assertEquals("त", change.state.terms[0].surface)
+    }
+
+    @Test
+    fun `test VaPadantasyaSutra replaces final Anusvara with parasavarna nasal before yay`() {
+        val state = DerivationState(
+            terms = listOf(
+                DerivationTerm("t1", "शां", TermKind.PRATIPADIKA, upadesha = "शां"),
+                DerivationTerm("t2", "तम्", TermKind.PRATIPADIKA, upadesha = "तम्")
+            )
+        )
+        assertTrue(VaPadantasyaSutra.matches(state))
+        val change = VaPadantasyaSutra.apply(state)
+        assertEquals("शान्", change.state.terms[0].surface)
+    }
+
+    @Test
+    fun `test DhoDheLopaSutra elides dha before another dha`() {
+        val state = DerivationState(
+            terms = listOf(
+                DerivationTerm("t1", "लीढ्", TermKind.PRATIPADIKA, upadesha = "लीढ्"),
+                DerivationTerm("t2", "ढ", TermKind.PRATIPADIKA, upadesha = "ढ")
+            )
+        )
+        assertTrue(DhoDheLopaSutra.matches(state))
+        val change = DhoDheLopaSutra.apply(state)
+        assertEquals("ली", change.state.terms[0].surface)
     }
 }

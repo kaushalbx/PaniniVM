@@ -29,15 +29,38 @@ object HaliSarveshamSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.LOPA,
     scope = SutraScope.VARNA,
 ), DerivationSutra {
-    private data class Match(val termIndex: Int)
 
     private val vocativePrefixes = setOf("भो", "भगो", "अघो")
 
-    override fun matches(context: DerivationState): Boolean = findMatch(context) != null
+    override fun matches(context: DerivationState): Boolean {
+        if (context.terms.size < 2) return false
+        return (0 until context.terms.size - 1).any { i ->
+            val curr = context.terms[i].surface
+            val next = context.terms[i + 1].surface
+
+            val isBhoOrAPurva = vocativePrefixes.any { curr.startsWith(it) } ||
+                    curr.endsWith("ाः") || curr.endsWith("ास्") || curr.endsWith("ाय्") || curr.endsWith("ा")
+
+            val nextStartsWithHal = next.isNotEmpty() && Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, next.first())
+
+            isBhoOrAPurva && nextStartsWithHal
+        }
+    }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val match = findMatch(context)!!
-        val targetTerm = context.terms[match.termIndex]
+        val targetIndex = (0 until context.terms.size - 1).first { i ->
+            val curr = context.terms[i].surface
+            val next = context.terms[i + 1].surface
+
+            val isBhoOrAPurva = vocativePrefixes.any { curr.startsWith(it) } ||
+                    curr.endsWith("ाः") || curr.endsWith("ास्") || curr.endsWith("ाय्") || curr.endsWith("ा")
+
+            val nextStartsWithHal = next.isNotEmpty() && Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, next.first())
+
+            isBhoOrAPurva && nextStartsWithHal
+        }
+
+        val targetTerm = context.terms[targetIndex]
         val surface = targetTerm.surface
 
         val newSurface = when {
@@ -50,23 +73,5 @@ object HaliSarveshamSutra : Sutra<DerivationState, DerivationChange>(
             state = context.replaceTerm(targetTerm.id, targetTerm.copy(surface = newSurface)),
             explanation = "8.3.22: Elided 'y' (hali sarveṣām) before hal consonant."
         ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(targetTerm.id, 'य', "", sutra))) }
-    }
-
-    private fun findMatch(context: DerivationState): Match? {
-        val terms = context.terms
-        for (i in 0 until terms.size - 1) {
-            val curr = terms[i].surface
-            val next = terms[i + 1].surface
-
-            val isBhoOrAPurva = vocativePrefixes.any { curr.startsWith(it) } ||
-                    curr.endsWith("ाः") || curr.endsWith("ास्") || curr.endsWith("ाय्") || curr.endsWith("ा")
-
-            val nextStartsWithHal = next.isNotEmpty() && Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, next.first())
-
-            if (isBhoOrAPurva && nextStartsWithHal) {
-                return Match(i)
-            }
-        }
-        return null
     }
 }

@@ -6,7 +6,7 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.VarnaSubstitution
 import dev.panini.pratyahara.Pratyahara
- import dev.panini.shiksha.Varnamala
+import dev.panini.shiksha.Varnamala
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -30,13 +30,34 @@ object ShashChoAtiSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.ADESHA,
     scope = SutraScope.VARNA,
 ), DerivationSutra {
-    private data class Match(val termIndex: Int)
 
-    override fun matches(context: DerivationState): Boolean = findMatch(context) != null
+    override fun matches(context: DerivationState): Boolean {
+        if (context.terms.size < 2) return false
+        return (0 until context.terms.size - 1).any { i ->
+            val curr = context.terms[i].surface
+            val next = context.terms[i + 1].surface
+            if (curr.isEmpty() || (!next.startsWith("श") && !next.startsWith("श्"))) return@any false
+            val lastChar = curr.trimEnd('्').lastOrNull() ?: return@any false
+            if (!Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAY, lastChar)) return@any false
+
+            val follower = next.dropWhile { it == 'श' || it == '्' }.firstOrNull()
+            follower != null && (Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.AT, follower) || Varnamala.isVowel(follower))
+        }
+    }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val match = findMatch(context)!!
-        val targetTerm = context.terms[match.termIndex]
+        val targetIndex = (0 until context.terms.size - 1).first { i ->
+            val curr = context.terms[i].surface
+            val next = context.terms[i + 1].surface
+            if (curr.isEmpty() || (!next.startsWith("श") && !next.startsWith("श्"))) return@first false
+            val lastChar = curr.trimEnd('्').lastOrNull() ?: return@first false
+            if (!Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAY, lastChar)) return@first false
+
+            val follower = next.dropWhile { it == 'श' || it == '्' }.firstOrNull()
+            follower != null && (Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.AT, follower) || Varnamala.isVowel(follower))
+        } + 1
+
+        val targetTerm = context.terms[targetIndex]
         val surface = targetTerm.surface
 
         val newSurface = if (surface.startsWith("श्")) {
@@ -51,26 +72,5 @@ object ShashChoAtiSutra : Sutra<DerivationState, DerivationChange>(
             state = context.replaceTerm(targetTerm.id, targetTerm.copy(surface = newSurface)),
             explanation = "8.4.63: Substituted 'ś' with 'ch' after jhay stop."
         ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(targetTerm.id, 'श', "छ", sutra))) }
-    }
-
-    private fun findMatch(context: DerivationState): Match? {
-        val terms = context.terms
-        for (i in 0 until terms.size - 1) {
-            val curr = terms[i].surface
-            val next = terms[i + 1].surface
-
-            if (curr.isNotEmpty() && (next.startsWith("श") || next.startsWith("श्"))) {
-                val lastChar = curr.trimEnd('्').lastOrNull() ?: continue
-                val isJhay = Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAY, lastChar)
-
-                val follower = next.dropWhile { it == 'श' || it == '्' }.firstOrNull()
-                val isAt = follower != null && (Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.AT, follower) || Varnamala.isVowel(follower))
-
-                if (isJhay && isAt) {
-                    return Match(i + 1)
-                }
-            }
-        }
-        return null
     }
 }
