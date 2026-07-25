@@ -12,6 +12,7 @@ class PvmFileTest {
 
     private lateinit var tempDir: File
     private lateinit var vm: PaniniVM
+    private val conjugator = PvmConjugator()
 
     @BeforeTest
     fun setup() {
@@ -22,6 +23,17 @@ class PvmFileTest {
     @AfterTest
     fun cleanup() {
         tempDir.deleteRecursively()
+    }
+
+    @Test
+    fun `PvmConjugator generates conjugated input sentences for addition pvm file using derivation engines`() {
+        val pvmFile = File("src/test/kotlin/dev/panini/parser/addition.pvm")
+        val txtFile = File("src/test/kotlin/dev/panini/parser/addition.txt")
+
+        val conjugatedText = conjugator.conjugateScript(pvmFile.readText())
+        txtFile.writeText(conjugatedText + "\n")
+
+        assertEquals(conjugatedText.trim(), txtFile.readText().trim())
     }
 
     @Test
