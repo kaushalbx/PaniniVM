@@ -10,6 +10,7 @@ import dev.panini.execution.numericOp
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
+import dev.panini.vyakaranam.analysis.SemanticRelation
 
 /** Canonical Rudhādi entry युजिँर् योगे. */
 open class YujirDhatu : Dhatu(
@@ -35,4 +36,5 @@ open class YujirDhatu : Dhatu(
             returns(ExecutionSamjna.SANKHYA, ExecutionSamjna.SHABDA)
         },
     ),
+    semanticRelations = setOf(SemanticRelation.DESIRED_OBJECT),
 )

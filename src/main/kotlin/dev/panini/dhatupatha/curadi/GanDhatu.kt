@@ -14,6 +14,7 @@ import dev.panini.execution.op
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
+import dev.panini.vyakaranam.analysis.SemanticRelation
 
 /** Executable Curādi dhātu गण संख्याने. */
 class GanDhatu : Dhatu(
@@ -43,4 +44,5 @@ class GanDhatu : Dhatu(
             returns(ExecutionSamjna.SANKHYA)
         },
     ),
+    semanticRelations = setOf(SemanticRelation.DESIRED_OBJECT),
 )
