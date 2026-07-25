@@ -199,7 +199,7 @@ SHYAN           : 'श्यन्';
 SHNU            : 'श्नु';
 SHNAM           : 'श्नम्';
 SHNA            : 'श्ना';
-U_VIKARANA      : 'उ-विकरण';
+U_VIKARANA      : 'उ';
 SHNAAM          : 'श्नाम्';
 YAK             : 'यक्';
 SHAH            : 'शः';
