@@ -322,7 +322,7 @@ upasarga
     | AANG
     | NI
     | ADHI
-    | API_UPASARGA
+    | API
     | ATI
     | SU
     | UD
