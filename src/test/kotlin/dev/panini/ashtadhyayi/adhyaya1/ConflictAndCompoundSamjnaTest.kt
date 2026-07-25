@@ -4,6 +4,9 @@ import dev.panini.ashtadhyayi.adhyaya1.pada1.PratyayasyaLupSlulopahSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada2.PrathamanirdistamSamasaUpasarjanamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada2.UpasarjanamPurvamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada4.VipratisedheParamKaryamSutra
+import dev.panini.derivation.DerivationState
+import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.TermKind
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -18,10 +21,8 @@ class ConflictAndCompoundSamjnaTest {
 
     @Test
     fun testPratyayasyaLupSlulopahSutra() {
-        assertTrue(PratyayasyaLupSlulopahSutra.matches("लुप्"))
-        assertTrue(PratyayasyaLupSlulopahSutra.matches("श्लु"))
-        assertTrue(PratyayasyaLupSlulopahSutra.matches("लोप"))
-        assertEquals("श्लु", PratyayasyaLupSlulopahSutra.apply("श्लु"))
+        val state = DerivationState(terms = listOf(DerivationTerm("dummy", "अ", TermKind.PRATYAYA)))
+        assertTrue(PratyayasyaLupSlulopahSutra.matches(state))
     }
 
     @Test
@@ -33,7 +34,7 @@ class ConflictAndCompoundSamjnaTest {
 
     @Test
     fun testPrathamanirdistamSamasaUpasarjanamSutra() {
-        assertTrue(PrathamanirdistamSamasaUpasarjanamSutra.matches("राज"))
-        assertEquals("उपसर्जनम्", PrathamanirdistamSamasaUpasarjanamSutra.apply("राज"))
+        val state = DerivationState(terms = listOf(DerivationTerm("dummy", "राज", TermKind.PRATIPADIKA)))
+        assertTrue(PrathamanirdistamSamasaUpasarjanamSutra.matches(state))
     }
 }

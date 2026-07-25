@@ -1,25 +1,37 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada1
 
+import dev.panini.core.Lakara
+import dev.panini.derivation.DerivationChange
+import dev.panini.derivation.DerivationState
+import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.TermKind
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
-import dev.panini.sutra.SutraInput
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 /**
- * Sūtra 3.1.48 णिश्श्रिद्रुस्रुभ्यः कर्तरि चङ्.
- * Prescribes caṅ aorist vikaraṇa for ṇi, śri, dru, sru roots in Kartari Luṅ.
+ * Sūtra 3.1.48 निश्रीद्रुस्रुभ्यः कर्तरि च.
+ * Prescribes caṅ vikaraṇa in Luṅ after ni, śri, dru, sru in active voice.
  */
-object NishriDruSruBhyahKarthariChaSutra : Sutra<String, String>(
-    number = "3.1.48", text = "णिश्श्रिद्रुस्रुभ्यः कर्तरि चङ्",
-    hindiExplanation = "णिच्यन्त (णि), श्रि, द्रु तथा स्रु धातुओं से कर्तृवाच्य लुङ् लकार में 'चङ्' प्रत्यय होता है।",
+object NishriDruSruBhyahKarthariChaSutra : Sutra<DerivationState, DerivationChange>(
+    number = "3.1.48", text = "निश्रीद्रुस्रुभ्यः कर्तरि च",
+    hindiExplanation = "कर्तरि लुङ् लकार में नि-पूर्वक धातु, श्री, द्रु तथा स्रु धातुओं से 'चङ्' (अ) प्रत्यय होता है।",
     type = SutraType.NITYA, chapter = 3, pada = 1, optional = false, kramaValue = 310048,
-    role = SutraRole.Vidhi, action = SutraAction.PRATYAYA_SELECTION, scope = SutraScope.DHATU,
-    inputs = setOf(SutraInput.DHATU),
-    adhikara = emptySet(),
-) {
-    override fun matches(context: String): Boolean =
-        context.endsWith("णिच्") || context.endsWith("णि") || context in setOf("श्रि", "द्रु", "स्रु")
-    override fun apply(context: String): String = "चङ्"
+    role = SutraRole.Vidhi, action = SutraAction.PRATYAYA_SELECTION, scope = SutraScope.DERIVATION,
+), DerivationSutra {
+    override fun matches(context: DerivationState): Boolean =
+        context.effectiveContext.rupa.lakara == Lakara.LUNG &&
+        context.allEffectiveTerms.any { it.upadesha in setOf("श्रीञ्", "द्रु", "स्रु", "निश्री", "निश्रीञ्") || it.surface in setOf("श्री", "द्रु", "स्रु", "निश्री") } &&
+        context.allEffectiveTerms.none { it.upadesha in setOf("चङ्", "सिच्", "अङ्", "चिण्") }
+
+    override fun apply(context: DerivationState): DerivationChange {
+        val cang = DerivationTerm("cang", "अ", TermKind.PRATYAYA, upadesha = "चङ्")
+        return DerivationChange(
+            state = context.insertBeforeTingOrLingAugment(cang),
+            explanation = "3.1.48 prescribes चङ् vikaraṇa in Luṅ.",
+        )
+    }
 }

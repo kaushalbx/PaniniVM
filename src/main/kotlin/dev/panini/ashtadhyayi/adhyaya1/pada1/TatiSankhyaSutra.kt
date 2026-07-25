@@ -1,24 +1,31 @@
 package dev.panini.ashtadhyayi.adhyaya1.pada1
 
+import dev.panini.derivation.DerivationChange
+import dev.panini.derivation.DerivationState
+import dev.panini.derivation.DerivationSutra
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
-import dev.panini.sutra.SutraInput
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 /**
- * Sūtra 1.1.22 तति सङ्ख्या.
- * Assigns saṅkhyā saṃjñā to words ending in the suffix dati (e.g. kati).
+ * Sūtra 1.1.23 बहुगणवतुडति संख्या.
+ * Assigns saṅkhyā saṃjñā to bahu, gaṇa, vatu, ḍati.
  */
-object TatiSankhyaSutra : Sutra<String, String>(
-    number = "1.1.22", text = "तति सङ्ख्या",
-    hindiExplanation = "डति प्रत्ययान्त शब्दों (जैसे कति) की 'सङ्ख्या' संज्ञा होती है।",
-    type = SutraType.SAMJNA, chapter = 1, pada = 1, optional = false, kramaValue = 110022,
+object TatiSankhyaSutra : Sutra<DerivationState, DerivationChange>(
+    number = "1.1.23", text = "बहुगणवतुडति संख्या",
+    hindiExplanation = "बहु, गण, वतु तथा डति शब्दों की 'संख्या' संज्ञा होती है।",
+    type = SutraType.SAMJNA, chapter = 1, pada = 1, optional = false, kramaValue = 110023,
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.DERIVATION,
-    inputs = setOf(SutraInput.PRATIPADIKA, SutraInput.PRATYAYA),
-    adhikara = emptySet(),
-) {
-    override fun matches(context: String): Boolean = context.endsWith("ति") || context == "कति"
-    override fun apply(context: String): String = "सङ्ख्या"
+), DerivationSutra {
+    override fun matches(context: DerivationState): Boolean =
+        context.allEffectiveTerms.any { it.upadesha in setOf("बहु", "गण", "वतु", "डति") || it.surface in setOf("बहु", "गण", "कति") } &&
+        "1.1.23" !in context.activeAdhikaras
+
+    override fun apply(context: DerivationState): DerivationChange =
+        DerivationChange(
+            state = context.activateAdhikara("1.1.23"),
+            explanation = "1.1.23 assigns संख्या saṃjñā to bahu, gaṇa, vatu, ḍati.",
+        )
 }

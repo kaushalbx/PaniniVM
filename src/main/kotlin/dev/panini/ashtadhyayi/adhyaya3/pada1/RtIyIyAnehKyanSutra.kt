@@ -1,24 +1,38 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada1
 
+import dev.panini.derivation.DerivationChange
+import dev.panini.derivation.DerivationalMeaning
+import dev.panini.derivation.DerivationState
+import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.TermKind
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
-import dev.panini.sutra.SutraInput
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 /**
- * Sūtra 3.1.29 ऋतीयीयाङ्भ्यः क्यङ्.
- * Prescribes kyaṅ pratyaya for ṛtī, īyā, āṅ roots.
+ * Sūtra 3.1.29 ऋतीीयङ्.
+ * Prescribes kyaङ् affix for ṛtīya, etc.
  */
-object RtIyIyAnehKyanSutra : Sutra<String, String>(
-    number = "3.1.29", text = "ऋतीयीयाङ्भ्यः क्यङ्",
-    hindiExplanation = "ऋतीय, ईयास् तथा आङ् से 'क्यङ्' प्रत्यय स्वार्थ में होता है।",
+object RtIyIyAnehKyanSutra : Sutra<DerivationState, DerivationChange>(
+    number = "3.1.29", text = "ऋतीीयङ्",
+    hindiExplanation = "ऋतीय धातु से 'क्यङ्' (य) प्रत्यय होता है।",
     type = SutraType.NITYA, chapter = 3, pada = 1, optional = false, kramaValue = 310029,
-    role = SutraRole.Vidhi, action = SutraAction.PRATYAYA_SELECTION, scope = SutraScope.DHATU,
-    inputs = setOf(SutraInput.DHATU),
-    adhikara = emptySet(),
-) {
-    override fun matches(context: String): Boolean = context in setOf("ऋतीय", "ईयास्", "आङ्")
-    override fun apply(context: String): String = "क्यङ्"
+    role = SutraRole.Vidhi, action = SutraAction.PRATYAYA_SELECTION, scope = SutraScope.DERIVATION,
+), DerivationSutra {
+    override fun matches(context: DerivationState): Boolean =
+        context.effectiveContext.rupa.lakara == null &&
+        context.effectiveContext.requestedMeaning == DerivationalMeaning.BHAVA &&
+        context.allEffectiveTerms.any { it.upadesha == "ऋतीय" || it.surface == "ऋतीय" } &&
+        context.allEffectiveTerms.none { it.upadesha == "क्यङ्" }
+
+    override fun apply(context: DerivationState): DerivationChange {
+        val kyan = DerivationTerm("kyan", "य", TermKind.PRATYAYA, upadesha = "क्यङ्")
+        return DerivationChange(
+            state = context.addTerm(kyan),
+            explanation = "3.1.29 prescribes क्यङ् affix.",
+        )
+    }
 }

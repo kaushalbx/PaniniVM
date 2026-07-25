@@ -1,24 +1,37 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada4
 
+import dev.panini.core.Lakara
+import dev.panini.derivation.DerivationChange
+import dev.panini.derivation.DerivationState
+import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.TermKind
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
-import dev.panini.sutra.SutraInput
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 /**
- * Sūtra 3.4.111 लङ्ः शाकटायनस्यैव.
- * Prescribes jus substitution in Laṅ for 3rd person plural according to Śākaṭāyana.
+ * Sūtra 3.4.111 लङ् शाकटायनस्यैव.
+ * Prescribes jus replacement for jhi in Laṅ according to Śākaṭāyana.
  */
-object LanSakatayanasyaIvaSutra : Sutra<String, String>(
-    number = "3.4.111", text = "लङ्ः शाकटायनस्यैव",
-    hindiExplanation = "शाकटायन आचार्य के मत में लङ् लकार के 'झि' स्थान में 'जुस्' (उः) होता है।",
+object LanSakatayanasyaIvaSutra : Sutra<DerivationState, DerivationChange>(
+    number = "3.4.111", text = "लङ् शाकटायनस्यैव",
+    hindiExplanation = "शाकटायन आचार्य के मत में लङ् लकार के 'झि' के स्थान पर 'जुस्' आदेश होता है।",
     type = SutraType.NITYA, chapter = 3, pada = 4, optional = true, kramaValue = 340111,
-    role = SutraRole.Vidhi, action = SutraAction.ADESHA, scope = SutraScope.PRATYAYA,
-    inputs = setOf(SutraInput.PRATYAYA),
-    adhikara = emptySet(),
-) {
-    override fun matches(context: String): Boolean = context in setOf("झि", "अन्", "लङ्")
-    override fun apply(context: String): String = "जुस्"
+    role = SutraRole.Vidhi, action = SutraAction.ADESHA, scope = SutraScope.DERIVATION,
+), DerivationSutra {
+    override fun matches(context: DerivationState): Boolean =
+        context.effectiveContext.rupa.lakara == Lakara.LANG &&
+        "3.4.111" in context.activeAdhikaras &&
+        context.allEffectiveTerms.any { it.upadesha == "झि" }
+
+    override fun apply(context: DerivationState): DerivationChange {
+        val jus = DerivationTerm("jus", "उस्", TermKind.PRATYAYA, upadesha = "जुस्")
+        return DerivationChange(
+            state = context.replaceTerm(context.allEffectiveTerms.last { it.upadesha == "झि" }.id, jus),
+            explanation = "3.4.111 substitutes जुस् for झि in Laṅ.",
+        )
+    }
 }

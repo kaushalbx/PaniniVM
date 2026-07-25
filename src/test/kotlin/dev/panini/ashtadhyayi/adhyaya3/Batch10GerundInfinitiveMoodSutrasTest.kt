@@ -10,10 +10,12 @@ import dev.panini.ashtadhyayi.adhyaya3.pada3.StriyamKtinSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada4.KartariKrtSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada4.SamanakartrkayohPurvakaleSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada4.ShakaDhrshJnAGlaGhatRabhabhLabhaprakramitumunSutra
+import dev.panini.core.Lakara
 import dev.panini.derivation.DerivationalContext
 import dev.panini.derivation.DerivationalMeaning
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.Rupa
 import dev.panini.derivation.TermKind
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -39,26 +41,41 @@ class Batch10GerundInfinitiveMoodSutrasTest {
 
     @Test
     fun `test 3 3 57 RadorApsutra`() {
-        assertTrue(RadorApsutra.matches("कृ"))
-        assertEquals("अप्", RadorApsutra.apply("कृ"))
+        val state = DerivationState(
+            terms = listOf(DerivationTerm("root", "कृ", TermKind.DHATU, upadesha = "कृ")),
+            context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVA)
+        )
+        assertTrue(RadorApsutra.matches(state))
+        assertEquals("अप्", RadorApsutra.apply(state).state.allEffectiveTerms.last().upadesha)
     }
 
     @Test
     fun `test 3 3 94 StriyamKtinSutra`() {
-        assertTrue(StriyamKtinSutra.matches("कृ"))
-        assertEquals("क्तिन्", StriyamKtinSutra.apply("कृ"))
+        val state = DerivationState(
+            terms = listOf(DerivationTerm("root", "कृ", TermKind.DHATU, upadesha = "कृ")),
+            context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVA)
+        )
+        assertTrue(StriyamKtinSutra.matches(state))
+        assertEquals("क्तिन्", StriyamKtinSutra.apply(state).state.allEffectiveTerms.last().upadesha)
     }
 
     @Test
     fun `test 3 3 114 NapumsakeBhaveKtahSutra`() {
-        assertTrue(NapumsakeBhaveKtahSutra.matches("हस्"))
-        assertEquals("क्त", NapumsakeBhaveKtahSutra.apply("हस्"))
+        val state = DerivationState(
+            terms = listOf(DerivationTerm("root", "हस्", TermKind.DHATU, upadesha = "हस्")),
+            context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVA)
+        )
+        assertTrue(NapumsakeBhaveKtahSutra.matches(state))
+        assertEquals("क्त", NapumsakeBhaveKtahSutra.apply(state).state.allEffectiveTerms.last().upadesha)
     }
 
     @Test
     fun `test 3 3 156 HetuhetumatorLingSutra`() {
-        assertTrue(HetuhetumatorLingSutra.matches("हेतु"))
-        assertEquals("लिङ्", HetuhetumatorLingSutra.apply("हेतु"))
+        val state = DerivationState(
+            terms = listOf(DerivationTerm("root", "भू", TermKind.DHATU, upadesha = "भू")),
+            context = DerivationalContext(rupa = Rupa(lakara = Lakara.LING))
+        )
+        assertTrue(HetuhetumatorLingSutra.matches(state))
     }
 
     @Test
@@ -92,13 +109,20 @@ class Batch10GerundInfinitiveMoodSutrasTest {
 
     @Test
     fun `test 3 4 65 ShakaDhrshJnAGlaGhatRabhabhLabhaprakramitumunSutra`() {
-        assertTrue(ShakaDhrshJnAGlaGhatRabhabhLabhaprakramitumunSutra.matches("शक्"))
-        assertEquals("तुमुन्", ShakaDhrshJnAGlaGhatRabhabhLabhaprakramitumunSutra.apply("शक्"))
+        val state = DerivationState(
+            terms = listOf(DerivationTerm("root", "शक्", TermKind.DHATU, upadesha = "शक्")),
+            context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVISYAT)
+        )
+        assertTrue(ShakaDhrshJnAGlaGhatRabhabhLabhaprakramitumunSutra.matches(state))
+        assertEquals("तुमुन्", ShakaDhrshJnAGlaGhatRabhabhLabhaprakramitumunSutra.apply(state).state.allEffectiveTerms.last().upadesha)
     }
 
     @Test
     fun `test 3 4 67 KartariKrtSutra`() {
-        assertTrue(KartariKrtSutra.matches("कर्तृ"))
-        assertEquals("कर्तृ", KartariKrtSutra.apply("कर्तृ"))
+        val state = DerivationState(
+            terms = listOf(DerivationTerm("root", "कृ", TermKind.DHATU, upadesha = "कृ")),
+            context = DerivationalContext(requestedMeaning = DerivationalMeaning.KARTR_VEDANA)
+        )
+        assertTrue(KartariKrtSutra.matches(state))
     }
 }

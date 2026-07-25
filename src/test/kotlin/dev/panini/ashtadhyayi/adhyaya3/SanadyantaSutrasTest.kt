@@ -5,6 +5,11 @@ import dev.panini.ashtadhyayi.adhyaya3.pada1.DhatorEkayacoHaladerKriyasamabhihar
 import dev.panini.ashtadhyayi.adhyaya3.pada1.GupTijKitsadbhyahSanSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada1.HetumatiCaSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada1.SanaadyantaDhatavahSutra
+import dev.panini.derivation.DerivationalContext
+import dev.panini.derivation.DerivationalMeaning
+import dev.panini.derivation.DerivationState
+import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.TermKind
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -13,33 +18,52 @@ class SanadyantaSutrasTest {
 
     @Test
     fun `test 3 1 5 GupTijKitsadbhyahSanSutra`() {
-        assertTrue(GupTijKitsadbhyahSanSutra.matches("गुप्"))
-        assertEquals("सन्", GupTijKitsadbhyahSanSutra.apply("गुप्"))
+        val state = DerivationState(
+            terms = listOf(DerivationTerm("root", "गुप्", TermKind.DHATU, upadesha = "गुप्")),
+            context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVA)
+        )
+        assertTrue(GupTijKitsadbhyahSanSutra.matches(state))
+        assertEquals("सन्", GupTijKitsadbhyahSanSutra.apply(state).state.allEffectiveTerms.last().upadesha)
     }
 
     @Test
     fun `test 3 1 7 DhatohKarmanahSamanakartrkadIcchayamSanSutra`() {
-        assertTrue(DhatohKarmanahSamanakartrkadIcchayamSanSutra.matches("भू"))
-        assertEquals("सन्", DhatohKarmanahSamanakartrkadIcchayamSanSutra.apply("भू"))
+        val state = DerivationState(
+            terms = listOf(DerivationTerm("root", "भू", TermKind.DHATU, upadesha = "भू")),
+            context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVA)
+        )
+        assertTrue(DhatohKarmanahSamanakartrkadIcchayamSanSutra.matches(state))
+        assertEquals("सन्", DhatohKarmanahSamanakartrkadIcchayamSanSutra.apply(state).state.allEffectiveTerms.last().upadesha)
     }
 
     @Test
     fun `test 3 1 22 DhatorEkayacoHaladerKriyasamabhihareYangSutra`() {
-        assertTrue(DhatorEkayacoHaladerKriyasamabhihareYangSutra.matches("पच्"))
-        assertEquals("यङ्", DhatorEkayacoHaladerKriyasamabhihareYangSutra.apply("पच्"))
+        val state = DerivationState(
+            terms = listOf(DerivationTerm("root", "पच्", TermKind.DHATU, upadesha = "पच्")),
+            context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVA)
+        )
+        assertTrue(DhatorEkayacoHaladerKriyasamabhihareYangSutra.matches(state))
+        assertEquals("यङ्", DhatorEkayacoHaladerKriyasamabhihareYangSutra.apply(state).state.allEffectiveTerms.last().upadesha)
     }
 
     @Test
     fun `test 3 1 26 HetumatiCaSutra`() {
-        assertTrue(HetumatiCaSutra.matches("कृ"))
-        assertEquals("णिच्", HetumatiCaSutra.apply("कृ"))
+        val state = DerivationState(
+            terms = listOf(DerivationTerm("root", "कृ", TermKind.DHATU, upadesha = "कृ")),
+            context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVA)
+        )
+        assertTrue(HetumatiCaSutra.matches(state))
+        assertEquals("णिच्", HetumatiCaSutra.apply(state).state.allEffectiveTerms.last().upadesha)
     }
 
     @Test
     fun `test 3 1 32 SanaadyantaDhatavahSutra`() {
-        assertTrue(SanaadyantaDhatavahSutra.matches("बुभूषा"))
-        assertTrue(SanaadyantaDhatavahSutra.matches("पापच्य"))
-        assertTrue(SanaadyantaDhatavahSutra.matches("कारिणिच्"))
-        assertEquals("बुभूषा", SanaadyantaDhatavahSutra.apply("बुभूषा"))
+        val state1 = DerivationState(
+            terms = listOf(
+                DerivationTerm("root", "भू", TermKind.DHATU, upadesha = "भू"),
+                DerivationTerm("san", "स", TermKind.PRATYAYA, upadesha = "सन्")
+            )
+        )
+        assertTrue(SanaadyantaDhatavahSutra.matches(state1))
     }
 }

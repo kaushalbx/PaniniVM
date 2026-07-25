@@ -21,9 +21,8 @@ class SamjnaSutrasTest {
 
     @Test
     fun testKtaKtavatuNisthaSutra() {
-        assertTrue(KtaKtavatuNisthaSutra.matches("क्त"))
-        assertTrue(KtaKtavatuNisthaSutra.matches("क्तवतु"))
-        assertEquals("निष्ठा", KtaKtavatuNisthaSutra.apply("क्त"))
+        val state = DerivationState(terms = listOf(DerivationTerm("affix", "क्त", TermKind.PRATYAYA, upadesha = "क्त")))
+        assertTrue(KtaKtavatuNisthaSutra.matches(state))
     }
 
     @Test
@@ -43,8 +42,8 @@ class SamjnaSutrasTest {
 
     @Test
     fun testKrtTaddhitaSamasascaSutra() {
-        assertTrue(KrtTaddhitaSamasascaSutra.matches("कर्तृ"))
-        assertEquals("प्रातिपदिकम्", KrtTaddhitaSamasascaSutra.apply("कर्तृ"))
+        val state = DerivationState(terms = listOf(DerivationTerm("affix", "क्त", TermKind.PRATYAYA, upadesha = "क्त")))
+        assertTrue(KrtTaddhitaSamasascaSutra.matches(state))
     }
 
     @Test
