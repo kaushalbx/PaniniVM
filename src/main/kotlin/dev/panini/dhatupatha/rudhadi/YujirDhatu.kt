@@ -1,6 +1,7 @@
 package dev.panini.dhatupatha.rudhadi
 
 import dev.panini.actions.numeric.SanskritAdditionAction
+import dev.panini.actions.numeric.SanskritComparisonAction
 import dev.panini.actions.numeric.SanskritSubtractionAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.PadaType
@@ -28,12 +29,16 @@ open class YujirDhatu : Dhatu(
     svara = Accent.ANUDATTA,
     operations = listOf(
         SanskritAdditionAction.numericOp {
-            triggeredBy(forbiddenUpasargas = setOf("वि"))
+            triggeredBy(forbiddenUpasargas = setOf("वि", "तुल्"))
             returns(ExecutionSamjna.SANKHYA, ExecutionSamjna.SHABDA)
         },
         SanskritSubtractionAction.numericOp {
             triggeredBy(requiredUpasargas = setOf("वि"))
             returns(ExecutionSamjna.SANKHYA, ExecutionSamjna.SHABDA)
+        },
+        SanskritComparisonAction.numericOp {
+            triggeredBy(requiredUpasargas = setOf("तुल्"))
+            returns(ExecutionSamjna.SHABDA)
         },
     ),
     semanticRelations = setOf(SemanticRelation.DESIRED_OBJECT),

@@ -85,4 +85,23 @@ class PvmFileTest {
         val line3Result = assertIs<ExecutionResult.Success>(results[2])
         assertEquals("तच्छिव", line3Result.value)
     }
+
+    @Test
+    fun `PaniniVM evaluates conditional pvm file containing control flow utterances`() {
+        val pvmFile = File("src/test/kotlin/dev/panini/parser/conditional.pvm")
+        val txtFile = File("src/test/kotlin/dev/panini/parser/conditional.txt")
+
+        assertTrue(pvmFile.exists(), "conditional.pvm should exist")
+        assertTrue(txtFile.exists(), "txtFile should exist")
+
+        val results = vm.evalFile(pvmFile, sessionKey = "conditional_session")
+
+        assertEquals(2, results.size)
+
+        val line1Result = assertIs<ExecutionResult.Success>(results[0])
+        assertEquals("पञ्चदश", line1Result.value)
+
+        val line2Result = assertIs<ExecutionResult.Success>(results[1])
+        assertEquals("पञ्चदश", line2Result.value)
+    }
 }

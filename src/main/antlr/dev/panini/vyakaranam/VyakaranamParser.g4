@@ -13,11 +13,21 @@ package dev.panini.parser;
 // ============================================================================
 
 ukti
-    : sambodhana?
+    : conditionalClause
+    | loopClause
+    | sambodhana?
       vakya
       (vakyaSambandha vakya)*
       DANDA?
       EOF
+    ;
+
+conditionalClause
+    : YADI condition=vakya TARHI consequent=vakya (ANYATHA alternate=vakya)? DANDA? EOF
+    ;
+
+loopClause
+    : YAVAT condition=vakya TAVAT body=vakya DANDA? EOF
     ;
 
 // ============================================================================
