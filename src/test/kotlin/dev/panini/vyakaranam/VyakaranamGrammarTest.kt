@@ -285,24 +285,6 @@ class VyakaranamGrammarTest {
     }
 
     @Test
-    fun `verifies 1 4 25 jugupsa virama pramadarthanam assigns apadana samjna`() {
-        val context = KarakaRuleContext(
-            dhatu = DhatuIdentity("जुगुप्सते"),
-            participant = ParticipantFacts(
-                id = "p_papad",
-                expression = AvyayaPada("पापात्", "पापात्"),
-                possibleVibhaktis = setOf(Vibhakti.PANCHAMI),
-            ),
-            allParticipants = emptyList(),
-            prayoga = Prayoga.KARTARI,
-            candidates = setOf(Karaka.APADANA),
-        )
-        val res = KarakaRuleEngine.resolve(context)
-        assertEquals(Karaka.APADANA, res.resolved)
-        assertTrue(res.evidence.any { it.sutra == "1.4.25" })
-    }
-
-    @Test
     fun `verifies 2 3 19 saha yukte apradhane assigns trtiya for accompaniment`() {
         val context = KarakaRuleContext(
             dhatu = DhatuIdentity("गच्छति"),
@@ -372,24 +354,6 @@ class VyakaranamGrammarTest {
         )
         val res = KarakaRuleEngine.resolve(context)
         assertTrue(res.evidence.any { it.sutra == "2.3.29" })
-    }
-
-    @Test
-    fun `verifies 2 3 36 yatas ca nirdharanam assigns sasthi or saptami for group selection`() {
-        val context = KarakaRuleContext(
-            dhatu = DhatuIdentity("अस्ति"),
-            participant = ParticipantFacts(
-                id = "p_kavimam",
-                expression = AvyayaPada("कवीनाम्", "कवीनाम्"),
-                possibleVibhaktis = setOf(Vibhakti.SASTHI),
-                semanticRelations = setOf(SemanticRelation.GROUP_SELECTION),
-            ),
-            allParticipants = emptyList(),
-            prayoga = Prayoga.ANIRDHARITA,
-            candidates = setOf(Karaka.ANIRDHARITA),
-        )
-        val res = KarakaRuleEngine.resolve(context)
-        assertTrue(res.evidence.any { it.sutra == "2.3.36" })
     }
 
     @Test

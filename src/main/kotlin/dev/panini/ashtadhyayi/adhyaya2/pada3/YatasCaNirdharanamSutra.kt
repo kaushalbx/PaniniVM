@@ -14,11 +14,11 @@ import dev.panini.vyakaranam.analysis.VibhaktiRuleResult
 
 import dev.panini.vyakaranam.analysis.SemanticRelation
 
-/** Sūtra 2.3.36 यतश्च निर्धारणम्. Assigns Ṣaṣṭhī or Saptamī when selecting/distinguishing a member from a group. */
+/** Sūtra 2.3.41 यतश्च निर्धारणम्. Assigns Ṣaṣṭhī or Saptamī when selecting/distinguishing a member from a group. */
 object YatasCaNirdharanamSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
-    number = "2.3.36", text = "यतश्च निर्धारणम्",
+    number = "2.3.41", text = "यतश्च निर्धारणम्",
     hindiExplanation = "जातिगुणक्रियासंज्ञाभिः समुदायदेकदेशस्य पृथक्करणं निर्धारणम्, यतः क्रियते ततः षष्ठीसप्तम्यौ स्तः।",
-    type = SutraType.NITYA, chapter = 2, pada = 3, optional = true, kramaValue = 230036,
+    type = SutraType.NITYA, chapter = 2, pada = 3, optional = true, kramaValue = 230041,
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.KARAKA, SutraInput.SEMANTIC_FEATURE),
     adhikara = setOf("2.3.1"),

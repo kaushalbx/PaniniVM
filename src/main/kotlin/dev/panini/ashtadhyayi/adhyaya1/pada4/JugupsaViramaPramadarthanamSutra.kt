@@ -18,9 +18,9 @@ import dev.panini.vyakaranam.analysis.SemanticRelation
  * stopping (virāma), or negligence (pramāda).
  */
 object JugupsaViramaPramadarthanamSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
-    number = "1.4.25", text = "जुगुप्साविरामप्रमादार्थानामुपसंख्यानम्",
-    hindiExplanation = "जुगुप्सा, विराम तथा प्रमादार्थक धातुओं के योग में अपादान संज्ञा होती है।",
-    type = SutraType.SAMJNA, chapter = 1, pada = 4, optional = false, kramaValue = 140025,
+    number = "1.4.24V", text = "जुगुप्साविरामप्रमादार्थानामुपसंख्यानम्",
+    hindiExplanation = "जुगुप्सा, विराम तथा प्रमादार्थक धातुओं के योग में अपादान संज्ञा होती है। (कात्यायनवार्तिकम्, 1.4.24 पर)",
+    type = SutraType.SAMJNA, chapter = 1, pada = 4, optional = false, kramaValue = 140024 + 1,
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.VAKYA,
     inputs = setOf(SutraInput.DHATU, SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA_CANDIDATE),
     adhikara = setOf("1.4.23", "1.4.24"),
