@@ -183,7 +183,7 @@ SUP_BHYAM   : 'भ्याम्';
 SUP_BHIS    : 'भिस्';
 SUP_NGE     : 'ङे';
 SUP_BHYAS   : 'भ्यस्';
-SUP_NGASI   : 'ङसिँ' | 'ङसि';
+SUP_NGASI   : 'ङसिँ';
 SUP_NGAS    : 'ङस्';
 SUP_OS      : 'ओस्';
 SUP_AAM     : 'आम्';
