@@ -145,7 +145,23 @@ Runtime invariants:
 
 ---
 
-## 6. Verification
+## 7. Samāsa (Compound Formation) & Phonological Transformation Engine
+
+### Samāsa Subsystem (Adhyāya 2.1 & 2.2)
+Compound formation sūtras operate on `DerivationState` sequences containing multiple component subantas:
+- **Avyayībhāva** (`2.1.6` *Avyayaṁ vibhakti-samīpa-*): Combines an Avyaya prefix with a subanta term into a unified compound stem.
+- **Tatpuruṣa** (`2.1.24` Dvitīyā, `2.1.37` Pañcamī, `2.2.8` Ṣaṣṭhī): Combines case-marked subanta terms (*kṛṣṇa + śritaḥ* $\rightarrow$ *kṛṣṇaśritaḥ*, *cora + bhayam* $\rightarrow$ *corabhayam*, *rāja + puruṣa* $\rightarrow$ *rājapuruṣa*).
+- **Bahuvrīhi** (`2.2.24` *Anekam anyapadārthe*): Combines subantas into an exocentric compound (*pīta + ambara* $\rightarrow$ *pītāmbara*).
+- **Dvandva** (`2.2.29` *Cārthe dvandvaḥ*): Combines co-ordinate nominal terms (*rāma + kṛṣṇa* $\rightarrow$ *rāmakṛṣṇa*).
+
+Each compound formation rule replaces component terms with a unified `DerivationTerm("samasa", surface, TermKind.PRATIPADIKA)` and assigns `Samjna.PRATIPADIKA` to enable downstream inflection.
+
+### Phonological Sandhi Engine & Pratyāhāra Integration
+Phonological transformations (`6.1.109`, `6.1.132`, `6.3.111`, `8.3.14`, `8.3.17`, `8.3.22`, `8.4.59`, `8.4.60`, `8.4.62`, `8.4.63`, `8.4.65`) use `PratyaharaEngine` for type-safe Māheśvara-sūtra sound matching (`Pratyahara.EN`, `Pratyahara.YAY`, `Pratyahara.JHAR`, `Pratyahara.ASH`, `Pratyahara.HAL`). Rule applicability logic is implemented directly in `override fun matches(context: DerivationState): Boolean` without external helper classes or heuristic string matching shortcuts.
+
+---
+
+## 8. Verification
 
 Run the full test suite:
 ```powershell
