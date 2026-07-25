@@ -1,4 +1,4 @@
-package dev.panini.ashtadhyayi.adhyaya3.pada1
+package dev.panini.ashtadhyayi.adhyaya3.pada3
 
 import dev.panini.derivation.DerivationalMeaning
 import dev.panini.derivation.DerivationChange
@@ -13,25 +13,25 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 /**
- * Sūtra 3.1.97 अचो यत्.
- * Prescribes yat kṛtya affix after vowel-ending roots.
+ * Sūtra 3.3.18 भावे.
+ * Prescribes ghañ / ktin affixes in Bhāve action sense.
  */
-object AchoYatSutra : Sutra<DerivationState, DerivationChange>(
-    number = "3.1.97", text = "अचो यत्",
-    hindiExplanation = "अजन्त (स्वर-अन्त) धातुओं से 'यत्' कृत्य प्रत्यय होता है।",
-    type = SutraType.NITYA, chapter = 3, pada = 1, optional = false, kramaValue = 310097,
+object BhaveSutra : Sutra<DerivationState, DerivationChange>(
+    number = "3.3.18", text = "भावे",
+    hindiExplanation = "भाव (क्रिया सिद्धवस्था) अर्थ में धातु से 'घञ्' प्रत्यय होता है।",
+    type = SutraType.NITYA, chapter = 3, pada = 3, optional = false, kramaValue = 330018,
     role = SutraRole.Vidhi, action = SutraAction.PRATYAYA_SELECTION, scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
         context.effectiveContext.rupa.lakara == null &&
         context.effectiveContext.requestedMeaning == DerivationalMeaning.BHAVA &&
-        context.allEffectiveTerms.none { it.upadesha == "यत्" }
+        context.allEffectiveTerms.none { it.upadesha == "घञ्" }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val yat = DerivationTerm("yat", "य", TermKind.PRATYAYA, upadesha = "यत्")
+        val ghan = DerivationTerm("ghan", "अ", TermKind.PRATYAYA, upadesha = "घञ्")
         return DerivationChange(
-            state = context.addTerm(yat),
-            explanation = "3.1.97 prescribes यत् kṛtya affix after ajanta dhātu.",
+            state = context.addTerm(ghan),
+            explanation = "3.3.18 prescribes घञ् action affix in bhāve.",
         )
     }
 }

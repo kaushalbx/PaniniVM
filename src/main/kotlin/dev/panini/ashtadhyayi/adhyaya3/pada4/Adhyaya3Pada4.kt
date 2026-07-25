@@ -6,6 +6,9 @@ object Adhyaya3Pada4 {
     val sutras: List<Sutra<*, *>> = listOf(
         BhimadayoApadaneSutra,
         LingartheLetSutra,
+        SamanakartrkayohPurvakaleSutra,
+        ShakaDhrshJnAGlaGhatRabhabhLabhaprakramitumunSutra,
+        KartariKrtSutra,
         TiptasjhiSutra,
         TitaAtmanepadanamTereSutra,
         ThasasseSutra,

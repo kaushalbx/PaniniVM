@@ -10,6 +10,11 @@ import dev.panini.ashtadhyayi.adhyaya3.pada2.AtoAnupasargeKahSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada2.LaksanaghetvohKriyahSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada2.LatahSatriShanacauSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada2.SanashamsabhikshuchSutra
+import dev.panini.derivation.DerivationalContext
+import dev.panini.derivation.DerivationalMeaning
+import dev.panini.derivation.DerivationState
+import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.TermKind
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -18,20 +23,32 @@ class Batch10KrtSutrasTest {
 
     @Test
     fun `test 3 1 97 AchoYatSutra`() {
-        assertTrue(AchoYatSutra.matches("जि"))
-        assertEquals("यत्", AchoYatSutra.apply("जि"))
+        val state = DerivationState(
+            terms = listOf(DerivationTerm("root", "जि", TermKind.DHATU, upadesha = "जि")),
+            context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVA)
+        )
+        assertTrue(AchoYatSutra.matches(state))
+        assertEquals("यत्", AchoYatSutra.apply(state).state.allEffectiveTerms.last().upadesha)
     }
 
     @Test
     fun `test 3 1 124 RhalorNyatSutra`() {
-        assertTrue(RhalorNyatSutra.matches("कृ"))
-        assertEquals("ण्यत्", RhalorNyatSutra.apply("कृ"))
+        val state = DerivationState(
+            terms = listOf(DerivationTerm("root", "कृ", TermKind.DHATU, upadesha = "कृ")),
+            context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVA)
+        )
+        assertTrue(RhalorNyatSutra.matches(state))
+        assertEquals("ण्यत्", RhalorNyatSutra.apply(state).state.allEffectiveTerms.last().upadesha)
     }
 
     @Test
     fun `test 3 1 133 NvultrchauSutra`() {
-        assertTrue(NvultrchauSutra.matches("कृ"))
-        assertEquals("तृच्", NvultrchauSutra.apply("कृ"))
+        val state = DerivationState(
+            terms = listOf(DerivationTerm("root", "कृ", TermKind.DHATU, upadesha = "कृ")),
+            context = DerivationalContext(requestedMeaning = DerivationalMeaning.KARTR_VEDANA)
+        )
+        assertTrue(NvultrchauSutra.matches(state))
+        assertEquals("तृच्", NvultrchauSutra.apply(state).state.allEffectiveTerms.last().upadesha)
     }
 
     @Test
