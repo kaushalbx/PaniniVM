@@ -509,7 +509,7 @@ krtPratyaya
     | KWIP
     | KTIN
     | AC
-    | AP_KRT
+    | AP
     | KA_KRT
     | NIN
     | NINI
