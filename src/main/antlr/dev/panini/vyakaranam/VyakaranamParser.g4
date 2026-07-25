@@ -197,8 +197,8 @@ taddhitaPratyaya
     | INJ
     | DHAK
     | THAJ
-    | CHA_TADDHITA
-    | KA_TADDHITA
+    | CHHA
+    | KA
     | KAN
     | YAT
     | AYANA
@@ -513,7 +513,7 @@ krtPratyaya
     | KTIN
     | AC
     | AP
-    | KA_KRT
+    | KA
     | NIN
     | NINI
     | IN_KRT
