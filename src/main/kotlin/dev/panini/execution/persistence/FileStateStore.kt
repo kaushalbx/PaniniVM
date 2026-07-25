@@ -5,10 +5,11 @@ import dev.panini.execution.SambhashanaContext
 import dev.panini.execution.SanskritValue
 import dev.panini.execution.SmrtaPhala
 import java.io.File
-import java.nio.charset.StandardCharsets
-import java.util.Base64
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 /** Versioned file store that round-trips complete conversation state. */
+@OptIn(ExperimentalEncodingApi::class)
 class FileStateStore(private val storageDir: File) : StateStore {
     init {
         require(storageDir.exists() || storageDir.mkdirs()) { "Cannot create state directory: $storageDir" }
@@ -91,7 +92,7 @@ class FileStateStore(private val storageDir: File) : StateStore {
         }.orEmpty()
 
     private fun fileFor(key: String): File {
-        val safe = Base64.getUrlEncoder().withoutPadding().encodeToString(key.toByteArray(StandardCharsets.UTF_8))
+        val safe = encode(key)
         return File(storageDir, safe + EXTENSION)
     }
 
@@ -103,10 +104,10 @@ class FileStateStore(private val storageDir: File) : StateStore {
     }
 
     private fun encode(value: String): String =
-        Base64.getUrlEncoder().withoutPadding().encodeToString(value.toByteArray(StandardCharsets.UTF_8))
+        if (value.isEmpty()) "" else base64Codec.encode(value.toByteArray(Charsets.UTF_8))
 
     private fun decode(value: String): String =
-        String(Base64.getUrlDecoder().decode(value), StandardCharsets.UTF_8)
+        if (value.isEmpty()) "" else base64Codec.decode(value).decodeToString()
 
     private fun encodeSamjnas(values: Set<ExecutionSamjna>): String = values.joinToString(",") { it.name }
     private fun decodeSamjnas(value: String): Set<ExecutionSamjna> = value.split(',').filter(String::isNotEmpty)
@@ -128,5 +129,8 @@ class FileStateStore(private val storageDir: File) : StateStore {
         else -> null
     }
 
-    private companion object { const val EXTENSION = ".state" }
+    private companion object {
+        const val EXTENSION = ".state"
+        val base64Codec = Base64.UrlSafe.withPadding(Base64.PaddingOption.PRESENT_OPTIONAL)
+    }
 }
