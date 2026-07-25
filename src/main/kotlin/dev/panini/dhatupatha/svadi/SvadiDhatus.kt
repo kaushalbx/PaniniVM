@@ -200,5 +200,6 @@ object SvadiDhatus {
             "हिंसायाम्", "", "to kill, to destroy, to damage, to hurt",
             PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
         )
+        dhatu(SuDhatu())
     }
 }

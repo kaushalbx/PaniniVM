@@ -73,4 +73,18 @@ class NewDhatusTest {
         val success = assertIs<ExecutionResult.Success>(result)
         assertEquals("अर्पितम्: हविस्", success.value)
     }
+
+    @Test
+    fun `DivDhatu executes random choice action`() {
+        val result = vm.eval("अक्ष + अम् दिव् + णिच् + लोट् + सिप् ।", sessionKey = "div_session")
+        val success = assertIs<ExecutionResult.Success>(result)
+        assertEquals("अक्ष", success.value)
+    }
+
+    @Test
+    fun `SuDhatu executes summarize action`() {
+        val result = vm.eval("वाक्य + अम् सु + णिच् + लोट् + सिप् ।", sessionKey = "su_session")
+        val success = assertIs<ExecutionResult.Success>(result)
+        assertEquals("वाक्य", success.value)
+    }
 }

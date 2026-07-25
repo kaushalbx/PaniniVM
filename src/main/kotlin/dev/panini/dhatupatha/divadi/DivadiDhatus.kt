@@ -954,5 +954,6 @@ object DivadiDhatus {
                 "", "", "",
                 null, null, null, null,
             )
+            dhatu(DivDhatu())
         }
 }

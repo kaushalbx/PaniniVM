@@ -22,11 +22,13 @@ class MulDhatu : Dhatu(
     gana = DhatuGana.BHVADI,
     pada = PadaType.PARASMAIPADA,
     itStatus = ItStatus.SET,
-    karmatva = Karmatva.AKARMAKA,
+    karmatva = Karmatva.SAKARMAKA,
     svara = Accent.UDATTA,
     operations = listOf(
         SanskritSquareRootAction.op {
-            requiresNumbers(); returns(ExecutionSamjna.SANKHYA)
+            requiresNumbers()
+            returns(ExecutionSamjna.SANKHYA)
         },
     ),
+    surfaceAliases = setOf("मूलति", "मूल्", "वर्गमूलम्"),
 )

@@ -72,7 +72,7 @@ class PvmFileTest {
     }
 
     @Test
-    fun `PaniniVM evaluates comparison and min pvm files`() {
+    fun `PaniniVM evaluates comparison, min, random, sqrt, mod, and count pvm files`() {
         val compFile = File("examples/arithmetic/comparison.pvm")
         val compResults = vm.evalFile(compFile, sessionKey = "comp_session")
         assertEquals(1, compResults.size)
@@ -84,10 +84,28 @@ class PvmFileTest {
         assertEquals(1, minResults.size)
         val minSuccess = assertIs<ExecutionResult.Success>(minResults[0])
         assertEquals("त्रीणि", minSuccess.value)
+
+        val randFile = File("examples/arithmetic/random_demo.pvm")
+        val randResults = vm.evalFile(randFile, sessionKey = "rand_session")
+        assertEquals(1, randResults.size)
+        val randSuccess = assertIs<ExecutionResult.Success>(randResults[0])
+        assertEquals("अक्ष", randSuccess.value)
+
+        val sqrtFile = File("examples/arithmetic/sqrt_demo.pvm")
+        val sqrtResults = vm.evalFile(sqrtFile, sessionKey = "sqrt_session")
+        println("sqrtResult: ${sqrtResults.firstOrNull()}")
+
+        val modFile = File("examples/arithmetic/mod_demo.pvm")
+        val modResults = vm.evalFile(modFile, sessionKey = "mod_session")
+        println("modResult: ${modResults.firstOrNull()}")
+
+        val countFile = File("examples/arithmetic/count_demo.pvm")
+        val countResults = vm.evalFile(countFile, sessionKey = "count_session")
+        println("countResult: ${countResults.firstOrNull()}")
     }
 
     @Test
-    fun `PaniniVM evaluates sandhi and subanta pvm files`() {
+    fun `PaniniVM evaluates sandhi, subanta, and summarize_demo pvm files`() {
         val pvmFile = File("examples/linguistic/sandhi.pvm")
         val txtFile = File("examples/linguistic/sandhi.txt")
 
@@ -112,6 +130,12 @@ class PvmFileTest {
         assertEquals(1, subResults.size)
         val subSuccess = assertIs<ExecutionResult.Success>(subResults[0])
         assertEquals("रामः", subSuccess.value)
+
+        val sumFile = File("examples/linguistic/summarize_demo.pvm")
+        val sumResults = vm.evalFile(sumFile, sessionKey = "sum_session")
+        assertEquals(1, sumResults.size)
+        val sumSuccess = assertIs<ExecutionResult.Success>(sumResults[0])
+        assertEquals("वाक्य", sumSuccess.value)
     }
 
     @Test
