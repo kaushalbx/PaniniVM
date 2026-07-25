@@ -71,7 +71,7 @@ object DhatuKarakaProfiles {
         DhatuKarakaProfile(setOf("रुच", "रोच"), setOf(SemanticRelation.RECIPIENT)),
         DhatuKarakaProfile(setOf("वस", "उपवस", "अनुवस", "अधिवस", "आवस"), setOf(SemanticRelation.LOCATION)),
         DhatuKarakaProfile(setOf("पराजि", "पराजय"), setOf(SemanticRelation.SOURCE)),
-        DhatuKarakaProfile(setOf("अधी", "पठ"), setOf(SemanticRelation.SOURCE)),
+        DhatuKarakaProfile(setOf("अधी", "पठ"), setOf(SemanticRelation.SOURCE, SemanticRelation.DESIRED_OBJECT)),
         DhatuKarakaProfile(setOf("स्पृह", "स्पृहय"), setOf(SemanticRelation.RECIPIENT)),
         DhatuKarakaProfile(setOf("अभिनिविश"), setOf(SemanticRelation.LOCATION)),
         DhatuKarakaProfile(setOf("वारय", "वार"), setOf(SemanticRelation.SOURCE)),
@@ -82,10 +82,29 @@ object DhatuKarakaProfiles {
         DhatuKarakaProfile(setOf("परिक्री", "क्री"), setOf(SemanticRelation.INSTRUMENT)),
         DhatuKarakaProfile(setOf("प्रतिश्रु", "आश्रु"), setOf(SemanticRelation.RECIPIENT)),
         DhatuKarakaProfile(setOf("अनुगृ", "प्रतिगृ"), setOf(SemanticRelation.RECIPIENT)),
+        // Additional Dhātus
+        DhatuKarakaProfile(setOf("कृ", "करो", "कुर्व", "कारय", "अकृ"), setOf(SemanticRelation.DESIRED_OBJECT, SemanticRelation.PROMPTER_CAUSE, SemanticRelation.INSTRUMENT)),
+        DhatuKarakaProfile(setOf("गम्", "गम", "गच्छ", "आगम्", "आगम", "आगच्छ", "अनुगम्", "अनुगम", "अनुगच्छ", "उपागम्", "उपागच्छ"), setOf(SemanticRelation.MOTION_GOAL, SemanticRelation.DESIRED_OBJECT, SemanticRelation.LOCATION)),
+        DhatuKarakaProfile(setOf("पा", "पिब", "पाति"), setOf(SemanticRelation.DESIRED_OBJECT, SemanticRelation.SOURCE)),
+        DhatuKarakaProfile(setOf("दृश्", "दृश", "पश्य", "द्रक्ष्य"), setOf(SemanticRelation.DESIRED_OBJECT, SemanticRelation.INDIFFERENT_OBJECT)),
+        DhatuKarakaProfile(setOf("लभ्", "लभ", "लप्स्य"), setOf(SemanticRelation.DESIRED_OBJECT, SemanticRelation.SOURCE)),
+        DhatuKarakaProfile(setOf("ज्ञा", "जाना", "ज्ञाय"), setOf(SemanticRelation.DESIRED_OBJECT, SemanticRelation.MEMORY_OR_RULING_OBJECT)),
+        DhatuKarakaProfile(setOf("श्रु", "शृणु", "श्रोष्य"), setOf(SemanticRelation.DESIRED_OBJECT, SemanticRelation.SOURCE)),
+        DhatuKarakaProfile(setOf("वच्", "वक्", "ब्रू", "कथ", "कथय", "भाष्"), setOf(SemanticRelation.DESIRED_OBJECT, SemanticRelation.RECIPIENT)),
+        DhatuKarakaProfile(setOf("हृ", "हर", "हरय"), setOf(SemanticRelation.DESIRED_OBJECT, SemanticRelation.SOURCE)),
+        DhatuKarakaProfile(setOf("गण", "गणय"), setOf(SemanticRelation.DESIRED_OBJECT)),
+        DhatuKarakaProfile(setOf("युज्", "युज", "युञ्ज", "योजय"), setOf(SemanticRelation.DESIRED_OBJECT)),
+        DhatuKarakaProfile(setOf("इष्", "इष", "इच्छ"), setOf(SemanticRelation.DESIRED_OBJECT)),
+        DhatuKarakaProfile(setOf("नी", "नय"), setOf(SemanticRelation.DESIRED_OBJECT, SemanticRelation.MOTION_GOAL)),
     )
 
     fun forSurface(surface: String): DhatuKarakaProfile? {
         val normalized = surface.trimEnd('्', 'ँ')
-        return profiles.firstOrNull { profile -> profile.surfaces.any(normalized::startsWith) }
+        return profiles.firstOrNull { profile ->
+            profile.surfaces.any { entry ->
+                val normEntry = entry.trimEnd('्', 'ँ')
+                normalized.startsWith(normEntry) || normEntry.startsWith(normalized)
+            }
+        }
     }
 }
