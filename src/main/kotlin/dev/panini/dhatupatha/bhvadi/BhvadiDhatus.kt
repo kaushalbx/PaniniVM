@@ -8797,5 +8797,8 @@ object BhvadiDhatus {
                 "जुगुप्सायां कृपायां च", "", "to pity, to hate, to criticize, to abuse, to favour",
                 PadaType.ATMANEPADA, ItStatus.SET, Karmatva.AKARMAKA, Accent.UDATTA,
             )
+            dhatu(SthaDhatu())
+            dhatu(NiDhatu())
+            dhatu(PaaDhatu())
         }
 }

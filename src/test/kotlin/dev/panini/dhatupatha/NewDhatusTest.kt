@@ -1,0 +1,48 @@
+package dev.panini.dhatupatha
+
+import dev.panini.execution.ExecutionResult
+import dev.panini.execution.PaniniVM
+import java.io.File
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertIs
+
+class NewDhatusTest {
+
+    private lateinit var tempDir: File
+    private lateinit var vm: PaniniVM
+
+    @BeforeTest
+    fun setup() {
+        tempDir = File(System.getProperty("java.io.tmpdir"), "paninivm_new_dhatus_test_" + System.currentTimeMillis())
+        vm = PaniniVM(storageDir = tempDir)
+    }
+
+    @AfterTest
+    fun cleanup() {
+        tempDir.deleteRecursively()
+    }
+
+    @Test
+    fun `SthaDhatu executes state wait action`() {
+        val result = vm.eval("गृह + अम् स्था + णिच् + लोट् + सिप् ।", sessionKey = "stha_session")
+        val success = assertIs<ExecutionResult.Success>(result)
+        assertEquals("स्थितिः संजाता: गृह", success.value)
+    }
+
+    @Test
+    fun `NiDhatu executes list move action`() {
+        val result = vm.eval("राम + अम् नी + णिच् + लोट् + सिप् ।", sessionKey = "ni_session")
+        val success = assertIs<ExecutionResult.Success>(result)
+        assertEquals("नयनम् सिद्धम्: राम", success.value)
+    }
+
+    @Test
+    fun `PaaDhatu executes resource release action`() {
+        val result = vm.eval("जल + अम् पा + णिच् + लोट् + सिप् ।", sessionKey = "paa_session")
+        val success = assertIs<ExecutionResult.Success>(result)
+        assertEquals("पानम् सम्पन्नम्: जल", success.value)
+    }
+}
