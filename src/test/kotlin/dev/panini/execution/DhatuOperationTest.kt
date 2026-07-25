@@ -35,7 +35,7 @@ class DhatuOperationTest {
         val registered = DhatuPatha.all.flatMap { dhatu ->
             dhatu.operations.map { dhatu to it }
         }
-        assertEquals(22, registered.size)
+        assertEquals(24, registered.size)
 
         registered.forEach { (dhatu, operation) ->
             val variables = mutableMapOf<String, SanskritValue>()

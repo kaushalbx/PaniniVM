@@ -360,12 +360,6 @@ object KryadiDhatus {
             "वरणे", "वरण करना, पसन्द करना, आश्रय देना, संभालना", "to marry, to accept, to own, to choose",
             PadaType.PARASMAIPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
         )
-        dhatu(
-            "09.0071", 71, "ग्रहँ", "ग्रह्",
-            "उपादाने", "लेना, स्वीकार करना", "to take, to accept, to obtain",
-            PadaType.UBHAYAPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
-            semanticRelations = setOf(dev.panini.vyakaranam.analysis.SemanticRelation.RECIPIENT, dev.panini.vyakaranam.analysis.SemanticRelation.DESIRED_OBJECT),
-            surfaceAliases = setOf("अनुगृ", "प्रतिगृ", "गृह्णाति", "गृह्ण"),
-        )
+        dhatu(GrahDhatu())
     }
 }
