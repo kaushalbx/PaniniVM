@@ -27,6 +27,7 @@ object Adhyaya1Pada1 {
         SarvanamaSutra,
         SvaradiNipatamAvyayamSutra,
         AdarsanamLopaSutra,
+        PratyayasyaLupSlulopahSutra,
         TasminNirdistePurvasyaSutra,
         AloAntyatPurvaUpadhaSutra,
         TasmatItyUttarasyamSutra,

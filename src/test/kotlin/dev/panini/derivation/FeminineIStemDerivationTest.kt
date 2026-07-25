@@ -13,4 +13,15 @@ class FeminineIStemDerivationTest {
             मत्याः मत्योः मतीनाम् मत्याम् मत्योः मतिषु
         """,
     )
+
+    @Test
+    fun `derive full feminine i-stem paradigm for bhumi`() = assertSubantaParadigm(
+        "भूमि",
+        SubantaStemClass.I_STEM_FEMININE,
+        """
+            भूमिः भूमी भूमयः भूमिम् भूमी भूमीः भूम्या भूमिभ्याम् भूमिभिः
+            भूम्यै भूमिभ्याम् भूमिभ्यः भूम्याः भूमिभ्याम् भूमिभ्यः
+            भूम्याः भूम्योः भूमीनाम् भूम्याम् भूम्योः भूमिषु
+        """,
+    )
 }

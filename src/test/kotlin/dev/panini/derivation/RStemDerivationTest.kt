@@ -13,4 +13,15 @@ class RStemDerivationTest {
             पितुः पित्रोः पितॄणाम् पितरि पित्रोः पितृषु
         """,
     )
+
+    @Test
+    fun `derive full masculine r-stem paradigm for bhratr`() = assertSubantaParadigm(
+        "भ्रातृ",
+        SubantaStemClass.R_STEM_MASCULINE,
+        """
+            भ्राता भ्रातरौ भ्रातरः भ्रातरम् भ्रातरौ भ्रातॄन् भ्रात्रा भ्रातृभ्याम् भ्रातृभिः
+            भ्रात्रे भ्रातृभ्याम् भ्रातृभ्यः भ्रातुः भ्रातृभ्याम् भ्रातृभ्यः
+            भ्रातुः भ्रात्रोः भ्रातॄणाम् भ्रातरि भ्रात्रोः भ्रातृषु
+        """,
+    )
 }

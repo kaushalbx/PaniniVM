@@ -13,4 +13,15 @@ class NadiDerivationTest {
             नद्याः नद्योः नदीनाम् नद्याम् नद्योः नदीषु
         """,
     )
+
+    @Test
+    fun `derive full feminine i-stem paradigm for devi`() = assertSubantaParadigm(
+        "देवी",
+        SubantaStemClass.II_STEM_FEMININE,
+        """
+            देवी देव्यौ देव्यः देवीम् देव्यौ देवीः देव्या देवीभ्याम् देवीभिः
+            देव्यै देवीभ्याम् देवीभ्यः देव्याः देवीभ्याम् देवीभ्यः
+            देव्याः देव्योः देवीनाम् देव्याम् देव्योः देवीषु
+        """,
+    )
 }

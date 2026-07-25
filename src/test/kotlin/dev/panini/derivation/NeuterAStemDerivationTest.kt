@@ -13,4 +13,15 @@ class NeuterAStemDerivationTest {
             फलस्य फलयोः फलानाम् फले फलयोः फलेषु
         """,
     )
+
+    @Test
+    fun `derive full neuter a-stem paradigm for jala`() = assertSubantaParadigm(
+        "जल",
+        SubantaStemClass.A_STEM_NEUTER,
+        """
+            जलम् जले जलानि जलम् जले जलानि जलेन जलाभ्याम् जलैः
+            जलाय जलाभ्याम् जलेभ्यः जलात् जलाभ्याम् जलेभ्यः
+            जलस्य जलयोः जलानाम् जले जलयोः जलेषु
+        """,
+    )
 }

@@ -13,4 +13,15 @@ class FeminineUStemDerivationTest {
             धेन्वाः धेन्वोः धेनूनाम् धेन्वाम् धेन्वोः धेनुषु
         """,
     )
+
+    @Test
+    fun `derive full feminine u-stem paradigm for tanu`() = assertSubantaParadigm(
+        "तनु",
+        SubantaStemClass.U_STEM_FEMININE,
+        """
+            तनुः तनू तनवः तनुम् तनू तनूः तन्वा तनुभ्याम् तनुभिः
+            तन्वै तनुभ्याम् तनुभ्यः तन्वाः तनुभ्याम् तनुभ्यः
+            तन्वाः तन्वोः तनूनाम् तन्वाम् तन्वोः तनुषु
+        """,
+    )
 }
