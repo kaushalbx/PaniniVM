@@ -4,12 +4,10 @@ plugins {
 
 dependencies {
     implementation("org.ow2.asm:asm:9.7")
+    implementation("com.strumenta:antlr-kotlin-runtime:1.0.0-RC4")
     implementation(project(":core"))
     implementation(project(":parser"))
-    implementation(project(":ashtadhyayi"))
-    implementation(project(":sankhya"))
-    implementation(project(":actions"))
-    implementation(project(":dhatupatha"))
+    implementation(project(":ganapatha"))
     compileOnly(gradleApi())
     testImplementation(gradleApi())
     testImplementation(kotlin("test"))
@@ -17,5 +15,7 @@ dependencies {
 
 tasks.withType<Test> {
     useJUnitPlatform()
-    workingDir = rootDir
+    maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
+    forkEvery = 0
+    maxHeapSize = "512m"
 }

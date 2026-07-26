@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":"))
+    implementation(project(":ashtadhyayi"))
     implementation(project(":core"))
     implementation(project(":parser"))
     implementation(project(":sankhya"))
