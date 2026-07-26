@@ -1,27 +1,33 @@
 package dev.panini.actions.linguistic
 
 import dev.panini.core.Karaka
-import dev.panini.execution.DhatuAction
-import dev.panini.execution.DhatuOperation
-import dev.panini.execution.ExecutionContext
+import dev.panini.core.Vacana
+import dev.panini.core.Vibhakti
+import dev.panini.derivation.SubantaDerivationRequest
+import dev.panini.derivation.SubantaEngine
+import dev.panini.derivation.SubantaStemClass
 import dev.panini.execution.ExecutionError
 import dev.panini.execution.ExecutionResult
 
 /** Morphological subanta derivation from nominal prātipadika stem. */
-object SanskritSubantaDerivationAction : DhatuAction("पदनिष्पत्तिः", "प्रातिपदिकस्य सुबन्तरूपसिद्धिः") {
-    var subantaHandler: ((String) -> String)? = null
-
-    override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
+object SanskritSubantaDerivationAction : dev.panini.execution.DhatuAction("पदनिष्पत्तिः", "प्रातिपदिकस्य सुबन्तरूपसिद्धिः") {
+    override fun execute(context: dev.panini.execution.ExecutionContext, operation: dev.panini.execution.DhatuOperation): dev.panini.execution.ExecutionResult {
         val expression = requireNotNull(context.bindings[Karaka.KARMAN])
         val operands = context.resolve(expression)
-        val stem = operands.firstOrNull() ?: return ExecutionResult.Failure(
-            ExecutionError.INVALID_VALUE,
+        val stem = operands.firstOrNull() ?: return _root_ide_package_.dev.panini.execution.ExecutionResult.Failure(
+            _root_ide_package_.dev.panini.execution.ExecutionError.INVALID_VALUE,
             "Nominal derivation requires a prātipadika stem in KARMAN.",
             listOf("Selected operation ${operation.name}."),
         )
         return try {
-            val handler = subantaHandler ?: { "$it-स" }
-            val result = handler(stem)
+            val engine = SubantaEngine()
+            val request = SubantaDerivationRequest(
+                pratipadika = stem,
+                vibhakti = Vibhakti.PRATHAMA,
+                vacana = Vacana.EKAVACANA,
+                stemClass = SubantaStemClass.guess(stem),
+            )
+            val result = engine.derive(request).final.surface
             ExecutionResult.Success(
                 result,
                 operation.name,
