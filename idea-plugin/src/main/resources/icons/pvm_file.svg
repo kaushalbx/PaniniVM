@@ -1,8 +1,4 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-  <!-- Document Badge Background -->
-  <path d="M3 1h6.5L13 4.5V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z" fill="#2E7D32"/>
-  <!-- Folded Page Corner -->
-  <path d="M9.5 1v3.5H13" fill="#A5D6A7" opacity="0.8"/>
-  <!-- Crisp Devanagari 'प' Vector Glyph -->
-  <path d="M4.5 5.5h6.5 M6 5.5v2.8a2 2 0 0 0 2 2h1.5 M9.5 5.5v7" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <rect x="2" y="1" width="12" height="14" rx="2" fill="#2E7D32" />
+  <text x="8" y="11" font-size="8" font-weight="bold" fill="#FFFFFF" text-anchor="middle" font-family="sans-serif">प</text>
 </svg>
