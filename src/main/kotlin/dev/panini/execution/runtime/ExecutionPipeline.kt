@@ -1,7 +1,7 @@
 package dev.panini.execution
 
 /** End-to-end entry point from structured utterance to execution result. */
-internal object ExecutionPipeline {
+object ExecutionPipeline {
     fun execute(
         input: SanskritUktiInput,
         conversation: SambhashanaContext,

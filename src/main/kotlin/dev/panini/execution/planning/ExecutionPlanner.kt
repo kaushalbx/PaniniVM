@@ -1,6 +1,6 @@
 package dev.panini.execution
 
-internal object ExecutionPlanner {
+object ExecutionPlanner {
     fun plan(
         program: ExecutionProgram,
         environment: ValueEnvironment,

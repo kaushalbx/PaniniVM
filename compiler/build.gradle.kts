@@ -1,25 +1,18 @@
 plugins {
     kotlin("jvm")
-    application
 }
 
 dependencies {
-    implementation(project(":"))
+    implementation("org.ow2.asm:asm:9.7")
     implementation(project(":core"))
     implementation(project(":parser"))
-    implementation(project(":compiler"))
+    implementation(project(":"))
+    compileOnly(gradleApi())
+    testImplementation(gradleApi())
     testImplementation(kotlin("test"))
-}
-
-application {
-    mainClass.set("dev.panini.MainKt")
 }
 
 tasks.withType<Test> {
     useJUnitPlatform()
-    workingDir = rootDir
-}
-
-tasks.withType<JavaExec> {
     workingDir = rootDir
 }
