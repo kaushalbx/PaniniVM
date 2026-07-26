@@ -14,6 +14,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":parser"))
     implementation(project(":dhatupatha"))
+    implementation(project(":ganapatha"))
     testImplementation(kotlin("test"))
 }
 

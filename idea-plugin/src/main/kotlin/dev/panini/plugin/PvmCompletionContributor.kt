@@ -8,6 +8,7 @@ import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.util.ProcessingContext
+import dev.panini.ganapatha.GanaPatha
 
 class PvmCompletionContributor : CompletionContributor() {
 
@@ -132,6 +133,15 @@ class PvmCompletionContributor : CompletionContributor() {
                         .withIcon(PvmIcons.FILE)
                         .withTypeText(type)
                         .withTailText(" - $doc", true)
+                )
+            }
+
+            GanaPatha.all.forEach { gana ->
+                result.addElement(
+                    LookupElementBuilder.create(gana.name)
+                        .withIcon(PvmIcons.FILE)
+                        .withTypeText("गणपाठः")
+                        .withTailText(" (Sūtra: ${gana.sutra})", true)
                 )
             }
         }

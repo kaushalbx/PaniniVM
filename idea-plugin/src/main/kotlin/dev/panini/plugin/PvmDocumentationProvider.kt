@@ -3,6 +3,7 @@ package dev.panini.plugin
 import com.intellij.lang.documentation.AbstractDocumentationProvider
 import com.intellij.psi.PsiElement
 import dev.panini.dhatupatha.DhatuPatha
+import dev.panini.ganapatha.GanaPatha
 
 class PvmDocumentationProvider : AbstractDocumentationProvider() {
 
@@ -11,7 +12,34 @@ class PvmDocumentationProvider : AbstractDocumentationProvider() {
         val text = target.text.trim()
         if (text.isEmpty()) return null
 
-        // 1. Check DhatuPatha catalog
+        // 1. Check Gaṇapāṭha by Gaṇa Name
+        val ganasByName = GanaPatha.all.filter { it.name.contains(text, ignoreCase = true) || text.contains(it.name, ignoreCase = true) }
+        if (ganasByName.isNotEmpty()) {
+            val sb = StringBuilder("<html><body><h2>Gaṇapāṭha Catalog Entry</h2>")
+            ganasByName.forEach { gana ->
+                sb.append("<h3>${gana.name} (${gana.sutra})</h3>")
+                sb.append("<p><b>Members (${gana.members.size}):</b> ")
+                sb.append(gana.members.take(15).joinToString(", ") { it.text })
+                if (gana.members.size > 15) sb.append("... and ${gana.members.size - 15} more.")
+                sb.append("</p>")
+            }
+            sb.append("</body></html>")
+            return sb.toString()
+        }
+
+        // 2. Check Gaṇapāṭha by Member Word
+        val containingGanas = GanaPatha.ganasContaining(text)
+        if (containingGanas.isNotEmpty()) {
+            val sb = StringBuilder("<html><body><h2>Gaṇapāṭha Member: $text</h2>")
+            sb.append("<p>This word is listed in the following Paninian Gaṇas:</p><ul>")
+            containingGanas.forEach { gana ->
+                sb.append("<li><b>${gana.name}</b> (Sūtra: ${gana.sutra})</li>")
+            }
+            sb.append("</ul></body></html>")
+            return sb.toString()
+        }
+
+        // 3. Check DhatuPatha catalog
         val dhatu = DhatuPatha.all.firstOrNull {
             it.upadesha == text || it.sourceSurface == text || it.surfaceAliases.contains(text)
         }
@@ -36,13 +64,13 @@ class PvmDocumentationProvider : AbstractDocumentationProvider() {
             """.trimIndent()
         }
 
-        // 2. Check Sup / Ting affixes
+        // 4. Check Sup / Ting affixes
         val affixDoc = getAffixDoc(text)
         if (affixDoc != null) {
             return affixDoc
         }
 
-        // 3. Check Control keywords
+        // 5. Check Control keywords
         val keywordDoc = getKeywordDoc(text)
         if (keywordDoc != null) {
             return keywordDoc
