@@ -132,6 +132,13 @@ data class AryabhatiyaPada(
     val sup: SupPratyaya,
 ) : Pada
 
+data class BhutasamkhyaPada(
+    override val sourceText: String,
+    val terms: List<String>,
+    val value: Long? = null,
+    val sup: SupPratyaya,
+) : Pada
+
 data class SamasaAnga(
     override val sourceText: String,
     val pratipadika: Pratipadika,

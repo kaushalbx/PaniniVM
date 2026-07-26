@@ -97,6 +97,7 @@ CHATUH          : 'चतुः' ;
 KRITVAS         : 'कृत्वस्' | 'कृत्वः' ;
 KATAPAYADI      : 'कटपय' | 'कटपयाद्या' | 'कटपयादि' ;
 ARYABHATIYA     : 'आर्यभटीय' | 'आर्यभटेन' ;
+BHUTASAMKHYA    : 'भूतसङ्ख्या' ;
 
 INTERJECTION
     : 'अहो'

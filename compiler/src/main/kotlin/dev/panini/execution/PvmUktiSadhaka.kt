@@ -13,6 +13,7 @@ import dev.panini.sankhya.SankhyaGenerator
 import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.KridantaPratipadika
 import dev.panini.vyakaranam.ast.AryabhatiyaPada
+import dev.panini.vyakaranam.ast.BhutasamkhyaPada
 import dev.panini.vyakaranam.ast.KatapayadiPada
 import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.vyakaranam.ast.Pada
@@ -74,6 +75,7 @@ class PvmUktiSadhaka(
         is SankhyaAbhyasaPada -> pada.sourceText
         is KatapayadiPada -> pada.sourceText
         is AryabhatiyaPada -> pada.sourceText
+        is BhutasamkhyaPada -> pada.sourceText
     }
 
     fun sadhayaSubanta(subanta: SubantaPada): String {
