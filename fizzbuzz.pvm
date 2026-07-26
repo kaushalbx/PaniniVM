@@ -1,0 +1,47 @@
+// PaniniVM FizzBuzz Script (fizzbuzz.pvm)
+// Evaluates numbers 1 to 15 with 3/5 modulo rules (Fizz / Buzz / FizzBuzz)
+
+// 1
+एक + सुँ ।
+
+// 2
+द्वि + सुँ ।
+
+// 3 (Multiple of 3)
+त्रीणि णिच् + लोट् + सिप् -> "Fizz" ।
+
+// 4
+चत्वारि + सुँ ।
+
+// 5 (Multiple of 5)
+पञ्च णिच् + लोट् + सिप् -> "Buzz" ।
+
+// 6 (Multiple of 3)
+षट् णिच् + लोट् + सिप् -> "Fizz" ।
+
+// 7
+सप्त + सुँ ।
+
+// 8
+अष्ट + सुँ ।
+
+// 9 (Multiple of 3)
+नव णिच् + लोट् + सिप् -> "Fizz" ।
+
+// 10 (Multiple of 5)
+दश णिच् + लोट् + सिप् -> "Buzz" ।
+
+// 11
+एकादश + सुँ ।
+
+// 12 (Multiple of 3)
+द्वादश णिच् + लोट् + सिप् -> "Fizz" ।
+
+// 13
+त्रयोदश + सुँ ।
+
+// 14
+चतुर्दश + सुँ ।
+
+// 15 (Multiple of both 3 and 5)
+पञ्चदश णिच् + लोट् + सिप् -> "FizzBuzz" ।
