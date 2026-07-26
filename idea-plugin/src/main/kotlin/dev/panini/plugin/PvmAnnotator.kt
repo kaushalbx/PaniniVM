@@ -6,12 +6,10 @@ import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import dev.panini.execution.PvmUktiSadhaka
 import dev.panini.vyakaranam.parser.PaniniParser
 
 class PvmAnnotator : Annotator {
     private val paniniParser = PaniniParser()
-    private val sadhaka = PvmUktiSadhaka()
 
     override fun annotate(element: PsiElement, holder: AnnotationHolder) {
         if (element !is PsiFile || element !is PvmFile) return
@@ -23,7 +21,7 @@ class PvmAnnotator : Annotator {
         }
         if (text.isBlank()) return
 
-        // 1. ANTLR Live Syntax Error Highlighting
+        // Lightweight ANTLR Live Syntax Error Highlighting
         try {
             val syntaxErrors = paniniParser.validate(text)
             for (error in syntaxErrors) {
@@ -38,36 +36,6 @@ class PvmAnnotator : Annotator {
             }
         } catch (_: Throwable) {
             // Ignore syntax validation errors during live editing
-        }
-
-        // 2. Ultra-Fast In-Memory Sentence Surface Form Annotation
-        try {
-            val lines = text.lines()
-            var currentOffset = 0
-
-            for (line in lines) {
-                val trimmed = line.trim()
-                val lineEnd = currentOffset + line.length
-
-                if (trimmed.isNotEmpty() && !trimmed.startsWith("//") && !trimmed.startsWith("#")) {
-                    try {
-                        val surface = sadhaka.sadhayaLine(trimmed)
-                        if (surface.isNotBlank()) {
-                            val lineRange = TextRange((lineEnd - 1).coerceAtLeast(currentOffset), lineEnd.coerceAtMost(text.length))
-                            holder.newAnnotation(HighlightSeverity.INFORMATION, "Conjugated Surface: $surface")
-                                .range(lineRange)
-                                .afterEndOfLine()
-                                .create()
-                        }
-                    } catch (_: Throwable) {
-                        // Ignore incomplete or transient line syntax while typing
-                    }
-                }
-
-                currentOffset = lineEnd + 1
-            }
-        } catch (_: Throwable) {
-            // Guarantee thread safety and zero UI freezes
         }
     }
 
