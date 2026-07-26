@@ -47,6 +47,9 @@
                 implementation="dev.panini.plugin.run.PvmRunConfigurationType"/>
         <runConfigurationProducer
                 implementation="dev.panini.plugin.run.PvmRunConfigurationProducer"/>
+        <codeInsight.lineMarkerProvider
+                language="PaniniVM"
+                implementationClass="dev.panini.plugin.run.PvmRunLineMarkerProvider"/>
         <editorFactoryListener
                 implementation="dev.panini.plugin.PvmEditorInlayListener"/>
     </extensions>
