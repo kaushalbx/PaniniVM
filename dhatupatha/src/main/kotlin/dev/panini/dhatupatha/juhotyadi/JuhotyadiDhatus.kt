@@ -24,6 +24,7 @@ object JuhotyadiDhatus {
                 ItStatus.ANIT,
                 Karmatva.SAKARMAKA,
                 Accent.ANUDATTA,
+                semanticRelations = setOf(SemanticRelation.GIVING, SemanticRelation.CONSUMPTION),
             )
             dhatu(
                 "03.0002",
@@ -37,7 +38,7 @@ object JuhotyadiDhatus {
                 ItStatus.ANIT,
                 Karmatva.AKARMAKA,
                 Accent.ANUDATTA,
-                semanticRelations = setOf(SemanticRelation.SOURCE),
+                semanticRelations = setOf(SemanticRelation.FEAR_EMOTION, SemanticRelation.SOURCE),
                 surfaceAliases = setOf("बिभेति", "बिभ्यति", "बिभ्यात्", "भीति"),
             )
             dhatu(
@@ -101,11 +102,13 @@ object JuhotyadiDhatus {
                 "03.0008", 8, "ओँहाङ्", "हा",
                 "गतौ", "जाना", "to go",
                 PadaType.ATMANEPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
+                semanticRelations = setOf(SemanticRelation.MOTION),
             )
             dhatu(
                 "03.0009", 9, "ओँहाक्", "हा",
                 "त्यागे", "त्यागना, छोड़ना, परित्याग करना", "to abandon,to leave,to desert,to omit,to neglect",
                 PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
+                semanticRelations = setOf(SemanticRelation.DESTRUCTION),
             )
             dhatu(DaDhatu())
             dhatu(DhaDhatu())
@@ -149,16 +152,19 @@ object JuhotyadiDhatus {
                 "03.0016", 16, "हृ", "हृ",
                 "प्रसह्यकरणे", "बलात्कार करना", "to take forcibly, to rape",
                 PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
+                semanticRelations = setOf(SemanticRelation.RECEIVING),
             )
             dhatu(
                 "03.0017", 17, "ऋ", "ऋ",
                 "गतौ", "जाना", "to go",
                 PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
+                semanticRelations = setOf(SemanticRelation.MOTION),
             )
             dhatu(
                 "03.0018", 18, "सृ", "सृ",
                 "गतौ", "जाना", "to go",
                 PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
+                semanticRelations = setOf(SemanticRelation.MOTION),
             )
             dhatu(
                 "03.0019",
@@ -177,11 +183,13 @@ object JuhotyadiDhatus {
                 "03.0020", 20, "कि", "कि",
                 "ज्ञाने", "जानना, समझना", "to know, to understand",
                 PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
+                semanticRelations = setOf(SemanticRelation.COGNITION),
             )
             dhatu(
                 "03.0021", 21, "कितँ", "कित्",
                 "ज्ञाने", "", "to know, to understand",
                 PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
+                semanticRelations = setOf(SemanticRelation.COGNITION),
             )
             dhatu(
                 "03.0022", 22, "तुरँ", "तुर्",
@@ -202,6 +210,7 @@ object JuhotyadiDhatus {
                 "03.0025", 25, "जनँ", "जन्",
                 "जनने", "उत्पन्न करना, पैदा करना", "to create, to procreate, to make",
                 PadaType.PARASMAIPADA, ItStatus.SET, Karmatva.AKARMAKA, Accent.UDATTA,
+                semanticRelations = setOf(SemanticRelation.CREATION),
             )
             dhatu(
                 "03.0026", 26, "गा", "गा",
