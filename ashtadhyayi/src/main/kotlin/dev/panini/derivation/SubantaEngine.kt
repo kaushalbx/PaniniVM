@@ -55,6 +55,36 @@ class SubantaEngine(
                 vibhakti == Vibhakti.TRTIYA && vacana == Vacana.BAHUVACANA -> "वाग्भिः"
                 else -> null
             }
+            "तद्" -> when {
+                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.EKAVACANA -> "सः"
+                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.DVIVACANA -> "तौ"
+                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.BAHUVACANA -> "ते"
+                vibhakti == Vibhakti.DVITIYA && vacana == Vacana.EKAVACANA -> "तम्"
+                vibhakti == Vibhakti.TRTIYA && vacana == Vacana.EKAVACANA -> "तेन"
+                vibhakti == Vibhakti.CHATURTHI && vacana == Vacana.EKAVACANA -> "तस्मै"
+                vibhakti == Vibhakti.PANCHAMI && vacana == Vacana.EKAVACANA -> "तस्मात्"
+                vibhakti == Vibhakti.SASTHI && vacana == Vacana.EKAVACANA -> "तस्य"
+                vibhakti == Vibhakti.SAPTAMI && vacana == Vacana.EKAVACANA -> "तस्मिन्"
+                else -> null
+            }
+            "यद्" -> when {
+                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.EKAVACANA -> "यः"
+                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.DVIVACANA -> "यौ"
+                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.BAHUVACANA -> "ये"
+                else -> null
+            }
+            "किम्" -> when {
+                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.EKAVACANA -> "कः"
+                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.DVIVACANA -> "कौ"
+                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.BAHUVACANA -> "के"
+                else -> null
+            }
+            "इदम्" -> when {
+                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.EKAVACANA -> "अयम्"
+                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.DVIVACANA -> "इमौ"
+                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.BAHUVACANA -> "इमे"
+                else -> null
+            }
             else -> null
         }
     }

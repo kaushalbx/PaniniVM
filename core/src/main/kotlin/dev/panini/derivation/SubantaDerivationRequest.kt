@@ -85,7 +85,7 @@ enum class SubantaStemClass(
         A_STEM_FEMININE -> pratipadika.endsWith(Svara.AA.matra!!) || pratipadika.endsWith(Svara.AA.devanagari)
         UU_STEM_FEMININE -> pratipadika.endsWith(Svara.UU.matra!!) || pratipadika.endsWith(Svara.UU.devanagari)
         MATUP_STEM, T_STEM -> pratipadika.endsWith("त्")
-        D_STEM, PRONOMINAL_PERSONAL -> pratipadika.endsWith("द्") || pratipadika.endsWith("ध्")
+        D_STEM, PRONOMINAL_PERSONAL -> pratipadika.endsWith("द्") || pratipadika.endsWith("ध्") || pratipadika.endsWith("म्")
         C_STEM, ANCH_STEM -> pratipadika.endsWith("च्") || pratipadika.endsWith("ञ्च्")
         J_STEM -> pratipadika.endsWith("ज्")
         SH_STEM -> pratipadika.endsWith("ष्")

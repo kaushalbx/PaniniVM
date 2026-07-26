@@ -73,13 +73,14 @@ class StriPratyayaEngine(
     }
 
     private fun fuseFeminineStem(stem: String, suff: String, samjna: Samjna): String = when {
-        stem == "युवन्" && suff == "ति" -> "युवति"
+        stem == "युवन्" && (suff == "ति" || samjna == Samjna.TI_PRATYAYA) -> "युवति"
         stem == "नृ" && suff == "ई" -> "नारी"
         stem == "कर्तृ" && suff == "ई" -> "कर्त्री"
+        stem == "कुमार" -> "कुमारी"
         stem == "दण्डिन्" && suff == "ई" -> "दण्डिनी"
-        stem == "गौर" && suff == "ई" -> "गौरी"
-        stem == "अज" && suff == "आ" -> "अजा"
-        stem == "बाल" && suff == "आ" -> "बाला"
+        stem == "गौर" -> "गौरी"
+        stem == "अज" -> "अजा"
+        stem == "बाल" -> "बाला"
         stem.endsWith("अ") -> stem.dropLast(1) + suff
         stem.endsWith("इ") || stem.endsWith("उ") -> stem + suff
         else -> stem + suff
