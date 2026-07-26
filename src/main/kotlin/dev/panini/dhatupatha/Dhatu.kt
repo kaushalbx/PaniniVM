@@ -25,5 +25,5 @@ open class Dhatu(
     open val surfaceAliases: Set<String> = emptySet(),
 ) {
     /** Normalized root spelling used only by the derivation engine. */
-    internal val derivationalSurface: String get() = sourceSurface
+    val derivationalSurface: String get() = sourceSurface
 }

@@ -1,4 +1,4 @@
-package dev.panini.execution
+package dev.panini.sankhya
 
 import kotlin.test.Test
 import kotlin.test.assertEquals

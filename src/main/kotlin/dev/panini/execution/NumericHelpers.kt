@@ -1,19 +1,25 @@
 package dev.panini.execution
 
-internal val sankhyaResultRenderer = SankhyaCountingFormRenderer()
+fun interface SankhyaResultRenderer {
+    fun render(value: Long): String?
 
-internal fun renderSankhyaResult(value: Long): String? {
-    if (value < 0L) return null
-    return runCatching { sankhyaResultRenderer.render(value) }.getOrNull()
+    companion object {
+        var defaultRenderer: SankhyaResultRenderer = SankhyaResultRenderer { null }
+    }
 }
 
-internal fun ExecutionContext.resolveSankhyaValues(expression: ExecutionExpression): List<Long>? {
+fun renderSankhyaResult(value: Long): String? {
+    if (value < 0L) return null
+    return SankhyaResultRenderer.defaultRenderer.render(value)
+}
+
+fun ExecutionContext.resolveSankhyaValues(expression: ExecutionExpression): List<Long>? {
     val values = resolveValues(expression)
     if (values.any { it !is SanskritValue.Sankhya }) return null
     return values.map { (it as SanskritValue.Sankhya).value }
 }
 
-internal fun numericOverflow(operation: DhatuOperation): ExecutionResult.Failure = ExecutionResult.Failure(
+fun numericOverflow(operation: DhatuOperation): ExecutionResult.Failure = ExecutionResult.Failure(
     ExecutionError.INVALID_VALUE,
     "Numeric overflow while executing ${operation.name}.",
     listOf("Selected operation ${operation.name}."),

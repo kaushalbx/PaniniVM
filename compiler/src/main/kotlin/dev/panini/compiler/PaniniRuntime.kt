@@ -60,6 +60,7 @@ object PaniniRuntime {
         bindings: Map<Karaka, ExecutionExpression>,
         variables: Map<String, SanskritValue>
     ): SanskritValue {
+        dev.panini.sankhya.SankhyaCountingFormRenderer.init()
         val operation = resolveOperation(dhatuUpadesha, operationName)
         val action = operation.action
         val context = ExecutionContext(

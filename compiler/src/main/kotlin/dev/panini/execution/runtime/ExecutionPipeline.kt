@@ -6,20 +6,24 @@ object ExecutionPipeline {
         input: SanskritUktiInput,
         conversation: SambhashanaContext,
         scope: ExecutionScope,
-    ): Phala = when (val binding = VyakaranamExecutionAdapter.bind(input, conversation)) {
-        is ExecutionBindingResult.Bound -> execute(binding.ukti, conversation, scope)
-            .prependTrace(binding.trace)
-        is ExecutionBindingResult.NeedsInput -> Phala.Asiddha(
-            ExecutionResult.NeedsInput(emptySet(), binding.message),
-            emptyList(),
-        )
-        is ExecutionBindingResult.Invalid -> Phala.Asiddha(
-            ExecutionResult.Failure(ExecutionError.INVALID_VALUE, binding.message),
-            emptyList(),
-        )
+    ): Phala {
+        dev.panini.sankhya.SankhyaCountingFormRenderer.init()
+        return when (val binding = VyakaranamExecutionAdapter.bind(input, conversation)) {
+            is ExecutionBindingResult.Bound -> execute(binding.ukti, conversation, scope)
+                .prependTrace(binding.trace)
+            is ExecutionBindingResult.NeedsInput -> Phala.Asiddha(
+                ExecutionResult.NeedsInput(emptySet(), binding.message),
+                emptyList(),
+            )
+            is ExecutionBindingResult.Invalid -> Phala.Asiddha(
+                ExecutionResult.Failure(ExecutionError.INVALID_VALUE, binding.message),
+                emptyList(),
+            )
+        }
     }
 
     fun execute(ukti: ExecutableUkti, conversation: SambhashanaContext, scope: ExecutionScope): Phala {
+        dev.panini.sankhya.SankhyaCountingFormRenderer.init()
         if (ukti.speaker != conversation.speaker || ukti.listener != conversation.listener) {
             return Phala.Asiddha(
                 ExecutionResult.Failure(

@@ -3,13 +3,9 @@ plugins {
 }
 
 dependencies {
-    implementation("org.ow2.asm:asm:9.7")
     implementation(project(":core"))
     implementation(project(":parser"))
     implementation(project(":"))
-    implementation(project(":sankhya"))
-    compileOnly(gradleApi())
-    testImplementation(gradleApi())
     testImplementation(kotlin("test"))
 }
 

@@ -1,16 +1,26 @@
-package dev.panini.execution
+package dev.panini.sankhya
 
-import dev.panini.sankhya.CardinalSankhyaDeriver
-import dev.panini.sankhya.SankhyaExpressionBuilder
-import dev.panini.sankhya.SankhyaInflectionClass
-import dev.panini.sankhya.headPrimitive
+import dev.panini.execution.SankhyaResultRenderer
 
 /** Renders the conventional counting form required by VM result values; this is not a full sup paradigm. */
-internal class SankhyaCountingFormRenderer(
+class SankhyaCountingFormRenderer(
     private val cardinalDeriver: CardinalSankhyaDeriver = CardinalSankhyaDeriver(),
     private val expressionBuilder: SankhyaExpressionBuilder = SankhyaExpressionBuilder(),
-) {
-    fun render(value: Long): String {
+) : SankhyaResultRenderer {
+
+    companion object {
+        fun init() {
+            if (SankhyaResultRenderer.defaultRenderer !is SankhyaCountingFormRenderer) {
+                SankhyaCountingFormRenderer()
+            }
+        }
+    }
+
+    init {
+        SankhyaResultRenderer.defaultRenderer = this
+    }
+
+    override fun render(value: Long): String {
         val expression = expressionBuilder.build(value)
         val stem = cardinalDeriver.derive(value).final.surface
         return when (expression.headPrimitive().inflectionClass) {

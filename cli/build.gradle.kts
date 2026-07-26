@@ -7,6 +7,7 @@ dependencies {
     implementation(project(":"))
     implementation(project(":core"))
     implementation(project(":parser"))
+    implementation(project(":sankhya"))
     implementation(project(":compiler"))
     testImplementation(kotlin("test"))
 }
