@@ -1,5 +1,6 @@
 package dev.panini.dhatupatha.adadi
 
+import dev.panini.analysis.SemanticRelation
 import dev.panini.core.DhatuGana
 import dev.panini.core.PadaType
 import dev.panini.dhatupatha.Dhatu
@@ -14,11 +15,13 @@ object AdadiDhatus {
             "02.0001", 1, "अदँ", "अद्",
             "भक्षणे", "खाना", "to eat, to binge",
             PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
+            semanticRelations = setOf(SemanticRelation.CONSUMPTION),
         )
         dhatu(
             "02.0002", 2, "हनँ", "हन्",
             "हिंसागत्योः", "मार डालना, जाना", "to kill, to destroy, to go",
             PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
+            semanticRelations = setOf(SemanticRelation.DESTRUCTION, SemanticRelation.MOTION),
         )
         dhatu(
             "02.0003", 3, "द्विषँ", "द्विष्",
@@ -220,21 +223,25 @@ object AdadiDhatus {
             "02.0039", 39, "ब्रूञ्", "ब्रू",
             "व्यक्तायां वाचि", "कहना, बोलना", "to speak, to tell, to explain",
             PadaType.UBHAYAPADA, ItStatus.SET, Karmatva.DVIKARMAKA, Accent.UDATTA,
+            semanticRelations = setOf(SemanticRelation.SPEECH),
         )
         dhatu(
             "02.0040", 40, "इण्", "इ",
             "गतौ", "जाना", "to go",
             PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
+            semanticRelations = setOf(SemanticRelation.MOTION),
         )
         dhatu(
             "02.0041", 41, "इङ्", "इ",
             "अध्ययने", "अध्ययन करना, अभ्यास करना, सीखना", "to study, to learn",
             PadaType.ATMANEPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
+            semanticRelations = setOf(SemanticRelation.COGNITION),
         )
         dhatu(
             "02.0042", 42, "इक्", "इ",
             "स्मरणे", "स्मरण करना, याद करना, चिन्तन करना", "to memorize, to think",
             PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
+            semanticRelations = setOf(SemanticRelation.COGNITION),
         )
         dhatu(
             "02.0043",
@@ -253,6 +260,7 @@ object AdadiDhatus {
             "02.0044", 44, "या", "या",
             "प्रापणे", "जाना", "to go, to pass",
             PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
+            semanticRelations = setOf(SemanticRelation.MOTION),
         )
         dhatu(
             "02.0045", 45, "वा", "वा",
