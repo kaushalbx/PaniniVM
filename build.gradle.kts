@@ -14,6 +14,7 @@ dependencies {
     implementation("com.strumenta:antlr-kotlin-runtime:1.0.0-RC4")
     implementation(project(":core"))
     implementation(project(":parser"))
+    implementation(project(":ganapatha"))
     compileOnly(gradleApi())
     testImplementation(gradleApi())
     testImplementation(kotlin("test"))
