@@ -35,11 +35,24 @@ sealed interface SankhyaExpression {
     ) : SankhyaExpression {
         override val value: Long = coefficient.value * magnitude.value
     }
+
+    /** A subtrahend stated as being ऊन (defective/less) than a higher base magnitude. */
+    data class Una(
+        val subtrahend: SankhyaExpression,
+        val base: SankhyaExpression,
+    ) : SankhyaExpression {
+        init {
+            require(subtrahend.value > 0L) { "Una requires a positive subtrahend" }
+            require(subtrahend.value < base.value) { "Una subtrahend must be below its base" }
+        }
+        override val value: Long = base.value - subtrahend.value
+    }
 }
 
 fun SankhyaExpression.headPrimitive(): PrimitiveSankhya = when (this) {
     is SankhyaExpression.Primitive -> sankhya
     is SankhyaExpression.Add -> higher.headPrimitive()
     is SankhyaExpression.Adhika -> base.headPrimitive()
+    is SankhyaExpression.Una -> base.headPrimitive()
     is SankhyaExpression.Multiply -> magnitude.headPrimitive()
 }

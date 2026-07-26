@@ -13,6 +13,8 @@ import dev.panini.vyakaranam.ast.Pada
 import dev.panini.vyakaranam.ast.Pratipadika
 import dev.panini.vyakaranam.ast.SamasaPratipadika
 import dev.panini.vyakaranam.ast.SamuccitaSubanta
+import dev.panini.vyakaranam.ast.SankhyaPada
+import dev.panini.vyakaranam.ast.SankhyaPratipadika
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.UnadyantaPratipadika
@@ -85,6 +87,17 @@ class PadaAnalyzer(
                     pada = pada,
                     members = pada.members.map(::analyzeSubanta),
                 )
+
+            is SankhyaPada ->
+                AnalyzedSubanta(
+                    pada = SubantaPada(pada.sourceText, SankhyaPratipadika(pada.sourceText, pada.value), pada.sup),
+                    analysis = SubantaAnalysis(
+                        pada = SubantaPada(pada.sourceText, SankhyaPratipadika(pada.sourceText, pada.value), pada.sup),
+                        lexicalEntry = null,
+                        supCandidates = SupAffix.candidates(pada.sup.text).takeIf { it.isNotEmpty() } ?: error("सुप्प्रत्ययस्य विवरणं न प्राप्तम्: ${pada.sup.text}"),
+                        linga = emptySet(),
+                    ),
+                )
         }
 
     fun analyzeSubanta(
@@ -142,6 +155,7 @@ class PadaAnalyzer(
     ): String? =
         when (pratipadika) {
             is MulaPratipadika -> pratipadika.text
+            is SankhyaPratipadika -> pratipadika.sourceText
             is KridantaPratipadika -> null
             is UnadyantaPratipadika -> null
             is SamasaPratipadika -> null

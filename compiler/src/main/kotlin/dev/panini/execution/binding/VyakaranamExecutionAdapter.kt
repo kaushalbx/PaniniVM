@@ -32,6 +32,8 @@ import dev.panini.vyakaranam.ast.Pada
 import dev.panini.vyakaranam.ast.Pratipadika
 import dev.panini.vyakaranam.ast.SamasaPratipadika
 import dev.panini.vyakaranam.ast.SamuccitaSubanta
+import dev.panini.vyakaranam.ast.SankhyaPada
+import dev.panini.vyakaranam.ast.SankhyaPratipadika
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.UnadyantaPratipadika
@@ -46,6 +48,7 @@ import kotlin.collections.plusAssign
 object VyakaranamExecutionAdapter {
     private val parser = PaniniParser()
     private val sankhyaGenerator = SankhyaGenerator()
+    private val sankhyaEvaluator = dev.panini.sankhya.SankhyaEvaluator()
 
     fun bind(input: SanskritUktiInput, conversation: SambhashanaContext): ExecutionBindingResult {
         if (input.text.isBlank()) return ExecutionBindingResult.Invalid("The Sanskrit utterance is empty.")
@@ -174,6 +177,15 @@ object VyakaranamExecutionAdapter {
         padas.forEach { pada ->
             when (pada) {
                 is SubantaPada -> add(pada)
+                is SankhyaPada -> {
+                    val value = pada.value ?: sankhyaEvaluator.evaluateStems(pada.stems).value
+                    val sub = SubantaPada(pada.sourceText, SankhyaPratipadika(pada.sourceText, value), pada.sup)
+                    val candidates = inferKarakas(sub)
+                    addBinding(
+                        ExecutionExpression.Companion.sankhya(value, pada.sourceText),
+                        candidates,
+                    )
+                }
                 is SamuccitaSubanta -> {
                     val members = pada.members.map { expression(it, conversation, clauseIndex) }
                     val candidates = pada.members.firstOrNull()?.let { inferKarakas(it) }.orEmpty()
@@ -205,8 +217,10 @@ object VyakaranamExecutionAdapter {
                 conversation?.resultHistory?.lastOrNull()?.id ?: conversation?.previousResults?.keys?.lastOrNull()
             if (id != null) return ExecutionExpression.Reference(id)
         }
-        val sankhyaValue = (pada.pratipadika as? MulaPratipadika)?.let {
-            sankhyaGenerator.annotatedPratipadikaValue(it.text)
+        val sankhyaValue = when (val prat = pada.pratipadika) {
+            is SankhyaPratipadika -> prat.value
+            is MulaPratipadika -> sankhyaGenerator.annotatedPratipadikaValue(prat.text)
+            else -> null
         }
         val samjnas = buildSet {
             add(ExecutionSamjna.SHABDA)
@@ -226,6 +240,7 @@ object VyakaranamExecutionAdapter {
     }
 
     private fun Pratipadika.baseText(): String = when (this) {
+        is SankhyaPratipadika -> sourceText
         is MulaPratipadika -> text
         is KridantaPratipadika -> dhatu.mulaDhatu
         is UnadyantaPratipadika -> sourceText

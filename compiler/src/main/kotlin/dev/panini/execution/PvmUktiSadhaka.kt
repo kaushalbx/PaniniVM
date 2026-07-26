@@ -8,6 +8,8 @@ import dev.panini.derivation.SubantaEngine
 import dev.panini.derivation.SubantaStemClass
 import dev.panini.derivation.TingantaDerivationRequest
 import dev.panini.derivation.TingantaEngine
+import dev.panini.sankhya.SankhyaEvaluator
+import dev.panini.sankhya.SankhyaGenerator
 import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.KridantaPratipadika
 import dev.panini.vyakaranam.ast.MulaPratipadika
@@ -15,6 +17,8 @@ import dev.panini.vyakaranam.ast.Pada
 import dev.panini.vyakaranam.ast.Pratipadika
 import dev.panini.vyakaranam.ast.SamasaPratipadika
 import dev.panini.vyakaranam.ast.SamuccitaSubanta
+import dev.panini.vyakaranam.ast.SankhyaPada
+import dev.panini.vyakaranam.ast.SankhyaPratipadika
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.UnadyantaPratipadika
@@ -61,6 +65,7 @@ class PvmUktiSadhaka(
         is SamuccitaSubanta -> pada.members.joinToString(" ") { sadhayaSubanta(it) } + " च"
         is TingantaPada -> sadhayaTinganta(pada)
         is AvyayaPada -> pada.form
+        is SankhyaPada -> pada.sourceText
     }
 
     fun sadhayaSubanta(subanta: SubantaPada): String {
@@ -98,6 +103,7 @@ class PvmUktiSadhaka(
 
     private fun Pratipadika.baseText(): String = when (this) {
         is MulaPratipadika -> text
+        is SankhyaPratipadika -> sourceText
         is KridantaPratipadika -> dhatu.mulaDhatu
         is UnadyantaPratipadika -> sourceText
         is SamasaPratipadika -> angas.joinToString("-") { it.pratipadika.baseText() }

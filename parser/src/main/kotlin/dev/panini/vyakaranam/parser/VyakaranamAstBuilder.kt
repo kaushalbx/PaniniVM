@@ -62,8 +62,8 @@ class VyakaranamAstBuilder {
     private fun buildNamaVakya(
         context: PaniniyaVyakaranamParser.NamaVakyaContext,
     ): NamaVakya {
-        val padas = context.subantaVakyaPada()
-            .flatMap(::buildSubantaVakyaPada)
+        val padas = context.vakyaPada()
+            .map(::buildVakyaPada)
 
         return NamaVakya(
             sourceText = context.text,
@@ -81,8 +81,25 @@ class VyakaranamAstBuilder {
             context.avyayaPada() != null ->
                 buildAvyaya(context.avyayaPada()!!)
 
+            context.sankhyaPada() != null ->
+                buildSankhyaPada(context.sankhyaPada()!!)
+
             else -> error("अज्ञातं वाक्यपदम्: ${context.text}")
         }
+
+    private fun buildSankhyaPada(
+        context: PaniniyaVyakaranamParser.SankhyaPadaContext,
+    ): SankhyaPada {
+        val stems = context.sankhyaStem().map { it.text }
+        return SankhyaPada(
+            sourceText = context.text,
+            stems = stems,
+            sup = SupPratyaya(
+                sourceText = context.supPratyaya()!!.text,
+                text = context.supPratyaya()!!.text,
+            ),
+        )
+    }
 
     private fun buildSubantaVakyaPada(
         context: PaniniyaVyakaranamParser.SubantaVakyaPadaContext,
@@ -93,6 +110,9 @@ class VyakaranamAstBuilder {
 
             context.samuccitaSubanta() != null ->
                 listOf(buildSamuccitaSubanta(context.samuccitaSubanta()!!))
+
+            context.sankhyaPada() != null ->
+                listOf(buildSankhyaPada(context.sankhyaPada()!!))
 
             else -> error("अज्ञातं सुबन्तवाक्यपदम्: ${context.text}")
         }
@@ -332,6 +352,28 @@ class VyakaranamAstBuilder {
                     ),
                 )
 
+            context.sankhyaAvyaya() != null -> {
+                val saCtx = context.sankhyaAvyaya()!!
+                val kind = when {
+                    saCtx.ADHIKA() != null -> "ADHIKA"
+                    saCtx.UNA() != null -> "UNA"
+                    saCtx.SAKRIT() != null -> "SAKRIT"
+                    saCtx.DVIH() != null -> "DVIH"
+                    saCtx.TRIH() != null -> "TRIH"
+                    saCtx.CHATUH() != null -> "CHATUH"
+                    saCtx.KRITVAS() != null -> "KRITVAS"
+                    saCtx.DHAA() != null -> "DHA"
+                    saCtx.SHAH() != null -> "SHAS"
+                    else -> "UNKNOWN"
+                }
+                val stemList = saCtx.IDENTIFIER()?.let { listOf(it.text) } ?: emptyList()
+                AvyayaPada(
+                    sourceText = context.text,
+                    form = context.text,
+                    derivation = SankhyaAvyayaDerivation(kind = kind, stems = stemList),
+                )
+            }
+
             else -> error("अज्ञातम् अव्ययपदम्: ${context.text}")
         }
 
@@ -346,6 +388,7 @@ class VyakaranamAstBuilder {
     ): Pratipadika =
         when (pratipadika) {
             is MulaPratipadika -> pratipadika.copy(vikaras = vikaras)
+            is SankhyaPratipadika -> pratipadika.copy(vikaras = vikaras)
             is KridantaPratipadika -> pratipadika.copy(vikaras = vikaras)
             is UnadyantaPratipadika -> pratipadika.copy(vikaras = vikaras)
             is SamasaPratipadika -> pratipadika.copy(vikaras = vikaras)

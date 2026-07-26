@@ -92,6 +92,19 @@ data class SamasaPratipadika(
     val vikaras: List<PratipadikaVikara> = emptyList(),
 ) : Pratipadika
 
+data class SankhyaPratipadika(
+    override val sourceText: String,
+    val value: Long? = null,
+    val vikaras: List<PratipadikaVikara> = emptyList(),
+) : Pratipadika
+
+data class SankhyaPada(
+    override val sourceText: String,
+    val stems: List<String>,
+    val value: Long? = null,
+    val sup: SupPratyaya,
+) : Pada
+
 data class SamasaAnga(
     override val sourceText: String,
     val pratipadika: Pratipadika,
@@ -142,4 +155,9 @@ data class AvyayaTaddhitaDerivation(
 
 data class AvyayibhavaDerivation(
     val samasa: SamasaPratipadika,
+) : AvyayaDerivation
+
+data class SankhyaAvyayaDerivation(
+    val kind: String, // "ADHIKA", "UNA", "KRITVAS", "DHA", "SHAS"
+    val stems: List<String> = emptyList(),
 ) : AvyayaDerivation

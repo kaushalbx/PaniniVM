@@ -56,6 +56,14 @@ class SankhyaDerivationFactory {
             is SankhyaExpression.Multiply ->
                 createTerms(expression.coefficient, "${path}_multiply_coefficient", CompoundPosition.PURVAPADA) +
                     createTerms(expression.magnitude, "${path}_multiply_magnitude", CompoundPosition.UTTARAPADA)
+            is SankhyaExpression.Una ->
+                createTerms(expression.subtrahend, "${path}_una_subtrahend", CompoundPosition.PURVAPADA) +
+                    DerivationTerm(
+                        id = "sankhya_${path}_una",
+                        surface = "ऊन",
+                        kind = TermKind.PRATIPADIKA,
+                        upadesha = "ऊन",
+                    ) + createTerms(expression.base, "${path}_una_base", CompoundPosition.UTTARAPADA)
         }
 
     private enum class CompoundPosition { STANDALONE, PURVAPADA, UTTARAPADA }

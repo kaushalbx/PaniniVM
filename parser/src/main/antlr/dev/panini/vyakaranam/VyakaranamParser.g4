@@ -70,17 +70,19 @@ uttaraVakyaPada
  * राम + सुँ राजा + सुँ
  */
 namaVakya
-    : subantaVakyaPada+
+    : vakyaPada+
     ;
 
 vakyaPada
     : subantaVakyaPada
     | avyayaPada
+    | sankhyaPada
     ;
 
 subantaVakyaPada
     : subantaPada
     | samuccitaSubanta
+    | sankhyaPada
     ;
 
 vakyaSambandha
@@ -118,6 +120,19 @@ pada
     : subantaPada
     | tingantaPada
     | avyayaPada
+    | sankhyaPada
+    ;
+
+// ============================================================================
+// संख्यापदम्
+// ============================================================================
+
+sankhyaPada
+    : (sankhyaStem PLUS)+ supPratyaya
+    ;
+
+sankhyaStem
+    : IDENTIFIER
     ;
 
 // ============================================================================
@@ -552,6 +567,19 @@ avyayaPada
     | avyayaKridanta
     | avyayaTaddhitanta
     | avyayibhavaPada
+    | sankhyaAvyaya
+    ;
+
+sankhyaAvyaya
+    : ADHIKA
+    | UNA
+    | SAKRIT
+    | DVIH
+    | TRIH
+    | CHATUH
+    | IDENTIFIER KRITVAS
+    | IDENTIFIER DHAA
+    | IDENTIFIER SHAH
     ;
 
 mulaAvyaya
