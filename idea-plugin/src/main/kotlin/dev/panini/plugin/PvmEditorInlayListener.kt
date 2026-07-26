@@ -47,7 +47,8 @@ class PvmEditorInlayListener : EditorFactoryListener {
         val lines = text.lines()
         var currentOffset = 0
 
-        val inlayEntries = mutableListOf<Pair<Int, String>>()
+        val blockInlayEntries = mutableListOf<Pair<Int, String>>()
+        val inlineInlayEntries = mutableListOf<Pair<Int, String>>()
 
         for (line in lines) {
             val trimmed = line.trim()
@@ -63,7 +64,8 @@ class PvmEditorInlayListener : EditorFactoryListener {
                 }
 
                 if (surface.isNotBlank()) {
-                    inlayEntries.add(Pair(currentOffset, surface))
+                    blockInlayEntries.add(Pair(currentOffset, surface))
+                    inlineInlayEntries.add(Pair(lineEnd, surface))
                 }
             }
 
@@ -72,16 +74,23 @@ class PvmEditorInlayListener : EditorFactoryListener {
 
         if (editor.isDisposed) return
 
-        // Remove old block inlays
-        val existingInlays = editor.inlayModel.getBlockElementsInRange(0, editor.document.textLength)
-        for (inlay in existingInlays) {
+        // Clear previous block and inline PVM inlays
+        val existingBlockInlays = editor.inlayModel.getBlockElementsInRange(0, editor.document.textLength)
+        for (inlay in existingBlockInlays) {
             if (inlay.renderer is PvmBlockInlayRenderer) {
                 inlay.dispose()
             }
         }
 
-        // Add block inlays in line gaps above each statement line
-        for (entry in inlayEntries) {
+        val existingInlineInlays = editor.inlayModel.getInlineElementsInRange(0, editor.document.textLength)
+        for (inlay in existingInlineInlays) {
+            if (inlay.renderer is PvmInlineInlayRenderer) {
+                inlay.dispose()
+            }
+        }
+
+        // Add block inlays above each statement line
+        for (entry in blockInlayEntries) {
             val offset = entry.first.coerceIn(0, editor.document.textLength)
             editor.inlayModel.addBlockElement(
                 offset,
@@ -89,6 +98,16 @@ class PvmEditorInlayListener : EditorFactoryListener {
                 true, // showAbove: Creates vertical line gap and renders ON TOP of line!
                 0,    // priority
                 PvmBlockInlayRenderer(entry.second)
+            )
+        }
+
+        // Add inline inlays after Danda / end of line
+        for (entry in inlineInlayEntries) {
+            val offset = entry.first.coerceIn(0, editor.document.textLength)
+            editor.inlayModel.addInlineElement(
+                offset,
+                true, // relatesToPreceding
+                PvmInlineInlayRenderer(entry.second)
             )
         }
 
