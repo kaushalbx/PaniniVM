@@ -11,20 +11,20 @@ import java.awt.Rectangle
 class PvmBlockInlayRenderer(val surfaceText: String) : EditorCustomElementRenderer {
     override fun calcWidthInPixels(inlay: Inlay<*>): Int {
         val fontMetrics = inlay.editor.component.getFontMetrics(inlay.editor.colorsScheme.getFont(EditorFontType.PLAIN))
-        return fontMetrics.stringWidth(" ➔ $surfaceText") + 16
+        return fontMetrics.stringWidth(" ➔ $surfaceText") + 20
     }
 
     override fun calcHeightInPixels(inlay: Inlay<*>): Int {
-        return inlay.editor.lineHeight
+        // Extra line height gap above sentence
+        return inlay.editor.lineHeight + 12
     }
 
     override fun paint(inlay: Inlay<*>, g: Graphics, r: Rectangle, textAttributes: TextAttributes) {
         val editor = inlay.editor
-        g.color = Color(46, 125, 50, 30) // Subtle green background block gap
-        g.fillRoundRect(r.x, r.y + 2, r.width, r.height - 4, 6, 6)
 
-        g.color = Color(46, 125, 50)
-        g.font = editor.colorsScheme.getFont(EditorFontType.BOLD)
-        g.drawString(" ➔ $surfaceText", r.x + 8, r.y + editor.ascent)
+        // Slate gray text color for sentence above the line
+        g.color = Color(128, 128, 128)
+        g.font = editor.colorsScheme.getFont(EditorFontType.ITALIC)
+        g.drawString(" ➔ $surfaceText", r.x + 8, r.y + editor.ascent + 4)
     }
 }

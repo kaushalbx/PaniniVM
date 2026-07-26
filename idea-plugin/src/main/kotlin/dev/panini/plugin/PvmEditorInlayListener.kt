@@ -91,5 +91,10 @@ class PvmEditorInlayListener : EditorFactoryListener {
                 PvmBlockInlayRenderer(entry.second)
             )
         }
+
+        try {
+            editor.contentComponent.repaint()
+        } catch (_: Throwable) {
+        }
     }
 }
