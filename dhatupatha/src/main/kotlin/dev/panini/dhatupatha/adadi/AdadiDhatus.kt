@@ -123,11 +123,7 @@ object AdadiDhatus {
             "वर्णे", "", "to color, to paint, to make shine",
             PadaType.ATMANEPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
         )
-        dhatu(
-            "02.0022", 22, "वृजीँ", "वृज्",
-            "वर्जने", "छोड़ना, वर्जित करना", "to avoid,to abandon, to leave",
-            PadaType.ATMANEPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
-        )
+        dhatu(VrjDhatu())
         dhatu(
             "02.0023", 23, "वृजिँ", "वृञ्ज्",
             "वर्जने", "", "to avoid,to abandon, to leave",
@@ -148,11 +144,7 @@ object AdadiDhatus {
             "स्वप्ने", "सोना, शयन करना", "to sleep",
             PadaType.ATMANEPADA, ItStatus.SET, Karmatva.AKARMAKA, Accent.UDATTA,
         )
-        dhatu(
-            "02.0027", 27, "यु", "यु",
-            "मिश्रणेऽमिश्रणे च", "मिश्रित करना, मिलाना, मिलाप करना, पृथक पृथक करना", "to mix, to join, to group",
-            PadaType.PARASMAIPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
-        )
+        dhatu(YuDhatu())
         dhatu(
             "02.0028", 28, "रु", "रु",
             "शब्दे", "शब्द करना, आवाज करना", "to sound, to howl, to hum, to yelp, to roar, to cry out loud",
