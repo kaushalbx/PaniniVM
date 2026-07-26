@@ -15,7 +15,7 @@ class PvmCompletionContributor : CompletionContributor() {
     init {
         extend(
             CompletionType.BASIC,
-            PlatformPatterns.psiElement().withLanguage(PvmLanguage),
+            PlatformPatterns.psiElement().withLanguage(PvmLanguage.INSTANCE),
             PvmCompletionProvider()
         )
     }

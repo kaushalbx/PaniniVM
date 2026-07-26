@@ -14,7 +14,7 @@ import com.intellij.psi.tree.TokenSet
 class PvmParserDefinition : ParserDefinition {
 
     companion object {
-        val FILE = IFileElementType(PvmLanguage)
+        val FILE = IFileElementType(PvmLanguage.INSTANCE)
         val WHITE_SPACES = TokenSet.create(PvmTokenTypes.WHITE_SPACE)
         val COMMENTS = TokenSet.create(PvmTokenTypes.COMMENT)
     }

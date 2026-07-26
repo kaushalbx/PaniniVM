@@ -9,6 +9,7 @@ import com.intellij.ide.util.treeView.smartTree.TreeElement
 import com.intellij.lang.PsiStructureViewFactory
 import com.intellij.navigation.ItemPresentation
 import com.intellij.openapi.editor.Editor
+import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import javax.swing.Icon
@@ -37,9 +38,11 @@ class PvmStructureViewElement(private val element: PsiElement) : StructureViewTr
     override fun getPresentableText(): String? = if (element is PsiFile) element.name else element.text
     override fun getLocationString(): String? = null
     override fun getIcon(unused: Boolean): Icon? = PvmIcons.FILE
-    override fun navigate(requestFocus: Boolean) {}
-    override fun canNavigate(): Boolean = false
-    override fun canNavigateToSource(): Boolean = false
+    override fun navigate(requestFocus: Boolean) {
+        (element as? Navigatable)?.navigate(requestFocus)
+    }
+    override fun canNavigate(): Boolean = (element as? Navigatable)?.canNavigate() == true
+    override fun canNavigateToSource(): Boolean = (element as? Navigatable)?.canNavigateToSource() == true
 
     override fun getChildren(): Array<TreeElement> {
         if (element !is PsiFile) return emptyArray()
