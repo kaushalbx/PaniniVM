@@ -1,4 +1,4 @@
-package dev.panini.ashtadhyayi.adhyaya3.pada1
+package dev.panini.ashtadhyayi.adhyaya3.pada3
 
 import dev.panini.core.ItMarker
 import dev.panini.derivation.DerivationChange
@@ -15,45 +15,44 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 /**
- * 3.1.124: ऋहलोर्ण्यत्.
- * Introduces the kṛtya suffix 'ण्यत्' (ṇyat) after roots ending in 'ऋ' or a consonant.
+ * 3.3.18: भावे / 3.3.121: हलश्च.
+ * Introduces the suffix 'घञ्' (ghañ) after a verbal root for action / abstract nouns.
  */
-object RhalorNyatSutra : Sutra<DerivationState, DerivationChange>(
-    number = "3.1.124",
-    text = "ऋहलोर्ण्यत्",
-    hindiExplanation = "ऋवर्णान्त तथा हलन्त धातुओं से परे ण्यत् प्रत्यय होता है।",
-    type = SutraType.APAVADA,
+object BhaveGhanSutra : Sutra<DerivationState, DerivationChange>(
+    number = "3.3.18",
+    text = "भावे",
+    hindiExplanation = "भाव तथा अकर्ता कारक अर्थ में धातु से परे घञ् प्रत्यय होता है।",
+    type = SutraType.UTSARGA,
     chapter = 3,
-    pada = 1,
+    pada = 3,
     optional = false,
-    kramaValue = 310124,
-    role = SutraRole.Apavada,
+    kramaValue = 330018,
+    role = SutraRole.Vidhi,
     action = SutraAction.PRATYAYA_SELECTION,
     scope = SutraScope.DERIVATION,
-    blocks = setOf("3.1.97"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.stage != DerivationStage.INITIAL && context.stage != DerivationStage.PRATYAYA_SELECTED) return false
-        val isNyatRequested = context.samjnas.any { it.samjna == Samjna.NYAT } || context.context.requestedMeaning == dev.panini.derivation.DerivationalMeaning.BHAVA
+        val isGhanRequested = context.samjnas.any { it.samjna == Samjna.GHAN }
         val hasPratyaya = context.terms.any { it.kind == TermKind.PRATYAYA }
-        return isNyatRequested && !hasPratyaya
+        return isGhanRequested && !hasPratyaya
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val nyatTerm = DerivationTerm(
-            id = "nyat_pratyaya",
-            surface = "ण्यत्",
+        val ghanTerm = DerivationTerm(
+            id = "ghan_pratyaya",
+            surface = "अ",
             kind = TermKind.PRATYAYA,
-            itMarkers = setOf(ItMarker.NIT, ItMarker.T),
-            upadesha = "ण्यत्",
+            itMarkers = setOf(ItMarker.J, ItMarker.NGIT),
+            upadesha = "घञ्",
             createdBySutra = sutra,
         )
         return DerivationChange(
             state = context.copy(
-                terms = context.terms + nyatTerm,
+                terms = context.terms + ghanTerm,
                 stage = DerivationStage.PRATYAYA_SELECTED,
             ),
-            explanation = "3.1.124 introduces suffix ण्यत्."
+            explanation = "3.3.18 introduces suffix घञ् (अ)."
         )
     }
 }
