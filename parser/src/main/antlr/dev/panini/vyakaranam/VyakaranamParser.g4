@@ -87,9 +87,6 @@ subantaVakyaPada
     | katapayadiPada
     | aryabhatiyaPada
     | bhutasamkhyaPada
-    | sankhyaBhinnaPada
-    | sankhyaMathPada
-    | sankhyaGeoPada
     ;
 
 vakyaSambandha
@@ -143,8 +140,7 @@ sankhyaPuranaPada
     ;
 
 puranaPratyaya
-    : TEEYA
-    | THA
+    : THA
     | PRATYAYA_MA
     | PRATYAYA_TAMA
     ;
@@ -164,25 +160,6 @@ aryabhatiyaPada
 
 bhutasamkhyaPada
     : BHUTASAMKHYA (IDENTIFIER PLUS)+ supPratyaya
-    ;
-
-sankhyaBhinnaPada
-    : (SAARDHA | SAPAADA | PAADONA) PLUS sankhyaStem PLUS supPratyaya
-    | (sankhyaStem PLUS)? (sankhyaStem PLUS (puranaPratyaya PLUS)? | PAADA PLUS)? (ARDHA | PAADA | AMSHA) PLUS supPratyaya
-    ;
-
-sankhyaMathPada
-    : (sankhyaStem PLUS)? GUNITA PLUS supPratyaya
-    | (sankhyaStem PLUS)? BHAKTA PLUS supPratyaya
-    | VARGA (PLUS KRITA)? PLUS supPratyaya
-    | GHANA (PLUS KRITA)? PLUS supPratyaya
-    | MOOLA PLUS supPratyaya
-    | (SAHITA | RAHITA) PLUS supPratyaya
-    ;
-
-sankhyaGeoPada
-    : ((KOTI | SPARSHA | UTKRAMA) PLUS)? JYA (PLUS sankhyaStem)* PLUS supPratyaya
-    | (PARIDHI | KSETRAPHALA | KARNA) (PLUS sankhyaStem)* PLUS supPratyaya
     ;
 
 sankhyaStem

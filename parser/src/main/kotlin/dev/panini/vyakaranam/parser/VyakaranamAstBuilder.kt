@@ -164,72 +164,6 @@ class VyakaranamAstBuilder {
         )
     }
 
-    private fun buildSankhyaBhinnaPada(
-        context: PaniniyaVyakaranamParser.SankhyaBhinnaPadaContext,
-    ): SankhyaBhinnaPada {
-        val stems = mutableListOf<String>()
-        context.children?.forEach { child ->
-            val text = child.text
-            if (text != "+" && child !is PaniniyaVyakaranamParser.SupPratyayaContext) {
-                stems.add(text)
-            }
-        }
-
-        return SankhyaBhinnaPada(
-            sourceText = context.text,
-            stems = stems,
-            sup = SupPratyaya(
-                sourceText = context.supPratyaya()!!.text,
-                text = context.supPratyaya()!!.text,
-            ),
-        )
-    }
-
-    private fun buildSankhyaMathPada(
-        context: PaniniyaVyakaranamParser.SankhyaMathPadaContext,
-    ): SankhyaMathPada {
-        val stems = mutableListOf<String>()
-        context.sankhyaStem()?.let { stems.add(it.text) }
-        context.GUNITA()?.let { stems.add(it.text) }
-        context.BHAKTA()?.let { stems.add(it.text) }
-        context.VARGA()?.let { stems.add(it.text) }
-        context.GHANA()?.let { stems.add(it.text) }
-        context.MOOLA()?.let { stems.add(it.text) }
-        context.KRITA()?.let { stems.add(it.text) }
-        context.SAHITA()?.let { stems.add(it.text) }
-        context.RAHITA()?.let { stems.add(it.text) }
-
-        return SankhyaMathPada(
-            sourceText = context.text,
-            stems = stems,
-            sup = SupPratyaya(
-                sourceText = context.supPratyaya()!!.text,
-                text = context.supPratyaya()!!.text,
-            ),
-        )
-    }
-
-    private fun buildSankhyaGeoPada(
-        context: PaniniyaVyakaranamParser.SankhyaGeoPadaContext,
-    ): SankhyaGeoPada {
-        val stems = mutableListOf<String>()
-        context.children?.forEach { child ->
-            val text = child.text
-            if (text != "+" && child !is PaniniyaVyakaranamParser.SupPratyayaContext) {
-                stems.add(text)
-            }
-        }
-
-        return SankhyaGeoPada(
-            sourceText = context.text,
-            stems = stems,
-            sup = SupPratyaya(
-                sourceText = context.supPratyaya()!!.text,
-                text = context.supPratyaya()!!.text,
-            ),
-        )
-    }
-
     private fun buildSubantaVakyaPada(
         context: PaniniyaVyakaranamParser.SubantaVakyaPadaContext,
     ): List<Pada> =
@@ -257,15 +191,6 @@ class VyakaranamAstBuilder {
 
             context.bhutasamkhyaPada() != null ->
                 listOf(buildBhutasamkhyaPada(context.bhutasamkhyaPada()!!))
-
-            context.sankhyaBhinnaPada() != null ->
-                listOf(buildSankhyaBhinnaPada(context.sankhyaBhinnaPada()!!))
-
-            context.sankhyaMathPada() != null ->
-                listOf(buildSankhyaMathPada(context.sankhyaMathPada()!!))
-
-            context.sankhyaGeoPada() != null ->
-                listOf(buildSankhyaGeoPada(context.sankhyaGeoPada()!!))
 
             else -> error("अज्ञातं सुबन्तवाक्यपदम्: ${context.text}")
         }

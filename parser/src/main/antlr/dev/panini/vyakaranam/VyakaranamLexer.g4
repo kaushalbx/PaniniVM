@@ -98,28 +98,7 @@ KRITVAS         : 'कृत्वस्' | 'कृत्वः' ;
 KATAPAYADI      : 'कटपय' | 'कटपयाद्या' | 'कटपयादि' ;
 ARYABHATIYA     : 'आर्यभटीय' | 'आर्यभटेन' ;
 BHUTASAMKHYA    : 'भूतसङ्ख्या' ;
-SAARDHA         : 'सार्ध' ;
-SAPAADA         : 'सपाद' ;
-PAADONA         : 'पादोन' ;
-ARDHA           : 'अर्ध' ;
-PAADA           : 'पाद' ;
-AMSHA           : 'अंश' | 'भाग' ;
-GUNITA          : 'गुणित' | 'हते' ;
-BHAKTA          : 'भक्त' | 'हृत' ;
-VARGA           : 'वर्ग' ;
-GHANA           : 'घन' ;
-MOOLA           : 'मूल' | 'पद' ;
-KRITA           : 'कृत' ;
-SAHITA          : 'हित' | 'युत' | 'सहित' ;
-RAHITA          : 'रहित' | 'वर्जित' ;
-TEEYA           : 'तीय' ;
-JYA             : 'ज्या' ;
-KOTI            : 'कोटि' ;
-SPARSHA         : 'स्पर्श' ;
-UTKRAMA         : 'उत्क्रम' ;
-KARNA           : 'कर्ण' ;
-PARIDHI         : 'परिधि' ;
-KSETRAPHALA     : 'क्षेत्रफल' ;
+
 
 INTERJECTION
     : 'अहो'

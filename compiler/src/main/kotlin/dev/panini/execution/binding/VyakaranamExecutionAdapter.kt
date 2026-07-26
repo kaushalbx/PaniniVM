@@ -31,9 +31,6 @@ import dev.panini.aryabhatiya.AryabhatiyaDecoder
 import dev.panini.vyakaranam.ast.AryabhatiyaPada
 import dev.panini.bhutasamkhya.BhutasamkhyaDecoder
 import dev.panini.vyakaranam.ast.BhutasamkhyaPada
-import dev.panini.vyakaranam.ast.SankhyaBhinnaPada
-import dev.panini.vyakaranam.ast.SankhyaMathPada
-import dev.panini.vyakaranam.ast.SankhyaGeoPada
 import dev.panini.katapayadi.KatapayadiDecoder
 import dev.panini.vyakaranam.ast.KatapayadiPada
 import dev.panini.vyakaranam.ast.MulaPratipadika
@@ -197,7 +194,6 @@ object VyakaranamExecutionAdapter {
             is KatapayadiPada -> pada.value ?: katapayadiDecoder.decode(pada.word)
             is AryabhatiyaPada -> pada.value ?: aryabhatiyaDecoder.decode(pada.word)
             is BhutasamkhyaPada -> pada.value ?: bhutasamkhyaDecoder.decodeTerms(pada.terms)
-            is SankhyaBhinnaPada -> pada.numerator
             else -> null
         }
 
@@ -206,7 +202,33 @@ object VyakaranamExecutionAdapter {
             when (pada) {
                 is SubantaPada -> add(pada)
                 is SankhyaPada -> {
-                    val value = pada.value ?: sankhyaEvaluator.evaluateStems(pada.stems).value
+                    var targetIdx = -1
+                    var nextVal: Long? = null
+                    val lastStem = pada.stems.lastOrNull()
+                    val isOpStem = lastStem in setOf("गुणित", "हते", "भक्त", "हृत", "कृत") || (pada.stems.size >= 1 && pada.stems[0] in setOf("वर्ग", "घन", "मूल"))
+                    if (isOpStem) {
+                        for (j in (index + 1) until padas.size) {
+                            val v = extractNumeralValue(padas[j])
+                            if (v != null) {
+                                targetIdx = j
+                                nextVal = v
+                                break
+                            }
+                        }
+                    }
+                    val fullStems = if (nextVal != null && (pada.stems.size <= 2 || (pada.stems.size == 2 && pada.stems[1] == "कृत"))) {
+                        val stemStr = dev.panini.sankhya.PrimitiveSankhya.fromValue(nextVal)?.let { if (it.purvapada.isNotEmpty()) it.purvapada else it.pratipadika } ?: "शत"
+                        mathTargetValues.add(targetIdx)
+                        if (pada.stems[0] in setOf("वर्ग", "घन", "मूल")) {
+                            listOf(pada.stems[0]) + (if (pada.stems.size >= 2 && pada.stems[1] == "कृत") listOf("कृत") else emptyList()) + listOf(stemStr)
+                        } else {
+                            pada.stems + listOf(stemStr)
+                        }
+                    } else {
+                        pada.stems
+                    }
+                    val expr = sankhyaEvaluator.evaluateStems(fullStems)
+                    val value = expr.value
                     val sub = SubantaPada(pada.sourceText, SankhyaPratipadika(pada.sourceText, value), pada.sup)
                     val candidates = inferKarakas(sub)
                     addBinding(
@@ -250,53 +272,6 @@ object VyakaranamExecutionAdapter {
                 }
                 is BhutasamkhyaPada -> {
                     val value = pada.value ?: bhutasamkhyaDecoder.decodeTerms(pada.terms)
-                    val sub = SubantaPada(pada.sourceText, SankhyaPratipadika(pada.sourceText, value), pada.sup)
-                    val candidates = inferKarakas(sub)
-                    addBinding(
-                        ExecutionExpression.Companion.sankhya(value, pada.sourceText),
-                        candidates,
-                    )
-                }
-                is SankhyaBhinnaPada -> {
-                    val expr = sankhyaEvaluator.evaluateStems(pada.stems)
-                    val value = expr.value
-                    val sub = SubantaPada(pada.sourceText, SankhyaPratipadika(pada.sourceText, value), pada.sup)
-                    val candidates = inferKarakas(sub)
-                    addBinding(
-                        ExecutionExpression.Companion.sankhya(value, pada.sourceText),
-                        candidates,
-                    )
-                }
-                is SankhyaMathPada -> {
-                    var targetIdx = -1
-                    var nextVal: Long? = null
-                    for (j in (index + 1) until padas.size) {
-                        val v = extractNumeralValue(padas[j])
-                        if (v != null) {
-                            targetIdx = j
-                            nextVal = v
-                            break
-                        }
-                    }
-                    val fullStems = if (nextVal != null && pada.stems.size <= 2) {
-                        val stemStr = dev.panini.sankhya.PrimitiveSankhya.fromValue(nextVal)?.let { if (it.purvapada.isNotEmpty()) it.purvapada else it.pratipadika } ?: "शत"
-                        mathTargetValues.add(targetIdx)
-                        pada.stems + listOf(stemStr)
-                    } else {
-                        pada.stems
-                    }
-                    val expr = sankhyaEvaluator.evaluateStems(fullStems)
-                    val value = expr.value
-                    val sub = SubantaPada(pada.sourceText, SankhyaPratipadika(pada.sourceText, value), pada.sup)
-                    val candidates = inferKarakas(sub)
-                    addBinding(
-                        ExecutionExpression.Companion.sankhya(value, pada.sourceText),
-                        candidates,
-                    )
-                }
-                is SankhyaGeoPada -> {
-                    val expr = sankhyaEvaluator.evaluateStems(pada.stems)
-                    val value = expr.value
                     val sub = SubantaPada(pada.sourceText, SankhyaPratipadika(pada.sourceText, value), pada.sup)
                     val candidates = inferKarakas(sub)
                     addBinding(

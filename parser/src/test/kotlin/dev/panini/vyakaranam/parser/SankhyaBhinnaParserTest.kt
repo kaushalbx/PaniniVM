@@ -1,7 +1,7 @@
 package dev.panini.vyakaranam.parser
 
 import dev.panini.vyakaranam.ast.NamaVakya
-import dev.panini.vyakaranam.ast.SankhyaBhinnaPada
+import dev.panini.vyakaranam.ast.SankhyaPada
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -14,7 +14,7 @@ class SankhyaBhinnaParserTest {
     fun `parses mixed rational Saardha Dvi utterance`() {
         val ukti = parser.parse("सार्ध + द्वि + अम् ।")
         val vakya = assertIs<NamaVakya>(ukti.vakyas.single())
-        val pada = assertIs<SankhyaBhinnaPada>(vakya.padas.single())
+        val pada = assertIs<SankhyaPada>(vakya.padas.single())
 
         assertEquals(listOf("सार्ध", "द्वि"), pada.stems)
         assertEquals("अम्", pada.sup.text)
@@ -24,7 +24,7 @@ class SankhyaBhinnaParserTest {
     fun `parses fraction Tri Pada utterance`() {
         val ukti = parser.parse("त्रि + पाद + अम् ।")
         val vakya = assertIs<NamaVakya>(ukti.vakyas.single())
-        val pada = assertIs<SankhyaBhinnaPada>(vakya.padas.single())
+        val pada = assertIs<SankhyaPada>(vakya.padas.single())
 
         assertEquals(listOf("त्रि", "पाद"), pada.stems)
         assertEquals("अम्", pada.sup.text)
@@ -34,7 +34,7 @@ class SankhyaBhinnaParserTest {
     fun `parses segmented fraction Tritiya Amsha utterance`() {
         val ukti = parser.parse("तृतीय + अंश + अम् ।")
         val vakya = assertIs<NamaVakya>(ukti.vakyas.single())
-        val pada = assertIs<SankhyaBhinnaPada>(vakya.padas.single())
+        val pada = assertIs<SankhyaPada>(vakya.padas.single())
 
         assertEquals(listOf("तृतीय", "अंश"), pada.stems)
         assertEquals("अम्", pada.sup.text)
@@ -44,7 +44,7 @@ class SankhyaBhinnaParserTest {
     fun `parses segmented fraction Dvi Tritiya Amsha utterance`() {
         val ukti = parser.parse("द्वि + तृतीय + अंश + अम् ।")
         val vakya = assertIs<NamaVakya>(ukti.vakyas.single())
-        val pada = assertIs<SankhyaBhinnaPada>(vakya.padas.single())
+        val pada = assertIs<SankhyaPada>(vakya.padas.single())
 
         assertEquals(listOf("द्वि", "तृतीय", "अंश"), pada.stems)
         assertEquals("अम्", pada.sup.text)

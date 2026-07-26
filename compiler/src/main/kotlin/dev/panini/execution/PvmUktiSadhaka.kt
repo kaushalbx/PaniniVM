@@ -14,9 +14,6 @@ import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.KridantaPratipadika
 import dev.panini.vyakaranam.ast.AryabhatiyaPada
 import dev.panini.vyakaranam.ast.BhutasamkhyaPada
-import dev.panini.vyakaranam.ast.SankhyaBhinnaPada
-import dev.panini.vyakaranam.ast.SankhyaMathPada
-import dev.panini.vyakaranam.ast.SankhyaGeoPada
 import dev.panini.vyakaranam.ast.KatapayadiPada
 import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.vyakaranam.ast.Pada
@@ -79,9 +76,6 @@ class PvmUktiSadhaka(
         is KatapayadiPada -> pada.sourceText
         is AryabhatiyaPada -> pada.sourceText
         is BhutasamkhyaPada -> pada.sourceText
-        is SankhyaBhinnaPada -> pada.sourceText
-        is SankhyaMathPada -> pada.sourceText
-        is SankhyaGeoPada -> pada.sourceText
     }
 
     fun sadhayaSubanta(subanta: SubantaPada): String {
