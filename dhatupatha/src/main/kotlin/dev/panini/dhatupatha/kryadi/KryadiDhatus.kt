@@ -175,11 +175,7 @@ object KryadiDhatus {
             "शब्दे", "शब्द करना", "to sound, to talk",
             PadaType.PARASMAIPADA, ItStatus.SET, Karmatva.AKARMAKA, Accent.UDATTA,
         )
-        dhatu(
-            "09.0034", 34, "ज्या", "ज्या",
-            "वयोहानौ", "वृद्ध होना, जीर्ण होना, पुराना होना", "to become old,to decay",
-            PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.AKARMAKA, Accent.ANUDATTA,
-        )
+        dhatu(JyaDhatu())
         dhatu(
             "09.0035", 35, "री", "री",
             "गतिरेषणयोः", "जाना, शिशुप्राणी के समान पुकारना, पीड़ा करना, दुःख देना, मारना", "to go, to howl, to kill, to destroy, to hurt",

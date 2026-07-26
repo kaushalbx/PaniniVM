@@ -1,0 +1,37 @@
+package dev.panini.dhatupatha.kryadi
+
+import dev.panini.actions.numeric.SanskritTrigonometryAction
+import dev.panini.actions.numeric.SanskritCircumferenceAction
+import dev.panini.actions.numeric.SanskritHypotenuseAction
+import dev.panini.actions.numeric.SanskritAreaAction
+import dev.panini.core.DhatuGana
+import dev.panini.core.Karaka
+import dev.panini.core.PadaType
+import dev.panini.dhatupatha.Dhatu
+import dev.panini.execution.ExecutionSamjna
+import dev.panini.execution.op
+import dev.panini.shiksha.Accent
+import dev.panini.shiksha.ItStatus
+import dev.panini.shiksha.Karmatva
+
+/** Executable dhātu ज्या वयोहानौ (Jya / Trigonometric & Geometric operations). */
+class JyaDhatu : Dhatu(
+    id = "09.0034",
+    krama = 34,
+    upadesha = "ज्या",
+    sourceSurface = "ज्या",
+    artha = "वयोहानौ",
+    arthaHindi = "ज्यासाधनम्",
+    arthaEnglish = "to calculate sine/trigonometry",
+    gana = DhatuGana.KRYADI,
+    pada = PadaType.PARASMAIPADA,
+    itStatus = ItStatus.ANIT,
+    karmatva = Karmatva.AKARMAKA,
+    svara = Accent.ANUDATTA,
+    operations = listOf(
+        SanskritTrigonometryAction.op {
+            requires(Karaka.KARMAN); returns(ExecutionSamjna.SANKHYA)
+        },
+    ),
+    surfaceAliases = setOf("ज्या", "जीनाति", "जयति", "कोटिज्या", "स्पर्शज्या", "उत्क्रमज्या"),
+)

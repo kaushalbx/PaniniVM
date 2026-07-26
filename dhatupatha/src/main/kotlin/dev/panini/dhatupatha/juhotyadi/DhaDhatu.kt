@@ -1,10 +1,12 @@
 package dev.panini.dhatupatha.juhotyadi
 
 import dev.panini.actions.linguistic.SanskritSandhiAction
+import dev.panini.actions.numeric.SanskritCircumferenceAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
 import dev.panini.dhatupatha.Dhatu
+import dev.panini.execution.ExecutionSamjna
 import dev.panini.execution.ExpressionShape
 import dev.panini.execution.op
 import dev.panini.shiksha.Accent
@@ -30,6 +32,10 @@ open class DhaDhatu : Dhatu(
         SanskritSandhiAction.op {
             requires(Karaka.KARMAN, shape = ExpressionShape.COORDINATION)
             triggeredBy(requiredUpasargas = setOf("सम्"))
+        },
+        SanskritCircumferenceAction.op {
+            requires(Karaka.KARMAN); returns(ExecutionSamjna.SANKHYA)
+            triggeredBy(requiredUpasargas = setOf("परि"))
         },
     ),
     semanticRelations = setOf(SemanticRelation.DESIRED_OBJECT),
