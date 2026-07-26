@@ -2,94 +2,87 @@ package dev.panini.plugin
 
 import com.intellij.lexer.LexerBase
 import com.intellij.psi.tree.IElementType
+import dev.panini.parser.VyakaranamLexer
+import org.antlr.v4.kotlinruntime.CharStreams
+import org.antlr.v4.kotlinruntime.Token
 
 class PvmLexerAdapter : LexerBase() {
     private var buffer: CharSequence = ""
     private var startOffset: Int = 0
     private var endOffset: Int = 0
-    private var currentOffset: Int = 0
-    private var tokenStart: Int = 0
-    private var tokenEnd: Int = 0
-    private var tokenType: IElementType? = null
-
-    private val keywords = setOf("च", "इति", "यदि", "तर्हि", "इत्यादि", "वा", "चेत्")
-    private val affixes = setOf("सुँ", "अम्", "औट्", "शस्", "टा", "भ्याम्", "भिसँ", "ङे", "भ्यस्", "ङसिँ", "ङस्", "ओस्", "आम्", "ङि", "सुप्", "तिप्", "तस्", "झि", "सिप्", "थस्", "थ", "मिप्", "वस्", "मस्", "ता", "आताम्", "झ", "थास्", "आथाम्", "ध्वम्", "इट्", "वहि", "महिङ्", "णिच्", "लोट्", "लट्", "लङ्", "विधिलिङ्", "लुट्", "लृट्", "लुङ्")
-    private val numbers = setOf("एक", "द्वि", "त्रि", "चतुर्", "पञ्च", "षष्", "सप्त", "अष्ट", "नव", "दश", "शत", "सहस्र")
+    private var tokens: List<Token> = emptyList()
+    private var tokenIndex: Int = 0
+    private var currentTokenType: IElementType? = null
+    private var currentTokenStart: Int = 0
+    private var currentTokenEnd: Int = 0
 
     override fun start(buffer: CharSequence, startOffset: Int, endOffset: Int, initialState: Int) {
         this.buffer = buffer
         this.startOffset = startOffset
         this.endOffset = endOffset
-        this.currentOffset = startOffset
+        val text = buffer.subSequence(startOffset, endOffset).toString()
+        if (text.isEmpty()) {
+            tokens = emptyList()
+            tokenIndex = 0
+            currentTokenType = null
+            return
+        }
+
+        val lexer = VyakaranamLexer(CharStreams.fromString(text))
+        tokens = lexer.allTokens
+        tokenIndex = 0
         advance()
     }
 
     override fun getState(): Int = 0
-    override fun getTokenType(): IElementType? = tokenType
-    override fun getTokenStart(): Int = tokenStart
-    override fun getTokenEnd(): Int = tokenEnd
+    override fun getTokenType(): IElementType? = currentTokenType
+    override fun getTokenStart(): Int = currentTokenStart
+    override fun getTokenEnd(): Int = currentTokenEnd
     override fun getBufferSequence(): CharSequence = buffer
     override fun getBufferEnd(): Int = endOffset
 
     override fun advance() {
-        if (currentOffset >= endOffset) {
-            tokenType = null
-            tokenStart = endOffset
-            tokenEnd = endOffset
+        if (tokenIndex >= tokens.size) {
+            currentTokenType = null
+            currentTokenStart = endOffset
+            currentTokenEnd = endOffset
             return
         }
 
-        tokenStart = currentOffset
-        val ch = buffer[currentOffset]
+        val token = tokens[tokenIndex++]
+        currentTokenStart = startOffset + token.startIndex
+        currentTokenEnd = startOffset + token.stopIndex + 1
 
-        if (ch.isWhitespace()) {
-            while (currentOffset < endOffset && buffer[currentOffset].isWhitespace()) {
-                currentOffset++
-            }
-            tokenEnd = currentOffset
-            tokenType = PvmTokenTypes.WHITE_SPACE
-            return
-        }
+        currentTokenType = mapAntlrTokenType(token.type)
+    }
 
-        if (ch == '/' && currentOffset + 1 < endOffset && buffer[currentOffset + 1] == '/') {
-            while (currentOffset < endOffset && buffer[currentOffset] != '\n') {
-                currentOffset++
-            }
-            tokenEnd = currentOffset
-            tokenType = PvmTokenTypes.COMMENT
-            return
-        }
+    private fun mapAntlrTokenType(type: Int): IElementType {
+        val symbolicName = runCatching { VyakaranamLexer(CharStreams.fromString("")).vocabulary.getSymbolicName(type) }.getOrNull()
+            ?: return PvmTokenTypes.IDENTIFIER
 
-        if (ch == '+' || ch == '=' || ch == '-') {
-            currentOffset++
-            tokenEnd = currentOffset
-            tokenType = PvmTokenTypes.OPERATOR
-            return
-        }
+        val name = symbolicName.toString()
 
-        if (ch == '।' || ch == '॥' || ch == ',' || ch == ';') {
-            currentOffset++
-            tokenEnd = currentOffset
-            tokenType = PvmTokenTypes.DELIMITER
-            return
-        }
-
-        // Read continuous word token
-        val start = currentOffset
-        while (currentOffset < endOffset) {
-            val c = buffer[currentOffset]
-            if (c.isWhitespace() || c == '+' || c == '=' || c == '-' || c == '।' || c == '॥' || c == ',' || c == ';') {
-                break
-            }
-            currentOffset++
-        }
-        val word = buffer.subSequence(start, currentOffset).toString()
-        tokenEnd = currentOffset
-
-        tokenType = when {
-            keywords.contains(word) -> PvmTokenTypes.KEYWORD
-            affixes.contains(word) -> PvmTokenTypes.AFFIX
-            numbers.contains(word) -> PvmTokenTypes.NUMBER
+        return when {
+            name == "PLUS" || name == "SAMASA_SEPARATOR" -> PvmTokenTypes.OPERATOR
+            name == "COMMA" || name == "DANDA" || name == "LPAREN" || name == "RPAREN" -> PvmTokenTypes.DELIMITER
+            name in setOf(
+                "HE", "BHOH", "CHA", "VAA", "ATHA", "TATAH", "ANANTARAM", "KINTU",
+                "ATAH", "YATAH", "MAA", "NA", "ITI", "API", "EVA", "TU_AVYAYA",
+                "HI", "KHALU", "NANU", "YATHA", "TATHA", "YADA", "TADA", "YATRA",
+                "TATRA", "KADA", "KUTRA", "SARVATRA", "KATHAM", "KUTAH", "KRPAYA",
+                "SAHASAA", "SHANAIH", "PUNAH", "NYUNATAYA", "ADYA", "SHVAH", "HYAH",
+                "YADI", "TARHI", "ANYATHA", "YAVAT", "TAVAT"
+            ) -> PvmTokenTypes.KEYWORD
+            name.startsWith("LAT") || name.startsWith("LIT") || name.startsWith("LUT") ||
+            name.startsWith("LRT") || name.startsWith("LET") || name.startsWith("LOT") ||
+            name.startsWith("LANG") || name.startsWith("LIN") || name.startsWith("LUNG") ||
+            name.startsWith("LRNG") || name.startsWith("SUP_") ||
+            name in setOf(
+                "TIP", "TAS", "JHI", "SIP", "THAS", "THA", "MIP", "VAS", "MAS",
+                "TA", "ATAAM", "JHA", "THAS_A", "ATHAAM", "DHVAM", "IT", "VAHI",
+                "MAHING", "NIC", "SAN"
+            ) -> PvmTokenTypes.AFFIX
+            name == "WS" || name == "LINE_COMMENT" -> PvmTokenTypes.COMMENT
             else -> PvmTokenTypes.IDENTIFIER
         }
     }
