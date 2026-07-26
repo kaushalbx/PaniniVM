@@ -2,7 +2,6 @@ plugins {
     kotlin("jvm") version "2.0.21"
     antlr
     id("com.strumenta.antlr-kotlin") version "1.0.0-RC4"
-    application
 }
 
 val generatedAntlrDirectory = layout.buildDirectory.dir("generated-src/antlr/main")
@@ -23,10 +22,6 @@ version = "0.1.0"
 
 kotlin {
     jvmToolchain(21)
-}
-
-application {
-    mainClass.set("dev.panini.MainKt")
 }
 
 dependencies {

@@ -153,7 +153,7 @@ Semantic execution maps resolved grammatical features to registered `DhatuAction
 
 ### Running `.pvm` Scripts:
 ```powershell
-./gradlew run --args="--eval path/to/script.pvm"
+./gradlew :cli:run --args="--eval path/to/script.pvm"
 ```
 
 ---

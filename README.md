@@ -81,7 +81,7 @@ vibhakti. Both sūtras are retained in the analysis and execution trace.
 Execute PaniniVM `.pvm` program script files directly via CLI:
 
 ```sh
-./gradlew run --args="--eval src/test/kotlin/dev/panini/parser/addition.pvm"
+./gradlew :cli:run --args="--eval src/test/kotlin/dev/panini/parser/addition.pvm"
 ```
 
 ### Compiling `.pvm` Script Files to JVM Bytecode
@@ -89,7 +89,7 @@ Execute PaniniVM `.pvm` program script files directly via CLI:
 Compile segmented Sanskrit `.pvm` script files into standard JVM class bytecode:
 
 ```sh
-./gradlew run --args="--compile src/test/kotlin/dev/panini/parser/addition.pvm SanskritAddition"
+./gradlew :cli:run --args="--compile src/test/kotlin/dev/panini/parser/addition.pvm SanskritAddition"
 ```
 
 Sample `.pvm` script: [`addition.pvm`](src/test/kotlin/dev/panini/parser/addition.pvm)
@@ -113,23 +113,23 @@ Line 2:
 
 ```sh
 # Nominal paradigms and individual derivations
-./gradlew run --args="--paradigm राम"
-./gradlew run --args="--derive राम SASTHI BAHUVACANA"
-./gradlew run --args="--derive राम षष्ठी बहुवचन"
+./gradlew :cli:run --args="--paradigm राम"
+./gradlew :cli:run --args="--derive राम SASTHI BAHUVACANA"
+./gradlew :cli:run --args="--derive राम षष्ठी बहुवचन"
 
 # Verbal derivations
-./gradlew run --args="--verb भू"
-./gradlew run --args="--verb भू LING EKAVACANA"
-./gradlew run --args="--verb भू LOT बहुवचन"
+./gradlew :cli:run --args="--verb भू"
+./gradlew :cli:run --args="--verb भू LING EKAVACANA"
+./gradlew :cli:run --args="--verb भू LOT बहुवचन"
 
 # Cardinal and ordinal numeral derivations
-./gradlew run --args="--sankhya 23"
-./gradlew run --args="--sankhya 6 ordinal"
-./gradlew run --args="--sankhya 42 cardinal --variants"
+./gradlew :cli:run --args="--sankhya 23"
+./gradlew :cli:run --args="--sankhya 6 ordinal"
+./gradlew :cli:run --args="--sankhya 42 cardinal --variants"
 
 # Registry inspection and implementation coverage
-./gradlew run --args="--coverage"
-./gradlew run --args="--sutra 7.1.54"
+./gradlew :cli:run --args="--coverage"
+./gradlew :cli:run --args="--sutra 7.1.54"
 ```
 
 ---

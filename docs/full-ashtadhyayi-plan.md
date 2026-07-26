@@ -99,7 +99,7 @@ derivation pipeline while retaining their typed numeric identity.
 Print the live implementation count:
 
 ```sh
-./gradlew run --args="--coverage"
+./gradlew :cli:run --args="--coverage"
 ```
 
 Run the complete verification suite:

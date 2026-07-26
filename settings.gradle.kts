@@ -13,3 +13,6 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "PaniniVM"
+
+include("cli")
+
