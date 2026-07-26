@@ -1,7 +1,9 @@
 package dev.panini.dhatupatha
 
+import dev.panini.analysis.SemanticRelation
 import dev.panini.core.DhatuGana
 import dev.panini.core.PadaType
+import dev.panini.execution.DhatuOperation
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
@@ -20,8 +22,8 @@ open class Dhatu(
     val itStatus: ItStatus? = null,
     val karmatva: Karmatva? = null,
     val svara: Accent? = null,
-    open val operations: List<dev.panini.execution.DhatuOperation> = emptyList(),
-    open val semanticRelations: Set<dev.panini.vyakaranam.analysis.SemanticRelation> = emptySet(),
+    open val operations: List<DhatuOperation> = emptyList(),
+    open val semanticRelations: Set<SemanticRelation> = emptySet(),
     open val surfaceAliases: Set<String> = emptySet(),
 ) {
     /** Normalized root spelling used only by the derivation engine. */

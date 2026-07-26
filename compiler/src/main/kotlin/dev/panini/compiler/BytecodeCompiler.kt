@@ -1,6 +1,7 @@
 package dev.panini.compiler
 
 import dev.panini.execution.*
+import dev.panini.execution.binding.VyakaranamExecutionAdapter
 import java.io.File
 
 object BytecodeCompiler {
@@ -78,7 +79,7 @@ object BytecodeCompiler {
             val remembered = plans.map { plan ->
                 val turnId = "उक्ति-${DevanagariDigits.render(nextTurn)}/${plan.invocationId}"
                 stmtResultIds += turnId
-                
+
                 val mockVal = SanskritValue.Shabda("<${plan.invocationId}>", plan.resolved.operation.resultSamjnas)
                 SmrtaPhala(
                     id = turnId,

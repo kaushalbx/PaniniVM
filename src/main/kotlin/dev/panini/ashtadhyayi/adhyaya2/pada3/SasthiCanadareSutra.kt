@@ -7,11 +7,11 @@ import dev.panini.sutra.SutraInput
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
-import dev.panini.vyakaranam.analysis.KarakaEvidence
-import dev.panini.vyakaranam.analysis.VibhaktiRuleContext
-import dev.panini.vyakaranam.analysis.VibhaktiRuleResult
+import dev.panini.analysis.KarakaEvidence
+import dev.panini.analysis.VibhaktiRuleContext
+import dev.panini.analysis.VibhaktiRuleResult
 
-import dev.panini.vyakaranam.analysis.SemanticRelation
+import dev.panini.analysis.SemanticRelation
 
 /** Sūtra 2.3.38 षष्ठी चानादरे. Assigns Ṣaṣṭhī or Saptamī in expressions of disregard/contempt. */
 object SasthiCanadareSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(

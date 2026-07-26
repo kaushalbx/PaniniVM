@@ -7,6 +7,7 @@ import dev.panini.dhatupatha.dhatuPatha
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
+import dev.panini.analysis.SemanticRelation
 
 object BhvadiDhatus {
     val all: List<Dhatu> =
@@ -8219,7 +8220,7 @@ object BhvadiDhatus {
                 "01.1077", 1077, "ष्ठा", "स्था",
                 "गतिनिवृत्तौ", "स्थिर होना, ठहरना", "to stay, to stand",
                 PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.AKARMAKA, Accent.ANUDATTA,
-                semanticRelations = setOf(dev.panini.vyakaranam.analysis.SemanticRelation.LOCATION),
+                semanticRelations = setOf(SemanticRelation.LOCATION),
                 surfaceAliases = setOf("अधिस्था", "तिष्ठति", "तिष्ठ", "स्थायात्"),
             )
             dhatu(
@@ -8748,7 +8749,7 @@ object BhvadiDhatus {
                 "01.1160", 1160, "वसँ", "वस्",
                 "निवासे", "निवास करना, टिकना", "to dwell,to live, to stay",
                 PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.AKARMAKA, Accent.ANUDATTA,
-                semanticRelations = setOf(dev.panini.vyakaranam.analysis.SemanticRelation.LOCATION),
+                semanticRelations = setOf(SemanticRelation.LOCATION),
                 surfaceAliases = setOf("उपवस", "अनुवस", "अधिवस", "आवस", "वसति", "वसत"),
             )
             dhatu(

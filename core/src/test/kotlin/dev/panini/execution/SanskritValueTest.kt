@@ -1,4 +1,4 @@
-﻿package dev.panini.execution
+package dev.panini.execution
 
 import dev.panini.core.Karaka
 import kotlin.test.Test

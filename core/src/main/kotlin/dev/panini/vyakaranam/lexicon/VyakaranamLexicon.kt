@@ -4,7 +4,7 @@ import dev.panini.core.Linga
 import dev.panini.dhatupatha.Dhatu
 
 import dev.panini.core.NominalCategory
-import dev.panini.vyakaranam.analysis.SemanticRelation
+import dev.panini.analysis.SemanticRelation
 
 data class PratipadikaEntry(
     val text: String,

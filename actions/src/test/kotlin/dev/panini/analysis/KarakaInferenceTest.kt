@@ -1,8 +1,16 @@
-package dev.panini.vyakaranam.analysis
+package dev.panini.analysis
 
 import dev.panini.core.Karaka
+import dev.panini.core.Lakara
 import dev.panini.core.Prayoga
+import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
+import dev.panini.dhatupatha.Dhatu
+import dev.panini.dhatupatha.DhatuPatha
+import dev.panini.vyakaranam.ast.AvyayaPada
+import dev.panini.vyakaranam.ast.DhatuPrakriti
+import dev.panini.vyakaranam.ast.TingPratyaya
+import dev.panini.vyakaranam.ast.TingantaPada
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -64,7 +72,7 @@ class KarakaInferenceTest {
         val possibleVibhaktis = setOf(Vibhakti.DVITIYA)
         val participant = ParticipantFacts(
             id = "test_p",
-            expression = dev.panini.vyakaranam.ast.AvyayaPada("विषम्", "विषम्"),
+            expression = AvyayaPada("विषम्", "विषम्"),
             possibleVibhaktis = possibleVibhaktis,
             semanticRelations = setOf(SemanticRelation.INDIFFERENT_OBJECT),
         )
@@ -94,7 +102,7 @@ class KarakaInferenceTest {
         val possibleVibhaktis = setOf(Vibhakti.DVITIYA)
         val participant = ParticipantFacts(
             id = "test_p",
-            expression = dev.panini.vyakaranam.ast.AvyayaPada("अक्षान्", "अक्षान्"),
+            expression = AvyayaPada("अक्षान्", "अक्षान्"),
             possibleVibhaktis = possibleVibhaktis,
             semanticRelations = profile?.relations.orEmpty(),
         )
@@ -119,7 +127,7 @@ class KarakaInferenceTest {
         val possibleVibhaktis = setOf(Vibhakti.CHATURTHI)
         val participant = ParticipantFacts(
             id = "test_p",
-            expression = dev.panini.vyakaranam.ast.AvyayaPada("शताय", "शताय"),
+            expression = AvyayaPada("शताय", "शताय"),
             possibleVibhaktis = possibleVibhaktis,
             semanticRelations = profile?.relations.orEmpty(),
         )
@@ -174,7 +182,7 @@ class KarakaInferenceTest {
         val possibleVibhaktis = setOf(Vibhakti.DVITIYA, Vibhakti.SAPTAMI)
         val participant = ParticipantFacts(
             id = "test_p",
-            expression = dev.panini.vyakaranam.ast.AvyayaPada("मार्गम्", "मार्गम्"),
+            expression = AvyayaPada("मार्गम्", "मार्गम्"),
             possibleVibhaktis = possibleVibhaktis,
             semanticRelations = profile?.relations.orEmpty(),
         )
@@ -214,7 +222,7 @@ class KarakaInferenceTest {
         val possibleVibhaktis = setOf(Vibhakti.DVITIYA, Vibhakti.CHATURTHI)
         val participant = ParticipantFacts(
             id = "test_p",
-            expression = dev.panini.vyakaranam.ast.AvyayaPada("क्रूरम्", "क्रूरम्"),
+            expression = AvyayaPada("क्रूरम्", "क्रूरम्"),
             possibleVibhaktis = possibleVibhaktis,
             semanticRelations = profile?.relations.orEmpty(),
         )
@@ -239,7 +247,7 @@ class KarakaInferenceTest {
         val possibleVibhaktis = setOf(Vibhakti.DVITIYA, Vibhakti.SAPTAMI)
         val participant = ParticipantFacts(
             id = "test_p",
-            expression = dev.panini.vyakaranam.ast.AvyayaPada("वैकुण्ठम्", "वैकुण्ठम्"),
+            expression = AvyayaPada("वैकुण्ठम्", "वैकुण्ठम्"),
             possibleVibhaktis = possibleVibhaktis,
             semanticRelations = profile?.relations.orEmpty(),
         )
@@ -264,7 +272,7 @@ class KarakaInferenceTest {
         val possibleVibhaktis = setOf(Vibhakti.DVITIYA, Vibhakti.SAPTAMI)
         val participant = ParticipantFacts(
             id = "test_p",
-            expression = dev.panini.vyakaranam.ast.AvyayaPada("वैकुण्ठम्", "वैकुण्ठम्"),
+            expression = AvyayaPada("वैकुण्ठम्", "वैकुण्ठम्"),
             possibleVibhaktis = possibleVibhaktis,
             semanticRelations = profile?.relations.orEmpty(),
         )
@@ -290,10 +298,10 @@ class KarakaInferenceTest {
         vibhaktiSutra: String,
     ) {
         val profile = DhatuKarakaProfiles.forSurface(dhatu)
-        val possibleVibhaktis = dev.panini.core.SupAffix.candidates("भ्याम्").mapTo(mutableSetOf()) { it.vibhakti }
+        val possibleVibhaktis = SupAffix.candidates("भ्याम्").mapTo(mutableSetOf()) { it.vibhakti }
         val participant = ParticipantFacts(
             id = "test_p",
-            expression = dev.panini.vyakaranam.ast.AvyayaPada("भ्याम्", "भ्याम्"),
+            expression = AvyayaPada("भ्याम्", "भ्याम्"),
             possibleVibhaktis = possibleVibhaktis,
             semanticRelations = profile?.relations.orEmpty(),
         )
@@ -320,7 +328,7 @@ class KarakaInferenceTest {
         })
     }
 
-    private fun buildMockVerbNode(dhatu: String): dev.panini.vyakaranam.ast.TingantaPada {
+    private fun buildMockVerbNode(dhatu: String): TingantaPada {
         val prefixes = listOf("प्रति", "अनु", "अधि", "अभि", "उप", "आ", "अभि-नि", "अभिनि")
         val matchedPrefix = prefixes.firstOrNull { dhatu.startsWith(it) }
         val baseDhatu = if (matchedPrefix != null) dhatu.substring(matchedPrefix.length) else dhatu
@@ -328,10 +336,10 @@ class KarakaInferenceTest {
             if (matchedPrefix == "अभिनि" || matchedPrefix == "अभि-नि") listOf("अभि", "नि")
             else listOf(matchedPrefix)
         } else emptyList()
-        return dev.panini.vyakaranam.ast.TingantaPada(
+        return TingantaPada(
             sourceText = dhatu,
             upasargas = upasargas,
-            dhatu = dev.panini.vyakaranam.ast.DhatuPrakriti(
+            dhatu = DhatuPrakriti(
                 sourceText = baseDhatu,
                 mulaDhatu = when (baseDhatu) {
                     "वस", "वस्" -> "वस"
@@ -343,12 +351,12 @@ class KarakaInferenceTest {
                     else -> baseDhatu
                 }
             ),
-            lakara = dev.panini.core.Lakara.LAT,
-            ting = dev.panini.vyakaranam.ast.TingPratyaya("", "")
+            lakara = Lakara.LAT,
+            ting = TingPratyaya("", "")
         )
     }
 
-    private fun findMockDhatu(dhatu: String): dev.panini.dhatupatha.Dhatu? {
+    private fun findMockDhatu(dhatu: String): Dhatu? {
         val prefixes = listOf("प्रति", "अनु", "अधि", "अभि", "उप", "आ", "अभि-नि", "अभिनि")
         val matchedPrefix = prefixes.firstOrNull { dhatu.startsWith(it) }
         val baseDhatu = if (matchedPrefix != null) dhatu.substring(matchedPrefix.length) else dhatu
@@ -361,7 +369,7 @@ class KarakaInferenceTest {
             "आस्", "आस" -> "आस्"
             else -> baseDhatu
         }
-        return dev.panini.dhatupatha.DhatuPatha.all.firstOrNull {
+        return DhatuPatha.all.firstOrNull {
             it.upadesha == mulaDhatu || it.sourceSurface == mulaDhatu || it.upadesha == "${mulaDhatu}ँ" ||
             (mulaDhatu == "वस" && it.upadesha == "वसँ") || (mulaDhatu == "शी" && it.upadesha == "शीङ्")
         }

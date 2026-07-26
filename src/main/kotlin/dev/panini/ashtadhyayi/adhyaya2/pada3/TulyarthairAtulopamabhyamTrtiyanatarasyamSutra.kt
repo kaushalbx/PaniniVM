@@ -7,10 +7,10 @@ import dev.panini.sutra.SutraInput
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
-import dev.panini.vyakaranam.analysis.KarakaEvidence
-import dev.panini.vyakaranam.analysis.SemanticRelation
-import dev.panini.vyakaranam.analysis.VibhaktiRuleContext
-import dev.panini.vyakaranam.analysis.VibhaktiRuleResult
+import dev.panini.analysis.KarakaEvidence
+import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.VibhaktiRuleContext
+import dev.panini.analysis.VibhaktiRuleResult
 
 /**
  * Sūtra 2.3.72 तुल्यार्थैरतुलोपमाभ्यां तृतीयाऽन्यतरस्याम्.

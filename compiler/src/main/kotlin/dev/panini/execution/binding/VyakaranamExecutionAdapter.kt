@@ -1,4 +1,4 @@
-package dev.panini.execution
+package dev.panini.execution.binding
 
 import dev.panini.core.Karaka
 import dev.panini.core.Lakara
@@ -6,12 +6,24 @@ import dev.panini.core.Prayoga
 import dev.panini.core.SupAffix
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.dhatupatha.DhatuPatha
+import dev.panini.execution.AmbiguousKarakaBinding
+import dev.panini.execution.DhatuInvocation
+import dev.panini.execution.ExecutableUkti
+import dev.panini.execution.ExecutionBindingResult
+import dev.panini.execution.ExecutionExpression
+import dev.panini.execution.ExecutionSamjna
+import dev.panini.execution.GrammaticalFeatures
+import dev.panini.execution.Polarity
+import dev.panini.execution.SambhashanaContext
+import dev.panini.execution.SanskritUktiInput
+import dev.panini.execution.VakyaPrayojana
 import dev.panini.sankhya.SankhyaGenerator
-import dev.panini.vyakaranam.analysis.DhatuIdentity
-import dev.panini.vyakaranam.analysis.DhatuKarakaProfiles
-import dev.panini.vyakaranam.analysis.KarakaRuleContext
-import dev.panini.vyakaranam.analysis.KarakaRuleEngine
-import dev.panini.vyakaranam.analysis.ParticipantFacts
+import dev.panini.shiksha.Karmatva
+import dev.panini.analysis.DhatuIdentity
+import dev.panini.analysis.DhatuKarakaProfiles
+import dev.panini.analysis.KarakaRuleContext
+import dev.panini.analysis.KarakaRuleEngine
+import dev.panini.analysis.ParticipantFacts
 import dev.panini.vyakaranam.ast.AkhyataVakya
 import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.KridantaPratipadika
@@ -25,6 +37,7 @@ import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.UnadyantaPratipadika
 import dev.panini.vyakaranam.parser.PaniniParseException
 import dev.panini.vyakaranam.parser.PaniniParser
+import kotlin.collections.plusAssign
 
 /**
  * Thin bridge from canonical vyākaraṇa analysis to execution semantics.
@@ -76,7 +89,8 @@ object VyakaranamExecutionAdapter {
                 grammaticalFeatures = GrammaticalFeatures(
                     upasargas = tinganta.upasargas.toSet(),
                     sanadi = tinganta.dhatu.sanadiPratyayas.toSet(),
-                    avyayas = vakya.padas.filterIsInstance<AvyayaPada>().mapTo(mutableSetOf()) { it.form },
+                    avyayas = vakya.padas.filterIsInstance<AvyayaPada>()
+                        .mapTo(mutableSetOf()) { it.form },
                     lakara = tinganta.lakara,
                 ),
                 ambiguousBindings = extracted.ambiguous,
@@ -135,7 +149,7 @@ object VyakaranamExecutionAdapter {
             )
             val resolution = KarakaRuleEngine.resolve(
                 KarakaRuleContext(
-                    dhatu = DhatuIdentity(dhatu.sourceSurface, dhatu.karmatva != dev.panini.shiksha.Karmatva.AKARMAKA),
+                    dhatu = DhatuIdentity(dhatu.sourceSurface, dhatu.karmatva != Karmatva.AKARMAKA),
                     participant = participant,
                     allParticipants = listOf(participant),
                     prayoga = Prayoga.KARTARI,
@@ -205,7 +219,7 @@ object VyakaranamExecutionAdapter {
             }
         }
         return if (sankhyaValue != null) {
-            ExecutionExpression.sankhya(sankhyaValue, text)
+            ExecutionExpression.Companion.sankhya(sankhyaValue, text)
         } else {
             ExecutionExpression.Pada(text, samjnas)
         }

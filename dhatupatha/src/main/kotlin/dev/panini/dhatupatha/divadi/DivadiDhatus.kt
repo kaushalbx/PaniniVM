@@ -2,13 +2,15 @@ package dev.panini.dhatupatha.divadi
 
 import dev.panini.core.DhatuGana
 import dev.panini.core.PadaType
+import dev.panini.dhatupatha.Dhatu
+import dev.panini.dhatupatha.dhatuPatha
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
 
 object DivadiDhatus {
-    val all: List<dev.panini.dhatupatha.Dhatu> =
-        _root_ide_package_.dev.panini.dhatupatha.dhatuPatha(DhatuGana.DIVADI) {
+    val all: List<Dhatu> =
+        dhatuPatha(DhatuGana.DIVADI) {
             dhatu(
                 "04.0001", 1, "दिवुँ", "दिव्",
                 "क्रीडाविजिगीषाव्यवहारद्युतिस्तुतिमोदमदस्वप्नकान्तिगतिषु", "खेलना, जीतने की इच्छा करना, व्यवहार करना, तेजस्वी होना, चमकना, प्रशंसा करना, स्तुति करना, प्रसन्न होना या करना, गर्व करना, सो जाना, चाहना, जाना", "to play, to gamble, to dice, to desire to win, to transact, to glow, to shine, to praise, to please, to boast, to sleep, to wish, to go",

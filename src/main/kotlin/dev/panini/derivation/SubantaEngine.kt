@@ -1,18 +1,15 @@
 package dev.panini.derivation
 
-import dev.panini.core.Karaka
-import dev.panini.core.Prayoga
 import dev.panini.core.SupAffix
 import dev.panini.core.Lakara
 import dev.panini.core.Vibhakti
 import dev.panini.dhatupatha.DhatuPatha
-import dev.panini.vyakaranam.analysis.KarakaRuleEngine
-import dev.panini.vyakaranam.analysis.KarakaRuleContext
-import dev.panini.vyakaranam.analysis.DhatuIdentity
-import dev.panini.vyakaranam.analysis.DhatuKarakaProfiles
-import dev.panini.vyakaranam.analysis.ParticipantFacts
-import dev.panini.vyakaranam.analysis.SemanticRelation
-import dev.panini.vyakaranam.analysis.VibhaktiRuleResult
+import dev.panini.analysis.KarakaRuleEngine
+import dev.panini.analysis.KarakaRuleContext
+import dev.panini.analysis.DhatuIdentity
+import dev.panini.analysis.DhatuKarakaProfiles
+import dev.panini.analysis.ParticipantFacts
+import dev.panini.analysis.SemanticRelation
 import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.DhatuPrakriti
@@ -59,7 +56,7 @@ class SubantaEngine(
             semanticRelations = request.semanticRelations ?: (profile?.relations.orEmpty() + upapadaRelations),
             categories = request.categories ?: emptySet()
         )
-        val dhatuEntry = DhatuPatha.all.firstOrNull { 
+        val dhatuEntry = DhatuPatha.all.firstOrNull {
             it.upadesha == request.dhatu || it.derivationalSurface == request.dhatu || it.sourceSurface == request.dhatu
         }
         val verbNode = TingantaPada(

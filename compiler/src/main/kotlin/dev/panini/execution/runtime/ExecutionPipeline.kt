@@ -1,4 +1,28 @@
-package dev.panini.execution
+package dev.panini.execution.runtime
+
+import dev.panini.dhatupatha.DhatuPathaRegistration
+import dev.panini.execution.DevanagariDigits
+import dev.panini.execution.ExecutableUkti
+import dev.panini.execution.ExecutionBindingResult
+import dev.panini.execution.ExecutionContinuation
+import dev.panini.execution.ExecutionError
+import dev.panini.execution.ExecutionPlanner
+import dev.panini.execution.ExecutionProgram
+import dev.panini.execution.ExecutionResult
+import dev.panini.execution.ExecutionRuntime
+import dev.panini.execution.ExecutionScope
+import dev.panini.execution.Phala
+import dev.panini.execution.PlanningResult
+import dev.panini.execution.Prativacana
+import dev.panini.execution.SambhashanaContext
+import dev.panini.execution.SambhashanaTurn
+import dev.panini.execution.SanskritPrativacanaRenderer
+import dev.panini.execution.SanskritUktiInput
+import dev.panini.execution.SanskritValue
+import dev.panini.execution.SmrtaPhala
+import dev.panini.execution.ValueEnvironment
+import dev.panini.execution.binding.VyakaranamExecutionAdapter
+import dev.panini.sankhya.SankhyaCountingFormRenderer
 
 /** End-to-end entry point from structured utterance to execution result. */
 object ExecutionPipeline {
@@ -7,8 +31,8 @@ object ExecutionPipeline {
         conversation: SambhashanaContext,
         scope: ExecutionScope,
     ): Phala {
-        dev.panini.sankhya.SankhyaCountingFormRenderer.init()
-        dev.panini.dhatupatha.DhatuPathaRegistration.ensureRegistered()
+        SankhyaCountingFormRenderer.init()
+        DhatuPathaRegistration.ensureRegistered()
         return when (val binding = VyakaranamExecutionAdapter.bind(input, conversation)) {
             is ExecutionBindingResult.Bound -> execute(binding.ukti, conversation, scope)
                 .prependTrace(binding.trace)
@@ -24,7 +48,7 @@ object ExecutionPipeline {
     }
 
     fun execute(ukti: ExecutableUkti, conversation: SambhashanaContext, scope: ExecutionScope): Phala {
-        dev.panini.sankhya.SankhyaCountingFormRenderer.init()
+        SankhyaCountingFormRenderer.init()
         if (ukti.speaker != conversation.speaker || ukti.listener != conversation.listener) {
             return Phala.Asiddha(
                 ExecutionResult.Failure(
@@ -36,9 +60,9 @@ object ExecutionPipeline {
         }
         val program = ExecutionProgram(ukti, ukti.dependencies)
         val historicalValues = conversation.resultHistory.associate { result ->
-            result.id to (result.typedValue ?: SanskritValue.of(result.value, result.samjnas))
+            result.id to (result.typedValue ?: SanskritValue.Companion.of(result.value, result.samjnas))
         }
-        val conversationEnvironment = ValueEnvironment.from(
+        val conversationEnvironment = ValueEnvironment.Companion.from(
             displayValues = conversation.mentionedEntities + conversation.previousResults,
             samjnas = conversation.mentionedEntitySamjnas + conversation.previousResultSamjnas,
             typedValues = historicalValues + conversation.previousTypedResults,
@@ -80,7 +104,10 @@ object ExecutionPipeline {
         scope: ExecutionScope,
     ): SambhashanaTurn {
         val response = executeAndRespond(input, conversation, scope)
-        val success = response.phala as? Phala.Siddha ?: return SambhashanaTurn(response, conversation)
+        val success = response.phala as? Phala.Siddha ?: return SambhashanaTurn(
+            response,
+            conversation
+        )
         val nextTurn = conversation.turnNumber + 1
         val remembered = success.values.map { (invocationId, value) ->
             SmrtaPhala(

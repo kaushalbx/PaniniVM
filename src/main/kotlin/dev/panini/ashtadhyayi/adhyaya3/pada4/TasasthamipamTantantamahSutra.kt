@@ -5,6 +5,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.VarnaSubstitution
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -64,7 +65,7 @@ object TasasthamipamTantantamahSutra : Sutra<DerivationState, DerivationChange>(
         }
         return DerivationChange(
             state = context.replaceTerm(lastTerm.id, lastTerm.copy(surface = substitute, itMarkers = emptySet()))
-                .addSubstitution(dev.panini.derivation.VarnaSubstitution(lastTerm.id, lastTerm.surface.first(), substitute, sutra))
+                .addSubstitution(VarnaSubstitution(lastTerm.id, lastTerm.surface.first(), substitute, sutra))
                 .copy(stage = DerivationStage.PADA_FORMED),
             explanation = "3.4.101: Replaced ending ${lastTerm.upadesha} with $substitute."
         )

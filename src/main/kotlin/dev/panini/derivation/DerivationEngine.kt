@@ -1,5 +1,6 @@
 package dev.panini.derivation
 
+import dev.panini.analysis.KarakaResolution
 import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraPriority
@@ -35,7 +36,7 @@ data class DerivationResult(
     val final: DerivationState,
     val applications: List<DerivationApplication>,
     val events: List<DerivationEvent>,
-    val karakaResolution: dev.panini.vyakaranam.analysis.KarakaResolution? = null,
+    val karakaResolution: KarakaResolution? = null,
 )
 
 /**

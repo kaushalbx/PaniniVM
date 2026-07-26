@@ -8,9 +8,9 @@ import dev.panini.sutra.SutraInput
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
-import dev.panini.vyakaranam.analysis.KarakaEvidence
-import dev.panini.vyakaranam.analysis.VibhaktiRuleContext
-import dev.panini.vyakaranam.analysis.VibhaktiRuleResult
+import dev.panini.analysis.KarakaEvidence
+import dev.panini.analysis.VibhaktiRuleContext
+import dev.panini.analysis.VibhaktiRuleResult
 
 object SaptamyAdhikaraneCaSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(
     number = "2.3.36", text = "सप्तम्यधिकरणे च", hindiExplanation = "अनभिहित अधिकरण में सप्तमी होती है।",

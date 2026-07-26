@@ -3,6 +3,7 @@ package dev.panini.ashtadhyayi.adhyaya8.pada4
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.VarnaSubstitution
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -97,7 +98,7 @@ object StunaShtuhSutra : Sutra<DerivationState, DerivationChange>(
         return null
     }
 
-    private fun crossTermTarget(context: DerivationState): Pair<dev.panini.derivation.DerivationTerm, String>? {
+    private fun crossTermTarget(context: DerivationState): Pair<DerivationTerm, String>? {
         for (i in 0 until context.terms.lastIndex) {
             if (!context.terms[i].surface.endsWith("ष्")) continue
             val right = context.terms[i + 1]

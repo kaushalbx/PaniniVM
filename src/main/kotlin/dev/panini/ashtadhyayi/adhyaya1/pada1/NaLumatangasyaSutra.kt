@@ -4,6 +4,7 @@ import dev.panini.core.LopaType
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.DerivationTerm
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -39,7 +40,7 @@ object NaLumatangasyaSutra : Sutra<DerivationState, DerivationChange>(
     /**
      * Checks if pratyayalakṣaṇa is allowed for a given dropped term in an aṅga context.
      */
-    fun allowsPratyayalaksana(droppedTerm: dev.panini.derivation.DerivationTerm, isAngaContext: Boolean): Boolean {
+    fun allowsPratyayalaksana(droppedTerm: DerivationTerm, isAngaContext: Boolean): Boolean {
         if (!isAngaContext) return true
         return droppedTerm.deletionType == null || droppedTerm.deletionType == LopaType.LOPA
     }

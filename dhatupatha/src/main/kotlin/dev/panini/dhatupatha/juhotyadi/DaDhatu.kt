@@ -10,7 +10,7 @@ import dev.panini.execution.op
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
-import dev.panini.vyakaranam.analysis.SemanticRelation
+import dev.panini.analysis.SemanticRelation
 
 /** Executable Juhotyādi dhātu डुदाञ् दाने. */
 class DaDhatu : Dhatu(

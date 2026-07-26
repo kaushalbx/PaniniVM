@@ -6,6 +6,7 @@ import dev.panini.core.Lakara
 import dev.panini.core.Prayoga
 import dev.panini.core.Vacana
 import dev.panini.core.Vibhakti
+import dev.panini.derivation.DerivationResult
 import dev.panini.derivation.KarakaSubantaDerivationRequest
 import dev.panini.derivation.SubantaDerivationRequest
 import dev.panini.derivation.SubantaEngine
@@ -202,7 +203,7 @@ private fun findLakara(value: String): Lakara? = Lakara.entries.firstOrNull {
     it.name == value.uppercase() || it.upadesha == value
 }
 
-private fun MutableList<String>.addTrace(result: dev.panini.derivation.DerivationResult, includeRole: Boolean = false) {
+private fun MutableList<String>.addTrace(result: DerivationResult, includeRole: Boolean = false) {
     add("----------------------------------------")
     result.applications.forEach { app ->
         val prefix = if (includeRole) " [${app.role::class.simpleName}]" else ""

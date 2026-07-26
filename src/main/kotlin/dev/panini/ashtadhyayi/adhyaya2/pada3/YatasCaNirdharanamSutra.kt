@@ -7,11 +7,11 @@ import dev.panini.sutra.SutraInput
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
-import dev.panini.vyakaranam.analysis.KarakaEvidence
-import dev.panini.vyakaranam.analysis.VibhaktiRuleContext
-import dev.panini.vyakaranam.analysis.VibhaktiRuleResult
+import dev.panini.analysis.KarakaEvidence
+import dev.panini.analysis.VibhaktiRuleContext
+import dev.panini.analysis.VibhaktiRuleResult
 
-import dev.panini.vyakaranam.analysis.SemanticRelation
+import dev.panini.analysis.SemanticRelation
 
 /** Sūtra 2.3.41 यतश्च निर्धारणम्. Assigns Ṣaṣṭhī or Saptamī when selecting/distinguishing a member from a group. */
 object YatasCaNirdharanamSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(

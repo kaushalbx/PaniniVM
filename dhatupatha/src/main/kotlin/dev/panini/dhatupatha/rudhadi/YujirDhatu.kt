@@ -11,7 +11,7 @@ import dev.panini.execution.numericOp
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
-import dev.panini.vyakaranam.analysis.SemanticRelation
+import dev.panini.analysis.SemanticRelation
 
 /** Canonical Rudhādi entry युजिँर् योगे. */
 open class YujirDhatu : Dhatu(

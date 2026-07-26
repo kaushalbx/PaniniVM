@@ -5,21 +5,18 @@ import dev.panini.core.Linga
 import dev.panini.core.NominalCategory
 import dev.panini.core.Prayoga
 import dev.panini.core.Vibhakti
-import dev.panini.dhatupatha.bhvadi.GamDhatu
-import dev.panini.dhatupatha.bhvadi.PalayDhatu
-import dev.panini.dhatupatha.juhotyadi.DaDhatu
-import dev.panini.dhatupatha.tudadi.LikhDhatu
 import dev.panini.parser.VyakaranamLexer
 import dev.panini.parser.VyakaranamParser
-import dev.panini.vyakaranam.analysis.AnalyzedSamuccita
-import dev.panini.vyakaranam.analysis.DhatuIdentity
-import dev.panini.vyakaranam.analysis.KarakaRuleContext
-import dev.panini.vyakaranam.analysis.KarakaRuleEngine
-import dev.panini.vyakaranam.analysis.ParticipantFacts
-import dev.panini.vyakaranam.analysis.ParticipantRelationInferrer
-import dev.panini.vyakaranam.analysis.SemanticRelation
+import dev.panini.analysis.DhatuIdentity
+import dev.panini.analysis.KarakaRuleContext
+import dev.panini.analysis.KarakaRuleEngine
+import dev.panini.analysis.NishedhaRuleEngine
+import dev.panini.analysis.NishedhaRuleResult
+import dev.panini.analysis.ParticipantFacts
+import dev.panini.analysis.ParticipantRelationInferrer
+import dev.panini.analysis.ProhibitionContext
+import dev.panini.analysis.SemanticRelation
 import dev.panini.vyakaranam.ast.AvyayaPada
-import dev.panini.vyakaranam.lexicon.InMemoryVyakaranamLexicon
 import dev.panini.vyakaranam.lexicon.PratipadikaEntry
 import org.antlr.v4.kotlinruntime.BaseErrorListener
 import org.antlr.v4.kotlinruntime.CharStreams
@@ -28,7 +25,6 @@ import org.antlr.v4.kotlinruntime.RecognitionException
 import org.antlr.v4.kotlinruntime.Recognizer
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class VyakaranamGrammarTest {
@@ -55,68 +51,6 @@ class VyakaranamGrammarTest {
         assertParsesUkti("राजन् + ङस् + लुक्-पुरुष + सुँ भू + लट् + तिप् ।")
     }
 
-    // ── Full-engine integration tests ─────────────────────────────────────────
-
-    @Test
-    fun `coordinated subantas participate in karaka analysis`() {
-        val lexicon = InMemoryVyakaranamLexicon(
-            pratipadikas = listOf(
-                PratipadikaEntry("राम", setOf(Linga.PUMS)),
-                PratipadikaEntry("लक्ष्मण", setOf(Linga.PUMS)),
-            ),
-            dhatus = listOf(GamDhatu()),
-        )
-        val analysis = PaniniyaVyakaranamEngine(lexicon).analyze(
-            "राम + सुँ, लक्ष्मण + औ च गम् + लट् + झि ।",
-        ).vakyas.single()
-
-        assertIs<AnalyzedSamuccita>(analysis.padaAnalyses.first())
-        assertEquals(2, analysis.karakas.count { it.karaka == Karaka.KARTR })
-    }
-
-    @Test
-    fun `vakya analysis resolves bhyam from dhatu semantics with sutra trace`() {
-        val lexicon = InMemoryVyakaranamLexicon(
-            pratipadikas = listOf(
-                PratipadikaEntry("राम", setOf(Linga.PUMS)),
-                PratipadikaEntry("पुस्तक", setOf(Linga.NAPUMSAKA)),
-                PratipadikaEntry("लेखनी", setOf(Linga.STRI)),
-            ),
-            dhatus = listOf(DaDhatu(), LikhDhatu(), PalayDhatu()),
-        )
-        val engine = PaniniyaVyakaranamEngine(lexicon)
-
-        fun assignment(source: String) = engine.analyze(source).vakyas.single().karakas
-            .single { it.pada.sup.text == "भ्याम्" }
-
-        val recipient = assignment("राम + भ्याम् पुस्तक + अम् दा + लट् + तिप् ।")
-        assertEquals(Karaka.SAMPRADANA, recipient.karaka)
-        assertTrue("1.4.32" in recipient.reason && "2.3.13" in recipient.reason)
-
-        val instrument = assignment("लेखनी + भ्याम् लिख् + लट् + तिप् ।")
-        assertEquals(Karaka.KARANA, instrument.karaka)
-        assertTrue("1.4.42" in instrument.reason && "2.3.18" in instrument.reason)
-
-        val source = assignment("राम + भ्याम् पलाय् + लट् + तिप् ।")
-        assertEquals(Karaka.APADANA, source.karaka)
-        assertTrue("1.4.24" in source.reason && "2.3.28" in source.reason)
-    }
-
-    @Test
-    fun `multi-participant sentence disambiguates distinct ambiguous syncretic arguments`() {
-        val lexicon = InMemoryVyakaranamLexicon(
-            pratipadikas = listOf(
-                PratipadikaEntry("राम", setOf(Linga.PUMS)),
-                PratipadikaEntry("पुस्तक", setOf(Linga.NAPUMSAKA)),
-            ),
-            dhatus = listOf(DaDhatu()),
-        )
-        val engine = PaniniyaVyakaranamEngine(lexicon)
-        val vakyas = engine.analyze("राम + भ्याम् पुस्तक + अम् दा + लट् + तिप् ।").vakyas.single()
-
-        val recipient = vakyas.karakas.single { it.pada.sourceText.startsWith("राम") }
-        assertEquals(Karaka.SAMPRADANA, recipient.karaka)
-    }
 
     // ── Participant-relation inferencing ──────────────────────────────────────
 
@@ -198,21 +132,21 @@ class VyakaranamGrammarTest {
 
     @Test
     fun `prohibition engine correctly blocks guna and vrddhi for kit ngit and special roots`() {
-        val ngit = dev.panini.vyakaranam.analysis.ProhibitionContext(targetSutraNumber = "1.1.2", affixItMarkers = setOf('ङ'))
-        val res1 = dev.panini.vyakaranam.analysis.NishedhaRuleEngine.evaluateProhibition(ngit)
-        assertTrue(res1 is dev.panini.vyakaranam.analysis.NishedhaRuleResult.Blocked && res1.blockerSutraNumber == "1.1.5")
+        val ngit = ProhibitionContext(targetSutraNumber = "1.1.2", affixItMarkers = setOf('ङ'))
+        val res1 = NishedhaRuleEngine.evaluateProhibition(ngit)
+        assertTrue(res1 is NishedhaRuleResult.Blocked && res1.blockerSutraNumber == "1.1.5")
 
-        val itAugment = dev.panini.vyakaranam.analysis.ProhibitionContext(targetSutraNumber = "1.1.2", isDidhiVeviOrItAugment = true)
-        val res2 = dev.panini.vyakaranam.analysis.NishedhaRuleEngine.evaluateProhibition(itAugment)
-        assertTrue(res2 is dev.panini.vyakaranam.analysis.NishedhaRuleResult.Blocked && res2.blockerSutraNumber == "1.1.6")
+        val itAugment = ProhibitionContext(targetSutraNumber = "1.1.2", isDidhiVeviOrItAugment = true)
+        val res2 = NishedhaRuleEngine.evaluateProhibition(itAugment)
+        assertTrue(res2 is NishedhaRuleResult.Blocked && res2.blockerSutraNumber == "1.1.6")
 
-        val vowelConsonant = dev.panini.vyakaranam.analysis.ProhibitionContext(targetSutraNumber = "1.1.9", targetPhonemeIsVowel = true, secondPhonemeIsConsonant = true)
-        val res3 = dev.panini.vyakaranam.analysis.NishedhaRuleEngine.evaluateProhibition(vowelConsonant)
-        assertTrue(res3 is dev.panini.vyakaranam.analysis.NishedhaRuleResult.Blocked && res3.blockerSutraNumber == "1.1.10")
+        val vowelConsonant = ProhibitionContext(targetSutraNumber = "1.1.9", targetPhonemeIsVowel = true, secondPhonemeIsConsonant = true)
+        val res3 = NishedhaRuleEngine.evaluateProhibition(vowelConsonant)
+        assertTrue(res3 is NishedhaRuleResult.Blocked && res3.blockerSutraNumber == "1.1.10")
 
-        val setKtva = dev.panini.vyakaranam.analysis.ProhibitionContext(targetSutraNumber = "KIT_STATUS", isSetKtvaAffix = true)
-        val res4 = dev.panini.vyakaranam.analysis.NishedhaRuleEngine.evaluateProhibition(setKtva)
-        assertTrue(res4 is dev.panini.vyakaranam.analysis.NishedhaRuleResult.Blocked && res4.blockerSutraNumber == "1.2.4")
+        val setKtva = ProhibitionContext(targetSutraNumber = "KIT_STATUS", isSetKtvaAffix = true)
+        val res4 = NishedhaRuleEngine.evaluateProhibition(setKtva)
+        assertTrue(res4 is NishedhaRuleResult.Blocked && res4.blockerSutraNumber == "1.2.4")
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

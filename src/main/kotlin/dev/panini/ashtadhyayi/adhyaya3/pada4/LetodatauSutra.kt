@@ -6,7 +6,9 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.LetAugment
+import dev.panini.derivation.LetEOption
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.VarnaSubstitution
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -40,7 +42,7 @@ object LetodatauSutra : Sutra<DerivationState, DerivationChange>(
         val atmanepadaUpadeshas = setOf("त", "आताम्", "झ", "थास्", "आथाम्", "ध्वम्", "इट्", "वहि", "महिङ्")
         if (ending.upadesha in atmanepadaUpadeshas && ending.surface == ending.upadesha) return false
         if (ending.upadesha in setOf("आताम्", "आथाम्") && ending.surface !in setOf("ऐते", "ऐथे")) return false
-        if (context.effectiveContext.letEOption == dev.panini.derivation.LetEOption.AI &&
+        if (context.effectiveContext.letEOption == LetEOption.AI &&
             ending.upadesha in atmanepadaUpadeshas && ending.surface.endsWith("े")) return false
         return ending.id.startsWith("ting-")
     }
@@ -58,7 +60,7 @@ object LetodatauSutra : Sutra<DerivationState, DerivationChange>(
         }
         return DerivationChange(
             context.replaceTerm(ending.id, ending.copy(surface = augmentedSurface))
-                .addSubstitution(dev.panini.derivation.VarnaSubstitution(ending.id, ending.surface.first(), augmentedSurface, sutra)),
+                .addSubstitution(VarnaSubstitution(ending.id, ending.surface.first(), augmentedSurface, sutra)),
             "3.4.94 attaches the ${if (augment == LetAugment.AT) "अट्" else "आट्"} augment at the beginning of the LET ending.",
         )
     }

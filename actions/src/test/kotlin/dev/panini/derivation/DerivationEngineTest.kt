@@ -1,5 +1,7 @@
 package dev.panini.derivation
 
+import dev.panini.ashtadhyayi.adhyaya1.pada1.AdengGunaSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada1.VrddhirAdaicSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada2.VartamaneLatSutra
 import dev.panini.ashtadhyayi.adhyaya4.pada1.StriyamAdhikaraSutra
 import dev.panini.ashtadhyayi.adhyaya7.pada2.ArdhadhatukasyedValadehSutra
@@ -418,7 +420,7 @@ class DerivationEngineTest {
             terms = listOf(DerivationTerm("stem", "राम", TermKind.PRATIPADIKA)),
         )
 
-        val result = DerivationEngine(listOf(dev.panini.ashtadhyayi.adhyaya1.pada1.VrddhirAdaicSutra)).derive(initial)
+        val result = DerivationEngine(listOf(VrddhirAdaicSutra)).derive(initial)
 
         assertEquals("राम", result.final.surface)
         assertTrue(SamjnaAssignment("stem", Samjna.VRDDHI) in result.final.samjnas)
@@ -435,7 +437,7 @@ class DerivationEngineTest {
             terms = listOf(DerivationTerm("stem", "देव", TermKind.PRATIPADIKA)),
         )
 
-        val result = DerivationEngine(listOf(dev.panini.ashtadhyayi.adhyaya1.pada1.AdengGunaSutra)).derive(initial)
+        val result = DerivationEngine(listOf(AdengGunaSutra)).derive(initial)
 
         assertTrue(SamjnaAssignment("stem", Samjna.GUNA) in result.final.samjnas)
         assertEquals(listOf("1.1.2"), result.applications.map { it.sutra })

@@ -43,8 +43,10 @@ object SvaujasamauTchastaSutra : Sutra<DerivationState, DerivationChange>(
 
     private fun selectionFor(context: DerivationState): SupAffix? =
         context.effectiveContext.rupa.let { morphology ->
-            if (morphology.vibhakti != null && morphology.vacana != null) {
-                SupAffix.select(morphology.vibhakti, morphology.vacana)
+            val v = morphology.vibhakti
+            val n = morphology.vacana
+            if (v != null && n != null) {
+                SupAffix.select(v, n)
             } else null
         }
 }

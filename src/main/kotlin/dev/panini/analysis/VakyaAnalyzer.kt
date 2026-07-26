@@ -1,7 +1,8 @@
-package dev.panini.vyakaranam.analysis
+package dev.panini.analysis
 
 import dev.panini.core.Karaka
 import dev.panini.core.Prayoga
+import dev.panini.shiksha.Karmatva
 import dev.panini.vyakaranam.ast.AkhyataVakya
 import dev.panini.vyakaranam.ast.NamaVakya
 import dev.panini.vyakaranam.ast.SubantaPada
@@ -97,7 +98,7 @@ class VakyaAnalyzer(
 
         val isKarmaniOrBhave = text.contains("यक्") || text.contains("चिण्")
         if (isKarmaniOrBhave) {
-            val isAkarmaka = tinganta.lexicalEntry?.karmatva == dev.panini.shiksha.Karmatva.AKARMAKA
+            val isAkarmaka = tinganta.lexicalEntry?.karmatva == Karmatva.AKARMAKA
             return if (isAkarmaka) Prayoga.BHAVE else Prayoga.KARMANI
         }
 
@@ -144,7 +145,7 @@ class VakyaAnalyzer(
             KarakaRuleContext(
                 dhatu = DhatuIdentity(
                     surface = tinganta.lexicalEntry?.sourceSurface ?: tinganta.pada.dhatu.mulaDhatu,
-                    sakarmaka = tinganta.lexicalEntry?.karmatva != dev.panini.shiksha.Karmatva.AKARMAKA,
+                    sakarmaka = tinganta.lexicalEntry?.karmatva != Karmatva.AKARMAKA,
                 ),
                 participant = participant,
                 allParticipants = allParticipants,

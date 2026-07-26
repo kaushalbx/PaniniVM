@@ -25,9 +25,10 @@ class TingantaEngine(private val engine: DerivationEngine = DerivationEngine()) 
     ): TingantaParadigm {
         val dhatuEntry = findDhatu(dhatu)
         val targetPada = resolvePada(requireNotNull(dhatuEntry.pada), pada)
-        val matchingPlans = TingantaFormPlans.all().filter {
-            it.affix.pada == targetPada && it.lakara == lakara &&
-                (it.supportedGanas == null || dhatuEntry.gana in it.supportedGanas)
+        val matchingPlans = TingantaFormPlans.all().filter { plan ->
+            val ganas = plan.supportedGanas
+            plan.affix.pada == targetPada && plan.lakara == lakara &&
+                (ganas == null || dhatuEntry.gana in ganas)
         }
         require(matchingPlans.isNotEmpty()) {
             "No complete $lakara paradigm plan exists for ${dhatuEntry.gana}."

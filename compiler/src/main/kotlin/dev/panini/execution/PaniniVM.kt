@@ -3,6 +3,7 @@ package dev.panini.execution
 import dev.panini.execution.external.ExternalCapabilityDispatcher
 import dev.panini.execution.persistence.FileStateStore
 import dev.panini.execution.persistence.StateStore
+import dev.panini.execution.runtime.ExecutionPipeline
 import java.io.File
 
 /**

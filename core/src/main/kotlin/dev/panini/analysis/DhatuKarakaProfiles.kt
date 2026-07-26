@@ -1,4 +1,4 @@
-package dev.panini.vyakaranam.analysis
+package dev.panini.analysis
 
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.dhatupatha.DhatuPatha

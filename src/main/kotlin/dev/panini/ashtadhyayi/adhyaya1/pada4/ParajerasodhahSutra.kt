@@ -7,10 +7,10 @@ import dev.panini.sutra.SutraInput
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
-import dev.panini.vyakaranam.analysis.KarakaEvidence
-import dev.panini.vyakaranam.analysis.KarakaRuleContext
-import dev.panini.vyakaranam.analysis.KarakaRuleResult
-import dev.panini.vyakaranam.analysis.SemanticRelation
+import dev.panini.analysis.KarakaEvidence
+import dev.panini.analysis.KarakaRuleContext
+import dev.panini.analysis.KarakaRuleResult
+import dev.panini.analysis.SemanticRelation
 
 object ParajerasodhahSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     number = "1.4.26", text = "पराजेरसोढः",

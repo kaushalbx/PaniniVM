@@ -7,9 +7,9 @@ import dev.panini.sutra.SutraInput
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
-import dev.panini.vyakaranam.analysis.KarakaEvidence
-import dev.panini.vyakaranam.analysis.VibhaktiRuleContext
-import dev.panini.vyakaranam.analysis.VibhaktiRuleResult
+import dev.panini.analysis.KarakaEvidence
+import dev.panini.analysis.VibhaktiRuleContext
+import dev.panini.analysis.VibhaktiRuleResult
 
 /** Governing sūtra 2.3.1 अनभिहिते. Rules 2.3.2 to 2.3.73 apply only when the kāraka is unexpressed (anabhihita). */
 object AnabhihiteSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(

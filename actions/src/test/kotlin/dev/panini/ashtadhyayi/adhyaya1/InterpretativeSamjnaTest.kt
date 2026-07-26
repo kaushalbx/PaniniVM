@@ -8,7 +8,6 @@ import dev.panini.ashtadhyayi.adhyaya1.pada1.TasminNirdistePurvasyaSutra
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 

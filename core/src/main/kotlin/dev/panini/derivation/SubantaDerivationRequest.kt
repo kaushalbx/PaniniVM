@@ -6,10 +6,11 @@ import dev.panini.core.NominalCategory
 import dev.panini.core.Prayoga
 import dev.panini.core.Vacana
 import dev.panini.core.Vibhakti
-import dev.panini.vyakaranam.analysis.SemanticRelation
+import dev.panini.analysis.SemanticRelation
 import dev.panini.shiksha.Ayogavaha
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Vyanjana
+import dev.panini.analysis.ParticipantFacts
 
 /** Typed input for a nominal (sup) derivation. */
 data class SubantaDerivationRequest(
@@ -169,5 +170,5 @@ data class KarakaSubantaDerivationRequest(
     val semanticRelations: Set<SemanticRelation>? = null,
     val categories: Set<NominalCategory>? = null,
     val upapada: String? = null,
-    val otherParticipants: List<dev.panini.vyakaranam.analysis.ParticipantFacts>? = null,
+    val otherParticipants: List<ParticipantFacts>? = null,
 )

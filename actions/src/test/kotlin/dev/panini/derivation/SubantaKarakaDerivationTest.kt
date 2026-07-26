@@ -4,6 +4,7 @@ import dev.panini.core.Karaka
 import dev.panini.core.Prayoga
 import dev.panini.core.Vacana
 import dev.panini.core.Vibhakti
+import dev.panini.analysis.SemanticRelation
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -21,7 +22,7 @@ class SubantaKarakaDerivationTest {
                 prayoga = Prayoga.KARTARI
             )
         )
-        // Recipient of giving is resolved to Chaturthi. 
+        // Recipient of giving is resolved to Chaturthi.
         // For a-stem masculine "राम" -> "रामाय"
         assertEquals(Vibhakti.CHATURTHI, result.initial.context.rupa.vibhakti)
         assertEquals("रामाय", result.final.surface)
@@ -39,7 +40,7 @@ class SubantaKarakaDerivationTest {
                 prayoga = Prayoga.KARTARI
             )
         )
-        // Instrument of writing is resolved to Trtiya. 
+        // Instrument of writing is resolved to Trtiya.
         // For i-stem feminine "लेखनी" -> "लेखन्या" (via 7.3.116, etc.)
         assertEquals(Vibhakti.TRTIYA, result.initial.context.rupa.vibhakti)
         assertEquals("लेखन्या", result.final.surface)
@@ -106,7 +107,7 @@ class SubantaKarakaDerivationTest {
                 karaka = Karaka.SAMPRADANA,
                 vacana = Vacana.EKAVACANA,
                 dhatu = "पठ्",
-                semanticRelations = setOf(dev.panini.vyakaranam.analysis.SemanticRelation.RECIPIENT)
+                semanticRelations = setOf(SemanticRelation.RECIPIENT)
             )
         )
         assertEquals(Vibhakti.CHATURTHI, result.initial.context.rupa.vibhakti)

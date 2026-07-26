@@ -1,4 +1,4 @@
-package dev.panini.vyakaranam.analysis
+package dev.panini.analysis
 
 import dev.panini.core.Linga
 import dev.panini.core.NominalCategory

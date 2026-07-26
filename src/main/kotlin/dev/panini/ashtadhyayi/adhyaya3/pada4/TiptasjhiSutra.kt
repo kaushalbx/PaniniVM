@@ -6,7 +6,10 @@ import dev.panini.core.TingAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.SthaniProperties
+import dev.panini.derivation.TermKind
 import dev.panini.derivation.term
+import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -29,16 +32,16 @@ object TiptasjhiSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         val lastTerm = context.terms.lastOrNull() ?: return false
         val upadeshaOrSurface = lastTerm.upadesha ?: lastTerm.surface
-        return lastTerm.kind == dev.panini.derivation.TermKind.PRATYAYA &&
+        return lastTerm.kind == TermKind.PRATYAYA &&
             upadeshaOrSurface in Lakara.entries.map { it.upadesha } &&
             context.effectiveContext.rupa.let { it.purusha != null && it.vacana != null }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val lastTerm = context.terms.last()
-        val dhatuTerm = context.terms.firstOrNull { it.kind == dev.panini.derivation.TermKind.DHATU }
+        val dhatuTerm = context.terms.firstOrNull { it.kind == TermKind.DHATU }
         val lookupName = dhatuTerm?.upadesha ?: dhatuTerm?.surface ?: ""
-        val dhatus = dev.panini.dhatupatha.DhatuPatha.all.filter { it.upadesha == lookupName || it.derivationalSurface == lookupName }
+        val dhatus = DhatuPatha.all.filter { it.upadesha == lookupName || it.derivationalSurface == lookupName }
         val pada = dhatus.firstOrNull()?.pada ?: PadaType.PARASMAIPADA
         val targetPada = context.effectiveContext.rupa.pada ?: when (pada) {
             PadaType.PARASMAIPADA -> PadaType.PARASMAIPADA
@@ -50,7 +53,7 @@ object TiptasjhiSutra : Sutra<DerivationState, DerivationChange>(
             requireNotNull(TingAffix.select(requireNotNull(morphology.purusha), requireNotNull(morphology.vacana), targetPada)).term()
         }
         val replacementTerm = baseTerm.copy(
-            sthaniProps = dev.panini.derivation.SthaniProperties(
+            sthaniProps = SthaniProperties(
                 upadesha = lastTerm.upadesha ?: lastTerm.surface,
                 itMarkers = lastTerm.itMarkers
             )

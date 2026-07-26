@@ -8,20 +8,20 @@ import dev.panini.execution.ExecutionResult
 import dev.panini.execution.SanskritValue
 
 /** Standard Console Input Action (triggered by ग्रह् / गृह्णीहि). */
-object SanskritReadAction : DhatuAction("स्वीकरणम्", "निवेशस्य स्वीकरणम्") {
-    override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
+object SanskritReadAction : dev.panini.execution.DhatuAction("स्वीकरणम्", "निवेशस्य स्वीकरणम्") {
+    override fun execute(context: dev.panini.execution.ExecutionContext, operation: dev.panini.execution.DhatuOperation): dev.panini.execution.ExecutionResult {
         val readValue = "स्वीकृतम्"
         val expression = context.bindings[Karaka.KARMAN]
         val variableName = expression?.let { context.resolve(it).firstOrNull() } ?: "आगतम्"
 
-        return ExecutionResult.Success(
+        return _root_ide_package_.dev.panini.execution.ExecutionResult.Success(
             readValue,
             operation.name,
             listOf(
                 "Selected operation ${operation.name}.",
                 "Read input into variable $variableName.",
             ),
-            SanskritValue.Shabda(readValue),
+            _root_ide_package_.dev.panini.execution.SanskritValue.Shabda(readValue),
         )
     }
 }

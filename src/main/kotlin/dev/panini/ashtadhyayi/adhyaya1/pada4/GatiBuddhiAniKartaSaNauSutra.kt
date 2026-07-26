@@ -8,11 +8,11 @@ import dev.panini.sutra.SutraInput
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
-import dev.panini.vyakaranam.analysis.KarakaEvidence
-import dev.panini.vyakaranam.analysis.KarakaRuleContext
-import dev.panini.vyakaranam.analysis.KarakaRuleResult
+import dev.panini.analysis.KarakaEvidence
+import dev.panini.analysis.KarakaRuleContext
+import dev.panini.analysis.KarakaRuleResult
 
-import dev.panini.vyakaranam.analysis.SemanticRelation
+import dev.panini.analysis.SemanticRelation
 
 /**
  * Sūtra 1.4.52 गतिबुद्धिप्रत्यवसानार्थशब्दकर्माकर्मकाणामणि कर्ता स णौ.

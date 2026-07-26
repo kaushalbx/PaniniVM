@@ -7,10 +7,11 @@ import dev.panini.sutra.SutraInput
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
-import dev.panini.vyakaranam.analysis.KarakaEvidence
-import dev.panini.vyakaranam.analysis.KarakaRuleContext
-import dev.panini.vyakaranam.analysis.KarakaRuleResult
-import dev.panini.vyakaranam.analysis.SemanticRelation
+import dev.panini.analysis.KarakaEvidence
+import dev.panini.analysis.KarakaRuleContext
+import dev.panini.analysis.KarakaRuleResult
+import dev.panini.analysis.SemanticRelation
+import dev.panini.vyakaranam.ast.TingantaPada
 
 object PratyangbhruvahPurvasyaKartaSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     number = "1.4.40", text = "प्रत्याङ्भ्रुवः पूर्वस्य कर्ता",
@@ -21,7 +22,7 @@ object PratyangbhruvahPurvasyaKartaSutra : Sutra<KarakaRuleContext, KarakaRuleRe
     adhikara = setOf("1.4.23"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
-        val tinganta = context.verbNode as? dev.panini.vyakaranam.ast.TingantaPada ?: return false
+        val tinganta = context.verbNode as? TingantaPada ?: return false
         val hasPrefix = tinganta.upasargas.any { it == "प्रति" || it == "आ" }
         val isShru = context.baseDhatu?.let { it.upadesha == "श्रु" || it.upadesha == "श्रुँ" || it.sourceSurface == "श्रु" }
                      ?: (tinganta.dhatu.mulaDhatu == "श्रु")

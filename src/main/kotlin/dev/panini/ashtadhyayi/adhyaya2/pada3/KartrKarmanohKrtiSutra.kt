@@ -8,9 +8,9 @@ import dev.panini.sutra.SutraInput
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
-import dev.panini.vyakaranam.analysis.KarakaEvidence
-import dev.panini.vyakaranam.analysis.VibhaktiRuleContext
-import dev.panini.vyakaranam.analysis.VibhaktiRuleResult
+import dev.panini.analysis.KarakaEvidence
+import dev.panini.analysis.VibhaktiRuleContext
+import dev.panini.analysis.VibhaktiRuleResult
 
 /** Rule 2.3.65 कर्तृकर्मणोः कृति. Assigns Ṣaṣṭhī to unexpressed Kartā or Karman in connection with a Kṛt affix. */
 object KartrKarmanohKrtiSutra : Sutra<VibhaktiRuleContext, VibhaktiRuleResult>(

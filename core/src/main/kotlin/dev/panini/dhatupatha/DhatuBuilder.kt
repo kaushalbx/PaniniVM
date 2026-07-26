@@ -5,7 +5,7 @@ import dev.panini.core.PadaType
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
-import dev.panini.vyakaranam.analysis.SemanticRelation
+import dev.panini.analysis.SemanticRelation
 
 /** Small DSL used by each gaṇa file to preserve Dhātupāṭha order. */
 class DhatuBuilder(private val gana: DhatuGana) {

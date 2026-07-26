@@ -27,15 +27,10 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.SamjnaAssignment
 import dev.panini.derivation.TermKind
-import dev.panini.execution.DhatuAction
-import dev.panini.execution.DhatuOperation
-import dev.panini.execution.ExecutionContext
-import dev.panini.execution.ExecutionError
-import dev.panini.execution.ExecutionResult
 import dev.panini.shiksha.Samjna
 
 /** Sandhi joining (saṃhitā) over text operands using the Panini Ashtadhyayi rules via DerivationEngine. */
-object SanskritSandhiAction : DhatuAction("संहिताकरणम्", "पदानां सन्धियोगः") {
+object SanskritSandhiAction : dev.panini.execution.DhatuAction("संहिताकरणम्", "पदानां सन्धियोगः") {
     private val sandhiSutras: List<DerivationSutra> = listOf(
         SavarnaDirghaSutra,
         IkoYanAciSutra,
@@ -60,7 +55,7 @@ object SanskritSandhiAction : DhatuAction("संहिताकरणम्", "
 
     private val derivationEngine = DerivationEngine(sandhiSutras)
 
-    override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
+    override fun execute(context: dev.panini.execution.ExecutionContext, operation: dev.panini.execution.DhatuOperation): dev.panini.execution.ExecutionResult {
         val expression = requireNotNull(context.bindings[Karaka.KARMAN])
         val padas = context.literals(expression)
         val operands = if (padas != null && padas.size >= 2) {
@@ -70,8 +65,8 @@ object SanskritSandhiAction : DhatuAction("संहिताकरणम्", "
         }
 
         if (operands.size < 2) {
-            return ExecutionResult.Failure(
-                ExecutionError.INVALID_VALUE,
+            return _root_ide_package_.dev.panini.execution.ExecutionResult.Failure(
+                _root_ide_package_.dev.panini.execution.ExecutionError.INVALID_VALUE,
                 "Sandhi joining requires at least 2 text operands.",
                 listOf("Selected operation ${operation.name}."),
             )
@@ -81,7 +76,7 @@ object SanskritSandhiAction : DhatuAction("संहिताकरणम्", "
             applySandhiPair(acc, next)
         }
 
-        return ExecutionResult.Success(
+        return _root_ide_package_.dev.panini.execution.ExecutionResult.Success(
             result,
             operation.name,
             listOf(

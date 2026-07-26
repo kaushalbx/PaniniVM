@@ -2,15 +2,14 @@ package dev.panini.ashtadhyayi.adhyaya2.pada3
 
 import dev.panini.core.Karaka
 import dev.panini.core.Vibhakti
-import dev.panini.vyakaranam.analysis.KarakaEvidence
-import dev.panini.vyakaranam.analysis.NishedhaRuleEngine
-import dev.panini.vyakaranam.analysis.NishedhaRuleResult
-import dev.panini.vyakaranam.analysis.ParticipantFacts
-import dev.panini.vyakaranam.analysis.ProhibitionContext
-import dev.panini.vyakaranam.analysis.SemanticRelation
-import dev.panini.vyakaranam.analysis.VibhaktiRuleContext
-import dev.panini.vyakaranam.analysis.VibhaktiRuleResult
-import dev.panini.vyakaranam.ast.Pada
+import dev.panini.analysis.NishedhaRuleEngine
+import dev.panini.analysis.NishedhaRuleResult
+import dev.panini.analysis.ParticipantFacts
+import dev.panini.analysis.ProhibitionContext
+import dev.panini.analysis.SemanticRelation
+import dev.panini.analysis.VibhaktiRuleContext
+import dev.panini.analysis.VibhaktiRuleResult
+import dev.panini.vyakaranam.ast.AvyayaPada
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -22,7 +21,7 @@ class RemainingVibhaktiSutrasTest {
         possibleVibhaktis: Set<Vibhakti> = Vibhakti.values().toSet(),
     ) = ParticipantFacts(
         id = "test-participant",
-        expression = dev.panini.vyakaranam.ast.AvyayaPada(sourceText = "test", form = "test"),
+        expression = AvyayaPada(sourceText = "test", form = "test"),
         possibleVibhaktis = possibleVibhaktis,
         semanticRelations = relations,
     )

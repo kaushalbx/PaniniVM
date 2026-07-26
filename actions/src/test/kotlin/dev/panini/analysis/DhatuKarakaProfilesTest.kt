@@ -1,8 +1,10 @@
-package dev.panini.vyakaranam.analysis
+package dev.panini.analysis
 
 import dev.panini.core.Karaka
 import dev.panini.core.Prayoga
 import dev.panini.core.Vibhakti
+import dev.panini.dhatupatha.DhatuPatha
+import dev.panini.vyakaranam.ast.AvyayaPada
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -34,7 +36,7 @@ class DhatuKarakaProfilesTest {
         assertNotNull(profile)
         val participant = ParticipantFacts(
             id = "gramam",
-            expression = dev.panini.vyakaranam.ast.AvyayaPada("ग्रामम्", "ग्रामम्"),
+            expression = AvyayaPada("ग्रामम्", "ग्रामम्"),
             possibleVibhaktis = setOf(Vibhakti.DVITIYA),
             semanticRelations = profile.relations,
         )
@@ -55,7 +57,7 @@ class DhatuKarakaProfilesTest {
         assertNotNull(profile)
         val participant = ParticipantFacts(
             id = "karyam",
-            expression = dev.panini.vyakaranam.ast.AvyayaPada("कार्यम्", "कार्यम्"),
+            expression = AvyayaPada("कार्यम्", "कार्यम्"),
             possibleVibhaktis = setOf(Vibhakti.DVITIYA),
             semanticRelations = profile.relations,
         )
@@ -72,7 +74,7 @@ class DhatuKarakaProfilesTest {
 
     @Test
     fun `dhatu instance semantic relations are dynamically merged into profiles`() {
-        val yujirDhatu = dev.panini.dhatupatha.DhatuPatha.all.first { it.sourceSurface == "युज्" }
+        val yujirDhatu = DhatuPatha.all.first { it.sourceSurface == "युज्" }
         val profile = DhatuKarakaProfiles.forSurface(yujirDhatu.upadesha)
         assertNotNull(profile)
         assertTrue(profile.relations.contains(SemanticRelation.DESIRED_OBJECT))

@@ -1,4 +1,4 @@
-package dev.panini.vyakaranam.analysis
+package dev.panini.analysis
 
 import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.ashtadhyayi.adhyaya1.pada4.BhuvahPrabhavahSutra
@@ -41,53 +41,6 @@ import dev.panini.core.Prayoga
 import dev.panini.core.Vibhakti
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraRole
-
-data class KarakaEvidence(
-    val sutra: String,
-    val text: String,
-    val reason: String,
-)
-
-data class KarakaResolution(
-    val candidates: Set<Karaka>,
-    val resolved: Karaka?,
-    val possibleVibhaktis: Set<Vibhakti>,
-    val evidence: List<KarakaEvidence>,
-    val resolvedVibhakti: Vibhakti? = null,
-)
-
-data class DhatuIdentity(
-    val surface: String,
-    val sakarmaka: Boolean = true,
-)
-
-data class KarakaRuleContext(
-    val dhatu: DhatuIdentity,
-    val participant: ParticipantFacts,
-    val allParticipants: List<ParticipantFacts>,
-    val prayoga: Prayoga,
-    val candidates: Set<Karaka> = emptySet(),
-    val verbNode: dev.panini.vyakaranam.ast.Pada? = null,
-    val baseDhatu: dev.panini.dhatupatha.Dhatu? = null,
-)
-
-sealed interface KarakaRuleResult {
-    data class Assigned(val karaka: Karaka, val evidence: KarakaEvidence) : KarakaRuleResult
-}
-
-data class VibhaktiRuleContext(
-    val karaka: Karaka,
-    val morphologicalCandidates: Set<Vibhakti>,
-    val abhihita: Boolean = false,
-    val participant: ParticipantFacts? = null,
-) {
-    fun accepts(expectedKaraka: Karaka, vibhakti: Vibhakti): Boolean =
-        !abhihita && karaka == expectedKaraka && vibhakti in morphologicalCandidates
-}
-
-sealed interface VibhaktiRuleResult {
-    data class Assigned(val vibhakti: Vibhakti, val evidence: KarakaEvidence) : VibhaktiRuleResult
-}
 
 /** Semantic kāraka assignment (1.4) followed by nominal-case validation (2.3). */
 object KarakaRuleEngine {

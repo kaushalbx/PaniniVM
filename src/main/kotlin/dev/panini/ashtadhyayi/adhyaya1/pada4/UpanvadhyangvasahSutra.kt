@@ -7,10 +7,11 @@ import dev.panini.sutra.SutraInput
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
-import dev.panini.vyakaranam.analysis.KarakaEvidence
-import dev.panini.vyakaranam.analysis.KarakaRuleContext
-import dev.panini.vyakaranam.analysis.KarakaRuleResult
-import dev.panini.vyakaranam.analysis.SemanticRelation
+import dev.panini.analysis.KarakaEvidence
+import dev.panini.analysis.KarakaRuleContext
+import dev.panini.analysis.KarakaRuleResult
+import dev.panini.analysis.SemanticRelation
+import dev.panini.vyakaranam.ast.TingantaPada
 
 object UpanvadhyangvasahSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     number = "1.4.48", text = "उपान्वध्याङ्वसः",
@@ -21,7 +22,7 @@ object UpanvadhyangvasahSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     adhikara = setOf("1.4.23"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
-        val tinganta = context.verbNode as? dev.panini.vyakaranam.ast.TingantaPada ?: return false
+        val tinganta = context.verbNode as? TingantaPada ?: return false
         val hasPrefix = tinganta.upasargas.any { it == "उप" || it == "अनु" || it == "अधि" || it == "आ" }
         val isVas = context.baseDhatu?.let { it.upadesha == "वसँ" || it.upadesha == "वस्" || it.upadesha == "वस" }
                     ?: (tinganta.dhatu.mulaDhatu == "वस" || tinganta.dhatu.mulaDhatu == "वस्")
