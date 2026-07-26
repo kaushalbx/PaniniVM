@@ -3,6 +3,8 @@ package dev.panini.plugin
 import com.intellij.lang.documentation.AbstractDocumentationProvider
 import com.intellij.psi.PsiElement
 import dev.panini.dhatupatha.DhatuPatha
+import dev.panini.execution.ExecutionResult
+import dev.panini.execution.PaniniVM
 import dev.panini.ganapatha.GanaPatha
 
 class PvmDocumentationProvider : AbstractDocumentationProvider() {
@@ -11,6 +13,16 @@ class PvmDocumentationProvider : AbstractDocumentationProvider() {
         val target = originalElement ?: element ?: return null
         val text = target.text.trim()
         if (text.isEmpty()) return null
+
+        // 0. Check for Sandhi Expression containing '+'
+        val parentText = target.parent?.text?.trim() ?: ""
+        val candidateExpr = if (parentText.contains("+")) parentText else if (text.contains("+")) text else ""
+        if (candidateExpr.isNotEmpty()) {
+            val sandhiDoc = getSandhiDoc(candidateExpr)
+            if (sandhiDoc != null) {
+                return sandhiDoc
+            }
+        }
 
         // 1. Check Gaṇapāṭha by Gaṇa Name
         val ganasByName = GanaPatha.all.filter { it.name.contains(text, ignoreCase = true) || text.contains(it.name, ignoreCase = true) }
@@ -77,6 +89,25 @@ class PvmDocumentationProvider : AbstractDocumentationProvider() {
         }
 
         return null
+    }
+
+    private fun getSandhiDoc(expression: String): String? {
+        val vm = PaniniVM()
+        val result = runCatching { vm.eval(expression) }.getOrNull() ?: return null
+        if (result !is ExecutionResult.Success || result.value.isBlank()) return null
+
+        val sb = StringBuilder("<html><body>")
+        sb.append("<h2>PaniniVM Sandhi Conjugated Surface Form</h2>")
+        sb.append("<p><b>Original Expression:</b> <code>$expression</code></p>")
+        sb.append("<p><b>Sandhi Conjugated Form:</b> <font color=\"#2E7D32\" size=\"+1\"><b>${result.value}</b></font></p>")
+        sb.append("<p><b>Operation:</b> ${result.operation}</p>")
+        if (result.trace.isNotEmpty()) {
+            sb.append("<h4>Derivation Trace:</h4><ul>")
+            result.trace.forEach { sb.append("<li>$it</li>") }
+            sb.append("</ul>")
+        }
+        sb.append("</body></html>")
+        return sb.toString()
     }
 
     private fun getAffixDoc(text: String): String? {

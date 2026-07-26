@@ -18,6 +18,7 @@ dependencies {
     implementation(project(":ganapatha"))
     implementation(project(":compiler"))
     implementation(project(":cli"))
+    implementation(project(":ashtadhyayi"))
     testImplementation(kotlin("test"))
 }
 
