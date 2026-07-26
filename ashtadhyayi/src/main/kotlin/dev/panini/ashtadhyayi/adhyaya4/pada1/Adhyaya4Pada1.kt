@@ -11,6 +11,6 @@ object Adhyaya4Pada1 {
         NadadibhyahPhakSutra, AnrshyanantaryeBidadibhyoAnySutra, GargadibhyoYanySutra, AshvadibhyahPhanySutra,
         ShivadibhyoAnySutra, ShubhradibhyashCaSutra, KalyanyadinamInangSutra, GrshtyadibhyashCaSutra,
         RevatyadibhyashThakSutra, KurvadibhyoNyahSutra, TikadibhyahPhinySutra, VakinadinamKukCaSutra,
-        KambojalLukSutra, SvaujasamauTchastaSutra,
+        KambojalLukSutra, SvaujasamauTchastaSutra, RnnebyoNipSutra, YuvatisTihSutra,
     )
 }
