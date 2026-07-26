@@ -1,5 +1,6 @@
 package dev.panini.dhatupatha.divadi
 
+import dev.panini.analysis.SemanticRelation
 import dev.panini.core.DhatuGana
 import dev.panini.core.PadaType
 import dev.panini.dhatupatha.Dhatu
@@ -28,6 +29,7 @@ object DivadiDhatus {
                 "04.0003", 3, "स्रिवुँ", "स्रिव्",
                 "गतिशोषणयोः", "जाना, शुष्क होना, सूखना", "to go, to dry up",
                 PadaType.PARASMAIPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
+                semanticRelations = setOf(SemanticRelation.MOTION),
             )
             dhatu(
                 "04.0004", 4, "ष्ठिवुँ", "ष्ठिव्",

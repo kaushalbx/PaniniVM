@@ -24,6 +24,7 @@ object BhvadiDhatus {
                 ItStatus.SET,
                 Karmatva.AKARMAKA,
                 Accent.UDATTA,
+                semanticRelations = setOf(SemanticRelation.EXISTENCE),
             )
             dhatu(
                 "01.0002",
@@ -37,6 +38,7 @@ object BhvadiDhatus {
                 ItStatus.SET,
                 Karmatva.AKARMAKA,
                 Accent.UDATTA,
+                semanticRelations = setOf(SemanticRelation.CREATION),
             )
             dhatu(
                 "01.0003",
