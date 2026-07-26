@@ -44,6 +44,28 @@ class SanadiEngineTest {
     }
 
     @Test
+    fun `yanluk derives bobhaviti and cekriti`() {
+        val res1 = engine.derive(SanadiDerivationRequest("भू", Samjna.YAN_LUK))
+        assertEquals("बोभवीति", res1.final.surface)
+        assertTrue(res1.applications.any { it.sutra == "3.1.22" })
+        assertTrue(res1.applications.any { it.sutra == "2.4.74" })
+
+        val res2 = engine.derive(SanadiDerivationRequest("कृ", Samjna.YAN_LUK))
+        assertEquals("चेक्रीति", res2.final.surface)
+    }
+
+    @Test
+    fun `cn-aorist derives abibhavat and acikarat`() {
+        val res1 = engine.derive(SanadiDerivationRequest("भू", Samjna.CAN))
+        assertEquals("अबीभवत्", res1.final.surface)
+        assertTrue(res1.applications.any { it.sutra == "3.1.48" })
+        assertTrue(res1.applications.any { it.sutra == "7.4.93" })
+
+        val res2 = engine.derive(SanadiDerivationRequest("कृ", Samjna.CAN))
+        assertEquals("अचीकरत्", res2.final.surface)
+    }
+
+    @Test
     fun `denominative kyac derives putriyati`() {
         val res1 = engine.derive(SanadiDerivationRequest("पुत्र", Samjna.KYAC))
         assertEquals("पुत्रीयति", res1.final.surface)

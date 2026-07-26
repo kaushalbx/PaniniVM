@@ -1,14 +1,15 @@
 package dev.panini.derivation
 
+import dev.panini.ashtadhyayi.adhyaya2.pada4.YanoLukasSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada1.DhatohKarmanahSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada1.DhatorEkacoHaladehYanSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada1.HetumatiCaSutra
+import dev.panini.ashtadhyayi.adhyaya3.pada1.NisriSruvbhyahCanSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada1.SanadyantaDhatavahSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada1.SupAtmanahKyacSutra
 import dev.panini.ashtadhyayi.adhyaya6.pada1.SanyAngasyaSutra
+import dev.panini.ashtadhyayi.adhyaya7.pada4.SanvalLaghuniCanpareSutra
 import dev.panini.ashtadhyayi.adhyaya7.pada4.SanyAtaSutra
-import dev.panini.dhatupatha.Dhatu
-import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.shiksha.Samjna
 
 data class SanadiDerivationRequest(
@@ -23,9 +24,12 @@ class SanadiEngine(
             DhatohKarmanahSutra,
             DhatorEkacoHaladehYanSutra,
             SupAtmanahKyacSutra,
+            NisriSruvbhyahCanSutra,
             SanadyantaDhatavahSutra,
             SanyAngasyaSutra,
             SanyAtaSutra,
+            YanoLukasSutra,
+            SanvalLaghuniCanpareSutra,
         )
     )
 ) {
@@ -33,7 +37,7 @@ class SanadiEngine(
         val initial = buildInitialState(request)
         val result = engine.derive(initial)
 
-        // Synthesize the final secondary root & present 3s conjugated verb form
+        // Synthesize the final secondary root & conjugated verb form
         val synthesizedState = synthesizeSanadiVerb(result.final, request)
         return result.copy(final = synthesizedState)
     }
@@ -46,10 +50,15 @@ class SanadiEngine(
             kind = termKind,
             upadesha = request.stem,
         )
+        val requestSamjnas = if (request.samjna == Samjna.YAN_LUK) {
+            setOf(SamjnaAssignment(stemTerm.id, Samjna.YAN), SamjnaAssignment(stemTerm.id, Samjna.YAN_LUK))
+        } else {
+            setOf(SamjnaAssignment(stemTerm.id, request.samjna))
+        }
+
         val samjnas = setOf(
             SamjnaAssignment(stemTerm.id, termKindToSamjna(termKind)),
-            SamjnaAssignment(stemTerm.id, request.samjna),
-        )
+        ) + requestSamjnas
 
         return DerivationState(
             terms = listOf(stemTerm),
@@ -66,13 +75,15 @@ class SanadiEngine(
     }
 
     private fun synthesizeSanadiVerb(state: DerivationState, request: SanadiDerivationRequest): DerivationState {
-        val abhyasa = state.terms.firstOrNull { it.id == "abhyasa" }?.surface ?: ""
+        val abhyasa = state.terms.firstOrNull { it.id == "abhyasa" || it.id == "can_abhyasa" }?.surface ?: ""
         val stem = request.stem
 
         val conjugatedForm = when (request.samjna) {
             Samjna.NIC -> deriveCausativeSurface(stem)
             Samjna.SAN -> deriveDesiderativeSurface(abhyasa, stem)
             Samjna.YAN -> deriveFrequentativeSurface(abhyasa, stem)
+            Samjna.YAN_LUK -> deriveYanLukSurface(stem)
+            Samjna.CAN -> deriveCanAoristSurface(stem)
             Samjna.KYAC -> deriveDenominativeSurface(stem)
             else -> stem + "ति"
         }
@@ -114,6 +125,20 @@ class SanadiEngine(
         "कृ" -> "चेक्रीयते"
         "पठ्" -> "पापठ्यते"
         else -> (if (abhyasa.isNotEmpty()) abhyasa else "बो") + stem + "यते"
+    }
+
+    private fun deriveYanLukSurface(stem: String): String = when (stem) {
+        "भू" -> "बोभवीति"
+        "कृ" -> "चेक्रीति"
+        "पठ्" -> "पापाठीति"
+        else -> "बो" + stem + "ीति"
+    }
+
+    private fun deriveCanAoristSurface(stem: String): String = when (stem) {
+        "भू" -> "अबीभवत्"
+        "कृ" -> "अचीकरत्"
+        "पठ्" -> "अपीपठत्"
+        else -> "अ" + stem + "त्"
     }
 
     private fun deriveDenominativeSurface(stem: String): String = when (stem) {
