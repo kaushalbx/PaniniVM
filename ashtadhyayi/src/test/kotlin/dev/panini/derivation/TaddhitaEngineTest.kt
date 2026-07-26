@@ -131,4 +131,17 @@ class TaddhitaEngineTest {
         assertEquals("पटुतम", res2.final.surface)
         assertTrue(res2.applications.any { it.sutra == "5.3.57" })
     }
+
+    @Test
+    fun `derivePatronymic derives Vasudevah Dasarathih and Gargyah`() {
+        val res1 = TaddhitaEngine().derivePatronymic("वसुदेव", dev.panini.shiksha.Samjna.AN_PRATYAYA)
+        assertEquals("वासुदेवः", res1.final.surface)
+        assertTrue(res1.applications.any { it.sutra == "4.1.92" })
+
+        val res2 = TaddhitaEngine().derivePatronymic("दशरथ", dev.panini.shiksha.Samjna.IN_PRATYAYA)
+        assertEquals("दाशरथिः", res2.final.surface)
+
+        val res3 = TaddhitaEngine().derivePatronymic("गर्ग", dev.panini.shiksha.Samjna.YAN_PRATYAYA)
+        assertEquals("गार्ग्यः", res3.final.surface)
+    }
 }
