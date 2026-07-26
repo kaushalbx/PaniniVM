@@ -8,6 +8,7 @@ object ExecutionPipeline {
         scope: ExecutionScope,
     ): Phala {
         dev.panini.sankhya.SankhyaCountingFormRenderer.init()
+        dev.panini.dhatupatha.DhatuPathaRegistration.ensureRegistered()
         return when (val binding = VyakaranamExecutionAdapter.bind(input, conversation)) {
             is ExecutionBindingResult.Bound -> execute(binding.ukti, conversation, scope)
                 .prependTrace(binding.trace)

@@ -112,7 +112,7 @@ internal object RuleConflictResolver {
 }
 
 /** A rule sees a controlled view of the derivation, rather than a global gate. */
-internal object RuleVisibility {
+object RuleVisibility {
     fun permits(sutra: DerivationSutra, state: DerivationState): Boolean = when (sutra.visibility) {
         SutraVisibility.NORMAL -> true
         SutraVisibility.ASIDDHAVAT -> sutra.isAbhiya()

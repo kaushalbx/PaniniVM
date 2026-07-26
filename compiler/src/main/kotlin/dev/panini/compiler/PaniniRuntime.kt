@@ -42,6 +42,7 @@ object PaniniRuntime {
 
     @JvmStatic
     fun resolveOperation(dhatuUpadesha: String, operationName: String): DhatuOperation {
+        dev.panini.dhatupatha.DhatuPathaRegistration.ensureRegistered()
         val normalized = dhatuUpadesha.trimEnd('्', 'ँ')
         val dhatu = DhatuPatha.all.firstOrNull { 
             it.upadesha == dhatuUpadesha || 
