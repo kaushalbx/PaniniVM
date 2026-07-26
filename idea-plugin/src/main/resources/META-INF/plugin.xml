@@ -1,0 +1,29 @@
+<idea-plugin>
+    <id>dev.panini.idea-plugin</id>
+    <name>PaniniVM Language Support</name>
+    <vendor email="support@panini.dev" url="https://github.com/kaushalbx/PaniniVM">Pāṇini Team</vendor>
+
+    <description><![CDATA[
+      JetBrains IntelliJ IDEA plugin for PaniniVM (.pvm) Sanskrit programming script files.
+      Features include file type recognition, custom file icons, AST parsing, syntax highlighting, and color settings configuration.
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <fileType
+                name="PaniniVM"
+                implementationClass="dev.panini.plugin.PvmFileType"
+                fieldName="INSTANCE"
+                language="PaniniVM"
+                extensions="pvm"/>
+        <lang.parserDefinition
+                language="PaniniVM"
+                implementationClass="dev.panini.plugin.PvmParserDefinition"/>
+        <lang.syntaxHighlighterFactory
+                language="PaniniVM"
+                implementationClass="dev.panini.plugin.PvmSyntaxHighlighterFactory"/>
+        <colorSettingsPage
+                implementation="dev.panini.plugin.PvmColorSettingsPage"/>
+    </extensions>
+</idea-plugin>
