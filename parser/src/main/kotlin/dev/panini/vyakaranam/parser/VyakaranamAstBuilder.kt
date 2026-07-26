@@ -122,6 +122,20 @@ class VyakaranamAstBuilder {
         )
     }
 
+    private fun buildKatapayadiPada(
+        context: PaniniyaVyakaranamParser.KatapayadiPadaContext,
+    ): KatapayadiPada {
+        val word = context.IDENTIFIER().text
+        return KatapayadiPada(
+            sourceText = context.text,
+            word = word,
+            sup = SupPratyaya(
+                sourceText = context.supPratyaya()!!.text,
+                text = context.supPratyaya()!!.text,
+            ),
+        )
+    }
+
     private fun buildSubantaVakyaPada(
         context: PaniniyaVyakaranamParser.SubantaVakyaPadaContext,
     ): List<Pada> =
@@ -140,6 +154,9 @@ class VyakaranamAstBuilder {
 
             context.sankhyaAbhyasaPada() != null ->
                 listOf(buildSankhyaAbhyasaPada(context.sankhyaAbhyasaPada()!!))
+
+            context.katapayadiPada() != null ->
+                listOf(buildKatapayadiPada(context.katapayadiPada()!!))
 
             else -> error("अज्ञातं सुबन्तवाक्यपदम्: ${context.text}")
         }

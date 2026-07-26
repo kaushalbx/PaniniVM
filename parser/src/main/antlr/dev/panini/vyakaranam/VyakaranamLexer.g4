@@ -95,6 +95,7 @@ DVIH            : 'द्विः' ;
 TRIH            : 'त्रिः' ;
 CHATUH          : 'चतुः' ;
 KRITVAS         : 'कृत्वस्' | 'कृत्वः' ;
+KATAPAYADI      : 'कटपय' | 'कटपयाद्या' | 'कटपयादि' ;
 
 INTERJECTION
     : 'अहो'

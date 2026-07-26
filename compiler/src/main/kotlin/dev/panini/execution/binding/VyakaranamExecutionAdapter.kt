@@ -27,6 +27,8 @@ import dev.panini.analysis.ParticipantFacts
 import dev.panini.vyakaranam.ast.AkhyataVakya
 import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.KridantaPratipadika
+import dev.panini.katapayadi.KatapayadiDecoder
+import dev.panini.vyakaranam.ast.KatapayadiPada
 import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.vyakaranam.ast.Pada
 import dev.panini.vyakaranam.ast.Pratipadika
@@ -51,6 +53,7 @@ object VyakaranamExecutionAdapter {
     private val parser = PaniniParser()
     private val sankhyaGenerator = SankhyaGenerator()
     private val sankhyaEvaluator = dev.panini.sankhya.SankhyaEvaluator()
+    private val katapayadiDecoder = KatapayadiDecoder()
 
     fun bind(input: SanskritUktiInput, conversation: SambhashanaContext): ExecutionBindingResult {
         if (input.text.isBlank()) return ExecutionBindingResult.Invalid("The Sanskrit utterance is empty.")
@@ -202,6 +205,15 @@ object VyakaranamExecutionAdapter {
                     addBinding(
                         ExecutionExpression.Companion.sankhya(value, pada.sourceText),
                         setOf(Karaka.ANIRDHARITA, Karaka.KARMAN),
+                    )
+                }
+                is KatapayadiPada -> {
+                    val value = pada.value ?: katapayadiDecoder.decode(pada.word)
+                    val sub = SubantaPada(pada.sourceText, SankhyaPratipadika(pada.sourceText, value), pada.sup)
+                    val candidates = inferKarakas(sub)
+                    addBinding(
+                        ExecutionExpression.Companion.sankhya(value, pada.sourceText),
+                        candidates,
                     )
                 }
                 is SamuccitaSubanta -> {

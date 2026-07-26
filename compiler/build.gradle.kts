@@ -8,6 +8,7 @@ dependencies {
     implementation(project(":parser"))
     implementation(project(":ashtadhyayi"))
     implementation(project(":sankhya"))
+    implementation(project(":katapayadi"))
     implementation(project(":actions"))
     implementation(project(":dhatupatha"))
     compileOnly(gradleApi())

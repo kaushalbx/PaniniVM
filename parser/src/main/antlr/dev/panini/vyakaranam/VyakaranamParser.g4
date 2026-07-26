@@ -84,6 +84,7 @@ subantaVakyaPada
     | sankhyaPada
     | sankhyaPuranaPada
     | sankhyaAbhyasaPada
+    | katapayadiPada
     ;
 
 vakyaSambandha
@@ -146,6 +147,10 @@ puranaPratyaya
 sankhyaAbhyasaPada
     : (sankhyaStem PLUS)+ KRITVAS
     | (sankhyaStem PLUS)+ DHAA
+    ;
+
+katapayadiPada
+    : KATAPAYADI IDENTIFIER PLUS supPratyaya
     ;
 
 sankhyaStem
