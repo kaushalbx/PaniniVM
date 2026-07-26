@@ -47,6 +47,56 @@ class SankhyaEvaluator {
             return SankhyaExpression.Una(subtrahend = sub, base = base)
         }
 
+        // Split by "सहित", "युत", "संयुक्त" for addition
+        val sahitaIndex = stems.indexOfFirst { it == "सहित" || it == "युत" || it == "संयुक्त" }
+        if (sahitaIndex > 0 && sahitaIndex < stems.size - 1) {
+            val left = evaluateStems(stems.subList(0, sahitaIndex))
+            val right = evaluateStems(stems.subList(sahitaIndex + 1, stems.size))
+            return SankhyaExpression.Add(lower = right, higher = left)
+        }
+
+        // Split by "रहित", "वर्जित" for subtraction
+        val rahitaIndex = stems.indexOfFirst { it == "रहित" || it == "वर्जित" }
+        if (rahitaIndex > 0 && rahitaIndex < stems.size - 1) {
+            val left = evaluateStems(stems.subList(0, rahitaIndex))
+            val right = evaluateStems(stems.subList(rahitaIndex + 1, stems.size))
+            return SankhyaExpression.Una(subtrahend = right, base = left)
+        }
+
+        // Multiplicative stem + "गुणित" / "हते", e.g. ["द्वि", "गुणित", "शत"] -> 2 * 100 = 200
+        if (stems.size >= 2 && (stems[1] == "गुणित" || stems[1] == "हते")) {
+            val coeff = evaluateStems(listOf(stems[0]))
+            val rest = if (stems.size >= 3) evaluateStems(stems.subList(2, stems.size)) else SankhyaExpression.Primitive(PrimitiveSankhya.EKA)
+            return SankhyaExpression.Multiply(coefficient = coeff, magnitude = rest)
+        }
+
+        // Division stem + "भक्त" / "हृत", e.g. ["द्वि", "भक्त", "शत"] -> 100 / 2 = 50
+        if (stems.size >= 2 && (stems[1] == "भक्त" || stems[1] == "हृत")) {
+            val divisor = evaluateStems(listOf(stems[0]))
+            val rest = if (stems.size >= 3) evaluateStems(stems.subList(2, stems.size)) else SankhyaExpression.Primitive(PrimitiveSankhya.EKA)
+            return SankhyaExpression.RationalFraction(numerator = rest.value, denominator = divisor.value)
+        }
+
+        // Square: ["वर्ग", "कृत", ...] or ["वर्ग", ...]
+        if (stems.isNotEmpty() && stems[0] == "वर्ग") {
+            val startIndex = if (stems.size >= 2 && stems[1] == "कृत") 2 else 1
+            val operand = if (startIndex < stems.size) evaluateStems(stems.subList(startIndex, stems.size)) else SankhyaExpression.Primitive(PrimitiveSankhya.EKA)
+            return SankhyaExpression.Square(operand)
+        }
+
+        // Cube: ["घन", "कृत", ...] or ["घन", ...]
+        if (stems.isNotEmpty() && stems[0] == "घन") {
+            val startIndex = if (stems.size >= 2 && stems[1] == "कृत") 2 else 1
+            val operand = if (startIndex < stems.size) evaluateStems(stems.subList(startIndex, stems.size)) else SankhyaExpression.Primitive(PrimitiveSankhya.EKA)
+            return SankhyaExpression.Cube(operand)
+        }
+
+        // SquareRoot: ["मूल", ...] or ["पद", ...]
+        if (stems.isNotEmpty() && (stems[0] == "मूल" || stems[0] == "पद")) {
+            val operand = if (stems.size >= 2) evaluateStems(stems.subList(1, stems.size)) else SankhyaExpression.Primitive(PrimitiveSankhya.EKA)
+            return SankhyaExpression.SquareRoot(operand)
+        }
+
         // Mixed rational prefixes: सार्ध, सपाद, पादोन
         if (stems.size == 2 && (stems[0] == "सार्ध" || stems[0] == "सपाद" || stems[0] == "पादोन")) {
             val baseExpr = evaluateStems(listOf(stems[1]))

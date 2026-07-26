@@ -147,6 +147,13 @@ data class SankhyaBhinnaPada(
     val sup: SupPratyaya,
 ) : Pada
 
+data class SankhyaMathPada(
+    override val sourceText: String,
+    val stems: List<String>,
+    val value: Long? = null,
+    val sup: SupPratyaya,
+) : Pada
+
 data class SamasaAnga(
     override val sourceText: String,
     val pratipadika: Pratipadika,

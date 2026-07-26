@@ -79,6 +79,9 @@ class SankhyaDerivationFactory {
                         upadesha = "${expression.numerator}/${expression.denominator}",
                     )
                 )
+            is SankhyaExpression.Square -> createTerms(expression.operand, "${path}_square", position)
+            is SankhyaExpression.Cube -> createTerms(expression.operand, "${path}_cube", position)
+            is SankhyaExpression.SquareRoot -> createTerms(expression.operand, "${path}_squareroot", position)
         }
 
     private enum class CompoundPosition { STANDALONE, PURVAPADA, UTTARAPADA }

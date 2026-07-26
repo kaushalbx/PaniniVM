@@ -88,6 +88,7 @@ subantaVakyaPada
     | aryabhatiyaPada
     | bhutasamkhyaPada
     | sankhyaBhinnaPada
+    | sankhyaMathPada
     ;
 
 vakyaSambandha
@@ -167,6 +168,15 @@ bhutasamkhyaPada
 sankhyaBhinnaPada
     : (SAARDHA | SAPAADA | PAADONA) PLUS sankhyaStem PLUS supPratyaya
     | (sankhyaStem PLUS)? (ARDHA | PAADA | AMSHA) PLUS supPratyaya
+    ;
+
+sankhyaMathPada
+    : (sankhyaStem PLUS)? GUNITA PLUS supPratyaya
+    | (sankhyaStem PLUS)? BHAKTA PLUS supPratyaya
+    | VARGA (PLUS KRITA)? PLUS supPratyaya
+    | GHANA (PLUS KRITA)? PLUS supPratyaya
+    | MOOLA PLUS supPratyaya
+    | (SAHITA | RAHITA) PLUS supPratyaya
     ;
 
 sankhyaStem

@@ -32,6 +32,7 @@ import dev.panini.vyakaranam.ast.AryabhatiyaPada
 import dev.panini.bhutasamkhya.BhutasamkhyaDecoder
 import dev.panini.vyakaranam.ast.BhutasamkhyaPada
 import dev.panini.vyakaranam.ast.SankhyaBhinnaPada
+import dev.panini.vyakaranam.ast.SankhyaMathPada
 import dev.panini.katapayadi.KatapayadiDecoder
 import dev.panini.vyakaranam.ast.KatapayadiPada
 import dev.panini.vyakaranam.ast.MulaPratipadika
@@ -186,7 +187,21 @@ object VyakaranamExecutionAdapter {
         fun add(subanta: SubantaPada) {
             addBinding(expression(subanta, conversation, clauseIndex), inferKarakas(subanta))
         }
-        padas.forEach { pada ->
+        val mathTargetValues = mutableSetOf<Int>()
+
+        fun extractNumeralValue(pada: Pada): Long? = when (pada) {
+            is SankhyaPada -> pada.value ?: sankhyaEvaluator.evaluateStems(pada.stems).value
+            is SubantaPada -> (pada.pratipadika as? SankhyaPratipadika)?.value
+                ?: dev.panini.sankhya.PrimitiveSankhya.fromAnnotatedPratipadika(pada.pratipadika.sourceText)?.value
+            is KatapayadiPada -> pada.value ?: katapayadiDecoder.decode(pada.word)
+            is AryabhatiyaPada -> pada.value ?: aryabhatiyaDecoder.decode(pada.word)
+            is BhutasamkhyaPada -> pada.value ?: bhutasamkhyaDecoder.decodeTerms(pada.terms)
+            is SankhyaBhinnaPada -> pada.numerator
+            else -> null
+        }
+
+        padas.forEachIndexed { index, pada ->
+            if (index in mathTargetValues) return@forEachIndexed
             when (pada) {
                 is SubantaPada -> add(pada)
                 is SankhyaPada -> {
@@ -243,6 +258,33 @@ object VyakaranamExecutionAdapter {
                 }
                 is SankhyaBhinnaPada -> {
                     val expr = sankhyaEvaluator.evaluateStems(pada.stems)
+                    val value = expr.value
+                    val sub = SubantaPada(pada.sourceText, SankhyaPratipadika(pada.sourceText, value), pada.sup)
+                    val candidates = inferKarakas(sub)
+                    addBinding(
+                        ExecutionExpression.Companion.sankhya(value, pada.sourceText),
+                        candidates,
+                    )
+                }
+                is SankhyaMathPada -> {
+                    var targetIdx = -1
+                    var nextVal: Long? = null
+                    for (j in (index + 1) until padas.size) {
+                        val v = extractNumeralValue(padas[j])
+                        if (v != null) {
+                            targetIdx = j
+                            nextVal = v
+                            break
+                        }
+                    }
+                    val fullStems = if (nextVal != null && pada.stems.size <= 2) {
+                        val stemStr = dev.panini.sankhya.PrimitiveSankhya.fromValue(nextVal)?.let { if (it.purvapada.isNotEmpty()) it.purvapada else it.pratipadika } ?: "शत"
+                        mathTargetValues.add(targetIdx)
+                        pada.stems + listOf(stemStr)
+                    } else {
+                        pada.stems
+                    }
+                    val expr = sankhyaEvaluator.evaluateStems(fullStems)
                     val value = expr.value
                     val sub = SubantaPada(pada.sourceText, SankhyaPratipadika(pada.sourceText, value), pada.sup)
                     val candidates = inferKarakas(sub)

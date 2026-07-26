@@ -75,6 +75,24 @@ sealed interface SankhyaExpression {
     ) : SankhyaExpression {
         override val value: Long = if (denominator != 0L) numerator / denominator else 0L
     }
+
+    data class Square(
+        val operand: SankhyaExpression,
+    ) : SankhyaExpression {
+        override val value: Long = operand.value * operand.value
+    }
+
+    data class Cube(
+        val operand: SankhyaExpression,
+    ) : SankhyaExpression {
+        override val value: Long = operand.value * operand.value * operand.value
+    }
+
+    data class SquareRoot(
+        val operand: SankhyaExpression,
+    ) : SankhyaExpression {
+        override val value: Long = kotlin.math.sqrt(operand.value.toDouble()).toLong()
+    }
 }
 
 fun SankhyaExpression.headPrimitive(): PrimitiveSankhya = when (this) {
@@ -87,4 +105,7 @@ fun SankhyaExpression.headPrimitive(): PrimitiveSankhya = when (this) {
     is SankhyaExpression.Frequency -> count.headPrimitive()
     is SankhyaExpression.Distribution -> parts.headPrimitive()
     is SankhyaExpression.RationalFraction -> PrimitiveSankhya.EKA
+    is SankhyaExpression.Square -> operand.headPrimitive()
+    is SankhyaExpression.Cube -> operand.headPrimitive()
+    is SankhyaExpression.SquareRoot -> operand.headPrimitive()
 }
