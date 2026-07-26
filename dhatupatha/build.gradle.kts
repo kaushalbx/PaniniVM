@@ -1,28 +1,19 @@
 plugins {
     kotlin("jvm")
-    application
 }
 
 dependencies {
-    implementation(project(":"))
     implementation(project(":core"))
     implementation(project(":parser"))
+    implementation(project(":ganapatha"))
+    implementation(project(":"))
     implementation(project(":sankhya"))
     implementation(project(":actions"))
-    implementation(project(":dhatupatha"))
-    implementation(project(":compiler"))
+    testImplementation("com.strumenta:antlr-kotlin-runtime:1.0.0-RC4")
     testImplementation(kotlin("test"))
-}
-
-application {
-    mainClass.set("dev.panini.MainKt")
 }
 
 tasks.withType<Test> {
     useJUnitPlatform()
-    workingDir = rootDir
-}
-
-tasks.withType<JavaExec> {
     workingDir = rootDir
 }
