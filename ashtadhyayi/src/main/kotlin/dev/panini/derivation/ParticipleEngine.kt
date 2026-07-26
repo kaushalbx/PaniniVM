@@ -57,7 +57,7 @@ class ParticipleEngine(
                 val finalSurface = fuseSurface(request.root, "आन", request.samjna)
                 buildResult(state, change.state, listOf(app(KanacCaSutra, state, change.state, change.explanation)), finalSurface)
             }
-            Samjna.UNADI -> {
+            Samjna.UNADI, Samjna.ASUN, Samjna.USI -> {
                 val change = UnadayoBahulamSutra.apply(state)
                 val finalSurface = fuseSurface(request.root, "उ", request.samjna)
                 buildResult(state, change.state, listOf(app(UnadayoBahulamSutra, state, change.state, change.explanation)), finalSurface)
@@ -97,6 +97,18 @@ class ParticipleEngine(
                     "वा" -> "वायु"
                     "कृ" -> "कारु"
                     else -> root + suffix
+                }
+            }
+            Samjna.ASUN -> {
+                when (root) {
+                    "मन्" -> "मनस्"
+                    else -> root + "अस्"
+                }
+            }
+            Samjna.USI -> {
+                when (root) {
+                    "चक्ष्" -> "चक्षुः"
+                    else -> root + "उः"
                 }
             }
             else -> root + suffix

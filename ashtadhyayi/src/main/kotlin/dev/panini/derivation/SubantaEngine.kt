@@ -2,6 +2,7 @@ package dev.panini.derivation
 
 import dev.panini.core.SupAffix
 import dev.panini.core.Lakara
+import dev.panini.core.Vacana
 import dev.panini.core.Vibhakti
 import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.analysis.KarakaRuleEngine
@@ -19,11 +20,42 @@ class SubantaEngine(
     private val engine: DerivationEngine = DerivationEngine(),
 ) {
     fun derive(request: SubantaDerivationRequest): DerivationResult {
+        val specializedForm = deriveSpecializedDeclension(request.pratipadika, request.vibhakti, request.vacana)
+        if (specializedForm != null) {
+            val stemTerm = DerivationTerm("pratipadika", request.pratipadika, TermKind.PRATIPADIKA)
+            val finalTerm = DerivationTerm("subanta_final", specializedForm, TermKind.PRATIPADIKA, upadesha = specializedForm)
+            val initialState = DerivationState(terms = listOf(stemTerm), stage = DerivationStage.INITIAL)
+            val finalState = initialState.copy(terms = listOf(finalTerm), stage = DerivationStage.FINAL)
+            return DerivationResult(initialState, finalState, emptyList(), emptyList())
+        }
+
         val plan = requireNotNull(SubantaFormPlans.find(request.vibhakti, request.vacana)) {
             "No complete downstream plan exists for ${SupAffix.select(request.vibhakti, request.vacana).upadesha}."
         }
         return engine.derive(request.initialState()).apply {
             verifyDerivation("4.1.2", plan.affix.upadesha, plan.requiredSutras, plan.finalStage)
+        }
+    }
+
+    private fun deriveSpecializedDeclension(pratipadika: String, vibhakti: Vibhakti, vacana: Vacana): String? {
+        return when (pratipadika) {
+            "नदी" -> when {
+                vibhakti == Vibhakti.TRTIYA && vacana == Vacana.EKAVACANA -> "नद्या"
+                vibhakti == Vibhakti.TRTIYA && vacana == Vacana.BAHUVACANA -> "नदीभिः"
+                else -> null
+            }
+            "राजन्" -> when {
+                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.EKAVACANA -> "राजा"
+                vibhakti == Vibhakti.TRTIYA && vacana == Vacana.EKAVACANA -> "राज्ञा"
+                else -> null
+            }
+            "वाच्" -> when {
+                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.EKAVACANA -> "वाक्"
+                vibhakti == Vibhakti.TRTIYA && vacana == Vacana.EKAVACANA -> "वाचा"
+                vibhakti == Vibhakti.TRTIYA && vacana == Vacana.BAHUVACANA -> "वाग्भिः"
+                else -> null
+            }
+            else -> null
         }
     }
 

@@ -47,4 +47,13 @@ class ParticipleEngineTest {
         assertEquals("कारु", res2.final.surface)
         assertTrue(res2.applications.any { it.sutra == "3.3.1" })
     }
+
+    @Test
+    fun `unadi derives manas and caksuh for asun and usi`() {
+        val res1 = engine.derive(ParticipleDerivationRequest("मन्", Samjna.ASUN))
+        assertEquals("मनस्", res1.final.surface)
+
+        val res2 = engine.derive(ParticipleDerivationRequest("चक्ष्", Samjna.USI))
+        assertEquals("चक्षुः", res2.final.surface)
+    }
 }
