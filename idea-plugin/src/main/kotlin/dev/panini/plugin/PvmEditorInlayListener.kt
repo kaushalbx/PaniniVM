@@ -1,69 +1,95 @@
 package dev.panini.plugin
 
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.editor.event.EditorFactoryEvent
 import com.intellij.openapi.editor.event.EditorFactoryListener
-import com.intellij.openapi.fileEditor.FileDocumentManager
+import dev.panini.execution.ExecutionResult
+import dev.panini.execution.PaniniVM
 import dev.panini.execution.PvmUktiSadhaka
 
 class PvmEditorInlayListener : EditorFactoryListener {
+
     override fun editorCreated(event: EditorFactoryEvent) {
         val editor = event.editor
-        val file = FileDocumentManager.getInstance().getFile(editor.document) ?: return
-        if (file.extension != "pvm") return
+
+        ApplicationManager.getApplication().invokeLater {
+            if (!editor.isDisposed) {
+                updateInlays(editor)
+            }
+        }
 
         val parentDisposable = (editor as? Disposable) ?: return
-
-        updateInlays(editor)
-
         editor.document.addDocumentListener(object : DocumentListener {
             override fun documentChanged(event: DocumentEvent) {
-                updateInlays(editor)
+                ApplicationManager.getApplication().invokeLater {
+                    if (!editor.isDisposed) {
+                        updateInlays(editor)
+                    }
+                }
             }
         }, parentDisposable)
     }
 
     private fun updateInlays(editor: Editor) {
-        val sadhaka = PvmUktiSadhaka()
-        val text = editor.document.text
+        val text = try {
+            editor.document.text
+        } catch (_: Throwable) {
+            return
+        }
         if (text.isBlank()) return
 
+        val sadhaka = PvmUktiSadhaka()
+        val vm = PaniniVM()
         val lines = text.lines()
         var currentOffset = 0
 
-        // Clear previous PVM block inlays to avoid duplicate line gap elements
-        val existingInlays = editor.inlayModel.getBlockElementsInRange(0, text.length)
-        for (inlay in existingInlays) {
-            if (inlay.renderer is PvmBlockInlayRenderer) {
-                inlay.dispose()
-            }
-        }
+        val inlayEntries = mutableListOf<Pair<Int, String>>()
 
         for (line in lines) {
             val trimmed = line.trim()
             val lineEnd = currentOffset + line.length
 
             if (trimmed.isNotEmpty() && !trimmed.startsWith("//") && !trimmed.startsWith("#")) {
-                try {
-                    val surface = sadhaka.sadhayaLine(trimmed)
-                    if (surface.isNotBlank()) {
-                        editor.inlayModel.addBlockElement(
-                            currentOffset,
-                            true, // relatesToPreceding
-                            true, // showAbove: Creates vertical line gap and renders ON TOP of the line!
-                            0,    // priority
-                            PvmBlockInlayRenderer(surface)
-                        )
+                var surface = try { sadhaka.sadhayaLine(trimmed) } catch (_: Throwable) { "" }
+                if (surface.isBlank() || surface == trimmed) {
+                    val res = try { vm.eval(trimmed) } catch (_: Throwable) { null }
+                    if (res is ExecutionResult.Success && res.value.isNotBlank()) {
+                        surface = res.value
                     }
-                } catch (_: Throwable) {
-                    // Ignore incomplete line expressions during typing
+                }
+
+                if (surface.isNotBlank()) {
+                    inlayEntries.add(Pair(currentOffset, surface))
                 }
             }
 
             currentOffset = lineEnd + 1
+        }
+
+        if (editor.isDisposed) return
+
+        // Remove old block inlays
+        val existingInlays = editor.inlayModel.getBlockElementsInRange(0, editor.document.textLength)
+        for (inlay in existingInlays) {
+            if (inlay.renderer is PvmBlockInlayRenderer) {
+                inlay.dispose()
+            }
+        }
+
+        // Add block inlays in line gaps above each statement line
+        for (entry in inlayEntries) {
+            val offset = entry.first.coerceIn(0, editor.document.textLength)
+            editor.inlayModel.addBlockElement(
+                offset,
+                true, // relatesToPreceding
+                true, // showAbove: Creates vertical line gap and renders ON TOP of line!
+                0,    // priority
+                PvmBlockInlayRenderer(entry.second)
+            )
         }
     }
 }
