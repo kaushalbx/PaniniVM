@@ -72,7 +72,7 @@ class PvmEditorInlayListener : EditorFactoryListener {
 
         if (editor.isDisposed) return
 
-        // Clear previous PVM inline inlays
+        // Dispose previous inline inlays so live edits replace stale sentence hints
         val existingInlineInlays = editor.inlayModel.getInlineElementsInRange(0, editor.document.textLength)
         for (inlay in existingInlineInlays) {
             if (inlay.renderer is PvmInlineInlayRenderer) {
@@ -80,7 +80,7 @@ class PvmEditorInlayListener : EditorFactoryListener {
             }
         }
 
-        // Add inline inlays after Danda at end of each line
+        // Add fresh inline inlays after Danda at end of each line
         for (entry in inlineInlayEntries) {
             val offset = entry.first.coerceIn(0, editor.document.textLength)
             editor.inlayModel.addInlineElement(

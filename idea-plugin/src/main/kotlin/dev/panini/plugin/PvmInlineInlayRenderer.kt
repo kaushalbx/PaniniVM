@@ -29,13 +29,27 @@ class PvmInlineInlayRenderer(val surfaceText: String) : EditorCustomElementRende
             g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
 
             val editor = inlay.editor
-            g2.font = editor.colorsScheme.getFont(EditorFontType.BOLD)
+            g2.font = editor.colorsScheme.getFont(EditorFontType.ITALIC)
 
             val isDark = UIUtil.isUnderDarcula()
             // Code block chip badge background (matching inline code highlighting)
-            val chipBgColor = if (isDark) Color(60, 63, 65) else Color(230, 235, 240)
-            val chipBorderColor = if (isDark) Color(85, 88, 90) else Color(200, 205, 210)
-            val textColor = if (isDark) Color(129, 199, 132) else Color(27, 94, 32)
+            val chipBgColor = if (isDark) {
+                Color(60, 63, 65, 100) // ~40% opacity
+            } else {
+                Color(230, 235, 240, 100)
+            }
+
+            val chipBorderColor = if (isDark) {
+                Color(255, 255, 255, 30) // Subtle outline (~12% opacity)
+            } else {
+                Color(0, 0, 0, 30)
+            }
+
+            val textColor = if (isDark) {
+                Color(141, 141, 141) // Muted grey text
+            } else {
+                Color(158, 158, 158)
+            }
 
             val badgeY = r.y + 2
             val badgeHeight = r.height - 4
@@ -45,7 +59,7 @@ class PvmInlineInlayRenderer(val surfaceText: String) : EditorCustomElementRende
             g2.fillRoundRect(r.x + 8, badgeY, r.width - 12, badgeHeight, 6, 6)
 
             // Draw chip border
-            g2.color = chipBorderColor
+//            g2.color = chipBorderColor
             g2.drawRoundRect(r.x + 8, badgeY, r.width - 12, badgeHeight, 6, 6)
 
             // Draw surface text without arrow
