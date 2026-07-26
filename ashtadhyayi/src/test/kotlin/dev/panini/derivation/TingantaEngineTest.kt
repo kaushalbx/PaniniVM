@@ -675,6 +675,30 @@ class TingantaEngineTest {
     }
 
     @Test
+    fun `conjugation engine derives Ksa aorist for dis`() {
+        val result = TingantaEngine().derive(
+            TingantaDerivationRequest("दिश्", Vacana.EKAVACANA, Purusha.PRATHAMA, Lakara.LUNG)
+        )
+        assertTrue(result.applications.any { it.sutra == "3.1.45" })
+    }
+
+    @Test
+    fun `conjugation engine derives Ang aorist for pus`() {
+        val result = TingantaEngine().derive(
+            TingantaDerivationRequest("पुष्", Vacana.EKAVACANA, Purusha.PRATHAMA, Lakara.LUNG)
+        )
+        assertTrue(result.applications.any { it.sutra == "3.1.55" })
+    }
+
+    @Test
+    fun `conjugation engine derives Sic Vrddhi aorist for hr`() {
+        val result = TingantaEngine().derive(
+            TingantaDerivationRequest("हृ", Vacana.EKAVACANA, Purusha.PRATHAMA, Lakara.LUNG)
+        )
+        assertTrue(result.applications.any { it.sutra == "7.2.1" })
+    }
+
+    @Test
     fun `conjugation engine derives complete atmanepada ish aorist paradigm for labh`() {
         val paradigm = TingantaEngine().deriveSupportedParadigm("लभ्", lakara = Lakara.LUNG)
 

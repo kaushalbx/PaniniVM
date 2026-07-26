@@ -26,6 +26,7 @@ object Adhyaya3Pada1 {
         CuradibhyoNicSutra,
         CliLungiSutra,
         ClehSicSutra,
+        ShalIgupadhadAnitahKsahSutra,
         NishriDruSruBhyahKarthariChaSutra,
         PusAdiDyutAdyLdtahParasmaipadesuSutra,
         ChinKarmaniChaSutra,

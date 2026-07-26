@@ -48,7 +48,7 @@ object AdesapratyayayohSutra : Sutra<DerivationState, DerivationChange>(
     private fun findRetroflexTarget(context: DerivationState): DerivationTerm? {
         val isSipLet = context.allEffectiveTerms.any { it.id == "sip-aorist" }
         val isLungSic = context.effectiveContext.rupa.lakara == Lakara.LUNG &&
-            context.allEffectiveTerms.any { it.upadesha == "सिच्" }
+            context.allEffectiveTerms.any { it.upadesha == "सिच्" || it.upadesha == "क्स" }
         val isLabhPerfect = context.effectiveContext.rupa.lakara == Lakara.LIT &&
             context.allEffectiveTerms.any { it.kind == TermKind.DHATU && it.upadesha == "डुलभँष्" }
         val isFutureSya = context.effectiveContext.rupa.lakara in setOf(Lakara.LRT, Lakara.LRNG) &&

@@ -47,7 +47,7 @@ class TingantaEngine(private val engine: DerivationEngine = DerivationEngine()) 
     }
 
     private fun findDhatu(dhatu: String) =
-        DhatuPatha.all.firstOrNull { it.upadesha == dhatu || it.derivationalSurface == dhatu }
+        DhatuPatha.all.firstOrNull { it.upadesha == dhatu || it.derivationalSurface == dhatu || it.sourceSurface == dhatu }
             ?: throw IllegalArgumentException("Unknown dhatu: $dhatu")
 
     private fun resolvePada(dhatuPada: PadaType, requestedPada: PadaType?): PadaType {

@@ -1,6 +1,7 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada1
 
 import dev.panini.core.DhatuGana
+import dev.panini.core.Lakara
 import dev.panini.core.TingAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
@@ -30,6 +31,8 @@ object TudadibhyahShahSutra : Sutra<DerivationState, DerivationChange>(
     blocks = setOf("3.1.68"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
+        val lakara = context.effectiveContext.rupa.lakara
+        if (lakara in setOf(Lakara.LUNG, Lakara.LIT, Lakara.LUT, Lakara.LRT, Lakara.LRNG)) return false
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU } ?: return false
         return dhatu.gana == DhatuGana.TUDADI &&
             context.terms.lastOrNull()?.upadesha in TingAffix.entries.map { it.upadesha } &&

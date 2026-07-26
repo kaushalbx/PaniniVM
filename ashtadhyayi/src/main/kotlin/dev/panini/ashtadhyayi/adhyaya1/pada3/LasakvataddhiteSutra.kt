@@ -33,7 +33,8 @@ object LasakvataddhiteSutra : Sutra<DerivationState, DerivationChange>(
         if (context.stage != DerivationStage.PRATYAYA_SELECTED) return false
 
         return context.terms.any { term ->
-            term.kind == TermKind.PRATYAYA && term.surface.isNotEmpty() && isLaShaKu(term.surface.first())
+            term.kind == TermKind.PRATYAYA && term.surface.isNotEmpty() && isLaShaKu(term.surface.first()) &&
+                !term.itMarkers.contains(ItMarker.KIT)
         }
     }
 

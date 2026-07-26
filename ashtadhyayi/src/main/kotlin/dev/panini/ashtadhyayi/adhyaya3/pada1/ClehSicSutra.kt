@@ -27,8 +27,14 @@ object ClehSicSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.ADESHA,
     scope = SutraScope.PRATYAYA,
 ), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean =
-        context.terms.any { it.upadesha == "च्लि" }
+    override fun matches(context: DerivationState): Boolean {
+        if (context.terms.none { it.upadesha == "च्लि" }) return false
+        if (ShalIgupadhadAnitahKsahSutra.matches(context)) return false
+        if (NishriDruSruBhyahKarthariChaSutra.matches(context)) return false
+        if (PusAdiDyutAdyLdtahParasmaipadesuSutra.matches(context)) return false
+        if (ChinKarmaniChaSutra.matches(context)) return false
+        return true
+    }
 
     override fun apply(context: DerivationState): DerivationChange {
         val cli = context.terms.first { it.upadesha == "च्लि" }

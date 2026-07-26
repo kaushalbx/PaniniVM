@@ -11,19 +11,18 @@ import kotlin.test.Test
 class ScratchTest {
     @Test
     fun testDerivationTrace() {
-        val request = TingantaDerivationRequest(
-            "चुरँ",
+        println("=== DIS LUNG TRACE ===")
+        val disReq = TingantaDerivationRequest(
+            "दिशँ",
             Vacana.EKAVACANA,
             Purusha.PRATHAMA,
-            Lakara.LING,
-            pada = PadaType.ATMANEPADA,
+            Lakara.LUNG,
+            pada = PadaType.PARASMAIPADA,
         )
-        val result = TingantaEngine().derive(request)
-
-        println("=== CURADI LING ATMANEPADA TRACE ===")
-        result.applications.forEachIndexed { index, application ->
-//            println("${index + 1}. ${application.sutra}: ${application.before.surface} -> ${application.after.surface}")
+        val disResult = TingantaEngine().derive(disReq)
+        disResult.applications.forEachIndexed { index, app ->
+            println("${index + 1}. [${app.sutra}] ${app.explanation}")
         }
-//        println("FINAL (${result.final.stage}): ${result.final.surface}")
+        println("FINAL: ${disResult.final.surface}")
     }
 }

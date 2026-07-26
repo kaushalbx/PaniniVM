@@ -28,8 +28,9 @@ object CliLungiSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val ending = context.terms.lastOrNull() ?: return false
+        val aoristAffixes = setOf("च्लि", "सिच्", "क्स", "चङ्", "अङ्", "चिण्")
         return ending.matchesUpadesha("लुङ्") &&
-            context.allEffectiveTerms.none { it.upadesha == "च्लि" || it.upadesha == "सिच्" }
+            context.allEffectiveTerms.none { it.upadesha in aoristAffixes || it.id == "cli" }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
