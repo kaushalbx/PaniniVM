@@ -28,6 +28,9 @@
         <completion.contributor
                 language="PaniniVM"
                 implementationClass="dev.panini.plugin.PvmCompletionContributor"/>
+        <annotator
+                language="PaniniVM"
+                implementationClass="dev.panini.plugin.PvmAnnotator"/>
         <psi.structureViewFactory
                 language="PaniniVM"
                 implementationClass="dev.panini.plugin.PvmStructureViewFactory"/>
