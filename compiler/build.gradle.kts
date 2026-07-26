@@ -9,6 +9,7 @@ dependencies {
     implementation(project(":ashtadhyayi"))
     implementation(project(":sankhya"))
     implementation(project(":katapayadi"))
+    implementation(project(":aryabhatiya"))
     implementation(project(":actions"))
     implementation(project(":dhatupatha"))
     compileOnly(gradleApi())

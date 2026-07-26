@@ -85,6 +85,7 @@ subantaVakyaPada
     | sankhyaPuranaPada
     | sankhyaAbhyasaPada
     | katapayadiPada
+    | aryabhatiyaPada
     ;
 
 vakyaSambandha
@@ -151,6 +152,10 @@ sankhyaAbhyasaPada
 
 katapayadiPada
     : KATAPAYADI IDENTIFIER PLUS supPratyaya
+    ;
+
+aryabhatiyaPada
+    : ARYABHATIYA IDENTIFIER PLUS supPratyaya
     ;
 
 sankhyaStem
