@@ -1,13 +1,11 @@
 package dev.panini.compiler
 
-import dev.panini.core.Karaka
 import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.ExecutionPlan
 import dev.panini.execution.SanskritValue
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.*
-import org.objectweb.asm.Type
 
 object ClassGenerator {
 
@@ -17,7 +15,7 @@ object ClassGenerator {
         turnResultIds: List<List<String>>
     ): ByteArray {
         val cw = ClassWriter(ClassWriter.COMPUTE_FRAMES or ClassWriter.COMPUTE_MAXS)
-        
+
         // 1. Collect all unique SanskritValue constants
         val uniqueConstants = mutableSetOf<SanskritValue>()
         statements.forEach { plans ->

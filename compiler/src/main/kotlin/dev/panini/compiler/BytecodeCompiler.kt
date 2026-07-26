@@ -10,7 +10,6 @@ object BytecodeCompiler {
      * Compiles a PaniniVM script content into JVM bytecode.
      */
     fun compile(scriptContent: String, className: String): ByteArray {
-        dev.panini.dhatupatha.DhatuPathaRegistration.ensureRegistered()
         var conversation = SambhashanaContext(speaker = "प्रयोक्ता", listener = "यन्त्रम्")
         val statementsPlans = mutableListOf<List<ExecutionPlan>>()
         val turnResultIds = mutableListOf<List<String>>()

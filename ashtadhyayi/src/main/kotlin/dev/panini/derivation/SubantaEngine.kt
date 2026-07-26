@@ -3,13 +3,13 @@ package dev.panini.derivation
 import dev.panini.core.SupAffix
 import dev.panini.core.Lakara
 import dev.panini.core.Vibhakti
-import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.analysis.KarakaRuleEngine
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.DhatuIdentity
 import dev.panini.analysis.DhatuKarakaProfiles
 import dev.panini.analysis.ParticipantFacts
 import dev.panini.analysis.SemanticRelation
+import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.DhatuPrakriti

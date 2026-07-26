@@ -4,7 +4,6 @@ plugins {
 
 dependencies {
     implementation(project(":core"))
-//    implementation(project(":parser"))
     implementation(project(":ashtadhyayi"))
     testImplementation(kotlin("test"))
 }

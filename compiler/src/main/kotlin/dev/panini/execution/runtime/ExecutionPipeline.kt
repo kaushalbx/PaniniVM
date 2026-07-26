@@ -1,6 +1,5 @@
 package dev.panini.execution.runtime
 
-import dev.panini.dhatupatha.DhatuPathaRegistration
 import dev.panini.execution.DevanagariDigits
 import dev.panini.execution.ExecutableUkti
 import dev.panini.execution.ExecutionBindingResult
@@ -32,7 +31,6 @@ object ExecutionPipeline {
         scope: ExecutionScope,
     ): Phala {
         SankhyaCountingFormRenderer.init()
-        DhatuPathaRegistration.ensureRegistered()
         return when (val binding = VyakaranamExecutionAdapter.bind(input, conversation)) {
             is ExecutionBindingResult.Bound -> execute(binding.ukti, conversation, scope)
                 .prependTrace(binding.trace)
