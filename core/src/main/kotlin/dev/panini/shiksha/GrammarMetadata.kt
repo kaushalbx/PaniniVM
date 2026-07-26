@@ -10,7 +10,8 @@ enum class Samjna {
     NIC, SAN, YAN, KYAC, YAN_LUK, CAN,
     TAP, NIP, NIS, NIN, TI_PRATYAYA,
     MATUP, TVA, TAL, TARAP, TAMAP,
-    SATR, SANAC, KVASU, KANAC, UNADI
+    SATR, SANAC, KVASU, KANAC, UNADI,
+    YANG, SANADYANTA_DHATU
 }
 
 enum class Accent {

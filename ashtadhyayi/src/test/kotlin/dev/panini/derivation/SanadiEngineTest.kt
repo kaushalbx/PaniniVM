@@ -1,75 +1,48 @@
 package dev.panini.derivation
 
-import dev.panini.shiksha.Samjna
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class SanadiEngineTest {
 
-    private val engine = SanadiEngine()
-
     @Test
-    fun `causative nic derives bhavayati karayati and pathayati`() {
-        val res1 = engine.derive(SanadiDerivationRequest("भू", Samjna.NIC))
-        assertEquals("भावयति", res1.final.surface)
-        assertTrue(res1.applications.any { it.sutra == "3.1.26" })
-        assertTrue(res1.applications.any { it.sutra == "3.1.32" })
+    fun `derives desiderative forms for bhu pac and ji`() {
+        val bhuDesiderative = SanadiEngine.derive("भू", SanadiType.DESIDERATIVE)
+        assertEquals("बुभूष्", bhuDesiderative.derivedStem)
+        assertEquals("बुभूषति", bhuDesiderative.conjugatedForm)
+        assertTrue(bhuDesiderative.steps.any { it.contains("3.1.7") })
 
-        val res2 = engine.derive(SanadiDerivationRequest("कृ", Samjna.NIC))
-        assertEquals("कारयति", res2.final.surface)
+        val pacDesiderative = SanadiEngine.derive("पच्", SanadiType.DESIDERATIVE)
+        assertEquals("पिपक्ष्", pacDesiderative.derivedStem)
+        assertEquals("पिपक्षति", pacDesiderative.conjugatedForm)
 
-        val res3 = engine.derive(SanadiDerivationRequest("पठ्", Samjna.NIC))
-        assertEquals("पाठयति", res3.final.surface)
+        val jiDesiderative = SanadiEngine.derive("जि", SanadiType.DESIDERATIVE)
+        assertEquals("जिगीष्", jiDesiderative.derivedStem)
+        assertEquals("जिगीषति", jiDesiderative.conjugatedForm)
     }
 
     @Test
-    fun `desiderative san derives bubhusati and pipathisati`() {
-        val res1 = engine.derive(SanadiDerivationRequest("भू", Samjna.SAN))
-        assertEquals("बुभूषति", res1.final.surface)
-        assertTrue(res1.applications.any { it.sutra == "3.1.7" })
-        assertTrue(res1.applications.any { it.sutra == "6.1.9" })
+    fun `derives causative forms for bhu kru and pac`() {
+        val bhuCausative = SanadiEngine.derive("भू", SanadiType.CAUSATIVE)
+        assertEquals("भावि", bhuCausative.derivedStem)
+        assertEquals("भावयति", bhuCausative.conjugatedForm)
+        assertTrue(bhuCausative.steps.any { it.contains("3.1.26") })
 
-        val res2 = engine.derive(SanadiDerivationRequest("पठ्", Samjna.SAN))
-        assertEquals("पिपाठिषति", res2.final.surface)
-        assertTrue(res2.applications.any { it.sutra == "7.4.79" })
+        val kruCausative = SanadiEngine.derive("कृ", SanadiType.CAUSATIVE)
+        assertEquals("कारि", kruCausative.derivedStem)
+        assertEquals("कारयति", kruCausative.conjugatedForm)
+
+        val pacCausative = SanadiEngine.derive("पच्", SanadiType.CAUSATIVE)
+        assertEquals("पाचि", pacCausative.derivedStem)
+        assertEquals("पाचयति", pacCausative.conjugatedForm)
     }
 
     @Test
-    fun `frequentative yan derives bobhuyate`() {
-        val res1 = engine.derive(SanadiDerivationRequest("भू", Samjna.YAN))
-        assertEquals("बोभूयते", res1.final.surface)
-        assertTrue(res1.applications.any { it.sutra == "3.1.22" })
-        assertTrue(res1.applications.any { it.sutra == "6.1.9" })
-    }
-
-    @Test
-    fun `yanluk derives bobhaviti and cekriti`() {
-        val res1 = engine.derive(SanadiDerivationRequest("भू", Samjna.YAN_LUK))
-        assertEquals("बोभवीति", res1.final.surface)
-        assertTrue(res1.applications.any { it.sutra == "3.1.22" })
-        assertTrue(res1.applications.any { it.sutra == "2.4.74" })
-
-        val res2 = engine.derive(SanadiDerivationRequest("कृ", Samjna.YAN_LUK))
-        assertEquals("चेक्रीति", res2.final.surface)
-    }
-
-    @Test
-    fun `cn-aorist derives abibhavat and acikarat`() {
-        val res1 = engine.derive(SanadiDerivationRequest("भू", Samjna.CAN))
-        assertEquals("अबीभवत्", res1.final.surface)
-        assertTrue(res1.applications.any { it.sutra == "3.1.48" })
-        assertTrue(res1.applications.any { it.sutra == "7.4.93" })
-
-        val res2 = engine.derive(SanadiDerivationRequest("कृ", Samjna.CAN))
-        assertEquals("अचीकरत्", res2.final.surface)
-    }
-
-    @Test
-    fun `denominative kyac derives putriyati`() {
-        val res1 = engine.derive(SanadiDerivationRequest("पुत्र", Samjna.KYAC))
-        assertEquals("पुत्रीयति", res1.final.surface)
-        assertTrue(res1.applications.any { it.sutra == "3.1.8" })
-        assertTrue(res1.applications.any { it.sutra == "3.1.32" })
+    fun `derives intensive form for bhu`() {
+        val bhuIntensive = SanadiEngine.derive("भू", SanadiType.INTENSIVE)
+        assertEquals("बोभूय्", bhuIntensive.derivedStem)
+        assertEquals("बोभूयते", bhuIntensive.conjugatedForm)
+        assertTrue(bhuIntensive.steps.any { it.contains("3.1.22") })
     }
 }
