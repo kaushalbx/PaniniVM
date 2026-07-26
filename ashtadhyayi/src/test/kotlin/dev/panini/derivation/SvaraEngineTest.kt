@@ -36,4 +36,15 @@ class SvaraEngineTest {
         val result = SvaraEngine.computeSvara("अग्नि", isNitOrNnit = true)
         assertTrue(result.formattedDevanagari.contains("\u0952"), "Anudatta vowel must be formatted with underbar \\u0952")
     }
+
+    @Test
+    fun `test derivation result automatically contains svaraResult`() {
+        val state = DerivationState(
+            terms = listOf(DerivationTerm("pratipadika", "अग्नि", TermKind.PRATIPADIKA, upadesha = "अग्नि")),
+            stage = DerivationStage.INITIAL
+        )
+        val result = DerivationEngine().derive(state)
+        kotlin.test.assertNotNull(result.svaraResult, "DerivationResult must automatically attach svaraResult")
+        assertTrue(result.svaraResult.rulesApplied.any { it.contains("6.1.158") })
+    }
 }

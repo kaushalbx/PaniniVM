@@ -37,6 +37,7 @@ data class DerivationResult(
     val applications: List<DerivationApplication>,
     val events: List<DerivationEvent>,
     val karakaResolution: KarakaResolution? = null,
+    val svaraResult: SvaraResult? = null,
 )
 
 /**
@@ -352,7 +353,18 @@ class DerivationEngine(
         } else {
             current
         }
-        return DerivationResult(initial, finalState, applications, events + DerivationEvent.Completed(finalState, applications.size))
+        val svara = if (finalState.surface.isNotBlank()) {
+            val isNitOrNnit = finalState.allEffectiveTerms.any { 
+                it.itMarkers.contains(dev.panini.core.ItMarker.NIT) || it.itMarkers.contains(dev.panini.core.ItMarker.NGIT) 
+            }
+            val isPitOrSup = finalState.allEffectiveTerms.any { 
+                it.itMarkers.contains(dev.panini.core.ItMarker.P) || it.kind == TermKind.PRATYAYA 
+            }
+            SvaraEngine.computeSvara(finalState.surface, isNitOrNnit = isNitOrNnit, isPitOrSup = isPitOrSup)
+        } else {
+            null
+        }
+        return DerivationResult(initial, finalState, applications, events + DerivationEvent.Completed(finalState, applications.size), svaraResult = svara)
     }
 
     private fun select(state: DerivationState, suppressed: Set<String>): RuleSelection {
