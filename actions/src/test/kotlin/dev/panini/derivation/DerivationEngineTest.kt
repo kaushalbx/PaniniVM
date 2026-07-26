@@ -16,6 +16,7 @@ import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
+import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import kotlin.test.Test
@@ -297,7 +298,7 @@ class DerivationEngineTest {
         val optionalSutra = object : Sutra<DerivationState, DerivationChange>(
             number = "9.1.1", text = "test", hindiExplanation = "test", type = SutraType.VIBHASHA,
             chapter = 9, pada = 1, optional = true, kramaValue = 910001,
-            role = dev.panini.sutra.SutraRole.Vibhasha, action = SutraAction.VIKALPA, scope = SutraScope.DERIVATION,
+            role = SutraRole.Vibhasha, action = SutraAction.VIKALPA, scope = SutraScope.DERIVATION,
         ), DerivationSutra {
             override fun matches(context: DerivationState): Boolean = context.stage == DerivationStage.INITIAL
 
@@ -324,7 +325,7 @@ class DerivationEngineTest {
         val mandatory = object : Sutra<DerivationState, DerivationChange>(
             number = "9.1.10", text = "mandatory", hindiExplanation = "test", type = SutraType.NITYA,
             chapter = 9, pada = 1, optional = false, kramaValue = 910010,
-            role = dev.panini.sutra.SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.DERIVATION,
+            role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.DERIVATION,
         ), DerivationSutra {
             override fun matches(context: DerivationState) = context.stage == DerivationStage.INITIAL
             override fun apply(context: DerivationState) =
@@ -333,7 +334,7 @@ class DerivationEngineTest {
         val optional = object : Sutra<DerivationState, DerivationChange>(
             number = "9.1.11", text = "optional", hindiExplanation = "test", type = SutraType.VIBHASHA,
             chapter = 9, pada = 1, optional = true, kramaValue = 910011,
-            role = dev.panini.sutra.SutraRole.Vibhasha, action = SutraAction.VIKALPA, scope = SutraScope.DERIVATION,
+            role = SutraRole.Vibhasha, action = SutraAction.VIKALPA, scope = SutraScope.DERIVATION,
         ), DerivationSutra {
             override fun matches(context: DerivationState) = context.stage == DerivationStage.PRATYAYA_SELECTED
             override fun apply(context: DerivationState) =
@@ -353,7 +354,7 @@ class DerivationEngineTest {
         val noOpSutra = object : Sutra<DerivationState, DerivationChange>(
             number = "9.1.2", text = "test", hindiExplanation = "test", type = SutraType.NITYA,
             chapter = 9, pada = 1, optional = false, kramaValue = 910002,
-            role = dev.panini.sutra.SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.DERIVATION,
+            role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.DERIVATION,
         ), DerivationSutra {
             override fun matches(context: DerivationState): Boolean = context.stage == DerivationStage.INITIAL
             override fun apply(context: DerivationState): DerivationChange = DerivationChange(context, "No operation.")
@@ -369,7 +370,7 @@ class DerivationEngineTest {
         val toFinal = object : Sutra<DerivationState, DerivationChange>(
             number = "9.1.3", text = "test", hindiExplanation = "test", type = SutraType.NITYA,
             chapter = 9, pada = 1, optional = false, kramaValue = 910003,
-            role = dev.panini.sutra.SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.DERIVATION,
+            role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.DERIVATION,
         ), DerivationSutra {
             override fun matches(context: DerivationState): Boolean = context.stage == DerivationStage.INITIAL
             override fun apply(context: DerivationState): DerivationChange = AdvanceDerivationStage(DerivationStage.FINAL, "Advance.").apply(context)
@@ -377,7 +378,7 @@ class DerivationEngineTest {
         val toInitial = object : Sutra<DerivationState, DerivationChange>(
             number = "9.1.4", text = "test", hindiExplanation = "test", type = SutraType.NITYA,
             chapter = 9, pada = 1, optional = false, kramaValue = 910004,
-            role = dev.panini.sutra.SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.DERIVATION,
+            role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.DERIVATION,
         ), DerivationSutra {
             override fun matches(context: DerivationState): Boolean = context.stage == DerivationStage.FINAL
             override fun apply(context: DerivationState): DerivationChange = AdvanceDerivationStage(DerivationStage.INITIAL, "Rewind.").apply(context)
@@ -445,7 +446,7 @@ class DerivationEngineTest {
         val ruleA = object : Sutra<DerivationState, DerivationChange>(
             number = "6.4.70", text = "RuleA", hindiExplanation = "", type = SutraType.NITYA,
             chapter = 6, pada = 4, optional = false, kramaValue = 640070,
-            role = dev.panini.sutra.SutraRole.Vidhi, action = SutraAction.ADESHA, scope = SutraScope.VARNA,
+            role = SutraRole.Vidhi, action = SutraAction.ADESHA, scope = SutraScope.VARNA,
         ), DerivationSutra {
             override fun matches(context: DerivationState): Boolean = context.terms.any { it.id == "marker" }
             override fun apply(context: DerivationState): DerivationChange {
@@ -462,7 +463,7 @@ class DerivationEngineTest {
         val ruleB = object : Sutra<DerivationState, DerivationChange>(
             number = "6.4.60", text = "RuleB", hindiExplanation = "", type = SutraType.NITYA,
             chapter = 6, pada = 4, optional = false, kramaValue = 640060,
-            role = dev.panini.sutra.SutraRole.Vidhi, action = SutraAction.ADESHA, scope = SutraScope.VARNA,
+            role = SutraRole.Vidhi, action = SutraAction.ADESHA, scope = SutraScope.VARNA,
         ), DerivationSutra {
             override fun matches(context: DerivationState): Boolean {
                 return context.terms.any { it.id == "root" && it.surface == "र" } &&
@@ -503,7 +504,7 @@ class DerivationEngineTest {
         val optionalRule = object : Sutra<DerivationState, DerivationChange>(
             number = "1.2.3", text = "OptRule", hindiExplanation = "", type = SutraType.NITYA,
             chapter = 1, pada = 2, optional = true, kramaValue = 120003,
-            role = dev.panini.sutra.SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.DERIVATION,
+            role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.DERIVATION,
         ), DerivationSutra {
             override fun matches(context: DerivationState): Boolean = context.stage == DerivationStage.INITIAL
             override fun apply(context: DerivationState): DerivationChange =

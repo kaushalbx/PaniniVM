@@ -15,6 +15,7 @@ import dev.panini.derivation.TingantaEngine
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.PaniniVM
 import dev.panini.sankhya.SankhyaGenerator
+import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import java.io.File
 
@@ -120,7 +121,7 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
             add("${sutra.number} ${sutra.text}")
             add(sutra.hindiExplanation)
             add("role=${sutra.role}; action=${sutra.action}; scope=${sutra.scope}; stage=${sutra.stage}")
-            if (sutra.nimittaScope != dev.panini.sutra.NimittaScope.UNKNOWN) add("nimittaScope=${sutra.nimittaScope}")
+            if (sutra.nimittaScope != NimittaScope.UNKNOWN) add("nimittaScope=${sutra.nimittaScope}")
             if (sutra.dependencies.isNotEmpty()) add("dependencies=${sutra.dependencies.joinToString()}")
             if (sutra.blocks.isNotEmpty()) add("blocks=${sutra.blocks.joinToString()}")
             if (sutra.restrictions.isNotEmpty()) add("restrictions=${sutra.restrictions.joinToString()}")

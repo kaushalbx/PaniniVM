@@ -1,6 +1,5 @@
 package dev.panini.ashtadhyayi.adhyaya2.pada3
 
-import dev.panini.core.Karaka
 import dev.panini.core.Vibhakti
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction

@@ -10,7 +10,6 @@ import dev.panini.sutra.SutraType
 import dev.panini.vyakaranam.analysis.KarakaEvidence
 import dev.panini.vyakaranam.analysis.KarakaRuleContext
 import dev.panini.vyakaranam.analysis.KarakaRuleResult
-import dev.panini.vyakaranam.analysis.SemanticRelation
 
 /**
  * Sūtra/Vārttika 1.4.25 जुगुप्साविरामप्रमादार्थानामुपसंख्यानम्.

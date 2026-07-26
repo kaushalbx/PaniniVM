@@ -1,9 +1,5 @@
 package dev.panini.vyakaranam.analysis
 
-import dev.panini.ashtadhyayi.Ashtadhyayi
-import dev.panini.sutra.Sutra
-import dev.panini.sutra.SutraRole
-
 /*
 object AdhikaraRegistry {
     val domains: List<Sutra<*, *>> by lazy {

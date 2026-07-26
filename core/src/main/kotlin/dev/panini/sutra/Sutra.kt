@@ -1,6 +1,5 @@
 package dev.panini.sutra
 
-
 /**
  * Shared sūtra base. All descriptive information belongs here directly;
  * executable subclasses contribute only their condition and operation.
@@ -55,7 +54,3 @@ abstract class Sutra<C, R>(
     override val examples: List<SutraExample>
         get() = examplesValue
 }
-
-
-
-
