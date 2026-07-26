@@ -33,6 +33,7 @@ import dev.panini.bhutasamkhya.BhutasamkhyaDecoder
 import dev.panini.vyakaranam.ast.BhutasamkhyaPada
 import dev.panini.vyakaranam.ast.SankhyaBhinnaPada
 import dev.panini.vyakaranam.ast.SankhyaMathPada
+import dev.panini.vyakaranam.ast.SankhyaGeoPada
 import dev.panini.katapayadi.KatapayadiDecoder
 import dev.panini.vyakaranam.ast.KatapayadiPada
 import dev.panini.vyakaranam.ast.MulaPratipadika
@@ -285,6 +286,16 @@ object VyakaranamExecutionAdapter {
                         pada.stems
                     }
                     val expr = sankhyaEvaluator.evaluateStems(fullStems)
+                    val value = expr.value
+                    val sub = SubantaPada(pada.sourceText, SankhyaPratipadika(pada.sourceText, value), pada.sup)
+                    val candidates = inferKarakas(sub)
+                    addBinding(
+                        ExecutionExpression.Companion.sankhya(value, pada.sourceText),
+                        candidates,
+                    )
+                }
+                is SankhyaGeoPada -> {
+                    val expr = sankhyaEvaluator.evaluateStems(pada.stems)
                     val value = expr.value
                     val sub = SubantaPada(pada.sourceText, SankhyaPratipadika(pada.sourceText, value), pada.sup)
                     val candidates = inferKarakas(sub)

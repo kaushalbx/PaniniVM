@@ -89,6 +89,7 @@ subantaVakyaPada
     | bhutasamkhyaPada
     | sankhyaBhinnaPada
     | sankhyaMathPada
+    | sankhyaGeoPada
     ;
 
 vakyaSambandha
@@ -177,6 +178,11 @@ sankhyaMathPada
     | GHANA (PLUS KRITA)? PLUS supPratyaya
     | MOOLA PLUS supPratyaya
     | (SAHITA | RAHITA) PLUS supPratyaya
+    ;
+
+sankhyaGeoPada
+    : ((KOTI | SPARSHA | UTKRAMA) PLUS)? JYA (PLUS sankhyaStem)* PLUS supPratyaya
+    | (PARIDHI | KSETRAPHALA | KARNA) (PLUS sankhyaStem)* PLUS supPratyaya
     ;
 
 sankhyaStem

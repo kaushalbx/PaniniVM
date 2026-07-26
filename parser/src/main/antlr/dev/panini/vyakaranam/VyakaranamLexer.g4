@@ -113,6 +113,13 @@ KRITA           : 'कृत' ;
 SAHITA          : 'सहित' | 'युत' | 'संयुक्त' ;
 RAHITA          : 'रहित' | 'वर्जित' ;
 TEEYA           : 'तीय' ;
+JYA             : 'ज्या' ;
+KOTI            : 'कोटि' ;
+SPARSHA         : 'स्पर्श' ;
+UTKRAMA         : 'उत्क्रम' ;
+KARNA           : 'कर्ण' ;
+PARIDHI         : 'परिधि' ;
+KSETRAPHALA     : 'क्षेत्रफल' ;
 
 INTERJECTION
     : 'अहो'

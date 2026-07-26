@@ -98,6 +98,39 @@ class SankhyaEvaluator {
             return SankhyaExpression.SquareRoot(operand)
         }
 
+        // Trigonometric: "ज्या", "कोटि" + "ज्या", "स्पर्श" + "ज्या", "उत्क्रम" + "ज्या"
+        if (stems.size >= 2 && (stems[0] == "कोटि" || stems[0] == "कोटी") && stems[1] == "ज्या") {
+            val operand = if (stems.size >= 3) evaluateStems(stems.subList(2, stems.size)) else SankhyaExpression.Primitive(PrimitiveSankhya.SHUNYA)
+            return SankhyaExpression.Cos(operand)
+        }
+        if (stems.size >= 2 && stems[0] == "स्पर्श" && stems[1] == "ज्या") {
+            val operand = if (stems.size >= 3) evaluateStems(stems.subList(2, stems.size)) else SankhyaExpression.Primitive(PrimitiveSankhya.SHUNYA)
+            return SankhyaExpression.Tan(operand)
+        }
+        if (stems.size >= 2 && stems[0] == "उत्क्रम" && stems[1] == "ज्या") {
+            val operand = if (stems.size >= 3) evaluateStems(stems.subList(2, stems.size)) else SankhyaExpression.Primitive(PrimitiveSankhya.SHUNYA)
+            return SankhyaExpression.Versin(operand)
+        }
+        if (stems.isNotEmpty() && stems[0] == "ज्या") {
+            val operand = if (stems.size >= 2) evaluateStems(stems.subList(1, stems.size)) else SankhyaExpression.Primitive(PrimitiveSankhya.SHUNYA)
+            return SankhyaExpression.Sin(operand)
+        }
+
+        // Geometric: "परिधि", "क्षेत्रफल", "कर्ण"
+        if (stems.isNotEmpty() && stems[0] == "परिधि") {
+            val radius = if (stems.size >= 2) evaluateStems(stems.subList(1, stems.size)) else SankhyaExpression.Primitive(PrimitiveSankhya.EKA)
+            return SankhyaExpression.CircleCircumference(radius)
+        }
+        if (stems.isNotEmpty() && stems[0] == "क्षेत्रफल") {
+            val radius = if (stems.size >= 2) evaluateStems(stems.subList(1, stems.size)) else SankhyaExpression.Primitive(PrimitiveSankhya.EKA)
+            return SankhyaExpression.CircleArea(radius)
+        }
+        if (stems.size >= 3 && stems[0] == "कर्ण") {
+            val bhuja = evaluateStems(listOf(stems[1]))
+            val koti = evaluateStems(listOf(stems[2]))
+            return SankhyaExpression.Hypotenuse(bhuja, koti)
+        }
+
         // Mixed rational prefixes: सार्ध, सपाद, पादोन
         if (stems.size == 2 && (stems[0] == "सार्ध" || stems[0] == "सपाद" || stems[0] == "पादोन")) {
             val baseExpr = evaluateStems(listOf(stems[1]))

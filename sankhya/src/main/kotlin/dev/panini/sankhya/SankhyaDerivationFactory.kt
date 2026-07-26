@@ -82,6 +82,13 @@ class SankhyaDerivationFactory {
             is SankhyaExpression.Square -> createTerms(expression.operand, "${path}_square", position)
             is SankhyaExpression.Cube -> createTerms(expression.operand, "${path}_cube", position)
             is SankhyaExpression.SquareRoot -> createTerms(expression.operand, "${path}_squareroot", position)
+            is SankhyaExpression.Sin -> createTerms(expression.degrees, "${path}_sin", position)
+            is SankhyaExpression.Cos -> createTerms(expression.degrees, "${path}_cos", position)
+            is SankhyaExpression.Tan -> createTerms(expression.degrees, "${path}_tan", position)
+            is SankhyaExpression.Versin -> createTerms(expression.degrees, "${path}_versin", position)
+            is SankhyaExpression.Hypotenuse -> createTerms(expression.bhuja, "${path}_hypotenuse_bhuja", position) + createTerms(expression.koti, "${path}_hypotenuse_koti", position)
+            is SankhyaExpression.CircleArea -> createTerms(expression.radius, "${path}_circle_area", position)
+            is SankhyaExpression.CircleCircumference -> createTerms(expression.radius, "${path}_circle_circumference", position)
         }
 
     private enum class CompoundPosition { STANDALONE, PURVAPADA, UTTARAPADA }

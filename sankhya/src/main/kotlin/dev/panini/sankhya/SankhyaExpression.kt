@@ -93,6 +93,49 @@ sealed interface SankhyaExpression {
     ) : SankhyaExpression {
         override val value: Long = kotlin.math.sqrt(operand.value.toDouble()).toLong()
     }
+
+    data class Sin(
+        val degrees: SankhyaExpression,
+    ) : SankhyaExpression {
+        override val value: Long = kotlin.math.sin(degrees.value.toDouble() * Math.PI / 180.0).toLong()
+    }
+
+    data class Cos(
+        val degrees: SankhyaExpression,
+    ) : SankhyaExpression {
+        override val value: Long = kotlin.math.cos(degrees.value.toDouble() * Math.PI / 180.0).toLong()
+    }
+
+    data class Tan(
+        val degrees: SankhyaExpression,
+    ) : SankhyaExpression {
+        override val value: Long = kotlin.math.tan(degrees.value.toDouble() * Math.PI / 180.0).toLong()
+    }
+
+    data class Versin(
+        val degrees: SankhyaExpression,
+    ) : SankhyaExpression {
+        override val value: Long = (1.0 - kotlin.math.cos(degrees.value.toDouble() * Math.PI / 180.0)).toLong()
+    }
+
+    data class Hypotenuse(
+        val bhuja: SankhyaExpression,
+        val koti: SankhyaExpression,
+    ) : SankhyaExpression {
+        override val value: Long = kotlin.math.sqrt((bhuja.value * bhuja.value + koti.value * koti.value).toDouble()).toLong()
+    }
+
+    data class CircleArea(
+        val radius: SankhyaExpression,
+    ) : SankhyaExpression {
+        override val value: Long = (Math.PI * radius.value * radius.value).toLong()
+    }
+
+    data class CircleCircumference(
+        val radius: SankhyaExpression,
+    ) : SankhyaExpression {
+        override val value: Long = (2 * Math.PI * radius.value).toLong()
+    }
 }
 
 fun SankhyaExpression.headPrimitive(): PrimitiveSankhya = when (this) {
@@ -108,4 +151,11 @@ fun SankhyaExpression.headPrimitive(): PrimitiveSankhya = when (this) {
     is SankhyaExpression.Square -> operand.headPrimitive()
     is SankhyaExpression.Cube -> operand.headPrimitive()
     is SankhyaExpression.SquareRoot -> operand.headPrimitive()
+    is SankhyaExpression.Sin -> degrees.headPrimitive()
+    is SankhyaExpression.Cos -> degrees.headPrimitive()
+    is SankhyaExpression.Tan -> degrees.headPrimitive()
+    is SankhyaExpression.Versin -> degrees.headPrimitive()
+    is SankhyaExpression.Hypotenuse -> bhuja.headPrimitive()
+    is SankhyaExpression.CircleArea -> radius.headPrimitive()
+    is SankhyaExpression.CircleCircumference -> radius.headPrimitive()
 }
