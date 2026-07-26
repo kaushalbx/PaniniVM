@@ -15,44 +15,44 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 /**
- * 3.1.26: हेतुमति च.
- * Introduces the causative suffix 'णिच्' (ṇic) after a verbal root when prompting another to act.
+ * 3.1.7: धातोः कर्मणः समानकर्तृकादिच्छायां वा.
+ * Introduces the desiderative suffix 'सन्' (san) after a verbal root for expressing desire of action.
  */
-object HetumatiCaSutra : Sutra<DerivationState, DerivationChange>(
-    number = "3.1.26",
-    text = "हेतुमति च",
-    hindiExplanation = "प्रयोजक व्यापार (प्रेरणा) अर्थ में धातु से परे णिच् प्रत्यय होता है।",
+object DhatohKarmanahSutra : Sutra<DerivationState, DerivationChange>(
+    number = "3.1.7",
+    text = "धातोः कर्मणः समानकर्तृकादिच्छायां वा",
+    hindiExplanation = "समान कर्ता वाली इच्छा के विषयभूत कर्मवाचक धातु से इच्छा अर्थ में विकल्प से सन् प्रत्यय होता है।",
     type = SutraType.UTSARGA,
     chapter = 3,
     pada = 1,
     optional = false,
-    kramaValue = 310026,
+    kramaValue = 310007,
     role = SutraRole.Vidhi,
     action = SutraAction.PRATYAYA_SELECTION,
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.stage != DerivationStage.INITIAL && context.stage != DerivationStage.PRATYAYA_SELECTED) return false
-        val isNicRequested = context.samjnas.any { it.samjna == Samjna.NIC } || context.context.requestedMeaning == dev.panini.derivation.DerivationalMeaning.BHAVA
+        val isSanRequested = context.samjnas.any { it.samjna == Samjna.SAN } || context.context.requestedMeaning == dev.panini.derivation.DerivationalMeaning.BHAVA
         val hasPratyaya = context.terms.any { it.kind == TermKind.PRATYAYA }
-        return isNicRequested && !hasPratyaya
+        return isSanRequested && !hasPratyaya
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val nicTerm = DerivationTerm(
-            id = "nic_pratyaya",
-            surface = "इ",
+        val sanTerm = DerivationTerm(
+            id = "san_pratyaya",
+            surface = "स",
             kind = TermKind.PRATYAYA,
-            itMarkers = setOf(ItMarker.NIT, ItMarker.KIT),
-            upadesha = "णिच्",
+            itMarkers = setOf(ItMarker.NIT),
+            upadesha = "सन्",
             createdBySutra = sutra,
         )
         return DerivationChange(
             state = context.copy(
-                terms = context.terms + nicTerm,
+                terms = context.terms + sanTerm,
                 stage = DerivationStage.PRATYAYA_SELECTED,
             ),
-            explanation = "3.1.26 introduces causative suffix णिच् (इ)."
+            explanation = "3.1.7 introduces desiderative suffix सन् (स)."
         )
     }
 }
