@@ -6,12 +6,12 @@ import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import dev.panini.execution.PvmUktiSadhaka
+import dev.panini.execution.ExecutionResult
+import dev.panini.execution.PaniniVM
 import dev.panini.vyakaranam.parser.PaniniParser
 
 class PvmAnnotator : Annotator {
     private val paniniParser = PaniniParser()
-    private val sadhaka = PvmUktiSadhaka()
 
     override fun annotate(element: PsiElement, holder: AnnotationHolder) {
         if (element !is PsiFile || element !is PvmFile) return
@@ -40,8 +40,9 @@ class PvmAnnotator : Annotator {
             // Ignore syntax validation errors during live editing
         }
 
-        // 2. In-Memory Sentence Surface Form Annotation
+        // 2. PaniniVM Line Evaluation & Conjugated Sentence Annotation
         try {
+            val vm = PaniniVM()
             val lines = text.lines()
             var currentOffset = 0
 
@@ -51,16 +52,16 @@ class PvmAnnotator : Annotator {
 
                 if (trimmed.isNotEmpty() && !trimmed.startsWith("//") && !trimmed.startsWith("#")) {
                     try {
-                        val surface = sadhaka.sadhayaLine(trimmed)
-                        if (surface.isNotBlank()) {
-                            val lineRange = TextRange((lineEnd - 1).coerceAtLeast(currentOffset), lineEnd.coerceAtMost(text.length))
-                            holder.newAnnotation(HighlightSeverity.INFORMATION, "Conjugated Surface: $surface")
+                        val result = vm.eval(trimmed)
+                        if (result is ExecutionResult.Success && result.value.isNotBlank()) {
+                            val lineRange = TextRange(currentOffset, lineEnd.coerceAtMost(text.length))
+                            holder.newAnnotation(HighlightSeverity.WEAK_WARNING, " ➔ Conjugated: ${result.value}")
                                 .range(lineRange)
                                 .afterEndOfLine()
                                 .create()
                         }
                     } catch (_: Throwable) {
-                        // Ignore incomplete lines during typing
+                        // Ignore incomplete lines during live typing
                     }
                 }
 
