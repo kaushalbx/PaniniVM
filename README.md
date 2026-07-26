@@ -13,9 +13,15 @@ sūtras carry typed metadata, executable eligibility, and state-transition logic
 - **Adhikāra Domain Registry (`AdhikaraRegistry`)**: Enforces governing heading scopes (`1.4.1`, `1.4.23`, `2.3.1 Anabhihite`, `3.1.1`, `3.1.91`, `6.4.1`, `8.1.16`) wrapping top-level concrete `Sutra` objects.
 - **Paribhāṣā Meta-rule Registry (`ParibhashaRegistry`)**: Manages interpretive meta-rules (`1.1.3`, `1.1.46`, `1.1.47`, `1.1.49`, `1.1.50`, `1.1.51`, `1.1.52`, `1.1.53`, `1.1.54`, `1.1.55`, `1.1.56`, `1.1.66`, `1.1.67`) with type-safe `ParibhashaScope` enums.
 - **Pratiṣedha Prohibition Engine (`NishedhaRuleEngine`)**: Evaluates prohibition sūtras (`1.1.5`, `1.1.6`, `1.1.10`, `1.2.4`) integrated into rule resolution loops.
-- **ANTLR4 Segmented Sanskrit Parser (`VyakaranamLexer.g4` + `VyakaranamParser.g4`)**: Parses strictly segmented Pāṇinian words (`Prakṛti + Pratyaya`) through one canonical grammar:
+- **ANTLR4 Segmented Sanskrit Parser (`VyakaranamLexer.g4` + `VyakaranamParser.g4`)**: Parses strictly segmented Pāṇinian words (`Prakṛti + Pratyaya`) through one canonical grammar with pure `IDENTIFIER` stem parsing:
   - Nominal Subanta: `एक + अम्`, `द्वि + औट्`, `त्रि + शस्`, `यन्त्र + सुँ`, `फल + अम्`, `पूर्वफल + अम्`
+  - Segmented Ordinals & Fractions: `द्वि + तीय + अम्`, `त्रि + तीय + अंश + अम्`, `सार्ध + द्वि + अम्`, `अभि + अधिक + शत + अम्`
+  - Geometric & Trigonometric Expressions: `ज्या + नवति + अम्`, `कोटिज्या + षष्टि + अम्`, `परिधि + दशन् + अम्`, `क्षेत्रफल + पञ्च + अम्`
   - Verbal Tiṅanta: `युज् + णिच् + लोट् + सिप्`, `गण + णिच् + लोट् + सिप्`, `हृ + लोट् + सिप्`
+- **Āryabhaṭīya Numeral Decoder (`:aryabhatiya`)**: Decodes Āryabhaṭīya Varga and Avarga consonant-vowel numerical encodings (`ख्युघृ` = 4,320,000).
+- **Bhūtasamkhya Symbolic Decoder (`:bhutasamkhya`)**: Decodes symbolic noun numbers (`नेत्र` = 2, `वेद` = 4, `अग्नि` = 3) following the Pāṇinian right-to-left convention (*अङ्कानां वामतो गतिः*).
+- **Verbal `DhatuAction` & Dhātupāṭha Integrations**:
+  - Trigonometric & Geometric operations bound to `JyaDhatu` (`ज्या`), `DhaDhatu` (`परि + धा`, `स + धा`), `YuDhatu` (`यु`, `वि + यु`), `VrjDhatu` (`वर्जित`).
 - **Multi-Vākya Sentence Chaining**: Parse and execute multi-clause sentences separated by connectives (`ततः`, `अथ`, `अनन्तरम्`) or daṇḍas (`।`, `॥`).
 - **Dynamic Inter-Clause Result References**: Refer to intermediate calculation results (`फल + अम्`) across clauses (`योग-1`, `योग-2`) or session history (`पूर्वफल + अम्`).
 - **Kāraka Constraint Analysis**: Preserves syncretic sup endings such as `भ्याम्` and resolves them through executable 1.4 kāraka-saṃjñā and 2.3 vibhakti sūtras (`2.3.26`, `2.3.44`, `2.3.52`).

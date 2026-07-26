@@ -26,22 +26,24 @@ class or parallel rule framework exists.
 
 In accordance with Pāṇini's definition *सुप्तिङन्तं पदम्* (1.4.14), every declinable nominal or conjugable verb must be explicitly segmented with its suffix:
 
-### Nominal Subanta Padas (`subantaPada`)
-- **Format**: `nominalBase + supPratyaya`
+### Nominal Subanta Padas (`subantaPada` / `sankhyaPada`)
+- **Format**: `nominalBase (+ stem)* + supPratyaya`
 - **Examples**:
   - `एक + अम्` (Numeral stem `एक` + 2nd Vibhakti singular `अम्`)
   - `द्वि + औट्` (Numeral stem `द्वि` + 2nd Vibhakti dual `औट्`)
   - `त्रि + शस्` (Numeral stem `त्रि` + 2nd Vibhakti plural `शस्`)
+  - `द्वि + तीय + अम्` (Ordinal stem `द्वि + तीय` + 2nd Vibhakti singular `अम्`)
+  - `त्रि + तीय + अंश + अम्` (Fraction stem `त्रि + तीय + अंश` + 2nd Vibhakti singular `अम्`)
+  - `सार्ध + द्वि + अम्` (Rational fraction `सार्ध + द्वि` = 2.5 + 2nd Vibhakti singular `अम्`)
+  - `अभि + अधिक + शत + अम्` (Modifier stem `अभि + अधिक + शत` = 100 + 2nd Vibhakti singular `अम्`)
+  - `ज्या + नवति + अम्` (Trigonometric stem `ज्या + नवति` = $\sin(90^\circ)$ + 2nd Vibhakti singular `अम्`)
   - `यन्त्र + सुँ` (Nominal stem `यन्त्र` + 1st Vibhakti singular `सुँ`)
   - `फल + अम्` (Result reference `फल` + 2nd Vibhakti singular `अम्`)
   - `पूर्वफल + अम्` (Historical reference `पूर्वफल` + 2nd Vibhakti singular `अम्`)
 
-### Verbal Tiṅanta Padas (`tingantaPada`)
-- **Format**: `(upasarga +)* dhatu (+ sanadiPratyaya)* + lakara + tingPratyaya`
-- **Examples**:
-  - `युज् + णिच् + लोट् + सिप्` (Dhātu `युज्` + Causal `णिच्` + Imperative `लोट्` + 2nd person singular `सिप्`)
-  - `गण + णिच् + लोट् + सिप्` (Dhātu `गण` + Causal `णिच्` + Imperative `लोट्` + 2nd person singular `सिप्`)
-  - `कृ + लोट् + सिप्` (Dhātu `कृ` + Imperative `लोट्` + 2nd person singular `सिप्`)
+### Numerical System Subsystems
+- **Āryabhaṭīya System (`:aryabhatiya`)**: Consonant-vowel numeral decoder (`ख्युघृ` = 4,320,000).
+- **Bhūtasamkhyā System (`:bhutasamkhya`)**: Symbolic noun decoder (`नेत्र`=2, `वेद`=4, `अग्नि`=3) with right-to-left digit placement (*अङ्कानां वामतो गतिः*).
 
 ---
 
