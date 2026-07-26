@@ -2,6 +2,7 @@ package dev.panini.plugin.run
 
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.LocatableConfigurationBase
+import com.intellij.execution.configurations.LocatableRunConfigurationOptions
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.runners.ExecutionEnvironment
@@ -16,17 +17,9 @@ class PvmRunConfiguration(
     project: Project,
     factory: PvmRunConfigurationFactory,
     name: String
-) : LocatableConfigurationBase<PvmRunConfigurationOptions>(project, factory, name) {
+) : LocatableConfigurationBase<LocatableRunConfigurationOptions>(project, factory, name) {
 
-    var scriptPath: String?
-        get() = options.scriptPath
-        set(value) {
-            options.scriptPath = value
-        }
-
-    override fun getOptions(): PvmRunConfigurationOptions {
-        return super.getOptions() as PvmRunConfigurationOptions
-    }
+    var scriptPath: String? = null
 
     override fun getConfigurationEditor(): SettingsEditor<out RunConfiguration> {
         return PvmRunSettingsEditor()
