@@ -47,5 +47,7 @@
                 implementation="dev.panini.plugin.run.PvmRunConfigurationType"/>
         <runConfigurationProducer
                 implementation="dev.panini.plugin.run.PvmRunConfigurationProducer"/>
+        <editorFactoryListener
+                implementation="dev.panini.plugin.PvmEditorInlayListener"/>
     </extensions>
 </idea-plugin>

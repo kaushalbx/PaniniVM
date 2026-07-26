@@ -3,17 +3,13 @@ package dev.panini.plugin
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import dev.panini.execution.PvmUktiSadhaka
 import dev.panini.vyakaranam.parser.PaniniParser
 
 class PvmAnnotator : Annotator {
     private val paniniParser = PaniniParser()
-    private val sadhaka = PvmUktiSadhaka()
 
     override fun annotate(element: PsiElement, holder: AnnotationHolder) {
         if (element !is PsiFile || element !is PvmFile) return
@@ -40,49 +36,6 @@ class PvmAnnotator : Annotator {
             }
         } catch (_: Throwable) {
             // Ignore syntax validation errors during live editing
-        }
-
-        // 2. Add Block Inlay Elements in Gaps Directly Above Each Statement Line
-        try {
-            val project = holder.currentAnnotationSession.file.project
-            val editor: Editor = FileEditorManager.getInstance(project).selectedTextEditor ?: return
-
-            val lines = text.lines()
-            var currentOffset = 0
-
-            // Clear previous PvmBlockInlayRenderer elements to avoid duplicate line gap elements
-            val existingInlays = editor.inlayModel.getBlockElementsInRange(0, text.length)
-            for (inlay in existingInlays) {
-                if (inlay.renderer is PvmBlockInlayRenderer) {
-                    inlay.dispose()
-                }
-            }
-
-            for (line in lines) {
-                val trimmed = line.trim()
-                val lineEnd = currentOffset + line.length
-
-                if (trimmed.isNotEmpty() && !trimmed.startsWith("//") && !trimmed.startsWith("#")) {
-                    try {
-                        val surface = sadhaka.sadhayaLine(trimmed)
-                        if (surface.isNotBlank()) {
-                            editor.inlayModel.addBlockElement(
-                                currentOffset,
-                                true, // relatesToPreceding
-                                true, // showAbove: Creates vertical line gap and renders ON TOP of the line!
-                                0,    // priority
-                                PvmBlockInlayRenderer(surface)
-                            )
-                        }
-                    } catch (_: Throwable) {
-                        // Ignore incomplete line expressions during typing
-                    }
-                }
-
-                currentOffset = lineEnd + 1
-            }
-        } catch (_: Throwable) {
-            // Thread safety guarantee
         }
     }
 
