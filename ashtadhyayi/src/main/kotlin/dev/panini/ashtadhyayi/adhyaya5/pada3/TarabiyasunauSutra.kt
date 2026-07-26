@@ -33,9 +33,10 @@ object TarabiyasunauSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.stage != DerivationStage.INITIAL && context.stage != DerivationStage.PRATYAYA_SELECTED) return false
+        val hasPratipadika = context.terms.any { it.kind == TermKind.PRATIPADIKA }
         val isTarapRequested = context.samjnas.any { it.samjna == Samjna.TARAP }
         val hasPratyaya = context.terms.any { it.kind == TermKind.PRATYAYA }
-        return isTarapRequested && !hasPratyaya
+        return hasPratipadika && isTarapRequested && !hasPratyaya
     }
 
     override fun apply(context: DerivationState): DerivationChange {

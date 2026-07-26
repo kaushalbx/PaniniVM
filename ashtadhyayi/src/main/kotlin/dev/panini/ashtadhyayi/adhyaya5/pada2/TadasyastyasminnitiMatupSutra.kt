@@ -33,9 +33,10 @@ object TadasyastyasminnitiMatupSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.stage != DerivationStage.INITIAL) return false
+        val hasPratipadika = context.terms.any { it.kind == TermKind.PRATIPADIKA }
         val isMatupRequested = context.samjnas.any { it.samjna == Samjna.MATUP }
         val hasPratyaya = context.terms.any { it.kind == TermKind.PRATYAYA }
-        return isMatupRequested && !hasPratyaya
+        return hasPratipadika && isMatupRequested && !hasPratyaya
     }
 
     override fun apply(context: DerivationState): DerivationChange {
