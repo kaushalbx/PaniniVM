@@ -67,6 +67,14 @@ sealed interface SankhyaExpression {
     ) : SankhyaExpression {
         override val value: Long = parts.value
     }
+
+    /** A fractional numeral expression (भिन्नसङ्ख्या), e.g. 1/2, 1/4, 3/4, 2.5 (5/2). */
+    data class RationalFraction(
+        val numerator: Long,
+        val denominator: Long = 1L,
+    ) : SankhyaExpression {
+        override val value: Long = if (denominator != 0L) numerator / denominator else 0L
+    }
 }
 
 fun SankhyaExpression.headPrimitive(): PrimitiveSankhya = when (this) {
@@ -78,4 +86,5 @@ fun SankhyaExpression.headPrimitive(): PrimitiveSankhya = when (this) {
     is SankhyaExpression.Purana -> base.headPrimitive()
     is SankhyaExpression.Frequency -> count.headPrimitive()
     is SankhyaExpression.Distribution -> parts.headPrimitive()
+    is SankhyaExpression.RationalFraction -> PrimitiveSankhya.EKA
 }

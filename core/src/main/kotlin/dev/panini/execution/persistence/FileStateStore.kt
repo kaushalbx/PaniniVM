@@ -115,6 +115,7 @@ class FileStateStore(private val storageDir: File) : StateStore {
 
     private fun encodeTyped(value: SanskritValue?): String = when (value) {
         is SanskritValue.Sankhya -> "SANKHYA:${value.value}"
+        is SanskritValue.Rational -> "RATIONAL:${value.numerator}/${value.denominator}"
         is SanskritValue.Satya -> "SATYA:${value.boolean}"
         is SanskritValue.Shabda -> "SHABDA"
         is SanskritValue.Gana -> "GANA"
@@ -124,6 +125,10 @@ class FileStateStore(private val storageDir: File) : StateStore {
 
     private fun decodeTyped(type: String, display: String, samjnas: Set<ExecutionSamjna>): SanskritValue? = when {
         type.startsWith("SANKHYA:") -> SanskritValue.Sankhya(type.substringAfter(':').toLong(), display)
+        type.startsWith("RATIONAL:") -> {
+            val (num, denom) = type.substringAfter(':').split('/').map { it.toLong() }
+            SanskritValue.Rational(num, denom, display)
+        }
         type.startsWith("SATYA:") -> SanskritValue.Satya(type.substringAfter(':').toBooleanStrict())
         type == "SHABDA" || type == "GANA" -> SanskritValue.Shabda(display, samjnas)
         else -> null

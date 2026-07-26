@@ -87,6 +87,7 @@ subantaVakyaPada
     | katapayadiPada
     | aryabhatiyaPada
     | bhutasamkhyaPada
+    | sankhyaBhinnaPada
     ;
 
 vakyaSambandha
@@ -161,6 +162,11 @@ aryabhatiyaPada
 
 bhutasamkhyaPada
     : BHUTASAMKHYA (IDENTIFIER PLUS)+ supPratyaya
+    ;
+
+sankhyaBhinnaPada
+    : (SAARDHA | SAPAADA | PAADONA) PLUS sankhyaStem PLUS supPratyaya
+    | (sankhyaStem PLUS)? (ARDHA | PAADA | AMSHA) PLUS supPratyaya
     ;
 
 sankhyaStem

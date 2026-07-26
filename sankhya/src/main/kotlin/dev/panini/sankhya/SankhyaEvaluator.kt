@@ -47,8 +47,35 @@ class SankhyaEvaluator {
             return SankhyaExpression.Una(subtrahend = sub, base = base)
         }
 
+        // Mixed rational prefixes: सार्ध, सपाद, पादोन
+        if (stems.size == 2 && (stems[0] == "सार्ध" || stems[0] == "सपाद" || stems[0] == "पादोन")) {
+            val baseExpr = evaluateStems(listOf(stems[1]))
+            val baseValue = baseExpr.value
+            return when (stems[0]) {
+                "सार्ध" -> SankhyaExpression.RationalFraction(numerator = baseValue * 2 + 1, denominator = 2)
+                "सपाद" -> SankhyaExpression.RationalFraction(numerator = baseValue * 4 + 1, denominator = 4)
+                "पादोन" -> SankhyaExpression.RationalFraction(numerator = baseValue * 4 - 1, denominator = 4)
+                else -> error("Invalid prefix")
+            }
+        }
+
+        // Numerator-Denominator fraction: e.g. ["त्रि", "पाद"] -> 3/4, ["द्वि", "तृतीयांश"] -> 2/3
+        if (stems.size == 2) {
+            val denomFraction = parseFractionStem(stems[1])
+            if (denomFraction != null) {
+                val numExpr = evaluateStems(listOf(stems[0]))
+                return SankhyaExpression.RationalFraction(
+                    numerator = numExpr.value * denomFraction.numerator,
+                    denominator = denomFraction.denominator
+                )
+            }
+        }
+
         if (stems.size == 1) {
             val stem = stems.single()
+            val standaloneFraction = parseFractionStem(stem)
+            if (standaloneFraction != null) return standaloneFraction
+
             val standaloneFrequency = parseStandaloneFrequency(stem)
             if (standaloneFrequency != null) return standaloneFrequency
 
@@ -123,6 +150,20 @@ class SankhyaEvaluator {
             else -> null
         }
         return baseVal?.let { SankhyaExpression.Purana(SankhyaExpression.Primitive(it)) }
+    }
+
+    private fun parseFractionStem(stem: String): SankhyaExpression.RationalFraction? = when (stem) {
+        "अर्ध" -> SankhyaExpression.RationalFraction(1L, 2L)
+        "पाद", "तुरीयांश", "चतुर्थांश", "पादांश" -> SankhyaExpression.RationalFraction(1L, 4L)
+        "त्रिभाग", "तृतीयांश" -> SankhyaExpression.RationalFraction(1L, 3L)
+        "पञ्चमांश" -> SankhyaExpression.RationalFraction(1L, 5L)
+        "षष्ठांश" -> SankhyaExpression.RationalFraction(1L, 6L)
+        "सप्तमांश" -> SankhyaExpression.RationalFraction(1L, 7L)
+        "अष्टमांश" -> SankhyaExpression.RationalFraction(1L, 8L)
+        "नवमांश" -> SankhyaExpression.RationalFraction(1L, 9L)
+        "दशमांश" -> SankhyaExpression.RationalFraction(1L, 10L)
+        "शतांश" -> SankhyaExpression.RationalFraction(1L, 100L)
+        else -> null
     }
 
     /**

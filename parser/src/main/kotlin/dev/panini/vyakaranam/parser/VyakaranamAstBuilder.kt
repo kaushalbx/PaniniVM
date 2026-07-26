@@ -164,6 +164,28 @@ class VyakaranamAstBuilder {
         )
     }
 
+    private fun buildSankhyaBhinnaPada(
+        context: PaniniyaVyakaranamParser.SankhyaBhinnaPadaContext,
+    ): SankhyaBhinnaPada {
+        val stems = mutableListOf<String>()
+        context.SAARDHA()?.let { stems.add(it.text) }
+        context.SAPAADA()?.let { stems.add(it.text) }
+        context.PAADONA()?.let { stems.add(it.text) }
+        context.sankhyaStem()?.let { stems.add(it.text) }
+        context.ARDHA()?.let { stems.add(it.text) }
+        context.PAADA()?.let { stems.add(it.text) }
+        context.AMSHA()?.let { stems.add(it.text) }
+
+        return SankhyaBhinnaPada(
+            sourceText = context.text,
+            stems = stems,
+            sup = SupPratyaya(
+                sourceText = context.supPratyaya()!!.text,
+                text = context.supPratyaya()!!.text,
+            ),
+        )
+    }
+
     private fun buildSubantaVakyaPada(
         context: PaniniyaVyakaranamParser.SubantaVakyaPadaContext,
     ): List<Pada> =
@@ -191,6 +213,9 @@ class VyakaranamAstBuilder {
 
             context.bhutasamkhyaPada() != null ->
                 listOf(buildBhutasamkhyaPada(context.bhutasamkhyaPada()!!))
+
+            context.sankhyaBhinnaPada() != null ->
+                listOf(buildSankhyaBhinnaPada(context.sankhyaBhinnaPada()!!))
 
             else -> error("अज्ञातं सुबन्तवाक्यपदम्: ${context.text}")
         }

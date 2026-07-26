@@ -70,6 +70,15 @@ class SankhyaDerivationFactory {
                 createTerms(expression.count, "${path}_frequency", position)
             is SankhyaExpression.Distribution ->
                 createTerms(expression.parts, "${path}_distribution", position)
+            is SankhyaExpression.RationalFraction ->
+                listOf(
+                    DerivationTerm(
+                        id = "sankhya_${path}_fraction",
+                        surface = "${expression.numerator}/${expression.denominator}",
+                        kind = TermKind.PRATIPADIKA,
+                        upadesha = "${expression.numerator}/${expression.denominator}",
+                    )
+                )
         }
 
     private enum class CompoundPosition { STANDALONE, PURVAPADA, UTTARAPADA }

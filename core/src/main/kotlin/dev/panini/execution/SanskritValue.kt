@@ -13,6 +13,15 @@ sealed interface SanskritValue {
         override fun toDisplayText(): String = word
     }
 
+    data class Rational(
+        val numerator: Long,
+        val denominator: Long,
+        val word: String,
+    ) : SanskritValue {
+        override val samjnas: Set<ExecutionSamjna> = setOf(ExecutionSamjna.SANKHYA, ExecutionSamjna.SHABDA)
+        override fun toDisplayText(): String = "$numerator/$denominator ($word)"
+    }
+
     data class Shabda(
         val text: String,
         override val samjnas: Set<ExecutionSamjna> = setOf(ExecutionSamjna.SHABDA),
