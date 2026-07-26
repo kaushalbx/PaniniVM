@@ -1,0 +1,87 @@
+package dev.panini.derivation
+
+import dev.panini.ashtadhyayi.adhyaya4.pada1.AjadyatasTapSutra
+import dev.panini.ashtadhyayi.adhyaya4.pada1.RnnebyoNipSutra
+import dev.panini.ashtadhyayi.adhyaya4.pada1.SarngaravadyanoNinSutra
+import dev.panini.ashtadhyayi.adhyaya4.pada1.SiddhagauradibhyascaSutra
+import dev.panini.ashtadhyayi.adhyaya4.pada1.StriyamSutra
+import dev.panini.ashtadhyayi.adhyaya4.pada1.YuvatisTihSutra
+import dev.panini.shiksha.Samjna
+
+data class StriPratyayaRequest(
+    val stem: String,
+    val samjna: Samjna = Samjna.TAP,
+)
+
+class StriPratyayaEngine(
+    private val engine: DerivationEngine = DerivationEngine(
+        listOf(
+            StriyamSutra,
+            AjadyatasTapSutra,
+            RnnebyoNipSutra,
+            SiddhagauradibhyascaSutra,
+            SarngaravadyanoNinSutra,
+            YuvatisTihSutra,
+        )
+    )
+) {
+    fun derive(request: StriPratyayaRequest): DerivationResult {
+        val initial = buildInitialState(request)
+        val result = engine.derive(initial)
+
+        val synthesizedState = synthesizeFeminineStem(result.final, request)
+        return result.copy(final = synthesizedState)
+    }
+
+    private fun buildInitialState(request: StriPratyayaRequest): DerivationState {
+        val stemTerm = DerivationTerm(
+            id = "pratipadika_1",
+            surface = request.stem,
+            kind = TermKind.PRATIPADIKA,
+            upadesha = request.stem,
+        )
+        val samjnas = setOf(
+            SamjnaAssignment(stemTerm.id, Samjna.PRATIPADIKA),
+            SamjnaAssignment(stemTerm.id, request.samjna),
+        )
+
+        return DerivationState(
+            terms = listOf(stemTerm),
+            samjnas = samjnas,
+            activeAdhikaras = setOf("4.1.1"),
+            stage = DerivationStage.INITIAL,
+        )
+    }
+
+    private fun synthesizeFeminineStem(state: DerivationState, request: StriPratyayaRequest): DerivationState {
+        val pratyayaTerm = state.terms.lastOrNull { it.kind == TermKind.PRATYAYA }
+        val pSurf = pratyayaTerm?.surface ?: "आ"
+
+        val finalSurface = fuseFeminineStem(request.stem, pSurf, request.samjna)
+
+        val finalTerm = DerivationTerm(
+            id = "feminine_stem_final",
+            surface = finalSurface,
+            kind = TermKind.PRATIPADIKA,
+            upadesha = finalSurface,
+        )
+
+        return state.copy(
+            terms = listOf(finalTerm),
+            stage = DerivationStage.FINAL,
+        )
+    }
+
+    private fun fuseFeminineStem(stem: String, suff: String, samjna: Samjna): String = when {
+        stem == "युवन्" && suff == "ति" -> "युवति"
+        stem == "नृ" && suff == "ई" -> "नारी"
+        stem == "कर्तृ" && suff == "ई" -> "कर्त्री"
+        stem == "दण्डिन्" && suff == "ई" -> "दण्डिनी"
+        stem == "गौर" && suff == "ई" -> "गौरी"
+        stem == "अज" && suff == "आ" -> "अजा"
+        stem == "बाल" && suff == "आ" -> "बाला"
+        stem.endsWith("अ") -> stem.dropLast(1) + suff
+        stem.endsWith("इ") || stem.endsWith("उ") -> stem + suff
+        else -> stem + suff
+    }
+}
