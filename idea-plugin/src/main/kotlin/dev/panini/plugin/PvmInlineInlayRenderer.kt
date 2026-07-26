@@ -14,8 +14,8 @@ import java.awt.RenderingHints
 class PvmInlineInlayRenderer(val surfaceText: String) : EditorCustomElementRenderer {
 
     override fun calcWidthInPixels(inlay: Inlay<*>): Int {
-        val fontMetrics = inlay.editor.component.getFontMetrics(inlay.editor.colorsScheme.getFont(EditorFontType.PLAIN))
-        return fontMetrics.stringWidth(" ➔ $surfaceText") + 24
+        val fontMetrics = inlay.editor.component.getFontMetrics(inlay.editor.colorsScheme.getFont(EditorFontType.BOLD))
+        return fontMetrics.stringWidth(surfaceText) + 24
     }
 
     override fun calcHeightInPixels(inlay: Inlay<*>): Int {
@@ -29,14 +29,28 @@ class PvmInlineInlayRenderer(val surfaceText: String) : EditorCustomElementRende
             g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
 
             val editor = inlay.editor
-            g2.font = editor.colorsScheme.getFont(EditorFontType.PLAIN)
+            g2.font = editor.colorsScheme.getFont(EditorFontType.BOLD)
 
             val isDark = UIUtil.isUnderDarcula()
-            // Muted Kotlin-style parameter hint color without background or border
-            val textColor = if (isDark) Color(140, 140, 145) else Color(110, 110, 115)
+            // Code block chip badge background (matching inline code highlighting)
+            val chipBgColor = if (isDark) Color(60, 63, 65) else Color(230, 235, 240)
+            val chipBorderColor = if (isDark) Color(85, 88, 90) else Color(200, 205, 210)
+            val textColor = if (isDark) Color(129, 199, 132) else Color(27, 94, 32)
 
+            val badgeY = r.y + 2
+            val badgeHeight = r.height - 4
+
+            // Draw rounded code block chip background
+            g2.color = chipBgColor
+            g2.fillRoundRect(r.x + 8, badgeY, r.width - 12, badgeHeight, 6, 6)
+
+            // Draw chip border
+            g2.color = chipBorderColor
+            g2.drawRoundRect(r.x + 8, badgeY, r.width - 12, badgeHeight, 6, 6)
+
+            // Draw surface text without arrow
             g2.color = textColor
-            g2.drawString(" ➔ $surfaceText", r.x + 16, r.y + editor.ascent)
+            g2.drawString(surfaceText, r.x + 14, badgeY + editor.ascent - 2)
         } finally {
             g2.dispose()
         }
