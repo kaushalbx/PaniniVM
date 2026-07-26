@@ -1,13 +1,13 @@
 package dev.panini.compiler
 
 import dev.panini.core.Karaka
-import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.execution.DhatuOperation
 import dev.panini.execution.ExecutionContext
 import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.SanskritValue
 import dev.panini.execution.ExecutionSamjna
+import dev.panini.dhatupatha.DhatuPatha
 
 object PaniniRuntime {
     @JvmStatic
@@ -42,9 +42,10 @@ object PaniniRuntime {
 
     @JvmStatic
     fun resolveOperation(dhatuUpadesha: String, operationName: String): DhatuOperation {
+        dev.panini.dhatupatha.DhatuPathaRegistration.ensureRegistered()
         val normalized = dhatuUpadesha.trimEnd('्', 'ँ')
-        val dhatu = DhatuPatha.all.firstOrNull {
-            it.upadesha == dhatuUpadesha ||
+        val dhatu = DhatuPatha.all.firstOrNull { 
+            it.upadesha == dhatuUpadesha || 
             it.id == dhatuUpadesha ||
             it.upadesha.trimEnd('्', 'ँ') == normalized ||
             it.id.trimEnd('्', 'ँ') == normalized

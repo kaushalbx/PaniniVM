@@ -8,6 +8,8 @@ dependencies {
     implementation(project(":parser"))
     implementation(project(":ashtadhyayi"))
     implementation(project(":sankhya"))
+    implementation(project(":actions"))
+    implementation(project(":dhatupatha"))
     compileOnly(gradleApi())
     testImplementation(gradleApi())
     testImplementation(kotlin("test"))

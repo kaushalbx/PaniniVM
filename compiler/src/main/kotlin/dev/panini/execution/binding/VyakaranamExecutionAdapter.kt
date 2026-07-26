@@ -5,6 +5,7 @@ import dev.panini.core.Lakara
 import dev.panini.core.Prayoga
 import dev.panini.core.SupAffix
 import dev.panini.dhatupatha.Dhatu
+import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.execution.AmbiguousKarakaBinding
 import dev.panini.execution.DhatuInvocation
 import dev.panini.execution.ExecutableUkti
@@ -23,7 +24,6 @@ import dev.panini.analysis.DhatuKarakaProfiles
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleEngine
 import dev.panini.analysis.ParticipantFacts
-import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.vyakaranam.ast.AkhyataVakya
 import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.KridantaPratipadika

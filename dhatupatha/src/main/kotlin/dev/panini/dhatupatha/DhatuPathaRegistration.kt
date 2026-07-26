@@ -11,9 +11,8 @@ import dev.panini.dhatupatha.svadi.SvadiDhatus
 import dev.panini.dhatupatha.tanadi.TanadiDhatus
 import dev.panini.dhatupatha.tudadi.TudadiDhatus
 
-object DhatuPatha {
-
-    val all: List<Dhatu> by lazy {
+object DhatuPathaRegistration {
+    val allDhatus: List<Dhatu> by lazy {
         listOf(
             BhvadiDhatus.all,
             AdadiDhatus.all,
@@ -28,11 +27,15 @@ object DhatuPatha {
         ).flatten()
     }
 
+    init {
+        ensureRegistered()
+    }
 
-    fun find(id: String): Dhatu? = all.singleOrNull { it.id == id }
-
-    fun findByUpadesha(upadesha: String): List<Dhatu> = all.filter { it.upadesha == upadesha }
-
-    fun findOneByUpadesha(upadesha: String): Dhatu? = all.single { it.upadesha == upadesha }
-
+    fun ensureRegistered() {
+        if (DhatuPatha.provider() !== allDhatus) {
+            DhatuPatha.provider = { allDhatus }
+        }
+    }
 }
+
+val autoRegisterDhatuPatha: Unit = DhatuPathaRegistration.ensureRegistered()

@@ -1,6 +1,8 @@
 package dev.panini.execution
 
+import dev.panini.core.Karaka
 import dev.panini.dhatupatha.DhatuPatha
+import dev.panini.dhatupatha.rudhadi.YujirDhatu
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -59,6 +61,39 @@ class DhatuOperationTest {
         }
     }
 
+    @Test
+    fun `operation signature resolves a syncretic binding by required karaka`() {
+        val customAction = object : DhatuAction("सम्प्रदान-परीक्षा", "test") {
+            override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult =
+                ExecutionResult.Success("सिद्धम्", operation.name)
+        }
+        val operation = DhatuOperation(
+            signature = OperationSignature(listOf(KarakaRequirement(Karaka.SAMPRADANA))),
+            action = customAction,
+        )
+        val yujirWithCustomOp = object : YujirDhatu() {
+            override val operations = listOf(operation)
+        }
+        val expression = ExecutionExpression.Pada("रामाभ्याम्")
+        val invocation = DhatuInvocation(
+            id = "test",
+            dhatu = yujirWithCustomOp,
+            bindings = emptyMap(),
+            selectedOperation = operation.name,
+            ambiguousBindings = listOf(
+                AmbiguousKarakaBinding(
+                    expression,
+                    setOf(Karaka.KARANA, Karaka.SAMPRADANA, Karaka.APADANA),
+                ),
+            ),
+        )
+
+        val resolved = assertIs<OperationResolution.Resolved>(
+            OperationResolver.resolve(invocation, emptyMap()),
+        )
+
+        assertEquals(expression, resolved.value.context.bindings[Karaka.SAMPRADANA])
+    }
 
     private fun expressionFor(
         requirement: KarakaRequirement,
