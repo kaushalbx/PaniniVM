@@ -97,4 +97,38 @@ class TaddhitaEngineTest {
         assertEquals("त्रल्", addedTerm.upadesha)
         assertEquals("त्र", addedTerm.surface)
     }
+
+    @Test
+    fun `matup derives rupavat and dhimat with mator vah`() {
+        val res1 = TaddhitaEngine().derive("रूप", dev.panini.shiksha.Samjna.MATUP)
+        assertEquals("रूपवत्", res1.final.surface)
+        assertTrue(res1.applications.any { it.sutra == "5.2.94" })
+        assertTrue(res1.applications.any { it.sutra == "8.2.9" })
+
+        val res2 = TaddhitaEngine().derive("धी", dev.panini.shiksha.Samjna.MATUP)
+        assertEquals("धीमत्", res2.final.surface)
+        assertTrue(res2.applications.any { it.sutra == "5.2.94" })
+    }
+
+    @Test
+    fun `tvatalau derives gurutva and guruta`() {
+        val res1 = TaddhitaEngine().derive("गुरु", dev.panini.shiksha.Samjna.TVA)
+        assertEquals("गुरुत्व", res1.final.surface)
+        assertTrue(res1.applications.any { it.sutra == "5.1.119" })
+
+        val res2 = TaddhitaEngine().derive("गुरु", dev.panini.shiksha.Samjna.TAL)
+        assertEquals("गुरुता", res2.final.surface)
+        assertTrue(res2.applications.any { it.sutra == "5.1.119" })
+    }
+
+    @Test
+    fun `tarap and tamap derive patutara and patutama`() {
+        val res1 = TaddhitaEngine().derive("पटु", dev.panini.shiksha.Samjna.TARAP)
+        assertEquals("पटुतर", res1.final.surface)
+        assertTrue(res1.applications.any { it.sutra == "5.3.55" })
+
+        val res2 = TaddhitaEngine().derive("पटु", dev.panini.shiksha.Samjna.TAMAP)
+        assertEquals("पटुतम", res2.final.surface)
+        assertTrue(res2.applications.any { it.sutra == "5.3.57" })
+    }
 }
