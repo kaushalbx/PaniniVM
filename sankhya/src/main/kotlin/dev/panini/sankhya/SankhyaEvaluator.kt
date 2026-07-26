@@ -31,10 +31,11 @@ class SankhyaEvaluator {
             return SankhyaExpression.Purana(base = base)
         }
 
-        // Split by "अधिक" if present as an internal marker
+        // Split by "अधिक" if present as an internal marker (handling optional preceding "अभि" upasarga)
         val adhikaIndex = stems.indexOf("अधिक")
         if (adhikaIndex > 0 && adhikaIndex < stems.size - 1) {
-            val rem = evaluateStems(stems.subList(0, adhikaIndex))
+            val remStems = if (stems[adhikaIndex - 1] == "अभि") stems.subList(0, adhikaIndex - 1) else stems.subList(0, adhikaIndex)
+            val rem = evaluateStems(remStems)
             val base = evaluateStems(stems.subList(adhikaIndex + 1, stems.size))
             return SankhyaExpression.Adhika(remainder = rem, base = base)
         }
@@ -109,7 +110,20 @@ class SankhyaEvaluator {
             }
         }
 
-        // Numerator-Denominator fraction: e.g. ["त्रि", "पाद"] -> 3/4, ["द्वि", "तृतीयांश"] -> 2/3
+        // Segmented fraction suffix: e.g. ["त्रि", "तीय", "अंश"] -> 1/3, ["द्वि", "त्रि", "तीय", "अंश"] -> 2/3, ["पाद", "अंश"] -> 1/4
+        if (stems.size >= 2 && (stems.last() == "अंश" || stems.last() == "भाग")) {
+            val rest = stems.dropLast(1)
+            val lastAffix = rest.last()
+            val denomLength = if (lastAffix in listOf("तीय", "थ", "ष्ठ", "म", "तम")) 2 else 1
+            val denomStems = rest.takeLast(denomLength)
+            val numStems = rest.dropLast(denomLength)
+
+            val denomVal = parseDenomStems(denomStems)
+            val numVal = if (numStems.isNotEmpty()) evaluateStems(numStems).value else 1L
+            return SankhyaExpression.RationalFraction(numerator = numVal, denominator = denomVal)
+        }
+
+        // Numerator-Denominator fraction: e.g. ["त्रि", "पाद"] -> 3/4
         if (stems.size == 2) {
             val denomFraction = parseFractionStem(stems[1])
             if (denomFraction != null) {
@@ -119,6 +133,8 @@ class SankhyaEvaluator {
                     denominator = denomFraction.denominator
                 )
             }
+            val puranaExpr = parsePuranaStemSequence(stems)
+            if (puranaExpr != null) return puranaExpr
         }
 
         if (stems.size == 1) {
@@ -177,43 +193,58 @@ class SankhyaEvaluator {
     private fun parseStandalonePurana(stem: String): SankhyaExpression.Purana? {
         val baseVal = when (stem) {
             "प्रथम" -> PrimitiveSankhya.EKA
-            "द्वितीय" -> PrimitiveSankhya.DVI
-            "तृतीय" -> PrimitiveSankhya.TRI
-            "चतुर्थ", "तूरीय", "तुरीय" -> PrimitiveSankhya.CHATUR
-            "पञ्चम" -> PrimitiveSankhya.PANCHAN
-            "षष्ठ" -> PrimitiveSankhya.SHASH
-            "सप्तम" -> PrimitiveSankhya.SAPTAN
-            "अष्टम" -> PrimitiveSankhya.ASHTAN
-            "नवम" -> PrimitiveSankhya.NAVAN
-            "दशम" -> PrimitiveSankhya.DASHAN
-            "षोडशम" -> PrimitiveSankhya.SHODASHA
-            "विंशतिक", "विंशतितम" -> PrimitiveSankhya.VIMSHATI
-            "त्रिंशत्तम" -> PrimitiveSankhya.TRIMSHAT
-            "चत्वारिंशत्तम" -> PrimitiveSankhya.CHATVARIMSHAT
-            "पञ्चाशत्तम" -> PrimitiveSankhya.PANCHASHAT
-            "षष्टितम" -> PrimitiveSankhya.SHASHTI
-            "सप्ततिम" -> PrimitiveSankhya.SAPTATI
-            "अशीतितम" -> PrimitiveSankhya.ASHITI
-            "नवतिम" -> PrimitiveSankhya.NAVATI
-            "शततम" -> PrimitiveSankhya.SHATA
-            "सहस्रतम" -> PrimitiveSankhya.SAHASRA
             else -> null
         }
         return baseVal?.let { SankhyaExpression.Purana(SankhyaExpression.Primitive(it)) }
     }
 
+    private fun parsePuranaStemSequence(stems: List<String>): SankhyaExpression.Purana? {
+        if (stems.isEmpty()) return null
+        if (stems.size == 1) return parseStandalonePurana(stems.single())
+
+        val last = stems.last()
+        if (last == "तीय" || last == "थ" || last == "ष्ठ" || last == "म" || last == "तम") {
+            val baseStems = stems.dropLast(1)
+            val baseExpr = if (baseStems.size == 1) {
+                val s = baseStems.single()
+                when (s) {
+                    "द्वि" -> PrimitiveSankhya.DVI
+                    "त्रि" -> PrimitiveSankhya.TRI
+                    "चतुर्" -> PrimitiveSankhya.CHATUR
+                    "पञ्च" -> PrimitiveSankhya.PANCHAN
+                    "षष्" -> PrimitiveSankhya.SHASH
+                    "सप्त" -> PrimitiveSankhya.SAPTAN
+                    "अष्ट" -> PrimitiveSankhya.ASHTAN
+                    "नव" -> PrimitiveSankhya.NAVAN
+                    "दश" -> PrimitiveSankhya.DASHAN
+                    "शत" -> PrimitiveSankhya.SHATA
+                    "सहस्र" -> PrimitiveSankhya.SAHASRA
+                    else -> PrimitiveSankhya.fromAnnotatedPratipadika(s)
+                }
+            } else {
+                val evaluated = try { evaluateStems(baseStems) } catch (e: Throwable) { null }
+                evaluated?.let { PrimitiveSankhya.fromValue(it.value) }
+            }
+            if (baseExpr != null) return SankhyaExpression.Purana(SankhyaExpression.Primitive(baseExpr))
+        }
+        return null
+    }
+
     private fun parseFractionStem(stem: String): SankhyaExpression.RationalFraction? = when (stem) {
         "अर्ध" -> SankhyaExpression.RationalFraction(1L, 2L)
-        "पाद", "तुरीयांश", "चतुर्थांश", "पादांश" -> SankhyaExpression.RationalFraction(1L, 4L)
-        "त्रिभाग", "तृतीयांश" -> SankhyaExpression.RationalFraction(1L, 3L)
-        "पञ्चमांश" -> SankhyaExpression.RationalFraction(1L, 5L)
-        "षष्ठांश" -> SankhyaExpression.RationalFraction(1L, 6L)
-        "सप्तमांश" -> SankhyaExpression.RationalFraction(1L, 7L)
-        "अष्टमांश" -> SankhyaExpression.RationalFraction(1L, 8L)
-        "नवमांश" -> SankhyaExpression.RationalFraction(1L, 9L)
-        "दशमांश" -> SankhyaExpression.RationalFraction(1L, 10L)
-        "शतांश" -> SankhyaExpression.RationalFraction(1L, 100L)
+        "पाद" -> SankhyaExpression.RationalFraction(1L, 4L)
         else -> null
+    }
+
+    private fun parseDenomStems(stems: List<String>): Long {
+        if (stems.size == 1 && stems.single() == "पाद") return 4L
+        val puranaVal = parsePuranaStemSequence(stems)?.value
+        if (puranaVal != null) return puranaVal
+        if (stems.size == 1) {
+            val primVal = PrimitiveSankhya.fromAnnotatedPratipadika(stems.single())?.value
+            if (primVal != null) return primVal
+        }
+        return 1L
     }
 
     /**

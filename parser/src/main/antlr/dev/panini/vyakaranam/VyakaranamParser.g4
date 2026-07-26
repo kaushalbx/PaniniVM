@@ -142,7 +142,7 @@ sankhyaPuranaPada
     ;
 
 puranaPratyaya
-    : PRATYAYA_TIYA
+    : TEEYA
     | THA
     | PRATYAYA_MA
     | PRATYAYA_TAMA
@@ -167,7 +167,7 @@ bhutasamkhyaPada
 
 sankhyaBhinnaPada
     : (SAARDHA | SAPAADA | PAADONA) PLUS sankhyaStem PLUS supPratyaya
-    | (sankhyaStem PLUS)? (ARDHA | PAADA | AMSHA) PLUS supPratyaya
+    | (sankhyaStem PLUS)? (sankhyaStem PLUS (puranaPratyaya PLUS)? | PAADA PLUS)? (ARDHA | PAADA | AMSHA) PLUS supPratyaya
     ;
 
 sankhyaMathPada

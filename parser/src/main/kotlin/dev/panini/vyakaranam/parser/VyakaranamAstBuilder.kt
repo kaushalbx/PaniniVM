@@ -168,13 +168,12 @@ class VyakaranamAstBuilder {
         context: PaniniyaVyakaranamParser.SankhyaBhinnaPadaContext,
     ): SankhyaBhinnaPada {
         val stems = mutableListOf<String>()
-        context.SAARDHA()?.let { stems.add(it.text) }
-        context.SAPAADA()?.let { stems.add(it.text) }
-        context.PAADONA()?.let { stems.add(it.text) }
-        context.sankhyaStem()?.let { stems.add(it.text) }
-        context.ARDHA()?.let { stems.add(it.text) }
-        context.PAADA()?.let { stems.add(it.text) }
-        context.AMSHA()?.let { stems.add(it.text) }
+        context.children?.forEach { child ->
+            val text = child.text
+            if (text != "+" && child !is PaniniyaVyakaranamParser.SupPratyayaContext) {
+                stems.add(text)
+            }
+        }
 
         return SankhyaBhinnaPada(
             sourceText = context.text,

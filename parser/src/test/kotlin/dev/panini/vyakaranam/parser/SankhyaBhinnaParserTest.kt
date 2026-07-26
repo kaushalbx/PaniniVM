@@ -29,4 +29,24 @@ class SankhyaBhinnaParserTest {
         assertEquals(listOf("त्रि", "पाद"), pada.stems)
         assertEquals("अम्", pada.sup.text)
     }
+
+    @Test
+    fun `parses segmented fraction Tritiya Amsha utterance`() {
+        val ukti = parser.parse("तृतीय + अंश + अम् ।")
+        val vakya = assertIs<NamaVakya>(ukti.vakyas.single())
+        val pada = assertIs<SankhyaBhinnaPada>(vakya.padas.single())
+
+        assertEquals(listOf("तृतीय", "अंश"), pada.stems)
+        assertEquals("अम्", pada.sup.text)
+    }
+
+    @Test
+    fun `parses segmented fraction Dvi Tritiya Amsha utterance`() {
+        val ukti = parser.parse("द्वि + तृतीय + अंश + अम् ।")
+        val vakya = assertIs<NamaVakya>(ukti.vakyas.single())
+        val pada = assertIs<SankhyaBhinnaPada>(vakya.padas.single())
+
+        assertEquals(listOf("द्वि", "तृतीय", "अंश"), pada.stems)
+        assertEquals("अम्", pada.sup.text)
+    }
 }

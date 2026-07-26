@@ -47,4 +47,28 @@ class SankhyaFractionEvaluatorTest {
         assertEquals(11L, fraction.numerator)
         assertEquals(4L, fraction.denominator)
     }
+
+    @Test
+    fun `evaluates segmented fraction Tri Teeya Amsha to 1 by 3`() {
+        val expr = evaluator.evaluateStems(listOf("त्रि", "तीय", "अंश"))
+        val fraction = assertIs<SankhyaExpression.RationalFraction>(expr)
+        assertEquals(1L, fraction.numerator)
+        assertEquals(3L, fraction.denominator)
+    }
+
+    @Test
+    fun `evaluates segmented fraction Dvi Tri Teeya Amsha to 2 by 3`() {
+        val expr = evaluator.evaluateStems(listOf("द्वि", "त्रि", "तीय", "अंश"))
+        val fraction = assertIs<SankhyaExpression.RationalFraction>(expr)
+        assertEquals(2L, fraction.numerator)
+        assertEquals(3L, fraction.denominator)
+    }
+
+    @Test
+    fun `evaluates segmented fraction Shata Tama Amsha to 1 by 100`() {
+        val expr = evaluator.evaluateStems(listOf("शत", "तम", "अंश"))
+        val fraction = assertIs<SankhyaExpression.RationalFraction>(expr)
+        assertEquals(1L, fraction.numerator)
+        assertEquals(100L, fraction.denominator)
+    }
 }

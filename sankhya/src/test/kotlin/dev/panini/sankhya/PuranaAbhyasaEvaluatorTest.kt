@@ -10,7 +10,7 @@ class PuranaAbhyasaEvaluatorTest {
 
     @Test
     fun `evaluates standalone ordinals`() {
-        val expr = evaluator.evaluateStems(listOf("द्वितीय"))
+        val expr = evaluator.evaluateStems(listOf("द्वि", "तीय"))
         val purana = assertIs<SankhyaExpression.Purana>(expr)
         assertEquals(2L, purana.value)
     }
