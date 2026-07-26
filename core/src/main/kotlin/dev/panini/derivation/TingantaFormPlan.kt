@@ -185,7 +185,7 @@ object TingantaFormPlans {
         }
         TingAffix.entries.filter { it.pada == PadaType.ATMANEPADA }.forEach { affix ->
             val required = mutableSetOf("3.4.78", "6.4.71")
-            add(TingantaFormPlan(affix, Lakara.LUNG, required, DerivationStage.FINAL))
+            add(TingantaFormPlan(affix, Lakara.LUNG, required, DerivationStage.IT_PROCESSED))
         }
         // LET (Vedic subjunctive) plans
         TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.forEach { affix ->

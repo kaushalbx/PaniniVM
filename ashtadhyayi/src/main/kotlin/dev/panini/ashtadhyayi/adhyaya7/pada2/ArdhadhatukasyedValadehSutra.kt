@@ -32,14 +32,22 @@ object ArdhadhatukasyedValadehSutra : Sutra<DerivationState, DerivationChange>(
         val isNonKradiPerfect = context.effectiveContext.rupa.lakara == Lakara.LIT &&
             dhatu != null && dhatu.surface !in KrsrbhrvrstudrusrusruvoLitiSutra.KRADI_ROOTS &&
             "1.2.5" in ending.establishedBySutras
+        val isLabhAorist = context.effectiveContext.rupa.lakara == Lakara.LUNG &&
+            (dhatu?.upadesha?.contains("लभ") == true || dhatu?.surface?.contains("लभ") == true || dhatu?.surface?.contains("स्रम्भ") == true)
         val isTransformedLitEnding = context.effectiveContext.rupa.lakara != Lakara.LIT ||
             ending.surface in setOf(
                 "अ", "अतुस्", "उस्", "अथुस्", "व", "म",
                 "ए", "आते", "इरे", "से", "आथे", "ध्वे", "वहे", "महे",
             ) || (ending.surface == "थ" && ending.matchesUpadesha("सिप्"))
         val isSipLet = context.allEffectiveTerms.any { it.id == "sip-aorist" }
-        return (HasDerivationalEnvironment(DerivationalEnvironment.ARDHADHATUKA).matches(context) || isSipLet) &&
-            (context.terms.any { it.kind == TermKind.DHATU && it.itStatus == ItStatus.SET } || isLabhPerfectMiddle || isNonKradiPerfect) &&
+        val isRootAoristBhu = context.effectiveContext.rupa.lakara == Lakara.LUNG &&
+            (dhatu?.upadesha == "भूँ" || dhatu?.surface == "भू")
+        if (isRootAoristBhu) return false
+
+        val isArdhadhatuka = HasDerivationalEnvironment(DerivationalEnvironment.ARDHADHATUKA).matches(context) ||
+            isSipLet
+        return isArdhadhatuka &&
+            (context.terms.any { it.kind == TermKind.DHATU && (it.itStatus == ItStatus.SET || it.itStatus == ItStatus.VET) } || isLabhPerfectMiddle || isNonKradiPerfect || isLabhAorist) &&
             ending.kind == TermKind.PRATYAYA &&
             ending.surface.firstOrNull()?.let { char -> char !in vowels } == true &&
             isTransformedLitEnding &&

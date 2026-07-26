@@ -53,10 +53,12 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
                 }
             }
 
-            // 1. Handle final markers (Halantyam)
-            if (term.itMarkers.contains(ItMarker.KIT)) {
-                if (newSurface.endsWith('्') && newSurface.length >= 2) {
+            // 1. Handle final markers (Halantyam 1.3.3, respecting 1.3.4 Na vibhaktau tusmāḥ)
+            val finalItEndings = listOf("क्", "प्", "ङ्", "ण्", "श्", "ट्", "ञ्", "र्", "ल्", "च्")
+            for (ending in finalItEndings) {
+                if (newSurface.endsWith(ending)) {
                     newSurface = newSurface.dropLast(2)
+                    break
                 }
             }
 

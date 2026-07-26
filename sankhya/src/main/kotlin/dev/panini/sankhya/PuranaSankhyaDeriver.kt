@@ -104,7 +104,8 @@ class PuranaSankhyaDeriver(
                 SamjnaAssignment(term.id, Samjna.SANKHYA),
                 SamjnaAssignment(term.id, Samjna.PURANA),
             ),
-            stage = DerivationStage.PADA_FORMED,
+            activeAdhikaras = setOf("4.1.76"),
+            stage = DerivationStage.INITIAL,
         )
         // प्रथम is lexical; the rule engine must preserve it without fabricating a sūtra application.
         return initial

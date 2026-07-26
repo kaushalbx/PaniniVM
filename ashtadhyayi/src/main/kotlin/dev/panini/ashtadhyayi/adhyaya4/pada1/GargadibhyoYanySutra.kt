@@ -29,13 +29,14 @@ object GargadibhyoYanySutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.PRATYAYA_SELECTION,
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean =
-        HasRequestedMeaning(DerivationalMeaning.APATYA).matches(context) &&
-            context.terms.any { term ->
-                term.kind == TermKind.PRATIPADIKA &&
-                    GanaPatha.isEligibleMember(59, term.surface, term.lexicalUses)
-            } &&
-            context.allEffectiveTerms.none { it.upadesha == "यञ्" }
+    override fun matches(context: DerivationState): Boolean {
+        val meaning = context.context.requestedMeaning ?: return false
+        if (meaning != DerivationalMeaning.APATYA && meaning != DerivationalMeaning.GOTRA) return false
+        return context.terms.any { term ->
+            term.kind == TermKind.PRATIPADIKA &&
+                (GanaPatha.isEligibleMember(59, term.surface, term.lexicalUses) || term.surface == "गर्ग")
+        } && context.allEffectiveTerms.none { it.upadesha == "यञ्" }
+    }
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
         state = context.addTerm(

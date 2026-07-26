@@ -4,6 +4,8 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -32,32 +34,58 @@ object YasyetiCaSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         if ("6.4.1" !in context.activeAdhikaras) return false
         if (context.terms.size < 2) return false
+        if (context.substitutions.any { it.sutra == "6.4.148" }) return false
 
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        // 1. Stem must be 'bha'
-        val isBha = context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.BHA }
-        if (!isBha) return false
+        val isTaddhita = "4.1.76" in context.activeAdhikaras ||
+            affix.upadesha in setOf("अण्", "इञ्", "यञ्", "फक्", "ढक्", "वत्", "तसिल्", "त्रल्", "आयन्", "एय्", "ईन्", "ईय्", "इय्", "डट्", "तमट्", "तीयै", "टीयै", "डँ", "मयट्") ||
+            affix.id.contains("taddhita") || affix.id.contains("apatya") || affix.id.contains("purana") || affix.id.contains("sankhya")
 
-        // 2. Stem must end in 'i' or 'a'
-        val endsInIOrA = stem.surface.endsWith('इ') || stem.surface.endsWith('ि') ||
-                         stem.surface.endsWith('अ') || stem.surface.endsWith('ा')
+        val isStriII = (affix.surface == "ई" || affix.surface == "ी" || affix.upadesha in setOf("ङीप्", "ङीष्", "ङीन्")) &&
+            (affix.id.contains("stri") || affix.id.contains("feminine"))
 
-        // 3. Affix must start with 'ī' (Simplified: Taddhita check omitted for now)
-        val startsWithII = affix.surface.startsWith('ई') || affix.surface.startsWith('ी')
+        if (!isTaddhita && !isStriII) return false
 
-        return endsInIOrA && startsWithII
+        if (stem.surface.endsWith('्')) return false
+
+        return dev.panini.shiksha.Varnamala.endsWithA(stem.surface) ||
+            dev.panini.shiksha.Varnamala.endsWithAA(stem.surface) ||
+            stem.surface.endsWith('इ') || stem.surface.endsWith('ि') || stem.surface.endsWith('ी')
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val stem = context.terms[context.terms.size - 2]
-        val newSurface = stem.surface.dropLast(1)
+        val stemIndex = context.terms.size - 2
+        val stem = context.terms[stemIndex]
+        val affix = context.terms.last()
+
+        val stemBase = when {
+            stem.surface.endsWith('ा') || stem.surface.endsWith('ि') || stem.surface.endsWith('ी') -> stem.surface.dropLast(1)
+            else -> stem.surface
+        }
+
+        val affixSurface = affix.surface
+        val mergedSurface = when {
+            affixSurface.startsWith("इञ्") || affixSurface.startsWith("इ") -> stemBase + "ि"
+            affixSurface.startsWith("आयन्") || affixSurface.startsWith("आयन") -> stemBase + "ायन्"
+            affixSurface.startsWith("एय्") || affixSurface.startsWith("एय") -> stemBase + "ेय्"
+            affixSurface.startsWith("यञ्") || affixSurface.startsWith("य") -> stemBase + "्य"
+            else -> stemBase + affixSurface
+        }
+
+        val updatedTerm = DerivationTerm(
+            id = stem.id,
+            surface = mergedSurface,
+            kind = TermKind.PRATIPADIKA,
+        )
 
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = newSurface))
-                .copy(stage = DerivationStage.ANGAKARYA),
-            explanation = "6.4.148: Deleted final vowel of 'bha' stem before 'ī'."
+            state = context.copy(
+                terms = context.terms.dropLast(2) + updatedTerm,
+                stage = DerivationStage.PADA_FORMED,
+            ),
+            explanation = "6.4.148: Deleted final stem vowel before Taddhita affix, producing '$mergedSurface'.",
         )
     }
 }
