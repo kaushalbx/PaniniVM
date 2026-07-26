@@ -1,9 +1,5 @@
 package dev.panini.core
 
-import dev.panini.core.SupAffix.Companion.candidates
-import dev.panini.derivation.DerivationTerm
-import dev.panini.derivation.DerivationalContext
-import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Svara
 
 /** The 21 sup slots of 4.1.2; each enum entry is its one executable source. */
@@ -38,8 +34,6 @@ enum class SupAffix(
 
     val id: String get() = "sup-" + name.lowercase().replace('_', '-')
 
-    fun term(): DerivationTerm = DerivationTerm(id, initialSurface, TermKind.PRATYAYA, itMarkers, upadesha)
-
     companion object {
         /**
          * Returns every slot represented by an annotated sup upadeśa.
@@ -65,12 +59,5 @@ enum class SupAffix(
 
         fun select(vibhakti: Vibhakti, vacana: Vacana): SupAffix =
             entries.single { it.vibhakti == vibhakti && it.vacana == vacana }
-
-        fun fromContext(context: DerivationalContext): SupAffix? {
-            val vibhakti = context.rupa.vibhakti ?: return null
-            val vacana = context.rupa.vacana ?: return null
-            return entries.singleOrNull { it.vibhakti == vibhakti && it.vacana == vacana }
-        }
-
     }
 }

@@ -7,7 +7,8 @@ import kotlin.test.assertTrue
 class MainTest {
     @Test
     fun `eval command executes pvm script file and formats results`() {
-        val output = runCli(arrayOf("--eval", "src/test/kotlin/dev/panini/parser/addition.pvm"))
+        val scriptPath = listOf("parser/src/test/kotlin/dev/panini/parser/addition.pvm", "src/test/kotlin/dev/panini/parser/addition.pvm").first { java.io.File(it).exists() }
+        val output = runCli(arrayOf("--eval", scriptPath))
 
         assertEquals("=== PaniniVM Script Execution: addition.pvm ===", output.first())
         assertTrue(output.any { it.contains("✓ Result: षट्") }, output.joinToString("\n"))

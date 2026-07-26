@@ -14,5 +14,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "PaniniVM"
 
-include("cli")
+include("core", "parser", "cli")
 

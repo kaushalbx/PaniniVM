@@ -1,8 +1,5 @@
 package dev.panini.core
 
-import dev.panini.derivation.DerivationTerm
-import dev.panini.derivation.TermKind
-
 /** Executable tiṅ inventory used by 3.4.78. */
 enum class TingAffix(
     val purusha: Purusha,
@@ -34,8 +31,6 @@ enum class TingAffix(
     ;
 
     val termId: String get() = "ting-" + name.lowercase().replace('_', '-')
-
-    fun term(): DerivationTerm = DerivationTerm(termId, upadesha, TermKind.PRATYAYA, upadesha = upadesha)
 
     companion object {
         fun fromUpadesha(upadesha: String): TingAffix? =

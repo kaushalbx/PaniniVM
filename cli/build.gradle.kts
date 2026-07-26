@@ -5,6 +5,8 @@ plugins {
 
 dependencies {
     implementation(project(":"))
+    implementation(project(":core"))
+    implementation(project(":parser"))
     testImplementation(kotlin("test"))
 }
 

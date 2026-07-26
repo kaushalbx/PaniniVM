@@ -1,20 +1,5 @@
 plugins {
     kotlin("jvm") version "2.0.21"
-    antlr
-    id("com.strumenta.antlr-kotlin") version "1.0.0-RC4"
-}
-
-val generatedAntlrDirectory = layout.buildDirectory.dir("generated-src/antlr/main")
-
-val generateVyakaranamLexer by tasks.registering(AntlrTask::class) {
-    source = fileTree("src/main/antlr") {
-        include("dev/panini/vyakaranam/VyakaranamLexer.g4")
-    }
-    outputDirectory = generatedAntlrDirectory.get().asFile
-    arguments = arguments + listOf("-Dlanguage=Kotlin")
-    doFirst {
-        generatedAntlrDirectory.get().asFile.resolve("dev/panini/parser").mkdirs()
-    }
 }
 
 group = "dev.panini"
@@ -25,36 +10,13 @@ kotlin {
 }
 
 dependencies {
-    antlr("com.strumenta:antlr-kotlin-target:1.0.0-RC4")
-    implementation("com.strumenta:antlr-kotlin-runtime:1.0.0-RC4")
     implementation("org.ow2.asm:asm:9.7")
+    implementation("com.strumenta:antlr-kotlin-runtime:1.0.0-RC4")
+    implementation(project(":core"))
+    implementation(project(":parser"))
     compileOnly(gradleApi())
     testImplementation(gradleApi())
     testImplementation(kotlin("test"))
-}
-
-tasks.generateGrammarSource {
-    dependsOn(generateVyakaranamLexer)
-    outputDirectory = generatedAntlrDirectory.get().asFile
-    source = fileTree("src/main/antlr") {
-        exclude("dev/panini/vyakaranam/VyakaranamLexer.g4")
-    }
-    maxHeapSize = "64m"
-    arguments = arguments + listOf(
-        "-Dlanguage=Kotlin",
-        "-visitor",
-        "-listener",
-        "-lib",
-        generatedAntlrDirectory.get().asFile.resolve("dev/panini/parser").absolutePath,
-    )
-}
-
-tasks.compileKotlin {
-    dependsOn(tasks.generateGrammarSource)
-}
-
-tasks.compileTestKotlin {
-    dependsOn(tasks.generateTestGrammarSource)
 }
 
 tasks.test {
@@ -63,3 +25,4 @@ tasks.test {
     forkEvery = 0          // reuse JVM across test classes (faster startup)
     maxHeapSize = "512m"
 }
+
