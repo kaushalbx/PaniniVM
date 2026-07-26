@@ -5,7 +5,7 @@
 
     <description><![CDATA[
       JetBrains IntelliJ IDEA plugin for PaniniVM (.pvm) Sanskrit programming script files.
-      Features include file type recognition, custom file icons, AST parsing, syntax highlighting, autocompletion, live error annotations, quick documentation popups, code commenter, and structure view navigation.
+      Features include file type recognition, custom file icons, AST parsing, syntax highlighting, autocompletion, live error annotations, quick documentation popups, code commenter, structure view, and live script execution run configurations.
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
@@ -43,5 +43,9 @@
         <lang.pairedBraceMatcher
                 language="PaniniVM"
                 implementationClass="dev.panini.plugin.PvmPairedBraceMatcher"/>
+        <configurationType
+                implementation="dev.panini.plugin.run.PvmRunConfigurationType"/>
+        <runConfigurationProducer
+                implementation="dev.panini.plugin.run.PvmRunConfigurationProducer"/>
     </extensions>
 </idea-plugin>
