@@ -76,13 +76,14 @@ namaVakya
 vakyaPada
     : subantaVakyaPada
     | avyayaPada
-    | sankhyaPada
     ;
 
 subantaVakyaPada
     : subantaPada
     | samuccitaSubanta
     | sankhyaPada
+    | sankhyaPuranaPada
+    | sankhyaAbhyasaPada
     ;
 
 vakyaSambandha
@@ -129,6 +130,22 @@ pada
 
 sankhyaPada
     : (sankhyaStem PLUS)+ supPratyaya
+    ;
+
+sankhyaPuranaPada
+    : (sankhyaStem PLUS)+ puranaPratyaya PLUS supPratyaya
+    ;
+
+puranaPratyaya
+    : PRATYAYA_TIYA
+    | THA
+    | PRATYAYA_MA
+    | PRATYAYA_TAMA
+    ;
+
+sankhyaAbhyasaPada
+    : (sankhyaStem PLUS)+ KRITVAS
+    | (sankhyaStem PLUS)+ DHAA
     ;
 
 sankhyaStem

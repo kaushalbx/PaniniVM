@@ -32,8 +32,10 @@ import dev.panini.vyakaranam.ast.Pada
 import dev.panini.vyakaranam.ast.Pratipadika
 import dev.panini.vyakaranam.ast.SamasaPratipadika
 import dev.panini.vyakaranam.ast.SamuccitaSubanta
+import dev.panini.vyakaranam.ast.SankhyaAbhyasaPada
 import dev.panini.vyakaranam.ast.SankhyaPada
 import dev.panini.vyakaranam.ast.SankhyaPratipadika
+import dev.panini.vyakaranam.ast.SankhyaPuranaPada
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.UnadyantaPratipadika
@@ -184,6 +186,22 @@ object VyakaranamExecutionAdapter {
                     addBinding(
                         ExecutionExpression.Companion.sankhya(value, pada.sourceText),
                         candidates,
+                    )
+                }
+                is SankhyaPuranaPada -> {
+                    val value = pada.value ?: sankhyaEvaluator.evaluateStems(pada.stems).value
+                    val sub = SubantaPada(pada.sourceText, SankhyaPratipadika(pada.sourceText, value), pada.sup)
+                    val candidates = inferKarakas(sub)
+                    addBinding(
+                        ExecutionExpression.Companion.sankhya(value, pada.sourceText),
+                        candidates,
+                    )
+                }
+                is SankhyaAbhyasaPada -> {
+                    val value = pada.value ?: sankhyaEvaluator.evaluateStems(pada.stems).value
+                    addBinding(
+                        ExecutionExpression.Companion.sankhya(value, pada.sourceText),
+                        setOf(Karaka.ANIRDHARITA, Karaka.KARMAN),
                     )
                 }
                 is SamuccitaSubanta -> {

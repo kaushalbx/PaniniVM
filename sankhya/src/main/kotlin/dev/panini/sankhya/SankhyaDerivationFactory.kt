@@ -64,6 +64,12 @@ class SankhyaDerivationFactory {
                         kind = TermKind.PRATIPADIKA,
                         upadesha = "ऊन",
                     ) + createTerms(expression.base, "${path}_una_base", CompoundPosition.UTTARAPADA)
+            is SankhyaExpression.Purana ->
+                createTerms(expression.base, "${path}_purana", position)
+            is SankhyaExpression.Frequency ->
+                createTerms(expression.count, "${path}_frequency", position)
+            is SankhyaExpression.Distribution ->
+                createTerms(expression.parts, "${path}_distribution", position)
         }
 
     private enum class CompoundPosition { STANDALONE, PURVAPADA, UTTARAPADA }

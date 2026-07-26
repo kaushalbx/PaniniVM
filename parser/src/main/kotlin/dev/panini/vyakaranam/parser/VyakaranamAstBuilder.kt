@@ -81,9 +81,6 @@ class VyakaranamAstBuilder {
             context.avyayaPada() != null ->
                 buildAvyaya(context.avyayaPada()!!)
 
-            context.sankhyaPada() != null ->
-                buildSankhyaPada(context.sankhyaPada()!!)
-
             else -> error("अज्ञातं वाक्यपदम्: ${context.text}")
         }
 
@@ -101,6 +98,30 @@ class VyakaranamAstBuilder {
         )
     }
 
+    private fun buildSankhyaPuranaPada(
+        context: PaniniyaVyakaranamParser.SankhyaPuranaPadaContext,
+    ): SankhyaPuranaPada {
+        val stems = context.sankhyaStem().map { it.text } + context.puranaPratyaya()!!.text
+        return SankhyaPuranaPada(
+            sourceText = context.text,
+            stems = stems,
+            sup = SupPratyaya(
+                sourceText = context.supPratyaya()!!.text,
+                text = context.supPratyaya()!!.text,
+            ),
+        )
+    }
+
+    private fun buildSankhyaAbhyasaPada(
+        context: PaniniyaVyakaranamParser.SankhyaAbhyasaPadaContext,
+    ): SankhyaAbhyasaPada {
+        val stems = context.sankhyaStem().map { it.text } + (context.KRITVAS()?.text ?: context.DHAA()!!.text)
+        return SankhyaAbhyasaPada(
+            sourceText = context.text,
+            stems = stems,
+        )
+    }
+
     private fun buildSubantaVakyaPada(
         context: PaniniyaVyakaranamParser.SubantaVakyaPadaContext,
     ): List<Pada> =
@@ -113,6 +134,12 @@ class VyakaranamAstBuilder {
 
             context.sankhyaPada() != null ->
                 listOf(buildSankhyaPada(context.sankhyaPada()!!))
+
+            context.sankhyaPuranaPada() != null ->
+                listOf(buildSankhyaPuranaPada(context.sankhyaPuranaPada()!!))
+
+            context.sankhyaAbhyasaPada() != null ->
+                listOf(buildSankhyaAbhyasaPada(context.sankhyaAbhyasaPada()!!))
 
             else -> error("अज्ञातं सुबन्तवाक्यपदम्: ${context.text}")
         }

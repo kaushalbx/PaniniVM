@@ -12,6 +12,25 @@ class SankhyaEvaluator {
     fun evaluateStems(stems: List<String>): SankhyaExpression {
         require(stems.isNotEmpty()) { "Cannot evaluate an empty stem list" }
 
+        // Check for frequency marker suffix (कृत्वः / कृत्वसुच्)
+        if (stems.size > 1 && (stems.last() == "कृत्वः" || stems.last() == "कृत्वसुच्")) {
+            val count = evaluateStems(stems.dropLast(1))
+            return SankhyaExpression.Frequency(count = count)
+        }
+
+        // Check for distributive suffix (धा)
+        if (stems.size > 1 && stems.last() == "धा") {
+            val parts = evaluateStems(stems.dropLast(1))
+            return SankhyaExpression.Distribution(parts = parts)
+        }
+
+        // Check for ordinal suffix (तम, म, तीय, थ, ठ)
+        val puranaSuffixes = setOf("तम", "म", "तीय", "थ", "ठ")
+        if (stems.size > 1 && stems.last() in puranaSuffixes) {
+            val base = evaluateStems(stems.dropLast(1))
+            return SankhyaExpression.Purana(base = base)
+        }
+
         // Split by "अधिक" if present as an internal marker
         val adhikaIndex = stems.indexOf("अधिक")
         if (adhikaIndex > 0 && adhikaIndex < stems.size - 1) {
@@ -29,8 +48,15 @@ class SankhyaEvaluator {
         }
 
         if (stems.size == 1) {
-            val prim = PrimitiveSankhya.fromAnnotatedPratipadika(stems.single())
-                ?: error("Unrecognized primitive numeral stem: '${stems.single()}'")
+            val stem = stems.single()
+            val standaloneFrequency = parseStandaloneFrequency(stem)
+            if (standaloneFrequency != null) return standaloneFrequency
+
+            val standalonePurana = parseStandalonePurana(stem)
+            if (standalonePurana != null) return standalonePurana
+
+            val prim = PrimitiveSankhya.fromAnnotatedPratipadika(stem)
+                ?: error("Unrecognized primitive numeral stem: '$stem'")
             return SankhyaExpression.Primitive(prim)
         }
 
@@ -61,6 +87,42 @@ class SankhyaEvaluator {
         }
 
         error("Complex stem sequence evaluation failed for: $stems")
+    }
+
+    private fun parseStandaloneFrequency(stem: String): SankhyaExpression.Frequency? = when (stem) {
+        "सकृत्" -> SankhyaExpression.Frequency(SankhyaExpression.Primitive(PrimitiveSankhya.EKA))
+        "द्विः" -> SankhyaExpression.Frequency(SankhyaExpression.Primitive(PrimitiveSankhya.DVI))
+        "त्रिः" -> SankhyaExpression.Frequency(SankhyaExpression.Primitive(PrimitiveSankhya.TRI))
+        "चतुः" -> SankhyaExpression.Frequency(SankhyaExpression.Primitive(PrimitiveSankhya.CHATUR))
+        else -> null
+    }
+
+    private fun parseStandalonePurana(stem: String): SankhyaExpression.Purana? {
+        val baseVal = when (stem) {
+            "प्रथम" -> PrimitiveSankhya.EKA
+            "द्वितीय" -> PrimitiveSankhya.DVI
+            "तृतीय" -> PrimitiveSankhya.TRI
+            "चतुर्थ", "तूरीय", "तुरीय" -> PrimitiveSankhya.CHATUR
+            "पञ्चम" -> PrimitiveSankhya.PANCHAN
+            "षष्ठ" -> PrimitiveSankhya.SHASH
+            "सप्तम" -> PrimitiveSankhya.SAPTAN
+            "अष्टम" -> PrimitiveSankhya.ASHTAN
+            "नवम" -> PrimitiveSankhya.NAVAN
+            "दशम" -> PrimitiveSankhya.DASHAN
+            "षोडशम" -> PrimitiveSankhya.SHODASHA
+            "विंशतिक", "विंशतितम" -> PrimitiveSankhya.VIMSHATI
+            "त्रिंशत्तम" -> PrimitiveSankhya.TRIMSHAT
+            "चत्वारिंशत्तम" -> PrimitiveSankhya.CHATVARIMSHAT
+            "पञ्चाशत्तम" -> PrimitiveSankhya.PANCHASHAT
+            "षष्टितम" -> PrimitiveSankhya.SHASHTI
+            "सप्ततिम" -> PrimitiveSankhya.SAPTATI
+            "अशीतितम" -> PrimitiveSankhya.ASHITI
+            "नवतिम" -> PrimitiveSankhya.NAVATI
+            "शततम" -> PrimitiveSankhya.SHATA
+            "सहस्रतम" -> PrimitiveSankhya.SAHASRA
+            else -> null
+        }
+        return baseVal?.let { SankhyaExpression.Purana(SankhyaExpression.Primitive(it)) }
     }
 
     /**

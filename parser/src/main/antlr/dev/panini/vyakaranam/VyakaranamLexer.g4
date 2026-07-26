@@ -94,7 +94,7 @@ SAKRIT          : 'सकृत्' ;
 DVIH            : 'द्विः' ;
 TRIH            : 'त्रिः' ;
 CHATUH          : 'चतुः' ;
-KRITVAS         : 'कृत्वस्' ;
+KRITVAS         : 'कृत्वस्' | 'कृत्वः' ;
 
 INTERJECTION
     : 'अहो'
@@ -297,6 +297,9 @@ TAL             : 'तल्';
 TARAP           : 'तरप्';
 TAMAP           : 'तमप्';
 MAYAT           : 'मयट्';
+PRATYAYA_TIYA   : 'तीय';
+PRATYAYA_MA     : 'म';
+PRATYAYA_TAMA   : 'तम';
 TASIL           : 'तसिल्';
 AN              : 'अण्';
 INJ             : 'इञ्';

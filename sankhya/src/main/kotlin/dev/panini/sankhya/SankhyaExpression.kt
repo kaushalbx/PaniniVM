@@ -47,6 +47,26 @@ sealed interface SankhyaExpression {
         }
         override val value: Long = base.value - subtrahend.value
     }
+    /** An ordinal numeral expression (पूरीयसङ्ख्या), e.g. 5th, 20th. */
+    data class Purana(
+        val base: SankhyaExpression,
+    ) : SankhyaExpression {
+        override val value: Long = base.value
+    }
+
+    /** A frequency / repetition numeral expression (अभ्याससङ्ख्या / कृत्वसुच्), e.g. 5 times. */
+    data class Frequency(
+        val count: SankhyaExpression,
+    ) : SankhyaExpression {
+        override val value: Long = count.value
+    }
+
+    /** A distributive / part numeral expression (प्रकारसङ्ख्या / धा-प्रत्यय), e.g. 5-fold / 5 parts. */
+    data class Distribution(
+        val parts: SankhyaExpression,
+    ) : SankhyaExpression {
+        override val value: Long = parts.value
+    }
 }
 
 fun SankhyaExpression.headPrimitive(): PrimitiveSankhya = when (this) {
@@ -55,4 +75,7 @@ fun SankhyaExpression.headPrimitive(): PrimitiveSankhya = when (this) {
     is SankhyaExpression.Adhika -> base.headPrimitive()
     is SankhyaExpression.Una -> base.headPrimitive()
     is SankhyaExpression.Multiply -> magnitude.headPrimitive()
+    is SankhyaExpression.Purana -> base.headPrimitive()
+    is SankhyaExpression.Frequency -> count.headPrimitive()
+    is SankhyaExpression.Distribution -> parts.headPrimitive()
 }
