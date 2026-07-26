@@ -3,6 +3,8 @@ package dev.panini.plugin
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -40,10 +42,21 @@ class PvmAnnotator : Annotator {
             // Ignore syntax validation errors during live editing
         }
 
-        // 2. Conjugated Sentence Surface Annotation (sadhaka.sadhayaLine)
+        // 2. Add Block Inlay Elements in Gaps Directly Above Each Statement Line
         try {
+            val project = holder.currentAnnotationSession.file.project
+            val editor: Editor = FileEditorManager.getInstance(project).selectedTextEditor ?: return
+
             val lines = text.lines()
             var currentOffset = 0
+
+            // Clear previous PvmBlockInlayRenderer elements to avoid duplicate line gap elements
+            val existingInlays = editor.inlayModel.getBlockElementsInRange(0, text.length)
+            for (inlay in existingInlays) {
+                if (inlay.renderer is PvmBlockInlayRenderer) {
+                    inlay.dispose()
+                }
+            }
 
             for (line in lines) {
                 val trimmed = line.trim()
@@ -53,14 +66,16 @@ class PvmAnnotator : Annotator {
                     try {
                         val surface = sadhaka.sadhayaLine(trimmed)
                         if (surface.isNotBlank()) {
-                            val lineRange = TextRange(currentOffset, lineEnd.coerceAtMost(text.length))
-                            holder.newAnnotation(HighlightSeverity.INFORMATION, "Conjugated: $surface")
-                                .range(lineRange)
-                                .afterEndOfLine()
-                                .create()
+                            editor.inlayModel.addBlockElement(
+                                currentOffset,
+                                true, // relatesToPreceding
+                                true, // showAbove: Creates vertical line gap and renders ON TOP of the line!
+                                0,    // priority
+                                PvmBlockInlayRenderer(surface)
+                            )
                         }
                     } catch (_: Throwable) {
-                        // Ignore incomplete lines during live typing
+                        // Ignore incomplete line expressions during typing
                     }
                 }
 
