@@ -15,7 +15,8 @@ class PvmInlineInlayRenderer(val surfaceText: String) : EditorCustomElementRende
 
     override fun calcWidthInPixels(inlay: Inlay<*>): Int {
         val fontMetrics = inlay.editor.component.getFontMetrics(inlay.editor.colorsScheme.getFont(EditorFontType.BOLD))
-        return fontMetrics.stringWidth(" ➔ $surfaceText") + 16
+        // 1 tab gap (24px) after Danda + styled text width
+        return fontMetrics.stringWidth("➔ $surfaceText") + 40
     }
 
     override fun calcHeightInPixels(inlay: Inlay<*>): Int {
@@ -33,24 +34,25 @@ class PvmInlineInlayRenderer(val surfaceText: String) : EditorCustomElementRende
             g2.font = font
 
             val isDark = UIUtil.isUnderDarcula()
-            val bgPillColor = if (isDark) Color(46, 125, 50, 45) else Color(232, 245, 233, 220)
-            val borderColor = if (isDark) Color(76, 175, 80, 120) else Color(129, 199, 132, 180)
+            val bgPillColor = if (isDark) Color(46, 125, 50, 55) else Color(232, 245, 233, 230)
+            val borderColor = if (isDark) Color(76, 175, 80, 140) else Color(129, 199, 132, 190)
             val textColor = if (isDark) Color(129, 199, 132) else Color(27, 94, 32)
 
             val badgeY = r.y + 2
             val badgeHeight = r.height - 4
+            val tabGap = 24 // 1 tab gap after Danda
 
-            // Draw inline pill background after Danda
+            // Draw inline pill background with 1 tab gap after Danda
             g2.color = bgPillColor
-            g2.fillRoundRect(r.x + 4, badgeY, r.width - 8, badgeHeight, 8, 8)
+            g2.fillRoundRect(r.x + tabGap, badgeY, r.width - tabGap - 4, badgeHeight, 8, 8)
 
             // Draw inline pill border
             g2.color = borderColor
-            g2.drawRoundRect(r.x + 4, badgeY, r.width - 8, badgeHeight, 8, 8)
+            g2.drawRoundRect(r.x + tabGap, badgeY, r.width - tabGap - 4, badgeHeight, 8, 8)
 
             // Draw text
             g2.color = textColor
-            g2.drawString(" ➔ $surfaceText", r.x + 10, badgeY + editor.ascent - 2)
+            g2.drawString("➔ $surfaceText", r.x + tabGap + 8, badgeY + editor.ascent - 2)
         } finally {
             g2.dispose()
         }

@@ -74,20 +74,11 @@ class PvmEditorInlayListener : EditorFactoryListener {
 
         if (editor.isDisposed) return
 
-        // Clear previous block and inline PVM inlays
-        val existingBlockInlays = editor.inlayModel.getBlockElementsInRange(0, editor.document.textLength)
-        for (inlay in existingBlockInlays) {
-            if (inlay.renderer is PvmBlockInlayRenderer) {
-                inlay.dispose()
-            }
-        }
-
-        val existingInlineInlays = editor.inlayModel.getInlineElementsInRange(0, editor.document.textLength)
-        for (inlay in existingInlineInlays) {
-            if (inlay.renderer is PvmInlineInlayRenderer) {
-                inlay.dispose()
-            }
-        }
+        // Note: Inlay disposal commented out per user request (do not delete inlay hints)
+        // val existingBlockInlays = editor.inlayModel.getBlockElementsInRange(0, editor.document.textLength)
+        // for (inlay in existingBlockInlays) { if (inlay.renderer is PvmBlockInlayRenderer) inlay.dispose() }
+        // val existingInlineInlays = editor.inlayModel.getInlineElementsInRange(0, editor.document.textLength)
+        // for (inlay in existingInlineInlays) { if (inlay.renderer is PvmInlineInlayRenderer) inlay.dispose() }
 
         // Add block inlays above each statement line
         for (entry in blockInlayEntries) {
@@ -101,7 +92,7 @@ class PvmEditorInlayListener : EditorFactoryListener {
             )
         }
 
-        // Add inline inlays after Danda / end of line
+        // Add inline inlays after Danda with 1 tab gap
         for (entry in inlineInlayEntries) {
             val offset = entry.first.coerceIn(0, editor.document.textLength)
             editor.inlayModel.addInlineElement(
