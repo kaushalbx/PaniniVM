@@ -36,4 +36,16 @@ class SankhyaMathEvaluatorTest {
         val expr = evaluator.evaluateStems(listOf("द्वि", "अभि", "अधिक", "शत"))
         assertEquals(102L, expr.value)
     }
+
+    @Test
+    fun `evaluates segmented Sa Hita expression Dvi Sa Hita Sata to 102`() {
+        val expr = evaluator.evaluateStems(listOf("द्वि", "स", "हित", "शत"))
+        assertEquals(102L, expr.value)
+    }
+
+    @Test
+    fun `evaluates segmented Sam Yuta expression Dvi Sam Yuta Sata to 102`() {
+        val expr = evaluator.evaluateStems(listOf("द्वि", "सम्", "युत", "शत"))
+        assertEquals(102L, expr.value)
+    }
 }

@@ -48,20 +48,28 @@ class SankhyaEvaluator {
             return SankhyaExpression.Una(subtrahend = sub, base = base)
         }
 
-        // Split by "सहित", "युत", "संयुक्त" for addition
-        val sahitaIndex = stems.indexOfFirst { it == "सहित" || it == "युत" || it == "संयुक्त" }
+        // Split by "सहित", "हित", "युत", "संयुक्त" for addition (handling optional preceding "स" / "सम्" upasargas)
+        val sahitaIndex = stems.indexOfFirst { it == "सहित" || it == "हित" || it == "युत" || it == "संयुक्त" }
         if (sahitaIndex > 0 && sahitaIndex < stems.size - 1) {
-            val left = evaluateStems(stems.subList(0, sahitaIndex))
-            val right = evaluateStems(stems.subList(sahitaIndex + 1, stems.size))
-            return SankhyaExpression.Add(lower = right, higher = left)
+            val prev = stems[sahitaIndex - 1]
+            val leftEnd = if (prev == "स" || prev == "सम्") sahitaIndex - 1 else sahitaIndex
+            if (leftEnd > 0) {
+                val left = evaluateStems(stems.subList(0, leftEnd))
+                val right = evaluateStems(stems.subList(sahitaIndex + 1, stems.size))
+                return SankhyaExpression.Add(lower = right, higher = left)
+            }
         }
 
-        // Split by "रहित", "वर्जित" for subtraction
+        // Split by "रहित", "वर्जित" for subtraction (handling optional preceding "वि" upasarga)
         val rahitaIndex = stems.indexOfFirst { it == "रहित" || it == "वर्जित" }
         if (rahitaIndex > 0 && rahitaIndex < stems.size - 1) {
-            val left = evaluateStems(stems.subList(0, rahitaIndex))
-            val right = evaluateStems(stems.subList(rahitaIndex + 1, stems.size))
-            return SankhyaExpression.Una(subtrahend = right, base = left)
+            val prev = stems[rahitaIndex - 1]
+            val leftEnd = if (prev == "वि") rahitaIndex - 1 else rahitaIndex
+            if (leftEnd > 0) {
+                val left = evaluateStems(stems.subList(0, leftEnd))
+                val right = evaluateStems(stems.subList(rahitaIndex + 1, stems.size))
+                return SankhyaExpression.Una(subtrahend = right, base = left)
+            }
         }
 
         // Multiplicative stem + "गुणित" / "हते", e.g. ["द्वि", "गुणित", "शत"] -> 2 * 100 = 200
