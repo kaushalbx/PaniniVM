@@ -52,6 +52,7 @@ class PvmRunConfiguration(
 
             val processHandler = PvmProcessHandler()
             consoleView.attachToProcess(processHandler)
+            processHandler.startNotify()
 
             ApplicationManager.getApplication().executeOnPooledThread {
                 val path = scriptPath
