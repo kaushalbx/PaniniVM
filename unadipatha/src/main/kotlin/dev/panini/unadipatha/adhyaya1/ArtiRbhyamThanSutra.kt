@@ -4,7 +4,7 @@ import dev.panini.core.ItMarker
 import dev.panini.dhatupatha.bhvadi.RiDhatu
 import dev.panini.unadipatha.UnadiSutra
 import dev.panini.unadipatha.model.Artha
-import dev.panini.unadipatha.model.Samjna
+import dev.panini.shiksha.Samjna
 
 // 1.6: अर्तिऋभ्यां थन्
 object ArtiRbhyamThanSutra : UnadiSutra(

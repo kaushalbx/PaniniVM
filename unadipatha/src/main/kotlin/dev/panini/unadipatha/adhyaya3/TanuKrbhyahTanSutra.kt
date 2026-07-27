@@ -4,7 +4,7 @@ import dev.panini.core.ItMarker
 import dev.panini.dhatupatha.tanadi.KruDhatu
 import dev.panini.unadipatha.UnadiSutra
 import dev.panini.unadipatha.model.Artha
-import dev.panini.unadipatha.model.Samjna
+import dev.panini.shiksha.Samjna
 
 // 3.17: तनूकृभ्यः तन्
 object TanuKrbhyahTanSutra : UnadiSutra(

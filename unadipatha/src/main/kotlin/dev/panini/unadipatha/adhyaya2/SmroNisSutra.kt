@@ -5,7 +5,7 @@ import dev.panini.dhatupatha.bhvadi.DrshDhatu
 import dev.panini.dhatupatha.bhvadi.SmrDhatu
 import dev.panini.unadipatha.UnadiSutra
 import dev.panini.unadipatha.model.Artha
-import dev.panini.unadipatha.model.Samjna
+import dev.panini.shiksha.Samjna
 
 // 2.115: स्मृदृशोः असुन्
 object SmroNisSutra : UnadiSutra(

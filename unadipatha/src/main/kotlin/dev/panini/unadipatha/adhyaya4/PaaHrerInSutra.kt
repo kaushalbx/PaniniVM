@@ -5,7 +5,7 @@ import dev.panini.dhatupatha.bhvadi.HrDhatu
 import dev.panini.dhatupatha.bhvadi.PaaDhatu
 import dev.panini.unadipatha.UnadiSutra
 import dev.panini.unadipatha.model.Artha
-import dev.panini.unadipatha.model.Samjna
+import dev.panini.shiksha.Samjna
 
 // 4.50: पाहेः कित्
 object PaaHrerInSutra : UnadiSutra(

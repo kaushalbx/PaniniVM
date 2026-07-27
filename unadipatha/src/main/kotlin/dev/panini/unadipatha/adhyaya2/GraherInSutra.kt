@@ -4,7 +4,7 @@ import dev.panini.core.ItMarker
 import dev.panini.dhatupatha.kryadi.GrahDhatu
 import dev.panini.unadipatha.UnadiSutra
 import dev.panini.unadipatha.model.Artha
-import dev.panini.unadipatha.model.Samjna
+import dev.panini.shiksha.Samjna
 
 // 2.135: ग्रहेर्णिन्
 object GraherInSutra : UnadiSutra(

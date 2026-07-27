@@ -4,7 +4,7 @@ import dev.panini.core.ItMarker
 import dev.panini.dhatupatha.divadi.DivDhatu
 import dev.panini.unadipatha.UnadiSutra
 import dev.panini.unadipatha.model.Artha
-import dev.panini.unadipatha.model.Samjna
+import dev.panini.shiksha.Samjna
 
 // 5.10: दिवेः ऊन्
 object DivaerUunSutra : UnadiSutra(

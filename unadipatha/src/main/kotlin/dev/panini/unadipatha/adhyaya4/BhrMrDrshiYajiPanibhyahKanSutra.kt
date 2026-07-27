@@ -4,7 +4,7 @@ import dev.panini.core.ItMarker
 import dev.panini.dhatupatha.bhvadi.DrshDhatu
 import dev.panini.unadipatha.UnadiSutra
 import dev.panini.unadipatha.model.Artha
-import dev.panini.unadipatha.model.Samjna
+import dev.panini.shiksha.Samjna
 
 // 4.2: भृमृदृशियजिपनिभ्यः कन्
 object BhrMrDrshiYajiPanibhyahKanSutra : UnadiSutra(

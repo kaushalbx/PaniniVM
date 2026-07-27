@@ -35,7 +35,7 @@ import dev.panini.unadipatha.adhyaya4.VidheshcaSutra
 import dev.panini.unadipatha.adhyaya5.DivaerUunSutra
 import dev.panini.unadipatha.adhyaya5.ShrVrbhyamAnakSutra
 import dev.panini.unadipatha.model.Artha
-import dev.panini.unadipatha.model.Samjna
+import dev.panini.shiksha.Samjna
 
 object UnadiPatha {
     val sutras: List<UnadiSutra> = listOf(

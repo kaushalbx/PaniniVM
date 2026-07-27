@@ -6,7 +6,7 @@ import dev.panini.dhatupatha.juhotyadi.DaDhatu
 import dev.panini.dhatupatha.juhotyadi.DhaDhatu
 import dev.panini.unadipatha.UnadiSutra
 import dev.panini.unadipatha.model.Artha
-import dev.panini.unadipatha.model.Samjna
+import dev.panini.shiksha.Samjna
 
 // 1.28: स्थाघ्वोरिच्च
 object SthaghvorIccaSutra : UnadiSutra(

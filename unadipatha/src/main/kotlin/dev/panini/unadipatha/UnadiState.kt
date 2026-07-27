@@ -3,7 +3,7 @@ package dev.panini.unadipatha
 import dev.panini.core.ItMarker
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.unadipatha.model.Artha
-import dev.panini.unadipatha.model.Samjna
+import dev.panini.shiksha.Samjna
 
 /**
  * UnadiMatch represents the result of querying an Uṇādi sūtra relation.

@@ -5,7 +5,7 @@ import dev.panini.dhatupatha.bhvadi.SrDhatu
 import dev.panini.dhatupatha.tanadi.KruDhatu
 import dev.panini.unadipatha.UnadiSutra
 import dev.panini.unadipatha.model.Artha
-import dev.panini.unadipatha.model.Samjna
+import dev.panini.shiksha.Samjna
 
 // 1.3: कृसृभ्यामुण्
 object KrSrbhyamUnSutra : UnadiSutra(

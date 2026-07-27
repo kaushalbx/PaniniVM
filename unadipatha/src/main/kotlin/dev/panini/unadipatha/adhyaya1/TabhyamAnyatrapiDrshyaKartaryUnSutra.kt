@@ -5,7 +5,7 @@ import dev.panini.dhatupatha.kryadi.DrDhatu
 import dev.panini.dhatupatha.kryadi.ShrDhatu
 import dev.panini.unadipatha.UnadiSutra
 import dev.panini.unadipatha.model.Artha
-import dev.panini.unadipatha.model.Samjna
+import dev.panini.shiksha.Samjna
 
 // 1.2: ताभ्यामन्यत्रापि दृश्यकर्तर्युण्
 object TabhyamAnyatrapiDrshyaKartaryUnSutra : UnadiSutra(

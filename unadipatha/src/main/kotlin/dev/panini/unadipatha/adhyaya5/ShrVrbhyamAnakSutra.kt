@@ -5,7 +5,7 @@ import dev.panini.dhatupatha.kryadi.ShrDhatu
 import dev.panini.dhatupatha.svadi.VrDhatu
 import dev.panini.unadipatha.UnadiSutra
 import dev.panini.unadipatha.model.Artha
-import dev.panini.unadipatha.model.Samjna
+import dev.panini.shiksha.Samjna
 
 // 5.5: शॄवृभ्याम् अनक्
 object ShrVrbhyamAnakSutra : UnadiSutra(
