@@ -1,17 +1,24 @@
 package dev.panini.plugin
 
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.editor.event.EditorFactoryEvent
 import com.intellij.openapi.editor.event.EditorFactoryListener
+import com.intellij.psi.PsiDocumentManager
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.PaniniVM
 import dev.panini.execution.PvmUktiSadhaka
+import java.util.concurrent.ConcurrentHashMap
 
+/**
+ * PvmEditorInlayListener updates inline hints dynamically as the user edits .pvm files.
+ */
 class PvmEditorInlayListener : EditorFactoryListener {
+
+    private val documentListeners = ConcurrentHashMap<Editor, DocumentListener>()
 
     override fun editorCreated(event: EditorFactoryEvent) {
         val editor = event.editor
@@ -22,8 +29,7 @@ class PvmEditorInlayListener : EditorFactoryListener {
             }
         }
 
-        val parentDisposable = (editor as? Disposable) ?: return
-        editor.document.addDocumentListener(object : DocumentListener {
+        val listener = object : DocumentListener {
             override fun documentChanged(event: DocumentEvent) {
                 ApplicationManager.getApplication().invokeLater {
                     if (!editor.isDisposed) {
@@ -31,10 +37,31 @@ class PvmEditorInlayListener : EditorFactoryListener {
                     }
                 }
             }
-        }, parentDisposable)
+        }
+        editor.document.addDocumentListener(listener)
+        documentListeners[editor] = listener
+    }
+
+    override fun editorReleased(event: EditorFactoryEvent) {
+        val listener = documentListeners.remove(event.editor)
+        if (listener != null) {
+            runCatching {
+                event.editor.document.removeDocumentListener(listener)
+            }
+        }
     }
 
     private fun updateInlays(editor: Editor) {
+        val project = editor.project ?: return
+        if (project.isDisposed) return
+
+        // Verify the document is a PvmFile before doing any compute-heavy operations
+        val isPvm = runReadAction {
+            val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(editor.document)
+            psiFile is PvmFile
+        }
+        if (!isPvm) return
+
         val text = try {
             editor.document.text
         } catch (_: Throwable) {

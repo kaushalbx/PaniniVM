@@ -6,6 +6,12 @@ import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.PaniniVM
 import dev.panini.ganapatha.GanaPatha
+import dev.panini.aryabhatiya.AryabhatiyaDecoder
+import dev.panini.aryabhatiya.AryabhatiyaMapping
+import dev.panini.katapayadi.KatapayadiDecoder
+import dev.panini.katapayadi.KatapayadiMapping
+import dev.panini.bhutasamkhya.BhutasamkhyaDecoder
+import dev.panini.bhutasamkhya.BhutasamkhyaLexicon
 
 class PvmDocumentationProvider : AbstractDocumentationProvider() {
 
@@ -88,6 +94,24 @@ class PvmDocumentationProvider : AbstractDocumentationProvider() {
             return keywordDoc
         }
 
+        // 6. Check Bhutasamkhya
+        val bhutaDoc = getBhutasamkhyaDoc(text)
+        if (bhutaDoc != null) {
+            return bhutaDoc
+        }
+
+        // 7. Check Aryabhatiya
+        val aryaDoc = getAryabhatiyaDoc(text)
+        if (aryaDoc != null) {
+            return aryaDoc
+        }
+
+        // 8. Check Katapayadi
+        val kataDoc = getKatapayadiDoc(text)
+        if (kataDoc != null) {
+            return kataDoc
+        }
+
         return null
     }
 
@@ -155,5 +179,56 @@ class PvmDocumentationProvider : AbstractDocumentationProvider() {
         )
         val doc = map[text] ?: return null
         return "<html><body><h3>PaniniVM Control Keyword</h3><p>$doc</p></body></html>"
+    }
+
+    private fun getBhutasamkhyaDoc(text: String): String? {
+        val parts = text.split("-", " ").map { it.trim() }.filter { it.isNotEmpty() }
+        if (parts.isEmpty()) return null
+        if (parts.all { BhutasamkhyaLexicon.isSymbol(it) }) {
+            val decoded = runCatching { BhutasamkhyaDecoder().decode(text) }.getOrNull() ?: return null
+            val valList = parts.map { BhutasamkhyaLexicon.getValue(it) ?: 0L }
+            val sb = StringBuilder("<html><body>")
+            sb.append("<h2>Bhūta-saṅkhyā Numeral</h2>")
+            sb.append("<p><b>Expression:</b> <code>$text</code></p>")
+            sb.append("<p><b>Decoded Value:</b> <font color=\"#2E7D32\" size=\"+1\"><b>$decoded</b></font></p>")
+            sb.append("<h4>Component Values:</h4><ul>")
+            parts.forEachIndexed { i, part -> sb.append("<li><code>$part</code>: ${valList[i]}</li>") }
+            sb.append("</ul></body></html>")
+            return sb.toString()
+        }
+        return null
+    }
+
+    private fun getAryabhatiyaDoc(text: String): String? {
+        if (!text.all { it in '\u0900'..'\u097F' }) return null
+        val isValidArya = text.all { AryabhatiyaMapping.isConsonant(it) || AryabhatiyaMapping.getVowelPower(it) != null || it == '्' }
+        if (!isValidArya) return null
+
+        val decoded = runCatching { AryabhatiyaDecoder().decode(text) }.getOrNull() ?: return null
+        val sb = StringBuilder("<html><body>")
+        sb.append("<h2>Āryabhaṭīya Numeral</h2>")
+        sb.append("<p><b>Word:</b> <code>$text</code></p>")
+        sb.append("<p><b>Decoded Value:</b> <font color=\"#2E7D32\" size=\"+1\"><b>$decoded</b></font></p>")
+        sb.append("</body></html>")
+        return sb.toString()
+    }
+
+    private fun getKatapayadiDoc(text: String): String? {
+        if (!text.all { it in '\u0900'..'\u097F' }) return null
+        val hasConsonant = text.any { KatapayadiMapping.isConsonant(it) }
+        if (!hasConsonant) return null
+
+        val decoded = runCatching { KatapayadiDecoder().decode(text) }.getOrNull() ?: return null
+        val sb = StringBuilder("<html><body>")
+        sb.append("<h2>Kaṭapayādi Numeral</h2>")
+        sb.append("<p><b>Word:</b> <code>$text</code></p>")
+        sb.append("<p><b>Decoded Value:</b> <font color=\"#2E7D32\" size=\"+1\"><b>$decoded</b></font></p>")
+        val consonantDigits = text.filter { KatapayadiMapping.isConsonant(it) }
+            .map { it to KatapayadiMapping.getDigit(it) }
+            .filter { it.second != null }
+        sb.append("<p><i>Consonants:</i> ")
+        sb.append(consonantDigits.joinToString(", ") { "${it.first} = ${it.second}" })
+        sb.append("</p></body></html>")
+        return sb.toString()
     }
 }

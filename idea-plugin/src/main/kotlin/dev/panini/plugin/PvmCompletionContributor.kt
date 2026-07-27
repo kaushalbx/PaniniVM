@@ -9,6 +9,7 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.util.ProcessingContext
 import dev.panini.ganapatha.GanaPatha
+import dev.panini.bhutasamkhya.BhutasamkhyaLexicon
 
 class PvmCompletionContributor : CompletionContributor() {
 
@@ -28,7 +29,10 @@ class PvmCompletionContributor : CompletionContributor() {
             Triple("तर्हि", "conditional", "Then clause"),
             Triple("इत्यादि", "enumeration", "Et cetera"),
             Triple("हे", "vocative", "Address marker"),
-            Triple("यन्त्र", "system", "PaniniVM system target")
+            Triple("यन्त्र", "system", "PaniniVM system target"),
+            Triple("कटपय", "सङ्ख्या-पद्धतिः", "Kaṭapayādi number system prefix"),
+            Triple("भूतसङ्ख्या", "सङ्ख्या-पद्धतिः", "Bhūta-saṅkhyā number system prefix"),
+            Triple("आर्यभटीय", "सङ्ख्या-पद्धतिः", "Āryabhaṭīya number system prefix")
         )
 
         private val supAffixes = listOf(
@@ -142,6 +146,15 @@ class PvmCompletionContributor : CompletionContributor() {
                         .withIcon(PvmIcons.FILE)
                         .withTypeText("गणपाठः")
                         .withTailText(" (Sūtra: ${gana.sutra})", true)
+                )
+            }
+
+            BhutasamkhyaLexicon.allSymbols.forEach { (word, value) ->
+                result.addElement(
+                    LookupElementBuilder.create(word)
+                        .withIcon(PvmIcons.FILE)
+                        .withTypeText("भूतसङ्ख्या")
+                        .withTailText(" = $value", true)
                 )
             }
         }

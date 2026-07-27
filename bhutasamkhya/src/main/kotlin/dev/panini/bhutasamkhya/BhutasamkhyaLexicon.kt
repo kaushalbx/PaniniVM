@@ -43,6 +43,8 @@ object BhutasamkhyaLexicon {
         "सूर्य" to 12L, "अर्क" to 12L, "आदित्य" to 12L, "मास" to 12L
     )
 
+    val allSymbols: Map<String, Long> get() = symbolValueMap
+
     fun getValue(term: String): Long? = symbolValueMap[term]
 
     fun getTerm(value: Long): String? =

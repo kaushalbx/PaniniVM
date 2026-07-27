@@ -88,7 +88,9 @@ class PvmLexerAdapter : LexerBase() {
                 "HI", "KHALU", "NANU", "YATHA", "TATHA", "YADA", "TADA", "YATRA",
                 "TATRA", "KADA", "KUTRA", "SARVATRA", "KATHAM", "KUTAH", "KRPAYA",
                 "SAHASAA", "SHANAIH", "PUNAH", "NYUNATAYA", "ADYA", "SHVAH", "HYAH",
-                "YADI", "TARHI", "ANYATHA", "YAVAT", "TAVAT"
+                "YADI", "TARHI", "ANYATHA", "YAVAT", "TAVAT",
+                "KATAPAYADI", "ARYABHATIYA", "BHUTASAMKHYA", "ADHIKA", "UNA",
+                "SAKRIT", "DVIH", "TRIH", "CHATUH", "KRITVAS"
             ) -> PvmTokenTypes.KEYWORD
             name.startsWith("LAT") || name.startsWith("LIT") || name.startsWith("LUT") ||
             name.startsWith("LRT") || name.startsWith("LET") || name.startsWith("LOT") ||
