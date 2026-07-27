@@ -14,11 +14,8 @@ object PunsoAsunSutra : UnadiSutra(
     pratyaya = "असुन्",
     pratyayaSurface = "अस्",
     itMarkers = setOf(ItMarker.NIT),
-    samjnas = setOf(
-        Samjna.Technical.KRT,
-        Samjna.Technical.PRATIPADIKA,
-        Samjna.Karaka.KARTA,
-        Samjna.Rudhi("पुमः")
+    rootSamjnaMap = mapOf(
+        "पुम्" to Samjna.Rudhi("पुमः")
     ),
     meaning = Artha.Karaka.KARTA,
     hindiExplanation = "पुम् धातु से असुन् प्रत्यय होता है।"

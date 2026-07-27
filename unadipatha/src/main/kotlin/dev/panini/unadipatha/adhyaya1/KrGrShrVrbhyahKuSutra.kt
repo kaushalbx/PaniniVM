@@ -17,14 +17,11 @@ object KrGrShrVrbhyahKuSutra : UnadiSutra(
     pratyaya = "कुः",
     pratyayaSurface = "उ",
     itMarkers = setOf(ItMarker.KIT),
-    samjnas = setOf(
-        Samjna.Technical.KRT,
-        Samjna.Technical.PRATIPADIKA,
-        Samjna.Karaka.KARTA,
-        Samjna.Rudhi("कुरु"),
-        Samjna.Rudhi("गुरु"),
-        Samjna.Rudhi("शुरु"),
-        Samjna.Rudhi("वुरु")
+    rootSamjnaMap = mapOf(
+        "कृ" to Samjna.Rudhi("कुरु"),
+        "गॄ" to Samjna.Rudhi("गुरु"),
+        "शॄ" to Samjna.Rudhi("शुरु"),
+        "वृ" to Samjna.Rudhi("वुरु")
     ),
     meaning = Artha.Karaka.KARTA,
     hindiExplanation = "कृ, गॄ, शॄ, वृञ् धातुओं से कुः (उ) प्रत्यय होता है।"

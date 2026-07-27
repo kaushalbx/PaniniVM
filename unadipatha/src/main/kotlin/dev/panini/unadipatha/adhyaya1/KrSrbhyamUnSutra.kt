@@ -15,12 +15,9 @@ object KrSrbhyamUnSutra : UnadiSutra(
     pratyaya = "उण्",
     pratyayaSurface = "उ",
     itMarkers = setOf(ItMarker.NIT),
-    samjnas = setOf(
-        Samjna.Technical.KRT,
-        Samjna.Technical.PRATIPADIKA,
-        Samjna.Karaka.KARTA,
-        Samjna.Rudhi("कारु"),
-        Samjna.Rudhi("सरु")
+    rootSamjnaMap = mapOf(
+        "कृ" to Samjna.Rudhi("कारु"),
+        "सृ" to Samjna.Rudhi("सरु")
     ),
     meaning = Artha.Karaka.KARTA,
     hindiExplanation = "कृ (कृ विलेखने) और सृ धातु से उण् प्रत्यय होता है।"

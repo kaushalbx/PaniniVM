@@ -15,12 +15,9 @@ object TabhyamAnyatrapiDrshyaKartaryUnSutra : UnadiSutra(
     pratyaya = "उण्",
     pratyayaSurface = "उ",
     itMarkers = setOf(ItMarker.NIT),
-    samjnas = setOf(
-        Samjna.Technical.KRT,
-        Samjna.Technical.PRATIPADIKA,
-        Samjna.Karaka.KARTA,
-        Samjna.Rudhi("दारु"),
-        Samjna.Rudhi("शारु")
+    rootSamjnaMap = mapOf(
+        "दृ" to Samjna.Rudhi("दारु"),
+        "शॄ" to Samjna.Rudhi("शारु")
     ),
     meaning = Artha.Karaka.KARTA,
     hindiExplanation = "अन्य धातुओं से भी कर्ता अर्थ में उण् प्रत्यय देखा जाता है।"

@@ -16,13 +16,10 @@ object KrvrDaribhyahKaninSutra : UnadiSutra(
     pratyaya = "कनिन्",
     pratyayaSurface = "इन्",
     itMarkers = setOf(ItMarker.KIT, ItMarker.NIT),
-    samjnas = setOf(
-        Samjna.Technical.KRT,
-        Samjna.Technical.PRATIPADIKA,
-        Samjna.Karaka.KARTA,
-        Samjna.Rudhi("कर्ण"),
-        Samjna.Rudhi("वर्णि"),
-        Samjna.Rudhi("धर्मि")
+    rootSamjnaMap = mapOf(
+        "कृ" to Samjna.Rudhi("कर्ण"),
+        "वृ" to Samjna.Rudhi("वर्णि"),
+        "दॄ" to Samjna.Rudhi("धर्मि")
     ),
     meaning = Artha.Karaka.KARTA,
     hindiExplanation = "कृ, वृ, दॄ धातुओं से कनिन् प्रत्यय होता है।"

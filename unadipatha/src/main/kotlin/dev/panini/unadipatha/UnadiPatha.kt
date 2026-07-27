@@ -29,7 +29,7 @@ object UnadiPatha {
         val matches = sutras.filter { it.matchesRoot(dhatu) }
         val filtered = if (artha != null) {
             matches.filter { sutra ->
-                sutra.meaning == artha || sutra.samjnas.any { s ->
+                sutra.meaning == artha || sutra.baseSamjnas.any { s ->
                     s is Samjna.Karaka && artha is Artha.Karaka && s.name == artha.name
                 }
             }
@@ -54,11 +54,12 @@ object UnadiPatha {
     fun findByWord(word: String): List<UnadiMatch> {
         val results = mutableListOf<UnadiMatch>()
         for (sutra in sutras) {
-            val hasWord = sutra.samjnas.any { it is Samjna.Rudhi && it.word == word } ||
-                    (sutra.meaning is Artha.Rudhi && (sutra.meaning as Artha.Rudhi).devanagari == word)
-            if (hasWord) {
-                for (root in sutra.roots) {
-                    results.add(sutra.matchFor(root))
+            for (root in sutra.roots) {
+                val match = sutra.matchFor(root)
+                val hasWord = match.samjnas.any { it is Samjna.Rudhi && it.word == word } ||
+                        (match.meaning is Artha.Rudhi && (match.meaning as Artha.Rudhi).devanagari == word)
+                if (hasWord) {
+                    results.add(match)
                 }
             }
         }

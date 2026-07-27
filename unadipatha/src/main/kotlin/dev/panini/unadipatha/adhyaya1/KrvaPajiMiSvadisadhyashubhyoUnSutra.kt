@@ -24,16 +24,13 @@ object KrvaPajiMiSvadisadhyashubhyoUnSutra : UnadiSutra(
     pratyaya = "उण्",
     pratyayaSurface = "उ",
     itMarkers = setOf(ItMarker.NIT),
-    samjnas = setOf(
-        Samjna.Technical.KRT,
-        Samjna.Technical.PRATIPADIKA,
-        Samjna.Karaka.KARTA,
-        Samjna.Rudhi("कारु"),
-        Samjna.Rudhi("वायु"),
-        Samjna.Rudhi("पायु"),
-        Samjna.Rudhi("स्वादु"),
-        Samjna.Rudhi("साधु"),
-        Samjna.Rudhi("आशु")
+    rootSamjnaMap = mapOf(
+        "कृ" to Samjna.Rudhi("कारु"),
+        "वा" to Samjna.Rudhi("वायु"),
+        "पा" to Samjna.Rudhi("पायु"),
+        "स्वद्" to Samjna.Rudhi("स्वादु"),
+        "साध्" to Samjna.Rudhi("साधु"),
+        "अश्" to Samjna.Rudhi("आशु")
     ),
     meaning = Artha.Karaka.KARTA,
     hindiExplanation = "कृ, वा, पा, जि, मि, स्वद्, साध्, अश् धातुओं से उण् प्रत्यय होता है।"

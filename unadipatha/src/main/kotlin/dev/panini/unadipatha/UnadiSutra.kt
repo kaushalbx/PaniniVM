@@ -16,7 +16,8 @@ abstract class UnadiSutra(
     val pratyaya: String,
     val pratyayaSurface: String,
     val itMarkers: Set<ItMarker> = emptySet(),
-    val samjnas: Set<Samjna> = setOf(
+    val rootSamjnaMap: Map<String, Samjna.Rudhi> = emptyMap(),
+    val baseSamjnas: Set<Samjna> = setOf(
         Samjna.Technical.KRT,
         Samjna.Technical.PRATIPADIKA,
         Samjna.Karaka.KARTA
@@ -29,6 +30,7 @@ abstract class UnadiSutra(
      */
     fun matchesRoot(dhatu: Dhatu): Boolean {
         return roots.any {
+            it::class == dhatu::class ||
             it.sourceSurface == dhatu.sourceSurface ||
             it.upadesha == dhatu.upadesha ||
             (it.surfaceAliases.isNotEmpty() && (it.surfaceAliases.contains(dhatu.sourceSurface) || it.surfaceAliases.contains(dhatu.upadesha)))
@@ -39,6 +41,9 @@ abstract class UnadiSutra(
      * Creates an UnadiMatch for a matching root.
      */
     fun matchFor(dhatu: Dhatu): UnadiMatch {
+        val rootKey = dhatu.upadesha.ifEmpty { dhatu.sourceSurface }
+        val specificRudhi = rootSamjnaMap[rootKey] ?: rootSamjnaMap[dhatu.sourceSurface]
+        val samjnas = if (specificRudhi != null) baseSamjnas + specificRudhi else baseSamjnas
         return UnadiMatch(
             sutraNumber = number,
             sutraText = text,
