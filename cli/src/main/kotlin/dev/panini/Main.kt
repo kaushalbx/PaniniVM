@@ -18,6 +18,7 @@ import dev.panini.execution.PaniniVM
 import dev.panini.sankhya.SankhyaGenerator
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
+import dev.panini.unadipatha.UnadiDerivationEngine
 import dev.panini.unadipatha.UnadiPatha
 import dev.panini.unadipatha.analysis.UnadiAnalyzer
 import java.io.File
@@ -113,6 +114,17 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
                     add("  ${ev.sutra} — ${ev.reason} (${ev.text})")
                 }
             }
+            addTrace(result, includeRole = true)
+        }
+    }
+    "--derive-unadi" -> {
+        val dhatu = args.getOrNull(1) ?: error("Usage: --derive-unadi <dhatu> <pratyaya>")
+        val pratyaya = args.getOrNull(2) ?: error("Usage: --derive-unadi <dhatu> <pratyaya>")
+        val result = UnadiDerivationEngine.derive(dhatu, pratyaya)
+        buildList {
+            add("=== Uṇādi Derivation Tracing for ($dhatu + $pratyaya) ===")
+            add("Initial State: ${result.initial.terms.joinToString(" + ") { it.surface }}")
+            add("Final Derived Surface: ${result.final.surface}")
             addTrace(result, includeRole = true)
         }
     }
@@ -230,7 +242,7 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
         "loaded=${Ashtadhyayi.pathitaCount}; executable=${Ashtadhyayi.kriyavatCount}; total=${Ashtadhyayi.expectedSutraCount}; remaining=${Ashtadhyayi.remainingCount}",
         "roles=" + Ashtadhyayi.registry.sutras.groupingBy { it.role::class.simpleName }.eachCount().entries.joinToString { "${it.key}=${it.value}" },
     )
-    else -> listOf("Usage: --eval file.pvm | --compile file.pvm | --paradigm राम | --derive राम SASTHI BAHUVACANA | --verb भू | --unadi [lookup|pair|list] | --sankhya 23 | --sutra 7.1.54 | --coverage")
+    else -> listOf("Usage: --eval file.pvm | --compile file.pvm | --paradigm राम | --derive राम SASTHI BAHUVACANA | --derive-unadi कृ उण् | --verb भू | --unadi [lookup|pair|list] | --sankhya 23 | --sutra 7.1.54 | --coverage")
 }
 
 private enum class SankhyaKind { CARDINAL, ORDINAL }

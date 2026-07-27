@@ -25,4 +25,11 @@ class CliUnadiTest {
         assertTrue(output.any { it.contains("Uṇādi Pair Analysis") })
         assertTrue(output.any { it.contains("4.1") })
     }
+
+    @Test
+    fun testCliDeriveUnadi() {
+        val output = runCli(arrayOf("--derive-unadi", "कृ", "उण्"))
+        assertTrue(output.any { it.contains("Uṇādi Derivation Tracing") })
+        assertTrue(output.any { it.contains("Initial State:") })
+    }
 }

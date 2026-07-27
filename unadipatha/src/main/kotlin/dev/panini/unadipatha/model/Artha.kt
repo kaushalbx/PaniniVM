@@ -9,9 +9,11 @@ sealed interface Artha {
         KARTA, KARMA, KARANA, SAMPRADANA, APADANA, ADHIKARANA, BHAVA
     }
 
-    /** Contextual / Dispositional Conditions (उपाधि / स्वभाव) */
+    /** Contextual / Dispositional / Taddhita Semantic Conditions (उपाधि / अर्थ) */
     enum class Context : Artha {
-        TAATSIILYA, TADDHARMA, TATSADHUKARI, SHILPA, AASHIS
+        TAATSIILYA, TADDHARMA, TATSADHUKARI, SHILPA, AASHIS,
+        // Taddhita meanings (4.1.92 "तस्यापत्यम्", 4.2.1 "तेन रक्तम्", 5.2.94 "तदस्यास्त्यस्मिन्निति मतुप्")
+        APATYA, RAGATA, SAMUHA, MATVARTHIYA, THAK
     }
 
     /** Lexical Conventional Meaning (Rūḍhi-Artha) */
