@@ -39,7 +39,7 @@ class UnadiEngine(
             VatoYukSutra,
             AtaUpadhayahSutra,
             UnadiBlockerSutra
-        )
+        ) + UnadiPatha.sutras.filterIsInstance<DerivationSutra>()
     )
 ) {
     fun derive(root: String, suffix: String): String? {
@@ -59,7 +59,7 @@ class UnadiEngine(
         )
 
         val blocked = if (sutra.number == "1.3") {
-            mapOf("3.1.91" to "unadi", "7.2.116" to "unadi")
+            mapOf("3.1.91" to "unadi", "7.2.115" to "unadi", "7.2.116" to "unadi")
         } else {
             mapOf("3.1.91" to "unadi")
         }
