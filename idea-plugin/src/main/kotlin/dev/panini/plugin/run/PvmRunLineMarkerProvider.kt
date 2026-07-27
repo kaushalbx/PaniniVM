@@ -8,16 +8,21 @@ import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.psi.PsiElement
+import com.intellij.psi.util.PsiTreeUtil
 import dev.panini.plugin.PvmFile
 
+/**
+ * PvmRunLineMarkerProvider adds a single Run play gutter icon at the first line of any PvmFile.
+ */
 class PvmRunLineMarkerProvider : LineMarkerProvider {
 
     override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
         val psiFile = element.containingFile ?: return null
         if (psiFile !is PvmFile) return null
 
-        // Place green ▶ Run play button icon on line 1 of the script
+        // Restrict to the absolute first leaf in the document to prevent duplicate markers
         if (element.textRange.startOffset != 0) return null
+        if (PsiTreeUtil.prevLeaf(element) != null) return null
 
         return LineMarkerInfo(
             element,
