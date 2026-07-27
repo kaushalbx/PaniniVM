@@ -1,13 +1,34 @@
 package dev.panini.unadipatha
 
 import dev.panini.dhatupatha.Dhatu
+import dev.panini.unadipatha.adhyaya1.ArtiRbhyamThanSutra
+import dev.panini.unadipatha.adhyaya1.BhuvaKthunSutra
+import dev.panini.unadipatha.adhyaya1.GamerIniSutra
+import dev.panini.unadipatha.adhyaya1.HrerIniSutra
 import dev.panini.unadipatha.adhyaya1.KrGrShrVrbhyahKuSutra
 import dev.panini.unadipatha.adhyaya1.KrSrbhyamUnSutra
 import dev.panini.unadipatha.adhyaya1.KrvaPajiMiSvadisadhyashubhyoUnSutra
+import dev.panini.unadipatha.adhyaya1.SthaghvorIccaSutra
 import dev.panini.unadipatha.adhyaya1.TabhyamAnyatrapiDrshyaKartaryUnSutra
+import dev.panini.unadipatha.adhyaya2.GraherInSutra
+import dev.panini.unadipatha.adhyaya2.HuDhabhyamJnuhSutra
+import dev.panini.unadipatha.adhyaya2.NeraKthanSutra
 import dev.panini.unadipatha.adhyaya2.ShruVrDrPraVrbhyahSihSutra
+import dev.panini.unadipatha.adhyaya2.SmroNisSutra
+import dev.panini.unadipatha.adhyaya2.VrdhehKitSutra
+import dev.panini.unadipatha.adhyaya3.DrsehKsSutra
+import dev.panini.unadipatha.adhyaya3.JiaerInSutra
 import dev.panini.unadipatha.adhyaya3.PunsoAsunSutra
+import dev.panini.unadipatha.adhyaya3.ShruvaKitSutra
+import dev.panini.unadipatha.adhyaya3.TanuKrbhyahTanSutra
+import dev.panini.unadipatha.adhyaya3.VidehSatrSutra
+import dev.panini.unadipatha.adhyaya4.BhrMrDrshiYajiPanibhyahKanSutra
+import dev.panini.unadipatha.adhyaya4.KaninYuVrtakshiRajiDhanvidyutPratibhyahSutra
 import dev.panini.unadipatha.adhyaya4.KrvrDaribhyahKaninSutra
+import dev.panini.unadipatha.adhyaya4.PaaHrerInSutra
+import dev.panini.unadipatha.adhyaya4.PhaleGrahirAtmambharishcaSutra
+import dev.panini.unadipatha.adhyaya5.DivaerUunSutra
+import dev.panini.unadipatha.adhyaya5.ShrVrbhyamAnakSutra
 import dev.panini.unadipatha.model.Artha
 import dev.panini.unadipatha.model.Samjna
 
@@ -17,9 +38,30 @@ object UnadiPatha {
         TabhyamAnyatrapiDrshyaKartaryUnSutra,
         KrSrbhyamUnSutra,
         KrGrShrVrbhyahKuSutra,
+        ArtiRbhyamThanSutra,
+        GamerIniSutra,
+        HrerIniSutra,
+        SthaghvorIccaSutra,
+        BhuvaKthunSutra,
         ShruVrDrPraVrbhyahSihSutra,
+        NeraKthanSutra,
+        SmroNisSutra,
+        VrdhehKitSutra,
+        HuDhabhyamJnuhSutra,
+        GraherInSutra,
         PunsoAsunSutra,
-        KrvrDaribhyahKaninSutra
+        TanuKrbhyahTanSutra,
+        VidehSatrSutra,
+        DrsehKsSutra,
+        JiaerInSutra,
+        ShruvaKitSutra,
+        KrvrDaribhyahKaninSutra,
+        BhrMrDrshiYajiPanibhyahKanSutra,
+        KaninYuVrtakshiRajiDhanvidyutPratibhyahSutra,
+        PhaleGrahirAtmambharishcaSutra,
+        PaaHrerInSutra,
+        ShrVrbhyamAnakSutra,
+        DivaerUunSutra
     )
 
     /**

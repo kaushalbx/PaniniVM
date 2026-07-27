@@ -56,4 +56,32 @@ class UnadiPathaTest {
         assertEquals("असुन्", match.pratyaya)
         assertEquals(PumsDhatu().upadesha, match.dhatu.upadesha)
     }
+
+    @Test
+    fun testExpandedUnadiSutras() {
+        // Test 1.156 GamerIniSutra
+        val gamMatches = UnadiPatha.findByWord("गामिन्")
+        assertTrue(gamMatches.isNotEmpty(), "Should find sūtra for 'गामिन्'")
+        assertTrue(gamMatches.any { it.sutraNumber == "1.156" })
+
+        // Test 1.28 SthaghvorIccaSutra
+        val sthitiMatches = UnadiPatha.findByWord("स्थिति")
+        assertTrue(sthitiMatches.isNotEmpty(), "Should find sūtra for 'स्थिति'")
+        assertTrue(sthitiMatches.any { it.sutraNumber == "1.28" })
+
+        // Test 2.115 SmroNisSutra
+        val smarMatches = UnadiPatha.findByWord("स्मर")
+        assertTrue(smarMatches.isNotEmpty(), "Should find sūtra for 'स्मर'")
+        assertTrue(smarMatches.any { it.sutraNumber == "2.115" })
+
+        // Test 4.135 PhaleGrahirAtmambharishcaSutra
+        val phalaMatches = UnadiPatha.findByWord("फलग्रहि")
+        assertTrue(phalaMatches.isNotEmpty(), "Should find sūtra for 'फलग्रहि'")
+        assertTrue(phalaMatches.any { it.sutraNumber == "4.135" })
+
+        // Test 5.5 ShrVrbhyamAnakSutra
+        val varunaMatches = UnadiPatha.findByWord("वरुण")
+        assertTrue(varunaMatches.isNotEmpty(), "Should find sūtra for 'वरुण'")
+        assertTrue(varunaMatches.any { it.sutraNumber == "5.5" })
+    }
 }

@@ -41,8 +41,9 @@ abstract class UnadiSutra(
      * Creates an UnadiMatch for a matching root.
      */
     fun matchFor(dhatu: Dhatu): UnadiMatch {
-        val rootKey = dhatu.upadesha.ifEmpty { dhatu.sourceSurface }
-        val specificRudhi = rootSamjnaMap[rootKey] ?: rootSamjnaMap[dhatu.sourceSurface]
+        val specificRudhi = rootSamjnaMap[dhatu.upadesha]
+            ?: rootSamjnaMap[dhatu.sourceSurface]
+            ?: rootSamjnaMap.entries.firstOrNull { (k, _) -> dhatu.upadesha.startsWith(k) || dhatu.sourceSurface.startsWith(k) }?.value
         val samjnas = if (specificRudhi != null) baseSamjnas + specificRudhi else baseSamjnas
         return UnadiMatch(
             sutraNumber = number,

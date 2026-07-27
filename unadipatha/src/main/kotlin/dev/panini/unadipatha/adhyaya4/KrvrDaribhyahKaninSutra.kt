@@ -19,7 +19,9 @@ object KrvrDaribhyahKaninSutra : UnadiSutra(
     rootSamjnaMap = mapOf(
         "कृ" to Samjna.Rudhi("कर्ण"),
         "वृ" to Samjna.Rudhi("वर्णि"),
-        "दॄ" to Samjna.Rudhi("धर्मि")
+        "वृञ्" to Samjna.Rudhi("वर्णि"),
+        "दॄ" to Samjna.Rudhi("धर्मि"),
+        "दृ" to Samjna.Rudhi("धर्मि")
     ),
     meaning = Artha.Karaka.KARTA,
     hindiExplanation = "कृ, वृ, दॄ धातुओं से कनिन् प्रत्यय होता है।"
