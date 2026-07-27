@@ -17,14 +17,16 @@ object ShruVrDrPraVrbhyahSihSutra : UnadiSutra(
     roots = setOf(ShruDhatu(), VrDhatu(), DrDhatu(), PraDhatu())
 ) {
     override fun apply(context: UnadiState): UnadiChange {
+        val root = context.root + "त्"
         return UnadiChange(
             state = context.copy(
+                root = root,
                 suffix = suffix,
-                surface = context.root + "सि",
+                surface = root,
                 itMarkers = emptySet(),
-                stepTrace = context.stepTrace + "$number: Applied suffix $suffix after root."
+                stepTrace = context.stepTrace + "$number: Applied suffix $suffix with elision and tut-āgama."
             ),
-            explanation = "$number: Applied suffix $suffix after root."
+            explanation = "$number: Applied suffix $suffix with elision and tut-āgama."
         )
     }
 }

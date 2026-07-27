@@ -31,4 +31,25 @@ class UnadiExecutionTest {
         val result = sadhaka.sadhayaLine("कृ + उणादि(कनिन्) + सुँ ।")
         assertEquals("कर्मा ।", result)
     }
+
+    @Test
+    fun testUnadiSaruDerivation() {
+        val sadhaka = PvmUktiSadhaka()
+        val result = sadhaka.sadhayaLine("सृ + उणादि(उण्) + सुँ ।")
+        assertEquals("सरुः ।", result)
+    }
+
+    @Test
+    fun testUnadiKuruDerivation() {
+        val sadhaka = PvmUktiSadhaka()
+        val result = sadhaka.sadhayaLine("कृ + उणादि(कुः) + सुँ ।")
+        assertEquals("कुरुः ।", result)
+    }
+
+    @Test
+    fun testUnadiGuruDerivation() {
+        val sadhaka = PvmUktiSadhaka()
+        val result = sadhaka.sadhayaLine("गॄ + उणादि(कुः) + सुँ ।")
+        assertEquals("गुरुः ।", result)
+    }
 }

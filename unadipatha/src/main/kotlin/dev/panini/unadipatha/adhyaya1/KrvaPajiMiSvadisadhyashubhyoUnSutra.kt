@@ -25,10 +25,12 @@ object KrvaPajiMiSvadisadhyashubhyoUnSutra : UnadiSutra(
     )
 ) {
     override fun apply(context: UnadiState): UnadiChange {
+        val root = if (context.root == "मि") "म" else context.root
         return UnadiChange(
             state = context.copy(
+                root = root,
                 suffix = suffix,
-                surface = context.root + "उ",
+                surface = root + "उ",
                 itMarkers = setOf(ItMarker.NIT),
                 stepTrace = context.stepTrace + "$number: Applied suffix $suffix (उ) with ण्-it marker."
             ),

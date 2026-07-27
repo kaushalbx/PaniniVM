@@ -17,14 +17,21 @@ object KrvrDaribhyahKaninSutra : UnadiSutra(
     roots = setOf(KruDhatu(), VrDhatu(), DrDhatu())
 ) {
     override fun apply(context: UnadiState): UnadiChange {
+        val root = when (context.root) {
+            "कृ" -> "कर्म्"
+            "वृ" -> "वर्म्"
+            "दृ" -> "धर्म्"
+            else -> context.root
+        }
         return UnadiChange(
             state = context.copy(
+                root = root,
                 suffix = suffix,
-                surface = context.root + "अन्",
+                surface = root + "अन्",
                 itMarkers = setOf(ItMarker.KIT),
-                stepTrace = context.stepTrace + "$number: Applied suffix $suffix (अन्) with क्-it marker."
+                stepTrace = context.stepTrace + "$number: Applied suffix $suffix (अन्) with क्-it marker and mut-āgama."
             ),
-            explanation = "$number: Applied suffix $suffix (अन्) with क्-it marker."
+            explanation = "$number: Applied suffix $suffix (अन्) with क्-it marker and mut-āgama."
         )
     }
 }
