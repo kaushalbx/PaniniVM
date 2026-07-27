@@ -3,7 +3,7 @@ package dev.panini.unadipatha.analysis
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.unadipatha.UnadiMatch
 import dev.panini.unadipatha.UnadiPatha
-import dev.panini.unadipatha.model.Artha
+import dev.panini.shiksha.Artha
 import dev.panini.shiksha.Samjna
 
 /**

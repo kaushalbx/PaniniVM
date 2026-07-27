@@ -3,7 +3,7 @@ package dev.panini.unadipatha.adhyaya2
 import dev.panini.core.ItMarker
 import dev.panini.dhatupatha.kryadi.GrahDhatu
 import dev.panini.unadipatha.UnadiSutra
-import dev.panini.unadipatha.model.Artha
+import dev.panini.shiksha.Artha
 import dev.panini.shiksha.Samjna
 
 // 2.135: ग्रहेर्णिन्

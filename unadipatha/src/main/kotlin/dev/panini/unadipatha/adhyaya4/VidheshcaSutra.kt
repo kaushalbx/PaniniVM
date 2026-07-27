@@ -3,7 +3,7 @@ package dev.panini.unadipatha.adhyaya4
 import dev.panini.core.ItMarker
 import dev.panini.dhatupatha.rudhadi.VidDhatu
 import dev.panini.unadipatha.UnadiSutra
-import dev.panini.unadipatha.model.Artha
+import dev.panini.shiksha.Artha
 import dev.panini.shiksha.Samjna
 
 // 4.218: विधेश्च

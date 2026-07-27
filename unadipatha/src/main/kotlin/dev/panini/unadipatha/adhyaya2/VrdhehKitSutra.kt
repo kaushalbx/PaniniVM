@@ -3,7 +3,7 @@ package dev.panini.unadipatha.adhyaya2
 import dev.panini.core.ItMarker
 import dev.panini.dhatupatha.bhvadi.VridhDhatu
 import dev.panini.unadipatha.UnadiSutra
-import dev.panini.unadipatha.model.Artha
+import dev.panini.shiksha.Artha
 import dev.panini.shiksha.Samjna
 
 // 2.41: वृधेः कित्

@@ -3,7 +3,7 @@ package dev.panini.unadipatha.adhyaya5
 import dev.panini.core.ItMarker
 import dev.panini.dhatupatha.divadi.DivDhatu
 import dev.panini.unadipatha.UnadiSutra
-import dev.panini.unadipatha.model.Artha
+import dev.panini.shiksha.Artha
 import dev.panini.shiksha.Samjna
 
 // 5.10: दिवेः ऊन्

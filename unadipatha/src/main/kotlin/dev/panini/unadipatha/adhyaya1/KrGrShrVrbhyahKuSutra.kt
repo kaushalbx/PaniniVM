@@ -6,7 +6,7 @@ import dev.panini.dhatupatha.svadi.VrDhatu
 import dev.panini.dhatupatha.tanadi.KruDhatu
 import dev.panini.dhatupatha.tudadi.GrDhatu
 import dev.panini.unadipatha.UnadiSutra
-import dev.panini.unadipatha.model.Artha
+import dev.panini.shiksha.Artha
 import dev.panini.shiksha.Samjna
 
 // 1.5: कृगृशॄवृञ्भ्यः कुः

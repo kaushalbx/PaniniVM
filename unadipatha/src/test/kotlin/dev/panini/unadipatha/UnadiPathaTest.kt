@@ -4,7 +4,7 @@ import dev.panini.core.ItMarker
 import dev.panini.dhatupatha.adadi.VaaDhatu
 import dev.panini.dhatupatha.bhvadi.PumsDhatu
 import dev.panini.dhatupatha.tanadi.KruDhatu
-import dev.panini.unadipatha.model.Artha
+import dev.panini.shiksha.Artha
 import dev.panini.shiksha.Samjna
 import kotlin.test.Test
 import kotlin.test.assertEquals

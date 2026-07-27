@@ -2,7 +2,7 @@ package dev.panini.unadipatha
 
 import dev.panini.core.ItMarker
 import dev.panini.dhatupatha.Dhatu
-import dev.panini.unadipatha.model.Artha
+import dev.panini.shiksha.Artha
 import dev.panini.shiksha.Samjna
 
 /**

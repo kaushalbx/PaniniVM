@@ -34,7 +34,7 @@ import dev.panini.unadipatha.adhyaya4.RishehKitSutra
 import dev.panini.unadipatha.adhyaya4.VidheshcaSutra
 import dev.panini.unadipatha.adhyaya5.DivaerUunSutra
 import dev.panini.unadipatha.adhyaya5.ShrVrbhyamAnakSutra
-import dev.panini.unadipatha.model.Artha
+import dev.panini.shiksha.Artha
 import dev.panini.shiksha.Samjna
 
 object UnadiPatha {

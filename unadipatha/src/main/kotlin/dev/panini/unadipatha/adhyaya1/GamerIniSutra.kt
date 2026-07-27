@@ -3,7 +3,7 @@ package dev.panini.unadipatha.adhyaya1
 import dev.panini.core.ItMarker
 import dev.panini.dhatupatha.bhvadi.GamDhatu
 import dev.panini.unadipatha.UnadiSutra
-import dev.panini.unadipatha.model.Artha
+import dev.panini.shiksha.Artha
 import dev.panini.shiksha.Samjna
 
 // 1.156: गमेरिनिः

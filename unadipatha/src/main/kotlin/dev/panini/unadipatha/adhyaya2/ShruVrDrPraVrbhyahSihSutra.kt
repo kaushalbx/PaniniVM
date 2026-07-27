@@ -5,7 +5,7 @@ import dev.panini.dhatupatha.bhvadi.ShruDhatu
 import dev.panini.dhatupatha.kryadi.DrDhatu
 import dev.panini.dhatupatha.svadi.VrDhatu
 import dev.panini.unadipatha.UnadiSutra
-import dev.panini.unadipatha.model.Artha
+import dev.panini.shiksha.Artha
 import dev.panini.shiksha.Samjna
 
 // 2.8: श्रुवृदृप्रावृभ्यः सिः

@@ -3,7 +3,7 @@ package dev.panini.unadipatha.adhyaya3
 import dev.panini.core.ItMarker
 import dev.panini.dhatupatha.tanadi.KruDhatu
 import dev.panini.unadipatha.UnadiSutra
-import dev.panini.unadipatha.model.Artha
+import dev.panini.shiksha.Artha
 import dev.panini.shiksha.Samjna
 
 // 3.17: तनूकृभ्यः तन्

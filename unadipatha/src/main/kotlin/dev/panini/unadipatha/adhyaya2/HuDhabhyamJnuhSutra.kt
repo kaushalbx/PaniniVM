@@ -4,7 +4,7 @@ import dev.panini.core.ItMarker
 import dev.panini.dhatupatha.juhotyadi.DhaDhatu
 import dev.panini.dhatupatha.juhotyadi.HuDhatu
 import dev.panini.unadipatha.UnadiSutra
-import dev.panini.unadipatha.model.Artha
+import dev.panini.shiksha.Artha
 import dev.panini.shiksha.Samjna
 
 // 2.85: हुधाभ्यां ञ्नुः

@@ -4,7 +4,7 @@ import dev.panini.core.ItMarker
 import dev.panini.dhatupatha.adadi.YuDhatu
 import dev.panini.dhatupatha.svadi.VrDhatu
 import dev.panini.unadipatha.UnadiSutra
-import dev.panini.unadipatha.model.Artha
+import dev.panini.shiksha.Artha
 import dev.panini.shiksha.Samjna
 
 // 4.18: कनिन् युवृतक्षिराजिधन्विद्युत्प्रतिभ्यः
