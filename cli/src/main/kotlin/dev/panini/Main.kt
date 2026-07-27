@@ -18,6 +18,8 @@ import dev.panini.execution.PaniniVM
 import dev.panini.sankhya.SankhyaGenerator
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
+import dev.panini.unadipatha.UnadiPatha
+import dev.panini.unadipatha.analysis.UnadiAnalyzer
 import java.io.File
 
 fun main(args: Array<String>) {
@@ -141,6 +143,58 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
             addTrace(result)
         }
     }
+    "--unadi", "--unadipatha" -> {
+        val mode = args.getOrNull(1)?.lowercase() ?: "list"
+        when (mode) {
+            "lookup" -> {
+                val word = args.getOrNull(2) ?: error("Usage: --unadi lookup <word>")
+                val analysis = UnadiAnalyzer.analyzeStem(word)
+                buildList {
+                    add("=== Uṇādi Etymological Analysis for '$word' ===")
+                    add("Classification: ${analysis.classification}")
+                    if (analysis.matches.isEmpty()) {
+                        add("No matching Uṇādi sūtra found in catalog.")
+                    } else {
+                        analysis.matches.forEach { m ->
+                            add("  Sūtra ${m.sutraNumber}: ${m.sutraText}")
+                            add("  Dhātu: ${m.dhatu.upadesha} (${m.dhatu.sourceSurface})")
+                            add("  Pratyaya: ${m.pratyaya} (surface: ${m.pratyayaSurface})")
+                            add("  Saṁjñās: ${m.samjnas}")
+                        }
+                    }
+                }
+            }
+            "pair" -> {
+                val dhatuText = args.getOrNull(2) ?: error("Usage: --unadi pair <dhatu> <pratyaya>")
+                val pratyaya = args.getOrNull(3) ?: error("Usage: --unadi pair <dhatu> <pratyaya>")
+                val dhatuObj = UnadiPatha.sutras.flatMap { it.roots }
+                    .firstOrNull { it.sourceSurface == dhatuText || it.upadesha == dhatuText }
+                    ?: error("Dhātu '$dhatuText' not found in Uṇādipāṭha catalog.")
+                val analysis = UnadiAnalyzer.analyzePair(dhatuObj, pratyaya)
+                buildList {
+                    add("=== Uṇādi Pair Analysis for ($dhatuText, $pratyaya) ===")
+                    if (analysis == null) {
+                        add("No matching Uṇādi sūtra found for ($dhatuText, $pratyaya).")
+                    } else {
+                        add("Classification: ${analysis.classification}")
+                        analysis.matches.forEach { m ->
+                            add("  Sūtra ${m.sutraNumber}: ${m.sutraText}")
+                            add("  Saṁjñās: ${m.samjnas}")
+                        }
+                    }
+                }
+            }
+            "list" -> {
+                buildList {
+                    add("=== Uṇādipāṭha Catalog (${UnadiPatha.sutras.size} sūtras) ===")
+                    UnadiPatha.sutras.forEach { s ->
+                        add("  ${s.number} : ${s.text} [Pratyaya: ${s.pratyaya}]")
+                    }
+                }
+            }
+            else -> error("Unknown --unadi mode: $mode. Use lookup, pair, or list.")
+        }
+    }
     "--sankhya" -> {
         val valueText = args.getOrNull(1)
             ?: error("Usage: --sankhya INTEGER [cardinal|ordinal] [--variants]")
@@ -176,7 +230,7 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
         "loaded=${Ashtadhyayi.pathitaCount}; executable=${Ashtadhyayi.kriyavatCount}; total=${Ashtadhyayi.expectedSutraCount}; remaining=${Ashtadhyayi.remainingCount}",
         "roles=" + Ashtadhyayi.registry.sutras.groupingBy { it.role::class.simpleName }.eachCount().entries.joinToString { "${it.key}=${it.value}" },
     )
-    else -> listOf("Usage: --eval file.pvm | --compile file.pvm [ClassName] [OutputDir] | --paradigm राम | --derive राम SASTHI BAHUVACANA | --derive-karaka राम SAMPRADANA EKAVACANA दा [KARTARI] | --verb भू | --sankhya 23 [cardinal|ordinal] [--variants] | --sutra 7.1.54 | --coverage")
+    else -> listOf("Usage: --eval file.pvm | --compile file.pvm | --paradigm राम | --derive राम SASTHI BAHUVACANA | --verb भू | --unadi [lookup|pair|list] | --sankhya 23 | --sutra 7.1.54 | --coverage")
 }
 
 private enum class SankhyaKind { CARDINAL, ORDINAL }

@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
     implementation(project(":core"))
+    implementation(project(":dhatupatha"))
     implementation(project(":unadipatha"))
     implementation(project(":ashtadhyayi"))
     implementation(project(":actions"))

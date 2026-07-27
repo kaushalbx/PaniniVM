@@ -3,6 +3,8 @@ package dev.panini.analysis
 import dev.panini.core.Karaka
 import dev.panini.core.Prayoga
 import dev.panini.shiksha.Karmatva
+import dev.panini.unadipatha.analysis.UnadiAnalyzer
+import dev.panini.unadipatha.analysis.UnadiStemAnalysis
 import dev.panini.vyakaranam.ast.AkhyataVakya
 import dev.panini.vyakaranam.ast.NamaVakya
 import dev.panini.vyakaranam.ast.SubantaPada
@@ -21,6 +23,7 @@ data class VakyaAnalysis(
     val prayoga: Prayoga,
     val karakas: List<KarakaAssignment>,
     val warnings: List<String>,
+    val unadiAnalyses: List<UnadiStemAnalysis> = emptyList(),
 )
 
 class VakyaAnalyzer(
@@ -60,6 +63,12 @@ class VakyaAnalyzer(
             prayoga = prayoga,
         )
 
+        val unadiAnalyses = subantas.mapNotNull { sub ->
+            val stem = sub.lexicalEntry?.text ?: sub.pada.sourceText
+            val result = UnadiAnalyzer.analyzeStem(stem)
+            if (result.matches.isNotEmpty()) result else null
+        }
+
         return VakyaAnalysis(
             vakya = vakya,
             padaAnalyses = padaAnalyses,
@@ -70,6 +79,7 @@ class VakyaAnalyzer(
                 tinganta = tingantaAnalysis,
                 karakas = karakas,
             ),
+            unadiAnalyses = unadiAnalyses,
         )
     }
 
@@ -77,6 +87,20 @@ class VakyaAnalyzer(
         vakya: NamaVakya,
     ): VakyaAnalysis {
         val analyses = vakya.padas.map(padaAnalyzer::analyze)
+
+        val subantas = analyses.flatMap { analysis ->
+            when (analysis) {
+                is AnalyzedSubanta -> listOf(analysis.analysis)
+                is AnalyzedSamuccita -> analysis.members
+                else -> emptyList()
+            }
+        }
+
+        val unadiAnalyses = subantas.mapNotNull { sub ->
+            val stem = sub.lexicalEntry?.text ?: sub.pada.sourceText
+            val result = UnadiAnalyzer.analyzeStem(stem)
+            if (result.matches.isNotEmpty()) result else null
+        }
 
         return VakyaAnalysis(
             vakya = vakya,
@@ -86,6 +110,7 @@ class VakyaAnalyzer(
             warnings = listOf(
                 "नामवाक्ये अध्याहृतक्रियायाः पृथक् विश्लेषणम् अपेक्षितम्।",
             ),
+            unadiAnalyses = unadiAnalyses,
         )
     }
 

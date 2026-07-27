@@ -8,11 +8,13 @@ import dev.panini.unadipatha.adhyaya1.HrerIniSutra
 import dev.panini.unadipatha.adhyaya1.KrGrShrVrbhyahKuSutra
 import dev.panini.unadipatha.adhyaya1.KrSrbhyamUnSutra
 import dev.panini.unadipatha.adhyaya1.KrvaPajiMiSvadisadhyashubhyoUnSutra
+import dev.panini.unadipatha.adhyaya1.MiderMataSutra
 import dev.panini.unadipatha.adhyaya1.SthaghvorIccaSutra
 import dev.panini.unadipatha.adhyaya1.TabhyamAnyatrapiDrshyaKartaryUnSutra
 import dev.panini.unadipatha.adhyaya2.GraherInSutra
 import dev.panini.unadipatha.adhyaya2.HuDhabhyamJnuhSutra
 import dev.panini.unadipatha.adhyaya2.NeraKthanSutra
+import dev.panini.unadipatha.adhyaya2.PaPaBhyamTrnSutra
 import dev.panini.unadipatha.adhyaya2.ShruVrDrPraVrbhyahSihSutra
 import dev.panini.unadipatha.adhyaya2.SmroNisSutra
 import dev.panini.unadipatha.adhyaya2.VrdhehKitSutra
@@ -24,9 +26,12 @@ import dev.panini.unadipatha.adhyaya3.TanuKrbhyahTanSutra
 import dev.panini.unadipatha.adhyaya3.VidehSatrSutra
 import dev.panini.unadipatha.adhyaya4.BhrMrDrshiYajiPanibhyahKanSutra
 import dev.panini.unadipatha.adhyaya4.KaninYuVrtakshiRajiDhanvidyutPratibhyahSutra
+import dev.panini.unadipatha.adhyaya4.KaverBunSutra
 import dev.panini.unadipatha.adhyaya4.KrvrDaribhyahKaninSutra
 import dev.panini.unadipatha.adhyaya4.PaaHrerInSutra
 import dev.panini.unadipatha.adhyaya4.PhaleGrahirAtmambharishcaSutra
+import dev.panini.unadipatha.adhyaya4.RishehKitSutra
+import dev.panini.unadipatha.adhyaya4.VidheshcaSutra
 import dev.panini.unadipatha.adhyaya5.DivaerUunSutra
 import dev.panini.unadipatha.adhyaya5.ShrVrbhyamAnakSutra
 import dev.panini.unadipatha.model.Artha
@@ -39,12 +44,14 @@ object UnadiPatha {
         KrSrbhyamUnSutra,
         KrGrShrVrbhyahKuSutra,
         ArtiRbhyamThanSutra,
+        MiderMataSutra,
         GamerIniSutra,
         HrerIniSutra,
         SthaghvorIccaSutra,
         BhuvaKthunSutra,
         ShruVrDrPraVrbhyahSihSutra,
         NeraKthanSutra,
+        PaPaBhyamTrnSutra,
         SmroNisSutra,
         VrdhehKitSutra,
         HuDhabhyamJnuhSutra,
@@ -60,6 +67,9 @@ object UnadiPatha {
         KaninYuVrtakshiRajiDhanvidyutPratibhyahSutra,
         PhaleGrahirAtmambharishcaSutra,
         PaaHrerInSutra,
+        RishehKitSutra,
+        KaverBunSutra,
+        VidheshcaSutra,
         ShrVrbhyamAnakSutra,
         DivaerUunSutra
     )
