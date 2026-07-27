@@ -52,5 +52,17 @@
                 implementationClass="dev.panini.plugin.run.PvmRunLineMarkerProvider"/>
         <editorFactoryListener
                 implementation="dev.panini.plugin.PvmEditorInlayListener"/>
+        <intentionAction>
+            <className>dev.panini.plugin.PvmConvertToKatapayadiIntention</className>
+            <category>PaniniVM</category>
+        </intentionAction>
+        <intentionAction>
+            <className>dev.panini.plugin.PvmConvertToBhutasamkhyaIntention</className>
+            <category>PaniniVM</category>
+        </intentionAction>
+        <intentionAction>
+            <className>dev.panini.plugin.PvmConvertToDecimalIntention</className>
+            <category>PaniniVM</category>
+        </intentionAction>
     </extensions>
 </idea-plugin>
