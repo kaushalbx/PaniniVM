@@ -4,10 +4,22 @@ import dev.panini.compiler.BytecodeCompiler
 import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.PaniniVM
+import dev.panini.aryabhatiya.AryabhatiyaDecoder
+import dev.panini.aryabhatiya.AryabhatiyaEncoder
+import dev.panini.aryabhatiya.AryabhatiyaMapping
+import dev.panini.katapayadi.KatapayadiDecoder
+import dev.panini.katapayadi.KatapayadiEncoder
+import dev.panini.katapayadi.KatapayadiMapping
+import dev.panini.bhutasamkhya.BhutasamkhyaDecoder
+import dev.panini.bhutasamkhya.BhutasamkhyaEncoder
+import dev.panini.bhutasamkhya.BhutasamkhyaLexicon
 import java.io.File
 import java.io.InputStream
 import java.io.PrintStream
 
+/**
+ * PaniniCli manages the interactive REPL and script file evaluations for the command line interface.
+ */
 class PaniniCli(
     private val vm: PaniniVM = PaniniVM(),
     private val inputStream: InputStream = System.`in`,
@@ -76,6 +88,12 @@ class PaniniCli(
             is ReplCommand.CompileScript -> {
                 compileScript(command.filePath, command.className)
             }
+            is ReplCommand.DecodeNumeral -> {
+                decodeNumeral(command.numeral)
+            }
+            is ReplCommand.EncodeNumber -> {
+                encodeNumber(command.value, command.system)
+            }
             is ReplCommand.EvalUtterance -> {
                 if (command.utterance.isNotBlank()) {
                     evalSingle(command.utterance)
@@ -142,11 +160,82 @@ class PaniniCli(
         outputStream.println("✓ Compiled ${file.name} -> $targetClass.class (${compiledFile.length()} bytes)")
     }
 
+    private fun decodeNumeral(numeral: String) {
+        if (numeral.isBlank()) {
+            outputStream.println("Usage: :num <Sanskrit word> (e.g. :num माधव or :num नेत्र-वेद)")
+            return
+        }
+
+        val results = mutableListOf<String>()
+
+        // 1. Bhutasamkhya
+        val parts = numeral.split("-", " ").map { it.trim() }.filter { it.isNotEmpty() }
+        if (parts.isNotEmpty() && parts.all { BhutasamkhyaLexicon.isSymbol(it) }) {
+            val decoded = runCatching { BhutasamkhyaDecoder().decode(numeral) }.getOrNull()
+            if (decoded != null) {
+                results.add("$decoded (Bhūta-saṅkhyā)")
+            }
+        }
+
+        // 2. Aryabhatiya
+        val isValidArya = numeral.all { AryabhatiyaMapping.isConsonant(it) || AryabhatiyaMapping.getVowelPower(it) != null || it == '्' }
+        if (isValidArya) {
+            val decoded = runCatching { AryabhatiyaDecoder().decode(numeral) }.getOrNull()
+            if (decoded != null) {
+                results.add("$decoded (Āryabhaṭīya)")
+            }
+        }
+
+        // 3. Katapayadi
+        val hasKataConsonant = numeral.any { KatapayadiMapping.isConsonant(it) }
+        if (hasKataConsonant) {
+            val decoded = runCatching { KatapayadiDecoder().decode(numeral) }.getOrNull()
+            if (decoded != null) {
+                results.add("$decoded (Kaṭapayādi)")
+            }
+        }
+
+        if (results.isEmpty()) {
+            outputStream.println("Could not decode '$numeral' using any known Sanskrit numeral system.")
+        } else {
+            results.forEach { outputStream.println("⇒ $it") }
+        }
+    }
+
+    private fun encodeNumber(value: Long, system: String?) {
+        if (value < 0L) {
+            outputStream.println("Usage: :encode <positive integer> [system: katapayadi|bhutasamkhya|aryabhatiya]")
+            return
+        }
+
+        val targetSystem = system ?: "katapayadi"
+        val encoded = when (targetSystem) {
+            "katapayadi", "कटपय" -> {
+                runCatching { KatapayadiEncoder().encode(value) }.getOrNull()?.let { "$it (Kaṭapayādi)" }
+            }
+            "bhutasamkhya", "भूतसङ्ख्या", "भूतसंख्या" -> {
+                runCatching { BhutasamkhyaEncoder().encode(value) }.getOrNull()?.let { "$it (Bhūta-saṅkhyā)" }
+            }
+            "aryabhatiya", "आर्यभटीय" -> {
+                runCatching { AryabhatiyaEncoder().encode(value) }.getOrNull()?.let { "$it (Āryabhaṭīya)" }
+            }
+            else -> null
+        }
+
+        if (encoded == null) {
+            outputStream.println("Error: Failed to encode $value using system '$targetSystem'.")
+        } else {
+            outputStream.println("⇒ $encoded")
+        }
+    }
+
     private fun printHelp() {
         outputStream.println("Available REPL Commands:")
         outputStream.println("  :help               - Show this help message")
         outputStream.println("  :dhatu <query>     - Look up Dhātupāṭha entry by upadeśa, id, or alias")
         outputStream.println("  :compile <file> [C] - Compile .pvm script to JVM bytecode class")
+        outputStream.println("  :num <word>         - Decode a Sanskrit numeral into a decimal value")
+        outputStream.println("  :encode <val> [sys] - Encode a decimal value into a Sanskrit numeral (sys: katapayadi|bhutasamkhya|aryabhatiya)")
         outputStream.println("  :trace              - Toggle displaying full step-by-step Sūtra trace log")
         outputStream.println("  :exit               - Exit the REPL session")
     }
