@@ -1,50 +1,54 @@
 package dev.panini.unadipatha
 
+import dev.panini.core.ItMarker
 import dev.panini.dhatupatha.Dhatu
-import dev.panini.derivation.DerivationChange
-import dev.panini.derivation.DerivationState
-import dev.panini.derivation.DerivationSutra
-import dev.panini.sutra.NimittaScope
-import dev.panini.sutra.SutraAction
-import dev.panini.sutra.SutraPriority
-import dev.panini.sutra.SutraRole
-import dev.panini.sutra.SutraScope
-import dev.panini.sutra.SutraType
-import dev.panini.sutra.SutraVisibility
+import dev.panini.unadipatha.model.Artha
+import dev.panini.unadipatha.model.Samjna
 
 /**
- * Base class for all Uṇādi Sūtras.
+ * Declarative Base class for all Uṇādi Sūtras.
+ * Representing Kṛt-pratyaya assignment rules under Aṣṭādhyāyī 3.3.1 (उणादयो बहुलम्).
  */
 abstract class UnadiSutra(
     val number: String,
     val text: String,
-    val hindiExplanation: String,
-    val suffix: String,
     val roots: Set<Dhatu>,
-    val englishExplanation: String? = null
-) : DerivationSutra {
-    open fun matches(context: UnadiState): Boolean {
-        return context.suffix == suffix && roots.any {
-            it.sourceSurface == context.root || it.upadesha == context.root || it.surfaceAliases.contains(context.root)
+    val pratyaya: String,
+    val pratyayaSurface: String,
+    val itMarkers: Set<ItMarker> = emptySet(),
+    val samjnas: Set<Samjna> = setOf(
+        Samjna.Technical.KRT,
+        Samjna.Technical.PRATIPADIKA,
+        Samjna.Karaka.KARTA
+    ),
+    val meaning: Artha = Artha.Karaka.KARTA,
+    val hindiExplanation: String? = null
+) {
+    /**
+     * Checks if this Uṇādi sūtra matches a given root.
+     */
+    fun matchesRoot(dhatu: Dhatu): Boolean {
+        return roots.any {
+            it.sourceSurface == dhatu.sourceSurface ||
+            it.upadesha == dhatu.upadesha ||
+            (it.surfaceAliases.isNotEmpty() && (it.surfaceAliases.contains(dhatu.sourceSurface) || it.surfaceAliases.contains(dhatu.upadesha)))
         }
     }
 
-    abstract fun apply(context: UnadiState): UnadiChange
-
-    // DerivationSutra defaults
-    override val sutra: String get() = "unadi_$number"
-    override val krama: Int get() = 900000 + (number.replace(".", "").toIntOrNull() ?: 0)
-    override val type: SutraType get() = SutraType.NITYA
-    override val role: SutraRole get() = SutraRole.Vidhi
-    override val action: SutraAction get() = SutraAction.ADESHA
-    override val scope: SutraScope get() = SutraScope.DERIVATION
-    override val nimittaScope: NimittaScope get() = NimittaScope.UNKNOWN
-    override val priority: SutraPriority get() = SutraPriority.NORMAL
-    override val visibility: SutraVisibility get() = SutraVisibility.NORMAL
-    override val optional: Boolean get() = false
-    override val blocks: Set<String> get() = emptySet()
-    override val traceTemplate: String? get() = null
-
-    override fun matches(context: DerivationState): Boolean = false
-    override fun apply(context: DerivationState): DerivationChange = DerivationChange(context, "")
+    /**
+     * Creates an UnadiMatch for a matching root.
+     */
+    fun matchFor(dhatu: Dhatu): UnadiMatch {
+        return UnadiMatch(
+            sutraNumber = number,
+            sutraText = text,
+            dhatu = dhatu,
+            pratyaya = pratyaya,
+            pratyayaSurface = pratyayaSurface,
+            itMarkers = itMarkers,
+            samjnas = samjnas,
+            meaning = meaning,
+            hindiExplanation = hindiExplanation
+        )
+    }
 }

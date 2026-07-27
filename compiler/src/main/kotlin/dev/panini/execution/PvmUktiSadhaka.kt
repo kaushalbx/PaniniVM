@@ -116,9 +116,7 @@ class PvmUktiSadhaka(
         is SankhyaPratipadika -> sourceText
         is KridantaPratipadika -> dhatu.mulaDhatu
         is UnadyantaPratipadika -> {
-            val root = dhatu.mulaDhatu
-            val suffix = unadiPratyaya
-            dev.panini.unadipatha.UnadiEngine().derive(root, suffix) ?: sourceText
+            sourceText
         }
         is SamasaPratipadika -> angas.joinToString("-") { it.pratipadika.baseText() }
     }

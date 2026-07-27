@@ -1,22 +1,21 @@
 package dev.panini.unadipatha
 
 import dev.panini.core.ItMarker
+import dev.panini.dhatupatha.Dhatu
+import dev.panini.unadipatha.model.Artha
+import dev.panini.unadipatha.model.Samjna
 
 /**
- * UnadiState represents the derivation state of a nominal stem using Unadi rules.
+ * UnadiMatch represents the result of querying an Uṇādi sūtra relation.
  */
-data class UnadiState(
-    val root: String,
-    val suffix: String? = null,
-    val surface: String = root,
-    val itMarkers: Set<ItMarker> = emptySet(),
-    val stepTrace: List<String> = emptyList()
-)
-
-/**
- * UnadiChange represents a single modification step applied by an Unadi rule.
- */
-data class UnadiChange(
-    val state: UnadiState,
-    val explanation: String
+data class UnadiMatch(
+    val sutraNumber: String,
+    val sutraText: String,
+    val dhatu: Dhatu,
+    val pratyaya: String,
+    val pratyayaSurface: String,
+    val itMarkers: Set<ItMarker>,
+    val samjnas: Set<Samjna>,
+    val meaning: Artha,
+    val hindiExplanation: String? = null
 )
