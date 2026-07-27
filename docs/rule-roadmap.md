@@ -1,75 +1,35 @@
 # Derivation Sūtra Roadmap
 
-The project adds Pāṇinian rules as typed executable transformations. A rule is
-counted when it is registered through the common `Sutra<C, R>` model and has
-tested applicability and output. Derivation rules operate on derivation state;
-sentence rules operate on typed kāraka or vibhakti contexts.
+The project adds Pāṇinian rules as typed executable transformations. A rule is counted when it is registered through the common `Sutra<C, R>` model and has tested applicability and output. Derivation rules operate on derivation state; sentence rules operate on typed kāraka or vibhakti contexts; Uṇādi rules operate on declarative suffix assignment catalogs.
 
-## Current scope
+## Current Scope
 
-- **435+ registered executable sūtras**: Integrated across nominal derivation, verbal derivation, compound formation (Samāsa), phonology (Sandhi), and sentence-level Kāraka/Vibhakti scopes.
+- **474+ registered executable sūtras**: Integrated across nominal derivation, verbal derivation, compound formation (Samāsa), phonology (Sandhi), and sentence-level Kāraka/Vibhakti scopes.
+- **33+ registered Uṇādipāṭha sūtras**: Integrated under Aṣṭādhyāyī 3.3.1 (*उणादयो बहुलम्*) with etymological reverse lookup and step-by-step derivation tracing (`UnadiDerivationEngine`).
+- **Centralized & Partitioned Pāṇinian Saṁjñās & Artha**: Typed in `:core` (`Samjna.Unit`, `Samjna.Affix`, `Samjna.Phono`, `Samjna.Stem`, `Samjna.Avyaya`, `Samjna.Karaka`, `Samjna.Rudhi`, `Artha.Karaka`, `Artha.Dispositional`, `Artha.Taddhita`, `Artha.Rudhi`, `Artha.Explanation`).
 - **100% Full Coverage of Aṣṭādhyāyī 1.4 Kāraka Sūtras**: All 33 classical Kāraka saṃjñā sūtras implemented and verified.
 - **100% Full Coverage of Aṣṭādhyāyī 2.3 Vibhakti Sūtras**: All 64 classical non-Vedic Vibhakti sūtras implemented and verified with syncretic `sup` resolution.
 - **Samāsa (Compound Formation) Subsystem**: Implemented Adhyāya 2.1 & 2.2 Sūtras (`2.1.6` Avyayībhāva, `2.1.24` Dvitīyā Tatpuruṣa, `2.1.37` Pañcamī Tatpuruṣa, `2.2.8` Ṣaṣṭhī Tatpuruṣa, `2.2.24` Bahuvrīhi, `2.2.29` Dvandva).
 - **Phonological Transformation & Sandhi Subsystem**: Refactored Sandhi Sūtras (`6.1.109` Pūrvarūpa, `6.1.132` Su-lopa, `6.3.111` Ḍhralope Dīrgha, `8.3.14` Ḍho ḍhe lopa, `8.3.17` Yo 'śi, `8.3.22` Hali sarveṣām, `8.4.59` Vā padāntasya, `8.4.60` Tor li, `8.4.62` Jhayo ho 'nyatarasyām, `8.4.63` Śaś cho 'ṭi, `8.4.65` Jharo jhari savarṇe) with type-safe `PratyaharaEngine` integration and inline rule matching.
 - **100% Full Coverage of Subanta Nominal Stem Classes**: All 31 Classical Sanskrit nominal stem categories implemented (vowel, consonant, pronominal, numeral) across 21-slot `sup` paradigms.
 - **Verbal Tiṅanta Subsystem**: Full 10-gaṇa Dhātupāṭha catalogue with LAṬ, LOṬ, LAṄ, LIṄ, LṚṬ, LṚṄ, and LIṬ stem formation and paradigm verification in both padas.
-- Centralized **Adhikāra Domain Registry (`AdhikaraRegistry`)**: Enforces scope domain boundaries (`1.4.1`, `1.4.23`, `2.3.1 Anabhihite`, `3.1.1`, `3.1.91`, `6.4.1`, `8.1.16`) wrapping concrete `Sutra` objects directly.
-- Centralized **Paribhāṣā Meta-rule Registry (`ParibhashaRegistry`)**: Manages interpretive meta-rules (`1.1.3`, `1.1.46`, `1.1.47`, `1.1.49`, `1.1.50`, `1.1.51`, `1.1.52`, `1.1.53`, `1.1.54`, `1.1.55`, `1.1.56`, `1.1.64`, `1.1.66`, `1.1.67`, `1.1.68`, `1.1.69`, `1.4.2`) categorized by a type-safe `ParibhashaScope` enum.
-- Centralized **Pratiṣedha Prohibition Engine (`NishedhaRuleEngine`)**: Evaluates prohibition sūtras (`1.1.5`, `1.1.6`, `1.1.10`, `1.2.4`, `2.3.70`) integrated into rule engines.
-- Typed rule metadata: number, text, role, action, scope, stage, ordering,
-  dependencies, blockers, restrictions, and exceptions.
-- Māheśvara-sūtra and pratyāhāra support with explicit varṇa and it markers.
-- It-processing, pada and pratyaya selection, āgama, ādeśa, lopa, guṇa,
-  vṛddhi, reduplication, and selected Tripādī phonology.
-- Complete 21-slot `sup` paradigms for 11 stem-class/gender combinations:
-  masculine a, i, u, ṛ, and n; feminine i, u, ī, and ā; and neuter a and s.
-- Declared `tiṅ` paradigms across all ten lakāras, including Parasmaipada and
-  Ātmanepada coverage for representative roots.
-- Gaṇa-specific `LAT`, `LOT`, `LANG`, and `LING` stem formation for all ten
-  Dhātupāṭha gaṇas, including strong/weak stem selection.
-- Representative `LAT`, `LOT`, `LANG`, and `LING` surfaces verified in both padas
-  across all ten gaṇas with concise, table-driven paradigm tests.
-- Additional `LAT`, `LOT`, `LANG`, `LING`, `LRT`, and `LRNG` root-shape coverage for vowel-final, consonant-final,
-  irregular `गम् → गच्छ्`, and Ubhayapada roots.
-- Initial `LIT` root-shape coverage for vowel-final `णीञ्` in both padas, including weak-ending kit, yaṇ, and iṭ behavior.
-- A complete ten-gaṇa Dhātupāṭha catalogue with pada metadata.
-- Initial syntax coverage for `भ्याम्` syncretism through 1.4.24, 1.4.32,
-  1.4.42, 2.3.13, 2.3.18, and 2.3.28, with evidence retained in the rule trace.
 
-The numeral subsystem keeps generation and execution typing separate.
-`SankhyaGenerator` produces auditable cardinal and ordinal derivations, while
-annotated execution operands carry numeric identity as `SanskritValue.Sankhya`.
-Surface numeral words are not reverse-parsed. Future numeral inflection should
-connect generated prātipadikas to the regular `sup` pipeline without weakening
-this boundary.
+---
 
-## Completed milestones & updated focus
+## Completed Milestones & Updated Focus
 
 1. **[COMPLETED] 100% Kāraka & Vibhakti Coverage**:
-   - All 33 classical Kāraka saṃjñā sūtras (Adhyāya 1.4) and 64 Vibhakti sūtras (Adhyāya 2.3) fully implemented and verified with syncretic `sup` resolution.
+   - All 33 classical Kāraka saṃjñā sūtras (Adhyāya 1.4) and 64 Vibhakti sūtras (Adhyāya 2.3) fully implemented and verified.
 
-2. **[COMPLETED] Nominal Stem Classes & Samāsa Subsystem**:
-   - All 31 Classical Sanskrit nominal stem categories implemented across 21-slot `sup` paradigms.
-   - Core Samāsa (compound formation) Sūtras across Avyayībhāva (2.1.6), Dvitīyā/Pañcamī/Ṣaṣṭhī Tatpuruṣa (2.1.24, 2.1.37, 2.2.8), Bahuvrīhi (2.2.24), and Dvandva (2.2.29) implemented.
+2. **[COMPLETED] Declarative Uṇādipāṭha & Derivation Bridge**:
+   - 33+ Uṇādi sūtras implemented across all 5 Adhyāyas.
+   - Stem classification (`RUDHI_PRATIPADIKA` vs `YAUGIKA_PRATIPADIKA`) and `VakyaAnalyzer` integration.
+   - Derivation engine bridge (`UnadiDerivationEngine`) and CLI commands `--unadi` & `--derive-unadi`.
 
-3. **[COMPLETED] Phonological & Sandhi Engine**:
-   - Sound matching driven by type-safe `PratyaharaEngine` (Māheśvara-sūtras).
-   - Full coverage of Pūrvarūpa (6.1.109), Visarga & Lopa (6.1.132, 8.3.14, 8.3.15, 8.3.17, 8.3.22), Parasavarṇa (8.4.59, 8.4.60), and Varna Dīrgha (6.3.111).
+3. **[COMPLETED] Centralized Partitioned Saṁjñās & Artha Architecture**:
+   - `dev.panini.shiksha.Samjna` and `dev.panini.shiksha.Artha` moved into `:core` and partitioned into authentic Pāṇinian sub-enums.
 
 4. **Future Focus Areas**:
+   - Build declarative Taddhita derivation module (`taddhitapatha`) for Apatya (4.1.92), Matvarthīya (5.2.94), and Bhāvārthaka (5.1.119) affixes.
    - Broaden Aorist (*luṅ*) 7-variety dhātu derivations across rare root shapes.
-   - Expand secondary Taddhita suffix derivation rules.
    - Integrate fine-grained Vedic accent-aware tokenization (*Svaravidhi*).
-
-## Definition of done for a rule
-
-Each implemented sūtra should include:
-
-- authoritative number and text
-- typed role, action, scope, stage, and ordering metadata
-- explicit applicability and state transition logic
-- dependencies, blockers, restrictions, or exceptions where applicable
-- focused unit tests and at least one end-to-end derivation when the rule is
-  part of a supported form
-- documentation of deliberate simplifications or unsupported environments
