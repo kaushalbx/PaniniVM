@@ -1,55 +1,35 @@
 # PaniniVM
 
-Kotlin implementation of an executable Pāṇinian derivation system and natural semantic execution engine. Implemented
-sūtras carry typed metadata, executable eligibility, and state-transition logic. Derivations retain an ordered rule trace, including conflicts and blocked alternatives where available.
+Kotlin implementation of an executable Pāṇinian derivation system and natural semantic execution engine. Implemented sūtras carry typed metadata, executable eligibility, and state-transition logic. Derivations retain an ordered rule trace, including conflicts and blocked alternatives where available.
 
 ---
 
 ## Features
 
-- **Executable Ashtadhyayi Engine**: Registered sūtras across derivation, compound formation, and sentence-analysis scopes.
+- **Executable Ashtadhyayi Engine**: Registered sūtras across derivation, compound formation, sentence analysis, and nominal/verbal morphological scopes.
+- **Declarative Uṇādipāṭha Subsystem (`:unadipatha`)**: Pure declarative catalog of Uṇādi rules (33+ sūtras across all 5 Adhyāyas) performing suffix assignment, etymological reverse lookup `(Dhātu, Pratyaya) → Saṁjñā`, and stem classification (`RUDHI_PRATIPADIKA` vs `YAUGIKA_PRATIPADIKA`).
+- **Centralized Partitioned Saṁjñā & Artha Architecture (`:core`)**:
+  - `dev.panini.shiksha.Samjna`: Domain-partitioned into `Unit` (DHATU, PRATYAYA, ANGA, PADA, PRATIPADIKA, SAMASA, AVAYAVA), `Affix` (KRT, UNADI, TADDHITA, GHAN, NVUL, TRC, KTA, SHATRU, SHANAC, Aṇ...), `Phono` (VRDDHI, GUNA, IK, AC, HAL, SAMYOGA, IT...), `Stem` (NADI, GHI, BHA, GHU, PRAGRHYA, SARVANAMA, ABHYASA...), `Avyaya` (AVYAYA, NIPATA, GATI, UPASARGA), `Karaka` (KARTA, KARMA...), and `Rudhi(word)`.
+  - `dev.panini.shiksha.Artha`: Domain-partitioned into `Karaka` (KARTA, KARMA, BHAVA...), `Dispositional` (TAATSIILYA, SHILPA, AASHIS...), `Taddhita` (APATYA, RAGATA, SAMUHA, MATVARTHIYA...), `Rudhi`, and `Explanation`.
+- **Uṇādi Derivation Bridge (`UnadiDerivationEngine`)**: Bridges Uṇādi suffix assignment into `DerivationState` to execute full Aṣṭādhyāyī morpho-phonological rule traces (*Anubandha-lopa*, *Guṇa/Vṛddhi*, *Aṅga-kārya*) for nominal stems like `कारु`, `पितृ`, `कवि`, `ऋषि`.
+- **Vākya Sentence Analyzer Integration (`:analysis`)**: `VakyaAnalyzer` automatically enriches sentence parses with Uṇādi etymological stem analyses.
 - **Samāsa (Compound Formation) Subsystem**: Executable compound formation Sūtras across Avyayībhāva (2.1.6), Tatpuruṣa (2.1.24, 2.1.37, 2.2.8), Bahuvrīhi (2.2.24), and Dvandva (2.2.29).
 - **Phonological Transformation & Sandhi Engine**: Type-safe Sandhi Sūtras (`6.1.109`, `6.1.132`, `6.3.111`, `8.3.14`, `8.3.17`, `8.3.22`, `8.4.59`, `8.4.60`, `8.4.62`, `8.4.63`, `8.4.65`) driven by `PratyaharaEngine` and inline rule matching.
 - **Adhikāra Domain Registry (`AdhikaraRegistry`)**: Enforces governing heading scopes (`1.4.1`, `1.4.23`, `2.3.1 Anabhihite`, `3.1.1`, `3.1.91`, `6.4.1`, `8.1.16`) wrapping top-level concrete `Sutra` objects.
 - **Paribhāṣā Meta-rule Registry (`ParibhashaRegistry`)**: Manages interpretive meta-rules (`1.1.3`, `1.1.46`, `1.1.47`, `1.1.49`, `1.1.50`, `1.1.51`, `1.1.52`, `1.1.53`, `1.1.54`, `1.1.55`, `1.1.56`, `1.1.66`, `1.1.67`) with type-safe `ParibhashaScope` enums.
 - **Pratiṣedha Prohibition Engine (`NishedhaRuleEngine`)**: Evaluates prohibition sūtras (`1.1.5`, `1.1.6`, `1.1.10`, `1.2.4`) integrated into rule resolution loops.
-- **ANTLR4 Segmented Sanskrit Parser (`VyakaranamLexer.g4` + `VyakaranamParser.g4`)**: Parses strictly segmented Pāṇinian words (`Prakṛti + Pratyaya`) through one canonical grammar with pure `IDENTIFIER` stem parsing:
-  - Nominal Subanta: `एक + अम्`, `द्वि + औट्`, `त्रि + शस्`, `यन्त्र + सुँ`, `फल + अम्`, `पूर्वफल + अम्`
-  - Segmented Ordinals & Fractions: `द्वि + तीय + अम्`, `त्रि + तीय + अंश + अम्`, `सार्ध + द्वि + अम्`, `अभि + अधिक + शत + अम्`
-  - Geometric & Trigonometric Expressions: `ज्या + नवति + अम्`, `कोटिज्या + षष्टि + अम्`, `परिधि + दशन् + अम्`, `क्षेत्रफल + पञ्च + अम्`
-  - Verbal Tiṅanta: `युज् + णिच् + लोट् + सिप्`, `गण + णिच् + लोट् + सिप्`, `हृ + लोट् + सिप्`
+- **ANTLR4 Segmented Sanskrit Parser (`VyakaranamLexer.g4` + `VyakaranamParser.g4`)**: Parses strictly segmented Pāṇinian words (`Prakṛti + Pratyaya`) through one canonical grammar with pure `IDENTIFIER` stem parsing.
 - **Āryabhaṭīya Numeral Decoder (`:aryabhatiya`)**: Decodes Āryabhaṭīya Varga and Avarga consonant-vowel numerical encodings (`ख्युघृ` = 4,320,000).
 - **Bhūtasamkhya Symbolic Decoder (`:bhutasamkhya`)**: Decodes symbolic noun numbers (`नेत्र` = 2, `वेद` = 4, `अग्नि` = 3) following the Pāṇinian right-to-left convention (*अङ्कानां वामतो गतिः*).
-- **Verbal `DhatuAction` & Dhātupāṭha Integrations**:
-  - Trigonometric & Geometric operations bound to `JyaDhatu` (`ज्या`), `DhaDhatu` (`परि + धा`, `स + धा`), `YuDhatu` (`यु`, `वि + यु`), `VrjDhatu` (`वर्जित`).
-- **Multi-Vākya Sentence Chaining**: Parse and execute multi-clause sentences separated by connectives (`ततः`, `अथ`, `अनन्तरम्`) or daṇḍas (`।`, `॥`).
-- **Dynamic Inter-Clause Result References**: Refer to intermediate calculation results (`फल + अम्`) across clauses (`योग-1`, `योग-2`) or session history (`पूर्वफल + अम्`).
-- **Kāraka Constraint Analysis**: Preserves syncretic sup endings such as `भ्याम्` and resolves them through executable 1.4 kāraka-saṃjñā and 2.3 vibhakti sūtras (`2.3.26`, `2.3.44`, `2.3.52`).
 - **PaniniVM Program Script Runner (`.pvm`)**: Evaluate multi-line `.pvm` program script files with turn history and session persistence.
-- **CLI Runner**: Command-line execution for `.pvm` scripts, verb derivations, nominal paradigms, and sūtra inspection.
-- **Sanskrit Bytecode Compiler**: Compile multi-clause `.pvm` script files directly into native JVM `.class` bytecode carrying mapped stack constants and resolved operations.
-
+- **CLI Runner**: Command-line execution for `.pvm` scripts, Uṇādi inspection/derivation, verb derivations, nominal paradigms, and sūtra coverage.
+- **Sanskrit Bytecode Compiler**: Compile multi-clause `.pvm` script files directly into native JVM `.class` bytecode.
 
 ---
 
-## Input boundary
+## Input Boundary
 
-PaniniVM accepts annotated morphological notation, not ordinary surface Sanskrit.
-Declinable and conjugable inputs must expose their grammatical components, for
-example `एक + अम्` and `युज् + णिच् + लोट् + सिप्`. The execution layer does not
-attempt to recover a number, suffix, dhātu, or compound structure by parsing a
-finished surface word.
-
-Numeral handling has two distinct directions:
-
-- `VyakaranamExecutionAdapter` binds a canonical numeral prātipadika from the
-  parsed AST directly to a typed `SanskritValue.Sankhya`.
-- `SankhyaGenerator` derives a Sanskrit cardinal or ordinal form from a numeric
-  value and retains its grammatical derivation trace.
-
-Arithmetic actions consume the numeric value carried by `SanskritValue.Sankhya`.
-They never convert a Sanskrit output word back into a number. Typed results are
-preserved when `फल + ...` refers to an earlier clause.
+PaniniVM accepts annotated morphological notation, not ordinary surface Sanskrit. Declinable and conjugable inputs expose their grammatical components (e.g. `एक + अम्` or `युज् + णिच् + लोट् + सिप्`).
 
 The execution path has one direction:
 
@@ -57,34 +37,28 @@ The execution path has one direction:
 segmented input → vyākaraṇa AST → binding → operation resolution → planning → runtime
 ```
 
-The implementation is organized accordingly:
-
-```text
-execution/
-  binding/       AST-to-invocation binding
-  planning/      operation resolution, ordering, and disposition
-  runtime/       execution, continuations, and the typed value environment
-  operations/    numeric, linguistic, state, and external meanings
-  persistence/   host-provided state storage
-  external/      host-provided capability dispatch
-```
-
-Dhātupāṭha entries remain linguistic catalogue data. Executable meanings live
-only under `execution/operations` and are connected to dhātus by registry ID.
-
-Sentence analysis does not infer a kāraka from one arbitrarily selected sup
-slot. For example, `भ्याम्` initially retains तृतीया, चतुर्थी, and पञ्चमी as
-possibilities. Dhātu valency and semantic relations select a kāraka through an
-Aṣṭādhyāyī 1.4 rule; an applicable 2.3 rule then validates the corresponding
-vibhakti. Both sūtras are retained in the analysis and execution trace.
-
 ---
 
 ## CLI Usage
 
-### Executing `.pvm` Script Files
+### Uṇādipāṭha Subsystem Commands
 
-Execute PaniniVM `.pvm` program script files directly via CLI:
+```sh
+# Etymological lookup for a nominal stem
+./gradlew :cli:run --args="--unadi lookup पितृ"
+
+# Reverse lookup by Dhātu and Pratyaya
+./gradlew :cli:run --args="--unadi pair कृ कनिन्"
+
+# List registered Uṇādipāṭha sūtras
+./gradlew :cli:run --args="--unadi list"
+
+# Step-by-step Aṣṭādhyāyī derivation trace for Uṇādi stems
+./gradlew :cli:run --args="--derive-unadi कृ उण्"
+./gradlew :cli:run --args="--derive-unadi पा तृन्"
+```
+
+### Executing `.pvm` Script Files
 
 ```sh
 ./gradlew :cli:run --args="--eval src/test/kotlin/dev/panini/parser/addition.pvm"
@@ -92,27 +66,8 @@ Execute PaniniVM `.pvm` program script files directly via CLI:
 
 ### Compiling `.pvm` Script Files to JVM Bytecode
 
-Compile segmented Sanskrit `.pvm` script files into standard JVM class bytecode:
-
 ```sh
 ./gradlew :cli:run --args="--compile src/test/kotlin/dev/panini/parser/addition.pvm SanskritAddition"
-```
-
-Sample `.pvm` script: [`addition.pvm`](src/test/kotlin/dev/panini/parser/addition.pvm)
-```text
-हे यन्त्र + सुँ, एक + अम् द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।
-एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ततः फल + औट् द्वि + औट् युज् + णिच् + लोट् + सिप् ।
-```
-
-Formatted CLI Output:
-```text
-=== PaniniVM Script Execution: addition.pvm ===
-Line 1:
-  ✓ Result: षट्
-  ↳ Operation: panini.eval
-Line 2:
-  ✓ Result: पञ्च
-  ↳ Operation: panini.eval
 ```
 
 ### Derivations & Sūtra Inspection
@@ -145,68 +100,46 @@ Line 2:
 ```kotlin
 import dev.panini.execution.PaniniVM
 import dev.panini.execution.ExecutionResult
+import dev.panini.unadipatha.UnadiDerivationEngine
+import dev.panini.unadipatha.analysis.UnadiAnalyzer
 import java.io.File
 
-val vm = PaniniVM()
+// Uṇādi Etymological Stem Analysis
+val stemAnalysis = UnadiAnalyzer.analyzeStem("पितृ")
+println(stemAnalysis.classification) // Output: YAUGIKA_PRATIPADIKA
 
-// Single utterance evaluation
+// Uṇādi Derivation Tracing
+val derivationResult = UnadiDerivationEngine.derive("कृ", "उण्")
+println(derivationResult.final.surface) // Output: कारु
+
+// Single utterance evaluation via VM
+val vm = PaniniVM()
 val result = vm.eval("दश + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।")
 if (result is ExecutionResult.Success) {
     println(result.value) // Output: द्वादश
 }
-
-// Evaluating a .pvm script file with session persistence
-val scriptFile = File("src/test/kotlin/dev/panini/parser/addition.pvm")
-val results = vm.evalFile(scriptFile, sessionKey = "session_math")
-results.forEach { res ->
-    if (res is ExecutionResult.Success) {
-        println("Result: ${res.value}")
-    }
-}
 ```
-
----
-
-For direct execution API tests or host-created invocations, construct a numeral
-explicitly instead of tagging an untyped string:
-
-```kotlin
-val operand = ExecutionExpression.sankhya(5, "पञ्च")
-```
-
-`SanskritValue.of("पञ्च")` intentionally creates a `Shabda`; it does not guess
-that arbitrary Sanskrit text is numeric.
 
 ---
 
 ## Test Suite
 
-Run all automated unit and integration tests:
+Run all automated unit and integration tests across all 15 Gradle modules:
 
 ```sh
-./gradlew test --no-daemon
-```
-
-To print step-by-step derivation traces:
-
-```sh
-./gradlew test --tests "dev.panini.ScratchTest.testDerivationTrace" --info
+./gradlew check --no-daemon
 ```
 
 ---
 
 ## Current Ashtadhyayi Coverage
 
-- **474 registered executable sūtras** out of the 3,959-rule target (3,485 remaining).
+- **474+ registered executable sūtras** out of the target catalog.
+- **33+ Uṇādipāṭha Sūtras** implemented in a pure, declarative catalog.
 - **100% Full Coverage of Aṣṭādhyāyī 2.3 Vibhakti Sūtras**: All 64 classical non-Vedic sūtras implemented and verified.
 - **100% Full Coverage of Aṣṭādhyāyī 1.4 Kāraka Sūtras**: All 33 classical Kāraka saṃjñā sūtras implemented and verified.
 - **100% Full Coverage of Nominal (Subanta) Stem Classes**: All 31 Classical Sanskrit nominal stem categories implemented across 3 genders (masculine, feminine, neuter), pronouns, numerals, and consonant stems.
-- **Sanādyanta & Kṛdanta Derived Formations**: Desiderative (*san*), Intensive (*yaṅ*), Causative (*ṇic*), Periphrastic Liṭ (*ām*), Kṛtya affixes (*yat*, *ṇyat*, *kyap*, *tavyat*, *anīyar*), Agent affixes (*ṇvul*, *tṛc*, *ka*, *ṣvun*), Gerunds (*ktvā*/*lyap*), Infinitives (*tumun*), Action nouns (*ghañ*, *ktin*, *kta*), Participles (*śatṛ*, *śānac*), zero-affixes (*kvip*), and Sārvadhātuka / Ārdhadhātuka Saṃjñā rules.
-- Structural, technical, and interpretative Saṃjñā and Paribhāṣā sūtras across Aṣṭādhyāyī Pādas 1.1, 1.2, 1.3, and 1.4.
-- Complete 21-slot `sup` paradigms verified across all major stem classes with 330+ passing automated tests.
-- All ten lakāras: `LAT`, `LIT`, `LUT`, `LRT`, `LET`, `LOT`, `LANG`, `LING`, `LUNG`, and `LRNG`.
-- Parasmaipada, Ātmanepada, and explicit Ubhayapada selection through the verbal API.
-- Gaṇa-aware stem derivation for `LAT`, `LOT`, `LANG`, and `LING` across all ten Dhātupāṭha gaṇas.
+- **Centralized & Partitioned Pāṇinian Saṁjñās & Artha**: Cleanly typed in `:core` (`Samjna.Unit`, `Samjna.Affix`, `Samjna.Phono`, `Samjna.Stem`, `Samjna.Avyaya`, `Samjna.Karaka`, `Samjna.Rudhi`, `Artha.Karaka`, `Artha.Dispositional`, `Artha.Taddhita`, `Artha.Rudhi`).
 
 ---
 
