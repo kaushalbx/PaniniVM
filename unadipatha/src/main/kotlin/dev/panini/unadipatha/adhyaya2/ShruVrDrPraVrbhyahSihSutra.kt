@@ -17,8 +17,8 @@ object ShruVrDrPraVrbhyahSihSutra : UnadiSutra(
     pratyayaSurface = "सि",
     itMarkers = emptySet(),
     baseSamjnas = setOf(
-        Samjna.Technical.KRT,
-        Samjna.Technical.PRATIPADIKA,
+        Samjna.Affix.KRT,
+        Samjna.Unit.PRATIPADIKA,
         Samjna.Karaka.KARTA
     ),
     meaning = Artha.Karaka.KARTA,

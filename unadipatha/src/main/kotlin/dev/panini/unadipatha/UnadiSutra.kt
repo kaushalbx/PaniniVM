@@ -18,8 +18,8 @@ abstract class UnadiSutra(
     val itMarkers: Set<ItMarker> = emptySet(),
     val rootSamjnaMap: Map<String, Samjna.Rudhi> = emptyMap(),
     val baseSamjnas: Set<Samjna> = setOf(
-        Samjna.Technical.KRT,
-        Samjna.Technical.PRATIPADIKA,
+        Samjna.Affix.KRT,
+        Samjna.Unit.PRATIPADIKA,
         Samjna.Karaka.KARTA
     ),
     val meaning: Artha = Artha.Karaka.KARTA,
