@@ -12,13 +12,16 @@ import dev.panini.execution.ExecutionResult
 import dev.panini.execution.PaniniVM
 import dev.panini.execution.PvmUktiSadhaka
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Future
 
 /**
  * PvmEditorInlayListener updates inline hints dynamically as the user edits .pvm files.
+ * Offloads all CPU-heavy Sandhi and VM computations to background thread pool tasks to maintain editor responsiveness.
  */
 class PvmEditorInlayListener : EditorFactoryListener {
 
     private val documentListeners = ConcurrentHashMap<Editor, DocumentListener>()
+    private val pendingComputations = ConcurrentHashMap<Editor, Future<*>>()
 
     override fun editorCreated(event: EditorFactoryEvent) {
         val editor = event.editor
@@ -43,10 +46,12 @@ class PvmEditorInlayListener : EditorFactoryListener {
     }
 
     override fun editorReleased(event: EditorFactoryEvent) {
-        val listener = documentListeners.remove(event.editor)
+        val editor = event.editor
+        pendingComputations.remove(editor)?.cancel(true)
+        val listener = documentListeners.remove(editor)
         if (listener != null) {
             runCatching {
-                event.editor.document.removeDocumentListener(listener)
+                editor.document.removeDocumentListener(listener)
             }
         }
     }
@@ -55,10 +60,16 @@ class PvmEditorInlayListener : EditorFactoryListener {
         val project = editor.project ?: return
         if (project.isDisposed) return
 
+        // Cancel previous pending task for this editor to avoid redundant calculations
+        pendingComputations.remove(editor)?.cancel(true)
+
         // Verify the document is a PvmFile before doing any compute-heavy operations
         val isPvm = runReadAction {
-            val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(editor.document)
-            psiFile is PvmFile
+            if (project.isDisposed) false
+            else {
+                val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(editor.document)
+                psiFile is PvmFile
+            }
         }
         if (!isPvm) return
 
@@ -69,57 +80,67 @@ class PvmEditorInlayListener : EditorFactoryListener {
         }
         if (text.isBlank()) return
 
-        val sadhaka = PvmUktiSadhaka()
-        val vm = PaniniVM()
-        val lines = text.lines()
-        var currentOffset = 0
+        val future = ApplicationManager.getApplication().executeOnPooledThread {
+            if (Thread.currentThread().isInterrupted) return@executeOnPooledThread
 
-        val inlineInlayEntries = mutableListOf<Pair<Int, String>>()
+            val sadhaka = PvmUktiSadhaka()
+            val vm = PaniniVM()
+            val lines = text.lines()
+            var currentOffset = 0
 
-        for (line in lines) {
-            val trimmed = line.trim()
-            val lineEnd = currentOffset + line.length
+            val inlineInlayEntries = mutableListOf<Pair<Int, String>>()
 
-            if (trimmed.isNotEmpty() && !trimmed.startsWith("//") && !trimmed.startsWith("#")) {
-                var surface = try { sadhaka.sadhayaLine(trimmed) } catch (_: Throwable) { "" }
-                if (surface.isBlank() || surface == trimmed) {
-                    val res = try { vm.eval(trimmed) } catch (_: Throwable) { null }
-                    if (res is ExecutionResult.Success && res.value.isNotBlank()) {
-                        surface = res.value
+            for (line in lines) {
+                if (Thread.currentThread().isInterrupted) return@executeOnPooledThread
+                val trimmed = line.trim()
+                val lineEnd = currentOffset + line.length
+
+                if (trimmed.isNotEmpty() && !trimmed.startsWith("//") && !trimmed.startsWith("#")) {
+                    var surface = try { sadhaka.sadhayaLine(trimmed) } catch (_: Throwable) { "" }
+                    if (surface.isBlank() || surface == trimmed) {
+                        val res = try { vm.eval(trimmed) } catch (_: Throwable) { null }
+                        if (res is ExecutionResult.Success && res.value.isNotBlank()) {
+                            surface = res.value
+                        }
+                    }
+
+                    if (surface.isNotBlank()) {
+                        inlineInlayEntries.add(Pair(lineEnd, surface))
                     }
                 }
 
-                if (surface.isNotBlank()) {
-                    inlineInlayEntries.add(Pair(lineEnd, surface))
+                currentOffset = lineEnd + 1
+            }
+
+            // Once background computations are complete, schedule visual rendering on EDT
+            ApplicationManager.getApplication().invokeLater {
+                if (editor.isDisposed) return@invokeLater
+
+                // Dispose previous inline inlays so live edits replace stale sentence hints
+                val existingInlineInlays = editor.inlayModel.getInlineElementsInRange(0, editor.document.textLength)
+                for (inlay in existingInlineInlays) {
+                    if (inlay.renderer is PvmInlineInlayRenderer) {
+                        inlay.dispose()
+                    }
+                }
+
+                // Add fresh inline inlays after Danda at end of each line
+                for (entry in inlineInlayEntries) {
+                    val offset = entry.first.coerceIn(0, editor.document.textLength)
+                    editor.inlayModel.addInlineElement(
+                        offset,
+                        true, // relatesToPreceding
+                        PvmInlineInlayRenderer(entry.second)
+                    )
+                }
+
+                try {
+                    editor.contentComponent.repaint()
+                } catch (_: Throwable) {
                 }
             }
-
-            currentOffset = lineEnd + 1
         }
 
-        if (editor.isDisposed) return
-
-        // Dispose previous inline inlays so live edits replace stale sentence hints
-        val existingInlineInlays = editor.inlayModel.getInlineElementsInRange(0, editor.document.textLength)
-        for (inlay in existingInlineInlays) {
-            if (inlay.renderer is PvmInlineInlayRenderer) {
-                inlay.dispose()
-            }
-        }
-
-        // Add fresh inline inlays after Danda at end of each line
-        for (entry in inlineInlayEntries) {
-            val offset = entry.first.coerceIn(0, editor.document.textLength)
-            editor.inlayModel.addInlineElement(
-                offset,
-                true, // relatesToPreceding
-                PvmInlineInlayRenderer(entry.second)
-            )
-        }
-
-        try {
-            editor.contentComponent.repaint()
-        } catch (_: Throwable) {
-        }
+        pendingComputations[editor] = future
     }
 }
