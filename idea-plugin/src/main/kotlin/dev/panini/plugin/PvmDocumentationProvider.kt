@@ -162,7 +162,9 @@ class PvmDocumentationProvider : AbstractDocumentationProvider() {
             "मस्" to "<b>मस्</b>: Tiṅ affix for <i>Parasmaipada Uttama Puruṣa Bahuvacana</i> (1st Person Plural).",
             "णिच्" to "<b>णिच्</b>: Sanādi causative suffix (Hetumatī ṇic).",
             "लोट्" to "<b>लोट्</b>: Lakāra for Imperative Mood (Ājñā/Prārthanā).",
-            "लट्" to "<b>लट्</b>: Lakāra for Present Tense (Vartamāna Kāla)."
+            "लट्" to "<b>लट्</b>: Lakāra for Present Tense (Vartamāna Kāla).",
+            "उण्" to "<b>उण्</b>: Uṇādi suffix (Rule 1.1) deriving nominal stems like <i>kāru</i> (artisan) or <i>vāyu</i> (wind) with ण्-it marker.",
+            "सि" to "<b>सि</b>: Uṇādi suffix (Rule 2.8) deriving nominal stems like <i>śrut</i>."
         )
         val doc = map[text] ?: return null
         return "<html><body><h3>Paninian Affix Specification</h3><p>$doc</p></body></html>"
@@ -175,7 +177,8 @@ class PvmDocumentationProvider : AbstractDocumentationProvider() {
             "यदि" to "<b>यदि</b> (Conditional): Begins a conditional branch expression.",
             "तर्हि" to "<b>तर्हि</b> (Conditional Consequent): Marks the consequence of a <i>यदि</i> clause.",
             "हे" to "<b>हे</b> (Vocative Indicator): Address indicator used with Sambuddhi nominal forms.",
-            "यन्त्र" to "<b>यन्त्र</b> (System Target): PaniniVM system invocation receiver."
+            "यन्त्र" to "<b>यन्त्र</b> (System Target): PaniniVM system invocation receiver.",
+            "उणादि" to "<b>उणादि</b> (Uṇādipāṭha): Prefix used to select and run Uṇādi nominal derivations."
         )
         val doc = map[text] ?: return null
         return "<html><body><h3>PaniniVM Control Keyword</h3><p>$doc</p></body></html>"

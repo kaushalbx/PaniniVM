@@ -5,7 +5,7 @@ import dev.panini.core.PadaType
 import dev.panini.core.TingAffix
 import dev.panini.dhatupatha.DhatuPatha
 
-class TingantaEngine(private val engine: DerivationEngine = DerivationEngine()) {
+class TingantaEngine(private val engine: DerivationEngine = DerivationEngine(dev.panini.ashtadhyayi.Ashtadhyayi.executableSutras)) {
 
     fun derive(request: TingantaDerivationRequest): DerivationResult {
         val dhatu = findDhatu(request.dhatu)

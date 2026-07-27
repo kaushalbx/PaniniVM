@@ -19,7 +19,7 @@ class KriLitDerivationTest {
             lakara = Lakara.LIT,
         ).initialState(kri)
 
-        val result = DerivationEngine().derive(initial)
+        val result = DerivationEngine(dev.panini.ashtadhyayi.Ashtadhyayi.executableSutras).derive(initial)
 
         assertEquals("चकार", result.final.surface, result.applications.joinToString { "${it.sutra}:${it.after.surface}" })
         val applied = result.applications.map { it.sutra }.toSet()

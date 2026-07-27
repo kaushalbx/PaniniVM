@@ -29,6 +29,10 @@ class PaniniVM(
     val store: StateStore = FileStateStore(storageDir)
     private val externalDispatcher = ExternalCapabilityDispatcher()
 
+    init {
+        dev.panini.derivation.LinguisticActionsInitializer.initialize()
+    }
+
     private val sessions = mutableMapOf<String, SambhashanaContext>()
 
     fun eval(

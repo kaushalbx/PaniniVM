@@ -11,7 +11,7 @@ internal fun assertSubantaParadigm(
     val expectedSurfaces = expected.trim().split(Regex("\\s+"))
     assertEquals(SupAffix.entries.size, expectedSurfaces.size, "Expected one surface for each sup slot")
 
-    val engine = DerivationEngine()
+    val engine = DerivationEngine(dev.panini.ashtadhyayi.Ashtadhyayi.executableSutras)
     val actual = SupAffix.entries.associateWith { affix ->
         engine.derive(
             SubantaDerivationRequest(stem, affix.vibhakti, affix.vacana, stemClass).initialState(),

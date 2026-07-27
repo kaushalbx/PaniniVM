@@ -36,7 +36,7 @@ class TaddhitaEngineTest {
             ),
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.APATYA)
         )
-        val result = DerivationEngine().derive(state)
+        val result = DerivationEngine(dev.panini.ashtadhyayi.Ashtadhyayi.executableSutras).derive(state)
         assertTrue(result.applications.any { it.sutra == "7.1.2" })
         assertTrue(result.applications.any { it.sutra == "7.2.118" })
         assertTrue(result.applications.any { it.sutra == "6.4.148" })
@@ -52,7 +52,7 @@ class TaddhitaEngineTest {
             ),
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.APATYA)
         )
-        val result = DerivationEngine().derive(state)
+        val result = DerivationEngine(dev.panini.ashtadhyayi.Ashtadhyayi.executableSutras).derive(state)
         assertTrue(result.applications.any { it.sutra == "7.1.2" })
         assertTrue(result.applications.any { it.sutra == "7.2.118" || it.sutra == "7.2.117" })
         assertTrue(result.applications.any { it.sutra == "6.4.148" })

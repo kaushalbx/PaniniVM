@@ -32,7 +32,13 @@ class PvmCompletionContributor : CompletionContributor() {
             Triple("यन्त्र", "system", "PaniniVM system target"),
             Triple("कटपय", "सङ्ख्या-पद्धतिः", "Kaṭapayādi number system prefix"),
             Triple("भूतसङ्ख्या", "सङ्ख्या-पद्धतिः", "Bhūta-saṅkhyā number system prefix"),
-            Triple("आर्यभटीय", "सङ्ख्या-पद्धतिः", "Āryabhaṭīya number system prefix")
+            Triple("आर्यभटीय", "सङ्ख्या-पद्धतिः", "Āryabhaṭīya number system prefix"),
+            Triple("उणादि", "व्युत्पत्तिः", "Uṇādipāṭha nominal derivation")
+        )
+
+        private val unadiAffixes = listOf(
+            Triple("उण्", "उणादि-प्रत्ययः", "Unadi suffix (1.1) deriving nominal stems"),
+            Triple("सिः", "उणादि-प्रत्ययः", "Unadi suffix (2.8) deriving nominal stems")
         )
 
         private val supAffixes = listOf(
@@ -114,6 +120,15 @@ class PvmCompletionContributor : CompletionContributor() {
             }
 
             tingAffixes.forEach { (word, type, doc) ->
+                result.addElement(
+                    LookupElementBuilder.create(word)
+                        .withIcon(PvmIcons.FILE)
+                        .withTypeText(type)
+                        .withTailText(" [$doc]", true)
+                )
+            }
+
+            unadiAffixes.forEach { (word, type, doc) ->
                 result.addElement(
                     LookupElementBuilder.create(word)
                         .withIcon(PvmIcons.FILE)

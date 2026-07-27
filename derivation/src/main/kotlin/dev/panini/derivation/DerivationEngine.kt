@@ -1,7 +1,6 @@
 package dev.panini.derivation
 
 import dev.panini.analysis.KarakaResolution
-import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraPriority
 import dev.panini.sutra.SutraRole
@@ -135,7 +134,7 @@ object RuleVisibility {
             val krama = if (subSutra != null) {
                 subSutra.krama
             } else {
-                Ashtadhyayi.registry.get(sub.sutra)?.kramaValue ?: return@filter false
+                sutraMap[sub.sutra]?.krama ?: return@filter false
             }
             val isOtherAbhiya = krama in 640022..640129 && sub.sutra != sutra.sutra
             if (isOtherAbhiya) {
@@ -153,7 +152,7 @@ object RuleVisibility {
                 val krama = if (subSutra != null) {
                     subSutra.krama
                 } else {
-                    Ashtadhyayi.registry.get(createdBy)?.kramaValue
+                    sutraMap[createdBy]?.krama
                 }
                 krama != null && krama in 640022..640129 && createdBy != sutra.sutra
             } ?: false
@@ -166,7 +165,7 @@ object RuleVisibility {
                 val krama = if (subSutra != null) {
                     subSutra.krama
                 } else {
-                    Ashtadhyayi.registry.get(droppedBy)?.kramaValue
+                    sutraMap[droppedBy]?.krama
                 }
                 krama != null && krama in 640022..640129 && droppedBy != sutra.sutra
             } ?: false
@@ -234,9 +233,10 @@ data class DerivationConfig(
 )
 
 class DerivationEngine(
-    private val sutras: List<DerivationSutra> = Ashtadhyayi.executableSutras,
+    private val sutras: List<DerivationSutra>,
 ) {
     private val sutraMap = sutras.associateBy { it.sutra }
+    private val adhikaraSutras = sutras.filter { it.role is SutraRole.Adhikara }
 
     fun derive(initial: DerivationState, maxSteps: Int = 100): DerivationResult =
         derive(initial, DerivationConfig(), maxSteps)
@@ -408,6 +408,18 @@ class DerivationEngine(
         return RuleSelection(candidates, conflicts, selected)
     }
 
+    private fun isDerivationEligible(sutraKrama: Int, state: DerivationState): Boolean {
+        val activeDomains = adhikaraSutras.filter { domain ->
+            val role = domain.role as SutraRole.Adhikara
+            val start = role.customStartKrama ?: domain.krama
+            val end = role.endKrama
+            sutraKrama in start..end
+        }
+        return activeDomains.all { domain ->
+            domain.sutra in state.activeAdhikaras || domain.matches(state)
+        }
+    }
+
     private companion object {
         /**
          * This is an agenda, not a conflict-strength score.  Technical labels
@@ -462,15 +474,4 @@ fun DerivationResult.verifyDerivation(
     }
 }
 
-//need to fix it or remove it
-fun isDerivationEligible(sutraKrama: Int, state: DerivationState): Boolean {
-    val activeDomains = Ashtadhyayi.adhikaraSutras.filter { domain ->
-        val role = domain.role as SutraRole.Adhikara
-        val start = role.customStartKrama ?: domain.krama
-        val end = role.endKrama
-        sutraKrama in start..end
-    }
-    return activeDomains.all { domain ->
-        domain.number in state.activeAdhikaras || (domain as? DerivationSutra)?.matches(state) == true
-    }
-}
+

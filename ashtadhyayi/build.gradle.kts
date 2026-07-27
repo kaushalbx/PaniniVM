@@ -8,10 +8,13 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":parser"))
     implementation(project(":ganapatha"))
+    implementation(project(":unadipatha"))
     implementation(project(":actions"))
     implementation(project(":dhatupatha"))
     compileOnly(gradleApi())
     testImplementation(gradleApi())
+    testImplementation(project(":derivation"))
+    testImplementation(project(":analysis"))
     testImplementation(kotlin("test"))
 }
 

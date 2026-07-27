@@ -43,8 +43,9 @@ class SvaraEngineTest {
             terms = listOf(DerivationTerm("pratipadika", "अग्नि", TermKind.PRATIPADIKA, upadesha = "अग्नि")),
             stage = DerivationStage.INITIAL
         )
-        val result = DerivationEngine().derive(state)
-        kotlin.test.assertNotNull(result.svaraResult, "DerivationResult must automatically attach svaraResult")
-        assertTrue(result.svaraResult.rulesApplied.any { it.contains("6.1.158") })
+        val result = DerivationEngine(dev.panini.ashtadhyayi.Ashtadhyayi.executableSutras).derive(state)
+        val svaraResult = result.svaraResult
+        kotlin.test.assertNotNull(svaraResult, "DerivationResult must automatically attach svaraResult")
+        assertTrue(svaraResult.rulesApplied.any { it.contains("6.1.158") })
     }
 }

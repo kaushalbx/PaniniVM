@@ -34,7 +34,7 @@ import dev.panini.vyakaranam.parser.PaniniParser
  * and DerivationEngine to perform rupa-siddhi (रूपसिद्धि) on segmented PVM ASTs.
  */
 class PvmUktiSadhaka(
-    private val derivationEngine: DerivationEngine = DerivationEngine(),
+    private val derivationEngine: DerivationEngine = DerivationEngine(dev.panini.ashtadhyayi.Ashtadhyayi.executableSutras),
     private val subantaEngine: SubantaEngine = SubantaEngine(derivationEngine),
     private val tingantaEngine: TingantaEngine = TingantaEngine(derivationEngine),
     private val parser: PaniniParser = PaniniParser(),
@@ -115,7 +115,11 @@ class PvmUktiSadhaka(
         is MulaPratipadika -> text
         is SankhyaPratipadika -> sourceText
         is KridantaPratipadika -> dhatu.mulaDhatu
-        is UnadyantaPratipadika -> sourceText
+        is UnadyantaPratipadika -> {
+            val root = dhatu.mulaDhatu
+            val suffix = unadiPratyaya
+            dev.panini.unadipatha.UnadiEngine().derive(root, suffix) ?: sourceText
+        }
         is SamasaPratipadika -> angas.joinToString("-") { it.pratipadika.baseText() }
     }
 }

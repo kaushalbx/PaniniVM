@@ -25,11 +25,7 @@ object SvadiDhatus {
             "निशाने", "तीक्ष्ण करना, पैना करना, पतला करना", "to sharpen, to whet",
             PadaType.UBHAYAPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
         )
-        dhatu(
-            "05.0004", 4, "डुमिञ्", "मि",
-            "प्रक्षेपणे", "फेंकना, फैलाना", "to throw,to scatter",
-            PadaType.UBHAYAPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
-        )
+        dhatu(MiDhatu())
         dhatu(
             "05.0005", 5, "चिञ्", "चि",
             "चयने", "चुनना, बटोरना, एकत्र करना", "to collect, to select, to pick",
@@ -45,11 +41,7 @@ object SvadiDhatus {
             "हिंसायाम्", "मार डालना, दुःख देना, सताना", "to kill, to destroy, to irritate",
             PadaType.UBHAYAPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
         )
-        dhatu(
-            "05.0008", 8, "वृञ्", "वृ",
-            "वरणे", "पसंद करना, नियोजित करना, नियमित करना", "to choose,to select,to marry,to finalize",
-            PadaType.UBHAYAPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
-        )
+        dhatu(VrDhatu())
         dhatu(
             "05.0009", 9, "धुञ्", "धु",
             "कम्पने", "कांपना, हिलना", "to shake,to tremble",
@@ -100,16 +92,8 @@ object SvadiDhatus {
             "संसिद्धौ", "पूरा करना, सिद्ध करना", "to accomplish, to attain, to fulfill, to achieve",
             PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.AKARMAKA, Accent.ANUDATTA,
         )
-        dhatu(
-            "05.0019", 19, "साधँ", "साध्",
-            "संसिद्धौ", "सिद्ध करना, जय पाना, साधना करना", "to accomplish, to attain, to fulfill,  to achieve",
-            PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
-        )
-        dhatu(
-            "05.0020", 20, "अशूँ", "अश्",
-            "व्याप्तौ सङ्घाते च", "फैलना, राशि करना, ढेर करना", "to pervade,to heap,to pile up",
-            PadaType.ATMANEPADA, ItStatus.VET, Karmatva.SAKARMAKA, Accent.UDATTA,
-        )
+        dhatu(SadhDhatu())
+        dhatu(AshDhatu())
         dhatu(
             "05.0021", 21, "ष्टिघँ", "स्तिघ्",
             "आस्कन्दने", "हल्ला करना, तिरस्कार करना, वध करना", "to attack, to hate, to kill, to destroy",

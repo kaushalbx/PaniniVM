@@ -1,5 +1,7 @@
 package dev.panini.derivation
 
+import dev.panini.ashtadhyayi.Ashtadhyayi
+import dev.panini.sutra.SutraRole
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -55,5 +57,17 @@ class MorphologicalAdhikaraTest {
 
         assertTrue(isDerivationEligible(820016, stateSingleTerm))
         assertTrue(isDerivationEligible(820016, stateWithActiveSuffix))
+    }
+
+    private fun isDerivationEligible(sutraKrama: Int, state: DerivationState): Boolean {
+        val activeDomains = Ashtadhyayi.adhikaraSutras.filter { domain ->
+            val role = domain.role as SutraRole.Adhikara
+            val start = role.customStartKrama ?: domain.krama
+            val end = role.endKrama
+            sutraKrama in start..end
+        }
+        return activeDomains.all { domain ->
+            domain.number in state.activeAdhikaras || (domain as? DerivationSutra)?.matches(state) == true
+        }
     }
 }

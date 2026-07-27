@@ -127,7 +127,7 @@ class DerivationEngineTest {
 
     @Test
     fun `selects su for first singular nominal derivation`() {
-        val result = DerivationEngine().derive(
+        val result = DerivationEngine(dev.panini.ashtadhyayi.Ashtadhyayi.executableSutras).derive(
             SubantaDerivationRequest("राम", Vibhakti.PRATHAMA, Vacana.EKAVACANA).initialState(),
         )
 
@@ -407,7 +407,7 @@ class DerivationEngineTest {
             blockedSutras = mapOf("1.1.1" to "1.1.4"),
         )
 
-        val result = DerivationEngine().derive(initial)
+        val result = DerivationEngine(dev.panini.ashtadhyayi.Ashtadhyayi.executableSutras).derive(initial)
 
         assertTrue(
             DerivationEvent.RuleBlocked("1.1.1", "1.1.4") in result.events,

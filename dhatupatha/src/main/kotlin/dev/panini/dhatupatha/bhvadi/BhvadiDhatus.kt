@@ -235,19 +235,7 @@ object BhvadiDhatus {
                 Karmatva.AKARMAKA,
                 Accent.UDATTA,
             )
-            dhatu(
-                "01.0018",
-                18,
-                "ष्वदँ",
-                "स्वद्",
-                "आस्वादने",
-                "स्वाद लेना, चखना",
-                "to taste, to eat,to please the tongue, to have delight",
-                PadaType.ATMANEPADA,
-                ItStatus.SET,
-                Karmatva.SAKARMAKA,
-                Accent.UDATTA,
-            )
+            dhatu(SvadDhatu())
             dhatu(
                 "01.0019",
                 19,
@@ -5531,11 +5519,7 @@ object BhvadiDhatus {
                 "निरसने", "थूकना", "to spit",
                 PadaType.PARASMAIPADA, ItStatus.SET, Karmatva.AKARMAKA, Accent.UDATTA,
             )
-            dhatu(
-                "01.0642", 642, "जि", "जि",
-                "जये", "उत्कर्ष होना", "to prosper, to flourish",
-                PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.AKARMAKA, Accent.ANUDATTA,
-            )
+            dhatu(JiDhatu())
             dhatu(
                 "01.0643", 643, "जीवँ", "जीव्",
                 "प्राणधारणे", "जीना", "to live,to revive,to live upon, to survive",
@@ -8311,11 +8295,7 @@ object BhvadiDhatus {
                 Karmatva.SAKARMAKA,
                 Accent.ANUDATTA,
             )
-            dhatu(
-                "01.1092", 1092, "श्रु", "श्रु",
-                "श्रवणे", "सुनना, श्रवण करना", "to hear, to listen",
-                PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
-            )
+            dhatu(ShruDhatu())
             dhatu(
                 "01.1093", 1093, "ध्रु", "ध्रु",
                 "स्थैर्ये", "अचल होना, स्थिर होना", "to be firm, to be fixed",
@@ -8805,5 +8785,6 @@ object BhvadiDhatus {
             dhatu(PaaDhatu())
             dhatu(BhuDhatu())
             dhatu(EdhDhatu())
+            dhatu(PumsDhatu())
         }
 }

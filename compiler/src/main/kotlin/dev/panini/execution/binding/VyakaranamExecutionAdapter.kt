@@ -336,7 +336,11 @@ object VyakaranamExecutionAdapter {
         is SankhyaPratipadika -> sourceText
         is MulaPratipadika -> text
         is KridantaPratipadika -> dhatu.mulaDhatu
-        is UnadyantaPratipadika -> sourceText
+        is UnadyantaPratipadika -> {
+            val root = dhatu.mulaDhatu
+            val suffix = unadiPratyaya
+            dev.panini.unadipatha.UnadiEngine().derive(root, suffix) ?: sourceText
+        }
         is SamasaPratipadika -> angas.joinToString("-") { it.pratipadika.baseText() }
     }
 

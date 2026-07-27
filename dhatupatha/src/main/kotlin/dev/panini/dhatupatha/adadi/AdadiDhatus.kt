@@ -262,11 +262,7 @@ object AdadiDhatus {
             PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
             semanticRelations = setOf(SemanticRelation.MOTION),
         )
-        dhatu(
-            "02.0045", 45, "वा", "वा",
-            "गतिगन्धनयोः", "जाना, हवा की तरह तीव्र गति में चलना, बहना, गंध लगना", "to go,to blow, to move rapidly",
-            PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
-        )
+        dhatu(VaaDhatu())
         dhatu(
             "02.0046", 46, "भा", "भा",
             "दीप्तौ", "चमकना, प्रकाशित होना, सुन्दर दिखना", "to glow, to shine, to look attractive, to look beautiful",
@@ -325,11 +321,7 @@ object AdadiDhatus {
             "प्रकथने", "प्रख्यात करना, कहना, व्याख्यान करना", "to explain, to make famous, to elocute",
             PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
         )
-        dhatu(
-            "02.0056", 56, "प्रा", "प्रा",
-            "पूरणे", "भरना, तृप्त होना", "to fill, to be satisfied, to be content",
-            PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
-        )
+        dhatu(PraDhatu())
         dhatu(
             "02.0057", 57, "मा", "मा",
             "माने", "नापना, तौलना, अनुमान से सिद्ध करना", "to measure,to weigh,to limit,to compare in size",

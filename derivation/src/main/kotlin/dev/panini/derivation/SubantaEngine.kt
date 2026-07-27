@@ -17,7 +17,7 @@ import dev.panini.vyakaranam.ast.DhatuPrakriti
 import dev.panini.vyakaranam.ast.TingPratyaya
 
 class SubantaEngine(
-    private val engine: DerivationEngine = DerivationEngine(),
+    private val engine: DerivationEngine = DerivationEngine(dev.panini.ashtadhyayi.Ashtadhyayi.executableSutras),
 ) {
     fun derive(request: SubantaDerivationRequest): DerivationResult {
         val specializedForm = deriveSpecializedDeclension(request.pratipadika, request.vibhakti, request.vacana)

@@ -110,11 +110,7 @@ object KryadiDhatus {
             "कम्पने", "कम्पित करना, हिलाना, क्षोभित करना", "to shake,to agitate, to tremble, to cause to shake, to cause to agigate, to tremble",
             PadaType.UBHAYAPADA, ItStatus.VET, Karmatva.SAKARMAKA, Accent.UDATTA,
         )
-        dhatu(
-            "09.0021", 21, "शॄ", "शॄ",
-            "हिंसायाम्", "हिंसा करना, मार डालना", "to kill, to destroy",
-            PadaType.PARASMAIPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
-        )
+        dhatu(ShrDhatu())
         dhatu(
             "09.0022", 22, "पॄ", "पॄ",
             "पालनपूरणयोः", "पालन करना, पूर्ति करना, पूर्ण करना, भरना", "to protect, to take care, to nurture, to complete, to fill, to fulfill",
@@ -135,11 +131,7 @@ object KryadiDhatus {
             "हिंसायाम्", "मार डालना या दुःख देना", "to kill, to destroy, to hurt",
             PadaType.PARASMAIPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
         )
-        dhatu(
-            "09.0026", 26, "दॄ", "दॄ",
-            "विदारणे", "चीरना, फाड़ना, टुकड़े टुकड़े करना", "to break apart, to tear off, to cut",
-            PadaType.PARASMAIPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
-        )
+        dhatu(DrDhatu())
         dhatu(
             "09.0027", 27, "जॄ", "जॄ",
             "वयोहानौ", "जीर्ण होना, वृद्ध होना", "to grow old",
