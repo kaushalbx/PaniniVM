@@ -45,5 +45,8 @@ object BhutasamkhyaLexicon {
 
     fun getValue(term: String): Long? = symbolValueMap[term]
 
+    fun getTerm(value: Long): String? =
+        symbolValueMap.entries.firstOrNull { it.value == value }?.key
+
     fun isSymbol(term: String): Boolean = term in symbolValueMap
 }
