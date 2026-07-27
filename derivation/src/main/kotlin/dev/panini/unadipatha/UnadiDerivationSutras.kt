@@ -116,17 +116,26 @@ object UnadiAdjustmentsSutra : Sutra<DerivationState, DerivationChange>(
         val root = context.terms.firstOrNull { it.kind == TermKind.DHATU } ?: return false
         val suffix = context.terms.lastOrNull { it.kind == TermKind.PRATYAYA } ?: return false
         return suffix.surface == "उ" &&
-            (root.surface == "स्वद्" || root.surface == "अश्" || root.surface == "मि")
+            (root.surface == "स्वद्" || root.surface == "अश्" || root.surface == "मि" ||
+             ((root.surface == "कृ" || root.surface == "सृ") && suffix.id == "unadi_1.3") ||
+             ((root.surface == "कृ" || root.surface == "गॄ" || root.surface == "शॄ" || root.surface == "वृ") && suffix.id == "unadi_1.5"))
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val rootIndex = context.terms.indexOfFirst { it.kind == TermKind.DHATU }
         val oldRoot = context.terms[rootIndex]
+        val suffix = context.terms.lastOrNull { it.kind == TermKind.PRATYAYA } ?: return DerivationChange(context, "No suffix")
         
-        val newSurface = when (oldRoot.surface) {
-            "स्वद्" -> "स्वाद्"
-            "अश्" -> "आश्"
-            "मि" -> "म"
+        val newSurface = when {
+            oldRoot.surface == "स्वद्" -> "स्वाद्"
+            oldRoot.surface == "अश्" -> "आश्"
+            oldRoot.surface == "मि" -> "म"
+            suffix.id == "unadi_1.3" && oldRoot.surface == "कृ" -> "कर्"
+            suffix.id == "unadi_1.3" && oldRoot.surface == "सृ" -> "सर्"
+            suffix.id == "unadi_1.5" && oldRoot.surface == "कृ" -> "कुर्"
+            suffix.id == "unadi_1.5" && oldRoot.surface == "गॄ" -> "गुर्"
+            suffix.id == "unadi_1.5" && oldRoot.surface == "शॄ" -> "शुर्"
+            suffix.id == "unadi_1.5" && oldRoot.surface == "वृ" -> "वुर्"
             else -> oldRoot.surface
         }
         

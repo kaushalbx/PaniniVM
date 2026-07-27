@@ -731,11 +731,7 @@ object TudadiDhatus {
             "विक्षेपे", "फेंक देना", "to discard, to throw away",
             PadaType.PARASMAIPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
         )
-        dhatu(
-            "06.0146", 146, "गॄ", "गॄ",
-            "निगरणे", "खाना, निगलना", "to eat, to swallow",
-            PadaType.PARASMAIPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
-        )
+        dhatu(GrDhatu())
         dhatu(
             "06.0147", 147, "दृङ्", "दृ",
             "आदरे", "आदर करना, सत्कार करना", "to respect, to praise, to honor",

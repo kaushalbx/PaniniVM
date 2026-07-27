@@ -8252,11 +8252,7 @@ object BhvadiDhatus {
                 "संवरणे", "", "to cover, to hide, to enclose",
                 PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.AKARMAKA, Accent.ANUDATTA,
             )
-            dhatu(
-                "01.1085", 1085, "सृ", "सृ",
-                "गतौ", "जाना, सरकना", "to go,to move,to approach,to slip",
-                PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
-            )
+            dhatu(SrDhatu())
             dhatu(
                 "01.1086", 1086, "ऋ", "ऋ",
                 "गतिप्रापणयोः", "जाना, संपादन करना, प्राप्त करना, मिलाना, पहुंचना", "to go, to obtain, to reach",

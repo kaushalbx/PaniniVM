@@ -38,6 +38,12 @@ class UnadiEngine(
             upadesha = stateAfterUnadi.suffix ?: "",
         )
 
+        val blocked = if (sutra.number == "1.3") {
+            mapOf("3.1.91" to "unadi", "7.2.115" to "1.1.adjust")
+        } else {
+            mapOf("3.1.91" to "unadi")
+        }
+
         val ashtadhyayiState = DerivationState(
             terms = listOf(rootTerm, suffixTerm),
             samjnas = setOf(
@@ -45,7 +51,7 @@ class UnadiEngine(
                 SamjnaAssignment(suffixTerm.id, Samjna.PRATYAYA)
             ),
             activeAdhikaras = setOf("6.4.1"),
-            blockedSutras = mapOf("3.1.91" to "unadi"),
+            blockedSutras = blocked,
             stage = DerivationStage.PRATYAYA_SELECTED,
         )
 
