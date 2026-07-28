@@ -42,7 +42,8 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
         val file = File(filePath)
         require(file.exists()) { "PaniniVM script file not found: $filePath" }
         val vm = PaniniVM()
-        val results = vm.evalFile(file)
+        val sessionKey = "session_${file.nameWithoutExtension}_${System.currentTimeMillis()}"
+        val results = vm.evalFile(file, sessionKey = sessionKey)
         buildList {
             add("=== PaniniVM Script Execution: ${file.name} ===")
             results.forEachIndexed { index, res ->
