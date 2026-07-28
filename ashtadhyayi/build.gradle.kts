@@ -23,4 +23,9 @@ tasks.withType<Test> {
     maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
     forkEvery = 0
     maxHeapSize = "512m"
+    systemProperties(
+        "junit.jupiter.execution.parallel.enabled" to "true",
+        "junit.jupiter.execution.parallel.mode.default" to "concurrent",
+        "junit.jupiter.execution.parallel.mode.classes.default" to "concurrent"
+    )
 }

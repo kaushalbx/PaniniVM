@@ -1,14 +1,18 @@
 package dev.panini.dhatupatha.bhvadi
 
+import dev.panini.actions.collection.ListSliceAction
 import dev.panini.actions.numeric.SanskritDivisionAction
 import dev.panini.actions.numeric.SanskritFractionAction
 import dev.panini.core.DhatuGana
+import dev.panini.core.Karaka
 import dev.panini.core.PadaType
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.execution.numericOp
+import dev.panini.execution.op
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
+import dev.panini.shiksha.Samjna
 
 /** Executable Bhvādi dhātu भजँ सेवायाम् (विभागे / त्रैराशिके). */
 class BhajDhatu : Dhatu(
@@ -25,7 +29,17 @@ class BhajDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.ANUDATTA,
     operations = listOf(
-        SanskritDivisionAction.numericOp(),
-        SanskritFractionAction.numericOp(),
+        SanskritDivisionAction.numericOp {
+            triggeredBy(requiredUpasargas = setOf("वि"))
+        },
+        SanskritFractionAction.numericOp {
+            triggeredBy(requiredUpasargas = setOf("वि"))
+        },
+        ListSliceAction.op {
+            requires(Karaka.KARMAN) // list
+            requires(Karaka.KARANA) // start index
+            requires(Karaka.SAMPRADANA) // end index
+            returns(Samjna.GANA)
+        },
     ),
 )

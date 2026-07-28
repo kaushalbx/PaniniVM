@@ -1,6 +1,8 @@
 package dev.panini.dhatupatha.bhvadi
 
+import dev.panini.actions.collection.ListReverseAction
 import dev.panini.actions.control.SanskritLoopAction
+import dev.panini.actions.control.WhileAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
@@ -30,6 +32,17 @@ class VrtDhatu : Dhatu(
             requires(Karaka.KARMAN) // loop count
             requires(Karaka.KARANA) // target action name
             returns(Samjna.SHABDA)
+        },
+        ListReverseAction.op {
+            triggeredBy(requiredUpasargas = setOf("प्रति"))
+            requires(Karaka.KARMAN) // list
+            returns(Samjna.GANA)
+        },
+        WhileAction.op {
+            requires(Karaka.KARMAN) // condition predicate
+            requires(Karaka.KARANA) // body action
+            requires(Karaka.SAMPRADANA) // initial state
+            returns(Samjna.SANKHYA, Samjna.SHABDA)
         },
     ),
     surfaceAliases = setOf("वर्तते", "वृत्", "अनुवृत्तिः", "पुनरावृत्तिः"),

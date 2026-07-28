@@ -237,6 +237,19 @@ class DerivationEngine(
 ) {
     private val sutraMap = sutras.associateBy { it.sutra }
     private val adhikaraSutras = sutras.filter { it.role is SutraRole.Adhikara }
+    private val sutraActiveAdhikaras: Map<String, List<DerivationSutra>> = activeAdhikarasCache.computeIfAbsent(sutras) { list ->
+        val adhikaras = list.filter { it.role is SutraRole.Adhikara }
+        list.associate { sutra ->
+            val krama = sutra.krama
+            val domains = adhikaras.filter { domain ->
+                val role = domain.role as SutraRole.Adhikara
+                val start = role.customStartKrama ?: domain.krama
+                val end = role.endKrama
+                krama in start..end
+            }
+            sutra.sutra to domains
+        }
+    }
 
     fun derive(initial: DerivationState, maxSteps: Int = 100): DerivationResult =
         derive(initial, DerivationConfig(), maxSteps)
@@ -393,7 +406,7 @@ class DerivationEngine(
             }
             .filter {
                 val visibleState = RuleVisibility.view(it, state, sutraMap)
-                isDerivationEligible(it.krama, visibleState) &&
+                isDerivationEligible(it, visibleState) &&
                 it.matches(visibleState)
             }
             .map { sutra ->
@@ -408,19 +421,16 @@ class DerivationEngine(
         return RuleSelection(candidates, conflicts, selected)
     }
 
-    private fun isDerivationEligible(sutraKrama: Int, state: DerivationState): Boolean {
-        val activeDomains = adhikaraSutras.filter { domain ->
-            val role = domain.role as SutraRole.Adhikara
-            val start = role.customStartKrama ?: domain.krama
-            val end = role.endKrama
-            sutraKrama in start..end
-        }
+    private fun isDerivationEligible(sutra: DerivationSutra, state: DerivationState): Boolean {
+        val activeDomains = sutraActiveAdhikaras[sutra.sutra] ?: emptyList()
         return activeDomains.all { domain ->
             domain.sutra in state.activeAdhikaras || domain.matches(state)
         }
     }
 
     private companion object {
+        private val activeAdhikarasCache = java.util.concurrent.ConcurrentHashMap<List<DerivationSutra>, Map<String, List<DerivationSutra>>>()
+
         /**
          * This is an agenda, not a conflict-strength score.  Technical labels
          * must be established before an operation consumes them; after that,

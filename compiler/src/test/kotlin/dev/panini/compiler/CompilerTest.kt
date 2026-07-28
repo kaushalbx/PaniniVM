@@ -207,4 +207,98 @@ class CompilerTest {
         assertEquals(3L, (finalResultVal.items[2] as SanskritValue.Sankhya).value)
         assertEquals(4L, (finalResultVal.items[3] as SanskritValue.Sankhya).value)
     }
+
+    @Test
+    fun testCompileAndRunListIndex() {
+        val script = "दश + अम् विंशति + औट् त्रिंशत् + शस् च द्वि + टा स्था + लोट् + सिप् ।"
+        val className = "SanskritListIndexIntegrationTest"
+        val clazz = BytecodeCompiler.compileAndLoad(script, className)
+        val executeMethod = clazz.getMethod("execute")
+
+        val resultVariables = executeMethod.invoke(null) as? Map<*, *>
+        assertNotNull(resultVariables)
+
+        val finalResultVal = resultVariables["योग-1"] as? SanskritValue.Sankhya
+        assertNotNull(finalResultVal)
+        assertEquals(20L, finalResultVal.value)
+    }
+
+    @Test
+    fun testCompileAndRunListSlice() {
+        val script = "दश + अम् विंशति + औट् त्रिंशत् + शस् चत्वारिंशत् + शस् च द्वि + टा त्रि + ङे भज् + लोट् + सिप् ।"
+        val className = "SanskritListSliceIntegrationTest"
+        val clazz = BytecodeCompiler.compileAndLoad(script, className)
+        val executeMethod = clazz.getMethod("execute")
+
+        val resultVariables = executeMethod.invoke(null) as? Map<*, *>
+        assertNotNull(resultVariables)
+
+        val finalResultVal = resultVariables["योग-1"] as? SanskritValue.Suchi
+        assertNotNull(finalResultVal)
+        assertEquals(2, finalResultVal.items.size)
+        assertEquals(20L, (finalResultVal.items[0] as SanskritValue.Sankhya).value)
+        assertEquals(30L, (finalResultVal.items[1] as SanskritValue.Sankhya).value)
+    }
+
+    @Test
+    fun testCompileAndRunListReverse() {
+        val script = "एक + अम् द्वि + औट् च प्रति + वृत् + लोट् + सिप् ।"
+        val className = "SanskritListReverseIntegrationTest"
+        val clazz = BytecodeCompiler.compileAndLoad(script, className)
+        val executeMethod = clazz.getMethod("execute")
+
+        val resultVariables = executeMethod.invoke(null) as? Map<*, *>
+        assertNotNull(resultVariables)
+
+        val finalResultVal = resultVariables["योग-1"] as? SanskritValue.Suchi
+        assertNotNull(finalResultVal)
+        assertEquals(2, finalResultVal.items.size)
+        assertEquals(2L, (finalResultVal.items[0] as SanskritValue.Sankhya).value)
+        assertEquals(1L, (finalResultVal.items[1] as SanskritValue.Sankhya).value)
+    }
+
+    @Test
+    fun testCompileAndRunListFold() {
+        val script = "द्वि + अम् त्रि + औट् च सङ्ख्यागुणन + टा पञ्च + ङे सम् + क्षिप् + लोट् + सिप् ।"
+        val className = "SanskritListFoldIntegrationTest"
+        val clazz = BytecodeCompiler.compileAndLoad(script, className)
+        val executeMethod = clazz.getMethod("execute")
+
+        val resultVariables = executeMethod.invoke(null) as? Map<*, *>
+        assertNotNull(resultVariables)
+
+        val finalResultVal = resultVariables["योग-1"] as? SanskritValue.Sankhya
+        assertNotNull(finalResultVal)
+        assertEquals(30L, finalResultVal.value)
+    }
+
+    @Test
+    fun testCompileAndRunIfBranch() {
+        val script = "सत्य + ङसिँ सङ्ख्यायोजन + टा सङ्ख्यावियोग + ङे पञ्च + अम् दश + अम् च ज्ञा + लोट् + सिप् ।"
+        val className = "SanskritIfBranchIntegrationTest"
+        val clazz = BytecodeCompiler.compileAndLoad(script, className)
+        val executeMethod = clazz.getMethod("execute")
+
+        val resultVariables = executeMethod.invoke(null) as? Map<*, *>
+        assertNotNull(resultVariables)
+
+        val finalResultVal = resultVariables["योग-1"] as? SanskritValue.Sankhya
+        assertNotNull(finalResultVal)
+        assertEquals(15L, finalResultVal.value)
+    }
+
+    @Test
+    fun testCompileAndRunWhileLoop() {
+        val script = "युग्मत्व + अम् सङ्ख्यावियोग + टा पञ्च + ङे द्वि + सुँ वृत् + लोट् + सिप् ।"
+        val className = "SanskritWhileLoopIntegrationTest"
+        val clazz = BytecodeCompiler.compileAndLoad(script, className)
+        val executeMethod = clazz.getMethod("execute")
+
+        val resultVariables = executeMethod.invoke(null) as? Map<*, *>
+        assertNotNull(resultVariables)
+
+        val finalResultVal = resultVariables["योग-1"] as? SanskritValue.Sankhya
+        assertNotNull(finalResultVal)
+        assertEquals(5L, finalResultVal.value)
+    }
 }

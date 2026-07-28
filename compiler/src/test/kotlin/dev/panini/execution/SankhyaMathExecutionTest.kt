@@ -14,7 +14,7 @@ class SankhyaMathExecutionTest {
 
     @BeforeTest
     fun setup() {
-        tempDir = File(System.getProperty("java.io.tmpdir"), "paninivm_math_test_" + System.currentTimeMillis())
+        tempDir = File(System.getProperty("java.io.tmpdir"), "paninivm_math_test_" + java.util.UUID.randomUUID())
         vm = PaniniVM(storageDir = tempDir)
     }
 

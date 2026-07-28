@@ -8,7 +8,7 @@ class PaniniGradlePluginTest {
 
     @Test
     fun `CompilePaniniTask compiles pvm files into bytecode class files`() {
-        val projectDir = File(System.getProperty("java.io.tmpdir"), "panini_gradle_test_" + System.currentTimeMillis())
+        val projectDir = File(System.getProperty("java.io.tmpdir"), "panini_gradle_test_" + java.util.UUID.randomUUID())
         val srcPvmDir = File(projectDir, "src/main/pvm")
         srcPvmDir.mkdirs()
 

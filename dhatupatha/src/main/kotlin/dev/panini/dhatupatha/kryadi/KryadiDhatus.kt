@@ -208,11 +208,7 @@ object KryadiDhatus {
             "हिंसायाम्", "दुःख देना, पीड़ा देना, मार डालना", "to kill, to destroy, to cause pain, to hurt",
             PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
         )
-        dhatu(
-            "09.0043", 43, "ज्ञा", "ज्ञा",
-            "अवबोधने", "जानना, समझना", "to know, to realize, to understand",
-            PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
-        )
+        dhatu(JnaDhatu())
         dhatu(
             "09.0044", 44, "बन्धँ", "बन्ध्",
             "बन्धने", "बांधना", "to tie, to bind",

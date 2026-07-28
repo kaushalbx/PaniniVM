@@ -16,7 +16,7 @@ class PaniniVMTest {
 
     @BeforeTest
     fun setup() {
-        tempDir = File(System.getProperty("java.io.tmpdir"), "paninivm_test_api_" + System.currentTimeMillis())
+        tempDir = File(System.getProperty("java.io.tmpdir"), "paninivm_test_api_" + java.util.UUID.randomUUID())
         vm = PaniniVM(storageDir = tempDir)
     }
 

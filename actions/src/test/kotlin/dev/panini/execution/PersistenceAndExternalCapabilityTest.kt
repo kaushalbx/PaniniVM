@@ -24,7 +24,7 @@ class PersistenceAndExternalCapabilityTest {
 
     @BeforeTest
     fun setup() {
-        tempDir = File(System.getProperty("java.io.tmpdir"), "paninivm_test_store_" + System.currentTimeMillis())
+        tempDir = File(System.getProperty("java.io.tmpdir"), "paninivm_test_store_" + java.util.UUID.randomUUID())
         store = FileStateStore(tempDir)
         dispatcher = ExternalCapabilityDispatcher()
     }

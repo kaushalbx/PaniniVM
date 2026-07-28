@@ -12,7 +12,7 @@ import java.io.File
  * and capability-based security.
  */
 class PaniniVM(
-    storageDir: File = File(System.getProperty("java.io.tmpdir"), "paninivm_sessions_" + System.currentTimeMillis()),
+    storageDir: File = File(System.getProperty("java.io.tmpdir"), "paninivm_sessions_" + java.util.UUID.randomUUID()),
     val defaultScope: ExecutionScope = ExecutionScope(
         capabilities = setOf(
             ExecutionEffect.PURE,

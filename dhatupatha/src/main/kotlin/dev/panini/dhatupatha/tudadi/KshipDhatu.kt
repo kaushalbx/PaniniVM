@@ -1,5 +1,6 @@
-﻿package dev.panini.dhatupatha.tudadi
+package dev.panini.dhatupatha.tudadi
 
+import dev.panini.actions.collection.ListFoldAction
 import dev.panini.actions.collection.SanskritListPushAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
@@ -28,6 +29,13 @@ class KshipDhatu : Dhatu(
     operations = listOf(
         SanskritListPushAction.op {
             requires(Karaka.KARMAN); returns(Samjna.GANA, Samjna.SHABDA)
+        },
+        ListFoldAction.op {
+            triggeredBy(requiredUpasargas = setOf("सम्"))
+            requires(Karaka.KARMAN) // list
+            requires(Karaka.KARANA) // binary operation
+            requires(Karaka.SAMPRADANA) // initial value
+            returns(Samjna.SANKHYA, Samjna.SHABDA)
         },
     ),
     surfaceAliases = setOf("निक्षिप", "निक्षिपति", "निक्षिपतु", "निक्षेपणम्"),
