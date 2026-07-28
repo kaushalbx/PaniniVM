@@ -325,4 +325,95 @@ class CollectionOperationsTest {
         assertIs<ExecutionResult.Success>(resultImmediate)
         assertEquals(5L, (resultImmediate.typedValue as SanskritValue.Sankhya).value)
     }
+
+    @Test
+    fun `TanDhatu executes ListFlattenAction to flatten nested lists`() {
+        DhatuPathaRegistration.ensureRegistered()
+        val tan = DhatuPatha.all.first { it.id == "08.0001" }
+        val flattenOp = tan.operations.first { it.name == "सूचीप्रसारणम्" }
+
+        val context = ExecutionContext(
+            bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Coordination(
+                    listOf(
+                        ExecutionExpression.Coordination(
+                            listOf(
+                                ExecutionExpression.sankhya(1L, "एक"),
+                                ExecutionExpression.sankhya(2L, "द्वि")
+                            )
+                        ),
+                        ExecutionExpression.sankhya(3L, "त्रि")
+                    )
+                )
+            )
+        )
+
+        val result = flattenOp.action.execute(context, flattenOp)
+        assertIs<ExecutionResult.Success>(result)
+        assertEquals("[एक, द्वि, त्रि]", result.value)
+    }
+
+    @Test
+    fun `AsDhatu executes ListContainsAction to check existence`() {
+        DhatuPathaRegistration.ensureRegistered()
+        val asDhatu = DhatuPatha.all.first { it.id == "02.0060" }
+        val containsOp = asDhatu.operations.first { it.name == "सूच्यस्तित्वम्" }
+
+        // Test contains true
+        val contextTrue = ExecutionContext(
+            bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Coordination(
+                    listOf(
+                        ExecutionExpression.sankhya(1L, "एक"),
+                        ExecutionExpression.sankhya(2L, "द्वि")
+                    )
+                ),
+                Karaka.KARANA to ExecutionExpression.sankhya(2L, "द्वि")
+            )
+        )
+        val resultTrue = containsOp.action.execute(contextTrue, containsOp)
+        assertIs<ExecutionResult.Success>(resultTrue)
+        assertEquals("सत्यम्", resultTrue.value)
+
+        // Test contains false
+        val contextFalse = ExecutionContext(
+            bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Coordination(
+                    listOf(
+                        ExecutionExpression.sankhya(1L, "एक"),
+                        ExecutionExpression.sankhya(2L, "द्वि")
+                    )
+                ),
+                Karaka.KARANA to ExecutionExpression.sankhya(3L, "त्रि")
+            )
+        )
+        val resultFalse = containsOp.action.execute(contextFalse, containsOp)
+        assertIs<ExecutionResult.Success>(resultFalse)
+        assertEquals("असत्यम्", resultFalse.value)
+    }
+
+    @Test
+    fun `VrtDhatu executes ForEachAction iteration loop`() {
+        DhatuPathaRegistration.ensureRegistered()
+        val vrt = DhatuPatha.all.first { it.id == "01.9910" }
+        val foreachOp = vrt.operations.first { it.name == "प्रत्येकवृत्तिः" }
+
+        val context = ExecutionContext(
+            bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Coordination(
+                    listOf(
+                        ExecutionExpression.sankhya(1L, "एक"),
+                        ExecutionExpression.sankhya(2L, "द्वि"),
+                        ExecutionExpression.sankhya(3L, "त्रि")
+                    )
+                ),
+                Karaka.KARANA to ExecutionExpression.Pada("सङ्ख्यायोजनम्"), // body action: sum
+                Karaka.SAMPRADANA to ExecutionExpression.sankhya(10L, "दश") // initial state
+            )
+        )
+
+        val result = foreachOp.action.execute(context, foreachOp)
+        assertIs<ExecutionResult.Success>(result)
+        assertEquals(16L, (result.typedValue as SanskritValue.Sankhya).value)
+    }
 }

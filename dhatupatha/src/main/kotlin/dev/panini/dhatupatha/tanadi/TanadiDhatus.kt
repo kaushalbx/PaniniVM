@@ -10,11 +10,7 @@ import dev.panini.shiksha.Karmatva
 
 object TanadiDhatus {
     val all: List<Dhatu> = dhatuPatha(DhatuGana.TANADI) {
-        dhatu(
-            "08.0001", 1, "तनुँ", "तन्",
-            "विस्तारे", "फैलाना, बढ़ाना", "to spread, to stretch, to expand, to increase",
-            PadaType.UBHAYAPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
-        )
+        dhatu(TanDhatu())
         dhatu(
             "08.0002", 2, "षणुँ", "सन्",
             "दाने", "देना, दान करना", "to give, to donate",

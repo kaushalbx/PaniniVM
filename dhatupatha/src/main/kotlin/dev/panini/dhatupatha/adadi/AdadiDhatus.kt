@@ -345,11 +345,7 @@ object AdadiDhatus {
             Karmatva.SAKARMAKA,
             Accent.UDATTA,
         )
-        dhatu(
-            "02.0060", 60, "असँ", "अस्",
-            "भुवि", "होना, रहना", "to be, to exist",
-            PadaType.PARASMAIPADA, ItStatus.SET, Karmatva.AKARMAKA, Accent.UDATTA,
-        )
+        dhatu(AsDhatu())
         dhatu(
             "02.0061", 61, "मृजूँ", "मृज्",
             "शुद्धौ", "धोना, स्वच्छ करना", "to cleanse, to purify",

@@ -13,20 +13,25 @@ import dev.panini.execution.SanskritValue
 object SanskritVariableAssignAction : DhatuAction("मूल्यदानम्", "मूल्यस्य संविभाजनम्") {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
         val expression = requireNotNull(context.bindings[Karaka.KARMAN])
-        val operands = context.resolve(expression)
-        val value = operands.firstOrNull() ?: return ExecutionResult.Failure(
-            ExecutionError.INVALID_VALUE,
-            "Variable assignment requires a value operand in KARMAN.",
-            listOf("Selected operation ${operation.name}."),
-        )
+        val values = context.resolveValues(expression)
+        if (values.isEmpty()) {
+            return ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                "Variable assignment requires a value operand in KARMAN.",
+                listOf("Selected operation ${operation.name}."),
+            )
+        }
+        val resultValue = if (values.size == 1) values.first() else SanskritValue.Suchi(values)
+        val textValue = resultValue.toDisplayText()
         return ExecutionResult.Success(
-            value,
+            textValue,
             operation.name,
             listOf(
                 "Selected operation ${operation.name}.",
-                "Assigned value '$value'.",
-                "Produced $value.",
+                "Assigned value '$textValue'.",
+                "Produced $textValue.",
             ),
+            resultValue
         )
     }
 }

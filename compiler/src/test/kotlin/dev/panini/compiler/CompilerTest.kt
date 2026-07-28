@@ -8,6 +8,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
+@org.junit.jupiter.api.parallel.Execution(org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD)
 class CompilerTest {
 
     @Test
@@ -300,5 +301,53 @@ class CompilerTest {
         val finalResultVal = resultVariables["योग-1"] as? SanskritValue.Sankhya
         assertNotNull(finalResultVal)
         assertEquals(5L, finalResultVal.value)
+    }
+
+    @Test
+    fun testCompileAndRunListFlatten() {
+        val script = "एक + अम् द्वि + औट् च दा + लोट् + सिप् ।\nफल + अम् त्रि + शस् च तन् + णिच् + लोट् + सिप् ।"
+        val className = "SanskritListFlattenIntegrationTest"
+        val clazz = BytecodeCompiler.compileAndLoad(script, className)
+        val executeMethod = clazz.getMethod("execute")
+
+        val resultVariables = executeMethod.invoke(null) as? Map<*, *>
+        assertNotNull(resultVariables)
+
+        val finalResultVal = resultVariables["उक्ति-२/योग-1"] as? SanskritValue.Suchi
+        assertNotNull(finalResultVal)
+        assertEquals(3, finalResultVal.items.size)
+        assertEquals(1L, (finalResultVal.items[0] as SanskritValue.Sankhya).value)
+        assertEquals(2L, (finalResultVal.items[1] as SanskritValue.Sankhya).value)
+        assertEquals(3L, (finalResultVal.items[2] as SanskritValue.Sankhya).value)
+    }
+
+    @Test
+    fun testCompileAndRunListContains() {
+        val script = "एक + अम् द्वि + औट् च द्वि + टा अस् + लोट् + सिप् ।"
+        val className = "SanskritListContainsIntegrationTest"
+        val clazz = BytecodeCompiler.compileAndLoad(script, className)
+        val executeMethod = clazz.getMethod("execute")
+
+        val resultVariables = executeMethod.invoke(null) as? Map<*, *>
+        assertNotNull(resultVariables)
+
+        val finalResultVal = resultVariables["योग-1"] as? SanskritValue.Satya
+        assertNotNull(finalResultVal)
+        assertEquals(true, finalResultVal.boolean)
+    }
+
+    @Test
+    fun testCompileAndRunForEach() {
+        val script = "एक + अम् द्वि + औट् च सङ्ख्यायोजन + टा दश + ङे अनु + वृत् + लोट् + सिप् ।"
+        val className = "SanskritForEachIntegrationTest"
+        val clazz = BytecodeCompiler.compileAndLoad(script, className)
+        val executeMethod = clazz.getMethod("execute")
+
+        val resultVariables = executeMethod.invoke(null) as? Map<*, *>
+        assertNotNull(resultVariables)
+
+        val finalResultVal = resultVariables["योग-1"] as? SanskritValue.Sankhya
+        assertNotNull(finalResultVal)
+        assertEquals(13L, finalResultVal.value)
     }
 }
