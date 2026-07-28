@@ -13,11 +13,8 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
-import dev.panini.main
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.OutputStream
-import java.io.PrintStream
 
 /**
  * PvmRunConfiguration manages interpreter executions for .pvm script files in the IDE.
@@ -68,28 +65,36 @@ class PvmRunConfiguration(
                     return@executeOnPooledThread
                 }
 
-                processHandler.notifyTextAvailable("Executing PaniniVM script: $path\n", ProcessOutputTypes.STDOUT)
+                val basePath = project.basePath ?: ""
+                val isWindows = System.getProperty("os.name").lowercase().contains("win")
+                val gradlewName = if (isWindows) "gradlew.bat" else "gradlew"
+                val gradlewFile = File(basePath, gradlewName)
 
-                val oldOut = System.out
-                val oldErr = System.err
-                val baos = ByteArrayOutputStream()
-                val ps = PrintStream(baos)
                 try {
-                    System.setOut(ps)
-                    System.setErr(ps)
+                    val process = ProcessBuilder(
+                        gradlewFile.absolutePath,
+                        ":cli:run",
+                        "--args=--eval $path",
+                        "--no-daemon"
+                    )
+                        .directory(File(basePath))
+                        .redirectErrorStream(true)
+                        .start()
 
-                    main(arrayOf("--eval", path))
+                    process.inputStream.bufferedReader().use { reader ->
+                        var line = reader.readLine()
+                        while (line != null) {
+                            processHandler.notifyTextAvailable(line + "\n", ProcessOutputTypes.STDOUT)
+                            line = reader.readLine()
+                        }
+                    }
 
-                    val outputText = baos.toString("UTF-8")
-                    processHandler.notifyTextAvailable(outputText, ProcessOutputTypes.STDOUT)
-                    processHandler.terminate(0)
+                    val exitCode = process.waitFor()
+                    processHandler.terminate(exitCode)
                 } catch (e: Throwable) {
                     val stackTrace = java.io.StringWriter().also { e.printStackTrace(java.io.PrintWriter(it)) }.toString()
                     processHandler.notifyTextAvailable("Error during execution:\n$stackTrace\n", ProcessOutputTypes.STDERR)
                     processHandler.terminate(1)
-                } finally {
-                    System.setOut(oldOut)
-                    System.setErr(oldErr)
                 }
             }
 
