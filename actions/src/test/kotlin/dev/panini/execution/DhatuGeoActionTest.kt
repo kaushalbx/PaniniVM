@@ -8,6 +8,7 @@ import dev.panini.core.Karaka
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertTrue
 
 class DhatuGeoActionTest {
 
@@ -22,8 +23,9 @@ class DhatuGeoActionTest {
 
         val res = SanskritTrigonometryAction.execute(ctx, op)
         val success = assertIs<ExecutionResult.Success>(res)
-        val valSankhya = assertIs<SanskritValue.Sankhya>(success.typedValue)
-        assertEquals(1L, valSankhya.value)
+        val value = assertIs<SanskritValue.Rational>(success.typedValue)
+        assertEquals(1L, value.numerator)
+        assertEquals(1L, value.denominator)
     }
 
     @Test
@@ -37,8 +39,8 @@ class DhatuGeoActionTest {
 
         val res = SanskritCircumferenceAction.execute(ctx, op)
         val success = assertIs<ExecutionResult.Success>(res)
-        val valSankhya = assertIs<SanskritValue.Sankhya>(success.typedValue)
-        assertEquals(62L, valSankhya.value)
+        val value = assertIs<SanskritValue.Rational>(success.typedValue)
+        assertTrue(kotlin.math.abs(value.numerator.toDouble() / value.denominator - 20.0 * Math.PI) < 1e-8)
     }
 
     @Test
@@ -72,7 +74,7 @@ class DhatuGeoActionTest {
 
         val res = SanskritAreaAction.execute(ctx, op)
         val success = assertIs<ExecutionResult.Success>(res)
-        val valSankhya = assertIs<SanskritValue.Sankhya>(success.typedValue)
-        assertEquals(314L, valSankhya.value)
+        val value = assertIs<SanskritValue.Rational>(success.typedValue)
+        assertTrue(kotlin.math.abs(value.numerator.toDouble() / value.denominator - 100.0 * Math.PI) < 1e-8)
     }
 }

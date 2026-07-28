@@ -12,7 +12,8 @@ import dev.panini.execution.renderSankhyaResult
 /** Counting elements in a coordinated expression or collection. */
 object SanskritCountingAction : DhatuAction("सङ्ख्यागणनम्", "पदार्थानां सङ्ख्यानम्") {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
-        val expression = requireNotNull(context.bindings[Karaka.KARMAN])
+        val expression = context.bindings[Karaka.KARMAN]
+            ?: return dev.panini.actions.missingKaraka(operation, Karaka.KARMAN)
         val operands = context.resolve(expression)
         val count = operands.size.toLong()
         val result = renderSankhyaResult(count) ?: return ExecutionResult.Failure(

@@ -29,6 +29,12 @@ object SanskritLoopAction : DhatuAction("अनुवृत्तिः", "क�
                 "Loop execution requires a valid saṅkhyā count."
             )
 
+        if (countSankhya.value !in 0L..100_000L) {
+            return ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                "Loop count ${countSankhya.value} is outside the supported range 0..100000.",
+            )
+        }
         val loopCount = countSankhya.value.toInt()
         if (loopCount < 0) {
             return ExecutionResult.Failure(

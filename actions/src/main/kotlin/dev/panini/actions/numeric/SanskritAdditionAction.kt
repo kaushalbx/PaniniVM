@@ -14,7 +14,8 @@ import dev.panini.execution.resolveSankhyaValues
 /** Addition over a coordinated expression of canonical Sanskrit number words. */
 object SanskritAdditionAction : DhatuAction("सङ्ख्यायोजनम्", "सङ्ख्यानां योगः") {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
-        val expression = requireNotNull(context.bindings[Karaka.KARMAN])
+        val expression = context.bindings[Karaka.KARMAN]
+            ?: return dev.panini.actions.missingKaraka(operation, Karaka.KARMAN)
         val operands = context.resolve(expression)
 
         val values = context.resolveSankhyaValues(expression) ?: return ExecutionResult.Failure(

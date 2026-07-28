@@ -12,7 +12,8 @@ import dev.panini.execution.resolveSankhyaValues
 /** Check if a number is even (युग्म). */
 object SanskritIsEvenAction : DhatuAction("युग्मत्वम्", "सङ्ख्यायाः युग्मत्व-परीक्षणम्") {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
-        val expression = requireNotNull(context.bindings[Karaka.KARMAN])
+        val expression = context.bindings[Karaka.KARMAN]
+            ?: return dev.panini.actions.missingKaraka(operation, Karaka.KARMAN)
         val values = context.resolveSankhyaValues(expression) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The operand is not an annotated saṅkhyā value.",

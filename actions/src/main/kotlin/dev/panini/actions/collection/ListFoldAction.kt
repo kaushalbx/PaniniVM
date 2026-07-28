@@ -1,7 +1,7 @@
 package dev.panini.actions.collection
 
 import dev.panini.core.Karaka
-import dev.panini.dhatupatha.DhatuPatha
+import dev.panini.actions.resolveRegisteredOperation
 import dev.panini.execution.DhatuAction
 import dev.panini.execution.DhatuOperation
 import dev.panini.execution.ExecutionContext
@@ -44,20 +44,7 @@ object ListFoldAction : DhatuAction("सूचीसङ्क्षेपः", "
                 "Target operation cannot be resolved to a name."
             )
 
-        // Find target operation in registry
-        val normTarget = targetName.removeSuffix("म्").trimEnd('्', 'ँ')
-        val targetOp = DhatuPatha.all.flatMap { it.operations }
-            .firstOrNull { 
-                it.name == targetName || it.action.name == targetName ||
-                it.name.removeSuffix("म्").trimEnd('्', 'ँ') == normTarget ||
-                it.action.name.removeSuffix("म्").trimEnd('्', 'ँ') == normTarget
-            }
-            ?: DhatuPatha.all.firstOrNull {
-                it.upadesha == targetName || it.sourceSurface == targetName || it.surfaceAliases.contains(targetName) ||
-                it.upadesha.removeSuffix("म्").trimEnd('्', 'ँ') == normTarget ||
-                it.sourceSurface.removeSuffix("म्").trimEnd('्', 'ँ') == normTarget ||
-                it.surfaceAliases.any { alias -> alias.removeSuffix("म्").trimEnd('्', 'ँ') == normTarget }
-            }?.operations?.firstOrNull()
+        val targetOp = resolveRegisteredOperation(targetName)
             ?: return ExecutionResult.Failure(
                 ExecutionError.ACTION_FAILED,
                 "Target operation '$targetName' not found in registry."

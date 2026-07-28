@@ -14,7 +14,8 @@ import dev.panini.execution.resolveSankhyaValues
 /** Exponentiation (power / ghāta) over Sanskrit number words. */
 object SanskritExponentiationAction : DhatuAction("सङ्ख्याघातः", "सङ्ख्यायाः घातवर्धनम्") {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
-        val expression = requireNotNull(context.bindings[Karaka.KARMAN])
+        val expression = context.bindings[Karaka.KARMAN]
+            ?: return dev.panini.actions.missingKaraka(operation, Karaka.KARMAN)
         val operands = context.resolve(expression)
         val values = context.resolveSankhyaValues(expression) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE, "The operand is not an annotated saṅkhyā value."

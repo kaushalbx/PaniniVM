@@ -8,11 +8,13 @@ import dev.panini.execution.ExecutionError
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.SambhashanaContext
 import dev.panini.execution.SanskritValue
+import dev.panini.actions.missingKaraka
 
 /** Variable Assignment & Value Binding (dā / मूल्यदानम्). */
 object SanskritVariableAssignAction : DhatuAction("मूल्यदानम्", "मूल्यस्य संविभाजनम्") {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
-        val expression = requireNotNull(context.bindings[Karaka.KARMAN])
+        val expression = context.bindings[Karaka.KARMAN]
+            ?: return missingKaraka(operation, Karaka.KARMAN)
         val values = context.resolveValues(expression)
         if (values.isEmpty()) {
             return ExecutionResult.Failure(
@@ -39,7 +41,8 @@ object SanskritVariableAssignAction : DhatuAction("मूल्यदानम�
 /** Variable Inspection & Querying (dṛś / मूल्यदर्शनम्). */
 object SanskritVariableInspectAction : DhatuAction("मूल्यदर्शनम्", "मूल्यस्य निरीक्षणम्") {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
-        val expression = requireNotNull(context.bindings[Karaka.KARMAN])
+        val expression = context.bindings[Karaka.KARMAN]
+            ?: return missingKaraka(operation, Karaka.KARMAN)
         val operands = context.resolve(expression)
         val target = operands.firstOrNull() ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
@@ -112,10 +115,19 @@ object SmritiLoadAction : DhatuAction("स्मृतिपुनर्प्�
             listOf("Selected operation ${operation.name}."),
         )
 
+        val restoredValues = loaded.mentionedEntities.map { (name, value) ->
+            SanskritValue.Shabda("$name=$value")
+        }
+        val restored = SanskritValue.Suchi(restoredValues)
         return ExecutionResult.Success(
-            key,
+            restored.toDisplayText(),
             operation.name,
-            listOf("Selected operation ${operation.name}.", "Loaded session context from '$key'."),
+            listOf(
+                "Selected operation ${operation.name}.",
+                "Loaded session context from '$key'.",
+                "Restored ${restoredValues.size} persisted values.",
+            ),
+            restored,
         )
     }
 }

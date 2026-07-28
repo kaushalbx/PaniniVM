@@ -12,7 +12,8 @@ object SanskritSandhiAction : DhatuAction("संहिताकरणम्", "
     var sandhiHandler: ((String, String) -> String)? = null
 
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
-        val expression = requireNotNull(context.bindings[Karaka.KARMAN])
+        val expression = context.bindings[Karaka.KARMAN]
+            ?: return dev.panini.actions.missingKaraka(operation, Karaka.KARMAN)
         val padas = context.literals(expression)
         val operands = if (padas != null && padas.size >= 2) {
             padas.map { it.prakriti }

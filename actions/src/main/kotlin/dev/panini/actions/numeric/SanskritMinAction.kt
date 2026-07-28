@@ -13,7 +13,8 @@ import dev.panini.execution.resolveSankhyaValues
 /** Minimum Selection (kaniṣṭhatva / nyūnatva) over Sanskrit number words. */
 object SanskritMinAction : DhatuAction("सङ्ख्यान्यूनत्वम्", "सङ्ख्यानां न्यूनत्वम्") {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
-        val expression = requireNotNull(context.bindings[Karaka.KARMAN])
+        val expression = context.bindings[Karaka.KARMAN]
+            ?: return dev.panini.actions.missingKaraka(operation, Karaka.KARMAN)
         val operands = context.resolve(expression)
         val values = context.resolveSankhyaValues(expression) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE, "The operand is not an annotated saṅkhyā value."

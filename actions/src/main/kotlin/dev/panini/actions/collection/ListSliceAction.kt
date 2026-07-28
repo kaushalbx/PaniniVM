@@ -34,16 +34,26 @@ object ListSliceAction : DhatuAction("सूचीविभागः", "सू�
             list
         }
 
-        val startVal = context.resolveValues(startExpr).filterIsInstance<SanskritValue.Sankhya>().firstOrNull()?.value?.toInt()
+        val startLong = context.resolveValues(startExpr).filterIsInstance<SanskritValue.Sankhya>().firstOrNull()?.value
             ?: return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
                 "Start index must be a valid saṅkhyā value."
             )
-        val endVal = context.resolveValues(endExpr).filterIsInstance<SanskritValue.Sankhya>().firstOrNull()?.value?.toInt()
+        val endLong = context.resolveValues(endExpr).filterIsInstance<SanskritValue.Sankhya>().firstOrNull()?.value
             ?: return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
                 "End index must be a valid saṅkhyā value."
             )
+        if (startLong !in Int.MIN_VALUE.toLong()..Int.MAX_VALUE.toLong() ||
+            endLong !in Int.MIN_VALUE.toLong()..Int.MAX_VALUE.toLong()
+        ) {
+            return ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                "Slice indices are outside the supported range."
+            )
+        }
+        val startVal = startLong.toInt()
+        val endVal = endLong.toInt()
 
         val start = (startVal - 1).coerceAtLeast(0)
         val end = endVal.coerceAtMost(listItems.size)

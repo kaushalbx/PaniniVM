@@ -13,7 +13,8 @@ import dev.panini.execution.resolveSankhyaValues
 /** Modulo (remainder after division) over Sanskrit number words. */
 object SanskritModuloAction : DhatuAction("सङ्ख्याशेषः", "सङ्ख्याविभाजनात् शेषः") {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
-        val expression = requireNotNull(context.bindings[Karaka.KARMAN])
+        val expression = context.bindings[Karaka.KARMAN]
+            ?: return dev.panini.actions.missingKaraka(operation, Karaka.KARMAN)
         val operands = context.resolve(expression)
         val values = context.resolveSankhyaValues(expression) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE, "The operand is not an annotated saṅkhyā value."
@@ -51,4 +52,3 @@ object SanskritModuloAction : DhatuAction("सङ्ख्याशेषः", "
         )
     }
 }
-

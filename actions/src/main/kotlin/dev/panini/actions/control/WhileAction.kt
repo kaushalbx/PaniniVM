@@ -113,7 +113,20 @@ object WhileAction : DhatuAction("यावदवृत्तिः", "याव
                     val v = condResult.typedValue
                     v is SanskritValue.Satya && v.boolean || condResult.value == "सत्यम्"
                 }
-                else -> false
+                is ExecutionResult.Failure -> {
+                    return ExecutionResult.Failure(
+                        condResult.error,
+                        "While loop condition failed at iteration ${iterations + 1}: ${condResult.message}",
+                        trace + condResult.trace,
+                    )
+                }
+                else -> {
+                    return ExecutionResult.Failure(
+                        ExecutionError.ACTION_FAILED,
+                        "While loop condition returned an invalid state.",
+                        trace + condResult.trace,
+                    )
+                }
             }
 
             if (!isTrue) {

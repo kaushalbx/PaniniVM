@@ -9,6 +9,7 @@ import dev.panini.execution.ExecutionResult
 import dev.panini.execution.SanskritValue
 import dev.panini.execution.renderSankhyaResult
 import dev.panini.execution.resolveSankhyaValues
+import dev.panini.actions.approximateNumber
 
 /** Circumference calculation (परिधि) for a circle given radius r. */
 object SanskritCircumferenceAction : DhatuAction("परिधिसाधनम्", "वृत्तस्य परिधिसाधनम्") {
@@ -26,8 +27,19 @@ object SanskritCircumferenceAction : DhatuAction("परिधिसाधनम
         )
 
         val radius = values.firstOrNull() ?: 1L
-        val circum = (2.0 * Math.PI * radius.toDouble()).toLong()
-        val resultStr = renderSankhyaResult(circum) ?: "$circum"
+        if (radius < 0) {
+            return ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                "Radius cannot be negative.",
+                listOf("Selected operation ${operation.name}."),
+            )
+        }
+        val resultValue = approximateNumber(2.0 * Math.PI * radius.toDouble())
+            ?: return ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                "Circumference is outside the supported numeric range.",
+            )
+        val resultStr = resultValue.toDisplayText()
 
         return ExecutionResult.Success(
             resultStr,
@@ -37,7 +49,7 @@ object SanskritCircumferenceAction : DhatuAction("परिधिसाधनम
                 "Evaluated radius $radius.",
                 "Produced circumference $resultStr.",
             ),
-            SanskritValue.Sankhya(circum, resultStr),
+            resultValue,
         )
     }
 }
@@ -59,7 +71,23 @@ object SanskritHypotenuseAction : DhatuAction("कर्णसाधनम्", 
 
         val bhuja = values.getOrNull(0) ?: 0L
         val koti = values.getOrNull(1) ?: 0L
-        val karna = kotlin.math.sqrt((bhuja * bhuja + koti * koti).toDouble()).toLong()
+        val squared = runCatching {
+            Math.addExact(Math.multiplyExact(bhuja, bhuja), Math.multiplyExact(koti, koti))
+        }.getOrElse {
+            return ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                "Numeric overflow while calculating the hypotenuse.",
+                listOf("Selected operation ${operation.name}."),
+            )
+        }
+        val karna = kotlin.math.sqrt(squared.toDouble()).toLong()
+        if (karna > 0 && karna > Long.MAX_VALUE / karna || karna * karna != squared) {
+            return ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                "The hypotenuse is not an exact integer in the current Sanskrit number model.",
+                listOf("Selected operation ${operation.name}."),
+            )
+        }
         val resultStr = renderSankhyaResult(karna) ?: "$karna"
 
         return ExecutionResult.Success(
@@ -91,8 +119,19 @@ object SanskritAreaAction : DhatuAction("क्षेत्रफलसाधन
         )
 
         val dim = values.firstOrNull() ?: 1L
-        val area = (Math.PI * dim.toDouble() * dim.toDouble()).toLong()
-        val resultStr = renderSankhyaResult(area) ?: "$area"
+        if (dim < 0) {
+            return ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                "Dimension cannot be negative.",
+                listOf("Selected operation ${operation.name}."),
+            )
+        }
+        val resultValue = approximateNumber(Math.PI * dim.toDouble() * dim.toDouble())
+            ?: return ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                "Area is outside the supported numeric range.",
+            )
+        val resultStr = resultValue.toDisplayText()
 
         return ExecutionResult.Success(
             resultStr,
@@ -102,7 +141,7 @@ object SanskritAreaAction : DhatuAction("क्षेत्रफलसाधन
                 "Evaluated dimension $dim.",
                 "Produced area $resultStr.",
             ),
-            SanskritValue.Sankhya(area, resultStr),
+            resultValue,
         )
     }
 }

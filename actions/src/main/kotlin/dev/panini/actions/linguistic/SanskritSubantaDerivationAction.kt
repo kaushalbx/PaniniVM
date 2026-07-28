@@ -12,7 +12,8 @@ object SanskritSubantaDerivationAction : DhatuAction("पदनिष्पत�
     var subantaHandler: ((String) -> String)? = null
 
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
-        val expression = requireNotNull(context.bindings[Karaka.KARMAN])
+        val expression = context.bindings[Karaka.KARMAN]
+            ?: return dev.panini.actions.missingKaraka(operation, Karaka.KARMAN)
         val operands = context.resolve(expression)
         val stem = operands.firstOrNull() ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,

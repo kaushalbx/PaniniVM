@@ -14,7 +14,8 @@ import kotlin.math.sqrt
 /** Square Root (mūla) over Sanskrit number words. */
 object SanskritSquareRootAction : DhatuAction("सङ्ख्यामूलम्", "सङ्ख्यायाः वर्गमूलम्") {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
-        val expression = requireNotNull(context.bindings[Karaka.KARMAN])
+        val expression = context.bindings[Karaka.KARMAN]
+            ?: return dev.panini.actions.missingKaraka(operation, Karaka.KARMAN)
         val operands = context.resolve(expression)
         val inputStr = operands.firstOrNull() ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
@@ -34,6 +35,13 @@ object SanskritSquareRootAction : DhatuAction("सङ्ख्यामूलम
             )
         }
         val root = sqrt(value.toDouble()).toLong()
+        if (root > 0 && root > Long.MAX_VALUE / root || root * root != value) {
+            return ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                "Square root of $value is not an exact integer in the current Sanskrit number model.",
+                listOf("Selected operation ${operation.name}."),
+            )
+        }
         val result = renderSankhyaResult(root) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The root result $root is outside the supported Sanskrit number vocabulary.",

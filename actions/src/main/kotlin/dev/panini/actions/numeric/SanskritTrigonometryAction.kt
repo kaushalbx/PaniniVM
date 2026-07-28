@@ -9,6 +9,7 @@ import dev.panini.execution.ExecutionResult
 import dev.panini.execution.SanskritValue
 import dev.panini.execution.renderSankhyaResult
 import dev.panini.execution.resolveSankhyaValues
+import dev.panini.actions.approximateNumber
 
 /** Trigonometric functions (ज्या, कोटिज्या, स्पर्शज्या, उत्क्रमज्या) over a degree argument. */
 object SanskritTrigonometryAction : DhatuAction("ज्यासाधनम्", "कोणस्य ज्या-कोटिज्या-साधनम्") {
@@ -35,8 +36,12 @@ object SanskritTrigonometryAction : DhatuAction("ज्यासाधनम्"
             else -> kotlin.math.sin(rad)
         }
 
-        val resultLong = valDouble.toLong()
-        val resultStr = renderSankhyaResult(resultLong) ?: "$resultLong"
+        val resultValue = approximateNumber(valDouble) ?: return ExecutionResult.Failure(
+            ExecutionError.INVALID_VALUE,
+            "The trigonometric result is undefined or outside the supported numeric range.",
+            listOf("Selected operation ${operation.name}."),
+        )
+        val resultStr = resultValue.toDisplayText()
 
         return ExecutionResult.Success(
             resultStr,
@@ -46,7 +51,7 @@ object SanskritTrigonometryAction : DhatuAction("ज्यासाधनम्"
                 "Evaluated angle $angle degrees.",
                 "Produced $resultStr.",
             ),
-            SanskritValue.Sankhya(resultLong, resultStr),
+            resultValue,
         )
     }
 }

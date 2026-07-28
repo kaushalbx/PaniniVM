@@ -2,6 +2,7 @@ package dev.panini.execution
 
 import dev.panini.actions.external.BahyaSendAction
 import dev.panini.actions.state.SmritiSaveAction
+import dev.panini.actions.state.SmritiLoadAction
 import dev.panini.core.Karaka
 import dev.panini.shiksha.Samjna
 import dev.panini.dhatupatha.bhvadi.SmrDhatu
@@ -68,6 +69,28 @@ class PersistenceAndExternalCapabilityTest {
         val loaded = store.load("परीक्षण-सत्रम्")
         assertNotNull(loaded)
         assertEquals("पञ्च", loaded.mentionedEntities["फलं"])
+    }
+
+    @Test
+    fun `SmritiLoadAction returns restored values`() {
+        store.save(
+            "session_2",
+            SambhashanaContext(
+                speaker = "प्रयोक्ता",
+                listener = "यन्त्रम्",
+                mentionedEntities = mapOf("फलम्" to "पञ्च"),
+            ),
+        )
+        val smr = SmrDhatu()
+        val op = smr.operations.first { it.name == SmritiLoadAction.name }
+        val context = ExecutionContext(
+            bindings = mapOf(Karaka.KARMAN to ExecutionExpression.Pada("session_2")),
+            stateStore = store,
+        )
+
+        val result = assertIs<ExecutionResult.Success>(SmritiLoadAction.execute(context, op))
+        val restored = assertIs<SanskritValue.Suchi>(result.typedValue)
+        assertEquals(listOf("फलम्=पञ्च"), restored.items.map { it.toDisplayText() })
     }
 
     @Test

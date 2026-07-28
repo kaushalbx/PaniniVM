@@ -36,13 +36,13 @@ object ListIndexAction : DhatuAction("सूचीस्थानम्", "स�
                 "Index must be a valid saṅkhyā value."
             )
 
-        val index = indexSankhya.value.toInt() - 1
-        if (index < 0 || index >= listItems.size) {
+        if (indexSankhya.value !in 1L..listItems.size.toLong()) {
             return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
-                "Index ${index + 1} out of bounds for list of size ${listItems.size}."
+                "Index ${indexSankhya.value} out of bounds for list of size ${listItems.size}."
             )
         }
+        val index = indexSankhya.value.toInt() - 1
 
         val element = listItems[index]
         return ExecutionResult.Success(
