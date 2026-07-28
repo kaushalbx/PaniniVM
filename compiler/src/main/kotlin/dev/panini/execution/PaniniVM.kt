@@ -87,13 +87,34 @@ class PaniniVM(
         speaker: String = "प्रयोक्ता",
         listener: String = "यन्त्रम्",
     ): List<ExecutionResult> {
-        val lines = scriptContent.lines()
-            .map { it.trim() }
-            .filter { it.isNotEmpty() && !it.startsWith("#") && !it.startsWith("//") }
-
-        return lines.map { line ->
-            eval(line, sessionKey = sessionKey, scope = scope, speaker = speaker, listener = listener)
+        val results = mutableListOf<ExecutionResult>()
+        PvmScript.parse(scriptContent).forEach { statement ->
+            when (statement) {
+                is PvmScriptStatement.Sentence -> results += eval(
+                    statement.text, sessionKey, scope, speaker, listener,
+                )
+                is PvmScriptStatement.While -> {
+                    var iterations = 0
+                    while (true) {
+                        val condition = eval(statement.condition, sessionKey, scope, speaker, listener)
+                        results += condition
+                        if (condition !is ExecutionResult.Success) break
+                        val truth = condition.typedValue as? SanskritValue.Satya
+                            ?: throw IllegalStateException("यावत् condition must produce a सत्य value.")
+                        if (!truth.boolean) break
+                        check(iterations++ < MAX_LOOP_ITERATIONS) {
+                            "यावत् loop exceeded $MAX_LOOP_ITERATIONS iterations."
+                        }
+                        statement.body.forEach { clause ->
+                            val result = eval(clause.text, sessionKey, scope, speaker, listener)
+                            results += result
+                            if (result !is ExecutionResult.Success) return results
+                        }
+                    }
+                }
+            }
         }
+        return results
     }
 
     fun evalFile(
@@ -126,5 +147,9 @@ class PaniniVM(
 
     fun registerExternalCapability(effect: ExecutionEffect, handler: ExternalCapabilityDispatcher.CapabilityHandler) {
         externalDispatcher.register(effect, handler)
+    }
+
+    private companion object {
+        const val MAX_LOOP_ITERATIONS = 100_000
     }
 }

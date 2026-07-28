@@ -30,7 +30,7 @@ class VidDhatu : Dhatu(
         ComparisonAction.GreaterThan.op {
             requiresNumbers(shape = ExpressionShape.COORDINATION)
             triggeredBy(forbiddenAvyayas = setOf("न्यूनतया"))
-            returns(Samjna.SANKHYA)
+            returns(Samjna.SATYA)
         },
         MinAction.op {
             requiresNumbers(shape = ExpressionShape.COORDINATION)

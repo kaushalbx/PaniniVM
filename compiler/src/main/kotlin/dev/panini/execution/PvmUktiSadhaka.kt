@@ -41,10 +41,17 @@ class PvmUktiSadhaka(
 ) {
 
     fun sadhayaScript(scriptContent: String): String {
-        return scriptContent.lines()
-            .map { it.trim() }
-            .filter { it.isNotEmpty() && !it.startsWith("#") && !it.startsWith("//") }
-            .joinToString("\n") { line -> sadhayaLine(line) }
+        return PvmScript.parse(scriptContent).joinToString("\n") { statement ->
+            when (statement) {
+                is PvmScriptStatement.Sentence -> sadhayaLine(statement.text)
+                is PvmScriptStatement.While -> buildList {
+                    add("यावत् ${sadhayaLine(statement.condition)}")
+                    statement.body.forEachIndexed { index, clause ->
+                        add("${if (index == 0) "तावत्" else "ततः"} ${sadhayaLine(clause.text)}")
+                    }
+                }.joinToString("\n")
+            }
+        }
     }
 
     fun sadhayaLine(lineText: String): String {

@@ -12,14 +12,18 @@ object ListPushAction : dev.panini.execution.DhatuAction("सूचीनिक�
     override fun execute(context: dev.panini.execution.ExecutionContext, operation: dev.panini.execution.DhatuOperation): dev.panini.execution.ExecutionResult {
         val expression = context.bindings[Karaka.KARMAN] ?: context.bindings[Karaka.ADHIKARANA]
         val items = if (expression != null) context.resolveValues(expression) else emptyList()
-        val listValue = _root_ide_package_.dev.panini.execution.SanskritValue.Suchi(items)
+        val appendedItems = when (val first = items.firstOrNull()) {
+            is SanskritValue.Suchi -> first.items + items.drop(1)
+            else -> items
+        }
+        val listValue = SanskritValue.Suchi(appendedItems)
 
         return _root_ide_package_.dev.panini.execution.ExecutionResult.Success(
             listValue.toDisplayText(),
             operation.name,
             listOf(
                 "Selected operation ${operation.name}.",
-                "Created/Updated list with ${items.size} item(s): ${listValue.toDisplayText()}.",
+                "Created/Updated list with ${appendedItems.size} item(s): ${listValue.toDisplayText()}.",
             ),
             listValue,
         )

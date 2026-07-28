@@ -17,6 +17,23 @@ The first sentence binds the typed value `एक` to `आरम्भ`. The seco
 resolves `आरम्भ` as that local value and produces three. Bindings persist in a
 named VM session and are emitted as ordinary entries by compiled programs.
 
+## Segmented loops
+
+A `यावत्` condition can govern a multi-sentence body. The first body sentence
+starts with `तावत्`; subsequent sentences start with `ततः`:
+
+```text
+यावत् गणना + अम् शून्य + अम् च विद् + णिच् + लोट् + सिप्
+तावत् पूर्व + अम् वर्तमान + औट् च युज् + णिच् + लोट् + सिप्
+ततः फल + अम् अग्रिम + ङे दा + लोट् + सिप्
+ततः गणना + अम् एक + औट् च वि + युज् + णिच् + लोट् + सिप्
+ततः फल + अम् गणना + ङे दा + लोट् + सिप् ।
+```
+
+The condition must produce `सत्य`. Assignments in the body are visible to the
+next iteration. A 100,000-iteration limit guards against accidental endless
+loops.
+
 ## Overview
 
 The `:compiler` module compiles multi-clause segmented Sanskrit `.pvm` script files directly into native JVM `.class` bytecode:

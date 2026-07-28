@@ -55,7 +55,7 @@ class ComparisonAction(
                 "Compared ${operands[0]} (${values[0]}) $opSymbol ${operands[1]} (${values[1]}).",
                 "Produced $resultText.",
             ),
-            SanskritValue.Shabda(resultText),
+            SanskritValue.Satya(isTrue),
         )
     }
 

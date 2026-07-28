@@ -16,7 +16,7 @@ object BytecodeCompiler {
         val statementsPlans = mutableListOf<List<ExecutionPlan>>()
         val turnResultIds = mutableListOf<List<String>>()
 
-        scriptContent.lines().forEachIndexed { zeroIdx, lineRaw ->
+        expandLoops(scriptContent).forEachIndexed { zeroIdx, lineRaw ->
             val lineIdx = zeroIdx + 1
             val line = lineRaw.trim()
             if (line.isEmpty() || line.startsWith("#") || line.startsWith("//")) {
@@ -112,6 +112,45 @@ object BytecodeCompiler {
         }
 
         return ClassGenerator.generateClass(className, statementsPlans, turnResultIds)
+    }
+
+    private fun expandLoops(scriptContent: String): List<String> {
+        val statements = PvmScript.parse(scriptContent)
+        if (statements.none { it is PvmScriptStatement.While }) {
+            return scriptContent.lines()
+        }
+        val vm = PaniniVM()
+        val session = "compiler-loop"
+        val expanded = mutableListOf<String>()
+        statements.forEach { statement ->
+            when (statement) {
+                is PvmScriptStatement.Sentence -> {
+                    expanded += statement.text
+                    vm.eval(statement.text, session)
+                }
+                is PvmScriptStatement.While -> {
+                    var iterations = 0
+                    while (true) {
+                        val condition = vm.eval(statement.condition, session)
+                        expanded += statement.condition
+                        val success = condition as? ExecutionResult.Success
+                            ?: throw IllegalArgumentException("Cannot evaluate यावत् condition while compiling: $condition")
+                        val truth = success.typedValue as? SanskritValue.Satya
+                            ?: throw IllegalArgumentException("यावत् condition must produce a सत्य value.")
+                        if (!truth.boolean) break
+                        check(iterations++ < 100_000) { "यावत् loop exceeded 100000 iterations while compiling." }
+                        statement.body.forEach { clause ->
+                            expanded += clause.text
+                            val result = vm.eval(clause.text, session)
+                            require(result is ExecutionResult.Success) {
+                                "Cannot evaluate यावत् body while compiling: $result"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return expanded
     }
 
     private fun simulatedResult(plan: ExecutionPlan): SanskritValue {

@@ -378,7 +378,7 @@ class CompilerTest {
         val resultVariables = executeMethod.invoke(null) as? Map<*, *>
         assertNotNull(resultVariables)
 
-        val sequence = resultVariables.values.filterIsInstance<SanskritValue.Suchi>().lastOrNull()
+        val sequence = resultVariables["क्रम"] as? SanskritValue.Suchi
         assertNotNull(sequence, "The program should construct a list")
         assertEquals(
             listOf(1L, 1L, 2L, 3L, 5L, 8L, 13L, 21L, 34L, 55L),
