@@ -26,6 +26,7 @@ data class ProgramBlueprintContext(
 )
 
 enum class ProgramBlueprintDiagnosticCode {
+    INVALID_GRANTHA,
     INVALID_BLUEPRINT,
     UNSUPPORTED_ARTHA,
     MISSING_FIELD,

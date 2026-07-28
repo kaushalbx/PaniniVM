@@ -177,7 +177,7 @@ class ProgramBlueprintCompilerTest {
 
         assertTrue(
             invalid.diagnostics.any {
-                it.code == ProgramBlueprintDiagnosticCode.INVALID_BLUEPRINT
+                it.code == ProgramBlueprintDiagnosticCode.INVALID_GRANTHA
             },
         )
     }

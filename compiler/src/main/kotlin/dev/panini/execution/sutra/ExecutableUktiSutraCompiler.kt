@@ -8,6 +8,7 @@ import dev.panini.sutra.runtime.SutraArtha
 import dev.panini.sutra.runtime.SutraArthaValue
 import dev.panini.sutra.runtime.SutraBlueprint
 import dev.panini.sutra.runtime.SutraBlueprintGrantha
+import dev.panini.sutra.runtime.SutraBlueprintGranthaValidator
 import dev.panini.sutra.runtime.SutraGrantha
 import dev.panini.sutra.runtime.SutraGranthaCompiler
 import dev.panini.sutra.runtime.SutraGranthaLowering
@@ -51,6 +52,17 @@ object ExecutableUktiSutraCompiler {
 
     fun compileGranthaResult(ukti: ExecutableUkti): ProgramGranthaCompilation {
         val blueprintGrantha = compileBlueprintGrantha(ukti)
+        val granthaValidation = SutraBlueprintGranthaValidator.validate(blueprintGrantha)
+        if (!granthaValidation.isValid) {
+            return ProgramGranthaCompilation.Invalid(
+                granthaValidation.diagnostics.map {
+                    ProgramBlueprintDiagnostic(
+                        ProgramBlueprintDiagnosticCode.INVALID_GRANTHA,
+                        it.message,
+                    )
+                },
+            )
+        }
         val context = ProgramBlueprintContext(
             speaker = ukti.speaker,
             listener = ukti.listener,
