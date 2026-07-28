@@ -5,7 +5,12 @@ import dev.panini.execution.external.ExternalCapabilityDispatcher
 import dev.panini.execution.persistence.FileStateStore
 import dev.panini.execution.persistence.StateStore
 import dev.panini.execution.runtime.ExecutionPipeline
+import dev.panini.execution.sutra.ProgramAvastha
+import dev.panini.execution.sutra.ProgramBlueprintContext
+import dev.panini.execution.sutra.ProgramBlueprintGranthaEngine
+import dev.panini.execution.sutra.ProgramGranthaExecution
 import dev.panini.execution.sutra.SutraExecutionPipeline
+import dev.panini.sutra.runtime.SutraMachineResult
 import java.io.File
 
 /**
@@ -34,6 +39,8 @@ class PaniniVM(
 
     init {
         dev.panini.derivation.LinguisticActionsInitializer.initialize()
+        dev.panini.dhatupatha.DhatuPathaRegistration.ensureRegistered()
+        dev.panini.sankhya.SankhyaCountingFormRenderer.init()
     }
 
     private val sessions = mutableMapOf<String, SambhashanaContext>()
@@ -179,6 +186,85 @@ class PaniniVM(
             }
         }
         return results
+    }
+
+    /**
+     * Evaluates canonical, evaluator-free sūtra-grantha source through the
+     * public VM facade. This lets PaniniVM programs consume the same segmented
+     * source representation that the sūtra machine processes.
+     */
+    fun evalGrantha(
+        source: String,
+        sourceName: String = "grantha",
+        scope: ExecutionScope = defaultScope,
+        speaker: String = "प्रयोक्ता",
+        listener: String = "यन्त्रम्",
+    ): ExecutionResult {
+        val effectiveScope = scope.copy(
+            stateStore = scope.stateStore ?: store,
+            externalDispatcher = scope.externalDispatcher ?: externalDispatcher,
+        )
+        return when (
+            val execution = ProgramBlueprintGranthaEngine.execute(
+                source,
+                ProgramBlueprintContext(
+                    speaker = speaker,
+                    listener = listener,
+                    text = sourceName,
+                ),
+                effectiveScope,
+                ProgramAvastha(ValueEnvironment()),
+            )
+        ) {
+            is ProgramGranthaExecution.InvalidSource -> ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                execution.diagnostics.joinToString("\n") { diagnostic ->
+                    "${diagnostic.code}${diagnostic.position?.let { " at $it" }.orEmpty()}: ${diagnostic.message}"
+                },
+            )
+            is ProgramGranthaExecution.InvalidBlueprint -> ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                execution.diagnostics.joinToString("\n") { "${it.code}: ${it.message}" },
+            )
+            is ProgramGranthaExecution.InvalidRuntime -> ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                execution.diagnostics.joinToString("\n") { "${it.code}: ${it.message}" },
+            )
+            is ProgramGranthaExecution.Completed -> when (val result = execution.result) {
+                is SutraMachineResult.Failure -> ExecutionResult.Failure(
+                    ExecutionError.ACTION_FAILED,
+                    "Sūtra ${result.failedSutra}: ${result.message}",
+                    result.trace.map { it.toString() },
+                )
+                is SutraMachineResult.Success -> when (val phala = result.state.lastPhala) {
+                    is Phala.Siddha -> ExecutionResult.Success(
+                        value = phala.values.values.lastOrNull() ?: "",
+                        operation = "panini.grantha",
+                        trace = phala.trace,
+                        typedValue = phala.typedValues.values.lastOrNull(),
+                    )
+                    is Phala.Asiddha -> phala.result
+                    null -> ExecutionResult.Failure(
+                        ExecutionError.INVALID_VALUE,
+                        "Grantha '$sourceName' completed without producing a result.",
+                    )
+                    else -> ExecutionResult.Failure(
+                        ExecutionError.INVALID_VALUE,
+                        "Grantha '$sourceName' resulted in $phala",
+                    )
+                }
+            }
+        }
+    }
+
+    fun evalGranthaFile(
+        file: File,
+        scope: ExecutionScope = defaultScope,
+        speaker: String = "प्रयोक्ता",
+        listener: String = "यन्त्रम्",
+    ): ExecutionResult {
+        require(file.exists()) { "Sūtra grantha source file not found: ${file.path}" }
+        return evalGrantha(file.readText(), file.name, scope, speaker, listener)
     }
 
     fun evalFile(

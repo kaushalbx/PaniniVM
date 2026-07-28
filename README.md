@@ -81,6 +81,16 @@ segmented input → vyākaraṇa AST → binding → operation resolution → pl
 ./gradlew :cli:run --args="--eval src/test/kotlin/dev/panini/parser/addition.pvm"
 ```
 
+### Emitting and Executing Canonical Sūtra Programs
+
+```sh
+./gradlew :cli:run --args="--emit-grantha src/test/kotlin/dev/panini/parser/addition.pvm addition.sutra"
+./gradlew :cli:run --args="--grantha addition.sutra"
+```
+
+The public API processes the same evaluator-free source with
+`PaniniVM.evalGrantha(...)` or `PaniniVM.evalGranthaFile(...)`.
+
 ### Compiling `.pvm` Script Files to JVM Bytecode
 
 ```sh

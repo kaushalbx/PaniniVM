@@ -2,6 +2,21 @@
 
 Native JVM Bytecode Compiler for `.pvm` PaniniVM script files.
 
+## Canonical sūtra programs
+
+Segmented Sanskrit `.pvm` source can be emitted as an evaluator-free `.sutra`
+grantha and processed by the public VM API:
+
+```kotlin
+val result = PaniniVM().evalGranthaFile(File("addition.sutra"))
+```
+
+`evalGrantha(source)` accepts the canonical text directly. Both entry points
+decode, validate, compile, dependency-order, and execute the grantha through the
+sūtra machine. Successful results retain their typed Sanskrit value; malformed
+source and invalid granthas are returned as ordinary `ExecutionResult.Failure`
+values.
+
 ## Named local values
 
 PVM assignment and reference syntax remains a segmented Sanskrit sentence.

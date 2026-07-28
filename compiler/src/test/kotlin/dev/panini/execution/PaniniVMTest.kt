@@ -1,5 +1,8 @@
 package dev.panini.execution
 
+import dev.panini.execution.sutra.SanskritGranthaSourceCompilation
+import dev.panini.execution.sutra.SanskritGranthaSourceCompiler
+import dev.panini.sutra.runtime.GranthaId
 import java.io.File
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -52,6 +55,52 @@ class PaniniVMTest {
         val result = vm.eval("दश + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।")
         val success = assertIs<ExecutionResult.Success>(result, result.toString())
         assertEquals("द्वादश", success.value)
+    }
+
+    @Test
+    fun `PaniniVM evaluates its canonical sutra grantha source`() {
+        val compilation = assertIs<SanskritGranthaSourceCompilation.Success>(
+            SanskritGranthaSourceCompiler.compile(
+                "दश + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।",
+                GranthaId("api-addition"),
+            ),
+        )
+
+        val success = assertIs<ExecutionResult.Success>(
+            vm.evalGrantha(compilation.source, sourceName = "api-addition.sutra"),
+        )
+
+        assertEquals("द्वादश", success.value)
+        assertEquals("panini.grantha", success.operation)
+        assertEquals(12L, assertIs<SanskritValue.Sankhya>(success.typedValue).value)
+    }
+
+    @Test
+    fun `PaniniVM evaluates a canonical sutra grantha file`() {
+        val compilation = assertIs<SanskritGranthaSourceCompilation.Success>(
+            SanskritGranthaSourceCompiler.compile(
+                "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।",
+                GranthaId("file-addition"),
+            ),
+        )
+        val sourceFile = File(tempDir, "file-addition.sutra").apply {
+            parentFile.mkdirs()
+            writeText(compilation.source)
+        }
+
+        val success = assertIs<ExecutionResult.Success>(vm.evalGranthaFile(sourceFile))
+
+        assertEquals("त्रीणि", success.value)
+    }
+
+    @Test
+    fun `PaniniVM reports invalid sutra source as an execution failure`() {
+        val failure = assertIs<ExecutionResult.Failure>(
+            vm.evalGrantha("{not canonical sutra source"),
+        )
+
+        assertEquals(ExecutionError.INVALID_VALUE, failure.error)
+        assertTrue(failure.message.isNotBlank())
     }
 
     @Test
