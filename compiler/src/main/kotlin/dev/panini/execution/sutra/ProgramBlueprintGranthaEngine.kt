@@ -8,6 +8,7 @@ import dev.panini.sutra.runtime.SutraBlueprintGranthaTextDiagnostic
 import dev.panini.sutra.runtime.SutraGranthaCompiler
 import dev.panini.sutra.runtime.SutraGranthaDiagnostic
 import dev.panini.sutra.runtime.SutraGranthaLowering
+import dev.panini.sutra.runtime.SutraGranthaRegistry
 import dev.panini.sutra.runtime.SutraMachine
 import dev.panini.sutra.runtime.SutraMachineResult
 
@@ -64,8 +65,14 @@ object ProgramBlueprintGranthaEngine {
                 return ProgramGranthaExecution.InvalidRuntime(lowering.diagnostics)
             }
         }
+        val loadedGranthas = scope.sutraRegistry?.granthas.orEmpty()
+            .filterNot { it.id == compiled.id }
+        val executionScope = scope.copy(
+            sutraRegistry = SutraGranthaRegistry(loadedGranthas + compiled),
+            currentGrantha = compiled.id,
+        )
         return ProgramGranthaExecution.Completed(
-            SutraMachine(ProgramSutraEffectInterpreter(scope)).process(
+            SutraMachine(ProgramSutraEffectInterpreter(executionScope)).process(
                 program,
                 initialState,
             ),

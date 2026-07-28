@@ -237,7 +237,7 @@ class ExecutableUktiSutraMigrationTest {
     }
 
     @Test
-    fun `sutra registry reaches reflection action through sutra execution`() {
+    fun `executing grantha registers itself and resolves an imported sutra`() {
         val public = RuntimeSutra<ProgramAvastha>(
             id = SutraId("public"),
             source = SutraSource.Program("library", "public", "public"),
@@ -258,7 +258,6 @@ class ExecutableUktiSutraMigrationTest {
             emptyList<RuntimeSutra<ProgramAvastha>>(),
             imports = listOf(GranthaImport(library.id, "lib")),
         )
-        val registry = SutraGranthaRegistry(listOf(library, application))
         val conversation = SambhashanaContext("प्रयोक्ता", "यन्त्रम्")
         val invocation = DhatuInvocation(
             id = "inspect",
@@ -279,15 +278,27 @@ class ExecutableUktiSutraMigrationTest {
         )
         val scope = ExecutionScope(
             capabilities = setOf(ExecutionEffect.PURE),
-            sutraRegistry = registry,
-            currentGrantha = application.id,
+            sutraRegistry = SutraGranthaRegistry(listOf(library)),
+        )
+        val inspectingGrantha = ExecutableUktiSutraCompiler
+            .compileBlueprintGrantha(ukti, application.id)
+            .copy(imports = application.imports)
+        val execution = assertIs<ProgramGranthaExecution.Completed>(
+            ProgramBlueprintGranthaEngine.execute(
+                inspectingGrantha,
+                ProgramBlueprintContext(
+                    speaker = ukti.speaker,
+                    listener = ukti.listener,
+                    text = ukti.text,
+                    prayojana = ukti.prayojana,
+                ),
+                scope,
+                ProgramAvastha(ValueEnvironment()),
+            ),
         )
 
-        val migrated = assertIs<Phala.Siddha>(
-            SutraExecutionPipeline.execute(ukti, conversation, scope),
-        )
-
-        assertEquals(SanskritValue.Shabda("युज्"), migrated.typedValues["inspect"])
+        val result = assertIs<SutraMachineResult.Success<ProgramAvastha>>(execution.result)
+        assertEquals(SanskritValue.Shabda("युज्"), result.state.invocationValues["inspect"])
     }
 
     private fun temporaryDirectory(label: String): File =

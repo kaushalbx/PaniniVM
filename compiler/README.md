@@ -17,6 +17,11 @@ sūtra machine. Successful results retain their typed Sanskrit value; malformed
 source and invalid granthas are returned as ordinary `ExecutionResult.Failure`
 values.
 
+During execution, the compiled grantha is automatically installed as the
+current grantha in the immutable sūtra registry. It can therefore inspect its
+own sūtras and resolve explicitly imported, exported sūtras without the host
+manually registering the application.
+
 The sūtra machine is the sole execution architecture for ordinary
 `PaniniVM.eval(...)` calls. The former parallel execution pipeline has been
 retired.
