@@ -3,6 +3,7 @@ package dev.panini.execution
 import dev.panini.actions.external.BahyaSendAction
 import dev.panini.actions.state.SmritiSaveAction
 import dev.panini.core.Karaka
+import dev.panini.shiksha.Samjna
 import dev.panini.dhatupatha.bhvadi.SmrDhatu
 import dev.panini.dhatupatha.curadi.PreshDhatu
 import dev.panini.execution.external.ExternalCapabilityDispatcher
@@ -56,7 +57,7 @@ class PersistenceAndExternalCapabilityTest {
         val smr = SmrDhatu()
         val op = smr.operations.first { it.name == SmritiSaveAction.name }
         val context = ExecutionContext(
-            bindings = mapOf(Karaka.KARMAN to ExecutionExpression.Pada("परीक्षण-सत्रम्", setOf(ExecutionSamjna.SHABDA))),
+            bindings = mapOf(Karaka.KARMAN to ExecutionExpression.Pada("परीक्षण-सत्रम्", setOf(Samjna.SHABDA))),
             variables = mapOf("फलं" to SanskritValue.Sankhya(5L, "पञ्च")),
             stateStore = store,
         )
@@ -83,7 +84,7 @@ class PersistenceAndExternalCapabilityTest {
         val presh = PreshDhatu()
         val op = presh.operations.first()
         val context = ExecutionContext(
-            bindings = mapOf(Karaka.KARMAN to ExecutionExpression.Pada("संदेशम्_प्रेषय", setOf(ExecutionSamjna.SHABDA))),
+            bindings = mapOf(Karaka.KARMAN to ExecutionExpression.Pada("संदेशम्_प्रेषय", setOf(Samjna.SHABDA))),
             externalDispatcher = dispatcher,
         )
 
@@ -100,7 +101,7 @@ class PersistenceAndExternalCapabilityTest {
             id = "inv-1",
             dhatu = smr,
             selectedOperation = "स्मृतिरक्षणम्",
-            bindings = mapOf(Karaka.KARMAN to ExecutionExpression.Pada("सत्रम्", setOf(ExecutionSamjna.SHABDA))),
+            bindings = mapOf(Karaka.KARMAN to ExecutionExpression.Pada("सत्रम्", setOf(Samjna.SHABDA))),
         )
 
         val resolution = OperationResolver.resolve(invocation, variables = emptyMap<String, SanskritValue>())

@@ -6,7 +6,7 @@ import dev.panini.execution.ExecutionContext
 import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.SanskritValue
-import dev.panini.execution.ExecutionSamjna
+import dev.panini.shiksha.Samjna
 import dev.panini.dhatupatha.DhatuPatha
 
 object PaniniRuntime {
@@ -21,7 +21,7 @@ object PaniniRuntime {
     }
 
     @JvmStatic
-    fun shabdaWithSamjnas(text: String, samjnas: Array<ExecutionSamjna>): SanskritValue {
+    fun shabdaWithSamjnas(text: String, samjnas: Array<Samjna>): SanskritValue {
         return SanskritValue.of(text, samjnas.toSet())
     }
 

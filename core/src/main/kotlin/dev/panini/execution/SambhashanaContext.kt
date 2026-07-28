@@ -1,13 +1,15 @@
 package dev.panini.execution
 
+import dev.panini.shiksha.Samjna
+
 /** Trusted conversational situation surrounding an utterance. */
 data class SambhashanaContext(
     val speaker: String,
     val listener: String,
     val mentionedEntities: Map<String, String> = emptyMap(),
-    val mentionedEntitySamjnas: Map<String, Set<ExecutionSamjna>> = emptyMap(),
+    val mentionedEntitySamjnas: Map<String, Set<Samjna>> = emptyMap(),
     val previousResults: Map<String, String> = emptyMap(),
-    val previousResultSamjnas: Map<String, Set<ExecutionSamjna>> = emptyMap(),
+    val previousResultSamjnas: Map<String, Set<Samjna>> = emptyMap(),
     val previousTypedResults: Map<String, SanskritValue> = emptyMap(),
     val resultHistory: List<SmrtaPhala> = emptyList(),
     val turnNumber: Int = 0,

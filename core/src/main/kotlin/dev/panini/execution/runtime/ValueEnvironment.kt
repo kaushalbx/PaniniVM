@@ -1,5 +1,7 @@
 package dev.panini.execution
 
+import dev.panini.shiksha.Samjna
+
 /** One authoritative map for values carried through planning and execution. */
 data class ValueEnvironment(
     val values: Map<String, SanskritValue> = emptyMap(),
@@ -12,12 +14,12 @@ data class ValueEnvironment(
 
     fun displayValues(): Map<String, String> = values.mapValues { it.value.toDisplayText() }
 
-    fun samjnas(): Map<String, Set<ExecutionSamjna>> = values.mapValues { it.value.samjnas }
+    fun samjnas(): Map<String, Set<Samjna>> = values.mapValues { it.value.samjnas }
 
     companion object {
         fun from(
             displayValues: Map<String, String>,
-            samjnas: Map<String, Set<ExecutionSamjna>> = emptyMap(),
+            samjnas: Map<String, Set<Samjna>> = emptyMap(),
             typedValues: Map<String, SanskritValue> = emptyMap(),
         ): ValueEnvironment = ValueEnvironment(
             displayValues.mapValues { (name, value) ->

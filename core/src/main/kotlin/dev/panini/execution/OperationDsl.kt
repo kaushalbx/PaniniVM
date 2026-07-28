@@ -2,6 +2,7 @@ package dev.panini.execution
 
 import dev.panini.core.Karaka
 import dev.panini.core.Lakara
+import dev.panini.shiksha.Samjna
 
 fun DhatuAction.op(definition: OperationDefinition.() -> Unit = {}): DhatuOperation {
     val builder = OperationDefinition().apply(definition)
@@ -19,7 +20,7 @@ fun DhatuAction.numericOp(
     definition: OperationDefinition.() -> Unit = {},
 ): DhatuOperation = op {
     requiresNumbers(minimum = minimum, shape = ExpressionShape.COORDINATION)
-    returns(ExecutionSamjna.SANKHYA)
+    returns(Samjna.SANKHYA)
     definition()
 }
 
@@ -28,20 +29,20 @@ class OperationDefinition {
     internal val optionalKarakas = mutableSetOf<Karaka>()
     internal var trigger = OperationTrigger()
     internal var effects: Set<ExecutionEffect> = setOf(ExecutionEffect.PURE)
-    internal var resultSamjnas: Set<ExecutionSamjna> = emptySet()
+    internal var resultSamjnas: Set<Samjna> = emptySet()
 
     fun requires(
         karaka: Karaka,
         minimum: Int = 1,
         maximum: Int? = null,
         shape: ExpressionShape? = null,
-        vararg samjnas: ExecutionSamjna,
+        vararg samjnas: Samjna,
     ) {
         requirements += KarakaRequirement(karaka, minimum, maximum, shape, samjnas.toSet())
     }
 
     fun requiresNumbers(minimum: Int = 1, shape: ExpressionShape? = null) {
-        requires(Karaka.KARMAN, minimum, shape = shape, samjnas = arrayOf(ExecutionSamjna.SANKHYA))
+        requires(Karaka.KARMAN, minimum, shape = shape, samjnas = arrayOf(Samjna.SANKHYA))
     }
 
     fun optional(vararg karakas: Karaka) {
@@ -70,7 +71,7 @@ class OperationDefinition {
         effects = values.toSet()
     }
 
-    fun returns(vararg samjnas: ExecutionSamjna) {
+    fun returns(vararg samjnas: Samjna) {
         resultSamjnas = samjnas.toSet()
     }
 }

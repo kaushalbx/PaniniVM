@@ -1,5 +1,7 @@
 package dev.panini.execution
 
+import dev.panini.shiksha.Samjna
+
 /**
  * An executable argument. Leaves remain Sanskrit strings; composition is
  * represented structurally so an action need not parse punctuation.
@@ -7,7 +9,7 @@ package dev.panini.execution
 sealed interface ExecutionExpression {
     data class Pada(
         val prakriti: String,
-        val samjnas: Set<ExecutionSamjna> = emptySet(),
+        val samjnas: Set<Samjna> = emptySet(),
         val value: SanskritValue? = null,
     ) : ExecutionExpression {
         init {
@@ -18,7 +20,7 @@ sealed interface ExecutionExpression {
     companion object {
         fun sankhya(value: Long, prakriti: String): Pada = Pada(
             prakriti = prakriti,
-            samjnas = setOf(ExecutionSamjna.SANKHYA, ExecutionSamjna.SHABDA),
+            samjnas = setOf(Samjna.SANKHYA, Samjna.SHABDA),
             value = SanskritValue.Sankhya(value, prakriti),
         )
     }

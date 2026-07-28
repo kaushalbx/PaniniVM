@@ -1,10 +1,10 @@
-package dev.panini.dhatupatha.bhvadi
+﻿package dev.panini.dhatupatha.bhvadi
 
 import dev.panini.actions.numeric.SanskritSquareRootAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.PadaType
 import dev.panini.dhatupatha.Dhatu
-import dev.panini.execution.ExecutionSamjna
+import dev.panini.shiksha.Samjna
 import dev.panini.execution.op
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
@@ -27,7 +27,7 @@ class MulDhatu : Dhatu(
     operations = listOf(
         SanskritSquareRootAction.op {
             requiresNumbers()
-            returns(ExecutionSamjna.SANKHYA)
+            returns(Samjna.SANKHYA)
         },
     ),
     surfaceAliases = setOf("मूलति", "मूल्", "वर्गमूलम्"),

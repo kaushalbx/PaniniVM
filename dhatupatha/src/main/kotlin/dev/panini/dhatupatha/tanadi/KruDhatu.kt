@@ -1,4 +1,4 @@
-package dev.panini.dhatupatha.tanadi
+﻿package dev.panini.dhatupatha.tanadi
 
 import dev.panini.actions.linguistic.SanskritSandhiAction
 import dev.panini.actions.linguistic.SanskritSubantaDerivationAction
@@ -6,7 +6,7 @@ import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
 import dev.panini.dhatupatha.Dhatu
-import dev.panini.execution.ExecutionSamjna
+import dev.panini.shiksha.Samjna
 import dev.panini.execution.ExpressionShape
 import dev.panini.execution.op
 import dev.panini.shiksha.Accent
@@ -30,10 +30,10 @@ class KruDhatu : Dhatu(
     operations = listOf(
         SanskritSandhiAction.op {
             requires(Karaka.KARMAN, minimum = 2, shape = ExpressionShape.COORDINATION)
-            triggeredBy(requiredAvyayas = setOf("इति")); returns(ExecutionSamjna.SHABDA)
+            triggeredBy(requiredAvyayas = setOf("इति")); returns(Samjna.SHABDA)
         },
         SanskritSubantaDerivationAction.op {
-            requires(Karaka.KARMAN); returns(ExecutionSamjna.SHABDA)
+            requires(Karaka.KARMAN); returns(Samjna.SHABDA)
         },
     ),
 )

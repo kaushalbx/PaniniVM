@@ -41,6 +41,11 @@ sealed interface Samjna {
         KARTA, KARMA, KARANA, SAMPRADANA, APADANA, ADHIKARANA
     }
 
+    /** VM-specific classifications and auxiliary categories used in execution */
+    enum class Execution : Samjna {
+        SHABDA, SANGRAHA, GANA, SATYA, NAMAPADA, REFERENCE, KRIDANTA, STRI_PRATYAYA
+    }
+
     /** Lexical Target Names (रूढि संज्ञा - e.g., "कर्ण", "वायु") */
     data class Rudhi(val word: String) : Samjna
 
@@ -142,5 +147,30 @@ sealed interface Samjna {
         val SAMPRADANA: Samjna = Karaka.SAMPRADANA
         val APADANA: Samjna = Karaka.APADANA
         val ADHIKARANA: Samjna = Karaka.ADHIKARANA
+
+        val SHABDA: Samjna = Execution.SHABDA
+        val SANGRAHA: Samjna = Execution.SANGRAHA
+        val GANA: Samjna = Execution.GANA
+        val SATYA: Samjna = Execution.SATYA
+        val NAMAPADA: Samjna = Execution.NAMAPADA
+        val REFERENCE: Samjna = Execution.REFERENCE
+        val KRIDANTA: Samjna = Execution.KRIDANTA
+        val STRI_PRATYAYA: Samjna = Execution.STRI_PRATYAYA
+
+        private val allValues: Map<String, Samjna> by lazy {
+            val map = mutableMapOf<String, Samjna>()
+            Unit.entries.forEach { map[it.name] = it }
+            Affix.entries.forEach { map[it.name] = it }
+            Phono.entries.forEach { map[it.name] = it }
+            Stem.entries.forEach { map[it.name] = it }
+            Avyaya.entries.forEach { map[it.name] = it }
+            Karaka.entries.forEach { map[it.name] = it }
+            Execution.entries.forEach { map[it.name] = it }
+            map
+        }
+
+        fun valueOf(name: String): Samjna {
+            return allValues[name] ?: throw IllegalArgumentException("No Samjna constant found with name $name")
+        }
     }
 }

@@ -1,11 +1,11 @@
-package dev.panini.dhatupatha.bhvadi
+﻿package dev.panini.dhatupatha.bhvadi
 
 import dev.panini.actions.state.SanskritStateInstantiateAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
 import dev.panini.dhatupatha.Dhatu
-import dev.panini.execution.ExecutionSamjna
+import dev.panini.shiksha.Samjna
 import dev.panini.execution.op
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
@@ -28,7 +28,7 @@ class BhuDhatu : Dhatu(
     operations = listOf(
         SanskritStateInstantiateAction.op {
             requires(Karaka.KARMAN)
-            returns(ExecutionSamjna.SHABDA)
+            returns(Samjna.SHABDA)
         },
     ),
     surfaceAliases = setOf("भवति", "भव", "भवनम्", "सत्ता"),

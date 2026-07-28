@@ -1,9 +1,11 @@
 package dev.panini.execution
 
+import dev.panini.shiksha.Samjna
+
 sealed interface Phala {
     data class Siddha(
         val values: Map<String, String>,
-        val samjnas: Map<String, Set<ExecutionSamjna>>,
+        val samjnas: Map<String, Set<Samjna>>,
         val trace: List<String>,
         val typedValues: Map<String, SanskritValue> = emptyMap(),
     ) : Phala

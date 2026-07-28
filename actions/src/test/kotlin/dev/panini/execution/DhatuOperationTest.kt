@@ -1,6 +1,7 @@
 package dev.panini.execution
 
 import dev.panini.core.Karaka
+import dev.panini.shiksha.Samjna
 import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.dhatupatha.rudhadi.YujirDhatu
 import kotlin.test.Test
@@ -100,12 +101,12 @@ class DhatuOperationTest {
         variables: MutableMap<String, SanskritValue>,
     ): ExecutionExpression {
         fun member(index: Int): ExecutionExpression.Pada =
-            if (ExecutionSamjna.SANKHYA in requirement.memberSamjnas) {
+            if (Samjna.SANKHYA in requirement.memberSamjnas) {
                 ExecutionExpression.sankhya((index + 1).toLong(), "सङ्ख्या-${index + 1}")
             } else {
                 ExecutionExpression.Pada(
                     "पदम्-${index + 1}",
-                    requirement.memberSamjnas + ExecutionSamjna.SHABDA,
+                    requirement.memberSamjnas + Samjna.SHABDA,
                 )
             }
 

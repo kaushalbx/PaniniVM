@@ -1,9 +1,9 @@
 package dev.panini.execution.persistence
 
-import dev.panini.execution.ExecutionSamjna
 import dev.panini.execution.SambhashanaContext
 import dev.panini.execution.SanskritValue
 import dev.panini.execution.SmrtaPhala
+import dev.panini.shiksha.Samjna
 import java.io.File
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
@@ -48,9 +48,9 @@ class FileStateStore(private val storageDir: File) : StateStore {
         var listener = "यन्त्रम्"
         var turnNumber = 0
         val entities = linkedMapOf<String, String>()
-        val entitySamjnas = linkedMapOf<String, Set<ExecutionSamjna>>()
+        val entitySamjnas = linkedMapOf<String, Set<Samjna>>()
         val results = linkedMapOf<String, String>()
-        val resultSamjnas = linkedMapOf<String, Set<ExecutionSamjna>>()
+        val resultSamjnas = linkedMapOf<String, Set<Samjna>>()
         val typedResults = linkedMapOf<String, SanskritValue>()
         val history = mutableListOf<SmrtaPhala>()
         val metadata = linkedMapOf<String, String>()
@@ -109,9 +109,21 @@ class FileStateStore(private val storageDir: File) : StateStore {
     private fun decode(value: String): String =
         if (value.isEmpty()) "" else base64Codec.decode(value).decodeToString()
 
-    private fun encodeSamjnas(values: Set<ExecutionSamjna>): String = values.joinToString(",") { it.name }
-    private fun decodeSamjnas(value: String): Set<ExecutionSamjna> = value.split(',').filter(String::isNotEmpty)
-        .mapTo(mutableSetOf(), ExecutionSamjna::valueOf)
+    private fun encodeSamjnas(values: Set<Samjna>): String = values.joinToString(",") {
+        when (it) {
+            is Enum<*> -> it.name
+            is Samjna.Rudhi -> "RUDHI:${it.word}"
+            else -> it.toString()
+        }
+    }
+    private fun decodeSamjnas(value: String): Set<Samjna> = value.split(',').filter(String::isNotEmpty)
+        .mapTo(mutableSetOf()) {
+            if (it.startsWith("RUDHI:")) {
+                Samjna.Rudhi(it.substringAfter("RUDHI:"))
+            } else {
+                Samjna.valueOf(it)
+            }
+        }
 
     private fun encodeTyped(value: SanskritValue?): String = when (value) {
         is SanskritValue.Sankhya -> "SANKHYA:${value.value}"
@@ -123,7 +135,7 @@ class FileStateStore(private val storageDir: File) : StateStore {
         null -> ""
     }
 
-    private fun decodeTyped(type: String, display: String, samjnas: Set<ExecutionSamjna>): SanskritValue? = when {
+    private fun decodeTyped(type: String, display: String, samjnas: Set<Samjna>): SanskritValue? = when {
         type.startsWith("SANKHYA:") -> SanskritValue.Sankhya(type.substringAfter(':').toLong(), display)
         type.startsWith("RATIONAL:") -> {
             val (num, denom) = type.substringAfter(':').split('/').map { it.toLong() }

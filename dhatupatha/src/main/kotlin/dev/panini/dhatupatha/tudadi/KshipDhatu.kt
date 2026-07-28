@@ -1,11 +1,11 @@
-package dev.panini.dhatupatha.tudadi
+﻿package dev.panini.dhatupatha.tudadi
 
 import dev.panini.actions.collection.SanskritListPushAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
 import dev.panini.dhatupatha.Dhatu
-import dev.panini.execution.ExecutionSamjna
+import dev.panini.shiksha.Samjna
 import dev.panini.execution.op
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
@@ -27,7 +27,7 @@ class KshipDhatu : Dhatu(
     svara = Accent.ANUDATTA,
     operations = listOf(
         SanskritListPushAction.op {
-            requires(Karaka.KARMAN); returns(ExecutionSamjna.GANA, ExecutionSamjna.SHABDA)
+            requires(Karaka.KARMAN); returns(Samjna.GANA, Samjna.SHABDA)
         },
     ),
     surfaceAliases = setOf("निक्षिप", "निक्षिपति", "निक्षिपतु", "निक्षेपणम्"),

@@ -1,11 +1,11 @@
-package dev.panini.dhatupatha.rudhadi
+﻿package dev.panini.dhatupatha.rudhadi
 
 import dev.panini.actions.numeric.SanskritComparisonAction
 import dev.panini.actions.numeric.SanskritMinAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.PadaType
 import dev.panini.dhatupatha.Dhatu
-import dev.panini.execution.ExecutionSamjna
+import dev.panini.shiksha.Samjna
 import dev.panini.execution.ExpressionShape
 import dev.panini.execution.op
 import dev.panini.shiksha.Accent
@@ -30,12 +30,12 @@ class VidDhatu : Dhatu(
         SanskritComparisonAction.GreaterThan.op {
             requiresNumbers(shape = ExpressionShape.COORDINATION)
             triggeredBy(forbiddenAvyayas = setOf("न्यूनतया"))
-            returns(ExecutionSamjna.SANKHYA)
+            returns(Samjna.SANKHYA)
         },
         SanskritMinAction.op {
             requiresNumbers(shape = ExpressionShape.COORDINATION)
             triggeredBy(requiredAvyayas = setOf("न्यूनतया"))
-            returns(ExecutionSamjna.SANKHYA)
+            returns(Samjna.SANKHYA)
         },
     ),
 )

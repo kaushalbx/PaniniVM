@@ -2,6 +2,7 @@ package dev.panini.execution
 
 import dev.panini.core.Karaka
 import dev.panini.core.Lakara
+import dev.panini.shiksha.Samjna
 
 data class GrammaticalFeatures(
     val upasargas: Set<String> = emptySet(),
@@ -44,7 +45,7 @@ data class KarakaRequirement(
     val minimumMembers: Int = 1,
     val maximumMembers: Int? = null,
     val shape: ExpressionShape? = null,
-    val memberSamjnas: Set<ExecutionSamjna> = emptySet(),
+    val memberSamjnas: Set<Samjna> = emptySet(),
 ) {
     init {
         require(minimumMembers >= 1) { "Minimum member count must be positive." }
@@ -80,7 +81,7 @@ data class DhatuOperation(
     val action: DhatuAction,
     val trigger: OperationTrigger = OperationTrigger(),
     val effects: Set<ExecutionEffect> = setOf(ExecutionEffect.PURE),
-    val resultSamjnas: Set<ExecutionSamjna> = emptySet(),
+    val resultSamjnas: Set<Samjna> = emptySet(),
 ) {
     val name: String get() = action.name
     val description: String get() = action.description

@@ -1,11 +1,11 @@
-package dev.panini.dhatupatha.adadi
+﻿package dev.panini.dhatupatha.adadi
 
 import dev.panini.actions.resource.SanskritConsumeAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
 import dev.panini.dhatupatha.Dhatu
-import dev.panini.execution.ExecutionSamjna
+import dev.panini.shiksha.Samjna
 import dev.panini.execution.op
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
@@ -28,7 +28,7 @@ class AdDhatu : Dhatu(
     operations = listOf(
         SanskritConsumeAction.op {
             requires(Karaka.KARMAN)
-            returns(ExecutionSamjna.SHABDA)
+            returns(Samjna.SHABDA)
         },
     ),
     surfaceAliases = setOf("अत्ति", "अद्", "भक्षणम्"),

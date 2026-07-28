@@ -1,4 +1,4 @@
-package dev.panini.dhatupatha.rudhadi
+﻿package dev.panini.dhatupatha.rudhadi
 
 import dev.panini.actions.numeric.SanskritAdditionAction
 import dev.panini.actions.numeric.SanskritComparisonAction
@@ -6,7 +6,7 @@ import dev.panini.actions.numeric.SanskritSubtractionAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.PadaType
 import dev.panini.dhatupatha.Dhatu
-import dev.panini.execution.ExecutionSamjna
+import dev.panini.shiksha.Samjna
 import dev.panini.execution.numericOp
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
@@ -30,15 +30,15 @@ open class YujirDhatu : Dhatu(
     operations = listOf(
         SanskritAdditionAction.numericOp {
             triggeredBy(forbiddenUpasargas = setOf("वि", "तुल्"))
-            returns(ExecutionSamjna.SANKHYA, ExecutionSamjna.SHABDA)
+            returns(Samjna.SANKHYA, Samjna.SHABDA)
         },
         SanskritSubtractionAction.numericOp {
             triggeredBy(requiredUpasargas = setOf("वि"))
-            returns(ExecutionSamjna.SANKHYA, ExecutionSamjna.SHABDA)
+            returns(Samjna.SANKHYA, Samjna.SHABDA)
         },
         SanskritComparisonAction.GreaterThan.numericOp {
             triggeredBy(requiredUpasargas = setOf("तुल्"))
-            returns(ExecutionSamjna.SHABDA)
+            returns(Samjna.SHABDA)
         },
     ),
     semanticRelations = setOf(SemanticRelation.DESIRED_OBJECT),

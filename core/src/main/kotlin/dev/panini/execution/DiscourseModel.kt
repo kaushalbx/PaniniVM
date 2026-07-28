@@ -1,5 +1,7 @@
 package dev.panini.execution
 
+import dev.panini.shiksha.Samjna
+
 /** Discourse turn coupling a system response with conversation context. */
 data class SambhashanaTurn(
     val response: Prativacana,
@@ -31,6 +33,6 @@ data class SmrtaPhala(
     val turnNumber: Int,
     val invocationId: String,
     val value: String,
-    val samjnas: Set<ExecutionSamjna>,
+    val samjnas: Set<Samjna>,
     val typedValue: SanskritValue? = null,
 )

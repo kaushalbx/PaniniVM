@@ -1,6 +1,7 @@
 package dev.panini.execution
 
 import dev.panini.core.Karaka
+import dev.panini.shiksha.Samjna
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -13,15 +14,15 @@ class SanskritValueTest {
         assertEquals(10L, sankhya.value)
         assertEquals("दश", sankhya.word)
         assertEquals("दश", sankhya.toDisplayText())
-        assertTrue(ExecutionSamjna.SANKHYA in sankhya.samjnas)
+        assertTrue(Samjna.SANKHYA in sankhya.samjnas)
     }
 
     @Test
     fun `Shabda holds text and custom samjnas`() {
-        val shabda = SanskritValue.Shabda("रामः", setOf(ExecutionSamjna.SHABDA, ExecutionSamjna.NAMAPADA))
+        val shabda = SanskritValue.Shabda("रामः", setOf(Samjna.SHABDA, Samjna.NAMAPADA))
         assertEquals("रामः", shabda.text)
         assertEquals("रामः", shabda.toDisplayText())
-        assertTrue(ExecutionSamjna.NAMAPADA in shabda.samjnas)
+        assertTrue(Samjna.NAMAPADA in shabda.samjnas)
     }
 
     @Test
@@ -31,8 +32,8 @@ class SanskritValueTest {
         val gana = SanskritValue.Gana(listOf(element1, element2))
 
         assertEquals("एक द्वि", gana.toDisplayText())
-        assertTrue(ExecutionSamjna.GANA in gana.samjnas)
-        assertTrue(ExecutionSamjna.SANKHYA in gana.samjnas)
+        assertTrue(Samjna.GANA in gana.samjnas)
+        assertTrue(Samjna.SANKHYA in gana.samjnas)
     }
 
     @Test
@@ -42,7 +43,7 @@ class SanskritValueTest {
 
         assertEquals("सत्यम्", trueVal.toDisplayText())
         assertEquals("असत्यम्", falseVal.toDisplayText())
-        assertTrue(ExecutionSamjna.SATYA in trueVal.samjnas)
+        assertTrue(Samjna.SATYA in trueVal.samjnas)
     }
 
     @Test
@@ -81,6 +82,6 @@ class SanskritValueTest {
 
         assertEquals(5, assertIs<SanskritValue.Sankhya>(merged.values.getValue("फल")).value)
         assertEquals("पञ्च", merged.displayValues().getValue("फल"))
-        assertTrue(ExecutionSamjna.SANKHYA in merged.samjnas().getValue("फल"))
+        assertTrue(Samjna.SANKHYA in merged.samjnas().getValue("फल"))
     }
 }

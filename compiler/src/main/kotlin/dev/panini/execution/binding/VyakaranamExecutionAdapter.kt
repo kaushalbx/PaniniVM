@@ -11,7 +11,7 @@ import dev.panini.execution.DhatuInvocation
 import dev.panini.execution.ExecutableUkti
 import dev.panini.execution.ExecutionBindingResult
 import dev.panini.execution.ExecutionExpression
-import dev.panini.execution.ExecutionSamjna
+import dev.panini.shiksha.Samjna
 import dev.panini.execution.GrammaticalFeatures
 import dev.panini.execution.Polarity
 import dev.panini.execution.SambhashanaContext
@@ -316,12 +316,12 @@ object VyakaranamExecutionAdapter {
             else -> null
         }
         val samjnas = buildSet {
-            add(ExecutionSamjna.SHABDA)
-            if (sankhyaValue != null) add(ExecutionSamjna.SANKHYA)
-            if (text in setOf("फल", "पूर्वफल")) add(ExecutionSamjna.REFERENCE)
+            add(Samjna.SHABDA)
+            if (sankhyaValue != null) add(Samjna.SANKHYA)
+            if (text in setOf("फल", "पूर्वफल")) add(Samjna.REFERENCE)
             when (pada.pratipadika) {
-                is KridantaPratipadika -> add(ExecutionSamjna.KRIDANTA)
-                is SamasaPratipadika -> add(ExecutionSamjna.SAMASA)
+                is KridantaPratipadika -> add(Samjna.KRIDANTA)
+                is SamasaPratipadika -> add(Samjna.SAMASA)
                 else -> Unit
             }
         }
