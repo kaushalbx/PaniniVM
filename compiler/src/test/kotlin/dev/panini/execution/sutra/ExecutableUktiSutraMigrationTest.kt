@@ -12,7 +12,6 @@ import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.ExecutionScope
 import dev.panini.execution.GrammaticalFeatures
-import dev.panini.execution.PaniniExecutionArchitecture
 import dev.panini.execution.PaniniVM
 import dev.panini.execution.Phala
 import dev.panini.execution.SambhashanaContext
@@ -238,25 +237,14 @@ class ExecutableUktiSutraMigrationTest {
     }
 
     @Test
-    fun `PaniniVM can opt into sutra machine and comparison modes`() {
+    fun `PaniniVM executes through the sutra machine`() {
         val sutraVm = PaniniVM(
             storageDir = temporaryDirectory("sutra"),
-            executionArchitecture = PaniniExecutionArchitecture.SUTRA_MACHINE,
         )
         val sutraResult = assertIs<ExecutionResult.Success>(
             sutraVm.eval("दश + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।"),
         )
         assertEquals("द्वादश", sutraResult.value)
-
-        val compareVm = PaniniVM(
-            storageDir = temporaryDirectory("compare"),
-            defaultScope = ExecutionScope(capabilities = setOf(ExecutionEffect.PURE)),
-            executionArchitecture = PaniniExecutionArchitecture.COMPARE,
-        )
-        val compared = assertIs<ExecutionResult.Success>(
-            compareVm.eval("दश + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।"),
-        )
-        assertEquals("द्वादश", compared.value)
     }
 
     @Test

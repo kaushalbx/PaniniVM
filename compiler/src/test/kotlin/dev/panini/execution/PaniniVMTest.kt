@@ -52,8 +52,6 @@ class PaniniVMTest {
 
     @Test
     fun `PaniniVM evaluates addition utterance`() {
-        assertEquals(PaniniExecutionArchitecture.SUTRA_MACHINE, vm.executionArchitecture)
-
         val result = vm.eval("दश + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।")
         val success = assertIs<ExecutionResult.Success>(result, result.toString())
         assertEquals("द्वादश", success.value)

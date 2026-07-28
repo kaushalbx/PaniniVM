@@ -4,7 +4,6 @@ import dev.panini.actions.control.LoopAction
 import dev.panini.execution.external.ExternalCapabilityDispatcher
 import dev.panini.execution.persistence.FileStateStore
 import dev.panini.execution.persistence.StateStore
-import dev.panini.execution.runtime.ExecutionPipeline
 import dev.panini.execution.sutra.ProgramAvastha
 import dev.panini.execution.sutra.ProgramBlueprintContext
 import dev.panini.execution.sutra.ProgramBlueprintGranthaEngine
@@ -32,7 +31,6 @@ class PaniniVM(
             ExecutionEffect.SEND_MESSAGE,
         )
     ),
-    val executionArchitecture: PaniniExecutionArchitecture = PaniniExecutionArchitecture.SUTRA_MACHINE,
 ) {
     val store: StateStore = FileStateStore(storageDir)
     private val externalDispatcher = ExternalCapabilityDispatcher()
@@ -91,62 +89,7 @@ class PaniniVM(
         input: SanskritUktiInput,
         context: SambhashanaContext,
         scope: ExecutionScope,
-    ): SambhashanaTurn = when (executionArchitecture) {
-        PaniniExecutionArchitecture.LEGACY ->
-            ExecutionPipeline.executeTurn(input, context, scope)
-        PaniniExecutionArchitecture.SUTRA_MACHINE ->
-            SutraExecutionPipeline.executeTurn(input, context, scope)
-        PaniniExecutionArchitecture.COMPARE -> {
-            require(scope.capabilities == setOf(ExecutionEffect.PURE)) {
-                "COMPARE execution requires a PURE-only scope to avoid repeating external effects."
-            }
-            val legacy = ExecutionPipeline.executeTurn(input, context, scope)
-            val migrated = SutraExecutionPipeline.executeTurn(input, context, scope)
-            if (equivalent(legacy.response.phala, migrated.response.phala) &&
-                legacy.context == migrated.context
-            ) {
-                migrated
-            } else {
-                val mismatch = Phala.Asiddha(
-                    ExecutionResult.Failure(
-                        ExecutionError.ACTION_FAILED,
-                        "Legacy and sūtra-machine execution produced different results.",
-                    ),
-                    listOf(
-                        "Legacy: ${legacy.response.phala}",
-                        "Sūtra machine: ${migrated.response.phala}",
-                    ),
-                )
-                SambhashanaTurn(
-                    SanskritPrativacanaRenderer.render(mismatch),
-                    context,
-                )
-            }
-        }
-    }
-
-    private fun equivalent(legacy: Phala, migrated: Phala): Boolean = when {
-        legacy is Phala.Siddha && migrated is Phala.Siddha ->
-            legacy.values == migrated.values &&
-                legacy.samjnas == migrated.samjnas &&
-                legacy.typedValues == migrated.typedValues &&
-                legacy.localBindings == migrated.localBindings
-        legacy is Phala.Asiddha && migrated is Phala.Asiddha ->
-            legacy.result::class == migrated.result::class
-        legacy is Phala.Avagata && migrated is Phala.Avagata ->
-            legacy.disposition == migrated.disposition
-        legacy is Phala.AnumatiApekshita && migrated is Phala.AnumatiApekshita ->
-            legacy.invocationId == migrated.invocationId &&
-                legacy.effects == migrated.effects
-        legacy is Phala.SvikaraApekshita && migrated is Phala.SvikaraApekshita ->
-            legacy.invocationId == migrated.invocationId &&
-                legacy.speaker == migrated.speaker &&
-                legacy.listener == migrated.listener
-        legacy is Phala.Nirasta && migrated is Phala.Nirasta ->
-            legacy.invocationId == migrated.invocationId &&
-                legacy.reason == migrated.reason
-        else -> false
-    }
+    ): SambhashanaTurn = SutraExecutionPipeline.executeTurn(input, context, scope)
 
     fun evalScript(
         scriptContent: String,
