@@ -58,9 +58,10 @@ sealed interface SutraMachineResult<out S : SutraAvastha> {
 }
 
 /**
- * First migration-stage machine. It processes an already ordered program once.
- * Domain-specific agenda scheduling and Aṣṭādhyāyī conflict resolution remain
- * outside this class until their legacy behaviour has parity coverage.
+ * First migration-stage machine. It validates and dependency-orders a program,
+ * then processes every sūtra once. Domain-specific agenda scheduling and
+ * Aṣṭādhyāyī conflict resolution remain outside this class until their legacy
+ * behaviour has parity coverage.
  */
 class SutraMachine<S : SutraAvastha>(
     private val effectInterpreter: SutraEffectInterpreter<S>,
@@ -73,8 +74,18 @@ class SutraMachine<S : SutraAvastha>(
         require(maximumSteps > 0) { "The maximum sūtra step count must be positive." }
         var state = initialState
         val trace = mutableListOf<SutraTraceEntry>()
+        val validation = SutraProgramValidator.validate(program)
+        validation.diagnostics.firstOrNull()?.let { diagnostic ->
+            val entry = SutraTraceEntry.Invalid(diagnostic.sutraId, diagnostic.message)
+            return SutraMachineResult.Failure(
+                state,
+                listOf(entry),
+                diagnostic.sutraId,
+                diagnostic.message,
+            )
+        }
 
-        program.sutras.forEachIndexed { index, sutra ->
+        validation.orderedSutras.forEachIndexed { index, sutra ->
             if (index >= maximumSteps) {
                 return SutraMachineResult.Failure(
                     state,
