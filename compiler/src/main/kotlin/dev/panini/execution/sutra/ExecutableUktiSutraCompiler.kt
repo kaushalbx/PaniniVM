@@ -58,12 +58,34 @@ object ExecutableUktiSutraCompiler {
                             put("operation", SutraArthaValue.Symbol(it))
                         }
                         put(
+                            "metadata",
+                            SutraArthaValue.Record(
+                                invocation.metadata.mapValues {
+                                    SutraArthaValue.Text(it.value)
+                                },
+                            ),
+                        )
+                        put(
                             "karakas",
                             SutraArthaValue.Record(
                                 invocation.bindings.mapKeys { it.key.name }
                                     .mapValues {
                                         ProgramSutraArthaCodec.encodeExpression(it.value)
-                                    },
+                                },
+                            ),
+                        )
+                        put(
+                            "ambiguousKarakas",
+                            SutraArthaValue.Sequence(
+                                invocation.ambiguousBindings.map(
+                                    ProgramSutraArthaCodec::encodeAmbiguousBinding,
+                                ),
+                            ),
+                        )
+                        put(
+                            "karakaEvidence",
+                            SutraArthaValue.Sequence(
+                                invocation.karakaTrace.map(SutraArthaValue::Text),
                             ),
                         )
                         put(

@@ -1,5 +1,7 @@
 package dev.panini.execution.sutra
 
+import dev.panini.core.Karaka
+import dev.panini.execution.AmbiguousKarakaBinding
 import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.SanskritValue
 import dev.panini.shiksha.Samjna
@@ -7,6 +9,21 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class ProgramSutraArthaCodecTest {
+    @Test
+    fun `ambiguous karaka bindings round trip with every candidate`() {
+        val binding = AmbiguousKarakaBinding(
+            expression = ExecutionExpression.Pada("फल"),
+            candidates = linkedSetOf(Karaka.KARTR, Karaka.KARMAN),
+        )
+
+        assertEquals(
+            binding,
+            ProgramSutraArthaCodec.decodeAmbiguousBinding(
+                ProgramSutraArthaCodec.encodeAmbiguousBinding(binding),
+            ),
+        )
+    }
+
     @Test
     fun `execution expressions round trip without losing typed values`() {
         val expression = ExecutionExpression.Coordination(

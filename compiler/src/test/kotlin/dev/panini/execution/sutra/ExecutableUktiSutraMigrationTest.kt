@@ -112,6 +112,19 @@ class ExecutableUktiSutraMigrationTest {
                 ),
             ),
         )
+        val compiledDecision = assertIs<SutraNirnaya.Applicable<ProgramAvastha>>(
+            compiledBlueprint.sutra.evaluator.evaluate(
+                compiledBlueprint.sutra,
+                ProgramAvastha(ValueEnvironment()),
+            ),
+        )
+        val compiledInvocation = assertIs<InvokeDhatuEffect>(
+            compiledDecision.effects.single(),
+        ).invocation
+        val originalInvocation = bound.ukti.invocations.single()
+        assertEquals(originalInvocation.metadata, compiledInvocation.metadata)
+        assertEquals(originalInvocation.ambiguousBindings, compiledInvocation.ambiguousBindings)
+        assertEquals(originalInvocation.karakaTrace, compiledInvocation.karakaTrace)
         val blueprintResult = assertIs<SutraMachineResult.Success<ProgramAvastha>>(
             SutraMachine(ProgramSutraEffectInterpreter(scope)).process(
                 dev.panini.sutra.runtime.SutraProgram(

@@ -3,6 +3,7 @@ package dev.panini.execution.sutra
 import dev.panini.core.Karaka
 import dev.panini.core.Lakara
 import dev.panini.dhatupatha.DhatuPatha
+import dev.panini.execution.AmbiguousKarakaBinding
 import dev.panini.execution.DhatuInvocation
 import dev.panini.execution.ExecutableUkti
 import dev.panini.execution.GrammaticalFeatures
@@ -144,6 +145,9 @@ object ProgramBlueprintCompiler {
                 null
             }
         }
+        val metadata = fields.decodeTextRecord("metadata", diagnostics, blueprint)
+        val ambiguousBindings = fields.decodeAmbiguousBindings(diagnostics, blueprint)
+        val karakaTrace = fields.decodeTextSequence("karakaEvidence", diagnostics, blueprint)
         if (diagnostics.isNotEmpty()) return ProgramBlueprintCompilation.Invalid(diagnostics)
 
         val invocation = DhatuInvocation(
@@ -151,12 +155,15 @@ object ProgramBlueprintCompiler {
             dhatu = candidates.single(),
             bindings = bindings,
             selectedOperation = (fields["operation"] as? SutraArthaValue.Symbol)?.name,
+            metadata = metadata,
             grammaticalFeatures = GrammaticalFeatures(
                 upasargas = fields.symbolSet("upasargas"),
                 sanadi = fields.symbolSet("sanadi"),
                 avyayas = fields.symbolSet("avyayas"),
                 lakara = blueprintLakara,
             ),
+            ambiguousBindings = ambiguousBindings,
+            karakaTrace = karakaTrace,
         )
         val ukti = ExecutableUkti(
             speaker = context.speaker,
@@ -208,4 +215,86 @@ object ProgramBlueprintCompiler {
         ?.mapNotNull { (it as? SutraArthaValue.Symbol)?.name }
         ?.toSet()
         .orEmpty()
+
+    private fun Map<String, SutraArthaValue>.decodeTextRecord(
+        field: String,
+        diagnostics: MutableList<ProgramBlueprintDiagnostic>,
+        blueprint: SutraBlueprint,
+    ): Map<String, String> {
+        val value = get(field) ?: return emptyMap()
+        val record = value as? SutraArthaValue.Record
+        if (record == null) {
+            diagnostics += invalidField(blueprint, "'$field' must be a record of text values.")
+            return emptyMap()
+        }
+        return buildMap {
+            record.fields.forEach { (name, entry) ->
+                val text = (entry as? SutraArthaValue.Text)?.value
+                if (text == null) {
+                    diagnostics += invalidField(
+                        blueprint,
+                        "Entry '$name' in '$field' must be text.",
+                    )
+                } else {
+                    put(name, text)
+                }
+            }
+        }
+    }
+
+    private fun Map<String, SutraArthaValue>.decodeTextSequence(
+        field: String,
+        diagnostics: MutableList<ProgramBlueprintDiagnostic>,
+        blueprint: SutraBlueprint,
+    ): List<String> {
+        val value = get(field) ?: return emptyList()
+        val sequence = value as? SutraArthaValue.Sequence
+        if (sequence == null) {
+            diagnostics += invalidField(blueprint, "'$field' must be a sequence of text values.")
+            return emptyList()
+        }
+        return sequence.values.mapIndexedNotNull { index, entry ->
+            val text = (entry as? SutraArthaValue.Text)?.value
+            if (text == null) {
+                diagnostics += invalidField(
+                    blueprint,
+                    "Entry $index in '$field' must be text.",
+                )
+            }
+            text
+        }
+    }
+
+    private fun Map<String, SutraArthaValue>.decodeAmbiguousBindings(
+        diagnostics: MutableList<ProgramBlueprintDiagnostic>,
+        blueprint: SutraBlueprint,
+    ): List<AmbiguousKarakaBinding> {
+        val value = get("ambiguousKarakas") ?: return emptyList()
+        val sequence = value as? SutraArthaValue.Sequence
+        if (sequence == null) {
+            diagnostics += invalidField(
+                blueprint,
+                "'ambiguousKarakas' must be a sequence.",
+            )
+            return emptyList()
+        }
+        return sequence.values.mapIndexedNotNull { index, entry ->
+            runCatching { ProgramSutraArthaCodec.decodeAmbiguousBinding(entry) }
+                .onFailure {
+                    diagnostics += invalidField(
+                        blueprint,
+                        "Invalid ambiguous kāraka at index $index: ${it.message}",
+                    )
+                }
+                .getOrNull()
+        }
+    }
+
+    private fun invalidField(
+        blueprint: SutraBlueprint,
+        message: String,
+    ) = ProgramBlueprintDiagnostic(
+        ProgramBlueprintDiagnosticCode.INVALID_FIELD,
+        "Blueprint ${blueprint.id}: $message",
+    )
 }

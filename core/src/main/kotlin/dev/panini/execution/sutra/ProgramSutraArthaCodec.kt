@@ -1,11 +1,42 @@
 package dev.panini.execution.sutra
 
+import dev.panini.core.Karaka
+import dev.panini.execution.AmbiguousKarakaBinding
 import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.SanskritValue
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.runtime.SutraArthaValue
 
 object ProgramSutraArthaCodec {
+    fun encodeAmbiguousBinding(binding: AmbiguousKarakaBinding): SutraArthaValue.Record =
+        SutraArthaValue.Record(
+            mapOf(
+                "expression" to encodeExpression(binding.expression),
+                "candidates" to SutraArthaValue.Sequence(
+                    binding.candidates.map { SutraArthaValue.Symbol(it.name) },
+                ),
+            ),
+        )
+
+    fun decodeAmbiguousBinding(value: SutraArthaValue): AmbiguousKarakaBinding {
+        val fields = (value as? SutraArthaValue.Record)?.fields
+            ?: throw IllegalArgumentException("An ambiguous kāraka binding must be a semantic record.")
+        val candidates = fields.sequence("candidates").mapTo(linkedSetOf()) {
+            val name = (it as? SutraArthaValue.Symbol)?.name
+                ?: throw IllegalArgumentException("An ambiguous kāraka candidate must be a symbol.")
+            runCatching { Karaka.valueOf(name) }.getOrElse {
+                throw IllegalArgumentException("Unknown kāraka candidate '$name'.")
+            }
+        }
+        return AmbiguousKarakaBinding(
+            expression = decodeExpression(
+                fields["expression"]
+                    ?: throw IllegalArgumentException("Ambiguous binding requires field 'expression'."),
+            ),
+            candidates = candidates,
+        )
+    }
+
     fun encodeExpression(expression: ExecutionExpression): SutraArthaValue.Record = when (expression) {
         is ExecutionExpression.Pada -> SutraArthaValue.Record(
             buildMap {
