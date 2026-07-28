@@ -47,6 +47,19 @@ object PaniniRuntime {
     }
 
     @JvmStatic
+    val defaultDispatcher = dev.panini.execution.external.ExternalCapabilityDispatcher().apply {
+        register(dev.panini.execution.ExecutionEffect.NETWORK) { payload, _ ->
+            "Simulated dispatch for effect NETWORK with payload '$payload'"
+        }
+        register(dev.panini.execution.ExecutionEffect.SEND_MESSAGE) { payload, _ ->
+            "Simulated dispatch for effect SEND_MESSAGE with payload '$payload'"
+        }
+        register(dev.panini.execution.ExecutionEffect.EXECUTE_PROCESS) { payload, _ ->
+            "Simulated dispatch for effect EXECUTE_PROCESS with payload '$payload'"
+        }
+    }
+
+    @JvmStatic
     fun execute(
         dhatuUpadesha: String,
         operationName: String,
@@ -58,7 +71,8 @@ object PaniniRuntime {
         val action = operation.action
         val context = ExecutionContext(
             bindings = bindings,
-            variables = variables
+            variables = variables,
+            externalDispatcher = defaultDispatcher
         )
         return when (val result = action.execute(context, operation)) {
             is ExecutionResult.Success -> {

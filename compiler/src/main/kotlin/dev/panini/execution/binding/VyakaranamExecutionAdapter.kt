@@ -313,7 +313,7 @@ object VyakaranamExecutionAdapter {
                 conversation?.resultHistory?.lastOrNull()?.id ?: conversation?.previousResults?.keys?.lastOrNull()
         } else if (text.endsWith("फल")) {
             val prefix = text.removeSuffix("फल")
-            val idx = (1..20).firstOrNull { i ->
+            val idx = (1..50).firstOrNull { i ->
                 sankhyaGenerator.ordinal(i.toLong()).final.surface == prefix ||
                 sankhyaGenerator.ordinalVariants(i.toLong()).any { it.final.surface == prefix }
             }?.minus(1)

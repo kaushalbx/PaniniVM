@@ -51,12 +51,16 @@ object SanskritLoopAction : DhatuAction("अनुवृत्तिः", "क�
                 "Target operation cannot be resolved to a name."
             )
 
+
+        val resolvedDhatu = DhatuPatha.all.firstOrNull {
+            (it.upadesha == targetName || it.sourceSurface == targetName || it.surfaceAliases.contains(targetName)) &&
+            it.operations.isNotEmpty()
+        }
+
         // Find the target operation in DhatuPatha registry
         val targetOp = DhatuPatha.all.flatMap { it.operations }
             .firstOrNull { it.name == targetName || it.action.name == targetName }
-            ?: DhatuPatha.all.firstOrNull {
-                it.upadesha == targetName || it.sourceSurface == targetName || it.surfaceAliases.contains(targetName)
-            }?.operations?.firstOrNull()
+            ?: resolvedDhatu?.operations?.firstOrNull()
             ?: return ExecutionResult.Failure(
                 ExecutionError.ACTION_FAILED,
                 "Verbal root or operation '$targetName' not found in registry."
@@ -82,12 +86,16 @@ object SanskritLoopAction : DhatuAction("अनुवृत्तिः", "क�
                 if (sourceKey != null) {
                     innerBindings[required] = context.bindings.getValue(sourceKey)
                 } else if (required == Karaka.KARMAN) {
-                    innerBindings[required] = ExecutionExpression.Coordination(
-                        listOf(
-                            ExecutionExpression.Reference("loop_result"),
-                            ExecutionExpression.Reference("loop_index")
+                    if (targetOp.name == "सूचीसंयोगः" || targetOp.action.name == "सूचीसंयोगः") {
+                        innerBindings[required] = ExecutionExpression.Reference("loop_result")
+                    } else {
+                        innerBindings[required] = ExecutionExpression.Coordination(
+                            listOf(
+                                ExecutionExpression.Reference("loop_result"),
+                                ExecutionExpression.Reference("loop_index")
+                            )
                         )
-                    )
+                    }
                 }
             }
         }
