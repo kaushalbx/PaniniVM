@@ -72,6 +72,7 @@ class ExecutableUktiSutraMigrationTest {
         )
 
         val program = ExecutableUktiSutraCompiler.compile(bound.ukti)
+        val blueprintGrantha = ExecutableUktiSutraCompiler.compileBlueprintGrantha(bound.ukti)
         val grantha = ExecutableUktiSutraCompiler.compileGrantha(bound.ukti)
         val migrated = assertIs<SutraMachineResult.Success<ProgramAvastha>>(
             SutraMachine(ProgramSutraEffectInterpreter(scope)).process(
@@ -85,7 +86,13 @@ class ExecutableUktiSutraMigrationTest {
         assertEquals(legacy.typedValues, migratedPhala.typedValues)
         assertEquals(program.sutras.map { it.id }.toSet(), migrated.state.completedSutras)
         assertEquals(GranthaId("ukti"), grantha.id)
+        assertEquals(GranthaId("ukti"), blueprintGrantha.id)
         assertEquals(program.sutras.map { it.id }.toSet(), grantha.exports)
+        assertEquals(grantha.exports, blueprintGrantha.exports)
+        assertEquals(
+            blueprintGrantha.sutras,
+            grantha.sutras.map { it.toBlueprint() },
+        )
         assertEquals("kriya", grantha.sutras.single().artha.kind)
         assertEquals(
             SutraArthaValue.Text("युज्"),
@@ -95,7 +102,7 @@ class ExecutableUktiSutraMigrationTest {
             SutraArthaValue.Text("युजिँर्"),
             grantha.sutras.single().artha.fields["upadesha"],
         )
-        val generatedBlueprint = grantha.sutras.single().toBlueprint().specializedAs(
+        val generatedBlueprint = blueprintGrantha.sutras.single().specializedAs(
             SutraId("generated-addition"),
             mapOf("generated" to SutraArthaValue.Truth(true)),
         )

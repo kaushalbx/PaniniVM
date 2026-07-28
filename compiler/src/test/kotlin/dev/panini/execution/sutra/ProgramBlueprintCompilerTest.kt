@@ -1,9 +1,14 @@
 package dev.panini.execution.sutra
 
 import dev.panini.core.Karaka
+import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.dhatupatha.DhatuPathaRegistration
 import dev.panini.execution.AmbiguousKarakaBinding
+import dev.panini.execution.ActionDependency
+import dev.panini.execution.DhatuInvocation
+import dev.panini.execution.ExecutableUkti
 import dev.panini.execution.ExecutionExpression
+import dev.panini.execution.VakyaPrayojana
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.runtime.SutraArtha
 import dev.panini.sutra.runtime.SutraArthaValue
@@ -148,5 +153,32 @@ class ProgramBlueprintCompilerTest {
         assertEquals(mapOf("origin" to "व्याकरणम्"), invocation.metadata)
         assertEquals(listOf(ambiguity), invocation.ambiguousBindings)
         assertEquals(listOf("1.4.49 कर्तुरीप्सिततमं कर्म"), invocation.karakaTrace)
+    }
+
+    @Test
+    fun `blueprint grantha compilation returns diagnostics without throwing`() {
+        val invocation = DhatuInvocation(
+            id = "self-dependent",
+            dhatu = DhatuPatha.all.first { it.sourceSurface == "युज्" },
+            bindings = emptyMap(),
+        )
+        val ukti = ExecutableUkti(
+            speaker = "प्रयोक्ता",
+            listener = "यन्त्रम्",
+            text = "युज्",
+            prayojana = VakyaPrayojana.VIDHANA,
+            invocations = listOf(invocation),
+            dependencies = setOf(ActionDependency(invocation.id, invocation.id)),
+        )
+
+        val invalid = assertIs<ProgramGranthaCompilation.Invalid>(
+            ExecutableUktiSutraCompiler.compileGranthaResult(ukti),
+        )
+
+        assertTrue(
+            invalid.diagnostics.any {
+                it.code == ProgramBlueprintDiagnosticCode.INVALID_BLUEPRINT
+            },
+        )
     }
 }

@@ -62,11 +62,17 @@ object SutraExecutionPipeline {
             )
         }
 
-        val program = when (
-            val lowering = SutraGranthaCompiler.lower(
-                ExecutableUktiSutraCompiler.compileGrantha(ukti),
+        val grantha = when (val compilation = ExecutableUktiSutraCompiler.compileGranthaResult(ukti)) {
+            is ProgramGranthaCompilation.Success -> compilation.grantha
+            is ProgramGranthaCompilation.Invalid -> return Phala.Asiddha(
+                ExecutionResult.Failure(
+                    ExecutionError.INVALID_VALUE,
+                    compilation.diagnostics.joinToString(separator = "\n") { it.message },
+                ),
+                emptyList(),
             )
-        ) {
+        }
+        val program = when (val lowering = SutraGranthaCompiler.lower(grantha)) {
             is SutraGranthaLowering.Success -> lowering.program
             is SutraGranthaLowering.Invalid -> return Phala.Asiddha(
                 ExecutionResult.Failure(

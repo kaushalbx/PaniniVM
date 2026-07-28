@@ -45,6 +45,29 @@ data class SutraGrantha<S : SutraAvastha>(
     val exports: Set<SutraId> = emptySet(),
 )
 
+/**
+ * Evaluator-free package representation. This is the source form used by
+ * generated and persisted sūtra software before a domain compiler lowers it.
+ */
+data class SutraBlueprintGrantha(
+    val id: GranthaId,
+    val sutras: List<SutraBlueprint>,
+    val imports: List<GranthaImport> = emptyList(),
+    val adhikaras: List<AdhikaraDeclaration> = emptyList(),
+    val samjnas: List<SamjnaDeclaration> = emptyList(),
+    val exports: Set<SutraId> = emptySet(),
+)
+
+fun SutraGrantha<*>.toBlueprintGrantha(): SutraBlueprintGrantha =
+    SutraBlueprintGrantha(
+        id = id,
+        sutras = sutras.map { it.toBlueprint() },
+        imports = imports,
+        adhikaras = adhikaras,
+        samjnas = samjnas,
+        exports = exports,
+    )
+
 enum class SutraGranthaDiagnosticCode {
     DUPLICATE_IMPORT_ALIAS,
     DUPLICATE_SAMJNA,

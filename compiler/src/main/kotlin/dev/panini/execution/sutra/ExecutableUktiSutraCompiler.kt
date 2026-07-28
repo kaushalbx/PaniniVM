@@ -4,17 +4,27 @@ import dev.panini.execution.ExecutableUkti
 import dev.panini.execution.VakyaPrayojana
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.runtime.GranthaId
-import dev.panini.sutra.runtime.RuntimeSutra
 import dev.panini.sutra.runtime.SutraArtha
 import dev.panini.sutra.runtime.SutraArthaValue
+import dev.panini.sutra.runtime.SutraBlueprint
+import dev.panini.sutra.runtime.SutraBlueprintGrantha
 import dev.panini.sutra.runtime.SutraGrantha
 import dev.panini.sutra.runtime.SutraGranthaCompiler
 import dev.panini.sutra.runtime.SutraGranthaLowering
 import dev.panini.sutra.runtime.SutraId
-import dev.panini.sutra.runtime.SutraNirnaya
 import dev.panini.sutra.runtime.SutraProgram
 import dev.panini.sutra.runtime.SutraRelation
 import dev.panini.sutra.runtime.SutraSource
+
+sealed interface ProgramGranthaCompilation {
+    data class Success(
+        val grantha: SutraGrantha<ProgramAvastha>,
+    ) : ProgramGranthaCompilation
+
+    data class Invalid(
+        val diagnostics: List<ProgramBlueprintDiagnostic>,
+    ) : ProgramGranthaCompilation
+}
 
 /**
  * Compatibility compiler used during the incremental migration. It preserves
@@ -31,14 +41,55 @@ object ExecutableUktiSutraCompiler {
         }
     }
 
-    fun compileGrantha(ukti: ExecutableUkti): SutraGrantha<ProgramAvastha> {
+    fun compileGrantha(ukti: ExecutableUkti): SutraGrantha<ProgramAvastha> =
+        when (val compilation = compileGranthaResult(ukti)) {
+            is ProgramGranthaCompilation.Success -> compilation.grantha
+            is ProgramGranthaCompilation.Invalid -> error(
+                compilation.diagnostics.joinToString(separator = "\n") { it.message },
+            )
+        }
+
+    fun compileGranthaResult(ukti: ExecutableUkti): ProgramGranthaCompilation {
+        val blueprintGrantha = compileBlueprintGrantha(ukti)
+        val context = ProgramBlueprintContext(
+            speaker = ukti.speaker,
+            listener = ukti.listener,
+            text = ukti.text,
+            prayojana = ukti.prayojana,
+            polarity = ukti.polarity,
+            lakara = ukti.lakara,
+        )
+        val diagnostics = mutableListOf<ProgramBlueprintDiagnostic>()
+        val sutras = blueprintGrantha.sutras.mapNotNull { blueprint ->
+            when (val compilation = ProgramBlueprintCompiler.compile(blueprint, context)) {
+                is ProgramBlueprintCompilation.Success -> compilation.sutra
+                is ProgramBlueprintCompilation.Invalid -> {
+                    diagnostics += compilation.diagnostics
+                    null
+                }
+            }
+        }
+        if (diagnostics.isNotEmpty()) return ProgramGranthaCompilation.Invalid(diagnostics)
+        return ProgramGranthaCompilation.Success(
+            SutraGrantha(
+                id = blueprintGrantha.id,
+                sutras = sutras,
+                imports = blueprintGrantha.imports,
+                adhikaras = blueprintGrantha.adhikaras,
+                samjnas = blueprintGrantha.samjnas,
+                exports = blueprintGrantha.exports,
+            ),
+        )
+    }
+
+    fun compileBlueprintGrantha(ukti: ExecutableUkti): SutraBlueprintGrantha {
         val dependenciesByTarget = ukti.dependencies.groupBy { it.after }
         val sutras = ukti.invocations.mapIndexed { index, invocation ->
             val id = SutraId(invocation.id)
             val prerequisites = dependenciesByTarget[invocation.id]
                 .orEmpty()
                 .mapTo(linkedSetOf()) { SutraId(it.before) }
-            RuntimeSutra<ProgramAvastha>(
+            SutraBlueprint(
                 id = id,
                 source = SutraSource.Vakya(
                     uktiId = "ukti",
@@ -111,31 +162,10 @@ object ExecutableUktiSutraCompiler {
                         )
                     },
                 ),
-                evaluator = { _, state ->
-                    when {
-                        state.halted -> SutraNirnaya.NotApplicable(
-                            listOf("Program execution has been suspended or terminated."),
-                        )
-                        id in state.completedSutras -> SutraNirnaya.NotApplicable(
-                            listOf("The sūtra has already been applied."),
-                        )
-                        prerequisites.any { it !in state.completedSutras } -> {
-                            val missing = prerequisites.first { it !in state.completedSutras }
-                            SutraNirnaya.Blocked(
-                                missing,
-                                listOf("A prerequisite sūtra has not completed."),
-                            )
-                        }
-                        else -> SutraNirnaya.Applicable(
-                            effects = listOf(InvokeDhatuEffect(invocation, ukti)),
-                            reasons = listOf("The dhātu invocation is ready."),
-                        )
-                    }
-                },
                 relations = prerequisites.mapTo(linkedSetOf()) { SutraRelation.DependsOn(it) },
             )
         }
-        return SutraGrantha(
+        return SutraBlueprintGrantha(
             id = GranthaId("ukti"),
             sutras = sutras,
             exports = sutras.mapTo(linkedSetOf()) { it.id },

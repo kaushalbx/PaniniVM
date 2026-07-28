@@ -25,6 +25,26 @@ class SutraGranthaTest {
     }
 
     @Test
+    fun `runtime grantha becomes evaluator-free without losing declarations`() {
+        val sutra = sutra("public")
+        val grantha = SutraGrantha(
+            id = GranthaId("ganita"),
+            sutras = listOf(sutra),
+            imports = listOf(GranthaImport(GranthaId("sankhya"))),
+            samjnas = listOf(SamjnaDeclaration("सङ्ख्या")),
+            exports = setOf(sutra.id),
+        )
+
+        val blueprint = grantha.toBlueprintGrantha()
+
+        assertEquals(grantha.id, blueprint.id)
+        assertEquals(grantha.imports, blueprint.imports)
+        assertEquals(grantha.samjnas, blueprint.samjnas)
+        assertEquals(grantha.exports, blueprint.exports)
+        assertEquals(listOf(sutra.toBlueprint()), blueprint.sutras)
+    }
+
+    @Test
     fun `grantha reports declaration boundary errors together`() {
         val existing = sutra("existing")
         val grantha = SutraGrantha(
