@@ -32,9 +32,9 @@ object SutraBlueprintGranthaTextCodec {
     fun encode(grantha: SutraBlueprintGrantha): SutraBlueprintGranthaTextEncoding {
         val diagnostics = mutableListOf<SutraBlueprintGranthaTextDiagnostic>()
         val sutras = grantha.sutras.mapIndexedNotNull { index, blueprint ->
-            when (val encoded = SutraBlueprintTextCodec.encode(blueprint)) {
-                is SutraBlueprintTextEncoding.Success -> SutraArthaValue.Text(encoded.text)
-                is SutraBlueprintTextEncoding.Invalid -> {
+            when (val encoded = SutraBlueprintTextCodec.encodeValue(blueprint)) {
+                is SutraBlueprintTextCodec.BlueprintValueEncoding.Success -> encoded.value
+                is SutraBlueprintTextCodec.BlueprintValueEncoding.Invalid -> {
                     diagnostics += encoded.diagnostics.map {
                         SutraBlueprintGranthaTextDiagnostic(
                             SutraBlueprintGranthaTextDiagnosticCode.INVALID_BLUEPRINT,
@@ -111,19 +111,22 @@ object SutraBlueprintGranthaTextCodec {
             val root = decoded.record("grantha")
             val diagnostics = mutableListOf<SutraBlueprintGranthaTextDiagnostic>()
             val sutras = root.sequence("sutras").mapIndexedNotNull { index, value ->
-                val blueprintSource = (value as? SutraArthaValue.Text)?.value
-                if (blueprintSource == null) {
-                    diagnostics += invalidBlueprint(index, "Blueprint source must be text.")
-                    null
-                } else {
-                    when (val blueprint = SutraBlueprintTextCodec.decode(blueprintSource)) {
-                        is SutraBlueprintTextDecoding.Success -> blueprint.blueprint
-                        is SutraBlueprintTextDecoding.Invalid -> {
-                            diagnostics += blueprint.diagnostics.map {
-                                invalidBlueprint(index, it.message, it.position)
-                            }
-                            null
+                val decoding = when (value) {
+                    is SutraArthaValue.Text -> SutraBlueprintTextCodec.decode(value.value)
+                    is SutraArthaValue.Record -> SutraBlueprintTextCodec.decodeValue(value)
+                    else -> null
+                }
+                when (decoding) {
+                    null -> {
+                        diagnostics += invalidBlueprint(index, "Blueprint source must be a record.")
+                        null
+                    }
+                    is SutraBlueprintTextDecoding.Success -> decoding.blueprint
+                    is SutraBlueprintTextDecoding.Invalid -> {
+                        diagnostics += decoding.diagnostics.map {
+                            invalidBlueprint(index, it.message, it.position)
                         }
+                        null
                     }
                 }
             }

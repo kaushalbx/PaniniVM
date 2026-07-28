@@ -31,8 +31,18 @@ sealed interface SutraBlueprintTextDecoding {
 /** Canonical portable source for one evaluator-free sūtra definition. */
 object SutraBlueprintTextCodec {
     fun encode(blueprint: SutraBlueprint): SutraBlueprintTextEncoding {
+        val value = when (val encoded = encodeValue(blueprint)) {
+            is BlueprintValueEncoding.Success -> encoded.value
+            is BlueprintValueEncoding.Invalid -> {
+                return SutraBlueprintTextEncoding.Invalid(encoded.diagnostics)
+            }
+        }
+        return SutraBlueprintTextEncoding.Success(SutraArthaTextCodec.encode(value))
+    }
+
+    internal fun encodeValue(blueprint: SutraBlueprint): BlueprintValueEncoding {
         val role = encodeRole(blueprint.role)
-            ?: return SutraBlueprintTextEncoding.Invalid(
+            ?: return BlueprintValueEncoding.Invalid(
                 listOf(
                     SutraBlueprintTextDiagnostic(
                         SutraBlueprintTextDiagnosticCode.UNSUPPORTED_ROLE,
@@ -40,28 +50,29 @@ object SutraBlueprintTextCodec {
                     ),
                 ),
             )
-        val value = record(
-            "id" to text(blueprint.id.value),
-            "source" to encodeSource(blueprint.source),
-            "role" to role,
-            "artha" to record(
-                "kind" to text(blueprint.artha.kind),
-                "fields" to SutraArthaValue.Record(blueprint.artha.fields),
-            ),
-            "relations" to SutraArthaValue.Sequence(
-                blueprint.relations.map(::encodeRelation)
-                    .sortedBy(SutraArthaTextCodec::encode),
-            ),
-            "governance" to record(
-                "optional" to SutraArthaValue.Truth(blueprint.governance.optional),
-                "priority" to symbol(blueprint.governance.priority.name),
-                "blocks" to SutraArthaValue.Sequence(
-                    blueprint.governance.blocks.sorted().map(::text),
+        return BlueprintValueEncoding.Success(
+            record(
+                "id" to text(blueprint.id.value),
+                "source" to encodeSource(blueprint.source),
+                "role" to role,
+                "artha" to record(
+                    "kind" to text(blueprint.artha.kind),
+                    "fields" to SutraArthaValue.Record(blueprint.artha.fields),
                 ),
-                "visibility" to symbol(blueprint.governance.visibility.name),
+                "relations" to SutraArthaValue.Sequence(
+                    blueprint.relations.map(::encodeRelation)
+                        .sortedBy(SutraArthaTextCodec::encode),
+                ),
+                "governance" to record(
+                    "optional" to SutraArthaValue.Truth(blueprint.governance.optional),
+                    "priority" to symbol(blueprint.governance.priority.name),
+                    "blocks" to SutraArthaValue.Sequence(
+                        blueprint.governance.blocks.sorted().map(::text),
+                    ),
+                    "visibility" to symbol(blueprint.governance.visibility.name),
+                ),
             ),
         )
-        return SutraBlueprintTextEncoding.Success(SutraArthaTextCodec.encode(value))
     }
 
     fun decode(source: String): SutraBlueprintTextDecoding {
@@ -79,6 +90,10 @@ object SutraBlueprintTextCodec {
                 )
             }
         }
+        return decodeValue(decoded)
+    }
+
+    internal fun decodeValue(decoded: SutraArthaValue): SutraBlueprintTextDecoding {
         return try {
             val root = decoded.record("blueprint")
             val artha = root.required("artha").record("artha")
@@ -305,4 +320,11 @@ object SutraBlueprintTextCodec {
         val code: SutraBlueprintTextDiagnosticCode,
         message: String,
     ) : IllegalArgumentException(message)
+
+    internal sealed interface BlueprintValueEncoding {
+        data class Success(val value: SutraArthaValue.Record) : BlueprintValueEncoding
+        data class Invalid(
+            val diagnostics: List<SutraBlueprintTextDiagnostic>,
+        ) : BlueprintValueEncoding
+    }
 }

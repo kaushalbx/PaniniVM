@@ -28,14 +28,49 @@ class SutraBlueprintGranthaTextCodecTest {
         val decoded = assertIs<SutraBlueprintGranthaTextDecoding.Success>(
             SutraBlueprintGranthaTextCodec.decode(encoded.text),
         )
+        val encodedValue = assertIs<SutraArthaTextDecoding.Success>(
+            SutraArthaTextCodec.decode(encoded.text),
+        ).value as SutraArthaValue.Record
+        val nestedSutras = encodedValue.fields["sutras"] as SutraArthaValue.Sequence
 
         assertEquals(grantha, decoded.grantha)
+        nestedSutras.values.forEach { assertIs<SutraArthaValue.Record>(it) }
         assertEquals(
             encoded.text,
             assertIs<SutraBlueprintGranthaTextEncoding.Success>(
                 SutraBlueprintGranthaTextCodec.encode(decoded.grantha),
             ).text,
         )
+    }
+
+    @Test
+    fun `legacy text-wrapped nested blueprints remain readable`() {
+        val blueprint = blueprint("legacy")
+        val blueprintText = assertIs<SutraBlueprintTextEncoding.Success>(
+            SutraBlueprintTextCodec.encode(blueprint),
+        ).text
+        val legacySource = SutraArthaTextCodec.encode(
+            SutraArthaValue.Record(
+                mapOf(
+                    "id" to SutraArthaValue.Text("legacy"),
+                    "imports" to SutraArthaValue.Sequence(emptyList()),
+                    "adhikaras" to SutraArthaValue.Sequence(emptyList()),
+                    "samjnas" to SutraArthaValue.Sequence(emptyList()),
+                    "exports" to SutraArthaValue.Sequence(
+                        listOf(SutraArthaValue.Text("legacy")),
+                    ),
+                    "sutras" to SutraArthaValue.Sequence(
+                        listOf(SutraArthaValue.Text(blueprintText)),
+                    ),
+                ),
+            ),
+        )
+
+        val decoded = assertIs<SutraBlueprintGranthaTextDecoding.Success>(
+            SutraBlueprintGranthaTextCodec.decode(legacySource),
+        )
+
+        assertEquals(listOf(blueprint), decoded.grantha.sutras)
     }
 
     @Test
