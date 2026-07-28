@@ -1,6 +1,6 @@
 package dev.panini.execution
 
-import dev.panini.actions.control.LoopAction
+import dev.panini.actions.control.LoopGovernanceModifier
 import dev.panini.execution.external.ExternalCapabilityDispatcher
 import dev.panini.execution.persistence.FileStateStore
 import dev.panini.execution.persistence.StateStore
@@ -114,7 +114,7 @@ class PaniniVM(
                     ) {
                         return results
                     }
-                    results += LoopAction.executeStructured(
+                    results += LoopGovernanceModifier.executeStructured(
                         condition = {
                             eval(statement.condition, sessionKey, scope, speaker, listener)
                         },

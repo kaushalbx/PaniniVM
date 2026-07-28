@@ -172,23 +172,5 @@ object LoopAction : DhatuAction("अनुवृत्तिः", "क्रि�
         condition: () -> ExecutionResult,
         body: () -> List<ExecutionResult>,
         maximumIterations: Int = 100_000,
-    ): List<ExecutionResult> {
-        val results = mutableListOf<ExecutionResult>()
-        var iterations = 0
-        while (true) {
-            val conditionResult = condition()
-            results += conditionResult
-            if (conditionResult !is ExecutionResult.Success) break
-            val truth = conditionResult.typedValue as? SanskritValue.Satya
-                ?: error("यावत् condition must produce a सत्य value.")
-            if (!truth.boolean) break
-            check(iterations++ < maximumIterations) {
-                "यावत् loop exceeded $maximumIterations iterations."
-            }
-            val bodyResults = body()
-            results += bodyResults
-            if (bodyResults.any { it !is ExecutionResult.Success }) break
-        }
-        return results
-    }
+    ): List<ExecutionResult> = LoopGovernanceModifier.executeStructured(condition, body, maximumIterations)
 }
