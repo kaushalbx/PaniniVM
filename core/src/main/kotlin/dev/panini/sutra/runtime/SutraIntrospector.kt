@@ -3,13 +3,16 @@ package dev.panini.sutra.runtime
 import dev.panini.execution.SanskritValue
 
 object SutraIntrospector {
-    fun describe(sutra: RuntimeSutra<*>): SanskritValue = record(
+    fun describe(sutra: RuntimeSutra<*>): SanskritValue =
+        describe(sutra.toBlueprint())
+
+    fun describe(blueprint: SutraBlueprint): SanskritValue = record(
         mapOf(
-            "id" to SanskritValue.Shabda(sutra.id.value),
-            "source" to SanskritValue.Shabda(sutra.source.text),
-            "role" to SanskritValue.Shabda(sutra.role::class.simpleName ?: "Unknown"),
-            "arthaKind" to SanskritValue.Shabda(sutra.artha.kind),
-            "artha" to sutra.artha.toSanskritValue(),
+            "id" to SanskritValue.Shabda(blueprint.id.value),
+            "source" to SanskritValue.Shabda(blueprint.source.text),
+            "role" to SanskritValue.Shabda(blueprint.role::class.simpleName ?: "Unknown"),
+            "arthaKind" to SanskritValue.Shabda(blueprint.artha.kind),
+            "artha" to blueprint.artha.toSanskritValue(),
         ),
     )
 
