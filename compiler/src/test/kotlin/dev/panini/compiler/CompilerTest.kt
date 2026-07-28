@@ -354,8 +354,9 @@ class CompilerTest {
     @Test
     fun testCompileAndRunFibonacci() {
         val script = """
-            नव + अम् सृज् + टा वृत् + लोट् + सिप् ।
-            प्रथमफल + अम् प्रेष् + णिच् + लोट् + सिप् ।
+            एक + अम् एक + औट् च दा + लोट् + सिप् ।
+            अष्ट + अम् प्रथमफल + ङसिँ सृज् + टा वृत् + लोट् + सिप् ।
+            द्वितीयफल + अम् प्रेष् + णिच् + लोट् + सिप् ।
         """.trimIndent()
         val className = "SanskritFibonacciIntegrationTest"
         val clazz = BytecodeCompiler.compileAndLoad(script, className)
@@ -364,7 +365,7 @@ class CompilerTest {
         val resultVariables = executeMethod.invoke(null) as? Map<*, *>
         assertNotNull(resultVariables)
 
-        val loopResult = resultVariables["उक्ति-१/योग-1"] as? SanskritValue.Suchi
+        val loopResult = resultVariables["उक्ति-२/योग-1"] as? SanskritValue.Suchi
         assertNotNull(loopResult, "Loop result should be a list")
         assertEquals(10, loopResult.items.size)
         assertEquals(1L, (loopResult.items[0] as SanskritValue.Sankhya).value)
@@ -378,7 +379,7 @@ class CompilerTest {
         assertEquals(34L, (loopResult.items[8] as SanskritValue.Sankhya).value)
         assertEquals(55L, (loopResult.items[9] as SanskritValue.Sankhya).value)
 
-        val printResult = resultVariables["उक्ति-२/योग-1"] as? SanskritValue.Shabda
+        val printResult = resultVariables["उक्ति-३/योग-1"] as? SanskritValue.Shabda
         assertNotNull(printResult)
         assertTrue(printResult.text.contains("Simulated dispatch"))
         assertTrue(printResult.text.contains("पञ्चपञ्चाशत्"))

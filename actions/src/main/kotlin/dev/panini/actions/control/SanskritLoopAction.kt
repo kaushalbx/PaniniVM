@@ -72,7 +72,7 @@ object SanskritLoopAction : DhatuAction("अनुवृत्तिः", "क�
 
         // Copy non-conflicting bindings directly
         context.bindings.forEach { (k, v) ->
-            if (k != countKey && k != targetKey) {
+            if (k != countKey && k != targetKey && k != Karaka.SAMPRADANA && k != Karaka.APADANA) {
                 innerBindings[k] = v
             }
         }
@@ -81,7 +81,7 @@ object SanskritLoopAction : DhatuAction("अनुवृत्तिः", "क�
         targetRequiredKarakas.forEach { required ->
             if (required !in innerBindings) {
                 val sourceKey = context.bindings.keys.firstOrNull {
-                    it != countKey && it != targetKey && it != Karaka.KARTR && it !in targetRequiredKarakas
+                    it != countKey && it != targetKey && it != Karaka.KARTR && it !in targetRequiredKarakas && it != Karaka.SAMPRADANA && it != Karaka.APADANA
                 }
                 if (sourceKey != null) {
                     innerBindings[required] = context.bindings.getValue(sourceKey)
@@ -102,7 +102,10 @@ object SanskritLoopAction : DhatuAction("अनुवृत्तिः", "क�
 
         // 4. Execute the loop
         var currentResultValue = ""
-        var currentResultTyped: SanskritValue? = null
+        val initialStateExpr = context.bindings[Karaka.APADANA] ?: context.bindings[Karaka.SAMPRADANA]
+        var currentResultTyped: SanskritValue? = initialStateExpr?.let {
+            context.resolveValues(it).firstOrNull()
+        }
         val trace = mutableListOf("Selected operation ${operation.name} for loop execution of '${targetOp.name}' $loopCount times.")
 
         for (i in 1..loopCount) {

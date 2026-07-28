@@ -31,8 +31,9 @@ class VrtDhatu : Dhatu(
     operations = listOf(
         SanskritLoopAction.op {
             triggeredBy(forbiddenUpasargas = setOf("अनु"))
-            requires(Karaka.KARMAN) // loop count
+            requires(Karaka.KARMAN, 1, null, null, Samjna.SANKHYA) // loop count (must be a number)
             requires(Karaka.KARANA) // target action name
+            optional(Karaka.SAMPRADANA, Karaka.APADANA) // initial state
             returns(Samjna.SHABDA)
         },
         ListReverseAction.op {
@@ -42,7 +43,7 @@ class VrtDhatu : Dhatu(
         },
         WhileAction.op {
             triggeredBy(forbiddenUpasargas = setOf("अनु"))
-            requires(Karaka.KARMAN) // condition predicate
+            requires(Karaka.KARMAN, 1, null, null, Samjna.SHABDA) // condition predicate (must be a name/word)
             requires(Karaka.KARANA) // body action
             requires(Karaka.SAMPRADANA) // initial state
             returns(Samjna.SANKHYA, Samjna.SHABDA)
