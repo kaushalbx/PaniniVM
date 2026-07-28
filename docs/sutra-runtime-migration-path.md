@@ -123,7 +123,11 @@ The following runtime foundation is implemented:
 | 1.1.8 | मुखनासिकावचनोऽनुनासिकः | Assigns अनुनासिक saṃjñā |
 | 1.1.9 | तुल्यास्यप्रयत्नं सवर्णम् | Assigns सवर्ण saṃjñā |
 
-`MigratedAshtadhyayiGranthas` is the discoverable registry for migrated slices.
+### Uṇādipāṭha grantha
+
+`UnadipathaRuntimeGrantha` (`unadipatha`) contains the complete catalogue of 33+ Uṇādipāṭha rules under Aṣṭādhyāyī 3.3.1 (*उणादयो बहुलम्*), natively adapted directly from `UnadiPatha.sutras`.
+
+`MigratedAshtadhyayiGranthas` and `UnadipathaRuntimeGrantha.registry` are the discoverable registries for migrated slices.
 Their identities, Sanskrit source, artha, relationships, and exports use the
 new runtime architecture. During incremental migration, their established
 grammatical conditions and state changes remain authoritative and are adapted

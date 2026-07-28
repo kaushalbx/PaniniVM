@@ -4,6 +4,13 @@ import dev.panini.core.ItMarker
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.shiksha.Artha
 import dev.panini.shiksha.Samjna
+import dev.panini.sutra.SutraGovernance
+import dev.panini.sutra.SutraRole
+import dev.panini.sutra.runtime.SutraArtha
+import dev.panini.sutra.runtime.SutraArthaValue
+import dev.panini.sutra.runtime.SutraBlueprint
+import dev.panini.sutra.runtime.SutraId
+import dev.panini.sutra.runtime.SutraSource
 
 /**
  * Declarative Base class for all Uṇādi Sūtras.
@@ -25,6 +32,66 @@ abstract class UnadiSutra(
     val meaning: Artha = Artha.Karaka.KARTA,
     val hindiExplanation: String? = null
 ) {
+    val sutraId: SutraId get() = SutraId(number)
+
+    val source: SutraSource get() = SutraSource.Ashtadhyayi(number, text)
+
+    val artha: SutraArtha by lazy {
+        SutraArtha(
+            kind = "unadi",
+            fields = buildMap {
+                put("number", SutraArthaValue.Text(number))
+                put("text", SutraArthaValue.Text(text))
+                put(
+                    "roots",
+                    SutraArthaValue.Sequence(
+                        roots.map {
+                            SutraArthaValue.Text(it.upadesha.ifEmpty { it.sourceSurface })
+                        },
+                    ),
+                )
+                put("pratyaya", SutraArthaValue.Text(pratyaya))
+                put("pratyayaSurface", SutraArthaValue.Text(pratyayaSurface))
+                put(
+                    "itMarkers",
+                    SutraArthaValue.Sequence(
+                        itMarkers.map {
+                            SutraArthaValue.Symbol(it.name)
+                        },
+                    ),
+                )
+                put(
+                    "baseSamjnas",
+                    SutraArthaValue.Sequence(
+                        baseSamjnas.map {
+                            SutraArthaValue.Symbol(it::class.simpleName ?: it.toString())
+                        },
+                    ),
+                )
+                put("meaning", SutraArthaValue.Symbol(meaning::class.simpleName ?: "Karaka"))
+                if (rootSamjnaMap.isNotEmpty()) {
+                    put(
+                        "rūḍhiOutputs",
+                        SutraArthaValue.Record(
+                            rootSamjnaMap.mapValues {
+                                SutraArthaValue.Text(it.value.word)
+                            },
+                        ),
+                    )
+                }
+            },
+        )
+    }
+
+    fun toBlueprint(): SutraBlueprint = SutraBlueprint(
+        id = sutraId,
+        source = source,
+        role = SutraRole.Vidhi,
+        artha = artha,
+        relations = emptySet(),
+        governance = SutraGovernance(),
+    )
+
     /**
      * Checks if this Uṇādi sūtra matches a given root.
      */
