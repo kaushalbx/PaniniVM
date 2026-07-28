@@ -21,9 +21,13 @@ import dev.panini.sutra.runtime.SutraSource
  * scheduling remain owned by DerivationEngine during this migration stage.
  */
 object DerivationSutraRuntimeAdapter {
-    fun adapt(legacy: DerivationSutra): RuntimeSutra<DerivationAvastha> {
+    fun adapt(
+        legacy: DerivationSutra,
+        localSutraIds: Set<SutraId> = emptySet(),
+    ): RuntimeSutra<DerivationAvastha> {
         val id = SutraId(legacy.sutra)
         val catalogSutra = legacy as? Sutra<*, *>
+        val dependencies = catalogSutra?.dependencies.orEmpty()
         return RuntimeSutra(
             id = id,
             source = SutraSource.Ashtadhyayi(
@@ -40,6 +44,11 @@ object DerivationSutraRuntimeAdapter {
                     "action" to SutraArthaValue.Symbol(legacy.action.name),
                     "scope" to SutraArthaValue.Symbol(legacy.scope.name),
                     "optional" to SutraArthaValue.Truth(legacy.optional),
+                    "dependencies" to SutraArthaValue.Sequence(
+                        dependencies.map {
+                            SutraArthaValue.SutraReference(SutraId(it))
+                        },
+                    ),
                     "blocks" to SutraArthaValue.Sequence(
                         legacy.blocks.map { SutraArthaValue.SutraReference(SutraId(it)) },
                     ),
@@ -80,8 +89,13 @@ object DerivationSutraRuntimeAdapter {
                     }
                 }
             },
-            relations = legacy.blocks.mapTo(linkedSetOf()) {
-                SutraRelation.Blocks(SutraId(it))
+            relations = buildSet {
+                dependencies.map(::SutraId)
+                    .filter { it in localSutraIds }
+                    .forEach { add(SutraRelation.DependsOn(it)) }
+                legacy.blocks.map(::SutraId)
+                    .filter { it in localSutraIds }
+                    .forEach { add(SutraRelation.Blocks(it)) }
             },
             governance = SutraGovernance(
                 optional = legacy.optional,
