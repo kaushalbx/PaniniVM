@@ -32,7 +32,7 @@ class PaniniVM(
             ExecutionEffect.SEND_MESSAGE,
         )
     ),
-    val executionArchitecture: PaniniExecutionArchitecture = PaniniExecutionArchitecture.LEGACY,
+    val executionArchitecture: PaniniExecutionArchitecture = PaniniExecutionArchitecture.SUTRA_MACHINE,
 ) {
     val store: StateStore = FileStateStore(storageDir)
     private val externalDispatcher = ExternalCapabilityDispatcher()
