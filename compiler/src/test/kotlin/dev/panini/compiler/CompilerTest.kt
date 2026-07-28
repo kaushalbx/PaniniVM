@@ -2,6 +2,7 @@ package dev.panini.compiler
 
 import dev.panini.execution.SanskritValue
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.PrintStream
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -353,11 +354,7 @@ class CompilerTest {
 
     @Test
     fun testCompileAndRunFibonacci() {
-        val script = """
-            एक + अम् एक + औट् च दा + लोट् + सिप् ।
-            अष्ट + अम् प्रथमफल + ङसिँ सृज् + टा वृत् + लोट् + सिप् ।
-            द्वितीयफल + अम् प्रेष् + णिच् + लोट् + सिप् ।
-        """.trimIndent()
+        val script = File("examples/arithmetic/fibonacci.pvm").readText()
         val className = "SanskritFibonacciIntegrationTest"
         val clazz = BytecodeCompiler.compileAndLoad(script, className)
         val executeMethod = clazz.getMethod("execute")
@@ -365,21 +362,14 @@ class CompilerTest {
         val resultVariables = executeMethod.invoke(null) as? Map<*, *>
         assertNotNull(resultVariables)
 
-        val loopResult = resultVariables["उक्ति-२/योग-1"] as? SanskritValue.Suchi
-        assertNotNull(loopResult, "Loop result should be a list")
-        assertEquals(10, loopResult.items.size)
-        assertEquals(1L, (loopResult.items[0] as SanskritValue.Sankhya).value)
-        assertEquals(1L, (loopResult.items[1] as SanskritValue.Sankhya).value)
-        assertEquals(2L, (loopResult.items[2] as SanskritValue.Sankhya).value)
-        assertEquals(3L, (loopResult.items[3] as SanskritValue.Sankhya).value)
-        assertEquals(5L, (loopResult.items[4] as SanskritValue.Sankhya).value)
-        assertEquals(8L, (loopResult.items[5] as SanskritValue.Sankhya).value)
-        assertEquals(13L, (loopResult.items[6] as SanskritValue.Sankhya).value)
-        assertEquals(21L, (loopResult.items[7] as SanskritValue.Sankhya).value)
-        assertEquals(34L, (loopResult.items[8] as SanskritValue.Sankhya).value)
-        assertEquals(55L, (loopResult.items[9] as SanskritValue.Sankhya).value)
-
-        val printResult = resultVariables["उक्ति-३/योग-1"] as? SanskritValue.Shabda
+        val sequence = resultVariables.values.filterIsInstance<SanskritValue.Suchi>().lastOrNull()
+        assertNotNull(sequence, "The program should construct a list")
+        assertEquals(
+            listOf(1L, 1L, 2L, 3L, 5L, 8L, 13L, 21L, 34L, 55L),
+            sequence.items.map { (it as SanskritValue.Sankhya).value },
+        )
+        val printResult = resultVariables.values.filterIsInstance<SanskritValue.Shabda>()
+            .lastOrNull { "Simulated dispatch" in it.text }
         assertNotNull(printResult)
         assertTrue(printResult.text.contains("Simulated dispatch"))
         assertTrue(printResult.text.contains("पञ्चपञ्चाशत्"))

@@ -11,8 +11,7 @@ import dev.panini.execution.SanskritValue
 object ListPushAction : dev.panini.execution.DhatuAction("सूचीनिक्षेपणम्", "सूच्याम् अंशस्य निक्षेपणम्") {
     override fun execute(context: dev.panini.execution.ExecutionContext, operation: dev.panini.execution.DhatuOperation): dev.panini.execution.ExecutionResult {
         val expression = context.bindings[Karaka.KARMAN] ?: context.bindings[Karaka.ADHIKARANA]
-        val operands = if (expression != null) context.resolve(expression) else emptyList()
-        val items = operands.map { _root_ide_package_.dev.panini.execution.SanskritValue.Shabda(it) }
+        val items = if (expression != null) context.resolveValues(expression) else emptyList()
         val listValue = _root_ide_package_.dev.panini.execution.SanskritValue.Suchi(items)
 
         return _root_ide_package_.dev.panini.execution.ExecutionResult.Success(

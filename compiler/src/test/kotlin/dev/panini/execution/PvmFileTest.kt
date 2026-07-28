@@ -72,6 +72,25 @@ class PvmFileTest {
     }
 
     @Test
+    fun `PaniniVM evaluates fibonacci using only ordinary PVM operations`() {
+        val results = vm.evalFile(
+            File("examples/arithmetic/fibonacci.pvm"),
+            sessionKey = "fibonacci_session",
+        )
+
+        assertEquals(12, results.size)
+        val list = assertIs<SanskritValue.Suchi>(
+            assertIs<ExecutionResult.Success>(results[10]).typedValue,
+        )
+        assertEquals(
+            listOf(1L, 1L, 2L, 3L, 5L, 8L, 13L, 21L, 34L, 55L),
+            list.items.map { assertIs<SanskritValue.Sankhya>(it).value },
+        )
+        val sent = assertIs<ExecutionResult.Success>(results[11])
+        assertTrue(sent.value.contains(list.toDisplayText()))
+    }
+
+    @Test
     fun `PaniniVM evaluates comparison, min, random, sqrt, mod, and count pvm files`() {
         val compFile = File("examples/arithmetic/comparison.pvm")
         val compResults = vm.evalFile(compFile, sessionKey = "comp_session")

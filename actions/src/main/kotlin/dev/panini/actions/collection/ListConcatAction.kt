@@ -33,45 +33,12 @@ object ListConcatAction : DhatuAction("सूचीसंयोगः", "सू�
                 listOf(first) to second
             } else if (karmanValues.size == 1) {
                 val singleVal = karmanValues.first()
-                if (singleVal is SanskritValue.Sankhya && singleVal.value == 0L) {
-                    val one = SanskritValue.Sankhya(1L, "एकम्")
-                    val listValue = SanskritValue.Suchi(listOf(one, one))
-                    return ExecutionResult.Success(
-                        listValue.toDisplayText(),
-                        operation.name,
-                        listOf("Selected operation ${operation.name}.", "Initialized Fibonacci loop state with [1, 1]."),
-                        listValue
-                    )
-                } else {
-                    val listItems = when (singleVal) {
-                        is SanskritValue.Suchi -> singleVal.items
-                        is SanskritValue.Gana -> singleVal.elements
-                        else -> listOf(singleVal)
-                    }
-                    if (listItems.size >= 2 && listItems.all { it is SanskritValue.Sankhya }) {
-                        val last = listItems[listItems.size - 1] as SanskritValue.Sankhya
-                        val secondLast = listItems[listItems.size - 2] as SanskritValue.Sankhya
-                        val sum = last.value + secondLast.value
-                        val sumWord = dev.panini.execution.renderSankhyaResult(sum) ?: sum.toString()
-                        val nextElement = SanskritValue.Sankhya(sum, sumWord)
-                        val combined = SanskritValue.Suchi(listItems + nextElement)
-                        return ExecutionResult.Success(
-                            combined.toDisplayText(),
-                            operation.name,
-                            listOf(
-                                "Selected operation ${operation.name}.",
-                                "Appended sum of last two elements (${last.value} + ${secondLast.value} = $sum) to list."
-                            ),
-                            combined
-                        )
-                    } else {
-                        return ExecutionResult.Failure(
-                            ExecutionError.INVALID_VALUE,
-                            "List must contain at least 2 elements to grow the Fibonacci/Pingala sequence.",
-                            listOf("Selected operation ${operation.name}.")
-                        )
-                    }
+                val listItems = when (singleVal) {
+                    is SanskritValue.Suchi -> singleVal.items
+                    is SanskritValue.Gana -> singleVal.elements
+                    else -> listOf(singleVal)
                 }
+                listItems to emptyList()
             } else {
                 return ExecutionResult.Failure(
                     ExecutionError.INVALID_VALUE,

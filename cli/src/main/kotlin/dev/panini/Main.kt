@@ -22,8 +22,19 @@ import dev.panini.unadipatha.UnadiDerivationEngine
 import dev.panini.unadipatha.UnadiPatha
 import dev.panini.unadipatha.analysis.UnadiAnalyzer
 import java.io.File
+import java.io.FileDescriptor
+import java.io.FileOutputStream
+import java.io.PrintStream
+import java.nio.charset.StandardCharsets
 
 fun main(args: Array<String>) {
+    System.setOut(
+        PrintStream(
+            FileOutputStream(FileDescriptor.out),
+            true,
+            StandardCharsets.UTF_8,
+        ),
+    )
     runCli(args).forEach(::println)
 }
 
