@@ -85,15 +85,31 @@ class MainTest {
             val emitted = runCli(
                 arrayOf("--emit-grantha", input.toString(), output.toString()),
             )
+            val checked = runCli(arrayOf("--check-grantha", output.toString()))
             val executed = runCli(arrayOf("--grantha", output.toString()))
 
             assertTrue(emitted.any { it.contains("✓ Emitted 1 sūtra(s)") })
+            assertTrue(checked.any { it.contains("valid grantha 'addition' with 1 sūtra(s)") })
             assertTrue(Files.exists(output))
             assertTrue(executed.any { it.contains("✓ उक्ति-१/योग-1: द्वादश") })
         } finally {
             Files.deleteIfExists(output)
             Files.deleteIfExists(input)
             Files.deleteIfExists(directory)
+        }
+    }
+
+    @Test
+    fun `check grantha reports malformed source without executing it`() {
+        val file = Files.createTempFile("invalid-grantha", ".sutra")
+        try {
+            Files.writeString(file, "{not canonical sutra source")
+
+            val output = runCli(arrayOf("--check-grantha", file.toString()))
+
+            assertTrue(output.any { it.startsWith("✗") }, output.joinToString("\n"))
+        } finally {
+            Files.deleteIfExists(file)
         }
     }
 

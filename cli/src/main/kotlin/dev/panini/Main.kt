@@ -23,6 +23,7 @@ import dev.panini.execution.sutra.ProgramAvastha
 import dev.panini.execution.sutra.ProgramBlueprintContext
 import dev.panini.execution.sutra.ProgramBlueprintGranthaEngine
 import dev.panini.execution.sutra.ProgramGranthaExecution
+import dev.panini.execution.sutra.ProgramGranthaValidation
 import dev.panini.execution.sutra.SanskritGranthaSourceCompilation
 import dev.panini.execution.sutra.SanskritGranthaSourceCompiler
 import dev.panini.sankhya.SankhyaGenerator
@@ -132,6 +133,36 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
                 is ProgramGranthaExecution.InvalidRuntime -> execution.diagnostics.forEach {
                     add("✗ ${it.code}: ${it.message}")
                 }
+            }
+        }
+    }
+    "--check-grantha" -> {
+        val filePath = args.getOrNull(1) ?: error("Usage: --check-grantha path/to/file.sutra")
+        val file = File(filePath)
+        require(file.exists()) { "Sūtra grantha source file not found: $filePath" }
+        dev.panini.dhatupatha.DhatuPathaRegistration.ensureRegistered()
+        dev.panini.derivation.LinguisticActionsInitializer.initialize()
+        val validation = ProgramBlueprintGranthaEngine.validate(
+            file.readText(),
+            ProgramBlueprintContext(
+                speaker = "प्रयोक्ता",
+                listener = "यन्त्रम्",
+                text = file.name,
+            ),
+        )
+        when (validation) {
+            is ProgramGranthaValidation.Valid -> listOf(
+                "✓ ${file.name}: valid grantha '${validation.grantha.id}' " +
+                    "with ${validation.grantha.sutras.size} sūtra(s).",
+            )
+            is ProgramGranthaValidation.InvalidSource -> validation.diagnostics.map {
+                "✗ ${it.code}${it.position?.let { position -> " at $position" }.orEmpty()}: ${it.message}"
+            }
+            is ProgramGranthaValidation.InvalidBlueprint -> validation.diagnostics.map {
+                "✗ ${it.code}: ${it.message}"
+            }
+            is ProgramGranthaValidation.InvalidRuntime -> validation.diagnostics.map {
+                "✗ ${it.code}: ${it.message}"
             }
         }
     }
@@ -342,7 +373,7 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
         "loaded=${Ashtadhyayi.pathitaCount}; executable=${Ashtadhyayi.kriyavatCount}; total=${Ashtadhyayi.expectedSutraCount}; remaining=${Ashtadhyayi.remainingCount}",
         "roles=" + Ashtadhyayi.registry.sutras.groupingBy { it.role::class.simpleName }.eachCount().entries.joinToString { "${it.key}=${it.value}" },
     )
-    else -> listOf("Usage: --eval file.pvm | --emit-grantha file.pvm [output.sutra] | --grantha file.sutra | --compile file.pvm | --paradigm राम | --derive राम SASTHI BAHUVACANA | --derive-unadi कृ उण् | --verb भू | --unadi [lookup|pair|list] | --sankhya 23 | --sutra 7.1.54 | --coverage")
+    else -> listOf("Usage: --eval file.pvm | --emit-grantha file.pvm [output.sutra] | --check-grantha file.sutra | --grantha file.sutra | --compile file.pvm | --paradigm राम | --derive राम SASTHI BAHUVACANA | --derive-unadi कृ उण् | --verb भू | --unadi [lookup|pair|list] | --sankhya 23 | --sutra 7.1.54 | --coverage")
 }
 
 private enum class SankhyaKind { CARDINAL, ORDINAL }

@@ -85,6 +85,7 @@ segmented input → vyākaraṇa AST → binding → operation resolution → pl
 
 ```sh
 ./gradlew :cli:run --args="--emit-grantha src/test/kotlin/dev/panini/parser/addition.pvm addition.sutra"
+./gradlew :cli:run --args="--check-grantha addition.sutra"
 ./gradlew :cli:run --args="--grantha addition.sutra"
 ```
 

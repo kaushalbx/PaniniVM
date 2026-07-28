@@ -17,6 +17,10 @@ sūtra machine. Successful results retain their typed Sanskrit value; malformed
 source and invalid granthas are returned as ordinary `ExecutionResult.Failure`
 values.
 
+`ProgramBlueprintGranthaEngine.validate(...)` performs the same source,
+blueprint, and runtime checks without applying any sūtra effect. The CLI exposes
+this safe tooling boundary as `--check-grantha file.sutra`.
+
 During execution, the compiled grantha is automatically installed as the
 current grantha in the immutable sūtra registry. It can therefore inspect its
 own sūtras and resolve explicitly imported, exported sūtras without the host
