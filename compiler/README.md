@@ -17,9 +17,9 @@ sūtra machine. Successful results retain their typed Sanskrit value; malformed
 source and invalid granthas are returned as ordinary `ExecutionResult.Failure`
 values.
 
-The sūtra machine is the sole production execution architecture for ordinary
-`PaniniVM.eval(...)` calls. The former runtime remains temporarily isolated
-behind direct parity tests and is no longer selectable through the public API.
+The sūtra machine is the sole execution architecture for ordinary
+`PaniniVM.eval(...)` calls. The former parallel execution pipeline has been
+retired.
 
 ## Named local values
 

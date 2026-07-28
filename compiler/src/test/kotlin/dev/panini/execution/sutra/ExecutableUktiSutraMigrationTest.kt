@@ -20,7 +20,6 @@ import dev.panini.execution.SanskritValue
 import dev.panini.execution.ValueEnvironment
 import dev.panini.execution.VakyaPrayojana
 import dev.panini.execution.binding.VyakaranamExecutionAdapter
-import dev.panini.execution.runtime.ExecutionPipeline
 import dev.panini.sankhya.SankhyaCountingFormRenderer
 import dev.panini.sutra.runtime.SutraMachine
 import dev.panini.sutra.runtime.SutraMachineResult
@@ -53,7 +52,7 @@ class ExecutableUktiSutraMigrationTest {
     }
 
     @Test
-    fun `one existing command has parity through the runtime sutra adapter`() {
+    fun `one existing command executes through the runtime sutra adapter`() {
         val conversation = SambhashanaContext(
             speaker = "प्रयोक्ता",
             listener = "यन्त्रम्",
@@ -68,10 +67,6 @@ class ExecutableUktiSutraMigrationTest {
             VyakaranamExecutionAdapter.bind(input, conversation),
         )
 
-        val legacy = assertIs<Phala.Siddha>(
-            ExecutionPipeline.execute(bound.ukti, conversation, scope),
-        )
-
         val program = ExecutableUktiSutraCompiler.compile(bound.ukti)
         val blueprintGrantha = ExecutableUktiSutraCompiler.compileBlueprintGrantha(bound.ukti)
         val grantha = ExecutableUktiSutraCompiler.compileGrantha(bound.ukti)
@@ -83,8 +78,11 @@ class ExecutableUktiSutraMigrationTest {
         )
         val migratedPhala = assertIs<Phala.Siddha>(migrated.state.lastPhala)
 
-        assertEquals(legacy.values, migratedPhala.values)
-        assertEquals(legacy.typedValues, migratedPhala.typedValues)
+        assertEquals(mapOf("योग-1" to "द्वादश"), migratedPhala.values)
+        assertEquals(
+            12L,
+            assertIs<SanskritValue.Sankhya>(migratedPhala.typedValues["योग-1"]).value,
+        )
         assertEquals(program.sutras.map { it.id }.toSet(), migrated.state.completedSutras)
         assertEquals(GranthaId("ukti"), grantha.id)
         assertEquals(GranthaId("ukti"), blueprintGrantha.id)
@@ -146,19 +144,16 @@ class ExecutableUktiSutraMigrationTest {
                 ProgramAvastha(ValueEnvironment()),
             ),
         )
-        val legacyNumber = assertIs<SanskritValue.Sankhya>(
-            legacy.typedValues.values.single(),
-        )
         val generatedNumber = assertIs<SanskritValue.Sankhya>(
             assertIs<Phala.Siddha>(blueprintResult.state.lastPhala)
                 .typedValues["generated-addition"],
         )
-        assertEquals(legacyNumber.value, generatedNumber.value)
+        assertEquals(12L, generatedNumber.value)
         assertEquals(1, migrated.trace.size)
     }
 
     @Test
-    fun `multi clause result flow has parity through the sutra pipeline`() {
+    fun `multi clause result flows through canonical grantha source`() {
         val conversation = SambhashanaContext(
             speaker = "प्रयोक्ता",
             listener = "यन्त्रम्",
@@ -175,16 +170,10 @@ class ExecutableUktiSutraMigrationTest {
             VyakaranamExecutionAdapter.bind(input, conversation),
         )
 
-        val legacy = assertIs<Phala.Siddha>(
-            ExecutionPipeline.execute(input, conversation, scope),
-        )
         val migrated = assertIs<Phala.Siddha>(
             SutraExecutionPipeline.execute(input, conversation, scope),
         )
-
-        assertEquals(legacy.values, migrated.values)
-        assertEquals(legacy.typedValues, migrated.typedValues)
-        assertEquals(legacy.localBindings, migrated.localBindings)
+        assertEquals(3, migrated.values.size)
 
         val sourceGrantha = ExecutableUktiSutraCompiler.compileBlueprintGrantha(bound.ukti)
         val generatedGrantha = sourceGrantha.copy(
@@ -232,8 +221,8 @@ class ExecutableUktiSutraMigrationTest {
         )
         assertEquals(bound.ukti.dependencies, planning.program.dependencies)
         assertEquals(sourceGrantha.sutras.map { it.id }, generatedResult.trace.map { it.sutraId })
-        assertEquals(legacy.typedValues, generatedResult.state.invocationValues)
-        assertEquals(legacy.localBindings, generatedResult.state.localBindings)
+        assertEquals(migrated.typedValues, generatedResult.state.invocationValues)
+        assertEquals(migrated.localBindings, generatedResult.state.localBindings)
     }
 
     @Test
@@ -248,7 +237,7 @@ class ExecutableUktiSutraMigrationTest {
     }
 
     @Test
-    fun `sutra registry reaches reflection action through both execution pipelines`() {
+    fun `sutra registry reaches reflection action through sutra execution`() {
         val public = RuntimeSutra<ProgramAvastha>(
             id = SutraId("public"),
             source = SutraSource.Program("library", "public", "public"),
@@ -294,15 +283,11 @@ class ExecutableUktiSutraMigrationTest {
             currentGrantha = application.id,
         )
 
-        val legacy = assertIs<Phala.Siddha>(
-            ExecutionPipeline.execute(ukti, conversation, scope),
-        )
         val migrated = assertIs<Phala.Siddha>(
             SutraExecutionPipeline.execute(ukti, conversation, scope),
         )
 
-        assertEquals(SanskritValue.Shabda("युज्"), legacy.typedValues["inspect"])
-        assertEquals(legacy.typedValues, migrated.typedValues)
+        assertEquals(SanskritValue.Shabda("युज्"), migrated.typedValues["inspect"])
     }
 
     private fun temporaryDirectory(label: String): File =
