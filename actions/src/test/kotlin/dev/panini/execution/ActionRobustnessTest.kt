@@ -1,9 +1,9 @@
 package dev.panini.execution
 
-import dev.panini.actions.numeric.SanskritAdditionAction
-import dev.panini.actions.numeric.SanskritHypotenuseAction
-import dev.panini.actions.numeric.SanskritSquareRootAction
-import dev.panini.actions.numeric.SanskritTrigonometryAction
+import dev.panini.actions.numeric.AdditionAction
+import dev.panini.actions.numeric.HypotenuseAction
+import dev.panini.actions.numeric.SquareRootAction
+import dev.panini.actions.numeric.TrigonometryAction
 import dev.panini.core.Karaka
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -13,9 +13,9 @@ import kotlin.test.assertTrue
 class ActionRobustnessTest {
     @Test
     fun `direct invocation reports a missing karman instead of throwing`() {
-        val result = SanskritAdditionAction.execute(
+        val result = AdditionAction.execute(
             ExecutionContext(),
-            SanskritAdditionAction.numericOp(),
+            AdditionAction.numericOp(),
         )
 
         assertEquals(ExecutionError.MISSING_KARAKA, assertIs<ExecutionResult.Failure>(result).error)
@@ -26,9 +26,9 @@ class ActionRobustnessTest {
         val context = ExecutionContext(
             bindings = mapOf(Karaka.KARMAN to ExecutionExpression.sankhya(2, "द्वि")),
         )
-        val result = SanskritSquareRootAction.execute(
+        val result = SquareRootAction.execute(
             context,
-            SanskritSquareRootAction.numericOp(minimum = 1),
+            SquareRootAction.numericOp(minimum = 1),
         )
 
         assertTrue("not an exact integer" in assertIs<ExecutionResult.Failure>(result).message)
@@ -44,9 +44,9 @@ class ActionRobustnessTest {
                 ),
             ),
         )
-        val result = SanskritHypotenuseAction.execute(
+        val result = HypotenuseAction.execute(
             context,
-            SanskritHypotenuseAction.numericOp(),
+            HypotenuseAction.numericOp(),
         )
 
         assertTrue("overflow" in assertIs<ExecutionResult.Failure>(result).message.lowercase())
@@ -58,9 +58,9 @@ class ActionRobustnessTest {
             bindings = mapOf(Karaka.KARMAN to ExecutionExpression.sankhya(30, "त्रिंशत्")),
         )
         val result = assertIs<ExecutionResult.Success>(
-            SanskritTrigonometryAction.execute(
+            TrigonometryAction.execute(
                 context,
-                SanskritTrigonometryAction.numericOp(minimum = 1),
+                TrigonometryAction.numericOp(minimum = 1),
             ),
         )
 

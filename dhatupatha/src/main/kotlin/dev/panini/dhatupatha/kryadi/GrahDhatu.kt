@@ -1,6 +1,6 @@
-﻿package dev.panini.dhatupatha.kryadi
+package dev.panini.dhatupatha.kryadi
 
-import dev.panini.actions.io.SanskritReadAction
+import dev.panini.actions.io.ReadAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
@@ -27,7 +27,7 @@ class GrahDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.UDATTA,
     operations = listOf(
-        SanskritReadAction.op {
+        ReadAction.op {
             requires(Karaka.KARMAN); returns(Samjna.SHABDA)
         },
     ),

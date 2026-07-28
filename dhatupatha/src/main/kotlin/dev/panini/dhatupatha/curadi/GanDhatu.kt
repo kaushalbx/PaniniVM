@@ -1,9 +1,9 @@
 package dev.panini.dhatupatha.curadi
 
-import dev.panini.actions.numeric.SanskritAverageAction
-import dev.panini.actions.numeric.SanskritCountingAction
-import dev.panini.actions.numeric.SanskritMultiplicationAction
-import dev.panini.actions.collection.SanskritListLengthAction
+import dev.panini.actions.numeric.AverageAction
+import dev.panini.actions.numeric.CountingAction
+import dev.panini.actions.numeric.MultiplicationAction
+import dev.panini.actions.collection.ListLengthAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
@@ -32,19 +32,19 @@ class GanDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.UDATTA,
     operations = listOf(
-        SanskritMultiplicationAction.numericOp {
+        MultiplicationAction.numericOp {
             triggeredBy(forbiddenUpasargas = setOf("सम्", "सम"))
         },
-        SanskritCountingAction.op {
+        CountingAction.op {
             requires(Karaka.KARMAN, shape = ExpressionShape.COORDINATION)
             returns(Samjna.SANKHYA)
         },
-        SanskritAverageAction.op {
+        AverageAction.op {
             requiresNumbers(shape = ExpressionShape.COORDINATION)
             triggeredBy(requiredUpasargas = setOf("सम्"))
             returns(Samjna.SANKHYA)
         },
-        SanskritListLengthAction.op {
+        ListLengthAction.op {
             requires(Karaka.KARMAN)
             returns(Samjna.SANKHYA)
         },

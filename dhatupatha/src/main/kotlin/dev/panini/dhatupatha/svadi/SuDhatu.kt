@@ -1,6 +1,6 @@
-﻿package dev.panini.dhatupatha.svadi
+package dev.panini.dhatupatha.svadi
 
-import dev.panini.actions.linguistic.SanskritSummarizeAction
+import dev.panini.actions.linguistic.SummarizeAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
@@ -26,7 +26,7 @@ class SuDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.ANUDATTA,
     operations = listOf(
-        SanskritSummarizeAction.op {
+        SummarizeAction.op {
             requires(Karaka.KARMAN)
             returns(Samjna.SHABDA)
         },

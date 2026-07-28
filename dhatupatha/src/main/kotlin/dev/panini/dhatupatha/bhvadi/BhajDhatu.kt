@@ -1,8 +1,8 @@
 package dev.panini.dhatupatha.bhvadi
 
 import dev.panini.actions.collection.ListSliceAction
-import dev.panini.actions.numeric.SanskritDivisionAction
-import dev.panini.actions.numeric.SanskritFractionAction
+import dev.panini.actions.numeric.DivisionAction
+import dev.panini.actions.numeric.FractionAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
@@ -29,10 +29,10 @@ class BhajDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.ANUDATTA,
     operations = listOf(
-        SanskritDivisionAction.numericOp {
+        DivisionAction.numericOp {
             triggeredBy(requiredUpasargas = setOf("वि"))
         },
-        SanskritFractionAction.numericOp {
+        FractionAction.numericOp {
             triggeredBy(requiredUpasargas = setOf("वि"))
         },
         ListSliceAction.op {

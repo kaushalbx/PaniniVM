@@ -1,6 +1,6 @@
-﻿package dev.panini.dhatupatha.bhvadi
+package dev.panini.dhatupatha.bhvadi
 
-import dev.panini.actions.state.SanskritStateInstantiateAction
+import dev.panini.actions.state.StateInstantiateAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
@@ -26,7 +26,7 @@ class BhuDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.UDATTA,
     operations = listOf(
-        SanskritStateInstantiateAction.op {
+        StateInstantiateAction.op {
             requires(Karaka.KARMAN)
             returns(Samjna.SHABDA)
         },

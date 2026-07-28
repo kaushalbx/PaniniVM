@@ -1,6 +1,6 @@
 package dev.panini.dhatupatha.rudhadi
 
-import dev.panini.actions.numeric.SanskritModuloAction
+import dev.panini.actions.numeric.ModuloAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.PadaType
 import dev.panini.dhatupatha.Dhatu
@@ -24,6 +24,6 @@ class ShishDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.ANUDATTA,
     operations = listOf(
-        SanskritModuloAction.numericOp(),
+        ModuloAction.numericOp(),
     ),
 )

@@ -1,7 +1,7 @@
 package dev.panini.derivation
 
-import dev.panini.actions.linguistic.SanskritSandhiAction
-import dev.panini.actions.linguistic.SanskritSubantaDerivationAction
+import dev.panini.actions.linguistic.SandhiAction
+import dev.panini.actions.linguistic.SubantaDerivationAction
 import dev.panini.core.Karaka
 import dev.panini.core.Vibhakti
 import dev.panini.core.Vacana
@@ -56,7 +56,7 @@ object LinguisticActionsInitializer {
         )
         val derivationEngine = DerivationEngine(sandhiSutras)
 
-        SanskritSandhiAction.sandhiHandler = { left: String, right: String ->
+        SandhiAction.sandhiHandler = { left: String, right: String ->
             if (left.isEmpty()) right
             else if (right.isEmpty()) left
             else {
@@ -74,7 +74,7 @@ object LinguisticActionsInitializer {
             }
         }
 
-        SanskritSubantaDerivationAction.subantaHandler = { stem: String ->
+        SubantaDerivationAction.subantaHandler = { stem: String ->
             val engine = SubantaEngine()
             val request = SubantaDerivationRequest(
                 pratipadika = stem,

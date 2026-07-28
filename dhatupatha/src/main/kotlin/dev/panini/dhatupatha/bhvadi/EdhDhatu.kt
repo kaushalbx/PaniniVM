@@ -1,6 +1,6 @@
-﻿package dev.panini.dhatupatha.bhvadi
+package dev.panini.dhatupatha.bhvadi
 
-import dev.panini.actions.numeric.SanskritScaleAction
+import dev.panini.actions.numeric.ScaleAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
@@ -26,7 +26,7 @@ class EdhDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.ANUDATTA,
     operations = listOf(
-        SanskritScaleAction.op {
+        ScaleAction.op {
             requires(Karaka.KARMAN)
             returns(Samjna.SANKHYA, Samjna.SHABDA)
         },

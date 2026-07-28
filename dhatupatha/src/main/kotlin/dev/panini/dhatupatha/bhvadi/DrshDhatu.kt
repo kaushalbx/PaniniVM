@@ -1,7 +1,7 @@
-﻿package dev.panini.dhatupatha.bhvadi
+package dev.panini.dhatupatha.bhvadi
 
-import dev.panini.actions.io.SanskritPrintAction
-import dev.panini.actions.state.SanskritVariableInspectAction
+import dev.panini.actions.io.PrintAction
+import dev.panini.actions.state.VariableInspectAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
@@ -27,12 +27,12 @@ class DrshDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.ANUDATTA,
     operations = listOf(
-        SanskritVariableInspectAction.op {
+        VariableInspectAction.op {
             requires(Karaka.KARMAN)
             triggeredBy(forbiddenUpasargas = setOf("प्र"))
             returns(Samjna.SHABDA)
         },
-        SanskritPrintAction.op {
+        PrintAction.op {
             requires(Karaka.KARMAN)
             triggeredBy(requiredUpasargas = setOf("प्र"))
             returns(Samjna.SHABDA)

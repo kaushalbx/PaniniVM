@@ -1,9 +1,9 @@
 package dev.panini.execution
 
-import dev.panini.actions.numeric.SanskritTrigonometryAction
-import dev.panini.actions.numeric.SanskritCircumferenceAction
-import dev.panini.actions.numeric.SanskritHypotenuseAction
-import dev.panini.actions.numeric.SanskritAreaAction
+import dev.panini.actions.numeric.TrigonometryAction
+import dev.panini.actions.numeric.CircumferenceAction
+import dev.panini.actions.numeric.HypotenuseAction
+import dev.panini.actions.numeric.AreaAction
 import dev.panini.core.Karaka
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -13,15 +13,15 @@ import kotlin.test.assertTrue
 class DhatuGeoActionTest {
 
     @Test
-    fun `executes SanskritTrigonometryAction for 90 degrees`() {
-        val op = SanskritTrigonometryAction.op()
+    fun `executes TrigonometryAction for 90 degrees`() {
+        val op = TrigonometryAction.op()
         val ctx = ExecutionContext(
             bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.sankhya(90L, "नवति"),
             )
         )
 
-        val res = SanskritTrigonometryAction.execute(ctx, op)
+        val res = TrigonometryAction.execute(ctx, op)
         val success = assertIs<ExecutionResult.Success>(res)
         val value = assertIs<SanskritValue.Rational>(success.typedValue)
         assertEquals(1L, value.numerator)
@@ -29,23 +29,23 @@ class DhatuGeoActionTest {
     }
 
     @Test
-    fun `executes SanskritCircumferenceAction for radius 10`() {
-        val op = SanskritCircumferenceAction.op()
+    fun `executes CircumferenceAction for radius 10`() {
+        val op = CircumferenceAction.op()
         val ctx = ExecutionContext(
             bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.sankhya(10L, "दशन्"),
             )
         )
 
-        val res = SanskritCircumferenceAction.execute(ctx, op)
+        val res = CircumferenceAction.execute(ctx, op)
         val success = assertIs<ExecutionResult.Success>(res)
         val value = assertIs<SanskritValue.Rational>(success.typedValue)
         assertTrue(kotlin.math.abs(value.numerator.toDouble() / value.denominator - 20.0 * Math.PI) < 1e-8)
     }
 
     @Test
-    fun `executes SanskritHypotenuseAction for sides 3 and 4`() {
-        val op = SanskritHypotenuseAction.op()
+    fun `executes HypotenuseAction for sides 3 and 4`() {
+        val op = HypotenuseAction.op()
         val ctx = ExecutionContext(
             bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.Coordination(
@@ -57,22 +57,22 @@ class DhatuGeoActionTest {
             )
         )
 
-        val res = SanskritHypotenuseAction.execute(ctx, op)
+        val res = HypotenuseAction.execute(ctx, op)
         val success = assertIs<ExecutionResult.Success>(res)
         val valSankhya = assertIs<SanskritValue.Sankhya>(success.typedValue)
         assertEquals(5L, valSankhya.value)
     }
 
     @Test
-    fun `executes SanskritAreaAction for dimension 10`() {
-        val op = SanskritAreaAction.op()
+    fun `executes AreaAction for dimension 10`() {
+        val op = AreaAction.op()
         val ctx = ExecutionContext(
             bindings = mapOf(
                 Karaka.KARMAN to ExecutionExpression.sankhya(10L, "दशन्"),
             )
         )
 
-        val res = SanskritAreaAction.execute(ctx, op)
+        val res = AreaAction.execute(ctx, op)
         val success = assertIs<ExecutionResult.Success>(res)
         val value = assertIs<SanskritValue.Rational>(success.typedValue)
         assertTrue(kotlin.math.abs(value.numerator.toDouble() / value.denominator - 100.0 * Math.PI) < 1e-8)

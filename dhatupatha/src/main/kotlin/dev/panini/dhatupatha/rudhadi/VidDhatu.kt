@@ -1,7 +1,7 @@
-﻿package dev.panini.dhatupatha.rudhadi
+package dev.panini.dhatupatha.rudhadi
 
-import dev.panini.actions.numeric.SanskritComparisonAction
-import dev.panini.actions.numeric.SanskritMinAction
+import dev.panini.actions.numeric.ComparisonAction
+import dev.panini.actions.numeric.MinAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.PadaType
 import dev.panini.dhatupatha.Dhatu
@@ -27,12 +27,12 @@ class VidDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.ANUDATTA,
     operations = listOf(
-        SanskritComparisonAction.GreaterThan.op {
+        ComparisonAction.GreaterThan.op {
             requiresNumbers(shape = ExpressionShape.COORDINATION)
             triggeredBy(forbiddenAvyayas = setOf("न्यूनतया"))
             returns(Samjna.SANKHYA)
         },
-        SanskritMinAction.op {
+        MinAction.op {
             requiresNumbers(shape = ExpressionShape.COORDINATION)
             triggeredBy(requiredAvyayas = setOf("न्यूनतया"))
             returns(Samjna.SANKHYA)

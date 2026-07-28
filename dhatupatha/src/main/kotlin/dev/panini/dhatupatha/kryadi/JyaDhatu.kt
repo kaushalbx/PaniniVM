@@ -1,9 +1,9 @@
-﻿package dev.panini.dhatupatha.kryadi
+package dev.panini.dhatupatha.kryadi
 
-import dev.panini.actions.numeric.SanskritTrigonometryAction
-import dev.panini.actions.numeric.SanskritCircumferenceAction
-import dev.panini.actions.numeric.SanskritHypotenuseAction
-import dev.panini.actions.numeric.SanskritAreaAction
+import dev.panini.actions.numeric.TrigonometryAction
+import dev.panini.actions.numeric.CircumferenceAction
+import dev.panini.actions.numeric.HypotenuseAction
+import dev.panini.actions.numeric.AreaAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
@@ -29,7 +29,7 @@ class JyaDhatu : Dhatu(
     karmatva = Karmatva.AKARMAKA,
     svara = Accent.ANUDATTA,
     operations = listOf(
-        SanskritTrigonometryAction.op {
+        TrigonometryAction.op {
             requires(Karaka.KARMAN); returns(Samjna.SANKHYA)
         },
     ),

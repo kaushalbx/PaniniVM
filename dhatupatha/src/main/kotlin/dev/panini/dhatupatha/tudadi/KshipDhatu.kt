@@ -1,7 +1,7 @@
 package dev.panini.dhatupatha.tudadi
 
 import dev.panini.actions.collection.ListFoldAction
-import dev.panini.actions.collection.SanskritListPushAction
+import dev.panini.actions.collection.ListPushAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
@@ -27,7 +27,7 @@ class KshipDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.ANUDATTA,
     operations = listOf(
-        SanskritListPushAction.op {
+        ListPushAction.op {
             requires(Karaka.KARMAN); returns(Samjna.GANA, Samjna.SHABDA)
         },
         ListFoldAction.op {

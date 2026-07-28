@@ -1,8 +1,8 @@
-﻿package dev.panini.dhatupatha.rudhadi
+package dev.panini.dhatupatha.rudhadi
 
-import dev.panini.actions.numeric.SanskritAdditionAction
-import dev.panini.actions.numeric.SanskritComparisonAction
-import dev.panini.actions.numeric.SanskritSubtractionAction
+import dev.panini.actions.numeric.AdditionAction
+import dev.panini.actions.numeric.ComparisonAction
+import dev.panini.actions.numeric.SubtractionAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.PadaType
 import dev.panini.dhatupatha.Dhatu
@@ -28,15 +28,15 @@ open class YujirDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.ANUDATTA,
     operations = listOf(
-        SanskritAdditionAction.numericOp {
+        AdditionAction.numericOp {
             triggeredBy(forbiddenUpasargas = setOf("वि", "तुल्"))
             returns(Samjna.SANKHYA, Samjna.SHABDA)
         },
-        SanskritSubtractionAction.numericOp {
+        SubtractionAction.numericOp {
             triggeredBy(requiredUpasargas = setOf("वि"))
             returns(Samjna.SANKHYA, Samjna.SHABDA)
         },
-        SanskritComparisonAction.GreaterThan.numericOp {
+        ComparisonAction.GreaterThan.numericOp {
             triggeredBy(requiredUpasargas = setOf("तुल्"))
             returns(Samjna.SHABDA)
         },

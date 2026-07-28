@@ -1,6 +1,6 @@
 package dev.panini.dhatupatha.tudadi
 
-import dev.panini.actions.collection.SanskritListConcatAction
+import dev.panini.actions.collection.ListConcatAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
@@ -26,7 +26,7 @@ class SrjDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.ANUDATTA,
     operations = listOf(
-        SanskritListConcatAction.op {
+        ListConcatAction.op {
             requires(Karaka.KARMAN)
             requires(Karaka.SAMPRADANA)
             returns(Samjna.GANA)

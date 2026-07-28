@@ -1,6 +1,6 @@
-﻿package dev.panini.dhatupatha.juhotyadi
+package dev.panini.dhatupatha.juhotyadi
 
-import dev.panini.actions.io.SanskritEmitAction
+import dev.panini.actions.io.EmitAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
@@ -26,7 +26,7 @@ class HuDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.UDATTA,
     operations = listOf(
-        SanskritEmitAction.op {
+        EmitAction.op {
             requires(Karaka.KARMAN)
             returns(Samjna.SHABDA)
         },

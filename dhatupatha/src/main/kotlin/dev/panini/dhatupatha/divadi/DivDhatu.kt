@@ -1,6 +1,6 @@
-﻿package dev.panini.dhatupatha.divadi
+package dev.panini.dhatupatha.divadi
 
-import dev.panini.actions.numeric.SanskritRandomChoiceAction
+import dev.panini.actions.numeric.RandomChoiceAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
@@ -26,7 +26,7 @@ class DivDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.UDATTA,
     operations = listOf(
-        SanskritRandomChoiceAction.op {
+        RandomChoiceAction.op {
             requires(Karaka.KARMAN)
             returns(Samjna.SHABDA)
         },

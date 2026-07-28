@@ -1,7 +1,7 @@
 package dev.panini.dhatupatha.bhvadi
 
-import dev.panini.actions.numeric.SanskritDivisionAction
-import dev.panini.actions.collection.SanskritListPopAction
+import dev.panini.actions.numeric.DivisionAction
+import dev.panini.actions.collection.ListPopAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
@@ -28,8 +28,8 @@ class HrDhatu : Dhatu(
     karmatva = Karmatva.DVIKARMAKA,
     svara = Accent.ANUDATTA,
     operations = listOf(
-        SanskritDivisionAction.numericOp(),
-        SanskritListPopAction.op {
+        DivisionAction.numericOp(),
+        ListPopAction.op {
             triggeredBy(requiredUpasargas = setOf("उद्"))
             requires(Karaka.KARMAN)
             returns(Samjna.SHABDA)

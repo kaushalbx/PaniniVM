@@ -1,6 +1,6 @@
-﻿package dev.panini.dhatupatha.bhvadi
+package dev.panini.dhatupatha.bhvadi
 
-import dev.panini.actions.numeric.SanskritSquareRootAction
+import dev.panini.actions.numeric.SquareRootAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.PadaType
 import dev.panini.dhatupatha.Dhatu
@@ -25,7 +25,7 @@ class MulDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.UDATTA,
     operations = listOf(
-        SanskritSquareRootAction.op {
+        SquareRootAction.op {
             requiresNumbers()
             returns(Samjna.SANKHYA)
         },

@@ -11,7 +11,7 @@ import dev.panini.execution.SanskritValue
 import dev.panini.actions.missingKaraka
 
 /** Variable Assignment & Value Binding (dā / मूल्यदानम्). */
-object SanskritVariableAssignAction : DhatuAction("मूल्यदानम्", "मूल्यस्य संविभाजनम्") {
+object VariableAssignAction : DhatuAction("मूल्यदानम्", "मूल्यस्य संविभाजनम्") {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
         val expression = context.bindings[Karaka.KARMAN]
             ?: return missingKaraka(operation, Karaka.KARMAN)
@@ -39,7 +39,7 @@ object SanskritVariableAssignAction : DhatuAction("मूल्यदानम�
 }
 
 /** Variable Inspection & Querying (dṛś / मूल्यदर्शनम्). */
-object SanskritVariableInspectAction : DhatuAction("मूल्यदर्शनम्", "मूल्यस्य निरीक्षणम्") {
+object VariableInspectAction : DhatuAction("मूल्यदर्शनम्", "मूल्यस्य निरीक्षणम्") {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
         val expression = context.bindings[Karaka.KARMAN]
             ?: return missingKaraka(operation, Karaka.KARMAN)

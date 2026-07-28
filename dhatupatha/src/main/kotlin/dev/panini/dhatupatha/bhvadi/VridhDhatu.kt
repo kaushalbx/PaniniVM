@@ -1,6 +1,6 @@
 package dev.panini.dhatupatha.bhvadi
 
-import dev.panini.actions.numeric.SanskritExponentiationAction
+import dev.panini.actions.numeric.ExponentiationAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.PadaType
 import dev.panini.dhatupatha.Dhatu
@@ -24,6 +24,6 @@ class VridhDhatu : Dhatu(
     karmatva = Karmatva.AKARMAKA,
     svara = Accent.UDATTA,
     operations = listOf(
-        SanskritExponentiationAction.numericOp(),
+        ExponentiationAction.numericOp(),
     ),
 )

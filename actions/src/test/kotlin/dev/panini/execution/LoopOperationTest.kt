@@ -24,7 +24,7 @@ class LoopOperationTest {
     }
 
     @Test
-    fun `VrtDhatu executes SanskritLoopAction to perform repeated addition`() {
+    fun `VrtDhatu executes LoopAction to perform repeated addition`() {
         DhatuPathaRegistration.ensureRegistered()
         val vrt = DhatuPatha.all.first { it.upadesha == "वृताँ" }
         val loopOp = vrt.operations.first()

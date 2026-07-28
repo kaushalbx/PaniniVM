@@ -1,8 +1,8 @@
-﻿package dev.panini.dhatupatha.juhotyadi
+package dev.panini.dhatupatha.juhotyadi
 
-import dev.panini.actions.linguistic.SanskritSandhiAction
-import dev.panini.actions.numeric.SanskritAdditionAction
-import dev.panini.actions.numeric.SanskritCircumferenceAction
+import dev.panini.actions.linguistic.SandhiAction
+import dev.panini.actions.numeric.AdditionAction
+import dev.panini.actions.numeric.CircumferenceAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
@@ -31,15 +31,15 @@ open class DhaDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.ANUDATTA,
     operations = listOf(
-        SanskritSandhiAction.op {
+        SandhiAction.op {
             requires(Karaka.KARMAN, shape = ExpressionShape.COORDINATION)
             triggeredBy(requiredUpasargas = setOf("सम्"))
         },
-        SanskritCircumferenceAction.op {
+        CircumferenceAction.op {
             requires(Karaka.KARMAN); returns(Samjna.SANKHYA)
             triggeredBy(requiredUpasargas = setOf("परि"))
         },
-        SanskritAdditionAction.numericOp {
+        AdditionAction.numericOp {
             triggeredBy(requiredUpasargas = setOf("स"))
             returns(Samjna.SANKHYA, Samjna.SHABDA)
         },

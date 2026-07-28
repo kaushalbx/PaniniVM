@@ -1,6 +1,6 @@
-﻿package dev.panini.dhatupatha.bhvadi
+package dev.panini.dhatupatha.bhvadi
 
-import dev.panini.actions.collection.SanskritListMoveAction
+import dev.panini.actions.collection.ListMoveAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
@@ -26,7 +26,7 @@ class NiDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.ANUDATTA,
     operations = listOf(
-        SanskritListMoveAction.op {
+        ListMoveAction.op {
             requires(Karaka.KARMAN)
             returns(Samjna.SHABDA)
         },

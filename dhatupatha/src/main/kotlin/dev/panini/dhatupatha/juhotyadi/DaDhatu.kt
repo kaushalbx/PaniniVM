@@ -1,6 +1,6 @@
-﻿package dev.panini.dhatupatha.juhotyadi
+package dev.panini.dhatupatha.juhotyadi
 
-import dev.panini.actions.state.SanskritVariableAssignAction
+import dev.panini.actions.state.VariableAssignAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
@@ -27,7 +27,7 @@ class DaDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.ANUDATTA,
     operations = listOf(
-        SanskritVariableAssignAction.op {
+        VariableAssignAction.op {
             requires(Karaka.KARMAN); returns(Samjna.SHABDA)
         },
     ),

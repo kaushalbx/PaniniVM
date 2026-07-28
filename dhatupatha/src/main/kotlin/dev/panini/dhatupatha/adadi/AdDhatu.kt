@@ -1,6 +1,6 @@
-﻿package dev.panini.dhatupatha.adadi
+package dev.panini.dhatupatha.adadi
 
-import dev.panini.actions.resource.SanskritConsumeAction
+import dev.panini.actions.resource.ConsumeAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
@@ -26,7 +26,7 @@ class AdDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.ANUDATTA,
     operations = listOf(
-        SanskritConsumeAction.op {
+        ConsumeAction.op {
             requires(Karaka.KARMAN)
             returns(Samjna.SHABDA)
         },

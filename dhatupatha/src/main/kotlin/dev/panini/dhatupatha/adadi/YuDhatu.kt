@@ -1,10 +1,10 @@
 package dev.panini.dhatupatha.adadi
 
-import dev.panini.actions.numeric.SanskritAdditionAction
-import dev.panini.actions.numeric.SanskritSubtractionAction
-import dev.panini.actions.collection.SanskritListMapAction
-import dev.panini.actions.collection.SanskritListFilterAction
-import dev.panini.actions.numeric.SanskritIsEvenAction
+import dev.panini.actions.numeric.AdditionAction
+import dev.panini.actions.numeric.SubtractionAction
+import dev.panini.actions.collection.ListMapAction
+import dev.panini.actions.collection.ListFilterAction
+import dev.panini.actions.numeric.IsEvenAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
@@ -32,21 +32,21 @@ open class YuDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.UDATTA,
     operations = listOf(
-        SanskritAdditionAction.numericOp {
+        AdditionAction.numericOp {
             triggeredBy(forbiddenUpasargas = setOf("वि", "सम्"))
             returns(Samjna.SANKHYA, Samjna.SHABDA)
         },
-        SanskritSubtractionAction.numericOp {
+        SubtractionAction.numericOp {
             triggeredBy(requiredUpasargas = setOf("वि"))
             returns(Samjna.SANKHYA, Samjna.SHABDA)
         },
-        SanskritListMapAction.op {
+        ListMapAction.op {
             triggeredBy(requiredUpasargas = setOf("सम्"))
             requires(Karaka.KARMAN) // list
             requires(Karaka.KARANA) // target action name
             returns(Samjna.GANA)
         },
-        SanskritIsEvenAction.op {
+        IsEvenAction.op {
             requires(Karaka.KARMAN, shape = ExpressionShape.LITERAL)
             returns(Samjna.SHABDA)
         },
@@ -69,11 +69,11 @@ open class VrjDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.UDATTA,
     operations = listOf(
-        SanskritSubtractionAction.numericOp {
+        SubtractionAction.numericOp {
             triggeredBy(forbiddenUpasargas = setOf("वि"))
             returns(Samjna.SANKHYA, Samjna.SHABDA)
         },
-        SanskritListFilterAction.op {
+        ListFilterAction.op {
             triggeredBy(requiredUpasargas = setOf("वि"))
             requires(Karaka.KARMAN) // list
             requires(Karaka.KARANA) // target predicate operation name

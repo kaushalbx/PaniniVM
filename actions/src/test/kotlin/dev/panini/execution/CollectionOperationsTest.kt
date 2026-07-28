@@ -11,7 +11,7 @@ import kotlin.test.assertNotNull
 
 class CollectionOperationsTest {
     @Test
-    fun `HrDhatu executes SanskritListPopAction to pop last element`() {
+    fun `HrDhatu executes ListPopAction to pop last element`() {
         DhatuPathaRegistration.ensureRegistered()
         val hr = DhatuPatha.all.first { it.upadesha == "हृञ्" }
         // Find list pop operation
@@ -28,14 +28,14 @@ class CollectionOperationsTest {
         )
 
         val result = popOp.action.execute(context, popOp)
-        assertIs<ExecutionResult.Success>(result)
+        assertIs<ExecutionResult.Success>(result, result.toString())
         assertEquals("त्रि", result.value) // Popped last element
         assertIs<SanskritValue.Sankhya>(result.typedValue)
         assertEquals(3L, (result.typedValue as SanskritValue.Sankhya).value)
     }
 
     @Test
-    fun `GanDhatu executes SanskritListLengthAction to count size`() {
+    fun `GanDhatu executes ListLengthAction to count size`() {
         DhatuPathaRegistration.ensureRegistered()
         val gan = DhatuPatha.all.first { it.upadesha == "गण" }
         // Find list length operation
@@ -63,7 +63,7 @@ class CollectionOperationsTest {
     }
 
     @Test
-    fun `YuDhatu executes SanskritListMapAction to map list elements`() {
+    fun `YuDhatu executes ListMapAction to map list elements`() {
         DhatuPathaRegistration.ensureRegistered()
         val yu = DhatuPatha.all.first { it.upadesha == "यु" }
         // Find list map operation
@@ -106,7 +106,7 @@ class CollectionOperationsTest {
     }
 
     @Test
-    fun `VrjDhatu executes SanskritListFilterAction to filter list elements`() {
+    fun `VrjDhatu executes ListFilterAction to filter list elements`() {
         DhatuPathaRegistration.ensureRegistered()
         val vrj = DhatuPatha.all.first { it.upadesha == "वृजीँ" }
         val filterOp = vrj.operations.first { it.name == "सूचीशोधनम्" || it.action.name == "सूचीशोधनम्" }
@@ -147,7 +147,7 @@ class CollectionOperationsTest {
     }
 
     @Test
-    fun `SrjDhatu executes SanskritListConcatAction to concatenate two lists`() {
+    fun `SrjDhatu executes ListConcatAction to concatenate two lists`() {
         DhatuPathaRegistration.ensureRegistered()
         val srj = DhatuPatha.all.first { it.id == "06.0150" }
         val concatOp = srj.operations.first { it.name == "सूचीसंयोगः" || it.action.name == "सूचीसंयोगः" }
@@ -278,8 +278,16 @@ class CollectionOperationsTest {
             )
         )
 
+        SankhyaResultRenderer.defaultRenderer = SankhyaResultRenderer { value ->
+            when (value) {
+                10L -> "दश"
+                30L -> "त्रिंशत्"
+                else -> value.toString()
+            }
+        }
+
         val result = foldOp.action.execute(context, foldOp)
-        assertIs<ExecutionResult.Success>(result)
+        assertIs<ExecutionResult.Success>(result, result.toString())
         assertEquals(30L, (result.typedValue as SanskritValue.Sankhya).value)
     }
 
