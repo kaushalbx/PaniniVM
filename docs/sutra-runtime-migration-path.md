@@ -103,6 +103,16 @@ The following runtime foundation is implemented:
 | 1.1.2 | अदेङ्गुणः | Assigns गुण saṃjñā |
 | 1.1.3 | इको गुणवृद्धी | Applies requested गुण/वृद्धि substitution |
 
+### Conflict and niṣedha saṃjñā grantha
+
+`ConflictSamjnaRuntimeGrantha` contains:
+
+| Sūtra | Text | Runtime responsibility |
+|---|---|---|
+| 1.1.4 | न धातुलोप आर्धधातुके | Blocks 1.1.3 in dhātu-lopa + ārdhadhātuka environment |
+| 1.1.5 | क्ङिति च | Blocks 1.1.3 before kit/ṅit affixes |
+| 1.1.6 | दीधीवेवीटाम् | Blocks 1.1.3 for दीधी and वेवी roots |
+
 ### Phonological saṃjñā grantha
 
 `PhonologicalSamjnaRuntimeGrantha` currently contains:
@@ -176,16 +186,15 @@ Suggested next candidates:
 
 ### Phase 2 — Conflict and niṣedha scheduling
 
-Status: **next architectural milestone**
+Status: **in progress (1.1.4–1.1.6 slice completed)**
 
-Rules 1.1.4–1.1.6 are deliberately deferred:
+Rules 1.1.4–1.1.6 are migrated into `ConflictSamjnaRuntimeGrantha`:
 
 - 1.1.4 `न धातुलोप आर्धधातुके`
 - 1.1.5 `क्ङिति च`
 - 1.1.6 `दीधीवेवीटाम्`
 
-These rules must prevent 1.1.3 before its effect is applied. A single
-dependency-ordered pass is insufficient.
+These rules prevent 1.1.3 before its effect is committed. `SutraProgramValidator` orders blocker sūtras (Niṣedha rules) before target rules via `SutraRelation.Blocks`, enabling pre-commit exception suppression and generating explicit `SutraTraceEntry.Blocked` trace records in `SutraMachine`.
 
 Required scheduler work:
 

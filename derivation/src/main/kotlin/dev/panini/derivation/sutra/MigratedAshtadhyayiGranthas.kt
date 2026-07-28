@@ -1,9 +1,12 @@
 package dev.panini.derivation.sutra
 
 import dev.panini.ashtadhyayi.adhyaya1.pada1.AdengGunaSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada1.IkoGunaVrddhiSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada1.DidhivevitamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada1.HaloAnantarahSamyogahSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada1.IkoGunaVrddhiSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada1.KngitiCaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada1.MukhanasikavacanoAnunasikahSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada1.NaDhatulopaArdhadhatukeSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada1.TulyasyaprayatnamSavarnamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada1.VrddhirAdaicSutra
 import dev.panini.derivation.DerivationSutra
@@ -24,6 +27,28 @@ object OpeningSamjnaRuntimeGrantha {
         VrddhirAdaicSutra,
         AdengGunaSutra,
         IkoGunaVrddhiSutra,
+    )
+    private val localIds: Set<SutraId> = rules.mapTo(linkedSetOf()) {
+        SutraId(it.sutra)
+    }
+
+    val grantha: SutraGrantha<DerivationAvastha> = SutraGrantha(
+        id = id,
+        sutras = rules.map {
+            DerivationSutraRuntimeAdapter.adapt(it, localIds)
+        },
+        exports = localIds,
+    )
+}
+
+/** Conflict and niṣedha saṃjñās 1.1.4–1.1.6. */
+object ConflictSamjnaRuntimeGrantha {
+    val id: GranthaId = GranthaId("ashtadhyayi-1.1.4-1.1.6")
+
+    private val rules: List<DerivationSutra> = listOf(
+        NaDhatulopaArdhadhatukeSutra,
+        KngitiCaSutra,
+        DidhivevitamSutra,
     )
     private val localIds: Set<SutraId> = rules.mapTo(linkedSetOf()) {
         SutraId(it.sutra)
@@ -64,6 +89,7 @@ object PhonologicalSamjnaRuntimeGrantha {
 object MigratedAshtadhyayiGranthas {
     val granthas: List<SutraGrantha<DerivationAvastha>> = listOf(
         OpeningSamjnaRuntimeGrantha.grantha,
+        ConflictSamjnaRuntimeGrantha.grantha,
         PhonologicalSamjnaRuntimeGrantha.grantha,
     )
 

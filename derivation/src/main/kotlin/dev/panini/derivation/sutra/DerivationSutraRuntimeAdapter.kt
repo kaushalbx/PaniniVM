@@ -100,7 +100,7 @@ object DerivationSutraRuntimeAdapter {
             governance = SutraGovernance(
                 optional = legacy.optional,
                 priority = legacy.priority,
-                blocks = legacy.blocks,
+                blocks = legacy.blocks.filterTo(linkedSetOf()) { SutraId(it) in localSutraIds },
                 visibility = legacy.visibility,
             ),
         )

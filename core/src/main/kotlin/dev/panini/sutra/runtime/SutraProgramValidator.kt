@@ -30,14 +30,17 @@ object SutraProgramValidator {
     ): SutraProgramValidation<S> {
         val byId = program.sutras.associateBy { it.id }
         val diagnostics = mutableListOf<SutraProgramDiagnostic>()
-        val dependencies = linkedMapOf<SutraId, Set<SutraId>>()
-
-        program.sutras.forEach { sutra ->
-            val prerequisites = sutra.relations
+        val dependencies = program.sutras.associate { sutra ->
+            sutra.id to sutra.relations
                 .filterIsInstance<SutraRelation.DependsOn>()
                 .mapTo(linkedSetOf()) { it.prerequisite }
-            dependencies[sutra.id] = prerequisites
-            prerequisites.filter { it !in byId }.forEach { missing ->
+        }.toMutableMap()
+
+        program.sutras.forEach { sutra ->
+            val explicitPrereqs = sutra.relations
+                .filterIsInstance<SutraRelation.DependsOn>()
+                .map { it.prerequisite }
+            explicitPrereqs.filter { it !in byId }.forEach { missing ->
                 diagnostics += SutraProgramDiagnostic(
                     SutraProgramDiagnosticCode.MISSING_DEPENDENCY,
                     sutra.id,
@@ -58,6 +61,20 @@ object SutraProgramValidator {
                         sutra.id,
                         "Result flow declared by ${sutra.id} has missing target ${flow.target}.",
                     )
+                }
+            }
+            // Blocker sūtras must execute before target sūtras (Niṣedha ordering)
+            val arthaBlocks = (sutra.artha.fields["blocks"] as? SutraArthaValue.Sequence)?.values
+                ?.mapNotNull { (it as? SutraArthaValue.SutraReference)?.id }
+                .orEmpty()
+            (sutra.governance.blocks.map(::SutraId) + arthaBlocks).forEach { targetId ->
+                if (targetId in byId) {
+                    dependencies.getValue(targetId).add(sutra.id)
+                }
+            }
+            sutra.relations.filterIsInstance<SutraRelation.Blocks>().forEach { rel ->
+                if (rel.target in byId) {
+                    dependencies.getValue(rel.target).add(sutra.id)
                 }
             }
         }

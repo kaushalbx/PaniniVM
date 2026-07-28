@@ -72,6 +72,25 @@ class SutraProgramValidatorTest {
         assertTrue(result.state.applied.isEmpty())
     }
 
+    @Test
+    fun `machine applies blocker before target sutra when blocks relation is present`() {
+        val target = sutra("target")
+        val blocker = sutra(
+            "blocker",
+            setOf(SutraRelation.Blocks(SutraId("target"))),
+        )
+        val program = SutraProgram(
+            "blocker-order",
+            listOf(target, blocker),
+        )
+
+        val result = assertIs<SutraMachineResult.Success<TestAvastha>>(
+            SutraMachine(TestEffectInterpreter).process(program, TestAvastha()),
+        )
+
+        assertEquals(listOf("blocker", "target"), result.state.applied)
+    }
+
     private fun sutra(
         id: String,
         relations: Set<SutraRelation> = emptySet(),
