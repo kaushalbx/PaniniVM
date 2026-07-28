@@ -305,11 +305,28 @@ object VyakaranamExecutionAdapter {
         clauseIndex: Int,
     ): ExecutionExpression {
         val text = pada.pratipadika.baseText()
+        var resolvedId: String? = null
+        var isOrdinalReference = false
+
         if (text == "फल" || text == "पूर्वफल") {
-            val id = if (clauseIndex > 0) "योग-$clauseIndex" else
+            resolvedId = if (clauseIndex > 0) "योग-$clauseIndex" else
                 conversation?.resultHistory?.lastOrNull()?.id ?: conversation?.previousResults?.keys?.lastOrNull()
-            if (id != null) return ExecutionExpression.Reference(id)
+        } else if (text.endsWith("फल")) {
+            val prefix = text.removeSuffix("फल")
+            val idx = (1..20).firstOrNull { i ->
+                sankhyaGenerator.ordinal(i.toLong()).final.surface == prefix ||
+                sankhyaGenerator.ordinalVariants(i.toLong()).any { it.final.surface == prefix }
+            }?.minus(1)
+            if (idx != null) {
+                resolvedId = conversation?.resultHistory?.getOrNull(idx)?.id
+                isOrdinalReference = true
+            }
         }
+
+        if (resolvedId != null) {
+            return ExecutionExpression.Reference(resolvedId)
+        }
+
         val sankhyaValue = when (val prat = pada.pratipadika) {
             is SankhyaPratipadika -> prat.value
             is MulaPratipadika -> sankhyaGenerator.annotatedPratipadikaValue(prat.text)
@@ -318,7 +335,7 @@ object VyakaranamExecutionAdapter {
         val samjnas = buildSet {
             add(Samjna.SHABDA)
             if (sankhyaValue != null) add(Samjna.SANKHYA)
-            if (text in setOf("फल", "पूर्वफल")) add(Samjna.REFERENCE)
+            if (text in setOf("फल", "पूर्वफल") || isOrdinalReference) add(Samjna.REFERENCE)
             when (pada.pratipadika) {
                 is KridantaPratipadika -> add(Samjna.KRIDANTA)
                 is SamasaPratipadika -> add(Samjna.SAMASA)

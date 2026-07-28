@@ -350,4 +350,38 @@ class CompilerTest {
         assertNotNull(finalResultVal)
         assertEquals(13L, finalResultVal.value)
     }
+
+    @Test
+    fun testCompileAndRunFibonacci() {
+        val script = """
+            एक + अम् एक + औट् च दा + लोट् + सिप् ।
+            प्रथमफल + अम् एक + टा स्था + लोट् + सिप् ।
+            प्रथमफल + अम् द्वि + टा स्था + लोट् + सिप् ।
+            द्वितीयफल + अम् तृतीयफल + औट् च युज् + णिच् + लोट् + सिप् ।
+            प्रथमफल + अम् चतुर्थफल + ङे सृज् + णिच् + लोट् + सिप् ।
+            पञ्चमफल + अम् द्वि + टा स्था + लोट् + सिप् ।
+            पञ्चमफल + अम् त्रि + टा स्था + लोट् + सिप् ।
+            षष्ठफल + अम् सप्तमफल + औट् च युज् + णिच् + लोट् + सिप् ।
+            पञ्चमफल + अम् अष्टमफल + ङे सृज् + णिच् + लोट् + सिप् ।
+            नवमफल + अम् त्रि + टा स्था + लोट् + सिप् ।
+            नवमफल + अम् चतुर् + टा स्था + लोट् + सिप् ।
+            दशमफल + अम् एकादशफल + औट् च युज् + णिच् + लोट् + सिप् ।
+            नवमफल + अम् द्वादशफल + ङे सृज् + णिच् + लोट् + सिप् ।
+        """.trimIndent()
+        val className = "SanskritFibonacciIntegrationTest"
+        val clazz = BytecodeCompiler.compileAndLoad(script, className)
+        val executeMethod = clazz.getMethod("execute")
+
+        val resultVariables = executeMethod.invoke(null) as? Map<*, *>
+        assertNotNull(resultVariables)
+
+        val finalResultVal = resultVariables["उक्ति-१३/योग-1"] as? SanskritValue.Suchi
+        assertNotNull(finalResultVal, "Final result should be a list")
+        assertEquals(5, finalResultVal.items.size)
+        assertEquals(1L, (finalResultVal.items[0] as SanskritValue.Sankhya).value)
+        assertEquals(1L, (finalResultVal.items[1] as SanskritValue.Sankhya).value)
+        assertEquals(2L, (finalResultVal.items[2] as SanskritValue.Sankhya).value)
+        assertEquals(3L, (finalResultVal.items[3] as SanskritValue.Sankhya).value)
+        assertEquals(5L, (finalResultVal.items[4] as SanskritValue.Sankhya).value)
+    }
 }
