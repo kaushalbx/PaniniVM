@@ -102,6 +102,10 @@ class ExecutableUktiSutraMigrationTest {
             SutraArthaValue.Text("युजिँर्"),
             grantha.sutras.single().artha.fields["upadesha"],
         )
+        assertEquals(
+            SutraArthaValue.Symbol(bound.ukti.invocations.single().dhatu.id),
+            grantha.sutras.single().artha.fields["dhatuId"],
+        )
         val generatedBlueprint = blueprintGrantha.sutras.single().specializedAs(
             SutraId("generated-addition"),
             mapOf("generated" to SutraArthaValue.Truth(true)),
@@ -186,6 +190,19 @@ class ExecutableUktiSutraMigrationTest {
             id = GranthaId("generated-program"),
             sutras = sourceGrantha.sutras.reversed(),
         )
+        val planning = assertIs<ProgramGranthaPlanning.Success>(
+            ProgramBlueprintGranthaPlanner.plan(
+                generatedGrantha,
+                ProgramBlueprintContext(
+                    speaker = bound.ukti.speaker,
+                    listener = bound.ukti.listener,
+                    text = bound.ukti.text,
+                    prayojana = bound.ukti.prayojana,
+                    polarity = bound.ukti.polarity,
+                    lakara = bound.ukti.lakara,
+                ),
+            ),
+        )
         val generatedExecution = assertIs<ProgramGranthaExecution.Completed>(
             ProgramBlueprintGranthaEngine.execute(
                 generatedGrantha,
@@ -205,6 +222,11 @@ class ExecutableUktiSutraMigrationTest {
             generatedExecution.result,
         )
 
+        assertEquals(
+            sourceGrantha.sutras.map { it.id.value },
+            planning.program.invocations.map { it.id },
+        )
+        assertEquals(bound.ukti.dependencies, planning.program.dependencies)
         assertEquals(sourceGrantha.sutras.map { it.id }, generatedResult.trace.map { it.sutraId })
         assertEquals(legacy.typedValues, generatedResult.state.invocationValues)
         assertEquals(legacy.localBindings, generatedResult.state.localBindings)

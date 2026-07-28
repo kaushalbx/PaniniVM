@@ -44,6 +44,7 @@ data class ProgramBlueprintDiagnostic(
 sealed interface ProgramBlueprintCompilation {
     data class Success(
         val sutra: RuntimeSutra<ProgramAvastha>,
+        val invocation: DhatuInvocation,
     ) : ProgramBlueprintCompilation
 
     data class Invalid(
@@ -71,6 +72,7 @@ object ProgramBlueprintCompiler {
         }
 
         val fields = blueprint.artha.fields
+        val dhatuId = (fields["dhatuId"] as? SutraArthaValue.Symbol)?.name
         val dhatuSurface = (fields["dhatu"] as? SutraArthaValue.Text)?.value
         if (dhatuSurface == null) {
             diagnostics += ProgramBlueprintDiagnostic(
@@ -79,16 +81,24 @@ object ProgramBlueprintCompiler {
             )
         }
         val upadesha = (fields["upadesha"] as? SutraArthaValue.Text)?.value
-        val candidates = dhatuSurface?.let { surface ->
-            DhatuPatha.all.filter {
-                it.sourceSurface == surface && (upadesha == null || it.upadesha == upadesha)
+        val candidates = when {
+            dhatuId != null -> DhatuPatha.all.filter {
+                it.id == dhatuId &&
+                    (dhatuSurface == null || it.sourceSurface == dhatuSurface) &&
+                    (upadesha == null || it.upadesha == upadesha)
+            }
+            else -> dhatuSurface?.let { surface ->
+                DhatuPatha.all.filter {
+                    it.sourceSurface == surface && (upadesha == null || it.upadesha == upadesha)
+                }
             }
         }.orEmpty()
         when {
-            dhatuSurface != null && candidates.isEmpty() -> diagnostics += ProgramBlueprintDiagnostic(
-                ProgramBlueprintDiagnosticCode.UNKNOWN_DHATU,
-                "No executable dhātu matches surface '$dhatuSurface' and upadeśa '$upadesha'.",
-            )
+            (dhatuId != null || dhatuSurface != null) && candidates.isEmpty() ->
+                diagnostics += ProgramBlueprintDiagnostic(
+                    ProgramBlueprintDiagnosticCode.UNKNOWN_DHATU,
+                    "No executable dhātu matches id '$dhatuId', surface '$dhatuSurface', and upadeśa '$upadesha'.",
+                )
             candidates.size > 1 -> diagnostics += ProgramBlueprintDiagnostic(
                 ProgramBlueprintDiagnosticCode.AMBIGUOUS_DHATU,
                 "More than one dhātu matches surface '$dhatuSurface'; include exact upadeśa.",
@@ -177,7 +187,7 @@ object ProgramBlueprintCompiler {
             dependencies = emptySet(),
         )
         return ProgramBlueprintCompilation.Success(
-            RuntimeSutra(
+            sutra = RuntimeSutra(
                 id = blueprint.id,
                 source = blueprint.source,
                 role = blueprint.role,
@@ -206,6 +216,7 @@ object ProgramBlueprintCompiler {
                     }
                 },
             ),
+            invocation = invocation,
         )
     }
 

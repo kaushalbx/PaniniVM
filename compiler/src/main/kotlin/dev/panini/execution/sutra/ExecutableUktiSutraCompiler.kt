@@ -73,6 +73,7 @@ object ExecutableUktiSutraCompiler {
                 artha = SutraArtha(
                     kind = "kriya",
                     fields = buildMap {
+                        put("dhatuId", SutraArthaValue.Symbol(invocation.dhatu.id))
                         put("dhatu", SutraArthaValue.Text(invocation.dhatu.sourceSurface))
                         put("upadesha", SutraArthaValue.Text(invocation.dhatu.upadesha))
                         invocation.selectedOperation?.let {

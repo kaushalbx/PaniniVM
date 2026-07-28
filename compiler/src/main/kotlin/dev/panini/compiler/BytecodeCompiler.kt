@@ -3,6 +3,10 @@ package dev.panini.compiler
 import dev.panini.core.Karaka
 import dev.panini.execution.*
 import dev.panini.execution.binding.VyakaranamExecutionAdapter
+import dev.panini.execution.sutra.ExecutableUktiSutraCompiler
+import dev.panini.execution.sutra.ProgramBlueprintContext
+import dev.panini.execution.sutra.ProgramBlueprintGranthaPlanner
+import dev.panini.execution.sutra.ProgramGranthaPlanning
 import dev.panini.shiksha.Samjna
 import java.io.File
 
@@ -42,7 +46,27 @@ object BytecodeCompiler {
                 )
             }
 
-            val program = ExecutionProgram(ukti, ukti.dependencies)
+            val program = when (
+                val sutraPlanning = ProgramBlueprintGranthaPlanner.plan(
+                    ExecutableUktiSutraCompiler.compileBlueprintGrantha(ukti),
+                    ProgramBlueprintContext(
+                        speaker = ukti.speaker,
+                        listener = ukti.listener,
+                        text = ukti.text,
+                        prayojana = ukti.prayojana,
+                        polarity = ukti.polarity,
+                        lakara = ukti.lakara,
+                    ),
+                )
+            ) {
+                is ProgramGranthaPlanning.Success -> sutraPlanning.program
+                is ProgramGranthaPlanning.Invalid -> throw PaniniCompilationException(
+                    lineIdx,
+                    line,
+                    CompilerErrorKind.DEPENDENCY_ERROR,
+                    sutraPlanning.diagnostics.joinToString(separator = "\n") { it.message },
+                )
+            }
             val historicalValues = conversation.resultHistory.associate { result ->
                 result.id to (result.typedValue ?: SanskritValue.of(result.value, result.samjnas))
             }
