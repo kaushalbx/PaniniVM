@@ -8,6 +8,7 @@ sealed interface Phala {
         val samjnas: Map<String, Set<Samjna>>,
         val trace: List<String>,
         val typedValues: Map<String, SanskritValue> = emptyMap(),
+        val localBindings: Map<String, SanskritValue> = emptyMap(),
     ) : Phala
     data class Asiddha(val result: ExecutionResult, val trace: List<String>) : Phala
     data class AnumatiApekshita(

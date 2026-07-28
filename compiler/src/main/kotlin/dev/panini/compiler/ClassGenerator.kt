@@ -4,6 +4,7 @@ import dev.panini.core.Karaka
 import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.ExecutionPlan
 import dev.panini.execution.SanskritValue
+import dev.panini.execution.bindingName
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.*
@@ -186,6 +187,26 @@ object ClassGenerator {
                     mv.visitVarInsn(ALOAD, 1)
                     mv.visitInsn(SWAP)
                     mv.visitLdcInsn(turnId)
+                    mv.visitInsn(SWAP)
+                    mv.visitMethodInsn(
+                        INVOKEVIRTUAL,
+                        "java/util/HashMap",
+                        "put",
+                        "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;",
+                        false
+                    )
+                    mv.visitInsn(POP)
+                }
+
+                val bindingKaraka = plan.resolved.operation.resultBindingKaraka
+                val localBindingName = bindingKaraka
+                    ?.let(plan.resolved.context.bindings::get)
+                    ?.bindingName()
+                if (localBindingName != null) {
+                    mv.visitInsn(DUP)
+                    mv.visitVarInsn(ALOAD, 1)
+                    mv.visitInsn(SWAP)
+                    mv.visitLdcInsn(localBindingName)
                     mv.visitInsn(SWAP)
                     mv.visitMethodInsn(
                         INVOKEVIRTUAL,

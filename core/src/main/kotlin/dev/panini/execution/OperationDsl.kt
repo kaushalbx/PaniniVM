@@ -12,6 +12,7 @@ fun DhatuAction.op(definition: OperationDefinition.() -> Unit = {}): DhatuOperat
         trigger = builder.trigger,
         effects = builder.effects,
         resultSamjnas = builder.resultSamjnas,
+        resultBindingKaraka = builder.resultBindingKaraka,
     )
 }
 
@@ -30,6 +31,7 @@ class OperationDefinition {
     internal var trigger = OperationTrigger()
     internal var effects: Set<ExecutionEffect> = setOf(ExecutionEffect.PURE)
     internal var resultSamjnas: Set<Samjna> = emptySet()
+    internal var resultBindingKaraka: Karaka? = null
 
     fun requires(
         karaka: Karaka,
@@ -73,5 +75,10 @@ class OperationDefinition {
 
     fun returns(vararg samjnas: Samjna) {
         resultSamjnas = samjnas.toSet()
+    }
+
+    /** Store the result under the literal name supplied by this kāraka. */
+    fun bindsResultTo(karaka: Karaka) {
+        resultBindingKaraka = karaka
     }
 }

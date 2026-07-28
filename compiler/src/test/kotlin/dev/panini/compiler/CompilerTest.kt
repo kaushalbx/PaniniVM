@@ -11,6 +11,22 @@ import kotlin.test.assertTrue
 
 @org.junit.jupiter.api.parallel.Execution(org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD)
 class CompilerTest {
+    @Test
+    fun `compiled segmented sentences support named local bindings`() {
+        val script = """
+            एक + अम् आरम्भ + ङे दा + लोट् + सिप् ।
+            आरम्भ + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।
+        """.trimIndent()
+
+        val values = BytecodeCompiler.compileAndLoad(script, "NamedLocalBindingTest")
+            .getMethod("execute")
+            .invoke(null) as Map<*, *>
+
+        assertEquals(1L, (values["आरम्भ"] as SanskritValue.Sankhya).value)
+        val finalValue = values["उक्ति-२/योग-1"] as SanskritValue.Sankhya
+        assertEquals(3L, finalValue.value)
+    }
+
 
     @Test
     fun testCompileAndRunAddition() {

@@ -1,5 +1,6 @@
 package dev.panini.compiler
 
+import dev.panini.core.Karaka
 import dev.panini.execution.*
 import dev.panini.execution.binding.VyakaranamExecutionAdapter
 import java.io.File
@@ -80,7 +81,7 @@ object BytecodeCompiler {
                 val turnId = "उक्ति-${DevanagariDigits.render(nextTurn)}/${plan.invocationId}"
                 stmtResultIds += turnId
 
-                val mockVal = SanskritValue.Shabda("<${plan.invocationId}>", plan.resolved.operation.resultSamjnas)
+                val mockVal = simulatedResult(plan)
                 SmrtaPhala(
                     id = turnId,
                     turnNumber = nextTurn,
@@ -92,16 +93,40 @@ object BytecodeCompiler {
             }
             turnResultIds += stmtResultIds
 
+            val mockResults = plans.associate { plan ->
+                plan.invocationId to simulatedResult(plan)
+            }
+            val mockLocalBindings = plans.mapNotNull { plan ->
+                val karaka = plan.resolved.operation.resultBindingKaraka ?: return@mapNotNull null
+                val name = plan.resolved.context.bindings[karaka]?.bindingName() ?: return@mapNotNull null
+                name to mockResults.getValue(plan.invocationId)
+            }.toMap()
+
             conversation = conversation.copy(
                 previousResults = conversation.previousResults + plans.associate { it.invocationId to "<${it.invocationId}>" },
                 previousResultSamjnas = conversation.previousResultSamjnas + plans.associate { it.invocationId to it.resolved.operation.resultSamjnas },
-                previousTypedResults = conversation.previousTypedResults + plans.associate { it.invocationId to SanskritValue.Shabda("<${it.invocationId}>", it.resolved.operation.resultSamjnas) },
+                previousTypedResults = conversation.previousTypedResults + mockResults + mockLocalBindings,
                 resultHistory = conversation.resultHistory + remembered,
                 turnNumber = nextTurn,
             )
         }
 
         return ClassGenerator.generateClass(className, statementsPlans, turnResultIds)
+    }
+
+    private fun simulatedResult(plan: ExecutionPlan): SanskritValue {
+        if (plan.resolved.operation.resultBindingKaraka != null) {
+            val operands = plan.resolved.context.bindings[Karaka.KARMAN]
+                ?.let(plan.resolved.context::resolveValues)
+                .orEmpty()
+            if (operands.isNotEmpty()) {
+                return if (operands.size == 1) operands.single() else SanskritValue.Suchi(operands)
+            }
+        }
+        return SanskritValue.Shabda(
+            "<${plan.invocationId}>",
+            plan.resolved.operation.resultSamjnas,
+        )
     }
 
     class PaniniClassLoader(parent: ClassLoader) : ClassLoader(parent) {

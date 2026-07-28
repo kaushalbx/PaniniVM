@@ -82,6 +82,7 @@ data class DhatuOperation(
     val trigger: OperationTrigger = OperationTrigger(),
     val effects: Set<ExecutionEffect> = setOf(ExecutionEffect.PURE),
     val resultSamjnas: Set<Samjna> = emptySet(),
+    val resultBindingKaraka: Karaka? = null,
 ) {
     val name: String get() = action.name
     val description: String get() = action.description

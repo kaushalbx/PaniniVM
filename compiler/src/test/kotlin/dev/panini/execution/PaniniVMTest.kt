@@ -10,6 +10,28 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class PaniniVMTest {
+    @Test
+    fun `segmented da sentence binds a local name for a later sentence`() {
+        val vm = PaniniVM()
+        val results = vm.evalScript(
+            """
+            एक + अम् आरम्भ + ङे दा + लोट् + सिप् ।
+            आरम्भ + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।
+            """.trimIndent(),
+            sessionKey = "named_local",
+        )
+
+        assertEquals(2, results.size)
+        assertEquals("एक", assertIs<ExecutionResult.Success>(results[0]).value)
+        val sum = assertIs<SanskritValue.Sankhya>(
+            assertIs<ExecutionResult.Success>(results[1]).typedValue,
+        )
+        assertEquals(3L, sum.value)
+        assertEquals(1L, assertIs<SanskritValue.Sankhya>(
+            vm.loadSession("named_local")?.previousTypedResults?.get("आरम्भ"),
+        ).value)
+    }
+
 
     private lateinit var tempDir: File
     private lateinit var vm: PaniniVM

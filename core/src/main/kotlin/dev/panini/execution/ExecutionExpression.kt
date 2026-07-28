@@ -39,3 +39,10 @@ sealed interface ExecutionExpression {
         }
     }
 }
+
+/** A literal name suitable for a local result binding. */
+fun ExecutionExpression.bindingName(): String? = when (this) {
+    is ExecutionExpression.Pada -> prakriti.trim().takeIf { it.isNotEmpty() }
+    is ExecutionExpression.Reference -> name
+    is ExecutionExpression.Coordination -> null
+}

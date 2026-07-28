@@ -28,7 +28,10 @@ class DaDhatu : Dhatu(
     svara = Accent.ANUDATTA,
     operations = listOf(
         VariableAssignAction.op {
-            requires(Karaka.KARMAN); returns(Samjna.SHABDA)
+            requires(Karaka.KARMAN)
+            optional(Karaka.SAMPRADANA)
+            bindsResultTo(Karaka.SAMPRADANA)
+            returns(Samjna.SHABDA)
         },
     ),
     semanticRelations = setOf(SemanticRelation.RECIPIENT, SemanticRelation.DESIRED_OBJECT),

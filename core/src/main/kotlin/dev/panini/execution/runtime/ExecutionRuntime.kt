@@ -28,6 +28,7 @@ object ExecutionRuntime {
 
     fun resume(continuation: ExecutionContinuation, scope: ExecutionScope): Phala {
         val values = scope.environment.mergedWith(continuation.environment).values.toMutableMap()
+        val localBindings = mutableMapOf<String, SanskritValue>()
         val trace = continuation.trace.toMutableList()
         val plans = continuation.planning.plans
         for (index in continuation.nextPlanIndex until plans.size) {
@@ -60,10 +61,20 @@ object ExecutionRuntime {
             )
             when (val result = plan.resolved.operation.action.execute(refreshedContext, plan.resolved.operation)) {
                 is ExecutionResult.Success -> {
-                    values[plan.invocationId] = result.typedValue ?: SanskritValue.of(
+                    val typedResult = result.typedValue ?: SanskritValue.of(
                         result.value,
                         plan.resolved.operation.resultSamjnas,
                     )
+                    values[plan.invocationId] = typedResult
+                    val bindingKaraka = plan.resolved.operation.resultBindingKaraka
+                    val bindingName = bindingKaraka
+                        ?.let(plan.resolved.context.bindings::get)
+                        ?.bindingName()
+                    if (bindingName != null) {
+                        values[bindingName] = typedResult
+                        localBindings[bindingName] = typedResult
+                        trace += "Bound result to local name '$bindingName'."
+                    }
                     trace += plan.resolved.resolutionTrace + result.trace
                 }
                 else -> return Phala.Asiddha(result, trace + result.trace)
@@ -76,6 +87,7 @@ object ExecutionRuntime {
             results.samjnas(),
             trace,
             results.values,
+            localBindings,
         )
     }
 }

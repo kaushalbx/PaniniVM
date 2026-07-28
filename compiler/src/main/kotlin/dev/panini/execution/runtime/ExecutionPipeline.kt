@@ -122,9 +122,15 @@ object ExecutionPipeline {
         return SambhashanaTurn(
             response,
             conversation.copy(
-                previousResults = conversation.previousResults + success.values,
-                previousResultSamjnas = conversation.previousResultSamjnas + success.samjnas,
-                previousTypedResults = conversation.previousTypedResults + success.typedValues,
+                previousResults = conversation.previousResults +
+                    success.values +
+                    success.localBindings.mapValues { it.value.toDisplayText() },
+                previousResultSamjnas = conversation.previousResultSamjnas +
+                    success.samjnas +
+                    success.localBindings.mapValues { it.value.samjnas },
+                previousTypedResults = conversation.previousTypedResults +
+                    success.typedValues +
+                    success.localBindings,
                 resultHistory = conversation.resultHistory + remembered,
                 turnNumber = nextTurn,
             ),

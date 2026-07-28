@@ -308,7 +308,11 @@ object VyakaranamExecutionAdapter {
         var resolvedId: String? = null
         var isOrdinalReference = false
 
-        if (text == "फल" || text == "पूर्वफल") {
+        if (conversation?.previousTypedResults?.containsKey(text) == true ||
+            conversation?.previousResults?.containsKey(text) == true
+        ) {
+            resolvedId = text
+        } else if (text == "फल" || text == "पूर्वफल") {
             resolvedId = if (clauseIndex > 0) "योग-$clauseIndex" else
                 conversation?.resultHistory?.lastOrNull()?.id ?: conversation?.previousResults?.keys?.lastOrNull()
         } else if (text.endsWith("फल")) {
