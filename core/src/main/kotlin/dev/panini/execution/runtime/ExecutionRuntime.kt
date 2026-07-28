@@ -58,6 +58,8 @@ object ExecutionRuntime {
                 variables = values,
                 stateStore = scope.stateStore,
                 externalDispatcher = scope.externalDispatcher,
+                sutraRegistry = scope.sutraRegistry,
+                currentGrantha = scope.currentGrantha,
             )
             when (val result = plan.resolved.operation.action.execute(refreshedContext, plan.resolved.operation)) {
                 is ExecutionResult.Success -> {

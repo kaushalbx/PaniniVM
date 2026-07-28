@@ -3,6 +3,8 @@ package dev.panini.execution
 import dev.panini.core.Karaka
 import dev.panini.execution.external.ExternalCapabilityDispatcher
 import dev.panini.execution.persistence.StateStore
+import dev.panini.sutra.runtime.GranthaId
+import dev.panini.sutra.runtime.SutraGranthaRegistry
 
 /** Inputs visible while one dhātu meaning is executed. */
 data class ExecutionContext(
@@ -12,6 +14,8 @@ data class ExecutionContext(
     val metadata: Map<String, String> = emptyMap(),
     val stateStore: StateStore? = null,
     val externalDispatcher: ExternalCapabilityDispatcher? = null,
+    val sutraRegistry: SutraGranthaRegistry? = null,
+    val currentGrantha: GranthaId? = null,
 ) {
     fun resolveValues(expression: ExecutionExpression): List<SanskritValue> = when (expression) {
         is ExecutionExpression.Pada -> listOf(

@@ -2,23 +2,40 @@ package dev.panini.execution.sutra
 
 import dev.panini.derivation.LinguisticActionsInitializer
 import dev.panini.dhatupatha.DhatuPathaRegistration
+import dev.panini.dhatupatha.bhvadi.DrshDhatu
+import dev.panini.core.Karaka
+import dev.panini.execution.DhatuInvocation
+import dev.panini.execution.ExecutableUkti
 import dev.panini.execution.ExecutionBindingResult
 import dev.panini.execution.ExecutionEffect
+import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.ExecutionScope
+import dev.panini.execution.GrammaticalFeatures
 import dev.panini.execution.PaniniExecutionArchitecture
 import dev.panini.execution.PaniniVM
 import dev.panini.execution.Phala
 import dev.panini.execution.SambhashanaContext
 import dev.panini.execution.SanskritUktiInput
+import dev.panini.execution.SanskritValue
 import dev.panini.execution.ValueEnvironment
+import dev.panini.execution.VakyaPrayojana
 import dev.panini.execution.binding.VyakaranamExecutionAdapter
 import dev.panini.execution.runtime.ExecutionPipeline
 import dev.panini.sankhya.SankhyaCountingFormRenderer
 import dev.panini.sutra.runtime.SutraMachine
 import dev.panini.sutra.runtime.SutraMachineResult
 import dev.panini.sutra.runtime.GranthaId
+import dev.panini.sutra.runtime.GranthaImport
+import dev.panini.sutra.runtime.RuntimeSutra
+import dev.panini.sutra.runtime.SutraArtha
 import dev.panini.sutra.runtime.SutraArthaValue
+import dev.panini.sutra.runtime.SutraGrantha
+import dev.panini.sutra.runtime.SutraGranthaRegistry
+import dev.panini.sutra.runtime.SutraId
+import dev.panini.sutra.runtime.SutraNirnaya
+import dev.panini.sutra.runtime.SutraSource
+import dev.panini.sutra.SutraRole
 import java.io.File
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -127,6 +144,64 @@ class ExecutableUktiSutraMigrationTest {
             compareVm.eval("दश + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।"),
         )
         assertEquals("द्वादश", compared.value)
+    }
+
+    @Test
+    fun `sutra registry reaches reflection action through both execution pipelines`() {
+        val public = RuntimeSutra<ProgramAvastha>(
+            id = SutraId("public"),
+            source = SutraSource.Program("library", "public", "public"),
+            role = SutraRole.Vidhi,
+            artha = SutraArtha(
+                "kriya",
+                mapOf("dhatu" to SutraArthaValue.Text("युज्")),
+            ),
+            evaluator = { _, _ -> SutraNirnaya.Applicable(emptyList()) },
+        )
+        val library = SutraGrantha(
+            GranthaId("library"),
+            listOf(public),
+            exports = setOf(public.id),
+        )
+        val application = SutraGrantha(
+            GranthaId("application"),
+            emptyList<RuntimeSutra<ProgramAvastha>>(),
+            imports = listOf(GranthaImport(library.id, "lib")),
+        )
+        val registry = SutraGranthaRegistry(listOf(library, application))
+        val conversation = SambhashanaContext("प्रयोक्ता", "यन्त्रम्")
+        val invocation = DhatuInvocation(
+            id = "inspect",
+            dhatu = DrshDhatu(),
+            bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Pada("public"),
+                Karaka.ADHIKARANA to ExecutionExpression.Pada("lib"),
+                Karaka.KARANA to ExecutionExpression.Pada("dhatu"),
+            ),
+            grammaticalFeatures = GrammaticalFeatures(upasargas = setOf("नि")),
+        )
+        val ukti = ExecutableUkti(
+            speaker = conversation.speaker,
+            listener = conversation.listener,
+            text = "सूत्रार्थं निरीक्षते",
+            prayojana = VakyaPrayojana.AJNA,
+            invocations = listOf(invocation),
+        )
+        val scope = ExecutionScope(
+            capabilities = setOf(ExecutionEffect.PURE),
+            sutraRegistry = registry,
+            currentGrantha = application.id,
+        )
+
+        val legacy = assertIs<Phala.Siddha>(
+            ExecutionPipeline.execute(ukti, conversation, scope),
+        )
+        val migrated = assertIs<Phala.Siddha>(
+            SutraExecutionPipeline.execute(ukti, conversation, scope),
+        )
+
+        assertEquals(SanskritValue.Shabda("युज्"), legacy.typedValues["inspect"])
+        assertEquals(legacy.typedValues, migrated.typedValues)
     }
 
     private fun temporaryDirectory(label: String): File =

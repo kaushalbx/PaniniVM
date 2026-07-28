@@ -2,6 +2,8 @@ package dev.panini.execution
 
 import dev.panini.execution.external.ExternalCapabilityDispatcher
 import dev.panini.execution.persistence.StateStore
+import dev.panini.sutra.runtime.GranthaId
+import dev.panini.sutra.runtime.SutraGranthaRegistry
 
 enum class ExecutionEffect {
     PURE, READ_MEMORY, WRITE_MEMORY, READ_RESOURCE, WRITE_RESOURCE,
@@ -14,6 +16,8 @@ data class ExecutionScope(
     val environment: ValueEnvironment = ValueEnvironment(),
     val stateStore: StateStore? = null,
     val externalDispatcher: ExternalCapabilityDispatcher? = null,
+    val sutraRegistry: SutraGranthaRegistry? = null,
+    val currentGrantha: GranthaId? = null,
     val authorizedSpeakers: Set<String> = emptySet(),
     val acceptedInvocations: Set<String> = emptySet(),
 )
