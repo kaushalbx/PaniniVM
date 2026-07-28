@@ -35,6 +35,7 @@ import dev.panini.sutra.runtime.SutraGranthaRegistry
 import dev.panini.sutra.runtime.SutraId
 import dev.panini.sutra.runtime.SutraNirnaya
 import dev.panini.sutra.runtime.SutraSource
+import dev.panini.sutra.runtime.toBlueprint
 import dev.panini.sutra.SutraRole
 import java.io.File
 import kotlin.test.BeforeTest
@@ -94,6 +95,40 @@ class ExecutableUktiSutraMigrationTest {
             SutraArthaValue.Text("युजिँर्"),
             grantha.sutras.single().artha.fields["upadesha"],
         )
+        val generatedBlueprint = grantha.sutras.single().toBlueprint().specializedAs(
+            SutraId("generated-addition"),
+            mapOf("generated" to SutraArthaValue.Truth(true)),
+        )
+        val compiledBlueprint = assertIs<ProgramBlueprintCompilation.Success>(
+            ProgramBlueprintCompiler.compile(
+                generatedBlueprint,
+                ProgramBlueprintContext(
+                    speaker = bound.ukti.speaker,
+                    listener = bound.ukti.listener,
+                    text = bound.ukti.text,
+                    prayojana = bound.ukti.prayojana,
+                    polarity = bound.ukti.polarity,
+                    lakara = bound.ukti.lakara,
+                ),
+            ),
+        )
+        val blueprintResult = assertIs<SutraMachineResult.Success<ProgramAvastha>>(
+            SutraMachine(ProgramSutraEffectInterpreter(scope)).process(
+                dev.panini.sutra.runtime.SutraProgram(
+                    "blueprint-round-trip",
+                    listOf(compiledBlueprint.sutra),
+                ),
+                ProgramAvastha(ValueEnvironment()),
+            ),
+        )
+        val legacyNumber = assertIs<SanskritValue.Sankhya>(
+            legacy.typedValues.values.single(),
+        )
+        val generatedNumber = assertIs<SanskritValue.Sankhya>(
+            assertIs<Phala.Siddha>(blueprintResult.state.lastPhala)
+                .typedValues["generated-addition"],
+        )
+        assertEquals(legacyNumber.value, generatedNumber.value)
         assertEquals(1, migrated.trace.size)
     }
 

@@ -1,7 +1,6 @@
 package dev.panini.execution.sutra
 
 import dev.panini.execution.ExecutableUkti
-import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.VakyaPrayojana
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.runtime.GranthaId
@@ -62,7 +61,9 @@ object ExecutableUktiSutraCompiler {
                             "karakas",
                             SutraArthaValue.Record(
                                 invocation.bindings.mapKeys { it.key.name }
-                                    .mapValues { it.value.toArthaValue() },
+                                    .mapValues {
+                                        ProgramSutraArthaCodec.encodeExpression(it.value)
+                                    },
                             ),
                         )
                         put(
@@ -117,23 +118,6 @@ object ExecutableUktiSutraCompiler {
             sutras = sutras,
             exports = sutras.mapTo(linkedSetOf()) { it.id },
         )
-    }
-
-    private fun ExecutionExpression.toArthaValue(): SutraArthaValue = when (this) {
-        is ExecutionExpression.Pada -> SutraArthaValue.Record(
-            buildMap {
-                put("prakriti", SutraArthaValue.Text(prakriti))
-                put(
-                    "samjnas",
-                    samjnas.map { SutraArthaValue.Symbol(it.toString()) }
-                        .let(SutraArthaValue::Sequence),
-                )
-                value?.let { put("value", SutraArthaValue.Text(it.toDisplayText())) }
-            },
-        )
-        is ExecutionExpression.Coordination ->
-            SutraArthaValue.Sequence(members.map { it.toArthaValue() })
-        is ExecutionExpression.Reference -> SutraArthaValue.Symbol(name)
     }
 
     private fun Set<String>.toArthaSequence(): SutraArthaValue.Sequence =
