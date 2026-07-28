@@ -30,6 +30,8 @@ import dev.panini.sutra.runtime.GranthaImport
 import dev.panini.sutra.runtime.RuntimeSutra
 import dev.panini.sutra.runtime.SutraArtha
 import dev.panini.sutra.runtime.SutraArthaValue
+import dev.panini.sutra.runtime.SutraBlueprintGranthaTextCodec
+import dev.panini.sutra.runtime.SutraBlueprintGranthaTextEncoding
 import dev.panini.sutra.runtime.SutraGrantha
 import dev.panini.sutra.runtime.SutraGranthaRegistry
 import dev.panini.sutra.runtime.SutraId
@@ -190,6 +192,9 @@ class ExecutableUktiSutraMigrationTest {
             id = GranthaId("generated-program"),
             sutras = sourceGrantha.sutras.reversed(),
         )
+        val generatedSource = assertIs<SutraBlueprintGranthaTextEncoding.Success>(
+            SutraBlueprintGranthaTextCodec.encode(generatedGrantha),
+        ).text
         val planning = assertIs<ProgramGranthaPlanning.Success>(
             ProgramBlueprintGranthaPlanner.plan(
                 generatedGrantha,
@@ -205,7 +210,7 @@ class ExecutableUktiSutraMigrationTest {
         )
         val generatedExecution = assertIs<ProgramGranthaExecution.Completed>(
             ProgramBlueprintGranthaEngine.execute(
-                generatedGrantha,
+                generatedSource,
                 ProgramBlueprintContext(
                     speaker = bound.ukti.speaker,
                     listener = bound.ukti.listener,

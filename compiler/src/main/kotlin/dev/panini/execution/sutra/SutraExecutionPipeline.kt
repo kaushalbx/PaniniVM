@@ -89,6 +89,13 @@ object SutraExecutionPipeline {
                 ),
                 emptyList(),
             )
+            is ProgramGranthaExecution.InvalidSource -> return Phala.Asiddha(
+                ExecutionResult.Failure(
+                    ExecutionError.INVALID_VALUE,
+                    execution.diagnostics.joinToString(separator = "\n") { it.message },
+                ),
+                emptyList(),
+            )
         }
         val state = result.state
         val machineTrace = result.trace.map(::render)

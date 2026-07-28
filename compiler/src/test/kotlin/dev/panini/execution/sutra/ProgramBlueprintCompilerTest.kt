@@ -195,4 +195,18 @@ class ProgramBlueprintCompilerTest {
             },
         )
     }
+
+    @Test
+    fun `grantha engine rejects malformed source before compilation`() {
+        val invalid = assertIs<ProgramGranthaExecution.InvalidSource>(
+            ProgramBlueprintGranthaEngine.execute(
+                """{"id":t"incomplete"}""",
+                ProgramBlueprintContext("प्रयोक्ता", "यन्त्रम्", "invalid"),
+                ExecutionScope(),
+                ProgramAvastha(ValueEnvironment()),
+            ),
+        )
+
+        assertTrue(invalid.diagnostics.isNotEmpty())
+    }
 }

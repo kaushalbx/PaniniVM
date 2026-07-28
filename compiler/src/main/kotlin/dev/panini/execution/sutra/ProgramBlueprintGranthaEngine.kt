@@ -2,6 +2,9 @@ package dev.panini.execution.sutra
 
 import dev.panini.execution.ExecutionScope
 import dev.panini.sutra.runtime.SutraBlueprintGrantha
+import dev.panini.sutra.runtime.SutraBlueprintGranthaTextCodec
+import dev.panini.sutra.runtime.SutraBlueprintGranthaTextDecoding
+import dev.panini.sutra.runtime.SutraBlueprintGranthaTextDiagnostic
 import dev.panini.sutra.runtime.SutraGranthaCompiler
 import dev.panini.sutra.runtime.SutraGranthaDiagnostic
 import dev.panini.sutra.runtime.SutraGranthaLowering
@@ -20,10 +23,29 @@ sealed interface ProgramGranthaExecution {
     data class InvalidRuntime(
         val diagnostics: List<SutraGranthaDiagnostic>,
     ) : ProgramGranthaExecution
+
+    data class InvalidSource(
+        val diagnostics: List<SutraBlueprintGranthaTextDiagnostic>,
+    ) : ProgramGranthaExecution
 }
 
 /** Processes evaluator-free program packages through every runtime boundary. */
 object ProgramBlueprintGranthaEngine {
+    fun execute(
+        source: String,
+        context: ProgramBlueprintContext,
+        scope: ExecutionScope,
+        initialState: ProgramAvastha,
+    ): ProgramGranthaExecution {
+        val grantha = when (val decoding = SutraBlueprintGranthaTextCodec.decode(source)) {
+            is SutraBlueprintGranthaTextDecoding.Success -> decoding.grantha
+            is SutraBlueprintGranthaTextDecoding.Invalid -> {
+                return ProgramGranthaExecution.InvalidSource(decoding.diagnostics)
+            }
+        }
+        return execute(grantha, context, scope, initialState)
+    }
+
     fun execute(
         grantha: SutraBlueprintGrantha,
         context: ProgramBlueprintContext,
