@@ -79,6 +79,7 @@ class SutraProgramValidatorTest {
         id = SutraId(id),
         source = SutraSource.Program("test", id, id),
         role = SutraRole.Vidhi,
+        artha = SutraArtha("test"),
         evaluator = { runtime, _ ->
             SutraNirnaya.Applicable(listOf(TestEffect(runtime.id.value)))
         },

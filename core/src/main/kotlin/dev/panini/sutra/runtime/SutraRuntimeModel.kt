@@ -47,6 +47,30 @@ sealed interface SutraRelation {
  */
 interface SutraEffect<S : SutraAvastha>
 
+/**
+ * Domain-neutral, recursively inspectable meaning attached to a runtime
+ * sūtra. This is the migration boundary that will eventually replace
+ * host-language evaluator closures with language-level interpretation.
+ */
+data class SutraArtha(
+    val kind: String,
+    val fields: Map<String, SutraArthaValue> = emptyMap(),
+) {
+    init {
+        require(kind.isNotBlank()) { "A sūtra artha requires a non-blank kind." }
+    }
+}
+
+sealed interface SutraArthaValue {
+    data class Text(val value: String) : SutraArthaValue
+    data class Number(val value: Long) : SutraArthaValue
+    data class Truth(val value: Boolean) : SutraArthaValue
+    data class Symbol(val name: String) : SutraArthaValue
+    data class SutraReference(val id: SutraId) : SutraArthaValue
+    data class Sequence(val values: List<SutraArthaValue>) : SutraArthaValue
+    data class Record(val fields: Map<String, SutraArthaValue>) : SutraArthaValue
+}
+
 fun interface SutraEvaluator<S : SutraAvastha> {
     fun evaluate(sutra: RuntimeSutra<S>, state: S): SutraNirnaya<S>
 }
@@ -55,6 +79,7 @@ data class RuntimeSutra<S : SutraAvastha>(
     val id: SutraId,
     val source: SutraSource,
     val role: SutraRole,
+    val artha: SutraArtha,
     val evaluator: SutraEvaluator<S>,
     val relations: Set<SutraRelation> = emptySet(),
     val governance: SutraGovernance = SutraGovernance(),

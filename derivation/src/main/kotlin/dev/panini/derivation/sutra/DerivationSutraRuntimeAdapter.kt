@@ -5,6 +5,8 @@ import dev.panini.derivation.RuleVisibility
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraGovernance
 import dev.panini.sutra.runtime.RuntimeSutra
+import dev.panini.sutra.runtime.SutraArtha
+import dev.panini.sutra.runtime.SutraArthaValue
 import dev.panini.sutra.runtime.SutraEffect
 import dev.panini.sutra.runtime.SutraEffectApplication
 import dev.panini.sutra.runtime.SutraEffectInterpreter
@@ -29,6 +31,20 @@ object DerivationSutraRuntimeAdapter {
                 text = catalogSutra?.text ?: legacy.sutra,
             ),
             role = legacy.role,
+            artha = SutraArtha(
+                kind = "vyakarana",
+                fields = mapOf(
+                    "number" to SutraArthaValue.Text(legacy.sutra),
+                    "type" to SutraArthaValue.Symbol(legacy.type.name),
+                    "role" to SutraArthaValue.Symbol(legacy.role::class.simpleName ?: "Unknown"),
+                    "action" to SutraArthaValue.Symbol(legacy.action.name),
+                    "scope" to SutraArthaValue.Symbol(legacy.scope.name),
+                    "optional" to SutraArthaValue.Truth(legacy.optional),
+                    "blocks" to SutraArthaValue.Sequence(
+                        legacy.blocks.map { SutraArthaValue.SutraReference(SutraId(it)) },
+                    ),
+                ),
+            ),
             evaluator = { _, state ->
                 val blocker = state.derivation.blockedSutras[legacy.sutra]
                 when {

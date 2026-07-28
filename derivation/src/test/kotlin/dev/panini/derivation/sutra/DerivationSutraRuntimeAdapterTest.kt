@@ -7,6 +7,7 @@ import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.runtime.SutraId
+import dev.panini.sutra.runtime.SutraArthaValue
 import dev.panini.sutra.runtime.SutraMachine
 import dev.panini.sutra.runtime.SutraMachineResult
 import dev.panini.sutra.runtime.SutraProgram
@@ -31,6 +32,15 @@ class DerivationSutraRuntimeAdapterTest {
         )
         val legacyChange = VrddhirAdaicSutra.apply(initial)
         val runtime = DerivationSutraRuntimeAdapter.adapt(VrddhirAdaicSutra)
+        assertEquals("vyakarana", runtime.artha.kind)
+        assertEquals(
+            SutraArthaValue.Text("1.1.1"),
+            runtime.artha.fields["number"],
+        )
+        assertEquals(
+            SutraArthaValue.Symbol("SAMJNA"),
+            runtime.artha.fields["action"],
+        )
 
         val migrated = assertIs<SutraMachineResult.Success<DerivationAvastha>>(
             SutraMachine(DerivationSutraEffectInterpreter).process(

@@ -18,6 +18,7 @@ import dev.panini.sankhya.SankhyaCountingFormRenderer
 import dev.panini.sutra.runtime.SutraMachine
 import dev.panini.sutra.runtime.SutraMachineResult
 import dev.panini.sutra.runtime.GranthaId
+import dev.panini.sutra.runtime.SutraArthaValue
 import java.io.File
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -67,6 +68,15 @@ class ExecutableUktiSutraMigrationTest {
         assertEquals(program.sutras.map { it.id }.toSet(), migrated.state.completedSutras)
         assertEquals(GranthaId("ukti"), grantha.id)
         assertEquals(program.sutras.map { it.id }.toSet(), grantha.exports)
+        assertEquals("kriya", grantha.sutras.single().artha.kind)
+        assertEquals(
+            SutraArthaValue.Text("युज्"),
+            grantha.sutras.single().artha.fields["dhatu"],
+        )
+        assertEquals(
+            SutraArthaValue.Text("युजिँर्"),
+            grantha.sutras.single().artha.fields["upadesha"],
+        )
         assertEquals(1, migrated.trace.size)
     }
 

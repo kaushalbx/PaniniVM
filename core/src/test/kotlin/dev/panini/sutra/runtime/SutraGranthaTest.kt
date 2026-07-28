@@ -67,6 +67,7 @@ class SutraGranthaTest {
         id = SutraId(id),
         source = SutraSource.Program("test", id, id),
         role = SutraRole.Vidhi,
+        artha = SutraArtha("test"),
         evaluator = { _, _ -> SutraNirnaya.Applicable(emptyList()) },
     )
 

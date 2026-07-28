@@ -1,10 +1,13 @@
 package dev.panini.execution.sutra
 
 import dev.panini.execution.ExecutableUkti
+import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.VakyaPrayojana
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.runtime.GranthaId
 import dev.panini.sutra.runtime.RuntimeSutra
+import dev.panini.sutra.runtime.SutraArtha
+import dev.panini.sutra.runtime.SutraArthaValue
 import dev.panini.sutra.runtime.SutraGrantha
 import dev.panini.sutra.runtime.SutraGranthaCompiler
 import dev.panini.sutra.runtime.SutraGranthaLowering
@@ -47,6 +50,44 @@ object ExecutableUktiSutraCompiler {
                     VakyaPrayojana.NISHEDHA -> SutraRole.Nishedha
                     else -> SutraRole.Vidhi
                 },
+                artha = SutraArtha(
+                    kind = "kriya",
+                    fields = buildMap {
+                        put("dhatu", SutraArthaValue.Text(invocation.dhatu.sourceSurface))
+                        put("upadesha", SutraArthaValue.Text(invocation.dhatu.upadesha))
+                        invocation.selectedOperation?.let {
+                            put("operation", SutraArthaValue.Symbol(it))
+                        }
+                        put(
+                            "karakas",
+                            SutraArthaValue.Record(
+                                invocation.bindings.mapKeys { it.key.name }
+                                    .mapValues { it.value.toArthaValue() },
+                            ),
+                        )
+                        put(
+                            "upasargas",
+                            invocation.grammaticalFeatures.upasargas.toArthaSequence(),
+                        )
+                        put(
+                            "sanadi",
+                            invocation.grammaticalFeatures.sanadi.toArthaSequence(),
+                        )
+                        put(
+                            "avyayas",
+                            invocation.grammaticalFeatures.avyayas.toArthaSequence(),
+                        )
+                        invocation.grammaticalFeatures.lakara?.let {
+                            put("lakara", SutraArthaValue.Symbol(it.name))
+                        }
+                        put(
+                            "prerequisites",
+                            SutraArthaValue.Sequence(
+                                prerequisites.map(SutraArthaValue::SutraReference),
+                            ),
+                        )
+                    },
+                ),
                 evaluator = { _, state ->
                     when {
                         state.halted -> SutraNirnaya.NotApplicable(
@@ -77,4 +118,24 @@ object ExecutableUktiSutraCompiler {
             exports = sutras.mapTo(linkedSetOf()) { it.id },
         )
     }
+
+    private fun ExecutionExpression.toArthaValue(): SutraArthaValue = when (this) {
+        is ExecutionExpression.Pada -> SutraArthaValue.Record(
+            buildMap {
+                put("prakriti", SutraArthaValue.Text(prakriti))
+                put(
+                    "samjnas",
+                    samjnas.map { SutraArthaValue.Symbol(it.toString()) }
+                        .let(SutraArthaValue::Sequence),
+                )
+                value?.let { put("value", SutraArthaValue.Text(it.toDisplayText())) }
+            },
+        )
+        is ExecutionExpression.Coordination ->
+            SutraArthaValue.Sequence(members.map { it.toArthaValue() })
+        is ExecutionExpression.Reference -> SutraArthaValue.Symbol(name)
+    }
+
+    private fun Set<String>.toArthaSequence(): SutraArthaValue.Sequence =
+        map { SutraArthaValue.Symbol(it) }.let(SutraArthaValue::Sequence)
 }
