@@ -8,7 +8,6 @@ import dev.panini.sutra.runtime.SutraArtha
 import dev.panini.sutra.runtime.SutraArthaValue
 import dev.panini.sutra.runtime.SutraBlueprint
 import dev.panini.sutra.runtime.SutraBlueprintGrantha
-import dev.panini.sutra.runtime.SutraBlueprintGranthaValidator
 import dev.panini.sutra.runtime.SutraGrantha
 import dev.panini.sutra.runtime.SutraGranthaCompiler
 import dev.panini.sutra.runtime.SutraGranthaLowering
@@ -16,16 +15,6 @@ import dev.panini.sutra.runtime.SutraId
 import dev.panini.sutra.runtime.SutraProgram
 import dev.panini.sutra.runtime.SutraRelation
 import dev.panini.sutra.runtime.SutraSource
-
-sealed interface ProgramGranthaCompilation {
-    data class Success(
-        val grantha: SutraGrantha<ProgramAvastha>,
-    ) : ProgramGranthaCompilation
-
-    data class Invalid(
-        val diagnostics: List<ProgramBlueprintDiagnostic>,
-    ) : ProgramGranthaCompilation
-}
 
 /**
  * Compatibility compiler used during the incremental migration. It preserves
@@ -52,17 +41,6 @@ object ExecutableUktiSutraCompiler {
 
     fun compileGranthaResult(ukti: ExecutableUkti): ProgramGranthaCompilation {
         val blueprintGrantha = compileBlueprintGrantha(ukti)
-        val granthaValidation = SutraBlueprintGranthaValidator.validate(blueprintGrantha)
-        if (!granthaValidation.isValid) {
-            return ProgramGranthaCompilation.Invalid(
-                granthaValidation.diagnostics.map {
-                    ProgramBlueprintDiagnostic(
-                        ProgramBlueprintDiagnosticCode.INVALID_GRANTHA,
-                        it.message,
-                    )
-                },
-            )
-        }
         val context = ProgramBlueprintContext(
             speaker = ukti.speaker,
             listener = ukti.listener,
@@ -71,27 +49,7 @@ object ExecutableUktiSutraCompiler {
             polarity = ukti.polarity,
             lakara = ukti.lakara,
         )
-        val diagnostics = mutableListOf<ProgramBlueprintDiagnostic>()
-        val sutras = blueprintGrantha.sutras.mapNotNull { blueprint ->
-            when (val compilation = ProgramBlueprintCompiler.compile(blueprint, context)) {
-                is ProgramBlueprintCompilation.Success -> compilation.sutra
-                is ProgramBlueprintCompilation.Invalid -> {
-                    diagnostics += compilation.diagnostics
-                    null
-                }
-            }
-        }
-        if (diagnostics.isNotEmpty()) return ProgramGranthaCompilation.Invalid(diagnostics)
-        return ProgramGranthaCompilation.Success(
-            SutraGrantha(
-                id = blueprintGrantha.id,
-                sutras = sutras,
-                imports = blueprintGrantha.imports,
-                adhikaras = blueprintGrantha.adhikaras,
-                samjnas = blueprintGrantha.samjnas,
-                exports = blueprintGrantha.exports,
-            ),
-        )
+        return ProgramBlueprintGranthaCompiler.compile(blueprintGrantha, context)
     }
 
     fun compileBlueprintGrantha(ukti: ExecutableUkti): SutraBlueprintGrantha {

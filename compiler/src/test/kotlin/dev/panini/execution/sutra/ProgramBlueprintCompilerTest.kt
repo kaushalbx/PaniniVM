@@ -172,7 +172,17 @@ class ProgramBlueprintCompilerTest {
         )
 
         val invalid = assertIs<ProgramGranthaCompilation.Invalid>(
-            ExecutableUktiSutraCompiler.compileGranthaResult(ukti),
+            ProgramBlueprintGranthaCompiler.compile(
+                ExecutableUktiSutraCompiler.compileBlueprintGrantha(ukti),
+                ProgramBlueprintContext(
+                    ukti.speaker,
+                    ukti.listener,
+                    ukti.text,
+                    ukti.prayojana,
+                    ukti.polarity,
+                    ukti.lakara,
+                ),
+            ),
         )
 
         assertTrue(

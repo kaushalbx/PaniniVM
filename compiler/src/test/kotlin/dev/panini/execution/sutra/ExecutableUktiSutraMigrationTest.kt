@@ -31,6 +31,8 @@ import dev.panini.sutra.runtime.RuntimeSutra
 import dev.panini.sutra.runtime.SutraArtha
 import dev.panini.sutra.runtime.SutraArthaValue
 import dev.panini.sutra.runtime.SutraGrantha
+import dev.panini.sutra.runtime.SutraGranthaCompiler
+import dev.panini.sutra.runtime.SutraGranthaLowering
 import dev.panini.sutra.runtime.SutraGranthaRegistry
 import dev.panini.sutra.runtime.SutraId
 import dev.panini.sutra.runtime.SutraNirnaya
@@ -166,6 +168,9 @@ class ExecutableUktiSutraMigrationTest {
                 "फल + अम् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।",
         )
         val scope = ExecutionScope(capabilities = setOf(ExecutionEffect.PURE))
+        val bound = assertIs<ExecutionBindingResult.Bound>(
+            VyakaranamExecutionAdapter.bind(input, conversation),
+        )
 
         val legacy = assertIs<Phala.Siddha>(
             ExecutionPipeline.execute(input, conversation, scope),
@@ -177,6 +182,38 @@ class ExecutableUktiSutraMigrationTest {
         assertEquals(legacy.values, migrated.values)
         assertEquals(legacy.typedValues, migrated.typedValues)
         assertEquals(legacy.localBindings, migrated.localBindings)
+
+        val sourceGrantha = ExecutableUktiSutraCompiler.compileBlueprintGrantha(bound.ukti)
+        val generatedGrantha = sourceGrantha.copy(
+            id = GranthaId("generated-program"),
+            sutras = sourceGrantha.sutras.reversed(),
+        )
+        val compiled = assertIs<ProgramGranthaCompilation.Success>(
+            ProgramBlueprintGranthaCompiler.compile(
+                generatedGrantha,
+                ProgramBlueprintContext(
+                    speaker = bound.ukti.speaker,
+                    listener = bound.ukti.listener,
+                    text = bound.ukti.text,
+                    prayojana = bound.ukti.prayojana,
+                    polarity = bound.ukti.polarity,
+                    lakara = bound.ukti.lakara,
+                ),
+            ),
+        )
+        val generatedProgram = assertIs<SutraGranthaLowering.Success<ProgramAvastha>>(
+            SutraGranthaCompiler.lower(compiled.grantha),
+        ).program
+        val generatedResult = assertIs<SutraMachineResult.Success<ProgramAvastha>>(
+            SutraMachine(ProgramSutraEffectInterpreter(scope)).process(
+                generatedProgram,
+                ProgramAvastha(ValueEnvironment()),
+            ),
+        )
+
+        assertEquals(sourceGrantha.sutras.map { it.id }, generatedProgram.sutras.map { it.id })
+        assertEquals(legacy.typedValues, generatedResult.state.invocationValues)
+        assertEquals(legacy.localBindings, generatedResult.state.localBindings)
     }
 
     @Test
