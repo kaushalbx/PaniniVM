@@ -28,6 +28,7 @@ import dev.panini.sutra.runtime.GranthaImport
 import dev.panini.sutra.runtime.RuntimeSutra
 import dev.panini.sutra.runtime.SutraArtha
 import dev.panini.sutra.runtime.SutraArthaValue
+import dev.panini.sutra.runtime.SutraBlueprintGrantha
 import dev.panini.sutra.runtime.SutraBlueprintGranthaTextCodec
 import dev.panini.sutra.runtime.SutraBlueprintGranthaTextEncoding
 import dev.panini.sutra.runtime.SutraGrantha
@@ -299,6 +300,74 @@ class ExecutableUktiSutraMigrationTest {
 
         val result = assertIs<SutraMachineResult.Success<ProgramAvastha>>(execution.result)
         assertEquals(SanskritValue.Shabda("युज्"), result.state.invocationValues["inspect"])
+    }
+
+    @Test
+    fun `a grantha sutra can inspect a sibling sutra in its own artha`() {
+        val conversation = SambhashanaContext("प्रयोक्ता", "यन्त्रम्")
+        val targetUkti = assertIs<ExecutionBindingResult.Bound>(
+            VyakaranamExecutionAdapter.bind(
+                SanskritUktiInput(
+                    speaker = conversation.speaker,
+                    listener = conversation.listener,
+                    text = "दश + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।",
+                ),
+                conversation,
+            ),
+        ).ukti
+        val granthaId = GranthaId("self-reflective")
+        val target = ExecutableUktiSutraCompiler
+            .compileBlueprintGrantha(targetUkti, granthaId)
+            .sutras
+            .single()
+        val inspectUkti = ExecutableUkti(
+            speaker = conversation.speaker,
+            listener = conversation.listener,
+            text = "स्वसूत्रार्थं निरीक्षते",
+            prayojana = VakyaPrayojana.AJNA,
+            invocations = listOf(
+                DhatuInvocation(
+                    id = "inspect-self",
+                    dhatu = DrshDhatu(),
+                    bindings = mapOf(
+                        Karaka.KARMAN to ExecutionExpression.Pada(target.id.value),
+                        Karaka.KARANA to ExecutionExpression.Pada("dhatu"),
+                    ),
+                    grammaticalFeatures = GrammaticalFeatures(upasargas = setOf("नि")),
+                ),
+            ),
+        )
+        val inspector = ExecutableUktiSutraCompiler
+            .compileBlueprintGrantha(inspectUkti, granthaId)
+            .sutras
+            .single()
+        val grantha = SutraBlueprintGrantha(
+            id = granthaId,
+            sutras = listOf(target, inspector),
+            exports = setOf(target.id, inspector.id),
+        )
+        val source = assertIs<SutraBlueprintGranthaTextEncoding.Success>(
+            SutraBlueprintGranthaTextCodec.encode(grantha),
+        ).text
+
+        val execution = assertIs<ProgramGranthaExecution.Completed>(
+            ProgramBlueprintGranthaEngine.execute(
+                source,
+                ProgramBlueprintContext(
+                    speaker = conversation.speaker,
+                    listener = conversation.listener,
+                    text = "self-reflective.sutra",
+                ),
+                ExecutionScope(capabilities = setOf(ExecutionEffect.PURE)),
+                ProgramAvastha(ValueEnvironment()),
+            ),
+        )
+
+        val result = assertIs<SutraMachineResult.Success<ProgramAvastha>>(execution.result)
+        assertEquals(
+            SanskritValue.Shabda("युज्"),
+            result.state.invocationValues["inspect-self"],
+        )
     }
 
     private fun temporaryDirectory(label: String): File =

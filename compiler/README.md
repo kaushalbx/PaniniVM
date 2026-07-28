@@ -20,7 +20,8 @@ values.
 During execution, the compiled grantha is automatically installed as the
 current grantha in the immutable sūtra registry. It can therefore inspect its
 own sūtras and resolve explicitly imported, exported sūtras without the host
-manually registering the application.
+manually registering the application. This self-reflection is preserved after
+the grantha is encoded to canonical `.sutra` text and loaded again.
 
 The sūtra machine is the sole execution architecture for ordinary
 `PaniniVM.eval(...)` calls. The former parallel execution pipeline has been
