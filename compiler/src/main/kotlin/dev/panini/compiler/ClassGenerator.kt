@@ -167,13 +167,14 @@ object ClassGenerator {
                 // Execute action
                 mv.visitLdcInsn(plan.resolved.invocation.dhatu.upadesha)
                 mv.visitLdcInsn(plan.resolved.operation.name)
+                mv.visitLdcInsn(plan.resolved.operation.trigger.requiredSanadi.sorted().joinToString(","))
                 mv.visitVarInsn(ALOAD, 2)
                 mv.visitVarInsn(ALOAD, 1)
                 mv.visitMethodInsn(
                     INVOKESTATIC,
                     "dev/panini/compiler/PaniniRuntime",
                     "execute",
-                    "(Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/util/Map;)Ldev/panini/execution/SanskritValue;",
+                    "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/util/Map;)Ldev/panini/execution/SanskritValue;",
                     false
                 )
 

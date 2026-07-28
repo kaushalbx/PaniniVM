@@ -28,12 +28,15 @@ starts with `तावत्`; subsequent sentences start with `ततः`:
 ततः फल + अम् अग्रिम + ङे दा + लोट् + सिप्
 ततः गणना + अम् एक + औट् च वि + युज् + णिच् + लोट् + सिप्
 ततः फल + अम् गणना + ङे दा + लोट् + सिप् ।
+वृत् + यङ् + लोट् + थास् ।
 ```
 
 The condition must produce `सत्य`. Assignments in the body are visible to the
 next iteration. A 100,000-iteration limit guards against accidental endless
 loops. Compiled scripts emit JVM branches for the loop and reevaluate the
 condition at runtime; the compiler does not expand or execute loop iterations.
+The final `वृत् + यङ् + लोट्` sentence is mandatory: `वृत्` selects the existing
+`LoopAction`, and `यङ्` marks क्रियासमभिहार, repeated execution.
 
 ## Overview
 

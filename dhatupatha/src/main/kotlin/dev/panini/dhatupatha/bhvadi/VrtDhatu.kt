@@ -30,10 +30,20 @@ class VrtDhatu : Dhatu(
     svara = Accent.UDATTA,
     operations = listOf(
         LoopAction.op {
-            triggeredBy(forbiddenUpasargas = setOf("अनु"))
+            triggeredBy(
+                forbiddenUpasargas = setOf("अनु"),
+                forbiddenSanadi = setOf("यङ्"),
+            )
             requires(Karaka.KARMAN, 1, null, null, Samjna.SANKHYA) // loop count (must be a number)
             requires(Karaka.KARANA) // target action name
             optional(Karaka.SAMPRADANA, Karaka.APADANA) // initial state
+            returns(Samjna.SHABDA)
+        },
+        LoopAction.op {
+            triggeredBy(
+                requiredSanadi = setOf("यङ्"),
+                allowedLakaras = setOf(dev.panini.core.Lakara.LOT),
+            )
             returns(Samjna.SHABDA)
         },
         ListReverseAction.op {

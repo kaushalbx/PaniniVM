@@ -398,6 +398,7 @@ class CompilerTest {
             यावत् गणना + अम् शून्य + अम् च विद् + णिच् + लोट् + सिप्
             तावत् गणना + अम् एक + औट् च वि + युज् + णिच् + लोट् + सिप्
             ततः फल + अम् गणना + ङे दा + लोट् + सिप् ।
+            वृत् + यङ् + लोट् + थास् ।
         """.trimIndent()
 
         val clazz = BytecodeCompiler.compileAndLoad(script, "CompiledRuntimeLoopTest")

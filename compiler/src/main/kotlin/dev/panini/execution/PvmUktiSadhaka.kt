@@ -49,6 +49,7 @@ class PvmUktiSadhaka(
                     statement.body.forEachIndexed { index, clause ->
                         add("${if (index == 0) "तावत्" else "ततः"} ${sadhayaLine(clause.text)}")
                     }
+                    add(sadhayaLine(statement.invocation.text))
                 }.joinToString("\n")
             }
         }

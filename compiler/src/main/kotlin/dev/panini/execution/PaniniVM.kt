@@ -1,5 +1,6 @@
 package dev.panini.execution
 
+import dev.panini.actions.control.LoopAction
 import dev.panini.execution.external.ExternalCapabilityDispatcher
 import dev.panini.execution.persistence.FileStateStore
 import dev.panini.execution.persistence.StateStore
@@ -94,23 +95,26 @@ class PaniniVM(
                     statement.text, sessionKey, scope, speaker, listener,
                 )
                 is PvmScriptStatement.While -> {
-                    var iterations = 0
-                    while (true) {
-                        val condition = eval(statement.condition, sessionKey, scope, speaker, listener)
-                        results += condition
-                        if (condition !is ExecutionResult.Success) break
-                        val truth = condition.typedValue as? SanskritValue.Satya
-                            ?: throw IllegalStateException("यावत् condition must produce a सत्य value.")
-                        if (!truth.boolean) break
-                        check(iterations++ < MAX_LOOP_ITERATIONS) {
-                            "यावत् loop exceeded $MAX_LOOP_ITERATIONS iterations."
-                        }
-                        statement.body.forEach { clause ->
-                            val result = eval(clause.text, sessionKey, scope, speaker, listener)
-                            results += result
-                            if (result !is ExecutionResult.Success) return results
-                        }
+                    val invocation = eval(
+                        statement.invocation.text, sessionKey, scope, speaker, listener,
+                    )
+                    results += invocation
+                    if (invocation !is ExecutionResult.Success ||
+                        invocation.trace.none { "मूलधातु वृत् with यङ्" in it }
+                    ) {
+                        return results
                     }
+                    results += LoopAction.executeStructured(
+                        condition = {
+                            eval(statement.condition, sessionKey, scope, speaker, listener)
+                        },
+                        body = {
+                            statement.body.map { clause ->
+                                eval(clause.text, sessionKey, scope, speaker, listener)
+                            }
+                        },
+                        maximumIterations = MAX_LOOP_ITERATIONS,
+                    )
                 }
             }
         }

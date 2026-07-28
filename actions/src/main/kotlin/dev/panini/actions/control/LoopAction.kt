@@ -14,6 +14,14 @@ import dev.panini.execution.renderSankhyaResult
 
 object LoopAction : DhatuAction("अनुवृत्तिः", "क्रियायाः पुनः पुनः अनुष्ठानम्") {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
+        if ("यङ्" in operation.trigger.requiredSanadi) {
+            return ExecutionResult.Success(
+                "पुनरावृत्तिः आरब्धा",
+                operation.name,
+                listOf("Selected ${operation.name} through मूलधातु वृत् with यङ्."),
+                SanskritValue.Shabda("पुनरावृत्तिः आरब्धा"),
+            )
+        }
         // 1. Resolve loop count key and expression
         val countKey = if (context.bindings.containsKey(Karaka.KARMAN)) Karaka.KARMAN else Karaka.KARTR
         val countExpression = context.bindings[countKey]
@@ -158,5 +166,29 @@ object LoopAction : DhatuAction("अनुवृत्तिः", "क्रि�
             trace,
             currentResultTyped ?: SanskritValue.of(currentResultValue, targetOp.resultSamjnas)
         )
+    }
+
+    fun executeStructured(
+        condition: () -> ExecutionResult,
+        body: () -> List<ExecutionResult>,
+        maximumIterations: Int = 100_000,
+    ): List<ExecutionResult> {
+        val results = mutableListOf<ExecutionResult>()
+        var iterations = 0
+        while (true) {
+            val conditionResult = condition()
+            results += conditionResult
+            if (conditionResult !is ExecutionResult.Success) break
+            val truth = conditionResult.typedValue as? SanskritValue.Satya
+                ?: error("यावत् condition must produce a सत्य value.")
+            if (!truth.boolean) break
+            check(iterations++ < maximumIterations) {
+                "यावत् loop exceeded $maximumIterations iterations."
+            }
+            val bodyResults = body()
+            results += bodyResults
+            if (bodyResults.any { it !is ExecutionResult.Success }) break
+        }
+        return results
     }
 }

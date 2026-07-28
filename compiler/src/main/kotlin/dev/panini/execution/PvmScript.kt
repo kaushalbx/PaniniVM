@@ -5,6 +5,7 @@ sealed interface PvmScriptStatement {
     data class While(
         val condition: String,
         val body: List<Sentence>,
+        val invocation: Sentence,
     ) : PvmScriptStatement
 }
 
@@ -35,7 +36,15 @@ object PvmScript {
                 body += PvmScriptStatement.Sentence(sentence(lines[index].removePrefix("ततः ")))
                 index++
             }
-            statements += PvmScriptStatement.While(condition, body)
+            require(index < lines.size) {
+                "A segmented loop must end with a वृत् + यङ् invocation."
+            }
+            val invocation = sentence(lines[index])
+            require("वृत्" in invocation && "यङ्" in invocation) {
+                "A segmented loop must be invoked by the मूलधातु वृत् with यङ्."
+            }
+            index++
+            statements += PvmScriptStatement.While(condition, body, PvmScriptStatement.Sentence(invocation))
         }
         return statements
     }

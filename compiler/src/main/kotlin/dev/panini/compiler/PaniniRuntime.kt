@@ -52,9 +52,18 @@ object PaniniRuntime {
     }
 
     @JvmStatic
-    fun resolveOperation(dhatuUpadesha: String, operationName: String): DhatuOperation {
+    fun resolveOperation(
+        dhatuUpadesha: String,
+        operationName: String,
+        requiredSanadi: String,
+    ): DhatuOperation {
         dev.panini.dhatupatha.DhatuPathaRegistration.ensureRegistered()
-        return DhatuPatha.resolveOperation(dhatuUpadesha, operationName)
+        val sanadi = requiredSanadi.split(',').filter(String::isNotEmpty).toSet()
+        if (sanadi.isEmpty()) return DhatuPatha.resolveOperation(dhatuUpadesha, operationName)
+        return DhatuPatha.all.asSequence()
+            .filter { it.upadesha == dhatuUpadesha }
+            .flatMap { it.operations.asSequence() }
+            .first { it.name == operationName && it.trigger.requiredSanadi == sanadi }
     }
 
     @JvmStatic
@@ -74,11 +83,12 @@ object PaniniRuntime {
     fun execute(
         dhatuUpadesha: String,
         operationName: String,
+        requiredSanadi: String,
         bindings: Map<Karaka, ExecutionExpression>,
         variables: Map<String, SanskritValue>
     ): SanskritValue {
         dev.panini.sankhya.SankhyaCountingFormRenderer.init()
-        val operation = resolveOperation(dhatuUpadesha, operationName)
+        val operation = resolveOperation(dhatuUpadesha, operationName, requiredSanadi)
         val action = operation.action
         val context = ExecutionContext(
             bindings = bindings,

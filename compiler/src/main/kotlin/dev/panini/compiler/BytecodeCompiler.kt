@@ -137,6 +137,7 @@ object BytecodeCompiler {
             when (statement) {
                 is PvmScriptStatement.Sentence -> lines += statement.text
                 is PvmScriptStatement.While -> {
+                    lines += statement.invocation.text
                     val conditionIndex = lines.size
                     lines += statement.condition
                     lines += statement.body.map { it.text }

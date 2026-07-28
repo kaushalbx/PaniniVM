@@ -15,6 +15,7 @@ data class OperationTrigger(
     val requiredUpasargas: Set<String> = emptySet(),
     val forbiddenUpasargas: Set<String> = emptySet(),
     val requiredSanadi: Set<String> = emptySet(),
+    val forbiddenSanadi: Set<String> = emptySet(),
     val requiredAvyayas: Set<String> = emptySet(),
     val forbiddenAvyayas: Set<String> = emptySet(),
     val allowedLakaras: Set<Lakara> = emptySet(),
@@ -26,12 +27,16 @@ data class OperationTrigger(
         require(requiredAvyayas.intersect(forbiddenAvyayas).isEmpty()) {
             "An operation trigger cannot require and forbid the same avyaya."
         }
+        require(requiredSanadi.intersect(forbiddenSanadi).isEmpty()) {
+            "An operation trigger cannot require and forbid the same sanādi affix."
+        }
     }
 
     fun matches(features: GrammaticalFeatures): Boolean =
         features.upasargas.containsAll(requiredUpasargas) &&
             features.upasargas.none { it in forbiddenUpasargas } &&
             features.sanadi.containsAll(requiredSanadi) &&
+            features.sanadi.none { it in forbiddenSanadi } &&
             features.avyayas.containsAll(requiredAvyayas) &&
             features.avyayas.none { it in forbiddenAvyayas } &&
             (allowedLakaras.isEmpty() || features.lakara in allowedLakaras)
