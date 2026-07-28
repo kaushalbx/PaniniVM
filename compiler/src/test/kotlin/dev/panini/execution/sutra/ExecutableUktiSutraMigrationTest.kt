@@ -31,8 +31,6 @@ import dev.panini.sutra.runtime.RuntimeSutra
 import dev.panini.sutra.runtime.SutraArtha
 import dev.panini.sutra.runtime.SutraArthaValue
 import dev.panini.sutra.runtime.SutraGrantha
-import dev.panini.sutra.runtime.SutraGranthaCompiler
-import dev.panini.sutra.runtime.SutraGranthaLowering
 import dev.panini.sutra.runtime.SutraGranthaRegistry
 import dev.panini.sutra.runtime.SutraId
 import dev.panini.sutra.runtime.SutraNirnaya
@@ -188,8 +186,8 @@ class ExecutableUktiSutraMigrationTest {
             id = GranthaId("generated-program"),
             sutras = sourceGrantha.sutras.reversed(),
         )
-        val compiled = assertIs<ProgramGranthaCompilation.Success>(
-            ProgramBlueprintGranthaCompiler.compile(
+        val generatedExecution = assertIs<ProgramGranthaExecution.Completed>(
+            ProgramBlueprintGranthaEngine.execute(
                 generatedGrantha,
                 ProgramBlueprintContext(
                     speaker = bound.ukti.speaker,
@@ -199,19 +197,15 @@ class ExecutableUktiSutraMigrationTest {
                     polarity = bound.ukti.polarity,
                     lakara = bound.ukti.lakara,
                 ),
-            ),
-        )
-        val generatedProgram = assertIs<SutraGranthaLowering.Success<ProgramAvastha>>(
-            SutraGranthaCompiler.lower(compiled.grantha),
-        ).program
-        val generatedResult = assertIs<SutraMachineResult.Success<ProgramAvastha>>(
-            SutraMachine(ProgramSutraEffectInterpreter(scope)).process(
-                generatedProgram,
+                scope,
                 ProgramAvastha(ValueEnvironment()),
             ),
         )
+        val generatedResult = assertIs<SutraMachineResult.Success<ProgramAvastha>>(
+            generatedExecution.result,
+        )
 
-        assertEquals(sourceGrantha.sutras.map { it.id }, generatedProgram.sutras.map { it.id })
+        assertEquals(sourceGrantha.sutras.map { it.id }, generatedResult.trace.map { it.sutraId })
         assertEquals(legacy.typedValues, generatedResult.state.invocationValues)
         assertEquals(legacy.localBindings, generatedResult.state.localBindings)
     }

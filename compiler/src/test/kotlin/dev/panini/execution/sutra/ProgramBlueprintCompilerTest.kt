@@ -8,6 +8,8 @@ import dev.panini.execution.ActionDependency
 import dev.panini.execution.DhatuInvocation
 import dev.panini.execution.ExecutableUkti
 import dev.panini.execution.ExecutionExpression
+import dev.panini.execution.ExecutionScope
+import dev.panini.execution.ValueEnvironment
 import dev.panini.execution.VakyaPrayojana
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.runtime.SutraArtha
@@ -171,8 +173,8 @@ class ProgramBlueprintCompilerTest {
             dependencies = setOf(ActionDependency(invocation.id, invocation.id)),
         )
 
-        val invalid = assertIs<ProgramGranthaCompilation.Invalid>(
-            ProgramBlueprintGranthaCompiler.compile(
+        val invalid = assertIs<ProgramGranthaExecution.InvalidBlueprint>(
+            ProgramBlueprintGranthaEngine.execute(
                 ExecutableUktiSutraCompiler.compileBlueprintGrantha(ukti),
                 ProgramBlueprintContext(
                     ukti.speaker,
@@ -182,6 +184,8 @@ class ProgramBlueprintCompilerTest {
                     ukti.polarity,
                     ukti.lakara,
                 ),
+                ExecutionScope(),
+                ProgramAvastha(ValueEnvironment()),
             ),
         )
 

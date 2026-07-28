@@ -18,10 +18,7 @@ import dev.panini.execution.SmrtaPhala
 import dev.panini.execution.ValueEnvironment
 import dev.panini.execution.binding.VyakaranamExecutionAdapter
 import dev.panini.sankhya.SankhyaCountingFormRenderer
-import dev.panini.sutra.runtime.SutraMachine
 import dev.panini.sutra.runtime.SutraMachineResult
-import dev.panini.sutra.runtime.SutraGranthaCompiler
-import dev.panini.sutra.runtime.SutraGranthaLowering
 import dev.panini.sutra.runtime.SutraTraceEntry
 
 /** End-to-end compatibility entry point for the migrating runtime-sūtra path. */
@@ -62,30 +59,37 @@ object SutraExecutionPipeline {
             )
         }
 
-        val grantha = when (val compilation = ExecutableUktiSutraCompiler.compileGranthaResult(ukti)) {
-            is ProgramGranthaCompilation.Success -> compilation.grantha
-            is ProgramGranthaCompilation.Invalid -> return Phala.Asiddha(
-                ExecutionResult.Failure(
-                    ExecutionError.INVALID_VALUE,
-                    compilation.diagnostics.joinToString(separator = "\n") { it.message },
-                ),
-                emptyList(),
-            )
-        }
-        val program = when (val lowering = SutraGranthaCompiler.lower(grantha)) {
-            is SutraGranthaLowering.Success -> lowering.program
-            is SutraGranthaLowering.Invalid -> return Phala.Asiddha(
-                ExecutionResult.Failure(
-                    ExecutionError.INVALID_VALUE,
-                    lowering.diagnostics.joinToString(separator = "\n") { it.message },
-                ),
-                emptyList(),
-            )
-        }
-        val result = SutraMachine(ProgramSutraEffectInterpreter(scope)).process(
-            program,
+        val blueprintGrantha = ExecutableUktiSutraCompiler.compileBlueprintGrantha(ukti)
+        val execution = ProgramBlueprintGranthaEngine.execute(
+            blueprintGrantha,
+            ProgramBlueprintContext(
+                speaker = ukti.speaker,
+                listener = ukti.listener,
+                text = ukti.text,
+                prayojana = ukti.prayojana,
+                polarity = ukti.polarity,
+                lakara = ukti.lakara,
+            ),
+            scope,
             ProgramAvastha(environment(conversation, scope)),
         )
+        val result = when (execution) {
+            is ProgramGranthaExecution.Completed -> execution.result
+            is ProgramGranthaExecution.InvalidBlueprint -> return Phala.Asiddha(
+                ExecutionResult.Failure(
+                    ExecutionError.INVALID_VALUE,
+                    execution.diagnostics.joinToString(separator = "\n") { it.message },
+                ),
+                emptyList(),
+            )
+            is ProgramGranthaExecution.InvalidRuntime -> return Phala.Asiddha(
+                ExecutionResult.Failure(
+                    ExecutionError.INVALID_VALUE,
+                    execution.diagnostics.joinToString(separator = "\n") { it.message },
+                ),
+                emptyList(),
+            )
+        }
         val state = result.state
         val machineTrace = result.trace.map(::render)
         if (result is SutraMachineResult.Failure) {
