@@ -14,7 +14,15 @@ import dev.panini.derivation.SubantaStemClass
 import dev.panini.derivation.TingantaDerivationRequest
 import dev.panini.derivation.TingantaEngine
 import dev.panini.execution.ExecutionResult
+import dev.panini.execution.ExecutionEffect
+import dev.panini.execution.ExecutionScope
 import dev.panini.execution.PaniniVM
+import dev.panini.execution.Phala
+import dev.panini.execution.ValueEnvironment
+import dev.panini.execution.sutra.ProgramAvastha
+import dev.panini.execution.sutra.ProgramBlueprintContext
+import dev.panini.execution.sutra.ProgramBlueprintGranthaEngine
+import dev.panini.execution.sutra.ProgramGranthaExecution
 import dev.panini.sankhya.SankhyaGenerator
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
@@ -73,6 +81,53 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
                     is ExecutionResult.Ambiguous -> {
                         add("  ? Ambiguous: ${res.message} (matches: ${res.matchingOperations})")
                     }
+                }
+            }
+        }
+    }
+    "--grantha" -> {
+        val filePath = args.getOrNull(1) ?: error("Usage: --grantha path/to/file.sutra")
+        val file = File(filePath)
+        require(file.exists()) { "Sūtra grantha source file not found: $filePath" }
+        dev.panini.dhatupatha.DhatuPathaRegistration.ensureRegistered()
+        dev.panini.derivation.LinguisticActionsInitializer.initialize()
+        dev.panini.sankhya.SankhyaCountingFormRenderer.init()
+        val execution = ProgramBlueprintGranthaEngine.execute(
+            file.readText(),
+            ProgramBlueprintContext(
+                speaker = "प्रयोक्ता",
+                listener = "यन्त्रम्",
+                text = file.name,
+            ),
+            ExecutionScope(capabilities = setOf(ExecutionEffect.PURE)),
+            ProgramAvastha(ValueEnvironment()),
+        )
+        buildList {
+            add("=== Sūtra Grantha Execution: ${file.name} ===")
+            when (execution) {
+                is ProgramGranthaExecution.Completed -> {
+                    when (val result = execution.result) {
+                        is dev.panini.sutra.runtime.SutraMachineResult.Failure ->
+                            add("✗ ${result.failedSutra}: ${result.message}")
+                        is dev.panini.sutra.runtime.SutraMachineResult.Success -> {
+                            when (val phala = result.state.lastPhala) {
+                                is Phala.Siddha -> phala.values.toSortedMap().forEach { (id, value) ->
+                                    add("✓ $id: $value")
+                                }
+                                null -> add("✗ Grantha completed without a result.")
+                                else -> add("✗ $phala")
+                            }
+                        }
+                    }
+                }
+                is ProgramGranthaExecution.InvalidSource -> execution.diagnostics.forEach {
+                    add("✗ ${it.code}${it.position?.let { position -> " at $position" }.orEmpty()}: ${it.message}")
+                }
+                is ProgramGranthaExecution.InvalidBlueprint -> execution.diagnostics.forEach {
+                    add("✗ ${it.code}: ${it.message}")
+                }
+                is ProgramGranthaExecution.InvalidRuntime -> execution.diagnostics.forEach {
+                    add("✗ ${it.code}: ${it.message}")
                 }
             }
         }
@@ -254,7 +309,7 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
         "loaded=${Ashtadhyayi.pathitaCount}; executable=${Ashtadhyayi.kriyavatCount}; total=${Ashtadhyayi.expectedSutraCount}; remaining=${Ashtadhyayi.remainingCount}",
         "roles=" + Ashtadhyayi.registry.sutras.groupingBy { it.role::class.simpleName }.eachCount().entries.joinToString { "${it.key}=${it.value}" },
     )
-    else -> listOf("Usage: --eval file.pvm | --compile file.pvm | --paradigm राम | --derive राम SASTHI BAHUVACANA | --derive-unadi कृ उण् | --verb भू | --unadi [lookup|pair|list] | --sankhya 23 | --sutra 7.1.54 | --coverage")
+    else -> listOf("Usage: --eval file.pvm | --grantha file.sutra | --compile file.pvm | --paradigm राम | --derive राम SASTHI BAHUVACANA | --derive-unadi कृ उण् | --verb भू | --unadi [lookup|pair|list] | --sankhya 23 | --sutra 7.1.54 | --coverage")
 }
 
 private enum class SankhyaKind { CARDINAL, ORDINAL }

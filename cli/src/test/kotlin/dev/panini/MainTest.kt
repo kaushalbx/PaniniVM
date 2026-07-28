@@ -1,7 +1,17 @@
 package dev.panini
 
+import dev.panini.dhatupatha.DhatuPathaRegistration
+import dev.panini.execution.ExecutionBindingResult
+import dev.panini.execution.SambhashanaContext
+import dev.panini.execution.SanskritUktiInput
+import dev.panini.execution.binding.VyakaranamExecutionAdapter
+import dev.panini.execution.sutra.ExecutableUktiSutraCompiler
+import dev.panini.sutra.runtime.SutraBlueprintGranthaTextCodec
+import dev.panini.sutra.runtime.SutraBlueprintGranthaTextEncoding
+import java.nio.file.Files
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class MainTest {
@@ -13,6 +23,52 @@ class MainTest {
         assertEquals("=== PaniniVM Script Execution: addition.pvm ===", output.first())
         assertTrue(output.any { it.contains("✓ Result: षट्") }, output.joinToString("\n"))
         assertTrue(output.any { it.contains("✓ Result: पञ्च") }, output.joinToString("\n"))
+    }
+
+    @Test
+    fun `grantha command executes canonical segmented source`() {
+        DhatuPathaRegistration.ensureRegistered()
+        val conversation = SambhashanaContext("प्रयोक्ता", "यन्त्रम्")
+        val bound = assertIs<ExecutionBindingResult.Bound>(
+            VyakaranamExecutionAdapter.bind(
+                SanskritUktiInput(
+                    conversation.speaker,
+                    conversation.listener,
+                    "दश + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।",
+                ),
+                conversation,
+            ),
+        )
+        val source = assertIs<SutraBlueprintGranthaTextEncoding.Success>(
+            SutraBlueprintGranthaTextCodec.encode(
+                ExecutableUktiSutraCompiler.compileBlueprintGrantha(bound.ukti),
+            ),
+        ).text
+        val file = Files.createTempFile("addition", ".sutra")
+        try {
+            Files.writeString(file, source)
+
+            val output = runCli(arrayOf("--grantha", file.toString()))
+
+            assertEquals("=== Sūtra Grantha Execution: ${file.fileName} ===", output.first())
+            assertTrue(output.any { it.contains("✓ योग-1: द्वादश") }, output.joinToString("\n"))
+        } finally {
+            Files.deleteIfExists(file)
+        }
+    }
+
+    @Test
+    fun `grantha command reports invalid source diagnostics`() {
+        val file = Files.createTempFile("invalid", ".sutra")
+        try {
+            Files.writeString(file, """{"id":t"incomplete"}""")
+
+            val output = runCli(arrayOf("--grantha", file.toString()))
+
+            assertTrue(output.any { it.contains("INVALID_SCHEMA") }, output.joinToString("\n"))
+        } finally {
+            Files.deleteIfExists(file)
+        }
     }
 
     @Test
