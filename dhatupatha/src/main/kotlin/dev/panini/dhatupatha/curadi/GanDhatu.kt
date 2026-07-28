@@ -1,8 +1,9 @@
-﻿package dev.panini.dhatupatha.curadi
+package dev.panini.dhatupatha.curadi
 
 import dev.panini.actions.numeric.SanskritAverageAction
 import dev.panini.actions.numeric.SanskritCountingAction
 import dev.panini.actions.numeric.SanskritMultiplicationAction
+import dev.panini.actions.collection.SanskritListLengthAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
@@ -23,8 +24,8 @@ class GanDhatu : Dhatu(
     upadesha = "गण",
     sourceSurface = "गण",
     artha = "सङ्ख्याने",
-    arthaHindi = "गिनना, गुणा करना",
-    arthaEnglish = "to count, to enumerate, to multiply",
+    arthaHindi = "गिनना, गुणा करना, सूच्याकारः",
+    arthaEnglish = "to count, to enumerate, to multiply, to get list size",
     gana = DhatuGana.CURADI,
     pada = PadaType.UBHAYAPADA,
     itStatus = ItStatus.SET,
@@ -43,6 +44,11 @@ class GanDhatu : Dhatu(
             triggeredBy(requiredUpasargas = setOf("सम्"))
             returns(Samjna.SANKHYA)
         },
+        SanskritListLengthAction.op {
+            requires(Karaka.KARMAN)
+            returns(Samjna.SANKHYA)
+        },
     ),
     semanticRelations = setOf(SemanticRelation.DESIRED_OBJECT),
+    surfaceAliases = setOf("गणयति", "गणनम्", "सङ्ख्यानम्", "आकारः"),
 )
