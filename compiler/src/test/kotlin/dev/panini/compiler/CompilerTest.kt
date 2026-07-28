@@ -390,4 +390,20 @@ class CompilerTest {
         assertTrue(printResult.text.contains("Simulated dispatch"))
         assertTrue(printResult.text.contains("पञ्चपञ्चाशत्"))
     }
+
+    @Test
+    fun `compiled segmented loop reevaluates its condition at runtime`() {
+        val script = """
+            द्वि + अम् गणना + ङे दा + लोट् + सिप् ।
+            यावत् गणना + अम् शून्य + अम् च विद् + णिच् + लोट् + सिप्
+            तावत् गणना + अम् एक + औट् च वि + युज् + णिच् + लोट् + सिप्
+            ततः फल + अम् गणना + ङे दा + लोट् + सिप् ।
+        """.trimIndent()
+
+        val clazz = BytecodeCompiler.compileAndLoad(script, "CompiledRuntimeLoopTest")
+        val variables = clazz.getMethod("execute").invoke(null) as Map<*, *>
+
+        assertEquals(0L, (variables["गणना"] as SanskritValue.Sankhya).value)
+        assertEquals(false, (variables["योग-1"] as SanskritValue.Satya).boolean)
+    }
 }

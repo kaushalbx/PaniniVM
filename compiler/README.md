@@ -32,7 +32,8 @@ starts with `तावत्`; subsequent sentences start with `ततः`:
 
 The condition must produce `सत्य`. Assignments in the body are visible to the
 next iteration. A 100,000-iteration limit guards against accidental endless
-loops.
+loops. Compiled scripts emit JVM branches for the loop and reevaluate the
+condition at runtime; the compiler does not expand or execute loop iterations.
 
 ## Overview
 

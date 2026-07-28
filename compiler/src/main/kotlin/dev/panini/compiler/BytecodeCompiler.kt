@@ -3,6 +3,7 @@ package dev.panini.compiler
 import dev.panini.core.Karaka
 import dev.panini.execution.*
 import dev.panini.execution.binding.VyakaranamExecutionAdapter
+import dev.panini.shiksha.Samjna
 import java.io.File
 
 object BytecodeCompiler {
@@ -15,8 +16,9 @@ object BytecodeCompiler {
         var conversation = SambhashanaContext(speaker = "प्रयोक्ता", listener = "यन्त्रम्")
         val statementsPlans = mutableListOf<List<ExecutionPlan>>()
         val turnResultIds = mutableListOf<List<String>>()
+        val compiledSource = structure(scriptContent)
 
-        expandLoops(scriptContent).forEachIndexed { zeroIdx, lineRaw ->
+        compiledSource.lines.forEachIndexed { zeroIdx, lineRaw ->
             val lineIdx = zeroIdx + 1
             val line = lineRaw.trim()
             if (line.isEmpty() || line.startsWith("#") || line.startsWith("//")) {
@@ -111,46 +113,38 @@ object BytecodeCompiler {
             )
         }
 
-        return ClassGenerator.generateClass(className, statementsPlans, turnResultIds)
+        return ClassGenerator.generateClass(
+            className,
+            statementsPlans,
+            turnResultIds,
+            compiledSource.loopEnds,
+        )
     }
 
-    private fun expandLoops(scriptContent: String): List<String> {
-        val statements = PvmScript.parse(scriptContent)
-        if (statements.none { it is PvmScriptStatement.While }) {
-            return scriptContent.lines()
+    private data class CompiledSource(
+        val lines: List<String>,
+        val loopEnds: Map<Int, Int>,
+    )
+
+    private fun structure(scriptContent: String): CompiledSource {
+        val parsed = PvmScript.parse(scriptContent)
+        if (parsed.none { it is PvmScriptStatement.While }) {
+            return CompiledSource(scriptContent.lines(), emptyMap())
         }
-        val vm = PaniniVM()
-        val session = "compiler-loop"
-        val expanded = mutableListOf<String>()
-        statements.forEach { statement ->
+        val lines = mutableListOf<String>()
+        val loopEnds = mutableMapOf<Int, Int>()
+        parsed.forEach { statement ->
             when (statement) {
-                is PvmScriptStatement.Sentence -> {
-                    expanded += statement.text
-                    vm.eval(statement.text, session)
-                }
+                is PvmScriptStatement.Sentence -> lines += statement.text
                 is PvmScriptStatement.While -> {
-                    var iterations = 0
-                    while (true) {
-                        val condition = vm.eval(statement.condition, session)
-                        expanded += statement.condition
-                        val success = condition as? ExecutionResult.Success
-                            ?: throw IllegalArgumentException("Cannot evaluate यावत् condition while compiling: $condition")
-                        val truth = success.typedValue as? SanskritValue.Satya
-                            ?: throw IllegalArgumentException("यावत् condition must produce a सत्य value.")
-                        if (!truth.boolean) break
-                        check(iterations++ < 100_000) { "यावत् loop exceeded 100000 iterations while compiling." }
-                        statement.body.forEach { clause ->
-                            expanded += clause.text
-                            val result = vm.eval(clause.text, session)
-                            require(result is ExecutionResult.Success) {
-                                "Cannot evaluate यावत् body while compiling: $result"
-                            }
-                        }
-                    }
+                    val conditionIndex = lines.size
+                    lines += statement.condition
+                    lines += statement.body.map { it.text }
+                    loopEnds[conditionIndex] = lines.lastIndex
                 }
             }
         }
-        return expanded
+        return CompiledSource(lines, loopEnds)
     }
 
     private fun simulatedResult(plan: ExecutionPlan): SanskritValue {
@@ -161,6 +155,9 @@ object BytecodeCompiler {
             if (operands.isNotEmpty()) {
                 return if (operands.size == 1) operands.single() else SanskritValue.Suchi(operands)
             }
+        }
+        if (Samjna.SATYA in plan.resolved.operation.resultSamjnas) {
+            return SanskritValue.Satya(true)
         }
         return SanskritValue.Shabda(
             "<${plan.invocationId}>",
