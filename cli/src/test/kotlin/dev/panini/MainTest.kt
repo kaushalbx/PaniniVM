@@ -72,6 +72,60 @@ class MainTest {
     }
 
     @Test
+    fun `emit grantha command compiles Sanskrit source that grantha command executes`() {
+        val directory = Files.createTempDirectory("grantha-toolchain")
+        val input = directory.resolve("addition.pvm")
+        val output = directory.resolve("addition.sutra")
+        try {
+            Files.writeString(
+                input,
+                "दश + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।",
+            )
+
+            val emitted = runCli(
+                arrayOf("--emit-grantha", input.toString(), output.toString()),
+            )
+            val executed = runCli(arrayOf("--grantha", output.toString()))
+
+            assertTrue(emitted.any { it.contains("✓ Emitted 1 sūtra(s)") })
+            assertTrue(Files.exists(output))
+            assertTrue(executed.any { it.contains("✓ उक्ति-१/योग-1: द्वादश") })
+        } finally {
+            Files.deleteIfExists(output)
+            Files.deleteIfExists(input)
+            Files.deleteIfExists(directory)
+        }
+    }
+
+    @Test
+    fun `emitted grantha preserves previous result references across source lines`() {
+        val directory = Files.createTempDirectory("grantha-turns")
+        val input = directory.resolve("turns.pvm")
+        val output = directory.resolve("turns.sutra")
+        try {
+            Files.writeString(
+                input,
+                """
+                दश + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।
+                पूर्वफल + अम् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।
+                """.trimIndent(),
+            )
+
+            val emitted = runCli(
+                arrayOf("--emit-grantha", input.toString(), output.toString()),
+            )
+            val executed = runCli(arrayOf("--grantha", output.toString()))
+
+            assertTrue(emitted.any { it.contains("✓ Emitted 2 sūtra(s)") })
+            assertTrue(executed.any { it.contains("✓ उक्ति-२/योग-1: पञ्चदश") })
+        } finally {
+            Files.deleteIfExists(output)
+            Files.deleteIfExists(input)
+            Files.deleteIfExists(directory)
+        }
+    }
+
+    @Test
     fun `derive command returns the form and its sutra trace`() {
         val output = runCli(arrayOf("--derive", "राम", "SASTHI", "BAHUVACANA"))
         val sanskritLabels = runCli(arrayOf("--derive", "राम", "षष्ठी", "बहुवचन"))

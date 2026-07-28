@@ -23,9 +23,12 @@ import dev.panini.execution.sutra.ProgramAvastha
 import dev.panini.execution.sutra.ProgramBlueprintContext
 import dev.panini.execution.sutra.ProgramBlueprintGranthaEngine
 import dev.panini.execution.sutra.ProgramGranthaExecution
+import dev.panini.execution.sutra.SanskritGranthaSourceCompilation
+import dev.panini.execution.sutra.SanskritGranthaSourceCompiler
 import dev.panini.sankhya.SankhyaGenerator
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
+import dev.panini.sutra.runtime.GranthaId
 import dev.panini.unadipatha.UnadiDerivationEngine
 import dev.panini.unadipatha.UnadiPatha
 import dev.panini.unadipatha.analysis.UnadiAnalyzer
@@ -129,6 +132,36 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
                 is ProgramGranthaExecution.InvalidRuntime -> execution.diagnostics.forEach {
                     add("✗ ${it.code}: ${it.message}")
                 }
+            }
+        }
+    }
+    "--emit-grantha" -> {
+        val inputPath = args.getOrNull(1)
+            ?: error("Usage: --emit-grantha path/to/file.pvm [path/to/output.sutra]")
+        val input = File(inputPath)
+        require(input.exists()) { "PaniniVM source file not found: $inputPath" }
+        val programText = input.readLines()
+            .map(String::trim)
+            .filter { it.isNotEmpty() && !it.startsWith("#") && !it.startsWith("//") }
+            .joinToString(separator = "\n")
+        val compilation = SanskritGranthaSourceCompiler.compile(
+            programText,
+            GranthaId(input.nameWithoutExtension),
+        )
+        when (compilation) {
+            is SanskritGranthaSourceCompilation.Invalid ->
+                buildList {
+                    add("✗ Could not emit ${input.name}:")
+                    compilation.diagnostics.forEach { add("  $it") }
+                }
+            is SanskritGranthaSourceCompilation.Success -> {
+                val output = args.getOrNull(2)?.let(::File)
+                    ?: File(input.parentFile ?: File("."), "${input.nameWithoutExtension}.sutra")
+                output.parentFile?.mkdirs()
+                output.writeText(compilation.source)
+                listOf(
+                    "✓ Emitted ${compilation.grantha.sutras.size} sūtra(s) to ${output.path}",
+                )
             }
         }
     }
@@ -309,7 +342,7 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
         "loaded=${Ashtadhyayi.pathitaCount}; executable=${Ashtadhyayi.kriyavatCount}; total=${Ashtadhyayi.expectedSutraCount}; remaining=${Ashtadhyayi.remainingCount}",
         "roles=" + Ashtadhyayi.registry.sutras.groupingBy { it.role::class.simpleName }.eachCount().entries.joinToString { "${it.key}=${it.value}" },
     )
-    else -> listOf("Usage: --eval file.pvm | --grantha file.sutra | --compile file.pvm | --paradigm राम | --derive राम SASTHI BAHUVACANA | --derive-unadi कृ उण् | --verb भू | --unadi [lookup|pair|list] | --sankhya 23 | --sutra 7.1.54 | --coverage")
+    else -> listOf("Usage: --eval file.pvm | --emit-grantha file.pvm [output.sutra] | --grantha file.sutra | --compile file.pvm | --paradigm राम | --derive राम SASTHI BAHUVACANA | --derive-unadi कृ उण् | --verb भू | --unadi [lookup|pair|list] | --sankhya 23 | --sutra 7.1.54 | --coverage")
 }
 
 private enum class SankhyaKind { CARDINAL, ORDINAL }

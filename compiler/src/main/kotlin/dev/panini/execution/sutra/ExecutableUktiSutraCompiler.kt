@@ -52,7 +52,10 @@ object ExecutableUktiSutraCompiler {
         return ProgramBlueprintGranthaCompiler.compile(blueprintGrantha, context)
     }
 
-    fun compileBlueprintGrantha(ukti: ExecutableUkti): SutraBlueprintGrantha {
+    fun compileBlueprintGrantha(
+        ukti: ExecutableUkti,
+        granthaId: GranthaId = GranthaId("ukti"),
+    ): SutraBlueprintGrantha {
         val dependenciesByTarget = ukti.dependencies.groupBy { it.after }
         val sutras = ukti.invocations.mapIndexed { index, invocation ->
             val id = SutraId(invocation.id)
@@ -62,7 +65,7 @@ object ExecutableUktiSutraCompiler {
             SutraBlueprint(
                 id = id,
                 source = SutraSource.Vakya(
-                    uktiId = "ukti",
+                    uktiId = granthaId.value,
                     vakyaIndex = index,
                     text = ukti.text,
                 ),
@@ -137,7 +140,7 @@ object ExecutableUktiSutraCompiler {
             )
         }
         return SutraBlueprintGrantha(
-            id = GranthaId("ukti"),
+            id = granthaId,
             sutras = sutras,
             exports = sutras.mapTo(linkedSetOf()) { it.id },
         )
