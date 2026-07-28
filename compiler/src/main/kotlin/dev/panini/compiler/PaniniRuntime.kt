@@ -43,21 +43,7 @@ object PaniniRuntime {
     @JvmStatic
     fun resolveOperation(dhatuUpadesha: String, operationName: String): DhatuOperation {
         dev.panini.dhatupatha.DhatuPathaRegistration.ensureRegistered()
-        val normalized = dhatuUpadesha.trimEnd('्', 'ँ')
-        val dhatu = DhatuPatha.all.firstOrNull { 
-            (it.upadesha == dhatuUpadesha || 
-             it.id == dhatuUpadesha ||
-             it.upadesha.trimEnd('्', 'ँ') == normalized ||
-             it.id.trimEnd('्', 'ँ') == normalized) &&
-            it.operations.any { op -> op.name == operationName }
-        } ?: DhatuPatha.all.firstOrNull { 
-            it.upadesha == dhatuUpadesha || 
-            it.id == dhatuUpadesha ||
-            it.upadesha.trimEnd('्', 'ँ') == normalized ||
-            it.id.trimEnd('्', 'ँ') == normalized
-        } ?: error("Dhātu not found in registry: $dhatuUpadesha")
-        return dhatu.operations.firstOrNull { it.name == operationName }
-            ?: error("Operation '$operationName' not found for dhātu $dhatuUpadesha")
+        return DhatuPatha.resolveOperation(dhatuUpadesha, operationName)
     }
 
     @JvmStatic
