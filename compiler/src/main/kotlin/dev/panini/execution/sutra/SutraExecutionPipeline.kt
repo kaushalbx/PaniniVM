@@ -20,6 +20,8 @@ import dev.panini.execution.binding.VyakaranamExecutionAdapter
 import dev.panini.sankhya.SankhyaCountingFormRenderer
 import dev.panini.sutra.runtime.SutraMachine
 import dev.panini.sutra.runtime.SutraMachineResult
+import dev.panini.sutra.runtime.SutraGranthaCompiler
+import dev.panini.sutra.runtime.SutraGranthaLowering
 import dev.panini.sutra.runtime.SutraTraceEntry
 
 /** End-to-end compatibility entry point for the migrating runtime-sūtra path. */
@@ -60,7 +62,20 @@ object SutraExecutionPipeline {
             )
         }
 
-        val program = ExecutableUktiSutraCompiler.compile(ukti)
+        val program = when (
+            val lowering = SutraGranthaCompiler.lower(
+                ExecutableUktiSutraCompiler.compileGrantha(ukti),
+            )
+        ) {
+            is SutraGranthaLowering.Success -> lowering.program
+            is SutraGranthaLowering.Invalid -> return Phala.Asiddha(
+                ExecutionResult.Failure(
+                    ExecutionError.INVALID_VALUE,
+                    lowering.diagnostics.joinToString(separator = "\n") { it.message },
+                ),
+                emptyList(),
+            )
+        }
         val result = SutraMachine(ProgramSutraEffectInterpreter(scope)).process(
             program,
             ProgramAvastha(environment(conversation, scope)),

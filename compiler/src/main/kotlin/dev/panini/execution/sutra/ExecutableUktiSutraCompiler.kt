@@ -3,7 +3,11 @@ package dev.panini.execution.sutra
 import dev.panini.execution.ExecutableUkti
 import dev.panini.execution.VakyaPrayojana
 import dev.panini.sutra.SutraRole
+import dev.panini.sutra.runtime.GranthaId
 import dev.panini.sutra.runtime.RuntimeSutra
+import dev.panini.sutra.runtime.SutraGrantha
+import dev.panini.sutra.runtime.SutraGranthaCompiler
+import dev.panini.sutra.runtime.SutraGranthaLowering
 import dev.panini.sutra.runtime.SutraId
 import dev.panini.sutra.runtime.SutraNirnaya
 import dev.panini.sutra.runtime.SutraProgram
@@ -17,6 +21,15 @@ import dev.panini.sutra.runtime.SutraSource
  */
 object ExecutableUktiSutraCompiler {
     fun compile(ukti: ExecutableUkti): SutraProgram<ProgramAvastha> {
+        return when (val lowering = SutraGranthaCompiler.lower(compileGrantha(ukti))) {
+            is SutraGranthaLowering.Success -> lowering.program
+            is SutraGranthaLowering.Invalid -> error(
+                lowering.diagnostics.joinToString(separator = "\n") { it.message },
+            )
+        }
+    }
+
+    fun compileGrantha(ukti: ExecutableUkti): SutraGrantha<ProgramAvastha> {
         val dependenciesByTarget = ukti.dependencies.groupBy { it.after }
         val sutras = ukti.invocations.mapIndexed { index, invocation ->
             val id = SutraId(invocation.id)
@@ -58,6 +71,10 @@ object ExecutableUktiSutraCompiler {
                 relations = prerequisites.mapTo(linkedSetOf()) { SutraRelation.DependsOn(it) },
             )
         }
-        return SutraProgram(id = "ukti", sutras = sutras)
+        return SutraGrantha(
+            id = GranthaId("ukti"),
+            sutras = sutras,
+            exports = sutras.mapTo(linkedSetOf()) { it.id },
+        )
     }
 }

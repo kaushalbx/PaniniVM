@@ -17,6 +17,7 @@ import dev.panini.execution.runtime.ExecutionPipeline
 import dev.panini.sankhya.SankhyaCountingFormRenderer
 import dev.panini.sutra.runtime.SutraMachine
 import dev.panini.sutra.runtime.SutraMachineResult
+import dev.panini.sutra.runtime.GranthaId
 import java.io.File
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -52,6 +53,7 @@ class ExecutableUktiSutraMigrationTest {
         )
 
         val program = ExecutableUktiSutraCompiler.compile(bound.ukti)
+        val grantha = ExecutableUktiSutraCompiler.compileGrantha(bound.ukti)
         val migrated = assertIs<SutraMachineResult.Success<ProgramAvastha>>(
             SutraMachine(ProgramSutraEffectInterpreter(scope)).process(
                 program,
@@ -63,6 +65,8 @@ class ExecutableUktiSutraMigrationTest {
         assertEquals(legacy.values, migratedPhala.values)
         assertEquals(legacy.typedValues, migratedPhala.typedValues)
         assertEquals(program.sutras.map { it.id }.toSet(), migrated.state.completedSutras)
+        assertEquals(GranthaId("ukti"), grantha.id)
+        assertEquals(program.sutras.map { it.id }.toSet(), grantha.exports)
         assertEquals(1, migrated.trace.size)
     }
 
