@@ -5,6 +5,7 @@ import dev.panini.execution.external.ExternalCapabilityDispatcher
 import dev.panini.execution.persistence.FileStateStore
 import dev.panini.execution.persistence.StateStore
 import dev.panini.execution.runtime.ExecutionPipeline
+import dev.panini.execution.sutra.SutraExecutionPipeline
 import java.io.File
 
 /**
@@ -26,6 +27,7 @@ class PaniniVM(
             ExecutionEffect.SEND_MESSAGE,
         )
     ),
+    val executionArchitecture: PaniniExecutionArchitecture = PaniniExecutionArchitecture.LEGACY,
 ) {
     val store: StateStore = FileStateStore(storageDir)
     private val externalDispatcher = ExternalCapabilityDispatcher()
@@ -52,14 +54,11 @@ class PaniniVM(
         }
 
         val input = SanskritUktiInput(text = utterance, speaker = activeContext.speaker, listener = activeContext.listener)
-        val turn = ExecutionPipeline.executeTurn(
-            input,
-            activeContext,
-            scope.copy(
-                stateStore = scope.stateStore ?: store,
-                externalDispatcher = scope.externalDispatcher ?: externalDispatcher,
-            ),
+        val effectiveScope = scope.copy(
+            stateStore = scope.stateStore ?: store,
+            externalDispatcher = scope.externalDispatcher ?: externalDispatcher,
         )
+        val turn = executeTurn(input, activeContext, effectiveScope)
         val phala = turn.response.phala
 
         val result = when (phala) {
@@ -79,6 +78,67 @@ class PaniniVM(
         }
 
         return result
+    }
+
+    private fun executeTurn(
+        input: SanskritUktiInput,
+        context: SambhashanaContext,
+        scope: ExecutionScope,
+    ): SambhashanaTurn = when (executionArchitecture) {
+        PaniniExecutionArchitecture.LEGACY ->
+            ExecutionPipeline.executeTurn(input, context, scope)
+        PaniniExecutionArchitecture.SUTRA_MACHINE ->
+            SutraExecutionPipeline.executeTurn(input, context, scope)
+        PaniniExecutionArchitecture.COMPARE -> {
+            require(scope.capabilities == setOf(ExecutionEffect.PURE)) {
+                "COMPARE execution requires a PURE-only scope to avoid repeating external effects."
+            }
+            val legacy = ExecutionPipeline.executeTurn(input, context, scope)
+            val migrated = SutraExecutionPipeline.executeTurn(input, context, scope)
+            if (equivalent(legacy.response.phala, migrated.response.phala) &&
+                legacy.context == migrated.context
+            ) {
+                migrated
+            } else {
+                val mismatch = Phala.Asiddha(
+                    ExecutionResult.Failure(
+                        ExecutionError.ACTION_FAILED,
+                        "Legacy and sūtra-machine execution produced different results.",
+                    ),
+                    listOf(
+                        "Legacy: ${legacy.response.phala}",
+                        "Sūtra machine: ${migrated.response.phala}",
+                    ),
+                )
+                SambhashanaTurn(
+                    SanskritPrativacanaRenderer.render(mismatch),
+                    context,
+                )
+            }
+        }
+    }
+
+    private fun equivalent(legacy: Phala, migrated: Phala): Boolean = when {
+        legacy is Phala.Siddha && migrated is Phala.Siddha ->
+            legacy.values == migrated.values &&
+                legacy.samjnas == migrated.samjnas &&
+                legacy.typedValues == migrated.typedValues &&
+                legacy.localBindings == migrated.localBindings
+        legacy is Phala.Asiddha && migrated is Phala.Asiddha ->
+            legacy.result::class == migrated.result::class
+        legacy is Phala.Avagata && migrated is Phala.Avagata ->
+            legacy.disposition == migrated.disposition
+        legacy is Phala.AnumatiApekshita && migrated is Phala.AnumatiApekshita ->
+            legacy.invocationId == migrated.invocationId &&
+                legacy.effects == migrated.effects
+        legacy is Phala.SvikaraApekshita && migrated is Phala.SvikaraApekshita ->
+            legacy.invocationId == migrated.invocationId &&
+                legacy.speaker == migrated.speaker &&
+                legacy.listener == migrated.listener
+        legacy is Phala.Nirasta && migrated is Phala.Nirasta ->
+            legacy.invocationId == migrated.invocationId &&
+                legacy.reason == migrated.reason
+        else -> false
     }
 
     fun evalScript(

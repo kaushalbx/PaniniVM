@@ -12,7 +12,9 @@ import dev.panini.sutra.runtime.SutraId
 data class ProgramAvastha(
     val environment: ValueEnvironment,
     val completedSutras: Set<SutraId> = emptySet(),
-    val values: Map<String, SanskritValue> = emptyMap(),
+    val invocationValues: Map<String, SanskritValue> = emptyMap(),
+    val localBindings: Map<String, SanskritValue> = emptyMap(),
+    val executionTrace: List<String> = emptyList(),
     val lastPhala: Phala? = null,
     val halted: Boolean = false,
 ) : SutraAvastha

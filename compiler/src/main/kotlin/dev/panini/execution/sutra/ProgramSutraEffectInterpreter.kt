@@ -53,12 +53,15 @@ class ProgramSutraEffectInterpreter(
                         state.copy(
                             environment = state.environment.mergedWith(ValueEnvironment(produced)),
                             completedSutras = state.completedSutras + SutraId(invocation.id),
-                            values = state.values + produced,
+                            invocationValues = state.invocationValues + phala.typedValues,
+                            localBindings = state.localBindings + phala.localBindings,
+                            executionTrace = state.executionTrace + phala.trace,
                             lastPhala = phala,
                         )
                     }
                     is Phala.Avagata -> state.copy(
                         completedSutras = state.completedSutras + SutraId(invocation.id),
+                        executionTrace = state.executionTrace + phala.trace,
                         lastPhala = phala,
                     )
                     else -> state.copy(lastPhala = phala, halted = true)
