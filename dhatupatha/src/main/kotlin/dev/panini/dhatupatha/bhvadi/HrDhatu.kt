@@ -30,6 +30,7 @@ class HrDhatu : Dhatu(
     operations = listOf(
         SanskritDivisionAction.numericOp(),
         SanskritListPopAction.op {
+            triggeredBy(requiredUpasargas = setOf("उद्"))
             requires(Karaka.KARMAN)
             returns(Samjna.SHABDA)
         },

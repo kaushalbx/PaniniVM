@@ -91,4 +91,120 @@ class CompilerTest {
         assertNotNull(lastResultVal)
         assertEquals(5L, lastResultVal.value)
     }
+
+    @Test
+    fun testCompileAndRunLoop() {
+        val script = "पञ्च + अम् सङ्ख्यायोजनम् + टा वृत् + णिच् + लोट् + सिप् ।"
+        val className = "SanskritLoopIntegrationTest"
+
+        val clazz = BytecodeCompiler.compileAndLoad(script, className)
+        val executeMethod = clazz.getMethod("execute")
+
+        // Setup mock renderer for loop index addition
+        dev.panini.execution.SankhyaResultRenderer.defaultRenderer = dev.panini.execution.SankhyaResultRenderer { value ->
+            when (value) {
+                15L -> "पञ्चदश"
+                else -> value.toString()
+            }
+        }
+
+        val resultVariables = executeMethod.invoke(null) as? Map<*, *>
+        assertNotNull(resultVariables)
+
+        val finalResultVal = resultVariables["योग-1"] as? SanskritValue.Sankhya
+        assertNotNull(finalResultVal)
+        assertEquals(15L, finalResultVal.value)
+        assertEquals("पञ्चदश", finalResultVal.word)
+    }
+
+    @Test
+    fun testCompileAndRunListMap() {
+        val script = "एक + अम् द्वि + औट् त्रि + शस् च वर्धन + टा सम् + यु + णिच् + लोट् + सिप् ।"
+        val className = "SanskritListMapIntegrationTest"
+
+        val clazz = BytecodeCompiler.compileAndLoad(script, className)
+        val executeMethod = clazz.getMethod("execute")
+
+        // Setup mock renderer
+        dev.panini.execution.SankhyaResultRenderer.defaultRenderer = dev.panini.execution.SankhyaResultRenderer { value ->
+            when (value) {
+                1L -> "एक"
+                2L -> "द्वि"
+                3L -> "त्रि"
+                4L -> "चतुर्"
+                6L -> "षट्"
+                else -> value.toString()
+            }
+        }
+
+        val resultVariables = executeMethod.invoke(null) as? Map<*, *>
+        assertNotNull(resultVariables)
+
+        val finalResultVal = resultVariables["योग-1"] as? SanskritValue.Suchi
+        assertNotNull(finalResultVal)
+        assertEquals(3, finalResultVal.items.size)
+        assertEquals(2L, (finalResultVal.items[0] as SanskritValue.Sankhya).value)
+        assertEquals(4L, (finalResultVal.items[1] as SanskritValue.Sankhya).value)
+        assertEquals(6L, (finalResultVal.items[2] as SanskritValue.Sankhya).value)
+    }
+
+    @Test
+    fun testCompileAndRunListFilter() {
+        val script = "एक + अम् द्वि + औट् त्रि + शस् चतुर् + शस् च युग्मत्व + टा वि + वृज् + णिच् + लोट् + सिप् ।"
+        val className = "SanskritListFilterIntegrationTest"
+
+        val clazz = BytecodeCompiler.compileAndLoad(script, className)
+        val executeMethod = clazz.getMethod("execute")
+
+        // Setup mock renderer
+        dev.panini.execution.SankhyaResultRenderer.defaultRenderer = dev.panini.execution.SankhyaResultRenderer { value ->
+            when (value) {
+                1L -> "एक"
+                2L -> "द्वि"
+                3L -> "त्रि"
+                4L -> "चतुर्"
+                else -> value.toString()
+            }
+        }
+
+        val resultVariables = executeMethod.invoke(null) as? Map<*, *>
+        assertNotNull(resultVariables)
+
+        val finalResultVal = resultVariables["योग-1"] as? SanskritValue.Suchi
+        assertNotNull(finalResultVal)
+        assertEquals(2, finalResultVal.items.size)
+        assertEquals(2L, (finalResultVal.items[0] as SanskritValue.Sankhya).value)
+        assertEquals(4L, (finalResultVal.items[1] as SanskritValue.Sankhya).value)
+    }
+
+    @Test
+    fun testCompileAndRunListConcat() {
+        val script = "एक + अम् द्वि + औट् च त्रि + ङे चतुर् + भ्याम् च सृज् + णिच् + लोट् + सिप् ।"
+        val className = "SanskritListConcatIntegrationTest"
+
+        val clazz = BytecodeCompiler.compileAndLoad(script, className)
+        val executeMethod = clazz.getMethod("execute")
+
+        // Setup mock renderer
+        dev.panini.execution.SankhyaResultRenderer.defaultRenderer = dev.panini.execution.SankhyaResultRenderer { value ->
+            when (value) {
+                1L -> "एक"
+                2L -> "द्वि"
+                3L -> "त्रि"
+                4L -> "चतुर्"
+                else -> value.toString()
+            }
+        }
+
+        val resultVariables = executeMethod.invoke(null) as? Map<*, *>
+        assertNotNull(resultVariables)
+
+        val finalResultVal = resultVariables["योग-1"] as? SanskritValue.Suchi
+        assertNotNull(finalResultVal)
+        assertEquals(4, finalResultVal.items.size)
+        assertEquals(1L, (finalResultVal.items[0] as SanskritValue.Sankhya).value)
+        assertEquals(2L, (finalResultVal.items[1] as SanskritValue.Sankhya).value)
+        assertEquals(3L, (finalResultVal.items[2] as SanskritValue.Sankhya).value)
+        assertEquals(4L, (finalResultVal.items[3] as SanskritValue.Sankhya).value)
+    }
 }

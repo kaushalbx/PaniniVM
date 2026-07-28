@@ -77,10 +77,17 @@ object SanskritLoopAction : DhatuAction("अनुवृत्तिः", "क�
         targetRequiredKarakas.forEach { required ->
             if (required !in innerBindings) {
                 val sourceKey = context.bindings.keys.firstOrNull {
-                    it != countKey && it != targetKey && it !in targetRequiredKarakas
+                    it != countKey && it != targetKey && it != Karaka.KARTR && it !in targetRequiredKarakas
                 }
                 if (sourceKey != null) {
                     innerBindings[required] = context.bindings.getValue(sourceKey)
+                } else if (required == Karaka.KARMAN) {
+                    innerBindings[required] = ExecutionExpression.Coordination(
+                        listOf(
+                            ExecutionExpression.Reference("loop_result"),
+                            ExecutionExpression.Reference("loop_index")
+                        )
+                    )
                 }
             }
         }

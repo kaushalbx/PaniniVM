@@ -23,7 +23,7 @@ class VrtDhatu : Dhatu(
     gana = DhatuGana.BHVADI,
     pada = PadaType.ATMANEPADA,
     itStatus = ItStatus.SET,
-    karmatva = Karmatva.AKARMAKA,
+    karmatva = Karmatva.SAKARMAKA,
     svara = Accent.UDATTA,
     operations = listOf(
         SanskritLoopAction.op {

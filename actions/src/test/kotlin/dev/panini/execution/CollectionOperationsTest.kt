@@ -103,4 +103,89 @@ class CollectionOperationsTest {
         assertEquals(4L, (typed.items[1] as SanskritValue.Sankhya).value)
         assertEquals(6L, (typed.items[2] as SanskritValue.Sankhya).value)
     }
+
+    @Test
+    fun `VrjDhatu executes SanskritListFilterAction to filter list elements`() {
+        DhatuPathaRegistration.ensureRegistered()
+        val vrj = DhatuPatha.all.first { it.upadesha == "वृजीँ" }
+        val filterOp = vrj.operations.first { it.name == "सूचीशोधनम्" || it.action.name == "सूचीशोधनम्" }
+
+        val context = ExecutionContext(
+            bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Coordination(
+                    ExecutionExpression.sankhya(1L, "एक"),
+                    ExecutionExpression.sankhya(2L, "द्वि"),
+                    ExecutionExpression.sankhya(3L, "त्रि"),
+                    ExecutionExpression.sankhya(4L, "चतुर्")
+                ),
+                Karaka.KARANA to ExecutionExpression.Pada("युग्मत्वम्") // predicate check even
+            )
+        )
+
+        // Setup mock renderer
+        SankhyaResultRenderer.defaultRenderer = SankhyaResultRenderer { value ->
+            when (value) {
+                1L -> "एक"
+                2L -> "द्वि"
+                3L -> "त्रि"
+                4L -> "चतुर्"
+                else -> value.toString()
+            }
+        }
+
+        val result = filterOp.action.execute(context, filterOp)
+        assertIs<ExecutionResult.Success>(result)
+        
+        // Filtered list (even numbers only): [2, 4] -> "द्वि चतुर्"
+        assertEquals("[द्वि, चतुर्]", result.value)
+        val typed = result.typedValue
+        assertIs<SanskritValue.Suchi>(typed)
+        assertEquals(2, typed.items.size)
+        assertEquals(2L, (typed.items[0] as SanskritValue.Sankhya).value)
+        assertEquals(4L, (typed.items[1] as SanskritValue.Sankhya).value)
+    }
+
+    @Test
+    fun `SrjDhatu executes SanskritListConcatAction to concatenate two lists`() {
+        DhatuPathaRegistration.ensureRegistered()
+        val srj = DhatuPatha.all.first { it.id == "06.0150" }
+        val concatOp = srj.operations.first { it.name == "सूचीसंयोगः" || it.action.name == "सूचीसंयोगः" }
+
+        val context = ExecutionContext(
+            bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Coordination(
+                    ExecutionExpression.sankhya(1L, "एक"),
+                    ExecutionExpression.sankhya(2L, "द्वि")
+                ),
+                Karaka.SAMPRADANA to ExecutionExpression.Coordination(
+                    ExecutionExpression.sankhya(3L, "त्रि"),
+                    ExecutionExpression.sankhya(4L, "चतुर्")
+                )
+            )
+        )
+
+        // Setup mock renderer
+        SankhyaResultRenderer.defaultRenderer = SankhyaResultRenderer { value ->
+            when (value) {
+                1L -> "एक"
+                2L -> "द्वि"
+                3L -> "त्रि"
+                4L -> "चतुर्"
+                else -> value.toString()
+            }
+        }
+
+        val result = concatOp.action.execute(context, concatOp)
+        assertIs<ExecutionResult.Success>(result)
+
+        // Combined: [1, 2, 3, 4] -> "एक द्वि त्रि चतुर्"
+        assertEquals("[एक, द्वि, त्रि, चतुर्]", result.value)
+        val typed = result.typedValue
+        assertIs<SanskritValue.Suchi>(typed)
+        assertEquals(4, typed.items.size)
+        assertEquals(1L, (typed.items[0] as SanskritValue.Sankhya).value)
+        assertEquals(2L, (typed.items[1] as SanskritValue.Sankhya).value)
+        assertEquals(3L, (typed.items[2] as SanskritValue.Sankhya).value)
+        assertEquals(4L, (typed.items[3] as SanskritValue.Sankhya).value)
+    }
 }

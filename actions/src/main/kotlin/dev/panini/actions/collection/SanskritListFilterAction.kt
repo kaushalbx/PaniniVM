@@ -12,14 +12,14 @@ import dev.panini.execution.SanskritValue
 import dev.panini.execution.DevanagariDigits
 import dev.panini.execution.renderSankhyaResult
 
-/** Map/Iterate list elements (triggered by यु / मिश्रण). */
-object SanskritListMapAction : DhatuAction("सूचीसंयोजनम्", "सूच्याम् अंशानां रूपान्तरणम्") {
+/** Filter list elements based on a predicate (triggered by वृज् / वर्जन). */
+object SanskritListFilterAction : DhatuAction("सूचीशोधनम्", "सूचीसंशोधनम् अंशानां निष्कासनम् च") {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
         // 1. Resolve list (from KARMAN)
         val listExpression = context.bindings[Karaka.KARMAN]
             ?: return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
-                "List map execution requires a list in KARMAN."
+                "List filter execution requires a list in KARMAN."
             )
 
         val listValues = context.resolveValues(listExpression)
@@ -34,12 +34,12 @@ object SanskritListMapAction : DhatuAction("सूचीसंयोजनम्
             else -> listValues
         }
 
-        // 2. Resolve target operation (from KARANA or ADHIKARANA)
+        // 2. Resolve target predicate operation (from KARANA or ADHIKARANA)
         val targetKey = if (context.bindings.containsKey(Karaka.KARANA)) Karaka.KARANA else Karaka.ADHIKARANA
         val targetExpression = context.bindings[targetKey]
             ?: return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
-                "List map execution requires a target action or verbal root in KARANA or ADHIKARANA."
+                "List filter execution requires a target action or verbal root in KARANA or ADHIKARANA."
             )
 
         val targetName = context.resolve(targetExpression).firstOrNull()?.trim()
@@ -84,10 +84,9 @@ object SanskritListMapAction : DhatuAction("सूचीसंयोजनम्
             }
         }
 
-        // 4. Run mapping loop
-        val trace = mutableListOf("Selected operation ${operation.name} for mapping list of size ${elements.size} using '${targetOp.name}'.")
+        // 4. Run filter loop
+        val trace = mutableListOf("Selected operation ${operation.name} for filtering list of size ${elements.size} using '${targetOp.name}'.")
         val results = mutableListOf<SanskritValue>()
-        var lastResultTyped: SanskritValue? = null
 
         elements.forEachIndexed { idx, element ->
             val i = idx + 1
@@ -95,7 +94,6 @@ object SanskritListMapAction : DhatuAction("सूचीसंयोजनम्
             val word = renderSankhyaResult(i.toLong()) ?: DevanagariDigits.render(i)
             innerVariables["loop_index"] = SanskritValue.Sankhya(i.toLong(), word)
             innerVariables["loop_element"] = element
-            innerVariables["loop_result"] = lastResultTyped ?: SanskritValue.Sankhya(0L, "शून्यम्")
 
             val innerContext = ExecutionContext(
                 bindings = innerBindings,
@@ -109,33 +107,40 @@ object SanskritListMapAction : DhatuAction("सूचीसंयोजनम्
             when (val result = targetOp.action.execute(innerContext, targetOp)) {
                 is ExecutionResult.Success -> {
                     val resultTyped = result.typedValue ?: SanskritValue.of(result.value, targetOp.resultSamjnas)
-                    results += resultTyped
-                    lastResultTyped = resultTyped
-                    trace += "Element $i mapped to '${resultTyped.toDisplayText()}'."
+                    val keep = when (resultTyped) {
+                        is SanskritValue.Satya -> resultTyped.boolean
+                        else -> result.value == "सत्यम्"
+                    }
+                    if (keep) {
+                        results += element
+                        trace += "Element $i ('${element.toDisplayText()}') kept (matched)."
+                    } else {
+                        trace += "Element $i ('${element.toDisplayText()}') filtered out."
+                    }
                 }
                 is ExecutionResult.Failure -> {
                     return ExecutionResult.Failure(
                         result.error,
-                        "Map failed at element $i: ${result.message}",
+                        "Filter failed at element $i: ${result.message}",
                         trace + result.trace
                     )
                 }
                 else -> {
                     return ExecutionResult.Failure(
                         ExecutionError.ACTION_FAILED,
-                        "Map element $i returned unsupported state.",
+                        "Filter element $i returned unsupported state.",
                         trace
                     )
                 }
             }
         }
 
-        val mappedList = SanskritValue.Suchi(results)
+        val filteredList = SanskritValue.Suchi(results)
         return ExecutionResult.Success(
-            mappedList.toDisplayText(),
+            filteredList.toDisplayText(),
             operation.name,
             trace,
-            mappedList
+            filteredList
         )
     }
 }

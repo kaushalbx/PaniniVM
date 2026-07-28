@@ -45,6 +45,12 @@ object PaniniRuntime {
         dev.panini.dhatupatha.DhatuPathaRegistration.ensureRegistered()
         val normalized = dhatuUpadesha.trimEnd('्', 'ँ')
         val dhatu = DhatuPatha.all.firstOrNull { 
+            (it.upadesha == dhatuUpadesha || 
+             it.id == dhatuUpadesha ||
+             it.upadesha.trimEnd('्', 'ँ') == normalized ||
+             it.id.trimEnd('्', 'ँ') == normalized) &&
+            it.operations.any { op -> op.name == operationName }
+        } ?: DhatuPatha.all.firstOrNull { 
             it.upadesha == dhatuUpadesha || 
             it.id == dhatuUpadesha ||
             it.upadesha.trimEnd('्', 'ँ') == normalized ||
