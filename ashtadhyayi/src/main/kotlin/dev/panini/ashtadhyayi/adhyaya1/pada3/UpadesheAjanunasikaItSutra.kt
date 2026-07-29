@@ -1,5 +1,6 @@
 package dev.panini.ashtadhyayi.adhyaya1.pada3
 
+import dev.panini.ashtadhyayi.runtime.ContextualSamjnaSutra
 import dev.panini.core.ItMarker
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
@@ -31,16 +32,20 @@ object UpadesheAjanunasikaItSutra : Sutra<DerivationState, DerivationChange>(
         target = SamjnaAssignmentTarget.UPADESHA_NASALIZED_VOWEL,
         samjna = Samjna.IT,
     ),
-), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean =
-        context.stage == DerivationStage.PRATYAYA_SELECTED && context.terms.any {
+), DerivationSutra, ContextualSamjnaSutra {
+    override fun hasSamjnaTarget(state: DerivationState): Boolean =
+        state.stage == DerivationStage.PRATYAYA_SELECTED && state.terms.any {
             it.surface.endsWith(
                 "ँ"
             ) && ItMarker.U !in it.itMarkers
         }
 
-    override fun apply(context: DerivationState): DerivationChange = DerivationChange(
-        context.copy(terms = context.terms.map { if (it.surface.endsWith("ँ")) it.copy(itMarkers = it.itMarkers + ItMarker.U) else it }),
+    override fun assignSamjna(state: DerivationState): DerivationChange = DerivationChange(
+        state.copy(terms = state.terms.map { if (it.surface.endsWith("ँ")) it.copy(itMarkers = it.itMarkers + ItMarker.U) else it }),
         "1.3.2 assigns it-status to the nasalized उ of सुँ.",
     )
+
+    override fun matches(context: DerivationState): Boolean = hasSamjnaTarget(context)
+
+    override fun apply(context: DerivationState): DerivationChange = assignSamjna(context)
 }

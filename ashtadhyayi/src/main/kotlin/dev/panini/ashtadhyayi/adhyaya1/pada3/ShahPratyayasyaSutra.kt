@@ -1,5 +1,6 @@
 package dev.panini.ashtadhyayi.adhyaya1.pada3
 
+import dev.panini.ashtadhyayi.runtime.ContextualSamjnaSutra
 import dev.panini.core.ItMarker
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
@@ -35,25 +36,29 @@ object ShahPratyayasyaSutra : Sutra<DerivationState, DerivationChange>(
         target = SamjnaAssignmentTarget.PRATYAYA_INITIAL_SSA,
         samjna = Samjna.IT,
     ),
-), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean {
-        if (context.stage != DerivationStage.PRATYAYA_SELECTED) return false
+), DerivationSutra, ContextualSamjnaSutra {
+    override fun hasSamjnaTarget(state: DerivationState): Boolean {
+        if (state.stage != DerivationStage.PRATYAYA_SELECTED) return false
 
-        return context.terms.any { term ->
+        return state.terms.any { term ->
             term.kind == TermKind.PRATYAYA && term.surface.startsWith('ष')
         }
     }
 
-    override fun apply(context: DerivationState): DerivationChange {
-        val newTerms = context.terms.map { term ->
+    override fun assignSamjna(state: DerivationState): DerivationChange {
+        val newTerms = state.terms.map { term ->
             if (term.kind == TermKind.PRATYAYA && term.surface.startsWith('ष')) {
                 term.copy(itMarkers = term.itMarkers + ItMarker.SH)
             } else term
         }
 
         return DerivationChange(
-            state = context.copy(terms = newTerms),
+            state = state.copy(terms = newTerms),
             explanation = "1.3.6: Assigned it-status to initial 'ṣ' of the affix."
         )
     }
+
+    override fun matches(context: DerivationState): Boolean = hasSamjnaTarget(context)
+
+    override fun apply(context: DerivationState): DerivationChange = assignSamjna(context)
 }

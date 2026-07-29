@@ -1,5 +1,6 @@
 package dev.panini.ashtadhyayi.adhyaya1.pada3
 
+import dev.panini.ashtadhyayi.runtime.ContextualSamjnaSutra
 import dev.panini.core.ItMarker
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
@@ -35,18 +36,18 @@ object ChutuSutra : Sutra<DerivationState, DerivationChange>(
         target = SamjnaAssignmentTarget.PRATYAYA_INITIAL_CU_TTU,
         samjna = Samjna.IT,
     ),
-), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean {
-        if (context.stage != DerivationStage.PRATYAYA_SELECTED) return false
+), DerivationSutra, ContextualSamjnaSutra {
+    override fun hasSamjnaTarget(state: DerivationState): Boolean {
+        if (state.stage != DerivationStage.PRATYAYA_SELECTED) return false
 
-        return context.terms.any { term ->
+        return state.terms.any { term ->
             term.kind == TermKind.PRATYAYA && term.surface.isNotEmpty() &&
             (isCu(term.surface.first()) || isTtu(term.surface.first()))
         }
     }
 
-    override fun apply(context: DerivationState): DerivationChange {
-        val newTerms = context.terms.map { term ->
+    override fun assignSamjna(state: DerivationState): DerivationChange {
+        val newTerms = state.terms.map { term ->
             if (term.kind == TermKind.PRATYAYA && term.surface.isNotEmpty()) {
                 val firstChar = term.surface.first()
                 when {
@@ -58,10 +59,14 @@ object ChutuSutra : Sutra<DerivationState, DerivationChange>(
         }
 
         return DerivationChange(
-            state = context.copy(terms = newTerms),
+            state = state.copy(terms = newTerms),
             explanation = "1.3.7: Assigned it-status to initial ca-varga or ṭa-varga."
         )
     }
+
+    override fun matches(context: DerivationState): Boolean = hasSamjnaTarget(context)
+
+    override fun apply(context: DerivationState): DerivationChange = assignSamjna(context)
 
     private fun isCu(c: Char): Boolean = c in setOf('च', 'छ', 'ज', 'झ', 'ञ')
     private fun isTtu(c: Char): Boolean = c in setOf('ट', 'ठ', 'ड', 'ढ', 'ण')

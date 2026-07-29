@@ -35,7 +35,7 @@ class HalantyamRuntimeTest {
     }
 
     @Test
-    fun `decoded rule marks a final consonant without invoking legacy sutra`() {
+    fun `decoded rule delegates final consonant marking to its registered sutra`() {
         val blueprint = HalantyamSutra.toBlueprint()
         val encoded = assertIs<SutraBlueprintTextEncoding.Success>(
             SutraBlueprintTextCodec.encode(blueprint),

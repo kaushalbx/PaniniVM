@@ -1,5 +1,6 @@
 package dev.panini.ashtadhyayi.adhyaya1.pada3
 
+import dev.panini.ashtadhyayi.runtime.ContextualSamjnaSutra
 import dev.panini.core.ItMarker
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
@@ -35,9 +36,9 @@ object AdirNitudavahSutra : Sutra<DerivationState, DerivationChange>(
         target = SamjnaAssignmentTarget.DHATU_UPADESHA_INITIAL_NI_TU_DU,
         samjna = Samjna.IT,
     ),
-), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean =
-        context.stage == DerivationStage.INITIAL && context.terms.any { term ->
+), DerivationSutra, ContextualSamjnaSutra {
+    override fun hasSamjnaTarget(state: DerivationState): Boolean =
+        state.stage == DerivationStage.INITIAL && state.terms.any { term ->
             term.kind == TermKind.DHATU && (
                 term.surface.startsWith("ञि") ||
                 term.surface.startsWith("टु") ||
@@ -45,8 +46,8 @@ object AdirNitudavahSutra : Sutra<DerivationState, DerivationChange>(
             )
         }
 
-    override fun apply(context: DerivationState): DerivationChange {
-        val newTerms = context.terms.map { term ->
+    override fun assignSamjna(state: DerivationState): DerivationChange {
+        val newTerms = state.terms.map { term ->
             if (term.kind == TermKind.DHATU) {
                 when {
                     term.surface.startsWith("ञि") -> term.copy(itMarkers = term.itMarkers + ItMarker.KIT) // Using KIT as proxy
@@ -57,8 +58,12 @@ object AdirNitudavahSutra : Sutra<DerivationState, DerivationChange>(
             } else term
         }
         return DerivationChange(
-            state = context.copy(terms = newTerms),
+            state = state.copy(terms = newTerms),
             explanation = "1.3.5: Assigned it-status to initial ñi/ṭu/ḍu."
         )
     }
+
+    override fun matches(context: DerivationState): Boolean = hasSamjnaTarget(context)
+
+    override fun apply(context: DerivationState): DerivationChange = assignSamjna(context)
 }

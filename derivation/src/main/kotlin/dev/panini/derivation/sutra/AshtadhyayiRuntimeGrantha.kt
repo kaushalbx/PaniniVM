@@ -1,6 +1,7 @@
 package dev.panini.derivation.sutra
 
 import dev.panini.ashtadhyayi.Ashtadhyayi
+import dev.panini.ashtadhyayi.runtime.AshtadhyayiCompiler
 import dev.panini.derivation.DerivationSutra
 import dev.panini.sutra.runtime.GranthaId
 import dev.panini.sutra.runtime.SutraGrantha
@@ -21,7 +22,7 @@ object AshtadhyayiRuntimeGrantha {
         id = GranthaId("ashtadhyayi"),
         sutras = rules.map { sutra ->
             sutra.artha?.let { artha ->
-                DerivationBlueprintCompiler.compile(
+                AshtadhyayiCompiler.compile(
                     sutra.toBlueprint(artha.toSutraArtha()),
                 )
             } ?: DerivationSutraRuntimeAdapter.adapt(

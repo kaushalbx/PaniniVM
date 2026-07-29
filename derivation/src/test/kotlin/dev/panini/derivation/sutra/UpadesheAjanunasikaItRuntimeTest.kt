@@ -35,7 +35,7 @@ class UpadesheAjanunasikaItRuntimeTest {
     }
 
     @Test
-    fun `decoded rule assigns it marker without invoking legacy sutra`() {
+    fun `decoded rule delegates it assignment to its registered sutra`() {
         val blueprint = UpadesheAjanunasikaItSutra.toBlueprint()
         val encoded = assertIs<SutraBlueprintTextEncoding.Success>(
             SutraBlueprintTextCodec.encode(blueprint),
