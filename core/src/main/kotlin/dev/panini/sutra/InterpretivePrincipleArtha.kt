@@ -6,6 +6,9 @@ import dev.panini.sutra.runtime.SutraArthaValue
 /** A grammatical interpretation convention established by a paribhāṣā. */
 enum class InterpretivePrinciple {
     SELF_FORM_REFERENCE,
+    SAVARNA_INCLUSION_EXCEPT_AFFIX,
+    T_MARKED_SOUND_SAME_DURATION,
+    PRATYAHARA_RANGE,
 }
 
 data class InterpretivePrincipleArtha(

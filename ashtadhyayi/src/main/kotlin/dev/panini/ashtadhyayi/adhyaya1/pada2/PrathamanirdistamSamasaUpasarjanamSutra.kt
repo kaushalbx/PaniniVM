@@ -3,6 +3,8 @@ package dev.panini.ashtadhyayi.adhyaya1.pada2
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.sutra.SamjnaDefinitionArtha
+import dev.panini.sutra.Samjni
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraInput
@@ -20,6 +22,10 @@ object PrathamanirdistamSamasaUpasarjanamSutra : Sutra<DerivationState, Derivati
     type = SutraType.SAMJNA, chapter = 1, pada = 2, optional = false, kramaValue = 120043,
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.DERIVATION,
     inputs = setOf(SutraInput.PRATIPADIKA),
+    artha = SamjnaDefinitionArtha(
+        samjni = Samjni.PRATHAMA_DESIGNATED_COMPOUND_TERM,
+        samjna = dev.panini.shiksha.Samjna.UPASARJANA,
+    ),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
         "1.2.43" !in context.activeAdhikaras

@@ -7,7 +7,7 @@ sealed interface Samjna {
 
     /** Morphological & Structural Units (अङ्ग/पद भेद - Aṣṭādhyāyī 1.3.1, 1.4.13, 1.4.14) */
     enum class Unit : Samjna {
-        DHATU, PRATYAYA, ANGA, PADA, PRATIPADIKA, SAMASA, AVAYAVA
+        DHATU, PRATYAYA, ANGA, PADA, PRATIPADIKA, SAMASA, AVAYAVA, UPASARJANA
     }
 
     /** Affix & Suffix Classifications (प्रत्यय भेद - Aṣṭādhyāyī 3.1.93, 3.3.1, 4.1.76) */
@@ -62,6 +62,7 @@ sealed interface Samjna {
         val PRATIPADIKA: Samjna = Unit.PRATIPADIKA
         val SAMASA: Samjna = Unit.SAMASA
         val AVAYAVA: Samjna = Unit.AVAYAVA
+        val UPASARJANA: Samjna = Unit.UPASARJANA
 
         val KRT: Samjna = Affix.KRT
         val UNADI: Samjna = Affix.UNADI

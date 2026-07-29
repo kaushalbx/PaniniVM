@@ -9,6 +9,7 @@ enum class Samjni {
     ADARSHANA,
     PRATYAYA_ADARSHANA,
     PENULTIMATE_SOUND,
+    PRATHAMA_DESIGNATED_COMPOUND_TERM,
 }
 
 /** Typed domain representation of an interpretive saṃjñā definition. */

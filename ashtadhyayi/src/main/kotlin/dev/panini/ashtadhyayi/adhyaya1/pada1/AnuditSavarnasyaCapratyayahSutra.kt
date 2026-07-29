@@ -1,5 +1,7 @@
 package dev.panini.ashtadhyayi.adhyaya1.pada1
 
+import dev.panini.sutra.InterpretivePrinciple
+import dev.panini.sutra.InterpretivePrincipleArtha
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraInput
@@ -18,6 +20,9 @@ object AnuditSavarnasyaCapratyayahSutra : Sutra<String, Boolean>(
     role = SutraRole.Paribhasha(), action = SutraAction.PARIBHASHA, scope = SutraScope.VARNA,
     inputs = setOf(SutraInput.VARNA, SutraInput.PRATYAHARA),
     adhikara = emptySet(),
+    artha = InterpretivePrincipleArtha(
+        InterpretivePrinciple.SAVARNA_INCLUSION_EXCEPT_AFFIX,
+    ),
 ) {
     override fun matches(context: String): Boolean =
         context.endsWith("ु") || context in setOf("अ", "इ", "उ", "ऋ", "ऌ", "ए", "ओ", "ऐ", "औ")
