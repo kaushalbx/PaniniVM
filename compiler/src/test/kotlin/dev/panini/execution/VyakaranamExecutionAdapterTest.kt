@@ -37,6 +37,25 @@ class VyakaranamExecutionAdapterTest {
     }
 
     @Test
+    fun `yavat tavat becomes a typed conditional duration relation`() {
+        val input = SanskritUktiInput(
+            speaker = "प्रयोक्ता",
+            listener = "यन्त्रम्",
+            text = "यावत् दश + अम् शून्य + औट् च विद् + लोट् + सिप् " +
+                "तावत् एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।",
+        )
+
+        val bound = assertIs<ExecutionBindingResult.Bound>(
+            VyakaranamExecutionAdapter.bind(input, conversation),
+        )
+
+        assertEquals(
+            setOf(ExecutionControlRelation.ConditionalDuration("योग-1", "योग-2")),
+            bound.ukti.controlRelations,
+        )
+    }
+
+    @Test
     fun `syncretic bhyam is not collapsed to trtiya without matching verbal semantics`() {
         val input = SanskritUktiInput(
             speaker = "प्रयोक्ता",

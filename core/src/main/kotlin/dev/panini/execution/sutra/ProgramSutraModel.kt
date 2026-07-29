@@ -23,3 +23,9 @@ data class InvokeDhatuEffect(
     val invocation: DhatuInvocation,
     val ukti: ExecutableUkti,
 ) : SutraEffect<ProgramAvastha>
+
+data class RepeatWhileEffect(
+    val condition: InvokeDhatuEffect,
+    val body: InvokeDhatuEffect,
+    val maximumIterations: Int,
+) : SutraEffect<ProgramAvastha>

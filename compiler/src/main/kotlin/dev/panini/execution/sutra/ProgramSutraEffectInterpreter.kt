@@ -7,6 +7,7 @@ import dev.panini.execution.ExecutionRuntime
 import dev.panini.execution.ExecutionScope
 import dev.panini.execution.Phala
 import dev.panini.execution.PlanningResult
+import dev.panini.execution.SanskritValue
 import dev.panini.execution.ValueEnvironment
 import dev.panini.sutra.runtime.SutraEffect
 import dev.panini.sutra.runtime.SutraEffectApplication
@@ -24,13 +25,19 @@ class ProgramSutraEffectInterpreter(
     override fun apply(
         effect: SutraEffect<ProgramAvastha>,
         state: ProgramAvastha,
-    ): SutraEffectApplication<ProgramAvastha> {
-        if (effect !is InvokeDhatuEffect) {
-            return SutraEffectApplication.Failed(
+    ): SutraEffectApplication<ProgramAvastha> =
+        when (effect) {
+            is InvokeDhatuEffect -> applyInvocation(effect, state)
+            is RepeatWhileEffect -> applyRepetition(effect, state)
+            else -> SutraEffectApplication.Failed(
                 "Unsupported program sūtra effect: ${effect::class.simpleName}",
             )
         }
 
+    private fun applyInvocation(
+        effect: InvokeDhatuEffect,
+        state: ProgramAvastha,
+    ): SutraEffectApplication<ProgramAvastha> {
         val invocation = effect.invocation
         val singleUkti: ExecutableUkti = effect.ukti.copy(
             invocations = listOf(invocation),
@@ -72,5 +79,47 @@ class ProgramSutraEffectInterpreter(
                 )
             }
         }
+    }
+
+    private fun applyRepetition(
+        effect: RepeatWhileEffect,
+        initialState: ProgramAvastha,
+    ): SutraEffectApplication<ProgramAvastha> {
+        var state = initialState
+        var iterations = 0
+        var lastBodyPhala: Phala? = null
+        while (true) {
+            val condition = state.invocationValues[effect.condition.invocation.id]
+            if (condition !is SanskritValue.Satya) {
+                return SutraEffectApplication.Failed(
+                    "Conditional duration requires ${effect.condition.invocation.id} to yield satya.",
+                )
+            }
+            if (!condition.boolean) break
+            if (iterations >= effect.maximumIterations) {
+                return SutraEffectApplication.Failed(
+                    "Conditional duration exceeded its limit of ${effect.maximumIterations} iterations.",
+                )
+            }
+            val bodyApplication = applyInvocation(effect.body, state)
+            if (bodyApplication is SutraEffectApplication.Failed) return bodyApplication
+            state = (bodyApplication as SutraEffectApplication.Applied).state
+            if (state.halted) return bodyApplication
+            lastBodyPhala = state.lastPhala
+
+            val conditionApplication = applyInvocation(effect.condition, state)
+            if (conditionApplication is SutraEffectApplication.Failed) return conditionApplication
+            state = (conditionApplication as SutraEffectApplication.Applied).state
+            if (state.halted) return conditionApplication
+            iterations++
+        }
+        return SutraEffectApplication.Applied(
+            state.copy(
+                completedSutras = state.completedSutras + SutraId(effect.body.invocation.id),
+                lastPhala = lastBodyPhala ?: state.lastPhala,
+            ),
+            "Repeated ${effect.body.invocation.id} $iterations time(s) while " +
+                "${effect.condition.invocation.id} yielded satya.",
+        )
     }
 }

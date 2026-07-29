@@ -45,6 +45,7 @@ sealed interface ProgramBlueprintCompilation {
     data class Success(
         val sutra: RuntimeSutra<ProgramAvastha>,
         val invocation: DhatuInvocation,
+        val ukti: ExecutableUkti,
     ) : ProgramBlueprintCompilation
 
     data class Invalid(
@@ -217,6 +218,7 @@ object ProgramBlueprintCompiler {
                 },
             ),
             invocation = invocation,
+            ukti = ukti,
         )
     }
 
