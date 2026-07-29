@@ -352,7 +352,10 @@ object VyakaranamExecutionAdapter {
             conversation?.previousResults?.containsKey(text) == true
         ) {
             resolvedId = text
-        } else if (text == "फल" || text == "पूर्वफल") {
+        } else if (text == "पूर्वफल" || text == "पूर्वपूर्वफल") {
+            resolvedId = if (clauseIndex > 0) "योग-$clauseIndex" else
+                conversation?.resultHistory?.lastOrNull()?.id ?: conversation?.previousResults?.keys?.lastOrNull() ?: text
+        } else if (text == "फल") {
             resolvedId = if (clauseIndex > 0) "योग-$clauseIndex" else
                 conversation?.resultHistory?.lastOrNull()?.id ?: conversation?.previousResults?.keys?.lastOrNull()
         } else if (text.endsWith("फल")) {

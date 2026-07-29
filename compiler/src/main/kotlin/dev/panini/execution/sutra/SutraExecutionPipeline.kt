@@ -180,6 +180,15 @@ object SutraExecutionPipeline {
             historicalValues["फल"] = lastObj
             historicalValues["पूर्वफल"] = lastObj
         }
+        if (conversation.resultHistory.size >= 2) {
+            val prevPrev = conversation.resultHistory[conversation.resultHistory.size - 2]
+            val prevPrevObj = prevPrev.typedValue ?: SanskritValue.of(prevPrev.value, prevPrev.samjnas)
+            historicalValues["पूर्वपूर्वफल"] = prevPrevObj
+        } else if (conversation.resultHistory.size == 1) {
+            conversation.previousTypedResults["द्वि"]?.let {
+                historicalValues["पूर्वपूर्वफल"] = it
+            }
+        }
         val conversationEnvironment = ValueEnvironment.from(
             displayValues = conversation.mentionedEntities + conversation.previousResults,
             samjnas = conversation.mentionedEntitySamjnas + conversation.previousResultSamjnas,

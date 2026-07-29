@@ -69,6 +69,11 @@ object ExecutionRuntime {
                             result.value,
                             plan.resolved.operation.resultSamjnas,
                         )
+                        if (values.containsKey("पूर्वफल")) {
+                            values["पूर्वपूर्वफल"] = values["पूर्वफल"]!!
+                        }
+                        values["पूर्वफल"] = typedResult
+                        values["फल"] = typedResult
                         values[plan.invocationId] = typedResult
                         val bindingKaraka = plan.resolved.operation.resultBindingKaraka
                         val bindingName = bindingKaraka
