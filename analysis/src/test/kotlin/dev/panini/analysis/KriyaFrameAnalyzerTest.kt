@@ -121,15 +121,35 @@ class KriyaFrameAnalyzerTest {
     }
 
     @Test
-    fun `nama vakya without kriya is acknowledged without finite verb processing`() {
-        val rama = subanta("राम + सुँ", "राम", "सुँ")
-        val sundara = subanta("सुन्दर + सुँ", "सुन्दर", "सुँ")
-        val namaVakya = dev.panini.vyakaranam.ast.NamaVakya("रामः सुन्दरः", listOf(rama, sundara))
+    fun `purvakalika and shared participant links are inferred for ktva and lyap clauses`() {
+        val ktvaTinganta = TingantaPada(
+            sourceText = "फ्रेम् + क्त्वा",
+            upasargas = emptyList(),
+            dhatu = DhatuPrakriti("फ्रेम्", "फ्रेम्"),
+            lakara = Lakara.LAT,
+            ting = TingPratyaya("तिप्", "तिप्"),
+        )
+        val ktvaVakya = AkhyataVakya(
+            sourceText = "गत्वा",
+            padas = listOf(ktvaTinganta),
+            tinganta = ktvaTinganta,
+        )
+        val mainVakya = akhyata(subanta("राम + सुँ", "राम", "सुँ"))
 
-        val frame = analyzer.analyze(namaVakya)
-        kotlin.test.assertNull(frame.kriya)
-        assertEquals(0, frame.relations.size)
-        assertEquals(FrameDiagnosticCode.UNCLASSIFIED_PADA, frame.diagnostics.single().code)
+        val ukti = Ukti(
+            sourceText = "गत्वा रामः पश्चाद् आगच्छति",
+            vakyas = listOf(ktvaVakya, mainVakya),
+            structure = UktiStructure.Sequence,
+        )
+
+        val analysis = UktiAnalyzer(analyzer).analyze(ukti)
+        val purvakalika = analysis.links.filterIsInstance<KriyaLink.Purvakalika>()
+        val sharedAgent = analysis.links.filterIsInstance<KriyaLink.SharedParticipant>()
+
+        assertEquals(1, purvakalika.size)
+        assertEquals(KriyaId("kriya-1"), purvakalika.single().source)
+        assertEquals(KriyaId("kriya-2"), purvakalika.single().target)
+        assertEquals("राम + सुँ", sharedAgent.single().participantSource)
     }
 
     private fun subanta(source: String, stem: String, sup: String): SubantaPada =
