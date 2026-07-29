@@ -7,6 +7,7 @@ import dev.panini.sutra.runtime.SutraArthaValue
 /** A concrete derivation-context selector used by a saṃjñā assignment rule. */
 enum class SamjnaAssignmentTarget {
     UPADESHA_NASALIZED_VOWEL,
+    UPADESHA_FINAL_CONSONANT,
 }
 
 /** Typed meaning for a saṃjñā assigned to matching derivation material. */

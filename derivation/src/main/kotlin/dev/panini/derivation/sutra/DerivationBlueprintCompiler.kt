@@ -3,8 +3,12 @@ package dev.panini.derivation.sutra
 import dev.panini.core.ItMarker
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
+import dev.panini.derivation.TermKind
+import dev.panini.shiksha.Varnamala
 import dev.panini.sutra.ContextualSamjnaAssignmentArtha
+import dev.panini.sutra.ContextualProhibitionArtha
 import dev.panini.sutra.InterpretivePrincipleArtha
+import dev.panini.sutra.ProhibitionTarget
 import dev.panini.sutra.SamjnaAssignmentTarget
 import dev.panini.sutra.SamjnaDefinitionArtha
 import dev.panini.sutra.SamjnaSetDefinitionArtha
@@ -17,6 +21,8 @@ import dev.panini.sutra.runtime.SutraNirnaya
 object DerivationBlueprintCompiler {
     fun compile(blueprint: SutraBlueprint): RuntimeSutra<DerivationAvastha> =
         when (blueprint.artha.kind) {
+            ContextualProhibitionArtha.KIND ->
+                compileContextualProhibition(blueprint)
             ContextualSamjnaAssignmentArtha.KIND ->
                 compileContextualSamjnaAssignment(blueprint)
             InterpretivePrincipleArtha.KIND -> compileInterpretivePrinciple(blueprint)
@@ -28,12 +34,12 @@ object DerivationBlueprintCompiler {
             )
         }
 
-    private fun compileContextualSamjnaAssignment(
+    private fun compileContextualProhibition(
         blueprint: SutraBlueprint,
     ): RuntimeSutra<DerivationAvastha> {
-        val artha = ContextualSamjnaAssignmentArtha.fromSutraArtha(blueprint.artha)
-        require(artha.target == SamjnaAssignmentTarget.UPADESHA_NASALIZED_VOWEL) {
-            "Unsupported contextual saṃjñā target '${artha.target}' for ${blueprint.id}."
+        val artha = ContextualProhibitionArtha.fromSutraArtha(blueprint.artha)
+        require(artha.target == ProhibitionTarget.VIBHAKTI_FINAL_TUSMA) {
+            "Unsupported prohibition target '${artha.target}' for ${blueprint.id}."
         }
 
         return RuntimeSutra(
@@ -43,22 +49,101 @@ object DerivationBlueprintCompiler {
             artha = blueprint.artha,
             evaluator = { _, state ->
                 val derivation = state.derivation
+                val matching = derivation.terms.any { term ->
+                    derivation.samjnas.any {
+                        it.targetId == term.id && it.samjna == dev.panini.shiksha.Samjna.PRATYAYA
+                    } && term.surface.hasTusmaEnding()
+                }
+                if (!matching) {
+                    SutraNirnaya.NotApplicable(
+                        listOf("No vibhakti has a final tu-s-ma sound."),
+                    )
+                } else {
+                    SutraNirnaya.Applicable(
+                        effects = listOf(
+                            ApplyDerivationChange(
+                                sutraId = blueprint.id,
+                                change = DerivationChange(
+                                    state = derivation.blockSutra(
+                                        artha.prohibitedSutra.value,
+                                        blueprint.id.value,
+                                    ),
+                                    explanation =
+                                        "${blueprint.id} prohibits ${artha.prohibitedSutra} for the matching vibhakti.",
+                                ),
+                            ),
+                        ),
+                        reasons = listOf(
+                            "A vibhakti-final tu-s-ma sound triggers the prohibition.",
+                        ),
+                    )
+                }
+            },
+            relations = blueprint.relations,
+            governance = blueprint.governance,
+        )
+    }
+
+    private fun compileContextualSamjnaAssignment(
+        blueprint: SutraBlueprint,
+    ): RuntimeSutra<DerivationAvastha> {
+        val artha = ContextualSamjnaAssignmentArtha.fromSutraArtha(blueprint.artha)
+
+        return RuntimeSutra(
+            id = blueprint.id,
+            source = blueprint.source,
+            role = blueprint.role,
+            artha = blueprint.artha,
+            evaluator = { _, state ->
+                val derivation = state.derivation
                 val applicable =
-                    derivation.stage == DerivationStage.PRATYAYA_SELECTED &&
-                        derivation.terms.any {
-                            it.surface.endsWith("ँ") && ItMarker.U !in it.itMarkers
+                    derivation.stage == DerivationStage.PRATYAYA_SELECTED && when (artha.target) {
+                        SamjnaAssignmentTarget.UPADESHA_NASALIZED_VOWEL ->
+                            derivation.terms.any {
+                                it.surface.endsWith("ँ") && ItMarker.U !in it.itMarkers
+                            }
+                        SamjnaAssignmentTarget.UPADESHA_FINAL_CONSONANT ->
+                            derivation.terms.any { term ->
+                                term.kind != TermKind.PRATIPADIKA &&
+                                    term.id !in RESOLVED_AGAMAS &&
+                                    term.surface.endsWith("्") &&
+                                    term.surface.length >= 2 &&
+                                    Varnamala.isConsonant(
+                                        term.surface[term.surface.length - 2],
+                                    ) &&
+                                    term.itMarkers.isEmpty()
+                            }
                         }
                 if (!applicable) {
                     SutraNirnaya.NotApplicable(
-                        listOf("No unmarked nasalized vowel occurs in upadeśa."),
+                        listOf("No material matching ${artha.target} requires designation."),
                     )
                 } else {
                     val changed = derivation.copy(
-                        terms = derivation.terms.map {
-                            if (it.surface.endsWith("ँ")) {
-                                it.copy(itMarkers = it.itMarkers + ItMarker.U)
-                            } else {
-                                it
+                        terms = derivation.terms.map { term ->
+                            when (artha.target) {
+                                SamjnaAssignmentTarget.UPADESHA_NASALIZED_VOWEL ->
+                                    if (term.surface.endsWith("ँ")) {
+                                        term.copy(itMarkers = term.itMarkers + ItMarker.U)
+                                    } else {
+                                        term
+                                    }
+                                SamjnaAssignmentTarget.UPADESHA_FINAL_CONSONANT -> {
+                                    val isTarget =
+                                        term.kind != TermKind.PRATIPADIKA &&
+                                            term.id !in RESOLVED_AGAMAS &&
+                                            term.surface.endsWith("्") &&
+                                            term.surface.length >= 2 &&
+                                            Varnamala.isConsonant(
+                                                term.surface[term.surface.length - 2],
+                                            ) &&
+                                            term.itMarkers.isEmpty()
+                                    if (isTarget) {
+                                        term.copy(itMarkers = term.itMarkers + ItMarker.KIT)
+                                    } else {
+                                        term
+                                    }
+                                }
                             }
                         },
                     )
@@ -83,6 +168,16 @@ object DerivationBlueprintCompiler {
             governance = blueprint.governance,
         )
     }
+
+    private val RESOLVED_AGAMAS = setOf("siyut", "yasut", "vuk", "nic")
+
+    private fun String.hasTusmaEnding(): Boolean =
+        TUSMA_ENDINGS.any(::endsWith)
+
+    private val TUSMA_ENDINGS = setOf(
+        "त्", "थ्", "द्", "ध्", "न्", "स्", "म्",
+        "त", "थ", "द", "ध", "न", "स", "म",
+    )
 
     private fun compileInterpretivePrinciple(
         blueprint: SutraBlueprint,

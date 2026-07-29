@@ -5,11 +5,14 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
+import dev.panini.sutra.ContextualProhibitionArtha
+import dev.panini.sutra.ProhibitionTarget
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.sutra.runtime.SutraId
 
 /**
  * 1.3.4: na vibhaktau tusmāḥ.
@@ -26,7 +29,11 @@ object NaVibhaktauTusmahSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Nishedha,
     action = SutraAction.NISHEDHA,
     scope = SutraScope.PRATYAYA,
-    blocks = setOf("1.3.3")
+    blocks = setOf("1.3.3"),
+    artha = ContextualProhibitionArtha(
+        target = ProhibitionTarget.VIBHAKTI_FINAL_TUSMA,
+        prohibitedSutra = SutraId("1.3.3"),
+    ),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.stage != DerivationStage.PRATYAYA_SELECTED) return false
