@@ -13,6 +13,9 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
+import dev.panini.execution.ExecutionResult
+import dev.panini.execution.PvmScript
+import dev.panini.execution.VM
 import java.io.File
 import java.io.OutputStream
 
@@ -65,32 +68,31 @@ class PvmRunConfiguration(
                     return@executeOnPooledThread
                 }
 
-                val basePath = project.basePath ?: ""
-                val isWindows = System.getProperty("os.name").lowercase().contains("win")
-                val gradlewName = if (isWindows) "gradlew.bat" else "gradlew"
-                val gradlewFile = File(basePath, gradlewName)
-
                 try {
-                    val process = ProcessBuilder(
-                        gradlewFile.absolutePath,
-                        ":cli:run",
-                        "--args=--eval $path",
-                        "--no-daemon"
-                    )
-                        .directory(File(basePath))
-                        .redirectErrorStream(true)
-                        .start()
+                    processHandler.notifyTextAvailable("=== PaniniVM Script Execution: ${file.name} ===\n", ProcessOutputTypes.STDOUT)
+                    val statements = PvmScript.parse(file.readText())
+                    val sessionKey = "session_${file.nameWithoutExtension}_${System.currentTimeMillis()}"
 
-                    process.inputStream.bufferedReader().use { reader ->
-                        var line = reader.readLine()
-                        while (line != null) {
-                            processHandler.notifyTextAvailable(line + "\n", ProcessOutputTypes.STDOUT)
-                            line = reader.readLine()
+                    statements.forEachIndexed { index, statement ->
+                        processHandler.notifyTextAvailable("Line ${index + 1}:\n", ProcessOutputTypes.STDOUT)
+                        val res = VM.eval(statement.text, sessionKey = sessionKey)
+                        when (res) {
+                            is ExecutionResult.Success -> {
+                                processHandler.notifyTextAvailable("  ✓ Result: ${res.value}\n", ProcessOutputTypes.STDOUT)
+                                processHandler.notifyTextAvailable("  ↳ Operation: ${res.operation}\n", ProcessOutputTypes.STDOUT)
+                            }
+                            is ExecutionResult.Failure -> {
+                                processHandler.notifyTextAvailable("  ✗ Error: ${res.error} - ${res.message}\n", ProcessOutputTypes.STDERR)
+                            }
+                            is ExecutionResult.NeedsInput -> {
+                                processHandler.notifyTextAvailable("  ? Needs input: ${res.message} (missing: ${res.missingKarakas})\n", ProcessOutputTypes.STDOUT)
+                            }
+                            is ExecutionResult.Ambiguous -> {
+                                processHandler.notifyTextAvailable("  ? Ambiguous: ${res.message} (matches: ${res.matchingOperations})\n", ProcessOutputTypes.STDOUT)
+                            }
                         }
                     }
-
-                    val exitCode = process.waitFor()
-                    processHandler.terminate(exitCode)
+                    processHandler.terminate(0)
                 } catch (e: Throwable) {
                     val stackTrace = java.io.StringWriter().also { e.printStackTrace(java.io.PrintWriter(it)) }.toString()
                     processHandler.notifyTextAvailable("Error during execution:\n$stackTrace\n", ProcessOutputTypes.STDERR)

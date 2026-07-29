@@ -24,7 +24,7 @@ class PvmColorSettingsPage : ColorSettingsPage {
 
     override fun getDemoText(): String {
         return """
-            // PaniniVM Script Example
+            # PaniniVM Script Example
             हे यन्त्र + सुँ, एक + अम् द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।
             एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।
         """.trimIndent()

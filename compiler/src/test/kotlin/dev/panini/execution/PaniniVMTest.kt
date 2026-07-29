@@ -176,4 +176,23 @@ class PaniniVMTest {
         assertEquals("FIRST", assertIs<ExecutionResult.Success>(first.eval(utterance)).value)
         assertEquals("SECOND", assertIs<ExecutionResult.Success>(second.eval(utterance)).value)
     }
+
+    @Test
+    fun `VM eval evaluates utterance and ignores hash comments in script`() {
+        val res = VM.eval("दश + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।")
+        val success = assertIs<ExecutionResult.Success>(res)
+        assertEquals("द्वादश", success.value)
+
+        val scriptResults = VM.evalScript(
+            """
+            # First comment
+            दश + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।
+            # Second comment
+            एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।
+            """.trimIndent()
+        )
+        assertEquals(2, scriptResults.size)
+        assertEquals("द्वादश", assertIs<ExecutionResult.Success>(scriptResults[0]).value)
+        assertEquals("त्रीणि", assertIs<ExecutionResult.Success>(scriptResults[1]).value)
+    }
 }
