@@ -67,6 +67,22 @@ sealed interface KriyaLink {
         override val target: KriyaId,
     ) : KriyaLink
 
+    data class Alternative(
+        override val source: KriyaId,
+        override val target: KriyaId,
+    ) : KriyaLink
+
+    data class ConditionalDuration(
+        override val source: KriyaId,
+        override val target: KriyaId,
+    ) : KriyaLink
+
+    data class Coordination(
+        override val source: KriyaId,
+        override val target: KriyaId,
+        val connector: String,
+    ) : KriyaLink
+
     data class Purpose(
         override val source: KriyaId,
         override val target: KriyaId,

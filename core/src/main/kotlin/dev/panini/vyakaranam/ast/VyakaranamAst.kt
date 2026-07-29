@@ -12,7 +12,14 @@ data class Ukti(
     val sambodhana: Sambodhana? = null,
     val vakyas: List<Vakya>,
     val sambandhas: List<String> = emptyList(),
+    val structure: UktiStructure = UktiStructure.Sequence,
 ) : VyakaranamNode
+
+sealed interface UktiStructure {
+    data object Sequence : UktiStructure
+    data class Conditional(val hasAlternate: Boolean) : UktiStructure
+    data object YavatTavat : UktiStructure
+}
 
 data class Sambodhana(
     override val sourceText: String,

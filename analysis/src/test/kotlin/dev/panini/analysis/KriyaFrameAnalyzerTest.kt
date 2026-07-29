@@ -14,6 +14,8 @@ import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.SupPratyaya
 import dev.panini.vyakaranam.ast.TingPratyaya
 import dev.panini.vyakaranam.ast.TingantaPada
+import dev.panini.vyakaranam.ast.Ukti
+import dev.panini.vyakaranam.ast.UktiStructure
 import dev.panini.vyakaranam.lexicon.InMemoryVyakaranamLexicon
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -82,6 +84,40 @@ class KriyaFrameAnalyzerTest {
             setOf(Karaka.KARANA, Karaka.SAMPRADANA, Karaka.APADANA),
             ambiguous.candidates,
         )
+    }
+
+    @Test
+    fun `ukti analysis gives each kriya a stable frame and links a condition`() {
+        val condition = akhyata(subanta("राम + सुँ", "राम", "सुँ"))
+        val consequent = akhyata(subanta("फल + अम्", "फल", "अम्"))
+        val analysis = UktiAnalyzer(analyzer).analyze(
+            Ukti(
+                sourceText = "यदि ... तर्हि ...",
+                vakyas = listOf(condition, consequent),
+                structure = UktiStructure.Conditional(hasAlternate = false),
+            ),
+        )
+
+        assertEquals(listOf("kriya-1", "kriya-2"), analysis.frames.map { it.id.value })
+        assertEquals(
+            KriyaLink.Condition(KriyaId("kriya-1"), KriyaId("kriya-2")),
+            analysis.links.single(),
+        )
+        assertEquals(analysis.links, analysis.frames[0].links)
+        assertEquals(analysis.links, analysis.frames[1].links)
+    }
+
+    @Test
+    fun `yavat tavat relates the condition to the repeatedly eligible kriya`() {
+        val analysis = UktiAnalyzer(analyzer).analyze(
+            Ukti(
+                sourceText = "यावत् ... तावत् ...",
+                vakyas = listOf(akhyata(), akhyata()),
+                structure = UktiStructure.YavatTavat,
+            ),
+        )
+
+        assertIs<KriyaLink.ConditionalDuration>(analysis.links.single())
     }
 
     private fun subanta(source: String, stem: String, sup: String): SubantaPada =

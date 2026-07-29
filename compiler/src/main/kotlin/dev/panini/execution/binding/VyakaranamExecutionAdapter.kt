@@ -19,8 +19,8 @@ import dev.panini.sankhya.SankhyaGenerator
 import dev.panini.analysis.FrameKarakaResolution
 import dev.panini.analysis.KarakaInference
 import dev.panini.analysis.KriyaFrame
-import dev.panini.analysis.KriyaId
 import dev.panini.analysis.PadaAnalyzer
+import dev.panini.analysis.UktiAnalyzer
 import dev.panini.analysis.VakyaAnalyzer
 import dev.panini.vyakaranam.ast.AkhyataVakya
 import dev.panini.vyakaranam.ast.AvyayaPada
@@ -77,6 +77,37 @@ object VyakaranamExecutionAdapter {
         if (input.speaker != conversation.speaker) {
             return ExecutionBindingResult.Invalid("Utterance speaker does not match the trusted conversation context.")
         }
+        val unresolved = ukti.vakyas.filterIsInstance<AkhyataVakya>()
+            .firstOrNull { resolveDhatu(it.tinganta) == null }
+        if (unresolved != null) {
+            return ExecutionBindingResult.Invalid(
+                "Unknown verbal action/dhātu: ${unresolved.tinganta.sourceText}",
+            )
+        }
+        val utteranceAnalysis = UktiAnalyzer { vakya, frameId ->
+            val akhyata = vakya as? AkhyataVakya
+            if (akhyata == null) {
+                VakyaAnalyzer(
+                    PadaAnalyzer(
+                        object : VyakaranamLexicon {
+                            override fun findPratipadika(text: String): PratipadikaEntry? = null
+                            override fun findDhatu(text: String): Dhatu? = null
+                        },
+                    ),
+                ).analyze(vakya, frameId)
+            } else {
+                val dhatu = requireNotNull(resolveDhatu(akhyata.tinganta))
+                VakyaAnalyzer(
+                    PadaAnalyzer(
+                        object : VyakaranamLexicon {
+                            override fun findPratipadika(text: String): PratipadikaEntry? = null
+                            override fun findDhatu(text: String): Dhatu = dhatu
+                        },
+                        validatePadaCompatibility = false,
+                    ),
+                ).analyze(vakya, frameId)
+            }
+        }.analyze(ukti)
         val invocations = mutableListOf<DhatuInvocation>()
         var prayer = false
         var prohibition = false
@@ -88,16 +119,7 @@ object VyakaranamExecutionAdapter {
             val tinganta = (vakya as? AkhyataVakya)?.tinganta ?: return@forEachIndexed
             val dhatu = resolveDhatu(tinganta)
                 ?: return ExecutionBindingResult.Invalid("Unknown verbal action/dhātu: ${tinganta.sourceText}")
-            val frameAnalyzer = VakyaAnalyzer(
-                PadaAnalyzer(
-                    object : VyakaranamLexicon {
-                        override fun findPratipadika(text: String): PratipadikaEntry? = null
-                        override fun findDhatu(text: String): Dhatu = dhatu
-                    },
-                    validatePadaCompatibility = false,
-                ),
-            )
-            val frame = frameAnalyzer.analyze(vakya, KriyaId("योग-${index + 1}")).frames.single()
+            val frame = utteranceAnalysis.vakyaAnalyses[index].frames.single()
             val extracted = extractKarakas(vakya.padas, conversation, index, dhatu, frame)
             val bindings = extracted.bindings.toMutableMap()
             if (purposeRequiresListenerAsAgent(prayer, tinganta.lakara) && Karaka.KARTR !in bindings) {

@@ -25,6 +25,12 @@ class VyakaranamAstBuilder {
             sambodhana = context.sambodhana()?.let(::buildSambodhana),
             vakyas = vakyas,
             sambandhas = context.vakyaSambandha().map { it.text },
+            structure = when {
+                context.conditionalClause() != null ->
+                    UktiStructure.Conditional(context.conditionalClause()!!.alternate != null)
+                context.loopClause() != null -> UktiStructure.YavatTavat
+                else -> UktiStructure.Sequence
+            },
         )
     }
 
