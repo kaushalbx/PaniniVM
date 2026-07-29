@@ -245,7 +245,7 @@ class VakyaAnalyzer(
             val kind = when (form) {
                 "मा" -> KriyaQualificationKind.NEGATION
                 "कृपया" -> KriyaQualificationKind.COURTESY
-                "पुनः", "वारम्", "सकृत्", "प्रत्येकम्" -> KriyaQualificationKind.FREQUENCY
+                "पुनः", "पुनर्", "वारम्", "सकृत्", "प्रत्येकम्" -> KriyaQualificationKind.FREQUENCY
                 "भृशम्", "अत्यन्तम्" -> KriyaQualificationKind.INTENSITY
                 "शीघ्रम्", "शनैः" -> KriyaQualificationKind.MANNER
                 "यावत्", "तावत्" -> KriyaQualificationKind.TEMPORAL_EXTENT

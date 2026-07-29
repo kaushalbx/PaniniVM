@@ -64,4 +64,18 @@ class FrequencyActionExecutionTest {
         assertEquals("COUNT_5", success.value)
         assertEquals(5, callCount)
     }
+
+    @Test
+    fun `evaluates frequency action with punah 2 times`() {
+        var callCount = 0
+        vm.registerExternalCapability(ExecutionEffect.NETWORK) { _, _ ->
+            callCount++
+            "REPEAT_$callCount"
+        }
+
+        val result = vm.eval("पुनः संदेश + अम् प्रेष + णिच् + लोट् + सिप् ।")
+        val success = assertIs<ExecutionResult.Success>(result, result.toString())
+        assertEquals("REPEAT_2", success.value)
+        assertEquals(2, callCount)
+    }
 }
