@@ -3,6 +3,7 @@ package dev.panini.derivation.sutra
 import dev.panini.sutra.InterpretivePrincipleArtha
 import dev.panini.sutra.SamjnaDefinitionArtha
 import dev.panini.sutra.SamjnaSetDefinitionArtha
+import dev.panini.sutra.SamjniSetDefinitionArtha
 import dev.panini.sutra.runtime.RuntimeSutra
 import dev.panini.sutra.runtime.SutraBlueprint
 import dev.panini.sutra.runtime.SutraNirnaya
@@ -14,6 +15,7 @@ object DerivationBlueprintCompiler {
             InterpretivePrincipleArtha.KIND -> compileInterpretivePrinciple(blueprint)
             SamjnaDefinitionArtha.KIND -> compileSamjnaDefinition(blueprint)
             SamjnaSetDefinitionArtha.KIND -> compileSamjnaSetDefinition(blueprint)
+            SamjniSetDefinitionArtha.KIND -> compileSamjniSetDefinition(blueprint)
             else -> error(
                 "Unsupported derivation blueprint meaning '${blueprint.artha.kind}' for ${blueprint.id}.",
             )
@@ -110,6 +112,43 @@ object DerivationBlueprintCompiler {
                         effects = missing.map { DefineSamjna(it) },
                         reasons = listOf(
                             "The interpretive saṃjñā sūtra defines a set of technical terms.",
+                        ),
+                    )
+                }
+            },
+            relations = blueprint.relations,
+            governance = blueprint.governance,
+        )
+    }
+
+    private fun compileSamjniSetDefinition(
+        blueprint: SutraBlueprint,
+    ): RuntimeSutra<DerivationAvastha> {
+        val artha = SamjniSetDefinitionArtha.fromSutraArtha(blueprint.artha)
+        val definitions = artha.samjnis.mapTo(linkedSetOf()) { samjni ->
+            SamjnaDefinition(
+                samjni = samjni,
+                samjna = artha.samjna,
+                definingSutra = blueprint.id,
+            )
+        }
+
+        return RuntimeSutra(
+            id = blueprint.id,
+            source = blueprint.source,
+            role = blueprint.role,
+            artha = blueprint.artha,
+            evaluator = { _, state ->
+                val missing = definitions - state.samjnaDefinitions
+                if (missing.isEmpty()) {
+                    SutraNirnaya.NotApplicable(
+                        listOf("The saṃjñin-set definition is already registered."),
+                    )
+                } else {
+                    SutraNirnaya.Applicable(
+                        effects = missing.map { DefineSamjna(it) },
+                        reasons = listOf(
+                            "The interpretive saṃjñā sūtra assigns one technical term to a set of concepts.",
                         ),
                     )
                 }
