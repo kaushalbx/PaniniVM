@@ -1,9 +1,11 @@
 package dev.panini.derivation.sutra
 
 import dev.panini.ashtadhyayi.Ashtadhyayi
+import dev.panini.sutra.Sutra
 import dev.panini.sutra.runtime.GranthaId
 import dev.panini.sutra.runtime.SutraGrantha
 import dev.panini.sutra.runtime.SutraId
+import dev.panini.sutra.runtime.toBlueprint
 
 /**
  * Runtime view of the migrated rules in the authoritative Aṣṭādhyāyī registry.
@@ -17,7 +19,14 @@ object AshtadhyayiRuntimeGrantha {
 
     val grantha: SutraGrantha<DerivationAvastha> = SutraGrantha(
         id = GranthaId("ashtadhyayi"),
-        sutras = rules.map { DerivationSutraRuntimeAdapter.adapt(it, localIds) },
+        sutras = rules.map { rule ->
+            val sutra = rule as Sutra<*, *>
+            sutra.artha?.let { artha ->
+                DerivationBlueprintCompiler.compile(
+                    sutra.toBlueprint(artha.toSutraArtha()),
+                )
+            } ?: DerivationSutraRuntimeAdapter.adapt(rule, localIds)
+        },
         exports = localIds,
     )
 }

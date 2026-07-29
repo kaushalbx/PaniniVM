@@ -46,6 +46,11 @@ sealed interface Samjna {
         SHABDA, SANGRAHA, GANA, SATYA, NAMAPADA, REFERENCE, KRIDANTA, STRI_PRATYAYA
     }
 
+    /** Technical operations defined by interpretive saṃjñā sūtras. */
+    enum class Operation : Samjna {
+        LOPA
+    }
+
     /** Lexical Target Names (रूढि संज्ञा - e.g., "कर्ण", "वायु") */
     data class Rudhi(val word: String) : Samjna
 
@@ -156,6 +161,7 @@ sealed interface Samjna {
         val REFERENCE: Samjna = Execution.REFERENCE
         val KRIDANTA: Samjna = Execution.KRIDANTA
         val STRI_PRATYAYA: Samjna = Execution.STRI_PRATYAYA
+        val LOPA: Samjna = Operation.LOPA
 
         private val allValues: Map<String, Samjna> by lazy {
             val map = mutableMapOf<String, Samjna>()
@@ -166,6 +172,7 @@ sealed interface Samjna {
             Avyaya.entries.forEach { map[it.name] = it }
             Karaka.entries.forEach { map[it.name] = it }
             Execution.entries.forEach { map[it.name] = it }
+            Operation.entries.forEach { map[it.name] = it }
             map
         }
 

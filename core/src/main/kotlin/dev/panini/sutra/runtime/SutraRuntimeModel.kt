@@ -20,6 +20,7 @@ sealed interface SutraSource {
     data class Ashtadhyayi(
         val number: String,
         override val text: String,
+        val segmentedSource: String? = null,
     ) : SutraSource
 
     data class Vakya(

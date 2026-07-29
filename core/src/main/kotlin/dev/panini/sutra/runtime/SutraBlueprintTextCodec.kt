@@ -143,10 +143,15 @@ object SutraBlueprintTextCodec {
     }
 
     private fun encodeSource(source: SutraSource): SutraArthaValue.Record = when (source) {
-        is SutraSource.Ashtadhyayi -> record(
-            "kind" to symbol("ashtadhyayi"),
-            "number" to text(source.number),
-            "text" to text(source.text),
+        is SutraSource.Ashtadhyayi -> SutraArthaValue.Record(
+            buildMap {
+                put("kind", SutraArthaValue.Symbol("ashtadhyayi"))
+                put("number", SutraArthaValue.Text(source.number))
+                put("text", SutraArthaValue.Text(source.text))
+                source.segmentedSource?.let {
+                    put("segmentedSource", SutraArthaValue.Text(it))
+                }
+            },
         )
         is SutraSource.Vakya -> record(
             "kind" to symbol("vakya"),
@@ -168,6 +173,7 @@ object SutraBlueprintTextCodec {
             "ashtadhyayi" -> SutraSource.Ashtadhyayi(
                 source.text("number"),
                 source.text("text"),
+                (source["segmentedSource"] as? SutraArthaValue.Text)?.value,
             )
             "vakya" -> SutraSource.Vakya(
                 source.text("uktiId"),

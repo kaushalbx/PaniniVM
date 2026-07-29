@@ -2,6 +2,7 @@ package dev.panini.sutra.runtime
 
 import dev.panini.sutra.SutraGovernance
 import dev.panini.sutra.SutraRole
+import dev.panini.sutra.Sutra
 
 /**
  * Evaluator-free sūtra definition suitable for inspection, generation,
@@ -43,6 +44,30 @@ fun RuntimeSutra<*>.toBlueprint(): SutraBlueprint = SutraBlueprint(
     relations = relations,
     governance = governance,
 )
+
+/** Builds evaluator-free runtime metadata from an authoritative catalog sūtra. */
+fun Sutra<*, *>.toBlueprint(artha: SutraArtha): SutraBlueprint = SutraBlueprint(
+    id = SutraId(number),
+    source = SutraSource.Ashtadhyayi(
+        number = number,
+        text = text,
+        segmentedSource = segmentedSource,
+    ),
+    role = role,
+    artha = artha,
+    relations = buildSet {
+        dependencies.mapTo(this) { SutraRelation.DependsOn(SutraId(it)) }
+        blocks.mapTo(this) { SutraRelation.Blocks(SutraId(it)) }
+    },
+    governance = governance,
+)
+
+fun Sutra<*, *>.toBlueprint(): SutraBlueprint =
+    toBlueprint(
+        requireNotNull(artha) {
+            "Sūtra $number does not define native evaluator-free artha."
+        }.toSutraArtha(),
+    )
 
 enum class SutraBlueprintDiagnosticCode {
     SELF_DEPENDENCY,
