@@ -16,6 +16,7 @@ import dev.panini.sutra.SutraType
 object AdarsanamLopaSutra : Sutra<DerivationState, DerivationChange>(
     number = "1.1.60",
     text = "अदर्शनं लोपः",
+    segmentedSource = "नञ् - दृश् + ल्युट् + अम् लोप + सुँ ।",
     hindiExplanation = "वर्ण के न दिखने (अदर्शन) को लोप संज्ञा दी जाती है।",
     type = SutraType.SAMJNA,
     chapter = 1,
@@ -29,4 +30,3 @@ object AdarsanamLopaSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean = false
     override fun apply(context: DerivationState): DerivationChange = error("Interpretive rule.")
 }
-

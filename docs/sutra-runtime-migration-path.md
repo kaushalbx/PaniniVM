@@ -95,7 +95,7 @@ The following runtime foundation is implemented:
 
 ### Opening saṃjñā grantha
 
-`OpeningSamjnaRuntimeGrantha` currently contains:
+`AshtadhyayiRuntimeGrantha` currently contains this opening slice:
 
 | Sūtra | Text | Runtime responsibility |
 |---|---|---|
@@ -105,7 +105,7 @@ The following runtime foundation is implemented:
 
 ### Conflict and niṣedha saṃjñā grantha
 
-`ConflictSamjnaRuntimeGrantha` contains:
+`AshtadhyayiRuntimeGrantha` also contains this conflict-sensitive slice:
 
 | Sūtra | Text | Runtime responsibility |
 |---|---|---|
@@ -115,7 +115,7 @@ The following runtime foundation is implemented:
 
 ### Phonological saṃjñā grantha
 
-`PhonologicalSamjnaRuntimeGrantha` currently contains:
+`AshtadhyayiRuntimeGrantha` also contains this phonological slice:
 
 | Sūtra | Text | Runtime responsibility |
 |---|---|---|
@@ -127,7 +127,9 @@ The following runtime foundation is implemented:
 
 `UnadipathaRuntimeGrantha` (`unadipatha`) contains the complete catalogue of 33+ Uṇādipāṭha rules under Aṣṭādhyāyī 3.3.1 (*उणादयो बहुलम्*), natively adapted directly from `UnadiPatha.sutras`.
 
-`MigratedAshtadhyayiGranthas` and `UnadipathaRuntimeGrantha.registry` are the discoverable registries for migrated slices.
+`Ashtadhyayi.executableSutras` is the authoritative collection of migrated
+Aṣṭādhyāyī derivation rules, materialized by `AshtadhyayiRuntimeGrantha`;
+`UnadipathaRuntimeGrantha.registry` is the discoverable Uṇādipāṭha registry.
 Their identities, Sanskrit source, artha, relationships, and exports use the
 new runtime architecture. During incremental migration, their established
 grammatical conditions and state changes remain authoritative and are adapted
@@ -192,7 +194,7 @@ Suggested next candidates:
 
 Status: **in progress (1.1.4–1.1.6 slice completed)**
 
-Rules 1.1.4–1.1.6 are migrated into `ConflictSamjnaRuntimeGrantha`:
+Rules 1.1.4–1.1.6 are migrated into `AshtadhyayiRuntimeGrantha`:
 
 - 1.1.4 `न धातुलोप आर्धधातुके`
 - 1.1.5 `क्ङिति च`

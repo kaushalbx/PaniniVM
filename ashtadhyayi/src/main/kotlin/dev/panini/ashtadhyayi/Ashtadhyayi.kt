@@ -55,7 +55,8 @@ object Ashtadhyayi {
 
     /** Compatibility view; derived from the registry and never maintained separately. */
     val kriyavatSutras: List<Sutra<*, *>> = executableSutras.map { it as Sutra<*, *> }
-    val catalogIssues: List<SutraCatalogIssue> = SutraCatalogValidator.validate(registry)
+    val catalogIssues: List<SutraCatalogIssue> =
+        SutraCatalogValidator.validate(registry) + AshtadhyayiSutraValidator.validate(registry.sutras)
     val patha = SutraPatha(registry.sutras)
     val pathitaCount: Int get() = patha.pathitaCount
     val kriyavatCount: Int get() = patha.kriyavatCount

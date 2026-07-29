@@ -28,7 +28,6 @@ object NaDhatulopaArdhadhatukeSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.NISHEDHA,
     scope = SutraScope.DERIVATION,
     inputs = setOf(SutraInput.DHATU, SutraInput.PRATYAYA, SutraInput.SEMANTIC_FEATURE),
-    dependencies = setOf("1.1.3"),
     stage = SutraStage.ANGAKARYA,
     blocks = setOf("1.1.3"),
     traceTemplateValue = "{sutra} blocks गुण-वृद्धि caused only by dhātu loss.",

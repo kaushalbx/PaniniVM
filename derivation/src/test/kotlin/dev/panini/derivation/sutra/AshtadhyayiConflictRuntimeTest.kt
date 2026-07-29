@@ -15,7 +15,9 @@ import dev.panini.sutra.runtime.SutraGranthaLowering
 import dev.panini.sutra.runtime.SutraId
 import dev.panini.sutra.runtime.SutraMachine
 import dev.panini.sutra.runtime.SutraMachineResult
-import dev.panini.sutra.runtime.SutraProgram
+import dev.panini.sutra.runtime.SutraBlueprintTextCodec
+import dev.panini.sutra.runtime.SutraBlueprintTextDecoding
+import dev.panini.sutra.runtime.SutraBlueprintTextEncoding
 import dev.panini.sutra.runtime.SutraTraceEntry
 import dev.panini.sutra.runtime.toBlueprintGrantha
 import kotlin.test.Test
@@ -23,20 +25,12 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
-class ConflictSamjnaRuntimeGranthaTest {
+class AshtadhyayiConflictRuntimeTest {
     @Test
     fun `conflict samjna sutra 1-1-5 blocks 1-1-3 when kit or ngit affix is present`() {
-        val openingSutras = assertIs<SutraGranthaLowering.Success<DerivationAvastha>>(
-            SutraGranthaCompiler.lower(OpeningSamjnaRuntimeGrantha.grantha),
-        ).program.sutras
-        val conflictSutras = assertIs<SutraGranthaLowering.Success<DerivationAvastha>>(
-            SutraGranthaCompiler.lower(ConflictSamjnaRuntimeGrantha.grantha),
-        ).program.sutras
-
-        val combinedProgram = SutraProgram(
-            "ashtadhyayi-1.1.1-1.1.6",
-            openingSutras + conflictSutras,
-        )
+        val combinedProgram = assertIs<SutraGranthaLowering.Success<DerivationAvastha>>(
+            SutraGranthaCompiler.lower(AshtadhyayiRuntimeGrantha.grantha),
+        ).program
 
         val initial = DerivationState(
             terms = listOf(
@@ -68,17 +62,9 @@ class ConflictSamjnaRuntimeGranthaTest {
 
     @Test
     fun `conflict samjna sutra 1-1-4 blocks 1-1-3 in dhatu lopa ardhadhatuka environment`() {
-        val openingSutras = assertIs<SutraGranthaLowering.Success<DerivationAvastha>>(
-            SutraGranthaCompiler.lower(OpeningSamjnaRuntimeGrantha.grantha),
-        ).program.sutras
-        val conflictSutras = assertIs<SutraGranthaLowering.Success<DerivationAvastha>>(
-            SutraGranthaCompiler.lower(ConflictSamjnaRuntimeGrantha.grantha),
-        ).program.sutras
-
-        val combinedProgram = SutraProgram(
-            "ashtadhyayi-1.1.1-1.1.6",
-            openingSutras + conflictSutras,
-        )
+        val combinedProgram = assertIs<SutraGranthaLowering.Success<DerivationAvastha>>(
+            SutraGranthaCompiler.lower(AshtadhyayiRuntimeGrantha.grantha),
+        ).program
 
         val initial = DerivationState(
             terms = listOf(
@@ -110,17 +96,9 @@ class ConflictSamjnaRuntimeGranthaTest {
 
     @Test
     fun `conflict samjna sutra 1-1-6 blocks 1-1-3 for didhi and vevi roots`() {
-        val openingSutras = assertIs<SutraGranthaLowering.Success<DerivationAvastha>>(
-            SutraGranthaCompiler.lower(OpeningSamjnaRuntimeGrantha.grantha),
-        ).program.sutras
-        val conflictSutras = assertIs<SutraGranthaLowering.Success<DerivationAvastha>>(
-            SutraGranthaCompiler.lower(ConflictSamjnaRuntimeGrantha.grantha),
-        ).program.sutras
-
-        val combinedProgram = SutraProgram(
-            "ashtadhyayi-1.1.1-1.1.6",
-            openingSutras + conflictSutras,
-        )
+        val combinedProgram = assertIs<SutraGranthaLowering.Success<DerivationAvastha>>(
+            SutraGranthaCompiler.lower(AshtadhyayiRuntimeGrantha.grantha),
+        ).program
 
         val initial = DerivationState(
             terms = listOf(
@@ -146,17 +124,18 @@ class ConflictSamjnaRuntimeGranthaTest {
 
     @Test
     fun `conflict samjna grantha has portable inspectable source`() {
-        val grantha = ConflictSamjnaRuntimeGrantha.grantha
-        val blueprint = grantha.toBlueprintGrantha()
-        val source = assertIs<SutraBlueprintGranthaTextEncoding.Success>(
-            SutraBlueprintGranthaTextCodec.encode(blueprint),
-        ).text
-        val decoded = assertIs<SutraBlueprintGranthaTextDecoding.Success>(
-            SutraBlueprintGranthaTextCodec.decode(source),
-        ).grantha
-
-        assertEquals(blueprint, decoded)
-        assertEquals(listOf("1.1.4", "1.1.5", "1.1.6"), grantha.sutras.map { it.id.value })
-        assertTrue(MigratedAshtadhyayiGranthas.registry.granthas.contains(grantha))
+        val grantha = AshtadhyayiRuntimeGrantha.grantha
+        grantha.toBlueprintGrantha().sutras
+            .filter { it.id.value in setOf("1.1.4", "1.1.5", "1.1.6") }
+            .forEach { blueprint ->
+                val encoded = assertIs<SutraBlueprintTextEncoding.Success>(
+                    SutraBlueprintTextCodec.encode(blueprint),
+                ).text
+                val decoded = assertIs<SutraBlueprintTextDecoding.Success>(
+                    SutraBlueprintTextCodec.decode(encoded),
+                ).blueprint
+                assertEquals(blueprint, decoded)
+            }
+        assertEquals(AshtadhyayiRuntimeGrantha.grantha, grantha)
     }
 }

@@ -33,6 +33,8 @@ abstract class Sutra<C, R>(
     val blocks: Set<String> = emptySet(),
     private val traceTemplateValue: String? = null,
     private val examplesValue: List<SutraExample> = emptyList(),
+    /** Segmented Sanskrit source accepted by the PaniniVM parser, when available. */
+    val segmentedSource: String? = null,
 ) : ScopedSutra, GovernedSutra, TraceableSutra {
 
     /** Every loaded sūtra must state its own eligibility and grammatical change. */
