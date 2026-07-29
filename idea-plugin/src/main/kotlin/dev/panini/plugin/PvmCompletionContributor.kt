@@ -107,6 +107,27 @@ class PvmCompletionContributor : CompletionContributor() {
             Triple("घञ्", "कृत्-प्रत्ययः", "Action / Abstract noun suffix")
         )
 
+        private val taddhitaAffixes = listOf(
+            Triple("अण्", "तद्धित-प्रत्ययः", "Patronymic / General nominal affix (4.1.83)"),
+            Triple("इञ्", "तद्धित-प्रत्ययः", "Patronymic affix (-इ e.g. दाक्षिः, 4.1.95)"),
+            Triple("ढक्", "तद्धित-प्रत्ययः", "Patronymic affix (-एय e.g. वास्तेयः, 4.1.120)"),
+            Triple("यञ्", "तद्धित-प्रत्ययः", "Gotra lineage affix (-य e.g. गर्ग्यः, 4.1.105)"),
+            Triple("मतुप्", "तद्धित-प्रत्ययः", "Possessive affix (-वत्/-मत् e.g. धनवान्, 5.2.94)"),
+            Triple("विन्", "तद्धित-प्रत्ययः", "Possessive affix (-वी e.g. तेजस्वी, 5.2.121)"),
+            Triple("इन्", "तद्धित-प्रत्ययः", "Possessive affix (-ी e.g. दण्डी, 5.2.115)"),
+            Triple("त्व", "तद्धित-प्रत्ययः", "Abstract noun affix (-त्वम् e.g. महत्वम्, 5.1.119)"),
+            Triple("तल्", "तद्धित-प्रत्ययः", "Abstract noun affix (-ता e.g. सुन्दरता, 5.1.119)"),
+            Triple("मयट्", "तद्धित-प्रत्ययः", "Abundance/Material affix (-मय e.g. अन्नमयः, 4.3.143)"),
+            Triple("तरप्", "तद्धित-प्रत्ययः", "Comparative degree affix (-तर e.g. उच्चतरः, 5.3.57)"),
+            Triple("तमप्", "तद्धित-प्रत्ययः", "Superlative degree affix (-तम e.g. उच्चतमः, 5.3.55)"),
+            Triple("इष्ठन्", "तद्धित-प्रत्ययः", "Superlative degree affix (-इष्ठ e.g. ज्येष्ठः, 5.3.55)"),
+            Triple("ईयसुन्", "तद्धित-प्रत्ययः", "Comparative degree affix (-ईयान् e.g. श्रेयस्)"),
+            Triple("तसिँ", "तद्धित-प्रत्ययः", "Ablative adverbial suffix (-तः e.g. कुतः/सर्वतः, 5.3.7)"),
+            Triple("त्रल्", "तद्धित-प्रत्ययः", "Locative adverbial suffix (-त्र e.g. सर्वत्र/अत्र, 5.3.10)"),
+            Triple("दा", "तद्धित-प्रत्ययः", "Temporal adverbial suffix (-दा e.g. सर्वदा/यदा, 5.3.15)"),
+            Triple("था", "तद्धित-प्रत्ययः", "Manner adverbial suffix (-था e.g. सर्वथा/तथा, 5.3.23)")
+        )
+
         private val tingAffixes = listOf(
             Triple("तिप्", "परस्मैपद-प्रथम-एक", "3rd person singular active"),
             Triple("तस्", "परस्मैपद-प्रथम-द्वि", "3rd person dual active"),
@@ -191,6 +212,15 @@ class PvmCompletionContributor : CompletionContributor() {
             }
 
             krtAffixes.forEach { (word, type, doc) ->
+                result.addElement(
+                    LookupElementBuilder.create(word)
+                        .withIcon(PvmIcons.FILE)
+                        .withTypeText(type)
+                        .withTailText(" [$doc]", true)
+                )
+            }
+
+            taddhitaAffixes.forEach { (word, type, doc) ->
                 result.addElement(
                     LookupElementBuilder.create(word)
                         .withIcon(PvmIcons.FILE)
