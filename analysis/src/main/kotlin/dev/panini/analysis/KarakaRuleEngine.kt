@@ -4,8 +4,12 @@ import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.core.Karaka
 import dev.panini.core.Prayoga
 import dev.panini.core.Vibhakti
+import dev.panini.derivation.DerivationSutra
 import dev.panini.sutra.Sutra
+import dev.panini.sutra.SutraAction
+import dev.panini.sutra.SutraInput
 import dev.panini.sutra.SutraRole
+import dev.panini.sutra.SutraType
 
 /** Semantic kāraka assignment (1.4) followed by nominal-case validation (2.3). */
 object KarakaRuleEngine {
@@ -13,7 +17,11 @@ object KarakaRuleEngine {
         @Suppress("UNCHECKED_CAST")
         Ashtadhyayi.registry.sutras
             .filter { sutra ->
-                sutra.chapter == 1 && sutra.pada == 4 && (sutra.number == "1.4.23" || sutra.adhikara.contains("1.4.23"))
+                sutra !is DerivationSutra &&
+                    sutra.chapter == 1 &&
+                    sutra.pada == 4 &&
+                    sutra.action == SutraAction.SAMJNA &&
+                    (sutra.number == "1.4.23" || sutra.adhikara.contains("1.4.23"))
             }
             .sortedBy { it.krama } as List<Sutra<KarakaRuleContext, KarakaRuleResult>>
     }
@@ -22,7 +30,11 @@ object KarakaRuleEngine {
         @Suppress("UNCHECKED_CAST")
         Ashtadhyayi.registry.sutras
             .filter { sutra ->
-                sutra.chapter == 2 && sutra.pada == 3
+                sutra !is DerivationSutra &&
+                    sutra.type != SutraType.NISHEDHA &&
+                    sutra.action != SutraAction.NISHEDHA &&
+                    sutra.chapter == 2 &&
+                    sutra.pada == 3
             }
             .sortedBy { it.krama } as List<Sutra<VibhaktiRuleContext, VibhaktiRuleResult>>
     }
@@ -37,7 +49,7 @@ object KarakaRuleEngine {
         val semanticContext = context.copy(candidates = candidates)
         val semantic = karakaRules.firstOrNull { rule ->
             val prohibition = NishedhaRuleEngine.evaluateProhibition(ProhibitionContext(targetSutraNumber = rule.number))
-            prohibition !is NishedhaRuleResult.Blocked && rule.matches(semanticContext)
+            prohibition !is NishedhaRuleResult.Blocked && try { rule.matches(semanticContext) } catch (_: ClassCastException) { false }
         }?.apply(semanticContext) as? KarakaRuleResult.Assigned
         val resolved = semantic?.karaka ?: candidates.singleOrNull()
         var resolvedVibhakti: Vibhakti? = null
@@ -55,7 +67,7 @@ object KarakaRuleEngine {
                 val assignment = vibhaktiRules.firstOrNull { rule ->
                     val prohibition = NishedhaRuleEngine.evaluateProhibition(ProhibitionContext(targetSutraNumber = rule.number))
                     val adhikaraEligible = isVibhaktiEligible(rule.krama, vibhaktiContext)
-                    prohibition !is NishedhaRuleResult.Blocked && adhikaraEligible && rule.matches(vibhaktiContext)
+                    prohibition !is NishedhaRuleResult.Blocked && adhikaraEligible && try { rule.matches(vibhaktiContext) } catch (_: ClassCastException) { false }
                 }?.apply(vibhaktiContext) as? VibhaktiRuleResult.Assigned
                 assignment?.let {
                     resolvedVibhakti = it.vibhakti

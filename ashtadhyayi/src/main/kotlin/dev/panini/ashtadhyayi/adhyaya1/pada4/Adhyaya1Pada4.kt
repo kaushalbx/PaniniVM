@@ -45,5 +45,12 @@ object Adhyaya1Pada4 {
         PratyangbhruvahPurvasyaKartaSutra,
         AnupratigrnasCaSutra,
         TathayuktamCanipsitamSutra,
+        AdharoAdhikaranamSutra,
+        KarturIpsitatamamKarmaSutra,
+        AkathitamCaSutra,
+        GatiBuddhiAniKartaSaNauSutra,
+        HrKrorAnyatarasyamSutra,
+        SvatantrahKartaSutra,
+        TatPrayojakoHetusCaSutra,
     )
 }
