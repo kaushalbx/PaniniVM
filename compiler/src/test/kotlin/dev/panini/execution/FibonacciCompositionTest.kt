@@ -121,4 +121,57 @@ class FibonacciCompositionTest {
         val sankhyaVal = assertIs<SanskritValue.Sankhya>(success.typedValue)
         assertEquals(377L, sankhyaVal.value)
     }
+
+    @Test
+    fun `computes 15 Fibonacci values stores them in Suchi and preshya sends the Suchi`() {
+        val sKey = "fib_15_suchi_session"
+        val expected = listOf(
+            5L, 8L, 13L, 21L, 34L,
+            55L, 89L, 144L, 233L, 377L,
+            610L, 987L, 1597L, 2584L, 4181L,
+        )
+
+        assertIs<ExecutionResult.Success>(
+            vm.eval("एक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ।", sessionKey = sKey),
+        )
+        assertIs<ExecutionResult.Success>(
+            vm.eval("एक + अम् पूर्वफल + अम् च युज् + णिच् + लोट् + सिप् ।", sessionKey = sKey),
+        )
+
+        val fibonacciValues = buildList {
+            repeat(15) {
+                val result = vm.eval(
+                    "पूर्वफल + अम् पूर्वपूर्वफल + अम् च युज् + णिच् + लोट् + सिप् ।",
+                    sessionKey = sKey,
+                )
+                add(assertIs<SanskritValue.Sankhya>(
+                    assertIs<ExecutionResult.Success>(result, result.toString()).typedValue,
+                ))
+            }
+        }
+        assertEquals(expected, fibonacciValues.map { it.value })
+
+        val listOperands = fibonacciValues.joinToString(" ") { "${it.word} + अम्" }
+        val listResult = vm.eval(
+            "$listOperands च क्षिप् + णिच् + लोट् + सिप् ।",
+            sessionKey = sKey,
+        )
+        val suchi = assertIs<SanskritValue.Suchi>(
+            assertIs<ExecutionResult.Success>(listResult, listResult.toString()).typedValue,
+        )
+        assertEquals(fibonacciValues.map { it.word }, suchi.items.map { it.toDisplayText() })
+
+        var sentPayload: String? = null
+        vm.registerExternalCapability(ExecutionEffect.NETWORK) { payload, _ ->
+            sentPayload = payload
+            "प्रेषणं सिद्धम्"
+        }
+        val sendResult = vm.eval(
+            "पूर्वफल + अम् प्रेष + णिच् + लोट् + सिप् ।",
+            sessionKey = sKey,
+        )
+
+        assertEquals("प्रेषणं सिद्धम्", assertIs<ExecutionResult.Success>(sendResult).value)
+        assertEquals(suchi.toDisplayText(), sentPayload)
+    }
 }

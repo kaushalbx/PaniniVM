@@ -74,21 +74,35 @@ class PvmFileTest {
     @Test
     fun `PaniniVM evaluates Fibonacci frequency loop pvm file`() {
         val pvmFile = File("examples/arithmetic/fibonacci.pvm")
+        var sentPayload: String? = null
+        vm.registerExternalCapability(ExecutionEffect.NETWORK) { payload, _ ->
+            sentPayload = payload
+            "प्रेषणं सिद्धम्"
+        }
 
         assertTrue(pvmFile.exists(), "fibonacci.pvm should exist")
 
         val results = vm.evalFile(pvmFile, sessionKey = "fibonacci_example_session")
 
-        assertEquals(3, results.size)
+        assertEquals(5, results.size)
         assertEquals(2L, assertIs<SanskritValue.Sankhya>(
             assertIs<ExecutionResult.Success>(results[0]).typedValue,
         ).value)
         assertEquals(3L, assertIs<SanskritValue.Sankhya>(
             assertIs<ExecutionResult.Success>(results[1]).typedValue,
         ).value)
-        assertEquals(377L, assertIs<SanskritValue.Sankhya>(
+        assertEquals(4181L, assertIs<SanskritValue.Sankhya>(
             assertIs<ExecutionResult.Success>(results[2]).typedValue,
         ).value)
+        val suchi = assertIs<SanskritValue.Suchi>(
+            assertIs<ExecutionResult.Success>(results[3]).typedValue,
+        )
+        assertEquals(
+            listOf(4181L),
+            suchi.items.map { assertIs<SanskritValue.Sankhya>(it).value },
+        )
+        assertEquals("प्रेषणं सिद्धम्", assertIs<ExecutionResult.Success>(results[4]).value)
+        assertEquals(suchi.toDisplayText(), sentPayload)
     }
 
     @Test
