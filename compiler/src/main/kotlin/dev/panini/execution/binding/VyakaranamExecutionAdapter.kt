@@ -2,8 +2,6 @@ package dev.panini.execution.binding
 
 import dev.panini.core.Karaka
 import dev.panini.core.Lakara
-import dev.panini.core.Prayoga
-import dev.panini.core.SupAffix
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.execution.AmbiguousKarakaBinding
@@ -18,12 +16,12 @@ import dev.panini.execution.SambhashanaContext
 import dev.panini.execution.SanskritUktiInput
 import dev.panini.execution.VakyaPrayojana
 import dev.panini.sankhya.SankhyaGenerator
-import dev.panini.shiksha.Karmatva
-import dev.panini.analysis.DhatuIdentity
-import dev.panini.analysis.DhatuKarakaProfiles
-import dev.panini.analysis.KarakaRuleContext
-import dev.panini.analysis.KarakaRuleEngine
-import dev.panini.analysis.ParticipantFacts
+import dev.panini.analysis.FrameKarakaResolution
+import dev.panini.analysis.KarakaInference
+import dev.panini.analysis.KriyaFrame
+import dev.panini.analysis.KriyaId
+import dev.panini.analysis.PadaAnalyzer
+import dev.panini.analysis.VakyaAnalyzer
 import dev.panini.vyakaranam.ast.AkhyataVakya
 import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.KridantaPratipadika
@@ -47,6 +45,8 @@ import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.UnadyantaPratipadika
 import dev.panini.vyakaranam.parser.PaniniParseException
 import dev.panini.vyakaranam.parser.PaniniParser
+import dev.panini.vyakaranam.lexicon.PratipadikaEntry
+import dev.panini.vyakaranam.lexicon.VyakaranamLexicon
 import kotlin.collections.plusAssign
 
 /**
@@ -80,7 +80,6 @@ object VyakaranamExecutionAdapter {
         val invocations = mutableListOf<DhatuInvocation>()
         var prayer = false
         var prohibition = false
-
         ukti.vakyas.forEachIndexed { index, vakya ->
             vakya.padas.filterIsInstance<AvyayaPada>().forEach {
                 prayer = prayer || it.form == "कृपया"
@@ -89,7 +88,17 @@ object VyakaranamExecutionAdapter {
             val tinganta = (vakya as? AkhyataVakya)?.tinganta ?: return@forEachIndexed
             val dhatu = resolveDhatu(tinganta)
                 ?: return ExecutionBindingResult.Invalid("Unknown verbal action/dhātu: ${tinganta.sourceText}")
-            val extracted = extractKarakas(vakya.padas, conversation, index, dhatu, tinganta)
+            val frameAnalyzer = VakyaAnalyzer(
+                PadaAnalyzer(
+                    object : VyakaranamLexicon {
+                        override fun findPratipadika(text: String): PratipadikaEntry? = null
+                        override fun findDhatu(text: String): Dhatu = dhatu
+                    },
+                    validatePadaCompatibility = false,
+                ),
+            )
+            val frame = frameAnalyzer.analyze(vakya, KriyaId("योग-${index + 1}")).frames.single()
+            val extracted = extractKarakas(vakya.padas, conversation, index, dhatu, frame)
             val bindings = extracted.bindings.toMutableMap()
             if (purposeRequiresListenerAsAgent(prayer, tinganta.lakara) && Karaka.KARTR !in bindings) {
                 bindings[Karaka.KARTR] = ExecutionExpression.Pada(listener)
@@ -145,7 +154,7 @@ object VyakaranamExecutionAdapter {
         conversation: SambhashanaContext?,
         clauseIndex: Int,
         dhatu: Dhatu,
-        tinganta: TingantaPada,
+        frame: KriyaFrame,
     ): ExtractedBindings {
         val grouped = mutableMapOf<Karaka, MutableList<ExecutionExpression>>()
         val ambiguous = mutableListOf<AmbiguousKarakaBinding>()
@@ -153,27 +162,25 @@ object VyakaranamExecutionAdapter {
         val requiredKarakas = dhatu.operations
             .flatMapTo(mutableSetOf()) { operation -> operation.signature.requirements.map { it.karaka } }
         fun inferKarakas(pada: SubantaPada): Set<Karaka> {
-            val possibleVibhaktis = SupAffix.candidates(pada.sup.text).mapTo(mutableSetOf()) { it.vibhakti }
-            val profile = DhatuKarakaProfiles.forSurface(dhatu.sourceSurface)
-            val participant = ParticipantFacts(
-                id = pada.sourceText,
-                expression = pada,
-                possibleVibhaktis = possibleVibhaktis,
-                semanticRelations = profile?.relations.orEmpty(),
-            )
-            val resolution = KarakaRuleEngine.resolve(
-                KarakaRuleContext(
-                    dhatu = DhatuIdentity(dhatu.sourceSurface, dhatu.karmatva != Karmatva.AKARMAKA),
-                    participant = participant,
-                    allParticipants = listOf(participant),
-                    prayoga = Prayoga.KARTARI,
-                ),
-            )
-            trace += resolution.evidence.map { "${it.sutra} ${it.text}: ${it.reason}" }
-            resolution.resolved?.let { return setOf(it) }
-            val candidates = resolution.candidates
+            val relation = frame.relations.firstOrNull {
+                it.participant.pada.sourceText == pada.sourceText
+            } ?: return emptySet()
+            trace += relation.evidence.map { "${it.sutra} ${it.text}: ${it.reason}" }
+            val candidates = when (val resolution = relation.resolution) {
+                is FrameKarakaResolution.Resolved -> {
+                    if (resolution.karaka in requiredKarakas) return setOf(resolution.karaka)
+                    setOf(resolution.karaka)
+                }
+                is FrameKarakaResolution.Ambiguous -> resolution.candidates
+                is FrameKarakaResolution.Unassigned -> emptySet()
+            }
             val requiredCandidates = candidates intersect requiredKarakas
-            return requiredCandidates.takeIf { it.size == 1 } ?: candidates
+            if (requiredCandidates.size == 1) return requiredCandidates
+            val legacyMorphologicalCandidates = relation.participant.supCandidates.mapNotNullTo(mutableSetOf()) {
+                KarakaInference.infer(it.vibhakti, dev.panini.core.Prayoga.KARTARI, dhatu.karmatva != dev.panini.shiksha.Karmatva.AKARMAKA)
+            }
+            val compatibleLegacyCandidates = legacyMorphologicalCandidates intersect requiredKarakas
+            return compatibleLegacyCandidates.takeIf { it.size == 1 } ?: candidates
         }
         fun addBinding(expression: ExecutionExpression, candidates: Set<Karaka>) {
             when (candidates.size) {
@@ -289,6 +296,9 @@ object VyakaranamExecutionAdapter {
         }
         val bindings = grouped.mapValues { (_, values) ->
             if (values.size == 1) values.single() else ExecutionExpression.Coordination(values)
+        }
+        trace += frame.qualifications.map {
+            "Kriyā qualification ${it.kind}: ${it.value}"
         }
         return ExtractedBindings(bindings, ambiguous, trace.distinct())
     }

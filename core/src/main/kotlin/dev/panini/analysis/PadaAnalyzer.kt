@@ -68,6 +68,7 @@ data class AnalyzedSamuccita(
 
 class PadaAnalyzer(
     private val lexicon: VyakaranamLexicon,
+    private val validatePadaCompatibility: Boolean = true,
 ) {
 
     fun analyze(pada: Pada): PadaAnalysis =
@@ -182,7 +183,13 @@ class PadaAnalyzer(
             "तिङ्प्रत्ययस्य विवरणं न प्राप्तम्: ${pada.ting.text}"
         }
 
-        require(dhatu.pada == null || dhatu.pada == PadaType.UBHAYAPADA || dhatu.pada == tingAffix.pada) {
+        require(
+            !validatePadaCompatibility ||
+                pada.dhatu.sanadiPratyayas.isNotEmpty() ||
+                dhatu.pada == null ||
+                dhatu.pada == PadaType.UBHAYAPADA ||
+                dhatu.pada == tingAffix.pada,
+        ) {
             buildString {
                 append("धातोः पदविरोधः: ")
                 append(dhatu.upadesha)

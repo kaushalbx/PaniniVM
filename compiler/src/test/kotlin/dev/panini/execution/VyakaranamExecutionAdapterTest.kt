@@ -52,7 +52,7 @@ class VyakaranamExecutionAdapterTest {
         assertEquals(2, invocation.ambiguousBindings.size)
         invocation.ambiguousBindings.forEach {
             assertEquals(
-                setOf(Karaka.KARANA, Karaka.SAMPRADANA, Karaka.APADANA),
+                setOf(Karaka.KARTR, Karaka.SAMPRADANA, Karaka.APADANA),
                 it.candidates,
             )
         }

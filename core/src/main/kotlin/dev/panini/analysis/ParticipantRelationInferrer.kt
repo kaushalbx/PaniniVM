@@ -21,24 +21,26 @@ object ParticipantRelationInferrer {
         // 3. Dynamic category and morphology-driven inferences
         val categories = lexicalEntry?.categories.orEmpty()
 
-        if (NominalCategory.PLACE_LOCATION in categories || Vibhakti.SAPTAMI in possibleVibhaktis) {
+        if (NominalCategory.PLACE_LOCATION in categories || possibleVibhaktis == setOf(Vibhakti.SAPTAMI)) {
             add(SemanticRelation.LOCATION)
         }
 
-        if (NominalCategory.INSTRUMENT_TOOL in categories || Vibhakti.TRTIYA in possibleVibhaktis) {
+        if (NominalCategory.INSTRUMENT_TOOL in categories || possibleVibhaktis == setOf(Vibhakti.TRTIYA)) {
             add(SemanticRelation.INSTRUMENT)
         }
 
         if (NominalCategory.HUMAN in categories) {
-            if (Vibhakti.CHATURTHI in possibleVibhaktis) {
+            if (possibleVibhaktis == setOf(Vibhakti.CHATURTHI)) {
                 add(SemanticRelation.RECIPIENT)
             }
-            if (Vibhakti.PRATHAMA in possibleVibhaktis || Vibhakti.TRTIYA in possibleVibhaktis) {
+            if (possibleVibhaktis == setOf(Vibhakti.PRATHAMA) ||
+                possibleVibhaktis == setOf(Vibhakti.TRTIYA)
+            ) {
                 add(SemanticRelation.INDEPENDENT_AGENT)
             }
         }
 
-        if (NominalCategory.OBJECT_ENTITY in categories || Vibhakti.DVITIYA in possibleVibhaktis) {
+        if (NominalCategory.OBJECT_ENTITY in categories || possibleVibhaktis == setOf(Vibhakti.DVITIYA)) {
             add(SemanticRelation.DESIRED_OBJECT)
         }
     }

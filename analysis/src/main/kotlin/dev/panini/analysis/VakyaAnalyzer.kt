@@ -24,20 +24,25 @@ data class VakyaAnalysis(
     val karakas: List<KarakaAssignment>,
     val warnings: List<String>,
     val unadiAnalyses: List<UnadiStemAnalysis> = emptyList(),
+    val frames: List<KriyaFrame> = emptyList(),
 )
 
 class VakyaAnalyzer(
     private val padaAnalyzer: PadaAnalyzer,
 ) {
 
-    fun analyze(vakya: Vakya): VakyaAnalysis =
+    fun analyze(
+        vakya: Vakya,
+        frameId: KriyaId = KriyaId("kriya-1"),
+    ): VakyaAnalysis =
         when (vakya) {
-            is AkhyataVakya -> analyzeAkhyataVakya(vakya)
+            is AkhyataVakya -> analyzeAkhyataVakya(vakya, frameId)
             is NamaVakya -> analyzeNamaVakya(vakya)
         }
 
     private fun analyzeAkhyataVakya(
         vakya: AkhyataVakya,
+        frameId: KriyaId,
     ): VakyaAnalysis {
         val padaAnalyses = vakya.padas.map(padaAnalyzer::analyze)
 
@@ -57,10 +62,69 @@ class VakyaAnalyzer(
             }
         }
 
-        val karakas = analyzeKarakas(
+        val relations = analyzeKarakas(
+            kriyaId = frameId,
             subantas = subantas,
             tinganta = tingantaAnalysis,
             prayoga = prayoga,
+        )
+        val karakas = relations.mapNotNull { relation ->
+            val resolved = relation.resolution as? FrameKarakaResolution.Resolved ?: return@mapNotNull null
+            KarakaAssignment(
+                pada = relation.participant.pada,
+                karaka = resolved.karaka,
+                confidence = if (relation.evidence.any { it.sutra.startsWith("1.4.") }) 0.95 else 0.75,
+                reason = relation.evidence.joinToString(" ") { "${it.sutra} ${it.text}: ${it.reason}" }
+                    .ifEmpty { "एकमात्रं सम्भावितं कारकम्: ${resolved.karaka}" },
+            )
+        }
+        val warnings = agreementWarnings(
+            subantas = subantas,
+            tinganta = tingantaAnalysis,
+            karakas = karakas,
+        )
+        val qualifications = analyzeQualifications(frameId, padaAnalyses)
+        val diagnostics = buildList {
+            if (tingantaAnalysis.lexicalEntry == null) {
+                add(
+                    FrameDiagnostic(
+                        FrameDiagnosticCode.UNKNOWN_DHATU,
+                        "The kriyā head could not be linked to a Dhātupāṭha entry.",
+                        tingantaAnalysis.pada.sourceText,
+                    ),
+                )
+            }
+            relations.forEach { relation ->
+                when (val resolution = relation.resolution) {
+                    is FrameKarakaResolution.Ambiguous -> add(
+                        FrameDiagnostic(
+                            FrameDiagnosticCode.AMBIGUOUS_KARAKA,
+                            "Participant has multiple kāraka candidates: ${resolution.candidates.joinToString()}.",
+                            relation.participant.pada.sourceText,
+                        ),
+                    )
+                    is FrameKarakaResolution.Unassigned -> add(
+                        FrameDiagnostic(
+                            FrameDiagnosticCode.UNASSIGNED_PARTICIPANT,
+                            resolution.reason,
+                            relation.participant.pada.sourceText,
+                        ),
+                    )
+                    is FrameKarakaResolution.Resolved -> Unit
+                }
+            }
+            warnings.forEach {
+                add(FrameDiagnostic(FrameDiagnosticCode.AGREEMENT_MISMATCH, it, vakya.sourceText))
+            }
+        }
+        val frame = KriyaFrame(
+            id = frameId,
+            vakya = vakya,
+            kriya = KriyaHead(tingantaAnalysis, tingantaAnalysis.lexicalEntry),
+            prayoga = prayoga,
+            relations = relations,
+            qualifications = qualifications,
+            diagnostics = diagnostics,
         )
 
         val unadiAnalyses = subantas.mapNotNull { sub ->
@@ -74,12 +138,9 @@ class VakyaAnalyzer(
             padaAnalyses = padaAnalyses,
             prayoga = prayoga,
             karakas = karakas,
-            warnings = agreementWarnings(
-                subantas = subantas,
-                tinganta = tingantaAnalysis,
-                karakas = karakas,
-            ),
+            warnings = warnings,
             unadiAnalyses = unadiAnalyses,
+            frames = listOf(frame),
         )
     }
 
@@ -131,10 +192,11 @@ class VakyaAnalyzer(
     }
 
     private fun analyzeKarakas(
+        kriyaId: KriyaId,
         subantas: List<SubantaAnalysis>,
         tinganta: TingantaAnalysis,
         prayoga: Prayoga,
-    ): List<KarakaAssignment> {
+    ): List<KarakaRelation> {
         val dhatuSurface = tinganta.lexicalEntry?.sourceSurface ?: tinganta.pada.dhatu.mulaDhatu
         val profile = DhatuKarakaProfiles.forSurface(dhatuSurface)
         val allParticipants = subantas.mapIndexed { index, sub ->
@@ -153,19 +215,26 @@ class VakyaAnalyzer(
                 categories = sub.lexicalEntry?.categories.orEmpty(),
             )
         }
-        return subantas.mapIndexedNotNull { index, sub ->
-            assignKaraka(sub, tinganta, prayoga, allParticipants[index], allParticipants)
+        return subantas.mapIndexed { index, sub ->
+            assignKaraka(kriyaId, sub, tinganta, prayoga, allParticipants[index], allParticipants)
         }
     }
 
     private fun assignKaraka(
+        kriyaId: KriyaId,
         subanta: SubantaAnalysis,
         tinganta: TingantaAnalysis,
         prayoga: Prayoga,
         participant: ParticipantFacts,
         allParticipants: List<ParticipantFacts>,
-    ): KarakaAssignment? {
-        if (prayoga == Prayoga.BHAVE || prayoga == Prayoga.ANIRDHARITA) return null
+    ): KarakaRelation {
+        if (prayoga == Prayoga.BHAVE || prayoga == Prayoga.ANIRDHARITA) {
+            return KarakaRelation(
+                kriyaId,
+                subanta,
+                FrameKarakaResolution.Unassigned("Kāraka assignment is unavailable for $prayoga."),
+            )
+        }
         val resolution = KarakaRuleEngine.resolve(
             KarakaRuleContext(
                 dhatu = DhatuIdentity(
@@ -179,15 +248,37 @@ class VakyaAnalyzer(
                 baseDhatu = tinganta.lexicalEntry,
             ),
         )
-        val karaka = resolution.resolved ?: return null
-        return KarakaAssignment(
-            pada = subanta.pada,
-            karaka = karaka,
-            confidence = if (resolution.evidence.any { it.sutra.startsWith("1.4.") }) 0.95 else 0.75,
-            reason = resolution.evidence.joinToString(" ") { "${it.sutra} ${it.text}: ${it.reason}" }
-                .ifEmpty { "एकमात्रं सम्भावितं कारकम्: $karaka" },
+        val resolvedKaraka = resolution.resolved
+        val frameResolution = when {
+            resolvedKaraka != null -> FrameKarakaResolution.Resolved(resolvedKaraka)
+            resolution.candidates.size > 1 -> FrameKarakaResolution.Ambiguous(resolution.candidates)
+            else -> FrameKarakaResolution.Unassigned("No kāraka rule resolved this participant.")
+        }
+        return KarakaRelation(
+            kriyaId = kriyaId,
+            participant = subanta,
+            resolution = frameResolution,
+            evidence = resolution.evidence,
         )
     }
+
+    private fun analyzeQualifications(
+        kriyaId: KriyaId,
+        analyses: List<PadaAnalysis>,
+    ): List<KriyaQualification> =
+        analyses.filterIsInstance<AnalyzedAvyaya>().map { analysis ->
+            val form = analysis.pada.form
+            val kind = when (form) {
+                "मा" -> KriyaQualificationKind.NEGATION
+                "कृपया" -> KriyaQualificationKind.COURTESY
+                "पुनः", "वारम्", "सकृत्", "प्रत्येकम्" -> KriyaQualificationKind.FREQUENCY
+                "भृशम्", "अत्यन्तम्" -> KriyaQualificationKind.INTENSITY
+                "शीघ्रम्", "शनैः" -> KriyaQualificationKind.MANNER
+                "यावत्", "तावत्" -> KriyaQualificationKind.TEMPORAL_EXTENT
+                else -> KriyaQualificationKind.OTHER
+            }
+            KriyaQualification(kriyaId, analysis, kind, form)
+        }
 
     private fun agreementWarnings(
         subantas: List<SubantaAnalysis>,
