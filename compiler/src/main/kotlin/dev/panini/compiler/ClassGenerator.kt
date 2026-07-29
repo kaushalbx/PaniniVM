@@ -9,7 +9,6 @@ import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.*
 import org.objectweb.asm.Type
-import org.objectweb.asm.Label
 
 object ClassGenerator {
 
@@ -17,7 +16,6 @@ object ClassGenerator {
         className: String,
         statements: List<List<ExecutionPlan>>,
         turnResultIds: List<List<String>>,
-        loopEnds: Map<Int, Int> = emptyMap(),
     ): ByteArray {
         val cw = ClassWriter(ClassWriter.COMPUTE_FRAMES or ClassWriter.COMPUTE_MAXS)
         
@@ -122,18 +120,8 @@ object ClassGenerator {
         mv.visitMethodInsn(INVOKESPECIAL, "java/util/HashMap", "<init>", "()V", false)
         mv.visitVarInsn(ASTORE, 1)
 
-        val loopStarts = loopEnds.keys.associateWith { Label() }
-        val loopExitLabels = loopEnds.keys.associateWith { Label() }
-        val loopStartByEnd = loopEnds.entries.associate { (start, end) -> end to start }
-        val loopCounterSlots = loopEnds.keys.sorted().mapIndexed { index, start -> start to 3 + index }.toMap()
-        loopCounterSlots.values.forEach { slot ->
-            mv.visitInsn(ICONST_0)
-            mv.visitVarInsn(ISTORE, slot)
-        }
-
         // Iterate through each statement
         statements.forEachIndexed { stmtIdx, plans ->
-            loopStarts[stmtIdx]?.let(mv::visitLabel)
             // Print statement line trace
             mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;")
             mv.visitLdcInsn("Line ${stmtIdx + 1}:")
@@ -249,40 +237,6 @@ object ClassGenerator {
                 // Pop the original result off the stack
                 mv.visitInsn(POP)
 
-                if (planIdx == plans.lastIndex && stmtIdx in loopEnds) {
-                    mv.visitVarInsn(ALOAD, 1)
-                    mv.visitLdcInsn("LastResult")
-                    mv.visitMethodInsn(
-                        INVOKEVIRTUAL,
-                        "java/util/HashMap",
-                        "get",
-                        "(Ljava/lang/Object;)Ljava/lang/Object;",
-                        false,
-                    )
-                    mv.visitTypeInsn(CHECKCAST, "dev/panini/execution/SanskritValue")
-                    mv.visitMethodInsn(
-                        INVOKESTATIC,
-                        "dev/panini/compiler/PaniniRuntime",
-                        "isTrue",
-                        "(Ldev/panini/execution/SanskritValue;)Z",
-                        false,
-                    )
-                    mv.visitJumpInsn(IFEQ, loopExitLabels.getValue(stmtIdx))
-                    val counterSlot = loopCounterSlots.getValue(stmtIdx)
-                    mv.visitIincInsn(counterSlot, 1)
-                    mv.visitVarInsn(ILOAD, counterSlot)
-                    mv.visitMethodInsn(
-                        INVOKESTATIC,
-                        "dev/panini/compiler/PaniniRuntime",
-                        "checkLoopIteration",
-                        "(I)V",
-                        false,
-                    )
-                }
-            }
-            loopStartByEnd[stmtIdx]?.let { start ->
-                mv.visitJumpInsn(GOTO, loopStarts.getValue(start))
-                mv.visitLabel(loopExitLabels.getValue(start))
             }
         }
 

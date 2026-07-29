@@ -141,36 +141,15 @@ object BytecodeCompiler {
             className,
             statementsPlans,
             turnResultIds,
-            compiledSource.loopEnds,
         )
     }
 
     private data class CompiledSource(
         val lines: List<String>,
-        val loopEnds: Map<Int, Int>,
     )
 
-    private fun structure(scriptContent: String): CompiledSource {
-        val parsed = PvmScript.parse(scriptContent)
-        if (parsed.none { it is PvmScriptStatement.While }) {
-            return CompiledSource(scriptContent.lines(), emptyMap())
-        }
-        val lines = mutableListOf<String>()
-        val loopEnds = mutableMapOf<Int, Int>()
-        parsed.forEach { statement ->
-            when (statement) {
-                is PvmScriptStatement.Sentence -> lines += statement.text
-                is PvmScriptStatement.While -> {
-                    lines += statement.invocation.text
-                    val conditionIndex = lines.size
-                    lines += statement.condition
-                    lines += statement.body.map { it.text }
-                    loopEnds[conditionIndex] = lines.lastIndex
-                }
-            }
-        }
-        return CompiledSource(lines, loopEnds)
-    }
+    private fun structure(scriptContent: String): CompiledSource =
+        CompiledSource(scriptContent.lines())
 
     private fun simulatedResult(plan: ExecutionPlan): SanskritValue {
         if (plan.resolved.operation.resultBindingKaraka != null) {

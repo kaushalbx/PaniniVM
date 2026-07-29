@@ -41,17 +41,6 @@ object PaniniRuntime {
     }
 
     @JvmStatic
-    fun isTrue(value: SanskritValue): Boolean = when (value) {
-        is SanskritValue.Satya -> value.boolean
-        else -> error("यावत् condition must produce a सत्य value, but produced ${value.toDisplayText()}.")
-    }
-
-    @JvmStatic
-    fun checkLoopIteration(iteration: Int) {
-        check(iteration <= 100_000) { "यावत् loop exceeded 100000 iterations." }
-    }
-
-    @JvmStatic
     fun resolveOperation(
         dhatuUpadesha: String,
         operationName: String,

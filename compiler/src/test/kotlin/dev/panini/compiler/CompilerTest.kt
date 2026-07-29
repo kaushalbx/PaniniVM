@@ -111,31 +111,6 @@ class CompilerTest {
     }
 
     @Test
-    fun testCompileAndRunLoop() {
-        val script = "पञ्च + अम् सङ्ख्यायोजनम् + टा वृत् + णिच् + लोट् + सिप् ।"
-        val className = "SanskritLoopIntegrationTest"
-
-        val clazz = BytecodeCompiler.compileAndLoad(script, className)
-        val executeMethod = clazz.getMethod("execute")
-
-        // Setup mock renderer for loop index addition
-        dev.panini.execution.SankhyaResultRenderer.defaultRenderer = dev.panini.execution.SankhyaResultRenderer { value ->
-            when (value) {
-                15L -> "पञ्चदश"
-                else -> value.toString()
-            }
-        }
-
-        val resultVariables = executeMethod.invoke(null) as? Map<*, *>
-        assertNotNull(resultVariables)
-
-        val finalResultVal = resultVariables["योग-1"] as? SanskritValue.Sankhya
-        assertNotNull(finalResultVal)
-        assertEquals(15L, finalResultVal.value)
-        assertEquals("पञ्चदश", finalResultVal.word)
-    }
-
-    @Test
     fun testCompileAndRunListMap() {
         val script = "एक + अम् द्वि + औट् त्रि + शस् च वर्धन + टा सम् + यु + णिच् + लोट् + सिप् ।"
         val className = "SanskritListMapIntegrationTest"
@@ -368,43 +343,4 @@ class CompilerTest {
         assertEquals(13L, finalResultVal.value)
     }
 
-    @Test
-    fun testCompileAndRunFibonacci() {
-        val script = File("examples/arithmetic/fibonacci.pvm").readText()
-        val className = "SanskritFibonacciIntegrationTest"
-        val clazz = BytecodeCompiler.compileAndLoad(script, className)
-        val executeMethod = clazz.getMethod("execute")
-
-        val resultVariables = executeMethod.invoke(null) as? Map<*, *>
-        assertNotNull(resultVariables)
-
-        val sequence = resultVariables["क्रम"] as? SanskritValue.Suchi
-        assertNotNull(sequence, "The program should construct a list")
-        assertEquals(
-            listOf(1L, 1L, 2L, 3L, 5L, 8L, 13L, 21L, 34L, 55L),
-            sequence.items.map { (it as SanskritValue.Sankhya).value },
-        )
-        val printResult = resultVariables.values.filterIsInstance<SanskritValue.Shabda>()
-            .lastOrNull { "Simulated dispatch" in it.text }
-        assertNotNull(printResult)
-        assertTrue(printResult.text.contains("Simulated dispatch"))
-        assertTrue(printResult.text.contains("पञ्चपञ्चाशत्"))
-    }
-
-    @Test
-    fun `compiled segmented loop reevaluates its condition at runtime`() {
-        val script = """
-            द्वि + अम् गणना + ङे दा + लोट् + सिप् ।
-            यावत् गणना + अम् शून्य + अम् च विद् + णिच् + लोट् + सिप्
-            तावत् गणना + अम् एक + औट् च वि + युज् + णिच् + लोट् + सिप्
-            ततः फल + अम् गणना + ङे दा + लोट् + सिप् ।
-            वृत् + यङ् + लोट् + थास् ।
-        """.trimIndent()
-
-        val clazz = BytecodeCompiler.compileAndLoad(script, "CompiledRuntimeLoopTest")
-        val variables = clazz.getMethod("execute").invoke(null) as Map<*, *>
-
-        assertEquals(0L, (variables["गणना"] as SanskritValue.Sankhya).value)
-        assertEquals(false, (variables["योग-1"] as SanskritValue.Satya).boolean)
-    }
 }

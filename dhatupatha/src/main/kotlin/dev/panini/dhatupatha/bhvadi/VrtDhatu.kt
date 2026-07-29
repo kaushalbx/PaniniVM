@@ -1,7 +1,6 @@
 package dev.panini.dhatupatha.bhvadi
 
 import dev.panini.actions.collection.ListReverseAction
-import dev.panini.actions.control.LoopAction
 import dev.panini.actions.control.ForEachAction
 import dev.panini.actions.control.WhileAction
 import dev.panini.core.DhatuGana
@@ -29,23 +28,6 @@ class VrtDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.UDATTA,
     operations = listOf(
-        LoopAction.op {
-            triggeredBy(
-                forbiddenUpasargas = setOf("अनु"),
-                forbiddenSanadi = setOf("यङ्"),
-            )
-            requires(Karaka.KARMAN, 1, null, null, Samjna.SANKHYA) // loop count (must be a number)
-            requires(Karaka.KARANA) // target action name
-            optional(Karaka.SAMPRADANA, Karaka.APADANA) // initial state
-            returns(Samjna.SHABDA)
-        },
-        LoopAction.op {
-            triggeredBy(
-                requiredSanadi = setOf("यङ्"),
-                allowedLakaras = setOf(dev.panini.core.Lakara.LOT),
-            )
-            returns(Samjna.SHABDA)
-        },
         ListReverseAction.op {
             triggeredBy(requiredUpasargas = setOf("प्रति"))
             requires(Karaka.KARMAN) // list

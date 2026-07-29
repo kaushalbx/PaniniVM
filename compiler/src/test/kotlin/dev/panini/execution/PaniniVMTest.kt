@@ -111,15 +111,6 @@ class PaniniVMTest {
     }
 
     @Test
-    fun `vrt with yang invokes the existing loop action`() {
-        val result = vm.eval("वृत् + यङ् + लोट् + थास् ।")
-
-        val success = assertIs<ExecutionResult.Success>(result, result.toString())
-        assertEquals("पुनरावृत्तिः आरब्धा", success.value)
-        assertTrue(success.trace.any { "मूलधातु वृत् with यङ्" in it })
-    }
-
-    @Test
     fun `parsed nyunataya selects minimum operation`() {
         val result = vm.eval("त्रि + अम् एक + औट् च न्यूनतया विद् + लोट् + सिप् ।")
         val success = assertIs<ExecutionResult.Success>(result, result.toString())

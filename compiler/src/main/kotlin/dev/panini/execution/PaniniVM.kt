@@ -1,6 +1,5 @@
 package dev.panini.execution
 
-import dev.panini.actions.control.LoopGovernanceModifier
 import dev.panini.execution.external.ExternalCapabilityDispatcher
 import dev.panini.execution.persistence.FileStateStore
 import dev.panini.execution.persistence.StateStore
@@ -100,33 +99,7 @@ class PaniniVM(
     ): List<ExecutionResult> {
         val results = mutableListOf<ExecutionResult>()
         PvmScript.parse(scriptContent).forEach { statement ->
-            when (statement) {
-                is PvmScriptStatement.Sentence -> results += eval(
-                    statement.text, sessionKey, scope, speaker, listener,
-                )
-                is PvmScriptStatement.While -> {
-                    val invocation = eval(
-                        statement.invocation.text, sessionKey, scope, speaker, listener,
-                    )
-                    results += invocation
-                    if (invocation !is ExecutionResult.Success ||
-                        invocation.trace.none { "मूलधातु वृत् with यङ्" in it }
-                    ) {
-                        return results
-                    }
-                    results += LoopGovernanceModifier.executeStructured(
-                        condition = {
-                            eval(statement.condition, sessionKey, scope, speaker, listener)
-                        },
-                        body = {
-                            statement.body.map { clause ->
-                                eval(clause.text, sessionKey, scope, speaker, listener)
-                            }
-                        },
-                        maximumIterations = MAX_LOOP_ITERATIONS,
-                    )
-                }
-            }
+            results += eval(statement.text, sessionKey, scope, speaker, listener)
         }
         return results
     }
@@ -243,6 +216,5 @@ class PaniniVM(
     }
 
     private companion object {
-        const val MAX_LOOP_ITERATIONS = 100_000
     }
 }
