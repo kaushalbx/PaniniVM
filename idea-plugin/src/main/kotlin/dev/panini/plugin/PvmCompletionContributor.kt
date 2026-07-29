@@ -81,6 +81,32 @@ class PvmCompletionContributor : CompletionContributor() {
             Triple("लिट्", "लकारः", "Perfect tense")
         )
 
+        private val sanadiAffixes = listOf(
+            Triple("णिच्", "सनादि-प्रत्ययः", "Causative affix (प्रेरणे/हेतुमति)"),
+            Triple("सन्", "सनादि-प्रत्ययः", "Desiderative affix (इच्छायाम्)"),
+            Triple("यङ्", "सनादि-प्रत्ययः", "Frequentative / Intensive affix (पौणःपुन्ये)"),
+            Triple("क्याच्", "सनादि-प्रत्ययः", "Denominative affix (आत्मनः इच्छायाम्)"),
+            Triple("काम्यच्", "सनादि-प्रत्ययः", "Denominative affix (इच्छायाम्)"),
+            Triple("क्यङ्", "सनादि-प्रत्ययः", "Denominative affix (आचारे)"),
+            Triple("क्यष्", "सनादि-प्रत्ययः", "Denominative affix (भृशादिभ्यः)")
+        )
+
+        private val krtAffixes = listOf(
+            Triple("क्त", "कृत्-प्रत्ययः", "Past passive participle (निष्ठा)"),
+            Triple("क्तवतु", "कृत्-प्रत्ययः", "Past active participle (निष्ठा)"),
+            Triple("तव्यत्", "कृत्-प्रत्ययः", "Obligation / Prescriptive participle (कृत्य)"),
+            Triple("अनीयर्", "कृत्-प्रत्ययः", "Obligation / Prescriptive participle (कृत्य)"),
+            Triple("यत्", "कृत्-प्रत्ययः", "Potential participle (कृत्य)"),
+            Triple("ण्वुल्", "कृत्-प्रत्ययः", "Agentive suffix (-अक)"),
+            Triple("तृच्", "कृत्-प्रत्ययः", "Agentive suffix (-तृ)"),
+            Triple("शतृ", "कृत्-प्रत्ययः", "Present active participle (परस्मैपद)"),
+            Triple("शानच्", "कृत्-प्रत्ययः", "Present active participle (आत्मनेपद)"),
+            Triple("क्त्वा", "कृत्-प्रत्ययः", "Gerund / Absolutive suffix (-त्वा)"),
+            Triple("ल्याप्", "कृत्-प्रत्ययः", "Prefixal gerund suffix (-य)"),
+            Triple("तुमुन्", "कृत्-प्रत्ययः", "Infinitive suffix (-तुम्)"),
+            Triple("घञ्", "कृत्-प्रत्ययः", "Action / Abstract noun suffix")
+        )
+
         private val tingAffixes = listOf(
             Triple("तिप्", "परस्मैपद-प्रथम-एक", "3rd person singular active"),
             Triple("तस्", "परस्मैपद-प्रथम-द्वि", "3rd person dual active"),
@@ -99,8 +125,7 @@ class PvmCompletionContributor : CompletionContributor() {
             Triple("ध्वम्", "आत्मनेपद-मध्यम-बहु", "2nd person plural middle"),
             Triple("इट्", "आत्मनेपद-उत्तम-एक", "1st person singular middle"),
             Triple("वहि", "आत्मनेपद-उत्तम-द्वि", "1st person dual middle"),
-            Triple("महिङ्", "आत्मनेपद-उत्तम-बहु", "1st person plural middle"),
-            Triple("णिच्", "सनादि-प्रत्ययः", "Causative affix")
+            Triple("महिङ्", "आत्मनेपद-उत्तम-बहु", "1st person plural middle")
         )
 
         private val numbers = listOf(
@@ -148,6 +173,24 @@ class PvmCompletionContributor : CompletionContributor() {
             }
 
             lakaras.forEach { (word, type, doc) ->
+                result.addElement(
+                    LookupElementBuilder.create(word)
+                        .withIcon(PvmIcons.FILE)
+                        .withTypeText(type)
+                        .withTailText(" [$doc]", true)
+                )
+            }
+
+            sanadiAffixes.forEach { (word, type, doc) ->
+                result.addElement(
+                    LookupElementBuilder.create(word)
+                        .withIcon(PvmIcons.FILE)
+                        .withTypeText(type)
+                        .withTailText(" [$doc]", true)
+                )
+            }
+
+            krtAffixes.forEach { (word, type, doc) ->
                 result.addElement(
                     LookupElementBuilder.create(word)
                         .withIcon(PvmIcons.FILE)
