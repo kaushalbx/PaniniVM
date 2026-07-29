@@ -1,6 +1,7 @@
 package dev.panini.derivation.sutra
 
 import dev.panini.ashtadhyayi.adhyaya1.pada1.VrddhirAdaicSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada1.AdarsanamLopaSutra
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationTerm
@@ -18,6 +19,15 @@ import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class DerivationSutraRuntimeAdapterTest {
+    @Test
+    fun `ashtadhyayi lowerer preserves legacy authoring and native artha opt in`() {
+        val legacy = AshtadhyayiSutraLowerer.lower(VrddhirAdaicSutra)
+        val native = AshtadhyayiSutraLowerer.lower(AdarsanamLopaSutra)
+
+        assertEquals("vyakarana", legacy.artha.kind)
+        assertEquals("samjna-definition", native.artha.kind)
+    }
+
     @Test
     fun `existing samjna sutra has state parity through shared machine`() {
         val initial = DerivationState(

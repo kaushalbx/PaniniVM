@@ -54,8 +54,8 @@ object Ashtadhyayi {
     val executableSutras: List<DerivationSutra> = registry.sutras.filterIsInstance<DerivationSutra>()
 
     /**
-     * Rules that can execute in the shared runtime: either through a native
-     * typed meaning or through the temporary derivation adapter.
+     * Rules that can execute in the shared runtime. Existing DerivationSutra
+     * authoring remains supported; typed artha is an optional native-runtime capability.
      */
     val runtimeSutras: List<Sutra<*, *>> = registry.sutras.filter {
         it is ArthavatSutra || it is DerivationSutra
