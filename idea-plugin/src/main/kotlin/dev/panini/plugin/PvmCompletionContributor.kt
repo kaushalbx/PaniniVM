@@ -27,13 +27,22 @@ class PvmCompletionContributor : CompletionContributor() {
             Triple("इति", "terminator", "End of expression / clause"),
             Triple("यदि", "conditional", "If condition"),
             Triple("तर्हि", "conditional", "Then clause"),
+            Triple("अन्यथा", "conditional", "Else clause"),
             Triple("इत्यादि", "enumeration", "Et cetera"),
             Triple("हे", "vocative", "Address marker"),
             Triple("यन्त्र", "system", "PaniniVM system target"),
+            Triple("पूर्वफल", "स्मृति-सन्दर्भः", "Result of previous turn"),
+            Triple("पूर्वपूर्वफल", "स्मृति-सन्दर्भः", "Result of 2 turns ago"),
             Triple("कटपय", "सङ्ख्या-पद्धतिः", "Kaṭapayādi number system prefix"),
             Triple("भूतसङ्ख्या", "सङ्ख्या-पद्धतिः", "Bhūta-saṅkhyā number system prefix"),
             Triple("आर्यभटीय", "सङ्ख्या-पद्धतिः", "Āryabhaṭīya number system prefix"),
             Triple("उणादि", "व्युत्पत्तिः", "Uṇādipāṭha nominal derivation")
+        )
+
+        private val abhyasaAffixes = listOf(
+            Triple("कृत्वः", "सङ्ख्याभ्यासः", "Frequency repetition suffix"),
+            Triple("सुच्", "सङ्ख्याभ्यासः", "Frequency suffix for 2-4 (e.g. द्विः)"),
+            Triple("धा", "सङ्ख्याभ्यासः", "Distributive repetition suffix (e.g. त्रिधा)")
         )
 
         private val unadiAffixes = listOf(
@@ -72,7 +81,14 @@ class PvmCompletionContributor : CompletionContributor() {
             Triple("णिच्", "प्रत्ययः", "Causative affix"),
             Triple("लोट्", "लकारः", "Imperative mood"),
             Triple("लट्", "लकारः", "Present tense"),
-            Triple("लङ्", "लकारः", "Past imperfect")
+            Triple("लङ्", "लकारः", "Past imperfect"),
+            Triple("लुट्", "लकारः", "First future (periphrastic)"),
+            Triple("लृट्", "लकारः", "Second future (simple)"),
+            Triple("लेट्", "लकारः", "Subjunctive mood"),
+            Triple("लिङ्", "लकारः", "Optative / Potential mood"),
+            Triple("लुङ्", "लकारः", "Aorist tense"),
+            Triple("लृङ्", "लकारः", "Conditional mood"),
+            Triple("लिट्", "लकारः", "Perfect tense")
         )
 
         private val numbers = listOf(
@@ -120,6 +136,15 @@ class PvmCompletionContributor : CompletionContributor() {
             }
 
             tingAffixes.forEach { (word, type, doc) ->
+                result.addElement(
+                    LookupElementBuilder.create(word)
+                        .withIcon(PvmIcons.FILE)
+                        .withTypeText(type)
+                        .withTailText(" [$doc]", true)
+                )
+            }
+
+            abhyasaAffixes.forEach { (word, type, doc) ->
                 result.addElement(
                     LookupElementBuilder.create(word)
                         .withIcon(PvmIcons.FILE)
