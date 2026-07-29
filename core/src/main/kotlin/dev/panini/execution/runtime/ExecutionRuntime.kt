@@ -54,32 +54,39 @@ object ExecutionRuntime {
                 )
                 is AuthorityDecision.Denied -> return Phala.Nirasta(plan.invocationId, authority.reason)
             }
-            val refreshedContext = plan.resolved.context.copy(
-                variables = values,
-                stateStore = scope.stateStore,
-                externalDispatcher = scope.externalDispatcher,
-                sutraRegistry = scope.sutraRegistry,
-                currentGrantha = scope.currentGrantha,
-            )
-            when (val result = plan.resolved.operation.action.execute(refreshedContext, plan.resolved.operation)) {
-                is ExecutionResult.Success -> {
-                    val typedResult = result.typedValue ?: SanskritValue.of(
-                        result.value,
-                        plan.resolved.operation.resultSamjnas,
-                    )
-                    values[plan.invocationId] = typedResult
-                    val bindingKaraka = plan.resolved.operation.resultBindingKaraka
-                    val bindingName = bindingKaraka
-                        ?.let(plan.resolved.context.bindings::get)
-                        ?.bindingName()
-                    if (bindingName != null) {
-                        values[bindingName] = typedResult
-                        localBindings[bindingName] = typedResult
-                        trace += "Bound result to local name '$bindingName'."
+            val repeatCount = plan.resolved.context.metadata["frequencyCount"]?.toIntOrNull() ?: 1
+            for (repeat in 1..repeatCount) {
+                val refreshedContext = plan.resolved.context.copy(
+                    variables = values,
+                    stateStore = scope.stateStore,
+                    externalDispatcher = scope.externalDispatcher,
+                    sutraRegistry = scope.sutraRegistry,
+                    currentGrantha = scope.currentGrantha,
+                )
+                when (val result = plan.resolved.operation.action.execute(refreshedContext, plan.resolved.operation)) {
+                    is ExecutionResult.Success -> {
+                        val typedResult = result.typedValue ?: SanskritValue.of(
+                            result.value,
+                            plan.resolved.operation.resultSamjnas,
+                        )
+                        values[plan.invocationId] = typedResult
+                        val bindingKaraka = plan.resolved.operation.resultBindingKaraka
+                        val bindingName = bindingKaraka
+                            ?.let(plan.resolved.context.bindings::get)
+                            ?.bindingName()
+                        if (bindingName != null) {
+                            values[bindingName] = typedResult
+                            localBindings[bindingName] = typedResult
+                            if (repeat == 1) trace += "Bound result to local name '$bindingName'."
+                        }
+                        if (repeat == 1) {
+                            trace += plan.resolved.resolutionTrace + result.trace
+                        } else {
+                            trace += result.trace
+                        }
                     }
-                    trace += plan.resolved.resolutionTrace + result.trace
+                    else -> return Phala.Asiddha(result, trace + result.trace)
                 }
-                else -> return Phala.Asiddha(result, trace + result.trace)
             }
         }
         val invocationIds = continuation.planning.plans.mapTo(mutableSetOf()) { it.invocationId }

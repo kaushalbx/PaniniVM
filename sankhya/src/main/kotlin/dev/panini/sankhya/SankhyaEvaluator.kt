@@ -178,6 +178,11 @@ class SankhyaEvaluator {
             if (puranaExpr != null) return puranaExpr
         }
 
+        if (stems.last() in setOf("कृत्वस्", "कृत्वः", "सुच्", "धा")) {
+            val baseExpr = evaluateStems(stems.dropLast(1))
+            return SankhyaExpression.Frequency(baseExpr)
+        }
+
         if (stems.size == 1) {
             val stem = stems.single()
             val standaloneFraction = parseFractionStem(stem)

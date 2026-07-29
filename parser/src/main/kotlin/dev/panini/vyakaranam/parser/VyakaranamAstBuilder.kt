@@ -117,7 +117,7 @@ class VyakaranamAstBuilder {
     private fun buildSankhyaAbhyasaPada(
         context: PaniniyaVyakaranamParser.SankhyaAbhyasaPadaContext,
     ): SankhyaAbhyasaPada {
-        val stems = context.sankhyaStem().map { it.text } + (context.KRITVAS()?.text ?: context.DHAA()!!.text)
+        val stems = context.sankhyaStem().map { it.text } + (context.KRITVAS()?.text ?: context.SUC()?.text ?: context.DHAA()!!.text)
         return SankhyaAbhyasaPada(
             sourceText = context.text,
             stems = stems,

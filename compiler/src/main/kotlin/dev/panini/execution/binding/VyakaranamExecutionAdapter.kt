@@ -19,6 +19,7 @@ import dev.panini.sankhya.SankhyaGenerator
 import dev.panini.analysis.FrameKarakaResolution
 import dev.panini.analysis.KarakaInference
 import dev.panini.analysis.KriyaFrame
+import dev.panini.analysis.KriyaQualificationKind
 import dev.panini.analysis.PadaAnalyzer
 import dev.panini.analysis.UktiAnalyzer
 import dev.panini.analysis.VakyaAnalyzer
@@ -125,12 +126,19 @@ object VyakaranamExecutionAdapter {
             if (purposeRequiresListenerAsAgent(prayer, tinganta.lakara) && Karaka.KARTR !in bindings) {
                 bindings[Karaka.KARTR] = ExecutionExpression.Pada(listener)
             }
+            val frequencyCount = extractFrequencyCount(vakya.padas, frame)
+            val metadataMap = buildMap {
+                put("dhatuName", dhatu.upadesha)
+                if (frequencyCount != null) {
+                    put("frequencyCount", frequencyCount.toString())
+                }
+            }
             invocations += DhatuInvocation(
                 id = "योग-${index + 1}",
                 dhatu = dhatu,
                 bindings = bindings,
                 selectedOperation = null,
-                metadata = mapOf("dhatuName" to dhatu.upadesha),
+                metadata = metadataMap,
                 grammaticalFeatures = GrammaticalFeatures(
                     upasargas = tinganta.upasargas.toSet(),
                     sanadi = tinganta.dhatu.sanadiPratyayas.toSet(),
@@ -413,4 +421,26 @@ object VyakaranamExecutionAdapter {
 
     private fun String.normalizeDhatuSurface(): String = trimEnd('्', 'ँ')
 
+    private fun extractFrequencyCount(padas: List<Pada>, frame: KriyaFrame): Int? {
+        val sankhyaAbhyasa = padas.filterIsInstance<SankhyaAbhyasaPada>().firstOrNull()
+        if (sankhyaAbhyasa != null) {
+            val evaluated = sankhyaEvaluator.evaluateStems(sankhyaAbhyasa.stems)
+            return evaluated.value.toInt()
+        }
+        val freqQual = frame.qualifications.firstOrNull { it.kind == KriyaQualificationKind.FREQUENCY }
+        if (freqQual != null) {
+            return when (freqQual.value) {
+                "सकृत्" -> 1
+                "द्विः", "द्विकृत्वः" -> 2
+                "त्रिः", "त्रिकृत्वः" -> 3
+                "चतुः" -> 4
+                "पञ्चकृत्वः" -> 5
+                "शतकृत्वः" -> 100
+                "बहुकृत्वः" -> 10
+                "पुनः" -> 2
+                else -> null
+            }
+        }
+        return null
+    }
 }

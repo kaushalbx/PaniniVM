@@ -142,6 +142,7 @@ puranaPratyaya
 
 sankhyaAbhyasaPada
     : (sankhyaStem PLUS)+ KRITVAS
+    | (sankhyaStem PLUS)+ SUC
     | (sankhyaStem PLUS)+ DHAA
     ;
 
