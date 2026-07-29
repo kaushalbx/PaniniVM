@@ -44,12 +44,12 @@ class AshtadhyayiRuntimeGranthaTest {
         )
 
         assertEquals(
-            Ashtadhyayi.executableSutras.map { it.sutra },
+            Ashtadhyayi.runtimeSutras.map { it.number },
             grantha.sutras.map { it.id.value },
         )
         assertEquals(grantha.sutras.mapTo(linkedSetOf()) { it.id }, grantha.exports)
         assertEquals(
-            Ashtadhyayi.executableSutras.map { it.sutra },
+            Ashtadhyayi.runtimeSutras.map { it.number },
             grantha.sutras.map { it.id.value },
         )
         assertTrue(SutraId("1.1.1") in result.state.appliedSutras)
@@ -130,7 +130,7 @@ class AshtadhyayiRuntimeGranthaTest {
             it.targetId == "left" && it.samjna == Samjna.SAVARNA
         })
         assertEquals(
-            Ashtadhyayi.executableSutras.map { it.sutra },
+            Ashtadhyayi.runtimeSutras.map { it.number },
             grantha.sutras.map { it.id.value },
         )
     }

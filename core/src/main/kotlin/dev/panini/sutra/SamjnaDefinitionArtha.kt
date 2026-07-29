@@ -4,13 +4,11 @@ import dev.panini.shiksha.Samjna
 import dev.panini.sutra.runtime.SutraArtha
 import dev.panini.sutra.runtime.SutraArthaValue
 
-sealed interface SutraArthaDefinition {
-    fun toSutraArtha(): SutraArtha
-}
-
 /** A concrete grammatical concept that receives a technical saṃjñā. */
 enum class Samjni {
     ADARSHANA,
+    PRATYAYA_ADARSHANA,
+    PENULTIMATE_SOUND,
 }
 
 /** Typed domain representation of an interpretive saṃjñā definition. */
@@ -45,10 +43,53 @@ data class SamjnaDefinitionArtha(
             (fields[name] as? SutraArthaValue.Symbol)?.name
                 ?: error("Saṃjñā-definition field '$name' must be a symbol.")
 
-        private fun Samjna.canonicalName(): String = when (this) {
-            is Enum<*> -> name
-            is Samjna.Rudhi -> word
-            else -> error("Unsupported saṃjñā representation: ${this::class.simpleName}.")
+    }
+}
+
+/** Typed definition assigning a closed set of technical names to one concept. */
+data class SamjnaSetDefinitionArtha(
+    val samjni: Samjni,
+    val samjnas: Set<Samjna>,
+) : SutraArthaDefinition {
+    init {
+        require(samjnas.isNotEmpty()) { "A saṃjñā-set definition requires at least one name." }
+    }
+
+    override fun toSutraArtha(): SutraArtha = SutraArtha(
+        kind = KIND,
+        fields = mapOf(
+            SAMJNI_FIELD to SutraArthaValue.Symbol(samjni.name),
+            SAMJNAS_FIELD to SutraArthaValue.Sequence(
+                samjnas.map { SutraArthaValue.Symbol(it.canonicalName()) },
+            ),
+        ),
+    )
+
+    companion object {
+        const val KIND: String = "samjna-set-definition"
+        private const val SAMJNI_FIELD: String = "samjni"
+        private const val SAMJNAS_FIELD: String = "samjnas"
+
+        fun fromSutraArtha(artha: SutraArtha): SamjnaSetDefinitionArtha {
+            require(artha.kind == KIND) {
+                "Expected $KIND artha, found '${artha.kind}'."
+            }
+            val samjni = (artha.fields[SAMJNI_FIELD] as? SutraArthaValue.Symbol)?.name
+                ?: error("Saṃjñā-set field '$SAMJNI_FIELD' must be a symbol.")
+            val samjnas = (artha.fields[SAMJNAS_FIELD] as? SutraArthaValue.Sequence)?.values
+                ?.mapTo(linkedSetOf()) {
+                    val name = (it as? SutraArthaValue.Symbol)?.name
+                        ?: error("Saṃjñā-set names must be symbols.")
+                    Samjna.valueOf(name)
+                }
+                ?: error("Saṃjñā-set field '$SAMJNAS_FIELD' must be a sequence.")
+            return SamjnaSetDefinitionArtha(enumValueOf(samjni), samjnas)
         }
     }
+}
+
+private fun Samjna.canonicalName(): String = when (this) {
+    is Enum<*> -> name
+    is Samjna.Rudhi -> word
+    else -> error("Unsupported saṃjñā representation: ${this::class.simpleName}.")
 }

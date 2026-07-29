@@ -118,7 +118,13 @@ object DerivationSutraEffectInterpreter : SutraEffectInterpreter<DerivationAvast
             return SutraEffectApplication.Applied(
                 state = state.copy(
                     samjnaDefinitions = state.samjnaDefinitions + effect.definition,
-                    appliedSutras = state.appliedSutras + effect.definition.definingSutra,
+                    appliedSutras = if (
+                        effect.definition.definingSutra in state.appliedSutras
+                    ) {
+                        state.appliedSutras
+                    } else {
+                        state.appliedSutras + effect.definition.definingSutra
+                    },
                     explanations = state.explanations + explanation,
                 ),
                 explanation = explanation,

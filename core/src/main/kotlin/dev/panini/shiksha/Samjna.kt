@@ -23,7 +23,7 @@ sealed interface Samjna {
 
     /** Phonological & Vowel Grade Classifications (स्वर/गुण/वृद्धि - Aṣṭādhyāyī 1.1.1, 1.1.2, 1.1.7) */
     enum class Phono : Samjna {
-        VRDDHI, GUNA, IK, AC, HAL, SAMYOGA, ANUNASIKA, SAVARNA, IT, CONSONANT_STEM
+        VRDDHI, GUNA, IK, AC, HAL, SAMYOGA, ANUNASIKA, SAVARNA, IT, CONSONANT_STEM, UPADHA
     }
 
     /** Nominal & Gender Stem Attributes (अङ्ग विशेषण - Aṣṭādhyāyī 1.4.3, 1.4.7, 1.4.18) */
@@ -48,7 +48,7 @@ sealed interface Samjna {
 
     /** Technical operations defined by interpretive saṃjñā sūtras. */
     enum class Operation : Samjna {
-        LOPA
+        LOPA, LUK, SHLU, LUP
     }
 
     /** Lexical Target Names (रूढि संज्ञा - e.g., "कर्ण", "वायु") */
@@ -127,6 +127,7 @@ sealed interface Samjna {
         val SAVARNA: Samjna = Phono.SAVARNA
         val IT: Samjna = Phono.IT
         val CONSONANT_STEM: Samjna = Phono.CONSONANT_STEM
+        val UPADHA: Samjna = Phono.UPADHA
 
         val NADI: Samjna = Stem.NADI
         val GHI: Samjna = Stem.GHI
@@ -162,6 +163,9 @@ sealed interface Samjna {
         val KRIDANTA: Samjna = Execution.KRIDANTA
         val STRI_PRATYAYA: Samjna = Execution.STRI_PRATYAYA
         val LOPA: Samjna = Operation.LOPA
+        val LUK: Samjna = Operation.LUK
+        val SHLU: Samjna = Operation.SHLU
+        val LUP: Samjna = Operation.LUP
 
         private val allValues: Map<String, Samjna> by lazy {
             val map = mutableMapOf<String, Samjna>()

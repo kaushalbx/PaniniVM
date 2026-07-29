@@ -4,6 +4,8 @@ import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraInput
 import dev.panini.sutra.SutraRole
+import dev.panini.sutra.SamjnaDefinitionArtha
+import dev.panini.sutra.Samjni
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
@@ -18,6 +20,10 @@ object AloAntyatPurvaUpadhaSutra : Sutra<String, Char?>(
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.VARNA,
     inputs = setOf(SutraInput.VARNA),
     adhikara = emptySet(),
+    artha = SamjnaDefinitionArtha(
+        samjni = Samjni.PENULTIMATE_SOUND,
+        samjna = dev.panini.shiksha.Samjna.UPADHA,
+    ),
 ) {
     override fun matches(context: String): Boolean = context.length >= 2
     override fun apply(context: String): Char? = context.getOrNull(context.length - 2)

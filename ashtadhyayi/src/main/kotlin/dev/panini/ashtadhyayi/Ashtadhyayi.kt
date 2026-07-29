@@ -53,6 +53,14 @@ object Ashtadhyayi {
     val registry = SutraRegistry(cataloguedSutras)
     val executableSutras: List<DerivationSutra> = registry.sutras.filterIsInstance<DerivationSutra>()
 
+    /**
+     * Rules that can execute in the shared runtime: either through a native
+     * typed meaning or through the temporary derivation adapter.
+     */
+    val runtimeSutras: List<Sutra<*, *>> = registry.sutras.filter {
+        it.artha != null || it is DerivationSutra
+    }
+
     /** Compatibility view; derived from the registry and never maintained separately. */
     val kriyavatSutras: List<Sutra<*, *>> = executableSutras.map { it as Sutra<*, *> }
     val catalogIssues: List<SutraCatalogIssue> =
