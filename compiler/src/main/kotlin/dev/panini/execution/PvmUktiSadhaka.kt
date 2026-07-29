@@ -73,17 +73,72 @@ class PvmUktiSadhaka(
         return parts.joinToString(" ")
     }
 
+    private val sankhyaEvaluator = SankhyaEvaluator()
+    private val sankhyaGenerator = SankhyaGenerator()
+
     fun sadhayaPada(pada: Pada): String = when (pada) {
         is SubantaPada -> sadhayaSubanta(pada)
         is SamuccitaSubanta -> pada.members.joinToString(" ") { sadhayaSubanta(it) } + " च"
         is TingantaPada -> sadhayaTinganta(pada)
         is AvyayaPada -> pada.form
-        is SankhyaPada -> pada.sourceText
-        is SankhyaPuranaPada -> pada.sourceText
-        is SankhyaAbhyasaPada -> pada.sourceText
+        is SankhyaPada -> sadhayaSankhya(pada)
+        is SankhyaPuranaPada -> sadhayaSankhyaPurana(pada)
+        is SankhyaAbhyasaPada -> sadhayaSankhyaAbhyasa(pada)
         is KatapayadiPada -> pada.sourceText
         is AryabhatiyaPada -> pada.sourceText
         is BhutasamkhyaPada -> pada.sourceText
+    }
+
+    fun sadhayaSankhya(pada: SankhyaPada): String {
+        return try {
+            val expr = sankhyaEvaluator.evaluateStems(pada.stems)
+            val baseText = sankhyaGenerator.cardinal(expr.value).final.surface
+            val supAffix = SupAffix.fromUpadesha(pada.sup.text) ?: return baseText
+            val stemClass = SubantaStemClass.guess(baseText)
+            val req = SubantaDerivationRequest(baseText, supAffix.vibhakti, supAffix.vacana, stemClass)
+            subantaEngine.derive(req).final.surface
+        } catch (_: Throwable) {
+            pada.sourceText
+        }
+    }
+
+    fun sadhayaSankhyaPurana(pada: SankhyaPuranaPada): String {
+        return try {
+            val expr = sankhyaEvaluator.evaluateStems(pada.stems)
+            val baseText = sankhyaGenerator.ordinal(expr.value).final.surface
+            val supAffix = SupAffix.fromUpadesha(pada.sup.text) ?: return baseText
+            val stemClass = SubantaStemClass.guess(baseText)
+            val req = SubantaDerivationRequest(baseText, supAffix.vibhakti, supAffix.vacana, stemClass)
+            subantaEngine.derive(req).final.surface
+        } catch (_: Throwable) {
+            pada.sourceText
+        }
+    }
+
+    fun sadhayaSankhyaAbhyasa(pada: SankhyaAbhyasaPada): String {
+        return try {
+            val lastStem = pada.stems.lastOrNull() ?: return pada.sourceText
+            val numStems = pada.stems.filter { it != "कृत्वः" && it != "कृत्वा" && it != "कृत्वसुच्" && it != "सुच्" && it != "धा" }
+            val count = if (numStems.isNotEmpty()) {
+                sankhyaEvaluator.evaluateStems(numStems).value
+            } else {
+                sankhyaEvaluator.evaluateStems(pada.stems).value
+            }
+            val cardinalSurface = sankhyaGenerator.cardinal(count).final.surface
+            when (lastStem) {
+                "कृत्वः", "कृत्वसुच्", "कृत्वा" -> "${cardinalSurface}कृत्वः"
+                "सुच्" -> when (count) {
+                    2L -> "द्विः"
+                    3L -> "त्रिः"
+                    4L -> "चतुः"
+                    else -> "${cardinalSurface}कृत्वः"
+                }
+                "धा" -> "${cardinalSurface}धा"
+                else -> "${cardinalSurface}कृत्वः"
+            }
+        } catch (_: Throwable) {
+            pada.sourceText
+        }
     }
 
     fun sadhayaSubanta(subanta: SubantaPada): String {

@@ -89,19 +89,21 @@ object SanskritGranthaSourceCompiler {
                 )
             }
 
+            val purvaphalaId = currentConversation.resultHistory.lastOrNull()?.id
             val localIds = bound.ukti.invocations.associate {
                 it.id to "उक्ति-${DevanagariDigits.render(turn)}/${it.id}"
             }
+            val referenceIds = localIds + (if (purvaphalaId != null) mapOf("पूर्वफल" to purvaphalaId) else emptyMap())
             val knownIds = sutras.mapTo(mutableSetOf()) { it.id.value }
             val globalInvocations = bound.ukti.invocations.map { invocation ->
                 val rewrittenBindings = invocation.bindings.mapValues { (_, expression) ->
-                    expression.rewriteReferences(localIds)
+                    expression.rewriteReferences(referenceIds)
                 }
                 invocation.copy(
                     id = localIds.getValue(invocation.id),
                     bindings = rewrittenBindings,
                     ambiguousBindings = invocation.ambiguousBindings.map {
-                        it.copy(expression = it.expression.rewriteReferences(localIds))
+                        it.copy(expression = it.expression.rewriteReferences(referenceIds))
                     },
                 )
             }
@@ -171,6 +173,21 @@ object SanskritGranthaSourceCompiler {
         }
         val historicalValues = conversation.resultHistory.associate {
             it.id to (it.typedValue ?: SanskritValue.of(it.value, it.samjnas))
+        }.toMutableMap()
+        if (conversation.resultHistory.isNotEmpty()) {
+            val last = conversation.resultHistory.last()
+            val lastObj = last.typedValue ?: SanskritValue.of(last.value, last.samjnas)
+            historicalValues["फल"] = lastObj
+            historicalValues["पूर्वफल"] = lastObj
+        }
+        if (conversation.resultHistory.size >= 2) {
+            val prevPrev = conversation.resultHistory[conversation.resultHistory.size - 2]
+            val prevPrevObj = prevPrev.typedValue ?: SanskritValue.of(prevPrev.value, prevPrev.samjnas)
+            historicalValues["पूर्वपूर्वफल"] = prevPrevObj
+        } else if (conversation.resultHistory.size == 1) {
+            conversation.previousTypedResults["द्वि"]?.let {
+                historicalValues["पूर्वपूर्वफल"] = it
+            }
         }
         return ExecutionPlanner.plan(
             program,
@@ -214,11 +231,25 @@ object SanskritGranthaSourceCompiler {
         )
     }
 
+    private val sankhyaGenerator = dev.panini.sankhya.SankhyaGenerator()
+
     private fun simulatedResult(plan: ExecutionPlan): SanskritValue {
+        val operands = plan.resolved.context.bindings[Karaka.KARMAN]
+            ?.let(plan.resolved.context::resolveValues)
+            .orEmpty()
+        val sankhyaOperands = operands.filterIsInstance<SanskritValue.Sankhya>().map { it.value }
+        if (sankhyaOperands.isNotEmpty()) {
+            val opName = plan.resolved.operation.name
+            val resVal = when (opName) {
+                "सङ्ख्यायोगः", "panini.math.add" -> sankhyaOperands.sum()
+                "सङ्ख्याअन्तरम्", "panini.math.subtract" -> if (sankhyaOperands.size >= 2) sankhyaOperands[0] - sankhyaOperands[1] else sankhyaOperands[0]
+                "सङ्ख्यागुणनम्", "panini.math.multiply" -> sankhyaOperands.fold(1L) { a, b -> a * b }
+                else -> sankhyaOperands.sum()
+            }
+            val word = sankhyaGenerator.cardinal(resVal).final.surface
+            return SanskritValue.Sankhya(resVal, word)
+        }
         if (plan.resolved.operation.resultBindingKaraka != null) {
-            val operands = plan.resolved.context.bindings[Karaka.KARMAN]
-                ?.let(plan.resolved.context::resolveValues)
-                .orEmpty()
             if (operands.isNotEmpty()) {
                 return if (operands.size == 1) operands.single() else SanskritValue.Suchi(operands)
             }
