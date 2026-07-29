@@ -16,10 +16,10 @@ class VakyaAnalyzer(
     fun analyze(
         vakya: Vakya,
         frameId: KriyaId = KriyaId("kriya-1"),
-    ): KriyaFrame? =
+    ): KriyaFrame =
         when (vakya) {
             is AkhyataVakya -> analyzeAkhyataVakya(vakya, frameId)
-            is NamaVakya -> null
+            is NamaVakya -> analyzeNamaVakya(vakya, frameId)
         }
 
     private fun analyzeAkhyataVakya(
@@ -105,6 +105,46 @@ class VakyaAnalyzer(
             relations = relations,
             qualifications = qualifications,
             diagnostics = diagnostics,
+            unadiAnalyses = unadiAnalyses,
+        )
+    }
+
+    private fun analyzeNamaVakya(
+        vakya: NamaVakya,
+        frameId: KriyaId,
+    ): KriyaFrame {
+        val padaAnalyses = vakya.padas.map(padaAnalyzer::analyze)
+
+        val subantas = buildList {
+            for (analysis in padaAnalyses) {
+                when (analysis) {
+                    is AnalyzedSubanta -> add(analysis.analysis)
+                    is AnalyzedSamuccita -> addAll(analysis.members)
+                    else -> Unit
+                }
+            }
+        }
+
+        val unadiAnalyses = subantas.mapNotNull { sub ->
+            val stem = sub.lexicalEntry?.text ?: sub.pada.sourceText
+            val result = UnadiAnalyzer.analyzeStem(stem)
+            if (result.matches.isNotEmpty()) result else null
+        }
+
+        return KriyaFrame(
+            id = frameId,
+            vakya = vakya,
+            kriya = null,
+            prayoga = Prayoga.ANIRDHARITA,
+            relations = emptyList(),
+            qualifications = emptyList(),
+            diagnostics = listOf(
+                FrameDiagnostic(
+                    FrameDiagnosticCode.UNCLASSIFIED_PADA,
+                    "Nāma-vākya acknowledged without finite verb processing.",
+                    vakya.sourceText,
+                ),
+            ),
             unadiAnalyses = unadiAnalyses,
         )
     }

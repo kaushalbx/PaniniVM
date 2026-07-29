@@ -17,12 +17,12 @@ data class UktiAnalysis(
  * according to the construction retained by the parser.
  */
 class UktiAnalyzer(
-    private val analyzeVakya: (dev.panini.vyakaranam.ast.Vakya, KriyaId) -> KriyaFrame?,
+    private val analyzeVakya: (dev.panini.vyakaranam.ast.Vakya, KriyaId) -> KriyaFrame,
 ) {
     constructor(vakyaAnalyzer: VakyaAnalyzer) : this(vakyaAnalyzer::analyze)
 
     fun analyze(ukti: Ukti): UktiAnalysis {
-        val initialFrames = ukti.vakyas.mapIndexedNotNull { index, vakya ->
+        val initialFrames = ukti.vakyas.mapIndexed { index, vakya ->
             analyzeVakya(vakya, KriyaId("kriya-${index + 1}"))
         }
         val links = buildLinks(ukti, initialFrames)

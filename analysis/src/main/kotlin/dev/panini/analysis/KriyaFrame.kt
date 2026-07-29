@@ -4,7 +4,7 @@ import dev.panini.core.Karaka
 import dev.panini.core.Prayoga
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.unadipatha.analysis.UnadiStemAnalysis
-import dev.panini.vyakaranam.ast.AkhyataVakya
+import dev.panini.vyakaranam.ast.Vakya
 
 @JvmInline
 value class KriyaId(val value: String) {
@@ -107,8 +107,8 @@ data class FrameDiagnostic(
 
 data class KriyaFrame(
     val id: KriyaId,
-    val vakya: AkhyataVakya,
-    val kriya: KriyaHead,
+    val vakya: Vakya,
+    val kriya: KriyaHead?,
     val prayoga: Prayoga,
     val relations: List<KarakaRelation>,
     val qualifications: List<KriyaQualification>,

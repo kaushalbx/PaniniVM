@@ -121,13 +121,15 @@ class KriyaFrameAnalyzerTest {
     }
 
     @Test
-    fun `nama vakya without kriya is ignored and returns null`() {
+    fun `nama vakya without kriya is acknowledged without finite verb processing`() {
         val rama = subanta("राम + सुँ", "राम", "सुँ")
         val sundara = subanta("सुन्दर + सुँ", "सुन्दर", "सुँ")
         val namaVakya = dev.panini.vyakaranam.ast.NamaVakya("रामः सुन्दरः", listOf(rama, sundara))
 
         val frame = analyzer.analyze(namaVakya)
-        kotlin.test.assertNull(frame)
+        kotlin.test.assertNull(frame.kriya)
+        assertEquals(0, frame.relations.size)
+        assertEquals(FrameDiagnosticCode.UNCLASSIFIED_PADA, frame.diagnostics.single().code)
     }
 
     private fun subanta(source: String, stem: String, sup: String): SubantaPada =
