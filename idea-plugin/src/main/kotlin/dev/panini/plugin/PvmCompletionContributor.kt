@@ -79,16 +79,16 @@ class PvmCompletionContributor : CompletionContributor() {
             Triple("वस्", "परस्मैपद-उत्तम-द्वि", "1st person dual"),
             Triple("मस्", "परस्मैपद-उत्तम-बहु", "1st person plural"),
             Triple("णिच्", "प्रत्ययः", "Causative affix"),
-            Triple("लोट्", "लकारः", "Imperative mood"),
-            Triple("लट्", "लकारः", "Present tense"),
-            Triple("लङ्", "लकारः", "Past imperfect"),
-            Triple("लुट्", "लकारः", "First future (periphrastic)"),
-            Triple("लृट्", "लकारः", "Second future (simple)"),
-            Triple("लेट्", "लकारः", "Subjunctive mood"),
-            Triple("लिङ्", "लकारः", "Optative / Potential mood"),
-            Triple("लुङ्", "लकारः", "Aorist tense"),
-            Triple("लृङ्", "लकारः", "Conditional mood"),
-            Triple("लिट्", "लकारः", "Perfect tense")
+            Triple("लोट्", "लकार-प्रत्ययः", "Imperative mood"),
+            Triple("लट्", "लकार-प्रत्ययः", "Present tense"),
+            Triple("लङ्", "लकार-प्रत्ययः", "Past imperfect"),
+            Triple("लुट्", "लकार-प्रत्ययः", "First future (periphrastic)"),
+            Triple("लृट्", "लकार-प्रत्ययः", "Second future (simple)"),
+            Triple("लेट्", "लकार-प्रत्ययः", "Subjunctive mood"),
+            Triple("लिङ्", "लकार-प्रत्ययः", "Optative / Potential mood"),
+            Triple("लुङ्", "लकार-प्रत्ययः", "Aorist tense"),
+            Triple("लृङ्", "लकार-प्रत्ययः", "Conditional mood"),
+            Triple("लिट्", "लकार-प्रत्ययः", "Perfect tense")
         )
 
         private val numbers = listOf(
