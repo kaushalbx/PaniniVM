@@ -169,127 +169,160 @@ class PvmCompletionContributor : CompletionContributor() {
             Triple("डुकृञ्", "तनादि-धातुः", "to do / make")
         )
 
+        private fun devanagariToIast(text: String): String {
+            val result = StringBuilder()
+            var i = 0
+            while (i < text.length) {
+                val c = text[i]
+                when (c) {
+                    'क' -> result.append("k")
+                    'ख' -> result.append("kh")
+                    'ग' -> result.append("g")
+                    'घ' -> result.append("gh")
+                    'ङ' -> result.append("ng")
+                    'च' -> result.append("c")
+                    'छ' -> result.append("ch")
+                    'ज' -> result.append("j")
+                    'झ' -> result.append("jh")
+                    'ञ' -> result.append("n")
+                    'ट' -> result.append("t")
+                    'ठ' -> result.append("th")
+                    'ड' -> result.append("d")
+                    'ढ' -> result.append("dh")
+                    'ण' -> result.append("n")
+                    'त' -> result.append("t")
+                    'थ' -> result.append("th")
+                    'द' -> result.append("d")
+                    'ध' -> result.append("dh")
+                    'न' -> result.append("n")
+                    'प' -> result.append("p")
+                    'फ' -> result.append("ph")
+                    'ब' -> result.append("b")
+                    'भ' -> result.append("bh")
+                    'म' -> result.append("m")
+                    'य' -> result.append("y")
+                    'र' -> result.append("r")
+                    'ल' -> result.append("l")
+                    'व' -> result.append("v")
+                    'श' -> result.append("sh")
+                    'ष' -> result.append("sh")
+                    'स' -> result.append("s")
+                    'ह' -> result.append("h")
+                    'अ' -> result.append("a")
+                    'आ' -> result.append("a")
+                    'इ' -> result.append("i")
+                    'ई' -> result.append("i")
+                    'उ' -> result.append("u")
+                    'ऊ' -> result.append("u")
+                    'ऋ' -> result.append("r")
+                    'ए' -> result.append("e")
+                    'ऐ' -> result.append("ai")
+                    'ओ' -> result.append("o")
+                    'औ' -> result.append("au")
+                    'ा' -> result.append("a")
+                    'ि' -> result.append("i")
+                    'ी' -> result.append("i")
+                    'ु' -> result.append("u")
+                    'ू' -> result.append("u")
+                    'ृ' -> result.append("r")
+                    'े' -> result.append("e")
+                    'ै' -> result.append("ai")
+                    'ो' -> result.append("o")
+                    'ौ' -> result.append("au")
+                    'ं' -> result.append("m")
+                    'ः' -> result.append("h")
+                    'ँ' -> result.append("m")
+                    '्' -> {}
+                    else -> result.append(c)
+                }
+                i++
+            }
+            return result.toString()
+        }
+
+        private fun buildLookup(
+            word: String,
+            type: String,
+            doc: String,
+            bold: Boolean = false,
+        ): LookupElementBuilder {
+            var builder = LookupElementBuilder.create(word)
+                .withIcon(PvmIcons.FILE)
+                .withTypeText(type)
+                .withTailText(" [$doc]", true)
+            if (bold) {
+                builder = builder.withBoldness(true)
+            }
+            val iast = devanagariToIast(word)
+            if (iast != word && iast.isNotBlank()) {
+                builder = builder.withLookupString(iast)
+                val simplified = iast.replace("c", "ch").replace("s", "sh")
+                if (simplified != iast) {
+                    builder = builder.withLookupString(simplified)
+                }
+            }
+            val wordsInDoc = doc.split(Regex("[^a-zA-Z0-9]+")).filter { it.length >= 2 }
+            for (w in wordsInDoc) {
+                builder = builder.withLookupString(w.lowercase())
+            }
+            return builder
+        }
+
         override fun addCompletions(
             parameters: CompletionParameters,
             context: ProcessingContext,
             result: CompletionResultSet
         ) {
             keywords.forEach { (word, type, doc) ->
-                result.addElement(
-                    LookupElementBuilder.create(word)
-                        .withIcon(PvmIcons.FILE)
-                        .withTypeText(type)
-                        .withTailText(" ($doc)", true)
-                        .withBoldness(true)
-                )
+                result.addElement(buildLookup(word, type, doc, bold = true))
             }
 
             supAffixes.forEach { (word, type, doc) ->
-                result.addElement(
-                    LookupElementBuilder.create(word)
-                        .withIcon(PvmIcons.FILE)
-                        .withTypeText(type)
-                        .withTailText(" [$doc]", true)
-                )
+                result.addElement(buildLookup(word, type, doc))
             }
 
             lakaras.forEach { (word, type, doc) ->
-                result.addElement(
-                    LookupElementBuilder.create(word)
-                        .withIcon(PvmIcons.FILE)
-                        .withTypeText(type)
-                        .withTailText(" [$doc]", true)
-                )
+                result.addElement(buildLookup(word, type, doc))
             }
 
             sanadiAffixes.forEach { (word, type, doc) ->
-                result.addElement(
-                    LookupElementBuilder.create(word)
-                        .withIcon(PvmIcons.FILE)
-                        .withTypeText(type)
-                        .withTailText(" [$doc]", true)
-                )
+                result.addElement(buildLookup(word, type, doc))
             }
 
             krtAffixes.forEach { (word, type, doc) ->
-                result.addElement(
-                    LookupElementBuilder.create(word)
-                        .withIcon(PvmIcons.FILE)
-                        .withTypeText(type)
-                        .withTailText(" [$doc]", true)
-                )
+                result.addElement(buildLookup(word, type, doc))
             }
 
             taddhitaAffixes.forEach { (word, type, doc) ->
-                result.addElement(
-                    LookupElementBuilder.create(word)
-                        .withIcon(PvmIcons.FILE)
-                        .withTypeText(type)
-                        .withTailText(" [$doc]", true)
-                )
+                result.addElement(buildLookup(word, type, doc))
             }
 
             tingAffixes.forEach { (word, type, doc) ->
-                result.addElement(
-                    LookupElementBuilder.create(word)
-                        .withIcon(PvmIcons.FILE)
-                        .withTypeText(type)
-                        .withTailText(" [$doc]", true)
-                )
+                result.addElement(buildLookup(word, type, doc))
             }
 
             abhyasaAffixes.forEach { (word, type, doc) ->
-                result.addElement(
-                    LookupElementBuilder.create(word)
-                        .withIcon(PvmIcons.FILE)
-                        .withTypeText(type)
-                        .withTailText(" [$doc]", true)
-                )
+                result.addElement(buildLookup(word, type, doc))
             }
 
             unadiAffixes.forEach { (word, type, doc) ->
-                result.addElement(
-                    LookupElementBuilder.create(word)
-                        .withIcon(PvmIcons.FILE)
-                        .withTypeText(type)
-                        .withTailText(" [$doc]", true)
-                )
+                result.addElement(buildLookup(word, type, doc))
             }
 
             numbers.forEach { (word, type, doc) ->
-                result.addElement(
-                    LookupElementBuilder.create(word)
-                        .withIcon(PvmIcons.FILE)
-                        .withTypeText(type)
-                        .withTailText(" = $doc", true)
-                )
+                result.addElement(buildLookup(word, type, doc))
             }
 
             dhatus.forEach { (word, type, doc) ->
-                result.addElement(
-                    LookupElementBuilder.create(word)
-                        .withIcon(PvmIcons.FILE)
-                        .withTypeText(type)
-                        .withTailText(" - $doc", true)
-                )
+                result.addElement(buildLookup(word, type, doc))
             }
 
             GanaPatha.all.forEach { gana ->
-                result.addElement(
-                    LookupElementBuilder.create(gana.name)
-                        .withIcon(PvmIcons.FILE)
-                        .withTypeText("गणपाठः")
-                        .withTailText(" (Sūtra: ${gana.sutra})", true)
-                )
+                result.addElement(buildLookup(gana.name, "गणपाठः", "Sūtra: ${gana.sutra}"))
             }
 
             BhutasamkhyaLexicon.allSymbols.forEach { (word, value) ->
-                result.addElement(
-                    LookupElementBuilder.create(word)
-                        .withIcon(PvmIcons.FILE)
-                        .withTypeText("भूतसङ्ख्या")
-                        .withTailText(" = $value", true)
-                )
+                result.addElement(buildLookup(word, "भूतसङ्ख्या", "Value: $value"))
             }
         }
     }
