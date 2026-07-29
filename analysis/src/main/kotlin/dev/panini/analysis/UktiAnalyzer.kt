@@ -5,7 +5,6 @@ import dev.panini.vyakaranam.ast.UktiStructure
 
 data class UktiAnalysis(
     val ukti: Ukti,
-    val vakyaAnalyses: List<VakyaAnalysis>,
     val frames: List<KriyaFrame>,
     val links: List<KriyaLink>,
 )
@@ -18,20 +17,19 @@ data class UktiAnalysis(
  * according to the construction retained by the parser.
  */
 class UktiAnalyzer(
-    private val analyzeVakya: (dev.panini.vyakaranam.ast.Vakya, KriyaId) -> VakyaAnalysis,
+    private val analyzeVakya: (dev.panini.vyakaranam.ast.Vakya, KriyaId) -> KriyaFrame?,
 ) {
     constructor(vakyaAnalyzer: VakyaAnalyzer) : this(vakyaAnalyzer::analyze)
 
     fun analyze(ukti: Ukti): UktiAnalysis {
-        val vakyaAnalyses = ukti.vakyas.mapIndexed { index, vakya ->
+        val initialFrames = ukti.vakyas.mapIndexedNotNull { index, vakya ->
             analyzeVakya(vakya, KriyaId("kriya-${index + 1}"))
         }
-        val initialFrames = vakyaAnalyses.flatMap(VakyaAnalysis::frames)
         val links = buildLinks(ukti, initialFrames)
         val frames = initialFrames.map { frame ->
             frame.copy(links = links.filter { it.source == frame.id || it.target == frame.id })
         }
-        return UktiAnalysis(ukti, vakyaAnalyses, frames, links)
+        return UktiAnalysis(ukti, frames, links)
     }
 
     private fun buildLinks(ukti: Ukti, frames: List<KriyaFrame>): List<KriyaLink> {

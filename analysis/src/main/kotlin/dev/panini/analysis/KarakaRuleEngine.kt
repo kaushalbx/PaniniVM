@@ -7,7 +7,6 @@ import dev.panini.core.Vibhakti
 import dev.panini.derivation.DerivationSutra
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
-import dev.panini.sutra.SutraInput
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraType
 

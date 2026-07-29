@@ -119,7 +119,7 @@ object VyakaranamExecutionAdapter {
             val tinganta = (vakya as? AkhyataVakya)?.tinganta ?: return@forEachIndexed
             val dhatu = resolveDhatu(tinganta)
                 ?: return ExecutionBindingResult.Invalid("Unknown verbal action/dhātu: ${tinganta.sourceText}")
-            val frame = utteranceAnalysis.vakyaAnalyses[index].frames.single()
+            val frame = utteranceAnalysis.frames.firstOrNull { it.vakya == vakya } ?: return@forEachIndexed
             val extracted = extractKarakas(vakya.padas, conversation, index, dhatu, frame)
             val bindings = extracted.bindings.toMutableMap()
             if (purposeRequiresListenerAsAgent(prayer, tinganta.lakara) && Karaka.KARTR !in bindings) {

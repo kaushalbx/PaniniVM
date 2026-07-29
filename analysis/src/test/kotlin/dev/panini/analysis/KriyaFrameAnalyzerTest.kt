@@ -45,7 +45,7 @@ class KriyaFrameAnalyzerTest {
         val pushpa = subanta("पुष्प + अम्", "पुष्प", "अम्")
         val vakya = akhyata(rama, phala, pushpa)
 
-        val frame = analyzer.analyze(vakya).frames.single()
+        val frame = requireNotNull(analyzer.analyze(vakya))
 
         assertEquals(3, frame.relations.size)
         assertEquals(
@@ -62,7 +62,7 @@ class KriyaFrameAnalyzerTest {
         val quickly = AvyayaPada("शीघ्रम्", "शीघ्रम्")
         val vakya = akhyata(rama, quickly)
 
-        val frame = analyzer.analyze(vakya).frames.single()
+        val frame = requireNotNull(analyzer.analyze(vakya))
 
         assertEquals(1, frame.relations.size)
         assertEquals(1, frame.qualifications.size)
@@ -75,7 +75,7 @@ class KriyaFrameAnalyzerTest {
         val participant = subanta("देव + भ्याम्", "देव", "भ्याम्")
         val vakya = akhyata(participant)
 
-        val frame = analyzer.analyze(vakya).frames.single()
+        val frame = requireNotNull(analyzer.analyze(vakya))
         val ambiguous = assertIs<FrameKarakaResolution.Ambiguous>(
             frame.relations.single().resolution,
         )
@@ -112,12 +112,22 @@ class KriyaFrameAnalyzerTest {
         val participant = subanta("पाप + ङसिँ", "पाप", "ङसिँ")
         val vakya = akhyata(participant)
 
-        val frame = analyzer.analyze(vakya).frames.single()
+        val frame = requireNotNull(analyzer.analyze(vakya))
         assertEquals(1, frame.relations.size)
         val resolved = assertIs<FrameKarakaResolution.Resolved>(
             frame.relations.single().resolution,
         )
         assertEquals(Karaka.APADANA, resolved.karaka)
+    }
+
+    @Test
+    fun `nama vakya without kriya is ignored and returns null`() {
+        val rama = subanta("राम + सुँ", "राम", "सुँ")
+        val sundara = subanta("सुन्दर + सुँ", "सुन्दर", "सुँ")
+        val namaVakya = dev.panini.vyakaranam.ast.NamaVakya("रामः सुन्दरः", listOf(rama, sundara))
+
+        val frame = analyzer.analyze(namaVakya)
+        kotlin.test.assertNull(frame)
     }
 
     private fun subanta(source: String, stem: String, sup: String): SubantaPada =
