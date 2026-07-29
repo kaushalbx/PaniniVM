@@ -5,7 +5,7 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.sutra.SamjnaDefinitionArtha
 import dev.panini.sutra.Samjni
-import dev.panini.sutra.ArthavatSutra
+import dev.panini.sutra.SamjnaVidhayakaSutra
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraInput
@@ -23,7 +23,7 @@ object PrathamanirdistamSamasaUpasarjanamSutra : Sutra<DerivationState, Derivati
     type = SutraType.SAMJNA, chapter = 1, pada = 2, optional = false, kramaValue = 120043,
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.DERIVATION,
     inputs = setOf(SutraInput.PRATIPADIKA),
-), DerivationSutra, ArthavatSutra {
+), DerivationSutra, SamjnaVidhayakaSutra {
     override val artha = SamjnaDefinitionArtha(
         samjni = Samjni.PRATHAMA_DESIGNATED_COMPOUND_TERM,
         samjna = dev.panini.shiksha.Samjna.UPASARJANA,

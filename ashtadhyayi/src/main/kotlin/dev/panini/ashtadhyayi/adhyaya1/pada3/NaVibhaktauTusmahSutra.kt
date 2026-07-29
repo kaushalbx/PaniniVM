@@ -6,7 +6,7 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.ContextualProhibitionArtha
-import dev.panini.sutra.ArthavatSutra
+import dev.panini.sutra.PrasangikaNishedhaSutra
 import dev.panini.sutra.ProhibitionTarget
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -31,7 +31,7 @@ object NaVibhaktauTusmahSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.NISHEDHA,
     scope = SutraScope.PRATYAYA,
     blocks = setOf("1.3.3"),
-), DerivationSutra, ArthavatSutra {
+), DerivationSutra, PrasangikaNishedhaSutra {
     override val artha = ContextualProhibitionArtha(
         target = ProhibitionTarget.VIBHAKTI_FINAL_TUSMA,
         prohibitedSutra = SutraId("1.3.3"),
