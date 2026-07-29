@@ -169,8 +169,16 @@ object SutraExecutionPipeline {
         conversation: SambhashanaContext,
         scope: ExecutionScope,
     ): ValueEnvironment {
-        val historicalValues = conversation.resultHistory.associate { result ->
-            result.id to (result.typedValue ?: SanskritValue.of(result.value, result.samjnas))
+        val historicalValues = mutableMapOf<String, SanskritValue>()
+        conversation.resultHistory.forEach { result ->
+            val valObj = result.typedValue ?: SanskritValue.of(result.value, result.samjnas)
+            historicalValues[result.id] = valObj
+            historicalValues[result.invocationId] = valObj
+        }
+        conversation.resultHistory.lastOrNull()?.let { last ->
+            val lastObj = last.typedValue ?: SanskritValue.of(last.value, last.samjnas)
+            historicalValues["फल"] = lastObj
+            historicalValues["पूर्वफल"] = lastObj
         }
         val conversationEnvironment = ValueEnvironment.from(
             displayValues = conversation.mentionedEntities + conversation.previousResults,
