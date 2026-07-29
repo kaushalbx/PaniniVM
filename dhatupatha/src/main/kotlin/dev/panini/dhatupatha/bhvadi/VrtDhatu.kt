@@ -2,7 +2,6 @@ package dev.panini.dhatupatha.bhvadi
 
 import dev.panini.actions.collection.ListReverseAction
 import dev.panini.actions.control.ForEachAction
-import dev.panini.actions.control.WhileAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
@@ -32,13 +31,6 @@ class VrtDhatu : Dhatu(
             triggeredBy(requiredUpasargas = setOf("प्रति"))
             requires(Karaka.KARMAN) // list
             returns(Samjna.GANA)
-        },
-        WhileAction.op {
-            triggeredBy(forbiddenUpasargas = setOf("अनु"))
-            requires(Karaka.KARMAN, 1, null, null, Samjna.SHABDA) // condition predicate (must be a name/word)
-            requires(Karaka.KARANA) // body action
-            requires(Karaka.SAMPRADANA) // initial state
-            returns(Samjna.SANKHYA, Samjna.SHABDA)
         },
         ForEachAction.op {
             triggeredBy(requiredUpasargas = setOf("अनु"))

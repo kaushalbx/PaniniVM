@@ -315,26 +315,6 @@ class CollectionOperationsTest {
     }
 
     @Test
-    fun `VrtDhatu executes WhileAction conditional loop`() {
-        DhatuPathaRegistration.ensureRegistered()
-        val vrt = DhatuPatha.all.first { it.id == "01.9910" }
-        val whileOp = vrt.operations.first { it.name == "यावदवृत्तिः" }
-
-        val context = ExecutionContext(
-            bindings = mapOf(
-                Karaka.KARMAN to ExecutionExpression.Pada("युग्मत्वम्"), // condition predicate
-                Karaka.KARANA to ExecutionExpression.Pada("सङ्ख्यावियोगः"), // body action
-                Karaka.SAMPRADANA to ExecutionExpression.sankhya(10L, "दश"), // initial state
-                Karaka.KARTR to ExecutionExpression.sankhya(2L, "द्वि") // subtract 2 in each step
-            )
-        )
-
-        val resultImmediate = whileOp.action.execute(context.copy(bindings = context.bindings + (Karaka.SAMPRADANA to ExecutionExpression.sankhya(5L, "पञ्च"))), whileOp)
-        assertIs<ExecutionResult.Success>(resultImmediate)
-        assertEquals(5L, (resultImmediate.typedValue as SanskritValue.Sankhya).value)
-    }
-
-    @Test
     fun `TanDhatu executes ListFlattenAction to flatten nested lists`() {
         DhatuPathaRegistration.ensureRegistered()
         val tan = DhatuPatha.all.first { it.id == "08.0001" }

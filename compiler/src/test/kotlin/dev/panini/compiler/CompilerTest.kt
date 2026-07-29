@@ -281,21 +281,6 @@ class CompilerTest {
     }
 
     @Test
-    fun testCompileAndRunWhileLoop() {
-        val script = "युग्मत्व + अम् सङ्ख्यावियोग + टा पञ्च + ङे द्वि + सुँ वृत् + लोट् + सिप् ।"
-        val className = "SanskritWhileLoopIntegrationTest"
-        val clazz = BytecodeCompiler.compileAndLoad(script, className)
-        val executeMethod = clazz.getMethod("execute")
-
-        val resultVariables = executeMethod.invoke(null) as? Map<*, *>
-        assertNotNull(resultVariables)
-
-        val finalResultVal = resultVariables["योग-1"] as? SanskritValue.Sankhya
-        assertNotNull(finalResultVal)
-        assertEquals(5L, finalResultVal.value)
-    }
-
-    @Test
     fun testCompileAndRunListFlatten() {
         val script = "एक + अम् द्वि + औट् च दा + लोट् + सिप् ।\nफल + अम् त्रि + शस् च तन् + णिच् + लोट् + सिप् ।"
         val className = "SanskritListFlattenIntegrationTest"

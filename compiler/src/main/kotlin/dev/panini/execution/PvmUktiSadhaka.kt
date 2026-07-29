@@ -27,6 +27,7 @@ import dev.panini.vyakaranam.ast.SankhyaPuranaPada
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.UnadyantaPratipadika
+import dev.panini.vyakaranam.ast.UktiStructure
 import dev.panini.vyakaranam.parser.PaniniParser
 
 /**
@@ -56,9 +57,19 @@ class PvmUktiSadhaka(
             parts += "$header$derivedSub,"
         }
 
-        ukti.vakyas.forEach { vakya ->
-            val padasText = vakya.padas.joinToString(" ") { pada -> sadhayaPada(pada) }
-            parts += "$padasText ।"
+        fun vakyaText(index: Int): String =
+            ukti.vakyas[index].padas.joinToString(" ") { pada -> sadhayaPada(pada) }
+
+        when (val structure = ukti.structure) {
+            UktiStructure.Sequence -> ukti.vakyas.indices.forEach { index ->
+                parts += "${vakyaText(index)} ।"
+            }
+            is UktiStructure.Conditional -> {
+                val alternate = if (structure.hasAlternate) " अन्यथा ${vakyaText(2)}" else ""
+                parts += "यदि ${vakyaText(0)} तर्हि ${vakyaText(1)}$alternate ।"
+            }
+            UktiStructure.YavatTavat ->
+                parts += "यावत् ${vakyaText(0)} तावत् ${vakyaText(1)} ।"
         }
 
         return parts.joinToString(" ")

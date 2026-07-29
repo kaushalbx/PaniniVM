@@ -12,6 +12,7 @@ import dev.panini.execution.ExecutionPlan
 import dev.panini.execution.ExecutionPlanner
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.PlanningResult
+import dev.panini.execution.PvmScript
 import dev.panini.execution.SambhashanaContext
 import dev.panini.execution.SanskritUktiInput
 import dev.panini.execution.SanskritValue
@@ -48,9 +49,13 @@ object SanskritGranthaSourceCompiler {
         ),
     ): SanskritGranthaSourceCompilation {
         DhatuPathaRegistration.ensureRegistered()
-        val lines = source.lines()
-            .map(String::trim)
-            .filter { it.isNotEmpty() && !it.startsWith("#") && !it.startsWith("//") }
+        val lines = try {
+            PvmScript.parse(source).map { it.text }
+        } catch (error: IllegalArgumentException) {
+            return SanskritGranthaSourceCompilation.Invalid(
+                listOf(error.message ?: "Invalid PVM statement structure."),
+            )
+        }
         if (lines.isEmpty()) {
             return SanskritGranthaSourceCompilation.Invalid(
                 listOf("A Sanskrit grantha requires at least one executable utterance."),
