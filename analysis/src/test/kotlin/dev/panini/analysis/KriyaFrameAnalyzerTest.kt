@@ -107,6 +107,19 @@ class KriyaFrameAnalyzerTest {
         assertEquals(analysis.links, analysis.frames[1].links)
     }
 
+    @Test
+    fun `apadana karaka is resolved for jugupsa and virama verbs`() {
+        val participant = subanta("पाप + ङसिँ", "पाप", "ङसिँ")
+        val vakya = akhyata(participant)
+
+        val frame = analyzer.analyze(vakya).frames.single()
+        assertEquals(1, frame.relations.size)
+        val resolved = assertIs<FrameKarakaResolution.Resolved>(
+            frame.relations.single().resolution,
+        )
+        assertEquals(Karaka.APADANA, resolved.karaka)
+    }
+
     private fun subanta(source: String, stem: String, sup: String): SubantaPada =
         SubantaPada(
             sourceText = source,

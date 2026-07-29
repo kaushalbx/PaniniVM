@@ -20,6 +20,7 @@ object Adhyaya1Pada4 {
         UryadiCvidacashCaSutra,
         SakshatPrabhrtiniCaSutra,
         DhruvamApayeApadanamSutra,
+        JugupsaViramaPramadarthanamSutra,
         KarmanaYamAbhipraitiSampradanamSutra,
         SadhakatamamKaranamSutra,
         BhuvahPrabhavahSutra,
