@@ -68,27 +68,39 @@ class PvmCompletionContributor : CompletionContributor() {
             Triple("सुप्", "सप्तमी-बहुवचनम्", "Locative plural")
         )
 
+        private val lakaras = listOf(
+            Triple("लोट्", "लकारः", "Imperative mood"),
+            Triple("लट्", "लकारः", "Present tense"),
+            Triple("लङ्", "लकारः", "Past imperfect"),
+            Triple("लुट्", "लकारः", "First future (periphrastic)"),
+            Triple("लृट्", "लकारः", "Second future (simple)"),
+            Triple("लेट्", "लकारः", "Subjunctive mood"),
+            Triple("लिङ्", "लकारः", "Optative / Potential mood"),
+            Triple("लुङ्", "लकारः", "Aorist tense"),
+            Triple("लृङ्", "लकारः", "Conditional mood"),
+            Triple("लिट्", "लकारः", "Perfect tense")
+        )
+
         private val tingAffixes = listOf(
-            Triple("तिप्", "परस्मैपद-प्रथम-एक", "3rd person singular"),
-            Triple("तस्", "परस्मैपद-प्रथम-द्वि", "3rd person dual"),
-            Triple("झि", "परस्मैपद-प्रथम-बहु", "3rd person plural"),
-            Triple("सिप्", "परस्मैपद-मध्यम-एक", "2nd person singular"),
-            Triple("थस्", "परस्मैपद-मध्यम-द्वि", "2nd person dual"),
-            Triple("थ", "परस्मैपद-मध्यम-बहु", "2nd person plural"),
-            Triple("मिप्", "परस्मैपद-उत्तम-एक", "1st person singular"),
-            Triple("वस्", "परस्मैपद-उत्तम-द्वि", "1st person dual"),
-            Triple("मस्", "परस्मैपद-उत्तम-बहु", "1st person plural"),
-            Triple("णिच्", "प्रत्ययः", "Causative affix"),
-            Triple("लोट्", "लकार-प्रत्ययः", "Imperative mood"),
-            Triple("लट्", "लकार-प्रत्ययः", "Present tense"),
-            Triple("लङ्", "लकार-प्रत्ययः", "Past imperfect"),
-            Triple("लुट्", "लकार-प्रत्ययः", "First future (periphrastic)"),
-            Triple("लृट्", "लकार-प्रत्ययः", "Second future (simple)"),
-            Triple("लेट्", "लकार-प्रत्ययः", "Subjunctive mood"),
-            Triple("लिङ्", "लकार-प्रत्ययः", "Optative / Potential mood"),
-            Triple("लुङ्", "लकार-प्रत्ययः", "Aorist tense"),
-            Triple("लृङ्", "लकार-प्रत्ययः", "Conditional mood"),
-            Triple("लिट्", "लकार-प्रत्ययः", "Perfect tense")
+            Triple("तिप्", "परस्मैपद-प्रथम-एक", "3rd person singular active"),
+            Triple("तस्", "परस्मैपद-प्रथम-द्वि", "3rd person dual active"),
+            Triple("झि", "परस्मैपद-प्रथम-बहु", "3rd person plural active"),
+            Triple("सिप्", "परस्मैपद-मध्यम-एक", "2nd person singular active"),
+            Triple("थस्", "परस्मैपद-मध्यम-द्वि", "2nd person dual active"),
+            Triple("थ", "परस्मैपद-मध्यम-बहु", "2nd person plural active"),
+            Triple("मिप्", "परस्मैपद-उत्तम-एक", "1st person singular active"),
+            Triple("वस्", "परस्मैपद-उत्तम-द्वि", "1st person dual active"),
+            Triple("मस्", "परस्मैपद-उत्तम-बहु", "1st person plural active"),
+            Triple("त", "आत्मनेपद-प्रथम-एक", "3rd person singular middle"),
+            Triple("आताम्", "आत्मनेपद-प्रथम-द्वि", "3rd person dual middle"),
+            Triple("झ", "आत्मनेपद-प्रथम-बहु", "3rd person plural middle"),
+            Triple("थास्", "आत्मनेपद-मध्यम-एक", "2nd person singular middle"),
+            Triple("आथाम्", "आत्मनेपद-मध्यम-द्वि", "2nd person dual middle"),
+            Triple("ध्वम्", "आत्मनेपद-मध्यम-बहु", "2nd person plural middle"),
+            Triple("इट्", "आत्मनेपद-उत्तम-एक", "1st person singular middle"),
+            Triple("वहि", "आत्मनेपद-उत्तम-द्वि", "1st person dual middle"),
+            Triple("महिङ्", "आत्मनेपद-उत्तम-बहु", "1st person plural middle"),
+            Triple("णिच्", "सनादि-प्रत्ययः", "Causative affix")
         )
 
         private val numbers = listOf(
@@ -127,6 +139,15 @@ class PvmCompletionContributor : CompletionContributor() {
             }
 
             supAffixes.forEach { (word, type, doc) ->
+                result.addElement(
+                    LookupElementBuilder.create(word)
+                        .withIcon(PvmIcons.FILE)
+                        .withTypeText(type)
+                        .withTailText(" [$doc]", true)
+                )
+            }
+
+            lakaras.forEach { (word, type, doc) ->
                 result.addElement(
                     LookupElementBuilder.create(word)
                         .withIcon(PvmIcons.FILE)
