@@ -185,15 +185,29 @@ object KarakaRuleEngine {
         }
         return KarakaResolution(candidates, resolved, possibleVibhaktis, evidence, resolvedVibhakti)
     }
-}
 
-//need to fix it or remove it
-fun isVibhaktiEligible(sutraKrama: Int, context: VibhaktiRuleContext): Boolean {
-    val activeDomains = Ashtadhyayi.adhikaraSutras.filter { domain ->
-        val role = domain.role as SutraRole.Adhikara
-        val start = role.customStartKrama ?: domain.krama
-        val end = role.endKrama
-        sutraKrama in start..end
+    private data class AdhikaraDomain(
+        val role: SutraRole.Adhikara,
+        val startKrama: Int,
+        val endKrama: Int,
+    )
+
+    private val activeAdhikaraDomains: List<AdhikaraDomain> by lazy {
+        Ashtadhyayi.adhikaraSutras.mapNotNull { domain ->
+            val role = domain.role as? SutraRole.Adhikara ?: return@mapNotNull null
+            val start = role.customStartKrama ?: domain.krama
+            AdhikaraDomain(role, start, role.endKrama)
+        }
     }
-    return activeDomains.all { (it.role as SutraRole.Adhikara).isContextEligible(context) }
+
+    /** Evaluates whether a vibhakti rule is governed and permitted by active Adhikara domains (e.g. 2.3.1 Anabhihite). */
+    fun isVibhaktiEligible(sutraKrama: Int, context: VibhaktiRuleContext): Boolean {
+        return activeAdhikaraDomains.all { domain ->
+            if (sutraKrama in domain.startKrama..domain.endKrama) {
+                domain.role.isContextEligible(context)
+            } else {
+                true
+            }
+        }
+    }
 }

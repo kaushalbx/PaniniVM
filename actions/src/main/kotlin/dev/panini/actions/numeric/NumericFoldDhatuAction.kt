@@ -25,6 +25,8 @@ enum class NumericFoldOperator(
     ADD("+", 0L),
     SUBTRACT("-", null),
     MULTIPLY("*", 1L),
+    DIVIDE("/", null),
+    MODULO("%", null),
 }
 
 /**
@@ -94,6 +96,26 @@ abstract class NumericFoldDhatuAction(
                     values.drop(1).fold(values.first(), Math::subtractExact)
                 NumericFoldOperator.MULTIPLY ->
                     values.fold(requireNotNull(operator.identity), Math::multiplyExact)
+                NumericFoldOperator.DIVIDE -> {
+                    if (values.drop(1).any { it == 0L }) {
+                        return ExecutionResult.Failure(
+                            ExecutionError.INVALID_VALUE,
+                            "Division by zero (शून्य) is undefined.",
+                            listOf("Selected action sūtra ${blueprint.id}."),
+                        )
+                    }
+                    values.drop(1).fold(values.first()) { acc, v -> acc / v }
+                }
+                NumericFoldOperator.MODULO -> {
+                    if (values.drop(1).any { it == 0L }) {
+                        return ExecutionResult.Failure(
+                            ExecutionError.INVALID_VALUE,
+                            "Modulo by zero (शून्य) is undefined.",
+                            listOf("Selected action sūtra ${blueprint.id}."),
+                        )
+                    }
+                    values.drop(1).fold(values.first()) { acc, v -> acc % v }
+                }
             }
         }.getOrElse {
             return numericOverflow(operation)

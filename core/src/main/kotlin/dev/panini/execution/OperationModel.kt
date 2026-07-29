@@ -2,6 +2,7 @@ package dev.panini.execution
 
 import dev.panini.core.Karaka
 import dev.panini.core.Lakara
+import dev.panini.shiksha.Karmatva
 import dev.panini.shiksha.Samjna
 
 data class GrammaticalFeatures(
@@ -78,6 +79,26 @@ data class OperationSignature(
     }
 
     internal val specificity: Int get() = requirements.sumOf { it.specificity }
+
+    companion object {
+        fun fromKarmatva(
+            karmatva: Karmatva,
+            optionalKarakas: Set<Karaka> = emptySet(),
+        ): OperationSignature {
+            val reqs = mutableListOf<KarakaRequirement>()
+            reqs.add(KarakaRequirement(Karaka.KARTR))
+            when (karmatva) {
+                Karmatva.AKARMAKA -> Unit
+                Karmatva.SAKARMAKA -> {
+                    reqs.add(KarakaRequirement(Karaka.KARMAN))
+                }
+                Karmatva.DVIKARMAKA -> {
+                    reqs.add(KarakaRequirement(Karaka.KARMAN, minimumMembers = 2))
+                }
+            }
+            return OperationSignature(reqs, optionalKarakas)
+        }
+    }
 }
 
 /** One overload of an executable dhātu, selected by its declarative signature. */

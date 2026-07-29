@@ -1,6 +1,8 @@
 package dev.panini.execution
 
 import dev.panini.actions.numeric.AdditionAction
+import dev.panini.actions.numeric.DivisionAction
+import dev.panini.actions.numeric.ModuloAction
 import dev.panini.actions.numeric.MultiplicationAction
 import dev.panini.actions.numeric.NumericDhatuActionGrantha
 import dev.panini.actions.numeric.SubtractionAction
@@ -26,11 +28,11 @@ class NumericDhatuActionGranthaTest {
     fun `migrated action grantha is canonical and lossless`() {
         val grantha = NumericDhatuActionGrantha.blueprint
 
-        assertEquals(3, grantha.sutras.size)
+        assertEquals(5, grantha.sutras.size)
         assertEquals(grantha.sutras.map { it.id }.toSet(), grantha.exports)
         assertTrue(grantha.sutras.all { it.artha.kind == "dhatu-action" })
         assertEquals(
-            listOf("ADD", "SUBTRACT", "MULTIPLY"),
+            listOf("ADD", "SUBTRACT", "MULTIPLY", "DIVIDE", "MODULO"),
             grantha.sutras.map {
                 assertIs<SutraArthaValue.Symbol>(it.artha.fields["operator"]).name
             },

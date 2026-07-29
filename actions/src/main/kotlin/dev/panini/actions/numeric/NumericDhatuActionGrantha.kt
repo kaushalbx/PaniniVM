@@ -12,6 +12,8 @@ object NumericDhatuActionGrantha {
             AdditionAction.blueprint,
             SubtractionAction.blueprint,
             MultiplicationAction.blueprint,
+            DivisionAction.blueprint,
+            ModuloAction.blueprint,
         ),
         samjnas = listOf(
             SamjnaDeclaration(
@@ -23,6 +25,8 @@ object NumericDhatuActionGrantha {
             AdditionAction.blueprint.id,
             SubtractionAction.blueprint.id,
             MultiplicationAction.blueprint.id,
+            DivisionAction.blueprint.id,
+            ModuloAction.blueprint.id,
         ),
     )
 }
