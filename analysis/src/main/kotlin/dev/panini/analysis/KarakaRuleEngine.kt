@@ -1,41 +1,6 @@
 package dev.panini.analysis
 
 import dev.panini.ashtadhyayi.Ashtadhyayi
-import dev.panini.ashtadhyayi.adhyaya1.pada4.BhuvahPrabhavahSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.AdhishingsthasamKarmaSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.JanikartuhPrakrtihSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.KrudhaDruhersyasuyarthanamYamPratiKopahSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.RadhiksyorYasyaViprasnahSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.BhitharthanamBhayahetuhSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.RucyarthanamPriyamanahSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.KrudhaDruhorUpasrstayohKarmaSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.UpanvadhyangvasahSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.ParajerasodhahSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.AkhyatopayogeSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.SprherIpsitahSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.AbhinivishasCaSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.VaranarthanamIpsitahSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.AntardhauYenadarsanamIcchatiSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.DharerUttamarnahSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.ShlaghahnusthashapamJnyipsyamanahSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.DivahKarmaCaSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.ParikrayaneSampradanamAnyatarasyamSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.PratyangbhruvahPurvasyaKartaSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.AnupratigrnasCaSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.TathayuktamCanipsitamSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.AdharoAdhikaranamSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.DhruvamApayeApadanamSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.KarakeSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.KarmanaYamAbhipraitiSampradanamSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.AkathitamCaSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.JugupsaViramaPramadarthanamSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.GatiBuddhiAniKartaSaNauSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.HrKrorAnyatarasyamSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.KarturIpsitatamamKarmaSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.SadhakatamamKaranamSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.SvatantrahKartaSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada4.TatPrayojakoHetusCaSutra
-import dev.panini.ashtadhyayi.adhyaya2.pada3.*
 import dev.panini.core.Karaka
 import dev.panini.core.Prayoga
 import dev.panini.core.Vibhakti
@@ -44,108 +9,23 @@ import dev.panini.sutra.SutraRole
 
 /** Semantic kāraka assignment (1.4) followed by nominal-case validation (2.3). */
 object KarakaRuleEngine {
-    val karakaRules: List<Sutra<KarakaRuleContext, KarakaRuleResult>> = listOf(
-        KarakeSutra,
-        DhruvamApayeApadanamSutra,
-        JugupsaViramaPramadarthanamSutra,
-        BhitharthanamBhayahetuhSutra,
-        ParajerasodhahSutra,
-        VaranarthanamIpsitahSutra,
-        AntardhauYenadarsanamIcchatiSutra,
-        AkhyatopayogeSutra,
-        JanikartuhPrakrtihSutra,
-        BhuvahPrabhavahSutra,
-        KarmanaYamAbhipraitiSampradanamSutra,
-        RucyarthanamPriyamanahSutra,
-        ShlaghahnusthashapamJnyipsyamanahSutra,
-        DharerUttamarnahSutra,
-        SprherIpsitahSutra,
-        KrudhaDruhersyasuyarthanamYamPratiKopahSutra,
-        RadhiksyorYasyaViprasnahSutra,
-        PratyangbhruvahPurvasyaKartaSutra,
-        AnupratigrnasCaSutra,
-        KrudhaDruhorUpasrstayohKarmaSutra,
-        SadhakatamamKaranamSutra,
-        DivahKarmaCaSutra,
-        ParikrayaneSampradanamAnyatarasyamSutra,
-        AdharoAdhikaranamSutra,
-        AdhishingsthasamKarmaSutra,
-        AbhinivishasCaSutra,
-        UpanvadhyangvasahSutra,
-        KarturIpsitatamamKarmaSutra,
-        AkathitamCaSutra,
-        GatiBuddhiAniKartaSaNauSutra,
-        HrKrorAnyatarasyamSutra,
-        TathayuktamCanipsitamSutra,
-        SvatantrahKartaSutra,
-        TatPrayojakoHetusCaSutra,
-    ).sortedBy { it.krama }
+    val karakaRules: List<Sutra<KarakaRuleContext, KarakaRuleResult>> by lazy {
+        @Suppress("UNCHECKED_CAST")
+        Ashtadhyayi.registry.sutras
+            .filter { sutra ->
+                sutra.chapter == 1 && sutra.pada == 4 && (sutra.number == "1.4.23" || sutra.adhikara.contains("1.4.23"))
+            }
+            .sortedBy { it.krama } as List<Sutra<KarakaRuleContext, KarakaRuleResult>>
+    }
 
-    val vibhaktiRules: List<Sutra<VibhaktiRuleContext, VibhaktiRuleResult>> = listOf(
-        AnabhihiteSutra,
-        KarmaniDvitiyaSutra,
-        AntarantarenaYukteSutra,
-        KaladhvanorAtyantasamyogeSutra,
-        SaptamiPancamyauKarakamadhyeSutra,
-        KarmapravacaniyayukteDvitiyaSutra,
-        EnapaDvitiyaSutra,
-        PancamyApangParibhihSutra,
-        PratinidhiPratidaneCaYasmatSutra,
-        GatyarthaKarmaniDvitiyaCaturthyauSutra,
-        ChaturthiSampradaneSutra,
-        KriyarthopapadasyaCaKarmaniSthaninahSutra,
-        TumarthacCaBhavavacanatSutra,
-        NamahSvastiSvahaSutra,
-        ManyaKarmaniAnadareSutra,
-        KartrkaranayostrtiyaSutra,
-        SahaYukteApradhaneSutra,
-        YenangavikarahSutra,
-        ItthambhutalaksaneSutra,
-        SamjnyoAnyatarasyamKarmaniSutra,
-        HetauSutra,
-        VibhasaGuneAstriyamSutra,
-        SasthiHetuprayogeSutra,
-        SarvanamnasTrtiyaCaSutra,
-        ApadanePancamiSutra,
-        AnyaraditarartedikshabdaSutra,
-        SasthyAtasarthaPratyayenaSutra,
-        PrthagVinaNanabhihSutra,
-        KaranadAkhyatayamSutra,
-        StokanAlpaKrcchraSutra,
-        DurantikarthebhyoDvitiyaCaSutra,
-        SaptamyAdhikaraneCaSutra,
-        YasyaCaBhavenaBhavalaksanamSutra,
-        SasthiCanadareSutra,
-        SwamyIsvaraAdhipatiSutra,
-        AyuktaKusalabhyamCaSevayamSutra,
-        YatasCaNirdharanamSutra,
-        PancamiVibhakteSutra,
-        SadhuNipunabhyamSutra,
-        PrasitotsukabhyamTrtiyaCaSutra,
-        NaksatreCaLupiSutra,
-        PratipadikarthalingaparimanavacanamatrePrathamaSutra,
-        SambodhaneCaSutra,
-        SamantriteSutra,
-        EkavacanamSambuddhihSutra,
-        SasthiSeseSutra,
-        JnyoAvidarthasyaKaraneSutra,
-        AdhigarthaDayesamKarmaniSutra,
-        KrjahPratiyatneSutra,
-        RujarthanamBhavavacananamAjvarehSutra,
-        AsisiNathahSutra,
-        JasiniPrahanaNatakaKrathaPisarnHimvisayamSutra,
-        VyavahruPanohSamarthayohSutra,
-        DivasTadarthasyaSutra,
-        VibhasopasargeSutra,
-        DvisahKarmaniSutra,
-        KartrKarmanohKrtiSutra,
-        KasyaCaVartamaneSutra,
-        AdhikaranavacinacCaSutra,
-        AkasyaCaBhavisyadadamarnyayohSutra,
-        KrtyanamKartariVaSutra,
-        TulyarthairAtulopamabhyamTrtiyanatarasyamSutra,
-        CaturthyAsisyAyusyamadraBhadraKusalaSukharthaHitaihSutra,
-    ).sortedBy { it.krama }
+    val vibhaktiRules: List<Sutra<VibhaktiRuleContext, VibhaktiRuleResult>> by lazy {
+        @Suppress("UNCHECKED_CAST")
+        Ashtadhyayi.registry.sutras
+            .filter { sutra ->
+                sutra.chapter == 2 && sutra.pada == 3
+            }
+            .sortedBy { it.krama } as List<Sutra<VibhaktiRuleContext, VibhaktiRuleResult>>
+    }
 
     fun resolve(context: KarakaRuleContext): KarakaResolution {
         val possibleVibhaktis = context.participant.possibleVibhaktis
