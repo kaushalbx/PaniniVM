@@ -3,9 +3,6 @@ package dev.panini.ashtadhyayi.adhyaya1.pada1
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.sutra.InterpretivePrinciple
-import dev.panini.sutra.InterpretivePrincipleArtha
-import dev.panini.sutra.ArthavatSutra
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -21,9 +18,7 @@ object AdirAntyenaSahetaSutra : Sutra<DerivationState, DerivationChange>(
     hindiExplanation = "अन्तिम इत्-संज्ञक वर्ण के साथ आदि वर्ण अपने तथा मध्यवर्ती वर्णों का बोधक होता है (प्रत्याहार निर्माण)।",
     type = SutraType.SAMJNA, chapter = 1, pada = 1, optional = false, kramaValue = 110071,
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.DERIVATION,
-), DerivationSutra, ArthavatSutra {
-    override val artha = InterpretivePrincipleArtha(InterpretivePrinciple.PRATYAHARA_RANGE)
-
+), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
         "1.1.71" !in context.activeAdhikaras
 

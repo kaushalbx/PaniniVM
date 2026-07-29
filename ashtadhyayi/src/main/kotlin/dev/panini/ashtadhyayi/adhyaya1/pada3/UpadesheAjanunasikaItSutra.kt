@@ -1,14 +1,11 @@
 package dev.panini.ashtadhyayi.adhyaya1.pada3
 
-import dev.panini.ashtadhyayi.runtime.ContextualSamjnaSutra
 import dev.panini.core.ItMarker
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
-import dev.panini.sutra.ContextualSamjnaAssignmentArtha
-import dev.panini.sutra.SamjnaAssignmentTarget
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -28,20 +25,15 @@ object UpadesheAjanunasikaItSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Samjna,
     action = SutraAction.SAMJNA,
     scope = SutraScope.PRATYAYA,
-), DerivationSutra, ContextualSamjnaSutra {
-    override val artha = ContextualSamjnaAssignmentArtha(
-        target = SamjnaAssignmentTarget.UPADESHA_NASALIZED_VOWEL,
-        samjna = Samjna.IT,
-    )
-
-    override fun hasSamjnaTarget(state: DerivationState): Boolean =
+), DerivationSutra {
+    fun hasSamjnaTarget(state: DerivationState): Boolean =
         state.stage == DerivationStage.PRATYAYA_SELECTED && state.terms.any {
             it.surface.endsWith(
                 "ँ"
             ) && ItMarker.U !in it.itMarkers
         }
 
-    override fun assignSamjna(state: DerivationState): DerivationChange = DerivationChange(
+    fun assignSamjna(state: DerivationState): DerivationChange = DerivationChange(
         state.copy(terms = state.terms.map { if (it.surface.endsWith("ँ")) it.copy(itMarkers = it.itMarkers + ItMarker.U) else it }),
         "1.3.2 assigns it-status to the nasalized उ of सुँ.",
     )

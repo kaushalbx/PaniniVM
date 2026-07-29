@@ -112,37 +112,6 @@ object DerivationSutraEffectInterpreter : SutraEffectInterpreter<DerivationAvast
         effect: SutraEffect<DerivationAvastha>,
         state: DerivationAvastha,
     ): SutraEffectApplication<DerivationAvastha> {
-        if (effect is DefineInterpretivePrinciple) {
-            val explanation =
-                "${effect.definition.principle} is established as an interpretive principle."
-            return SutraEffectApplication.Applied(
-                state = state.copy(
-                    interpretivePrinciples =
-                        state.interpretivePrinciples + effect.definition,
-                    appliedSutras = state.appliedSutras + effect.definition.definingSutra,
-                    explanations = state.explanations + explanation,
-                ),
-                explanation = explanation,
-            )
-        }
-        if (effect is DefineSamjna) {
-            val explanation =
-                "${effect.definition.samjni} is designated ${effect.definition.samjna}."
-            return SutraEffectApplication.Applied(
-                state = state.copy(
-                    samjnaDefinitions = state.samjnaDefinitions + effect.definition,
-                    appliedSutras = if (
-                        effect.definition.definingSutra in state.appliedSutras
-                    ) {
-                        state.appliedSutras
-                    } else {
-                        state.appliedSutras + effect.definition.definingSutra
-                    },
-                    explanations = state.explanations + explanation,
-                ),
-                explanation = explanation,
-            )
-        }
         if (effect !is ApplyDerivationChange) {
             return SutraEffectApplication.Failed(
                 "Unsupported derivation sūtra effect: ${effect::class.simpleName}",

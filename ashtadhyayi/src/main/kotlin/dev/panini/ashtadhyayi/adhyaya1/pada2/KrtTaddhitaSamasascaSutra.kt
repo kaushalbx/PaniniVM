@@ -5,9 +5,6 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.SamjnaAssignment
 import dev.panini.shiksha.Samjna
-import dev.panini.sutra.Samjni
-import dev.panini.sutra.SamjniSetDefinitionArtha
-import dev.panini.sutra.ArthavatSutra
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -23,16 +20,7 @@ object KrtTaddhitaSamasascaSutra : Sutra<DerivationState, DerivationChange>(
     hindiExplanation = "कृदन्त, तद्धितान्त तथा समास शब्दों की 'प्रातिपदिक' संज्ञा होती है।",
     type = SutraType.SAMJNA, chapter = 1, pada = 2, optional = false, kramaValue = 120046,
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.DERIVATION,
-), DerivationSutra, ArthavatSutra {
-    override val artha = SamjniSetDefinitionArtha(
-        samjnis = setOf(
-            Samjni.KRT_ENDING,
-            Samjni.TADDHITA_ENDING,
-            Samjni.SAMASA,
-        ),
-        samjna = Samjna.PRATIPADIKA,
-    )
-
+), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
         context.allEffectiveTerms.any { it.upadesha in setOf("घञ्", "तव्यत्", "अनीयर", "यत", "क्त", "तुमुन्", "क्त्वा") } &&
         context.samjnas.none { it.samjna == Samjna.PRATIPADIKA }

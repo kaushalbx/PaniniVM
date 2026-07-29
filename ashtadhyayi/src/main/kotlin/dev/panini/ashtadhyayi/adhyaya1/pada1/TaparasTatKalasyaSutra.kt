@@ -1,8 +1,5 @@
 package dev.panini.ashtadhyayi.adhyaya1.pada1
 
-import dev.panini.sutra.InterpretivePrinciple
-import dev.panini.sutra.InterpretivePrincipleArtha
-import dev.panini.sutra.ArthavatSutra
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraInput
@@ -21,11 +18,7 @@ object TaparasTatKalasyaSutra : Sutra<String, Boolean>(
     role = SutraRole.Paribhasha(), action = SutraAction.PARIBHASHA, scope = SutraScope.VARNA,
     inputs = setOf(SutraInput.VARNA),
     adhikara = emptySet(),
-), ArthavatSutra {
-    override val artha = InterpretivePrincipleArtha(
-        InterpretivePrinciple.T_MARKED_SOUND_SAME_DURATION,
-    )
-
+) {
     override fun matches(context: String): Boolean = context.endsWith("त्") || context.endsWith("त")
     override fun apply(context: String): Boolean = true
 }

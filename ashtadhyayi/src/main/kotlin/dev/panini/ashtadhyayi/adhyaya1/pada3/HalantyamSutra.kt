@@ -1,6 +1,5 @@
 package dev.panini.ashtadhyayi.adhyaya1.pada3
 
-import dev.panini.ashtadhyayi.runtime.ContextualSamjnaSutra
 import dev.panini.core.ItMarker
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
@@ -9,8 +8,6 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Varnamala
-import dev.panini.sutra.ContextualSamjnaAssignmentArtha
-import dev.panini.sutra.SamjnaAssignmentTarget
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -30,13 +27,8 @@ object HalantyamSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Samjna,
     action = SutraAction.SAMJNA,
     scope = SutraScope.PRATYAYA,
-), DerivationSutra, ContextualSamjnaSutra {
-    override val artha = ContextualSamjnaAssignmentArtha(
-        target = SamjnaAssignmentTarget.UPADESHA_FINAL_CONSONANT,
-        samjna = Samjna.IT,
-    )
-
-    override fun hasSamjnaTarget(state: DerivationState): Boolean {
+), DerivationSutra {
+    fun hasSamjnaTarget(state: DerivationState): Boolean {
         if (state.stage != DerivationStage.PRATYAYA_SELECTED) return false
 
         return state.terms.any { term ->
@@ -51,7 +43,7 @@ object HalantyamSutra : Sutra<DerivationState, DerivationChange>(
         }
     }
 
-    override fun assignSamjna(state: DerivationState): DerivationChange {
+    fun assignSamjna(state: DerivationState): DerivationChange {
         val newTerms = state.terms.map { term ->
             if (term.kind == TermKind.PRATIPADIKA) return@map term
             if (term.id in setOf("siyut", "yasut", "vuk", "nic")) return@map term
