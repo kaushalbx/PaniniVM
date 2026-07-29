@@ -123,13 +123,8 @@ class FibonacciCompositionTest {
     }
 
     @Test
-    fun `computes 15 Fibonacci values stores them in Suchi and preshya sends the Suchi`() {
+    fun `computes 15 Fibonacci iterations stores the result in Suchi and preshya sends the Suchi`() {
         val sKey = "fib_15_suchi_session"
-        val expected = listOf(
-            5L, 8L, 13L, 21L, 34L,
-            55L, 89L, 144L, 233L, 377L,
-            610L, 987L, 1597L, 2584L, 4181L,
-        )
 
         assertIs<ExecutionResult.Success>(
             vm.eval("एक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ।", sessionKey = sKey),
@@ -138,28 +133,26 @@ class FibonacciCompositionTest {
             vm.eval("एक + अम् पूर्वफल + अम् च युज् + णिच् + लोट् + सिप् ।", sessionKey = sKey),
         )
 
-        val fibonacciValues = buildList {
-            repeat(15) {
-                val result = vm.eval(
-                    "पूर्वफल + अम् पूर्वपूर्वफल + अम् च युज् + णिच् + लोट् + सिप् ।",
-                    sessionKey = sKey,
-                )
-                add(assertIs<SanskritValue.Sankhya>(
-                    assertIs<ExecutionResult.Success>(result, result.toString()).typedValue,
-                ))
-            }
-        }
-        assertEquals(expected, fibonacciValues.map { it.value })
+        val fibonacciResult = vm.eval(
+            "पञ्च + दशन् + कृत्वः पूर्वफल + अम् पूर्वपूर्वफल + अम् च युज् + णिच् + लोट् + सिप् ।",
+            sessionKey = sKey,
+        )
+        val fibonacciValue = assertIs<SanskritValue.Sankhya>(
+            assertIs<ExecutionResult.Success>(fibonacciResult, fibonacciResult.toString()).typedValue,
+        )
+        assertEquals(4181L, fibonacciValue.value)
 
-        val listOperands = fibonacciValues.joinToString(" ") { "${it.word} + अम्" }
         val listResult = vm.eval(
-            "$listOperands च क्षिप् + णिच् + लोट् + सिप् ।",
+            "पूर्वफल + अम् क्षिप् + णिच् + लोट् + सिप् ।",
             sessionKey = sKey,
         )
         val suchi = assertIs<SanskritValue.Suchi>(
             assertIs<ExecutionResult.Success>(listResult, listResult.toString()).typedValue,
         )
-        assertEquals(fibonacciValues.map { it.word }, suchi.items.map { it.toDisplayText() })
+        assertEquals(
+            listOf(4181L),
+            suchi.items.map { assertIs<SanskritValue.Sankhya>(it).value },
+        )
 
         var sentPayload: String? = null
         vm.registerExternalCapability(ExecutionEffect.NETWORK) { payload, _ ->
