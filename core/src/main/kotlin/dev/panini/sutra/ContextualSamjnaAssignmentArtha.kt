@@ -10,6 +10,7 @@ enum class SamjnaAssignmentTarget {
     UPADESHA_FINAL_CONSONANT,
     DHATU_UPADESHA_INITIAL_NI_TU_DU,
     PRATYAYA_INITIAL_SSA,
+    PRATYAYA_INITIAL_CU_TTU,
 }
 
 /** Typed meaning for a saṃjñā assigned to matching derivation material. */

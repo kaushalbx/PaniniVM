@@ -129,6 +129,13 @@ object DerivationBlueprintCompiler {
                                         term.surface.startsWith("ष") &&
                                         ItMarker.SH !in term.itMarkers
                                 }
+                        SamjnaAssignmentTarget.PRATYAYA_INITIAL_CU_TTU ->
+                            derivation.stage == DerivationStage.PRATYAYA_SELECTED &&
+                                derivation.terms.any { term ->
+                                    term.kind == TermKind.PRATYAYA &&
+                                        term.initialCuTtuMarker()
+                                            ?.let { it !in term.itMarkers } == true
+                                }
                         }
                 if (!applicable) {
                     SutraNirnaya.NotApplicable(
@@ -181,6 +188,18 @@ object DerivationBlueprintCompiler {
                                     } else {
                                         term
                                     }
+                                SamjnaAssignmentTarget.PRATYAYA_INITIAL_CU_TTU -> {
+                                    val marker = if (term.kind == TermKind.PRATYAYA) {
+                                        term.initialCuTtuMarker()
+                                    } else {
+                                        null
+                                    }
+                                    if (marker != null) {
+                                        term.copy(itMarkers = term.itMarkers + marker)
+                                    } else {
+                                        term
+                                    }
+                                }
                             }
                         },
                     )
@@ -215,6 +234,16 @@ object DerivationBlueprintCompiler {
             surface.startsWith("डु") -> ItMarker.KIT
             else -> null
         }
+
+    private fun dev.panini.derivation.DerivationTerm.initialCuTtuMarker(): ItMarker? =
+        when (surface.firstOrNull()) {
+            in CU_INITIALS -> ItMarker.J
+            in TTU_INITIALS -> ItMarker.T
+            else -> null
+        }
+
+    private val CU_INITIALS = setOf('च', 'छ', 'ज', 'झ', 'ञ')
+    private val TTU_INITIALS = setOf('ट', 'ठ', 'ड', 'ढ', 'ण')
 
     private fun String.hasTusmaEnding(): Boolean =
         TUSMA_ENDINGS.any(::endsWith)
