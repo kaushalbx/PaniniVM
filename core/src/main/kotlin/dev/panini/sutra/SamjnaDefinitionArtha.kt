@@ -14,6 +14,7 @@ enum class Samjni {
     KRT_ENDING,
     TADDHITA_ENDING,
     SAMASA,
+    BHU_ADI_VERBAL_ROOT,
 }
 
 /** Typed domain representation of an interpretive saṃjñā definition. */

@@ -5,6 +5,9 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.shiksha.Samjna
+import dev.panini.sutra.ContextualSamjnaAssignmentArtha
+import dev.panini.sutra.SamjnaAssignmentTarget
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -24,6 +27,10 @@ object UpadesheAjanunasikaItSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Samjna,
     action = SutraAction.SAMJNA,
     scope = SutraScope.PRATYAYA,
+    artha = ContextualSamjnaAssignmentArtha(
+        target = SamjnaAssignmentTarget.UPADESHA_NASALIZED_VOWEL,
+        samjna = Samjna.IT,
+    ),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
         context.stage == DerivationStage.PRATYAYA_SELECTED && context.terms.any {

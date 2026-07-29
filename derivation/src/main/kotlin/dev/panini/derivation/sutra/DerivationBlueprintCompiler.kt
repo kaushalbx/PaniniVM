@@ -1,6 +1,11 @@
 package dev.panini.derivation.sutra
 
+import dev.panini.core.ItMarker
+import dev.panini.derivation.DerivationChange
+import dev.panini.derivation.DerivationStage
+import dev.panini.sutra.ContextualSamjnaAssignmentArtha
 import dev.panini.sutra.InterpretivePrincipleArtha
+import dev.panini.sutra.SamjnaAssignmentTarget
 import dev.panini.sutra.SamjnaDefinitionArtha
 import dev.panini.sutra.SamjnaSetDefinitionArtha
 import dev.panini.sutra.SamjniSetDefinitionArtha
@@ -12,6 +17,8 @@ import dev.panini.sutra.runtime.SutraNirnaya
 object DerivationBlueprintCompiler {
     fun compile(blueprint: SutraBlueprint): RuntimeSutra<DerivationAvastha> =
         when (blueprint.artha.kind) {
+            ContextualSamjnaAssignmentArtha.KIND ->
+                compileContextualSamjnaAssignment(blueprint)
             InterpretivePrincipleArtha.KIND -> compileInterpretivePrinciple(blueprint)
             SamjnaDefinitionArtha.KIND -> compileSamjnaDefinition(blueprint)
             SamjnaSetDefinitionArtha.KIND -> compileSamjnaSetDefinition(blueprint)
@@ -20,6 +27,62 @@ object DerivationBlueprintCompiler {
                 "Unsupported derivation blueprint meaning '${blueprint.artha.kind}' for ${blueprint.id}.",
             )
         }
+
+    private fun compileContextualSamjnaAssignment(
+        blueprint: SutraBlueprint,
+    ): RuntimeSutra<DerivationAvastha> {
+        val artha = ContextualSamjnaAssignmentArtha.fromSutraArtha(blueprint.artha)
+        require(artha.target == SamjnaAssignmentTarget.UPADESHA_NASALIZED_VOWEL) {
+            "Unsupported contextual saṃjñā target '${artha.target}' for ${blueprint.id}."
+        }
+
+        return RuntimeSutra(
+            id = blueprint.id,
+            source = blueprint.source,
+            role = blueprint.role,
+            artha = blueprint.artha,
+            evaluator = { _, state ->
+                val derivation = state.derivation
+                val applicable =
+                    derivation.stage == DerivationStage.PRATYAYA_SELECTED &&
+                        derivation.terms.any {
+                            it.surface.endsWith("ँ") && ItMarker.U !in it.itMarkers
+                        }
+                if (!applicable) {
+                    SutraNirnaya.NotApplicable(
+                        listOf("No unmarked nasalized vowel occurs in upadeśa."),
+                    )
+                } else {
+                    val changed = derivation.copy(
+                        terms = derivation.terms.map {
+                            if (it.surface.endsWith("ँ")) {
+                                it.copy(itMarkers = it.itMarkers + ItMarker.U)
+                            } else {
+                                it
+                            }
+                        },
+                    )
+                    SutraNirnaya.Applicable(
+                        effects = listOf(
+                            ApplyDerivationChange(
+                                sutraId = blueprint.id,
+                                change = DerivationChange(
+                                    state = changed,
+                                    explanation =
+                                        "${blueprint.id} assigns ${artha.samjna} to the matching upadeśa sound.",
+                                ),
+                            ),
+                        ),
+                        reasons = listOf(
+                            "A nasalized vowel in upadeśa requires the ${artha.samjna} designation.",
+                        ),
+                    )
+                }
+            },
+            relations = blueprint.relations,
+            governance = blueprint.governance,
+        )
+    }
 
     private fun compileInterpretivePrinciple(
         blueprint: SutraBlueprint,
