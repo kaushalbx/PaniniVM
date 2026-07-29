@@ -10,7 +10,17 @@ fun interface SankhyaResultRenderer {
 
 fun renderSankhyaResult(value: Long): String? {
     if (value < 0L) return null
-    return SankhyaResultRenderer.defaultRenderer.render(value)
+    val result = SankhyaResultRenderer.defaultRenderer.render(value)
+    if (result != null) return result
+
+    return try {
+        val clazz = Class.forName("dev.panini.sankhya.SankhyaCountingFormRenderer")
+        val initMethod = clazz.getMethod("init")
+        initMethod.invoke(null)
+        SankhyaResultRenderer.defaultRenderer.render(value)
+    } catch (_: Throwable) {
+        null
+    }
 }
 
 fun ExecutionContext.resolveSankhyaValues(expression: ExecutionExpression): List<Long>? {

@@ -30,4 +30,13 @@ class SankhyaCountingFormRendererTest {
             assertEquals(surface, renderer.render(value), "$value")
         }
     }
+
+    @Test
+    fun `renderSankhyaResult automatically initializes SankhyaCountingFormRenderer fallback`() {
+        dev.panini.execution.SankhyaResultRenderer.defaultRenderer = dev.panini.execution.SankhyaResultRenderer { null }
+        assertEquals("पञ्चदश", dev.panini.execution.renderSankhyaResult(15L))
+        assertEquals("शून्यम्", dev.panini.execution.renderSankhyaResult(0L))
+        assertEquals("एकम्", dev.panini.execution.renderSankhyaResult(1L))
+        assertEquals("द्वे", dev.panini.execution.renderSankhyaResult(2L))
+    }
 }

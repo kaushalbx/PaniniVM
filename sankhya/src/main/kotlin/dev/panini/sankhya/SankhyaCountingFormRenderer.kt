@@ -9,6 +9,7 @@ class SankhyaCountingFormRenderer(
 ) : SankhyaResultRenderer {
 
     companion object {
+        @JvmStatic
         fun init() {
             if (SankhyaResultRenderer.defaultRenderer !is SankhyaCountingFormRenderer) {
                 SankhyaCountingFormRenderer()
