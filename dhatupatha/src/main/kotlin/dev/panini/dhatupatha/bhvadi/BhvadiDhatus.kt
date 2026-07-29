@@ -6736,6 +6736,7 @@ object BhvadiDhatus {
                 ItStatus.SET,
                 Karmatva.AKARMAKA,
                 Accent.UDATTA,
+                semanticRelations = setOf(SemanticRelation.RECIPIENT),
             )
             dhatu(
                 "01.0848", 848, "घुटँ", "घुट्",
@@ -7973,6 +7974,7 @@ object BhvadiDhatus {
                 "01.1044", 1044, "श्रिञ्", "श्रि",
                 "सेवायाम्", "सेवा करना", "to serve",
                 PadaType.UBHAYAPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
+                semanticRelations = setOf(SemanticRelation.RECIPIENT),
             )
             dhatu(
                 "01.1045",
@@ -8002,6 +8004,7 @@ object BhvadiDhatus {
                 "01.1049", 1049, "णीञ्", "नी",
                 "प्रापणे", "प्राप्त होना, ले जाना, पाना", "to obtain, to carry, to take",
                 PadaType.UBHAYAPADA, ItStatus.ANIT, Karmatva.DVIKARMAKA, Accent.ANUDATTA,
+                semanticRelations = setOf(SemanticRelation.DESIRED_OBJECT, SemanticRelation.MOTION_GOAL),
             )
             dhatu(
                 "01.1050", 1050, "धेट्", "धे",
@@ -8241,6 +8244,7 @@ object BhvadiDhatus {
                 "01.1082", 1082, "स्मृ", "स्मृ",
                 "चिन्तायाम्", "स्मरण करना, याद करना", "to remember,to recollect,to memorize",
                 PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
+                semanticRelations = setOf(SemanticRelation.MEMORY_OR_RULING_OBJECT),
             )
             dhatu(
                 "01.1083", 1083, "वृ", "वृ",
