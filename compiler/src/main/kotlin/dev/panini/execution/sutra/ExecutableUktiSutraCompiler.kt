@@ -57,9 +57,6 @@ object ExecutableUktiSutraCompiler {
         granthaId: GranthaId = GranthaId("ukti"),
     ): SutraBlueprintGrantha {
         val dependenciesByTarget = ukti.dependencies.groupBy { it.after }
-        val repetitionByBody = ukti.controlRelations
-            .filterIsInstance<dev.panini.execution.ExecutionControlRelation.ConditionalDuration>()
-            .associateBy { it.body }
         val sutras = ukti.invocations.mapIndexed { index, invocation ->
             val id = SutraId(invocation.id)
             val prerequisites = dependenciesByTarget[invocation.id]
@@ -137,16 +134,6 @@ object ExecutableUktiSutraCompiler {
                                 prerequisites.map(SutraArthaValue::SutraReference),
                             ),
                         )
-                        repetitionByBody[invocation.id]?.let { repetition ->
-                            put(
-                                "repeatWhile",
-                                SutraArthaValue.SutraReference(SutraId(repetition.condition)),
-                            )
-                            put(
-                                "maximumIterations",
-                                SutraArthaValue.Number(repetition.maximumIterations.toLong()),
-                            )
-                        }
                     },
                 ),
                 relations = prerequisites.mapTo(linkedSetOf()) { SutraRelation.DependsOn(it) },

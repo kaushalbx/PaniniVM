@@ -1,7 +1,6 @@
 package dev.panini.execution.sutra
 
 import dev.panini.sutra.runtime.GranthaId
-import dev.panini.sutra.runtime.SutraArthaValue
 import dev.panini.sutra.runtime.SutraBlueprintGranthaTextCodec
 import dev.panini.sutra.runtime.SutraBlueprintGranthaTextDecoding
 import dev.panini.sutra.runtime.SutraSource
@@ -34,22 +33,4 @@ class SanskritGranthaSourceCompilerTest {
         }
     }
 
-    @Test
-    fun `two physical yavat tavat lines compile as one controlled utterance`() {
-        val compiled = assertIs<SanskritGranthaSourceCompilation.Success>(
-            SanskritGranthaSourceCompiler.compile(
-                """
-                यावत् शून्य + अम् एक + औट् च विद् + लोट् + सिप् ।
-                तावत् एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।
-                """.trimIndent(),
-                GranthaId("duration"),
-            ),
-        )
-
-        assertEquals(2, compiled.grantha.sutras.size)
-        assertEquals(
-            SutraArthaValue.SutraReference(compiled.grantha.sutras[0].id),
-            compiled.grantha.sutras[1].artha.fields["repeatWhile"],
-        )
-    }
 }

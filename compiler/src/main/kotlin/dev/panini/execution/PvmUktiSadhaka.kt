@@ -68,8 +68,6 @@ class PvmUktiSadhaka(
                 val alternate = if (structure.hasAlternate) " अन्यथा ${vakyaText(2)}" else ""
                 parts += "यदि ${vakyaText(0)} तर्हि ${vakyaText(1)}$alternate ।"
             }
-            UktiStructure.YavatTavat ->
-                parts += "यावत् ${vakyaText(0)} तावत् ${vakyaText(1)} ।"
         }
 
         return parts.joinToString(" ")

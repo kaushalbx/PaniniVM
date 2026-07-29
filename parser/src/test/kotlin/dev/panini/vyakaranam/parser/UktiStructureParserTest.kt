@@ -1,6 +1,8 @@
 package dev.panini.vyakaranam.parser
 
 import dev.panini.vyakaranam.ast.UktiStructure
+import dev.panini.vyakaranam.ast.AkhyataVakya
+import dev.panini.vyakaranam.ast.AvyayaPada
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -19,12 +21,13 @@ class UktiStructureParserTest {
     }
 
     @Test
-    fun `retains yavat tavat construction after parsing`() {
+    fun `yavat remains an ordinary avyaya rather than control syntax`() {
         val ukti = parser.parse(
-            "यावत् गणना + अम् विद् + लोट् + सिप् तावत् पूर्व + अम् युज् + लोट् + सिप् ।",
+            "यावत् राम + सुँ गम् + लट् + तिप् ।",
         )
 
-        assertEquals(2, ukti.vakyas.size)
-        assertIs<UktiStructure.YavatTavat>(ukti.structure)
+        assertEquals(UktiStructure.Sequence, ukti.structure)
+        val vakya = assertIs<AkhyataVakya>(ukti.vakyas.single())
+        assertEquals("यावत्", assertIs<AvyayaPada>(vakya.padas.first()).form)
     }
 }

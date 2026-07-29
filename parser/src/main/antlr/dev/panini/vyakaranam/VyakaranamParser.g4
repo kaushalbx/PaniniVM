@@ -14,7 +14,6 @@ package dev.panini.parser;
 
 ukti
     : conditionalClause
-    | loopClause
     | sambodhana?
       vakya
       (vakyaSambandha vakya)*
@@ -24,10 +23,6 @@ ukti
 
 conditionalClause
     : YADI condition=vakya TARHI consequent=vakya (ANYATHA alternate=vakya)? DANDA? EOF
-    ;
-
-loopClause
-    : YAVAT condition=vakya TAVAT body=vakya DANDA? EOF
     ;
 
 // ============================================================================
@@ -616,6 +611,8 @@ sankhyaAvyaya
 
 mulaAvyaya
     : MAA
+    | YAVAT
+    | TAVAT
     | NA
     | ITI
     | API

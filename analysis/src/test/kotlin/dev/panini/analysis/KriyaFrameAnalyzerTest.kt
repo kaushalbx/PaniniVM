@@ -107,19 +107,6 @@ class KriyaFrameAnalyzerTest {
         assertEquals(analysis.links, analysis.frames[1].links)
     }
 
-    @Test
-    fun `yavat tavat relates the condition to the repeatedly eligible kriya`() {
-        val analysis = UktiAnalyzer(analyzer).analyze(
-            Ukti(
-                sourceText = "यावत् ... तावत् ...",
-                vakyas = listOf(akhyata(), akhyata()),
-                structure = UktiStructure.YavatTavat,
-            ),
-        )
-
-        assertIs<KriyaLink.ConditionalDuration>(analysis.links.single())
-    }
-
     private fun subanta(source: String, stem: String, sup: String): SubantaPada =
         SubantaPada(
             sourceText = source,

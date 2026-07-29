@@ -18,7 +18,6 @@ data class Ukti(
 sealed interface UktiStructure {
     data object Sequence : UktiStructure
     data class Conditional(val hasAlternate: Boolean) : UktiStructure
-    data object YavatTavat : UktiStructure
 }
 
 data class Sambodhana(

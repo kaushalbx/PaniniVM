@@ -3,14 +3,11 @@ package dev.panini.execution.sutra
 import dev.panini.derivation.LinguisticActionsInitializer
 import dev.panini.dhatupatha.DhatuPathaRegistration
 import dev.panini.dhatupatha.bhvadi.DrshDhatu
-import dev.panini.dhatupatha.rudhadi.VidDhatu
-import dev.panini.dhatupatha.rudhadi.YujirDhatu
 import dev.panini.core.Karaka
 import dev.panini.execution.DhatuInvocation
 import dev.panini.execution.ExecutableUkti
 import dev.panini.execution.ExecutionBindingResult
 import dev.panini.execution.ExecutionEffect
-import dev.panini.execution.ExecutionControlRelation
 import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.ExecutionScope
@@ -154,68 +151,6 @@ class ExecutableUktiSutraMigrationTest {
         )
         assertEquals(12L, generatedNumber.value)
         assertEquals(1, migrated.trace.size)
-    }
-
-    @Test
-    fun `conditional duration repeatedly evaluates ordinary kriya effects`() {
-        val condition = DhatuInvocation(
-            id = "condition",
-            dhatu = VidDhatu(),
-            bindings = mapOf(
-                Karaka.KARMAN to ExecutionExpression.Coordination(
-                    ExecutionExpression.sankhya(3, "त्रि"),
-                    ExecutionExpression.Reference("body"),
-                ),
-            ),
-        )
-        val body = DhatuInvocation(
-            id = "body",
-            dhatu = YujirDhatu(),
-            bindings = mapOf(
-                Karaka.KARMAN to ExecutionExpression.Coordination(
-                    ExecutionExpression.Reference("body"),
-                    ExecutionExpression.sankhya(1, "एक"),
-                ),
-            ),
-        )
-        val ukti = ExecutableUkti(
-            speaker = "प्रयोक्ता",
-            listener = "यन्त्रम्",
-            text = "यावत् अवस्था तावत् क्रिया",
-            prayojana = VakyaPrayojana.AJNA,
-            invocations = listOf(condition, body),
-            controlRelations = setOf(
-                ExecutionControlRelation.ConditionalDuration(
-                    condition = condition.id,
-                    body = body.id,
-                    maximumIterations = 10,
-                ),
-            ),
-        )
-
-        val result = assertIs<SutraMachineResult.Success<ProgramAvastha>>(
-            SutraMachine(
-                ProgramSutraEffectInterpreter(
-                    ExecutionScope(capabilities = setOf(ExecutionEffect.PURE)),
-                ),
-            ).process(
-                ExecutableUktiSutraCompiler.compile(ukti),
-                ProgramAvastha(
-                    ValueEnvironment(
-                        mapOf("body" to SanskritValue.Sankhya(0, "शून्य")),
-                    ),
-                ),
-            ),
-        )
-        assertEquals(
-            3L,
-            assertIs<SanskritValue.Sankhya>(result.state.invocationValues["body"]).value,
-        )
-        assertEquals(
-            false,
-            assertIs<SanskritValue.Satya>(result.state.invocationValues["condition"]).boolean,
-        )
-        assertEquals(setOf(SutraId("condition"), SutraId("body")), result.state.completedSutras)
     }
 
     @Test

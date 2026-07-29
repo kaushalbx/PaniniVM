@@ -8,7 +8,6 @@ import dev.panini.execution.AmbiguousKarakaBinding
 import dev.panini.execution.DhatuInvocation
 import dev.panini.execution.ExecutableUkti
 import dev.panini.execution.ExecutionBindingResult
-import dev.panini.execution.ExecutionControlRelation
 import dev.panini.execution.ExecutionExpression
 import dev.panini.shiksha.Samjna
 import dev.panini.execution.GrammaticalFeatures
@@ -20,7 +19,6 @@ import dev.panini.sankhya.SankhyaGenerator
 import dev.panini.analysis.FrameKarakaResolution
 import dev.panini.analysis.KarakaInference
 import dev.panini.analysis.KriyaFrame
-import dev.panini.analysis.KriyaLink
 import dev.panini.analysis.PadaAnalyzer
 import dev.panini.analysis.UktiAnalyzer
 import dev.panini.analysis.VakyaAnalyzer
@@ -165,26 +163,9 @@ object VyakaranamExecutionAdapter {
                 polarity = if (prohibition) Polarity.NEGATIVE else Polarity.POSITIVE,
                 lakara = lakara,
                 invocations = invocations,
-                controlRelations = utteranceAnalysis.links
-                    .filterIsInstance<KriyaLink.ConditionalDuration>()
-                    .mapTo(linkedSetOf()) { link ->
-                        ExecutionControlRelation.ConditionalDuration(
-                            condition = invocationId(link.source, utteranceAnalysis.frames),
-                            body = invocationId(link.target, utteranceAnalysis.frames),
-                        )
-                    },
             ),
             listOf("Bound canonical vyākaraṇa AST with ${ukti.vakyas.size} clause(s) directly to execution."),
         )
-    }
-
-    private fun invocationId(
-        kriyaId: dev.panini.analysis.KriyaId,
-        frames: List<KriyaFrame>,
-    ): String {
-        val index = frames.indexOfFirst { it.id == kriyaId }
-        require(index >= 0) { "Kriyā frame $kriyaId is not part of the utterance analysis." }
-        return "योग-${index + 1}"
     }
 
     private fun purposeRequiresListenerAsAgent(prayer: Boolean, lakara: Lakara): Boolean =

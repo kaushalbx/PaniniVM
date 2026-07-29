@@ -13,9 +13,6 @@ class VyakaranamAstBuilder {
         val vakyas = if (context.conditionalClause() != null) {
             val condCtx = context.conditionalClause()!!
             listOf(buildVakya(condCtx.condition!!)) + listOf(buildVakya(condCtx.consequent!!)) + (condCtx.alternate?.let { listOf(buildVakya(it)) } ?: emptyList())
-        } else if (context.loopClause() != null) {
-            val loopCtx = context.loopClause()!!
-            listOf(buildVakya(loopCtx.condition!!), buildVakya(loopCtx.body!!))
         } else {
             context.vakya().map(::buildVakya)
         }
@@ -28,7 +25,6 @@ class VyakaranamAstBuilder {
             structure = when {
                 context.conditionalClause() != null ->
                     UktiStructure.Conditional(context.conditionalClause()!!.alternate != null)
-                context.loopClause() != null -> UktiStructure.YavatTavat
                 else -> UktiStructure.Sequence
             },
         )

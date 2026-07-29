@@ -7,7 +7,6 @@ import dev.panini.execution.DevanagariDigits
 import dev.panini.execution.ExecutableUkti
 import dev.panini.execution.ExecutionBindingResult
 import dev.panini.execution.ExecutionExpression
-import dev.panini.execution.ExecutionControlRelation
 import dev.panini.execution.ExecutionPlan
 import dev.panini.execution.ExecutionPlanner
 import dev.panini.execution.ExecutionResult
@@ -49,13 +48,7 @@ object SanskritGranthaSourceCompiler {
         ),
     ): SanskritGranthaSourceCompilation {
         DhatuPathaRegistration.ensureRegistered()
-        val lines = try {
-            PvmScript.parse(source).map { it.text }
-        } catch (error: IllegalArgumentException) {
-            return SanskritGranthaSourceCompilation.Invalid(
-                listOf(error.message ?: "Invalid PVM statement structure."),
-            )
-        }
+        val lines = PvmScript.parse(source).map { it.text }
         if (lines.isEmpty()) {
             return SanskritGranthaSourceCompilation.Invalid(
                 listOf("A Sanskrit grantha requires at least one executable utterance."),
@@ -125,15 +118,6 @@ object SanskritGranthaSourceCompiler {
             val globalUkti = bound.ukti.copy(
                 invocations = globalInvocations,
                 dependencies = dependencies,
-                controlRelations = bound.ukti.controlRelations.mapTo(linkedSetOf()) { relation ->
-                    when (relation) {
-                        is ExecutionControlRelation.ConditionalDuration ->
-                            relation.copy(
-                                condition = localIds.getValue(relation.condition),
-                                body = localIds.getValue(relation.body),
-                            )
-                    }
-                },
             )
             sutras += ExecutableUktiSutraCompiler
                 .compileBlueprintGrantha(globalUkti, granthaId)

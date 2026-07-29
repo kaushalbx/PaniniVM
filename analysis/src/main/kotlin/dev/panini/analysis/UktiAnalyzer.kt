@@ -50,8 +50,6 @@ class UktiAnalyzer(
                     add(KriyaLink.Alternative(frames[0].id, frames[2].id))
                 }
             }
-            UktiStructure.YavatTavat ->
-                listOf(KriyaLink.ConditionalDuration(frames[0].id, frames[1].id))
         }
     }
 }

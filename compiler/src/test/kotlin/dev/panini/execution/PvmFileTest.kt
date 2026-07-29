@@ -155,18 +155,6 @@ class PvmFileTest {
     }
 
     @Test
-    fun `PaniniVM groups and evaluates a two-line yavat tavat pvm construction`() {
-        val pvmFile = File("examples/control_flow/conditional_duration.pvm")
-
-        val results = vm.evalFile(pvmFile, sessionKey = "conditional_duration_session")
-
-        assertEquals(1, results.size)
-        val result = assertIs<ExecutionResult.Success>(results.single())
-        assertEquals("असत्यम्", result.value)
-        assertIs<SanskritValue.Satya>(result.typedValue)
-    }
-
-    @Test
     fun `PaniniVM evaluates emit_demo pvm file containing io emit utterances`() {
         val pvmFile = File("examples/io/emit_demo.pvm")
         val txtFile = File("examples/io/emit_demo.txt")
