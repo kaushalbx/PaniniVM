@@ -3,6 +3,8 @@ package dev.panini.ashtadhyayi.adhyaya1.pada1
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.sutra.InterpretivePrinciple
+import dev.panini.sutra.InterpretivePrincipleArtha
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -18,6 +20,7 @@ object SvamRupamSabdasyasabdasamjnaSutra : Sutra<DerivationState, DerivationChan
     hindiExplanation = "व्याकरणशास्त्र में शब्द अपने ही रूप (ध्वनि) का बोधक होता है, जब तक कि वह शास्त्रीय संज्ञा न हो।",
     type = SutraType.SAMJNA, chapter = 1, pada = 1, optional = false, kramaValue = 110068,
     role = SutraRole.Paribhasha(), action = SutraAction.PARIBHASHA, scope = SutraScope.DERIVATION,
+    artha = InterpretivePrincipleArtha(InterpretivePrinciple.SELF_FORM_REFERENCE),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
         "1.1.68" !in context.activeAdhikaras
