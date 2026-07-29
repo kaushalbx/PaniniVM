@@ -97,22 +97,38 @@ object DerivationBlueprintCompiler {
             evaluator = { _, state ->
                 val derivation = state.derivation
                 val applicable =
-                    derivation.stage == DerivationStage.PRATYAYA_SELECTED && when (artha.target) {
+                    when (artha.target) {
                         SamjnaAssignmentTarget.UPADESHA_NASALIZED_VOWEL ->
-                            derivation.terms.any {
-                                it.surface.endsWith("ँ") && ItMarker.U !in it.itMarkers
-                            }
+                            derivation.stage == DerivationStage.PRATYAYA_SELECTED &&
+                                derivation.terms.any {
+                                    it.surface.endsWith("ँ") && ItMarker.U !in it.itMarkers
+                                }
                         SamjnaAssignmentTarget.UPADESHA_FINAL_CONSONANT ->
-                            derivation.terms.any { term ->
-                                term.kind != TermKind.PRATIPADIKA &&
-                                    term.id !in RESOLVED_AGAMAS &&
-                                    term.surface.endsWith("्") &&
-                                    term.surface.length >= 2 &&
-                                    Varnamala.isConsonant(
-                                        term.surface[term.surface.length - 2],
-                                    ) &&
-                                    term.itMarkers.isEmpty()
-                            }
+                            derivation.stage == DerivationStage.PRATYAYA_SELECTED &&
+                                derivation.terms.any { term ->
+                                    term.kind != TermKind.PRATIPADIKA &&
+                                        term.id !in RESOLVED_AGAMAS &&
+                                        term.surface.endsWith("्") &&
+                                        term.surface.length >= 2 &&
+                                        Varnamala.isConsonant(
+                                            term.surface[term.surface.length - 2],
+                                        ) &&
+                                        term.itMarkers.isEmpty()
+                                }
+                        SamjnaAssignmentTarget.DHATU_UPADESHA_INITIAL_NI_TU_DU ->
+                            derivation.stage == DerivationStage.INITIAL &&
+                                derivation.terms.any { term ->
+                                    term.kind == TermKind.DHATU &&
+                                        term.initialNiTuDuMarker()
+                                            ?.let { it !in term.itMarkers } == true
+                                }
+                        SamjnaAssignmentTarget.PRATYAYA_INITIAL_SSA ->
+                            derivation.stage == DerivationStage.PRATYAYA_SELECTED &&
+                                derivation.terms.any { term ->
+                                    term.kind == TermKind.PRATYAYA &&
+                                        term.surface.startsWith("ष") &&
+                                        ItMarker.SH !in term.itMarkers
+                                }
                         }
                 if (!applicable) {
                     SutraNirnaya.NotApplicable(
@@ -144,6 +160,27 @@ object DerivationBlueprintCompiler {
                                         term
                                     }
                                 }
+                                SamjnaAssignmentTarget.DHATU_UPADESHA_INITIAL_NI_TU_DU -> {
+                                    val marker = if (term.kind == TermKind.DHATU) {
+                                        term.initialNiTuDuMarker()
+                                    } else {
+                                        null
+                                    }
+                                    if (marker != null) {
+                                        term.copy(itMarkers = term.itMarkers + marker)
+                                    } else {
+                                        term
+                                    }
+                                }
+                                SamjnaAssignmentTarget.PRATYAYA_INITIAL_SSA ->
+                                    if (
+                                        term.kind == TermKind.PRATYAYA &&
+                                        term.surface.startsWith("ष")
+                                    ) {
+                                        term.copy(itMarkers = term.itMarkers + ItMarker.SH)
+                                    } else {
+                                        term
+                                    }
                             }
                         },
                     )
@@ -170,6 +207,14 @@ object DerivationBlueprintCompiler {
     }
 
     private val RESOLVED_AGAMAS = setOf("siyut", "yasut", "vuk", "nic")
+
+    private fun dev.panini.derivation.DerivationTerm.initialNiTuDuMarker(): ItMarker? =
+        when {
+            surface.startsWith("ञि") -> ItMarker.KIT
+            surface.startsWith("टु") -> ItMarker.T
+            surface.startsWith("डु") -> ItMarker.KIT
+            else -> null
+        }
 
     private fun String.hasTusmaEnding(): Boolean =
         TUSMA_ENDINGS.any(::endsWith)

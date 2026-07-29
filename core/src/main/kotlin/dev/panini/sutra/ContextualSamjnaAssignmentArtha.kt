@@ -8,6 +8,8 @@ import dev.panini.sutra.runtime.SutraArthaValue
 enum class SamjnaAssignmentTarget {
     UPADESHA_NASALIZED_VOWEL,
     UPADESHA_FINAL_CONSONANT,
+    DHATU_UPADESHA_INITIAL_NI_TU_DU,
+    PRATYAYA_INITIAL_SSA,
 }
 
 /** Typed meaning for a saṃjñā assigned to matching derivation material. */

@@ -6,6 +6,9 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
+import dev.panini.shiksha.Samjna
+import dev.panini.sutra.ContextualSamjnaAssignmentArtha
+import dev.panini.sutra.SamjnaAssignmentTarget
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -28,6 +31,10 @@ object AdirNitudavahSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Samjna,
     action = SutraAction.SAMJNA,
     scope = SutraScope.DHATU,
+    artha = ContextualSamjnaAssignmentArtha(
+        target = SamjnaAssignmentTarget.DHATU_UPADESHA_INITIAL_NI_TU_DU,
+        samjna = Samjna.IT,
+    ),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
         context.stage == DerivationStage.INITIAL && context.terms.any { term ->
