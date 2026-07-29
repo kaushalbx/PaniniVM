@@ -9,6 +9,7 @@ import dev.panini.derivation.sutra.DerivationAvastha
 import dev.panini.derivation.sutra.InterpretivePrincipleDefinition
 import dev.panini.derivation.sutra.SamjnaDefinition
 import dev.panini.sutra.ContextualSamjnaAssignmentArtha
+import dev.panini.sutra.ArthavatSutra
 import dev.panini.sutra.ContextualProhibitionArtha
 import dev.panini.sutra.InterpretivePrincipleArtha
 import dev.panini.sutra.ProhibitionTarget
@@ -91,13 +92,13 @@ object AshtadhyayiCompiler {
     ): RuntimeSutra<DerivationAvastha> {
         val artha = ContextualSamjnaAssignmentArtha.fromSutraArtha(blueprint.artha)
         val sutra = Ashtadhyayi.registry.require(blueprint.id.value)
+        require((sutra as? ArthavatSutra)?.artha == artha) {
+            "Blueprint meaning for ${blueprint.id} differs from the registered sūtra meaning."
+        }
         val executable = sutra as? ContextualSamjnaSutra
             ?: error(
                 "Contextual assignment ${blueprint.id} must implement ContextualSamjnaSutra.",
             )
-        require(executable.artha == artha) {
-            "Blueprint meaning for ${blueprint.id} differs from the registered sūtra meaning."
-        }
 
         return RuntimeSutra(
             id = blueprint.id,

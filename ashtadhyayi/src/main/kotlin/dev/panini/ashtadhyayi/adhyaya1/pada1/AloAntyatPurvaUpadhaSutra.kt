@@ -6,7 +6,7 @@ import dev.panini.sutra.SutraInput
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SamjnaDefinitionArtha
 import dev.panini.sutra.Samjni
-import dev.panini.sutra.SamjnaVidhayakaSutra
+import dev.panini.sutra.ArthavatSutra
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
@@ -21,7 +21,7 @@ object AloAntyatPurvaUpadhaSutra : Sutra<String, Char?>(
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.VARNA,
     inputs = setOf(SutraInput.VARNA),
     adhikara = emptySet(),
-), SamjnaVidhayakaSutra {
+), ArthavatSutra {
     override val artha = SamjnaDefinitionArtha(
         samjni = Samjni.PENULTIMATE_SOUND,
         samjna = dev.panini.shiksha.Samjna.UPADHA,

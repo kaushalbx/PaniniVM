@@ -8,7 +8,7 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SamjnaDefinitionArtha
 import dev.panini.sutra.Samjni
-import dev.panini.sutra.SamjnaVidhayakaSutra
+import dev.panini.sutra.ArthavatSutra
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
@@ -29,7 +29,7 @@ object AdarsanamLopaSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Samjna,
     action = SutraAction.SAMJNA,
     scope = SutraScope.DERIVATION,
-), DerivationSutra, SamjnaVidhayakaSutra {
+), DerivationSutra, ArthavatSutra {
     override val artha = SamjnaDefinitionArtha(
         samjni = Samjni.ADARSHANA,
         samjna = dev.panini.shiksha.Samjna.LOPA,

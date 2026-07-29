@@ -2,11 +2,11 @@ package dev.panini.ashtadhyayi.runtime
 
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
+import dev.panini.sutra.ArthavatSutra
 import dev.panini.sutra.ContextualSamjnaAssignmentArtha
-import dev.panini.sutra.PrasangikaSamjnaVidhayakaSutra
 
 /** Runtime contract for a sūtra assigning a saṃjñā to matching derivation material. */
-interface ContextualSamjnaSutra : PrasangikaSamjnaVidhayakaSutra {
+interface ContextualSamjnaSutra : ArthavatSutra {
     override val artha: ContextualSamjnaAssignmentArtha
 
     fun hasSamjnaTarget(state: DerivationState): Boolean

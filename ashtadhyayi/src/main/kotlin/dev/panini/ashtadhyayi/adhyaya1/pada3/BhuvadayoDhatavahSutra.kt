@@ -8,7 +8,7 @@ import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.SamjnaDefinitionArtha
 import dev.panini.sutra.Samjni
-import dev.panini.sutra.SamjnaVidhayakaSutra
+import dev.panini.sutra.ArthavatSutra
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -31,7 +31,7 @@ object BhuvadayoDhatavahSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Samjna,
     action = SutraAction.SAMJNA,
     scope = SutraScope.DHATU,
-), DerivationSutra, SamjnaVidhayakaSutra {
+), DerivationSutra, ArthavatSutra {
     override val artha = SamjnaDefinitionArtha(
         samjni = Samjni.BHU_ADI_VERBAL_ROOT,
         samjna = Samjna.DHATU,

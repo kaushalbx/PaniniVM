@@ -2,7 +2,7 @@ package dev.panini.ashtadhyayi.adhyaya1.pada1
 
 import dev.panini.sutra.InterpretivePrinciple
 import dev.panini.sutra.InterpretivePrincipleArtha
-import dev.panini.sutra.ParibhashaVidhayakaSutra
+import dev.panini.sutra.ArthavatSutra
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraInput
@@ -21,7 +21,7 @@ object TaparasTatKalasyaSutra : Sutra<String, Boolean>(
     role = SutraRole.Paribhasha(), action = SutraAction.PARIBHASHA, scope = SutraScope.VARNA,
     inputs = setOf(SutraInput.VARNA),
     adhikara = emptySet(),
-), ParibhashaVidhayakaSutra {
+), ArthavatSutra {
     override val artha = InterpretivePrincipleArtha(
         InterpretivePrinciple.T_MARKED_SOUND_SAME_DURATION,
     )
