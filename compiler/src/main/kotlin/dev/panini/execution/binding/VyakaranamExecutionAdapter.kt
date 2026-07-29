@@ -239,6 +239,7 @@ object VyakaranamExecutionAdapter {
             when (pada) {
                 is SubantaPada -> add(pada)
                 is SankhyaPada -> {
+                    if (pada.stems.contains("कृत्वः") || pada.stems.contains("कृत्वस")) return@forEachIndexed
                     var targetIdx = -1
                     var nextVal: Long? = null
                     val lastStem = pada.stems.lastOrNull()
@@ -283,11 +284,9 @@ object VyakaranamExecutionAdapter {
                     )
                 }
                 is SankhyaAbhyasaPada -> {
-                    val value = pada.value ?: sankhyaEvaluator.evaluateStems(pada.stems).value
-                    addBinding(
-                        ExecutionExpression.Companion.sankhya(value, pada.sourceText),
-                        setOf(Karaka.ANIRDHARITA, Karaka.KARMAN),
-                    )
+                    // अभ्यास-सङ्ख्या qualifies the action with a repetition count; it is
+                    // metadata for execution, not one of the action's numeric arguments.
+                    Unit
                 }
                 is KatapayadiPada -> {
                     val value = pada.value ?: katapayadiDecoder.decode(pada.word)
@@ -324,8 +323,19 @@ object VyakaranamExecutionAdapter {
                 else -> Unit
             }
         }
-        val bindings = grouped.mapValues { (_, values) ->
-            if (values.size == 1) values.single() else ExecutionExpression.Coordination(values)
+        val bindings = grouped.mapValues { (karaka, values) ->
+            val filteredValues = if (karaka == Karaka.KARMAN && values.size > 1) {
+                val abhyasaPadas = padas.filterIsInstance<SankhyaAbhyasaPada>()
+                val nonAbhyasa = values.filterNot { expr ->
+                    expr is ExecutionExpression.Pada && abhyasaPadas.any { p ->
+                        p.sourceText.contains(expr.prakriti) || expr.prakriti.contains(p.sourceText) || p.stems.contains(expr.prakriti)
+                    }
+                }
+                if (nonAbhyasa.isNotEmpty()) nonAbhyasa else values
+            } else {
+                values
+            }
+            if (filteredValues.size == 1) filteredValues.single() else ExecutionExpression.Coordination(filteredValues)
         }
         trace += frame.qualifications.map {
             "Kriyā qualification ${it.kind}: ${it.value}"
@@ -353,8 +363,7 @@ object VyakaranamExecutionAdapter {
         ) {
             resolvedId = text
         } else if (text == "पूर्वफल" || text == "पूर्वपूर्वफल") {
-            resolvedId = if (clauseIndex > 0) "योग-$clauseIndex" else
-                conversation?.resultHistory?.lastOrNull()?.id ?: conversation?.previousResults?.keys?.lastOrNull() ?: text
+            resolvedId = text
         } else if (text == "फल") {
             resolvedId = if (clauseIndex > 0) "योग-$clauseIndex" else
                 conversation?.resultHistory?.lastOrNull()?.id ?: conversation?.previousResults?.keys?.lastOrNull()
@@ -427,17 +436,25 @@ object VyakaranamExecutionAdapter {
     private fun extractFrequencyCount(padas: List<Pada>, frame: KriyaFrame): Int? {
         val sankhyaAbhyasa = padas.filterIsInstance<SankhyaAbhyasaPada>().firstOrNull()
         if (sankhyaAbhyasa != null) {
-            val evaluated = sankhyaEvaluator.evaluateStems(sankhyaAbhyasa.stems)
+            val numStems = sankhyaAbhyasa.stems.filter { it != "कृत्वः" && it != "कृत्वा" }
+            val evaluated = if (numStems.isNotEmpty()) sankhyaEvaluator.evaluateStems(numStems) else sankhyaEvaluator.evaluateStems(sankhyaAbhyasa.stems)
             return evaluated.value.toInt()
         }
         val freqQual = frame.qualifications.firstOrNull { it.kind == KriyaQualificationKind.FREQUENCY }
         if (freqQual != null) {
-            return when (freqQual.value) {
+            val text = freqQual.value
+            if (text.endsWith("कृत्वः")) {
+                val prefix = text.removeSuffix("कृत्वः")
+                val eval = sankhyaEvaluator.evaluateStems(listOf(prefix))
+                if (eval.value > 0) return eval.value.toInt()
+            }
+            return when (text) {
                 "सकृत्" -> 1
                 "द्विः", "द्विकृत्वः" -> 2
                 "त्रिः", "त्रिकृत्वः" -> 3
                 "चतुः" -> 4
                 "पञ्चकृत्वः" -> 5
+                "दशकृत्वः" -> 10
                 "शतकृत्वः" -> 100
                 "बहुकृत्वः" -> 10
                 "पुनः", "पुनर्" -> 2

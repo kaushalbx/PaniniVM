@@ -33,9 +33,9 @@ class PuranaAbhyasaExecutionTest {
 
     @Test
     fun `PaniniVM evaluates segmented sankhyaAbhyasaPada`() {
-        val result = vm.eval("पञ्च + कृत्वः दश + अम् युज् + णिच् + लोट् + सिप् ।")
+        val result = vm.eval("पञ्च + कृत्वः दश + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ।")
         val success = assertIs<ExecutionResult.Success>(result, result.toString())
         val sankhya = assertIs<SanskritValue.Sankhya>(success.typedValue)
-        assertEquals(15L, sankhya.value)
+        assertEquals(12L, sankhya.value)
     }
 }

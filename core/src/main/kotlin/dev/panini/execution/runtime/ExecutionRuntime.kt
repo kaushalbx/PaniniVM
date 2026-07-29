@@ -57,7 +57,7 @@ object ExecutionRuntime {
             val repeatCount = plan.resolved.context.metadata["frequencyCount"]?.toIntOrNull() ?: 1
             for (repeat in 1..repeatCount) {
                 val refreshedContext = plan.resolved.context.copy(
-                    variables = values,
+                    variables = values.filterKeys { it != plan.invocationId },
                     stateStore = scope.stateStore,
                     externalDispatcher = scope.externalDispatcher,
                     sutraRegistry = scope.sutraRegistry,

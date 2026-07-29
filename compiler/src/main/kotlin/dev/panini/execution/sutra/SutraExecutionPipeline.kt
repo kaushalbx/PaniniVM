@@ -192,8 +192,8 @@ object SutraExecutionPipeline {
         val conversationEnvironment = ValueEnvironment.from(
             displayValues = conversation.mentionedEntities + conversation.previousResults,
             samjnas = conversation.mentionedEntitySamjnas + conversation.previousResultSamjnas,
-            typedValues = historicalValues + conversation.previousTypedResults,
-        )
+            typedValues = conversation.previousTypedResults,
+        ).mergedWith(ValueEnvironment(historicalValues))
         return conversationEnvironment.mergedWith(scope.environment)
     }
 

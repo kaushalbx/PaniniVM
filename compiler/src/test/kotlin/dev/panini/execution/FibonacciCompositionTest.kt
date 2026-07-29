@@ -6,7 +6,6 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
-import kotlin.test.assertTrue
 
 class FibonacciCompositionTest {
     private lateinit var tempDir: File
@@ -82,7 +81,7 @@ class FibonacciCompositionTest {
     }
 
     @Test
-    fun `computes Fibonacci up to 55 in a single sentence using krtvas frequency loop`() {
+    fun `computes five Fibonacci iterations in a single sentence using krtvas frequency loop`() {
         val sKey = "krtvas_fib_session"
         // Seed Turn 1: F(2) = 2
         val turn1 = vm.eval("एक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ।", sessionKey = sKey)
@@ -94,9 +93,32 @@ class FibonacciCompositionTest {
         assertEquals("त्रीणि", turn2.value)
 
         // Single utterance with पञ्च + कृत्वः (5 iterations):
-        // 3+2=5, 5+3=8, 8+5=13, 13+8=21, 21+13=34, 34+21=55
+        // 3+2=5, 5+3=8, 8+5=13, 13+8=21, 21+13=34
         val res = vm.eval("पञ्च + कृत्वः पूर्वफल + अम् पूर्वपूर्वफल + अम् च युज् + णिच् + लोट् + सिप् ।", sessionKey = sKey)
         val success = assertIs<ExecutionResult.Success>(res, res.toString())
-        assertTrue(success.typedValue is SanskritValue.Sankhya, "Expected Sankhya result, got ${success.typedValue}")
+        val sankhyaVal = assertIs<SanskritValue.Sankhya>(success.typedValue)
+        assertEquals(34L, sankhyaVal.value)
+    }
+
+    @Test
+    fun `computes 10 iterations of Fibonacci using dasakrtvah frequency loop`() {
+        val sKey = "krtvas_fib_10_session"
+        // Seed Turn 1: 1 + 1 = 2 (F(3))
+        val turn1 = vm.eval("एक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ।", sessionKey = sKey)
+        assertIs<ExecutionResult.Success>(turn1)
+        assertEquals("द्वे", turn1.value)
+
+        // Seed Turn 2: 1 + 2 = 3 (F(4))
+        val turn2 = vm.eval("एक + अम् पूर्वफल + अम् च युज् + णिच् + लोट् + सिप् ।", sessionKey = sKey)
+        assertIs<ExecutionResult.Success>(turn2)
+        assertEquals("त्रीणि", turn2.value)
+
+        // 10 iterations with दश + कृत्वः:
+        // Iter 1: 3+2=5, Iter 2: 5+3=8, Iter 3: 8+5=13, Iter 4: 13+8=21, Iter 5: 21+13=34,
+        // Iter 6: 34+21=55, Iter 7: 55+34=89, Iter 8: 89+55=144, Iter 9: 144+89=233, Iter 10: 233+144=377
+        val res = vm.eval("दश + कृत्वः पूर्वफल + अम् पूर्वपूर्वफल + अम् च युज् + णिच् + लोट् + सिप् ।", sessionKey = sKey)
+        val success = assertIs<ExecutionResult.Success>(res, res.toString())
+        val sankhyaVal = assertIs<SanskritValue.Sankhya>(success.typedValue)
+        assertEquals(377L, sankhyaVal.value)
     }
 }
