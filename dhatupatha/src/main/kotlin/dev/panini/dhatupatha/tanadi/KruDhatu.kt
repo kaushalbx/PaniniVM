@@ -2,6 +2,7 @@ package dev.panini.dhatupatha.tanadi
 
 import dev.panini.actions.linguistic.SandhiAction
 import dev.panini.actions.linguistic.SubantaDerivationAction
+import dev.panini.analysis.SemanticRelation
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
@@ -36,4 +37,5 @@ class KruDhatu : Dhatu(
             requires(Karaka.KARMAN); returns(Samjna.SHABDA)
         },
     ),
+    semanticRelations = setOf(SemanticRelation.DESIRED_OBJECT, SemanticRelation.PROMPTER_CAUSE, SemanticRelation.INSTRUMENT),
 )

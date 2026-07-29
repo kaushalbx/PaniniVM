@@ -27,11 +27,13 @@ object AdadiDhatus {
             "02.0003", 3, "द्विषँ", "द्विष्",
             "अप्रीतौ", "द्वेष करना, शत्रुता करना", "to hate, to dislike, to grudge",
             PadaType.UBHAYAPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
+            semanticRelations = setOf(SemanticRelation.HATRED_PARTICIPLE_OBJECT),
         )
         dhatu(
             "02.0004", 4, "दुहँ", "दुह्",
             "प्रपूरणे", "दूध निकालना, दोहना", "to milk, to extract",
             PadaType.UBHAYAPADA, ItStatus.ANIT, Karmatva.DVIKARMAKA, Accent.ANUDATTA,
+            semanticRelations = setOf(SemanticRelation.DESIRED_OBJECT),
         )
         dhatu(
             "02.0005", 5, "दिहँ", "दिह्",
@@ -42,46 +44,55 @@ object AdadiDhatus {
             "02.0006", 6, "लिहँ", "लिह्",
             "आस्वादने", "चाटना, चरवाना", "to lick, to taste, to pasture",
             PadaType.UBHAYAPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
+            semanticRelations = setOf(SemanticRelation.CONSUMPTION),
         )
         dhatu(
             "02.0007", 7, "चक्षिङ्", "चक्ष्",
             "व्यक्तायां वाचि", "स्पष्ट बोलना", "to articulate, to speak clearly",
             PadaType.ATMANEPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
+            semanticRelations = setOf(SemanticRelation.SPEECH),
         )
         dhatu(
             "02.0008", 8, "ईरँ", "ईर्",
             "गतौ कम्पने च", "जाना, कांपना", "to go,to shake,to tremble",
             PadaType.ATMANEPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
+            semanticRelations = setOf(SemanticRelation.MOTION),
         )
         dhatu(
             "02.0009", 9, "ईडँ", "ईड्",
             "स्तुतौ", "प्रार्थना करना", "to pray, to worship, to adore, to laud",
             PadaType.ATMANEPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
+            semanticRelations = setOf(SemanticRelation.RECIPIENT),
         )
         dhatu(
             "02.0010", 10, "ईशँ", "ईश्",
             "ऐश्वर्ये", "अधिकार होना, मनानुसार काम करने की शक्ति रखना", "to rule,to command,to possess power",
             PadaType.ATMANEPADA, ItStatus.SET, Karmatva.AKARMAKA, Accent.UDATTA,
+            semanticRelations = setOf(SemanticRelation.OWNERSHIP_SWAMIN),
         )
         dhatu(
             "02.0011", 11, "आसँ", "आस्",
             "उपवेशने", "बैठना", "to sit",
             PadaType.ATMANEPADA, ItStatus.SET, Karmatva.AKARMAKA, Accent.UDATTA,
+            semanticRelations = setOf(SemanticRelation.LOCATION),
         )
         dhatu(
             "02.0012", 12, "शासुँ", "शास्",
             "इच्छायाम्", "भला करना, आशा करना, इच्छा करना", "to desire, to bless, to praise",
             PadaType.ATMANEPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
+            semanticRelations = setOf(SemanticRelation.DESIRED_OBJECT),
         )
         dhatu(
             "02.0013", 13, "वसँ", "वस्",
             "आच्छादने", "ढकना, वस्त्र पहनना, ओढ़ना, पोशाख धारण करना", "to cover, to wear, to pull, to dress",
             PadaType.ATMANEPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
+            semanticRelations = setOf(SemanticRelation.DESIRED_OBJECT),
         )
         dhatu(
             "02.0014", 14, "कसिँ", "कंस्",
             "गतिशासनयोः", "जाना, दण्ड देना, शासन करना", "to go, to rule, to punish",
             PadaType.ATMANEPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
+            semanticRelations = setOf(SemanticRelation.MOTION),
         )
         dhatu(
             "02.0015", 15, "कसँ", "कस्",
@@ -146,22 +157,26 @@ object AdadiDhatus {
             "02.0026", 26, "शीङ्", "शी",
             "स्वप्ने", "सोना, शयन करना", "to sleep",
             PadaType.ATMANEPADA, ItStatus.SET, Karmatva.AKARMAKA, Accent.UDATTA,
+            semanticRelations = setOf(SemanticRelation.LOCATION),
         )
         dhatu(YuDhatu())
         dhatu(
             "02.0028", 28, "रु", "रु",
             "शब्दे", "शब्द करना, आवाज करना", "to sound, to howl, to hum, to yelp, to roar, to cry out loud",
             PadaType.PARASMAIPADA, ItStatus.SET, Karmatva.AKARMAKA, Accent.UDATTA,
+            semanticRelations = setOf(SemanticRelation.SPEECH),
         )
         dhatu(
             "02.0029", 29, "तु", "तु",
             "गतिवृद्धिहिंसासु", "", "to go,to grow,to kill, to destroy",
             PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.UDATTA,
+            semanticRelations = setOf(SemanticRelation.MOTION, SemanticRelation.DESTRUCTION),
         )
         dhatu(
             "02.0030", 30, "णु", "नु",
             "स्तुतौ", "स्तुति करना, प्रार्थना करना", "to praise, to worship",
             PadaType.PARASMAIPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
+            semanticRelations = setOf(SemanticRelation.BENEDICTION_WELLBEING),
         )
         dhatu(
             "02.0031", 31, "टुक्षु", "क्षु",
@@ -300,16 +315,19 @@ object AdadiDhatus {
             "02.0051", 51, "पा", "पा",
             "रक्षणे", "रक्षा करना, पालन करना", "to protect, to preserve",
             PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
+            semanticRelations = setOf(SemanticRelation.ACTION_MARKING),
         )
         dhatu(
             "02.0052", 52, "रा", "रा",
             "दाने", "देना, मिल जाना", "to give, to grant",
             PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
+            semanticRelations = setOf(SemanticRelation.RECIPIENT),
         )
         dhatu(
             "02.0053", 53, "ला", "ला",
             "आदाने", "लेना, ग्रहण करना", "to accept, to obtain",
             PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
+            semanticRelations = setOf(SemanticRelation.DESIRED_OBJECT),
         )
         dhatu(
             "02.0054", 54, "दाप्", "दा",
@@ -320,6 +338,7 @@ object AdadiDhatus {
             "02.0055", 55, "ख्या", "ख्या",
             "प्रकथने", "प्रख्यात करना, कहना, व्याख्यान करना", "to explain, to make famous, to elocute",
             PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
+            semanticRelations = setOf(SemanticRelation.SPEECH),
         )
         dhatu(PraDhatu())
         dhatu(
@@ -331,6 +350,7 @@ object AdadiDhatus {
             "02.0058", 58, "वचँ", "वच्",
             "परिभाषणे", "बोलना, कहना", "to speak,to tell, to talk",
             PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.DVIKARMAKA, Accent.ANUDATTA,
+            semanticRelations = setOf(SemanticRelation.DESIRED_OBJECT, SemanticRelation.RECIPIENT),
         )
         dhatu(
             "02.0059",
@@ -344,6 +364,7 @@ object AdadiDhatus {
             ItStatus.SET,
             Karmatva.SAKARMAKA,
             Accent.UDATTA,
+            semanticRelations = setOf(SemanticRelation.COGNITION, SemanticRelation.MEMORY_OR_RULING_OBJECT),
         )
         dhatu(AsDhatu())
         dhatu(
@@ -360,6 +381,7 @@ object AdadiDhatus {
             "02.0063", 63, "ञिष्वपँ", "स्वप्",
             "शये", "सोना, निद्रा लेना", "to sleep",
             PadaType.PARASMAIPADA, ItStatus.ANIT, Karmatva.AKARMAKA, Accent.ANUDATTA,
+            semanticRelations = setOf(SemanticRelation.LOCATION),
         )
         dhatu(
             "02.0064", 64, "श्वसँ", "श्वस्",
@@ -375,6 +397,7 @@ object AdadiDhatus {
             "02.0066", 66, "जक्षँ", "जक्ष्",
             "भक्षहसनयोः", "कहना, हसना", "to eat,to consume,to laugh",
             PadaType.PARASMAIPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
+            semanticRelations = setOf(SemanticRelation.CONSUMPTION),
         )
         dhatu(
             "02.0067", 67, "जागृ", "जागृ",
@@ -403,6 +426,7 @@ object AdadiDhatus {
             ItStatus.SET,
             Karmatva.DVIKARMAKA,
             Accent.UDATTA,
+            semanticRelations = setOf(SemanticRelation.SPEECH, SemanticRelation.DESIRED_OBJECT),
         )
         dhatu(
             "02.0071", 71, "दीधीङ्", "दीधी",
@@ -426,16 +450,19 @@ object AdadiDhatus {
             "02.0073", 73, "षसँ", "सस्",
             "स्वप्ने", "सोना", "to sleep",
             PadaType.PARASMAIPADA, ItStatus.SET, Karmatva.AKARMAKA, Accent.UDATTA,
+            semanticRelations = setOf(SemanticRelation.LOCATION),
         )
         dhatu(
             "02.0074", 74, "षस्तिँ", "संस्त्",
             "स्वप्ने", "सोना", "to sleep",
             PadaType.PARASMAIPADA, ItStatus.SET, Karmatva.AKARMAKA, Accent.UDATTA,
+            semanticRelations = setOf(SemanticRelation.LOCATION),
         )
         dhatu(
             "02.0075", 75, "वशँ", "वश्",
             "कान्तौ", "इच्छा करना, चाहना", "to wish,to long for, to desire",
             PadaType.PARASMAIPADA, ItStatus.SET, Karmatva.SAKARMAKA, Accent.UDATTA,
+            semanticRelations = setOf(SemanticRelation.DESIRED_OBJECT),
         )
         dhatu(
             "02.0076", 76, "-", "चर्करीतं च",
@@ -446,6 +473,7 @@ object AdadiDhatus {
             "02.0077", 77, "ह्नुङ्", "ह्नु",
             "अपनयने", "छिपाना, लुकाना, चुराना, ले जाना", "to hide, to conceal,to take away,to deny",
             PadaType.ATMANEPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
+            semanticRelations = setOf(SemanticRelation.RECIPIENT),
         )
         dhatu(AdDhatu())
     }

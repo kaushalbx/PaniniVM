@@ -121,22 +121,17 @@ object DhatuKarakaProfiles {
     )
 
     fun forDhatu(dhatu: Dhatu): DhatuKarakaProfile? {
-        val profile = forSurface(dhatu.sourceSurface) ?: forSurface(dhatu.upadesha)
-        if (profile != null) return profile
         if (dhatu.semanticRelations.isNotEmpty()) {
-            return DhatuKarakaProfile(setOf(dhatu.sourceSurface, dhatu.upadesha) + dhatu.surfaceAliases, dhatu.semanticRelations)
+            return DhatuKarakaProfile(
+                surfaces = setOf(dhatu.sourceSurface, dhatu.upadesha) + dhatu.surfaceAliases,
+                relations = dhatu.semanticRelations,
+            )
         }
-        return null
+        return forSurface(dhatu.sourceSurface) ?: forSurface(dhatu.upadesha)
     }
 
     fun forSurface(surface: String): DhatuKarakaProfile? {
         val normSurface = surface.trimEnd('्', 'ँ')
-        val registeredProfile = profiles.firstOrNull { profile ->
-            profile.surfaces.any { entry ->
-                val normEntry = entry.trimEnd('्', 'ँ')
-                surface == entry || normSurface == normEntry || surface.startsWith(entry) || entry.startsWith(surface)
-            }
-        }
         val dhatuEntries = DhatuPatha.all.filter { dhatu ->
             val normUp = dhatu.upadesha.trimEnd('्', 'ँ')
             val normSrc = dhatu.sourceSurface.trimEnd('्', 'ँ')
@@ -149,10 +144,21 @@ object DhatuKarakaProfiles {
                 }
         }
         val dhatuRelations = dhatuEntries.flatMap { it.semanticRelations }.toSet()
-        val combinedRelations = (registeredProfile?.relations.orEmpty() + dhatuRelations)
-        if (combinedRelations.isEmpty() && registeredProfile == null) return null
+        val dhatuAliases = dhatuEntries.flatMap { setOf(it.sourceSurface, it.upadesha) + it.surfaceAliases }.toSet()
+
+        val fallback = profiles.firstOrNull { profile ->
+            profile.surfaces.any { entry ->
+                val normEntry = entry.trimEnd('्', 'ँ')
+                surface == entry || normSurface == normEntry || surface.startsWith(entry) || entry.startsWith(surface)
+            }
+        }
+
+        val combinedRelations = fallback?.relations.orEmpty() + dhatuRelations
+        val combinedSurfaces = (fallback?.surfaces.orEmpty() + dhatuAliases).ifEmpty { setOf(surface) }
+
+        if (combinedRelations.isEmpty()) return null
         return DhatuKarakaProfile(
-            surfaces = registeredProfile?.surfaces ?: setOf(surface),
+            surfaces = combinedSurfaces,
             relations = combinedRelations,
         )
     }
