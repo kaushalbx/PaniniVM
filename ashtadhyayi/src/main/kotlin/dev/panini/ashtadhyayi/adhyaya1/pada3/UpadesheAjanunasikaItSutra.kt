@@ -28,11 +28,12 @@ object UpadesheAjanunasikaItSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Samjna,
     action = SutraAction.SAMJNA,
     scope = SutraScope.PRATYAYA,
-    artha = ContextualSamjnaAssignmentArtha(
+), DerivationSutra, ContextualSamjnaSutra {
+    override val artha = ContextualSamjnaAssignmentArtha(
         target = SamjnaAssignmentTarget.UPADESHA_NASALIZED_VOWEL,
         samjna = Samjna.IT,
-    ),
-), DerivationSutra, ContextualSamjnaSutra {
+    )
+
     override fun hasSamjnaTarget(state: DerivationState): Boolean =
         state.stage == DerivationStage.PRATYAYA_SELECTED && state.terms.any {
             it.surface.endsWith(

@@ -32,11 +32,12 @@ object ShahPratyayasyaSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Samjna,
     action = SutraAction.SAMJNA,
     scope = SutraScope.PRATYAYA,
-    artha = ContextualSamjnaAssignmentArtha(
+), DerivationSutra, ContextualSamjnaSutra {
+    override val artha = ContextualSamjnaAssignmentArtha(
         target = SamjnaAssignmentTarget.PRATYAYA_INITIAL_SSA,
         samjna = Samjna.IT,
-    ),
-), DerivationSutra, ContextualSamjnaSutra {
+    )
+
     override fun hasSamjnaTarget(state: DerivationState): Boolean {
         if (state.stage != DerivationStage.PRATYAYA_SELECTED) return false
 

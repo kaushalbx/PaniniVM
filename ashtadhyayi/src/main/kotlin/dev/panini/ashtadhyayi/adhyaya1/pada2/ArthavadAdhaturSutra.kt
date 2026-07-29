@@ -8,6 +8,7 @@ import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.SamjnaDefinitionArtha
 import dev.panini.sutra.Samjni
+import dev.panini.sutra.ArthavatSutra
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -30,11 +31,12 @@ object ArthavadAdhaturSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Samjna,
     action = SutraAction.SAMJNA,
     scope = SutraScope.DERIVATION,
-    artha = SamjnaDefinitionArtha(
+), DerivationSutra, ArthavatSutra {
+    override val artha = SamjnaDefinitionArtha(
         samjni = Samjni.MEANINGFUL_NON_DHATU_NON_PRATYAYA,
         samjna = Samjna.PRATIPADIKA,
-    ),
-), DerivationSutra {
+    )
+
     override fun matches(context: DerivationState): Boolean =
         context.terms.any { term ->
             term.kind == TermKind.PRATIPADIKA &&

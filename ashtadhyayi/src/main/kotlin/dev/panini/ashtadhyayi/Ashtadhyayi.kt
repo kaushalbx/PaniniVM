@@ -58,7 +58,7 @@ object Ashtadhyayi {
      * typed meaning or through the temporary derivation adapter.
      */
     val runtimeSutras: List<Sutra<*, *>> = registry.sutras.filter {
-        it.artha != null || it is DerivationSutra
+        it is ArthavatSutra || it is DerivationSutra
     }
 
     /** Compatibility view; derived from the registry and never maintained separately. */

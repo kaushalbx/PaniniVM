@@ -11,6 +11,7 @@ enum class SamjnaAssignmentTarget {
     DHATU_UPADESHA_INITIAL_NI_TU_DU,
     PRATYAYA_INITIAL_SSA,
     PRATYAYA_INITIAL_CU_TTU,
+    NON_TADDHITA_PRATYAYA_INITIAL_LA_SHA_KU,
 }
 
 /** Typed meaning for a saṃjñā assigned to matching derivation material. */

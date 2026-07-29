@@ -32,11 +32,12 @@ object AdirNitudavahSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Samjna,
     action = SutraAction.SAMJNA,
     scope = SutraScope.DHATU,
-    artha = ContextualSamjnaAssignmentArtha(
+), DerivationSutra, ContextualSamjnaSutra {
+    override val artha = ContextualSamjnaAssignmentArtha(
         target = SamjnaAssignmentTarget.DHATU_UPADESHA_INITIAL_NI_TU_DU,
         samjna = Samjna.IT,
-    ),
-), DerivationSutra, ContextualSamjnaSutra {
+    )
+
     override fun hasSamjnaTarget(state: DerivationState): Boolean =
         state.stage == DerivationStage.INITIAL && state.terms.any { term ->
             term.kind == TermKind.DHATU && (

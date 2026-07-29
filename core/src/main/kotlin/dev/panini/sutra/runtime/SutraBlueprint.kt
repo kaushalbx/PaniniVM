@@ -3,6 +3,7 @@ package dev.panini.sutra.runtime
 import dev.panini.sutra.SutraGovernance
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.Sutra
+import dev.panini.sutra.ArthavatSutra
 
 /**
  * Evaluator-free sūtra definition suitable for inspection, generation,
@@ -63,11 +64,8 @@ fun Sutra<*, *>.toBlueprint(artha: SutraArtha): SutraBlueprint = SutraBlueprint(
 )
 
 fun Sutra<*, *>.toBlueprint(): SutraBlueprint =
-    toBlueprint(
-        requireNotNull(artha) {
-            "Sūtra $number does not define native evaluator-free artha."
-        }.toSutraArtha(),
-    )
+    (this as? ArthavatSutra)?.let { toBlueprint(it.artha.toSutraArtha()) }
+        ?: error("Sūtra $number does not define native evaluator-free artha.")
 
 enum class SutraBlueprintDiagnosticCode {
     SELF_DEPENDENCY,

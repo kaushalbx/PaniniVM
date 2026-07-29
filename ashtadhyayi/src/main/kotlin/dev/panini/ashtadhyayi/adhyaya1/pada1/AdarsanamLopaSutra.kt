@@ -8,6 +8,7 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SamjnaDefinitionArtha
 import dev.panini.sutra.Samjni
+import dev.panini.sutra.ArthavatSutra
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
@@ -28,11 +29,12 @@ object AdarsanamLopaSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Samjna,
     action = SutraAction.SAMJNA,
     scope = SutraScope.DERIVATION,
-    artha = SamjnaDefinitionArtha(
+), DerivationSutra, ArthavatSutra {
+    override val artha = SamjnaDefinitionArtha(
         samjni = Samjni.ADARSHANA,
         samjna = dev.panini.shiksha.Samjna.LOPA,
-    ),
-), DerivationSutra {
+    )
+
     override fun matches(context: DerivationState): Boolean = false
     override fun apply(context: DerivationState): DerivationChange = error("Interpretive rule.")
 }

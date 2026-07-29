@@ -9,6 +9,7 @@ import dev.panini.sutra.SutraInput
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SamjnaSetDefinitionArtha
 import dev.panini.sutra.Samjni
+import dev.panini.sutra.ArthavatSutra
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
@@ -22,15 +23,16 @@ object PratyayasyaLupSlulopahSutra : Sutra<DerivationState, DerivationChange>(
     type = SutraType.SAMJNA, chapter = 1, pada = 1, optional = false, kramaValue = 110061,
     role = SutraRole.Samjna, action = SutraAction.LOPA, scope = SutraScope.DERIVATION,
     inputs = setOf(SutraInput.PRATYAYA),
-    artha = SamjnaSetDefinitionArtha(
+), DerivationSutra, ArthavatSutra {
+    override val artha = SamjnaSetDefinitionArtha(
         samjni = Samjni.PRATYAYA_ADARSHANA,
         samjnas = setOf(
             dev.panini.shiksha.Samjna.LUK,
             dev.panini.shiksha.Samjna.SHLU,
             dev.panini.shiksha.Samjna.LUP,
         ),
-    ),
-), DerivationSutra {
+    )
+
     override fun matches(context: DerivationState): Boolean =
         "1.1.61" !in context.activeAdhikaras
 

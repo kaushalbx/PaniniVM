@@ -1,11 +1,15 @@
 package dev.panini.ashtadhyayi.adhyaya1.pada3
 
+import dev.panini.ashtadhyayi.runtime.ContextualSamjnaSutra
 import dev.panini.core.ItMarker
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
+import dev.panini.shiksha.Samjna
+import dev.panini.sutra.ContextualSamjnaAssignmentArtha
+import dev.panini.sutra.SamjnaAssignmentTarget
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -28,18 +32,23 @@ object LasakvataddhiteSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Samjna,
     action = SutraAction.SAMJNA,
     scope = SutraScope.PRATYAYA,
-), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean {
-        if (context.stage != DerivationStage.PRATYAYA_SELECTED) return false
+), DerivationSutra, ContextualSamjnaSutra {
+    override val artha = ContextualSamjnaAssignmentArtha(
+        target = SamjnaAssignmentTarget.NON_TADDHITA_PRATYAYA_INITIAL_LA_SHA_KU,
+        samjna = Samjna.IT,
+    )
 
-        return context.terms.any { term ->
+    override fun hasSamjnaTarget(state: DerivationState): Boolean {
+        if (state.stage != DerivationStage.PRATYAYA_SELECTED) return false
+
+        return state.terms.any { term ->
             term.kind == TermKind.PRATYAYA && term.surface.isNotEmpty() && isLaShaKu(term.surface.first()) &&
                 !term.itMarkers.contains(ItMarker.KIT)
         }
     }
 
-    override fun apply(context: DerivationState): DerivationChange {
-        val newTerms = context.terms.map { term ->
+    override fun assignSamjna(state: DerivationState): DerivationChange {
+        val newTerms = state.terms.map { term ->
             if (term.kind == TermKind.PRATYAYA && term.surface.isNotEmpty()) {
                 val firstChar = term.surface.first()
                 if (isLaShaKu(firstChar)) {
@@ -55,10 +64,14 @@ object LasakvataddhiteSutra : Sutra<DerivationState, DerivationChange>(
         }
 
         return DerivationChange(
-            state = context.copy(terms = newTerms),
+            state = state.copy(terms = newTerms),
             explanation = "1.3.8: Assigned it-status to initial l, ś, or ku."
         )
     }
+
+    override fun matches(context: DerivationState): Boolean = hasSamjnaTarget(context)
+
+    override fun apply(context: DerivationState): DerivationChange = assignSamjna(context)
 
     private fun isLaShaKu(c: Char): Boolean = c == 'ल' || c == 'श' || isKu(c)
     private fun isKu(c: Char): Boolean = c in setOf('क', 'ख', 'ग', 'घ', 'ङ')

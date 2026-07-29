@@ -3,6 +3,7 @@ package dev.panini.derivation.sutra
 import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.ashtadhyayi.runtime.AshtadhyayiCompiler
 import dev.panini.derivation.DerivationSutra
+import dev.panini.sutra.ArthavatSutra
 import dev.panini.sutra.runtime.GranthaId
 import dev.panini.sutra.runtime.SutraGrantha
 import dev.panini.sutra.runtime.SutraId
@@ -21,9 +22,9 @@ object AshtadhyayiRuntimeGrantha {
     val grantha: SutraGrantha<DerivationAvastha> = SutraGrantha(
         id = GranthaId("ashtadhyayi"),
         sutras = rules.map { sutra ->
-            sutra.artha?.let { artha ->
+            (sutra as? ArthavatSutra)?.let { arthavatSutra ->
                 AshtadhyayiCompiler.compile(
-                    sutra.toBlueprint(artha.toSutraArtha()),
+                    sutra.toBlueprint(arthavatSutra.artha.toSutraArtha()),
                 )
             } ?: DerivationSutraRuntimeAdapter.adapt(
                 sutra as DerivationSutra,
