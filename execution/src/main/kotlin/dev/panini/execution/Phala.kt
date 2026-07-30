@@ -16,12 +16,14 @@ sealed interface Phala {
         val invocationId: String,
         val effects: Set<ExecutionEffect>,
         val continuation: ExecutionContinuation,
+        val pipelineContinuation: Any? = null,
     ) : Phala
     data class SvikaraApekshita(
         val invocationId: String,
         val speaker: String,
         val listener: String,
         val continuation: ExecutionContinuation,
+        val pipelineContinuation: Any? = null,
     ) : Phala
     data class Nirasta(val invocationId: String, val reason: String) : Phala
     /** The utterance was understood and planned, but its purpose does not request performance. */

@@ -85,6 +85,12 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
                     is ExecutionResult.Ambiguous -> {
                         add("  ? Ambiguous: ${res.message} (matches: ${res.matchingOperations})")
                     }
+                    is ExecutionResult.NeedsApproval -> {
+                        add("  ? Needs approval: ID: ${res.invocationId} (effects: ${res.requiredEffects})")
+                    }
+                    is ExecutionResult.NeedsAcceptance -> {
+                        add("  ? Needs acceptance: ID: ${res.invocationId} (from ${res.speaker} to ${res.listener})")
+                    }
                 }
             }
         }

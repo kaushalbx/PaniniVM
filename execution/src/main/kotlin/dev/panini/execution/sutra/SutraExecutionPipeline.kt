@@ -86,8 +86,8 @@ object SutraExecutionPipeline {
             scope,
             ProgramAvastha(environment(conversation, scope)),
         )
-        val result = when (execution) {
-            is ProgramGranthaExecution.Completed -> execution.result
+        val (result, program) = when (execution) {
+            is ProgramGranthaExecution.Completed -> execution.result to execution.program
             is ProgramGranthaExecution.InvalidBlueprint -> return Phala.Asiddha(
                 ExecutionResult.Failure(
                     ExecutionError.INVALID_VALUE,
@@ -136,6 +136,22 @@ object SutraExecutionPipeline {
                     "The sūtra program completed without producing a result.",
                 ),
                 machineTrace,
+            )
+            is Phala.AnumatiApekshita -> last.copy(
+                pipelineContinuation = SutraPipelineContinuation(
+                    input = SanskritUktiInput(text = ukti.text, speaker = ukti.speaker, listener = ukti.listener),
+                    conversation = conversation,
+                    program = program,
+                    state = state
+                )
+            )
+            is Phala.SvikaraApekshita -> last.copy(
+                pipelineContinuation = SutraPipelineContinuation(
+                    input = SanskritUktiInput(text = ukti.text, speaker = ukti.speaker, listener = ukti.listener),
+                    conversation = conversation,
+                    program = program,
+                    state = state
+                )
             )
             else -> last
         }
@@ -238,5 +254,157 @@ object SutraExecutionPipeline {
             continuation = continuation.copy(trace = prefix + continuation.trace),
         )
         is Phala.Nirasta -> this
+    }
+    fun resume(
+        continuation: SutraPipelineContinuation,
+        scope: ExecutionScope,
+    ): Phala {
+        val state = continuation.state
+        val lastPhala = state.lastPhala
+        val paused = when (lastPhala) {
+            is Phala.AnumatiApekshita -> lastPhala.continuation
+            is Phala.SvikaraApekshita -> lastPhala.continuation
+            else -> return Phala.Asiddha(
+                ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "No paused continuation to resume."),
+                emptyList()
+            )
+        }
+
+        val resumedPhala = dev.panini.execution.ExecutionRuntime.resume(paused, scope)
+
+        val invocationId = when (lastPhala) {
+            is Phala.AnumatiApekshita -> lastPhala.invocationId
+            is Phala.SvikaraApekshita -> lastPhala.invocationId
+            else -> throw IllegalStateException()
+        }
+
+        val nextState = when (resumedPhala) {
+            is Phala.Siddha -> {
+                val produced = resumedPhala.typedValues + resumedPhala.localBindings
+                state.copy(
+                    environment = state.environment.mergedWith(ValueEnvironment(produced)),
+                    completedSutras = state.completedSutras + dev.panini.sutra.runtime.SutraId(invocationId),
+                    invocationValues = state.invocationValues + resumedPhala.typedValues,
+                    localBindings = state.localBindings + resumedPhala.localBindings,
+                    executionTrace = state.executionTrace + resumedPhala.trace,
+                    lastPhala = resumedPhala,
+                    halted = false
+                )
+            }
+            is Phala.Avagata -> {
+                state.copy(
+                    completedSutras = state.completedSutras + dev.panini.sutra.runtime.SutraId(invocationId),
+                    executionTrace = state.executionTrace + resumedPhala.trace,
+                    lastPhala = resumedPhala,
+                    halted = false
+                )
+            }
+            is Phala.AnumatiApekshita -> {
+                return resumedPhala.copy(
+                    pipelineContinuation = SutraPipelineContinuation(
+                        input = continuation.input,
+                        conversation = continuation.conversation,
+                        program = continuation.program,
+                        state = state.copy(lastPhala = resumedPhala, halted = true)
+                    )
+                ).prependTrace(state.executionTrace)
+            }
+            is Phala.SvikaraApekshita -> {
+                return resumedPhala.copy(
+                    pipelineContinuation = SutraPipelineContinuation(
+                        input = continuation.input,
+                        conversation = continuation.conversation,
+                        program = continuation.program,
+                        state = state.copy(lastPhala = resumedPhala, halted = true)
+                    )
+                ).prependTrace(state.executionTrace)
+            }
+            else -> {
+                return resumedPhala.prependTrace(state.executionTrace)
+            }
+        }
+
+        val result = dev.panini.sutra.runtime.SutraMachine(ProgramSutraEffectInterpreter(scope)).process(
+            continuation.program,
+            nextState
+        )
+
+        val finalState = result.state
+        val machineTrace = result.trace.map(::render)
+        if (result is dev.panini.sutra.runtime.SutraMachineResult.Failure) {
+            return Phala.Asiddha(
+                ExecutionResult.Failure(ExecutionError.ACTION_FAILED, result.message),
+                finalState.executionTrace + machineTrace,
+            )
+        }
+
+        return when (val last = finalState.lastPhala) {
+            is Phala.Siddha -> {
+                val values = ValueEnvironment(finalState.invocationValues)
+                Phala.Siddha(
+                    values = values.displayValues(),
+                    samjnas = values.samjnas(),
+                    trace = finalState.executionTrace + machineTrace,
+                    typedValues = finalState.invocationValues,
+                    localBindings = finalState.localBindings,
+                )
+            }
+            null -> Phala.Asiddha(
+                ExecutionResult.Failure(
+                    ExecutionError.ACTION_FAILED,
+                    "The sūtra program completed without producing a result.",
+                ),
+                machineTrace,
+            )
+            is Phala.AnumatiApekshita -> last.copy(
+                pipelineContinuation = SutraPipelineContinuation(
+                    input = continuation.input,
+                    conversation = continuation.conversation,
+                    program = continuation.program,
+                    state = finalState
+                )
+            )
+            is Phala.SvikaraApekshita -> last.copy(
+                pipelineContinuation = continuation.copy(state = finalState)
+            )
+            else -> last
+        }
+    }
+
+    fun resumeTurn(
+        continuation: SutraPipelineContinuation,
+        scope: ExecutionScope,
+    ): SambhashanaTurn {
+        val response = SanskritPrativacanaRenderer.render(resume(continuation, scope))
+        val success = response.phala as? Phala.Siddha
+            ?: return SambhashanaTurn(response, continuation.conversation)
+        val nextTurn = continuation.conversation.turnNumber + 1
+        val remembered = success.values.map { (invocationId, value) ->
+            SmrtaPhala(
+                id = "उक्ति-${DevanagariDigits.render(nextTurn)}/$invocationId",
+                turnNumber = nextTurn,
+                invocationId = invocationId,
+                value = value,
+                samjnas = success.samjnas[invocationId].orEmpty(),
+                typedValue = success.typedValues[invocationId],
+            )
+        }
+        return SambhashanaTurn(
+            response,
+            continuation.conversation.copy(
+                previousResults = continuation.conversation.previousResults +
+                    success.values +
+                    success.localBindings.mapValues { it.value.toDisplayText() },
+                previousResultSamjnas = continuation.conversation.previousResultSamjnas +
+                    success.samjnas +
+                    success.localBindings.mapValues { it.value.samjnas },
+                previousTypedResults = continuation.conversation.previousTypedResults +
+                    success.typedValues +
+                    success.localBindings,
+                resultHistory = continuation.conversation.resultHistory + remembered,
+                turnNumber = nextTurn,
+                metadata = continuation.conversation.metadata + success.metadata,
+            ),
+        )
     }
 }

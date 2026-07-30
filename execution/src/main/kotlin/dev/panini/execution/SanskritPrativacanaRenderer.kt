@@ -29,5 +29,7 @@ object SanskritPrativacanaRenderer {
         is ExecutionResult.NeedsInput -> "सूचना अपेक्षिता। ${result.message}"
         is ExecutionResult.Ambiguous -> "अर्थः अनिश्चितः। ${result.message}"
         is ExecutionResult.Success -> "कार्यम् सिद्धम्। फलम् — ${result.value}।"
+        is ExecutionResult.NeedsApproval -> "अनुमतिः अपेक्षिता। ID: ${result.invocationId}।"
+        is ExecutionResult.NeedsAcceptance -> "स्वीकारः अपेक्षितः। ID: ${result.invocationId}।"
     }
 }

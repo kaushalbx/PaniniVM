@@ -115,6 +115,12 @@ class PvmRunConfiguration(
                                 is ExecutionResult.Ambiguous -> {
                                     processHandler.notifyTextAvailable("  ? Ambiguous: ${res.message} (matches: ${res.matchingOperations})\n", ProcessOutputTypes.STDOUT)
                                 }
+                                is ExecutionResult.NeedsApproval -> {
+                                    processHandler.notifyTextAvailable("  ? Needs approval: ID: ${res.invocationId} (effects: ${res.requiredEffects})\n", ProcessOutputTypes.STDOUT)
+                                }
+                                is ExecutionResult.NeedsAcceptance -> {
+                                    processHandler.notifyTextAvailable("  ? Needs acceptance: ID: ${res.invocationId} (from ${res.speaker} to ${res.listener})\n", ProcessOutputTypes.STDOUT)
+                                }
                             }
                         }
                         processHandler.terminate(0)

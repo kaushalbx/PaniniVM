@@ -16,6 +16,7 @@ import dev.panini.sutra.runtime.SutraMachineResult
 sealed interface ProgramGranthaExecution {
     data class Completed(
         val result: SutraMachineResult<ProgramAvastha>,
+        val program: dev.panini.sutra.runtime.SutraProgram<ProgramAvastha>,
     ) : ProgramGranthaExecution
 
     data class InvalidBlueprint(
@@ -134,10 +135,11 @@ object ProgramBlueprintGranthaEngine {
             currentGrantha = compiled.id,
         )
         return ProgramGranthaExecution.Completed(
-            SutraMachine(ProgramSutraEffectInterpreter(executionScope)).process(
+            result = SutraMachine(ProgramSutraEffectInterpreter(executionScope)).process(
                 program,
                 initialState,
             ),
+            program = program,
         )
     }
 }

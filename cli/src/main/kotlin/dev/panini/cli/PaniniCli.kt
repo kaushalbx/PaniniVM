@@ -64,6 +64,12 @@ class PaniniCli(
                 is ExecutionResult.NeedsInput -> {
                     outputStream.println("Line ${i + 1} Needs Input: ${res.missingKarakas.joinToString()}")
                 }
+                is ExecutionResult.NeedsApproval -> {
+                    outputStream.println("Line ${i + 1} Needs Approval: ID ${res.invocationId} requires effects ${res.requiredEffects}")
+                }
+                is ExecutionResult.NeedsAcceptance -> {
+                    outputStream.println("Line ${i + 1} Needs Acceptance: ID ${res.invocationId} requires acceptance from ${res.speaker} to ${res.listener}")
+                }
             }
         }
         return results
@@ -120,6 +126,12 @@ class PaniniCli(
             }
             is ExecutionResult.NeedsInput -> {
                 outputStream.println("? needs input for: ${result.missingKarakas.joinToString()}")
+            }
+            is ExecutionResult.NeedsApproval -> {
+                outputStream.println("? needs approval: ID ${result.invocationId} requires effects ${result.requiredEffects}")
+            }
+            is ExecutionResult.NeedsAcceptance -> {
+                outputStream.println("? needs acceptance: ID ${result.invocationId} requires acceptance from ${result.speaker} to ${result.listener}")
             }
         }
     }
