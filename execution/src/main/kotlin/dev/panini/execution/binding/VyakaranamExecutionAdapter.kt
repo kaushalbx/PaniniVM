@@ -304,13 +304,21 @@ object VyakaranamExecutionAdapter {
                             } else false
                         } else false
                     } ?: emptyList()
-                    val historicalResult = if (isPrevious && historicalResults.size > 1) {
-                        historicalResults.dropLast(1).lastOrNull() ?: historicalResults.lastOrNull()
+                    val historicalResult = if (isPrevious) {
+                        if (historicalResults.size > 1) {
+                            historicalResults.dropLast(1).lastOrNull()
+                        } else {
+                            historicalResults.firstOrNull()
+                        }
                     } else {
                         historicalResults.lastOrNull()
                     }
                     if (historicalResult != null) {
-                        resolvedPhalaMap[phalaPada] = historicalResult.id
+                        if (isPrevious && historicalResults.size == 1 && conversation?.previousTypedResults?.containsKey("पूर्वफल") == true) {
+                            resolvedPhalaMap[phalaPada] = "पूर्वफल"
+                        } else {
+                            resolvedPhalaMap[phalaPada] = historicalResult.id
+                        }
                         resolvedGenitives.add(genitiveModifier)
                     }
                 }

@@ -1,19 +1,12 @@
-# Fibonacci Array Algorithm: Generate Fibonacci sequence terms [1, 1, 2, 3, 5, 8, 13]
+# Fibonacci Array Algorithm: Generate and print Fibonacci sequence terms [3, 5, 8, 13, 21] using krtvas loop
 
-# Step 1: Compute F3 = F1 + F2 = 1 + 1 = 2
+# Step 1: Initialize F1 = 1, F2 = 1 -> F3 = F1 + F2 = 1 + 1 = 2
 एक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ।
 
-# Step 2: Compute F4 = F2 + F3 = 1 + 2 = 3
-एक + अम् युज् + घञ् + ङस् फल + अम् च युज् + णिच् + लोट् + सिप् ।
-
-# Step 3: Compute F5 = F3 + F4 = 2 + 3 = 5
-पूर्व + ङस् युज् + घञ् + ङस् फल + अम् युज् + घञ् + ङस् फल + अम् च युज् + णिच् + लोट् + सिप् ।
-
-# Step 4: Compute F6 = F4 + F5 = 3 + 5 = 8
-पूर्व + ङस् युज् + घञ् + ङस् फल + अम् युज् + घञ् + ङस् फल + अम् च युज् + णिच् + लोट् + सिप् ।
-
-# Step 5: Compute F7 = F5 + F6 = 5 + 8 = 13
-पूर्व + ङस् युज् + घञ् + ङस् फल + अम् युज् + घञ् + ङस् फल + अम् च युज् + णिच् + लोट् + सिप् ।
-
-# Print 7th Fibonacci term (renders 13 = त्रयोदश)
-युज् + घञ् + ङस् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।
+# Step 2: Loop 5 times via krtvas (पञ्चकृत्वः) to compute and print Fibonacci terms:
+# Iteration 1: F4 = 1 + 2 = 3 (त्रीणि)
+# Iteration 2: F5 = 2 + 3 = 5 (पञ्च)
+# Iteration 3: F6 = 3 + 5 = 8 (अष्ट)
+# Iteration 4: F7 = 5 + 8 = 13 (त्रयोदश)
+# Iteration 5: F8 = 8 + 13 = 21 (एकविंशतिः)
+पूर्व + ङस् युज् + घञ् + ङस् फल + अम् युज् + घञ् + ङस् फल + अम् च युज् + णिच् + लोट् + सिप् अथ युज् + घञ् + ङस् फल + अम् मुद्र् + णिच् + लोट् + सिप् च पञ्च + कृत्वः ।
