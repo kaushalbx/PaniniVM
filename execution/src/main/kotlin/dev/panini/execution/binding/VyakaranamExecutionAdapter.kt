@@ -88,6 +88,49 @@ object VyakaranamExecutionAdapter {
                 map[dhatu.upadesha.normalizeDhatuSurface()] = dhatu
                 map[dhatu.sourceSurface.normalizeDhatuSurface()] = dhatu
                 map[dhatu.derivationalSurface.normalizeDhatuSurface()] = dhatu
+                dhatu.surfaceAliases.forEach { alias ->
+                    map[alias] = dhatu
+                    map[alias.normalizeDhatuSurface()] = dhatu
+                }
+            }
+        }
+        map
+    }
+
+    /**
+     * Data-driven root index: maps every known dhātu surface form, alias, and
+     * operation stem to the canonical root string used for फल resolution.
+     * Built once from DhatuPatha; no hardcoded stem→root table needed.
+     */
+    private val stemToRootCache by lazy {
+        val map = mutableMapOf<String, String>()
+        DhatuPatha.all.forEach { dhatu ->
+            val root = dhatu.upadesha.trimEnd('ँ', '्', 'ि', 'र', 'ञ')
+            // Index all known surface representations
+            sequenceOf(
+                dhatu.upadesha,
+                dhatu.sourceSurface,
+                dhatu.derivationalSurface,
+            ).plus(dhatu.surfaceAliases).forEach { surface ->
+                if (surface.isNotEmpty()) {
+                    map[surface] = root
+                    map[surface.normalizeDhatuSurface()] = root
+                    // Also index with common prefix/suffix stripped (mirrors getActionRoot cleaning)
+                    val cleaned = surface
+                        .removePrefix("नि").removePrefix("प्र")
+                        .trimEnd('न', 'म', '्', 'अ')
+                    if (cleaned.isNotEmpty()) map[cleaned] = root
+                }
+            }
+            // Index every operation name so kridanta-derived nouns resolve correctly
+            dhatu.operations.forEach { op ->
+                val opCleaned = op.name
+                    .removePrefix("नि").removePrefix("प्र")
+                    .trimEnd('न', 'म', '्', 'अ')
+                if (opCleaned.isNotEmpty()) {
+                    map[op.name] = root
+                    map[opCleaned] = root
+                }
             }
         }
         map
@@ -593,51 +636,30 @@ object VyakaranamExecutionAdapter {
         val freqQual = frame.qualifications.firstOrNull { it.kind == KriyaQualificationKind.FREQUENCY }
         if (freqQual != null) {
             val text = freqQual.value
-            if (text.endsWith("कृत्वः")) {
-                val prefix = text.removeSuffix("कृत्वः")
-                val eval = sankhyaEvaluator.evaluateStems(listOf(prefix))
-                if (eval.value > 0) return eval.value.toInt()
-            }
-            return when (text) {
-                "सकृत्" -> 1
-                "द्विः", "द्विकृत्वः" -> 2
-                "त्रिः", "त्रिकृत्वः" -> 3
-                "चतुः" -> 4
-                "पञ्चकृत्वः" -> 5
-                "दशकृत्वः" -> 10
-                "शतकृत्वः" -> 100
-                "बहुकृत्वः" -> 10
-                "पुनः", "पुनर्" -> 2
-                else -> null
-            }
+            // Delegate to SankhyaEvaluator — it natively handles:
+            //   सकृत्, द्विः, त्रिः, चतुः (parseStandaloneFrequency)
+            //   *कृत्वः / *कृत्वस् compound forms (evaluateStems suffix branch)
+            val evaluated = runCatching { sankhyaEvaluator.evaluateStems(listOf(text)) }.getOrNull()
+            if (evaluated != null && evaluated.value > 0) return evaluated.value.toInt()
+            // पुनः / पुनर् are pragmatic repetition markers ("again" = do once more),
+            // not purely numerical — retain as minimal policy.
+            if (text == "पुनः" || text == "पुनर्") return 2
         }
         return null
     }
 
     private fun getActionRoot(stem: String): String {
         val clean = stem.removePrefix("नि").removePrefix("प्र").trimEnd('न', 'म', '्', 'अ')
-        return when {
-            clean.contains("योज") || clean.contains("योग") || clean.contains("युज") -> "युज्"
-            clean.contains("गण") -> "गण"
-            clean.contains("शिष") || clean.contains("शेष") -> "शिष्"
-            clean.contains("मूल") || clean.contains("मूला") -> "मूल्"
-            clean.contains("भज") || clean.contains("भाग") -> "भज्"
-            clean.contains("हरण") || clean.contains("हर") -> "हृ"
-            clean.contains("क्षेप") || clean.contains("क्षिप") -> "क्षिप्"
-            clean.contains("दा") -> "दा"
-            clean.contains("प्रेष") -> "प्रेष्"
-            else -> clean
-        }
+        return stemToRootCache[stem]
+            ?: stemToRootCache[clean]
+            ?: stemToRootCache[clean.normalizeDhatuSurface()]
+            ?: clean
     }
 
     private fun getDhatuRoot(upadesha: String): String {
         val clean = upadesha.trimEnd('ँ', '्', 'ि', 'र', 'ञ')
-        return when {
-            clean.contains("युज") -> "युज्"
-            clean.contains("क्षिप") -> "क्षिप्"
-            clean.contains("दा") -> "दा"
-            clean.contains("प्रेष") -> "प्रेष्"
-            else -> clean
-        }
+        return stemToRootCache[upadesha]
+            ?: stemToRootCache[clean]
+            ?: clean
     }
 }
