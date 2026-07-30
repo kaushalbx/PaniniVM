@@ -1,0 +1,10 @@
+# Modular Arithmetic Algorithm: Compute (5 * 6) mod 7 = 30 mod 7 = 2
+
+# Step 1: Compute product = 5 * 6 = 30 (त्रिंशत्) and assign to 'गुणन'
+पञ्च + अम् षष् + अम् च गण + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् गुणन + ङे ।
+
+# Step 2: Compute remainder = 30 mod 7 = 2 (द्वे) and assign to 'शेष'
+गुणन + अम् सप्त + अम् च शिष् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् शेष + ङे ।
+
+# Print modular remainder 'शेष' (renders 2 = द्वे)
+मुद्र् + णिच् + लोट् + सिप् शेष + अम् ।
