@@ -129,6 +129,29 @@ class PvmFileTest {
     }
 
     @Test
+    fun `PaniniVM evaluates factorial pvm file`() {
+        val pvmFile = File("examples/arithmetic/factorial.pvm")
+        var sentPayload: String? = null
+        vm.registerExternalCapability(ExecutionEffect.NETWORK) { payload, _ ->
+            sentPayload = payload
+            "प्रेषणं सिद्धम्"
+        }
+
+        assertTrue(pvmFile.exists(), "factorial.pvm should exist")
+
+        val results = vm.evalFile(pvmFile, sessionKey = "factorial_session")
+
+        assertEquals(4, results.size)
+        
+        // The final network send result:
+        val sendResult = assertIs<ExecutionResult.Success>(results[3])
+        assertEquals("प्रेषणं सिद्धम्", sendResult.value)
+        
+        // The payload sent via network (the factorial result of 5!):
+        assertEquals("विंशत्यधिकशतम्", sentPayload)
+    }
+
+    @Test
     fun `PaniniVM evaluates comparison, min, random, sqrt, mod, and count pvm files`() {
         val compFile = File("examples/arithmetic/comparison.pvm")
         val compResults = vm.evalFile(compFile, sessionKey = "comp_session")
