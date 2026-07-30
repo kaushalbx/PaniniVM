@@ -17,23 +17,23 @@ Pāṇini’s Aṣṭādhyāyī is the earliest formal, rule-based computational
 
 ```
 PaniniVM Root
-├── :core          Central domain models, Sutra<C,R>, DerivationState, PratyaharaEngine, Adhikara/Paribhasha/Nishedha registries, centralized partitioned Samjna & Artha
-├── :ashtadhyayi    Executable Aṣṭādhyāyī Sūtra catalog (474+ rules across 8 Adhyāyas: Sandhi, Samāsa, Kāraka, Vibhakti, Subanta, Tiṅanta)
-├── :dhatupatha     Complete 10-Gaṇa Dhātupāṭha root catalog (Bhvādi, Adādi, Juhotyādi, Divādi, Svādi, Tudādi, Rudhādi, Tanādi, Kryādi, Curādi)
-├── :unadipatha     Declarative Uṇādipāṭha subsystem (33+ sūtras across all 5 Adhyāyas under 3.3.1 उणादयो बहुलम्), reverse lookup, etymological stem analyzer
-├── :derivation     DerivationEngine, SubantaEngine, TingantaEngine, SankhyaGenerator, UnadiDerivationBridge, UnadiDerivationEngine
-├── :analysis       PadaAnalyzer, VakyaAnalyzer, sentence-level kāraka syncretism resolution (e.g. भ्याम्), automatic Uṇādi stem annotations
-├── :parser         ANTLR4 canonical grammar (VyakaranamLexer.g4 + VyakaranamParser.g4), AST builder for segmented input (Prakṛti + Pratyaya)
-├── :actions        Action dispatchers (PaniniAction, DhatuAction, SubantaAction, TingantaAction, SankhyaAction)
-├── :compiler       BytecodeCompiler, compiling .pvm script files directly into native JVM .class bytecode with mapped stack constants
-├── :cli            Command-line interface (Main.kt) for script execution, Uṇādi lookup/derivation, verb/nominal derivations, coverage inspection
-├── :aryabhatiya    Āryabhaṭīya Varga & Avarga consonant-vowel numerical encoder/decoder (ख्युघृ = 4,320,000)
-├── :bhutasamkhya   Bhūtasamkhyā symbolic noun decoder (नेत्र = 2, वेद = 4, अङ्कानां वामतो गतिः)
-├── :sankhya        Numeral generator & transformer
-├── :katapayadi     Kaṭapayādi numerical cipher encoder/decoder (नञावचश्च शून्यानि)
-├── :ganapatha      Gaṇapāṭha nominal list registry
-├── :execution      Sambhashana pipeline, turn-based dialogue context, persistence, capability routing
-└── :idea-plugin    IntelliJ IDEA plugin integration module
+├── :core           Central domain models, Sutra<C,R>, DerivationState, PratyaharaEngine, Adhikara/Paribhasha/Nishedha registries, Saṁjñā & Artha
+├── :ashtadhyayi     Executable Aṣṭādhyāyī Sūtra catalog (474+ rules across 8 Adhyāyas: Sandhi, Samāsa, Kāraka, Vibhakti, Subanta, Tiṅanta)
+├── :dhatupatha      Complete 10-Gaṇa Dhātupāṭha root catalog (Bhvādi, Adādi, Juhotyādi, Divādi, Svādi, Tudādi, Rudhādi, Tanādi, Kryādi, Curādi)
+├── :unadipatha      Declarative Uṇādipāṭha subsystem (33+ sūtras across all 5 Adhyāyas under 3.3.1 उणादयो बहुलम्), etymological stem analyzer
+├── :derivation      DerivationEngine, SubantaEngine, TingantaEngine, SankhyaGenerator, UnadiDerivationBridge, UnadiDerivationEngine
+├── :analysis        Semantic sentence analyzer, resolver for case-marked dependencies (Kārakas) and morphological syncretism
+├── :parser          ANTLR4 canonical segmented Sanskrit parser and AST compiler builder (Prakṛti + Pratyaya)
+├── :actions         Action dispatchers (PaniniAction, DhatuAction, SubantaAction, TingantaAction, SankhyaAction)
+├── :compiler        Sanskrit natural programming language bytecode compiler, compiling .pvm scripts directly to native JVM .class bytecode
+├── :cli             Command-line interface (Main.kt) for script execution, etymological lookup, nominal/verbal derivations, and coverage inspection
+├── :aryabhatiya     Āryabhaṭīya Varga & Avarga consonant-vowel numerical encoder/decoder (ख्युघृ = 4,320,000)
+├── :bhutasamkhya    Bhūtasamkhyā symbolic noun decoder (नेत्र = 2, वेद = 4, अङ्कानां वामतो गतिः)
+├── :sankhya         Numeral generator & transformer
+├── :katapayadi      Kaṭapayādi numerical cipher encoder/decoder (नञावचश्च शून्यानि)
+├── :ganapatha       Gaṇapāṭha nominal list registry
+├── :execution       Sanskrit natural programming language execution runtime, turn-based dialogue context tracking, sandboxed safety gating
+└── :idea-plugin     IntelliJ IDEA plugin integration module
 ```
 
 ---
