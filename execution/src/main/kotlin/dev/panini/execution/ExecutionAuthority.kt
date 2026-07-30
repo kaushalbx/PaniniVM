@@ -5,10 +5,6 @@ import dev.panini.execution.persistence.StateStore
 import dev.panini.sutra.runtime.GranthaId
 import dev.panini.sutra.runtime.SutraGranthaRegistry
 
-enum class ExecutionEffect {
-    PURE, READ_MEMORY, WRITE_MEMORY, READ_RESOURCE, WRITE_RESOURCE,
-    DELETE_RESOURCE, NETWORK, SEND_MESSAGE, EXECUTE_PROCESS,
-}
 
 /** Capabilities and trusted identities supplied by the host. */
 data class ExecutionScope(

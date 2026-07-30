@@ -2,12 +2,6 @@ package dev.panini.execution
 
 import dev.panini.shiksha.Samjna
 
-/** Discourse turn coupling a system response with conversation context. */
-data class SambhashanaTurn(
-    val response: Prativacana,
-    val context: SambhashanaContext,
-)
-
 /** Utterance polarity (affirmative vs negative). */
 enum class Polarity { POSITIVE, NEGATIVE }
 
@@ -20,12 +14,6 @@ enum class ExecutionDisposition {
 enum class VakyaPrayojana {
     VIDHANA, PRASHNA, AJNA, PRARTHANA, NISHEDHA, ASHAMSA, ANUMATI, NIMANTRANA,
 }
-
-/** A language-facing response to an interpreted utterance. */
-data class Prativacana(
-    val text: String,
-    val phala: Phala,
-)
 
 /** A stable, turn-qualified result retained in discourse memory. */
 data class SmrtaPhala(

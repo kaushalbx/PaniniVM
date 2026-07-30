@@ -2,6 +2,8 @@ package dev.panini.execution
 
 import dev.panini.core.Lakara
 
+data class ActionDependency(val before: String, val after: String)
+
 data class ExecutableUkti(
     val speaker: String,
     val listener: String,

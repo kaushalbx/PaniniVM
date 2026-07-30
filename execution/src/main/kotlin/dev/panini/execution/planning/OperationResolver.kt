@@ -144,8 +144,9 @@ object OperationResolver {
             if (typedValues.size < requirement.minimumMembers) {
                 return SignatureEvaluation.Incompatible("${requirement.karaka} requires at least ${requirement.minimumMembers} members.")
             }
-            if (requirement.maximumMembers != null && typedValues.size > requirement.maximumMembers) {
-                return SignatureEvaluation.Incompatible("${requirement.karaka} accepts at most ${requirement.maximumMembers} members.")
+            val maxMembers = requirement.maximumMembers
+            if (maxMembers != null && typedValues.size > maxMembers) {
+                return SignatureEvaluation.Incompatible("${requirement.karaka} accepts at most $maxMembers members.")
             }
             if (typedValues.any { !it.samjnas.containsAll(requirement.memberSamjnas) }) {
                 return SignatureEvaluation.Incompatible("Every ${requirement.karaka} member requires saṃjñās ${requirement.memberSamjnas}.")
@@ -160,3 +161,16 @@ object OperationResolver {
         data class Incompatible(val reason: String) : SignatureEvaluation
     }
 }
+
+fun DhatuInvocation.executionContext(
+    variables: Map<String, SanskritValue>,
+    stateStore: dev.panini.execution.persistence.StateStore? = null,
+    externalDispatcher: dev.panini.execution.external.ExternalCapabilityDispatcher? = null,
+): ExecutionContext = ExecutionContext(
+    bindings = bindings,
+    selectedOperation = selectedOperation,
+    variables = variables,
+    metadata = metadata,
+    stateStore = stateStore,
+    externalDispatcher = externalDispatcher,
+)
