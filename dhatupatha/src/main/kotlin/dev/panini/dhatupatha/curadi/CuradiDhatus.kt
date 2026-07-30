@@ -3251,5 +3251,6 @@ object CuradiDhatus {
                 null, null, null, null,
             )
             dhatu(PreshDhatu())
+            dhatu(MudrDhatu())
         }
 }

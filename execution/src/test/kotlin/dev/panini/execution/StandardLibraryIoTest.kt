@@ -37,4 +37,11 @@ class StandardLibraryIoTest {
         val success = assertIs<ExecutionResult.Success>(result)
         assertEquals("स्वीकृतम्", success.value)
     }
+
+    @Test
+    fun `PaniniVM executes print action using MudrDhatu`() {
+        val result = vm.eval("राम + अम् मुद्र् + णिच् + लोट् + सिप् ।", sessionKey = "mudr_session")
+        val success = assertIs<ExecutionResult.Success>(result)
+        assertEquals("राम", success.value)
+    }
 }
