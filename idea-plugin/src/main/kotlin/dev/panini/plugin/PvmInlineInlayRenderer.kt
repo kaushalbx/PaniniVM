@@ -13,8 +13,28 @@ import java.awt.RenderingHints
 
 class PvmInlineInlayRenderer(val surfaceText: String) : EditorCustomElementRenderer {
 
+    companion object {
+        private val resolvedFontName: String by lazy {
+            try {
+                val ge = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment()
+                val families = ge.availableFontFamilyNames.toSet()
+                val preferred = listOf("Nirmala UI", "Mangal", "Sanskrit Text", "Arial Unicode MS")
+                preferred.firstOrNull { it in families } ?: "SansSerif"
+            } catch (_: Throwable) {
+                "SansSerif"
+            }
+        }
+    }
+
+    private fun getHintFont(inlay: Inlay<*>): java.awt.Font {
+        val editor = inlay.editor
+        val baseFont = editor.colorsScheme.getFont(EditorFontType.PLAIN)
+        val hintFontSize = (baseFont.size * 0.9f).coerceAtLeast(10f)
+        return java.awt.Font(resolvedFontName, java.awt.Font.PLAIN, hintFontSize.toInt())
+    }
+
     override fun calcWidthInPixels(inlay: Inlay<*>): Int {
-        val fontMetrics = inlay.editor.component.getFontMetrics(inlay.editor.colorsScheme.getFont(EditorFontType.BOLD))
+        val fontMetrics = inlay.editor.component.getFontMetrics(getHintFont(inlay))
         return fontMetrics.stringWidth(surfaceText) + 24
     }
 
@@ -27,9 +47,11 @@ class PvmInlineInlayRenderer(val surfaceText: String) : EditorCustomElementRende
         try {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
             g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
+            g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON)
 
             val editor = inlay.editor
-            g2.font = editor.colorsScheme.getFont(EditorFontType.ITALIC)
+            val hintFont = getHintFont(inlay)
+            g2.font = hintFont
 
             val isDark = UIUtil.isUnderDarcula()
             // Code block chip badge background (matching inline code highlighting)
@@ -59,12 +81,14 @@ class PvmInlineInlayRenderer(val surfaceText: String) : EditorCustomElementRende
             g2.fillRoundRect(r.x + 8, badgeY, r.width - 12, badgeHeight, 6, 6)
 
             // Draw chip border
-//            g2.color = chipBorderColor
+            g2.color = chipBorderColor
             g2.drawRoundRect(r.x + 8, badgeY, r.width - 12, badgeHeight, 6, 6)
 
-            // Draw surface text without arrow
+            // Draw surface text vertically centered inside the badge
             g2.color = textColor
-            g2.drawString(surfaceText, r.x + 14, badgeY + editor.ascent - 2)
+            val fontMetrics = g2.fontMetrics
+            val textY = badgeY + (badgeHeight - fontMetrics.height) / 2 + fontMetrics.ascent
+            g2.drawString(surfaceText, r.x + 14, textY)
         } finally {
             g2.dispose()
         }
