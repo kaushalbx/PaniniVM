@@ -144,15 +144,18 @@ object VyakaranamExecutionAdapter {
         var prayer = false
         var prohibition = false
         val localVariables = mutableSetOf<String>()
-        val abhyasaCounts = ukti.vakyas.mapNotNull { vakya ->
-            val frame = utteranceAnalysis.frames.firstOrNull { it.vakya == vakya }
-            if (frame != null) extractFrequencyCount(vakya.padas, frame) else null
+        val abhyasaCounts = ukti.vakyas.flatMap { vakya ->
+            vakya.padas.filterIsInstance<SankhyaAbhyasaPada>().mapNotNull { pada ->
+                val numStems = pada.stems.filter { it != "कृत्वः" && it != "कृत्वा" && it != "कृत्वसुच्" && it != "सुच्" }
+                val evaluated = if (numStems.isNotEmpty()) sankhyaEvaluator.evaluateStems(numStems) else sankhyaEvaluator.evaluateStems(pada.stems)
+                evaluated.value.toInt().takeIf { it > 0 }
+            }
         }
         val repeatCount = abhyasaCounts.maxOrNull() ?: 1
 
         // Only unroll if this is a multi-clause statement.
         // Single-clause repetition loops are evaluated in-memory using the original ExecutionRuntime loop.
-        val shouldUnroll = repeatCount > 1 && ukti.vakyas.size > 1
+        val shouldUnroll = repeatCount > 1
         val unrolledVakyas = buildList {
             val count = if (shouldUnroll) repeatCount else 1
             repeat(count) {
@@ -281,8 +284,8 @@ object VyakaranamExecutionAdapter {
                         root == prevRoot || dhatuActionRootsCache[prevDhatu]?.contains(root) == true
                     }
                 }
-                val matchedIndex = if (isPrevious && matchingIndices.size > 1) {
-                    matchingIndices.dropLast(1).lastOrNull() ?: matchingIndices.lastOrNull()
+                val matchedIndex = if (isPrevious) {
+                    if (matchingIndices.size > 1) matchingIndices.dropLast(1).lastOrNull() else null
                 } else {
                     matchingIndices.lastOrNull()
                 }

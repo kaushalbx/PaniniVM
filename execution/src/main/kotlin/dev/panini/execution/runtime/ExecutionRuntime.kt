@@ -69,10 +69,17 @@ object ExecutionRuntime {
                             result.value,
                             plan.resolved.operation.resultSamjnas,
                         )
-                        if (values.containsKey("पूर्वफल")) {
-                            values["पूर्वपूर्वफल"] = values["पूर्वफल"]!!
+                        val karmanExpr = plan.resolved.context.bindings[dev.panini.core.Karaka.KARMAN]
+                        val sankhyaVals = karmanExpr?.let { plan.resolved.context.resolveSankhyaValues(it) }
+                        val secondVal = if (sankhyaVals != null && sankhyaVals.size >= 2 && karmanExpr is dev.panini.execution.ExecutionExpression.Coordination) sankhyaVals[1] else null
+
+                        val oldPhala = values["फल"]
+                        if (secondVal != null) {
+                            val surf = dev.panini.execution.renderSankhyaResult(secondVal) ?: secondVal.toString()
+                            values["पूर्वफल"] = dev.panini.execution.SanskritValue.Sankhya(secondVal, surf)
+                        } else if (oldPhala != null) {
+                            values["पूर्वफल"] = oldPhala
                         }
-                        values["पूर्वफल"] = typedResult
                         values["फल"] = typedResult
                         values[plan.invocationId] = typedResult
                         val bindingKaraka = plan.resolved.operation.resultBindingKaraka

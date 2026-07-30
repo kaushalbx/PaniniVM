@@ -1,0 +1,14 @@
+# Fibonacci Sequence Algorithm using krtvas (कृत्वः) for-loop repetition
+
+# Step 1: Compute F3 = F1 + F2 = 1 + 1 = 2
+एक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ।
+
+# Step 2: Repeat Fibonacci addition 4 times using krtvas (चतुर्कृत्वः)
+# Copy 1: F4 = F2 + F3 = 1 + 2 = 3
+# Copy 2: F5 = F3 + F4 = 2 + 3 = 5
+# Copy 3: F6 = F4 + F5 = 3 + 5 = 8
+# Copy 4: F7 = F5 + F6 = 5 + 8 = 13
+पूर्व + ङस् युज् + घञ् + ङस् फल + अम् युज् + घञ् + ङस् फल + अम् च चतुर् + कृत्वः युज् + णिच् + लोट् + सिप् ।
+
+# Print 7th Fibonacci term (renders 13 = त्रयोदश)
+युज् + घञ् + ङस् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।
