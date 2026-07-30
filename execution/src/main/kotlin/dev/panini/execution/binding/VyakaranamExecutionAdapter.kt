@@ -177,7 +177,6 @@ object VyakaranamExecutionAdapter {
             val frame = utteranceAnalysis.frames.firstOrNull { it.vakya == vakya } ?: return@forEachIndexed
             val extracted = extractKarakas(padas, conversation, index, dhatu, frame, invocations.map { it.dhatu }, localVariables)
             val bindings = extracted.bindings.toMutableMap()
-            println("BINDINGS KEYS for Clause $index (${dhatu.upadesha}): ${bindings.keys}")
             if (tinganta != null && purposeRequiresListenerAsAgent(prayer, tinganta.lakara) && Karaka.KARTR !in bindings) {
                 bindings[Karaka.KARTR] = ExecutionExpression.Pada(listener)
             }
@@ -248,7 +247,6 @@ object VyakaranamExecutionAdapter {
         previousDhatus: List<Dhatu>,
         localVariables: Set<String>
     ): ExtractedBindings {
-        println("PADAS CLASSES for Clause $clauseIndex (${dhatu.upadesha}): ${padas.map { it::class.simpleName }}")
         val grouped = mutableMapOf<Karaka, MutableList<ExecutionExpression>>()
         val ambiguous = mutableListOf<AmbiguousKarakaBinding>()
         val trace = mutableListOf<String>()
@@ -299,11 +297,6 @@ object VyakaranamExecutionAdapter {
         fun inferKarakas(pada: SubantaPada): Set<Karaka> {
             val relation = frame.relations.firstOrNull {
                 it.participant.pada.sourceText == pada.sourceText
-            }
-            if (relation != null) {
-                println("INFER RESOLUTION: pada = '${pada.sourceText}' | resolution = ${relation.resolution}")
-            } else {
-                println("INFER RESOLUTION NOT FOUND: pada = '${pada.sourceText}'")
             }
             if (relation == null) {
                 val supAffix = dev.panini.core.SupAffix.fromUpadesha(pada.sup.text)
