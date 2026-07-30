@@ -12,6 +12,16 @@ import java.io.File
 
 object BytecodeCompiler {
 
+    fun compileFile(file: File, className: String): ByteArray {
+        require(file.exists()) { "PaniniVM script file not found: ${file.absolutePath}" }
+        val scriptContent = file.readText()
+        runCatching {
+            val txtFile = File(file.parentFile, file.nameWithoutExtension + ".txt")
+            txtFile.writeText(PvmUktiSadhaka().sadhayaScript(scriptContent) + "\n")
+        }
+        return compile(scriptContent, className)
+    }
+
     /**
      * Compiles a PaniniVM script content into JVM bytecode.
      */

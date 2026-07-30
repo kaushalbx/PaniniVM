@@ -285,7 +285,12 @@ class PaniniVM(
         listener: String = "यन्त्रम्",
     ): List<ExecutionResult> {
         require(file.exists()) { "PaniniVM script file not found: ${file.absolutePath}" }
-        return evalScript(file.readText(), sessionKey = sessionKey, scope = scope, speaker = speaker, listener = listener)
+        val scriptContent = file.readText()
+        runCatching {
+            val txtFile = File(file.parentFile, file.nameWithoutExtension + ".txt")
+            txtFile.writeText(PvmUktiSadhaka().sadhayaScript(scriptContent) + "\n")
+        }
+        return evalScript(scriptContent, sessionKey = sessionKey, scope = scope, speaker = speaker, listener = listener)
     }
 
     fun loadSession(sessionKey: String): SambhashanaContext? {

@@ -42,8 +42,33 @@ class PvmUktiSadhaka(
 ) {
 
     fun sadhayaScript(scriptContent: String): String {
-        return PvmScript.parse(scriptContent).joinToString("\n") { statement ->
-            sadhayaLine(statement.text)
+        return scriptContent.lines().joinToString("\n") { line ->
+            val trimmed = line.trim()
+            when {
+                trimmed.isEmpty() -> ""
+                trimmed.startsWith("#") || trimmed.startsWith("//") -> line
+                else -> {
+                    val commentIdx = when {
+                        trimmed.contains("#") && trimmed.contains("//") -> minOf(trimmed.indexOf('#'), trimmed.indexOf("//"))
+                        trimmed.contains("#") -> trimmed.indexOf('#')
+                        trimmed.contains("//") -> trimmed.indexOf("//")
+                        else -> -1
+                    }
+                    val codePart = if (commentIdx != -1) trimmed.substring(0, commentIdx).trim() else trimmed
+                    val commentPart = if (commentIdx != -1) line.substring(line.indexOf(if (trimmed.contains('#')) '#' else '/')) else ""
+
+                    if (codePart.isEmpty()) {
+                        line
+                    } else {
+                        val hasDanda = codePart.endsWith("।") || codePart.endsWith("॥") || codePart.contains("।") || codePart.contains("॥")
+                        var surface = try { sadhayaLine(codePart) } catch (_: Throwable) { codePart }
+                        if (!hasDanda) {
+                            surface = surface.replace("॥", "").replace("।", "").replace(Regex("\\s+"), " ").trim()
+                        }
+                        if (commentPart.isNotEmpty()) "$surface $commentPart" else surface
+                    }
+                }
+            }
         }
     }
 
