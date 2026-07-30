@@ -6,8 +6,8 @@
 # Set common ratio variable 'गुणक' = 3 (त्रि)
 त्रिम् गुणकाय दअ ।
 
-# Loop 3 times (त्रिकृत्वः): multiply 'पद' by 'गुणक' (गणनम्) and assign result back to 'पद'
-त्रिकृत्वः पदमवक गुणकम् च गण । दअ फलम् पदयवक ।
+# Loop 3 times (त्रिकृत्वः): multiply 'पद' by 'गुणक' and assign result directly to 'पद' (पदाय)
+त्रिकृत्वः पदमवक गुणकम् च पदयवक गण ।
 
 # Print final term 'पद' (renders 54 = चतुर्पञ्चाशत्)
 मोद्रय पदमवक ।

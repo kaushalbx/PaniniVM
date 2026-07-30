@@ -21,6 +21,7 @@ fun DhatuAction.numericOp(
     definition: OperationDefinition.() -> Unit = {},
 ): DhatuOperation = op {
     requiresNumbers(minimum = minimum, shape = ExpressionShape.COORDINATION)
+    bindsResultTo(Karaka.SAMPRADANA)
     returns(Samjna.SANKHYA)
     definition()
 }

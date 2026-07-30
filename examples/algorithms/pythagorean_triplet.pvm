@@ -1,16 +1,16 @@
 # Pythagorean Theorem Algorithm: Compute hypotenuse c = sqrt(a^2 + b^2) for a=3, b=4
 
-# Step 1: Compute a^2 = 3 * 3 = 9 (नव) and assign to 'भुजा'
-त्रि + अम् त्रि + अम् च गण + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् भुजा + ङे ।
+# Step 1: Multiply 3 and 3 (3 * 3 = 9)
+त्रि + अम् त्रि + अम् च गण + णिच् + लोट् + सिप् ।
 
-# Step 2: Compute b^2 = 4 * 4 = 16 (षोडश) and assign to 'कोटि'
-चतुर् + अम् चतुर् + अम् च गण + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् कोटि + ङे ।
+# Step 2: Multiply 4 and 4 (4 * 4 = 16)
+चतुर् + अम् चतुर् + अम् च गण + णिच् + लोट् + सिप् ।
 
-# Step 3: Compute sum c^2 = a^2 + b^2 = 9 + 16 = 25 (पञ्चविंशति) and assign to 'कर्णवर्ग'
-भुजा + अम् कोटि + अम् च युज् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् कर्णवर्ग + ङे ।
+# Step 3: Add results of multiplication (16) and previous multiplication (9) -> 25
+गण + ल्युट् + ङस् फल + अम् पूर्वगणन + ङस् फल + अम् च युज् + णिच् + लोट् + सिप् ।
 
-# Step 4: Compute hypotenuse c = sqrt(c^2) = sqrt(25) = 5 (पञ्च)
-कर्णवर्ग + अम् मूल् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् कर्ण + ङे ।
+# Step 4: Compute square root of addition result (sqrt(25) = 5)
+युज् + घञ् + ङस् फल + अम् मूल् + णिच् + लोट् + सिप् ।
 
-# Print hypotenuse 'कर्ण' (renders 5 = पञ्च)
-मुद्र् + णिच् + लोट् + सिप् कर्ण + अम् ।
+# Step 5: Print result of square root (मूल् + घञ् + ङस् फल + अम् -> मूलस्य फलम् -> renders 5 = पञ्च)
+मूल् + घञ् + ङस् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।

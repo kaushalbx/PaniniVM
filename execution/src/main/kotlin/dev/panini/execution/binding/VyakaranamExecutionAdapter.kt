@@ -256,40 +256,48 @@ object VyakaranamExecutionAdapter {
             }
 
         val subantas = padas.filterIsInstance<SubantaPada>()
-        val phalaPada = subantas.firstOrNull { it.pratipadika.baseText() == "फल" }
-        val genitiveModifier = if (phalaPada != null) {
-            subantas.firstOrNull { it != phalaPada && it.sup.text in setOf("ङस्", "आम्") }
-        } else null
-
+        val phalaPadas = subantas.filter { it.pratipadika.baseText() == "फल" }
         val resolvedGenitives = mutableSetOf<SubantaPada>()
-        var resolvedPhalaId: String? = null
-        if (genitiveModifier != null) {
-            val base = genitiveModifier.pratipadika.baseText()
-            val root = getActionRoot(base)
-            val matchedIndex = (0 until clauseIndex).lastOrNull { i ->
-                val prevDhatu = previousDhatus.getOrNull(i)
-                if (prevDhatu == null) false else {
-                    val prevRoot = dhatuRootsCache[prevDhatu]
-                    root == prevRoot || dhatuActionRootsCache[prevDhatu]?.contains(root) == true
+        val resolvedPhalaMap = mutableMapOf<SubantaPada, String>()
+
+        phalaPadas.forEach { phalaPada ->
+            val idx = subantas.indexOf(phalaPada)
+            val genitiveModifier = subantas.take(idx).lastOrNull { it.sup.text in setOf("ङस्", "आम्") && it !in resolvedGenitives }
+            if (genitiveModifier != null) {
+                val base = genitiveModifier.pratipadika.baseText()
+                val isPrevious = base.startsWith("पूर्व")
+                val cleanBase = if (isPrevious) base.removePrefix("पूर्व") else base
+                val root = getActionRoot(cleanBase)
+                val matchingIndices = (0 until clauseIndex).filter { i ->
+                    val prevDhatu = previousDhatus.getOrNull(i)
+                    if (prevDhatu == null) false else {
+                        val prevRoot = dhatuRootsCache[prevDhatu]
+                        root == prevRoot || dhatuActionRootsCache[prevDhatu]?.contains(root) == true
+                    }
                 }
-            }
-            if (matchedIndex != null) {
-                resolvedPhalaId = "योग-${matchedIndex + 1}"
-                resolvedGenitives.add(genitiveModifier)
-            } else {
-                val historicalResult = conversation?.resultHistory?.lastOrNull { result ->
-                    val dhatuUpadesha = conversation.metadata["dhatu:${result.id}"]
-                    if (dhatuUpadesha != null) {
-                        val prevDhatu = upadeshaDhatuCache[dhatuUpadesha]
-                        if (prevDhatu != null) {
-                            val prevRoot = dhatuRootsCache[prevDhatu]
-                            root == prevRoot || dhatuActionRootsCache[prevDhatu]?.contains(root) == true
-                        } else false
-                    } else false
+                val matchedIndex = if (isPrevious && matchingIndices.size > 1) {
+                    matchingIndices.dropLast(1).lastOrNull() ?: matchingIndices.lastOrNull()
+                } else {
+                    matchingIndices.lastOrNull()
                 }
-                if (historicalResult != null) {
-                    resolvedPhalaId = historicalResult.id
+                if (matchedIndex != null) {
+                    resolvedPhalaMap[phalaPada] = "योग-${matchedIndex + 1}"
                     resolvedGenitives.add(genitiveModifier)
+                } else {
+                    val historicalResult = conversation?.resultHistory?.lastOrNull { result ->
+                        val dhatuUpadesha = conversation.metadata["dhatu:${result.id}"]
+                        if (dhatuUpadesha != null) {
+                            val prevDhatu = upadeshaDhatuCache[dhatuUpadesha]
+                            if (prevDhatu != null) {
+                                val prevRoot = dhatuRootsCache[prevDhatu]
+                                root == prevRoot || dhatuActionRootsCache[prevDhatu]?.contains(root) == true
+                            } else false
+                        } else false
+                    }
+                    if (historicalResult != null) {
+                        resolvedPhalaMap[phalaPada] = historicalResult.id
+                        resolvedGenitives.add(genitiveModifier)
+                    }
                 }
             }
         }
@@ -334,9 +342,10 @@ object VyakaranamExecutionAdapter {
                 else -> ambiguous += AmbiguousKarakaBinding(expression, candidates)
             }
         }
-        fun add(subanta: SubantaPada) {
-            val expr = if (subanta == phalaPada && resolvedPhalaId != null) {
-                expression(subanta, conversation, clauseIndex, resolvedPhalaId, localVariables)
+        fun add(subanta: SubantaPada, overridePhalaId: String? = null) {
+            val phalaId = overridePhalaId ?: resolvedPhalaMap[subanta]
+            val expr = if (phalaId != null) {
+                expression(subanta, conversation, clauseIndex, phalaId, localVariables)
             } else {
                 expression(subanta, conversation, clauseIndex, null, localVariables)
             }
@@ -358,7 +367,7 @@ object VyakaranamExecutionAdapter {
             if (index in mathTargetValues) return@forEachIndexed
             if (pada in resolvedGenitives) return@forEachIndexed
             when (pada) {
-                is SubantaPada -> add(pada)
+                is SubantaPada -> add(pada, resolvedPhalaMap[pada])
                 is SankhyaPada -> {
                     if (pada.stems.contains("कृत्वः") || pada.stems.contains("कृत्वस")) return@forEachIndexed
                     var targetIdx = -1
@@ -391,7 +400,7 @@ object VyakaranamExecutionAdapter {
                     val sub = SubantaPada(pada.sourceText, SankhyaPratipadika(pada.sourceText, value), pada.sup)
                     val candidates = inferKarakas(sub)
                     addBinding(
-                        ExecutionExpression.Companion.sankhya(value, pada.sourceText),
+                        ExecutionExpression.sankhya(value, pada.sourceText),
                         candidates,
                     )
                 }
@@ -474,7 +483,7 @@ object VyakaranamExecutionAdapter {
         pada: SubantaPada,
         conversation: SambhashanaContext?,
         clauseIndex: Int,
-        resolvedPhalaId: String? = null,
+        overridePhalaId: String? = null,
         localVariables: Set<String> = emptySet()
     ): ExecutionExpression {
         val text = pada.pratipadika.baseText()
@@ -487,7 +496,7 @@ object VyakaranamExecutionAdapter {
         ) {
             resolvedId = text
         } else if (text == "फल") {
-            resolvedId = resolvedPhalaId ?: (if (clauseIndex > 0) "योग-$clauseIndex" else
+            resolvedId = overridePhalaId ?: (if (clauseIndex > 0) "योग-$clauseIndex" else
                 conversation?.resultHistory?.lastOrNull()?.id ?: conversation?.previousResults?.keys?.lastOrNull())
         } else if (text.endsWith("फल")) {
             val prefix = text.removeSuffix("फल")
@@ -582,6 +591,11 @@ object VyakaranamExecutionAdapter {
         val clean = stem.removePrefix("नि").removePrefix("प्र").trimEnd('न', 'म', '्', 'अ')
         return when {
             clean.contains("योज") || clean.contains("योग") || clean.contains("युज") -> "युज्"
+            clean.contains("गण") -> "गण"
+            clean.contains("शिष") || clean.contains("शेष") -> "शिष्"
+            clean.contains("मूल") || clean.contains("मूला") -> "मूल्"
+            clean.contains("भज") || clean.contains("भाग") -> "भज्"
+            clean.contains("हरण") || clean.contains("हर") -> "हृ"
             clean.contains("क्षेप") || clean.contains("क्षिप") -> "क्षिप्"
             clean.contains("दा") -> "दा"
             clean.contains("प्रेष") -> "प्रेष्"

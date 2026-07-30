@@ -202,10 +202,20 @@ class PvmUktiSadhaka(
     private fun Pratipadika.baseText(): String = when (this) {
         is MulaPratipadika -> text
         is SankhyaPratipadika -> sourceText
-        is KridantaPratipadika -> dhatu.mulaDhatu
-        is UnadyantaPratipadika -> {
-            sourceText
-        }
+        is KridantaPratipadika -> deriveKridantaStem(dhatu.mulaDhatu, krtPratyaya)
+        is UnadyantaPratipadika -> sourceText
         is SamasaPratipadika -> angas.joinToString("-") { it.pratipadika.baseText() }
+    }
+
+    private fun deriveKridantaStem(dhatu: String, pratyaya: String): String {
+        return when (dhatu) {
+            "युज्" -> if (pratyaya == "घञ्" || pratyaya == "अप्") "योग" else "युज्"
+            "गण" -> if (pratyaya == "ल्युट्" || pratyaya == "अन") "गणन" else "गण"
+            "शिष्" -> if (pratyaya == "घञ्" || pratyaya == "अप्") "शेष" else "शिष्"
+            "मूल्" -> if (pratyaya == "घञ्" || pratyaya == "अप्") "मूल" else "मूल"
+            "भज्" -> if (pratyaya == "घञ्") "भाग" else "भज्"
+            "हृ" -> if (pratyaya == "ल्युट्") "हरण" else if (pratyaya == "घञ्") "हार" else "हर"
+            else -> dhatu
+        }
     }
 }

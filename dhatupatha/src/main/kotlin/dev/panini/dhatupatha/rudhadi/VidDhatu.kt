@@ -3,6 +3,7 @@ package dev.panini.dhatupatha.rudhadi
 import dev.panini.actions.numeric.ComparisonAction
 import dev.panini.actions.numeric.MinAction
 import dev.panini.core.DhatuGana
+import dev.panini.core.Karaka
 import dev.panini.core.PadaType
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.shiksha.Samjna
@@ -34,6 +35,7 @@ class VidDhatu : Dhatu(
         },
         MinAction.op {
             requiresNumbers(shape = ExpressionShape.COORDINATION)
+            bindsResultTo(Karaka.SAMPRADANA)
             triggeredBy(requiredAvyayas = setOf("न्यूनतया"))
             returns(Samjna.SANKHYA)
         },

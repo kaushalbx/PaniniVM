@@ -41,6 +41,7 @@ class GanDhatu : Dhatu(
         },
         AverageAction.op {
             requiresNumbers(shape = ExpressionShape.COORDINATION)
+            bindsResultTo(Karaka.SAMPRADANA)
             triggeredBy(requiredUpasargas = setOf("सम्"))
             returns(Samjna.SANKHYA)
         },

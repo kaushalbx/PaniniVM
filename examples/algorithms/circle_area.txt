@@ -1,11 +1,11 @@
 # Circle Area Approximation Algorithm: A = pi * r^2 for radius r = 3, pi ~ 3 -> A = 27
 
-# Step 1: Compute r^2 = 3 * 3 = 9 (नव) and assign to 'वर्ग'
-त्रिम् त्रिम् च गण । दअ फलम् वर्गाय ।
+# Step 1: Compute r^2 = 3 * 3 = 9 -> (प्रथमफल)
+त्रिम् त्रिम् च गण ।
 
-# Step 2: Compute A = 9 * 3 = 27 (सप्तविंशति) and assign to 'क्षेत्रफल'
-वर्गम् त्रिम् च गण । दअ फलम् क्षेत्रफलाय ।
+# Step 2: Compute A = 9 * 3 = 27 -> (द्वितीयफल)
+प्रथमफलम् त्रिम् च गण ।
 
-# Print circle area 'क्षेत्रफल' (renders 27 = सप्तविंशतिः)
-मोद्रय क्षेत्रफलम् ।
+# Print circle area result (renders 27 = सप्तविंशतिः)
+द्वितीयफलम् मोद्रय ।
 

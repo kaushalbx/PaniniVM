@@ -1,8 +1,8 @@
 # Average Calculation Algorithm: Compute average of 10, 20, 30
 
-# Calculate average of 10 (दश), 20 (विंशति), 30 (त्रिंशत्) using average action (संगणनम्) and assign to 'माध्य'
-दशम् विंशतिम् त्रिंशत्म् च गण । दअ फलम् माध्याय ।
+# Calculate average of 10 (दश), 20 (विंशति), 30 (त्रिंशत्)
+दशम् विंशतिम् त्रिंशत्म् च गण ।
 
-# Print calculated average 'माध्य' (renders 20 = विंशति)
-मोद्रय माध्यम् ।
+# Print result of average calculation (गण + ल्युट् + ङस् फल + अम् -> गणनस्य फलम् -> renders 20 = विंशतिः)
+गणनस्य फलम् मोद्रय ।
 
