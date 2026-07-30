@@ -1,0 +1,17 @@
+# Pythagorean Theorem Algorithm: Compute hypotenuse c = sqrt(a^2 + b^2) for a=3, b=4
+
+# Step 1: Compute a^2 = 3 * 3 = 9 (नव) and assign to 'भुजा'
+त्रिम् त्रिम् च गण । दअ फलम् भुजायै ।
+
+# Step 2: Compute b^2 = 4 * 4 = 16 (षोडश) and assign to 'कोटि'
+चतुर्म् चतुर्म् च गण । दअ फलम् कोटये ।
+
+# Step 3: Compute sum c^2 = a^2 + b^2 = 9 + 16 = 25 (पञ्चविंशति) and assign to 'कर्णवर्ग'
+भुजाम् कोटिम् च युज्यस्व । दअ फलम् कर्णवर्गाय ।
+
+# Step 4: Compute hypotenuse c = sqrt(c^2) = sqrt(25) = 5 (पञ्च)
+कर्णवर्गम् मूल । दअ फलम् कर्णयवक ।
+
+# Print hypotenuse 'कर्ण' (renders 5 = पञ्च)
+मोद्रय कर्णमवक ।
+
