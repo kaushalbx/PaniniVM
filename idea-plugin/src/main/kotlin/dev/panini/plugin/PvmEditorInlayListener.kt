@@ -86,35 +86,52 @@ class PvmEditorInlayListener : EditorFactoryListener {
 
             val sadhaka = PvmUktiSadhaka()
             val vm = PaniniVM()
-            val statements = PvmScript.parse(text)
+            val lines = text.lines()
+            var currentOffset = 0
+
             val inlineInlayEntries = mutableListOf<Pair<Int, String>>()
 
-            var searchIndex = 0
-            for (statement in statements) {
+            for (line in lines) {
                 if (Thread.currentThread().isInterrupted) return@executeOnPooledThread
-                val trimmed = statement.text.trim()
-                if (trimmed.isEmpty()) continue
+                val trimmed = line.trim()
+                val lineEnd = currentOffset + line.length
 
-                val dandaOffset = findNextDandaOffset(text, searchIndex)
-                val targetOffset = if (dandaOffset != -1) {
-                    searchIndex = dandaOffset + 1
-                    dandaOffset + 1
-                } else {
-                    searchIndex = text.length
-                    text.length
+                val codeWithoutComment = when {
+                    trimmed.startsWith("#") || trimmed.startsWith("//") -> ""
+                    trimmed.contains("#") -> trimmed.substringBefore("#").trim()
+                    trimmed.contains("//") -> trimmed.substringBefore("//").trim()
+                    else -> trimmed
                 }
 
-                var surface = try { sadhaka.sadhayaLine(trimmed) } catch (_: Throwable) { "" }
-                if (surface.isBlank() || surface == trimmed) {
-                    val res = try { vm.eval(trimmed) } catch (_: Throwable) { null }
-                    if (res is ExecutionResult.Success && res.value.isNotBlank()) {
-                        surface = res.value
+                if (codeWithoutComment.isNotEmpty()) {
+                    val lineHasDanda = codeWithoutComment.contains("।") || codeWithoutComment.contains("॥")
+
+                    var surface = try { sadhaka.sadhayaLine(codeWithoutComment) } catch (_: Throwable) { "" }
+                    if (surface.isBlank() || surface == codeWithoutComment) {
+                        val res = try { vm.eval(codeWithoutComment) } catch (_: Throwable) { null }
+                        if (res is ExecutionResult.Success && res.value.isNotBlank()) {
+                            surface = res.value
+                        }
+                    }
+
+                    if (surface.isNotBlank()) {
+                        val displayHint = if (!lineHasDanda) {
+                            surface
+                                .replace("॥", "")
+                                .replace("।", "")
+                                .replace(Regex("\\s+"), " ")
+                                .trim()
+                        } else {
+                            surface.trim()
+                        }
+
+                        if (displayHint.isNotBlank()) {
+                            inlineInlayEntries.add(Pair(lineEnd, displayHint))
+                        }
                     }
                 }
 
-                if (surface.isNotBlank()) {
-                    inlineInlayEntries.add(Pair(targetOffset, surface))
-                }
+                currentOffset = lineEnd + 1
             }
 
             // Once background computations are complete, schedule visual rendering on EDT
@@ -147,23 +164,5 @@ class PvmEditorInlayListener : EditorFactoryListener {
         }
 
         pendingComputations[editor] = future
-    }
-
-    private fun findNextDandaOffset(text: String, startOffset: Int): Int {
-        var idx = startOffset
-        val len = text.length
-        while (idx < len) {
-            val ch = text[idx]
-            if (ch == '।' || ch == '॥') {
-                val lineStart = text.lastIndexOf('\n', idx).let { if (it == -1) 0 else it + 1 }
-                val lineSegment = text.substring(lineStart, idx)
-                val isComment = lineSegment.contains("#") || lineSegment.contains("//")
-                if (!isComment) {
-                    return idx
-                }
-            }
-            idx++
-        }
-        return -1
     }
 }

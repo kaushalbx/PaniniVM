@@ -102,7 +102,9 @@ class PvmRunConfiguration(
                             val res = VM.eval(statement.text, sessionKey = sessionKey)
                             when (res) {
                                 is ExecutionResult.Success -> {
-                                    // Silent on success; PrintAction handles explicit prints directly
+                                    if (res.value.isNotBlank() && isPrintResult(res, statement.text)) {
+                                        processHandler.notifyTextAvailable("${res.value}\n", ProcessOutputTypes.STDOUT)
+                                    }
                                 }
                                 is ExecutionResult.Failure -> {
                                     processHandler.notifyTextAvailable("Error: ${res.message}\n", ProcessOutputTypes.STDERR)
@@ -164,6 +166,14 @@ class PvmRunConfiguration(
             }
 
             DefaultExecutionResult(consoleView, processHandler)
+        }
+    }
+
+    private fun isPrintResult(res: ExecutionResult.Success, statementText: String): Boolean {
+        val trimmed = statementText.trim()
+        if (trimmed.contains("मुद्र्") || trimmed.contains("दृश्") || trimmed.contains("प्रेष्")) return true
+        return res.trace.any {
+            it.contains("Printed") || it.contains("प्रदर्शनम्") || it.contains("मुद्रणम्") || it.contains("प्रेषणम्")
         }
     }
 }

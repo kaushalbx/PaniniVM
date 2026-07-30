@@ -72,7 +72,12 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
             results.forEachIndexed { index, res ->
                 when (res) {
                     is ExecutionResult.Success -> {
-                        // Silent on success; PrintAction handles explicit prints directly
+                        val isPrint = res.trace.any {
+                            it.contains("Printed") || it.contains("प्रदर्शनम्") || it.contains("मुद्रणम्") || it.contains("प्रेषणम्")
+                        }
+                        if (res.value.isNotBlank() && isPrint) {
+                            add(res.value)
+                        }
                     }
                     is ExecutionResult.Failure -> {
                         add("Error: ${res.message}")
