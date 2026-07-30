@@ -98,28 +98,26 @@ class PvmRunConfiguration(
                         val statements = PvmScript.parse(file.readText())
                         val sessionKey = "session_${file.nameWithoutExtension}_${System.currentTimeMillis()}"
 
-                        statements.forEachIndexed { index, statement ->
-                            processHandler.notifyTextAvailable("Line ${index + 1}:\n", ProcessOutputTypes.STDOUT)
+                         statements.forEachIndexed { index, statement ->
                             val res = VM.eval(statement.text, sessionKey = sessionKey)
                             when (res) {
                                 is ExecutionResult.Success -> {
-                                    processHandler.notifyTextAvailable("  ✓ Result: ${res.value}\n", ProcessOutputTypes.STDOUT)
-                                    processHandler.notifyTextAvailable("  ↳ Operation: ${res.operation}\n", ProcessOutputTypes.STDOUT)
+                                    processHandler.notifyTextAvailable("${res.value}\n", ProcessOutputTypes.STDOUT)
                                 }
                                 is ExecutionResult.Failure -> {
-                                    processHandler.notifyTextAvailable("  ✗ Error: ${res.error} - ${res.message}\n", ProcessOutputTypes.STDERR)
+                                    processHandler.notifyTextAvailable("Error: ${res.message}\n", ProcessOutputTypes.STDERR)
                                 }
                                 is ExecutionResult.NeedsInput -> {
-                                    processHandler.notifyTextAvailable("  ? Needs input: ${res.message} (missing: ${res.missingKarakas})\n", ProcessOutputTypes.STDOUT)
+                                    processHandler.notifyTextAvailable("Needs input: ${res.message} (missing: ${res.missingKarakas})\n", ProcessOutputTypes.STDOUT)
                                 }
                                 is ExecutionResult.Ambiguous -> {
-                                    processHandler.notifyTextAvailable("  ? Ambiguous: ${res.message} (matches: ${res.matchingOperations})\n", ProcessOutputTypes.STDOUT)
+                                    processHandler.notifyTextAvailable("Ambiguous: ${res.message} (matches: ${res.matchingOperations})\n", ProcessOutputTypes.STDOUT)
                                 }
                                 is ExecutionResult.NeedsApproval -> {
-                                    processHandler.notifyTextAvailable("  ? Needs approval: ID: ${res.invocationId} (effects: ${res.requiredEffects})\n", ProcessOutputTypes.STDOUT)
+                                    processHandler.notifyTextAvailable("Needs approval: ID: ${res.invocationId} (effects: ${res.requiredEffects})\n", ProcessOutputTypes.STDOUT)
                                 }
                                 is ExecutionResult.NeedsAcceptance -> {
-                                    processHandler.notifyTextAvailable("  ? Needs acceptance: ID: ${res.invocationId} (from ${res.speaker} to ${res.listener})\n", ProcessOutputTypes.STDOUT)
+                                    processHandler.notifyTextAvailable("Needs acceptance: ID: ${res.invocationId} (from ${res.speaker} to ${res.listener})\n", ProcessOutputTypes.STDOUT)
                                 }
                             }
                         }

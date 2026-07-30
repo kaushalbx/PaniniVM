@@ -70,26 +70,24 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
         buildList {
             add("=== PaniniVM Script Execution: ${file.name} ===")
             results.forEachIndexed { index, res ->
-                add("Line ${index + 1}:")
                 when (res) {
                     is ExecutionResult.Success -> {
-                        add("  ✓ Result: ${res.value}")
-                        add("  ↳ Operation: ${res.operation}")
+                        add(res.value)
                     }
                     is ExecutionResult.Failure -> {
-                        add("  ✗ Error: ${res.error} - ${res.message}")
+                        add("Error: ${res.message}")
                     }
                     is ExecutionResult.NeedsInput -> {
-                        add("  ? Needs input: ${res.message} (missing: ${res.missingKarakas})")
+                        add("Needs input: ${res.message} (missing: ${res.missingKarakas})")
                     }
                     is ExecutionResult.Ambiguous -> {
-                        add("  ? Ambiguous: ${res.message} (matches: ${res.matchingOperations})")
+                        add("Ambiguous: ${res.message} (matches: ${res.matchingOperations})")
                     }
                     is ExecutionResult.NeedsApproval -> {
-                        add("  ? Needs approval: ID: ${res.invocationId} (effects: ${res.requiredEffects})")
+                        add("Needs approval: ID: ${res.invocationId} (effects: ${res.requiredEffects})")
                     }
                     is ExecutionResult.NeedsAcceptance -> {
-                        add("  ? Needs acceptance: ID: ${res.invocationId} (from ${res.speaker} to ${res.listener})")
+                        add("Needs acceptance: ID: ${res.invocationId} (from ${res.speaker} to ${res.listener})")
                     }
                 }
             }

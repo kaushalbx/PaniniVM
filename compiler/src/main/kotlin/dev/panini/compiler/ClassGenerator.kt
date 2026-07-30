@@ -122,11 +122,6 @@ object ClassGenerator {
 
         // Iterate through each statement
         statements.forEachIndexed { stmtIdx, plans ->
-            // Print statement line trace
-            mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;")
-            mv.visitLdcInsn("Line ${stmtIdx + 1}:")
-            mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false)
-
             plans.forEachIndexed { planIdx, plan ->
                 // Local variable 2: bindingsMap = new HashMap<Karaka, ExecutionExpression>()
                 mv.visitTypeInsn(NEW, "java/util/HashMap")

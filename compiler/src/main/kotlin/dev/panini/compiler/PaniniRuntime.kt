@@ -87,7 +87,7 @@ object PaniniRuntime {
         return when (val result = action.execute(context, operation)) {
             is ExecutionResult.Success -> {
                 val value = result.typedValue ?: SanskritValue.of(result.value, operation.resultSamjnas)
-                println("✓ Result: ${value.toDisplayText()}")
+                println(value.toDisplayText())
                 value
             }
             is ExecutionResult.Failure -> {
