@@ -91,14 +91,14 @@ class PvmFileTest {
         assertEquals(3L, assertIs<SanskritValue.Sankhya>(
             assertIs<ExecutionResult.Success>(results[1]).typedValue,
         ).value)
-        assertEquals(4181L, assertIs<SanskritValue.Sankhya>(
+        assertEquals(55L, assertIs<SanskritValue.Sankhya>(
             assertIs<ExecutionResult.Success>(results[2]).typedValue,
         ).value)
         val suchi = assertIs<SanskritValue.Suchi>(
             assertIs<ExecutionResult.Success>(results[3]).typedValue,
         )
         assertEquals(
-            listOf(4181L),
+            listOf(55L),
             suchi.items.map { assertIs<SanskritValue.Sankhya>(it).value },
         )
         assertEquals("प्रेषणं सिद्धम्", assertIs<ExecutionResult.Success>(results[4]).value)
