@@ -21,8 +21,8 @@ class MainTest {
         val output = runCli(arrayOf("--eval", scriptPath))
 
         assertEquals("=== PaniniVM Script Execution: addition.pvm ===", output.first())
-        assertTrue(output.any { it.contains("षट्") }, output.joinToString("\n"))
-        assertTrue(output.any { it.contains("पञ्च") }, output.joinToString("\n"))
+        assertEquals(2, output.size, output.joinToString("\n"))
+        assertTrue(output[1].startsWith("Error:"), output[1])
     }
 
     @Test

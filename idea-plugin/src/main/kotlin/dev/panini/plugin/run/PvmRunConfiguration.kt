@@ -102,7 +102,7 @@ class PvmRunConfiguration(
                             val res = VM.eval(statement.text, sessionKey = sessionKey)
                             when (res) {
                                 is ExecutionResult.Success -> {
-                                    processHandler.notifyTextAvailable("${res.value}\n", ProcessOutputTypes.STDOUT)
+                                    // Silent on success; PrintAction handles explicit prints directly
                                 }
                                 is ExecutionResult.Failure -> {
                                     processHandler.notifyTextAvailable("Error: ${res.message}\n", ProcessOutputTypes.STDERR)

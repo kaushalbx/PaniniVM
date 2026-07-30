@@ -72,7 +72,7 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
             results.forEachIndexed { index, res ->
                 when (res) {
                     is ExecutionResult.Success -> {
-                        add(res.value)
+                        // Silent on success; PrintAction handles explicit prints directly
                     }
                     is ExecutionResult.Failure -> {
                         add("Error: ${res.message}")
