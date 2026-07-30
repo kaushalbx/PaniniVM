@@ -113,7 +113,23 @@ The `PvmUktiSadhaka` engine evaluates parsed AST nodes to perform full `rūpa-si
 
 ---
 
-## 6. Verification
+## 6. Nominal Sentence (NamaVakya) Execution
+
+For nominal sentences (statements lacking an explicit verb, i.e. `NamaVakya`), the engine implicitly maps the action to the copular root **`असँ`** (`AsDhatu` / "to be / to exist"). Grammatical case roles are resolved directly from parsed case suffixes:
+- **PRATHAMA (`सुँ`)** maps to `Karaka.KARTR` (Agent).
+- **DVITIYA (`अम्`)** maps to `Karaka.KARMAN` (Object).
+
+---
+
+## 7. Purely Semantic Positional Reference Resolution
+
+Positional reference terms (such as `अन्तिम`/`चरम` - last, and `उपान्तिम`/`उपान्त` - penultimate) are resolved as purely semantic references to step results or history in the execution context rather than opaque variable names:
+- **Value Lookup**: Maps to the last (`resultHistory.last()`) or penultimate (`resultHistory[size-2]`) step outputs.
+- **Assignment Compatibility**: If a positional term is the target of an active assignment (e.g. maps to `SAMPRADANA` of the verb `दा`), the compiler treats it as a local variable declaration to ensure loop assignments function correctly without environment collisions.
+
+---
+
+## 8. Verification
 
 Run the full test suite:
 ```powershell

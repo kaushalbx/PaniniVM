@@ -29,7 +29,12 @@ The project adds Pāṇinian rules as typed executable transformations. A rule i
 3. **[COMPLETED] Centralized Partitioned Saṁjñās & Artha Architecture**:
    - `dev.panini.shiksha.Samjna` and `dev.panini.shiksha.Artha` moved into `:core` and partitioned into authentic Pāṇinian sub-enums.
 
-4. **Future Focus Areas**:
+4. **[COMPLETED] Dialogue Session & Nominal Sentence (NamaVakya) Execution Pipeline**:
+   - Support turn-based dialogue state tracking via `SambhashanaContext` and resumable safety gating (`ExecutionAuthority`).
+   - Map nominal-only sentences implicitly to the copula root `असँ` with direct morphological Kāraka inference.
+   - Resolve positional references (`अन्तिम`/`उपान्तिम`) semantically to historical step outcomes with target assignment compatibility.
+
+5. **Future Focus Areas**:
    - Build declarative Taddhita derivation module (`taddhitapatha`) for Apatya (4.1.92), Matvarthīya (5.2.94), and Bhāvārthaka (5.1.119) affixes.
    - Broaden Aorist (*luṅ*) 7-variety dhātu derivations across rare root shapes.
    - Integrate fine-grained Vedic accent-aware tokenization (*Svaravidhi*).

@@ -4,7 +4,7 @@
 
 ---
 
-## Workspace Module Architecture (16 Modules)
+## Workspace Module Architecture (17 Modules)
 
 ```
 PaniniVM Root
@@ -23,6 +23,7 @@ PaniniVM Root
 ├── :sankhya        Numeral generator & transformer
 ├── :katapayadi     Kaṭapayādi numerical cipher encoder/decoder (नञावचश्च शून्यानि)
 ├── :ganapatha      Gaṇapāṭha nominal list registry
+├── :execution      Sambhashana pipeline, turn-based dialogue context, persistence, capability routing
 └── :idea-plugin    IntelliJ IDEA plugin integration module
 ```
 

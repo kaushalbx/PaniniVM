@@ -33,6 +33,11 @@ The implemented subset supports end-to-end nominal and verbal derivations, decla
    - `UnadiDerivationEngine` bridges Uṇādi matches into `DerivationState` to run full Aṣṭādhyāyī rule traces.
    - CLI commands `--unadi [lookup|pair|list]` and `--derive-unadi <dhatu> <pratyaya>`.
 
+4. **Dialogue Session & Nominal Sentence (NamaVakya) Execution Pipeline (`:execution`)**:
+   - Resumable pipeline using yield/continuation logic with interactive authorization gating.
+   - Implicit copula root `असँ` mapping and direct morphological Kāraka role assignment.
+   - Purely semantic positional reference resolution mapped to step results and history.
+
 ---
 
 ## Implementation Principles
