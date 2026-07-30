@@ -10,7 +10,6 @@ Pāṇini’s Aṣṭādhyāyī is the earliest formal, rule-based computational
 
 - **Declarative Logic & Case Grammar**: Grammatical case markings (*Vibhaktis*) define data flow and dependencies (*Kārakas*). For example, accusative case (`KARMAN`) designates inputs/operands, while dative case (`SAMPRADANA`) designates output destinations or variables.
 - **Resumable Gated Execution**: Sentences compile into sequential computational blocks that can interact with the environment, yield on permissions or human-in-the-loop validation, and resume execution.
-- **Pure Semantic Reference Resolution**: Language terms like `अन्तिम` (last) and `उपान्तिम` (penultimate) are resolved directly to historical execution contexts, enabling context-aware semantic evaluation without hardcoded variables.
 
 ---
 
