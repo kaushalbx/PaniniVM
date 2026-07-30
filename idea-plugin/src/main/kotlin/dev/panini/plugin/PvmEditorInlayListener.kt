@@ -10,6 +10,7 @@ import com.intellij.openapi.editor.event.EditorFactoryListener
 import com.intellij.psi.PsiDocumentManager
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.PaniniVM
+import dev.panini.execution.PvmScript
 import dev.panini.execution.PvmUktiSadhaka
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Future
@@ -85,31 +86,35 @@ class PvmEditorInlayListener : EditorFactoryListener {
 
             val sadhaka = PvmUktiSadhaka()
             val vm = PaniniVM()
-            val lines = text.lines()
-            var currentOffset = 0
-
+            val statements = PvmScript.parse(text)
             val inlineInlayEntries = mutableListOf<Pair<Int, String>>()
 
-            for (line in lines) {
+            var searchIndex = 0
+            for (statement in statements) {
                 if (Thread.currentThread().isInterrupted) return@executeOnPooledThread
-                val trimmed = line.trim()
-                val lineEnd = currentOffset + line.length
+                val trimmed = statement.text.trim()
+                if (trimmed.isEmpty()) continue
 
-                if (trimmed.isNotEmpty() && !trimmed.startsWith("//") && !trimmed.startsWith("#")) {
-                    var surface = try { sadhaka.sadhayaLine(trimmed) } catch (_: Throwable) { "" }
-                    if (surface.isBlank() || surface == trimmed) {
-                        val res = try { vm.eval(trimmed) } catch (_: Throwable) { null }
-                        if (res is ExecutionResult.Success && res.value.isNotBlank()) {
-                            surface = res.value
-                        }
-                    }
+                val dandaOffset = findNextDandaOffset(text, searchIndex)
+                val targetOffset = if (dandaOffset != -1) {
+                    searchIndex = dandaOffset + 1
+                    dandaOffset + 1
+                } else {
+                    searchIndex = text.length
+                    text.length
+                }
 
-                    if (surface.isNotBlank()) {
-                        inlineInlayEntries.add(Pair(lineEnd, surface))
+                var surface = try { sadhaka.sadhayaLine(trimmed) } catch (_: Throwable) { "" }
+                if (surface.isBlank() || surface == trimmed) {
+                    val res = try { vm.eval(trimmed) } catch (_: Throwable) { null }
+                    if (res is ExecutionResult.Success && res.value.isNotBlank()) {
+                        surface = res.value
                     }
                 }
 
-                currentOffset = lineEnd + 1
+                if (surface.isNotBlank()) {
+                    inlineInlayEntries.add(Pair(targetOffset, surface))
+                }
             }
 
             // Once background computations are complete, schedule visual rendering on EDT
@@ -124,7 +129,7 @@ class PvmEditorInlayListener : EditorFactoryListener {
                     }
                 }
 
-                // Add fresh inline inlays after Danda at end of each line
+                // Add fresh inline inlays after Danda at end of each sentence
                 for (entry in inlineInlayEntries) {
                     val offset = entry.first.coerceIn(0, editor.document.textLength)
                     editor.inlayModel.addInlineElement(
@@ -142,5 +147,23 @@ class PvmEditorInlayListener : EditorFactoryListener {
         }
 
         pendingComputations[editor] = future
+    }
+
+    private fun findNextDandaOffset(text: String, startOffset: Int): Int {
+        var idx = startOffset
+        val len = text.length
+        while (idx < len) {
+            val ch = text[idx]
+            if (ch == '।' || ch == '॥') {
+                val lineStart = text.lastIndexOf('\n', idx).let { if (it == -1) 0 else it + 1 }
+                val lineSegment = text.substring(lineStart, idx)
+                val isComment = lineSegment.contains("#") || lineSegment.contains("//")
+                if (!isComment) {
+                    return idx
+                }
+            }
+            idx++
+        }
+        return -1
     }
 }

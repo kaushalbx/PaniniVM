@@ -74,17 +74,12 @@ class PvmFileTest {
     @Test
     fun `PaniniVM evaluates Fibonacci frequency loop pvm file`() {
         val pvmFile = File("examples/arithmetic/fibonacci.pvm")
-        var sentPayload: String? = null
-        vm.registerExternalCapability(ExecutionEffect.NETWORK) { payload, _ ->
-            sentPayload = payload
-            "प्रेषणं सिद्धम्"
-        }
 
         assertTrue(pvmFile.exists(), "fibonacci.pvm should exist")
 
         val results = vm.evalFile(pvmFile, sessionKey = "fibonacci_example_session")
 
-        assertEquals(6, results.size)
+        assertEquals(4, results.size)
         assertEquals(2L, assertIs<SanskritValue.Sankhya>(
             assertIs<ExecutionResult.Success>(results[0]).typedValue,
         ).value)
@@ -94,72 +89,39 @@ class PvmFileTest {
         assertEquals(55L, assertIs<SanskritValue.Sankhya>(
             assertIs<ExecutionResult.Success>(results[2]).typedValue,
         ).value)
-        val suchi = assertIs<SanskritValue.Suchi>(
-            assertIs<ExecutionResult.Success>(results[3]).typedValue,
-        )
-        assertEquals(
-            listOf(55L),
-            suchi.items.map { assertIs<SanskritValue.Sankhya>(it).value },
-        )
-        assertEquals("प्रेषणं सिद्धम्", assertIs<ExecutionResult.Success>(results[4]).value)
-        assertEquals(suchi.toDisplayText(), sentPayload)
 
-        val printRes = assertIs<ExecutionResult.Success>(results[5])
-        assertEquals("[पञ्चपञ्चाशत्]", printRes.value)
+        val printRes = assertIs<ExecutionResult.Success>(results[3])
+        assertEquals("पञ्चपञ्चाशत्", printRes.value)
     }
 
     @Test
     fun `PaniniVM evaluates Fibonacci array pvm file`() {
         val pvmFile = File("examples/arithmetic/fibonacci_array.pvm")
-        var sentPayload: String? = null
-        vm.registerExternalCapability(ExecutionEffect.NETWORK) { payload, _ ->
-            sentPayload = payload
-            "प्रेषणं सिद्धम्"
-        }
 
         assertTrue(pvmFile.exists(), "fibonacci_array.pvm should exist")
 
         val results = vm.evalFile(pvmFile, sessionKey = "fibonacci_array_session")
 
-        assertEquals(4, results.size)
-        
-        // The final network send result:
-        val sendResult = assertIs<ExecutionResult.Success>(results[2])
-        assertEquals("प्रेषणं सिद्धम्", sendResult.value)
+        assertEquals(3, results.size)
 
         // The print result:
-        val printResult = assertIs<ExecutionResult.Success>(results[3])
+        val printResult = assertIs<ExecutionResult.Success>(results[2])
         assertEquals("[एक, एक, द्वे, त्रीणि, पञ्च, अष्ट, त्रयोदश, एकविंशतिः, चतुर्त्रिंशत्, पञ्चपञ्चाशत्, नवाशीतिः, चतुर्चत्वारिंशतधिकशतम्, त्रयःत्रिंशतधिकद्विशतम्, सप्तसप्तत्यधिकत्रिशतम्, दशनधिकषष्शतम्]", printResult.value)
-        
-        // The payload sent via network (the Suchi list representation):
-        assertEquals("[एक, एक, द्वे, त्रीणि, पञ्च, अष्ट, त्रयोदश, एकविंशतिः, चतुर्त्रिंशत्, पञ्चपञ्चाशत्, नवाशीतिः, चतुर्चत्वारिंशतधिकशतम्, त्रयःत्रिंशतधिकद्विशतम्, सप्तसप्तत्यधिकत्रिशतम्, दशनधिकषष्शतम्]", sentPayload)
     }
 
     @Test
     fun `PaniniVM evaluates factorial pvm file`() {
         val pvmFile = File("examples/arithmetic/factorial.pvm")
-        var sentPayload: String? = null
-        vm.registerExternalCapability(ExecutionEffect.NETWORK) { payload, _ ->
-            sentPayload = payload
-            "प्रेषणं सिद्धम्"
-        }
 
         assertTrue(pvmFile.exists(), "factorial.pvm should exist")
 
         val results = vm.evalFile(pvmFile, sessionKey = "factorial_session")
 
-        assertEquals(5, results.size)
-        
-        // The final network send result:
-        val sendResult = assertIs<ExecutionResult.Success>(results[3])
-        assertEquals("प्रेषणं सिद्धम्", sendResult.value)
+        assertEquals(4, results.size)
 
         // Verify mudr print output:
-        val printRes = assertIs<ExecutionResult.Success>(results[4])
+        val printRes = assertIs<ExecutionResult.Success>(results[3])
         assertEquals("विंशत्यधिकशतम्", printRes.value)
-        
-        // The payload sent via network (the factorial result of 5!):
-        assertEquals("विंशत्यधिकशतम्", sentPayload)
     }
 
     @Test

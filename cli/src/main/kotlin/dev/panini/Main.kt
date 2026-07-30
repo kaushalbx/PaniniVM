@@ -68,7 +68,7 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
         val sessionKey = "session_${file.nameWithoutExtension}_${System.currentTimeMillis()}"
         val results = vm.evalFile(file, sessionKey = sessionKey)
         buildList {
-//            add("=== PaniniVM Script Execution: ${file.name} ===")
+            add("=== PaniniVM Script Execution: ${file.name} ===")
             results.forEachIndexed { index, res ->
                 when (res) {
                     is ExecutionResult.Success -> {

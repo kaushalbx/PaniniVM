@@ -89,6 +89,7 @@ segmented input → vyākaraṇa AST → binding → operation resolution → pl
 
 ```sh
 ./gradlew :cli:run --args="--eval src/test/kotlin/dev/panini/parser/addition.pvm"
+./gradlew :cli:run --args="--eval examples/arithmetic/fibonacci_array.pvm"
 ```
 
 ### Emitting and Executing Canonical Sūtra Programs
