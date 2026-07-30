@@ -334,7 +334,7 @@ object VyakaranamExecutionAdapter {
                 if (supAffix != null) {
                     val inferred = KarakaInference.infer(
                         supAffix.vibhakti,
-                        dev.panini.core.Prayoga.KARTARI,
+                        frame.prayoga,
                         dhatu.karmatva != dev.panini.shiksha.Karmatva.AKARMAKA
                     )
                     if (inferred != null) return setOf(inferred)
@@ -353,7 +353,11 @@ object VyakaranamExecutionAdapter {
             val requiredCandidates = candidates intersect requiredKarakas
             if (requiredCandidates.size == 1) return requiredCandidates
             val legacyMorphologicalCandidates = relation.participant.supCandidates.mapNotNullTo(mutableSetOf()) {
-                KarakaInference.infer(it.vibhakti, dev.panini.core.Prayoga.KARTARI, dhatu.karmatva != dev.panini.shiksha.Karmatva.AKARMAKA)
+                KarakaInference.infer(
+                    it.vibhakti,
+                    frame.prayoga,
+                    dhatu.karmatva != dev.panini.shiksha.Karmatva.AKARMAKA,
+                )
             }
             val compatibleLegacyCandidates = legacyMorphologicalCandidates intersect requiredKarakas
             return compatibleLegacyCandidates.takeIf { it.size == 1 } ?: candidates

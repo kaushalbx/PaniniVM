@@ -5,6 +5,7 @@ import dev.panini.execution.binding.VyakaranamExecutionAdapter
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertTrue
 
 class VyakaranamExecutionAdapterTest {
     private val conversation = SambhashanaContext("प्रयोक्ता", "यन्त्रम्")
@@ -56,6 +57,58 @@ class VyakaranamExecutionAdapterTest {
                 it.candidates,
             )
         }
+    }
+
+    @Test
+    fun `canonical chaturthi is bound as sampradana for giving`() {
+        val input = SanskritUktiInput(
+            speaker = "प्रयोक्ता",
+            listener = "यन्त्रम्",
+            text = "एक + अम् आरम्भ + ङे दा + लोट् + सिप् ।",
+        )
+
+        val bound = assertIs<ExecutionBindingResult.Bound>(
+            VyakaranamExecutionAdapter.bind(input, conversation),
+        )
+        val invocation = bound.ukti.invocations.single()
+
+        assertEquals("03.0010", invocation.dhatu.id)
+        assertEquals(
+            "आरम्भ",
+            assertIs<ExecutionExpression.Pada>(
+                invocation.bindings[Karaka.SAMPRADANA],
+            ).prakriti,
+        )
+        assertTrue(
+            invocation.karakaTrace.any { "1.4.32" in it },
+            invocation.karakaTrace.joinToString(),
+        )
+        assertTrue(
+            invocation.karakaTrace.any { "2.3.13" in it },
+            invocation.karakaTrace.joinToString(),
+        )
+    }
+
+    @Test
+    fun `giving resolves syncretic bhyam as sampradana from verbal semantics`() {
+        val input = SanskritUktiInput(
+            speaker = "प्रयोक्ता",
+            listener = "यन्त्रम्",
+            text = "एक + अम् आरम्भ + भ्याम् दा + लोट् + सिप् ।",
+        )
+
+        val bound = assertIs<ExecutionBindingResult.Bound>(
+            VyakaranamExecutionAdapter.bind(input, conversation),
+        )
+        val invocation = bound.ukti.invocations.single()
+
+        assertEquals(
+            "आरम्भ",
+            assertIs<ExecutionExpression.Pada>(
+                invocation.bindings[Karaka.SAMPRADANA],
+            ).prakriti,
+        )
+        assertTrue(invocation.ambiguousBindings.isEmpty())
     }
 
     @Test
