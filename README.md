@@ -4,6 +4,16 @@
 
 ---
 
+## 🌟 Sanskrit as a Natural Programming Language
+
+Pāṇini’s Aṣṭādhyāyī is the earliest formal, rule-based computational system in human history. PaniniVM leverages this grammatical machinery to treat Sanskrit not merely as text, but as a **fully executable natural programming language**. By writing structured, morphologically segmented Sanskrit sentences (*Uktis*), you write program specifications directly in natural language:
+
+- **Declarative Logic & Case Grammar**: Grammatical case markings (*Vibhaktis*) define data flow and dependencies (*Kārakas*). For example, accusative case (`KARMAN`) designates inputs/operands, while dative case (`SAMPRADANA`) designates output destinations or variables.
+- **Resumable Gated Execution**: Sentences compile into sequential computational blocks that can interact with the environment, yield on permissions or human-in-the-loop validation, and resume execution.
+- **Pure Semantic Reference Resolution**: Language terms like `अन्तिम` (last) and `उपान्तिम` (penultimate) are resolved directly to historical execution contexts, enabling context-aware semantic evaluation without hardcoded variables.
+
+---
+
 ## Workspace Module Architecture (17 Modules)
 
 ```
