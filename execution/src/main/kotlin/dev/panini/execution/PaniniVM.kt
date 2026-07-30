@@ -169,8 +169,9 @@ class PaniniVM(
         listener: String = "यन्त्रम्",
     ): List<ExecutionResult> {
         val results = mutableListOf<ExecutionResult>()
+        val effectiveSessionKey = sessionKey ?: "script-${System.identityHashCode(scriptContent)}"
         PvmScript.parse(scriptContent).forEach { statement ->
-            results += eval(statement.text, sessionKey, scope, speaker, listener)
+            results += eval(statement.text, effectiveSessionKey, scope, speaker, listener)
         }
         return results
     }

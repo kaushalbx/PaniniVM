@@ -1,0 +1,16 @@
+# Fibonacci Sequence Algorithm: Compute Fibonacci sequence terms [1, 1, 2, 3, 5, 8]
+
+# Step 1: Compute F3 = F1 + F2 = 1 + 1 = 2
+एक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ।
+
+# Step 2: Compute F4 = F2 + F3 = 1 + 2 = 3
+एक + अम् युज् + घञ् + ङस् फल + अम् च युज् + णिच् + लोट् + सिप् ।
+
+# Step 3: Compute F5 = F3 + F4 = 2 + 3 = 5 (using previous addition F3 and latest addition F4)
+पूर्व + ङस् युज् + घञ् + ङस् फल + अम् युज् + घञ् + ङस् फल + अम् च युज् + णिच् + लोट् + सिप् ।
+
+# Step 4: Compute F6 = F4 + F5 = 3 + 5 = 8 (using previous addition F4 and latest addition F5)
+पूर्व + ङस् युज् + घञ् + ङस् फल + अम् युज् + घञ् + ङस् फल + अम् च युज् + णिच् + लोट् + सिप् ।
+
+# Print 6th Fibonacci term F6 (renders 8 = अष्ट)
+युज् + घञ् + ङस् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।

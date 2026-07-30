@@ -176,21 +176,33 @@ object SutraExecutionPipeline {
                 typedValue = success.typedValues[invocationId],
             )
         }
+        val historyMetadata = remembered.mapNotNull { r ->
+            val dhatu = success.metadata["dhatu:${r.invocationId}"] ?: success.metadata["dhatuName"]
+            if (dhatu != null) "dhatu:${r.id}" to dhatu else null
+        }.toMap()
+        val historyTypedResults = remembered.mapNotNull { r ->
+            r.typedValue?.let { r.id to it }
+        }.toMap()
+        val historyDisplayResults = remembered.map { r ->
+            r.id to r.value
+        }.toMap()
         return SambhashanaTurn(
             response,
             conversation.copy(
                 previousResults = conversation.previousResults +
                     success.values +
+                    historyDisplayResults +
                     success.localBindings.mapValues { it.value.toDisplayText() },
                 previousResultSamjnas = conversation.previousResultSamjnas +
                     success.samjnas +
                     success.localBindings.mapValues { it.value.samjnas },
                 previousTypedResults = conversation.previousTypedResults +
                     success.typedValues +
+                    historyTypedResults +
                     success.localBindings,
                 resultHistory = conversation.resultHistory + remembered,
                 turnNumber = nextTurn,
-                metadata = conversation.metadata + success.metadata,
+                metadata = conversation.metadata + success.metadata + historyMetadata,
             ),
         )
     }

@@ -183,6 +183,7 @@ object VyakaranamExecutionAdapter {
             val frequencyCount = if (shouldUnroll) null else extractFrequencyCount(padas, frame)
             val metadataMap = buildMap {
                 put("dhatuName", dhatu.upadesha)
+                put("dhatu:योग-${index + 1}", dhatu.upadesha)
                 if (frequencyCount != null) {
                     put("frequencyCount", frequencyCount.toString())
                 }
@@ -264,9 +265,14 @@ object VyakaranamExecutionAdapter {
             val idx = subantas.indexOf(phalaPada)
             val genitiveModifier = subantas.take(idx).lastOrNull { it.sup.text in setOf("ङस्", "आम्") && it !in resolvedGenitives }
             if (genitiveModifier != null) {
+                val modIdx = subantas.indexOf(genitiveModifier)
+                val precedingSub = subantas.take(modIdx).lastOrNull()
                 val base = genitiveModifier.pratipadika.baseText()
-                val isPrevious = base.startsWith("पूर्व")
-                val cleanBase = if (isPrevious) base.removePrefix("पूर्व") else base
+                val isPrevious = base.startsWith("पूर्व") || precedingSub?.pratipadika?.baseText()?.startsWith("पूर्व") == true
+                if (precedingSub?.pratipadika?.baseText()?.startsWith("पूर्व") == true) {
+                    resolvedGenitives.add(precedingSub)
+                }
+                val cleanBase = if (base.startsWith("पूर्व")) base.removePrefix("पूर्व") else base
                 val root = getActionRoot(cleanBase)
                 val matchingIndices = (0 until clauseIndex).filter { i ->
                     val prevDhatu = previousDhatus.getOrNull(i)
@@ -284,8 +290,9 @@ object VyakaranamExecutionAdapter {
                     resolvedPhalaMap[phalaPada] = "योग-${matchedIndex + 1}"
                     resolvedGenitives.add(genitiveModifier)
                 } else {
-                    val historicalResult = conversation?.resultHistory?.lastOrNull { result ->
-                        val dhatuUpadesha = conversation.metadata["dhatu:${result.id}"]
+                    val historicalResults = conversation?.resultHistory?.filter { result ->
+                        val dhatuUpadesha = conversation.metadata["dhatu:${result.invocationId}"]
+                            ?: conversation.metadata["dhatu:${result.id}"]
                         if (dhatuUpadesha != null) {
                             val prevDhatu = upadeshaDhatuCache[dhatuUpadesha]
                             if (prevDhatu != null) {
@@ -293,6 +300,11 @@ object VyakaranamExecutionAdapter {
                                 root == prevRoot || dhatuActionRootsCache[prevDhatu]?.contains(root) == true
                             } else false
                         } else false
+                    } ?: emptyList()
+                    val historicalResult = if (isPrevious && historicalResults.size > 1) {
+                        historicalResults.dropLast(1).lastOrNull() ?: historicalResults.lastOrNull()
+                    } else {
+                        historicalResults.lastOrNull()
                     }
                     if (historicalResult != null) {
                         resolvedPhalaMap[phalaPada] = historicalResult.id
