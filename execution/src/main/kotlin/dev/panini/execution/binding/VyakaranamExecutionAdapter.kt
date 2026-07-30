@@ -161,21 +161,27 @@ object VyakaranamExecutionAdapter {
         }
 
         unrolledVakyas.forEachIndexed { index, vakya ->
-            vakya.padas.filterIsInstance<AvyayaPada>().forEach {
+            val padas = vakya.padas
+            padas.filterIsInstance<AvyayaPada>().forEach {
                 prayer = prayer || it.form == "कृपया"
                 prohibition = prohibition || it.form == "मा"
             }
-            val tinganta = (vakya as? AkhyataVakya)?.tinganta ?: return@forEachIndexed
-            val dhatu = resolveDhatu(tinganta)
-                ?: return ExecutionBindingResult.Invalid("Unknown verbal action/dhātu: ${tinganta.sourceText}")
+            val tinganta = (vakya as? AkhyataVakya)?.tinganta
+            val dhatu = if (tinganta != null) {
+                resolveDhatu(tinganta)
+                    ?: return ExecutionBindingResult.Invalid("Unknown verbal action/dhātu: ${tinganta.sourceText}")
+            } else {
+                dhatuCacheMap["असँ"]
+                    ?: return ExecutionBindingResult.Invalid("Imputed copular action 'अस्' not registered in DhatuPatha.")
+            }
             val frame = utteranceAnalysis.frames.firstOrNull { it.vakya == vakya } ?: return@forEachIndexed
-            val extracted = extractKarakas(vakya.padas, conversation, index, dhatu, frame, invocations.map { it.dhatu }, localVariables)
+            val extracted = extractKarakas(padas, conversation, index, dhatu, frame, invocations.map { it.dhatu }, localVariables)
             val bindings = extracted.bindings.toMutableMap()
             println("BINDINGS KEYS for Clause $index (${dhatu.upadesha}): ${bindings.keys}")
-            if (purposeRequiresListenerAsAgent(prayer, tinganta.lakara) && Karaka.KARTR !in bindings) {
+            if (tinganta != null && purposeRequiresListenerAsAgent(prayer, tinganta.lakara) && Karaka.KARTR !in bindings) {
                 bindings[Karaka.KARTR] = ExecutionExpression.Pada(listener)
             }
-            val frequencyCount = if (shouldUnroll) null else extractFrequencyCount(vakya.padas, frame)
+            val frequencyCount = if (shouldUnroll) null else extractFrequencyCount(padas, frame)
             val metadataMap = buildMap {
                 put("dhatuName", dhatu.upadesha)
                 if (frequencyCount != null) {
@@ -189,11 +195,11 @@ object VyakaranamExecutionAdapter {
                 selectedOperation = null,
                 metadata = metadataMap,
                 grammaticalFeatures = GrammaticalFeatures(
-                    upasargas = tinganta.upasargas.toSet(),
-                    sanadi = tinganta.dhatu.sanadiPratyayas.toSet(),
-                    avyayas = vakya.padas.filterIsInstance<AvyayaPada>()
+                    upasargas = tinganta?.upasargas?.toSet() ?: emptySet(),
+                    sanadi = tinganta?.dhatu?.sanadiPratyayas?.toSet() ?: emptySet(),
+                    avyayas = padas.filterIsInstance<AvyayaPada>()
                         .mapTo(mutableSetOf()) { it.form },
-                    lakara = tinganta.lakara,
+                    lakara = tinganta?.lakara ?: Lakara.LAT,
                 ),
                 ambiguousBindings = extracted.ambiguous,
                 karakaTrace = extracted.trace,
@@ -209,7 +215,7 @@ object VyakaranamExecutionAdapter {
         val purpose = when {
             prohibition -> VakyaPrayojana.NISHEDHA
             prayer -> VakyaPrayojana.PRARTHANA
-            lakara == Lakara.LOT -> VakyaPrayojana.AJNA
+            lakara == Lakara.LOT || lakara == null -> VakyaPrayojana.AJNA
             else -> VakyaPrayojana.VIDHANA
         }
         if (invocations.isEmpty()) return ExecutionBindingResult.Invalid("No executable verbal action was identified.")
@@ -299,7 +305,18 @@ object VyakaranamExecutionAdapter {
             } else {
                 println("INFER RESOLUTION NOT FOUND: pada = '${pada.sourceText}'")
             }
-            if (relation == null) return emptySet()
+            if (relation == null) {
+                val supAffix = dev.panini.core.SupAffix.fromUpadesha(pada.sup.text)
+                if (supAffix != null) {
+                    val inferred = KarakaInference.infer(
+                        supAffix.vibhakti,
+                        dev.panini.core.Prayoga.KARTARI,
+                        dhatu.karmatva != dev.panini.shiksha.Karmatva.AKARMAKA
+                    )
+                    if (inferred != null) return setOf(inferred)
+                }
+                return emptySet()
+            }
             trace += relation.evidence.map { "${it.sutra} ${it.text}: ${it.reason}" }
             val candidates = when (val resolution = relation.resolution) {
                 is FrameKarakaResolution.Resolved -> {

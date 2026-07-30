@@ -77,7 +77,8 @@ class VyakaranamExecutionAdapterTest {
             listener = "यन्त्रम्",
             text = "राम + सुँ लक्ष्मण + सुँ च ।",
         )
-        assertIs<ExecutionBindingResult.Invalid>(VyakaranamExecutionAdapter.bind(input, conversation))
+        val bound = assertIs<ExecutionBindingResult.Bound>(VyakaranamExecutionAdapter.bind(input, conversation))
+        assertEquals("असँ", bound.ukti.invocations.single().dhatu.upadesha)
     }
 
     @Test
@@ -98,6 +99,7 @@ class VyakaranamExecutionAdapterTest {
             listener = "यन्त्रम्",
             text = "अश्व + टाप् + सुँ ।",
         )
-        assertIs<ExecutionBindingResult.Invalid>(VyakaranamExecutionAdapter.bind(input, conversation))
+        val bound = assertIs<ExecutionBindingResult.Bound>(VyakaranamExecutionAdapter.bind(input, conversation))
+        assertEquals("असँ", bound.ukti.invocations.single().dhatu.upadesha)
     }
 }
