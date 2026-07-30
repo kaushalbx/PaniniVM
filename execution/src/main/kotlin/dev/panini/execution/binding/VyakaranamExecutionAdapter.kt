@@ -63,6 +63,36 @@ object VyakaranamExecutionAdapter {
     private val aryabhatiyaDecoder = AryabhatiyaDecoder()
     private val bhutasamkhyaDecoder = BhutasamkhyaDecoder()
 
+    private val upadeshaDhatuCache by lazy {
+        DhatuPatha.all.associateBy { it.upadesha }
+    }
+
+    private val dhatuRootsCache by lazy {
+        DhatuPatha.all.associateWith { getDhatuRoot(it.upadesha) }
+    }
+
+    private val dhatuActionRootsCache by lazy {
+        DhatuPatha.all.associateWith { dhatu ->
+            dhatu.operations.mapTo(mutableSetOf()) { getActionRoot(it.name) }
+        }
+    }
+
+    private val dhatuCacheMap by lazy {
+        val map = mutableMapOf<String, Dhatu>()
+        DhatuPatha.all.forEach { dhatu ->
+            if (dhatu.operations.isNotEmpty()) {
+                map[dhatu.id] = dhatu
+                map[dhatu.upadesha] = dhatu
+                map[dhatu.sourceSurface] = dhatu
+                map[dhatu.derivationalSurface] = dhatu
+                map[dhatu.upadesha.normalizeDhatuSurface()] = dhatu
+                map[dhatu.sourceSurface.normalizeDhatuSurface()] = dhatu
+                map[dhatu.derivationalSurface.normalizeDhatuSurface()] = dhatu
+            }
+        }
+        map
+    }
+
     fun bind(input: SanskritUktiInput, conversation: SambhashanaContext): ExecutionBindingResult {
         if (input.text.isBlank()) return ExecutionBindingResult.Invalid("The Sanskrit utterance is empty.")
         val ukti = try {
@@ -235,8 +265,8 @@ object VyakaranamExecutionAdapter {
             val matchedIndex = (0 until clauseIndex).lastOrNull { i ->
                 val prevDhatu = previousDhatus.getOrNull(i)
                 if (prevDhatu == null) false else {
-                    val prevRoot = getDhatuRoot(prevDhatu.upadesha)
-                    root == prevRoot || prevDhatu.operations.any { getActionRoot(it.name) == root }
+                    val prevRoot = dhatuRootsCache[prevDhatu]
+                    root == prevRoot || dhatuActionRootsCache[prevDhatu]?.contains(root) == true
                 }
             }
             if (matchedIndex != null) {
@@ -246,9 +276,11 @@ object VyakaranamExecutionAdapter {
                 val historicalResult = conversation?.resultHistory?.lastOrNull { result ->
                     val dhatuUpadesha = conversation.metadata["dhatu:${result.id}"]
                     if (dhatuUpadesha != null) {
-                        val prevRoot = getDhatuRoot(dhatuUpadesha)
-                        val prevDhatu = DhatuPatha.all.firstOrNull { it.upadesha == dhatuUpadesha }
-                        root == prevRoot || prevDhatu?.operations?.any { getActionRoot(it.name) == root } == true
+                        val prevDhatu = upadeshaDhatuCache[dhatuUpadesha]
+                        if (prevDhatu != null) {
+                            val prevRoot = dhatuRootsCache[prevDhatu]
+                            root == prevRoot || dhatuActionRootsCache[prevDhatu]?.contains(root) == true
+                        } else false
                     } else false
                 }
                 if (historicalResult != null) {
@@ -497,18 +529,10 @@ object VyakaranamExecutionAdapter {
 
     private fun resolveDhatu(tinganta: TingantaPada): Dhatu? {
         val text = tinganta.dhatu.mulaDhatu
+        val cached = dhatuCacheMap[text]
+        if (cached != null) return cached
         val normalizedText = text.normalizeDhatuSurface()
-        return DhatuPatha.all.asSequence()
-            .filter { it.operations.isNotEmpty() }
-            .firstOrNull { dhatu ->
-                text == dhatu.id ||
-                    text == dhatu.upadesha ||
-                    text == dhatu.sourceSurface ||
-                    text == dhatu.derivationalSurface ||
-                    normalizedText == dhatu.upadesha.normalizeDhatuSurface() ||
-                    normalizedText == dhatu.sourceSurface.normalizeDhatuSurface() ||
-                    normalizedText == dhatu.derivationalSurface.normalizeDhatuSurface()
-            }
+        return dhatuCacheMap[normalizedText]
     }
 
     private fun String.normalizeDhatuSurface(): String = trimEnd('्', 'ँ')
