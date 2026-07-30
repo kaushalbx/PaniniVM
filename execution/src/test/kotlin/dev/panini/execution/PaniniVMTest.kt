@@ -133,7 +133,7 @@ class PaniniVMTest {
         val res1 = vm.eval("दश + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।", sessionKey = "session_math")
         assertIs<ExecutionResult.Success>(res1)
 
-        val res2 = vm.eval("पूर्वफल + अम् द्वि + औट् च गण + णिच् + लोट् + सिप् ।", sessionKey = "session_math")
+        val res2 = vm.eval("युज् + ल्युट् + ङस् फल + अम् द्वि + औट् च गण + णिच् + लोट् + सिप् ।", sessionKey = "session_math")
         val success2 = assertIs<ExecutionResult.Success>(res2, res2.toString())
         assertEquals("चतुर्विंशतिः", success2.value)
 

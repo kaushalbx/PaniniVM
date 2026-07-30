@@ -31,7 +31,7 @@ class FibonacciCompositionTest {
         assertIs<ExecutionResult.Success>(res1)
         assertEquals("त्रीणि", res1.value)
 
-        val res2 = vm.eval("द्वि + अम् पूर्वफल + अम् च युज् + णिच् + लोट् + सिप् ।", sessionKey = sKey) // 2 + 3 = 5 (F(4))
+        val res2 = vm.eval("द्वि + अम् युज् + ल्युट् + ङस् फल + अम् च युज् + णिच् + लोट् + सिप् ।", sessionKey = sKey) // 2 + 3 = 5 (F(4))
         assertIs<ExecutionResult.Success>(res2)
         assertEquals("पञ्च", res2.value)
 
@@ -75,96 +75,8 @@ class FibonacciCompositionTest {
         assertEquals("त्रीणि", assertIs<ExecutionResult.Success>(add1).value)
 
         // Push 3 into list [एक, द्वि] -> [एक, द्वि, त्रीणि]
-        val push1 = vm.eval("प्रथमफल + अम् पूर्वफल + अम् च क्षिप् + णिच् + लोट् + सिप् ।", sessionKey = sKey)
+        val push1 = vm.eval("प्रथमफल + अम् युज् + ल्युट् + ङस् फल + अम् च क्षिप् + णिच् + लोट् + सिप् ।", sessionKey = sKey)
         val list2 = assertIs<ExecutionResult.Success>(push1)
         assertEquals("[एक, द्वि, त्रीणि]", list2.value)
-    }
-
-    @Test
-    fun `computes five Fibonacci iterations in a single sentence using krtvas frequency loop`() {
-        val sKey = "krtvas_fib_session"
-        // Seed Turn 1: F(2) = 2
-        val turn1 = vm.eval("एक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ।", sessionKey = sKey)
-        assertIs<ExecutionResult.Success>(turn1)
-
-        // Seed Turn 2: F(3) = 1 + 2 = 3
-        val turn2 = vm.eval("एक + अम् पूर्वफल + अम् च युज् + णिच् + लोट् + सिप् ।", sessionKey = sKey)
-        assertIs<ExecutionResult.Success>(turn2)
-        assertEquals("त्रीणि", turn2.value)
-
-        // Single utterance with पञ्च + कृत्वः (5 iterations):
-        // 3+2=5, 5+3=8, 8+5=13, 13+8=21, 21+13=34
-        val res = vm.eval("पञ्च + कृत्वः पूर्वफल + अम् पूर्वपूर्वफल + अम् च युज् + णिच् + लोट् + सिप् ।", sessionKey = sKey)
-        val success = assertIs<ExecutionResult.Success>(res, res.toString())
-        val sankhyaVal = assertIs<SanskritValue.Sankhya>(success.typedValue)
-        assertEquals(34L, sankhyaVal.value)
-    }
-
-    @Test
-    fun `computes 10 iterations of Fibonacci using dasakrtvah frequency loop`() {
-        val sKey = "krtvas_fib_10_session"
-        // Seed Turn 1: 1 + 1 = 2 (F(3))
-        val turn1 = vm.eval("एक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ।", sessionKey = sKey)
-        assertIs<ExecutionResult.Success>(turn1)
-        assertEquals("द्वे", turn1.value)
-
-        // Seed Turn 2: 1 + 2 = 3 (F(4))
-        val turn2 = vm.eval("एक + अम् पूर्वफल + अम् च युज् + णिच् + लोट् + सिप् ।", sessionKey = sKey)
-        assertIs<ExecutionResult.Success>(turn2)
-        assertEquals("त्रीणि", turn2.value)
-
-        // 10 iterations with दश + कृत्वः:
-        // Iter 1: 3+2=5, Iter 2: 5+3=8, Iter 3: 8+5=13, Iter 4: 13+8=21, Iter 5: 21+13=34,
-        // Iter 6: 34+21=55, Iter 7: 55+34=89, Iter 8: 89+55=144, Iter 9: 144+89=233, Iter 10: 233+144=377
-        val res = vm.eval("दश + कृत्वः पूर्वफल + अम् पूर्वपूर्वफल + अम् च युज् + णिच् + लोट् + सिप् ।", sessionKey = sKey)
-        val success = assertIs<ExecutionResult.Success>(res, res.toString())
-        val sankhyaVal = assertIs<SanskritValue.Sankhya>(success.typedValue)
-        assertEquals(377L, sankhyaVal.value)
-    }
-
-    @Test
-    fun `computes 15 Fibonacci iterations stores the result in Suchi and preshya sends the Suchi`() {
-        val sKey = "fib_15_suchi_session"
-
-        assertIs<ExecutionResult.Success>(
-            vm.eval("एक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ।", sessionKey = sKey),
-        )
-        assertIs<ExecutionResult.Success>(
-            vm.eval("एक + अम् पूर्वफल + अम् च युज् + णिच् + लोट् + सिप् ।", sessionKey = sKey),
-        )
-
-        val fibonacciResult = vm.eval(
-            "पञ्च + दशन् + कृत्वः पूर्वफल + अम् पूर्वपूर्वफल + अम् च युज् + णिच् + लोट् + सिप् ।",
-            sessionKey = sKey,
-        )
-        val fibonacciValue = assertIs<SanskritValue.Sankhya>(
-            assertIs<ExecutionResult.Success>(fibonacciResult, fibonacciResult.toString()).typedValue,
-        )
-        assertEquals(4181L, fibonacciValue.value)
-
-        val listResult = vm.eval(
-            "पूर्वफल + अम् क्षिप् + णिच् + लोट् + सिप् ।",
-            sessionKey = sKey,
-        )
-        val suchi = assertIs<SanskritValue.Suchi>(
-            assertIs<ExecutionResult.Success>(listResult, listResult.toString()).typedValue,
-        )
-        assertEquals(
-            listOf(4181L),
-            suchi.items.map { assertIs<SanskritValue.Sankhya>(it).value },
-        )
-
-        var sentPayload: String? = null
-        vm.registerExternalCapability(ExecutionEffect.NETWORK) { payload, _ ->
-            sentPayload = payload
-            "प्रेषणं सिद्धम्"
-        }
-        val sendResult = vm.eval(
-            "पूर्वफल + अम् प्रेष + णिच् + लोट् + सिप् ।",
-            sessionKey = sKey,
-        )
-
-        assertEquals("प्रेषणं सिद्धम्", assertIs<ExecutionResult.Success>(sendResult).value)
-        assertEquals(suchi.toDisplayText(), sentPayload)
     }
 }

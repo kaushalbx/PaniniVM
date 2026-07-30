@@ -444,8 +444,6 @@ object VyakaranamExecutionAdapter {
             localVariables.contains(text)
         ) {
             resolvedId = text
-        } else if (text == "पूर्वफल" || text == "पूर्वपूर्वफल") {
-            resolvedId = text
         } else if (text == "फल") {
             resolvedId = resolvedPhalaId ?: (if (clauseIndex > 0) "योग-$clauseIndex" else
                 conversation?.resultHistory?.lastOrNull()?.id ?: conversation?.previousResults?.keys?.lastOrNull())
@@ -473,7 +471,7 @@ object VyakaranamExecutionAdapter {
         val samjnas = buildSet {
             add(Samjna.SHABDA)
             if (sankhyaValue != null) add(Samjna.SANKHYA)
-            if (text in setOf("फल", "पूर्वफल") || isOrdinalReference) add(Samjna.REFERENCE)
+            if (text == "फल" || isOrdinalReference) add(Samjna.REFERENCE)
             when (pada.pratipadika) {
                 is KridantaPratipadika -> add(Samjna.KRIDANTA)
                 is SamasaPratipadika -> add(Samjna.SAMASA)

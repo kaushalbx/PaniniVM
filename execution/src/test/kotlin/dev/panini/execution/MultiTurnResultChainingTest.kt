@@ -29,7 +29,7 @@ class MultiTurnResultChainingTest {
         assertIs<ExecutionResult.Success>(res1)
         assertEquals("द्वादश", res1.value)
 
-        val res2 = vm.eval("पूर्वफल + अम् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।", sessionKey = "sess_1")
+        val res2 = vm.eval("युज् + ल्युट् + ङस् फल + अम् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।", sessionKey = "sess_1")
         val success2 = assertIs<ExecutionResult.Success>(res2, res2.toString())
         assertEquals("पञ्चदश", success2.value)
         assertEquals(15L, assertIs<SanskritValue.Sankhya>(success2.typedValue).value)

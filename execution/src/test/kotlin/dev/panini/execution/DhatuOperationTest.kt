@@ -115,7 +115,7 @@ class DhatuOperationTest {
                 List(requirement.minimumMembers) { member(it) },
             )
             ExpressionShape.REFERENCE -> {
-                val name = "पूर्वफल"
+                val name = "योग-1"
                 variables[name] = member(0).value ?: SanskritValue.Shabda(member(0).prakriti)
                 ExecutionExpression.Reference(name)
             }

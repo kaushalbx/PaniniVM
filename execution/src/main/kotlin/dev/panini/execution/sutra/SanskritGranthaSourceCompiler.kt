@@ -171,23 +171,11 @@ object SanskritGranthaSourceCompiler {
                 ),
             )
         }
-        val historicalValues = conversation.resultHistory.associate {
-            it.id to (it.typedValue ?: SanskritValue.of(it.value, it.samjnas))
-        }.toMutableMap()
-        if (conversation.resultHistory.isNotEmpty()) {
-            val last = conversation.resultHistory.last()
-            val lastObj = last.typedValue ?: SanskritValue.of(last.value, last.samjnas)
-            historicalValues["फल"] = lastObj
-            historicalValues["पूर्वफल"] = lastObj
-        }
-        if (conversation.resultHistory.size >= 2) {
-            val prevPrev = conversation.resultHistory[conversation.resultHistory.size - 2]
-            val prevPrevObj = prevPrev.typedValue ?: SanskritValue.of(prevPrev.value, prevPrev.samjnas)
-            historicalValues["पूर्वपूर्वफल"] = prevPrevObj
-        } else if (conversation.resultHistory.size == 1) {
-            conversation.previousTypedResults["द्वि"]?.let {
-                historicalValues["पूर्वपूर्वफल"] = it
-            }
+        val historicalValues = mutableMapOf<String, SanskritValue>()
+        conversation.resultHistory.forEach { result ->
+            val valObj = result.typedValue ?: SanskritValue.of(result.value, result.samjnas)
+            historicalValues[result.id] = valObj
+            historicalValues[result.invocationId] = valObj
         }
         return ExecutionPlanner.plan(
             program,

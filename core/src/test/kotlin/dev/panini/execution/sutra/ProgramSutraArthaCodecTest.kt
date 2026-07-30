@@ -33,7 +33,7 @@ class ProgramSutraArthaCodecTest {
                     samjnas = setOf(Samjna.SANKHYA, Samjna.SHABDA),
                     value = SanskritValue.Sankhya(10, "दश"),
                 ),
-                ExecutionExpression.Reference("पूर्वफल"),
+                ExecutionExpression.Reference("योग-1"),
             ),
         )
 
