@@ -114,7 +114,23 @@ object VyakaranamExecutionAdapter {
         var prayer = false
         var prohibition = false
         val localVariables = mutableSetOf<String>()
-        ukti.vakyas.forEachIndexed { index, vakya ->
+        val abhyasaCounts = ukti.vakyas.mapNotNull { vakya ->
+            val frame = utteranceAnalysis.frames.firstOrNull { it.vakya == vakya }
+            if (frame != null) extractFrequencyCount(vakya.padas, frame) else null
+        }
+        val repeatCount = abhyasaCounts.maxOrNull() ?: 1
+
+        // Only unroll if this is a multi-clause statement.
+        // Single-clause repetition loops are evaluated in-memory using the original ExecutionRuntime loop.
+        val shouldUnroll = repeatCount > 1 && ukti.vakyas.size > 1
+        val unrolledVakyas = buildList {
+            val count = if (shouldUnroll) repeatCount else 1
+            repeat(count) {
+                addAll(ukti.vakyas)
+            }
+        }
+
+        unrolledVakyas.forEachIndexed { index, vakya ->
             vakya.padas.filterIsInstance<AvyayaPada>().forEach {
                 prayer = prayer || it.form == "कृपया"
                 prohibition = prohibition || it.form == "मा"
@@ -129,7 +145,7 @@ object VyakaranamExecutionAdapter {
             if (purposeRequiresListenerAsAgent(prayer, tinganta.lakara) && Karaka.KARTR !in bindings) {
                 bindings[Karaka.KARTR] = ExecutionExpression.Pada(listener)
             }
-            val frequencyCount = extractFrequencyCount(vakya.padas, frame)
+            val frequencyCount = if (shouldUnroll) null else extractFrequencyCount(vakya.padas, frame)
             val metadataMap = buildMap {
                 put("dhatuName", dhatu.upadesha)
                 if (frequencyCount != null) {

@@ -118,14 +118,14 @@ class PvmFileTest {
 
         val results = vm.evalFile(pvmFile, sessionKey = "fibonacci_array_session")
 
-        assertEquals(6, results.size)
+        assertEquals(3, results.size)
         
         // The final network send result:
-        val sendResult = assertIs<ExecutionResult.Success>(results[5])
+        val sendResult = assertIs<ExecutionResult.Success>(results[2])
         assertEquals("प्रेषणं सिद्धम्", sendResult.value)
         
         // The payload sent via network (the Suchi list representation):
-        assertEquals("[एक, एक, द्वे, त्रीणि, पञ्च, अष्ट]", sentPayload)
+        assertEquals("[एक, एक, द्वे, त्रीणि, पञ्च, अष्ट, त्रयोदश, एकविंशतिः, चतुर्त्रिंशत्, पञ्चपञ्चाशत्, नवाशीतिः, चतुर्चत्वारिंशतधिकशतम्, त्रयःत्रिंशतधिकद्विशतम्, सप्तसप्तत्यधिकत्रिशतम्, दशनधिकषष्शतम्]", sentPayload)
     }
 
     @Test
