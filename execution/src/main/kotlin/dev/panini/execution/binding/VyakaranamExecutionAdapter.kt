@@ -67,15 +67,7 @@ object VyakaranamExecutionAdapter {
         DhatuPatha.all.associateBy { it.upadesha }
     }
 
-    private val dhatuRootsCache by lazy {
-        DhatuPatha.all.associateWith { getDhatuRoot(it.upadesha) }
-    }
 
-    private val dhatuActionRootsCache by lazy {
-        DhatuPatha.all.associateWith { dhatu ->
-            dhatu.operations.mapTo(mutableSetOf()) { getActionRoot(it.name) }
-        }
-    }
 
     private val dhatuCacheMap by lazy {
         val map = mutableMapOf<String, Dhatu>()
@@ -136,6 +128,19 @@ object VyakaranamExecutionAdapter {
         map
     }
 
+    /** Suffix stems that indicate repetition count, not a numeric argument value. */
+    private val ABHYASA_SUFFIX_STEMS = setOf("कृत्वः", "कृत्वा", "कृत्वसुच्", "सुच्")
+
+    /** Reverse-index of ordinal Sanskrit surface forms to 0-based history position (covers 1st–50th). */
+    private val ordinalSurfaceToIndex: Map<String, Int> by lazy {
+        (1..50).flatMap { i ->
+            buildList {
+                add(sankhyaGenerator.ordinal(i.toLong()).final.surface)
+                addAll(sankhyaGenerator.ordinalVariants(i.toLong()).map { it.final.surface })
+            }.map { surface -> surface to (i - 1) }
+        }.toMap()
+    }
+
     fun bind(input: SanskritUktiInput, conversation: SambhashanaContext): ExecutionBindingResult {
         if (input.text.isBlank()) return ExecutionBindingResult.Invalid("The Sanskrit utterance is empty.")
         val ukti = try {
@@ -187,9 +192,10 @@ object VyakaranamExecutionAdapter {
         var prayer = false
         var prohibition = false
         val localVariables = mutableSetOf<String>()
+        val localVariableInvocationIds = mutableMapOf<String, String>()
         val abhyasaCounts = ukti.vakyas.flatMap { vakya ->
             vakya.padas.filterIsInstance<SankhyaAbhyasaPada>().mapNotNull { pada ->
-                val numStems = pada.stems.filter { it != "कृत्वः" && it != "कृत्वा" && it != "कृत्वसुच्" && it != "सुच्" }
+                val numStems = pada.stems.filterNot { it in ABHYASA_SUFFIX_STEMS }
                 val evaluated = if (numStems.isNotEmpty()) sankhyaEvaluator.evaluateStems(numStems) else sankhyaEvaluator.evaluateStems(pada.stems)
                 evaluated.value.toInt().takeIf { it > 0 }
             }
@@ -221,7 +227,7 @@ object VyakaranamExecutionAdapter {
                     ?: return ExecutionBindingResult.Invalid("Imputed copular action 'अस्' not registered in DhatuPatha.")
             }
             val frame = utteranceAnalysis.frames.firstOrNull { it.vakya == vakya } ?: return@forEachIndexed
-            val extracted = extractKarakas(padas, conversation, index, dhatu, frame, invocations.map { it.dhatu }, localVariables)
+            val extracted = extractKarakas(padas, conversation, index, dhatu, frame, invocations.map { it.dhatu }, localVariables, localVariableInvocationIds)
             val bindings = extracted.bindings.toMutableMap()
             if (tinganta != null && purposeRequiresListenerAsAgent(prayer, tinganta.lakara) && Karaka.KARTR !in bindings) {
                 bindings[Karaka.KARTR] = ExecutionExpression.Pada(listener)
@@ -254,6 +260,7 @@ object VyakaranamExecutionAdapter {
             val bindingName = bindingKaraka?.let { bindings[it] }?.bindingName()
             if (bindingName != null) {
                 localVariables.add(bindingName)
+                localVariableInvocationIds[bindingName] = "योग-${index + 1}"
             }
         }
 
@@ -292,7 +299,8 @@ object VyakaranamExecutionAdapter {
         dhatu: Dhatu,
         frame: KriyaFrame,
         previousDhatus: List<Dhatu>,
-        localVariables: Set<String>
+        localVariables: Set<String>,
+        localVariableInvocationIds: Map<String, String> = emptyMap(),
     ): ExtractedBindings {
         val grouped = mutableMapOf<Karaka, MutableList<ExecutionExpression>>()
         val ambiguous = mutableListOf<AmbiguousKarakaBinding>()
@@ -323,8 +331,9 @@ object VyakaranamExecutionAdapter {
                 val matchingIndices = (0 until clauseIndex).filter { i ->
                     val prevDhatu = previousDhatus.getOrNull(i)
                     if (prevDhatu == null) false else {
-                        val prevRoot = dhatuRootsCache[prevDhatu]
-                        root == prevRoot || dhatuActionRootsCache[prevDhatu]?.contains(root) == true
+                        val prevRoot = getDhatuRoot(prevDhatu.upadesha)
+                        val prevActionRoots = prevDhatu.operations.mapTo(mutableSetOf()) { getActionRoot(it.name) }
+                        root == prevRoot || root in prevActionRoots
                     }
                 }
                 val matchedIndex = if (isPrevious) {
@@ -342,8 +351,9 @@ object VyakaranamExecutionAdapter {
                         if (dhatuUpadesha != null) {
                             val prevDhatu = upadeshaDhatuCache[dhatuUpadesha]
                             if (prevDhatu != null) {
-                                val prevRoot = dhatuRootsCache[prevDhatu]
-                                root == prevRoot || dhatuActionRootsCache[prevDhatu]?.contains(root) == true
+                                val prevRoot = getDhatuRoot(prevDhatu.upadesha)
+                                val prevActionRoots = prevDhatu.operations.mapTo(mutableSetOf()) { getActionRoot(it.name) }
+                                root == prevRoot || root in prevActionRoots
                             } else false
                         } else false
                     } ?: emptyList()
@@ -375,9 +385,10 @@ object VyakaranamExecutionAdapter {
             if (relation == null) {
                 val supAffix = dev.panini.core.SupAffix.fromUpadesha(pada.sup.text)
                 if (supAffix != null) {
+                    val effectivePrayoga = if (frame.prayoga == dev.panini.core.Prayoga.ANIRDHARITA) dev.panini.core.Prayoga.KARTARI else frame.prayoga
                     val inferred = KarakaInference.infer(
                         supAffix.vibhakti,
-                        frame.prayoga,
+                        effectivePrayoga,
                         dhatu.karmatva != dev.panini.shiksha.Karmatva.AKARMAKA
                     )
                     if (inferred != null) return setOf(inferred)
@@ -396,9 +407,10 @@ object VyakaranamExecutionAdapter {
             val requiredCandidates = candidates intersect requiredKarakas
             if (requiredCandidates.size == 1) return requiredCandidates
             val legacyMorphologicalCandidates = relation.participant.supCandidates.mapNotNullTo(mutableSetOf()) {
+                val effectivePrayoga = if (frame.prayoga == dev.panini.core.Prayoga.ANIRDHARITA) dev.panini.core.Prayoga.KARTARI else frame.prayoga
                 KarakaInference.infer(
                     it.vibhakti,
-                    frame.prayoga,
+                    effectivePrayoga,
                     dhatu.karmatva != dev.panini.shiksha.Karmatva.AKARMAKA,
                 )
             }
@@ -414,14 +426,12 @@ object VyakaranamExecutionAdapter {
         }
         fun add(subanta: SubantaPada, overridePhalaId: String? = null) {
             val phalaId = overridePhalaId ?: resolvedPhalaMap[subanta]
-            val expr = if (phalaId != null) {
-                expression(subanta, conversation, clauseIndex, phalaId, localVariables)
-            } else {
-                expression(subanta, conversation, clauseIndex, null, localVariables)
-            }
-            addBinding(expr, inferKarakas(subanta))
+            addBinding(
+                expression(subanta, conversation, clauseIndex, phalaId, localVariables, localVariableInvocationIds),
+                inferKarakas(subanta),
+            )
         }
-        val mathTargetValues = mutableSetOf<Int>()
+        val consumedPadaIndices = mutableSetOf<Int>()
 
         fun extractNumeralValue(pada: Pada): Long? = when (pada) {
             is SankhyaPada -> pada.value ?: sankhyaEvaluator.evaluateStems(pada.stems).value
@@ -434,7 +444,7 @@ object VyakaranamExecutionAdapter {
         }
 
         padas.forEachIndexed { index, pada ->
-            if (index in mathTargetValues) return@forEachIndexed
+            if (index in consumedPadaIndices) return@forEachIndexed
             if (pada in resolvedGenitives) return@forEachIndexed
             when (pada) {
                 is SubantaPada -> add(pada, resolvedPhalaMap[pada])
@@ -456,7 +466,7 @@ object VyakaranamExecutionAdapter {
                     }
                     val fullStems = if (nextVal != null && (pada.stems.size <= 2 || (pada.stems.size == 2 && pada.stems[1] == "कृत"))) {
                         val stemStr = dev.panini.sankhya.PrimitiveSankhya.fromValue(nextVal)?.let { if (it.purvapada.isNotEmpty()) it.purvapada else it.pratipadika } ?: "शत"
-                        mathTargetValues.add(targetIdx)
+                        consumedPadaIndices.add(targetIdx)
                         if (pada.stems[0] in setOf("वर्ग", "घन", "मूल")) {
                             listOf(pada.stems[0]) + (if (pada.stems.size >= 2 && pada.stems[1] == "कृत") listOf("कृत") else emptyList()) + listOf(stemStr)
                         } else {
@@ -516,8 +526,9 @@ object VyakaranamExecutionAdapter {
                     )
                 }
                 is SamuccitaSubanta -> {
-                    val members = pada.members.map { expression(it, conversation, clauseIndex, null, localVariables) }
-                    val candidates = pada.members.firstOrNull()?.let { inferKarakas(it) }.orEmpty()
+                    val members = pada.members.map { expression(it, conversation, clauseIndex, null, localVariables, localVariableInvocationIds) }
+                    val allCandidates = pada.members.flatMapTo(mutableSetOf()) { inferKarakas(it) }
+                    val candidates = (allCandidates intersect requiredKarakas).ifEmpty { allCandidates }
                     addBinding(ExecutionExpression.Coordination(members), candidates)
                 }
                 else -> Unit
@@ -554,7 +565,8 @@ object VyakaranamExecutionAdapter {
         conversation: SambhashanaContext?,
         clauseIndex: Int,
         overridePhalaId: String? = null,
-        localVariables: Set<String> = emptySet()
+        localVariables: Set<String> = emptySet(),
+        localVariableInvocationIds: Map<String, String> = emptyMap(),
     ): ExecutionExpression {
         val text = pada.pratipadika.baseText()
         var resolvedId: String? = null
@@ -570,10 +582,7 @@ object VyakaranamExecutionAdapter {
                 conversation?.resultHistory?.lastOrNull()?.id ?: conversation?.previousResults?.keys?.lastOrNull())
         } else if (text.endsWith("फल")) {
             val prefix = text.removeSuffix("फल")
-            val idx = (1..50).firstOrNull { i ->
-                sankhyaGenerator.ordinal(i.toLong()).final.surface == prefix ||
-                sankhyaGenerator.ordinalVariants(i.toLong()).any { it.final.surface == prefix }
-            }?.minus(1)
+            val idx = ordinalSurfaceToIndex[prefix]
             if (idx != null) {
                 resolvedId = conversation?.resultHistory?.getOrNull(idx)?.id
                 isOrdinalReference = true
@@ -610,9 +619,7 @@ object VyakaranamExecutionAdapter {
         is SankhyaPratipadika -> sourceText
         is MulaPratipadika -> text
         is KridantaPratipadika -> dhatu.mulaDhatu
-        is UnadyantaPratipadika -> {
-            sourceText
-        }
+        is UnadyantaPratipadika -> sourceText
         is SamasaPratipadika -> angas.joinToString("-") { it.pratipadika.baseText() }
     }
 
@@ -629,7 +636,7 @@ object VyakaranamExecutionAdapter {
     private fun extractFrequencyCount(padas: List<Pada>, frame: KriyaFrame): Int? {
         val sankhyaAbhyasa = padas.filterIsInstance<SankhyaAbhyasaPada>().firstOrNull()
         if (sankhyaAbhyasa != null) {
-            val numStems = sankhyaAbhyasa.stems.filter { it != "कृत्वः" && it != "कृत्वा" }
+            val numStems = sankhyaAbhyasa.stems.filterNot { it in ABHYASA_SUFFIX_STEMS }
             val evaluated = if (numStems.isNotEmpty()) sankhyaEvaluator.evaluateStems(numStems) else sankhyaEvaluator.evaluateStems(sankhyaAbhyasa.stems)
             return evaluated.value.toInt()
         }

@@ -33,7 +33,7 @@ class NamaVakyaExecutionTest {
 
         // Turn 2: Nominal sentence checking if 1 exists in the result list
         val res2 = vm.eval(
-            "एक + सुँ युज् + ल्युट् + ङस् फल + अम् ।",
+            "एक + सुँ क्षिप् + घञ् + ङस् फल + अम् ।",
             sessionKey = "sess_namavakya"
         )
         val success2 = assertIs<ExecutionResult.Success>(res2, res2.toString())
