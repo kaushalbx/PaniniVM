@@ -106,6 +106,29 @@ class PvmFileTest {
     }
 
     @Test
+    fun `PaniniVM evaluates Fibonacci array pvm file`() {
+        val pvmFile = File("examples/arithmetic/fibonacci_array.pvm")
+        var sentPayload: String? = null
+        vm.registerExternalCapability(ExecutionEffect.NETWORK) { payload, _ ->
+            sentPayload = payload
+            "प्रेषणं सिद्धम्"
+        }
+
+        assertTrue(pvmFile.exists(), "fibonacci_array.pvm should exist")
+
+        val results = vm.evalFile(pvmFile, sessionKey = "fibonacci_array_session")
+
+        assertEquals(6, results.size)
+        
+        // The final network send result:
+        val sendResult = assertIs<ExecutionResult.Success>(results[5])
+        assertEquals("प्रेषणं सिद्धम्", sendResult.value)
+        
+        // The payload sent via network (the Suchi list representation):
+        assertEquals("[एक, एक, द्वे, त्रीणि, पञ्च, अष्ट]", sentPayload)
+    }
+
+    @Test
     fun `PaniniVM evaluates comparison, min, random, sqrt, mod, and count pvm files`() {
         val compFile = File("examples/arithmetic/comparison.pvm")
         val compResults = vm.evalFile(compFile, sessionKey = "comp_session")

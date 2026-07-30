@@ -9,6 +9,7 @@ sealed interface Phala {
         val trace: List<String>,
         val typedValues: Map<String, SanskritValue> = emptyMap(),
         val localBindings: Map<String, SanskritValue> = emptyMap(),
+        val metadata: Map<String, String> = emptyMap(),
     ) : Phala
     data class Asiddha(val result: ExecutionResult, val trace: List<String>) : Phala
     data class AnumatiApekshita(

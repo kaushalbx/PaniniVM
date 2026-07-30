@@ -30,8 +30,21 @@ object SutraExecutionPipeline {
     ): Phala {
         initialize()
         return when (val binding = VyakaranamExecutionAdapter.bind(input, conversation)) {
-            is ExecutionBindingResult.Bound -> execute(binding.ukti, conversation, scope)
-                .prependTrace(binding.trace)
+            is ExecutionBindingResult.Bound -> {
+                val phala = execute(binding.ukti, conversation, scope)
+                    .prependTrace(binding.trace)
+                if (phala is Phala.Siddha) {
+                    val metadata = buildMap {
+                        val turnPrefix = "उक्ति-${DevanagariDigits.render(conversation.turnNumber + 1)}"
+                        binding.ukti.invocations.forEachIndexed { idx, inv ->
+                            put("dhatu:$turnPrefix/योग-${idx + 1}", inv.dhatu.upadesha)
+                        }
+                    }
+                    phala.copy(metadata = metadata)
+                } else {
+                    phala
+                }
+            }
             is ExecutionBindingResult.NeedsInput -> Phala.Asiddha(
                 ExecutionResult.NeedsInput(emptySet(), binding.message),
                 emptyList(),
@@ -161,6 +174,7 @@ object SutraExecutionPipeline {
                     success.localBindings,
                 resultHistory = conversation.resultHistory + remembered,
                 turnNumber = nextTurn,
+                metadata = conversation.metadata + success.metadata,
             ),
         )
     }
