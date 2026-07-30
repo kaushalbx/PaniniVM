@@ -1,0 +1,14 @@
+# Euclidean Greatest Common Divisor (GCD) Algorithm
+
+# Set first operand 'प्रथम' = 18 (अष्टादश)
+अष्टादशम् प्रथमाय दअ ।
+
+# Set second operand 'द्वितीय' = 12 (द्वादश)
+द्वादशम् द्वितीयाय दअ ।
+
+# Compute remainder (18 mod 12 = 6) using modulo action (शिषनम्) and assign result to 'शेष'
+प्रथमम् द्वितीयम् च शिष । दअ फलम् शेषाय ।
+
+# Print final GCD result 'शेष' (renders 6 = षट्)
+मोद्रय शेषम् ।
+
