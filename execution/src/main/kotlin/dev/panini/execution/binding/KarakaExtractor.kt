@@ -30,13 +30,6 @@ import dev.panini.vyakaranam.ast.SubantaPada
  */
 internal object KarakaExtractor {
 
-    /** Result of a single [extractKarakas] call. */
-    internal data class ExtractedBindings(
-        val bindings: Map<Karaka, ExecutionExpression>,
-        val ambiguous: List<AmbiguousKarakaBinding>,
-        val trace: List<String>,
-    )
-
     /**
      * Extracts kāraka bindings from [padas] within [ctx].
      *
