@@ -80,7 +80,7 @@ internal object DhatuCache {
     }
 
     /** Strips trailing halanta and chandrabindu anusvaras that appear in upadesha forms. */
-    internal fun String.normalizeDhatuSurface(): String = trimEnd('्', 'ँ')
+    private fun String.normalizeDhatuSurface(): String = trimEnd('्', 'ँ')
 
     /** Returns the [Dhatu] for [key], or null if not found. */
     internal operator fun get(key: String): Dhatu? = dhatuCacheMap[key]
