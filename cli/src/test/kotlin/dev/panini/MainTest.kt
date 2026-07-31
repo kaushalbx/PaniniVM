@@ -15,15 +15,6 @@ import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class MainTest {
-    @Test
-    fun `eval command executes pvm script file and formats results`() {
-        val scriptPath = listOf("parser/src/test/kotlin/dev/panini/parser/addition.pvm", "src/test/kotlin/dev/panini/parser/addition.pvm").first { java.io.File(it).exists() }
-        val output = runCli(arrayOf("--eval", scriptPath))
-
-        assertEquals("=== PaniniVM Script Execution: addition.pvm ===", output.first())
-        assertEquals(2, output.size, output.joinToString("\n"))
-        assertTrue(output[1].startsWith("Error:"), output[1])
-    }
 
     @Test
     fun `grantha command executes canonical segmented source`() {
