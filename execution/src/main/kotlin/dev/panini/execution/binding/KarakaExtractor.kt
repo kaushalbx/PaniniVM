@@ -1,17 +1,13 @@
 package dev.panini.execution.binding
 
-import dev.panini.aryabhatiya.AryabhatiyaDecoder
-import dev.panini.bhutasamkhya.BhutasamkhyaDecoder
 import dev.panini.core.Karaka
 import dev.panini.core.Prayoga
 import dev.panini.core.SupAffix
 import dev.panini.execution.AmbiguousKarakaBinding
 import dev.panini.execution.ExecutionExpression
-import dev.panini.katapayadi.KatapayadiDecoder
 import dev.panini.analysis.FrameKarakaResolution
 import dev.panini.analysis.KarakaInference
 import dev.panini.sankhya.PrimitiveSankhya
-import dev.panini.sankhya.SankhyaEvaluator
 import dev.panini.shiksha.Karmatva
 import dev.panini.vyakaranam.ast.AryabhatiyaPada
 import dev.panini.vyakaranam.ast.BhutasamkhyaPada
@@ -20,7 +16,6 @@ import dev.panini.vyakaranam.ast.Pada
 import dev.panini.vyakaranam.ast.SamuccitaSubanta
 import dev.panini.vyakaranam.ast.SankhyaAbhyasaPada
 import dev.panini.vyakaranam.ast.SankhyaPada
-import dev.panini.vyakaranam.ast.SankhyaPratipadika
 import dev.panini.vyakaranam.ast.SankhyaPuranaPada
 import dev.panini.vyakaranam.ast.SubantaPada
 
@@ -28,15 +23,12 @@ import dev.panini.vyakaranam.ast.SubantaPada
  * Extracts kāraka bindings from a clause's pādas, delegating:
  * - फल reference resolution to [PhalaResolver]
  * - SubantaPada → ExecutionExpression conversion to [ExpressionBuilder]
+ * - Numeric pada decoding and binding to [NumeralPadaBinder]
  *
  * Grammatical case-to-kāraka policy remains owned by the vyākaraṇa package;
  * this object is only responsible for mapping resolved kārakas to execution expressions.
  */
 internal object KarakaExtractor {
-    private val sankhyaEvaluator = SankhyaEvaluator()
-    private val katapayadiDecoder = KatapayadiDecoder()
-    private val aryabhatiyaDecoder = AryabhatiyaDecoder()
-    private val bhutasamkhyaDecoder = BhutasamkhyaDecoder()
 
     /** Result of a single [extractKarakas] call. */
     internal data class ExtractedBindings(
@@ -50,7 +42,8 @@ internal object KarakaExtractor {
      *
      * Handles all pada varieties (subanta, sankhya, katapayadi, aryabhatiya,
      * bhutasamkhya, samuccita). फल reference resolution is fully delegated to
-     * [PhalaResolver]; expression building is delegated to [ExpressionBuilder].
+     * [PhalaResolver]; expression building is delegated to [ExpressionBuilder];
+     * numeric pada decoding is delegated to [NumeralPadaBinder].
      */
     internal fun extractKarakas(
         padas: List<Pada>,
@@ -138,18 +131,6 @@ internal object KarakaExtractor {
 
         val consumedPadaIndices = mutableSetOf<Int>()
 
-        // ---- numeral extraction helper ----------------------------------------------
-
-        fun extractNumeralValue(pada: Pada): Long? = when (pada) {
-            is SankhyaPada -> pada.value ?: sankhyaEvaluator.evaluateStems(pada.stems).value
-            is SubantaPada -> (pada.pratipadika as? SankhyaPratipadika)?.value
-                ?: PrimitiveSankhya.fromAnnotatedPratipadika(pada.pratipadika.sourceText)?.value
-            is KatapayadiPada -> pada.value ?: katapayadiDecoder.decode(pada.word)
-            is AryabhatiyaPada -> pada.value ?: aryabhatiyaDecoder.decode(pada.word)
-            is BhutasamkhyaPada -> pada.value ?: bhutasamkhyaDecoder.decodeTerms(pada.terms)
-            else -> null
-        }
-
         // ---- main pada dispatch -----------------------------------------------------
 
         padas.forEachIndexed { index, pada ->
@@ -158,7 +139,9 @@ internal object KarakaExtractor {
             when (pada) {
                 is SubantaPada -> add(pada, phalaResolution.phalaMap[pada])
                 is SankhyaPada -> {
+                    // अभ्यास-कृत्वः forms are frequency metadata, not argument values.
                     if (pada.stems.contains("कृत्वः") || pada.stems.contains("कृत्वस")) return@forEachIndexed
+                    // Op-stems (गुणित, वर्ग, …) consume the following numeral pada as their operand.
                     var targetIdx = -1
                     var nextVal: Long? = null
                     val lastStem = pada.stems.lastOrNull()
@@ -166,12 +149,8 @@ internal object KarakaExtractor {
                         (pada.stems.size >= 1 && pada.stems[0] in setOf("वर्ग", "घन", "मूल"))
                     if (isOpStem) {
                         for (j in (index + 1) until padas.size) {
-                            val v = extractNumeralValue(padas[j])
-                            if (v != null) {
-                                targetIdx = j
-                                nextVal = v
-                                break
-                            }
+                            val v = NumeralPadaBinder.extractNumeralValue(padas[j])
+                            if (v != null) { targetIdx = j; nextVal = v; break }
                         }
                     }
                     val fullStems = if (nextVal != null &&
@@ -191,56 +170,18 @@ internal object KarakaExtractor {
                     } else {
                         pada.stems
                     }
-                    val expr = sankhyaEvaluator.evaluateStems(fullStems)
-                    val value = expr.value
-                    val sub = SubantaPada(pada.sourceText, SankhyaPratipadika(pada.sourceText, value), pada.sup)
-                    val candidates = inferKarakas(sub)
-                    addBinding(
-                        ExecutionExpression.sankhya(value, pada.sourceText),
-                        candidates,
-                    )
-                }
-                is SankhyaPuranaPada -> {
-                    val value = pada.value ?: sankhyaEvaluator.evaluateStems(pada.stems).value
-                    val sub = SubantaPada(pada.sourceText, SankhyaPratipadika(pada.sourceText, value), pada.sup)
-                    val candidates = inferKarakas(sub)
-                    addBinding(
-                        ExecutionExpression.Companion.sankhya(value, pada.sourceText),
-                        candidates,
-                    )
+                    val value = NumeralPadaBinder.evaluateStems(fullStems).value
+                    NumeralPadaBinder.bindDecoded(pada.sourceText, pada.sup, value, ::inferKarakas, ::addBinding)
                 }
                 is SankhyaAbhyasaPada -> {
                     // अभ्यास-सङ्ख्या qualifies the action with a repetition count; it is
                     // metadata for execution, not one of the action's numeric arguments.
                     Unit
                 }
-                is KatapayadiPada -> {
-                    val value = pada.value ?: katapayadiDecoder.decode(pada.word)
-                    val sub = SubantaPada(pada.sourceText, SankhyaPratipadika(pada.sourceText, value), pada.sup)
-                    val candidates = inferKarakas(sub)
-                    addBinding(
-                        ExecutionExpression.Companion.sankhya(value, pada.sourceText),
-                        candidates,
-                    )
-                }
-                is AryabhatiyaPada -> {
-                    val value = pada.value ?: aryabhatiyaDecoder.decode(pada.word)
-                    val sub = SubantaPada(pada.sourceText, SankhyaPratipadika(pada.sourceText, value), pada.sup)
-                    val candidates = inferKarakas(sub)
-                    addBinding(
-                        ExecutionExpression.Companion.sankhya(value, pada.sourceText),
-                        candidates,
-                    )
-                }
-                is BhutasamkhyaPada -> {
-                    val value = pada.value ?: bhutasamkhyaDecoder.decodeTerms(pada.terms)
-                    val sub = SubantaPada(pada.sourceText, SankhyaPratipadika(pada.sourceText, value), pada.sup)
-                    val candidates = inferKarakas(sub)
-                    addBinding(
-                        ExecutionExpression.Companion.sankhya(value, pada.sourceText),
-                        candidates,
-                    )
-                }
+                is SankhyaPuranaPada -> NumeralPadaBinder.bind(pada, ::inferKarakas, ::addBinding)
+                is KatapayadiPada    -> NumeralPadaBinder.bind(pada, ::inferKarakas, ::addBinding)
+                is AryabhatiyaPada   -> NumeralPadaBinder.bind(pada, ::inferKarakas, ::addBinding)
+                is BhutasamkhyaPada  -> NumeralPadaBinder.bind(pada, ::inferKarakas, ::addBinding)
                 is SamuccitaSubanta -> {
                     val members = pada.members.map { ExpressionBuilder.build(it, ctx) }
                     val allCandidates = pada.members.flatMapTo(mutableSetOf()) { inferKarakas(it) }
