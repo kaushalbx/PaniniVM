@@ -12,11 +12,11 @@ object ListMoveAction : dev.panini.execution.DhatuAction("नयनम्", "अ
         val expression = context.bindings[Karaka.KARMAN] ?: context.bindings[Karaka.KARTR]
         val target = expression?.let { context.resolve(it).joinToString(" ") } ?: "लक्ष्यम्"
         val message = "नयनम् सिद्धम्: $target"
-        return _root_ide_package_.dev.panini.execution.ExecutionResult.Success(
+        return dev.panini.execution.ExecutionResult.Success(
             message,
             operation.name,
             listOf("Selected operation ${operation.name}.", "Moved/Led target $target forward."),
-            _root_ide_package_.dev.panini.execution.SanskritValue.Shabda(message),
+            dev.panini.execution.SanskritValue.Shabda(message),
         )
     }
 }

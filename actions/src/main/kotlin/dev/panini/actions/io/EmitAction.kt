@@ -12,11 +12,11 @@ object EmitAction : dev.panini.execution.DhatuAction("अर्पणम्", "�
         val expression = context.bindings[Karaka.KARMAN] ?: context.bindings[Karaka.KARTR]
         val target = expression?.let { context.resolve(it).joinToString(" ") } ?: "उत्सर्गः"
         val message = "अर्पितम्: $target"
-        return _root_ide_package_.dev.panini.execution.ExecutionResult.Success(
+        return dev.panini.execution.ExecutionResult.Success(
             message,
             operation.name,
             listOf("Selected operation ${operation.name}.", "Emitted $target."),
-            _root_ide_package_.dev.panini.execution.SanskritValue.Shabda(message),
+            dev.panini.execution.SanskritValue.Shabda(message),
         )
     }
 }

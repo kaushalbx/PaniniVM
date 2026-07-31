@@ -28,7 +28,7 @@ class PreshDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.UDATTA,
     operations = listOf(
-        _root_ide_package_.dev.panini.actions.external.BahyaSendAction.op {
+        dev.panini.actions.external.BahyaSendAction.op {
             requires(Karaka.KARMAN)
             effects(ExecutionEffect.NETWORK, ExecutionEffect.EXECUTE_PROCESS, ExecutionEffect.SEND_MESSAGE)
             returns(Samjna.SHABDA)

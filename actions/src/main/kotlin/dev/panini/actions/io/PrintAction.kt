@@ -16,14 +16,14 @@ object PrintAction : dev.panini.execution.DhatuAction("प्रदर्शन�
 
         println(textToPrint)
 
-        return _root_ide_package_.dev.panini.execution.ExecutionResult.Success(
+        return ExecutionResult.Success(
             textToPrint,
             operation.name,
             listOf(
                 "Selected operation ${operation.name}.",
                 "Printed '$textToPrint'.",
             ),
-            _root_ide_package_.dev.panini.execution.SanskritValue.Shabda(textToPrint),
+            dev.panini.execution.SanskritValue.Shabda(textToPrint),
         )
     }
 }

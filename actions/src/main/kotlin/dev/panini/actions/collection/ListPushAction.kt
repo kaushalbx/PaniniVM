@@ -18,7 +18,7 @@ object ListPushAction : dev.panini.execution.DhatuAction("सूचीनिक�
         }
         val listValue = SanskritValue.Suchi(appendedItems)
 
-        return _root_ide_package_.dev.panini.execution.ExecutionResult.Success(
+        return dev.panini.execution.ExecutionResult.Success(
             listValue.toDisplayText(),
             operation.name,
             listOf(

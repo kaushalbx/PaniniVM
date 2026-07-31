@@ -14,14 +14,14 @@ object ReadAction : dev.panini.execution.DhatuAction("स्वीकरणम�
         val expression = context.bindings[Karaka.KARMAN]
         val variableName = expression?.let { context.resolve(it).firstOrNull() } ?: "आगतम्"
 
-        return _root_ide_package_.dev.panini.execution.ExecutionResult.Success(
+        return dev.panini.execution.ExecutionResult.Success(
             readValue,
             operation.name,
             listOf(
                 "Selected operation ${operation.name}.",
                 "Read input into variable $variableName.",
             ),
-            _root_ide_package_.dev.panini.execution.SanskritValue.Shabda(readValue),
+            dev.panini.execution.SanskritValue.Shabda(readValue),
         )
     }
 }
