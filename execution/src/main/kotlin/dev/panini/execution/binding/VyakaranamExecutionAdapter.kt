@@ -19,7 +19,9 @@ import dev.panini.analysis.VakyaAnalyzer
 import dev.panini.sankhya.SankhyaEvaluator
 import dev.panini.vyakaranam.ast.AkhyataVakya
 import dev.panini.vyakaranam.ast.AvyayaPada
+import dev.panini.vyakaranam.ast.Pada
 import dev.panini.vyakaranam.ast.SankhyaAbhyasaPada
+import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.lexicon.PratipadikaEntry
 import dev.panini.vyakaranam.lexicon.VyakaranamLexicon
 import dev.panini.vyakaranam.parser.PaniniParseException
@@ -137,37 +139,19 @@ object VyakaranamExecutionAdapter {
                 localVariables = localVariables,
                 localVariableInvocationIds = localVariableInvocationIds,
             )
-            val extracted = KarakaExtractor.extractKarakas(padas, ctx)
-            val bindings = extracted.bindings.toMutableMap()
-            if (tinganta != null && purposeRequiresListenerAsAgent(prayer, tinganta.lakara) && Karaka.KARTR !in bindings) {
-                bindings[Karaka.KARTR] = ExecutionExpression.Pada(listener)
-            }
-            val frequencyCount = if (shouldUnroll) null else FrequencyExtractor.extractFrequencyCount(padas, ctx.frame)
-            val metadataMap = buildMap {
-                put("dhatuName", dhatu.upadesha)
-                put("dhatu:योग-${index + 1}", dhatu.upadesha)
-                if (frequencyCount != null) {
-                    put("frequencyCount", frequencyCount.toString())
-                }
-            }
-            invocations += DhatuInvocation(
-                id = "योग-${index + 1}",
+            val invocation = buildDhatuInvocation(
+                index = index,
+                padas = padas,
+                ctx = ctx,
                 dhatu = dhatu,
-                bindings = bindings,
-                selectedOperation = null,
-                metadata = metadataMap,
-                grammaticalFeatures = GrammaticalFeatures(
-                    upasargas = tinganta?.upasargas?.toSet() ?: emptySet(),
-                    sanadi = tinganta?.dhatu?.sanadiPratyayas?.toSet() ?: emptySet(),
-                    avyayas = padas.filterIsInstance<AvyayaPada>()
-                        .mapTo(mutableSetOf()) { it.form },
-                    lakara = tinganta?.lakara ?: Lakara.LAT,
-                ),
-                ambiguousBindings = extracted.ambiguous,
-                karakaTrace = extracted.trace,
+                tinganta = tinganta,
+                listener = listener,
+                prayer = prayer,
+                shouldUnroll = shouldUnroll,
             )
+            invocations += invocation
             val bindingKaraka = dhatu.operations.firstOrNull { it.resultBindingKaraka != null }?.resultBindingKaraka
-            val bindingName = bindingKaraka?.let { bindings[it] }?.bindingName()
+            val bindingName = bindingKaraka?.let { invocation.bindings[it] }?.bindingName()
             if (bindingName != null) {
                 localVariables.add(bindingName)
                 localVariableInvocationIds[bindingName] = "योग-${index + 1}"
@@ -201,4 +185,50 @@ object VyakaranamExecutionAdapter {
 
     private fun purposeRequiresListenerAsAgent(prayer: Boolean, lakara: Lakara): Boolean =
         prayer || lakara == Lakara.LOT
+
+    /**
+     * Extracts kāraka bindings for [padas] and constructs the [DhatuInvocation] for
+     * clause number [index] (0-based).
+     *
+     * @param shouldUnroll When true the utterance is being unrolled across multiple
+     *                     repetitions, so per-clause frequency metadata is suppressed
+     *                     (the repeat count is encoded at the utterance level instead).
+     */
+    private fun buildDhatuInvocation(
+        index: Int,
+        padas: List<Pada>,
+        ctx: BindingContext,
+        dhatu: Dhatu,
+        tinganta: TingantaPada?,
+        listener: String,
+        prayer: Boolean,
+        shouldUnroll: Boolean,
+    ): DhatuInvocation {
+        val extracted = KarakaExtractor.extractKarakas(padas, ctx)
+        val bindings = extracted.bindings.toMutableMap()
+        if (tinganta != null && purposeRequiresListenerAsAgent(prayer, tinganta.lakara) && Karaka.KARTR !in bindings) {
+            bindings[Karaka.KARTR] = ExecutionExpression.Pada(listener)
+        }
+        val frequencyCount = if (shouldUnroll) null else FrequencyExtractor.extractFrequencyCount(padas, ctx.frame)
+        val metadataMap = buildMap {
+            put("dhatuName", dhatu.upadesha)
+            put("dhatu:योग-${index + 1}", dhatu.upadesha)
+            if (frequencyCount != null) put("frequencyCount", frequencyCount.toString())
+        }
+        return DhatuInvocation(
+            id = "योग-${index + 1}",
+            dhatu = dhatu,
+            bindings = bindings,
+            selectedOperation = null,
+            metadata = metadataMap,
+            grammaticalFeatures = GrammaticalFeatures(
+                upasargas = tinganta?.upasargas?.toSet() ?: emptySet(),
+                sanadi = tinganta?.dhatu?.sanadiPratyayas?.toSet() ?: emptySet(),
+                avyayas = padas.filterIsInstance<AvyayaPada>().mapTo(mutableSetOf()) { it.form },
+                lakara = tinganta?.lakara ?: Lakara.LAT,
+            ),
+            ambiguousBindings = extracted.ambiguous,
+            karakaTrace = extracted.trace,
+        )
+    }
 }
