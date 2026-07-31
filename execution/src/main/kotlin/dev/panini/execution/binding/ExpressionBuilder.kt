@@ -1,8 +1,6 @@
 package dev.panini.execution.binding
 
 import dev.panini.execution.ExecutionExpression
-import dev.panini.sankhya.SankhyaEvaluator
-import dev.panini.sankhya.SankhyaGenerator
 import dev.panini.shiksha.Samjna
 import dev.panini.vyakaranam.ast.KridantaPratipadika
 import dev.panini.vyakaranam.ast.MulaPratipadika
@@ -18,9 +16,6 @@ import dev.panini.vyakaranam.ast.SubantaPada
  * via [BindingContext] instead of individual parameters.
  */
 internal object ExpressionBuilder {
-    private val sankhyaGenerator = SankhyaGenerator()
-    private val sankhyaEvaluator = SankhyaEvaluator()
-
     /**
      * Reverse-index of ordinal Sanskrit surface forms to 0-based history position (covers 1st–50th).
      * Used to resolve expressions like "प्रथमफल", "द्वितीयफल", etc.
@@ -28,8 +23,8 @@ internal object ExpressionBuilder {
     private val ordinalSurfaceToIndex: Map<String, Int> by lazy {
         (1..50).flatMap { i ->
             buildList {
-                add(sankhyaGenerator.ordinal(i.toLong()).final.surface)
-                addAll(sankhyaGenerator.ordinalVariants(i.toLong()).map { it.final.surface })
+                add(sharedSankhyaGenerator.ordinal(i.toLong()).final.surface)
+                addAll(sharedSankhyaGenerator.ordinalVariants(i.toLong()).map { it.final.surface })
             }.map { surface -> surface to (i - 1) }
         }.toMap()
     }
@@ -79,7 +74,7 @@ internal object ExpressionBuilder {
 
         val sankhyaValue = when (val prat = pada.pratipadika) {
             is SankhyaPratipadika -> prat.value
-            is MulaPratipadika -> sankhyaGenerator.annotatedPratipadikaValue(prat.text)
+            is MulaPratipadika -> sharedSankhyaGenerator.annotatedPratipadikaValue(prat.text)
             else -> null
         }
         val samjnas = buildSet {

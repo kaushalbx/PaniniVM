@@ -6,7 +6,6 @@ import dev.panini.core.Karaka
 import dev.panini.execution.ExecutionExpression
 import dev.panini.katapayadi.KatapayadiDecoder
 import dev.panini.sankhya.PrimitiveSankhya
-import dev.panini.sankhya.SankhyaEvaluator
 import dev.panini.vyakaranam.ast.AryabhatiyaPada
 import dev.panini.vyakaranam.ast.BhutasamkhyaPada
 import dev.panini.vyakaranam.ast.KatapayadiPada
@@ -31,7 +30,6 @@ import dev.panini.vyakaranam.ast.SupPratyaya
  * lookahead scan via [extractNumeralValue] and [evaluateStems].
  */
 internal object NumeralPadaBinder {
-    private val sankhyaEvaluator = SankhyaEvaluator()
     private val katapayadiDecoder = KatapayadiDecoder()
     private val aryabhatiyaDecoder = AryabhatiyaDecoder()
     private val bhutasamkhyaDecoder = BhutasamkhyaDecoder()
@@ -41,7 +39,7 @@ internal object NumeralPadaBinder {
      * Used by the [SankhyaPada] op-stem arm to peek ahead at the next numeral pada.
      */
     internal fun extractNumeralValue(pada: Pada): Long? = when (pada) {
-        is SankhyaPada -> pada.value ?: sankhyaEvaluator.evaluateStems(pada.stems).value
+        is SankhyaPada -> pada.value ?: sharedSankhyaEvaluator.evaluateStems(pada.stems).value
         is SubantaPada -> (pada.pratipadika as? SankhyaPratipadika)?.value
             ?: PrimitiveSankhya.fromAnnotatedPratipadika(pada.pratipadika.sourceText)?.value
         is KatapayadiPada -> pada.value ?: katapayadiDecoder.decode(pada.word)
@@ -54,7 +52,7 @@ internal object NumeralPadaBinder {
      * Evaluates a list of Sanskrit numeral stems to a numeric result.
      * Exposed for the [SankhyaPada] op-stem arm which builds [fullStems] before calling [bindDecoded].
      */
-    internal fun evaluateStems(stems: List<String>) = sankhyaEvaluator.evaluateStems(stems)
+    internal fun evaluateStems(stems: List<String>) = sharedSankhyaEvaluator.evaluateStems(stems)
 
     // ---- Typed bind overloads -------------------------------------------------------
     // Each decodes its pada then delegates to [bindDecoded].
@@ -65,7 +63,7 @@ internal object NumeralPadaBinder {
         addBinding: (ExecutionExpression, Set<Karaka>) -> Unit,
     ) = bindDecoded(
         pada.sourceText, pada.sup,
-        pada.value ?: sankhyaEvaluator.evaluateStems(pada.stems).value,
+        pada.value ?: sharedSankhyaEvaluator.evaluateStems(pada.stems).value,
         inferKarakas, addBinding,
     )
 

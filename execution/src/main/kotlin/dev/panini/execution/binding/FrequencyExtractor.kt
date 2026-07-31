@@ -2,7 +2,6 @@ package dev.panini.execution.binding
 
 import dev.panini.analysis.KriyaFrame
 import dev.panini.analysis.KriyaQualificationKind
-import dev.panini.sankhya.SankhyaEvaluator
 import dev.panini.vyakaranam.ast.Pada
 import dev.panini.vyakaranam.ast.SankhyaAbhyasaPada
 
@@ -11,8 +10,6 @@ import dev.panini.vyakaranam.ast.SankhyaAbhyasaPada
  * Covers both per-clause frequency qualifiers and whole-utterance repetition counts.
  */
 internal object FrequencyExtractor {
-    private val sankhyaEvaluator = SankhyaEvaluator()
-
     /**
      * Suffix stems in an अभ्यास-सङ्ख्या that indicate repetition count, not a
      * numeric kāraka argument value.  These are filtered out before numeric evaluation.
@@ -32,9 +29,9 @@ internal object FrequencyExtractor {
         if (sankhyaAbhyasa != null) {
             val numStems = sankhyaAbhyasa.stems.filterNot { it in ABHYASA_SUFFIX_STEMS }
             val evaluated = if (numStems.isNotEmpty()) {
-                sankhyaEvaluator.evaluateStems(numStems)
+                sharedSankhyaEvaluator.evaluateStems(numStems)
             } else {
-                sankhyaEvaluator.evaluateStems(sankhyaAbhyasa.stems)
+                sharedSankhyaEvaluator.evaluateStems(sankhyaAbhyasa.stems)
             }
             return evaluated.value.toInt()
         }
@@ -44,7 +41,7 @@ internal object FrequencyExtractor {
             // Delegate to SankhyaEvaluator — it natively handles:
             //   सकृत्, द्विः, त्रिः, चतुः (parseStandaloneFrequency)
             //   *कृत्वः / *कृत्वस् compound forms (evaluateStems suffix branch)
-            val evaluated = runCatching { sankhyaEvaluator.evaluateStems(listOf(text)) }.getOrNull()
+            val evaluated = runCatching { sharedSankhyaEvaluator.evaluateStems(listOf(text)) }.getOrNull()
             if (evaluated != null && evaluated.value > 0) return evaluated.value.toInt()
             // पुनः / पुनर् are pragmatic repetition markers ("again" = do once more),
             // not purely numerical — retain as minimal policy.

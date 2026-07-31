@@ -16,7 +16,6 @@ import dev.panini.execution.bindingName
 import dev.panini.analysis.PadaAnalyzer
 import dev.panini.analysis.UktiAnalyzer
 import dev.panini.analysis.VakyaAnalyzer
-import dev.panini.sankhya.SankhyaEvaluator
 import dev.panini.vyakaranam.ast.AkhyataVakya
 import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.Pada
@@ -40,7 +39,6 @@ import kotlin.collections.plusAssign
  */
 object VyakaranamExecutionAdapter {
     private val parser = PaniniParser()
-    private val sankhyaEvaluator = SankhyaEvaluator()
 
     fun bind(input: SanskritUktiInput, conversation: SambhashanaContext): ExecutionBindingResult {
         if (input.text.isBlank()) return ExecutionBindingResult.Invalid("The Sanskrit utterance is empty.")
@@ -102,9 +100,9 @@ object VyakaranamExecutionAdapter {
             vakya.padas.filterIsInstance<SankhyaAbhyasaPada>().mapNotNull { pada ->
                 val numStems = pada.stems.filterNot { it in FrequencyExtractor.ABHYASA_SUFFIX_STEMS }
                 val evaluated = if (numStems.isNotEmpty()) {
-                    sankhyaEvaluator.evaluateStems(numStems)
+                    sharedSankhyaEvaluator.evaluateStems(numStems)
                 } else {
-                    sankhyaEvaluator.evaluateStems(pada.stems)
+                    sharedSankhyaEvaluator.evaluateStems(pada.stems)
                 }
                 evaluated.value.toInt().takeIf { it > 0 }
             }
