@@ -128,15 +128,21 @@ object VyakaranamExecutionAdapter {
                     ?: return ExecutionBindingResult.Invalid("Imputed copular action 'अस्' not registered in DhatuPatha.")
             }
             val frame = utteranceAnalysis.frames.firstOrNull { it.vakya == vakya } ?: return@forEachIndexed
-            val extracted = KarakaExtractor.extractKarakas(
-                padas, conversation, index, dhatu, frame,
-                invocations.map { it.dhatu }, localVariables, localVariableInvocationIds,
+            val ctx = BindingContext(
+                conversation = conversation,
+                clauseIndex = index,
+                dhatu = dhatu,
+                frame = frame,
+                previousDhatus = invocations.map { it.dhatu },
+                localVariables = localVariables,
+                localVariableInvocationIds = localVariableInvocationIds,
             )
+            val extracted = KarakaExtractor.extractKarakas(padas, ctx)
             val bindings = extracted.bindings.toMutableMap()
             if (tinganta != null && purposeRequiresListenerAsAgent(prayer, tinganta.lakara) && Karaka.KARTR !in bindings) {
                 bindings[Karaka.KARTR] = ExecutionExpression.Pada(listener)
             }
-            val frequencyCount = if (shouldUnroll) null else FrequencyExtractor.extractFrequencyCount(padas, frame)
+            val frequencyCount = if (shouldUnroll) null else FrequencyExtractor.extractFrequencyCount(padas, ctx.frame)
             val metadataMap = buildMap {
                 put("dhatuName", dhatu.upadesha)
                 put("dhatu:योग-${index + 1}", dhatu.upadesha)

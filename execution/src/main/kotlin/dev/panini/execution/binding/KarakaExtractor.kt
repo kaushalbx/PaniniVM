@@ -5,14 +5,11 @@ import dev.panini.bhutasamkhya.BhutasamkhyaDecoder
 import dev.panini.core.Karaka
 import dev.panini.core.Prayoga
 import dev.panini.core.SupAffix
-import dev.panini.dhatupatha.Dhatu
 import dev.panini.execution.AmbiguousKarakaBinding
 import dev.panini.execution.ExecutionExpression
-import dev.panini.execution.SambhashanaContext
 import dev.panini.katapayadi.KatapayadiDecoder
 import dev.panini.analysis.FrameKarakaResolution
 import dev.panini.analysis.KarakaInference
-import dev.panini.analysis.KriyaFrame
 import dev.panini.sankhya.PrimitiveSankhya
 import dev.panini.sankhya.SankhyaEvaluator
 import dev.panini.shiksha.Karmatva
@@ -28,8 +25,9 @@ import dev.panini.vyakaranam.ast.SankhyaPuranaPada
 import dev.panini.vyakaranam.ast.SubantaPada
 
 /**
- * Extracts kāraka bindings from a clause's pādas, delegating frame-analysis results
- * to produce a fully-resolved [ExtractedBindings].
+ * Extracts kāraka bindings from a clause's pādas, delegating:
+ * - फल reference resolution to [PhalaResolver]
+ * - SubantaPada → ExecutionExpression conversion to [ExpressionBuilder]
  *
  * Grammatical case-to-kāraka policy remains owned by the vyākaraṇa package;
  * this object is only responsible for mapping resolved kārakas to execution expressions.
@@ -48,125 +46,48 @@ internal object KarakaExtractor {
     )
 
     /**
-     * Extracts kāraka bindings from [padas] within the context of [frame].
+     * Extracts kāraka bindings from [padas] within [ctx].
      *
      * Handles all pada varieties (subanta, sankhya, katapayadi, aryabhatiya,
-     * bhutasamkhya, samuccita) and resolves फल references using the current
-     * clause index, prior dhātu history, and the conversation result history.
+     * bhutasamkhya, samuccita). फल reference resolution is fully delegated to
+     * [PhalaResolver]; expression building is delegated to [ExpressionBuilder].
      */
     internal fun extractKarakas(
         padas: List<Pada>,
-        conversation: SambhashanaContext?,
-        clauseIndex: Int,
-        dhatu: Dhatu,
-        frame: KriyaFrame,
-        previousDhatus: List<Dhatu>,
-        localVariables: Set<String>,
-        localVariableInvocationIds: Map<String, String> = emptyMap(),
+        ctx: BindingContext,
     ): ExtractedBindings {
         val grouped = mutableMapOf<Karaka, MutableList<ExecutionExpression>>()
         val ambiguous = mutableListOf<AmbiguousKarakaBinding>()
         val trace = mutableListOf<String>()
-        val requiredKarakas = dhatu.operations
+        val requiredKarakas = ctx.dhatu.operations
             .flatMapTo(mutableSetOf()) { operation ->
                 operation.signature.requirements.map { it.karaka } + operation.signature.optionalKarakas
             }
 
         val subantas = padas.filterIsInstance<SubantaPada>()
         val phalaPadas = subantas.filter { it.pratipadika.baseText() == "फल" }
-        val resolvedGenitives = mutableSetOf<SubantaPada>()
-        val resolvedPhalaMap = mutableMapOf<SubantaPada, String>()
 
-        // ---- फल resolution ---------------------------------------------------------
-        phalaPadas.forEach { phalaPada ->
-            val idx = subantas.indexOf(phalaPada)
-            val genitiveModifier = subantas.take(idx)
-                .lastOrNull { it.sup.text in setOf("ङस्", "आम्") && it !in resolvedGenitives }
-            if (genitiveModifier != null) {
-                val modIdx = subantas.indexOf(genitiveModifier)
-                val precedingSub = subantas.take(modIdx).lastOrNull()
-                val base = genitiveModifier.pratipadika.baseText()
-                val isPrevious = base.startsWith("पूर्व") ||
-                    precedingSub?.pratipadika?.baseText()?.startsWith("पूर्व") == true
-                if (precedingSub?.pratipadika?.baseText()?.startsWith("पूर्व") == true) {
-                    resolvedGenitives.add(precedingSub)
-                }
-                val cleanBase = if (base.startsWith("पूर्व")) base.removePrefix("पूर्व") else base
-                val root = DhatuCache.getActionRoot(cleanBase)
-                val matchingIndices = (0 until clauseIndex).filter { i ->
-                    val prevDhatu = previousDhatus.getOrNull(i)
-                    if (prevDhatu == null) false else {
-                        val prevRoot = DhatuCache.getDhatuRoot(prevDhatu.upadesha)
-                        val prevActionRoots = prevDhatu.operations.mapTo(mutableSetOf()) {
-                            DhatuCache.getActionRoot(it.name)
-                        }
-                        root == prevRoot || root in prevActionRoots
-                    }
-                }
-                val matchedIndex = if (isPrevious) {
-                    if (matchingIndices.size > 1) matchingIndices.dropLast(1).lastOrNull() else null
-                } else {
-                    matchingIndices.lastOrNull()
-                }
-                if (matchedIndex != null) {
-                    resolvedPhalaMap[phalaPada] = "योग-${matchedIndex + 1}"
-                    resolvedGenitives.add(genitiveModifier)
-                } else {
-                    val historicalResults = conversation?.resultHistory?.filter { result ->
-                        val dhatuUpadesha = conversation.metadata["dhatu:${result.invocationId}"]
-                            ?: conversation.metadata["dhatu:${result.id}"]
-                        if (dhatuUpadesha != null) {
-                            val prevDhatu = DhatuCache.upadeshaDhatuCache[dhatuUpadesha]
-                            if (prevDhatu != null) {
-                                val prevRoot = DhatuCache.getDhatuRoot(prevDhatu.upadesha)
-                                val prevActionRoots = prevDhatu.operations.mapTo(mutableSetOf()) {
-                                    DhatuCache.getActionRoot(it.name)
-                                }
-                                root == prevRoot || root in prevActionRoots
-                            } else false
-                        } else false
-                    } ?: emptyList()
-                    val historicalResult = if (isPrevious) {
-                        if (historicalResults.size > 1) {
-                            historicalResults.dropLast(1).lastOrNull()
-                        } else {
-                            historicalResults.firstOrNull()
-                        }
-                    } else {
-                        historicalResults.lastOrNull()
-                    }
-                    if (historicalResult != null) {
-                        if (isPrevious && historicalResults.size == 1 &&
-                            conversation?.previousTypedResults?.containsKey("पूर्वफल") == true
-                        ) {
-                            resolvedPhalaMap[phalaPada] = "पूर्वफल"
-                        } else {
-                            resolvedPhalaMap[phalaPada] = historicalResult.id
-                        }
-                        resolvedGenitives.add(genitiveModifier)
-                    }
-                }
-            }
-        }
+        // ---- फल resolution (delegated) ---------------------------------------------
+        val phalaResolution = PhalaResolver.resolve(phalaPadas, subantas, ctx)
 
         // ---- kāraka inference helpers -----------------------------------------------
 
         fun inferKarakas(pada: SubantaPada): Set<Karaka> {
-            val relation = frame.relations.firstOrNull {
+            val relation = ctx.frame.relations.firstOrNull {
                 it.participant.pada.sourceText == pada.sourceText
             }
             if (relation == null) {
                 val supAffix = SupAffix.fromUpadesha(pada.sup.text)
                 if (supAffix != null) {
-                    val effectivePrayoga = if (frame.prayoga == Prayoga.ANIRDHARITA) {
+                    val effectivePrayoga = if (ctx.frame.prayoga == Prayoga.ANIRDHARITA) {
                         Prayoga.KARTARI
                     } else {
-                        frame.prayoga
+                        ctx.frame.prayoga
                     }
                     val inferred = KarakaInference.infer(
                         supAffix.vibhakti,
                         effectivePrayoga,
-                        dhatu.karmatva != Karmatva.AKARMAKA,
+                        ctx.dhatu.karmatva != Karmatva.AKARMAKA,
                     )
                     if (inferred != null) return setOf(inferred)
                 }
@@ -184,15 +105,15 @@ internal object KarakaExtractor {
             val requiredCandidates = candidates intersect requiredKarakas
             if (requiredCandidates.size == 1) return requiredCandidates
             val legacyMorphologicalCandidates = relation.participant.supCandidates.mapNotNullTo(mutableSetOf()) {
-                val effectivePrayoga = if (frame.prayoga == Prayoga.ANIRDHARITA) {
+                val effectivePrayoga = if (ctx.frame.prayoga == Prayoga.ANIRDHARITA) {
                     Prayoga.KARTARI
                 } else {
-                    frame.prayoga
+                    ctx.frame.prayoga
                 }
                 KarakaInference.infer(
                     it.vibhakti,
                     effectivePrayoga,
-                    dhatu.karmatva != Karmatva.AKARMAKA,
+                    ctx.dhatu.karmatva != Karmatva.AKARMAKA,
                 )
             }
             val compatibleLegacyCandidates = legacyMorphologicalCandidates intersect requiredKarakas
@@ -208,9 +129,9 @@ internal object KarakaExtractor {
         }
 
         fun add(subanta: SubantaPada, overridePhalaId: String? = null) {
-            val phalaId = overridePhalaId ?: resolvedPhalaMap[subanta]
+            val phalaId = overridePhalaId ?: phalaResolution.phalaMap[subanta]
             addBinding(
-                ExpressionBuilder.build(subanta, conversation, clauseIndex, phalaId, localVariables, localVariableInvocationIds),
+                ExpressionBuilder.build(subanta, ctx, phalaId),
                 inferKarakas(subanta),
             )
         }
@@ -233,9 +154,9 @@ internal object KarakaExtractor {
 
         padas.forEachIndexed { index, pada ->
             if (index in consumedPadaIndices) return@forEachIndexed
-            if (pada in resolvedGenitives) return@forEachIndexed
+            if (pada in phalaResolution.resolvedGenitives) return@forEachIndexed
             when (pada) {
-                is SubantaPada -> add(pada, resolvedPhalaMap[pada])
+                is SubantaPada -> add(pada, phalaResolution.phalaMap[pada])
                 is SankhyaPada -> {
                     if (pada.stems.contains("कृत्वः") || pada.stems.contains("कृत्वस")) return@forEachIndexed
                     var targetIdx = -1
@@ -321,9 +242,7 @@ internal object KarakaExtractor {
                     )
                 }
                 is SamuccitaSubanta -> {
-                    val members = pada.members.map {
-                        ExpressionBuilder.build(it, conversation, clauseIndex, null, localVariables, localVariableInvocationIds)
-                    }
+                    val members = pada.members.map { ExpressionBuilder.build(it, ctx) }
                     val allCandidates = pada.members.flatMapTo(mutableSetOf()) { inferKarakas(it) }
                     val candidates = (allCandidates intersect requiredKarakas).ifEmpty { allCandidates }
                     addBinding(ExecutionExpression.Coordination(members), candidates)
@@ -351,7 +270,7 @@ internal object KarakaExtractor {
             if (filteredValues.size == 1) filteredValues.single()
             else ExecutionExpression.Coordination(filteredValues)
         }
-        trace += frame.qualifications.map { "Kriyā qualification ${it.kind}: ${it.value}" }
+        trace += ctx.frame.qualifications.map { "Kriyā qualification ${it.kind}: ${it.value}" }
         return ExtractedBindings(bindings, ambiguous, trace.distinct())
     }
 }

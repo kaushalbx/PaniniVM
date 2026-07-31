@@ -1,0 +1,115 @@
+package dev.panini.execution.binding
+
+import dev.panini.vyakaranam.ast.SubantaPada
+
+/**
+ * Typed result of a [PhalaResolver.resolve] call.
+ *
+ * @property phalaMap      Maps each "फल" [SubantaPada] to the invocation-id whose
+ *                         result it references (e.g. "योग-2", "पूर्वफल", or a
+ *                         historical result id).
+ * @property resolvedGenitives The genitive-case modifier pādas that were consumed
+ *                         during resolution and must be skipped in the main binding loop.
+ */
+internal data class PhalaResolution(
+    val phalaMap: Map<SubantaPada, String>,
+    val resolvedGenitives: Set<SubantaPada>,
+)
+
+/**
+ * Resolves "फल" (result-reference) pādas to concrete invocation ids.
+ *
+ * Handles three resolution scopes in priority order:
+ * 1. **Within-utterance** — a genitive modifier names a prior clause's dhātu action.
+ * 2. **Conversation history** — the named action matches a dhātu in [SambhashanaContext.resultHistory].
+ * 3. **पूर्वफल shorthand** — "पूर्व" prefix selects the penultimate matching result.
+ *
+ * All dhātu-matching is root-normalised via [DhatuCache] so surface variants resolve correctly.
+ */
+internal object PhalaResolver {
+
+    internal fun resolve(
+        phalaPadas: List<SubantaPada>,
+        subantas: List<SubantaPada>,
+        ctx: BindingContext,
+    ): PhalaResolution {
+        val resolvedGenitives = mutableSetOf<SubantaPada>()
+        val phalaMap = mutableMapOf<SubantaPada, String>()
+
+        phalaPadas.forEach { phalaPada ->
+            val idx = subantas.indexOf(phalaPada)
+            val genitiveModifier = subantas.take(idx)
+                .lastOrNull { it.sup.text in setOf("ङस्", "आम्") && it !in resolvedGenitives }
+                ?: return@forEach
+
+            val modIdx = subantas.indexOf(genitiveModifier)
+            val precedingSub = subantas.take(modIdx).lastOrNull()
+            val base = genitiveModifier.pratipadika.baseText()
+            val isPrevious = base.startsWith("पूर्व") ||
+                precedingSub?.pratipadika?.baseText()?.startsWith("पूर्व") == true
+
+            if (precedingSub?.pratipadika?.baseText()?.startsWith("पूर्व") == true) {
+                resolvedGenitives.add(precedingSub)
+            }
+
+            val cleanBase = if (base.startsWith("पूर्व")) base.removePrefix("पूर्व") else base
+            val root = DhatuCache.getActionRoot(cleanBase)
+
+            // ---- 1. Resolve against earlier clauses in this utterance ----------------
+            val matchingIndices = (0 until ctx.clauseIndex).filter { i ->
+                val prevDhatu = ctx.previousDhatus.getOrNull(i) ?: return@filter false
+                val prevRoot = DhatuCache.getDhatuRoot(prevDhatu.upadesha)
+                val prevActionRoots = prevDhatu.operations.mapTo(mutableSetOf()) {
+                    DhatuCache.getActionRoot(it.name)
+                }
+                root == prevRoot || root in prevActionRoots
+            }
+            val withinUtteranceMatch = if (isPrevious) {
+                if (matchingIndices.size > 1) matchingIndices.dropLast(1).lastOrNull() else null
+            } else {
+                matchingIndices.lastOrNull()
+            }
+
+            if (withinUtteranceMatch != null) {
+                phalaMap[phalaPada] = "योग-${withinUtteranceMatch + 1}"
+                resolvedGenitives.add(genitiveModifier)
+                return@forEach
+            }
+
+            // ---- 2. Resolve against conversation result history ----------------------
+            val historicalResults = ctx.conversation?.resultHistory?.filter { result ->
+                val dhatuUpadesha = ctx.conversation.metadata["dhatu:${result.invocationId}"]
+                    ?: ctx.conversation.metadata["dhatu:${result.id}"]
+                val prevDhatu = dhatuUpadesha?.let { DhatuCache.upadeshaDhatuCache[it] }
+                    ?: return@filter false
+                val prevRoot = DhatuCache.getDhatuRoot(prevDhatu.upadesha)
+                val prevActionRoots = prevDhatu.operations.mapTo(mutableSetOf()) {
+                    DhatuCache.getActionRoot(it.name)
+                }
+                root == prevRoot || root in prevActionRoots
+            } ?: emptyList()
+
+            val historicalResult = if (isPrevious) {
+                if (historicalResults.size > 1) historicalResults.dropLast(1).lastOrNull()
+                else historicalResults.firstOrNull()
+            } else {
+                historicalResults.lastOrNull()
+            }
+
+            if (historicalResult != null) {
+                // ---- 3. पूर्वफल shorthand -------------------------------------------
+                phalaMap[phalaPada] = if (
+                    isPrevious && historicalResults.size == 1 &&
+                    ctx.conversation?.previousTypedResults?.containsKey("पूर्वफल") == true
+                ) {
+                    "पूर्वफल"
+                } else {
+                    historicalResult.id
+                }
+                resolvedGenitives.add(genitiveModifier)
+            }
+        }
+
+        return PhalaResolution(phalaMap, resolvedGenitives)
+    }
+}

@@ -1,7 +1,6 @@
 package dev.panini.execution.binding
 
 import dev.panini.execution.ExecutionExpression
-import dev.panini.execution.SambhashanaContext
 import dev.panini.sankhya.SankhyaEvaluator
 import dev.panini.sankhya.SankhyaGenerator
 import dev.panini.shiksha.Samjna
@@ -14,6 +13,9 @@ import dev.panini.vyakaranam.ast.SubantaPada
 /**
  * Converts a [SubantaPada] to an [ExecutionExpression], resolving references to prior
  * results (फल, ordinal forms) and attaching saṃjñā tags.
+ *
+ * Clause-level context (conversation, clauseIndex, local variable state) is supplied
+ * via [BindingContext] instead of individual parameters.
  */
 internal object ExpressionBuilder {
     private val sankhyaGenerator = SankhyaGenerator()
@@ -23,7 +25,7 @@ internal object ExpressionBuilder {
      * Reverse-index of ordinal Sanskrit surface forms to 0-based history position (covers 1st–50th).
      * Used to resolve expressions like "प्रथमफल", "द्वितीयफल", etc.
      */
-    internal val ordinalSurfaceToIndex: Map<String, Int> by lazy {
+    private val ordinalSurfaceToIndex: Map<String, Int> by lazy {
         (1..50).flatMap { i ->
             buildList {
                 add(sankhyaGenerator.ordinal(i.toLong()).final.surface)
@@ -33,40 +35,40 @@ internal object ExpressionBuilder {
     }
 
     /**
-     * Builds an [ExecutionExpression] for [pada], resolving:
+     * Builds an [ExecutionExpression] for [pada] within [ctx], resolving:
      * - Named/typed prior results and local variables → [ExecutionExpression.Reference]
      * - "फल" and ordinal-prefixed फल forms → [ExecutionExpression.Reference]
      * - Numeric pratipadikas → [ExecutionExpression.sankhya]
      * - Everything else → [ExecutionExpression.Pada] with appropriate saṃjñā tags
      *
-     * @param overridePhalaId When non-null, used instead of the implicit clause-index reference
-     *                        for bare "फल" lookup.
+     * @param overridePhalaId When non-null, used instead of the implicit clause-index
+     *                        reference for bare "फल" lookup. Supplied by [PhalaResolver].
      */
     internal fun build(
         pada: SubantaPada,
-        conversation: SambhashanaContext?,
-        clauseIndex: Int,
+        ctx: BindingContext,
         overridePhalaId: String? = null,
-        localVariables: Set<String> = emptySet(),
-        localVariableInvocationIds: Map<String, String> = emptyMap(),
     ): ExecutionExpression {
         val text = pada.pratipadika.baseText()
         var resolvedId: String? = null
         var isOrdinalReference = false
 
-        if (conversation?.previousTypedResults?.containsKey(text) == true ||
-            conversation?.previousResults?.containsKey(text) == true ||
-            localVariables.contains(text)
+        if (ctx.conversation?.previousTypedResults?.containsKey(text) == true ||
+            ctx.conversation?.previousResults?.containsKey(text) == true ||
+            ctx.localVariables.contains(text)
         ) {
             resolvedId = text
         } else if (text == "फल") {
-            resolvedId = overridePhalaId ?: (if (clauseIndex > 0) "योग-$clauseIndex" else
-                conversation?.resultHistory?.lastOrNull()?.id ?: conversation?.previousResults?.keys?.lastOrNull())
+            resolvedId = overridePhalaId ?: (
+                if (ctx.clauseIndex > 0) "योग-${ctx.clauseIndex}"
+                else ctx.conversation?.resultHistory?.lastOrNull()?.id
+                    ?: ctx.conversation?.previousResults?.keys?.lastOrNull()
+            )
         } else if (text.endsWith("फल")) {
             val prefix = text.removeSuffix("फल")
             val idx = ordinalSurfaceToIndex[prefix]
             if (idx != null) {
-                resolvedId = conversation?.resultHistory?.getOrNull(idx)?.id
+                resolvedId = ctx.conversation?.resultHistory?.getOrNull(idx)?.id
                 isOrdinalReference = true
             }
         }
