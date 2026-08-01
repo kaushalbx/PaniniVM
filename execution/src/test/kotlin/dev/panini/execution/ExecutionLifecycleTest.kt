@@ -160,6 +160,25 @@ class ExecutionLifecycleTest {
     }
 
     @Test
+    fun `resumed session turn remembers its kriya exactly once`() {
+        val vm = PaniniVM(storageDir.resolve("resumed-memory").toFile())
+        val paused = assertIs<ExecutionResult.NeedsApproval>(
+            vm.eval("वार्ता + अम् प्रेष् + णिच् + लोट् + सिप् ।", sessionKey = "resume"),
+        )
+        assertTrue(vm.kriyaMemory("resume").entries.isEmpty())
+        val approvedScope = vm.defaultScope.copy(
+            capabilities = vm.defaultScope.capabilities + paused.requiredEffects,
+        )
+
+        assertIs<ExecutionResult.Success>(vm.resume(paused.continuation, "resume", approvedScope))
+        assertIs<ExecutionResult.Success>(vm.resume(paused.continuation, "resume", approvedScope))
+
+        val remembered = vm.kriyaMemory("resume").entries.single()
+        assertEquals("प्रेषँ", remembered.frame.kriya?.dhatu?.upadesha)
+        assertEquals(1, remembered.turn)
+    }
+
+    @Test
     fun `structured references distinguish samasa and kridanta identities across cases`() {
         val source = storageDir.resolve("structured-references.pvm").toFile()
         source.writeText(

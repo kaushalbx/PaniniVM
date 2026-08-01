@@ -19,7 +19,10 @@ data class RememberedKriya(
 data class KriyaMemory(
     val entries: List<RememberedKriya> = emptyList(),
 ) {
-    fun remember(values: List<RememberedKriya>): KriyaMemory = copy(entries = entries + values)
+    fun remember(values: List<RememberedKriya>): KriyaMemory {
+        val knownIds = entries.mapTo(mutableSetOf()) { it.frame.id }
+        return copy(entries = entries + values.filter { knownIds.add(it.frame.id) })
+    }
 
     fun frame(id: KriyaId): KriyaFrame? = entries.lastOrNull { it.frame.id == id }?.frame
 

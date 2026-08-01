@@ -137,6 +137,9 @@ class PaniniVM(
         if (phala is Phala.Siddha && sessionKey != null) {
             sessions[sessionKey] = turn.context
             store.save(sessionKey, turn.context)
+            VyakaranamExecutionAdapter.analyzeForMemory(cont.input.text)?.let { analysis ->
+                rememberKriyas(sessionKey, turn.context.turnNumber, analysis.frames, phala)
+            }
         }
 
         return result
