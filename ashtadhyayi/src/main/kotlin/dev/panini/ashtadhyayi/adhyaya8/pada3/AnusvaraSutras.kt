@@ -48,7 +48,7 @@ object MonusvarahSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val left = context.terms[context.terms.size - 2]
-        val newSurface = left.surface.dropLast(1) + Ayogavaha.ANUSVARA.devanagari
+        val newSurface = left.surface.removeSuffix("म्") + Ayogavaha.ANUSVARA.devanagari
 
         return DerivationChange(
             state = context.replaceTerm(left.id, left.copy(surface = newSurface)),

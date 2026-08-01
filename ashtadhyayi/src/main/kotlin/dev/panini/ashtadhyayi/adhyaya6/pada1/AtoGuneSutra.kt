@@ -40,6 +40,10 @@ object AtoGuneSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
         if (stem.id == "shap" && context.terms.any { it.kind == TermKind.DHATU && it.gana == DhatuGana.ADADI }) return false
 
+        // The following guṇa vowel belongs to an affix. A second lexical pada is
+        // external sandhi and remains eligible for rules such as 6.1.101.
+        if (affix.kind != TermKind.PRATYAYA) return false
+
         // 1. Stem must end in short 'a'
         if (!dev.panini.shiksha.Varnamala.endsWithA(stem.surface)) return false
 

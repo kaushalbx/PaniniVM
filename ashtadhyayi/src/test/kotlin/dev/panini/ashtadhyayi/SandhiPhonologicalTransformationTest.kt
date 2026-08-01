@@ -1,9 +1,11 @@
 package dev.panini.ashtadhyayi
 
 import dev.panini.ashtadhyayi.adhyaya6.pada1.EtattadohSulopoKoAnanjparoHaliSutra
+import dev.panini.ashtadhyayi.adhyaya6.pada1.AtoGuneSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada3.BhoBhagoAghoApurvasyaYoshiSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada3.DhoDheLopaSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada3.HaliSarveshamSutra
+import dev.panini.ashtadhyayi.adhyaya8.pada3.MonusvarahSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada4.JharoJhariSavarneSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada4.JhayoHonyatarasyamSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada4.ShashChoAtiSutra
@@ -12,11 +14,44 @@ import dev.panini.ashtadhyayi.adhyaya8.pada4.VaPadantasyaSutra
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.DerivationStage
+import dev.panini.derivation.SamjnaAssignment
+import dev.panini.shiksha.Samjna
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class SandhiPhonologicalTransformationTest {
+
+    @Test
+    fun `ato gune does not apply when the following term is a lexical pada`() {
+        val left = DerivationTerm("left", "राम", TermKind.PRATIPADIKA, upadesha = "राम")
+        val right = DerivationTerm("right", "अस्ति", TermKind.PRATIPADIKA, upadesha = "अस्ति")
+        val state = DerivationState(
+            terms = listOf(left, right),
+            samjnas = setOf(
+                SamjnaAssignment(left.id, Samjna.PADA),
+                SamjnaAssignment(right.id, Samjna.PADA)
+            ),
+            stage = DerivationStage.PADA_FORMED
+        )
+
+        assertTrue(!AtoGuneSutra.matches(state))
+    }
+
+    @Test
+    fun `monusvarah replaces the complete final m phoneme`() {
+        val left = DerivationTerm("left", "सम्", TermKind.PRATIPADIKA, upadesha = "सम्")
+        val right = DerivationTerm("right", "करोति", TermKind.PRATIPADIKA, upadesha = "करोति")
+        val state = DerivationState(
+            terms = listOf(left, right),
+            samjnas = setOf(SamjnaAssignment(left.id, Samjna.PADA)),
+            stage = DerivationStage.PADA_FORMED
+        )
+
+        assertTrue(MonusvarahSutra.matches(state))
+        assertEquals("सं", MonusvarahSutra.apply(state).state.terms.first().surface)
+    }
 
     @Test
     fun `test TorliSutra transforms ta-varga to l before l`() {
