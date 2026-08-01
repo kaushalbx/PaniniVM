@@ -304,6 +304,7 @@ TAMAP           : 'तमप्';
 MAYAT           : 'मयट्';
 PRATYAYA_MA     : 'म';
 PRATYAYA_TAMA   : 'तम';
+PRATYAYA_TIYA   : 'तीय';
 TASIL           : 'तसिल्';
 AN              : 'अण्';
 INJ             : 'इञ्';

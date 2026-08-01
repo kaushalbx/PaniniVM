@@ -54,7 +54,7 @@ internal object KarakaExtractor {
         val phalaPadas = subantas.filter { it.pratipadika.baseText() == "फल" }
 
         // ---- फल resolution (delegated) ---------------------------------------------
-        val phalaResolution = PhalaResolver.resolve(phalaPadas, subantas, ctx)
+        val phalaResolution = PhalaResolver.resolve(phalaPadas, padas, subantas, ctx)
 
         // ---- kāraka inference helpers -----------------------------------------------
 
@@ -129,6 +129,7 @@ internal object KarakaExtractor {
         padas.forEachIndexed { index, pada ->
             if (index in consumedPadaIndices) return@forEachIndexed
             if (pada in phalaResolution.resolvedGenitives) return@forEachIndexed
+            if (pada in phalaResolution.resolvedQualifiers) return@forEachIndexed
             when (pada) {
                 is SubantaPada -> add(pada, phalaResolution.phalaMap[pada])
                 is SankhyaPada -> {

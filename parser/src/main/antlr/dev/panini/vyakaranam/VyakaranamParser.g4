@@ -138,6 +138,7 @@ puranaPratyaya
     : THA
     | PRATYAYA_MA
     | PRATYAYA_TAMA
+    | PRATYAYA_TIYA
     ;
 
 sankhyaAbhyasaPada

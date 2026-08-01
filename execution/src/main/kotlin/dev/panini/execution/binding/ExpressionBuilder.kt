@@ -20,14 +20,16 @@ internal object ExpressionBuilder {
      * Reverse-index of ordinal Sanskrit surface forms to 0-based history position (covers 1st–50th).
      * Used to resolve expressions like "प्रथमफल", "द्वितीयफल", etc.
      */
-    private val ordinalSurfaceToIndex: Map<String, Int> by lazy {
+    private val ordinalSurfaceToNumber: Map<String, Int> by lazy {
         (1..50).flatMap { i ->
             buildList {
                 add(sharedSankhyaGenerator.ordinal(i.toLong()).final.surface)
                 addAll(sharedSankhyaGenerator.ordinalVariants(i.toLong()).map { it.final.surface })
-            }.map { surface -> surface to (i - 1) }
+            }.map { surface -> surface to i }
         }.toMap()
     }
+
+    internal fun ordinalNumber(surface: String): Int? = ordinalSurfaceToNumber[surface]
 
     /**
      * Builds an [ExecutionExpression] for [pada] within [ctx], resolving:
@@ -63,10 +65,10 @@ internal object ExpressionBuilder {
             )
         } else if (baseText.endsWith("फल")) {
             val prefix = baseText.removeSuffix("फल")
-            val idx = ordinalSurfaceToIndex[prefix]
-            if (idx != null) {
-                resolvedId = ctx.memory.ordinalKriya(idx + 1)?.frame?.id?.value
-                    ?: ctx.conversation?.resultHistory?.getOrNull(idx)?.id
+            val number = ordinalNumber(prefix)
+            if (number != null) {
+                resolvedId = ctx.memory.ordinalKriya(number)?.frame?.id?.value
+                    ?: ctx.conversation?.resultHistory?.getOrNull(number - 1)?.id
                 isOrdinalReference = true
             }
         }
