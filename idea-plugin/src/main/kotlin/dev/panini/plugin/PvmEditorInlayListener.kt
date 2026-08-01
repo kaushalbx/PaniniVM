@@ -12,7 +12,6 @@ import dev.panini.execution.ExecutionResult
 import dev.panini.execution.PaniniVM
 import dev.panini.execution.PvmScript
 import dev.panini.execution.PvmUktiSadhaka
-import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Future
 
@@ -89,14 +88,6 @@ class PvmEditorInlayListener : EditorFactoryListener {
             val vm = PaniniVM()
             val lines = text.lines()
             var currentOffset = 0
-
-            val virtualFile = editor.virtualFile
-            if (virtualFile != null && virtualFile.extension == "pvm") {
-                runCatching {
-                    val txtFile = File(virtualFile.path.substringBeforeLast('.') + ".txt")
-                    txtFile.writeText(sadhaka.sadhayaScript(text) + "\n")
-                }
-            }
 
             val inlineInlayEntries = mutableListOf<Pair<Int, String>>()
 

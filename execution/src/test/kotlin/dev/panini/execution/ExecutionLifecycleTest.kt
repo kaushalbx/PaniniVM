@@ -120,6 +120,20 @@ class ExecutionLifecycleTest {
     }
 
     @Test
+    fun `readable Sanskrit generation is explicit and eval does not rewrite it`() {
+        val source = storageDir.resolve("addition.pvm").toFile()
+        val readable = storageDir.resolve("addition.txt").toFile()
+        source.writeText("एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n")
+        readable.writeText("sentinel\n")
+
+        assertIs<ExecutionResult.Success>(PaniniVM(storageDir.resolve("sessions").toFile()).evalFile(source).single())
+        assertEquals("sentinel\n", readable.readText())
+
+        assertEquals(readable, PvmReadableSanskrit.renderFile(source))
+        assertEquals("एकम् द्वी च युज्यस्व ।\n", readable.readText())
+    }
+
+    @Test
     fun `operation resolver reports incomparable overloads as ambiguous`() {
         val ambiguousDhatu = dhatu(
             operations = listOf(

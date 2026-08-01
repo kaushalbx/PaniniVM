@@ -211,8 +211,6 @@ class PaniniVM(
     ): List<ExecutionResult> {
         require(file.exists()) { "PaniniVM script file not found: ${file.absolutePath}" }
         val scriptContent = file.readText()
-        val txtFile = File(file.parentFile, file.nameWithoutExtension + ".txt")
-        txtFile.writeText(PvmUktiSadhaka().sadhayaScript(scriptContent) + "\n")
         return evalScript(scriptContent, sessionKey = sessionKey, scope = scope, speaker = speaker, listener = listener)
     }
 

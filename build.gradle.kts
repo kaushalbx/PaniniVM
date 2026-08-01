@@ -42,3 +42,8 @@ subprojects {
     }
 }
 
+tasks.register("renderExamples") {
+    group = "documentation"
+    description = "Regenerates readable Sanskrit .txt companions for all example .pvm files."
+    dependsOn(":cli:renderExamples")
+}

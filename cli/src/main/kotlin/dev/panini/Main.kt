@@ -51,6 +51,12 @@ fun main(args: Array<String>) {
 }
 
 internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull()) {
+    "--render-readable" -> {
+        val sourcePath = args.getOrNull(1) ?: error("Usage: --render-readable path/to/file.pvm|directory")
+        val generated = dev.panini.execution.PvmReadableSanskrit.renderPath(File(sourcePath))
+        listOf("Generated ${generated.size} readable Sanskrit file(s).") +
+            generated.map { "  ${it.path}" }
+    }
     "--compile" -> {
         val filePath = args.getOrNull(1) ?: error("Usage: --compile path/to/file.pvm [ClassName] [OutputDir]")
         val className = args.getOrNull(2) ?: "CompiledProgram"
@@ -383,7 +389,7 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
         "loaded=${Ashtadhyayi.pathitaCount}; executable=${Ashtadhyayi.kriyavatCount}; total=${Ashtadhyayi.expectedSutraCount}; remaining=${Ashtadhyayi.remainingCount}",
         "roles=" + Ashtadhyayi.registry.sutras.groupingBy { it.role::class.simpleName }.eachCount().entries.joinToString { "${it.key}=${it.value}" },
     )
-    else -> listOf("Usage: --eval file.pvm | --emit-grantha file.pvm [output.sutra] | --check-grantha file.sutra | --grantha file.sutra | --compile file.pvm | --paradigm राम | --derive राम SASTHI BAHUVACANA | --derive-unadi कृ उण् | --verb भू | --unadi [lookup|pair|list] | --sankhya 23 | --sutra 7.1.54 | --coverage")
+    else -> listOf("Usage: --render-readable file.pvm|directory | --eval file.pvm | --emit-grantha file.pvm [output.sutra] | --check-grantha file.sutra | --grantha file.sutra | --compile file.pvm | --paradigm राम | --derive राम SASTHI BAHUVACANA | --derive-unadi कृ उण् | --verb भू | --unadi [lookup|pair|list] | --sankhya 23 | --sutra 7.1.54 | --coverage")
 }
 
 private enum class SankhyaKind { CARDINAL, ORDINAL }

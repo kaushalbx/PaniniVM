@@ -92,6 +92,16 @@ segmented input → vyākaraṇa AST → binding → operation resolution → pl
 ./gradlew :cli:run --args="--eval examples/arithmetic/fibonacci_array.pvm"
 ```
 
+Execution and compilation never rewrite files beside the source. The checked-in
+`.txt` companions are readable Sanskrit renderings of segmented `.pvm` sentences,
+not execution results. Regenerate them explicitly with:
+
+```sh
+./gradlew renderExamples
+# Or render one source/directory through the CLI:
+./gradlew :cli:run --args="--render-readable examples/arithmetic/addition.pvm"
+```
+
 ### Emitting and Executing Canonical Sūtra Programs
 
 ```sh

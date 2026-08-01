@@ -35,7 +35,7 @@ class ExecutionArchitectureTest {
     }
 
     @Test
-    fun `every pvm example has reproducible generated post sandhi text`() {
+    fun `every pvm example has a reproducible readable Sanskrit rendering`() {
         val root = File("examples")
         val sources = root.walkTopDown().filter { it.isFile && it.extension == "pvm" }.toList()
         assertTrue(sources.isNotEmpty())
@@ -45,9 +45,6 @@ class ExecutionArchitectureTest {
             val generated = File(source.parentFile, "${source.nameWithoutExtension}.txt")
             assertTrue(generated.isFile, "Missing generated artifact for ${source.path}")
             val rendered = PvmUktiSadhaka().sadhayaScript(source.readText()).trimEnd()
-            if (System.getProperty("paninivm.regenerateExamples") == "true") {
-                generated.writeText("$rendered\n")
-            }
             assertEquals(
                 generated.readText().trimEnd(),
                 rendered,

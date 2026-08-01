@@ -33,3 +33,11 @@ tasks.withType<Test> {
 tasks.withType<JavaExec> {
     workingDir = rootDir
 }
+
+tasks.register<JavaExec>("renderExamples") {
+    group = "documentation"
+    description = "Regenerates readable Sanskrit .txt companions for all example .pvm files."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set(application.mainClass)
+    args("--render-readable", rootProject.file("examples").absolutePath)
+}
