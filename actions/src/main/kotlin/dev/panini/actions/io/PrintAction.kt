@@ -14,8 +14,6 @@ object PrintAction : dev.panini.execution.DhatuAction("प्रदर्शन�
         val operands = if (expression != null) context.resolve(expression) else emptyList()
         val textToPrint = operands.joinToString(" ")
 
-        println(textToPrint)
-
         return ExecutionResult.Success(
             textToPrint,
             operation.name,
