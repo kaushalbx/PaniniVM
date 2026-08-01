@@ -45,12 +45,14 @@ internal object PhalaResolver {
 
         phalaPadas.forEach { phalaPada ->
             val padaIndex = padas.indexOf(phalaPada)
-            val ordinal = padas.getOrNull(padaIndex - 1)
-            val ordinalNumber = when (ordinal) {
-                is SankhyaPuranaPada -> NumeralPadaBinder.evaluateStems(ordinal.stems).value.toInt()
-                is SubantaPada -> ExpressionBuilder.ordinalNumber(ordinal.pratipadika.baseText())
+            val qualifier = padas.getOrNull(padaIndex - 1)
+            val ordinalNumber = when (qualifier) {
+                is SankhyaPuranaPada -> NumeralPadaBinder.evaluateStems(qualifier.stems).value.toInt()
+                is SubantaPada -> ExpressionBuilder.ordinalNumber(qualifier.pratipadika.baseText())
                 else -> null
             }
+            val isPreviousQualifier = (qualifier as? SubantaPada)
+                ?.pratipadika?.baseText() == "पूर्व"
             val idx = subantas.indexOf(phalaPada)
             val genitiveModifier = subantas.take(idx)
                 .lastOrNull { it.sup.text in setOf("ङस्", "आम्") && it !in resolvedGenitives }
@@ -60,7 +62,8 @@ internal object PhalaResolver {
             val precedingSub = subantas.take(modIdx).lastOrNull()
             val base = genitiveModifier.pratipadika.baseText()
             val isPrevious = base.startsWith("पूर्व") ||
-                precedingSub?.pratipadika?.baseText()?.startsWith("पूर्व") == true
+                precedingSub?.pratipadika?.baseText()?.startsWith("पूर्व") == true ||
+                isPreviousQualifier
 
             if (precedingSub?.pratipadika?.baseText()?.startsWith("पूर्व") == true) {
                 resolvedGenitives.add(precedingSub)
@@ -87,7 +90,9 @@ internal object PhalaResolver {
             if (withinUtteranceMatch != null) {
                 phalaMap[phalaPada] = "योग-${withinUtteranceMatch + 1}"
                 resolvedGenitives.add(genitiveModifier)
-                if (ordinalNumber != null && ordinal != null) resolvedQualifiers.add(ordinal)
+                if ((ordinalNumber != null || isPreviousQualifier) && qualifier != null) {
+                    resolvedQualifiers.add(qualifier)
+                }
                 return@forEach
             }
 
@@ -101,7 +106,9 @@ internal object PhalaResolver {
             if (rememberedKriya != null) {
                 phalaMap[phalaPada] = rememberedKriya.frame.id.value
                 resolvedGenitives.add(genitiveModifier)
-                if (ordinalNumber != null && ordinal != null) resolvedQualifiers.add(ordinal)
+                if ((ordinalNumber != null || isPreviousQualifier) && qualifier != null) {
+                    resolvedQualifiers.add(qualifier)
+                }
                 return@forEach
             }
 
@@ -125,17 +132,11 @@ internal object PhalaResolver {
             }
 
             if (historicalResult != null) {
-                // ---- 4. पूर्वफल shorthand -------------------------------------------
-                phalaMap[phalaPada] = if (
-                    isPrevious && historicalResults.size == 1 &&
-                    ctx.conversation?.previousTypedResults?.containsKey("पूर्वफल") == true
-                ) {
-                    "पूर्वफल"
-                } else {
-                    historicalResult.id
-                }
+                phalaMap[phalaPada] = historicalResult.id
                 resolvedGenitives.add(genitiveModifier)
-                if (ordinalNumber != null && ordinal != null) resolvedQualifiers.add(ordinal)
+                if ((ordinalNumber != null || isPreviousQualifier) && qualifier != null) {
+                    resolvedQualifiers.add(qualifier)
+                }
             }
         }
 

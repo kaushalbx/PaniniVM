@@ -194,6 +194,14 @@ class ExecutionLifecycleTest {
         assertEquals(7L, assertIs<SanskritValue.Sankhya>(memory.latestKriya()?.phala).value)
         assertEquals(null, memory.latestKriya("युजिँर्", offset = 2))
 
+        val previousResult = assertIs<ExecutionResult.Success>(
+            vm.eval(
+                "युज् + ल्युट् + ङस् पूर्व + अम् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+                sessionKey = "order",
+            ),
+        )
+        assertEquals("त्रीणि", previousResult.value)
+
         val firstResult = assertIs<ExecutionResult.Success>(
             vm.eval(
                 "युज् + ल्युट् + ङस् प्रथम + अम् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।",
