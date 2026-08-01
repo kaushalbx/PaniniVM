@@ -5,7 +5,6 @@ plugins {
 dependencies {
     implementation(project(":core"))
     implementation(project(":ashtadhyayi"))
-    implementation(project(":unadipatha"))
     testImplementation(kotlin("test"))
 }
 

@@ -3,7 +3,6 @@ package dev.panini.analysis
 import dev.panini.core.Karaka
 import dev.panini.core.Prayoga
 import dev.panini.dhatupatha.Dhatu
-import dev.panini.unadipatha.analysis.UnadiStemAnalysis
 import dev.panini.vyakaranam.ast.Vakya
 
 @JvmInline
@@ -112,7 +111,5 @@ data class KriyaFrame(
     val prayoga: Prayoga,
     val relations: List<KarakaRelation>,
     val qualifications: List<KriyaQualification>,
-    val links: List<KriyaLink> = emptyList(),
     val diagnostics: List<FrameDiagnostic> = emptyList(),
-    val unadiAnalyses: List<UnadiStemAnalysis> = emptyList(),
 )

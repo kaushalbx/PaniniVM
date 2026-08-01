@@ -26,10 +26,7 @@ class UktiAnalyzer(
             analyzeVakya(vakya, KriyaId("kriya-${index + 1}"))
         }
         val links = buildLinks(ukti, initialFrames)
-        val frames = initialFrames.map { frame ->
-            frame.copy(links = links.filter { it.source == frame.id || it.target == frame.id })
-        }
-        return UktiAnalysis(ukti, frames, links)
+        return UktiAnalysis(ukti, initialFrames, links)
     }
 
     private fun buildLinks(ukti: Ukti, frames: List<KriyaFrame>): List<KriyaLink> {

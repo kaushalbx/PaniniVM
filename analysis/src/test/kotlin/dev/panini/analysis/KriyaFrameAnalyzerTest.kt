@@ -103,8 +103,6 @@ class KriyaFrameAnalyzerTest {
             KriyaLink.Condition(KriyaId("kriya-1"), KriyaId("kriya-2")),
             analysis.links.single(),
         )
-        assertEquals(analysis.links, analysis.frames[0].links)
-        assertEquals(analysis.links, analysis.frames[1].links)
     }
 
     @Test

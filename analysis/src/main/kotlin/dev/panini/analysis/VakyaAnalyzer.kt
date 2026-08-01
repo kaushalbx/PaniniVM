@@ -3,8 +3,6 @@ package dev.panini.analysis
 import dev.panini.core.Karaka
 import dev.panini.core.Prayoga
 import dev.panini.shiksha.Karmatva
-import dev.panini.unadipatha.analysis.UnadiAnalyzer
-import dev.panini.unadipatha.analysis.UnadiStemAnalysis
 import dev.panini.vyakaranam.ast.AkhyataVakya
 import dev.panini.vyakaranam.ast.NamaVakya
 import dev.panini.vyakaranam.ast.Vakya
@@ -91,12 +89,6 @@ class VakyaAnalyzer(
                 add(FrameDiagnostic(FrameDiagnosticCode.AGREEMENT_MISMATCH, it, vakya.sourceText))
             }
         }
-        val unadiAnalyses = subantas.mapNotNull { sub ->
-            val stem = sub.lexicalEntry?.text ?: sub.pada.sourceText
-            val result = UnadiAnalyzer.analyzeStem(stem)
-            if (result.matches.isNotEmpty()) result else null
-        }
-
         return KriyaFrame(
             id = frameId,
             vakya = vakya,
@@ -105,7 +97,6 @@ class VakyaAnalyzer(
             relations = relations,
             qualifications = qualifications,
             diagnostics = diagnostics,
-            unadiAnalyses = unadiAnalyses,
         )
     }
 
@@ -125,12 +116,6 @@ class VakyaAnalyzer(
             }
         }
 
-        val unadiAnalyses = subantas.mapNotNull { sub ->
-            val stem = sub.lexicalEntry?.text ?: sub.pada.sourceText
-            val result = UnadiAnalyzer.analyzeStem(stem)
-            if (result.matches.isNotEmpty()) result else null
-        }
-
         return KriyaFrame(
             id = frameId,
             vakya = vakya,
@@ -145,7 +130,6 @@ class VakyaAnalyzer(
                     vakya.sourceText,
                 ),
             ),
-            unadiAnalyses = unadiAnalyses,
         )
     }
 
