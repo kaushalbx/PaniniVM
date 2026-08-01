@@ -10,6 +10,7 @@ import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraStage
 import dev.panini.sutra.SutraType
 
 /**
@@ -28,7 +29,8 @@ object BhoBhagoAghoApurvasyaYoshiSutra : Sutra<DerivationState, DerivationChange
     kramaValue = 830017,
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
-    scope = SutraScope.VARNA,
+    scope = SutraScope.PADA_BOUNDARY,
+    stage = SutraStage.SANDHI,
 ), DerivationSutra {
     private val vocativeStems = setOf("भो", "भगो", "अघो")
 

@@ -5,8 +5,10 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraPriority
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraStage
 import dev.panini.sutra.SutraType
 import dev.panini.sutra.SutraVisibility
+import dev.panini.shiksha.Samjna
 
 data class DerivationApplication(
     val sutra: String,
@@ -309,7 +311,9 @@ class DerivationEngine(
             events += selection.candidates.map { DerivationEvent.RuleConsidered(it.sutra.sutra) }
             events += selection.conflicts.map { DerivationEvent.RuleBlocked(it.loser.sutra.sutra, it.winner.sutra.sutra, it.reason) }
 
-            val blockedEvents = sutras.filter { it.sutra in current.blockedSutras && it.matches(current) }
+            val blockedEvents = sutras.filter {
+                it.sutra in current.blockedSutras && isDerivationEligible(it, current) && it.matches(current)
+            }
                 .map { DerivationEvent.RuleBlocked(it.sutra, current.blockedSutras[it.sutra]!!, "Blocked by grammar.") }
             events += blockedEvents
 
@@ -422,6 +426,11 @@ class DerivationEngine(
     }
 
     private fun isDerivationEligible(sutra: DerivationSutra, state: DerivationState): Boolean {
+        val isPadaBoundaryDerivation = state.samjnas.count { it.samjna == Samjna.PADA } >= 2 &&
+            state.allEffectiveTerms.none { it.kind == TermKind.DHATU || it.kind == TermKind.PRATYAYA }
+        if (isPadaBoundaryDerivation && sutra.stage != SutraStage.SANDHI) return false
+        if (!isPadaBoundaryDerivation && sutra.scope == SutraScope.PADA_BOUNDARY) return false
+
         val activeDomains = sutraActiveAdhikaras[sutra.sutra] ?: emptyList()
         return activeDomains.all { domain ->
             domain.sutra in state.activeAdhikaras || domain.matches(state)
@@ -483,5 +492,3 @@ fun DerivationResult.verifyDerivation(
         "Incomplete derivation for $expectedAffixUpadesha; expected at least $expectedStage, reached ${final.stage}."
     }
 }
-
-

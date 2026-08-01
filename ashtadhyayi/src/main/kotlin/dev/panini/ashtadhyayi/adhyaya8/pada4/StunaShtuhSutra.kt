@@ -9,6 +9,7 @@ import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraStage
 import dev.panini.sutra.SutraType
 
 /**
@@ -28,6 +29,7 @@ object StunaShtuhSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.VARNA,
+    stage = SutraStage.SANDHI,
     dependencies = setOf("8.4.40")
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {

@@ -15,6 +15,7 @@ import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraStage
 import dev.panini.sutra.SutraType
 
 /** 6.1.77: Substituting yan for ik vowels before an ac (vowel). */
@@ -30,6 +31,7 @@ object IkoYanAciSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.VARNA,
+    stage = SutraStage.SANDHI,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.stage !in setOf(DerivationStage.IT_PROCESSED, DerivationStage.ANGAKARYA, DerivationStage.PADA_FORMED)) return false

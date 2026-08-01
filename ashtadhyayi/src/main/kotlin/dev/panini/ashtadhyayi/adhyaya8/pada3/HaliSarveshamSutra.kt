@@ -10,6 +10,7 @@ import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraStage
 import dev.panini.sutra.SutraType
 
 /**
@@ -27,7 +28,8 @@ object HaliSarveshamSutra : Sutra<DerivationState, DerivationChange>(
     kramaValue = 830022,
     role = SutraRole.Vidhi,
     action = SutraAction.LOPA,
-    scope = SutraScope.VARNA,
+    scope = SutraScope.PADA_BOUNDARY,
+    stage = SutraStage.SANDHI,
 ), DerivationSutra {
 
     private val vocativePrefixes = setOf("भो", "भगो", "अघो")
@@ -43,7 +45,7 @@ object HaliSarveshamSutra : Sutra<DerivationState, DerivationChange>(
 
             val nextStartsWithHal = next.isNotEmpty() && Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, next.first())
 
-            isBhoOrAPurva && nextStartsWithHal
+            isBhoOrAPurva && nextStartsWithHal && elideFinal(curr) != curr
         }
     }
 
@@ -57,21 +59,23 @@ object HaliSarveshamSutra : Sutra<DerivationState, DerivationChange>(
 
             val nextStartsWithHal = next.isNotEmpty() && Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, next.first())
 
-            isBhoOrAPurva && nextStartsWithHal
+            isBhoOrAPurva && nextStartsWithHal && elideFinal(curr) != curr
         }
 
         val targetTerm = context.terms[targetIndex]
         val surface = targetTerm.surface
 
-        val newSurface = when {
-            surface.endsWith("य्") -> surface.dropLast(2)
-            surface.endsWith("य") || surface.endsWith("ः") || surface.endsWith("स्") -> surface.dropLast(1)
-            else -> surface
-        }
+        val newSurface = elideFinal(surface)
 
         return DerivationChange(
             state = context.replaceTerm(targetTerm.id, targetTerm.copy(surface = newSurface)),
             explanation = "8.3.22: Elided 'y' (hali sarveṣām) before hal consonant."
         ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(targetTerm.id, 'य', "", sutra))) }
+    }
+
+    private fun elideFinal(surface: String): String = when {
+        surface.endsWith("य्") -> surface.dropLast(2)
+        surface.endsWith("य") || surface.endsWith("ः") || surface.endsWith("स्") -> surface.dropLast(1)
+        else -> surface
     }
 }

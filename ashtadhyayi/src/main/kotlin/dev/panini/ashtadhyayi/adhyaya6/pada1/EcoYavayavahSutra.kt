@@ -13,6 +13,7 @@ import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraStage
 import dev.panini.sutra.SutraType
 
 /** 6.1.78: eco'yavāyāvaḥ. Substitute ay, av, āy, āv for e, o, ai, au before a vowel. */
@@ -28,6 +29,7 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.VARNA,
+    stage = SutraStage.SANDHI,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.stage == DerivationStage.INITIAL || context.stage == DerivationStage.PRATYAYA_SELECTED) return false

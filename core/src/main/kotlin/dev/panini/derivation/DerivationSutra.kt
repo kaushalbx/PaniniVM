@@ -5,6 +5,7 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraPriority
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraStage
 import dev.panini.sutra.SutraType
 import dev.panini.sutra.SutraVisibility
 
@@ -15,6 +16,7 @@ interface DerivationSutra {
     val role: SutraRole
     val action: SutraAction
     val scope: SutraScope
+    val stage: SutraStage
     val nimittaScope: NimittaScope
     val priority: SutraPriority
     val visibility: SutraVisibility

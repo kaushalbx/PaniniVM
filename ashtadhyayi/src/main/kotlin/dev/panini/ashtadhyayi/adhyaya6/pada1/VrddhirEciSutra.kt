@@ -18,6 +18,7 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraPriority
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraStage
 import dev.panini.sutra.SutraType
 
 /** 6.1.88: a/ā + ec -> vṛddhi. An apavāda to 6.1.87 (Ad Guna). */
@@ -33,6 +34,7 @@ object VrddhirEciSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.DERIVATION,
+    stage = SutraStage.SANDHI,
     priority = SutraPriority.APAVADA,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
@@ -121,6 +123,7 @@ object TasmacChasoNahPumsiSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Apavada,
     action = SutraAction.ADESHA,
     scope = SutraScope.DERIVATION,
+    stage = SutraStage.SANDHI,
     priority = SutraPriority.APAVADA,
     blocks = setOf("8.2.66"),
 ), DerivationSutra {
@@ -155,6 +158,7 @@ object AmiPurvahSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.DERIVATION,
+    stage = SutraStage.SANDHI,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
         context.stage == DerivationStage.PRATYAYA_SELECTED &&

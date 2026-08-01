@@ -15,6 +15,7 @@ import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraStage
 import dev.panini.sutra.SutraType
 
 /** 6.1.101: akaḥ savarṇe dīrghaḥ. Adjacent homogeneous vowels combine into a single long vowel. */
@@ -30,6 +31,7 @@ object SavarnaDirghaSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.DERIVATION,
+    stage = SutraStage.SANDHI,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.stage == DerivationStage.INITIAL || context.stage == DerivationStage.PRATYAYA_SELECTED) return false

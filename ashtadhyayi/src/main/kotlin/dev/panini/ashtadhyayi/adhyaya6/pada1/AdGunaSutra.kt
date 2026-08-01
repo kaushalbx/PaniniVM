@@ -14,6 +14,7 @@ import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraStage
 import dev.panini.sutra.SutraType
 
 /** 6.1.87: a/ā + ac -> guṇa. */
@@ -29,6 +30,7 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.DERIVATION,
+    stage = SutraStage.SANDHI,
     blocks = setOf("6.1.77"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
