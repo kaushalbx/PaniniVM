@@ -20,7 +20,7 @@ object ScaleAction : DhatuAction("वर्धनम्", "सङ्ख्या
             "The operand is not an annotated saṅkhyā value.",
         )
         val scaled = values.first() * 2
-        val word = renderSankhyaResult(scaled) ?: scaled.toString()
+        val word = context.renderSankhyaResult(scaled) ?: scaled.toString()
         return ExecutionResult.Success(
             word,
             operation.name,

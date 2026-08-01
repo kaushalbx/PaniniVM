@@ -27,6 +27,18 @@ object DhatuPathaRegistration {
         ).flatten()
     }
 
+    fun resolve(upadesha: String): List<Dhatu> =
+        allDhatus.filter { it.upadesha == upadesha }
+
+    fun resolveOperations(upadesha: String): List<dev.panini.execution.DhatuOperation> =
+        resolve(upadesha).flatMap(Dhatu::operations).distinct()
+
+    val operationCatalog: dev.panini.execution.OperationCatalog =
+        dev.panini.execution.OperationCatalog(
+            operationsForUpadesha = ::resolveOperations,
+            dhatus = { allDhatus },
+        )
+
     init {
         ensureRegistered()
     }

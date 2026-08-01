@@ -10,6 +10,7 @@ import dev.panini.execution.sutra.ProgramGranthaExecution
 import dev.panini.execution.sutra.SutraExecutionPipeline
 import dev.panini.sutra.runtime.SutraMachineResult
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Top-level execution facade and API for PaniniVM.
@@ -25,22 +26,19 @@ class PaniniVM(
             ExecutionEffect.WRITE_MEMORY,
             ExecutionEffect.READ_RESOURCE,
             ExecutionEffect.WRITE_RESOURCE,
-            ExecutionEffect.NETWORK,
-            ExecutionEffect.EXECUTE_PROCESS,
-            ExecutionEffect.SEND_MESSAGE,
-        )
+        ),
+        linguisticServices = dev.panini.derivation.LinguisticActionsInitializer.services(),
+        sankhyaRenderer = dev.panini.sankhya.SankhyaCountingFormRenderer(),
     ),
 ) {
     val store: StateStore = FileStateStore(storageDir)
     private val externalDispatcher = ExternalCapabilityDispatcher()
 
     init {
-        dev.panini.derivation.LinguisticActionsInitializer.initialize()
         dev.panini.dhatupatha.DhatuPathaRegistration.ensureRegistered()
-        dev.panini.sankhya.SankhyaCountingFormRenderer.init()
     }
 
-    private val sessions = mutableMapOf<String, SambhashanaContext>()
+    private val sessions = ConcurrentHashMap<String, SambhashanaContext>()
 
     fun eval(
         utterance: String,
@@ -65,34 +63,7 @@ class PaniniVM(
         val turn = executeTurn(input, activeContext, effectiveScope)
         val phala = turn.response.phala
 
-        val result = when (phala) {
-            is Phala.Siddha -> ExecutionResult.Success(
-                value = phala.values.values.lastOrNull() ?: "",
-                operation = "panini.eval",
-                trace = phala.trace,
-                typedValue = phala.typedValues.values.lastOrNull(),
-            )
-            is Phala.Asiddha -> phala.result
-            is Phala.AnumatiApekshita -> ExecutionResult.NeedsApproval(
-                invocationId = phala.invocationId,
-                requiredEffects = phala.effects,
-                continuation = requireNotNull(phala.pipelineContinuation),
-                trace = phala.continuation.trace
-            )
-            is Phala.SvikaraApekshita -> ExecutionResult.NeedsAcceptance(
-                invocationId = phala.invocationId,
-                speaker = phala.speaker,
-                listener = phala.listener,
-                continuation = requireNotNull(phala.pipelineContinuation),
-                trace = phala.continuation.trace
-            )
-            is Phala.Nirasta -> ExecutionResult.Failure(
-                ExecutionError.ACTION_FAILED,
-                phala.reason,
-                emptyList()
-            )
-            else -> ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Execution resulted in $phala")
-        }
+        val result = phala.toExecutionResult("panini.eval")
 
         if (phala is Phala.Siddha && sessionKey != null) {
             sessions[sessionKey] = turn.context
@@ -118,34 +89,7 @@ class PaniniVM(
         val turn = SutraExecutionPipeline.resumeTurn(cont, effectiveScope)
         val phala = turn.response.phala
 
-        val result = when (phala) {
-            is Phala.Siddha -> ExecutionResult.Success(
-                value = phala.values.values.lastOrNull() ?: "",
-                operation = "panini.resume",
-                trace = phala.trace,
-                typedValue = phala.typedValues.values.lastOrNull(),
-            )
-            is Phala.Asiddha -> phala.result
-            is Phala.AnumatiApekshita -> ExecutionResult.NeedsApproval(
-                invocationId = phala.invocationId,
-                requiredEffects = phala.effects,
-                continuation = requireNotNull(phala.pipelineContinuation),
-                trace = phala.continuation.trace
-            )
-            is Phala.SvikaraApekshita -> ExecutionResult.NeedsAcceptance(
-                invocationId = phala.invocationId,
-                speaker = phala.speaker,
-                listener = phala.listener,
-                continuation = requireNotNull(phala.pipelineContinuation),
-                trace = phala.continuation.trace
-            )
-            is Phala.Nirasta -> ExecutionResult.Failure(
-                ExecutionError.ACTION_FAILED,
-                phala.reason,
-                emptyList()
-            )
-            else -> ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Execution resulted in $phala")
-        }
+        val result = phala.toExecutionResult("panini.resume")
 
         if (phala is Phala.Siddha && sessionKey != null) {
             sessions[sessionKey] = turn.context
@@ -225,44 +169,24 @@ class PaniniVM(
                     result.trace.map { it.toString() },
                 )
                 is SutraMachineResult.Success -> when (val phala = result.state.lastPhala) {
-                    is Phala.Siddha -> ExecutionResult.Success(
-                        value = phala.values.values.lastOrNull() ?: "",
-                        operation = "panini.grantha",
-                        trace = phala.trace,
-                        typedValue = phala.typedValues.values.lastOrNull(),
-                    )
-                    is Phala.Asiddha -> phala.result
-                    is Phala.AnumatiApekshita -> ExecutionResult.NeedsApproval(
-                        invocationId = phala.invocationId,
-                        requiredEffects = phala.effects,
-                        continuation = dev.panini.execution.sutra.SutraPipelineContinuation(
-                            input = SanskritUktiInput(text = sourceName, speaker = speaker, listener = listener),
-                            conversation = SambhashanaContext(speaker = speaker, listener = listener),
-                            program = execution.program,
-                            state = result.state
-                        ),
-                        trace = phala.continuation.trace
-                    )
-                    is Phala.SvikaraApekshita -> ExecutionResult.NeedsAcceptance(
-                        invocationId = phala.invocationId,
-                        speaker = phala.speaker,
-                        listener = phala.listener,
-                        continuation = dev.panini.execution.sutra.SutraPipelineContinuation(
-                            input = SanskritUktiInput(text = sourceName, speaker = speaker, listener = listener),
-                            conversation = SambhashanaContext(speaker = speaker, listener = listener),
-                            program = execution.program,
-                            state = result.state
-                        ),
-                        trace = phala.continuation.trace
-                    )
                     null -> ExecutionResult.Failure(
                         ExecutionError.INVALID_VALUE,
                         "Grantha '$sourceName' completed without producing a result.",
                     )
-                    else -> ExecutionResult.Failure(
-                        ExecutionError.INVALID_VALUE,
-                        "Grantha '$sourceName' resulted in $phala",
-                    )
+                    else -> {
+                        val continuation = dev.panini.execution.sutra.SutraPipelineContinuation(
+                            input = SanskritUktiInput(text = sourceName, speaker = speaker, listener = listener),
+                            conversation = SambhashanaContext(speaker = speaker, listener = listener),
+                            program = execution.program,
+                            state = result.state,
+                        )
+                        val resumable = when (phala) {
+                            is Phala.AnumatiApekshita -> phala.copy(pipelineContinuation = continuation)
+                            is Phala.SvikaraApekshita -> phala.copy(pipelineContinuation = continuation)
+                            else -> phala
+                        }
+                        resumable.toExecutionResult("panini.grantha")
+                    }
                 }
             }
         }
@@ -287,10 +211,8 @@ class PaniniVM(
     ): List<ExecutionResult> {
         require(file.exists()) { "PaniniVM script file not found: ${file.absolutePath}" }
         val scriptContent = file.readText()
-        runCatching {
-            val txtFile = File(file.parentFile, file.nameWithoutExtension + ".txt")
-            txtFile.writeText(PvmUktiSadhaka().sadhayaScript(scriptContent) + "\n")
-        }
+        val txtFile = File(file.parentFile, file.nameWithoutExtension + ".txt")
+        txtFile.writeText(PvmUktiSadhaka().sadhayaScript(scriptContent) + "\n")
         return evalScript(scriptContent, sessionKey = sessionKey, scope = scope, speaker = speaker, listener = listener)
     }
 
@@ -315,7 +237,33 @@ class PaniniVM(
         externalDispatcher.register(effect, handler)
     }
 
-    private companion object {
+    private fun Phala.toExecutionResult(operation: String): ExecutionResult = when (this) {
+        is Phala.Siddha -> ExecutionResult.Success(
+            value = values.values.lastOrNull() ?: "",
+            operation = operation,
+            trace = trace,
+            typedValue = typedValues.values.lastOrNull(),
+        )
+        is Phala.Asiddha -> result
+        is Phala.AnumatiApekshita -> pipelineContinuation?.let { resumable ->
+            ExecutionResult.NeedsApproval(
+                invocationId = invocationId,
+                requiredEffects = effects,
+                continuation = resumable,
+                trace = continuation.trace,
+            )
+        } ?: ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Approval continuation is unavailable.")
+        is Phala.SvikaraApekshita -> pipelineContinuation?.let { resumable ->
+            ExecutionResult.NeedsAcceptance(
+                invocationId = invocationId,
+                speaker = speaker,
+                listener = listener,
+                continuation = resumable,
+                trace = continuation.trace,
+            )
+        } ?: ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Acceptance continuation is unavailable.")
+        is Phala.Nirasta -> ExecutionResult.Failure(ExecutionError.ACTION_FAILED, reason)
+        else -> ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Execution resulted in $this")
     }
 }
 

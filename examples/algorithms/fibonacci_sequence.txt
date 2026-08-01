@@ -14,4 +14,3 @@
 
 # Print 6th Fibonacci term F6 (renders 8 = अष्ट)
 योगस्य फलम् मोद्रय ।
-

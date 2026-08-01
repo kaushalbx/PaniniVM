@@ -21,4 +21,8 @@ dependencies {
 tasks.withType<Test> {
     useJUnitPlatform()
     workingDir = rootDir
+    systemProperty(
+        "paninivm.regenerateExamples",
+        System.getProperty("paninivm.regenerateExamples") ?: "false",
+    )
 }

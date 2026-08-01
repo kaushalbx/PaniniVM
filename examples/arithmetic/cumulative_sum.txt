@@ -11,4 +11,3 @@
 
 # Print final cumulative sum 'योग' (renders 15 = पञ्चदश)
 मोद्रय योगम् ।
-

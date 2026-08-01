@@ -1,7 +1,6 @@
 package dev.panini.actions.collection
 
 import dev.panini.core.Karaka
-import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.execution.DhatuAction
 import dev.panini.execution.DhatuOperation
 import dev.panini.execution.ExecutionContext
@@ -48,19 +47,11 @@ object ListMapAction : DhatuAction("सूचीसंयोजनम्", "स�
                 "Target operation cannot be resolved to a name."
             )
 
-        val normTarget = targetName.removeSuffix("म्").trimEnd('्', 'ँ')
-        val targetOp = DhatuPatha.all.flatMap { it.operations }
-            .firstOrNull { 
-                it.name == targetName || it.action.name == targetName ||
-                it.name.removeSuffix("म्").trimEnd('्', 'ँ') == normTarget ||
-                it.action.name.removeSuffix("म्").trimEnd('्', 'ँ') == normTarget
-            }
-            ?: DhatuPatha.all.firstOrNull {
-                it.upadesha == targetName || it.sourceSurface == targetName || it.surfaceAliases.contains(targetName) ||
-                it.upadesha.removeSuffix("म्").trimEnd('्', 'ँ') == normTarget ||
-                it.sourceSurface.removeSuffix("म्").trimEnd('्', 'ँ') == normTarget ||
-                it.surfaceAliases.any { alias -> alias.removeSuffix("म्").trimEnd('्', 'ँ') == normTarget }
-            }?.operations?.firstOrNull()
+        val targetOp = context.operationCatalog.resolve(
+            targetName,
+            setOf(Karaka.KARMAN),
+            dev.panini.execution.ExpressionShape.LITERAL,
+        )
             ?: return ExecutionResult.Failure(
                 ExecutionError.ACTION_FAILED,
                 "Verbal root or operation '$targetName' not found in registry."
@@ -92,7 +83,7 @@ object ListMapAction : DhatuAction("सूचीसंयोजनम्", "स�
         elements.forEachIndexed { idx, element ->
             val i = idx + 1
             val innerVariables = context.variables.toMutableMap()
-            val word = renderSankhyaResult(i.toLong()) ?: DevanagariDigits.render(i)
+            val word = context.renderSankhyaResult(i.toLong()) ?: DevanagariDigits.render(i)
             innerVariables["loop_index"] = SanskritValue.Sankhya(i.toLong(), word)
             innerVariables["loop_element"] = element
             innerVariables["loop_result"] = lastResultTyped ?: SanskritValue.Sankhya(0L, "शून्यम्")
@@ -103,7 +94,12 @@ object ListMapAction : DhatuAction("सूचीसंयोजनम्", "स�
                 variables = innerVariables,
                 metadata = context.metadata,
                 stateStore = context.stateStore,
-                externalDispatcher = context.externalDispatcher
+                externalDispatcher = context.externalDispatcher,
+                sutraRegistry = context.sutraRegistry,
+                currentGrantha = context.currentGrantha,
+                operationCatalog = context.operationCatalog,
+                linguisticServices = context.linguisticServices,
+                sankhyaRenderer = context.sankhyaRenderer,
             )
 
             when (val result = targetOp.action.execute(innerContext, targetOp)) {

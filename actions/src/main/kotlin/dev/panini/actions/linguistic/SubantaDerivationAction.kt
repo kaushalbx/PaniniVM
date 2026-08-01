@@ -9,8 +9,6 @@ import dev.panini.execution.ExecutionResult
 
 /** Morphological subanta derivation from nominal prātipadika stem. */
 object SubantaDerivationAction : DhatuAction("पदनिष्पत्तिः", "प्रातिपदिकस्य सुबन्तरूपसिद्धिः") {
-    var subantaHandler: ((String) -> String)? = null
-
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
         val expression = context.bindings[Karaka.KARMAN]
             ?: return dev.panini.actions.missingKaraka(operation, Karaka.KARMAN)
@@ -21,7 +19,7 @@ object SubantaDerivationAction : DhatuAction("पदनिष्पत्ति�
             listOf("Selected operation ${operation.name}."),
         )
         return try {
-            val handler = subantaHandler ?: { "$it-स" }
+            val handler = context.linguisticServices.deriveSubanta ?: { "$it-स" }
             val result = handler(stem)
             ExecutionResult.Success(
                 result,

@@ -12,4 +12,3 @@
 
 # Print 7th Fibonacci term (renders 13 = त्रयोदश)
 योगस्य फलम् मोद्रय ।
-

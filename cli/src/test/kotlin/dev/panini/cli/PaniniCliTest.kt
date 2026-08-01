@@ -49,8 +49,8 @@ class PaniniCliTest {
 
         assertEquals(3, results.size)
         val output = outputStream.toString()
-        assertTrue(output.contains("Line 1: रामावतार"))
-        assertTrue(output.contains("Line 2: देवालय"))
-        assertTrue(output.contains("Line 3: तच्छिव"))
+        assertTrue(output.contains("Line 1: रामावतार"), output)
+        assertTrue(output.contains("Line 2: देवालय"), output)
+        assertTrue(output.contains("Line 3: तच्छिव"), output)
     }
 }

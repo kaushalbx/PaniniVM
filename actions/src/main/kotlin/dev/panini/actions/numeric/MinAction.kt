@@ -27,7 +27,7 @@ object MinAction : DhatuAction("सङ्ख्यान्यूनत्वम
             )
         }
         val minVal = values.minOrNull() ?: 0L
-        val result = renderSankhyaResult(minVal) ?: return ExecutionResult.Failure(
+        val result = context.renderSankhyaResult(minVal) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The min result $minVal is outside the supported Sanskrit number vocabulary.",
             listOf("Calculated minimum of ${operands.joinToString()}."),

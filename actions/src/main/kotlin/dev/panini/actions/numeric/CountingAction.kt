@@ -16,7 +16,7 @@ object CountingAction : DhatuAction("सङ्ख्यागणनम्", "प
             ?: return dev.panini.actions.missingKaraka(operation, Karaka.KARMAN)
         val operands = context.resolve(expression)
         val count = operands.size.toLong()
-        val result = renderSankhyaResult(count) ?: return ExecutionResult.Failure(
+        val result = context.renderSankhyaResult(count) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The count $count is outside the supported Sanskrit number vocabulary.",
             listOf("Counted ${operands.size} elements."),

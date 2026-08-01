@@ -88,7 +88,7 @@ object HypotenuseAction : DhatuAction("कर्णसाधनम्", "त्�
                 listOf("Selected operation ${operation.name}."),
             )
         }
-        val resultStr = renderSankhyaResult(karna) ?: "$karna"
+        val resultStr = context.renderSankhyaResult(karna) ?: "$karna"
 
         return ExecutionResult.Success(
             resultStr,

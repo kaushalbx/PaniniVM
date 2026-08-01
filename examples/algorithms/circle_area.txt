@@ -8,4 +8,3 @@
 
 # Print circle area result (renders 27 = सप्तविंशतिः)
 द्वितीयफलम् मोद्रय ।
-

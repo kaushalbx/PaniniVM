@@ -14,6 +14,11 @@ data class ExecutionScope(
     val externalDispatcher: ExternalCapabilityDispatcher? = null,
     val sutraRegistry: SutraGranthaRegistry? = null,
     val currentGrantha: GranthaId? = null,
+    val operationCatalog: OperationCatalog = dev.panini.dhatupatha.DhatuPathaRegistration.operationCatalog,
+    val linguisticServices: LinguisticServices = LinguisticServices(),
+    val sankhyaRenderer: SankhyaResultRenderer = SankhyaResultRenderer { value ->
+        SankhyaResultRenderer.defaultRenderer.render(value)
+    },
     val authorizedSpeakers: Set<String> = emptySet(),
     val acceptedInvocations: Set<String> = emptySet(),
 )

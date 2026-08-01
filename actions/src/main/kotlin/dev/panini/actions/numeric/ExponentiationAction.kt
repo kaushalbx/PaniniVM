@@ -37,7 +37,7 @@ object ExponentiationAction : DhatuAction("सङ्ख्याघातः", "
             repeat(exp.toInt()) { value = Math.multiplyExact(value, base) }
             value
         }.getOrElse { return numericOverflow(operation) }
-        val result = renderSankhyaResult(pow) ?: return ExecutionResult.Failure(
+        val result = context.renderSankhyaResult(pow) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The result $pow ($base^$exp) is outside the supported Sanskrit number vocabulary.",
             listOf("Resolved $base ^ $exp.")

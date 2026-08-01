@@ -38,7 +38,7 @@ object FractionAction : DhatuAction("सङ्ख्याभागः", "सङ
             if (divisor == 0L) return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Division by zero in fraction.", listOf("Selected operation ${operation.name}."))
             values[0] / divisor
         }
-        val result = renderSankhyaResult(res) ?: return ExecutionResult.Failure(
+        val result = context.renderSankhyaResult(res) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The fraction result $res is outside the supported Sanskrit number vocabulary.",
             listOf("Calculated fraction/proportion."),

@@ -5,4 +5,3 @@
 
 # Print result of average calculation (गण + ल्युट् + ङस् फल + अम् -> गणनस्य फलम् -> renders 20 = विंशतिः)
 गणनस्य फलम् मोद्रय ।
-

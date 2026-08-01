@@ -31,7 +31,7 @@ object AverageAction : DhatuAction("सङ्ख्यासाम्यम्",
             return numericOverflow(operation)
         }
         val avg = sum / values.size
-        val result = renderSankhyaResult(avg) ?: return ExecutionResult.Failure(
+        val result = context.renderSankhyaResult(avg) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The average result $avg is outside the supported Sanskrit number vocabulary.",
             listOf("Averaged ${operands.joinToString()}."),

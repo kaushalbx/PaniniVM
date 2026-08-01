@@ -1,7 +1,6 @@
 package dev.panini.actions
 
 import dev.panini.core.Karaka
-import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.execution.DhatuOperation
 import dev.panini.execution.ExecutionError
 import dev.panini.execution.ExecutionResult
@@ -15,25 +14,6 @@ internal fun missingKaraka(operation: DhatuOperation, karaka: Karaka): Execution
         "${operation.name} requires a value in $karaka.",
         listOf("Selected operation ${operation.name}."),
     )
-
-internal fun resolveRegisteredOperation(name: String): DhatuOperation? {
-    val normalized = normalizeOperationName(name)
-    return DhatuPatha.all.asSequence()
-        .flatMap { dhatu ->
-            dhatu.operations.asSequence().map { operation -> dhatu to operation }
-        }
-        .firstOrNull { (dhatu, operation) ->
-            sequenceOf(operation.name, operation.action.name, dhatu.upadesha, dhatu.sourceSurface)
-                .plus(dhatu.surfaceAliases.asSequence())
-                .any { candidate ->
-                    candidate == name || normalizeOperationName(candidate) == normalized
-                }
-        }
-        ?.second
-}
-
-private fun normalizeOperationName(name: String): String =
-    name.trim().removeSuffix("म्").trimEnd('्', 'ँ', 'ः')
 
 internal fun approximateNumber(value: Double, scale: Int = 9): SanskritValue.Rational? {
     if (!value.isFinite()) return null

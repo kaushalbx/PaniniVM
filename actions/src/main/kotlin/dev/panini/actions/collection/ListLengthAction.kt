@@ -29,7 +29,7 @@ object ListLengthAction : DhatuAction("सूच्याकारः", "सू�
             else -> listValues.size
         }
 
-        val wordResult = renderSankhyaResult(size.toLong()) ?: DevanagariDigits.render(size)
+        val wordResult = context.renderSankhyaResult(size.toLong()) ?: DevanagariDigits.render(size)
         return ExecutionResult.Success(
             wordResult,
             operation.name,

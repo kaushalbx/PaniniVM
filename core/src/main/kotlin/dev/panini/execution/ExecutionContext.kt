@@ -16,6 +16,11 @@ data class ExecutionContext(
     val externalDispatcher: ExternalCapabilityDispatcher? = null,
     val sutraRegistry: SutraGranthaRegistry? = null,
     val currentGrantha: GranthaId? = null,
+    val operationCatalog: OperationCatalog = OperationCatalog.default,
+    val linguisticServices: LinguisticServices = LinguisticServices(),
+    val sankhyaRenderer: SankhyaResultRenderer = SankhyaResultRenderer { value ->
+        SankhyaResultRenderer.defaultRenderer.render(value)
+    },
 ) {
     fun resolveValues(expression: ExecutionExpression): List<SanskritValue> = when (expression) {
         is ExecutionExpression.Pada -> listOf(

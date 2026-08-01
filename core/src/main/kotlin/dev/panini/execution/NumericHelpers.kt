@@ -23,6 +23,9 @@ fun renderSankhyaResult(value: Long): String? {
     }
 }
 
+fun ExecutionContext.renderSankhyaResult(value: Long): String? =
+    if (value < 0L) null else sankhyaRenderer.render(value) ?: renderSankhyaResult(value)
+
 fun ExecutionContext.resolveSankhyaValues(expression: ExecutionExpression): List<Long>? {
     val values = resolveValues(expression)
     if (values.any { it !is SanskritValue.Sankhya }) return null

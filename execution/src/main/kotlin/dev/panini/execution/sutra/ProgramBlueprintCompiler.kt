@@ -2,7 +2,6 @@ package dev.panini.execution.sutra
 
 import dev.panini.core.Karaka
 import dev.panini.core.Lakara
-import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.execution.AmbiguousKarakaBinding
 import dev.panini.execution.DhatuInvocation
 import dev.panini.execution.ExecutableUkti
@@ -81,27 +80,23 @@ object ProgramBlueprintCompiler {
             )
         }
         val upadesha = (fields["upadesha"] as? SutraArthaValue.Text)?.value
-        val candidates = when {
-            dhatuId != null -> DhatuPatha.all.filter {
-                it.id == dhatuId &&
-                    (dhatuSurface == null || it.sourceSurface == dhatuSurface) &&
-                    (upadesha == null || it.upadesha == upadesha)
-            }
-            else -> dhatuSurface?.let { surface ->
-                DhatuPatha.all.filter {
-                    it.sourceSurface == surface && (upadesha == null || it.upadesha == upadesha)
-                }
-            }
-        }.orEmpty()
+        val candidates = upadesha
+            ?.let(dev.panini.dhatupatha.DhatuPathaRegistration::resolve)
+            .orEmpty()
+            .filter { dhatu -> dhatuId == null || dhatu.id == dhatuId }
         when {
-            (dhatuId != null || dhatuSurface != null) && candidates.isEmpty() ->
+            upadesha == null -> diagnostics += ProgramBlueprintDiagnostic(
+                ProgramBlueprintDiagnosticCode.MISSING_FIELD,
+                "Kriyā blueprint ${blueprint.id} requires exact text field 'upadesha'.",
+            )
+            candidates.isEmpty() ->
                 diagnostics += ProgramBlueprintDiagnostic(
                     ProgramBlueprintDiagnosticCode.UNKNOWN_DHATU,
-                    "No executable dhātu matches id '$dhatuId', surface '$dhatuSurface', and upadeśa '$upadesha'.",
+                    "No executable dhātu matches id '$dhatuId' and exact upadeśa '$upadesha'.",
                 )
             candidates.size > 1 -> diagnostics += ProgramBlueprintDiagnostic(
                 ProgramBlueprintDiagnosticCode.AMBIGUOUS_DHATU,
-                "More than one dhātu matches surface '$dhatuSurface'; include exact upadeśa.",
+                "More than one dhātu matches exact upadeśa '$upadesha'; include dhātu id.",
             )
         }
 

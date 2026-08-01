@@ -12,13 +12,9 @@ class SankhyaCountingFormRenderer(
         @JvmStatic
         fun init() {
             if (SankhyaResultRenderer.defaultRenderer !is SankhyaCountingFormRenderer) {
-                SankhyaCountingFormRenderer()
+                SankhyaResultRenderer.defaultRenderer = SankhyaCountingFormRenderer()
             }
         }
-    }
-
-    init {
-        SankhyaResultRenderer.defaultRenderer = this
     }
 
     override fun render(value: Long): String {

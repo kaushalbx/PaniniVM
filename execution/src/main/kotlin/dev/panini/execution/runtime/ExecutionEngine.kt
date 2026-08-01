@@ -3,6 +3,7 @@ package dev.panini.execution
 import dev.panini.dhatupatha.Dhatu
 
 /** Compatibility facade for executing one already-structured dhātu invocation. */
+@Deprecated("Use SutraExecutionPipeline through PaniniVM for new execution paths.")
 object ExecutionEngine {
     fun execute(dhatu: Dhatu, context: ExecutionContext): ExecutionResult {
         val invocation = DhatuInvocation(

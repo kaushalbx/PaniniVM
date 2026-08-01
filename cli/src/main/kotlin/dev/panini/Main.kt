@@ -103,7 +103,6 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
         val file = File(filePath)
         require(file.exists()) { "Sūtra grantha source file not found: $filePath" }
         dev.panini.dhatupatha.DhatuPathaRegistration.ensureRegistered()
-        dev.panini.derivation.LinguisticActionsInitializer.initialize()
         dev.panini.sankhya.SankhyaCountingFormRenderer.init()
         val execution = ProgramBlueprintGranthaEngine.execute(
             file.readText(),
@@ -112,7 +111,10 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
                 listener = "यन्त्रम्",
                 text = file.name,
             ),
-            ExecutionScope(capabilities = setOf(ExecutionEffect.PURE)),
+            ExecutionScope(
+                capabilities = setOf(ExecutionEffect.PURE),
+                linguisticServices = dev.panini.derivation.LinguisticActionsInitializer.services(),
+            ),
             ProgramAvastha(ValueEnvironment()),
         )
         buildList {
@@ -150,7 +152,6 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
         val file = File(filePath)
         require(file.exists()) { "Sūtra grantha source file not found: $filePath" }
         dev.panini.dhatupatha.DhatuPathaRegistration.ensureRegistered()
-        dev.panini.derivation.LinguisticActionsInitializer.initialize()
         val validation = ProgramBlueprintGranthaEngine.validate(
             file.readText(),
             ProgramBlueprintContext(

@@ -42,7 +42,7 @@ object SquareRootAction : DhatuAction("सङ्ख्यामूलम्", "�
                 listOf("Selected operation ${operation.name}."),
             )
         }
-        val result = renderSankhyaResult(root) ?: return ExecutionResult.Failure(
+        val result = context.renderSankhyaResult(root) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The root result $root is outside the supported Sanskrit number vocabulary.",
             listOf("Sqrt($value).")

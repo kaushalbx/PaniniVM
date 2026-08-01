@@ -1,7 +1,6 @@
 package dev.panini.actions.control
 
 import dev.panini.core.Karaka
-import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.execution.DhatuAction
 import dev.panini.execution.DhatuOperation
 import dev.panini.execution.ExecutionContext
@@ -12,10 +11,6 @@ import dev.panini.execution.SanskritValue
 
 /** If/Else conditional branching action. */
 object IfAction : DhatuAction("निर्णयः", "यदि-तर्हि विकल्पः (इफ्-एल्स्)") {
-    private fun normalize(name: String): String {
-        return name.removeSuffix("म्").trimEnd('्', 'ँ', 'ः')
-    }
-
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
         val condExpr = context.bindings[Karaka.APADANA]
             ?: return ExecutionResult.Failure(
@@ -52,29 +47,20 @@ object IfAction : DhatuAction("निर्णयः", "यदि-तर्ह�
                 "Branch target action cannot be resolved to a name."
             )
 
-        // Find branch target operation in registry
-        val normTarget = normalize(targetName)
-        val targetOp = DhatuPatha.all.flatMap { it.operations }
-            .firstOrNull { 
-                it.name == targetName || it.action.name == targetName ||
-                normalize(it.name) == normTarget ||
-                normalize(it.action.name) == normTarget
-            }
-            ?: DhatuPatha.all.firstOrNull {
-                it.upadesha == targetName || it.sourceSurface == targetName || it.surfaceAliases.contains(targetName) ||
-                normalize(it.upadesha) == normTarget ||
-                normalize(it.sourceSurface) == normTarget ||
-                it.surfaceAliases.any { alias -> normalize(alias) == normTarget }
-            }?.operations?.firstOrNull()
-            ?: return ExecutionResult.Failure(
-                ExecutionError.ACTION_FAILED,
-                "Branch target operation '$targetName' not found in registry."
-            )
-
         // Bind remaining inputs to target operation.
         val innerBindings = context.bindings.filterKeys {
             it != Karaka.APADANA && it != Karaka.KARANA && it != Karaka.SAMPRADANA
         }
+        val targetOp = context.operationCatalog.resolve(
+            targetName,
+            innerBindings.keys,
+            (innerBindings[Karaka.KARMAN] as? ExecutionExpression.Coordination)
+                ?.let { dev.panini.execution.ExpressionShape.COORDINATION }
+                ?: dev.panini.execution.ExpressionShape.LITERAL,
+        ) ?: return ExecutionResult.Failure(
+            ExecutionError.ACTION_FAILED,
+            "Branch target operation '$targetName' not found in registry.",
+        )
 
         val innerContext = ExecutionContext(
             bindings = innerBindings,
@@ -82,7 +68,12 @@ object IfAction : DhatuAction("निर्णयः", "यदि-तर्ह�
             variables = context.variables,
             metadata = context.metadata,
             stateStore = context.stateStore,
-            externalDispatcher = context.externalDispatcher
+            externalDispatcher = context.externalDispatcher,
+            sutraRegistry = context.sutraRegistry,
+            currentGrantha = context.currentGrantha,
+            operationCatalog = context.operationCatalog,
+            linguisticServices = context.linguisticServices,
+            sankhyaRenderer = context.sankhyaRenderer,
         )
 
         return targetOp.action.execute(innerContext, targetOp)

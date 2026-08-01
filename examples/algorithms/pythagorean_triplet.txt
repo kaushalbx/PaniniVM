@@ -14,4 +14,3 @@
 
 # Step 5: Print result of square root (मूल् + घञ् + ङस् फल + अम् -> मूलस्य फलम् -> renders 5 = पञ्च)
 मूलस्य फलम् मोद्रय ।
-

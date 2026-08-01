@@ -1,7 +1,6 @@
 package dev.panini.actions.control
 
 import dev.panini.core.Karaka
-import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.execution.DhatuAction
 import dev.panini.execution.DhatuOperation
 import dev.panini.execution.ExecutionContext
@@ -14,10 +13,6 @@ import dev.panini.execution.renderSankhyaResult
 
 /** ForEach iteration loop action. */
 object ForEachAction : DhatuAction("प्रत्येकवृत्तिः", "सूची-प्रत्येक-भ्रमण-क्रिया (फॉर्-ईच् लूप)") {
-    private fun normalize(name: String): String {
-        return name.removeSuffix("म्").trimEnd('्', 'ँ', 'ः')
-    }
-
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
         val listExpr = context.bindings[Karaka.KARMAN]
             ?: return ExecutionResult.Failure(
@@ -44,20 +39,11 @@ object ForEachAction : DhatuAction("प्रत्येकवृत्ति�
                 "Body action cannot be resolved to a name."
             )
 
-        // Find body operation in registry
-        val normBody = normalize(bodyName)
-        val bodyOp = DhatuPatha.all.flatMap { it.operations }
-            .firstOrNull { 
-                it.name == bodyName || it.action.name == bodyName ||
-                normalize(it.name) == normBody ||
-                normalize(it.action.name) == normBody
-            }
-            ?: DhatuPatha.all.firstOrNull {
-                it.upadesha == bodyName || it.sourceSurface == bodyName || it.surfaceAliases.contains(bodyName) ||
-                normalize(it.upadesha) == normBody ||
-                normalize(it.sourceSurface) == normBody ||
-                it.surfaceAliases.any { alias -> normalize(alias) == normBody }
-            }?.operations?.firstOrNull()
+        val bodyOp = context.operationCatalog.resolve(
+            bodyName,
+            setOf(Karaka.KARMAN),
+            dev.panini.execution.ExpressionShape.COORDINATION,
+        )
             ?: return ExecutionResult.Failure(
                 ExecutionError.ACTION_FAILED,
                 "Body action '$bodyName' not found in registry."
@@ -68,7 +54,7 @@ object ForEachAction : DhatuAction("प्रत्येकवृत्ति�
 
         listItems.forEachIndexed { i, element ->
             val innerVariables = context.variables.toMutableMap()
-            val word = renderSankhyaResult((i + 1).toLong()) ?: DevanagariDigits.render(i + 1)
+            val word = context.renderSankhyaResult((i + 1).toLong()) ?: DevanagariDigits.render(i + 1)
             innerVariables["loop_index"] = SanskritValue.Sankhya((i + 1).toLong(), word)
             innerVariables["loop_element"] = element
             innerVariables["loop_result"] = accumulator
@@ -118,7 +104,12 @@ object ForEachAction : DhatuAction("प्रत्येकवृत्ति�
                 variables = innerVariables,
                 metadata = context.metadata,
                 stateStore = context.stateStore,
-                externalDispatcher = context.externalDispatcher
+                externalDispatcher = context.externalDispatcher,
+                sutraRegistry = context.sutraRegistry,
+                currentGrantha = context.currentGrantha,
+                operationCatalog = context.operationCatalog,
+                linguisticServices = context.linguisticServices,
+                sankhyaRenderer = context.sankhyaRenderer,
             )
 
             when (val result = bodyOp.action.execute(innerContext, bodyOp)) {

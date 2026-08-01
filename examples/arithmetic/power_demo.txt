@@ -11,4 +11,3 @@
 
 # Print final power result 'घात' (renders 81 = एकाशीतिः)
 मोद्रय घातम् ।
-

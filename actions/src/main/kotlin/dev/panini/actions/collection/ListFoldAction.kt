@@ -1,7 +1,6 @@
 package dev.panini.actions.collection
 
 import dev.panini.core.Karaka
-import dev.panini.actions.resolveRegisteredOperation
 import dev.panini.execution.DhatuAction
 import dev.panini.execution.DhatuOperation
 import dev.panini.execution.ExecutionContext
@@ -44,7 +43,11 @@ object ListFoldAction : DhatuAction("सूचीसङ्क्षेपः", "
                 "Target operation cannot be resolved to a name."
             )
 
-        val targetOp = resolveRegisteredOperation(targetName)
+        val targetOp = context.operationCatalog.resolve(
+            targetName,
+            setOf(Karaka.KARMAN),
+            dev.panini.execution.ExpressionShape.COORDINATION,
+        )
             ?: return ExecutionResult.Failure(
                 ExecutionError.ACTION_FAILED,
                 "Target operation '$targetName' not found in registry."
@@ -61,7 +64,7 @@ object ListFoldAction : DhatuAction("सूचीसङ्क्षेपः", "
 
         listItems.forEachIndexed { i, element ->
             val innerVariables = context.variables.toMutableMap()
-            val word = renderSankhyaResult((i + 1).toLong()) ?: DevanagariDigits.render(i + 1)
+            val word = context.renderSankhyaResult((i + 1).toLong()) ?: DevanagariDigits.render(i + 1)
             innerVariables["loop_index"] = SanskritValue.Sankhya((i + 1).toLong(), word)
             innerVariables["loop_element"] = element
             innerVariables["loop_result"] = accumulator
@@ -82,7 +85,12 @@ object ListFoldAction : DhatuAction("सूचीसङ्क्षेपः", "
                 variables = innerVariables,
                 metadata = context.metadata,
                 stateStore = context.stateStore,
-                externalDispatcher = context.externalDispatcher
+                externalDispatcher = context.externalDispatcher,
+                sutraRegistry = context.sutraRegistry,
+                currentGrantha = context.currentGrantha,
+                operationCatalog = context.operationCatalog,
+                linguisticServices = context.linguisticServices,
+                sankhyaRenderer = context.sankhyaRenderer,
             )
 
             when (val result = targetOp.action.execute(innerContext, targetOp)) {

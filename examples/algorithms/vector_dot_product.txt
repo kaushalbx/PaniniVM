@@ -11,4 +11,3 @@
 
 # Print final dot product result (renders 23 = त्रयोविंशतिः)
 तृतीयफलम् मोद्रय ।
-

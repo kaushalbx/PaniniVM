@@ -62,6 +62,9 @@ object ExecutionRuntime {
                     externalDispatcher = scope.externalDispatcher,
                     sutraRegistry = scope.sutraRegistry,
                     currentGrantha = scope.currentGrantha,
+                    operationCatalog = scope.operationCatalog,
+                    linguisticServices = scope.linguisticServices,
+                    sankhyaRenderer = scope.sankhyaRenderer,
                 )
                 when (val result = plan.resolved.operation.action.execute(refreshedContext, plan.resolved.operation)) {
                     is ExecutionResult.Success -> {
@@ -75,7 +78,7 @@ object ExecutionRuntime {
 
                         val oldPhala = values["फल"]
                         if (secondVal != null) {
-                            val surf = dev.panini.execution.renderSankhyaResult(secondVal) ?: secondVal.toString()
+                            val surf = scope.sankhyaRenderer.render(secondVal) ?: secondVal.toString()
                             values["पूर्वफल"] = dev.panini.execution.SanskritValue.Sankhya(secondVal, surf)
                         } else if (oldPhala != null) {
                             values["पूर्वफल"] = oldPhala

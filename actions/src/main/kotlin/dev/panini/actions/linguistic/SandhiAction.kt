@@ -9,8 +9,6 @@ import dev.panini.execution.ExecutionResult
 
 /** Sandhi joining (saṃhitā) over text operands using the Panini Ashtadhyayi rules via DerivationEngine handler. */
 object SandhiAction : DhatuAction("संहिताकरणम्", "पदानां सन्धियोगः") {
-    var sandhiHandler: ((String, String) -> String)? = null
-
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
         val expression = context.bindings[Karaka.KARMAN]
             ?: return dev.panini.actions.missingKaraka(operation, Karaka.KARMAN)
@@ -29,7 +27,7 @@ object SandhiAction : DhatuAction("संहिताकरणम्", "पद�
             )
         }
 
-        val handler = sandhiHandler ?: { a, b -> a + b }
+        val handler = context.linguisticServices.joinSandhi ?: { a, b -> a + b }
         val result = operands.drop(1).fold(operands.first()) { acc, next ->
             handler(acc, next)
         }

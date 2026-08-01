@@ -11,4 +11,3 @@
 
 # Print final GCD result 'गसागु' (renders 6 = षट्)
 मोद्रय गसागुम् ।
-

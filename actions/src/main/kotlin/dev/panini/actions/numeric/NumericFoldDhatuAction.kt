@@ -120,7 +120,7 @@ abstract class NumericFoldDhatuAction(
         }.getOrElse {
             return numericOverflow(operation)
         }
-        val result = renderSankhyaResult(resultValue) ?: return ExecutionResult.Failure(
+        val result = context.renderSankhyaResult(resultValue) ?: return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The result $resultValue is outside the supported Sanskrit number vocabulary.",
             listOf("Resolved ${operands.joinToString(" ${operator.symbol} ")}."),

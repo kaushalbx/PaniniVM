@@ -76,7 +76,7 @@ class CollectionOperationsTest {
                     ExecutionExpression.sankhya(2L, "द्वि"),
                     ExecutionExpression.sankhya(3L, "त्रि")
                 ),
-                Karaka.KARANA to ExecutionExpression.Pada("वर्धनम्") // target operation
+                Karaka.KARANA to ExecutionExpression.Pada("एधँ") // exact target upadeśa
             )
         )
 
@@ -119,7 +119,7 @@ class CollectionOperationsTest {
                     ExecutionExpression.sankhya(3L, "त्रि"),
                     ExecutionExpression.sankhya(4L, "चतुर्")
                 ),
-                Karaka.KARANA to ExecutionExpression.Pada("युग्मत्वम्") // predicate check even
+                Karaka.KARANA to ExecutionExpression.Pada("यु") // exact target upadeśa; literal signature selects evenness
             )
         )
 
@@ -273,7 +273,7 @@ class CollectionOperationsTest {
                     ExecutionExpression.sankhya(2L, "द्वि"),
                     ExecutionExpression.sankhya(3L, "त्रि")
                 ),
-                Karaka.KARANA to ExecutionExpression.Pada("सङ्ख्यागुणनम्"),
+                Karaka.KARANA to ExecutionExpression.Pada("गण"),
                 Karaka.SAMPRADANA to ExecutionExpression.sankhya(5L, "पञ्च")
             )
         )
@@ -300,8 +300,8 @@ class CollectionOperationsTest {
         val context = ExecutionContext(
             bindings = mapOf(
                 Karaka.APADANA to ExecutionExpression.Pada("सत्यम्", setOf(Samjna.SHABDA), SanskritValue.Satya(true)),
-                Karaka.KARANA to ExecutionExpression.Pada("सङ्ख्यायोजनम्"), // true: add
-                Karaka.SAMPRADANA to ExecutionExpression.Pada("सङ्ख्यावियोगः"), // false: sub
+                Karaka.KARANA to ExecutionExpression.Pada("यु"), // exact upadeśa; coordinated signature selects addition
+                Karaka.SAMPRADANA to ExecutionExpression.Pada("वृजीँ"), // exact upadeśa for subtraction
                 Karaka.KARMAN to ExecutionExpression.Coordination(
                     ExecutionExpression.sankhya(5L, "पञ्च"),
                     ExecutionExpression.sankhya(10L, "दश")
@@ -395,7 +395,7 @@ class CollectionOperationsTest {
                         ExecutionExpression.sankhya(3L, "त्रि")
                     )
                 ),
-                Karaka.KARANA to ExecutionExpression.Pada("सङ्ख्यायोजनम्"), // body action: sum
+                Karaka.KARANA to ExecutionExpression.Pada("यु"), // exact body upadeśa; coordinated signature selects addition
                 Karaka.SAMPRADANA to ExecutionExpression.sankhya(10L, "दश") // initial state
             )
         )
