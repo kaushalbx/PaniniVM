@@ -12,14 +12,9 @@ import dev.panini.sutra.SutraStage
 class SankhyaDerivationEngine {
     private val compoundAnga = DerivationEngine(Ashtadhyayi.executableSutrasAt(SutraStage.ANGAKARYA))
     private val padaFormation = DerivationEngine(Ashtadhyayi.executableSutrasAt(SutraStage.PADA_FORMATION))
-    private val sandhiPhases = listOf(
-        SutraStage.VOWEL_SANDHI,
-        SutraStage.RUTVA,
-        SutraStage.POST_RUTVA,
-        SutraStage.FINAL_CONSONANT_SANDHI,
-        SutraStage.VISARJANIYA,
-        SutraStage.SIBILANT_SANDHI,
-    ).map { stage -> DerivationEngine(Ashtadhyayi.executableSutrasAt(stage)) }
+    private val sandhiPhases = SutraStage.sandhiPhases
+        .filterNot { it == SutraStage.THUK_PHONOLOGY || it == SutraStage.SANDHI }
+        .map { stage -> DerivationEngine(Ashtadhyayi.executableSutrasAt(stage)) }
 
     fun derive(initial: DerivationState): DerivationResult {
         val start = initial.copy(stage = DerivationStage.PADA_FORMED)

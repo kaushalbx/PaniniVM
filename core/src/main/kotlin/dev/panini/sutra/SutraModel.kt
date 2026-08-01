@@ -30,6 +30,22 @@ enum class SutraStage {
     UNSPECIFIED, SAMJNA, PRATYAYA_SELECTION, IT_PROCESSING, ANGAKARYA, PADA_FORMATION,
     VOWEL_SANDHI, RUTVA, POST_RUTVA, FINAL_CONSONANT_SANDHI, VISARJANIYA,
     SIBILANT_SANDHI, THUK_PHONOLOGY, SANDHI, FINAL,
+
+    ;
+
+    companion object {
+        /** Ordered phonological phases that may operate across a pada boundary. */
+        val sandhiPhases: List<SutraStage> = listOf(
+            VOWEL_SANDHI,
+            RUTVA,
+            POST_RUTVA,
+            FINAL_CONSONANT_SANDHI,
+            VISARJANIYA,
+            SIBILANT_SANDHI,
+            THUK_PHONOLOGY,
+            SANDHI,
+        )
+    }
 }
 enum class SutraPriority { NORMAL, UTSARGA, ANTARANGA, NITYA, APAVADA }
 enum class SutraVisibility { NORMAL, ASIDDHA, ASIDDHAVAT }
