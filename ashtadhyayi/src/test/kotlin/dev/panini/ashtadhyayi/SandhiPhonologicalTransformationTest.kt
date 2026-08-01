@@ -5,7 +5,9 @@ import dev.panini.ashtadhyayi.adhyaya6.pada1.AtoGuneSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada3.BhoBhagoAghoApurvasyaYoshiSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada3.DhoDheLopaSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada3.HaliSarveshamSutra
+import dev.panini.ashtadhyayi.adhyaya8.pada3.KharavasanayorVisarjaniyahSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada3.MonusvarahSutra
+import dev.panini.ashtadhyayi.adhyaya8.pada2.SasajusoRuhSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada4.JharoJhariSavarneSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada4.JhayoHonyatarasyamSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada4.ShashChoAtiSutra
@@ -16,12 +18,39 @@ import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.SamjnaAssignment
+import dev.panini.derivation.SandhiEngine
 import dev.panini.shiksha.Samjna
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class SandhiPhonologicalTransformationTest {
+
+    @Test
+    fun `visarga rule does not replace lexical final r`() {
+        val state = DerivationState(
+            terms = listOf(
+                DerivationTerm("left", "राम", TermKind.PRATIPADIKA, upadesha = "राम"),
+                DerivationTerm("right", "अवतार", TermKind.PRATIPADIKA, upadesha = "अवतार"),
+            ),
+            stage = DerivationStage.PADA_FORMED,
+        )
+
+        assertTrue(!KharavasanayorVisarjaniyahSutra.matches(state))
+        assertEquals("रामावतार", SandhiEngine().join("राम", "अवतार").final.surface)
+    }
+
+    @Test
+    fun `visarga rule consumes recorded rutva provenance`() {
+        val state = DerivationState(
+            terms = listOf(DerivationTerm("ending", "रामस्", TermKind.PRATYAYA, upadesha = "रामस्")),
+            stage = DerivationStage.PADA_FORMED,
+        )
+
+        val rutva = SasajusoRuhSutra.apply(state).state
+        assertTrue(KharavasanayorVisarjaniyahSutra.matches(rutva))
+        assertEquals("रामः", KharavasanayorVisarjaniyahSutra.apply(rutva).state.surface)
+    }
 
     @Test
     fun `ato gune does not apply when the following term is a lexical pada`() {

@@ -4,6 +4,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.VarnaSubstitution
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
@@ -30,8 +31,10 @@ object SasajusoRuhSutra : Sutra<DerivationState, DerivationChange>(
         (context.stage == DerivationStage.IT_PROCESSED || context.stage == DerivationStage.PADA_FORMED || context.stage == DerivationStage.FINAL) &&
         context.terms.last().surface.endsWith(Vyanjana.SA.halanta) || internalSankhyaIndex(context) >= 0
 
-    override fun apply(context: DerivationState): DerivationChange = DerivationChange(
-        internalSankhyaIndex(context).takeIf { it >= 0 }?.let { index ->
+    override fun apply(context: DerivationState): DerivationChange {
+        val internalIndex = internalSankhyaIndex(context)
+        val target = context.terms[internalIndex.takeIf { it >= 0 } ?: context.terms.lastIndex]
+        val changed = internalIndex.takeIf { it >= 0 }?.let { index ->
             val target = context.terms[index]
             context.copy(terms = context.terms.toMutableList().also {
                 it[index] = target.copy(surface = target.surface.dropLast(2) + Vyanjana.RA.devanagari)
@@ -39,8 +42,12 @@ object SasajusoRuhSutra : Sutra<DerivationState, DerivationChange>(
         } ?: context.copy(
             terms = context.terms.dropLast(1) + context.terms.last()
                 .copy(surface = context.terms.last().surface.dropLast(2) + Vyanjana.RA.devanagari)
-        ), "8.2.66 replaces स् with रुँ."
-    )
+        )
+        return DerivationChange(
+            changed.addSubstitution(VarnaSubstitution(target.id, 'स', Vyanjana.RA.devanagari, number)),
+            "8.2.66 replaces स् with रुँ.",
+        )
+    }
 
     private fun internalSankhyaIndex(context: DerivationState): Int = context.terms.indices.firstOrNull { index ->
         index < context.terms.lastIndex && context.terms[index].surface.endsWith(Vyanjana.SA.halanta) &&
