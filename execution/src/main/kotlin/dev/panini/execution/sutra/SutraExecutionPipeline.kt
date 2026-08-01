@@ -17,6 +17,7 @@ import dev.panini.execution.SanskritValue
 import dev.panini.execution.SmrtaPhala
 import dev.panini.execution.ValueEnvironment
 import dev.panini.execution.binding.VyakaranamExecutionAdapter
+import dev.panini.execution.memory.KriyaMemory
 import dev.panini.sankhya.SankhyaCountingFormRenderer
 import dev.panini.sutra.runtime.SutraMachineResult
 import dev.panini.sutra.runtime.SutraTraceEntry
@@ -27,11 +28,12 @@ object SutraExecutionPipeline {
         input: SanskritUktiInput,
         conversation: SambhashanaContext,
         scope: ExecutionScope,
+        memory: KriyaMemory = KriyaMemory(),
     ): Phala {
         initialize()
-        return when (val binding = VyakaranamExecutionAdapter.bind(input, conversation)) {
+        return when (val binding = VyakaranamExecutionAdapter.bind(input, conversation, memory)) {
             is ExecutionBindingResult.Bound -> {
-                val phala = execute(binding.ukti, conversation, scope)
+                val phala = execute(binding.ukti, conversation, scope, memory)
                     .prependTrace(binding.trace)
                 if (phala is Phala.Siddha) {
                     val metadata = buildMap {
@@ -60,6 +62,7 @@ object SutraExecutionPipeline {
         ukti: ExecutableUkti,
         conversation: SambhashanaContext,
         scope: ExecutionScope,
+        memory: KriyaMemory = KriyaMemory(),
     ): Phala {
         initialize()
         if (ukti.speaker != conversation.speaker || ukti.listener != conversation.listener) {
@@ -84,7 +87,7 @@ object SutraExecutionPipeline {
                 lakara = ukti.lakara,
             ),
             scope,
-            ProgramAvastha(environment(conversation, scope)),
+            ProgramAvastha(environment(conversation, scope, memory)),
         )
         val (result, program) = when (execution) {
             is ProgramGranthaExecution.Completed -> execution.result to execution.program
@@ -161,8 +164,9 @@ object SutraExecutionPipeline {
         input: SanskritUktiInput,
         conversation: SambhashanaContext,
         scope: ExecutionScope,
+        memory: KriyaMemory = KriyaMemory(),
     ): SambhashanaTurn {
-        val response = SanskritPrativacanaRenderer.render(execute(input, conversation, scope))
+        val response = SanskritPrativacanaRenderer.render(execute(input, conversation, scope, memory))
         val success = response.phala as? Phala.Siddha
             ?: return SambhashanaTurn(response, conversation)
         val nextTurn = conversation.turnNumber + 1
@@ -210,6 +214,7 @@ object SutraExecutionPipeline {
     private fun environment(
         conversation: SambhashanaContext,
         scope: ExecutionScope,
+        memory: KriyaMemory = KriyaMemory(),
     ): ValueEnvironment {
         val historicalValues = mutableMapOf<String, SanskritValue>()
         conversation.resultHistory.forEach { result ->
@@ -222,7 +227,12 @@ object SutraExecutionPipeline {
             samjnas = conversation.mentionedEntitySamjnas + conversation.previousResultSamjnas,
             typedValues = conversation.previousTypedResults,
         ).mergedWith(ValueEnvironment(historicalValues))
-        return conversationEnvironment.mergedWith(scope.environment)
+        val rememberedValues = memory.entries.mapNotNull { entry ->
+            entry.phala?.let { entry.frame.id.value to it }
+        }.toMap()
+        return conversationEnvironment
+            .mergedWith(ValueEnvironment(rememberedValues))
+            .mergedWith(scope.environment)
     }
 
     private fun render(entry: SutraTraceEntry): String = when (entry) {

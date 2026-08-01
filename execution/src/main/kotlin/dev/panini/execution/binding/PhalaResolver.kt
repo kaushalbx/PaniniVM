@@ -1,6 +1,7 @@
 package dev.panini.execution.binding
 
 import dev.panini.vyakaranam.ast.SubantaPada
+import dev.panini.vyakaranam.ast.KridantaPratipadika
 
 /**
  * Typed result of a [PhalaResolver.resolve] call.
@@ -21,10 +22,11 @@ internal data class PhalaResolution(
  *
  * Handles three resolution scopes in priority order:
  * 1. **Within-utterance** — a genitive modifier names a prior clause's dhātu action.
- * 2. **Conversation history** — the named action matches a dhātu in [SambhashanaContext.resultHistory].
- * 3. **पूर्वफल shorthand** — "पूर्व" prefix selects the penultimate matching result.
+ * 2. **Kriyā memory** — the named action matches a remembered frame by exact dhātu upadeśa.
+ * 3. **Conversation compatibility** — older contexts still resolve through result history.
+ * 4. **पूर्वफल shorthand** — "पूर्व" prefix selects the penultimate matching result.
  *
- * All dhātu-matching is root-normalised via [DhatuCache] so surface variants resolve correctly.
+ * Remembered kriyās are matched by their canonical Dhātupāṭha upadeśa, never by result aliases.
  */
 internal object PhalaResolver {
 
@@ -76,7 +78,23 @@ internal object PhalaResolver {
                 return@forEach
             }
 
-            // ---- 2. Resolve against conversation result history ----------------------
+            // ---- 2. Resolve against kriyā-centred memory -----------------------------
+            val referencedDhatu = (genitiveModifier.pratipadika as? KridantaPratipadika)
+                ?.dhatu?.mulaDhatu?.let(DhatuCache::get)?.upadesha
+            val rememberedKriyas = referencedDhatu?.let { ctx.memory.latestKriyas(it, Int.MAX_VALUE) }.orEmpty()
+            val rememberedKriya = if (isPrevious) {
+                if (rememberedKriyas.size > 1) rememberedKriyas.dropLast(1).lastOrNull()
+                else rememberedKriyas.firstOrNull()
+            } else {
+                rememberedKriyas.lastOrNull()
+            }
+            if (rememberedKriya != null) {
+                phalaMap[phalaPada] = rememberedKriya.frame.id.value
+                resolvedGenitives.add(genitiveModifier)
+                return@forEach
+            }
+
+            // ---- 3. Compatibility fallback to conversation result history -----------
             val historicalResults = ctx.conversation?.resultHistory?.filter { result ->
                 val dhatuUpadesha = ctx.conversation.metadata["dhatu:${result.invocationId}"]
                     ?: ctx.conversation.metadata["dhatu:${result.id}"]
@@ -97,7 +115,7 @@ internal object PhalaResolver {
             }
 
             if (historicalResult != null) {
-                // ---- 3. पूर्वफल shorthand -------------------------------------------
+                // ---- 4. पूर्वफल shorthand -------------------------------------------
                 phalaMap[phalaPada] = if (
                     isPrevious && historicalResults.size == 1 &&
                     ctx.conversation?.previousTypedResults?.containsKey("पूर्वफल") == true

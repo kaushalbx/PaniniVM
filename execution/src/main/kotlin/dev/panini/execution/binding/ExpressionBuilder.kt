@@ -57,14 +57,16 @@ internal object ExpressionBuilder {
         } else if (baseText == "फल") {
             resolvedId = overridePhalaId ?: (
                 if (ctx.clauseIndex > 0) "योग-${ctx.clauseIndex}"
-                else ctx.conversation?.resultHistory?.lastOrNull()?.id
+                else ctx.memory.entries.lastOrNull()?.frame?.id?.value
+                    ?: ctx.conversation?.resultHistory?.lastOrNull()?.id
                     ?: ctx.conversation?.previousResults?.keys?.lastOrNull()
             )
         } else if (baseText.endsWith("फल")) {
             val prefix = baseText.removeSuffix("फल")
             val idx = ordinalSurfaceToIndex[prefix]
             if (idx != null) {
-                resolvedId = ctx.conversation?.resultHistory?.getOrNull(idx)?.id
+                resolvedId = ctx.memory.entries.getOrNull(idx)?.frame?.id?.value
+                    ?: ctx.conversation?.resultHistory?.getOrNull(idx)?.id
                 isOrdinalReference = true
             }
         }

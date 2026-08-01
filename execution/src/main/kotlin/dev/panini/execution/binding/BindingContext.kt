@@ -3,6 +3,7 @@ package dev.panini.execution.binding
 import dev.panini.analysis.KriyaFrame
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.execution.SambhashanaContext
+import dev.panini.execution.memory.KriyaMemory
 
 /**
  * Immutable context for a single kāraka-binding pass over one clause.
@@ -20,6 +21,8 @@ internal data class BindingContext(
     val dhatu: Dhatu,
     /** The kāraka-frame produced by the vyākaraṇa analyser for this clause. */
     val frame: KriyaFrame,
+    /** Kriyā-centred session memory used for grammatical result references. */
+    val memory: KriyaMemory = KriyaMemory(),
     /** Ordered list of dhātus from clauses already processed in this utterance. */
     val previousDhatus: List<Dhatu>,
     /** Local variable names introduced by prior clauses' result bindings. */

@@ -76,7 +76,8 @@ class PaniniVM(
             stateStore = scope.stateStore ?: store,
             externalDispatcher = scope.externalDispatcher ?: externalDispatcher,
         )
-        val turn = executeTurn(input, activeContext, effectiveScope)
+        val memory = sessionKey?.let(::kriyaMemory) ?: KriyaMemory()
+        val turn = executeTurn(input, activeContext, effectiveScope, memory)
         val phala = turn.response.phala
 
         val result = phala.toExecutionResult("panini.eval")
@@ -145,7 +146,8 @@ class PaniniVM(
         input: SanskritUktiInput,
         context: SambhashanaContext,
         scope: ExecutionScope,
-    ): SambhashanaTurn = SutraExecutionPipeline.executeTurn(input, context, scope)
+        memory: KriyaMemory,
+    ): SambhashanaTurn = SutraExecutionPipeline.executeTurn(input, context, scope, memory)
 
     fun evalScript(
         scriptContent: String,

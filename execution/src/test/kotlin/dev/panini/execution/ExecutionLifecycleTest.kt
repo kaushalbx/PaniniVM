@@ -9,6 +9,7 @@ import dev.panini.execution.sutra.ProgramBlueprintCompilation
 import dev.panini.execution.sutra.ProgramBlueprintCompiler
 import dev.panini.execution.sutra.ProgramBlueprintContext
 import dev.panini.execution.sutra.ProgramBlueprintDiagnosticCode
+import dev.panini.execution.sutra.SutraExecutionPipeline
 import dev.panini.sutra.runtime.SutraArthaValue
 import dev.panini.shiksha.Samjna
 import java.nio.file.Path
@@ -142,6 +143,20 @@ class ExecutionLifecycleTest {
         val restored = PaniniVM(memoryDirectory).kriyaMemory("memory").latest().single()
         assertEquals(remembered, restored)
         assertTrue(restored.frame.relations.all { it.kriyaId == restored.frame.id })
+
+        val recalled = assertIs<Phala.Siddha>(
+            SutraExecutionPipeline.execute(
+                SanskritUktiInput(
+                    speaker = "प्रयोक्ता",
+                    listener = "यन्त्रम्",
+                    text = "युज् + घञ् + ङस् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+                ),
+                SambhashanaContext("प्रयोक्ता", "यन्त्रम्"),
+                vm.defaultScope,
+                dev.panini.execution.memory.KriyaMemory(listOf(restored)),
+            ),
+        )
+        assertEquals(remembered.phala.toDisplayText(), recalled.typedValues.values.single().toDisplayText())
     }
 
     @Test

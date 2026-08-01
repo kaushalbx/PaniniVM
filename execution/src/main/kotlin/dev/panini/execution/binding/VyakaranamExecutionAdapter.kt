@@ -13,6 +13,7 @@ import dev.panini.execution.SambhashanaContext
 import dev.panini.execution.SanskritUktiInput
 import dev.panini.execution.VakyaPrayojana
 import dev.panini.execution.bindingName
+import dev.panini.execution.memory.KriyaMemory
 import dev.panini.analysis.PadaAnalyzer
 import dev.panini.analysis.UktiAnalysis
 import dev.panini.analysis.UktiAnalyzer
@@ -79,7 +80,11 @@ object VyakaranamExecutionAdapter {
         }
     }.analyze(ukti)
 
-    fun bind(input: SanskritUktiInput, conversation: SambhashanaContext): ExecutionBindingResult {
+    fun bind(
+        input: SanskritUktiInput,
+        conversation: SambhashanaContext,
+        memory: KriyaMemory = KriyaMemory(),
+    ): ExecutionBindingResult {
         if (input.text.isBlank()) return ExecutionBindingResult.Invalid("The Sanskrit utterance is empty.")
         val ukti = try {
             parser.parse(input.text)
@@ -149,6 +154,7 @@ object VyakaranamExecutionAdapter {
                 clauseIndex = index,
                 dhatu = dhatu,
                 frame = frame,
+                memory = memory,
                 previousDhatus = invocations.map { it.dhatu },
                 localVariables = localVariables,
                 localVariableInvocationIds = localVariableInvocationIds,
