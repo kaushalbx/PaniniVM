@@ -1,6 +1,10 @@
 package dev.panini.execution
 
+import dev.panini.analysis.KriyaId
 import dev.panini.execution.external.ExternalCapabilityDispatcher
+import dev.panini.execution.binding.VyakaranamExecutionAdapter
+import dev.panini.execution.memory.KriyaMemory
+import dev.panini.execution.memory.RememberedKriya
 import dev.panini.execution.persistence.FileStateStore
 import dev.panini.execution.persistence.StateStore
 import dev.panini.execution.sutra.ProgramAvastha
@@ -39,6 +43,10 @@ class PaniniVM(
     }
 
     private val sessions = ConcurrentHashMap<String, SambhashanaContext>()
+    private val kriyaMemories = ConcurrentHashMap<String, KriyaMemory>()
+
+    /** Kriyā-centred memory accumulated automatically for this VM session. */
+    fun kriyaMemory(sessionKey: String): KriyaMemory = kriyaMemories[sessionKey] ?: KriyaMemory()
 
     fun eval(
         utterance: String,
@@ -56,6 +64,7 @@ class PaniniVM(
         }
 
         val input = SanskritUktiInput(text = utterance, speaker = activeContext.speaker, listener = activeContext.listener)
+        val analysis = VyakaranamExecutionAdapter.analyzeForMemory(utterance)
         val effectiveScope = scope.copy(
             stateStore = scope.stateStore ?: store,
             externalDispatcher = scope.externalDispatcher ?: externalDispatcher,
@@ -68,9 +77,35 @@ class PaniniVM(
         if (phala is Phala.Siddha && sessionKey != null) {
             sessions[sessionKey] = turn.context
             store.save(sessionKey, turn.context)
+            if (analysis != null) rememberKriyas(sessionKey, turn.context.turnNumber, analysis.frames, phala)
         }
 
         return result
+    }
+
+    private fun rememberKriyas(
+        sessionKey: String,
+        turn: Int,
+        frames: List<dev.panini.analysis.KriyaFrame>,
+        phala: Phala.Siddha,
+    ) {
+        if (frames.isEmpty()) return
+        val invocationValues = phala.typedValues.entries
+            .filter { (id, _) -> id.startsWith("योग-") }
+            .sortedBy { (id, _) -> id.substringAfter("योग-").toIntOrNull() ?: Int.MAX_VALUE }
+        val remembered = invocationValues.mapIndexed { index, (_, value) ->
+            val source = frames[index % frames.size]
+            RememberedKriya(
+                turn = turn,
+                frame = source.copy(id = KriyaId("turn-$turn-kriya-${index + 1}")),
+                phala = value,
+            )
+        }
+        if (remembered.isNotEmpty()) {
+            kriyaMemories.compute(sessionKey) { _, current ->
+                (current ?: KriyaMemory()).remember(remembered)
+            }
+        }
     }
 
     fun resume(

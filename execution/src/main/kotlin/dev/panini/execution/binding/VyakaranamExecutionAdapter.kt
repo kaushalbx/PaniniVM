@@ -14,6 +14,7 @@ import dev.panini.execution.SanskritUktiInput
 import dev.panini.execution.VakyaPrayojana
 import dev.panini.execution.bindingName
 import dev.panini.analysis.PadaAnalyzer
+import dev.panini.analysis.UktiAnalysis
 import dev.panini.analysis.UktiAnalyzer
 import dev.panini.analysis.VakyaAnalyzer
 import dev.panini.vyakaranam.ast.AkhyataVakya
@@ -21,6 +22,7 @@ import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.Pada
 import dev.panini.vyakaranam.ast.SankhyaAbhyasaPada
 import dev.panini.vyakaranam.ast.TingantaPada
+import dev.panini.vyakaranam.ast.Ukti
 import dev.panini.vyakaranam.lexicon.PratipadikaEntry
 import dev.panini.vyakaranam.lexicon.VyakaranamLexicon
 import dev.panini.vyakaranam.parser.PaniniParseException
@@ -39,6 +41,43 @@ import kotlin.collections.plusAssign
  */
 object VyakaranamExecutionAdapter {
     private val parser = PaniniParser()
+
+    internal fun analyzeForMemory(text: String): UktiAnalysis? {
+        val ukti = try {
+            parser.parse(text)
+        } catch (_: PaniniParseException) {
+            return null
+        }
+        if (ukti.vakyas.filterIsInstance<AkhyataVakya>().any { DhatuCache.resolve(it.tinganta) == null }) {
+            return null
+        }
+        return analyze(ukti)
+    }
+
+    private fun analyze(ukti: Ukti): UktiAnalysis = UktiAnalyzer { vakya, frameId ->
+        val akhyata = vakya as? AkhyataVakya
+        if (akhyata == null) {
+            VakyaAnalyzer(
+                PadaAnalyzer(
+                    object : VyakaranamLexicon {
+                        override fun findPratipadika(text: String): PratipadikaEntry? = null
+                        override fun findDhatu(text: String): Dhatu? = null
+                    },
+                ),
+            ).analyze(vakya, frameId)
+        } else {
+            val dhatu = requireNotNull(DhatuCache.resolve(akhyata.tinganta))
+            VakyaAnalyzer(
+                PadaAnalyzer(
+                    object : VyakaranamLexicon {
+                        override fun findPratipadika(text: String): PratipadikaEntry? = null
+                        override fun findDhatu(text: String): Dhatu = dhatu
+                    },
+                    validatePadaCompatibility = false,
+                ),
+            ).analyze(vakya, frameId)
+        }
+    }.analyze(ukti)
 
     fun bind(input: SanskritUktiInput, conversation: SambhashanaContext): ExecutionBindingResult {
         if (input.text.isBlank()) return ExecutionBindingResult.Invalid("The Sanskrit utterance is empty.")
@@ -63,30 +102,7 @@ object VyakaranamExecutionAdapter {
                 "Unknown verbal action/dhātu: ${unresolved.tinganta.sourceText}",
             )
         }
-        val utteranceAnalysis = UktiAnalyzer { vakya, frameId ->
-            val akhyata = vakya as? AkhyataVakya
-            if (akhyata == null) {
-                VakyaAnalyzer(
-                    PadaAnalyzer(
-                        object : VyakaranamLexicon {
-                            override fun findPratipadika(text: String): PratipadikaEntry? = null
-                            override fun findDhatu(text: String): Dhatu? = null
-                        },
-                    ),
-                ).analyze(vakya, frameId)
-            } else {
-                val dhatu = requireNotNull(DhatuCache.resolve(akhyata.tinganta))
-                VakyaAnalyzer(
-                    PadaAnalyzer(
-                        object : VyakaranamLexicon {
-                            override fun findPratipadika(text: String): PratipadikaEntry? = null
-                            override fun findDhatu(text: String): Dhatu = dhatu
-                        },
-                        validatePadaCompatibility = false,
-                    ),
-                ).analyze(vakya, frameId)
-            }
-        }.analyze(ukti)
+        val utteranceAnalysis = analyze(ukti)
 
         val invocations = mutableListOf<DhatuInvocation>()
         var prayer = false

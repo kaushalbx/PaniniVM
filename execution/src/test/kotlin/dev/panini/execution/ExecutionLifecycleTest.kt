@@ -1,6 +1,7 @@
 package dev.panini.execution
 
 import dev.panini.core.DhatuGana
+import dev.panini.core.Karaka
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.dhatupatha.DhatuPathaRegistration
 import dev.panini.execution.sutra.ExecutableUktiSutraCompiler
@@ -9,6 +10,7 @@ import dev.panini.execution.sutra.ProgramBlueprintCompiler
 import dev.panini.execution.sutra.ProgramBlueprintContext
 import dev.panini.execution.sutra.ProgramBlueprintDiagnosticCode
 import dev.panini.sutra.runtime.SutraArthaValue
+import dev.panini.shiksha.Samjna
 import java.nio.file.Path
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -117,6 +119,24 @@ class ExecutionLifecycleTest {
         val restarted = PaniniVM(directory)
         assertEquals(alpha, restarted.loadSession("alpha"))
         assertEquals(setOf("alpha", "beta"), restarted.listSessions().toSet())
+    }
+
+    @Test
+    fun `successful session turns automatically remember kriya frames with typed phala`() {
+        val vm = PaniniVM(storageDir.resolve("kriya-memory").toFile())
+
+        assertIs<ExecutionResult.Success>(
+            vm.eval("एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।", sessionKey = "memory"),
+        )
+
+        val remembered = vm.kriyaMemory("memory").latest().single()
+        assertEquals(1, remembered.turn)
+        assertEquals("युज्", remembered.frame.kriya?.analysis?.pada?.dhatu?.mulaDhatu)
+        assertEquals(2, remembered.frame.relations.size)
+        assertEquals(3L, assertIs<SanskritValue.Sankhya>(remembered.phala).value)
+        assertTrue(Samjna.SANKHYA in requireNotNull(remembered.phala).samjnas)
+        assertEquals(remembered, vm.kriyaMemory("memory").latestKriyas("युजिँर्").single())
+        assertEquals(2, vm.kriyaMemory("memory").latestKarakaRelations(Karaka.KARMAN, count = 2).size)
     }
 
     @Test
