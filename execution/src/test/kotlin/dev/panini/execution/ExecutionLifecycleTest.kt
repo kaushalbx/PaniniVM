@@ -217,6 +217,14 @@ class ExecutionLifecycleTest {
             ),
         )
         assertEquals("सप्त", secondResult.value)
+
+        val rememberedObjects = assertIs<ExecutionResult.Success>(
+            vm.eval(
+                "युज् + ल्युट् + ङस् कर्मन् + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+                sessionKey = "order",
+            ),
+        )
+        assertEquals("त्रि चतुर्", rememberedObjects.value)
     }
 
     @Test

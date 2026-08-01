@@ -55,6 +55,7 @@ internal object KarakaExtractor {
 
         // ---- फल resolution (delegated) ---------------------------------------------
         val phalaResolution = PhalaResolver.resolve(phalaPadas, padas, subantas, ctx)
+        val karakaReferenceResolution = KarakaReferenceResolver.resolve(subantas, ctx)
 
         // ---- kāraka inference helpers -----------------------------------------------
 
@@ -130,8 +131,16 @@ internal object KarakaExtractor {
             if (index in consumedPadaIndices) return@forEachIndexed
             if (pada in phalaResolution.resolvedGenitives) return@forEachIndexed
             if (pada in phalaResolution.resolvedQualifiers) return@forEachIndexed
+            if (pada in karakaReferenceResolution.consumedGenitives) return@forEachIndexed
             when (pada) {
-                is SubantaPada -> add(pada, phalaResolution.phalaMap[pada])
+                is SubantaPada -> {
+                    val rememberedParticipant = karakaReferenceResolution.expressions[pada]
+                    if (rememberedParticipant != null) {
+                        addBinding(rememberedParticipant, inferKarakas(pada))
+                    } else {
+                        add(pada, phalaResolution.phalaMap[pada])
+                    }
+                }
                 is SankhyaPada -> {
                     // अभ्यास-कृत्वः forms are frequency metadata, not argument values.
                     if (pada.stems.contains("कृत्वः") || pada.stems.contains("कृत्वस")) return@forEachIndexed
@@ -170,7 +179,6 @@ internal object KarakaExtractor {
                 is SankhyaAbhyasaPada -> {
                     // अभ्यास-सङ्ख्या qualifies the action with a repetition count; it is
                     // metadata for execution, not one of the action's numeric arguments.
-                    Unit
                 }
                 is SankhyaPuranaPada -> NumeralPadaBinder.bind(pada, ::inferKarakas, ::addBinding)
                 is KatapayadiPada    -> NumeralPadaBinder.bind(pada, ::inferKarakas, ::addBinding)
