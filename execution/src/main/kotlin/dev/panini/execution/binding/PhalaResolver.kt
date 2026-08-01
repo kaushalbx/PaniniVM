@@ -3,7 +3,6 @@ package dev.panini.execution.binding
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.KridantaPratipadika
 import dev.panini.vyakaranam.ast.Pada
-import dev.panini.vyakaranam.ast.SankhyaPuranaPada
 
 /**
  * Typed result of a [PhalaResolver.resolve] call.
@@ -44,15 +43,7 @@ internal object PhalaResolver {
         val phalaMap = mutableMapOf<SubantaPada, String>()
 
         phalaPadas.forEach { phalaPada ->
-            val padaIndex = padas.indexOf(phalaPada)
-            val qualifier = padas.getOrNull(padaIndex - 1)
-            val ordinalNumber = when (qualifier) {
-                is SankhyaPuranaPada -> NumeralPadaBinder.evaluateStems(qualifier.stems).value.toInt()
-                is SubantaPada -> ExpressionBuilder.ordinalNumber(qualifier.pratipadika.baseText())
-                else -> null
-            }
-            val isPreviousQualifier = (qualifier as? SubantaPada)
-                ?.pratipadika?.baseText() == "पूर्व"
+            val explicitOrder = MemoryOrderQualifierResolver.before(phalaPada, padas)
             val idx = subantas.indexOf(phalaPada)
             val genitiveModifier = subantas.take(idx)
                 .lastOrNull { it.sup.text in setOf("ङस्", "आम्") && it !in resolvedGenitives }
@@ -63,7 +54,8 @@ internal object PhalaResolver {
             val base = genitiveModifier.pratipadika.baseText()
             val isPrevious = base.startsWith("पूर्व") ||
                 precedingSub?.pratipadika?.baseText()?.startsWith("पूर्व") == true ||
-                isPreviousQualifier
+                explicitOrder.previous
+            val order = explicitOrder.copy(previous = isPrevious)
 
             if (precedingSub?.pratipadika?.baseText()?.startsWith("पूर्व") == true) {
                 resolvedGenitives.add(precedingSub)
@@ -81,17 +73,13 @@ internal object PhalaResolver {
                 }
                 root == prevRoot || root in prevActionRoots
             }
-            val withinUtteranceMatch = when {
-                ordinalNumber != null -> matchingIndices.getOrNull(ordinalNumber - 1)
-                isPrevious -> if (matchingIndices.size > 1) matchingIndices.dropLast(1).lastOrNull() else null
-                else -> matchingIndices.lastOrNull()
-            }
+            val withinUtteranceMatch = order.select(matchingIndices)
 
             if (withinUtteranceMatch != null) {
                 phalaMap[phalaPada] = "योग-${withinUtteranceMatch + 1}"
                 resolvedGenitives.add(genitiveModifier)
-                if ((ordinalNumber != null || isPreviousQualifier) && qualifier != null) {
-                    resolvedQualifiers.add(qualifier)
+                if (explicitOrder.isExplicit && explicitOrder.pada != null) {
+                    resolvedQualifiers.add(explicitOrder.pada)
                 }
                 return@forEach
             }
@@ -99,15 +87,12 @@ internal object PhalaResolver {
             // ---- 2. Resolve against kriyā-centred memory -----------------------------
             val referencedDhatu = (genitiveModifier.pratipadika as? KridantaPratipadika)
                 ?.dhatu?.mulaDhatu?.let(DhatuCache::get)?.upadesha
-            val rememberedKriya = referencedDhatu?.let { upadesha ->
-                if (ordinalNumber != null) ctx.memory.ordinalKriya(ordinalNumber, upadesha)
-                else ctx.memory.latestKriya(upadesha, offset = if (isPrevious) 1 else 0)
-            }
+            val rememberedKriya = referencedDhatu?.let { order.select(ctx.memory, it) }
             if (rememberedKriya != null) {
                 phalaMap[phalaPada] = rememberedKriya.frame.id.value
                 resolvedGenitives.add(genitiveModifier)
-                if ((ordinalNumber != null || isPreviousQualifier) && qualifier != null) {
-                    resolvedQualifiers.add(qualifier)
+                if (explicitOrder.isExplicit && explicitOrder.pada != null) {
+                    resolvedQualifiers.add(explicitOrder.pada)
                 }
                 return@forEach
             }
@@ -125,17 +110,13 @@ internal object PhalaResolver {
                 root == prevRoot || root in prevActionRoots
             } ?: emptyList()
 
-            val historicalResult = when {
-                ordinalNumber != null -> historicalResults.getOrNull(ordinalNumber - 1)
-                isPrevious -> if (historicalResults.size > 1) historicalResults.dropLast(1).lastOrNull() else null
-                else -> historicalResults.lastOrNull()
-            }
+            val historicalResult = order.select(historicalResults)
 
             if (historicalResult != null) {
                 phalaMap[phalaPada] = historicalResult.id
                 resolvedGenitives.add(genitiveModifier)
-                if ((ordinalNumber != null || isPreviousQualifier) && qualifier != null) {
-                    resolvedQualifiers.add(qualifier)
+                if (explicitOrder.isExplicit && explicitOrder.pada != null) {
+                    resolvedQualifiers.add(explicitOrder.pada)
                 }
             }
         }
