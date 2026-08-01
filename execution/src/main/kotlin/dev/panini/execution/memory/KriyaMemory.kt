@@ -55,3 +55,9 @@ data class KriyaMemory(
             .reversed()
     }
 }
+
+internal fun KriyaFrame.withMemoryId(id: KriyaId): KriyaFrame = copy(
+    id = id,
+    relations = relations.map { it.copy(kriyaId = id) },
+    qualifications = qualifications.map { it.copy(kriyaId = id) },
+)

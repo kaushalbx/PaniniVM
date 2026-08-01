@@ -5,6 +5,8 @@ import dev.panini.execution.external.ExternalCapabilityDispatcher
 import dev.panini.execution.binding.VyakaranamExecutionAdapter
 import dev.panini.execution.memory.KriyaMemory
 import dev.panini.execution.memory.RememberedKriya
+import dev.panini.execution.memory.FileKriyaMemoryStore
+import dev.panini.execution.memory.withMemoryId
 import dev.panini.execution.persistence.FileStateStore
 import dev.panini.execution.persistence.StateStore
 import dev.panini.execution.sutra.ProgramAvastha
@@ -36,6 +38,7 @@ class PaniniVM(
     ),
 ) {
     val store: StateStore = FileStateStore(storageDir)
+    private val kriyaMemoryStore = FileKriyaMemoryStore(storageDir)
     private val externalDispatcher = ExternalCapabilityDispatcher()
 
     init {
@@ -46,7 +49,11 @@ class PaniniVM(
     private val kriyaMemories = ConcurrentHashMap<String, KriyaMemory>()
 
     /** Kriyā-centred memory accumulated automatically for this VM session. */
-    fun kriyaMemory(sessionKey: String): KriyaMemory = kriyaMemories[sessionKey] ?: KriyaMemory()
+    fun kriyaMemory(sessionKey: String): KriyaMemory = kriyaMemories.computeIfAbsent(sessionKey) {
+        kriyaMemoryStore.load(sessionKey) { source ->
+            VyakaranamExecutionAdapter.analyzeForMemory(source)?.frames.orEmpty()
+        } ?: KriyaMemory()
+    }
 
     fun eval(
         utterance: String,
@@ -97,14 +104,14 @@ class PaniniVM(
             val source = frames[index % frames.size]
             RememberedKriya(
                 turn = turn,
-                frame = source.copy(id = KriyaId("turn-$turn-kriya-${index + 1}")),
+                frame = source.withMemoryId(KriyaId("turn-$turn-kriya-${index + 1}")),
                 phala = value,
             )
         }
         if (remembered.isNotEmpty()) {
-            kriyaMemories.compute(sessionKey) { _, current ->
-                (current ?: KriyaMemory()).remember(remembered)
-            }
+            val memory = kriyaMemory(sessionKey).remember(remembered)
+            kriyaMemories[sessionKey] = memory
+            kriyaMemoryStore.save(sessionKey, memory)
         }
     }
 

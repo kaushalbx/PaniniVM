@@ -123,7 +123,8 @@ class ExecutionLifecycleTest {
 
     @Test
     fun `successful session turns automatically remember kriya frames with typed phala`() {
-        val vm = PaniniVM(storageDir.resolve("kriya-memory").toFile())
+        val memoryDirectory = storageDir.resolve("kriya-memory").toFile()
+        val vm = PaniniVM(memoryDirectory)
 
         assertIs<ExecutionResult.Success>(
             vm.eval("एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।", sessionKey = "memory"),
@@ -137,6 +138,10 @@ class ExecutionLifecycleTest {
         assertTrue(Samjna.SANKHYA in requireNotNull(remembered.phala).samjnas)
         assertEquals(remembered, vm.kriyaMemory("memory").latestKriyas("युजिँर्").single())
         assertEquals(2, vm.kriyaMemory("memory").latestKarakaRelations(Karaka.KARMAN, count = 2).size)
+
+        val restored = PaniniVM(memoryDirectory).kriyaMemory("memory").latest().single()
+        assertEquals(remembered, restored)
+        assertTrue(restored.frame.relations.all { it.kriyaId == restored.frame.id })
     }
 
     @Test
