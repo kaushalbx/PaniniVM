@@ -33,18 +33,19 @@ object HrasvasyaPitiKrtiTukSutra : Sutra<DerivationState, DerivationChange>(
     private val shortVowels = setOf('इ', 'ि', 'उ', 'ु', 'ऋ', 'ृ', 'अ')
 
     override fun matches(context: DerivationState): Boolean {
-        if (context.terms.size < 2) return false
-        val stem = context.terms.getOrNull(context.terms.lastIndex - 1) ?: return false
-        val suffix = context.terms.last()
+        val stem = context.terms.firstOrNull { it.kind == TermKind.DHATU } ?: return false
+        val suffix = context.terms.lastOrNull {
+            it.kind == TermKind.PRATYAYA &&
+                (it.itMarkers.contains(ItMarker.P) || it.upadesha == "ल्यप्")
+        } ?: return false
 
         val isShortVowelEnding = stem.surface.isNotEmpty() && shortVowels.any { stem.surface.endsWith(it) }
-        val isPitKrt = suffix.kind == TermKind.PRATYAYA && suffix.itMarkers.contains(ItMarker.P) &&
-            context.allEffectiveTerms.none { it.id == "tuk_agama" }
+        val isPitKrt = context.allEffectiveTerms.none { it.id == "tuk_agama" }
         return isShortVowelEnding && isPitKrt
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val stemIndex = context.terms.lastIndex - 1
+        val stemIndex = context.terms.indexOfFirst { it.kind == TermKind.DHATU }
         val tukTerm = DerivationTerm(
             id = "tuk_agama",
             surface = "त्",

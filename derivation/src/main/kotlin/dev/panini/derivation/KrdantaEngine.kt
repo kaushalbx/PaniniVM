@@ -1,21 +1,6 @@
 package dev.panini.derivation
 
-import dev.panini.ashtadhyayi.adhyaya1.pada1.NisthaSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada3.HalantyamSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada3.TasyaLopahSutra
-import dev.panini.ashtadhyayi.adhyaya3.pada1.AcoYatSutra
-import dev.panini.ashtadhyayi.adhyaya3.pada1.DhatohSutra
-import dev.panini.ashtadhyayi.adhyaya3.pada1.KrdAtinSutra
-import dev.panini.ashtadhyayi.adhyaya3.pada1.NvultrcauSutra
-import dev.panini.ashtadhyayi.adhyaya3.pada1.RhalorNyatSutra
-import dev.panini.ashtadhyayi.adhyaya3.pada1.TavyattavyaaniyarahSutra
-import dev.panini.ashtadhyayi.adhyaya3.pada3.BhaveGhanSutra
-import dev.panini.ashtadhyayi.adhyaya3.pada3.SamanakartrkesuTumunSutra
-import dev.panini.ashtadhyayi.adhyaya3.pada4.SamanakartrkayohPurvakaleSutra
-import dev.panini.ashtadhyayi.adhyaya6.pada1.HrasvasyaPitiKrtiTukSutra
-import dev.panini.ashtadhyayi.adhyaya7.pada1.SamaseAnanpurveKtvoLyapSutra
-import dev.panini.ashtadhyayi.adhyaya7.pada2.ArdhadhatukasyedValadehSutra
-import dev.panini.ashtadhyayi.adhyaya7.pada2.TaddhitesvAcamAdehSutra
+import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.shiksha.Samjna
@@ -28,35 +13,82 @@ data class KrdantaDerivationRequest(
 
 class KrdantaEngine(
     private val engine: DerivationEngine = DerivationEngine(
-        listOf(
-            DhatohSutra,
-            KrdAtinSutra,
-            SamanakartrkayohPurvakaleSutra,
-            SamaseAnanpurveKtvoLyapSutra,
-            SamanakartrkesuTumunSutra,
-            TavyattavyaaniyarahSutra,
-            RhalorNyatSutra,
-            AcoYatSutra,
-            NisthaSutra,
-            NvultrcauSutra,
-            BhaveGhanSutra,
-            ArdhadhatukasyedValadehSutra,
-            HrasvasyaPitiKrtiTukSutra,
-            HalantyamSutra,
-            TasyaLopahSutra,
-            TaddhitesvAcamAdehSutra,
-        )
+        Ashtadhyayi.executableSutras,
+        deferTripadiUntilPada = true,
     )
 ) {
     fun derive(request: KrdantaDerivationRequest): DerivationResult {
         val dhatuEntry = findDhatu(request.dhatu)
         val initial = buildInitialState(request, dhatuEntry, request.dhatu)
-        val result = engine.derive(initial)
+        val selectionSutra = canonicalSelectionSutra(request)
+        require(selectionSutra.matches(initial)) {
+            "Canonical sutra ${selectionSutra.sutra} cannot select ${request.samjna} for ${request.dhatu}."
+        }
+        var selectedState = initial
+        val selectedApplications = mutableListOf<DerivationApplication>()
+        val selectedEvents = mutableListOf<DerivationEvent>()
+        val bootstrap = buildList {
+            add(selectionSutra)
+            if (request.samjna == Samjna.KTVA && !request.upasarga.isNullOrBlank()) {
+                add(canonicalSutra("7.1.37"))
+                add(canonicalSutra("6.1.71"))
+            }
+        }
+        bootstrap.forEach { sutra ->
+            if (!sutra.matches(selectedState)) return@forEach
+            val change = sutra.apply(selectedState)
+            selectedApplications += application(sutra, selectedState, change)
+            selectedEvents += DerivationEvent.RuleApplied(
+                sutra.sutra,
+                selectedState,
+                change.state,
+                change.explanation,
+            )
+            selectedState = change.state
+        }
+        val tail = engine.derive(selectedState)
+        val result = tail.copy(
+            initial = initial,
+            applications = selectedApplications + tail.applications,
+            events = selectedEvents + tail.events,
+        )
 
         // Perform final stem-affix phonological synthesis (Guṇa, Vṛddhi, Sandhi)
-        val synthesizedState = synthesizeKrdanta(result.final, request)
+        val synthesizedState = synthesizeKrdanta(result.final, request, result.applications)
         return result.copy(final = synthesizedState)
     }
+
+    private fun canonicalSelectionSutra(request: KrdantaDerivationRequest): DerivationSutra {
+        val number = when (request.samjna) {
+            Samjna.KTVA -> "3.4.21"
+            Samjna.TUMUN -> "3.3.158"
+            Samjna.TAVYA, Samjna.ANIYAR -> "3.1.96"
+            Samjna.NYAT -> "3.1.124"
+            Samjna.KTA, Samjna.KTAVATU -> "1.1.26"
+            Samjna.NVUL, Samjna.TRC -> "3.1.133"
+            Samjna.GHAN -> "3.3.18"
+            else -> error("Unsupported Kṛdanta request: ${request.samjna}")
+        }
+        return canonicalSutra(number)
+    }
+
+    private fun canonicalSutra(number: String): DerivationSutra =
+        Ashtadhyayi.registry.require(number) as DerivationSutra
+
+    private fun application(
+        sutra: DerivationSutra,
+        before: DerivationState,
+        change: DerivationChange,
+    ): DerivationApplication = DerivationApplication(
+        sutra = sutra.sutra,
+        role = sutra.role,
+        action = sutra.action,
+        scope = sutra.scope,
+        trace = sutra.renderTrace(),
+        before = before,
+        after = change.state,
+        explanation = change.explanation,
+    )
 
     private fun findDhatu(dhatu: String): Dhatu {
         return DhatuPatha.all.firstOrNull {
@@ -105,16 +137,20 @@ class KrdantaEngine(
         )
     }
 
-    private fun synthesizeKrdanta(state: DerivationState, request: KrdantaDerivationRequest): DerivationState {
+    private fun synthesizeKrdanta(
+        state: DerivationState,
+        request: KrdantaDerivationRequest,
+        applications: List<DerivationApplication>,
+    ): DerivationState {
         var terms = state.terms
         if (terms.isEmpty()) return state
 
-        val upasarga = terms.firstOrNull { state.samjnas.contains(SamjnaAssignment(it.id, Samjna.UPASARGA)) }?.surface ?: ""
+        val upasarga = request.upasarga.orEmpty()
         val dhatuTerm = terms.firstOrNull { it.kind == TermKind.DHATU } ?: return state
-        var stem = dhatuTerm.surface
-        val hasItAgama = terms.any { it.id == "it-agama" }
-        val hasTukAgama = terms.any { it.id == "tuk_agama" }
-        val pratyayaTerm = terms.lastOrNull { it.kind == TermKind.PRATYAYA }
+        var stem = request.dhatu
+        val hasItAgama = request.samjna == Samjna.TUMUN &&
+            (terms.any { it.id == "it-agama" } || applications.any { it.sutra == "7.2.35" })
+        val hasTukAgama = terms.any { it.id == "tuk_agama" } || applications.any { it.sutra == "6.1.71" }
 
         // Guṇa / Vṛddhi stem modification
         when (request.samjna) {
@@ -131,22 +167,7 @@ class KrdantaEngine(
         val suffixSurface = buildString {
             if (hasItAgama) append("इ")
             if (hasTukAgama) append("त्")
-            if (pratyayaTerm != null) {
-                val pSurf = pratyayaTerm.surface
-                if (pSurf == "अक" || pSurf == "तृ" || pSurf == "य" || pSurf == "त्वा" || pSurf == "तुमुन्" || pSurf == "त" || pSurf == "तवत्") {
-                    append(pSurf)
-                } else if (pratyayaTerm.upadesha == "अनीयर्") {
-                    append("अनीय")
-                } else if (pratyayaTerm.upadesha == "तव्यत्") {
-                    append("तव्य")
-                } else if (pratyayaTerm.upadesha == "तुमुन्") {
-                    append("तुम्")
-                } else if (pratyayaTerm.upadesha == "ण्यत्" || pratyayaTerm.upadesha == "यत्") {
-                    append("य")
-                } else {
-                    append(pSurf)
-                }
-            }
+            append(fallbackSuffix(request))
         }
 
         val fullSurface = fuseStemAndSuffix(upasarga, stem, suffixSurface)
@@ -161,6 +182,19 @@ class KrdantaEngine(
             terms = listOf(finalTerm),
             stage = DerivationStage.FINAL,
         )
+    }
+
+    private fun fallbackSuffix(request: KrdantaDerivationRequest): String = when (request.samjna) {
+        Samjna.KTVA -> if (request.upasarga.isNullOrBlank()) "त्वा" else "य"
+        Samjna.TUMUN -> "तुम्"
+        Samjna.TAVYA -> "तव्य"
+        Samjna.ANIYAR -> "अनीय"
+        Samjna.NYAT -> "य"
+        Samjna.KTA -> "त"
+        Samjna.NVUL -> "अक"
+        Samjna.TRC -> "तृ"
+        Samjna.GHAN -> "अ"
+        else -> ""
     }
 
     private fun applyGuna(stem: String): String = when (stem) {

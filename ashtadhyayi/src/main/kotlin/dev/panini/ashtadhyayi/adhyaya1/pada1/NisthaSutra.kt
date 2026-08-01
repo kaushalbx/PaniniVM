@@ -32,9 +32,8 @@ object NisthaSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        if (context.stage != DerivationStage.INITIAL && context.stage != DerivationStage.PRATYAYA_SELECTED) return false
         val isNisthaRequested = context.samjnas.any { it.samjna == Samjna.KTA || it.samjna == Samjna.KTAVATU }
-        val hasPratyaya = context.terms.any { it.kind == TermKind.PRATYAYA }
+        val hasPratyaya = context.terms.any { it.upadesha == "क्त" || it.upadesha == "क्तवतु" }
         return isNisthaRequested && !hasPratyaya
     }
 

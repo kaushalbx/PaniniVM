@@ -236,6 +236,7 @@ data class DerivationConfig(
 
 class DerivationEngine(
     private val sutras: List<DerivationSutra>,
+    private val deferTripadiUntilPada: Boolean = false,
 ) {
     private val sutraMap = sutras.associateBy { it.sutra }
     private val adhikaraSutras = sutras.filter { it.role is SutraRole.Adhikara }
@@ -426,6 +427,7 @@ class DerivationEngine(
     }
 
     private fun isDerivationEligible(sutra: DerivationSutra, state: DerivationState): Boolean {
+        if (deferTripadiUntilPada && sutra.isTripadi() && state.stage < DerivationStage.PADA_FORMED) return false
         val isPadaBoundaryDerivation = state.samjnas.count { it.samjna == Samjna.PADA } >= 2 &&
             state.allEffectiveTerms.none { it.kind == TermKind.DHATU || it.kind == TermKind.PRATYAYA }
         if (isPadaBoundaryDerivation && sutra.stage != SutraStage.SANDHI) return false

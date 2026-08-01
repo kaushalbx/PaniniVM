@@ -30,7 +30,8 @@ object DhatohSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.stage != DerivationStage.INITIAL) return false
-        return context.terms.any { it.kind == TermKind.DHATU }
+        return "3.1.91" !in context.activeAdhikaras &&
+            context.terms.any { it.kind == TermKind.DHATU }
     }
 
     override fun apply(context: DerivationState): DerivationChange {

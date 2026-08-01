@@ -7,7 +7,7 @@ object Adhyaya3Pada3 {
         BhavishyatiGamyadayahSutra,
         UnadayoBahulamSutra,
         KrmyoKahSutra,
-        BhaveSutra,
+        BhaveGhanSutra,
         EchaIgGhanSutra,
         RadorApsutra,
         ShidbhidadibhyoAngSutra,
@@ -21,5 +21,6 @@ object Adhyaya3Pada3 {
         VidhinimantranamantranadhistasamprashnaprarthanesuLingSutra,
         LotCaSutra,
         KalaSamayaVelashuTumunSutra,
+        SamanakartrkesuTumunSutra,
     )
 }

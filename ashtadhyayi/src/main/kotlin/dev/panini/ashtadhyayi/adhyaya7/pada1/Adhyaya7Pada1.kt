@@ -8,6 +8,7 @@ object Adhyaya7Pada1 {
         JhoAntahSutra, AdabhyastatSutra, AtmanepadesvAnatahSutra, YuvoranakauSutra,
         TangasingsamInatsyahSutra, HrasvanadyapoNutSutra, AtoBhisAisSutra, NgeryahSutra,
         SarvanamnasSmaiSutra, NasinyohSmatsminauSutra, JasahShiSutra, AunapahSutra,
-        AmiSarvanamnasSutSutra, JapsasohShihSutra, NapumsakaccaSutra, NapumsakasyaJhalacahSutra, AtomSutra
+        AmiSarvanamnasSutSutra, JapsasohShihSutra, NapumsakaccaSutra, NapumsakasyaJhalacahSutra,
+        SamaseAnanpurveKtvoLyapSutra, AtomSutra
     )
 }

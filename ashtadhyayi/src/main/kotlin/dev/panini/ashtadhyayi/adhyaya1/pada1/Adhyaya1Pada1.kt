@@ -22,7 +22,7 @@ object Adhyaya1Pada1 {
         TarapTamapGhahSutra,
         TatiSankhyaSutra,
         SnatSatSutra,
-        KtaKtavatuNisthaSutra,
+        NisthaSutra,
         NaLumatangasyaSutra,
         SarvanamaSutra,
         SvaradiNipatamAvyayamSutra,

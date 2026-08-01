@@ -81,7 +81,7 @@ object AtkupvangnumvyavayePiSutra : Sutra<DerivationState, DerivationChange>(
 
 
         val intervenors = surface.substring(rIndex + 1, nIndex)
-        return intervenors.all { isAllowed(it) }
+        return intervenors.all { isAllowed(it) } && apply(context).state != context
     }
 
     override fun apply(context: DerivationState): DerivationChange {
