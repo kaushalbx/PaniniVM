@@ -80,4 +80,7 @@ object Ashtadhyayi {
     fun sutraFor(gana: Gana): Sutra<*, *> = registry.require(gana.sutra)
 
     fun getSutrasByRole(role: SutraRole): List<Sutra<*, *>> = registry.sutras.filter { it.role == role }
+
+    fun executableSutrasUnder(adhikaraNumber: String): List<DerivationSutra> =
+        registry.governedBy(adhikaraNumber).filterIsInstance<DerivationSutra>()
 }

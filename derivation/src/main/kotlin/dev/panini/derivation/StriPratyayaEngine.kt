@@ -1,11 +1,7 @@
 package dev.panini.derivation
 
-import dev.panini.ashtadhyayi.adhyaya4.pada1.AjadyatasTapSutra
-import dev.panini.ashtadhyayi.adhyaya4.pada1.RnnebyoNipSutra
-import dev.panini.ashtadhyayi.adhyaya4.pada1.SarngaravadyanoNinSutra
-import dev.panini.ashtadhyayi.adhyaya4.pada1.SiddhagauradibhyascaSutra
-import dev.panini.ashtadhyayi.adhyaya4.pada1.StriyamSutra
-import dev.panini.ashtadhyayi.adhyaya4.pada1.YuvatisTihSutra
+import dev.panini.ashtadhyayi.Ashtadhyayi
+import dev.panini.core.Linga
 import dev.panini.shiksha.Samjna
 
 data class StriPratyayaRequest(
@@ -15,14 +11,7 @@ data class StriPratyayaRequest(
 
 class StriPratyayaEngine(
     private val engine: DerivationEngine = DerivationEngine(
-        listOf(
-            StriyamSutra,
-            AjadyatasTapSutra,
-            RnnebyoNipSutra,
-            SiddhagauradibhyascaSutra,
-            SarngaravadyanoNinSutra,
-            YuvatisTihSutra,
-        )
+        Ashtadhyayi.executableSutrasUnder("4.1.3")
     )
 ) {
     fun derive(request: StriPratyayaRequest): DerivationResult {
@@ -50,6 +39,7 @@ class StriPratyayaEngine(
             samjnas = samjnas,
             activeAdhikaras = setOf("4.1.1"),
             stage = DerivationStage.INITIAL,
+            context = DerivationalContext(rupa = Rupa(linga = Linga.STRI)),
         )
     }
 

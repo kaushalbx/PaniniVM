@@ -30,6 +30,15 @@ class SutraRegistry(
     fun inScope(scope: SutraScope): List<Sutra<*, *>> =
         sutras.filter { it.scope == scope }
 
+    /** Canonical view of an adhikāra and the sūtras governed by its textual range. */
+    fun governedBy(adhikaraNumber: String): List<Sutra<*, *>> {
+        val adhikara = require(adhikaraNumber)
+        val role = adhikara.role as? SutraRole.Adhikara
+            ?: error("Sutra $adhikaraNumber is not an adhikara.")
+        val start = role.customStartKrama ?: adhikara.krama
+        return sutras.filter { it == adhikara || it.krama in start..role.endKrama }
+    }
+
     fun dependenciesOf(sutraNumber: String): List<Sutra<*, *>> =
         require(sutraNumber).dependencies.mapNotNull(::get)
 

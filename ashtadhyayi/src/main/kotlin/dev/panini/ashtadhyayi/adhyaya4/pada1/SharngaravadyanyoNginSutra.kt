@@ -9,6 +9,7 @@ import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.HasMorphosyntax
 import dev.panini.derivation.TermKind
 import dev.panini.ganapatha.GanaPatha
+import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -24,11 +25,12 @@ object SharngaravadyanyoNginSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
         HasMorphosyntax(linga = Linga.STRI).matches(context) &&
-            context.terms.any { it.kind == TermKind.PRATIPADIKA && GanaPatha.isEligibleMember(51, it.surface, it.lexicalUses) } &&
+            (context.samjnas.any { it.samjna == Samjna.NIN } ||
+                context.terms.any { it.kind == TermKind.PRATIPADIKA && GanaPatha.isEligibleMember(51, it.surface, it.lexicalUses) }) &&
             context.allEffectiveTerms.none { it.upadesha == "ङीन्" }
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
-        context.addTerm(DerivationTerm("ngin-suffix", "ी", TermKind.PRATYAYA, upadesha = "ङीन्"))
+        context.addTerm(DerivationTerm("ngin-suffix", "ई", TermKind.PRATYAYA, upadesha = "ङीन्"))
             .copy(stage = DerivationStage.PRATYAYA_SELECTED),
         "4.1.73 introduces ङीन् after an eligible शार्ङ्गरवादि term in the feminine.",
     )

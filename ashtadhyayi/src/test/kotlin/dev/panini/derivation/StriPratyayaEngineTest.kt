@@ -40,7 +40,7 @@ class StriPratyayaEngineTest {
     fun `nin derives nari`() {
         val res = engine.derive(StriPratyayaRequest("नृ", Samjna.NIN))
         assertEquals("नारी", res.final.surface)
-        assertTrue(res.applications.any { it.sutra == "4.1.65" })
+        assertTrue(res.applications.any { it.sutra == "4.1.73" })
     }
 
     @Test

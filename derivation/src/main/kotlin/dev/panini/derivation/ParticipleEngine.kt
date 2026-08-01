@@ -15,14 +15,7 @@ data class ParticipleDerivationRequest(
 
 /** Main entry point for deriving Participles (Śatṛ, Śānac, Kvasu, Kānac) and Uṇādi stems. */
 class ParticipleEngine(
-    private val derivationEngine: DerivationEngine = DerivationEngine(
-        listOf(
-            LatahSatrsanacauSutra,
-            LitahKvasuSutra,
-            KanacCaSutra,
-            UnadayoBahulamSutra,
-        ) + Ashtadhyayi.executableSutras
-    ),
+    private val derivationEngine: DerivationEngine = DerivationEngine(Ashtadhyayi.executableSutras),
 ) {
     fun derive(request: ParticipleDerivationRequest): DerivationResult {
         val rootTerm = DerivationTerm("dhatu", request.root, TermKind.DHATU)

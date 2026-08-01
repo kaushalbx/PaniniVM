@@ -7,6 +7,15 @@ import kotlin.test.assertTrue
 
 class AshtadhyayiTest {
 
+    @Test
+    fun `derives executable views from adhikara metadata`() {
+        val feminine = Ashtadhyayi.executableSutrasUnder("4.1.3").map { it.sutra }
+
+        assertTrue("4.1.3" in feminine)
+        assertTrue("4.1.41" in feminine)
+        assertTrue("4.1.73" in feminine)
+        assertTrue("4.1.76" !in feminine)
+    }
 
     @Test
     fun `exposes executable derivation sutras by sutra number`() {
