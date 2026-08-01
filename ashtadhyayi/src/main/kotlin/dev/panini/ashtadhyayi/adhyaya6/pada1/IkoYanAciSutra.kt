@@ -31,7 +31,7 @@ object IkoYanAciSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.VARNA,
-    stage = SutraStage.SANDHI,
+    stage = SutraStage.VOWEL_SANDHI,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.stage !in setOf(DerivationStage.IT_PROCESSED, DerivationStage.ANGAKARYA, DerivationStage.PADA_FORMED)) return false

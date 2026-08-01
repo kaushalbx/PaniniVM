@@ -24,6 +24,7 @@ object SasajusoRuhSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.DERIVATION,
+    stage = dev.panini.sutra.SutraStage.RUTVA,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
         (context.stage == DerivationStage.IT_PROCESSED || context.stage == DerivationStage.PADA_FORMED || context.stage == DerivationStage.FINAL) &&

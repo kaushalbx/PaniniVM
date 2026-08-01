@@ -17,6 +17,7 @@ object DvesTiyahSutra : Sutra<DerivationState, DerivationChange>(
     number = "5.2.54", text = "द्वेस्तीयः", hindiExplanation = "द्वि से पूरणार्थे तीय प्रत्यय होता है।",
     type = SutraType.APAVADA, chapter = 5, pada = 2, optional = false, kramaValue = 520054,
     role = SutraRole.Apavada, action = SutraAction.PRATYAYA_SELECTION, scope = SutraScope.DERIVATION,
+    stage = dev.panini.sutra.SutraStage.PRATYAYA_SELECTION,
     blocks = setOf("5.2.48"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean = context.samjnas.any { it.samjna == Samjna.PURANA } &&

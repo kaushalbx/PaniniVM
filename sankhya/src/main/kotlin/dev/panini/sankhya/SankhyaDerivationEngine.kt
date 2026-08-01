@@ -1,35 +1,25 @@
 package dev.panini.sankhya
 
-import dev.panini.ashtadhyayi.adhyaya6.pada1.AdGunaSutra
-import dev.panini.ashtadhyayi.adhyaya6.pada1.HashiCaSutra
-import dev.panini.ashtadhyayi.adhyaya6.pada1.IkoYanAciSutra
-import dev.panini.ashtadhyayi.adhyaya6.pada1.SavarnaDirghaSutra
-import dev.panini.ashtadhyayi.adhyaya6.pada3.DvyashtanahSankhyayamSutra
-import dev.panini.ashtadhyayi.adhyaya6.pada3.EkadishCaikasyaCadukSutra
-import dev.panini.ashtadhyayi.adhyaya6.pada3.TreStrayahSutra
-import dev.panini.ashtadhyayi.adhyaya6.pada3.VibhashaChatvarimshatPrabhritauSarveshamSutra
-import dev.panini.ashtadhyayi.adhyaya8.pada2.JhalamJashonteSutra
-import dev.panini.ashtadhyayi.adhyaya8.pada2.NaloPratipadikantasyaSutra
-import dev.panini.ashtadhyayi.adhyaya8.pada2.SasajusoRuhSutra
-import dev.panini.ashtadhyayi.adhyaya8.pada3.KharavasanayorVisarjaniyahSutra
-import dev.panini.ashtadhyayi.adhyaya8.pada3.VisarjaniyasyaSahSutra
-import dev.panini.ashtadhyayi.adhyaya8.pada4.StosShcunaShcuhSutra
+import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.derivation.DerivationEngine
 import dev.panini.derivation.DerivationEvent
 import dev.panini.derivation.DerivationResult
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
+import dev.panini.sutra.SutraStage
 
 /** Executes numeral-compound operations in their grammatical dependency order. */
 class SankhyaDerivationEngine {
-    private val compoundAnga = DerivationEngine(listOf(EkadishCaikasyaCadukSutra, DvyashtanahSankhyayamSutra, TreStrayahSutra, VibhashaChatvarimshatPrabhritauSarveshamSutra))
-    private val pratipadikaLopa = DerivationEngine(listOf(NaloPratipadikantasyaSutra))
-    private val vowelSandhi = DerivationEngine(listOf(SavarnaDirghaSutra, IkoYanAciSutra))
-    private val rutva = DerivationEngine(listOf(SasajusoRuhSutra))
-    private val postRutva = DerivationEngine(listOf(HashiCaSutra, AdGunaSutra))
-    private val visarjaniya = DerivationEngine(listOf(KharavasanayorVisarjaniyahSutra))
-    private val sibilantSandhi = DerivationEngine(listOf(VisarjaniyasyaSahSutra, StosShcunaShcuhSutra))
-    private val finalConsonantSandhi = DerivationEngine(listOf(JhalamJashonteSutra))
+    private val compoundAnga = DerivationEngine(Ashtadhyayi.executableSutrasAt(SutraStage.ANGAKARYA))
+    private val padaFormation = DerivationEngine(Ashtadhyayi.executableSutrasAt(SutraStage.PADA_FORMATION))
+    private val sandhiPhases = listOf(
+        SutraStage.VOWEL_SANDHI,
+        SutraStage.RUTVA,
+        SutraStage.POST_RUTVA,
+        SutraStage.FINAL_CONSONANT_SANDHI,
+        SutraStage.VISARJANIYA,
+        SutraStage.SIBILANT_SANDHI,
+    ).map { stage -> DerivationEngine(Ashtadhyayi.executableSutrasAt(stage)) }
 
     fun derive(initial: DerivationState): DerivationResult {
         val start = initial.copy(stage = DerivationStage.PADA_FORMED)
@@ -46,13 +36,8 @@ class SankhyaDerivationEngine {
 
     private fun complete(initial: DerivationState, compoundResult: DerivationResult): DerivationResult {
         val stages = if (initial.terms.size == 1) emptyList() else buildList {
-            add(pratipadikaLopa)
-            add(vowelSandhi)
-            add(rutva)
-            add(postRutva)
-            add(finalConsonantSandhi)
-            add(visarjaniya)
-            add(sibilantSandhi)
+            add(padaFormation)
+            addAll(sandhiPhases)
         }
         var state = compoundResult.final
         val applications = compoundResult.applications.toMutableList()

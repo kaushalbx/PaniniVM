@@ -23,6 +23,7 @@ object NityamShatadiSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.AGAMA,
     scope = SutraScope.DERIVATION,
+    stage = dev.panini.sutra.SutraStage.PRATYAYA_SELECTION,
     blocks = setOf("5.2.56"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {

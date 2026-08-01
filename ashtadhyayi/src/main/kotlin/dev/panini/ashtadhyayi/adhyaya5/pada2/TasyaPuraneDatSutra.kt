@@ -24,7 +24,8 @@ object TasyaPuraneDatSutra : Sutra<DerivationState, DerivationChange>(
     kramaValue = 520048,
     role = SutraRole.Vidhi,
     action = SutraAction.PRATYAYA_SELECTION,
-    scope = SutraScope.DERIVATION
+    scope = SutraScope.DERIVATION,
+    stage = dev.panini.sutra.SutraStage.PRATYAYA_SELECTION,
 ), DerivationSutra {
 
     override fun matches(context: DerivationState): Boolean {

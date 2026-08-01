@@ -1,17 +1,6 @@
 package dev.panini.sankhya
 
-import dev.panini.ashtadhyayi.adhyaya5.pada2.DvesTiyahSutra
-import dev.panini.ashtadhyayi.adhyaya5.pada2.NantadAsankhyaderMatSutra
-import dev.panini.ashtadhyayi.adhyaya5.pada2.NityamShatadiSutra
-import dev.panini.ashtadhyayi.adhyaya5.pada2.ShashtyadeshCasankhyadehSutra
-import dev.panini.ashtadhyayi.adhyaya5.pada2.ShatKatiKatipayaChaturamThukSutra
-import dev.panini.ashtadhyayi.adhyaya5.pada2.TasyaPuraneDatSutra
-import dev.panini.ashtadhyayi.adhyaya5.pada2.TresSamprasaranamCaSutra
-import dev.panini.ashtadhyayi.adhyaya5.pada2.VimshatyadibhyasTamadAnyatarasyamSutra
-import dev.panini.ashtadhyayi.adhyaya6.pada4.TehSutra
-import dev.panini.ashtadhyayi.adhyaya6.pada4.TiVimshaterDitiSutra
-import dev.panini.ashtadhyayi.adhyaya8.pada2.NaloPratipadikantasyaSutra
-import dev.panini.ashtadhyayi.adhyaya8.pada4.StunaShtuhSutra
+import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.derivation.DerivationApplication
 import dev.panini.derivation.DerivationConfig
 import dev.panini.derivation.DerivationEngine
@@ -24,32 +13,17 @@ import dev.panini.derivation.OptionalRulePolicy
 import dev.panini.derivation.SamjnaAssignment
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
+import dev.panini.sutra.SutraStage
 
 /** Derives the currently implemented pūraṇa numerals through A.5.2.48–56. */
 class PuranaSankhyaDeriver(
     private val cardinalDeriver: CardinalSankhyaDeriver,
 ) {
     private val expressionBuilder = SankhyaExpressionBuilder()
-    private val taddhitaEngine = DerivationEngine(
-        listOf(
-            ShatKatiKatipayaChaturamThukSutra,
-            DvesTiyahSutra,
-            TresSamprasaranamCaSutra,
-            NantadAsankhyaderMatSutra,
-            TasyaPuraneDatSutra,
-            VimshatyadibhyasTamadAnyatarasyamSutra,
-            NityamShatadiSutra,
-            ShashtyadeshCasankhyadehSutra,
-        )
-    )
-    private val angaEngine = DerivationEngine(
-        listOf(
-            TiVimshaterDitiSutra,
-            TehSutra,
-            NaloPratipadikantasyaSutra,
-        )
-    )
-    private val thukPhonology = DerivationEngine(listOf(StunaShtuhSutra))
+    private val taddhitaEngine = DerivationEngine(Ashtadhyayi.executableSutrasAt(SutraStage.PRATYAYA_SELECTION))
+    private val angaEngine = DerivationEngine(Ashtadhyayi.executableSutrasAt(SutraStage.ANGAKARYA))
+    private val padaFormationEngine = DerivationEngine(Ashtadhyayi.executableSutrasAt(SutraStage.PADA_FORMATION))
+    private val thukPhonology = DerivationEngine(Ashtadhyayi.executableSutrasAt(SutraStage.THUK_PHONOLOGY))
 
     fun derive(value: Long): DerivationResult {
         val initial = initialState(value)
@@ -67,14 +41,16 @@ class PuranaSankhyaDeriver(
 
     private fun complete(initial: DerivationState, taddhita: DerivationResult): DerivationResult {
         val anga = angaEngine.derive(taddhita.final.copy(stage = DerivationStage.PADA_FORMED))
-        val finalOperation = if (anga.final.terms.any { it.upadesha == "थुक्" }) {
-            thukPhonology.derive(anga.final.copy(stage = DerivationStage.PADA_FORMED))
+        val padaFormation = padaFormationEngine.derive(anga.final.copy(stage = DerivationStage.PADA_FORMED))
+        val finalOperation = if (padaFormation.final.terms.any { it.upadesha == "थुक्" }) {
+            thukPhonology.derive(padaFormation.final.copy(stage = DerivationStage.PADA_FORMED))
         } else {
-            DerivationResult(anga.final, anga.final, emptyList(), emptyList())
+            DerivationResult(padaFormation.final, padaFormation.final, emptyList(), emptyList())
         }
-        val applications = taddhita.applications + anga.applications + finalOperation.applications
+        val applications = taddhita.applications + anga.applications + padaFormation.applications + finalOperation.applications
         val events = taddhita.events.filterNot { it is DerivationEvent.Completed } +
             anga.events.filterNot { it is DerivationEvent.Completed } +
+            padaFormation.events.filterNot { it is DerivationEvent.Completed } +
             finalOperation.events.filterNot { it is DerivationEvent.Completed }
         return DerivationResult(
             initial = initial,

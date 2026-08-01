@@ -22,7 +22,8 @@ object DvyashtanahSankhyayamSutra : Sutra<DerivationState, DerivationChange>(
     kramaValue = 630047,
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
-    scope = SutraScope.DERIVATION
+    scope = SutraScope.DERIVATION,
+    stage = dev.panini.sutra.SutraStage.ANGAKARYA,
 ), DerivationSutra {
 
     override fun matches(context: DerivationState): Boolean {

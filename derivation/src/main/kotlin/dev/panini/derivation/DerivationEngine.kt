@@ -430,7 +430,7 @@ class DerivationEngine(
         if (deferTripadiUntilPada && sutra.isTripadi() && state.stage < DerivationStage.PADA_FORMED) return false
         val isPadaBoundaryDerivation = state.samjnas.count { it.samjna == Samjna.PADA } >= 2 &&
             state.allEffectiveTerms.none { it.kind == TermKind.DHATU || it.kind == TermKind.PRATYAYA }
-        if (isPadaBoundaryDerivation && sutra.stage != SutraStage.SANDHI) return false
+        if (isPadaBoundaryDerivation && sutra.stage !in sandhiStages) return false
         if (!isPadaBoundaryDerivation && sutra.scope == SutraScope.PADA_BOUNDARY) return false
 
         val activeDomains = sutraActiveAdhikaras[sutra.sutra] ?: emptyList()
@@ -440,6 +440,16 @@ class DerivationEngine(
     }
 
     private companion object {
+        val sandhiStages = setOf(
+            SutraStage.VOWEL_SANDHI,
+            SutraStage.RUTVA,
+            SutraStage.POST_RUTVA,
+            SutraStage.FINAL_CONSONANT_SANDHI,
+            SutraStage.VISARJANIYA,
+            SutraStage.SIBILANT_SANDHI,
+            SutraStage.THUK_PHONOLOGY,
+            SutraStage.SANDHI,
+        )
         private val activeAdhikarasCache = java.util.concurrent.ConcurrentHashMap<List<DerivationSutra>, Map<String, List<DerivationSutra>>>()
 
         /**

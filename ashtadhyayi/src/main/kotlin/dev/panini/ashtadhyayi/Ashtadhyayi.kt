@@ -83,4 +83,7 @@ object Ashtadhyayi {
 
     fun executableSutrasUnder(adhikaraNumber: String): List<DerivationSutra> =
         registry.governedBy(adhikaraNumber).filterIsInstance<DerivationSutra>()
+
+    fun executableSutrasAt(stage: SutraStage): List<DerivationSutra> =
+        executableSutras.filter { it.stage == stage }
 }

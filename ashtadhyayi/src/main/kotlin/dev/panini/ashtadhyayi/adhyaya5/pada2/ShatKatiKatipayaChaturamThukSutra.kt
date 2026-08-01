@@ -18,6 +18,7 @@ object ShatKatiKatipayaChaturamThukSutra : Sutra<DerivationState, DerivationChan
     hindiExplanation = "पूरणार्थे षष् और चतुर् के बाद थुक् आगम होता है।",
     type = SutraType.APAVADA, chapter = 5, pada = 2, optional = false, kramaValue = 520051,
     role = SutraRole.Apavada, action = SutraAction.AGAMA, scope = SutraScope.DERIVATION,
+    stage = dev.panini.sutra.SutraStage.PRATYAYA_SELECTION,
     blocks = setOf("5.2.48", "5.2.49"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean = context.samjnas.any { it.samjna == Samjna.PURANA } &&

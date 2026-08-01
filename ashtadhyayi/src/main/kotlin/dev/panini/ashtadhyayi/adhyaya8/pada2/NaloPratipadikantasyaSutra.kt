@@ -24,6 +24,7 @@ object NaloPratipadikantasyaSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.LOPA,
     scope = SutraScope.DERIVATION,
+    stage = dev.panini.sutra.SutraStage.PADA_FORMATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.terms.size < 2) return false

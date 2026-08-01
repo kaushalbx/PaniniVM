@@ -32,6 +32,7 @@ object JhalamJashonteSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.VARNA,
+    stage = dev.panini.sutra.SutraStage.FINAL_CONSONANT_SANDHI,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         // Must be a Pada (per 1.4.14)

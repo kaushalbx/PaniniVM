@@ -30,7 +30,7 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.DERIVATION,
-    stage = SutraStage.SANDHI,
+    stage = SutraStage.POST_RUTVA,
     blocks = setOf("6.1.77"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {

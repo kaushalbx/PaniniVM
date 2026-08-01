@@ -29,6 +29,7 @@ object TehSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.LOPA,
     scope = SutraScope.DERIVATION,
+    stage = dev.panini.sutra.SutraStage.ANGAKARYA,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val ending = context.terms.lastOrNull() ?: return false

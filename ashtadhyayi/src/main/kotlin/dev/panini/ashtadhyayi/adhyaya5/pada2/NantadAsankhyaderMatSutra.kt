@@ -24,7 +24,8 @@ object NantadAsankhyaderMatSutra : Sutra<DerivationState, DerivationChange>(
     kramaValue = 520049,
     role = SutraRole.Vidhi,
     action = SutraAction.AGAMA,
-    scope = SutraScope.DERIVATION
+    scope = SutraScope.DERIVATION,
+    stage = dev.panini.sutra.SutraStage.PRATYAYA_SELECTION,
 ), DerivationSutra {
 
     override fun matches(context: DerivationState): Boolean {

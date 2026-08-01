@@ -29,7 +29,7 @@ object StunaShtuhSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.VARNA,
-    stage = SutraStage.SANDHI,
+    stage = SutraStage.THUK_PHONOLOGY,
     dependencies = setOf("8.4.40")
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {

@@ -17,6 +17,7 @@ object TresSamprasaranamCaSutra : Sutra<DerivationState, DerivationChange>(
     number = "5.2.55", text = "त्रेः सम्प्रसारणं च", hindiExplanation = "त्रि से पूरणार्थे तीय तथा सम्प्रसारण होता है।",
     type = SutraType.APAVADA, chapter = 5, pada = 2, optional = false, kramaValue = 520055,
     role = SutraRole.Apavada, action = SutraAction.PRATYAYA_SELECTION, scope = SutraScope.DERIVATION,
+    stage = dev.panini.sutra.SutraStage.PRATYAYA_SELECTION,
     blocks = setOf("5.2.48"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean = context.samjnas.any { it.samjna == Samjna.PURANA } &&

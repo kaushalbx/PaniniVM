@@ -29,7 +29,7 @@ object StosShcunaShcuhSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.VARNA,
-    stage = SutraStage.SANDHI,
+    stage = SutraStage.SIBILANT_SANDHI,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean = findMatch(context) != null
 

@@ -16,6 +16,7 @@ object VibhashaChatvarimshatPrabhritauSarveshamSutra : Sutra<DerivationState, De
     hindiExplanation = "चत्वारिंशत् से नवति तक द्वि, अष्टन् और त्रि के पूर्वोक्त आदेश विकल्प से होते हैं।",
     type = SutraType.VIBHASHA, chapter = 6, pada = 3, optional = true, kramaValue = 630049,
     role = SutraRole.Vidhi, action = SutraAction.ADESHA, scope = SutraScope.DERIVATION,
+    stage = dev.panini.sutra.SutraStage.ANGAKARYA,
 ), DerivationSutra {
     private val optionalUttarapadas = setOf("चत्वारिंशत्", "पञ्चाशत्", "षष्टि", "सप्तति", "नवति")
 

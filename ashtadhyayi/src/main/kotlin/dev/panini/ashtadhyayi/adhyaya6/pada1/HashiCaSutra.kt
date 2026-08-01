@@ -31,6 +31,7 @@ object HashiCaSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.VARNA,
+    stage = dev.panini.sutra.SutraStage.POST_RUTVA,
     nimittaScope = NimittaScope.BOTH
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {

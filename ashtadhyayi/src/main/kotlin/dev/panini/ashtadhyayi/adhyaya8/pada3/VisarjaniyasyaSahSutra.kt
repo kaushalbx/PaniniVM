@@ -28,6 +28,7 @@ object VisarjaniyasyaSahSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.VARNA,
+    stage = dev.panini.sutra.SutraStage.SIBILANT_SANDHI,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.terms.size < 2) return false

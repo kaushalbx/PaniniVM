@@ -15,6 +15,7 @@ object EkadishCaikasyaCadukSutra : Sutra<DerivationState, DerivationChange>(
     number = "6.3.76", text = "एकादिश्चैकस्य चादुक्", hindiExplanation = "एकादिगणे एकस्य आदुक् आगमः।",
     type = SutraType.NITYA, chapter = 6, pada = 3, optional = false, kramaValue = 630076,
     role = SutraRole.Vidhi, action = SutraAction.AGAMA, scope = SutraScope.DERIVATION,
+    stage = dev.panini.sutra.SutraStage.ANGAKARYA,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean = context.terms.size > 1 &&
         context.terms[0].surface == "एक" && context.terms[1].surface == "दश" &&

@@ -31,6 +31,7 @@ object KharavasanayorVisarjaniyahSutra : Sutra<DerivationState, DerivationChange
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.DERIVATION,
+    stage = dev.panini.sutra.SutraStage.VISARJANIYA,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val internal = internalSankhyaTerm(context)

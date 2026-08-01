@@ -23,6 +23,7 @@ object VimshatyadibhyasTamadAnyatarasyamSutra : Sutra<DerivationState, Derivatio
     role = SutraRole.Vidhi,
     action = SutraAction.AGAMA,
     scope = SutraScope.DERIVATION,
+    stage = dev.panini.sutra.SutraStage.PRATYAYA_SELECTION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.samjnas.none { it.samjna == Samjna.PURANA }) return false
