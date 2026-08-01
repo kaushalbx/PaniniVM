@@ -21,3 +21,24 @@ internal fun Pratipadika.baseText(): String = when (this) {
     is UnadyantaPratipadika -> sourceText
     is SamasaPratipadika -> angas.joinToString("-") { it.pratipadika.baseText() }
 }
+
+/**
+ * Case-independent identity of a named PVM value.
+ *
+ * Unlike [baseText], this retains the derivational structure that distinguishes
+ * e.g. जन् + ल्युट् from जन् + घञ्, and retains every member of a samāsa.
+ * The external sup belongs to [SubantaPada], so it deliberately cannot affect
+ * this key.
+ */
+internal fun Pratipadika.referenceKey(): String = when (this) {
+    is SankhyaPratipadika -> sourceText
+    is MulaPratipadika -> text
+    is KridantaPratipadika -> buildList {
+        addAll(upasargas)
+        add(dhatu.mulaDhatu)
+        addAll(dhatu.sanadiPratyayas)
+        add(krtPratyaya)
+    }.joinToString("+")
+    is UnadyantaPratipadika -> sourceText
+    is SamasaPratipadika -> angas.joinToString("-") { it.pratipadika.referenceKey() }
+}

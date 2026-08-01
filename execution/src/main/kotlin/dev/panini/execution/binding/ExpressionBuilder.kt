@@ -44,7 +44,8 @@ internal object ExpressionBuilder {
         ctx: BindingContext,
         overridePhalaId: String? = null,
     ): ExecutionExpression {
-        val text = pada.pratipadika.baseText()
+        val baseText = pada.pratipadika.baseText()
+        val text = pada.pratipadika.referenceKey()
         var resolvedId: String? = null
         var isOrdinalReference = false
 
@@ -53,14 +54,14 @@ internal object ExpressionBuilder {
             ctx.localVariables.contains(text)
         ) {
             resolvedId = text
-        } else if (text == "फल") {
+        } else if (baseText == "फल") {
             resolvedId = overridePhalaId ?: (
                 if (ctx.clauseIndex > 0) "योग-${ctx.clauseIndex}"
                 else ctx.conversation?.resultHistory?.lastOrNull()?.id
                     ?: ctx.conversation?.previousResults?.keys?.lastOrNull()
             )
-        } else if (text.endsWith("फल")) {
-            val prefix = text.removeSuffix("फल")
+        } else if (baseText.endsWith("फल")) {
+            val prefix = baseText.removeSuffix("फल")
             val idx = ordinalSurfaceToIndex[prefix]
             if (idx != null) {
                 resolvedId = ctx.conversation?.resultHistory?.getOrNull(idx)?.id
@@ -80,7 +81,7 @@ internal object ExpressionBuilder {
         val samjnas = buildSet {
             add(Samjna.SHABDA)
             if (sankhyaValue != null) add(Samjna.SANKHYA)
-            if (text == "फल" || isOrdinalReference) add(Samjna.REFERENCE)
+            if (baseText == "फल" || isOrdinalReference) add(Samjna.REFERENCE)
             when (pada.pratipadika) {
                 is KridantaPratipadika -> add(Samjna.KRIDANTA)
                 is SamasaPratipadika -> add(Samjna.SAMASA)

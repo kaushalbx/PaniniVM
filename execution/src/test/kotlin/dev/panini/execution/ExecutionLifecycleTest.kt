@@ -120,6 +120,25 @@ class ExecutionLifecycleTest {
     }
 
     @Test
+    fun `structured references distinguish samasa and kridanta identities across cases`() {
+        val source = storageDir.resolve("structured-references.pvm").toFile()
+        source.writeText(
+            """
+            एक + अम् पूर्व-पद + ङे दा + लोट् + सिप् ।
+            द्वि + अम् जन् + ल्युट् + ङे दा + लोट् + सिप् ।
+            त्रि + अम् जन् + घञ् + ङे दा + लोट् + सिप् ।
+            मुद्र् + णिच् + लोट् + सिप् पूर्व-पद + अम् ।
+            मुद्र् + णिच् + लोट् + सिप् जन् + ल्युट् + अम् ।
+            मुद्र् + णिच् + लोट् + सिप् जन् + घञ् + अम् ।
+            """.trimIndent(),
+        )
+
+        val results = PaniniVM(storageDir.resolve("sessions").toFile()).evalFile(source)
+
+        assertEquals(listOf("एक", "द्वि", "त्रि"), results.takeLast(3).map { assertIs<ExecutionResult.Success>(it).value })
+    }
+
+    @Test
     fun `readable Sanskrit generation is explicit and eval does not rewrite it`() {
         val source = storageDir.resolve("addition.pvm").toFile()
         val readable = storageDir.resolve("addition.txt").toFile()

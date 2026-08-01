@@ -239,7 +239,7 @@ class PvmUktiSadhaka(
         is SankhyaPratipadika -> sourceText
         is KridantaPratipadika -> deriveKridantaStem(dhatu.mulaDhatu, krtPratyaya)
         is UnadyantaPratipadika -> sourceText
-        is SamasaPratipadika -> angas.joinToString("-") { it.pratipadika.baseText() }
+        is SamasaPratipadika -> angas.joinToString("") { it.pratipadika.baseText() }
     }
 
     private fun deriveKridantaStem(dhatu: String, pratyaya: String): String {
