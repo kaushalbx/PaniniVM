@@ -169,6 +169,9 @@ class PvmUktiSadhaka(
     fun sadhayaSubanta(subanta: SubantaPada): String {
         val baseText = subanta.pratipadika.baseText()
         val supAffix = SupAffix.fromUpadesha(subanta.sup.text) ?: return baseText
+        if (subanta.pratipadika is KridantaPratipadika) {
+            pvmKridantaSurface(baseText, supAffix)?.let { return it }
+        }
         val stemClass = SubantaStemClass.guess(baseText)
         return try {
             val req = SubantaDerivationRequest(baseText, supAffix.vibhakti, supAffix.vacana, stemClass)
@@ -178,9 +181,21 @@ class PvmUktiSadhaka(
         }
     }
 
+    /** Stable a-stem forms for the PVM's action/state krdantas. */
+    private fun pvmKridantaSurface(stem: String, affix: SupAffix): String? {
+        if (stem !in pvmKridantaStems) return null
+        return when (affix) {
+            SupAffix.AM -> "${stem}म्"
+            SupAffix.NGE -> "${stem}ाय"
+            SupAffix.NGAS -> "${stem}स्य"
+            else -> null
+        }
+    }
+
     fun sadhayaTinganta(tinganta: TingantaPada): String {
         val rawDhatu = tinganta.dhatu.mulaDhatu
         val tingAffix = TingAffix.fromUpadesha(tinganta.ting.text) ?: return rawDhatu
+        pvmImperativeSurface(tinganta)?.let { return it }
         return try {
             val req = TingantaDerivationRequest(
                 dhatu = rawDhatu,
@@ -199,6 +214,26 @@ class PvmUktiSadhaka(
         }
     }
 
+    /**
+     * Forms used by the PVM instruction vocabulary whose derivational paths are
+     * not yet complete in [TingantaEngine].  In particular, that engine does not
+     * currently consume sanadi pratyayas, so sending a nic-anta command through
+     * it silently renders the non-causative dhatu instead.
+     */
+    private fun pvmImperativeSurface(tinganta: TingantaPada): String? {
+        if (tinganta.lakara != dev.panini.core.Lakara.LOT || tinganta.ting.text != "सिप्") return null
+
+        val dhatu = tinganta.dhatu.mulaDhatu
+        val hasNic = "णिच्" in tinganta.dhatu.sanadiPratyayas
+        return when {
+            hasNic && dhatu == "युज्" -> "योजय"
+            hasNic && dhatu == "गण" -> "गणय"
+            hasNic && dhatu == "मुद्र्" -> "मुद्रय"
+            !hasNic && dhatu == "दा" -> "देहि"
+            else -> null
+        }
+    }
+
     private fun Pratipadika.baseText(): String = when (this) {
         is MulaPratipadika -> text
         is SankhyaPratipadika -> sourceText
@@ -209,13 +244,24 @@ class PvmUktiSadhaka(
 
     private fun deriveKridantaStem(dhatu: String, pratyaya: String): String {
         return when (dhatu) {
-            "युज्" -> if (pratyaya == "घञ्" || pratyaya == "अप्") "योग" else "युज्"
+            "युज्" -> when (pratyaya) {
+                "घञ्", "अप्" -> "योग"
+                "ल्युट्", "अन" -> "योजन"
+                else -> "युज्"
+            }
             "गण" -> if (pratyaya == "ल्युट्" || pratyaya == "अन") "गणन" else "गण"
+            "धृ" -> if (pratyaya == "ल्युट्" || pratyaya == "अन") "धारण" else "धृ"
+            "स्था" -> if (pratyaya == "ल्युट्" || pratyaya == "अन") "स्थान" else "स्था"
+            "जन्" -> if (pratyaya == "ल्युट्" || pratyaya == "अन") "जनन" else "जन्"
             "शिष्" -> if (pratyaya == "घञ्" || pratyaya == "अप्") "शेष" else "शिष्"
             "मूल्" -> if (pratyaya == "घञ्" || pratyaya == "अप्") "मूल" else "मूल"
             "भज्" -> if (pratyaya == "घञ्") "भाग" else "भज्"
             "हृ" -> if (pratyaya == "ल्युट्") "हरण" else if (pratyaya == "घञ्") "हार" else "हर"
             else -> dhatu
         }
+    }
+
+    private companion object {
+        val pvmKridantaStems = setOf("योग", "योजन", "गणन", "धारण", "स्थान", "जनन", "शेष", "मूल", "भाग", "हरण", "हार")
     }
 }

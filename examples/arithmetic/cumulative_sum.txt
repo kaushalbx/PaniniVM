@@ -1,7 +1,7 @@
 # Cumulative Sum Algorithm: fold 1 + 2 + 3 + 4 + 5 = 15
 
 # Add the complete sequence
-एकम् द्विम् त्रिम् चतुर्म् पङ्चम् च युज्यस्व ।
+एकम् द्विम् त्रिम् चतुर्म् पङ्चम् च योजय ।
 
 # Print the cumulative sum (15 = पञ्चदश)
-योगस्य फलम् मोद्रय ।
+योगस्य फलम् मुद्रय ।

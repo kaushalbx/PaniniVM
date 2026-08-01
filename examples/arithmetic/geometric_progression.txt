@@ -1,13 +1,13 @@
 # Geometric Progression Algorithm (2 -> 6 -> 18 -> 54)
 
 # Set initial term variable 'पद' = 2 (द्वि)
-द्विम् पदाय दअ ।
+द्विम् पदाय देहि ।
 
 # Set common ratio variable 'गुणक' = 3 (त्रि)
-त्रिम् गुणकाय दअ ।
+त्रिम् गुणकाय देहि ।
 
 # Loop 3 times (त्रिकृत्वः): multiply 'पद' by 'गुणक' and assign result directly to 'पद' (पदाय)
-त्रिकृत्वः पदम् गुणकम् च पदाय गण ।
+त्रिकृत्वः पदम् गुणकम् च पदाय गणय ।
 
 # Print final term 'पद' (renders 54 = चतुर्पञ्चाशत्)
-मोद्रय पदम् ।
+मुद्रय पदम् ।

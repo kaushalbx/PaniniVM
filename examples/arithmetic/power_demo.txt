@@ -1,13 +1,13 @@
 # Exponentiation / Power Algorithm: Compute 3^4 (81)
 
 # Set base 'आधार' = 3 (त्रि)
-त्रिम् आधाराय दअ ।
+त्रिम् आधाराय देहि ।
 
 # Initialize power result 'घात' = 3 (त्रि)
-त्रिम् घाताय दअ ।
+त्रिम् घाताय देहि ।
 
 # Loop 3 times (त्रिकृत्वः): multiply 'घात' by 'आधार' and assign directly to 'घात' (घाताय)
-त्रिकृत्वः घातम् आधारम् च घाताय गण ।
+त्रिकृत्वः घातम् आधारम् च घाताय गणय ।
 
 # Print final power result 'घात' (renders 81 = एकाशीतिः)
-मोद्रय घातम् ।
+मुद्रय घातम् ।

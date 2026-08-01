@@ -55,6 +55,26 @@ class ExecutionArchitectureTest {
     }
 
     @Test
+    fun `readable Sanskrit derives segmented state names and PVM imperatives`() {
+        val source = """
+            एक + अम् धृ + ल्युट् + ङे दा + लोट् + सिप् ।
+            स्था + ल्युट् + अम् धृ + ल्युट् + अम् च युज् + णिच् + लोट् + सिप् ।
+            दा + लोट् + सिप् युज् + ल्युट् + ङस् फल + अम् जन् + ल्युट् + ङे ।
+            मुद्र् + णिच् + लोट् + सिप् जन् + ल्युट् + अम् ।
+        """.trimIndent()
+
+        assertEquals(
+            """
+                एकम् धारणाय देहि ।
+                स्थानम् धारणम् च योजय ।
+                देहि योजनस्य फलम् जननाय ।
+                मुद्रय जननम् ।
+            """.trimIndent(),
+            PvmUktiSadhaka().sadhayaScript(source),
+        )
+    }
+
+    @Test
     fun `every pvm example executes without an invalid or failed statement`() {
         val vm = PaniniVM()
         val sources = File("examples").walkTopDown()

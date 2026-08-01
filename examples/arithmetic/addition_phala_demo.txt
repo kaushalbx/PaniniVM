@@ -1,7 +1,7 @@
 # Addition & Action Result Reference Demo (Prakriya + Pratyaya)
 
 # Add 1 and 2
-एकम् द्विम् च युज्यस्व ।
+एकम् द्विम् च योजय ।
 
 # Print result of addition (युज् + घञ् + ङस् फल + अम् -> योगस्य फलम्)
-योगस्य फलम् मोद्रय ।
+योगस्य फलम् मुद्रय ।

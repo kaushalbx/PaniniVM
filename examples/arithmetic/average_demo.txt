@@ -1,7 +1,7 @@
 # Average Calculation Algorithm: Compute average of 10, 20, 30
 
 # Calculate average of 10 (दश), 20 (विंशति), 30 (त्रिंशत्)
-दशम् विंशतिम् त्रिंशत्म् च गण ।
+दशम् विंशतिम् त्रिंशत्म् च गणय ।
 
 # Print result of average calculation (गण + ल्युट् + ङस् फल + अम् -> गणनस्य फलम् -> renders 20 = विंशतिः)
-गणनस्य फलम् मोद्रय ।
+गणनस्य फलम् मुद्रय ।
