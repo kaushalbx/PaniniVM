@@ -8,7 +8,7 @@ import dev.panini.vyakaranam.ast.Pada
  * Typed result of a [PhalaResolver.resolve] call.
  *
  * @property phalaMap      Maps each "फल" [SubantaPada] to the invocation-id whose
- *                         result it references (e.g. "योग-2", "पूर्वफल", or a
+ *                         result it references (e.g. "योग-2" or a
  *                         historical result id).
  * @property resolvedGenitives The genitive-case modifier pādas that were consumed
  *                         during resolution and must be skipped in the main binding loop.
@@ -26,7 +26,7 @@ internal data class PhalaResolution(
  * 1. **Within-utterance** — a genitive modifier names a prior clause's dhātu action.
  * 2. **Kriyā memory** — the named action matches a remembered frame by exact dhātu upadeśa.
  * 3. **Conversation compatibility** — older contexts still resolve through result history.
- * 4. **पूर्वफल shorthand** — "पूर्व" prefix selects the penultimate matching result.
+ * Ordering is expressed by an independent qualifier of फल, such as पूर्वम् or प्रथमम्.
  *
  * Remembered kriyās are matched by their canonical Dhātupāṭha upadeśa, never by result aliases.
  */
@@ -49,20 +49,9 @@ internal object PhalaResolver {
                 .lastOrNull { it.sup.text in setOf("ङस्", "आम्") && it !in resolvedGenitives }
                 ?: return@forEach
 
-            val modIdx = subantas.indexOf(genitiveModifier)
-            val precedingSub = subantas.take(modIdx).lastOrNull()
             val base = genitiveModifier.pratipadika.baseText()
-            val isPrevious = base.startsWith("पूर्व") ||
-                precedingSub?.pratipadika?.baseText()?.startsWith("पूर्व") == true ||
-                explicitOrder.previous
-            val order = explicitOrder.copy(previous = isPrevious)
-
-            if (precedingSub?.pratipadika?.baseText()?.startsWith("पूर्व") == true) {
-                resolvedGenitives.add(precedingSub)
-            }
-
-            val cleanBase = if (base.startsWith("पूर्व")) base.removePrefix("पूर्व") else base
-            val root = DhatuCache.getActionRoot(cleanBase)
+            val order = explicitOrder
+            val root = DhatuCache.getActionRoot(base)
 
             // ---- 1. Resolve against earlier clauses in this utterance ----------------
             val matchingIndices = (0 until ctx.clauseIndex).filter { i ->

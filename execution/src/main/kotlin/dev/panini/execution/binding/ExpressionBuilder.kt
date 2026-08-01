@@ -10,31 +10,19 @@ import dev.panini.vyakaranam.ast.SubantaPada
 
 /**
  * Converts a [SubantaPada] to an [ExecutionExpression], resolving references to prior
- * results (फल, ordinal forms) and attaching saṃjñā tags.
+ * results (फल) and attaching saṃjñā tags.
  *
  * Clause-level context (conversation, clauseIndex, local variable state) is supplied
  * via [BindingContext] instead of individual parameters.
  */
 internal object ExpressionBuilder {
-    /**
-     * Reverse-index of ordinal Sanskrit surface forms to 0-based history position (covers 1st–50th).
-     * Used to resolve expressions like "प्रथमफल", "द्वितीयफल", etc.
-     */
-    private val ordinalSurfaceToNumber: Map<String, Int> by lazy {
-        (1..50).flatMap { i ->
-            buildList {
-                add(sharedSankhyaGenerator.ordinal(i.toLong()).final.surface)
-                addAll(sharedSankhyaGenerator.ordinalVariants(i.toLong()).map { it.final.surface })
-            }.map { surface -> surface to i }
-        }.toMap()
-    }
-
-    internal fun ordinalNumber(surface: String): Int? = ordinalSurfaceToNumber[surface]
+    /** Prathama is lexical; later ordinals are represented by segmented purāṇa padas. */
+    internal fun ordinalNumber(surface: String): Int? = 1.takeIf { surface == "प्रथम" }
 
     /**
      * Builds an [ExecutionExpression] for [pada] within [ctx], resolving:
      * - Named/typed prior results and local variables → [ExecutionExpression.Reference]
-     * - "फल" and ordinal-prefixed फल forms → [ExecutionExpression.Reference]
+     * - "फल" resolved by [PhalaResolver] → [ExecutionExpression.Reference]
      * - Numeric pratipadikas → [ExecutionExpression.sankhya]
      * - Everything else → [ExecutionExpression.Pada] with appropriate saṃjñā tags
      *
@@ -49,7 +37,6 @@ internal object ExpressionBuilder {
         val baseText = pada.pratipadika.baseText()
         val text = pada.pratipadika.referenceKey()
         var resolvedId: String? = null
-        var isOrdinalReference = false
 
         if (ctx.conversation?.previousTypedResults?.containsKey(text) == true ||
             ctx.conversation?.previousResults?.containsKey(text) == true ||
@@ -63,14 +50,6 @@ internal object ExpressionBuilder {
                     ?: ctx.conversation?.resultHistory?.lastOrNull()?.id
                     ?: ctx.conversation?.previousResults?.keys?.lastOrNull()
             )
-        } else if (baseText.endsWith("फल")) {
-            val prefix = baseText.removeSuffix("फल")
-            val number = ordinalNumber(prefix)
-            if (number != null) {
-                resolvedId = ctx.memory.ordinalKriya(number)?.frame?.id?.value
-                    ?: ctx.conversation?.resultHistory?.getOrNull(number - 1)?.id
-                isOrdinalReference = true
-            }
         }
 
         if (resolvedId != null) {
@@ -85,7 +64,7 @@ internal object ExpressionBuilder {
         val samjnas = buildSet {
             add(Samjna.SHABDA)
             if (sankhyaValue != null) add(Samjna.SANKHYA)
-            if (baseText == "फल" || isOrdinalReference) add(Samjna.REFERENCE)
+            if (baseText == "फल") add(Samjna.REFERENCE)
             when (pada.pratipadika) {
                 is KridantaPratipadika -> add(Samjna.KRIDANTA)
                 is SamasaPratipadika -> add(Samjna.SAMASA)

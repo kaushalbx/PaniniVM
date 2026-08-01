@@ -70,7 +70,8 @@ In accordance with Pāṇini's definition *सुप्तिङन्तं प
   - `ज्या + नवति + अम्` (Trigonometric stem `ज्या + नवति` = $\sin(90^\circ)$ + 2nd Vibhakti singular `अम्`)
   - `यन्त्र + सुँ` (Nominal stem `यन्त्र` + 1st Vibhakti singular `सुँ`)
   - `फल + अम्` (Result reference `फल` + 2nd Vibhakti singular `अम्`)
-  - `पूर्वफल + अम्` (Historical reference `पूर्वफल` + 2nd Vibhakti singular `अम्`)
+  - `युज् + ल्युट् + ङस् पूर्व + अम् फल + अम्` (`योजनस्य पूर्वं फलम्`, the previous result of addition)
+  - `युज् + ल्युट् + ङस् द्वि + तीय + अम् फल + अम्` (`योजनस्य द्वितीयं फलम्`, the second result of addition)
 
 ---
 
