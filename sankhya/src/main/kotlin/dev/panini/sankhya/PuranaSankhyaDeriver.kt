@@ -1,10 +1,7 @@
 package dev.panini.sankhya
 
-import dev.panini.ashtadhyayi.Ashtadhyayi
-import dev.panini.derivation.DerivationApplication
 import dev.panini.derivation.DerivationConfig
-import dev.panini.derivation.DerivationEngine
-import dev.panini.derivation.DerivationEvent
+import dev.panini.derivation.DerivationPipeline
 import dev.panini.derivation.DerivationResult
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
@@ -20,44 +17,34 @@ class PuranaSankhyaDeriver(
     private val cardinalDeriver: CardinalSankhyaDeriver,
 ) {
     private val expressionBuilder = SankhyaExpressionBuilder()
-    private val taddhitaEngine = DerivationEngine(Ashtadhyayi.executableSutrasAt(SutraStage.PRATYAYA_SELECTION))
-    private val angaEngine = DerivationEngine(Ashtadhyayi.executableSutrasAt(SutraStage.ANGAKARYA))
-    private val padaFormationEngine = DerivationEngine(Ashtadhyayi.executableSutrasAt(SutraStage.PADA_FORMATION))
-    private val thukPhonology = DerivationEngine(Ashtadhyayi.executableSutrasAt(SutraStage.THUK_PHONOLOGY))
+    private val pipeline = DerivationPipeline(
+        stages = listOf(
+            SutraStage.PRATYAYA_SELECTION,
+            SutraStage.ANGAKARYA,
+            SutraStage.PADA_FORMATION,
+            SutraStage.THUK_PHONOLOGY,
+        ),
+        prepareStage = { stage, state ->
+            if (stage == SutraStage.PRATYAYA_SELECTION) state else state.copy(stage = DerivationStage.PADA_FORMED)
+        },
+        configForStage = { stage ->
+            if (stage == SutraStage.PRATYAYA_SELECTION) DerivationConfig(OptionalRulePolicy.SKIP_ALL)
+            else DerivationConfig()
+        },
+        isStageEnabled = { stage, _, state ->
+            stage != SutraStage.THUK_PHONOLOGY || state.terms.any { it.upadesha == "थुक्" }
+        },
+    )
 
     fun derive(value: Long): DerivationResult {
         val initial = initialState(value)
-        val taddhita = taddhitaEngine.derive(initial, DerivationConfig(OptionalRulePolicy.SKIP_ALL))
-        return complete(initial, taddhita)
+        return pipeline.derive(initial)
     }
 
     fun deriveVariants(value: Long): List<DerivationResult> {
         requireSupported(value)
         val initial = initialState(value)
-        return taddhitaEngine.deriveAll(initial)
-            .map { complete(initial, it) }
-            .distinctBy { it.final.surface to it.applications.map(DerivationApplication::sutra) }
-    }
-
-    private fun complete(initial: DerivationState, taddhita: DerivationResult): DerivationResult {
-        val anga = angaEngine.derive(taddhita.final.copy(stage = DerivationStage.PADA_FORMED))
-        val padaFormation = padaFormationEngine.derive(anga.final.copy(stage = DerivationStage.PADA_FORMED))
-        val finalOperation = if (padaFormation.final.terms.any { it.upadesha == "थुक्" }) {
-            thukPhonology.derive(padaFormation.final.copy(stage = DerivationStage.PADA_FORMED))
-        } else {
-            DerivationResult(padaFormation.final, padaFormation.final, emptyList(), emptyList())
-        }
-        val applications = taddhita.applications + anga.applications + padaFormation.applications + finalOperation.applications
-        val events = taddhita.events.filterNot { it is DerivationEvent.Completed } +
-            anga.events.filterNot { it is DerivationEvent.Completed } +
-            padaFormation.events.filterNot { it is DerivationEvent.Completed } +
-            finalOperation.events.filterNot { it is DerivationEvent.Completed }
-        return DerivationResult(
-            initial = initial,
-            final = finalOperation.final,
-            applications = applications,
-            events = events + DerivationEvent.Completed(finalOperation.final, applications.size),
-        )
+        return pipeline.deriveAll(initial, setOf(SutraStage.PRATYAYA_SELECTION))
     }
 
     private fun initialState(value: Long): DerivationState {
