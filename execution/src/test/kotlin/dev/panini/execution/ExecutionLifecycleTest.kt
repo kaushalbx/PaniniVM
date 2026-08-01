@@ -179,6 +179,23 @@ class ExecutionLifecycleTest {
     }
 
     @Test
+    fun `kriya memory distinguishes ordinal previous and latest results`() {
+        val vm = PaniniVM(storageDir.resolve("ordered-memory").toFile())
+        assertIs<ExecutionResult.Success>(
+            vm.eval("एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।", sessionKey = "order"),
+        )
+        assertIs<ExecutionResult.Success>(
+            vm.eval("त्रि + अम् चतुर् + औट् च युज् + णिच् + लोट् + सिप् ।", sessionKey = "order"),
+        )
+
+        val memory = vm.kriyaMemory("order")
+        assertEquals(3L, assertIs<SanskritValue.Sankhya>(memory.ordinalKriya(1)?.phala).value)
+        assertEquals(3L, assertIs<SanskritValue.Sankhya>(memory.latestKriya(offset = 1)?.phala).value)
+        assertEquals(7L, assertIs<SanskritValue.Sankhya>(memory.latestKriya()?.phala).value)
+        assertEquals(null, memory.latestKriya("युजिँर्", offset = 2))
+    }
+
+    @Test
     fun `structured references distinguish samasa and kridanta identities across cases`() {
         val source = storageDir.resolve("structured-references.pvm").toFile()
         source.writeText(

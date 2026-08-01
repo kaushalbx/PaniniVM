@@ -31,12 +31,22 @@ data class KriyaMemory(
         return entries.takeLast(count)
     }
 
+    /** Selects the 1-based prathama, dvitīya, ... kriyā in chronological order. */
+    fun ordinalKriya(number: Int, dhatuUpadesha: String? = null): RememberedKriya? {
+        require(number > 0) { "A memory ordinal must be positive." }
+        return matchingKriyas(dhatuUpadesha).getOrNull(number - 1)
+    }
+
+    /** Selects the latest kriyā; offset 1 is upāntima, 2 is the one before it, and so on. */
+    fun latestKriya(dhatuUpadesha: String? = null, offset: Int = 0): RememberedKriya? {
+        require(offset >= 0) { "A latest-memory offset cannot be negative." }
+        val matches = matchingKriyas(dhatuUpadesha)
+        return matches.getOrNull(matches.lastIndex - offset)
+    }
+
     fun latestKriyas(dhatuUpadesha: String, count: Int = 1): List<RememberedKriya> {
         require(count >= 0) { "A memory query count cannot be negative." }
-        return entries.asReversed()
-            .filter { it.frame.kriya?.dhatu?.upadesha == dhatuUpadesha }
-            .take(count)
-            .reversed()
+        return matchingKriyas(dhatuUpadesha).takeLast(count)
     }
 
     fun latestKarakaRelations(karaka: Karaka, count: Int = 1): List<KarakaRelation> {
@@ -57,6 +67,10 @@ data class KriyaMemory(
             .take(count)
             .reversed()
     }
+
+    private fun matchingKriyas(dhatuUpadesha: String?): List<RememberedKriya> =
+        if (dhatuUpadesha == null) entries
+        else entries.filter { it.frame.kriya?.dhatu?.upadesha == dhatuUpadesha }
 }
 
 internal fun KriyaFrame.withMemoryId(id: KriyaId): KriyaFrame = copy(

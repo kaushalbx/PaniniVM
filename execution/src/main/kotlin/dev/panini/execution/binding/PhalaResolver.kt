@@ -81,12 +81,8 @@ internal object PhalaResolver {
             // ---- 2. Resolve against kriyā-centred memory -----------------------------
             val referencedDhatu = (genitiveModifier.pratipadika as? KridantaPratipadika)
                 ?.dhatu?.mulaDhatu?.let(DhatuCache::get)?.upadesha
-            val rememberedKriyas = referencedDhatu?.let { ctx.memory.latestKriyas(it, Int.MAX_VALUE) }.orEmpty()
-            val rememberedKriya = if (isPrevious) {
-                if (rememberedKriyas.size > 1) rememberedKriyas.dropLast(1).lastOrNull()
-                else rememberedKriyas.firstOrNull()
-            } else {
-                rememberedKriyas.lastOrNull()
+            val rememberedKriya = referencedDhatu?.let {
+                ctx.memory.latestKriya(it, offset = if (isPrevious) 1 else 0)
             }
             if (rememberedKriya != null) {
                 phalaMap[phalaPada] = rememberedKriya.frame.id.value

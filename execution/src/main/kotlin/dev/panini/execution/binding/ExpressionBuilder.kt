@@ -57,7 +57,7 @@ internal object ExpressionBuilder {
         } else if (baseText == "फल") {
             resolvedId = overridePhalaId ?: (
                 if (ctx.clauseIndex > 0) "योग-${ctx.clauseIndex}"
-                else ctx.memory.entries.lastOrNull()?.frame?.id?.value
+                else ctx.memory.latestKriya()?.frame?.id?.value
                     ?: ctx.conversation?.resultHistory?.lastOrNull()?.id
                     ?: ctx.conversation?.previousResults?.keys?.lastOrNull()
             )
@@ -65,7 +65,7 @@ internal object ExpressionBuilder {
             val prefix = baseText.removeSuffix("फल")
             val idx = ordinalSurfaceToIndex[prefix]
             if (idx != null) {
-                resolvedId = ctx.memory.entries.getOrNull(idx)?.frame?.id?.value
+                resolvedId = ctx.memory.ordinalKriya(idx + 1)?.frame?.id?.value
                     ?: ctx.conversation?.resultHistory?.getOrNull(idx)?.id
                 isOrdinalReference = true
             }
