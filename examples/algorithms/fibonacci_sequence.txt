@@ -1,16 +1,11 @@
 # Fibonacci Sequence Algorithm: Compute Fibonacci sequence terms [1, 1, 2, 3, 5, 8]
 
-# Step 1: Compute F3 = F1 + F2 = 1 + 1 = 2
-एकम् एकम् च युज्यस्व ।
+# Initialize F1 = 1 and F2 = 1
+एकम् ध्रे दअ ।
+एकम् स्थायै दअ ।
 
-# Step 2: Compute F4 = F2 + F3 = 1 + 2 = 3
-एकम् योगस्य फलम् च युज्यस्व ।
+# Repeat the state transition four times to compute F3 through F6
+चतुर्कृत्वः स्थाम् धरम् च युज्यस्व । दअ युग्ः फलम् जने । दअ स्थाम् ध्रे । दअ जानम् स्थायै ।
 
-# Step 3: Compute F5 = F3 + F4 = 2 + 3 = 5 (using previous addition F3 and latest addition F4)
-पूर्वस्य योगस्य फलम् योगस्य फलम् च युज्यस्व ।
-
-# Step 4: Compute F6 = F4 + F5 = 3 + 5 = 8 (using previous addition F4 and latest addition F5)
-पूर्वस्य योगस्य फलम् योगस्य फलम् च युज्यस्व ।
-
-# Print 6th Fibonacci term F6 (renders 8 = अष्ट)
-योगस्य फलम् मोद्रय ।
+# Print F6 = 8
+मोद्रय स्थाम् ।

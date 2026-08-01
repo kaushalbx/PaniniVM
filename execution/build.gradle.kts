@@ -21,4 +21,9 @@ dependencies {
 tasks.withType<Test> {
     useJUnitPlatform()
     workingDir = rootDir
+    inputs.files(
+        rootProject.fileTree("examples") {
+            include("**/*.pvm", "**/*.txt")
+        },
+    )
 }

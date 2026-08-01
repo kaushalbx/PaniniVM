@@ -1,16 +1,16 @@
 # Pythagorean Theorem Algorithm: Compute hypotenuse c = sqrt(a^2 + b^2) for a=3, b=4
 
 # Step 1: Multiply 3 and 3 (3 * 3 = 9)
-त्रिम् त्रिम् च गण ।
+त्रिम् त्रिम् च ध्रे गण ।
 
 # Step 2: Multiply 4 and 4 (4 * 4 = 16)
-चतुर्म् चतुर्म् च गण ।
+चतुर्म् चतुर्म् च स्थायै गण ।
 
 # Step 3: Add results of multiplication (16) and previous multiplication (9) -> 25
-गणनस्य फलम् पूर्वगणनस्य फलम् च युज्यस्व ।
+धरम् स्थाम् च जने युज्यस्व ।
 
 # Step 4: Compute square root of addition result (sqrt(25) = 5)
-योगस्य फलम् मूल ।
+जानम् मूल ।
 
 # Step 5: Print result of square root (मूल् + घञ् + ङस् फल + अम् -> मूलस्य फलम् -> renders 5 = पञ्च)
 मूलस्य फलम् मोद्रय ।

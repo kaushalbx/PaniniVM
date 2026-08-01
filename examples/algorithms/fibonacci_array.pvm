@@ -1,12 +1,8 @@
-# Fibonacci Array Algorithm: Generate and print Fibonacci sequence terms [3, 5, 8, 13, 21] using krtvas loop
+# Fibonacci Array Algorithm: Generate and print [3, 5, 8, 13, 21]
 
-# Step 1: Initialize F1 = 1, F2 = 1 -> F3 = F1 + F2 = 1 + 1 = 2
-एक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ।
+# Initialize F2 = 1 and F3 = 2
+एक + अम् धृ + ल्युट् + ङे दा + लोट् + सिप् ।
+द्वि + अम् स्था + ल्युट् + ङे दा + लोट् + सिप् ।
 
-# Step 2: Loop 5 times via krtvas (पञ्चकृत्वः) to compute and print Fibonacci terms:
-# Iteration 1: F4 = 1 + 2 = 3 (त्रीणि)
-# Iteration 2: F5 = 2 + 3 = 5 (पञ्च)
-# Iteration 3: F6 = 3 + 5 = 8 (अष्ट)
-# Iteration 4: F7 = 5 + 8 = 13 (त्रयोदश)
-# Iteration 5: F8 = 8 + 13 = 21 (एकविंशतिः)
-पूर्व + ङस् युज् + घञ् + ङस् फल + अम् युज् + घञ् + ङस् फल + अम् च युज् + णिच् + लोट् + सिप् अथ युज् + घञ् + ङस् फल + अम् मुद्र् + णिच् + लोट् + सिप् च पञ्च + कृत्वः ।
+# Compute, shift, and print F4 through F8 in one repeated body
+पञ्च + कृत्वः स्था + ल्युट् + अम् धृ + ल्युट् + अम् च युज् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् युज् + ल्युट् + ङस् फल + अम् जन् + ल्युट् + ङे ततः दा + लोट् + सिप् स्था + ल्युट् + अम् धृ + ल्युट् + ङे ततः दा + लोट् + सिप् जन् + ल्युट् + अम् स्था + ल्युट् + ङे ततः मुद्र् + णिच् + लोट् + सिप् स्था + ल्युट् + अम् ।

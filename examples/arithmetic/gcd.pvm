@@ -1,13 +1,7 @@
-# Euclidean GCD Algorithm: Compute GCD of 18 (अष्टादश) and 12 (द्वादश)
+# Euclidean GCD step: for 18 and 12, the non-zero remainder is 6
 
-# Set first operand 'प्रथम' = 18 (अष्टादश)
-अष्टादश + अम् प्रथम + ङे दा + लोट् + सिप् ।
+# Compute 18 mod 12 = 6
+अष्ट + दशन् + अम् द्वि + दशन् + अम् च शिष् + णिच् + लोट् + सिप् ।
 
-# Set second operand 'द्वितीय' = 12 (द्वादश)
-द्वादश + अम् द्वितीय + ङे दा + लोट् + सिप् ।
-
-# Compute remainder 18 mod 12 = 6 and assign directly to 'गसागु' (गसागुभ्यः / ङे)
-प्रथम + अम् द्वितीय + अम् च गसागु + ङे शिष् + णिच् + लोट् + सिप् ।
-
-# Print final GCD result 'गसागु' (renders 6 = षट्)
-मुद्र् + णिच् + लोट् + सिप् गसागु + अम् ।
+# Print the result (6 = षट्)
+शिष् + घञ् + ङस् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।

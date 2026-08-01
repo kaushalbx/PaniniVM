@@ -5,6 +5,7 @@ import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class ExecutionArchitectureTest {
@@ -50,6 +51,44 @@ class ExecutionArchitectureTest {
                 rendered,
                 "Generated artifact is stale for ${source.path}",
             )
+        }
+    }
+
+    @Test
+    fun `every pvm example executes without an invalid or failed statement`() {
+        val vm = PaniniVM()
+        val sources = File("examples").walkTopDown()
+            .filter { it.isFile && it.extension == "pvm" }
+            .sortedBy(File::getPath)
+            .toList()
+
+        sources.forEach { source ->
+            val results = vm.evalFile(source, sessionKey = "example:${source.path}")
+            val invalid = results.filter {
+                it is ExecutionResult.Failure || it is ExecutionResult.Ambiguous || it is ExecutionResult.NeedsInput
+            }
+            assertTrue(invalid.isEmpty(), "${source.path} produced invalid results: $invalid")
+        }
+    }
+
+    @Test
+    fun `corrected algorithm examples produce their documented values`() {
+        val expected = linkedMapOf(
+            "examples/algorithms/circle_area.pvm" to "सप्तविंशतिः",
+            "examples/algorithms/fibonacci_array.pvm" to "एकविंशतिः",
+            "examples/algorithms/fibonacci_loop.pvm" to "त्रयोदश",
+            "examples/algorithms/fibonacci_sequence.pvm" to "अष्ट",
+            "examples/algorithms/pythagorean_triplet.pvm" to "पञ्च",
+            "examples/algorithms/vector_dot_product.pvm" to "त्रयोविंशतिः",
+            "examples/arithmetic/cumulative_sum.pvm" to "पञ्चदश",
+            "examples/arithmetic/gcd.pvm" to "षट्",
+        )
+        val vm = PaniniVM()
+
+        expected.forEach { (path, value) ->
+            val results = vm.evalFile(File(path), sessionKey = "golden:$path")
+            val final = assertIs<ExecutionResult.Success>(results.last())
+            assertEquals(value, final.value, path)
         }
     }
 }

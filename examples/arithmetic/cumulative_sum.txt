@@ -1,13 +1,7 @@
-# Cumulative Sum Algorithm (Sum of 1 to 5 = 15)
+# Cumulative Sum Algorithm: fold 1 + 2 + 3 + 4 + 5 = 15
 
-# Initialize sum accumulator 'योग' = 0 (शून्य)
-शून्यम् योगाय दअ ।
+# Add the complete sequence
+एकम् द्विम् त्रिम् चतुर्म् पङ्चम् च युज्यस्व ।
 
-# Initialize counter variable 'क्रम' = 1 (एक)
-एकम् क्रमाय दअ ।
-
-# Loop 5 times (पञ्चकृत्वः): add 'क्रम' to 'योग' into 'योग' (योगाय), then increment 'क्रम' into 'क्रम' (क्रमाय)
-पञ्चन्कृत्वः योगम् क्रमम् च योगाय युज्यस्व । एकम् क्रमम् च क्रमाय युज्यस्व ।
-
-# Print final cumulative sum 'योग' (renders 15 = पञ्चदश)
-मोद्रय योगम् ।
+# Print the cumulative sum (15 = पञ्चदश)
+योगस्य फलम् मोद्रय ।
