@@ -30,6 +30,7 @@ object NisthaSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.PRATYAYA_SELECTION,
     scope = SutraScope.DERIVATION,
+    stage = dev.panini.sutra.SutraStage.PRATYAYA_SELECTION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val isNisthaRequested = context.samjnas.any { it.samjna == Samjna.KTA || it.samjna == Samjna.KTAVATU }

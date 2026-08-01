@@ -21,6 +21,7 @@ object NvultrchauSutra : Sutra<DerivationState, DerivationChange>(
     hindiExplanation = "धातु से कर्ता अर्थ में सामान्यतः 'ण्वुल्' तथा 'तृच्' प्रत्यय होते हैं।",
     type = SutraType.NITYA, chapter = 3, pada = 1, optional = false, kramaValue = 310133,
     role = SutraRole.Vidhi, action = SutraAction.PRATYAYA_SELECTION, scope = SutraScope.DERIVATION,
+    stage = dev.panini.sutra.SutraStage.PRATYAYA_SELECTION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
         context.effectiveContext.rupa.lakara == null &&

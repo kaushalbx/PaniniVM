@@ -30,6 +30,7 @@ object SamanakartrkayohPurvakaleSutra : Sutra<DerivationState, DerivationChange>
     role = SutraRole.Vidhi,
     action = SutraAction.PRATYAYA_SELECTION,
     scope = SutraScope.DERIVATION,
+    stage = dev.panini.sutra.SutraStage.PRATYAYA_SELECTION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val isKtvaRequested = context.samjnas.any { it.samjna == Samjna.KTVA } ||

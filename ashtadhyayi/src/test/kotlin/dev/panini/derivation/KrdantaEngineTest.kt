@@ -1,8 +1,11 @@
 package dev.panini.derivation
 
+import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.shiksha.Samjna
+import dev.panini.sutra.SutraStage
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class KrdantaEngineTest {
@@ -79,5 +82,26 @@ class KrdantaEngineTest {
         val res3 = engine.derive(KrdantaDerivationRequest("भू", Samjna.GHAN))
         assertEquals("भाव", res3.final.surface)
         assertTrue(res3.applications.any { it.sutra == "3.3.18" })
+    }
+
+    @Test
+    fun `krdanta provenance contains only explicitly staged rules`() {
+        val requests = listOf(
+            KrdantaDerivationRequest("कृ", Samjna.KTVA, upasarga = "अनु"),
+            KrdantaDerivationRequest("भू", Samjna.TUMUN),
+        )
+
+        requests.forEach { request ->
+            val result = engine.derive(request)
+            assertTrue(result.applications.isNotEmpty())
+            result.applications.forEach { application ->
+                val sutra = Ashtadhyayi.registry.require(application.sutra)
+                assertTrue(sutra.stage != SutraStage.UNSPECIFIED, "${application.sutra} lacks pipeline metadata")
+            }
+            assertEquals(
+                result.final,
+                assertIs<DerivationEvent.Completed>(result.events.last()).finalState,
+            )
+        }
     }
 }

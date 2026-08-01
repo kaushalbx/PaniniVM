@@ -29,6 +29,7 @@ object SamaseAnanpurveKtvoLyapSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Apavada,
     action = SutraAction.ADESHA,
     scope = SutraScope.DERIVATION,
+    stage = dev.panini.sutra.SutraStage.PRATYAYA_SELECTION,
     blocks = setOf("3.4.21"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {

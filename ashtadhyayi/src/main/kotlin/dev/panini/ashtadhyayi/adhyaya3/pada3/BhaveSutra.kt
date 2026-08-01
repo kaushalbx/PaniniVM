@@ -21,6 +21,7 @@ object BhaveSutra : Sutra<DerivationState, DerivationChange>(
     hindiExplanation = "भाव (क्रिया सिद्धवस्था) अर्थ में धातु से 'घञ्' प्रत्यय होता है।",
     type = SutraType.NITYA, chapter = 3, pada = 3, optional = false, kramaValue = 330018,
     role = SutraRole.Vidhi, action = SutraAction.PRATYAYA_SELECTION, scope = SutraScope.DERIVATION,
+    stage = dev.panini.sutra.SutraStage.PRATYAYA_SELECTION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
         context.effectiveContext.rupa.lakara == null &&

@@ -4,6 +4,7 @@ import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.shiksha.Samjna
+import dev.panini.sutra.SutraStage
 
 data class KrdantaDerivationRequest(
     val dhatu: String,
@@ -12,10 +13,9 @@ data class KrdantaDerivationRequest(
 )
 
 class KrdantaEngine(
-    private val engine: DerivationEngine = DerivationEngine(
-        Ashtadhyayi.executableSutras,
-        deferTripadiUntilPada = true,
-    )
+    private val pipeline: DerivationPipeline = DerivationPipeline(
+        stages = listOf(SutraStage.ANGAKARYA, SutraStage.IT_PROCESSING),
+    ),
 ) {
     fun derive(request: KrdantaDerivationRequest): DerivationResult {
         val dhatuEntry = findDhatu(request.dhatu)
@@ -24,9 +24,6 @@ class KrdantaEngine(
         require(selectionSutra.matches(initial)) {
             "Canonical sutra ${selectionSutra.sutra} cannot select ${request.samjna} for ${request.dhatu}."
         }
-        var selectedState = initial
-        val selectedApplications = mutableListOf<DerivationApplication>()
-        val selectedEvents = mutableListOf<DerivationEvent>()
         val bootstrap = buildList {
             add(selectionSutra)
             if (request.samjna == Samjna.KTVA && !request.upasarga.isNullOrBlank()) {
@@ -34,28 +31,15 @@ class KrdantaEngine(
                 add(canonicalSutra("6.1.71"))
             }
         }
-        bootstrap.forEach { sutra ->
-            if (!sutra.matches(selectedState)) return@forEach
-            val change = sutra.apply(selectedState)
-            selectedApplications += application(sutra, selectedState, change)
-            selectedEvents += DerivationEvent.RuleApplied(
-                sutra.sutra,
-                selectedState,
-                change.state,
-                change.explanation,
-            )
-            selectedState = change.state
-        }
-        val tail = engine.derive(selectedState)
-        val result = tail.copy(
-            initial = initial,
-            applications = selectedApplications + tail.applications,
-            events = selectedEvents + tail.events,
-        )
+        val result = pipeline.derive(initial, bootstrap)
 
         // Perform final stem-affix phonological synthesis (Guṇa, Vṛddhi, Sandhi)
         val synthesizedState = synthesizeKrdanta(result.final, request, result.applications)
-        return result.copy(final = synthesizedState)
+        return result.copy(
+            final = synthesizedState,
+            events = result.events.filterNot { it is DerivationEvent.Completed } +
+                DerivationEvent.Completed(synthesizedState, result.applications.size),
+        )
     }
 
     private fun canonicalSelectionSutra(request: KrdantaDerivationRequest): DerivationSutra {
@@ -74,21 +58,6 @@ class KrdantaEngine(
 
     private fun canonicalSutra(number: String): DerivationSutra =
         Ashtadhyayi.registry.require(number) as DerivationSutra
-
-    private fun application(
-        sutra: DerivationSutra,
-        before: DerivationState,
-        change: DerivationChange,
-    ): DerivationApplication = DerivationApplication(
-        sutra = sutra.sutra,
-        role = sutra.role,
-        action = sutra.action,
-        scope = sutra.scope,
-        trace = sutra.renderTrace(),
-        before = before,
-        after = change.state,
-        explanation = change.explanation,
-    )
 
     private fun findDhatu(dhatu: String): Dhatu {
         return DhatuPatha.all.firstOrNull {

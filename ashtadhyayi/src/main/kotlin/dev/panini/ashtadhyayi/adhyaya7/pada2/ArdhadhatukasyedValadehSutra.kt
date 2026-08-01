@@ -22,6 +22,7 @@ object ArdhadhatukasyedValadehSutra : Sutra<DerivationState, DerivationChange>(
     hindiExplanation = "सेट् धातु के बाद वलादि आर्धधातुक प्रत्यय से पहले इट् आगम होता है।",
     type = SutraType.NITYA, chapter = 7, pada = 2, optional = false, kramaValue = 720035,
     role = SutraRole.Vidhi, action = SutraAction.AGAMA, scope = SutraScope.DERIVATION,
+    stage = dev.panini.sutra.SutraStage.IT_PROCESSING,
 ), DerivationSutra {
     private val vowels = setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ऌ', 'ए', 'ऐ', 'ओ', 'औ')
     override fun matches(context: DerivationState): Boolean {

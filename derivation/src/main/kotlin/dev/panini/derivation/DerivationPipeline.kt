@@ -24,15 +24,30 @@ class DerivationPipeline(
         Phase(stage, DerivationEngine(sutras))
     }
 
-    fun derive(initial: DerivationState): DerivationResult =
-        execute(initial, emptySet()).single()
+    fun derive(initial: DerivationState, bootstrap: List<DerivationSutra> = emptyList()): DerivationResult =
+        execute(initial, emptySet(), bootstrap).single()
 
     /** Branches only phases explicitly selected by the workflow. */
-    fun deriveAll(initial: DerivationState, branchingStages: Set<SutraStage>): List<DerivationResult> =
-        execute(initial, branchingStages)
+    fun deriveAll(
+        initial: DerivationState,
+        branchingStages: Set<SutraStage>,
+        bootstrap: List<DerivationSutra> = emptyList(),
+    ): List<DerivationResult> = execute(initial, branchingStages, bootstrap)
 
-    private fun execute(initial: DerivationState, branchingStages: Set<SutraStage>): List<DerivationResult> {
-        var branches = listOf(Accumulated(initial))
+    private fun execute(
+        initial: DerivationState,
+        branchingStages: Set<SutraStage>,
+        bootstrap: List<DerivationSutra>,
+    ): List<DerivationResult> {
+        val bootstrapped = bootstrap.fold(Accumulated(initial)) { accumulated, sutra ->
+            if (!sutra.matches(accumulated.state)) return@fold accumulated
+            val change = sutra.apply(accumulated.state)
+            require(change.applied && change.state != accumulated.state) {
+                "Bootstrap sūtra ${sutra.sutra} did not perform an operation."
+            }
+            accumulated.append(sutra, change)
+        }
+        var branches = listOf(bootstrapped)
         phases.forEach { phase ->
             branches = branches.flatMap { accumulated ->
                 if (!isStageEnabled(phase.stage, initial, accumulated.state)) return@flatMap listOf(accumulated)
@@ -71,5 +86,28 @@ class DerivationPipeline(
             applications = applications + result.applications,
             events = events + result.events.filterNot { it is DerivationEvent.Completed },
         )
+
+        fun append(sutra: DerivationSutra, change: DerivationChange): Accumulated {
+            val application = DerivationApplication(
+                sutra = sutra.sutra,
+                role = sutra.role,
+                action = sutra.action,
+                scope = sutra.scope,
+                trace = sutra.renderTrace(),
+                before = state,
+                after = change.state,
+                explanation = change.explanation,
+            )
+            return copy(
+                state = change.state,
+                applications = applications + application,
+                events = events + DerivationEvent.RuleApplied(
+                    sutra.sutra,
+                    state,
+                    change.state,
+                    change.explanation,
+                ),
+            )
+        }
     }
 }

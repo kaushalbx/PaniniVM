@@ -29,6 +29,7 @@ object HrasvasyaPitiKrtiTukSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.AGAMA,
     scope = SutraScope.DERIVATION,
+    stage = dev.panini.sutra.SutraStage.ANGAKARYA,
 ), DerivationSutra {
     private val shortVowels = setOf('इ', 'ि', 'उ', 'ु', 'ऋ', 'ृ', 'अ')
 

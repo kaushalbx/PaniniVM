@@ -30,6 +30,7 @@ object RhalorNyatSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Apavada,
     action = SutraAction.PRATYAYA_SELECTION,
     scope = SutraScope.DERIVATION,
+    stage = dev.panini.sutra.SutraStage.PRATYAYA_SELECTION,
     blocks = setOf("3.1.97"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
