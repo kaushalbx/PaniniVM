@@ -3,6 +3,7 @@ package dev.panini.derivation
 import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.core.Linga
 import dev.panini.shiksha.Samjna
+import dev.panini.sutra.SutraStage
 
 data class StriPratyayaRequest(
     val stem: String,
@@ -10,16 +11,21 @@ data class StriPratyayaRequest(
 )
 
 class StriPratyayaEngine(
-    private val engine: DerivationEngine = DerivationEngine(
-        Ashtadhyayi.executableSutrasUnder("4.1.3")
-    )
+    private val pipeline: DerivationPipeline = DerivationPipeline(
+        stages = listOf(SutraStage.PRATYAYA_SELECTION),
+        sutrasForStage = Ashtadhyayi::striPratyayaSutrasAt,
+    ),
 ) {
     fun derive(request: StriPratyayaRequest): DerivationResult {
         val initial = buildInitialState(request)
-        val result = engine.derive(initial)
+        val result = pipeline.derive(initial)
 
         val synthesizedState = synthesizeFeminineStem(result.final, request)
-        return result.copy(final = synthesizedState)
+        return result.copy(
+            final = synthesizedState,
+            events = result.events.filterNot { it is DerivationEvent.Completed } +
+                DerivationEvent.Completed(synthesizedState, result.applications.size),
+        )
     }
 
     private fun buildInitialState(request: StriPratyayaRequest): DerivationState {
@@ -37,7 +43,7 @@ class StriPratyayaEngine(
         return DerivationState(
             terms = listOf(stemTerm),
             samjnas = samjnas,
-            activeAdhikaras = setOf("4.1.1"),
+            activeAdhikaras = setOf("4.1.1", "4.1.3"),
             stage = DerivationStage.INITIAL,
             context = DerivationalContext(rupa = Rupa(linga = Linga.STRI)),
         )

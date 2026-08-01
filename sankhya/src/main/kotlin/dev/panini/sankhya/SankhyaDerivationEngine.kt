@@ -1,5 +1,6 @@
 package dev.panini.sankhya
 
+import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.derivation.DerivationPipeline
 import dev.panini.derivation.DerivationResult
 import dev.panini.derivation.DerivationStage
@@ -15,6 +16,7 @@ class SankhyaDerivationEngine {
         prepareStage = { _, state -> state.copy(stage = DerivationStage.PADA_FORMED) },
         isStageEnabled = { stage, initial, _ -> stage == SutraStage.ANGAKARYA || initial.terms.size > 1 },
         finalizeState = { state -> state.copy(stage = DerivationStage.FINAL) },
+        sutrasForStage = Ashtadhyayi::sankhyaSutrasAt,
     )
 
     fun derive(initial: DerivationState): DerivationResult {

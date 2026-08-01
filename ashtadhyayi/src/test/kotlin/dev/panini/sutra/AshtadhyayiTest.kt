@@ -63,6 +63,29 @@ class AshtadhyayiTest {
     }
 
     @Test
+    fun `owns canonical executable views for derivation domains`() {
+        assertTrue(Ashtadhyayi.sandhiSutras.isNotEmpty())
+        assertTrue(Ashtadhyayi.sandhiSutras.all { it.stage in SutraStage.sandhiPhases })
+
+        assertTrue(Ashtadhyayi.sankhyaSutras.any { it.sutra == "6.3.76" })
+        assertTrue(Ashtadhyayi.puranaSankhyaSutras.any { it.sutra == "5.2.48" })
+        assertTrue(Ashtadhyayi.krdantaSutras.any { it.sutra == "7.2.35" })
+        assertTrue(
+            Ashtadhyayi.striPratyayaSutras.map { it.sutra }
+                .containsAll(listOf("4.1.4", "4.1.5", "4.1.41", "4.1.73", "4.1.74")),
+        )
+
+        assertEquals(
+            Ashtadhyayi.sankhyaSutras.filter { it.stage == SutraStage.ANGAKARYA },
+            Ashtadhyayi.sankhyaSutrasAt(SutraStage.ANGAKARYA),
+        )
+        assertEquals(
+            Ashtadhyayi.striPratyayaSutras.filter { it.stage == SutraStage.PRATYAYA_SELECTION },
+            Ashtadhyayi.striPratyayaSutrasAt(SutraStage.PRATYAYA_SELECTION),
+        )
+    }
+
+    @Test
     fun `derives executable views from adhikara metadata`() {
         val feminine = Ashtadhyayi.executableSutrasUnder("4.1.3").map { it.sutra }
 

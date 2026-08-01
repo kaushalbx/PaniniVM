@@ -15,6 +15,7 @@ data class KrdantaDerivationRequest(
 class KrdantaEngine(
     private val pipeline: DerivationPipeline = DerivationPipeline(
         stages = listOf(SutraStage.ANGAKARYA, SutraStage.IT_PROCESSING),
+        sutrasForStage = Ashtadhyayi::krdantaSutrasAt,
     ),
 ) {
     fun derive(request: KrdantaDerivationRequest): DerivationResult {
@@ -57,7 +58,7 @@ class KrdantaEngine(
     }
 
     private fun canonicalSutra(number: String): DerivationSutra =
-        Ashtadhyayi.registry.require(number) as DerivationSutra
+        Ashtadhyayi.requireExecutable(number)
 
     private fun findDhatu(dhatu: String): Dhatu {
         return DhatuPatha.all.firstOrNull {

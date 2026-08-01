@@ -29,6 +29,7 @@ object ShidGauradibhyashCaSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.PRATYAYA_SELECTION,
     scope = SutraScope.DERIVATION,
+    stage = dev.panini.sutra.SutraStage.PRATYAYA_SELECTION,
     dependencies = setOf("4.1.3"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =

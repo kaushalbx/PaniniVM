@@ -52,6 +52,27 @@ object Ashtadhyayi {
 
     val registry = SutraRegistry(cataloguedSutras)
     val executableSutras: List<DerivationSutra> = registry.sutras.filterIsInstance<DerivationSutra>()
+    private val executableSutrasByStage: Map<SutraStage, List<DerivationSutra>> =
+        executableSutras.groupBy(DerivationSutra::stage)
+
+    /** Canonical executable views, derived from grammatical metadata. */
+    val sandhiSutras: List<DerivationSutra> = executableSutrasFor(SutraStage.sandhiPhases)
+    val sankhyaSutras: List<DerivationSutra> = executableSutrasFor(
+        listOf(SutraStage.ANGAKARYA, SutraStage.PADA_FORMATION) + SutraStage.sandhiPhases,
+    )
+    val puranaSankhyaSutras: List<DerivationSutra> = executableSutrasFor(
+        SutraStage.PRATYAYA_SELECTION,
+        SutraStage.ANGAKARYA,
+        SutraStage.PADA_FORMATION,
+        SutraStage.THUK_PHONOLOGY,
+    )
+    val krdantaSutras: List<DerivationSutra> = executableSutrasFor(
+        SutraStage.PRATYAYA_SELECTION,
+        SutraStage.ANGAKARYA,
+        SutraStage.IT_PROCESSING,
+    )
+    val striPratyayaSutras: List<DerivationSutra> =
+        executableSutrasUnder("4.1.3")
 
     /**
      * Kotlin rules that can execute in the shared runtime through matches/apply.
@@ -85,5 +106,26 @@ object Ashtadhyayi {
         registry.governedBy(adhikaraNumber).filterIsInstance<DerivationSutra>()
 
     fun executableSutrasAt(stage: SutraStage): List<DerivationSutra> =
-        executableSutras.filter { it.stage == stage }
+        executableSutrasByStage[stage].orEmpty()
+
+    fun executableSutrasFor(vararg stages: SutraStage): List<DerivationSutra> =
+        executableSutrasFor(stages.asList())
+
+    fun executableSutrasFor(stages: Iterable<SutraStage>): List<DerivationSutra> {
+        val included = stages.toSet()
+        return executableSutras.filter { it.stage in included }
+    }
+
+    fun sandhiSutrasAt(stage: SutraStage): List<DerivationSutra> = sandhiSutras.at(stage)
+    fun sankhyaSutrasAt(stage: SutraStage): List<DerivationSutra> = sankhyaSutras.at(stage)
+    fun puranaSankhyaSutrasAt(stage: SutraStage): List<DerivationSutra> = puranaSankhyaSutras.at(stage)
+    fun krdantaSutrasAt(stage: SutraStage): List<DerivationSutra> = krdantaSutras.at(stage)
+    fun striPratyayaSutrasAt(stage: SutraStage): List<DerivationSutra> = striPratyayaSutras.at(stage)
+
+    fun requireExecutable(number: String): DerivationSutra =
+        registry.require(number) as? DerivationSutra
+            ?: error("Sūtra $number is not executable.")
+
+    private fun List<DerivationSutra>.at(stage: SutraStage): List<DerivationSutra> =
+        filter { it.stage == stage }
 }

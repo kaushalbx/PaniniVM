@@ -1,5 +1,6 @@
 package dev.panini.sankhya
 
+import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.derivation.DerivationConfig
 import dev.panini.derivation.DerivationPipeline
 import dev.panini.derivation.DerivationResult
@@ -34,6 +35,7 @@ class PuranaSankhyaDeriver(
         isStageEnabled = { stage, _, state ->
             stage != SutraStage.THUK_PHONOLOGY || state.terms.any { it.upadesha == "थुक्" }
         },
+        sutrasForStage = Ashtadhyayi::puranaSankhyaSutrasAt,
     )
 
     fun derive(value: Long): DerivationResult {

@@ -22,6 +22,7 @@ object SharngaravadyanyoNginSutra : Sutra<DerivationState, DerivationChange>(
     hindiExplanation = "स्त्रीत्व में शार्ङ्गरवादि प्रातिपदिकों से ङीन् प्रत्यय होता है।",
     type = SutraType.APAVADA, chapter = 4, pada = 1, optional = false, kramaValue = 410073,
     role = SutraRole.Vidhi, action = SutraAction.PRATYAYA_SELECTION, scope = SutraScope.DERIVATION,
+    stage = dev.panini.sutra.SutraStage.PRATYAYA_SELECTION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
         HasMorphosyntax(linga = Linga.STRI).matches(context) &&

@@ -1,8 +1,11 @@
 package dev.panini.derivation
 
+import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.shiksha.Samjna
+import dev.panini.sutra.SutraStage
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class StriPratyayaEngineTest {
@@ -48,5 +51,29 @@ class StriPratyayaEngineTest {
         val res = engine.derive(StriPratyayaRequest("युवन्", Samjna.TI_PRATYAYA))
         assertEquals("युवति", res.final.surface)
         assertTrue(res.applications.any { it.sutra == "4.1.74" })
+    }
+
+    @Test
+    fun `feminine provenance contains only explicitly staged rules`() {
+        val requests = listOf(
+            StriPratyayaRequest("अज", Samjna.TAP),
+            StriPratyayaRequest("कर्तृ", Samjna.NIP),
+            StriPratyayaRequest("गौर", Samjna.NIS),
+            StriPratyayaRequest("नृ", Samjna.NIN),
+            StriPratyayaRequest("युवन्", Samjna.TI_PRATYAYA),
+        )
+
+        requests.forEach { request ->
+            val result = engine.derive(request)
+            assertTrue(result.applications.isNotEmpty())
+            result.applications.forEach { application ->
+                val sutra = Ashtadhyayi.registry.require(application.sutra)
+                assertTrue(sutra.stage != SutraStage.UNSPECIFIED, "${application.sutra} lacks pipeline metadata")
+            }
+            assertEquals(
+                result.final,
+                assertIs<DerivationEvent.Completed>(result.events.last()).finalState,
+            )
+        }
     }
 }
