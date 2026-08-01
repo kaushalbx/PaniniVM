@@ -225,6 +225,22 @@ class ExecutionLifecycleTest {
             ),
         )
         assertEquals("त्रि चतुर्", rememberedObjects.value)
+
+        val firstObjects = assertIs<ExecutionResult.Success>(
+            vm.eval(
+                "युज् + ल्युट् + ङस् प्रथम + अम् कर्मन् + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+                sessionKey = "order",
+            ),
+        )
+        assertEquals("एक द्वि", firstObjects.value)
+
+        val previousObjects = assertIs<ExecutionResult.Success>(
+            vm.eval(
+                "युज् + ल्युट् + ङस् पूर्व + अम् कर्मन् + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+                sessionKey = "order",
+            ),
+        )
+        assertEquals("एक द्वि", previousObjects.value)
     }
 
     @Test

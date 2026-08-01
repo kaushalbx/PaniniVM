@@ -55,7 +55,7 @@ internal object KarakaExtractor {
 
         // ---- फल resolution (delegated) ---------------------------------------------
         val phalaResolution = PhalaResolver.resolve(phalaPadas, padas, subantas, ctx)
-        val karakaReferenceResolution = KarakaReferenceResolver.resolve(subantas, ctx)
+        val karakaReferenceResolution = KarakaReferenceResolver.resolve(padas, subantas, ctx)
 
         // ---- kāraka inference helpers -----------------------------------------------
 
@@ -132,6 +132,7 @@ internal object KarakaExtractor {
             if (pada in phalaResolution.resolvedGenitives) return@forEachIndexed
             if (pada in phalaResolution.resolvedQualifiers) return@forEachIndexed
             if (pada in karakaReferenceResolution.consumedGenitives) return@forEachIndexed
+            if (pada in karakaReferenceResolution.consumedQualifiers) return@forEachIndexed
             when (pada) {
                 is SubantaPada -> {
                     val rememberedParticipant = karakaReferenceResolution.expressions[pada]
