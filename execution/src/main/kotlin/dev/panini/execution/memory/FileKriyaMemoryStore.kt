@@ -19,10 +19,13 @@ internal class FileKriyaMemoryStore(private val storageDir: File) {
 
     fun save(key: String, memory: KriyaMemory) {
         val records = memory.entries.map { entry ->
+            val sourceText = entry.frame.vakya.padas.joinToString(" ") { it.sourceText }
+            val normalizedSource = sourceText.trim().let { if (it.endsWith("।")) it else "$it ।" }
+            analysisCache.putIfAbsent(normalizedSource, listOf(entry.frame))
             listOf(
                 entry.turn.toString(),
                 entry.frame.id.value,
-                entry.frame.vakya.padas.joinToString(" ") { it.sourceText },
+                sourceText,
                 encodeValue(entry.phala),
             ).joinToString("\t") { encode(it) }
         }
