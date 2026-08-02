@@ -15,6 +15,8 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 /** Compact persistent form; frames are rebuilt from their grammatical source on load. */
 @OptIn(ExperimentalEncodingApi::class)
 internal class FileKriyaMemoryStore(private val storageDir: File) {
+    private val analysisCache = java.util.concurrent.ConcurrentHashMap<String, List<KriyaFrame>>()
+
     fun save(key: String, memory: KriyaMemory) {
         val records = memory.entries.map { entry ->
             listOf(
@@ -36,7 +38,8 @@ internal class FileKriyaMemoryStore(private val storageDir: File) {
             val fields = line.split('\t').map(::decode)
             if (fields.size != 4) return@mapNotNull null
             val source = fields[2].trim().let { if (it.endsWith("।")) it else "$it ।" }
-            val frame = analyze(source).singleOrNull()
+            val frames = analysisCache.computeIfAbsent(source) { analyze(source) }
+            val frame = frames.singleOrNull()
                 ?: error("Cannot reconstruct persisted kriyā from: $source")
             RememberedKriya(
                 turn = fields[0].toInt(),
