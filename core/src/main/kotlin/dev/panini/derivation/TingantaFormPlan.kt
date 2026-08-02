@@ -54,7 +54,7 @@ object TingantaFormPlans {
             }
             if (affix == TingAffix.THAS_A) kryadiRequired += "8.3.59"
             add(TingantaFormPlan(affix, Lakara.LAT, kryadiRequired, DerivationStage.FINAL, setOf(DhatuGana.KRYADI)))
-            val curadiRequired = mutableSetOf("3.4.78", "3.1.25", "7.3.86")
+            val curadiRequired = mutableSetOf("3.4.78", "3.1.25")
             if (affix in setOf(TingAffix.ATAM, TingAffix.ATHAM)) curadiRequired += "7.2.81"
             add(TingantaFormPlan(affix, Lakara.LAT, curadiRequired, DerivationStage.FINAL, setOf(DhatuGana.CURADI)))
         }
@@ -225,6 +225,6 @@ object TingantaFormPlans {
         DhatuGana.RUDHADI   -> setOf("3.1.78")
         DhatuGana.TANADI    -> setOf("3.1.79")
         DhatuGana.KRYADI    -> setOf("3.1.81")
-        DhatuGana.CURADI    -> setOf("3.1.25", "7.3.86")
+        DhatuGana.CURADI    -> setOf("3.1.25")
     }
 }

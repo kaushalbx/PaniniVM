@@ -73,6 +73,19 @@ class TingantaEngineTest {
     }
 
     @Test
+    fun `Curadi non-light-ik roots derive successfully`() {
+        val engine = TingantaEngine()
+        val paradigmMudr = engine.deriveSupportedParadigm("मुद्रँ", pada = PadaType.PARASMAIPADA, lakara = Lakara.LAT)
+        assertEquals(9, paradigmMudr.forms.size)
+
+        val paradigmPresh = engine.deriveSupportedParadigm("प्रेषँ", pada = PadaType.PARASMAIPADA, lakara = Lakara.LAT)
+        assertEquals(9, paradigmPresh.forms.size)
+
+        val paradigmGan = engine.deriveSupportedParadigm("गण", pada = PadaType.PARASMAIPADA, lakara = Lakara.LAT)
+        assertEquals(9, paradigmGan.forms.size)
+    }
+
+    @Test
     fun `Tanadi present uses u without shap`() {
         val engine = TingantaEngine()
         val parasmaipada = engine.deriveSupportedParadigm("तनुँ", pada = PadaType.PARASMAIPADA, lakara = Lakara.LAT)

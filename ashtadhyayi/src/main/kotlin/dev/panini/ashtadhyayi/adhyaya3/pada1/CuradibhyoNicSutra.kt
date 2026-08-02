@@ -1,6 +1,7 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada1
 
 import dev.panini.core.DhatuGana
+import dev.panini.core.ItMarker
 import dev.panini.core.TingAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
@@ -37,7 +38,7 @@ object CuradibhyoNicSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         // Effective अय् reflects it-lopa and 6.1.77 before the following शप् vowel.
-        val nic = DerivationTerm("nic", "अय्", TermKind.PRATYAYA, upadesha = "णिच्")
+        val nic = DerivationTerm("nic", "अय्", TermKind.PRATYAYA, upadesha = "णिच्", itMarkers = setOf(ItMarker.NIT))
         return DerivationChange(
             state = context.insertBeforeTingOrLingAugment(nic),
             explanation = "3.1.25 introduces णिच् after a Curādi root.",
