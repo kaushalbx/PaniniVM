@@ -12,7 +12,7 @@ import java.io.File
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
-/** Compact persistent form; frames are rebuilt from their grammatical source on load. */
+/** Compact persistent form for Kriyā memory using binary V2 encoding. */
 @OptIn(ExperimentalEncodingApi::class)
 internal class FileKriyaMemoryStore(private val storageDir: File) {
     private val analysisCache = java.util.concurrent.ConcurrentHashMap<String, List<KriyaFrame>>()
@@ -43,65 +43,31 @@ internal class FileKriyaMemoryStore(private val storageDir: File) {
         if (bytes.isEmpty()) return null
 
         val dis = DataInputStream(ByteArrayInputStream(bytes))
-        val header = try { dis.readUTF() } catch (e: Exception) { return loadV1(file.readLines(), analyze) }
+        val header = try { dis.readUTF() } catch (e: Exception) { return null }
+        if (header != HEADER_V2) return null
 
-        return when (header) {
-            HEADER_V2 -> {
-                val count = dis.readInt()
-                val entries = List(count) {
-                    val turn = dis.readInt()
-                    val idValue = dis.readUTF()
-                    val sourceText = dis.readUTF()
-                    val hasPhala = dis.readBoolean()
-                    val phala = if (hasPhala) dis.readValue() else null
+        val count = dis.readInt()
+        val entries = List(count) {
+            val turn = dis.readInt()
+            val idValue = dis.readUTF()
+            val sourceText = dis.readUTF()
+            val hasPhala = dis.readBoolean()
+            val phala = if (hasPhala) dis.readValue() else null
 
-                    val source = sourceText.trim().let { if (it.endsWith("।")) it else "$it ।" }
-                    val frames = analysisCache.computeIfAbsent(source) { analyze(source) }
-                    val frame = frames.singleOrNull()
-                        ?: error("Cannot reconstruct persisted kriyā from: $source")
-                    RememberedKriya(
-                        turn = turn,
-                        frame = frame.withMemoryId(KriyaId(idValue)),
-                        phala = phala,
-                    )
-                }
-                KriyaMemory(entries)
-            }
-            else -> loadV1(file.readLines(), analyze)
-        }
-    }
-
-    private fun loadV1(lines: List<String>, analyze: (String) -> List<KriyaFrame>): KriyaMemory? {
-        if (lines.firstOrNull() != HEADER_V1) return null
-        val entries = lines.drop(1).filter(String::isNotBlank).mapNotNull { line ->
-            val fields = line.split('\t').map(::decode)
-            if (fields.size != 4) return@mapNotNull null
-            val source = fields[2].trim().let { if (it.endsWith("।")) it else "$it ।" }
+            val source = sourceText.trim().let { if (it.endsWith("।")) it else "$it ।" }
             val frames = analysisCache.computeIfAbsent(source) { analyze(source) }
             val frame = frames.singleOrNull()
                 ?: error("Cannot reconstruct persisted kriyā from: $source")
             RememberedKriya(
-                turn = fields[0].toInt(),
-                frame = frame.withMemoryId(KriyaId(fields[1])),
-                phala = decodeValue(fields[3]),
+                turn = turn,
+                frame = frame.withMemoryId(KriyaId(idValue)),
+                phala = phala,
             )
         }
         return KriyaMemory(entries)
     }
 
     private fun fileFor(key: String): File = File(storageDir, encode(key) + EXTENSION)
-
-    private fun encodeValue(value: SanskritValue?): String {
-        if (value == null) return ""
-        val bytes = ByteArrayOutputStream()
-        DataOutputStream(bytes).use { output -> output.writeValue(value) }
-        return base64Codec.encode(bytes.toByteArray())
-    }
-
-    private fun decodeValue(encoded: String): SanskritValue? {
-        if (encoded.isEmpty()) return null
-        return DataInputStream(ByteArrayInputStream(base64Codec.decode(encoded))).use { it.readValue() }
-    }
 
     private fun DataOutputStream.writeValue(value: SanskritValue) {
         when (value) {
@@ -144,11 +110,7 @@ internal class FileKriyaMemoryStore(private val storageDir: File) {
     private fun encode(value: String): String =
         if (value.isEmpty()) "" else base64Codec.encode(value.toByteArray(Charsets.UTF_8))
 
-    private fun decode(value: String): String =
-        if (value.isEmpty()) "" else base64Codec.decode(value).decodeToString()
-
     private companion object {
-        const val HEADER_V1 = "PANINI_KRIYA_MEMORY_V1"
         const val HEADER_V2 = "PANINI_KRIYA_MEMORY_V2"
         const val EXTENSION = ".kriya-memory"
         val base64Codec = Base64.UrlSafe.withPadding(Base64.PaddingOption.PRESENT_OPTIONAL)
