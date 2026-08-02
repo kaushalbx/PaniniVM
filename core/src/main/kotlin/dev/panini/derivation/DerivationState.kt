@@ -29,7 +29,19 @@ class DerivationState(
     }
 
     val surface: String
-        get() = terms.fold("") { rendered, term ->
+        get() = combinedSurface(terms)
+
+    val rawJoinedSurface: String
+        get() {
+            val nonExistentOrEmptyFiltered = terms.filter { it.surface.isNotEmpty() }
+            if (nonExistentOrEmptyFiltered.size > 1) {
+                return nonExistentOrEmptyFiltered.joinToString(" + ") { it.surface }
+            }
+            return combinedSurface(terms)
+        }
+
+    private fun combinedSurface(termList: List<DerivationTerm>): String {
+        return termList.fold("") { rendered, term ->
             val next = term.surface
             if (rendered.endsWith('्') && next.firstOrNull() == 'अ') {
                 rendered.dropLast(1) + next.drop(1)
@@ -57,6 +69,7 @@ class DerivationState(
                 rendered + next
             }
         }
+    }
 
     val allEffectiveTerms: List<DerivationTerm>
         get() = terms + droppedTerms

@@ -417,7 +417,7 @@ private fun MutableList<String>.addTrace(result: DerivationResult, includeRole: 
     add("----------------------------------------")
     result.applications.forEach { app ->
         val prefix = if (includeRole) " [${app.role::class.simpleName}]" else ""
-        add("${app.sutra}$prefix — ${app.explanation}")
+        add("${app.sutra}$prefix — ${app.after.rawJoinedSurface} (${app.explanation})")
         app.conflictTrace.forEach { add("  ↳ $it") }
     }
 }
