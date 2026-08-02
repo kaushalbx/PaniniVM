@@ -1,12 +1,13 @@
 package dev.panini.derivation
 
+import dev.panini.core.Linga
 import kotlin.test.Test
 
 class NeuterAStemDerivationTest {
     @Test
     fun `derive full neuter a-stem paradigm for phala`() = assertSubantaParadigm(
         "फल",
-        SubantaStemClass.A_STEM_NEUTER,
+        Linga.NAPUMSAKA,
         """
             फलम् फले फलानि फलम् फले फलानि फलेन फलाभ्याम् फलैः
             फलाय फलाभ्याम् फलेभ्यः फलात् फलाभ्याम् फलेभ्यः
@@ -17,7 +18,7 @@ class NeuterAStemDerivationTest {
     @Test
     fun `derive full neuter a-stem paradigm for jala`() = assertSubantaParadigm(
         "जल",
-        SubantaStemClass.A_STEM_NEUTER,
+        Linga.NAPUMSAKA,
         """
             जलम् जले जलानि जलम् जले जलानि जलेन जलाभ्याम् जलैः
             जलाय जलाभ्याम् जलेभ्यः जलात् जलाभ्याम् जलेभ्यः

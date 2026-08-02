@@ -10,7 +10,6 @@ import dev.panini.derivation.DerivationResult
 import dev.panini.derivation.KarakaSubantaDerivationRequest
 import dev.panini.derivation.SubantaDerivationRequest
 import dev.panini.derivation.SubantaEngine
-import dev.panini.derivation.SubantaStemClass
 import dev.panini.derivation.TingantaDerivationRequest
 import dev.panini.derivation.TingantaEngine
 import dev.panini.execution.ExecutionResult
@@ -226,7 +225,6 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
                 pratipadika,
                 vibhakti,
                 vacana,
-                SubantaStemClass.guess(pratipadika)
             )
         )
 

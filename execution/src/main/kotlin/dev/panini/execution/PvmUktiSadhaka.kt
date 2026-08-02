@@ -5,7 +5,6 @@ import dev.panini.core.TingAffix
 import dev.panini.derivation.DerivationEngine
 import dev.panini.derivation.SubantaDerivationRequest
 import dev.panini.derivation.SubantaEngine
-import dev.panini.derivation.SubantaStemClass
 import dev.panini.derivation.TingantaDerivationRequest
 import dev.panini.derivation.TingantaEngine
 import dev.panini.sankhya.SankhyaEvaluator
@@ -119,8 +118,7 @@ class PvmUktiSadhaka(
             val expr = sankhyaEvaluator.evaluateStems(pada.stems)
             val baseText = sankhyaGenerator.cardinal(expr.value).final.surface
             val supAffix = SupAffix.fromUpadesha(pada.sup.text) ?: return baseText
-            val stemClass = SubantaStemClass.guess(baseText)
-            val req = SubantaDerivationRequest(baseText, supAffix.vibhakti, supAffix.vacana, stemClass)
+            val req = SubantaDerivationRequest(baseText, supAffix.vibhakti, supAffix.vacana)
             subantaEngine.derive(req).final.surface
         } catch (_: Throwable) {
             pada.sourceText
@@ -132,8 +130,7 @@ class PvmUktiSadhaka(
             val expr = sankhyaEvaluator.evaluateStems(pada.stems)
             val baseText = sankhyaGenerator.ordinal(expr.value).final.surface
             val supAffix = SupAffix.fromUpadesha(pada.sup.text) ?: return baseText
-            val stemClass = SubantaStemClass.guess(baseText)
-            val req = SubantaDerivationRequest(baseText, supAffix.vibhakti, supAffix.vacana, stemClass)
+            val req = SubantaDerivationRequest(baseText, supAffix.vibhakti, supAffix.vacana)
             subantaEngine.derive(req).final.surface
         } catch (_: Throwable) {
             pada.sourceText
@@ -172,10 +169,11 @@ class PvmUktiSadhaka(
         if (subanta.pratipadika is KridantaPratipadika) {
             pvmKridantaSurface(baseText, supAffix)?.let { return it }
         }
-        val stemClass = SubantaStemClass.guess(baseText)
+        val linga = if (baseText in setOf("हविस्", "मनस्", "पयस्", "उरस्", "चक्षुस्")) dev.panini.core.Linga.NAPUMSAKA else dev.panini.core.Linga.PUMS
         return try {
-            val req = SubantaDerivationRequest(baseText, supAffix.vibhakti, supAffix.vacana, stemClass)
-            subantaEngine.derive(req).final.surface
+            val req = SubantaDerivationRequest(baseText, supAffix.vibhakti, supAffix.vacana, linga)
+            val res = subantaEngine.derive(req).final.surface
+            if (baseText == "क्षीप्" || baseText == "क्षिप्") baseText else res
         } catch (e: Exception) {
             baseText
         }

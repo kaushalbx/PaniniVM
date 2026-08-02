@@ -22,7 +22,6 @@ object LinguisticActionsInitializer {
                         pratipadika = stem,
                         vibhakti = Vibhakti.PRATHAMA,
                         vacana = Vacana.EKAVACANA,
-                        stemClass = SubantaStemClass.guess(stem),
                     ),
                 ).final.surface
             },

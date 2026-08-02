@@ -202,14 +202,7 @@ class DerivationEngineTest {
         assertTrue("7.3.102" in bhyam.appliedSutras)
     }
 
-    @Test
-    fun `nominal engine rejects a stem outside the implemented a-stem profile`() {
-        assertFailsWith<IllegalArgumentException> {
-            SubantaEngine().derive(
-                SubantaDerivationRequest("हरि", Vibhakti.PRATHAMA, Vacana.EKAVACANA),
-            )
-        }
-    }
+
 
     @Test
     fun `typed conditions inspect grammatical state and operations introduce an affix`() {

@@ -1,12 +1,13 @@
 package dev.panini.derivation
 
+import dev.panini.core.Linga
 import kotlin.test.Test
 
 class GhiDerivationTest {
     @Test
     fun `derive full masculine i-stem paradigm for kavi`() = assertSubantaParadigm(
         "कवि",
-        SubantaStemClass.I_STEM_MASCULINE,
+        Linga.PUMS,
         """
             कविः कवी कवयः कविम् कवी कवीन् कविना कविभ्याम् कविभिः
             कवये कविभ्याम् कविभ्यः कवेऽः कविभ्याम् कविभ्यः
@@ -17,7 +18,7 @@ class GhiDerivationTest {
     @Test
     fun `derive full masculine i-stem paradigm for rishi`() = assertSubantaParadigm(
         "ऋषि",
-        SubantaStemClass.I_STEM_MASCULINE,
+        Linga.PUMS,
         """
             ऋषिः ऋषी ऋषयः ऋषिम् ऋषी ऋषीन् ऋषिणा ऋषिभ्याम् ऋषिभिः
             ऋषये ऋषिभ्याम् ऋषिभ्यः ऋषेऽः ऋषिभ्याम् ऋषिभ्यः
@@ -28,7 +29,7 @@ class GhiDerivationTest {
     @Test
     fun `derive full masculine u-stem paradigm for bhanu`() = assertSubantaParadigm(
         "भानु",
-        SubantaStemClass.U_STEM_MASCULINE,
+        Linga.PUMS,
         """
             भानुः भानू भानवः भानुम् भानू भानून् भानुना भानुभ्याम् भानुभिः
             भानवे भानुभ्याम् भानुभ्यः भानोऽः भानुभ्याम् भानुभ्यः

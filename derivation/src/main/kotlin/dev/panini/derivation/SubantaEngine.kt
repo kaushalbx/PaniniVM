@@ -2,6 +2,7 @@ package dev.panini.derivation
 
 import dev.panini.core.SupAffix
 import dev.panini.core.Lakara
+import dev.panini.core.Linga
 import dev.panini.core.Vacana
 import dev.panini.core.Vibhakti
 import dev.panini.dhatupatha.DhatuPatha
@@ -91,13 +92,13 @@ class SubantaEngine(
 
     fun deriveSupportedParadigm(
         pratipadika: String,
-        stemClass: SubantaStemClass = SubantaStemClass.guess(pratipadika),
+        linga: Linga = Linga.PUMS,
     ): SubantaParadigm = SubantaParadigm(
         pratipadika = pratipadika,
-        stemClass = stemClass,
+        linga = linga,
         forms = SubantaFormPlans.all().associate { plan ->
             plan.affix to try {
-                derive(SubantaDerivationRequest(pratipadika, plan.affix.vibhakti, plan.affix.vacana, stemClass))
+                derive(SubantaDerivationRequest(pratipadika, plan.affix.vibhakti, plan.affix.vacana, linga))
             } catch (exception: IllegalArgumentException) {
                 throw IllegalArgumentException("Failed to derive ${plan.affix}: ${exception.message}", exception)
             }
@@ -149,7 +150,7 @@ class SubantaEngine(
                 pratipadika = request.pratipadika,
                 vibhakti = resolvedVibhakti,
                 vacana = request.vacana,
-                stemClass = SubantaStemClass.guess(request.pratipadika)
+                linga = request.linga
             )
         )
         return result.copy(karakaResolution = resolution)
@@ -159,7 +160,7 @@ class SubantaEngine(
 /** The executable portion of a nominal paradigm, retaining its rule traces. */
 data class SubantaParadigm(
     val pratipadika: String,
-    val stemClass: SubantaStemClass,
+    val linga: Linga,
     val forms: Map<SupAffix, DerivationResult>,
 ) {
     val derivationSurfaces: Map<SupAffix, String>
