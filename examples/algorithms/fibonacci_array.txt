@@ -1,11 +1,11 @@
-# Fibonacci Array Algorithm: Generate and print [3, 5, 8, 13, 21]
+# Fibonacci Array Algorithm: Generate and print F8 = 21 using Lyut (ल्युट्) nominalizations
 
 # Initialize F2 = 1 and F3 = 2
-एकम् पूर्वपदाय देहि ।
-द्विम् वर्तमानपदाय देहि ।
+एकम् पूर्वाय देहि ।
+द्विम् वर्तमानाय देहि ।
 
 # Compute and shift F4 through F8 in one repeated body
-पञ्चन्कृत्वः वर्तमानपदम् पूर्वपदम् च योजय । देहि योजनस्य फलम् उत्तरपदाय । देहि वर्तमानपदम् पूर्वपदाय । देहि उत्तरपदम् वर्तमानपदाय ।
+पञ्चन्कृत्वः वर्तमानम् पूर्वम् च योजय । देहि योजनस्य फलम् उत्तराय । देहि वर्तमानम् पूर्वाय । देहि उत्तरम् वर्तमानाय ।
 
 # Print only F8 = 21
-मुद्रय वर्तमानपदम् ।
+मुद्रय वर्तमानम् ।
