@@ -18,25 +18,61 @@ internal class FileKriyaMemoryStore(private val storageDir: File) {
     private val analysisCache = java.util.concurrent.ConcurrentHashMap<String, List<KriyaFrame>>()
 
     fun save(key: String, memory: KriyaMemory) {
-        val records = memory.entries.map { entry ->
-            val sourceText = entry.frame.vakya.padas.joinToString(" ") { it.sourceText }
-            val normalizedSource = sourceText.trim().let { if (it.endsWith("।")) it else "$it ।" }
-            analysisCache.putIfAbsent(normalizedSource, listOf(entry.frame))
-            listOf(
-                entry.turn.toString(),
-                entry.frame.id.value,
-                sourceText,
-                encodeValue(entry.phala),
-            ).joinToString("\t") { encode(it) }
+        val bytesStream = ByteArrayOutputStream()
+        DataOutputStream(bytesStream).use { out ->
+            out.writeUTF(HEADER_V2)
+            out.writeInt(memory.entries.size)
+            for (entry in memory.entries) {
+                val sourceText = entry.frame.vakya.padas.joinToString(" ") { it.sourceText }
+                val normalizedSource = sourceText.trim().let { if (it.endsWith("।")) it else "$it ।" }
+                analysisCache.putIfAbsent(normalizedSource, listOf(entry.frame))
+                out.writeInt(entry.turn)
+                out.writeUTF(entry.frame.id.value)
+                out.writeUTF(sourceText)
+                out.writeBoolean(entry.phala != null)
+                entry.phala?.let { out.writeValue(it) }
+            }
         }
-        fileFor(key).writeText((listOf(HEADER) + records).joinToString("\n", postfix = "\n"))
+        fileFor(key).writeBytes(bytesStream.toByteArray())
     }
 
     fun load(key: String, analyze: (String) -> List<KriyaFrame>): KriyaMemory? {
         val file = fileFor(key)
         if (!file.exists()) return null
-        val lines = file.readLines()
-        if (lines.firstOrNull() != HEADER) return null
+        val bytes = file.readBytes()
+        if (bytes.isEmpty()) return null
+
+        val dis = DataInputStream(ByteArrayInputStream(bytes))
+        val header = try { dis.readUTF() } catch (e: Exception) { return loadV1(file.readLines(), analyze) }
+
+        return when (header) {
+            HEADER_V2 -> {
+                val count = dis.readInt()
+                val entries = List(count) {
+                    val turn = dis.readInt()
+                    val idValue = dis.readUTF()
+                    val sourceText = dis.readUTF()
+                    val hasPhala = dis.readBoolean()
+                    val phala = if (hasPhala) dis.readValue() else null
+
+                    val source = sourceText.trim().let { if (it.endsWith("।")) it else "$it ।" }
+                    val frames = analysisCache.computeIfAbsent(source) { analyze(source) }
+                    val frame = frames.singleOrNull()
+                        ?: error("Cannot reconstruct persisted kriyā from: $source")
+                    RememberedKriya(
+                        turn = turn,
+                        frame = frame.withMemoryId(KriyaId(idValue)),
+                        phala = phala,
+                    )
+                }
+                KriyaMemory(entries)
+            }
+            else -> loadV1(file.readLines(), analyze)
+        }
+    }
+
+    private fun loadV1(lines: List<String>, analyze: (String) -> List<KriyaFrame>): KriyaMemory? {
+        if (lines.firstOrNull() != HEADER_V1) return null
         val entries = lines.drop(1).filter(String::isNotBlank).mapNotNull { line ->
             val fields = line.split('\t').map(::decode)
             if (fields.size != 4) return@mapNotNull null
@@ -112,7 +148,8 @@ internal class FileKriyaMemoryStore(private val storageDir: File) {
         if (value.isEmpty()) "" else base64Codec.decode(value).decodeToString()
 
     private companion object {
-        const val HEADER = "PANINI_KRIYA_MEMORY_V1"
+        const val HEADER_V1 = "PANINI_KRIYA_MEMORY_V1"
+        const val HEADER_V2 = "PANINI_KRIYA_MEMORY_V2"
         const val EXTENSION = ".kriya-memory"
         val base64Codec = Base64.UrlSafe.withPadding(Base64.PaddingOption.PRESENT_OPTIONAL)
     }
