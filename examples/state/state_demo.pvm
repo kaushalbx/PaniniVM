@@ -1,2 +1,7 @@
-गृह + अम् स्था + णिच् + लोट् + सिप् ।
-राम + अम् भू + णिच् + लोट् + सिप् ।
+# State Management Demo using Kridanta Lyut (ल्युट्) Nominalizations
+
+# 1. Assign value 1 (एकम्) to the retention state (धृ + ल्युट् -> धारणाय देहि)
+एक + अम् धृ + ल्युट् + ङे दा + लोट् + सिप् ।
+
+# 2. Print the value of the retention state (मुद्रय धारणम्)
+मुद्र् + णिच् + लोट् + सिप् धृ + ल्युट् + अम् ।
