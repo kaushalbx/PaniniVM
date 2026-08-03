@@ -1,0 +1,16 @@
+# Minimum Subset Sum Difference Algorithm in PaniniVM Script (.pvm)
+# Input Set: S = {1, 6, 11, 5} (Total Sum = 23)
+# Goal: Partition S into two subsets S1 and S2 such that |sum(S1) - sum(S2)| is minimum.
+# Optimal subsets: S1 = {1, 11} (sum = 12), S2 = {6, 5} (sum = 11) -> Minimum Difference = 12 - 11 = 1
+
+# Step 1: Compute subset 1 sum (1 + 11 = 12) and retain in handle 'धृ'
+एक + अम् एक + दशन् + अम् च धृ + ल्युट् + ङे युज् + णिच् + लोट् + सिप् ।
+
+# Step 2: Compute subset 2 sum (6 + 5 = 11) and retain in handle 'स्था'
+षष् + अम् पञ्च + अम् च स्था + ल्युट् + ङे युज् + णिच् + लोट् + सिप् ।
+
+# Step 3: Compute difference between sum of subset 1 (12) and sum of subset 2 (11) -> 12 - 11 = 1
+धृ + ल्युट् + अम् स्था + ल्युट् + अम् च वि + युज् + णिच् + लोट् + सिप् ।
+
+# Step 4: Output the minimum subset sum difference result (renders 1 = एकम्)
+वि + युज् + घञ् + ङस् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।
