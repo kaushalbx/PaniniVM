@@ -186,7 +186,7 @@ class VakyaAnalyzer(
         participant: ParticipantFacts,
         allParticipants: List<ParticipantFacts>,
     ): KarakaRelation {
-        if (prayoga == Prayoga.BHAVE || prayoga == Prayoga.ANIRDHARITA) {
+        if (prayoga == Prayoga.ANIRDHARITA) {
             return KarakaRelation(
                 kriyaId,
                 subanta,

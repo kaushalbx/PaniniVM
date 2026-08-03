@@ -59,7 +59,7 @@ object KarakaRuleEngine {
                     Prayoga.KARTARI -> karaka == Karaka.KARTR
                     Prayoga.KARMANI -> karaka == Karaka.KARMAN
                     Prayoga.CAUSATIVE -> karaka == Karaka.KARTR
-                    Prayoga.BHAVE -> false
+                    Prayoga.BHAVE -> false // In Bhāve, tin denotes bhāva (action), so Kartṛ is unexpressed (anabhihita) -> Tṛtīyā
                     Prayoga.ANIRDHARITA -> false
                 }
                 val vibhaktiContext = VibhaktiRuleContext(karaka, possibleVibhaktis, abhihita = isAbhihita, participant = context.participant)

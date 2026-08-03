@@ -374,4 +374,58 @@ class KarakaInferenceTest {
             (mulaDhatu == "वस" && it.upadesha == "वसँ") || (mulaDhatu == "शी" && it.upadesha == "शीङ्")
         }
     }
+
+    @Test
+    fun `karmani prayoga resolves karman as abhihita prathama and kartr as anabhihita trtiya`() {
+        val kartrParticipant = ParticipantFacts(
+            id = "devadatta",
+            expression = AvyayaPada("देवदत्तेन", "देवदत्तेन"),
+            possibleVibhaktis = setOf(Vibhakti.TRTIYA),
+        )
+        val kartrRes = KarakaRuleEngine.resolve(
+            KarakaRuleContext(
+                dhatu = DhatuIdentity("कृ", true),
+                participant = kartrParticipant,
+                allParticipants = listOf(kartrParticipant),
+                prayoga = Prayoga.KARMANI,
+            ),
+        )
+        assertEquals(Karaka.KARTR, kartrRes.resolved)
+        assertEquals(Vibhakti.TRTIYA, kartrRes.resolvedVibhakti)
+
+        val karmanParticipant = ParticipantFacts(
+            id = "kata",
+            expression = AvyayaPada("कटः", "कटः"),
+            possibleVibhaktis = setOf(Vibhakti.PRATHAMA),
+        )
+        val karmanRes = KarakaRuleEngine.resolve(
+            KarakaRuleContext(
+                dhatu = DhatuIdentity("कृ", true),
+                participant = karmanParticipant,
+                allParticipants = listOf(karmanParticipant),
+                prayoga = Prayoga.KARMANI,
+            ),
+        )
+        assertEquals(Karaka.KARMAN, karmanRes.resolved)
+        assertEquals(Vibhakti.PRATHAMA, karmanRes.resolvedVibhakti)
+    }
+
+    @Test
+    fun `bhave prayoga resolves kartr as anabhihita trtiya`() {
+        val kartrParticipant = ParticipantFacts(
+            id = "devadatta",
+            expression = AvyayaPada("देवदत्तेन", "देवदत्तेन"),
+            possibleVibhaktis = setOf(Vibhakti.TRTIYA),
+        )
+        val kartrRes = KarakaRuleEngine.resolve(
+            KarakaRuleContext(
+                dhatu = DhatuIdentity("भू", false),
+                participant = kartrParticipant,
+                allParticipants = listOf(kartrParticipant),
+                prayoga = Prayoga.BHAVE,
+            ),
+        )
+        assertEquals(Karaka.KARTR, kartrRes.resolved)
+        assertEquals(Vibhakti.TRTIYA, kartrRes.resolvedVibhakti)
+    }
 }

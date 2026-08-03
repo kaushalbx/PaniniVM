@@ -45,8 +45,15 @@ object KarakaInference {
                 Vibhakti.SAPTAMI -> Karaka.ADHIKARANA
             }
 
-            Prayoga.BHAVE,
-            Prayoga.ANIRDHARITA,
-                -> null
+            Prayoga.BHAVE -> when (vibhakti) {
+                Vibhakti.TRTIYA -> Karaka.KARTR
+                Vibhakti.CHATURTHI -> Karaka.SAMPRADANA
+                Vibhakti.PANCHAMI -> Karaka.APADANA
+                Vibhakti.SASTHI -> Karaka.SAMBANDHA
+                Vibhakti.SAPTAMI -> Karaka.ADHIKARANA
+                else -> null
+            }
+
+            Prayoga.ANIRDHARITA -> null
         }
 }
