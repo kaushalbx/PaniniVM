@@ -1,0 +1,15 @@
+# Recursive Sum of First N Natural Numbers Algorithm in PaniniVM Script (.pvm)
+# Computes sum(5) = 5 + sum(4) = 5 + 4 + 3 + 2 + 1 = 15
+
+# Step 1: Initialize current term (सङ्ख्या) = 5 (पञ्चन्)
+पञ्च + अम् सङ्ख्या + ङे दा + लोट् + सिप् ।
+
+# Step 2: Initialize accumulated sum (योग) = 0 (शून्य)
+शून्य + अम् योग + ङे दा + लोट् + सिप् ।
+
+# Step 3: Recursive loop step repeated 5 times (पञ्चकृत्वः)
+# Add current term 'सङ्ख्या' to 'योग' and update 'योग'
+पञ्च + कृत्वः सङ्ख्या + अम् योग + अम् च योग + ङे युज् + णिच् + लोट् + सिप् ततः वि + युज् + णिच् + लोट् + सिप् सङ्ख्या + अम् एक + अम् च ततः वि + युज् + ल्युट् + ङस् फल + अम् सङ्ख्या + ङे दा + लोट् + सिप् ।
+
+# Step 4: Print the final accumulated sum (15 = पञ्चदश)
+मुद्र् + णिच् + लोट् + सिप् योग + अम् ॥
