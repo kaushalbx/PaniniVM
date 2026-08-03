@@ -75,6 +75,11 @@ class PvmUktiSadhaka(
         val ukti = parser.parse(lineText)
         val parts = mutableListOf<String>()
 
+        val dandaDelimiter = when {
+            lineText.trim().endsWith("॥") -> "॥"
+            else -> "।"
+        }
+
         ukti.sambodhana?.let { sambodhana ->
             val header = sambodhana.suchaka?.let { "$it " } ?: ""
             val derivedSub = sadhayaSubanta(sambodhana.subanta)
@@ -86,11 +91,12 @@ class PvmUktiSadhaka(
 
         when (val structure = ukti.structure) {
             UktiStructure.Sequence -> ukti.vakyas.indices.forEach { index ->
-                parts += "${vakyaText(index)} ।"
+                val delim = if (index == ukti.vakyas.lastIndex) dandaDelimiter else "।"
+                parts += "${vakyaText(index)} $delim"
             }
             is UktiStructure.Conditional -> {
                 val alternate = if (structure.hasAlternate) " अन्यथा ${vakyaText(2)}" else ""
-                parts += "यदि ${vakyaText(0)} तर्हि ${vakyaText(1)}$alternate ।"
+                parts += "यदि ${vakyaText(0)} तर्हि ${vakyaText(1)}$alternate $dandaDelimiter"
             }
         }
 
