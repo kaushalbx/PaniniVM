@@ -1,0 +1,13 @@
+# Loop 10 times in PaniniVM to build sequence 1..10 and output the list
+
+# Step 1: Initialize current term (सङ्ख्या) = 1 (एकम्)
+एक + अम् सङ्ख्या + ङे दा + लोट् + सिप् ।
+
+# Step 2: Push initial element F(1)=1 into sequence list 'क्रम'
+सङ्ख्या + अम् क्षिप् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् क्षिप् + घञ् + ङस् फल + अम् क्रम + ङे ।
+
+# Step 3: Loop 9 times (नवकृत्वः) adding 1 to 'सङ्ख्या' and pushing each to 'क्रम'
+नव + कृत्वः युज् + णिच् + लोट् + सिप् सङ्ख्या + अम् एक + अम् च ततः दा + लोट् + सिप् युज् + ल्युट् + ङस् फल + अम् सङ्ख्या + ङे ततः क्षिप् + णिच् + लोट् + सिप् क्रम + अम् सङ्ख्या + अम् च ततः दा + लोट् + सिप् क्षिप् + घञ् + ङस् फल + अम् क्रम + ङे ।
+
+# Step 4: Print the sequence list containing 1 to 10
+मुद्र् + णिच् + लोट् + सिप् क्रम + अम् ॥
