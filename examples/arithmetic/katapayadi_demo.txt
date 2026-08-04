@@ -1,0 +1,8 @@
+# Kaṭapayādi (कटपयादि) Numeral System Demo in PaniniVM Script (.pvm)
+# Demonstrates decoding traditional Kaṭapayādi chronograms using "अङ्कानां वामतो गतिः"
+
+# Step 1: Decode "माधव" (म=5, ध=9, व=4 -> 495) and "खग" (ख=2, ग=3 -> 32), and add them (495 + 32 = 527)
+कटपयादिमाधव+अम् कटपयादिखग+अम् च योजय ।
+
+# Step 2: Print the sum result (527)
+योगस्य फलम् मुद्रय ।

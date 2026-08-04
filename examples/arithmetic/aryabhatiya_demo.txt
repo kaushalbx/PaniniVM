@@ -1,0 +1,8 @@
+# Āryabhaṭīya (आर्यभटीय) Numeral System Demo in PaniniVM Script (.pvm)
+# Demonstrates decoding Āryabhaṭīya alphabetic numerals based on Gītikā 2 rules
+
+# Step 1: Multiply Āryabhaṭīya "गि" (ग=3 * 10^2 = 300) by "चयि" (च=6*10^2 + य=30*10^2 = 3600) -> (300 * 3600 = 1080000)
+आर्यभटीयगि+अम् आर्यभटीयचयि+अम् च गण् ।
+
+# Step 2: Print the multiplication result (1,080,000)
+गण्ः फलम् मुद्रय ।
