@@ -1,0 +1,14 @@
+# Fibonacci Single Term Algorithm: Compute and print single term F(8) = 21
+
+# Step 1: Initialize F(1) = 1 and F(2) = 1
+एकम् पूर्वाय देहि ।
+एकम् वर्तमानाय देहि ।
+
+# Step 2: Compute remaining 6 terms (F3..F8) using state transition repetition
+षष्कृत्वः वर्तमानम् पूर्वम् च योजय
+ततः देहि योजनस्य फलम् उत्तराय
+ततः देहि वर्तमानम् पूर्वाय
+ततः देहि उत्तरम् वर्तमानाय ।
+
+# Step 3: Print single result F(8) = 21
+मुद्रय वर्तमानम् ।

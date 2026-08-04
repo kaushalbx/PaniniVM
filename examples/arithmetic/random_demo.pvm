@@ -1,1 +1,8 @@
+# Random Choice Generator Demo in PaniniVM Script (.pvm)
+# Generates a random game/dice outcome using Divadi dhatu div (दीव्य)
+
+# Step 1: Roll random choice (अक्षम् दीव्य)
 अक्ष + अम् दिव् + णिच् + लोट् + सिप् ।
+
+# Step 2: Print selected random outcome
+मुद्र् + णिच् + लोट् + सिप् फल + अम् ।

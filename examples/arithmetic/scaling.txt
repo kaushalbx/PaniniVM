@@ -1,1 +1,8 @@
+# Scaling / Growth Algorithm in PaniniVM Script (.pvm)
+# Scales input quantity using edh (एधय)
+
+# Step 1: Scale input quantity 5
 पङ्चम् एधस्व ।
+
+# Step 2: Print scaled result
+मुद्रय फलम् ।

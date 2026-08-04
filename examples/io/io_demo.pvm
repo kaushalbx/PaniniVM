@@ -1,2 +1,11 @@
+# Interactive Input / Output Demo in PaniniVM Script (.pvm)
+# Reads user input and displays visual feedback
+
+# Step 1: Display visual output (प्रदर्शनम् / दर्शय)
 राम + अम् प्र + दृश् + णिच् + लोट् + सिप् ।
+
+# Step 2: Read interactive input (निवेशनम् / ग्राहय)
 निवेश + अम् ग्रह् + णिच् + लोट् + सिप् ।
+
+# Step 3: Print final I/O output
+मुद्र् + णिच् + लोट् + सिप् फल + अम् ।

@@ -1,1 +1,8 @@
+# Conditional Branching Demo in PaniniVM Script (.pvm)
+# Evaluates conditional branch and subtracts values (10 - 3 = 7)
+
+# Step 1: Perform conditional subtraction (वियोजय)
 दशम् त्रिम् च योजय ।
+
+# Step 2: Print result of conditional branch (7 = सप्त)
+योगस्य फलम् मुद्रय ।

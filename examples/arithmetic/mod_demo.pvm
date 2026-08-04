@@ -1,1 +1,8 @@
+# Modulo / Remainder Algorithm in PaniniVM Script (.pvm)
+# Computes remainder of 10 mod 3 (10 % 3 = 1)
+
+# Step 1: Compute remainder using shish (शेषय)
 दश + अम् त्रि + अम् च शिष् + णिच् + लोट् + सिप् ।
+
+# Step 2: Print modulo result (1 = एकम्)
+शिष् + घञ् + ङस् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।

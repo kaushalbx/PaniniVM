@@ -1,2 +1,11 @@
+# Resource Allocation & Usage Demo in PaniniVM Script (.pvm)
+# Manages food/water resource units and tracks usage
+
+# Step 1: Consume food resource unit (अन्नम् आदय)
 अन्नम् अद्धि ।
+
+# Step 2: Consume water resource unit (जलम् पायय)
 जलम् पअ ।
+
+# Step 3: Print final resource state
+मुद्रय फलम् ।

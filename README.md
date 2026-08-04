@@ -89,7 +89,7 @@ segmented input → vyākaraṇa AST → binding → operation resolution → pl
 
 ```sh
 ./gradlew :cli:run --args="--eval src/test/kotlin/dev/panini/parser/addition.pvm"
-./gradlew :cli:run --args="--eval examples/arithmetic/fibonacci_array.pvm"
+./gradlew :cli:run --args="--eval examples/algorithms/fibonacci_array.pvm"
 ```
 
 Execution and compilation never rewrite files beside the source. The checked-in

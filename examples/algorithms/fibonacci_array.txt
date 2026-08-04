@@ -1,11 +1,21 @@
-# Fibonacci Array Algorithm: Generate and print F8 = 21 using Lyut (ल्युट्) nominalizations
+# Fibonacci Array Algorithm: Generate and print the full Fibonacci sequence array
+# F(1)=1, F(2)=1, F(3)=2, F(4)=3, F(5)=5, F(6)=8, F(7)=13, F(8)=21
 
-# Initialize F2 = 1 and F3 = 2
+# Step 1: Initialize F(1)=1 and F(2)=1
 एकम् पूर्वाय देहि ।
-द्विम् वर्तमानाय देहि ।
+एकम् वर्तमानाय देहि ।
 
-# Compute and shift F4 through F8 in one repeated body
-पञ्चन्कृत्वः वर्तमानम् पूर्वम् च योजय । देहि योजनस्य फलम् उत्तराय । देहि वर्तमानम् पूर्वाय । देहि उत्तरम् वर्तमानाय ।
+# Step 2: Push initial terms into sequence array 'क्रम'
+क्षिप्य पूर्वम् वर्तमानम् च ।
+देहि क्षिप् फलम् क्रमाय ।
 
-# Print only F8 = 21
-मुद्रय वर्तमानम् ।
+# Step 3: Compute remaining 6 terms (F3..F8) and push each term into array 'क्रम'
+षष्कृत्वः वर्तमानम् पूर्वम् च योजय
+ततः देहि योजनस्य फलम् उत्तराय
+ततः क्षिप्य क्रमम् उत्तरम् च
+ततः देहि क्षिप् फलम् क्रमाय
+ततः देहि वर्तमानम् पूर्वाय
+ततः देहि उत्तरम् वर्तमानाय ।
+
+# Step 4: Print the whole Fibonacci array
+मुद्रय क्रमम् ।

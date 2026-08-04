@@ -1,1 +1,14 @@
+# Subanta Morphological Derivation Demo in PaniniVM Script (.pvm)
+# Derives nominative case declensions (सुबन्त) for stems
+
+# Step 1: Derive subanta declension for stem 'राम' (राम + सु -> रामः)
 रामम् कृणु ।
+मुद्रय फलम् ।
+
+# Step 2: Derive subanta declension for stem 'नदी' (नदी + सु -> नदी)
+नदीम् कृणु ।
+मुद्रय फलम् ।
+
+# Step 3: Derive subanta declension for stem 'ज्ञान' (ज्ञान + सु -> ज्ञानम्)
+ज्ञानम् कृणु ।
+मुद्रय फलम् ।

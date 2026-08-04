@@ -1,1 +1,8 @@
+# Element Count Algorithm in PaniniVM Script (.pvm)
+# Counts the number of items in a set/sequence
+
+# Step 1: Count elements (1, 2, 3) using gana (गणय)
 एक + अम् द्वि + अम् त्रि + अम् च गण + णिच् + लोट् + सिप् ।
+
+# Step 2: Print total counted result (3 = त्रीणि)
+गणन + घञ् + ङस् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।

@@ -95,9 +95,8 @@ class ExecutionArchitectureTest {
     fun `corrected algorithm examples produce their documented values`() {
         val expected = linkedMapOf(
             "examples/algorithms/circle_area.pvm" to "सप्तविंशतिः",
-            "examples/algorithms/fibonacci_array.pvm" to "एकविंशतिः",
-            "examples/algorithms/fibonacci_loop.pvm" to "त्रयोदश",
-            "examples/algorithms/fibonacci_sequence.pvm" to "अष्ट",
+            "examples/algorithms/fibonacci.pvm" to "एकविंशतिः",
+            "examples/algorithms/fibonacci_array.pvm" to "[एक, एक, द्वे, त्रीणि, पञ्च, अष्ट, त्रयोदश, एकविंशतिः]",
             "examples/algorithms/pythagorean_triplet.pvm" to "पञ्च",
             "examples/algorithms/vector_dot_product.pvm" to "त्रयोविंशतिः",
             "examples/arithmetic/cumulative_sum.pvm" to "पञ्चदश",

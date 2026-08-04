@@ -1,1 +1,8 @@
+# Linguistic Text Summarization Demo in PaniniVM Script (.pvm)
+# Generates grammatical summary of text input (भावविवरणम्)
+
+# Step 1: Summarize input sentence (भावया/सु)
 वाक्य + अम् सु + णिच् + लोट् + सिप् ।
+
+# Step 2: Print generated summary
+मुद्र् + णिच् + लोट् + सिप् फल + अम् ।

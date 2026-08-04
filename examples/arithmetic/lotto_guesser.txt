@@ -1,11 +1,18 @@
 # Lotto Guesser Algorithm in PaniniVM Script (.pvm)
-# Generates random lottery picks from dice/game rolls (दिवूँ / अक्ष) and computes lottery statistics
+# Rule 1: Define rules (6 main numbers from 1..48 pool + 1 bonus ball)
 
-# Step 1: Draw a random dice / lottery pick (अक्षम् दीव्य)
+# Step 1 & 2: Initialize empty collection/sequence ('क्रम') & draw random picks
+एकम् द्विम् त्रिम् चतुर्म् पङ्चम् षट्म् च दीव्य ।
+देहि दिव्ः फलम् क्रमाय ।
+
+# Step 3 & 4: Scale and calculate lottery combinations for 6 draws (6 * 8 = 48)
+षट्म् अष्टानम् च गणय ।
+देहि गणनस्य फलम् सङ्ख्यायै ।
+
+# Step 5: Push and store main lottery draw results into sequence ('क्रम')
+सङ्ख्याम् क्षिप्य क्रमम् ।
+देहि क्षिप् फलम् क्रमाय ।
+
+# Step 6: Draw bonus ball (अक्ष) and print final lottery output (मुद्रय)
 अक्षम् दीव्य ।
-
-# Step 2: Scale and calculate lottery combinations for 6 draws (6 * 8 = 48)
-षष्म् अष्टानम् च गणय ।
-
-# Step 3: Print final calculated lottery number guess (48 = अष्टाचत्वारिंशत्)
-मुद्रय गणनस्य फलम् ।
+मुद्रय क्रमम् ।

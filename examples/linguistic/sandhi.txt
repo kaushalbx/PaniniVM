@@ -1,3 +1,14 @@
+# Sandhi Rules & Phonological Joining Demo in PaniniVM Script (.pvm)
+# Demonstrates morpho-phonological join operations on segmented words
+
+# Step 1: Join 'राम' + 'अवतार' -> 'रामावतार' (Savarna Dirgha Sandhi)
 रामम् अवतारम् च कृणु इति ।
+मुद्रय फलम् ।
+
+# Step 2: Join 'देव' + 'आलय' -> 'देवालय' (Savarna Dirgha Sandhi)
 देवम् आलयम् च कृणु इति ।
+मुद्रय फलम् ।
+
+# Step 3: Join 'तत्' + 'शिव' -> 'तच्छिव' (Chhatva / Shchutva Sandhi)
 तत्म् शिवम् च कृणु इति ।
+मुद्रय फलम् ।

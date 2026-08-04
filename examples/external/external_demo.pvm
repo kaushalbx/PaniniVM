@@ -1,1 +1,8 @@
+# External Capability & Messaging Demo in PaniniVM Script (.pvm)
+# Dispatches an external message payload (वार्ताम् प्रेषय)
+
+# Step 1: Dispatch message payload using presh (प्रेषय)
 वार्ता + अम् प्रेष् + णिच् + लोट् + सिप् ।
+
+# Step 2: Print confirmation of dispatched message
+मुद्र् + णिच् + लोट् + सिप् वार्ता + अम् ।
