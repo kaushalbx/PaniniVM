@@ -84,5 +84,10 @@ object Adhyaya5Pada4 {
         NaPujanatExtSutra,
         KimanhKsepeExtSutra,
         NityamAsimaseExtSutra,
+        TricaturbhyamUsnohExtSutra,
+        PurahPrasadatExtSutra,
+        AngulyahKhamExtSutra,
+        TatsamaksatExtSutra,
+        AhnoVibhasasaExtSutra,
     )
 }
