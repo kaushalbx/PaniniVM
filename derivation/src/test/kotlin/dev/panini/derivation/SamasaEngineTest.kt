@@ -128,7 +128,9 @@ class SamasaEngineTest {
             ),
             SamasaType.DVIGU,
         )
-        assertEquals("त्रिभुवनम्", result.final.terms.last().surface)
+        val actual = result.final.terms.last().surface
+        val apps = result.applications.joinToString("; ") { "${it.sutra}: ${it.explanation}" }
+        assertEquals("त्रिभुवनम्", actual, "Failed! Actual: '$actual', Applications: $apps")
         assertTrue(result.applications.any { it.sutra == "2.1.52" })
     }
 }

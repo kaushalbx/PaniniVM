@@ -37,8 +37,9 @@ object SarvanamasthaneCasambuddhauSutra : Sutra<DerivationState, DerivationChang
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        // 1. Stem must end in 'n' (usually from 'num' augment)
-        if (!stem.surface.endsWith("न्") && !stem.surface.endsWith("न")) return false
+        // 1. Stem must end in consonant 'न्' or carry a 'num'/'nuṭ' augment (not a-stems like त्रिभुवन)
+        val endsInConsonantN = stem.surface.endsWith("न्") || context.terms.any { it.upadesha == "नुट्" || it.upadesha == "नुम्" }
+        if (!endsInConsonantN) return false
 
         // 2. Affix must be Sarvanāmasthāna
         val isSarvanamasthana = affix.upadesha == "शि" || affix.id in setOf("sup-su", "sup-au", "sup-jas", "sup-am", "sup-aut")
