@@ -57,5 +57,10 @@ object Adhyaya6Pada3 {
         NaGhadharohSutra,
         MahatahSamanadhikaranaSutra,
         DviguDhanurdantaSutra,
+        NadyahSeseSutra,
+        NaSamjnayohSutra,
+        HrasvoNapumsakePratipadikasyaSutra,
+        GopanusarayosTuSutra,
+        PadasyangalopoAhastiniSutra,
     )
 }
