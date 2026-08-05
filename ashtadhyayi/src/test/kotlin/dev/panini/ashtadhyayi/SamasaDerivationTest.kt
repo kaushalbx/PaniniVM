@@ -7,8 +7,10 @@ import dev.panini.ashtadhyayi.adhyaya2.pada1.AvyayamVibhaktiSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.CaturthiTadarthartheSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.DvitiyaShritatitaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.PancamiBhayenaSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada1.SankhyapurvoDviguhSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.SaptamiSaundaihSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.TrtiyaTatkrtharthenaSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada1.VisesanamVisesyenaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.AnekamAnyapadartheSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.CartheDvandvahSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.ShashthiSutra
@@ -148,6 +150,34 @@ class SamasaDerivationTest {
         assertTrue(SaptamiSaundaihSutra.matches(context))
         val result = SaptamiSaundaihSutra.apply(context) as SamasaRuleResult.Formed
         assertEquals("अक्षशौण्ड", result.compoundStem)
+    }
+
+    @Test
+    fun `test VisesanamVisesyenaSutra matches two padas and forms Karmadharaya compound`() {
+        val context = SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("नील", Vibhakti.PRATHAMA),
+                SamasaPada("उत्पल", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.KARMADHARAYA,
+        )
+        assertTrue(VisesanamVisesyenaSutra.matches(context))
+        val result = VisesanamVisesyenaSutra.apply(context) as SamasaRuleResult.Formed
+        assertEquals("नीलउत्पल", result.compoundStem)
+    }
+
+    @Test
+    fun `test SankhyapurvoDviguhSutra matches Sankhya purvapada and forms Dvigu compound`() {
+        val context = SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("त्रि", Vibhakti.PRATHAMA, samjnas = setOf(Samjna.SANKHYA)),
+                SamasaPada("भुवन", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.DVIGU,
+        )
+        assertTrue(SankhyapurvoDviguhSutra.matches(context))
+        val result = SankhyapurvoDviguhSutra.apply(context) as SamasaRuleResult.Formed
+        assertEquals("त्रिभुवन", result.compoundStem)
     }
 
     @Test

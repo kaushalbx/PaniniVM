@@ -105,4 +105,30 @@ class SamasaEngineTest {
         assertEquals("अक्षशौण्डः", result.final.terms.last().surface)
         assertTrue(result.applications.any { it.sutra == "2.1.40" })
     }
+
+    @Test
+    fun `test Karmadharaya compound derivation with Sandhi`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("नील", Vibhakti.PRATHAMA),
+                SamasaPada("उत्पल", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.KARMADHARAYA,
+        )
+        assertEquals("नीलोत्पलः", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "2.1.57" })
+    }
+
+    @Test
+    fun `test Dvigu compound derivation`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("त्रि", Vibhakti.PRATHAMA, samjnas = setOf(Samjna.SANKHYA)),
+                SamasaPada("भुवन", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.DVIGU,
+        )
+        assertEquals("त्रिभुवनम्", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "2.1.52" })
+    }
 }

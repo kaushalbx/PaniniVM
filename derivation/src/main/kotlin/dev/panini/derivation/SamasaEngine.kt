@@ -9,8 +9,10 @@ import dev.panini.ashtadhyayi.adhyaya2.pada1.AvyayamVibhaktiSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.CaturthiTadarthartheSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.DvitiyaShritatitaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.PancamiBhayenaSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada1.SankhyapurvoDviguhSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.SaptamiSaundaihSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.TrtiyaTatkrtharthenaSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada1.VisesanamVisesyenaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.AnekamAnyapadartheSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.CartheDvandvahSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.ShashthiSutra
@@ -162,8 +164,10 @@ class SamasaEngine(
     private fun subantaParams(type: SamasaType, count: Int): Triple<Vibhakti, Vacana, Linga> = when (type) {
         SamasaType.AVYAYIBHAVA ->
             Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.NAPUMSAKA)
-        SamasaType.TATPURUSA, SamasaType.BAHUVRIHI ->
+        SamasaType.TATPURUSA, SamasaType.BAHUVRIHI, SamasaType.KARMADHARAYA ->
             Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.PUMS)
+        SamasaType.DVIGU ->
+            Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.NAPUMSAKA)
         SamasaType.DVANDVA ->
             if (count == 2) Triple(Vibhakti.PRATHAMA, Vacana.DVIVACANA, Linga.PUMS)
             else            Triple(Vibhakti.PRATHAMA, Vacana.BAHUVACANA, Linga.PUMS)
@@ -176,10 +180,12 @@ class SamasaEngine(
     private fun selectClassificationSutra(
         context: SamasaRuleContext,
     ): Sutra<SamasaRuleContext, SamasaRuleResult> = when (context.samasaType) {
-        SamasaType.AVYAYIBHAVA -> AvyayamVibhaktiSutra
-        SamasaType.TATPURUSA   -> selectTatpurusaSutra(context.purvaPadaVibhakti)
-        SamasaType.BAHUVRIHI   -> AnekamAnyapadartheSutra
-        SamasaType.DVANDVA     -> CartheDvandvahSutra
+        SamasaType.AVYAYIBHAVA  -> AvyayamVibhaktiSutra
+        SamasaType.TATPURUSA    -> selectTatpurusaSutra(context.purvaPadaVibhakti)
+        SamasaType.KARMADHARAYA -> VisesanamVisesyenaSutra
+        SamasaType.DVIGU        -> SankhyapurvoDviguhSutra
+        SamasaType.BAHUVRIHI    -> AnekamAnyapadartheSutra
+        SamasaType.DVANDVA      -> CartheDvandvahSutra
     }
 
     /**
