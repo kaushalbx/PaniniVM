@@ -220,6 +220,8 @@ class SamasaEngine(
         LaksanenAbhipratiAbhimukhyeSutra.matches(context) -> LaksanenAbhipratiAbhimukhyeSutra
         PareMadhyeShashthyaVaSutra.matches(context) -> PareMadhyeShashthyaVaSutra
         SankhyaVamsyenaSutra.matches(context) -> SankhyaVamsyenaSutra
+        AnyapadartheChaSutra.matches(context) -> AnyapadartheChaSutra
+        AvyayamVibhaktiSamipadiSutra.matches(context) -> AvyayamVibhaktiSamipadiSutra
         else -> AvyayamVibhaktiSutra
     }
 
@@ -251,8 +253,10 @@ class SamasaEngine(
     private fun selectKarmadharayaSutra(context: SamasaRuleContext): Sutra<SamasaRuleContext, SamasaRuleResult> = when {
         SanMahatParamottamaSutra.matches(context) -> SanMahatParamottamaSutra
         PurvakaladiSutra.matches(context) -> PurvakaladiSutra
+        SrenyadayahKrtadibhihSutra.matches(context) -> SrenyadayahKrtadibhihSutra
         KtenaNanjVisistenaSutra.matches(context) -> KtenaNanjVisistenaSutra
         PapakeKutsitaihsutra.matches(context) -> PapakeKutsitaihsutra
+        ChatuspadoGarbhinyaSutra.matches(context) -> ChatuspadoGarbhinyaSutra
         UpamitamVyaghradibhihSutra.matches(context) -> UpamitamVyaghradibhihSutra
         UpamananiSamanyavacanaihSutra.matches(context) -> UpamananiSamanyavacanaihSutra
         VisesanamVisesyenaBahulamSutra.matches(context) -> VisesanamVisesyenaBahulamSutra
@@ -267,14 +271,15 @@ class SamasaEngine(
         context: SamasaRuleContext,
     ): Sutra<SamasaRuleContext, SamasaRuleResult> {
         if (PurvaparakadharottaramEkadesinaSutra.matches(context)) return PurvaparakadharottaramEkadesinaSutra
+        if (ArdhamNapunsakamSutra.matches(context)) return ArdhamNapunsakamSutra
         if (YajakadibhishchaSutra.matches(context)) return YajakadibhishchaSutra
         if (KalaAtyantasamyogeSutra.matches(context)) return KalaAtyantasamyogeSutra
         if (DvitIyaSritatitapatitagatatyastapraptapannaihSutra.matches(context)) return DvitIyaSritatitapatitagatatyastapraptapannaihSutra
         if (AnnasenaVyanjanamSutra.matches(context)) return AnnasenaVyanjanamSutra
         if (TrtiyaTatkrtarthenaGunavacanenaSutra.matches(context)) return TrtiyaTatkrtarthenaGunavacanenaSutra
         if (KartrkaraneKrtaBahulamSutra.matches(context)) return KartrkaraneKrtaBahulamSutra
-        if (ApetaApodhaMuktaSutra.matches(context)) return ApetaApodhaMuktaSutra
         if (StokantikadharthaniPancamyaSutra.matches(context)) return StokantikadharthaniPancamyaSutra
+        if (ApetaApodhaMuktaSutra.matches(context)) return ApetaApodhaMuktaSutra
         if (SiddhasuskapakvabandhaishchaSutra.matches(context)) return SiddhasuskapakvabandhaishchaSutra
         return when (context.purvaPadaVibhakti) {
             Vibhakti.DVITIYA   -> DvitiyaShritatitaSutra   // 2.1.24
