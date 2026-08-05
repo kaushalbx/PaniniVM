@@ -221,6 +221,15 @@ class SamasaEngine(
         SamasaType.DVANDVA           -> selectDvandvaSutra(context)
     }
 
+    private fun selectAvyayibhavaSutra(context: SamasaRuleContext): Sutra<SamasaRuleContext, SamasaRuleResult> = when {
+        ApapariBahirAncavahPancamyaSutra.matches(context) -> ApapariBahirAncavahPancamyaSutra
+        AngMaryadabhividhyohSutra.matches(context) -> AngMaryadabhividhyohSutra
+        LaksanenAbhipratiAbhimukhyeSutra.matches(context) -> LaksanenAbhipratiAbhimukhyeSutra
+        PareMadhyeShashthyaVaSutra.matches(context) -> PareMadhyeShashthyaVaSutra
+        SankhyaVamsyenaSutra.matches(context) -> SankhyaVamsyenaSutra
+        else -> AvyayamVibhaktiSutra
+    }
+
     private fun selectDvandvaSutra(context: SamasaRuleContext): Sutra<SamasaRuleContext, SamasaRuleResult> = when {
         DvandvaschaPranituryaSutra.matches(context) -> DvandvaschaPranituryaSutra
         JatirApraninamSutra.matches(context) -> JatirApraninamSutra
