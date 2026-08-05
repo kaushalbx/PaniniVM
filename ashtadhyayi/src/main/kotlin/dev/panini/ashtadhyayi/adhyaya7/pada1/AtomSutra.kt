@@ -2,6 +2,7 @@ package dev.panini.ashtadhyayi.adhyaya7.pada1
 
 import dev.panini.core.Linga
 import dev.panini.derivation.DerivationChange
+import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.HasMorphosyntax
@@ -53,7 +54,7 @@ object AtomSutra : Sutra<DerivationState, DerivationChange>(
             state = context.replaceTerm(
                 affix.id,
                 affix.copy(surface = "म्", upadesha = "अम्", itMarkers = emptySet()),
-            ),
+            ).copy(stage = DerivationStage.FINAL),
             explanation = "7.1.24: Substituted the visible remainder म् of अम् for neuter सु/अम् after an a-stem."
         )
     }
