@@ -46,7 +46,7 @@ object JharoJhariSavarneSutra : Sutra<DerivationState, DerivationChange>(
 
             val stemBeforeJhar1 = curr.trimEnd('्').dropLast(1)
             val precedingChar = stemBeforeJhar1.lastOrNull() ?: return@any false
-            val isPrecededByHal = precedingChar == '्' || (precedingChar in dev.panini.shiksha.Varnamala.consonants && precedingChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks)
+            val isPrecededByHal = precedingChar == '्' || precedingChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks
 
             // 8.4.65 does not delete 'c' before 'ch' produced by 8.4.63 śaś cho'ṭi
             if (jharChar1 == 'च' && jharChar2 == 'छ') return@any false
@@ -70,7 +70,7 @@ object JharoJhariSavarneSutra : Sutra<DerivationState, DerivationChange>(
 
             val stemBeforeJhar1 = curr.trimEnd('्').dropLast(1)
             val precedingChar = stemBeforeJhar1.lastOrNull() ?: return@first false
-            val isPrecededByHal = precedingChar == '्' || (precedingChar in dev.panini.shiksha.Varnamala.consonants && precedingChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks)
+            val isPrecededByHal = precedingChar == '्' || precedingChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks
 
             if (jharChar1 == 'च' && jharChar2 == 'छ') return@first false
 
