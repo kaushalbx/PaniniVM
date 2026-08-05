@@ -199,95 +199,90 @@ class SamasaEngine(
      * Selects the Samāsa classification Sūtra based on [SamasaRuleContext].
      * For Tatpuruṣa, selection is driven by purvaPadaVibhakti — zero string heuristics.
      */
+    private val samasaRuleCandidates: Map<SamasaType, List<Sutra<SamasaRuleContext, SamasaRuleResult>>> = mapOf(
+        SamasaType.AVYAYIBHAVA to listOf(
+            ApapariBahirAncavahPancamyaSutra,
+            AngMaryadabhividhyohSutra,
+            LaksanenAbhipratiAbhimukhyeSutra,
+            PareMadhyeShashthyaVaSutra,
+            SankhyaVamsyenaSutra,
+            AnyapadartheChaSutra,
+        ),
+        SamasaType.TATPURUSA to listOf(
+            PurvaparakadharottaramEkadesinaSutra,
+            ArdhamNapunsakamSutra,
+            YajakadibhishchaSutra,
+            KalaAtyantasamyogeSutra,
+            DvitIyaSritatitapatitagatatyastapraptapannaihSutra,
+            AnnasenaVyanjanamSutra,
+            TrtiyaTatkrtarthenaGunavacanenaSutra,
+            KartrkaraneKrtaBahulamSutra,
+            StokantikadharthaniPancamyaSutra,
+            ApetaApodhaMuktaSutra,
+            SiddhasuskapakvabandhaishchaSutra,
+        ),
+        SamasaType.ALUK_TATPURUSA to listOf(
+            PutreNyatarasyamSutra,
+            TatpuruseKrtiBahulamSutra,
+            AtmanascaPuraneSutra,
+        ),
+        SamasaType.KARMADHARAYA to listOf(
+            SanMahatParamottamaSutra,
+            PurvakaladiSutra,
+            SrenyadayahKrtadibhihSutra,
+            KtenaNanjVisistenaSutra,
+            PapakeKutsitaihsutra,
+            ChatuspadoGarbhinyaSutra,
+            UpamitamVyaghradibhihSutra,
+            UpamananiSamanyavacanaihSutra,
+            VisesanamVisesyenaBahulamSutra,
+        ),
+        SamasaType.BAHUVRIHI to listOf(
+            VopasarjanasyaSutra,
+            TenaSahetiTulyayogesutra,
+            UrahPrabhrtibhyahKapSutra,
+            NadyrtaschaSutra,
+            NanoAstyarthanamSutra,
+        ),
+        SamasaType.DVANDVA to listOf(
+            DvandvaschaPranituryaSutra,
+            JatirApraninamSutra,
+            AjadyadantamSutra,
+            AbhyarhitamChaSutra,
+            AlpactaramSutra,
+        ),
+    )
+
     private fun selectClassificationSutra(
         context: SamasaRuleContext,
-    ): Sutra<SamasaRuleContext, SamasaRuleResult> = when (context.samasaType) {
-        SamasaType.AVYAYIBHAVA       -> selectAvyayibhavaSutra(context)
-        SamasaType.TATPURUSA         -> selectTatpurusaSutra(context)
-        SamasaType.NAN_TATPURUSA      -> NanjSutra
-        SamasaType.UPAPADA_TATPURUSA    -> UpapadamAtingSutra
-        SamasaType.ALUK_TATPURUSA       -> selectAlukSutra(context)
-        SamasaType.MAYURAVYAMSAKADI     -> MayuravyamsakadayascaSutra
-        SamasaType.KARMADHARAYA      -> selectKarmadharayaSutra(context)
-        SamasaType.DVIGU             -> SankhyapurvoDviguhSutra
-        SamasaType.BAHUVRIHI         -> selectBahuvrihiSutra(context)
-        SamasaType.DVANDVA           -> selectDvandvaSutra(context)
-    }
-
-    private fun selectAvyayibhavaSutra(context: SamasaRuleContext): Sutra<SamasaRuleContext, SamasaRuleResult> = when {
-        ApapariBahirAncavahPancamyaSutra.matches(context) -> ApapariBahirAncavahPancamyaSutra
-        AngMaryadabhividhyohSutra.matches(context) -> AngMaryadabhividhyohSutra
-        LaksanenAbhipratiAbhimukhyeSutra.matches(context) -> LaksanenAbhipratiAbhimukhyeSutra
-        PareMadhyeShashthyaVaSutra.matches(context) -> PareMadhyeShashthyaVaSutra
-        SankhyaVamsyenaSutra.matches(context) -> SankhyaVamsyenaSutra
-        AnyapadartheChaSutra.matches(context) -> AnyapadartheChaSutra
-        else -> AvyayamVibhaktiSutra
-    }
-
-    private fun selectDvandvaSutra(context: SamasaRuleContext): Sutra<SamasaRuleContext, SamasaRuleResult> = when {
-        DvandvaschaPranituryaSutra.matches(context) -> DvandvaschaPranituryaSutra
-        JatirApraninamSutra.matches(context) -> JatirApraninamSutra
-        AjadyadantamSutra.matches(context) -> AjadyadantamSutra
-        AbhyarhitamChaSutra.matches(context) -> AbhyarhitamChaSutra
-        AlpactaramSutra.matches(context) -> AlpactaramSutra
-        else -> CartheDvandvahSutra
-    }
-
-    private fun selectBahuvrihiSutra(context: SamasaRuleContext): Sutra<SamasaRuleContext, SamasaRuleResult> = when {
-        VopasarjanasyaSutra.matches(context) -> VopasarjanasyaSutra
-        TenaSahetiTulyayogesutra.matches(context) -> TenaSahetiTulyayogesutra
-        UrahPrabhrtibhyahKapSutra.matches(context) -> UrahPrabhrtibhyahKapSutra
-        NadyrtaschaSutra.matches(context) -> NadyrtaschaSutra
-        NanoAstyarthanamSutra.matches(context) -> NanoAstyarthanamSutra
-        else -> AnekamAnyapadartheSutra
-    }
-
-    private fun selectAlukSutra(context: SamasaRuleContext): Sutra<SamasaRuleContext, SamasaRuleResult> = when {
-        PutreNyatarasyamSutra.matches(context) -> PutreNyatarasyamSutra
-        TatpuruseKrtiBahulamSutra.matches(context) -> TatpuruseKrtiBahulamSutra
-        AtmanascaPuraneSutra.matches(context) -> AtmanascaPuraneSutra
-        else -> AlukUttarapadeSutra
-    }
-
-    private fun selectKarmadharayaSutra(context: SamasaRuleContext): Sutra<SamasaRuleContext, SamasaRuleResult> = when {
-        SanMahatParamottamaSutra.matches(context) -> SanMahatParamottamaSutra
-        PurvakaladiSutra.matches(context) -> PurvakaladiSutra
-        SrenyadayahKrtadibhihSutra.matches(context) -> SrenyadayahKrtadibhihSutra
-        KtenaNanjVisistenaSutra.matches(context) -> KtenaNanjVisistenaSutra
-        PapakeKutsitaihsutra.matches(context) -> PapakeKutsitaihsutra
-        ChatuspadoGarbhinyaSutra.matches(context) -> ChatuspadoGarbhinyaSutra
-        UpamitamVyaghradibhihSutra.matches(context) -> UpamitamVyaghradibhihSutra
-        UpamananiSamanyavacanaihSutra.matches(context) -> UpamananiSamanyavacanaihSutra
-        VisesanamVisesyenaBahulamSutra.matches(context) -> VisesanamVisesyenaBahulamSutra
-        else -> VisesanamVisesyenaSutra
-    }
-
-    /**
-     * Dispatches Tatpuruṣa sub-type Sūtra by the pūrvapada's Vibhakti.
-     * Pāṇinian: the case of the prior member determines the compound sub-type.
-     */
-    private fun selectTatpurusaSutra(
-        context: SamasaRuleContext,
     ): Sutra<SamasaRuleContext, SamasaRuleResult> {
-        if (PurvaparakadharottaramEkadesinaSutra.matches(context)) return PurvaparakadharottaramEkadesinaSutra
-        if (ArdhamNapunsakamSutra.matches(context)) return ArdhamNapunsakamSutra
-        if (YajakadibhishchaSutra.matches(context)) return YajakadibhishchaSutra
-        if (KalaAtyantasamyogeSutra.matches(context)) return KalaAtyantasamyogeSutra
-        if (DvitIyaSritatitapatitagatatyastapraptapannaihSutra.matches(context)) return DvitIyaSritatitapatitagatatyastapraptapannaihSutra
-        if (AnnasenaVyanjanamSutra.matches(context)) return AnnasenaVyanjanamSutra
-        if (TrtiyaTatkrtarthenaGunavacanenaSutra.matches(context)) return TrtiyaTatkrtarthenaGunavacanenaSutra
-        if (KartrkaraneKrtaBahulamSutra.matches(context)) return KartrkaraneKrtaBahulamSutra
-        if (StokantikadharthaniPancamyaSutra.matches(context)) return StokantikadharthaniPancamyaSutra
-        if (ApetaApodhaMuktaSutra.matches(context)) return ApetaApodhaMuktaSutra
-        if (SiddhasuskapakvabandhaishchaSutra.matches(context)) return SiddhasuskapakvabandhaishchaSutra
-        return when (context.purvaPadaVibhakti) {
-            Vibhakti.DVITIYA   -> DvitiyaShritatitaSutra   // 2.1.24
-            Vibhakti.TRTIYA    -> TrtiyaTatkrtharthenaSutra // 2.1.30
-            Vibhakti.CHATURTHI -> CaturthiTadarthartheSutra // 2.1.36
-            Vibhakti.PANCHAMI  -> PancamiBhayenaSutra       // 2.1.37
-            Vibhakti.SAPTAMI   -> SaptamiSaundaihSutra       // 2.1.40
-            else               -> ShashthiSutra              // 2.2.8 (default — ṣaṣṭhī)
+        val candidates = samasaRuleCandidates[context.samasaType] ?: emptyList()
+        val matched = candidates.firstOrNull { it.matches(context) }
+        if (matched != null) return matched
+
+        return when (context.samasaType) {
+            SamasaType.AVYAYIBHAVA       -> AvyayamVibhaktiSutra
+            SamasaType.TATPURUSA         -> selectTatpurusaFallback(context)
+            SamasaType.NAN_TATPURUSA      -> NanjSutra
+            SamasaType.UPAPADA_TATPURUSA    -> UpapadamAtingSutra
+            SamasaType.ALUK_TATPURUSA       -> AlukUttarapadeSutra
+            SamasaType.MAYURAVYAMSAKADI     -> MayuravyamsakadayascaSutra
+            SamasaType.KARMADHARAYA      -> VisesanamVisesyenaSutra
+            SamasaType.DVIGU             -> SankhyapurvoDviguhSutra
+            SamasaType.BAHUVRIHI         -> AnekamAnyapadartheSutra
+            SamasaType.DVANDVA           -> CartheDvandvahSutra
         }
+    }
+
+    private fun selectTatpurusaFallback(
+        context: SamasaRuleContext,
+    ): Sutra<SamasaRuleContext, SamasaRuleResult> = when (context.purvaPadaVibhakti) {
+        Vibhakti.DVITIYA   -> DvitiyaShritatitaSutra   // 2.1.24
+        Vibhakti.TRTIYA    -> TrtiyaTatkrtharthenaSutra // 2.1.30
+        Vibhakti.CHATURTHI -> CaturthiTadarthartheSutra // 2.1.36
+        Vibhakti.PANCHAMI  -> PancamiBhayenaSutra       // 2.1.37
+        Vibhakti.SAPTAMI   -> SaptamiSaundaihSutra       // 2.1.40
+        else               -> ShashthiSutra              // 2.2.8 (default — ṣaṣṭhī)
     }
 
     private fun executeDerivationSutra(
