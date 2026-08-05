@@ -79,4 +79,30 @@ class SamasaEngineTest {
         assertEquals("रामलक्ष्मणौ", result.final.terms.last().surface)
         assertTrue(result.applications.any { it.sutra == "2.2.29" })
     }
+
+    @Test
+    fun `test Caturthi Tatpurusha compound derivation`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("यूप", Vibhakti.CHATURTHI),
+                SamasaPada("दारु", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.TATPURUSA,
+        )
+        assertEquals("यूपदारुः", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "2.1.36" })
+    }
+
+    @Test
+    fun `test Saptami Tatpurusha compound derivation`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("अक्ष", Vibhakti.SAPTAMI),
+                SamasaPada("शौण्ड", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.TATPURUSA,
+        )
+        assertEquals("अक्षशौण्डः", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "2.1.40" })
+    }
 }

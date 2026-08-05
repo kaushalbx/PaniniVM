@@ -6,8 +6,10 @@ import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
 import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.ashtadhyayi.adhyaya2.pada1.AvyayamVibhaktiSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada1.CaturthiTadarthartheSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.DvitiyaShritatitaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.PancamiBhayenaSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada1.SaptamiSaundaihSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.TrtiyaTatkrtharthenaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.AnekamAnyapadartheSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.CartheDvandvahSutra
@@ -187,10 +189,12 @@ class SamasaEngine(
     private fun selectTatpurusaSutra(
         vibhakti: Vibhakti,
     ): Sutra<SamasaRuleContext, SamasaRuleResult> = when (vibhakti) {
-        Vibhakti.DVITIYA  -> DvitiyaShritatitaSutra   // 2.1.24
-        Vibhakti.TRTIYA   -> TrtiyaTatkrtharthenaSutra // 2.1.30
-        Vibhakti.PANCHAMI -> PancamiBhayenaSutra       // 2.1.37
-        else              -> ShashthiSutra              // 2.2.8 (default — ṣaṣṭhī)
+        Vibhakti.DVITIYA   -> DvitiyaShritatitaSutra   // 2.1.24
+        Vibhakti.TRTIYA    -> TrtiyaTatkrtharthenaSutra // 2.1.30
+        Vibhakti.CHATURTHI -> CaturthiTadarthartheSutra // 2.1.36
+        Vibhakti.PANCHAMI  -> PancamiBhayenaSutra       // 2.1.37
+        Vibhakti.SAPTAMI   -> SaptamiSaundaihSutra       // 2.1.40
+        else               -> ShashthiSutra              // 2.2.8 (default — ṣaṣṭhī)
     }
 
     private fun executeDerivationSutra(

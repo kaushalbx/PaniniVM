@@ -4,8 +4,10 @@ import dev.panini.analysis.SamasaPada
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
 import dev.panini.ashtadhyayi.adhyaya2.pada1.AvyayamVibhaktiSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada1.CaturthiTadarthartheSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.DvitiyaShritatitaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.PancamiBhayenaSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada1.SaptamiSaundaihSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.TrtiyaTatkrtharthenaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.AnekamAnyapadartheSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.CartheDvandvahSutra
@@ -118,6 +120,34 @@ class SamasaDerivationTest {
         assertTrue(AnekamAnyapadartheSutra.matches(context))
         val result = AnekamAnyapadartheSutra.apply(context) as SamasaRuleResult.Formed
         assertEquals("पीतअम्बर", result.compoundStem)
+    }
+
+    @Test
+    fun `test CaturthiTadarthartheSutra matches CHATURTHI vibhakti and forms compound`() {
+        val context = SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("यूप", Vibhakti.CHATURTHI),
+                SamasaPada("दारु", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.TATPURUSA,
+        )
+        assertTrue(CaturthiTadarthartheSutra.matches(context))
+        val result = CaturthiTadarthartheSutra.apply(context) as SamasaRuleResult.Formed
+        assertEquals("यूपदारु", result.compoundStem)
+    }
+
+    @Test
+    fun `test SaptamiSaundaihSutra matches SAPTAMI vibhakti and forms compound`() {
+        val context = SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("अक्ष", Vibhakti.SAPTAMI),
+                SamasaPada("शौण्ड", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.TATPURUSA,
+        )
+        assertTrue(SaptamiSaundaihSutra.matches(context))
+        val result = SaptamiSaundaihSutra.apply(context) as SamasaRuleResult.Formed
+        assertEquals("अक्षशौण्ड", result.compoundStem)
     }
 
     @Test
