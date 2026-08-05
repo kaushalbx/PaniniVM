@@ -47,5 +47,10 @@ object Adhyaya6Pada3 {
         TacchilyeVahSutra,
         KvanoDicChaSutra,
         NaSamaseSutra,
+        KyunNadyorManinyamSutra,
+        GopaStriyamSirVighateSutra,
+        BhaktyaAnSutra,
+        StriyahPumvatbhavasSutra,
+        TasimatSvarnthesvAbhavahSutra,
     )
 }

@@ -44,5 +44,10 @@ object Adhyaya5Pada4 {
         KuhuKamsayorAvispastayohSutra,
         TricaturbhyamUsnohSutra,
         PurahPrasadatSutra,
+        AngulamKhamSutra,
+        TatsamaksatSutra,
+        AhnoVibhasaSutra,
+        RatrerAntasSutra,
+        RajnahKharyamSutra,
     )
 }
