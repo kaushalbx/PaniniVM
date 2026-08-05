@@ -67,5 +67,10 @@ object Adhyaya6Pada3 {
         PadasyaPadSutra,
         HrdayasyaHrdSutra,
         NisthayamChaSutra,
+        SprsoAnudakeKvinSutra,
+        PadoAnyatarasyamSutra,
+        NasiChaSutra,
+        AkayosTuSutra,
+        ChandasirahSutra,
     )
 }

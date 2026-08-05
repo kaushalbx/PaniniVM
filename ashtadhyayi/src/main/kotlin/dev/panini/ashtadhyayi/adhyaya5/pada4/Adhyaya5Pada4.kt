@@ -64,5 +64,10 @@ object Adhyaya5Pada4 {
         SuhrdDurhrdauMitramitrayohSutra,
         PrakrtyaAbhigamaneSutra,
         ApatThacSutra,
+        DviguPraptapannaKapSutra,
+        UropasambhyahSutra,
+        InhanyanpohSutra,
+        SamkhyayaAsannadhikaSutra,
+        DvitribhyamSahSutra,
     )
 }
