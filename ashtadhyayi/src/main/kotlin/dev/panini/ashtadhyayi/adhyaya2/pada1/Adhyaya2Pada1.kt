@@ -68,5 +68,10 @@ object Adhyaya2Pada1 {
         UpamanaSamanyaExtSutra,
         VisesanaVisesyaExtSutra,
         KtenaNanjExtSutra,
+        VibhasaSamasaSutra,
+        ApapariBahirExtSutra,
+        TisthadguprabhrtiniSutra,
+        TrtiyaTatkrtarthenaExtSutra,
+        KutsitaniKutsitaihExtSutra,
     )
 }

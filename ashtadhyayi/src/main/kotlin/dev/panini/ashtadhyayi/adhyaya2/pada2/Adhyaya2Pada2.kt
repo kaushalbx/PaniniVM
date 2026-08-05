@@ -41,5 +41,10 @@ object Adhyaya2Pada2 {
         SahaSupaSutra,
         CartheDvandvaExtSutra,
         VahitagnyadisuSutra,
+        ShashthiExtSutra,
+        SesoBahuvrihiSutra,
+        AnekamAnyapadartheHeaderSutra,
+        AlpactaramExtSutra,
+        KadaradahKarmadharayeSutra,
     )
 }
