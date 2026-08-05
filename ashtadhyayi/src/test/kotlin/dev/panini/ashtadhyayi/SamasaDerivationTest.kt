@@ -190,6 +190,20 @@ class SamasaDerivationTest {
     }
 
     @Test
+    fun `test SamkhyayaAsannaduradhikaSutra forms approximate Bahuvrihi compound`() {
+        val context = SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("उप", Vibhakti.PRATHAMA),
+                SamasaPada("पञ्चाशत्", Vibhakti.PRATHAMA, samjnas = setOf(Samjna.SANKHYA)),
+            ),
+            samasaType = SamasaType.BAHUVRIHI,
+        )
+        assertTrue(dev.panini.ashtadhyayi.adhyaya2.pada2.SamkhyayaAsannaduradhikaSutra.matches(context))
+        val result = dev.panini.ashtadhyayi.adhyaya2.pada2.SamkhyayaAsannaduradhikaSutra.apply(context) as SamasaRuleResult.Formed
+        assertEquals("उपपञ्चाशत्", result.compoundStem)
+    }
+
+    @Test
     fun `test NanjSutra matches Nañ purvapada and applies nalopa and nut`() {
         val halContext = SamasaRuleContext(
             padas = listOf(

@@ -5,13 +5,25 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
 
+import dev.panini.sankhya.PrimitiveSankhya
+import dev.panini.sankhya.SankhyaInflectionClass
+
 internal object PuranaNumeralClasses {
-    val vimshatyadiHeads = setOf(
-        "विंशति", "त्रिंशत्", "चत्वारिंशत्", "पञ्चाशत्",
-        "षष्टि", "सप्तति", "अशीति", "नवति",
+    private val decadePrimitives = setOf(
+        PrimitiveSankhya.VIMSHATI, PrimitiveSankhya.TRIMSHAT, PrimitiveSankhya.CHATVARIMSHAT,
+        PrimitiveSankhya.PANCHASHAT, PrimitiveSankhya.SHASHTI, PrimitiveSankhya.SAPTATI,
+        PrimitiveSankhya.ASHITI, PrimitiveSankhya.NAVATI
     )
+    val vimshatyadiHeads: Set<String> by lazy {
+        decadePrimitives.flatMap { listOf(it.pratipadika, it.purvapada, it.uttarapada) }.toSet()
+    }
     val shashtyadiHeads = setOf("षष्टि", "सप्तति", "अशीति", "नवति")
-    val shatadiHeads = setOf("शत", "सहस्र", "अयुत", "लक्ष", "प्रयुत", "कोटि")
+    val shatadiHeads: Set<String> by lazy {
+        setOf(
+            PrimitiveSankhya.SHATA, PrimitiveSankhya.SAHASRA, PrimitiveSankhya.AYUTA,
+            PrimitiveSankhya.LAKSHA, PrimitiveSankhya.PRAYUTA, PrimitiveSankhya.KOTI
+        ).flatMap { listOf(it.pratipadika, it.purvapada, it.uttarapada) }.toSet() + setOf("मास", "अर्धमास", "संवत्सर")
+    }
 }
 
 internal fun DerivationState.hasTamat(): Boolean = terms.any { it.upadesha == "तमट्" }

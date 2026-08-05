@@ -12,6 +12,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.sankhya.SankhyaResolver
+
 /** 5.2.49: नान्तादसंख्यादेर्मट् */
 object NantadAsankhyaderMatSutra : Sutra<DerivationState, DerivationChange>(
     number = "5.2.49",
@@ -32,9 +34,9 @@ object NantadAsankhyaderMatSutra : Sutra<DerivationState, DerivationChange>(
         val lastTerm = context.terms.lastOrNull() ?: return false
         val hasPuranaRequest = context.samjnas.any { it.samjna == Samjna.PURANA }
         val isAlreadyApplied = context.terms.any { it.surface == "म" || it.upadesha == "मट्" }
-        return hasPuranaRequest && !isAlreadyApplied && lastTerm.surface in setOf(
-            "पञ्चन्", "सप्तन्", "अष्टन्", "नवन्", "दशन्"
-        )
+        return hasPuranaRequest && !isAlreadyApplied &&
+                (lastTerm.surface.endsWith("न्") || lastTerm.upadesha.endsWith("न्")) &&
+                SankhyaResolver.isSankhya(lastTerm.upadesha)
     }
 
     override fun apply(context: DerivationState): DerivationChange {

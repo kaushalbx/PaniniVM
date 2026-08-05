@@ -56,5 +56,6 @@ object Adhyaya2Pada2 {
         TenaSahetiHeaderSutra,
         AbhyarhitamChaExtSutra,
         CaturthiTadarthartheExtSutra,
+        SamkhyayaAsannaduradhikaSutra,
     )
 }

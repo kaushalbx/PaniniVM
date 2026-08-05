@@ -10,6 +10,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.sankhya.SankhyaResolver
+
 /**
  * Sūtra 5.4.131: संख्याया आसन्नाधिकसंख्याेषु.
  * Suffixes for approximate / exceeded numbers (e.g. āsannadaśāḥ).
@@ -31,8 +33,9 @@ object SamkhyayaAsannadhikaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
 ), SamasaSutra {
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
-        val first = context.padas.first().upadesha
-        return first == "आसन्न" || first == "अधिक" || first == "उप"
+        val first = context.padas.first()
+        return first.upadesha in setOf("आसन्न", "अधिक", "उप", "अदूर") ||
+                SankhyaResolver.isSankhya(first.upadesha, first.samjnas)
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
