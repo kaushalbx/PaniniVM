@@ -72,5 +72,10 @@ object Adhyaya6Pada3 {
         NasiChaSutra,
         AkayosTuSutra,
         ChandasirahSutra,
+        YajnesvarasyaAbhyuccayeSutra,
+        TvayanayosTuSutra,
+        RsyandhakesuSutra,
+        MitreChaSutra,
+        JanapadanamSutra,
     )
 }

@@ -69,5 +69,10 @@ object Adhyaya5Pada4 {
         InhanyanpohSutra,
         SamkhyayaAsannadhikaSutra,
         DvitribhyamSahSutra,
+        NantadAhSutra,
+        SuryasyAstamikayamSutra,
+        BahuvrihauSakthyaksnohExtSutra,
+        SvangacChaSutra,
+        DvitribhyamAksnahSutra,
     )
 }
