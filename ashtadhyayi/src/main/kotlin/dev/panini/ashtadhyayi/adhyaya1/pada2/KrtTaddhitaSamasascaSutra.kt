@@ -21,15 +21,16 @@ object KrtTaddhitaSamasascaSutra : Sutra<DerivationState, DerivationChange>(
     type = SutraType.SAMJNA, chapter = 1, pada = 2, optional = false, kramaValue = 120046,
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.DERIVATION,
 ), DerivationSutra {
+
     override fun matches(context: DerivationState): Boolean =
-        context.allEffectiveTerms.any { it.upadesha in setOf("घञ्", "तव्यत्", "अनीयर", "यत", "क्त", "तुमुन्", "क्त्वा") } &&
+        (context.samjnas.any { it.samjna == Samjna.SAMASA } ||
+         context.allEffectiveTerms.any { it.upadesha in setOf("घञ्", "तव्यत्", "अनीयर", "यत", "क्त", "तुमुन्", "क्त्वा") }) &&
         context.samjnas.none { it.samjna == Samjna.PRATIPADIKA }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val targetTerm = context.allEffectiveTerms.first()
-        val newSamjna = SamjnaAssignment(targetTerm.id, Samjna.PRATIPADIKA)
+        val newSamjnas = context.terms.map { SamjnaAssignment(it.id, Samjna.PRATIPADIKA) }.toSet()
         return DerivationChange(
-            state = context.withSamjnas(setOf(newSamjna)),
+            state = context.withSamjnas(newSamjnas),
             explanation = "1.2.46 assigns prātipadika saṃjñā to kṛt/taddhita/samāsa stems.",
         )
     }

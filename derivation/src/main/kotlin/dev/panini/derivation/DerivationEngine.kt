@@ -1,6 +1,7 @@
 package dev.panini.derivation
 
 import dev.panini.analysis.KarakaResolution
+import dev.panini.analysis.SamasaResolution
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraPriority
 import dev.panini.sutra.SutraRole
@@ -39,6 +40,7 @@ data class DerivationResult(
     val events: List<DerivationEvent>,
     val karakaResolution: KarakaResolution? = null,
     val svaraResult: SvaraResult? = null,
+    val samasaResolution: SamasaResolution? = null,
 )
 
 /**

@@ -73,6 +73,8 @@ object Ashtadhyayi {
     )
     val striPratyayaSutras: List<DerivationSutra> =
         executableSutrasUnder("4.1.3")
+    val samasaSutras: List<DerivationSutra> =
+        executableSutras.filter { (it as? Sutra<*, *>)?.let { s -> s.chapter == 2 && s.pada in 1..2 } == true }
 
     /**
      * Kotlin rules that can execute in the shared runtime through matches/apply.

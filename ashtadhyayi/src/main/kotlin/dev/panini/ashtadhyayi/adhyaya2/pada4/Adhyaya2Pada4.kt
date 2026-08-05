@@ -7,6 +7,7 @@ object Adhyaya2Pada4 {
         AdiprabhritibhyahShapahSutra,
         JuhotyadibhyahShluhSutra,
         GatisthaghupabhubhyahSicahParasmaipadesuSutra,
-        LutahPrathamasyaDarauRasahSutra
+        LutahPrathamasyaDarauRasahSutra,
+        SupoDhatuPratipadikayohSutra
     )
 }

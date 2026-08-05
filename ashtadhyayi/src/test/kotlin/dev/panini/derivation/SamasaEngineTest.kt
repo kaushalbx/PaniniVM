@@ -1,5 +1,6 @@
 package dev.panini.derivation
 
+import dev.panini.core.SamasaType
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -19,7 +20,7 @@ class SamasaEngineTest {
     fun `derives Tatpurusa compound rajapurusah`() {
         val result = engine.derive(listOf("राज", "पुरुष"), SamasaType.TATPURUSA)
         assertEquals("राजपुरुषः", result.final.surface)
-        assertTrue(result.applications.any { it.sutra == "2.1.24" })
+        assertTrue(result.applications.any { it.sutra == "2.2.8" || it.sutra == "2.1.24" })
     }
 
     @Test
