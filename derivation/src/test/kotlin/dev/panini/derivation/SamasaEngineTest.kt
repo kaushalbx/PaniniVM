@@ -797,4 +797,72 @@ class SamasaEngineTest {
         )
         assertTrue(result.applications.any { it.sutra == "2.2.4" })
     }
+
+    @Test
+    fun `test Kalat Dvitiya Tatpurusha (2 1 29)`() {
+        val sutra = dev.panini.ashtadhyayi.adhyaya2.pada1.KalatSutra
+        val context = dev.panini.analysis.SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("मास", Vibhakti.DVITIYA),
+                SamasaPada("कल्याणी", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.TATPURUSA,
+        )
+        assertTrue(sutra.matches(context))
+        val res = sutra.apply(context)
+        assertTrue(res is dev.panini.analysis.SamasaRuleResult.Formed)
+    }
+
+    @Test
+    fun `test Kavacahara Trtiya Tatpurusha (2 1 48)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("वयस", Vibhakti.TRTIYA),
+                SamasaPada("कवचहर", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.TATPURUSA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.1.48" })
+    }
+
+    @Test
+    fun `test Kutsitani Kutsitaih Karmadharaya (2 1 53)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("वैयाकरण", Vibhakti.PRATHAMA),
+                SamasaPada("खसूचि", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.KARMADHARAYA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.1.53" })
+    }
+
+    @Test
+    fun `test Na Nirdhare Shashthi Prohibition (2 2 10)`() {
+        val sutra = dev.panini.ashtadhyayi.adhyaya2.pada2.NaNirdhareSutra
+        val context = dev.panini.analysis.SamasaRuleContext(
+            padas = listOf(
+                dev.panini.analysis.SamasaPada("नृ", dev.panini.core.Vibhakti.SASTHI),
+                dev.panini.analysis.SamasaPada("द्विज", dev.panini.core.Vibhakti.PRATHAMA),
+            ),
+            samasaType = dev.panini.core.SamasaType.TATPURUSA,
+        )
+        assertTrue(sutra.matches(context))
+        val res = sutra.apply(context)
+        assertTrue(res is dev.panini.analysis.SamasaRuleResult.NotApplicable)
+    }
+
+    @Test
+    fun `test Upasarjanam Purvam (2 2 30)`() {
+        val sutra = dev.panini.ashtadhyayi.adhyaya2.pada2.UpasarjanamPurvamSutra
+        val context = dev.panini.analysis.SamasaRuleContext(
+            padas = listOf(
+                dev.panini.analysis.SamasaPada("राज", dev.panini.core.Vibhakti.SASTHI),
+                dev.panini.analysis.SamasaPada("पुरुष", dev.panini.core.Vibhakti.PRATHAMA),
+            ),
+            samasaType = dev.panini.core.SamasaType.TATPURUSA,
+        )
+        assertTrue(sutra.matches(context))
+    }
 }
+

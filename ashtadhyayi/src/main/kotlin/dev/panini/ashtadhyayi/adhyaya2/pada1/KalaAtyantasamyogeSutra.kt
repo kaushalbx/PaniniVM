@@ -29,6 +29,7 @@ object KalaAtyantasamyogeSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
     samasaType = SamasaType.TATPURUSA,
+    samasaPriority = 10,
 ), SamasaSutra {
     private val kalaWords = setOf("मास", "अहोरात्र", "संवत्सर", "अहः", "रात्र", "मुहूर्त")
 

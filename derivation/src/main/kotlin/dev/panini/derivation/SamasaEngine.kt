@@ -204,7 +204,11 @@ class SamasaEngine(
         context: SamasaRuleContext,
     ): Sutra<SamasaRuleContext, SamasaRuleResult> {
         val candidates = samasaSutras
-            .filter { it.samasaType == context.samasaType }
+            .filter {
+                it.samasaType == context.samasaType &&
+                (it as Sutra<*, *>).action != dev.panini.sutra.SutraAction.NISHEDHA &&
+                (it as Sutra<*, *>).role != dev.panini.sutra.SutraRole.Niyama
+            }
             .sortedWith(compareByDescending<SamasaSutra> { !it.isGeneralFallback }.thenByDescending { it.samasaPriority })
         val matched = candidates.firstOrNull { it.matches(context) }
 

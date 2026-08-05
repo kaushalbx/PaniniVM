@@ -43,5 +43,8 @@ object Adhyaya2Pada1 {
         BhaksyenaMishrikaranamSutra,
         YuvaKhalatiPalitaSutra,
         MayuravyamsakadayascaSutra,
+        KalatSutra,
+        KavacaharaDaksinaKsiresuSutra,
+        KutsitaniKutsitaihSutra,
     )
 }
