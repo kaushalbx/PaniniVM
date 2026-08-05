@@ -116,8 +116,10 @@ class SamasaEngine(
             res
         } else {
             val padasList = padas.map { it.upadesha }
-            if (rawStem in padasList || rawStem == padasList.joinToString("")) {
-                // If Sūtra produced raw concatenation, run sandhiEngine on the components
+            val rawPadasConcat = padasList.joinToString("")
+            val hasSamasantaKap = rawStem.endsWith("क") && !rawPadasConcat.endsWith("क")
+            if (rawStem in padasList || rawStem == rawPadasConcat || hasSamasantaKap) {
+                // If Sūtra produced raw concatenation (with optional samāsānta suffix), run sandhiEngine on components
                 var res = padas.first().upadesha
                 for (i in 1 until padas.size) {
                     val next = padas[i].upadesha
@@ -125,7 +127,7 @@ class SamasaEngine(
                     res = j.final.surface.ifBlank { res + next }
                     applications.addAll(j.applications)
                 }
-                res
+                if (hasSamasantaKap) res + "क" else res
             } else {
                 rawStem
             }

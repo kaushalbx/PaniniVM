@@ -26,9 +26,10 @@ object AjadyadantamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     scope = SutraScope.DERIVATION,
 ) {
     private val vowels = setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ए', 'ऐ', 'ओ', 'औ')
+    private val matras = setOf('ा', 'ि', 'ी', 'ु', 'ू', 'े', 'ै', 'ो', 'ौ', 'ृ', '्', 'ः', 'ं')
 
     private fun isAjadyadanta(s: String): Boolean =
-        s.isNotEmpty() && s.first() in vowels && s.endsWith("अ")
+        s.isNotEmpty() && s.first() in vowels && s.last() !in matras
 
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false

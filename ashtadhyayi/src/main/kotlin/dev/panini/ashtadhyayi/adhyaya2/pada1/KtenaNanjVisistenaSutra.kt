@@ -35,9 +35,7 @@ object KtenaNanjVisistenaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
-        val purva = context.purvaPada.upadesha
-        val uttara = context.uttaraPada.upadesha
-        val compoundStem = purva.dropLast(1) + "ा" + uttara
+        val compoundStem = context.padas.joinToString("") { it.upadesha }
 
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
