@@ -30,6 +30,7 @@ object AlukUttarapadeSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     scope = SutraScope.DERIVATION,
 ), SamasaSutra {
     override val samasaType: SamasaType = SamasaType.ALUK_TATPURUSA
+    override val isGeneralFallback: Boolean = true
     override fun matches(context: SamasaRuleContext): Boolean =
         context.samasaType == SamasaType.ALUK_TATPURUSA && context.padas.size >= 2
 

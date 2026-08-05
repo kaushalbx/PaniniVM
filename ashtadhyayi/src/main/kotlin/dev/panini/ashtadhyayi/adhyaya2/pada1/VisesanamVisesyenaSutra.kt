@@ -30,6 +30,7 @@ object VisesanamVisesyenaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     scope = SutraScope.DERIVATION,
 ), SamasaSutra {
     override val samasaType: SamasaType = SamasaType.KARMADHARAYA
+    override val isGeneralFallback: Boolean = true
     override fun matches(context: SamasaRuleContext): Boolean = context.padas.size >= 2
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {

@@ -203,10 +203,15 @@ class SamasaEngine(
     private fun selectClassificationSutra(
         context: SamasaRuleContext,
     ): Sutra<SamasaRuleContext, SamasaRuleResult> {
-        val matched = samasaSutras
-            .filter { it.samasaType == context.samasaType }
-            .firstOrNull { it.matches(context) } as? Sutra<SamasaRuleContext, SamasaRuleResult>
-        if (matched != null) return matched
+        val candidates = samasaSutras.filter { it.samasaType == context.samasaType }
+        val matched = candidates
+            .filter { !it.isGeneralFallback }
+            .firstOrNull { it.matches(context) }
+            ?: candidates
+                .filter { it.isGeneralFallback }
+                .firstOrNull { it.matches(context) }
+
+        if (matched != null) return matched as Sutra<SamasaRuleContext, SamasaRuleResult>
 
         return when (context.samasaType) {
             SamasaType.AVYAYIBHAVA       -> AvyayamVibhaktiSutra

@@ -20,6 +20,9 @@ interface SamasaSutra {
     /** Whether this compound is mandatory (Nitya Samāsa). Default: true. */
     val isNitya: Boolean get() = true
 
+    /** Whether this Sūtra acts as a general Utsarga fallback rule for its compound type. Default: false. */
+    val isGeneralFallback: Boolean get() = false
+
     /** Evaluates rule applicability for the given compound context. */
     fun matches(context: SamasaRuleContext): Boolean
 

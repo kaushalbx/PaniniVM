@@ -29,6 +29,7 @@ object CartheDvandvahSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     scope = SutraScope.DERIVATION,
 ), SamasaSutra {
     override val samasaType: SamasaType = SamasaType.DVANDVA
+    override val isGeneralFallback: Boolean = true
     // Dvandva is 'ca'-coordinated: any two prathama-inflected nominals qualify
     override fun matches(context: SamasaRuleContext): Boolean = context.padas.size >= 2
 

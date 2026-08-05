@@ -30,6 +30,7 @@ object AnekamAnyapadartheSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     scope = SutraScope.DERIVATION,
 ), SamasaSutra {
     override val samasaType: SamasaType = SamasaType.BAHUVRIHI
+    override val isGeneralFallback: Boolean = true
     override fun matches(context: SamasaRuleContext): Boolean =
         context.padas.size >= 2 && context.purvaPadaVibhakti == Vibhakti.PRATHAMA
 
