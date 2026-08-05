@@ -12,7 +12,9 @@ import dev.panini.ashtadhyayi.adhyaya2.pada1.TrtiyaTatkrtharthenaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.AnekamAnyapadartheSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.CartheDvandvahSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.ShashthiSutra
+import dev.panini.core.Linga
 import dev.panini.core.SamasaType
+import dev.panini.core.Vacana
 import dev.panini.core.Vibhakti
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
@@ -42,7 +44,8 @@ data class SamasaDerivationRequest(
  *   3. Apply the Sūtra → get [SamasaRuleResult.Formed] compound stem.
  *   4. Run Sandhi joining on the stem sequence via [SandhiEngine].
  *   5. Apply Sūtras 1.2.46 and 2.4.71 for Prātipadika assignment and Sup-lopa via [DerivationEngine].
- *   6. Build final [DerivationResult] with [SamasaResolution] metadata.
+ *   6. Inflect the compound Prātipadika via [inflectCompound] (compound-specific Subanta step).
+ *   7. Build final [DerivationResult] with [SamasaResolution] metadata.
  */
 class SamasaEngine(
     private val derivationEngine: DerivationEngine = DerivationEngine(Ashtadhyayi.executableSutras),
@@ -109,8 +112,18 @@ class SamasaEngine(
             )
         )
 
-        // 8. Build final state with the Sandhi-joined compound surface
-        val finalSurface = applySubantaDeclension(joinedStem, type, padas.size)
+        // 8. Normalize anusvāra parasavarṇa from Sandhi output (e.g. पीतांबर → पीताम्बर)
+        val normalizedStem = joinedStem
+            .replace("ंब", "म्ब")
+            .replace("ंप", "म्प")
+            .replace("ंम", "म्म")
+            .replace("ंव", "म्व")
+
+        // 9. Inflect the compound stem with the correct Prathama Vibhakti ending.
+        // Note: SubantaEngine is designed for simple single-stem derivations through the full
+        // Sūtra phonological pipeline. Compound stems require direct suffix application
+        // (inflectCompound) since the compound prātipadika bypasses internal morphophonology.
+        val finalSurface = inflectCompound(normalizedStem, type, padas.size)
         val finalTerm = DerivationTerm("samasa_final", finalSurface, TermKind.PRATIPADIKA, upadesha = finalSurface)
         val finalState = currentState.copy(terms = listOf(finalTerm), stage = DerivationStage.FINAL)
 
@@ -130,6 +143,23 @@ class SamasaEngine(
             events = emptyList(),
             samasaResolution = resolution,
         )
+    }
+
+    /**
+     * Returns the (Vibhakti, Vacana, Linga) triple for the final Subanta declension of a compound.
+     * Pāṇinian: After Sup-lopa the compound Prātipadika takes a fresh Prathama ending.
+     * - Avyayibhāva: invariable — Prathama Ekavacana Napumsaka (ends in म्)
+     * - Tatpuruṣa / Bahuvrihi: Prathama Ekavacana Pumliṅga (ends in ः)
+     * - Dvandva: Prathama Dvivacana for 2 members (ौ), Bahuvacana for 3+ (ाः)
+     */
+    private fun subantaParams(type: SamasaType, count: Int): Triple<Vibhakti, Vacana, Linga> = when (type) {
+        SamasaType.AVYAYIBHAVA ->
+            Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.NAPUMSAKA)
+        SamasaType.TATPURUSA, SamasaType.BAHUVRIHI ->
+            Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.PUMS)
+        SamasaType.DVANDVA ->
+            if (count == 2) Triple(Vibhakti.PRATHAMA, Vacana.DVIVACANA, Linga.PUMS)
+            else            Triple(Vibhakti.PRATHAMA, Vacana.BAHUVACANA, Linga.PUMS)
     }
 
     /**
@@ -180,30 +210,33 @@ class SamasaEngine(
         return change.state
     }
 
-    private fun applySubantaDeclension(joinedStem: String, type: SamasaType, count: Int): String {
-        // Normalize anusvāra parasavarṇa: Devanagari anusvāra (ं) before labial consonants
-        // resolves to the nasal class consonant (म्). e.g. पीतांबर → पीताम्बर.
-        // This is a phonological normalization of the Sandhi output, not a word-level hack.
-        val stem = joinedStem
-            .replace("ंब", "म्ब")
-            .replace("ंप", "म्प")
-            .replace("ंम", "म्म")
-            .replace("ंव", "म्व")
-        return when (type) {
-            SamasaType.AVYAYIBHAVA -> {
-                if (stem.endsWith("म्") || stem.endsWith("म")) stem
-                else stem + "म्"
-            }
-            SamasaType.TATPURUSA, SamasaType.BAHUVRIHI -> {
-                if (stem.endsWith("ः") || stem.endsWith("म्")) stem
-                else stem + "ः"
-            }
-            SamasaType.DVANDVA -> {
-                if (count == 2) {
-                    if (stem.endsWith("ौ")) stem else stem + "ौ"
-                } else {
-                    if (stem.endsWith("ाः")) stem else stem + "ाः"
-                }
+    /**
+     * Applies the correct Prathama Vibhakti ending directly to a compound Prātipadika stem.
+     *
+     * Why not SubantaEngine? SubantaEngine runs the full Sūtra morphophonological pipeline
+     * (4.1.2 + subsequent Sūtras), which is designed for simple single stems. The pipeline
+     * transforms stem + Sup affix phonologically and discards the original stem characters —
+     * producing only the suffix for complex compound stems. Compound Prātipadikas, having
+     * already undergone Sup-lopa (2.4.71), need only the fresh Prathama ending appended.
+     *
+     * Pāṇinian basis: After 2.4.71 (Sup-lopa), the compound is a bare Prātipadika.
+     * The Prathama Vibhakti affix (सुँ → ः for Pumliṅga, zero-ending for Avyayibhāva) is then added.
+     */
+    private fun inflectCompound(stem: String, type: SamasaType, count: Int): String = when (type) {
+        SamasaType.AVYAYIBHAVA -> {
+            // Avyayibhāva is invariable (Avyaya saṃjñā) — indeclinable, Napumsaka form
+            if (stem.endsWith("म्") || stem.endsWith("म")) stem else stem + "म्"
+        }
+        SamasaType.TATPURUSA, SamasaType.BAHUVRIHI -> {
+            // Prathama Ekavacana Pumliṅga: सुँ → ः (visarga)
+            if (stem.endsWith("ः") || stem.endsWith("म्")) stem else stem + "ः"
+        }
+        SamasaType.DVANDVA -> {
+            // Prathama: dual (ौ) for 2 members, plural (ाः) for 3+
+            if (count == 2) {
+                if (stem.endsWith("ौ")) stem else stem + "ौ"
+            } else {
+                if (stem.endsWith("ाः")) stem else stem + "ाः"
             }
         }
     }
