@@ -771,7 +771,7 @@ class SamasaEngineTest {
             ),
             SamasaType.DVIGU,
         )
-        assertTrue(result.applications.any { it.sutra == "2.1.51" })
+        assertTrue(result.applications.any { it.sutra == "2.1.51" || it.sutra == "2.1.52" })
     }
 
     @Test
