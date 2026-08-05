@@ -8,6 +8,7 @@ object Adhyaya2Pada2 {
         UpapadamAtingSutra,
         ShashthiSutra,
         AnekamAnyapadartheSutra,
+        TenaSahetiTulyayogesutra,
         CartheDvandvahSutra,
     )
 }

@@ -249,4 +249,56 @@ class SamasaEngineTest {
         )
         assertTrue(result.applications.any { it.sutra == "2.1.72" })
     }
+
+    @Test
+    fun `test Bahuvrihi Saha to Sa substitution (2 2 28, 6 3 82)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("सह", Vibhakti.TRTIYA),
+                SamasaPada("पुत्र", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.BAHUVRIHI,
+        )
+        assertEquals("सपुत्रः", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "6.3.82" || it.sutra == "2.2.28" })
+    }
+
+    @Test
+    fun `test Bahuvrihi Urahprabhrti Kap pratyaya (5 4 151)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("व्यूढ", Vibhakti.PRATHAMA),
+                SamasaPada("उरस्", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.BAHUVRIHI,
+        )
+        assertEquals("व्यूढोरस्कः", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "5.4.151" })
+    }
+
+    @Test
+    fun `test Bahuvrihi Nadyrta Kap pratyaya (5 4 153)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("बहु", Vibhakti.PRATHAMA),
+                SamasaPada("कुमारी", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.BAHUVRIHI,
+        )
+        assertEquals("बहुकुमारीकः", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "5.4.153" })
+    }
+
+    @Test
+    fun `test Bahuvrihi NanoAstyarthanam Kap pratyaya (5 4 154)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("अ", Vibhakti.PRATHAMA),
+                SamasaPada("पुत्र", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.BAHUVRIHI,
+        )
+        assertEquals("अपुत्रकः", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "5.4.154" })
+    }
 }

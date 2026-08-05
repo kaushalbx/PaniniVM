@@ -1,0 +1,11 @@
+package dev.panini.ashtadhyayi.adhyaya5.pada4
+
+import dev.panini.sutra.Sutra
+
+object Adhyaya5Pada4 {
+    val sutras: List<Sutra<*, *>> = listOf(
+        UrahPrabhrtibhyahKapSutra,
+        NadyrtaschaSutra,
+        NanoAstyarthanamSutra,
+    )
+}

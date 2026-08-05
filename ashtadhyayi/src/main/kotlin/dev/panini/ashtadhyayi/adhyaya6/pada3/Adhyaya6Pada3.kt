@@ -8,6 +8,7 @@ object Adhyaya6Pada3 {
         PutreNyatarasyamSutra,
         TatpuruseKrtiBahulamSutra,
         AtmanascaPuraneSutra,
+        VopasarjanasyaSutra,
         EkadishCaikasyaCadukSutra,
         DvyashtanahSankhyayamSutra,
         TreStrayahSutra,

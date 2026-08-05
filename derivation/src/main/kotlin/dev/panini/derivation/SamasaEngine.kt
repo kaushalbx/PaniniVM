@@ -220,8 +220,17 @@ class SamasaEngine(
         SamasaType.MAYURAVYAMSAKADI     -> MayuravyamsakadayascaSutra
         SamasaType.KARMADHARAYA      -> selectKarmadharayaSutra(context)
         SamasaType.DVIGU             -> SankhyapurvoDviguhSutra
-        SamasaType.BAHUVRIHI         -> AnekamAnyapadartheSutra
+        SamasaType.BAHUVRIHI         -> selectBahuvrihiSutra(context)
         SamasaType.DVANDVA           -> CartheDvandvahSutra
+    }
+
+    private fun selectBahuvrihiSutra(context: SamasaRuleContext): Sutra<SamasaRuleContext, SamasaRuleResult> = when {
+        VopasarjanasyaSutra.matches(context) -> VopasarjanasyaSutra
+        TenaSahetiTulyayogesutra.matches(context) -> TenaSahetiTulyayogesutra
+        UrahPrabhrtibhyahKapSutra.matches(context) -> UrahPrabhrtibhyahKapSutra
+        NadyrtaschaSutra.matches(context) -> NadyrtaschaSutra
+        NanoAstyarthanamSutra.matches(context) -> NanoAstyarthanamSutra
+        else -> AnekamAnyapadartheSutra
     }
 
     private fun selectAlukSutra(context: SamasaRuleContext): Sutra<SamasaRuleContext, SamasaRuleResult> = when {
