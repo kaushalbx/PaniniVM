@@ -29,6 +29,7 @@ object VisesanamVisesyenaBahulamSutra : Sutra<SamasaRuleContext, SamasaRuleResul
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
     samasaType = SamasaType.KARMADHARAYA,
+    isGeneralFallback = true,
 ), SamasaSutra {
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
