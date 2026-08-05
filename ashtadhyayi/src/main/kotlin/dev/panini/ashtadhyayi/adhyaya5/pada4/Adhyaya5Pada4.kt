@@ -19,5 +19,10 @@ object Adhyaya5Pada4 {
         KimanhKsepeSutra,
         NityamAsimaseSutra,
         AlpakhyayamSutra,
+        DhanusasChaSutra,
+        JayayaNingSutra,
+        GandhasyetIdutpurvatSutra,
+        UpamanacChaSutra,
+        PutisurabhiMukhyaSutra,
     )
 }

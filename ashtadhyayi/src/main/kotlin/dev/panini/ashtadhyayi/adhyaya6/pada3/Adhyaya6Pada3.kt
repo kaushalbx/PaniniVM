@@ -22,5 +22,10 @@ object Adhyaya6Pada3 {
         VayasiChaSutra,
         ManasahSamjnayamSutra,
         SarasCaGihpatiPrabhrtisuSutra,
+        GospadaGosthaSutra,
+        KsetrePasusamaseSutra,
+        KhyatyaiNaksatreSutra,
+        VahahKaranatSutra,
+        KaroNamnyAmatngeSutra,
     )
 }
