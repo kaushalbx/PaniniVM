@@ -193,6 +193,7 @@ class SamasaEngine(
         val count = padas.size
         val lastPada = padas.lastOrNull()?.upadesha ?: ""
         val isNeuterStem = lastPada in setOf("पद", "ज", "कुल", "वन", "अक्ष")
+        val isSamaharaDvandva = padas.any { it.upadesha in setOf("पाणि", "पाद", "मार्दङ्गिक", "धाना", "शष्कुलि") }
 
         return when (type) {
             SamasaType.AVYAYIBHAVA, SamasaType.DVIGU ->
@@ -200,8 +201,9 @@ class SamasaEngine(
             SamasaType.TATPURUSA, SamasaType.BAHUVRIHI, SamasaType.KARMADHARAYA, SamasaType.NAN_TATPURUSA, SamasaType.UPAPADA_TATPURUSA, SamasaType.ALUK_TATPURUSA, SamasaType.MAYURAVYAMSAKADI ->
                 Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, if (isNeuterStem) Linga.NAPUMSAKA else Linga.PUMS)
             SamasaType.DVANDVA ->
-                if (count == 2) Triple(Vibhakti.PRATHAMA, Vacana.DVIVACANA, Linga.PUMS)
-                else            Triple(Vibhakti.PRATHAMA, Vacana.BAHUVACANA, Linga.PUMS)
+                if (isSamaharaDvandva) Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.NAPUMSAKA)
+                else if (count == 2)   Triple(Vibhakti.PRATHAMA, Vacana.DVIVACANA, Linga.PUMS)
+                else                   Triple(Vibhakti.PRATHAMA, Vacana.BAHUVACANA, Linga.PUMS)
         }
     }
 
@@ -221,7 +223,16 @@ class SamasaEngine(
         SamasaType.KARMADHARAYA      -> selectKarmadharayaSutra(context)
         SamasaType.DVIGU             -> SankhyapurvoDviguhSutra
         SamasaType.BAHUVRIHI         -> selectBahuvrihiSutra(context)
-        SamasaType.DVANDVA           -> CartheDvandvahSutra
+        SamasaType.DVANDVA           -> selectDvandvaSutra(context)
+    }
+
+    private fun selectDvandvaSutra(context: SamasaRuleContext): Sutra<SamasaRuleContext, SamasaRuleResult> = when {
+        DvandvaschaPranituryaSutra.matches(context) -> DvandvaschaPranituryaSutra
+        JatirApraninamSutra.matches(context) -> JatirApraninamSutra
+        AbhyarhitamChaSutra.matches(context) -> AbhyarhitamChaSutra
+        AjadyadantamSutra.matches(context) -> AjadyadantamSutra
+        AlpactaramSutra.matches(context) -> AlpactaramSutra
+        else -> CartheDvandvahSutra
     }
 
     private fun selectBahuvrihiSutra(context: SamasaRuleContext): Sutra<SamasaRuleContext, SamasaRuleResult> = when {

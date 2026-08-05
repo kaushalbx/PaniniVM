@@ -1,7 +1,7 @@
 package dev.panini.ashtadhyayi.adhyaya6.pada3
 
-import dev.panini.core.SamasaRuleContext
-import dev.panini.core.SamasaRuleResult
+import dev.panini.analysis.SamasaRuleContext
+import dev.panini.analysis.SamasaRuleResult
 import dev.panini.core.SamasaType
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction

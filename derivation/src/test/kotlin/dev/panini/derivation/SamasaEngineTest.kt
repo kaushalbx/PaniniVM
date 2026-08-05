@@ -301,4 +301,65 @@ class SamasaEngineTest {
         assertEquals("अपुत्रकः", result.final.terms.last().surface)
         assertTrue(result.applications.any { it.sutra == "5.4.154" })
     }
+
+    @Test
+    fun `test Dvandva Abhyarhitam order (2 2 32)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("पितृ", Vibhakti.PRATHAMA),
+                SamasaPada("माता", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.DVANDVA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.2.32" })
+    }
+
+    @Test
+    fun `test Dvandva Ajadyadantam order (2 2 33)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("कृष्ण", Vibhakti.PRATHAMA),
+                SamasaPada("ईश", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.DVANDVA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.2.33" })
+    }
+
+    @Test
+    fun `test Dvandva Alpactaram order (2 2 34)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("केशव", Vibhakti.PRATHAMA),
+                SamasaPada("शिव", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.DVANDVA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.2.34" })
+    }
+
+    @Test
+    fun `test Dvandva Praniturya Samahara (2 4 2)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("पाणि", Vibhakti.PRATHAMA),
+                SamasaPada("पाद", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.DVANDVA,
+        )
+        assertEquals("पाणिपादम्", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "2.4.2" })
+    }
+
+    @Test
+    fun `test Dvandva JatirApraninam Samahara (2 4 6)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("धाना", Vibhakti.PRATHAMA),
+                SamasaPada("शष्कुलि", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.DVANDVA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.4.6" })
+    }
 }

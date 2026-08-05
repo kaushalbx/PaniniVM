@@ -10,5 +10,8 @@ object Adhyaya2Pada2 {
         AnekamAnyapadartheSutra,
         TenaSahetiTulyayogesutra,
         CartheDvandvahSutra,
+        AbhyarhitamChaSutra,
+        AjadyadantamSutra,
+        AlpactaramSutra,
     )
 }
