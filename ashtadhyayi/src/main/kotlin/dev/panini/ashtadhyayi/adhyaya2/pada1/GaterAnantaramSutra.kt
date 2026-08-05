@@ -10,6 +10,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.ganapatha.PradiGana
+
 /**
  * Sūtra 2.1.45: गतेर् अनन्तरम्.
  * Prescribes Saptamī Tatpuruṣa compounding a gati prefix with an immediate kta-participle.
@@ -30,14 +32,12 @@ object GaterAnantaramSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     samasaType = SamasaType.TATPURUSA,
     samasaPriority = 10,
 ), SamasaSutra {
-    private val gatiPrefixes = setOf("प्र", "परा", "अप", "सम", "अनु", "अव", "निस", "निर्", "दुस", "दुर्", "वि", "आ", "नि", "अधि", "अपि", "अति", "सु", "उद", "अभि", "प्रति", "परि", "उप")
-
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val purva = context.purvaPada.upadesha
         val uttara = context.uttaraPada.upadesha
         return context.samasaType == SamasaType.TATPURUSA &&
-            gatiPrefixes.contains(purva) &&
+            (PradiGana.contains(purva) || PradiGana.members.any { it.text.startsWith(purva) }) &&
             uttara == "अनन्तर"
     }
 

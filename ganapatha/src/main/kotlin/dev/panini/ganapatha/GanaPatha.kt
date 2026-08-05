@@ -39,4 +39,24 @@ object GanaPatha {
     /** Finds subgroups that contain [text], paired with their parent gaṇa. */
     fun antarGanasContaining(text: String): List<Pair<Gana, AntarGana>> =
         all.flatMap { gana -> gana.antarGanasContaining(text).map { antarGana -> gana to antarGana } }
+
+    val gotraGanas: List<Gana> by lazy {
+        listOf(
+            GargadiGana,
+            BidadiGana,
+            UpakadiGana,
+            SharngaravadiGana,
+            ShivadiGana,
+            AshvadiGana
+        )
+    }
+
+    private val genericVamshyaNouns = setOf("मुनि", "ऋषि", "वंश्य", "गुरु", "आचार्य")
+
+    fun isVamshya(stem: String, samjnas: Set<dev.panini.shiksha.Samjna> = emptySet()): Boolean {
+        if (samjnas.any { it is dev.panini.shiksha.Samjna.Rudhi && (it.word == "VAMSHYA" || it.word == "GOTRA") }) return true
+        if (stem in genericVamshyaNouns) return true
+        if (stem.endsWith("मुनि") || stem.endsWith("ऋषि")) return true
+        return gotraGanas.any { it.contains(stem) }
+    }
 }

@@ -10,6 +10,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.ganapatha.MayuravyamsakadiGana
+
 /**
  * Sūtra 2.1.70: मयूरव्यंसकादयश्च (registered as 2.1.106 for unique ID).
  * Prescribes irregular Tatpuruṣa nipātana compounds.
@@ -30,13 +32,11 @@ object MayuravyamsakadayascaExtSutra : Sutra<SamasaRuleContext, SamasaRuleResult
     samasaType = SamasaType.MAYURAVYAMSAKADI,
     samasaPriority = 10,
 ), SamasaSutra {
-    private val mayuravyamsakadiGroup = setOf("मयूरव्यंसक", "उच्चावच", "निश्चित")
-
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val stem = context.padas.joinToString("") { it.upadesha }
         return (context.samasaType == SamasaType.MAYURAVYAMSAKADI || context.samasaType == SamasaType.TATPURUSA) &&
-            mayuravyamsakadiGroup.contains(stem)
+            (MayuravyamsakadiGana.contains(stem) || context.padas.any { MayuravyamsakadiGana.contains(it.upadesha) })
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {

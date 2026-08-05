@@ -10,6 +10,9 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.sankhya.SankhyaResolver
+import dev.panini.ganapatha.VamshyaClassifier
+
 /**
  * 2.1.19: संख्या वंश्येन.
  *
@@ -29,13 +32,12 @@ object SankhyaVamsyenaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     scope = SutraScope.DERIVATION,
     samasaType = SamasaType.AVYAYIBHAVA,
 ), SamasaSutra {
-    private val numerals = setOf("एक", "द्वि", "त्रि", "चतुर्", "पञ्च", "षट्", "सप्त", "अष्ट", "नव", "दश")
-
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
-        val purva = context.purvaPada.upadesha
-        val uttara = context.uttaraPada.upadesha
-        return purva in numerals || uttara == "मुनि" || uttara == "भारद्वाज"
+        val purva = context.purvaPada
+        val uttara = context.uttaraPada
+        return SankhyaResolver.isSankhya(purva.upadesha, purva.samjnas) &&
+                VamshyaClassifier.isVamshya(uttara.upadesha, uttara.samjnas)
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {

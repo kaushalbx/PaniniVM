@@ -10,6 +10,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.ganapatha.RajadantadiGana
+
 /**
  * Sūtra 2.2.31: राजदन्तादिषु परम्.
  * Reverses expected pūrvapada placement for terms in the rājadanta group.
@@ -30,13 +32,13 @@ object RajadantadisuSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     samasaType = SamasaType.TATPURUSA,
     samasaPriority = 10,
 ), SamasaSutra {
-    private val rajadantaGroup = setOf("राजदन्त", "लिम्पक", "अक्षप्रिय")
-
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val stem = context.padas.joinToString("") { it.upadesha }
         return context.samasaType == SamasaType.TATPURUSA &&
-            rajadantaGroup.contains(stem)
+            (RajadantadiGana.contains(stem) ||
+             RajadantadiGana.contains(stem + "ः") ||
+             RajadantadiGana.members.any { it.text.startsWith(stem) })
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {

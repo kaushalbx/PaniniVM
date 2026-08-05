@@ -10,6 +10,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.ganapatha.KadaradiGana
+
 /**
  * Sūtra 2.2.38: कडाराः कर्मधारये.
  * Rules optional ordering for terms in kaḍāra group in Karmadhāraya.
@@ -30,12 +32,10 @@ object KadaradahKarmadharayeSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     samasaType = SamasaType.KARMADHARAYA,
     samasaPriority = 10,
 ), SamasaSutra {
-    private val kadaraGroup = setOf("कडार", "हाटक")
-
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         return context.samasaType == SamasaType.KARMADHARAYA &&
-            context.padas.any { kadaraGroup.contains(it.upadesha) }
+            context.padas.any { KadaradiGana.contains(it.upadesha) }
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {

@@ -11,6 +11,8 @@ import dev.panini.sutra.SutraType
 
 import dev.panini.sutra.SamasaSutra
 
+import dev.panini.ganapatha.MayuravyamsakadiGana
+
 /**
  * Sūtra 2.1.72: मयूरव्यंसकादयश्च.
  * Prescribes Nitya Tatpuruṣa compounding for irregular words belonging to the Mayūravyamsakādi gaṇa.
@@ -19,7 +21,7 @@ import dev.panini.sutra.SamasaSutra
 object MayuravyamsakadayascaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "2.1.72",
     text = "मयूरव्यंसकादयश्च",
-    hindiExplanation = "मयूरव्यंसक आदि शब्दों का नित्य तत्पुरुष समास निपातित होता है (उदा. मयूरव्यंसकः, उच्चावचम्)।",
+    hindiExplanation = "मयूरव्यंसक आदि शब्दों का नित्य तत्पुरुष समास निपातन से सिद्ध होता है (उदा. मयूरव्यंसकः, उच्चावचम्)।",
     type = SutraType.NITYA,
     chapter = 2,
     pada = 1,
@@ -30,13 +32,11 @@ object MayuravyamsakadayascaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     scope = SutraScope.DERIVATION,
     samasaType = SamasaType.MAYURAVYAMSAKADI,
 ), SamasaSutra {
-    private val mayuravyamsakadiGana = setOf("मयूरव्यंसक", "उच्चावच", "चिन्मात्र", "अन्यराजा")
-
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         if (context.samasaType == SamasaType.MAYURAVYAMSAKADI) return true
         val stem = context.padas.joinToString("") { it.upadesha }
-        return stem in mayuravyamsakadiGana
+        return MayuravyamsakadiGana.contains(stem) || context.padas.any { MayuravyamsakadiGana.contains(it.upadesha) }
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {

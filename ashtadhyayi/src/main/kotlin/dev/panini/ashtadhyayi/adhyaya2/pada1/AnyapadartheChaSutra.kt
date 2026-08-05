@@ -10,6 +10,9 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.sankhya.SankhyaResolver
+import dev.panini.shiksha.NadiClassifier
+
 /**
  * 2.1.21: अन्यपदार्थे च.
  *
@@ -29,13 +32,13 @@ object AnyapadartheChaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     scope = SutraScope.DERIVATION,
     samasaType = SamasaType.AVYAYIBHAVA,
 ), SamasaSutra {
-    private val riverWords = setOf("गङ्गा", "यमुना", "शोण", "नर्मदा", "सरयू")
-
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
-        val uttara = context.uttaraPada.upadesha
+        val purva = context.purvaPada
+        val uttara = context.uttaraPada
         return context.samasaType == SamasaType.AVYAYIBHAVA &&
-            uttara in riverWords
+                SankhyaResolver.isSankhya(purva.upadesha, purva.samjnas) &&
+                NadiClassifier.isRiverName(uttara.upadesha, uttara.samjnas)
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {

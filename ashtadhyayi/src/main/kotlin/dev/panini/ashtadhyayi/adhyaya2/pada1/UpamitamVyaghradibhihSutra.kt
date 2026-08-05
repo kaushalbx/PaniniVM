@@ -10,6 +10,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.ganapatha.VyaghradiGana
+
 /**
  * Sūtra 2.1.56: उपमितं व्याघ्रादिभिः सामान्याप्रयोगे.
  * Prescribes Karmadhāraya compound of a noun representing object compared (Upamita)
@@ -30,12 +32,10 @@ object UpamitamVyaghradibhihSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     scope = SutraScope.DERIVATION,
     samasaType = SamasaType.KARMADHARAYA,
 ), SamasaSutra {
-    private val vyaghradiGana = setOf("व्याघ्र", "सिंह", "ऋषभ", "चन्दना", "वृषभ", "नाग", "गज")
-
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val uttara = context.uttaraPada.upadesha
-        return uttara in vyaghradiGana
+        return VyaghradiGana.contains(uttara)
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {

@@ -11,6 +11,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.sankhya.SankhyaResolver
+
 /**
  * Sūtra 2.1.52: संख्यापूर्वो द्विगुः.
  * Prescribes Dvigu Tatpuruṣa compound when the prior member (pūrvapada) is a numeral (Saṅkhyā).
@@ -34,7 +36,7 @@ object SankhyapurvoDviguhSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val purva = context.purvaPada
-        return purva.samjnas.contains(Samjna.SANKHYA) || isSankhyaStem(purva.upadesha)
+        return SankhyaResolver.isSankhya(purva.upadesha, purva.samjnas)
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
@@ -44,8 +46,4 @@ object SankhyapurvoDviguhSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
             explanation = "2.1.52 forms Dvigu Tatpuruṣa compound '$stem'.",
         )
     }
-
-    private fun isSankhyaStem(stem: String): Boolean =
-        stem in setOf("एक", "द्वि", "त्रि", "चतुर्", "पञ्चन्", "षष्", "सप्तन्", "अष्टन्", "नवन्", "दशन्", "त्रि", "द्वि") ||
-                stem.startsWith("त्रि") || stem.startsWith("द्वि") || stem.startsWith("पञ्च") || stem.startsWith("चतुर्")
 }

@@ -10,6 +10,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.ganapatha.ShrenyadiGana
+
 /**
  * 2.1.59: श्रेण्यादयः कृतादिभिः.
  *
@@ -29,13 +31,11 @@ object SrenyadayahKrtadibhihSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     scope = SutraScope.DERIVATION,
     samasaType = SamasaType.KARMADHARAYA,
 ), SamasaSutra {
-    private val sreniWords = setOf("श्रेणि", "एक", "पूप", "पिण्ड", "गोल")
-
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val purva = context.purvaPada.upadesha
         return context.samasaType == SamasaType.KARMADHARAYA &&
-            purva in sreniWords
+            ShrenyadiGana.contains(purva)
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {

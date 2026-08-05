@@ -10,6 +10,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.ganapatha.TishthadguPrabhrtiGana
+
 /**
  * Sūtra 2.1.17: तिष्ठद्गुप्रभृतीनि च (registered as 2.1.98 for unique ID).
  * Prescribes irregular nipātana Avyayībhāva compounds in the tiṣṭhadgu group.
@@ -30,12 +32,11 @@ object TisthadguprabhrtiniSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     samasaType = SamasaType.AVYAYIBHAVA,
     samasaPriority = 10,
 ), SamasaSutra {
-    private val tisthadguGroup = setOf("तिष्ठद्गु", "आयतिगवम्", "खलेयवम्")
-
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val stem = context.padas.joinToString("") { it.upadesha }
-        return context.samasaType == SamasaType.AVYAYIBHAVA && tisthadguGroup.contains(stem)
+        return context.samasaType == SamasaType.AVYAYIBHAVA &&
+                (TishthadguPrabhrtiGana.contains(stem) || context.padas.any { TishthadguPrabhrtiGana.contains(it.upadesha) })
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
