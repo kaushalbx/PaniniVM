@@ -52,5 +52,8 @@ object Adhyaya2Pada1 {
         YathaSadrshyeSutra,
         AnurYatSamayaSutra,
         KsepenaSutra,
+        YasyaChayamahSutra,
+        DosaChaSutra,
+        GaterAnantaramSutra,
     )
 }

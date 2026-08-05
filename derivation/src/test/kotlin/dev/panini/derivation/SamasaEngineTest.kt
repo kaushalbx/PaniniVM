@@ -994,7 +994,77 @@ class SamasaEngineTest {
         val res = sutra.apply(context)
         assertTrue(res is dev.panini.analysis.SamasaRuleResult.NotApplicable)
     }
+
+    @Test
+    fun `test Yasya Chayamah Avyayibhava (2 1 10)`() {
+        val sutra = dev.panini.ashtadhyayi.adhyaya2.pada1.YasyaChayamahSutra
+        val context = dev.panini.analysis.SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("अनु", Vibhakti.PRATHAMA),
+                SamasaPada("गङ्गा", Vibhakti.SASTHI),
+            ),
+            samasaType = SamasaType.AVYAYIBHAVA,
+        )
+        assertTrue(sutra.matches(context))
+        val res = sutra.apply(context)
+        assertTrue(res is dev.panini.analysis.SamasaRuleResult.Formed)
+    }
+
+    @Test
+    fun `test Dosa Cha Avyayibhava (2 1 15)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("दोषा", Vibhakti.PRATHAMA),
+                SamasaPada("कृत", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.AVYAYIBHAVA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.1.15" })
+    }
+
+    @Test
+    fun `test Gater Anantaram Tatpurusha (2 1 45)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("प्र", Vibhakti.PRATHAMA),
+                SamasaPada("अनन्तर", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.TATPURUSA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.1.45" })
+    }
+
+    @Test
+    fun `test Trjjakabhyam Kartari Prohibition (2 2 15)`() {
+        val sutra = dev.panini.ashtadhyayi.adhyaya2.pada2.TrjjakabhyamKartariSutra
+        val context = dev.panini.analysis.SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("त्रिभुवन", Vibhakti.SASTHI),
+                SamasaPada("स्रष्टृ", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.TATPURUSA,
+        )
+        assertTrue(sutra.matches(context))
+        val res = sutra.apply(context)
+        assertTrue(res is dev.panini.analysis.SamasaRuleResult.NotApplicable)
+    }
+
+    @Test
+    fun `test Kartari Cha Prohibition (2 2 16)`() {
+        val sutra = dev.panini.ashtadhyayi.adhyaya2.pada2.KartariChaSutra
+        val context = dev.panini.analysis.SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("भवत्", Vibhakti.SASTHI),
+                SamasaPada("शायिका", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.TATPURUSA,
+        )
+        assertTrue(sutra.matches(context))
+        val res = sutra.apply(context)
+        assertTrue(res is dev.panini.analysis.SamasaRuleResult.NotApplicable)
+    }
 }
+
 
 
 
