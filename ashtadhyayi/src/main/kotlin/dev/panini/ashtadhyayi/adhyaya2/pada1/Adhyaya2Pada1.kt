@@ -58,5 +58,8 @@ object Adhyaya2Pada1 {
         AtyantaSamyogeChaSutra,
         RasaVarjyamSutra,
         ApeksitamSutra,
+        GunavacanesuChayayamSutra,
+        YavadAvadharaneSutra,
+        DharksyatSutra,
     )
 }

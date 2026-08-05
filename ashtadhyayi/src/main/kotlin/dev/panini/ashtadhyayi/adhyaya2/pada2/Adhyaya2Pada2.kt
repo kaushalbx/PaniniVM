@@ -31,5 +31,7 @@ object Adhyaya2Pada2 {
         KartariChaSutra,
         EsadAkaPratyayaYukteSutra,
         PuranaGunasuhitaSutra,
+        PraptapanneChADvitiyayaSutra,
+        TrtiyaprabhrtinyAnyatarasyamExtSutra,
     )
 }
