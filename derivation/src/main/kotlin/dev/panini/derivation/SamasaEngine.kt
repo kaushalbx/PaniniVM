@@ -103,35 +103,35 @@ class SamasaEngine(
             )
         )
 
-        // 4. Sandhi joining of the compound stem if required (e.g. नील + उत्पल -> नीलोत्पल)
         val rawStem = samasaResult.compoundStem
+        val padasList = padas.map { it.upadesha }
+        val rawPadasConcat = padasList.joinToString("")
+        val hasSamasantaKap = rawStem.endsWith("क") && !rawPadasConcat.endsWith("क")
+
         val sandhiRes = if (rawStem.contains(" ")) {
             val parts = rawStem.split(" ")
             var res = parts.first()
             for (p in parts.drop(1)) {
                 val j = sandhiEngine.join(res, p)
-                res = j.final.surface.ifBlank { res + p }
+                val joined = j.final.surface
+                res = if (joined.isNotBlank() && joined.length >= res.length + p.length - 1) joined else res + p
                 applications.addAll(j.applications)
             }
             res
-        } else {
-            val padasList = padas.map { it.upadesha }
-            val rawPadasConcat = padasList.joinToString("")
-            val hasSamasantaKap = rawStem.endsWith("क") && !rawPadasConcat.endsWith("क")
-            if (rawStem in padasList || rawStem == rawPadasConcat || hasSamasantaKap) {
-                // If Sūtra produced raw concatenation (with optional samāsānta suffix), run sandhiEngine on components
-                var res = padas.first().upadesha
-                for (i in 1 until padas.size) {
-                    val next = padas[i].upadesha
-                    val j = sandhiEngine.join(res, next)
-                    val joined = j.final.surface
-                    res = if (joined.isNotBlank() && joined.length >= res.length + next.length - 2) joined else res + next
-                    applications.addAll(j.applications)
-                }
-                if (hasSamasantaKap) res + "क" else res
-            } else {
-                rawStem
+        } else if (rawStem == rawPadasConcat) {
+            rawStem
+        } else if (hasSamasantaKap) {
+            var res = padas.first().upadesha
+            for (i in 1 until padas.size) {
+                val next = padas[i].upadesha
+                val j = sandhiEngine.join(res, next)
+                val joined = j.final.surface
+                res = if (joined.isNotBlank() && joined.length >= res.length + next.length - 1) joined else res + next
+                applications.addAll(j.applications)
             }
+            if (res.endsWith("ः")) res.dropLast(1) + "स्क" else res + "क"
+        } else {
+            rawStem
         }
 
         // 5. Normalize anusvāra parasavarṇa from Sandhi output (e.g. पीतांबर → पीताम्बर)
