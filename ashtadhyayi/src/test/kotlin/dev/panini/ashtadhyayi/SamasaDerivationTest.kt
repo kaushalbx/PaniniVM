@@ -10,6 +10,7 @@ import dev.panini.ashtadhyayi.adhyaya2.pada1.PancamiBhayenaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.SankhyapurvoDviguhSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.SaptamiSaundaihSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.TrtiyaTatkrtharthenaSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada1.MayuravyamsakadayascaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.UpamananiSamanyavacanaihSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.UpamitamVyaghradibhihSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.VisesanamVisesyenaSutra
@@ -18,6 +19,10 @@ import dev.panini.ashtadhyayi.adhyaya2.pada2.CartheDvandvahSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.NanjSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.ShashthiSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.UpapadamAtingSutra
+import dev.panini.ashtadhyayi.adhyaya6.pada3.AlukUttarapadeSutra
+import dev.panini.ashtadhyayi.adhyaya6.pada3.AtmanascaPuraneSutra
+import dev.panini.ashtadhyayi.adhyaya6.pada3.PutreNyatarasyamSutra
+import dev.panini.ashtadhyayi.adhyaya6.pada3.TatpuruseKrtiBahulamSutra
 import dev.panini.core.SamasaType
 import dev.panini.core.Vibhakti
 import dev.panini.shiksha.Samjna
@@ -249,6 +254,34 @@ class SamasaDerivationTest {
         assertTrue(UpapadamAtingSutra.matches(context))
         val result = UpapadamAtingSutra.apply(context) as SamasaRuleResult.Formed
         assertEquals("कुम्भकार", result.compoundStem)
+    }
+
+    @Test
+    fun `test TatpuruseKrtiBahulamSutra matches and forms Saptami Aluk compound`() {
+        val context = SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("युधि", Vibhakti.SAPTAMI),
+                SamasaPada("स्थिर", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.ALUK_TATPURUSA,
+        )
+        assertTrue(TatpuruseKrtiBahulamSutra.matches(context))
+        val result = TatpuruseKrtiBahulamSutra.apply(context) as SamasaRuleResult.Formed
+        assertEquals("युधिष्ठिर", result.compoundStem)
+    }
+
+    @Test
+    fun `test MayuravyamsakadayascaSutra matches and forms Mayuravyamsakadi compound`() {
+        val context = SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("मयूर", Vibhakti.PRATHAMA),
+                SamasaPada("व्यंसक", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.MAYURAVYAMSAKADI,
+        )
+        assertTrue(MayuravyamsakadayascaSutra.matches(context))
+        val result = MayuravyamsakadayascaSutra.apply(context) as SamasaRuleResult.Formed
+        assertEquals("मयूरव्यंसक", result.compoundStem)
     }
 
     @Test

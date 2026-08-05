@@ -14,5 +14,6 @@ object Adhyaya2Pada1 {
         UpamananiSamanyavacanaihSutra,
         UpamitamVyaghradibhihSutra,
         VisesanamVisesyenaSutra,
+        MayuravyamsakadayascaSutra,
     )
 }

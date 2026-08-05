@@ -211,4 +211,42 @@ class SamasaEngineTest {
         assertEquals("सामगः", result.final.terms.last().surface)
         assertTrue(result.applications.any { it.sutra == "2.2.19" })
     }
+
+    @Test
+    fun `test Aluk Tatpurusha compound derivation for Yudhishthira (6 3 14)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("युधि", Vibhakti.SAPTAMI),
+                SamasaPada("स्थिर", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.ALUK_TATPURUSA,
+        )
+        assertEquals("युधिष्ठिरः", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "6.3.14" })
+    }
+
+    @Test
+    fun `test Aluk Tatpurusha compound derivation for Atmanepadam (6 3 21)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("आत्मने", Vibhakti.CHATURTHI),
+                SamasaPada("पद", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.ALUK_TATPURUSA,
+        )
+        assertEquals("आत्मनेपदम्", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "6.3.21" })
+    }
+
+    @Test
+    fun `test Mayuravyamsakadi compound derivation (2 1 72)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("मयूर", Vibhakti.PRATHAMA),
+                SamasaPada("व्यंसका", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.MAYURAVYAMSAKADI,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.1.72" })
+    }
 }
