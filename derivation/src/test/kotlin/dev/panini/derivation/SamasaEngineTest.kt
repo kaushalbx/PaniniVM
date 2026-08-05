@@ -403,8 +403,8 @@ class SamasaEngineTest {
     fun `test Avyayibhava PareMadhye (2 1 18)`() {
         val result = engine.derive(
             listOf(
-                SamasaPada("पारे", Vibhakti.SHASHTHI),
-                SamasaPada("गङ्गा", Vibhakti.SHASHTHI),
+                SamasaPada("पारे", Vibhakti.SASTHI),
+                SamasaPada("गङ्गा", Vibhakti.SASTHI),
             ),
             SamasaType.AVYAYIBHAVA,
         )
@@ -479,7 +479,7 @@ class SamasaEngineTest {
     fun `test Tatpurusha Yajakadibhishcha (2 2 9)`() {
         val result = engine.derive(
             listOf(
-                SamasaPada("ब्राह्मण", Vibhakti.SHASHTHI),
+                SamasaPada("ब्राह्मण", Vibhakti.SASTHI),
                 SamasaPada("याजक", Vibhakti.PRATHAMA),
             ),
             SamasaType.TATPURUSA,
