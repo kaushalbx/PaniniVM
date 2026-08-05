@@ -29,5 +29,7 @@ object Adhyaya2Pada2 {
         AdhikaranavacinasChaSutra,
         TrjjakabhyamKartariSutra,
         KartariChaSutra,
+        EsadAkaPratyayaYukteSutra,
+        PuranaGunasuhitaSutra,
     )
 }
