@@ -1199,7 +1199,80 @@ class SamasaEngineTest {
         val res = sutra.apply(context)
         assertTrue(res is dev.panini.analysis.SamasaRuleResult.Formed)
     }
+
+    @Test
+    fun `test Ktena Trtiya Tatpurusha (2 1 86)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("अहि", Vibhakti.TRTIYA),
+                SamasaPada("हत", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.TATPURUSA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.1.86" })
+    }
+
+    @Test
+    fun `test Taddhitartha Uttarapada Dvigu (2 1 81)`() {
+        val sutra = dev.panini.ashtadhyayi.adhyaya2.pada1.TaddhitarthaUttarapadaExtSutra
+        val context = dev.panini.analysis.SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("पञ्च", Vibhakti.PRATHAMA),
+                SamasaPada("पूली", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.DVIGU,
+        )
+        assertTrue(sutra.matches(context))
+        val res = sutra.apply(context)
+        assertTrue(res is dev.panini.analysis.SamasaRuleResult.Formed)
+    }
+
+    @Test
+    fun `test Rajadantadisu Tatpurusha (2 2 31)`() {
+        val sutra = dev.panini.ashtadhyayi.adhyaya2.pada2.RajadantadisuSutra
+        val context = dev.panini.analysis.SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("राज", Vibhakti.PRATHAMA),
+                SamasaPada("दन्त", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.TATPURUSA,
+        )
+        assertTrue(sutra.matches(context))
+        val res = sutra.apply(context)
+        assertTrue(res is dev.panini.analysis.SamasaRuleResult.Formed)
+    }
+
+    @Test
+    fun `test Saptami Visesane Bahuvrihi (2 2 35)`() {
+        val sutra = dev.panini.ashtadhyayi.adhyaya2.pada2.SaptamiVisesaneBahuvrihauSutra
+        val context = dev.panini.analysis.SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("कण्ठे", Vibhakti.SAPTAMI),
+                SamasaPada("काल", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.BAHUVRIHI,
+        )
+        assertTrue(sutra.matches(context))
+        val res = sutra.apply(context)
+        assertTrue(res is dev.panini.analysis.SamasaRuleResult.Formed)
+    }
+
+    @Test
+    fun `test Nistha Bahuvrihi (2 2 36)`() {
+        val sutra = dev.panini.ashtadhyayi.adhyaya2.pada2.NisthaBahuvrihauSutra
+        val context = dev.panini.analysis.SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("कृत", Vibhakti.PRATHAMA),
+                SamasaPada("कृत्य", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.BAHUVRIHI,
+        )
+        assertTrue(sutra.matches(context))
+        val res = sutra.apply(context)
+        assertTrue(res is dev.panini.analysis.SamasaRuleResult.Formed)
+    }
 }
+
 
 
 

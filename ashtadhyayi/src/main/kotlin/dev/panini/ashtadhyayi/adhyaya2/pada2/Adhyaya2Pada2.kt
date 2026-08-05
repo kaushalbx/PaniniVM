@@ -33,5 +33,8 @@ object Adhyaya2Pada2 {
         PuranaGunasuhitaSutra,
         PraptapanneChADvitiyayaSutra,
         TrtiyaprabhrtinyAnyatarasyamExtSutra,
+        RajadantadisuSutra,
+        SaptamiVisesaneBahuvrihauSutra,
+        NisthaBahuvrihauSutra,
     )
 }

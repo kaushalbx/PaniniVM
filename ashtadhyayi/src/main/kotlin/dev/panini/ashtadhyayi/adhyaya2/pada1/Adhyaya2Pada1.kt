@@ -61,5 +61,7 @@ object Adhyaya2Pada1 {
         GunavacanesuChayayamSutra,
         YavadAvadharaneSutra,
         DharksyatSutra,
+        KtenaSutra,
+        TaddhitarthaUttarapadaExtSutra,
     )
 }
