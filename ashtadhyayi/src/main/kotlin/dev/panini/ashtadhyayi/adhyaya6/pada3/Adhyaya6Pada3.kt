@@ -82,5 +82,10 @@ object Adhyaya6Pada3 {
         KasthadinamChaSutra,
         SvamsamjnayamSutra,
         MatrahKvinSutra,
+        VaCaKlisteSutra,
+        SasthiYuktadAdhyayaneSutra,
+        KsitradinamChaSutra,
+        EkacahPracahSutra,
+        BhutyahKvinSutra,
     )
 }

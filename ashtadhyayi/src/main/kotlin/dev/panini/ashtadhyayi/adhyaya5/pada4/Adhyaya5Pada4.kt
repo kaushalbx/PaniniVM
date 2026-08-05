@@ -79,5 +79,10 @@ object Adhyaya5Pada4 {
         AvagrahacChaSutra,
         VaGrahehSutra,
         AdvardvisExtSutra,
+        NanyayayavagramanibhyoThacSutra,
+        SesadVibhasaSutra,
+        NaPujanatExtSutra,
+        KimanhKsepeExtSutra,
+        NityamAsimaseExtSutra,
     )
 }
