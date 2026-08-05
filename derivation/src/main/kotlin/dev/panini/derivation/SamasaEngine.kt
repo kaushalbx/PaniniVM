@@ -221,7 +221,6 @@ class SamasaEngine(
         PareMadhyeShashthyaVaSutra.matches(context) -> PareMadhyeShashthyaVaSutra
         SankhyaVamsyenaSutra.matches(context) -> SankhyaVamsyenaSutra
         AnyapadartheChaSutra.matches(context) -> AnyapadartheChaSutra
-        AvyayamVibhaktiSamipadiSutra.matches(context) -> AvyayamVibhaktiSamipadiSutra
         else -> AvyayamVibhaktiSutra
     }
 
