@@ -29,6 +29,7 @@ object SankhyapurvoDviguhSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
     samasaType = SamasaType.DVIGU,
+    samasaPriority = 10,
 ), SamasaSutra {
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
