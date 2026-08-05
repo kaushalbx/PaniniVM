@@ -97,5 +97,10 @@ object Adhyaya6Pada3 {
         UsasaUsasahExtSutra,
         MatariPitariExtSutra,
         PitramataExtSutra,
+        RtoVidyaYoniExtSutra,
+        TacchilyeVahExtSutra,
+        KvanoDicExtSutra,
+        NaSamaseExtSutra,
+        KyunNadyorManinyamExtSutra,
     )
 }

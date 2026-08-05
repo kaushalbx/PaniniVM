@@ -94,5 +94,10 @@ object Adhyaya5Pada4 {
         AncahSamasaExtSutra,
         ApacadibhyoAcSutra,
         RksamabhyamThacExtSutra,
+        AncatasCanopadahSutra,
+        InhanyanpohExtSutra,
+        SamkhyayaAsannadhikaExtSutra,
+        DvitribhyamSahExtSutra,
+        NantadAhExtSutra,
     )
 }
