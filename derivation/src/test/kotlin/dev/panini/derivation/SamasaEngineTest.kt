@@ -4391,6 +4391,32 @@ class SamasaEngineTest {
         )
         assertTrue(sutra.matches(context))
     }
+
+    @Test
+    fun `test SesadVibhasa Ext2 (5 4 173)`() {
+        val sutra = dev.panini.ashtadhyayi.adhyaya5.pada4.SesadVibhasaSutraExt2
+        val context = dev.panini.analysis.SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("महा", Vibhakti.PRATHAMA),
+                SamasaPada("धन", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.BAHUVRIHI,
+        )
+        assertTrue(sutra.matches(context))
+    }
+
+    @Test
+    fun `test NaSamjnayoh Ext (6 3 103)`() {
+        val sutra = dev.panini.ashtadhyayi.adhyaya6.pada3.NaSamjnayohExtSutra
+        val context = dev.panini.analysis.SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("देव", Vibhakti.PRATHAMA),
+                SamasaPada("संज्ञा", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.TATPURUSA,
+        )
+        assertTrue(sutra.matches(context))
+    }
 }
 
 

@@ -112,5 +112,6 @@ object Adhyaya6Pada3 {
         MahatahSamanadhikaranaExtSutra,
         DviguDhanurdantaExtSutra,
         NadyahSeseExtSutra,
+        NaSamjnayohExtSutra,
     )
 }

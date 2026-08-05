@@ -109,5 +109,6 @@ object Adhyaya5Pada4 {
         VaGrahehExtSutra,
         AdvardvisExt2Sutra,
         NanyayayavagramanibhyoThacExtSutra,
+        SesadVibhasaSutraExt2,
     )
 }
