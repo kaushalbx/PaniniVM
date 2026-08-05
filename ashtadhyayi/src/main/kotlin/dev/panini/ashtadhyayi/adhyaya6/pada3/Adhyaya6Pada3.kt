@@ -52,5 +52,10 @@ object Adhyaya6Pada3 {
         BhaktyaAnSutra,
         StriyahPumvatbhavasSutra,
         TasimatSvarnthesvAbhavahSutra,
+        GarudhyaiChatmanahSutra,
+        ApsarasahSutra,
+        NaGhadharohSutra,
+        MahatahSamanadhikaranaSutra,
+        DviguDhanurdantaSutra,
     )
 }

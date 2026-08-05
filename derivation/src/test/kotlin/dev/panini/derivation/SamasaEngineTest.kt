@@ -2831,6 +2831,136 @@ class SamasaEngineTest {
         )
         assertTrue(sutra.matches(context))
     }
+
+    @Test
+    fun `test Bahuvrihau Sakthyaksnoh (5 4 113)`() {
+        val sutra = dev.panini.ashtadhyayi.adhyaya5.pada4.BahuvrihauSakthyaksnohSutra
+        val context = dev.panini.analysis.SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("कमल", Vibhakti.PRATHAMA),
+                SamasaPada("अक्षि", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.BAHUVRIHI,
+        )
+        assertTrue(sutra.matches(context))
+    }
+
+    @Test
+    fun `test Isaddhussusu (5 4 114)`() {
+        val sutra = dev.panini.ashtadhyayi.adhyaya5.pada4.IsaddhussusuSutra
+        val context = dev.panini.analysis.SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("सु", Vibhakti.PRATHAMA),
+                SamasaPada("राजा", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.BAHUVRIHI,
+        )
+        assertTrue(sutra.matches(context))
+    }
+
+    @Test
+    fun `test Prasamadibhyah (5 4 115)`() {
+        val sutra = dev.panini.ashtadhyayi.adhyaya5.pada4.PrasamadibhyahSutra
+        val context = dev.panini.analysis.SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("प्रासमा", Vibhakti.PRATHAMA),
+                SamasaPada("कृत", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.BAHUVRIHI,
+        )
+        assertTrue(sutra.matches(context))
+    }
+
+    @Test
+    fun `test Apac Chakilase (5 4 116)`() {
+        val sutra = dev.panini.ashtadhyayi.adhyaya5.pada4.ApacChakilaseSutra
+        val context = dev.panini.analysis.SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("अप", Vibhakti.PRATHAMA),
+                SamasaPada("किलास", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.BAHUVRIHI,
+        )
+        assertTrue(sutra.matches(context))
+    }
+
+    @Test
+    fun `test Pramane DvayasajDaghnan (5 4 117)`() {
+        val sutra = dev.panini.ashtadhyayi.adhyaya5.pada4.PramaneDvayasajDaghnanSutra
+        val context = dev.panini.analysis.SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("उरु", Vibhakti.PRATHAMA),
+                SamasaPada("द्वयस", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.BAHUVRIHI,
+        )
+        assertTrue(sutra.matches(context))
+    }
+
+    @Test
+    fun `test Garudhyai Chatmanah (6 3 43)`() {
+        val sutra = dev.panini.ashtadhyayi.adhyaya6.pada3.GarudhyaiChatmanahSutra
+        val context = dev.panini.analysis.SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("आत्मन्", Vibhakti.PRATHAMA),
+                SamasaPada("गरुधि", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.TATPURUSA,
+        )
+        assertTrue(sutra.matches(context))
+    }
+
+    @Test
+    fun `test Apsarasah (6 3 44)`() {
+        val sutra = dev.panini.ashtadhyayi.adhyaya6.pada3.ApsarasahSutra
+        val context = dev.panini.analysis.SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("अप्सरस्", Vibhakti.PRATHAMA),
+                SamasaPada("पति", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.TATPURUSA,
+        )
+        assertTrue(sutra.matches(context))
+    }
+
+    @Test
+    fun `test Na Ghadharoh (6 3 45)`() {
+        val sutra = dev.panini.ashtadhyayi.adhyaya6.pada3.NaGhadharohSutra
+        val context = dev.panini.analysis.SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("दर्शनीया", Vibhakti.PRATHAMA),
+                SamasaPada("तरा", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.TATPURUSA,
+        )
+        assertTrue(sutra.matches(context))
+    }
+
+    @Test
+    fun `test Mahatah Samanadhikarana (6 3 46)`() {
+        val sutra = dev.panini.ashtadhyayi.adhyaya6.pada3.MahatahSamanadhikaranaSutra
+        val context = dev.panini.analysis.SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("महत्", Vibhakti.PRATHAMA),
+                SamasaPada("राजन्", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.KARMADHARAYA,
+        )
+        assertTrue(sutra.matches(context))
+    }
+
+    @Test
+    fun `test Dvigu Dhanurdanta (6 3 47)`() {
+        val sutra = dev.panini.ashtadhyayi.adhyaya6.pada3.DviguDhanurdantaSutra
+        val context = dev.panini.analysis.SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("शार्ङ्ग", Vibhakti.PRATHAMA),
+                SamasaPada("धनुष्", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.BAHUVRIHI,
+        )
+        assertTrue(sutra.matches(context))
+    }
 }
 
 

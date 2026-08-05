@@ -49,5 +49,10 @@ object Adhyaya5Pada4 {
         AhnoVibhasaSutra,
         RatrerAntasSutra,
         RajnahKharyamSutra,
+        BahuvrihauSakthyaksnohSutra,
+        IsaddhussusuSutra,
+        PrasamadibhyahSutra,
+        ApacChakilaseSutra,
+        PramaneDvayasajDaghnanSutra,
     )
 }
