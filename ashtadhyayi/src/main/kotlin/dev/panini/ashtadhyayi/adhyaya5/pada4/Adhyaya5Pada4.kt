@@ -59,5 +59,10 @@ object Adhyaya5Pada4 {
         AdvardvisSutra,
         BahuvrihavAnuktocSutra,
         NityamSacChaSutra,
+        JharsavAdekacCapSutra,
+        SuryadAstamIteSutra,
+        SuhrdDurhrdauMitramitrayohSutra,
+        PrakrtyaAbhigamaneSutra,
+        ApatThacSutra,
     )
 }
