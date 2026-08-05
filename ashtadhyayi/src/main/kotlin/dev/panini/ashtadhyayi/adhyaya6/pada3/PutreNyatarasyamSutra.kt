@@ -29,8 +29,7 @@ object PutreNyatarasyamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
 ) {
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
-        val uttara = context.uttaraPada.upadesha
-        return uttara == "पुत्र" || context.samasaType == SamasaType.ALUK_TATPURUSA
+        return context.uttaraPada.upadesha == "पुत्र"
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {

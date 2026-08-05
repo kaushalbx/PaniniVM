@@ -32,7 +32,7 @@ object AtmanascaPuraneSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val purva = context.purvaPada.upadesha
-        return purva in alukPurvapadas || context.samasaType == SamasaType.ALUK_TATPURUSA
+        return purva in alukPurvapadas
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
