@@ -16,15 +16,10 @@ import dev.panini.ashtadhyayi.adhyaya2.pada1.MayuravyamsakadayascaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.UpamananiSamanyavacanaihSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.UpamitamVyaghradibhihSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.VisesanamVisesyenaSutra
-import dev.panini.ashtadhyayi.adhyaya2.pada2.AnekamAnyapadartheSutra
-import dev.panini.ashtadhyayi.adhyaya2.pada2.CartheDvandvahSutra
-import dev.panini.ashtadhyayi.adhyaya2.pada2.NanjSutra
-import dev.panini.ashtadhyayi.adhyaya2.pada2.ShashthiSutra
-import dev.panini.ashtadhyayi.adhyaya2.pada2.UpapadamAtingSutra
-import dev.panini.ashtadhyayi.adhyaya6.pada3.AlukUttarapadeSutra
-import dev.panini.ashtadhyayi.adhyaya6.pada3.AtmanascaPuraneSutra
-import dev.panini.ashtadhyayi.adhyaya6.pada3.PutreNyatarasyamSutra
-import dev.panini.ashtadhyayi.adhyaya6.pada3.TatpuruseKrtiBahulamSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada2.*
+import dev.panini.ashtadhyayi.adhyaya2.pada4.*
+import dev.panini.ashtadhyayi.adhyaya5.pada4.*
+import dev.panini.ashtadhyayi.adhyaya6.pada3.*
 import dev.panini.core.Linga
 import dev.panini.core.SamasaType
 import dev.panini.core.Vacana
@@ -214,7 +209,7 @@ class SamasaEngine(
     private fun selectClassificationSutra(
         context: SamasaRuleContext,
     ): Sutra<SamasaRuleContext, SamasaRuleResult> = when (context.samasaType) {
-        SamasaType.AVYAYIBHAVA       -> AvyayamVibhaktiSutra
+        SamasaType.AVYAYIBHAVA       -> selectAvyayibhavaSutra(context)
         SamasaType.TATPURUSA         -> selectTatpurusaSutra(context.purvaPadaVibhakti)
         SamasaType.NAN_TATPURUSA      -> NanjSutra
         SamasaType.UPAPADA_TATPURUSA    -> UpapadamAtingSutra

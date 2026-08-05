@@ -362,4 +362,64 @@ class SamasaEngineTest {
         )
         assertTrue(result.applications.any { it.sutra == "2.4.6" })
     }
+
+    @Test
+    fun `test Avyayibhava ApapariBahirAncavah (2 1 12)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("बहिर्", Vibhakti.PANCHAMI),
+                SamasaPada("ग्राम", Vibhakti.PANCHAMI),
+            ),
+            SamasaType.AVYAYIBHAVA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.1.12" })
+    }
+
+    @Test
+    fun `test Avyayibhava AngMaryadabhividhyoh (2 1 13)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("आ", Vibhakti.PANCHAMI),
+                SamasaPada("मुक्ति", Vibhakti.PANCHAMI),
+            ),
+            SamasaType.AVYAYIBHAVA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.1.13" })
+    }
+
+    @Test
+    fun `test Avyayibhava LaksanenAbhiprati (2 1 14)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("अग्नि", Vibhakti.PRATHAMA),
+                SamasaPada("अभि", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.AVYAYIBHAVA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.1.14" })
+    }
+
+    @Test
+    fun `test Avyayibhava PareMadhye (2 1 18)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("पारे", Vibhakti.SHASHTHI),
+                SamasaPada("गङ्गा", Vibhakti.SHASHTHI),
+            ),
+            SamasaType.AVYAYIBHAVA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.1.18" })
+    }
+
+    @Test
+    fun `test Avyayibhava SankhyaVamsyena (2 1 19)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("द्वि", Vibhakti.PRATHAMA),
+                SamasaPada("मुनि", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.AVYAYIBHAVA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.1.19" })
+    }
 }
