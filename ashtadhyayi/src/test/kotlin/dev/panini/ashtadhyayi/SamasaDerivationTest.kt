@@ -17,6 +17,7 @@ import dev.panini.ashtadhyayi.adhyaya2.pada2.AnekamAnyapadartheSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.CartheDvandvahSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.NanjSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.ShashthiSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada2.UpapadamAtingSutra
 import dev.panini.core.SamasaType
 import dev.panini.core.Vibhakti
 import dev.panini.shiksha.Samjna
@@ -234,6 +235,20 @@ class SamasaDerivationTest {
         assertTrue(UpamitamVyaghradibhihSutra.matches(context))
         val result = UpamitamVyaghradibhihSutra.apply(context) as SamasaRuleResult.Formed
         assertEquals("पुरुषव्याघ्र", result.compoundStem)
+    }
+
+    @Test
+    fun `test UpapadamAtingSutra matches and forms Upapada compound`() {
+        val context = SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("कुम्भ", Vibhakti.DVITIYA),
+                SamasaPada("कार", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.UPAPADA_TATPURUSA,
+        )
+        assertTrue(UpapadamAtingSutra.matches(context))
+        val result = UpapadamAtingSutra.apply(context) as SamasaRuleResult.Formed
+        assertEquals("कुम्भकार", result.compoundStem)
     }
 
     @Test

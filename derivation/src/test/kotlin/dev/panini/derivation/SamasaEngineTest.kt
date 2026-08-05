@@ -185,4 +185,30 @@ class SamasaEngineTest {
         assertEquals("पुरुषव्याघ्रः", result.final.terms.last().surface)
         assertTrue(result.applications.any { it.sutra == "2.1.56" })
     }
+
+    @Test
+    fun `test Upapada Tatpurusha compound derivation (2 2 19)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("कुम्भ", Vibhakti.DVITIYA),
+                SamasaPada("कार", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.UPAPADA_TATPURUSA,
+        )
+        assertEquals("कुम्भकारः", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "2.2.19" })
+    }
+
+    @Test
+    fun `test Upapada Tatpurusha compound derivation for Samaga (2 2 19)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("साम", Vibhakti.DVITIYA),
+                SamasaPada("ग", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.UPAPADA_TATPURUSA,
+        )
+        assertEquals("सामगः", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "2.2.19" })
+    }
 }

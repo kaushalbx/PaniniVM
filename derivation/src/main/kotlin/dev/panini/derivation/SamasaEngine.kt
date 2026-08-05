@@ -19,6 +19,7 @@ import dev.panini.ashtadhyayi.adhyaya2.pada2.AnekamAnyapadartheSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.CartheDvandvahSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.NanjSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.ShashthiSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada2.UpapadamAtingSutra
 import dev.panini.core.Linga
 import dev.panini.core.SamasaType
 import dev.panini.core.Vacana
@@ -186,7 +187,7 @@ class SamasaEngine(
     private fun subantaParams(type: SamasaType, count: Int): Triple<Vibhakti, Vacana, Linga> = when (type) {
         SamasaType.AVYAYIBHAVA ->
             Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.NAPUMSAKA)
-        SamasaType.TATPURUSA, SamasaType.BAHUVRIHI, SamasaType.KARMADHARAYA, SamasaType.NAN_TATPURUSA ->
+        SamasaType.TATPURUSA, SamasaType.BAHUVRIHI, SamasaType.KARMADHARAYA, SamasaType.NAN_TATPURUSA, SamasaType.UPAPADA_TATPURUSA ->
             Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.PUMS)
         SamasaType.DVIGU ->
             Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.NAPUMSAKA)
@@ -202,13 +203,14 @@ class SamasaEngine(
     private fun selectClassificationSutra(
         context: SamasaRuleContext,
     ): Sutra<SamasaRuleContext, SamasaRuleResult> = when (context.samasaType) {
-        SamasaType.AVYAYIBHAVA   -> AvyayamVibhaktiSutra
-        SamasaType.TATPURUSA     -> selectTatpurusaSutra(context.purvaPadaVibhakti)
-        SamasaType.NAN_TATPURUSA  -> NanjSutra
-        SamasaType.KARMADHARAYA  -> selectKarmadharayaSutra(context)
-        SamasaType.DVIGU         -> SankhyapurvoDviguhSutra
-        SamasaType.BAHUVRIHI     -> AnekamAnyapadartheSutra
-        SamasaType.DVANDVA       -> CartheDvandvahSutra
+        SamasaType.AVYAYIBHAVA    -> AvyayamVibhaktiSutra
+        SamasaType.TATPURUSA      -> selectTatpurusaSutra(context.purvaPadaVibhakti)
+        SamasaType.NAN_TATPURUSA   -> NanjSutra
+        SamasaType.UPAPADA_TATPURUSA -> UpapadamAtingSutra
+        SamasaType.KARMADHARAYA   -> selectKarmadharayaSutra(context)
+        SamasaType.DVIGU          -> SankhyapurvoDviguhSutra
+        SamasaType.BAHUVRIHI      -> AnekamAnyapadartheSutra
+        SamasaType.DVANDVA        -> CartheDvandvahSutra
     }
 
     private fun selectKarmadharayaSutra(context: SamasaRuleContext): Sutra<SamasaRuleContext, SamasaRuleResult> = when {
