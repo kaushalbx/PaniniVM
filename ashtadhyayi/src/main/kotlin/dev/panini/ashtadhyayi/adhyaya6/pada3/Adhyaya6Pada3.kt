@@ -107,5 +107,10 @@ object Adhyaya6Pada3 {
         StriyahPumvatbhavasExtSutra,
         TasimatSvarnthesvAbhavahExtSutra,
         GarudhyaiChatmanahExtSutra,
+        ApsarasahExtSutra,
+        NaGhadharohExtSutra,
+        MahatahSamanadhikaranaExtSutra,
+        DviguDhanurdantaExtSutra,
+        NadyahSeseExtSutra,
     )
 }
