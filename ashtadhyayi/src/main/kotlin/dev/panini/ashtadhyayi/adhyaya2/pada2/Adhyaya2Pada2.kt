@@ -25,5 +25,7 @@ object Adhyaya2Pada2 {
         UpasarjanamPurvamSutra,
         KarmaniChaSutra,
         AmaivavyayenaSutra,
+        KtenaChAPujayamSutra,
+        AdhikaranavacinasChaSutra,
     )
 }

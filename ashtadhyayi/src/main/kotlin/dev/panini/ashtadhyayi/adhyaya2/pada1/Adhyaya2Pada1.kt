@@ -49,5 +49,8 @@ object Adhyaya2Pada1 {
         KhatvaKsepeSutra,
         SamiSutra,
         KsepePrasamsayamChaSutra,
+        YathaSadrshyeSutra,
+        AnurYatSamayaSutra,
+        KsepenaSutra,
     )
 }

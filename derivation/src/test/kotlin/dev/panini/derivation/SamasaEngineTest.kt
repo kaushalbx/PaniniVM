@@ -927,6 +927,74 @@ class SamasaEngineTest {
         )
         assertTrue(result.applications.any { it.sutra == "2.2.20" })
     }
+
+    @Test
+    fun `test Yatha Sadrshye Avyayibhava (2 1 7)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("यथा", Vibhakti.PRATHAMA),
+                SamasaPada("शक्ति", Vibhakti.DVITIYA),
+            ),
+            SamasaType.AVYAYIBHAVA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.1.7" })
+    }
+
+    @Test
+    fun `test Anur Yat Samaya Avyayibhava (2 1 9)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("अनु", Vibhakti.PRATHAMA),
+                SamasaPada("वन", Vibhakti.SASTHI),
+            ),
+            SamasaType.AVYAYIBHAVA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.1.9" })
+    }
+
+    @Test
+    fun `test Ksepena Saptami Tatpurusha (2 1 43)`() {
+        val sutra = dev.panini.ashtadhyayi.adhyaya2.pada1.KsepenaSutra
+        val context = dev.panini.analysis.SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("गेहे", Vibhakti.SAPTAMI),
+                SamasaPada("क्षेडी", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.TATPURUSA,
+        )
+        assertTrue(sutra.matches(context))
+    }
+
+    @Test
+    fun `test Ktena Cha Pujayam Prohibition (2 2 12)`() {
+        val sutra = dev.panini.ashtadhyayi.adhyaya2.pada2.KtenaChAPujayamSutra
+        val context = dev.panini.analysis.SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("राजन्", Vibhakti.SASTHI),
+                SamasaPada("पूजित", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.TATPURUSA,
+        )
+        assertTrue(sutra.matches(context))
+        val res = sutra.apply(context)
+        assertTrue(res is dev.panini.analysis.SamasaRuleResult.NotApplicable)
+    }
+
+    @Test
+    fun `test Adhikaranavacinas Cha Prohibition (2 2 13)`() {
+        val sutra = dev.panini.ashtadhyayi.adhyaya2.pada2.AdhikaranavacinasChaSutra
+        val context = dev.panini.analysis.SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("राजन्", Vibhakti.SASTHI),
+                SamasaPada("मत", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.TATPURUSA,
+        )
+        assertTrue(sutra.matches(context))
+        val res = sutra.apply(context)
+        assertTrue(res is dev.panini.analysis.SamasaRuleResult.NotApplicable)
+    }
 }
+
 
 
