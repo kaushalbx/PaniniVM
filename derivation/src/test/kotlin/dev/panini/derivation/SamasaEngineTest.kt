@@ -552,4 +552,69 @@ class SamasaEngineTest {
         assertEquals("कृष्णसर्पः", result.final.terms.last().surface)
         assertTrue(result.applications.any { it.sutra == "2.1.57" })
     }
+
+    @Test
+    fun `test Dvitiya Tatpurusha KalaAtyantasamyoge (2 1 28)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("मास", Vibhakti.DVITIYA),
+                SamasaPada("कल्याणी", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.TATPURUSA,
+        )
+        assertEquals("मासकल्याणी", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "2.1.28" })
+    }
+
+    @Test
+    fun `test Trtiya Tatpurusha AnnasenaVyanjanam (2 1 34)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("दधि", Vibhakti.TRTIYA),
+                SamasaPada("ओदन", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.TATPURUSA,
+        )
+        assertEquals("दध्योदनः", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "2.1.34" })
+    }
+
+    @Test
+    fun `test Pancami Tatpurusha ApetaApodha (2 1 38)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("सुख", Vibhakti.PANCHAMI),
+                SamasaPada("अपेत", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.TATPURUSA,
+        )
+        assertEquals("सुखापेतः", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "2.1.38" })
+    }
+
+    @Test
+    fun `test Pancami Tatpurusha Stokantika (2 1 39)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("स्तोक", Vibhakti.PANCHAMI),
+                SamasaPada("मुक्त", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.TATPURUSA,
+        )
+        assertEquals("स्तोकमुक्तः", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "2.1.39" })
+    }
+
+    @Test
+    fun `test Ekadesin Tatpurusha Purvaparakadharottaram (2 2 1)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("पूर्व", Vibhakti.PRATHAMA),
+                SamasaPada("काय", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.TATPURUSA,
+        )
+        assertEquals("पूर्वकायः", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "2.2.1" })
+    }
 }

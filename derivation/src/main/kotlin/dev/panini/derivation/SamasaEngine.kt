@@ -266,10 +266,15 @@ class SamasaEngine(
     private fun selectTatpurusaSutra(
         context: SamasaRuleContext,
     ): Sutra<SamasaRuleContext, SamasaRuleResult> {
+        if (PurvaparakadharottaramEkadesinaSutra.matches(context)) return PurvaparakadharottaramEkadesinaSutra
         if (YajakadibhishchaSutra.matches(context)) return YajakadibhishchaSutra
+        if (KalaAtyantasamyogeSutra.matches(context)) return KalaAtyantasamyogeSutra
         if (DvitIyaSritatitapatitagatatyastapraptapannaihSutra.matches(context)) return DvitIyaSritatitapatitagatatyastapraptapannaihSutra
+        if (AnnasenaVyanjanamSutra.matches(context)) return AnnasenaVyanjanamSutra
         if (TrtiyaTatkrtarthenaGunavacanenaSutra.matches(context)) return TrtiyaTatkrtarthenaGunavacanenaSutra
         if (KartrkaraneKrtaBahulamSutra.matches(context)) return KartrkaraneKrtaBahulamSutra
+        if (ApetaApodhaMuktaSutra.matches(context)) return ApetaApodhaMuktaSutra
+        if (StokantikadharthaniPancamyaSutra.matches(context)) return StokantikadharthaniPancamyaSutra
         if (SiddhasuskapakvabandhaishchaSutra.matches(context)) return SiddhasuskapakvabandhaishchaSutra
         return when (context.purvaPadaVibhakti) {
             Vibhakti.DVITIYA   -> DvitiyaShritatitaSutra   // 2.1.24
