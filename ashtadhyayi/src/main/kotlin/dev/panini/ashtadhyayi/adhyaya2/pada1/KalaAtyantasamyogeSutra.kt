@@ -35,7 +35,7 @@ object KalaAtyantasamyogeSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         val purva = context.purvaPada
         return context.samasaType == SamasaType.TATPURUSA &&
             purva.vibhakti == Vibhakti.DVITIYA &&
-            (purva.upadesha in kalaWords || purva.surface in kalaWords)
+            purva.upadesha in kalaWords
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
