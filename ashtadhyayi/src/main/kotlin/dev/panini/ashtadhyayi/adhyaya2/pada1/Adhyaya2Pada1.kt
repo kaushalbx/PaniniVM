@@ -7,6 +7,12 @@ object Adhyaya2Pada1 {
         AvyayamVibhaktiSutra,
         DvitiyaShritatitaSutra,
         TrtiyaTatkrtharthenaSutra,
+        CaturthiTadarthartheSutra,
         PancamiBhayenaSutra,
+        SaptamiSaundaihSutra,
+        SankhyapurvoDviguhSutra,
+        UpamananiSamanyavacanaihSutra,
+        UpamitamVyaghradibhihSutra,
+        VisesanamVisesyenaSutra,
     )
 }

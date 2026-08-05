@@ -10,6 +10,8 @@ import dev.panini.ashtadhyayi.adhyaya2.pada1.PancamiBhayenaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.SankhyapurvoDviguhSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.SaptamiSaundaihSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.TrtiyaTatkrtharthenaSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada1.UpamananiSamanyavacanaihSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada1.UpamitamVyaghradibhihSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.VisesanamVisesyenaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.AnekamAnyapadartheSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.CartheDvandvahSutra
@@ -204,6 +206,34 @@ class SamasaDerivationTest {
         assertTrue(NanjSutra.matches(acContext))
         val acResult = NanjSutra.apply(acContext) as SamasaRuleResult.Formed
         assertEquals("अनश्व", acResult.compoundStem)
+    }
+
+    @Test
+    fun `test UpamananiSamanyavacanaihSutra matches and forms Upamana compound`() {
+        val context = SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("घन", Vibhakti.PRATHAMA),
+                SamasaPada("श्याम", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.KARMADHARAYA,
+        )
+        assertTrue(UpamananiSamanyavacanaihSutra.matches(context))
+        val result = UpamananiSamanyavacanaihSutra.apply(context) as SamasaRuleResult.Formed
+        assertEquals("घनश्याम", result.compoundStem)
+    }
+
+    @Test
+    fun `test UpamitamVyaghradibhihSutra matches and forms Upamita compound`() {
+        val context = SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("पुरुष", Vibhakti.PRATHAMA),
+                SamasaPada("व्याघ्र", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.KARMADHARAYA,
+        )
+        assertTrue(UpamitamVyaghradibhihSutra.matches(context))
+        val result = UpamitamVyaghradibhihSutra.apply(context) as SamasaRuleResult.Formed
+        assertEquals("पुरुषव्याघ्र", result.compoundStem)
     }
 
     @Test

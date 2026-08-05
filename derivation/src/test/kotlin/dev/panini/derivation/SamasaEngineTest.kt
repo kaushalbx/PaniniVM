@@ -159,4 +159,30 @@ class SamasaEngineTest {
         assertEquals("अनश्वः", result.final.terms.last().surface)
         assertTrue(result.applications.any { it.sutra == "2.2.6" })
     }
+
+    @Test
+    fun `test Upamana Karmadharaya compound derivation (2 1 55)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("घन", Vibhakti.PRATHAMA),
+                SamasaPada("श्याम", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.KARMADHARAYA,
+        )
+        assertEquals("घनश्यामः", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "2.1.55" })
+    }
+
+    @Test
+    fun `test Upamita Karmadharaya compound derivation (2 1 56)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("पुरुष", Vibhakti.PRATHAMA),
+                SamasaPada("व्याघ्र", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.KARMADHARAYA,
+        )
+        assertEquals("पुरुषव्याघ्रः", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "2.1.56" })
+    }
 }

@@ -12,6 +12,8 @@ import dev.panini.ashtadhyayi.adhyaya2.pada1.PancamiBhayenaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.SankhyapurvoDviguhSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.SaptamiSaundaihSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.TrtiyaTatkrtharthenaSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada1.UpamananiSamanyavacanaihSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada1.UpamitamVyaghradibhihSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.VisesanamVisesyenaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.AnekamAnyapadartheSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.CartheDvandvahSutra
@@ -72,18 +74,9 @@ class SamasaEngine(
         val samasaResult = classificationSutra.apply(context) as? SamasaRuleResult.Formed
             ?: error("Sūtra ${(classificationSutra as Sutra<*, *>).number} did not form a compound for context: $context")
 
-        // 3. Sandhi joining of the stem sequence
-        var joinedStem = padas.first().upadesha
         val applications = mutableListOf<DerivationApplication>()
-        for (i in 1 until padas.size) {
-            val nextStem = padas[i].upadesha
-            val sandhiRes = sandhiEngine.join(joinedStem, nextStem)
-            val resSurface = sandhiRes.final.surface
-            joinedStem = resSurface.ifBlank { joinedStem + nextStem }
-            applications.addAll(sandhiRes.applications)
-        }
 
-        // 4. Build initial DerivationState for Sūtras 1.2.46 and 2.4.71
+        // 3. Build initial DerivationState for Sūtras 1.2.46 and 2.4.71
         val initialTerms = padas.mapIndexed { idx, pada ->
             DerivationTerm("pada_$idx", pada.upadesha, TermKind.PRATIPADIKA, upadesha = pada.upadesha)
         }
@@ -96,15 +89,15 @@ class SamasaEngine(
         )
         var currentState = initialState
 
-        // 5. Sūtra 1.2.46 (कृत्तद्धितसमासाश्च): Assign Prātipadika saṃjñā to compound structure
+        // 4. Sūtra 1.2.46 (कृत्तद्धितसमासाश्च): Assign Prātipadika saṃjñā to compound structure
         val sutra1_2_46 = Ashtadhyayi.registry.require("1.2.46") as DerivationSutra
         currentState = executeDerivationSutra(sutra1_2_46, currentState, applications)
 
-        // 6. Sūtra 2.4.71 (सुपो धातुप्रातिपदिकयोः): Sup-lopa — delete internal case affixes
+        // 5. Sūtra 2.4.71 (सुपो धातुप्रातिपदिकयोः): Sup-lopa — delete internal case affixes
         val sutra2_4_71 = Ashtadhyayi.registry.require("2.4.71") as DerivationSutra
         currentState = executeDerivationSutra(sutra2_4_71, currentState, applications)
 
-        // 7. Record classification Sūtra application in the trace
+        // 6. Record classification Sūtra application in the trace
         val classificationSutraObj = classificationSutra as Sutra<*, *>
         applications.add(
             DerivationApplication(
@@ -119,8 +112,36 @@ class SamasaEngine(
             )
         )
 
-        // 8. Normalize anusvāra parasavarṇa from Sandhi output (e.g. पीतांबर → पीताम्बर)
-        val normalizedStem = joinedStem
+        // 4. Sandhi joining of the compound stem if required (e.g. नील + उत्पल -> नीलोत्पल)
+        val rawStem = samasaResult.compoundStem
+        val sandhiRes = if (rawStem.contains(" ")) {
+            val parts = rawStem.split(" ")
+            var res = parts.first()
+            for (p in parts.drop(1)) {
+                val j = sandhiEngine.join(res, p)
+                res = j.final.surface.ifBlank { res + p }
+                applications.addAll(j.applications)
+            }
+            res
+        } else {
+            val padasList = padas.map { it.upadesha }
+            if (rawStem in padasList || rawStem == padasList.joinToString("")) {
+                // If Sūtra produced raw concatenation, run sandhiEngine on the components
+                var res = padas.first().upadesha
+                for (i in 1 until padas.size) {
+                    val next = padas[i].upadesha
+                    val j = sandhiEngine.join(res, next)
+                    res = j.final.surface.ifBlank { res + next }
+                    applications.addAll(j.applications)
+                }
+                res
+            } else {
+                rawStem
+            }
+        }
+
+        // 5. Normalize anusvāra parasavarṇa from Sandhi output (e.g. पीतांबर → पीताम्बर)
+        val normalizedStem = sandhiRes
             .replace("ंब", "म्ब")
             .replace("ंप", "म्प")
             .replace("ंम", "म्म")
@@ -181,13 +202,19 @@ class SamasaEngine(
     private fun selectClassificationSutra(
         context: SamasaRuleContext,
     ): Sutra<SamasaRuleContext, SamasaRuleResult> = when (context.samasaType) {
-        SamasaType.AVYAYIBHAVA  -> AvyayamVibhaktiSutra
-        SamasaType.TATPURUSA    -> selectTatpurusaSutra(context.purvaPadaVibhakti)
-        SamasaType.NAN_TATPURUSA -> NanjSutra
-        SamasaType.KARMADHARAYA -> VisesanamVisesyenaSutra
-        SamasaType.DVIGU        -> SankhyapurvoDviguhSutra
-        SamasaType.BAHUVRIHI    -> AnekamAnyapadartheSutra
-        SamasaType.DVANDVA      -> CartheDvandvahSutra
+        SamasaType.AVYAYIBHAVA   -> AvyayamVibhaktiSutra
+        SamasaType.TATPURUSA     -> selectTatpurusaSutra(context.purvaPadaVibhakti)
+        SamasaType.NAN_TATPURUSA  -> NanjSutra
+        SamasaType.KARMADHARAYA  -> selectKarmadharayaSutra(context)
+        SamasaType.DVIGU         -> SankhyapurvoDviguhSutra
+        SamasaType.BAHUVRIHI     -> AnekamAnyapadartheSutra
+        SamasaType.DVANDVA       -> CartheDvandvahSutra
+    }
+
+    private fun selectKarmadharayaSutra(context: SamasaRuleContext): Sutra<SamasaRuleContext, SamasaRuleResult> = when {
+        UpamitamVyaghradibhihSutra.matches(context) -> UpamitamVyaghradibhihSutra
+        UpamananiSamanyavacanaihSutra.matches(context) -> UpamananiSamanyavacanaihSutra
+        else -> VisesanamVisesyenaSutra
     }
 
     /**
