@@ -7,5 +7,12 @@ object Adhyaya5Pada4 {
         UrahPrabhrtibhyahKapSutra,
         NadyrtaschaSutra,
         NanoAstyarthanamSutra,
+        RkPurAbDhurPathamSutra,
+        AksnoAdarsanatSutra,
+        AncerUpasargasyaSutra,
+        TypUpasargasyaSutra,
+        APacadibhyahSutra,
+        RksamabhyamThacSutra,
+        AchPratyagatamahSutra,
     )
 }

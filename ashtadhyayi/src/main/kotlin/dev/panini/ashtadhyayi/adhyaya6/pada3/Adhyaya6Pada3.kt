@@ -14,5 +14,8 @@ object Adhyaya6Pada3 {
         TreStrayahSutra,
         VibhashaChatvarimshatPrabhritauSarveshamSutra,
         DhralopePurvasyaDirghonahSutra,
+        PancamyahStokadibhyahSutra,
+        BhandeBandheChaSutra,
+        AntaramAparavyoktamAnatmaniSutra,
     )
 }
