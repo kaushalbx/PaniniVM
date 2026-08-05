@@ -32,6 +32,9 @@ object Adhyaya2Pada1 {
         SanMahatParamottamaSutra,
         PapakeKutsitaihsutra,
         ChatuspadoGarbhinyaSutra,
+        SvayamKretenaSutra,
+        BhaksyenaMishrikaranamSutra,
+        YuvaKhalatiPalitaSutra,
         MayuravyamsakadayascaSutra,
     )
 }

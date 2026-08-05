@@ -617,4 +617,64 @@ class SamasaEngineTest {
         assertEquals("पूर्वकायः", result.final.terms.last().surface)
         assertTrue(result.applications.any { it.sutra == "2.2.1" })
     }
+
+    @Test
+    fun `test Svayam Tatpurusha (2 1 27)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("स्वयम्", Vibhakti.PRATHAMA),
+                SamasaPada("कृत", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.TATPURUSA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.1.27" })
+    }
+
+    @Test
+    fun `test Bhaksyena Mishrikaranam Tatpurusha (2 1 35)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("गुड", Vibhakti.TRTIYA),
+                SamasaPada("मिश्र", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.TATPURUSA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.1.35" })
+    }
+
+    @Test
+    fun `test Yuva Khalati Karmadharaya (2 1 67)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("युवा", Vibhakti.PRATHAMA),
+                SamasaPada("खलति", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.KARMADHARAYA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.1.67" })
+    }
+
+    @Test
+    fun `test Nitya Kridajivikayoh Tatpurusha (2 2 17)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("दन्त", Vibhakti.SASTHI),
+                SamasaPada("लेखक", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.TATPURUSA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.2.17" })
+    }
+
+    @Test
+    fun `test KuGatiPradayah Tatpurusha (2 2 18)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("कु", Vibhakti.PRATHAMA),
+                SamasaPada("पुरुष", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.TATPURUSA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.2.18" })
+    }
 }
