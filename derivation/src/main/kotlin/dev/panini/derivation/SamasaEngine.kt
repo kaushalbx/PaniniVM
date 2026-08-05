@@ -200,7 +200,7 @@ class SamasaEngine(
      * Selects the Samāsa classification Sūtra based on [SamasaRuleContext].
      * For Tatpuruṣa, selection is driven by purvaPadaVibhakti — zero string heuristics.
      */
-    private val samasaRuleCandidates: Map<SamasaType, List<SamasaSutra>> = mapOf(
+    private val samasaRuleCandidates: Map<SamasaType, List<Sutra<SamasaRuleContext, SamasaRuleResult>>> = mapOf(
         SamasaType.AVYAYIBHAVA to listOf(
             ApapariBahirAncavahPancamyaSutra,
             AngMaryadabhividhyohSutra,

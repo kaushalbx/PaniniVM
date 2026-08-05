@@ -12,15 +12,12 @@ import dev.panini.sutra.SutraType
 
 /**
  * Sūtra 2.2.6: नञ्.
- * Prescribes Tatpuruṣa compound of the negative particle 'nañ' (न / नञ्) with a syntactically connected nominal.
- * Morphophonological rules applied during derivation:
- * - 6.3.73 (नलोपो नञः): Deletes 'n' of 'nañ' before a consonant-initial stem, leaving 'a' (e.g. न + ब्राह्मण = अब्राह्मण).
- * - 6.3.74 (तस्मान्नुडचि): Inserts 'nuṭ' ('n') augment after 'a' before a vowel-initial stem (e.g. न + अनघ = अनघ, न + अश्व = अनश्व).
+ * Prescribes Nañ Tatpuruṣa compound for negative prefix 'nañ' (na) with a subanta.
  */
 object NanjSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "2.2.6",
     text = "नञ्",
-    hindiExplanation = "नञ् (न) का समर्थ सुबन्त के साथ समास होता है (उदा. अब्राह्मणः, अनश्वः)।",
+    hindiExplanation = "नञ् समर्थेन सुबन्तेन सह समस्यते, सोऽपि तत्पुरुषः।",
     type = SutraType.NITYA,
     chapter = 2,
     pada = 2,
@@ -29,7 +26,8 @@ object NanjSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.NAN_TATPURUSA
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         if (context.samasaType == SamasaType.NAN_TATPURUSA) return true
