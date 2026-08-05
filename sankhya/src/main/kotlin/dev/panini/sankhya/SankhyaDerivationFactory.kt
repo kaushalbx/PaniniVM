@@ -15,6 +15,7 @@ class SankhyaDerivationFactory {
             buildList {
                 add(SamjnaAssignment(term.id, Samjna.PRATIPADIKA))
                 if (!term.id.endsWith("_adhika")) add(SamjnaAssignment(term.id, Samjna.SANKHYA))
+                if (terms.size > 1) add(SamjnaAssignment(term.id, Samjna.SAMASA))
             }
         }.toSet()
 
