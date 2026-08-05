@@ -46,6 +46,7 @@ object SavarnaDirghaSutra : Sutra<DerivationState, DerivationChange>(
         val leftPhoneme = if (leftChar !in Varnamala.independentVowelsOrMarks) 'अ' else leftChar
         val engine = Ashtadhyayi.pratyaharaEngine
         return engine.contains(Pratyahara.AK, leftPhoneme) &&
+            engine.contains(Pratyahara.AK, right) &&
             normalize(leftPhoneme) == normalize(right) &&
             Varnamala.areSavarna(leftPhoneme, right)
     }
