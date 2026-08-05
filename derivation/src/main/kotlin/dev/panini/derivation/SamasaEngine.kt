@@ -118,9 +118,7 @@ class SamasaEngine(
                 applications.addAll(j.applications)
             }
             res
-        } else if (rawStem == rawPadasConcat) {
-            rawStem
-        } else if (hasSamasantaKap) {
+        } else if (rawStem == rawPadasConcat || hasSamasantaKap) {
             var res = padas.first().upadesha
             for (i in 1 until padas.size) {
                 val next = padas[i].upadesha
@@ -129,7 +127,9 @@ class SamasaEngine(
                 res = if (joined.isNotBlank() && joined.length >= res.length + next.length - 1) joined else res + next
                 applications.addAll(j.applications)
             }
-            if (res.endsWith("ः")) res.dropLast(1) + "स्क" else res + "क"
+            if (hasSamasantaKap) {
+                if (res.endsWith("ः")) res.dropLast(1) + "स्क" else res + "क"
+            } else res
         } else {
             rawStem
         }
