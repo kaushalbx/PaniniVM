@@ -12,6 +12,9 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
+import dev.panini.derivation.SamjnaAssignment
+import dev.panini.shiksha.Samjna
+
 class NumeralTaddhitaTest {
 
     @Test
@@ -19,7 +22,8 @@ class NumeralTaddhitaTest {
         val state = DerivationState(
             terms = listOf(
                 DerivationTerm(id = "s1", surface = "द्वि", kind = TermKind.PRATIPADIKA, upadesha = "द्वि")
-            )
+            ),
+            samjnas = setOf(SamjnaAssignment("s1", Samjna.TADDHITA))
         )
         assertTrue(SankhyayascavidhartheDhaSutra.matches(state))
         val change = SankhyayascavidhartheDhaSutra.apply(state)
@@ -31,7 +35,8 @@ class NumeralTaddhitaTest {
         val state = DerivationState(
             terms = listOf(
                 DerivationTerm(id = "s1", surface = "एक", kind = TermKind.PRATIPADIKA, upadesha = "एक")
-            )
+            ),
+            samjnas = setOf(SamjnaAssignment("s1", Samjna.TADDHITA))
         )
         assertTrue(EdhaccaSutra.matches(state))
         val change = EdhaccaSutra.apply(state)
@@ -43,7 +48,8 @@ class NumeralTaddhitaTest {
         val state = DerivationState(
             terms = listOf(
                 DerivationTerm(id = "s1", surface = "पञ्च", kind = TermKind.PRATIPADIKA, upadesha = "पञ्चन्")
-            )
+            ),
+            samjnas = setOf(SamjnaAssignment("s1", Samjna.TADDHITA))
         )
         assertTrue(SankhyayahKriyaAbhyavrttiKrtvasucSutra.matches(state))
         val change = SankhyayahKriyaAbhyavrttiKrtvasucSutra.apply(state)
@@ -55,7 +61,8 @@ class NumeralTaddhitaTest {
         val stateDvi = DerivationState(
             terms = listOf(
                 DerivationTerm(id = "s1", surface = "द्वि", kind = TermKind.PRATIPADIKA, upadesha = "द्वि")
-            )
+            ),
+            samjnas = setOf(SamjnaAssignment("s1", Samjna.TADDHITA))
         )
         assertTrue(DvitrichaturbhyahSucSutra.matches(stateDvi))
         val changeDvi = DvitrichaturbhyahSucSutra.apply(stateDvi)
@@ -64,7 +71,8 @@ class NumeralTaddhitaTest {
         val stateEka = DerivationState(
             terms = listOf(
                 DerivationTerm(id = "s1", surface = "एक", kind = TermKind.PRATIPADIKA, upadesha = "एक")
-            )
+            ),
+            samjnas = setOf(SamjnaAssignment("s1", Samjna.TADDHITA))
         )
         val changeEka = DvitrichaturbhyahSucSutra.apply(stateEka)
         assertEquals("सकृत्", changeEka.state.terms.single().surface)

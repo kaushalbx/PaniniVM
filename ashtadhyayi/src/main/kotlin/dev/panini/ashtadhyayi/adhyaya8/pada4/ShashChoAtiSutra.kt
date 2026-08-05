@@ -42,6 +42,7 @@ object ShashChoAtiSutra : Sutra<DerivationState, DerivationChange>(
             if (!curr.endsWith('्')) return@any false
             val lastChar = curr.dropLast(1).lastOrNull() ?: return@any false
             if (!Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAY, lastChar)) return@any false
+            if (!next.startsWith('श')) return@any false
 
             val rawFollower = next.dropWhile { it == 'श' || it == '्' }.firstOrNull() ?: return@any false
             val follower = if (Svara.fromMatra(rawFollower) != null) normalizeVowelMark(rawFollower) else rawFollower
@@ -57,6 +58,7 @@ object ShashChoAtiSutra : Sutra<DerivationState, DerivationChange>(
             if (!curr.endsWith('्')) return@first false
             val lastChar = curr.dropLast(1).lastOrNull() ?: return@first false
             if (!Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAY, lastChar)) return@first false
+            if (!next.startsWith('श')) return@first false
 
             val rawFollower = next.dropWhile { it == 'श' || it == '्' }.firstOrNull() ?: return@first false
             val follower = if (Svara.fromMatra(rawFollower) != null) normalizeVowelMark(rawFollower) else rawFollower

@@ -198,4 +198,17 @@ class SandhiPhonologicalTransformationTest {
         val change = BhoBhagoAghoApurvasyaYoshiSutra.apply(state)
         assertEquals("देवय", change.state.terms[0].surface)
     }
+
+    @Test
+    fun `test ShashChoAtiSutra does not cycle on vak and isha`() {
+        val stateVakIsha = DerivationState(
+            terms = listOf(
+                DerivationTerm("t1", "वाक्", TermKind.PRATIPADIKA, upadesha = "वाक्"),
+                DerivationTerm("t2", "ईश", TermKind.PRATIPADIKA, upadesha = "ईश")
+            )
+        )
+        assertTrue(!ShashChoAtiSutra.matches(stateVakIsha))
+        val joined = SandhiEngine().join("वाक्", "ईश")
+        assertTrue(joined.applications.none { it.sutra == "8.4.63" })
+    }
 }

@@ -38,9 +38,11 @@ object SankhyayahKriyaAbhyavrttiKrtvasucSutra : Sutra<DerivationState, Derivatio
     override fun matches(context: DerivationState): Boolean {
         if (context.samjnas.any { it.samjna == Samjna.PURANA || it.samjna == Samjna.DHATU }) return false
         if (context.terms.any { it.kind == TermKind.DHATU }) return false
+        val hasTaddhitaRequest = context.samjnas.any { it.samjna == Samjna.TADDHITA }
+        if (!hasTaddhitaRequest) return false
         val lastTerm = context.terms.lastOrNull() ?: return false
         val isAlreadyApplied = context.terms.any { it.upadesha == "कृत्वसुच्" || it.surface == "कृत्वः" }
-        return !isAlreadyApplied && SankhyaResolver.isSankhya(lastTerm.upadesha)
+        return !isAlreadyApplied && SankhyaResolver.isSankhya(lastTerm.upadesha, context.samjnas.map { it.samjna }.toSet())
     }
 
     override fun apply(context: DerivationState): DerivationChange {

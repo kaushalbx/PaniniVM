@@ -32,11 +32,13 @@ object AtyadayaKrantyadyartheDvitiyayaSutra : Sutra<SamasaRuleContext, SamasaRul
     samasaType = SamasaType.TATPURUSA,
     samasaPriority = 10,
 ), SamasaSutra {
+    private val atiPrefixes = setOf("अति", "उत्", "अप", "परि")
+
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val purva = context.purvaPada.upadesha
         return context.samasaType == SamasaType.TATPURUSA &&
-            (PradiGana.contains(purva) || PradiGana.members.any { it.text.startsWith(purva) })
+            purva in atiPrefixes
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
