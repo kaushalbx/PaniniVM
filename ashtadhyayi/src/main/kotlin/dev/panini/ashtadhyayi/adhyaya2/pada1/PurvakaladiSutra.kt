@@ -11,6 +11,8 @@ import dev.panini.sutra.SutraType
 
 import dev.panini.sutra.SamasaSutra
 
+import dev.panini.sankhya.SankhyaResolver
+
 /**
  * 2.1.58: पूर्वकालैकसर्वजरत्पुराणनवकेवलाः समानाधिकरणेन.
  *
@@ -30,12 +32,12 @@ object PurvakaladiSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     scope = SutraScope.DERIVATION,
     samasaType = SamasaType.KARMADHARAYA,
 ), SamasaSutra {
-    private val purvakaladiWords = setOf("पूर्वकाल", "एक", "सर्व", "जरत्", "पुराण", "नव", "केवल")
+    private val purvakaladiWords = setOf("पूर्वकाल", "एक", "सर्व", "जरत्", "पुराण", "नव", "केवल", "पूर्व")
 
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
-        val purva = context.purvaPada.upadesha
-        return purva in purvakaladiWords
+        val purva = context.purvaPada
+        return purva.upadesha in purvakaladiWords || SankhyaResolver.isSankhya(purva.upadesha, purva.samjnas)
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {

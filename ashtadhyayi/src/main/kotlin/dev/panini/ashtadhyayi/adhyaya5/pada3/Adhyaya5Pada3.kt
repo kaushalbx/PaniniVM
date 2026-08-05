@@ -8,5 +8,7 @@ object Adhyaya5Pada3 {
         SaptamyasTralSutra,
         TarabiyasunauSutra,
         TamabisthanauSutra,
+        SankhyayascavidhartheDhaSutra,
+        EdhaccaSutra,
     )
 }
