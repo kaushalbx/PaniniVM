@@ -46,5 +46,10 @@ object Adhyaya2Pada2 {
         AnekamAnyapadartheHeaderSutra,
         AlpactaramExtSutra,
         KadaradahKarmadharayeSutra,
+        NityamKridajivikayohExtSutra,
+        KuGatiPradayahExtSutra,
+        TenaSahetiTulyayogeExtSutra,
+        TatraTenedamitiSarupeExtSutra,
+        AjadyadantamExtSutra,
     )
 }

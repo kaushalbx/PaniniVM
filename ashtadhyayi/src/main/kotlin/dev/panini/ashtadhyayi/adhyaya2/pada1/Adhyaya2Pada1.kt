@@ -73,5 +73,10 @@ object Adhyaya2Pada1 {
         TisthadguprabhrtiniSutra,
         TrtiyaTatkrtarthenaExtSutra,
         KutsitaniKutsitaihExtSutra,
+        MaryadabhividhyohExtSutra,
+        PareMadhyeShashthyaVaExtSutra,
+        SankhyaVamsyenaExtSutra,
+        TrtiyaTatkrtarthenaGeneralSutra,
+        MayuravyamsakadayascaExtSutra,
     )
 }
