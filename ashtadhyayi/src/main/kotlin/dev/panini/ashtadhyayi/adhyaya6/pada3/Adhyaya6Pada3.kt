@@ -17,5 +17,10 @@ object Adhyaya6Pada3 {
         PancamyahStokadibhyahSutra,
         BhandeBandheChaSutra,
         AntaramAparavyoktamAnatmaniSutra,
+        AmurdhamastakatSvangadAkameSutra,
+        AtmanascaPuraneExtSutra,
+        VayasiChaSutra,
+        ManasahSamjnayamSutra,
+        SarasCaGihpatiPrabhrtisuSutra,
     )
 }

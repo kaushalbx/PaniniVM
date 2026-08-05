@@ -14,5 +14,10 @@ object Adhyaya5Pada4 {
         APacadibhyahSutra,
         RksamabhyamThacSutra,
         AchPratyagatamahSutra,
+        AnupasargadAdhvanahSutra,
+        NaPujanatSutra,
+        KimanhKsepeSutra,
+        NityamAsimaseSutra,
+        AlpakhyayamSutra,
     )
 }

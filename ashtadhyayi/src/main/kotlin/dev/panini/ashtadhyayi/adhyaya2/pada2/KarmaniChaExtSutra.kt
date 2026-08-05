@@ -3,6 +3,7 @@ package dev.panini.ashtadhyayi.adhyaya2.pada2
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
 import dev.panini.core.SamasaType
+import dev.panini.core.Vibhakti
 import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -30,7 +31,9 @@ object KarmaniChaExtSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     samasaPriority = 10,
 ), SamasaSutra {
     override fun matches(context: SamasaRuleContext): Boolean {
-        return false
+        return context.samasaType == SamasaType.TATPURUSA &&
+            context.purvaPadaVibhakti == Vibhakti.SASTHI &&
+            context.padas.size >= 2
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
