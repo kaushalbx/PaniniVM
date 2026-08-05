@@ -26,7 +26,9 @@ object DvitiyaShritatitaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
-) {
+    samasaType = SamasaType.TATPURUSA,
+    isGeneralFallback = true,
+), dev.panini.sutra.SamasaSutra {
     // Authentic Pāṇinian condition: pūrvapada bears dvitīyā vibhakti
     override fun matches(context: SamasaRuleContext): Boolean =
         context.padas.size >= 2 && context.purvaPadaVibhakti == Vibhakti.DVITIYA

@@ -26,7 +26,9 @@ object ShashthiSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
-) {
+    samasaType = SamasaType.TATPURUSA,
+    isGeneralFallback = true,
+), dev.panini.sutra.SamasaSutra {
     // Authentic Pāṇinian condition: pūrvapada bears ṣaṣṭhī vibhakti (genitive)
     override fun matches(context: SamasaRuleContext): Boolean =
         context.padas.size >= 2 && context.purvaPadaVibhakti == Vibhakti.SASTHI

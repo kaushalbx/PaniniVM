@@ -27,7 +27,9 @@ object TrtiyaTatkrtarthenaGunavacanenaSutra : Sutra<SamasaRuleContext, SamasaRul
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
-) {
+    samasaType = SamasaType.TATPURUSA,
+    isGeneralFallback = true,
+), dev.panini.sutra.SamasaSutra {
     private val gunavachanaOrArthaWords = setOf("अर्थ", "खण्ड", "गुण", "सम", "सदृश", "ऊन", "कलह", "निपुण", "मिश्र", "श्लक्ष्ण")
 
     override fun matches(context: SamasaRuleContext): Boolean {
