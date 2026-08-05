@@ -31,7 +31,6 @@ object TatpuruseKrtiBahulamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
 
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
-        if (context.samasaType == SamasaType.ALUK_TATPURUSA) return true
         val purva = context.purvaPada.upadesha
         return purva in alukSaptamiPurvapadas
     }
