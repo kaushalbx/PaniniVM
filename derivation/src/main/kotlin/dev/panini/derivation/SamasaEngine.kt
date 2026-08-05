@@ -51,6 +51,7 @@ class SamasaEngine(
     private val derivationEngine: DerivationEngine = DerivationEngine(Ashtadhyayi.executableSutras),
     private val sandhiEngine: SandhiEngine = SandhiEngine(derivationEngine),
     private val subantaEngine: SubantaEngine = SubantaEngine(derivationEngine),
+    private val samasaSutras: List<SamasaSutra> = Ashtadhyayi.cataloguedSutras.filterIsInstance<SamasaSutra>(),
 ) {
     fun derive(request: SamasaDerivationRequest): DerivationResult =
         derive(request.padas, request.type)
@@ -197,68 +198,14 @@ class SamasaEngine(
     }
 
     /**
-     * Selects the Samāsa classification Sūtra based on [SamasaRuleContext].
-     * For Tatpuruṣa, selection is driven by purvaPadaVibhakti — zero string heuristics.
+     * Selects the Samāsa classification Sūtra dynamically from registered Aṣṭādhyāyī Sūtras.
      */
-    private val samasaRuleCandidates: Map<SamasaType, List<Sutra<SamasaRuleContext, SamasaRuleResult>>> = mapOf(
-        SamasaType.AVYAYIBHAVA to listOf(
-            ApapariBahirAncavahPancamyaSutra,
-            AngMaryadabhividhyohSutra,
-            LaksanenAbhipratiAbhimukhyeSutra,
-            PareMadhyeShashthyaVaSutra,
-            SankhyaVamsyenaSutra,
-            AnyapadartheChaSutra,
-        ),
-        SamasaType.TATPURUSA to listOf(
-            PurvaparakadharottaramEkadesinaSutra,
-            ArdhamNapunsakamSutra,
-            YajakadibhishchaSutra,
-            KalaAtyantasamyogeSutra,
-            DvitIyaSritatitapatitagatatyastapraptapannaihSutra,
-            AnnasenaVyanjanamSutra,
-            TrtiyaTatkrtarthenaGunavacanenaSutra,
-            KartrkaraneKrtaBahulamSutra,
-            StokantikadharthaniPancamyaSutra,
-            ApetaApodhaMuktaSutra,
-            SiddhasuskapakvabandhaishchaSutra,
-        ),
-        SamasaType.ALUK_TATPURUSA to listOf(
-            PutreNyatarasyamSutra,
-            TatpuruseKrtiBahulamSutra,
-            AtmanascaPuraneSutra,
-        ),
-        SamasaType.KARMADHARAYA to listOf(
-            SanMahatParamottamaSutra,
-            PurvakaladiSutra,
-            SrenyadayahKrtadibhihSutra,
-            KtenaNanjVisistenaSutra,
-            PapakeKutsitaihsutra,
-            ChatuspadoGarbhinyaSutra,
-            UpamitamVyaghradibhihSutra,
-            UpamananiSamanyavacanaihSutra,
-            VisesanamVisesyenaBahulamSutra,
-        ),
-        SamasaType.BAHUVRIHI to listOf(
-            VopasarjanasyaSutra,
-            TenaSahetiTulyayogesutra,
-            UrahPrabhrtibhyahKapSutra,
-            NadyrtaschaSutra,
-            NanoAstyarthanamSutra,
-        ),
-        SamasaType.DVANDVA to listOf(
-            DvandvaschaPranituryaSutra,
-            JatirApraninamSutra,
-            AjadyadantamSutra,
-            AbhyarhitamChaSutra,
-            AlpactaramSutra,
-        ),
-    )
-
     private fun selectClassificationSutra(
         context: SamasaRuleContext,
     ): Sutra<SamasaRuleContext, SamasaRuleResult> {
-        val candidates = samasaRuleCandidates[context.samasaType] ?: emptyList()
-        val matched = candidates.firstOrNull { it.matches(context) }
+        val matched = samasaSutras
+            .filter { it.samasaType == context.samasaType }
+            .firstOrNull { it.matches(context) } as? Sutra<SamasaRuleContext, SamasaRuleResult>
         if (matched != null) return matched
 
         return when (context.samasaType) {
