@@ -5,6 +5,10 @@ import dev.panini.analysis.SamasaRuleResult
 import dev.panini.core.SamasaType
 import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
+import dev.panini.sutra.SutraAction
+import dev.panini.sutra.SutraRole
+import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraType
 
 /**
  * Sūtra 2.1.56: उपमितं व्याघ्रादिभिः सामान्याप्रयोगे.
