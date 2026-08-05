@@ -33,6 +33,7 @@ object ArdhamNapunsakamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         if (context.padas.size < 2) return false
         val purva = context.purvaPada.upadesha
         return context.samasaType == SamasaType.TATPURUSA &&
+            context.purvaPadaVibhakti == dev.panini.core.Vibhakti.PRATHAMA &&
             purva == "अर्ध"
     }
 

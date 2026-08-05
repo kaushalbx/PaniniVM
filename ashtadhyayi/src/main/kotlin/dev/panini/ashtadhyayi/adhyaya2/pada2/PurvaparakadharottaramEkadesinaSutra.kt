@@ -35,6 +35,7 @@ object PurvaparakadharottaramEkadesinaSutra : Sutra<SamasaRuleContext, SamasaRul
         if (context.padas.size < 2) return false
         val purva = context.purvaPada.upadesha
         return context.samasaType == SamasaType.TATPURUSA &&
+            context.purvaPadaVibhakti == dev.panini.core.Vibhakti.PRATHAMA &&
             purva in ekadeshaWords
     }
 
