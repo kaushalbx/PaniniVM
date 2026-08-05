@@ -23,5 +23,7 @@ object Adhyaya2Pada2 {
         AlpactaramSutra,
         NaNirdhareSutra,
         UpasarjanamPurvamSutra,
+        KarmaniChaSutra,
+        AmaivavyayenaSutra,
     )
 }

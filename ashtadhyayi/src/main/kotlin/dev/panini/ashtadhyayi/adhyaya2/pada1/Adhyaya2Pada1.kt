@@ -46,5 +46,8 @@ object Adhyaya2Pada1 {
         KalatSutra,
         KavacaharaDaksinaKsiresuSutra,
         KutsitaniKutsitaihSutra,
+        KhatvaKsepeSutra,
+        SamiSutra,
+        KsepePrasamsayamChaSutra,
     )
 }

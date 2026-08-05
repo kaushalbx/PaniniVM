@@ -864,5 +864,69 @@ class SamasaEngineTest {
         )
         assertTrue(sutra.matches(context))
     }
+
+    @Test
+    fun `test Khatva Ksepe Dvitiya Tatpurusha (2 1 20)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("खट्वा", Vibhakti.DVITIYA),
+                SamasaPada("आरूढ", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.TATPURUSA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.1.20" })
+    }
+
+    @Test
+    fun `test Sami Tatpurusha (2 1 22)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("सामि", Vibhakti.PRATHAMA),
+                SamasaPada("कृत", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.TATPURUSA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.1.22" })
+    }
+
+    @Test
+    fun `test Ksepe Prasamsayam Saptami Tatpurusha (2 1 47)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("पात्र", Vibhakti.SAPTAMI),
+                SamasaPada("सम्मित", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.TATPURUSA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.1.47" })
+    }
+
+    @Test
+    fun `test Karmani Cha Prohibition (2 2 14)`() {
+        val sutra = dev.panini.ashtadhyayi.adhyaya2.pada2.KarmaniChaSutra
+        val context = dev.panini.analysis.SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("गो", Vibhakti.SASTHI),
+                SamasaPada("दोह", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.TATPURUSA,
+        )
+        assertTrue(sutra.matches(context))
+        val res = sutra.apply(context)
+        assertTrue(res is dev.panini.analysis.SamasaRuleResult.NotApplicable)
+    }
+
+    @Test
+    fun `test Amaivavyayena Tatpurusha (2 2 20)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("स्वाहाकृतम्", Vibhakti.PRATHAMA),
+                SamasaPada("कृ", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.TATPURUSA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.2.20" })
+    }
 }
+
 
