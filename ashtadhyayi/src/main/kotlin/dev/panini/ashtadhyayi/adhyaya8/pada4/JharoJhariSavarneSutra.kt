@@ -44,6 +44,10 @@ object JharoJhariSavarneSutra : Sutra<DerivationState, DerivationChange>(
             val jharChar1 = curr.trimEnd('्').lastOrNull() ?: return@any false
             val jharChar2 = next.first()
 
+            val stemBeforeJhar1 = curr.trimEnd('्').dropLast(1)
+            val precedingChar = stemBeforeJhar1.lastOrNull() ?: return@any false
+            val isPrecededByHal = precedingChar == '्' || (precedingChar in dev.panini.shiksha.Varnamala.consonants && precedingChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks)
+
             // 8.4.65 does not delete 'c' before 'ch' produced by 8.4.63 śaś cho'ṭi
             if (jharChar1 == 'च' && jharChar2 == 'छ') return@any false
 
@@ -51,7 +55,7 @@ object JharoJhariSavarneSutra : Sutra<DerivationState, DerivationChange>(
             val isJhar2 = Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAR, jharChar2)
             val isSavarna = Varnamala.areSavarna(jharChar1, jharChar2)
 
-            isJhar1 && isJhar2 && isSavarna
+            isPrecededByHal && isJhar1 && isJhar2 && isSavarna
         }
     }
 
@@ -64,13 +68,17 @@ object JharoJhariSavarneSutra : Sutra<DerivationState, DerivationChange>(
             val jharChar1 = curr.trimEnd('्').lastOrNull() ?: return@first false
             val jharChar2 = next.first()
 
+            val stemBeforeJhar1 = curr.trimEnd('्').dropLast(1)
+            val precedingChar = stemBeforeJhar1.lastOrNull() ?: return@first false
+            val isPrecededByHal = precedingChar == '्' || (precedingChar in dev.panini.shiksha.Varnamala.consonants && precedingChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks)
+
             if (jharChar1 == 'च' && jharChar2 == 'छ') return@first false
 
             val isJhar1 = Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAR, jharChar1)
             val isJhar2 = Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAR, jharChar2)
             val isSavarna = Varnamala.areSavarna(jharChar1, jharChar2)
 
-            isJhar1 && isJhar2 && isSavarna
+            isPrecededByHal && isJhar1 && isJhar2 && isSavarna
         }
 
         val targetTerm = context.terms[targetIndex]
