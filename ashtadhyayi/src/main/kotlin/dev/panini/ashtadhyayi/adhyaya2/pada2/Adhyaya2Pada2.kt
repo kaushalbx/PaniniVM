@@ -7,6 +7,7 @@ object Adhyaya2Pada2 {
         PurvaparakadharottaramEkadesinaSutra,
         ArdhamNapunsakamSutra,
         TrtiyaprabhrtinyAnyatarasyamSutra,
+        AntaramBahiryogeUpasamvyanayoscaSutra,
         NanjSutra,
         UpapadamAtingSutra,
         ShashthiSutra,

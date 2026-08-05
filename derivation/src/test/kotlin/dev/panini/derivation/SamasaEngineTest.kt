@@ -737,4 +737,64 @@ class SamasaEngineTest {
         )
         assertTrue(result.applications.any { it.sutra == "2.2.23" })
     }
+
+    @Test
+    fun `test Atyadaya Krantyadyarthe Tatpurusha (2 1 25)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("अति", Vibhakti.PRATHAMA),
+                SamasaPada("कोकिल", Vibhakti.DVITIYA),
+            ),
+            SamasaType.TATPURUSA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.1.25" })
+    }
+
+    @Test
+    fun `test Purva Sadrsha Trtiya Tatpurusha (2 1 31)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("पितृ", Vibhakti.TRTIYA),
+                SamasaPada("सदृश", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.TATPURUSA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.1.31" })
+    }
+
+    @Test
+    fun `test Taddhitartha Uttarapada Samahara Dvigu (2 1 51)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("पञ्च", Vibhakti.PRATHAMA),
+                SamasaPada("कपाल", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.DVIGU,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.1.51" })
+    }
+
+    @Test
+    fun `test Prasamsavacanaisca Karmadharaya (2 1 66)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("गो", Vibhakti.PRATHAMA),
+                SamasaPada("प्रकाण्ड", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.KARMADHARAYA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.1.66" })
+    }
+
+    @Test
+    fun `test Antaram Bahiryoge Tatpurusha (2 2 4)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("गृह", Vibhakti.PRATHAMA),
+                SamasaPada("अन्तर", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.TATPURUSA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.2.4" })
+    }
 }
