@@ -92,5 +92,10 @@ object Adhyaya6Pada3 {
         SvamsamjnayamExtSutra,
         AdUpadesatExtSutra,
         VyorAvagraheSutra,
+        IdAgnesChardisiExtSutra,
+        DivahStriyamSutra,
+        UsasaUsasahExtSutra,
+        MatariPitariExtSutra,
+        PitramataExtSutra,
     )
 }

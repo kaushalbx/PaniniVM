@@ -89,5 +89,10 @@ object Adhyaya5Pada4 {
         AngulyahKhamExtSutra,
         TatsamaksatExtSutra,
         AhnoVibhasasaExtSutra,
+        RajnahKharyamExtSutra,
+        AksnoAdarsanatExtSutra,
+        AncahSamasaExtSutra,
+        ApacadibhyoAcSutra,
+        RksamabhyamThacExtSutra,
     )
 }
