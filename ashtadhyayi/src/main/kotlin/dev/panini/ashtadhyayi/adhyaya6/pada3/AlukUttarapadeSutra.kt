@@ -23,7 +23,7 @@ object AlukUttarapadeSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     pada = 3,
     optional = false,
     kramaValue = 630001,
-    role = SutraRole.Adhikara,
+    role = SutraRole.Adhikara(endKrama = 630037),
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
 ) {

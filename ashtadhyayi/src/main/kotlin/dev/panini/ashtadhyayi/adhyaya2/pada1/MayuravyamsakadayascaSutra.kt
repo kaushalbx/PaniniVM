@@ -23,7 +23,7 @@ object MayuravyamsakadayascaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     pada = 1,
     optional = false,
     kramaValue = 210072,
-    role = SutraRole.Nipātana,
+    role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
 ) {
