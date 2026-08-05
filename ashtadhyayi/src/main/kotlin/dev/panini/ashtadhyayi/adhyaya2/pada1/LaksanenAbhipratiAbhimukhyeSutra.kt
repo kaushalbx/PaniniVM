@@ -2,6 +2,8 @@ package dev.panini.ashtadhyayi.adhyaya2.pada1
 
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
+import dev.panini.core.SamasaType
+import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -11,13 +13,12 @@ import dev.panini.sutra.SutraType
 /**
  * 2.1.14: लक्षणेनाभिप्रती आभिमुख्ये.
  *
- * Compounds 'abhi' and 'prati' in facing/directional sense with a nominal indicator (lakṣaṇa),
- * placing the nominal first in Avyayībhāva (e.g. 'agnik' + 'abhi' -> 'agnyabhi').
+ * Abhi and prati compound with a sign/indicator nominal (lakṣaṇa) in direction towards (ābhimukhya) to form Avyayībhāva.
  */
 object LaksanenAbhipratiAbhimukhyeSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "2.1.14",
     text = "लक्षणेनाभिप्रती आभिमुख्ये",
-    hindiExplanation = "आभिमुख्ये द्योत्ये अभि प्रति इत्येतौ लक्षणवाचिना सुबन्तेन समस्येते, सोऽव्ययीभावः।",
+    hindiExplanation = "आभिमुख्य अर्थ में अभि तथा प्रति अव्यय लक्षणवाचक सुबन्त के साथ समस्यन्ते, सोऽव्ययीभावः।",
     type = SutraType.NITYA,
     chapter = 2,
     pada = 1,
@@ -26,7 +27,8 @@ object LaksanenAbhipratiAbhimukhyeSutra : Sutra<SamasaRuleContext, SamasaRuleRes
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.AVYAYIBHAVA
     private val abhiPratiWords = setOf("अभि", "प्रति")
 
     override fun matches(context: SamasaRuleContext): Boolean {

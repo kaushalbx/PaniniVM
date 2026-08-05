@@ -4,6 +4,7 @@ import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
 import dev.panini.core.SamasaType
 import dev.panini.core.Vibhakti
+import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -13,12 +14,12 @@ import dev.panini.sutra.SutraType
 /**
  * 2.1.28: कालाः अत्यन्तसंयोगे.
  *
- * Dvitiyā-subanta denoting continuous time duration compounds with matching subanta in Tatpuruṣa.
+ * Time-denoting nominals in Dvitīyā compound when continuous duration (atyanta-saṁyoga) is expressed.
  */
 object KalaAtyantasamyogeSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "2.1.28",
     text = "कालाः अत्यन्तसंयोगे",
-    hindiExplanation = "कालवाचिनः सुबन्ताः द्वितीयान्ताः अत्यन्तसंयोगे गम्यमाने सुबन्तेन सह समस्यन्ते, सोऽपि तत्पुरुषः।",
+    hindiExplanation = "अत्यन्तसंयोगे गम्यमाने कालवाचिनः सुबन्ताः समर्थेन सुबन्तेन सह समस्यन्ते, सोऽपि तत्पुरुषः।",
     type = SutraType.NITYA,
     chapter = 2,
     pada = 1,
@@ -27,7 +28,8 @@ object KalaAtyantasamyogeSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.TATPURUSA
     private val kalaWords = setOf("मास", "अहोरात्र", "संवत्सर", "अहः", "रात्र", "मुहूर्त")
 
     override fun matches(context: SamasaRuleContext): Boolean {

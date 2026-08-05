@@ -3,6 +3,7 @@ package dev.panini.ashtadhyayi.adhyaya2.pada2
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
 import dev.panini.core.SamasaType
+import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -12,12 +13,12 @@ import dev.panini.sutra.SutraType
 /**
  * 2.2.1: पूर्वापराधरोत्तरमेकदेशिनाैकाधिकरणे.
  *
- * Stems 'pūrva', 'apara', 'adhara', 'uttara' compound with a subanta representing the whole (ekadeśin) in Tatpuruṣa.
+ * Purva, apara, adhara, uttara compound with an ekadeśin (whole entity) in Tatpuruṣa.
  */
 object PurvaparakadharottaramEkadesinaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "2.2.1",
     text = "पूर्वापराधरोत्तरमेकदेशिनाैकाधिकरणे",
-    hindiExplanation = "पूर्व, अपर, अधर, उत्तर एते एकदेशिना सुबन्तेन सह समानाधिकरणे समस्यन्ते, सोऽपि तत्पुरुषः।",
+    hindiExplanation = "पूर्व, अपर, अधर, उत्तर सुबन्ताः एकदेशिना सुबन्तेन सह समस्यन्ते, सोऽपि तत्पुरुषः।",
     type = SutraType.NITYA,
     chapter = 2,
     pada = 2,
@@ -26,7 +27,8 @@ object PurvaparakadharottaramEkadesinaSutra : Sutra<SamasaRuleContext, SamasaRul
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.TATPURUSA
     private val ekadeshaWords = setOf("पूर्व", "अपर", "अधर", "उत्तर")
 
     override fun matches(context: SamasaRuleContext): Boolean {

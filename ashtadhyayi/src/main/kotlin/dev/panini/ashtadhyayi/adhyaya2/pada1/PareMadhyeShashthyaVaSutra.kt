@@ -2,6 +2,8 @@ package dev.panini.ashtadhyayi.adhyaya2.pada1
 
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
+import dev.panini.core.SamasaType
+import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -9,14 +11,14 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 /**
- * 2.1.18: पारैमध्ये षष्ठ्या वा.
+ * 2.1.18: पारे मध्ये षष्ठ्या वा.
  *
- * Compounds 'pāre' and 'madhye' with a 6th case nominal to form Avyayībhāva (e.g. 'pāregaṅgam', 'madhyegaṅgam').
+ * Pāre and madhye optionally compound with a genitive (Ṣaṣṭhī) nominal in Avyayībhāva.
  */
 object PareMadhyeShashthyaVaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "2.1.18",
-    text = "पारैमध्ये षष्ठ्या वा",
-    hindiExplanation = "पारे मध्ये इत्येतौ षष्ठ्यन्तेन सह वा समस्येते, सोऽव्ययीभावः।",
+    text = "पारे मध्ये षष्ठ्या वा",
+    hindiExplanation = "पारे तथा मध्ये अव्यय षष्ठ्यन्त के साथ विकल्प से समस्यन्ते, सोऽव्ययीभावः।",
     type = SutraType.VIBHASHA,
     chapter = 2,
     pada = 1,
@@ -25,7 +27,8 @@ object PareMadhyeShashthyaVaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.AVYAYIBHAVA
     private val pareMadhyeWords = setOf("पारे", "मध्ये", "पार", "मध्य")
 
     override fun matches(context: SamasaRuleContext): Boolean {

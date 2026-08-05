@@ -16,6 +16,7 @@ import dev.panini.core.Vacana
 import dev.panini.core.Vibhakti
 import dev.panini.derivation.SubantaDerivationRequest
 import dev.panini.shiksha.Samjna
+import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
 
 /**
@@ -199,7 +200,7 @@ class SamasaEngine(
      * Selects the Samāsa classification Sūtra based on [SamasaRuleContext].
      * For Tatpuruṣa, selection is driven by purvaPadaVibhakti — zero string heuristics.
      */
-    private val samasaRuleCandidates: Map<SamasaType, List<Sutra<SamasaRuleContext, SamasaRuleResult>>> = mapOf(
+    private val samasaRuleCandidates: Map<SamasaType, List<SamasaSutra>> = mapOf(
         SamasaType.AVYAYIBHAVA to listOf(
             ApapariBahirAncavahPancamyaSutra,
             AngMaryadabhividhyohSutra,

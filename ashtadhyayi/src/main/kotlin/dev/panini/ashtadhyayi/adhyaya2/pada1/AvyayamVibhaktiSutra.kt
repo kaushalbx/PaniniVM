@@ -2,13 +2,10 @@ package dev.panini.ashtadhyayi.adhyaya2.pada1
 
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
-import dev.panini.core.Vibhakti
+import dev.panini.core.SamasaType
 import dev.panini.shiksha.Samjna
+import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
-import dev.panini.sutra.SutraAction
-import dev.panini.sutra.SutraRole
-import dev.panini.sutra.SutraScope
-import dev.panini.sutra.SutraType
 
 /**
  * Sūtra 2.1.6: अव्ययं विभक्तिसमीपसमृद्धिव्यृद्ध्यर्थाभावात्ययासंप्रतिशब्दप्रादुर्भावपश्चाद्यथानुपूर्व्ययौगपद्यसादृश्यसंपत्तिसाकल्यान्तवचनेषु.
@@ -27,7 +24,8 @@ object AvyayamVibhaktiSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.AVYAYIBHAVA
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         // Authentic Pāṇinian condition: pūrvapada must carry AVYAYA or UPASARGA saṃjñā

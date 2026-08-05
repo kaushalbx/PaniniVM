@@ -4,6 +4,7 @@ import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
 import dev.panini.core.SamasaType
 import dev.panini.core.Vibhakti
+import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -13,12 +14,12 @@ import dev.panini.sutra.SutraType
 /**
  * 2.1.34: अन्नेन व्यञ्जनम्.
  *
- * Tṛtīyā-subanta representing a seasoning/flavoring ingredient compounds with food words in Tatpuruṣa.
+ * Seasoning/flavoring ingredient nominals in Tṛtīyā compound with food nominals in Tatpuruṣa.
  */
 object AnnasenaVyanjanamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "2.1.34",
     text = "अन्नेन व्यञ्जनम्",
-    hindiExplanation = "व्यञ्जनवाचिनः तृतीयान्तः सुबन्तः अन्नवाचिना सुबन्तेन सह समस्यते, सोऽपि तत्पुरुषः।",
+    hindiExplanation = "व्यञ्जनवाचि सुबन्तं तृतीयान्तम् अन्नवाचिना सुबन्तेन सह समस्यते, सोऽपि तत्पुरुषः।",
     type = SutraType.NITYA,
     chapter = 2,
     pada = 1,
@@ -27,7 +28,8 @@ object AnnasenaVyanjanamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.TATPURUSA
     private val foodWords = setOf("ओदन", "सक्तु", "धान्य", "अन्न", "पायस")
 
     override fun matches(context: SamasaRuleContext): Boolean {
