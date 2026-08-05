@@ -6,6 +6,10 @@ import dev.panini.core.SamasaType
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
+import dev.panini.sutra.SutraAction
+import dev.panini.sutra.SutraRole
+import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraType
 
 /**
  * Sūtra 2.1.6: अव्ययं विभक्तिसमीपसमृद्धिव्यृद्ध्यर्थाभावात्ययासंप्रतिशब्दप्रादुर्भावपश्चाद्यथानुपूर्व्ययौगपद्यसादृश्यसंपत्तिसाकल्यान्तवचनेषु.

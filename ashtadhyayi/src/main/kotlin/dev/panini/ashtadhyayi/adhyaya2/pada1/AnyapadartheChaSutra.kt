@@ -5,6 +5,10 @@ import dev.panini.analysis.SamasaRuleResult
 import dev.panini.core.SamasaType
 import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
+import dev.panini.sutra.SutraAction
+import dev.panini.sutra.SutraRole
+import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraType
 
 /**
  * 2.1.21: अन्यपदार्थे च.
