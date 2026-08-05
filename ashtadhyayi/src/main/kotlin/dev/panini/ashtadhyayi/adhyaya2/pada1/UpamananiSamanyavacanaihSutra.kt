@@ -28,8 +28,8 @@ object UpamananiSamanyavacanaihSutra : Sutra<SamasaRuleContext, SamasaRuleResult
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.KARMADHARAYA,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.KARMADHARAYA
     private val upamanaGana = setOf("घन", "कमल", "बिम्ब", "मृग", "चन्द्र", "विद्युत्", "शश", "मेघ")
 
     override fun matches(context: SamasaRuleContext): Boolean {

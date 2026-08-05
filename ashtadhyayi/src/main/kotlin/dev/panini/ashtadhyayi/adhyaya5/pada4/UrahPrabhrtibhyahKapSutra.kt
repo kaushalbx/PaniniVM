@@ -26,8 +26,8 @@ object UrahPrabhrtibhyahKapSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.PRATYAYA_SELECTION,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.BAHUVRIHI,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.BAHUVRIHI
     private val urahPrabhrti = setOf("उरस्", "सर्पिस्", "पुमान्", "अनडुह्", "उरस्क")
 
     override fun matches(context: SamasaRuleContext): Boolean {

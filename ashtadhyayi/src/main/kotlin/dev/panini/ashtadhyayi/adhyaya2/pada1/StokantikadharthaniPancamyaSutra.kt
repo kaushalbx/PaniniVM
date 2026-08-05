@@ -28,8 +28,8 @@ object StokantikadharthaniPancamyaSutra : Sutra<SamasaRuleContext, SamasaRuleRes
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.TATPURUSA,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.TATPURUSA
     private val targetWords = setOf("स्तोक", "अन्तिक", "दूर", "कृच्छ्र")
 
     override fun matches(context: SamasaRuleContext): Boolean {

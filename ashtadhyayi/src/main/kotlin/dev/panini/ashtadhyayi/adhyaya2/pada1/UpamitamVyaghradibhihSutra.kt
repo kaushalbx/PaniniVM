@@ -28,8 +28,8 @@ object UpamitamVyaghradibhihSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.KARMADHARAYA,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.KARMADHARAYA
     private val vyaghradiGana = setOf("व्याघ्र", "सिंह", "ऋषभ", "चन्दना", "वृषभ", "नाग", "गज")
 
     override fun matches(context: SamasaRuleContext): Boolean {

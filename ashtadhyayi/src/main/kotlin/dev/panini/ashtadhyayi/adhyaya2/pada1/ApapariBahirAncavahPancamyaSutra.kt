@@ -27,8 +27,8 @@ object ApapariBahirAncavahPancamyaSutra : Sutra<SamasaRuleContext, SamasaRuleRes
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.AVYAYIBHAVA,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.AVYAYIBHAVA
     private val apaPariWords = setOf("अप", "परि", "बहिर्", "बहिः", "प्राक्", "प्रत्याक्")
 
     override fun matches(context: SamasaRuleContext): Boolean {

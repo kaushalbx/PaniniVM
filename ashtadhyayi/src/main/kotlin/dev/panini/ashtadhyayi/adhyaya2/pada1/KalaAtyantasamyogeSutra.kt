@@ -28,8 +28,8 @@ object KalaAtyantasamyogeSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.TATPURUSA,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.TATPURUSA
     private val kalaWords = setOf("मास", "अहोरात्र", "संवत्सर", "अहः", "रात्र", "मुहूर्त")
 
     override fun matches(context: SamasaRuleContext): Boolean {

@@ -27,8 +27,8 @@ object PareMadhyeShashthyaVaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.AVYAYIBHAVA,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.AVYAYIBHAVA
     private val pareMadhyeWords = setOf("पारे", "मध्ये", "पार", "मध्य")
 
     override fun matches(context: SamasaRuleContext): Boolean {

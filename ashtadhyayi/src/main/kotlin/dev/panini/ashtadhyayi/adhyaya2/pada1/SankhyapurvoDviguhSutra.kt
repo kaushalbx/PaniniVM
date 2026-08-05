@@ -28,8 +28,8 @@ object SankhyapurvoDviguhSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.DVIGU,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.DVIGU
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val purva = context.purvaPada

@@ -25,8 +25,8 @@ object VopasarjanasyaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.BAHUVRIHI,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.BAHUVRIHI
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val purva = context.purvaPada.upadesha

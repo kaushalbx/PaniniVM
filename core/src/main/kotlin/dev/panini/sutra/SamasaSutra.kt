@@ -12,16 +12,16 @@ import dev.panini.core.SamasaType
  */
 interface SamasaSutra {
     /** The primary compound classification prescribed or governed by this Sūtra. */
-    val samasaType: SamasaType
+    val samasaType: SamasaType?
 
-    /** Whether this Sūtra preserves case endings (Aluk Samāsa). Default: false. */
-    val isAluk: Boolean get() = samasaType == SamasaType.ALUK_TATPURUSA
+    /** Whether this Sūtra preserves case endings (Aluk Samāsa). */
+    val isAluk: Boolean
 
-    /** Whether this compound is mandatory (Nitya Samāsa). Default: true. */
-    val isNitya: Boolean get() = true
+    /** Whether this compound is mandatory (Nitya Samāsa). */
+    val isNitya: Boolean
 
-    /** Whether this Sūtra acts as a general Utsarga fallback rule for its compound type. Default: false. */
-    val isGeneralFallback: Boolean get() = false
+    /** Whether this Sūtra acts as a general Utsarga fallback rule for its compound type. */
+    val isGeneralFallback: Boolean
 
     /** Evaluates rule applicability for the given compound context. */
     fun matches(context: SamasaRuleContext): Boolean

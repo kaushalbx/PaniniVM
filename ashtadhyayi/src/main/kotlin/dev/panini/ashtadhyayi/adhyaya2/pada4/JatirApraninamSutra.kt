@@ -26,8 +26,8 @@ object JatirApraninamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.DVANDVA,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.DVANDVA
     private val apraniJatiWords = setOf("धाना", "शष्कुलि", "बदर", "ामलक")
 
     override fun matches(context: SamasaRuleContext): Boolean {

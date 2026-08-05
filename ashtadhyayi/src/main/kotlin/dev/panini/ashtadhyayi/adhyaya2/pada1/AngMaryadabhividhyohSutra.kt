@@ -27,8 +27,8 @@ object AngMaryadabhividhyohSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.AVYAYIBHAVA,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.AVYAYIBHAVA
 
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false

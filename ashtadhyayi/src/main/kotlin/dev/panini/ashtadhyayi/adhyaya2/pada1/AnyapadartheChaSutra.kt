@@ -27,8 +27,8 @@ object AnyapadartheChaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.AVYAYIBHAVA,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.AVYAYIBHAVA
     private val riverWords = setOf("गङ्गा", "यमुना", "शोण", "नर्मदा", "सरयू")
 
     override fun matches(context: SamasaRuleContext): Boolean {

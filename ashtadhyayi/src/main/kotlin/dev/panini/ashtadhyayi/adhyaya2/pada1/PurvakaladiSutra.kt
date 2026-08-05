@@ -28,8 +28,8 @@ object PurvakaladiSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.KARMADHARAYA,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.KARMADHARAYA
     private val purvakaladiWords = setOf("पूर्वकाल", "एक", "सर्व", "जरत्", "पुराण", "नव", "केवल")
 
     override fun matches(context: SamasaRuleContext): Boolean {

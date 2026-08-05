@@ -27,8 +27,8 @@ object LaksanenAbhipratiAbhimukhyeSutra : Sutra<SamasaRuleContext, SamasaRuleRes
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.AVYAYIBHAVA,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.AVYAYIBHAVA
     private val abhiPratiWords = setOf("अभि", "प्रति")
 
     override fun matches(context: SamasaRuleContext): Boolean {

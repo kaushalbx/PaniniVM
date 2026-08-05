@@ -28,8 +28,8 @@ object PutreNyatarasyamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.ALUK_TATPURUSA,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.ALUK_TATPURUSA
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         return context.uttaraPada.upadesha == "पुत्र"

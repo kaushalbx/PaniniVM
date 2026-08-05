@@ -28,8 +28,8 @@ object YajakadibhishchaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.TATPURUSA,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.TATPURUSA
     private val yajakadiGroup = setOf("याजक", "पूजक", "परिचारक", "भाषक", "शिक्षक")
 
     override fun matches(context: SamasaRuleContext): Boolean {

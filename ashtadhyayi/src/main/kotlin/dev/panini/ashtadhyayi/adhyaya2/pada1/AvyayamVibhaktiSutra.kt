@@ -28,8 +28,9 @@ object AvyayamVibhaktiSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.AVYAYIBHAVA,
+    isGeneralFallback = true,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.AVYAYIBHAVA
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         // Authentic Pāṇinian condition: pūrvapada must carry AVYAYA or UPASARGA saṃjñā

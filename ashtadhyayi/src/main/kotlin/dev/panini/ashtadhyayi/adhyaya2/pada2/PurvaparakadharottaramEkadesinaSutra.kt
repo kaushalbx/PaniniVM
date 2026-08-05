@@ -27,8 +27,8 @@ object PurvaparakadharottaramEkadesinaSutra : Sutra<SamasaRuleContext, SamasaRul
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.TATPURUSA,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.TATPURUSA
     private val ekadeshaWords = setOf("पूर्व", "अपर", "अधर", "उत्तर")
 
     override fun matches(context: SamasaRuleContext): Boolean {

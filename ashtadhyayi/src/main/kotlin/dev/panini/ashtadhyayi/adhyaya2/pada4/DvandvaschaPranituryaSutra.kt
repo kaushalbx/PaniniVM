@@ -26,8 +26,8 @@ object DvandvaschaPranituryaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.DVANDVA,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.DVANDVA
     private val pranituryaWords = setOf(
         "पाणि", "पाद", "शिरस्", "ग्रीवा", "अक्षि", "नासिका",
         "मार्दङ्गिक", "वैणविक", "पाणविक",

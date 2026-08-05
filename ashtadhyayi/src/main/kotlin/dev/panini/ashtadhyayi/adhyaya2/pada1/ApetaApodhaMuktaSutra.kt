@@ -28,8 +28,8 @@ object ApetaApodhaMuktaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.TATPURUSA,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.TATPURUSA
     private val targetWords = setOf("अपेत", "अपोढ", "मुक्त", "पतित", "अपत्रस्त")
 
     override fun matches(context: SamasaRuleContext): Boolean {

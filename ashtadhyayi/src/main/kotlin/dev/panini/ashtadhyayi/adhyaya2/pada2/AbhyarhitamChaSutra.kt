@@ -26,8 +26,8 @@ object AbhyarhitamChaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.NIYAMA,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.DVANDVA,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.DVANDVA
     private val venerableWords = setOf("माता", "मातृ", "गुरु", "हरि", "ईश", "पितृ")
 
     override fun matches(context: SamasaRuleContext): Boolean {

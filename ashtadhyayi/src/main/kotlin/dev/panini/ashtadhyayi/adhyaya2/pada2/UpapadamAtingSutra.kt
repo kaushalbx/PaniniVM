@@ -30,8 +30,8 @@ object UpapadamAtingSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.UPAPADA_TATPURUSA,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.UPAPADA_TATPURUSA
     private val krdantaStems = setOf("कार", "ग", "ज्ञ", "द", "धर", "प", "हर", "कर", "सद्", "स्थ", "ज", "दा", "पा")
 
     override fun matches(context: SamasaRuleContext): Boolean {

@@ -28,8 +28,8 @@ object KtenaNanjVisistenaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.KARMADHARAYA,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.KARMADHARAYA
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val purva = context.purvaPada.upadesha

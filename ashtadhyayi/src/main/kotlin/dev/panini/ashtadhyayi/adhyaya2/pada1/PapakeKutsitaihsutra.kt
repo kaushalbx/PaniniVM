@@ -28,8 +28,8 @@ object PapakeKutsitaihsutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.KARMADHARAYA,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.KARMADHARAYA
     private val deprecatoryWords = setOf("पाप", "कुत्सित", "कुत्सि")
 
     override fun matches(context: SamasaRuleContext): Boolean {

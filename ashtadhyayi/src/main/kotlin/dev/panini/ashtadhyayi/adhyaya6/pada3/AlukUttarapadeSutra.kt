@@ -28,9 +28,9 @@ object AlukUttarapadeSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Adhikara(endKrama = 630037),
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.ALUK_TATPURUSA,
+    isGeneralFallback = true,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.ALUK_TATPURUSA
-    override val isGeneralFallback: Boolean = true
     override fun matches(context: SamasaRuleContext): Boolean =
         context.samasaType == SamasaType.ALUK_TATPURUSA && context.padas.size >= 2
 

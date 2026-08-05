@@ -28,8 +28,8 @@ object MayuravyamsakadayascaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.MAYURAVYAMSAKADI,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.MAYURAVYAMSAKADI
     private val mayuravyamsakadiGana = setOf("मयूरव्यंसक", "उच्चावच", "चिन्मात्र", "अन्यराजा")
 
     override fun matches(context: SamasaRuleContext): Boolean {

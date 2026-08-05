@@ -28,9 +28,9 @@ object VisesanamVisesyenaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.KARMADHARAYA,
+    isGeneralFallback = true,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.KARMADHARAYA
-    override val isGeneralFallback: Boolean = true
     override fun matches(context: SamasaRuleContext): Boolean = context.padas.size >= 2
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {

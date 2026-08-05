@@ -28,8 +28,8 @@ object AnnasenaVyanjanamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.TATPURUSA,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.TATPURUSA
     private val foodWords = setOf("ओदन", "सक्तु", "धान्य", "अन्न", "पायस")
 
     override fun matches(context: SamasaRuleContext): Boolean {

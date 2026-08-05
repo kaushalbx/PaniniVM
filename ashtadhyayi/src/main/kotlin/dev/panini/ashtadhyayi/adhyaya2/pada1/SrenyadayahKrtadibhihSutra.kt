@@ -27,8 +27,8 @@ object SrenyadayahKrtadibhihSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.KARMADHARAYA,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.KARMADHARAYA
     private val sreniWords = setOf("श्रेणि", "एक", "पूप", "पिण्ड", "गोल")
 
     override fun matches(context: SamasaRuleContext): Boolean {

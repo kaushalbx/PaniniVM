@@ -29,8 +29,8 @@ object SanMahatParamottamaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.KARMADHARAYA,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.KARMADHARAYA
     private val praiseAdjectives = setOf("सत्", "महत्", "परम", "उत्तम", "उत्कृष्ट")
 
     override fun matches(context: SamasaRuleContext): Boolean {

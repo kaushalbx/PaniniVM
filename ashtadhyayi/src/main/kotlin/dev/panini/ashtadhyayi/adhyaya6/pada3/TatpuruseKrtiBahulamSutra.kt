@@ -28,8 +28,8 @@ object TatpuruseKrtiBahulamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.ALUK_TATPURUSA,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.ALUK_TATPURUSA
     private val alukSaptamiPurvapadas = setOf("युधि", "सरसि", "मनसि", "खे", "हृदि")
 
     override fun matches(context: SamasaRuleContext): Boolean {

@@ -35,6 +35,10 @@ abstract class Sutra<C, R>(
     private val examplesValue: List<SutraExample> = emptyList(),
     /** Segmented Sanskrit source accepted by the PaniniVM parser, when available. */
     val segmentedSource: String? = null,
+    val samasaType: dev.panini.core.SamasaType? = null,
+    val isAluk: Boolean = samasaType == dev.panini.core.SamasaType.ALUK_TATPURUSA,
+    val isNitya: Boolean = true,
+    val isGeneralFallback: Boolean = false,
 ) : ScopedSutra, GovernedSutra, TraceableSutra {
 
     /** Every loaded sūtra must state its own eligibility and grammatical change. */

@@ -27,8 +27,8 @@ object NanjSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
+    samasaType = SamasaType.NAN_TATPURUSA,
 ), SamasaSutra {
-    override val samasaType: SamasaType = SamasaType.NAN_TATPURUSA
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         if (context.samasaType == SamasaType.NAN_TATPURUSA) return true
