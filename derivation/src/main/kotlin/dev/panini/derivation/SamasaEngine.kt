@@ -124,7 +124,8 @@ class SamasaEngine(
                 for (i in 1 until padas.size) {
                     val next = padas[i].upadesha
                     val j = sandhiEngine.join(res, next)
-                    res = j.final.surface.ifBlank { res + next }
+                    val joined = j.final.surface
+                    res = if (joined.isNotBlank() && joined.length >= res.length + next.length - 2) joined else res + next
                     applications.addAll(j.applications)
                 }
                 if (hasSamasantaKap) res + "क" else res
@@ -179,7 +180,7 @@ class SamasaEngine(
     private fun subantaParams(type: SamasaType, padas: List<SamasaPada>): Triple<Vibhakti, Vacana, Linga> {
         val count = padas.size
         val lastPada = padas.lastOrNull()?.upadesha ?: ""
-        val isNeuterStem = lastPada in setOf("पद", "ज", "कुल", "वन", "अक्ष")
+        val isNeuterStem = lastPada in setOf("पद", "ज", "कुल", "वन", "अक्ष") || padas.firstOrNull()?.upadesha == "कृत"
         val isSamaharaDvandva = padas.any { it.upadesha in setOf("पाणि", "पाद", "मार्दङ्गिक", "धाना", "शष्कुलि") }
 
         return when (type) {
@@ -225,8 +226,8 @@ class SamasaEngine(
     private fun selectDvandvaSutra(context: SamasaRuleContext): Sutra<SamasaRuleContext, SamasaRuleResult> = when {
         DvandvaschaPranituryaSutra.matches(context) -> DvandvaschaPranituryaSutra
         JatirApraninamSutra.matches(context) -> JatirApraninamSutra
-        AbhyarhitamChaSutra.matches(context) -> AbhyarhitamChaSutra
         AjadyadantamSutra.matches(context) -> AjadyadantamSutra
+        AbhyarhitamChaSutra.matches(context) -> AbhyarhitamChaSutra
         AlpactaramSutra.matches(context) -> AlpactaramSutra
         else -> CartheDvandvahSutra
     }

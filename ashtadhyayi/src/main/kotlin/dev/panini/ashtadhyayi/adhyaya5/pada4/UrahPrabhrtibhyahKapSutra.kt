@@ -34,10 +34,7 @@ object UrahPrabhrtibhyahKapSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
-        val purva = context.purvaPada.upadesha
-        val uttara = context.uttaraPada.upadesha
-        val base = purva + uttara
-        val compoundStem = base + "क"
+        val compoundStem = context.padas.joinToString("") { it.upadesha } + "क"
 
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
