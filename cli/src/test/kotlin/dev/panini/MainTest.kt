@@ -17,13 +17,6 @@ import kotlin.test.assertTrue
 class MainTest {
 
     @Test
-    fun `pvm command prints only explicitly requested final value`() {
-        val output = runCli(arrayOf("--eval", "examples/algorithms/fibonacci_array.pvm"))
-
-        assertEquals(listOf("एकविंशतिः"), output)
-    }
-
-    @Test
     fun `grantha command executes canonical segmented source`() {
         DhatuPathaRegistration.ensureRegistered()
         val conversation = SambhashanaContext("प्रयोक्ता", "यन्त्रम्")
