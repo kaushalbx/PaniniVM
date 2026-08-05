@@ -3,7 +3,7 @@ package dev.panini.ashtadhyayi.adhyaya2.pada1
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
 import dev.panini.core.SamasaType
-import dev.panini.shiksha.Vibhakti
+import dev.panini.core.Vibhakti
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -25,7 +25,7 @@ object DvitIyaSritatitapatitagatatyastapraptapannaihSutra : Sutra<SamasaRuleCont
     optional = false,
     kramaValue = 210024,
     role = SutraRole.Vidhi,
-    action = SutraAction.SAMASA_CLASSIFICATION,
+    action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
 ) {
     private val targetWords = setOf("श्रित", "अतीत", "पतित", "गत", "अत्यस्त", "प्राप्त", "आपन्न")

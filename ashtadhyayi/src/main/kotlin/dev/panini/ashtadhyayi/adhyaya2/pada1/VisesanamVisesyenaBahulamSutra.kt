@@ -24,7 +24,7 @@ object VisesanamVisesyenaBahulamSutra : Sutra<SamasaRuleContext, SamasaRuleResul
     optional = false,
     kramaValue = 210057,
     role = SutraRole.Vidhi,
-    action = SutraAction.SAMASA_CLASSIFICATION,
+    action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
 ) {
     override fun matches(context: SamasaRuleContext): Boolean {
