@@ -39,5 +39,10 @@ object Adhyaya5Pada4 {
         ArdhacChaSutra,
         KharyahPracamSutra,
         DvitribhyamAnjalehSutra,
+        ManasaAlikhyeSutra,
+        BrahmastayohSamjnayamSutra,
+        KuhuKamsayorAvispastayohSutra,
+        TricaturbhyamUsnohSutra,
+        PurahPrasadatSutra,
     )
 }

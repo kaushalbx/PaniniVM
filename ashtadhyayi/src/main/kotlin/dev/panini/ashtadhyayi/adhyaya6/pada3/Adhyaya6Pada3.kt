@@ -42,5 +42,10 @@ object Adhyaya6Pada3 {
         DivasChaSutra,
         UsasaUsasahSutra,
         MatariPitariChaSutra,
+        PitramataSutra,
+        RtoVidyaYoniSambandhebhyahSutra,
+        TacchilyeVahSutra,
+        KvanoDicChaSutra,
+        NaSamaseSutra,
     )
 }
