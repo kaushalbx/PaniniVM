@@ -28,7 +28,7 @@ object TaddhitarthaUttarapadaSamahareChaSutra : Sutra<SamasaRuleContext, SamasaR
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
     samasaType = SamasaType.DVIGU,
-    samasaPriority = 10,
+    samasaPriority = 5,
 ), SamasaSutra {
     private val digits = setOf("द्वि", "त्रि", "चतुर्", "पञ्च", "षट्", "सप्त", "अष्ट", "नव", "दश")
 

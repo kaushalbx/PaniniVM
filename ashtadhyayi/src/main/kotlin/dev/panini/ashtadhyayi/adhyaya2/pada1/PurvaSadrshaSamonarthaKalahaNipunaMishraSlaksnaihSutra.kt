@@ -29,7 +29,7 @@ object PurvaSadrshaSamonarthaKalahaNipunaMishraSlaksnaihSutra : Sutra<SamasaRule
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
     samasaType = SamasaType.TATPURUSA,
-    samasaPriority = 10,
+    samasaPriority = 5,
 ), SamasaSutra {
     private val targetWords = setOf("पूर्व", "सदृश", "सम", "ऊन", "कलह", "निपुण", "मिश्र", "श्लक्ष्ण")
 
