@@ -1,97 +1,135 @@
 package dev.panini.ashtadhyayi
 
+import dev.panini.analysis.SamasaPada
+import dev.panini.analysis.SamasaRuleContext
+import dev.panini.analysis.SamasaRuleResult
 import dev.panini.ashtadhyayi.adhyaya2.pada1.AvyayamVibhaktiSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.DvitiyaShritatitaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.PancamiBhayenaSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada1.TrtiyaTatkrtharthenaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.AnekamAnyapadartheSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.CartheDvandvahSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.ShashthiSutra
-import dev.panini.derivation.DerivationState
-import dev.panini.derivation.DerivationTerm
-import dev.panini.derivation.SamjnaAssignment
-import dev.panini.derivation.TermKind
+import dev.panini.core.SamasaType
+import dev.panini.core.Vibhakti
 import dev.panini.shiksha.Samjna
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
+/**
+ * Unit tests for individual Samāsa Sūtras using [SamasaRuleContext].
+ */
 class SamasaDerivationTest {
 
     @Test
-    fun `test AvyayamVibhaktiSutra forms Avyayibhava compound`() {
-        val state = DerivationState(
-            terms = listOf(
-                DerivationTerm("avyaya", "उप", TermKind.PRATIPADIKA, upadesha = "उप"),
-                DerivationTerm("pratipadika", "कृष्णम्", TermKind.PRATIPADIKA, upadesha = "कृष्णम्")
-            )
-        ).withSamjnas(setOf(SamjnaAssignment("avyaya", Samjna.AVYAYA)))
-        assertTrue(AvyayamVibhaktiSutra.matches(state))
-        val change = AvyayamVibhaktiSutra.apply(state)
-        assertEquals("उपकृष्णम्", change.state.terms[0].surface)
+    fun `test AvyayamVibhaktiSutra matches Avyaya pada and forms compound`() {
+        val context = SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("उप", Vibhakti.PRATHAMA, samjnas = setOf(Samjna.AVYAYA)),
+                SamasaPada("कृष्ण", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.AVYAYIBHAVA,
+        )
+        assertTrue(AvyayamVibhaktiSutra.matches(context))
+        val result = AvyayamVibhaktiSutra.apply(context) as SamasaRuleResult.Formed
+        assertEquals("उपकृष्ण", result.compoundStem)
     }
 
     @Test
-    fun `test DvitiyaShritatitaSutra forms Dvitiya Tatpurusha compound`() {
-        val state = DerivationState(
-            terms = listOf(
-                DerivationTerm("p1", "कृष्ण", TermKind.PRATIPADIKA, upadesha = "कृष्ण"),
-                DerivationTerm("p2", "श्रितः", TermKind.PRATIPADIKA, upadesha = "श्रितः")
-            )
+    fun `test DvitiyaShritatitaSutra matches DVITIYA vibhakti and forms compound`() {
+        val context = SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("कृष्ण", Vibhakti.DVITIYA),
+                SamasaPada("श्रित", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.TATPURUSA,
         )
-        assertTrue(DvitiyaShritatitaSutra.matches(state))
-        val change = DvitiyaShritatitaSutra.apply(state)
-        assertEquals("कृष्णश्रितः", change.state.terms[0].surface)
+        assertTrue(DvitiyaShritatitaSutra.matches(context))
+        val result = DvitiyaShritatitaSutra.apply(context) as SamasaRuleResult.Formed
+        assertEquals("कृष्णश्रित", result.compoundStem)
     }
 
     @Test
-    fun `test PancamiBhayenaSutra forms Pancami Tatpurusha compound`() {
-        val state = DerivationState(
-            terms = listOf(
-                DerivationTerm("p1", "चोर", TermKind.PRATIPADIKA, upadesha = "चोर"),
-                DerivationTerm("p2", "भयम्", TermKind.PRATIPADIKA, upadesha = "भयम्")
-            )
+    fun `test PancamiBhayenaSutra matches PANCHAMI vibhakti and forms compound`() {
+        val context = SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("चोर", Vibhakti.PANCHAMI),
+                SamasaPada("भय", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.TATPURUSA,
         )
-        assertTrue(PancamiBhayenaSutra.matches(state))
-        val change = PancamiBhayenaSutra.apply(state)
-        assertEquals("चोरभयम्", change.state.terms[0].surface)
+        assertTrue(PancamiBhayenaSutra.matches(context))
+        val result = PancamiBhayenaSutra.apply(context) as SamasaRuleResult.Formed
+        assertEquals("चोरभय", result.compoundStem)
     }
 
     @Test
-    fun `test ShashthiSutra forms Shashthi Tatpurusha compound`() {
-        val state = DerivationState(
-            terms = listOf(
-                DerivationTerm("p1", "राज", TermKind.PRATIPADIKA, upadesha = "राज"),
-                DerivationTerm("p2", "पुरुष", TermKind.PRATIPADIKA, upadesha = "पुरुष")
-            )
+    fun `test TrtiyaTatkrtharthenaSutra matches TRTIYA vibhakti and forms compound`() {
+        val context = SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("शङ्कुल", Vibhakti.TRTIYA),
+                SamasaPada("खण्ड", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.TATPURUSA,
         )
-        assertTrue(ShashthiSutra.matches(state))
-        val change = ShashthiSutra.apply(state)
-        assertEquals("राजपुरुष", change.state.terms[0].surface)
+        assertTrue(TrtiyaTatkrtharthenaSutra.matches(context))
+        val result = TrtiyaTatkrtharthenaSutra.apply(context) as SamasaRuleResult.Formed
+        assertEquals("शङ्कुलखण्ड", result.compoundStem)
     }
 
     @Test
-    fun `test CartheDvandvahSutra forms Dvandva compound`() {
-        val state = DerivationState(
-            terms = listOf(
-                DerivationTerm("p1", "राम", TermKind.PRATIPADIKA, upadesha = "राम"),
-                DerivationTerm("p2", "कृष्ण", TermKind.PRATIPADIKA, upadesha = "कृष्ण")
-            )
+    fun `test ShashthiSutra matches SASTHI vibhakti and forms compound`() {
+        val context = SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("राज", Vibhakti.SASTHI),
+                SamasaPada("पुरुष", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.TATPURUSA,
         )
-        assertTrue(CartheDvandvahSutra.matches(state))
-        val change = CartheDvandvahSutra.apply(state)
-        assertEquals("रामकृष्ण", change.state.terms[0].surface)
+        assertTrue(ShashthiSutra.matches(context))
+        val result = ShashthiSutra.apply(context) as SamasaRuleResult.Formed
+        assertEquals("राजपुरुष", result.compoundStem)
     }
 
     @Test
-    fun `test AnekamAnyapadartheSutra forms Bahuvrihi compound`() {
-        val state = DerivationState(
-            terms = listOf(
-                DerivationTerm("p1", "पीत", TermKind.PRATIPADIKA, upadesha = "पीत"),
-                DerivationTerm("p2", "अम्बर", TermKind.PRATIPADIKA, upadesha = "अम्बर")
-            )
+    fun `test CartheDvandvahSutra matches two padas and forms compound`() {
+        val context = SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("राम", Vibhakti.PRATHAMA),
+                SamasaPada("कृष्ण", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.DVANDVA,
         )
-        assertTrue(AnekamAnyapadartheSutra.matches(state))
-        val change = AnekamAnyapadartheSutra.apply(state)
-        assertEquals("पीतअम्बर", change.state.terms[0].surface)
+        assertTrue(CartheDvandvahSutra.matches(context))
+        val result = CartheDvandvahSutra.apply(context) as SamasaRuleResult.Formed
+        assertEquals("रामकृष्ण", result.compoundStem)
+    }
+
+    @Test
+    fun `test AnekamAnyapadartheSutra matches PRATHAMA padas and forms Bahuvrihi`() {
+        val context = SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("पीत", Vibhakti.PRATHAMA),
+                SamasaPada("अम्बर", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.BAHUVRIHI,
+        )
+        assertTrue(AnekamAnyapadartheSutra.matches(context))
+        val result = AnekamAnyapadartheSutra.apply(context) as SamasaRuleResult.Formed
+        assertEquals("पीतअम्बर", result.compoundStem)
+    }
+
+    @Test
+    fun `test AvyayamVibhaktiSutra does not match non-avyaya pada`() {
+        val context = SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("राम", Vibhakti.PRATHAMA), // no AVYAYA samjna
+                SamasaPada("कृष्ण", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.AVYAYIBHAVA,
+        )
+        // must not match — first pada has no AVYAYA/UPASARGA samjna
+        assertTrue(!AvyayamVibhaktiSutra.matches(context))
     }
 }
