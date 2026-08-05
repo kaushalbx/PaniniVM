@@ -133,4 +133,30 @@ class SamasaEngineTest {
         assertEquals("त्रिभुवनम्", actual, "Failed! Actual: '$actual', Applications: $apps")
         assertTrue(result.applications.any { it.sutra == "2.1.52" })
     }
+
+    @Test
+    fun `test Nanj Tatpurusha compound derivation for consonant-initial stem`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("न", Vibhakti.PRATHAMA),
+                SamasaPada("ब्राह्मण", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.NAN_TATPURUSA,
+        )
+        assertEquals("अब्राह्मणः", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "2.2.6" })
+    }
+
+    @Test
+    fun `test Nanj Tatpurusha compound derivation for vowel-initial stem`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("न", Vibhakti.PRATHAMA),
+                SamasaPada("अश्व", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.NAN_TATPURUSA,
+        )
+        assertEquals("अनश्वः", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "2.2.6" })
+    }
 }

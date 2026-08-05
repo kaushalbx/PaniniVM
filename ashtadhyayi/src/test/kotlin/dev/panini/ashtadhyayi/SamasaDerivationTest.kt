@@ -13,6 +13,7 @@ import dev.panini.ashtadhyayi.adhyaya2.pada1.TrtiyaTatkrtharthenaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.VisesanamVisesyenaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.AnekamAnyapadartheSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.CartheDvandvahSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada2.NanjSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.ShashthiSutra
 import dev.panini.core.SamasaType
 import dev.panini.core.Vibhakti
@@ -178,6 +179,31 @@ class SamasaDerivationTest {
         assertTrue(SankhyapurvoDviguhSutra.matches(context))
         val result = SankhyapurvoDviguhSutra.apply(context) as SamasaRuleResult.Formed
         assertEquals("त्रिभुवन", result.compoundStem)
+    }
+
+    @Test
+    fun `test NanjSutra matches Nañ purvapada and applies nalopa and nut`() {
+        val halContext = SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("न", Vibhakti.PRATHAMA),
+                SamasaPada("ब्राह्मण", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.NAN_TATPURUSA,
+        )
+        assertTrue(NanjSutra.matches(halContext))
+        val halResult = NanjSutra.apply(halContext) as SamasaRuleResult.Formed
+        assertEquals("अब्राह्मण", halResult.compoundStem)
+
+        val acContext = SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("न", Vibhakti.PRATHAMA),
+                SamasaPada("अश्व", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.NAN_TATPURUSA,
+        )
+        assertTrue(NanjSutra.matches(acContext))
+        val acResult = NanjSutra.apply(acContext) as SamasaRuleResult.Formed
+        assertEquals("अनश्व", acResult.compoundStem)
     }
 
     @Test

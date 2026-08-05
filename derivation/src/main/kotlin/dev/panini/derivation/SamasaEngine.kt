@@ -15,6 +15,7 @@ import dev.panini.ashtadhyayi.adhyaya2.pada1.TrtiyaTatkrtharthenaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.VisesanamVisesyenaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.AnekamAnyapadartheSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.CartheDvandvahSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada2.NanjSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.ShashthiSutra
 import dev.panini.core.Linga
 import dev.panini.core.SamasaType
@@ -164,7 +165,7 @@ class SamasaEngine(
     private fun subantaParams(type: SamasaType, count: Int): Triple<Vibhakti, Vacana, Linga> = when (type) {
         SamasaType.AVYAYIBHAVA ->
             Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.NAPUMSAKA)
-        SamasaType.TATPURUSA, SamasaType.BAHUVRIHI, SamasaType.KARMADHARAYA ->
+        SamasaType.TATPURUSA, SamasaType.BAHUVRIHI, SamasaType.KARMADHARAYA, SamasaType.NAN_TATPURUSA ->
             Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.PUMS)
         SamasaType.DVIGU ->
             Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.NAPUMSAKA)
@@ -182,6 +183,7 @@ class SamasaEngine(
     ): Sutra<SamasaRuleContext, SamasaRuleResult> = when (context.samasaType) {
         SamasaType.AVYAYIBHAVA  -> AvyayamVibhaktiSutra
         SamasaType.TATPURUSA    -> selectTatpurusaSutra(context.purvaPadaVibhakti)
+        SamasaType.NAN_TATPURUSA -> NanjSutra
         SamasaType.KARMADHARAYA -> VisesanamVisesyenaSutra
         SamasaType.DVIGU        -> SankhyapurvoDviguhSutra
         SamasaType.BAHUVRIHI    -> AnekamAnyapadartheSutra
