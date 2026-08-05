@@ -63,5 +63,10 @@ object Adhyaya2Pada1 {
         DharksyatSutra,
         KtenaSutra,
         TaddhitarthaUttarapadaExtSutra,
+        GahaneKathinaSutra,
+        SankhyapurvoDviguExtSutra,
+        UpamanaSamanyaExtSutra,
+        VisesanaVisesyaExtSutra,
+        KtenaNanjExtSutra,
     )
 }

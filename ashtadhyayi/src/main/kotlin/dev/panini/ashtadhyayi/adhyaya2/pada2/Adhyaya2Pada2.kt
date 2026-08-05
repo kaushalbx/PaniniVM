@@ -36,5 +36,10 @@ object Adhyaya2Pada2 {
         RajadantadisuSutra,
         SaptamiVisesaneBahuvrihauSutra,
         NisthaBahuvrihauSutra,
+        UpapadamAtingExtSutra,
+        AnekamAnyapadartheExtSutra,
+        SahaSupaSutra,
+        CartheDvandvaExtSutra,
+        VahitagnyadisuSutra,
     )
 }
