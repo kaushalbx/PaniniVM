@@ -10,6 +10,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.ganapatha.PradiGana
+
 /**
  * Sūtra 2.1.25: अत्यादयः क्रान्त्याद्यर्थे द्वितीयया.
  * Prescribes Tatpuruṣa compound of prefixes like 'ati' denoting surpassing/crossing with dvitīyā subanta.
@@ -30,13 +32,11 @@ object AtyadayaKrantyadyartheDvitiyayaSutra : Sutra<SamasaRuleContext, SamasaRul
     samasaType = SamasaType.TATPURUSA,
     samasaPriority = 10,
 ), SamasaSutra {
-    private val atiPrefixes = setOf("अति", "उत्", "अप", "परि")
-
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val purva = context.purvaPada.upadesha
         return context.samasaType == SamasaType.TATPURUSA &&
-            purva in atiPrefixes
+            (PradiGana.contains(purva) || PradiGana.members.any { it.text.startsWith(purva) })
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {

@@ -84,5 +84,6 @@ object Adhyaya2Pada1 {
         UpamananiSamanyaGeneralSutra,
         PurvakaladiExtSutra,
         KumarahShramanadibhihSutra,
+        PatresamitadiSutra,
     )
 }

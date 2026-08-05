@@ -30,14 +30,14 @@ object StokantikadharthaniPancamyaSutra : Sutra<SamasaRuleContext, SamasaRuleRes
     scope = SutraScope.DERIVATION,
     samasaType = SamasaType.TATPURUSA,
 ), SamasaSutra {
-    private val targetWords = setOf("स्तोक", "अन्तिक", "दूर", "कृच्छ्र")
+    private val targetWords = setOf("स्तोक", "अन्तिक", "दूर", "कृच्छ्र", "अल्प", "अभ्याश", "नेदिष्ठ", "विप्रकृष्ट")
 
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val purva = context.purvaPada
         return context.samasaType == SamasaType.TATPURUSA &&
             purva.vibhakti == Vibhakti.PANCHAMI &&
-            purva.upadesha in targetWords
+            (purva.upadesha in targetWords || targetWords.any { purva.upadesha.contains(it) })
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
