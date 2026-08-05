@@ -210,7 +210,7 @@ class SamasaEngine(
         context: SamasaRuleContext,
     ): Sutra<SamasaRuleContext, SamasaRuleResult> = when (context.samasaType) {
         SamasaType.AVYAYIBHAVA       -> selectAvyayibhavaSutra(context)
-        SamasaType.TATPURUSA         -> selectTatpurusaSutra(context.purvaPadaVibhakti)
+        SamasaType.TATPURUSA         -> selectTatpurusaSutra(context)
         SamasaType.NAN_TATPURUSA      -> NanjSutra
         SamasaType.UPAPADA_TATPURUSA    -> UpapadamAtingSutra
         SamasaType.ALUK_TATPURUSA       -> selectAlukSutra(context)
@@ -256,6 +256,10 @@ class SamasaEngine(
     }
 
     private fun selectKarmadharayaSutra(context: SamasaRuleContext): Sutra<SamasaRuleContext, SamasaRuleResult> = when {
+        SanMahatParamottamaSutra.matches(context) -> SanMahatParamottamaSutra
+        PurvakaladiSutra.matches(context) -> PurvakaladiSutra
+        KtenaNanjVisistenaSutra.matches(context) -> KtenaNanjVisistenaSutra
+        PapakeKutsitaihsutra.matches(context) -> PapakeKutsitaihsutra
         UpamitamVyaghradibhihSutra.matches(context) -> UpamitamVyaghradibhihSutra
         UpamananiSamanyavacanaihSutra.matches(context) -> UpamananiSamanyavacanaihSutra
         else -> VisesanamVisesyenaSutra
@@ -266,14 +270,17 @@ class SamasaEngine(
      * Pāṇinian: the case of the prior member determines the compound sub-type.
      */
     private fun selectTatpurusaSutra(
-        vibhakti: Vibhakti,
-    ): Sutra<SamasaRuleContext, SamasaRuleResult> = when (vibhakti) {
-        Vibhakti.DVITIYA   -> DvitiyaShritatitaSutra   // 2.1.24
-        Vibhakti.TRTIYA    -> TrtiyaTatkrtharthenaSutra // 2.1.30
-        Vibhakti.CHATURTHI -> CaturthiTadarthartheSutra // 2.1.36
-        Vibhakti.PANCHAMI  -> PancamiBhayenaSutra       // 2.1.37
-        Vibhakti.SAPTAMI   -> SaptamiSaundaihSutra       // 2.1.40
-        else               -> ShashthiSutra              // 2.2.8 (default — ṣaṣṭhī)
+        context: SamasaRuleContext,
+    ): Sutra<SamasaRuleContext, SamasaRuleResult> {
+        if (YajakadibhishchaSutra.matches(context)) return YajakadibhishchaSutra
+        return when (context.purvaPadaVibhakti) {
+            Vibhakti.DVITIYA   -> DvitiyaShritatitaSutra   // 2.1.24
+            Vibhakti.TRTIYA    -> TrtiyaTatkrtharthenaSutra // 2.1.30
+            Vibhakti.CHATURTHI -> CaturthiTadarthartheSutra // 2.1.36
+            Vibhakti.PANCHAMI  -> PancamiBhayenaSutra       // 2.1.37
+            Vibhakti.SAPTAMI   -> SaptamiSaundaihSutra       // 2.1.40
+            else               -> ShashthiSutra              // 2.2.8 (default — ṣaṣṭhī)
+        }
     }
 
     private fun executeDerivationSutra(

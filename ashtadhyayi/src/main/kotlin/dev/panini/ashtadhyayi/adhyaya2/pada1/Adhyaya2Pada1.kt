@@ -19,6 +19,10 @@ object Adhyaya2Pada1 {
         UpamananiSamanyavacanaihSutra,
         UpamitamVyaghradibhihSutra,
         VisesanamVisesyenaSutra,
+        PurvakaladiSutra,
+        KtenaNanjVisistenaSutra,
+        SanMahatParamottamaSutra,
+        PapakeKutsitaihsutra,
         MayuravyamsakadayascaSutra,
     )
 }

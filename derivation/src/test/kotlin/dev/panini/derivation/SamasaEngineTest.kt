@@ -422,4 +422,69 @@ class SamasaEngineTest {
         )
         assertTrue(result.applications.any { it.sutra == "2.1.19" })
     }
+
+    @Test
+    fun `test Karmadharaya Purvakaladi (2 1 58)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("एक", Vibhakti.PRATHAMA),
+                SamasaPada("पुरुष", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.KARMADHARAYA,
+        )
+        assertEquals("एकपुरुषः", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "2.1.58" })
+    }
+
+    @Test
+    fun `test Karmadharaya KtenaNanjVisistena (2 1 60)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("कृत", Vibhakti.PRATHAMA),
+                SamasaPada("अकृत", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.KARMADHARAYA,
+        )
+        assertEquals("कृताकृतम्", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "2.1.60" })
+    }
+
+    @Test
+    fun `test Karmadharaya SanMahatParamottama (2 1 61)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("महत्", Vibhakti.PRATHAMA),
+                SamasaPada("पुरुष", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.KARMADHARAYA,
+        )
+        assertEquals("महापुरुषः", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "2.1.61" })
+    }
+
+    @Test
+    fun `test Karmadharaya PapakeKutsitaih (2 1 68)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("पाप", Vibhakti.PRATHAMA),
+                SamasaPada("पुरुष", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.KARMADHARAYA,
+        )
+        assertEquals("पापपुरुषः", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "2.1.68" })
+    }
+
+    @Test
+    fun `test Tatpurusha Yajakadibhishcha (2 2 9)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("ब्राह्मण", Vibhakti.SHASHTHI),
+                SamasaPada("याजक", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.TATPURUSA,
+        )
+        assertEquals("ब्राह्मणयाजकः", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "2.2.9" })
+    }
 }

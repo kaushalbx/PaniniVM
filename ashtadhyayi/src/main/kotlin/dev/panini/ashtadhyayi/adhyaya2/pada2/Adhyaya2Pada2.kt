@@ -7,6 +7,7 @@ object Adhyaya2Pada2 {
         NanjSutra,
         UpapadamAtingSutra,
         ShashthiSutra,
+        YajakadibhishchaSutra,
         AnekamAnyapadartheSutra,
         TenaSahetiTulyayogesutra,
         CartheDvandvahSutra,
