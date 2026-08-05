@@ -13,5 +13,8 @@ object Adhyaya5Pada2 {
         NityamShatadiSutra,
         ShashtyadeshCasankhyadehSutra,
         TadasyastyasminnitiMatupSutra,
+        SankhyayaAvayaveTayapSutra,
+        DvitribhyamTayasyAyajSutra,
+        UbhadUdattoNityamSutra,
     )
 }
