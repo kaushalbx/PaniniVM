@@ -102,5 +102,10 @@ object Adhyaya6Pada3 {
         KvanoDicExtSutra,
         NaSamaseExtSutra,
         KyunNadyorManinyamExtSutra,
+        GopaStriyamSirVighateExtSutra,
+        BhaktyaAnExtSutra,
+        StriyahPumvatbhavasExtSutra,
+        TasimatSvarnthesvAbhavahExtSutra,
+        GarudhyaiChatmanahExtSutra,
     )
 }

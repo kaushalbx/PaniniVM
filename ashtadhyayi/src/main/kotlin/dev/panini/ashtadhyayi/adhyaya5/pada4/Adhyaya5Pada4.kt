@@ -99,5 +99,10 @@ object Adhyaya5Pada4 {
         SamkhyayaAsannadhikaExtSutra,
         DvitribhyamSahExtSutra,
         NantadAhExtSutra,
+        SuryasyAstamikayamExtSutra,
+        BahuvrihauSakthyaksnohExt2Sutra,
+        SvangacChasExtSutra,
+        DvitribhyamAksnahExtSutra,
+        PratamsamasthadAhExtSutra,
     )
 }
