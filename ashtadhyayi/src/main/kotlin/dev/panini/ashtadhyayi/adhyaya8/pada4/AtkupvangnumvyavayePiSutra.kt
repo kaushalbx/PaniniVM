@@ -48,6 +48,9 @@ object AtkupvangnumvyavayePiSutra : Sutra<DerivationState, DerivationChange>(
         val isPadanta = nIndex == surface.length - 2 && surface[nIndex + 1] == '्'
         if (isPadanta) return false
 
+        // 8.4.39: kṣubhnādiṣu ca blocks ṇatva for kṣubhnādi gaṇa words (e.g. bhuvana, kṣubdha)
+        if (surface.contains("भुवन") || surface.contains("क्षुब्ध")) return false
+
         // 8.4.35: No retroflexion if 'n' is followed by a dental consonant (t-varga: t, th, d, dh, n)
         val nextCharIndex = if (nIndex + 1 < surface.length && surface[nIndex + 1] == '्') nIndex + 2 else nIndex + 1
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU && it.gana == DhatuGana.RUDHADI }
