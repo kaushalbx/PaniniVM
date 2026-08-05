@@ -27,6 +27,7 @@ object JatirApraninamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
     samasaType = SamasaType.DVANDVA,
+    samasaPriority = 10,
 ), SamasaSutra {
     private val apraniJatiWords = setOf("धाना", "शष्कुलि", "बदर", "ामलक")
 

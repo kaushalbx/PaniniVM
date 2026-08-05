@@ -27,6 +27,7 @@ object AjadyadantamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     action = SutraAction.NIYAMA,
     scope = SutraScope.DERIVATION,
     samasaType = SamasaType.DVANDVA,
+    samasaPriority = 5,
 ), SamasaSutra {
     private val vowels = setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ए', 'ऐ', 'ओ', 'औ')
     private val matras = setOf('ा', 'ि', 'ी', 'ु', 'ू', 'े', 'ै', 'ो', 'ौ', 'ृ', '्', 'ः', 'ं')

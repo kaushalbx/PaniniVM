@@ -27,6 +27,7 @@ object AbhyarhitamChaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     action = SutraAction.NIYAMA,
     scope = SutraScope.DERIVATION,
     samasaType = SamasaType.DVANDVA,
+    samasaPriority = 4,
 ), SamasaSutra {
     private val venerableWords = setOf("माता", "मातृ", "गुरु", "हरि", "ईश", "पितृ")
 

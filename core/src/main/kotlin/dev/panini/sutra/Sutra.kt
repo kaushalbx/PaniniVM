@@ -39,6 +39,7 @@ abstract class Sutra<C, R>(
     val isAluk: Boolean = samasaType == dev.panini.core.SamasaType.ALUK_TATPURUSA,
     val isNitya: Boolean = true,
     val isGeneralFallback: Boolean = false,
+    val samasaPriority: Int = 0,
 ) : ScopedSutra, GovernedSutra, TraceableSutra {
 
     /** Every loaded sūtra must state its own eligibility and grammatical change. */

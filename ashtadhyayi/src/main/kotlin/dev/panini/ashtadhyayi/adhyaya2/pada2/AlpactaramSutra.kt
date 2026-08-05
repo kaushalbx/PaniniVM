@@ -27,6 +27,7 @@ object AlpactaramSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     action = SutraAction.NIYAMA,
     scope = SutraScope.DERIVATION,
     samasaType = SamasaType.DVANDVA,
+    samasaPriority = 1,
 ), SamasaSutra {
     private val vowels = setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ए', 'ऐ', 'ओ', 'औ')
 

@@ -29,6 +29,7 @@ object AnnasenaVyanjanamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
     samasaType = SamasaType.TATPURUSA,
+    samasaPriority = 10,
 ), SamasaSutra {
     private val foodWords = setOf("ओदन", "सक्तु", "धान्य", "अन्न", "पायस")
 

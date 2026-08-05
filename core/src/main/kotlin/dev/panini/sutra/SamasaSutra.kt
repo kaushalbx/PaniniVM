@@ -23,6 +23,9 @@ interface SamasaSutra {
     /** Whether this Sūtra acts as a general Utsarga fallback rule for its compound type. */
     val isGeneralFallback: Boolean
 
+    /** Priority rank among Sūtras for the same compound type (higher priority evaluated first). Default: 0. */
+    val samasaPriority: Int
+
     /** Evaluates rule applicability for the given compound context. */
     fun matches(context: SamasaRuleContext): Boolean
 
