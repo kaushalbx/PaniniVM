@@ -29,5 +29,10 @@ object Adhyaya5Pada4 {
         UttamaEkabhyamChaSutra,
         RajahahSakhibhyasTacSutra,
         AksnohTacChaSutra,
+        GramakataksabhyamTacSutra,
+        AnorAvatyatSutra,
+        GiriscerSenaSutra,
+        RatrerAhnahaSutra,
+        SamkhyapurvamRatramKlibamSutra,
     )
 }

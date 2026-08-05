@@ -32,5 +32,10 @@ object Adhyaya6Pada3 {
         ParimanePratyayasthasyaSutra,
         AnugavyamChaSutra,
         AdUpadesesutra,
+        DviguPraptapannaExtSutra,
+        TrerUtSutra,
+        TrehStriyamSutra,
+        DvistrayorIndreSutra,
+        SomasTugDhanyasuSutra,
     )
 }
