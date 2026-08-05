@@ -7,16 +7,16 @@ import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraType
 
 /**
  * 2.2.32: अभ्यर्हितं च.
- *
- * In a Dvandva compound, the most respected/venerable word is placed first (Pūrvanipāta).
  */
 object AbhyarhitamChaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "2.2.32",
     text = "अभ्यर्हितं च",
     hindiExplanation = "द्वन्द्वे अभ्यर्हितं पूजितं पूर्वं प्रयोक्तव्यम्।",
+    type = SutraType.NITYA,
     chapter = 2,
     pada = 2,
     optional = false,
@@ -38,10 +38,8 @@ object AbhyarhitamChaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         val compoundStem = sortedPadas.joinToString("") { it.upadesha }
 
         return SamasaRuleResult.Formed(
-            type = SamasaType.DVANDVA,
             compoundStem = compoundStem,
-            sutra = number,
-            description = "2.2.32: Ordered venerable member first in Dvandva ($compoundStem).",
+            explanation = "2.2.32: Ordered venerable member first in Dvandva ($compoundStem).",
         )
     }
 }

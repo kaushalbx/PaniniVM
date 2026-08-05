@@ -7,16 +7,16 @@ import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraType
 
 /**
  * 2.2.33: अजाद्यदन्तम्.
- *
- * In a Dvandva compound, a word beginning with a vowel and ending in 'a' is placed first.
  */
 object AjadyadantamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "2.2.33",
     text = "अजाद्यदन्तम्",
     hindiExplanation = "अजादि अदन्तं च पदं द्वन्द्वे पूर्वं प्रयोक्तव्यम्।",
+    type = SutraType.NITYA,
     chapter = 2,
     pada = 2,
     optional = false,
@@ -41,10 +41,8 @@ object AjadyadantamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         val compoundStem = sortedPadas.joinToString("") { it.upadesha }
 
         return SamasaRuleResult.Formed(
-            type = SamasaType.DVANDVA,
             compoundStem = compoundStem,
-            sutra = number,
-            description = "2.2.33: Placed vowel-initial a-ending member first ($compoundStem).",
+            explanation = "2.2.33: Placed vowel-initial a-ending member first ($compoundStem).",
         )
     }
 }

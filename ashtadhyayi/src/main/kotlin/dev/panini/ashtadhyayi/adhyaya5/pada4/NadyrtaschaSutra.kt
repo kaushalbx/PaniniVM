@@ -7,16 +7,16 @@ import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraType
 
 /**
  * 5.4.153: नद्यृतश्च.
- *
- * Adds samāsānta pratyaya 'kap' ('ka') after Nadī (ī/ū) or ṛ-ending stems in a Bahuvrīhi compound.
  */
 object NadyrtaschaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "5.4.153",
     text = "नद्यृतश्च",
     hindiExplanation = "नद्यन्तादृदन्ताच्च बहुव्रीहेः कप् प्रत्ययो भवति।",
+    type = SutraType.NITYA,
     chapter = 5,
     pada = 4,
     optional = false,
@@ -39,10 +39,8 @@ object NadyrtaschaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         val compoundStem = base + "क"
 
         return SamasaRuleResult.Formed(
-            type = SamasaType.BAHUVRIHI,
             compoundStem = compoundStem,
-            sutra = number,
-            description = "5.4.153: Added samāsānta kap-pratyaya after Nadī/ṛ-ending stem ($compoundStem).",
+            explanation = "5.4.153: Added samāsānta kap-pratyaya after Nadī/ṛ-ending stem ($compoundStem).",
         )
     }
 }

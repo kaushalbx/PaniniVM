@@ -7,16 +7,16 @@ import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraType
 
 /**
  * 2.2.34: अल्पाच्तरम्.
- *
- * In a Dvandva compound, the word containing fewer vowels (alpāc) is placed first.
  */
 object AlpactaramSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "2.2.34",
     text = "अल्पाच्तरम्",
     hindiExplanation = "अल्पस्वरयुक्तं पदं द्वन्द्वे पूर्वं प्रयोक्तव्यम्।",
+    type = SutraType.NITYA,
     chapter = 2,
     pada = 2,
     optional = false,
@@ -39,10 +39,8 @@ object AlpactaramSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         val compoundStem = sortedPadas.joinToString("") { it.upadesha }
 
         return SamasaRuleResult.Formed(
-            type = SamasaType.DVANDVA,
             compoundStem = compoundStem,
-            sutra = number,
-            description = "2.2.34: Placed member with fewer vowels first in Dvandva ($compoundStem).",
+            explanation = "2.2.34: Placed member with fewer vowels first in Dvandva ($compoundStem).",
         )
     }
 }

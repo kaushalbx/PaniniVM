@@ -7,16 +7,16 @@ import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraType
 
 /**
  * 5.4.154: नञोऽस्त्यर्थानाम्.
- *
- * Adds samāsānta pratyaya 'kap' ('ka') after Bahuvrīhi compounds starting with Nñ ('a-'/'an-') or negative meanings.
  */
 object NanoAstyarthanamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "5.4.154",
     text = "नञोऽस्त्यर्थानाम्",
     hindiExplanation = "नञुत्तरपदादविद्यमानादिरूपान्नञोऽस्त्यर्थाच्च बहुव्रीहेः कप् स्यात्।",
+    type = SutraType.NITYA,
     chapter = 5,
     pada = 4,
     optional = false,
@@ -39,10 +39,8 @@ object NanoAstyarthanamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         val compoundStem = base + "क"
 
         return SamasaRuleResult.Formed(
-            type = SamasaType.BAHUVRIHI,
             compoundStem = compoundStem,
-            sutra = number,
-            description = "5.4.154: Added samāsānta kap-pratyaya after negative Bahuvrīhi ($compoundStem).",
+            explanation = "5.4.154: Added samāsānta kap-pratyaya after negative Bahuvrīhi ($compoundStem).",
         )
     }
 }

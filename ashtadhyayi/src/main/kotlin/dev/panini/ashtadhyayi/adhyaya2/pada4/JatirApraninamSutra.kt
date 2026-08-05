@@ -7,16 +7,16 @@ import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraType
 
 /**
  * 2.4.6: जातिरप्राणिनाम्.
- *
- * A Dvandva compound of generic species of non-living things is in samāhāra (neuter singular).
  */
 object JatirApraninamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "2.4.6",
     text = "जातिरप्राणिनाम्",
     hindiExplanation = "अपाणिनां जातिवाचिनां द्वन्द्वः एकवद् भवति।",
+    type = SutraType.NITYA,
     chapter = 2,
     pada = 4,
     optional = false,
@@ -37,10 +37,8 @@ object JatirApraninamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         val compoundStem = context.padas.joinToString("") { it.upadesha }
 
         return SamasaRuleResult.Formed(
-            type = SamasaType.DVANDVA,
             compoundStem = compoundStem,
-            sutra = number,
-            description = "2.4.6: Formed Samāhāra Dvandva (neuter singular) for non-living species ($compoundStem).",
+            explanation = "2.4.6: Formed Samāhāra Dvandva (neuter singular) for non-living species ($compoundStem).",
         )
     }
 }
