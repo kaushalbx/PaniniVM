@@ -4,6 +4,7 @@ import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
 import dev.panini.core.SamasaType
 import dev.panini.shiksha.Varnamala
+import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
