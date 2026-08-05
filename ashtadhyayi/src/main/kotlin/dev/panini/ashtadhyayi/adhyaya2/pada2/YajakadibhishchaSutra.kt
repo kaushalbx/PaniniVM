@@ -11,6 +11,8 @@ import dev.panini.sutra.SutraType
 
 import dev.panini.sutra.SamasaSutra
 
+import dev.panini.ganapatha.YajakadiGana
+
 /**
  * 2.2.9: याजकादिभिश्च.
  *
@@ -30,12 +32,10 @@ object YajakadibhishchaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     scope = SutraScope.DERIVATION,
     samasaType = SamasaType.TATPURUSA,
 ), SamasaSutra {
-    private val yajakadiGroup = setOf("याजक", "पूजक", "परिचारक", "भाषक", "शिक्षक")
-
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val uttara = context.uttaraPada.upadesha
-        return uttara in yajakadiGroup
+        return YajakadiGana.contains(uttara) || YajakadiGana.members.any { it.text.startsWith(uttara) }
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {

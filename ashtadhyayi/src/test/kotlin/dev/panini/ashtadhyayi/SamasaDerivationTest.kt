@@ -204,6 +204,20 @@ class SamasaDerivationTest {
     }
 
     @Test
+    fun `test KumarahShramanadibhihSutra forms Tatpurusa compound with Shramanadi members`() {
+        val context = SamasaRuleContext(
+            padas = listOf(
+                SamasaPada("कुमार", Vibhakti.PRATHAMA),
+                SamasaPada("श्रमणा", Vibhakti.PRATHAMA),
+            ),
+            samasaType = SamasaType.KARMADHARAYA,
+        )
+        assertTrue(dev.panini.ashtadhyayi.adhyaya2.pada1.KumarahShramanadibhihSutra.matches(context))
+        val result = dev.panini.ashtadhyayi.adhyaya2.pada1.KumarahShramanadibhihSutra.apply(context) as SamasaRuleResult.Formed
+        assertEquals("कुमारश्रमणा", result.compoundStem)
+    }
+
+    @Test
     fun `test NanjSutra matches Nañ purvapada and applies nalopa and nut`() {
         val halContext = SamasaRuleContext(
             padas = listOf(
