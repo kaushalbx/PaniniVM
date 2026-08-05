@@ -255,6 +255,7 @@ class SamasaEngine(
         PapakeKutsitaihsutra.matches(context) -> PapakeKutsitaihsutra
         UpamitamVyaghradibhihSutra.matches(context) -> UpamitamVyaghradibhihSutra
         UpamananiSamanyavacanaihSutra.matches(context) -> UpamananiSamanyavacanaihSutra
+        VisesanamVisesyenaBahulamSutra.matches(context) -> VisesanamVisesyenaBahulamSutra
         else -> VisesanamVisesyenaSutra
     }
 
@@ -266,6 +267,10 @@ class SamasaEngine(
         context: SamasaRuleContext,
     ): Sutra<SamasaRuleContext, SamasaRuleResult> {
         if (YajakadibhishchaSutra.matches(context)) return YajakadibhishchaSutra
+        if (DvitIyaSritatitapatitagatatyastapraptapannaihSutra.matches(context)) return DvitIyaSritatitapatitagatatyastapraptapannaihSutra
+        if (TrtiyaTatkrtarthenaGunavacanenaSutra.matches(context)) return TrtiyaTatkrtarthenaGunavacanenaSutra
+        if (KartrkaraneKrtaBahulamSutra.matches(context)) return KartrkaraneKrtaBahulamSutra
+        if (SiddhasuskapakvabandhaishchaSutra.matches(context)) return SiddhasuskapakvabandhaishchaSutra
         return when (context.purvaPadaVibhakti) {
             Vibhakti.DVITIYA   -> DvitiyaShritatitaSutra   // 2.1.24
             Vibhakti.TRTIYA    -> TrtiyaTatkrtharthenaSutra // 2.1.30

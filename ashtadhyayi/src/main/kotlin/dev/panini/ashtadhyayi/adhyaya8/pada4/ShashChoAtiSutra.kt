@@ -39,8 +39,8 @@ object ShashChoAtiSutra : Sutra<DerivationState, DerivationChange>(
         return (0 until context.terms.size - 1).any { i ->
             val curr = context.terms[i].surface
             val next = context.terms[i + 1].surface
-            if (curr.isEmpty() || (!next.startsWith("श") && !next.startsWith("श्"))) return@any false
-            val lastChar = curr.trimEnd('्').lastOrNull() ?: return@any false
+            if (!curr.endsWith('्')) return@any false
+            val lastChar = curr.dropLast(1).lastOrNull() ?: return@any false
             if (!Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAY, lastChar)) return@any false
 
             val rawFollower = next.dropWhile { it == 'श' || it == '्' }.firstOrNull() ?: return@any false
@@ -54,8 +54,8 @@ object ShashChoAtiSutra : Sutra<DerivationState, DerivationChange>(
         val targetIndex = (0 until context.terms.size - 1).first { i ->
             val curr = context.terms[i].surface
             val next = context.terms[i + 1].surface
-            if (curr.isEmpty() || (!next.startsWith("श") && !next.startsWith("श्"))) return@first false
-            val lastChar = curr.trimEnd('्').lastOrNull() ?: return@first false
+            if (!curr.endsWith('्')) return@first false
+            val lastChar = curr.dropLast(1).lastOrNull() ?: return@first false
             if (!Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAY, lastChar)) return@first false
 
             val rawFollower = next.dropWhile { it == 'श' || it == '्' }.firstOrNull() ?: return@first false
