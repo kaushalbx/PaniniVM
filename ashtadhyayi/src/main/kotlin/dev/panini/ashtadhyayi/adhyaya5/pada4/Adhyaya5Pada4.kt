@@ -34,5 +34,10 @@ object Adhyaya5Pada4 {
         GiriscerSenaSutra,
         RatrerAhnahaSutra,
         SamkhyapurvamRatramKlibamSutra,
+        UttarapadalopiDviguSutra,
+        NavyasChaSutra,
+        ArdhacChaSutra,
+        KharyahPracamSutra,
+        DvitribhyamAnjalehSutra,
     )
 }

@@ -37,5 +37,10 @@ object Adhyaya6Pada3 {
         TrehStriyamSutra,
         DvistrayorIndreSutra,
         SomasTugDhanyasuSutra,
+        IdAgnesChardisiSutra,
+        DivaVijayeSutra,
+        DivasChaSutra,
+        UsasaUsasahSutra,
+        MatariPitariChaSutra,
     )
 }
