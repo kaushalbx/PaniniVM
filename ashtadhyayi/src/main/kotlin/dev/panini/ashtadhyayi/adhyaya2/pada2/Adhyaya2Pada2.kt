@@ -51,5 +51,10 @@ object Adhyaya2Pada2 {
         TenaSahetiTulyayogeExtSutra,
         TatraTenedamitiSarupeExtSutra,
         AjadyadantamExtSutra,
+        KarmaniChaExtSutra,
+        AmaivavyayenaExt2Sutra,
+        TenaSahetiHeaderSutra,
+        AbhyarhitamChaExtSutra,
+        CaturthiTadarthartheExtSutra,
     )
 }

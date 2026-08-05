@@ -78,5 +78,10 @@ object Adhyaya2Pada1 {
         SankhyaVamsyenaExtSutra,
         TrtiyaTatkrtarthenaGeneralSutra,
         MayuravyamsakadayascaExtSutra,
+        LaksanenAbhipratiExtSutra,
+        KalahGeneralSutra,
+        KsepeGeneralSutra,
+        UpamananiSamanyaGeneralSutra,
+        PurvakaladiExtSutra,
     )
 }

@@ -10,14 +10,10 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
-/**
- * Sūtra 2.2.20: अमैवाव्ययेन.
- * Rules compounding of am-ending indeclinable (amanta avyaya) only with another subanta.
- */
 object AmaivavyayenaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "2.2.20",
     text = "अमैवाव्ययेन",
-    hindiExplanation = "अमन्त अव्यय का समर्थ सुबन्त के साथ ही समास होता है (उदा. स्वाहाकृतम्)।",
+    hindiExplanation = "अम् तथा एव अव्ययान्त उपपद का समर्थ अव्यय के साथ नित्य समास होता है।",
     type = SutraType.NITYA,
     chapter = 2,
     pada = 2,
@@ -31,16 +27,15 @@ object AmaivavyayenaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
 ), SamasaSutra {
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
-        val purva = context.purvaPada.upadesha
-        return context.samasaType == SamasaType.TATPURUSA &&
-            purva.endsWith("म्")
+        return (context.samasaType == SamasaType.UPAPADA_TATPURUSA || context.samasaType == SamasaType.TATPURUSA) &&
+            context.padas.any { it.upadesha.contains("स्वाहा") || it.upadesha.endsWith("अम्") }
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
         val compoundStem = context.padas.joinToString("") { it.upadesha }
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
-            explanation = "2.2.20 forms Amanta-avyaya Tatpuruṣa compound '$compoundStem'.",
+            explanation = "2.2.20 forms mandatory Upapada compound '$compoundStem'.",
         )
     }
 }
