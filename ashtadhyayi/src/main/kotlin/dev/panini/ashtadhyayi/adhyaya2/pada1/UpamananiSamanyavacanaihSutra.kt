@@ -27,7 +27,13 @@ object UpamananiSamanyavacanaihSutra : Sutra<SamasaRuleContext, SamasaRuleResult
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
 ) {
-    override fun matches(context: SamasaRuleContext): Boolean = context.padas.size >= 2
+    private val upamanaGana = setOf("घन", "कमल", "बिम्ब", "मृग", "चन्द्र", "विद्युत्", "शश", "मेघ")
+
+    override fun matches(context: SamasaRuleContext): Boolean {
+        if (context.padas.size < 2) return false
+        val purva = context.purvaPada.upadesha
+        return purva in upamanaGana
+    }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
         val stem = context.padas.joinToString("") { it.upadesha }

@@ -32,7 +32,7 @@ object UpamitamVyaghradibhihSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val uttara = context.uttaraPada.upadesha
-        return uttara in vyaghradiGana || context.padas.size >= 2
+        return uttara in vyaghradiGana
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
