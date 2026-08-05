@@ -9,6 +9,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.sutra.SamasaSutra
+
 /**
  * Sūtra 6.3.14: तत्पुरुषे कृति बहुलम्.
  * Prescribes Aluk of Saptamī (7th case) in a Tatpuruṣa compound before a Kṛdanta uttarapada.
@@ -26,7 +28,8 @@ object TatpuruseKrtiBahulamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.ALUK_TATPURUSA
     private val alukSaptamiPurvapadas = setOf("युधि", "सरसि", "मनसि", "खे", "हृदि")
 
     override fun matches(context: SamasaRuleContext): Boolean {

@@ -9,6 +9,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.sutra.SamasaSutra
+
 /**
  * 5.4.153: नद्यृतश्च.
  */
@@ -24,7 +26,8 @@ object NadyrtaschaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.PRATYAYA_SELECTION,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.BAHUVRIHI
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val uttara = context.uttaraPada.upadesha

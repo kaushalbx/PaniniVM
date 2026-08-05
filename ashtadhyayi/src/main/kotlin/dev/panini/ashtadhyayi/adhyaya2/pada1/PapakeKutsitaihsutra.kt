@@ -9,6 +9,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.sutra.SamasaSutra
+
 /**
  * 2.1.68: पापे कुत्सितैः / पापकैः कुत्सितैः.
  *
@@ -26,7 +28,8 @@ object PapakeKutsitaihsutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.KARMADHARAYA
     private val deprecatoryWords = setOf("पाप", "कुत्सित", "कुत्सि")
 
     override fun matches(context: SamasaRuleContext): Boolean {

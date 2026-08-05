@@ -9,6 +9,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.sutra.SamasaSutra
+
 /**
  * 2.2.33: अजाद्यदन्तम्.
  */
@@ -24,7 +26,8 @@ object AjadyadantamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.NIYAMA,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.DVANDVA
     private val vowels = setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ए', 'ऐ', 'ओ', 'औ')
     private val matras = setOf('ा', 'ि', 'ी', 'ु', 'ू', 'े', 'ै', 'ो', 'ौ', 'ृ', '्', 'ः', 'ं')
 

@@ -9,6 +9,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.sutra.SamasaSutra
+
 /**
  * Sūtra 6.3.1: अलुक उत्तरपदे.
  * Adhikāra Sūtra governing non-elision (aluk) of case markers of the prior member (pūrvapada)
@@ -26,7 +28,8 @@ object AlukUttarapadeSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Adhikara(endKrama = 630037),
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.ALUK_TATPURUSA
     override fun matches(context: SamasaRuleContext): Boolean =
         context.samasaType == SamasaType.ALUK_TATPURUSA && context.padas.size >= 2
 

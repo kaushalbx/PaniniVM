@@ -9,6 +9,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.sutra.SamasaSutra
+
 /**
  * 2.4.2: द्वन्द्वश्च प्राणितूर्यसेनाङ्गानाम्.
  */
@@ -24,7 +26,8 @@ object DvandvaschaPranituryaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.DVANDVA
     private val pranituryaWords = setOf(
         "पाणि", "पाद", "शिरस्", "ग्रीवा", "अक्षि", "नासिका",
         "मार्दङ्गिक", "वैणविक", "पाणविक",

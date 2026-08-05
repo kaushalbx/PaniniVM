@@ -3,11 +3,9 @@ package dev.panini.ashtadhyayi.adhyaya2.pada1
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
 import dev.panini.shiksha.Samjna
+import dev.panini.core.SamasaType
+import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
-import dev.panini.sutra.SutraAction
-import dev.panini.sutra.SutraRole
-import dev.panini.sutra.SutraScope
-import dev.panini.sutra.SutraType
 
 /**
  * Sūtra 2.1.52: संख्यापूर्वो द्विगुः.
@@ -26,7 +24,8 @@ object SankhyapurvoDviguhSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.DVIGU
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val purva = context.purvaPada

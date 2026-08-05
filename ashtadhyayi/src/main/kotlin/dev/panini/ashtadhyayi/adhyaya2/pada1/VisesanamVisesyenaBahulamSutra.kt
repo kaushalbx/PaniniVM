@@ -9,6 +9,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.sutra.SamasaSutra
+
 /**
  * 2.1.57: विशेषणं विशेष्येण बहुलम्.
  *
@@ -26,7 +28,8 @@ object VisesanamVisesyenaBahulamSutra : Sutra<SamasaRuleContext, SamasaRuleResul
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.KARMADHARAYA
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         return context.samasaType == SamasaType.KARMADHARAYA

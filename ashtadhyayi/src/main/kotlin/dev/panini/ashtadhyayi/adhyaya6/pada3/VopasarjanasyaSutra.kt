@@ -2,11 +2,9 @@ package dev.panini.ashtadhyayi.adhyaya6.pada3
 
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
+import dev.panini.core.SamasaType
+import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
-import dev.panini.sutra.SutraAction
-import dev.panini.sutra.SutraRole
-import dev.panini.sutra.SutraScope
-import dev.panini.sutra.SutraType
 
 /**
  * 6.3.82: वोपसर्जनस्य.
@@ -23,7 +21,8 @@ object VopasarjanasyaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.BAHUVRIHI
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val purva = context.purvaPada.upadesha

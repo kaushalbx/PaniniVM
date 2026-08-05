@@ -9,6 +9,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.sutra.SamasaSutra
+
 /**
  * 2.1.58: पूर्वकालैकसर्वजरत्पुराणनवकेवलाः समानाधिकरणेन.
  *
@@ -26,7 +28,8 @@ object PurvakaladiSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.KARMADHARAYA
     private val purvakaladiWords = setOf("पूर्वकाल", "एक", "सर्व", "जरत्", "पुराण", "नव", "केवल")
 
     override fun matches(context: SamasaRuleContext): Boolean {

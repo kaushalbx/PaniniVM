@@ -9,6 +9,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.sutra.SamasaSutra
+
 /**
  * Sūtra 6.3.21: आत्मनश्च पूरणे.
  * Prescribes Aluk of case endings for 'ātmane' / 'parasmai' before 'pada' etc.
@@ -26,7 +28,8 @@ object AtmanascaPuraneSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.ALUK_TATPURUSA
     private val alukPurvapadas = setOf("आत्मने", "परस्मै")
 
     override fun matches(context: SamasaRuleContext): Boolean {

@@ -10,6 +10,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.sutra.SamasaSutra
+
 /**
  * 2.1.41: सिद्धशुष्कपक्वबन्धैश्च.
  *
@@ -27,7 +29,8 @@ object SiddhasuskapakvabandhaishchaSutra : Sutra<SamasaRuleContext, SamasaRuleRe
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.TATPURUSA
     private val targetWords = setOf("सिद्ध", "शुष्क", "पक्व", "बन्ध", "बद्ध")
 
     override fun matches(context: SamasaRuleContext): Boolean {

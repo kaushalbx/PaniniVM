@@ -9,6 +9,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.sutra.SamasaSutra
+
 /**
  * 2.1.61: सन्महत्परमोत्तमोत्कृष्टाः पूज्यमानैः.
  *
@@ -27,7 +29,8 @@ object SanMahatParamottamaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.KARMADHARAYA
     private val praiseAdjectives = setOf("सत्", "महत्", "परम", "उत्तम", "उत्कृष्ट")
 
     override fun matches(context: SamasaRuleContext): Boolean {

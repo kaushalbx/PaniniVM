@@ -9,6 +9,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.sutra.SamasaSutra
+
 /**
  * Sūtra 6.3.9: पुत्रेऽन्यतरस्याम्.
  * Prescribes optional Aluk of Ṣaṣṭhī (6th case) for pūrvapada before 'putra'.
@@ -26,7 +28,8 @@ object PutreNyatarasyamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.ALUK_TATPURUSA
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         return context.uttaraPada.upadesha == "पुत्र"

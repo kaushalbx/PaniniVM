@@ -9,6 +9,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.sutra.SamasaSutra
+
 /**
  * 5.4.151: उरःप्रभृतिभ्यः कप्च.
  */
@@ -24,7 +26,8 @@ object UrahPrabhrtibhyahKapSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.PRATYAYA_SELECTION,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.BAHUVRIHI
     private val urahPrabhrti = setOf("उरस्", "सर्पिस्", "पुमान्", "अनडुह्", "उरस्क")
 
     override fun matches(context: SamasaRuleContext): Boolean {

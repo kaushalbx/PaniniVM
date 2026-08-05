@@ -2,11 +2,9 @@ package dev.panini.ashtadhyayi.adhyaya2.pada1
 
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
+import dev.panini.core.SamasaType
+import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
-import dev.panini.sutra.SutraAction
-import dev.panini.sutra.SutraRole
-import dev.panini.sutra.SutraScope
-import dev.panini.sutra.SutraType
 
 /**
  * Sūtra 2.1.57: विशेषणं विशेष्येण बहुलम्.
@@ -26,7 +24,8 @@ object VisesanamVisesyenaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.KARMADHARAYA
     override fun matches(context: SamasaRuleContext): Boolean = context.padas.size >= 2
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {

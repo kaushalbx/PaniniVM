@@ -9,6 +9,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.sutra.SamasaSutra
+
 /**
  * 2.4.6: जातिरप्राणिनाम्.
  */
@@ -24,7 +26,8 @@ object JatirApraninamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.DVANDVA
     private val apraniJatiWords = setOf("धाना", "शष्कुलि", "बदर", "ामलक")
 
     override fun matches(context: SamasaRuleContext): Boolean {

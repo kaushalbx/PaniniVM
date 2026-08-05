@@ -2,11 +2,9 @@ package dev.panini.ashtadhyayi.adhyaya2.pada1
 
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
+import dev.panini.core.SamasaType
+import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
-import dev.panini.sutra.SutraAction
-import dev.panini.sutra.SutraRole
-import dev.panini.sutra.SutraScope
-import dev.panini.sutra.SutraType
 
 /**
  * Sūtra 2.1.55: उपमानानि सामान्यवचनैः.
@@ -26,7 +24,8 @@ object UpamananiSamanyavacanaihSutra : Sutra<SamasaRuleContext, SamasaRuleResult
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.KARMADHARAYA
     private val upamanaGana = setOf("घन", "कमल", "बिम्ब", "मृग", "चन्द्र", "विद्युत्", "शश", "मेघ")
 
     override fun matches(context: SamasaRuleContext): Boolean {

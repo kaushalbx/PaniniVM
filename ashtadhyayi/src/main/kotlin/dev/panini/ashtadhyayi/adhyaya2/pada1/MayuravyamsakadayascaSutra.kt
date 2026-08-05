@@ -9,6 +9,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.sutra.SamasaSutra
+
 /**
  * Sūtra 2.1.72: मयूरव्यंसकादयश्च.
  * Prescribes Nitya Tatpuruṣa compounding for irregular words belonging to the Mayūravyamsakādi gaṇa.
@@ -26,7 +28,8 @@ object MayuravyamsakadayascaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.MAYURAVYAMSAKADI
     private val mayuravyamsakadiGana = setOf("मयूरव्यंसक", "उच्चावच", "चिन्मात्र", "अन्यराजा")
 
     override fun matches(context: SamasaRuleContext): Boolean {

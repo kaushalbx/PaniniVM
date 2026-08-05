@@ -10,6 +10,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.sutra.SamasaSutra
+
 /**
  * 2.1.32: कर्तृकरणे कृता बहुलम्.
  *
@@ -27,7 +29,8 @@ object KartrkaraneKrtaBahulamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.TATPURUSA
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val purva = context.purvaPada

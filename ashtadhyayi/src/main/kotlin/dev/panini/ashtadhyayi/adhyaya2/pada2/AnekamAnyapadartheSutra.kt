@@ -2,12 +2,10 @@ package dev.panini.ashtadhyayi.adhyaya2.pada2
 
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
+import dev.panini.core.SamasaType
 import dev.panini.core.Vibhakti
+import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
-import dev.panini.sutra.SutraAction
-import dev.panini.sutra.SutraRole
-import dev.panini.sutra.SutraScope
-import dev.panini.sutra.SutraType
 
 /**
  * Sūtra 2.2.24: अनेकमन्यपदार्थे.
@@ -26,7 +24,8 @@ object AnekamAnyapadartheSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.BAHUVRIHI
     override fun matches(context: SamasaRuleContext): Boolean =
         context.padas.size >= 2 && context.purvaPadaVibhakti == Vibhakti.PRATHAMA
 

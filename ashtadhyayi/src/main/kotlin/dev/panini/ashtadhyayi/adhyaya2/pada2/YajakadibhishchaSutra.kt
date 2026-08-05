@@ -9,6 +9,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.sutra.SamasaSutra
+
 /**
  * 2.2.9: याजकादिभिश्च.
  *
@@ -26,7 +28,8 @@ object YajakadibhishchaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.TATPURUSA
     private val yajakadiGroup = setOf("याजक", "पूजक", "परिचारक", "भाषक", "शिक्षक")
 
     override fun matches(context: SamasaRuleContext): Boolean {

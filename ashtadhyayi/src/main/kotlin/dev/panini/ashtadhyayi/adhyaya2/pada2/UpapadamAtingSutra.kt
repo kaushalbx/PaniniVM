@@ -10,6 +10,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.sutra.SamasaSutra
+
 /**
  * Sūtra 2.2.19: उपपदमतिङ्.
  * Prescribes Tatpuruṣa compound of an Upapada (noun standing in locative in Kṛt-pratyaya rules, 3.1.92)
@@ -28,7 +30,8 @@ object UpapadamAtingSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.UPAPADA_TATPURUSA
     private val krdantaStems = setOf("कार", "ग", "ज्ञ", "द", "धर", "प", "हर", "कर", "सद्", "स्थ", "ज", "दा", "पा")
 
     override fun matches(context: SamasaRuleContext): Boolean {

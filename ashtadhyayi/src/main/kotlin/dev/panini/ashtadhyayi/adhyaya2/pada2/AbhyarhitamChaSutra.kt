@@ -9,6 +9,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
+import dev.panini.sutra.SamasaSutra
+
 /**
  * 2.2.32: अभ्यर्हितं च.
  */
@@ -24,7 +26,8 @@ object AbhyarhitamChaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role = SutraRole.Vidhi,
     action = SutraAction.NIYAMA,
     scope = SutraScope.DERIVATION,
-) {
+), SamasaSutra {
+    override val samasaType: SamasaType = SamasaType.DVANDVA
     private val venerableWords = setOf("माता", "मातृ", "गुरु", "हरि", "ईश", "पितृ")
 
     override fun matches(context: SamasaRuleContext): Boolean {
