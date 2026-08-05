@@ -28,11 +28,15 @@ object TrtiyaTatkrtarthenaGunavacanenaSutra : Sutra<SamasaRuleContext, SamasaRul
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
 ) {
+    private val gunavachanaOrArthaWords = setOf("अर्थ", "खण्ड", "गुण", "सम", "सदृश", "ऊन", "कलह", "निपुण", "मिश्र", "श्लक्ष्ण")
+
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val purva = context.purvaPada
+        val uttara = context.uttaraPada.upadesha
         return context.samasaType == SamasaType.TATPURUSA &&
-            purva.vibhakti == Vibhakti.TRTIYA
+            purva.vibhakti == Vibhakti.TRTIYA &&
+            (uttara in gunavachanaOrArthaWords || context.uttaraPada.surface in gunavachanaOrArthaWords)
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {

@@ -268,8 +268,8 @@ class SamasaEngine(
     ): Sutra<SamasaRuleContext, SamasaRuleResult> {
         if (YajakadibhishchaSutra.matches(context)) return YajakadibhishchaSutra
         if (DvitIyaSritatitapatitagatatyastapraptapannaihSutra.matches(context)) return DvitIyaSritatitapatitagatatyastapraptapannaihSutra
-        if (KartrkaraneKrtaBahulamSutra.matches(context)) return KartrkaraneKrtaBahulamSutra
         if (TrtiyaTatkrtarthenaGunavacanenaSutra.matches(context)) return TrtiyaTatkrtarthenaGunavacanenaSutra
+        if (KartrkaraneKrtaBahulamSutra.matches(context)) return KartrkaraneKrtaBahulamSutra
         if (SiddhasuskapakvabandhaishchaSutra.matches(context)) return SiddhasuskapakvabandhaishchaSutra
         return when (context.purvaPadaVibhakti) {
             Vibhakti.DVITIYA   -> DvitiyaShritatitaSutra   // 2.1.24
