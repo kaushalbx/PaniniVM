@@ -36,7 +36,7 @@ object TrtiyaTatkrtarthenaGunavacanenaSutra : Sutra<SamasaRuleContext, SamasaRul
         val uttara = context.uttaraPada.upadesha
         return context.samasaType == SamasaType.TATPURUSA &&
             purva.vibhakti == Vibhakti.TRTIYA &&
-            (uttara in gunavachanaOrArthaWords || context.uttaraPada.surface in gunavachanaOrArthaWords)
+            uttara in gunavachanaOrArthaWords
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
