@@ -487,4 +487,69 @@ class SamasaEngineTest {
         assertEquals("ब्राह्मणयाजकः", result.final.terms.last().surface)
         assertTrue(result.applications.any { it.sutra == "2.2.9" })
     }
+
+    @Test
+    fun `test Dvitiya Tatpurusha Sritatita (2 1 24)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("कष्ट", Vibhakti.DVITIYA),
+                SamasaPada("श्रित", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.TATPURUSA,
+        )
+        assertEquals("कष्टश्रितः", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "2.1.24" })
+    }
+
+    @Test
+    fun `test Trtiya Tatpurusha Tatkrtarthena (2 1 30)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("शङ्कुला", Vibhakti.TRTIYA),
+                SamasaPada("खण्ड", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.TATPURUSA,
+        )
+        assertEquals("शङ्कुलाखण्डः", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "2.1.30" })
+    }
+
+    @Test
+    fun `test Trtiya Tatpurusha KartrkaraneKrta (2 1 32)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("हरि", Vibhakti.TRTIYA),
+                SamasaPada("त्रात", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.TATPURUSA,
+        )
+        assertEquals("हरित्रातः", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "2.1.32" })
+    }
+
+    @Test
+    fun `test Saptami Tatpurusha Siddhasuska (2 1 41)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("आतप", Vibhakti.SAPTAMI),
+                SamasaPada("शुष्क", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.TATPURUSA,
+        )
+        assertEquals("आतपशुष्कः", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "2.1.41" })
+    }
+
+    @Test
+    fun `test Karmadharaya VisesanamVisesyena (2 1 57)`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("कृष्ण", Vibhakti.PRATHAMA),
+                SamasaPada("सर्प", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.KARMADHARAYA,
+        )
+        assertEquals("कृष्णसर्पः", result.final.terms.last().surface)
+        assertTrue(result.applications.any { it.sutra == "2.1.57" })
+    }
 }
