@@ -1,0 +1,90 @@
+[
+  {
+    "id": "BENCH_001",
+    "name": "6.3.100 Mahat in Karmadharaya - Mahanavami",
+    "padas": [
+      {"upadesha": "महत्", "vibhakti": "PRATHAMA"},
+      {"upadesha": "नवमी", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "KARMADHARAYA",
+    "expectedStem": "महानवमी",
+    "governingSutra": "6.3.100"
+  },
+  {
+    "id": "BENCH_002",
+    "name": "6.3.7 Atmanasca Purane Aluk Tatpurusa - Atmanepadam",
+    "padas": [
+      {"upadesha": "आत्मन्", "vibhakti": "PRATHAMA"},
+      {"upadesha": "पद", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "TATPURUSA",
+    "expectedStem": "आत्मनेपद",
+    "governingSutra": "6.3.7"
+  },
+  {
+    "id": "BENCH_003",
+    "name": "5.4.91 Rajahah Sakhibhyas Tac - Rajapurusa",
+    "padas": [
+      {"upadesha": "राजन्", "vibhakti": "SASTHI"},
+      {"upadesha": "पुरुष", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "TATPURUSA",
+    "expectedStem": "राजपुरुष",
+    "governingSutra": "5.4.91"
+  },
+  {
+    "id": "BENCH_004",
+    "name": "5.4.125 Suhrd Durhrdau - Suhrd",
+    "padas": [
+      {"upadesha": "सु", "vibhakti": "PRATHAMA"},
+      {"upadesha": "हृदय", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "BAHUVRIHI",
+    "expectedStem": "सुहृद्",
+    "governingSutra": "5.4.125"
+  },
+  {
+    "id": "BENCH_005",
+    "name": "6.3.86 Matari Pitari Dvandva - Matarapitara",
+    "padas": [
+      {"upadesha": "मातृ", "vibhakti": "PRATHAMA"},
+      {"upadesha": "पितृ", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "DVANDVA",
+    "expectedStem": "मातरापितरा",
+    "governingSutra": "6.3.86"
+  },
+  {
+    "id": "BENCH_006",
+    "name": "6.3.87 Pitramata Dvandva Nipātana",
+    "padas": [
+      {"upadesha": "पितृ", "vibhakti": "PRATHAMA"},
+      {"upadesha": "मातृ", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "DVANDVA",
+    "expectedStem": "पित्रामाता",
+    "governingSutra": "6.3.87"
+  },
+  {
+    "id": "BENCH_007",
+    "name": "2.1.24 Dvitiya Tatpurusa - Kasta-prapanna",
+    "padas": [
+      {"upadesha": "कष्ट", "vibhakti": "DVITIYA"},
+      {"upadesha": "आपन्न", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "TATPURUSA",
+    "expectedStem": "कष्टापन्न",
+    "governingSutra": "2.1.24"
+  },
+  {
+    "id": "BENCH_008",
+    "name": "2.1.6 Avyayibhava - Upakrsnam",
+    "padas": [
+      {"upadesha": "उप", "vibhakti": "PRATHAMA"},
+      {"upadesha": "कृष्ण", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "AVYAYIBHAVA",
+    "expectedStem": "उपकृष्ण",
+    "governingSutra": "2.1.6"
+  }
+]
