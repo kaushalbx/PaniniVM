@@ -24,5 +24,10 @@ object Adhyaya5Pada4 {
         GandhasyetIdutpurvatSutra,
         UpamanacChaSutra,
         PutisurabhiMukhyaSutra,
+        AhnoHnaEtebhyahSutra,
+        NaSamkhyaderAhnahSutra,
+        UttamaEkabhyamChaSutra,
+        RajahahSakhibhyasTacSutra,
+        AksnohTacChaSutra,
     )
 }

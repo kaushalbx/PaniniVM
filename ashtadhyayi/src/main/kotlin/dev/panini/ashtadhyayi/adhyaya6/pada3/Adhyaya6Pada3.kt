@@ -27,5 +27,10 @@ object Adhyaya6Pada3 {
         KhyatyaiNaksatreSutra,
         VahahKaranatSutra,
         KaroNamnyAmatngeSutra,
+        DviguPraptapannaSutra,
+        ParimanakhyayamSarvasyaSutra,
+        ParimanePratyayasthasyaSutra,
+        AnugavyamChaSutra,
+        AdUpadesesutra,
     )
 }
