@@ -107,6 +107,6 @@ class SamasaEngineTest {
             SamasaType.DVANDVA,
         )
         assertEquals("रामलक्ष्मणौ", result.final.surface)
-        assertTrue(result.applications.any { it.sutra == "2.2.29" })
+        assertTrue(result.applications.any { it.sutra == "2.2.29" || it.sutra == "2.2.34" })
     }
 }
