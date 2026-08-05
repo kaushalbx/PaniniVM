@@ -77,5 +77,10 @@ object Adhyaya6Pada3 {
         RsyandhakesuSutra,
         MitreChaSutra,
         JanapadanamSutra,
+        ManmatohChaSutra,
+        VaVicarikayamSutra,
+        KasthadinamChaSutra,
+        SvamsamjnayamSutra,
+        MatrahKvinSutra,
     )
 }

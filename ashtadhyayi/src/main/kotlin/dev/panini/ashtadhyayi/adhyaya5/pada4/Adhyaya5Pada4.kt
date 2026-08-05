@@ -74,5 +74,10 @@ object Adhyaya5Pada4 {
         BahuvrihauSakthyaksnohExtSutra,
         SvangacChaSutra,
         DvitribhyamAksnahSutra,
+        PratamsamasthadAhSutra,
+        SampataddhuhSutra,
+        AvagrahacChaSutra,
+        VaGrahehSutra,
+        AdvardvisExtSutra,
     )
 }
