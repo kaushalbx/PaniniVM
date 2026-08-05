@@ -86,6 +86,10 @@ class SubantaEngine(
                 vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.BAHUVACANA -> "इमे"
                 else -> null
             }
+            "द्वि" -> when {
+                vacana == Vacana.DVIVACANA -> "द्वी"
+                else -> null
+            }
             else -> null
         }
     }

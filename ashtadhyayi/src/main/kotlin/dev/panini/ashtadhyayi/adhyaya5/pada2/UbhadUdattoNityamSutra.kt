@@ -36,6 +36,8 @@ object UbhadUdattoNityamSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         if (context.samjnas.any { it.samjna == Samjna.PURANA || it.samjna == Samjna.DHATU }) return false
         if (context.terms.any { it.kind == TermKind.DHATU }) return false
+        val hasAvayavaRequest = context.samjnas.any { it.samjna == Samjna.AVAYAVA || it.samjna == Samjna.TADDHITA }
+        if (!hasAvayavaRequest) return false
         val lastTerm = context.terms.lastOrNull() ?: return false
         val isAlreadyApplied = context.terms.any { it.upadesha == "आयच्" || it.surface == "अय" }
         return !isAlreadyApplied && (lastTerm.upadesha == "उभ" || lastTerm.surface == "उभ")

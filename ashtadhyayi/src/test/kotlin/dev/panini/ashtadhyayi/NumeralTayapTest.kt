@@ -10,6 +10,9 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
+import dev.panini.derivation.SamjnaAssignment
+import dev.panini.shiksha.Samjna
+
 class NumeralTayapTest {
 
     @Test
@@ -17,7 +20,8 @@ class NumeralTayapTest {
         val statePanca = DerivationState(
             terms = listOf(
                 DerivationTerm(id = "s1", surface = "पञ्च", kind = TermKind.PRATIPADIKA, upadesha = "पञ्चन्")
-            )
+            ),
+            samjnas = setOf(SamjnaAssignment("s1", Samjna.AVAYAVA))
         )
         assertTrue(SankhyayaAvayaveTayapSutra.matches(statePanca))
         val changePanca = SankhyayaAvayaveTayapSutra.apply(statePanca)
@@ -26,7 +30,8 @@ class NumeralTayapTest {
         val stateDvi = DerivationState(
             terms = listOf(
                 DerivationTerm(id = "s1", surface = "द्वि", kind = TermKind.PRATIPADIKA, upadesha = "द्वि")
-            )
+            ),
+            samjnas = setOf(SamjnaAssignment("s1", Samjna.AVAYAVA))
         )
         assertTrue(SankhyayaAvayaveTayapSutra.matches(stateDvi))
         val changeDvi = SankhyayaAvayaveTayapSutra.apply(stateDvi)
@@ -38,7 +43,8 @@ class NumeralTayapTest {
         val stateTri = DerivationState(
             terms = listOf(
                 DerivationTerm(id = "s1", surface = "त्रि", kind = TermKind.PRATIPADIKA, upadesha = "त्रि")
-            )
+            ),
+            samjnas = setOf(SamjnaAssignment("s1", Samjna.AVAYAVA))
         )
         assertTrue(DvitribhyamTayasyAyajSutra.matches(stateTri))
         val changeTri = DvitribhyamTayasyAyajSutra.apply(stateTri)
@@ -50,7 +56,8 @@ class NumeralTayapTest {
         val stateUbha = DerivationState(
             terms = listOf(
                 DerivationTerm(id = "s1", surface = "उभ", kind = TermKind.PRATIPADIKA, upadesha = "उभ")
-            )
+            ),
+            samjnas = setOf(SamjnaAssignment("s1", Samjna.AVAYAVA))
         )
         assertTrue(UbhadUdattoNityamSutra.matches(stateUbha))
         val changeUbha = UbhadUdattoNityamSutra.apply(stateUbha)
