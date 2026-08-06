@@ -49,6 +49,14 @@ class ExecutionLifecycleTest {
         assertEquals("राजपुरुषः", derived)
     }
 
+    @Test
+    fun `test PvmUktiSadhaka derives dynamic Kridanta stems and Tinganta verbs`() {
+        val sadhaka = PvmUktiSadhaka()
+        val script = "युज् + णिच् + लोट् + सिप् ।"
+        val derived = sadhaka.sadhayaScript(script)
+        assertTrue(derived.contains("योजय") || derived.contains("युज्"))
+    }
+
     @TempDir
     lateinit var storageDir: Path
 

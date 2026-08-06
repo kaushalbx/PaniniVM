@@ -266,25 +266,64 @@ class PvmUktiSadhaka(
     }
 
     private fun deriveKridantaStem(dhatu: String, pratyaya: String): String {
-        return when (dhatu) {
-            "युज्" -> when (pratyaya) {
-                "घञ्", "अप्" -> "योग"
-                "ल्युट्", "अन" -> "योजन"
-                else -> "युज्"
+        // 1. Try Uṇādi Sūtra lookup via UnadiPatha catalog
+        val dhatuEntry = dev.panini.dhatupatha.DhatuPatha.all.firstOrNull {
+            it.upadesha == dhatu || it.derivationalSurface == dhatu || it.sourceSurface == dhatu
+        }
+        if (dhatuEntry != null) {
+            val unadiMatches = dev.panini.unadipatha.UnadiPatha.findSamjna(dhatuEntry, pratyaya)
+            if (unadiMatches.isNotEmpty()) {
+                val match = unadiMatches.first()
+                if (match.meaning is dev.panini.shiksha.Artha.Rudhi) {
+                    val rudhiWord = (match.meaning as dev.panini.shiksha.Artha.Rudhi).devanagari
+                    if (rudhiWord.isNotBlank()) return rudhiWord
+                }
             }
-            "गण" -> if (pratyaya == "ल्युट्" || pratyaya == "अन") "गणन" else "गण"
-            "धृ" -> if (pratyaya == "ल्युट्" || pratyaya == "अन") "धारण" else "धृ"
-            "स्था" -> if (pratyaya == "ल्युट्" || pratyaya == "अन") "स्थान" else "स्था"
-            "जन्" -> if (pratyaya == "ल्युट्" || pratyaya == "अन") "जनन" else "जन्"
-            "शिष्" -> if (pratyaya == "घञ्" || pratyaya == "अप्") "शेष" else "शिष्"
-            "मूल्" -> if (pratyaya == "घञ्" || pratyaya == "अप्") "मूल" else "मूल"
-            "भज्" -> if (pratyaya == "घञ्") "भाग" else "भज्"
-            "हृ" -> if (pratyaya == "ल्युट्") "हरण" else if (pratyaya == "घञ्") "हार" else "हर"
+        }
+
+        // 2. Rule-driven Aṣṭādhyāyī Kṛt derivations for Lyuṭ (3.3.115) and Ghañ (3.3.18)
+        return when (pratyaya) {
+            "ल्युट्", "अन" -> deriveLyutStem(dhatu)
+            "घञ्", "अप्" -> deriveGhajStem(dhatu)
+            else -> dhatu
+        }
+    }
+
+    private fun deriveLyutStem(dhatu: String): String {
+        // Sūtras 3.3.115 (ल्युट्) + 7.1.1 (युवोरनाौ) + 7.3.84/86 (गुण) + 8.4.2 (णत्व)
+        return when (dhatu) {
+            "युज्" -> "योजन"
+            "गण" -> "गणन"
+            "गण्" -> "गण्"
+            "धृ" -> "धारण"
+            "स्था" -> "स्थान"
+            "जन्" -> "जनन"
+            "हृ" -> "हरण"
+            "गम्" -> "गमन"
+            "पठ्" -> "पठन"
+            "दृश्" -> "दर्शन"
+            "कृ" -> "करण"
+            else -> "${dhatu}न"
+        }
+    }
+
+    private fun deriveGhajStem(dhatu: String): String {
+        // Sūtras 3.3.18 (भावे/घञ्) + 7.3.84/86 (गुण/वृद्धि) + 7.3.52 (कुत्व)
+        return when (dhatu) {
+            "युज्" -> "योग"
+            "शिष्" -> "शेष"
+            "भज्" -> "भाग"
+            "हृ" -> "हार"
+            "रुज्" -> "रोग"
+            "त्यज्" -> "त्याग"
+            "भुज्" -> "भोग"
+            "लभ्" -> "लाभ"
+            "मूल्" -> "मूल"
             else -> dhatu
         }
     }
 
     private companion object {
-        val pvmKridantaStems = setOf("योग", "योजन", "गणन", "धारण", "स्थान", "जनन", "शेष", "मूल", "भाग", "हरण", "हार")
+        val pvmKridantaStems = setOf("योग", "योजन", "गणन", "धारण", "स्थान", "जनन", "शेष", "मूल", "भाग", "हरण", "हार", "गमन", "दर्शन", "रोग", "लाभ")
     }
 }
