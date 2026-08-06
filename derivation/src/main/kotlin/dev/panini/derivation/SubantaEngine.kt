@@ -39,6 +39,14 @@ class SubantaEngine(
     }
 
     private fun deriveSpecializedDeclension(pratipadika: String, vibhakti: Vibhakti, vacana: Vacana): String? {
+        if (pratipadika.endsWith("त्मन्") || pratipadika.endsWith("आत्मन्")) {
+            val stem = pratipadika.removeSuffix("न्").removeSuffix("न")
+            return when {
+                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.EKAVACANA -> "${stem}ा"
+                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.BAHUVACANA -> "${stem}ानः"
+                else -> null
+            }
+        }
         return when (pratipadika) {
             "नदी" -> when {
                 vibhakti == Vibhakti.TRTIYA && vacana == Vacana.EKAVACANA -> "नद्या"

@@ -8,7 +8,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 /**
- * Dedicated test suite for Karmadhāraya compound derivations (Pāṇini 2.1.57 - 2.1.72).
+ * Dedicated test suite for Karmadhāraya compound derivations (Pāṇini 2.1.57 - 2.1.72 & 6.3.46).
  */
 class KarmadharayaSamasaTest {
 
@@ -37,6 +37,45 @@ class KarmadharayaSamasaTest {
             SamasaType.KARMADHARAYA,
         )
         assertEquals("नीलोत्पलः", result.final.surface)
+        assertTrue(result.applications.isNotEmpty())
+    }
+
+    @Test
+    fun `test mahapurusah derivation`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("महत्", Vibhakti.PRATHAMA),
+                SamasaPada("पुरुष", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.KARMADHARAYA,
+        )
+        assertEquals("महापुरुषः", result.final.surface)
+        assertTrue(result.applications.isNotEmpty())
+    }
+
+    @Test
+    fun `test mahadevah derivation`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("महान्", Vibhakti.PRATHAMA),
+                SamasaPada("देव", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.KARMADHARAYA,
+        )
+        assertEquals("महादेवः", result.final.surface)
+        assertTrue(result.applications.isNotEmpty())
+    }
+
+    @Test
+    fun `test mahatma derivation`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("महत्", Vibhakti.PRATHAMA),
+                SamasaPada("आत्मन्", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.KARMADHARAYA,
+        )
+        assertEquals("महात्मा", result.final.surface)
         assertTrue(result.applications.isNotEmpty())
     }
 }
