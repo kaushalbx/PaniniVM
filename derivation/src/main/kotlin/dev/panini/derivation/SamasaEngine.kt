@@ -190,14 +190,22 @@ class SamasaEngine(
     private fun subantaParams(type: SamasaType, padas: List<SamasaPada>): Triple<Vibhakti, Vacana, Linga> {
         val count = padas.size
         val lastPada = padas.lastOrNull()?.upadesha ?: ""
-        val isNeuterStem = lastPada in setOf("पद", "ज", "कुल", "वन", "अक्ष") || padas.firstOrNull()?.upadesha == "कृत"
+        val isNeuterStem = lastPada in setOf("पद", "ज", "कुल", "वन", "अक्ष", "जल", "फल", "गृह", "हृदय") || padas.firstOrNull()?.upadesha == "कृत"
+        val isFeminineStem = lastPada.endsWith("ी") || lastPada.endsWith("आ") || lastPada.endsWith("ति") || lastPada.endsWith("ता") ||
+                lastPada in setOf("नवमी", "भक्ति", "सभा", "शाला", "सेना", "शक्ति")
         val isSamaharaDvandva = padas.any { it.upadesha in setOf("पाणि", "पाद", "मार्दङ्गिक", "धाना", "शष्कुलि") }
+
+        val gender = when {
+            isNeuterStem -> Linga.NAPUMSAKA
+            isFeminineStem -> Linga.STRI
+            else -> Linga.PUMS
+        }
 
         return when (type) {
             SamasaType.AVYAYIBHAVA, SamasaType.DVIGU ->
                 Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.NAPUMSAKA)
             SamasaType.TATPURUSA, SamasaType.BAHUVRIHI, SamasaType.KARMADHARAYA, SamasaType.NAN_TATPURUSA, SamasaType.UPAPADA_TATPURUSA, SamasaType.ALUK_TATPURUSA, SamasaType.MAYURAVYAMSAKADI ->
-                Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, if (isNeuterStem) Linga.NAPUMSAKA else Linga.PUMS)
+                Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, gender)
             SamasaType.DVANDVA ->
                 if (isSamaharaDvandva) Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.NAPUMSAKA)
                 else if (count == 2)   Triple(Vibhakti.PRATHAMA, Vacana.DVIVACANA, Linga.PUMS)

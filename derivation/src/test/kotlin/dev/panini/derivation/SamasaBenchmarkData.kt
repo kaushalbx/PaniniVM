@@ -47,7 +47,7 @@ object SamasaBenchmarkData {
                 SamasaPada("फल", Vibhakti.PRATHAMA),
             ),
             type = SamasaType.TATPURUSA,
-            expectedSurface = "कर्मफलः",
+            expectedSurface = "कर्मफलम्",
             expectedSutra = "8.2.7",
         ),
         SamasaTestCase(
