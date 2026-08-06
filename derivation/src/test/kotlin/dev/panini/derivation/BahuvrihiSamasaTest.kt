@@ -41,14 +41,41 @@ class BahuvrihiSamasaTest {
     }
 
     @Test
-    fun `test mahatmanah derivation via 2 2 24`() {
+    fun `test praptodakah derivation via 2 2 24`() {
         val result = engine.derive(
             listOf(
-                SamasaPada("महत्", Vibhakti.PRATHAMA),
-                SamasaPada("आत्मन्", Vibhakti.PRATHAMA),
+                SamasaPada("प्राप्त", Vibhakti.PRATHAMA),
+                SamasaPada("उदक", Vibhakti.PRATHAMA),
             ),
             SamasaType.BAHUVRIHI,
         )
-        assertEquals("महतात्मा", result.final.surface)
+        assertEquals("प्राप्तोदकः", result.final.surface)
+        assertTrue(result.applications.any { it.sutra == "2.2.24" })
+    }
+
+    @Test
+    fun `test saputrah derivation via 2 2 28`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("सह", Vibhakti.TRTIYA),
+                SamasaPada("पुत्र", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.BAHUVRIHI,
+        )
+        assertEquals("सपुत्रः", result.final.surface)
+        assertTrue(result.applications.any { it.sutra == "2.2.28" })
+    }
+
+    @Test
+    fun `test saparivarah derivation via 2 2 28`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("सह", Vibhakti.TRTIYA),
+                SamasaPada("परिवार", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.BAHUVRIHI,
+        )
+        assertEquals("सपरिवारः", result.final.surface)
+        assertTrue(result.applications.any { it.sutra == "2.2.28" })
     }
 }
