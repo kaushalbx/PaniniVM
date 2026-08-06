@@ -24,10 +24,38 @@ class LinganushasanamEngineTest {
     }
 
     @Test
+    fun `test feminine gender sutra 1 5 Ujantah`() {
+        val res = engine.resolve(LingaRuleContext("वधू"))
+        assertEquals(Linga.STRI, res.linga)
+        assertEquals("1.5", res.ruleId)
+    }
+
+    @Test
+    fun `test feminine gender sutra 1 6 Ttalantah`() {
+        val res = engine.resolve(LingaRuleContext("देवता"))
+        assertEquals(Linga.STRI, res.linga)
+        assertEquals("1.6", res.ruleId)
+    }
+
+    @Test
     fun `test masculine gender sutra 2 2 Ghajantah`() {
         val res = engine.resolve(LingaRuleContext("पाक"))
         assertEquals(Linga.PUMS, res.linga)
         assertEquals("2.2", res.ruleId)
+    }
+
+    @Test
+    fun `test masculine gender sutra 2 4 Erachantah`() {
+        val res = engine.resolve(LingaRuleContext("जय"))
+        assertEquals(Linga.PUMS, res.linga)
+        assertEquals("2.4", res.ruleId)
+    }
+
+    @Test
+    fun `test masculine gender sutra 2 5 Nranah`() {
+        val res = engine.resolve(LingaRuleContext("पुरुष"))
+        assertEquals(Linga.PUMS, res.linga)
+        assertEquals("2.5", res.ruleId)
     }
 
     @Test
