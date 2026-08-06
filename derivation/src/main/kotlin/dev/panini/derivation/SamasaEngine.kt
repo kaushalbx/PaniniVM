@@ -10,6 +10,7 @@ import dev.panini.ashtadhyayi.adhyaya2.pada2.*
 import dev.panini.ashtadhyayi.adhyaya2.pada4.*
 import dev.panini.ashtadhyayi.adhyaya5.pada4.*
 import dev.panini.ashtadhyayi.adhyaya6.pada3.*
+import dev.panini.ashtadhyayi.adhyaya8.pada2.NaloPratipadikantasyaSutra
 import dev.panini.core.Linga
 import dev.panini.core.SamasaType
 import dev.panini.core.Vacana
@@ -90,6 +91,11 @@ class SamasaEngine(
         val sutra2_4_71 = Ashtadhyayi.registry.require("2.4.71") as DerivationSutra
         currentState = executeDerivationSutra(sutra2_4_71, currentState, applications)
 
+        // 5b. Sūtra 8.2.7 (नलोपः प्रातिपदिकान्तस्य): Na-lopa for pūrvapadas ending in 'न्' after Sup-lopa
+        if (NaloPratipadikantasyaSutra.matches(currentState)) {
+            currentState = executeDerivationSutra(NaloPratipadikantasyaSutra, currentState, applications)
+        }
+
         // 6. Record classification Sūtra application in the trace
         val classificationSutraObj = classificationSutra as Sutra<*, *>
         applications.add(
@@ -106,8 +112,10 @@ class SamasaEngine(
         )
 
         val rawStem = samasaResult.compoundStem
+        val effectivePadas = currentState.terms.map { it.surface }
         val padasList = padas.map { it.upadesha }
         val rawPadasConcat = padasList.joinToString("")
+        val effectivePadasConcat = effectivePadas.joinToString("")
         val hasSamasantaKap = rawStem.endsWith("क") && !rawPadasConcat.endsWith("क")
 
         val sandhiRes = if (rawStem.contains(" ")) {
@@ -120,10 +128,10 @@ class SamasaEngine(
                 applications.addAll(j.applications)
             }
             res
-        } else if (rawStem == rawPadasConcat || hasSamasantaKap) {
-            var res = padas.first().upadesha
-            for (i in 1 until padas.size) {
-                val next = padas[i].upadesha
+        } else if (rawStem == rawPadasConcat || rawStem == effectivePadasConcat || hasSamasantaKap) {
+            var res = effectivePadas.first()
+            for (i in 1 until effectivePadas.size) {
+                val next = effectivePadas[i]
                 val j = sandhiEngine.join(res, next)
                 val joined = j.final.surface
                 res = if (joined.isNotBlank() && joined.length >= res.length + next.length - 1) joined else res + next

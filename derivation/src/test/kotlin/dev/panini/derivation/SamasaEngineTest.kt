@@ -30,7 +30,7 @@ class SamasaEngineTest {
     fun `test Shashthi Tatpurusha compound derivation`() {
         val result = engine.derive(
             listOf(
-                SamasaPada("राज", Vibhakti.SASTHI),
+                SamasaPada("राजन्", Vibhakti.SASTHI),
                 SamasaPada("पुरुष", Vibhakti.PRATHAMA),
             ),
             SamasaType.TATPURUSA,
@@ -39,6 +39,7 @@ class SamasaEngineTest {
         assertTrue(result.applications.any { it.sutra == "1.2.46" })
         assertTrue(result.applications.any { it.sutra == "2.4.71" })
         assertTrue(result.applications.any { it.sutra == "2.2.8" })
+        assertTrue(result.applications.any { it.sutra == "8.2.7" })
     }
 
     @Test

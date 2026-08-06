@@ -28,19 +28,50 @@ object NaloPratipadikantasyaSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.terms.size < 2) return false
+        val isSamasa = context.samjnas.any { it.samjna == Samjna.SAMASA }
+        if (isSamasa) {
+            val nonFinalTerms = context.terms.dropLast(1)
+            return nonFinalTerms.any { t ->
+                t.kind == TermKind.PRATIPADIKA && isNEndingStem(t.surface)
+            }
+        }
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
         val insideSankhyaCompound = context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SANKHYA } &&
             context.samjnas.any { it.targetId == affix.id && it.samjna == Samjna.SANKHYA }
-        return stem.kind == TermKind.PRATIPADIKA && stem.surface.endsWith("न्") &&
+        return stem.kind == TermKind.PRATIPADIKA && isNEndingStem(stem.surface) &&
             (affix.upadesha in setOf("भ्याम्", "भिस्", "भ्यस्", "सुप्", "मट्") || insideSankhyaCompound)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
+        val isSamasa = context.samjnas.any { it.samjna == Samjna.SAMASA }
+        if (isSamasa) {
+            var updatedState = context
+            val nonFinalTerms = context.terms.dropLast(1)
+            for (t in nonFinalTerms) {
+                if (t.kind == TermKind.PRATIPADIKA && isNEndingStem(t.surface)) {
+                    val newSurface = performNaloPa(t.surface)
+                    updatedState = updatedState.replaceTerm(t.id, t.copy(surface = newSurface))
+                }
+            }
+            return DerivationChange(
+                state = updatedState,
+                explanation = "8.2.7: Deleted final न् of compound pūrvapada.",
+            )
+        }
         val stem = context.terms[context.terms.size - 2]
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = stem.surface.dropLast(2))),
+            state = context.replaceTerm(stem.id, stem.copy(surface = performNaloPa(stem.surface))),
             explanation = "8.2.7: Deleted final न् of the prātipadika before the bhy-/sup ending.",
         )
+    }
+
+    private fun isNEndingStem(s: String): Boolean =
+        s.endsWith("न्") || (s.endsWith("n") && s.length > 1)
+
+    private fun performNaloPa(s: String): String = when {
+        s.endsWith("न्") -> s.dropLast(2)
+        s.endsWith("n") && s.length > 1 -> s.dropLast(1)
+        else -> s
     }
 }
