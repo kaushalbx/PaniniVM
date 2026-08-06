@@ -3,6 +3,7 @@ package dev.panini.linganushasanam.adhyaya5
 import dev.panini.core.Linga
 import dev.panini.core.SamasaType
 import dev.panini.linganushasanam.LingaRuleContext
+import dev.panini.linganushasanam.LingaRuleResult
 import dev.panini.linganushasanam.LinganushasanaSection
 import dev.panini.linganushasanam.LinganushasanaSutra
 import dev.panini.linganushasanam.adhyaya1.AbantahSutra
@@ -30,7 +31,7 @@ object ParavallingamDvandvaTatpurusayohSutra : LinganushasanaSutra(
             context.samasaType != SamasaType.BAHUVRIHI
     }
 
-    override fun apply(context: LingaRuleContext): dev.panini.linganushasanam.LingaRuleResult {
+    override fun apply(context: LingaRuleContext): LingaRuleResult {
         val lastPada = context.padas.lastOrNull() ?: context.pratipadika
         val innerContext = LingaRuleContext(pratipadika = lastPada, pratyaya = context.pratyaya)
 
@@ -40,44 +41,10 @@ object ParavallingamDvandvaTatpurusayohSutra : LinganushasanaSutra(
             else -> Linga.PUMS
         }
 
-        return dev.panini.linganushasanam.LingaRuleResult.Matched(
+        return LingaRuleResult.Matched(
             linga = targetLinga,
             ruleId = number,
             explanation = "5.1 (परवल्लिङ्गं द्वन्द्वतत्पुरुषयोः): Resolved $targetLinga for uttarapada '$lastPada'.",
         )
-    }
-}
-
-/**
- * Liṅgānuśāsanam 5.2: स नपुंसकम् (Aṣṭādhyāyī 2.4.17).
- * Avyayībhāva and Dvigu compounds are fixed to Neuter.
- */
-object SaNapumsakamSutra : LinganushasanaSutra(
-    number = "5.2",
-    text = "स नपुंसकम्",
-    hindiExplanation = "अव्ययीभाव और द्विगु समास नपुंसकलिङ्ग होते हैं।",
-    section = LinganushasanaSection.SAMASALINGA,
-    targetLinga = Linga.NAPUMSAKA,
-    priority = 40,
-) {
-    override fun matches(context: LingaRuleContext): Boolean {
-        return context.samasaType == SamasaType.AVYAYIBHAVA || context.samasaType == SamasaType.DVIGU
-    }
-}
-
-/**
- * Liṅgānuśāsanam 5.3: अनेकमन्यपदार्थे (Aṣṭādhyāyī 2.2.24).
- * Bahuvrīhi compounds take Anyapadārtha gender (default Masculine).
- */
-object AnehamAnyapadartheSutra : LinganushasanaSutra(
-    number = "5.3",
-    text = "अनेकमन्यपदार्थे",
-    hindiExplanation = "बहुव्रीहि समास अन्यपदार्थ के लिङ्ग को धारण करता है।",
-    section = LinganushasanaSection.SAMASALINGA,
-    targetLinga = Linga.PUMS,
-    priority = 40,
-) {
-    override fun matches(context: LingaRuleContext): Boolean {
-        return context.samasaType == SamasaType.BAHUVRIHI
     }
 }
