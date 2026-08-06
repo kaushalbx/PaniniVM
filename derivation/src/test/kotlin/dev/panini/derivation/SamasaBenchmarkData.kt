@@ -320,5 +320,29 @@ object SamasaBenchmarkData {
             type = SamasaType.DVANDVA,
             expectedSurface = "रामलक्ष्मणभरतशत्रुघ्णाः",
         ),
+
+        // 10. Upapada Tatpuruṣa Compounds (2.2.19)
+        SamasaTestCase(
+            id = "UPAPADA_001",
+            description = "2.2.19 Upapada Tatpurusa - kumbha + kara",
+            padas = listOf(
+                SamasaPada("कुम्भ", Vibhakti.DVITIYA),
+                SamasaPada("कार", Vibhakti.PRATHAMA),
+            ),
+            type = SamasaType.UPAPADA_TATPURUSA,
+            expectedSurface = "कुम्भकारः",
+            expectedSutra = "2.2.19",
+        ),
+        SamasaTestCase(
+            id = "UPAPADA_002",
+            description = "2.2.19 Upapada Tatpurusa - nagara + kara",
+            padas = listOf(
+                SamasaPada("नगर", Vibhakti.DVITIYA),
+                SamasaPada("कार", Vibhakti.PRATHAMA),
+            ),
+            type = SamasaType.UPAPADA_TATPURUSA,
+            expectedSurface = "नगरकारः",
+            expectedSutra = "2.2.19",
+        ),
     )
 }
