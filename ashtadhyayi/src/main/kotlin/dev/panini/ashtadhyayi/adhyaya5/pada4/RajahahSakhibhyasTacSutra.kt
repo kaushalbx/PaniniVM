@@ -24,7 +24,7 @@ object RajahahSakhibhyasTacSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     pada = 4,
     optional = false,
     kramaValue = 540091,
-    role = SutraRole.Niyama,
+    role = SutraRole.Vidhi,
     action = SutraAction.PRATYAYA_SELECTION,
     scope = SutraScope.DERIVATION,
     samasaType = SamasaType.TATPURUSA,
@@ -45,7 +45,9 @@ object RajahahSakhibhyasTacSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
             lastPada == "सखि" || lastPada == "sakhi" -> "सख"
             else -> if (lastPada.endsWith("न्")) lastPada.dropLast(2) + "अ" else lastPada + "अ"
         }
-        val leadingPadas = context.padas.dropLast(1).joinToString("") { it.upadesha }
+        val leadingPadas = context.padas.dropLast(1).joinToString("") { pada ->
+            if (pada.upadesha == "महत्") "महा" else pada.upadesha
+        }
         val compoundStem = leadingPadas + convertedLast
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,

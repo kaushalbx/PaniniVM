@@ -35,11 +35,12 @@ object AtmanascaPuraneSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val purva = context.purvaPada.upadesha
-        return purva in alukPurvapadas
+        return context.samasaType == SamasaType.ALUK_TATPURUSA && (purva in alukPurvapadas || purva == "आत्मन्")
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
-        val stem = context.padas.joinToString("") { it.upadesha }
+        val purva = if (context.purvaPada.upadesha == "आत्मन्") "आत्मने" else context.purvaPada.upadesha
+        val stem = purva + context.padas.drop(1).joinToString("") { it.upadesha }
         return SamasaRuleResult.Formed(
             compoundStem = stem,
             explanation = "6.3.21 (आत्मनश्च पूरणे) preserves case ending for Aluk compound '$stem'.",

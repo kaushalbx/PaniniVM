@@ -213,7 +213,7 @@ class SamasaEngine(
     ): Sutra<SamasaRuleContext, SamasaRuleResult> {
         val candidates = samasaSutras
             .filter {
-                it.samasaType == context.samasaType &&
+                (it.samasaType == context.samasaType || (context.samasaType == SamasaType.KARMADHARAYA && it.samasaType == SamasaType.TATPURUSA)) &&
                 (it as Sutra<*, *>).action != dev.panini.sutra.SutraAction.NISHEDHA &&
                 (it as Sutra<*, *>).role != dev.panini.sutra.SutraRole.Niyama
             }
