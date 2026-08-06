@@ -14,11 +14,14 @@ import dev.panini.sutra.SutraType
 /**
  * Sūtra 2.2.6: नञ्.
  * Prescribes Nañ Tatpuruṣa compound for negative prefix 'nañ' (na) with a subanta.
+ * Sūtra 6.3.73: नलोपो नञः (deletes 'n' of nañ -> 'a').
+ * Sūtra 6.3.74: तस्मान्नुडचि (inserts 'n' augment before vowel-initial terms).
+ * Examples: न + ब्राह्मणः = अब्राह्मणः, न + अश्वः = अनश्वः, न + ईश्वरः = अनीश्वरः.
  */
 object NanjSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "2.2.6",
     text = "नञ्",
-    hindiExplanation = "नञ् समर्थेन सुबन्तेन सह समस्यते, सोऽपि तत्पुरुषः।",
+    hindiExplanation = "नञ् समर्थेन सुबन्तेन सह समस्यते, सोऽपि तत्पुरुषः। (६.३.७३ नलोपो नञः एवं ६.३.७४ तस्मान्नुडचि)।",
     type = SutraType.NITYA,
     chapter = 2,
     pada = 2,
@@ -33,7 +36,7 @@ object NanjSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         if (context.padas.size < 2) return false
         if (context.samasaType == SamasaType.NAN_TATPURUSA) return true
         val purva = context.purvaPada.upadesha
-        return purva == "न" || purva == "नञ्"
+        return purva == "न" || purva == "नञ्" || purva == "अ"
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
@@ -45,10 +48,10 @@ object NanjSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
 
         val compoundStem = if (isVowelInitial) {
             // 6.3.73 (नलोपो नञः) -> 'अ' + 6.3.74 (तस्मान्नुडचि) -> 'न्' + uttaraPada
-            "अन" + uttara.drop(if (firstChar == 'अ') 1 else 0)
+            combineHalantaNaWithVowel(uttara)
         } else {
             // 6.3.73 (नलोपो नञः) -> 'अ' + uttaraPada
-            "अ" + uttara
+            "अ$uttara"
         }
 
         val sutraRef = if (isVowelInitial) "2.2.6 (नञ्) with 6.3.73 (नलोपो नञः) & 6.3.74 (तस्मान्नुडचि)" else "2.2.6 (नञ्) with 6.3.73 (नलोपो नञः)"
@@ -57,5 +60,25 @@ object NanjSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
             compoundStem = compoundStem,
             explanation = "$sutraRef forms Nañ Tatpuruṣa compound '$compoundStem'.",
         )
+    }
+
+    private fun combineHalantaNaWithVowel(uttara: String): String {
+        val firstChar = uttara.firstOrNull() ?: return uttara
+        val rest = uttara.drop(1)
+        val matra = when (firstChar) {
+            'अ' -> ""
+            'आ' -> "ा"
+            'इ' -> "ि"
+            'ई' -> "ी"
+            'उ' -> "ु"
+            'ऊ' -> "ू"
+            'ऋ' -> "ृ"
+            'ए' -> "े"
+            'ऐ' -> "ै"
+            'ओ' -> "ो"
+            'औ' -> "ौ"
+            else -> return "अन्$uttara"
+        }
+        return "अन$matra$rest"
     }
 }
