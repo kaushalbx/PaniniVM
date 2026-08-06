@@ -28,15 +28,20 @@ import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.UnadyantaPratipadika
 import dev.panini.vyakaranam.ast.UktiStructure
 import dev.panini.vyakaranam.parser.PaniniParser
+import dev.panini.derivation.SamasaEngine
+import dev.panini.analysis.SamasaPada
+import dev.panini.core.SamasaType
+import dev.panini.core.Vibhakti
 
 /**
  * Pāninian grammatical sādhaka (उक्तिसाधक) using SubantaEngine, TingantaEngine,
- * and DerivationEngine to perform rupa-siddhi (रूपसिद्धि) on segmented PVM ASTs.
+ * SamasaEngine, and DerivationEngine to perform rupa-siddhi (रूपसिद्धि) on segmented PVM ASTs.
  */
 class PvmUktiSadhaka(
     private val derivationEngine: DerivationEngine = DerivationEngine(dev.panini.ashtadhyayi.Ashtadhyayi.executableSutras),
     private val subantaEngine: SubantaEngine = SubantaEngine(derivationEngine),
     private val tingantaEngine: TingantaEngine = TingantaEngine(derivationEngine),
+    private val samasaEngine: SamasaEngine = SamasaEngine(),
     private val parser: PaniniParser = PaniniParser(),
 ) {
 
@@ -170,9 +175,23 @@ class PvmUktiSadhaka(
     }
 
     fun sadhayaSubanta(subanta: SubantaPada): String {
-        val baseText = subanta.pratipadika.baseText()
+        val pratipadika = subanta.pratipadika
+        val baseText = if (pratipadika is SamasaPratipadika) {
+            try {
+                val padas = pratipadika.angas.map { anga ->
+                    val upadesha = anga.pratipadika.baseText()
+                    val vibhakti = anga.sup?.text?.let { SupAffix.fromUpadesha(it)?.vibhakti } ?: Vibhakti.PRATHAMA
+                    SamasaPada(upadesha, vibhakti)
+                }
+                samasaEngine.derive(padas, SamasaType.TATPURUSA).final.surface
+            } catch (_: Exception) {
+                pratipadika.baseText()
+            }
+        } else {
+            pratipadika.baseText()
+        }
         val supAffix = SupAffix.fromUpadesha(subanta.sup.text) ?: return baseText
-        if (subanta.pratipadika is KridantaPratipadika) {
+        if (pratipadika is KridantaPratipadika) {
             pvmKridantaSurface(baseText, supAffix)?.let { return it }
         }
         val linga = if (baseText in setOf("हविस्", "मनस्", "पयस्", "उरस्", "चक्षुस्")) dev.panini.core.Linga.NAPUMSAKA else dev.panini.core.Linga.PUMS

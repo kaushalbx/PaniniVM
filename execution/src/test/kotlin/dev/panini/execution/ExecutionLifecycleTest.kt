@@ -21,6 +21,34 @@ import kotlin.test.assertTrue
 import org.junit.jupiter.api.io.TempDir
 
 class ExecutionLifecycleTest {
+
+    @Test
+    fun `test PvmUktiSadhaka sadhayaSubanta evaluates SamasaPratipadika`() {
+        val sadhaka = PvmUktiSadhaka()
+        val samasaPratipadika = dev.panini.vyakaranam.ast.SamasaPratipadika(
+            sourceText = "राज्ञः पुरुषः",
+            angas = listOf(
+                dev.panini.vyakaranam.ast.SamasaAnga(
+                    sourceText = "राजन्",
+                    pratipadika = dev.panini.vyakaranam.ast.MulaPratipadika("राजन्", "राजन्"),
+                    sup = dev.panini.vyakaranam.ast.SupPratyaya("ङस्", "ङस्")
+                ),
+                dev.panini.vyakaranam.ast.SamasaAnga(
+                    sourceText = "पुरुष",
+                    pratipadika = dev.panini.vyakaranam.ast.MulaPratipadika("पुरुष", "पुरुष"),
+                    sup = dev.panini.vyakaranam.ast.SupPratyaya("सु", "सु")
+                )
+            )
+        )
+        val subantaPada = dev.panini.vyakaranam.ast.SubantaPada(
+            sourceText = "राजपुरुषः",
+            pratipadika = samasaPratipadika,
+            sup = dev.panini.vyakaranam.ast.SupPratyaya("सु", "सु")
+        )
+        val derived = sadhaka.sadhayaSubanta(subantaPada)
+        assertEquals("राजपुरुषः", derived)
+    }
+
     @TempDir
     lateinit var storageDir: Path
 
