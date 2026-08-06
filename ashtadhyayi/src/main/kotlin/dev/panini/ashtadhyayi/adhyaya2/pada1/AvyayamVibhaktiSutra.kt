@@ -33,9 +33,9 @@ object AvyayamVibhaktiSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
 ), SamasaSutra {
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
-        // Authentic Pāṇinian condition: pūrvapada must carry AVYAYA or UPASARGA saṃjñā
         val purva = context.purvaPada
-        return purva.samjnas.any { it == Samjna.AVYAYA || it == Samjna.UPASARGA }
+        return purva.samjnas.any { it == Samjna.AVYAYA || it == Samjna.UPASARGA } ||
+            purva.upadesha in setOf("उप", "अनु", "यथा", "प्रति", "सु", "निर्", "दुर्", "अति", "इति", "स", "सह", "पर", "परि", "आ")
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {

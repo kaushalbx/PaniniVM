@@ -188,5 +188,92 @@ object SamasaBenchmarkData {
             expectedSurface = "उपकृष्णम्",
             expectedSutra = "2.1.6",
         ),
+        SamasaTestCase(
+            id = "AVYAYIBHAVA_002",
+            description = "2.1.6 Avyayibhava - anu + ganga",
+            padas = listOf(
+                SamasaPada("अनु", Vibhakti.PRATHAMA),
+                SamasaPada("गङ्गा", Vibhakti.PRATHAMA),
+            ),
+            type = SamasaType.AVYAYIBHAVA,
+            expectedSurface = "अनुगङ्गा",
+        ),
+        SamasaTestCase(
+            id = "AVYAYIBHAVA_003",
+            description = "2.1.6 Avyayibhava - yatha + sakti",
+            padas = listOf(
+                SamasaPada("यथा", Vibhakti.PRATHAMA),
+                SamasaPada("शक्ति", Vibhakti.PRATHAMA),
+            ),
+            type = SamasaType.AVYAYIBHAVA,
+            expectedSurface = "यथाशक्तिः",
+        ),
+
+        // 7. Bahuvrīhi Compounds (2.2.24)
+        SamasaTestCase(
+            id = "BAHUVRIHI_001",
+            description = "2.2.24 Bahuvrihi - pita + ambara",
+            padas = listOf(
+                SamasaPada("पीत", Vibhakti.PRATHAMA),
+                SamasaPada("अम्बर", Vibhakti.PRATHAMA),
+            ),
+            type = SamasaType.BAHUVRIHI,
+            expectedSurface = "पीताम्बरः",
+            expectedSutra = "2.2.24",
+        ),
+        SamasaTestCase(
+            id = "BAHUVRIHI_002",
+            description = "2.2.24 Bahuvrihi - dasa + anana",
+            padas = listOf(
+                SamasaPada("दश", Vibhakti.PRATHAMA),
+                SamasaPada("आनन", Vibhakti.PRATHAMA),
+            ),
+            type = SamasaType.BAHUVRIHI,
+            expectedSurface = "दशाननः",
+        ),
+
+        // 8. Dvigu Compounds (2.1.52)
+        SamasaTestCase(
+            id = "DVIGU_001",
+            description = "2.1.52 Dvigu - tri + bhuvana",
+            padas = listOf(
+                SamasaPada("त्रि", Vibhakti.PRATHAMA),
+                SamasaPada("भुवन", Vibhakti.PRATHAMA),
+            ),
+            type = SamasaType.DVIGU,
+            expectedSurface = "त्रिभुवनम्",
+        ),
+        SamasaTestCase(
+            id = "DVIGU_002",
+            description = "2.1.52 Dvigu - tri + loka",
+            padas = listOf(
+                SamasaPada("त्रि", Vibhakti.PRATHAMA),
+                SamasaPada("लोक", Vibhakti.PRATHAMA),
+            ),
+            type = SamasaType.DVIGU,
+            expectedSurface = "त्रिलोकम्",
+        ),
+
+        // 9. Dvandva Compounds (2.2.29)
+        SamasaTestCase(
+            id = "DVANDVA_001",
+            description = "2.2.29 Dvandva - rama + laksmana",
+            padas = listOf(
+                SamasaPada("राम", Vibhakti.PRATHAMA),
+                SamasaPada("लक्ष्मण", Vibhakti.PRATHAMA),
+            ),
+            type = SamasaType.DVANDVA,
+            expectedSurface = "रामलक्ष्मणौ",
+        ),
+        SamasaTestCase(
+            id = "DVANDVA_002",
+            description = "2.4.2 Samahara Dvandva - pani + pada",
+            padas = listOf(
+                SamasaPada("पाणि", Vibhakti.PRATHAMA),
+                SamasaPada("पाद", Vibhakti.PRATHAMA),
+            ),
+            type = SamasaType.DVANDVA,
+            expectedSurface = "पाणिपादम्",
+        ),
     )
 }
