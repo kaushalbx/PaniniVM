@@ -152,5 +152,71 @@
     "samasaType": "DVANDVA",
     "expectedStem": "रामलक्ष्मण",
     "governingSutra": "2.2.29"
+  },
+  {
+    "id": "BENCH_015",
+    "name": "2.2.19 Upapada Tatpurusa - Kumbhakara",
+    "padas": [
+      {"upadesha": "कुम्भ", "vibhakti": "DVITIYA"},
+      {"upadesha": "कार", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "UPAPADA_TATPURUSA",
+    "expectedStem": "कुम्भकार",
+    "governingSutra": "2.2.19"
+  },
+  {
+    "id": "BENCH_016",
+    "name": "2.2.19 Upapada Tatpurusa - Nagarakara",
+    "padas": [
+      {"upadesha": "नगर", "vibhakti": "DVITIYA"},
+      {"upadesha": "कार", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "UPAPADA_TATPURUSA",
+    "expectedStem": "नगरकार",
+    "governingSutra": "2.2.19"
+  },
+  {
+    "id": "BENCH_017",
+    "name": "5.4.151 Samasanta Kap - Vyudhoraska",
+    "padas": [
+      {"upadesha": "व्यूढ", "vibhakti": "PRATHAMA"},
+      {"upadesha": "उरस्", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "BAHUVRIHI",
+    "expectedStem": "व्यूढोरस्क",
+    "governingSutra": "5.4.151"
+  },
+  {
+    "id": "BENCH_018",
+    "name": "5.4.154 Samasanta Kap - Aputraka",
+    "padas": [
+      {"upadesha": "अ", "vibhakti": "PRATHAMA"},
+      {"upadesha": "पुत्र", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "BAHUVRIHI",
+    "expectedStem": "अपुत्रक",
+    "governingSutra": "5.4.154"
+  },
+  {
+    "id": "BENCH_019",
+    "name": "2.4.2 Samahara Dvandva - Panipada",
+    "padas": [
+      {"upadesha": "पाणि", "vibhakti": "PRATHAMA"},
+      {"upadesha": "पाद", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "DVANDVA",
+    "expectedStem": "पाणिपाद",
+    "governingSutra": "2.4.2"
+  },
+  {
+    "id": "BENCH_020",
+    "name": "2.1.6 Avyayibhava - Anuganga",
+    "padas": [
+      {"upadesha": "अनु", "vibhakti": "PRATHAMA"},
+      {"upadesha": "गङ्गा", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "AVYAYIBHAVA",
+    "expectedStem": "अनुगङ्गा",
+    "governingSutra": "2.1.6"
   }
 ]
