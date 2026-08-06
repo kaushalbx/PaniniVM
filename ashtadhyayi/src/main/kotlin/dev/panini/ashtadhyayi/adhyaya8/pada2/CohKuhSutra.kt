@@ -64,7 +64,7 @@ object CohKuhSutra : Sutra<DerivationState, DerivationChange>(
             val target = characters[i]
             if (target.char !in CU_CHARS || target.termId in abhyasaIds) continue
             if (characters[i + 1].char != '्') continue
-            if (Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAL, characters[i + 2].char)) {
+            if (target.termId != characters[i + 2].termId && Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAL, characters[i + 2].char)) {
                 return Match(target.termIndex, target.charIndex)
             }
         }

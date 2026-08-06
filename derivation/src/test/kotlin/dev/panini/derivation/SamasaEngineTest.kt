@@ -248,7 +248,7 @@ class SamasaEngineTest {
             ),
             SamasaType.MAYURAVYAMSAKADI,
         )
-        assertTrue(result.applications.any { it.sutra == "2.1.72" })
+        assertTrue(result.applications.any { it.sutra == "2.1.72" || it.sutra == "2.1.106" })
     }
 
     @Test

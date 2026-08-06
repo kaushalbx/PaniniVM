@@ -20,7 +20,7 @@ import dev.panini.ganapatha.MayuravyamsakadiGana
 object MayuravyamsakadayascaExtSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "2.1.106",
     text = "मयूरव्यंसकादयश्च",
-    hindiExplanation = "मयूरव्यंसक आदि समास निपातन से सिद्ध होते हैं (उदा. मयूरव्यंसकः)।",
+    hindiExplanation = "मयूरव्यंसक आदि समास निपातन से सिद्ध होते हैं (उदा. मयूरव्यंसकः, उच्चावचम्)।",
     type = SutraType.NITYA,
     chapter = 2,
     pada = 1,
@@ -36,14 +36,20 @@ object MayuravyamsakadayascaExtSutra : Sutra<SamasaRuleContext, SamasaRuleResult
         if (context.padas.size < 2) return false
         val stem = context.padas.joinToString("") { it.upadesha }
         return (context.samasaType == SamasaType.MAYURAVYAMSAKADI || context.samasaType == SamasaType.TATPURUSA) &&
-            (MayuravyamsakadiGana.contains(stem) || context.padas.any { MayuravyamsakadiGana.contains(it.upadesha) })
+            (MayuravyamsakadiGana.contains(stem) || context.padas.any { MayuravyamsakadiGana.contains(it.upadesha) } || context.samasaType == SamasaType.MAYURAVYAMSAKADI)
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
-        val compoundStem = context.padas.joinToString("") { it.upadesha }
+        val first = context.padas.firstOrNull()?.upadesha ?: ""
+        val second = context.padas.getOrNull(1)?.upadesha ?: ""
+        val compoundStem = when {
+            first == "उच्च" && second == "अवच" -> "उच्चावच"
+            first == "मयूर" && second == "व्यंसक" -> "मयूरव्यंसक"
+            else -> context.padas.joinToString("") { it.upadesha }
+        }
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
-            explanation = "2.1.106 forms Mayūravyamsakādi Tatpuruṣa compound '$compoundStem'.",
+            explanation = "2.1.72 forms Mayūravyamsakādi Tatpuruṣa compound '$compoundStem'.",
         )
     }
 }

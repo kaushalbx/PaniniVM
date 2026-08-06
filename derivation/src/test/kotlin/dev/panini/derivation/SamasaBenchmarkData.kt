@@ -344,5 +344,29 @@ object SamasaBenchmarkData {
             expectedSurface = "नगरकारः",
             expectedSutra = "2.2.19",
         ),
+
+        // 11. Mayūravyamsakādi Compounds (2.1.72)
+        SamasaTestCase(
+            id = "MAYURAVYAMSAKADI_001",
+            description = "2.1.72 Mayuravyamsakadi - mayura + vyamsaka",
+            padas = listOf(
+                SamasaPada("मयूर", Vibhakti.PRATHAMA),
+                SamasaPada("व्यंसक", Vibhakti.PRATHAMA),
+            ),
+            type = SamasaType.MAYURAVYAMSAKADI,
+            expectedSurface = "मयूरव्यंसकः",
+            expectedSutra = "2.1.72",
+        ),
+        SamasaTestCase(
+            id = "MAYURAVYAMSAKADI_002",
+            description = "2.1.72 Mayuravyamsakadi - ucca + avaca",
+            padas = listOf(
+                SamasaPada("उच्च", Vibhakti.PRATHAMA),
+                SamasaPada("अवच", Vibhakti.PRATHAMA),
+            ),
+            type = SamasaType.MAYURAVYAMSAKADI,
+            expectedSurface = "उच्चावचम्",
+            expectedSutra = "2.1.72",
+        ),
     )
 }

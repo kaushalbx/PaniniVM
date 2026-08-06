@@ -190,7 +190,7 @@ class SamasaEngine(
     private fun subantaParams(type: SamasaType, padas: List<SamasaPada>): Triple<Vibhakti, Vacana, Linga> {
         val count = padas.size
         val lastPada = padas.lastOrNull()?.upadesha ?: ""
-        val isNeuterStem = lastPada in setOf("पद", "ज", "कुल", "वन", "अक्ष", "जल", "फल", "गृह", "हृदय") || padas.firstOrNull()?.upadesha == "कृत"
+        val isNeuterStem = lastPada in setOf("पद", "ज", "कुल", "वन", "अक्ष", "जल", "फल", "गृह", "हृदय", "अवच") || padas.firstOrNull()?.upadesha == "कृत"
         val isFeminineStem = lastPada.endsWith("ी") || lastPada.endsWith("आ") || lastPada.endsWith("ति") || lastPada.endsWith("ता") ||
                 lastPada in setOf("नवमी", "भक्ति", "सभा", "शाला", "सेना", "शक्ति")
         val isSamaharaDvandva = padas.any { it.upadesha in setOf("पाणि", "पाद", "मार्दङ्गिक", "धाना", "शष्कुलि") }
