@@ -39,4 +39,43 @@ class SamasantaAffixTest {
         assertEquals("परमसखः", result.final.surface)
         assertTrue(result.applications.any { it.sutra == "5.4.91" })
     }
+
+    @Test
+    fun `test 5 4 151 Kap affix after urah-prabhrti in Bahuvrihi`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("व्यूढ", Vibhakti.PRATHAMA),
+                SamasaPada("उरस्", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.BAHUVRIHI,
+        )
+        assertEquals("व्यूढोरस्कः", result.final.surface)
+        assertTrue(result.applications.any { it.sutra == "5.4.151" })
+    }
+
+    @Test
+    fun `test 5 4 154 Kap affix after negative Bahuvrihi`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("अ", Vibhakti.PRATHAMA),
+                SamasaPada("पुत्र", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.BAHUVRIHI,
+        )
+        assertEquals("अपुत्रकः", result.final.surface)
+        assertTrue(result.applications.any { it.sutra == "5.4.154" })
+    }
+
+    @Test
+    fun `test 5 4 153 Kap affix after nadi ending Bahuvrihi`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("बहु", Vibhakti.PRATHAMA),
+                SamasaPada("कुमारी", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.BAHUVRIHI,
+        )
+        assertEquals("बहुकुमारीकः", result.final.surface)
+        assertTrue(result.applications.any { it.sutra == "5.4.153" })
+    }
 }

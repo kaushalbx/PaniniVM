@@ -85,6 +85,39 @@ object SamasaBenchmarkData {
             expectedSurface = "परमसखः",
             expectedSutra = "5.4.91",
         ),
+        SamasaTestCase(
+            id = "SAMASANTA_003",
+            description = "5.4.151 Kap affix - vyudha + uras",
+            padas = listOf(
+                SamasaPada("व्यूढ", Vibhakti.PRATHAMA),
+                SamasaPada("उरस्", Vibhakti.PRATHAMA),
+            ),
+            type = SamasaType.BAHUVRIHI,
+            expectedSurface = "व्यूढोरस्कः",
+            expectedSutra = "5.4.151",
+        ),
+        SamasaTestCase(
+            id = "SAMASANTA_004",
+            description = "5.4.154 Kap affix - a + putra",
+            padas = listOf(
+                SamasaPada("अ", Vibhakti.PRATHAMA),
+                SamasaPada("पुत्र", Vibhakti.PRATHAMA),
+            ),
+            type = SamasaType.BAHUVRIHI,
+            expectedSurface = "अपुत्रकः",
+            expectedSutra = "5.4.154",
+        ),
+        SamasaTestCase(
+            id = "SAMASANTA_005",
+            description = "5.4.153 Kap affix - bahu + kumari",
+            padas = listOf(
+                SamasaPada("बहु", Vibhakti.PRATHAMA),
+                SamasaPada("कुमारी", Vibhakti.PRATHAMA),
+            ),
+            type = SamasaType.BAHUVRIHI,
+            expectedSurface = "बहुकुमारीकः",
+            expectedSutra = "5.4.153",
+        ),
 
         // 3. Pūrvapada alterations (6.3.100, 6.3.86, 6.3.87)
         SamasaTestCase(
