@@ -50,4 +50,19 @@ class DvandvaSamasaTest {
         )
         assertEquals("पाणिपादम्", result.final.surface)
     }
+
+    @Test
+    fun `test multi-pada dvandva ramalaksmanabharatasatrughnah`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("राम", Vibhakti.PRATHAMA),
+                SamasaPada("लक्ष्मण", Vibhakti.PRATHAMA),
+                SamasaPada("भरत", Vibhakti.PRATHAMA),
+                SamasaPada("शत्रुघ्न", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.DVANDVA,
+        )
+        assertEquals("रामलक्ष्मणभरतशत्रुघ्णाः", result.final.surface)
+        assertTrue(result.applications.isNotEmpty())
+    }
 }

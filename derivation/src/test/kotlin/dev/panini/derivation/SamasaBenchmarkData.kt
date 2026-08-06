@@ -275,5 +275,17 @@ object SamasaBenchmarkData {
             type = SamasaType.DVANDVA,
             expectedSurface = "पाणिपादम्",
         ),
+        SamasaTestCase(
+            id = "DVANDVA_003",
+            description = "2.2.29 Multi-pada Dvandva - rama + laksmana + bharata + satrughna",
+            padas = listOf(
+                SamasaPada("राम", Vibhakti.PRATHAMA),
+                SamasaPada("लक्ष्मण", Vibhakti.PRATHAMA),
+                SamasaPada("भरत", Vibhakti.PRATHAMA),
+                SamasaPada("शत्रुघ्न", Vibhakti.PRATHAMA),
+            ),
+            type = SamasaType.DVANDVA,
+            expectedSurface = "रामलक्ष्मणभरतशत्रुघ्णाः",
+        ),
     )
 }
