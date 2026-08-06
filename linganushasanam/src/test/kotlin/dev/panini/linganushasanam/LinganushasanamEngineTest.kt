@@ -10,10 +10,24 @@ class LinganushasanamEngineTest {
     private val engine = LinganushasanamEngine()
 
     @Test
+    fun `test feminine gender sutra 1 1 Swangebhyah`() {
+        val res = engine.resolve(LingaRuleContext("अङ्गुली"))
+        assertEquals(Linga.STRI, res.linga)
+        assertEquals("1.1", res.ruleId)
+    }
+
+    @Test
     fun `test feminine gender sutra 1 2 Abantah`() {
         val res = engine.resolve(LingaRuleContext("राजसभा"))
         assertEquals(Linga.STRI, res.linga)
         assertEquals("1.2", res.ruleId)
+    }
+
+    @Test
+    fun `test masculine gender sutra 2 2 Ghajantah`() {
+        val res = engine.resolve(LingaRuleContext("पाक"))
+        assertEquals(Linga.PUMS, res.linga)
+        assertEquals("2.2", res.ruleId)
     }
 
     @Test
