@@ -39,4 +39,25 @@ class MayuravyamsakadiSamasaTest {
         assertEquals("उच्चावचम्", result.final.surface)
         assertTrue(result.applications.any { it.sutra == "2.1.72" || it.sutra == "2.1.106" })
     }
+
+    @Test
+    fun `test vartika anyarajasu rajantaram and gramantaram derivations`() {
+        val resRaja = engine.derive(
+            listOf(
+                SamasaPada("अन्य", Vibhakti.PRATHAMA),
+                SamasaPada("राजन्", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.MAYURAVYAMSAKADI,
+        )
+        assertEquals("राजान्तरम्", resRaja.final.surface)
+
+        val resGrama = engine.derive(
+            listOf(
+                SamasaPada("अन्य", Vibhakti.PRATHAMA),
+                SamasaPada("ग्राम", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.MAYURAVYAMSAKADI,
+        )
+        assertEquals("ग्रामान्तरम्", resGrama.final.surface)
+    }
 }

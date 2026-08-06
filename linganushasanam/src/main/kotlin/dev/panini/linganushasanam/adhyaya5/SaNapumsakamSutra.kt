@@ -19,6 +19,8 @@ object SaNapumsakamSutra : LinganushasanaSutra(
     priority = 40,
 ) {
     override fun matches(context: LingaRuleContext): Boolean {
-        return context.samasaType == SamasaType.AVYAYIBHAVA || context.samasaType == SamasaType.DVIGU
+        if (context.samasaType == SamasaType.AVYAYIBHAVA || context.samasaType == SamasaType.DVIGU) return true
+        if (context.pratipadika.endsWith("न्तर") || context.pratipadika.endsWith("न्तरम्") || context.pratipadika in setOf("उच्चावच", "उच्चनीच")) return true
+        return false
     }
 }

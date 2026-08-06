@@ -34,9 +34,11 @@ object MayuravyamsakadayascaExtSutra : Sutra<SamasaRuleContext, SamasaRuleResult
 ), SamasaSutra {
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
+        val first = context.padas.firstOrNull()?.upadesha ?: ""
+        val second = context.padas.getOrNull(1)?.upadesha ?: ""
         val stem = context.padas.joinToString("") { it.upadesha }
         return (context.samasaType == SamasaType.MAYURAVYAMSAKADI || context.samasaType == SamasaType.TATPURUSA) &&
-            (MayuravyamsakadiGana.contains(stem) || context.padas.any { MayuravyamsakadiGana.contains(it.upadesha) } || context.samasaType == SamasaType.MAYURAVYAMSAKADI)
+            (first == "अन्य" || second == "अन्य" || MayuravyamsakadiGana.contains(stem) || context.padas.any { MayuravyamsakadiGana.contains(it.upadesha) } || context.samasaType == SamasaType.MAYURAVYAMSAKADI)
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
@@ -45,11 +47,27 @@ object MayuravyamsakadayascaExtSutra : Sutra<SamasaRuleContext, SamasaRuleResult
         val compoundStem = when {
             first == "उच्च" && second == "अवच" -> "उच्चावच"
             first == "मयूर" && second == "व्यंसक" -> "मयूरव्यंसक"
+            first == "अन्य" || second == "अन्य" -> deriveAnyarajasu(first, second)
             else -> context.padas.joinToString("") { it.upadesha }
         }
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
-            explanation = "2.1.72 forms Mayūravyamsakādi Tatpuruṣa compound '$compoundStem'.",
+            explanation = "2.1.72 (मयूरव्यंसकादयश्च) & Vārtika (अन्यराजादिषु च) forms Tatpuruṣa compound '$compoundStem'.",
         )
+    }
+
+    /**
+     * Vārtika 2.1.72: अन्यराजादिषु च.
+     * Compounding of 'अन्य' with nominal stems (राजन्, ग्राम, देश, भाषा, द्रव्य, भाव)
+     * forming 'राजान्तरम्', 'ग्रामान्तरम्', 'देशान्तरम्', 'भाषान्तरम्', or 'अन्यराजः'.
+     */
+    private fun deriveAnyarajasu(first: String, second: String): String {
+        val targetNoun = if (first == "अन्य") second else first
+        val cleanNoun = targetNoun.removeSuffix("न्").removeSuffix("न").removeSuffix("म्")
+        return if (cleanNoun.endsWith("ा") || cleanNoun.endsWith("ा")) {
+            "${cleanNoun.dropLast(1)}ान्तर"
+        } else {
+            "${cleanNoun}ान्तर"
+        }
     }
 }

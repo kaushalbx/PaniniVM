@@ -151,7 +151,7 @@ class SamasaEngine(
             .replace("ंव", "म्व")
 
         // 9. Decline the compound Prātipadika via SubantaEngine (Pāṇinian Subanta pipeline)
-        val (vibhakti, vacana, linga) = subantaParams(type, padas)
+        val (vibhakti, vacana, linga) = subantaParams(type, padas, pureStem = sandhiRes)
         val subantaResult = subantaEngine.derive(
             SubantaDerivationRequest(normalizedStem, vibhakti, vacana, linga)
         )
@@ -182,10 +182,10 @@ class SamasaEngine(
     /**
      * Helper to establish Vibhakti, Vacana, and Linga for compound final Subanta declension.
      */
-    private fun subantaParams(type: SamasaType, padas: List<SamasaPada>): Triple<Vibhakti, Vacana, Linga> {
+    private fun subantaParams(type: SamasaType, padas: List<SamasaPada>, pureStem: String = ""): Triple<Vibhakti, Vacana, Linga> {
         val count = padas.size
         val stems = padas.map { it.upadesha }
-        val compoundStem = stems.joinToString("")
+        val compoundStem = if (pureStem.isNotBlank()) pureStem else stems.joinToString("")
         val lingaResult = linganushasanamEngine.resolve(
             LingaRuleContext(
                 pratipadika = compoundStem,
