@@ -53,7 +53,17 @@ The Uṇādipāṭha module provides a pure declarative catalog of Uṇādi rule
 
 ---
 
-## 3. Grammatical Form Specification (सुप्तिङन्तं पदम्)
+## 3. Executable Liṅgānuśāsanam Subsystem (`:linganushasanam`)
+
+The `:linganushasanam` module provides an authentic Sūtra-by-Sūtra gender resolution engine modeling Pāṇini's *Liṅgānuśāsanam*:
+
+- **Individual Sūtra Architecture**: Every rule is implemented as an individual `LinganushasanaSutra` object under `adhyaya1` (*Strīliṅgam*), `adhyaya2` (*Puṃliṅgam*), `adhyaya3` (*Napuṃsakaliṅgam*), `adhyaya4` (*Viśeṣyanighnaliṅgam*), and `adhyaya5` (*Samāsaliṅgam*).
+- **Rule Registry & Engine**: `LinganushasanamRegistry` catalogs cataloged Sūtras, and `LinganushasanamEngine` evaluates gender queries against a structured `LingaRuleContext`.
+- **Integration**: Dynamically drives compound final gender resolution in `SamasaEngine` (Sūtras 5.1 `परवल्लिङ्गं द्वन्द्वतत्पुरुषयोः`, 5.2 `स नपुंसकम्`, 5.3 `अनेकमन्यपदार्थे`) and nominal stem gender determination in `SubantaEngine`.
+
+---
+
+## 4. Grammatical Form Specification (सुप्तिङन्तं पदम्)
 
 In accordance with Pāṇini's definition *सुप्तिङन्तं पदम्* (1.4.14), every declinable nominal or conjugable verb must be explicitly segmented with its suffix:
 
