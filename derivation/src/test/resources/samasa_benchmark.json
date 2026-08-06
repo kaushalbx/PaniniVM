@@ -86,5 +86,71 @@
     "samasaType": "AVYAYIBHAVA",
     "expectedStem": "उपकृष्ण",
     "governingSutra": "2.1.6"
+  },
+  {
+    "id": "BENCH_009",
+    "name": "8.2.7 NaloPa - Svamin-bhakti",
+    "padas": [
+      {"upadesha": "स्वामिन्", "vibhakti": "SASTHI"},
+      {"upadesha": "भक्ति", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "TATPURUSA",
+    "expectedStem": "स्वामिभक्ति",
+    "governingSutra": "8.2.7"
+  },
+  {
+    "id": "BENCH_010",
+    "name": "2.2.6 Nanj Tatpurusa - Abrahmana",
+    "padas": [
+      {"upadesha": "न", "vibhakti": "PRATHAMA"},
+      {"upadesha": "ब्राह्मण", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "NAN_TATPURUSA",
+    "expectedStem": "अब्राह्मण",
+    "governingSutra": "2.2.6"
+  },
+  {
+    "id": "BENCH_011",
+    "name": "2.2.6 Nanj Tatpurusa - Anasva",
+    "padas": [
+      {"upadesha": "न", "vibhakti": "PRATHAMA"},
+      {"upadesha": "अश्व", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "NAN_TATPURUSA",
+    "expectedStem": "अनश्व",
+    "governingSutra": "2.2.6"
+  },
+  {
+    "id": "BENCH_012",
+    "name": "2.2.24 Bahuvrihi - Pitambara",
+    "padas": [
+      {"upadesha": "पीत", "vibhakti": "PRATHAMA"},
+      {"upadesha": "अम्बर", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "BAHUVRIHI",
+    "expectedStem": "पीताम्बर",
+    "governingSutra": "2.2.24"
+  },
+  {
+    "id": "BENCH_013",
+    "name": "2.1.52 Dvigu - Tribhuvana",
+    "padas": [
+      {"upadesha": "त्रि", "vibhakti": "PRATHAMA"},
+      {"upadesha": "भुवन", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "DVIGU",
+    "expectedStem": "त्रिभुवन",
+    "governingSutra": "2.1.52"
+  },
+  {
+    "id": "BENCH_014",
+    "name": "2.2.29 Dvandva - Ramalaksmanau",
+    "padas": [
+      {"upadesha": "राम", "vibhakti": "PRATHAMA"},
+      {"upadesha": "लक्ष्मण", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "DVANDVA",
+    "expectedStem": "रामलक्ष्मण",
+    "governingSutra": "2.2.29"
   }
 ]
