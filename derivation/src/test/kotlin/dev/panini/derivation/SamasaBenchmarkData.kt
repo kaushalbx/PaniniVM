@@ -36,7 +36,7 @@ object SamasaBenchmarkData {
                 SamasaPada("ज्ञान", Vibhakti.PRATHAMA),
             ),
             type = SamasaType.TATPURUSA,
-            expectedSurface = "आत्मज्ञानः",
+            expectedSurface = "आत्मज्ञानम्",
             expectedSutra = "8.2.7",
         ),
         SamasaTestCase(

@@ -19,13 +19,11 @@ import dev.panini.derivation.SubantaDerivationRequest
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
+import dev.panini.linganushasanam.LinganushasanamEngine
+import dev.panini.linganushasanam.LingaRuleContext
 
 /**
  * Input request for compound derivation.
- *
- * Each [SamasaPada] carries the upadesha (base stem) of the member and its [Vibhakti]
- * — the grammatical case it bears in the laukika vigraha. This drives Sūtra selection
- * without any surface-string heuristics.
  *
  * Example — rājapuruṣaḥ (षष्ठी Tatpuruṣa):
  *   padas = [SamasaPada("राज", Vibhakti.SASTHI), SamasaPada("पुरुष", Vibhakti.PRATHAMA)]
@@ -53,6 +51,7 @@ class SamasaEngine(
     private val sandhiEngine: SandhiEngine = SandhiEngine(derivationEngine),
     private val subantaEngine: SubantaEngine = SubantaEngine(derivationEngine),
     private val samasaSutras: List<SamasaSutra> = Ashtadhyayi.cataloguedSutras.filterIsInstance<SamasaSutra>(),
+    private val linganushasanamEngine: LinganushasanamEngine = LinganushasanamEngine(),
 ) {
     fun derive(request: SamasaDerivationRequest): DerivationResult =
         derive(request.padas, request.type)
@@ -168,11 +167,11 @@ class SamasaEngine(
             alaukikaVigraha = padas.joinToString(" + ") { it.upadesha },
             purvaPada = padas.first().upadesha,
             uttaraPada = padas.getOrElse(1) { padas.last() }.upadesha,
-            classificationSutra = classificationSutraObj.number,
+            classificationSutra = (classificationSutra as Sutra<*, *>).number,
         )
 
         return DerivationResult(
-            initial = initialState,
+            initial = DerivationState(terms = initialTerms, stage = DerivationStage.INITIAL),
             final = finalState,
             applications = applications,
             events = emptyList(),
@@ -181,35 +180,30 @@ class SamasaEngine(
     }
 
     /**
-     * Returns the (Vibhakti, Vacana, Linga) triple for the final Subanta declension of a compound.
-     * Pāṇinian: After Sup-lopa the compound Prātipadika takes a fresh Prathama ending.
-     * - Avyayibhāva: invariable — Prathama Ekavacana Napumsaka (ends in म्)
-     * - Tatpuruṣa / Bahuvrihi: Prathama Ekavacana Pumliṅga (ends in ः)
-     * - Dvandva: Prathama Dvivacana for 2 members (ौ), Bahuvacana for 3+ (ाः)
+     * Helper to establish Vibhakti, Vacana, and Linga for compound final Subanta declension.
      */
     private fun subantaParams(type: SamasaType, padas: List<SamasaPada>): Triple<Vibhakti, Vacana, Linga> {
         val count = padas.size
-        val lastPada = padas.lastOrNull()?.upadesha ?: ""
-        val isNeuterStem = lastPada in setOf("पद", "ज", "कुल", "वन", "अक्ष", "जल", "फल", "गृह", "हृदय", "अवच") || padas.firstOrNull()?.upadesha == "कृत"
-        val isFeminineStem = lastPada.endsWith("ी") || lastPada.endsWith("आ") || lastPada.endsWith("ति") || lastPada.endsWith("ता") ||
-                lastPada in setOf("नवमी", "भक्ति", "सभा", "शाला", "सेना", "शक्ति")
+        val stems = padas.map { it.upadesha }
+        val compoundStem = stems.joinToString("")
+        val lingaResult = linganushasanamEngine.resolve(
+            LingaRuleContext(
+                pratipadika = compoundStem,
+                padas = stems,
+                samasaType = type,
+            )
+        )
         val isSamaharaDvandva = padas.any { it.upadesha in setOf("पाणि", "पाद", "मार्दङ्गिक", "धाना", "शष्कुलि") }
-
-        val gender = when {
-            isNeuterStem -> Linga.NAPUMSAKA
-            isFeminineStem -> Linga.STRI
-            else -> Linga.PUMS
-        }
 
         return when (type) {
             SamasaType.AVYAYIBHAVA, SamasaType.DVIGU ->
                 Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.NAPUMSAKA)
             SamasaType.TATPURUSA, SamasaType.BAHUVRIHI, SamasaType.KARMADHARAYA, SamasaType.NAN_TATPURUSA, SamasaType.UPAPADA_TATPURUSA, SamasaType.ALUK_TATPURUSA, SamasaType.MAYURAVYAMSAKADI ->
-                Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, gender)
+                Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, lingaResult.linga)
             SamasaType.DVANDVA ->
                 if (isSamaharaDvandva) Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.NAPUMSAKA)
-                else if (count == 2)   Triple(Vibhakti.PRATHAMA, Vacana.DVIVACANA, Linga.PUMS)
-                else                   Triple(Vibhakti.PRATHAMA, Vacana.BAHUVACANA, Linga.PUMS)
+                else if (count == 2)   Triple(Vibhakti.PRATHAMA, Vacana.DVIVACANA, lingaResult.linga)
+                else                   Triple(Vibhakti.PRATHAMA, Vacana.BAHUVACANA, lingaResult.linga)
         }
     }
 

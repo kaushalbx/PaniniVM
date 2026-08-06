@@ -36,7 +36,7 @@ class ConsonantStemSamasaTest {
             ),
             SamasaType.TATPURUSA,
         )
-        assertEquals("आत्मज्ञानः", result.final.surface)
+        assertEquals("आत्मज्ञानम्", result.final.surface)
         assertTrue(result.applications.any { it.sutra == "8.2.7" })
     }
 

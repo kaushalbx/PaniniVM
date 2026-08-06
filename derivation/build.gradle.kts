@@ -9,6 +9,7 @@ dependencies {
     implementation(project(":ashtadhyayi"))
     implementation(project(":actions"))
     implementation(project(":analysis"))
+    implementation(project(":linganushasanam"))
     testImplementation(kotlin("test"))
 }
 
