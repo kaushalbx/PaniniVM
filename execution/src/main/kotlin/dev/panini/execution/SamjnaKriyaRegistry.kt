@@ -83,10 +83,21 @@ class SamjnaKriyaRegistry {
 
                 for (domain in domainsToTry) {
                     val genitivePattern = "$domain + ङस् $instrumentalPattern"
-                    val genitiveMatupPattern = "$domain + वत् + ङस् $instrumentalPattern"
-                    val genitiveIdx = maxOf(sentenceText.indexOf(genitivePattern), sentenceText.indexOf(genitiveMatupPattern))
+                    val genitiveMatupPattern = "$domain + मतुप् + ङस् $instrumentalPattern"
+                    val genitiveVatupPattern = "$domain + वत् + ङस् $instrumentalPattern"
+
+                    var genitiveIdx = sentenceText.indexOf(genitiveMatupPattern)
+                    var matchedPattern = genitiveMatupPattern
+                    if (genitiveIdx < 0) {
+                        genitiveIdx = sentenceText.indexOf(genitiveVatupPattern)
+                        matchedPattern = genitiveVatupPattern
+                    }
+                    if (genitiveIdx < 0) {
+                        genitiveIdx = sentenceText.indexOf(genitivePattern)
+                        matchedPattern = genitivePattern
+                    }
+
                     if (genitiveIdx >= 0) {
-                        val matchedPattern = if (sentenceText.indexOf(genitiveMatupPattern) >= 0) genitiveMatupPattern else genitivePattern
                         val afterGenitive = sentenceText.substring(genitiveIdx + matchedPattern.length).trim()
                         if (PradayaUpasargaEngine.isVerbAction(afterGenitive, preParsedUkti)) {
                             val karmaText = sentenceText.substring(0, genitiveIdx).trim()

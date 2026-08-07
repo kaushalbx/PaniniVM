@@ -23,7 +23,7 @@ object TaddhitaStructEngine {
      */
     fun detectStructConstruction(sentenceText: String, preParsedUkti: Ukti? = null): TaddhitaStruct? {
         val trimmed = sentenceText.trim().trimEnd('।', '॥', ' ')
-        val isMatup = trimmed.contains("+ वत्") || trimmed.contains("+ मत्")
+        val isMatup = trimmed.contains("+ वतुप्") || trimmed.contains("+ मतुप्") || trimmed.contains("+ वत्") || trimmed.contains("+ मत्")
         if (!isMatup) return null
 
         val ukti = preParsedUkti ?: runCatching { parser.parse(trimmed) }.getOrNull()
@@ -31,7 +31,7 @@ object TaddhitaStructEngine {
 
         if (ukti != null) {
             val padas = ukti.vakyas.flatMap { it.padas }.filterIsInstance<SubantaPada>()
-            val matupPada = padas.lastOrNull { it.sup.text == "सुँ" && (it.sourceText.contains("+ वत्") || it.sourceText.contains("+ मत्")) }
+            val matupPada = padas.lastOrNull { it.sup.text == "सुँ" && (it.sourceText.contains("+ वतुप्") || it.sourceText.contains("+ मतुप्") || it.sourceText.contains("+ वत्") || it.sourceText.contains("+ मत्")) }
             if (matupPada != null) {
                 val structName = matupPada.pratipadika.sourceText.substringBefore("+").trim()
                 for (pada in padas) {
@@ -55,7 +55,7 @@ object TaddhitaStructEngine {
         }
 
         // Regex fallback
-        val matupMatch = Regex("""(\S+)\s*\+\s*(?:वत्|मत्)\s*\+\s*सुँ""").find(trimmed) ?: return null
+        val matupMatch = Regex("""(\S+)\s*\+\s*(?:वतुप्|मतुप्|वत्|मत्)\s*\+\s*सुँ""").find(trimmed) ?: return null
         val structName = matupMatch.groupValues[1]
 
         val matches = Regex("""(\S+)\s*\+\s*अम्""").findAll(trimmed).map { it.groupValues[1] }.toList()
@@ -73,15 +73,15 @@ object TaddhitaStructEngine {
     }
 
     /**
-     * Detects Genitive attribute access query: "<struct> + वत् + ङस् <key> + अम्"
-     * e.g. "गुण + वत् + ङस् मूल्य + अम् ।"
+     * Detects Genitive attribute access query: "<struct> + मतुप् + ङस् <key> + अम्"
+     * e.g. "गुण + मतुप् + ङस् मूल्य + अम् ।"
      */
     fun detectAttributeAccess(sentenceText: String, preParsedUkti: Ukti? = null): Pair<String, String>? {
         val trimmed = sentenceText.trim().trimEnd('।', '॥', ' ')
-        val isGenitiveMatup = trimmed.contains("+ ङस्") && (trimmed.contains("+ वत्") || trimmed.contains("+ मत्"))
+        val isGenitiveMatup = trimmed.contains("+ ङस्") && (trimmed.contains("+ वतुप्") || trimmed.contains("+ मतुप्") || trimmed.contains("+ वत्") || trimmed.contains("+ मत्"))
         if (!isGenitiveMatup) return null
 
-        val match = Regex("""(\S+)\s*\+\s*(?:वत्|मत्)\s*\+\s*ङस्\s+(\S+)\s*\+\s*अम्""").find(trimmed)
+        val match = Regex("""(\S+)\s*\+\s*(?:वतुप्|मतुप्|वत्|मत्)\s*\+\s*ङस्\s+(\S+)\s*\+\s*अम्""").find(trimmed)
         if (match != null) {
             val structName = match.groupValues[1]
             val keyTerm = match.groupValues[2]
@@ -92,12 +92,12 @@ object TaddhitaStructEngine {
     }
 
     /**
-     * Detects struct method header definition: "<struct> + वत् + ङस् <method> + ल्युट् + सुँ"
-     * e.g. "गुण + वत् + ङस् वर्द्धन + ल्युट् + सुँ"
+     * Detects struct method header definition: "<struct> + मतुप् + ङस् <method> + ल्युट् + सुँ"
+     * e.g. "गुण + मतुप् + ङस् वृध् + ल्युट् + सुँ"
      */
     fun detectMethodHeader(headerName: String): Pair<String, String>? {
         val trimmed = headerName.trim()
-        val match = Regex("""(\S+)\s*\+\s*(?:वत्|मत्)\s*\+\s*ङस्\s+(.+)""").find(trimmed)
+        val match = Regex("""(\S+)\s*\+\s*(?:वतुप्|मतुप्|वत्|मत्)\s*\+\s*ङस्\s+(.+)""").find(trimmed)
         if (match != null) {
             val structStem = match.groupValues[1]
             val methodHeader = match.groupValues[2]
@@ -107,15 +107,15 @@ object TaddhitaStructEngine {
     }
 
     /**
-     * Detects struct method invocation: "<karma> <struct> + वत् + ङस् <method> + ल्युट् + टा कृ"
-     * e.g. "पञ्च + अम् गुण + वत् + ङस् वर्द्धन + ल्युट् + टा कृ + लोट् + सिप्"
+     * Detects struct method invocation: "<karma> <struct> + मतुप् + ङस् <method> + ल्युट् + टा कृ"
+     * e.g. "पञ्च + अम् गुण + मतुप् + ङस् वृध् + ल्युट् + टा कृ + लोट् + सिप्"
      */
     fun detectMethodInvocation(sentenceText: String): Triple<String, String, String>? {
         val trimmed = sentenceText.trim()
-        val isMatupInvocation = trimmed.contains("+ ङस्") && (trimmed.contains("+ वत्") || trimmed.contains("+ मत्")) && trimmed.contains("+ टा")
+        val isMatupInvocation = trimmed.contains("+ ङस्") && (trimmed.contains("+ वतुप्") || trimmed.contains("+ मतुप्") || trimmed.contains("+ वत्") || trimmed.contains("+ मत्")) && trimmed.contains("+ टा")
         if (!isMatupInvocation) return null
 
-        val match = Regex("""(.*)\s+(\S+)\s*\+\s*(?:वत्|मत्)\s*\+\s*ङस्\s+(\S+)\s*\+\s*(?:ल्युट्|णिच्|तव्यत्|सुँ|टा)""").find(trimmed)
+        val match = Regex("""(.*)\s+(\S+)\s*\+\s*(?:वतुप्|मतुप्|वत्|मत्)\s*\+\s*ङस्\s+(\S+)\s*\+\s*(?:ल्युट्|णिच्|तव्यत्|सुँ|टा)""").find(trimmed)
         if (match != null) {
             val karmaText = match.groupValues[1].trim()
             val structStem = match.groupValues[2].trim()

@@ -165,7 +165,7 @@ object PvmScript {
         if (trimmed.isEmpty() || isAdhikaraLine(trimmed)) return null
 
         // Struct instantiation lines (containing attribute value assignments "+ अम्") are statements, not headers
-        if (trimmed.contains("+ अम्") && (trimmed.contains("+ वत् + सुँ") || trimmed.contains("+ मत् + सुँ"))) return null
+        if (trimmed.contains("+ अम्") && (trimmed.contains("+ मतुप् + सुँ") || trimmed.contains("+ वतुप् + सुँ") || trimmed.contains("+ वत् + सुँ") || trimmed.contains("+ मत् + सुँ"))) return null
 
         // Support "<name> इति संज्ञा ।" (legacy)
         val markerIdx = trimmed.indexOf(SAMJNA_HEADER_MARKER)
