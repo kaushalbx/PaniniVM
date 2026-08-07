@@ -61,7 +61,15 @@ class PaniniVM(
         scope: ExecutionScope = defaultScope,
         speaker: String = "प्रयोक्ता",
         listener: String = "यन्त्रम्",
+        isExecutingScript: Boolean = false,
     ): ExecutionResult {
+        if (!isExecutingScript && (utterance.contains("\n") || utterance.contains("इति संज्ञा") || utterance.contains("इति अधिकार") || utterance.contains("इति अधि + कृ + घञ्") || utterance.contains("इति अप वद् + घञ्"))) {
+            val scriptResults = evalScript(utterance, sessionKey, scope, speaker, listener)
+            val success = scriptResults.filterIsInstance<ExecutionResult.Success>()
+            if (success.isNotEmpty()) return success.last()
+            return scriptResults.lastOrNull() ?: ExecutionResult.Success(operation = "panini.evalScript", value = "संसिद्धम्")
+        }
+
         val activeContext = if (sessionKey != null) {
             sessions.getOrPut(sessionKey) {
                 store.load(sessionKey) ?: SambhashanaContext(speaker = speaker, listener = listener)
@@ -189,7 +197,7 @@ class PaniniVM(
 
         parsed.filterIsInstance<PvmScriptStatement.SamjnaDefinition>().forEach { defn ->
             val stem = deriveSamjnaStem(defn.nameSegmented)
-            val domain = deriveDomainStem(defn.nameSegmented) ?: topDomainStem
+            val domain = defn.domainStem ?: deriveDomainStem(defn.nameSegmented) ?: topDomainStem
             registry.register(
                 SamjnaKriya(
                     nameSegmented = defn.nameSegmented,
@@ -197,7 +205,7 @@ class PaniniVM(
                     body = defn.body,
                     sourceFile = sourceFile,
                     domainStem = domain,
-                    isApavada = isEntryPoint,
+                    isApavada = defn.isApavada,
                     isInternal = defn.isInternal,
                 ),
             )
@@ -242,7 +250,7 @@ class PaniniVM(
                     } else invResults
                     results += cleanResults
                 } else {
-                    results += eval(statement.text, effectiveSessionKey, effectiveScope, speaker, listener)
+                    results += eval(statement.text, effectiveSessionKey, effectiveScope, speaker, listener, isExecutingScript = true)
                 }
             }
         }
@@ -281,7 +289,7 @@ class PaniniVM(
 
             parsed.filterIsInstance<PvmScriptStatement.SamjnaDefinition>().forEach { defn ->
                 val stem = deriveSamjnaStem(defn.nameSegmented)
-                val domain = deriveDomainStem(defn.nameSegmented) ?: fileDomainStem
+                val domain = defn.domainStem ?: deriveDomainStem(defn.nameSegmented) ?: fileDomainStem
                 registry.register(
                     SamjnaKriya(
                         nameSegmented = defn.nameSegmented,
@@ -289,7 +297,7 @@ class PaniniVM(
                         body = defn.body,
                         sourceFile = libFile.name,
                         domainStem = domain,
-                        isApavada = false,
+                        isApavada = defn.isApavada,
                         isInternal = defn.isInternal,
                     ),
                 )
@@ -644,31 +652,23 @@ object PuranaPratyayaResolver {
      */
     fun replacePatterns(text: String, index: Int, rawArgVal: String): String {
         var result = text
-        val targetPattern = getSegmentedOrdinal(index)
         val cleanArg = if (rawArgVal.endsWith("+ अम्")) rawArgVal else "$rawArgVal + अम्"
 
+        val targetPattern = getSegmentedOrdinal(index)
         if (result.contains(targetPattern)) {
             result = result.replace(targetPattern, cleanArg)
         }
 
-        val stemPattern = targetPattern.removeSuffix(" + अम्").trim()
-        if (result.contains(stemPattern)) {
-            result = result.replace(stemPattern, rawArgVal.removeSuffix("+ अम्").trim())
+        val altRegex = when (index) {
+            0 -> Regex("""प्रथ्[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*अमच्[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*अम्|प्रथमा[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*अम्|प्रथम[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*अम्|प्रथम""")
+            1 -> Regex("""द्वि[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*तीय[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*अम्|द्वितीया[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*अम्|द्वितीय[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*अम्|द्वितीय""")
+            2 -> Regex("""त्रि[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*तीय[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*अम्|तृतीया[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*अम्|तृतीय[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*अम्|तृतीय""")
+            3 -> Regex("""चतुर्[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*थत्[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*अम्|चतुर्थी[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*अम्|चतुर्थ[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*अम्|चतुर्थ""")
+            else -> Regex("""\S+[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*मट्[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*अम्""")
         }
 
-        // Backward compatibility fallback for unsegmented legacy names
-        val legacyName = when (index) {
-            0 -> "प्रथम"
-            1 -> "द्वितीय"
-            2 -> "तृतीय"
-            3 -> "चतुर्थ"
-            4 -> "पञ्चम"
-            else -> "संख्या-${index + 1}"
-        }
-        if (result.contains("$legacyName + अम्")) {
-            result = result.replace("$legacyName + अम्", cleanArg)
-        } else if (result.contains(legacyName)) {
-            result = result.replace(legacyName, rawArgVal.removeSuffix("+ अम्").trim())
+        if (altRegex.containsMatchIn(result)) {
+            result = result.replace(altRegex, cleanArg)
         }
 
         return result

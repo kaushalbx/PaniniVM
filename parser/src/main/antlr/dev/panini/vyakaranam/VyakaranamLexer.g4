@@ -116,6 +116,7 @@ INTERJECTION
 
 PRA             : 'प्र';
 PARAA           : 'परा';
+APA             : 'अप';
 SAM             : 'सम्';
 ANUU            : 'अनु';
 AVA             : 'अव';

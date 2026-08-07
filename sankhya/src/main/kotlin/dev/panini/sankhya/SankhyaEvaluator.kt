@@ -238,7 +238,7 @@ class SankhyaEvaluator {
 
     private fun parseStandalonePurana(stem: String): SankhyaExpression.Purana? {
         val baseVal = when (stem) {
-            "प्रथम" -> PrimitiveSankhya.EKA
+            "प्रथम", "प्रथ्" -> PrimitiveSankhya.EKA
             else -> null
         }
         return baseVal?.let { SankhyaExpression.Purana(SankhyaExpression.Primitive(it)) }
@@ -249,20 +249,21 @@ class SankhyaEvaluator {
         if (stems.size == 1) return parseStandalonePurana(stems.single())
 
         val last = stems.last()
-        if (last == "तीय" || last == "थ" || last == "ष्ठ" || last == "म" || last == "तम") {
+        if (last in setOf("अमच्", "तीय", "थत्", "मट्", "डट्", "थ", "ष्ठ", "म", "तम")) {
             val baseStems = stems.dropLast(1)
             val baseExpr = if (baseStems.size == 1) {
                 val s = baseStems.single()
                 when (s) {
+                    "प्रथ्" -> PrimitiveSankhya.EKA
                     "द्वि" -> PrimitiveSankhya.DVI
                     "त्रि" -> PrimitiveSankhya.TRI
                     "चतुर्" -> PrimitiveSankhya.CHATUR
-                    "पञ्च" -> PrimitiveSankhya.PANCHAN
+                    "पञ्च", "पञ्चन्" -> PrimitiveSankhya.PANCHAN
                     "षष्" -> PrimitiveSankhya.SHASH
-                    "सप्त" -> PrimitiveSankhya.SAPTAN
-                    "अष्ट" -> PrimitiveSankhya.ASHTAN
-                    "नव" -> PrimitiveSankhya.NAVAN
-                    "दश" -> PrimitiveSankhya.DASHAN
+                    "सप्त", "सप्तन्" -> PrimitiveSankhya.SAPTAN
+                    "अष्ट", "अष्टन्" -> PrimitiveSankhya.ASHTAN
+                    "नव", "नवन्" -> PrimitiveSankhya.NAVAN
+                    "दश", "दशन्" -> PrimitiveSankhya.DASHAN
                     "शत" -> PrimitiveSankhya.SHATA
                     "सहस्र" -> PrimitiveSankhya.SAHASRA
                     else -> PrimitiveSankhya.fromAnnotatedPratipadika(s)

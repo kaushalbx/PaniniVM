@@ -40,8 +40,12 @@ class SamjnaKriyaRegistry {
     }
 
     fun register(kriya: SamjnaKriya) {
-        val existing = registry[kriya.nameStem]
+        val key = if (kriya.domainStem != null) "${kriya.domainStem}::${kriya.nameStem}" else kriya.nameStem
+        val existing = registry[key]
         if (existing == null || kriya.isApavada || !existing.isApavada) {
+            registry[key] = kriya
+        }
+        if (!registry.containsKey(kriya.nameStem) || kriya.isApavada) {
             registry[kriya.nameStem] = kriya
         }
     }
@@ -54,7 +58,7 @@ class SamjnaKriyaRegistry {
         return kriya
     }
 
-    fun all(): List<SamjnaKriya> = registry.values.toList()
+    fun all(): List<SamjnaKriya> = registry.values.distinctBy { it.nameStem + (it.domainStem ?: "") }
 
     fun isEmpty(): Boolean = registry.isEmpty()
 
@@ -66,7 +70,8 @@ class SamjnaKriyaRegistry {
         val isAntaranga = AntarangaScopeEngine.detectAntaranga(sentenceText, preParsedUkti)
         val textToProcess = if (isAntaranga) AntarangaScopeEngine.stripAntarangaDirective(sentenceText) else sentenceText
 
-        for ((_, kriya) in registry) {
+        val candidates = registry.values.sortedByDescending { it.isApavada }
+        for (kriya in candidates) {
             if (kriya.isInternal && callerSourceFile != null && kriya.sourceFile != null && callerSourceFile != kriya.sourceFile) {
                 continue // File-private saṃjñā hidden from external caller
             }
@@ -101,6 +106,15 @@ class SamjnaKriyaRegistry {
                     }
 
                     if (genitiveIdx >= 0) {
+                        if (kriya.domainStem != domain) {
+                            val cleanDomain = domain.substringBefore("+").trim()
+                            val exactChildMethod = registry.values.firstOrNull {
+                                (it.domainStem == domain || it.domainStem == cleanDomain) && it.nameStem == kriya.nameStem && it.isApavada
+                            }
+                            if (exactChildMethod != null) {
+                                continue
+                            }
+                        }
                         val afterGenitive = textToProcess.substring(genitiveIdx + matchedPattern.length).trim()
                         if (PradayaUpasargaEngine.isVerbAction(afterGenitive, preParsedUkti)) {
                             val karmaText = textToProcess.substring(0, genitiveIdx).trim()

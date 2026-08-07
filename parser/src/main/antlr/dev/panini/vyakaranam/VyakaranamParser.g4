@@ -359,6 +359,7 @@ upasargaKrama
 upasarga
     : PRA
     | PARAA
+    | APA
     | SAM
     | ANUU
     | AVA

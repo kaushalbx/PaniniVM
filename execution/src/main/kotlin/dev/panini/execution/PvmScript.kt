@@ -23,7 +23,9 @@ sealed interface PvmScriptStatement {
         val nameSegmented: String,
         val body: List<Sentence>,
         override val text: String,
+        val domainStem: String? = null,
         val isInternal: Boolean = false,
+        val isApavada: Boolean = false,
     ) : PvmScriptStatement
 
     /**
@@ -83,23 +85,64 @@ object PvmScript {
                     val bodySentences = parseSentences(bodyText)
 
                     val methodHeaderMatch = TaddhitaStructEngine.detectMethodHeader(currentName)
+                    val explicitDomain = methodHeaderMatch?.first
+                    val isApavadaHeader = currentName.contains("इति अप वद् + घञ् + सुँ") || currentName.contains("इति अपवाद + सुँ") || currentName.contains("इति अपवादः")
                     val isInternalHeader = currentName.startsWith("अन्तरङ्गा ") || currentName.startsWith("अन्तरङ्ग ")
                     val rawCleanName = if (isInternalHeader) {
                         currentName.removePrefix("अन्तरङ्गा ").removePrefix("अन्तरङ्ग ").trim()
                     } else {
                         currentName
                     }
-                    val cleanName = methodHeaderMatch?.second ?: rawCleanName
+                    val cleanName = (methodHeaderMatch?.second ?: rawCleanName)
+                        .replace("इति अप वद् + घञ् + सुँ", "")
+                        .replace("इति अपवाद + सुँ", "")
+                        .replace("इति अपवादः", "")
+                        .trim()
 
                     samjnaDefinitions += PvmScriptStatement.SamjnaDefinition(
                         nameSegmented = cleanName,
                         body = bodySentences,
                         text = currentBlockText.joinToString("\n"),
+                        domainStem = explicitDomain,
                         isInternal = isInternalHeader,
+                        isApavada = isApavadaHeader,
                     )
                     inBlock = false
                 }
             }
+        }
+
+        if (inBlock) {
+            val bodyText = currentBodyLines
+                .map { stripComment(it).trim() }
+                .filter { it.isNotEmpty() }
+                .joinToString(" ")
+            val bodySentences = parseSentences(bodyText)
+
+            val methodHeaderMatch = TaddhitaStructEngine.detectMethodHeader(currentName)
+            val explicitDomain = methodHeaderMatch?.first
+            val isApavadaHeader = currentName.contains("इति अप वद् + घञ् + सुँ") || currentName.contains("इति अपवाद + सुँ") || currentName.contains("इति अपवादः")
+            val isInternalHeader = currentName.startsWith("अन्तरङ्गा ") || currentName.startsWith("अन्तरङ्ग ")
+            val rawCleanName = if (isInternalHeader) {
+                currentName.removePrefix("अन्तरङ्गा ").removePrefix("अन्तरङ्ग ").trim()
+            } else {
+                currentName
+            }
+            val cleanName = (methodHeaderMatch?.second ?: rawCleanName)
+                .replace("इति अप वद् + घञ् + सुँ", "")
+                .replace("इति अपवाद + सुँ", "")
+                .replace("इति अपवादः", "")
+                .trim()
+
+            samjnaDefinitions += PvmScriptStatement.SamjnaDefinition(
+                nameSegmented = cleanName,
+                body = bodySentences,
+                text = currentBlockText.joinToString("\n"),
+                domainStem = explicitDomain,
+                isInternal = isInternalHeader,
+                isApavada = isApavadaHeader,
+            )
+            inBlock = false
         }
 
         val adhikaraDefinitions = mutableListOf<PvmScriptStatement.AdhikaraDefinition>()
@@ -132,7 +175,7 @@ object PvmScript {
     }
 
     internal fun isAdhikaraLine(line: String): Boolean {
-        return line.contains("+ घञ्") || line.contains("अधिकार")
+        return line.contains("अधि + कृ + घञ्") || line.contains("अधिकार")
     }
 
     internal fun extractAdhikaraDomain(line: String): String? {
@@ -141,11 +184,10 @@ object PvmScript {
 
         val marker = if (trimmed.contains("अधि + कृ + घञ्")) {
             "अधि + कृ + घञ्"
-        } else if (trimmed.contains("+ घञ्")) {
-            val idx = trimmed.indexOf("+ घञ्")
-            trimmed.substring(0, idx).trim()
-        } else {
+        } else if (trimmed.contains("अधिकार")) {
             "अधिकार"
+        } else {
+            return null
         }
 
         var beforeAdhikara = trimmed.substringBefore(marker)
@@ -167,15 +209,25 @@ object PvmScript {
         // Struct instantiation lines (containing attribute value assignments "+ अम्") are statements, not headers
         if (trimmed.contains("+ अम्") && (trimmed.contains("+ मतुप् + सुँ") || trimmed.contains("+ वतुप् + सुँ") || trimmed.contains("+ वत् + सुँ") || trimmed.contains("+ मत् + सुँ"))) return null
 
-        // Support "<name> इति संज्ञा ।" (legacy)
-        val markerIdx = trimmed.indexOf(SAMJNA_HEADER_MARKER)
-        if (markerIdx > 0) {
-            return trimmed.substring(0, markerIdx).trim().ifEmpty { null }
+        // Support header markers: "इति संज्ञा", "इति अप वद्", "इति अपवाद"
+        val isHeaderWithMarker = trimmed.contains("इति संज्ञा") || trimmed.contains("इति अप वद्") || trimmed.contains("इति अपवाद")
+        if (isHeaderWithMarker) {
+            val markerIdx = when {
+                trimmed.contains("इति संज्ञा") -> trimmed.indexOf("इति संज्ञा")
+                trimmed.contains("इति अप वद्") -> trimmed.indexOf("इति अप वद्")
+                else -> trimmed.indexOf("इति अपवाद")
+            }
+            if (markerIdx > 0) {
+                return trimmed.substring(0, markerIdx).trim().ifEmpty { null }
+            }
+            // If line starts with or contains the header pattern ending in daṇḍa
+            val nameText = trimmed.substringBefore("संज्ञा")
+                .trimEnd('।', '॥', ' ')
+                .trim()
+            return nameText.ifEmpty { null }
         }
 
         // Pure Pāṇinian header: "<name> + सुँ ।" or "<name> + सुँ संज्ञा ।"
-        // Must end with a single daṇḍa (or start of block), contain nominal nominative affix "+ सुँ",
-        // and must NOT contain finite verb lakāra affixes (e.g. लोट्, लट्).
         val hasNominalAffix = trimmed.contains("+ सुँ") || trimmed.contains("+ प्रथमा")
         val hasVerbAffix = trimmed.contains("लोट्") || trimmed.contains("लट्") || trimmed.contains("लङ्") || trimmed.contains("विधिलिङ्")
         if (hasNominalAffix && !hasVerbAffix) {
