@@ -90,4 +90,39 @@ object TaddhitaStructEngine {
 
         return null
     }
+
+    /**
+     * Detects struct method header definition: "<struct> + वत् + ङस् <method> + ल्युट् + सुँ"
+     * e.g. "गुण + वत् + ङस् वर्द्धन + ल्युट् + सुँ"
+     */
+    fun detectMethodHeader(headerName: String): Pair<String, String>? {
+        val trimmed = headerName.trim()
+        val match = Regex("""(\S+)\s*\+\s*(?:वत्|मत्)\s*\+\s*ङस्\s+(.+)""").find(trimmed)
+        if (match != null) {
+            val structStem = match.groupValues[1]
+            val methodHeader = match.groupValues[2]
+            return Pair(structStem, methodHeader)
+        }
+        return null
+    }
+
+    /**
+     * Detects struct method invocation: "<karma> <struct> + वत् + ङस् <method> + ल्युट् + टा कृ"
+     * e.g. "पञ्च + अम् गुण + वत् + ङस् वर्द्धन + ल्युट् + टा कृ + लोट् + सिप्"
+     */
+    fun detectMethodInvocation(sentenceText: String): Triple<String, String, String>? {
+        val trimmed = sentenceText.trim()
+        val isMatupInvocation = trimmed.contains("+ ङस्") && (trimmed.contains("+ वत्") || trimmed.contains("+ मत्")) && trimmed.contains("+ टा")
+        if (!isMatupInvocation) return null
+
+        val match = Regex("""(.*)\s+(\S+)\s*\+\s*(?:वत्|मत्)\s*\+\s*ङस्\s+(\S+)\s*\+\s*(?:ल्युट्|णिच्|तव्यत्|सुँ|टा)""").find(trimmed)
+        if (match != null) {
+            val karmaText = match.groupValues[1].trim()
+            val structStem = match.groupValues[2].trim()
+            val methodStem = match.groupValues[3].trim()
+            return Triple(structStem, methodStem, karmaText)
+        }
+
+        return null
+    }
 }

@@ -89,7 +89,12 @@ class SamjnaKriyaRegistry {
             val afterInstrumental = sentenceText.substring(patternIdx + instrumentalPattern.length).trim()
             if (!PradayaUpasargaEngine.isVerbAction(afterInstrumental, preParsedUkti)) continue
 
-            val karmaText = sentenceText.substring(0, patternIdx).trim()
+            var karmaText = sentenceText.substring(0, patternIdx).trim()
+            if (karmaText.contains("+ ङस्")) {
+                val ngasIdx = karmaText.indexOf("+ ङस्")
+                val textBeforeNgas = karmaText.substring(0, ngasIdx).trim()
+                karmaText = textBeforeNgas.substringBeforeLast(" ").trim().ifEmpty { textBeforeNgas }
+            }
 
             return SamjnaInvocation(
                 kriya = kriya,

@@ -82,12 +82,14 @@ object PvmScript {
                         .joinToString(" ")
                     val bodySentences = parseSentences(bodyText)
 
+                    val methodHeaderMatch = TaddhitaStructEngine.detectMethodHeader(currentName)
                     val isInternalHeader = currentName.startsWith("अन्तरङ्गा ") || currentName.startsWith("अन्तरङ्ग ")
-                    val cleanName = if (isInternalHeader) {
+                    val rawCleanName = if (isInternalHeader) {
                         currentName.removePrefix("अन्तरङ्गा ").removePrefix("अन्तरङ्ग ").trim()
                     } else {
                         currentName
                     }
+                    val cleanName = methodHeaderMatch?.second ?: rawCleanName
 
                     samjnaDefinitions += PvmScriptStatement.SamjnaDefinition(
                         nameSegmented = cleanName,
@@ -160,7 +162,15 @@ object PvmScript {
 
     internal fun extractSamjnaHeaderName(line: String): String? {
         val trimmed = line.trim()
-        if (trimmed.isEmpty() || isAdhikaraLine(trimmed) || trimmed.contains("+ वत्") || trimmed.contains("+ मत्")) return null
+        if (trimmed.isEmpty() || isAdhikaraLine(trimmed)) return null
+
+        if (trimmed.contains("+ ङस्") && trimmed.contains("+ सुँ") && (trimmed.contains("+ वत्") || trimmed.contains("+ मत्"))) {
+            val afterNgas = trimmed.substringAfter("+ ङस्").trim()
+                .trimEnd('।', '॥', ' ')
+            return afterNgas.ifEmpty { null }
+        }
+
+        if (trimmed.contains("+ वत् + सुँ") || trimmed.contains("+ मत् + सुँ")) return null
 
         // Support "<name> इति संज्ञा ।" (legacy)
         val markerIdx = trimmed.indexOf(SAMJNA_HEADER_MARKER)

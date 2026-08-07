@@ -334,4 +334,20 @@ class SamjnaKriyaMultiFileTest {
         assertTrue(successful.isNotEmpty(), "Taddhita struct evaluation should succeed.")
         assertEquals("दश", successful.last().value, "Accessing गुणवतः मूल्यम् should return दश (10).")
     }
+
+    @Test
+    fun `test taddhita struct member method definition and tritiya invocation`() {
+        val vm = PaniniVM()
+        val script = """
+            गुण + वत् + ङस् वर्द्धन + ल्युट् + सुँ ।
+            प्रथम + अम् द्वितीय + अम् च युज् + णिच् + लोट् + सिप् ॥
+
+            पञ्च + अम् द्वि + अम् गुण + वत् + ङस् वर्द्धन + ल्युट् + टा कृ + लोट् + सिप् ।
+        """.trimIndent()
+
+        val results = vm.evalScript(script)
+        val successful = results.filterIsInstance<ExecutionResult.Success>()
+        assertTrue(successful.isNotEmpty(), "Taddhita struct method invocation should succeed.")
+        assertEquals("सप्त", successful.last().value, "Calling गुणवतः वर्द्धनेन on 5 (पञ्च) and 2 (द्वि) should return 7 (सप्त).")
+    }
 }
