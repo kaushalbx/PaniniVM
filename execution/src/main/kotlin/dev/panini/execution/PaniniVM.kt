@@ -241,6 +241,11 @@ class PaniniVM(
                         "तद्धित-असंगतिः: Attribute '$keyTerm' not found in struct '$structName'",
                     )
                 }
+            } else if (PurvaparaPipelineEngine.isPipelineDirective(statement.text, statement.ukti)) {
+                val pipelineResults = PurvaparaPipelineEngine.executePipeline(
+                    statement.text, this, effectiveSessionKey, effectiveScope, speaker, listener, registry, callerSourceFile = sourceFile,
+                )
+                results += pipelineResults
             } else {
                 val invocation = registry.detectInvocation(statement.text, callerSourceFile = sourceFile, preParsedUkti = statement.ukti)
                 if (invocation != null) {
@@ -318,7 +323,7 @@ class PaniniVM(
         )
     }
 
-    private fun executeSamjnaInvocation(
+    internal fun executeSamjnaInvocation(
         invocation: SamjnaInvocation,
         sessionKey: String,
         scope: ExecutionScope,
