@@ -320,4 +320,18 @@ class SamjnaKriyaMultiFileTest {
         assertTrue(successful.isNotEmpty(), "Paninian morphology project execution should succeed.")
         assertEquals("नव", successful.last().value, "Printed result of (4 + 5) via morph procedure should be नव (9).")
     }
+
+    @Test
+    fun `test taddhita struct matup creation and genitive attribute access`() {
+        val vm = PaniniVM()
+        val script = """
+            दश + अम् मूल्य + अम् पञ्च + अम् परिमाण + अम् गुण + वत् + सुँ ।
+            गुण + वत् + ङस् मूल्य + अम् ।
+        """.trimIndent()
+
+        val results = vm.evalScript(script)
+        val successful = results.filterIsInstance<ExecutionResult.Success>()
+        assertTrue(successful.isNotEmpty(), "Taddhita struct evaluation should succeed.")
+        assertEquals("दश", successful.last().value, "Accessing गुणवतः मूल्यम् should return दश (10).")
+    }
 }

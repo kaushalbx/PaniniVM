@@ -199,15 +199,35 @@ class PaniniVM(
         }
 
         val effectiveScope = scope.copy(samjnaRegistry = registry)
+        val structStore = mutableMapOf<String, TaddhitaStruct>()
 
         parsed.filterIsInstance<PvmScriptStatement.Sentence>().forEach { statement ->
-            val invocation = registry.detectInvocation(statement.text, callerSourceFile = sourceFile, preParsedUkti = statement.ukti)
-            if (invocation != null) {
-                results += executeSamjnaInvocation(
-                    invocation, effectiveSessionKey, effectiveScope, speaker, listener, registry, callerSourceFile = sourceFile,
-                )
+            val constructedStruct = TaddhitaStructEngine.detectStructConstruction(statement.text, statement.ukti)
+            val attributeAccess = TaddhitaStructEngine.detectAttributeAccess(statement.text, statement.ukti)
+
+            if (constructedStruct != null) {
+                structStore[constructedStruct.nameStem] = constructedStruct
+            } else if (attributeAccess != null) {
+                val (structName, keyTerm) = attributeAccess
+                val structObj = structStore[structName]
+                val attrVal = structObj?.attributes?.get(keyTerm)
+                if (attrVal != null) {
+                    results += ExecutionResult.Success(operation = "taddhita.query", value = attrVal)
+                } else {
+                    results += ExecutionResult.Failure(
+                        ExecutionError.INVALID_VALUE,
+                        "तद्धित-असंगतिः: Attribute '$keyTerm' not found in struct '$structName'",
+                    )
+                }
             } else {
-                results += eval(statement.text, effectiveSessionKey, effectiveScope, speaker, listener)
+                val invocation = registry.detectInvocation(statement.text, callerSourceFile = sourceFile, preParsedUkti = statement.ukti)
+                if (invocation != null) {
+                    results += executeSamjnaInvocation(
+                        invocation, effectiveSessionKey, effectiveScope, speaker, listener, registry, callerSourceFile = sourceFile,
+                    )
+                } else {
+                    results += eval(statement.text, effectiveSessionKey, effectiveScope, speaker, listener)
+                }
             }
         }
         return results

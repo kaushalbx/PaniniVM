@@ -1,0 +1,11 @@
+# तद्धित मुख्य ग्रन्थ — Demonstration of Taddhita Structs (5.2.94 मतुप् / वत्) & Genitive Attribute Access
+
+# Step 1: Construct struct instance 'गुणवत्' with attributes: (मूल्य = 10 / दश, परिमाण = 5 / पञ्च)
+# Linguistically: "दश मूल्यं पञ्च परिमाणं च अस्य अस्ति इति गुणवान् ।"
+दश + अम् मूल्य + अम् पञ्च + अम् परिमाण + अम् गुण + वत् + सुँ ।
+
+# Step 2: Query attribute 'मूल्यम्' from struct 'गुणवत्' using Genitive Case (गुणवतः मूल्यम्):
+गुण + वत् + ङस् मूल्य + अम् ।
+
+# Step 3: Print result
+मुद्र् + णिच् + लोट् + सिप् फल + अम् ।

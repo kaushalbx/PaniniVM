@@ -160,7 +160,7 @@ object PvmScript {
 
     internal fun extractSamjnaHeaderName(line: String): String? {
         val trimmed = line.trim()
-        if (trimmed.isEmpty() || isAdhikaraLine(trimmed)) return null
+        if (trimmed.isEmpty() || isAdhikaraLine(trimmed) || trimmed.contains("+ वत्") || trimmed.contains("+ मत्")) return null
 
         // Support "<name> इति संज्ञा ।" (legacy)
         val markerIdx = trimmed.indexOf(SAMJNA_HEADER_MARKER)
