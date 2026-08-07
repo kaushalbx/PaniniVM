@@ -225,20 +225,41 @@ class PaniniVM(
 
         parsed.filterIsInstance<PvmScriptStatement.Sentence>().forEach { statement ->
             val constructedStruct = TaddhitaStructEngine.detectStructConstruction(statement.text, statement.ukti)
-            val attributeAccess = TaddhitaStructEngine.detectAttributeAccess(statement.text, statement.ukti)
+            val nestedAttributeAccess = TaddhitaStructEngine.detectNestedAttributeAccess(statement.text, statement.ukti)
 
             if (constructedStruct != null) {
                 structStore[constructedStruct.nameStem] = constructedStruct
-            } else if (attributeAccess != null) {
-                val (structName, keyTerm) = attributeAccess
-                val structObj = structStore[structName]
-                val attrVal = structObj?.attributes?.get(keyTerm)
-                if (attrVal != null) {
-                    results += ExecutionResult.Success(operation = "taddhita.query", value = attrVal)
+            } else if (nestedAttributeAccess != null) {
+                val chain = nestedAttributeAccess
+                var currentObj: TaddhitaStruct? = structStore[chain[0]]
+                var resolvedValue: String? = null
+                var failedStep: String? = null
+
+                for (i in 1 until chain.size) {
+                    val key = chain[i]
+                    if (currentObj == null) {
+                        failedStep = chain[i - 1]
+                        break
+                    }
+                    val attrVal = currentObj.attributes[key]
+                    if (attrVal != null) {
+                        if (i == chain.size - 1) {
+                            resolvedValue = attrVal
+                        } else {
+                            currentObj = structStore[attrVal]
+                        }
+                    } else {
+                        failedStep = key
+                        break
+                    }
+                }
+
+                if (resolvedValue != null) {
+                    results += ExecutionResult.Success(operation = "taddhita.nested_query", value = resolvedValue)
                 } else {
                     results += ExecutionResult.Failure(
                         ExecutionError.INVALID_VALUE,
-                        "तद्धित-असंगतिः: Attribute '$keyTerm' not found in struct '$structName'",
+                        "षष्ठी-असंगतिः: Attribute '$failedStep' not found in nested genitive chain $chain",
                     )
                 }
             } else if (PurvaparaPipelineEngine.isPipelineDirective(statement.text, statement.ukti)) {

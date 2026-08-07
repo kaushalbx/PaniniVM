@@ -92,6 +92,43 @@ object TaddhitaStructEngine {
     }
 
     /**
+     * Detects Multi-level Nested Genitive attribute access query (Sūtra 1.1.49 षष्ठी स्थानेयोगा):
+     * e.g. "गाणित + मतुप् + ङस् सङ्ख्या + मतुप् + ङस् मूल्य + अम् ।" -> ["गाणित", "सङ्ख्या", "मूल्य"]
+     */
+    fun detectNestedAttributeAccess(sentenceText: String, preParsedUkti: Ukti? = null): List<String>? {
+        val trimmed = sentenceText.trim().trimEnd('।', '॥', ' ')
+        if (!trimmed.endsWith("+ अम्") || trimmed.contains("कृ + लोट्") || trimmed.contains("युज् + णिच्")) return null
+
+        val isGenitiveMatup = trimmed.contains("+ ङस्") && (trimmed.contains("+ वतुप्") || trimmed.contains("+ मतुप्") || trimmed.contains("+ वत्") || trimmed.contains("+ मत्"))
+        if (!isGenitiveMatup) return null
+
+        val segments = trimmed.split("+ ङस्").map { it.trim() }.filter { it.isNotEmpty() }
+        if (segments.size >= 2) {
+            val chain = mutableListOf<String>()
+            for (i in 0 until segments.size - 1) {
+                val seg = segments[i]
+                val stem = seg.replace(Regex("""\+\s*(?:वतुप्|मतुप्|वत्|मत्)"""), "").replace("+", "").trim()
+                if (stem.isNotEmpty()) {
+                    chain.add(stem)
+                }
+            }
+            val lastSeg = segments.last()
+            val lastKey = lastSeg.replace("+ अम्", "").replace("+", "").trim()
+            if (lastKey.isNotEmpty()) {
+                chain.add(lastKey)
+            }
+            if (chain.size >= 2) {
+                return chain
+            }
+        }
+
+        val pair = detectAttributeAccess(trimmed, preParsedUkti)
+        if (pair != null) return listOf(pair.first, pair.second)
+
+        return null
+    }
+
+    /**
      * Detects struct method header definition: "<struct> + मतुप् + ङस् <method> + ल्युट् + सुँ"
      * e.g. "गुण + मतुप् + ङस् वृध् + ल्युट् + सुँ"
      */

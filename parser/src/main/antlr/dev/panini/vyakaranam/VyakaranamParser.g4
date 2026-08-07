@@ -249,7 +249,6 @@ taddhitaPratyaya
     | INA
     | DAA
     | DHAA
-    | TRA
     | TYAP
     | TYA
     ;
