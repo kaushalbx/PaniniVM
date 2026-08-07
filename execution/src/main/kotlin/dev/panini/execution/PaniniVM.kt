@@ -279,9 +279,20 @@ class PaniniVM(
         // Step 2: Execute Vidhi Sūtra (Mandate) sentences
         invocation.kriya.vidhiSentences.forEach { bodySentence ->
             var sentenceText = bodySentence.text
+
+            // Substitute explicit parameter names (प्रथम, द्वितीय, तृतीय...)
             paramNames.forEachIndexed { index, param ->
                 if (index < argTerms.size && sentenceText.contains(param)) {
                     sentenceText = sentenceText.replace(param, argTerms[index])
+                }
+            }
+
+            // Substitute समवाय (Collection / List batch fold parameter)
+            if (sentenceText.contains("समवाय") && invocation.karmaText.isNotBlank()) {
+                if (sentenceText.contains("समवाय + अम्")) {
+                    sentenceText = sentenceText.replace("समवाय + अम्", invocation.karmaText)
+                } else if (sentenceText.contains("समवाय")) {
+                    sentenceText = sentenceText.replace("समवाय", invocation.karmaText)
                 }
             }
 

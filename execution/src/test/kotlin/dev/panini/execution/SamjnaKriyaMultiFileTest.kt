@@ -20,9 +20,9 @@ class SamjnaKriyaMultiFileTest {
         val successful = results.filterIsInstance<ExecutionResult.Success>()
         assertTrue(successful.isNotEmpty(), "Project execution should yield successful results.")
         val values = successful.map { it.value }.filter { it.isNotBlank() }
-        assertTrue(values.contains("पञ्च"), "Addition of प्रथम (2) + द्वितीय (3) in saṃjñā should produce पञ्च (5).")
-        assertTrue(values.contains("विंशतिः"), "Multiplication of phala (5) with तृतीय (4) should produce विंशतिः (20).")
-        assertEquals("विंशतिः", values.last(), "Printed result of (2 + 3) * 4 should be विंशतिः (20).")
+        assertTrue(values.contains("विंशतिः"), "Calculation of (2 + 3) * 4 should produce विंशतिः (20).")
+        assertTrue(values.contains("पञ्चदश"), "Batch list sum of (1 + 2 + 3 + 4 + 5) via समवाययोजनम् should produce पञ्चदश (15).")
+        assertEquals("पञ्चदश", values.last(), "Final printed result of multi-file project should be पञ्चदश (15).")
     }
 
     @Test
@@ -153,5 +153,41 @@ class SamjnaKriyaMultiFileTest {
         val failure = results.filterIsInstance<ExecutionResult.Failure>().firstOrNull()
         assertNotNull(failure, "Evaluation with zero argument must trigger Niṣedha failure.")
         assertTrue(failure.message.contains("निषेध-प्रतिषेधः"), "Failure message must reference Niṣedha prohibition.")
+    }
+
+    @Test
+    fun `test samavaya list batch fold addition in samjna`() {
+        val vm = PaniniVM()
+        val registry = SamjnaKriyaRegistry()
+        val script = """
+            समवाय + ल्युट् + सुँ ।
+            समवाय + अम् युज् + णिच् + लोट् + सिप् ॥
+        """.trimIndent()
+
+        val parsed = PvmScript.parse(script).first() as PvmScriptStatement.SamjnaDefinition
+        registry.register(
+            SamjnaKriya(
+                nameSegmented = parsed.nameSegmented,
+                nameStem = SamjnaKriyaRegistry.stripSupSuffix(parsed.nameSegmented),
+                body = parsed.body,
+            ),
+        )
+
+        val invocationText = "एक + अम् द्वि + अम् त्रि + अम् चतुर् + अम् पञ्च + अम् च समवाय + ल्युट् + टा कृ + लोट् + सिप् ।"
+        val results = vm.evalScript(invocationText, samjnaRegistry = registry)
+        val successful = results.filterIsInstance<ExecutionResult.Success>()
+        assertTrue(successful.isNotEmpty())
+        assertEquals("पञ्चदश", successful.last().value, "Sum of 1 + 2 + 3 + 4 + 5 in saṃjñā list fold should be पञ्चदश (15).")
+    }
+
+    @Test
+    fun `test samavaya project multi-file execution from disk`() {
+        val vm = PaniniVM()
+        val entryFile = File("examples/list_operations/samavaya_mukhya.pvm")
+
+        val results = vm.evalProject(entryFile)
+        val successful = results.filterIsInstance<ExecutionResult.Success>()
+        assertTrue(successful.isNotEmpty(), "List operations project execution should succeed.")
+        assertEquals("पञ्चदश", successful.last().value, "Sum of 1..5 in samavaya project should be पञ्चदश (15).")
     }
 }
