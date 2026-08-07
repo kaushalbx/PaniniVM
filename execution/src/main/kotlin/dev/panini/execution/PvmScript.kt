@@ -3,7 +3,10 @@ package dev.panini.execution
 sealed interface PvmScriptStatement {
     val text: String
 
-    data class Sentence(override val text: String) : PvmScriptStatement
+    data class Sentence(
+        override val text: String,
+        val isNishedha: Boolean = false,
+    ) : PvmScriptStatement
 
     /**
      * A named kriyā definition using the संज्ञा-सूत्र pattern:
@@ -137,7 +140,12 @@ object PvmScript {
         return sentenceRegex.findAll(joinedText)
             .map { it.value.trim() }
             .filter { it.isNotEmpty() }
-            .map(PvmScriptStatement::Sentence)
+            .map { text ->
+                val trimmed = text.trim()
+                val isNishedha = trimmed.startsWith("न ") || trimmed.startsWith("मा ") ||
+                    trimmed.contains(" न ") || trimmed.startsWith("न+")
+                PvmScriptStatement.Sentence(text = text, isNishedha = isNishedha)
+            }
             .toList()
     }
 }

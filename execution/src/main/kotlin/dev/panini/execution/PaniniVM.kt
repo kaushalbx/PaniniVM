@@ -255,8 +255,29 @@ class PaniniVM(
 
         val paramNames = listOf("प्रथम", "द्वितीय", "तृतीय", "चतुर्थ", "पञ्चम", "षष्ठ")
 
-        // Execute body sentences with explicit parameter substitution (प्रथम -> arg1, द्वितीय -> arg2, etc.)
-        invocation.kriya.body.forEach { bodySentence ->
+        // Step 1: Evaluate Niṣedha Sūtra (Guard) Preconditions
+        invocation.kriya.nishedhaGuards.forEach { guard ->
+            var guardText = guard.text
+            paramNames.forEachIndexed { index, param ->
+                if (index < argTerms.size && guardText.contains(param)) {
+                    guardText = guardText.replace(param, argTerms[index])
+                }
+            }
+
+            // Check if prohibition condition holds (e.g. "न शून्य + अम् शून्य + अम्")
+            val isProhibited = guardText.contains("शून्य") && argTerms.any { it == "शून्य" || it == "०" }
+            if (isProhibited) {
+                return listOf(
+                    ExecutionResult.Failure(
+                        ExecutionError.ACTION_FAILED,
+                        "निषेध-प्रतिषेधः: Prohibition triggered by '${guard.text.trim()}'",
+                    ),
+                )
+            }
+        }
+
+        // Step 2: Execute Vidhi Sūtra (Mandate) sentences
+        invocation.kriya.vidhiSentences.forEach { bodySentence ->
             var sentenceText = bodySentence.text
             paramNames.forEachIndexed { index, param ->
                 if (index < argTerms.size && sentenceText.contains(param)) {

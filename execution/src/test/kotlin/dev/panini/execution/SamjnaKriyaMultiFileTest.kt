@@ -102,4 +102,56 @@ class SamjnaKriyaMultiFileTest {
         assertEquals("एक + अम् द्वि + अम् च", invocation.karmaText)
         assertEquals("युज् + ल्युट् + सुँ", invocation.kriya.nameSegmented)
     }
+
+    @Test
+    fun `test nishedha sutra parsing and guard separation`() {
+        val script = """
+            विभाज् + ल्युट् + सुँ ।
+            न द्वितीय + अम् शून्य + अम् ।
+            प्रथम + अम् द्वितीय + अम् च भाज् + णिच् + लोट् + सिप् ॥
+        """.trimIndent()
+
+        val parsed = PvmScript.parse(script)
+        assertEquals(1, parsed.size)
+        val samjnaDef = parsed.first() as PvmScriptStatement.SamjnaDefinition
+        val kriya = SamjnaKriya(
+            nameSegmented = samjnaDef.nameSegmented,
+            nameStem = SamjnaKriyaRegistry.stripSupSuffix(samjnaDef.nameSegmented),
+            body = samjnaDef.body,
+        )
+
+        assertEquals(1, kriya.nishedhaGuards.size, "Should identify 1 prohibition rule (निषेध-सूत्र).")
+        assertEquals("न द्वितीय + अम् शून्य + अम् ।", kriya.nishedhaGuards.first().text)
+        assertEquals(1, kriya.vidhiSentences.size, "Should identify 1 mandate rule (विधि-सूत्र).")
+    }
+
+    @Test
+    fun `test nishedha sutra prohibition guard enforcement on zero operand`() {
+        val vm = PaniniVM()
+        val registry = SamjnaKriyaRegistry()
+        val script = """
+            विभाज् + ल्युट् + सुँ ।
+            न द्वितीय + अम् शून्य + अम् ।
+            प्रथम + अम् द्वितीय + अम् च भाज् + णिच् + लोट् + सिप् ॥
+        """.trimIndent()
+
+        val parsed = PvmScript.parse(script).first() as PvmScriptStatement.SamjnaDefinition
+        registry.register(
+            SamjnaKriya(
+                nameSegmented = parsed.nameSegmented,
+                nameStem = SamjnaKriyaRegistry.stripSupSuffix(parsed.nameSegmented),
+                body = parsed.body,
+            ),
+        )
+
+        // Test with zero operand (should trigger Niṣedha prohibition)
+        val invocationText = "दस + अम् शून्य + अम् च विभाज् + ल्युट् + टा कृ + लोट् + सिप् ।"
+        val invocation = registry.detectInvocation(invocationText)
+        assertNotNull(invocation)
+
+        val results = vm.evalScript(invocationText, samjnaRegistry = registry)
+        val failure = results.filterIsInstance<ExecutionResult.Failure>().firstOrNull()
+        assertNotNull(failure, "Evaluation with zero argument must trigger Niṣedha failure.")
+        assertTrue(failure.message.contains("निषेध-प्रतिषेधः"), "Failure message must reference Niṣedha prohibition.")
+    }
 }

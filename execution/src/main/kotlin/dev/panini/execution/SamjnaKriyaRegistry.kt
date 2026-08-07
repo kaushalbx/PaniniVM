@@ -9,7 +9,10 @@ data class SamjnaKriya(
     val body: List<PvmScriptStatement.Sentence>,
     val sourceFile: String? = null,
     val isApavada: Boolean = false,
-)
+) {
+    val nishedhaGuards: List<PvmScriptStatement.Sentence> = body.filter { it.isNishedha }
+    val vidhiSentences: List<PvmScriptStatement.Sentence> = body.filterNot { it.isNishedha }
+}
 
 /**
  * Global registry of saṃjñā kriyās for a project/session.
