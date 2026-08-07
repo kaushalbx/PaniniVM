@@ -1,0 +1,12 @@
+# तद्धित अपत्याधिकार मुख्य ग्रन्थ — Subclass Inheritance (4.1.92 तस्यापत्यम् & 7.2.117 तद्धितेष्वचामादेः)
+
+# Step 1: Declare subclass inheritance: "गाणित is child class derived from parent गणित"
+# Linguistically: "गणितस्य अपत्यम् गाणितम् इति अधिकारः ।"
+गणित + अण् + सुँ इति अधिकार + सुँ ।
+
+# Step 2: Invoke inherited method 'वर्द्धनम्' from parent class 'गणित' via child instance 'गाणितवत्':
+# Linguistically: "पञ्च द्वौ च गाणितवतः वर्द्धनेन कुरु ।" -> Inherits 'वर्द्धनम्' from 'गणित' -> Returns 5 + 2 = 7 (सप्त)
+पञ्च + अम् द्वि + अम् च गाणित + वत् + ङस् वर्द्धन + ल्युट् + टा कृ + लोट् + सिप् ।
+
+# Step 3: Print result
+मुद्र् + णिच् + लोट् + सिप् फल + अम् ।

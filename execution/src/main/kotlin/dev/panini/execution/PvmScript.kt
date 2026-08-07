@@ -164,11 +164,7 @@ object PvmScript {
         val trimmed = line.trim()
         if (trimmed.isEmpty() || isAdhikaraLine(trimmed)) return null
 
-        if (trimmed.contains("+ ङस्") && trimmed.contains("+ सुँ") && (trimmed.contains("+ वत्") || trimmed.contains("+ मत्"))) {
-            val afterNgas = trimmed.substringAfter("+ ङस्").trim()
-                .trimEnd('।', '॥', ' ')
-            return afterNgas.ifEmpty { null }
-        }
+        if (trimmed.contains("+ वत् + सुँ") || trimmed.contains("+ मत् + सुँ")) return null
 
         if (trimmed.contains("+ वत् + सुँ") || trimmed.contains("+ मत् + सुँ")) return null
 

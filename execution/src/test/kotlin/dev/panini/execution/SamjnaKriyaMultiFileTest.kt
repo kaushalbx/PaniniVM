@@ -350,4 +350,14 @@ class SamjnaKriyaMultiFileTest {
         assertTrue(successful.isNotEmpty(), "Taddhita struct method invocation should succeed.")
         assertEquals("सप्त", successful.last().value, "Calling गुणवतः वर्द्धनेन on 5 (पञ्च) and 2 (द्वि) should return 7 (सप्त).")
     }
+
+    @Test
+    fun `test taddhita subclass inheritance apatyadhikara and inherited method invocation`() {
+        val vm = PaniniVM()
+        val entryFile = File("examples/taddhita_inheritance/inheritance_mukhya.pvm")
+
+        val results = vm.evalProject(entryFile)
+        val successful = results.filterIsInstance<ExecutionResult.Success>()
+        assertTrue(successful.any { it.value == "सप्त" }, "Calling inherited method वर्द्धनेन via child struct गाणितवत् should return 7 (सप्त). Results: $results")
+    }
 }

@@ -2,7 +2,8 @@
 
 # Step 1: Struct Method Definition on class 'गुणवत्' (Adds 1st arg and 2nd arg)
 गुण + वत् + ङस् वर्द्धन + ल्युट् + सुँ ।
-प्रथमम् द्वितीयम् च योजय ॥
+प्रथमम् द्वितीयम् च योजय ।
+मुद्रय फलम् ॥
 
 # Step 2: Invoke method 'वर्द्धनम्' on struct instance 'गुणवत्' with parameters 5 (पञ्च) and 2 (द्वि):
 # Linguistically: "पञ्च द्वौ च गुणवतः वर्द्धनेन कुरु ।" -> Returns 5 + 2 = 7 (सप्त)

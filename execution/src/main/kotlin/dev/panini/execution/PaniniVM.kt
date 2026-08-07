@@ -184,18 +184,30 @@ class PaniniVM(
 
         val registry = samjnaRegistry ?: SamjnaKriyaRegistry()
         val isEntryPoint = samjnaRegistry != null
+        val topDomainDefn = parsed.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>().firstOrNull()
+        val topDomainStem = topDomainDefn?.let { deriveSamjnaStem(it.domainSegmented) }
+
         parsed.filterIsInstance<PvmScriptStatement.SamjnaDefinition>().forEach { defn ->
             val stem = deriveSamjnaStem(defn.nameSegmented)
+            val domain = deriveDomainStem(defn.nameSegmented) ?: topDomainStem
             registry.register(
                 SamjnaKriya(
                     nameSegmented = defn.nameSegmented,
                     nameStem = stem,
                     body = defn.body,
                     sourceFile = sourceFile,
+                    domainStem = domain,
                     isApavada = isEntryPoint,
                     isInternal = defn.isInternal,
                 ),
             )
+        }
+
+        parsed.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>().forEach { adhikara ->
+            val inheritance = TaddhitaInheritanceEngine.detectInheritanceAdhikara(adhikara.domainSegmented)
+            if (inheritance != null) {
+                registry.registerInheritance(inheritance)
+            }
         }
 
         val effectiveScope = scope.copy(samjnaRegistry = registry)
@@ -222,9 +234,13 @@ class PaniniVM(
             } else {
                 val invocation = registry.detectInvocation(statement.text, callerSourceFile = sourceFile, preParsedUkti = statement.ukti)
                 if (invocation != null) {
-                    results += executeSamjnaInvocation(
+                    val invResults = executeSamjnaInvocation(
                         invocation, effectiveSessionKey, effectiveScope, speaker, listener, registry, callerSourceFile = sourceFile,
                     )
+                    val cleanResults = if (invResults.any { it is ExecutionResult.Success }) {
+                        invResults.filter { it is ExecutionResult.Success }
+                    } else invResults
+                    results += cleanResults
                 } else {
                     results += eval(statement.text, effectiveSessionKey, effectiveScope, speaker, listener)
                 }
@@ -253,18 +269,26 @@ class PaniniVM(
         val registry = SamjnaKriyaRegistry()
         for (libFile in libraryFiles) {
             val parsed = PvmScript.parse(libFile.readText())
-            val domainDefn = parsed.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>().firstOrNull()
-            val domainStem = domainDefn?.let { deriveSamjnaStem(it.domainSegmented) }
+            val fileDomainDefn = parsed.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>().firstOrNull()
+            val fileDomainStem = fileDomainDefn?.let { deriveSamjnaStem(it.domainSegmented) }
+
+            parsed.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>().forEach { adhikara ->
+                val inheritance = TaddhitaInheritanceEngine.detectInheritanceAdhikara(adhikara.domainSegmented)
+                if (inheritance != null) {
+                    registry.registerInheritance(inheritance)
+                }
+            }
 
             parsed.filterIsInstance<PvmScriptStatement.SamjnaDefinition>().forEach { defn ->
                 val stem = deriveSamjnaStem(defn.nameSegmented)
+                val domain = deriveDomainStem(defn.nameSegmented) ?: fileDomainStem
                 registry.register(
                     SamjnaKriya(
                         nameSegmented = defn.nameSegmented,
                         nameStem = stem,
                         body = defn.body,
                         sourceFile = libFile.name,
-                        domainStem = domainStem,
+                        domainStem = domain,
                         isApavada = false,
                         isInternal = defn.isInternal,
                     ),
@@ -383,7 +407,18 @@ class PaniniVM(
     }
 
     private fun deriveSamjnaStem(nameSegmented: String): String {
-        return SamjnaKriyaRegistry.stripSupSuffix(nameSegmented)
+        var clean = nameSegmented
+        if (clean.contains("+ ङस्")) {
+            clean = clean.substringAfter("+ ङस्").trim()
+        }
+        return SamjnaKriyaRegistry.stripSupSuffix(clean)
+    }
+
+    private fun deriveDomainStem(nameSegmented: String): String? {
+        if (!nameSegmented.contains("+ ङस्")) return null
+        val beforeNgas = nameSegmented.substringBefore("+ ङस्").trim()
+        val matupClean = beforeNgas.substringBefore("+ वत्").substringBefore("+ मत्").trim()
+        return SamjnaKriyaRegistry.stripSupSuffix(matupClean).ifEmpty { null }
     }
 
     /**

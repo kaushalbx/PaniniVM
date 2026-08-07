@@ -24,6 +24,13 @@ class SamjnaKriyaRegistry {
 
     private val registry = linkedMapOf<String, SamjnaKriya>()
     private val memoizedCache = mutableMapOf<String, ExecutionResult>()
+    private val inheritanceMap = mutableMapOf<String, String>() // childStem -> parentStem
+
+    fun registerInheritance(relation: InheritanceRelation) {
+        inheritanceMap[relation.childStem] = relation.parentStem
+    }
+
+    fun getParentClass(childStem: String): String? = inheritanceMap[childStem]
 
     fun getCachedResult(kriyaStem: String, argsKey: String): ExecutionResult? =
         memoizedCache["$kriyaStem::$argsKey"]
@@ -61,23 +68,35 @@ class SamjnaKriyaRegistry {
                 continue // File-private saṃjñā hidden from external caller
             }
 
-            val segmentedStem = stripSupSuffix(kriya.nameSegmented)
+            val segmentedStem = kriya.nameStem
             val instrumentalPattern = "$segmentedStem + टा"
 
             // 1. Check Genitive Case domain qualification: "<domainStem> + ङस् <segmentedStem> + टा"
             if (kriya.domainStem != null) {
-                val genitivePattern = "${kriya.domainStem} + ङस् $instrumentalPattern"
-                val genitiveIdx = sentenceText.indexOf(genitivePattern)
-                if (genitiveIdx >= 0) {
-                    val afterGenitive = sentenceText.substring(genitiveIdx + genitivePattern.length).trim()
-                    if (PradayaUpasargaEngine.isVerbAction(afterGenitive, preParsedUkti)) {
-                        val karmaText = sentenceText.substring(0, genitiveIdx).trim()
-                        return SamjnaInvocation(
-                            kriya = kriya,
-                            karmaText = karmaText,
-                            fullText = sentenceText,
-                            ukti = preParsedUkti,
-                        )
+                val domainsToTry = mutableListOf(kriya.domainStem)
+                // Add all child classes that inherit from kriya.domainStem
+                inheritanceMap.forEach { (child, parent) ->
+                    if (parent == kriya.domainStem || parent == stripSupSuffix(kriya.domainStem)) {
+                        domainsToTry.add(child)
+                    }
+                }
+
+                for (domain in domainsToTry) {
+                    val genitivePattern = "$domain + ङस् $instrumentalPattern"
+                    val genitiveMatupPattern = "$domain + वत् + ङस् $instrumentalPattern"
+                    val genitiveIdx = maxOf(sentenceText.indexOf(genitivePattern), sentenceText.indexOf(genitiveMatupPattern))
+                    if (genitiveIdx >= 0) {
+                        val matchedPattern = if (sentenceText.indexOf(genitiveMatupPattern) >= 0) genitiveMatupPattern else genitivePattern
+                        val afterGenitive = sentenceText.substring(genitiveIdx + matchedPattern.length).trim()
+                        if (PradayaUpasargaEngine.isVerbAction(afterGenitive, preParsedUkti)) {
+                            val karmaText = sentenceText.substring(0, genitiveIdx).trim()
+                            return SamjnaInvocation(
+                                kriya = kriya,
+                                karmaText = karmaText,
+                                fullText = sentenceText,
+                                ukti = preParsedUkti,
+                            )
+                        }
                     }
                 }
             }

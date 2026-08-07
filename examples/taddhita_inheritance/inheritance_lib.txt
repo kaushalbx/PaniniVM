@@ -1,0 +1,9 @@
+# तद्धित ग्रन्थ — Parent Class Library (गणित)
+
+# Declare domain scope 'गणित'
+गणितः इति अधिकारः ।
+
+# Define parent method 'वर्द्धनम्' on class 'गणित' (Adds 1st arg and 2nd arg)
+गणितस्य वर्द्धनः ।
+प्रथमम् द्वितीयम् च युज्यस्व ।
+मुद्रय फलम् ॥
