@@ -1,6 +1,7 @@
 package dev.panini.execution.binding
 
 import dev.panini.execution.ExecutionExpression
+import dev.panini.execution.SvamRupamEngine
 import dev.panini.shiksha.Samjna
 import dev.panini.vyakaranam.ast.KridantaPratipadika
 import dev.panini.vyakaranam.ast.MulaPratipadika
@@ -75,7 +76,9 @@ internal object ExpressionBuilder {
         return if (sankhyaValue != null) {
             ExecutionExpression.Companion.sankhya(sankhyaValue, text)
         } else {
-            ExecutionExpression.Pada(text, samjnas)
+            val technicalSamjnas = setOf("सङ्ख्या", "गुण", "वृद्धि", "लोप", "साधकतमम्", "कर्म", "करणम्")
+            val svamRupamValue = SvamRupamEngine.evaluateTerm(baseText, technicalSamjnas)
+            ExecutionExpression.Pada(text, samjnas, value = svamRupamValue)
         }
     }
 }
