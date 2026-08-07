@@ -158,13 +158,127 @@ class PaniniVM(
         scope: ExecutionScope = defaultScope,
         speaker: String = "प्रयोक्ता",
         listener: String = "यन्त्रम्",
+        samjnaRegistry: SamjnaKriyaRegistry? = null,
     ): List<ExecutionResult> {
         val results = mutableListOf<ExecutionResult>()
         val effectiveSessionKey = sessionKey ?: "script-${System.identityHashCode(scriptContent)}"
-        PvmScript.parse(scriptContent).forEach { statement ->
-            results += eval(statement.text, effectiveSessionKey, scope, speaker, listener)
+        val parsed = PvmScript.parse(scriptContent)
+
+        val registry = samjnaRegistry ?: SamjnaKriyaRegistry()
+        val isEntryPoint = samjnaRegistry != null
+        parsed.filterIsInstance<PvmScriptStatement.SamjnaDefinition>().forEach { defn ->
+            val stem = deriveSamjnaStem(defn.nameSegmented)
+            registry.register(
+                SamjnaKriya(
+                    nameSegmented = defn.nameSegmented,
+                    nameStem = stem,
+                    body = defn.body,
+                    isApavada = isEntryPoint,
+                ),
+            )
+        }
+
+        val effectiveScope = scope.copy(samjnaRegistry = registry)
+
+        parsed.filterIsInstance<PvmScriptStatement.Sentence>().forEach { statement ->
+            val invocation = registry.detectInvocation(statement.text)
+            if (invocation != null) {
+                results += executeSamjnaInvocation(
+                    invocation, effectiveSessionKey, effectiveScope, speaker, listener, registry,
+                )
+            } else {
+                results += eval(statement.text, effectiveSessionKey, effectiveScope, speaker, listener)
+            }
         }
         return results
+    }
+
+    fun evalProject(
+        entryFile: File,
+        sessionKey: String? = null,
+        scope: ExecutionScope = defaultScope,
+        speaker: String = "प्रयोक्ता",
+        listener: String = "यन्त्रम्",
+    ): List<ExecutionResult> {
+        require(entryFile.exists()) { "PaniniVM entry-point file not found: ${entryFile.absolutePath}" }
+
+        val projectDir = entryFile.parentFile ?: entryFile.absoluteFile.parentFile
+            ?: error("Cannot determine project directory for ${entryFile.path}")
+
+        val siblingFiles = projectDir.listFiles { f -> f.extension == "pvm" && f != entryFile }
+            ?.sortedBy { it.name }
+            ?: emptyList()
+
+        val registry = SamjnaKriyaRegistry()
+        for (libFile in siblingFiles) {
+            val parsed = PvmScript.parse(libFile.readText())
+            parsed.filterIsInstance<PvmScriptStatement.SamjnaDefinition>().forEach { defn ->
+                val stem = deriveSamjnaStem(defn.nameSegmented)
+                registry.register(
+                    SamjnaKriya(
+                        nameSegmented = defn.nameSegmented,
+                        nameStem = stem,
+                        body = defn.body,
+                        sourceFile = libFile.name,
+                        isApavada = false,
+                    ),
+                )
+            }
+        }
+
+        val effectiveSessionKey = sessionKey ?: "project-${entryFile.nameWithoutExtension}-${System.currentTimeMillis()}"
+        return evalScript(
+            entryFile.readText(),
+            sessionKey = effectiveSessionKey,
+            scope = scope,
+            speaker = speaker,
+            listener = listener,
+            samjnaRegistry = registry,
+        )
+    }
+
+    private fun executeSamjnaInvocation(
+        invocation: SamjnaInvocation,
+        sessionKey: String,
+        scope: ExecutionScope,
+        speaker: String,
+        listener: String,
+        registry: SamjnaKriyaRegistry,
+    ): List<ExecutionResult> {
+        val results = mutableListOf<ExecutionResult>()
+
+        // Extract caller's argument base terms from karmaText
+        // e.g. "द्वि + अम् त्रि + अम् च चतुर् + अम् च" -> ["द्वि", "त्रि", "चतुर्"]
+        val argTerms = Regex("""(\S+)\s*\+\s*अम्""").findAll(invocation.karmaText)
+            .map { it.groupValues[1] }
+            .toList()
+
+        val paramNames = listOf("प्रथम", "द्वितीय", "तृतीय", "चतुर्थ", "पञ्चम", "षष्ठ")
+
+        // Execute body sentences with explicit parameter substitution (प्रथम -> arg1, द्वितीय -> arg2, etc.)
+        invocation.kriya.body.forEach { bodySentence ->
+            var sentenceText = bodySentence.text
+            paramNames.forEachIndexed { index, param ->
+                if (index < argTerms.size && sentenceText.contains(param)) {
+                    sentenceText = sentenceText.replace(param, argTerms[index])
+                }
+            }
+
+            val bodyInvocation = registry.detectInvocation(sentenceText)
+            if (bodyInvocation != null) {
+                results += executeSamjnaInvocation(
+                    bodyInvocation, sessionKey, scope, speaker, listener, registry,
+                )
+            } else {
+                results += eval(sentenceText, sessionKey, scope, speaker, listener)
+            }
+        }
+
+        return results
+    }
+
+    private fun deriveSamjnaStem(nameSegmented: String): String {
+        return SamjnaKriyaRegistry.stripSupSuffix(nameSegmented)
     }
 
     /**
@@ -257,8 +371,15 @@ class PaniniVM(
         listener: String = "यन्त्रम्",
     ): List<ExecutionResult> {
         require(file.exists()) { "PaniniVM script file not found: ${file.absolutePath}" }
-        val scriptContent = file.readText()
-        return evalScript(scriptContent, sessionKey = sessionKey, scope = scope, speaker = speaker, listener = listener)
+
+        val projectDir = file.parentFile ?: file.absoluteFile.parentFile
+        val hasSiblingPvm = projectDir?.listFiles { f -> f.extension == "pvm" && f.name != file.name }?.isNotEmpty() == true
+        return if (hasSiblingPvm) {
+            evalProject(file, sessionKey = sessionKey, scope = scope, speaker = speaker, listener = listener)
+        } else {
+            val scriptContent = file.readText()
+            evalScript(scriptContent, sessionKey = sessionKey, scope = scope, speaker = speaker, listener = listener)
+        }
     }
 
     fun loadSession(sessionKey: String): SambhashanaContext? {
@@ -338,6 +459,14 @@ object VM {
         speaker: String = "प्रयोक्ता",
         listener: String = "यन्त्रम्",
     ): List<ExecutionResult> = instance.evalScript(scriptContent, sessionKey, scope, speaker, listener)
+
+    fun evalProject(
+        entryFile: File,
+        sessionKey: String? = null,
+        scope: ExecutionScope = instance.defaultScope,
+        speaker: String = "प्रयोक्ता",
+        listener: String = "यन्त्रम्",
+    ): List<ExecutionResult> = instance.evalProject(entryFile, sessionKey, scope, speaker, listener)
 
     fun resume(
         continuation: Any,
