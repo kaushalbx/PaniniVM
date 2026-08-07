@@ -201,7 +201,7 @@ class PaniniVM(
         val effectiveScope = scope.copy(samjnaRegistry = registry)
 
         parsed.filterIsInstance<PvmScriptStatement.Sentence>().forEach { statement ->
-            val invocation = registry.detectInvocation(statement.text, callerSourceFile = sourceFile)
+            val invocation = registry.detectInvocation(statement.text, callerSourceFile = sourceFile, preParsedUkti = statement.ukti)
             if (invocation != null) {
                 results += executeSamjnaInvocation(
                     invocation, effectiveSessionKey, effectiveScope, speaker, listener, registry, callerSourceFile = sourceFile,
@@ -276,7 +276,7 @@ class PaniniVM(
         val results = mutableListOf<ExecutionResult>()
 
         // Extract caller's argument base terms dynamically via SubantaKarakaParser (karma: + अम्)
-        val argTerms = SubantaKarakaParser.extractKarmaTerms(invocation.karmaText)
+        val argTerms = SubantaKarakaParser.extractKarmaTerms(invocation.karmaText, invocation.ukti)
         val paramNames = PuranaPratyayaResolver.getOrdinalsUpTo(maxOf(6, argTerms.size))
 
         // Step 0: Check Memoization Cache for क्त-प्रत्यय Constant Saṃjñās
@@ -296,7 +296,7 @@ class PaniniVM(
                 }
             }
 
-            val isProhibited = DynamicNishedhaEvaluator.evaluateProhibition(guardText, argTerms)
+            val isProhibited = DynamicNishedhaEvaluator.evaluateProhibition(guardText, argTerms, guard.ukti)
 
             // Check Tva-pratyaya Type Guard (e.g. "न प्रथम + अम् सङ्ख्या + त्व + अम्")
             val isTypeGuard = guardText.contains("सङ्ख्या + त्व") || guardText.contains("सूची + त्व")

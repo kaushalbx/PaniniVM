@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":bhutasamkhya"))
     implementation(project(":actions"))
     implementation(project(":dhatupatha"))
+    implementation(project(":ganapatha"))
     testImplementation(kotlin("test"))
 }
 

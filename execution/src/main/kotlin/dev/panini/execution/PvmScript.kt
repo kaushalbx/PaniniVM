@@ -5,6 +5,7 @@ sealed interface PvmScriptStatement {
 
     data class Sentence(
         override val text: String,
+        val ukti: dev.panini.vyakaranam.ast.Ukti? = null,
         val isNishedha: Boolean = false,
     ) : PvmScriptStatement
 
@@ -199,6 +200,8 @@ object PvmScript {
         return if (commentIdx != -1) line.substring(0, commentIdx) else line
     }
 
+    private val parser = dev.panini.vyakaranam.parser.PaniniParser()
+
     private fun parseSentences(joinedText: String): List<PvmScriptStatement.Sentence> {
         if (joinedText.isBlank()) return emptyList()
         val sentenceRegex = Regex("""[^।॥]+[।॥]*""")
@@ -207,9 +210,11 @@ object PvmScript {
             .filter { it.isNotEmpty() }
             .map { text ->
                 val trimmed = text.trim()
-                val isNishedha = trimmed.startsWith("न ") || trimmed.startsWith("मा ") ||
-                    trimmed.contains(" न ") || trimmed.startsWith("न+")
-                PvmScriptStatement.Sentence(text = text, isNishedha = isNishedha)
+                val ukti = runCatching { parser.parse(trimmed) }.getOrNull()
+                val isNishedha = ukti?.vakyas?.any { vakya ->
+                    vakya.padas.filterIsInstance<dev.panini.vyakaranam.ast.AvyayaPada>().any { it.sourceText == "न" || it.sourceText == "मा" }
+                } ?: (trimmed.startsWith("न ") || trimmed.startsWith("मा ") || trimmed.contains(" न ") || trimmed.startsWith("न+"))
+                PvmScriptStatement.Sentence(text = text, ukti = ukti, isNishedha = isNishedha)
             }
             .toList()
     }

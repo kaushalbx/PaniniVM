@@ -1,45 +1,73 @@
 package dev.panini.execution
 
+import dev.panini.core.SupAffix
 import dev.panini.sankhya.SankhyaEvaluator
+import dev.panini.vyakaranam.ast.AvyayaPada
+import dev.panini.vyakaranam.ast.KridantaPratipadika
+import dev.panini.vyakaranam.ast.SubantaPada
+import dev.panini.vyakaranam.ast.TingantaPada
+import dev.panini.vyakaranam.parser.PaniniParser
+
+import dev.panini.ganapatha.GanaPatha
 
 /**
  * 1.4.58 प्रादयः & 1.4.59 उपसर्गाः क्रियायोगे
- * Canonical 22 Pāṇinian Upasargas and dynamic verb/action root detector.
+ * AST-driven Upasarga and Verb Action Engine using PaniniParser and GanaPatha.
  */
 object PradayaUpasargaEngine {
 
-    val UPASARGAS = setOf(
-        "प्र", "परा", "अप", "सम्", "अनु", "अव", "निस्", "निर्",
-        "दुस्", "दुर्", "वि", "आङ्", "नि", "अधि", "अपि", "अति",
-        "सु", "उत्", "अभि", "प्रति", "परि", "उप",
-    )
+    private val parser = PaniniParser()
 
-    private val LAKARA_AFFIXES = setOf("लोट्", "लट्", "लङ्", "विधिलिङ्", "लृट्", "लोट्")
-
-    fun isVerbAction(text: String): Boolean {
+    fun isVerbAction(text: String, preParsedUkti: dev.panini.vyakaranam.ast.Ukti? = null): Boolean {
         val trimmed = text.trim()
-        if (LAKARA_AFFIXES.any { trimmed.contains(it) }) return true
+        if (trimmed.isEmpty()) return false
+
+        val ukti = preParsedUkti ?: runCatching { parser.parse(trimmed) }.getOrNull()
+        if (ukti != null) {
+            val hasTinganta = ukti.vakyas.flatMap { it.padas }.any { it is TingantaPada }
+            if (hasTinganta) return true
+        }
+
         val words = trimmed.split(Regex("""\s+"""))
         return words.any { word ->
-            UPASARGAS.any { word.startsWith(it) } || word == "कृ" || word.startsWith("कृ")
+            GanaPatha.isEligibleMember(4, word, emptySet()) || word == "कृ" || word.startsWith("कृ") || word.contains("लोट्")
         }
     }
 }
 
 /**
  * 1.4.23 कारके & 2.3.2 कर्मणि द्वितीया
- * Dynamic Subanta Kāraka Parameter Extractor.
+ * AST-driven Subanta Kāraka Parameter Extractor using PaniniParser.
  */
 object SubantaKarakaParser {
 
-    private val DWITIYA_AFFIXES = setOf("+ अम्", "+ औ", "+ शस्")
-    private val TRITIYA_AFFIXES = setOf("+ टा", "+ भ्याम्", "+ भिस्")
+    private val parser = PaniniParser()
 
     /**
-     * Extracts Karma (Accusative parameter terms) from text.
+     * Extracts Karma (Accusative parameter terms) from text using AST parse or fallback.
      * e.g. "द्वि + अम् त्रि + अम् च" -> ["द्वि", "त्रि"]
      */
-    fun extractKarmaTerms(karmaText: String): List<String> {
+    fun extractKarmaTerms(karmaText: String, preParsedUkti: dev.panini.vyakaranam.ast.Ukti? = null): List<String> {
+        val trimmed = karmaText.trim()
+        if (trimmed.isEmpty()) return emptyList()
+
+        val ukti = preParsedUkti ?: runCatching { parser.parse(trimmed) }.getOrNull()
+        if (ukti != null) {
+            val karmaStems = mutableListOf<String>()
+            for (vakya in ukti.vakyas) {
+                for (pada in vakya.padas) {
+                    if (pada is SubantaPada && pada.sup.text == "अम्") {
+                        val stem = pada.pratipadika.sourceText.trim()
+                        if (stem.isNotEmpty()) {
+                            karmaStems.add(stem)
+                        }
+                    }
+                }
+            }
+            if (karmaStems.isNotEmpty()) return karmaStems
+        }
+
+        // Regex fallback for unparsed fragments
         val terms = mutableListOf<String>()
         val matches = Regex("""(\S+)\s*\+\s*अम्""").findAll(karmaText)
         for (match in matches) {
@@ -51,22 +79,37 @@ object SubantaKarakaParser {
     /**
      * Checks if text contains a Tritīyā Instrumental suffix (e.g. "+ टा").
      */
-    fun hasTritiyaInstrumental(text: String): Boolean =
-        TRITIYA_AFFIXES.any { text.contains(it) }
+    fun hasTritiyaInstrumental(text: String, preParsedUkti: dev.panini.vyakaranam.ast.Ukti? = null): Boolean {
+        val ukti = preParsedUkti ?: runCatching { parser.parse(text) }.getOrNull()
+        if (ukti != null) {
+            val hasTa = ukti.vakyas.flatMap { it.padas }
+                .filterIsInstance<SubantaPada>()
+                .any { it.sup.text == "टा" }
+            if (hasTa) return true
+        }
+        return text.contains("+ टा")
+    }
 }
 
 /**
- * Dynamic Niṣedha (Prohibition Sūtra) Condition Evaluator.
- * Evaluates prohibition conditions without hardcoded string checks.
+ * Dynamic Niṣedha (Prohibition Sūtra) Condition Evaluator via PaniniParser AST.
  */
 object DynamicNishedhaEvaluator {
 
     private val sankhyaEvaluator = SankhyaEvaluator()
+    private val parser = PaniniParser()
 
-    fun evaluateProhibition(guardText: String, argTerms: List<String>): Boolean {
+    fun evaluateProhibition(guardText: String, argTerms: List<String>, preParsedUkti: dev.panini.vyakaranam.ast.Ukti? = null): Boolean {
         val trimmed = guardText.trim()
 
-        // Evaluates "न X Y" or prohibition guard conditions
+        val ukti = preParsedUkti ?: runCatching { parser.parse(trimmed) }.getOrNull()
+        val isNishedhaSentence = ukti?.vakyas?.any { vakya ->
+            vakya.padas.filterIsInstance<AvyayaPada>().any { it.sourceText == "न" || it.sourceText == "मा" }
+        } ?: trimmed.startsWith("न ")
+
+        if (!isNishedhaSentence && !trimmed.contains("शून्य")) return false
+
+        // Evaluates prohibition guard conditions
         val evaluatedValues = argTerms.map { term ->
             term.toLongOrNull()
                 ?: runCatching { sankhyaEvaluator.evaluateStems(listOf(term)).value }.getOrNull()
@@ -80,7 +123,7 @@ object DynamicNishedhaEvaluator {
             }
         }
 
-        // Rule 2: Dynamic equality prohibition check (e.g. if two arguments are equal and prohibited)
+        // Rule 2: Dynamic equality prohibition check
         if (evaluatedValues.size >= 2 && evaluatedValues[0] != -1L && evaluatedValues[1] != -1L) {
             if (trimmed.contains("तुल्य") || trimmed.contains("समान")) {
                 if (evaluatedValues[0] == evaluatedValues[1]) return true

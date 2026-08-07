@@ -53,7 +53,7 @@ class SamjnaKriyaRegistry {
 
     val size: Int get() = registry.size
 
-    fun detectInvocation(sentenceText: String, callerSourceFile: String? = null): SamjnaInvocation? {
+    fun detectInvocation(sentenceText: String, callerSourceFile: String? = null, preParsedUkti: dev.panini.vyakaranam.ast.Ukti? = null): SamjnaInvocation? {
         if (registry.isEmpty()) return null
 
         for ((_, kriya) in registry) {
@@ -70,12 +70,13 @@ class SamjnaKriyaRegistry {
                 val genitiveIdx = sentenceText.indexOf(genitivePattern)
                 if (genitiveIdx >= 0) {
                     val afterGenitive = sentenceText.substring(genitiveIdx + genitivePattern.length).trim()
-                    if (PradayaUpasargaEngine.isVerbAction(afterGenitive)) {
+                    if (PradayaUpasargaEngine.isVerbAction(afterGenitive, preParsedUkti)) {
                         val karmaText = sentenceText.substring(0, genitiveIdx).trim()
                         return SamjnaInvocation(
                             kriya = kriya,
                             karmaText = karmaText,
                             fullText = sentenceText,
+                            ukti = preParsedUkti,
                         )
                     }
                 }
@@ -86,7 +87,7 @@ class SamjnaKriyaRegistry {
             if (patternIdx < 0) continue
 
             val afterInstrumental = sentenceText.substring(patternIdx + instrumentalPattern.length).trim()
-            if (!PradayaUpasargaEngine.isVerbAction(afterInstrumental)) continue
+            if (!PradayaUpasargaEngine.isVerbAction(afterInstrumental, preParsedUkti)) continue
 
             val karmaText = sentenceText.substring(0, patternIdx).trim()
 
@@ -94,6 +95,7 @@ class SamjnaKriyaRegistry {
                 kriya = kriya,
                 karmaText = karmaText,
                 fullText = sentenceText,
+                ukti = preParsedUkti,
             )
         }
         return null
@@ -124,4 +126,5 @@ data class SamjnaInvocation(
     val kriya: SamjnaKriya,
     val karmaText: String,
     val fullText: String,
+    val ukti: dev.panini.vyakaranam.ast.Ukti? = null,
 )
