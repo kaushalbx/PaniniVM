@@ -24,6 +24,16 @@ sealed interface PvmScriptStatement {
         override val text: String,
         val isInternal: Boolean = false,
     ) : PvmScriptStatement
+
+    /**
+     * An अधिकार-सूत्र (governing domain scope declaration):
+     *
+     *     गणित + अम् इति अधिकारः ।
+     */
+    data class AdhikaraDefinition(
+        val domainSegmented: String,
+        override val text: String,
+    ) : PvmScriptStatement
 }
 
 object PvmScript {
@@ -89,7 +99,23 @@ object PvmScript {
             }
         }
 
-        val sanitizedLines = nonSamjnaLines
+        val adhikaraDefinitions = mutableListOf<PvmScriptStatement.AdhikaraDefinition>()
+        val regularNonSamjnaLines = mutableListOf<String>()
+
+        nonSamjnaLines.forEach { line ->
+            val stripped = stripComment(line).trim()
+            val adhikaraDomain = extractAdhikaraDomain(stripped)
+            if (adhikaraDomain != null) {
+                adhikaraDefinitions += PvmScriptStatement.AdhikaraDefinition(
+                    domainSegmented = adhikaraDomain,
+                    text = line,
+                )
+            } else {
+                regularNonSamjnaLines += line
+            }
+        }
+
+        val sanitizedLines = regularNonSamjnaLines
             .map { stripComment(it).trim() }
             .filter { it.isNotEmpty() }
 
@@ -99,12 +125,30 @@ object PvmScript {
             parseSentences(sanitizedLines.joinToString(" "))
         }
 
-        return samjnaDefinitions + sentences
+        return samjnaDefinitions + adhikaraDefinitions + sentences
+    }
+
+    internal fun extractAdhikaraDomain(line: String): String? {
+        val trimmed = line.trim()
+        val isAdhikaraLine = trimmed.contains("अधिकार") || trimmed.contains("अधि + कृ + घञ्")
+        if (!isAdhikaraLine) return null
+
+        val marker = if (trimmed.contains("अधि + कृ + घञ्")) "अधि + कृ + घञ्" else "अधिकार"
+        var beforeAdhikara = trimmed.substringBefore(marker)
+            .trimEnd('।', '॥', ' ', '+')
+            .trim()
+        if (beforeAdhikara.isEmpty()) return null
+
+        if (beforeAdhikara.endsWith("इति")) {
+            beforeAdhikara = beforeAdhikara.substringBeforeLast("इति").trim()
+        }
+
+        return beforeAdhikara.ifEmpty { null }
     }
 
     internal fun extractSamjnaHeaderName(line: String): String? {
         val trimmed = line.trim()
-        if (trimmed.isEmpty()) return null
+        if (trimmed.isEmpty() || trimmed.contains("अधिकार") || trimmed.contains("अधि + कृ + घञ्")) return null
 
         // Support "<name> इति संज्ञा ।" (legacy)
         val markerIdx = trimmed.indexOf(SAMJNA_HEADER_MARKER)

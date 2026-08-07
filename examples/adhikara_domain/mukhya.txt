@@ -1,0 +1,8 @@
+# अधिकार मुख्य ग्रन्थ — Entry-point program demonstrating Genitive Case domain qualification
+
+# Step 1: Call युज् + णिच् + ल्युट् + सुँ using Genitive Case domain qualification (गणित + ङस् युज् + णिच् + ल्युट् + टा): 2 + 3 = 5 (पञ्च)
+# Linguistically: "द्वौ त्रीणि च गणितस्य योजनेन कुरु ।"
+द्विम् त्रिम् च गणितस्य योजनइन कृणु ।
+
+# Step 2: Print the result
+मुद्रय फलम् ।

@@ -1,0 +1,8 @@
+# गणित सम्प्रदाय — Subdirectory Adhikāra Scope
+
+# अधिकार-सूत्र (Governing Domain Scope: गणित in pure segmented Nominative + सुँ)
+गणितः इति अधिकारः ।
+
+# संज्ञा: योजनम् (Addition procedure fully segmented: युज् + णिच् + ल्युट् + सुँ)
+योजनः ।
+प्रथमम् द्वितीयम् च योजय ॥

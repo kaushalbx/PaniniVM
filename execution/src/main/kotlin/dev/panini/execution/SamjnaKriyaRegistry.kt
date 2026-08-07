@@ -8,8 +8,10 @@ data class SamjnaKriya(
     val nameStem: String,
     val body: List<PvmScriptStatement.Sentence>,
     val sourceFile: String? = null,
+    val domainStem: String? = null,
     val isApavada: Boolean = false,
     val isInternal: Boolean = false,
+    val isMemoized: Boolean = nameSegmented.contains("+ क्त"),
 ) {
     val nishedhaGuards: List<PvmScriptStatement.Sentence> = body.filter { it.isNishedha }
     val vidhiSentences: List<PvmScriptStatement.Sentence> = body.filterNot { it.isNishedha }
@@ -21,6 +23,14 @@ data class SamjnaKriya(
 class SamjnaKriyaRegistry {
 
     private val registry = linkedMapOf<String, SamjnaKriya>()
+    private val memoizedCache = mutableMapOf<String, ExecutionResult>()
+
+    fun getCachedResult(kriyaStem: String, argsKey: String): ExecutionResult? =
+        memoizedCache["$kriyaStem::$argsKey"]
+
+    fun cacheResult(kriyaStem: String, argsKey: String, result: ExecutionResult) {
+        memoizedCache["$kriyaStem::$argsKey"] = result
+    }
 
     fun register(kriya: SamjnaKriya) {
         val existing = registry[kriya.nameStem]
@@ -53,6 +63,25 @@ class SamjnaKriyaRegistry {
 
             val segmentedStem = stripSupSuffix(kriya.nameSegmented)
             val instrumentalPattern = "$segmentedStem + टा"
+
+            // 1. Check Genitive Case domain qualification: "<domainStem> + ङस् <segmentedStem> + टा कृ"
+            if (kriya.domainStem != null) {
+                val genitivePattern = "${kriya.domainStem} + ङस् $instrumentalPattern"
+                val genitiveIdx = sentenceText.indexOf(genitivePattern)
+                if (genitiveIdx >= 0) {
+                    val afterGenitive = sentenceText.substring(genitiveIdx + genitivePattern.length).trim()
+                    if (afterGenitive.startsWith("कृ")) {
+                        val karmaText = sentenceText.substring(0, genitiveIdx).trim()
+                        return SamjnaInvocation(
+                            kriya = kriya,
+                            karmaText = karmaText,
+                            fullText = sentenceText,
+                        )
+                    }
+                }
+            }
+
+            // 2. Check Unqualified instrumental invocation: "<segmentedStem> + टा कृ"
             val patternIdx = sentenceText.indexOf(instrumentalPattern)
             if (patternIdx < 0) continue
 

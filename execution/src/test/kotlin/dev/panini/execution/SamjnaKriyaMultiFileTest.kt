@@ -259,4 +259,65 @@ class SamjnaKriyaMultiFileTest {
         assertTrue(successful.isNotEmpty(), "Private scope project execution should succeed.")
         assertEquals("दश", successful.last().value, "Result of (3 * 2) + 4 via private helper should be दश (10).")
     }
+
+    @Test
+    fun `test adhikara domain genitive project execution from disk`() {
+        val vm = PaniniVM()
+        val entryFile = File("examples/adhikara_domain/mukhya.pvm")
+
+        val results = vm.evalProject(entryFile)
+        val successful = results.filterIsInstance<ExecutionResult.Success>()
+        assertTrue(successful.isNotEmpty(), "Adhikāra domain project execution should succeed.")
+        assertEquals("पञ्च", successful.last().value, "Result of 2 + 3 in गणित domain should be पञ्च (5).")
+    }
+
+    @Test
+    fun `test adhikara sutra parsing with segmented sup suffix`() {
+        val script = """
+            गणित + सुँ इति अधिकार + सुँ ।
+
+            योजन + ल्युट् + सुँ ।
+            प्रथम + अम् द्वितीय + अम् च युज् + णिच् + लोट् + सिप् ॥
+        """.trimIndent()
+
+        val parsed = PvmScript.parse(script)
+        val adhikara = parsed.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>().firstOrNull()
+        assertNotNull(adhikara, "Adhikāra sūtra with अधिकार + सुँ must be parsed.")
+        assertEquals("गणित + सुँ", adhikara.domainSegmented)
+    }
+
+    @Test
+    fun `test krt pratyaya memoization classification and morphological adhikara`() {
+        val script = """
+            गणित + सुँ इति अधि + कृ + घञ् + सुँ ।
+
+            सिद्ध + क्त + सुँ ।
+            द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ॥
+        """.trimIndent()
+
+        val parsed = PvmScript.parse(script)
+        val adhikara = parsed.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>().firstOrNull()
+        assertNotNull(adhikara, "Morphological Adhikāra header with अधि + कृ + घञ् + सुँ must be parsed.")
+        assertEquals("गणित + सुँ", adhikara.domainSegmented)
+
+        val ktaDef = parsed.filterIsInstance<PvmScriptStatement.SamjnaDefinition>().firstOrNull()
+        assertNotNull(ktaDef)
+        val kriya = SamjnaKriya(
+            nameSegmented = ktaDef.nameSegmented,
+            nameStem = SamjnaKriyaRegistry.stripSupSuffix(ktaDef.nameSegmented),
+            body = ktaDef.body,
+        )
+        assertTrue(kriya.isMemoized, "Saṃjñā with क्त pratyaya must have isMemoized = true.")
+    }
+
+    @Test
+    fun `test paninian morphology project execution from disk`() {
+        val vm = PaniniVM()
+        val entryFile = File("examples/paninian_morphology/morph_mukhya.pvm")
+
+        val results = vm.evalProject(entryFile)
+        val successful = results.filterIsInstance<ExecutionResult.Success>()
+        assertTrue(successful.isNotEmpty(), "Paninian morphology project execution should succeed.")
+        assertEquals("नव", successful.last().value, "Printed result of (4 + 5) via morph procedure should be नव (9).")
+    }
 }

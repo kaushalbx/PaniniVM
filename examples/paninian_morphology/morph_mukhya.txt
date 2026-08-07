@@ -1,0 +1,10 @@
+# मुख्य ग्रन्थ — Entry-point program demonstrating Pāṇinian morphological systems
+
+# Step 1: Call memoized सिद्ध + क्त + सुँ procedure in गणित domain: 2 + 3 = 5 (पञ्च)
+गणितस्य सिद्धेन कृणु ।
+
+# Step 2: Call type-checked शुध् + णिच् + तव्यत् + सुँ procedure: 4 + 5 = 9 (नव)
+चतुर्म् पङ्चम् च गणितस्य शुधा कृणु ।
+
+# Step 3: Print final result
+मुद्रय फलम् ।

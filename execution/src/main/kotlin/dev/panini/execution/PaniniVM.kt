@@ -225,13 +225,17 @@ class PaniniVM(
         val projectDir = entryFile.parentFile ?: entryFile.absoluteFile.parentFile
             ?: error("Cannot determine project directory for ${entryFile.path}")
 
-        val siblingFiles = projectDir.listFiles { f -> f.extension == "pvm" && f != entryFile }
-            ?.sortedBy { it.name }
-            ?: emptyList()
+        val libraryFiles = projectDir.walkTopDown()
+            .filter { f -> f.isFile && f.extension == "pvm" && f.canonicalPath != entryFile.canonicalPath }
+            .sortedBy { it.name }
+            .toList()
 
         val registry = SamjnaKriyaRegistry()
-        for (libFile in siblingFiles) {
+        for (libFile in libraryFiles) {
             val parsed = PvmScript.parse(libFile.readText())
+            val domainDefn = parsed.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>().firstOrNull()
+            val domainStem = domainDefn?.let { deriveSamjnaStem(it.domainSegmented) }
+
             parsed.filterIsInstance<PvmScriptStatement.SamjnaDefinition>().forEach { defn ->
                 val stem = deriveSamjnaStem(defn.nameSegmented)
                 registry.register(
@@ -240,6 +244,7 @@ class PaniniVM(
                         nameStem = stem,
                         body = defn.body,
                         sourceFile = libFile.name,
+                        domainStem = domainStem,
                         isApavada = false,
                         isInternal = defn.isInternal,
                     ),
@@ -278,7 +283,15 @@ class PaniniVM(
 
         val paramNames = listOf("प्रथम", "द्वितीय", "तृतीय", "चतुर्थ", "पञ्चम", "षष्ठ")
 
-        // Step 1: Evaluate Niṣedha Sūtra (Guard) Preconditions
+        // Step 0: Check Memoization Cache for क्त-प्रत्यय Constant Saṃjñās
+        if (invocation.kriya.isMemoized) {
+            val cached = registry.getCachedResult(invocation.kriya.nameStem, invocation.karmaText)
+            if (cached != null) {
+                return listOf(cached)
+            }
+        }
+
+        // Step 1: Evaluate Niṣedha Sūtra & Tva-Pratyaya Type Guard Preconditions
         invocation.kriya.nishedhaGuards.forEach { guard ->
             var guardText = guard.text
             paramNames.forEachIndexed { index, param ->
@@ -287,9 +300,17 @@ class PaniniVM(
                 }
             }
 
-            // Check if prohibition condition holds (e.g. "न शून्य + अम् शून्य + अम्")
-            val isProhibited = guardText.contains("शून्य") && argTerms.any { it == "शून्य" || it == "०" }
-            if (isProhibited) {
+            // Check if zero prohibition holds (e.g. "न शून्य + अम् शून्य + अम्")
+            val isZeroProhibited = guardText.contains("शून्य") && argTerms.any { it == "शून्य" || it == "०" }
+
+            // Check Tva-pratyaya Type Guard (e.g. "न प्रथम + अम् सङ्ख्या + त्व + अम्")
+            val isTypeGuard = guardText.contains("सङ्ख्या + त्व") || guardText.contains("सूची + त्व")
+            val isTypeViolated = isTypeGuard && argTerms.any { term ->
+                val numVal = term.toLongOrNull() ?: runCatching { dev.panini.sankhya.SankhyaEvaluator().evaluateStems(listOf(term)).value }.getOrNull() ?: -1L
+                numVal <= 0L && !term.any { it.isDigit() }
+            }
+
+            if (isZeroProhibited || isTypeViolated) {
                 return listOf(
                     ExecutionResult.Failure(
                         ExecutionError.ACTION_FAILED,
@@ -333,6 +354,13 @@ class PaniniVM(
             } else {
                 val stepResults = eval(sentenceText, sessionKey, childScope, speaker, listener)
                 results += stepResults
+            }
+        }
+
+        if (invocation.kriya.isMemoized && results.isNotEmpty()) {
+            val lastRes = results.last()
+            if (lastRes is ExecutionResult.Success) {
+                registry.cacheResult(invocation.kriya.nameStem, invocation.karmaText, lastRes)
             }
         }
 
@@ -435,7 +463,7 @@ class PaniniVM(
         require(file.exists()) { "PaniniVM script file not found: ${file.absolutePath}" }
 
         val projectDir = file.parentFile ?: file.absoluteFile.parentFile
-        val hasSiblingPvm = projectDir?.listFiles { f -> f.extension == "pvm" && f.name != file.name }?.isNotEmpty() == true
+        val hasSiblingPvm = projectDir?.walkTopDown()?.any { f -> f.isFile && f.extension == "pvm" && f.canonicalPath != file.canonicalPath } == true
         return if (hasSiblingPvm) {
             evalProject(file, sessionKey = sessionKey, scope = scope, speaker = speaker, listener = listener)
         } else {
