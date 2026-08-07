@@ -63,6 +63,9 @@ class SamjnaKriyaRegistry {
     fun detectInvocation(sentenceText: String, callerSourceFile: String? = null, preParsedUkti: dev.panini.vyakaranam.ast.Ukti? = null): SamjnaInvocation? {
         if (registry.isEmpty()) return null
 
+        val isAntaranga = AntarangaScopeEngine.detectAntaranga(sentenceText, preParsedUkti)
+        val textToProcess = if (isAntaranga) AntarangaScopeEngine.stripAntarangaDirective(sentenceText) else sentenceText
+
         for ((_, kriya) in registry) {
             if (kriya.isInternal && callerSourceFile != null && kriya.sourceFile != null && callerSourceFile != kriya.sourceFile) {
                 continue // File-private saṃjñā hidden from external caller
@@ -86,21 +89,21 @@ class SamjnaKriyaRegistry {
                     val genitiveMatupPattern = "$domain + मतुप् + ङस् $instrumentalPattern"
                     val genitiveVatupPattern = "$domain + वत् + ङस् $instrumentalPattern"
 
-                    var genitiveIdx = sentenceText.indexOf(genitiveMatupPattern)
+                    var genitiveIdx = textToProcess.indexOf(genitiveMatupPattern)
                     var matchedPattern = genitiveMatupPattern
                     if (genitiveIdx < 0) {
-                        genitiveIdx = sentenceText.indexOf(genitiveVatupPattern)
+                        genitiveIdx = textToProcess.indexOf(genitiveVatupPattern)
                         matchedPattern = genitiveVatupPattern
                     }
                     if (genitiveIdx < 0) {
-                        genitiveIdx = sentenceText.indexOf(genitivePattern)
+                        genitiveIdx = textToProcess.indexOf(genitivePattern)
                         matchedPattern = genitivePattern
                     }
 
                     if (genitiveIdx >= 0) {
-                        val afterGenitive = sentenceText.substring(genitiveIdx + matchedPattern.length).trim()
+                        val afterGenitive = textToProcess.substring(genitiveIdx + matchedPattern.length).trim()
                         if (PradayaUpasargaEngine.isVerbAction(afterGenitive, preParsedUkti)) {
-                            val karmaText = sentenceText.substring(0, genitiveIdx).trim()
+                            val karmaText = textToProcess.substring(0, genitiveIdx).trim()
                             return SamjnaInvocation(
                                 kriya = kriya,
                                 karmaText = karmaText,
@@ -113,13 +116,13 @@ class SamjnaKriyaRegistry {
             }
 
             // 2. Check Unqualified instrumental invocation: "<segmentedStem> + टा"
-            val patternIdx = sentenceText.indexOf(instrumentalPattern)
+            val patternIdx = textToProcess.indexOf(instrumentalPattern)
             if (patternIdx < 0) continue
 
-            val afterInstrumental = sentenceText.substring(patternIdx + instrumentalPattern.length).trim()
+            val afterInstrumental = textToProcess.substring(patternIdx + instrumentalPattern.length).trim()
             if (!PradayaUpasargaEngine.isVerbAction(afterInstrumental, preParsedUkti)) continue
 
-            var karmaText = sentenceText.substring(0, patternIdx).trim()
+            var karmaText = textToProcess.substring(0, patternIdx).trim()
             if (karmaText.contains("+ ङस्")) {
                 val ngasIdx = karmaText.indexOf("+ ङस्")
                 val textBeforeNgas = karmaText.substring(0, ngasIdx).trim()
