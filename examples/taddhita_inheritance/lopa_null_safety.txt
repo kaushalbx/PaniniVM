@@ -1,0 +1,11 @@
+# तद्धित ग्रन्थ — Pāṇinian Lopa Null-Safety & Absent Attribute Query (1.1.60 अदर्शनं लोपः)
+
+# Step 1: Construct struct 'सङ्ख्या' with attribute 'मूल्य' = 50 ('पञ्चाशत्' -> पञ्चन् + दशत)
+पञ्चन्+दशत+अम् मूल्यम् सङ्ख्या ।
+
+# Step 2: Query absent attribute 'ज्ञाता' on struct 'सङ्ख्या'
+# Sūtra 1.1.60 (अदर्शनं लोपः) evaluates non-perception (अदर्शनम्) to Lopa ('लोपः')
+सङ्ख्यास्य ज्ञाम् ।
+
+# Step 3: Print result
+मुद्रय फलम् ।

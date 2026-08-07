@@ -111,12 +111,14 @@ object ProgramSutraArthaCodec {
             "satya",
             "boolean" to SutraArthaValue.Truth(value.boolean),
         )
+        is SanskritValue.Lopa -> record("lopa")
     }
 
     fun decodeValue(value: SutraArthaValue): SanskritValue {
         val fields = (value as? SutraArthaValue.Record)?.fields
             ?: throw IllegalArgumentException("A Sanskrit value must be a semantic record.")
         return when (fields.symbol("valueType")) {
+            "lopa" -> SanskritValue.Lopa
             "sankhya" -> SanskritValue.Sankhya(
                 fields.number("number"),
                 fields.text("word"),

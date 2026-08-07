@@ -86,6 +86,7 @@ internal class FileKriyaMemoryStore(private val storageDir: File) {
                 writeByte(5); writeInt(value.items.size); value.items.forEach { writeValue(it) }
             }
             is SanskritValue.Satya -> { writeByte(6); writeBoolean(value.boolean) }
+            is SanskritValue.Lopa -> { writeByte(7) }
         }
     }
 
@@ -93,9 +94,10 @@ internal class FileKriyaMemoryStore(private val storageDir: File) {
         1 -> SanskritValue.Sankhya(readLong(), readUTF())
         2 -> SanskritValue.Rational(readLong(), readLong(), readUTF())
         3 -> SanskritValue.Shabda(readUTF(), buildSet { repeat(readInt()) { add(decodeSamjna(readUTF())) } })
-        4 -> SanskritValue.Gana(List(readInt()) { readValue() })
-        5 -> SanskritValue.Suchi(List(readInt()) { readValue() })
+        4 -> SanskritValue.Gana(buildList { repeat(readInt()) { add(readValue()) } })
+        5 -> SanskritValue.Suchi(buildList { repeat(readInt()) { add(readValue()) } })
         6 -> SanskritValue.Satya(readBoolean())
+        7 -> SanskritValue.Lopa
         else -> error("Unknown persisted Sanskrit value type.")
     }
 

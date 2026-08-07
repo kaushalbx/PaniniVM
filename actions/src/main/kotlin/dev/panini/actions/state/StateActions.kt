@@ -84,6 +84,7 @@ object SmritiSaveAction : DhatuAction("स्मृतिरक्षणम्",
                     is SanskritValue.Satya -> if (v.boolean) "सत्यम्" else "असत्यम्"
                     is SanskritValue.Gana -> v.toDisplayText()
                     is SanskritValue.Suchi -> v.toDisplayText()
+                    is SanskritValue.Lopa -> v.toDisplayText()
                 }
             },
         )

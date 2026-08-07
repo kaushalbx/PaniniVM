@@ -249,13 +249,18 @@ class PaniniVM(
                             currentObj = structStore[attrVal]
                         }
                     } else {
-                        failedStep = key
-                        break
+                        if (i == chain.size - 1) {
+                            resolvedValue = "लोपः"
+                        } else {
+                            failedStep = key
+                            break
+                        }
                     }
                 }
 
                 if (resolvedValue != null) {
-                    results += ExecutionResult.Success(operation = "taddhita.nested_query", value = resolvedValue)
+                    val typedVal = if (resolvedValue == "लोपः") SanskritValue.Lopa else SanskritValue.of(resolvedValue)
+                    results += ExecutionResult.Success(operation = "taddhita.nested_query", value = resolvedValue, typedValue = typedVal)
                 } else {
                     results += ExecutionResult.Failure(
                         ExecutionError.INVALID_VALUE,

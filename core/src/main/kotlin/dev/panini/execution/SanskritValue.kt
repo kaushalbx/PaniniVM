@@ -52,6 +52,11 @@ sealed interface SanskritValue {
         override fun toDisplayText(): String = if (boolean) "सत्यम्" else "असत्यम्"
     }
 
+    data object Lopa : SanskritValue {
+        override val samjnas: Set<Samjna> = setOf(Samjna.LOPA, Samjna.SHABDA)
+        override fun toDisplayText(): String = "लोपः"
+    }
+
     companion object {
         fun of(text: String, samjnas: Set<Samjna> = emptySet()): SanskritValue {
             return if (text == "सत्यम्" || text == "असत्यम्") {

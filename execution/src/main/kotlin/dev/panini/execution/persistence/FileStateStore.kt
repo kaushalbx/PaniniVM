@@ -132,10 +132,12 @@ class FileStateStore(private val storageDir: File) : StateStore {
         is SanskritValue.Shabda -> "SHABDA"
         is SanskritValue.Gana -> "GANA"
         is SanskritValue.Suchi -> "SUCHI"
+        is SanskritValue.Lopa -> "LOPA"
         null -> ""
     }
 
     private fun decodeTyped(type: String, display: String, samjnas: Set<Samjna>): SanskritValue? = when {
+        type == "LOPA" -> SanskritValue.Lopa
         type.startsWith("SANKHYA:") -> SanskritValue.Sankhya(type.substringAfter(':').toLong(), display)
         type.startsWith("RATIONAL:") -> {
             val (num, denom) = type.substringAfter(':').split('/').map { it.toLong() }
