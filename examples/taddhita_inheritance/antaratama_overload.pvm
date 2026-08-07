@@ -1,0 +1,20 @@
+# तद्धित ग्रन्थ — Pāṇinian Closest Type Match Method Overload Dispatch (1.1.50 स्थानेऽन्तरतमः)
+
+# Step 1: Scope declaration
+गणित + सुँ इति अधि + कृ + घञ् + सुँ ।
+
+# Step 2: Define Overload 1 (Numeric constraint): Adds numbers (5 + 5 = 10 -> दश)
+गणित + ङस् युज् + ल्युट् + सुँ इति संज्ञा + सुँ ।
+न प्रथम + अम् सङ्ख्या + त्व + अम् ।
+प्रथम + अम् द्वितीय + अम् च युज् + णिच् + लोट् + सिप् ॥
+
+# Step 3: Define Overload 2 (Text constraint): Concatenates text ("राम" + "कृष्ण" -> "रामकृष्ण")
+गणित + ङस् युज् + ल्युट् + सुँ इति संज्ञा + सुँ ।
+न प्रथम + अम् शब्द + त्व + अम् ।
+राम + अम् कृष्ण + अम् च युज् + णिच् + लोट् + सिप् ॥
+
+# Step 4: Dispatch Overload 1 with numeric arguments (5 + 5) via Sūtra 1.1.50 (स्थानेऽन्तरतमः)
+पञ्च + अम् पञ्च + अम् च गणित + ङस् युज् + ल्युट् + टा कृ + लोट् + सिप् ।
+
+# Step 5: Print result
+मुद्र् + णिच् + लोट् + सिप् फल + अम् ।

@@ -59,6 +59,7 @@ internal object ExpressionBuilder {
         val sankhyaValue = when (val prat = pada.pratipadika) {
             is SankhyaPratipadika -> prat.value
             is MulaPratipadika -> sharedSankhyaGenerator.annotatedPratipadikaValue(prat.text)
+                ?: runCatching { dev.panini.sankhya.SankhyaEvaluator().evaluateStems(listOf(prat.text)).value }.getOrNull()
             else -> null
         }
         val samjnas = buildSet {

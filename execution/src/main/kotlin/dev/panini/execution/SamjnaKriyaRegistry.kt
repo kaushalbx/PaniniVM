@@ -31,7 +31,7 @@ data class SamjnaKriya(
  */
 class SamjnaKriyaRegistry {
 
-    private val registry = linkedMapOf<String, SamjnaKriya>()
+    private val registry = linkedMapOf<String, MutableList<SamjnaKriya>>()
     private val memoizedCache = mutableMapOf<String, ExecutionResult>()
     private val inheritanceMap = mutableMapOf<String, String>() // childStem -> parentStem
 
@@ -50,25 +50,20 @@ class SamjnaKriyaRegistry {
 
     fun register(kriya: SamjnaKriya) {
         val key = if (kriya.domainStem != null) "${kriya.domainStem}::${kriya.nameStem}" else kriya.nameStem
-        val existing = registry[key]
-        if (existing == null || kriya.priorityScore >= existing.priorityScore) {
-            registry[key] = kriya
-        }
-        val existingStem = registry[kriya.nameStem]
-        if (existingStem == null || kriya.priorityScore >= existingStem.priorityScore) {
-            registry[kriya.nameStem] = kriya
-        }
+        registry.getOrPut(key) { mutableListOf() }.add(kriya)
+        registry.getOrPut(kriya.nameStem) { mutableListOf() }.add(kriya)
     }
 
     fun resolve(stem: String, callerSourceFile: String? = null): SamjnaKriya? {
-        val kriya = registry[stem] ?: return null
+        val list = registry[stem] ?: return null
+        val kriya = list.lastOrNull() ?: return null
         if (kriya.isInternal && callerSourceFile != null && kriya.sourceFile != null && callerSourceFile != kriya.sourceFile) {
             return null // File-private saṃjñā hidden from external caller
         }
         return kriya
     }
 
-    fun all(): List<SamjnaKriya> = registry.values.distinctBy { it.nameStem + (it.domainStem ?: "") }
+    fun all(): List<SamjnaKriya> = registry.values.flatten().distinctBy { it.nameStem + (it.domainStem ?: "") }
 
     fun isEmpty(): Boolean = registry.isEmpty()
 
@@ -80,7 +75,12 @@ class SamjnaKriyaRegistry {
         val isAntaranga = AntarangaScopeEngine.detectAntaranga(sentenceText, preParsedUkti)
         val textToProcess = if (isAntaranga) AntarangaScopeEngine.stripAntarangaDirective(sentenceText) else sentenceText
 
-        val candidates = registry.values.sortedByDescending { it.priorityScore }
+        val allKriyas = registry.values.flatten().distinctBy { System.identityHashCode(it) }
+        val argTerms = SubantaKarakaParser.extractKarmaTerms(textToProcess, preParsedUkti)
+
+        val candidates = allKriyas.sortedByDescending { kriya ->
+            (kriya.priorityScore * 100) + AntaratamaOverloadEngine.calculateProximityScore(kriya, argTerms)
+        }
         for (kriya in candidates) {
             if (kriya.isInternal && callerSourceFile != null && kriya.sourceFile != null && callerSourceFile != kriya.sourceFile) {
                 continue // File-private saṃjñā hidden from external caller
@@ -118,7 +118,7 @@ class SamjnaKriyaRegistry {
                     if (genitiveIdx >= 0) {
                         if (kriya.domainStem != domain) {
                             val cleanDomain = domain.substringBefore("+").trim()
-                            val exactChildMethod = registry.values.firstOrNull {
+                            val exactChildMethod = registry.values.flatten().firstOrNull {
                                 (it.domainStem == domain || it.domainStem == cleanDomain) && it.nameStem == kriya.nameStem && it.isApavada
                             }
                             if (exactChildMethod != null) {
