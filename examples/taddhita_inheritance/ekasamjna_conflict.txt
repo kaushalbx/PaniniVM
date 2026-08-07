@@ -1,0 +1,26 @@
+# तद्धित ग्रन्थ — Pāṇinian Ekasaṁjñā Conflict Resolution (1.4.1 आ कडारादेका संज्ञा)
+
+# Step 1: Scope declaration
+गणितः इति का ।
+
+# Step 2: Tier 1 - General Utsarga rule (Default - Priority 1): 5 + 5 = 10 (दश)
+गणितस्य गुण् इति सञ्ज्ञा ।
+पङ्चम् पङ्चम् च योजय ॥
+
+# Step 3: Tier 2 - Nitya rule (Mandatory - Priority 2): 10 + 10 = 20 (विंशति)
+गणित + ङस् गुण् + ल्युट् + सुँ इति नि + त्य + सुँ इति संज्ञा + सुँ ।
+दशम् दशम् च योजय ॥
+
+# Step 4: Tier 3 - Antaraṅga rule (Internal - Priority 3): 10 + 20 = 30 (त्रिंशत्)
+गणित + ङस् गुण् + ल्युट् + सुँ इति अन्तर् + अङ्ग + सुँ इति संज्ञा + सुँ ।
+दशम् विंशतिम् च योजय ॥
+
+# Step 5: Tier 4 - Apavāda rule (Exception - Priority 4): 10 + 30 = 40 (चत्वारिंशत्)
+गणितस्य गुण् इति वत् इति सञ्ज्ञा ।
+दशम् त्रिंशत्म् च योजय ॥
+
+# Step 6: Invoke method on 'गणित'. Sūtra 1.4.1 Ekasaṁjñā conflict resolution selects Apavāda (Priority 4) -> 40 (चत्वारिंशत्)
+पङ्चम् द्विम् च गणितस्य गुणा कृणु ।
+
+# Step 7: Print result
+मुद्रय फलम् ।

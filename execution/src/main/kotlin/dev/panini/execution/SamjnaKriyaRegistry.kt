@@ -10,9 +10,18 @@ data class SamjnaKriya(
     val sourceFile: String? = null,
     val domainStem: String? = null,
     val isApavada: Boolean = false,
+    val isAntaranga: Boolean = false,
+    val isNitya: Boolean = false,
     val isInternal: Boolean = false,
     val isMemoized: Boolean = nameSegmented.contains("+ क्त"),
 ) {
+    val priorityScore: Int get() = when {
+        isApavada -> 4
+        isAntaranga -> 3
+        isNitya -> 2
+        else -> 1
+    }
+
     val nishedhaGuards: List<PvmScriptStatement.Sentence> = body.filter { it.isNishedha }
     val vidhiSentences: List<PvmScriptStatement.Sentence> = body.filterNot { it.isNishedha }
 }
@@ -42,10 +51,11 @@ class SamjnaKriyaRegistry {
     fun register(kriya: SamjnaKriya) {
         val key = if (kriya.domainStem != null) "${kriya.domainStem}::${kriya.nameStem}" else kriya.nameStem
         val existing = registry[key]
-        if (existing == null || kriya.isApavada || !existing.isApavada) {
+        if (existing == null || kriya.priorityScore >= existing.priorityScore) {
             registry[key] = kriya
         }
-        if (!registry.containsKey(kriya.nameStem) || kriya.isApavada) {
+        val existingStem = registry[kriya.nameStem]
+        if (existingStem == null || kriya.priorityScore >= existingStem.priorityScore) {
             registry[kriya.nameStem] = kriya
         }
     }
@@ -70,7 +80,7 @@ class SamjnaKriyaRegistry {
         val isAntaranga = AntarangaScopeEngine.detectAntaranga(sentenceText, preParsedUkti)
         val textToProcess = if (isAntaranga) AntarangaScopeEngine.stripAntarangaDirective(sentenceText) else sentenceText
 
-        val candidates = registry.values.sortedByDescending { it.isApavada }
+        val candidates = registry.values.sortedByDescending { it.priorityScore }
         for (kriya in candidates) {
             if (kriya.isInternal && callerSourceFile != null && kriya.sourceFile != null && callerSourceFile != kriya.sourceFile) {
                 continue // File-private saṃjñā hidden from external caller

@@ -26,6 +26,8 @@ sealed interface PvmScriptStatement {
         val domainStem: String? = null,
         val isInternal: Boolean = false,
         val isApavada: Boolean = false,
+        val isAntaranga: Boolean = false,
+        val isNitya: Boolean = false,
     ) : PvmScriptStatement
 
     /**
@@ -87,6 +89,8 @@ object PvmScript {
                     val methodHeaderMatch = TaddhitaStructEngine.detectMethodHeader(currentName)
                     val explicitDomain = methodHeaderMatch?.first
                     val isApavadaHeader = currentName.contains("अप + वद्") || currentName.contains("अप वद्") || currentName.contains("इति अपवाद") || currentName.contains("इति अपवादः")
+                    val isAntarangaHeader = currentName.contains("अन्तर् + अङ्ग") || currentName.startsWith("अन्तरङ्गा ") || currentName.startsWith("अन्तरङ्ग ")
+                    val isNityaHeader = currentName.contains("नि + त्य") || currentName.contains("इति नित्य")
                     val isInternalHeader = currentName.startsWith("अन्तरङ्गा ") || currentName.startsWith("अन्तरङ्ग ")
                     val rawCleanName = if (isInternalHeader) {
                         currentName.removePrefix("अन्तरङ्गा ").removePrefix("अन्तरङ्ग ").trim()
@@ -100,6 +104,9 @@ object PvmScript {
                         .replace("इति अप वद् + घञ्", "")
                         .replace("इति अपवाद + सुँ", "")
                         .replace("इति अपवादः", "")
+                        .replace("इति अन्तर् + अङ्ग + सुँ", "")
+                        .replace("इति नि + त्य + सुँ", "")
+                        .replace("इति नित्य + सुँ", "")
                         .trim()
 
                     samjnaDefinitions += PvmScriptStatement.SamjnaDefinition(
@@ -109,6 +116,8 @@ object PvmScript {
                         domainStem = explicitDomain,
                         isInternal = isInternalHeader,
                         isApavada = isApavadaHeader,
+                        isAntaranga = isAntarangaHeader,
+                        isNitya = isNityaHeader,
                     )
                     inBlock = false
                 }
@@ -125,6 +134,8 @@ object PvmScript {
             val methodHeaderMatch = TaddhitaStructEngine.detectMethodHeader(currentName)
             val explicitDomain = methodHeaderMatch?.first
             val isApavadaHeader = currentName.contains("अप + वद्") || currentName.contains("अप वद्") || currentName.contains("इति अपवाद") || currentName.contains("इति अपवादः")
+            val isAntarangaHeader = currentName.contains("अन्तर् + अङ्ग") || currentName.startsWith("अन्तरङ्गा ") || currentName.startsWith("अन्तरङ्ग ")
+            val isNityaHeader = currentName.contains("नि + त्य") || currentName.contains("इति नित्य")
             val isInternalHeader = currentName.startsWith("अन्तरङ्गा ") || currentName.startsWith("अन्तरङ्ग ")
             val rawCleanName = if (isInternalHeader) {
                 currentName.removePrefix("अन्तरङ्गा ").removePrefix("अन्तरङ्ग ").trim()
@@ -138,6 +149,9 @@ object PvmScript {
                 .replace("इति अप वद् + घञ्", "")
                 .replace("इति अपवाद + सुँ", "")
                 .replace("इति अपवादः", "")
+                .replace("इति अन्तर् + अङ्ग + सुँ", "")
+                .replace("इति नि + त्य + सुँ", "")
+                .replace("इति नित्य + सुँ", "")
                 .trim()
 
             samjnaDefinitions += PvmScriptStatement.SamjnaDefinition(
@@ -147,6 +161,8 @@ object PvmScript {
                 domainStem = explicitDomain,
                 isInternal = isInternalHeader,
                 isApavada = isApavadaHeader,
+                isAntaranga = isAntarangaHeader,
+                isNitya = isNityaHeader,
             )
             inBlock = false
         }
@@ -215,14 +231,23 @@ object PvmScript {
         // Struct instantiation lines (containing attribute value assignments "+ अम्") are statements, not headers
         if (trimmed.contains("+ अम्") && (trimmed.contains("+ मतुप् + सुँ") || trimmed.contains("+ वतुप् + सुँ") || trimmed.contains("+ वत् + सुँ") || trimmed.contains("+ मत् + सुँ"))) return null
 
-        // Support header markers: "इति संज्ञा", "इति अप + वद्", "इति अप वद्", "इति अपवाद"
-        val isHeaderWithMarker = trimmed.contains("इति संज्ञा") || trimmed.contains("इति अप + वद्") || trimmed.contains("इति अप वद्") || trimmed.contains("इति अपवाद")
+        // Support header markers: "इति संज्ञा", "इति अप + वद्", "इति अप वद्", "इति अपवाद", "इति नि + त्य", "इति अन्तर् + अङ्ग"
+        val isHeaderWithMarker = trimmed.contains("इति संज्ञा") ||
+            trimmed.contains("इति अप + वद्") || trimmed.contains("इति अप वद्") || trimmed.contains("इति अपवाद") ||
+            trimmed.contains("इति नि + त्य") || trimmed.contains("इति नि+त्य") || trimmed.contains("इति नित्य") ||
+            trimmed.contains("इति अन्तर् + अङ्ग") || trimmed.contains("इति अन्तर्+अङ्ग") || trimmed.contains("इति अन्तरङ्ग")
         if (isHeaderWithMarker) {
             val markerIdx = when {
                 trimmed.contains("इति संज्ञा") -> trimmed.indexOf("इति संज्ञा")
                 trimmed.contains("इति अप + वद्") -> trimmed.indexOf("इति अप + वद्")
                 trimmed.contains("इति अप वद्") -> trimmed.indexOf("इति अप वद्")
-                else -> trimmed.indexOf("इति अपवाद")
+                trimmed.contains("इति अपवाद") -> trimmed.indexOf("इति अपवाद")
+                trimmed.contains("इति नि + त्य") -> trimmed.indexOf("इति नि + त्य")
+                trimmed.contains("इति नि+त्य") -> trimmed.indexOf("इति नि+त्य")
+                trimmed.contains("इति नित्य") -> trimmed.indexOf("इति नित्य")
+                trimmed.contains("इति अन्तर् + अङ्ग") -> trimmed.indexOf("इति अन्तर् + अङ्ग")
+                trimmed.contains("इति अन्तर्+अङ्ग") -> trimmed.indexOf("इति अन्तर्+अङ्ग")
+                else -> trimmed.indexOf("इति अन्तरङ्ग")
             }
             if (markerIdx > 0) {
                 return trimmed.substring(0, markerIdx).trim().ifEmpty { null }

@@ -206,6 +206,8 @@ class PaniniVM(
                     sourceFile = sourceFile,
                     domainStem = domain,
                     isApavada = defn.isApavada,
+                    isAntaranga = defn.isAntaranga,
+                    isNitya = defn.isNitya,
                     isInternal = defn.isInternal,
                 ),
             )
