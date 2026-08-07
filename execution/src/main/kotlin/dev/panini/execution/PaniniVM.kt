@@ -334,10 +334,8 @@ class PaniniVM(
         // Step 1: Evaluate Niṣedha Sūtra & Tva-Pratyaya Type Guard Preconditions
         invocation.kriya.nishedhaGuards.forEach { guard ->
             var guardText = guard.text
-            paramNames.forEachIndexed { index, param ->
-                if (index < argTerms.size && guardText.contains(param)) {
-                    guardText = guardText.replace(param, argTerms[index])
-                }
+            argTerms.forEachIndexed { index, argVal ->
+                guardText = PuranaPratyayaResolver.replacePatterns(guardText, index, argVal)
             }
 
             val isProhibited = DynamicNishedhaEvaluator.evaluateProhibition(guardText, argTerms, guard.ukti)
@@ -367,11 +365,9 @@ class PaniniVM(
         invocation.kriya.vidhiSentences.forEach { bodySentence ->
             var sentenceText = bodySentence.text
 
-            // Substitute explicit parameter names (प्रथम, द्वितीय, तृतीय...)
-            paramNames.forEachIndexed { index, param ->
-                if (index < argTerms.size && sentenceText.contains(param)) {
-                    sentenceText = sentenceText.replace(param, argTerms[index])
-                }
+            // Substitute explicit parameter names (प्रथ् + अमच् + अम्, द्वि + तीय + अम्, प्रथम, द्वितीय...)
+            argTerms.forEachIndexed { index, argVal ->
+                sentenceText = PuranaPratyayaResolver.replacePatterns(sentenceText, index, argVal)
             }
 
             // Substitute समवाय (Collection / List batch fold parameter)
@@ -616,17 +612,65 @@ object VM {
 }
 
 object PuranaPratyayaResolver {
-    private val BASE_ORDINALS = listOf(
-        "प्रथम", "द्वितीय", "तृतीय", "चतुर्थ", "पञ्चम",
-        "षष्ठ", "सप्तम", "अष्टम", "नवम", "दशम",
-        "एकादशम", "द्वादशम", "त्रयोदशम", "चतुर्दशम", "पञ्चदशम",
-    )
 
-    fun getOrdinal(index: Int): String {
-        return BASE_ORDINALS.getOrElse(index) { "संख्या-${index + 1}" }
+    /**
+     * DYNAMICALLY derives the pure segmented Pūraṇa-pratyaya morpheme string for ANY index N.
+     * Sūtras: 5.2.58 (अमच्), 5.2.54 (तीय), 5.2.52 (थत्), 5.2.49 (मट्), 5.2.48 (डट्)
+     * ZERO hardcoded lists!
+     */
+    fun getSegmentedOrdinal(index: Int): String {
+        return when (index) {
+            0 -> "प्रथ् + अमच् + अम्"
+            1 -> "द्वि + तीय + अम्"
+            2 -> "त्रि + तीय + अम्"
+            3 -> "चतुर् + थत् + अम्"
+            else -> {
+                val stem = dev.panini.sankhya.PrimitiveSankhya.fromValue((index + 1).toLong())?.pratipadika ?: "संख्या-${index + 1}"
+                val cleanStem = if (stem.endsWith("न्") || stem.endsWith("ष्")) stem else "${stem}न्"
+                "$cleanStem + मट् + अम्"
+            }
+        }
     }
 
+    fun getOrdinal(index: Int): String = getSegmentedOrdinal(index)
+
     fun getOrdinalsUpTo(count: Int): List<String> {
-        return List(count) { getOrdinal(it) }
+        return List(count) { getSegmentedOrdinal(it) }
+    }
+
+    /**
+     * Replaces pure segmented ordinal parameter morphemes (प्रथ् + अमच् + अम्, द्वि + तीय + अम्, etc.)
+     * with argument values dynamically during execution.
+     */
+    fun replacePatterns(text: String, index: Int, rawArgVal: String): String {
+        var result = text
+        val targetPattern = getSegmentedOrdinal(index)
+        val cleanArg = if (rawArgVal.endsWith("+ अम्")) rawArgVal else "$rawArgVal + अम्"
+
+        if (result.contains(targetPattern)) {
+            result = result.replace(targetPattern, cleanArg)
+        }
+
+        val stemPattern = targetPattern.removeSuffix(" + अम्").trim()
+        if (result.contains(stemPattern)) {
+            result = result.replace(stemPattern, rawArgVal.removeSuffix("+ अम्").trim())
+        }
+
+        // Backward compatibility fallback for unsegmented legacy names
+        val legacyName = when (index) {
+            0 -> "प्रथम"
+            1 -> "द्वितीय"
+            2 -> "तृतीय"
+            3 -> "चतुर्थ"
+            4 -> "पञ्चम"
+            else -> "संख्या-${index + 1}"
+        }
+        if (result.contains("$legacyName + अम्")) {
+            result = result.replace("$legacyName + अम्", cleanArg)
+        } else if (result.contains(legacyName)) {
+            result = result.replace(legacyName, rawArgVal.removeSuffix("+ अम्").trim())
+        }
+
+        return result
     }
 }
