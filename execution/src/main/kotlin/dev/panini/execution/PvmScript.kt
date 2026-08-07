@@ -128,12 +128,23 @@ object PvmScript {
         return samjnaDefinitions + adhikaraDefinitions + sentences
     }
 
+    internal fun isAdhikaraLine(line: String): Boolean {
+        return line.contains("+ घञ्") || line.contains("अधिकार")
+    }
+
     internal fun extractAdhikaraDomain(line: String): String? {
         val trimmed = line.trim()
-        val isAdhikaraLine = trimmed.contains("अधिकार") || trimmed.contains("अधि + कृ + घञ्")
-        if (!isAdhikaraLine) return null
+        if (!isAdhikaraLine(trimmed)) return null
 
-        val marker = if (trimmed.contains("अधि + कृ + घञ्")) "अधि + कृ + घञ्" else "अधिकार"
+        val marker = if (trimmed.contains("अधि + कृ + घञ्")) {
+            "अधि + कृ + घञ्"
+        } else if (trimmed.contains("+ घञ्")) {
+            val idx = trimmed.indexOf("+ घञ्")
+            trimmed.substring(0, idx).trim()
+        } else {
+            "अधिकार"
+        }
+
         var beforeAdhikara = trimmed.substringBefore(marker)
             .trimEnd('।', '॥', ' ', '+')
             .trim()
@@ -148,7 +159,7 @@ object PvmScript {
 
     internal fun extractSamjnaHeaderName(line: String): String? {
         val trimmed = line.trim()
-        if (trimmed.isEmpty() || trimmed.contains("अधिकार") || trimmed.contains("अधि + कृ + घञ्")) return null
+        if (trimmed.isEmpty() || isAdhikaraLine(trimmed)) return null
 
         // Support "<name> इति संज्ञा ।" (legacy)
         val markerIdx = trimmed.indexOf(SAMJNA_HEADER_MARKER)

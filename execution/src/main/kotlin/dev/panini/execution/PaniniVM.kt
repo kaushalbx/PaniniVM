@@ -275,13 +275,9 @@ class PaniniVM(
     ): List<ExecutionResult> {
         val results = mutableListOf<ExecutionResult>()
 
-        // Extract caller's argument base terms from karmaText
-        // e.g. "द्वि + अम् त्रि + अम् च चतुर् + अम् च" -> ["द्वि", "त्रि", "चतुर्"]
-        val argTerms = Regex("""(\S+)\s*\+\s*अम्""").findAll(invocation.karmaText)
-            .map { it.groupValues[1] }
-            .toList()
-
-        val paramNames = listOf("प्रथम", "द्वितीय", "तृतीय", "चतुर्थ", "पञ्चम", "षष्ठ")
+        // Extract caller's argument base terms dynamically via SubantaKarakaParser (karma: + अम्)
+        val argTerms = SubantaKarakaParser.extractKarmaTerms(invocation.karmaText)
+        val paramNames = PuranaPratyayaResolver.getOrdinalsUpTo(maxOf(6, argTerms.size))
 
         // Step 0: Check Memoization Cache for क्त-प्रत्यय Constant Saṃjñās
         if (invocation.kriya.isMemoized) {
@@ -300,8 +296,7 @@ class PaniniVM(
                 }
             }
 
-            // Check if zero prohibition holds (e.g. "न शून्य + अम् शून्य + अम्")
-            val isZeroProhibited = guardText.contains("शून्य") && argTerms.any { it == "शून्य" || it == "०" }
+            val isProhibited = DynamicNishedhaEvaluator.evaluateProhibition(guardText, argTerms)
 
             // Check Tva-pratyaya Type Guard (e.g. "न प्रथम + अम् सङ्ख्या + त्व + अम्")
             val isTypeGuard = guardText.contains("सङ्ख्या + त्व") || guardText.contains("सूची + त्व")
@@ -310,7 +305,7 @@ class PaniniVM(
                 numVal <= 0L && !term.any { it.isDigit() }
             }
 
-            if (isZeroProhibited || isTypeViolated) {
+            if (isProhibited || isTypeViolated) {
                 return listOf(
                     ExecutionResult.Failure(
                         ExecutionError.ACTION_FAILED,
@@ -563,4 +558,20 @@ object VM {
         sessionKey: String? = null,
         scope: ExecutionScope = instance.defaultScope,
     ): ExecutionResult = instance.resume(continuation, sessionKey, scope)
+}
+
+object PuranaPratyayaResolver {
+    private val BASE_ORDINALS = listOf(
+        "प्रथम", "द्वितीय", "तृतीय", "चतुर्थ", "पञ्चम",
+        "षष्ठ", "सप्तम", "अष्टम", "नवम", "दशम",
+        "एकादशम", "द्वादशम", "त्रयोदशम", "चतुर्दशम", "पञ्चदशम",
+    )
+
+    fun getOrdinal(index: Int): String {
+        return BASE_ORDINALS.getOrElse(index) { "संख्या-${index + 1}" }
+    }
+
+    fun getOrdinalsUpTo(count: Int): List<String> {
+        return List(count) { getOrdinal(it) }
+    }
 }

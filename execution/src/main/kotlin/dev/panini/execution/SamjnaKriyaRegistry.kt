@@ -64,13 +64,13 @@ class SamjnaKriyaRegistry {
             val segmentedStem = stripSupSuffix(kriya.nameSegmented)
             val instrumentalPattern = "$segmentedStem + टा"
 
-            // 1. Check Genitive Case domain qualification: "<domainStem> + ङस् <segmentedStem> + टा कृ"
+            // 1. Check Genitive Case domain qualification: "<domainStem> + ङस् <segmentedStem> + टा"
             if (kriya.domainStem != null) {
                 val genitivePattern = "${kriya.domainStem} + ङस् $instrumentalPattern"
                 val genitiveIdx = sentenceText.indexOf(genitivePattern)
                 if (genitiveIdx >= 0) {
                     val afterGenitive = sentenceText.substring(genitiveIdx + genitivePattern.length).trim()
-                    if (afterGenitive.startsWith("कृ")) {
+                    if (PradayaUpasargaEngine.isVerbAction(afterGenitive)) {
                         val karmaText = sentenceText.substring(0, genitiveIdx).trim()
                         return SamjnaInvocation(
                             kriya = kriya,
@@ -81,12 +81,12 @@ class SamjnaKriyaRegistry {
                 }
             }
 
-            // 2. Check Unqualified instrumental invocation: "<segmentedStem> + टा कृ"
+            // 2. Check Unqualified instrumental invocation: "<segmentedStem> + टा"
             val patternIdx = sentenceText.indexOf(instrumentalPattern)
             if (patternIdx < 0) continue
 
             val afterInstrumental = sentenceText.substring(patternIdx + instrumentalPattern.length).trim()
-            if (!afterInstrumental.startsWith("कृ")) continue
+            if (!PradayaUpasargaEngine.isVerbAction(afterInstrumental)) continue
 
             val karmaText = sentenceText.substring(0, patternIdx).trim()
 
