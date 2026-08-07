@@ -190,4 +190,41 @@ class SamjnaKriyaMultiFileTest {
         assertTrue(successful.isNotEmpty(), "List operations project execution should succeed.")
         assertEquals("पञ्चदश", successful.last().value, "Sum of 1..5 in samavaya project should be पञ्चदश (15).")
     }
+
+    @Test
+    fun `test samjna execution scope isolation child environment`() {
+        val vm = PaniniVM()
+        val registry = SamjnaKriyaRegistry()
+        val script = """
+            गुणप्रक्रिया + ल्युट् + सुँ ।
+            द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ॥
+        """.trimIndent()
+
+        val parsed = PvmScript.parse(script).first() as PvmScriptStatement.SamjnaDefinition
+        registry.register(
+            SamjnaKriya(
+                nameSegmented = parsed.nameSegmented,
+                nameStem = SamjnaKriyaRegistry.stripSupSuffix(parsed.nameSegmented),
+                body = parsed.body,
+            ),
+        )
+
+        val callerScope = ExecutionScope(environment = ValueEnvironment(mapOf("मुख्यस्थ" to dev.panini.execution.SanskritValue.of("सौम्य"))))
+        val results = vm.evalScript("गुणप्रक्रिया + ल्युट् + टा कृ + लोट् + सिप् ।", scope = callerScope, samjnaRegistry = registry)
+        val successful = results.filterIsInstance<ExecutionResult.Success>()
+        assertTrue(successful.isNotEmpty())
+        assertEquals("पञ्च", successful.last().value)
+        assertEquals("सौम्य", callerScope.environment.values["मुख्यस्थ"]?.toDisplayText(), "Parent scope environment variables must remain unpolluted.")
+    }
+
+    @Test
+    fun `test scope isolation project multi-file execution from disk`() {
+        val vm = PaniniVM()
+        val entryFile = File("examples/scope_isolation/isolation_mukhya.pvm")
+
+        val results = vm.evalProject(entryFile)
+        val successful = results.filterIsInstance<ExecutionResult.Success>()
+        assertTrue(successful.isNotEmpty(), "Scope isolation project execution should succeed.")
+        assertEquals("पञ्चत्रिंशत्", successful.last().value, "Result of (3 + 4) * 5 should be पञ्चत्रिंशत् (35).")
+    }
 }

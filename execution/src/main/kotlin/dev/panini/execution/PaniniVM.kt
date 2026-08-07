@@ -276,7 +276,11 @@ class PaniniVM(
             }
         }
 
-        // Step 2: Execute Vidhi Sūtra (Mandate) sentences
+        // Step 2: Create isolated Child Scope (वातावरण-सीमा) for local saṃjñā execution
+        val childEnvironment = ValueEnvironment(scope.environment.values)
+        var childScope = scope.copy(environment = childEnvironment)
+
+        // Step 3: Execute Vidhi Sūtra (Mandate) sentences inside childScope
         invocation.kriya.vidhiSentences.forEach { bodySentence ->
             var sentenceText = bodySentence.text
 
@@ -299,10 +303,11 @@ class PaniniVM(
             val bodyInvocation = registry.detectInvocation(sentenceText)
             if (bodyInvocation != null) {
                 results += executeSamjnaInvocation(
-                    bodyInvocation, sessionKey, scope, speaker, listener, registry,
+                    bodyInvocation, sessionKey, childScope, speaker, listener, registry,
                 )
             } else {
-                results += eval(sentenceText, sessionKey, scope, speaker, listener)
+                val stepResults = eval(sentenceText, sessionKey, childScope, speaker, listener)
+                results += stepResults
             }
         }
 
