@@ -86,7 +86,7 @@ object PvmScript {
 
                     val methodHeaderMatch = TaddhitaStructEngine.detectMethodHeader(currentName)
                     val explicitDomain = methodHeaderMatch?.first
-                    val isApavadaHeader = currentName.contains("इति अप वद् + घञ् + सुँ") || currentName.contains("इति अपवाद + सुँ") || currentName.contains("इति अपवादः")
+                    val isApavadaHeader = currentName.contains("अप + वद्") || currentName.contains("अप वद्") || currentName.contains("इति अपवाद") || currentName.contains("इति अपवादः")
                     val isInternalHeader = currentName.startsWith("अन्तरङ्गा ") || currentName.startsWith("अन्तरङ्ग ")
                     val rawCleanName = if (isInternalHeader) {
                         currentName.removePrefix("अन्तरङ्गा ").removePrefix("अन्तरङ्ग ").trim()
@@ -94,7 +94,10 @@ object PvmScript {
                         currentName
                     }
                     val cleanName = (methodHeaderMatch?.second ?: rawCleanName)
+                        .replace("इति अप + वद् + घञ् + सुँ", "")
                         .replace("इति अप वद् + घञ् + सुँ", "")
+                        .replace("इति अप + वद् + घञ्", "")
+                        .replace("इति अप वद् + घञ्", "")
                         .replace("इति अपवाद + सुँ", "")
                         .replace("इति अपवादः", "")
                         .trim()
@@ -121,7 +124,7 @@ object PvmScript {
 
             val methodHeaderMatch = TaddhitaStructEngine.detectMethodHeader(currentName)
             val explicitDomain = methodHeaderMatch?.first
-            val isApavadaHeader = currentName.contains("इति अप वद् + घञ् + सुँ") || currentName.contains("इति अपवाद + सुँ") || currentName.contains("इति अपवादः")
+            val isApavadaHeader = currentName.contains("अप + वद्") || currentName.contains("अप वद्") || currentName.contains("इति अपवाद") || currentName.contains("इति अपवादः")
             val isInternalHeader = currentName.startsWith("अन्तरङ्गा ") || currentName.startsWith("अन्तरङ्ग ")
             val rawCleanName = if (isInternalHeader) {
                 currentName.removePrefix("अन्तरङ्गा ").removePrefix("अन्तरङ्ग ").trim()
@@ -129,7 +132,10 @@ object PvmScript {
                 currentName
             }
             val cleanName = (methodHeaderMatch?.second ?: rawCleanName)
+                .replace("इति अप + वद् + घञ् + सुँ", "")
                 .replace("इति अप वद् + घञ् + सुँ", "")
+                .replace("इति अप + वद् + घञ्", "")
+                .replace("इति अप वद् + घञ्", "")
                 .replace("इति अपवाद + सुँ", "")
                 .replace("इति अपवादः", "")
                 .trim()
@@ -209,11 +215,12 @@ object PvmScript {
         // Struct instantiation lines (containing attribute value assignments "+ अम्") are statements, not headers
         if (trimmed.contains("+ अम्") && (trimmed.contains("+ मतुप् + सुँ") || trimmed.contains("+ वतुप् + सुँ") || trimmed.contains("+ वत् + सुँ") || trimmed.contains("+ मत् + सुँ"))) return null
 
-        // Support header markers: "इति संज्ञा", "इति अप वद्", "इति अपवाद"
-        val isHeaderWithMarker = trimmed.contains("इति संज्ञा") || trimmed.contains("इति अप वद्") || trimmed.contains("इति अपवाद")
+        // Support header markers: "इति संज्ञा", "इति अप + वद्", "इति अप वद्", "इति अपवाद"
+        val isHeaderWithMarker = trimmed.contains("इति संज्ञा") || trimmed.contains("इति अप + वद्") || trimmed.contains("इति अप वद्") || trimmed.contains("इति अपवाद")
         if (isHeaderWithMarker) {
             val markerIdx = when {
                 trimmed.contains("इति संज्ञा") -> trimmed.indexOf("इति संज्ञा")
+                trimmed.contains("इति अप + वद्") -> trimmed.indexOf("इति अप + वद्")
                 trimmed.contains("इति अप वद्") -> trimmed.indexOf("इति अप वद्")
                 else -> trimmed.indexOf("इति अपवाद")
             }

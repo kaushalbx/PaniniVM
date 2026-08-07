@@ -352,8 +352,8 @@ sanadiPratyaya
 // ============================================================================
 
 upasargaKrama
-    : upasarga PLUS
-      (upasarga PLUS)*
+    : upasarga PLUS?
+      (upasarga PLUS?)*
     ;
 
 upasarga

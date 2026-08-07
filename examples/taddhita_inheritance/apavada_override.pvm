@@ -8,9 +8,9 @@
 # Step 2: Child class 'गाणित' (Child derived via 4.1.92 तस्यापत्यम् & 7.2.117 तद्धितेष्वचामादेः)
 गाणित + मतुप् + सुँ इति अधि + कृ + घञ् + सुँ ।
 
-# Step 3: Pure morpheme Apavāda exception method override on child class 'गाणित' (इति अप वद् + घञ् + सुँ)
+# Step 3: Pure morpheme Apavāda exception method override on child class 'गाणित' (इति अप + वद् + घञ् + सुँ)
 # Pāṇinian rule 1.4.2 विप्रतिषेधे परम् (अनेन उत्सर्गस्य बाधः क्रियते) -> Subtraction via वि + युज् + णिच् + लोट् + सिप्
-गाणित + मतुप् + ङस् गुण् + ल्युट् + सुँ इति अप वद् + घञ् + सुँ इति संज्ञा + सुँ ।
+गाणित + मतुप् + ङस् गुण् + ल्युट् + सुँ इति अप + वद् + घञ् + सुँ इति संज्ञा + सुँ ।
 प्रथ् + अमच् + अम् द्वि + तीय + अम् च वि + युज् + लोट् + सिप् ॥
 
 # Step 4: Execute Apavāda method on child instance 'गाणित': 5 - 2 = 3 (त्रीणि) instead of 5 + 2 = 7 (सप्त)
