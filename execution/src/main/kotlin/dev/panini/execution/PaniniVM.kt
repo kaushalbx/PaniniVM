@@ -159,6 +159,24 @@ class PaniniVM(
         speaker: String = "प्रयोक्ता",
         listener: String = "यन्त्रम्",
         samjnaRegistry: SamjnaKriyaRegistry? = null,
+    ): List<ExecutionResult> = evalScriptWithFileContext(
+        scriptContent = scriptContent,
+        sourceFile = null,
+        sessionKey = sessionKey,
+        scope = scope,
+        speaker = speaker,
+        listener = listener,
+        samjnaRegistry = samjnaRegistry,
+    )
+
+    fun evalScriptWithFileContext(
+        scriptContent: String,
+        sourceFile: String? = null,
+        sessionKey: String? = null,
+        scope: ExecutionScope = defaultScope,
+        speaker: String = "प्रयोक्ता",
+        listener: String = "यन्त्रम्",
+        samjnaRegistry: SamjnaKriyaRegistry? = null,
     ): List<ExecutionResult> {
         val results = mutableListOf<ExecutionResult>()
         val effectiveSessionKey = sessionKey ?: "script-${System.identityHashCode(scriptContent)}"
@@ -173,7 +191,9 @@ class PaniniVM(
                     nameSegmented = defn.nameSegmented,
                     nameStem = stem,
                     body = defn.body,
+                    sourceFile = sourceFile,
                     isApavada = isEntryPoint,
+                    isInternal = defn.isInternal,
                 ),
             )
         }
@@ -181,10 +201,10 @@ class PaniniVM(
         val effectiveScope = scope.copy(samjnaRegistry = registry)
 
         parsed.filterIsInstance<PvmScriptStatement.Sentence>().forEach { statement ->
-            val invocation = registry.detectInvocation(statement.text)
+            val invocation = registry.detectInvocation(statement.text, callerSourceFile = sourceFile)
             if (invocation != null) {
                 results += executeSamjnaInvocation(
-                    invocation, effectiveSessionKey, effectiveScope, speaker, listener, registry,
+                    invocation, effectiveSessionKey, effectiveScope, speaker, listener, registry, callerSourceFile = sourceFile,
                 )
             } else {
                 results += eval(statement.text, effectiveSessionKey, effectiveScope, speaker, listener)
@@ -221,14 +241,16 @@ class PaniniVM(
                         body = defn.body,
                         sourceFile = libFile.name,
                         isApavada = false,
+                        isInternal = defn.isInternal,
                     ),
                 )
             }
         }
 
         val effectiveSessionKey = sessionKey ?: "project-${entryFile.nameWithoutExtension}-${System.currentTimeMillis()}"
-        return evalScript(
+        return evalScriptWithFileContext(
             entryFile.readText(),
+            sourceFile = entryFile.name,
             sessionKey = effectiveSessionKey,
             scope = scope,
             speaker = speaker,
@@ -244,6 +266,7 @@ class PaniniVM(
         speaker: String,
         listener: String,
         registry: SamjnaKriyaRegistry,
+        callerSourceFile: String? = null,
     ): List<ExecutionResult> {
         val results = mutableListOf<ExecutionResult>()
 
@@ -300,10 +323,12 @@ class PaniniVM(
                 }
             }
 
-            val bodyInvocation = registry.detectInvocation(sentenceText)
+            // Sibling body invocations inside a saṃjñā pass the saṃjñā's own sourceFile
+            val kriyaSourceFile = invocation.kriya.sourceFile ?: callerSourceFile
+            val bodyInvocation = registry.detectInvocation(sentenceText, callerSourceFile = kriyaSourceFile)
             if (bodyInvocation != null) {
                 results += executeSamjnaInvocation(
-                    bodyInvocation, sessionKey, childScope, speaker, listener, registry,
+                    bodyInvocation, sessionKey, childScope, speaker, listener, registry, callerSourceFile = kriyaSourceFile,
                 )
             } else {
                 val stepResults = eval(sentenceText, sessionKey, childScope, speaker, listener)

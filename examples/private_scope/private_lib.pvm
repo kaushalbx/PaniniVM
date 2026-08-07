@@ -1,0 +1,12 @@
+# गुप्त ग्रन्थ — Reusable library with file-private internal saṃjñās
+
+# अन्तरङ्गा संज्ञा: द्विगुणनम् (File-private internal helper procedure)
+# Only visible and callable within private_lib.pvm
+अन्तरङ्गा द्विगुणन + ल्युट् + सुँ ।
+प्रथम + अम् द्वि + अम् च गण + णिच् + लोट् + सिप् ॥
+
+# सर्वसंज्ञा: जटिलगणितम् (Public procedure accessible to all .pvm files)
+# Invokes internal helper द्विगुणनम् locally
+जटिलगणित + ल्युट् + सुँ ।
+प्रथम + अम् द्विगुणन + ल्युट् + टा कृ + लोट् + सिप् ।
+फल + अम् द्वितीय + अम् च युज् + णिच् + लोट् + सिप् ॥

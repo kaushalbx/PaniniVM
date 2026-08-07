@@ -227,4 +227,36 @@ class SamjnaKriyaMultiFileTest {
         assertTrue(successful.isNotEmpty(), "Scope isolation project execution should succeed.")
         assertEquals("पञ्चत्रिंशत्", successful.last().value, "Result of (3 + 4) * 5 should be पञ्चत्रिंशत् (35).")
     }
+
+    @Test
+    fun `test antaranga internal samjna parsing and visibility`() {
+        val script = """
+            अन्तरङ्गा द्विगुणन + ल्युट् + सुँ ।
+            प्रथम + अम् द्वि + अम् च गण + णिच् + लोट् + सिप् ॥
+
+            जटिलगणित + ल्युट् + सुँ ।
+            प्रथम + अम् द्विगुणन + ल्युट् + टा कृ + लोट् + सिप् ॥
+        """.trimIndent()
+
+        val parsed = PvmScript.parse(script)
+        assertEquals(2, parsed.size)
+
+        val internalDef = parsed[0] as PvmScriptStatement.SamjnaDefinition
+        assertTrue(internalDef.isInternal, "Header with अन्तरङ्गा prefix must set isInternal = true.")
+        assertEquals("द्विगुणन + ल्युट् + सुँ", internalDef.nameSegmented)
+
+        val publicDef = parsed[1] as PvmScriptStatement.SamjnaDefinition
+        assertTrue(!publicDef.isInternal, "Standard saṃjñā header must set isInternal = false.")
+    }
+
+    @Test
+    fun `test antaranga internal samjna project execution from disk`() {
+        val vm = PaniniVM()
+        val entryFile = File("examples/private_scope/private_mukhya.pvm")
+
+        val results = vm.evalProject(entryFile)
+        val successful = results.filterIsInstance<ExecutionResult.Success>()
+        assertTrue(successful.isNotEmpty(), "Private scope project execution should succeed.")
+        assertEquals("दश", successful.last().value, "Result of (3 * 2) + 4 via private helper should be दश (10).")
+    }
 }

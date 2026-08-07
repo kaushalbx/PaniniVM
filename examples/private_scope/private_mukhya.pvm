@@ -1,0 +1,8 @@
+# मुख्य ग्रन्थ — Entry-point program demonstrating file-private saṃjñā visibility
+# Uses public saṃjñā from private_lib.pvm — no imports needed.
+
+# Step 1: Call public जटिलगणितम् (which uses private द्विगुणनम् internally): (3 * 2) + 4 = 10 (दश)
+त्रि + अम् चतुर् + अम् च जटिलगणित + ल्युट् + टा कृ + लोट् + सिप् ।
+
+# Step 2: Print the result
+मुद्र् + णिच् + लोट् + सिप् फल + अम् ।

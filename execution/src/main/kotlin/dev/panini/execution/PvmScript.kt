@@ -22,6 +22,7 @@ sealed interface PvmScriptStatement {
         val nameSegmented: String,
         val body: List<Sentence>,
         override val text: String,
+        val isInternal: Boolean = false,
     ) : PvmScriptStatement
 }
 
@@ -48,10 +49,10 @@ object PvmScript {
             val stripped = stripComment(line).trim()
 
             if (!inBlock) {
-                val headerName = extractSamjnaHeaderName(stripped)
-                if (headerName != null) {
+                val rawHeaderName = extractSamjnaHeaderName(stripped)
+                if (rawHeaderName != null) {
                     inBlock = true
-                    currentName = headerName
+                    currentName = rawHeaderName
                     currentBodyLines = mutableListOf()
                     currentBlockText = mutableListOf(line)
                 } else {
@@ -69,10 +70,19 @@ object PvmScript {
                         .filter { it.isNotEmpty() }
                         .joinToString(" ")
                     val bodySentences = parseSentences(bodyText)
+
+                    val isInternalHeader = currentName.startsWith("अन्तरङ्गा ") || currentName.startsWith("अन्तरङ्ग ")
+                    val cleanName = if (isInternalHeader) {
+                        currentName.removePrefix("अन्तरङ्गा ").removePrefix("अन्तरङ्ग ").trim()
+                    } else {
+                        currentName
+                    }
+
                     samjnaDefinitions += PvmScriptStatement.SamjnaDefinition(
-                        nameSegmented = currentName,
+                        nameSegmented = cleanName,
                         body = bodySentences,
                         text = currentBlockText.joinToString("\n"),
+                        isInternal = isInternalHeader,
                     )
                     inBlock = false
                 }

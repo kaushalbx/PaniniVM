@@ -9,6 +9,7 @@ data class SamjnaKriya(
     val body: List<PvmScriptStatement.Sentence>,
     val sourceFile: String? = null,
     val isApavada: Boolean = false,
+    val isInternal: Boolean = false,
 ) {
     val nishedhaGuards: List<PvmScriptStatement.Sentence> = body.filter { it.isNishedha }
     val vidhiSentences: List<PvmScriptStatement.Sentence> = body.filterNot { it.isNishedha }
@@ -28,7 +29,13 @@ class SamjnaKriyaRegistry {
         }
     }
 
-    fun resolve(stem: String): SamjnaKriya? = registry[stem]
+    fun resolve(stem: String, callerSourceFile: String? = null): SamjnaKriya? {
+        val kriya = registry[stem] ?: return null
+        if (kriya.isInternal && callerSourceFile != null && kriya.sourceFile != null && callerSourceFile != kriya.sourceFile) {
+            return null // File-private saṃjñā hidden from external caller
+        }
+        return kriya
+    }
 
     fun all(): List<SamjnaKriya> = registry.values.toList()
 
@@ -36,10 +43,14 @@ class SamjnaKriyaRegistry {
 
     val size: Int get() = registry.size
 
-    fun detectInvocation(sentenceText: String): SamjnaInvocation? {
+    fun detectInvocation(sentenceText: String, callerSourceFile: String? = null): SamjnaInvocation? {
         if (registry.isEmpty()) return null
 
         for ((_, kriya) in registry) {
+            if (kriya.isInternal && callerSourceFile != null && kriya.sourceFile != null && callerSourceFile != kriya.sourceFile) {
+                continue // File-private saṃjñā hidden from external caller
+            }
+
             val segmentedStem = stripSupSuffix(kriya.nameSegmented)
             val instrumentalPattern = "$segmentedStem + टा"
             val patternIdx = sentenceText.indexOf(instrumentalPattern)
