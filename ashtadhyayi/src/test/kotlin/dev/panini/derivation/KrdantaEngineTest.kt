@@ -100,6 +100,24 @@ class KrdantaEngineTest {
     }
 
     @Test
+    fun `lyut derives pvm action stems phonologically`() {
+        val expected = mapOf(
+            "युज्" to "योजन",
+            "गण" to "गणन",
+            "धृ" to "धारण",
+            "स्था" to "स्थान",
+            "जन्" to "जनन",
+            "हृ" to "हरण",
+        )
+
+        expected.forEach { (dhatu, surface) ->
+            val result = engine.derive(KrdantaDerivationRequest(dhatu, Samjna.LYUT))
+            assertEquals(surface, result.final.surface)
+            assertTrue(result.applications.any { it.sutra == "3.3.115" })
+        }
+    }
+
+    @Test
     fun `krdanta provenance contains only explicitly staged rules`() {
         val requests = listOf(
             KrdantaDerivationRequest("कृ", Samjna.KTVA, upasarga = "अनु"),

@@ -52,6 +52,7 @@ class KrdantaEngine(
             Samjna.KTA, Samjna.KTAVATU -> "1.1.26"
             Samjna.NVUL, Samjna.TRC -> "3.1.133"
             Samjna.GHAN -> "3.3.18"
+            Samjna.LYUT -> "3.3.115"
             else -> error("Unsupported Kṛdanta request: ${request.samjna}")
         }
         return canonicalSutra(number)
@@ -131,6 +132,7 @@ class KrdantaEngine(
                 stem = applyVrddhi(stem)
             }
             Samjna.GHAN -> stem = applyGhanGrade(stem)
+            Samjna.LYUT -> stem = applyLyutGrade(stem)
             else -> Unit
         }
 
@@ -165,6 +167,7 @@ class KrdantaEngine(
         Samjna.NVUL -> "अक"
         Samjna.TRC -> "तृ"
         Samjna.GHAN -> "अ"
+        Samjna.LYUT -> "अन"
         else -> ""
     }
 
@@ -223,6 +226,13 @@ class KrdantaEngine(
         return stem
     }
 
+    private fun applyLyutGrade(stem: String): String = when {
+        stem == "धृ" -> "धार्"
+        'ृ' in stem -> stem.replaceFirst("ृ", "र्")
+        'ु' in stem -> stem.replaceFirst("ु", "ो")
+        else -> stem
+    }
+
     private fun fuseStemAndSuffix(upasarga: String, stem: String, suffix: String): String {
         var base = stem
         var suff = suffix
@@ -252,6 +262,11 @@ class KrdantaEngine(
         // Ṇatva rule: 'र', 'ऋ', 'ृ' in stem turns 'न' to 'ण' in suffix (e.g. kar + anīya -> karaṇīya)
         if ((rendered.contains("र्") || rendered.contains('र') || rendered.contains('ऋ') || rendered.contains('ृ')) && rendered.endsWith("नीय")) {
             rendered = rendered.dropLast(3) + "णीय"
+        } else if (requestIsLyutSuffix(suff) &&
+            (rendered.contains("र्") || rendered.contains('र') || rendered.contains('ऋ') || rendered.contains('ृ')) &&
+            rendered.endsWith('न')
+        ) {
+            rendered = rendered.dropLast(1) + "ण"
         }
 
         if (upasarga.isNotEmpty()) {
@@ -259,6 +274,8 @@ class KrdantaEngine(
         }
         return rendered
     }
+
+    private fun requestIsLyutSuffix(suffix: String): Boolean = suffix == "अन"
 
     private fun fuseUpasarga(upa: String, stem: String): String = when {
         upa == "सम्" && stem.startsWith("भू") -> "सं" + stem

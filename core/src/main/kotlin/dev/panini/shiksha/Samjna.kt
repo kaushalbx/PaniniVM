@@ -14,7 +14,7 @@ sealed interface Samjna {
     enum class Affix : Samjna {
         KRT, UNADI, TADDHITA, SARVADHATUKA, ARDHADHATUKA,
         GHAN, NVUL, TRC, KTA, SHATRU, SHANAC, GHINUN,
-        AN, IN, CHHA, MATUP, MAYAT, TAL, KTVA, LYAP, TUMUN, TAVYA,
+        AN, IN, CHHA, MATUP, MAYAT, TAL, KTVA, LYAP, LYUT, TUMUN, TAVYA,
         ANIYAR, NYAT, YAT, KTAVATU, NISHTHA, NIC, SAN, YAN, KYAC,
         YAN_LUK, CAN, TAP, NIP, NIS, NIN, TI_PRATYAYA, TVA, TARAP,
         TAMAP, KVASU, KANAC, YANG, SANADYANTA_DHATU, AN_PRATYAYA,
@@ -86,6 +86,7 @@ sealed interface Samjna {
         val TAL: Samjna = Affix.TAL
         val KTVA: Samjna = Affix.KTVA
         val LYAP: Samjna = Affix.LYAP
+        val LYUT: Samjna = Affix.LYUT
         val TUMUN: Samjna = Affix.TUMUN
         val TAVYA: Samjna = Affix.TAVYA
         val ANIYAR: Samjna = Affix.ANIYAR
