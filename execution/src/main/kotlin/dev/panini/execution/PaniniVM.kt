@@ -16,6 +16,8 @@ import dev.panini.execution.sutra.ProgramGranthaExecution
 import dev.panini.execution.sutra.SutraExecutionPipeline
 import dev.panini.sutra.runtime.SutraMachineResult
 import java.io.File
+import java.util.Collections
+import java.util.WeakHashMap
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -47,6 +49,9 @@ class PaniniVM(
 
     private val sessions = ConcurrentHashMap<String, SambhashanaContext>()
     private val kriyaMemories = ConcurrentHashMap<String, KriyaMemory>()
+    private val consumedContinuations = Collections.synchronizedSet(
+        Collections.newSetFromMap(WeakHashMap<Any, Boolean>()),
+    )
 
     /** Kriyā-centred memory accumulated automatically for this VM session. */
     fun kriyaMemory(sessionKey: String): KriyaMemory = kriyaMemories.computeIfAbsent(sessionKey) {
@@ -65,8 +70,6 @@ class PaniniVM(
     ): ExecutionResult {
         if (!isExecutingScript && (utterance.contains("\n") || utterance.contains("इति संज्ञा") || utterance.contains("इति अधिकार") || utterance.contains("इति अधि + कृ + घञ्") || utterance.contains("इति अप वद् + घञ्"))) {
             val scriptResults = evalScript(utterance, sessionKey, scope, speaker, listener)
-            val success = scriptResults.filterIsInstance<ExecutionResult.Success>()
-            if (success.isNotEmpty()) return success.last()
             return scriptResults.lastOrNull() ?: ExecutionResult.Success(operation = "panini.evalScript", value = "संसिद्धम्")
         }
 
@@ -131,6 +134,9 @@ class PaniniVM(
     ): ExecutionResult {
         val cont = continuation as? dev.panini.execution.sutra.SutraPipelineContinuation
             ?: return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Invalid continuation object provided.")
+        if (!consumedContinuations.add(cont)) {
+            return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Continuation has already been resumed.")
+        }
 
         val effectiveScope = scope.copy(
             stateStore = scope.stateStore ?: store,

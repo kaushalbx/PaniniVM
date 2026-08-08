@@ -4,6 +4,10 @@ import dev.panini.execution.SambhashanaContext
 import dev.panini.execution.SanskritValue
 import dev.panini.execution.SmrtaPhala
 import dev.panini.shiksha.Samjna
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.DataInputStream
+import java.io.DataOutputStream
 import java.io.File
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
@@ -125,18 +129,19 @@ class FileStateStore(private val storageDir: File) : StateStore {
             }
         }
 
-    private fun encodeTyped(value: SanskritValue?): String = when (value) {
-        is SanskritValue.Sankhya -> "SANKHYA:${value.value}"
-        is SanskritValue.Rational -> "RATIONAL:${value.numerator}/${value.denominator}"
-        is SanskritValue.Satya -> "SATYA:${value.boolean}"
-        is SanskritValue.Shabda -> "SHABDA"
-        is SanskritValue.Gana -> "GANA"
-        is SanskritValue.Suchi -> "SUCHI"
-        is SanskritValue.Lopa -> "LOPA"
-        null -> ""
+    private fun encodeTyped(value: SanskritValue?): String {
+        if (value == null) return ""
+        val bytes = ByteArrayOutputStream().also { output ->
+            DataOutputStream(output).use { it.writeValue(value) }
+        }.toByteArray()
+        return VALUE_V2_PREFIX + base64Codec.encode(bytes)
     }
 
     private fun decodeTyped(type: String, display: String, samjnas: Set<Samjna>): SanskritValue? = when {
+        type.startsWith(VALUE_V2_PREFIX) -> runCatching {
+            val bytes = base64Codec.decode(type.removePrefix(VALUE_V2_PREFIX))
+            DataInputStream(ByteArrayInputStream(bytes)).use { it.readValue() }
+        }.getOrNull()
         type == "LOPA" -> SanskritValue.Lopa
         type.startsWith("SANKHYA:") -> SanskritValue.Sankhya(type.substringAfter(':').toLong(), display)
         type.startsWith("RATIONAL:") -> {
@@ -148,8 +153,52 @@ class FileStateStore(private val storageDir: File) : StateStore {
         else -> null
     }
 
+    private fun DataOutputStream.writeValue(value: SanskritValue) {
+        when (value) {
+            is SanskritValue.Sankhya -> { writeByte(1); writeLong(value.value); writeUTF(value.word) }
+            is SanskritValue.Rational -> {
+                writeByte(2); writeLong(value.numerator); writeLong(value.denominator); writeUTF(value.word)
+            }
+            is SanskritValue.Shabda -> {
+                writeByte(3); writeUTF(value.text); writeInt(value.samjnas.size)
+                value.samjnas.forEach { writeUTF(encodeSamjna(it)) }
+            }
+            is SanskritValue.Gana -> {
+                writeByte(4); writeInt(value.elements.size); value.elements.forEach { writeValue(it) }
+            }
+            is SanskritValue.Suchi -> {
+                writeByte(5); writeInt(value.items.size); value.items.forEach { writeValue(it) }
+            }
+            is SanskritValue.Satya -> { writeByte(6); writeBoolean(value.boolean) }
+            SanskritValue.Lopa -> writeByte(7)
+        }
+    }
+
+    private fun DataInputStream.readValue(): SanskritValue = when (readByte().toInt()) {
+        1 -> SanskritValue.Sankhya(readLong(), readUTF())
+        2 -> SanskritValue.Rational(readLong(), readLong(), readUTF())
+        3 -> SanskritValue.Shabda(
+            readUTF(),
+            buildSet { repeat(readInt()) { add(decodeSamjna(readUTF())) } },
+        )
+        4 -> SanskritValue.Gana(buildList { repeat(readInt()) { add(readValue()) } })
+        5 -> SanskritValue.Suchi(buildList { repeat(readInt()) { add(readValue()) } })
+        6 -> SanskritValue.Satya(readBoolean())
+        7 -> SanskritValue.Lopa
+        else -> throw IllegalArgumentException("Unknown persisted Sanskrit value type")
+    }
+
+    private fun encodeSamjna(value: Samjna): String = when (value) {
+        is Samjna.Rudhi -> "RUDHI:${value.word}"
+        is Enum<*> -> value.name
+    }
+
+    private fun decodeSamjna(value: String): Samjna =
+        if (value.startsWith("RUDHI:")) Samjna.Rudhi(value.substringAfter(':')) else Samjna.valueOf(value)
+
     private companion object {
         const val EXTENSION = ".state"
+        const val VALUE_V2_PREFIX = "VALUE_V2:"
         val base64Codec = Base64.UrlSafe.withPadding(Base64.PaddingOption.PRESENT_OPTIONAL)
     }
 }

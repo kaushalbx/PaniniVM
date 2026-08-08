@@ -10,6 +10,7 @@ import dev.panini.execution.sutra.ProgramBlueprintCompiler
 import dev.panini.execution.sutra.ProgramBlueprintContext
 import dev.panini.execution.sutra.ProgramBlueprintDiagnosticCode
 import dev.panini.execution.sutra.SutraExecutionPipeline
+import dev.panini.execution.persistence.FileStateStore
 import dev.panini.sutra.runtime.SutraArthaValue
 import dev.panini.shiksha.Samjna
 import java.nio.file.Path
@@ -171,11 +172,49 @@ class ExecutionLifecycleTest {
         )
 
         assertIs<ExecutionResult.Success>(vm.resume(paused.continuation, "resume", approvedScope))
-        assertIs<ExecutionResult.Success>(vm.resume(paused.continuation, "resume", approvedScope))
+        assertIs<ExecutionResult.Failure>(vm.resume(paused.continuation, "resume", approvedScope))
 
         val remembered = vm.kriyaMemory("resume").entries.single()
         assertEquals("प्रेषँ", remembered.frame.kriya?.dhatu?.upadesha)
         assertEquals(1, remembered.turn)
+    }
+
+    @Test
+    fun `state store round trips nested typed collections`() {
+        val store = FileStateStore(storageDir.resolve("typed-state").toFile())
+        val value = SanskritValue.Gana(
+            listOf(
+                SanskritValue.Sankhya(2, "द्वि"),
+                SanskritValue.Suchi(
+                    listOf(SanskritValue.Shabda("शब्द"), SanskritValue.Satya(true), SanskritValue.Lopa),
+                ),
+            ),
+        )
+        val context = SambhashanaContext(
+            speaker = "प्रयोक्ता",
+            listener = "यन्त्रम्",
+            previousResults = mapOf("फल" to value.toDisplayText()),
+            previousResultSamjnas = mapOf("फल" to value.samjnas),
+            previousTypedResults = mapOf("फल" to value),
+            resultHistory = listOf(SmrtaPhala("उक्ति-१/योग-1", 1, "योग-1", value.toDisplayText(), value.samjnas, value)),
+            turnNumber = 1,
+        )
+
+        store.save("collections", context)
+
+        assertEquals(context, store.load("collections"))
+    }
+
+    @Test
+    fun `eval reports terminal script failure after an earlier success`() {
+        val vm = PaniniVM(storageDir.resolve("script-result").toFile())
+        val script = """
+            एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।
+            अज्ञात् + लोट् + सिप् ।
+        """.trimIndent()
+        assertIs<ExecutionResult.Failure>(vm.evalScript(script).last())
+
+        assertIs<ExecutionResult.Failure>(vm.eval(script))
     }
 
     @Test
