@@ -4,6 +4,11 @@ import dev.panini.dhatupatha.DhatuPathaRegistration
 import dev.panini.core.Karaka
 import dev.panini.execution.ActionDependency
 import dev.panini.execution.ExecutableUkti
+import dev.panini.execution.ExecuteConditional
+import dev.panini.execution.ExecuteInvocation
+import dev.panini.execution.ExecuteRepeat
+import dev.panini.execution.ExecuteSequence
+import dev.panini.execution.ExecutionNode
 import dev.panini.execution.ExecutionBindingResult
 import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.ExecutionPlan
@@ -117,8 +122,10 @@ object SanskritGranthaSourceCompiler {
                         .forEach { add(ActionDependency(it, invocation.id)) }
                 }
             }
+            val remappedControl = bound.ukti.control.remapInvocationIds { localIds.getValue(it) }
             val globalUkti = bound.ukti.copy(
                 invocations = globalInvocations,
+                control = remappedControl,
                 dependencies = dependencies,
             )
             sutras += ExecutableUktiSutraCompiler
@@ -259,5 +266,16 @@ object SanskritGranthaSourceCompiler {
         is ExecutionExpression.Pada -> emptySet()
         is ExecutionExpression.Reference -> setOf(name)
         is ExecutionExpression.Coordination -> members.flatMapTo(linkedSetOf()) { it.references() }
+    }
+
+    private fun ExecutionNode.remapInvocationIds(transform: (String) -> String): ExecutionNode = when (this) {
+        is ExecuteInvocation -> ExecuteInvocation(transform(invocationId))
+        is ExecuteSequence -> ExecuteSequence(nodes.map { it.remapInvocationIds(transform) })
+        is ExecuteConditional -> ExecuteConditional(
+            condition = condition.remapInvocationIds(transform),
+            consequent = consequent.remapInvocationIds(transform),
+            alternate = alternate?.remapInvocationIds(transform),
+        )
+        is ExecuteRepeat -> ExecuteRepeat(iterations.map { it.remapInvocationIds(transform) })
     }
 }
