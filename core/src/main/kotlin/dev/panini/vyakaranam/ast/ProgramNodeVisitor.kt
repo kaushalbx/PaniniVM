@@ -20,6 +20,41 @@ fun <R> ProgramNode.accept(visitor: ProgramNodeVisitor<R>): R = when (this) {
     is Scope -> visitor.visitScope(this)
 }
 
+/** Direct structural children in source order. */
+fun ProgramNode.children(): List<ProgramNode> = accept(ProgramNodeChildren)
+
+/**
+ * Visits this node and all of its descendants in depth-first source order.
+ *
+ * When [expandRepeats] is true, a repeat body is visited once per iteration.
+ * Conditional alternatives remain structural alternatives; choosing a branch
+ * is an execution concern rather than an AST traversal concern.
+ */
+fun ProgramNode.depthFirst(expandRepeats: Boolean = false): kotlin.sequences.Sequence<ProgramNode> = sequence {
+    yield(this@depthFirst)
+    val structuralChildren = children()
+    if (expandRepeats && this@depthFirst is Repeat) {
+        repeat(count) {
+            yieldAll(body.depthFirst(expandRepeats = true))
+        }
+    } else {
+        structuralChildren.forEach { child ->
+            yieldAll(child.depthFirst(expandRepeats))
+        }
+    }
+}
+
+private object ProgramNodeChildren : ProgramNodeVisitor<List<ProgramNode>> {
+    override fun visitInvocation(node: Invocation): List<ProgramNode> = emptyList()
+    override fun visitSequence(node: Sequence): List<ProgramNode> = node.statements
+    override fun visitConditional(node: Conditional): List<ProgramNode> =
+        listOfNotNull(node.condition, node.consequent, node.alternate)
+    override fun visitRepeat(node: Repeat): List<ProgramNode> = listOf(node.body)
+    override fun visitPipeline(node: Pipeline): List<ProgramNode> = emptyList()
+    override fun visitProcedure(node: Procedure): List<ProgramNode> = node.body
+    override fun visitScope(node: Scope): List<ProgramNode> = node.body
+}
+
 open class ProgramNodeTransformer : ProgramNodeVisitor<ProgramNode> {
     fun transform(node: ProgramNode): ProgramNode = node.accept(this)
 

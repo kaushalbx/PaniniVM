@@ -94,29 +94,12 @@ data class Scope(
     val body: List<ProgramNode> = emptyList(),
 ) : ProgramNode
 
-fun ProgramNode.invocations(): List<Invocation> = accept(InvocationCollector(expandRepeats = false))
+fun ProgramNode.invocations(): List<Invocation> =
+    depthFirst().filterIsInstance<Invocation>().toList()
 
 /** Invocations in execution order, including copies introduced by [Repeat]. */
-fun ProgramNode.expandedInvocations(): List<Invocation> = accept(InvocationCollector(expandRepeats = true))
-
-private class InvocationCollector(
-    private val expandRepeats: Boolean,
-) : ProgramNodeVisitor<List<Invocation>> {
-    private fun collect(node: ProgramNode): List<Invocation> = node.accept(this)
-
-    override fun visitInvocation(node: Invocation): List<Invocation> = listOf(node)
-    override fun visitSequence(node: Sequence): List<Invocation> = node.statements.flatMap(::collect)
-    override fun visitConditional(node: Conditional): List<Invocation> =
-        collect(node.condition) + collect(node.consequent) + node.alternate?.let(::collect).orEmpty()
-    override fun visitRepeat(node: Repeat): List<Invocation> = if (expandRepeats) {
-        buildList { repeat(node.count) { addAll(collect(node.body)) } }
-    } else {
-        collect(node.body)
-    }
-    override fun visitPipeline(node: Pipeline): List<Invocation> = emptyList()
-    override fun visitProcedure(node: Procedure): List<Invocation> = node.body.flatMap(::collect)
-    override fun visitScope(node: Scope): List<Invocation> = node.body.flatMap(::collect)
-}
+fun ProgramNode.expandedInvocations(): List<Invocation> =
+    depthFirst(expandRepeats = true).filterIsInstance<Invocation>().toList()
 
 data class Sambodhana(
     override val sourceText: String,

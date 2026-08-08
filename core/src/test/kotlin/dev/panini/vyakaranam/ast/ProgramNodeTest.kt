@@ -32,6 +32,28 @@ class ProgramNodeTest {
     }
 
     @Test
+    fun `depth first traversal exposes canonical children in source order`() {
+        val first = Invocation(vakya)
+        val second = Invocation(NamaVakya("सीता + सुँ", emptyList()))
+        val alternate = Invocation(NamaVakya("फल + अम्", emptyList()))
+        val conditional = Conditional(
+            "conditional",
+            first,
+            Repeat("repeat", 2, second),
+            alternate,
+        )
+
+        assertEquals(
+            listOf(conditional, first, conditional.consequent, second, alternate),
+            conditional.depthFirst().toList(),
+        )
+        assertEquals(
+            listOf(first, second, second, alternate),
+            conditional.expandedInvocations(),
+        )
+    }
+
+    @Test
     fun `transformer recursively rewrites nested invocations`() {
         val original = Conditional(
             "conditional",
