@@ -3,7 +3,6 @@ package dev.panini.execution.sutra
 import dev.panini.dhatupatha.DhatuPathaRegistration
 import dev.panini.core.Karaka
 import dev.panini.execution.ActionDependency
-import dev.panini.execution.DevanagariDigits
 import dev.panini.execution.ExecutableUkti
 import dev.panini.execution.ExecutionBindingResult
 import dev.panini.execution.ExecutionExpression
@@ -16,6 +15,7 @@ import dev.panini.execution.SambhashanaContext
 import dev.panini.execution.SanskritUktiInput
 import dev.panini.execution.SanskritValue
 import dev.panini.execution.SmrtaPhala
+import dev.panini.execution.SmrtaPhalaId
 import dev.panini.execution.ValueEnvironment
 import dev.panini.execution.bindingName
 import dev.panini.execution.binding.VyakaranamExecutionAdapter
@@ -91,7 +91,7 @@ object SanskritGranthaSourceCompiler {
 
             val purvaphalaId = currentConversation.resultHistory.lastOrNull()?.id
             val localIds = bound.ukti.invocations.associate {
-                it.id to "उक्ति-${DevanagariDigits.render(turn)}/${it.id}"
+                it.id to SmrtaPhalaId.of(turn, it.id)
             }
             val referenceIds = localIds + (if (purvaphalaId != null) mapOf("पूर्वफल" to purvaphalaId) else emptyMap())
             val knownIds = sutras.mapTo(mutableSetOf()) { it.id.value }
@@ -200,7 +200,7 @@ object SanskritGranthaSourceCompiler {
         }.toMap()
         val remembered = plans.map { plan ->
             SmrtaPhala(
-                id = "उक्ति-${DevanagariDigits.render(nextTurn)}/${plan.invocationId}",
+                id = SmrtaPhalaId.of(nextTurn, plan.invocationId),
                 turnNumber = nextTurn,
                 invocationId = plan.invocationId,
                 value = "<${plan.invocationId}>",

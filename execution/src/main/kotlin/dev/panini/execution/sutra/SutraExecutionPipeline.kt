@@ -1,7 +1,6 @@
 package dev.panini.execution.sutra
 
 import dev.panini.dhatupatha.DhatuPathaRegistration
-import dev.panini.execution.DevanagariDigits
 import dev.panini.execution.ExecutableUkti
 import dev.panini.execution.ExecutionBindingResult
 import dev.panini.execution.ExecutionError
@@ -17,6 +16,7 @@ import dev.panini.execution.SanskritPrativacanaRenderer
 import dev.panini.execution.SanskritUktiInput
 import dev.panini.execution.SanskritValue
 import dev.panini.execution.SmrtaPhala
+import dev.panini.execution.SmrtaPhalaId
 import dev.panini.execution.ValueEnvironment
 import dev.panini.execution.binding.VyakaranamExecutionAdapter
 import dev.panini.execution.memory.KriyaMemory
@@ -39,7 +39,7 @@ object SutraExecutionPipeline {
                     .prependTrace(binding.trace)
                 if (phala is Phala.Siddha) {
                     val metadata = buildMap {
-                        val turnPrefix = "उक्ति-${DevanagariDigits.render(conversation.turnNumber + 1)}"
+                        val turnPrefix = SmrtaPhalaId.turnPrefix(conversation.turnNumber + 1)
                         binding.ukti.invocations.forEachIndexed { idx, inv ->
                             put(ExecutionMetadata.dhatu("$turnPrefix/${KriyaInvocationId.of(idx + 1)}"), inv.dhatu.upadesha)
                         }
@@ -174,7 +174,7 @@ object SutraExecutionPipeline {
         val nextTurn = conversation.turnNumber + 1
         val remembered = success.values.map { (invocationId, value) ->
             SmrtaPhala(
-                id = "उक्ति-${DevanagariDigits.render(nextTurn)}/$invocationId",
+                id = SmrtaPhalaId.of(nextTurn, invocationId),
                 turnNumber = nextTurn,
                 invocationId = invocationId,
                 value = value,
@@ -392,7 +392,7 @@ object SutraExecutionPipeline {
         val nextTurn = continuation.conversation.turnNumber + 1
         val remembered = success.values.map { (invocationId, value) ->
             SmrtaPhala(
-                id = "उक्ति-${DevanagariDigits.render(nextTurn)}/$invocationId",
+                id = SmrtaPhalaId.of(nextTurn, invocationId),
                 turnNumber = nextTurn,
                 invocationId = invocationId,
                 value = value,
