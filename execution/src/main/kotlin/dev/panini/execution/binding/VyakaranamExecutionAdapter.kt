@@ -125,7 +125,7 @@ object VyakaranamExecutionAdapter {
         // Single-clause repetition loops are evaluated in-memory by the ExecutionRuntime loop.
         val abhyasaCounts = ukti.vakyas.flatMap { vakya ->
             vakya.padas.filterIsInstance<SankhyaAbhyasaPada>().mapNotNull { pada ->
-                val numStems = pada.stems.filterNot { it in FrequencyExtractor.ABHYASA_SUFFIX_STEMS }
+                val numStems = FrequencyExtractor.numericStems(pada.stems)
                 val evaluated = if (numStems.isNotEmpty()) {
                     sharedSankhyaEvaluator.evaluateStems(numStems)
                 } else {

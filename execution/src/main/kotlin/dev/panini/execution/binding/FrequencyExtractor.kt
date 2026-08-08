@@ -14,7 +14,12 @@ internal object FrequencyExtractor {
      * Suffix stems in an अभ्यास-सङ्ख्या that indicate repetition count, not a
      * numeric kāraka argument value.  These are filtered out before numeric evaluation.
      */
-    internal val ABHYASA_SUFFIX_STEMS = setOf("कृत्वः", "कृत्वा", "कृत्वसुच्", "सुच्")
+    private val ABHYASA_SUFFIX_STEMS = setOf("कृत्वः", "कृत्वस", "कृत्वा", "कृत्वसुच्", "सुच्")
+
+    internal fun isAbhyasa(stems: List<String>): Boolean = stems.any { it in ABHYASA_SUFFIX_STEMS }
+
+    internal fun numericStems(stems: List<String>): List<String> =
+        stems.filterNot { it in ABHYASA_SUFFIX_STEMS }
 
     /**
      * Extracts the per-clause frequency repetition count from [padas] and [frame].
@@ -27,7 +32,7 @@ internal object FrequencyExtractor {
     internal fun extractFrequencyCount(padas: List<Pada>, frame: KriyaFrame): Int? {
         val sankhyaAbhyasa = padas.filterIsInstance<SankhyaAbhyasaPada>().firstOrNull()
         if (sankhyaAbhyasa != null) {
-            val numStems = sankhyaAbhyasa.stems.filterNot { it in ABHYASA_SUFFIX_STEMS }
+            val numStems = numericStems(sankhyaAbhyasa.stems)
             val evaluated = if (numStems.isNotEmpty()) {
                 sharedSankhyaEvaluator.evaluateStems(numStems)
             } else {

@@ -144,7 +144,7 @@ internal object KarakaExtractor {
                 }
                 is SankhyaPada -> {
                     // अभ्यास-कृत्वः forms are frequency metadata, not argument values.
-                    if (pada.stems.contains("कृत्वः") || pada.stems.contains("कृत्वस")) return@forEachIndexed
+                    if (FrequencyExtractor.isAbhyasa(pada.stems)) return@forEachIndexed
                     // Op-stems (गुणित, वर्ग, …) consume the following numeral pada as their operand.
                     var targetIdx = -1
                     var nextVal: Long? = null
