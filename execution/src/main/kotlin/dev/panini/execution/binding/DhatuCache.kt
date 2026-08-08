@@ -59,17 +59,13 @@ internal object DhatuCache {
                     map[surface] = root
                     map[surface.normalizeDhatuSurface()] = root
                     // Also index with common prefix/suffix stripped (mirrors getActionRoot cleaning)
-                    val cleaned = surface
-                        .removePrefix("नि").removePrefix("प्र")
-                        .trimEnd('न', 'म', '्', 'अ')
+                    val cleaned = ActionStemNormalizer.normalize(surface)
                     if (cleaned.isNotEmpty()) map[cleaned] = root
                 }
             }
             // Index every operation name so kridanta-derived nouns resolve correctly
             dhatu.operations.forEach { op ->
-                val opCleaned = op.name
-                    .removePrefix("नि").removePrefix("प्र")
-                    .trimEnd('न', 'म', '्', 'अ')
+                val opCleaned = ActionStemNormalizer.normalize(op.name)
                 if (opCleaned.isNotEmpty()) {
                     map[op.name] = root
                     map[opCleaned] = root
@@ -101,7 +97,7 @@ internal object DhatuCache {
      * or pratipadika base), suitable for matching against previous dhātu results.
      */
     internal fun getActionRoot(stem: String): String {
-        val clean = stem.removePrefix("नि").removePrefix("प्र").trimEnd('न', 'म', '्', 'अ')
+        val clean = ActionStemNormalizer.normalize(stem)
         return stemToRootCache[stem]
             ?: stemToRootCache[clean]
             ?: stemToRootCache[clean.normalizeDhatuSurface()]
