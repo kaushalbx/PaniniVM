@@ -648,7 +648,7 @@ object PuranaPratyayaResolver {
 
     /** Replaces parsed pūraṇa parameter padas having the requested ordinal value. */
     fun replacePatterns(text: String, index: Int, rawArgVal: String): String {
-        val cleanArg = if (rawArgVal.endsWith("+ अम्")) rawArgVal else "$rawArgVal + अम्"
+        val cleanArg = if (isAccusative(rawArgVal)) rawArgVal else "$rawArgVal + अम्"
         val ukti = parser.parseOrNull(text.trim()) ?: return text
         val ordinalValue = index + 1L
         val ordinalSurface = sankhyaGenerator.ordinal(ordinalValue).final.surface
@@ -661,6 +661,16 @@ object PuranaPratyayaResolver {
         return ordinalSources.fold(text) { result, source ->
             result.replace(sourcePattern(source), cleanArg)
         }
+    }
+
+    private fun isAccusative(source: String): Boolean {
+        val padas = parser.parseOrNull(source.trim().trimEnd('।', '॥', ' '))
+            ?.vakyas
+            ?.flatMap { it.padas }
+            ?: return false
+        val argument = padas.singleOrNull() as? dev.panini.vyakaranam.ast.SubantaPada ?: return false
+        return dev.panini.core.SupAffix.fromUpadesha(argument.sup.text)?.vibhakti ==
+            dev.panini.core.Vibhakti.DVITIYA
     }
 
     private fun isOrdinal(padaSource: String, value: Long, surface: String): Boolean {

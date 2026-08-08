@@ -33,4 +33,16 @@ class PuranaPratyayaResolverTest {
             PuranaPratyayaResolver.replacePatterns(source, index = 0, rawArgVal = "नव"),
         )
     }
+
+    @Test
+    fun `preserves structurally accusative argument without canonical spacing`() {
+        assertEquals(
+            "पञ्च+अम् द्वि + तीय + अम् च युज् + लोट् + सिप् ।",
+            PuranaPratyayaResolver.replacePatterns(
+                "प्रथम + अम् द्वि + तीय + अम् च युज् + लोट् + सिप् ।",
+                index = 0,
+                rawArgVal = "पञ्च+अम्",
+            ),
+        )
+    }
 }
