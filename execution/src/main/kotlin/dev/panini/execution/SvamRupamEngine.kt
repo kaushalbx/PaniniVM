@@ -15,12 +15,9 @@ object SvamRupamEngine {
      * If the term matches a technical Saṃjñā, returns null (allowing technical resolution);
      * otherwise returns its self-referential literal [SanskritValue.Shabda].
      */
-    fun evaluateTerm(
-        term: String,
-        technicalSamjnas: Set<String>,
-    ): SanskritValue {
+    fun evaluateTerm(term: String): SanskritValue {
         val cleanTerm = SamjnaKriyaRegistry.stripSupSuffix(term)
-        return if (technicalSamjnas.contains(cleanTerm) || technicalSamjnas.contains(term)) {
+        return if (TechnicalSamjnaIdentity.contains(cleanTerm) || TechnicalSamjnaIdentity.contains(term)) {
             SanskritValue.of(term)
         } else {
             // Sūtra 1.1.68: Formal self-referential identity (स्वं रूपम्)
@@ -31,8 +28,8 @@ object SvamRupamEngine {
     /**
      * Checks if a term represents a self-referential literal (स्वं रूपम्).
      */
-    fun isSelfReferentialLiteral(term: String, technicalSamjnas: Set<String>): Boolean {
+    fun isSelfReferentialLiteral(term: String): Boolean {
         val cleanTerm = SamjnaKriyaRegistry.stripSupSuffix(term)
-        return !technicalSamjnas.contains(cleanTerm) && !technicalSamjnas.contains(term)
+        return !TechnicalSamjnaIdentity.contains(cleanTerm) && !TechnicalSamjnaIdentity.contains(term)
     }
 }

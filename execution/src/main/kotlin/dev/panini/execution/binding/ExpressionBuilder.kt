@@ -78,8 +78,7 @@ internal object ExpressionBuilder {
         return if (sankhyaValue != null) {
             ExecutionExpression.Companion.sankhya(sankhyaValue, text)
         } else {
-            val technicalSamjnas = setOf("सङ्ख्या", "गुण", "वृद्धि", "लोप", "साधकतमम्", "कर्म", "करणम्")
-            val svamRupamValue = SvamRupamEngine.evaluateTerm(baseText, technicalSamjnas)
+            val svamRupamValue = SvamRupamEngine.evaluateTerm(baseText)
             ExecutionExpression.Pada(text, samjnas, value = svamRupamValue)
         }
     }
