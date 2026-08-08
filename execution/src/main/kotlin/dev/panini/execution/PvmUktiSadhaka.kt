@@ -175,11 +175,11 @@ class PvmUktiSadhaka(
         if (subanta.pratipadika is KridantaPratipadika) {
             pvmKridantaSurface(baseText, supAffix)?.let { return it }
         }
-        val linga = if (baseText in setOf("हविस्", "मनस्", "पयस्", "उरस्", "चक्षुस्")) dev.panini.core.Linga.NAPUMSAKA else dev.panini.core.Linga.PUMS
+        val linga = PvmNominalLexicon.gender(baseText)
         return try {
             val req = SubantaDerivationRequest(baseText, supAffix.vibhakti, supAffix.vacana, linga)
             val res = subantaEngine.derive(req).final.surface
-            if (baseText == "क्षीप्" || baseText == "क्षिप्") baseText else res
+            PvmNominalLexicon.surface(baseText, res)
         } catch (e: Exception) {
             baseText
         }
@@ -229,13 +229,7 @@ class PvmUktiSadhaka(
 
         val dhatu = tinganta.dhatu.mulaDhatu
         val hasNic = "णिच्" in tinganta.dhatu.sanadiPratyayas
-        return when {
-            hasNic && dhatu == "युज्" -> "योजय"
-            hasNic && dhatu == "गण" -> "गणय"
-            hasNic && dhatu == "मुद्र्" -> "मुद्रय"
-            !hasNic && dhatu == "दा" -> "देहि"
-            else -> null
-        }
+        return PvmImperativeLexicon.surface(dhatu, causative = hasNic)
     }
 
     private fun Pratipadika.baseText(): String = when (this) {
