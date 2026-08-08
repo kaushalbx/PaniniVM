@@ -4,7 +4,9 @@ import dev.panini.vyakaranam.ast.Conditional
 import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.Pipeline
 import dev.panini.vyakaranam.ast.ProgramNode
+import dev.panini.vyakaranam.ast.Procedure
 import dev.panini.vyakaranam.ast.Repeat
+import dev.panini.vyakaranam.ast.Scope
 import dev.panini.vyakaranam.ast.Sequence
 import dev.panini.vyakaranam.ast.Ukti
 import dev.panini.vyakaranam.ast.invocations
@@ -106,6 +108,8 @@ class UktiAnalyzer(
             }
             is Repeat -> visit(node.body)
             is Pipeline -> error("A semantic pipeline does not contain grammatical kriya frames.")
+            is Procedure -> error("A procedure declaration is not an analyzable utterance.")
+            is Scope -> error("A scope declaration is not an analyzable utterance.")
         }
 
         visit(root)

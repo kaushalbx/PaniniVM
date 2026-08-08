@@ -27,9 +27,11 @@ import dev.panini.vyakaranam.ast.Conditional
 import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.Pipeline
 import dev.panini.vyakaranam.ast.ProgramNode
+import dev.panini.vyakaranam.ast.Procedure
 import dev.panini.vyakaranam.ast.Repeat
 import dev.panini.vyakaranam.ast.SankhyaAbhyasaPada
 import dev.panini.vyakaranam.ast.Sequence
+import dev.panini.vyakaranam.ast.Scope
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.Ukti
 import dev.panini.vyakaranam.ast.expandedInvocations
@@ -269,6 +271,8 @@ object VyakaranamExecutionAdapter {
             )
             is Repeat -> node.copy(body = lower(node.body))
             is Pipeline -> node
+            is Procedure -> node.copy(body = node.body.map(::lower))
+            is Scope -> node.copy(body = node.body.map(::lower))
         }
         return lower(root)
     }

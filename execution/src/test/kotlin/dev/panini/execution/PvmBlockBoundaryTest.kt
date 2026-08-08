@@ -36,5 +36,7 @@ class PvmBlockBoundaryTest {
 
         assertEquals(1, definition.body.size)
         assertEquals("एक + अम् कृ + लोट् + सिप् ।", definition.body.single().text)
+        assertEquals("गणित + सुँ", definition.procedure.name)
+        assertEquals(1, definition.procedure.body.size)
     }
 }

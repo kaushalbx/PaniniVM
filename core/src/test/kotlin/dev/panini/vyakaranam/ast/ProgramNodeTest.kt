@@ -21,4 +21,13 @@ class ProgramNodeTest {
             Repeat("", 0, Invocation(vakya))
         }
     }
+
+    @Test
+    fun `procedure and scope expose their nested program leaves`() {
+        val invocation = Invocation(vakya)
+        val procedure = Procedure("definition", "योग", body = listOf(invocation))
+        val scope = Scope("scope", "गणित", body = listOf(procedure))
+
+        assertEquals(listOf(invocation), scope.invocations())
+    }
 }

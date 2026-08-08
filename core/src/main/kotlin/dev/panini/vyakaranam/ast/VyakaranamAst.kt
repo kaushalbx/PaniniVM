@@ -77,6 +77,27 @@ data class Pipeline(
     val stages: List<PipelineStage>,
 ) : ProgramNode
 
+data class ProcedureModifiers(
+    val isInternal: Boolean = false,
+    val isApavada: Boolean = false,
+    val isAntaranga: Boolean = false,
+    val isNitya: Boolean = false,
+)
+
+data class Procedure(
+    override val sourceText: String,
+    val name: String,
+    val domain: String? = null,
+    val body: List<ProgramNode>,
+    val modifiers: ProcedureModifiers = ProcedureModifiers(),
+) : ProgramNode
+
+data class Scope(
+    override val sourceText: String,
+    val domain: String,
+    val body: List<ProgramNode> = emptyList(),
+) : ProgramNode
+
 fun ProgramNode.invocations(): List<Invocation> = when (this) {
     is Invocation -> listOf(this)
     is Sequence -> statements.flatMap(ProgramNode::invocations)
@@ -85,6 +106,8 @@ fun ProgramNode.invocations(): List<Invocation> = when (this) {
         alternate?.invocations().orEmpty()
     is Repeat -> body.invocations()
     is Pipeline -> emptyList()
+    is Procedure -> body.flatMap(ProgramNode::invocations)
+    is Scope -> body.flatMap(ProgramNode::invocations)
 }
 
 /** Invocations in execution order, including copies introduced by [Repeat]. */
@@ -98,6 +121,8 @@ fun ProgramNode.expandedInvocations(): List<Invocation> = when (this) {
         repeat(count) { addAll(body.expandedInvocations()) }
     }
     is Pipeline -> emptyList()
+    is Procedure -> body.flatMap(ProgramNode::expandedInvocations)
+    is Scope -> body.flatMap(ProgramNode::expandedInvocations)
 }
 
 data class Sambodhana(

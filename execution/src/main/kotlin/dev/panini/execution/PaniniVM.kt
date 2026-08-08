@@ -199,28 +199,29 @@ class PaniniVM(
         val registry = samjnaRegistry ?: SamjnaKriyaRegistry()
         val isEntryPoint = samjnaRegistry != null
         val topDomainDefn = parsed.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>().firstOrNull()
-        val topDomainStem = topDomainDefn?.let { deriveSamjnaStem(it.domainSegmented) }
+        val topDomainStem = topDomainDefn?.let { deriveSamjnaStem(it.scope.domain) }
 
         parsed.filterIsInstance<PvmScriptStatement.SamjnaDefinition>().forEach { defn ->
-            val stem = deriveSamjnaStem(defn.nameSegmented)
-            val domain = defn.domainStem ?: deriveDomainStem(defn.nameSegmented) ?: topDomainStem
+            val procedure = defn.procedure
+            val stem = deriveSamjnaStem(procedure.name)
+            val domain = procedure.domain ?: deriveDomainStem(procedure.name) ?: topDomainStem
             registry.register(
                 SamjnaKriya(
-                    nameSegmented = defn.nameSegmented,
+                    nameSegmented = procedure.name,
                     nameStem = stem,
                     body = defn.body,
                     sourceFile = sourceFile,
                     domainStem = domain,
-                    isApavada = defn.isApavada,
-                    isAntaranga = defn.isAntaranga,
-                    isNitya = defn.isNitya,
-                    isInternal = defn.isInternal,
+                    isApavada = procedure.modifiers.isApavada,
+                    isAntaranga = procedure.modifiers.isAntaranga,
+                    isNitya = procedure.modifiers.isNitya,
+                    isInternal = procedure.modifiers.isInternal,
                 ),
             )
         }
 
         parsed.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>().forEach { adhikara ->
-            val inheritance = TaddhitaInheritanceEngine.detectInheritanceAdhikara(adhikara.domainSegmented)
+            val inheritance = TaddhitaInheritanceEngine.detectInheritanceAdhikara(adhikara.scope.domain)
             if (inheritance != null) {
                 registry.registerInheritance(inheritance)
             }
@@ -321,27 +322,28 @@ class PaniniVM(
         for (libFile in libraryFiles) {
             val parsed = PvmScript.parse(libFile.readText())
             val fileDomainDefn = parsed.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>().firstOrNull()
-            val fileDomainStem = fileDomainDefn?.let { deriveSamjnaStem(it.domainSegmented) }
+            val fileDomainStem = fileDomainDefn?.let { deriveSamjnaStem(it.scope.domain) }
 
             parsed.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>().forEach { adhikara ->
-                val inheritance = TaddhitaInheritanceEngine.detectInheritanceAdhikara(adhikara.domainSegmented)
+                val inheritance = TaddhitaInheritanceEngine.detectInheritanceAdhikara(adhikara.scope.domain)
                 if (inheritance != null) {
                     registry.registerInheritance(inheritance)
                 }
             }
 
             parsed.filterIsInstance<PvmScriptStatement.SamjnaDefinition>().forEach { defn ->
-                val stem = deriveSamjnaStem(defn.nameSegmented)
-                val domain = defn.domainStem ?: deriveDomainStem(defn.nameSegmented) ?: fileDomainStem
+                val procedure = defn.procedure
+                val stem = deriveSamjnaStem(procedure.name)
+                val domain = procedure.domain ?: deriveDomainStem(procedure.name) ?: fileDomainStem
                 registry.register(
                     SamjnaKriya(
-                        nameSegmented = defn.nameSegmented,
+                        nameSegmented = procedure.name,
                         nameStem = stem,
                         body = defn.body,
                         sourceFile = libFile.name,
                         domainStem = domain,
-                        isApavada = defn.isApavada,
-                        isInternal = defn.isInternal,
+                        isApavada = procedure.modifiers.isApavada,
+                        isInternal = procedure.modifiers.isInternal,
                     ),
                 )
             }

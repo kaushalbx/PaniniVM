@@ -1,6 +1,10 @@
 package dev.panini.execution
 
 import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
+import dev.panini.vyakaranam.ast.Procedure
+import dev.panini.vyakaranam.ast.ProcedureModifiers
+import dev.panini.vyakaranam.ast.ProgramNode
+import dev.panini.vyakaranam.ast.Scope
 
 sealed interface PvmScriptStatement {
     val text: String
@@ -9,7 +13,10 @@ sealed interface PvmScriptStatement {
         override val text: String,
         val ukti: dev.panini.vyakaranam.ast.Ukti? = null,
         val isNishedha: Boolean = false,
-    ) : PvmScriptStatement
+    ) : PvmScriptStatement {
+        val program: ProgramNode?
+            get() = ukti?.body ?: PurvaparaPipelineCompiler.compile(text)
+    }
 
     /**
      * A named kriyā definition using the संज्ञा-सूत्र pattern:
@@ -22,15 +29,17 @@ sealed interface PvmScriptStatement {
      * [body] contains the vākya sentences that form the procedure.
      */
     data class SamjnaDefinition(
-        val nameSegmented: String,
+        val procedure: Procedure,
         val body: List<Sentence>,
-        override val text: String,
-        val domainStem: String? = null,
-        val isInternal: Boolean = false,
-        val isApavada: Boolean = false,
-        val isAntaranga: Boolean = false,
-        val isNitya: Boolean = false,
-    ) : PvmScriptStatement
+    ) : PvmScriptStatement {
+        override val text: String get() = procedure.sourceText
+        val nameSegmented: String get() = procedure.name
+        val domainStem: String? get() = procedure.domain
+        val isInternal: Boolean get() = procedure.modifiers.isInternal
+        val isApavada: Boolean get() = procedure.modifiers.isApavada
+        val isAntaranga: Boolean get() = procedure.modifiers.isAntaranga
+        val isNitya: Boolean get() = procedure.modifiers.isNitya
+    }
 
     /**
      * An अधिकार-सूत्र (governing domain scope declaration):
@@ -38,9 +47,11 @@ sealed interface PvmScriptStatement {
      *     गणित + अम् इति अधिकारः ।
      */
     data class AdhikaraDefinition(
-        val domainSegmented: String,
-        override val text: String,
-    ) : PvmScriptStatement
+        val scope: Scope,
+    ) : PvmScriptStatement {
+        override val text: String get() = scope.sourceText
+        val domainSegmented: String get() = scope.domain
+    }
 }
 
 enum class PvmSourceKind {
@@ -131,8 +142,10 @@ object PvmScript {
             val adhikaraDomain = extractAdhikaraDomain(stripped)
             if (adhikaraDomain != null) {
                 adhikaraDefinitions += PvmScriptStatement.AdhikaraDefinition(
-                    domainSegmented = adhikaraDomain,
-                    text = line,
+                    scope = Scope(
+                        sourceText = line,
+                        domain = adhikaraDomain,
+                    ),
                 )
             } else {
                 regularNonSamjnaLines += line
@@ -165,14 +178,19 @@ object PvmScript {
         val cleanName = methodHeader?.second ?: declarationSource
         val qualifiers = parsed?.qualifiers.orEmpty()
         return PvmScriptStatement.SamjnaDefinition(
-            nameSegmented = cleanName,
+            procedure = Procedure(
+                sourceText = blockText.joinToString("\n"),
+                name = cleanName,
+                domain = methodHeader?.first,
+                body = body.mapNotNull(PvmScriptStatement.Sentence::program),
+                modifiers = ProcedureModifiers(
+                    isInternal = internalHeader.isInternal,
+                    isApavada = SamjnaDefinitionQualifier.APAVADA in qualifiers,
+                    isAntaranga = SamjnaDefinitionQualifier.ANTARANGA in qualifiers,
+                    isNitya = SamjnaDefinitionQualifier.NITYA in qualifiers,
+                ),
+            ),
             body = body,
-            text = blockText.joinToString("\n"),
-            domainStem = methodHeader?.first,
-            isInternal = internalHeader.isInternal,
-            isApavada = SamjnaDefinitionQualifier.APAVADA in qualifiers,
-            isAntaranga = SamjnaDefinitionQualifier.ANTARANGA in qualifiers,
-            isNitya = SamjnaDefinitionQualifier.NITYA in qualifiers,
         )
     }
 
