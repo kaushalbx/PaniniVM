@@ -3,7 +3,6 @@ package dev.panini.execution.binding
 import dev.panini.execution.memory.KriyaMemory
 import dev.panini.execution.memory.RememberedKriya
 import dev.panini.vyakaranam.ast.Pada
-import dev.panini.vyakaranam.ast.SankhyaPuranaPada
 import dev.panini.vyakaranam.ast.SubantaPada
 
 /** One grammatical ordering modifier shared by phala and kāraka memory queries. */
@@ -28,11 +27,7 @@ internal data class MemoryOrderQualifier(
 internal object MemoryOrderQualifierResolver {
     fun before(target: Pada, padas: List<Pada>): MemoryOrderQualifier {
         val pada = padas.getOrNull(padas.indexOf(target) - 1)
-        val ordinalNumber = when (pada) {
-            is SankhyaPuranaPada -> NumeralPadaBinder.evaluateStems(pada.stems).value.toInt()
-            is SubantaPada -> ExpressionBuilder.ordinalNumber(pada.pratipadika.baseText())
-            else -> null
-        }
+        val ordinalNumber = pada?.let(NumeralPadaBinder::extractOrdinalValue)?.toInt()
         val previous = (pada as? SubantaPada)?.pratipadika?.baseText() == "पूर्व"
         return MemoryOrderQualifier(pada, ordinalNumber, previous)
     }

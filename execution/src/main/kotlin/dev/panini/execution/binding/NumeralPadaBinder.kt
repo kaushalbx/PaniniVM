@@ -6,6 +6,7 @@ import dev.panini.core.Karaka
 import dev.panini.execution.ExecutionExpression
 import dev.panini.katapayadi.KatapayadiDecoder
 import dev.panini.sankhya.PrimitiveSankhya
+import dev.panini.sankhya.SankhyaExpression
 import dev.panini.vyakaranam.ast.AryabhatiyaPada
 import dev.panini.vyakaranam.ast.BhutasamkhyaPada
 import dev.panini.vyakaranam.ast.KatapayadiPada
@@ -46,6 +47,18 @@ internal object NumeralPadaBinder {
         is AryabhatiyaPada -> pada.value ?: aryabhatiyaDecoder.decode(pada.word)
         is BhutasamkhyaPada -> pada.value ?: bhutasamkhyaDecoder.decodeTerms(pada.terms)
         else -> null
+    }
+
+    /** Extracts an ordinal value only when numeric morphology evaluates to pūraṇa. */
+    internal fun extractOrdinalValue(pada: Pada): Long? {
+        val expression = when (pada) {
+            is SankhyaPuranaPada -> runCatching { sharedSankhyaEvaluator.evaluateStems(pada.stems) }.getOrNull()
+            is SubantaPada -> runCatching {
+                sharedSankhyaEvaluator.evaluateStems(listOf(pada.pratipadika.baseText()))
+            }.getOrNull()
+            else -> null
+        }
+        return (expression as? SankhyaExpression.Purana)?.value
     }
 
     /**

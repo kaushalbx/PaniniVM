@@ -18,9 +18,6 @@ import dev.panini.vyakaranam.ast.SubantaPada
  * via [BindingContext] instead of individual parameters.
  */
 internal object ExpressionBuilder {
-    /** Prathama is lexical; later ordinals are represented by segmented purāṇa padas. */
-    internal fun ordinalNumber(surface: String): Int? = 1.takeIf { surface == "प्रथम" }
-
     /**
      * Builds an [ExecutionExpression] for [pada] within [ctx], resolving:
      * - Named/typed prior results and local variables → [ExecutionExpression.Reference]
