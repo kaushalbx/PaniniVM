@@ -146,24 +146,14 @@ class PvmUktiSadhaka(
     fun sadhayaSankhyaAbhyasa(pada: SankhyaAbhyasaPada): String {
         return try {
             val lastStem = pada.stems.lastOrNull() ?: return pada.sourceText
-            val numStems = pada.stems.filter { it != "कृत्वः" && it != "कृत्वा" && it != "कृत्वसुच्" && it != "सुच्" && it != "धा" }
+            val numStems = PvmAbhyasaMorphology.numericStems(pada.stems)
             val count = if (numStems.isNotEmpty()) {
                 sankhyaEvaluator.evaluateStems(numStems).value
             } else {
                 sankhyaEvaluator.evaluateStems(pada.stems).value
             }
             val cardinalSurface = sankhyaGenerator.cardinal(count).final.surface
-            when (lastStem) {
-                "कृत्वः", "कृत्वसुच्", "कृत्वा" -> "${cardinalSurface}कृत्वः"
-                "सुच्" -> when (count) {
-                    2L -> "द्विः"
-                    3L -> "त्रिः"
-                    4L -> "चतुः"
-                    else -> "${cardinalSurface}कृत्वः"
-                }
-                "धा" -> "${cardinalSurface}धा"
-                else -> "${cardinalSurface}कृत्वः"
-            }
+            PvmAbhyasaMorphology.surface(lastStem, count, cardinalSurface)
         } catch (_: Throwable) {
             pada.sourceText
         }
