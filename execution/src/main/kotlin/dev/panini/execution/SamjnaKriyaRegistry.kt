@@ -1,5 +1,7 @@
 package dev.panini.execution
 
+import dev.panini.core.SupAffix
+
 /**
  * A user-defined reusable kriyā, named via the संज्ञा-सूत्र pattern.
  */
@@ -155,18 +157,11 @@ class SamjnaKriyaRegistry {
     }
 
     companion object {
-        private val SUP_SUFFIXES = setOf(
-            "सुँ", "औ", "जस्", "अम्", "औट्", "शस्",
-            "टा", "भ्याम्", "भिस्", "ङे", "भ्याम्", "भ्यस्",
-            "ङसि", "भ्याम्", "भ्यस्", "ङस्", "ओस्", "आम्",
-            "ङि", "ओस्", "सुप्",
-        )
-
         internal fun stripSupSuffix(nameSegmented: String): String {
             val parts = nameSegmented.split("+").map { it.trim() }
             if (parts.size <= 1) return nameSegmented
             val lastPart = parts.last()
-            return if (lastPart in SUP_SUFFIXES) {
+            return if (SupAffix.fromUpadesha(lastPart) != null) {
                 parts.dropLast(1).joinToString(" + ")
             } else {
                 nameSegmented
