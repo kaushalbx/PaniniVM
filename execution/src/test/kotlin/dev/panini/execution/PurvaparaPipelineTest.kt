@@ -29,9 +29,23 @@ class PurvaparaPipelineTest {
         """.trimIndent()
 
         val results = vm.evalScript(script)
-        println("SUCCESS RESULT: $results")
         val success = results.filterIsInstance<ExecutionResult.Success>()
         assertTrue(success.isNotEmpty(), "Expected successful execution of Purvapara pipeline, but got: $results")
         assertEquals("अष्ट", success.last().value, "Expected pipeline result 8 (अष्ट) after Stage 1 (5 * 2 = 10) and Stage 2 (10 - 2 = 8)")
+    }
+
+    @Test
+    fun `pipeline directive compiles to structured stages`() {
+        val source = "पञ्च + अम् द्वि + अम् च गणित + ङस् गुण् + ल्युट् + ङस् गणित + ङस् रन्ध्र + ल्युट् + ङस् पूर्व + पर + ङस् एका + सुँ कृ + लोट् + सिप् ।"
+        val plan = requireNotNull(PurvaparaPipelineCompiler.compile(source))
+
+        assertEquals(listOf("पञ्च", "द्वि"), plan.arguments)
+        assertEquals(
+            listOf(
+                PurvaparaPipelineStage("गणित", "गुण् + ल्युट्"),
+                PurvaparaPipelineStage("गणित", "रन्ध्र + ल्युट्"),
+            ),
+            plan.stages,
+        )
     }
 }

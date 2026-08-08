@@ -71,6 +71,34 @@ class SamjnaKriyaRegistry {
 
     val size: Int get() = registry.size
 
+    fun resolveStructuredInvocation(
+        operationStem: String,
+        domainStem: String?,
+        argumentTerms: List<String>,
+        sourceText: String,
+        callerSourceFile: String? = null,
+    ): SamjnaInvocation? {
+        val normalizedOperation = SamjnaInvocationMatcher.normalizeIdentity(operationStem)
+        val candidates = registry.values.flatten()
+            .distinctBy { System.identityHashCode(it) }
+            .asSequence()
+            .filter {
+                SamjnaInvocationMatcher.normalizeIdentity(it.nameStem) == normalizedOperation &&
+                    domainMatches(it.domainStem, domainStem)
+            }
+            .filterNot {
+                it.isInternal && callerSourceFile != null && it.sourceFile != null && callerSourceFile != it.sourceFile
+            }
+            .sortedWith(
+                compareByDescending<SamjnaKriya> { it.precedence.rank }
+                    .thenByDescending { AntaratamaOverloadEngine.match(it.signature, argumentTerms).rank },
+            )
+            .toList()
+        val kriya = candidates.firstOrNull() ?: return null
+        val karmaText = argumentTerms.joinToString(" ") { "$it + अम्" }
+        return SamjnaInvocation(kriya, karmaText, sourceText)
+    }
+
     fun detectInvocation(sentenceText: String, callerSourceFile: String? = null, preParsedUkti: dev.panini.vyakaranam.ast.Ukti? = null): SamjnaInvocation? {
         if (registry.isEmpty()) return null
 

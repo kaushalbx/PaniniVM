@@ -11,7 +11,7 @@ import dev.panini.vyakaranam.ast.Ukti
 object PurvaparaPipelineEngine {
 
     fun isPipelineDirective(sentenceText: String, preParsedUkti: Ukti? = null): Boolean {
-        return sentenceText.contains("पूर्व + पर") || sentenceText.contains("पूर्वपरयोः") || sentenceText.contains("पूर्वपर")
+        return PurvaparaPipelineCompiler.compile(sentenceText) != null
     }
 
     fun executePipeline(
@@ -24,37 +24,8 @@ object PurvaparaPipelineEngine {
         registry: SamjnaKriyaRegistry,
         callerSourceFile: String? = null,
     ): List<ExecutionResult> {
-        val cleanDirective = sentenceText
-            .replace("पूर्व + पर + ङस्", "")
-            .replace("पूर्व + पर", "")
-            .replace("पूर्वपरयोः", "")
-            .replace("एका + सुँ", "")
-            .replace("एकः", "")
-            .trim()
-
-        // Extract invocation statements connected before action verb (कृ + लोट् + सिप्)
-        val verbIdx = cleanDirective.indexOf("कृ + लोट् + सिप्")
-        val mainText = if (verbIdx > 0) cleanDirective.substring(0, verbIdx).trim() else cleanDirective
-
-        val cIdx = mainText.indexOf(" च ")
-        val argsPrefix = if (cIdx > 0) mainText.substring(0, cIdx + 3).trim() else ""
-        val kriyaChainText = if (cIdx > 0) mainText.substring(cIdx + 3).trim() else mainText
-
-        val rawTokens = kriyaChainText.split("+ ङस्").map { it.trim() }.filter { it.isNotEmpty() }
-        val stageDirectives = mutableListOf<String>()
-        var idx = 0
-        while (idx < rawTokens.size) {
-            val token = rawTokens[idx]
-            if (idx + 1 < rawTokens.size && !token.contains(" ") && rawTokens[idx + 1].contains("+")) {
-                stageDirectives += "$token + ङस् ${rawTokens[idx + 1]}"
-                idx += 2
-            } else {
-                stageDirectives += token
-                idx += 1
-            }
-        }
-
-        if (stageDirectives.size < 2) {
+        val plan = PurvaparaPipelineCompiler.compile(sentenceText)
+        if (plan == null || plan.stages.size < 2) {
             return listOf(
                 ExecutionResult.Failure(
                     ExecutionError.INVALID_VALUE,
@@ -63,17 +34,22 @@ object PurvaparaPipelineEngine {
             )
         }
 
-        var currentArgsText = argsPrefix
+        var currentArguments = plan.arguments
         var lastSuccess: ExecutionResult.Success? = null
 
-        for (kriyaPart in stageDirectives) {
-            val stageInvocationText = "$currentArgsText $kriyaPart + टा कृ + लोट् + सिप् ।"
-            val invocation = registry.detectInvocation(stageInvocationText, callerSourceFile = callerSourceFile)
+        for (stage in plan.stages) {
+            val invocation = registry.resolveStructuredInvocation(
+                operationStem = stage.operationStem,
+                domainStem = stage.domainStem,
+                argumentTerms = currentArguments,
+                sourceText = sentenceText,
+                callerSourceFile = callerSourceFile,
+            )
             if (invocation == null) {
                 return listOf(
                     ExecutionResult.Failure(
                         ExecutionError.INVALID_VALUE,
-                        "पूर्वपर-असंगतिः: Could not resolve Kriyā stage '$kriyaPart' in pipeline",
+                        "पूर्वपर-असंगतिः: Could not resolve Kriyā stage '${stage.operationStem}' in pipeline",
                     ),
                 )
             }
@@ -87,19 +63,18 @@ object PurvaparaPipelineEngine {
                 return listOf(
                     ExecutionResult.Failure(
                         ExecutionError.ACTION_FAILED,
-                        "पूर्वपर-असंगतिः: Execution failed at Kriyā stage '$kriyaPart'",
+                        "पूर्वपर-असंगतिः: Execution failed at Kriyā stage '${stage.operationStem}'",
                     ),
                 )
             }
 
             lastSuccess = stageSuccess
             val stageVal = stageSuccess.value
-            val originalArgTerms = SubantaKarakaParser.extractKarmaTerms(argsPrefix, null)
             val nextArgs = mutableListOf(stageVal)
-            if (originalArgTerms.size > 1) {
-                nextArgs.addAll(originalArgTerms.drop(1))
+            if (plan.arguments.size > 1) {
+                nextArgs.addAll(plan.arguments.drop(1))
             }
-            currentArgsText = nextArgs.joinToString(" ") { "$it + अम्" } + " च"
+            currentArguments = nextArgs
         }
 
         return listOf(
