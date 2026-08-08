@@ -140,6 +140,7 @@ class SamjnaKriyaMultiFileTest {
 
         assertEquals(1, kriya.nishedhaGuards.size, "Should identify 1 prohibition rule (निषेध-सूत्र).")
         assertEquals("न द्वितीय + अम् शून्य + अम् ।", kriya.nishedhaGuards.first().text)
+        assertNotNull(kriya.nishedhaGuards.first().ukti, "Niṣedha classification must come from a parsed utterance.")
         assertEquals(1, kriya.vidhiSentences.size, "Should identify 1 mandate rule (विधि-सूत्र).")
     }
 

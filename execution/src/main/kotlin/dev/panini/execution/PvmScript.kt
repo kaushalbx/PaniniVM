@@ -308,12 +308,15 @@ object PvmScript {
             .filter { it.isNotEmpty() }
             .map { text ->
                 val trimmed = text.trim()
-                val ukti = runCatching { parser.parse(trimmed) }.getOrNull()
+                val ukti = parser.parseOrNull(trimmed)
                 val isNishedha = ukti?.vakyas?.any { vakya ->
-                    vakya.padas.filterIsInstance<dev.panini.vyakaranam.ast.AvyayaPada>().any { it.sourceText == "न" || it.sourceText == "मा" }
-                } ?: (trimmed.startsWith("न ") || trimmed.startsWith("मा ") || trimmed.contains(" न ") || trimmed.startsWith("न+"))
+                    vakya.padas.filterIsInstance<dev.panini.vyakaranam.ast.AvyayaPada>()
+                        .any { it.form in NISHEDHA_AVYAYAS }
+                } == true
                 PvmScriptStatement.Sentence(text = text, ukti = ukti, isNishedha = isNishedha)
             }
             .toList()
     }
+
+    private val NISHEDHA_AVYAYAS = setOf("न", "मा")
 }
