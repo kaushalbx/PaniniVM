@@ -1,6 +1,7 @@
 package dev.panini.execution
 
 import dev.panini.core.SupAffix
+import dev.panini.core.Vibhakti
 import dev.panini.sankhya.SankhyaEvaluator
 import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.KridantaPratipadika
@@ -43,51 +44,30 @@ object SubantaKarakaParser {
 
     private val parser = PaniniParser()
 
-    /**
-     * Extracts Karma (Accusative parameter terms) from text using AST parse or fallback.
-     * e.g. "द्वि + अम् त्रि + अम् च" -> ["द्वि", "त्रि"]
-     */
+    /** Extracts accusative parameter stems from parsed subantas. */
     fun extractKarmaTerms(karmaText: String, preParsedUkti: dev.panini.vyakaranam.ast.Ukti? = null): List<String> {
         val trimmed = karmaText.trim()
         if (trimmed.isEmpty()) return emptyList()
 
-        val ukti = preParsedUkti ?: runCatching { parser.parse(trimmed) }.getOrNull()
-        if (ukti != null) {
-            val karmaStems = mutableListOf<String>()
-            for (vakya in ukti.vakyas) {
-                for (pada in vakya.padas) {
-                    if (pada is SubantaPada && pada.sup.text == "अम्") {
-                        val stem = pada.pratipadika.sourceText.trim()
-                        if (stem.isNotEmpty()) {
-                            karmaStems.add(stem)
-                        }
-                    }
-                }
-            }
-            if (karmaStems.isNotEmpty()) return karmaStems
-        }
-
-        // Regex fallback for unparsed fragments
-        val terms = mutableListOf<String>()
-        val matches = Regex("""(\S+)\s*\+\s*अम्""").findAll(karmaText)
-        for (match in matches) {
-            terms += match.groupValues[1]
-        }
-        return terms
+        val ukti = preParsedUkti ?: parser.parseOrNull(trimmed) ?: return emptyList()
+        return ukti.vakyas.asSequence()
+            .flatMap { it.padas.asSequence() }
+            .filterIsInstance<SubantaPada>()
+            .filter { SupAffix.fromUpadesha(it.sup.text)?.vibhakti == Vibhakti.DVITIYA }
+            .map { it.pratipadika.sourceText.trim() }
+            .filter(String::isNotEmpty)
+            .toList()
     }
 
     /**
      * Checks if text contains a Tritīyā Instrumental suffix (e.g. "+ टा").
      */
     fun hasTritiyaInstrumental(text: String, preParsedUkti: dev.panini.vyakaranam.ast.Ukti? = null): Boolean {
-        val ukti = preParsedUkti ?: runCatching { parser.parse(text) }.getOrNull()
-        if (ukti != null) {
-            val hasTa = ukti.vakyas.flatMap { it.padas }
-                .filterIsInstance<SubantaPada>()
-                .any { it.sup.text == "टा" }
-            if (hasTa) return true
-        }
-        return text.contains("+ टा")
+        val ukti = preParsedUkti ?: parser.parseOrNull(text) ?: return false
+        return ukti.vakyas.asSequence()
+            .flatMap { it.padas.asSequence() }
+            .filterIsInstance<SubantaPada>()
+            .any { SupAffix.fromUpadesha(it.sup.text)?.vibhakti == Vibhakti.TRTIYA }
     }
 }
 
