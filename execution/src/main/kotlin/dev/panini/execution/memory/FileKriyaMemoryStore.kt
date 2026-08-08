@@ -23,7 +23,7 @@ internal class FileKriyaMemoryStore(private val storageDir: File) {
             out.writeInt(memory.entries.size)
             for (entry in memory.entries) {
                 val sourceText = entry.frame.vakya.padas.joinToString(" ") { it.sourceText }
-                val normalizedSource = sourceText.trim().let { if (it.endsWith("।")) it else "$it ।" }
+                val normalizedSource = KriyaMemorySource.normalize(sourceText)
                 analysisCache.putIfAbsent(normalizedSource, listOf(entry.frame))
                 out.writeInt(entry.turn)
                 out.writeUTF(entry.frame.id.value)
@@ -53,7 +53,7 @@ internal class FileKriyaMemoryStore(private val storageDir: File) {
             val hasPhala = dis.readBoolean()
             val phala = if (hasPhala) PersistedSanskritValueCodec.read(dis) else null
 
-            val source = sourceText.trim().let { if (it.endsWith("।")) it else "$it ।" }
+            val source = KriyaMemorySource.normalize(sourceText)
             val frames = analysisCache.computeIfAbsent(source) { analyze(source) }
             val frame = frames.singleOrNull()
                 ?: error("Cannot reconstruct persisted kriyā from: $source")
