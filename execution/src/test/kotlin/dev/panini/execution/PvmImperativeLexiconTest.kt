@@ -7,16 +7,15 @@ import kotlin.test.assertNull
 class PvmImperativeLexiconTest {
 
     @Test
-    fun `retains only causatives not yet produced by derivation`() {
-        assertEquals("मुद्रय", PvmImperativeLexicon.surface("मुद्र्", causative = true))
-        assertNull(PvmImperativeLexicon.surface("युज्", causative = true))
-        assertNull(PvmImperativeLexicon.surface("गण", causative = true))
+    fun `causative command surfaces have migrated to derivation`() {
+        assertNull(PvmImperativeLexicon.surface("मुद्र्"))
+        assertNull(PvmImperativeLexicon.surface("युज्"))
+        assertNull(PvmImperativeLexicon.surface("गण"))
     }
 
     @Test
     fun `keeps causative and simple paradigms distinct`() {
-        assertEquals("देहि", PvmImperativeLexicon.surface("दा", causative = false))
-        assertNull(PvmImperativeLexicon.surface("दा", causative = true))
-        assertNull(PvmImperativeLexicon.surface("युज्", causative = false))
+        assertEquals("देहि", PvmImperativeLexicon.surface("दा"))
+        assertNull(PvmImperativeLexicon.surface("युज्"))
     }
 }

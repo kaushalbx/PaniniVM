@@ -43,7 +43,8 @@ object PugantalaghupadhasyaCaSutra : Sutra<DerivationState, DerivationChange>(
             Lakara.LANG -> ending in setOf(TingAffix.TIP, TingAffix.SIP, TingAffix.MIP)
             else -> false
         }
-        return ((hasNic && ending != null) || isAdadiStrong) && lightUpadhaIndex(dhatu.surface) != null
+        return (((hasNic && !dhatu.blocksNicGuna) && ending != null) || isAdadiStrong) &&
+            lightUpadhaIndex(dhatu.surface) != null
     }
 
     override fun apply(context: DerivationState): DerivationChange {

@@ -22,6 +22,8 @@ open class Dhatu(
     val itStatus: ItStatus? = null,
     val karmatva: Karmatva? = null,
     val svara: Accent? = null,
+    /** Lexically blocks the regular ṇic-conditioned guṇa of 7.3.86. */
+    val blocksNicGuna: Boolean = false,
     open val operations: List<DhatuOperation> = emptyList(),
     open val semanticRelations: Set<SemanticRelation> = emptySet(),
     open val surfaceAliases: Set<String> = emptySet(),

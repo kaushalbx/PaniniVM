@@ -208,6 +208,7 @@ data class DerivationTerm(
     val lexicalUses: Set<LexicalUse> = emptySet(),
     val itStatus: ItStatus? = null,
     val gana: DhatuGana? = null,
+    val blocksNicGuna: Boolean = false,
     val droppedBySutra: String? = null,
     val originalSurfaceBeforeDrop: String? = null,
     val createdBySutra: String? = null,
@@ -224,6 +225,7 @@ data class DerivationTerm(
             upadesha = dhatu.upadesha,
             itStatus = dhatu.itStatus,
             gana = dhatu.gana,
+            blocksNicGuna = dhatu.blocksNicGuna,
         )
     }
 

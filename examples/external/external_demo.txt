@@ -2,7 +2,7 @@
 # Dispatches an external message payload (वार्ताम् प्रेषय)
 
 # Step 1: Dispatch message payload using presh (प्रेषय)
-वार्ताम् प्रेषस्व ।
+वार्ताम् प्रेषय ।
 
 # Step 2: Print confirmation of dispatched message
 मुद्रय वार्ताम् ।

@@ -191,8 +191,11 @@ class PvmUktiSadhaka(
         val tingAffix = TingAffix.fromUpadesha(tinganta.ting.text) ?: return rawDhatu
         pvmImperativeSurface(tinganta)?.let { return it }
         return try {
-            val useSanadiEngine = rawDhatu in PvmImperativeLexicon.derivableCausatives &&
-                "णिच्" in tinganta.dhatu.sanadiPratyayas
+            val useSanadiEngine = tingantaEngine.supportsSanadi(
+                rawDhatu,
+                tinganta.dhatu.sanadiPratyayas,
+                tingAffix.pada,
+            )
             val req = TingantaDerivationRequest(
                 dhatu = rawDhatu,
                 vacana = tingAffix.vacana,
@@ -223,8 +226,8 @@ class PvmUktiSadhaka(
 
         val dhatu = tinganta.dhatu.mulaDhatu
         val hasNic = "णिच्" in tinganta.dhatu.sanadiPratyayas
-        if (hasNic && dhatu in PvmImperativeLexicon.derivableCausatives) return null
-        return PvmImperativeLexicon.surface(dhatu, causative = hasNic)
+        if (hasNic && tingantaEngine.supportsSanadi(dhatu, tinganta.dhatu.sanadiPratyayas, dev.panini.core.PadaType.PARASMAIPADA)) return null
+        return if (hasNic) null else PvmImperativeLexicon.surface(dhatu)
     }
 
     private fun Pratipadika.baseText(): String = when (this) {

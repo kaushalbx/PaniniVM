@@ -11,6 +11,7 @@ import dev.panini.dhatupatha.DhatuPatha
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class TingantaEngineTest {
@@ -34,7 +35,7 @@ class TingantaEngineTest {
 
     @Test
     fun `attached nic forms a causative imperative instead of the mula dhatu vikaranam`() {
-        mapOf("युज्" to "योजय", "गण" to "गणय").forEach { (dhatu, expected) ->
+        mapOf("युज्" to "योजय", "गण" to "गणय", "मुद्र्" to "मुद्रय").forEach { (dhatu, expected) ->
             val result = TingantaEngine().derive(
                 TingantaDerivationRequest(
                     dhatu = dhatu,
@@ -49,7 +50,19 @@ class TingantaEngineTest {
             assertEquals(expected, result.final.surface, dhatu)
             assertTrue(result.applications.any { it.sutra == "3.1.68" }, dhatu)
             if (dhatu == "युज्") assertTrue(result.applications.none { it.sutra == "3.1.78" })
+            if (dhatu == "मुद्र्") assertTrue(result.applications.none { it.sutra == "7.3.86" })
         }
+    }
+
+    @Test
+    fun `sanadi coverage is declared by gana rather than pvm root names`() {
+        val engine = TingantaEngine()
+
+        listOf("युज्", "गण", "मुद्र्").forEach {
+            assertTrue(engine.supportsSanadi(it, listOf("णिच्"), PadaType.PARASMAIPADA), it)
+        }
+        assertFalse(engine.supportsSanadi("हु", listOf("णिच्"), PadaType.PARASMAIPADA))
+        assertFalse(engine.supportsSanadi("मूल्", listOf("णिच्"), PadaType.PARASMAIPADA))
     }
 
     @Test
