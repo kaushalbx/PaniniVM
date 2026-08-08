@@ -13,7 +13,10 @@ data class SamjnaKriya(
     val isAntaranga: Boolean = false,
     val isNitya: Boolean = false,
     val isInternal: Boolean = false,
-    val isMemoized: Boolean = nameSegmented.contains("+ क्त"),
+    val isMemoized: Boolean = SamjnaHeaderIdentityParser.hasOperationKrtPratyaya(
+        nameSegmented,
+        MEMOIZING_KRT_PRATYAYAS,
+    ),
 ) {
     val signature: SamjnaSignature by lazy { SamjnaSignatureCompiler.compile(body) }
 
@@ -27,6 +30,8 @@ data class SamjnaKriya(
     val nishedhaGuards: List<PvmScriptStatement.Sentence> = body.filter { it.isNishedha }
     val vidhiSentences: List<PvmScriptStatement.Sentence> = body.filterNot { it.isNishedha }
 }
+
+private val MEMOIZING_KRT_PRATYAYAS = setOf("क्त")
 
 /**
  * Global registry of saṃjñā kriyās for a project/session.

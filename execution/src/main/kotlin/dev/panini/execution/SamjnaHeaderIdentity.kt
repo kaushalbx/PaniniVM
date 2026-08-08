@@ -19,8 +19,7 @@ object SamjnaHeaderIdentityParser {
     private val parser = PaniniParser()
 
     fun parse(source: String): SamjnaHeaderIdentity? {
-        val ukti = parser.parseOrNull(source.trim().trimEnd('।', '॥', ' ')) ?: return null
-        val subantas = ukti.vakyas.flatMap { it.padas }.filterIsInstance<SubantaPada>()
+        val subantas = parseSubantas(source) ?: return null
         val operation = subantas.lastOrNull()
             ?.takeIf { it.vibhakti() == Vibhakti.PRATHAMA }
             ?: return null
@@ -30,6 +29,16 @@ object SamjnaHeaderIdentityParser {
             domainStem = domain?.pratipadika?.samjnaDomainIdentity(),
         )
     }
+
+    fun hasOperationKrtPratyaya(source: String, pratyayas: Set<String>): Boolean =
+        (parseSubantas(source)?.lastOrNull()?.pratipadika as? KridantaPratipadika)
+            ?.krtPratyaya in pratyayas
+
+    private fun parseSubantas(source: String): List<SubantaPada>? =
+        parser.parseOrNull(source.trim().trimEnd('।', '॥', ' '))
+            ?.vakyas
+            ?.flatMap { it.padas }
+            ?.filterIsInstance<SubantaPada>()
 
     private fun SubantaPada.vibhakti(): Vibhakti? =
         SupAffix.fromUpadesha(sup.text)?.vibhakti
