@@ -19,6 +19,14 @@ interface PratipadikaLexicon {
     fun findPratipadika(text: String): PratipadikaEntry?
 }
 
+/** Shared lexical metadata for established pratipadikas used across runtimes. */
+object StandardPratipadikaLexicon : PratipadikaLexicon {
+    private val entries = listOf("हविस्", "मनस्", "पयस्", "उरस्", "चक्षुस्")
+        .associateWith { text -> PratipadikaEntry(text, setOf(Linga.NAPUMSAKA)) }
+
+    override fun findPratipadika(text: String): PratipadikaEntry? = entries[text.trim()]
+}
+
 interface DhatuLexicon {
     fun findDhatu(text: String): Dhatu?
 }

@@ -1,5 +1,6 @@
 package dev.panini.execution
 
+import dev.panini.core.Linga
 import dev.panini.core.SupAffix
 import dev.panini.core.TingAffix
 import dev.panini.derivation.DerivationEngine
@@ -29,6 +30,8 @@ import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.UnadyantaPratipadika
 import dev.panini.vyakaranam.ast.UktiStructure
+import dev.panini.vyakaranam.lexicon.PratipadikaLexicon
+import dev.panini.vyakaranam.lexicon.StandardPratipadikaLexicon
 import dev.panini.vyakaranam.parser.PaniniParser
 
 /**
@@ -40,6 +43,7 @@ class PvmUktiSadhaka(
     private val subantaEngine: SubantaEngine = SubantaEngine(derivationEngine),
     private val tingantaEngine: TingantaEngine = TingantaEngine(derivationEngine),
     private val krdantaEngine: KrdantaEngine = KrdantaEngine(),
+    private val pratipadikaLexicon: PratipadikaLexicon = StandardPratipadikaLexicon,
     private val parser: PaniniParser = PaniniParser(),
 ) {
 
@@ -171,12 +175,13 @@ class PvmUktiSadhaka(
         val supAffix = SupAffix.fromUpadesha(subanta.sup.text) ?: return baseText
         if (sourceStem?.supportsAStemDeclension == true) {
             pvmKridantaSurface(baseText, supAffix)?.let { return it }
+        } else if (sourceStem?.preservesSourceSurface == true) {
+            return baseText
         }
-        val linga = PvmNominalLexicon.gender(baseText)
+        val linga = pratipadikaLexicon.findPratipadika(baseText)?.linga?.singleOrNull() ?: Linga.PUMS
         return try {
             val req = SubantaDerivationRequest(baseText, supAffix.vibhakti, supAffix.vacana, linga)
-            val res = subantaEngine.derive(req).final.surface
-            PvmNominalLexicon.surface(baseText, res)
+            subantaEngine.derive(req).final.surface
         } catch (e: Exception) {
             baseText
         }

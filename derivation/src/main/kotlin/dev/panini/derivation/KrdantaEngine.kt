@@ -15,6 +15,7 @@ data class KrdantaDerivationRequest(
 data class KrdantaSourceStem(
     val surface: String,
     val supportsAStemDeclension: Boolean,
+    val preservesSourceSurface: Boolean,
 )
 
 class KrdantaEngine(
@@ -34,11 +35,13 @@ class KrdantaEngine(
             KrdantaSourceStem(
                 surface = derive(KrdantaDerivationRequest(dhatu, samjna)).final.surface,
                 supportsAStemDeclension = true,
+                preservesSourceSurface = false,
             )
         } else {
             KrdantaSourceStem(
                 surface = sourceFallbackStems[dhatu] ?: dhatu,
                 supportsAStemDeclension = false,
+                preservesSourceSurface = dhatu in preservedSourceStems,
             )
         }
     }
@@ -315,5 +318,6 @@ class KrdantaEngine(
         val supportedApDhatus = setOf("युज्", "शिष्", "मूल्")
         val supportedLyutDhatus = setOf("युज्", "गण", "धृ", "स्था", "जन्", "हृ")
         val sourceFallbackStems = mapOf("हृ" to "हर")
+        val preservedSourceStems = setOf("क्षीप्", "क्षिप्")
     }
 }

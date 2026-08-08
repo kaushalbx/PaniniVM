@@ -126,6 +126,7 @@ class KrdantaEngineTest {
         assertTrue(engine.deriveSourceStem("युज्", "घञ्").supportsAStemDeclension)
         assertEquals("हर", engine.deriveSourceStem("हृ", "क्त").surface)
         assertEquals("पठ्", engine.deriveSourceStem("पठ्", "क्त").surface)
+        assertTrue(engine.deriveSourceStem("क्षिप्", "घञ्").preservesSourceSurface)
     }
 
     @Test
