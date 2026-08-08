@@ -102,6 +102,33 @@ data class KridantaPratipadika(
     val vikaras: List<PratipadikaVikara> = emptyList(),
 ) : Pratipadika {
     val krtPratyayaIdentity: KrtPratyayaIdentity? = KrtPratyayaIdentity.fromUpadesha(krtPratyaya)
+    val lexicalIdentity: KridantaLexicalIdentity? = KridantaLexicalIdentity.fromStructure(
+        upasargas = upasargas,
+        mulaDhatu = dhatu.mulaDhatu,
+        krtPratyaya = krtPratyayaIdentity,
+    )
+}
+
+enum class KridantaLexicalIdentity {
+    ADHIKARA,
+    APAVADA,
+    ;
+
+    companion object {
+        fun fromStructure(
+            upasargas: List<String>,
+            mulaDhatu: String,
+            krtPratyaya: KrtPratyayaIdentity?,
+        ): KridantaLexicalIdentity? = when {
+            upasargas == listOf("अधि") &&
+                mulaDhatu == "कृ" &&
+                krtPratyaya == KrtPratyayaIdentity.GHAN -> ADHIKARA
+            upasargas == listOf("अप") &&
+                mulaDhatu == "वद्" &&
+                krtPratyaya == KrtPratyayaIdentity.GHAN -> APAVADA
+            else -> null
+        }
+    }
 }
 
 enum class KrtPratyayaIdentity {

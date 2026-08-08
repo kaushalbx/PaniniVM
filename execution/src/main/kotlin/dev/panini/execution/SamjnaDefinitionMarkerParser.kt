@@ -4,8 +4,8 @@ import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
 import dev.panini.vyakaranam.ast.AvyayaFunction
 import dev.panini.vyakaranam.ast.AvyayaPada
+import dev.panini.vyakaranam.ast.KridantaLexicalIdentity
 import dev.panini.vyakaranam.ast.KridantaPratipadika
-import dev.panini.vyakaranam.ast.KrtPratyayaIdentity
 import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.parser.PaniniParser
@@ -78,12 +78,9 @@ object SamjnaDefinitionMarkerParser {
             is MulaPratipadika -> QUALIFIER_IDENTITIES[
                 SamjnaInvocationMatcher.normalizeIdentity(base.text)
             ]
-            is KridantaPratipadika ->
-                SamjnaDefinitionQualifier.APAVADA.takeIf {
-                    base.upasargas == listOf("अप") &&
-                    base.dhatu.mulaDhatu == "वद्" &&
-                    base.krtPratyayaIdentity == KrtPratyayaIdentity.GHAN
-                }
+            is KridantaPratipadika -> SamjnaDefinitionQualifier.APAVADA.takeIf {
+                base.lexicalIdentity == KridantaLexicalIdentity.APAVADA
+            }
             else -> QUALIFIER_IDENTITIES[base.samjnaIdentity()]
         }
     }

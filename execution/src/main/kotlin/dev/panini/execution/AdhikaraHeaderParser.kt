@@ -4,8 +4,8 @@ import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
 import dev.panini.vyakaranam.ast.AvyayaFunction
 import dev.panini.vyakaranam.ast.AvyayaPada
+import dev.panini.vyakaranam.ast.KridantaLexicalIdentity
 import dev.panini.vyakaranam.ast.KridantaPratipadika
-import dev.panini.vyakaranam.ast.KrtPratyayaIdentity
 import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.parser.PaniniParser
@@ -32,10 +32,7 @@ object AdhikaraHeaderParser {
 
     private fun SubantaPada.isAdhikaraMarker(): Boolean = when (val base = pratipadika) {
         is MulaPratipadika -> base.text == "अधिकार"
-        is KridantaPratipadika ->
-            base.upasargas == listOf("अधि") &&
-                base.dhatu.mulaDhatu == "कृ" &&
-                base.krtPratyayaIdentity == KrtPratyayaIdentity.GHAN
+        is KridantaPratipadika -> base.lexicalIdentity == KridantaLexicalIdentity.ADHIKARA
         else -> false
     }
 }

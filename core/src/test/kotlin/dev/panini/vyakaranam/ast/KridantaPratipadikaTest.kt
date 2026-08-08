@@ -19,10 +19,28 @@ class KridantaPratipadikaTest {
         assertNull(kridanta("ल्युट्").krtPratyayaIdentity)
     }
 
-    private fun kridanta(pratyaya: String) = KridantaPratipadika(
-        sourceText = "सिध् + $pratyaya",
-        upasargas = emptyList(),
-        dhatu = DhatuPrakriti("सिध्", "सिध्"),
+    @Test
+    fun `classifies canonical derived lexical identities`() {
+        assertEquals(
+            KridantaLexicalIdentity.ADHIKARA,
+            kridanta("घञ्", listOf("अधि"), "कृ").lexicalIdentity,
+        )
+        assertEquals(
+            KridantaLexicalIdentity.APAVADA,
+            kridanta("घञ्", listOf("अप"), "वद्").lexicalIdentity,
+        )
+        assertNull(kridanta("ल्युट्", listOf("अधि"), "कृ").lexicalIdentity)
+        assertNull(kridanta("घञ्", listOf("अधि"), "वद्").lexicalIdentity)
+    }
+
+    private fun kridanta(
+        pratyaya: String,
+        upasargas: List<String> = emptyList(),
+        dhatu: String = "सिध्",
+    ) = KridantaPratipadika(
+        sourceText = (upasargas + dhatu + pratyaya).joinToString(" + "),
+        upasargas = upasargas,
+        dhatu = DhatuPrakriti(dhatu, dhatu),
         krtPratyaya = pratyaya,
     )
 }
