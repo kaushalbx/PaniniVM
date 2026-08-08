@@ -70,16 +70,8 @@ object PvmScript {
         else -> PvmSourceKind.SCRIPT
     }
 
-    private fun hasExplicitDefinitionMarker(source: String): Boolean = listOf(
-        "इति संज्ञा",
-        "इति अप + वद्",
-        "इति अप वद्",
-        "इति अपवाद",
-        "इति नि + त्य",
-        "इति नित्य",
-        "इति अन्तर् + अङ्ग",
-        "इति अन्तरङ्ग",
-    ).any(source::contains)
+    private fun hasExplicitDefinitionMarker(source: String): Boolean =
+        SamjnaDefinitionMarkerParser.hasExplicitMarker(source)
 
     fun parse(source: String): List<PvmScriptStatement> {
         val rawLines = source.lines()

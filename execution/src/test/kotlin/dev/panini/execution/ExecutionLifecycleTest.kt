@@ -226,6 +226,15 @@ class ExecutionLifecycleTest {
         assertEquals(PvmSourceKind.UTTERANCE, PvmScript.classify(utterance))
         assertEquals("panini.eval", assertIs<ExecutionResult.Success>(PaniniVM().eval(utterance)).operation)
         assertEquals(PvmSourceKind.UTTERANCE, PvmScript.classify("गणित + सुँ ।"))
+        assertEquals(
+            PvmSourceKind.SCRIPT,
+            PvmScript.classify("गणित + सुँ इति संज्ञा + सुँ ।"),
+        )
+        assertEquals(
+            PvmSourceKind.UTTERANCE,
+            PvmScript.classify("संज्ञा + सुँ ।"),
+            "A marker lexeme without the parsed इति construction remains an utterance.",
+        )
 
         val script = "$utterance\n$utterance"
         assertEquals(PvmSourceKind.SCRIPT, PvmScript.classify(script))
