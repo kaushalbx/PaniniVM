@@ -2,6 +2,8 @@ package dev.panini.execution.binding
 
 import dev.panini.execution.memory.KriyaMemory
 import dev.panini.execution.memory.RememberedKriya
+import dev.panini.vyakaranam.ast.MulaPratipadika
+import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
 import dev.panini.vyakaranam.ast.Pada
 import dev.panini.vyakaranam.ast.SubantaPada
 
@@ -28,7 +30,8 @@ internal object MemoryOrderQualifierResolver {
     fun before(target: Pada, padas: List<Pada>): MemoryOrderQualifier {
         val pada = padas.getOrNull(padas.indexOf(target) - 1)
         val ordinalNumber = pada?.let(NumeralPadaBinder::extractOrdinalValue)?.toInt()
-        val previous = (pada as? SubantaPada)?.pratipadika?.baseText() == "पूर्व"
+        val previous = ((pada as? SubantaPada)?.pratipadika as? MulaPratipadika)
+            ?.lexicalIdentity == MulaPratipadikaIdentity.PURVA
         return MemoryOrderQualifier(pada, ordinalNumber, previous)
     }
 }

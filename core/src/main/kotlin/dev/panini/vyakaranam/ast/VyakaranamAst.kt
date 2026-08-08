@@ -101,6 +101,7 @@ enum class MulaPratipadikaIdentity {
     ANTARANGA,
     APAVADA,
     NITYA,
+    PURVA,
     SAMJNA,
     SAMAVAYA,
     ;
@@ -111,6 +112,7 @@ enum class MulaPratipadikaIdentity {
             "अन्तरङ्ग", "अन्तर् + अङ्ग" -> ANTARANGA
             "अपवाद" -> APAVADA
             "नित्य", "नि + त्य" -> NITYA
+            "पूर्व" -> PURVA
             "संज्ञा" -> SAMJNA
             "समवाय" -> SAMAVAYA
             else -> null
