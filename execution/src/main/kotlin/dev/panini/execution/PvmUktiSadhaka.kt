@@ -163,8 +163,9 @@ class PvmUktiSadhaka(
     fun sadhayaSubanta(subanta: SubantaPada): String {
         val baseText = subanta.pratipadika.baseText()
         val supAffix = SupAffix.fromUpadesha(subanta.sup.text) ?: return baseText
-        if (subanta.pratipadika is KridantaPratipadika) {
-            pvmKridantaSurface(baseText, supAffix)?.let { return it }
+        val kridanta = subanta.pratipadika as? KridantaPratipadika
+        if (kridanta != null) {
+            pvmKridantaSurface(kridanta, baseText, supAffix)?.let { return it }
         }
         val linga = PvmNominalLexicon.gender(baseText)
         return try {
@@ -177,8 +178,8 @@ class PvmUktiSadhaka(
     }
 
     /** Stable a-stem forms for the PVM's action/state krdantas. */
-    private fun pvmKridantaSurface(stem: String, affix: SupAffix): String? {
-        if (stem !in PvmKridantaLexicon.declinableStems) return null
+    private fun pvmKridantaSurface(pratipadika: KridantaPratipadika, stem: String, affix: SupAffix): String? {
+        if (!PvmKridantaLexicon.isDeclinable(pratipadika.dhatu.mulaDhatu, pratipadika.krtPratyaya)) return null
         return when (affix) {
             SupAffix.AM -> "${stem}म्"
             SupAffix.NGE -> "${stem}ाय"

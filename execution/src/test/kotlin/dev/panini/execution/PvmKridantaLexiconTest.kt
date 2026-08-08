@@ -12,7 +12,8 @@ class PvmKridantaLexiconTest {
         assertEquals("योजन", PvmKridantaLexicon.stem("युज्", "ल्युट्"))
         assertEquals("धारण", PvmKridantaLexicon.stem("धृ", "अन"))
         assertEquals("हार", PvmKridantaLexicon.stem("हृ", "घञ्"))
-        assertTrue(setOf("योग", "योजन", "धारण", "हार").all(PvmKridantaLexicon.declinableStems::contains))
+        assertTrue(PvmKridantaLexicon.isDeclinable("युज्", "घञ्"))
+        assertTrue(PvmKridantaLexicon.isDeclinable("धृ", "ल्युट्"))
     }
 
     @Test

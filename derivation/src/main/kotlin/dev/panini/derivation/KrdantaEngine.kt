@@ -127,9 +127,10 @@ class KrdantaEngine(
             Samjna.TUMUN, Samjna.TAVYA, Samjna.ANIYAR, Samjna.TRC -> {
                 stem = applyGuna(stem)
             }
-            Samjna.NVUL, Samjna.GHAN, Samjna.NYAT -> {
+            Samjna.NVUL, Samjna.NYAT -> {
                 stem = applyVrddhi(stem)
             }
+            Samjna.GHAN -> stem = applyGhanGrade(stem)
             else -> Unit
         }
 
@@ -186,6 +187,40 @@ class KrdantaEngine(
         "जि" -> "जाय"
         "नी" -> "नाय"
         else -> stem
+    }
+
+    /**
+     * Applies the vowel grade used by the productive GHAÑ derivations exercised by
+     * the VM. Keeping this phonological operation here lets execution request a stem
+     * instead of storing the resulting surface form in a compatibility dictionary.
+     */
+    private fun applyGhanGrade(stem: String): String {
+        val graded = when {
+            stem.endsWith("ू") -> stem.dropLast(1) + "ाव्"
+            'ृ' in stem -> stem.replaceFirst("ृ", "ार्")
+            'ु' in stem -> stem.replaceFirst("ु", "ो")
+            'ि' in stem -> stem.replaceFirst("ि", "े")
+            else -> lengthenFirstInherentA(stem)
+        }
+        // 7.3.52 ca-joḥ ku ghiṇ-ṇyatoḥ: final palatals become velars in this environment.
+        return when {
+            graded.endsWith("ज्") -> graded.dropLast(2) + "ग्"
+            graded.endsWith("च्") -> graded.dropLast(2) + "क्"
+            else -> graded
+        }
+    }
+
+    private fun lengthenFirstInherentA(stem: String): String {
+        val consonants = "कखगघङचछजझञटठडढणतथदधनपफबभमयरलवशषसह"
+        val vowelMarks = "ािीुूृॄेैोौ्"
+        for (index in stem.indices) {
+            if (stem[index] !in consonants) continue
+            val next = stem.getOrNull(index + 1)
+            if (next == null || next !in vowelMarks) {
+                return stem.substring(0, index + 1) + "ा" + stem.substring(index + 1)
+            }
+        }
+        return stem
     }
 
     private fun fuseStemAndSuffix(upasarga: String, stem: String, suffix: String): String {

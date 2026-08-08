@@ -85,6 +85,21 @@ class KrdantaEngineTest {
     }
 
     @Test
+    fun `ghan derives pvm action stems phonologically`() {
+        val expected = mapOf(
+            "युज्" to "योग",
+            "शिष्" to "शेष",
+            "मूल्" to "मूल",
+            "भज्" to "भाग",
+            "हृ" to "हार",
+        )
+
+        expected.forEach { (dhatu, surface) ->
+            assertEquals(surface, engine.derive(KrdantaDerivationRequest(dhatu, Samjna.GHAN)).final.surface)
+        }
+    }
+
+    @Test
     fun `krdanta provenance contains only explicitly staged rules`() {
         val requests = listOf(
             KrdantaDerivationRequest("कृ", Samjna.KTVA, upasarga = "अनु"),
