@@ -101,6 +101,8 @@ class SamjnaKriyaMultiFileTest {
         assertNotNull(invocation, "Instrumental case with कृ must be detected as saṃjñā invocation.")
         assertEquals("एक + अम् द्वि + अम् च", invocation.karmaText)
         assertEquals("युज् + ल्युट् + सुँ", invocation.kriya.nameSegmented)
+        assertEquals(SamjnaMatchOrigin.AST, invocation.origin)
+        assertEquals(SamjnaMatchMetrics(ast = 1, compatibility = 0), registry.matchMetrics())
     }
 
     @Test

@@ -1,5 +1,7 @@
 package dev.panini.execution
 
+import java.util.concurrent.atomic.AtomicInteger
+
 /**
  * A user-defined reusable kriyā, named via the संज्ञा-सूत्र pattern.
  */
@@ -36,6 +38,8 @@ class SamjnaKriyaRegistry {
     private val registry = linkedMapOf<String, MutableList<SamjnaKriya>>()
     private val memoizedCache = mutableMapOf<String, ExecutionResult>()
     private val inheritanceMap = mutableMapOf<String, String>() // childStem -> parentStem
+    private val astMatches = AtomicInteger()
+    private val compatibilityMatches = AtomicInteger()
 
     fun registerInheritance(relation: InheritanceRelation) {
         inheritanceMap[relation.childStem] = relation.parentStem
@@ -71,6 +75,8 @@ class SamjnaKriyaRegistry {
 
     val size: Int get() = registry.size
 
+    fun matchMetrics(): SamjnaMatchMetrics = SamjnaMatchMetrics(astMatches.get(), compatibilityMatches.get())
+
     fun detectInvocation(sentenceText: String, callerSourceFile: String? = null, preParsedUkti: dev.panini.vyakaranam.ast.Ukti? = null): SamjnaInvocation? {
         if (registry.isEmpty()) return null
 
@@ -95,97 +101,26 @@ class SamjnaKriyaRegistry {
                     domainMatches(kriya.domainStem, invocationShape.domainStem)
             }?.let { kriya ->
                 if (!kriya.isInternal || callerSourceFile == null || kriya.sourceFile == null || callerSourceFile == kriya.sourceFile) {
+                    astMatches.incrementAndGet()
                     return SamjnaInvocation(
                         kriya = kriya,
                         karmaText = invocationShape.karmaText,
                         fullText = sentenceText,
                         ukti = invocationShape.ukti,
+                        origin = SamjnaMatchOrigin.AST,
                     )
                 }
             }
         }
 
-        // Compatibility fallback for source forms not yet represented structurally by the parser.
-        for (kriya in candidates) {
-            if (kriya.isInternal && callerSourceFile != null && kriya.sourceFile != null && callerSourceFile != kriya.sourceFile) {
-                continue // File-private saṃjñā hidden from external caller
-            }
-
-            val segmentedStem = kriya.nameStem
-            val instrumentalPattern = "$segmentedStem + टा"
-
-            // 1. Check Genitive Case domain qualification: "<domainStem> + ङस् <segmentedStem> + टा"
-            if (kriya.domainStem != null) {
-                val domainsToTry = mutableListOf(kriya.domainStem)
-                // Add all child classes that inherit from kriya.domainStem
-                inheritanceMap.forEach { (child, parent) ->
-                    if (parent == kriya.domainStem || parent == stripSupSuffix(kriya.domainStem)) {
-                        domainsToTry.add(child)
-                    }
-                }
-
-                for (domain in domainsToTry) {
-                    val genitivePattern = "$domain + ङस् $instrumentalPattern"
-                    val genitiveMatupPattern = "$domain + मतुप् + ङस् $instrumentalPattern"
-                    val genitiveVatupPattern = "$domain + वत् + ङस् $instrumentalPattern"
-
-                    var genitiveIdx = textToProcess.indexOf(genitiveMatupPattern)
-                    var matchedPattern = genitiveMatupPattern
-                    if (genitiveIdx < 0) {
-                        genitiveIdx = textToProcess.indexOf(genitiveVatupPattern)
-                        matchedPattern = genitiveVatupPattern
-                    }
-                    if (genitiveIdx < 0) {
-                        genitiveIdx = textToProcess.indexOf(genitivePattern)
-                        matchedPattern = genitivePattern
-                    }
-
-                    if (genitiveIdx >= 0) {
-                        if (kriya.domainStem != domain) {
-                            val cleanDomain = domain.substringBefore("+").trim()
-                            val exactChildMethod = registry.values.flatten().firstOrNull {
-                                (it.domainStem == domain || it.domainStem == cleanDomain) && it.nameStem == kriya.nameStem && it.isApavada
-                            }
-                            if (exactChildMethod != null) {
-                                continue
-                            }
-                        }
-                        val afterGenitive = textToProcess.substring(genitiveIdx + matchedPattern.length).trim()
-                        if (PradayaUpasargaEngine.isVerbAction(afterGenitive, preParsedUkti)) {
-                            val karmaText = textToProcess.substring(0, genitiveIdx).trim()
-                            return SamjnaInvocation(
-                                kriya = kriya,
-                                karmaText = karmaText,
-                                fullText = sentenceText,
-                                ukti = preParsedUkti,
-                            )
-                        }
-                    }
-                }
-            }
-
-            // 2. Check Unqualified instrumental invocation: "<segmentedStem> + टा"
-            val patternIdx = textToProcess.indexOf(instrumentalPattern)
-            if (patternIdx < 0) continue
-
-            val afterInstrumental = textToProcess.substring(patternIdx + instrumentalPattern.length).trim()
-            if (!PradayaUpasargaEngine.isVerbAction(afterInstrumental, preParsedUkti)) continue
-
-            var karmaText = textToProcess.substring(0, patternIdx).trim()
-            if (karmaText.contains("+ ङस्")) {
-                val ngasIdx = karmaText.indexOf("+ ङस्")
-                val textBeforeNgas = karmaText.substring(0, ngasIdx).trim()
-                karmaText = textBeforeNgas.substringBeforeLast(" ").trim().ifEmpty { textBeforeNgas }
-            }
-
-            return SamjnaInvocation(
-                kriya = kriya,
-                karmaText = karmaText,
-                fullText = sentenceText,
-                ukti = preParsedUkti,
-            )
-        }
-        return null
+        return LegacySamjnaInvocationMatcher.match(
+            textToProcess,
+            candidates,
+            allKriyas,
+            inheritanceMap,
+            callerSourceFile,
+            preParsedUkti,
+        )?.also { compatibilityMatches.incrementAndGet() }
     }
 
     private fun domainMatches(expected: String?, actual: String?): Boolean {
@@ -223,4 +158,9 @@ data class SamjnaInvocation(
     val karmaText: String,
     val fullText: String,
     val ukti: dev.panini.vyakaranam.ast.Ukti? = null,
+    val origin: SamjnaMatchOrigin,
 )
+
+enum class SamjnaMatchOrigin { AST, COMPATIBILITY }
+
+data class SamjnaMatchMetrics(val ast: Int, val compatibility: Int)
