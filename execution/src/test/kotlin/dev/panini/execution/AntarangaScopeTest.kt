@@ -2,6 +2,7 @@ package dev.panini.execution
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class AntarangaScopeTest {
@@ -15,6 +16,14 @@ class AntarangaScopeTest {
         assertEquals(
             "पञ्च + अम् द्वि + अम् च गुण + मतुप् + ङस् वृध् + ल्युट् + टा कृ + लोट् + सिप् ।",
             AntarangaScopeEngine.stripAntarangaDirective(line)
+        )
+        assertFalse(
+            AntarangaScopeEngine.detectAntaranga("अन्तर + अम् वृक्ष + अम् अङ्ग + ङसिँ कृ + लोट् + सिप् ।"),
+            "The two case-marked padas must form one adjacent directive.",
+        )
+        assertFalse(
+            AntarangaScopeEngine.detectAntaranga("अन्तर + सुँ अङ्ग + ङसिँ कृ + लोट् + सिप् ।"),
+            "The directive must use accusative अन्तर.",
         )
     }
 

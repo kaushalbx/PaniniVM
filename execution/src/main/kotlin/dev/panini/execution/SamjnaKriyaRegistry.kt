@@ -103,7 +103,11 @@ class SamjnaKriyaRegistry {
         if (registry.isEmpty()) return null
 
         val isAntaranga = AntarangaScopeEngine.detectAntaranga(sentenceText, preParsedUkti)
-        val textToProcess = if (isAntaranga) AntarangaScopeEngine.stripAntarangaDirective(sentenceText) else sentenceText
+        val textToProcess = if (isAntaranga) {
+            AntarangaScopeEngine.stripAntarangaDirective(sentenceText, preParsedUkti)
+        } else {
+            sentenceText
+        }
 
         val allKriyas = registry.values.flatten().distinctBy { System.identityHashCode(it) }
         val knownStems = allKriyas.mapTo(mutableSetOf()) {
