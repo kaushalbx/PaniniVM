@@ -1,5 +1,6 @@
 package dev.panini.execution.binding
 
+import dev.panini.core.Vibhakti
 import dev.panini.execution.ExecutionMetadata
 import dev.panini.execution.KriyaInvocationId
 
@@ -49,7 +50,7 @@ internal object PhalaResolver {
             val explicitOrder = MemoryOrderQualifierResolver.before(phalaPada, padas)
             val idx = subantas.indexOf(phalaPada)
             val genitiveModifier = subantas.take(idx)
-                .lastOrNull { it.sup.text in setOf("ङस्", "आम्") && it !in resolvedGenitives }
+                .lastOrNull { it.hasVibhakti(Vibhakti.SASTHI) && it !in resolvedGenitives }
                 ?: return@forEach
 
             val base = genitiveModifier.pratipadika.baseText()

@@ -1,11 +1,17 @@
 package dev.panini.execution.binding
 
+import dev.panini.core.SupAffix
+import dev.panini.core.Vibhakti
 import dev.panini.vyakaranam.ast.KridantaPratipadika
 import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.vyakaranam.ast.Pratipadika
 import dev.panini.vyakaranam.ast.SamasaPratipadika
 import dev.panini.vyakaranam.ast.SankhyaPratipadika
+import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.UnadyantaPratipadika
+
+internal fun SubantaPada.hasVibhakti(vibhakti: Vibhakti): Boolean =
+    SupAffix.candidates(sup.text).any { it.vibhakti == vibhakti }
 
 /**
  * Returns the canonical base text for this [Pratipadika]:

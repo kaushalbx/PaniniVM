@@ -3,6 +3,7 @@ package dev.panini.execution.binding
 import dev.panini.analysis.FrameKarakaResolution
 import dev.panini.analysis.KarakaRelation
 import dev.panini.core.Karaka
+import dev.panini.core.Vibhakti
 import dev.panini.execution.ExecutionExpression
 import dev.panini.vyakaranam.ast.KridantaPratipadika
 import dev.panini.vyakaranam.ast.Pada
@@ -29,7 +30,7 @@ internal object KarakaReferenceResolver {
             val karaka = Karaka.fromPratipadika(referencePada.pratipadika.baseText()) ?: return@forEachIndexed
             val order = MemoryOrderQualifierResolver.before(referencePada, padas)
             val genitive = subantas.take(index).lastOrNull {
-                it.sup.text in setOf("ङस्", "आम्") && it.pratipadika is KridantaPratipadika
+                it.hasVibhakti(Vibhakti.SASTHI) && it.pratipadika is KridantaPratipadika
             } ?: return@forEachIndexed
             val upadesha = (genitive.pratipadika as KridantaPratipadika).dhatu.mulaDhatu
                 .let(DhatuCache::get)?.upadesha ?: return@forEachIndexed
