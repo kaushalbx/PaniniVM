@@ -7,6 +7,7 @@ import dev.panini.execution.DhatuInvocation
 import dev.panini.execution.ExecutableUkti
 import dev.panini.execution.ExecutionBindingResult
 import dev.panini.execution.ExecutionExpression
+import dev.panini.execution.ExecutionMetadata
 import dev.panini.execution.KriyaInvocationId
 import dev.panini.execution.GrammaticalFeatures
 import dev.panini.execution.Polarity
@@ -232,9 +233,9 @@ object VyakaranamExecutionAdapter {
         }
         val frequencyCount = if (shouldUnroll) null else FrequencyExtractor.extractFrequencyCount(padas, ctx.frame)
         val metadataMap = buildMap {
-            put("dhatuName", dhatu.upadesha)
-            put("dhatu:${KriyaInvocationId.of(index + 1)}", dhatu.upadesha)
-            if (frequencyCount != null) put("frequencyCount", frequencyCount.toString())
+            put(ExecutionMetadata.DEFAULT_DHATU, dhatu.upadesha)
+            put(ExecutionMetadata.dhatu(KriyaInvocationId.of(index + 1)), dhatu.upadesha)
+            if (frequencyCount != null) put(ExecutionMetadata.FREQUENCY_COUNT, frequencyCount.toString())
         }
         return DhatuInvocation(
             id = KriyaInvocationId.of(index + 1),

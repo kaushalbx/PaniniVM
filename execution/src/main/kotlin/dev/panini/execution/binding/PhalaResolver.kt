@@ -1,5 +1,6 @@
 package dev.panini.execution.binding
 
+import dev.panini.execution.ExecutionMetadata
 import dev.panini.execution.KriyaInvocationId
 
 import dev.panini.vyakaranam.ast.SubantaPada
@@ -90,8 +91,8 @@ internal object PhalaResolver {
 
             // ---- 3. Compatibility fallback to conversation result history -----------
             val historicalResults = ctx.conversation?.resultHistory?.filter { result ->
-                val dhatuUpadesha = ctx.conversation.metadata["dhatu:${result.invocationId}"]
-                    ?: ctx.conversation.metadata["dhatu:${result.id}"]
+                val dhatuUpadesha = ctx.conversation.metadata[ExecutionMetadata.dhatu(result.invocationId)]
+                    ?: ctx.conversation.metadata[ExecutionMetadata.dhatu(result.id)]
                 val prevDhatu = dhatuUpadesha?.let { DhatuCache.upadeshaDhatuCache[it] }
                     ?: return@filter false
                 val prevRoot = DhatuCache.getDhatuRoot(prevDhatu.upadesha)

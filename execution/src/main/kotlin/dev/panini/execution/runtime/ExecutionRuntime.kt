@@ -54,7 +54,7 @@ object ExecutionRuntime {
                 )
                 is AuthorityDecision.Denied -> return Phala.Nirasta(plan.invocationId, authority.reason)
             }
-            val repeatCount = plan.resolved.context.metadata["frequencyCount"]?.toIntOrNull() ?: 1
+            val repeatCount = plan.resolved.context.metadata[ExecutionMetadata.FREQUENCY_COUNT]?.toIntOrNull() ?: 1
             for (repeat in 1..repeatCount) {
                 val refreshedContext = plan.resolved.context.copy(
                     variables = values.filterKeys { it != plan.invocationId },

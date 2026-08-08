@@ -7,6 +7,7 @@ import dev.panini.execution.ExecutionBindingResult
 import dev.panini.execution.ExecutionError
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.ExecutionScope
+import dev.panini.execution.ExecutionMetadata
 import dev.panini.execution.KriyaInvocationId
 import dev.panini.execution.Phala
 import dev.panini.execution.Prativacana
@@ -40,7 +41,7 @@ object SutraExecutionPipeline {
                     val metadata = buildMap {
                         val turnPrefix = "उक्ति-${DevanagariDigits.render(conversation.turnNumber + 1)}"
                         binding.ukti.invocations.forEachIndexed { idx, inv ->
-                            put("dhatu:$turnPrefix/${KriyaInvocationId.of(idx + 1)}", inv.dhatu.upadesha)
+                            put(ExecutionMetadata.dhatu("$turnPrefix/${KriyaInvocationId.of(idx + 1)}"), inv.dhatu.upadesha)
                         }
                     }
                     phala.copy(metadata = metadata)
@@ -182,8 +183,9 @@ object SutraExecutionPipeline {
             )
         }
         val historyMetadata = remembered.mapNotNull { r ->
-            val dhatu = success.metadata["dhatu:${r.invocationId}"] ?: success.metadata["dhatuName"]
-            if (dhatu != null) "dhatu:${r.id}" to dhatu else null
+            val dhatu = success.metadata[ExecutionMetadata.dhatu(r.invocationId)]
+                ?: success.metadata[ExecutionMetadata.DEFAULT_DHATU]
+            if (dhatu != null) ExecutionMetadata.dhatu(r.id) to dhatu else null
         }.toMap()
         val historyTypedResults = remembered.mapNotNull { r ->
             r.typedValue?.let { r.id to it }
