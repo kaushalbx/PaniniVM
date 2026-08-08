@@ -187,7 +187,7 @@ class PvmUktiSadhaka(
 
     /** Stable a-stem forms for the PVM's action/state krdantas. */
     private fun pvmKridantaSurface(stem: String, affix: SupAffix): String? {
-        if (stem !in pvmKridantaStems) return null
+        if (stem !in PvmKridantaLexicon.declinableStems) return null
         return when (affix) {
             SupAffix.AM -> "${stem}म्"
             SupAffix.NGE -> "${stem}ाय"
@@ -241,31 +241,9 @@ class PvmUktiSadhaka(
     private fun Pratipadika.baseText(): String = when (this) {
         is MulaPratipadika -> text
         is SankhyaPratipadika -> sourceText
-        is KridantaPratipadika -> deriveKridantaStem(dhatu.mulaDhatu, krtPratyaya)
+        is KridantaPratipadika -> PvmKridantaLexicon.stem(dhatu.mulaDhatu, krtPratyaya)
         is UnadyantaPratipadika -> sourceText
         is SamasaPratipadika -> angas.joinToString("") { it.pratipadika.baseText() }
     }
 
-    private fun deriveKridantaStem(dhatu: String, pratyaya: String): String {
-        return when (dhatu) {
-            "युज्" -> when (pratyaya) {
-                "घञ्", "अप्" -> "योग"
-                "ल्युट्", "अन" -> "योजन"
-                else -> "युज्"
-            }
-            "गण" -> if (pratyaya == "ल्युट्" || pratyaya == "अन") "गणन" else "गण"
-            "धृ" -> if (pratyaya == "ल्युट्" || pratyaya == "अन") "धारण" else "धृ"
-            "स्था" -> if (pratyaya == "ल्युट्" || pratyaya == "अन") "स्थान" else "स्था"
-            "जन्" -> if (pratyaya == "ल्युट्" || pratyaya == "अन") "जनन" else "जन्"
-            "शिष्" -> if (pratyaya == "घञ्" || pratyaya == "अप्") "शेष" else "शिष्"
-            "मूल्" -> if (pratyaya == "घञ्" || pratyaya == "अप्") "मूल" else "मूल"
-            "भज्" -> if (pratyaya == "घञ्") "भाग" else "भज्"
-            "हृ" -> if (pratyaya == "ल्युट्") "हरण" else if (pratyaya == "घञ्") "हार" else "हर"
-            else -> dhatu
-        }
-    }
-
-    private companion object {
-        val pvmKridantaStems = setOf("योग", "योजन", "गणन", "धारण", "स्थान", "जनन", "शेष", "मूल", "भाग", "हरण", "हार")
-    }
 }
