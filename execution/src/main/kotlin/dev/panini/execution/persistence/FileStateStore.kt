@@ -1,5 +1,6 @@
 package dev.panini.execution.persistence
 
+import dev.panini.execution.LegacySanskritValueCodec
 import dev.panini.execution.PersistedSamjnaCodec
 import dev.panini.execution.SambhashanaContext
 import dev.panini.execution.SanskritValue
@@ -133,15 +134,7 @@ class FileStateStore(private val storageDir: File) : StateStore {
             val bytes = base64Codec.decode(type.removePrefix(VALUE_V2_PREFIX))
             DataInputStream(ByteArrayInputStream(bytes)).use { it.readValue() }
         }.getOrNull()
-        type == "LOPA" -> SanskritValue.Lopa
-        type.startsWith("SANKHYA:") -> SanskritValue.Sankhya(type.substringAfter(':').toLong(), display)
-        type.startsWith("RATIONAL:") -> {
-            val (num, denom) = type.substringAfter(':').split('/').map { it.toLong() }
-            SanskritValue.Rational(num, denom, display)
-        }
-        type.startsWith("SATYA:") -> SanskritValue.Satya(type.substringAfter(':').toBooleanStrict())
-        type == "SHABDA" || type == "GANA" -> SanskritValue.Shabda(display, samjnas)
-        else -> null
+        else -> LegacySanskritValueCodec.decode(type, display, samjnas)
     }
 
     private fun DataOutputStream.writeValue(value: SanskritValue) {
