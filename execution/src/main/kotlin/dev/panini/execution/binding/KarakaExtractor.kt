@@ -51,7 +51,7 @@ internal object KarakaExtractor {
             }
 
         val subantas = padas.filterIsInstance<SubantaPada>()
-        val phalaPadas = subantas.filter { it.pratipadika.baseText() == "फल" }
+        val phalaPadas = subantas.filter(PhalaReference::isReference)
 
         // ---- फल resolution (delegated) ---------------------------------------------
         val phalaResolution = PhalaResolver.resolve(phalaPadas, padas, subantas, ctx)

@@ -38,6 +38,7 @@ internal object ExpressionBuilder {
     ): ExecutionExpression {
         val baseText = pada.pratipadika.baseText()
         val text = pada.pratipadika.referenceKey()
+        val isPhalaReference = PhalaReference.isReference(pada)
         var resolvedId: String? = null
 
         if (ctx.conversation?.previousTypedResults?.containsKey(text) == true ||
@@ -45,7 +46,7 @@ internal object ExpressionBuilder {
             ctx.localVariables.contains(text)
         ) {
             resolvedId = text
-        } else if (baseText == "फल") {
+        } else if (isPhalaReference) {
             resolvedId = overridePhalaId ?: (
                 if (ctx.clauseIndex > 0) KriyaInvocationId.of(ctx.clauseIndex)
                 else ctx.memory.latestKriya()?.frame?.id?.value
@@ -67,7 +68,7 @@ internal object ExpressionBuilder {
         val samjnas = buildSet {
             add(Samjna.SHABDA)
             if (sankhyaValue != null) add(Samjna.SANKHYA)
-            if (baseText == "फल") add(Samjna.REFERENCE)
+            if (isPhalaReference) add(Samjna.REFERENCE)
             when (pada.pratipadika) {
                 is KridantaPratipadika -> add(Samjna.KRIDANTA)
                 is SamasaPratipadika -> add(Samjna.SAMASA)

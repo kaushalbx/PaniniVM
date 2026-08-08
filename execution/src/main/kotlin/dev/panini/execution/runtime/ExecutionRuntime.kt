@@ -1,5 +1,7 @@
 package dev.panini.execution
 
+import dev.panini.execution.binding.PhalaReference
+
 object ExecutionRuntime {
     fun execute(
         planning: PlanningResult.Planned,
@@ -76,14 +78,14 @@ object ExecutionRuntime {
                         val sankhyaVals = karmanExpr?.let { plan.resolved.context.resolveSankhyaValues(it) }
                         val secondVal = if (sankhyaVals != null && sankhyaVals.size >= 2 && karmanExpr is dev.panini.execution.ExecutionExpression.Coordination) sankhyaVals[1] else null
 
-                        val oldPhala = values["फल"]
+                        val oldPhala = values[PhalaReference.KEY]
                         if (secondVal != null) {
                             val surf = scope.sankhyaRenderer.render(secondVal) ?: secondVal.toString()
                             values["पूर्वफल"] = dev.panini.execution.SanskritValue.Sankhya(secondVal, surf)
                         } else if (oldPhala != null) {
                             values["पूर्वफल"] = oldPhala
                         }
-                        values["फल"] = typedResult
+                        values[PhalaReference.KEY] = typedResult
                         values[plan.invocationId] = typedResult
                         val bindingKaraka = plan.resolved.operation.resultBindingKaraka
                         val bindingName = bindingKaraka
