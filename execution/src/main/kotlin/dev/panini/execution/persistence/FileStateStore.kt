@@ -23,24 +23,24 @@ class FileStateStore(private val storageDir: File) : StateStore {
     }
 
     override fun save(key: String, context: SambhashanaContext) {
-        val lines = mutableListOf("PANINI_STATE_V2")
-        lines += record("CONTEXT", context.speaker, context.listener, context.turnNumber.toString())
+        val lines = mutableListOf(StateFileSchema.HEADER_V2)
+        lines += record(StateRecordType.CONTEXT, context.speaker, context.listener, context.turnNumber.toString())
         context.mentionedEntities.forEach { (name, value) ->
-            lines += record("ENTITY", name, value, encodeSamjnas(context.mentionedEntitySamjnas[name].orEmpty()))
+            lines += record(StateRecordType.ENTITY, name, value, encodeSamjnas(context.mentionedEntitySamjnas[name].orEmpty()))
         }
         context.previousResults.forEach { (name, value) ->
             lines += record(
-                "RESULT", name, value, encodeSamjnas(context.previousResultSamjnas[name].orEmpty()),
+                StateRecordType.RESULT, name, value, encodeSamjnas(context.previousResultSamjnas[name].orEmpty()),
                 encodeTyped(context.previousTypedResults[name]),
             )
         }
         context.resultHistory.forEach { result ->
             lines += record(
-                "HISTORY", result.id, result.turnNumber.toString(), result.invocationId,
+                StateRecordType.HISTORY, result.id, result.turnNumber.toString(), result.invocationId,
                 result.value, encodeSamjnas(result.samjnas), encodeTyped(result.typedValue),
             )
         }
-        context.metadata.forEach { (name, value) -> lines += record("META", name, value) }
+        context.metadata.forEach { (name, value) -> lines += record(StateRecordType.META, name, value) }
         fileFor(key).writeText(lines.joinToString("\n", postfix = "\n"))
     }
 
@@ -48,7 +48,7 @@ class FileStateStore(private val storageDir: File) : StateStore {
         val file = fileFor(key)
         if (!file.exists()) return null
         val lines = file.readLines()
-        if (lines.firstOrNull() != "PANINI_STATE_V2") return null
+        if (lines.firstOrNull() != StateFileSchema.HEADER_V2) return null
 
         var speaker = "प्रयोक्ता"
         var listener = "यन्त्रम्"
@@ -63,25 +63,26 @@ class FileStateStore(private val storageDir: File) : StateStore {
 
         lines.drop(1).filter(String::isNotBlank).forEach { line ->
             val fields = decodeRecord(line)
-            when (fields.firstOrNull()) {
-                "CONTEXT" -> {
+            when (StateRecordType.fromWireName(fields.firstOrNull())) {
+                StateRecordType.CONTEXT -> {
                     speaker = fields[1]; listener = fields[2]; turnNumber = fields[3].toInt()
                 }
-                "ENTITY" -> {
+                StateRecordType.ENTITY -> {
                     entities[fields[1]] = fields[2]; entitySamjnas[fields[1]] = decodeSamjnas(fields[3])
                 }
-                "RESULT" -> {
+                StateRecordType.RESULT -> {
                     val name = fields[1]
                     results[name] = fields[2]
                     resultSamjnas[name] = decodeSamjnas(fields[3])
                     decodeTyped(fields[4], fields[2], resultSamjnas.getValue(name))?.let { typedResults[name] = it }
                 }
-                "HISTORY" -> history += SmrtaPhala(
+                StateRecordType.HISTORY -> history += SmrtaPhala(
                     id = fields[1], turnNumber = fields[2].toInt(), invocationId = fields[3],
                     value = fields[4], samjnas = decodeSamjnas(fields[5]),
                     typedValue = decodeTyped(fields[6], fields[4], decodeSamjnas(fields[5])),
                 )
-                "META" -> metadata[fields[1]] = fields[2]
+                StateRecordType.META -> metadata[fields[1]] = fields[2]
+                null -> Unit
             }
         }
         return SambhashanaContext(
@@ -102,8 +103,8 @@ class FileStateStore(private val storageDir: File) : StateStore {
         return File(storageDir, safe + EXTENSION)
     }
 
-    private fun record(type: String, vararg values: String): String =
-        (listOf(type) + values.map(::encode)).joinToString("\t")
+    private fun record(type: StateRecordType, vararg values: String): String =
+        (listOf(type.name) + values.map(::encode)).joinToString("\t")
 
     private fun decodeRecord(line: String): List<String> = line.split('\t').mapIndexed { index, field ->
         if (index == 0) field else decode(field)
