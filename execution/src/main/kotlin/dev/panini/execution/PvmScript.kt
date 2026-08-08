@@ -190,32 +190,10 @@ object PvmScript {
     }
 
     internal fun isAdhikaraLine(line: String): Boolean {
-        return line.contains("अधि + कृ + घञ्") || line.contains("अधिकार")
+        return AdhikaraHeaderParser.domain(line) != null
     }
 
-    internal fun extractAdhikaraDomain(line: String): String? {
-        val trimmed = line.trim()
-        if (!isAdhikaraLine(trimmed)) return null
-
-        val marker = if (trimmed.contains("अधि + कृ + घञ्")) {
-            "अधि + कृ + घञ्"
-        } else if (trimmed.contains("अधिकार")) {
-            "अधिकार"
-        } else {
-            return null
-        }
-
-        var beforeAdhikara = trimmed.substringBefore(marker)
-            .trimEnd('।', '॥', ' ', '+')
-            .trim()
-        if (beforeAdhikara.isEmpty()) return null
-
-        if (beforeAdhikara.endsWith("इति")) {
-            beforeAdhikara = beforeAdhikara.substringBeforeLast("इति").trim()
-        }
-
-        return beforeAdhikara.ifEmpty { null }
-    }
+    internal fun extractAdhikaraDomain(line: String): String? = AdhikaraHeaderParser.domain(line)
 
     internal fun extractSamjnaHeaderName(line: String): String? {
         val trimmed = line.trim()
