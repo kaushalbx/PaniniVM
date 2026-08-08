@@ -81,19 +81,12 @@ object SamjnaDefinitionMarkerParser {
                 MulaPratipadikaIdentity.APAVADA -> SamjnaDefinitionQualifier.APAVADA
                 MulaPratipadikaIdentity.NITYA -> SamjnaDefinitionQualifier.NITYA
                 MulaPratipadikaIdentity.ANTARANGA -> SamjnaDefinitionQualifier.ANTARANGA
-                else -> STRUCTURAL_QUALIFIER_IDENTITIES[
-                    SamjnaInvocationMatcher.normalizeIdentity(base.text)
-                ]
+                else -> null
             }
             is KridantaPratipadika -> SamjnaDefinitionQualifier.APAVADA.takeIf {
                 base.lexicalIdentity == KridantaLexicalIdentity.APAVADA
             }
-            else -> STRUCTURAL_QUALIFIER_IDENTITIES[base.samjnaIdentity()]
+            else -> null
         }
     }
-
-    private val STRUCTURAL_QUALIFIER_IDENTITIES = mapOf(
-        "नि + त्य" to SamjnaDefinitionQualifier.NITYA,
-        "अन्तर् + अङ्ग" to SamjnaDefinitionQualifier.ANTARANGA,
-    )
 }

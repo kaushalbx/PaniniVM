@@ -12,8 +12,12 @@ class MulaPratipadikaTest {
         assertEquals(MulaPratipadikaIdentity.ANTARANGA, pratipadika("अन्तरङ्ग").lexicalIdentity)
         assertEquals(MulaPratipadikaIdentity.APAVADA, pratipadika("अपवाद").lexicalIdentity)
         assertEquals(MulaPratipadikaIdentity.NITYA, pratipadika("नित्य").lexicalIdentity)
+        assertEquals(MulaPratipadikaIdentity.NITYA, pratipadika("नि+त्य").lexicalIdentity)
+        assertEquals(MulaPratipadikaIdentity.NITYA, pratipadika("नि + त्य").lexicalIdentity)
         assertEquals(MulaPratipadikaIdentity.SAMJNA, pratipadika("संज्ञा").lexicalIdentity)
         assertEquals(MulaPratipadikaIdentity.SAMAVAYA, pratipadika("समवाय").lexicalIdentity)
+        assertEquals(MulaPratipadikaIdentity.ANTARANGA, pratipadika("अन्तर्+अङ्ग").lexicalIdentity)
+        assertEquals(MulaPratipadikaIdentity.ANTARANGA, pratipadika("अन्तर् + अङ्ग").lexicalIdentity)
         assertNull(pratipadika("राम").lexicalIdentity)
     }
 

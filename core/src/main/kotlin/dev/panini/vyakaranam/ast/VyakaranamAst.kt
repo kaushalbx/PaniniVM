@@ -106,15 +106,18 @@ enum class MulaPratipadikaIdentity {
     ;
 
     companion object {
-        fun fromText(text: String): MulaPratipadikaIdentity? = when (text.trim()) {
+        fun fromText(text: String): MulaPratipadikaIdentity? = when (normalize(text)) {
             "अधिकार" -> ADHIKARA
-            "अन्तरङ्ग" -> ANTARANGA
+            "अन्तरङ्ग", "अन्तर् + अङ्ग" -> ANTARANGA
             "अपवाद" -> APAVADA
-            "नित्य" -> NITYA
+            "नित्य", "नि + त्य" -> NITYA
             "संज्ञा" -> SAMJNA
             "समवाय" -> SAMAVAYA
             else -> null
         }
+
+        private fun normalize(text: String): String =
+            text.split('+').joinToString(" + ") { it.trim() }.trim()
     }
 }
 
