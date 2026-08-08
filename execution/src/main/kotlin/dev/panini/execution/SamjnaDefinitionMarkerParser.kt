@@ -23,6 +23,21 @@ object SamjnaDefinitionMarkerParser {
         }
     }
 
+    /** Returns the declaration prefix before the final explicit marker. */
+    fun headerPrefix(source: String): String? {
+        val ukti = parser.parseOrNull(source.trim().trimEnd('।', '॥', ' ')) ?: return null
+        val padas = ukti.vakyas.flatMap { it.padas }
+        val markerIndex = padas.indices.lastOrNull { index ->
+            (padas[index] as? SubantaPada)?.isDefinitionMarker() == true
+        } ?: return null
+        val itiIndex = (0 until markerIndex).lastOrNull { index ->
+            (padas[index] as? AvyayaPada)?.form == "इति"
+        } ?: return null
+        return padas.take(itiIndex)
+            .joinToString(" ") { SamjnaInvocationMatcher.normalizeIdentity(it.sourceText) }
+            .ifBlank { null }
+    }
+
     private fun SubantaPada.isDefinitionMarker(): Boolean {
         if (SupAffix.fromUpadesha(sup.text)?.vibhakti != Vibhakti.PRATHAMA) return false
         return when (val base = pratipadika) {

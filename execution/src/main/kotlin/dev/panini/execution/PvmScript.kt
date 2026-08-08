@@ -191,48 +191,21 @@ object PvmScript {
         val trimmed = line.trim()
         if (trimmed.isEmpty() || isAdhikaraLine(trimmed)) return null
 
-        // Struct instantiation lines (containing attribute value assignments "+ अम्") are statements, not headers
-        if (trimmed.contains("+ अम्") && (trimmed.contains("+ मतुप् + सुँ") || trimmed.contains("+ वतुप् + सुँ") || trimmed.contains("+ वत् + सुँ") || trimmed.contains("+ मत् + सुँ"))) return null
+        SamjnaDefinitionMarkerParser.headerPrefix(trimmed)?.let { return it }
 
-        // Support header markers: "इति संज्ञा", "इति अप + वद्", "इति अप वद्", "इति अपवाद", "इति नि + त्य", "इति अन्तर् + अङ्ग"
-        val isHeaderWithMarker = trimmed.contains("इति संज्ञा") ||
-            trimmed.contains("इति अप + वद्") || trimmed.contains("इति अप वद्") || trimmed.contains("इति अपवाद") ||
-            trimmed.contains("इति नि + त्य") || trimmed.contains("इति नि+त्य") || trimmed.contains("इति नित्य") ||
-            trimmed.contains("इति अन्तर् + अङ्ग") || trimmed.contains("इति अन्तर्+अङ्ग") || trimmed.contains("इति अन्तरङ्ग")
-        if (isHeaderWithMarker) {
-            val markerIdx = when {
-                trimmed.contains("इति संज्ञा") -> trimmed.indexOf("इति संज्ञा")
-                trimmed.contains("इति अप + वद्") -> trimmed.indexOf("इति अप + वद्")
-                trimmed.contains("इति अप वद्") -> trimmed.indexOf("इति अप वद्")
-                trimmed.contains("इति अपवाद") -> trimmed.indexOf("इति अपवाद")
-                trimmed.contains("इति नि + त्य") -> trimmed.indexOf("इति नि + त्य")
-                trimmed.contains("इति नि+त्य") -> trimmed.indexOf("इति नि+त्य")
-                trimmed.contains("इति नित्य") -> trimmed.indexOf("इति नित्य")
-                trimmed.contains("इति अन्तर् + अङ्ग") -> trimmed.indexOf("इति अन्तर् + अङ्ग")
-                trimmed.contains("इति अन्तर्+अङ्ग") -> trimmed.indexOf("इति अन्तर्+अङ्ग")
-                else -> trimmed.indexOf("इति अन्तरङ्ग")
+        val internalPrefix = INTERNAL_PREFIXES.firstOrNull(trimmed::startsWith)
+        val nominalSource = internalPrefix?.let(trimmed::removePrefix)?.trim() ?: trimmed
+        if (SamjnaHeaderIdentityParser.parse(nominalSource) == null) return null
+        val ukti = parser.parseOrNull(nominalSource.trimEnd('।', '॥', ' ')) ?: return null
+        val hasAccusative = ukti.vakyas.flatMap { it.padas }
+            .filterIsInstance<dev.panini.vyakaranam.ast.SubantaPada>()
+            .any {
+                dev.panini.core.SupAffix.fromUpadesha(it.sup.text)?.vibhakti ==
+                    dev.panini.core.Vibhakti.DVITIYA
             }
-            if (markerIdx > 0) {
-                return trimmed.substring(0, markerIdx).trim().ifEmpty { null }
-            }
-            // If line starts with or contains the header pattern ending in daṇḍa
-            val nameText = trimmed.substringBefore("संज्ञा")
-                .trimEnd('।', '॥', ' ')
-                .trim()
-            return nameText.ifEmpty { null }
-        }
-
-        // Pure Pāṇinian header: "<name> + सुँ ।" or "<name> + सुँ संज्ञा ।"
-        val hasNominalAffix = trimmed.contains("+ सुँ") || trimmed.contains("+ प्रथमा")
-        val hasVerbAffix = trimmed.contains("लोट्") || trimmed.contains("लट्") || trimmed.contains("लङ्") || trimmed.contains("विधिलिङ्")
-        if (hasNominalAffix && !hasVerbAffix) {
-            val nameText = trimmed.substringBefore("संज्ञा")
-                .trimEnd('।', '॥', ' ')
-                .trim()
-            return nameText.ifEmpty { null }
-        }
-
-        return null
+        if (hasAccusative) return null
+        val normalized = nominalSource.trimEnd('।', '॥', ' ').trim()
+        return if (internalPrefix == null) normalized else "$internalPrefix$normalized"
     }
 
     internal fun isSamjnaBlockEnd(line: String): Boolean {
