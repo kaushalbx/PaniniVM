@@ -98,12 +98,20 @@ data class MulaPratipadika(
 
 enum class MulaPratipadikaIdentity {
     ADHIKARA,
+    ANTARANGA,
+    APAVADA,
+    NITYA,
+    SAMJNA,
     SAMAVAYA,
     ;
 
     companion object {
         fun fromText(text: String): MulaPratipadikaIdentity? = when (text.trim()) {
             "अधिकार" -> ADHIKARA
+            "अन्तरङ्ग" -> ANTARANGA
+            "अपवाद" -> APAVADA
+            "नित्य" -> NITYA
+            "संज्ञा" -> SAMJNA
             "समवाय" -> SAMAVAYA
             else -> null
         }

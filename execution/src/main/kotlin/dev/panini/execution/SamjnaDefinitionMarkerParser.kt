@@ -7,6 +7,7 @@ import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.KridantaLexicalIdentity
 import dev.panini.vyakaranam.ast.KridantaPratipadika
 import dev.panini.vyakaranam.ast.MulaPratipadika
+import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.parser.PaniniParser
 
@@ -75,22 +76,24 @@ object SamjnaDefinitionMarkerParser {
     private fun SubantaPada.definitionQualifier(): SamjnaDefinitionQualifier? {
         if (SupAffix.fromUpadesha(sup.text)?.vibhakti != Vibhakti.PRATHAMA) return null
         return when (val base = pratipadika) {
-            is MulaPratipadika -> QUALIFIER_IDENTITIES[
-                SamjnaInvocationMatcher.normalizeIdentity(base.text)
-            ]
+            is MulaPratipadika -> when (base.lexicalIdentity) {
+                MulaPratipadikaIdentity.SAMJNA -> SamjnaDefinitionQualifier.SAMJNA
+                MulaPratipadikaIdentity.APAVADA -> SamjnaDefinitionQualifier.APAVADA
+                MulaPratipadikaIdentity.NITYA -> SamjnaDefinitionQualifier.NITYA
+                MulaPratipadikaIdentity.ANTARANGA -> SamjnaDefinitionQualifier.ANTARANGA
+                else -> STRUCTURAL_QUALIFIER_IDENTITIES[
+                    SamjnaInvocationMatcher.normalizeIdentity(base.text)
+                ]
+            }
             is KridantaPratipadika -> SamjnaDefinitionQualifier.APAVADA.takeIf {
                 base.lexicalIdentity == KridantaLexicalIdentity.APAVADA
             }
-            else -> QUALIFIER_IDENTITIES[base.samjnaIdentity()]
+            else -> STRUCTURAL_QUALIFIER_IDENTITIES[base.samjnaIdentity()]
         }
     }
 
-    private val QUALIFIER_IDENTITIES = mapOf(
-        "संज्ञा" to SamjnaDefinitionQualifier.SAMJNA,
-        "अपवाद" to SamjnaDefinitionQualifier.APAVADA,
-        "नित्य" to SamjnaDefinitionQualifier.NITYA,
+    private val STRUCTURAL_QUALIFIER_IDENTITIES = mapOf(
         "नि + त्य" to SamjnaDefinitionQualifier.NITYA,
-        "अन्तरङ्ग" to SamjnaDefinitionQualifier.ANTARANGA,
         "अन्तर् + अङ्ग" to SamjnaDefinitionQualifier.ANTARANGA,
     )
 }
