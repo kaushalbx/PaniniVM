@@ -73,35 +73,35 @@ class SankhyaEvaluator {
         }
 
         // Multiplicative stem + "गुणित" / "हते", e.g. ["द्वि", "गुणित", "शत"] -> 2 * 100 = 200
-        if (stems.size >= 2 && (stems[1] == "गुणित" || stems[1] == "हते")) {
+        if (stems.size >= 2 && SankhyaOperationMarkers.isMultiplication(stems[1])) {
             val coeff = evaluateStems(listOf(stems[0]))
             val rest = if (stems.size >= 3) evaluateStems(stems.subList(2, stems.size)) else SankhyaExpression.Primitive(PrimitiveSankhya.EKA)
             return SankhyaExpression.Multiply(coefficient = coeff, magnitude = rest)
         }
 
         // Division stem + "भक्त" / "हृत", e.g. ["द्वि", "भक्त", "शत"] -> 100 / 2 = 50
-        if (stems.size >= 2 && (stems[1] == "भक्त" || stems[1] == "हृत")) {
+        if (stems.size >= 2 && SankhyaOperationMarkers.isDivision(stems[1])) {
             val divisor = evaluateStems(listOf(stems[0]))
             val rest = if (stems.size >= 3) evaluateStems(stems.subList(2, stems.size)) else SankhyaExpression.Primitive(PrimitiveSankhya.EKA)
             return SankhyaExpression.RationalFraction(numerator = rest.value, denominator = divisor.value)
         }
 
         // Square: ["वर्ग", "कृत", ...] or ["वर्ग", ...]
-        if (stems.isNotEmpty() && stems[0] == "वर्ग") {
-            val startIndex = if (stems.size >= 2 && stems[1] == "कृत") 2 else 1
+        if (stems.isNotEmpty() && SankhyaOperationMarkers.isSquare(stems[0])) {
+            val startIndex = if (stems.size >= 2 && SankhyaOperationMarkers.isConstruction(stems[1])) 2 else 1
             val operand = if (startIndex < stems.size) evaluateStems(stems.subList(startIndex, stems.size)) else SankhyaExpression.Primitive(PrimitiveSankhya.EKA)
             return SankhyaExpression.Square(operand)
         }
 
         // Cube: ["घन", "कृत", ...] or ["घन", ...]
-        if (stems.isNotEmpty() && stems[0] == "घन") {
-            val startIndex = if (stems.size >= 2 && stems[1] == "कृत") 2 else 1
+        if (stems.isNotEmpty() && SankhyaOperationMarkers.isCube(stems[0])) {
+            val startIndex = if (stems.size >= 2 && SankhyaOperationMarkers.isConstruction(stems[1])) 2 else 1
             val operand = if (startIndex < stems.size) evaluateStems(stems.subList(startIndex, stems.size)) else SankhyaExpression.Primitive(PrimitiveSankhya.EKA)
             return SankhyaExpression.Cube(operand)
         }
 
         // SquareRoot: ["मूल", ...] or ["पद", ...]
-        if (stems.isNotEmpty() && (stems[0] == "मूल" || stems[0] == "पद")) {
+        if (stems.isNotEmpty() && SankhyaOperationMarkers.isSquareRoot(stems[0])) {
             val operand = if (stems.size >= 2) evaluateStems(stems.subList(1, stems.size)) else SankhyaExpression.Primitive(PrimitiveSankhya.EKA)
             return SankhyaExpression.SquareRoot(operand)
         }
