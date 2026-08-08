@@ -154,10 +154,26 @@ data class SamasaAnga(
 
 sealed interface PratipadikaVikara : VyakaranamNode
 
+enum class TaddhitaPratyayaClass {
+    POSSESSIVE,
+    APATYA,
+    ;
+
+    companion object {
+        fun fromUpadesha(upadesha: String): TaddhitaPratyayaClass? = when (upadesha.trim()) {
+            "मतुप्", "वतुप्", "मत्", "वत्" -> POSSESSIVE
+            "अण्", "इञ्" -> APATYA
+            else -> null
+        }
+    }
+}
+
 data class TaddhitaVikara(
     override val sourceText: String,
     val pratyaya: String,
-) : PratipadikaVikara
+) : PratipadikaVikara {
+    val pratyayaClass: TaddhitaPratyayaClass? = TaddhitaPratyayaClass.fromUpadesha(pratyaya)
+}
 
 data class StriVikara(
     override val sourceText: String,

@@ -12,6 +12,7 @@ import dev.panini.vyakaranam.ast.SankhyaPada
 import dev.panini.vyakaranam.ast.SankhyaPuranaPada
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.TaddhitaVikara
+import dev.panini.vyakaranam.ast.TaddhitaPratyayaClass
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.Ukti
 import dev.panini.vyakaranam.parser.PaniniParser
@@ -133,7 +134,8 @@ object TaddhitaStructEngine {
     private fun SubantaPada.canonicalSource(): String =
         "${pratipadika.sourceText} + ${sup.text}".let(SamjnaInvocationMatcher::normalizeIdentity)
 
-    private fun Pratipadika.isMatup(): Boolean = vikaras().any { it.pratyaya in MATUP_FORMS }
+    private fun Pratipadika.isMatup(): Boolean =
+        vikaras().any { it.pratyayaClass == TaddhitaPratyayaClass.POSSESSIVE }
 
     private fun Pratipadika.baseIdentity(): String = when (this) {
         is MulaPratipadika -> text
@@ -147,6 +149,4 @@ object TaddhitaStructEngine {
         is dev.panini.vyakaranam.ast.SamasaPratipadika -> vikaras.filterIsInstance<TaddhitaVikara>()
         is dev.panini.vyakaranam.ast.SankhyaPratipadika -> vikaras.filterIsInstance<TaddhitaVikara>()
     }
-
-    private val MATUP_FORMS = setOf("मतुप्", "वतुप्", "मत्", "वत्")
 }
