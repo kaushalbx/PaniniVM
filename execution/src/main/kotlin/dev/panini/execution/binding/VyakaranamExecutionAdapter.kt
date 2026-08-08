@@ -7,6 +7,11 @@ import dev.panini.execution.DhatuInvocation
 import dev.panini.execution.ExecutableUkti
 import dev.panini.execution.ExecutionBindingResult
 import dev.panini.execution.ExecutionExpression
+import dev.panini.execution.ExecuteConditional
+import dev.panini.execution.ExecuteInvocation
+import dev.panini.execution.ExecuteRepeat
+import dev.panini.execution.ExecuteSequence
+import dev.panini.execution.ExecutionNode
 import dev.panini.execution.KriyaInvocationId
 import dev.panini.execution.GrammaticalFeatures
 import dev.panini.execution.Polarity
@@ -205,9 +210,28 @@ object VyakaranamExecutionAdapter {
                 polarity = if (prohibition) Polarity.NEGATIVE else Polarity.POSITIVE,
                 lakara = lakara,
                 invocations = invocations,
+                control = buildExecutionControl(executionBody),
             ),
             listOf("Bound canonical vyākaraṇa AST with ${ukti.vakyas.size} clause(s) directly to execution."),
         )
+    }
+
+    private fun buildExecutionControl(root: ProgramNode): ExecutionNode {
+        var nextInvocation = 1
+        fun build(node: ProgramNode): ExecutionNode = when (node) {
+            is Invocation -> ExecuteInvocation(KriyaInvocationId.of(nextInvocation++))
+            is Sequence -> ExecuteSequence(node.statements.map(::build))
+            is Conditional -> ExecuteConditional(
+                condition = build(node.condition),
+                consequent = build(node.consequent),
+                alternate = node.alternate?.let(::build),
+            )
+            is Repeat -> ExecuteRepeat(List(node.count) { build(node.body) })
+            is Pipeline -> error("Pipelines are executed through their semantic stage engine.")
+            is Procedure -> error("Procedure declarations are registered before utterance binding.")
+            is Scope -> error("Scope declarations are registered before utterance binding.")
+        }
+        return build(root)
     }
 
     private fun purposeRequiresListenerAsAgent(prayer: Boolean, lakara: Lakara): Boolean =

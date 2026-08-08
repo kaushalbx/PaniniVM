@@ -26,6 +26,46 @@ class ExecutionLifecycleTest {
     lateinit var storageDir: Path
 
     @Test
+    fun `conditional execution selects only the matching branch`() {
+        val result = assertIs<Phala.Siddha>(
+            SutraExecutionPipeline.execute(
+                SanskritUktiInput(
+                    speaker = "प्रयोक्ता",
+                    listener = "यन्त्रम्",
+                    text = "यदि दश + अम् द्वि + अम् च विद् + णिच् + लोट् + सिप् " +
+                        "तर्हि एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् " +
+                        "अन्यथा द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ।",
+                ),
+                SambhashanaContext("प्रयोक्ता", "यन्त्रम्"),
+                PaniniVM().defaultScope,
+            ),
+        )
+
+        assertEquals(setOf("योग-1", "योग-2"), result.typedValues.keys)
+        assertEquals(3L, assertIs<SanskritValue.Sankhya>(result.typedValues.getValue("योग-2")).value)
+    }
+
+    @Test
+    fun `conditional execution selects the alternate when condition is false`() {
+        val result = assertIs<Phala.Siddha>(
+            SutraExecutionPipeline.execute(
+                SanskritUktiInput(
+                    speaker = "प्रयोक्ता",
+                    listener = "यन्त्रम्",
+                    text = "यदि एक + अम् द्वि + अम् च विद् + णिच् + लोट् + सिप् " +
+                        "तर्हि एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् " +
+                        "अन्यथा द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ।",
+                ),
+                SambhashanaContext("प्रयोक्ता", "यन्त्रम्"),
+                PaniniVM().defaultScope,
+            ),
+        )
+
+        assertEquals(setOf("योग-1", "योग-3"), result.typedValues.keys)
+        assertEquals(5L, assertIs<SanskritValue.Sankhya>(result.typedValues.getValue("योग-3")).value)
+    }
+
+    @Test
     fun `planner honors dependencies rather than source order`() {
         val first = invocation("first")
         val second = invocation("second")

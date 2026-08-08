@@ -1,6 +1,7 @@
 package dev.panini.execution.sutra
 
 import dev.panini.execution.ExecutableUkti
+import dev.panini.execution.ExecuteInvocation
 import dev.panini.execution.ExecutionPlanner
 import dev.panini.execution.ExecutionProgram
 import dev.panini.execution.ExecutionRuntime
@@ -34,6 +35,7 @@ class ProgramSutraEffectInterpreter(
         val invocation = effect.invocation
         val singleUkti: ExecutableUkti = effect.ukti.copy(
             invocations = listOf(invocation),
+            control = ExecuteInvocation(invocation.id),
             dependencies = emptySet(),
         )
         return when (val planning = ExecutionPlanner.plan(ExecutionProgram(singleUkti), state.environment)) {
