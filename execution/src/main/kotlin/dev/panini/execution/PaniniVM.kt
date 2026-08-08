@@ -445,19 +445,13 @@ class PaniniVM(
     }
 
     private fun deriveSamjnaStem(nameSegmented: String): String {
-        var clean = nameSegmented
-        if (clean.contains("+ ङस्")) {
-            clean = clean.substringAfter("+ ङस्").trim()
-        }
-        return SamjnaKriyaRegistry.stripSupSuffix(clean)
+        return requireNotNull(SamjnaHeaderIdentityParser.parse(nameSegmented)) {
+            "Unable to parse saṃjñā header identity: $nameSegmented"
+        }.operationStem
     }
 
-    private fun deriveDomainStem(nameSegmented: String): String? {
-        if (!nameSegmented.contains("+ ङस्")) return null
-        val beforeNgas = nameSegmented.substringBefore("+ ङस्").trim()
-        val matupClean = beforeNgas.substringBefore("+ वत्").substringBefore("+ मत्").trim()
-        return SamjnaKriyaRegistry.stripSupSuffix(matupClean).ifEmpty { null }
-    }
+    private fun deriveDomainStem(nameSegmented: String): String? =
+        SamjnaHeaderIdentityParser.parse(nameSegmented)?.domainStem
 
     /**
      * Evaluates canonical, evaluator-free sūtra-grantha source through the
