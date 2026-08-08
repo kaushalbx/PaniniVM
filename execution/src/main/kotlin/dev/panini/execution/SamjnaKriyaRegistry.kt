@@ -15,11 +15,13 @@ data class SamjnaKriya(
     val isInternal: Boolean = false,
     val isMemoized: Boolean = nameSegmented.contains("+ क्त"),
 ) {
-    val priorityScore: Int get() = when {
-        isApavada -> 4
-        isAntaranga -> 3
-        isNitya -> 2
-        else -> 1
+    val signature: SamjnaSignature by lazy { SamjnaSignatureCompiler.compile(body) }
+
+    val precedence: SamjnaPrecedence get() = when {
+        isApavada -> SamjnaPrecedence.APAVADA
+        isAntaranga -> SamjnaPrecedence.ANTARANGA
+        isNitya -> SamjnaPrecedence.NITYA
+        else -> SamjnaPrecedence.DEFAULT
     }
 
     val nishedhaGuards: List<PvmScriptStatement.Sentence> = body.filter { it.isNishedha }
@@ -78,9 +80,10 @@ class SamjnaKriyaRegistry {
         val allKriyas = registry.values.flatten().distinctBy { System.identityHashCode(it) }
         val argTerms = SubantaKarakaParser.extractKarmaTerms(textToProcess, preParsedUkti)
 
-        val candidates = allKriyas.sortedByDescending { kriya ->
-            (kriya.priorityScore * 100) + AntaratamaOverloadEngine.calculateProximityScore(kriya, argTerms)
-        }
+        val candidates = allKriyas.sortedWith(
+            compareByDescending<SamjnaKriya> { it.precedence.rank }
+                .thenByDescending { AntaratamaOverloadEngine.match(it.signature, argTerms).rank },
+        )
         for (kriya in candidates) {
             if (kriya.isInternal && callerSourceFile != null && kriya.sourceFile != null && callerSourceFile != kriya.sourceFile) {
                 continue // File-private saṃjñā hidden from external caller

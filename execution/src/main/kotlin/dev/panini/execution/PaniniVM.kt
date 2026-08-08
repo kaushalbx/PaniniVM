@@ -387,12 +387,9 @@ class PaniniVM(
 
             val isProhibited = DynamicNishedhaEvaluator.evaluateProhibition(guardText, argTerms, guard.ukti)
 
-            // Check Tva-pratyaya Type Guard (e.g. "न प्रथम + अम् सङ्ख्या + त्व + अम्")
-            val isTypeGuard = guardText.contains("सङ्ख्या + त्व") || guardText.contains("सूची + त्व")
-            val isTypeViolated = isTypeGuard && argTerms.any { term ->
-                val numVal = term.toLongOrNull() ?: runCatching { dev.panini.sankhya.SankhyaEvaluator().evaluateStems(listOf(term)).value }.getOrNull() ?: -1L
-                numVal <= 0L && !term.any { it.isDigit() }
-            }
+            val requiredType = SamjnaSignatureCompiler.inferGuardType(guardText)
+            val isTypeViolated = requiredType != null &&
+                argTerms.any { SamjnaValueClassifier.classifyTerm(it) != requiredType }
 
             if (isProhibited || isTypeViolated) {
                 return listOf(

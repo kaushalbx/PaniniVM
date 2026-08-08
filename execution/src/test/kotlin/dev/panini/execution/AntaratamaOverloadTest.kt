@@ -2,6 +2,7 @@ package dev.panini.execution
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 class AntaratamaOverloadTest {
@@ -49,5 +50,20 @@ class AntaratamaOverloadTest {
         val success = results.filterIsInstance<ExecutionResult.Success>()
         assertTrue(success.isNotEmpty(), "Expected successful overload dispatch: $results")
         assertEquals("दश", success.last().value, "Expected numeric overload 1 (दश) via Sūtra 1.1.50 (स्थानेऽन्तरतमः)")
+    }
+
+    @Test
+    fun `typed signatures are compiled once and ranked structurally`() {
+        val numeric = SamjnaSignatureCompiler.compile(
+            listOf(PvmScriptStatement.Sentence("न प्रथम + अम् सङ्ख्या + त्व + अम् ।", isNishedha = true)),
+        )
+        val text = SamjnaSignatureCompiler.compile(
+            listOf(PvmScriptStatement.Sentence("न प्रथम + अम् शब्द + त्व + अम् ।", isNishedha = true)),
+        )
+
+        assertEquals(SamjnaValueType.SANKHYA, numeric.argumentType)
+        assertEquals(AntaratamaOverloadEngine.TypeMatch.EXACT, AntaratamaOverloadEngine.match(numeric, listOf("पञ्च")))
+        assertEquals(AntaratamaOverloadEngine.TypeMatch.MISMATCH, AntaratamaOverloadEngine.match(text, listOf("पञ्च")))
+        assertNotEquals(numeric, text)
     }
 }
