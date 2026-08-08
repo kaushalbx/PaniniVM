@@ -2,8 +2,7 @@ package dev.panini.execution.memory
 
 import dev.panini.analysis.KriyaFrame
 import dev.panini.analysis.KriyaId
-import dev.panini.execution.PersistedSamjnaCodec
-import dev.panini.execution.SanskritValue
+import dev.panini.execution.PersistedSanskritValueCodec
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
@@ -30,7 +29,7 @@ internal class FileKriyaMemoryStore(private val storageDir: File) {
                 out.writeUTF(entry.frame.id.value)
                 out.writeUTF(sourceText)
                 out.writeBoolean(entry.phala != null)
-                entry.phala?.let { out.writeValue(it) }
+                entry.phala?.let { PersistedSanskritValueCodec.write(out, it) }
             }
         }
         fileFor(key).writeBytes(bytesStream.toByteArray())
@@ -52,7 +51,7 @@ internal class FileKriyaMemoryStore(private val storageDir: File) {
             val idValue = dis.readUTF()
             val sourceText = dis.readUTF()
             val hasPhala = dis.readBoolean()
-            val phala = if (hasPhala) dis.readValue() else null
+            val phala = if (hasPhala) PersistedSanskritValueCodec.read(dis) else null
 
             val source = sourceText.trim().let { if (it.endsWith("।")) it else "$it ।" }
             val frames = analysisCache.computeIfAbsent(source) { analyze(source) }
@@ -68,41 +67,6 @@ internal class FileKriyaMemoryStore(private val storageDir: File) {
     }
 
     private fun fileFor(key: String): File = File(storageDir, encode(key) + EXTENSION)
-
-    private fun DataOutputStream.writeValue(value: SanskritValue) {
-        when (value) {
-            is SanskritValue.Sankhya -> { writeByte(1); writeLong(value.value); writeUTF(value.word) }
-            is SanskritValue.Rational -> {
-                writeByte(2); writeLong(value.numerator); writeLong(value.denominator); writeUTF(value.word)
-            }
-            is SanskritValue.Shabda -> {
-                writeByte(3); writeUTF(value.text); writeInt(value.samjnas.size)
-                value.samjnas.forEach { writeUTF(PersistedSamjnaCodec.encode(it)) }
-            }
-            is SanskritValue.Gana -> {
-                writeByte(4); writeInt(value.elements.size); value.elements.forEach { writeValue(it) }
-            }
-            is SanskritValue.Suchi -> {
-                writeByte(5); writeInt(value.items.size); value.items.forEach { writeValue(it) }
-            }
-            is SanskritValue.Satya -> { writeByte(6); writeBoolean(value.boolean) }
-            is SanskritValue.Lopa -> { writeByte(7) }
-        }
-    }
-
-    private fun DataInputStream.readValue(): SanskritValue = when (readByte().toInt()) {
-        1 -> SanskritValue.Sankhya(readLong(), readUTF())
-        2 -> SanskritValue.Rational(readLong(), readLong(), readUTF())
-        3 -> SanskritValue.Shabda(
-            readUTF(),
-            buildSet { repeat(readInt()) { add(PersistedSamjnaCodec.decode(readUTF())) } },
-        )
-        4 -> SanskritValue.Gana(buildList { repeat(readInt()) { add(readValue()) } })
-        5 -> SanskritValue.Suchi(buildList { repeat(readInt()) { add(readValue()) } })
-        6 -> SanskritValue.Satya(readBoolean())
-        7 -> SanskritValue.Lopa
-        else -> error("Unknown persisted Sanskrit value type.")
-    }
 
     private fun encode(value: String): String =
         if (value.isEmpty()) "" else base64Codec.encode(value.toByteArray(Charsets.UTF_8))
