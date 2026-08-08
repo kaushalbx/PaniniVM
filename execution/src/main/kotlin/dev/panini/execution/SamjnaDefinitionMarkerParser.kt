@@ -26,7 +26,9 @@ object SamjnaDefinitionMarkerParser {
     private fun SubantaPada.isDefinitionMarker(): Boolean {
         if (SupAffix.fromUpadesha(sup.text)?.vibhakti != Vibhakti.PRATHAMA) return false
         return when (val base = pratipadika) {
-            is MulaPratipadika -> base.text in LEXICAL_MARKERS
+            is MulaPratipadika ->
+                base.text in LEXICAL_MARKERS ||
+                    SamjnaInvocationMatcher.normalizeIdentity(base.text) in STRUCTURAL_MARKERS
             is KridantaPratipadika ->
                 base.upasargas == listOf("अप") &&
                     base.dhatu.mulaDhatu == "वद्" &&

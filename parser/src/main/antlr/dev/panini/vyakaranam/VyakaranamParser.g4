@@ -183,6 +183,7 @@ pratipadika
 
 pratipadikaMula
     : mulaPratipadika
+    | samjnaQualifierPratipadika
     | kridantaPratipadika
     | unadyantaPratipadika
     | samasaPratipadika
@@ -196,6 +197,11 @@ pratipadikaVikara
 
 mulaPratipadika
     : IDENTIFIER
+    ;
+
+samjnaQualifierPratipadika
+    : NI PLUS TYA
+    | ANTAR PLUS IDENTIFIER
     ;
 
 // ============================================================================
@@ -303,6 +309,7 @@ asamasikaPratipadika
 
 asamasikaPratipadikaMula
     : mulaPratipadika
+    | samjnaQualifierPratipadika
     | kridantaPratipadika
     | unadyantaPratipadika
     | LPAREN samasaPratipadika RPAREN

@@ -245,6 +245,12 @@ class VyakaranamAstBuilder {
                     text = context.mulaPratipadika()!!.text,
                 )
 
+            context.samjnaQualifierPratipadika() != null ->
+                MulaPratipadika(
+                    sourceText = context.text,
+                    text = context.samjnaQualifierPratipadika()!!.text,
+                )
+
             context.kridantaPratipadika() != null ->
                 buildKridanta(context.kridantaPratipadika()!!)
 
@@ -320,6 +326,12 @@ class VyakaranamAstBuilder {
                 MulaPratipadika(
                     sourceText = mulaContext.text,
                     text = mulaContext.mulaPratipadika()!!.text,
+                )
+
+            mulaContext.samjnaQualifierPratipadika() != null ->
+                MulaPratipadika(
+                    sourceText = mulaContext.text,
+                    text = mulaContext.samjnaQualifierPratipadika()!!.text,
                 )
 
             mulaContext.kridantaPratipadika() != null ->
