@@ -4,16 +4,13 @@ import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
 import dev.panini.sankhya.SankhyaEvaluator
 import dev.panini.vyakaranam.ast.AvyayaPada
-import dev.panini.vyakaranam.ast.KridantaPratipadika
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.parser.PaniniParser
 
-import dev.panini.ganapatha.GanaPatha
-
 /**
  * 1.4.58 प्रादयः & 1.4.59 उपसर्गाः क्रियायोगे
- * AST-driven Upasarga and Verb Action Engine using PaniniParser and GanaPatha.
+ * AST-driven Upasarga and Verb Action Engine using PaniniParser.
  */
 object PradayaUpasargaEngine {
 
@@ -23,16 +20,10 @@ object PradayaUpasargaEngine {
         val trimmed = text.trim()
         if (trimmed.isEmpty()) return false
 
-        val ukti = preParsedUkti ?: runCatching { parser.parse(trimmed) }.getOrNull()
-        if (ukti != null) {
-            val hasTinganta = ukti.vakyas.flatMap { it.padas }.any { it is TingantaPada }
-            if (hasTinganta) return true
-        }
-
-        val words = trimmed.split(Regex("""\s+"""))
-        return words.any { word ->
-            GanaPatha.isEligibleMember(4, word, emptySet()) || word == "कृ" || word.startsWith("कृ") || word.contains("लोट्")
-        }
+        val ukti = preParsedUkti ?: parser.parseOrNull(trimmed) ?: return false
+        return ukti.vakyas.asSequence()
+            .flatMap { it.padas.asSequence() }
+            .any { it is TingantaPada }
     }
 }
 
