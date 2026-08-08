@@ -7,4 +7,5 @@ enum class NominalCategory {
     PLACE_LOCATION,
     ABSTRACT_CONCEPT,
     OBJECT_ENTITY,
+    TECHNICAL_SAMJNA,
 }

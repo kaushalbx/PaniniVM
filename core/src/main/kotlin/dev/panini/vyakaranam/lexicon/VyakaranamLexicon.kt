@@ -21,8 +21,21 @@ interface PratipadikaLexicon {
 
 /** Shared lexical metadata for established pratipadikas used across runtimes. */
 object StandardPratipadikaLexicon : PratipadikaLexicon {
-    private val entries = listOf("हविस्", "मनस्", "पयस्", "उरस्", "चक्षुस्")
-        .associateWith { text -> PratipadikaEntry(text, setOf(Linga.NAPUMSAKA)) }
+    private val entries = buildMap {
+        listOf("हविस्", "मनस्", "पयस्", "उरस्", "चक्षुस्").forEach { text ->
+            put(text, PratipadikaEntry(text, setOf(Linga.NAPUMSAKA)))
+        }
+        listOf("सङ्ख्या", "गुण", "वृद्धि", "लोप", "साधकतमम्", "कर्म", "करणम्").forEach { text ->
+            put(
+                text,
+                PratipadikaEntry(
+                    text = text,
+                    linga = emptySet(),
+                    categories = setOf(NominalCategory.TECHNICAL_SAMJNA),
+                ),
+            )
+        }
+    }
 
     override fun findPratipadika(text: String): PratipadikaEntry? = entries[text.trim()]
 }

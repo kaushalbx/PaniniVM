@@ -1,6 +1,8 @@
 package dev.panini.execution
 
+import dev.panini.core.NominalCategory
 import dev.panini.shiksha.Samjna
+import dev.panini.vyakaranam.lexicon.StandardPratipadikaLexicon
 
 /**
  * Pāṇinian Formal Identity & Value vs Symbol Engine based on Sūtra 1.1.68 (स्वं रूपं शब्दस्याशब्दसंज्ञा).
@@ -17,7 +19,7 @@ object SvamRupamEngine {
      */
     fun evaluateTerm(term: String): SanskritValue {
         val cleanTerm = SamjnaKriyaRegistry.stripSupSuffix(term)
-        return if (TechnicalSamjnaIdentity.contains(cleanTerm) || TechnicalSamjnaIdentity.contains(term)) {
+        return if (isTechnicalSamjna(cleanTerm) || isTechnicalSamjna(term)) {
             SanskritValue.of(term)
         } else {
             // Sūtra 1.1.68: Formal self-referential identity (स्वं रूपम्)
@@ -30,6 +32,11 @@ object SvamRupamEngine {
      */
     fun isSelfReferentialLiteral(term: String): Boolean {
         val cleanTerm = SamjnaKriyaRegistry.stripSupSuffix(term)
-        return !TechnicalSamjnaIdentity.contains(cleanTerm) && !TechnicalSamjnaIdentity.contains(term)
+        return !isTechnicalSamjna(cleanTerm) && !isTechnicalSamjna(term)
     }
+
+    private fun isTechnicalSamjna(identity: String): Boolean =
+        StandardPratipadikaLexicon.findPratipadika(identity)
+            ?.categories
+            ?.contains(NominalCategory.TECHNICAL_SAMJNA) == true
 }
