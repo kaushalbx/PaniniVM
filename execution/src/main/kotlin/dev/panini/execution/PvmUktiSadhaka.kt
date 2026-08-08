@@ -3,6 +3,7 @@ package dev.panini.execution
 import dev.panini.core.SupAffix
 import dev.panini.core.TingAffix
 import dev.panini.derivation.DerivationEngine
+import dev.panini.derivation.KrdantaEngine
 import dev.panini.derivation.SubantaDerivationRequest
 import dev.panini.derivation.SubantaEngine
 import dev.panini.derivation.TingantaDerivationRequest
@@ -38,6 +39,7 @@ class PvmUktiSadhaka(
     private val derivationEngine: DerivationEngine = DerivationEngine(dev.panini.ashtadhyayi.Ashtadhyayi.executableSutras),
     private val subantaEngine: SubantaEngine = SubantaEngine(derivationEngine),
     private val tingantaEngine: TingantaEngine = TingantaEngine(derivationEngine),
+    private val krdantaEngine: KrdantaEngine = KrdantaEngine(),
     private val parser: PaniniParser = PaniniParser(),
 ) {
 
@@ -161,11 +163,14 @@ class PvmUktiSadhaka(
     }
 
     fun sadhayaSubanta(subanta: SubantaPada): String {
-        val baseText = subanta.pratipadika.baseText()
-        val supAffix = SupAffix.fromUpadesha(subanta.sup.text) ?: return baseText
         val kridanta = subanta.pratipadika as? KridantaPratipadika
-        if (kridanta != null) {
-            pvmKridantaSurface(kridanta, baseText, supAffix)?.let { return it }
+        val sourceStem = kridanta?.let {
+            krdantaEngine.deriveSourceStem(it.dhatu.mulaDhatu, it.krtPratyaya)
+        }
+        val baseText = sourceStem?.surface ?: subanta.pratipadika.baseText()
+        val supAffix = SupAffix.fromUpadesha(subanta.sup.text) ?: return baseText
+        if (sourceStem?.supportsAStemDeclension == true) {
+            pvmKridantaSurface(baseText, supAffix)?.let { return it }
         }
         val linga = PvmNominalLexicon.gender(baseText)
         return try {
@@ -178,8 +183,7 @@ class PvmUktiSadhaka(
     }
 
     /** Stable a-stem forms for the PVM's action/state krdantas. */
-    private fun pvmKridantaSurface(pratipadika: KridantaPratipadika, stem: String, affix: SupAffix): String? {
-        if (!PvmKridantaLexicon.isDeclinable(pratipadika.dhatu.mulaDhatu, pratipadika.krtPratyaya)) return null
+    private fun pvmKridantaSurface(stem: String, affix: SupAffix): String? {
         return when (affix) {
             SupAffix.AM -> "${stem}म्"
             SupAffix.NGE -> "${stem}ाय"
@@ -223,7 +227,7 @@ class PvmUktiSadhaka(
     private fun Pratipadika.baseText(): String = when (this) {
         is MulaPratipadika -> text
         is SankhyaPratipadika -> sourceText
-        is KridantaPratipadika -> PvmKridantaLexicon.stem(dhatu.mulaDhatu, krtPratyaya)
+        is KridantaPratipadika -> krdantaEngine.deriveSourceStem(dhatu.mulaDhatu, krtPratyaya).surface
         is UnadyantaPratipadika -> sourceText
         is SamasaPratipadika -> angas.joinToString("") { it.pratipadika.baseText() }
     }

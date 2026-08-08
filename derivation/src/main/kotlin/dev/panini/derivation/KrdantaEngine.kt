@@ -12,12 +12,37 @@ data class KrdantaDerivationRequest(
     val upasarga: String? = null,
 )
 
+data class KrdantaSourceStem(
+    val surface: String,
+    val supportsAStemDeclension: Boolean,
+)
+
 class KrdantaEngine(
     private val pipeline: DerivationPipeline = DerivationPipeline(
         stages = listOf(SutraStage.ANGAKARYA, SutraStage.IT_PROCESSING),
         sutrasForStage = Ashtadhyayi::krdantaSutrasAt,
     ),
 ) {
+    fun deriveSourceStem(dhatu: String, pratyaya: String): KrdantaSourceStem {
+        val samjna = when {
+            pratyaya == "घञ्" && dhatu in supportedGhanDhatus -> Samjna.GHAN
+            pratyaya == "अप्" && dhatu in supportedApDhatus -> Samjna.GHAN
+            pratyaya in setOf("ल्युट्", "अन") && dhatu in supportedLyutDhatus -> Samjna.LYUT
+            else -> null
+        }
+        return if (samjna != null) {
+            KrdantaSourceStem(
+                surface = derive(KrdantaDerivationRequest(dhatu, samjna)).final.surface,
+                supportsAStemDeclension = true,
+            )
+        } else {
+            KrdantaSourceStem(
+                surface = sourceFallbackStems[dhatu] ?: dhatu,
+                supportsAStemDeclension = false,
+            )
+        }
+    }
+
     fun derive(request: KrdantaDerivationRequest): DerivationResult {
         val dhatuEntry = findDhatu(request.dhatu)
         val initial = buildInitialState(request, dhatuEntry, request.dhatu)
@@ -283,5 +308,12 @@ class KrdantaEngine(
         upa == "अनु" && stem.startsWith("कृ") -> "अनु" + stem
         upa == "प्र" && stem.startsWith("भू") -> "प्र" + stem
         else -> upa + stem
+    }
+
+    private companion object {
+        val supportedGhanDhatus = setOf("युज्", "शिष्", "मूल्", "भज्", "हृ")
+        val supportedApDhatus = setOf("युज्", "शिष्", "मूल्")
+        val supportedLyutDhatus = setOf("युज्", "गण", "धृ", "स्था", "जन्", "हृ")
+        val sourceFallbackStems = mapOf("हृ" to "हर")
     }
 }
