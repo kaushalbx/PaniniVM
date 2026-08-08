@@ -34,9 +34,11 @@ import dev.panini.vyakaranam.ast.Conditional
 import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.Pipeline
 import dev.panini.vyakaranam.ast.ProgramNode
+import dev.panini.vyakaranam.ast.ProgramNodeVisitor
 import dev.panini.vyakaranam.ast.Procedure
 import dev.panini.vyakaranam.ast.Repeat
 import dev.panini.vyakaranam.ast.Scope
+import dev.panini.vyakaranam.ast.accept
 import dev.panini.vyakaranam.ast.Sequence
 import dev.panini.vyakaranam.lexicon.PratipadikaLexicon
 import dev.panini.vyakaranam.lexicon.StandardPratipadikaLexicon
@@ -106,24 +108,29 @@ class PvmUktiSadhaka(
         return parts.joinToString(" ")
     }
 
-    private fun sadhayaProgramNode(node: ProgramNode): String = when (node) {
-        is Invocation -> node.vakya.padas.joinToString(" ") { pada -> sadhayaPada(pada) }
-        is Sequence -> node.statements.joinToString(" । ") { sadhayaProgramNode(it) }
-        is Conditional -> buildString {
+    private fun sadhayaProgramNode(node: ProgramNode): String = node.accept(programRenderer)
+
+    private val programRenderer = object : ProgramNodeVisitor<String> {
+        private fun render(node: ProgramNode): String = node.accept(this)
+        override fun visitInvocation(node: Invocation): String =
+            node.vakya.padas.joinToString(" ") { pada -> sadhayaPada(pada) }
+        override fun visitSequence(node: Sequence): String =
+            node.statements.joinToString(" । ") { render(it) }
+        override fun visitConditional(node: Conditional): String = buildString {
             append("यदि ")
-            append(sadhayaProgramNode(node.condition))
+            append(render(node.condition))
             append(" तर्हि ")
-            append(sadhayaProgramNode(node.consequent))
+            append(render(node.consequent))
             node.alternate?.let {
                 append(" अन्यथा ")
-                append(sadhayaProgramNode(it))
+                append(render(it))
             }
         }
-        // The source frequency expression remains inside the grammatical body.
-        is Repeat -> sadhayaProgramNode(node.body)
-        is Pipeline -> node.renderPadas.joinToString(" ") { sadhayaPada(it) }
-        is Procedure -> node.sourceText
-        is Scope -> node.sourceText
+        override fun visitRepeat(node: Repeat): String = render(node.body)
+        override fun visitPipeline(node: Pipeline): String =
+            node.renderPadas.joinToString(" ") { sadhayaPada(it) }
+        override fun visitProcedure(node: Procedure): String = node.sourceText
+        override fun visitScope(node: Scope): String = node.sourceText
     }
 
     private val sankhyaEvaluator = SankhyaEvaluator()

@@ -32,6 +32,8 @@ import dev.panini.vyakaranam.ast.Conditional
 import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.Pipeline
 import dev.panini.vyakaranam.ast.ProgramNode
+import dev.panini.vyakaranam.ast.ProgramNodeTransformer
+import dev.panini.vyakaranam.ast.ProgramNodeVisitor
 import dev.panini.vyakaranam.ast.Procedure
 import dev.panini.vyakaranam.ast.Repeat
 import dev.panini.vyakaranam.ast.SankhyaAbhyasaPada
@@ -40,6 +42,7 @@ import dev.panini.vyakaranam.ast.Scope
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.Ukti
 import dev.panini.vyakaranam.ast.expandedInvocations
+import dev.panini.vyakaranam.ast.accept
 import dev.panini.vyakaranam.lexicon.PratipadikaEntry
 import dev.panini.vyakaranam.lexicon.VyakaranamLexicon
 import dev.panini.vyakaranam.parser.PaniniParseException
@@ -218,20 +221,27 @@ object VyakaranamExecutionAdapter {
 
     private fun buildExecutionControl(root: ProgramNode): ExecutionNode {
         var nextInvocation = 1
-        fun build(node: ProgramNode): ExecutionNode = when (node) {
-            is Invocation -> ExecuteInvocation(KriyaInvocationId.of(nextInvocation++))
-            is Sequence -> ExecuteSequence(node.statements.map(::build))
-            is Conditional -> ExecuteConditional(
+        val visitor = object : ProgramNodeVisitor<ExecutionNode> {
+            private fun build(node: ProgramNode): ExecutionNode = node.accept(this)
+            override fun visitInvocation(node: Invocation): ExecutionNode =
+                ExecuteInvocation(KriyaInvocationId.of(nextInvocation++))
+            override fun visitSequence(node: Sequence): ExecutionNode =
+                ExecuteSequence(node.statements.map(::build))
+            override fun visitConditional(node: Conditional): ExecutionNode = ExecuteConditional(
                 condition = build(node.condition),
                 consequent = build(node.consequent),
                 alternate = node.alternate?.let(::build),
             )
-            is Repeat -> ExecuteRepeat(List(node.count) { build(node.body) })
-            is Pipeline -> error("Pipelines are executed through their semantic stage engine.")
-            is Procedure -> error("Procedure declarations are registered before utterance binding.")
-            is Scope -> error("Scope declarations are registered before utterance binding.")
+            override fun visitRepeat(node: Repeat): ExecutionNode =
+                ExecuteRepeat(List(node.count) { build(node.body) })
+            override fun visitPipeline(node: Pipeline): ExecutionNode =
+                error("Pipelines are executed through their semantic stage engine.")
+            override fun visitProcedure(node: Procedure): ExecutionNode =
+                error("Procedure declarations are registered before utterance binding.")
+            override fun visitScope(node: Scope): ExecutionNode =
+                error("Scope declarations are registered before utterance binding.")
         }
-        return build(root)
+        return root.accept(visitor)
     }
 
     private fun purposeRequiresListenerAsAgent(prayer: Boolean, lakara: Lakara): Boolean =
@@ -280,24 +290,14 @@ object VyakaranamExecutionAdapter {
         root: ProgramNode,
         analysis: UktiAnalysis,
     ): ProgramNode {
-        var frameIndex = 0
-        fun lower(node: ProgramNode): ProgramNode = when (node) {
-            is Invocation -> {
+        val transformer = object : ProgramNodeTransformer() {
+            var frameIndex = 0
+            override fun visitInvocation(node: Invocation): ProgramNode {
                 val frame = analysis.frames[frameIndex++]
                 val count = FrequencyExtractor.extractFrequencyCount(node.vakya.padas, frame)
-                if (count != null && count > 1) Repeat(node.sourceText, count, node) else node
+                return if (count != null && count > 1) Repeat(node.sourceText, count, node) else node
             }
-            is Sequence -> node.copy(statements = node.statements.map(::lower))
-            is Conditional -> node.copy(
-                condition = lower(node.condition),
-                consequent = lower(node.consequent),
-                alternate = node.alternate?.let(::lower),
-            )
-            is Repeat -> node.copy(body = lower(node.body))
-            is Pipeline -> node
-            is Procedure -> node.copy(body = node.body.map(::lower))
-            is Scope -> node.copy(body = node.body.map(::lower))
         }
-        return lower(root)
+        return transformer.transform(root)
     }
 }

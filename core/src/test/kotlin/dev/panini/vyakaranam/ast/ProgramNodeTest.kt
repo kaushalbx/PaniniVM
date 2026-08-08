@@ -30,4 +30,19 @@ class ProgramNodeTest {
 
         assertEquals(listOf(invocation), scope.invocations())
     }
+
+    @Test
+    fun `transformer recursively rewrites nested invocations`() {
+        val original = Conditional(
+            "conditional",
+            Invocation(vakya),
+            Repeat("repeat", 2, Invocation(vakya)),
+        )
+        val replacement = NamaVakya("सीता + सुँ", emptyList())
+        val transformed = object : ProgramNodeTransformer() {
+            override fun visitInvocation(node: Invocation): ProgramNode = Invocation(replacement)
+        }.transform(original)
+
+        assertEquals(listOf(replacement, replacement), transformed.invocations().map { it.vakya })
+    }
 }

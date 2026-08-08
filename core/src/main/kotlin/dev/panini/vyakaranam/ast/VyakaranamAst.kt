@@ -94,31 +94,28 @@ data class Scope(
     val body: List<ProgramNode> = emptyList(),
 ) : ProgramNode
 
-fun ProgramNode.invocations(): List<Invocation> = when (this) {
-    is Invocation -> listOf(this)
-    is Sequence -> statements.flatMap(ProgramNode::invocations)
-    is Conditional -> condition.invocations() +
-        consequent.invocations() +
-        alternate?.invocations().orEmpty()
-    is Repeat -> body.invocations()
-    is Pipeline -> emptyList()
-    is Procedure -> body.flatMap(ProgramNode::invocations)
-    is Scope -> body.flatMap(ProgramNode::invocations)
-}
+fun ProgramNode.invocations(): List<Invocation> = accept(InvocationCollector(expandRepeats = false))
 
 /** Invocations in execution order, including copies introduced by [Repeat]. */
-fun ProgramNode.expandedInvocations(): List<Invocation> = when (this) {
-    is Invocation -> listOf(this)
-    is Sequence -> statements.flatMap(ProgramNode::expandedInvocations)
-    is Conditional -> condition.expandedInvocations() +
-        consequent.expandedInvocations() +
-        alternate?.expandedInvocations().orEmpty()
-    is Repeat -> buildList {
-        repeat(count) { addAll(body.expandedInvocations()) }
+fun ProgramNode.expandedInvocations(): List<Invocation> = accept(InvocationCollector(expandRepeats = true))
+
+private class InvocationCollector(
+    private val expandRepeats: Boolean,
+) : ProgramNodeVisitor<List<Invocation>> {
+    private fun collect(node: ProgramNode): List<Invocation> = node.accept(this)
+
+    override fun visitInvocation(node: Invocation): List<Invocation> = listOf(node)
+    override fun visitSequence(node: Sequence): List<Invocation> = node.statements.flatMap(::collect)
+    override fun visitConditional(node: Conditional): List<Invocation> =
+        collect(node.condition) + collect(node.consequent) + node.alternate?.let(::collect).orEmpty()
+    override fun visitRepeat(node: Repeat): List<Invocation> = if (expandRepeats) {
+        buildList { repeat(node.count) { addAll(collect(node.body)) } }
+    } else {
+        collect(node.body)
     }
-    is Pipeline -> emptyList()
-    is Procedure -> body.flatMap(ProgramNode::expandedInvocations)
-    is Scope -> body.flatMap(ProgramNode::expandedInvocations)
+    override fun visitPipeline(node: Pipeline): List<Invocation> = emptyList()
+    override fun visitProcedure(node: Procedure): List<Invocation> = node.body.flatMap(::collect)
+    override fun visitScope(node: Scope): List<Invocation> = node.body.flatMap(::collect)
 }
 
 data class Sambodhana(
