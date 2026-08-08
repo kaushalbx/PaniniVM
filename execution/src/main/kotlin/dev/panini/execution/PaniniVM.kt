@@ -238,7 +238,7 @@ class PaniniVM(
             } else if (nestedAttributeAccess != null) {
                 val chain = nestedAttributeAccess
                 var currentObj: TaddhitaStruct? = structStore[chain[0]]
-                var resolvedValue: String? = null
+                var resolvedValue: SanskritValue? = null
                 var failedStep: String? = null
 
                 for (i in 1 until chain.size) {
@@ -250,13 +250,13 @@ class PaniniVM(
                     val attrVal = currentObj.attributes[key]
                     if (attrVal != null) {
                         if (i == chain.size - 1) {
-                            resolvedValue = attrVal
+                            resolvedValue = SanskritValue.of(attrVal)
                         } else {
                             currentObj = structStore[attrVal]
                         }
                     } else {
                         if (i == chain.size - 1) {
-                            resolvedValue = "लोपः"
+                            resolvedValue = SanskritValue.Lopa
                         } else {
                             failedStep = key
                             break
@@ -265,8 +265,11 @@ class PaniniVM(
                 }
 
                 if (resolvedValue != null) {
-                    val typedVal = if (resolvedValue == "लोपः") SanskritValue.Lopa else SanskritValue.of(resolvedValue)
-                    results += ExecutionResult.Success(operation = "taddhita.nested_query", value = resolvedValue, typedValue = typedVal)
+                    results += ExecutionResult.Success(
+                        operation = "taddhita.nested_query",
+                        value = resolvedValue.toDisplayText(),
+                        typedValue = resolvedValue,
+                    )
                 } else {
                     results += ExecutionResult.Failure(
                         ExecutionError.INVALID_VALUE,
