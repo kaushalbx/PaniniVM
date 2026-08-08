@@ -229,6 +229,8 @@ unadiPratyaya
 taddhitaPratyaya
     : MATUP
     | VATUP
+    | MAT
+    | VAT
     | INI
     | TVA
     | TAL

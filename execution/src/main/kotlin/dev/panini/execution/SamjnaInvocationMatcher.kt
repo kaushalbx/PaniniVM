@@ -65,10 +65,15 @@ object SamjnaInvocationMatcher {
         },
     )
 
-    private fun Pratipadika.domainIdentity(): String = normalizeIdentity(
-        when (this) {
+    private fun Pratipadika.domainIdentity(): String {
+        val identity = when (this) {
             is MulaPratipadika -> text
-            else -> sourceText.substringBefore("+ मतुप्").substringBefore("+ वतुप्").substringBefore("+ वत्")
-        },
-    )
+            else -> sourceText
+        }
+        return normalizeIdentity(identity)
+            .substringBefore("+ मतुप्")
+            .substringBefore("+ वतुप्")
+            .substringBefore("+ वत्")
+            .trim()
+    }
 }

@@ -1,7 +1,5 @@
 package dev.panini.execution
 
-import java.util.concurrent.atomic.AtomicInteger
-
 /**
  * A user-defined reusable kriyā, named via the संज्ञा-सूत्र pattern.
  */
@@ -38,8 +36,6 @@ class SamjnaKriyaRegistry {
     private val registry = linkedMapOf<String, MutableList<SamjnaKriya>>()
     private val memoizedCache = mutableMapOf<String, ExecutionResult>()
     private val inheritanceMap = mutableMapOf<String, String>() // childStem -> parentStem
-    private val astMatches = AtomicInteger()
-    private val compatibilityMatches = AtomicInteger()
 
     fun registerInheritance(relation: InheritanceRelation) {
         inheritanceMap[relation.childStem] = relation.parentStem
@@ -75,8 +71,6 @@ class SamjnaKriyaRegistry {
 
     val size: Int get() = registry.size
 
-    fun matchMetrics(): SamjnaMatchMetrics = SamjnaMatchMetrics(astMatches.get(), compatibilityMatches.get())
-
     fun detectInvocation(sentenceText: String, callerSourceFile: String? = null, preParsedUkti: dev.panini.vyakaranam.ast.Ukti? = null): SamjnaInvocation? {
         if (registry.isEmpty()) return null
 
@@ -101,26 +95,17 @@ class SamjnaKriyaRegistry {
                     domainMatches(kriya.domainStem, invocationShape.domainStem)
             }?.let { kriya ->
                 if (!kriya.isInternal || callerSourceFile == null || kriya.sourceFile == null || callerSourceFile == kriya.sourceFile) {
-                    astMatches.incrementAndGet()
                     return SamjnaInvocation(
                         kriya = kriya,
                         karmaText = invocationShape.karmaText,
                         fullText = sentenceText,
                         ukti = invocationShape.ukti,
-                        origin = SamjnaMatchOrigin.AST,
                     )
                 }
             }
         }
 
-        return LegacySamjnaInvocationMatcher.match(
-            textToProcess,
-            candidates,
-            allKriyas,
-            inheritanceMap,
-            callerSourceFile,
-            preParsedUkti,
-        )?.also { compatibilityMatches.incrementAndGet() }
+        return null
     }
 
     private fun domainMatches(expected: String?, actual: String?): Boolean {
@@ -158,9 +143,4 @@ data class SamjnaInvocation(
     val karmaText: String,
     val fullText: String,
     val ukti: dev.panini.vyakaranam.ast.Ukti? = null,
-    val origin: SamjnaMatchOrigin,
 )
-
-enum class SamjnaMatchOrigin { AST, COMPATIBILITY }
-
-data class SamjnaMatchMetrics(val ast: Int, val compatibility: Int)
