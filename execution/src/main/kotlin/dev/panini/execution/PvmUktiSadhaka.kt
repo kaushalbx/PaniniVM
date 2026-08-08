@@ -10,6 +10,7 @@ import dev.panini.derivation.SubantaEngine
 import dev.panini.derivation.TingantaDerivationRequest
 import dev.panini.derivation.TingantaEngine
 import dev.panini.dhatupatha.DhatuPatha
+import dev.panini.sankhya.SankhyaAbhyasaRenderer
 import dev.panini.sankhya.SankhyaEvaluator
 import dev.panini.sankhya.SankhyaGenerator
 import dev.panini.vyakaranam.ast.AvyayaPada
@@ -112,6 +113,7 @@ class PvmUktiSadhaka(
 
     private val sankhyaEvaluator = SankhyaEvaluator()
     private val sankhyaGenerator = SankhyaGenerator()
+    private val sankhyaAbhyasaRenderer = SankhyaAbhyasaRenderer()
 
     fun sadhayaPada(pada: Pada): String = when (pada) {
         is SubantaPada -> sadhayaSubanta(pada)
@@ -153,14 +155,14 @@ class PvmUktiSadhaka(
     fun sadhayaSankhyaAbhyasa(pada: SankhyaAbhyasaPada): String {
         return try {
             val lastStem = pada.stems.lastOrNull() ?: return pada.sourceText
-            val numStems = PvmAbhyasaMorphology.numericStems(pada.stems)
+            val numStems = sankhyaAbhyasaRenderer.numericStems(pada.stems)
             val count = if (numStems.isNotEmpty()) {
                 sankhyaEvaluator.evaluateStems(numStems).value
             } else {
                 sankhyaEvaluator.evaluateStems(pada.stems).value
             }
             val cardinalSurface = sankhyaGenerator.cardinal(count).final.surface
-            PvmAbhyasaMorphology.surface(lastStem, count, cardinalSurface)
+            sankhyaAbhyasaRenderer.render(lastStem, count, cardinalSurface)
         } catch (_: Throwable) {
             pada.sourceText
         }
