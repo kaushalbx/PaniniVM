@@ -1,6 +1,18 @@
 package dev.panini.execution
 
+import dev.panini.core.SupAffix
+import dev.panini.core.Vibhakti
+import dev.panini.vyakaranam.ast.AryabhatiyaPada
+import dev.panini.vyakaranam.ast.BhutasamkhyaPada
+import dev.panini.vyakaranam.ast.KatapayadiPada
+import dev.panini.vyakaranam.ast.MulaPratipadika
+import dev.panini.vyakaranam.ast.Pada
+import dev.panini.vyakaranam.ast.Pratipadika
+import dev.panini.vyakaranam.ast.SankhyaPada
+import dev.panini.vyakaranam.ast.SankhyaPuranaPada
 import dev.panini.vyakaranam.ast.SubantaPada
+import dev.panini.vyakaranam.ast.TaddhitaVikara
+import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.Ukti
 import dev.panini.vyakaranam.parser.PaniniParser
 
@@ -22,54 +34,20 @@ object TaddhitaStructEngine {
      * e.g. "दश + अम् मूल्य + अम् पञ्च + अम् परिमाण + अम् गुण + वत् + सुँ ।"
      */
     fun detectStructConstruction(sentenceText: String, preParsedUkti: Ukti? = null): TaddhitaStruct? {
-        val trimmed = sentenceText.trim().trimEnd('।', '॥', ' ')
-        val isMatup = trimmed.contains("+ वतुप्") || trimmed.contains("+ मतुप्") || trimmed.contains("+ वत्") || trimmed.contains("+ मत्")
-        if (!isMatup) return null
-
-        val ukti = preParsedUkti ?: runCatching { parser.parse(trimmed) }.getOrNull()
-        val karmaStems = mutableListOf<String>()
-
-        if (ukti != null) {
-            val padas = ukti.vakyas.flatMap { it.padas }.filterIsInstance<SubantaPada>()
-            val matupPada = padas.lastOrNull { it.sup.text == "सुँ" && (it.sourceText.contains("+ वतुप्") || it.sourceText.contains("+ मतुप्") || it.sourceText.contains("+ वत्") || it.sourceText.contains("+ मत्")) }
-            if (matupPada != null) {
-                val structName = matupPada.pratipadika.sourceText.substringBefore("+").trim()
-                for (pada in padas) {
-                    if (pada != matupPada && pada.sup.text == "अम्") {
-                        val stem = pada.pratipadika.sourceText.trim()
-                        if (stem.isNotEmpty()) {
-                            karmaStems.add(stem)
-                        }
-                    }
-                }
-                if (karmaStems.size >= 2) {
-                    val attributes = mutableMapOf<String, String>()
-                    for (i in 0 until karmaStems.size - 1 step 2) {
-                        val valTerm = karmaStems[i]
-                        val keyTerm = karmaStems[i + 1]
-                        attributes[keyTerm] = valTerm
-                    }
-                    return TaddhitaStruct(nameStem = structName, attributes = attributes)
-                }
-            }
-        }
-
-        // Regex fallback
-        val matupMatch = Regex("""(\S+)\s*\+\s*(?:वतुप्|मतुप्|वत्|मत्)\s*\+\s*सुँ""").find(trimmed) ?: return null
-        val structName = matupMatch.groupValues[1]
-
-        val matches = Regex("""(\S+)\s*\+\s*अम्""").findAll(trimmed).map { it.groupValues[1] }.toList()
-        if (matches.size >= 2) {
-            val attributes = mutableMapOf<String, String>()
-            for (i in 0 until matches.size - 1 step 2) {
-                val valTerm = matches[i]
-                val keyTerm = matches[i + 1]
-                attributes[keyTerm] = valTerm
-            }
-            return TaddhitaStruct(nameStem = structName, attributes = attributes)
-        }
-
-        return null
+        val ukti = parsed(sentenceText, preParsedUkti) ?: return null
+        val padas = ukti.vakyas.flatMap { it.padas }
+        val declaration = padas.filterIsInstance<SubantaPada>()
+            .lastOrNull { it.vibhakti() == Vibhakti.PRATHAMA && it.pratipadika.isMatup() }
+            ?: return null
+        val karmaStems = padas.filter { it !== declaration && it.vibhakti() == Vibhakti.DVITIYA }
+            .map { it.stemIdentity() }
+        if (karmaStems.size < 2) return null
+        return TaddhitaStruct(
+            nameStem = declaration.pratipadika.baseIdentity(),
+            attributes = karmaStems.chunked(2).mapNotNull { pair ->
+                pair.takeIf { it.size == 2 }?.let { (value, key) -> key to value }
+            }.toMap(),
+        )
     }
 
     /**
@@ -77,18 +55,8 @@ object TaddhitaStructEngine {
      * e.g. "गुण + मतुप् + ङस् मूल्य + अम् ।"
      */
     fun detectAttributeAccess(sentenceText: String, preParsedUkti: Ukti? = null): Pair<String, String>? {
-        val trimmed = sentenceText.trim().trimEnd('।', '॥', ' ')
-        val isGenitiveMatup = trimmed.contains("+ ङस्") && (trimmed.contains("+ वतुप्") || trimmed.contains("+ मतुप्") || trimmed.contains("+ वत्") || trimmed.contains("+ मत्"))
-        if (!isGenitiveMatup) return null
-
-        val match = Regex("""(\S+)\s*\+\s*(?:वतुप्|मतुप्|वत्|मत्)\s*\+\s*ङस्\s+(\S+)\s*\+\s*अम्""").find(trimmed)
-        if (match != null) {
-            val structName = match.groupValues[1]
-            val keyTerm = match.groupValues[2]
-            return Pair(structName, keyTerm)
-        }
-
-        return null
+        val chain = detectNestedAttributeAccess(sentenceText, preParsedUkti) ?: return null
+        return chain.takeIf { it.size == 2 }?.let { it[0] to it[1] }
     }
 
     /**
@@ -96,36 +64,14 @@ object TaddhitaStructEngine {
      * e.g. "गाणित + मतुप् + ङस् सङ्ख्या + मतुप् + ङस् मूल्य + अम् ।" -> ["गाणित", "सङ्ख्या", "मूल्य"]
      */
     fun detectNestedAttributeAccess(sentenceText: String, preParsedUkti: Ukti? = null): List<String>? {
-        val trimmed = sentenceText.trim().trimEnd('।', '॥', ' ')
-        if (!trimmed.endsWith("+ अम्") || trimmed.contains("कृ + लोट्") || trimmed.contains("युज् + णिच्")) return null
-
-        val isGenitiveMatup = trimmed.contains("+ ङस्") && (trimmed.contains("+ वतुप्") || trimmed.contains("+ मतुप्") || trimmed.contains("+ वत्") || trimmed.contains("+ मत्"))
-        if (!isGenitiveMatup) return null
-
-        val segments = trimmed.split("+ ङस्").map { it.trim() }.filter { it.isNotEmpty() }
-        if (segments.size >= 2) {
-            val chain = mutableListOf<String>()
-            for (i in 0 until segments.size - 1) {
-                val seg = segments[i]
-                val stem = seg.replace(Regex("""\+\s*(?:वतुप्|मतुप्|वत्|मत्)"""), "").replace("+", "").trim()
-                if (stem.isNotEmpty()) {
-                    chain.add(stem)
-                }
-            }
-            val lastSeg = segments.last()
-            val lastKey = lastSeg.replace("+ अम्", "").replace("+", "").trim()
-            if (lastKey.isNotEmpty()) {
-                chain.add(lastKey)
-            }
-            if (chain.size >= 2) {
-                return chain
-            }
-        }
-
-        val pair = detectAttributeAccess(trimmed, preParsedUkti)
-        if (pair != null) return listOf(pair.first, pair.second)
-
-        return null
+        val ukti = parsed(sentenceText, preParsedUkti) ?: return null
+        val padas = ukti.vakyas.flatMap { it.padas }
+        if (padas.any { it is TingantaPada }) return null
+        val receivers = padas.filterIsInstance<SubantaPada>()
+            .filter { it.vibhakti() == Vibhakti.SASTHI && it.pratipadika.isMatup() }
+            .map { it.pratipadika.baseIdentity() }
+        val key = padas.lastOrNull { it.vibhakti() == Vibhakti.DVITIYA }?.stemIdentity() ?: return null
+        return (receivers + key).takeIf { receivers.isNotEmpty() }
     }
 
     /**
@@ -133,14 +79,15 @@ object TaddhitaStructEngine {
      * e.g. "गुण + मतुप् + ङस् वृध् + ल्युट् + सुँ"
      */
     fun detectMethodHeader(headerName: String): Pair<String, String>? {
-        val trimmed = headerName.trim()
-        val match = Regex("""(\S+)\s*\+\s*(?:वतुप्|मतुप्|वत्|मत्)\s*\+\s*ङस्\s+(.+)""").find(trimmed)
-        if (match != null) {
-            val structStem = match.groupValues[1]
-            val methodHeader = match.groupValues[2]
-            return Pair(structStem, methodHeader)
+        val ukti = parsed(headerName, null) ?: return null
+        val padas = ukti.vakyas.flatMap { it.padas }
+        val receiverIndex = padas.indexOfFirst {
+            it is SubantaPada && it.vibhakti() == Vibhakti.SASTHI && it.pratipadika.isMatup()
         }
-        return null
+        if (receiverIndex < 0) return null
+        val receiver = padas[receiverIndex] as SubantaPada
+        val method = padas.drop(receiverIndex + 1).filterIsInstance<SubantaPada>().firstOrNull() ?: return null
+        return receiver.pratipadika.baseIdentity() to method.canonicalSource()
     }
 
     /**
@@ -148,18 +95,58 @@ object TaddhitaStructEngine {
      * e.g. "पञ्च + अम् गुण + मतुप् + ङस् वृध् + ल्युट् + टा कृ + लोट् + सिप्"
      */
     fun detectMethodInvocation(sentenceText: String): Triple<String, String, String>? {
-        val trimmed = sentenceText.trim()
-        val isMatupInvocation = trimmed.contains("+ ङस्") && (trimmed.contains("+ वतुप्") || trimmed.contains("+ मतुप्") || trimmed.contains("+ वत्") || trimmed.contains("+ मत्")) && trimmed.contains("+ टा")
-        if (!isMatupInvocation) return null
-
-        val match = Regex("""(.*)\s+(\S+)\s*\+\s*(?:वतुप्|मतुप्|वत्|मत्)\s*\+\s*ङस्\s+(\S+)\s*\+\s*(?:ल्युट्|णिच्|तव्यत्|सुँ|टा)""").find(trimmed)
-        if (match != null) {
-            val karmaText = match.groupValues[1].trim()
-            val structStem = match.groupValues[2].trim()
-            val methodStem = match.groupValues[3].trim()
-            return Triple(structStem, methodStem, karmaText)
+        val ukti = parsed(sentenceText, null) ?: return null
+        val padas = ukti.vakyas.flatMap { it.padas }
+        val receiverIndex = padas.indexOfFirst {
+            it is SubantaPada && it.vibhakti() == Vibhakti.SASTHI && it.pratipadika.isMatup()
         }
-
-        return null
+        if (receiverIndex < 0) return null
+        val receiver = padas[receiverIndex] as SubantaPada
+        val method = padas.drop(receiverIndex + 1).filterIsInstance<SubantaPada>()
+            .firstOrNull { it.vibhakti() == Vibhakti.TRTIYA } ?: return null
+        val karma = padas.take(receiverIndex).joinToString(" ") { it.canonicalSource() }
+        return Triple(receiver.pratipadika.baseIdentity(), method.pratipadika.baseIdentity(), karma)
     }
+
+    private fun parsed(text: String, supplied: Ukti?): Ukti? =
+        supplied ?: runCatching { parser.parse(text.trim().trimEnd('।', '॥', ' ')) }.getOrNull()
+
+    private fun Pada.vibhakti(): Vibhakti? = supText()?.let(SupAffix::fromUpadesha)?.vibhakti
+
+    private fun Pada.supText(): String? = when (this) {
+        is SubantaPada -> sup.text
+        is SankhyaPada -> sup.text
+        is SankhyaPuranaPada -> sup.text
+        is KatapayadiPada -> sup.text
+        is AryabhatiyaPada -> sup.text
+        is BhutasamkhyaPada -> sup.text
+        else -> null
+    }
+
+    private fun Pada.stemIdentity(): String = when (this) {
+        is SubantaPada -> pratipadika.baseIdentity()
+        else -> canonicalSource().substringBeforeLast(" + ${supText()}").trim()
+    }
+
+    private fun Pada.canonicalSource(): String = SamjnaInvocationMatcher.normalizeIdentity(sourceText)
+
+    private fun SubantaPada.canonicalSource(): String =
+        "${pratipadika.sourceText} + ${sup.text}".let(SamjnaInvocationMatcher::normalizeIdentity)
+
+    private fun Pratipadika.isMatup(): Boolean = vikaras().any { it.pratyaya in MATUP_FORMS }
+
+    private fun Pratipadika.baseIdentity(): String = when (this) {
+        is MulaPratipadika -> text
+        else -> SamjnaInvocationMatcher.normalizeIdentity(sourceText).substringBefore(" + ").trim()
+    }
+
+    private fun Pratipadika.vikaras(): List<TaddhitaVikara> = when (this) {
+        is dev.panini.vyakaranam.ast.MulaPratipadika -> vikaras.filterIsInstance<TaddhitaVikara>()
+        is dev.panini.vyakaranam.ast.KridantaPratipadika -> vikaras.filterIsInstance<TaddhitaVikara>()
+        is dev.panini.vyakaranam.ast.UnadyantaPratipadika -> vikaras.filterIsInstance<TaddhitaVikara>()
+        is dev.panini.vyakaranam.ast.SamasaPratipadika -> vikaras.filterIsInstance<TaddhitaVikara>()
+        is dev.panini.vyakaranam.ast.SankhyaPratipadika -> vikaras.filterIsInstance<TaddhitaVikara>()
+    }
+
+    private val MATUP_FORMS = setOf("मतुप्", "वतुप्", "मत्", "वत्")
 }
