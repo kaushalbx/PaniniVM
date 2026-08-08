@@ -7,6 +7,7 @@ import dev.panini.execution.ExecutionBindingResult
 import dev.panini.execution.ExecutionError
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.ExecutionScope
+import dev.panini.execution.KriyaInvocationId
 import dev.panini.execution.Phala
 import dev.panini.execution.Prativacana
 import dev.panini.execution.SambhashanaContext
@@ -39,7 +40,7 @@ object SutraExecutionPipeline {
                     val metadata = buildMap {
                         val turnPrefix = "उक्ति-${DevanagariDigits.render(conversation.turnNumber + 1)}"
                         binding.ukti.invocations.forEachIndexed { idx, inv ->
-                            put("dhatu:$turnPrefix/योग-${idx + 1}", inv.dhatu.upadesha)
+                            put("dhatu:$turnPrefix/${KriyaInvocationId.of(idx + 1)}", inv.dhatu.upadesha)
                         }
                     }
                     phala.copy(metadata = metadata)

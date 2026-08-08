@@ -1,5 +1,7 @@
 package dev.panini.execution.binding
 
+import dev.panini.execution.KriyaInvocationId
+
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.KridantaPratipadika
 import dev.panini.vyakaranam.ast.Pada
@@ -65,7 +67,7 @@ internal object PhalaResolver {
             val withinUtteranceMatch = order.select(matchingIndices)
 
             if (withinUtteranceMatch != null) {
-                phalaMap[phalaPada] = "योग-${withinUtteranceMatch + 1}"
+                phalaMap[phalaPada] = KriyaInvocationId.of(withinUtteranceMatch + 1)
                 resolvedGenitives.add(genitiveModifier)
                 if (explicitOrder.isExplicit && explicitOrder.pada != null) {
                     resolvedQualifiers.add(explicitOrder.pada)

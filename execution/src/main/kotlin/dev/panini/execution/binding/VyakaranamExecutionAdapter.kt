@@ -7,6 +7,7 @@ import dev.panini.execution.DhatuInvocation
 import dev.panini.execution.ExecutableUkti
 import dev.panini.execution.ExecutionBindingResult
 import dev.panini.execution.ExecutionExpression
+import dev.panini.execution.KriyaInvocationId
 import dev.panini.execution.GrammaticalFeatures
 import dev.panini.execution.Polarity
 import dev.panini.execution.SambhashanaContext
@@ -174,7 +175,7 @@ object VyakaranamExecutionAdapter {
             val bindingName = bindingKaraka?.let { invocation.bindings[it] }?.bindingName()
             if (bindingName != null) {
                 localVariables.add(bindingName)
-                localVariableInvocationIds[bindingName] = "योग-${index + 1}"
+                localVariableInvocationIds[bindingName] = KriyaInvocationId.of(index + 1)
             }
         }
 
@@ -232,11 +233,11 @@ object VyakaranamExecutionAdapter {
         val frequencyCount = if (shouldUnroll) null else FrequencyExtractor.extractFrequencyCount(padas, ctx.frame)
         val metadataMap = buildMap {
             put("dhatuName", dhatu.upadesha)
-            put("dhatu:योग-${index + 1}", dhatu.upadesha)
+            put("dhatu:${KriyaInvocationId.of(index + 1)}", dhatu.upadesha)
             if (frequencyCount != null) put("frequencyCount", frequencyCount.toString())
         }
         return DhatuInvocation(
-            id = "योग-${index + 1}",
+            id = KriyaInvocationId.of(index + 1),
             dhatu = dhatu,
             bindings = bindings,
             selectedOperation = null,

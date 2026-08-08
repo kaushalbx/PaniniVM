@@ -1,6 +1,7 @@
 package dev.panini.execution.binding
 
 import dev.panini.execution.ExecutionExpression
+import dev.panini.execution.KriyaInvocationId
 import dev.panini.execution.SvamRupamEngine
 import dev.panini.shiksha.Samjna
 import dev.panini.vyakaranam.ast.KridantaPratipadika
@@ -46,7 +47,7 @@ internal object ExpressionBuilder {
             resolvedId = text
         } else if (baseText == "फल") {
             resolvedId = overridePhalaId ?: (
-                if (ctx.clauseIndex > 0) "योग-${ctx.clauseIndex}"
+                if (ctx.clauseIndex > 0) KriyaInvocationId.of(ctx.clauseIndex)
                 else ctx.memory.latestKriya()?.frame?.id?.value
                     ?: ctx.conversation?.resultHistory?.lastOrNull()?.id
                     ?: ctx.conversation?.previousResults?.keys?.lastOrNull()

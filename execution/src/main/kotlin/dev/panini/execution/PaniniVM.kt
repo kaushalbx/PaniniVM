@@ -110,9 +110,9 @@ class PaniniVM(
     ) {
         if (frames.isEmpty()) return
         val invocationValues = phala.typedValues.entries
-            .filter { (id, _) -> id.startsWith("योग-") }
-            .sortedBy { (id, _) -> id.substringAfter("योग-").toIntOrNull() ?: Int.MAX_VALUE }
-        val remembered = invocationValues.mapIndexed { index, (_, value) ->
+            .mapNotNull { (id, value) -> KriyaInvocationId.indexOf(id)?.let { Triple(it, id, value) } }
+            .sortedBy { (index, _, _) -> index }
+        val remembered = invocationValues.mapIndexed { index, (_, _, value) ->
             val source = frames[index % frames.size]
             RememberedKriya(
                 turn = turn,
