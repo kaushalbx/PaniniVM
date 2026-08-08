@@ -93,8 +93,8 @@ object PvmScript {
                 }
             } else {
                 currentBlockText += line
-                val endsWithDoubleDanda = isSamjnaBlockEnd(stripped)
-                if (stripped.isNotEmpty() && stripped != "॥" && stripped != "इति ॥") {
+                val endsWithDoubleDanda = PvmBlockBoundary.closes(stripped)
+                if (PvmBlockBoundary.carriesBody(stripped)) {
                     currentBodyLines += line
                 }
                 if (endsWithDoubleDanda) {
@@ -199,12 +199,6 @@ object PvmScript {
         if (hasAccusative) return null
         val normalized = nominalSource.trimEnd('।', '॥', ' ').trim()
         return if (internalPrefix == null) normalized else "$internalPrefix$normalized"
-    }
-
-    internal fun isSamjnaBlockEnd(line: String): Boolean {
-        val trimmed = line.trim()
-        // Block ends on standalone "॥" or "इति ॥" or line ending with "॥"
-        return trimmed == "॥" || trimmed.endsWith("॥") || trimmed.contains("इति ॥")
     }
 
     private fun stripComment(line: String): String {
