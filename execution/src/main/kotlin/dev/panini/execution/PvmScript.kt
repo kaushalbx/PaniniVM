@@ -49,12 +49,6 @@ enum class PvmSourceKind {
 
 object PvmScript {
 
-    /** Marker at the end of a saṃjñā header line. */
-    private const val SAMJNA_HEADER_MARKER = "इति संज्ञा"
-
-    /** Marker that closes a saṃjñā definition block. */
-    private const val SAMJNA_BLOCK_END = "इति"
-
     fun classify(source: String): PvmSourceKind {
         val statements = parse(source)
         val loneDefinition = statements.singleOrNull() as? PvmScriptStatement.SamjnaDefinition
@@ -161,23 +155,22 @@ object PvmScript {
         body: List<PvmScriptStatement.Sentence>,
         blockText: List<String>,
     ): PvmScriptStatement.SamjnaDefinition {
-        val methodHeader = TaddhitaStructEngine.detectMethodHeader(header)
-        val isApavada = APAVADA_MARKERS.any(header::contains)
-        val isAntaranga = ANTARANGA_MARKERS.any(header::contains)
         val isInternal = INTERNAL_PREFIXES.any(header::startsWith)
         val rawName = INTERNAL_PREFIXES.fold(header) { name, prefix -> name.removePrefix(prefix) }.trim()
-        val cleanName = HEADER_SUFFIXES.fold(methodHeader?.second ?: rawName) { name, suffix ->
-            name.replace(suffix, "")
-        }.trim()
+        val parsed = SamjnaDefinitionMarkerParser.qualifiers(rawName)
+        val declarationSource = parsed?.declarationSource ?: rawName
+        val methodHeader = TaddhitaStructEngine.detectMethodHeader(declarationSource)
+        val cleanName = methodHeader?.second ?: declarationSource
+        val qualifiers = parsed?.qualifiers.orEmpty()
         return PvmScriptStatement.SamjnaDefinition(
             nameSegmented = cleanName,
             body = body,
             text = blockText.joinToString("\n"),
             domainStem = methodHeader?.first,
             isInternal = isInternal,
-            isApavada = isApavada,
-            isAntaranga = isAntaranga,
-            isNitya = NITYA_MARKERS.any(header::contains),
+            isApavada = SamjnaDefinitionQualifier.APAVADA in qualifiers,
+            isAntaranga = SamjnaDefinitionQualifier.ANTARANGA in qualifiers,
+            isNitya = SamjnaDefinitionQualifier.NITYA in qualifiers,
         )
     }
 
@@ -227,21 +220,7 @@ object PvmScript {
 
     private val parser = dev.panini.vyakaranam.parser.PaniniParser()
 
-    private val APAVADA_MARKERS = listOf("अप + वद्", "अप वद्", "इति अपवाद", "इति अपवादः")
-    private val ANTARANGA_MARKERS = listOf("अन्तर् + अङ्ग", "अन्तरङ्गा ", "अन्तरङ्ग ")
     private val INTERNAL_PREFIXES = listOf("अन्तरङ्गा ", "अन्तरङ्ग ")
-    private val NITYA_MARKERS = listOf("नि + त्य", "इति नित्य")
-    private val HEADER_SUFFIXES = listOf(
-        "इति अप + वद् + घञ् + सुँ",
-        "इति अप वद् + घञ् + सुँ",
-        "इति अप + वद् + घञ्",
-        "इति अप वद् + घञ्",
-        "इति अपवाद + सुँ",
-        "इति अपवादः",
-        "इति अन्तर् + अङ्ग + सुँ",
-        "इति नि + त्य + सुँ",
-        "इति नित्य + सुँ",
-    )
 
     private fun parseSentences(joinedText: String): List<PvmScriptStatement.Sentence> {
         if (joinedText.isBlank()) return emptyList()

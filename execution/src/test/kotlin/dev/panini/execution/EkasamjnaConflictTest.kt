@@ -14,6 +14,22 @@ class EkasamjnaConflictTest {
         assertTrue(statements.isNotEmpty(), "Expected non-empty script statements for Nitya header line")
         val defn = statements.first() as PvmScriptStatement.SamjnaDefinition
         assertTrue(defn.isNitya, "Expected isNitya to be true for Nitya header definition")
+        assertEquals("गणित + ङस् गुण् + ल्युट् + सुँ", defn.nameSegmented)
+    }
+
+    @Test
+    fun testStructuralHeaderQualifiers() {
+        val antaranga = PvmScript.parse(
+            "गणित + ङस् गुण् + ल्युट् + सुँ इति अन्तर् + अङ्ग + सुँ इति संज्ञा + सुँ ।",
+        ).single() as PvmScriptStatement.SamjnaDefinition
+        val apavada = PvmScript.parse(
+            "गणित + ङस् गुण् + ल्युट् + सुँ इति अप + वद् + घञ् + सुँ इति संज्ञा + सुँ ।",
+        ).single() as PvmScriptStatement.SamjnaDefinition
+
+        assertTrue(antaranga.isAntaranga)
+        assertEquals("गणित + ङस् गुण् + ल्युट् + सुँ", antaranga.nameSegmented)
+        assertTrue(apavada.isApavada)
+        assertEquals("गणित + ङस् गुण् + ल्युट् + सुँ", apavada.nameSegmented)
     }
 
     @Test
