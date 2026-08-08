@@ -61,7 +61,21 @@ data class AvyayaPada(
     override val sourceText: String,
     val form: String,
     val derivation: AvyayaDerivation? = null,
-) : Pada
+) : Pada {
+    val function: AvyayaFunction? = AvyayaFunction.fromForm(form)
+}
+
+enum class AvyayaFunction {
+    NISHEDHA,
+    ;
+
+    companion object {
+        fun fromForm(form: String): AvyayaFunction? = when (form.trim()) {
+            "न", "मा" -> NISHEDHA
+            else -> null
+        }
+    }
+}
 
 data class SamuccitaSubanta(
     override val sourceText: String,

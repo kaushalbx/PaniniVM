@@ -227,12 +227,10 @@ object PvmScript {
                 val ukti = parser.parseOrNull(trimmed)
                 val isNishedha = ukti?.vakyas?.any { vakya ->
                     vakya.padas.filterIsInstance<dev.panini.vyakaranam.ast.AvyayaPada>()
-                        .any { it.form in NISHEDHA_AVYAYAS }
+                        .any { it.function == dev.panini.vyakaranam.ast.AvyayaFunction.NISHEDHA }
                 } == true
                 PvmScriptStatement.Sentence(text = text, ukti = ukti, isNishedha = isNishedha)
             }
             .toList()
     }
-
-    private val NISHEDHA_AVYAYAS = setOf("न", "मा")
 }

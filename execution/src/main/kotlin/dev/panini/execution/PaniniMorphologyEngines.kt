@@ -3,6 +3,7 @@ package dev.panini.execution
 import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
 import dev.panini.sankhya.SankhyaEvaluator
+import dev.panini.vyakaranam.ast.AvyayaFunction
 import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.TingantaPada
@@ -75,7 +76,7 @@ object DynamicNishedhaEvaluator {
         // rewritten sentence must be parsed instead of reusing its original AST.
         val ukti = parser.parseOrNull(guardText.trim()) ?: return false
         val isNishedhaSentence = ukti.vakyas.any { vakya ->
-            vakya.padas.filterIsInstance<AvyayaPada>().any { it.form in NISHEDHA_MARKERS }
+            vakya.padas.filterIsInstance<AvyayaPada>().any { it.function == AvyayaFunction.NISHEDHA }
         }
         if (!isNishedhaSentence) return false
 
@@ -87,6 +88,4 @@ object DynamicNishedhaEvaluator {
     private fun evaluateNumber(term: String): Long? =
         term.toLongOrNull()
             ?: runCatching { sankhyaEvaluator.evaluateStems(listOf(term)).value }.getOrNull()
-
-    private val NISHEDHA_MARKERS = setOf("न", "मा")
 }
