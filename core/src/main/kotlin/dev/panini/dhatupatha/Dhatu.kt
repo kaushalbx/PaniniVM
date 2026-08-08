@@ -24,6 +24,8 @@ open class Dhatu(
     val svara: Accent? = null,
     /** Lexically blocks the regular ṇic-conditioned guṇa of 7.3.86. */
     val blocksNicGuna: Boolean = false,
+    /** Preferred identity when a source spelling names multiple Dhātupāṭha entries. */
+    val preferredForSourceDerivation: Boolean = false,
     open val operations: List<DhatuOperation> = emptyList(),
     open val semanticRelations: Set<SemanticRelation> = emptySet(),
     open val surfaceAliases: Set<String> = emptySet(),

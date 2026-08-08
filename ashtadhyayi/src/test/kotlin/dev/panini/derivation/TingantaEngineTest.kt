@@ -17,6 +17,22 @@ import kotlin.test.assertTrue
 class TingantaEngineTest {
 
     @Test
+    fun `da madhyama singular imperative derives dehi`() {
+        val result = TingantaEngine().derive(
+            TingantaDerivationRequest(
+                dhatu = "डुदाञ्",
+                vacana = Vacana.EKAVACANA,
+                purusha = Purusha.MADHYAMA,
+                lakara = Lakara.LOT,
+                pada = PadaType.PARASMAIPADA,
+            ),
+        )
+
+        assertEquals("देहि", result.final.surface)
+        assertTrue(result.applications.any { it.sutra == "6.4.119" })
+    }
+
+    @Test
     fun `tinganta request preserves an attached nic pratyaya`() {
         val request = TingantaDerivationRequest(
             dhatu = "युज्",

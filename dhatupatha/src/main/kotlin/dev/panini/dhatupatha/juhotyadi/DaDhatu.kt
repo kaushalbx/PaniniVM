@@ -26,6 +26,7 @@ class DaDhatu : Dhatu(
     itStatus = ItStatus.ANIT,
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.ANUDATTA,
+    preferredForSourceDerivation = true,
     operations = listOf(
         VariableAssignAction.op {
             requires(Karaka.KARMAN)

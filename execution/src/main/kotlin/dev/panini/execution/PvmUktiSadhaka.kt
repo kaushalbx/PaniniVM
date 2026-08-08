@@ -7,6 +7,7 @@ import dev.panini.derivation.SubantaDerivationRequest
 import dev.panini.derivation.SubantaEngine
 import dev.panini.derivation.TingantaDerivationRequest
 import dev.panini.derivation.TingantaEngine
+import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.sankhya.SankhyaEvaluator
 import dev.panini.sankhya.SankhyaGenerator
 import dev.panini.vyakaranam.ast.AvyayaPada
@@ -188,16 +189,19 @@ class PvmUktiSadhaka(
 
     fun sadhayaTinganta(tinganta: TingantaPada): String {
         val rawDhatu = tinganta.dhatu.mulaDhatu
+        val derivationDhatu = DhatuPatha.all.firstOrNull { candidate ->
+            candidate.preferredForSourceDerivation &&
+                (candidate.upadesha == rawDhatu || candidate.derivationalSurface == rawDhatu || candidate.sourceSurface == rawDhatu)
+        }?.upadesha ?: rawDhatu
         val tingAffix = TingAffix.fromUpadesha(tinganta.ting.text) ?: return rawDhatu
-        pvmImperativeSurface(tinganta)?.let { return it }
         return try {
             val useSanadiEngine = tingantaEngine.supportsSanadi(
-                rawDhatu,
+                derivationDhatu,
                 tinganta.dhatu.sanadiPratyayas,
                 tingAffix.pada,
             )
             val req = TingantaDerivationRequest(
-                dhatu = rawDhatu,
+                dhatu = derivationDhatu,
                 vacana = tingAffix.vacana,
                 purusha = tingAffix.purusha,
                 lakara = tinganta.lakara,
@@ -213,21 +217,6 @@ class PvmUktiSadhaka(
         } catch (e: Exception) {
             rawDhatu
         }
-    }
-
-    /**
-     * Forms used by the PVM instruction vocabulary whose derivational paths are
-     * not yet complete in [TingantaEngine]. The engine does not yet complete
-     * every sanādi formation, so these proven command
-     * surfaces remain a narrow fallback while sanādi support migrates into it.
-     */
-    private fun pvmImperativeSurface(tinganta: TingantaPada): String? {
-        if (tinganta.lakara != dev.panini.core.Lakara.LOT || tinganta.ting.text != "सिप्") return null
-
-        val dhatu = tinganta.dhatu.mulaDhatu
-        val hasNic = "णिच्" in tinganta.dhatu.sanadiPratyayas
-        if (hasNic && tingantaEngine.supportsSanadi(dhatu, tinganta.dhatu.sanadiPratyayas, dev.panini.core.PadaType.PARASMAIPADA)) return null
-        return if (hasNic) null else PvmImperativeLexicon.surface(dhatu)
     }
 
     private fun Pratipadika.baseText(): String = when (this) {
