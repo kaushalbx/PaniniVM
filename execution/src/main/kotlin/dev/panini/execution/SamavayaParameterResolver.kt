@@ -3,6 +3,7 @@ package dev.panini.execution
 import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
 import dev.panini.vyakaranam.ast.MulaPratipadika
+import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.parser.PaniniParser
 
@@ -17,7 +18,8 @@ object SamavayaParameterResolver {
             .flatMap { it.padas.asSequence() }
             .filterIsInstance<SubantaPada>()
             .filter { pada ->
-                (pada.pratipadika as? MulaPratipadika)?.text == "समवाय" &&
+                (pada.pratipadika as? MulaPratipadika)?.lexicalIdentity ==
+                    MulaPratipadikaIdentity.SAMAVAYA &&
                     SupAffix.fromUpadesha(pada.sup.text)?.vibhakti == Vibhakti.DVITIYA
             }
             .map { it.sourceText }

@@ -92,7 +92,23 @@ data class MulaPratipadika(
     override val sourceText: String,
     val text: String,
     val vikaras: List<PratipadikaVikara> = emptyList(),
-) : Pratipadika
+) : Pratipadika {
+    val lexicalIdentity: MulaPratipadikaIdentity? = MulaPratipadikaIdentity.fromText(text)
+}
+
+enum class MulaPratipadikaIdentity {
+    ADHIKARA,
+    SAMAVAYA,
+    ;
+
+    companion object {
+        fun fromText(text: String): MulaPratipadikaIdentity? = when (text.trim()) {
+            "अधिकार" -> ADHIKARA
+            "समवाय" -> SAMAVAYA
+            else -> null
+        }
+    }
+}
 
 data class KridantaPratipadika(
     override val sourceText: String,
