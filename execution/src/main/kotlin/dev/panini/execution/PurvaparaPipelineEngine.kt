@@ -81,7 +81,6 @@ object PurvaparaPipelineEngine {
             val stageResults = vm.executeSamjnaInvocation(
                 invocation, sessionKey, scope, speaker, listener, registry, callerSourceFile = callerSourceFile,
             )
-            println("DEBUG STAGE RESULTS for $kriyaPart: $stageResults")
             val stageSuccess = stageResults.filterIsInstance<ExecutionResult.Success>().lastOrNull()
 
             if (stageSuccess == null) {

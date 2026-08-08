@@ -41,6 +41,12 @@ sealed interface PvmScriptStatement {
     ) : PvmScriptStatement
 }
 
+enum class PvmSourceKind {
+    EMPTY,
+    UTTERANCE,
+    SCRIPT,
+}
+
 object PvmScript {
 
     /** Marker at the end of a saṃjñā header line. */
@@ -48,6 +54,32 @@ object PvmScript {
 
     /** Marker that closes a saṃjñā definition block. */
     private const val SAMJNA_BLOCK_END = "इति"
+
+    fun classify(source: String): PvmSourceKind {
+        val statements = parse(source)
+        val loneDefinition = statements.singleOrNull() as? PvmScriptStatement.SamjnaDefinition
+        if (loneDefinition != null && loneDefinition.body.isEmpty() && !hasExplicitDefinitionMarker(source)) {
+            return PvmSourceKind.UTTERANCE
+        }
+        return classify(statements)
+    }
+
+    fun classify(statements: List<PvmScriptStatement>): PvmSourceKind = when {
+        statements.isEmpty() -> PvmSourceKind.EMPTY
+        statements.size == 1 && statements.single() is PvmScriptStatement.Sentence -> PvmSourceKind.UTTERANCE
+        else -> PvmSourceKind.SCRIPT
+    }
+
+    private fun hasExplicitDefinitionMarker(source: String): Boolean = listOf(
+        "इति संज्ञा",
+        "इति अप + वद्",
+        "इति अप वद्",
+        "इति अपवाद",
+        "इति नि + त्य",
+        "इति नित्य",
+        "इति अन्तर् + अङ्ग",
+        "इति अन्तरङ्ग",
+    ).any(source::contains)
 
     fun parse(source: String): List<PvmScriptStatement> {
         val rawLines = source.lines()
@@ -86,39 +118,7 @@ object PvmScript {
                         .joinToString(" ")
                     val bodySentences = parseSentences(bodyText)
 
-                    val methodHeaderMatch = TaddhitaStructEngine.detectMethodHeader(currentName)
-                    val explicitDomain = methodHeaderMatch?.first
-                    val isApavadaHeader = currentName.contains("अप + वद्") || currentName.contains("अप वद्") || currentName.contains("इति अपवाद") || currentName.contains("इति अपवादः")
-                    val isAntarangaHeader = currentName.contains("अन्तर् + अङ्ग") || currentName.startsWith("अन्तरङ्गा ") || currentName.startsWith("अन्तरङ्ग ")
-                    val isNityaHeader = currentName.contains("नि + त्य") || currentName.contains("इति नित्य")
-                    val isInternalHeader = currentName.startsWith("अन्तरङ्गा ") || currentName.startsWith("अन्तरङ्ग ")
-                    val rawCleanName = if (isInternalHeader) {
-                        currentName.removePrefix("अन्तरङ्गा ").removePrefix("अन्तरङ्ग ").trim()
-                    } else {
-                        currentName
-                    }
-                    val cleanName = (methodHeaderMatch?.second ?: rawCleanName)
-                        .replace("इति अप + वद् + घञ् + सुँ", "")
-                        .replace("इति अप वद् + घञ् + सुँ", "")
-                        .replace("इति अप + वद् + घञ्", "")
-                        .replace("इति अप वद् + घञ्", "")
-                        .replace("इति अपवाद + सुँ", "")
-                        .replace("इति अपवादः", "")
-                        .replace("इति अन्तर् + अङ्ग + सुँ", "")
-                        .replace("इति नि + त्य + सुँ", "")
-                        .replace("इति नित्य + सुँ", "")
-                        .trim()
-
-                    samjnaDefinitions += PvmScriptStatement.SamjnaDefinition(
-                        nameSegmented = cleanName,
-                        body = bodySentences,
-                        text = currentBlockText.joinToString("\n"),
-                        domainStem = explicitDomain,
-                        isInternal = isInternalHeader,
-                        isApavada = isApavadaHeader,
-                        isAntaranga = isAntarangaHeader,
-                        isNitya = isNityaHeader,
-                    )
+                    samjnaDefinitions += samjnaDefinition(currentName, bodySentences, currentBlockText)
                     inBlock = false
                 }
             }
@@ -131,39 +131,7 @@ object PvmScript {
                 .joinToString(" ")
             val bodySentences = parseSentences(bodyText)
 
-            val methodHeaderMatch = TaddhitaStructEngine.detectMethodHeader(currentName)
-            val explicitDomain = methodHeaderMatch?.first
-            val isApavadaHeader = currentName.contains("अप + वद्") || currentName.contains("अप वद्") || currentName.contains("इति अपवाद") || currentName.contains("इति अपवादः")
-            val isAntarangaHeader = currentName.contains("अन्तर् + अङ्ग") || currentName.startsWith("अन्तरङ्गा ") || currentName.startsWith("अन्तरङ्ग ")
-            val isNityaHeader = currentName.contains("नि + त्य") || currentName.contains("इति नित्य")
-            val isInternalHeader = currentName.startsWith("अन्तरङ्गा ") || currentName.startsWith("अन्तरङ्ग ")
-            val rawCleanName = if (isInternalHeader) {
-                currentName.removePrefix("अन्तरङ्गा ").removePrefix("अन्तरङ्ग ").trim()
-            } else {
-                currentName
-            }
-            val cleanName = (methodHeaderMatch?.second ?: rawCleanName)
-                .replace("इति अप + वद् + घञ् + सुँ", "")
-                .replace("इति अप वद् + घञ् + सुँ", "")
-                .replace("इति अप + वद् + घञ्", "")
-                .replace("इति अप वद् + घञ्", "")
-                .replace("इति अपवाद + सुँ", "")
-                .replace("इति अपवादः", "")
-                .replace("इति अन्तर् + अङ्ग + सुँ", "")
-                .replace("इति नि + त्य + सुँ", "")
-                .replace("इति नित्य + सुँ", "")
-                .trim()
-
-            samjnaDefinitions += PvmScriptStatement.SamjnaDefinition(
-                nameSegmented = cleanName,
-                body = bodySentences,
-                text = currentBlockText.joinToString("\n"),
-                domainStem = explicitDomain,
-                isInternal = isInternalHeader,
-                isApavada = isApavadaHeader,
-                isAntaranga = isAntarangaHeader,
-                isNitya = isNityaHeader,
-            )
+            samjnaDefinitions += samjnaDefinition(currentName, bodySentences, currentBlockText)
             inBlock = false
         }
 
@@ -194,6 +162,31 @@ object PvmScript {
         }
 
         return samjnaDefinitions + adhikaraDefinitions + sentences
+    }
+
+    private fun samjnaDefinition(
+        header: String,
+        body: List<PvmScriptStatement.Sentence>,
+        blockText: List<String>,
+    ): PvmScriptStatement.SamjnaDefinition {
+        val methodHeader = TaddhitaStructEngine.detectMethodHeader(header)
+        val isApavada = APAVADA_MARKERS.any(header::contains)
+        val isAntaranga = ANTARANGA_MARKERS.any(header::contains)
+        val isInternal = INTERNAL_PREFIXES.any(header::startsWith)
+        val rawName = INTERNAL_PREFIXES.fold(header) { name, prefix -> name.removePrefix(prefix) }.trim()
+        val cleanName = HEADER_SUFFIXES.fold(methodHeader?.second ?: rawName) { name, suffix ->
+            name.replace(suffix, "")
+        }.trim()
+        return PvmScriptStatement.SamjnaDefinition(
+            nameSegmented = cleanName,
+            body = body,
+            text = blockText.joinToString("\n"),
+            domainStem = methodHeader?.first,
+            isInternal = isInternal,
+            isApavada = isApavada,
+            isAntaranga = isAntaranga,
+            isNitya = NITYA_MARKERS.any(header::contains),
+        )
     }
 
     internal fun isAdhikaraLine(line: String): Boolean {
@@ -291,6 +284,22 @@ object PvmScript {
 
     private val parser = dev.panini.vyakaranam.parser.PaniniParser()
 
+    private val APAVADA_MARKERS = listOf("अप + वद्", "अप वद्", "इति अपवाद", "इति अपवादः")
+    private val ANTARANGA_MARKERS = listOf("अन्तर् + अङ्ग", "अन्तरङ्गा ", "अन्तरङ्ग ")
+    private val INTERNAL_PREFIXES = listOf("अन्तरङ्गा ", "अन्तरङ्ग ")
+    private val NITYA_MARKERS = listOf("नि + त्य", "इति नित्य")
+    private val HEADER_SUFFIXES = listOf(
+        "इति अप + वद् + घञ् + सुँ",
+        "इति अप वद् + घञ् + सुँ",
+        "इति अप + वद् + घञ्",
+        "इति अप वद् + घञ्",
+        "इति अपवाद + सुँ",
+        "इति अपवादः",
+        "इति अन्तर् + अङ्ग + सुँ",
+        "इति नि + त्य + सुँ",
+        "इति नित्य + सुँ",
+    )
+
     private fun parseSentences(joinedText: String): List<PvmScriptStatement.Sentence> {
         if (joinedText.isBlank()) return emptyList()
         val sentenceRegex = Regex("""[^।॥]+[।॥]*""")
@@ -308,4 +317,3 @@ object PvmScript {
             .toList()
     }
 }
-

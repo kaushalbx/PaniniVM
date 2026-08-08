@@ -68,7 +68,7 @@ class PaniniVM(
         listener: String = "यन्त्रम्",
         isExecutingScript: Boolean = false,
     ): ExecutionResult {
-        if (!isExecutingScript && (utterance.contains("\n") || utterance.contains("इति संज्ञा") || utterance.contains("इति अधिकार") || utterance.contains("इति अधि + कृ + घञ्") || utterance.contains("इति अप वद् + घञ्"))) {
+        if (!isExecutingScript && PvmScript.classify(utterance) == PvmSourceKind.SCRIPT) {
             val scriptResults = evalScript(utterance, sessionKey, scope, speaker, listener)
             return scriptResults.lastOrNull() ?: ExecutionResult.Success(operation = "panini.evalScript", value = "संसिद्धम्")
         }

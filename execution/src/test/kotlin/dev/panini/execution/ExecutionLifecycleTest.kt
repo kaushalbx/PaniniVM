@@ -218,6 +218,20 @@ class ExecutionLifecycleTest {
     }
 
     @Test
+    fun `source classification uses parsed statements instead of text markers`() {
+        val utterance = """
+            एक + अम् द्वि + औट् च
+            युज् + णिच् + लोट् + सिप् ।
+        """.trimIndent()
+        assertEquals(PvmSourceKind.UTTERANCE, PvmScript.classify(utterance))
+        assertEquals("panini.eval", assertIs<ExecutionResult.Success>(PaniniVM().eval(utterance)).operation)
+        assertEquals(PvmSourceKind.UTTERANCE, PvmScript.classify("गणित + सुँ ।"))
+
+        val script = "$utterance\n$utterance"
+        assertEquals(PvmSourceKind.SCRIPT, PvmScript.classify(script))
+    }
+
+    @Test
     fun `kriya memory distinguishes ordinal previous and latest results`() {
         val vm = PaniniVM(storageDir.resolve("ordered-memory").toFile())
         assertIs<ExecutionResult.Success>(
