@@ -17,15 +17,6 @@ internal data class KarakaReferenceResolution(
 
 /** Resolves phrases such as योजनस्य कर्म into participants of a remembered kriyā. */
 internal object KarakaReferenceResolver {
-    private val names = mapOf(
-        "कर्तृ" to Karaka.KARTR,
-        "कर्मन्" to Karaka.KARMAN,
-        "करण" to Karaka.KARANA,
-        "सम्प्रदान" to Karaka.SAMPRADANA,
-        "अपादान" to Karaka.APADANA,
-        "अधिकरण" to Karaka.ADHIKARANA,
-    )
-
     fun resolve(
         padas: List<Pada>,
         subantas: List<SubantaPada>,
@@ -35,7 +26,7 @@ internal object KarakaReferenceResolver {
         val consumedGenitives = mutableSetOf<SubantaPada>()
         val consumedQualifiers = mutableSetOf<Pada>()
         subantas.forEachIndexed { index, referencePada ->
-            val karaka = names[referencePada.pratipadika.baseText()] ?: return@forEachIndexed
+            val karaka = Karaka.fromPratipadika(referencePada.pratipadika.baseText()) ?: return@forEachIndexed
             val order = MemoryOrderQualifierResolver.before(referencePada, padas)
             val genitive = subantas.take(index).lastOrNull {
                 it.sup.text in setOf("ङस्", "आम्") && it.pratipadika is KridantaPratipadika
