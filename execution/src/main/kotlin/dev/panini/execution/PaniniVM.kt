@@ -412,14 +412,7 @@ class PaniniVM(
                 sentenceText = PuranaPratyayaResolver.replacePatterns(sentenceText, index, argVal)
             }
 
-            // Substitute समवाय (Collection / List batch fold parameter)
-            if (sentenceText.contains("समवाय") && invocation.karmaText.isNotBlank()) {
-                if (sentenceText.contains("समवाय + अम्")) {
-                    sentenceText = sentenceText.replace("समवाय + अम्", invocation.karmaText)
-                } else if (sentenceText.contains("समवाय")) {
-                    sentenceText = sentenceText.replace("समवाय", invocation.karmaText)
-                }
-            }
+            sentenceText = SamavayaParameterResolver.replace(sentenceText, invocation.karmaText)
 
             // Sibling body invocations inside a saṃjñā pass the saṃjñā's own sourceFile
             val kriyaSourceFile = invocation.kriya.sourceFile ?: callerSourceFile
