@@ -266,6 +266,15 @@ class SamjnaKriyaMultiFileTest {
 
         val publicDef = parsed[1] as PvmScriptStatement.SamjnaDefinition
         assertTrue(!publicDef.isInternal, "Standard saṃjñā header must set isInternal = false.")
+
+        val alternateInternal = PvmScript.parse(
+            """
+            अन्तरङ्ग द्विगुणन + ल्युट् + सुँ ।
+            प्रथम + अम् द्वि + अम् च गण + णिच् + लोट् + सिप् ॥
+            """.trimIndent(),
+        ).single() as PvmScriptStatement.SamjnaDefinition
+        assertTrue(alternateInternal.isInternal)
+        assertEquals("द्विगुणन + ल्युट् + सुँ", alternateInternal.nameSegmented)
     }
 
     @Test

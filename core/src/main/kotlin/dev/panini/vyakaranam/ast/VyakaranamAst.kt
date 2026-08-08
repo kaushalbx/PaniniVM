@@ -109,7 +109,7 @@ enum class MulaPratipadikaIdentity {
     companion object {
         fun fromText(text: String): MulaPratipadikaIdentity? = when (normalize(text)) {
             "अधिकार" -> ADHIKARA
-            "अन्तरङ्ग", "अन्तर् + अङ्ग" -> ANTARANGA
+            "अन्तरङ्ग", "अन्तरङ्गा", "अन्तर् + अङ्ग" -> ANTARANGA
             "अपवाद" -> APAVADA
             "नित्य", "नि + त्य" -> NITYA
             "पूर्व" -> PURVA

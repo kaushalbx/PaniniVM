@@ -10,6 +10,7 @@ class MulaPratipadikaTest {
     fun `classifies canonical lexical identities`() {
         assertEquals(MulaPratipadikaIdentity.ADHIKARA, pratipadika("अधिकार").lexicalIdentity)
         assertEquals(MulaPratipadikaIdentity.ANTARANGA, pratipadika("अन्तरङ्ग").lexicalIdentity)
+        assertEquals(MulaPratipadikaIdentity.ANTARANGA, pratipadika("अन्तरङ्गा").lexicalIdentity)
         assertEquals(MulaPratipadikaIdentity.APAVADA, pratipadika("अपवाद").lexicalIdentity)
         assertEquals(MulaPratipadikaIdentity.NITYA, pratipadika("नित्य").lexicalIdentity)
         assertEquals(MulaPratipadikaIdentity.NITYA, pratipadika("नि+त्य").lexicalIdentity)

@@ -1,5 +1,7 @@
 package dev.panini.execution
 
+import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
+
 sealed interface PvmScriptStatement {
     val text: String
 
@@ -155,8 +157,8 @@ object PvmScript {
         body: List<PvmScriptStatement.Sentence>,
         blockText: List<String>,
     ): PvmScriptStatement.SamjnaDefinition {
-        val isInternal = INTERNAL_PREFIXES.any(header::startsWith)
-        val rawName = INTERNAL_PREFIXES.fold(header) { name, prefix -> name.removePrefix(prefix) }.trim()
+        val internalHeader = splitInternalHeader(header)
+        val rawName = internalHeader.nominalSource
         val parsed = SamjnaDefinitionMarkerParser.qualifiers(rawName)
         val declarationSource = parsed?.declarationSource ?: rawName
         val methodHeader = TaddhitaStructEngine.detectMethodHeader(declarationSource)
@@ -167,7 +169,7 @@ object PvmScript {
             body = body,
             text = blockText.joinToString("\n"),
             domainStem = methodHeader?.first,
-            isInternal = isInternal,
+            isInternal = internalHeader.isInternal,
             isApavada = SamjnaDefinitionQualifier.APAVADA in qualifiers,
             isAntaranga = SamjnaDefinitionQualifier.ANTARANGA in qualifiers,
             isNitya = SamjnaDefinitionQualifier.NITYA in qualifiers,
@@ -186,8 +188,8 @@ object PvmScript {
 
         SamjnaDefinitionMarkerParser.headerPrefix(trimmed)?.let { return it }
 
-        val internalPrefix = INTERNAL_PREFIXES.firstOrNull(trimmed::startsWith)
-        val nominalSource = internalPrefix?.let(trimmed::removePrefix)?.trim() ?: trimmed
+        val internalHeader = splitInternalHeader(trimmed)
+        val nominalSource = internalHeader.nominalSource
         if (SamjnaHeaderIdentityParser.parse(nominalSource) == null) return null
         val ukti = parser.parseOrNull(nominalSource.trimEnd('।', '॥', ' ')) ?: return null
         val hasAccusative = ukti.vakyas.flatMap { it.padas }
@@ -198,7 +200,7 @@ object PvmScript {
             }
         if (hasAccusative) return null
         val normalized = nominalSource.trimEnd('।', '॥', ' ').trim()
-        return if (internalPrefix == null) normalized else "$internalPrefix$normalized"
+        return if (internalHeader.isInternal) "${internalHeader.marker} $normalized" else normalized
     }
 
     private fun stripComment(line: String): String {
@@ -214,7 +216,24 @@ object PvmScript {
 
     private val parser = dev.panini.vyakaranam.parser.PaniniParser()
 
-    private val INTERNAL_PREFIXES = listOf("अन्तरङ्गा ", "अन्तरङ्ग ")
+    private data class InternalHeader(
+        val marker: String? = null,
+        val nominalSource: String,
+    ) {
+        val isInternal: Boolean get() = marker != null
+    }
+
+    private fun splitInternalHeader(header: String): InternalHeader {
+        val separator = header.indexOf(' ')
+        if (separator <= 0) return InternalHeader(nominalSource = header.trim())
+        val marker = header.substring(0, separator)
+        val isInternal = MulaPratipadikaIdentity.fromText(marker) == MulaPratipadikaIdentity.ANTARANGA
+        return if (isInternal) {
+            InternalHeader(marker, header.substring(separator + 1).trim())
+        } else {
+            InternalHeader(nominalSource = header.trim())
+        }
+    }
 
     private fun parseSentences(joinedText: String): List<PvmScriptStatement.Sentence> {
         if (joinedText.isBlank()) return emptyList()
