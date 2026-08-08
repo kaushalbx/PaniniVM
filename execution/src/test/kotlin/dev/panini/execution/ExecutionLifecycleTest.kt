@@ -10,6 +10,8 @@ import dev.panini.execution.sutra.ProgramBlueprintCompiler
 import dev.panini.execution.sutra.ProgramBlueprintContext
 import dev.panini.execution.sutra.ProgramBlueprintDiagnosticCode
 import dev.panini.execution.sutra.SutraExecutionPipeline
+import dev.panini.execution.sutra.SutraPipelineContinuation
+import dev.panini.execution.external.ExternalCapabilityDispatcher
 import dev.panini.execution.persistence.FileStateStore
 import dev.panini.sutra.runtime.SutraArthaValue
 import dev.panini.shiksha.Samjna
@@ -63,6 +65,37 @@ class ExecutionLifecycleTest {
 
         assertEquals(setOf("योग-1", "योग-3"), result.typedValues.keys)
         assertEquals(5L, assertIs<SanskritValue.Sankhya>(result.typedValues.getValue("योग-3")).value)
+    }
+
+    @Test
+    fun `conditional branch resumes after approval without entering alternate`() {
+        val vm = PaniniVM()
+        val scope = vm.defaultScope
+        val paused = assertIs<Phala.AnumatiApekshita>(
+            SutraExecutionPipeline.execute(
+                SanskritUktiInput(
+                    speaker = "प्रयोक्ता",
+                    listener = "यन्त्रम्",
+                    text = "यदि दश + अम् द्वि + अम् च विद् + णिच् + लोट् + सिप् " +
+                        "तर्हि वार्ता + अम् प्रेष् + णिच् + लोट् + सिप् " +
+                        "अन्यथा द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ।",
+                ),
+                SambhashanaContext("प्रयोक्ता", "यन्त्रम्"),
+                scope,
+            ),
+        )
+        val continuation = assertIs<SutraPipelineContinuation>(paused.pipelineContinuation)
+
+        val resumed = SutraExecutionPipeline.resume(
+            continuation,
+            scope.copy(
+                capabilities = scope.capabilities + paused.effects,
+                externalDispatcher = ExternalCapabilityDispatcher(),
+            ),
+        )
+        val completed = assertIs<Phala.Siddha>(resumed, resumed.toString())
+
+        assertEquals(setOf("योग-1", "योग-2"), completed.typedValues.keys)
     }
 
     @Test
