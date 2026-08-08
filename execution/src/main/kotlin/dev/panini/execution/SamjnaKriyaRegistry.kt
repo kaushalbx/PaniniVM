@@ -1,6 +1,7 @@
 package dev.panini.execution
 
 import dev.panini.core.SupAffix
+import dev.panini.vyakaranam.ast.KrtPratyayaIdentity
 
 /**
  * A user-defined reusable kriyā, named via the संज्ञा-सूत्र pattern.
@@ -15,9 +16,9 @@ data class SamjnaKriya(
     val isAntaranga: Boolean = false,
     val isNitya: Boolean = false,
     val isInternal: Boolean = false,
-    val isMemoized: Boolean = SamjnaHeaderIdentityParser.hasOperationKrtPratyaya(
+    val isMemoized: Boolean = SamjnaHeaderIdentityParser.hasOperationKrtPratyayaIdentity(
         nameSegmented,
-        MEMOIZING_KRT_PRATYAYAS,
+        KrtPratyayaIdentity.KTA,
     ),
 ) {
     val signature: SamjnaSignature by lazy { SamjnaSignatureCompiler.compile(body) }
@@ -32,8 +33,6 @@ data class SamjnaKriya(
     val nishedhaGuards: List<PvmScriptStatement.Sentence> = body.filter { it.isNishedha }
     val vidhiSentences: List<PvmScriptStatement.Sentence> = body.filterNot { it.isNishedha }
 }
-
-private val MEMOIZING_KRT_PRATYAYAS = setOf("क्त")
 
 /**
  * Global registry of saṃjñā kriyās for a project/session.

@@ -100,7 +100,21 @@ data class KridantaPratipadika(
     val dhatu: DhatuPrakriti,
     val krtPratyaya: String,
     val vikaras: List<PratipadikaVikara> = emptyList(),
-) : Pratipadika
+) : Pratipadika {
+    val krtPratyayaIdentity: KrtPratyayaIdentity? = KrtPratyayaIdentity.fromUpadesha(krtPratyaya)
+}
+
+enum class KrtPratyayaIdentity {
+    KTA,
+    ;
+
+    companion object {
+        fun fromUpadesha(upadesha: String): KrtPratyayaIdentity? = when (upadesha.trim()) {
+            "क्त" -> KTA
+            else -> null
+        }
+    }
+}
 
 data class UnadyantaPratipadika(
     override val sourceText: String,

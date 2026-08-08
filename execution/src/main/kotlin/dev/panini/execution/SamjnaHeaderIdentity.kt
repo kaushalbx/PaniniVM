@@ -3,6 +3,7 @@ package dev.panini.execution
 import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
 import dev.panini.vyakaranam.ast.KridantaPratipadika
+import dev.panini.vyakaranam.ast.KrtPratyayaIdentity
 import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.vyakaranam.ast.Pratipadika
 import dev.panini.vyakaranam.ast.SubantaPada
@@ -30,9 +31,9 @@ object SamjnaHeaderIdentityParser {
         )
     }
 
-    fun hasOperationKrtPratyaya(source: String, pratyayas: Set<String>): Boolean =
+    fun hasOperationKrtPratyayaIdentity(source: String, identity: KrtPratyayaIdentity): Boolean =
         (parseSubantas(source)?.lastOrNull()?.pratipadika as? KridantaPratipadika)
-            ?.krtPratyaya in pratyayas
+            ?.krtPratyayaIdentity == identity
 
     private fun parseSubantas(source: String): List<SubantaPada>? =
         parser.parseOrNull(source.trim().trimEnd('।', '॥', ' '))

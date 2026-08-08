@@ -1,5 +1,6 @@
 package dev.panini.execution
 
+import dev.panini.vyakaranam.ast.KrtPratyayaIdentity
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -32,8 +33,23 @@ class SamjnaHeaderIdentityParserTest {
 
     @Test
     fun `classifies operation krt pratyaya structurally`() {
-        assertTrue(SamjnaHeaderIdentityParser.hasOperationKrtPratyaya("सिद्ध+क्त+सुँ", setOf("क्त")))
-        assertFalse(SamjnaHeaderIdentityParser.hasOperationKrtPratyaya("सिद्ध + ल्युट् + सुँ", setOf("क्त")))
-        assertFalse(SamjnaHeaderIdentityParser.hasOperationKrtPratyaya("अवैध + क्त", setOf("क्त")))
+        assertTrue(
+            SamjnaHeaderIdentityParser.hasOperationKrtPratyayaIdentity(
+                "सिद्ध+क्त+सुँ",
+                KrtPratyayaIdentity.KTA,
+            ),
+        )
+        assertFalse(
+            SamjnaHeaderIdentityParser.hasOperationKrtPratyayaIdentity(
+                "सिद्ध + ल्युट् + सुँ",
+                KrtPratyayaIdentity.KTA,
+            ),
+        )
+        assertFalse(
+            SamjnaHeaderIdentityParser.hasOperationKrtPratyayaIdentity(
+                "अवैध + क्त",
+                KrtPratyayaIdentity.KTA,
+            ),
+        )
     }
 }
