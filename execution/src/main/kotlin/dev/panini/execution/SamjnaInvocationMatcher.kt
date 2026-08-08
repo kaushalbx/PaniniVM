@@ -2,9 +2,6 @@ package dev.panini.execution
 
 import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
-import dev.panini.vyakaranam.ast.KridantaPratipadika
-import dev.panini.vyakaranam.ast.MulaPratipadika
-import dev.panini.vyakaranam.ast.Pratipadika
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.Ukti
@@ -34,7 +31,7 @@ object SamjnaInvocationMatcher {
         val instrumental = padas.withIndex().firstOrNull { (index, pada) ->
             index < verbIndex && pada is SubantaPada &&
                 pada.vibhakti() == Vibhakti.TRTIYA &&
-                pada.pratipadika.identity() in knownOperationStems
+                pada.pratipadika.samjnaIdentity() in knownOperationStems
         } ?: return null
         val operationPada = instrumental.value as SubantaPada
         val domainEntry = padas.withIndex().take(instrumental.index)
@@ -45,8 +42,8 @@ object SamjnaInvocationMatcher {
             .joinToString(" ") { normalizeIdentity(it.sourceText) }
             .trim()
         return SamjnaInvocationShape(
-            operationStem = operationPada.pratipadika.identity(),
-            domainStem = domainPada?.pratipadika?.domainIdentity(),
+            operationStem = operationPada.pratipadika.samjnaIdentity(),
+            domainStem = domainPada?.pratipadika?.samjnaDomainIdentity(),
             karmaText = karmaText,
             ukti = ukti,
         )
@@ -57,23 +54,4 @@ object SamjnaInvocationMatcher {
 
     private fun SubantaPada.vibhakti(): Vibhakti? = SupAffix.fromUpadesha(sup.text)?.vibhakti
 
-    private fun Pratipadika.identity(): String = normalizeIdentity(
-        when (this) {
-            is KridantaPratipadika -> sourceText
-            is MulaPratipadika -> text
-            else -> sourceText
-        },
-    )
-
-    private fun Pratipadika.domainIdentity(): String {
-        val identity = when (this) {
-            is MulaPratipadika -> text
-            else -> sourceText
-        }
-        return normalizeIdentity(identity)
-            .substringBefore("+ मतुप्")
-            .substringBefore("+ वतुप्")
-            .substringBefore("+ वत्")
-            .trim()
-    }
 }

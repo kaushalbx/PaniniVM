@@ -26,36 +26,34 @@ object SamjnaHeaderIdentityParser {
             ?: return null
         val domain = subantas.dropLast(1).lastOrNull { it.vibhakti() == Vibhakti.SASTHI }
         return SamjnaHeaderIdentity(
-            operationStem = operation.pratipadika.identity(),
-            domainStem = domain?.pratipadika?.domainIdentity(),
+            operationStem = operation.pratipadika.samjnaIdentity(),
+            domainStem = domain?.pratipadika?.samjnaDomainIdentity(),
         )
     }
 
     private fun SubantaPada.vibhakti(): Vibhakti? =
         SupAffix.fromUpadesha(sup.text)?.vibhakti
+}
 
-    private fun Pratipadika.identity(): String = SamjnaInvocationMatcher.normalizeIdentity(
-        when (this) {
-            is MulaPratipadika -> text
-            is KridantaPratipadika -> sourceText
-            else -> sourceText
-        },
-    )
-
-    private fun Pratipadika.domainIdentity(): String = when (this) {
+internal fun Pratipadika.samjnaIdentity(): String = SamjnaInvocationMatcher.normalizeIdentity(
+    when (this) {
         is MulaPratipadika -> text
+        is KridantaPratipadika -> sourceText
         else -> sourceText
-    }.let(SamjnaInvocationMatcher::normalizeIdentity)
-        .let { identity ->
-            val taddhita = vikaras().filterIsInstance<TaddhitaVikara>().firstOrNull()
-            if (taddhita == null) identity else identity.removeSuffix(" + ${taddhita.pratyaya}")
-        }
+    },
+)
 
-    private fun Pratipadika.vikaras() = when (this) {
-        is MulaPratipadika -> vikaras
-        is KridantaPratipadika -> vikaras
-        is dev.panini.vyakaranam.ast.UnadyantaPratipadika -> vikaras
-        is dev.panini.vyakaranam.ast.SamasaPratipadika -> vikaras
-        is dev.panini.vyakaranam.ast.SankhyaPratipadika -> vikaras
+internal fun Pratipadika.samjnaDomainIdentity(): String {
+    if (this is MulaPratipadika) return SamjnaInvocationMatcher.normalizeIdentity(text)
+    return taddhitaVikaras().asReversed().fold(samjnaIdentity()) { identity, vikara ->
+        identity.removeSuffix(" + ${vikara.pratyaya}")
     }
+}
+
+private fun Pratipadika.taddhitaVikaras(): List<TaddhitaVikara> = when (this) {
+    is MulaPratipadika -> vikaras.filterIsInstance<TaddhitaVikara>()
+    is KridantaPratipadika -> vikaras.filterIsInstance<TaddhitaVikara>()
+    is dev.panini.vyakaranam.ast.UnadyantaPratipadika -> vikaras.filterIsInstance<TaddhitaVikara>()
+    is dev.panini.vyakaranam.ast.SamasaPratipadika -> vikaras.filterIsInstance<TaddhitaVikara>()
+    is dev.panini.vyakaranam.ast.SankhyaPratipadika -> vikaras.filterIsInstance<TaddhitaVikara>()
 }

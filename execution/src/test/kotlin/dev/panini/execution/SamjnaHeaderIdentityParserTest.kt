@@ -16,6 +16,10 @@ class SamjnaHeaderIdentityParserTest {
             SamjnaHeaderIdentity(operationStem = "वृध् + ल्युट्", domainStem = "गुण"),
             SamjnaHeaderIdentityParser.parse("गुण + मतुप् + ङस् वृध् + ल्युट् + सुँ"),
         )
+        assertEquals(
+            SamjnaHeaderIdentity(operationStem = "वृध् + ल्युट्", domainStem = "गुण"),
+            SamjnaHeaderIdentityParser.parse("गुण + वत् + ङस् वृध् + ल्युट् + सुँ"),
+        )
     }
 
     @Test
