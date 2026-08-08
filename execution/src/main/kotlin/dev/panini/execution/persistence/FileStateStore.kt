@@ -1,5 +1,6 @@
 package dev.panini.execution.persistence
 
+import dev.panini.execution.PersistedSamjnaCodec
 import dev.panini.execution.SambhashanaContext
 import dev.panini.execution.SanskritValue
 import dev.panini.execution.SmrtaPhala
@@ -113,21 +114,11 @@ class FileStateStore(private val storageDir: File) : StateStore {
     private fun decode(value: String): String =
         if (value.isEmpty()) "" else base64Codec.decode(value).decodeToString()
 
-    private fun encodeSamjnas(values: Set<Samjna>): String = values.joinToString(",") {
-        when (it) {
-            is Enum<*> -> it.name
-            is Samjna.Rudhi -> "RUDHI:${it.word}"
-            else -> it.toString()
-        }
-    }
+    private fun encodeSamjnas(values: Set<Samjna>): String =
+        values.joinToString(",", transform = PersistedSamjnaCodec::encode)
+
     private fun decodeSamjnas(value: String): Set<Samjna> = value.split(',').filter(String::isNotEmpty)
-        .mapTo(mutableSetOf()) {
-            if (it.startsWith("RUDHI:")) {
-                Samjna.Rudhi(it.substringAfter("RUDHI:"))
-            } else {
-                Samjna.valueOf(it)
-            }
-        }
+        .mapTo(mutableSetOf(), PersistedSamjnaCodec::decode)
 
     private fun encodeTyped(value: SanskritValue?): String {
         if (value == null) return ""
@@ -161,7 +152,7 @@ class FileStateStore(private val storageDir: File) : StateStore {
             }
             is SanskritValue.Shabda -> {
                 writeByte(3); writeUTF(value.text); writeInt(value.samjnas.size)
-                value.samjnas.forEach { writeUTF(encodeSamjna(it)) }
+                value.samjnas.forEach { writeUTF(PersistedSamjnaCodec.encode(it)) }
             }
             is SanskritValue.Gana -> {
                 writeByte(4); writeInt(value.elements.size); value.elements.forEach { writeValue(it) }
@@ -179,7 +170,7 @@ class FileStateStore(private val storageDir: File) : StateStore {
         2 -> SanskritValue.Rational(readLong(), readLong(), readUTF())
         3 -> SanskritValue.Shabda(
             readUTF(),
-            buildSet { repeat(readInt()) { add(decodeSamjna(readUTF())) } },
+            buildSet { repeat(readInt()) { add(PersistedSamjnaCodec.decode(readUTF())) } },
         )
         4 -> SanskritValue.Gana(buildList { repeat(readInt()) { add(readValue()) } })
         5 -> SanskritValue.Suchi(buildList { repeat(readInt()) { add(readValue()) } })
@@ -187,14 +178,6 @@ class FileStateStore(private val storageDir: File) : StateStore {
         7 -> SanskritValue.Lopa
         else -> throw IllegalArgumentException("Unknown persisted Sanskrit value type")
     }
-
-    private fun encodeSamjna(value: Samjna): String = when (value) {
-        is Samjna.Rudhi -> "RUDHI:${value.word}"
-        is Enum<*> -> value.name
-    }
-
-    private fun decodeSamjna(value: String): Samjna =
-        if (value.startsWith("RUDHI:")) Samjna.Rudhi(value.substringAfter(':')) else Samjna.valueOf(value)
 
     private companion object {
         const val EXTENSION = ".state"

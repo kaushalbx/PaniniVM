@@ -2,8 +2,8 @@ package dev.panini.execution.memory
 
 import dev.panini.analysis.KriyaFrame
 import dev.panini.analysis.KriyaId
+import dev.panini.execution.PersistedSamjnaCodec
 import dev.panini.execution.SanskritValue
-import dev.panini.shiksha.Samjna
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
@@ -77,7 +77,7 @@ internal class FileKriyaMemoryStore(private val storageDir: File) {
             }
             is SanskritValue.Shabda -> {
                 writeByte(3); writeUTF(value.text); writeInt(value.samjnas.size)
-                value.samjnas.forEach { writeUTF(encodeSamjna(it)) }
+                value.samjnas.forEach { writeUTF(PersistedSamjnaCodec.encode(it)) }
             }
             is SanskritValue.Gana -> {
                 writeByte(4); writeInt(value.elements.size); value.elements.forEach { writeValue(it) }
@@ -93,21 +93,16 @@ internal class FileKriyaMemoryStore(private val storageDir: File) {
     private fun DataInputStream.readValue(): SanskritValue = when (readByte().toInt()) {
         1 -> SanskritValue.Sankhya(readLong(), readUTF())
         2 -> SanskritValue.Rational(readLong(), readLong(), readUTF())
-        3 -> SanskritValue.Shabda(readUTF(), buildSet { repeat(readInt()) { add(decodeSamjna(readUTF())) } })
+        3 -> SanskritValue.Shabda(
+            readUTF(),
+            buildSet { repeat(readInt()) { add(PersistedSamjnaCodec.decode(readUTF())) } },
+        )
         4 -> SanskritValue.Gana(buildList { repeat(readInt()) { add(readValue()) } })
         5 -> SanskritValue.Suchi(buildList { repeat(readInt()) { add(readValue()) } })
         6 -> SanskritValue.Satya(readBoolean())
         7 -> SanskritValue.Lopa
         else -> error("Unknown persisted Sanskrit value type.")
     }
-
-    private fun encodeSamjna(samjna: Samjna): String = when (samjna) {
-        is Samjna.Rudhi -> "RUDHI:${samjna.word}"
-        is Enum<*> -> samjna.name
-    }
-
-    private fun decodeSamjna(value: String): Samjna =
-        if (value.startsWith("RUDHI:")) Samjna.Rudhi(value.substringAfter(':')) else Samjna.valueOf(value)
 
     private fun encode(value: String): String =
         if (value.isEmpty()) "" else base64Codec.encode(value.toByteArray(Charsets.UTF_8))
