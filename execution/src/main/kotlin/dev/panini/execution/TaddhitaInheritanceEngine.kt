@@ -1,9 +1,12 @@
 package dev.panini.execution
 
-/**
- * 4.1.92 तस्यापत्यम् & 7.2.117 तद्धितेष्वचामादेः
- * Pāṇinian Subclass Inheritance Derivation Engine (अण् / इञ् Pratyaya Vṛddhi).
- */
+import dev.panini.shiksha.applyInitialVrddhi
+import dev.panini.vyakaranam.ast.MulaPratipadika
+import dev.panini.vyakaranam.ast.SubantaPada
+import dev.panini.vyakaranam.ast.TaddhitaVikara
+import dev.panini.vyakaranam.parser.PaniniParser
+
+/** A child stem derived from a parent by an apatyam taddhita affix. */
 data class InheritanceRelation(
     val childStem: String,
     val parentStem: String,
@@ -11,66 +14,27 @@ data class InheritanceRelation(
 
 object TaddhitaInheritanceEngine {
 
-    /**
-     * Applies 7.2.117 तद्धितेष्वचामादेः Vṛddhi vowel lengthening to derive child stem from parent.
-     * e.g. "गणित" -> "गाणित", "गुण" -> "गौण", "शिव" -> "शैव"
-     */
-    fun deriveVriddhiStem(parentStem: String): String {
-        val trimmed = parentStem.trim()
-        if (trimmed.isEmpty()) return trimmed
+    private val parser = PaniniParser()
+    private val inheritanceAffixes = setOf("अण्", "इञ्")
 
-        val firstChar = trimmed[0]
-        val rest = trimmed.substring(1)
+    fun deriveVriddhiStem(parentStem: String): String = applyInitialVrddhi(parentStem)
 
-        val vriddhiFirst = when (firstChar) {
-            'ग' -> "गा"
-            'श' -> "शै"
-            'क' -> "का"
-            'म' -> "मा"
-            'प' -> "पा"
-            'ब' -> "बा"
-            'द' -> "दा"
-            'त' -> "ता"
-            'न' -> "ना"
-            'र' -> "रा"
-            'ल' -> "ला"
-            'व' -> "वा"
-            'स' -> "सा"
-            'ह' -> "हा"
-            'अ' -> "आ"
-            'इ', 'ई' -> "ऐ"
-            'उ', 'ऊ' -> "औ"
-            'ऋ' -> "आर"
-            else -> firstChar.toString()
-        }
-
-        // If second char is vowel mark, lengthen it
-        return if (trimmed.length > 1) {
-            when {
-                rest.startsWith("ु") -> vriddhiFirst.substring(0, 1) + "ौ" + rest.substring(1)
-                rest.startsWith("ि") -> vriddhiFirst.substring(0, 1) + "ै" + rest.substring(1)
-                else -> vriddhiFirst + rest
-            }
-        } else {
-            vriddhiFirst
-        }
-    }
-
-    /**
-     * Detects subclass inheritance Adhikāra header: "<parent> + अण् + सुँ इति अधिकार + सुँ"
-     * e.g. "गणित + अण् + सुँ इति अधिकार + सुँ ।"
-     */
+    /** Detects an inheritance declaration from its parsed taddhita morphology. */
     fun detectInheritanceAdhikara(domainSegmented: String): InheritanceRelation? {
-        val trimmed = domainSegmented.trim()
-        if (!trimmed.contains("+ अण्") && !trimmed.contains("+ इञ्")) return null
-
-        val match = Regex("""(\S+)\s*\+\s*(?:अण्|इञ्)""").find(trimmed)
-        if (match != null) {
-            val parentStem = match.groupValues[1].trim()
-            val childStem = deriveVriddhiStem(parentStem)
-            return InheritanceRelation(childStem = childStem, parentStem = parentStem)
-        }
-
-        return null
+        val ukti = parser.parseOrNull(domainSegmented.trim().trimEnd('।', '॥', ' ')) ?: return null
+        val parent = ukti.vakyas.asSequence()
+            .flatMap { it.padas.asSequence() }
+            .filterIsInstance<SubantaPada>()
+            .mapNotNull { it.pratipadika as? MulaPratipadika }
+            .firstOrNull { pratipadika ->
+                pratipadika.vikaras.filterIsInstance<TaddhitaVikara>()
+                    .any { it.pratyaya in inheritanceAffixes }
+            }
+            ?.text
+            ?: return null
+        return InheritanceRelation(
+            childStem = deriveVriddhiStem(parent),
+            parentStem = parent,
+        )
     }
 }

@@ -11,6 +11,7 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.shiksha.applyInitialVrddhi
 
 /**
  * 7.2.117: taddhiteṣv acām ādeḥ.
@@ -71,44 +72,4 @@ object TaddhitesvAcamAdehSutra : Sutra<DerivationState, DerivationChange>(
         else -> false
     }
 
-    private fun applyInitialVrddhi(s: String): String {
-        if (s.isEmpty()) return s
-        val first = s.first()
-        val second = s.getOrNull(1)
-
-        return when {
-            // Short/Long a -> ā
-            first == 'अ' -> "आ" + s.drop(1)
-            first == 'इ' || first == 'ई' || first == 'ए' -> "ऐ" + s.drop(1)
-            first == 'उ' || first == 'ऊ' || first == 'ओ' -> "औ" + s.drop(1)
-            first == 'ऋ' -> "आर" + s.drop(1)
-            second == 'ि' || second == 'ी' || second == 'े' -> {
-                val base = first.toString()
-                base + "ै" + s.drop(2)
-            }
-            second == 'ु' || second == 'ू' || second == 'ो' -> {
-                val base = first.toString()
-                base + "ौ" + s.drop(2)
-            }
-            second == 'ृ' -> {
-                val base = first.toString()
-                base + "ार" + s.drop(2)
-            }
-            else -> {
-                // Consonantal start with implicit 'a' vowel
-                val base = first.toString()
-                if (second != null && second == '्') {
-                    // Cluster like vy, br, etc.
-                    val secondCons = s.getOrNull(2)
-                    if (secondCons != null) {
-                        val third = s.getOrNull(3)
-                        if (third == 'ि' || third == 'ी' || third == 'े') {
-                            return base + second.toString() + secondCons.toString() + "ै" + s.drop(4)
-                        }
-                    }
-                }
-                base + "ा" + s.drop(1)
-            }
-        }
-    }
 }
