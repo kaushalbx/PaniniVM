@@ -106,11 +106,13 @@ data class KridantaPratipadika(
 
 enum class KrtPratyayaIdentity {
     KTA,
+    GHAN,
     ;
 
     companion object {
         fun fromUpadesha(upadesha: String): KrtPratyayaIdentity? = when (upadesha.trim()) {
             "क्त" -> KTA
+            "घञ्" -> GHAN
             else -> null
         }
     }
