@@ -17,6 +17,7 @@ import dev.panini.execution.VakyaPrayojana
 import dev.panini.execution.bindingName
 import dev.panini.execution.memory.KriyaMemory
 import dev.panini.analysis.PadaAnalyzer
+import dev.panini.analysis.KriyaQualificationKind
 import dev.panini.analysis.UktiAnalysis
 import dev.panini.analysis.UktiAnalyzer
 import dev.panini.analysis.VakyaAnalyzer
@@ -112,8 +113,11 @@ object VyakaranamExecutionAdapter {
         val utteranceAnalysis = analyze(ukti)
 
         val invocations = mutableListOf<DhatuInvocation>()
-        var prayer = false
-        var prohibition = false
+        val qualificationKinds = utteranceAnalysis.frames
+            .flatMap { it.qualifications }
+            .mapTo(mutableSetOf()) { it.kind }
+        val prayer = KriyaQualificationKind.COURTESY in qualificationKinds
+        val prohibition = KriyaQualificationKind.NEGATION in qualificationKinds
         val localVariables = mutableSetOf<String>()
         val localVariableInvocationIds = mutableMapOf<String, String>()
 
@@ -138,10 +142,6 @@ object VyakaranamExecutionAdapter {
 
         unrolledVakyas.forEachIndexed { index, vakya ->
             val padas = vakya.padas
-            padas.filterIsInstance<AvyayaPada>().forEach {
-                prayer = prayer || it.form == "कृपया"
-                prohibition = prohibition || it.form == "मा"
-            }
             val tinganta = (vakya as? AkhyataVakya)?.tinganta
             val dhatu = if (tinganta != null) {
                 DhatuCache.resolve(tinganta)
