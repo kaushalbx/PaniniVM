@@ -79,37 +79,23 @@ object DynamicNishedhaEvaluator {
     private val sankhyaEvaluator = SankhyaEvaluator()
     private val parser = PaniniParser()
 
-    fun evaluateProhibition(guardText: String, argTerms: List<String>, preParsedUkti: dev.panini.vyakaranam.ast.Ukti? = null): Boolean {
-        val trimmed = guardText.trim()
-
-        val ukti = preParsedUkti ?: runCatching { parser.parse(trimmed) }.getOrNull()
-        val isNishedhaSentence = ukti?.vakyas?.any { vakya ->
-            vakya.padas.filterIsInstance<AvyayaPada>().any { it.sourceText == "न" || it.sourceText == "मा" }
-        } ?: trimmed.startsWith("न ")
-
-        if (!isNishedhaSentence && !trimmed.contains("शून्य")) return false
-
-        // Evaluates prohibition guard conditions
-        val evaluatedValues = argTerms.map { term ->
-            term.toLongOrNull()
-                ?: runCatching { sankhyaEvaluator.evaluateStems(listOf(term)).value }.getOrNull()
-                ?: -1L
+    fun evaluateProhibition(guardText: String): Boolean {
+        // Guards containing ordinal parameters are rewritten before evaluation, so the
+        // rewritten sentence must be parsed instead of reusing its original AST.
+        val ukti = parser.parseOrNull(guardText.trim()) ?: return false
+        val isNishedhaSentence = ukti.vakyas.any { vakya ->
+            vakya.padas.filterIsInstance<AvyayaPada>().any { it.form in NISHEDHA_MARKERS }
         }
+        if (!isNishedhaSentence) return false
 
-        // Rule 1: Zero parameter prohibition check (0 / शून्य)
-        if (trimmed.contains("शून्य") || trimmed.contains("०")) {
-            if (evaluatedValues.any { it == 0L } || argTerms.any { it == "शून्य" || it == "०" }) {
-                return true
-            }
-        }
-
-        // Rule 2: Dynamic equality prohibition check
-        if (evaluatedValues.size >= 2 && evaluatedValues[0] != -1L && evaluatedValues[1] != -1L) {
-            if (trimmed.contains("तुल्य") || trimmed.contains("समान")) {
-                if (evaluatedValues[0] == evaluatedValues[1]) return true
-            }
-        }
-
-        return false
+        val operands = SubantaKarakaParser.extractKarmaTerms(guardText, ukti)
+            .mapNotNull(::evaluateNumber)
+        return operands.size == 2 && operands[0] == operands[1]
     }
+
+    private fun evaluateNumber(term: String): Long? =
+        term.toLongOrNull()
+            ?: runCatching { sankhyaEvaluator.evaluateStems(listOf(term)).value }.getOrNull()
+
+    private val NISHEDHA_MARKERS = setOf("न", "मा")
 }

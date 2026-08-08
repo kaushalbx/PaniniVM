@@ -385,7 +385,7 @@ class PaniniVM(
                 guardText = PuranaPratyayaResolver.replacePatterns(guardText, index, argVal)
             }
 
-            val isProhibited = DynamicNishedhaEvaluator.evaluateProhibition(guardText, argTerms, guard.ukti)
+            val isProhibited = DynamicNishedhaEvaluator.evaluateProhibition(guardText)
 
             val requiredType = SamjnaSignatureCompiler.inferGuardType(guardText)
             val isTypeViolated = requiredType != null &&
