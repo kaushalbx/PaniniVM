@@ -368,8 +368,6 @@ class PaniniVM(
 
         // Extract caller's argument base terms dynamically via SubantaKarakaParser (karma: + अम्)
         val argTerms = SubantaKarakaParser.extractKarmaTerms(invocation.karmaText, invocation.ukti)
-        val paramNames = PuranaPratyayaResolver.getOrdinalsUpTo(maxOf(6, argTerms.size))
-
         // Step 0: Check Memoization Cache for क्त-प्रत्यय Constant Saṃjñās
         if (invocation.kriya.isMemoized) {
             val cached = registry.getCachedResult(invocation.kriya.nameStem, invocation.karmaText)
@@ -657,56 +655,37 @@ object VM {
 
 object PuranaPratyayaResolver {
 
-    /**
-     * DYNAMICALLY derives the pure segmented Pūraṇa-pratyaya morpheme string for ANY index N.
-     * Sūtras: 5.2.58 (अमच्), 5.2.54 (तीय), 5.2.52 (थत्), 5.2.49 (मट्), 5.2.48 (डट्)
-     * ZERO hardcoded lists!
-     */
-    fun getSegmentedOrdinal(index: Int): String {
-        return when (index) {
-            0 -> "प्रथ् + अमच् + अम्"
-            1 -> "द्वि + तीय + अम्"
-            2 -> "त्रि + तीय + अम्"
-            3 -> "चतुर् + थत् + अम्"
-            else -> {
-                val stem = dev.panini.sankhya.PrimitiveSankhya.fromValue((index + 1).toLong())?.pratipadika ?: "संख्या-${index + 1}"
-                val cleanStem = if (stem.endsWith("न्") || stem.endsWith("ष्")) stem else "${stem}न्"
-                "$cleanStem + मट् + अम्"
-            }
-        }
-    }
+    private val parser = dev.panini.vyakaranam.parser.PaniniParser()
+    private val sankhyaEvaluator = dev.panini.sankhya.SankhyaEvaluator()
+    private val sankhyaGenerator = dev.panini.sankhya.SankhyaGenerator()
 
-    fun getOrdinal(index: Int): String = getSegmentedOrdinal(index)
-
-    fun getOrdinalsUpTo(count: Int): List<String> {
-        return List(count) { getSegmentedOrdinal(it) }
-    }
-
-    /**
-     * Replaces pure segmented ordinal parameter morphemes (प्रथ् + अमच् + अम्, द्वि + तीय + अम्, etc.)
-     * with argument values dynamically during execution.
-     */
+    /** Replaces parsed pūraṇa parameter padas having the requested ordinal value. */
     fun replacePatterns(text: String, index: Int, rawArgVal: String): String {
-        var result = text
         val cleanArg = if (rawArgVal.endsWith("+ अम्")) rawArgVal else "$rawArgVal + अम्"
-
-        val targetPattern = getSegmentedOrdinal(index)
-        if (result.contains(targetPattern)) {
-            result = result.replace(targetPattern, cleanArg)
+        val ukti = parser.parseOrNull(text.trim()) ?: return text
+        val ordinalValue = index + 1L
+        val ordinalSurface = sankhyaGenerator.ordinal(ordinalValue).final.surface
+        val ordinalSources = ukti.vakyas.asSequence()
+            .flatMap { it.padas.asSequence() }
+            .map { it.sourceText }
+            .filter { isOrdinal(it, ordinalValue, ordinalSurface) }
+            .distinct()
+            .toList()
+        return ordinalSources.fold(text) { result, source ->
+            result.replace(sourcePattern(source), cleanArg)
         }
-
-        val altRegex = when (index) {
-            0 -> Regex("""प्रथ्[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*अमच्[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*अम्|प्रथमा[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*अम्|प्रथम[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*अम्|प्रथम""")
-            1 -> Regex("""द्वि[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*तीय[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*अम्|द्वितीया[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*अम्|द्वितीय[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*अम्|द्वितीय""")
-            2 -> Regex("""त्रि[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*तीय[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*अम्|तृतीया[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*अम्|तृतीय[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*अम्|तृतीय""")
-            3 -> Regex("""चतुर्[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*थत्[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*अम्|चतुर्थी[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*अम्|चतुर्थ[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*अम्|चतुर्थ""")
-            else -> Regex("""\S+[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*मट्[\s\u00A0\u200B]*\+[\s\u00A0\u200B]*अम्""")
-        }
-
-        if (altRegex.containsMatchIn(result)) {
-            result = result.replace(altRegex, cleanArg)
-        }
-
-        return result
     }
+
+    private fun isOrdinal(padaSource: String, value: Long, surface: String): Boolean {
+        val morphemes = padaSource.split('+').map(String::trim).filter(String::isNotEmpty)
+        if (morphemes.size < 2) return false
+        val stems = morphemes.dropLast(1)
+        val expression = runCatching { sankhyaEvaluator.evaluateStems(stems) }.getOrNull()
+        return (expression as? dev.panini.sankhya.SankhyaExpression.Purana)?.value == value ||
+            stems.joinToString("") == surface
+    }
+
+    private fun sourcePattern(source: String): Regex = Regex(
+        source.split('+').joinToString("\\s*\\+\\s*") { Regex.escape(it) },
+    )
 }
