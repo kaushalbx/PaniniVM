@@ -2,6 +2,7 @@ package dev.panini.execution.binding
 
 import dev.panini.analysis.KriyaFrame
 import dev.panini.analysis.KriyaQualificationKind
+import dev.panini.sankhya.SankhyaAbhyasaMarkers
 import dev.panini.vyakaranam.ast.Pada
 import dev.panini.vyakaranam.ast.SankhyaAbhyasaPada
 
@@ -10,16 +11,10 @@ import dev.panini.vyakaranam.ast.SankhyaAbhyasaPada
  * Covers both per-clause frequency qualifiers and whole-utterance repetition counts.
  */
 internal object FrequencyExtractor {
-    /**
-     * Suffix stems in an अभ्यास-सङ्ख्या that indicate repetition count, not a
-     * numeric kāraka argument value.  These are filtered out before numeric evaluation.
-     */
-    private val ABHYASA_SUFFIX_STEMS = setOf("कृत्वः", "कृत्वस", "कृत्वा", "कृत्वसुच्", "सुच्")
-
-    internal fun isAbhyasa(stems: List<String>): Boolean = stems.any { it in ABHYASA_SUFFIX_STEMS }
+    internal fun isAbhyasa(stems: List<String>): Boolean = stems.any(SankhyaAbhyasaMarkers::isFrequency)
 
     internal fun numericStems(stems: List<String>): List<String> =
-        stems.filterNot { it in ABHYASA_SUFFIX_STEMS }
+        SankhyaAbhyasaMarkers.numericFrequencyStems(stems)
 
     /**
      * Extracts the per-clause frequency repetition count from [padas] and [frame].
