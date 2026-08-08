@@ -104,6 +104,17 @@ class SamjnaKriyaMultiFileTest {
     }
 
     @Test
+    fun `AST invocation matcher extracts operation domain and karma roles`() {
+        val source = "पञ्च + अम् गणित + ङस् युज् + ल्युट् + टा कृ + लोट् + सिप् ।"
+        val shape = SamjnaInvocationMatcher.match(source, setOf("युज् + ल्युट्"))
+
+        assertNotNull(shape)
+        assertEquals("युज् + ल्युट्", shape.operationStem)
+        assertEquals("गणित", shape.domainStem)
+        assertEquals("पञ्च + अम्", shape.karmaText)
+    }
+
+    @Test
     fun `test nishedha sutra parsing and guard separation`() {
         val script = """
             विभाज् + ल्युट् + सुँ ।

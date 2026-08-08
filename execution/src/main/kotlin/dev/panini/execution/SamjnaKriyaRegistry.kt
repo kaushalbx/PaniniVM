@@ -78,12 +78,34 @@ class SamjnaKriyaRegistry {
         val textToProcess = if (isAntaranga) AntarangaScopeEngine.stripAntarangaDirective(sentenceText) else sentenceText
 
         val allKriyas = registry.values.flatten().distinctBy { System.identityHashCode(it) }
-        val argTerms = SubantaKarakaParser.extractKarmaTerms(textToProcess, preParsedUkti)
+        val knownStems = allKriyas.mapTo(mutableSetOf()) {
+            SamjnaInvocationMatcher.normalizeIdentity(it.nameStem)
+        }
+        val invocationShape = SamjnaInvocationMatcher.match(textToProcess, knownStems, preParsedUkti)
+        val karmaText = invocationShape?.karmaText ?: textToProcess
+        val argTerms = SubantaKarakaParser.extractKarmaTerms(karmaText, preParsedUkti)
 
         val candidates = allKriyas.sortedWith(
             compareByDescending<SamjnaKriya> { it.precedence.rank }
                 .thenByDescending { AntaratamaOverloadEngine.match(it.signature, argTerms).rank },
         )
+        if (invocationShape != null) {
+            candidates.firstOrNull { kriya ->
+                SamjnaInvocationMatcher.normalizeIdentity(kriya.nameStem) == invocationShape.operationStem &&
+                    domainMatches(kriya.domainStem, invocationShape.domainStem)
+            }?.let { kriya ->
+                if (!kriya.isInternal || callerSourceFile == null || kriya.sourceFile == null || callerSourceFile == kriya.sourceFile) {
+                    return SamjnaInvocation(
+                        kriya = kriya,
+                        karmaText = invocationShape.karmaText,
+                        fullText = sentenceText,
+                        ukti = invocationShape.ukti,
+                    )
+                }
+            }
+        }
+
+        // Compatibility fallback for source forms not yet represented structurally by the parser.
         for (kriya in candidates) {
             if (kriya.isInternal && callerSourceFile != null && kriya.sourceFile != null && callerSourceFile != kriya.sourceFile) {
                 continue // File-private saṃjñā hidden from external caller
@@ -164,6 +186,15 @@ class SamjnaKriyaRegistry {
             )
         }
         return null
+    }
+
+    private fun domainMatches(expected: String?, actual: String?): Boolean {
+        if (expected == null || actual == null) return expected == actual
+        val normalizedExpected = SamjnaInvocationMatcher.normalizeIdentity(stripSupSuffix(expected))
+        val normalizedActual = SamjnaInvocationMatcher.normalizeIdentity(stripSupSuffix(actual))
+        if (normalizedExpected == normalizedActual) return true
+        val parent = inheritanceMap[actual] ?: inheritanceMap[normalizedActual] ?: return false
+        return SamjnaInvocationMatcher.normalizeIdentity(stripSupSuffix(parent)) == normalizedExpected
     }
 
     companion object {
