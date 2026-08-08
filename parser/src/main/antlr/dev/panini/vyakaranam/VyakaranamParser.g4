@@ -13,12 +13,32 @@ package dev.panini.parser;
 // ============================================================================
 
 ukti
-    : conditionalClause
+    : pipelineClause
+    | conditionalClause
     | sambodhana?
       vakya
       (vakyaSambandha vakya)*
       DANDA?
       EOF
+    ;
+
+pipelineClause
+    : (arguments+=subantaPada)+ CHA
+      stages+=pipelineStage stages+=pipelineStage+
+      purvaparaDirective pipelineResult tingantaPada
+      DANDA? EOF
+    ;
+
+pipelineStage
+    : domain=subantaPada operation=subantaPada
+    ;
+
+purvaparaDirective
+    : IDENTIFIER PLUS IDENTIFIER PLUS supPratyaya
+    ;
+
+pipelineResult
+    : subantaPada
     ;
 
 conditionalClause

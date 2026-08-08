@@ -121,7 +121,7 @@ class PvmUktiSadhaka(
         }
         // The source frequency expression remains inside the grammatical body.
         is Repeat -> sadhayaProgramNode(node.body)
-        is Pipeline -> node.sourceText
+        is Pipeline -> node.renderPadas.joinToString(" ") { sadhayaPada(it) }
         is Procedure -> node.sourceText
         is Scope -> node.sourceText
     }

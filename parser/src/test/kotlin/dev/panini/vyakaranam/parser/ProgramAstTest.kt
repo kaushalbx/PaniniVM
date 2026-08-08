@@ -2,6 +2,7 @@ package dev.panini.vyakaranam.parser
 
 import dev.panini.vyakaranam.ast.Conditional
 import dev.panini.vyakaranam.ast.Invocation
+import dev.panini.vyakaranam.ast.Pipeline
 import dev.panini.vyakaranam.ast.Sequence
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -45,5 +46,16 @@ class ProgramAstTest {
         )
 
         assertNull(assertIs<Conditional>(ukti.body).alternate)
+    }
+
+    @Test
+    fun `purvapara syntax builds a pipeline directly`() {
+        val source = "पञ्च + अम् द्वि + अम् च गणित + ङस् गुण् + ल्युट् + ङस् " +
+            "गणित + ङस् रन्ध्र + ल्युट् + ङस् पूर्व + पर + ङस् एका + सुँ कृ + लोट् + सिप् ।"
+
+        val pipeline = assertIs<Pipeline>(parser.parse(source).body)
+
+        assertEquals(listOf("पञ्च", "द्वि"), pipeline.arguments)
+        assertEquals(listOf("गुण् + ल्युट्", "रन्ध्र + ल्युट्"), pipeline.stages.map { it.operationStem })
     }
 }

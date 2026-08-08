@@ -233,7 +233,7 @@ class PaniniVM(
         parsed.filterIsInstance<PvmScriptStatement.Sentence>().forEach { statement ->
             val constructedStruct = TaddhitaStructEngine.detectStructConstruction(statement.text, statement.ukti)
             val nestedAttributeAccess = TaddhitaStructEngine.detectNestedAttributeAccess(statement.text, statement.ukti)
-            val pipeline = PurvaparaPipelineCompiler.compile(statement.text)
+            val pipeline = statement.program as? dev.panini.vyakaranam.ast.Pipeline
 
             if (constructedStruct != null) {
                 structStore[constructedStruct.nameStem] = constructedStruct

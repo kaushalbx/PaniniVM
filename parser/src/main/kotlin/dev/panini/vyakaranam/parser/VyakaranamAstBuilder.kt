@@ -10,7 +10,7 @@ class VyakaranamAstBuilder {
     fun build(
         context: PaniniyaVyakaranamParser.UktiContext,
     ): Ukti {
-        val body = context.conditionalClause()?.let { conditional ->
+        val body = context.pipelineClause()?.let(::buildPipeline) ?: context.conditionalClause()?.let { conditional ->
             Conditional(
                 sourceText = conditional.text,
                 condition = Invocation(buildVakya(conditional.condition!!)),
@@ -29,6 +29,43 @@ class VyakaranamAstBuilder {
             body = body,
         )
     }
+
+    private fun buildPipeline(
+        context: PaniniyaVyakaranamParser.PipelineClauseContext,
+    ): Pipeline {
+        val arguments = context.arguments.map(::buildSubanta)
+        val stagePadas = context.stages.map { stage ->
+            val domain = buildSubanta(stage.domain!!)
+            val operation = buildSubanta(stage.operation!!)
+            Triple(
+                PipelineStage(
+                    sourceText = "${canonicalSegmented(domain.sourceText)} ${canonicalSegmented(operation.pratipadika.sourceText)}",
+                    domainStem = canonicalSegmented(domain.pratipadika.sourceText),
+                    operationStem = canonicalSegmented(operation.pratipadika.sourceText),
+                ),
+                domain,
+                operation,
+            )
+        }
+        val directive = AvyayaPada(
+            sourceText = context.purvaparaDirective()!!.text,
+            form = context.purvaparaDirective()!!.text,
+        )
+        return Pipeline(
+            sourceText = context.text,
+            arguments = arguments.map { it.pratipadika.sourceText },
+            stages = stagePadas.map { it.first },
+            renderPadas = arguments +
+                AvyayaPada(sourceText = "च", form = "च") +
+                stagePadas.flatMap { listOf(it.second, it.third) } +
+                directive +
+                buildSubanta(context.pipelineResult()!!.subantaPada()!!) +
+                buildTinganta(context.tingantaPada()!!),
+        )
+    }
+
+    private fun canonicalSegmented(source: String): String =
+        source.replace("+", " + ").replace(Regex("\\s+"), " ").trim()
 
     private fun buildVakya(
         context: PaniniyaVyakaranamParser.VakyaContext,

@@ -15,7 +15,7 @@ sealed interface PvmScriptStatement {
         val isNishedha: Boolean = false,
     ) : PvmScriptStatement {
         val program: ProgramNode?
-            get() = ukti?.body ?: PurvaparaPipelineCompiler.compile(text)
+            get() = ukti?.body
     }
 
     /**

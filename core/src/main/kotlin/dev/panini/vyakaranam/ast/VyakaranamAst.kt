@@ -75,6 +75,7 @@ data class Pipeline(
     override val sourceText: String,
     val arguments: List<String>,
     val stages: List<PipelineStage>,
+    val renderPadas: List<Pada> = emptyList(),
 ) : ProgramNode
 
 data class ProcedureModifiers(
