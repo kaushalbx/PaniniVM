@@ -35,7 +35,7 @@ object PugantalaghupadhasyaCaSutra : Sutra<DerivationState, DerivationChange>(
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU } ?: return false
         if (context.effectiveContext.rupa.lakara == Lakara.LING &&
             context.terms.none { it.id == "yasut" || it.id == "siyut" }) return false
-        val isCuradiNic = dhatu.gana == DhatuGana.CURADI && context.terms.any { it.upadesha == "णिच्" }
+        val hasNic = context.terms.any { it.upadesha == "णिच्" }
         val ending = TingAffix.entries.firstOrNull { it.upadesha == context.terms.lastOrNull()?.upadesha }
         val isAdadiStrong = ending != null && dhatu.gana == DhatuGana.ADADI && when (context.effectiveContext.rupa.lakara) {
             Lakara.LAT -> ending in setOf(TingAffix.TIP, TingAffix.SIP, TingAffix.MIP)
@@ -43,7 +43,7 @@ object PugantalaghupadhasyaCaSutra : Sutra<DerivationState, DerivationChange>(
             Lakara.LANG -> ending in setOf(TingAffix.TIP, TingAffix.SIP, TingAffix.MIP)
             else -> false
         }
-        return (isCuradiNic || isAdadiStrong) && lightUpadhaIndex(dhatu.surface) != null
+        return ((hasNic && ending != null) || isAdadiStrong) && lightUpadhaIndex(dhatu.surface) != null
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -57,7 +57,7 @@ object PugantalaghupadhasyaCaSutra : Sutra<DerivationState, DerivationChange>(
                 dhatu.copy(surface = dhatu.surface.replaceRange(index, index + 1, replacement)),
             ).copy(stage = DerivationStage.ANGAKARYA)
                 .addSubstitution(VarnaSubstitution(dhatu.id, source, replacement, sutra)),
-            explanation = "7.3.86 applies guṇa to the light upadhā of the Curādi root.",
+            explanation = "7.3.86 applies guṇa to the light upadhā before ṇic or a strong ending.",
         )
     }
 

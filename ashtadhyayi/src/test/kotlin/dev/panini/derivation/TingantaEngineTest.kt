@@ -28,8 +28,28 @@ class TingantaEngineTest {
         val dhatu = DhatuPatha.all.first { it.upadesha == "युजिँर्" }
         val state = request.initialState(dhatu)
 
-        assertEquals(listOf("युज्", "इ"), state.terms.map { it.surface })
+        assertEquals(listOf("युज्", "अय्"), state.terms.map { it.surface })
         assertTrue(state.terms.any { it.upadesha == "णिच्" })
+    }
+
+    @Test
+    fun `attached nic forms a causative imperative instead of the mula dhatu vikaranam`() {
+        mapOf("युज्" to "योजय", "गण" to "गणय").forEach { (dhatu, expected) ->
+            val result = TingantaEngine().derive(
+                TingantaDerivationRequest(
+                    dhatu = dhatu,
+                    vacana = Vacana.EKAVACANA,
+                    purusha = Purusha.MADHYAMA,
+                    lakara = Lakara.LOT,
+                    pada = PadaType.PARASMAIPADA,
+                    sanadiPratyayas = listOf("णिच्"),
+                ),
+            )
+
+            assertEquals(expected, result.final.surface, dhatu)
+            assertTrue(result.applications.any { it.sutra == "3.1.68" }, dhatu)
+            if (dhatu == "युज्") assertTrue(result.applications.none { it.sutra == "3.1.78" })
+        }
     }
 
     @Test

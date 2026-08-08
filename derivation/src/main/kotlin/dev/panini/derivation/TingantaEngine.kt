@@ -1,5 +1,6 @@
 package dev.panini.derivation
 
+import dev.panini.core.DhatuGana
 import dev.panini.core.Lakara
 import dev.panini.core.PadaType
 import dev.panini.core.TingAffix
@@ -8,9 +9,10 @@ import dev.panini.dhatupatha.DhatuPatha
 class TingantaEngine(private val engine: DerivationEngine = DerivationEngine(dev.panini.ashtadhyayi.Ashtadhyayi.executableSutras)) {
 
     fun derive(request: TingantaDerivationRequest): DerivationResult {
-        val dhatu = findDhatu(request.dhatu, request.pada)
+        val dhatu = findDhatu(request.dhatu, request.pada.takeIf { request.sanadiPratyayas.isNotEmpty() })
         val targetPada = resolvePada(requireNotNull(dhatu.pada), request.pada)
-        val plan = requireNotNull(TingantaFormPlans.find(request.purusha, request.vacana, targetPada, request.lakara, dhatu.gana)) {
+        val effectiveGana = if (request.sanadiPratyayas.isEmpty()) dhatu.gana else DhatuGana.BHVADI
+        val plan = requireNotNull(TingantaFormPlans.find(request.purusha, request.vacana, targetPada, request.lakara, effectiveGana)) {
             "No complete downstream plan exists for ${TingAffix.select(request.purusha, request.vacana, targetPada)?.upadesha}."
         }
         return engine.derive(request.initialState(dhatu)).apply {

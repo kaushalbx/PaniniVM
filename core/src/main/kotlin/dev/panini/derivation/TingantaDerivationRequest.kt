@@ -34,7 +34,8 @@ data class TingantaDerivationRequest(
             require(pratyaya == "णिच्") { "Unsupported sanādi pratyaya: $pratyaya" }
             DerivationTerm(
                 id = "sanadi_$index",
-                surface = "इ",
+                // Effective अय् reflects it-lopa and 6.1.77 before the following शप् vowel.
+                surface = "अय्",
                 kind = TermKind.PRATYAYA,
                 itMarkers = setOf(ItMarker.NIT, ItMarker.KIT),
                 upadesha = pratyaya,

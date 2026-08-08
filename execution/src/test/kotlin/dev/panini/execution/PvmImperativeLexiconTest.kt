@@ -7,10 +7,10 @@ import kotlin.test.assertNull
 class PvmImperativeLexiconTest {
 
     @Test
-    fun `resolves causative pvm command surfaces`() {
-        assertEquals("योजय", PvmImperativeLexicon.surface("युज्", causative = true))
-        assertEquals("गणय", PvmImperativeLexicon.surface("गण", causative = true))
+    fun `retains only causatives not yet produced by derivation`() {
         assertEquals("मुद्रय", PvmImperativeLexicon.surface("मुद्र्", causative = true))
+        assertNull(PvmImperativeLexicon.surface("युज्", causative = true))
+        assertNull(PvmImperativeLexicon.surface("गण", causative = true))
     }
 
     @Test

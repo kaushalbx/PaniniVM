@@ -45,7 +45,8 @@ object RudhadibhyahShnamSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun matches(context: DerivationState): Boolean {
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU } ?: return false
-        return dhatu.gana == DhatuGana.RUDHADI &&
+        return !context.hasSanadyantaDhatu() &&
+            dhatu.gana == DhatuGana.RUDHADI &&
             context.terms.lastOrNull()?.upadesha in TingAffix.entries.map { it.upadesha } &&
             context.allEffectiveTerms.none { it.upadesha == "श्नम्" }
     }
