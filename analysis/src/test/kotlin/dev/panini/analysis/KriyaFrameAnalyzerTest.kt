@@ -15,7 +15,9 @@ import dev.panini.vyakaranam.ast.SupPratyaya
 import dev.panini.vyakaranam.ast.TingPratyaya
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.Ukti
-import dev.panini.vyakaranam.ast.UktiStructure
+import dev.panini.vyakaranam.ast.Conditional
+import dev.panini.vyakaranam.ast.Invocation
+import dev.panini.vyakaranam.ast.Sequence
 import dev.panini.vyakaranam.lexicon.InMemoryVyakaranamLexicon
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -93,8 +95,11 @@ class KriyaFrameAnalyzerTest {
         val analysis = UktiAnalyzer(analyzer).analyze(
             Ukti(
                 sourceText = "यदि ... तर्हि ...",
-                vakyas = listOf(condition, consequent),
-                structure = UktiStructure.Conditional(hasAlternate = false),
+                body = Conditional(
+                    sourceText = "यदि ... तर्हि ...",
+                    condition = Invocation(condition),
+                    consequent = Invocation(consequent),
+                ),
             ),
         )
 
@@ -136,8 +141,10 @@ class KriyaFrameAnalyzerTest {
 
         val ukti = Ukti(
             sourceText = "गत्वा रामः पश्चाद् आगच्छति",
-            vakyas = listOf(ktvaVakya, mainVakya),
-            structure = UktiStructure.Sequence,
+            body = Sequence(
+                sourceText = "गत्वा रामः पश्चाद् आगच्छति",
+                statements = listOf(Invocation(ktvaVakya), Invocation(mainVakya)),
+            ),
         )
 
         val analysis = UktiAnalyzer(analyzer).analyze(ukti)

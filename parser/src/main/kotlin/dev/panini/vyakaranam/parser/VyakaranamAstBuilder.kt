@@ -10,23 +10,23 @@ class VyakaranamAstBuilder {
     fun build(
         context: PaniniyaVyakaranamParser.UktiContext,
     ): Ukti {
-        val vakyas = if (context.conditionalClause() != null) {
-            val condCtx = context.conditionalClause()!!
-            listOf(buildVakya(condCtx.condition!!)) + listOf(buildVakya(condCtx.consequent!!)) + (condCtx.alternate?.let { listOf(buildVakya(it)) } ?: emptyList())
-        } else {
-            context.vakya().map(::buildVakya)
-        }
+        val body = context.conditionalClause()?.let { conditional ->
+            Conditional(
+                sourceText = conditional.text,
+                condition = Invocation(buildVakya(conditional.condition!!)),
+                consequent = Invocation(buildVakya(conditional.consequent!!)),
+                alternate = conditional.alternate?.let { Invocation(buildVakya(it)) },
+            )
+        } ?: Sequence(
+            sourceText = context.text,
+            statements = context.vakya().map { Invocation(buildVakya(it)) },
+            connectors = context.vakyaSambandha().map { it.text },
+        )
 
         return Ukti(
             sourceText = context.text,
             sambodhana = context.sambodhana()?.let(::buildSambodhana),
-            vakyas = vakyas,
-            sambandhas = context.vakyaSambandha().map { it.text },
-            structure = when {
-                context.conditionalClause() != null ->
-                    UktiStructure.Conditional(context.conditionalClause()!!.alternate != null)
-                else -> UktiStructure.Sequence
-            },
+            body = body,
         )
     }
 

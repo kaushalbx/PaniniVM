@@ -10,14 +10,57 @@ sealed interface VyakaranamNode {
 data class Ukti(
     override val sourceText: String,
     val sambodhana: Sambodhana? = null,
-    val vakyas: List<Vakya>,
-    val sambandhas: List<String> = emptyList(),
-    val structure: UktiStructure = UktiStructure.Sequence,
-) : VyakaranamNode
+    val body: ProgramNode,
+) : VyakaranamNode {
+    /** Flattened compatibility view for consumers that only inspect grammatical clauses. */
+    val vakyas: List<Vakya>
+        get() = body.invocations().map(Invocation::vakya)
 
-sealed interface UktiStructure {
-    data object Sequence : UktiStructure
-    data class Conditional(val hasAlternate: Boolean) : UktiStructure
+    /** Top-level compatibility view; nested control flow is available through [body]. */
+    val sambandhas: List<String>
+        get() = (body as? Sequence)?.connectors.orEmpty()
+}
+
+/**
+ * Uniform, recursive representation of executable structure.
+ *
+ * Grammatical nodes such as [Vakya] remain leaves. Control-flow consumers must
+ * inspect this tree instead of deriving structure from clause positions or text.
+ */
+sealed interface ProgramNode : VyakaranamNode
+
+data class Invocation(
+    val vakya: Vakya,
+) : ProgramNode {
+    override val sourceText: String = vakya.sourceText
+}
+
+data class Sequence(
+    override val sourceText: String,
+    val statements: List<ProgramNode>,
+    val connectors: List<String> = emptyList(),
+) : ProgramNode {
+    init {
+        require(statements.isNotEmpty()) { "A sequence must contain at least one statement." }
+        require(connectors.size <= statements.size - 1) {
+            "A sequence cannot have more connectors than statement boundaries."
+        }
+    }
+}
+
+data class Conditional(
+    override val sourceText: String,
+    val condition: ProgramNode,
+    val consequent: ProgramNode,
+    val alternate: ProgramNode? = null,
+) : ProgramNode
+
+fun ProgramNode.invocations(): List<Invocation> = when (this) {
+    is Invocation -> listOf(this)
+    is Sequence -> statements.flatMap(ProgramNode::invocations)
+    is Conditional -> condition.invocations() +
+        consequent.invocations() +
+        alternate?.invocations().orEmpty()
 }
 
 data class Sambodhana(

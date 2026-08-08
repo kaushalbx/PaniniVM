@@ -30,7 +30,10 @@ import dev.panini.vyakaranam.ast.SankhyaPuranaPada
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.UnadyantaPratipadika
-import dev.panini.vyakaranam.ast.UktiStructure
+import dev.panini.vyakaranam.ast.Conditional
+import dev.panini.vyakaranam.ast.Invocation
+import dev.panini.vyakaranam.ast.ProgramNode
+import dev.panini.vyakaranam.ast.Sequence
 import dev.panini.vyakaranam.lexicon.PratipadikaLexicon
 import dev.panini.vyakaranam.lexicon.StandardPratipadikaLexicon
 import dev.panini.vyakaranam.parser.PaniniParser
@@ -94,21 +97,24 @@ class PvmUktiSadhaka(
             parts += "$header$derivedSub,"
         }
 
-        fun vakyaText(index: Int): String =
-            ukti.vakyas[index].padas.joinToString(" ") { pada -> sadhayaPada(pada) }
-
-        when (val structure = ukti.structure) {
-            UktiStructure.Sequence -> ukti.vakyas.indices.forEach { index ->
-                val delim = if (index == ukti.vakyas.lastIndex) dandaDelimiter else "।"
-                parts += "${vakyaText(index)} $delim"
-            }
-            is UktiStructure.Conditional -> {
-                val alternate = if (structure.hasAlternate) " अन्यथा ${vakyaText(2)}" else ""
-                parts += "यदि ${vakyaText(0)} तर्हि ${vakyaText(1)}$alternate $dandaDelimiter"
-            }
-        }
+        parts += "${sadhayaProgramNode(ukti.body)} $dandaDelimiter"
 
         return parts.joinToString(" ")
+    }
+
+    private fun sadhayaProgramNode(node: ProgramNode): String = when (node) {
+        is Invocation -> node.vakya.padas.joinToString(" ") { pada -> sadhayaPada(pada) }
+        is Sequence -> node.statements.joinToString(" । ") { sadhayaProgramNode(it) }
+        is Conditional -> buildString {
+            append("यदि ")
+            append(sadhayaProgramNode(node.condition))
+            append(" तर्हि ")
+            append(sadhayaProgramNode(node.consequent))
+            node.alternate?.let {
+                append(" अन्यथा ")
+                append(sadhayaProgramNode(it))
+            }
+        }
     }
 
     private val sankhyaEvaluator = SankhyaEvaluator()
