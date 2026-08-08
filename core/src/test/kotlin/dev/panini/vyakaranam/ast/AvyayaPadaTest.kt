@@ -18,6 +18,12 @@ class AvyayaPadaTest {
     }
 
     @Test
+    fun `classifies repetition marker surfaces`() {
+        assertEquals(AvyayaFunction.REPETITION, AvyayaPada("पुनः", "पुनः").function)
+        assertEquals(AvyayaFunction.REPETITION, AvyayaPada("पुनर्", "पुनर्").function)
+    }
+
+    @Test
     fun `leaves unrelated avyayas unclassified`() {
         assertNull(AvyayaPada("च", "च").function)
     }

@@ -68,12 +68,14 @@ data class AvyayaPada(
 enum class AvyayaFunction {
     NISHEDHA,
     QUOTATIVE,
+    REPETITION,
     ;
 
     companion object {
         fun fromForm(form: String): AvyayaFunction? = when (form.trim()) {
             "न", "मा" -> NISHEDHA
             "इति" -> QUOTATIVE
+            "पुनः", "पुनर्" -> REPETITION
             else -> null
         }
     }

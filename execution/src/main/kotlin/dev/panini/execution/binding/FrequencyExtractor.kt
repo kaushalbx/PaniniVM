@@ -3,6 +3,7 @@ package dev.panini.execution.binding
 import dev.panini.analysis.KriyaFrame
 import dev.panini.analysis.KriyaQualificationKind
 import dev.panini.sankhya.SankhyaAbhyasaMarkers
+import dev.panini.vyakaranam.ast.AvyayaFunction
 import dev.panini.vyakaranam.ast.Pada
 import dev.panini.vyakaranam.ast.SankhyaAbhyasaPada
 
@@ -45,7 +46,7 @@ internal object FrequencyExtractor {
             if (evaluated != null && evaluated.value > 0) return evaluated.value.toInt()
             // पुनः / पुनर् are pragmatic repetition markers ("again" = do once more),
             // not purely numerical — retain as minimal policy.
-            if (text == "पुनः" || text == "पुनर्") return 2
+            if (AvyayaFunction.fromForm(text) == AvyayaFunction.REPETITION) return 2
         }
         return null
     }
