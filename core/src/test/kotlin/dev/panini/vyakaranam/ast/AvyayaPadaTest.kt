@@ -13,6 +13,11 @@ class AvyayaPadaTest {
     }
 
     @Test
+    fun `classifies the quotative marker`() {
+        assertEquals(AvyayaFunction.QUOTATIVE, AvyayaPada("इति", "इति").function)
+    }
+
+    @Test
     fun `leaves unrelated avyayas unclassified`() {
         assertNull(AvyayaPada("च", "च").function)
     }

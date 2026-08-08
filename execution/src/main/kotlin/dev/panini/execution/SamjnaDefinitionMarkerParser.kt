@@ -2,6 +2,7 @@ package dev.panini.execution
 
 import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
+import dev.panini.vyakaranam.ast.AvyayaFunction
 import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.KridantaPratipadika
 import dev.panini.vyakaranam.ast.MulaPratipadika
@@ -28,7 +29,7 @@ object SamjnaDefinitionMarkerParser {
         val ukti = parser.parseOrNull(source.trim().trimEnd('।', '॥', ' ')) ?: return false
         val padas = ukti.vakyas.flatMap { it.padas }
         val itiIndices = padas.indices.filter { index ->
-            (padas[index] as? AvyayaPada)?.form == "इति"
+            (padas[index] as? AvyayaPada)?.function == AvyayaFunction.QUOTATIVE
         }
         return itiIndices.any { itiIndex ->
             padas.drop(itiIndex + 1).filterIsInstance<SubantaPada>().any { it.definitionQualifier() != null }
@@ -43,7 +44,7 @@ object SamjnaDefinitionMarkerParser {
             (padas[index] as? SubantaPada)?.definitionQualifier() != null
         } ?: return null
         val itiIndex = (0 until markerIndex).lastOrNull { index ->
-            (padas[index] as? AvyayaPada)?.form == "इति"
+            (padas[index] as? AvyayaPada)?.function == AvyayaFunction.QUOTATIVE
         } ?: return null
         return padas.take(itiIndex)
             .joinToString(" ") { SamjnaInvocationMatcher.normalizeIdentity(it.sourceText) }
@@ -53,7 +54,9 @@ object SamjnaDefinitionMarkerParser {
     fun qualifiers(source: String): ParsedSamjnaQualifiers? {
         val ukti = parser.parseOrNull(source.trim().trimEnd('।', '॥', ' ')) ?: return null
         val padas = ukti.vakyas.flatMap { it.padas }
-        val firstItiIndex = padas.indexOfFirst { (it as? AvyayaPada)?.form == "इति" }
+        val firstItiIndex = padas.indexOfFirst {
+            (it as? AvyayaPada)?.function == AvyayaFunction.QUOTATIVE
+        }
         val declarationPadas = if (firstItiIndex >= 0) padas.take(firstItiIndex) else padas
         val qualifierPadas = if (firstItiIndex >= 0) padas.drop(firstItiIndex + 1) else emptyList()
         val declarationSource = declarationPadas

@@ -1,5 +1,6 @@
 package dev.panini.execution
 
+import dev.panini.vyakaranam.ast.AvyayaFunction
 import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.parser.PaniniParser
 
@@ -19,6 +20,8 @@ internal object PvmBlockBoundary {
             ?.vakyas
             ?.flatMap { it.padas }
             ?: return true
-        return padas.singleOrNull()?.let { it !is AvyayaPada || it.form != "इति" } ?: true
+        return padas.singleOrNull()?.let {
+            it !is AvyayaPada || it.function != AvyayaFunction.QUOTATIVE
+        } ?: true
     }
 }
