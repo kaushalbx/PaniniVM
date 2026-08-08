@@ -14,9 +14,9 @@ class SankhyaAbhyasaRendererTest {
 
     @Test
     fun `renders krtvasuc suc and dha forms`() {
-        assertEquals("पञ्चकृत्वः", renderer.render("कृत्वः", 5, "पञ्च"))
-        assertEquals("द्विः", renderer.render("सुच्", 2, "द्वि"))
-        assertEquals("पञ्चकृत्वः", renderer.render("सुच्", 5, "पञ्च"))
-        assertEquals("त्रिधा", renderer.render("धा", 3, "त्रि"))
+        assertEquals("पञ्चकृत्वः", renderer.render("कृत्वः", 5))
+        assertEquals("द्विः", renderer.render("सुच्", 2))
+        assertEquals("पञ्चकृत्वः", renderer.render("सुच्", 5))
+        assertEquals("त्रिधा", renderer.render("धा", 3))
     }
 }

@@ -13,7 +13,7 @@ sealed interface Samjna {
     /** Affix & Suffix Classifications (प्रत्यय भेद - Aṣṭādhyāyī 3.1.93, 3.3.1, 4.1.76) */
     enum class Affix : Samjna {
         KRT, UNADI, TADDHITA, SARVADHATUKA, ARDHADHATUKA,
-        GHAN, NVUL, TRC, KTA, SHATRU, SHANAC, GHINUN,
+        GHAN, NVUL, TRC, KTA, SHATRU, SHANAC, GHINUN, KRTVASUC, SUC, DHA,
         AN, IN, CHHA, MATUP, MAYAT, TAL, KTVA, LYAP, LYUT, TUMUN, TAVYA,
         ANIYAR, NYAT, YAT, KTAVATU, NISHTHA, NIC, SAN, YAN, KYAC,
         YAN_LUK, CAN, TAP, NIP, NIS, NIN, TI_PRATYAYA, TVA, TARAP,
@@ -78,6 +78,9 @@ sealed interface Samjna {
         val SHANAC: Samjna = Affix.SHANAC
         val SANAC: Samjna = Affix.SHANAC
         val GHINUN: Samjna = Affix.GHINUN
+        val KRTVASUC: Samjna = Affix.KRTVASUC
+        val SUC: Samjna = Affix.SUC
+        val DHA: Samjna = Affix.DHA
         val AN: Samjna = Affix.AN
         val IN: Samjna = Affix.IN
         val CHHA: Samjna = Affix.CHHA

@@ -17,6 +17,8 @@ import dev.panini.ashtadhyayi.adhyaya4.pada2.Adhyaya4Pada2
 import dev.panini.ashtadhyayi.adhyaya4.pada3.Adhyaya4Pada3
 import dev.panini.ashtadhyayi.adhyaya4.pada4.Adhyaya4Pada4
 import dev.panini.ashtadhyayi.adhyaya5.pada2.Adhyaya5Pada2
+import dev.panini.ashtadhyayi.adhyaya5.pada3.EdhaccaSutra
+import dev.panini.ashtadhyayi.adhyaya5.pada3.SankhyayascavidhartheDhaSutra
 import dev.panini.ashtadhyayi.adhyaya6.pada1.Adhyaya6Pada1
 import dev.panini.ashtadhyayi.adhyaya6.pada3.Adhyaya6Pada3
 import dev.panini.ashtadhyayi.adhyaya6.pada4.Adhyaya6Pada4
@@ -44,6 +46,7 @@ object Ashtadhyayi {
         Adhyaya4Pada3.sutras,
         Adhyaya4Pada4.sutras,
         Adhyaya5Pada2.sutras,
+        listOf(SankhyayascavidhartheDhaSutra, EdhaccaSutra),
         dev.panini.ashtadhyayi.adhyaya5.pada4.Adhyaya5Pada4.sutras,
         Adhyaya6Pada1.sutras, Adhyaya6Pada3.sutras, Adhyaya6Pada4.sutras, Adhyaya7Pada1.sutras, Adhyaya7Pada2.sutras,
         Adhyaya7Pada3.sutras, Adhyaya7Pada4.sutras, Adhyaya8Pada2.sutras, Adhyaya8Pada3.sutras, Adhyaya8Pada4.sutras,
@@ -59,7 +62,7 @@ object Ashtadhyayi {
     /** Canonical executable views, derived from grammatical metadata. */
     val sandhiSutras: List<DerivationSutra> = executableSutrasFor(SutraStage.sandhiPhases)
     val sankhyaSutras: List<DerivationSutra> = executableSutrasFor(
-        listOf(SutraStage.ANGAKARYA, SutraStage.PADA_FORMATION) + SutraStage.sandhiPhases,
+        listOf(SutraStage.PRATYAYA_SELECTION, SutraStage.ANGAKARYA, SutraStage.PADA_FORMATION) + SutraStage.sandhiPhases,
     )
     val puranaSankhyaSutras: List<DerivationSutra> = executableSutrasFor(
         SutraStage.PRATYAYA_SELECTION,

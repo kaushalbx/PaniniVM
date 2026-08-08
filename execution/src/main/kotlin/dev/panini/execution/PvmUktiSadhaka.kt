@@ -161,8 +161,7 @@ class PvmUktiSadhaka(
             } else {
                 sankhyaEvaluator.evaluateStems(pada.stems).value
             }
-            val cardinalSurface = sankhyaGenerator.cardinal(count).final.surface
-            sankhyaAbhyasaRenderer.render(lastStem, count, cardinalSurface)
+            sankhyaAbhyasaRenderer.render(lastStem, count)
         } catch (_: Throwable) {
             pada.sourceText
         }

@@ -37,12 +37,17 @@ object EdhaccaSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         if (context.samjnas.any { it.samjna == Samjna.PURANA || it.samjna == Samjna.DHATU }) return false
         if (context.terms.any { it.kind == TermKind.DHATU }) return false
-        val hasTaddhitaRequest = context.samjnas.any { it.samjna == Samjna.TADDHITA }
+        val requested = context.samjnas.map { it.samjna }.toSet()
+        val hasTaddhitaRequest = Samjna.DHA in requested ||
+            (Samjna.TADDHITA in requested && requested.none { it in specializedSankhyaTaddhitas })
         if (!hasTaddhitaRequest) return false
         val lastTerm = context.terms.lastOrNull() ?: return false
         val isAlreadyApplied = context.terms.any { it.upadesha == "धा" || it.surface == "धा" }
         return !isAlreadyApplied && (lastTerm.upadesha == "एक" || lastTerm.surface == "एक")
     }
+
+    private val specializedSankhyaTaddhitas = setOf(Samjna.KRTVASUC, Samjna.SUC, Samjna.DHA)
+
 
     override fun apply(context: DerivationState): DerivationChange {
         val dhaTerm = DerivationTerm(
