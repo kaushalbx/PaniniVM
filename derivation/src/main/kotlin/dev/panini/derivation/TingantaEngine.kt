@@ -8,7 +8,7 @@ import dev.panini.dhatupatha.DhatuPatha
 class TingantaEngine(private val engine: DerivationEngine = DerivationEngine(dev.panini.ashtadhyayi.Ashtadhyayi.executableSutras)) {
 
     fun derive(request: TingantaDerivationRequest): DerivationResult {
-        val dhatu = findDhatu(request.dhatu)
+        val dhatu = findDhatu(request.dhatu, request.pada)
         val targetPada = resolvePada(requireNotNull(dhatu.pada), request.pada)
         val plan = requireNotNull(TingantaFormPlans.find(request.purusha, request.vacana, targetPada, request.lakara, dhatu.gana)) {
             "No complete downstream plan exists for ${TingAffix.select(request.purusha, request.vacana, targetPada)?.upadesha}."
@@ -46,8 +46,14 @@ class TingantaEngine(private val engine: DerivationEngine = DerivationEngine(dev
         )
     }
 
-    private fun findDhatu(dhatu: String) =
-        DhatuPatha.all.firstOrNull { it.upadesha == dhatu || it.derivationalSurface == dhatu || it.sourceSurface == dhatu }
+    private fun findDhatu(dhatu: String, preferredPada: PadaType? = null) =
+        DhatuPatha.all
+            .filter { it.upadesha == dhatu || it.derivationalSurface == dhatu || it.sourceSurface == dhatu }
+            .let { matches ->
+                matches.firstOrNull { candidate ->
+                    preferredPada == null || candidate.pada == preferredPada || candidate.pada == PadaType.UBHAYAPADA
+                } ?: matches.firstOrNull()
+            }
             ?: throw IllegalArgumentException("Unknown dhatu: $dhatu")
 
     private fun resolvePada(dhatuPada: PadaType, requestedPada: PadaType?): PadaType {

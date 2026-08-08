@@ -16,6 +16,23 @@ import kotlin.test.assertTrue
 class TingantaEngineTest {
 
     @Test
+    fun `tinganta request preserves an attached nic pratyaya`() {
+        val request = TingantaDerivationRequest(
+            dhatu = "युज्",
+            vacana = Vacana.EKAVACANA,
+            purusha = Purusha.MADHYAMA,
+            lakara = Lakara.LOT,
+            pada = PadaType.PARASMAIPADA,
+            sanadiPratyayas = listOf("णिच्"),
+        )
+        val dhatu = DhatuPatha.all.first { it.upadesha == "युजिँर्" }
+        val state = request.initialState(dhatu)
+
+        assertEquals(listOf("युज्", "इ"), state.terms.map { it.surface })
+        assertTrue(state.terms.any { it.upadesha == "णिच्" })
+    }
+
+    @Test
     fun `Kryadi imperative uses shna without shap`() {
         val engine = TingantaEngine()
         val parasmaipada = engine.deriveSupportedParadigm("डुक्रीञ्", pada = PadaType.PARASMAIPADA, lakara = Lakara.LOT)

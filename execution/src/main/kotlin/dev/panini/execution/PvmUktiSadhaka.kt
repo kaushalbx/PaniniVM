@@ -210,9 +210,9 @@ class PvmUktiSadhaka(
 
     /**
      * Forms used by the PVM instruction vocabulary whose derivational paths are
-     * not yet complete in [TingantaEngine].  In particular, that engine does not
-     * currently consume sanadi pratyayas, so sending a nic-anta command through
-     * it silently renders the non-causative dhatu instead.
+     * not yet complete in [TingantaEngine]. The engine does not yet complete
+     * every sanādi formation, so these proven command
+     * surfaces remain a narrow fallback while sanādi support migrates into it.
      */
     private fun pvmImperativeSurface(tinganta: TingantaPada): String? {
         if (tinganta.lakara != dev.panini.core.Lakara.LOT || tinganta.ting.text != "सिप्") return null

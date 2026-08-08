@@ -1,6 +1,7 @@
 package dev.panini.derivation
 
 import dev.panini.core.Kala
+import dev.panini.core.ItMarker
 import dev.panini.core.Lakara
 import dev.panini.core.PadaType
 import dev.panini.core.Prayoga
@@ -17,6 +18,7 @@ data class TingantaDerivationRequest(
     val letFormation: LetFormation = LetFormation.PRESENT_STEM,
     val letEOption: LetEOption = LetEOption.E,
     val pada: PadaType? = null,
+    val sanadiPratyayas: List<String> = emptyList(),
 ) {
     fun initialState(): DerivationState = initialState(
         DerivationTerm("dhatu", dhatu, TermKind.DHATU),
@@ -28,7 +30,16 @@ data class TingantaDerivationRequest(
     )
 
     private fun initialState(dhatuTerm: DerivationTerm) = DerivationState(
-        listOf(dhatuTerm),
+        listOf(dhatuTerm) + sanadiPratyayas.mapIndexed { index, pratyaya ->
+            require(pratyaya == "णिच्") { "Unsupported sanādi pratyaya: $pratyaya" }
+            DerivationTerm(
+                id = "sanadi_$index",
+                surface = "इ",
+                kind = TermKind.PRATYAYA,
+                itMarkers = setOf(ItMarker.NIT, ItMarker.KIT),
+                upadesha = pratyaya,
+            )
+        },
         context = DerivationalContext(
             kala = when (lakara) {
                 Lakara.LRT, Lakara.LRNG, Lakara.LUT -> Kala.BHAVISYAT
