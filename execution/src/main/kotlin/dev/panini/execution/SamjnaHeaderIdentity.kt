@@ -37,7 +37,7 @@ object SamjnaHeaderIdentityParser {
 
     private fun parseSubantas(source: String): List<SubantaPada>? =
         parser.parseOrNull(source.trim().trimEnd('।', '॥', ' '))
-            ?.vakyas
+            ?.grammaticalVakyas()
             ?.flatMap { it.padas }
             ?.filterIsInstance<SubantaPada>()
 

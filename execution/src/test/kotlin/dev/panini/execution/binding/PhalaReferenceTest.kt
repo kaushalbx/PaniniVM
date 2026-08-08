@@ -17,5 +17,5 @@ class PhalaReferenceTest {
     }
 
     private fun parseSubanta(source: String): SubantaPada =
-        parser.parse(source).vakyas.flatMap { it.padas }.filterIsInstance<SubantaPada>().single()
+        parser.parse(source).grammaticalVakyas().flatMap { it.padas }.filterIsInstance<SubantaPada>().single()
 }

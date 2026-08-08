@@ -29,7 +29,7 @@ object SamjnaDefinitionMarkerParser {
 
     fun hasExplicitMarker(source: String): Boolean {
         val ukti = parser.parseOrNull(source.trim().trimEnd('।', '॥', ' ')) ?: return false
-        val padas = ukti.vakyas.flatMap { it.padas }
+        val padas = ukti.grammaticalVakyas().flatMap { it.padas }
         val itiIndices = padas.indices.filter { index ->
             (padas[index] as? AvyayaPada)?.function == AvyayaFunction.QUOTATIVE
         }
@@ -41,7 +41,7 @@ object SamjnaDefinitionMarkerParser {
     /** Returns the declaration prefix before the final explicit marker. */
     fun headerPrefix(source: String): String? {
         val ukti = parser.parseOrNull(source.trim().trimEnd('।', '॥', ' ')) ?: return null
-        val padas = ukti.vakyas.flatMap { it.padas }
+        val padas = ukti.grammaticalVakyas().flatMap { it.padas }
         val markerIndex = padas.indices.lastOrNull { index ->
             (padas[index] as? SubantaPada)?.definitionQualifier() != null
         } ?: return null
@@ -55,7 +55,7 @@ object SamjnaDefinitionMarkerParser {
 
     fun qualifiers(source: String): ParsedSamjnaQualifiers? {
         val ukti = parser.parseOrNull(source.trim().trimEnd('।', '॥', ' ')) ?: return null
-        val padas = ukti.vakyas.flatMap { it.padas }
+        val padas = ukti.grammaticalVakyas().flatMap { it.padas }
         val firstItiIndex = padas.indexOfFirst {
             (it as? AvyayaPada)?.function == AvyayaFunction.QUOTATIVE
         }

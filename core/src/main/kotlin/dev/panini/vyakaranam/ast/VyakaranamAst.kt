@@ -12,13 +12,8 @@ data class Ukti(
     val sambodhana: Sambodhana? = null,
     val body: ProgramNode,
 ) : VyakaranamNode {
-    /** Flattened compatibility view for consumers that only inspect grammatical clauses. */
-    val vakyas: List<Vakya>
-        get() = body.invocations().map(Invocation::vakya)
-
-    /** Top-level compatibility view; nested control flow is available through [body]. */
-    val sambandhas: List<String>
-        get() = (body as? Sequence)?.connectors.orEmpty()
+    /** Explicit grammatical query; execution order must be read from [body]. */
+    fun grammaticalVakyas(): List<Vakya> = body.invocations().map(Invocation::vakya)
 }
 
 /**

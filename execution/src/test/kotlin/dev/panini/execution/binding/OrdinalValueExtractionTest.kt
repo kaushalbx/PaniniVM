@@ -21,5 +21,5 @@ class OrdinalValueExtractionTest {
         assertNull(NumeralPadaBinder.extractOrdinalValue(parsePada("द्वि + अम्")))
     }
 
-    private fun parsePada(source: String): Pada = parser.parse(source).vakyas.flatMap { it.padas }.single()
+    private fun parsePada(source: String): Pada = parser.parse(source).grammaticalVakyas().flatMap { it.padas }.single()
 }

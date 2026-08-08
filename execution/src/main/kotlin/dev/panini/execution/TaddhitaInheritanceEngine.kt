@@ -21,7 +21,7 @@ object TaddhitaInheritanceEngine {
     /** Detects an inheritance declaration from its parsed taddhita morphology. */
     fun detectInheritanceAdhikara(domainSegmented: String): InheritanceRelation? {
         val ukti = parser.parseOrNull(domainSegmented.trim().trimEnd('।', '॥', ' ')) ?: return null
-        val parent = ukti.vakyas.asSequence()
+        val parent = ukti.grammaticalVakyas().asSequence()
             .flatMap { it.padas.asSequence() }
             .filterIsInstance<SubantaPada>()
             .mapNotNull { it.pratipadika as? MulaPratipadika }

@@ -22,7 +22,7 @@ class ProgramAstTest {
         assertEquals(2, sequence.statements.size)
         assertEquals(listOf("च"), sequence.connectors)
         sequence.statements.forEach { assertIs<Invocation>(it) }
-        assertEquals(2, ukti.vakyas.size)
+        assertEquals(2, ukti.grammaticalVakyas().size)
     }
 
     @Test
@@ -36,7 +36,7 @@ class ProgramAstTest {
         assertIs<Invocation>(conditional.condition)
         assertIs<Invocation>(conditional.consequent)
         assertIs<Invocation>(conditional.alternate)
-        assertEquals(3, ukti.vakyas.size)
+        assertEquals(3, ukti.grammaticalVakyas().size)
     }
 
     @Test

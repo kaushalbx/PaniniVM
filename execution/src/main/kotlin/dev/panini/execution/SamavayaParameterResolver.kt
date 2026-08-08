@@ -14,7 +14,7 @@ object SamavayaParameterResolver {
     fun replace(source: String, argumentSource: String): String {
         if (argumentSource.isBlank()) return source
         val ukti = parser.parseOrNull(source.trim()) ?: return source
-        val parameterSources = ukti.vakyas.asSequence()
+        val parameterSources = ukti.grammaticalVakyas().asSequence()
             .flatMap { it.padas.asSequence() }
             .filterIsInstance<SubantaPada>()
             .filter { pada ->

@@ -36,7 +36,7 @@ object TaddhitaStructEngine {
      */
     fun detectStructConstruction(sentenceText: String, preParsedUkti: Ukti? = null): TaddhitaStruct? {
         val ukti = parsed(sentenceText, preParsedUkti) ?: return null
-        val padas = ukti.vakyas.flatMap { it.padas }
+        val padas = ukti.grammaticalVakyas().flatMap { it.padas }
         val declaration = padas.filterIsInstance<SubantaPada>()
             .lastOrNull { it.vibhakti() == Vibhakti.PRATHAMA && it.pratipadika.isMatup() }
             ?: return null
@@ -66,7 +66,7 @@ object TaddhitaStructEngine {
      */
     fun detectNestedAttributeAccess(sentenceText: String, preParsedUkti: Ukti? = null): List<String>? {
         val ukti = parsed(sentenceText, preParsedUkti) ?: return null
-        val padas = ukti.vakyas.flatMap { it.padas }
+        val padas = ukti.grammaticalVakyas().flatMap { it.padas }
         if (padas.any { it is TingantaPada }) return null
         val receivers = padas.filterIsInstance<SubantaPada>()
             .filter { it.vibhakti() == Vibhakti.SASTHI && it.pratipadika.isMatup() }
@@ -81,7 +81,7 @@ object TaddhitaStructEngine {
      */
     fun detectMethodHeader(headerName: String): Pair<String, String>? {
         val ukti = parsed(headerName, null) ?: return null
-        val padas = ukti.vakyas.flatMap { it.padas }
+        val padas = ukti.grammaticalVakyas().flatMap { it.padas }
         val receiverIndex = padas.indexOfFirst {
             it is SubantaPada && it.vibhakti() == Vibhakti.SASTHI && it.pratipadika.isMatup()
         }
@@ -97,7 +97,7 @@ object TaddhitaStructEngine {
      */
     fun detectMethodInvocation(sentenceText: String): Triple<String, String, String>? {
         val ukti = parsed(sentenceText, null) ?: return null
-        val padas = ukti.vakyas.flatMap { it.padas }
+        val padas = ukti.grammaticalVakyas().flatMap { it.padas }
         val receiverIndex = padas.indexOfFirst {
             it is SubantaPada && it.vibhakti() == Vibhakti.SASTHI && it.pratipadika.isMatup()
         }

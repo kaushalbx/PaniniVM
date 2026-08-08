@@ -1,8 +1,11 @@
 package dev.panini.execution
 
+import dev.panini.vyakaranam.ast.Pipeline
 import dev.panini.vyakaranam.ast.PipelineStage
+import dev.panini.vyakaranam.parser.PaniniParser
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class PurvaparaPipelineTest {
@@ -38,7 +41,7 @@ class PurvaparaPipelineTest {
     @Test
     fun `pipeline directive compiles to structured stages`() {
         val source = "पञ्च + अम् द्वि + अम् च गणित + ङस् गुण् + ल्युट् + ङस् गणित + ङस् रन्ध्र + ल्युट् + ङस् पूर्व + पर + ङस् एका + सुँ कृ + लोट् + सिप् ।"
-        val plan = requireNotNull(PurvaparaPipelineCompiler.compile(source))
+        val plan = assertIs<Pipeline>(PaniniParser().parse(source).body)
 
         assertEquals(listOf("पञ्च", "द्वि"), plan.arguments)
         assertEquals(

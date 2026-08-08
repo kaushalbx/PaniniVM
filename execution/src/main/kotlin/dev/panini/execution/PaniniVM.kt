@@ -658,7 +658,7 @@ object PuranaPratyayaResolver {
         val ukti = parser.parseOrNull(text.trim()) ?: return text
         val ordinalValue = index + 1L
         val ordinalSurface = sankhyaGenerator.ordinal(ordinalValue).final.surface
-        val ordinalSources = ukti.vakyas.asSequence()
+        val ordinalSources = ukti.grammaticalVakyas().asSequence()
             .flatMap { it.padas.asSequence() }
             .map { it.sourceText }
             .filter { isOrdinal(it, ordinalValue, ordinalSurface) }
@@ -671,7 +671,7 @@ object PuranaPratyayaResolver {
 
     private fun isAccusative(source: String): Boolean {
         val padas = parser.parseOrNull(source.trim().trimEnd('।', '॥', ' '))
-            ?.vakyas
+            ?.grammaticalVakyas()
             ?.flatMap { it.padas }
             ?: return false
         val argument = padas.singleOrNull() as? dev.panini.vyakaranam.ast.SubantaPada ?: return false

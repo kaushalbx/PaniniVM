@@ -65,7 +65,7 @@ object VyakaranamExecutionAdapter {
         } catch (_: PaniniParseException) {
             return null
         }
-        if (ukti.vakyas.filterIsInstance<AkhyataVakya>().any { DhatuCache.resolve(it.tinganta) == null }) {
+        if (ukti.grammaticalVakyas().filterIsInstance<AkhyataVakya>().any { DhatuCache.resolve(it.tinganta) == null }) {
             return null
         }
         return analyze(ukti)
@@ -116,7 +116,7 @@ object VyakaranamExecutionAdapter {
         if (input.speaker != conversation.speaker) {
             return ExecutionBindingResult.Invalid("Utterance speaker does not match the trusted conversation context.")
         }
-        val unresolved = ukti.vakyas.filterIsInstance<AkhyataVakya>()
+        val unresolved = ukti.grammaticalVakyas().filterIsInstance<AkhyataVakya>()
             .firstOrNull { DhatuCache.resolve(it.tinganta) == null }
         if (unresolved != null) {
             return ExecutionBindingResult.Invalid(
@@ -135,7 +135,7 @@ object VyakaranamExecutionAdapter {
         val localVariableInvocationIds = mutableMapOf<String, String>()
 
         // An explicit abhyāsa count applies to the complete utterance.
-        val abhyasaCounts = ukti.vakyas.flatMap { vakya ->
+        val abhyasaCounts = ukti.grammaticalVakyas().flatMap { vakya ->
             vakya.padas.filterIsInstance<SankhyaAbhyasaPada>().mapNotNull { pada ->
                 val numStems = FrequencyExtractor.numericStems(pada.stems)
                 val evaluated = if (numStems.isNotEmpty()) {
@@ -190,7 +190,7 @@ object VyakaranamExecutionAdapter {
             }
         }
 
-        val lakara = ukti.vakyas.filterIsInstance<AkhyataVakya>().firstOrNull()?.tinganta?.lakara
+        val lakara = ukti.grammaticalVakyas().filterIsInstance<AkhyataVakya>().firstOrNull()?.tinganta?.lakara
         val purpose = when {
             prohibition -> VakyaPrayojana.NISHEDHA
             prayer -> VakyaPrayojana.PRARTHANA
@@ -212,7 +212,7 @@ object VyakaranamExecutionAdapter {
                 invocations = invocations,
                 control = buildExecutionControl(executionBody),
             ),
-            listOf("Bound canonical vyākaraṇa AST with ${ukti.vakyas.size} clause(s) directly to execution."),
+            listOf("Bound canonical vyākaraṇa AST with ${ukti.grammaticalVakyas().size} clause(s) directly to execution."),
         )
     }
 

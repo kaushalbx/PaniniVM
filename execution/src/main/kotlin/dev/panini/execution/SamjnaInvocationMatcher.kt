@@ -24,7 +24,7 @@ object SamjnaInvocationMatcher {
         preParsedUkti: Ukti? = null,
     ): SamjnaInvocationShape? {
         val ukti = preParsedUkti ?: runCatching { parser.parse(sentenceText.trim()) }.getOrNull() ?: return null
-        val padas = ukti.vakyas.flatMap { it.padas }
+        val padas = ukti.grammaticalVakyas().flatMap { it.padas }
         val verbIndex = padas.indexOfFirst { it is TingantaPada }
         if (verbIndex < 0) return null
 

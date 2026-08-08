@@ -17,7 +17,7 @@ object AdhikaraHeaderParser {
 
     fun domain(source: String): String? {
         val ukti = parser.parseOrNull(source.trim().trimEnd('।', '॥', ' ')) ?: return null
-        val padas = ukti.vakyas.flatMap { it.padas }
+        val padas = ukti.grammaticalVakyas().flatMap { it.padas }
         val markerIndex = padas.indexOfLast { pada ->
             pada is SubantaPada &&
                 SupAffix.fromUpadesha(pada.sup.text)?.vibhakti == Vibhakti.PRATHAMA &&

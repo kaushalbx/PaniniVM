@@ -17,7 +17,7 @@ internal object PvmBlockBoundary {
         val beforeTerminator = trimmed.removeSuffix(TERMINATOR).trim()
         if (beforeTerminator.isEmpty()) return false
         val padas = parser.parseOrNull(beforeTerminator)
-            ?.vakyas
+            ?.grammaticalVakyas()
             ?.flatMap { it.padas }
             ?: return true
         return padas.singleOrNull()?.let {

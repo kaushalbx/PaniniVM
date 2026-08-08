@@ -31,7 +31,7 @@ object AntarangaScopeEngine {
         supplied ?: parser.parseOrNull(text.trim().trimEnd('।', '॥', ' '))
 
     private fun findDirective(ukti: Ukti?): Pair<SubantaPada, SubantaPada>? {
-        val padas = ukti?.vakyas?.flatMap { it.padas } ?: return null
+        val padas = ukti?.grammaticalVakyas()?.flatMap { it.padas } ?: return null
         return padas.zipWithNext().firstNotNullOfOrNull { (first, second) ->
             val antar = first as? SubantaPada ?: return@firstNotNullOfOrNull null
             val anga = second as? SubantaPada ?: return@firstNotNullOfOrNull null

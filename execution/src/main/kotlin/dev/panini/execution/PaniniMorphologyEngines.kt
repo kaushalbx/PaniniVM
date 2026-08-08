@@ -22,7 +22,7 @@ object PradayaUpasargaEngine {
         if (trimmed.isEmpty()) return false
 
         val ukti = preParsedUkti ?: parser.parseOrNull(trimmed) ?: return false
-        return ukti.vakyas.asSequence()
+        return ukti.grammaticalVakyas().asSequence()
             .flatMap { it.padas.asSequence() }
             .any { it is TingantaPada }
     }
@@ -42,7 +42,7 @@ object SubantaKarakaParser {
         if (trimmed.isEmpty()) return emptyList()
 
         val ukti = preParsedUkti ?: parser.parseOrNull(trimmed) ?: return emptyList()
-        return ukti.vakyas.asSequence()
+        return ukti.grammaticalVakyas().asSequence()
             .flatMap { it.padas.asSequence() }
             .filterIsInstance<SubantaPada>()
             .filter { SupAffix.fromUpadesha(it.sup.text)?.vibhakti == Vibhakti.DVITIYA }
@@ -56,7 +56,7 @@ object SubantaKarakaParser {
      */
     fun hasTritiyaInstrumental(text: String, preParsedUkti: dev.panini.vyakaranam.ast.Ukti? = null): Boolean {
         val ukti = preParsedUkti ?: parser.parseOrNull(text) ?: return false
-        return ukti.vakyas.asSequence()
+        return ukti.grammaticalVakyas().asSequence()
             .flatMap { it.padas.asSequence() }
             .filterIsInstance<SubantaPada>()
             .any { SupAffix.fromUpadesha(it.sup.text)?.vibhakti == Vibhakti.TRTIYA }
@@ -75,7 +75,7 @@ object DynamicNishedhaEvaluator {
         // Guards containing ordinal parameters are rewritten before evaluation, so the
         // rewritten sentence must be parsed instead of reusing its original AST.
         val ukti = parser.parseOrNull(guardText.trim()) ?: return false
-        val isNishedhaSentence = ukti.vakyas.any { vakya ->
+        val isNishedhaSentence = ukti.grammaticalVakyas().any { vakya ->
             vakya.padas.filterIsInstance<AvyayaPada>().any { it.function == AvyayaFunction.NISHEDHA }
         }
         if (!isNishedhaSentence) return false

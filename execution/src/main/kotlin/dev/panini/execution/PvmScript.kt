@@ -210,7 +210,7 @@ object PvmScript {
         val nominalSource = internalHeader.nominalSource
         if (SamjnaHeaderIdentityParser.parse(nominalSource) == null) return null
         val ukti = parser.parseOrNull(nominalSource.trimEnd('।', '॥', ' ')) ?: return null
-        val hasAccusative = ukti.vakyas.flatMap { it.padas }
+        val hasAccusative = ukti.grammaticalVakyas().flatMap { it.padas }
             .filterIsInstance<dev.panini.vyakaranam.ast.SubantaPada>()
             .any {
                 dev.panini.core.SupAffix.fromUpadesha(it.sup.text)?.vibhakti ==
@@ -262,7 +262,7 @@ object PvmScript {
             .map { text ->
                 val trimmed = text.trim()
                 val ukti = parser.parseOrNull(trimmed)
-                val isNishedha = ukti?.vakyas?.any { vakya ->
+                val isNishedha = ukti?.grammaticalVakyas()?.any { vakya ->
                     vakya.padas.filterIsInstance<dev.panini.vyakaranam.ast.AvyayaPada>()
                         .any { it.function == dev.panini.vyakaranam.ast.AvyayaFunction.NISHEDHA }
                 } == true
