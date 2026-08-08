@@ -2,7 +2,9 @@ package dev.panini.analysis
 
 import dev.panini.vyakaranam.ast.Conditional
 import dev.panini.vyakaranam.ast.Invocation
+import dev.panini.vyakaranam.ast.Pipeline
 import dev.panini.vyakaranam.ast.ProgramNode
+import dev.panini.vyakaranam.ast.Repeat
 import dev.panini.vyakaranam.ast.Sequence
 import dev.panini.vyakaranam.ast.Ukti
 import dev.panini.vyakaranam.ast.invocations
@@ -102,6 +104,8 @@ class UktiAnalyzer(
                 }
                 condition.first to (alternate?.second ?: consequent.second)
             }
+            is Repeat -> visit(node.body)
+            is Pipeline -> error("A semantic pipeline does not contain grammatical kriya frames.")
         }
 
         visit(root)

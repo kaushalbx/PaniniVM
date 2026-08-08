@@ -232,6 +232,7 @@ class PaniniVM(
         parsed.filterIsInstance<PvmScriptStatement.Sentence>().forEach { statement ->
             val constructedStruct = TaddhitaStructEngine.detectStructConstruction(statement.text, statement.ukti)
             val nestedAttributeAccess = TaddhitaStructEngine.detectNestedAttributeAccess(statement.text, statement.ukti)
+            val pipeline = PurvaparaPipelineCompiler.compile(statement.text)
 
             if (constructedStruct != null) {
                 structStore[constructedStruct.nameStem] = constructedStruct
@@ -276,9 +277,9 @@ class PaniniVM(
                         "षष्ठी-असंगतिः: Attribute '$failedStep' not found in nested genitive chain $chain",
                     )
                 }
-            } else if (PurvaparaPipelineEngine.isPipelineDirective(statement.text, statement.ukti)) {
+            } else if (pipeline != null) {
                 val pipelineResults = PurvaparaPipelineEngine.executePipeline(
-                    statement.text, this, effectiveSessionKey, effectiveScope, speaker, listener, registry, callerSourceFile = sourceFile,
+                    pipeline, this, effectiveSessionKey, effectiveScope, speaker, listener, registry, callerSourceFile = sourceFile,
                 )
                 results += pipelineResults
             } else {

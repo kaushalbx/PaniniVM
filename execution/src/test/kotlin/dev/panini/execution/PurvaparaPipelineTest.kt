@@ -1,5 +1,6 @@
 package dev.panini.execution
 
+import dev.panini.vyakaranam.ast.PipelineStage
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -42,8 +43,8 @@ class PurvaparaPipelineTest {
         assertEquals(listOf("पञ्च", "द्वि"), plan.arguments)
         assertEquals(
             listOf(
-                PurvaparaPipelineStage("गणित", "गुण् + ल्युट्"),
-                PurvaparaPipelineStage("गणित", "रन्ध्र + ल्युट्"),
+                PipelineStage("गणित + ङस् गुण् + ल्युट्", "गणित", "गुण् + ल्युट्"),
+                PipelineStage("गणित + ङस् रन्ध्र + ल्युट्", "गणित", "रन्ध्र + ल्युट्"),
             ),
             plan.stages,
         )

@@ -7,7 +7,6 @@ import dev.panini.execution.DhatuInvocation
 import dev.panini.execution.ExecutableUkti
 import dev.panini.execution.ExecutionBindingResult
 import dev.panini.execution.ExecutionExpression
-import dev.panini.execution.ExecutionMetadata
 import dev.panini.execution.KriyaInvocationId
 import dev.panini.execution.GrammaticalFeatures
 import dev.panini.execution.Polarity
@@ -24,9 +23,16 @@ import dev.panini.analysis.VakyaAnalyzer
 import dev.panini.vyakaranam.ast.AkhyataVakya
 import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.Pada
+import dev.panini.vyakaranam.ast.Conditional
+import dev.panini.vyakaranam.ast.Invocation
+import dev.panini.vyakaranam.ast.Pipeline
+import dev.panini.vyakaranam.ast.ProgramNode
+import dev.panini.vyakaranam.ast.Repeat
 import dev.panini.vyakaranam.ast.SankhyaAbhyasaPada
+import dev.panini.vyakaranam.ast.Sequence
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.Ukti
+import dev.panini.vyakaranam.ast.expandedInvocations
 import dev.panini.vyakaranam.lexicon.PratipadikaEntry
 import dev.panini.vyakaranam.lexicon.VyakaranamLexicon
 import dev.panini.vyakaranam.parser.PaniniParseException
@@ -121,8 +127,7 @@ object VyakaranamExecutionAdapter {
         val localVariables = mutableSetOf<String>()
         val localVariableInvocationIds = mutableMapOf<String, String>()
 
-        // Compute whole-utterance repeat count for multi-clause unrolling.
-        // Single-clause repetition loops are evaluated in-memory by the ExecutionRuntime loop.
+        // An explicit abhyāsa count applies to the complete utterance.
         val abhyasaCounts = ukti.vakyas.flatMap { vakya ->
             vakya.padas.filterIsInstance<SankhyaAbhyasaPada>().mapNotNull { pada ->
                 val numStems = FrequencyExtractor.numericStems(pada.stems)
@@ -134,13 +139,12 @@ object VyakaranamExecutionAdapter {
                 evaluated.value.toInt().takeIf { it > 0 }
             }
         }
-        val repeatCount = abhyasaCounts.maxOrNull() ?: 1
-        val shouldUnroll = repeatCount > 1
-        val unrolledVakyas = buildList {
-            repeat(if (shouldUnroll) repeatCount else 1) { addAll(ukti.vakyas) }
-        }
+        val executionBody = abhyasaCounts.maxOrNull()?.let { count ->
+            Repeat(ukti.body.sourceText, count, ukti.body)
+        } ?: lowerFrequencyQualifiers(ukti.body, utteranceAnalysis)
+        val executionVakyas = executionBody.expandedInvocations().map(Invocation::vakya)
 
-        unrolledVakyas.forEachIndexed { index, vakya ->
+        executionVakyas.forEachIndexed { index, vakya ->
             val padas = vakya.padas
             val tinganta = (vakya as? AkhyataVakya)?.tinganta
             val dhatu = if (tinganta != null) {
@@ -169,7 +173,6 @@ object VyakaranamExecutionAdapter {
                 tinganta = tinganta,
                 listener = listener,
                 prayer = prayer,
-                shouldUnroll = shouldUnroll,
             )
             invocations += invocation
             val bindingKaraka = dhatu.operations.firstOrNull { it.resultBindingKaraka != null }?.resultBindingKaraka
@@ -211,10 +214,6 @@ object VyakaranamExecutionAdapter {
     /**
      * Extracts kāraka bindings for [padas] and constructs the [DhatuInvocation] for
      * clause number [index] (0-based).
-     *
-     * @param shouldUnroll When true the utterance is being unrolled across multiple
-     *                     repetitions, so per-clause frequency metadata is suppressed
-     *                     (the repeat count is encoded at the utterance level instead).
      */
     private fun buildDhatuInvocation(
         index: Int,
@@ -224,18 +223,15 @@ object VyakaranamExecutionAdapter {
         tinganta: TingantaPada?,
         listener: String,
         prayer: Boolean,
-        shouldUnroll: Boolean,
     ): DhatuInvocation {
         val extracted = KarakaExtractor.extractKarakas(padas, ctx)
         val bindings = extracted.bindings.toMutableMap()
         if (tinganta != null && purposeRequiresListenerAsAgent(prayer, tinganta.lakara) && Karaka.KARTR !in bindings) {
             bindings[Karaka.KARTR] = ExecutionExpression.Pada(listener)
         }
-        val frequencyCount = if (shouldUnroll) null else FrequencyExtractor.extractFrequencyCount(padas, ctx.frame)
         val metadataMap = buildMap {
-            put(ExecutionMetadata.DEFAULT_DHATU, dhatu.upadesha)
-            put(ExecutionMetadata.dhatu(KriyaInvocationId.of(index + 1)), dhatu.upadesha)
-            if (frequencyCount != null) put(ExecutionMetadata.FREQUENCY_COUNT, frequencyCount.toString())
+            put(dev.panini.execution.ExecutionMetadata.DEFAULT_DHATU, dhatu.upadesha)
+            put(dev.panini.execution.ExecutionMetadata.dhatu(KriyaInvocationId.of(index + 1)), dhatu.upadesha)
         }
         return DhatuInvocation(
             id = KriyaInvocationId.of(index + 1),
@@ -252,5 +248,28 @@ object VyakaranamExecutionAdapter {
             ambiguousBindings = extracted.ambiguous,
             karakaTrace = extracted.trace,
         )
+    }
+
+    private fun lowerFrequencyQualifiers(
+        root: ProgramNode,
+        analysis: UktiAnalysis,
+    ): ProgramNode {
+        var frameIndex = 0
+        fun lower(node: ProgramNode): ProgramNode = when (node) {
+            is Invocation -> {
+                val frame = analysis.frames[frameIndex++]
+                val count = FrequencyExtractor.extractFrequencyCount(node.vakya.padas, frame)
+                if (count != null && count > 1) Repeat(node.sourceText, count, node) else node
+            }
+            is Sequence -> node.copy(statements = node.statements.map(::lower))
+            is Conditional -> node.copy(
+                condition = lower(node.condition),
+                consequent = lower(node.consequent),
+                alternate = node.alternate?.let(::lower),
+            )
+            is Repeat -> node.copy(body = lower(node.body))
+            is Pipeline -> node
+        }
+        return lower(root)
     }
 }

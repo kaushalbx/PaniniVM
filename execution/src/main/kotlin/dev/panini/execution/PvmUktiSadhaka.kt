@@ -32,7 +32,9 @@ import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.UnadyantaPratipadika
 import dev.panini.vyakaranam.ast.Conditional
 import dev.panini.vyakaranam.ast.Invocation
+import dev.panini.vyakaranam.ast.Pipeline
 import dev.panini.vyakaranam.ast.ProgramNode
+import dev.panini.vyakaranam.ast.Repeat
 import dev.panini.vyakaranam.ast.Sequence
 import dev.panini.vyakaranam.lexicon.PratipadikaLexicon
 import dev.panini.vyakaranam.lexicon.StandardPratipadikaLexicon
@@ -115,6 +117,9 @@ class PvmUktiSadhaka(
                 append(sadhayaProgramNode(it))
             }
         }
+        // The source frequency expression remains inside the grammatical body.
+        is Repeat -> sadhayaProgramNode(node.body)
+        is Pipeline -> node.sourceText
     }
 
     private val sankhyaEvaluator = SankhyaEvaluator()

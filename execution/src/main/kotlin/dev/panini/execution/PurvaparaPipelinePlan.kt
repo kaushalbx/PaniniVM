@@ -1,21 +1,14 @@
 package dev.panini.execution
 
-data class PurvaparaPipelineStage(
-    val domainStem: String?,
-    val operationStem: String,
-)
-
-data class PurvaparaPipelinePlan(
-    val arguments: List<String>,
-    val stages: List<PurvaparaPipelineStage>,
-)
+import dev.panini.vyakaranam.ast.Pipeline
+import dev.panini.vyakaranam.ast.PipelineStage
 
 /** Compatibility compiler for the special 6.1.84 source directive. */
 object PurvaparaPipelineCompiler {
     private val directiveMarkers = listOf("पूर्व + पर + ङस्", "पूर्व + पर", "पूर्वपरयोः")
     private val resultMarkers = listOf("एका + सुँ", "एकः")
 
-    fun compile(source: String): PurvaparaPipelinePlan? {
+    fun compile(source: String): Pipeline? {
         if (directiveMarkers.none(source::contains)) return null
         val withoutDirective = (directiveMarkers + resultMarkers).fold(source) { text, marker ->
             text.replace(marker, "")
@@ -33,7 +26,8 @@ object PurvaparaPipelineCompiler {
                 val operation = terms.getOrNull(index + 1)
                 if (domain != null && operation != null) {
                     add(
-                        PurvaparaPipelineStage(
+                        PipelineStage(
+                            sourceText = listOfNotNull(domain, operation).joinToString(" + ङस् "),
                             domainStem = SamjnaKriyaRegistry.stripSupSuffix(domain),
                             operationStem = SamjnaKriyaRegistry.stripSupSuffix(operation),
                         ),
@@ -42,7 +36,8 @@ object PurvaparaPipelineCompiler {
                 index += 2
             }
         }
-        return PurvaparaPipelinePlan(
+        return Pipeline(
+            sourceText = source,
             arguments = SubantaKarakaParser.extractKarmaTerms(argumentSource),
             stages = stages,
         )

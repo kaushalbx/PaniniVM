@@ -56,54 +56,47 @@ object ExecutionRuntime {
                 )
                 is AuthorityDecision.Denied -> return Phala.Nirasta(plan.invocationId, authority.reason)
             }
-            val repeatCount = plan.resolved.context.metadata[ExecutionMetadata.FREQUENCY_COUNT]?.toIntOrNull() ?: 1
-            for (repeat in 1..repeatCount) {
-                val refreshedContext = plan.resolved.context.copy(
-                    variables = values.filterKeys { it != plan.invocationId },
-                    stateStore = scope.stateStore,
-                    externalDispatcher = scope.externalDispatcher,
-                    sutraRegistry = scope.sutraRegistry,
-                    currentGrantha = scope.currentGrantha,
-                    operationCatalog = scope.operationCatalog,
-                    linguisticServices = scope.linguisticServices,
-                    sankhyaRenderer = scope.sankhyaRenderer,
-                )
-                when (val result = plan.resolved.operation.action.execute(refreshedContext, plan.resolved.operation)) {
-                    is ExecutionResult.Success -> {
-                        val typedResult = result.typedValue ?: SanskritValue.of(
-                            result.value,
-                            plan.resolved.operation.resultSamjnas,
-                        )
-                        val karmanExpr = plan.resolved.context.bindings[dev.panini.core.Karaka.KARMAN]
-                        val sankhyaVals = karmanExpr?.let { plan.resolved.context.resolveSankhyaValues(it) }
-                        val secondVal = if (sankhyaVals != null && sankhyaVals.size >= 2 && karmanExpr is dev.panini.execution.ExecutionExpression.Coordination) sankhyaVals[1] else null
+            val refreshedContext = plan.resolved.context.copy(
+                variables = values.filterKeys { it != plan.invocationId },
+                stateStore = scope.stateStore,
+                externalDispatcher = scope.externalDispatcher,
+                sutraRegistry = scope.sutraRegistry,
+                currentGrantha = scope.currentGrantha,
+                operationCatalog = scope.operationCatalog,
+                linguisticServices = scope.linguisticServices,
+                sankhyaRenderer = scope.sankhyaRenderer,
+            )
+            when (val result = plan.resolved.operation.action.execute(refreshedContext, plan.resolved.operation)) {
+                is ExecutionResult.Success -> {
+                    val typedResult = result.typedValue ?: SanskritValue.of(
+                        result.value,
+                        plan.resolved.operation.resultSamjnas,
+                    )
+                    val karmanExpr = plan.resolved.context.bindings[dev.panini.core.Karaka.KARMAN]
+                    val sankhyaVals = karmanExpr?.let { plan.resolved.context.resolveSankhyaValues(it) }
+                    val secondVal = if (sankhyaVals != null && sankhyaVals.size >= 2 && karmanExpr is dev.panini.execution.ExecutionExpression.Coordination) sankhyaVals[1] else null
 
-                        val oldPhala = values[PhalaReference.KEY]
-                        if (secondVal != null) {
-                            val surf = scope.sankhyaRenderer.render(secondVal) ?: secondVal.toString()
-                            values["पूर्वफल"] = dev.panini.execution.SanskritValue.Sankhya(secondVal, surf)
-                        } else if (oldPhala != null) {
-                            values["पूर्वफल"] = oldPhala
-                        }
-                        values[PhalaReference.KEY] = typedResult
-                        values[plan.invocationId] = typedResult
-                        val bindingKaraka = plan.resolved.operation.resultBindingKaraka
-                        val bindingName = bindingKaraka
-                            ?.let(plan.resolved.context.bindings::get)
-                            ?.bindingName()
-                        if (bindingName != null) {
-                            values[bindingName] = typedResult
-                            localBindings[bindingName] = typedResult
-                            if (repeat == 1) trace += "Bound result to local name '$bindingName'."
-                        }
-                        if (repeat == 1) {
-                            trace += plan.resolved.resolutionTrace + result.trace
-                        } else {
-                            trace += result.trace
-                        }
+                    val oldPhala = values[PhalaReference.KEY]
+                    if (secondVal != null) {
+                        val surf = scope.sankhyaRenderer.render(secondVal) ?: secondVal.toString()
+                        values["पूर्वफल"] = dev.panini.execution.SanskritValue.Sankhya(secondVal, surf)
+                    } else if (oldPhala != null) {
+                        values["पूर्वफल"] = oldPhala
                     }
-                    else -> return Phala.Asiddha(result, trace + result.trace)
+                    values[PhalaReference.KEY] = typedResult
+                    values[plan.invocationId] = typedResult
+                    val bindingKaraka = plan.resolved.operation.resultBindingKaraka
+                    val bindingName = bindingKaraka
+                        ?.let(plan.resolved.context.bindings::get)
+                        ?.bindingName()
+                    if (bindingName != null) {
+                        values[bindingName] = typedResult
+                        localBindings[bindingName] = typedResult
+                        trace += "Bound result to local name '$bindingName'."
+                    }
+                    trace += plan.resolved.resolutionTrace + result.trace
                 }
+                else -> return Phala.Asiddha(result, trace + result.trace)
             }
         }
         val invocationIds = continuation.planning.plans.mapTo(mutableSetOf()) { it.invocationId }

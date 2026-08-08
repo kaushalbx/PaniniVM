@@ -55,12 +55,49 @@ data class Conditional(
     val alternate: ProgramNode? = null,
 ) : ProgramNode
 
+data class Repeat(
+    override val sourceText: String,
+    val count: Int,
+    val body: ProgramNode,
+) : ProgramNode {
+    init {
+        require(count > 0) { "A repetition count must be positive." }
+    }
+}
+
+data class PipelineStage(
+    override val sourceText: String,
+    val domainStem: String?,
+    val operationStem: String,
+) : VyakaranamNode
+
+data class Pipeline(
+    override val sourceText: String,
+    val arguments: List<String>,
+    val stages: List<PipelineStage>,
+) : ProgramNode
+
 fun ProgramNode.invocations(): List<Invocation> = when (this) {
     is Invocation -> listOf(this)
     is Sequence -> statements.flatMap(ProgramNode::invocations)
     is Conditional -> condition.invocations() +
         consequent.invocations() +
         alternate?.invocations().orEmpty()
+    is Repeat -> body.invocations()
+    is Pipeline -> emptyList()
+}
+
+/** Invocations in execution order, including copies introduced by [Repeat]. */
+fun ProgramNode.expandedInvocations(): List<Invocation> = when (this) {
+    is Invocation -> listOf(this)
+    is Sequence -> statements.flatMap(ProgramNode::expandedInvocations)
+    is Conditional -> condition.expandedInvocations() +
+        consequent.expandedInvocations() +
+        alternate?.expandedInvocations().orEmpty()
+    is Repeat -> buildList {
+        repeat(count) { addAll(body.expandedInvocations()) }
+    }
+    is Pipeline -> emptyList()
 }
 
 data class Sambodhana(

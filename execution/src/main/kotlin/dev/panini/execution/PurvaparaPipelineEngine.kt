@@ -1,6 +1,6 @@
 package dev.panini.execution
 
-import dev.panini.vyakaranam.ast.Ukti
+import dev.panini.vyakaranam.ast.Pipeline
 
 /**
  * Pāṇinian Compound Kriyā Pipeline Engine based on Sūtra 6.1.84 (एकः पूर्वपरयोः).
@@ -9,13 +9,8 @@ import dev.panini.vyakaranam.ast.Ukti
  * feeds into the succeeding stage (पर) to produce a single combined substitute (एकः पूर्वपरयोः).
  */
 object PurvaparaPipelineEngine {
-
-    fun isPipelineDirective(sentenceText: String, preParsedUkti: Ukti? = null): Boolean {
-        return PurvaparaPipelineCompiler.compile(sentenceText) != null
-    }
-
     fun executePipeline(
-        sentenceText: String,
+        pipeline: Pipeline,
         vm: PaniniVM,
         sessionKey: String,
         scope: ExecutionScope,
@@ -24,8 +19,7 @@ object PurvaparaPipelineEngine {
         registry: SamjnaKriyaRegistry,
         callerSourceFile: String? = null,
     ): List<ExecutionResult> {
-        val plan = PurvaparaPipelineCompiler.compile(sentenceText)
-        if (plan == null || plan.stages.size < 2) {
+        if (pipeline.stages.size < 2) {
             return listOf(
                 ExecutionResult.Failure(
                     ExecutionError.INVALID_VALUE,
@@ -34,15 +28,15 @@ object PurvaparaPipelineEngine {
             )
         }
 
-        var currentArguments = plan.arguments
+        var currentArguments = pipeline.arguments
         var lastSuccess: ExecutionResult.Success? = null
 
-        for (stage in plan.stages) {
+        for (stage in pipeline.stages) {
             val invocation = registry.resolveStructuredInvocation(
                 operationStem = stage.operationStem,
                 domainStem = stage.domainStem,
                 argumentTerms = currentArguments,
-                sourceText = sentenceText,
+                sourceText = pipeline.sourceText,
                 callerSourceFile = callerSourceFile,
             )
             if (invocation == null) {
@@ -71,8 +65,8 @@ object PurvaparaPipelineEngine {
             lastSuccess = stageSuccess
             val stageVal = stageSuccess.value
             val nextArgs = mutableListOf(stageVal)
-            if (plan.arguments.size > 1) {
-                nextArgs.addAll(plan.arguments.drop(1))
+            if (pipeline.arguments.size > 1) {
+                nextArgs.addAll(pipeline.arguments.drop(1))
             }
             currentArguments = nextArgs
         }
