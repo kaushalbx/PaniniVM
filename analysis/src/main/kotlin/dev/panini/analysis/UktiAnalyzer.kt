@@ -11,6 +11,7 @@ import dev.panini.vyakaranam.ast.Repeat
 import dev.panini.vyakaranam.ast.Scope
 import dev.panini.vyakaranam.ast.Sequence
 import dev.panini.vyakaranam.ast.Ukti
+import dev.panini.vyakaranam.ast.WhileLoop
 import dev.panini.vyakaranam.ast.invocations
 import dev.panini.vyakaranam.ast.accept
 
@@ -117,6 +118,7 @@ class UktiAnalyzer(
             override fun visitQuotation(node: Quotation): Pair<KriyaId, KriyaId> = visit(node.reporting)
 
             override fun visitRepeat(node: Repeat): Pair<KriyaId, KriyaId> = visit(node.body)
+            override fun visitWhileLoop(node: WhileLoop): Pair<KriyaId, KriyaId> = visit(node.body)
             override fun visitPipeline(node: Pipeline): Pair<KriyaId, KriyaId> =
                 error("A semantic pipeline does not contain grammatical kriya frames.")
             override fun visitProcedure(node: Procedure): Pair<KriyaId, KriyaId> =

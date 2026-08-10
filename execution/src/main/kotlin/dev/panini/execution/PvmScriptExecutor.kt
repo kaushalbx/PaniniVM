@@ -2,6 +2,7 @@ package dev.panini.execution
 
 import dev.panini.execution.binding.FrequencyExtractor
 import dev.panini.vyakaranam.ast.Repeat
+import dev.panini.vyakaranam.ast.WhileLoop
 import java.io.File
 
 /** Executes PVM scripts and projects behind the stable [PaniniVM] facade. */
@@ -44,6 +45,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             val constructedStruct = TaddhitaStructEngine.detectStructConstruction(statement.text, statement.ukti)
             val nestedAttributeAccess = TaddhitaStructEngine.detectNestedAttributeAccess(statement.text, statement.ukti)
             val pipeline = statement.program as? dev.panini.vyakaranam.ast.Pipeline
+            val whileLoop = statement.program as? WhileLoop
 
             when {
                 constructedStruct != null -> structStore[constructedStruct.nameStem] = constructedStruct
@@ -51,6 +53,16 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                     results += it
                     onResult?.invoke(it)
                 }
+                whileLoop != null -> executeWhileLoop(
+                    whileLoop,
+                    effectiveSessionKey,
+                    effectiveScope,
+                    speaker,
+                    listener,
+                    registry,
+                    sourceFile,
+                    onResult,
+                ).also(results::addAll)
                 pipeline != null -> PurvaparaPipelineEngine.executePipeline(
                     pipeline, vm, effectiveSessionKey, effectiveScope, speaker, listener, registry,
                     callerSourceFile = sourceFile,
@@ -96,6 +108,104 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             }
         }
         return results
+    }
+
+    private fun executeWhileLoop(
+        loop: WhileLoop,
+        sessionKey: String,
+        scope: ExecutionScope,
+        speaker: String,
+        listener: String,
+        registry: SamjnaKriyaRegistry,
+        sourceFile: String?,
+        onResult: ((ExecutionResult) -> Unit)?,
+    ): List<ExecutionResult> {
+        val results = mutableListOf<ExecutionResult>()
+        val isBounded = loop.maximumIterationStems.isNotEmpty()
+        val maximumIterations = if (!isBounded) {
+            MAX_CONDITION_ITERATIONS
+        } else {
+            val value = dev.panini.sankhya.SankhyaEvaluator()
+                .evaluateStems(loop.maximumIterationStems).value
+            if (value !in 1L..MAX_CONDITION_ITERATIONS.toLong()) {
+                return listOf(
+                    ExecutionResult.Failure(
+                        ExecutionError.INVALID_VALUE,
+                        "A condition-controlled loop bound must be between 1 and $MAX_CONDITION_ITERATIONS.",
+                    ),
+                )
+            }
+            value.toInt()
+        }
+        val negatedVictory = loop.condition.sourceText.contains("विजय") &&
+            loop.condition.vakya.padas.any { it is dev.panini.vyakaranam.ast.AvyayaPada && it.form == "न" }
+
+        repeat(maximumIterations) {
+            val conditionHolds = if (negatedVictory) {
+                true
+            } else {
+                val conditionResult = vm.eval(
+                    renderInvocation(loop.condition),
+                    sessionKey,
+                    scope,
+                    speaker,
+                    listener,
+                    isExecutingScript = true,
+                )
+                (conditionResult as? ExecutionResult.Success)?.typedValue
+                    ?.let { it as? SanskritValue.Satya }?.boolean == true
+            }
+            if (!conditionHolds) return results
+
+            val bodyInvocation = loop.body as? dev.panini.vyakaranam.ast.Invocation
+                ?: return listOf(
+                    ExecutionResult.Failure(
+                        ExecutionError.INVALID_VALUE,
+                        "The तावत् body must be one executable invocation.",
+                    ),
+                )
+            val bodyText = renderInvocation(bodyInvocation)
+            val invocation = registry.detectInvocation(bodyText, callerSourceFile = sourceFile)
+            val iterationResults = if (invocation != null) {
+                executeSamjnaInvocation(
+                    invocation,
+                    sessionKey,
+                    scope,
+                    speaker,
+                    listener,
+                    registry,
+                    callerSourceFile = sourceFile,
+                    onResult = onResult,
+                )
+            } else {
+                listOf(vm.eval(bodyText, sessionKey, scope, speaker, listener, isExecutingScript = true)).also {
+                    it.forEach { result -> onResult?.invoke(result) }
+                }
+            }
+            results += iterationResults
+            if (iterationResults.any {
+                    it is ExecutionResult.Success && it.controlSignal == ExecutionControlSignal.BREAK_LOOP
+                }
+            ) {
+                return results
+            }
+        }
+        if (!isBounded) {
+            results += ExecutionResult.Failure(
+                ExecutionError.ACTION_FAILED,
+                "Condition-controlled loop exceeded its safety limit of $MAX_CONDITION_ITERATIONS iterations.",
+            )
+        }
+        return results
+    }
+
+    private fun renderInvocation(invocation: dev.panini.vyakaranam.ast.Invocation): String =
+        invocation.vakya.padas.joinToString(" ") { pada ->
+            pada.sourceText.replace("+", " + ").replace(Regex("\\s+"), " ").trim()
+        } + " ।"
+
+    private companion object {
+        const val MAX_CONDITION_ITERATIONS = 10_000
     }
 
     fun evalProject(

@@ -48,6 +48,7 @@ import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.Ukti
 import dev.panini.vyakaranam.ast.Vakya
+import dev.panini.vyakaranam.ast.WhileLoop
 import dev.panini.vyakaranam.ast.expandedInvocations
 import dev.panini.vyakaranam.ast.depthFirst
 import dev.panini.vyakaranam.ast.accept
@@ -248,6 +249,7 @@ object VyakaranamExecutionAdapter {
             override fun visitQuotation(node: Quotation): ExecutionNode = build(node.reporting)
             override fun visitRepeat(node: Repeat): ExecutionNode =
                 ExecuteRepeat(List(node.count) { build(node.body) })
+            override fun visitWhileLoop(node: WhileLoop): ExecutionNode = build(node.body)
             override fun visitPipeline(node: Pipeline): ExecutionNode =
                 error("Pipelines are executed through their semantic stage engine.")
             override fun visitProcedure(node: Procedure): ExecutionNode =
@@ -393,6 +395,7 @@ object VyakaranamExecutionAdapter {
                 val repetitions = List(node.count) { visit(node.body) }
                 Shape(repetitions.first().entries, repetitions.last().exits)
             }
+            is WhileLoop -> visit(node.body)
             is Pipeline -> Shape(emptySet(), emptySet())
             is Procedure -> Shape(emptySet(), emptySet())
             is Scope -> Shape(emptySet(), emptySet())

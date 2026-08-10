@@ -4,6 +4,7 @@ import dev.panini.vyakaranam.ast.Conditional
 import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.Pipeline
 import dev.panini.vyakaranam.ast.Quotation
+import dev.panini.vyakaranam.ast.WhileLoop
 import dev.panini.vyakaranam.ast.Sequence
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -49,6 +50,19 @@ class ProgramAstTest {
         assertIs<Quotation>(sequence.statements[1])
         assertIs<Invocation>(sequence.statements.last())
         assertEquals(listOf("च", "ततः"), sequence.connectors)
+    }
+
+    @Test
+    fun `yavat tavat builds a bounded condition loop`() {
+        val loop = assertIs<WhileLoop>(
+            parser.parse(
+                "पञ्च + कृत्वः यावत् विजय + सुँ न तावत् प्रयत्न + अम् कृ + लोट् + सिप् ।",
+            ).body,
+        )
+
+        assertEquals(listOf("पञ्च"), loop.maximumIterationStems)
+        assertEquals("विजय+सुँन", loop.condition.sourceText)
+        assertIs<Invocation>(loop.body)
     }
 
     @Test

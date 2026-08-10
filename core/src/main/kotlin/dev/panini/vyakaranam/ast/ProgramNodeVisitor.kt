@@ -6,6 +6,7 @@ interface ProgramNodeVisitor<out R> {
     fun visitConditional(node: Conditional): R
     fun visitQuotation(node: Quotation): R
     fun visitRepeat(node: Repeat): R
+    fun visitWhileLoop(node: WhileLoop): R
     fun visitPipeline(node: Pipeline): R
     fun visitProcedure(node: Procedure): R
     fun visitScope(node: Scope): R
@@ -17,6 +18,7 @@ fun <R> ProgramNode.accept(visitor: ProgramNodeVisitor<R>): R = when (this) {
     is Conditional -> visitor.visitConditional(this)
     is Quotation -> visitor.visitQuotation(this)
     is Repeat -> visitor.visitRepeat(this)
+    is WhileLoop -> visitor.visitWhileLoop(this)
     is Pipeline -> visitor.visitPipeline(this)
     is Procedure -> visitor.visitProcedure(this)
     is Scope -> visitor.visitScope(this)
@@ -53,6 +55,7 @@ private object ProgramNodeChildren : ProgramNodeVisitor<List<ProgramNode>> {
         listOfNotNull(node.condition, node.consequent, node.alternate)
     override fun visitQuotation(node: Quotation): List<ProgramNode> = listOf(node.reporting)
     override fun visitRepeat(node: Repeat): List<ProgramNode> = listOf(node.body)
+    override fun visitWhileLoop(node: WhileLoop): List<ProgramNode> = listOf(node.body)
     override fun visitPipeline(node: Pipeline): List<ProgramNode> = emptyList()
     override fun visitProcedure(node: Procedure): List<ProgramNode> = node.body
     override fun visitScope(node: Scope): List<ProgramNode> = node.body
@@ -76,6 +79,9 @@ open class ProgramNodeTransformer : ProgramNodeVisitor<ProgramNode> {
         node.copy(reporting = transform(node.reporting))
 
     override fun visitRepeat(node: Repeat): ProgramNode =
+        node.copy(body = transform(node.body))
+
+    override fun visitWhileLoop(node: WhileLoop): ProgramNode =
         node.copy(body = transform(node.body))
 
     override fun visitPipeline(node: Pipeline): ProgramNode = node

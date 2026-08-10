@@ -67,6 +67,14 @@ data class Repeat(
     }
 }
 
+/** A condition-controlled loop, optionally bounded by a Sanskrit repetition count. */
+data class WhileLoop(
+    override val sourceText: String,
+    val condition: Invocation,
+    val body: ProgramNode,
+    val maximumIterationStems: List<String> = emptyList(),
+) : ProgramNode
+
 data class PipelineStage(
     override val sourceText: String,
     val domainStem: String?,

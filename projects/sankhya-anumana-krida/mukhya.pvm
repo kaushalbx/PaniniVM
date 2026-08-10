@@ -16,8 +16,8 @@
 # 2. Quote a grammatical command; iti makes mudr print it without executing it.
 सङ्ख्या + अम् अनुमिनु + लोट् + सिप् इति मुद्र् + णिच् + लोट् + सिप् ।
 
-# 3. Run the reusable guessing procedure five times.
-पञ्च + कृत्वः प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
+# 3. Continue while victory has not occurred, with five attempts as the upper bound.
+पञ्च + कृत्वः यावत् विजय + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
 प्रयत्नाः + अम् समाप्ताः + अम् च मुद्र् + णिच् + लोट् + सिप् ।
 
 # 4. Reveal the secret number after all attempts are finished.

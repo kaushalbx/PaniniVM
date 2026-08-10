@@ -10,7 +10,15 @@ class VyakaranamAstBuilder {
     fun build(
         context: PaniniyaVyakaranamParser.UktiContext,
     ): Ukti {
-        val body = context.pipelineClause()?.let(::buildPipeline) ?: context.conditionalClause()?.let { conditional ->
+        val body = context.whileClause()?.let { loop ->
+            val limit = loop.limit?.let(::buildSankhyaAbhyasaPada)
+            WhileLoop(
+                sourceText = loop.text,
+                condition = Invocation(buildVakya(loop.condition!!)),
+                body = Invocation(buildVakya(loop.body!!)),
+                maximumIterationStems = limit?.stems?.dropLast(1).orEmpty(),
+            )
+        } ?: context.pipelineClause()?.let(::buildPipeline) ?: context.conditionalClause()?.let { conditional ->
             Conditional(
                 sourceText = conditional.text,
                 condition = Invocation(buildVakya(conditional.condition!!)),

@@ -13,13 +13,18 @@ package dev.panini.parser;
 // ============================================================================
 
 ukti
-    : pipelineClause
+    : whileClause
+    | pipelineClause
     | conditionalClause
     | sambodhana?
       vakya
       (vakyaSambandha vakya)*
       DANDA?
       EOF
+    ;
+
+whileClause
+    : limit=sankhyaAbhyasaPada? YAVAT condition=vakya TAVAT body=vakya DANDA? EOF
     ;
 
 pipelineClause

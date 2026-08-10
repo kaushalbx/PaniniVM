@@ -41,6 +41,7 @@ import dev.panini.vyakaranam.ast.Repeat
 import dev.panini.vyakaranam.ast.Scope
 import dev.panini.vyakaranam.ast.accept
 import dev.panini.vyakaranam.ast.Sequence
+import dev.panini.vyakaranam.ast.WhileLoop
 import dev.panini.vyakaranam.lexicon.PratipadikaLexicon
 import dev.panini.vyakaranam.lexicon.StandardPratipadikaLexicon
 import dev.panini.vyakaranam.parser.PaniniParser
@@ -130,6 +131,16 @@ class PvmUktiSadhaka(
         override fun visitQuotation(node: Quotation): String =
             "${node.quoted.vakya.padas.joinToString(" ") { sadhayaPada(it) }} इति ${node.reporting.accept(this)}"
         override fun visitRepeat(node: Repeat): String = render(node.body)
+        override fun visitWhileLoop(node: WhileLoop): String = buildString {
+            if (node.maximumIterationStems.isNotEmpty()) {
+                append(node.maximumIterationStems.joinToString(" + "))
+                append(" + कृत्वः ")
+            }
+            append("यावत् ")
+            append(node.condition.vakya.padas.joinToString(" ") { sadhayaPada(it) })
+            append(" तावत् ")
+            append(render(node.body))
+        }
         override fun visitPipeline(node: Pipeline): String =
             node.renderPadas.joinToString(" ") { sadhayaPada(it) }
         override fun visitProcedure(node: Procedure): String = node.sourceText
