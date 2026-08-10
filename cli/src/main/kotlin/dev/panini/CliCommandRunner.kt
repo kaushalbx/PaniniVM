@@ -10,23 +10,11 @@ import dev.panini.derivation.SubantaEngine
 import dev.panini.derivation.TingantaDerivationRequest
 import dev.panini.derivation.TingantaEngine
 import dev.panini.execution.ExecutionResult
-import dev.panini.execution.ExecutionEffect
-import dev.panini.execution.ExecutionScope
 import dev.panini.execution.PaniniVM
 import dev.panini.execution.OutputKind
-import dev.panini.execution.Phala
-import dev.panini.execution.ValueEnvironment
-import dev.panini.execution.sutra.ProgramAvastha
-import dev.panini.execution.sutra.ProgramBlueprintContext
-import dev.panini.execution.sutra.ProgramBlueprintGranthaEngine
-import dev.panini.execution.sutra.ProgramGranthaExecution
-import dev.panini.execution.sutra.ProgramGranthaValidation
-import dev.panini.execution.sutra.SanskritGranthaSourceCompilation
-import dev.panini.execution.sutra.SanskritGranthaSourceCompiler
 import dev.panini.sankhya.SankhyaGenerator
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
-import dev.panini.sutra.runtime.GranthaId
 import dev.panini.unadipatha.UnadiDerivationEngine
 import dev.panini.unadipatha.UnadiPatha
 import dev.panini.unadipatha.analysis.UnadiAnalyzer
@@ -81,114 +69,9 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
             }
         }
     }
-    "--grantha" -> {
-        val filePath = args.getOrNull(1) ?: error("Usage: --grantha path/to/file.sutra")
-        val file = File(filePath)
-        require(file.exists()) { "Sūtra grantha source file not found: $filePath" }
-        dev.panini.dhatupatha.DhatuPathaRegistration.ensureRegistered()
-        dev.panini.sankhya.SankhyaCountingFormRenderer.init()
-        val execution = ProgramBlueprintGranthaEngine.execute(
-            file.readText(),
-            ProgramBlueprintContext(
-                speaker = "प्रयोक्ता",
-                listener = "यन्त्रम्",
-                text = file.name,
-            ),
-            ExecutionScope(
-                capabilities = setOf(ExecutionEffect.PURE),
-                linguisticServices = dev.panini.derivation.LinguisticActionsInitializer.services(),
-            ),
-            ProgramAvastha(ValueEnvironment()),
-        )
-        buildList {
-            add("=== Sūtra Grantha Execution: ${file.name} ===")
-            when (execution) {
-                is ProgramGranthaExecution.Completed -> {
-                    when (val result = execution.result) {
-                        is dev.panini.sutra.runtime.SutraMachineResult.Failure ->
-                            add("✗ ${result.failedSutra}: ${result.message}")
-                        is dev.panini.sutra.runtime.SutraMachineResult.Success -> {
-                            when (val phala = result.state.lastPhala) {
-                                is Phala.Siddha -> phala.values.toSortedMap().forEach { (id, value) ->
-                                    add("✓ $id: $value")
-                                }
-                                null -> add("✗ Grantha completed without a result.")
-                                else -> add("✗ $phala")
-                            }
-                        }
-                    }
-                }
-                is ProgramGranthaExecution.InvalidSource -> execution.diagnostics.forEach {
-                    add("✗ ${it.code}${it.position?.let { position -> " at $position" }.orEmpty()}: ${it.message}")
-                }
-                is ProgramGranthaExecution.InvalidBlueprint -> execution.diagnostics.forEach {
-                    add("✗ ${it.code}: ${it.message}")
-                }
-                is ProgramGranthaExecution.InvalidRuntime -> execution.diagnostics.forEach {
-                    add("✗ ${it.code}: ${it.message}")
-                }
-            }
-        }
-    }
-    "--check-grantha" -> {
-        val filePath = args.getOrNull(1) ?: error("Usage: --check-grantha path/to/file.sutra")
-        val file = File(filePath)
-        require(file.exists()) { "Sūtra grantha source file not found: $filePath" }
-        dev.panini.dhatupatha.DhatuPathaRegistration.ensureRegistered()
-        val validation = ProgramBlueprintGranthaEngine.validate(
-            file.readText(),
-            ProgramBlueprintContext(
-                speaker = "प्रयोक्ता",
-                listener = "यन्त्रम्",
-                text = file.name,
-            ),
-        )
-        when (validation) {
-            is ProgramGranthaValidation.Valid -> listOf(
-                "✓ ${file.name}: valid grantha '${validation.grantha.id}' " +
-                    "with ${validation.grantha.sutras.size} sūtra(s).",
-            )
-            is ProgramGranthaValidation.InvalidSource -> validation.diagnostics.map {
-                "✗ ${it.code}${it.position?.let { position -> " at $position" }.orEmpty()}: ${it.message}"
-            }
-            is ProgramGranthaValidation.InvalidBlueprint -> validation.diagnostics.map {
-                "✗ ${it.code}: ${it.message}"
-            }
-            is ProgramGranthaValidation.InvalidRuntime -> validation.diagnostics.map {
-                "✗ ${it.code}: ${it.message}"
-            }
-        }
-    }
-    "--emit-grantha" -> {
-        val inputPath = args.getOrNull(1)
-            ?: error("Usage: --emit-grantha path/to/file.pvm [path/to/output.sutra]")
-        val input = File(inputPath)
-        require(input.exists()) { "PaniniVM source file not found: $inputPath" }
-        val programText = input.readLines()
-            .map(String::trim)
-            .filter { it.isNotEmpty() && !it.startsWith("#") && !it.startsWith("//") }
-            .joinToString(separator = "\n")
-        val compilation = SanskritGranthaSourceCompiler.compile(
-            programText,
-            GranthaId(input.nameWithoutExtension),
-        )
-        when (compilation) {
-            is SanskritGranthaSourceCompilation.Invalid ->
-                buildList {
-                    add("✗ Could not emit ${input.name}:")
-                    compilation.diagnostics.forEach { add("  $it") }
-                }
-            is SanskritGranthaSourceCompilation.Success -> {
-                val output = args.getOrNull(2)?.let(::File)
-                    ?: File(input.parentFile ?: File("."), "${input.nameWithoutExtension}.sutra")
-                output.parentFile?.mkdirs()
-                output.writeText(compilation.source)
-                listOf(
-                    "✓ Emitted ${compilation.grantha.sutras.size} sūtra(s) to ${output.path}",
-                )
-            }
-        }
-    }
+    "--grantha" -> GranthaCliCommands.execute(args.drop(1))
+    "--check-grantha" -> GranthaCliCommands.check(args.drop(1))
+    "--emit-grantha" -> GranthaCliCommands.emit(args.drop(1))
     "--paradigm" -> {
         val pratipadika = args.getOrNull(1) ?: error("Usage: --paradigm राम")
         SubantaEngine().deriveSupportedParadigm(pratipadika).surfaces.map { (affix, surface) ->
