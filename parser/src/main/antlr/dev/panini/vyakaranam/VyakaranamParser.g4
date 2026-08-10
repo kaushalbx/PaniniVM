@@ -34,7 +34,7 @@ pipelineStage
     ;
 
 purvaparaDirective
-    : IDENTIFIER PLUS IDENTIFIER PLUS supPratyaya
+    : purva=subantaPada para=subantaPada
     ;
 
 pipelineResult

@@ -29,7 +29,7 @@ class PurvaparaPipelineTest {
             # Compound Pipeline (6.1.84 एकः पूर्वपरयोः):
             # Stage 1 (पूर्व): गुण् (5 + 2 = 7)
             # Stage 2 (पर): रन्ध्र (7 - 2 = 5)
-            पञ्च + अम् द्वि + अम् च गणित + ङस् गुण् + ल्युट् + ङस् गणित + ङस् रन्ध्र + ल्युट् + ङस् पूर्व + पर + ङस् एका + सुँ कृ + लोट् + सिप् ।
+            पञ्च + अम् द्वि + अम् च गणित + ङस् गुण् + ल्युट् + ङस् गणित + ङस् रन्ध्र + ल्युट् + ङस् पूर्व + ङस् पर + ङस् एका + सुँ कृ + लोट् + सिप् ।
         """.trimIndent()
 
         val results = vm.evalScript(script)
@@ -40,7 +40,7 @@ class PurvaparaPipelineTest {
 
     @Test
     fun `pipeline directive compiles to structured stages`() {
-        val source = "पञ्च + अम् द्वि + अम् च गणित + ङस् गुण् + ल्युट् + ङस् गणित + ङस् रन्ध्र + ल्युट् + ङस् पूर्व + पर + ङस् एका + सुँ कृ + लोट् + सिप् ।"
+        val source = "पञ्च + अम् द्वि + अम् च गणित + ङस् गुण् + ल्युट् + ङस् गणित + ङस् रन्ध्र + ल्युट् + ङस् पूर्व + ङस् पर + ङस् एका + सुँ कृ + लोट् + सिप् ।"
         val plan = assertIs<Pipeline>(PaniniParser().parse(source).body)
 
         assertEquals(listOf("पञ्च", "द्वि"), plan.arguments)

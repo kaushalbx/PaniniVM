@@ -47,10 +47,8 @@ class VyakaranamAstBuilder {
                 operation,
             )
         }
-        val directive = AvyayaPada(
-            sourceText = context.purvaparaDirective()!!.text,
-            form = context.purvaparaDirective()!!.text,
-        )
+        val purvaPada = buildSubanta(context.purvaparaDirective()!!.purva!!)
+        val paraPada = buildSubanta(context.purvaparaDirective()!!.para!!)
         return Pipeline(
             sourceText = context.text,
             arguments = arguments.map { it.pratipadika.sourceText },
@@ -58,7 +56,7 @@ class VyakaranamAstBuilder {
             renderPadas = arguments +
                 AvyayaPada(sourceText = "च", form = "च") +
                 stagePadas.flatMap { listOf(it.second, it.third) } +
-                directive +
+                listOf(purvaPada, paraPada) +
                 buildSubanta(context.pipelineResult()!!.subantaPada()!!) +
                 buildTinganta(context.tingantaPada()!!),
         )

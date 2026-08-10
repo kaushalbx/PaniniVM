@@ -51,7 +51,7 @@ class ProgramAstTest {
     @Test
     fun `purvapara syntax builds a pipeline directly`() {
         val source = "पञ्च + अम् द्वि + अम् च गणित + ङस् गुण् + ल्युट् + ङस् " +
-            "गणित + ङस् रन्ध्र + ल्युट् + ङस् पूर्व + पर + ङस् एका + सुँ कृ + लोट् + सिप् ।"
+            "गणित + ङस् रन्ध्र + ल्युट् + ङस् पूर्व + ङस् पर + ङस् एका + सुँ कृ + लोट् + सिप् ।"
 
         val pipeline = assertIs<Pipeline>(parser.parse(source).body)
 
