@@ -116,8 +116,16 @@ class PvmUktiSadhaka(
         private fun render(node: ProgramNode): String = node.accept(this)
         override fun visitInvocation(node: Invocation): String =
             node.vakya.padas.joinToString(" ") { pada -> sadhayaPada(pada) }
-        override fun visitSequence(node: Sequence): String =
-            node.statements.joinToString(" । ") { render(it) }
+        override fun visitSequence(node: Sequence): String = buildString {
+            node.statements.forEachIndexed { index, statement ->
+                if (index > 0) {
+                    append(' ')
+                    append(node.connectors.getOrNull(index - 1) ?: "।")
+                    append(' ')
+                }
+                append(render(statement))
+            }
+        }
         override fun visitConditional(node: Conditional): String = buildString {
             append("यदि ")
             append(render(node.condition))
