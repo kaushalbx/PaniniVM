@@ -133,6 +133,7 @@ object OperationResolver {
                 is ExecutionExpression.Pada -> ExpressionShape.LITERAL
                 is ExecutionExpression.Coordination -> ExpressionShape.COORDINATION
                 is ExecutionExpression.Reference -> ExpressionShape.REFERENCE
+                is ExecutionExpression.TypedOperand -> ExpressionShape.LITERAL
             }
             if (requirement.shape != null && requirement.shape != shape) {
                 return SignatureEvaluation.Incompatible("${requirement.karaka} requires ${requirement.shape}, but received $shape.")

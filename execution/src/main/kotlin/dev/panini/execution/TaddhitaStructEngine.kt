@@ -28,6 +28,11 @@ data class TaddhitaStruct(
     val typedAttributes: Map<String, SanskritValue> = emptyMap(),
 )
 
+data class TaddhitaStructSchema(
+    val nameStem: String,
+    val fields: List<String>,
+)
+
 data class TaddhitaAttributeAccess(
     val chain: List<String>,
     val resultAffix: SupAffix,
@@ -41,6 +46,23 @@ data class TaddhitaAttributeReference(
 object TaddhitaStructEngine {
 
     private val parser = PaniniParser()
+
+    /** Declares the field order of the automatic परिणाम value without assigning field values. */
+    fun detectResultSchema(sentenceText: String, preParsedUkti: Ukti? = null): TaddhitaStructSchema? {
+        val ukti = parsed(sentenceText, preParsedUkti) ?: return null
+        val padas = ukti.grammaticalVakyas().flatMap { it.padas }
+        val declaration = padas.filterIsInstance<SubantaPada>()
+            .lastOrNull { it.vibhakti() == Vibhakti.PRATHAMA && it.pratipadika.isMatup() }
+            ?: return null
+        if (declaration.pratipadika.baseIdentity() != "परिणाम") return null
+        val fields = padas.filter { it !== declaration && it.vibhakti() == Vibhakti.DVITIYA }
+            .map { it.stemIdentity() }
+        if (fields.size < 2 || fields.any { field ->
+                runCatching { dev.panini.sankhya.SankhyaEvaluator().evaluateStems(listOf(field)) }.isSuccess
+            }
+        ) return null
+        return TaddhitaStructSchema("परिणाम", fields.distinct())
+    }
 
     /**
      * Detects struct construction sentence ending with "<struct> + वत् + सुँ" or "<struct> + मत् + सुँ".

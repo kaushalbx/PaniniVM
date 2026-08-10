@@ -1,6 +1,7 @@
 package dev.panini.execution
 
 import dev.panini.shiksha.Samjna
+import dev.panini.core.SupAffix
 
 /**
  * An executable argument. Leaves remain Sanskrit strings; composition is
@@ -38,11 +39,18 @@ sealed interface ExecutionExpression {
             require(name.isNotBlank()) { "An execution reference requires a name." }
         }
     }
+
+    /** A value already resolved by the caller, retaining the source-written sup slot. */
+    data class TypedOperand(
+        val value: SanskritValue,
+        val sup: SupAffix,
+    ) : ExecutionExpression
 }
 
 /** A literal name suitable for a local result binding. */
 fun ExecutionExpression.bindingName(): String? = when (this) {
     is ExecutionExpression.Pada -> prakriti.trim().takeIf { it.isNotEmpty() }
     is ExecutionExpression.Reference -> name
+    is ExecutionExpression.TypedOperand -> null
     is ExecutionExpression.Coordination -> null
 }

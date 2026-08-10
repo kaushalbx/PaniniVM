@@ -160,6 +160,21 @@ class ProgramAstTest {
     }
 
     @Test
+    fun `an action pipeline may end in conditional control flow`() {
+        val sequence = assertIs<Sequence>(
+            parser.parse(
+                "त्रि + अम् द्वि + अम् च गण् + णिच् + लोट् + सिप् " +
+                    "ततः यदि फल + अम् द्वि + अम् च विद् + लोट् + सिप् " +
+                    "तर्हि जय + अम् मुद्र् + लोट् + सिप् अन्यथा पराजय + अम् मुद्र् + लोट् + सिप् ।",
+            ).body,
+        )
+
+        assertIs<Invocation>(sequence.statements.first())
+        assertIs<Conditional>(sequence.statements.last())
+        assertEquals(listOf("ततः"), sequence.connectors)
+    }
+
+    @Test
     fun `conditional arms may be bare nominal values`() {
         val conditional = assertIs<Conditional>(
             parser.parse(

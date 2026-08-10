@@ -5,6 +5,7 @@ import dev.panini.execution.AmbiguousKarakaBinding
 import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.SanskritValue
 import dev.panini.shiksha.Samjna
+import dev.panini.core.SupAffix
 import dev.panini.sutra.runtime.SutraArthaValue
 
 object ProgramSutraArthaCodec {
@@ -63,6 +64,13 @@ object ProgramSutraArthaCodec {
                 "name" to SutraArthaValue.Symbol(expression.name),
             ),
         )
+        is ExecutionExpression.TypedOperand -> SutraArthaValue.Record(
+            mapOf(
+                "expressionType" to SutraArthaValue.Symbol("typedOperand"),
+                "value" to encodeValue(expression.value),
+                "sup" to SutraArthaValue.Symbol(expression.sup.name),
+            ),
+        )
     }
 
     fun decodeExpression(value: SutraArthaValue): ExecutionExpression {
@@ -78,6 +86,10 @@ object ProgramSutraArthaCodec {
                 fields.sequence("members").map(::decodeExpression),
             )
             "reference" -> ExecutionExpression.Reference(fields.symbol("name"))
+            "typedOperand" -> ExecutionExpression.TypedOperand(
+                value = decodeValue(fields.getValue("value")),
+                sup = SupAffix.valueOf(fields.symbol("sup")),
+            )
             else -> throw IllegalArgumentException("Unknown execution expression type.")
         }
     }

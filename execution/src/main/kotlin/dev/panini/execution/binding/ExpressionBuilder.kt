@@ -9,6 +9,7 @@ import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.vyakaranam.ast.SamasaPratipadika
 import dev.panini.vyakaranam.ast.SankhyaPratipadika
 import dev.panini.vyakaranam.ast.SubantaPada
+import dev.panini.core.SupAffix
 
 /**
  * Converts a [SubantaPada] to an [ExecutionExpression], resolving references to prior
@@ -36,10 +37,13 @@ internal object ExpressionBuilder {
         val baseText = pada.pratipadika.baseText()
         val text = pada.pratipadika.referenceKey()
         val isPhalaReference = PhalaReference.isReference(pada)
+        ctx.environment.values[text]?.let { value ->
+            val sup = SupAffix.fromUpadesha(pada.sup.text) ?: SupAffix.AM
+            return ExecutionExpression.TypedOperand(value, sup)
+        }
         var resolvedId: String? = null
 
-        if (ctx.environment.values.containsKey(text) ||
-            ctx.conversation?.previousTypedResults?.containsKey(text) == true ||
+        if (ctx.conversation?.previousTypedResults?.containsKey(text) == true ||
             ctx.conversation?.previousResults?.containsKey(text) == true ||
             ctx.localVariables.contains(text)
         ) {

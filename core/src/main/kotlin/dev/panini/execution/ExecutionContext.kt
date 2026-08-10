@@ -29,6 +29,7 @@ data class ExecutionContext(
         is ExecutionExpression.Coordination -> expression.members.flatMap(::resolveValues)
         is ExecutionExpression.Reference -> variables[expression.name]?.let(::listOf)
             ?: emptyList()
+        is ExecutionExpression.TypedOperand -> listOf(expression.value)
     }
 
     fun resolve(expression: ExecutionExpression): List<String> =
@@ -43,5 +44,8 @@ data class ExecutionContext(
         is ExecutionExpression.Reference -> variables[expression.name]?.let { typed ->
             listOf(ExecutionExpression.Pada(typed.toDisplayText(), typed.samjnas, typed))
         }
+        is ExecutionExpression.TypedOperand -> listOf(
+            ExecutionExpression.Pada(expression.value.toDisplayText(), expression.value.samjnas, expression.value),
+        )
     }
 }

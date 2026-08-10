@@ -14,6 +14,7 @@ package dev.panini.parser;
 
 ukti
     : whileClause
+    | conditionalPipelineClause
     | attributePipelineClause
     | pipelineClause
     | conditionalClause
@@ -22,6 +23,11 @@ ukti
       (vakyaSambandha vakya)*
       DANDA?
       EOF
+    ;
+
+conditionalPipelineClause
+    : source=akhyataVakya (TATAH stages+=akhyataVakya)*
+      TATAH conditional=conditionalExpression DANDA? EOF
     ;
 
 attributePipelineClause

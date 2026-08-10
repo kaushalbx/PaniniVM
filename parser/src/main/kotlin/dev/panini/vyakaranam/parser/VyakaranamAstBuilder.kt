@@ -20,7 +20,8 @@ class VyakaranamAstBuilder {
                 exhausted = loop.exhausted?.let { Invocation(buildVakya(it)) },
                 resultTarget = loop.target?.let { Invocation(buildVakya(it)) },
             )
-        } ?: context.attributePipelineClause()?.let(::buildAttributePipeline)
+        } ?: context.conditionalPipelineClause()?.let(::buildConditionalPipeline)
+            ?: context.attributePipelineClause()?.let(::buildAttributePipeline)
             ?: context.pipelineClause()?.let(::buildPipeline)
             ?: context.conditionalClause()?.let { clause ->
                 val conditional = buildConditional(clause.conditionalExpression())
@@ -52,6 +53,19 @@ class VyakaranamAstBuilder {
             sourceText = context.text,
             sambodhana = context.sambodhana()?.let(::buildSambodhana),
             body = body,
+        )
+    }
+
+    private fun buildConditionalPipeline(
+        context: PaniniyaVyakaranamParser.ConditionalPipelineClauseContext,
+    ): Sequence {
+        val stages = listOf(Invocation(buildAkhyataVakya(requireNotNull(context.source)))) +
+            context.stages.map { Invocation(buildAkhyataVakya(it)) } +
+            buildConditional(requireNotNull(context.conditional))
+        return Sequence(
+            sourceText = context.text,
+            statements = stages,
+            connectors = List(stages.size - 1) { "ततः" },
         )
     }
 

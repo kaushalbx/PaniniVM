@@ -41,9 +41,11 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             environment = scope.environment.mergedWith(rangeEnvironment),
         )
         val structStore = mutableMapOf<String, TaddhitaStruct>()
+        val structSchemas = mutableMapOf<String, TaddhitaStructSchema>()
 
         parsed.filterIsInstance<PvmScriptStatement.Sentence>().forEach { statement ->
             val constructedStruct = TaddhitaStructEngine.detectStructConstruction(statement.text, statement.ukti)
+            val declaredSchema = TaddhitaStructEngine.detectResultSchema(statement.text, statement.ukti)
             val attributeAccess = statement.ukti?.grammaticalVakyas()?.singleOrNull()
                 ?.let(TaddhitaStructEngine::detectAttributeAccess)
             val attributePipeline = detectAttributePipeline(statement.program)
@@ -52,6 +54,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             val conditional = statement.program as? dev.panini.vyakaranam.ast.Conditional
 
             when {
+                declaredSchema != null -> structSchemas[declaredSchema.nameStem] = declaredSchema
                 constructedStruct != null -> structStore[constructedStruct.nameStem] = constructedStruct
                 attributePipeline != null -> executeAttributePipeline(
                     attributePipeline, structStore, effectiveSessionKey, effectiveScope,
@@ -70,6 +73,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                     registry,
                     sourceFile,
                     structStore,
+                    structSchemas,
                     onResult,
                 ).also(results::addAll)
                 conditional != null && containsAttributeCondition(conditional) -> {
@@ -256,6 +260,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         registry: SamjnaKriyaRegistry,
         sourceFile: String?,
         structStore: MutableMap<String, TaddhitaStruct>,
+        structSchemas: Map<String, TaddhitaStructSchema>,
         onResult: ((ExecutionResult) -> Unit)?,
     ): List<ExecutionResult> {
         val results = mutableListOf<ExecutionResult>()
@@ -288,12 +293,20 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             val outcomeValue = SanskritValue.Shabda(outcome.sanskritName)
             val attemptWord = dev.panini.sankhya.SankhyaGenerator()
                 .cardinal(iterationCount.toLong()).final.surface
+            val attributes = mapOf(
+                "अवस्था" to outcome.sanskritName,
+                "प्रयत्नसङ्ख्या" to attemptWord,
+            )
+            val schema = structSchemas[LOOP_RESULT_NAME]
+            if (schema != null && schema.fields.toSet() != attributes.keys) {
+                return results + ExecutionResult.Failure(
+                    ExecutionError.INVALID_VALUE,
+                    "The परिणाम schema requires ${schema.fields}, but the loop produced ${attributes.keys}.",
+                )
+            }
             structStore[LOOP_RESULT_NAME] = TaddhitaStruct(
                 nameStem = LOOP_RESULT_NAME,
-                attributes = mapOf(
-                    "अवस्था" to outcome.sanskritName,
-                    "प्रयत्नसङ्ख्या" to attemptWord,
-                ),
+                attributes = attributes,
                 typedAttributes = mapOf(
                     "अवस्था" to outcomeValue,
                     "प्रयत्नसङ्ख्या" to SanskritValue.Sankhya(iterationCount.toLong(), attemptWord),

@@ -162,4 +162,60 @@ class ConditionControlledLoopTest {
         assertEquals("षट्", printed.value)
         assertTrue(results.none { it is ExecutionResult.Failure }, results.toString())
     }
+
+    @Test
+    fun `ordinary action result may start a pipeline`() {
+        val result = PaniniVM().eval(
+            "त्रि + अम् द्वि + अम् च गण् + णिच् + लोट् + सिप् ततः मुद्र् + लोट् + सिप् ।",
+        )
+
+        val printed = assertIs<ExecutionResult.Success>(result, result.toString())
+        assertEquals(OutputKind.CONSOLE, printed.outputKind)
+        assertEquals("षट्", printed.value)
+    }
+
+    @Test
+    fun `pipeline result may control a conditional stage`() {
+        val result = PaniniVM().eval(
+            "त्रि + अम् द्वि + अम् च गण् + णिच् + लोट् + सिप् " +
+                "ततः यदि फल + अम् द्वि + अम् च विद् + लोट् + सिप् " +
+                "तर्हि जय + अम् मुद्र् + लोट् + सिप् अन्यथा पराजय + अम् मुद्र् + लोट् + सिप् ।",
+        )
+
+        val printed = assertIs<ExecutionResult.Success>(result, result.toString())
+        assertEquals("जय", printed.value)
+    }
+
+    @Test
+    fun `declared result schema validates the automatic loop structure`() {
+        val results = PaniniVM().evalScript(
+            """
+            अवस्था + अम् प्रयत्नसङ्ख्या + अम् परिणाम + मतुप् + सुँ ।
+            प्रयत्न + ल्युट् + सुँ ।
+            एक + अम् द्वि + अम् च विद् + लोट् + सिप् ॥
+            द्वि + कृत्वः यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
+            परिणाम + मतुप् + ङस् प्रयत्नसङ्ख्या + अम् ।
+            """.trimIndent(),
+        )
+
+        val count = assertIs<SanskritValue.Sankhya>(
+            results.filterIsInstance<ExecutionResult.Success>().last().typedValue,
+        )
+        assertEquals(2, count.value)
+        assertTrue(results.none { it is ExecutionResult.Failure }, results.toString())
+    }
+
+    @Test
+    fun `result schema rejects a mismatched automatic structure`() {
+        val results = PaniniVM().evalScript(
+            """
+            अवस्था + अम् क्षेत्र + अम् परिणाम + मतुप् + सुँ ।
+            प्रयत्न + ल्युट् + सुँ ।
+            एक + अम् द्वि + अम् च विद् + लोट् + सिप् ॥
+            एक + कृत्वः यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
+            """.trimIndent(),
+        )
+
+        assertTrue(results.any { it is ExecutionResult.Failure }, results.toString())
+    }
 }
