@@ -71,9 +71,10 @@ class PaniniVM(
         speaker: String = "प्रयोक्ता",
         listener: String = "यन्त्रम्",
         samjnaRegistry: SamjnaKriyaRegistry? = null,
+        onResult: ((ExecutionResult) -> Unit)? = null,
     ): List<ExecutionResult> = scriptExecutor.evalScript(
         scriptContent, sessionKey = sessionKey, scope = scope, speaker = speaker, listener = listener,
-        samjnaRegistry = samjnaRegistry,
+        samjnaRegistry = samjnaRegistry, onResult = onResult,
     )
 
     fun evalScriptWithFileContext(
@@ -84,8 +85,9 @@ class PaniniVM(
         speaker: String = "प्रयोक्ता",
         listener: String = "यन्त्रम्",
         samjnaRegistry: SamjnaKriyaRegistry? = null,
+        onResult: ((ExecutionResult) -> Unit)? = null,
     ): List<ExecutionResult> = scriptExecutor.evalScript(
-        scriptContent, sourceFile, sessionKey, scope, speaker, listener, samjnaRegistry,
+        scriptContent, sourceFile, sessionKey, scope, speaker, listener, samjnaRegistry, onResult,
     )
 
     fun evalProject(
@@ -94,7 +96,8 @@ class PaniniVM(
         scope: ExecutionScope = defaultScope,
         speaker: String = "प्रयोक्ता",
         listener: String = "यन्त्रम्",
-    ): List<ExecutionResult> = scriptExecutor.evalProject(entryFile, sessionKey, scope, speaker, listener)
+        onResult: ((ExecutionResult) -> Unit)? = null,
+    ): List<ExecutionResult> = scriptExecutor.evalProject(entryFile, sessionKey, scope, speaker, listener, onResult)
 
     internal fun executeSamjnaInvocation(
         invocation: SamjnaInvocation,
@@ -104,8 +107,9 @@ class PaniniVM(
         listener: String,
         registry: SamjnaKriyaRegistry,
         callerSourceFile: String? = null,
+        onResult: ((ExecutionResult) -> Unit)? = null,
     ): List<ExecutionResult> = scriptExecutor.executeSamjnaInvocation(
-        invocation, sessionKey, scope, speaker, listener, registry, callerSourceFile,
+        invocation, sessionKey, scope, speaker, listener, registry, callerSourceFile, onResult,
     )
 
     private val granthaExecutor by lazy { GranthaExecutor(store, externalDispatcher) }
@@ -135,7 +139,8 @@ class PaniniVM(
         scope: ExecutionScope = defaultScope,
         speaker: String = "प्रयोक्ता",
         listener: String = "यन्त्रम्",
-    ): List<ExecutionResult> = scriptExecutor.evalFile(file, sessionKey, scope, speaker, listener)
+        onResult: ((ExecutionResult) -> Unit)? = null,
+    ): List<ExecutionResult> = scriptExecutor.evalFile(file, sessionKey, scope, speaker, listener, onResult)
 
     fun loadSession(sessionKey: String): SambhashanaContext? = sessionRuntime.load(sessionKey)
 

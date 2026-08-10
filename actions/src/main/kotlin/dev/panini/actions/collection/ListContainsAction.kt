@@ -36,9 +36,7 @@ object ListContainsAction : DhatuAction("सूच्यस्तित्वम
         val queryText = queryValues.map { it.toDisplayText() }
 
         // Check if any element in list matches any query value
-        val contains = listItems.any { item ->
-            queryText.contains(item.toDisplayText())
-        }
+        val contains = listItems.any { item -> queryValues.any { query -> item.equivalentTo(query) } }
 
         val trace = listOf(
             "Selected operation ${operation.name}.",
@@ -52,4 +50,11 @@ object ListContainsAction : DhatuAction("सूच्यस्तित्वम
             SanskritValue.Satya(contains)
         )
     }
+
+    private fun SanskritValue.equivalentTo(other: SanskritValue): Boolean =
+        if (this is SanskritValue.Sankhya && other is SanskritValue.Sankhya) {
+            value == other.value
+        } else {
+            toDisplayText() == other.toDisplayText()
+        }
 }

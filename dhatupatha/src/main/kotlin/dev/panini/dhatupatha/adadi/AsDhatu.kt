@@ -29,6 +29,7 @@ class AsDhatu : Dhatu(
     operations = listOf(
         ListContainsAction.op {
             requires(Karaka.KARMAN)
+            optional(Karaka.KARANA)
             returns(Samjna.SATYA)
         }
     )

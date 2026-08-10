@@ -1,5 +1,7 @@
 package dev.panini.execution
 
+import dev.panini.execution.binding.FrequencyExtractor
+import dev.panini.vyakaranam.ast.Repeat
 import java.io.File
 
 /** Executes PVM scripts and projects behind the stable [PaniniVM] facade. */
@@ -12,6 +14,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         speaker: String,
         listener: String,
         samjnaRegistry: SamjnaKriyaRegistry? = null,
+        onResult: ((ExecutionResult) -> Unit)? = null,
     ): List<ExecutionResult> {
         val results = mutableListOf<ExecutionResult>()
         val effectiveSessionKey = sessionKey ?: "script-${System.identityHashCode(scriptContent)}"
@@ -36,17 +39,17 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
 
             when {
                 constructedStruct != null -> structStore[constructedStruct.nameStem] = constructedStruct
-                nestedAttributeAccess != null -> results += resolveNestedAttribute(nestedAttributeAccess, structStore)
-                pipeline != null -> results += PurvaparaPipelineEngine.executePipeline(
-                    pipeline,
-                    vm,
-                    effectiveSessionKey,
-                    effectiveScope,
-                    speaker,
-                    listener,
-                    registry,
+                nestedAttributeAccess != null -> resolveNestedAttribute(nestedAttributeAccess, structStore).let {
+                    results += it
+                    onResult?.invoke(it)
+                }
+                pipeline != null -> PurvaparaPipelineEngine.executePipeline(
+                    pipeline, vm, effectiveSessionKey, effectiveScope, speaker, listener, registry,
                     callerSourceFile = sourceFile,
-                )
+                ).also { produced ->
+                    results += produced
+                    produced.forEach { onResult?.invoke(it) }
+                }
                 else -> {
                     val invocation = registry.detectInvocation(
                         statement.text,
@@ -62,6 +65,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                             listener,
                             registry,
                             callerSourceFile = sourceFile,
+                            onResult = onResult,
                         )
                         results += if (invocationResults.any { it is ExecutionResult.Success }) {
                             invocationResults.filterIsInstance<ExecutionResult.Success>()
@@ -69,7 +73,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                             invocationResults
                         }
                     } else {
-                        results += vm.eval(
+                        val result = vm.eval(
                             statement.text,
                             effectiveSessionKey,
                             effectiveScope,
@@ -77,6 +81,8 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                             listener,
                             isExecutingScript = true,
                         )
+                        results += result
+                        onResult?.invoke(result)
                     }
                 }
             }
@@ -90,6 +96,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         scope: ExecutionScope,
         speaker: String,
         listener: String,
+        onResult: ((ExecutionResult) -> Unit)? = null,
     ): List<ExecutionResult> {
         require(entryFile.exists()) { "PaniniVM entry-point file not found: ${entryFile.absolutePath}" }
 
@@ -127,6 +134,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             speaker = speaker,
             listener = listener,
             samjnaRegistry = registry,
+            onResult = onResult,
         )
     }
 
@@ -136,6 +144,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         scope: ExecutionScope,
         speaker: String,
         listener: String,
+        onResult: ((ExecutionResult) -> Unit)? = null,
     ): List<ExecutionResult> {
         require(file.exists()) { "PaniniVM script file not found: ${file.absolutePath}" }
         val projectDir = file.parentFile ?: file.absoluteFile.parentFile
@@ -143,9 +152,12 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             it.isFile && it.extension == "pvm" && it.canonicalPath != file.canonicalPath
         } == true
         return if (hasSiblingPvm) {
-            evalProject(file, sessionKey, scope, speaker, listener)
+            evalProject(file, sessionKey, scope, speaker, listener, onResult)
         } else {
-            evalScript(file.readText(), sessionKey = sessionKey, scope = scope, speaker = speaker, listener = listener)
+            evalScript(
+                file.readText(), sessionKey = sessionKey, scope = scope, speaker = speaker,
+                listener = listener, onResult = onResult,
+            )
         }
     }
 
@@ -157,6 +169,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         listener: String,
         registry: SamjnaKriyaRegistry,
         callerSourceFile: String? = null,
+        onResult: ((ExecutionResult) -> Unit)? = null,
     ): List<ExecutionResult> {
         val results = mutableListOf<ExecutionResult>()
         val argTerms = SubantaKarakaParser.extractKarmaTerms(invocation.karmaText, invocation.ukti)
@@ -186,28 +199,40 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             }
         }
 
-        val childScope = scope.copy(environment = ValueEnvironment(scope.environment.values))
-        invocation.kriya.vidhiSentences.forEach { bodySentence ->
-            var sentenceText = bodySentence.text
-            argTerms.forEachIndexed { index, argument ->
-                sentenceText = PuranaPratyayaResolver.replacePatterns(sentenceText, index, argument)
-            }
-            sentenceText = SamavayaParameterResolver.replace(sentenceText, invocation.karmaText)
+        val repetitionCount = (invocation.ukti?.body as? Repeat)?.count
+            ?: invocation.ukti?.grammaticalVakyas()?.firstOrNull()?.padas
+                ?.let(FrequencyExtractor::extractAbhyasaCount)
+            ?: 1
+        repeat(repetitionCount) {
+            val childScope = scope.copy(environment = ValueEnvironment(scope.environment.values))
+            invocation.kriya.vidhiSentences.forEach { bodySentence ->
+                var sentenceText = bodySentence.text
+                argTerms.forEachIndexed { index, argument ->
+                    sentenceText = PuranaPratyayaResolver.replacePatterns(sentenceText, index, argument)
+                }
+                sentenceText = SamavayaParameterResolver.replace(sentenceText, invocation.karmaText)
 
-            val kriyaSourceFile = invocation.kriya.sourceFile ?: callerSourceFile
-            val bodyInvocation = registry.detectInvocation(sentenceText, callerSourceFile = kriyaSourceFile)
-            results += if (bodyInvocation != null) {
-                executeSamjnaInvocation(
-                    bodyInvocation,
-                    sessionKey,
-                    childScope,
-                    speaker,
-                    listener,
-                    registry,
-                    callerSourceFile = kriyaSourceFile,
-                )
-            } else {
-                listOf(vm.eval(sentenceText, sessionKey, childScope, speaker, listener))
+                val kriyaSourceFile = invocation.kriya.sourceFile ?: callerSourceFile
+                val bodyInvocation = registry.detectInvocation(sentenceText, callerSourceFile = kriyaSourceFile)
+                results += if (bodyInvocation != null) {
+                    executeSamjnaInvocation(
+                        bodyInvocation,
+                        sessionKey,
+                        childScope,
+                        speaker,
+                        listener,
+                        registry,
+                        callerSourceFile = kriyaSourceFile,
+                        onResult = onResult,
+                    )
+                } else {
+                    listOf(vm.eval(sentenceText, sessionKey, childScope, speaker, listener)).also {
+                        it.forEach { result -> onResult?.invoke(result) }
+                    }
+                }
+            }
+            if (results.any { it is ExecutionResult.Success && it.controlSignal == ExecutionControlSignal.BREAK_LOOP }) {
+                return results
             }
         }
 

@@ -83,7 +83,8 @@ class PaniniCli(
         outputStream.println("[PaniniVM CLI] Executing file: ${file.name}")
         val checkpoint = vm.checkpointSession(sessionKey)
         val resolvedResults = try {
-            vm.evalFile(file, sessionKey = sessionKey).map { resolveInteractive(it) }
+            vm.evalFile(file, sessionKey = sessionKey, onResult = ::streamResult)
+                .map { resolveInteractive(it) }
         } catch (terminated: InteractiveInputTerminated) {
             vm.restoreSession(sessionKey, checkpoint)
             listOf(terminated.toFailure())
@@ -91,12 +92,7 @@ class PaniniCli(
         resolvedResults.forEachIndexed { i, res ->
             when (res) {
                 is ExecutionResult.Success -> {
-                    if (res.isExplicitOutput() && res.value.isNotBlank()) {
-                        outputStream.println(res.value)
-                    }
-                    if (showTrace) {
-                        res.trace.forEach { outputStream.println("  ├─► $it") }
-                    }
+                    // Successful output is streamed while the script executes.
                 }
                 is ExecutionResult.Failure -> {
                     outputStream.println("Line ${i + 1} Error: ${res.message}")
@@ -112,6 +108,17 @@ class PaniniCli(
             }
         }
         return resolvedResults
+    }
+
+    private fun streamResult(result: ExecutionResult) {
+        if (result !is ExecutionResult.Success) return
+        if (result.isExplicitOutput() && result.value.isNotBlank()) {
+            outputStream.println(result.value)
+        }
+        if (showTrace) {
+            result.trace.forEach { outputStream.println("  ├─► $it") }
+        }
+        outputStream.flush()
     }
 
     private fun ExecutionResult.Success.isExplicitOutput(): Boolean = outputKind != OutputKind.INTERNAL

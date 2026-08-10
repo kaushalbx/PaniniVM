@@ -3,6 +3,7 @@ package dev.panini.execution
 import dev.panini.core.Karaka
 
 enum class OutputKind { INTERNAL, CONSOLE, EXTERNAL }
+enum class ExecutionControlSignal { BREAK_LOOP }
 
 /** The value of a successful execution is always a Sanskrit string. */
 sealed interface ExecutionResult {
@@ -14,6 +15,7 @@ sealed interface ExecutionResult {
         override val trace: List<String> = emptyList(),
         val typedValue: SanskritValue? = null,
         val outputKind: OutputKind = OutputKind.INTERNAL,
+        val controlSignal: ExecutionControlSignal? = null,
     ) : ExecutionResult
 
     data class Failure(

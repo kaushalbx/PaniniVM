@@ -42,4 +42,14 @@ class InputRequestTest {
         assertEquals(true, "सत्य".toInputBooleanOrNull())
         assertNull("maybe".toInputBooleanOrNull())
     }
+
+    @Test
+    fun `numeric range survives encoding and rejects values outside its bounds`() {
+        val request = InputRequest("अनुमान", InputValueType.NUMBER, minimum = 1, maximum = 10)
+
+        assertEquals(request, InputRequest.decode(request.encode()))
+        assertIs<InputValidation.Invalid>(request.validate("०"))
+        assertEquals("५", assertIs<InputValidation.Valid>(request.validate("५")).value)
+        assertIs<InputValidation.Invalid>(request.validate("11"))
+    }
 }

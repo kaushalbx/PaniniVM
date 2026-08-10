@@ -11,6 +11,7 @@ sealed interface Phala {
         val localBindings: Map<String, SanskritValue> = emptyMap(),
         val metadata: Map<String, String> = emptyMap(),
         val outputKind: OutputKind = OutputKind.INTERNAL,
+        val controlSignal: ExecutionControlSignal? = null,
     ) : Phala
     data class Asiddha(val result: ExecutionResult, val trace: List<String>) : Phala
     data class AnumatiApekshita(

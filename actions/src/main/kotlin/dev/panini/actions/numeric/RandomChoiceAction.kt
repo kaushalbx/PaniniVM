@@ -10,14 +10,16 @@ import dev.panini.execution.SanskritValue
 object RandomChoiceAction : DhatuAction("क्रीडा", "यादृच्छिकचयनम् क्रीडा च") {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
         val expression = context.bindings[Karaka.KARMAN] ?: context.bindings[Karaka.KARTR]
-        val options = expression?.let { context.resolve(it) } ?: listOf("अक्षः")
-        val chosen = options.randomOrNull() ?: "अक्षः"
-        val message = "चयनम् सिद्धम्: $chosen"
+        val options = expression?.let { context.resolveValues(it) }
+            ?: listOf(SanskritValue.Shabda("अक्षः"))
+        val chosen = options.randomOrNull() ?: SanskritValue.Shabda("अक्षः")
+        val chosenText = chosen.toDisplayText()
+        val message = "चयनम् सिद्धम्: $chosenText"
         return ExecutionResult.Success(
             message,
             operation.name,
-            listOf("Selected operation ${operation.name}.", "Random choice from $options -> $chosen."),
-            SanskritValue.Shabda(chosen),
+            listOf("Selected operation ${operation.name}.", "Random choice from ${options.map { it.toDisplayText() }} -> $chosenText."),
+            chosen,
         )
     }
 }

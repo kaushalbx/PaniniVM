@@ -34,6 +34,7 @@ object ExecutionRuntime {
         val localBindings = mutableMapOf<String, SanskritValue>()
         val trace = continuation.trace.toMutableList()
         var lastOutputKind = continuation.lastOutputKind
+        var lastControlSignal: ExecutionControlSignal? = null
         val plans = continuation.planning.plans
         for (index in continuation.nextPlanIndex until plans.size) {
             val plan = plans[index]
@@ -99,6 +100,7 @@ object ExecutionRuntime {
                     }
                     trace += plan.resolved.resolutionTrace + result.trace
                     lastOutputKind = result.outputKind
+                    lastControlSignal = result.controlSignal
                 }
                 else -> return Phala.Asiddha(result, trace + result.trace)
             }
@@ -112,6 +114,7 @@ object ExecutionRuntime {
             results.values,
             localBindings,
             outputKind = lastOutputKind,
+            controlSignal = lastControlSignal,
         )
     }
 }

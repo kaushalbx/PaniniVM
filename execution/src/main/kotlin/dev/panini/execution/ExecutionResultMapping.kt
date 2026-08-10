@@ -7,6 +7,7 @@ internal fun Phala.toExecutionResult(operation: String): ExecutionResult = when 
         trace = trace,
         typedValue = typedValues.values.lastOrNull(),
         outputKind = outputKind,
+        controlSignal = controlSignal,
     )
     is Phala.Asiddha -> result
     is Phala.AnumatiApekshita -> pipelineContinuation?.let { resumable ->

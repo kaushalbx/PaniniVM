@@ -134,6 +134,7 @@ object SutraExecutionPipeline {
                     typedValues = state.invocationValues,
                     localBindings = state.localBindings,
                     outputKind = last.outputKind,
+                    controlSignal = last.controlSignal,
                 )
             }
             null -> Phala.Asiddha(
@@ -360,6 +361,7 @@ object SutraExecutionPipeline {
                     typedValues = finalState.invocationValues,
                     localBindings = finalState.localBindings,
                     outputKind = last.outputKind,
+                    controlSignal = last.controlSignal,
                 )
             }
             null -> Phala.Asiddha(

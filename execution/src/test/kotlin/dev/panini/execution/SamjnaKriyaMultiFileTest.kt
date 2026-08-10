@@ -11,6 +11,36 @@ import kotlin.test.assertTrue
 class SamjnaKriyaMultiFileTest {
 
     @Test
+    fun `frequency qualifier repeats a samjna kriya body`() {
+        val script = """
+            प्रयत्न + ल्युट् + सुँ ।
+            आवृत्ति + अम् मुद्र् + णिच् + लोट् + सिप् ॥
+
+            पञ्च + कृत्वः प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
+        """.trimIndent()
+
+        val successes = PaniniVM().evalScript(script).filterIsInstance<ExecutionResult.Success>()
+
+        assertEquals(5, successes.count { it.value == "आवृत्ति" })
+    }
+
+    @Test
+    fun `vi stha terminates the nearest samjna repetition`() {
+        val script = """
+            प्रयत्न + ल्युट् + सुँ ।
+            वि + स्था + लोट् + सिप् ॥
+
+            पञ्च + कृत्वः प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
+        """.trimIndent()
+
+        val results = PaniniVM().evalScript(script)
+        val breaks = results.filterIsInstance<ExecutionResult.Success>()
+            .filter { it.controlSignal == ExecutionControlSignal.BREAK_LOOP }
+
+        assertEquals(1, breaks.size, results.toString())
+    }
+
+    @Test
     fun `test samjna kriya parsing and execution across multi-file project`() {
         val vm = PaniniVM()
         val entryFile = File("examples/multifile/mukhya.pvm")

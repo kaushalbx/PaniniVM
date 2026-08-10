@@ -6,21 +6,32 @@ data class InputRequest(
     val variableName: String,
     val type: InputValueType,
     val choices: List<String> = emptyList(),
+    val minimum: Long? = null,
+    val maximum: Long? = null,
 ) {
     init {
         require(type == InputValueType.CHOICE || choices.isEmpty()) { "Choices require the CHOICE input type." }
         require(type != InputValueType.CHOICE || choices.isNotEmpty()) { "CHOICE input requires at least one value." }
+        require(type == InputValueType.NUMBER || minimum == null && maximum == null) {
+            "Numeric bounds require the NUMBER input type."
+        }
+        require(minimum == null || maximum == null || minimum <= maximum) {
+            "The minimum input bound cannot exceed the maximum."
+        }
     }
 
-    fun encode(): String = listOf(PREFIX, type.name, variableName, *choices.toTypedArray()).joinToString("\t")
+    fun encode(): String = buildList {
+        add(PREFIX)
+        add(type.name)
+        add(variableName)
+        minimum?.let { add("$MINIMUM_PREFIX$it") }
+        maximum?.let { add("$MAXIMUM_PREFIX$it") }
+        addAll(choices)
+    }.joinToString("\t")
 
     fun validate(rawValue: String): InputValidation = when (type) {
         InputValueType.TEXT -> InputValidation.Valid(rawValue)
-        InputValueType.NUMBER -> if (rawValue.toInputLongOrNull() != null) {
-            InputValidation.Valid(rawValue)
-        } else {
-            InputValidation.Invalid("Invalid number '$rawValue'. Enter ASCII or Devanagari digits.")
-        }
+        InputValueType.NUMBER -> validateNumber(rawValue)
         InputValueType.BOOLEAN -> rawValue.toInputBooleanOrNull()?.let {
             InputValidation.Valid(it.toString())
         } ?: InputValidation.Invalid("Invalid boolean '$rawValue'. Enter yes/no, true/false, आम्/न, or हाँ/नहीं.")
@@ -31,13 +42,37 @@ data class InputRequest(
 
     companion object {
         private const val PREFIX = "PVM_INPUT"
+        private const val MINIMUM_PREFIX = "MIN="
+        private const val MAXIMUM_PREFIX = "MAX="
 
         fun decode(payload: String): InputRequest? {
             val fields = payload.split('\t')
             if (fields.size < 3 || fields[0] != PREFIX) return null
             val type = runCatching { InputValueType.valueOf(fields[1]) }.getOrNull() ?: return null
-            return runCatching { InputRequest(fields[2], type, fields.drop(3)) }.getOrNull()
+            val attributes = fields.drop(3)
+            val minimum = attributes.firstOrNull { it.startsWith(MINIMUM_PREFIX) }
+                ?.removePrefix(MINIMUM_PREFIX)?.toLongOrNull()
+            val maximum = attributes.firstOrNull { it.startsWith(MAXIMUM_PREFIX) }
+                ?.removePrefix(MAXIMUM_PREFIX)?.toLongOrNull()
+            val choices = attributes.filterNot {
+                it.startsWith(MINIMUM_PREFIX) || it.startsWith(MAXIMUM_PREFIX)
+            }
+            return runCatching { InputRequest(fields[2], type, choices, minimum, maximum) }.getOrNull()
         }
+    }
+
+    private fun validateNumber(rawValue: String): InputValidation {
+        val number = rawValue.toInputLongOrNull()
+            ?: return InputValidation.Invalid("Invalid number '$rawValue'. Enter ASCII or Devanagari digits.")
+        if (minimum != null && number < minimum || maximum != null && number > maximum) {
+            val expected = when {
+                minimum != null && maximum != null -> "$minimum through $maximum"
+                minimum != null -> "$minimum or greater"
+                else -> "$maximum or less"
+            }
+            return InputValidation.Invalid("Number '$rawValue' is outside the allowed range. Enter $expected.")
+        }
+        return InputValidation.Valid(rawValue)
     }
 }
 

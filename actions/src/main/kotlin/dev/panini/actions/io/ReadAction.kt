@@ -5,6 +5,7 @@ import dev.panini.execution.DhatuAction
 import dev.panini.execution.DhatuOperation
 import dev.panini.execution.ExecutionContext
 import dev.panini.execution.ExecutionEffect
+import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.InputRequest
 import dev.panini.execution.InputValueType
@@ -17,8 +18,11 @@ import dev.panini.execution.toInputBooleanOrNull
 object ReadAction : dev.panini.execution.DhatuAction("स्वीकरणम्", "निवेशस्य स्वीकरणम्") {
     override fun execute(context: dev.panini.execution.ExecutionContext, operation: dev.panini.execution.DhatuOperation): dev.panini.execution.ExecutionResult {
         val expression = context.bindings[Karaka.KARMAN]
-        val operands = expression?.let(context::resolve).orEmpty()
-        val variableName = operands.firstOrNull() ?: "आगतम्"
+        val variableName = when (expression) {
+            is ExecutionExpression.Pada -> expression.prakriti
+            is ExecutionExpression.Reference -> expression.name
+            else -> expression?.let(context::resolve)?.firstOrNull()
+        } ?: "आगतम्"
         val typeNames = context.bindings[Karaka.SAMPRADANA]?.let(context::resolve).orEmpty()
         val inputType = when {
             typeNames.any { it in numericTypeNames } -> InputValueType.NUMBER
@@ -31,6 +35,12 @@ object ReadAction : dev.panini.execution.DhatuAction("स्वीकरणम�
         } else {
             emptyList()
         }
+        val minimum = context.bindings[Karaka.APADANA]
+            ?.let(context::resolveValues)?.singleOrNull()
+            ?.let { it as? SanskritValue.Sankhya }?.value
+        val maximum = context.bindings[Karaka.ADHIKARANA]
+            ?.let(context::resolveValues)?.singleOrNull()
+            ?.let { it as? SanskritValue.Sankhya }?.value
         if (inputType == InputValueType.CHOICE && choices.isEmpty()) {
             return ExecutionResult.Failure(
                 dev.panini.execution.ExecutionError.INVALID_VALUE,
@@ -38,7 +48,10 @@ object ReadAction : dev.panini.execution.DhatuAction("स्वीकरणम�
             )
         }
         val readValue = context.externalDispatcher
-            ?.dispatchOrNull(ExecutionEffect.READ_RESOURCE, InputRequest(variableName, inputType, choices).encode())
+            ?.dispatchOrNull(
+                ExecutionEffect.READ_RESOURCE,
+                InputRequest(variableName, inputType, choices, minimum, maximum).encode(),
+            )
             ?.trimEnd('\r', '\n')
             ?: "स्वीकृतम्"
         val typedValue = when (inputType) {

@@ -15,6 +15,32 @@ import kotlin.test.assertTrue
 
 class PaniniCliInteractiveTest {
     @Test
+    fun `console output is streamed before a later input prompt`() {
+        val directory = Files.createTempDirectory("stream-before-input")
+        val script = directory.resolve("stream.pvm")
+        val output = ByteArrayOutputStream()
+        try {
+            Files.writeString(
+                script,
+                "निर्देश + अम् मुद्र् + णिच् + लोट् + सिप् ।\n" +
+                    "आगत + अम् ग्रह् + लोट् + सिप् ।",
+            )
+            val cli = PaniniCli(
+                inputStream = ByteArrayInputStream("आम्\n".toByteArray(Charsets.UTF_8)),
+                outputStream = PrintStream(output, true, Charsets.UTF_8),
+            )
+
+            cli.executeScriptFile(script.toFile())
+
+            val rendered = output.toString(Charsets.UTF_8)
+            assertTrue(rendered.indexOf("निर्देश") < rendered.indexOf("Enter value for आगत:"))
+        } finally {
+            Files.deleteIfExists(script)
+            Files.deleteIfExists(directory)
+        }
+    }
+
+    @Test
     fun `script read operation consumes a value from stdin`() {
         val directory = Files.createTempDirectory("interactive-read")
         val script = directory.resolve("read.pvm")

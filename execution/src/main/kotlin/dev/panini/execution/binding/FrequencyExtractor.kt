@@ -17,6 +17,17 @@ internal object FrequencyExtractor {
     internal fun numericStems(stems: List<String>): List<String> =
         SankhyaAbhyasaMarkers.numericFrequencyStems(stems)
 
+    internal fun extractAbhyasaCount(padas: List<Pada>): Int? {
+        val sankhyaAbhyasa = padas.filterIsInstance<SankhyaAbhyasaPada>().firstOrNull() ?: return null
+        val numStems = numericStems(sankhyaAbhyasa.stems)
+        val evaluated = if (numStems.isNotEmpty()) {
+            sharedSankhyaEvaluator.evaluateStems(numStems)
+        } else {
+            sharedSankhyaEvaluator.evaluateStems(sankhyaAbhyasa.stems)
+        }
+        return evaluated.value.toInt()
+    }
+
     /**
      * Extracts the per-clause frequency repetition count from [padas] and [frame].
      * Returns null when no explicit frequency qualifier is present.
@@ -26,16 +37,7 @@ internal object FrequencyExtractor {
      * - KriyaQualificationKind.FREQUENCY qualifiers (सकृत्, द्विः, त्रिः, पुनः …)
      */
     internal fun extractFrequencyCount(padas: List<Pada>, frame: KriyaFrame): Int? {
-        val sankhyaAbhyasa = padas.filterIsInstance<SankhyaAbhyasaPada>().firstOrNull()
-        if (sankhyaAbhyasa != null) {
-            val numStems = numericStems(sankhyaAbhyasa.stems)
-            val evaluated = if (numStems.isNotEmpty()) {
-                sharedSankhyaEvaluator.evaluateStems(numStems)
-            } else {
-                sharedSankhyaEvaluator.evaluateStems(sankhyaAbhyasa.stems)
-            }
-            return evaluated.value.toInt()
-        }
+        extractAbhyasaCount(padas)?.let { return it }
         val freqQual = frame.qualifications.firstOrNull { it.kind == KriyaQualificationKind.FREQUENCY }
         if (freqQual != null) {
             val text = freqQual.value
