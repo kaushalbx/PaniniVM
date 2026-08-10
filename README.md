@@ -69,6 +69,8 @@ segmented input → vyākaraṇa AST → binding → operation resolution → pl
 
 For a complete language tutorial, see
 [`docs/pvm-language-guide.md`](docs/pvm-language-guide.md).
+For upcoming syntax and tooling milestones, see the
+[`PVM language enhancement plan`](docs/pvm-language-enhancement-plan.md).
 
 A `.pvm` program can declare a reusable operation using a nominal
 `saṃjñā-kriyā` header. Signature declarations are grammatical sentences inside

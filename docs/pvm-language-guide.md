@@ -5,6 +5,9 @@ Sanskrit. It begins with individual sentences and builds toward input,
 conditionals, loops, reusable typed kriyās, pipelines, structured results, and
 multi-file projects.
 
+For planned language additions and their proposed syntax, see the
+[`PVM language enhancement plan`](pvm-language-enhancement-plan.md).
+
 The examples describe syntax implemented by the current repository. Optional
 parameters and explicit early-return statements are not yet part of the
 language.
@@ -541,4 +544,3 @@ It demonstrates a scoped range, random selection, validated input, assignment,
 nested conditionals, a reusable attempt kriyā, direct result pipelines, a
 bounded condition-controlled loop, exhaustion handling, and automatic
 structured loop results.
-
