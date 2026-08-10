@@ -6,6 +6,7 @@ import dev.panini.vyakaranam.ast.Pipeline
 import dev.panini.vyakaranam.ast.ProgramNode
 import dev.panini.vyakaranam.ast.ProgramNodeVisitor
 import dev.panini.vyakaranam.ast.Procedure
+import dev.panini.vyakaranam.ast.Quotation
 import dev.panini.vyakaranam.ast.Repeat
 import dev.panini.vyakaranam.ast.Scope
 import dev.panini.vyakaranam.ast.Sequence
@@ -113,6 +114,7 @@ class UktiAnalyzer(
                 }
                 return condition.first to (alternate?.second ?: consequent.second)
             }
+            override fun visitQuotation(node: Quotation): Pair<KriyaId, KriyaId> = visit(node.reporting)
 
             override fun visitRepeat(node: Repeat): Pair<KriyaId, KriyaId> = visit(node.body)
             override fun visitPipeline(node: Pipeline): Pair<KriyaId, KriyaId> =

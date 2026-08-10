@@ -85,6 +85,7 @@ object SmritiSaveAction : DhatuAction("स्मृतिरक्षणम्",
                     is SanskritValue.Gana -> v.toDisplayText()
                     is SanskritValue.Suchi -> v.toDisplayText()
                     is SanskritValue.Lopa -> v.toDisplayText()
+                    is SanskritValue.Range -> v.toDisplayText()
                 }
             },
         )

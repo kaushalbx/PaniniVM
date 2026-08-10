@@ -17,11 +17,25 @@ class VyakaranamAstBuilder {
                 consequent = Invocation(buildVakya(conditional.consequent!!)),
                 alternate = conditional.alternate?.let { Invocation(buildVakya(it)) },
             )
-        } ?: Sequence(
-            sourceText = context.text,
-            statements = context.vakya().map { Invocation(buildVakya(it)) },
-            connectors = context.vakyaSambandha().map { it.text },
-        )
+        } ?: run {
+            val statements = context.vakya().mapTo(mutableListOf<ProgramNode>()) { Invocation(buildVakya(it)) }
+            val connectors = context.vakyaSambandha().mapTo(mutableListOf()) { it.text }
+            while ("इति" in connectors) {
+                val boundary = connectors.indexOf("इति")
+                val quoted = statements[boundary] as? Invocation
+                    ?: error("The command before इति must be one grammatical invocation.")
+                val reporting = statements[boundary + 1]
+                statements[boundary] = Quotation(
+                    sourceText = "${quoted.sourceText} इति ${reporting.sourceText}",
+                    quoted = quoted,
+                    reporting = reporting,
+                )
+                statements.removeAt(boundary + 1)
+                connectors.removeAt(boundary)
+            }
+            if (statements.size == 1) statements.single()
+            else Sequence(context.text, statements, connectors)
+        }
 
         return Ukti(
             sourceText = context.text,

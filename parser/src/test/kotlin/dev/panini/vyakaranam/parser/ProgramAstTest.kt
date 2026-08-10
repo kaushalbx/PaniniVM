@@ -3,6 +3,7 @@ package dev.panini.vyakaranam.parser
 import dev.panini.vyakaranam.ast.Conditional
 import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.Pipeline
+import dev.panini.vyakaranam.ast.Quotation
 import dev.panini.vyakaranam.ast.Sequence
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -31,9 +32,23 @@ class ProgramAstTest {
             "सङ्ख्या + अम् अनुमिनु + लोट् + सिप् इति मुद्र् + णिच् + लोट् + सिप् ।",
         )
 
+        val quotation = assertIs<Quotation>(ukti.body)
+        assertIs<Invocation>(quotation.quoted)
+        assertIs<Invocation>(quotation.reporting)
+    }
+
+    @Test
+    fun `quotation remains structured inside a longer sequence`() {
+        val ukti = parser.parse(
+            "राम + सुँ भू + लट् + तिप् च सङ्ख्या + अम् अनुमिनु + लोट् + सिप् " +
+                "इति मुद्र् + णिच् + लोट् + सिप् ततः फल + अम् खाद् + लट् + तिप् ।",
+        )
+
         val sequence = assertIs<Sequence>(ukti.body)
-        assertEquals(listOf("इति"), sequence.connectors)
-        assertEquals(2, sequence.statements.size)
+        assertIs<Invocation>(sequence.statements.first())
+        assertIs<Quotation>(sequence.statements[1])
+        assertIs<Invocation>(sequence.statements.last())
+        assertEquals(listOf("च", "ततः"), sequence.connectors)
     }
 
     @Test

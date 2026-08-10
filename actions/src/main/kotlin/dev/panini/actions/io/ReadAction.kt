@@ -13,6 +13,7 @@ import dev.panini.execution.SanskritValue
 import dev.panini.execution.renderSankhyaResult
 import dev.panini.execution.toInputLongOrNull
 import dev.panini.execution.toInputBooleanOrNull
+import dev.panini.execution.activeRange
 
 /** Standard Console Input Action (triggered by ग्रह् / गृह्णीहि). */
 object ReadAction : dev.panini.execution.DhatuAction("स्वीकरणम्", "निवेशस्य स्वीकरणम्") {
@@ -35,12 +36,13 @@ object ReadAction : dev.panini.execution.DhatuAction("स्वीकरणम�
         } else {
             emptyList()
         }
+        val activeRange = context.activeRange()
         val minimum = context.bindings[Karaka.APADANA]
             ?.let(context::resolveValues)?.singleOrNull()
-            ?.let { it as? SanskritValue.Sankhya }?.value
+            ?.let { it as? SanskritValue.Sankhya }?.value ?: activeRange?.minimum?.value
         val maximum = context.bindings[Karaka.ADHIKARANA]
             ?.let(context::resolveValues)?.singleOrNull()
-            ?.let { it as? SanskritValue.Sankhya }?.value
+            ?.let { it as? SanskritValue.Sankhya }?.value ?: activeRange?.maximum?.value
         if (inputType == InputValueType.CHOICE && choices.isEmpty()) {
             return ExecutionResult.Failure(
                 dev.panini.execution.ExecutionError.INVALID_VALUE,

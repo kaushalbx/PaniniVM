@@ -15,6 +15,19 @@ sealed interface SanskritValue {
         override fun toDisplayText(): String = word
     }
 
+    /** An inclusive numeric interval carried as one semantic value. */
+    data class Range(
+        val minimum: Sankhya,
+        val maximum: Sankhya,
+    ) : SanskritValue {
+        init {
+            require(minimum.value <= maximum.value) { "A range must be ordered." }
+        }
+
+        override val samjnas: Set<Samjna> = setOf(Samjna.SANKHYA, Samjna.GANA, Samjna.SHABDA)
+        override fun toDisplayText(): String = "${minimum.word}तः ${maximum.word}पर्यन्तम्"
+    }
+
     data class Rational(
         val numerator: Long,
         val denominator: Long,

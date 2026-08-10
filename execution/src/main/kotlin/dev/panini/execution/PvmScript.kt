@@ -52,6 +52,12 @@ sealed interface PvmScriptStatement {
         override val text: String get() = scope.sourceText
         val domainSegmented: String get() = scope.domain
     }
+
+    /** One inclusive numeric range governing subsequent executable sentences. */
+    data class RangeDefinition(
+        val range: SanskritValue.Range,
+        override val text: String,
+    ) : PvmScriptStatement
 }
 
 enum class PvmSourceKind {
@@ -135,12 +141,16 @@ object PvmScript {
         }
 
         val adhikaraDefinitions = mutableListOf<PvmScriptStatement.AdhikaraDefinition>()
+        val rangeDefinitions = mutableListOf<PvmScriptStatement.RangeDefinition>()
         val regularNonSamjnaLines = mutableListOf<String>()
 
         nonSamjnaLines.forEach { line ->
             val stripped = stripComment(line).trim()
+            val range = extractRangeDefinition(stripped)
             val adhikaraDomain = extractAdhikaraDomain(stripped)
-            if (adhikaraDomain != null) {
+            if (range != null) {
+                rangeDefinitions += PvmScriptStatement.RangeDefinition(range, line)
+            } else if (adhikaraDomain != null) {
                 adhikaraDefinitions += PvmScriptStatement.AdhikaraDefinition(
                     scope = Scope(
                         sourceText = line,
@@ -162,7 +172,48 @@ object PvmScript {
             parseSentences(sanitizedLines.joinToString(" "))
         }
 
-        return samjnaDefinitions + adhikaraDefinitions + sentences
+        return samjnaDefinitions + adhikaraDefinitions + rangeDefinitions + sentences
+    }
+
+    private fun isRangeDefinitionLine(line: String): Boolean =
+        Regex("इति\\s+सीमा\\s*\\+\\s*सुँ\\s*[।॥]?$").containsMatchIn(line)
+
+    private fun extractRangeDefinition(line: String): SanskritValue.Range? {
+        if (!isRangeDefinitionLine(line)) return null
+        val ukti = parser.parseOrNull(line.trimEnd('।', '॥', ' ')) ?: return null
+        val rangePadas = (ukti.body as? dev.panini.vyakaranam.ast.Quotation)
+            ?.quoted?.vakya?.padas
+            ?: ukti.grammaticalVakyas().flatMap { it.padas }
+        data class NumericPada(val value: Long, val word: String, val sup: String)
+        val evaluator = dev.panini.sankhya.SankhyaEvaluator()
+        val numericPadas = rangePadas.mapNotNull { pada ->
+            when (pada) {
+                is dev.panini.vyakaranam.ast.SankhyaPada -> NumericPada(
+                    pada.value ?: evaluator.evaluateStems(pada.stems).value,
+                    pada.stems.joinToString(" "),
+                    pada.sup.text,
+                )
+                is dev.panini.vyakaranam.ast.SubantaPada -> {
+                    val word = pada.pratipadika.sourceText.substringBefore('+').trim()
+                    val value = when (val pratipadika = pada.pratipadika) {
+                        is dev.panini.vyakaranam.ast.SankhyaPratipadika ->
+                            pratipadika.value ?: evaluator.evaluateStems(listOf(word)).value
+                        is dev.panini.vyakaranam.ast.MulaPratipadika ->
+                            runCatching { evaluator.evaluateStems(listOf(pratipadika.text)).value }.getOrNull()
+                        else -> null
+                    } ?: return@mapNotNull null
+                    NumericPada(value, word, pada.sup.text)
+                }
+                else -> null
+            }
+        }
+        fun bound(vibhakti: dev.panini.core.Vibhakti): SanskritValue.Sankhya? = numericPadas
+            .firstOrNull { pada ->
+                dev.panini.core.SupAffix.candidates(pada.sup).any { it.vibhakti == vibhakti }
+            }?.let { pada -> SanskritValue.Sankhya(pada.value, pada.word) }
+        val minimum = bound(dev.panini.core.Vibhakti.PANCHAMI) ?: return null
+        val maximum = bound(dev.panini.core.Vibhakti.SAPTAMI) ?: return null
+        return runCatching { SanskritValue.Range(minimum, maximum) }.getOrNull()
     }
 
     private fun samjnaDefinition(
@@ -202,7 +253,7 @@ object PvmScript {
 
     internal fun extractSamjnaHeaderName(line: String): String? {
         val trimmed = line.trim()
-        if (trimmed.isEmpty() || isAdhikaraLine(trimmed)) return null
+        if (trimmed.isEmpty() || isAdhikaraLine(trimmed) || isRangeDefinitionLine(trimmed)) return null
 
         SamjnaDefinitionMarkerParser.headerPrefix(trimmed)?.let { return it }
 

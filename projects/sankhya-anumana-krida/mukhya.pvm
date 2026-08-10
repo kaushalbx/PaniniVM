@@ -1,17 +1,20 @@
 # Number Guessing Game
 # The program chooses one secret number. The player gets five attempts.
 
+# One scoped range is reused by random choice, input validation, and output.
+एक + ङसिँ दश + ङि इति सीमा + सुँ ।
+
 # Kriya-samjna: define one reusable guessing attempt.
 # The procedure reads a bounded input and checks the latest result directly.
 प्रयत्न + ल्युट् + सुँ ।
-निवेश + अम् सङ्ख्या + ङे एक + ङसिँ दश + ङि ग्रह् + णिच् + लोट् + सिप् ।
+निवेश + अम् सङ्ख्या + ङे ग्रह् + णिच् + लोट् + सिप् ।
 यदि रहस्य + अम् ग्रह् + घञ् + ङस् फल + टा अस् + लोट् + सिप् तर्हि वि + स्था + लोट् + सिप् अन्यथा पुनर्अनुमिनु + अम् मुद्र् + णिच् + लोट् + सिप् ॥
 
-# 1. Dynamically choose a number from the inline inclusive range 1 through 10.
-एक + ङसिँ दश + ङि दिव् + णिच् + लोट् + सिप् ततः रहस्य + ङे दा + लोट् + सिप् ।
+# 1. Dynamically choose a number from the scoped inclusive range.
+दिव् + णिच् + लोट् + सिप् ततः रहस्य + ङे दा + लोट् + सिप् ।
 
 # 2. Quote a grammatical command; iti makes mudr print it without executing it.
-एक + ङसिँ दश + ङि सङ्ख्या + अम् अनुमिनु + लोट् + सिप् इति मुद्र् + णिच् + लोट् + सिप् ।
+सङ्ख्या + अम् अनुमिनु + लोट् + सिप् इति मुद्र् + णिच् + लोट् + सिप् ।
 
 # 3. Run the reusable guessing procedure five times.
 पञ्च + कृत्वः प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।

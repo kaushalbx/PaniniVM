@@ -94,6 +94,11 @@ object ProgramSutraArthaCodec {
             "denominator" to SutraArthaValue.Number(value.denominator),
             "word" to SutraArthaValue.Text(value.word),
         )
+        is SanskritValue.Range -> record(
+            "range",
+            "minimum" to encodeValue(value.minimum),
+            "maximum" to encodeValue(value.maximum),
+        )
         is SanskritValue.Shabda -> record(
             "shabda",
             "text" to SutraArthaValue.Text(value.text),
@@ -127,6 +132,10 @@ object ProgramSutraArthaCodec {
                 fields.number("numerator"),
                 fields.number("denominator"),
                 fields.text("word"),
+            )
+            "range" -> SanskritValue.Range(
+                decodeValue(requireNotNull(fields["minimum"])) as SanskritValue.Sankhya,
+                decodeValue(requireNotNull(fields["maximum"])) as SanskritValue.Sankhya,
             )
             "shabda" -> SanskritValue.Shabda(
                 fields.text("text"),

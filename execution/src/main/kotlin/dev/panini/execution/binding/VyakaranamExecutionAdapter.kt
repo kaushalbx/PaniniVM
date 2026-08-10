@@ -39,6 +39,7 @@ import dev.panini.vyakaranam.ast.ProgramNode
 import dev.panini.vyakaranam.ast.ProgramNodeTransformer
 import dev.panini.vyakaranam.ast.ProgramNodeVisitor
 import dev.panini.vyakaranam.ast.Procedure
+import dev.panini.vyakaranam.ast.Quotation
 import dev.panini.vyakaranam.ast.Repeat
 import dev.panini.vyakaranam.ast.SankhyaAbhyasaPada
 import dev.panini.vyakaranam.ast.Sequence
@@ -48,6 +49,7 @@ import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.Ukti
 import dev.panini.vyakaranam.ast.Vakya
 import dev.panini.vyakaranam.ast.expandedInvocations
+import dev.panini.vyakaranam.ast.depthFirst
 import dev.panini.vyakaranam.ast.accept
 import dev.panini.vyakaranam.lexicon.PratipadikaEntry
 import dev.panini.vyakaranam.lexicon.VyakaranamLexicon
@@ -116,8 +118,8 @@ object VyakaranamExecutionAdapter {
         } catch (e: PaniniParseException) {
             return ExecutionBindingResult.Invalid(e.message ?: "Invalid annotated Sanskrit morphology.")
         }
-        val quotation = extractQuotation(ukti.body)
-        val executableUkti = quotation?.let { ukti.copy(body = it.reporting) } ?: ukti
+        val quotations = quotationBindings(ukti.body)
+        val executableUkti = ukti
 
         var listener = input.listener
         executableUkti.sambodhana?.subanta?.pratipadika?.baseText()?.let { addressed ->
@@ -193,7 +195,7 @@ object VyakaranamExecutionAdapter {
                 listener = listener,
                 prayer = prayer,
                 pipelineKarmanSource = pipelineKarmanSources[index + 1],
-                quotedVakya = quotation?.quoted?.vakya,
+                quotedVakya = quotations[vakya],
             )
             invocations += invocation
             val bindingKaraka = dhatu.operations.firstOrNull { it.resultBindingKaraka != null }?.resultBindingKaraka
@@ -243,6 +245,7 @@ object VyakaranamExecutionAdapter {
                 consequent = build(node.consequent),
                 alternate = node.alternate?.let(::build),
             )
+            override fun visitQuotation(node: Quotation): ExecutionNode = build(node.reporting)
             override fun visitRepeat(node: Repeat): ExecutionNode =
                 ExecuteRepeat(List(node.count) { build(node.body) })
             override fun visitPipeline(node: Pipeline): ExecutionNode =
@@ -291,6 +294,9 @@ object VyakaranamExecutionAdapter {
         val metadataMap = buildMap {
             put(dev.panini.execution.ExecutionMetadata.DEFAULT_DHATU, dhatu.upadesha)
             put(dev.panini.execution.ExecutionMetadata.dhatu(KriyaInvocationId.of(index + 1)), dhatu.upadesha)
+            if (quotedVakya != null) {
+                put(dev.panini.execution.RENDER_ACTIVE_RANGE_METADATA, "true")
+            }
         }
         return DhatuInvocation(
             id = KriyaInvocationId.of(index + 1),
@@ -312,18 +318,6 @@ object VyakaranamExecutionAdapter {
             } else {
                 emptyList()
             },
-        )
-    }
-
-    private data class Quotation(val quoted: Invocation, val reporting: Invocation)
-
-    /** Recognizes one complete command followed by इति and a reporting command. */
-    private fun extractQuotation(root: ProgramNode): Quotation? {
-        val sequence = root as? Sequence ?: return null
-        if (sequence.statements.size != 2 || sequence.connectors != listOf("इति")) return null
-        return Quotation(
-            quoted = sequence.statements.first() as? Invocation ?: return null,
-            reporting = sequence.statements.last() as? Invocation ?: return null,
         )
     }
 
@@ -357,6 +351,14 @@ object VyakaranamExecutionAdapter {
         return transferable + listOfNotNull(karman?.let { Karaka.KARMAN to it })
     }
 
+    /** Finds quotation/reporting pairs at any depth without scheduling quoted commands. */
+    private fun quotationBindings(root: ProgramNode): Map<Vakya, Vakya> = buildMap {
+        root.depthFirst().filterIsInstance<Quotation>().forEach { quotation ->
+            val reporting = quotation.reporting as? Invocation ?: return@forEach
+            put(reporting.vakya, quotation.quoted.vakya)
+        }
+    }
+
     /** Maps a ततः target invocation to the single invocation that immediately precedes it. */
     private fun pipelineKarmanSources(root: ProgramNode): Map<Int, Int> {
         data class Shape(val entries: Set<Int>, val exits: Set<Int>)
@@ -386,6 +388,7 @@ object VyakaranamExecutionAdapter {
                 val alternate = node.alternate?.let(::visit)
                 Shape(condition.entries, consequent.exits + (alternate?.exits ?: emptySet()))
             }
+            is Quotation -> visit(node.reporting)
             is Repeat -> {
                 val repetitions = List(node.count) { visit(node.body) }
                 Shape(repetitions.first().entries, repetitions.last().exits)

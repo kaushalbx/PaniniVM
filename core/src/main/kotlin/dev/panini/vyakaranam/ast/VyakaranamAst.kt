@@ -50,6 +50,13 @@ data class Conditional(
     val alternate: ProgramNode? = null,
 ) : ProgramNode
 
+/** A command mentioned with इति and supplied as data to a reporting command. */
+data class Quotation(
+    override val sourceText: String,
+    val quoted: Invocation,
+    val reporting: ProgramNode,
+) : ProgramNode
+
 data class Repeat(
     override val sourceText: String,
     val count: Int,

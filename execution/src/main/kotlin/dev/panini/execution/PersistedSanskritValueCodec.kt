@@ -24,6 +24,9 @@ internal object PersistedSanskritValueCodec {
                 }
                 is SanskritValue.Satya -> { writeByte(6); writeBoolean(value.boolean) }
                 SanskritValue.Lopa -> writeByte(7)
+                is SanskritValue.Range -> {
+                    writeByte(8); write(output, value.minimum); write(output, value.maximum)
+                }
             }
         }
     }
@@ -40,6 +43,10 @@ internal object PersistedSanskritValueCodec {
             5 -> SanskritValue.Suchi(buildList { repeat(readInt()) { add(read(input)) } })
             6 -> SanskritValue.Satya(readBoolean())
             7 -> SanskritValue.Lopa
+            8 -> SanskritValue.Range(
+                read(input) as SanskritValue.Sankhya,
+                read(input) as SanskritValue.Sankhya,
+            )
             else -> throw IllegalArgumentException("Unknown persisted Sanskrit value type: $tag")
         }
     }

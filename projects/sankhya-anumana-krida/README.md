@@ -7,11 +7,12 @@ validated numeric guesses.
 The example demonstrates:
 
 - random choice with `दिव्`;
-- an inline inclusive range, `एक + ङसिँ दश + ङि`, consumed directly by `दिव्`;
+- one scoped inclusive range, `एक + ङसिँ दश + ङि इति सीमा + सुँ`;
 - numeric input with `ग्रह्` and the `सङ्ख्या` type marker;
 - the same inline range cases reused as input bounds;
 - dynamic instruction rendering from segmented ablative and locative bounds;
 - grammatical `… इति मुद्र्` quotation without treating the quoted verb as `कर्मन्`;
+- implicit reuse of the scoped range by `दिव्`, `ग्रह्`, and `मुद्र्`;
 - one persistent variable, `रहस्य`, assigned with `दा`;
 - direct use of each action's latest `फल`, without a temporary guess variable;
 - direct `ततः` result piping into a following action's missing `कर्मन्`;

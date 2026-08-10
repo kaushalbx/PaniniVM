@@ -4,6 +4,7 @@ interface ProgramNodeVisitor<out R> {
     fun visitInvocation(node: Invocation): R
     fun visitSequence(node: Sequence): R
     fun visitConditional(node: Conditional): R
+    fun visitQuotation(node: Quotation): R
     fun visitRepeat(node: Repeat): R
     fun visitPipeline(node: Pipeline): R
     fun visitProcedure(node: Procedure): R
@@ -14,6 +15,7 @@ fun <R> ProgramNode.accept(visitor: ProgramNodeVisitor<R>): R = when (this) {
     is Invocation -> visitor.visitInvocation(this)
     is Sequence -> visitor.visitSequence(this)
     is Conditional -> visitor.visitConditional(this)
+    is Quotation -> visitor.visitQuotation(this)
     is Repeat -> visitor.visitRepeat(this)
     is Pipeline -> visitor.visitPipeline(this)
     is Procedure -> visitor.visitProcedure(this)
@@ -49,6 +51,7 @@ private object ProgramNodeChildren : ProgramNodeVisitor<List<ProgramNode>> {
     override fun visitSequence(node: Sequence): List<ProgramNode> = node.statements
     override fun visitConditional(node: Conditional): List<ProgramNode> =
         listOfNotNull(node.condition, node.consequent, node.alternate)
+    override fun visitQuotation(node: Quotation): List<ProgramNode> = listOf(node.reporting)
     override fun visitRepeat(node: Repeat): List<ProgramNode> = listOf(node.body)
     override fun visitPipeline(node: Pipeline): List<ProgramNode> = emptyList()
     override fun visitProcedure(node: Procedure): List<ProgramNode> = node.body
@@ -68,6 +71,9 @@ open class ProgramNodeTransformer : ProgramNodeVisitor<ProgramNode> {
         consequent = transform(node.consequent),
         alternate = node.alternate?.let(::transform),
     )
+
+    override fun visitQuotation(node: Quotation): ProgramNode =
+        node.copy(reporting = transform(node.reporting))
 
     override fun visitRepeat(node: Repeat): ProgramNode =
         node.copy(body = transform(node.body))

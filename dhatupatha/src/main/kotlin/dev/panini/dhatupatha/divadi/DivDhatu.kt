@@ -36,6 +36,10 @@ class DivDhatu : Dhatu(
             optional(Karaka.KARTR)
             returns(Samjna.SANKHYA)
         },
+        RandomChoiceAction.op {
+            optional(Karaka.KARTR)
+            returns(Samjna.SANKHYA)
+        },
     ),
     surfaceAliases = setOf("दीव्यति", "दीव्", "क्रीडा"),
 )

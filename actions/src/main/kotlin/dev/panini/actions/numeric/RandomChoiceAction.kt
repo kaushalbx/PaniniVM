@@ -8,11 +8,13 @@ import dev.panini.execution.ExecutionError
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.SanskritValue
 import dev.panini.execution.renderSankhyaResult
+import dev.panini.execution.activeRange
 
 object RandomChoiceAction : DhatuAction("क्रीडा", "यादृच्छिकचयनम् क्रीडा च") {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
-        val minimum = context.numericBound(Karaka.APADANA)
-        val maximum = context.numericBound(Karaka.ADHIKARANA)
+        val activeRange = context.activeRange()
+        val minimum = context.numericBound(Karaka.APADANA) ?: activeRange?.minimum?.value
+        val maximum = context.numericBound(Karaka.ADHIKARANA) ?: activeRange?.maximum?.value
         if (minimum != null && maximum != null && (minimum > maximum || maximum - minimum > MAX_RANGE_SPAN)) {
             return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,

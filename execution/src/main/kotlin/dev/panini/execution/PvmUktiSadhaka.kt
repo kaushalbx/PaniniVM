@@ -36,6 +36,7 @@ import dev.panini.vyakaranam.ast.Pipeline
 import dev.panini.vyakaranam.ast.ProgramNode
 import dev.panini.vyakaranam.ast.ProgramNodeVisitor
 import dev.panini.vyakaranam.ast.Procedure
+import dev.panini.vyakaranam.ast.Quotation
 import dev.panini.vyakaranam.ast.Repeat
 import dev.panini.vyakaranam.ast.Scope
 import dev.panini.vyakaranam.ast.accept
@@ -126,6 +127,8 @@ class PvmUktiSadhaka(
                 append(render(it))
             }
         }
+        override fun visitQuotation(node: Quotation): String =
+            "${node.quoted.vakya.padas.joinToString(" ") { sadhayaPada(it) }} इति ${node.reporting.accept(this)}"
         override fun visitRepeat(node: Repeat): String = render(node.body)
         override fun visitPipeline(node: Pipeline): String =
             node.renderPadas.joinToString(" ") { sadhayaPada(it) }

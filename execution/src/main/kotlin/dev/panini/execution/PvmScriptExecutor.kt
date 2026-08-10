@@ -29,7 +29,15 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         }
         registerInheritances(registry, parsed)
 
-        val effectiveScope = scope.copy(samjnaRegistry = registry)
+        val activeRange = parsed.filterIsInstance<PvmScriptStatement.RangeDefinition>()
+            .lastOrNull()?.range
+        val rangeEnvironment = activeRange?.let {
+            ValueEnvironment(mapOf(ACTIVE_RANGE_NAME to it))
+        } ?: ValueEnvironment()
+        val effectiveScope = scope.copy(
+            samjnaRegistry = registry,
+            environment = scope.environment.mergedWith(rangeEnvironment),
+        )
         val structStore = mutableMapOf<String, TaddhitaStruct>()
 
         parsed.filterIsInstance<PvmScriptStatement.Sentence>().forEach { statement ->
