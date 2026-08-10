@@ -3,6 +3,7 @@ package dev.panini.cli
 import dev.panini.compiler.BytecodeCompiler
 import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.execution.ExecutionResult
+import dev.panini.execution.ExecutionEffect
 import dev.panini.execution.PaniniVM
 import dev.panini.aryabhatiya.AryabhatiyaDecoder
 import dev.panini.aryabhatiya.AryabhatiyaEncoder
@@ -16,6 +17,7 @@ import dev.panini.bhutasamkhya.BhutasamkhyaLexicon
 import java.io.File
 import java.io.InputStream
 import java.io.PrintStream
+import java.io.BufferedReader
 
 /**
  * PaniniCli manages the interactive REPL and script file evaluations for the command line interface.
@@ -27,9 +29,17 @@ class PaniniCli(
 ) {
     private var showTrace = false
     private var sessionKey = "cli_session"
+    private val reader: BufferedReader = inputStream.bufferedReader()
+
+    init {
+        vm.registerExternalCapability(ExecutionEffect.READ_RESOURCE) { variableName, _ ->
+            outputStream.println("Enter value for $variableName:")
+            outputStream.flush()
+            reader.readLine() ?: throw IllegalStateException("End of input while reading $variableName.")
+        }
+    }
 
     fun startRepl() {
-        val reader = inputStream.bufferedReader()
         outputStream.println("═══════════════════════════════════════════════════════════")
         outputStream.println("              PāṇiniVM Interactive REPL (pvm-cli)          ")
         outputStream.println("  Type Sanskrit utterances or REPL commands (:help for usage)")
@@ -50,7 +60,9 @@ class PaniniCli(
         results.forEachIndexed { i, res ->
             when (res) {
                 is ExecutionResult.Success -> {
-                    outputStream.println("Line ${i + 1}: ${res.value}")
+                    if (res.isExplicitOutput() && res.value.isNotBlank()) {
+                        outputStream.println(res.value)
+                    }
                     if (showTrace) {
                         res.trace.forEach { outputStream.println("  ├─► $it") }
                     }
@@ -73,6 +85,13 @@ class PaniniCli(
             }
         }
         return results
+    }
+
+    private fun ExecutionResult.Success.isExplicitOutput(): Boolean = trace.any {
+        it.contains("Printed") ||
+            it.contains("प्रदर्शनम्") ||
+            it.contains("मुद्रणम्") ||
+            it.contains("प्रेषणम्")
     }
 
     fun processCommand(command: ReplCommand): Boolean {

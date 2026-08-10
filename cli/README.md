@@ -13,3 +13,23 @@ Main entry point (`Main.kt`) supporting CLI flags:
 - `--derive <pratipadika> <vibhakti> <vacana>`: Step-by-step nominal derivation trace.
 - `--verb <dhatu> [lakara] [vacana]`: Step-by-step verbal tiṅanta derivation trace.
 - `--coverage`: Prints registered sūtra count and role breakdowns.
+
+## Interactive execution
+
+Build the CLI launcher once, then run it directly. The direct launcher is
+recommended for interactive input because Gradle's Windows console proxy may
+not deliver terminal lines until EOF.
+
+```powershell
+.\gradlew.bat :cli:installDist
+.\cli\build\install\cli\bin\cli.bat --eval cli/examples/interactive_addition.pvm
+```
+
+When the script executes a `ग्रह्` input operation, the CLI prints a prompt using
+the कर्मन् variable name and waits for one line from standard input. For example,
+`निवेश + अम् ग्रह् + णिच् + लोट् + सिप् ।` displays `निवेश> `; the entered text
+becomes the operation result and is available to subsequent statements as `फल`.
+
+Running the CLI without arguments starts the interactive REPL.
+
+The Gradle `:cli:run` task remains suitable for non-interactive commands.

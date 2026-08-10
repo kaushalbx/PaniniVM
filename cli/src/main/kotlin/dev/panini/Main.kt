@@ -37,6 +37,7 @@ import java.io.FileDescriptor
 import java.io.FileOutputStream
 import java.io.PrintStream
 import java.nio.charset.StandardCharsets
+import dev.panini.cli.PaniniCli
 
 fun main(args: Array<String>) {
     System.setOut(
@@ -46,7 +47,14 @@ fun main(args: Array<String>) {
             StandardCharsets.UTF_8,
         ),
     )
-    runCli(args).forEach(::println)
+    when {
+        args.isEmpty() -> PaniniCli().startRepl()
+        args.first() in setOf("--eval", "--pvm", "--exec") -> {
+            val filePath = args.getOrNull(1) ?: error("Usage: --eval path/to/file.pvm")
+            PaniniCli().executeScriptFile(File(filePath))
+        }
+        else -> runCli(args).forEach(::println)
+    }
 }
 
 internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull()) {

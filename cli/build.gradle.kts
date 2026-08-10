@@ -32,6 +32,7 @@ tasks.withType<Test> {
 
 tasks.withType<JavaExec> {
     workingDir = rootDir
+    standardInput = System.`in`
 }
 
 tasks.register<JavaExec>("renderExamples") {
