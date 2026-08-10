@@ -41,4 +41,5 @@ tasks.jar {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    workingDir = rootDir
 }

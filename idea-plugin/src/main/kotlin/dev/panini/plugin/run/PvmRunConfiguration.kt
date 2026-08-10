@@ -13,8 +13,6 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
-import dev.panini.cli.PaniniCli
-import dev.panini.execution.ExecutionResult
 import com.intellij.execution.configurations.RunConfigurationOptions
 import java.io.File
 import java.io.OutputStream
@@ -116,16 +114,12 @@ class PvmRunConfiguration(
                 }
 
                 if (runViaVm) {
-                    try {
-                        val results = PaniniCli(
-                            inputStream = processHandler.input,
-                            outputStream = processHandler.consoleStream(ProcessOutputTypes.STDOUT),
-                        ).executeScriptFile(file)
-                        processHandler.terminate(if (results.any { it is ExecutionResult.Failure }) 1 else 0)
-                    } catch (e: Throwable) {
-                        processHandler.notifyTextAvailable("Error during execution: ${e.message ?: e::class.simpleName}\n", ProcessOutputTypes.STDERR)
-                        processHandler.terminate(1)
-                    }
+                    val exitCode = PvmRunExecutor().execute(
+                        file = file,
+                        input = processHandler.input,
+                        output = processHandler.consoleStream(ProcessOutputTypes.STDOUT),
+                    )
+                    processHandler.terminate(exitCode)
                 } else {
                     val basePath = project.basePath ?: ""
                     val isWindows = System.getProperty("os.name").lowercase().contains("win")
