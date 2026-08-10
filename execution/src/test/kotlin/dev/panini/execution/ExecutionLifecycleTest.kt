@@ -408,7 +408,7 @@ class ExecutionLifecycleTest {
         assertEquals("sentinel\n", readable.readText())
 
         assertEquals(readable, PvmReadableSanskrit.renderFile(source))
-        assertEquals("एकम् द्वी च योजय ।\n", readable.readText())
+        assertEquals("एकम् द्वे च योजय ।\n", readable.readText())
     }
 
     @Test

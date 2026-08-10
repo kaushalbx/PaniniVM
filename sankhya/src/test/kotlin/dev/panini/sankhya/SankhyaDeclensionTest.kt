@@ -5,7 +5,7 @@ import dev.panini.core.Vibhakti
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class SankhyaDeclensionTest {
+class SankhyaGeneratorDeclensionTest {
     @Test
     fun `generator declines cardinals through the reusable API`() {
         val generator = SankhyaGenerator()

@@ -5,6 +5,8 @@ import dev.panini.derivation.SamjnaAssignment
 import dev.panini.shiksha.Samjna
 import dev.panini.core.Vacana
 import dev.panini.core.Vibhakti
+import dev.panini.derivation.SubantaDerivationRequest
+import dev.panini.derivation.SubantaEngine
 
 /** Public numeral API. Every method returns an auditable grammatical derivation. */
 class SankhyaGenerator(
@@ -23,8 +25,13 @@ class SankhyaGenerator(
     fun cardinalVariants(value: Long): List<DerivationResult> = cardinalDeriver.deriveVariants(value)
 
     /** Returns the cardinal surface requested by one sup case-and-number slot. */
-    fun decline(value: Long, vibhakti: Vibhakti, vacana: Vacana): String =
-        SankhyaDeclension.decline(value, vibhakti, vacana, cardinal(value).final.surface)
+    fun decline(value: Long, vibhakti: Vibhakti, vacana: Vacana): String {
+        val pratipadika = PrimitiveSankhya.fromValue(value)?.pratipadika
+            ?: cardinal(value).final.surface
+        return SubantaEngine().derive(
+            SubantaDerivationRequest(pratipadika, vibhakti, vacana),
+        ).final.surface
+    }
 
     fun ordinal(value: Long): DerivationResult = puranaDeriver.derive(value)
 

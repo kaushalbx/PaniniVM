@@ -16,6 +16,7 @@ import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.DhatuPrakriti
 import dev.panini.vyakaranam.ast.TingPratyaya
+import dev.panini.sankhya.PrimitiveSankhya
 
 class SubantaEngine(
     private val engine: DerivationEngine = DerivationEngine(dev.panini.ashtadhyayi.Ashtadhyayi.executableSutras),
@@ -39,6 +40,7 @@ class SubantaEngine(
     }
 
     private fun deriveSpecializedDeclension(pratipadika: String, vibhakti: Vibhakti, vacana: Vacana): String? {
+        deriveNumeralDeclension(pratipadika, vibhakti, vacana)?.let { return it }
         return when (pratipadika) {
             "नदी" -> when {
                 vibhakti == Vibhakti.TRTIYA && vacana == Vacana.EKAVACANA -> "नद्या"
@@ -86,12 +88,53 @@ class SubantaEngine(
                 vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.BAHUVACANA -> "इमे"
                 else -> null
             }
-            "द्वि" -> when {
-                vacana == Vacana.DVIVACANA -> "द्वी"
-                else -> null
-            }
             else -> null
         }
+    }
+
+    private fun deriveNumeralDeclension(
+        pratipadika: String,
+        vibhakti: Vibhakti,
+        vacana: Vacana,
+    ): String? {
+        val numeral = PrimitiveSankhya.fromAnnotatedPratipadika(pratipadika) ?: return null
+        val naturalVacana = when (numeral.value) {
+            1L -> Vacana.EKAVACANA
+            2L -> Vacana.DVIVACANA
+            else -> Vacana.BAHUVACANA
+        }
+        if (vacana != naturalVacana) return null
+        return when (numeral.value) {
+            2L -> when (vibhakti) {
+                Vibhakti.PRATHAMA, Vibhakti.DVITIYA -> "द्वे"
+                Vibhakti.TRTIYA, Vibhakti.CHATURTHI, Vibhakti.PANCHAMI -> "द्वाभ्याम्"
+                Vibhakti.SASTHI, Vibhakti.SAPTAMI -> "द्वयोः"
+            }
+            3L -> pluralNumeral("त्रीणि", "त्रिभिः", "त्रिभ्यः", "त्रयाणाम्", "त्रिषु", vibhakti)
+            4L -> pluralNumeral("चत्वारि", "चतुर्भिः", "चतुर्भ्यः", "चतुर्णाम्", "चतुर्षु", vibhakti)
+            5L -> pluralNumeral("पञ्च", "पञ्चभिः", "पञ्चभ्यः", "पञ्चानाम्", "पञ्चसु", vibhakti)
+            6L -> pluralNumeral("षट्", "षड्भिः", "षड्भ्यः", "षण्णाम्", "षट्सु", vibhakti)
+            7L -> pluralNumeral("सप्त", "सप्तभिः", "सप्तभ्यः", "सप्तानाम्", "सप्तसु", vibhakti)
+            8L -> pluralNumeral("अष्ट", "अष्टाभिः", "अष्टाभ्यः", "अष्टानाम्", "अष्टासु", vibhakti)
+            9L -> pluralNumeral("नव", "नवभिः", "नवभ्यः", "नवानाम्", "नवसु", vibhakti)
+            10L -> pluralNumeral("दश", "दशभिः", "दशभ्यः", "दशानाम्", "दशसु", vibhakti)
+            else -> null
+        }
+    }
+
+    private fun pluralNumeral(
+        nominativeAccusative: String,
+        instrumental: String,
+        dativeAblative: String,
+        genitive: String,
+        locative: String,
+        vibhakti: Vibhakti,
+    ): String = when (vibhakti) {
+        Vibhakti.PRATHAMA, Vibhakti.DVITIYA -> nominativeAccusative
+        Vibhakti.TRTIYA -> instrumental
+        Vibhakti.CHATURTHI, Vibhakti.PANCHAMI -> dativeAblative
+        Vibhakti.SASTHI -> genitive
+        Vibhakti.SAPTAMI -> locative
     }
 
     fun deriveSupportedParadigm(

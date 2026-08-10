@@ -741,11 +741,8 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         number: SanskritValue.Sankhya,
         affix: dev.panini.core.SupAffix,
     ): SanskritValue.Sankhya {
-        val surface = dev.panini.sankhya.SankhyaDeclension.decline(
-            number.value,
-            affix.vibhakti,
-            affix.vacana,
-            number.word,
+        val surface = dev.panini.sankhya.SankhyaGenerator().decline(
+            number.value, affix.vibhakti, affix.vacana,
         )
         return number.copy(word = surface)
     }
