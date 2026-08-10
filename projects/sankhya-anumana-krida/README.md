@@ -7,6 +7,7 @@ validated numeric guesses.
 The example demonstrates:
 
 - random choice with `दिव्`;
+- generation of the `1…10` candidate sequence with a nine-iteration `कृत्वः` loop;
 - numeric input with `ग्रह्` and the `सङ्ख्या` type marker;
 - inclusive input bounds carried by the ablative `न्यूनसीमा + ङसिँ` and locative `उच्चसीमा + ङि`;
 - variables with `दा`;

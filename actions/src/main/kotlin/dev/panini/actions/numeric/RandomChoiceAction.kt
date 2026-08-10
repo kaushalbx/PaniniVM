@@ -10,8 +10,13 @@ import dev.panini.execution.SanskritValue
 object RandomChoiceAction : DhatuAction("क्रीडा", "यादृच्छिकचयनम् क्रीडा च") {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
         val expression = context.bindings[Karaka.KARMAN] ?: context.bindings[Karaka.KARTR]
-        val options = expression?.let { context.resolveValues(it) }
+        val resolved = expression?.let { context.resolveValues(it) }
             ?: listOf(SanskritValue.Shabda("अक्षः"))
+        val options = if (resolved.size == 1 && resolved.first() is SanskritValue.Suchi) {
+            (resolved.first() as SanskritValue.Suchi).items
+        } else {
+            resolved
+        }
         val chosen = options.randomOrNull() ?: SanskritValue.Shabda("अक्षः")
         val chosenText = chosen.toDisplayText()
         val message = "चयनम् सिद्धम्: $chosenText"
