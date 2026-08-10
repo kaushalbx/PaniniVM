@@ -12,7 +12,7 @@ class ConditionControlledLoopTest {
             प्रयत्न + ल्युट् + सुँ ।
             वारः + अम् मुद्र् + णिच् + लोट् + सिप् ।
             एक + अम् द्वि + अम् च विद् + लोट् + सिप् ॥
-            त्रि + कृत्वः यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् अन्यथा समाप्तम् + अम् मुद्र् + लोट् + सिप् ।
+            त्रि + कृत्वः यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् अन्यथा समाप्तम् + अम् मुद्र् + लोट् + सिप् ततः मुद्र् + लोट् + सिप् ।
             """.trimIndent(),
         )
 
@@ -20,6 +20,11 @@ class ConditionControlledLoopTest {
             .count { it.outputKind == OutputKind.CONSOLE && it.value == "वारः" }, results.toString())
         assertEquals(1, results.filterIsInstance<ExecutionResult.Success>()
             .count { it.outputKind == OutputKind.CONSOLE && it.value == "समाप्तम्" }, results.toString())
+        val completion = results.filterIsInstance<ExecutionResult.Success>()
+            .single { it.loopOutcome != null }
+        assertEquals(ExecutionResult.LoopOutcome.SAMAPTI, completion.loopOutcome)
+        assertEquals(3, completion.iterationCount)
+        assertTrue(results.any { it is ExecutionResult.Success && it.value == "समाप्ति" })
     }
 
     @Test
@@ -29,13 +34,18 @@ class ConditionControlledLoopTest {
             प्रयत्न + ल्युट् + सुँ ।
             वारः + अम् मुद्र् + णिच् + लोट् + सिप् ।
             द्वि + अम् एक + अम् च विद् + लोट् + सिप् ॥
-            पञ्च + कृत्वः यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् अन्यथा समाप्तम् + अम् मुद्र् + लोट् + सिप् ।
+            पञ्च + कृत्वः यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् अन्यथा समाप्तम् + अम् मुद्र् + लोट् + सिप् ततः मुद्र् + लोट् + सिप् ।
             """.trimIndent(),
         )
 
         assertEquals(1, results.filterIsInstance<ExecutionResult.Success>()
             .count { it.outputKind == OutputKind.CONSOLE && it.value == "वारः" }, results.toString())
         assertTrue(results.none { it is ExecutionResult.Success && it.value == "समाप्तम्" }, results.toString())
+        val completion = results.filterIsInstance<ExecutionResult.Success>()
+            .single { it.loopOutcome != null }
+        assertEquals(ExecutionResult.LoopOutcome.VIJAYA, completion.loopOutcome)
+        assertEquals(1, completion.iterationCount)
+        assertTrue(results.any { it is ExecutionResult.Success && it.value == "विजय" })
         assertTrue(results.none { it is ExecutionResult.Failure })
     }
 }

@@ -7,6 +7,11 @@ enum class ExecutionControlSignal { BREAK_LOOP }
 
 /** The value of a successful execution is always a Sanskrit string. */
 sealed interface ExecutionResult {
+    enum class LoopOutcome(val sanskritName: String) {
+        VIJAYA("विजय"),
+        SAMAPTI("समाप्ति"),
+    }
+
     val trace: List<String>
 
     data class Success(
@@ -17,6 +22,8 @@ sealed interface ExecutionResult {
         val outputKind: OutputKind = OutputKind.INTERNAL,
         val controlSignal: ExecutionControlSignal? = null,
         val conditionValue: Boolean? = null,
+        val loopOutcome: LoopOutcome? = null,
+        val iterationCount: Int? = null,
     ) : ExecutionResult
 
     data class Failure(

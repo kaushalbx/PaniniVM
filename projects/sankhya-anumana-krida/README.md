@@ -19,12 +19,14 @@ The example demonstrates:
 - equality-style membership testing with the existing `अस्` operation;
 - numeric ordering with `विद्` for greater-than and `नि + विद्` for less-than;
 - nested conditionals with `यदि … तर्हि … अन्यथा यदि …`;
-- a joined conditional pipeline, `यदि … तर्हि … अन्यथा … ततः मुद्र्`, with one print action;
+- bare branch values in `यदि … तर्हि लघु अन्यथा गुरु ततः मुद्र्`, with one print action;
 - dynamic `लघु` and `गुरु` feedback for low and high guesses;
 - a reusable kriyā-saṃjñā declared as `प्रयत्न + ल्युट् + सुँ`;
 - a bounded result-controlled loop using `पञ्च + कृत्वः यावत् फल + सुँ न तावत्`;
 - natural loop termination from the comparison's typed truth value.
 - an `अन्यथा` exhaustion clause that runs only when all five attempts are consumed.
+- typed loop outcomes (`विजय` or `समाप्ति`) with the used-attempt count;
+- a loop-result pipeline that retains the outcome under the name `परिणाम`.
 
 ## Run
 

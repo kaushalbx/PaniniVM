@@ -398,6 +398,7 @@ object VyakaranamExecutionAdapter {
             is WhileLoop -> {
                 val body = visit(node.body)
                 node.exhausted?.let(::visit)
+                node.resultTarget?.let(::visit)
                 body
             }
             is Pipeline -> Shape(emptySet(), emptySet())

@@ -144,6 +144,10 @@ class PvmUktiSadhaka(
                 append(" अन्यथा ")
                 append(render(it))
             }
+            node.resultTarget?.let {
+                append(" ततः ")
+                append(render(it))
+            }
         }
         override fun visitPipeline(node: Pipeline): String =
             node.renderPadas.joinToString(" ") { sadhayaPada(it) }

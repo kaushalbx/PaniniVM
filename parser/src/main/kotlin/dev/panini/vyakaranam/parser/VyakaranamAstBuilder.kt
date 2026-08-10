@@ -18,6 +18,7 @@ class VyakaranamAstBuilder {
                 body = Invocation(buildVakya(loop.body!!)),
                 maximumIterationStems = limit?.stems?.dropLast(1).orEmpty(),
                 exhausted = loop.exhausted?.let { Invocation(buildVakya(it)) },
+                resultTarget = loop.target?.let { Invocation(buildVakya(it)) },
             )
         } ?: context.pipelineClause()?.let(::buildPipeline)
             ?: context.conditionalClause()?.let { clause ->
@@ -58,10 +59,19 @@ class VyakaranamAstBuilder {
     ): Conditional = Conditional(
         sourceText = context.text,
         condition = Invocation(buildVakya(context.condition!!)),
-        consequent = Invocation(buildVakya(context.consequent!!)),
+        consequent = buildConditionalArm(context.consequent!!),
         alternate = context.nested?.let(::buildConditional)
-            ?: context.alternate?.let { Invocation(buildVakya(it)) },
+            ?: context.alternate?.let(::buildConditionalArm),
     )
+
+    private fun buildConditionalArm(
+        context: PaniniyaVyakaranamParser.ConditionalArmContext,
+    ): ProgramNode = context.vakya()?.let { Invocation(buildVakya(it)) }
+        ?: implicitValueReturn(requireNotNull(context.value).text)
+
+    /** A nominal branch has an understood return verb, just as a nāma-vākya has an understood copula. */
+    private fun implicitValueReturn(value: String): ProgramNode =
+        PaniniParser().parse("$value + अम् दा + लोट् + सिप् ।").body
 
     /** Lowers one written pipeline target into each mutually exclusive branch. */
     private fun pipeConditionalResult(

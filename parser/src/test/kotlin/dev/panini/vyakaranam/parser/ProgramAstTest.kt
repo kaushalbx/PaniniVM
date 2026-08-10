@@ -131,6 +131,31 @@ class ProgramAstTest {
     }
 
     @Test
+    fun `conditional arms may be bare nominal values`() {
+        val conditional = assertIs<Conditional>(
+            parser.parse(
+                "यदि द्वि + अम् एक + अम् च विद् + लोट् + सिप् " +
+                    "तर्हि लघु अन्यथा गुरु ततः मुद्र् + लोट् + सिप् ।",
+            ).body,
+        )
+
+        assertIs<Sequence>(conditional.consequent)
+        assertIs<Sequence>(conditional.alternate)
+    }
+
+    @Test
+    fun `loop may pipe its named outcome to a target`() {
+        val loop = assertIs<WhileLoop>(
+            parser.parse(
+                "द्वि + कृत्वः यावत् फल + सुँ न तावत् प्रयत्न + अम् कृ + लोट् + सिप् " +
+                    "ततः परिणाम + ङे दा + लोट् + सिप् ।",
+            ).body,
+        )
+
+        assertIs<Invocation>(loop.resultTarget)
+    }
+
+    @Test
     fun `purvapara syntax builds a pipeline directly`() {
         val source = "पञ्च + अम् द्वि + अम् च गणित + ङस् गुण् + ल्युट् + ङस् " +
             "गणित + ङस् रन्ध्र + ल्युट् + ङस् पूर्व + ङस् पर + ङस् एका + सुँ कृ + लोट् + सिप् ।"

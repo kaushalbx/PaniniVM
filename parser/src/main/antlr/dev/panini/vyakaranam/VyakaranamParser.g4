@@ -25,7 +25,7 @@ ukti
 
 whileClause
     : limit=sankhyaAbhyasaPada? YAVAT condition=vakya TAVAT body=vakya
-      (ANYATHA exhausted=vakya)? DANDA? EOF
+      (ANYATHA exhausted=vakya)? (TATAH target=vakya)? DANDA? EOF
     ;
 
 pipelineClause
@@ -52,8 +52,13 @@ conditionalClause
     ;
 
 conditionalExpression
-    : YADI condition=vakya TARHI consequent=vakya
-      (ANYATHA (nested=conditionalExpression | alternate=vakya))?
+    : YADI condition=vakya TARHI consequent=conditionalArm
+      (ANYATHA (nested=conditionalExpression | alternate=conditionalArm))?
+    ;
+
+conditionalArm
+    : value=pratipadika
+    | vakya
     ;
 
 // ============================================================================

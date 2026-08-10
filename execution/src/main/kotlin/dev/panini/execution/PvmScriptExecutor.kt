@@ -145,6 +145,47 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             it is dev.panini.vyakaranam.ast.AvyayaPada && it.form == "न"
         }
         var latestConditionValue = false
+        var iterationCount = 0
+
+        fun complete(outcome: ExecutionResult.LoopOutcome): List<ExecutionResult> {
+            val outcomeValue = SanskritValue.Shabda(outcome.sanskritName)
+            val completion = ExecutionResult.Success(
+                value = outcome.sanskritName,
+                operation = "pvm.while",
+                typedValue = outcomeValue,
+                loopOutcome = outcome,
+                iterationCount = iterationCount,
+            )
+            results += completion
+            onResult?.invoke(completion)
+
+            val target = loop.resultTarget as? dev.panini.vyakaranam.ast.Invocation ?: return results
+            val targetScope = scope.copy(
+                environment = scope.environment.mergedWith(
+                    ValueEnvironment(
+                        mapOf(
+                            "फल" to outcomeValue,
+                            "परिणाम" to outcomeValue,
+                            "प्रयत्नसङ्ख्या" to SanskritValue.Sankhya(iterationCount.toLong(), iterationCount.toString()),
+                        ),
+                    ),
+                ),
+            )
+            val targetText = renderInvocation(target, pipedKarman = outcome.sanskritName)
+            val invocation = registry.detectInvocation(targetText, callerSourceFile = sourceFile)
+            val targetResults = if (invocation != null) {
+                executeSamjnaInvocation(
+                    invocation, sessionKey, targetScope, speaker, listener, registry,
+                    callerSourceFile = sourceFile, onResult = onResult,
+                )
+            } else {
+                listOf(vm.eval(targetText, sessionKey, targetScope, speaker, listener, isExecutingScript = true)).also {
+                    it.forEach { result -> onResult?.invoke(result) }
+                }
+            }
+            results += targetResults
+            return results
+        }
 
         repeat(maximumIterations) {
             val conditionHolds = if (usesLatestResult) {
@@ -161,7 +202,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 (conditionResult as? ExecutionResult.Success)?.typedValue
                     ?.let { it as? SanskritValue.Satya }?.boolean == true
             }
-            if (!conditionHolds) return results
+            if (!conditionHolds) return complete(ExecutionResult.LoopOutcome.VIJAYA)
 
             val bodyInvocation = loop.body as? dev.panini.vyakaranam.ast.Invocation
                 ?: return listOf(
@@ -189,6 +230,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 }
             }
             results += iterationResults
+            iterationCount++
             if (usesLatestResult) {
                 val reportedCondition = iterationResults.asSequence()
                     .filterIsInstance<ExecutionResult.Success>()
@@ -204,7 +246,10 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                     it is ExecutionResult.Success && it.controlSignal == ExecutionControlSignal.BREAK_LOOP
                 }
             ) {
-                return results
+                return complete(ExecutionResult.LoopOutcome.VIJAYA)
+            }
+            if (usesLatestResult && (if (isNegated) latestConditionValue else !latestConditionValue)) {
+                return complete(ExecutionResult.LoopOutcome.VIJAYA)
             }
         }
         if (!isBounded) {
@@ -229,14 +274,24 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 }
                 results += exhaustedResults
             }
+            return complete(ExecutionResult.LoopOutcome.SAMAPTI)
         }
         return results
     }
 
     private fun renderInvocation(invocation: dev.panini.vyakaranam.ast.Invocation): String =
-        invocation.vakya.padas.joinToString(" ") { pada ->
+        renderInvocation(invocation, pipedKarman = null)
+
+    private fun renderInvocation(
+        invocation: dev.panini.vyakaranam.ast.Invocation,
+        pipedKarman: String?,
+    ): String = buildString {
+        if (pipedKarman != null) append("$pipedKarman + अम् ")
+        append(invocation.vakya.padas.joinToString(" ") { pada ->
             pada.sourceText.replace("+", " + ").replace(Regex("\\s+"), " ").trim()
-        } + " ।"
+        })
+        append(" ।")
+    }
 
     private companion object {
         const val MAX_CONDITION_ITERATIONS = 10_000
