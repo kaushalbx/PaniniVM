@@ -30,6 +30,25 @@ The example demonstrates:
 - normal ṣaṣṭhī access through `परिणाम + मतुप् + ङस् अवस्था + अम्`;
 - no explicit variable assignment for the loop outcome.
 
+## Reusable kriyā support
+
+The game uses the reusable `प्रयत्न + ल्युट् + सुँ` saṃjñā-kriyā. PaniniVM also
+supports explicit typed signatures for reusable operations, including named
+parameters, named call-site arguments, and declared result schemas. A typed
+definition can therefore be written as:
+
+```pvm
+परीक्षण + ल्युट् + सुँ ।
+अनुमान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+रहस्य + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+शब्द + सुँ इति परिणाम + सुँ ।
+...
+```
+
+Callers may pass the values positionally or name them with ṣaṣṭhī/dvitīyā
+pairs. This keeps larger game procedures reusable without introducing extra
+temporary variables merely to preserve argument order.
+
 ## Run
 
 From the PaniniVM repository root, build the direct CLI launcher once:

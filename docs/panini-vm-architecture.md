@@ -107,6 +107,24 @@ The currently registered sentence rules are stored in `adhyaya1/pada4/*Sutra.kt`
 
 `.pvm` (PaniniVM) files store sequential Pāṇinian grammatical and semantic program instructions.
 
+### First-class Saṃjñā-Kriyā Definitions
+
+Reusable operations are declared as saṃjñā blocks and registered as semantic
+procedures. Their bodies execute in isolated child scopes and may invoke other
+definitions, including definitions loaded from sibling `.pvm` files.
+
+The signature compiler recognizes named `मान` declarations with individual
+`सङ्ख्या`, `शब्द`, or `सूची` types and either a primitive or named structured
+`परिणाम`. Calls support positional कर्म terms and named ṣaṣṭhī/dvitīyā pairs.
+Dispatch combines अधिकार domains, visibility, precedence, and अन्तरतम typed
+overload matching.
+
+Pipeline execution transports `SanskritValue` instances, not rendered strings,
+between saṃjñā stages. `SanskritValue.Rupa` represents a named structured result
+and preserves typed fields through the sūtra codec and persistent-state codec.
+`SamjnaScriptValidator` checks declarations, calls, pipeline compatibility, and
+schema references without running the program.
+
 ### `PvmUktiSadhaka` (Pāṇinian Grammatical Rūpa-Siddhi)
 The `PvmUktiSadhaka` engine evaluates parsed AST nodes to perform full `rūpa-siddhi` (रूपसिद्धि) on segmented `.pvm` script lines:
 - **`sadhayaSubanta(subantaPada)`**: Binds `MūlaPrātipadika`, `KṛdantaPrātipadika`, `UṇādyantaPrātipadika`, or `SamāsaPrātipadika` with `SupAffix` via `SubantaEngine` to derive exact declension surfaces.

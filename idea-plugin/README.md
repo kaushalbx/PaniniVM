@@ -7,6 +7,9 @@ IntelliJ IDEA plugin integration for PaniniVM.
 Provides IDE integration features:
 - `.pvm` script syntax highlighting and file type recognition.
 - Sūtra reference navigation and derivation inspection.
+- Live saṃjñā-kriyā signature diagnostics for duplicate declarations, argument
+  arity/type errors, unknown or missing named arguments, incompatible typed
+  pipeline stages, and unresolved structured result schemas.
 
 ## Running interactive scripts
 
