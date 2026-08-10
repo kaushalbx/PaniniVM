@@ -9,12 +9,7 @@ import dev.panini.execution.memory.FileKriyaMemoryStore
 import dev.panini.execution.memory.withMemoryId
 import dev.panini.execution.persistence.FileStateStore
 import dev.panini.execution.persistence.StateStore
-import dev.panini.execution.sutra.ProgramAvastha
-import dev.panini.execution.sutra.ProgramBlueprintContext
-import dev.panini.execution.sutra.ProgramBlueprintGranthaEngine
-import dev.panini.execution.sutra.ProgramGranthaExecution
 import dev.panini.execution.sutra.SutraExecutionPipeline
-import dev.panini.sutra.runtime.SutraMachineResult
 import java.io.File
 import java.util.Collections
 import java.util.WeakHashMap
@@ -212,10 +207,11 @@ class PaniniVM(
         invocation, sessionKey, scope, speaker, listener, registry, callerSourceFile,
     )
 
+    private val granthaExecutor by lazy { GranthaExecutor(store, externalDispatcher) }
+
     /**
      * Evaluates canonical, evaluator-free sūtra-grantha source through the
-     * public VM facade. This lets PaniniVM programs consume the same segmented
-     * source representation that the sūtra machine processes.
+     * public VM facade.
      */
     fun evalGrantha(
         source: String,
@@ -223,76 +219,14 @@ class PaniniVM(
         scope: ExecutionScope = defaultScope,
         speaker: String = "प्रयोक्ता",
         listener: String = "यन्त्रम्",
-    ): ExecutionResult {
-        val effectiveScope = scope.copy(
-            stateStore = scope.stateStore ?: store,
-            externalDispatcher = scope.externalDispatcher ?: externalDispatcher,
-        )
-        return when (
-            val execution = ProgramBlueprintGranthaEngine.execute(
-                source,
-                ProgramBlueprintContext(
-                    speaker = speaker,
-                    listener = listener,
-                    text = sourceName,
-                ),
-                effectiveScope,
-                ProgramAvastha(ValueEnvironment()),
-            )
-        ) {
-            is ProgramGranthaExecution.InvalidSource -> ExecutionResult.Failure(
-                ExecutionError.INVALID_VALUE,
-                execution.diagnostics.joinToString("\n") { diagnostic ->
-                    "${diagnostic.code}${diagnostic.position?.let { " at $it" }.orEmpty()}: ${diagnostic.message}"
-                },
-            )
-            is ProgramGranthaExecution.InvalidBlueprint -> ExecutionResult.Failure(
-                ExecutionError.INVALID_VALUE,
-                execution.diagnostics.joinToString("\n") { "${it.code}: ${it.message}" },
-            )
-            is ProgramGranthaExecution.InvalidRuntime -> ExecutionResult.Failure(
-                ExecutionError.INVALID_VALUE,
-                execution.diagnostics.joinToString("\n") { "${it.code}: ${it.message}" },
-            )
-            is ProgramGranthaExecution.Completed -> when (val result = execution.result) {
-                is SutraMachineResult.Failure -> ExecutionResult.Failure(
-                    ExecutionError.ACTION_FAILED,
-                    "Sūtra ${result.failedSutra}: ${result.message}",
-                    result.trace.map { it.toString() },
-                )
-                is SutraMachineResult.Success -> when (val phala = result.state.lastPhala) {
-                    null -> ExecutionResult.Failure(
-                        ExecutionError.INVALID_VALUE,
-                        "Grantha '$sourceName' completed without producing a result.",
-                    )
-                    else -> {
-                        val continuation = dev.panini.execution.sutra.SutraPipelineContinuation(
-                            input = SanskritUktiInput(text = sourceName, speaker = speaker, listener = listener),
-                            conversation = SambhashanaContext(speaker = speaker, listener = listener),
-                            program = execution.program,
-                            state = result.state,
-                        )
-                        val resumable = when (phala) {
-                            is Phala.AnumatiApekshita -> phala.copy(pipelineContinuation = continuation)
-                            is Phala.SvikaraApekshita -> phala.copy(pipelineContinuation = continuation)
-                            else -> phala
-                        }
-                        resumable.toExecutionResult("panini.grantha")
-                    }
-                }
-            }
-        }
-    }
+    ): ExecutionResult = granthaExecutor.eval(source, sourceName, scope, speaker, listener)
 
     fun evalGranthaFile(
         file: File,
         scope: ExecutionScope = defaultScope,
         speaker: String = "प्रयोक्ता",
         listener: String = "यन्त्रम्",
-    ): ExecutionResult {
-        require(file.exists()) { "Sūtra grantha source file not found: ${file.path}" }
-        return evalGrantha(file.readText(), file.name, scope, speaker, listener)
-    }
+    ): ExecutionResult = granthaExecutor.evalFile(file, scope, speaker, listener)
 
     fun evalFile(
         file: File,
@@ -334,36 +268,7 @@ class PaniniVM(
         externalDispatcher.register(effect, handler)
     }
 
-    private fun Phala.toExecutionResult(operation: String): ExecutionResult = when (this) {
-        is Phala.Siddha -> ExecutionResult.Success(
-            value = values.values.lastOrNull() ?: "",
-            operation = operation,
-            trace = trace,
-            typedValue = typedValues.values.lastOrNull(),
-        )
-        is Phala.Asiddha -> result
-        is Phala.AnumatiApekshita -> pipelineContinuation?.let { resumable ->
-            ExecutionResult.NeedsApproval(
-                invocationId = invocationId,
-                requiredEffects = effects,
-                continuation = resumable,
-                trace = continuation.trace,
-            )
-        } ?: ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Approval continuation is unavailable.")
-        is Phala.SvikaraApekshita -> pipelineContinuation?.let { resumable ->
-            ExecutionResult.NeedsAcceptance(
-                invocationId = invocationId,
-                speaker = speaker,
-                listener = listener,
-                continuation = resumable,
-                trace = continuation.trace,
-            )
-        } ?: ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Acceptance continuation is unavailable.")
-        is Phala.Nirasta -> ExecutionResult.Failure(ExecutionError.ACTION_FAILED, reason)
-        else -> ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Execution resulted in $this")
-    }
 }
-
 object VM {
     private val instance by lazy { PaniniVM() }
 
