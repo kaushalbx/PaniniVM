@@ -16,11 +16,8 @@ import com.intellij.openapi.project.Project
 import dev.panini.cli.PaniniCli
 import dev.panini.execution.ExecutionResult
 import com.intellij.execution.configurations.RunConfigurationOptions
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.OutputStream
-import java.io.PipedInputStream
-import java.io.PipedOutputStream
 import java.io.PrintStream
 import java.nio.charset.StandardCharsets
 
@@ -68,24 +65,24 @@ class PvmRunConfiguration(
             val consoleView = TextConsoleBuilderFactory.getInstance().createBuilder(project).console
 
             class PvmProcessHandler : ProcessHandler() {
-                val input = PipedInputStream()
-                private val inputSink = PipedOutputStream(input)
+                private val consoleIo = PvmConsoleIo()
+                val input get() = consoleIo.input
                 @Volatile private var childProcess: Process? = null
 
                 override fun destroyProcessImpl() {
                     childProcess?.destroy()
-                    inputSink.close()
+                    consoleIo.close()
                 }
                 override fun detachProcessImpl() {
                     childProcess = null
-                    inputSink.close()
+                    consoleIo.close()
                 }
                 override fun detachIsDefault(): Boolean = false
-                override fun getProcessInput(): OutputStream = inputSink
+                override fun getProcessInput(): OutputStream = consoleIo.inputSink
 
                 fun terminate(exitCode: Int) {
                     childProcess = null
-                    inputSink.close()
+                    consoleIo.close()
                     notifyProcessTerminated(exitCode)
                 }
 
@@ -94,24 +91,7 @@ class PvmRunConfiguration(
                 }
 
                 fun consoleStream(outputType: com.intellij.openapi.util.Key<*>): PrintStream = PrintStream(
-                    object : OutputStream() {
-                        private val line = ByteArrayOutputStream()
-
-                        override fun write(value: Int) {
-                            line.write(value)
-                            if (value == '\n'.code) flush()
-                        }
-
-                        override fun write(bytes: ByteArray, offset: Int, length: Int) {
-                            repeat(length) { write(bytes[offset + it].toInt()) }
-                        }
-
-                        override fun flush() {
-                            if (line.size() == 0) return
-                            notifyTextAvailable(line.toString(StandardCharsets.UTF_8), outputType)
-                            line.reset()
-                        }
-                    },
+                    consoleIo.output { notifyTextAvailable(it, outputType) },
                     true,
                     StandardCharsets.UTF_8,
                 )
