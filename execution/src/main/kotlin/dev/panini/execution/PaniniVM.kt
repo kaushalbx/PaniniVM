@@ -166,6 +166,8 @@ class PaniniVM(
         memory: KriyaMemory,
     ): SambhashanaTurn = SutraExecutionPipeline.executeTurn(input, context, scope, memory)
 
+    private val scriptExecutor by lazy { PvmScriptExecutor(this) }
+
     fun evalScript(
         scriptContent: String,
         sessionKey: String? = null,
@@ -173,13 +175,8 @@ class PaniniVM(
         speaker: String = "प्रयोक्ता",
         listener: String = "यन्त्रम्",
         samjnaRegistry: SamjnaKriyaRegistry? = null,
-    ): List<ExecutionResult> = evalScriptWithFileContext(
-        scriptContent = scriptContent,
-        sourceFile = null,
-        sessionKey = sessionKey,
-        scope = scope,
-        speaker = speaker,
-        listener = listener,
+    ): List<ExecutionResult> = scriptExecutor.evalScript(
+        scriptContent, sessionKey = sessionKey, scope = scope, speaker = speaker, listener = listener,
         samjnaRegistry = samjnaRegistry,
     )
 
@@ -191,115 +188,9 @@ class PaniniVM(
         speaker: String = "प्रयोक्ता",
         listener: String = "यन्त्रम्",
         samjnaRegistry: SamjnaKriyaRegistry? = null,
-    ): List<ExecutionResult> {
-        val results = mutableListOf<ExecutionResult>()
-        val effectiveSessionKey = sessionKey ?: "script-${System.identityHashCode(scriptContent)}"
-        val parsed = PvmScript.parse(scriptContent)
-
-        val registry = samjnaRegistry ?: SamjnaKriyaRegistry()
-        val isEntryPoint = samjnaRegistry != null
-        val topDomainDefn = parsed.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>().firstOrNull()
-        val topDomainStem = topDomainDefn?.let { deriveSamjnaStem(it.scope.domain) }
-
-        parsed.filterIsInstance<PvmScriptStatement.SamjnaDefinition>().forEach { defn ->
-            val procedure = defn.procedure
-            val stem = deriveSamjnaStem(procedure.name)
-            val domain = procedure.domain ?: deriveDomainStem(procedure.name) ?: topDomainStem
-            registry.register(
-                SamjnaKriya(
-                    nameSegmented = procedure.name,
-                    nameStem = stem,
-                    body = defn.body,
-                    sourceFile = sourceFile,
-                    domainStem = domain,
-                    isApavada = procedure.modifiers.isApavada,
-                    isAntaranga = procedure.modifiers.isAntaranga,
-                    isNitya = procedure.modifiers.isNitya,
-                    isInternal = procedure.modifiers.isInternal,
-                ),
-            )
-        }
-
-        parsed.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>().forEach { adhikara ->
-            val inheritance = TaddhitaInheritanceEngine.detectInheritanceAdhikara(adhikara.scope.domain)
-            if (inheritance != null) {
-                registry.registerInheritance(inheritance)
-            }
-        }
-
-        val effectiveScope = scope.copy(samjnaRegistry = registry)
-        val structStore = mutableMapOf<String, TaddhitaStruct>()
-
-        parsed.filterIsInstance<PvmScriptStatement.Sentence>().forEach { statement ->
-            val constructedStruct = TaddhitaStructEngine.detectStructConstruction(statement.text, statement.ukti)
-            val nestedAttributeAccess = TaddhitaStructEngine.detectNestedAttributeAccess(statement.text, statement.ukti)
-            val pipeline = statement.program as? dev.panini.vyakaranam.ast.Pipeline
-
-            if (constructedStruct != null) {
-                structStore[constructedStruct.nameStem] = constructedStruct
-            } else if (nestedAttributeAccess != null) {
-                val chain = nestedAttributeAccess
-                var currentObj: TaddhitaStruct? = structStore[chain[0]]
-                var resolvedValue: SanskritValue? = null
-                var failedStep: String? = null
-
-                for (i in 1 until chain.size) {
-                    val key = chain[i]
-                    if (currentObj == null) {
-                        failedStep = chain[i - 1]
-                        break
-                    }
-                    val attrVal = currentObj.attributes[key]
-                    if (attrVal != null) {
-                        if (i == chain.size - 1) {
-                            resolvedValue = SanskritValue.of(attrVal)
-                        } else {
-                            currentObj = structStore[attrVal]
-                        }
-                    } else {
-                        if (i == chain.size - 1) {
-                            resolvedValue = SanskritValue.Lopa
-                        } else {
-                            failedStep = key
-                            break
-                        }
-                    }
-                }
-
-                if (resolvedValue != null) {
-                    results += ExecutionResult.Success(
-                        operation = "taddhita.nested_query",
-                        value = resolvedValue.toDisplayText(),
-                        typedValue = resolvedValue,
-                    )
-                } else {
-                    results += ExecutionResult.Failure(
-                        ExecutionError.INVALID_VALUE,
-                        "षष्ठी-असंगतिः: Attribute '$failedStep' not found in nested genitive chain $chain",
-                    )
-                }
-            } else if (pipeline != null) {
-                val pipelineResults = PurvaparaPipelineEngine.executePipeline(
-                    pipeline, this, effectiveSessionKey, effectiveScope, speaker, listener, registry, callerSourceFile = sourceFile,
-                )
-                results += pipelineResults
-            } else {
-                val invocation = registry.detectInvocation(statement.text, callerSourceFile = sourceFile, preParsedUkti = statement.ukti)
-                if (invocation != null) {
-                    val invResults = executeSamjnaInvocation(
-                        invocation, effectiveSessionKey, effectiveScope, speaker, listener, registry, callerSourceFile = sourceFile,
-                    )
-                    val cleanResults = if (invResults.any { it is ExecutionResult.Success }) {
-                        invResults.filter { it is ExecutionResult.Success }
-                    } else invResults
-                    results += cleanResults
-                } else {
-                    results += eval(statement.text, effectiveSessionKey, effectiveScope, speaker, listener, isExecutingScript = true)
-                }
-            }
-        }
-        return results
-    }
+    ): List<ExecutionResult> = scriptExecutor.evalScript(
+        scriptContent, sourceFile, sessionKey, scope, speaker, listener, samjnaRegistry,
+    )
 
     fun evalProject(
         entryFile: File,
@@ -307,59 +198,7 @@ class PaniniVM(
         scope: ExecutionScope = defaultScope,
         speaker: String = "प्रयोक्ता",
         listener: String = "यन्त्रम्",
-    ): List<ExecutionResult> {
-        require(entryFile.exists()) { "PaniniVM entry-point file not found: ${entryFile.absolutePath}" }
-
-        val projectDir = entryFile.parentFile ?: entryFile.absoluteFile.parentFile
-            ?: error("Cannot determine project directory for ${entryFile.path}")
-
-        val libraryFiles = projectDir.walkTopDown()
-            .filter { f -> f.isFile && f.extension == "pvm" && f.canonicalPath != entryFile.canonicalPath }
-            .sortedBy { it.name }
-            .toList()
-
-        val registry = SamjnaKriyaRegistry()
-        for (libFile in libraryFiles) {
-            val parsed = PvmScript.parse(libFile.readText())
-            val fileDomainDefn = parsed.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>().firstOrNull()
-            val fileDomainStem = fileDomainDefn?.let { deriveSamjnaStem(it.scope.domain) }
-
-            parsed.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>().forEach { adhikara ->
-                val inheritance = TaddhitaInheritanceEngine.detectInheritanceAdhikara(adhikara.scope.domain)
-                if (inheritance != null) {
-                    registry.registerInheritance(inheritance)
-                }
-            }
-
-            parsed.filterIsInstance<PvmScriptStatement.SamjnaDefinition>().forEach { defn ->
-                val procedure = defn.procedure
-                val stem = deriveSamjnaStem(procedure.name)
-                val domain = procedure.domain ?: deriveDomainStem(procedure.name) ?: fileDomainStem
-                registry.register(
-                    SamjnaKriya(
-                        nameSegmented = procedure.name,
-                        nameStem = stem,
-                        body = defn.body,
-                        sourceFile = libFile.name,
-                        domainStem = domain,
-                        isApavada = procedure.modifiers.isApavada,
-                        isInternal = procedure.modifiers.isInternal,
-                    ),
-                )
-            }
-        }
-
-        val effectiveSessionKey = sessionKey ?: "project-${entryFile.nameWithoutExtension}-${System.currentTimeMillis()}"
-        return evalScriptWithFileContext(
-            entryFile.readText(),
-            sourceFile = entryFile.name,
-            sessionKey = effectiveSessionKey,
-            scope = scope,
-            speaker = speaker,
-            listener = listener,
-            samjnaRegistry = registry,
-        )
-    }
+    ): List<ExecutionResult> = scriptExecutor.evalProject(entryFile, sessionKey, scope, speaker, listener)
 
     internal fun executeSamjnaInvocation(
         invocation: SamjnaInvocation,
@@ -369,88 +208,9 @@ class PaniniVM(
         listener: String,
         registry: SamjnaKriyaRegistry,
         callerSourceFile: String? = null,
-    ): List<ExecutionResult> {
-        val results = mutableListOf<ExecutionResult>()
-
-        // Extract caller's argument base terms dynamically via SubantaKarakaParser (karma: + अम्)
-        val argTerms = SubantaKarakaParser.extractKarmaTerms(invocation.karmaText, invocation.ukti)
-        // Step 0: Check Memoization Cache for क्त-प्रत्यय Constant Saṃjñās
-        if (invocation.kriya.isMemoized) {
-            val cached = registry.getCachedResult(invocation.kriya.nameStem, invocation.karmaText)
-            if (cached != null) {
-                return listOf(cached)
-            }
-        }
-
-        // Step 1: Evaluate Niṣedha Sūtra & Tva-Pratyaya Type Guard Preconditions
-        invocation.kriya.nishedhaGuards.forEach { guard ->
-            var guardText = guard.text
-            argTerms.forEachIndexed { index, argVal ->
-                guardText = PuranaPratyayaResolver.replacePatterns(guardText, index, argVal)
-            }
-
-            val isProhibited = DynamicNishedhaEvaluator.evaluateProhibition(guardText)
-
-            val requiredType = SamjnaSignatureCompiler.inferGuardType(guardText)
-            val isTypeViolated = requiredType != null &&
-                argTerms.any { SamjnaValueClassifier.classifyTerm(it) != requiredType }
-
-            if (isProhibited || isTypeViolated) {
-                return listOf(
-                    ExecutionResult.Failure(
-                        ExecutionError.ACTION_FAILED,
-                        "निषेध-प्रतिषेधः: Prohibition triggered by '${guard.text.trim()}'",
-                    ),
-                )
-            }
-        }
-
-        // Step 2: Create isolated Child Scope (वातावरण-सीमा) for local saṃjñā execution
-        val childEnvironment = ValueEnvironment(scope.environment.values)
-        var childScope = scope.copy(environment = childEnvironment)
-
-        // Step 3: Execute Vidhi Sūtra (Mandate) sentences inside childScope
-        invocation.kriya.vidhiSentences.forEach { bodySentence ->
-            var sentenceText = bodySentence.text
-
-            // Substitute explicit parameter names (प्रथ् + अमच् + अम्, द्वि + तीय + अम्, प्रथम, द्वितीय...)
-            argTerms.forEachIndexed { index, argVal ->
-                sentenceText = PuranaPratyayaResolver.replacePatterns(sentenceText, index, argVal)
-            }
-
-            sentenceText = SamavayaParameterResolver.replace(sentenceText, invocation.karmaText)
-
-            // Sibling body invocations inside a saṃjñā pass the saṃjñā's own sourceFile
-            val kriyaSourceFile = invocation.kriya.sourceFile ?: callerSourceFile
-            val bodyInvocation = registry.detectInvocation(sentenceText, callerSourceFile = kriyaSourceFile)
-            if (bodyInvocation != null) {
-                results += executeSamjnaInvocation(
-                    bodyInvocation, sessionKey, childScope, speaker, listener, registry, callerSourceFile = kriyaSourceFile,
-                )
-            } else {
-                val stepResults = eval(sentenceText, sessionKey, childScope, speaker, listener)
-                results += stepResults
-            }
-        }
-
-        if (invocation.kriya.isMemoized && results.isNotEmpty()) {
-            val lastRes = results.last()
-            if (lastRes is ExecutionResult.Success) {
-                registry.cacheResult(invocation.kriya.nameStem, invocation.karmaText, lastRes)
-            }
-        }
-
-        return results
-    }
-
-    private fun deriveSamjnaStem(nameSegmented: String): String {
-        return requireNotNull(SamjnaHeaderIdentityParser.parse(nameSegmented)) {
-            "Unable to parse saṃjñā header identity: $nameSegmented"
-        }.operationStem
-    }
-
-    private fun deriveDomainStem(nameSegmented: String): String? =
-        SamjnaHeaderIdentityParser.parse(nameSegmented)?.domainStem
+    ): List<ExecutionResult> = scriptExecutor.executeSamjnaInvocation(
+        invocation, sessionKey, scope, speaker, listener, registry, callerSourceFile,
+    )
 
     /**
      * Evaluates canonical, evaluator-free sūtra-grantha source through the
