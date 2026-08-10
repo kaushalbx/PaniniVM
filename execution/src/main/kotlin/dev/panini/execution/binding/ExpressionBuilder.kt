@@ -38,7 +38,8 @@ internal object ExpressionBuilder {
         val isPhalaReference = PhalaReference.isReference(pada)
         var resolvedId: String? = null
 
-        if (ctx.conversation?.previousTypedResults?.containsKey(text) == true ||
+        if (ctx.environment.values.containsKey(text) ||
+            ctx.conversation?.previousTypedResults?.containsKey(text) == true ||
             ctx.conversation?.previousResults?.containsKey(text) == true ||
             ctx.localVariables.contains(text)
         ) {

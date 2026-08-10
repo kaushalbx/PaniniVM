@@ -126,4 +126,40 @@ class ConditionControlledLoopTest {
         assertEquals(OutputKind.CONSOLE, printed.outputKind)
         assertEquals("जय", printed.value, results.toString())
     }
+
+    @Test
+    fun `nested structured attribute remains typed inside a condition`() {
+        val results = PaniniVM().evalScript(
+            """
+            प्रयत्न + ल्युट् + सुँ ।
+            एक + अम् द्वि + अम् च विद् + लोट् + सिप् ॥
+            त्रि + कृत्वः यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
+            परिणाम + अम् फलित + अम् क्रीडा + मतुप् + सुँ ।
+            यदि क्रीडा + मतुप् + ङस् फलित + मतुप् + ङस् प्रयत्नसङ्ख्या + अम् द्वि + अम् च विद् + लोट् + सिप् तर्हि जय + अम् मुद्र् + लोट् + सिप् अन्यथा पराजय + अम् मुद्र् + लोट् + सिप् ।
+            """.trimIndent(),
+        )
+
+        val printed = results.filterIsInstance<ExecutionResult.Success>()
+            .single { it.outputKind == OutputKind.CONSOLE }
+        assertEquals("जय", printed.value, results.toString())
+    }
+
+    @Test
+    fun `attribute result flows through multiple typed tatah stages`() {
+        val results = PaniniVM().evalScript(
+            """
+            प्रयत्न + ल्युट् + सुँ ।
+            एक + अम् द्वि + अम् च विद् + लोट् + सिप् ॥
+            त्रि + कृत्वः यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
+            परिणाम + मतुप् + ङस् प्रयत्नसङ्ख्या + अम् ततः द्वि + अम् च गण् + णिच् + लोट् + सिप् ततः मुद्र् + लोट् + सिप् ।
+            """.trimIndent(),
+        )
+
+        val printed = results.filterIsInstance<ExecutionResult.Success>()
+            .single { it.outputKind == OutputKind.CONSOLE }
+        val number = assertIs<SanskritValue.Sankhya>(printed.typedValue)
+        assertEquals(6, number.value)
+        assertEquals("षट्", printed.value)
+        assertTrue(results.none { it is ExecutionResult.Failure }, results.toString())
+    }
 }

@@ -25,7 +25,8 @@ ukti
     ;
 
 attributePipelineClause
-    : source+=subantaPada source+=subantaPada+ TATAH target=akhyataVakya DANDA? EOF
+    : source+=subantaPada source+=subantaPada+
+      TATAH targets+=akhyataVakya (TATAH targets+=akhyataVakya)* DANDA? EOF
     ;
 
 whileClause

@@ -33,7 +33,7 @@ object SutraExecutionPipeline {
         memory: KriyaMemory = KriyaMemory(),
     ): Phala {
         initialize()
-        return when (val binding = VyakaranamExecutionAdapter.bind(input, conversation, memory)) {
+        return when (val binding = VyakaranamExecutionAdapter.bind(input, conversation, memory, scope.environment)) {
             is ExecutionBindingResult.Bound -> {
                 val phala = execute(binding.ukti, conversation, scope, memory)
                     .prependTrace(binding.trace)

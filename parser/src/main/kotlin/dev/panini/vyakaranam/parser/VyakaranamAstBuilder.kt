@@ -63,11 +63,11 @@ class VyakaranamAstBuilder {
             sourceText = sourcePadas.joinToString("") { it.sourceText },
             padas = sourcePadas,
         ))
-        val target = Invocation(buildAkhyataVakya(requireNotNull(context.target)))
+        val targets = context.targets.map { Invocation(buildAkhyataVakya(it)) }
         return Sequence(
             sourceText = context.text,
-            statements = listOf(source, target),
-            connectors = listOf("ततः"),
+            statements = listOf(source) + targets,
+            connectors = List(targets.size) { "ततः" },
         )
     }
 

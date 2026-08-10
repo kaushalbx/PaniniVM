@@ -4,6 +4,7 @@ import dev.panini.analysis.KriyaFrame
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.execution.SambhashanaContext
 import dev.panini.execution.memory.KriyaMemory
+import dev.panini.execution.ValueEnvironment
 
 /**
  * Immutable context for a single kāraka-binding pass over one clause.
@@ -29,4 +30,6 @@ internal data class BindingContext(
     val localVariables: Set<String> = emptySet(),
     /** Maps each local variable name to the invocation id that produced it. */
     val localVariableInvocationIds: Map<String, String> = emptyMap(),
+    /** Typed operands supplied directly by the execution scope. */
+    val environment: ValueEnvironment = ValueEnvironment(),
 )

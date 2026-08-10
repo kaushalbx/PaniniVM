@@ -146,6 +146,20 @@ class ProgramAstTest {
     }
 
     @Test
+    fun `attribute pipeline retains every tatah stage`() {
+        val sequence = assertIs<Sequence>(
+            parser.parse(
+                "परिणाम + मतुप् + ङस् प्रयत्नसङ्ख्या + अम् " +
+                    "ततः द्वि + अम् च गण् + णिच् + लोट् + सिप् " +
+                    "ततः मुद्र् + लोट् + सिप् ।",
+            ).body,
+        )
+
+        assertEquals(3, sequence.statements.size)
+        assertEquals(listOf("ततः", "ततः"), sequence.connectors)
+    }
+
+    @Test
     fun `conditional arms may be bare nominal values`() {
         val conditional = assertIs<Conditional>(
             parser.parse(
