@@ -49,6 +49,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             val attributePipeline = detectAttributePipeline(statement.program)
             val pipeline = statement.program as? dev.panini.vyakaranam.ast.Pipeline
             val whileLoop = statement.program as? WhileLoop
+            val conditional = statement.program as? dev.panini.vyakaranam.ast.Conditional
 
             when {
                 constructedStruct != null -> structStore[constructedStruct.nameStem] = constructedStruct
@@ -71,6 +72,13 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                     structStore,
                     onResult,
                 ).also(results::addAll)
+                conditional != null && containsAttributeCondition(conditional) -> {
+                    val result = executeAttributeConditional(
+                        conditional, structStore, effectiveSessionKey, effectiveScope, speaker, listener,
+                    )
+                    results += result
+                    onResult?.invoke(result)
+                }
                 pipeline != null -> PurvaparaPipelineEngine.executePipeline(
                     pipeline, vm, effectiveSessionKey, effectiveScope, speaker, listener, registry,
                     callerSourceFile = sourceFile,
@@ -116,6 +124,116 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             }
         }
         return results
+    }
+
+    private fun containsAttributeCondition(
+        conditional: dev.panini.vyakaranam.ast.Conditional,
+    ): Boolean = ((conditional.condition as? dev.panini.vyakaranam.ast.Invocation)?.vakya
+        ?.let(TaddhitaStructEngine::detectAttributeReference) != null) ||
+        (conditional.alternate as? dev.panini.vyakaranam.ast.Conditional)
+            ?.let(::containsAttributeCondition) == true
+
+    private fun executeAttributeConditional(
+        conditional: dev.panini.vyakaranam.ast.Conditional,
+        structStore: Map<String, TaddhitaStruct>,
+        sessionKey: String,
+        scope: ExecutionScope,
+        speaker: String,
+        listener: String,
+    ): ExecutionResult {
+        val resolved = resolveAttributeConditions(conditional, structStore)
+            ?: return ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                "A structured attribute used by the condition could not be resolved.",
+            )
+        return vm.eval(
+            renderConditionalSegmented(resolved) + " ।",
+            sessionKey,
+            scope,
+            speaker,
+            listener,
+            isExecutingScript = true,
+        )
+    }
+
+    private fun resolveAttributeConditions(
+        conditional: dev.panini.vyakaranam.ast.Conditional,
+        structStore: Map<String, TaddhitaStruct>,
+    ): dev.panini.vyakaranam.ast.Conditional? {
+        val conditionInvocation = conditional.condition as? dev.panini.vyakaranam.ast.Invocation ?: return null
+        val condition = replaceAttributeReference(conditionInvocation, structStore) ?: return null
+        val alternate = conditional.alternate?.let { node ->
+            if (node is dev.panini.vyakaranam.ast.Conditional) {
+                resolveAttributeConditions(node, structStore) ?: return null
+            } else {
+                node
+            }
+        }
+        return conditional.copy(condition = condition, alternate = alternate)
+    }
+
+    private fun replaceAttributeReference(
+        invocation: dev.panini.vyakaranam.ast.Invocation,
+        structStore: Map<String, TaddhitaStruct>,
+    ): dev.panini.vyakaranam.ast.Invocation? {
+        var current = invocation
+        while (true) {
+            val reference = TaddhitaStructEngine.detectAttributeReference(current.vakya)
+                ?: return current
+            val resolved = resolveNestedAttribute(reference.access, structStore) as? ExecutionResult.Success
+                ?: return null
+            val replacement = dev.panini.vyakaranam.parser.PaniniParser().parse(
+                "${resolved.value} + ${reference.access.resultAffix.upadesha} ।",
+            ).grammaticalVakyas().single().padas.single()
+            val padas = current.vakya.padas.toMutableList().apply {
+                subList(reference.padaRange.first, reference.padaRange.last + 1).clear()
+                add(reference.padaRange.first, replacement)
+            }
+            val vakya = current.vakya as? dev.panini.vyakaranam.ast.AkhyataVakya ?: return null
+            current = current.copy(vakya = vakya.copy(padas = padas))
+        }
+    }
+
+    private fun renderConditionalSegmented(
+        conditional: dev.panini.vyakaranam.ast.Conditional,
+        includePipelineTarget: Boolean = true,
+    ): String = buildString {
+        val hasSharedTarget = includePipelineTarget && conditional.surfacePipelineTarget != null
+        val stripLoweredTargets = hasSharedTarget || !includePipelineTarget
+        append("यदि ")
+        append(renderProgramSegmented(conditional.condition))
+        append(" तर्हि ")
+        append(renderConditionalBranch(conditional.consequent, stripLoweredTargets))
+        conditional.alternate?.let {
+            append(" अन्यथा ")
+            append(renderConditionalBranch(it, stripLoweredTargets))
+        }
+        if (hasSharedTarget) {
+            append(" ततः ")
+            append(renderProgramSegmented(requireNotNull(conditional.surfacePipelineTarget)))
+        }
+    }
+
+    private fun renderConditionalBranch(
+        node: dev.panini.vyakaranam.ast.ProgramNode,
+        stripPipelineTarget: Boolean,
+    ): String = when {
+        !stripPipelineTarget -> renderProgramSegmented(node)
+        node is dev.panini.vyakaranam.ast.Conditional -> renderConditionalSegmented(node, false)
+        node is dev.panini.vyakaranam.ast.Sequence && node.connectors.lastOrNull() == "ततः" ->
+            renderProgramSegmented(node.statements.first())
+        else -> renderProgramSegmented(node)
+    }
+
+    private fun renderProgramSegmented(node: dev.panini.vyakaranam.ast.ProgramNode): String = when (node) {
+        is dev.panini.vyakaranam.ast.Invocation -> node.implicitValue
+            ?: node.vakya.padas.joinToString(" ") { it.sourceText }
+        is dev.panini.vyakaranam.ast.Sequence -> node.statements.mapIndexed { index, statement ->
+            val connector = if (index == 0) "" else "${node.connectors.getOrNull(index - 1) ?: "।"} "
+            connector + renderProgramSegmented(statement)
+        }.joinToString(" ")
+        is dev.panini.vyakaranam.ast.Conditional -> renderConditionalSegmented(node)
+        else -> node.sourceText
     }
 
     private fun executeWhileLoop(
@@ -212,8 +330,13 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             val conditionHolds = if (usesLatestResult) {
                 if (isNegated) !latestConditionValue else latestConditionValue
             } else {
+                val resolvedCondition = replaceAttributeReference(loop.condition, structStore)
+                    ?: return results + ExecutionResult.Failure(
+                        ExecutionError.INVALID_VALUE,
+                        "A structured attribute used by the loop condition could not be resolved.",
+                    )
                 val conditionResult = vm.eval(
-                    renderInvocation(loop.condition),
+                    renderInvocation(resolvedCondition),
                     sessionKey,
                     scope,
                     speaker,
@@ -618,52 +741,13 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         number: SanskritValue.Sankhya,
         affix: dev.panini.core.SupAffix,
     ): SanskritValue.Sankhya {
-        val naturalVacana = when (number.value) {
-            1L -> dev.panini.core.Vacana.EKAVACANA
-            2L -> dev.panini.core.Vacana.DVIVACANA
-            else -> dev.panini.core.Vacana.BAHUVACANA
-        }
-        if (affix.vacana != naturalVacana) return number
-        val surface = numeralSurface(number.value, number.word, affix)
+        val surface = dev.panini.sankhya.SankhyaDeclension.decline(
+            number.value,
+            affix.vibhakti,
+            affix.vacana,
+            number.word,
+        )
         return number.copy(word = surface)
-    }
-
-    private fun numeralSurface(
-        number: Long,
-        stem: String,
-        affix: dev.panini.core.SupAffix,
-    ): String = when (number) {
-        2L -> when (affix.vibhakti) {
-            dev.panini.core.Vibhakti.PRATHAMA, dev.panini.core.Vibhakti.DVITIYA -> "द्वे"
-            dev.panini.core.Vibhakti.TRTIYA,
-            dev.panini.core.Vibhakti.CHATURTHI,
-            dev.panini.core.Vibhakti.PANCHAMI -> "द्वाभ्याम्"
-            dev.panini.core.Vibhakti.SASTHI, dev.panini.core.Vibhakti.SAPTAMI -> "द्वयोः"
-        }
-        3L -> pluralNumeralSurface("त्रीणि", "त्रिभिः", "त्रिभ्यः", "त्रयाणाम्", "त्रिषु", affix)
-        4L -> pluralNumeralSurface("चत्वारि", "चतुर्भिः", "चतुर्भ्यः", "चतुर्णाम्", "चतुर्षु", affix)
-        5L -> pluralNumeralSurface("पञ्च", "पञ्चभिः", "पञ्चभ्यः", "पञ्चानाम्", "पञ्चसु", affix)
-        6L -> pluralNumeralSurface("षट्", "षड्भिः", "षड्भ्यः", "षण्णाम्", "षट्सु", affix)
-        7L -> pluralNumeralSurface("सप्त", "सप्तभिः", "सप्तभ्यः", "सप्तानाम्", "सप्तसु", affix)
-        8L -> pluralNumeralSurface("अष्ट", "अष्टाभिः", "अष्टाभ्यः", "अष्टानाम्", "अष्टासु", affix)
-        9L -> pluralNumeralSurface("नव", "नवभिः", "नवभ्यः", "नवानाम्", "नवसु", affix)
-        10L -> pluralNumeralSurface("दश", "दशभिः", "दशभ्यः", "दशानाम्", "दशसु", affix)
-        else -> deriveSubantaSurface(stem, affix)
-    }
-
-    private fun pluralNumeralSurface(
-        nominativeAccusative: String,
-        instrumental: String,
-        dativeAblative: String,
-        genitive: String,
-        locative: String,
-        affix: dev.panini.core.SupAffix,
-    ): String = when (affix.vibhakti) {
-        dev.panini.core.Vibhakti.PRATHAMA, dev.panini.core.Vibhakti.DVITIYA -> nominativeAccusative
-        dev.panini.core.Vibhakti.TRTIYA -> instrumental
-        dev.panini.core.Vibhakti.CHATURTHI, dev.panini.core.Vibhakti.PANCHAMI -> dativeAblative
-        dev.panini.core.Vibhakti.SASTHI -> genitive
-        dev.panini.core.Vibhakti.SAPTAMI -> locative
     }
 
     private fun deriveSubantaSurface(

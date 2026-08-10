@@ -33,6 +33,11 @@ data class TaddhitaAttributeAccess(
     val resultAffix: SupAffix,
 )
 
+data class TaddhitaAttributeReference(
+    val access: TaddhitaAttributeAccess,
+    val padaRange: IntRange,
+)
+
 object TaddhitaStructEngine {
 
     private val parser = PaniniParser()
@@ -90,6 +95,23 @@ object TaddhitaStructEngine {
         return (receivers + key.stemIdentity()).takeIf { receivers.isNotEmpty() }?.let {
             TaddhitaAttributeAccess(it, affix)
         }
+    }
+
+    /** Finds a leading genitive attribute expression embedded in a verbal condition. */
+    fun detectAttributeReference(vakya: Vakya): TaddhitaAttributeReference? {
+        val padas = vakya.padas
+        val receiverIndices = padas.indices.filter { index ->
+            val pada = padas[index] as? SubantaPada
+            pada?.vibhakti() == Vibhakti.SASTHI && pada.pratipadika.isMatup()
+        }
+        val first = receiverIndices.firstOrNull() ?: return null
+        var lastReceiver = first
+        while (lastReceiver + 1 in receiverIndices) lastReceiver++
+        val keyIndex = (lastReceiver + 1..padas.lastIndex).firstOrNull {
+            padas[it] is SubantaPada
+        } ?: return null
+        val access = detectAttributeAccess(padas.subList(first, keyIndex + 1)) ?: return null
+        return TaddhitaAttributeReference(access, first..keyIndex)
     }
 
     /**

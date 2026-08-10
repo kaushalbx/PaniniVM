@@ -109,4 +109,21 @@ class ConditionControlledLoopTest {
         assertEquals(3, assertIs<SanskritValue.Sankhya>(printed.typedValue).value)
         assertTrue(results.none { it is ExecutionResult.Failure }, results.toString())
     }
+
+    @Test
+    fun `structured attribute may participate directly in a condition`() {
+        val results = PaniniVM().evalScript(
+            """
+            प्रयत्न + ल्युट् + सुँ ।
+            एक + अम् द्वि + अम् च विद् + लोट् + सिप् ॥
+            त्रि + कृत्वः यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
+            यदि परिणाम + मतुप् + ङस् प्रयत्नसङ्ख्या + अम् द्वि + अम् च विद् + लोट् + सिप् तर्हि जय + अम् मुद्र् + लोट् + सिप् अन्यथा पराजय + अम् मुद्र् + लोट् + सिप् ।
+            """.trimIndent(),
+        )
+
+        val printed = results.filterIsInstance<ExecutionResult.Success>()
+            .single { it.outputKind == OutputKind.CONSOLE }
+        assertEquals(OutputKind.CONSOLE, printed.outputKind)
+        assertEquals("जय", printed.value, results.toString())
+    }
 }
