@@ -107,6 +107,7 @@ subantaVakyaPada
 vakyaSambandha
     : CHA
     | VAA
+    | ITI
     | ATHA
     | TATAH
     | ANANTARAM

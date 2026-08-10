@@ -11,6 +11,7 @@ The example demonstrates:
 - numeric input with `ग्रह्` and the `सङ्ख्या` type marker;
 - the same inline range cases reused as input bounds;
 - dynamic instruction rendering from segmented ablative and locative bounds;
+- grammatical `… इति मुद्र्` quotation without treating the quoted verb as `कर्मन्`;
 - one persistent variable, `रहस्य`, assigned with `दा`;
 - direct use of each action's latest `फल`, without a temporary guess variable;
 - direct `ततः` result piping into a following action's missing `कर्मन्`;

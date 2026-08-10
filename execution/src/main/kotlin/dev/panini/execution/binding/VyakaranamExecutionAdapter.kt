@@ -2,6 +2,10 @@ package dev.panini.execution.binding
 
 import dev.panini.core.Karaka
 import dev.panini.core.Lakara
+import dev.panini.core.SupAffix
+import dev.panini.core.Vibhakti
+import dev.panini.derivation.SubantaDerivationRequest
+import dev.panini.derivation.SubantaEngine
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.execution.DhatuInvocation
 import dev.panini.execution.ExecutableUkti
@@ -39,8 +43,10 @@ import dev.panini.vyakaranam.ast.Repeat
 import dev.panini.vyakaranam.ast.SankhyaAbhyasaPada
 import dev.panini.vyakaranam.ast.Sequence
 import dev.panini.vyakaranam.ast.Scope
+import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.Ukti
+import dev.panini.vyakaranam.ast.Vakya
 import dev.panini.vyakaranam.ast.expandedInvocations
 import dev.panini.vyakaranam.ast.accept
 import dev.panini.vyakaranam.lexicon.PratipadikaEntry
@@ -110,23 +116,25 @@ object VyakaranamExecutionAdapter {
         } catch (e: PaniniParseException) {
             return ExecutionBindingResult.Invalid(e.message ?: "Invalid annotated Sanskrit morphology.")
         }
+        val quotation = extractQuotation(ukti.body)
+        val executableUkti = quotation?.let { ukti.copy(body = it.reporting) } ?: ukti
 
         var listener = input.listener
-        ukti.sambodhana?.subanta?.pratipadika?.baseText()?.let { addressed ->
+        executableUkti.sambodhana?.subanta?.pratipadika?.baseText()?.let { addressed ->
             if (!input.listener.startsWith(addressed)) listener = addressed
         }
 
         if (input.speaker != conversation.speaker) {
             return ExecutionBindingResult.Invalid("Utterance speaker does not match the trusted conversation context.")
         }
-        val unresolved = ukti.grammaticalVakyas().filterIsInstance<AkhyataVakya>()
+        val unresolved = executableUkti.grammaticalVakyas().filterIsInstance<AkhyataVakya>()
             .firstOrNull { DhatuCache.resolve(it.tinganta) == null }
         if (unresolved != null) {
             return ExecutionBindingResult.Invalid(
                 "Unknown verbal action/dhātu: ${unresolved.tinganta.sourceText}",
             )
         }
-        val utteranceAnalysis = analyze(ukti)
+        val utteranceAnalysis = analyze(executableUkti)
 
         val invocations = mutableListOf<DhatuInvocation>()
         val qualificationKinds = utteranceAnalysis.frames
@@ -138,7 +146,7 @@ object VyakaranamExecutionAdapter {
         val localVariableInvocationIds = mutableMapOf<String, String>()
 
         // An explicit abhyāsa count applies to the complete utterance.
-        val abhyasaCounts = ukti.grammaticalVakyas().flatMap { vakya ->
+        val abhyasaCounts = executableUkti.grammaticalVakyas().flatMap { vakya ->
             vakya.padas.filterIsInstance<SankhyaAbhyasaPada>().mapNotNull { pada ->
                 val numStems = FrequencyExtractor.numericStems(pada.stems)
                 val evaluated = if (numStems.isNotEmpty()) {
@@ -150,8 +158,8 @@ object VyakaranamExecutionAdapter {
             }
         }
         val executionBody = abhyasaCounts.maxOrNull()?.let { count ->
-            Repeat(ukti.body.sourceText, count, ukti.body)
-        } ?: lowerFrequencyQualifiers(ukti.body, utteranceAnalysis)
+            Repeat(executableUkti.body.sourceText, count, executableUkti.body)
+        } ?: lowerFrequencyQualifiers(executableUkti.body, utteranceAnalysis)
         val executionVakyas = executionBody.expandedInvocations().map(Invocation::vakya)
         val pipelineKarmanSources = pipelineKarmanSources(executionBody)
 
@@ -185,6 +193,7 @@ object VyakaranamExecutionAdapter {
                 listener = listener,
                 prayer = prayer,
                 pipelineKarmanSource = pipelineKarmanSources[index + 1],
+                quotedVakya = quotation?.quoted?.vakya,
             )
             invocations += invocation
             val bindingKaraka = dhatu.operations.firstOrNull { it.resultBindingKaraka != null }?.resultBindingKaraka
@@ -195,7 +204,7 @@ object VyakaranamExecutionAdapter {
             }
         }
 
-        val lakara = ukti.grammaticalVakyas().filterIsInstance<AkhyataVakya>().firstOrNull()?.tinganta?.lakara
+        val lakara = executableUkti.grammaticalVakyas().filterIsInstance<AkhyataVakya>().firstOrNull()?.tinganta?.lakara
         val purpose = when {
             prohibition -> VakyaPrayojana.NISHEDHA
             prayer -> VakyaPrayojana.PRARTHANA
@@ -262,9 +271,15 @@ object VyakaranamExecutionAdapter {
         listener: String,
         prayer: Boolean,
         pipelineKarmanSource: Int?,
+        quotedVakya: Vakya?,
     ): DhatuInvocation {
         val extracted = KarakaExtractor.extractKarakas(padas, ctx)
         val bindings = extracted.bindings.toMutableMap()
+        if (quotedVakya != null) {
+            bindQuotation(quotedVakya, ctx).forEach { (karaka, expression) ->
+                bindings.putIfAbsent(karaka, expression)
+            }
+        }
         if (pipelineKarmanSource != null && Karaka.KARMAN !in bindings) {
             bindings[Karaka.KARMAN] = ExecutionExpression.Reference(
                 KriyaInvocationId.of(pipelineKarmanSource),
@@ -298,6 +313,48 @@ object VyakaranamExecutionAdapter {
                 emptyList()
             },
         )
+    }
+
+    private data class Quotation(val quoted: Invocation, val reporting: Invocation)
+
+    /** Recognizes one complete command followed by इति and a reporting command. */
+    private fun extractQuotation(root: ProgramNode): Quotation? {
+        val sequence = root as? Sequence ?: return null
+        if (sequence.statements.size != 2 || sequence.connectors != listOf("इति")) return null
+        return Quotation(
+            quoted = sequence.statements.first() as? Invocation ?: return null,
+            reporting = sequence.statements.last() as? Invocation ?: return null,
+        )
+    }
+
+    /** Converts the quoted command to printable operands without scheduling its verb. */
+    private fun bindQuotation(vakya: Vakya, ctx: BindingContext): Map<Karaka, ExecutionExpression> {
+        val extracted = KarakaExtractor.extractKarakas(vakya.padas, ctx)
+        val transferable = extracted.bindings.filterKeys { it in setOf(Karaka.APADANA, Karaka.ADHIKARANA) }
+        val words = vakya.padas.filterIsInstance<SubantaPada>()
+            .filter { pada ->
+                SupAffix.candidates(pada.sup.text).any { it.vibhakti == Vibhakti.DVITIYA }
+            }
+            .map { pada ->
+                val stem = pada.pratipadika.baseText()
+                val affix = SupAffix.candidates(pada.sup.text)
+                    .first { it.vibhakti == Vibhakti.DVITIYA }
+                val surface = runCatching {
+                    SubantaEngine().derive(
+                        SubantaDerivationRequest(stem, affix.vibhakti, affix.vacana),
+                    ).final.surface
+                }.getOrDefault(stem)
+                ExecutionExpression.Pada(surface)
+            }.toMutableList<ExecutionExpression>()
+        (vakya as? AkhyataVakya)?.tinganta?.dhatu?.mulaDhatu?.let { verb ->
+            words += ExecutionExpression.Pada(verb)
+        }
+        val karman = when (words.size) {
+            0 -> null
+            1 -> words.single()
+            else -> ExecutionExpression.Coordination(words)
+        }
+        return transferable + listOfNotNull(karman?.let { Karaka.KARMAN to it })
     }
 
     /** Maps a ततः target invocation to the single invocation that immediately precedes it. */

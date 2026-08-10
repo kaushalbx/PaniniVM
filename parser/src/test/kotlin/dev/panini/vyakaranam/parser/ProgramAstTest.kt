@@ -26,6 +26,17 @@ class ProgramAstTest {
     }
 
     @Test
+    fun `iti connects a quoted command to its reporting command`() {
+        val ukti = parser.parse(
+            "सङ्ख्या + अम् अनुमिनु + लोट् + सिप् इति मुद्र् + णिच् + लोट् + सिप् ।",
+        )
+
+        val sequence = assertIs<Sequence>(ukti.body)
+        assertEquals(listOf("इति"), sequence.connectors)
+        assertEquals(2, sequence.statements.size)
+    }
+
+    @Test
     fun `conditional owns explicit condition and branches`() {
         val ukti = parser.parse(
             "यदि राम + सुँ भू + लट् + तिप् तर्हि फल + अम् खाद् + लट् + तिप् " +
