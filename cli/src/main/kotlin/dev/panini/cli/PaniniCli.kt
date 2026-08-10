@@ -7,9 +7,9 @@ import dev.panini.execution.ExecutionEffect
 import dev.panini.execution.ExecutionError
 import dev.panini.execution.InputRequest
 import dev.panini.execution.InputValueType
+import dev.panini.execution.InputValidation
 import dev.panini.execution.PaniniVM
 import dev.panini.execution.OutputKind
-import dev.panini.execution.toInputLongOrNull
 import dev.panini.aryabhatiya.AryabhatiyaDecoder
 import dev.panini.aryabhatiya.AryabhatiyaEncoder
 import dev.panini.aryabhatiya.AryabhatiyaMapping
@@ -45,15 +45,22 @@ class PaniniCli(
 
     private fun readInteractiveValue(request: InputRequest): String {
         while (true) {
-            val typeHint = if (request.type == InputValueType.NUMBER) " (number)" else ""
+            val typeHint = when (request.type) {
+                InputValueType.TEXT -> ""
+                InputValueType.NUMBER -> " (number)"
+                InputValueType.BOOLEAN -> " (boolean)"
+                InputValueType.CHOICE -> " (${request.choices.joinToString("/")})"
+            }
             outputStream.println("Enter value for ${request.variableName}$typeHint:")
             outputStream.flush()
             val value = when (val response = readResponse()) {
                 is InputResponse.Value -> response.text
                 else -> throw InteractiveInputTerminated(response, request.variableName)
             }
-            if (request.type != InputValueType.NUMBER || value.toInputLongOrNull() != null) return value
-            outputStream.println("Invalid number '$value'. Enter ASCII or Devanagari digits.")
+            when (val validation = request.validate(value)) {
+                is InputValidation.Valid -> return validation.value
+                is InputValidation.Invalid -> outputStream.println(validation.message)
+            }
         }
     }
 

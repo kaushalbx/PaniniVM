@@ -11,6 +11,7 @@ import dev.panini.execution.InputValueType
 import dev.panini.execution.SanskritValue
 import dev.panini.execution.renderSankhyaResult
 import dev.panini.execution.toInputLongOrNull
+import dev.panini.execution.toInputBooleanOrNull
 
 /** Standard Console Input Action (triggered by ग्रह् / गृह्णीहि). */
 object ReadAction : dev.panini.execution.DhatuAction("स्वीकरणम्", "निवेशस्य स्वीकरणम्") {
@@ -19,18 +20,38 @@ object ReadAction : dev.panini.execution.DhatuAction("स्वीकरणम�
         val operands = expression?.let(context::resolve).orEmpty()
         val variableName = operands.firstOrNull() ?: "आगतम्"
         val typeNames = context.bindings[Karaka.SAMPRADANA]?.let(context::resolve).orEmpty()
-        val inputType = if (typeNames.any { it in numericTypeNames }) InputValueType.NUMBER else InputValueType.TEXT
+        val inputType = when {
+            typeNames.any { it in numericTypeNames } -> InputValueType.NUMBER
+            typeNames.any { it in booleanTypeNames } -> InputValueType.BOOLEAN
+            typeNames.any { it in choiceTypeNames } -> InputValueType.CHOICE
+            else -> InputValueType.TEXT
+        }
+        val choices = if (inputType == InputValueType.CHOICE) {
+            typeNames.filterNot { it in choiceTypeNames }.distinct()
+        } else {
+            emptyList()
+        }
+        if (inputType == InputValueType.CHOICE && choices.isEmpty()) {
+            return ExecutionResult.Failure(
+                dev.panini.execution.ExecutionError.INVALID_VALUE,
+                "Choice input for $variableName must declare at least one allowed value.",
+            )
+        }
         val readValue = context.externalDispatcher
-            ?.dispatchOrNull(ExecutionEffect.READ_RESOURCE, InputRequest(variableName, inputType).encode())
+            ?.dispatchOrNull(ExecutionEffect.READ_RESOURCE, InputRequest(variableName, inputType, choices).encode())
             ?.trimEnd('\r', '\n')
             ?: "स्वीकृतम्"
-        val typedValue = if (inputType == InputValueType.NUMBER) {
-            readValue.toSankhyaOrNull(context) ?: return ExecutionResult.Failure(
-                dev.panini.execution.ExecutionError.INVALID_VALUE,
-                "Input for $variableName must be a number.",
+        val typedValue = when (inputType) {
+            InputValueType.NUMBER -> readValue.toSankhyaOrNull(context) ?: return ExecutionResult.Failure(
+                dev.panini.execution.ExecutionError.INVALID_VALUE, "Input for $variableName must be a number.",
             )
-        } else {
-            readValue.toSankhyaOrNull(context) ?: SanskritValue.Shabda(readValue)
+            InputValueType.BOOLEAN -> SanskritValue.Satya(
+                readValue.toInputBooleanOrNull() ?: return ExecutionResult.Failure(
+                    dev.panini.execution.ExecutionError.INVALID_VALUE, "Input for $variableName must be boolean.",
+                ),
+            )
+            InputValueType.TEXT, InputValueType.CHOICE ->
+                readValue.toSankhyaOrNull(context) ?: SanskritValue.Shabda(readValue)
         }
 
         return ExecutionResult.Success(
@@ -51,4 +72,6 @@ object ReadAction : dev.panini.execution.DhatuAction("स्वीकरणम�
     }
 
     private val numericTypeNames = setOf("सङ्ख्या", "संख्या")
+    private val booleanTypeNames = setOf("सत्य", "सत्यम्", "तर्क", "बूलियन")
+    private val choiceTypeNames = setOf("विकल्प", "विकल्पः")
 }

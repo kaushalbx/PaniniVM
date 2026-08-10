@@ -40,10 +40,27 @@ class PaniniCliProcessTest {
         assertFalse(result.output.contains("at dev.panini"))
     }
 
-    private fun runCli(input: String): ProcessResult {
+    @Test
+    fun `launcher validates typed boolean and choice input`() {
+        val result = runCli(
+            input = "अर्जुन\nunknown\nआम्\nहरित\nनील\n",
+            scriptPath = "cli/examples/interactive_typed_input.pvm",
+        )
+
+        assertEquals(0, result.exitCode)
+        assertTrue(result.output.contains("Invalid boolean 'unknown'."))
+        assertTrue(result.output.contains("Enter value for वर्ण (लोहित/नील):"))
+        assertTrue(result.output.contains("Invalid choice 'हरित'."))
+        assertTrue(result.output.contains("नील"))
+    }
+
+    private fun runCli(
+        input: String,
+        scriptPath: String = "cli/examples/interactive_addition.pvm",
+    ): ProcessResult {
         val javaExecutable = File(System.getProperty("java.home"), "bin/java").absolutePath
         val classpath = requireNotNull(System.getProperty("panini.cli.test.classpath"))
-        val script = File("cli/examples/interactive_addition.pvm").absoluteFile
+        val script = File(scriptPath).absoluteFile
         val process = ProcessBuilder(
             javaExecutable,
             "-Dfile.encoding=UTF-8",

@@ -61,6 +61,27 @@ class PaniniCliInteractiveTest {
     }
 
     @Test
+    fun `typed input script validates boolean and choice values`() {
+        val output = ByteArrayOutputStream()
+        val cli = PaniniCli(
+            inputStream = ByteArrayInputStream("अर्जुन\nperhaps\nआम्\nहरित\nनील\n".toByteArray(Charsets.UTF_8)),
+            outputStream = PrintStream(output, true, Charsets.UTF_8),
+        )
+
+        val results = cli.executeScriptFile(File("cli/examples/interactive_typed_input.pvm"))
+
+        assertTrue(results.none { it is ExecutionResult.Failure })
+        assertEquals("नील", assertIs<ExecutionResult.Success>(results.last()).value)
+        val rendered = output.toString(Charsets.UTF_8)
+        assertTrue(rendered.contains("Enter value for नाम:"))
+        assertTrue(rendered.contains("Enter value for अनुमत (boolean):"))
+        assertTrue(rendered.contains("Invalid boolean 'perhaps'."))
+        assertTrue(rendered.contains("Enter value for वर्ण (लोहित/नील):"))
+        assertTrue(rendered.contains("Invalid choice 'हरित'."))
+        assertTrue(rendered.contains("नील"))
+    }
+
+    @Test
     fun `script approval prompt grants effects and resumes continuation`() {
         val output = ByteArrayOutputStream()
         val cli = PaniniCli(

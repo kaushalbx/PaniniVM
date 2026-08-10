@@ -41,6 +41,20 @@ The CLI then accepts ASCII digits such as `20` or Devanagari digits such as `२
 Invalid input is reported and the same prompt is repeated without advancing the
 PVM program.
 
+Other sampradana type markers enable additional validation:
+
+```text
+# Boolean: accepts true/false, yes/no, आम्/न, हाँ/नहीं, and सत्य/असत्य.
+अनुमत + अम् सत्य + ङे ग्रह् + णिच् + लोट् + सिप् ।
+
+# Choice: the other sampradana values form the allowed set.
+वर्ण + अम् लोहित + ङे नील + ङे विकल्प + ङे ग्रह् + णिच् + लोट् + सिप् ।
+```
+
+Boolean values are stored as `SanskritValue.Satya`; selected choices retain the
+spelling declared by the script. See `cli/examples/interactive_typed_input.pvm`
+for an executable text, boolean, and choice example.
+
 Enter `:cancel` at any value or confirmation prompt to stop the script cleanly.
 Closing standard input has the same effect. An interrupted script restores the
 session state from before the file started, so values from a partially executed
