@@ -4,6 +4,9 @@ A console number-guessing project written in Sanskrit as a PaniniVM `.pvm`
 program. PaniniVM chooses a number from 1 through 10 and gives the player five
 validated numeric guesses.
 
+For a step-by-step introduction to the syntax used here, see the
+[`PVM language guide`](../../docs/pvm-language-guide.md).
+
 The example demonstrates:
 
 - random choice with `दिव्`;

@@ -1,5 +1,8 @@
 # execution Module
 
+For user-facing `.pvm` syntax and complete examples, see the
+[`PVM language guide`](../docs/pvm-language-guide.md).
+
 The `:execution` module is the runtime orchestrator of PaniniVM. It compiles parsed Sanskrit grammatical ASTs (`Vyakaranam AST`) into executable program plans, manages multi-turn dialogue/session contexts, executes actions using a sandboxed runtime environment, handles side effects via external capability dispatchers, and persists state across turns.
 
 ---

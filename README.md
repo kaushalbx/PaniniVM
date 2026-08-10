@@ -67,6 +67,9 @@ segmented input → vyākaraṇa AST → binding → operation resolution → pl
 
 ## Reusable Typed Sanskrit Kriyās
 
+For a complete language tutorial, see
+[`docs/pvm-language-guide.md`](docs/pvm-language-guide.md).
+
 A `.pvm` program can declare a reusable operation using a nominal
 `saṃjñā-kriyā` header. Signature declarations are grammatical sentences inside
 the block and are not executed as body actions.
