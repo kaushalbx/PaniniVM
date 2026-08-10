@@ -75,6 +75,8 @@ cleanly; `:cancel` or end-of-input stops the script. Requested-execution disposi
 `Accept request? [y/N]:` flow.
 
 Running the CLI without arguments starts the interactive REPL.
+For a start-to-finish terminal walkthrough, command reference, interactive input
+examples, and current limitations, see [Interactive REPL workflow](docs/interactive-repl.md).
 
 The Gradle `:cli:run` task remains suitable for non-interactive commands.
 
