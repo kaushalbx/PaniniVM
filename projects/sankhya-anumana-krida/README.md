@@ -25,8 +25,10 @@ The example demonstrates:
 - a bounded result-controlled loop using `पञ्च + कृत्वः यावत् फल + सुँ न तावत्`;
 - natural loop termination from the comparison's typed truth value.
 - an `अन्यथा` exhaustion clause that runs only when all five attempts are consumed.
-- typed loop outcomes (`विजय` or `समाप्ति`) with the used-attempt count;
-- a loop-result pipeline that retains the outcome under the name `परिणाम`.
+- a structured `परिणाम` produced automatically by the loop, containing `अवस्था`
+  (`विजय` or `समाप्ति`) and `प्रयत्नसङ्ख्या`;
+- normal ṣaṣṭhī access through `परिणाम + मतुप् + ङस् अवस्था + अम्`;
+- no explicit variable assignment for the loop outcome.
 
 ## Run
 

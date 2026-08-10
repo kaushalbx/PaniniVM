@@ -48,4 +48,21 @@ class ConditionControlledLoopTest {
         assertTrue(results.any { it is ExecutionResult.Success && it.value == "विजय" })
         assertTrue(results.none { it is ExecutionResult.Failure })
     }
+
+    @Test
+    fun `loop publishes a structured outcome for genitive access without assignment`() {
+        val results = PaniniVM().evalScript(
+            """
+            प्रयत्न + ल्युट् + सुँ ।
+            एक + अम् द्वि + अम् च विद् + लोट् + सिप् ॥
+            द्वि + कृत्वः यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
+            परिणाम + मतुप् + ङस् अवस्था + अम् ।
+            परिणाम + मतुप् + ङस् प्रयत्नसङ्ख्या + अम् ।
+            """.trimIndent(),
+        )
+
+        val values = results.filterIsInstance<ExecutionResult.Success>().map { it.value }
+        assertEquals(listOf("समाप्ति", "द्वि"), values.takeLast(2), results.toString())
+        assertTrue(results.none { it is ExecutionResult.Failure }, results.toString())
+    }
 }

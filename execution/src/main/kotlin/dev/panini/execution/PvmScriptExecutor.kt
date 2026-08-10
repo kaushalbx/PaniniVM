@@ -62,6 +62,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                     listener,
                     registry,
                     sourceFile,
+                    structStore,
                     onResult,
                 ).also(results::addAll)
                 pipeline != null -> PurvaparaPipelineEngine.executePipeline(
@@ -119,6 +120,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         listener: String,
         registry: SamjnaKriyaRegistry,
         sourceFile: String?,
+        structStore: MutableMap<String, TaddhitaStruct>,
         onResult: ((ExecutionResult) -> Unit)?,
     ): List<ExecutionResult> {
         val results = mutableListOf<ExecutionResult>()
@@ -149,6 +151,15 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
 
         fun complete(outcome: ExecutionResult.LoopOutcome): List<ExecutionResult> {
             val outcomeValue = SanskritValue.Shabda(outcome.sanskritName)
+            val attemptWord = dev.panini.sankhya.SankhyaGenerator()
+                .cardinal(iterationCount.toLong()).final.surface
+            structStore[LOOP_RESULT_NAME] = TaddhitaStruct(
+                nameStem = LOOP_RESULT_NAME,
+                attributes = mapOf(
+                    "अवस्था" to outcome.sanskritName,
+                    "प्रयत्नसङ्ख्या" to attemptWord,
+                ),
+            )
             val completion = ExecutionResult.Success(
                 value = outcome.sanskritName,
                 operation = "pvm.while",
@@ -295,6 +306,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
 
     private companion object {
         const val MAX_CONDITION_ITERATIONS = 10_000
+        const val LOOP_RESULT_NAME = "परिणाम"
     }
 
     fun evalProject(
