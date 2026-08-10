@@ -35,7 +35,10 @@ object SamjnaInvocationMatcher {
         } ?: return null
         val operationPada = instrumental.value as SubantaPada
         val domainEntry = padas.withIndex().take(instrumental.index)
-            .lastOrNull { (_, pada) -> pada is SubantaPada && pada.vibhakti() == Vibhakti.SASTHI }
+            .lastOrNull { (index, pada) ->
+                pada is SubantaPada && pada.vibhakti() == Vibhakti.SASTHI &&
+                    (padas.getOrNull(index + 1) as? SubantaPada)?.vibhakti() != Vibhakti.DVITIYA
+            }
         val domainPada = domainEntry?.value as? SubantaPada
         val boundaryIndex = domainEntry?.index ?: instrumental.index
         val karmaText = padas.take(boundaryIndex)

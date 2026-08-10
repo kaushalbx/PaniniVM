@@ -129,13 +129,21 @@ class SamjnaKriyaRegistry {
         val knownStems = allKriyas.mapTo(mutableSetOf()) {
             SamjnaInvocationMatcher.normalizeIdentity(it.nameStem)
         }
-        val invocationShape = SamjnaInvocationMatcher.match(textToProcess, knownStems, preParsedUkti)
+        val invocationShape = SamjnaInvocationMatcher.match(
+            textToProcess,
+            knownStems,
+            preParsedUkti.takeUnless { isAntaranga },
+        )
         val karmaText = invocationShape?.karmaText ?: textToProcess
-        val argTerms = SubantaKarakaParser.extractKarmaTerms(karmaText, preParsedUkti)
+        val argTerms = SubantaKarakaParser.extractKarmaTerms(karmaText, invocationShape?.ukti)
 
         val candidates = allKriyas.sortedWith(
             compareByDescending<SamjnaKriya> { it.precedence.rank }
-                .thenByDescending { AntaratamaOverloadEngine.match(it.signature, argTerms).rank },
+                .thenByDescending {
+                    val resolved = NamedSamjnaArgumentResolver.resolve(karmaText, it.signature)
+                    val ordered = (resolved as? SamjnaArgumentResolution.Success)?.terms ?: argTerms
+                    AntaratamaOverloadEngine.match(it.signature, ordered).rank
+                },
         )
         if (invocationShape != null) {
             candidates.firstOrNull { kriya ->

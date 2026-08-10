@@ -560,8 +560,14 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         onResult: ((ExecutionResult) -> Unit)? = null,
     ): List<ExecutionResult> {
         val results = mutableListOf<ExecutionResult>()
-        val argTerms = SubantaKarakaParser.extractKarmaTerms(invocation.karmaText, invocation.ukti)
         val signature = invocation.kriya.signature
+        val argumentResolution = NamedSamjnaArgumentResolver.resolve(invocation.karmaText, signature)
+        if (argumentResolution is SamjnaArgumentResolution.Failure) {
+            return listOf(
+                ExecutionResult.Failure(ExecutionError.INVALID_VALUE, argumentResolution.message),
+            )
+        }
+        val argTerms = (argumentResolution as SamjnaArgumentResolution.Success).terms
 
         if (signature.parameters.isNotEmpty() && signature.parameters.size != argTerms.size) {
             return listOf(

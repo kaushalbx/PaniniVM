@@ -9,6 +9,44 @@ class ExplicitSamjnaSignatureTest {
     private val vm = PaniniVM()
 
     @Test
+    fun `named call arguments bind by parameter name instead of source order`() {
+        val results = vm.evalScript(
+            """
+            व्यवकलन + ल्युट् + सुँ ।
+            वाम + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            दक्षिण + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            सङ्ख्या + सुँ इति परिणाम + सुँ ।
+            वाम + अम् दक्षिण + अम् च वि + युज् + णिच् + लोट् + सिप् ॥
+
+            दक्षिण + ङस् द्वि + अम् वाम + ङस् पञ्च + अम् व्यवकलन + ल्युट् + टा कृ + लोट् + सिप् ।
+            """.trimIndent(),
+        )
+
+        val success = results.filterIsInstance<ExecutionResult.Success>().last()
+        assertEquals(3, assertIs<SanskritValue.Sankhya>(success.typedValue).value, results.toString())
+    }
+
+    @Test
+    fun `named call rejects unknown and duplicate parameter names`() {
+        val definition = """
+            योजन + ल्युट् + सुँ ।
+            वाम + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            दक्षिण + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            सङ्ख्या + सुँ इति परिणाम + सुँ ।
+            वाम + अम् दक्षिण + अम् च युज् + णिच् + लोट् + सिप् ॥
+        """.trimIndent()
+        val unknown = vm.evalScript(
+            definition + "\nअज्ञात + ङस् द्वि + अम् दक्षिण + ङस् त्रि + अम् योजन + ल्युट् + टा कृ + लोट् + सिप् ।",
+        )
+        val duplicate = vm.evalScript(
+            definition + "\nवाम + ङस् द्वि + अम् वाम + ङस् त्रि + अम् योजन + ल्युट् + टा कृ + लोट् + सिप् ।",
+        )
+
+        assertTrue(assertIs<ExecutionResult.Failure>(unknown.last()).message.contains("Unknown parameters"))
+        assertTrue(assertIs<ExecutionResult.Failure>(duplicate.last()).message.contains("Duplicate arguments"))
+    }
+
+    @Test
     fun `named typed parameters are bound and declaration sentences are not executed`() {
         val script = """
             योजन + ल्युट् + सुँ ।
