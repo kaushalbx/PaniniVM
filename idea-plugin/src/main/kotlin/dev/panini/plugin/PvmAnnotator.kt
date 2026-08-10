@@ -7,6 +7,7 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import dev.panini.execution.PvmScript
+import dev.panini.execution.SamjnaScriptValidator
 import dev.panini.vyakaranam.parser.PaniniParser
 
 class PvmAnnotator : Annotator {
@@ -26,7 +27,16 @@ class PvmAnnotator : Annotator {
         // declarations legitimately contain several danda-delimited sentences,
         // so validate the script structure before falling back to a single-
         // utterance diagnostic for incomplete or malformed editor text.
-        if (runCatching { PvmScript.parse(text) }.isSuccess) return
+        if (runCatching { PvmScript.parse(text) }.isSuccess) {
+            SamjnaScriptValidator.validate(text).forEach { diagnostic ->
+                val start = diagnostic.offset.coerceIn(0, text.length)
+                val end = (start + diagnostic.length).coerceIn(start, text.length)
+                holder.newAnnotation(HighlightSeverity.ERROR, diagnostic.message)
+                    .range(TextRange(start, end))
+                    .create()
+            }
+            return
+        }
 
         // ANTLR live syntax error highlighting for malformed/incomplete text.
         try {

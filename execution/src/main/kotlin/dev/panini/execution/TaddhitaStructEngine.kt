@@ -54,14 +54,15 @@ object TaddhitaStructEngine {
         val declaration = padas.filterIsInstance<SubantaPada>()
             .lastOrNull { it.vibhakti() == Vibhakti.PRATHAMA && it.pratipadika.isMatup() }
             ?: return null
-        if (declaration.pratipadika.baseIdentity() != "परिणाम") return null
+        val schemaName = declaration.pratipadika.baseIdentity()
+        if (!schemaName.endsWith("परिणाम")) return null
         val fields = padas.filter { it !== declaration && it.vibhakti() == Vibhakti.DVITIYA }
             .map { it.stemIdentity() }
         if (fields.size < 2 || fields.any { field ->
                 runCatching { dev.panini.sankhya.SankhyaEvaluator().evaluateStems(listOf(field)) }.isSuccess
             }
         ) return null
-        return TaddhitaStructSchema("परिणाम", fields.distinct())
+        return TaddhitaStructSchema(schemaName, fields.distinct())
     }
 
     /**

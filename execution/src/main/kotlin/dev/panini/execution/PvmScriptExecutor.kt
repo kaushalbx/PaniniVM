@@ -54,7 +54,10 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             val conditional = statement.program as? dev.panini.vyakaranam.ast.Conditional
 
             when {
-                declaredSchema != null -> structSchemas[declaredSchema.nameStem] = declaredSchema
+                declaredSchema != null -> {
+                    structSchemas[declaredSchema.nameStem] = declaredSchema
+                    registry.registerSchema(declaredSchema)
+                }
                 constructedStruct != null -> structStore[constructedStruct.nameStem] = constructedStruct
                 attributePipeline != null -> executeAttributePipeline(
                     attributePipeline, structStore, effectiveSessionKey, effectiveScope,
@@ -312,10 +315,17 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                     "प्रयत्नसङ्ख्या" to SanskritValue.Sankhya(iterationCount.toLong(), attemptWord),
                 ),
             )
+            val structuredOutcome = SanskritValue.Rupa(
+                schema = LOOP_RESULT_NAME,
+                fields = mapOf(
+                    "अवस्था" to outcomeValue,
+                    "प्रयत्नसङ्ख्या" to SanskritValue.Sankhya(iterationCount.toLong(), attemptWord),
+                ),
+            )
             val completion = ExecutionResult.Success(
                 value = outcome.sanskritName,
                 operation = "pvm.while",
-                typedValue = outcomeValue,
+                typedValue = structuredOutcome,
                 loopOutcome = outcome,
                 iterationCount = iterationCount,
             )
@@ -561,9 +571,13 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 ),
             )
         }
-        signature.parameters.zip(argTerms).firstOrNull { (parameter, argument) ->
-            SamjnaValueClassifier.classifyTerm(argument) != parameter.type
-        }?.let { (parameter, _) ->
+        signature.parameters.zip(argTerms).withIndex().firstOrNull { (index, pair) ->
+            val (parameter, argument) = pair
+            val actual = invocation.argumentValues.getOrNull(index)?.let(SamjnaValueClassifier::classifyValue)
+                ?: SamjnaValueClassifier.classifyTerm(argument)
+            actual != parameter.type
+        }?.let { (_, pair) ->
+            val parameter = pair.first
             return listOf(
                 ExecutionResult.Failure(
                     ExecutionError.INVALID_VALUE,
@@ -655,6 +669,25 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 return results + ExecutionResult.Failure(
                     ExecutionError.INVALID_VALUE,
                     "संज्ञा-परिणामप्रकारः: '${invocation.kriya.nameStem}' declared $expected but returned $actual.",
+                )
+            }
+        }
+        signature.resultSchema?.let { expectedSchema ->
+            val declaredSchema = registry.resolveSchema(expectedSchema)
+                ?: return results + ExecutionResult.Failure(
+                    ExecutionError.INVALID_VALUE,
+                    "संज्ञा-परिणामरूपम्: No schema named '$expectedSchema' is declared.",
+                )
+            val finalResult = results.lastOrNull() as? ExecutionResult.Success ?: return results
+            val structured = finalResult.typedValue as? SanskritValue.Rupa
+                ?: return results + ExecutionResult.Failure(
+                    ExecutionError.INVALID_VALUE,
+                    "संज्ञा-परिणामरूपम्: '${invocation.kriya.nameStem}' must return '$expectedSchema'.",
+                )
+            if (structured.schema != expectedSchema || structured.fields.keys != declaredSchema.fields.toSet()) {
+                return results + ExecutionResult.Failure(
+                    ExecutionError.INVALID_VALUE,
+                    "संज्ञा-परिणामरूपम्: '$expectedSchema' requires ${declaredSchema.fields}, but returned ${structured.fields.keys}.",
                 )
             }
         }

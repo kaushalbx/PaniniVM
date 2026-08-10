@@ -124,6 +124,11 @@ object ProgramSutraArthaCodec {
             "suchi",
             "items" to SutraArthaValue.Sequence(value.items.map(::encodeValue)),
         )
+        is SanskritValue.Rupa -> record(
+            "rupa",
+            "schema" to SutraArthaValue.Text(value.schema),
+            "fields" to SutraArthaValue.Record(value.fields.mapValues { encodeValue(it.value) }.toMap()),
+        )
         is SanskritValue.Satya -> record(
             "satya",
             "boolean" to SutraArthaValue.Truth(value.boolean),
@@ -158,6 +163,10 @@ object ProgramSutraArthaCodec {
             )
             "suchi" -> SanskritValue.Suchi(
                 fields.sequence("items").map(::decodeValue),
+            )
+            "rupa" -> SanskritValue.Rupa(
+                fields.text("schema"),
+                (fields.getValue("fields") as SutraArthaValue.Record).fields.mapValues { decodeValue(it.value) },
             )
             "satya" -> SanskritValue.Satya(fields.truth("boolean"))
             else -> throw IllegalArgumentException("Unknown Sanskrit semantic value type.")

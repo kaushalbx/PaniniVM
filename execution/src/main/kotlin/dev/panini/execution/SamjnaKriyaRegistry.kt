@@ -44,6 +44,13 @@ class SamjnaKriyaRegistry {
     private val registry = linkedMapOf<String, MutableList<SamjnaKriya>>()
     private val memoizedCache = mutableMapOf<String, ExecutionResult>()
     private val inheritanceMap = mutableMapOf<String, String>() // childStem -> parentStem
+    private val schemas = linkedMapOf<String, TaddhitaStructSchema>()
+
+    fun registerSchema(schema: TaddhitaStructSchema) {
+        schemas[schema.nameStem] = schema
+    }
+
+    fun resolveSchema(nameStem: String): TaddhitaStructSchema? = schemas[nameStem]
 
     fun registerInheritance(relation: InheritanceRelation) {
         inheritanceMap[relation.childStem] = relation.parentStem
@@ -85,6 +92,7 @@ class SamjnaKriyaRegistry {
         argumentTerms: List<String>,
         sourceText: String,
         callerSourceFile: String? = null,
+        argumentValues: List<SanskritValue?> = emptyList(),
     ): SamjnaInvocation? {
         val normalizedOperation = SamjnaInvocationMatcher.normalizeIdentity(operationStem)
         val candidates = registry.values.flatten()
@@ -104,7 +112,7 @@ class SamjnaKriyaRegistry {
             .toList()
         val kriya = candidates.firstOrNull() ?: return null
         val karmaText = argumentTerms.joinToString(" ") { "$it + अम्" }
-        return SamjnaInvocation(kriya, karmaText, sourceText)
+        return SamjnaInvocation(kriya, karmaText, sourceText, argumentValues = argumentValues)
     }
 
     fun detectInvocation(sentenceText: String, callerSourceFile: String? = null, preParsedUkti: dev.panini.vyakaranam.ast.Ukti? = null): SamjnaInvocation? {
@@ -176,4 +184,5 @@ data class SamjnaInvocation(
     val karmaText: String,
     val fullText: String,
     val ukti: dev.panini.vyakaranam.ast.Ukti? = null,
+    val argumentValues: List<SanskritValue?> = emptyList(),
 )

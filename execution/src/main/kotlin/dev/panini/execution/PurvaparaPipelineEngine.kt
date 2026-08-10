@@ -29,6 +29,7 @@ object PurvaparaPipelineEngine {
         }
 
         var currentArguments = pipeline.arguments
+        var currentValues: List<SanskritValue?> = List(currentArguments.size) { null }
         var lastSuccess: ExecutionResult.Success? = null
 
         for (stage in pipeline.stages) {
@@ -38,6 +39,7 @@ object PurvaparaPipelineEngine {
                 argumentTerms = currentArguments,
                 sourceText = pipeline.sourceText,
                 callerSourceFile = callerSourceFile,
+                argumentValues = currentValues,
             )
             if (invocation == null) {
                 return listOf(
@@ -54,7 +56,7 @@ object PurvaparaPipelineEngine {
             val stageSuccess = stageResults.filterIsInstance<ExecutionResult.Success>().lastOrNull()
 
             if (stageSuccess == null) {
-                return listOf(
+                return stageResults.takeIf { it.isNotEmpty() } ?: listOf(
                     ExecutionResult.Failure(
                         ExecutionError.ACTION_FAILED,
                         "पूर्वपर-असंगतिः: Execution failed at Kriyā stage '${stage.operationStem}'",
@@ -69,6 +71,8 @@ object PurvaparaPipelineEngine {
                 nextArgs.addAll(pipeline.arguments.drop(1))
             }
             currentArguments = nextArgs
+            currentValues = listOf(stageSuccess.typedValue) +
+                List((pipeline.arguments.size - 1).coerceAtLeast(0)) { null }
         }
 
         return listOf(

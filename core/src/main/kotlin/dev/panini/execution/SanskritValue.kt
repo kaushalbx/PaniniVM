@@ -58,6 +58,15 @@ sealed interface SanskritValue {
         override fun toDisplayText(): String = "[${items.joinToString(", ") { it.toDisplayText() }}]"
     }
 
+    /** A named structured value whose fields remain typed across calls and pipelines. */
+    data class Rupa(
+        val schema: String,
+        val fields: Map<String, SanskritValue>,
+    ) : SanskritValue {
+        override val samjnas: Set<Samjna> = fields.values.flatMap { it.samjnas }.toSet() + Samjna.SHABDA
+        override fun toDisplayText(): String = schema
+    }
+
     data class Satya(
         val boolean: Boolean,
         val surface: String? = null,

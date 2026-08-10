@@ -18,6 +18,7 @@ data class SamjnaSignature(
     val argumentType: SamjnaValueType? = null,
     val parameters: List<SamjnaParameter> = emptyList(),
     val resultType: SamjnaValueType? = null,
+    val resultSchema: String? = null,
 )
 
 /**
@@ -33,7 +34,9 @@ object SamjnaSignatureCompiler {
 
     fun compile(body: List<PvmScriptStatement.Sentence>): SamjnaSignature {
         val parameters = body.mapNotNull(SamjnaSignatureDeclarationParser::parameter)
-        val resultType = body.mapNotNull(SamjnaSignatureDeclarationParser::resultType).singleOrNull()
+        val resultDeclarations = body.mapNotNull(SamjnaSignatureDeclarationParser::result)
+        val resultType = resultDeclarations.singleOrNull()?.type
+        val resultSchema = resultDeclarations.singleOrNull()?.schema
         val guardedTypes = body.asSequence()
             .filter { it.isNishedha }
             .mapNotNull { inferGuardType(it.text) }
@@ -43,6 +46,7 @@ object SamjnaSignatureCompiler {
             argumentType = guardedTypes.singleOrNull(),
             parameters = parameters,
             resultType = resultType,
+            resultSchema = resultSchema,
         )
     }
 
@@ -52,6 +56,7 @@ object SamjnaSignatureCompiler {
 
 /** Parses grammatical signature declarations embedded at the start of a saṃjñā block. */
 object SamjnaSignatureDeclarationParser {
+    data class ResultDeclaration(val type: SamjnaValueType? = null, val schema: String? = null)
     private val typeSource = "(सङ्ख्या|शब्द|सूची)"
     private val parameterPattern = Regex(
         "^\\s*(.+?)\\s*\\+\\s*सुँ\\s+$typeSource\\s*\\+\\s*सुँ\\s+इति\\s+मान\\s*\\+\\s*सुँ\\s*[।॥]?\\s*$",
@@ -59,17 +64,28 @@ object SamjnaSignatureDeclarationParser {
     private val resultPattern = Regex(
         "^\\s*$typeSource\\s*\\+\\s*सुँ\\s+इति\\s+परिणाम\\s*\\+\\s*सुँ\\s*[।॥]?\\s*$",
     )
+    private val schemaResultPattern = Regex(
+        "^\\s*(.+?)\\s*\\+\\s*सुँ\\s+इति\\s+परिणाम\\s*\\+\\s*सुँ\\s*[।॥]?\\s*$",
+    )
 
     fun parameter(sentence: PvmScriptStatement.Sentence): SamjnaParameter? {
         val match = parameterPattern.matchEntire(sentence.text) ?: return null
         return SamjnaParameter(match.groupValues[1].trim(), type(match.groupValues[2]))
     }
 
-    fun resultType(sentence: PvmScriptStatement.Sentence): SamjnaValueType? =
-        resultPattern.matchEntire(sentence.text)?.groupValues?.get(1)?.let(::type)
+    fun result(sentence: PvmScriptStatement.Sentence): ResultDeclaration? {
+        resultPattern.matchEntire(sentence.text)?.groupValues?.get(1)?.let {
+            return ResultDeclaration(type = type(it))
+        }
+        val schema = schemaResultPattern.matchEntire(sentence.text)?.groupValues?.get(1)?.trim() ?: return null
+        if (schema in setOf("सङ्ख्या", "शब्द", "सूची")) return null
+        return ResultDeclaration(schema = schema)
+    }
+
+    fun resultType(sentence: PvmScriptStatement.Sentence): SamjnaValueType? = result(sentence)?.type
 
     fun isDeclaration(sentence: PvmScriptStatement.Sentence): Boolean =
-        parameter(sentence) != null || resultType(sentence) != null
+        parameter(sentence) != null || result(sentence) != null
 
     private fun type(source: String): SamjnaValueType = when (source) {
         "सङ्ख्या" -> SamjnaValueType.SANKHYA

@@ -27,6 +27,10 @@ internal object PersistedSanskritValueCodec {
                 is SanskritValue.Range -> {
                     writeByte(8); write(output, value.minimum); write(output, value.maximum)
                 }
+                is SanskritValue.Rupa -> {
+                    writeByte(9); writeUTF(value.schema); writeInt(value.fields.size)
+                    value.fields.forEach { (name, field) -> writeUTF(name); write(output, field) }
+                }
             }
         }
     }
@@ -46,6 +50,10 @@ internal object PersistedSanskritValueCodec {
             8 -> SanskritValue.Range(
                 read(input) as SanskritValue.Sankhya,
                 read(input) as SanskritValue.Sankhya,
+            )
+            9 -> SanskritValue.Rupa(
+                readUTF(),
+                buildMap { repeat(readInt()) { put(readUTF(), read(input)) } },
             )
             else -> throw IllegalArgumentException("Unknown persisted Sanskrit value type: $tag")
         }
