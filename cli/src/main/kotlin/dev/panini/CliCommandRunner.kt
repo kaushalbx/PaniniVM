@@ -1,65 +1,15 @@
 package dev.panini
 
 import dev.panini.ashtadhyayi.Ashtadhyayi
-import dev.panini.execution.ExecutionResult
-import dev.panini.execution.PaniniVM
-import dev.panini.execution.OutputKind
 import dev.panini.sankhya.SankhyaGenerator
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.unadipatha.UnadiPatha
 import dev.panini.unadipatha.analysis.UnadiAnalyzer
-import java.io.File
 internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull()) {
-    "--render-readable" -> {
-        val sourcePath = args.getOrNull(1) ?: error("Usage: --render-readable path/to/file.pvm|directory")
-        val generated = dev.panini.execution.PvmReadableSanskrit.renderPath(File(sourcePath))
-        listOf("Generated ${generated.size} readable Sanskrit file(s).") +
-            generated.map { "  ${it.path}" }
-    }
-    "--compile" -> {
-        val filePath = args.getOrNull(1) ?: error("Usage: --compile path/to/file.pvm [ClassName] [OutputDir]")
-        val className = args.getOrNull(2) ?: "CompiledProgram"
-        val outputDirPath = args.getOrNull(3) ?: "build/classes/panini"
-        val file = File(filePath)
-        val outputDir = File(outputDirPath)
-        dev.panini.compiler.BytecodeCompiler.compileFile(file, className, outputDir)
-        listOf("Compiled ${file.name} to $outputDirPath/$className.class successfully.")
-    }
-    "--eval", "--pvm", "--exec" -> {
-        val filePath = args.getOrNull(1) ?: error("Usage: --eval path/to/file.pvm")
-        val file = File(filePath)
-        require(file.exists()) { "PaniniVM script file not found: $filePath" }
-        val vm = PaniniVM()
-        val sessionKey = "session_${file.nameWithoutExtension}_${System.currentTimeMillis()}"
-        val results = vm.evalFile(file, sessionKey = sessionKey)
-        buildList {
-            results.forEach { res ->
-                when (res) {
-                    is ExecutionResult.Success -> {
-                        if (res.value.isNotBlank() && res.outputKind != OutputKind.INTERNAL) {
-                            add(res.value)
-                        }
-                    }
-                    is ExecutionResult.Failure -> {
-                        add("Error: ${res.message}")
-                    }
-                    is ExecutionResult.NeedsInput -> {
-                        add("Needs input: ${res.message} (missing: ${res.missingKarakas})")
-                    }
-                    is ExecutionResult.Ambiguous -> {
-                        add("Ambiguous: ${res.message} (matches: ${res.matchingOperations})")
-                    }
-                    is ExecutionResult.NeedsApproval -> {
-                        add("Needs approval: ID: ${res.invocationId} (effects: ${res.requiredEffects})")
-                    }
-                    is ExecutionResult.NeedsAcceptance -> {
-                        add("Needs acceptance: ID: ${res.invocationId} (from ${res.speaker} to ${res.listener})")
-                    }
-                }
-            }
-        }
-    }
+    "--render-readable" -> ScriptCliCommands.renderReadable(args.drop(1))
+    "--compile" -> ScriptCliCommands.compile(args.drop(1))
+    "--eval", "--pvm", "--exec" -> ScriptCliCommands.evaluate(args.drop(1))
     "--grantha" -> GranthaCliCommands.execute(args.drop(1))
     "--check-grantha" -> GranthaCliCommands.check(args.drop(1))
     "--emit-grantha" -> GranthaCliCommands.emit(args.drop(1))
