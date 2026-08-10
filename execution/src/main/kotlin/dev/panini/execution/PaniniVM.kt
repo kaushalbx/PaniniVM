@@ -1,19 +1,10 @@
 package dev.panini.execution
 
-import dev.panini.analysis.KriyaId
 import dev.panini.execution.external.ExternalCapabilityDispatcher
-import dev.panini.execution.binding.VyakaranamExecutionAdapter
-import dev.panini.execution.memory.KriyaMemory
-import dev.panini.execution.memory.RememberedKriya
 import dev.panini.execution.memory.FileKriyaMemoryStore
-import dev.panini.execution.memory.withMemoryId
 import dev.panini.execution.persistence.FileStateStore
 import dev.panini.execution.persistence.StateStore
-import dev.panini.execution.sutra.SutraExecutionPipeline
 import java.io.File
-import java.util.Collections
-import java.util.WeakHashMap
-import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Top-level execution facade and API for PaniniVM.
@@ -42,18 +33,12 @@ class PaniniVM(
         dev.panini.dhatupatha.DhatuPathaRegistration.ensureRegistered()
     }
 
-    private val sessions = ConcurrentHashMap<String, SambhashanaContext>()
-    private val kriyaMemories = ConcurrentHashMap<String, KriyaMemory>()
-    private val consumedContinuations = Collections.synchronizedSet(
-        Collections.newSetFromMap(WeakHashMap<Any, Boolean>()),
-    )
+    private val sessionRuntime by lazy {
+        SessionRuntime(store, kriyaMemoryStore, externalDispatcher)
+    }
 
     /** Kriyā-centred memory accumulated automatically for this VM session. */
-    fun kriyaMemory(sessionKey: String): KriyaMemory = kriyaMemories.computeIfAbsent(sessionKey) {
-        kriyaMemoryStore.load(sessionKey) { source ->
-            VyakaranamExecutionAdapter.analyzeForMemory(source)?.frames.orEmpty()
-        } ?: KriyaMemory()
-    }
+    fun kriyaMemory(sessionKey: String) = sessionRuntime.kriyaMemory(sessionKey)
 
     fun eval(
         utterance: String,
@@ -65,101 +50,17 @@ class PaniniVM(
     ): ExecutionResult {
         if (!isExecutingScript && PvmScript.classify(utterance) == PvmSourceKind.SCRIPT) {
             val scriptResults = evalScript(utterance, sessionKey, scope, speaker, listener)
-            return scriptResults.lastOrNull() ?: ExecutionResult.Success(operation = "panini.evalScript", value = "संसिद्धम्")
+            return scriptResults.lastOrNull()
+                ?: ExecutionResult.Success(operation = "panini.evalScript", value = "संसिद्धम्")
         }
-
-        val activeContext = if (sessionKey != null) {
-            sessions.getOrPut(sessionKey) {
-                store.load(sessionKey) ?: SambhashanaContext(speaker = speaker, listener = listener)
-            }
-        } else {
-            SambhashanaContext(speaker = speaker, listener = listener)
-        }
-
-        val input = SanskritUktiInput(text = utterance, speaker = activeContext.speaker, listener = activeContext.listener)
-        val analysis = VyakaranamExecutionAdapter.analyzeForMemory(utterance)
-        val effectiveScope = scope.copy(
-            stateStore = scope.stateStore ?: store,
-            externalDispatcher = scope.externalDispatcher ?: externalDispatcher,
-        )
-        val memory = sessionKey?.let(::kriyaMemory) ?: KriyaMemory()
-        val turn = executeTurn(input, activeContext, effectiveScope, memory)
-        val phala = turn.response.phala
-
-        val result = phala.toExecutionResult("panini.eval")
-
-        if (phala is Phala.Siddha && sessionKey != null) {
-            sessions[sessionKey] = turn.context
-            store.save(sessionKey, turn.context)
-            if (analysis != null) rememberKriyas(sessionKey, turn.context.turnNumber, analysis.frames, phala)
-        }
-
-        return result
-    }
-
-    private fun rememberKriyas(
-        sessionKey: String,
-        turn: Int,
-        frames: List<dev.panini.analysis.KriyaFrame>,
-        phala: Phala.Siddha,
-    ) {
-        if (frames.isEmpty()) return
-        val invocationValues = phala.typedValues.entries
-            .mapNotNull { (id, value) -> KriyaInvocationId.indexOf(id)?.let { Triple(it, id, value) } }
-            .sortedBy { (index, _, _) -> index }
-        val remembered = invocationValues.mapIndexed { index, (_, _, value) ->
-            val source = frames[index % frames.size]
-            RememberedKriya(
-                turn = turn,
-                frame = source.withMemoryId(KriyaId("turn-$turn-kriya-${index + 1}")),
-                phala = value,
-            )
-        }
-        if (remembered.isNotEmpty()) {
-            val memory = kriyaMemory(sessionKey).remember(remembered)
-            kriyaMemories[sessionKey] = memory
-            kriyaMemoryStore.save(sessionKey, memory)
-        }
+        return sessionRuntime.eval(utterance, sessionKey, scope, speaker, listener)
     }
 
     fun resume(
         continuation: Any,
         sessionKey: String? = null,
         scope: ExecutionScope = defaultScope,
-    ): ExecutionResult {
-        val cont = continuation as? dev.panini.execution.sutra.SutraPipelineContinuation
-            ?: return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Invalid continuation object provided.")
-        if (!consumedContinuations.add(cont)) {
-            return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Continuation has already been resumed.")
-        }
-
-        val effectiveScope = scope.copy(
-            stateStore = scope.stateStore ?: store,
-            externalDispatcher = scope.externalDispatcher ?: externalDispatcher,
-        )
-
-        val turn = SutraExecutionPipeline.resumeTurn(cont, effectiveScope)
-        val phala = turn.response.phala
-
-        val result = phala.toExecutionResult("panini.resume")
-
-        if (phala is Phala.Siddha && sessionKey != null) {
-            sessions[sessionKey] = turn.context
-            store.save(sessionKey, turn.context)
-            VyakaranamExecutionAdapter.analyzeForMemory(cont.input.text)?.let { analysis ->
-                rememberKriyas(sessionKey, turn.context.turnNumber, analysis.frames, phala)
-            }
-        }
-
-        return result
-    }
-
-    private fun executeTurn(
-        input: SanskritUktiInput,
-        context: SambhashanaContext,
-        scope: ExecutionScope,
-        memory: KriyaMemory,
-    ): SambhashanaTurn = SutraExecutionPipeline.executeTurn(input, context, scope, memory)
+    ): ExecutionResult = sessionRuntime.resume(continuation, sessionKey, scope)
 
     private val scriptExecutor by lazy { PvmScriptExecutor(this) }
 
@@ -247,22 +148,11 @@ class PaniniVM(
         }
     }
 
-    fun loadSession(sessionKey: String): SambhashanaContext? {
-        val loaded = store.load(sessionKey)
-        if (loaded != null) {
-            sessions[sessionKey] = loaded
-        }
-        return loaded
-    }
+    fun loadSession(sessionKey: String): SambhashanaContext? = sessionRuntime.load(sessionKey)
 
-    fun saveSession(sessionKey: String) {
-        val context = sessions[sessionKey]
-        if (context != null) {
-            store.save(sessionKey, context)
-        }
-    }
+    fun saveSession(sessionKey: String) = sessionRuntime.save(sessionKey)
 
-    fun listSessions(): List<String> = store.listKeys()
+    fun listSessions(): List<String> = sessionRuntime.listKeys()
 
     fun registerExternalCapability(effect: ExecutionEffect, handler: ExternalCapabilityDispatcher.CapabilityHandler) {
         externalDispatcher.register(effect, handler)
