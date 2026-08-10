@@ -73,6 +73,7 @@ data class WhileLoop(
     val condition: Invocation,
     val body: ProgramNode,
     val maximumIterationStems: List<String> = emptyList(),
+    val exhausted: ProgramNode? = null,
 ) : ProgramNode
 
 data class PipelineStage(

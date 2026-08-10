@@ -66,6 +66,18 @@ class ProgramAstTest {
     }
 
     @Test
+    fun `bounded loop may own an exhaustion clause`() {
+        val loop = assertIs<WhileLoop>(
+            parser.parse(
+                "द्वि + कृत्वः यावत् फल + सुँ न तावत् प्रयत्न + अम् कृ + लोट् + सिप् " +
+                    "अन्यथा समाप्त + अम् मुद्र् + लोट् + सिप् ।",
+            ).body,
+        )
+
+        assertIs<Invocation>(loop.exhausted)
+    }
+
+    @Test
     fun `conditional owns explicit condition and branches`() {
         val ukti = parser.parse(
             "यदि राम + सुँ भू + लट् + तिप् तर्हि फल + अम् खाद् + लट् + तिप् " +
@@ -100,6 +112,22 @@ class ProgramAstTest {
         val nested = assertIs<Conditional>(outer.alternate)
         assertIs<Invocation>(nested.consequent)
         assertIs<Invocation>(nested.alternate)
+    }
+
+    @Test
+    fun `conditional result may flow to one tatah target`() {
+        val conditional = assertIs<Conditional>(
+            parser.parse(
+                "यदि द्वि + अम् एक + अम् च विद् + लोट् + सिप् " +
+                    "तर्हि लघु + अम् दा + लोट् + सिप् अन्यथा गुरु + अम् दा + लोट् + सिप् " +
+                    "ततः मुद्र् + लोट् + सिप् ।",
+            ).body,
+        )
+
+        val consequent = assertIs<Sequence>(conditional.consequent)
+        assertIs<Invocation>(consequent.statements.last())
+        assertEquals(listOf("ततः"), consequent.connectors)
+        assertIs<Sequence>(conditional.alternate)
     }
 
     @Test

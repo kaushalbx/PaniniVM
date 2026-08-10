@@ -55,7 +55,7 @@ private object ProgramNodeChildren : ProgramNodeVisitor<List<ProgramNode>> {
         listOfNotNull(node.condition, node.consequent, node.alternate)
     override fun visitQuotation(node: Quotation): List<ProgramNode> = listOf(node.reporting)
     override fun visitRepeat(node: Repeat): List<ProgramNode> = listOf(node.body)
-    override fun visitWhileLoop(node: WhileLoop): List<ProgramNode> = listOf(node.body)
+    override fun visitWhileLoop(node: WhileLoop): List<ProgramNode> = listOfNotNull(node.body, node.exhausted)
     override fun visitPipeline(node: Pipeline): List<ProgramNode> = emptyList()
     override fun visitProcedure(node: Procedure): List<ProgramNode> = node.body
     override fun visitScope(node: Scope): List<ProgramNode> = node.body
@@ -82,7 +82,7 @@ open class ProgramNodeTransformer : ProgramNodeVisitor<ProgramNode> {
         node.copy(body = transform(node.body))
 
     override fun visitWhileLoop(node: WhileLoop): ProgramNode =
-        node.copy(body = transform(node.body))
+        node.copy(body = transform(node.body), exhausted = node.exhausted?.let(::transform))
 
     override fun visitPipeline(node: Pipeline): ProgramNode = node
 

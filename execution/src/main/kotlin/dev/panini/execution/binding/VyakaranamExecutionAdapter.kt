@@ -395,7 +395,11 @@ object VyakaranamExecutionAdapter {
                 val repetitions = List(node.count) { visit(node.body) }
                 Shape(repetitions.first().entries, repetitions.last().exits)
             }
-            is WhileLoop -> visit(node.body)
+            is WhileLoop -> {
+                val body = visit(node.body)
+                node.exhausted?.let(::visit)
+                body
+            }
             is Pipeline -> Shape(emptySet(), emptySet())
             is Procedure -> Shape(emptySet(), emptySet())
             is Scope -> Shape(emptySet(), emptySet())

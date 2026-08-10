@@ -17,9 +17,15 @@ class VyakaranamAstBuilder {
                 condition = Invocation(buildVakya(loop.condition!!)),
                 body = Invocation(buildVakya(loop.body!!)),
                 maximumIterationStems = limit?.stems?.dropLast(1).orEmpty(),
+                exhausted = loop.exhausted?.let { Invocation(buildVakya(it)) },
             )
         } ?: context.pipelineClause()?.let(::buildPipeline)
-            ?: context.conditionalClause()?.conditionalExpression()?.let(::buildConditional)
+            ?: context.conditionalClause()?.let { clause ->
+                val conditional = buildConditional(clause.conditionalExpression())
+                clause.target?.let { target ->
+                    pipeConditionalResult(conditional, target)
+                } ?: conditional
+            }
             ?: run {
             val statements = context.vakya().mapTo(mutableListOf<ProgramNode>()) { Invocation(buildVakya(it)) }
             val connectors = context.vakyaSambandha().mapTo(mutableListOf()) { it.text }
@@ -55,6 +61,26 @@ class VyakaranamAstBuilder {
         consequent = Invocation(buildVakya(context.consequent!!)),
         alternate = context.nested?.let(::buildConditional)
             ?: context.alternate?.let { Invocation(buildVakya(it)) },
+    )
+
+    /** Lowers one written pipeline target into each mutually exclusive branch. */
+    private fun pipeConditionalResult(
+        conditional: Conditional,
+        target: PaniniyaVyakaranamParser.VakyaContext,
+    ): Conditional = conditional.copy(
+        consequent = pipeBranch(conditional.consequent, target),
+        alternate = conditional.alternate?.let { alternate ->
+            if (alternate is Conditional) pipeConditionalResult(alternate, target) else pipeBranch(alternate, target)
+        },
+    )
+
+    private fun pipeBranch(
+        branch: ProgramNode,
+        target: PaniniyaVyakaranamParser.VakyaContext,
+    ): Sequence = Sequence(
+        sourceText = branch.sourceText + "ततः" + target.text,
+        statements = listOf(branch, Invocation(buildVakya(target))),
+        connectors = listOf("ततः"),
     )
 
     private fun buildPipeline(

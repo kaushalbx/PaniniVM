@@ -140,6 +140,10 @@ class PvmUktiSadhaka(
             append(node.condition.vakya.padas.joinToString(" ") { sadhayaPada(it) })
             append(" तावत् ")
             append(render(node.body))
+            node.exhausted?.let {
+                append(" अन्यथा ")
+                append(render(it))
+            }
         }
         override fun visitPipeline(node: Pipeline): String =
             node.renderPadas.joinToString(" ") { sadhayaPada(it) }

@@ -8,6 +8,7 @@ import dev.panini.execution.ExecutionResult
 import dev.panini.execution.PaniniVM
 import dev.panini.execution.SambhashanaContext
 import dev.panini.execution.SanskritUktiInput
+import dev.panini.execution.OutputKind
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -47,6 +48,19 @@ class TatahResultPipelineTest {
         )
 
         assertEquals("त्रीणि", assertIs<ExecutionResult.Success>(result).value)
+    }
+
+    @Test
+    fun `tatah joins the result of either conditional branch`() {
+        val result = PaniniVM().eval(
+            "यदि द्वि + अम् एक + अम् च विद् + लोट् + सिप् " +
+                "तर्हि लघु + अम् दा + लोट् + सिप् अन्यथा गुरु + अम् दा + लोट् + सिप् " +
+                "ततः मुद्र् + णिच् + लोट् + सिप् ।",
+        )
+
+        val success = assertIs<ExecutionResult.Success>(result)
+        assertEquals("लघु", success.value)
+        assertEquals(OutputKind.CONSOLE, success.outputKind)
     }
 
     private fun bind(text: String): ExecutionBindingResult.Bound {

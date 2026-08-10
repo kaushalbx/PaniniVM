@@ -212,6 +212,23 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 ExecutionError.ACTION_FAILED,
                 "Condition-controlled loop exceeded its safety limit of $MAX_CONDITION_ITERATIONS iterations.",
             )
+        } else {
+            val exhaustedInvocation = loop.exhausted as? dev.panini.vyakaranam.ast.Invocation
+            if (exhaustedInvocation != null) {
+                val exhaustedText = renderInvocation(exhaustedInvocation)
+                val invocation = registry.detectInvocation(exhaustedText, callerSourceFile = sourceFile)
+                val exhaustedResults = if (invocation != null) {
+                    executeSamjnaInvocation(
+                        invocation, sessionKey, scope, speaker, listener, registry,
+                        callerSourceFile = sourceFile, onResult = onResult,
+                    )
+                } else {
+                    listOf(vm.eval(exhaustedText, sessionKey, scope, speaker, listener, isExecutingScript = true)).also {
+                        it.forEach { result -> onResult?.invoke(result) }
+                    }
+                }
+                results += exhaustedResults
+            }
         }
         return results
     }
