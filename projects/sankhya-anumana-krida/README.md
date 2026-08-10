@@ -13,6 +13,7 @@ The example demonstrates:
 - dynamic instruction rendering from segmented ablative and locative bounds;
 - one persistent variable, `रहस्य`, assigned with `दा`;
 - direct use of each action's latest `फल`, without a temporary guess variable;
+- direct `ततः` result piping into a following action's missing `कर्मन्`;
 - equality-style membership testing with the existing `अस्` operation;
 - conditionals with `यदि … तर्हि … अन्यथा`;
 - a reusable kriyā-saṃjñā declared as `प्रयत्न + ल्युट् + सुँ`;

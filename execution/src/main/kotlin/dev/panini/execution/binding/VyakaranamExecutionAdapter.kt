@@ -153,6 +153,7 @@ object VyakaranamExecutionAdapter {
             Repeat(ukti.body.sourceText, count, ukti.body)
         } ?: lowerFrequencyQualifiers(ukti.body, utteranceAnalysis)
         val executionVakyas = executionBody.expandedInvocations().map(Invocation::vakya)
+        val pipelineKarmanSources = pipelineKarmanSources(executionBody)
 
         executionVakyas.forEachIndexed { index, vakya ->
             val padas = vakya.padas
@@ -183,6 +184,7 @@ object VyakaranamExecutionAdapter {
                 tinganta = tinganta,
                 listener = listener,
                 prayer = prayer,
+                pipelineKarmanSource = pipelineKarmanSources[index + 1],
             )
             invocations += invocation
             val bindingKaraka = dhatu.operations.firstOrNull { it.resultBindingKaraka != null }?.resultBindingKaraka
@@ -259,9 +261,15 @@ object VyakaranamExecutionAdapter {
         tinganta: TingantaPada?,
         listener: String,
         prayer: Boolean,
+        pipelineKarmanSource: Int?,
     ): DhatuInvocation {
         val extracted = KarakaExtractor.extractKarakas(padas, ctx)
         val bindings = extracted.bindings.toMutableMap()
+        if (pipelineKarmanSource != null && Karaka.KARMAN !in bindings) {
+            bindings[Karaka.KARMAN] = ExecutionExpression.Reference(
+                KriyaInvocationId.of(pipelineKarmanSource),
+            )
+        }
         if (tinganta != null && purposeRequiresListenerAsAgent(prayer, tinganta.lakara) && Karaka.KARTR !in bindings) {
             bindings[Karaka.KARTR] = ExecutionExpression.Pada(listener)
         }
@@ -282,8 +290,56 @@ object VyakaranamExecutionAdapter {
                 lakara = tinganta?.lakara ?: Lakara.LAT,
             ),
             ambiguousBindings = extracted.ambiguous,
-            karakaTrace = extracted.trace,
+            karakaTrace = extracted.trace + if (pipelineKarmanSource != null && Karaka.KARMAN in bindings &&
+                Karaka.KARMAN !in extracted.bindings
+            ) {
+                listOf("Piped the preceding ततः result into the missing KARMAN binding.")
+            } else {
+                emptyList()
+            },
         )
+    }
+
+    /** Maps a ततः target invocation to the single invocation that immediately precedes it. */
+    private fun pipelineKarmanSources(root: ProgramNode): Map<Int, Int> {
+        data class Shape(val entries: Set<Int>, val exits: Set<Int>)
+
+        var nextInvocation = 1
+        val sources = mutableMapOf<Int, Int>()
+
+        fun visit(node: ProgramNode): Shape = when (node) {
+            is Invocation -> {
+                val id = nextInvocation++
+                Shape(setOf(id), setOf(id))
+            }
+            is Sequence -> {
+                val shapes = node.statements.map(::visit)
+                shapes.zipWithNext().forEachIndexed { boundary, (before, after) ->
+                    if (node.connectors.getOrNull(boundary) == "ततः" &&
+                        before.exits.size == 1 && after.entries.size == 1
+                    ) {
+                        sources[after.entries.single()] = before.exits.single()
+                    }
+                }
+                Shape(shapes.first().entries, shapes.last().exits)
+            }
+            is Conditional -> {
+                val condition = visit(node.condition)
+                val consequent = visit(node.consequent)
+                val alternate = node.alternate?.let(::visit)
+                Shape(condition.entries, consequent.exits + (alternate?.exits ?: emptySet()))
+            }
+            is Repeat -> {
+                val repetitions = List(node.count) { visit(node.body) }
+                Shape(repetitions.first().entries, repetitions.last().exits)
+            }
+            is Pipeline -> Shape(emptySet(), emptySet())
+            is Procedure -> Shape(emptySet(), emptySet())
+            is Scope -> Shape(emptySet(), emptySet())
+        }
+
+        visit(root)
+        return sources
     }
 
     private fun lowerFrequencyQualifiers(
