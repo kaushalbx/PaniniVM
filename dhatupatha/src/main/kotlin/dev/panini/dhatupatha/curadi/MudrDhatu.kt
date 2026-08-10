@@ -32,6 +32,12 @@ class MudrDhatu : Dhatu(
         PrintAction.op {
             requires(Karaka.KARMAN)
             returns(Samjna.SHABDA)
+        },
+        PrintAction.op {
+            requires(Karaka.KARMAN)
+            requires(Karaka.APADANA)
+            requires(Karaka.ADHIKARANA)
+            returns(Samjna.SHABDA)
         }
     ),
 )

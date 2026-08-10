@@ -13,7 +13,8 @@ object PrintAction : dev.panini.execution.DhatuAction("प्रदर्शन�
     override fun execute(context: dev.panini.execution.ExecutionContext, operation: dev.panini.execution.DhatuOperation): dev.panini.execution.ExecutionResult {
         val expression = context.bindings[Karaka.KARMAN] ?: context.bindings[Karaka.KARTR]
         val operands = if (expression != null) context.resolve(expression) else emptyList()
-        val textToPrint = operands.joinToString(" ")
+        val range = context.renderRange()
+        val textToPrint = (range + operands).joinToString(" ")
 
         return ExecutionResult.Success(
             textToPrint,
@@ -25,5 +26,15 @@ object PrintAction : dev.panini.execution.DhatuAction("प्रदर्शन�
             dev.panini.execution.SanskritValue.Shabda(textToPrint),
             OutputKind.CONSOLE,
         )
+    }
+
+    private fun dev.panini.execution.ExecutionContext.renderRange(): List<String> {
+        val minimum = bindings[Karaka.APADANA]?.let(::resolve)?.singleOrNull()
+        val maximum = bindings[Karaka.ADHIKARANA]?.let(::resolve)?.singleOrNull()
+        return if (minimum != null && maximum != null) {
+            listOf("${minimum}तः", "${maximum}पर्यन्तं")
+        } else {
+            emptyList()
+        }
     }
 }

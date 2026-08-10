@@ -10,6 +10,7 @@ The example demonstrates:
 - an inline inclusive range, `एक + ङसिँ दश + ङि`, consumed directly by `दिव्`;
 - numeric input with `ग्रह्` and the `सङ्ख्या` type marker;
 - the same inline range cases reused as input bounds;
+- dynamic instruction rendering from segmented ablative and locative bounds;
 - one persistent variable, `रहस्य`, assigned with `दा`;
 - direct use of each action's latest `फल`, without a temporary guess variable;
 - equality-style membership testing with the existing `अस्` operation;
