@@ -1,21 +1,12 @@
 package dev.panini
 
 import dev.panini.ashtadhyayi.Ashtadhyayi
-import dev.panini.core.Lakara
-import dev.panini.core.Vacana
-import dev.panini.core.Vibhakti
-import dev.panini.derivation.KarakaSubantaDerivationRequest
-import dev.panini.derivation.SubantaDerivationRequest
-import dev.panini.derivation.SubantaEngine
-import dev.panini.derivation.TingantaDerivationRequest
-import dev.panini.derivation.TingantaEngine
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.PaniniVM
 import dev.panini.execution.OutputKind
 import dev.panini.sankhya.SankhyaGenerator
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
-import dev.panini.unadipatha.UnadiDerivationEngine
 import dev.panini.unadipatha.UnadiPatha
 import dev.panini.unadipatha.analysis.UnadiAnalyzer
 import java.io.File
@@ -72,68 +63,10 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
     "--grantha" -> GranthaCliCommands.execute(args.drop(1))
     "--check-grantha" -> GranthaCliCommands.check(args.drop(1))
     "--emit-grantha" -> GranthaCliCommands.emit(args.drop(1))
-    "--paradigm" -> {
-        val pratipadika = args.getOrNull(1) ?: error("Usage: --paradigm राम")
-        SubantaEngine().deriveSupportedParadigm(pratipadika).surfaces.map { (affix, surface) ->
-            "${affix.vibhakti} ${affix.vacana}: $surface"
-        }
-    }
-    "--derive" -> {
-        val pratipadika = args.getOrNull(1) ?: error("Usage: --derive राम SASTHI BAHUVACANA")
-        val vibhakti = CliArgumentParsers.vibhakti(args.getOrNull(2) ?: error("Missing vibhakti."))
-        val vacana = CliArgumentParsers.vacana(args.getOrNull(3) ?: error("Missing vacana."))
-        val result = SubantaEngine().derive(
-            SubantaDerivationRequest(
-                pratipadika,
-                vibhakti,
-                vacana,
-            )
-        )
-
-        buildList {
-            add("$vibhakti $vacana: ${result.final.surface}")
-            DerivationTraceRenderer.appendTo(this, result, includeRole = true)
-        }
-    }
-    "--derive-karaka" -> {
-        val pratipadika = args.getOrNull(1) ?: error("Usage: --derive-karaka <pratipadika> <karaka> <vacana> <dhatu> [prayoga]")
-        val karaka = CliArgumentParsers.karaka(args.getOrNull(2) ?: error("Missing karaka."))
-        val vacana = CliArgumentParsers.vacana(args.getOrNull(3) ?: error("Missing vacana."))
-        val dhatu = args.getOrNull(4) ?: error("Missing dhatu.")
-        val prayoga = args.getOrNull(5)?.let(CliArgumentParsers::prayoga) ?: dev.panini.core.Prayoga.KARTARI
-        val result = SubantaEngine().deriveFromKaraka(
-            KarakaSubantaDerivationRequest(
-                pratipadika = pratipadika,
-                karaka = karaka,
-                vacana = vacana,
-                dhatu = dhatu,
-                prayoga = prayoga
-            )
-        )
-
-        buildList {
-            val resolvedVibhakti = result.initial.context.rupa.vibhakti ?: Vibhakti.PRATHAMA
-            add("$resolvedVibhakti $vacana: ${result.final.surface}")
-            result.karakaResolution?.let { res ->
-                add("Semantic Karaka Resolution Trace:")
-                res.evidence.forEach { ev ->
-                    add("  ${ev.sutra} — ${ev.reason} (${ev.text})")
-                }
-            }
-            DerivationTraceRenderer.appendTo(this, result, includeRole = true)
-        }
-    }
-    "--derive-unadi" -> {
-        val dhatu = args.getOrNull(1) ?: error("Usage: --derive-unadi <dhatu> <pratyaya>")
-        val pratyaya = args.getOrNull(2) ?: error("Usage: --derive-unadi <dhatu> <pratyaya>")
-        val result = UnadiDerivationEngine.derive(dhatu, pratyaya)
-        buildList {
-            add("=== Uṇādi Derivation Tracing for ($dhatu + $pratyaya) ===")
-            add("Initial State: ${result.initial.terms.joinToString(" + ") { it.surface }}")
-            add("Final Derived Surface: ${result.final.surface}")
-            DerivationTraceRenderer.appendTo(this, result, includeRole = true)
-        }
-    }
+    "--paradigm" -> DerivationCliCommands.paradigm(args.drop(1))
+    "--derive" -> DerivationCliCommands.nominal(args.drop(1))
+    "--derive-karaka" -> DerivationCliCommands.karaka(args.drop(1))
+    "--derive-unadi" -> DerivationCliCommands.unadi(args.drop(1))
     "--sutra" -> {
         val number = args.getOrNull(1) ?: error("Usage: --sutra 7.1.54")
         val sutra = Ashtadhyayi.registry.require(number) as? Sutra<*, *>
@@ -149,18 +82,7 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
             if (sutra.exceptions.isNotEmpty()) add("exceptions=${sutra.exceptions.joinToString()}")
         }
     }
-    "--verb" -> {
-        val dhatu = args.getOrNull(1) ?: error("Usage: --verb भू [LAT|LRT|LOT|LANG|LING] [EKAVACANA|DVIVACANA|BAHUVACANA]")
-        val requestedLakara = args.getOrNull(2)?.let(CliArgumentParsers::lakaraOrNull)
-        val lakara = requestedLakara ?: Lakara.LAT
-        val vacanaIndex = if (requestedLakara == null) 2 else 3
-        val vacana = args.getOrNull(vacanaIndex)?.let(CliArgumentParsers::vacana) ?: Vacana.EKAVACANA
-        val result = TingantaEngine().derive(TingantaDerivationRequest(dhatu, vacana, lakara = lakara))
-        buildList {
-            add("$dhatu: ${result.final.surface}")
-            DerivationTraceRenderer.appendTo(this, result)
-        }
-    }
+    "--verb" -> DerivationCliCommands.verb(args.drop(1))
     "--unadi", "--unadipatha" -> {
         val mode = args.getOrNull(1)?.lowercase() ?: "list"
         when (mode) {
