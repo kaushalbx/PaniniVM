@@ -13,6 +13,13 @@ object AntaratamaOverloadEngine {
     }
 
     fun match(signature: SamjnaSignature, argTerms: List<String>): TypeMatch {
+        if (signature.parameters.isNotEmpty()) {
+            if (signature.parameters.size != argTerms.size) return TypeMatch.MISMATCH
+            return if (signature.parameters.zip(argTerms).all { (parameter, argument) ->
+                    SamjnaValueClassifier.classifyTerm(argument) == parameter.type
+                }
+            ) TypeMatch.EXACT else TypeMatch.MISMATCH
+        }
         val expected = signature.argumentType ?: return TypeMatch.UNCONSTRAINED
         if (argTerms.isEmpty()) return TypeMatch.MISMATCH
         return if (argTerms.all { SamjnaValueClassifier.classifyTerm(it) == expected }) {

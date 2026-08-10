@@ -551,6 +551,26 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
     ): List<ExecutionResult> {
         val results = mutableListOf<ExecutionResult>()
         val argTerms = SubantaKarakaParser.extractKarmaTerms(invocation.karmaText, invocation.ukti)
+        val signature = invocation.kriya.signature
+
+        if (signature.parameters.isNotEmpty() && signature.parameters.size != argTerms.size) {
+            return listOf(
+                ExecutionResult.Failure(
+                    ExecutionError.INVALID_VALUE,
+                    "संज्ञा-मानसङ्ख्या: '${invocation.kriya.nameStem}' expects ${signature.parameters.size} arguments, but received ${argTerms.size}.",
+                ),
+            )
+        }
+        signature.parameters.zip(argTerms).firstOrNull { (parameter, argument) ->
+            SamjnaValueClassifier.classifyTerm(argument) != parameter.type
+        }?.let { (parameter, _) ->
+            return listOf(
+                ExecutionResult.Failure(
+                    ExecutionError.INVALID_VALUE,
+                    "संज्ञा-मानप्रकारः: '${parameter.nameStem}' requires ${parameter.type}.",
+                ),
+            )
+        }
 
         if (invocation.kriya.isMemoized) {
             registry.getCachedResult(invocation.kriya.nameStem, invocation.karmaText)?.let {
@@ -588,6 +608,13 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 argTerms.forEachIndexed { index, argument ->
                     sentenceText = PuranaPratyayaResolver.replacePatterns(sentenceText, index, argument)
                 }
+                signature.parameters.zip(argTerms).forEach { (parameter, argument) ->
+                    sentenceText = NamedSamjnaParameterResolver.replace(
+                        sentenceText,
+                        parameter.nameStem,
+                        argument,
+                    )
+                }
                 sentenceText = SamavayaParameterResolver.replace(sentenceText, invocation.karmaText)
 
                 val kriyaSourceFile = invocation.kriya.sourceFile ?: callerSourceFile
@@ -617,6 +644,18 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         if (invocation.kriya.isMemoized) {
             (results.lastOrNull() as? ExecutionResult.Success)?.let {
                 registry.cacheResult(invocation.kriya.nameStem, invocation.karmaText, it)
+            }
+        }
+        signature.resultType?.let { expected ->
+            val finalResult = results.lastOrNull() as? ExecutionResult.Success
+                ?: return results
+            val typedValue = finalResult.typedValue ?: SanskritValue.of(finalResult.value)
+            val actual = SamjnaValueClassifier.classifyValue(typedValue)
+            if (actual != expected) {
+                return results + ExecutionResult.Failure(
+                    ExecutionError.INVALID_VALUE,
+                    "संज्ञा-परिणामप्रकारः: '${invocation.kriya.nameStem}' declared $expected but returned $actual.",
+                )
             }
         }
         return results

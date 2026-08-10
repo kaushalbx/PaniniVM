@@ -9,8 +9,15 @@ enum class SamjnaValueType {
     SUCHI,
 }
 
+data class SamjnaParameter(
+    val nameStem: String,
+    val type: SamjnaValueType,
+)
+
 data class SamjnaSignature(
     val argumentType: SamjnaValueType? = null,
+    val parameters: List<SamjnaParameter> = emptyList(),
+    val resultType: SamjnaValueType? = null,
 )
 
 /**
@@ -25,16 +32,51 @@ object SamjnaSignatureCompiler {
     )
 
     fun compile(body: List<PvmScriptStatement.Sentence>): SamjnaSignature {
+        val parameters = body.mapNotNull(SamjnaSignatureDeclarationParser::parameter)
+        val resultType = body.mapNotNull(SamjnaSignatureDeclarationParser::resultType).singleOrNull()
         val guardedTypes = body.asSequence()
             .filter { it.isNishedha }
             .mapNotNull { inferGuardType(it.text) }
             .distinct()
             .toList()
-        return SamjnaSignature(argumentType = guardedTypes.singleOrNull())
+        return SamjnaSignature(
+            argumentType = guardedTypes.singleOrNull(),
+            parameters = parameters,
+            resultType = resultType,
+        )
     }
 
     fun inferGuardType(text: String): SamjnaValueType? =
         typeMarkers.entries.firstOrNull { (_, markers) -> markers.any(text::contains) }?.key
+}
+
+/** Parses grammatical signature declarations embedded at the start of a saṃjñā block. */
+object SamjnaSignatureDeclarationParser {
+    private val typeSource = "(सङ्ख्या|शब्द|सूची)"
+    private val parameterPattern = Regex(
+        "^\\s*(.+?)\\s*\\+\\s*सुँ\\s+$typeSource\\s*\\+\\s*सुँ\\s+इति\\s+मान\\s*\\+\\s*सुँ\\s*[।॥]?\\s*$",
+    )
+    private val resultPattern = Regex(
+        "^\\s*$typeSource\\s*\\+\\s*सुँ\\s+इति\\s+परिणाम\\s*\\+\\s*सुँ\\s*[।॥]?\\s*$",
+    )
+
+    fun parameter(sentence: PvmScriptStatement.Sentence): SamjnaParameter? {
+        val match = parameterPattern.matchEntire(sentence.text) ?: return null
+        return SamjnaParameter(match.groupValues[1].trim(), type(match.groupValues[2]))
+    }
+
+    fun resultType(sentence: PvmScriptStatement.Sentence): SamjnaValueType? =
+        resultPattern.matchEntire(sentence.text)?.groupValues?.get(1)?.let(::type)
+
+    fun isDeclaration(sentence: PvmScriptStatement.Sentence): Boolean =
+        parameter(sentence) != null || resultType(sentence) != null
+
+    private fun type(source: String): SamjnaValueType = when (source) {
+        "सङ्ख्या" -> SamjnaValueType.SANKHYA
+        "शब्द" -> SamjnaValueType.SHABDA
+        "सूची" -> SamjnaValueType.SUCHI
+        else -> error("Unsupported saṃjñā value type: $source")
+    }
 }
 
 object SamjnaValueClassifier {
@@ -48,6 +90,12 @@ object SamjnaValueClassifier {
         } else {
             SamjnaValueType.SHABDA
         }
+
+    fun classifyValue(value: SanskritValue): SamjnaValueType = when (value) {
+        is SanskritValue.Sankhya, is SanskritValue.Rational, is SanskritValue.Range -> SamjnaValueType.SANKHYA
+        is SanskritValue.Suchi, is SanskritValue.Gana -> SamjnaValueType.SUCHI
+        else -> SamjnaValueType.SHABDA
+    }
 }
 
 enum class SamjnaPrecedence(val rank: Int) {

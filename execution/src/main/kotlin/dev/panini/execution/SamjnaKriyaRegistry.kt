@@ -31,7 +31,9 @@ data class SamjnaKriya(
     }
 
     val nishedhaGuards: List<PvmScriptStatement.Sentence> = body.filter { it.isNishedha }
-    val vidhiSentences: List<PvmScriptStatement.Sentence> = body.filterNot { it.isNishedha }
+    val vidhiSentences: List<PvmScriptStatement.Sentence> = body.filterNot {
+        it.isNishedha || SamjnaSignatureDeclarationParser.isDeclaration(it)
+    }
 }
 
 /**
