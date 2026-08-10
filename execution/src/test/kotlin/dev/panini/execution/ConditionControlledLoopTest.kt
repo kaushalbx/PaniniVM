@@ -3,6 +3,7 @@ package dev.panini.execution
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.test.assertIs
 
 class ConditionControlledLoopTest {
     @Test
@@ -63,6 +64,10 @@ class ConditionControlledLoopTest {
 
         val values = results.filterIsInstance<ExecutionResult.Success>().map { it.value }
         assertEquals(listOf("समाप्ति", "द्वि"), values.takeLast(2), results.toString())
+        val attemptCount = assertIs<SanskritValue.Sankhya>(
+            results.filterIsInstance<ExecutionResult.Success>().last().typedValue,
+        )
+        assertEquals(2, attemptCount.value)
         assertTrue(results.none { it is ExecutionResult.Failure }, results.toString())
     }
 }

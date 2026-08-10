@@ -159,6 +159,10 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                     "अवस्था" to outcome.sanskritName,
                     "प्रयत्नसङ्ख्या" to attemptWord,
                 ),
+                typedAttributes = mapOf(
+                    "अवस्था" to outcomeValue,
+                    "प्रयत्नसङ्ख्या" to SanskritValue.Sankhya(iterationCount.toLong(), attemptWord),
+                ),
             )
             val completion = ExecutionResult.Success(
                 value = outcome.sanskritName,
@@ -510,10 +514,14 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 failedStep = chain[index - 1]
                 break
             }
+            val typedAttribute = currentObject.typedAttributes[key]
             val attribute = currentObject.attributes[key]
-            if (attribute != null) {
-                if (index == chain.lastIndex) resolvedValue = SanskritValue.of(attribute)
-                else currentObject = structStore[attribute]
+            if (typedAttribute != null || attribute != null) {
+                if (index == chain.lastIndex) {
+                    resolvedValue = typedAttribute ?: SanskritValue.of(requireNotNull(attribute))
+                } else {
+                    currentObject = attribute?.let(structStore::get)
+                }
             } else if (index == chain.lastIndex) {
                 resolvedValue = SanskritValue.Lopa
             } else {

@@ -24,6 +24,7 @@ import dev.panini.vyakaranam.parser.PaniniParser
 data class TaddhitaStruct(
     val nameStem: String,
     val attributes: Map<String, String>,
+    val typedAttributes: Map<String, SanskritValue> = emptyMap(),
 )
 
 object TaddhitaStructEngine {

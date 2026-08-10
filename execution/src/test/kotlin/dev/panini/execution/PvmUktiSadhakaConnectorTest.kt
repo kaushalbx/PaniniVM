@@ -28,5 +28,8 @@ class PvmUktiSadhakaConnectorTest {
 
         assertTrue(" ततः " in rendered, rendered)
         assertFalse("। ततः" in rendered, rendered)
+        assertFalse(" दा" in rendered, rendered)
+        assertEquals(1, Regex("ततः").findAll(rendered).count(), rendered)
+        assertTrue("लघु" in rendered && "गुरु" in rendered, rendered)
     }
 }

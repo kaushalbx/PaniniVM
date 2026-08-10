@@ -26,6 +26,8 @@ sealed interface ProgramNode : VyakaranamNode
 
 data class Invocation(
     val vakya: Vakya,
+    /** Source-level nominal result whose understood return verb was lowered into [vakya]. */
+    val implicitValue: String? = null,
 ) : ProgramNode {
     override val sourceText: String = vakya.sourceText
 }
@@ -48,6 +50,8 @@ data class Conditional(
     val condition: ProgramNode,
     val consequent: ProgramNode,
     val alternate: ProgramNode? = null,
+    /** One source-written pipeline target lowered into both branches for execution. */
+    val surfacePipelineTarget: ProgramNode? = null,
 ) : ProgramNode
 
 /** A command mentioned with इति and supplied as data to a reporting command. */

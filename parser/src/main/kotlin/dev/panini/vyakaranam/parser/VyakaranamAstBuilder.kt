@@ -71,17 +71,24 @@ class VyakaranamAstBuilder {
 
     /** A nominal branch has an understood return verb, just as a nāma-vākya has an understood copula. */
     private fun implicitValueReturn(value: String): ProgramNode =
-        PaniniParser().parse("$value + अम् दा + लोट् + सिप् ।").body
+        (PaniniParser().parse("$value + अम् दा + लोट् + सिप् ।").body as Invocation)
+            .copy(implicitValue = value)
 
     /** Lowers one written pipeline target into each mutually exclusive branch. */
     private fun pipeConditionalResult(
         conditional: Conditional,
         target: PaniniyaVyakaranamParser.VakyaContext,
+        exposeSurfaceTarget: Boolean = true,
     ): Conditional = conditional.copy(
         consequent = pipeBranch(conditional.consequent, target),
         alternate = conditional.alternate?.let { alternate ->
-            if (alternate is Conditional) pipeConditionalResult(alternate, target) else pipeBranch(alternate, target)
+            if (alternate is Conditional) {
+                pipeConditionalResult(alternate, target, exposeSurfaceTarget = false)
+            } else {
+                pipeBranch(alternate, target)
+            }
         },
+        surfacePipelineTarget = if (exposeSurfaceTarget) Invocation(buildVakya(target)) else null,
     )
 
     private fun pipeBranch(

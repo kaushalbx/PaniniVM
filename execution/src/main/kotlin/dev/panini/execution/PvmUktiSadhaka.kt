@@ -114,8 +114,8 @@ class PvmUktiSadhaka(
 
     private val programRenderer = object : ProgramNodeVisitor<String> {
         private fun render(node: ProgramNode): String = node.accept(this)
-        override fun visitInvocation(node: Invocation): String =
-            node.vakya.padas.joinToString(" ") { pada -> sadhayaPada(pada) }
+        override fun visitInvocation(node: Invocation): String = node.implicitValue
+            ?: node.vakya.padas.joinToString(" ") { pada -> sadhayaPada(pada) }
         override fun visitSequence(node: Sequence): String = buildString {
             node.statements.forEachIndexed { index, statement ->
                 if (index > 0) {
@@ -126,15 +126,30 @@ class PvmUktiSadhaka(
                 append(render(statement))
             }
         }
-        override fun visitConditional(node: Conditional): String = buildString {
+        override fun visitConditional(node: Conditional): String = renderConditional(node, includePipelineTarget = true)
+
+        private fun renderConditional(node: Conditional, includePipelineTarget: Boolean): String = buildString {
+            val hasSharedTarget = includePipelineTarget && node.surfacePipelineTarget != null
+            val stripLoweredTargets = hasSharedTarget || !includePipelineTarget
             append("यदि ")
             append(render(node.condition))
             append(" तर्हि ")
-            append(render(node.consequent))
+            append(renderBranch(node.consequent, stripPipelineTarget = stripLoweredTargets))
             node.alternate?.let {
                 append(" अन्यथा ")
-                append(render(it))
+                append(renderBranch(it, stripPipelineTarget = stripLoweredTargets))
             }
+            if (hasSharedTarget) {
+                append(" ततः ")
+                append(render(requireNotNull(node.surfacePipelineTarget)))
+            }
+        }
+
+        private fun renderBranch(node: ProgramNode, stripPipelineTarget: Boolean): String = when {
+            !stripPipelineTarget -> render(node)
+            node is Conditional -> renderConditional(node, includePipelineTarget = false)
+            node is Sequence && node.connectors.lastOrNull() == "ततः" -> render(node.statements.first())
+            else -> render(node)
         }
         override fun visitQuotation(node: Quotation): String =
             "${node.quoted.vakya.padas.joinToString(" ") { sadhayaPada(it) }} इति ${node.reporting.accept(this)}"
