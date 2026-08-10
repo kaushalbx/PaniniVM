@@ -5,6 +5,7 @@ import dev.panini.execution.DhatuAction
 import dev.panini.execution.DhatuOperation
 import dev.panini.execution.ExecutionContext
 import dev.panini.execution.ExecutionResult
+import dev.panini.execution.OutputKind
 import dev.panini.execution.SanskritValue
 
 /** Standard Console Output Action (triggered by दृश् / दर्शय). */
@@ -22,6 +23,7 @@ object PrintAction : dev.panini.execution.DhatuAction("प्रदर्शन�
                 "Printed '$textToPrint'.",
             ),
             dev.panini.execution.SanskritValue.Shabda(textToPrint),
+            OutputKind.CONSOLE,
         )
     }
 }

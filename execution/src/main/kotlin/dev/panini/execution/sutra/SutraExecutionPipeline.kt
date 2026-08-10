@@ -133,6 +133,7 @@ object SutraExecutionPipeline {
                     trace = state.executionTrace + machineTrace,
                     typedValues = state.invocationValues,
                     localBindings = state.localBindings,
+                    outputKind = last.outputKind,
                 )
             }
             null -> Phala.Asiddha(
@@ -358,6 +359,7 @@ object SutraExecutionPipeline {
                     trace = finalState.executionTrace + machineTrace,
                     typedValues = finalState.invocationValues,
                     localBindings = finalState.localBindings,
+                    outputKind = last.outputKind,
                 )
             }
             null -> Phala.Asiddha(

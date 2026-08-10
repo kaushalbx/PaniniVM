@@ -41,6 +41,23 @@ The CLI then accepts ASCII digits such as `20` or Devanagari digits such as `२
 Invalid input is reported and the same prompt is repeated without advancing the
 PVM program.
 
+Operations requiring capabilities outside the default scope pause execution and
+ask for confirmation:
+
+```text
+Operation प्रेषण-1 requires: NETWORK, EXECUTE_PROCESS, SEND_MESSAGE.
+Allow execution? [y/N]:
+```
+
+`y`, `yes`, `हाँ`, `हां`, and `आम्` grant only the requested effects and resume
+the saved continuation. Any other response, including end-of-input, rejects the
+operation cleanly. Requested-execution dispositions use the equivalent
+`Accept request? [y/N]:` flow.
+
 Running the CLI without arguments starts the interactive REPL.
 
 The Gradle `:cli:run` task remains suitable for non-interactive commands.
+
+The CLI displays successful values according to structured runtime metadata:
+`CONSOLE` and `EXTERNAL` results are visible, while `INTERNAL` intermediate
+results remain suppressed. Output selection does not depend on trace text.

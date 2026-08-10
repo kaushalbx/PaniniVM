@@ -16,6 +16,7 @@ import dev.panini.execution.ExecutionResult
 import dev.panini.execution.ExecutionEffect
 import dev.panini.execution.ExecutionScope
 import dev.panini.execution.PaniniVM
+import dev.panini.execution.OutputKind
 import dev.panini.execution.Phala
 import dev.panini.execution.ValueEnvironment
 import dev.panini.execution.sutra.ProgramAvastha
@@ -84,10 +85,7 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
             results.forEach { res ->
                 when (res) {
                     is ExecutionResult.Success -> {
-                        val isPrint = res.trace.any {
-                            it.contains("Printed") || it.contains("प्रदर्शनम्") || it.contains("मुद्रणम्") || it.contains("प्रेषणम्")
-                        }
-                        if (res.value.isNotBlank() && isPrint) {
+                        if (res.value.isNotBlank() && res.outputKind != OutputKind.INTERNAL) {
                             add(res.value)
                         }
                     }

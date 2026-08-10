@@ -2,6 +2,8 @@ package dev.panini.execution
 
 import dev.panini.core.Karaka
 
+enum class OutputKind { INTERNAL, CONSOLE, EXTERNAL }
+
 /** The value of a successful execution is always a Sanskrit string. */
 sealed interface ExecutionResult {
     val trace: List<String>
@@ -11,6 +13,7 @@ sealed interface ExecutionResult {
         val operation: String,
         override val trace: List<String> = emptyList(),
         val typedValue: SanskritValue? = null,
+        val outputKind: OutputKind = OutputKind.INTERNAL,
     ) : ExecutionResult
 
     data class Failure(

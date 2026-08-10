@@ -23,6 +23,7 @@ object ExecutionRuntime {
                 nextPlanIndex = 0,
                 environment = environment,
                 trace = emptyList(),
+                lastOutputKind = OutputKind.INTERNAL,
             ),
             scope,
         )
@@ -32,6 +33,7 @@ object ExecutionRuntime {
         val values = scope.environment.mergedWith(continuation.environment).values.toMutableMap()
         val localBindings = mutableMapOf<String, SanskritValue>()
         val trace = continuation.trace.toMutableList()
+        var lastOutputKind = continuation.lastOutputKind
         val plans = continuation.planning.plans
         for (index in continuation.nextPlanIndex until plans.size) {
             val plan = plans[index]
@@ -40,6 +42,7 @@ object ExecutionRuntime {
                 index,
                 ValueEnvironment(values.toMap()),
                 trace.toList(),
+                lastOutputKind,
             )
             when (val authority = AuthorityPolicy.authorize(plan, scope)) {
                 AuthorityDecision.Authorized -> Unit
@@ -95,6 +98,7 @@ object ExecutionRuntime {
                         trace += "Bound result to local name '$bindingName'."
                     }
                     trace += plan.resolved.resolutionTrace + result.trace
+                    lastOutputKind = result.outputKind
                 }
                 else -> return Phala.Asiddha(result, trace + result.trace)
             }
@@ -107,6 +111,7 @@ object ExecutionRuntime {
             trace,
             results.values,
             localBindings,
+            outputKind = lastOutputKind,
         )
     }
 }

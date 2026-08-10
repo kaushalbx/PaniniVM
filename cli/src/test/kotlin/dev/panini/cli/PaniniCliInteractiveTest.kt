@@ -1,6 +1,7 @@
 package dev.panini.cli
 
 import dev.panini.execution.ExecutionResult
+import dev.panini.execution.OutputKind
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -46,6 +47,8 @@ class PaniniCliInteractiveTest {
         val successes = results.filterIsInstance<ExecutionResult.Success>()
 
         assertEquals("त्रिंशत्", successes.last().value)
+        assertEquals(OutputKind.INTERNAL, successes.first().outputKind)
+        assertEquals(OutputKind.CONSOLE, successes.last().outputKind)
         val rendered = output.toString(Charsets.UTF_8)
         assertTrue(rendered.contains("Enter value for प्रथम (number):"))
         assertTrue(rendered.contains("Invalid number 'not-a-number'."))
@@ -54,5 +57,36 @@ class PaniniCliInteractiveTest {
         assertTrue(!rendered.contains("Line 1:"))
         assertTrue(!rendered.contains("Line 2:"))
         assertTrue(!rendered.contains("Line 3:"))
+    }
+
+    @Test
+    fun `script approval prompt grants effects and resumes continuation`() {
+        val output = ByteArrayOutputStream()
+        val cli = PaniniCli(
+            inputStream = ByteArrayInputStream("yes\n".toByteArray(Charsets.UTF_8)),
+            outputStream = PrintStream(output, true, Charsets.UTF_8),
+        )
+
+        val results = cli.executeScriptFile(File("examples/external/external_demo.pvm"))
+
+        assertTrue(results.none { it is ExecutionResult.NeedsApproval })
+        assertEquals(OutputKind.EXTERNAL, assertIs<ExecutionResult.Success>(results.first()).outputKind)
+        val rendered = output.toString(Charsets.UTF_8)
+        assertTrue(rendered.contains("requires: NETWORK, EXECUTE_PROCESS, SEND_MESSAGE"))
+        assertTrue(rendered.contains("Allow execution? [y/N]:"))
+    }
+
+    @Test
+    fun `script approval rejection becomes a clean failure`() {
+        val output = ByteArrayOutputStream()
+        val cli = PaniniCli(
+            inputStream = ByteArrayInputStream("no\n".toByteArray(Charsets.UTF_8)),
+            outputStream = PrintStream(output, true, Charsets.UTF_8),
+        )
+
+        val results = cli.executeScriptFile(File("examples/external/external_demo.pvm"))
+
+        val failure = assertIs<ExecutionResult.Failure>(results.first())
+        assertTrue(failure.message.contains("denied by user"))
     }
 }

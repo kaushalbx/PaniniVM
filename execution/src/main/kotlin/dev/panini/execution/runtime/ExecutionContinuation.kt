@@ -6,4 +6,5 @@ data class ExecutionContinuation(
     val nextPlanIndex: Int,
     val environment: ValueEnvironment,
     val trace: List<String>,
+    val lastOutputKind: OutputKind = OutputKind.INTERNAL,
 )

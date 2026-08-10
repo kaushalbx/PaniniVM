@@ -4,9 +4,11 @@ import dev.panini.compiler.BytecodeCompiler
 import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.ExecutionEffect
+import dev.panini.execution.ExecutionError
 import dev.panini.execution.InputRequest
 import dev.panini.execution.InputValueType
 import dev.panini.execution.PaniniVM
+import dev.panini.execution.OutputKind
 import dev.panini.execution.toInputLongOrNull
 import dev.panini.aryabhatiya.AryabhatiyaDecoder
 import dev.panini.aryabhatiya.AryabhatiyaEncoder
@@ -71,7 +73,8 @@ class PaniniCli(
     fun executeScriptFile(file: File): List<ExecutionResult> {
         outputStream.println("[PaniniVM CLI] Executing file: ${file.name}")
         val results = vm.evalFile(file, sessionKey = sessionKey)
-        results.forEachIndexed { i, res ->
+        val resolvedResults = results.map { resolveInteractive(it) }
+        resolvedResults.forEachIndexed { i, res ->
             when (res) {
                 is ExecutionResult.Success -> {
                     if (res.isExplicitOutput() && res.value.isNotBlank()) {
@@ -90,22 +93,58 @@ class PaniniCli(
                 is ExecutionResult.NeedsInput -> {
                     outputStream.println("Line ${i + 1} Needs Input: ${res.missingKarakas.joinToString()}")
                 }
-                is ExecutionResult.NeedsApproval -> {
-                    outputStream.println("Line ${i + 1} Needs Approval: ID ${res.invocationId} requires effects ${res.requiredEffects}")
-                }
-                is ExecutionResult.NeedsAcceptance -> {
-                    outputStream.println("Line ${i + 1} Needs Acceptance: ID ${res.invocationId} requires acceptance from ${res.speaker} to ${res.listener}")
-                }
+                is ExecutionResult.NeedsApproval -> error("Interactive approval resolution did not terminate.")
+                is ExecutionResult.NeedsAcceptance -> error("Interactive acceptance resolution did not terminate.")
             }
         }
-        return results
+        return resolvedResults
     }
 
-    private fun ExecutionResult.Success.isExplicitOutput(): Boolean = trace.any {
-        it.contains("Printed") ||
-            it.contains("प्रदर्शनम्") ||
-            it.contains("मुद्रणम्") ||
-            it.contains("प्रेषणम्")
+    private fun ExecutionResult.Success.isExplicitOutput(): Boolean = outputKind != OutputKind.INTERNAL
+
+    private fun resolveInteractive(initial: ExecutionResult): ExecutionResult {
+        var result = initial
+        var scope = vm.defaultScope
+        while (true) {
+            when (val current = result) {
+                is ExecutionResult.NeedsApproval -> {
+                    outputStream.println(
+                        "Operation ${current.invocationId} requires: ${current.requiredEffects.joinToString()}.",
+                    )
+                    if (!readConfirmation("Allow execution? [y/N]:")) {
+                        return ExecutionResult.Failure(
+                            ExecutionError.ACTION_FAILED,
+                            "Execution denied by user for ${current.invocationId}.",
+                            current.trace,
+                        )
+                    }
+                    scope = scope.copy(capabilities = scope.capabilities + current.requiredEffects)
+                    result = vm.resume(current.continuation, sessionKey, scope)
+                }
+                is ExecutionResult.NeedsAcceptance -> {
+                    outputStream.println(
+                        "${current.speaker} requests ${current.listener} to execute ${current.invocationId}.",
+                    )
+                    if (!readConfirmation("Accept request? [y/N]:")) {
+                        return ExecutionResult.Failure(
+                            ExecutionError.ACTION_FAILED,
+                            "Execution request rejected by user for ${current.invocationId}.",
+                            current.trace,
+                        )
+                    }
+                    scope = scope.copy(acceptedInvocations = scope.acceptedInvocations + current.invocationId)
+                    result = vm.resume(current.continuation, sessionKey, scope)
+                }
+                else -> return current
+            }
+        }
+    }
+
+    private fun readConfirmation(prompt: String): Boolean {
+        outputStream.println(prompt)
+        outputStream.flush()
+        val answer = reader.readLine()?.trim()?.lowercase() ?: return false
+        return answer in affirmativeAnswers
     }
 
     fun processCommand(command: ReplCommand): Boolean {
@@ -143,7 +182,7 @@ class PaniniCli(
     }
 
     private fun evalSingle(utterance: String) {
-        val result = vm.eval(utterance, sessionKey = sessionKey)
+        val result = resolveInteractive(vm.eval(utterance, sessionKey = sessionKey))
         when (result) {
             is ExecutionResult.Success -> {
                 outputStream.println("⇒ ${result.value}")
@@ -160,12 +199,8 @@ class PaniniCli(
             is ExecutionResult.NeedsInput -> {
                 outputStream.println("? needs input for: ${result.missingKarakas.joinToString()}")
             }
-            is ExecutionResult.NeedsApproval -> {
-                outputStream.println("? needs approval: ID ${result.invocationId} requires effects ${result.requiredEffects}")
-            }
-            is ExecutionResult.NeedsAcceptance -> {
-                outputStream.println("? needs acceptance: ID ${result.invocationId} requires acceptance from ${result.speaker} to ${result.listener}")
-            }
+            is ExecutionResult.NeedsApproval -> error("Interactive approval resolution did not terminate.")
+            is ExecutionResult.NeedsAcceptance -> error("Interactive acceptance resolution did not terminate.")
         }
     }
 
@@ -286,6 +321,8 @@ class PaniniCli(
     }
 
     companion object {
+        private val affirmativeAnswers = setOf("y", "yes", "हाँ", "हां", "आम्")
+
         @JvmStatic
         fun main(args: Array<String>) {
             val cli = PaniniCli()
