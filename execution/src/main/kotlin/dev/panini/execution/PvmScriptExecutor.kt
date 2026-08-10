@@ -2,9 +2,6 @@ package dev.panini.execution
 
 import dev.panini.execution.binding.FrequencyExtractor
 import dev.panini.execution.binding.baseText
-import dev.panini.vyakaranam.ast.AkhyataVakya
-import dev.panini.vyakaranam.ast.AvyayaPada
-import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.Repeat
 import dev.panini.vyakaranam.ast.WhileLoop
 import java.io.File
@@ -513,6 +510,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
     private fun resolveNestedAttribute(
         access: TaddhitaAttributeAccess,
         structStore: Map<String, TaddhitaStruct>,
+        inflectResult: Boolean = false,
     ): ExecutionResult {
         val chain = access.chain
         var currentObject: TaddhitaStruct? = structStore[chain[0]]
@@ -540,7 +538,9 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             }
         }
         return if (resolvedValue != null) {
-            resolvedValue = inflectAttributeValue(resolvedValue, access.resultAffix)
+            if (inflectResult) {
+                resolvedValue = inflectAttributeValue(resolvedValue, access.resultAffix)
+            }
             ExecutionResult.Success(
                 operation = "taddhita.nested_query",
                 value = resolvedValue.toDisplayText(),
@@ -560,21 +560,6 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
     )
 
     private fun detectAttributePipeline(program: dev.panini.vyakaranam.ast.ProgramNode?): AttributePipeline? {
-        val invocation = program as? Invocation
-        val vakya = invocation?.vakya as? AkhyataVakya
-        if (vakya != null) {
-            val tatahIndex = vakya.padas.indexOfFirst { it is AvyayaPada && it.form == "ततः" }
-            if (tatahIndex > 0 && tatahIndex < vakya.padas.lastIndex) {
-                val access = TaddhitaStructEngine.detectAttributeAccess(vakya.padas.take(tatahIndex))
-                    ?: return null
-                val targetPadas = vakya.padas.drop(tatahIndex + 1)
-                val targetText = targetPadas.joinToString(" ") { it.sourceText }
-                return AttributePipeline(
-                    access,
-                    Invocation(vakya.copy(sourceText = targetText, padas = targetPadas)),
-                )
-            }
-        }
         val sequence = program as? dev.panini.vyakaranam.ast.Sequence ?: return null
         if (sequence.statements.size != 2 || sequence.connectors.singleOrNull() != "ततः") return null
         val source = sequence.statements.first() as? dev.panini.vyakaranam.ast.Invocation ?: return null
@@ -594,7 +579,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         sourceFile: String?,
         onResult: ((ExecutionResult) -> Unit)?,
     ): List<ExecutionResult> {
-        val source = resolveNestedAttribute(pipeline.access, structStore)
+        val source = resolveNestedAttribute(pipeline.access, structStore, inflectResult = true)
         if (source !is ExecutionResult.Success) return listOf(source)
         val typedValue = source.typedValue ?: return listOf(source)
         val targetScope = scope
@@ -619,30 +604,76 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         value: SanskritValue,
         affix: dev.panini.core.SupAffix,
     ): SanskritValue {
-        val number = value as? SanskritValue.Sankhya ?: return value
+        return when (value) {
+            is SanskritValue.Sankhya -> inflectNumeral(value, affix)
+            is SanskritValue.Shabda -> value.copy(text = deriveSubantaSurface(value.text, affix))
+            is SanskritValue.Satya -> value.copy(
+                surface = deriveSubantaSurface(if (value.boolean) "सत्य" else "असत्य", affix),
+            )
+            else -> value
+        }
+    }
+
+    private fun inflectNumeral(
+        number: SanskritValue.Sankhya,
+        affix: dev.panini.core.SupAffix,
+    ): SanskritValue.Sankhya {
         val naturalVacana = when (number.value) {
             1L -> dev.panini.core.Vacana.EKAVACANA
             2L -> dev.panini.core.Vacana.DVIVACANA
             else -> dev.panini.core.Vacana.BAHUVACANA
         }
-        if (affix.vacana != naturalVacana) return value
-        val surface = when {
-            number.value == 2L && affix.vibhakti in setOf(
-                dev.panini.core.Vibhakti.PRATHAMA,
-                dev.panini.core.Vibhakti.DVITIYA,
-            ) -> "द्वे"
-            number.value == 2L && affix.upadesha == "भ्याम्" -> "द्वाभ्याम्"
-            number.value == 2L && affix.upadesha == "ओस्" -> "द्वयोः"
-            else -> runCatching {
-                dev.panini.derivation.SubantaEngine().derive(
-                    dev.panini.derivation.SubantaDerivationRequest(
-                        number.word, affix.vibhakti, affix.vacana,
-                    ),
-                ).final.surface
-            }.getOrDefault(number.word)
-        }
+        if (affix.vacana != naturalVacana) return number
+        val surface = numeralSurface(number.value, number.word, affix)
         return number.copy(word = surface)
     }
+
+    private fun numeralSurface(
+        number: Long,
+        stem: String,
+        affix: dev.panini.core.SupAffix,
+    ): String = when (number) {
+        2L -> when (affix.vibhakti) {
+            dev.panini.core.Vibhakti.PRATHAMA, dev.panini.core.Vibhakti.DVITIYA -> "द्वे"
+            dev.panini.core.Vibhakti.TRTIYA,
+            dev.panini.core.Vibhakti.CHATURTHI,
+            dev.panini.core.Vibhakti.PANCHAMI -> "द्वाभ्याम्"
+            dev.panini.core.Vibhakti.SASTHI, dev.panini.core.Vibhakti.SAPTAMI -> "द्वयोः"
+        }
+        3L -> pluralNumeralSurface("त्रीणि", "त्रिभिः", "त्रिभ्यः", "त्रयाणाम्", "त्रिषु", affix)
+        4L -> pluralNumeralSurface("चत्वारि", "चतुर्भिः", "चतुर्भ्यः", "चतुर्णाम्", "चतुर्षु", affix)
+        5L -> pluralNumeralSurface("पञ्च", "पञ्चभिः", "पञ्चभ्यः", "पञ्चानाम्", "पञ्चसु", affix)
+        6L -> pluralNumeralSurface("षट्", "षड्भिः", "षड्भ्यः", "षण्णाम्", "षट्सु", affix)
+        7L -> pluralNumeralSurface("सप्त", "सप्तभिः", "सप्तभ्यः", "सप्तानाम्", "सप्तसु", affix)
+        8L -> pluralNumeralSurface("अष्ट", "अष्टाभिः", "अष्टाभ्यः", "अष्टानाम्", "अष्टासु", affix)
+        9L -> pluralNumeralSurface("नव", "नवभिः", "नवभ्यः", "नवानाम्", "नवसु", affix)
+        10L -> pluralNumeralSurface("दश", "दशभिः", "दशभ्यः", "दशानाम्", "दशसु", affix)
+        else -> deriveSubantaSurface(stem, affix)
+    }
+
+    private fun pluralNumeralSurface(
+        nominativeAccusative: String,
+        instrumental: String,
+        dativeAblative: String,
+        genitive: String,
+        locative: String,
+        affix: dev.panini.core.SupAffix,
+    ): String = when (affix.vibhakti) {
+        dev.panini.core.Vibhakti.PRATHAMA, dev.panini.core.Vibhakti.DVITIYA -> nominativeAccusative
+        dev.panini.core.Vibhakti.TRTIYA -> instrumental
+        dev.panini.core.Vibhakti.CHATURTHI, dev.panini.core.Vibhakti.PANCHAMI -> dativeAblative
+        dev.panini.core.Vibhakti.SASTHI -> genitive
+        dev.panini.core.Vibhakti.SAPTAMI -> locative
+    }
+
+    private fun deriveSubantaSurface(
+        stem: String,
+        affix: dev.panini.core.SupAffix,
+    ): String = runCatching {
+        dev.panini.derivation.SubantaEngine().derive(
+            dev.panini.derivation.SubantaDerivationRequest(stem, affix.vibhakti, affix.vacana),
+        ).final.surface
+    }.getOrDefault(stem)
 
     private fun deriveSamjnaStem(nameSegmented: String): String =
         requireNotNull(SamjnaHeaderIdentityParser.parse(nameSegmented)) {

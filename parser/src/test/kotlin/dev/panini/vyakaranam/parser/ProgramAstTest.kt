@@ -1,7 +1,9 @@
 package dev.panini.vyakaranam.parser
 
 import dev.panini.vyakaranam.ast.Conditional
+import dev.panini.vyakaranam.ast.AkhyataVakya
 import dev.panini.vyakaranam.ast.Invocation
+import dev.panini.vyakaranam.ast.NamaVakya
 import dev.panini.vyakaranam.ast.Pipeline
 import dev.panini.vyakaranam.ast.Quotation
 import dev.panini.vyakaranam.ast.WhileLoop
@@ -128,6 +130,19 @@ class ProgramAstTest {
         assertIs<Invocation>(consequent.statements.last())
         assertEquals(listOf("ततः"), consequent.connectors)
         assertIs<Sequence>(conditional.alternate)
+    }
+
+    @Test
+    fun `nominal attribute pipeline has two explicit AST stages`() {
+        val sequence = assertIs<Sequence>(
+            parser.parse(
+                "परिणाम + मतुप् + ङस् प्रयत्नसङ्ख्या + भिस् ततः मुद्र् + लोट् + सिप् ।",
+            ).body,
+        )
+
+        assertEquals(listOf("ततः"), sequence.connectors)
+        assertIs<NamaVakya>(assertIs<Invocation>(sequence.statements.first()).vakya)
+        assertIs<AkhyataVakya>(assertIs<Invocation>(sequence.statements.last()).vakya)
     }
 
     @Test

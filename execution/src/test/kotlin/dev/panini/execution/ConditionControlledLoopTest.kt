@@ -91,4 +91,22 @@ class ConditionControlledLoopTest {
         }
         assertTrue(results.none { it is ExecutionResult.Failure }, results.toString())
     }
+
+    @Test
+    fun `plural numeral attribute renders the requested case`() {
+        val results = PaniniVM().evalScript(
+            """
+            प्रयत्न + ल्युट् + सुँ ।
+            एक + अम् द्वि + अम् च विद् + लोट् + सिप् ॥
+            त्रि + कृत्वः यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
+            परिणाम + मतुप् + ङस् प्रयत्नसङ्ख्या + भिस् ततः मुद्र् + लोट् + सिप् ।
+            """.trimIndent(),
+        )
+
+        val printed = results.filterIsInstance<ExecutionResult.Success>()
+            .single { it.outputKind == OutputKind.CONSOLE }
+        assertEquals("त्रिभिः", printed.value)
+        assertEquals(3, assertIs<SanskritValue.Sankhya>(printed.typedValue).value)
+        assertTrue(results.none { it is ExecutionResult.Failure }, results.toString())
+    }
 }

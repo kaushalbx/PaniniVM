@@ -14,6 +14,7 @@ package dev.panini.parser;
 
 ukti
     : whileClause
+    | attributePipelineClause
     | pipelineClause
     | conditionalClause
     | sambodhana?
@@ -21,6 +22,10 @@ ukti
       (vakyaSambandha vakya)*
       DANDA?
       EOF
+    ;
+
+attributePipelineClause
+    : source+=subantaPada source+=subantaPada+ TATAH target=akhyataVakya DANDA? EOF
     ;
 
 whileClause

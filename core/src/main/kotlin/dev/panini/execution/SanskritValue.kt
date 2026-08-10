@@ -60,9 +60,10 @@ sealed interface SanskritValue {
 
     data class Satya(
         val boolean: Boolean,
+        val surface: String? = null,
     ) : SanskritValue {
         override val samjnas: Set<Samjna> = setOf(Samjna.SATYA, Samjna.SHABDA)
-        override fun toDisplayText(): String = if (boolean) "सत्यम्" else "असत्यम्"
+        override fun toDisplayText(): String = surface ?: if (boolean) "सत्यम्" else "असत्यम्"
     }
 
     data object Lopa : SanskritValue {
