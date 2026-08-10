@@ -135,18 +135,7 @@ class PaniniVM(
         scope: ExecutionScope = defaultScope,
         speaker: String = "प्रयोक्ता",
         listener: String = "यन्त्रम्",
-    ): List<ExecutionResult> {
-        require(file.exists()) { "PaniniVM script file not found: ${file.absolutePath}" }
-
-        val projectDir = file.parentFile ?: file.absoluteFile.parentFile
-        val hasSiblingPvm = projectDir?.walkTopDown()?.any { f -> f.isFile && f.extension == "pvm" && f.canonicalPath != file.canonicalPath } == true
-        return if (hasSiblingPvm) {
-            evalProject(file, sessionKey = sessionKey, scope = scope, speaker = speaker, listener = listener)
-        } else {
-            val scriptContent = file.readText()
-            evalScript(scriptContent, sessionKey = sessionKey, scope = scope, speaker = speaker, listener = listener)
-        }
-    }
+    ): List<ExecutionResult> = scriptExecutor.evalFile(file, sessionKey, scope, speaker, listener)
 
     fun loadSession(sessionKey: String): SambhashanaContext? = sessionRuntime.load(sessionKey)
 
@@ -158,92 +147,4 @@ class PaniniVM(
         externalDispatcher.register(effect, handler)
     }
 
-}
-object VM {
-    private val instance by lazy { PaniniVM() }
-
-    fun eval(
-        utterance: String,
-        sessionKey: String? = null,
-        scope: ExecutionScope = instance.defaultScope,
-        speaker: String = "प्रयोक्ता",
-        listener: String = "यन्त्रम्",
-    ): ExecutionResult = instance.eval(utterance, sessionKey, scope, speaker, listener)
-
-    fun evalFile(
-        file: File,
-        sessionKey: String? = null,
-        scope: ExecutionScope = instance.defaultScope,
-        speaker: String = "प्रयोक्ता",
-        listener: String = "यन्त्रम्",
-    ): List<ExecutionResult> = instance.evalFile(file, sessionKey, scope, speaker, listener)
-
-    fun evalScript(
-        scriptContent: String,
-        sessionKey: String? = null,
-        scope: ExecutionScope = instance.defaultScope,
-        speaker: String = "प्रयोक्ता",
-        listener: String = "यन्त्रम्",
-    ): List<ExecutionResult> = instance.evalScript(scriptContent, sessionKey, scope, speaker, listener)
-
-    fun evalProject(
-        entryFile: File,
-        sessionKey: String? = null,
-        scope: ExecutionScope = instance.defaultScope,
-        speaker: String = "प्रयोक्ता",
-        listener: String = "यन्त्रम्",
-    ): List<ExecutionResult> = instance.evalProject(entryFile, sessionKey, scope, speaker, listener)
-
-    fun resume(
-        continuation: Any,
-        sessionKey: String? = null,
-        scope: ExecutionScope = instance.defaultScope,
-    ): ExecutionResult = instance.resume(continuation, sessionKey, scope)
-}
-
-object PuranaPratyayaResolver {
-
-    private val parser = dev.panini.vyakaranam.parser.PaniniParser()
-    private val sankhyaEvaluator = dev.panini.sankhya.SankhyaEvaluator()
-    private val sankhyaGenerator = dev.panini.sankhya.SankhyaGenerator()
-
-    /** Replaces parsed pūraṇa parameter padas having the requested ordinal value. */
-    fun replacePatterns(text: String, index: Int, rawArgVal: String): String {
-        val cleanArg = if (isAccusative(rawArgVal)) rawArgVal else "$rawArgVal + अम्"
-        val ukti = parser.parseOrNull(text.trim()) ?: return text
-        val ordinalValue = index + 1L
-        val ordinalSurface = sankhyaGenerator.ordinal(ordinalValue).final.surface
-        val ordinalSources = ukti.grammaticalVakyas().asSequence()
-            .flatMap { it.padas.asSequence() }
-            .map { it.sourceText }
-            .filter { isOrdinal(it, ordinalValue, ordinalSurface) }
-            .distinct()
-            .toList()
-        return ordinalSources.fold(text) { result, source ->
-            result.replace(sourcePattern(source), cleanArg)
-        }
-    }
-
-    private fun isAccusative(source: String): Boolean {
-        val padas = parser.parseOrNull(source.trim().trimEnd('।', '॥', ' '))
-            ?.grammaticalVakyas()
-            ?.flatMap { it.padas }
-            ?: return false
-        val argument = padas.singleOrNull() as? dev.panini.vyakaranam.ast.SubantaPada ?: return false
-        return dev.panini.core.SupAffix.fromUpadesha(argument.sup.text)?.vibhakti ==
-            dev.panini.core.Vibhakti.DVITIYA
-    }
-
-    private fun isOrdinal(padaSource: String, value: Long, surface: String): Boolean {
-        val morphemes = padaSource.split('+').map(String::trim).filter(String::isNotEmpty)
-        if (morphemes.size < 2) return false
-        val stems = morphemes.dropLast(1)
-        val expression = runCatching { sankhyaEvaluator.evaluateStems(stems) }.getOrNull()
-        return (expression as? dev.panini.sankhya.SankhyaExpression.Purana)?.value == value ||
-            stems.joinToString("") == surface
-    }
-
-    private fun sourcePattern(source: String): Regex = Regex(
-        source.split('+').joinToString("\\s*\\+\\s*") { Regex.escape(it) },
-    )
 }

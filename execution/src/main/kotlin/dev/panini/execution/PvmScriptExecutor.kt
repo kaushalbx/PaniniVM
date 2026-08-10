@@ -130,6 +130,25 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         )
     }
 
+    fun evalFile(
+        file: File,
+        sessionKey: String?,
+        scope: ExecutionScope,
+        speaker: String,
+        listener: String,
+    ): List<ExecutionResult> {
+        require(file.exists()) { "PaniniVM script file not found: ${file.absolutePath}" }
+        val projectDir = file.parentFile ?: file.absoluteFile.parentFile
+        val hasSiblingPvm = projectDir?.walkTopDown()?.any {
+            it.isFile && it.extension == "pvm" && it.canonicalPath != file.canonicalPath
+        } == true
+        return if (hasSiblingPvm) {
+            evalProject(file, sessionKey, scope, speaker, listener)
+        } else {
+            evalScript(file.readText(), sessionKey = sessionKey, scope = scope, speaker = speaker, listener = listener)
+        }
+    }
+
     fun executeSamjnaInvocation(
         invocation: SamjnaInvocation,
         sessionKey: String,
