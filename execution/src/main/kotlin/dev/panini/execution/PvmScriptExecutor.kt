@@ -2,6 +2,9 @@ package dev.panini.execution
 
 import dev.panini.execution.binding.FrequencyExtractor
 import dev.panini.execution.binding.baseText
+import dev.panini.vyakaranam.ast.AkhyataVakya
+import dev.panini.vyakaranam.ast.AvyayaPada
+import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.Repeat
 import dev.panini.vyakaranam.ast.WhileLoop
 import java.io.File
@@ -44,13 +47,19 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
 
         parsed.filterIsInstance<PvmScriptStatement.Sentence>().forEach { statement ->
             val constructedStruct = TaddhitaStructEngine.detectStructConstruction(statement.text, statement.ukti)
-            val nestedAttributeAccess = TaddhitaStructEngine.detectNestedAttributeAccess(statement.text, statement.ukti)
+            val attributeAccess = statement.ukti?.grammaticalVakyas()?.singleOrNull()
+                ?.let(TaddhitaStructEngine::detectAttributeAccess)
+            val attributePipeline = detectAttributePipeline(statement.program)
             val pipeline = statement.program as? dev.panini.vyakaranam.ast.Pipeline
             val whileLoop = statement.program as? WhileLoop
 
             when {
                 constructedStruct != null -> structStore[constructedStruct.nameStem] = constructedStruct
-                nestedAttributeAccess != null -> resolveNestedAttribute(nestedAttributeAccess, structStore).let {
+                attributePipeline != null -> executeAttributePipeline(
+                    attributePipeline, structStore, effectiveSessionKey, effectiveScope,
+                    speaker, listener, registry, sourceFile, onResult,
+                ).also(results::addAll)
+                attributeAccess != null -> resolveNestedAttribute(attributeAccess, structStore).let {
                     results += it
                     onResult?.invoke(it)
                 }
@@ -502,9 +511,10 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
     }
 
     private fun resolveNestedAttribute(
-        chain: List<String>,
+        access: TaddhitaAttributeAccess,
         structStore: Map<String, TaddhitaStruct>,
     ): ExecutionResult {
+        val chain = access.chain
         var currentObject: TaddhitaStruct? = structStore[chain[0]]
         var resolvedValue: SanskritValue? = null
         var failedStep: String? = null
@@ -530,6 +540,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             }
         }
         return if (resolvedValue != null) {
+            resolvedValue = inflectAttributeValue(resolvedValue, access.resultAffix)
             ExecutionResult.Success(
                 operation = "taddhita.nested_query",
                 value = resolvedValue.toDisplayText(),
@@ -541,6 +552,96 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 "षष्ठी-असंगतिः: Attribute '$failedStep' not found in nested genitive chain $chain",
             )
         }
+    }
+
+    private data class AttributePipeline(
+        val access: TaddhitaAttributeAccess,
+        val target: dev.panini.vyakaranam.ast.Invocation,
+    )
+
+    private fun detectAttributePipeline(program: dev.panini.vyakaranam.ast.ProgramNode?): AttributePipeline? {
+        val invocation = program as? Invocation
+        val vakya = invocation?.vakya as? AkhyataVakya
+        if (vakya != null) {
+            val tatahIndex = vakya.padas.indexOfFirst { it is AvyayaPada && it.form == "ततः" }
+            if (tatahIndex > 0 && tatahIndex < vakya.padas.lastIndex) {
+                val access = TaddhitaStructEngine.detectAttributeAccess(vakya.padas.take(tatahIndex))
+                    ?: return null
+                val targetPadas = vakya.padas.drop(tatahIndex + 1)
+                val targetText = targetPadas.joinToString(" ") { it.sourceText }
+                return AttributePipeline(
+                    access,
+                    Invocation(vakya.copy(sourceText = targetText, padas = targetPadas)),
+                )
+            }
+        }
+        val sequence = program as? dev.panini.vyakaranam.ast.Sequence ?: return null
+        if (sequence.statements.size != 2 || sequence.connectors.singleOrNull() != "ततः") return null
+        val source = sequence.statements.first() as? dev.panini.vyakaranam.ast.Invocation ?: return null
+        val target = sequence.statements.last() as? dev.panini.vyakaranam.ast.Invocation ?: return null
+        val access = TaddhitaStructEngine.detectAttributeAccess(source.vakya) ?: return null
+        return AttributePipeline(access, target)
+    }
+
+    private fun executeAttributePipeline(
+        pipeline: AttributePipeline,
+        structStore: Map<String, TaddhitaStruct>,
+        sessionKey: String,
+        scope: ExecutionScope,
+        speaker: String,
+        listener: String,
+        registry: SamjnaKriyaRegistry,
+        sourceFile: String?,
+        onResult: ((ExecutionResult) -> Unit)?,
+    ): List<ExecutionResult> {
+        val source = resolveNestedAttribute(pipeline.access, structStore)
+        if (source !is ExecutionResult.Success) return listOf(source)
+        val typedValue = source.typedValue ?: return listOf(source)
+        val targetScope = scope
+        val targetText = renderInvocation(pipeline.target, pipedKarman = typedValue.toDisplayText())
+        val invocation = registry.detectInvocation(targetText, callerSourceFile = sourceFile)
+        val executedTargetResults = if (invocation != null) {
+            executeSamjnaInvocation(
+                invocation, sessionKey, targetScope, speaker, listener, registry,
+                callerSourceFile = sourceFile, onResult = null,
+            )
+        } else {
+            listOf(vm.eval(targetText, sessionKey, targetScope, speaker, listener, isExecutingScript = true))
+        }
+        val targetResults = executedTargetResults.map { result ->
+            if (result is ExecutionResult.Success) result.copy(typedValue = typedValue) else result
+        }
+        targetResults.forEach { onResult?.invoke(it) }
+        return listOf(source) + targetResults
+    }
+
+    private fun inflectAttributeValue(
+        value: SanskritValue,
+        affix: dev.panini.core.SupAffix,
+    ): SanskritValue {
+        val number = value as? SanskritValue.Sankhya ?: return value
+        val naturalVacana = when (number.value) {
+            1L -> dev.panini.core.Vacana.EKAVACANA
+            2L -> dev.panini.core.Vacana.DVIVACANA
+            else -> dev.panini.core.Vacana.BAHUVACANA
+        }
+        if (affix.vacana != naturalVacana) return value
+        val surface = when {
+            number.value == 2L && affix.vibhakti in setOf(
+                dev.panini.core.Vibhakti.PRATHAMA,
+                dev.panini.core.Vibhakti.DVITIYA,
+            ) -> "द्वे"
+            number.value == 2L && affix.upadesha == "भ्याम्" -> "द्वाभ्याम्"
+            number.value == 2L && affix.upadesha == "ओस्" -> "द्वयोः"
+            else -> runCatching {
+                dev.panini.derivation.SubantaEngine().derive(
+                    dev.panini.derivation.SubantaDerivationRequest(
+                        number.word, affix.vibhakti, affix.vacana,
+                    ),
+                ).final.surface
+            }.getOrDefault(number.word)
+        }
+        return number.copy(word = surface)
     }
 
     private fun deriveSamjnaStem(nameSegmented: String): String =

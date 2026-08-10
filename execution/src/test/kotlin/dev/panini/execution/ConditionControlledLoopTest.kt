@@ -70,4 +70,25 @@ class ConditionControlledLoopTest {
         assertEquals(2, attemptCount.value)
         assertTrue(results.none { it is ExecutionResult.Failure }, results.toString())
     }
+
+    @Test
+    fun `typed numeric attribute keeps its type while sup controls pipeline rendering`() {
+        val results = PaniniVM().evalScript(
+            """
+            प्रयत्न + ल्युट् + सुँ ।
+            एक + अम् द्वि + अम् च विद् + लोट् + सिप् ॥
+            द्वि + कृत्वः यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
+            परिणाम + मतुप् + ङस् प्रयत्नसङ्ख्या + औ ततः मुद्र् + लोट् + सिप् ।
+            परिणाम + मतुप् + ङस् प्रयत्नसङ्ख्या + भ्याम् ततः मुद्र् + लोट् + सिप् ।
+            """.trimIndent(),
+        )
+
+        val console = results.filterIsInstance<ExecutionResult.Success>()
+            .filter { it.outputKind == OutputKind.CONSOLE }
+        assertEquals(listOf("द्वे", "द्वाभ्याम्"), console.map { it.value }, results.toString())
+        console.forEach {
+            assertEquals(2, assertIs<SanskritValue.Sankhya>(it.typedValue).value)
+        }
+        assertTrue(results.none { it is ExecutionResult.Failure }, results.toString())
+    }
 }

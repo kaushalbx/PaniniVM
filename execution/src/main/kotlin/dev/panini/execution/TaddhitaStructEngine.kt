@@ -15,6 +15,7 @@ import dev.panini.vyakaranam.ast.TaddhitaVikara
 import dev.panini.vyakaranam.ast.TaddhitaPratyayaClass
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.Ukti
+import dev.panini.vyakaranam.ast.Vakya
 import dev.panini.vyakaranam.parser.PaniniParser
 
 /**
@@ -25,6 +26,11 @@ data class TaddhitaStruct(
     val nameStem: String,
     val attributes: Map<String, String>,
     val typedAttributes: Map<String, SanskritValue> = emptyMap(),
+)
+
+data class TaddhitaAttributeAccess(
+    val chain: List<String>,
+    val resultAffix: SupAffix,
 )
 
 object TaddhitaStructEngine {
@@ -67,13 +73,23 @@ object TaddhitaStructEngine {
      */
     fun detectNestedAttributeAccess(sentenceText: String, preParsedUkti: Ukti? = null): List<String>? {
         val ukti = parsed(sentenceText, preParsedUkti) ?: return null
-        val padas = ukti.grammaticalVakyas().flatMap { it.padas }
-        if (padas.any { it is TingantaPada }) return null
+        return ukti.grammaticalVakyas().singleOrNull()?.let(::detectAttributeAccess)?.chain
+    }
+
+    fun detectAttributeAccess(vakya: Vakya): TaddhitaAttributeAccess? {
+        if (vakya.padas.any { it is TingantaPada }) return null
+        return detectAttributeAccess(vakya.padas)
+    }
+
+    fun detectAttributeAccess(padas: List<Pada>): TaddhitaAttributeAccess? {
         val receivers = padas.filterIsInstance<SubantaPada>()
             .filter { it.vibhakti() == Vibhakti.SASTHI && it.pratipadika.isMatup() }
             .map { it.pratipadika.baseIdentity() }
-        val key = padas.lastOrNull { it.vibhakti() == Vibhakti.DVITIYA }?.stemIdentity() ?: return null
-        return (receivers + key).takeIf { receivers.isNotEmpty() }
+        val key = padas.filterIsInstance<SubantaPada>().lastOrNull() ?: return null
+        val affix = SupAffix.fromUpadesha(key.sup.text) ?: return null
+        return (receivers + key.stemIdentity()).takeIf { receivers.isNotEmpty() }?.let {
+            TaddhitaAttributeAccess(it, affix)
+        }
     }
 
     /**

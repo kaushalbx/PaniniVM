@@ -261,6 +261,11 @@ object PvmScript {
         val nominalSource = internalHeader.nominalSource
         if (SamjnaHeaderIdentityParser.parse(nominalSource) == null) return null
         val ukti = parser.parseOrNull(nominalSource.trimEnd('।', '॥', ' ')) ?: return null
+        if (ukti.grammaticalVakyas().flatMap { it.padas }
+                .any { it is dev.panini.vyakaranam.ast.TingantaPada }
+        ) {
+            return null
+        }
         val hasAccusative = ukti.grammaticalVakyas().flatMap { it.padas }
             .filterIsInstance<dev.panini.vyakaranam.ast.SubantaPada>()
             .any {
