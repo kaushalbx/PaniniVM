@@ -7,10 +7,11 @@ validated numeric guesses.
 The example demonstrates:
 
 - random choice with `दिव्`;
-- generation of the `1…10` candidate sequence with a nine-iteration `कृत्वः` loop;
+- an inline inclusive range, `एक + ङसिँ दश + ङि`, consumed directly by `दिव्`;
 - numeric input with `ग्रह्` and the `सङ्ख्या` type marker;
-- inclusive input bounds carried by the ablative `न्यूनसीमा + ङसिँ` and locative `उच्चसीमा + ङि`;
-- variables with `दा`;
+- the same inline range cases reused as input bounds;
+- one persistent variable, `रहस्य`, assigned with `दा`;
+- direct use of each action's latest `फल`, without a temporary guess variable;
 - equality-style membership testing with the existing `अस्` operation;
 - conditionals with `यदि … तर्हि … अन्यथा`;
 - a reusable kriyā-saṃjñā declared as `प्रयत्न + ल्युट् + सुँ`;
@@ -37,5 +38,5 @@ program reliably. Enter ASCII digits (`1` to `10`) or Devanagari digits
 
 ## Main source
 
-All game steps are in [`mukhya.pvm`](mukhya.pvm). Comments explain the random
-selection, input, assignment, and conditional stages in Sanskrit.
+All game steps are in [`mukhya.pvm`](mukhya.pvm). Comments are written in
+English, while executable sentences are Sanskrit.

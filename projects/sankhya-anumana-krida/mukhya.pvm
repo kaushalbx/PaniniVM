@@ -2,30 +2,21 @@
 # The program chooses one secret number. The player gets five attempts.
 
 # Kriya-samjna: define one reusable guessing attempt.
-# The procedure reads input, stores it, and uses if/then/else to check it.
+# The procedure reads a bounded input and checks the latest result directly.
 प्रयत्न + ल्युट् + सुँ ।
-नवीनानुमान + अम् सङ्ख्या + ङे न्यूनसीमा + ङसिँ उच्चसीमा + ङि ग्रह् + णिच् + लोट् + सिप् ।
-दा + लोट् + सिप् ग्रह् + घञ् + ङस् फल + अम् अनुमान + ङे ।
-यदि रहस्यसङ्ख्या + अम् अनुमान + टा अस् + लोट् + सिप् तर्हि वि + स्था + लोट् + सिप् अन्यथा पुनर्अनुमिनु + अम् मुद्र् + णिच् + लोट् + सिप् ॥
+निवेश + अम् सङ्ख्या + ङे एक + ङसिँ दश + ङि ग्रह् + णिच् + लोट् + सिप् ।
+यदि रहस्य + अम् ग्रह् + घञ् + ङस् फल + टा अस् + लोट् + सिप् तर्हि वि + स्था + लोट् + सिप् अन्यथा पुनर्अनुमिनु + अम् मुद्र् + णिच् + लोट् + सिप् ॥
 
-# 1. Build the candidate sequence from 1 through 10 with a nine-iteration loop.
-एक + अम् न्यूनसीमा + ङे दा + लोट् + सिप् ।
-दश + अम् उच्चसीमा + ङे दा + लोट् + सिप् ।
-न्यूनसीमा + अम् वर्तमानसङ्ख्या + ङे दा + लोट् + सिप् ।
-वर्तमानसङ्ख्या + अम् क्षिप् + णिच् + लोट् + सिप् ।
-दा + लोट् + सिप् क्षिप् + घञ् + ङस् फल + अम् सम्भाव्यक्रम + ङे ।
-नव + कृत्वः युज् + णिच् + लोट् + सिप् वर्तमानसङ्ख्या + अम् एक + अम् च ततः दा + लोट् + सिप् युज् + ल्युट् + ङस् फल + अम् वर्तमानसङ्ख्या + ङे ततः क्षिप् + णिच् + लोट् + सिप् सम्भाव्यक्रम + अम् वर्तमानसङ्ख्या + अम् च ततः दा + लोट् + सिप् क्षिप् + घञ् + ङस् फल + अम् सम्भाव्यक्रम + ङे ।
+# 1. Dynamically choose a number from the inline inclusive range 1 through 10.
+एक + ङसिँ दश + ङि दिव् + णिच् + लोट् + सिप् ।
+दा + लोट् + सिप् दिव् + घञ् + ङस् फल + अम् रहस्य + ङे ।
 
-# 2. Randomly choose the secret number from the generated sequence.
-सम्भाव्यक्रम + अम् दिव् + णिच् + लोट् + सिप् ।
-दा + लोट् + सिप् दिव् + घञ् + ङस् फल + अम् रहस्यसङ्ख्या + ङे ।
-
-# 3. Display the game instructions.
+# 2. Display the game instructions.
 एकतःदशपर्यन्तंसङ्ख्याम्अनुमिनु + अम् मुद्र् + णिच् + लोट् + सिप् ।
 
-# 4. Run the reusable guessing procedure five times.
+# 3. Run the reusable guessing procedure five times.
 पञ्च + कृत्वः प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
 प्रयत्नाःसमाप्ताः + अम् मुद्र् + णिच् + लोट् + सिप् ।
 
-# 5. Reveal the secret number after all attempts are finished.
-रहस्यसङ्ख्या + अम् मुद्र् + णिच् + लोट् + सिप् ।
+# 4. Reveal the secret number after all attempts are finished.
+रहस्य + अम् मुद्र् + णिच् + लोट् + सिप् ।
