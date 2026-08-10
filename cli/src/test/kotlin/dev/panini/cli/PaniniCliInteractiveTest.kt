@@ -2,6 +2,7 @@ package dev.panini.cli
 
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.OutputKind
+import dev.panini.execution.PaniniVM
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -88,5 +89,41 @@ class PaniniCliInteractiveTest {
 
         val failure = assertIs<ExecutionResult.Failure>(results.first())
         assertTrue(failure.message.contains("denied by user"))
+    }
+
+    @Test
+    fun `cancel during script input rolls back partial session state`() {
+        val output = ByteArrayOutputStream()
+        val vm = PaniniVM()
+        val cli = PaniniCli(
+            vm = vm,
+            inputStream = ByteArrayInputStream("10\n:cancel\n".toByteArray(Charsets.UTF_8)),
+            outputStream = PrintStream(output, true, Charsets.UTF_8),
+        )
+
+        val results = cli.executeScriptFile(File("cli/examples/interactive_addition.pvm"))
+
+        val failure = assertIs<ExecutionResult.Failure>(results.single())
+        assertTrue(failure.message.contains("Execution cancelled"))
+        assertTrue(vm.listSessions().isEmpty())
+        assertTrue(!output.toString(Charsets.UTF_8).contains("Exception"))
+    }
+
+    @Test
+    fun `end of input stops script without a stack trace`() {
+        val output = ByteArrayOutputStream()
+        val vm = PaniniVM()
+        val cli = PaniniCli(
+            vm = vm,
+            inputStream = ByteArrayInputStream("10\n".toByteArray(Charsets.UTF_8)),
+            outputStream = PrintStream(output, true, Charsets.UTF_8),
+        )
+
+        val results = cli.executeScriptFile(File("cli/examples/interactive_addition.pvm"))
+
+        val failure = assertIs<ExecutionResult.Failure>(results.single())
+        assertTrue(failure.message.contains("end of input"))
+        assertTrue(vm.listSessions().isEmpty())
+        assertTrue(!output.toString(Charsets.UTF_8).contains("Exception"))
     }
 }

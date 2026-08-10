@@ -143,6 +143,11 @@ class PaniniVM(
 
     fun listSessions(): List<String> = sessionRuntime.listKeys()
 
+    fun checkpointSession(sessionKey: String): SessionCheckpoint = sessionRuntime.checkpoint(sessionKey)
+
+    fun restoreSession(sessionKey: String, checkpoint: SessionCheckpoint) =
+        sessionRuntime.restore(sessionKey, checkpoint)
+
     fun registerExternalCapability(effect: ExecutionEffect, handler: ExternalCapabilityDispatcher.CapabilityHandler) {
         externalDispatcher.register(effect, handler)
     }

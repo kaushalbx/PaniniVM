@@ -39,6 +39,7 @@ import java.io.FileOutputStream
 import java.io.PrintStream
 import java.nio.charset.StandardCharsets
 import dev.panini.cli.PaniniCli
+import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
     System.setOut(
@@ -52,7 +53,8 @@ fun main(args: Array<String>) {
         args.isEmpty() -> PaniniCli().startRepl()
         args.first() in setOf("--eval", "--pvm", "--exec") -> {
             val filePath = args.getOrNull(1) ?: error("Usage: --eval path/to/file.pvm")
-            PaniniCli().executeScriptFile(File(filePath))
+            val results = PaniniCli().executeScriptFile(File(filePath))
+            if (results.any { it is ExecutionResult.Failure }) exitProcess(1)
         }
         else -> runCli(args).forEach(::println)
     }

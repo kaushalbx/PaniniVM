@@ -66,6 +66,8 @@ internal class FileKriyaMemoryStore(private val storageDir: File) {
         return KriyaMemory(entries)
     }
 
+    fun delete(key: String): Boolean = fileFor(key).let { !it.exists() || it.delete() }
+
     private fun fileFor(key: String): File = File(storageDir, encode(key) + EXTENSION)
 
     private fun encode(value: String): String =

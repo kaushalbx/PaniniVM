@@ -89,6 +89,30 @@ internal class SessionRuntime(
 
     fun listKeys(): List<String> = store.listKeys()
 
+    fun checkpoint(sessionKey: String): SessionCheckpoint = SessionCheckpoint(
+        context = sessions[sessionKey] ?: store.load(sessionKey),
+        kriyaMemory = kriyaMemories[sessionKey] ?: kriyaMemoryStore.load(sessionKey) { source ->
+            VyakaranamExecutionAdapter.analyzeForMemory(source)?.frames.orEmpty()
+        },
+    )
+
+    fun restore(sessionKey: String, checkpoint: SessionCheckpoint) {
+        checkpoint.context?.let {
+            sessions[sessionKey] = it
+            store.save(sessionKey, it)
+        } ?: run {
+            sessions.remove(sessionKey)
+            store.delete(sessionKey)
+        }
+        checkpoint.kriyaMemory?.let {
+            kriyaMemories[sessionKey] = it
+            kriyaMemoryStore.save(sessionKey, it)
+        } ?: run {
+            kriyaMemories.remove(sessionKey)
+            kriyaMemoryStore.delete(sessionKey)
+        }
+    }
+
     private fun effectiveScope(scope: ExecutionScope): ExecutionScope = scope.copy(
         stateStore = scope.stateStore ?: store,
         externalDispatcher = scope.externalDispatcher ?: externalDispatcher,
@@ -123,3 +147,8 @@ internal class SessionRuntime(
         }
     }
 }
+
+data class SessionCheckpoint(
+    val context: SambhashanaContext?,
+    val kriyaMemory: KriyaMemory?,
+)

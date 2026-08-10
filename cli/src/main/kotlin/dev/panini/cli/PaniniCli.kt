@@ -48,8 +48,10 @@ class PaniniCli(
             val typeHint = if (request.type == InputValueType.NUMBER) " (number)" else ""
             outputStream.println("Enter value for ${request.variableName}$typeHint:")
             outputStream.flush()
-            val value = reader.readLine()
-                ?: throw IllegalStateException("End of input while reading ${request.variableName}.")
+            val value = when (val response = readResponse()) {
+                is InputResponse.Value -> response.text
+                else -> throw InteractiveInputTerminated(response, request.variableName)
+            }
             if (request.type != InputValueType.NUMBER || value.toInputLongOrNull() != null) return value
             outputStream.println("Invalid number '$value'. Enter ASCII or Devanagari digits.")
         }
@@ -72,8 +74,13 @@ class PaniniCli(
 
     fun executeScriptFile(file: File): List<ExecutionResult> {
         outputStream.println("[PaniniVM CLI] Executing file: ${file.name}")
-        val results = vm.evalFile(file, sessionKey = sessionKey)
-        val resolvedResults = results.map { resolveInteractive(it) }
+        val checkpoint = vm.checkpointSession(sessionKey)
+        val resolvedResults = try {
+            vm.evalFile(file, sessionKey = sessionKey).map { resolveInteractive(it) }
+        } catch (terminated: InteractiveInputTerminated) {
+            vm.restoreSession(sessionKey, checkpoint)
+            listOf(terminated.toFailure())
+        }
         resolvedResults.forEachIndexed { i, res ->
             when (res) {
                 is ExecutionResult.Success -> {
@@ -143,8 +150,29 @@ class PaniniCli(
     private fun readConfirmation(prompt: String): Boolean {
         outputStream.println(prompt)
         outputStream.flush()
-        val answer = reader.readLine()?.trim()?.lowercase() ?: return false
+        val answer = when (val response = readResponse()) {
+            is InputResponse.Value -> response.text.trim().lowercase()
+            else -> throw InteractiveInputTerminated(response, "confirmation")
+        }
         return answer in affirmativeAnswers
+    }
+
+    private fun readResponse(): InputResponse {
+        val line = reader.readLine() ?: return InputResponse.EndOfInput
+        return if (line.trim().equals(":cancel", ignoreCase = true)) {
+            InputResponse.Cancelled
+        } else {
+            InputResponse.Value(line)
+        }
+    }
+
+    private fun InteractiveInputTerminated.toFailure(): ExecutionResult.Failure {
+        val message = when (response) {
+            InputResponse.Cancelled -> "Execution cancelled while reading $subject."
+            InputResponse.EndOfInput -> "Execution stopped at end of input while reading $subject."
+            is InputResponse.Value -> error("A value response does not terminate interactive input.")
+        }
+        return ExecutionResult.Failure(ExecutionError.ACTION_FAILED, message)
     }
 
     fun processCommand(command: ReplCommand): Boolean {
@@ -182,7 +210,11 @@ class PaniniCli(
     }
 
     private fun evalSingle(utterance: String) {
-        val result = resolveInteractive(vm.eval(utterance, sessionKey = sessionKey))
+        val result = try {
+            resolveInteractive(vm.eval(utterance, sessionKey = sessionKey))
+        } catch (terminated: InteractiveInputTerminated) {
+            terminated.toFailure()
+        }
         when (result) {
             is ExecutionResult.Success -> {
                 outputStream.println("⇒ ${result.value}")

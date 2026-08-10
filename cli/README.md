@@ -41,6 +41,12 @@ The CLI then accepts ASCII digits such as `20` or Devanagari digits such as `२
 Invalid input is reported and the same prompt is repeated without advancing the
 PVM program.
 
+Enter `:cancel` at any value or confirmation prompt to stop the script cleanly.
+Closing standard input has the same effect. An interrupted script restores the
+session state from before the file started, so values from a partially executed
+file are not persisted. Script failures and interruptions return a nonzero CLI
+exit code without printing a JVM stack trace.
+
 Operations requiring capabilities outside the default scope pause execution and
 ask for confirmation:
 
@@ -50,8 +56,8 @@ Allow execution? [y/N]:
 ```
 
 `y`, `yes`, `हाँ`, `हां`, and `आम्` grant only the requested effects and resume
-the saved continuation. Any other response, including end-of-input, rejects the
-operation cleanly. Requested-execution dispositions use the equivalent
+the saved continuation. Any other entered response rejects the operation
+cleanly; `:cancel` or end-of-input stops the script. Requested-execution dispositions use the equivalent
 `Accept request? [y/N]:` flow.
 
 Running the CLI without arguments starts the interactive REPL.
