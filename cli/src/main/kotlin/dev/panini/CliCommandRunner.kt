@@ -1,12 +1,9 @@
 package dev.panini
 
 import dev.panini.ashtadhyayi.Ashtadhyayi
-import dev.panini.core.Karaka
 import dev.panini.core.Lakara
-import dev.panini.core.Prayoga
 import dev.panini.core.Vacana
 import dev.panini.core.Vibhakti
-import dev.panini.derivation.DerivationResult
 import dev.panini.derivation.KarakaSubantaDerivationRequest
 import dev.panini.derivation.SubantaDerivationRequest
 import dev.panini.derivation.SubantaEngine
@@ -200,8 +197,8 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
     }
     "--derive" -> {
         val pratipadika = args.getOrNull(1) ?: error("Usage: --derive राम SASTHI BAHUVACANA")
-        val vibhakti = parseVibhakti(args.getOrNull(2) ?: error("Missing vibhakti."))
-        val vacana = parseVacana(args.getOrNull(3) ?: error("Missing vacana."))
+        val vibhakti = CliArgumentParsers.vibhakti(args.getOrNull(2) ?: error("Missing vibhakti."))
+        val vacana = CliArgumentParsers.vacana(args.getOrNull(3) ?: error("Missing vacana."))
         val result = SubantaEngine().derive(
             SubantaDerivationRequest(
                 pratipadika,
@@ -212,15 +209,15 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
 
         buildList {
             add("$vibhakti $vacana: ${result.final.surface}")
-            addTrace(result, includeRole = true)
+            DerivationTraceRenderer.appendTo(this, result, includeRole = true)
         }
     }
     "--derive-karaka" -> {
         val pratipadika = args.getOrNull(1) ?: error("Usage: --derive-karaka <pratipadika> <karaka> <vacana> <dhatu> [prayoga]")
-        val karaka = parseKaraka(args.getOrNull(2) ?: error("Missing karaka."))
-        val vacana = parseVacana(args.getOrNull(3) ?: error("Missing vacana."))
+        val karaka = CliArgumentParsers.karaka(args.getOrNull(2) ?: error("Missing karaka."))
+        val vacana = CliArgumentParsers.vacana(args.getOrNull(3) ?: error("Missing vacana."))
         val dhatu = args.getOrNull(4) ?: error("Missing dhatu.")
-        val prayoga = args.getOrNull(5)?.let(::parsePrayoga) ?: Prayoga.KARTARI
+        val prayoga = args.getOrNull(5)?.let(CliArgumentParsers::prayoga) ?: dev.panini.core.Prayoga.KARTARI
         val result = SubantaEngine().deriveFromKaraka(
             KarakaSubantaDerivationRequest(
                 pratipadika = pratipadika,
@@ -240,7 +237,7 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
                     add("  ${ev.sutra} — ${ev.reason} (${ev.text})")
                 }
             }
-            addTrace(result, includeRole = true)
+            DerivationTraceRenderer.appendTo(this, result, includeRole = true)
         }
     }
     "--derive-unadi" -> {
@@ -251,7 +248,7 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
             add("=== Uṇādi Derivation Tracing for ($dhatu + $pratyaya) ===")
             add("Initial State: ${result.initial.terms.joinToString(" + ") { it.surface }}")
             add("Final Derived Surface: ${result.final.surface}")
-            addTrace(result, includeRole = true)
+            DerivationTraceRenderer.appendTo(this, result, includeRole = true)
         }
     }
     "--sutra" -> {
@@ -271,14 +268,14 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
     }
     "--verb" -> {
         val dhatu = args.getOrNull(1) ?: error("Usage: --verb भू [LAT|LRT|LOT|LANG|LING] [EKAVACANA|DVIVACANA|BAHUVACANA]")
-        val requestedLakara = args.getOrNull(2)?.let(::findLakara)
+        val requestedLakara = args.getOrNull(2)?.let(CliArgumentParsers::lakaraOrNull)
         val lakara = requestedLakara ?: Lakara.LAT
         val vacanaIndex = if (requestedLakara == null) 2 else 3
-        val vacana = args.getOrNull(vacanaIndex)?.let(::parseVacana) ?: Vacana.EKAVACANA
+        val vacana = args.getOrNull(vacanaIndex)?.let(CliArgumentParsers::vacana) ?: Vacana.EKAVACANA
         val result = TingantaEngine().derive(TingantaDerivationRequest(dhatu, vacana, lakara = lakara))
         buildList {
             add("$dhatu: ${result.final.surface}")
-            addTrace(result)
+            DerivationTraceRenderer.appendTo(this, result)
         }
     }
     "--unadi", "--unadipatha" -> {
@@ -360,7 +357,7 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
             results.forEachIndexed { index, result ->
                 val variant = if (results.size > 1) " [${index + 1}/${results.size}]" else ""
                 add("${kind.name} $value$variant: ${result.final.surface}")
-                addTrace(result, includeRole = true)
+                DerivationTraceRenderer.appendTo(this, result, includeRole = true)
             }
         }
     }
@@ -372,56 +369,3 @@ internal fun runCli(args: Array<String>): List<String> = when (args.firstOrNull(
 }
 
 private enum class SankhyaKind { CARDINAL, ORDINAL }
-
-private fun parseVibhakti(value: String): Vibhakti = when (value.uppercase()) {
-    "PRATHAMA", "प्रथमा" -> Vibhakti.PRATHAMA
-    "DVITIYA", "द्वितीया" -> Vibhakti.DVITIYA
-    "TRTIYA", "तृतीया" -> Vibhakti.TRTIYA
-    "CHATURTHI", "चतुर्थी" -> Vibhakti.CHATURTHI
-    "PANCHAMI", "पञ्चमी", "पंचमी" -> Vibhakti.PANCHAMI
-    "SASTHI", "षष्ठी" -> Vibhakti.SASTHI
-    "SAPTAMI", "सप्तमी" -> Vibhakti.SAPTAMI
-    else -> error("Unknown vibhakti: $value")
-}
-
-private fun parseVacana(value: String): Vacana = when (value.uppercase()) {
-    "EKAVACANA", "एकवचन" -> Vacana.EKAVACANA
-    "DVIVACANA", "द्विवचन" -> Vacana.DVIVACANA
-    "BAHUVACANA", "बहुवचन" -> Vacana.BAHUVACANA
-    else -> error("Unknown vacana: $value")
-}
-
-private fun findLakara(value: String): Lakara? = Lakara.entries.firstOrNull {
-    it.name == value.uppercase() || it.upadesha == value
-}
-
-private fun MutableList<String>.addTrace(result: DerivationResult, includeRole: Boolean = false) {
-    add("----------------------------------------")
-    result.applications.forEach { app ->
-        val prefix = if (includeRole) " [${app.role::class.simpleName}]" else ""
-        add("${app.sutra}$prefix — ${app.after.rawJoinedSurface} (${app.explanation})")
-        app.conflictTrace.forEach { add("  ↳ $it") }
-    }
-}
-
-private fun parseKaraka(value: String): Karaka = when (value.uppercase()) {
-    "KARTR", "कर्ता" -> Karaka.KARTR
-    "KARMAN", "कर्म" -> Karaka.KARMAN
-    "KARANA", "करण" -> Karaka.KARANA
-    "SAMPRADANA", "सम्प्रदान", "संप्रदान" -> Karaka.SAMPRADANA
-    "APADANA", "अपादान" -> Karaka.APADANA
-    "ADHIKARANA", "अधिकरण" -> Karaka.ADHIKARANA
-    "SAMBANDHA", "सम्बन्ध", "संबंध" -> Karaka.SAMBANDHA
-    "SAMBODHANA", "सम्बोधन", "संबोधन" -> Karaka.SAMBODHANA
-    "ANIRDHARITA" -> Karaka.ANIRDHARITA
-    else -> error("Unknown karaka: $value")
-}
-
-private fun parsePrayoga(value: String): Prayoga = when (value.uppercase()) {
-    "KARTARI", "कर्तरि" -> Prayoga.KARTARI
-    "KARMANI", "कर्मणि" -> Prayoga.KARMANI
-    "BHAVE", "भावे" -> Prayoga.BHAVE
-    "CAUSATIVE" -> Prayoga.CAUSATIVE
-    "ANIRDHARITA" -> Prayoga.ANIRDHARITA
-    else -> error("Unknown prayoga: $value")
-}
