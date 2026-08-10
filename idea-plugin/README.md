@@ -17,5 +17,6 @@ Typed number, boolean, and choice validation, capability approvals, `:cancel`,
 explicit-output filtering, rollback, and exit codes therefore match terminal
 execution.
 
-**Run via Compilation** also forwards Run-console input to the Gradle subprocess.
-The Stop action closes pending input and terminates a bound child process.
+**Run via CLI Process** starts `dev.panini.MainKt` in an isolated Java process and
+forwards Run-console input directly, avoiding Gradle's Windows stdin buffering.
+The Stop action closes pending input and terminates the child process.

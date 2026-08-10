@@ -40,7 +40,7 @@ class PvmRunLineMarkerContributor : RunLineMarkerContributor() {
             }
         }
 
-        val runCompileAction = object : AnAction("Run via Compilation", "Run script via Gradle compilation subprocess", AllIcons.Actions.Execute) {
+        val runCompileAction = object : AnAction("Run via CLI Process", "Run script in an isolated PaniniVM CLI process", AllIcons.Actions.Execute) {
             override fun actionPerformed(e: AnActionEvent) {
                 val project = e.project ?: return
                 val virtualFile = psiFile.virtualFile ?: return
@@ -48,7 +48,7 @@ class PvmRunLineMarkerContributor : RunLineMarkerContributor() {
                 val type = PvmRunConfigurationType()
                 val factory = PvmRunConfigurationFactory(type)
 
-                val settings = runManager.createConfiguration("Run ${virtualFile.name} (Compilation)", factory)
+                val settings = runManager.createConfiguration("Run ${virtualFile.name} (CLI Process)", factory)
                 val pvmConfig = settings.configuration as PvmRunConfiguration
                 pvmConfig.scriptPath = virtualFile.path
                 pvmConfig.runViaVm = false

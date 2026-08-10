@@ -10,7 +10,7 @@ import javax.swing.JTextField
 class PvmRunSettingsEditor : SettingsEditor<PvmRunConfiguration>() {
     private val myPanel: JPanel
     private val scriptPathField = JTextField()
-    private val executionModeComboBox = JComboBox(arrayOf("Direct VM (In-Process)", "Compilation (Gradle Subprocess)"))
+    private val executionModeComboBox = JComboBox(arrayOf("Direct VM (In-Process)", "CLI Process (Isolated)"))
 
     init {
         myPanel = FormBuilder.createFormBuilder()

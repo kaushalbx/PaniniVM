@@ -42,4 +42,5 @@ tasks.jar {
 tasks.withType<Test> {
     useJUnitPlatform()
     workingDir = rootDir
+    systemProperty("panini.idea.test.classpath", sourceSets.main.get().runtimeClasspath.asPath)
 }

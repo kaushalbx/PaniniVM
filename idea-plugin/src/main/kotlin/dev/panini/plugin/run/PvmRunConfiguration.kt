@@ -122,21 +122,10 @@ class PvmRunConfiguration(
                     processHandler.terminate(exitCode)
                 } else {
                     val basePath = project.basePath ?: ""
-                    val isWindows = System.getProperty("os.name").lowercase().contains("win")
-                    val gradlewName = if (isWindows) "gradlew.bat" else "gradlew"
-                    val gradlewFile = File(basePath, gradlewName)
 
                     try {
-                        processHandler.notifyTextAvailable("=== PaniniVM Script Execution (Compilation): ${file.name} ===\n", ProcessOutputTypes.STDOUT)
-                        val process = ProcessBuilder(
-                            gradlewFile.absolutePath,
-                            ":cli:run",
-                            "--args=--eval $path",
-                            "--no-daemon"
-                        )
-                            .directory(File(basePath))
-                            .redirectErrorStream(true)
-                            .start()
+                        processHandler.notifyTextAvailable("=== PaniniVM Script Execution (CLI Process): ${file.name} ===\n", ProcessOutputTypes.STDOUT)
+                        val process = PvmCliProcessLauncher().start(file, File(basePath))
                         processHandler.bind(process)
 
                         ApplicationManager.getApplication().executeOnPooledThread {
