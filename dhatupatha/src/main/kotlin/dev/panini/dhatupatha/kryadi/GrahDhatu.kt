@@ -30,6 +30,7 @@ class GrahDhatu : Dhatu(
     operations = listOf(
         ReadAction.op {
             requires(Karaka.KARMAN); returns(Samjna.SHABDA)
+            optional(Karaka.SAMPRADANA)
             effects(ExecutionEffect.READ_RESOURCE)
             bindsResultTo(Karaka.KARMAN)
         },

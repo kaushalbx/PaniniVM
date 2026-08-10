@@ -4,7 +4,10 @@ import dev.panini.compiler.BytecodeCompiler
 import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.ExecutionEffect
+import dev.panini.execution.InputRequest
+import dev.panini.execution.InputValueType
 import dev.panini.execution.PaniniVM
+import dev.panini.execution.toInputLongOrNull
 import dev.panini.aryabhatiya.AryabhatiyaDecoder
 import dev.panini.aryabhatiya.AryabhatiyaEncoder
 import dev.panini.aryabhatiya.AryabhatiyaMapping
@@ -32,10 +35,21 @@ class PaniniCli(
     private val reader: BufferedReader = inputStream.bufferedReader()
 
     init {
-        vm.registerExternalCapability(ExecutionEffect.READ_RESOURCE) { variableName, _ ->
-            outputStream.println("Enter value for $variableName:")
+        vm.registerExternalCapability(ExecutionEffect.READ_RESOURCE) { payload, _ ->
+            val request = InputRequest.decode(payload) ?: InputRequest(payload, InputValueType.TEXT)
+            readInteractiveValue(request)
+        }
+    }
+
+    private fun readInteractiveValue(request: InputRequest): String {
+        while (true) {
+            val typeHint = if (request.type == InputValueType.NUMBER) " (number)" else ""
+            outputStream.println("Enter value for ${request.variableName}$typeHint:")
             outputStream.flush()
-            reader.readLine() ?: throw IllegalStateException("End of input while reading $variableName.")
+            val value = reader.readLine()
+                ?: throw IllegalStateException("End of input while reading ${request.variableName}.")
+            if (request.type != InputValueType.NUMBER || value.toInputLongOrNull() != null) return value
+            outputStream.println("Invalid number '$value'. Enter ASCII or Devanagari digits.")
         }
     }
 

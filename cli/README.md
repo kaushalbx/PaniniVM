@@ -27,8 +27,19 @@ not deliver terminal lines until EOF.
 
 When the script executes a `ग्रह्` input operation, the CLI prints a prompt using
 the कर्मन् variable name and waits for one line from standard input. For example,
-`निवेश + अम् ग्रह् + णिच् + लोट् + सिप् ।` displays `निवेश> `; the entered text
-becomes the operation result and is available to subsequent statements as `फल`.
+`निवेश + अम् ग्रह् + णिच् + लोट् + सिप् ।` displays `Enter value for निवेश:`;
+the entered text becomes the operation result and is available to subsequent
+statements as `फल`.
+
+To require numeric input, supply `सङ्ख्या` as sampradāna:
+
+```text
+प्रथम + अम् सङ्ख्या + ङे ग्रह् + णिच् + लोट् + सिप् ।
+```
+
+The CLI then accepts ASCII digits such as `20` or Devanagari digits such as `२०`.
+Invalid input is reported and the same prompt is repeated without advancing the
+PVM program.
 
 Running the CLI without arguments starts the interactive REPL.
 

@@ -38,7 +38,7 @@ class PaniniCliInteractiveTest {
     fun `interactive addition script reads two numeric values and prints their sum`() {
         val output = ByteArrayOutputStream()
         val cli = PaniniCli(
-            inputStream = ByteArrayInputStream("10\n२०\n".toByteArray(Charsets.UTF_8)),
+            inputStream = ByteArrayInputStream("not-a-number\n10\n२०\n".toByteArray(Charsets.UTF_8)),
             outputStream = PrintStream(output, true, Charsets.UTF_8),
         )
 
@@ -47,8 +47,9 @@ class PaniniCliInteractiveTest {
 
         assertEquals("त्रिंशत्", successes.last().value)
         val rendered = output.toString(Charsets.UTF_8)
-        assertTrue(rendered.contains("Enter value for प्रथम:"))
-        assertTrue(rendered.contains("Enter value for द्वितीय:"))
+        assertTrue(rendered.contains("Enter value for प्रथम (number):"))
+        assertTrue(rendered.contains("Invalid number 'not-a-number'."))
+        assertTrue(rendered.contains("Enter value for द्वितीय (number):"))
         assertTrue(rendered.contains("त्रिंशत्"))
         assertTrue(!rendered.contains("Line 1:"))
         assertTrue(!rendered.contains("Line 2:"))
