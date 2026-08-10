@@ -16,6 +16,7 @@ sealed interface ExecutionResult {
         val typedValue: SanskritValue? = null,
         val outputKind: OutputKind = OutputKind.INTERNAL,
         val controlSignal: ExecutionControlSignal? = null,
+        val conditionValue: Boolean? = null,
     ) : ExecutionResult
 
     data class Failure(

@@ -89,6 +89,20 @@ class ProgramAstTest {
     }
 
     @Test
+    fun `otherwise may contain a nested conditional`() {
+        val ukti = parser.parse(
+            "यदि एक + अम् एक + अम् च अस् + लोट् + सिप् तर्हि जय + अम् मुद्र् + लोट् + सिप् " +
+                "अन्यथा यदि एक + अम् द्वि + अम् च नि + विद् + लोट् + सिप् तर्हि लघु + अम् मुद्र् + लोट् + सिप् " +
+                "अन्यथा गुरु + अम् मुद्र् + लोट् + सिप् ।",
+        )
+
+        val outer = assertIs<Conditional>(ukti.body)
+        val nested = assertIs<Conditional>(outer.alternate)
+        assertIs<Invocation>(nested.consequent)
+        assertIs<Invocation>(nested.alternate)
+    }
+
+    @Test
     fun `purvapara syntax builds a pipeline directly`() {
         val source = "पञ्च + अम् द्वि + अम् च गणित + ङस् गुण् + ल्युट् + ङस् " +
             "गणित + ङस् रन्ध्र + ल्युट् + ङस् पूर्व + ङस् पर + ङस् एका + सुँ कृ + लोट् + सिप् ।"

@@ -18,14 +18,9 @@ class VyakaranamAstBuilder {
                 body = Invocation(buildVakya(loop.body!!)),
                 maximumIterationStems = limit?.stems?.dropLast(1).orEmpty(),
             )
-        } ?: context.pipelineClause()?.let(::buildPipeline) ?: context.conditionalClause()?.let { conditional ->
-            Conditional(
-                sourceText = conditional.text,
-                condition = Invocation(buildVakya(conditional.condition!!)),
-                consequent = Invocation(buildVakya(conditional.consequent!!)),
-                alternate = conditional.alternate?.let { Invocation(buildVakya(it)) },
-            )
-        } ?: run {
+        } ?: context.pipelineClause()?.let(::buildPipeline)
+            ?: context.conditionalClause()?.conditionalExpression()?.let(::buildConditional)
+            ?: run {
             val statements = context.vakya().mapTo(mutableListOf<ProgramNode>()) { Invocation(buildVakya(it)) }
             val connectors = context.vakyaSambandha().mapTo(mutableListOf()) { it.text }
             while ("इति" in connectors) {
@@ -51,6 +46,16 @@ class VyakaranamAstBuilder {
             body = body,
         )
     }
+
+    private fun buildConditional(
+        context: PaniniyaVyakaranamParser.ConditionalExpressionContext,
+    ): Conditional = Conditional(
+        sourceText = context.text,
+        condition = Invocation(buildVakya(context.condition!!)),
+        consequent = Invocation(buildVakya(context.consequent!!)),
+        alternate = context.nested?.let(::buildConditional)
+            ?: context.alternate?.let { Invocation(buildVakya(it)) },
+    )
 
     private fun buildPipeline(
         context: PaniniyaVyakaranamParser.PipelineClauseContext,

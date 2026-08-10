@@ -8,6 +8,8 @@ internal fun Phala.toExecutionResult(operation: String): ExecutionResult = when 
         typedValue = typedValues.values.lastOrNull(),
         outputKind = outputKind,
         controlSignal = controlSignal,
+        conditionValue = typedValues.values.filterIsInstance<SanskritValue.Satya>()
+            .firstOrNull()?.boolean,
     )
     is Phala.Asiddha -> result
     is Phala.AnumatiApekshita -> pipelineContinuation?.let { resumable ->

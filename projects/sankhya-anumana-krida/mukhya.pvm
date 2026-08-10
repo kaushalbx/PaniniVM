@@ -5,10 +5,10 @@
 एक + ङसिँ दश + ङि इति सीमा + सुँ ।
 
 # Kriya-samjna: define one reusable guessing attempt.
-# The procedure reads a bounded input and checks the latest result directly.
+# The procedure reads a bounded input, compares it, and prints dynamic feedback.
 प्रयत्न + ल्युट् + सुँ ।
 निवेश + अम् सङ्ख्या + ङे ग्रह् + णिच् + लोट् + सिप् ।
-यदि रहस्य + अम् ग्रह् + घञ् + ङस् फल + टा अस् + लोट् + सिप् तर्हि वि + स्था + लोट् + सिप् अन्यथा पुनर्अनुमिनु + अम् मुद्र् + णिच् + लोट् + सिप् ॥
+यदि रहस्य + अम् ग्रह् + घञ् + ङस् फल + टा अस् + लोट् + सिप् तर्हि विजयः + अम् मुद्र् + णिच् + लोट् + सिप् अन्यथा यदि ग्रह् + घञ् + ङस् फल + अम् रहस्य + अम् च नि + विद् + लोट् + सिप् तर्हि लघु + अम् मुद्र् + णिच् + लोट् + सिप् अन्यथा गुरु + अम् मुद्र् + णिच् + लोट् + सिप् ॥
 
 # 1. Dynamically choose a number from the scoped inclusive range.
 दिव् + णिच् + लोट् + सिप् ततः रहस्य + ङे दा + लोट् + सिप् ।
@@ -16,8 +16,8 @@
 # 2. Quote a grammatical command; iti makes mudr print it without executing it.
 सङ्ख्या + अम् अनुमिनु + लोट् + सिप् इति मुद्र् + णिच् + लोट् + सिप् ।
 
-# 3. Continue while victory has not occurred, with five attempts as the upper bound.
-पञ्च + कृत्वः यावत् विजय + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
+# 3. Continue while the latest comparison is false, with five attempts as the upper bound.
+पञ्च + कृत्वः यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
 प्रयत्नाः + अम् समाप्ताः + अम् च मुद्र् + णिच् + लोट् + सिप् ।
 
 # 4. Reveal the secret number after all attempts are finished.

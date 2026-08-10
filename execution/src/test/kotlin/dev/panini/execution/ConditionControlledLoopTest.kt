@@ -10,8 +10,9 @@ class ConditionControlledLoopTest {
         val results = PaniniVM().evalScript(
             """
             प्रयत्न + ल्युट् + सुँ ।
-            वारः + अम् मुद्र् + णिच् + लोट् + सिप् ॥
-            त्रि + कृत्वः यावत् विजय + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
+            वारः + अम् मुद्र् + णिच् + लोट् + सिप् ।
+            एक + अम् द्वि + अम् च विद् + लोट् + सिप् ॥
+            त्रि + कृत्वः यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
             """.trimIndent(),
         )
 
@@ -20,18 +21,18 @@ class ConditionControlledLoopTest {
     }
 
     @Test
-    fun `loop break makes a negated victory condition false immediately`() {
+    fun `true body result terminates a negated phala loop immediately`() {
         val results = PaniniVM().evalScript(
             """
             प्रयत्न + ल्युट् + सुँ ।
-            वि + स्था + लोट् + सिप् ॥
-            पञ्च + कृत्वः यावत् विजय + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
+            वारः + अम् मुद्र् + णिच् + लोट् + सिप् ।
+            द्वि + अम् एक + अम् च विद् + लोट् + सिप् ॥
+            पञ्च + कृत्वः यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
             """.trimIndent(),
         )
-        val breaks = results.filterIsInstance<ExecutionResult.Success>()
-            .filter { it.controlSignal == ExecutionControlSignal.BREAK_LOOP }
 
-        assertEquals(1, breaks.size, results.toString())
+        assertEquals(1, results.filterIsInstance<ExecutionResult.Success>()
+            .count { it.outputKind == OutputKind.CONSOLE && it.value == "वारः" }, results.toString())
         assertTrue(results.none { it is ExecutionResult.Failure })
     }
 }

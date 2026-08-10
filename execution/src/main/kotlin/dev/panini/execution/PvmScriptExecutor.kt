@@ -1,6 +1,7 @@
 package dev.panini.execution
 
 import dev.panini.execution.binding.FrequencyExtractor
+import dev.panini.execution.binding.baseText
 import dev.panini.vyakaranam.ast.Repeat
 import dev.panini.vyakaranam.ast.WhileLoop
 import java.io.File
@@ -137,12 +138,17 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             }
             value.toInt()
         }
-        val negatedVictory = loop.condition.sourceText.contains("विजय") &&
-            loop.condition.vakya.padas.any { it is dev.panini.vyakaranam.ast.AvyayaPada && it.form == "न" }
+        val usesLatestResult = loop.condition.vakya.padas.any { pada ->
+            pada is dev.panini.vyakaranam.ast.SubantaPada && pada.pratipadika.baseText() == "फल"
+        }
+        val isNegated = loop.condition.vakya.padas.any {
+            it is dev.panini.vyakaranam.ast.AvyayaPada && it.form == "न"
+        }
+        var latestConditionValue = false
 
         repeat(maximumIterations) {
-            val conditionHolds = if (negatedVictory) {
-                true
+            val conditionHolds = if (usesLatestResult) {
+                if (isNegated) !latestConditionValue else latestConditionValue
             } else {
                 val conditionResult = vm.eval(
                     renderInvocation(loop.condition),
@@ -183,6 +189,17 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 }
             }
             results += iterationResults
+            if (usesLatestResult) {
+                val reportedCondition = iterationResults.asSequence()
+                    .filterIsInstance<ExecutionResult.Success>()
+                    .mapNotNull { it.conditionValue }
+                    .lastOrNull()
+                    ?: return results + ExecutionResult.Failure(
+                        ExecutionError.INVALID_VALUE,
+                        "A फल-controlled loop body must produce a truth value.",
+                    )
+                latestConditionValue = reportedCondition
+            }
             if (iterationResults.any {
                     it is ExecutionResult.Success && it.controlSignal == ExecutionControlSignal.BREAK_LOOP
                 }

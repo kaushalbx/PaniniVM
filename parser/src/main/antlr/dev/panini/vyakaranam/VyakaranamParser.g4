@@ -47,7 +47,12 @@ pipelineResult
     ;
 
 conditionalClause
-    : YADI condition=vakya TARHI consequent=vakya (ANYATHA alternate=vakya)? DANDA? EOF
+    : conditionalExpression DANDA? EOF
+    ;
+
+conditionalExpression
+    : YADI condition=vakya TARHI consequent=vakya
+      (ANYATHA (nested=conditionalExpression | alternate=vakya))?
     ;
 
 // ============================================================================

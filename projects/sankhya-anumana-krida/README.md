@@ -17,10 +17,12 @@ The example demonstrates:
 - direct use of each action's latest `फल`, without a temporary guess variable;
 - direct `ततः` result piping into a following action's missing `कर्मन्`;
 - equality-style membership testing with the existing `अस्` operation;
-- conditionals with `यदि … तर्हि … अन्यथा`;
+- numeric ordering with `विद्` for greater-than and `नि + विद्` for less-than;
+- nested conditionals with `यदि … तर्हि … अन्यथा यदि …`;
+- dynamic `लघु` and `गुरु` feedback for low and high guesses;
 - a reusable kriyā-saṃjñā declared as `प्रयत्न + ल्युट् + सुँ`;
-- a bounded condition-controlled loop using `पञ्च + कृत्वः यावत् … तावत्`;
-- early loop termination with `वि + स्था` after a correct guess.
+- a bounded result-controlled loop using `पञ्च + कृत्वः यावत् फल + सुँ न तावत्`;
+- natural loop termination from the comparison's typed truth value.
 
 ## Run
 
