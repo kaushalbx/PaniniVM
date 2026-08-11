@@ -6,7 +6,7 @@
 # क्त-प्रत्यय (Memoized Constant Procedure: सिद्ध + क्त + सुँ)
 # Evaluated once and cached in registry
 सिद्धः ।
-द्विम् त्रिम् च योजय ॥
+द्वे त्रि च योजय ॥
 
 # तव्यत्-प्रत्यय (Mandatory Assertion with सङ्ख्यात्व Type Guard: शुध् + णिच् + तव्यत् + सुँ)
 शुत् ।

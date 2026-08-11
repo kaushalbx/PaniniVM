@@ -6,6 +6,7 @@ import dev.panini.core.PadaType
 import dev.panini.core.SupAffix
 import dev.panini.core.TingAffix
 import dev.panini.dhatupatha.Dhatu
+import dev.panini.execution.SanskritValue
 import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.KridantaPratipadika
 import dev.panini.vyakaranam.ast.MulaPratipadika
@@ -66,9 +67,35 @@ data class AnalyzedSamuccita(
     val members: List<SubantaAnalysis>,
 ) : PadaAnalysis
 
+/** Resolves encoded numeral syntax before it becomes a typed numeral prātipadika. */
+fun interface SankhyaPadaValueResolver {
+    fun resolve(pada: Pada): SanskritValue.Sankhya?
+}
+
+private fun encodedSankhyaValue(pada: Pada): SanskritValue.Sankhya? {
+    val value = when (pada) {
+        is SankhyaPada -> pada.value
+        is SankhyaPuranaPada -> pada.value
+        is KatapayadiPada -> pada.value
+        is AryabhatiyaPada -> pada.value
+        is BhutasamkhyaPada -> pada.value
+        else -> null
+    } ?: return null
+    val word = when (pada) {
+        is SankhyaPada -> pada.stems.joinToString(" ")
+        is SankhyaPuranaPada -> pada.stems.joinToString(" ")
+        is KatapayadiPada -> pada.word
+        is AryabhatiyaPada -> pada.word
+        is BhutasamkhyaPada -> pada.terms.joinToString(" ")
+        else -> pada.sourceText
+    }
+    return SanskritValue.Sankhya(value, word)
+}
+
 class PadaAnalyzer(
     private val lexicon: VyakaranamLexicon,
     private val validatePadaCompatibility: Boolean = true,
+    private val sankhyaValueResolver: SankhyaPadaValueResolver = SankhyaPadaValueResolver(::encodedSankhyaValue),
 ) {
 
     fun analyze(pada: Pada): PadaAnalysis =
@@ -94,66 +121,42 @@ class PadaAnalyzer(
                     members = pada.members.map(::analyzeSubanta),
                 )
 
-            is SankhyaPada ->
-                AnalyzedSubanta(
-                    pada = SubantaPada(pada.sourceText, SankhyaPratipadika(pada.sourceText, pada.value), pada.sup),
-                    analysis = SubantaAnalysis(
-                        pada = SubantaPada(pada.sourceText, SankhyaPratipadika(pada.sourceText, pada.value), pada.sup),
-                        lexicalEntry = null,
-                        supCandidates = SupAffix.candidates(pada.sup.text).takeIf { it.isNotEmpty() } ?: error("सुप्प्रत्ययस्य विवरणं न प्राप्तम्: ${pada.sup.text}"),
-                        linga = emptySet(),
-                    ),
-                )
+            is SankhyaPada -> analyzeSankhya(pada, pada.sup)
 
-            is SankhyaPuranaPada ->
-                AnalyzedSubanta(
-                    pada = SubantaPada(pada.sourceText, SankhyaPratipadika(pada.sourceText, pada.value), pada.sup),
-                    analysis = SubantaAnalysis(
-                        pada = SubantaPada(pada.sourceText, SankhyaPratipadika(pada.sourceText, pada.value), pada.sup),
-                        lexicalEntry = null,
-                        supCandidates = SupAffix.candidates(pada.sup.text).takeIf { it.isNotEmpty() } ?: error("सुप्प्रत्ययस्य विवरणं न प्राप्तम्: ${pada.sup.text}"),
-                        linga = emptySet(),
-                    ),
-                )
+            is SankhyaPuranaPada -> analyzeSankhya(pada, pada.sup)
 
             is SankhyaAbhyasaPada ->
                 AnalyzedAvyaya(
                     pada = AvyayaPada(pada.sourceText, pada.sourceText),
                 )
 
-            is KatapayadiPada ->
-                AnalyzedSubanta(
-                    pada = SubantaPada(pada.sourceText, SankhyaPratipadika(pada.sourceText, pada.value), pada.sup),
-                    analysis = SubantaAnalysis(
-                        pada = SubantaPada(pada.sourceText, SankhyaPratipadika(pada.sourceText, pada.value), pada.sup),
-                        lexicalEntry = null,
-                        supCandidates = SupAffix.candidates(pada.sup.text).takeIf { it.isNotEmpty() } ?: error("सुप्प्रत्ययस्य विवरणं न प्राप्तम्: ${pada.sup.text}"),
-                        linga = emptySet(),
-                    ),
-                )
+            is KatapayadiPada -> analyzeSankhya(pada, pada.sup)
 
-            is AryabhatiyaPada ->
-                AnalyzedSubanta(
-                    pada = SubantaPada(pada.sourceText, SankhyaPratipadika(pada.sourceText, pada.value), pada.sup),
-                    analysis = SubantaAnalysis(
-                        pada = SubantaPada(pada.sourceText, SankhyaPratipadika(pada.sourceText, pada.value), pada.sup),
-                        lexicalEntry = null,
-                        supCandidates = SupAffix.candidates(pada.sup.text).takeIf { it.isNotEmpty() } ?: error("सुप्प्रत्ययस्य विवरणं न प्राप्तम्: ${pada.sup.text}"),
-                        linga = emptySet(),
-                    ),
-                )
+            is AryabhatiyaPada -> analyzeSankhya(pada, pada.sup)
 
-            is BhutasamkhyaPada ->
-                AnalyzedSubanta(
-                    pada = SubantaPada(pada.sourceText, SankhyaPratipadika(pada.sourceText, pada.value), pada.sup),
-                    analysis = SubantaAnalysis(
-                        pada = SubantaPada(pada.sourceText, SankhyaPratipadika(pada.sourceText, pada.value), pada.sup),
-                        lexicalEntry = null,
-                        supCandidates = SupAffix.candidates(pada.sup.text).takeIf { it.isNotEmpty() } ?: error("सुप्प्रत्ययस्य विवरणं न प्राप्तम्: ${pada.sup.text}"),
-                        linga = emptySet(),
-                    ),
-                )
+            is BhutasamkhyaPada -> analyzeSankhya(pada, pada.sup)
         }
+
+    private fun analyzeSankhya(pada: Pada, sup: dev.panini.vyakaranam.ast.SupPratyaya): AnalyzedSubanta {
+        val semanticValue = requireNotNull(sankhyaValueResolver.resolve(pada)) {
+            "सङ्ख्यायाः अर्थः न निर्धारितः: ${pada.sourceText}"
+        }
+        val subanta = SubantaPada(
+            pada.sourceText,
+            SankhyaPratipadika(pada.sourceText, semanticValue),
+            sup,
+        )
+        return AnalyzedSubanta(
+            pada = subanta,
+            analysis = SubantaAnalysis(
+                pada = subanta,
+                lexicalEntry = null,
+                supCandidates = SupAffix.candidates(sup.text).takeIf { it.isNotEmpty() }
+                    ?: error("सुप्प्रत्ययस्य विवरणं न प्राप्तम्: ${sup.text}"),
+                linga = emptySet(),
+            ),
+        )
+    }
 
     fun analyzeSubanta(
         pada: SubantaPada,

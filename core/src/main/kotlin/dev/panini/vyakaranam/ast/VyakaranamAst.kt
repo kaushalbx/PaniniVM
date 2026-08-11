@@ -293,20 +293,20 @@ data class SamasaPratipadika(
 
 data class SankhyaPratipadika(
     override val sourceText: String,
-    val semanticValue: SanskritValue.Sankhya? = null,
+    val semanticValue: SanskritValue.Sankhya,
     val vikaras: List<PratipadikaVikara> = emptyList(),
 ) : Pratipadika {
     /** Numeric identity retained independently of the source-written surface. */
-    val value: Long? get() = semanticValue?.value
+    val value: Long get() = semanticValue.value
 
     /** Compatibility constructor for callers that have not yet produced a typed value. */
     constructor(
         sourceText: String,
-        value: Long?,
+        value: Long,
         vikaras: List<PratipadikaVikara> = emptyList(),
     ) : this(
         sourceText = sourceText,
-        semanticValue = value?.let { SanskritValue.Sankhya(it, sourceText) },
+        semanticValue = SanskritValue.Sankhya(value, sourceText),
         vikaras = vikaras,
     )
 }

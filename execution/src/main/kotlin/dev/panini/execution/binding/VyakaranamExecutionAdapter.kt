@@ -26,6 +26,7 @@ import dev.panini.execution.ValueEnvironment
 import dev.panini.execution.bindingName
 import dev.panini.execution.memory.KriyaMemory
 import dev.panini.analysis.PadaAnalyzer
+import dev.panini.analysis.SankhyaPadaValueResolver
 import dev.panini.analysis.KriyaQualificationKind
 import dev.panini.analysis.UktiAnalysis
 import dev.panini.analysis.UktiAnalyzer
@@ -93,6 +94,7 @@ object VyakaranamExecutionAdapter {
                         override fun findPratipadika(text: String): PratipadikaEntry? = null
                         override fun findDhatu(text: String): Dhatu? = null
                     },
+                    sankhyaValueResolver = SankhyaPadaValueResolver(NumeralPadaBinder::resolveSemanticValue),
                 ),
             ).analyze(vakya, frameId)
         } else {
@@ -104,6 +106,7 @@ object VyakaranamExecutionAdapter {
                         override fun findDhatu(text: String): Dhatu = dhatu
                     },
                     validatePadaCompatibility = false,
+                    sankhyaValueResolver = SankhyaPadaValueResolver(NumeralPadaBinder::resolveSemanticValue),
                 ),
             ).analyze(vakya, frameId)
         }

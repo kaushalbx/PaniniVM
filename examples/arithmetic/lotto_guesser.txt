@@ -2,17 +2,17 @@
 # Rule 1: Define rules (6 main numbers from 1..48 pool + 1 bonus ball)
 
 # Step 1 & 2: Initialize empty collection/sequence ('क्रम') & draw random picks
-एकम् द्विम् त्रिम् चतुर्म् पङ्चम् षट्म् च दीव्य ।
+एकम् द्वे त्रि चत्वारि पञ्च षट् च देवय्य ।
 देहि दिव्ः फलम् क्रमाय ।
 
 # Step 3 & 4: Scale and calculate lottery combinations for 6 draws (6 * 8 = 48)
-षट्म् अष्टानम् च गणय ।
+षट् अष्टन् च गणय ।
 देहि गणनस्य फलम् सङ्ख्यायै ।
 
 # Step 5: Push and store main lottery draw results into sequence ('क्रम')
-सङ्ख्याम् क्षिप्य क्रमम् ।
+सङ्ख्याम् क्षेपय्य क्रमम् ।
 देहि क्षिप् फलम् क्रमाय ।
 
 # Step 6: Draw bonus ball (अक्ष) and print final lottery output (मुद्रय)
-अक्षम् दीव्य ।
+अक्षम् देवय्य ।
 मुद्रय क्रमम् ।

@@ -19,7 +19,7 @@ Declinable and conjugated words are written as grammatical segments joined by
 `+`.
 
 ```pvm
-द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ।
+द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।
 ```
 
 The sentence above supplies two accusative operands and commands the addition
@@ -41,7 +41,7 @@ verbal suffixes are part of the program and carry executable meaning.
 Place `+` between a prakṛti and each pratyaya:
 
 ```pvm
-दश + अम्
+दश + शस्
 मुद्र् + णिच् + लोट् + सिप्
 ```
 
@@ -53,7 +53,7 @@ better editor diagnostics.
 Use a single danda `।` to end an ordinary sentence:
 
 ```pvm
-दश + अम् मुद्र् + णिच् + लोट् + सिप् ।
+दश + शस् मुद्र् + णिच् + लोट् + सिप् ।
 ```
 
 Use a double danda `॥` to close the final sentence of a reusable kriyā block:
@@ -68,7 +68,7 @@ Do not insert another danda immediately before `यदि`, `ततः`, `तर
 
 ```pvm
 # Correct: one conditional sentence
-यदि द्वि + अम् द्वि + अम् च अस् + लोट् + सिप् तर्हि जय + अम् मुद्र् + लोट् + सिप् ।
+यदि द्वि + औट् द्वि + औट् च अस् + लोट् + सिप् तर्हि जय + अम् मुद्र् + लोट् + सिप् ।
 ```
 
 ### 2.3 Comments
@@ -115,13 +115,17 @@ Sanskrit number stems can be used directly:
 
 ```pvm
 एक + अम्
-द्वि + अम्
-पञ्च + अम्
-दश + अम्
+द्वि + औट्
+पञ्च + शस्
+दश + शस्
 ```
 
 The numeral engine evaluates and renders the semantic number; program logic
 does not depend on manually maintained word-to-number tables.
+Source-written counting numerals use their intrinsic number: `एक` takes
+singular सुप्, `द्वि` takes dual सुप्, and numerals from `त्रि` onward take
+plural सुप्. A typed numeric value stored in a variable remains a single
+program value and is not subject to this source-literal agreement check.
 
 ## 5. Actions, results, and output
 
@@ -131,20 +135,20 @@ An imperative action normally uses `लोट् + सिप्`. Causative acti
 `णिच्`.
 
 ```pvm
-द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ।
+द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।
 ```
 
 Frequently used examples include:
 
 ```pvm
 # Print a value.
-पञ्च + अम् मुद्र् + णिच् + लोट् + सिप् ।
+पञ्च + शस् मुद्र् + णिच् + लोट् + सिप् ।
 
 # Multiply two numbers.
-त्रि + अम् द्वि + अम् च गण् + णिच् + लोट् + सिप् ।
+त्रि + शस् द्वि + औट् च गण् + णिच् + लोट् + सिप् ।
 
 # Compare two values.
-त्रि + अम् द्वि + अम् च विद् + लोट् + सिप् ।
+त्रि + शस् द्वि + औट् च विद् + लोट् + सिप् ।
 ```
 
 ### 5.2 Refer to the latest result
@@ -152,7 +156,7 @@ Frequently used examples include:
 `फल` refers to the current or most recent action result:
 
 ```pvm
-द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ।
+द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।
 फल + अम् मुद्र् + णिच् + लोट् + सिप् ।
 ```
 
@@ -174,14 +178,14 @@ rather than executed:
 stage:
 
 ```pvm
-त्रि + अम् द्वि + अम् च गण् + णिच् + लोट् + सिप् ततः मुद्र् + लोट् + सिप् ।
+त्रि + शस् द्वि + औट् च गण् + णिच् + लोट् + सिप् ततः मुद्र् + लोट् + सिप् ।
 ```
 
 Pipelines may contain multiple stages:
 
 ```pvm
-त्रि + अम् द्वि + अम् च गण् + णिच् + लोट् + सिप्
-ततः द्वि + अम् च गण् + णिच् + लोट् + सिप्
+त्रि + शस् द्वि + औट् च गण् + णिच् + लोट् + सिप्
+ततः द्वि + औट् च गण् + णिच् + लोट् + सिप्
 ततः मुद्र् + लोट् + सिप् ।
 ```
 
@@ -241,7 +245,7 @@ No separate lower-bound and upper-bound variables are required.
 Use `यदि … तर्हि … अन्यथा …`:
 
 ```pvm
-यदि द्वि + अम् द्वि + अम् च अस् + लोट् + सिप्
+यदि द्वि + औट् द्वि + औट् च अस् + लोट् + सिप्
 तर्हि जय + अम् मुद्र् + लोट् + सिप्
 अन्यथा पराजय + अम् मुद्र् + लोट् + सिप् ।
 ```
@@ -337,7 +341,7 @@ Supported declared parameter/result types are:
 Accusative arguments bind in declaration order:
 
 ```pvm
-द्वि + अम् त्रि + अम् च योजन + ल्युट् + टा कृ + लोट् + सिप् ।
+द्वि + औट् त्रि + शस् च योजन + ल्युट् + टा कृ + लोट् + सिप् ।
 ```
 
 The older ordinal references `प्रथम`, `द्वितीय`, and so on remain supported for
@@ -349,8 +353,8 @@ For a named argument, write the parameter in ṣaṣṭhī and immediately follo
 with its value in dvitīyā:
 
 ```pvm
-दक्षिण + ङस् त्रि + अम्
-वाम + ङस् द्वि + अम्
+दक्षिण + ङस् त्रि + शस्
+वाम + ङस् द्वि + औट्
 योजन + ल्युट् + टा कृ + लोट् + सिप् ।
 ```
 
@@ -368,7 +372,7 @@ Prefix a definition with `अन्तरङ्गा` to make it file-private:
 
 ```pvm
 अन्तरङ्गा द्विगुणन + ल्युट् + सुँ ।
-प्रथम + अम् द्वि + अम् च गण् + णिच् + लोट् + सिप् ॥
+प्रथम + अम् द्वि + औट् च गण् + णिच् + लोट् + सिप् ॥
 ```
 
 ### 11.6 Domains and overloads
@@ -397,7 +401,7 @@ and `नित्य` qualifiers participate in precedence. A definition named w
 Pairs of accusative values and field names construct a structure:
 
 ```pvm
-दश + अम् मूल्य + अम् पञ्च + अम् परिमाण + अम् च गुण + मतुप् + सुँ ।
+दश + शस् मूल्य + अम् पञ्च + शस् परिमाण + अम् च गुण + मतुप् + सुँ ।
 ```
 
 Use ṣaṣṭhī to read a field:

@@ -2,7 +2,7 @@
 # Uses saṃjñā kriyās from samavaya_lib.pvm — no imports needed.
 
 # Step 1: Batch sum list of 5 numbers (1 + 2 + 3 + 4 + 5 = 15) using समवाययोजनम् saṃjñā
-एकम् द्विम् त्रिम् चतुर्म् पङ्चम् च समवायेन कृणु ।
+एकम् द्वे त्रि चत्वारि पञ्च च समवायेन कृणु ।
 
 # Step 2: Print the result of list batch addition
 मुद्रय फलम् ।

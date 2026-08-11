@@ -18,10 +18,7 @@ internal object NumeralAstNormalizer {
     }
 
     fun resolve(pratipadika: Pratipadika): SankhyaPratipadika? = when (pratipadika) {
-        is SankhyaPratipadika -> pratipadika.semanticValue?.let { pratipadika }
-            ?: recognize(pratipadika.sourceText)?.let {
-                pratipadika.copy(semanticValue = it)
-            }
+        is SankhyaPratipadika -> pratipadika
 
         is MulaPratipadika -> recognize(pratipadika.text)?.let {
             SankhyaPratipadika(

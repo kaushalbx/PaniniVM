@@ -2,7 +2,7 @@
 
 # Step 1: Construct struct instance 'गुणवत्' with attributes: (मूल्य = 10 / दश, परिमाण = 5 / पञ्च)
 # Linguistically: "दश मूल्यं पञ्च परिमाणं च अस्य अस्ति इति गुणवान् ।"
-दशम् मूल्यम् पङ्चम् परिमाणम् च गुणः ।
+दश मूल्यम् पञ्च परिमाणम् च गुणः ।
 
 # Step 2: Query attribute 'मूल्यम्' from struct 'गुणवत्' using Genitive Case (गुणवतः मूल्यम्):
 गुणस्य मूल्यम् ।

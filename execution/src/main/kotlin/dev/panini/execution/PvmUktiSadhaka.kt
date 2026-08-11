@@ -14,6 +14,7 @@ import dev.panini.execution.binding.NumeralAstNormalizer
 import dev.panini.sankhya.SankhyaAbhyasaRenderer
 import dev.panini.sankhya.SankhyaEvaluator
 import dev.panini.sankhya.SankhyaGenerator
+import dev.panini.sankhya.SankhyaVacana
 import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.KridantaPratipadika
 import dev.panini.vyakaranam.ast.AryabhatiyaPada
@@ -254,6 +255,9 @@ class PvmUktiSadhaka(
             pratipadikaLexicon.findPratipadika(baseText)?.linga?.singleOrNull() ?: Linga.PUMS
         }
         return try {
+            sankhya?.semanticValue?.let {
+                SankhyaVacana.requireCompatible(it.value, supAffix.vacana)
+            }
             // The typed value supplies numeric identity; rūpa-siddhi still begins
             // from the source-written prātipadika so readable output preserves it.
             val req = SubantaDerivationRequest(baseText, supAffix.vibhakti, supAffix.vacana, linga)

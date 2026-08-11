@@ -1,7 +1,7 @@
 # Euclidean GCD step: for 18 and 12, the non-zero remainder is 6
 
 # Compute 18 mod 12 = 6
-अष्टादशम् द्वादशम् च शिष ।
+अष्टादशम् द्वादशम् च शेषय ।
 
 # Print the result (6 = षट्)
 शेषस्य फलम् मुद्रय ।

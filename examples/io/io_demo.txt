@@ -2,10 +2,10 @@
 # Reads user input and displays visual feedback
 
 # Step 1: Display visual output (प्रदर्शनम् / दर्शय)
-रामम् प्रदृश ।
+रामम् प्रदर्शय ।
 
 # Step 2: Read interactive input (निवेशनम् / ग्राहय)
-निवेशम् ग्रह्णीहि ।
+निवेशम् ग्रह् ।
 
 # Step 3: Print final I/O output
 मुद्रय फलम् ।

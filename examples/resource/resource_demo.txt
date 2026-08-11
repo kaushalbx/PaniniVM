@@ -2,10 +2,10 @@
 # Manages food/water resource units and tracks usage
 
 # Step 1: Consume food resource unit (अन्नम् आदय)
-अन्नम् अद्धि ।
+अन्नम् अदय् ।
 
 # Step 2: Consume water resource unit (जलम् पायय)
-जलम् पअ ।
+जलम् पअय ।
 
 # Step 3: Print final resource state
 मुद्रय फलम् ।

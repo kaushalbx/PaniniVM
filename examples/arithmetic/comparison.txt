@@ -2,7 +2,7 @@
 # Compares numbers and computes numerical relationships
 
 # Step 1: Compare 10 and 3 (वेदय)
-दशम् त्रिम् च विद्धि ।
+दश त्रि च वेदय् ।
 
 # Step 2: Print comparison result
 मुद्रय फलम् ।

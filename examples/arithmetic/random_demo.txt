@@ -2,7 +2,7 @@
 # Generates a random game/dice outcome using Divadi dhatu div (दीव्य)
 
 # Step 1: Roll random choice (अक्षम् दीव्य)
-अक्षम् दीव्य ।
+अक्षम् देवय्य ।
 
 # Step 2: Print selected random outcome
 मुद्रय फलम् ।

@@ -4,6 +4,7 @@ import dev.panini.aryabhatiya.AryabhatiyaDecoder
 import dev.panini.bhutasamkhya.BhutasamkhyaDecoder
 import dev.panini.core.Karaka
 import dev.panini.execution.ExecutionExpression
+import dev.panini.execution.SanskritValue
 import dev.panini.katapayadi.KatapayadiDecoder
 import dev.panini.sankhya.PrimitiveSankhya
 import dev.panini.sankhya.SankhyaExpression
@@ -34,6 +35,25 @@ internal object NumeralPadaBinder {
     private val katapayadiDecoder = KatapayadiDecoder()
     private val aryabhatiyaDecoder = AryabhatiyaDecoder()
     private val bhutasamkhyaDecoder = BhutasamkhyaDecoder()
+
+    internal fun resolveSemanticValue(pada: Pada): SanskritValue.Sankhya? {
+        val value = when (pada) {
+            is SankhyaPuranaPada -> pada.value
+                ?: sharedSankhyaEvaluator.evaluateStems(pada.stems).value
+            else -> extractNumeralValue(pada)
+        } ?: return null
+        val word = when (pada) {
+            is SankhyaPada -> pada.stems.joinToString(" ")
+            is SankhyaPuranaPada -> pada.stems.joinToString(" ")
+            is KatapayadiPada -> pada.word
+            is AryabhatiyaPada -> pada.word
+            is BhutasamkhyaPada -> pada.terms.joinToString(" ")
+            is SubantaPada -> NumeralAstNormalizer.resolve(pada.pratipadika)?.semanticValue?.word
+                ?: pada.pratipadika.sourceText
+            else -> return null
+        }
+        return SanskritValue.Sankhya(value, word)
+    }
 
     /**
      * Decodes [pada] to a Long if it carries a numeric value, otherwise returns null.
