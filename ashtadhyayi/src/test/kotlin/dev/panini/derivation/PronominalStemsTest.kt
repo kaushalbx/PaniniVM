@@ -35,6 +35,20 @@ class PronominalStemsTest {
         val tasmin = engine.derive(SubantaDerivationRequest("तद्", Vibhakti.SAPTAMI, Vacana.EKAVACANA, Linga.PUMS))
         assertEquals("तस्मिन्", tasmin.final.surface)
         kotlin.test.assertTrue(tasmin.applications.any { it.sutra == "7.1.15" })
+
+        // etad pronominal stem test
+        val esah = engine.derive(SubantaDerivationRequest("एतद्", Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.PUMS))
+        assertEquals("एषः", esah.final.surface)
+        kotlin.test.assertTrue(esah.applications.any { it.sutra == "7.2.106" })
+
+        // sarva pronominal stem test
+        val sarve = engine.derive(SubantaDerivationRequest("सर्व", Vibhakti.PRATHAMA, Vacana.BAHUVACANA, Linga.PUMS))
+        assertEquals("सर्वे", sarve.final.surface)
+        kotlin.test.assertTrue(sarve.applications.any { it.sutra == "7.1.17" })
+
+        val sarvasmai = engine.derive(SubantaDerivationRequest("सर्व", Vibhakti.CHATURTHI, Vacana.EKAVACANA, Linga.PUMS))
+        assertEquals("सर्वस्मै", sarvasmai.final.surface)
+        kotlin.test.assertTrue(sarvasmai.applications.any { it.sutra == "7.1.14" })
     }
 
     @Test

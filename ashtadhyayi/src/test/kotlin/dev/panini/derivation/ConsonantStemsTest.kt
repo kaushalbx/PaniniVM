@@ -94,5 +94,15 @@ class ConsonantStemsTest {
         val mata = engine.derive(SubantaDerivationRequest("मातृ", Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.STRI))
         assertEquals("माता", mata.final.surface)
         kotlin.test.assertTrue(mata.applications.any { it.sutra == "6.4.11" })
+
+        // stri stem tests
+        val striyam = engine.derive(SubantaDerivationRequest("स्त्री", Vibhakti.DVITIYA, Vacana.EKAVACANA, Linga.STRI))
+        assertEquals("स्त्रियम्", striyam.final.surface)
+        kotlin.test.assertTrue(striyam.applications.any { it.sutra == "6.4.79" })
+
+        // sraj stem tests (8.2.30 coh kuh)
+        val srak = engine.derive(SubantaDerivationRequest("स्रज्", Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.STRI))
+        assertEquals("स्रक्", srak.final.surface)
+        kotlin.test.assertTrue(srak.applications.any { it.sutra == "8.2.30" })
     }
 }
