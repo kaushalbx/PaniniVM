@@ -29,7 +29,7 @@ object JasahShiSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.ADESHA,
     scope = SutraScope.PRATYAYA,
     nimittaScope = NimittaScope.EXTERNAL,
-    dependencies = setOf("6.4.1", "1.1.27", "1.1.55", "7.2.102")
+    dependencies = setOf("6.4.1", "1.1.27", "1.1.55")
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if ("6.4.1" !in context.activeAdhikaras) return false
