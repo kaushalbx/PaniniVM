@@ -9,9 +9,7 @@ import dev.panini.dhatupatha.DhatuPatha
 class TingantaEngine(private val engine: DerivationEngine = DerivationEngine(dev.panini.ashtadhyayi.Ashtadhyayi.executableSutras)) {
 
     fun supportsSanadi(dhatu: String, sanadiPratyayas: List<String>, pada: PadaType? = null): Boolean =
-        sanadiPratyayas == listOf("णिच्") &&
-            runCatching { findDhatu(dhatu, pada).gana }
-                .getOrNull() in setOf(DhatuGana.RUDHADI, DhatuGana.CURADI)
+        sanadiPratyayas.firstOrNull() in setOf("णिच्", "सन्", "यङ्")
 
     fun derive(request: TingantaDerivationRequest): DerivationResult {
         val dhatu = findDhatu(request.dhatu, request.pada.takeIf { request.sanadiPratyayas.isNotEmpty() })
