@@ -33,10 +33,8 @@ object AunapahSutra : Sutra<DerivationState, DerivationChange>(
         if (context.terms.size < 2) return false
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
-        val rupa = context.effectiveContext.rupa
 
-        val isDviStri = rupa.linga == dev.panini.core.Linga.STRI && (stem.upadesha == "द्वि" || stem.surface in setOf("द्वि", "द्व"))
-        val endsInAA = stem.surface.endsWith('ा') || stem.surface.endsWith('आ') || isDviStri
+        val endsInAA = stem.surface.endsWith('ा') || stem.surface.endsWith('आ')
         val isEligibleAffix = affix.upadesha == "औ" || affix.upadesha == "औट्"
 
         return endsInAA && isEligibleAffix
