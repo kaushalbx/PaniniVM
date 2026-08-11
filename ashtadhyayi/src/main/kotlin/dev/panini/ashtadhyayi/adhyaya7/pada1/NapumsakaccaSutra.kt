@@ -32,12 +32,7 @@ object NapumsakaccaSutra : Sutra<DerivationState, DerivationChange>(
     nimittaScope = NimittaScope.EXTERNAL
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        val rupa = context.effectiveContext.rupa
-        val stem = context.terms.dropLast(1).lastOrNull()
-        val isDviStrī = rupa.linga == Linga.STRI && stem != null && (stem.upadesha == "द्वि" || stem.surface in setOf("द्वि", "द्व"))
-
-        val isEligibleLinga = rupa.linga == Linga.NAPUMSAKA || isDviStrī
-        if (!isEligibleLinga || rupa.vacana != Vacana.DVIVACANA) return false
+        if (!HasMorphosyntax(linga = Linga.NAPUMSAKA, vacana = Vacana.DVIVACANA).matches(context)) return false
 
         val affix = context.terms.lastOrNull() ?: return false
         return affix.upadesha == "औ" || affix.upadesha == "औट्"
