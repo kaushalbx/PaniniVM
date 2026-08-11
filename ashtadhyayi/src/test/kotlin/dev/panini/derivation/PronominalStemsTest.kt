@@ -165,5 +165,13 @@ class PronominalStemsTest {
         val dveN = engine.derive(SubantaDerivationRequest("द्वि", Vibhakti.PRATHAMA, Vacana.DVIVACANA, Linga.NAPUMSAKA))
         assertEquals("द्वे", dveN.final.surface)
         kotlin.test.assertTrue(dveN.applications.any { it.sutra == "7.1.19" })
+
+        val anadvan = engine.derive(SubantaDerivationRequest("अनडुह्", Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.PUMS))
+        assertEquals("अनड्वान्", anadvan.final.surface)
+        kotlin.test.assertTrue(anadvan.applications.any { it.sutra == "7.1.99" })
+
+        val anadvaham = engine.derive(SubantaDerivationRequest("अनडुह्", Vibhakti.DVITIYA, Vacana.EKAVACANA, Linga.PUMS))
+        assertEquals("अनड्वाहम्", anadvaham.final.surface)
+        kotlin.test.assertTrue(anadvaham.applications.any { it.sutra == "7.1.98" })
     }
 }
