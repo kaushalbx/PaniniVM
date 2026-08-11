@@ -86,7 +86,12 @@ object VrddhirEciSutra : Sutra<DerivationState, DerivationChange>(
 
         return DerivationChange(
             state = context.copy(
-                terms = terms.dropLast(2) + leftTerm.copy(surface = newSurface),
+                terms = terms.dropLast(2) + leftTerm.copy(
+                    surface = newSurface,
+                    // Ekadeśa combines the sounds, not their grammatical identity.
+                    // Preserve the right-hand term's it-status for 1.3.9.
+                    itMarkers = leftTerm.itMarkers + rightTerm.itMarkers,
+                ),
                 droppedTerms = context.droppedTerms + terms.last().copy(surface = ""),
                 stage = DerivationStage.PADA_FORMED
             ).addSubstitution(VarnaSubstitution(leftTerm.id, leftChar, substitute, sutra)),

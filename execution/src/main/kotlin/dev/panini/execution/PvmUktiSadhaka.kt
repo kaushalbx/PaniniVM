@@ -200,8 +200,7 @@ class PvmUktiSadhaka(
             val expr = sankhyaEvaluator.evaluateStems(pada.stems)
             val baseText = sankhyaGenerator.cardinal(expr.value).final.surface
             val supAffix = SupAffix.fromUpadesha(pada.sup.text) ?: return baseText
-            val req = SubantaDerivationRequest(baseText, supAffix.vibhakti, supAffix.vacana)
-            subantaEngine.derive(req).final.surface
+            sankhyaGenerator.decline(expr.value, supAffix.vibhakti, supAffix.vacana)
         } catch (_: Throwable) {
             pada.sourceText
         }
@@ -246,7 +245,14 @@ class PvmUktiSadhaka(
         } else if (sourceStem?.preservesSourceSurface == true) {
             return baseText
         }
-        val linga = pratipadikaLexicon.findPratipadika(baseText)?.linga?.singleOrNull() ?: Linga.PUMS
+        val isSankhya = subanta.pratipadika is SankhyaPratipadika || runCatching {
+            sankhyaEvaluator.evaluateStems(listOf(baseText))
+        }.isSuccess
+        val linga = if (isSankhya) {
+            Linga.NAPUMSAKA
+        } else {
+            pratipadikaLexicon.findPratipadika(baseText)?.linga?.singleOrNull() ?: Linga.PUMS
+        }
         return try {
             val req = SubantaDerivationRequest(baseText, supAffix.vibhakti, supAffix.vacana, linga)
             subantaEngine.derive(req).final.surface
