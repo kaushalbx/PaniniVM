@@ -56,11 +56,6 @@ class SubantaEngine(
         }
         if (vacana != naturalVacana) return null
         return when (numeral.value) {
-            2L -> when (vibhakti) {
-                Vibhakti.PRATHAMA, Vibhakti.DVITIYA -> "द्वे"
-                Vibhakti.TRTIYA, Vibhakti.CHATURTHI, Vibhakti.PANCHAMI -> "द्वाभ्याम्"
-                Vibhakti.SASTHI, Vibhakti.SAPTAMI -> "द्वयोः"
-            }
             3L -> pluralNumeral("त्रीणि", "त्रिभिः", "त्रिभ्यः", "त्रयाणाम्", "त्रिषु", vibhakti)
             4L -> pluralNumeral("चत्वारि", "चतुर्भिः", "चतुर्भ्यः", "चतुर्णाम्", "चतुर्षु", vibhakti)
             5L -> pluralNumeral("पञ्च", "पञ्चभिः", "पञ्चभ्यः", "पञ्चानाम्", "पञ्चसु", vibhakti)
