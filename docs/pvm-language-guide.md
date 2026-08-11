@@ -416,6 +416,17 @@ A schema name ends in `परिणाम` and lists its required fields:
 अवस्था + अम् प्रयत्नसङ्ख्या + अम् अनुमानपरिणाम + मतुप् + सुँ ।
 ```
 
+The built-in outcome and state concepts may instead be written entirely in
+segmented form. PaniniVM derives their identity compositionally:
+
+```pvm
+अव + स्था + अङ् + अम् प्रयत्नसङ्ख्या + अम् परि + नम् + घञ् + मतुप् + सुँ ।
+```
+
+Here `परि + नम् + घञ्` means the outcome concept and `अव + स्था + अङ्`
+means its state field. Each part remains explicit in source; no samāsa or fused
+readable form is required.
+
 A typed kriyā can declare that schema as its result:
 
 ```pvm
@@ -433,6 +444,13 @@ pipelines, compiled semantic codecs, and persisted state.
 ```pvm
 परिणाम + मतुप् + ङस् अवस्था + अम् ।
 परिणाम + मतुप् + ङस् प्रयत्नसङ्ख्या + अम् ।
+```
+
+The equivalent fully segmented access is:
+
+```pvm
+परि + नम् + घञ् + मतुप् + ङस् अव + स्था + अङ् + अम् ।
+परि + नम् + घञ् + मतुप् + ङस् प्रयत्नसङ्ख्या + अम् ।
 ```
 
 These accesses do not require copying the fields into temporary variables.

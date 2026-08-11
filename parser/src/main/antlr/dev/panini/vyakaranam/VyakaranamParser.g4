@@ -609,6 +609,7 @@ krtPratyaya
     | SHATR
     | SHANACH
     | GHANJ
+    | ANG
     | LYUT
     | NVUL
     | TRICH

@@ -170,13 +170,12 @@ object SanadiEngine {
     private fun getAbhyasa(root: String, desiderative: Boolean = false, intensive: Boolean = false): String {
         val firstChar = root.firstOrNull() ?: return ""
         val consonant = when (firstChar) {
-            'भ' -> 'ब'
-            'प' -> 'प'
-            'क' -> 'च'
-            'ग' -> 'ज'
-            'ज' -> 'ज'
-            'द' -> 'द'
-            'ज' -> 'ज'
+            'भ' -> "ब"
+            'प' -> "प"
+            'क' -> "च"
+            'ग' -> "ज"
+            'ज' -> "ज"
+            'द' -> "द"
             else -> firstChar.toString()
         }
         return when {

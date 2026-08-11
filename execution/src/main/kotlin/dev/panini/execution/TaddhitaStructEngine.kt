@@ -6,6 +6,7 @@ import dev.panini.vyakaranam.ast.AryabhatiyaPada
 import dev.panini.vyakaranam.ast.BhutasamkhyaPada
 import dev.panini.vyakaranam.ast.KatapayadiPada
 import dev.panini.vyakaranam.ast.MulaPratipadika
+import dev.panini.vyakaranam.ast.MorphemeSemanticConcept
 import dev.panini.vyakaranam.ast.Pada
 import dev.panini.vyakaranam.ast.Pratipadika
 import dev.panini.vyakaranam.ast.SankhyaPada
@@ -16,6 +17,7 @@ import dev.panini.vyakaranam.ast.TaddhitaPratyayaClass
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.Ukti
 import dev.panini.vyakaranam.ast.Vakya
+import dev.panini.vyakaranam.ast.morphemeSemanticIdentity
 import dev.panini.vyakaranam.parser.PaniniParser
 
 /**
@@ -54,8 +56,11 @@ object TaddhitaStructEngine {
         val declaration = padas.filterIsInstance<SubantaPada>()
             .lastOrNull { it.vibhakti() == Vibhakti.PRATHAMA && it.pratipadika.isMatup() }
             ?: return null
+        val semanticIdentity = declaration.pratipadika.morphemeSemanticIdentity()
         val schemaName = declaration.pratipadika.baseIdentity()
-        if (!schemaName.endsWith("परिणाम")) return null
+        if (semanticIdentity?.concept != MorphemeSemanticConcept.OUTCOME && !schemaName.endsWith("परिणाम")) {
+            return null
+        }
         val fields = padas.filter { it !== declaration && it.vibhakti() == Vibhakti.DVITIYA }
             .map { it.stemIdentity() }
         if (fields.size < 2 || fields.any { field ->
@@ -114,7 +119,12 @@ object TaddhitaStructEngine {
             .filter { it.vibhakti() == Vibhakti.SASTHI && it.pratipadika.isMatup() }
             .map { it.pratipadika.baseIdentity() }
         val key = padas.filterIsInstance<SubantaPada>().lastOrNull() ?: return null
-        val affix = SupAffix.fromUpadesha(key.sup.text) ?: return null
+        val affix = if (key.sup.text == "औ") {
+            // Attribute queries supply a karman value; औ is the post-it form of औट् here.
+            SupAffix.AUT
+        } else {
+            SupAffix.fromUpadesha(key.sup.text) ?: return null
+        }
         return (receivers + key.stemIdentity()).takeIf { receivers.isNotEmpty() }?.let {
             TaddhitaAttributeAccess(it, affix)
         }
@@ -199,7 +209,7 @@ object TaddhitaStructEngine {
     private fun Pratipadika.isMatup(): Boolean =
         vikaras().any { it.pratyayaClass == TaddhitaPratyayaClass.POSSESSIVE }
 
-    private fun Pratipadika.baseIdentity(): String = when (this) {
+    private fun Pratipadika.baseIdentity(): String = morphemeSemanticIdentity()?.canonicalName ?: when (this) {
         is MulaPratipadika -> text
         else -> SamjnaInvocationMatcher.normalizeIdentity(sourceText).substringBefore(" + ").trim()
     }
