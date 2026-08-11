@@ -32,28 +32,33 @@ object SarvanamnasSmaiSutra : Sutra<DerivationState, DerivationChange>(
     dependencies = setOf("6.4.1", "1.1.27")
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        // Jurisdictional check
         if ("6.4.1" !in context.activeAdhikaras) return false
-
         if (context.terms.size < 2) return false
+
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        // 1. Stem must be a Sarvanāma
-        val isSarvanama = context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SARVANAMA }
-        if (!isSarvanama) return false
+        val isTyadadi = stem.upadesha in setOf("त्यद्", "तद्", "यद्", "एतद्", "किम्", "इदम्")
+        val isSarvanama = isTyadadi || context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SARVANAMA }
+        val matras = setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'े', 'ै', 'ो', 'ौ', '्')
+        val endsInA = isTyadadi || (stem.surface.isNotEmpty() && stem.surface.last() !in matras)
 
-        // 2. Stem must end in 'a'
-        val endsInA = stem.surface.endsWith('अ') || stem.surface.endsWith('ा')
-
-        // 3. Affix must be 'ṅe'
-        return endsInA && affix.upadesha == "ङे"
+        return isSarvanama && endsInA && (affix.upadesha == "ङे" || affix.id == "sup-nge")
     }
 
     override fun apply(context: DerivationState): DerivationChange {
+        val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
+
+        val isTyadadi = stem.upadesha in setOf("त्यद्", "तद्", "यद्", "एतद्", "किम्", "इदम्")
+        var newState = context
+        if (isTyadadi && stem.surface.endsWith("्")) {
+            val aStemSurface = if (stem.surface.endsWith("्")) stem.surface.dropLast(2) else stem.surface
+            newState = newState.replaceTerm(stem.id, stem.copy(surface = aStemSurface))
+        }
+
         return DerivationChange(
-            state = context.replaceTerm(affix.id, affix.copy(surface = "स्मै")),
+            state = newState.replaceTerm(affix.id, affix.copy(surface = "स्मै")),
             explanation = "7.1.14 substitutes 'smai' for dative-singular 'ṅe' after a pronoun stem."
         )
     }

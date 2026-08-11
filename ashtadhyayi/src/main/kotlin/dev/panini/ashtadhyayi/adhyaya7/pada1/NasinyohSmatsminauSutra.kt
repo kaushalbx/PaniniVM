@@ -40,19 +40,30 @@ object NasinyohSmatsminauSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        val isSarvanama = context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SARVANAMA }
-        if (!isSarvanama) return false
+        val isTyadadi = stem.upadesha in setOf("त्यद्", "तद्", "यद्", "एतद्", "किम्", "इदम्")
+        val isSarvanama = isTyadadi || context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SARVANAMA }
+        val matras = setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'े', 'ै', 'ो', 'ौ', '्')
+        val endsInA = isTyadadi || (stem.surface.isNotEmpty() && stem.surface.last() !in matras)
 
-        val endsInA = stem.surface.endsWith('अ') || stem.surface.endsWith('ा')
-        return endsInA && affix.upadesha in sources
+        return isSarvanama && endsInA && (affix.upadesha in sources || affix.id in setOf("sup-ngasi", "sup-ngi"))
     }
 
     override fun apply(context: DerivationState): DerivationChange {
+        val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
-        val replacement = requireNotNull(YathasamkhyamSutra.map(affix.upadesha, sources, targets))
+
+        val isTyadadi = stem.upadesha in setOf("त्यद्", "तद्", "यद्", "एतद्", "किम्", "इदम्")
+        var newState = context
+        if (isTyadadi && stem.surface.endsWith("्")) {
+            val aStemSurface = if (stem.surface.endsWith("्")) stem.surface.dropLast(2) else stem.surface
+            newState = newState.replaceTerm(stem.id, stem.copy(surface = aStemSurface))
+        }
+
+        val lookupKey = if (affix.id == "sup-ngasi") "ङसि" else if (affix.id == "sup-ngi") "ङि" else affix.upadesha
+        val replacement = requireNotNull(YathasamkhyamSutra.map(lookupKey, sources, targets))
 
         return DerivationChange(
-            state = context.replaceTerm(affix.id, affix.copy(surface = replacement)),
+            state = newState.replaceTerm(affix.id, affix.copy(surface = replacement)),
             explanation = "7.1.15: Substituted $replacement for ${affix.upadesha} after pronoun stem."
         )
     }
