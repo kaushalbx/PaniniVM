@@ -39,4 +39,24 @@ class TingantaEngineGranthaTest {
         assertEquals("करोति", karoti.final.terms.last().surface)
         assertTrue(karoti.applications.any { it.sutra == "3.1.79" })
     }
+
+    @Test
+    fun `test lrt lakara future tense verb derivation for bhu dhatu`() {
+        val bhavisyati = engine.derive(TingantaDerivationRequest("भू", Vacana.EKAVACANA, Purusha.PRATHAMA, Lakara.LRT, pada = PadaType.PARASMAIPADA))
+        assertEquals("भविष्यति", bhavisyati.final.terms.last().surface)
+    }
+
+    @Test
+    fun `test lang lakara past tense verb derivation for bhu dhatu`() {
+        val abhavat = engine.derive(TingantaDerivationRequest("भू", Vacana.EKAVACANA, Purusha.PRATHAMA, Lakara.LANG, pada = PadaType.PARASMAIPADA))
+        assertEquals("अभवत्", abhavat.final.terms.last().surface)
+        assertTrue(abhavat.applications.any { it.sutra == "3.4.100" })
+    }
+
+    @Test
+    fun `test lot lakara imperative verb derivation for bhu dhatu`() {
+        val bhavatu = engine.derive(TingantaDerivationRequest("भू", Vacana.EKAVACANA, Purusha.PRATHAMA, Lakara.LOT, pada = PadaType.PARASMAIPADA))
+        assertEquals("भवतु", bhavatu.final.terms.last().surface)
+        assertTrue(bhavatu.applications.any { it.sutra == "3.4.86" })
+    }
 }
