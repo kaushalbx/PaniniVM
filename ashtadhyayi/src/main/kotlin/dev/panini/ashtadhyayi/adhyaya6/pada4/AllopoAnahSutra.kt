@@ -44,6 +44,10 @@ object AllopoAnahSutra : Sutra<DerivationState, DerivationChange>(
         val preConsonant = surface[surface.length - 3]
         if (preConsonant in setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'े', 'ै', 'ो', 'ौ', '्')) return false
 
+        // 6.4.137: na saṃyogād vamantāt - Elision of 'a' is blocked after conjuncts ending in v/m (like 'ātman', 'brahman')
+        val isConjunctOrVamanta = surface.contains("त्मन्") || surface.contains("ह्मन्") || surface.endsWith("वन्")
+        if (isConjunctOrVamanta) return false
+
         // 2. Affix must start with a vowel (ac-adi bha affix)
         val firstChar = affix.surface.firstOrNull() ?: return false
         val isVowelAffix = firstChar in setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ए', 'ऐ', 'ओ', 'औ', 'ा', 'ि', 'ी', 'ु', 'ू', 'े', 'ै', 'ो', 'ौ')

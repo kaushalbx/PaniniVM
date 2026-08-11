@@ -43,5 +43,29 @@ class ConsonantStemsTest {
         println("VAGBHIH SUTRAS: ${vagbhih.applications.map { "${it.sutra}: ${it.explanation}" }}")
         assertEquals("वाग्भिः", vagbhih.final.surface)
         kotlin.test.assertTrue(vagbhih.applications.any { it.sutra == "8.2.30" })
+
+        // atman stem test (6.4.137 retains 'a' in an-stem after conjunct tm)
+        val atma = engine.derive(SubantaDerivationRequest("आत्मन्", Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.PUMS))
+        assertEquals("आत्मा", atma.final.surface)
+
+        val atmana = engine.derive(SubantaDerivationRequest("आत्मन्", Vibhakti.TRTIYA, Vacana.EKAVACANA, Linga.PUMS))
+        assertEquals("आत्मना", atmana.final.surface)
+
+        // go stem tests
+        val gauh = engine.derive(SubantaDerivationRequest("गो", Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.PUMS))
+        assertEquals("गौः", gauh.final.surface)
+        kotlin.test.assertTrue(gauh.applications.any { it.sutra == "7.1.90" })
+
+        val gavau = engine.derive(SubantaDerivationRequest("गो", Vibhakti.PRATHAMA, Vacana.DVIVACANA, Linga.PUMS))
+        assertEquals("गावौ", gavau.final.surface)
+        kotlin.test.assertTrue(gavau.applications.any { it.sutra == "7.1.90" })
+
+        val gam = engine.derive(SubantaDerivationRequest("गो", Vibhakti.DVITIYA, Vacana.EKAVACANA, Linga.PUMS))
+        assertEquals("गाम्", gam.final.surface)
+        kotlin.test.assertTrue(gam.applications.any { it.sutra == "6.1.93" })
+
+        val gah = engine.derive(SubantaDerivationRequest("गो", Vibhakti.DVITIYA, Vacana.BAHUVACANA, Linga.PUMS))
+        assertEquals("गाः", gah.final.surface)
+        kotlin.test.assertTrue(gah.applications.any { it.sutra == "6.1.93" })
     }
 }
