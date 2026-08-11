@@ -42,6 +42,8 @@ object TangasingsamInatsyahSutra : Sutra<DerivationState, DerivationChange>(
         // 1. Stem must end in 'a'
         if (!dev.panini.shiksha.Varnamala.endsWithA(stem.surface) && !dev.panini.shiksha.Varnamala.endsWithAA(stem.surface)) return false
 
+        if (affix.surface in setOf("स्मात्", "स्मिन्", "स्मै")) return false
+
         val replacement = YathasamkhyamSutra.map(affix.upadesha, sources, targets) ?: return false
         return affix.surface != replacement
     }
