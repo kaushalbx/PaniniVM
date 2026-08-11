@@ -64,16 +64,22 @@ object SarvanamasthaneCasambuddhauSutra : Sutra<DerivationState, DerivationChang
         val stem = context.terms[context.terms.size - 2]
         val surface = stem.surface
 
-        val index = if (surface.endsWith("्")) surface.length - 3 else surface.length - 2
-        val charToLengthen = surface[index]
-        val lengthened = when (charToLengthen) {
-            'अ' -> "ा"
-            'इ', 'ि' -> "ी"
-            'उ', 'ु' -> "ू"
-            else -> "${charToLengthen}ा"
+        val lastChar = surface.last()
+        val (index, charToLengthen) = if (Varnamala.isVowel(lastChar)) {
+            Pair(surface.length - 1, lastChar)
+        } else if (surface.endsWith("्") && surface.length >= 2 && Varnamala.isVowel(surface[surface.length - 2])) {
+            Pair(surface.length - 2, surface[surface.length - 2])
+        } else {
+            val idx = surface.indexOfLast { Varnamala.isVowel(it) }
+            if (idx >= 0) Pair(idx, surface[idx]) else Pair(if (surface.endsWith("्")) surface.length - 3 else surface.length - 2, surface[if (surface.endsWith("्")) surface.length - 3 else surface.length - 2])
         }
 
-        val newSurface = surface.substring(0, index) + lengthened + surface.substring(index + 1)
+        val newSurface = when (charToLengthen) {
+            'इ', 'ि' -> surface.substring(0, index) + "ी" + surface.substring(index + 1)
+            'उ', 'ु' -> surface.substring(0, index) + "ू" + surface.substring(index + 1)
+            'अ' -> surface.substring(0, index) + "ा" + surface.substring(index + 1)
+            else -> if (!surface.contains('ा')) surface + "ा" else surface
+        }
 
         return DerivationChange(
             state = context.replaceTerm(stem.id, stem.copy(surface = newSurface))
