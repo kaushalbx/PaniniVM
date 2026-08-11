@@ -67,5 +67,32 @@ class ConsonantStemsTest {
         val gah = engine.derive(SubantaDerivationRequest("गो", Vibhakti.DVITIYA, Vacana.BAHUVACANA, Linga.PUMS))
         assertEquals("गाः", gah.final.surface)
         kotlin.test.assertTrue(gah.applications.any { it.sutra == "6.1.93" })
+
+        // vidvas stem tests
+        val vidvan = engine.derive(SubantaDerivationRequest("विद्वस्", Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.PUMS))
+        assertEquals("विद्वान्", vidvan.final.surface)
+        kotlin.test.assertTrue(vidvan.applications.any { it.sutra == "6.4.10" })
+
+        val vidusah = engine.derive(SubantaDerivationRequest("विद्वस्", Vibhakti.DVITIYA, Vacana.BAHUVACANA, Linga.PUMS))
+        assertEquals("विदुषः", vidusah.final.surface)
+        kotlin.test.assertTrue(vidusah.applications.any { it.sutra == "6.4.131" })
+
+        // mahat stem tests
+        val mahan = engine.derive(SubantaDerivationRequest("महत्", Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.PUMS))
+        assertEquals("महान्", mahan.final.surface)
+        kotlin.test.assertTrue(mahan.applications.any { it.sutra == "6.4.10" })
+
+        // pitr and matr stem tests
+        val pita = engine.derive(SubantaDerivationRequest("पितृ", Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.PUMS))
+        assertEquals("पिता", pita.final.surface)
+        kotlin.test.assertTrue(pita.applications.any { it.sutra == "6.4.11" })
+
+        val pitarau = engine.derive(SubantaDerivationRequest("पितृ", Vibhakti.PRATHAMA, Vacana.DVIVACANA, Linga.PUMS))
+        assertEquals("पितरौ", pitarau.final.surface)
+        kotlin.test.assertTrue(pitarau.applications.any { it.sutra == "7.3.110" })
+
+        val mata = engine.derive(SubantaDerivationRequest("मातृ", Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.STRI))
+        assertEquals("माता", mata.final.surface)
+        kotlin.test.assertTrue(mata.applications.any { it.sutra == "6.4.11" })
     }
 }
