@@ -2,4 +2,4 @@
 # Uses saṃjñā kriyā from isolation_lib.pvm — local saṃjñā variables do not pollute caller scope.
 
 # Step 1: Execute सीमाप्रक्रिया with inputs 3, 4, 5 -> (3 + 4) * 5 = 35 (पञ्चत्रिंशत्)
-त्रि + शस् चतुर् + शस् च पञ्च + शस् च सीमा + ल्युट् + टा कृ + लोट् + सिप् ।
+त्रि + शस् चतुर् + शस् च पञ्चन् + शस् च सीमा + ल्युट् + टा कृ + लोट् + सिप् ।

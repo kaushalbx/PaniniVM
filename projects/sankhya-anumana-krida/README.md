@@ -10,7 +10,7 @@ For a step-by-step introduction to the syntax used here, see the
 The example demonstrates:
 
 - random choice with `दिव्`;
-- one scoped inclusive range, `एक + ङसिँ दश + ङि इति सीमा + सुँ`;
+- one scoped inclusive range, `एक + ङसिँ दशन् + ङि इति सीमा + सुँ`;
 - numeric input with `ग्रह्` and the `सङ्ख्या` type marker;
 - the same scoped range reused as input bounds;
 - dynamic instruction rendering from segmented ablative and locative bounds;
@@ -25,7 +25,7 @@ The example demonstrates:
 - bare branch values in `यदि … तर्हि लघु अन्यथा गुरु ततः मुद्र्`, with one print action;
 - dynamic `लघु` and `गुरु` feedback for low and high guesses;
 - a reusable kriyā-saṃjñā declared as `प्रयत्न + ल्युट् + सुँ`;
-- a bounded result-controlled loop using `पञ्च + कृत्वः यावत् फल + सुँ न तावत्`;
+- a bounded result-controlled loop using `पञ्चन् + कृत्वः यावत् फल + सुँ न तावत्`;
 - natural loop termination from the comparison's typed truth value.
 - an `अन्यथा` exhaustion clause that runs only when all five attempts are consumed.
 - a structured `परिणाम` produced automatically by the loop, containing `अवस्था`

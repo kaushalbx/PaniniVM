@@ -41,7 +41,7 @@ verbal suffixes are part of the program and carry executable meaning.
 Place `+` between a prakṛti and each pratyaya:
 
 ```pvm
-दश + शस्
+दशन् + शस्
 मुद्र् + णिच् + लोट् + सिप्
 ```
 
@@ -53,7 +53,7 @@ better editor diagnostics.
 Use a single danda `।` to end an ordinary sentence:
 
 ```pvm
-दश + शस् मुद्र् + णिच् + लोट् + सिप् ।
+दशन् + शस् मुद्र् + णिच् + लोट् + सिप् ।
 ```
 
 Use a double danda `॥` to close the final sentence of a reusable kriyā block:
@@ -116,8 +116,8 @@ Sanskrit number stems can be used directly:
 ```pvm
 एक + अम्
 द्वि + औट्
-पञ्च + शस्
-दश + शस्
+पञ्चन् + शस्
+दशन् + शस्
 ```
 
 The numeral engine evaluates and renders the semantic number; program logic
@@ -148,7 +148,7 @@ Frequently used examples include:
 
 ```pvm
 # Print a value.
-पञ्च + शस् मुद्र् + णिच् + लोट् + सिप् ।
+पञ्चन् + शस् मुद्र् + णिच् + लोट् + सिप् ।
 
 # Multiply two numbers.
 त्रि + शस् द्वि + औट् च गण् + णिच् + लोट् + सिप् ।
@@ -233,7 +233,7 @@ interactive request.
 Declare one inclusive range with pañcamī and saptamī bounds:
 
 ```pvm
-एक + ङसिँ दश + ङि इति सीमा + सुँ ।
+एक + ङसिँ दशन् + ङि इति सीमा + सुँ ।
 ```
 
 The active range can be reused by random selection, numeric input validation,
@@ -277,7 +277,7 @@ The shared pipeline target executes only for the selected branch.
 `कृत्वः` supplies a repetition count:
 
 ```pvm
-पञ्च + कृत्वः प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
+पञ्चन् + कृत्वः प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
 ```
 
 ### 10.2 Condition-controlled loop
@@ -286,7 +286,7 @@ Use `यावत् … तावत्` to continue while a condition holds. A
 count places a safety bound on the loop:
 
 ```pvm
-पञ्च + कृत्वः
+पञ्चन् + कृत्वः
 यावत् फल + सुँ न
 तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप्
 अन्यथा प्रयत्नाः + अम् समाप्ताः + अम् च मुद्र् + णिच् + लोट् + सिप् ।
@@ -407,7 +407,7 @@ and `नित्य` qualifiers participate in precedence. A definition named w
 Pairs of accusative values and field names construct a structure:
 
 ```pvm
-दश + शस् मूल्य + अम् पञ्च + शस् परिमाण + अम् च गुण + मतुप् + सुँ ।
+दशन् + शस् मूल्य + अम् पञ्चन् + शस् परिमाण + अम् च गुण + मतुप् + सुँ ।
 ```
 
 Use ṣaṣṭhī to read a field:

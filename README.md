@@ -209,7 +209,7 @@ println(derivationResult.final.surface) // Output: कारु
 
 // Single utterance evaluation via VM
 val vm = PaniniVM()
-val result = vm.eval("दश + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।")
+val result = vm.eval("दशन् + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।")
 if (result is ExecutionResult.Success) {
     println(result.value) // Output: द्वादश
 }

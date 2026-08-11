@@ -2,7 +2,7 @@
 # The program chooses one secret number. The player gets five attempts.
 
 # One scoped range is reused by random choice, input validation, and output.
-एक + ङसिँ दश + ङि इति सीमा + सुँ ।
+एक + ङसिँ दशन् + ङि इति सीमा + सुँ ।
 
 # Kriya-samjna: define one reusable guessing attempt.
 # The procedure reads a bounded input, compares it, and prints dynamic feedback.
@@ -17,7 +17,7 @@
 सङ्ख्या + अम् अनुमिनु + लोट् + सिप् इति मुद्र् + णिच् + लोट् + सिप् ।
 
 # 3. Continue while the latest comparison is false; the loop exposes its structured outcome.
-पञ्च + कृत्वः यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् अन्यथा प्रयत्नाः + अम् समाप्ताः + अम् च मुद्र् + णिच् + लोट् + सिप् ।
+पञ्चन् + कृत्वः यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् अन्यथा प्रयत्नाः + अम् समाप्ताः + अम् च मुद्र् + णिच् + लोट् + सिप् ।
 
 # 4. Reveal the secret number after all attempts are finished.
 रहस्य + अम् मुद्र् + णिच् + लोट् + सिप् ।
