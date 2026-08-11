@@ -59,4 +59,11 @@ class TingantaEngineGranthaTest {
         assertEquals("भवतु", bhavatu.final.terms.last().surface)
         assertTrue(bhavatu.applications.any { it.sutra == "3.4.86" })
     }
+
+    @Test
+    fun `test lat lakara atmanepada verb derivation for labh dhatu`() {
+        val labhate = engine.derive(TingantaDerivationRequest("लभ्", Vacana.EKAVACANA, Purusha.PRATHAMA, Lakara.LAT, pada = PadaType.ATMANEPADA))
+        assertEquals("लभते", labhate.final.terms.last().surface)
+        assertTrue(labhate.applications.any { it.sutra == "3.4.79" })
+    }
 }
