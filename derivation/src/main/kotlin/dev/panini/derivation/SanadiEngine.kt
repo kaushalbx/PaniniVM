@@ -116,7 +116,7 @@ object SanadiEngine {
         vacana: Vacana,
         steps: MutableList<String>,
     ): SanadiDerivationResult {
-        steps += "3.1.22 [धातोरेकाचो हलादेः क्रियासमभिहारे यङ्]: Attaching यङ् (ya) affix in intensive sense"
+        steps += "3.1.22 [${dev.panini.ashtadhyayi.adhyaya3.pada1.DhatorEkayacoHaladerKriyasamabhihareYangSutra.text}]: Attaching यङ् (ya) affix in intensive sense"
 
         val stem = when (root) {
             "भू" -> "बोभूय्"
