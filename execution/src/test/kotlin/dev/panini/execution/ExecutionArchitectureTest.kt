@@ -110,4 +110,31 @@ class ExecutionArchitectureTest {
             assertEquals(value, final.value, path)
         }
     }
+
+    @Test
+    fun `lotto example produces six distinct main values and a distinct bonus`() {
+        val results = PaniniVM().evalFile(
+            File("examples/arithmetic/lotto_guesser.pvm"),
+            sessionKey = "golden:lotto",
+        )
+        val printed = results.filterIsInstance<ExecutionResult.Success>()
+            .filter { it.outputKind == OutputKind.CONSOLE }
+        assertEquals(2, printed.size)
+
+        val successful = results.filterIsInstance<ExecutionResult.Success>()
+        val main = assertIs<SanskritValue.Suchi>(
+            successful.mapNotNull(ExecutionResult.Success::typedValue).filterIsInstance<SanskritValue.Suchi>().last(),
+        ).items
+            .map { assertIs<SanskritValue.Sankhya>(it).value }
+        val bonus = successful.mapNotNull(ExecutionResult.Success::typedValue)
+            .filterIsInstance<SanskritValue.Sankhya>()
+            .last()
+            .value
+
+        assertEquals(6, main.size)
+        assertEquals(6, main.distinct().size)
+        assertTrue(main.all { it in 1L..48L })
+        assertTrue(bonus in 1L..48L)
+        assertTrue(bonus !in main)
+    }
 }

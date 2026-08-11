@@ -22,8 +22,13 @@ object RandomChoiceAction : DhatuAction("क्रीडा", "यादृच�
             )
         }
         val expression = context.bindings[Karaka.KARMAN] ?: context.bindings[Karaka.KARTR]
+        val excludedValues = expression?.let(context::resolveValues)
+            ?.flatMap { value -> if (value is SanskritValue.Suchi) value.items else listOf(value) }
+            ?.mapNotNull { (it as? SanskritValue.Sankhya)?.value }
+            ?.toSet()
+            .orEmpty()
         val resolved = if (minimum != null && maximum != null) {
-            (minimum..maximum).map { value ->
+            (minimum..maximum).filterNot(excludedValues::contains).map { value ->
                 SanskritValue.Sankhya(value, context.renderSankhyaResult(value) ?: value.toString())
             }
         } else {
@@ -35,7 +40,13 @@ object RandomChoiceAction : DhatuAction("क्रीडा", "यादृच�
         } else {
             resolved
         }
-        val chosen = options.randomOrNull() ?: SanskritValue.Shabda("अक्षः")
+        if (options.isEmpty()) {
+            return ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                "Random range contains no value outside the supplied exclusion set.",
+            )
+        }
+        val chosen = options.random()
         val chosenText = chosen.toDisplayText()
         val message = "चयनम् सिद्धम्: $chosenText"
         return ExecutionResult.Success(
