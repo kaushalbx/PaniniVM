@@ -40,26 +40,14 @@ class SubantaEngine(
     }
 
     private fun deriveSpecializedDeclension(pratipadika: String, vibhakti: Vibhakti, vacana: Vacana): String? {
-        return deriveNumeralDeclension(pratipadika, vibhakti, vacana)
+        return deriveNumeralOverride(pratipadika, vibhakti, vacana)
     }
 
-    private fun deriveNumeralDeclension(
+    private fun deriveNumeralOverride(
         pratipadika: String,
         vibhakti: Vibhakti,
         vacana: Vacana,
-    ): String? {
-        val numeral = PrimitiveSankhya.fromAnnotatedPratipadika(pratipadika) ?: return null
-        val naturalVacana = when (numeral.value) {
-            1L -> Vacana.EKAVACANA
-            2L -> Vacana.DVIVACANA
-            else -> Vacana.BAHUVACANA
-        }
-        if (vacana != naturalVacana) return null
-        return when (numeral.value) {
-            8L -> pluralNumeral("अष्ट", "अष्टाभिः", "अष्टाभ्यः", "अष्टानाम्", "अष्टासु", vibhakti)
-            else -> null
-        }
-    }
+    ): String? = null
 
     private fun pluralNumeral(
         nominativeAccusative: String,
