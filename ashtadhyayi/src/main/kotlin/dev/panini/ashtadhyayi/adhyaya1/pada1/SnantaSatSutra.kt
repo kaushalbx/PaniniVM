@@ -53,7 +53,6 @@ object SnantaSatSutra : Sutra<DerivationState, DerivationChange>(
 
         val surface = term.surface
         val upadesha = term.upadesha
-        return upadesha in SHAT_NUMERALS || surface in SHAT_NUMERALS ||
-            (surface.endsWith("न्") || surface.endsWith("ष") || surface.endsWith("ट्"))
+        return upadesha in SHAT_NUMERALS || surface in SHAT_NUMERALS
     }
 }
