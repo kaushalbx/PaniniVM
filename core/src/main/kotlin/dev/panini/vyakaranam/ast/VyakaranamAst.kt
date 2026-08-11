@@ -2,6 +2,7 @@ package dev.panini.vyakaranam.ast
 
 import dev.panini.core.Lakara
 import dev.panini.core.SupLopa
+import dev.panini.execution.SanskritValue
 
 sealed interface VyakaranamNode {
     val sourceText: String
@@ -292,9 +293,23 @@ data class SamasaPratipadika(
 
 data class SankhyaPratipadika(
     override val sourceText: String,
-    val value: Long? = null,
+    val semanticValue: SanskritValue.Sankhya? = null,
     val vikaras: List<PratipadikaVikara> = emptyList(),
-) : Pratipadika
+) : Pratipadika {
+    /** Numeric identity retained independently of the source-written surface. */
+    val value: Long? get() = semanticValue?.value
+
+    /** Compatibility constructor for callers that have not yet produced a typed value. */
+    constructor(
+        sourceText: String,
+        value: Long?,
+        vikaras: List<PratipadikaVikara> = emptyList(),
+    ) : this(
+        sourceText = sourceText,
+        semanticValue = value?.let { SanskritValue.Sankhya(it, sourceText) },
+        vikaras = vikaras,
+    )
+}
 
 data class SankhyaPada(
     override val sourceText: String,

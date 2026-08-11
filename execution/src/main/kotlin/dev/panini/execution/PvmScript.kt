@@ -1,5 +1,6 @@
 package dev.panini.execution
 
+import dev.panini.execution.binding.NumeralAstNormalizer
 import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
 import dev.panini.vyakaranam.ast.Procedure
 import dev.panini.vyakaranam.ast.ProcedureModifiers
@@ -194,15 +195,10 @@ object PvmScript {
                     pada.sup.text,
                 )
                 is dev.panini.vyakaranam.ast.SubantaPada -> {
-                    val word = pada.pratipadika.sourceText.substringBefore('+').trim()
-                    val value = when (val pratipadika = pada.pratipadika) {
-                        is dev.panini.vyakaranam.ast.SankhyaPratipadika ->
-                            pratipadika.value ?: evaluator.evaluateStems(listOf(word)).value
-                        is dev.panini.vyakaranam.ast.MulaPratipadika ->
-                            runCatching { evaluator.evaluateStems(listOf(pratipadika.text)).value }.getOrNull()
-                        else -> null
-                    } ?: return@mapNotNull null
-                    NumericPada(value, word, pada.sup.text)
+                    val normalized = NumeralAstNormalizer.normalize(pada)
+                    val value = (normalized.pratipadika as? dev.panini.vyakaranam.ast.SankhyaPratipadika)
+                        ?.semanticValue ?: return@mapNotNull null
+                    NumericPada(value.value, value.word, normalized.sup.text)
                 }
                 else -> null
             }

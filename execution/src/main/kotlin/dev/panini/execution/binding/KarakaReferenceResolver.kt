@@ -53,7 +53,7 @@ internal object KarakaReferenceResolver {
         val pratipadika = pada.pratipadika
         if (pratipadika is SankhyaPratipadika) {
             val stems = pada.sourceText.split('+').dropLast(1)
-            val value = pratipadika.value ?: NumeralPadaBinder.evaluateStems(stems).value
+            val value = pratipadika.semanticValue?.value ?: NumeralPadaBinder.evaluateStems(stems).value
             val word = sharedSankhyaGenerator.cardinal(value).final.surface
             return ExecutionExpression.sankhya(value, word)
         }

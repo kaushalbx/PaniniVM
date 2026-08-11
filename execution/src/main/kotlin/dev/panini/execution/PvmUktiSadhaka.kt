@@ -10,6 +10,7 @@ import dev.panini.derivation.SubantaEngine
 import dev.panini.derivation.TingantaDerivationRequest
 import dev.panini.derivation.TingantaEngine
 import dev.panini.dhatupatha.DhatuPatha
+import dev.panini.execution.binding.NumeralAstNormalizer
 import dev.panini.sankhya.SankhyaAbhyasaRenderer
 import dev.panini.sankhya.SankhyaEvaluator
 import dev.panini.sankhya.SankhyaGenerator
@@ -234,26 +235,27 @@ class PvmUktiSadhaka(
     }
 
     fun sadhayaSubanta(subanta: SubantaPada): String {
-        val kridanta = subanta.pratipadika as? KridantaPratipadika
+        val normalized = NumeralAstNormalizer.normalize(subanta)
+        val kridanta = normalized.pratipadika as? KridantaPratipadika
         val sourceStem = kridanta?.let {
             krdantaEngine.deriveSourceStem(it.dhatu.mulaDhatu, it.krtPratyaya)
         }
-        val baseText = sourceStem?.surface ?: subanta.pratipadika.baseText()
-        val supAffix = SupAffix.fromUpadesha(subanta.sup.text) ?: return baseText
+        val baseText = sourceStem?.surface ?: normalized.pratipadika.baseText()
+        val supAffix = SupAffix.fromUpadesha(normalized.sup.text) ?: return baseText
         if (sourceStem?.supportsAStemDeclension == true) {
             pvmKridantaSurface(baseText, supAffix)?.let { return it }
         } else if (sourceStem?.preservesSourceSurface == true) {
             return baseText
         }
-        val isSankhya = subanta.pratipadika is SankhyaPratipadika || runCatching {
-            sankhyaEvaluator.evaluateStems(listOf(baseText))
-        }.isSuccess
-        val linga = if (isSankhya) {
+        val sankhya = normalized.pratipadika as? SankhyaPratipadika
+        val linga = if (sankhya != null) {
             Linga.NAPUMSAKA
         } else {
             pratipadikaLexicon.findPratipadika(baseText)?.linga?.singleOrNull() ?: Linga.PUMS
         }
         return try {
+            // The typed value supplies numeric identity; rūpa-siddhi still begins
+            // from the source-written prātipadika so readable output preserves it.
             val req = SubantaDerivationRequest(baseText, supAffix.vibhakti, supAffix.vacana, linga)
             subantaEngine.derive(req).final.surface
         } catch (e: Exception) {

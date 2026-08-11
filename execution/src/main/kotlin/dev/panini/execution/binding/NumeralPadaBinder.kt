@@ -41,7 +41,7 @@ internal object NumeralPadaBinder {
      */
     internal fun extractNumeralValue(pada: Pada): Long? = when (pada) {
         is SankhyaPada -> pada.value ?: sharedSankhyaEvaluator.evaluateStems(pada.stems).value
-        is SubantaPada -> (pada.pratipadika as? SankhyaPratipadika)?.value
+        is SubantaPada -> NumeralAstNormalizer.resolve(pada.pratipadika)?.semanticValue?.value
             ?: PrimitiveSankhya.fromAnnotatedPratipadika(pada.pratipadika.sourceText)?.value
         is KatapayadiPada -> pada.value ?: katapayadiDecoder.decode(pada.word)
         is AryabhatiyaPada -> pada.value ?: aryabhatiyaDecoder.decode(pada.word)
@@ -122,7 +122,14 @@ internal object NumeralPadaBinder {
         inferKarakas: (SubantaPada) -> Set<Karaka>,
         addBinding: (ExecutionExpression, Set<Karaka>) -> Unit,
     ) {
-        val sub = SubantaPada(sourceText, SankhyaPratipadika(sourceText, value), sup)
+        val sub = SubantaPada(
+            sourceText,
+            SankhyaPratipadika(
+                sourceText = sourceText,
+                semanticValue = dev.panini.execution.SanskritValue.Sankhya(value, sourceText),
+            ),
+            sup,
+        )
         addBinding(ExecutionExpression.sankhya(value, sourceText), inferKarakas(sub))
     }
 }

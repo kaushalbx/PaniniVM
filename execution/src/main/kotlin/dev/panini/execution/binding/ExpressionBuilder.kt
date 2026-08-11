@@ -5,7 +5,6 @@ import dev.panini.execution.KriyaInvocationId
 import dev.panini.execution.SvamRupamEngine
 import dev.panini.shiksha.Samjna
 import dev.panini.vyakaranam.ast.KridantaPratipadika
-import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.vyakaranam.ast.SamasaPratipadika
 import dev.panini.vyakaranam.ast.SankhyaPratipadika
 import dev.panini.vyakaranam.ast.SubantaPada
@@ -34,11 +33,12 @@ internal object ExpressionBuilder {
         ctx: BindingContext,
         overridePhalaId: String? = null,
     ): ExecutionExpression {
-        val baseText = pada.pratipadika.baseText()
-        val text = pada.pratipadika.referenceKey()
-        val isPhalaReference = PhalaReference.isReference(pada)
+        val normalized = NumeralAstNormalizer.normalize(pada)
+        val baseText = normalized.pratipadika.baseText()
+        val text = normalized.pratipadika.referenceKey()
+        val isPhalaReference = PhalaReference.isReference(normalized)
         ctx.environment.values[text]?.let { value ->
-            val sup = SupAffix.fromUpadesha(pada.sup.text) ?: SupAffix.AM
+            val sup = SupAffix.fromUpadesha(normalized.sup.text) ?: SupAffix.AM
             return ExecutionExpression.TypedOperand(value, sup)
         }
         var resolvedId: String? = null
@@ -61,24 +61,19 @@ internal object ExpressionBuilder {
             return ExecutionExpression.Reference(resolvedId)
         }
 
-        val sankhyaValue = when (val prat = pada.pratipadika) {
-            is SankhyaPratipadika -> prat.value
-            is MulaPratipadika -> sharedSankhyaGenerator.annotatedPratipadikaValue(prat.text)
-                ?: runCatching { dev.panini.sankhya.SankhyaEvaluator().evaluateStems(listOf(prat.text)).value }.getOrNull()
-            else -> null
-        }
+        val sankhyaValue = (normalized.pratipadika as? SankhyaPratipadika)?.semanticValue
         val samjnas = buildSet {
             add(Samjna.SHABDA)
             if (sankhyaValue != null) add(Samjna.SANKHYA)
             if (isPhalaReference) add(Samjna.REFERENCE)
-            when (pada.pratipadika) {
+            when (normalized.pratipadika) {
                 is KridantaPratipadika -> add(Samjna.KRIDANTA)
                 is SamasaPratipadika -> add(Samjna.SAMASA)
                 else -> Unit
             }
         }
         return if (sankhyaValue != null) {
-            ExecutionExpression.Companion.sankhya(sankhyaValue, text)
+            ExecutionExpression.sankhya(sankhyaValue.value, sankhyaValue.word)
         } else {
             val svamRupamValue = SvamRupamEngine.evaluateTerm(baseText)
             ExecutionExpression.Pada(text, samjnas, value = svamRupamValue)
