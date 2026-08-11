@@ -35,6 +35,7 @@ object IdoAyamSutra : Sutra<DerivationState, DerivationChange>(
         if (context.terms.size < 2) return false
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
+        if (stem.surface == "अयम्") return false
         val isIdam = stem.upadesha == "इदम्" || stem.surface == "इदम्" || stem.surface == "इम"
         val isMasculine = context.effectiveContext.rupa.linga == Linga.PUMS
         return isIdam && isMasculine && (affix.id == "sup-su" || affix.upadesha == "सुँ")
