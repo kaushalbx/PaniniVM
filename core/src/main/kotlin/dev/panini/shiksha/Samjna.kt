@@ -28,7 +28,7 @@ sealed interface Samjna {
 
     /** Nominal & Gender Stem Attributes (अङ्ग विशेषण - Aṣṭādhyāyī 1.4.3, 1.4.7, 1.4.18) */
     enum class Stem : Samjna {
-        NADI, GHI, BHA, GHU, PRAGRHYA, SARVANAMA, APRUKTA, SAMBUDDHI, SARVANAMASTHANA, SANKHYA, PURANA, ABHYASA
+        NADI, GHI, BHA, GHU, PRAGRHYA, SARVANAMA, APRUKTA, SAMBUDDHI, SARVANAMASTHANA, SANKHYA, PURANA, ABHYASA, SHAT
     }
 
     /** Indeclinables & Particles (अव्यय/निपात/गति - Aṣṭādhyāyī 1.1.37, 1.4.56, 1.4.59) */
@@ -146,6 +146,7 @@ sealed interface Samjna {
         val SANKHYA: Samjna = Stem.SANKHYA
         val PURANA: Samjna = Stem.PURANA
         val ABHYASA: Samjna = Stem.ABHYASA
+        val SHAT: Samjna = Stem.SHAT
 
         val AVYAYA: Samjna = Avyaya.AVYAYA
         val NIPATA: Samjna = Avyaya.NIPATA

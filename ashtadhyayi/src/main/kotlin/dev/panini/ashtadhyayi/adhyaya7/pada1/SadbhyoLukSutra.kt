@@ -53,8 +53,10 @@ object SadbhyoLukSutra : Sutra<DerivationState, DerivationChange>(
         val newTerms = context.terms.dropLast(1)
 
         return DerivationChange(
-            state = context.copy(terms = newTerms)
-                .addDroppedTerm(affix),
+            state = context.copy(
+                terms = newTerms,
+                droppedTerms = context.droppedTerms + affix.copy(surface = "")
+            ),
             explanation = "7.1.22: Elided '${affix.surface}' (jas/śas) after ṣaṭ-designated stem."
         )
     }
