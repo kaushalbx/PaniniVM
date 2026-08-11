@@ -60,7 +60,7 @@ object AllopoAnahSutra : Sutra<DerivationState, DerivationChange>(
 
         return DerivationChange(
             state = context.replaceTerm(stem.id, stem.copy(surface = newSurface))
-                .copy(stage = DerivationStage.ANGAKARYA),
+                .copy(stage = DerivationStage.PADA_FORMED),
             explanation = "6.4.134: Elided the vowel 'a' of an-stem before weak vowel affix."
         )
     }
