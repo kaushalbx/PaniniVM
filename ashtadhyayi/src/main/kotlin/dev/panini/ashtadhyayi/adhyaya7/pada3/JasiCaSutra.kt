@@ -47,8 +47,8 @@ object JasiCaSutra : Sutra<DerivationState, DerivationChange>(
         val lastChar = stem.surface.lastOrNull() ?: return false
         if (lastChar != 'इ' && lastChar != 'ि' && lastChar != 'उ' && lastChar != 'ु') return false
 
-        // 2. Affix must be 'jas' (upadesha)
-        return affix.upadesha == "जस्"
+        // 2. Affix must be 'jas' (upadesha) and not already substituted by shi
+        return affix.upadesha == "जस्" && affix.surface in setOf("जस्", "अस्", "स")
     }
 
     override fun apply(context: DerivationState): DerivationChange {
