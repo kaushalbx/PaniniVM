@@ -66,4 +66,10 @@ class TingantaEngineGranthaTest {
         assertEquals("लभते", labhate.final.terms.last().surface)
         assertTrue(labhate.applications.any { it.sutra == "3.4.79" })
     }
+
+    @Test
+    fun `test sanadi pratyaya support for nic causative`() {
+        val supportsNic = engine.supportsSanadi("चुर्", listOf("णिच्"))
+        assertTrue(supportsNic)
+    }
 }
