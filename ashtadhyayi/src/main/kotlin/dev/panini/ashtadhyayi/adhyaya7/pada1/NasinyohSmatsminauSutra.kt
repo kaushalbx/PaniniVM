@@ -45,25 +45,18 @@ object NasinyohSmatsminauSutra : Sutra<DerivationState, DerivationChange>(
         val matras = setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'े', 'ै', 'ो', 'ौ', '्')
         val endsInA = isTyadadi || (stem.surface.isNotEmpty() && stem.surface.last() !in matras)
 
+        if (affix.surface in setOf("स्मात्", "स्मिन्")) return false
+
         return isSarvanama && endsInA && (affix.upadesha in sources || affix.id in setOf("sup-ngasi", "sup-ngi"))
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
-
-        val isTyadadi = stem.upadesha in setOf("त्यद्", "तद्", "यद्", "एतद्", "किम्", "इदम्")
-        var newState = context
-        if (isTyadadi && stem.surface.endsWith("्")) {
-            val aStemSurface = if (stem.surface.endsWith("्")) stem.surface.dropLast(2) else stem.surface
-            newState = newState.replaceTerm(stem.id, stem.copy(surface = aStemSurface))
-        }
-
         val lookupKey = if (affix.id == "sup-ngasi") "ङसि" else if (affix.id == "sup-ngi") "ङि" else affix.upadesha
         val replacement = requireNotNull(YathasamkhyamSutra.map(lookupKey, sources, targets))
 
         return DerivationChange(
-            state = newState.replaceTerm(affix.id, affix.copy(surface = replacement)),
+            state = context.replaceTerm(affix.id, affix.copy(surface = replacement)),
             explanation = "7.1.15: Substituted $replacement for ${affix.upadesha} after pronoun stem."
         )
     }

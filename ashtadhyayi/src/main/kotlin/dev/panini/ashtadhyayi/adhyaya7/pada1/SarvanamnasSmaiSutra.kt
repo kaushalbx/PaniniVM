@@ -43,22 +43,15 @@ object SarvanamnasSmaiSutra : Sutra<DerivationState, DerivationChange>(
         val matras = setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'े', 'ै', 'ो', 'ौ', '्')
         val endsInA = isTyadadi || (stem.surface.isNotEmpty() && stem.surface.last() !in matras)
 
+        if (affix.surface == "स्मै") return false
+
         return isSarvanama && endsInA && (affix.upadesha == "ङे" || affix.id == "sup-nge")
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
-
-        val isTyadadi = stem.upadesha in setOf("त्यद्", "तद्", "यद्", "एतद्", "किम्", "इदम्")
-        var newState = context
-        if (isTyadadi && stem.surface.endsWith("्")) {
-            val aStemSurface = if (stem.surface.endsWith("्")) stem.surface.dropLast(2) else stem.surface
-            newState = newState.replaceTerm(stem.id, stem.copy(surface = aStemSurface))
-        }
-
         return DerivationChange(
-            state = newState.replaceTerm(affix.id, affix.copy(surface = "स्मै")),
+            state = context.replaceTerm(affix.id, affix.copy(surface = "स्मै")),
             explanation = "7.1.14 substitutes 'smai' for dative-singular 'ṅe' after a pronoun stem."
         )
     }

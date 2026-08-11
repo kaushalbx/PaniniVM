@@ -43,22 +43,15 @@ object JasahShiSutra : Sutra<DerivationState, DerivationChange>(
         val matras = setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'े', 'ै', 'ो', 'ौ', '्')
         val endsInA = isTyadadi || (stem.surface.isNotEmpty() && stem.surface.last() !in matras)
 
+        if (affix.surface == "ई" || affix.upadesha == "शी") return false
+
         return isSarvanama && endsInA && (affix.upadesha == "जस्" || affix.id == "sup-jas")
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
-
-        val isTyadadi = stem.upadesha in setOf("त्यद्", "तद्", "यद्", "एतद्", "किम्", "इदम्")
-        var newState = context
-        if (isTyadadi && stem.surface.endsWith("्")) {
-            val aStemSurface = if (stem.surface.endsWith("्")) stem.surface.dropLast(2) else stem.surface
-            newState = newState.replaceTerm(stem.id, stem.copy(surface = aStemSurface))
-        }
-
         return DerivationChange(
-            state = newState.replaceTerm(affix.id, affix.copy(surface = "ई", upadesha = "शी")),
+            state = context.replaceTerm(affix.id, affix.copy(surface = "ई", upadesha = "शी")),
             explanation = "7.1.17: Substituted 'śī' for 'jas' after pronoun stem."
         )
     }
