@@ -47,7 +47,7 @@ object TyadadinamAhSutra : Sutra<DerivationState, DerivationChange>(
         val surface = stem.surface
         val newSurface = when (surface) {
             "किम्" -> "क"
-            "इदम्" -> "इ"
+            "इदम्" -> "इम"
             else -> if (surface.endsWith("्")) surface.dropLast(2) else surface.dropLast(1)
         }
 

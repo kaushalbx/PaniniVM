@@ -40,16 +40,7 @@ class SubantaEngine(
     }
 
     private fun deriveSpecializedDeclension(pratipadika: String, vibhakti: Vibhakti, vacana: Vacana): String? {
-        deriveNumeralDeclension(pratipadika, vibhakti, vacana)?.let { return it }
-        return when (pratipadika) {
-            "इदम्" -> when {
-                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.EKAVACANA -> "अयम्"
-                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.DVIVACANA -> "इमौ"
-                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.BAHUVACANA -> "इमे"
-                else -> null
-            }
-            else -> null
-        }
+        return deriveNumeralDeclension(pratipadika, vibhakti, vacana)
     }
 
     private fun deriveNumeralDeclension(
