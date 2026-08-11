@@ -24,7 +24,7 @@ object TyadadinamAhSutra : Sutra<DerivationState, DerivationChange>(
     pada = 2,
     optional = false,
     kramaValue = 720102,
-    role = SutraRole.Vidhi,
+    role = SutraRole.Apavada,
     action = SutraAction.ADESHA,
     scope = SutraScope.DERIVATION,
     nimittaScope = NimittaScope.BOTH,
