@@ -80,5 +80,5 @@ object SupiCaSutra : Sutra<DerivationState, DerivationChange>(
     /** यण् is य्, व्, र्, ल्; the nasals do not license 7.3.102. */
     private fun isYan(c: Char): Boolean = c in setOf('य', 'व', 'र', 'ल')
 
-    private val completePadaAffixes = setOf("भ्याम्", "ङे", "ङि")
+    private val completePadaAffixes = setOf("भ्याम्")
 }
