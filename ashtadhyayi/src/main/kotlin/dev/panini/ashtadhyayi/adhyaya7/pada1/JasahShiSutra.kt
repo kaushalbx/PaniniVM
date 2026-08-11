@@ -38,8 +38,10 @@ object JasahShiSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        val isSarvanama = context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SARVANAMA }
-        val endsInA = stem.surface.endsWith('अ') || stem.surface.endsWith('ा')
+        val isSarvanama = context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SARVANAMA } ||
+            stem.upadesha in setOf("त्यद्", "तद्", "यद्", "एतद्", "किम्", "इदम्", "सर्व", "विश्व")
+        val matras = setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'े', 'ै', 'ो', 'ौ', '्')
+        val endsInA = stem.surface.isNotEmpty() && stem.surface.last() !in matras
 
         return isSarvanama && endsInA && affix.upadesha == "जस्"
     }
