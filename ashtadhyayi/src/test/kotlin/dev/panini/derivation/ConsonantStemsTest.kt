@@ -14,9 +14,12 @@ class ConsonantStemsTest {
 
         val nadya = engine.derive(SubantaDerivationRequest("नदी", Vibhakti.TRTIYA, Vacana.EKAVACANA, Linga.STRI))
         assertEquals("नद्या", nadya.final.surface)
+        kotlin.test.assertTrue(nadya.applications.any { it.sutra == "1.4.3" })
+        kotlin.test.assertTrue(nadya.applications.any { it.sutra == "6.1.77" })
 
         val nadibhih = engine.derive(SubantaDerivationRequest("नदी", Vibhakti.TRTIYA, Vacana.BAHUVACANA, Linga.STRI))
         assertEquals("नदीभिः", nadibhih.final.surface)
+        kotlin.test.assertTrue(nadibhih.applications.any { it.sutra == "1.4.3" })
 
         val raja = engine.derive(SubantaDerivationRequest("राजन्", Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.PUMS))
         assertEquals("राजा", raja.final.surface)
