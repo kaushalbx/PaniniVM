@@ -36,6 +36,7 @@ object TyadadinamAhSutra : Sutra<DerivationState, DerivationChange>(
         if (context.terms.size < 2) return false
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
+        if (stem.surface == "अयम्") return false
         val isTyadadi = stem.upadesha in TYADADI_STEMS || stem.surface in TYADADI_STEMS
         val hasConsonantEnding = stem.surface.endsWith("्") || stem.surface in setOf("किम्", "इदम्", "द्वि")
         return isTyadadi && hasConsonantEnding &&
