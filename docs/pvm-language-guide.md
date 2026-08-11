@@ -127,6 +127,12 @@ singular सुप्, `द्वि` takes dual सुप्, and numerals from
 plural सुप्. A typed numeric value stored in a variable remains a single
 program value and is not subject to this source-literal agreement check.
 
+When a numeral immediately precedes a counted noun with the same case and
+number, readable generation takes gender from that noun's lexical identity.
+Thus masculine `द्वि` renders as `द्वौ`, while feminine or neuter `द्वि`
+renders as `द्वे`. A standalone program numeral defaults to neuter because it
+denotes the numeric value itself rather than an omitted masculine noun.
+
 ## 5. Actions, results, and output
 
 ### 5.1 Invoke an action

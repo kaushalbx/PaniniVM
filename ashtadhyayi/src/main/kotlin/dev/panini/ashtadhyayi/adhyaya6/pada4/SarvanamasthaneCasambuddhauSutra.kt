@@ -50,6 +50,9 @@ object SarvanamasthaneCasambuddhauSutra : Sutra<DerivationState, DerivationChang
         // inherent a (फलन्/फलन).
         val surface = stem.surface
         if (surface.length < 2) return false
+        if (surface.endsWith('ा')) return false
+        val lastVowel = surface.lastOrNull { Varnamala.isVowel(it) }
+        if (lastVowel in setOf('ा', 'ी', 'ू', 'आ', 'ई', 'ऊ')) return false
         val penultimateChar = if (surface.endsWith("्")) {
              if (surface.length >= 3) surface[surface.length - 3] else return false
         } else {

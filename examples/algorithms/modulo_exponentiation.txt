@@ -1,10 +1,10 @@
 # Modular Arithmetic Algorithm: Compute (5 * 6) mod 7 = 30 mod 7 = 2
 
 # Multiply 5 and 6 (5 * 6 = 30)
-पञ्च षष् च गणय ।
+पङ्चने षष् च गणय ।
 
 # Compute remainder of multiplication mod 7 (30 mod 7 = 2)
-गणनस्य फलम् सप्त च शेषय ।
+गणनस्य फलम् सप्तने च शेषय ।
 
 # Print result of remainder (शिष् + घञ् + ङस् फल + अम् -> शेषस्य फलम् -> renders 2 = द्वे)
 शेषस्य फलम् मुद्रय ।

@@ -14,7 +14,7 @@
 रामम् कृष्णम् च योजय ॥
 
 # Step 4: Dispatch Overload 1 with numeric arguments (5 + 5) via Sūtra 1.1.50 (स्थानेऽन्तरतमः)
-पञ्च पञ्च च गणितस्य योजनइन कृणु ।
+पङ्चने पङ्चने च गणितस्य योजनइन कृणु ।
 
 # Step 5: Print result
 मुद्रय फलम् ।

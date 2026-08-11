@@ -1,7 +1,7 @@
 # Pythagorean Theorem Algorithm: Compute hypotenuse c = sqrt(a^2 + b^2) for a=3, b=4
 
 # Step 1: Multiply 3 and 3 (3 * 3 = 9)
-त्रि त्रि च धारणाय गणय ।
+त्रीनि त्रीनि च धारणाय गणय ।
 
 # Step 2: Multiply 4 and 4 (4 * 4 = 16)
 चत्वारि चत्वारि च स्थानाय गणय ।

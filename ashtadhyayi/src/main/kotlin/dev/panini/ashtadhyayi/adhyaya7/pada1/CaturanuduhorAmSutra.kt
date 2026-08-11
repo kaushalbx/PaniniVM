@@ -37,8 +37,9 @@ object CaturanuduhorAmSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        val isCaturOrAnaduh = stem.upadesha in setOf("चतुर्", "अनडुह्") || stem.surface in setOf("चतुर्", "अनडुह्")
-        if (!isCaturOrAnaduh) return false
+        // A later feminine substitution retains the lexical upadeśa, but it
+        // is no longer the चतुर् aṅga to which this augment applies.
+        if (stem.surface !in setOf("चतुर्", "अनडुह्")) return false
 
         if (stem.surface.contains("चत्वा") || stem.surface.contains("अनड्वा")) return false
 

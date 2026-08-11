@@ -38,10 +38,9 @@ object TisrCatasruSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        val isTriOrCatur = stem.upadesha in setOf("त्रि", "चतुर्") || stem.surface in setOf("त्रि", "चतुर्")
-        if (!isTriOrCatur) return false
-
-        if (stem.surface == "तिसृ" || stem.surface == "चतसृ") return false
+        // This ādeśa applies to the original surface once. The retained
+        // upadeśa must not cause it to reapply after later ṛ-stem operations.
+        if (stem.surface !in setOf("त्रि", "चतुर्")) return false
 
         return affix.id.startsWith("sup-") || context.droppedTerms.any { it.id.startsWith("sup-") }
     }

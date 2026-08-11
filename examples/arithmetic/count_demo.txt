@@ -2,7 +2,7 @@
 # Counts the number of items in a set/sequence
 
 # Step 1: Count elements (1, 2, 3) using gana (गणय)
-एकम् द्वे त्रि च गणय ।
+एकम् द्वे त्रीनि च गणय ।
 
 # Step 2: Print total counted result (3 = त्रीणि)
 गणनस्य फलम् मुद्रय ।

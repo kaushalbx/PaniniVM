@@ -117,7 +117,7 @@ class PvmUktiSadhaka(
     private val programRenderer = object : ProgramNodeVisitor<String> {
         private fun render(node: ProgramNode): String = node.accept(this)
         override fun visitInvocation(node: Invocation): String = node.implicitValue
-            ?: node.vakya.padas.joinToString(" ") { pada -> sadhayaPada(pada) }
+            ?: sadhayaPadas(node.vakya.padas)
         override fun visitSequence(node: Sequence): String = buildString {
             node.statements.forEachIndexed { index, statement ->
                 if (index > 0) {
@@ -154,7 +154,7 @@ class PvmUktiSadhaka(
             else -> render(node)
         }
         override fun visitQuotation(node: Quotation): String =
-            "${node.quoted.vakya.padas.joinToString(" ") { sadhayaPada(it) }} इति ${node.reporting.accept(this)}"
+            "${sadhayaPadas(node.quoted.vakya.padas)} इति ${node.reporting.accept(this)}"
         override fun visitRepeat(node: Repeat): String = render(node.body)
         override fun visitWhileLoop(node: WhileLoop): String = buildString {
             if (node.maximumIterationStems.isNotEmpty()) {
@@ -162,7 +162,7 @@ class PvmUktiSadhaka(
                 append(" + कृत्वः ")
             }
             append("यावत् ")
-            append(node.condition.vakya.padas.joinToString(" ") { sadhayaPada(it) })
+            append(sadhayaPadas(node.condition.vakya.padas))
             append(" तावत् ")
             append(render(node.body))
             node.exhausted?.let {
@@ -175,7 +175,7 @@ class PvmUktiSadhaka(
             }
         }
         override fun visitPipeline(node: Pipeline): String =
-            node.renderPadas.joinToString(" ") { sadhayaPada(it) }
+            sadhayaPadas(node.renderPadas)
         override fun visitProcedure(node: Procedure): String = node.sourceText
         override fun visitScope(node: Scope): String = node.sourceText
     }
@@ -184,12 +184,45 @@ class PvmUktiSadhaka(
     private val sankhyaGenerator = SankhyaGenerator()
     private val sankhyaAbhyasaRenderer = SankhyaAbhyasaRenderer()
 
-    fun sadhayaPada(pada: Pada): String = when (pada) {
-        is SubantaPada -> sadhayaSubanta(pada)
+    private fun sadhayaPadas(padas: List<Pada>): String =
+        padas.mapIndexed { index, pada ->
+            sadhayaPada(pada, numeralAgreementLinga(padas, index))
+        }.joinToString(" ")
+
+    private fun numeralAgreementLinga(padas: List<Pada>, index: Int): Linga? {
+        val numeral = padas.getOrNull(index) ?: return null
+        val numeralSup = supAffixOf(numeral) ?: return null
+        if (numeralValue(numeral) == null) return null
+
+        val counted = padas.getOrNull(index + 1) as? SubantaPada ?: return null
+        if (NumeralAstNormalizer.resolve(counted.pratipadika) != null) return null
+        val countedSup = SupAffix.fromUpadesha(counted.sup.text) ?: return null
+        if (countedSup.vibhakti != numeralSup.vibhakti || countedSup.vacana != numeralSup.vacana) return null
+
+        val countedBase = counted.pratipadika.baseText()
+        return pratipadikaLexicon.findPratipadika(countedBase)?.linga?.singleOrNull()
+    }
+
+    private fun numeralValue(pada: Pada): Long? = when (pada) {
+        is SankhyaPada -> pada.value ?: runCatching {
+            sankhyaEvaluator.evaluateStems(pada.stems).value
+        }.getOrNull()
+        is SubantaPada -> NumeralAstNormalizer.resolve(pada.pratipadika)?.semanticValue?.value
+        else -> null
+    }
+
+    private fun supAffixOf(pada: Pada): SupAffix? = when (pada) {
+        is SankhyaPada -> SupAffix.fromUpadesha(pada.sup.text)
+        is SubantaPada -> SupAffix.fromUpadesha(pada.sup.text)
+        else -> null
+    }
+
+    fun sadhayaPada(pada: Pada, linga: Linga? = null): String = when (pada) {
+        is SubantaPada -> sadhayaSubanta(pada, linga)
         is SamuccitaSubanta -> pada.members.joinToString(" ") { sadhayaSubanta(it) } + " च"
         is TingantaPada -> sadhayaTinganta(pada)
         is AvyayaPada -> pada.form
-        is SankhyaPada -> sadhayaSankhya(pada)
+        is SankhyaPada -> sadhayaSankhya(pada, linga)
         is SankhyaPuranaPada -> sadhayaSankhyaPurana(pada)
         is SankhyaAbhyasaPada -> sadhayaSankhyaAbhyasa(pada)
         is KatapayadiPada -> pada.sourceText
@@ -197,12 +230,16 @@ class PvmUktiSadhaka(
         is BhutasamkhyaPada -> pada.sourceText
     }
 
-    fun sadhayaSankhya(pada: SankhyaPada): String {
+    fun sadhayaSankhya(pada: SankhyaPada, linga: Linga? = null): String {
         return try {
             val expr = sankhyaEvaluator.evaluateStems(pada.stems)
             val baseText = sankhyaGenerator.cardinal(expr.value).final.surface
             val supAffix = SupAffix.fromUpadesha(pada.sup.text) ?: return baseText
-            sankhyaGenerator.decline(expr.value, supAffix.vibhakti, supAffix.vacana)
+            if (linga == null) {
+                sankhyaGenerator.decline(expr.value, supAffix.vibhakti, supAffix.vacana)
+            } else {
+                sankhyaGenerator.decline(expr.value, supAffix.vibhakti, supAffix.vacana, linga)
+            }
         } catch (_: Throwable) {
             pada.sourceText
         }
@@ -235,7 +272,7 @@ class PvmUktiSadhaka(
         }
     }
 
-    fun sadhayaSubanta(subanta: SubantaPada): String {
+    fun sadhayaSubanta(subanta: SubantaPada, lingaOverride: Linga? = null): String {
         val normalized = NumeralAstNormalizer.normalize(subanta)
         val kridanta = normalized.pratipadika as? KridantaPratipadika
         val sourceStem = kridanta?.let {
@@ -249,7 +286,7 @@ class PvmUktiSadhaka(
             return baseText
         }
         val sankhya = normalized.pratipadika as? SankhyaPratipadika
-        val linga = if (sankhya != null) {
+        val linga = lingaOverride ?: if (sankhya != null) {
             Linga.NAPUMSAKA
         } else {
             pratipadikaLexicon.findPratipadika(baseText)?.linga?.singleOrNull() ?: Linga.PUMS

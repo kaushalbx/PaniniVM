@@ -2,7 +2,7 @@
 # Finds the minimum value between two numbers (10 and 3)
 
 # Step 1: Compare and select minimum (न्यूनतया वेदय)
-दश त्रि च वेदय् न्यूनतया ।
+दशने त्रीनि च वेदय् न्यूनतया ।
 
 # Step 2: Print minimum result (3 = त्रीणि)
 मुद्रय फलम् ।

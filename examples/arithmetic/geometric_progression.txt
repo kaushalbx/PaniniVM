@@ -4,7 +4,7 @@
 द्वे पदाय देहि ।
 
 # Set common ratio variable 'गुणक' = 3 (त्रि)
-त्रि गुणकाय देहि ।
+त्रीनि गुणकाय देहि ।
 
 # Loop 3 times (त्रिकृत्वः): multiply 'पद' by 'गुणक' and assign result directly to 'पद' (पदाय)
 त्रिकृत्वः पदम् गुणकम् च पदाय गणय ।

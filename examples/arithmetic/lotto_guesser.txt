@@ -2,7 +2,7 @@
 # Rule 1: Define rules (6 main numbers from 1..48 pool + 1 bonus ball)
 
 # Step 1 & 2: Initialize empty collection/sequence ('क्रम') & draw random picks
-एकम् द्वे त्रि चत्वारि पञ्च षट् च देवय्य ।
+एकम् द्वे त्रीनि चत्वारि पङ्चने षट् च देवय्य ।
 देहि दिव्ः फलम् क्रमाय ।
 
 # Step 3 & 4: Scale and calculate lottery combinations for 6 draws (6 * 8 = 48)

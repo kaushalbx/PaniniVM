@@ -7,7 +7,7 @@
 
 # Step 2: Invoke method 'वृध् + ल्युट्' (वर्द्धनम्) on struct instance 'गुणवत्' with parameters 5 (पञ्च) and 2 (द्वि):
 # Linguistically: "पञ्च द्वौ च गुणवतः वर्द्धनेन कुरु ।" -> Returns 5 + 2 = 7 (सप्त)
-पञ्च द्वे च गुणस्य वृधा कृणु ।
+पङ्चने द्वे च गुणस्य वृधा कृणु ।
 
 # Step 3: Print result
 मुद्रय फलम् ।

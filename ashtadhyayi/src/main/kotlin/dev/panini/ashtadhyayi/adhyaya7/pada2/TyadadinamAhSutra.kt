@@ -1,5 +1,6 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada2
 
+import dev.panini.core.Linga
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
@@ -49,7 +50,9 @@ object TyadadinamAhSutra : Sutra<DerivationState, DerivationChange>(
         val newSurface = when (surface) {
             "किम्" -> "क"
             "इदम्" -> "इम"
-            "द्वि" -> "द्व"
+            // In the feminine derivation, 4.1.4 supplies टाप् after this
+            // substitution; retain its आ so 7.1.18 can operate on द्वा + औ.
+            "द्वि" -> if (context.effectiveContext.rupa.linga == Linga.STRI) "द्वा" else "द्व"
             else -> if (surface.endsWith("्")) surface.dropLast(2) else surface.dropLast(1)
         }
 
