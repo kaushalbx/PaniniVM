@@ -7,6 +7,14 @@ import kotlin.test.assertTrue
 
 class SamjnaTypeFlowTest {
     @Test
+    fun `validator recommends canonical segmented numeral stems`() {
+        val diagnostics = SamjnaScriptValidator.validate("पञ्च + शस् दश + अम् च मुद्र् + लोट् + सिप् ।")
+
+        assertEquals(listOf("पञ्चन्", "दशन्"), diagnostics.mapNotNull(SamjnaDiagnostic::replacement))
+        assertTrue(diagnostics.all { it.severity == SamjnaDiagnosticSeverity.WARNING })
+    }
+
+    @Test
     fun `validator reports duplicate parameters and bad call arity`() {
         val source = """
             योजन + ल्युट् + सुँ ।

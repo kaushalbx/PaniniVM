@@ -8,6 +8,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import dev.panini.execution.PvmScript
 import dev.panini.execution.SamjnaScriptValidator
+import dev.panini.execution.SamjnaDiagnosticSeverity
 import dev.panini.vyakaranam.parser.PaniniParser
 
 class PvmAnnotator : Annotator {
@@ -31,9 +32,15 @@ class PvmAnnotator : Annotator {
             SamjnaScriptValidator.validate(text).forEach { diagnostic ->
                 val start = diagnostic.offset.coerceIn(0, text.length)
                 val end = (start + diagnostic.length).coerceIn(start, text.length)
-                holder.newAnnotation(HighlightSeverity.ERROR, diagnostic.message)
+                val annotation = holder.newAnnotation(
+                    if (diagnostic.severity == SamjnaDiagnosticSeverity.WARNING) HighlightSeverity.WARNING else HighlightSeverity.ERROR,
+                    diagnostic.message,
+                )
                     .range(TextRange(start, end))
-                    .create()
+                diagnostic.replacement?.let { replacement ->
+                    annotation.withFix(PvmCanonicalNumeralStemQuickFix(TextRange(start, end), replacement))
+                }
+                annotation.create()
             }
             return
         }

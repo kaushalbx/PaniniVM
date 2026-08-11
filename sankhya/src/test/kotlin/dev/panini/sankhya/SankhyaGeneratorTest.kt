@@ -7,6 +7,22 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class SankhyaGeneratorTest {
+    @Test
+    fun `compound cardinals retain canonical component upadeshas`() {
+        val generator = SankhyaGenerator()
+
+        val fifteen = generator.cardinal(15).initial.terms
+        assertEquals(listOf("पञ्चन्", "दशन्"), fifteen.map { it.upadesha })
+        assertEquals("पञ्चदश", generator.cardinal(15).final.surface)
+
+        val twentyThree = generator.cardinal(23).initial.terms
+        assertEquals(listOf("त्रि", "विंशति"), twentyThree.map { it.upadesha })
+        assertEquals("त्रयोविंशति", generator.cardinal(23).final.surface)
+
+        assertEquals(listOf("षष्", "दशन्"), PrimitiveSankhya.SHODASHA.derivationalComponents)
+        assertEquals("षोडश", generator.cardinal(16).final.surface)
+    }
+
 
     private val generator = SankhyaGenerator()
 

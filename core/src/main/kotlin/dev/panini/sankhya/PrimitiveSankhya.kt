@@ -8,6 +8,8 @@ enum class PrimitiveSankhya(
     /** Form supplied as an उत्तरपद before numeral-internal sandhi. */
     val uttarapada: String = pratipadika,
     val inflectionClass: SankhyaInflectionClass = SankhyaInflectionClass.SPECIAL,
+    /** Canonical identities retained when the conventional surface is lexicalized. */
+    val derivationalComponents: List<String> = listOf(pratipadika),
 ) {
     SHUNYA(0L, "शून्य"),
 
@@ -22,7 +24,12 @@ enum class PrimitiveSankhya(
     NAVAN(9L, "नवन्", purvapada = "नव", inflectionClass = SankhyaInflectionClass.COUNT_FIVE_TO_NINETEEN),
 
     DASHAN(10L, "दशन्", uttarapada = "दश", inflectionClass = SankhyaInflectionClass.COUNT_FIVE_TO_NINETEEN),
-    SHODASHA(16L, "षोडश", inflectionClass = SankhyaInflectionClass.COUNT_FIVE_TO_NINETEEN),
+    SHODASHA(
+        16L,
+        "षोडश",
+        inflectionClass = SankhyaInflectionClass.COUNT_FIVE_TO_NINETEEN,
+        derivationalComponents = listOf("षष्", "दशन्"),
+    ),
 
     VIMSHATI(20L, "विंशति", inflectionClass = SankhyaInflectionClass.FEMININE_I),
     TRIMSHAT(30L, "त्रिंशत्", inflectionClass = SankhyaInflectionClass.FEMININE_T),

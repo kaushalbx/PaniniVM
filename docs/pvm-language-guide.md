@@ -507,6 +507,24 @@ diagnostics. For typed saṃjñā-kriyās it reports:
 - incompatible typed pipeline stages;
 - missing structured result schemas.
 
+It also warns when a completed numeral surface is placed before `+` as though
+it were a segmented prātipadika. The quick fix replaces it with the canonical
+stem without rejecting older source:
+
+```pvm
+# Warning and quick fix: पञ्च -> पञ्चन्
+पञ्च + शस्
+
+# Canonical segmented source
+पञ्चन् + शस्
+```
+
+Compound numerals retain their canonical component identities during
+derivation. Thus `पञ्चन्` and `दशन्` remain identifiable beneath `पञ्चदश`.
+Lexicalized `षोडश` remains the correct visible form while retaining the
+component identity `षष् + दशन्`; it is not produced by an invented general
+sandhi rule.
+
 Keep segments spaced consistently so the highlighted range identifies the
 intended operand precisely.
 

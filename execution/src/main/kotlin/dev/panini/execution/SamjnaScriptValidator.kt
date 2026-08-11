@@ -1,18 +1,31 @@
 package dev.panini.execution
 
 import dev.panini.vyakaranam.ast.Pipeline
+import dev.panini.sankhya.CanonicalNumeralStem
+
+enum class SamjnaDiagnosticSeverity { ERROR, WARNING }
 
 data class SamjnaDiagnostic(
     val offset: Int,
     val length: Int,
     val message: String,
+    val severity: SamjnaDiagnosticSeverity = SamjnaDiagnosticSeverity.ERROR,
+    val replacement: String? = null,
 )
 
 /** Performs declaration and call checks without executing the script. */
 object SamjnaScriptValidator {
     fun validate(source: String): List<SamjnaDiagnostic> {
-        val statements = runCatching { PvmScript.parse(source) }.getOrElse { return emptyList() }
-        val diagnostics = mutableListOf<SamjnaDiagnostic>()
+        val diagnostics = CanonicalNumeralStem.suggestions(source).mapTo(mutableListOf()) { suggestion ->
+            SamjnaDiagnostic(
+                offset = suggestion.offset,
+                length = suggestion.surface.length,
+                message = "Use canonical numeral stem '${suggestion.canonical}' before a segmented suffix.",
+                severity = SamjnaDiagnosticSeverity.WARNING,
+                replacement = suggestion.canonical,
+            )
+        }
+        val statements = runCatching { PvmScript.parse(source) }.getOrElse { return diagnostics }
         val registry = SamjnaKriyaRegistry()
 
         statements.filterIsInstance<PvmScriptStatement.Sentence>().mapNotNull { sentence ->
