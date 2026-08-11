@@ -37,8 +37,9 @@ object TyadadinamAhSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
         val isTyadadi = stem.upadesha in TYADADI_STEMS || stem.surface in TYADADI_STEMS
-        return isTyadadi && (affix.id.startsWith("sup-") || context.droppedTerms.any { it.id.startsWith("sup-") }) &&
-            !stem.surface.endsWith("अ") && !stem.surface.endsWith("ा")
+        val hasConsonantEnding = stem.surface.endsWith("्") || stem.surface in setOf("किम्", "इदम्")
+        return isTyadadi && hasConsonantEnding &&
+            (affix.id.startsWith("sup-") || context.droppedTerms.any { it.id.startsWith("sup-") })
     }
 
     override fun apply(context: DerivationState): DerivationChange {
