@@ -57,23 +57,22 @@ object YusmadAsmadSutra : Sutra<DerivationState, DerivationChange>(
                 Vibhakti.PRATHAMA -> Pair(if (isYusmad) "त्वम्" else "अहम्", "")
                 Vibhakti.DVITIYA -> Pair(if (isYusmad) "त्वाम्" else "माम्", "")
                 Vibhakti.TRTIYA -> Pair(if (isYusmad) "त्वया" else "मया", "")
-                Vibhakti.CATURTHI -> Pair(if (isYusmad) "तुभ्यम्" else "मह्यम्", "")
-                Vibhakti.PANCAMI -> Pair(if (isYusmad) "त्वत्" else "मत्", "")
+                Vibhakti.CHATURTHI -> Pair(if (isYusmad) "तुभ्यम्" else "मह्यम्", "")
+                Vibhakti.PANCHAMI -> Pair(if (isYusmad) "त्वत्" else "मत्", "")
                 Vibhakti.SASTHI -> Pair(if (isYusmad) "तव" else "मम", "")
                 Vibhakti.SAPTAMI -> Pair(if (isYusmad) "त्वयि" else "मयि", "")
-                Vibhakti.SAMBODHANA -> Pair(if (isYusmad) "त्वम्" else "अहम्", "")
             }
             Vacana.DVIVACANA -> when (rupa.vibhakti) {
-                Vibhakti.PRATHAMA, Vibhakti.DVITIYA, Vibhakti.SAMBODHANA -> Pair(if (isYusmad) "युवाम्" else "आवाम्", "")
-                Vibhakti.TRTIYA, Vibhakti.CATURTHI, Vibhakti.PANCAMI -> Pair(if (isYusmad) "युवाभ्याम्" else "आवाभ्याम्", "")
+                Vibhakti.PRATHAMA, Vibhakti.DVITIYA -> Pair(if (isYusmad) "युवाम्" else "आवाम्", "")
+                Vibhakti.TRTIYA, Vibhakti.CHATURTHI, Vibhakti.PANCHAMI -> Pair(if (isYusmad) "युवाभ्याम्" else "आवाभ्याम्", "")
                 Vibhakti.SASTHI, Vibhakti.SAPTAMI -> Pair(if (isYusmad) "युवयोः" else "आवयोः", "")
             }
             Vacana.BAHUVACANA -> when (rupa.vibhakti) {
-                Vibhakti.PRATHAMA, Vibhakti.SAMBODHANA -> Pair(if (isYusmad) "यूयम्" else "वयम्", "")
+                Vibhakti.PRATHAMA -> Pair(if (isYusmad) "यूयम्" else "वयम्", "")
                 Vibhakti.DVITIYA -> Pair(if (isYusmad) "युष्मान्" else "अस्मान्", "")
                 Vibhakti.TRTIYA -> Pair(if (isYusmad) "युष्माभिः" else "अस्माभिः", "")
-                Vibhakti.CATURTHI -> Pair(if (isYusmad) "युष्मभ्यम्" else "अस्मभ्यम्", "")
-                Vibhakti.PANCAMI -> Pair(if (isYusmad) "युष्मत्" else "अस्मत्", "")
+                Vibhakti.CHATURTHI -> Pair(if (isYusmad) "युष्मभ्यम्" else "अस्मभ्यम्", "")
+                Vibhakti.PANCHAMI -> Pair(if (isYusmad) "युष्मत्" else "अस्मत्", "")
                 Vibhakti.SASTHI -> Pair(if (isYusmad) "युष्माकम्" else "अस्माकम्", "")
                 Vibhakti.SAPTAMI -> Pair(if (isYusmad) "युष्मासु" else "अस्मासु", "")
             }
