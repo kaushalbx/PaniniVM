@@ -81,5 +81,21 @@ class PronominalStemsTest {
         val trayanam = engine.derive(SubantaDerivationRequest("त्रि", Vibhakti.SASTHI, Vacana.BAHUVACANA, Linga.PUMS))
         assertEquals("त्रयाणाम्", trayanam.final.surface)
         kotlin.test.assertTrue(trayanam.applications.any { it.sutra == "7.1.53" })
+
+        val catvarah = engine.derive(SubantaDerivationRequest("चतुर्", Vibhakti.PRATHAMA, Vacana.BAHUVACANA, Linga.PUMS))
+        assertEquals("चत्वारः", catvarah.final.surface)
+        kotlin.test.assertTrue(catvarah.applications.any { it.sutra == "7.1.98" })
+
+        val catvari = engine.derive(SubantaDerivationRequest("चतुर्", Vibhakti.PRATHAMA, Vacana.BAHUVACANA, Linga.NAPUMSAKA))
+        assertEquals("चत्वारि", catvari.final.surface)
+        kotlin.test.assertTrue(catvari.applications.any { it.sutra == "7.1.98" })
+
+        val catasrah = engine.derive(SubantaDerivationRequest("चतुर्", Vibhakti.PRATHAMA, Vacana.BAHUVACANA, Linga.STRI))
+        assertEquals("चतस्रः", catasrah.final.surface)
+        kotlin.test.assertTrue(catasrah.applications.any { it.sutra == "7.2.99" })
+
+        val caturnam = engine.derive(SubantaDerivationRequest("चतुर्", Vibhakti.SASTHI, Vacana.BAHUVACANA, Linga.PUMS))
+        assertEquals("चतुर्णाम्", caturnam.final.surface)
+        kotlin.test.assertTrue(caturnam.applications.any { it.sutra == "7.1.55" })
     }
 }
