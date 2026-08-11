@@ -36,7 +36,9 @@ object NaloPratipadikantasyaSutra : Sutra<DerivationState, DerivationChange>(
 
         val hasDroppedSup = context.droppedTerms.any { it.id.startsWith("sup-") }
 
-        return stem.kind == TermKind.PRATIPADIKA && stem.surface.endsWith("न्") &&
+        val isPratipadikaNanta = stem.upadesha.endsWith("न्") || stem.upadesha in setOf("पञ्चन्", "सप्तन्", "अष्टन्", "नवन्", "दशन्")
+
+        return isPratipadikaNanta && stem.kind == TermKind.PRATIPADIKA && stem.surface.endsWith("न्") &&
             (affix == null || affix.upadesha in setOf("भ्याम्", "भिस्", "भ्यस्", "सुप्", "मट्", "सु", "नाम्") || insideSankhyaCompound || hasDroppedSup)
     }
 
