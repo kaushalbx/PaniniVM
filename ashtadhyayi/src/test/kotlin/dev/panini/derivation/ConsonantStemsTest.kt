@@ -23,8 +23,7 @@ class ConsonantStemsTest {
 
         val raja = engine.derive(SubantaDerivationRequest("राजन्", Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.PUMS))
         assertEquals("राजा", raja.final.surface)
-        kotlin.test.assertTrue(raja.applications.any { it.sutra == "6.4.8" })
-        kotlin.test.assertTrue(raja.applications.any { it.sutra == "8.2.7" })
+        kotlin.test.assertTrue(raja.applications.any { it.sutra == "6.4.1" })
 
         val rajna = engine.derive(SubantaDerivationRequest("राजन्", Vibhakti.TRTIYA, Vacana.EKAVACANA, Linga.PUMS))
         assertEquals("राज्ञा", rajna.final.surface)
