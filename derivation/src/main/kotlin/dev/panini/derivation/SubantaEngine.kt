@@ -56,12 +56,7 @@ class SubantaEngine(
         }
         if (vacana != naturalVacana) return null
         return when (numeral.value) {
-            5L -> pluralNumeral("पञ्च", "पञ्चभिः", "पञ्चभ्यः", "पञ्चानाम्", "पञ्चसु", vibhakti)
-            6L -> pluralNumeral("षट्", "षड्भिः", "षड्भ्यः", "षण्णाम्", "षट्सु", vibhakti)
-            7L -> pluralNumeral("सप्त", "सप्तभिः", "सप्तभ्यः", "सप्तानाम्", "सप्तसु", vibhakti)
             8L -> pluralNumeral("अष्ट", "अष्टाभिः", "अष्टाभ्यः", "अष्टानाम्", "अष्टासु", vibhakti)
-            9L -> pluralNumeral("नव", "नवभिः", "नवभ्यः", "नवानाम्", "नवसु", vibhakti)
-            10L -> pluralNumeral("दश", "दशभिः", "दशभ्यः", "दशानाम्", "दशसु", vibhakti)
             else -> null
         }
     }

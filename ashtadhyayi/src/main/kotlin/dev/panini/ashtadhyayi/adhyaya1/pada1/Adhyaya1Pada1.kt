@@ -21,6 +21,7 @@ object Adhyaya1Pada1 {
         PratyayalopePratyayalaksanamSutra,
         TarapTamapGhahSutra,
         TatiSankhyaSutra,
+        SnantaSatSutra,
         SnatSatSutra,
         NisthaSutra,
         NaLumatangasyaSutra,
