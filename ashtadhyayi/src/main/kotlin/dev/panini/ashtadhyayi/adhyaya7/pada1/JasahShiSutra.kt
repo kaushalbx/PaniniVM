@@ -43,7 +43,7 @@ object JasahShiSutra : Sutra<DerivationState, DerivationChange>(
         val matras = setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'े', 'ै', 'ो', 'ौ', '्')
         val endsInA = isTyadadi || (stem.surface.isNotEmpty() && stem.surface.last() !in matras)
 
-        return isSarvanama && endsInA && affix.upadesha == "जस्"
+        return isSarvanama && endsInA && (affix.upadesha == "जस्" || affix.id == "sup-jas")
     }
 
     override fun apply(context: DerivationState): DerivationChange {
