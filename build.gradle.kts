@@ -9,6 +9,12 @@ kotlin {
     jvmToolchain(25)
 }
 
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+    }
+}
+
 dependencies {
     implementation("org.ow2.asm:asm:9.7")
     implementation("com.strumenta:antlr-kotlin-runtime:1.0.0-RC4")
@@ -31,6 +37,15 @@ subprojects {
     plugins.withId("org.jetbrains.kotlin.jvm") {
         kotlin {
             jvmToolchain(25)
+        }
+        tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+            compilerOptions {
+                jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+            }
+        }
+        tasks.withType<JavaCompile>().configureEach {
+            targetCompatibility = "21"
+            sourceCompatibility = "21"
         }
     }
     tasks.withType<Test> {
