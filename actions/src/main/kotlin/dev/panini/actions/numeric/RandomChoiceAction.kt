@@ -13,7 +13,8 @@ import dev.panini.execution.activeRange
 object RandomChoiceAction : DhatuAction("क्रीडा", "यादृच्छिकचयनम् क्रीडा च") {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
         val activeRange = context.activeRange()
-        val minimum = context.numericBound(Karaka.APADANA) ?: activeRange?.minimum?.value
+        val apadanaValues = context.bindings[Karaka.APADANA]?.let(context::resolveValues).orEmpty()
+        val minimum = apadanaValues.singleOrNull().asNumericValue() ?: activeRange?.minimum?.value
         val maximum = context.numericBound(Karaka.ADHIKARANA) ?: activeRange?.maximum?.value
         if (minimum != null && maximum != null && (minimum > maximum || maximum - minimum > MAX_RANGE_SPAN)) {
             return ExecutionResult.Failure(
@@ -22,11 +23,10 @@ object RandomChoiceAction : DhatuAction("क्रीडा", "यादृच�
             )
         }
         val expression = context.bindings[Karaka.KARMAN] ?: context.bindings[Karaka.KARTR]
-        val excludedValues = expression?.let(context::resolveValues)
-            ?.flatMap { value -> if (value is SanskritValue.Suchi) value.items else listOf(value) }
-            ?.mapNotNull { (it as? SanskritValue.Sankhya)?.value }
-            ?.toSet()
-            .orEmpty()
+        val excludedValues = (expression?.let(context::resolveValues).orEmpty() + apadanaValues)
+            .flatMap { value -> if (value is SanskritValue.Suchi) value.items else listOf(value) }
+            .mapNotNull { (it as? SanskritValue.Sankhya)?.value }
+            .toSet()
         val resolved = if (minimum != null && maximum != null) {
             (minimum..maximum).filterNot(excludedValues::contains).map { value ->
                 SanskritValue.Sankhya(value, context.renderSankhyaResult(value) ?: value.toString())
@@ -60,6 +60,8 @@ object RandomChoiceAction : DhatuAction("क्रीडा", "यादृच�
     private fun ExecutionContext.numericBound(karaka: Karaka): Long? =
         bindings[karaka]?.let(::resolveValues)?.singleOrNull()
             ?.let { it as? SanskritValue.Sankhya }?.value
+
+    private fun SanskritValue?.asNumericValue(): Long? = (this as? SanskritValue.Sankhya)?.value
 
     private const val MAX_RANGE_SPAN = 100_000L
 }

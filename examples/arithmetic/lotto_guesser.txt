@@ -7,13 +7,13 @@
 देवय्य ततः चयनाय देहि ।
 चयनम् क्षेपय्य ततः देहि क्षिप् फलम् क्रमाय ।
 
-# Draw five more values; passing क्रम excludes values already selected.
-पञ्चकृत्वः क्रमम् देवय्य
+# Draw five more values; अपादान marks क्रम as the exclusion source.
+पञ्चकृत्वः क्रमात् देवय्य
 ततः चयनाय देहि
 ततः क्षेपय्य क्रमम् चयनम् च
 ततः देहि क्षिप् फलम् क्रमाय ।
 
 # Draw a bonus outside the main list, then print both results.
-क्रमम् देवय्य ततः अक्षाय देहि ।
+क्रमात् देवय्य ततः अक्षाय देहि ।
 मुद्रय क्रमम् ।
 मुद्रय अक्षम् ।

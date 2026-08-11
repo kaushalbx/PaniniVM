@@ -18,7 +18,7 @@ class RandomChoiceActionTest {
         val excluded = (1L..47L).map { SanskritValue.Sankhya(it, it.toString()) }
         val context = ExecutionContext(
             bindings = mapOf(
-                Karaka.KARMAN to ExecutionExpression.Pada(
+                Karaka.APADANA to ExecutionExpression.Pada(
                     prakriti = "क्रम",
                     value = SanskritValue.Suchi(excluded),
                 ),

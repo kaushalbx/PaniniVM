@@ -38,7 +38,7 @@ class PvmAnnotator : Annotator {
                 )
                     .range(TextRange(start, end))
                 diagnostic.replacement?.let { replacement ->
-                    annotation.withFix(PvmCanonicalNumeralStemQuickFix(TextRange(start, end), replacement))
+                    annotation.withFix(PvmSourceReplacementQuickFix(TextRange(start, end), replacement))
                 }
                 annotation.create()
             }

@@ -525,6 +525,27 @@ Lexicalized `षोडश` remains the correct visible form while retaining the
 component identity `षष् + दशन्`; it is not produced by an invented general
 sandhi rule.
 
+Within a `ततः` pipeline, assignment consumes the immediately preceding typed
+result directly:
+
+```pvm
+पूर्व + अम् वर्तमान + अम् च युज् + णिच् + लोट् + सिप्
+ततः उत्तर + ङे दा + लोट् + सिप् ।
+```
+
+The IDEA plugin warns about the longer `क्रिया + ल्युट् + ङस् फल + अम्`
+lookup in this position and can replace it with the direct assignment. Local
+bindings updated inside a `कृत्वः` body are carried into the next iteration,
+so variables such as Fibonacci state and collection accumulators need no
+special loop-only syntax.
+
+For random selection from an active range, an अपादान collection is an
+exclusion source. This selects from `सीमा` after removing values in `क्रम`:
+
+```pvm
+क्रम + ङसिँ दिव् + णिच् + लोट् + सिप् ।
+```
+
 Keep segments spaced consistently so the highlighted range identifies the
 intended operand precisely.
 

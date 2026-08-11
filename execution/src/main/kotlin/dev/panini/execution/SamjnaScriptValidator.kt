@@ -25,6 +25,15 @@ object SamjnaScriptValidator {
                 replacement = suggestion.canonical,
             )
         }
+        DirectResultAssignment.suggestions(source).forEach { suggestion ->
+            diagnostics += SamjnaDiagnostic(
+                offset = suggestion.offset,
+                length = suggestion.length,
+                message = "The preceding ततः result can be assigned directly without an explicit फल lookup.",
+                severity = SamjnaDiagnosticSeverity.WARNING,
+                replacement = suggestion.replacement,
+            )
+        }
         val statements = runCatching { PvmScript.parse(source) }.getOrElse { return diagnostics }
         val registry = SamjnaKriyaRegistry()
 
