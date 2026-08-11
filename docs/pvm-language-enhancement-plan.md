@@ -83,31 +83,6 @@ The following features are implemented and form the baseline for future work.
 - Signature, call, pipeline, and schema diagnostics.
 - IDEA syntax highlighting, live annotations, and run integration.
 
-### 2.5 Compositional morpheme semantics
-
-- The AST preserves upasarga, dhatu, krt, and taddhita components instead of
-  requiring a fused lexical spelling.
-- `परि + नम् + घञ्` has the semantic identity `OUTCOME` and is compatible
-  with the earlier lexical spelling `परिणाम`.
-- `अव + स्था + अङ्` has the semantic identity `STATE` and is compatible with
-  the earlier lexical spelling `अवस्था`.
-- These identities work in result declarations, मतुप् schemas, structured
-  field access, and condition-controlled-loop results.
-- Meanings are declared through `MorphemeSemanticRule` entries that match a
-  typed Dhātupāṭha identity, ordered upasargas, a kṛt affix, and its kṛdanta
-  artha. Every entry carries its grammatical sūtra evidence.
-- Lexical meanings such as `RESULTING_CHANGE` and `SETTLED_STATE` are separate
-  from their PaniniVM bindings `OUTCOME` and `STATE`. Grammar therefore does
-  not depend on a particular runtime operation.
-- The registry rejects duplicate rule identities and ambiguous matches. New
-  vocabulary can be supplied as rule data without changing the AST resolver.
-- The readable-source generator is unchanged; semantic composition happens
-  directly from the segmented AST.
-
-This is the first vertical slice of the morpheme-semantic engine. Later slices
-should move additional programming concepts into the registry and add richer
-Pāṇinian conditions such as kāraka, liṅga, gaṇa membership, and rule precedence.
-
 ## 3. Planned enhancement overview
 
 | Priority | Enhancement | Primary benefit | Status |

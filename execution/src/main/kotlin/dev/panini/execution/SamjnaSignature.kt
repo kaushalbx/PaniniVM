@@ -58,15 +58,14 @@ object SamjnaSignatureCompiler {
 object SamjnaSignatureDeclarationParser {
     data class ResultDeclaration(val type: SamjnaValueType? = null, val schema: String? = null)
     private val typeSource = "(सङ्ख्या|शब्द|सूची)"
-    private val outcomeSource = "(?:परिणाम|परि\\s*\\+\\s*नम्\\s*\\+\\s*घञ्)"
     private val parameterPattern = Regex(
         "^\\s*(.+?)\\s*\\+\\s*सुँ\\s+$typeSource\\s*\\+\\s*सुँ\\s+इति\\s+मान\\s*\\+\\s*सुँ\\s*[।॥]?\\s*$",
     )
     private val resultPattern = Regex(
-        "^\\s*$typeSource\\s*\\+\\s*सुँ\\s+इति\\s+$outcomeSource\\s*\\+\\s*सुँ\\s*[।॥]?\\s*$",
+        "^\\s*$typeSource\\s*\\+\\s*सुँ\\s+इति\\s+परिणाम\\s*\\+\\s*सुँ\\s*[।॥]?\\s*$",
     )
     private val schemaResultPattern = Regex(
-        "^\\s*(.+?)\\s*\\+\\s*सुँ\\s+इति\\s+$outcomeSource\\s*\\+\\s*सुँ\\s*[।॥]?\\s*$",
+        "^\\s*(.+?)\\s*\\+\\s*सुँ\\s+इति\\s+परिणाम\\s*\\+\\s*सुँ\\s*[।॥]?\\s*$",
     )
 
     fun parameter(sentence: PvmScriptStatement.Sentence): SamjnaParameter? {
@@ -80,7 +79,7 @@ object SamjnaSignatureDeclarationParser {
         }
         val schema = schemaResultPattern.matchEntire(sentence.text)?.groupValues?.get(1)?.trim() ?: return null
         if (schema in setOf("सङ्ख्या", "शब्द", "सूची")) return null
-        return ResultDeclaration(schema = canonicalConceptName(schema))
+        return ResultDeclaration(schema = schema)
     }
 
     fun resultType(sentence: PvmScriptStatement.Sentence): SamjnaValueType? = result(sentence)?.type
@@ -94,9 +93,6 @@ object SamjnaSignatureDeclarationParser {
         "सूची" -> SamjnaValueType.SUCHI
         else -> error("Unsupported saṃjñā value type: $source")
     }
-
-    private fun canonicalConceptName(source: String): String =
-        if (source.replace(Regex("\\s+"), "") == "परि+नम्+घञ्") "परिणाम" else source
 }
 
 object SamjnaValueClassifier {

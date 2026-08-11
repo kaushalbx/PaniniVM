@@ -265,14 +265,12 @@ enum class KridantaLexicalIdentity {
 enum class KrtPratyayaIdentity {
     KTA,
     GHAN,
-    ANG,
     ;
 
     companion object {
         fun fromUpadesha(upadesha: String): KrtPratyayaIdentity? = when (upadesha.trim()) {
             "क्त" -> KTA
             "घञ्" -> GHAN
-            "अङ्" -> ANG
             else -> null
         }
     }
