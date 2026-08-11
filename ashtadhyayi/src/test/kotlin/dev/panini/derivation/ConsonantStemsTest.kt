@@ -32,11 +32,16 @@ class ConsonantStemsTest {
 
         val vak = engine.derive(SubantaDerivationRequest("वाच्", Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.STRI))
         assertEquals("वाक्", vak.final.surface)
+        kotlin.test.assertTrue(vak.applications.any { it.sutra == "8.2.30" })
 
         val vaca = engine.derive(SubantaDerivationRequest("वाच्", Vibhakti.TRTIYA, Vacana.EKAVACANA, Linga.STRI))
         assertEquals("वाचा", vaca.final.surface)
+        kotlin.test.assertTrue(vaca.applications.any { it.sutra == "4.1.2" })
 
         val vagbhih = engine.derive(SubantaDerivationRequest("वाच्", Vibhakti.TRTIYA, Vacana.BAHUVACANA, Linga.STRI))
+        println("VAGBHIH SURFACE: ${vagbhih.final.surface}")
+        println("VAGBHIH SUTRAS: ${vagbhih.applications.map { "${it.sutra}: ${it.explanation}" }}")
         assertEquals("वाग्भिः", vagbhih.final.surface)
+        kotlin.test.assertTrue(vagbhih.applications.any { it.sutra == "8.2.30" })
     }
 }
