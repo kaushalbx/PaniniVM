@@ -15,6 +15,7 @@ import dev.panini.sankhya.SankhyaAbhyasaRenderer
 import dev.panini.sankhya.SankhyaEvaluator
 import dev.panini.sankhya.SankhyaGenerator
 import dev.panini.sankhya.SankhyaVacana
+import dev.panini.sankhya.PrimitiveSankhya
 import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.KridantaPratipadika
 import dev.panini.vyakaranam.ast.AryabhatiyaPada
@@ -295,9 +296,12 @@ class PvmUktiSadhaka(
             sankhya?.semanticValue?.let {
                 SankhyaVacana.requireCompatible(it.value, supAffix.vacana)
             }
-            // The typed value supplies numeric identity; rūpa-siddhi still begins
-            // from the source-written prātipadika so readable output preserves it.
-            val req = SubantaDerivationRequest(baseText, supAffix.vibhakti, supAffix.vacana, linga)
+            // Numeric identity supplies the canonical prātipadika for rūpa-siddhi;
+            // source segmentation remains provenance and the fallback rendering.
+            val derivationBase = sankhya?.semanticValue?.value
+                ?.let { PrimitiveSankhya.fromValue(it)?.pratipadika }
+                ?: baseText
+            val req = SubantaDerivationRequest(derivationBase, supAffix.vibhakti, supAffix.vacana, linga)
             subantaEngine.derive(req).final.surface
         } catch (e: Exception) {
             baseText

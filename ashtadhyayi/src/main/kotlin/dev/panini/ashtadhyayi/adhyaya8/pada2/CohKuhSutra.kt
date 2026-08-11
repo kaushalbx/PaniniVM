@@ -64,7 +64,12 @@ object CohKuhSutra : Sutra<DerivationState, DerivationChange>(
             val target = characters[i]
             if (target.char !in CU_CHARS || target.termId in abhyasaIds) continue
             if (characters[i + 1].char != '्') continue
-            if (Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAL, characters[i + 2].char)) {
+            val following = characters[i + 2]
+            // The jhal condition is a grammatical boundary condition. It
+            // must not rewrite an inherited internal cluster such as ञ्च in पञ्च.
+            if (target.termId != following.termId &&
+                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAL, following.char)
+            ) {
                 return Match(target.termIndex, target.charIndex)
             }
         }

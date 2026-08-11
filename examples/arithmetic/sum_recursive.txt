@@ -2,7 +2,7 @@
 # Computes sum(5) = 5 + sum(4) = 5 + 4 + 3 + 2 + 1 = 15
 
 # Step 1: Initialize current term (सङ्ख्या) = 5 (पञ्चन्)
-पङ्चने सङ्ख्यायै देहि ।
+पञ्च सङ्ख्यायै देहि ।
 
 # Step 2: Initialize accumulated sum (योग) = 0 (शून्य)
 शून्यम् योगाय देहि ।

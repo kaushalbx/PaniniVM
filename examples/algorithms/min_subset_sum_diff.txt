@@ -7,7 +7,7 @@
 एकम् एकादशम् च धारणाय योजय ।
 
 # Step 2: Compute subset 2 sum (6 + 5 = 11) and retain in handle 'स्था'
-षष् पङ्चने च स्थानाय योजय ।
+षष् पञ्च च स्थानाय योजय ।
 
 # Step 3: Compute difference between sum of subset 1 (12) and sum of subset 2 (11) -> 12 - 11 = 1
 धारणम् स्थानम् च वियोजय ।

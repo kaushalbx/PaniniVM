@@ -5,22 +5,22 @@
 
 # Step 2: Tier 1 - General Utsarga rule (Default - Priority 1): 5 + 5 = 10 (दश)
 गणितस्य गुण् इति सञ्ज्ञा ।
-पङ्चने पङ्चने च योजय ॥
+पञ्च पञ्च च योजय ॥
 
 # Step 3: Tier 2 - Nitya rule (Mandatory - Priority 2): 10 + 10 = 20 (विंशति)
 गणितस्य गुण् इति नि+त्यः इति सञ्ज्ञा ।
-दशने दशने च योजय ॥
+दश दश च योजय ॥
 
 # Step 4: Tier 3 - Antaraṅga rule (Internal - Priority 3): 10 + 20 = 30 (त्रिंशत्)
 गणितस्य गुण् इति अन्तर्+अङ्गः इति सञ्ज्ञा ।
-दशने विंशति च योजय ॥
+दश विंशति च योजय ॥
 
 # Step 5: Tier 4 - Apavāda rule (Exception - Priority 4): 10 + 30 = 40 (चत्वारिंशत्)
 गणितस्य गुण् इति वत् इति सञ्ज्ञा ।
-दशने त्रिंशत् च योजय ॥
+दश त्रिंशत् च योजय ॥
 
 # Step 6: Invoke method on 'गणित'. Sūtra 1.4.1 Ekasaṁjñā conflict resolution selects Apavāda (Priority 4) -> 40 (चत्वारिंशत्)
-पङ्चने द्वे च गणितस्य गुणा कृणु ।
+पञ्च द्वे च गणितस्य गुणा कृणु ।
 
 # Step 7: Print result
 मुद्रय फलम् ।

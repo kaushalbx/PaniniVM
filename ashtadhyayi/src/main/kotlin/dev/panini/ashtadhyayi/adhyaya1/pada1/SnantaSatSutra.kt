@@ -30,7 +30,7 @@ object SnantaSatSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.SAMJNA,
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
-    private val SHAT_NUMERALS = setOf("पञ्चन्", "षट्", "सप्तन्", "अष्टन्", "नवन्", "दशन्")
+    private val SHAT_NUMERALS = setOf("पञ्चन्", "षष्", "षट्", "सप्तन्", "अष्टन्", "नवन्", "दशन्")
 
     override fun matches(context: DerivationState): Boolean =
         context.terms.any { isEligibleShatTerm(context, it) }

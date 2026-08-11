@@ -19,10 +19,10 @@ object AstanAaVibhaktuSutra : Sutra<DerivationState, DerivationChange>(
     number = "7.2.84",
     text = "अष्टन आ विभक्तौ",
     hindiExplanation = "विभक्ति परे होने पर 'अष्टन्' शब्द के नकार के स्थान पर आकार (आ) आदेश होता है।",
-    type = SutraType.NITYA,
+    type = SutraType.VIBHASHA,
     chapter = 7,
     pada = 2,
-    optional = false,
+    optional = true,
     kramaValue = 720084,
     role = SutraRole.Apavada,
     action = SutraAction.ADESHA,
@@ -37,8 +37,7 @@ object AstanAaVibhaktuSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        val isAstan = stem.upadesha == "अष्टन्" || stem.surface == "अष्टन्"
-        if (!isAstan) return false
+        if (stem.surface != "अष्टन्") return false
 
         return affix.id.startsWith("sup-")
     }

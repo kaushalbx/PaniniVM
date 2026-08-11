@@ -2,7 +2,7 @@
 # Scales input quantity using edh (एधय)
 
 # Step 1: Scale input quantity 5
-पङ्चने एध् ।
+पञ्च एध् ।
 
 # Step 2: Print scaled result
 मुद्रय फलम् ।

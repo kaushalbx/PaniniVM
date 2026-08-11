@@ -1,7 +1,7 @@
 # Minimum Selection Algorithm: Find minimum of 10 (दश) and 3 (त्रि)
 
 # Find minimum of 10 (दश) and 3 (त्रि) using min action
-दशने त्रीनि च वेदय् न्यूनतया ।
+दश त्रीनि च वेदय् न्यूनतया ।
 
 # Print minimum result (renders 3 = त्रीणि)
 मुद्रय फलम् ।

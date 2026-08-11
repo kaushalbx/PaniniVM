@@ -28,7 +28,8 @@ object AstabhyahAushSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.ADESHA,
     scope = SutraScope.DERIVATION,
     nimittaScope = NimittaScope.BOTH,
-    dependencies = setOf("6.4.1")
+    dependencies = setOf("6.4.1"),
+    blocks = setOf("7.1.22"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if ("6.4.1" !in context.activeAdhikaras) return false
@@ -46,7 +47,7 @@ object AstabhyahAushSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
-        val newAffix = affix.copy(surface = "औ")
+        val newAffix = affix.copy(id = "aush-adesha", surface = "औ", upadesha = "औश्")
         val newTerms = context.terms.dropLast(1) + newAffix
 
         return DerivationChange(

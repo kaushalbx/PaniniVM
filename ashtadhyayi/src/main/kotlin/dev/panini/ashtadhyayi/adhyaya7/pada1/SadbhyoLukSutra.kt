@@ -1,6 +1,7 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada1
 
 import dev.panini.derivation.DerivationChange
+import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
@@ -30,7 +31,7 @@ object SadbhyoLukSutra : Sutra<DerivationState, DerivationChange>(
     nimittaScope = NimittaScope.BOTH,
     dependencies = setOf("6.4.1", "1.1.24")
 ), DerivationSutra {
-    private val SHAT_NUMERALS = setOf("पञ्चन्", "षट्", "सप्तन्", "अष्टन्", "नवन्", "दशन्")
+    private val SHAT_NUMERALS = setOf("पञ्चन्", "षष्", "षट्", "सप्तन्", "अष्टन्", "नवन्", "दशन्")
 
     override fun matches(context: DerivationState): Boolean {
         if ("6.4.1" !in context.activeAdhikaras) return false
@@ -55,7 +56,10 @@ object SadbhyoLukSutra : Sutra<DerivationState, DerivationChange>(
         return DerivationChange(
             state = context.copy(
                 terms = newTerms,
-                droppedTerms = context.droppedTerms + affix.copy(surface = "")
+                droppedTerms = context.droppedTerms + affix.copy(surface = ""),
+                // 1.1.62 preserves the grammatical effect of the deleted
+                // sup, so pada formation and subsequent Tripādī rules remain.
+                stage = DerivationStage.ANGAKARYA,
             ),
             explanation = "7.1.22: Elided '${affix.surface}' (jas/śas) after ṣaṭ-designated stem."
         )

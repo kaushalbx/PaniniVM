@@ -3,7 +3,7 @@
 
 # संज्ञा: गणितप्रक्रिया (Generic procedure: Adds प्रथम + द्वितीय, multiplies phala with तृतीय, and prints)
 गणितः ।
-प्रथमम् द्वितीयम् च योजय ।
+एकम् द्वितीयम् च योजय ।
 फलम् तृतीयम् च गणय ।
 मुद्रय फलम् ॥
 
@@ -11,7 +11,7 @@
 # Niṣedha Sūtra: "न द्वितीय + अम् शून्य + अम् ।" (Divisor must NOT be zero)
 विभाक् ।
 न द्वितीयम् शून्यम् ।
-प्रथमम् द्वितीयम् च भाज् ॥
+एकम् द्वितीयम् च भाज् ॥
 
 # संज्ञा: समवाययोजनम् (Collection / List batch fold-addition procedure)
 # Sums all items passed in the collection (समवाय)

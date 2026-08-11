@@ -39,4 +39,12 @@ class PvmNumeralGenderAgreementTest {
 
         assertTrue(rendered.startsWith("द्वे "), rendered)
     }
+
+    @Test
+    fun `typed numeral identity supplies canonical shat stems`() {
+        val rendered = PvmUktiSadhaka(pratipadikaLexicon = lexicon)
+            .sadhayaLine("पञ्च + शस् षष् + शस् अष्ट + शस् दश + शस् च मुद्र् + णिच् + लोट् + सिप् ।")
+
+        assertTrue(rendered.startsWith("पञ्च षट् अष्टौ दश "), rendered)
+    }
 }

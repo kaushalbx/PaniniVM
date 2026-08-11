@@ -78,4 +78,41 @@ class SankhyaGeneratorDeclensionTest {
             derivation.applications.joinToString("\n") { "${it.sutra}: ${it.after.surface}" },
         )
     }
+
+    @Test
+    fun `shat numerals derive nominative and accusative plural forms`() {
+        val generator = SankhyaGenerator()
+        val expected = mapOf(
+            5L to ("पञ्चन्" to "पञ्च"),
+            6L to ("षष्" to "षट्"),
+            7L to ("सप्तन्" to "सप्त"),
+            8L to ("अष्टन्" to "अष्टौ"),
+            9L to ("नवन्" to "नव"),
+            10L to ("दशन्" to "दश"),
+        )
+
+        expected.forEach { (value, forms) ->
+            val (pratipadika, surface) = forms
+            Linga.entries.forEach { linga ->
+                val derivation = SubantaEngine().derive(
+                    SubantaDerivationRequest(pratipadika, Vibhakti.PRATHAMA, Vacana.BAHUVACANA, linga),
+                )
+                assertEquals(
+                    surface,
+                    derivation.final.surface,
+                    derivation.applications.joinToString("\n") { "${it.sutra}: ${it.after.surface}" },
+                )
+                val accusative = SubantaEngine().derive(
+                    SubantaDerivationRequest(pratipadika, Vibhakti.DVITIYA, Vacana.BAHUVACANA, linga),
+                )
+                assertEquals(
+                    surface,
+                    accusative.final.surface,
+                    accusative.applications.joinToString("\n") { "${it.sutra}: ${it.after.surface}" },
+                )
+                assertEquals(surface, generator.decline(value, Vibhakti.PRATHAMA, Vacana.BAHUVACANA, linga))
+                assertEquals(surface, generator.decline(value, Vibhakti.DVITIYA, Vacana.BAHUVACANA, linga))
+            }
+        }
+    }
 }

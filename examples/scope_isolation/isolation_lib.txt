@@ -5,6 +5,6 @@
 # 2. Multiply local phala with 3rd (तृतीय) -> stored in local phala
 # 3. Print final phala
 सीमा ।
-प्रथमम् द्वितीयम् च योजय ।
+एकम् द्वितीयम् च योजय ।
 फलम् तृतीयम् च गणय ।
 मुद्रय फलम् ॥
