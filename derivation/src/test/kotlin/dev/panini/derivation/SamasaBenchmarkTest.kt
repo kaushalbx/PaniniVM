@@ -26,7 +26,6 @@ class SamasaBenchmarkTest {
             type = SamasaType.KARMADHARAYA
         )
         assertNotNull(result)
-        println("Derived: ${result.final.surface} | Classification: ${result.samasaResolution?.classificationSutra}")
         assertTrue(result.final.surface.isNotEmpty())
     }
 
@@ -40,7 +39,6 @@ class SamasaBenchmarkTest {
             type = SamasaType.TATPURUSA
         )
         assertNotNull(result)
-        println("Derived: ${result.final.surface} | Classification: ${result.samasaResolution?.classificationSutra}")
         assertTrue(result.applications.isNotEmpty())
     }
 
@@ -54,7 +52,6 @@ class SamasaBenchmarkTest {
             type = SamasaType.TATPURUSA
         )
         assertNotNull(result)
-        println("Derived: ${result.final.surface} | Classification: ${result.samasaResolution?.classificationSutra}")
         assertTrue(result.final.surface.isNotEmpty())
     }
 
@@ -68,7 +65,6 @@ class SamasaBenchmarkTest {
             type = SamasaType.DVANDVA
         )
         assertNotNull(result)
-        println("Derived: ${result.final.surface} | Classification: ${result.samasaResolution?.classificationSutra}")
         assertTrue(result.final.surface.isNotEmpty())
     }
 
@@ -82,7 +78,6 @@ class SamasaBenchmarkTest {
             type = SamasaType.DVANDVA
         )
         assertNotNull(result)
-        println("Derived: ${result.final.surface} | Classification: ${result.samasaResolution?.classificationSutra}")
         assertTrue(result.final.surface.isNotEmpty())
     }
 }
