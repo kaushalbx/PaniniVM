@@ -7,8 +7,8 @@ The project tracks a target of 3,959 implemented sūtras alongside auxiliary gra
 | Measure | Count |
 | --- | ---: |
 | Target Aṣṭādhyāyī sūtras | 3,959 |
-| Registered executable sūtras | 474+ |
-| Uṇādipāṭha registered sūtras | 33+ |
+| Registered executable sūtras | 893 of 3,959 |
+| Uṇādipāṭha registered sūtras | 33 |
 | Derivation-state sūtras | 346 |
 | Sentence-level kāraka/vibhakti sūtras | 64 |
 | Other (Saṃjñā/Paribhāṣā/Adhikāra/etc.) | 64 |
@@ -21,7 +21,7 @@ The implemented subset supports end-to-end nominal and verbal derivations, decla
 ## Completed Architecture Milestones
 
 1. **Declarative Uṇādipāṭha Subsystem (`:unadipatha`)**:
-   - Implemented 33+ Uṇādi sūtras across all 5 Adhyāyas under Aṣṭādhyāyī 3.3.1 (*उणादयो बहुलम्*).
+   - Implemented 33 Uṇādi sūtras across all 5 Adhyāyas under Aṣṭādhyāyī 3.3.1 (*उणादयो बहुलम्*).
    - Etymological reverse lookup `(Dhātu, Pratyaya) → Saṁjñā` and stem classification (`RUDHI_PRATIPADIKA` vs `YAUGIKA_PRATIPADIKA`).
    - Integrated into `VakyaAnalyzer` for sentence-level nominal stem annotations.
 

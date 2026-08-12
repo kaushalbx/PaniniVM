@@ -63,7 +63,7 @@ From the PaniniVM repository root, build the direct CLI launcher once:
 Then run the game:
 
 ```sh
-./cli/build/install/cli/bin/cli --eval projects/sankhya-anumana-krida/mukhya.pvm
+./cli/build/install/cli/bin/cli --eval projects/number-guessing-game/number_guessing_game.pvm
 ```
 
 The direct launcher is used because it passes interactive terminal input to the
@@ -72,5 +72,6 @@ program reliably. Enter ASCII digits (`1` to `10`) or Devanagari digits
 
 ## Main source
 
-All game steps are in [`mukhya.pvm`](mukhya.pvm). Comments are written in
-English, while executable sentences are Sanskrit.
+All game steps are in
+[`number_guessing_game.pvm`](number_guessing_game.pvm). Comments are written
+in English, while executable sentences are Sanskrit.

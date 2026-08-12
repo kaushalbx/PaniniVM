@@ -43,7 +43,7 @@ All grammatical labels and meanings are centralized in `:core` under `dev.panini
 
 ## 2. Declarative Uṇādipāṭha Subsystem (`:unadipatha`)
 
-The Uṇādipāṭha module provides a pure declarative catalog of Uṇādi rules (33+ sūtras across all 5 Adhyāyas under Aṣṭādhyāyī 3.3.1 *उणादयो बहुलम्*):
+The Uṇādipāṭha module provides a pure declarative catalog of Uṇādi rules (33 sūtras across all 5 Adhyāyas under Aṣṭādhyāyī 3.3.1 *उणादयो बहुलम्*):
 
 - **Suffix Assignment Only**: Performs suffix assignment without taking part directly in Sandhi or morpho-phonological rule applications.
 - **Etymological Reverse Lookup**: Maps `(Dhātu, Pratyaya) → Saṁjñās` and nominal words to their underlying root + suffix breakdown.

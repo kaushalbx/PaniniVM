@@ -47,47 +47,20 @@ the operation identity, and `योग + ङे` is the result destination.
 
 ---
 
-## Workspace Module Architecture (18 Modules)
+## What is implemented
 
-```
-PaniniVM Root
-├── :core           Central domain models, Sutra<C,R>, DerivationState, PratyaharaEngine, Adhikara/Paribhasha/Nishedha registries, Saṁjñā & Artha
-├── :ashtadhyayi     Executable Aṣṭādhyāyī Sūtra catalog (474+ rules across 8 Adhyāyas: Sandhi, Samāsa, Kāraka, Vibhakti, Subanta, Tiṅanta)
-├── :dhatupatha      Complete 10-Gaṇa Dhātupāṭha root catalog (Bhvādi, Adādi, Juhotyādi, Divādi, Svādi, Tudādi, Rudhādi, Tanādi, Kryādi, Curādi)
-├── :unadipatha      Declarative Uṇādipāṭha subsystem (33+ sūtras across all 5 Adhyāyas under 3.3.1 उणादयो बहुलम्), etymological stem analyzer
-├── :linganushasanam Pāṇinian Liṅgānuśāsanam gender resolution subsystem (Sūtras across all 5 Adhyāyas for nominal, affixal, and compound gender)
-├── :derivation      DerivationEngine, SubantaEngine, TingantaEngine, SamasaEngine, SankhyaGenerator, UnadiDerivationBridge, UnadiDerivationEngine
-├── :analysis        Semantic sentence analyzer, resolver for case-marked dependencies (Kārakas) and morphological syncretism
-├── :parser          ANTLR4 canonical segmented Sanskrit parser and AST compiler builder (Prakṛti + Pratyaya)
-├── :actions         Action dispatchers (PaniniAction, DhatuAction, SubantaAction, TingantaAction, SankhyaAction)
-├── :compiler        Sanskrit natural programming language bytecode compiler, compiling .pvm scripts directly to native JVM .class bytecode
-├── :cli             Command-line interface (Main.kt) for script execution, etymological lookup, nominal/verbal derivations, and coverage inspection
-├── :aryabhatiya     Āryabhaṭīya Varga & Avarga consonant-vowel numerical encoder/decoder (ख्युघृ = 4,320,000)
-├── :bhutasamkhya    Bhūtasamkhyā symbolic noun decoder (नेत्र = 2, वेद = 4, अङ्कानां वामतो गतिः)
-├── :sankhya         Numeral generator & transformer
-├── :katapayadi      Kaṭapayādi numerical cipher encoder/decoder (नञावचश्च शून्यानि)
-├── :ganapatha       Gaṇapāṭha nominal list registry
-├── :execution       Sanskrit natural programming language execution runtime, turn-based dialogue context tracking, sandboxed safety gating
-└── :idea-plugin     IntelliJ IDEA plugin integration module
-```
+- Fully segmented Sanskrit `.pvm` source and a canonical grammatical AST.
+- Typed values, direct result pipelines, conditions, bounded and
+  condition-controlled loops, collections, ranges, and validated input.
+- Reusable Sanskrit kriyā definitions with typed and named parameters,
+  structured results, overloads, visibility, and multi-file composition.
+- 893 executable Aṣṭādhyāyī sūtras from the 3,959-sūtra catalog, spanning
+  derivation, Sandhi, Samāsa, Kāraka, Vibhakti, Subanta, and Tiṅanta, alongside
+  Uṇādi and Liṅgānuśāsanam subsystems.
+- A direct CLI, JVM bytecode compiler, and IntelliJ IDEA/Android Studio plugin.
 
----
-
-## Major Features
-
-- **Executable Aṣṭādhyāyī Derivation Engine (`:ashtadhyayi`)**: 474+ executable rules covering nominal declensions (*Subanta*), verbal conjugations (*Tiṅanta*), compound formations (*Samāsa*), case assignments (*Vibhakti*), semantic roles (*Kāraka*), and morpho-phonology (*Sandhi*).
-- **Pure Declarative Uṇādipāṭha Subsystem (`:unadipatha`)**: 33+ sūtras across all 5 Adhyāyas performing suffix assignment, etymological reverse lookup `(Dhātu, Pratyaya) → Saṁjñā`, and nominal stem classification (`RUDHI_PRATIPADIKA` vs `YAUGIKA_PRATIPADIKA`).
-- **Sūtra-Driven Liṅgānuśāsanam Subsystem (`:linganushasanam`)**: Standalone Sūtra-by-Sūtra gender resolution across all 5 canonical sections (*Strīliṅgam*, *Puṃliṅgam*, *Napuṃsakaliṅgam*, *Viśeṣyanighnaliṅgam*, *Samāsaliṅgam*), driving authentic Pāṇinian gender resolution for `SubantaEngine` and `SamasaEngine`.
-- **Centralized & Partitioned Pāṇinian Saṁjñā & Artha Architecture (`:core`)**:
-  - `dev.panini.shiksha.Samjna`: Domain-partitioned into `Unit` (DHATU, PRATYAYA, ANGA, PADA, PRATIPADIKA, SAMASA, AVAYAVA), `Affix` (KRT, UNADI, TADDHITA, SARVADHATUKA, ARDHADHATUKA, GHAN, NVUL, TRC, KTA, SHATRU, SHANAC, Aṇ...), `Phono` (VRDDHI, GUNA, IK, AC, HAL, SAMYOGA, IT...), `Stem` (NADI, GHI, BHA, GHU, PRAGRHYA, SARVANAMA, ABHYASA...), `Avyaya` (AVYAYA, NIPATA, GATI, UPASARGA), `Karaka` (KARTA, KARMA...), and `Rudhi(word)`.
-  - `dev.panini.shiksha.Artha`: Domain-partitioned into `Karaka` (KARTA, KARMA, BHAVA...), `Dispositional` (TAATSIILYA, SHILPA, AASHIS...), `Taddhita` (APATYA, RAGATA, SAMUHA, MATVARTHIYA...), `Rudhi`, and `Explanation`.
-- **Uṇādi Derivation Bridge (`UnadiDerivationEngine`)**: Bridges Uṇādi suffix assignment into `DerivationState` to execute full Aṣṭādhyāyī morpho-phonological rule traces (*Anubandha-lopa*, *Guṇa/Vṛddhi*, *Aṅga-kārya*) for nominal stems like `कारु`, `पितृ`, `कवि`, `ऋषि`, `वेधस्`.
-- **Vākya Sentence Analyzer (`:analysis`)**: `VakyaAnalyzer` resolves syncretic case endings (e.g. `भ्याम्` across तृतीया, चतुर्थी, पञ्चमी) via 1.4 Kāraka and 2.3 Vibhakti sūtras, and automatically enriches sentence parses with Uṇādi etymological stem analyses.
-- **Samāsa (Compound Formation) Subsystem**: Executable compound formation Sūtras across Avyayībhāva (2.1.6), Tatpuruṣa (2.1.24, 2.1.37, 2.2.8), Bahuvrīhi (2.2.24), and Dvandva (2.2.29).
-- **Phonological Sandhi Engine**: Type-safe Sandhi Sūtras (`6.1.109`, `6.1.132`, `6.3.111`, `8.3.14`, `8.3.17`, `8.3.22`, `8.4.59`, `8.4.60`, `8.4.62`, `8.4.63`, `8.4.65`) driven by `PratyaharaEngine` (Māheśvara-sūtras).
-- **ANTLR4 Segmented Sanskrit Parser (`:parser`)**: Parses strictly segmented Pāṇinian words (`Prakṛti + Pratyaya`) through one canonical grammar.
-- **JVM Sanskrit Bytecode Compiler (`:compiler`)**: Compiles multi-clause `.pvm` script files directly into native JVM `.class` bytecode carrying stack constants and resolved execution plans.
-- **First-class Sanskrit Kriyā Definitions (`:execution`)**: Reusable `saṃjñā-kriyā` blocks support typed and named inputs, positional or named calls, primitive and structured results, local scope, overload dispatch, multi-file visibility, and direct typed pipeline composition.
+See [Architecture and implementation coverage](ARCHITECTURE.md) for the module
+map, execution pipeline, grammatical subsystems, and current coverage details.
 
 ---
 
@@ -100,6 +73,97 @@ The execution path follows a single direction:
 ```text
 segmented input → vyākaraṇa AST → binding → operation resolution → planning → runtime
 ```
+
+## Prerequisites
+
+- JDK 25, as configured by the Gradle toolchain. Generated JVM bytecode targets
+  Java 21.
+- A UTF-8 terminal capable of displaying Devanagari.
+- The repository's Gradle wrapper; a separate Gradle installation is not
+  required.
+
+Build the direct CLI launcher once from the repository root:
+
+```sh
+./gradlew :cli:installDist
+```
+
+Interactive `.pvm` programs should use the generated launcher rather than
+Gradle's `:cli:run` task, because Gradle's console proxy may buffer input.
+
+## Write your first `.pvm` program
+
+The [number-guessing game](projects/number-guessing-game/number_guessing_game.pvm)
+chooses a number from one through ten and gives the player five attempts. Its
+complete source is segmented Sanskrit; comments remain in English.
+
+```pvm
+# One range is reused by random choice, input validation, and output.
+एक + ङसिँ दशन् + ङि इति सीमा + सुँ ।
+
+# Define one reusable guessing attempt.
+प्रयत्न + ल्युट् + सुँ ।
+निवेश + अम् सङ्ख्या + ङे ग्रह् + णिच् + लोट् + सिप् ।
+यदि रहस्य + अम् ग्रह् + घञ् + ङस् फल + टा अस् + लोट् + सिप् तर्हि विजयः
+अन्यथा यदि ग्रह् + घञ् + ङस् फल + अम् रहस्य + अम् च नि + विद् + लोट् + सिप्
+तर्हि लघु अन्यथा गुरु ततः मुद्र् + णिच् + लोट् + सिप् ॥
+
+# Choose the secret and store the direct pipeline result.
+दिव् + णिच् + लोट् + सिप् ततः रहस्य + ङे दा + लोट् + सिप् ।
+
+# Print a dynamically rendered instruction.
+सङ्ख्या + अम् अनुमिनु + लोट् + सिप् इति मुद्र् + णिच् + लोट् + सिप् ।
+
+# Repeat until success or five attempts are exhausted.
+पञ्चन् + कृत्वः यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप्
+अन्यथा प्रयत्नाः + अम् समाप्ताः + अम् च मुद्र् + णिच् + लोट् + सिप् ।
+
+# Reveal the secret.
+रहस्य + अम् मुद्र् + णिच् + लोट् + सिप् ।
+```
+
+### How the grammar becomes a program
+
+| Segmented form | Programming role |
+|---|---|
+| `एक + ङसिँ दशन् + ङि इति सीमा + सुँ` | Declares the inclusive range used by random choice and validation. |
+| `निवेश + अम्` | Marks the input value as *karman* through the accusative ending. |
+| `सङ्ख्या + ङे` | Supplies the numeric input type through the dative ending. |
+| `ग्रह् + णिच् + लोट् + सिप्` | Forms the executable input command from a dhātu and verbal affixes. |
+| `ततः रहस्य + ङे दा ...` | Pipes the preceding typed result directly into `रहस्य`. |
+| `यदि ... तर्हि ... अन्यथा` | Selects success, low, or high feedback conditionally. |
+| `पञ्चन् + कृत्वः` | Bounds repetition to five attempts. |
+| `यावत् फल + सुँ न तावत्` | Continues while the latest comparison result is false. |
+| `अन्यथा` after the loop | Runs the exhaustion branch only if all attempts are consumed. |
+
+Run it with the installed launcher:
+
+```sh
+./cli/build/install/cli/bin/cli --eval projects/number-guessing-game/number_guessing_game.pvm
+```
+
+One possible session is shown below. The secret is random, so feedback and the
+revealed number will vary.
+
+```text
+[PaniniVM CLI] Executing file: number_guessing_game.pvm
+एकतः दशन्पर्यन्तं सङ्ख्याम् अनुमिनु
+Enter value for निवेश (number):
+लघु
+Enter value for निवेश (number):
+लघु
+Enter value for निवेश (number):
+लघु
+Enter value for निवेश (number):
+लघु
+Enter value for निवेश (number):
+लघु
+प्रयत्नाः समाप्ताः
+षट्
+```
+
+This session entered `1`, `2`, `3`, `4`, and `5`; the generated secret was
+`6`. Input outside the declared range is rejected without consuming an attempt.
 
 ## Reusable Typed Sanskrit Kriyās
 
@@ -233,18 +297,6 @@ Run all automated unit and integration tests across the Gradle workspace:
 ```sh
 ./gradlew check --no-daemon
 ```
-
----
-
-## Implementation Statistics & Coverage
-
-- **474+ registered executable Aṣṭādhyāyī sūtras** across derivation, sandhi, samāsa, kāraka, and vibhakti scopes.
-- **33+ Uṇādipāṭha Sūtras** registered in pure declarative catalog.
-- **100% Full Coverage of Aṣṭādhyāyī 2.3 Vibhakti Sūtras**: All 64 classical non-Vedic sūtras implemented and verified.
-- **100% Full Coverage of Aṣṭādhyāyī 1.4 Kāraka Sūtras**: All 33 classical Kāraka saṃjñā sūtras implemented and verified.
-- **100% Full Coverage of Nominal (Subanta) Stem Classes**: All 31 Classical Sanskrit nominal stem categories implemented across 3 genders (masculine, feminine, neuter), pronouns, numerals, and consonant stems.
-- **10-Gaṇa Dhātupāṭha Catalog**: Complete root coverage across all ten traditional verbal gaṇas.
-- **Centralized Partitioned Saṁjñās & Artha**: Typed in `:core` (`Samjna.Unit`, `Samjna.Affix`, `Samjna.Phono`, `Samjna.Stem`, `Samjna.Avyaya`, `Samjna.Karaka`, `Samjna.Rudhi`, `Artha.Karaka`, `Artha.Dispositional`, `Artha.Taddhita`, `Artha.Rudhi`, `Artha.Explanation`).
 
 ---
 

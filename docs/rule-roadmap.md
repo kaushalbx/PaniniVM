@@ -4,8 +4,8 @@ The project adds Pāṇinian rules as typed executable transformations. A rule i
 
 ## Current Scope
 
-- **474+ registered executable sūtras**: Integrated across nominal derivation, verbal derivation, compound formation (Samāsa), phonology (Sandhi), and sentence-level Kāraka/Vibhakti scopes.
-- **33+ registered Uṇādipāṭha sūtras**: Integrated under Aṣṭādhyāyī 3.3.1 (*उणादयो बहुलम्*) with etymological reverse lookup and step-by-step derivation tracing (`UnadiDerivationEngine`).
+- **893 registered executable sūtras out of 3,959**: Integrated across nominal derivation, verbal derivation, compound formation (Samāsa), phonology (Sandhi), and sentence-level Kāraka/Vibhakti scopes.
+- **33 registered Uṇādipāṭha sūtras**: Integrated under Aṣṭādhyāyī 3.3.1 (*उणादयो बहुलम्*) with etymological reverse lookup and step-by-step derivation tracing (`UnadiDerivationEngine`).
 - **Centralized & Partitioned Pāṇinian Saṁjñās & Artha**: Typed in `:core` (`Samjna.Unit`, `Samjna.Affix`, `Samjna.Phono`, `Samjna.Stem`, `Samjna.Avyaya`, `Samjna.Karaka`, `Samjna.Rudhi`, `Artha.Karaka`, `Artha.Dispositional`, `Artha.Taddhita`, `Artha.Rudhi`, `Artha.Explanation`).
 - **100% Full Coverage of Aṣṭādhyāyī 1.4 Kāraka Sūtras**: All 33 classical Kāraka saṃjñā sūtras implemented and verified.
 - **100% Full Coverage of Aṣṭādhyāyī 2.3 Vibhakti Sūtras**: All 64 classical non-Vedic Vibhakti sūtras implemented and verified with syncretic `sup` resolution.
@@ -22,7 +22,7 @@ The project adds Pāṇinian rules as typed executable transformations. A rule i
    - All 33 classical Kāraka saṃjñā sūtras (Adhyāya 1.4) and 64 Vibhakti sūtras (Adhyāya 2.3) fully implemented and verified.
 
 2. **[COMPLETED] Declarative Uṇādipāṭha & Derivation Bridge**:
-   - 33+ Uṇādi sūtras implemented across all 5 Adhyāyas.
+   - 33 Uṇādi sūtras implemented across all 5 Adhyāyas.
    - Stem classification (`RUDHI_PRATIPADIKA` vs `YAUGIKA_PRATIPADIKA`) and `VakyaAnalyzer` integration.
    - Derivation engine bridge (`UnadiDerivationEngine`) and CLI commands `--unadi` & `--derive-unadi`.
 
