@@ -13,7 +13,7 @@ Pāṇini’s Aṣṭādhyāyī is the earliest formal, rule-based computational
 
 ---
 
-## Workspace Module Architecture (17 Modules)
+## Workspace Module Architecture (18 Modules)
 
 ```
 PaniniVM Root
@@ -21,7 +21,8 @@ PaniniVM Root
 ├── :ashtadhyayi     Executable Aṣṭādhyāyī Sūtra catalog (474+ rules across 8 Adhyāyas: Sandhi, Samāsa, Kāraka, Vibhakti, Subanta, Tiṅanta)
 ├── :dhatupatha      Complete 10-Gaṇa Dhātupāṭha root catalog (Bhvādi, Adādi, Juhotyādi, Divādi, Svādi, Tudādi, Rudhādi, Tanādi, Kryādi, Curādi)
 ├── :unadipatha      Declarative Uṇādipāṭha subsystem (33+ sūtras across all 5 Adhyāyas under 3.3.1 उणादयो बहुलम्), etymological stem analyzer
-├── :derivation      DerivationEngine, SubantaEngine, TingantaEngine, SankhyaGenerator, UnadiDerivationBridge, UnadiDerivationEngine
+├── :linganushasanam Pāṇinian Liṅgānuśāsanam gender resolution subsystem (Sūtras across all 5 Adhyāyas for nominal, affixal, and compound gender)
+├── :derivation      DerivationEngine, SubantaEngine, TingantaEngine, SamasaEngine, SankhyaGenerator, UnadiDerivationBridge, UnadiDerivationEngine
 ├── :analysis        Semantic sentence analyzer, resolver for case-marked dependencies (Kārakas) and morphological syncretism
 ├── :parser          ANTLR4 canonical segmented Sanskrit parser and AST compiler builder (Prakṛti + Pratyaya)
 ├── :actions         Action dispatchers (PaniniAction, DhatuAction, SubantaAction, TingantaAction, SankhyaAction)
@@ -42,6 +43,7 @@ PaniniVM Root
 
 - **Executable Aṣṭādhyāyī Derivation Engine (`:ashtadhyayi`)**: 474+ executable rules covering nominal declensions (*Subanta*), verbal conjugations (*Tiṅanta*), compound formations (*Samāsa*), case assignments (*Vibhakti*), semantic roles (*Kāraka*), and morpho-phonology (*Sandhi*).
 - **Pure Declarative Uṇādipāṭha Subsystem (`:unadipatha`)**: 33+ sūtras across all 5 Adhyāyas performing suffix assignment, etymological reverse lookup `(Dhātu, Pratyaya) → Saṁjñā`, and nominal stem classification (`RUDHI_PRATIPADIKA` vs `YAUGIKA_PRATIPADIKA`).
+- **Sūtra-Driven Liṅgānuśāsanam Subsystem (`:linganushasanam`)**: Standalone Sūtra-by-Sūtra gender resolution across all 5 canonical sections (*Strīliṅgam*, *Puṃliṅgam*, *Napuṃsakaliṅgam*, *Viśeṣyanighnaliṅgam*, *Samāsaliṅgam*), driving authentic Pāṇinian gender resolution for `SubantaEngine` and `SamasaEngine`.
 - **Centralized & Partitioned Pāṇinian Saṁjñā & Artha Architecture (`:core`)**:
   - `dev.panini.shiksha.Samjna`: Domain-partitioned into `Unit` (DHATU, PRATYAYA, ANGA, PADA, PRATIPADIKA, SAMASA, AVAYAVA), `Affix` (KRT, UNADI, TADDHITA, SARVADHATUKA, ARDHADHATUKA, GHAN, NVUL, TRC, KTA, SHATRU, SHANAC, Aṇ...), `Phono` (VRDDHI, GUNA, IK, AC, HAL, SAMYOGA, IT...), `Stem` (NADI, GHI, BHA, GHU, PRAGRHYA, SARVANAMA, ABHYASA...), `Avyaya` (AVYAYA, NIPATA, GATI, UPASARGA), `Karaka` (KARTA, KARMA...), and `Rudhi(word)`.
   - `dev.panini.shiksha.Artha`: Domain-partitioned into `Karaka` (KARTA, KARMA, BHAVA...), `Dispositional` (TAATSIILYA, SHILPA, AASHIS...), `Taddhita` (APATYA, RAGATA, SAMUHA, MATVARTHIYA...), `Rudhi`, and `Explanation`.

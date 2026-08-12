@@ -39,7 +39,11 @@ object MahatahSamanadhikaranaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
         val last = context.padas.last().upadesha
-        val compoundStem = "महा" + last
+        val compoundStem = when {
+            last.startsWith("आ") -> "महा" + last.drop(1)
+            last.startsWith("अ") -> "महा" + last.drop(1)
+            else -> "महा" + last
+        }
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "6.3.46 substitutes mahā for mahat in '$compoundStem'.",

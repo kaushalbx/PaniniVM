@@ -24,7 +24,7 @@ object RajahahSakhibhyasTacSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     pada = 4,
     optional = false,
     kramaValue = 540091,
-    role = SutraRole.Niyama,
+    role = SutraRole.Vidhi,
     action = SutraAction.PRATYAYA_SELECTION,
     scope = SutraScope.DERIVATION,
     samasaType = SamasaType.TATPURUSA,
@@ -38,10 +38,20 @@ object RajahahSakhibhyasTacSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
-        val compoundStem = context.padas.joinToString("") { it.upadesha } + "अ"
+        val lastPada = context.padas.last().upadesha
+        val convertedLast = when {
+            lastPada == "राजन्" || lastPada == "राजन" || lastPada == "rajan" -> "राज"
+            lastPada == "अहन्" || lastPada == "अहन" || lastPada == "ahan" -> "अह"
+            lastPada == "सखि" || lastPada == "sakhi" -> "सख"
+            else -> if (lastPada.endsWith("न्")) lastPada.dropLast(2) + "अ" else lastPada + "अ"
+        }
+        val leadingPadas = context.padas.dropLast(1).joinToString("") { pada ->
+            if (pada.upadesha == "महत्") "महा" else pada.upadesha
+        }
+        val compoundStem = leadingPadas + convertedLast
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
-            explanation = "5.4.91 adds Samāsānta ṭac ('a') suffix after rājan/ahan/sakhi in '$compoundStem'.",
+            explanation = "5.4.91 adds Samāsānta ṭac ('a') suffix after rājan/ahan/sakhi yielding stem '$compoundStem'.",
         )
     }
 }

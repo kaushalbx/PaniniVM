@@ -135,6 +135,21 @@ class SamasaEngine(
                 surface
             }
         }
+        if (compoundMembers != padasList) {
+            val nLopa = Ashtadhyayi.registry.require("8.2.7") as Sutra<*, *>
+            applications.add(
+                DerivationApplication(
+                    sutra = nLopa.number,
+                    role = nLopa.role,
+                    action = nLopa.action,
+                    scope = nLopa.scope,
+                    trace = nLopa.text,
+                    before = currentState,
+                    after = currentState,
+                    explanation = "8.2.7 deletes final न् from a non-final compound member.",
+                )
+            )
+        }
 
         val sandhiRes = if (rawStem.contains(" ")) {
             val parts = rawStem.split(" ")
@@ -213,13 +228,16 @@ class SamasaEngine(
     private fun subantaParams(type: SamasaType, padas: List<SamasaPada>): Triple<Vibhakti, Vacana, Linga> {
         val count = padas.size
         val lastPada = padas.lastOrNull()?.upadesha ?: ""
-        val isNeuterStem = lastPada in setOf("पद", "ज", "कुल", "वन", "अक्ष") || padas.firstOrNull()?.upadesha == "कृत"
+        val isNeuterStem = lastPada in setOf("पद", "ज", "कुल", "वन", "अक्ष", "ज्ञान", "फल", "अवच", "अन्तर") ||
+            padas.firstOrNull()?.upadesha == "कृत"
         val isSamaharaDvandva = padas.any { it.upadesha in setOf("पाणि", "पाद", "मार्दङ्गिक", "धाना", "शष्कुलि") }
 
         return when (type) {
             SamasaType.AVYAYIBHAVA, SamasaType.DVIGU ->
                 Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.NAPUMSAKA)
-            SamasaType.TATPURUSA, SamasaType.BAHUVRIHI, SamasaType.KARMADHARAYA, SamasaType.NAN_TATPURUSA, SamasaType.UPAPADA_TATPURUSA, SamasaType.ALUK_TATPURUSA, SamasaType.MAYURAVYAMSAKADI ->
+            SamasaType.MAYURAVYAMSAKADI ->
+                Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, if (padas.firstOrNull()?.upadesha == "मयूर") Linga.PUMS else Linga.NAPUMSAKA)
+            SamasaType.TATPURUSA, SamasaType.BAHUVRIHI, SamasaType.KARMADHARAYA, SamasaType.NAN_TATPURUSA, SamasaType.UPAPADA_TATPURUSA, SamasaType.ALUK_TATPURUSA ->
                 Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, if (isNeuterStem) Linga.NAPUMSAKA else Linga.PUMS)
             SamasaType.DVANDVA ->
                 if (isSamaharaDvandva) Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.NAPUMSAKA)
@@ -236,7 +254,7 @@ class SamasaEngine(
     ): Sutra<SamasaRuleContext, SamasaRuleResult> {
         val candidates = samasaSutras
             .filter {
-                it.samasaType == context.samasaType &&
+                (it.samasaType == context.samasaType || (context.samasaType == SamasaType.KARMADHARAYA && it.samasaType == SamasaType.TATPURUSA)) &&
                 ((it as Sutra<*, *>).chapter <= 2 || context.samasaType == SamasaType.ALUK_TATPURUSA) &&
                 (it as Sutra<*, *>).action != dev.panini.sutra.SutraAction.NISHEDHA &&
                 (it as Sutra<*, *>).role != dev.panini.sutra.SutraRole.Niyama
@@ -267,7 +285,7 @@ class SamasaEngine(
         .asSequence()
         .filter {
             val sutra = it as Sutra<*, *>
-            it.samasaType == context.samasaType &&
+            (it.samasaType == context.samasaType || (context.samasaType == SamasaType.KARMADHARAYA && it.samasaType == SamasaType.TATPURUSA)) &&
                 sutra.number != classificationSutra.number &&
                 sutra.chapter >= 5 &&
                 sutra.role !is dev.panini.sutra.SutraRole.Adhikara &&

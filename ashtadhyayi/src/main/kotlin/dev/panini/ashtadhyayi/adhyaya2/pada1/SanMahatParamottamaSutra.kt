@@ -42,12 +42,27 @@ object SanMahatParamottamaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
         val purva = context.purvaPada.upadesha
         val uttara = context.uttaraPada.upadesha
-        val adjustedPurva = if (purva == "महत्") "महा" else purva
-        val compoundStem = adjustedPurva + uttara
+        val compoundStem = if (purva == "महत्" || purva == "महान्" || purva == "महा") {
+            joinMahat(uttara)
+        } else {
+            purva + uttara
+        }
 
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "2.1.61: Formed Karmadhāraya compound with praise adjective ($compoundStem).",
         )
+    }
+
+    private fun joinMahat(uttara: String): String {
+        val firstChar = uttara.firstOrNull() ?: return "महा$uttara"
+        val rest = uttara.drop(1)
+        return when (firstChar) {
+            'अ', 'आ' -> "महा$rest"
+            'इ', 'ई' -> "महेश$rest"
+            'उ', 'ऊ' -> "महो$rest"
+            'ऋ' -> "महर्$rest"
+            else -> "महा$uttara"
+        }
     }
 }

@@ -1,15 +1,19 @@
 package dev.panini.execution
 
 import dev.panini.core.Linga
+import dev.panini.core.SamasaType
 import dev.panini.core.SupAffix
+import dev.panini.core.Vibhakti
 import dev.panini.core.TingAffix
 import dev.panini.derivation.DerivationEngine
 import dev.panini.derivation.KrdantaEngine
+import dev.panini.derivation.SamasaEngine
 import dev.panini.derivation.SubantaDerivationRequest
 import dev.panini.derivation.SubantaEngine
 import dev.panini.derivation.TingantaDerivationRequest
 import dev.panini.derivation.TingantaEngine
 import dev.panini.dhatupatha.DhatuPatha
+import dev.panini.analysis.SamasaPada
 import dev.panini.execution.binding.NumeralAstNormalizer
 import dev.panini.sankhya.SankhyaAbhyasaRenderer
 import dev.panini.sankhya.SankhyaEvaluator
@@ -58,6 +62,7 @@ class PvmUktiSadhaka(
     private val subantaEngine: SubantaEngine = SubantaEngine(derivationEngine),
     private val tingantaEngine: TingantaEngine = TingantaEngine(derivationEngine),
     private val krdantaEngine: KrdantaEngine = KrdantaEngine(),
+    private val samasaEngine: SamasaEngine = SamasaEngine(),
     private val pratipadikaLexicon: PratipadikaLexicon = StandardPratipadikaLexicon,
     private val parser: PaniniParser = PaniniParser(),
 ) {
@@ -275,6 +280,20 @@ class PvmUktiSadhaka(
 
     fun sadhayaSubanta(subanta: SubantaPada, lingaOverride: Linga? = null): String {
         val normalized = NumeralAstNormalizer.normalize(subanta)
+        val samasa = normalized.pratipadika as? SamasaPratipadika
+        if (samasa != null) {
+            return try {
+                val padas = samasa.angas.map { anga ->
+                    val vibhakti = anga.sup?.text
+                        ?.let { SupAffix.fromUpadesha(it)?.vibhakti }
+                        ?: Vibhakti.PRATHAMA
+                    SamasaPada(anga.pratipadika.baseText(), vibhakti)
+                }
+                samasaEngine.derive(padas, SamasaType.TATPURUSA).final.surface
+            } catch (_: Exception) {
+                samasa.baseText()
+            }
+        }
         val kridanta = normalized.pratipadika as? KridantaPratipadika
         val sourceStem = kridanta?.let {
             krdantaEngine.deriveSourceStem(it.dhatu.mulaDhatu, it.krtPratyaya)
