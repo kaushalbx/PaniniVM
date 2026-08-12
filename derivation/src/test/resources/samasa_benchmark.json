@@ -8,7 +8,10 @@
     ],
     "samasaType": "KARMADHARAYA",
     "expectedStem": "महानवमी",
-    "governingSutra": "6.3.100"
+    "expectedSurface": "महानवमी",
+    "classificationSutra": "2.1.61",
+    "transformationSutras": "",
+    "forbiddenSutras": ""
   },
   {
     "id": "BENCH_002",
@@ -19,7 +22,10 @@
     ],
     "samasaType": "ALUK_TATPURUSA",
     "expectedStem": "आत्मनेपद",
-    "governingSutra": "6.3.21"
+    "expectedSurface": "आत्मनेपदम्",
+    "classificationSutra": "6.3.21",
+    "transformationSutras": "",
+    "forbiddenSutras": ""
   },
   {
     "id": "BENCH_003",
@@ -30,7 +36,10 @@
     ],
     "samasaType": "TATPURUSA",
     "expectedStem": "राजपुरुष",
-    "governingSutra": "2.2.8"
+    "expectedSurface": "राजपुरुषः",
+    "classificationSutra": "2.2.8",
+    "transformationSutras": "",
+    "forbiddenSutras": "5.4.91"
   },
   {
     "id": "BENCH_004",
@@ -41,7 +50,10 @@
     ],
     "samasaType": "BAHUVRIHI",
     "expectedStem": "सुहृद्",
-    "governingSutra": "5.4.125"
+    "expectedSurface": "सुहृत्",
+    "classificationSutra": "2.2.24",
+    "transformationSutras": "5.4.125",
+    "forbiddenSutras": ""
   },
   {
     "id": "BENCH_005",
@@ -52,7 +64,10 @@
     ],
     "samasaType": "DVANDVA",
     "expectedStem": "मातरापितृ",
-    "governingSutra": "6.3.86"
+    "expectedSurface": "मातरापितरौ",
+    "classificationSutra": "2.2.34",
+    "transformationSutras": "6.3.86",
+    "forbiddenSutras": "6.3.87"
   },
   {
     "id": "BENCH_006",
@@ -63,7 +78,10 @@
     ],
     "samasaType": "DVANDVA",
     "expectedStem": "पित्रामातृ",
-    "governingSutra": "6.3.87"
+    "expectedSurface": "पित्रामातरौ",
+    "classificationSutra": "2.2.34",
+    "transformationSutras": "6.3.87",
+    "forbiddenSutras": "6.3.86"
   },
   {
     "id": "BENCH_007",
@@ -74,7 +92,10 @@
     ],
     "samasaType": "TATPURUSA",
     "expectedStem": "कष्टापन्न",
-    "governingSutra": "2.2.5"
+    "expectedSurface": "कष्टापन्नः",
+    "classificationSutra": "2.2.5",
+    "transformationSutras": "",
+    "forbiddenSutras": "2.1.24"
   },
   {
     "id": "BENCH_008",
@@ -85,6 +106,9 @@
     ],
     "samasaType": "AVYAYIBHAVA",
     "expectedStem": "उपकृष्ण",
-    "governingSutra": "2.1.6"
+    "expectedSurface": "उपकृष्णम्",
+    "classificationSutra": "2.1.6",
+    "transformationSutras": "",
+    "forbiddenSutras": ""
   }
 ]

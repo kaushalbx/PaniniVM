@@ -64,8 +64,11 @@ class SamasaEngine(
 
         // 2. Select and apply the classification Sūtra driven by purvaPadaVibhakti
         val classificationSutra = selectClassificationSutra(context)
-        val samasaResult = classificationSutra.apply(context) as? SamasaRuleResult.Formed
+        val classificationResult = classificationSutra.apply(context) as? SamasaRuleResult.Formed
             ?: error("Sūtra ${(classificationSutra as Sutra<*, *>).number} did not form a compound for context: $context")
+
+        val transformationSutra = selectTransformationSutra(context, classificationSutra)
+        val samasaResult = transformationSutra?.apply(context) as? SamasaRuleResult.Formed ?: classificationResult
 
         val applications = mutableListOf<DerivationApplication>()
 
@@ -101,9 +104,25 @@ class SamasaEngine(
                 trace = classificationSutraObj.text,
                 before = currentState,
                 after = currentState,
-                explanation = samasaResult.explanation,
+                explanation = classificationResult.explanation,
             )
         )
+
+        transformationSutra?.let { sutra ->
+            val sutraObj = sutra as Sutra<*, *>
+            applications.add(
+                DerivationApplication(
+                    sutra = sutraObj.number,
+                    role = sutraObj.role,
+                    action = sutraObj.action,
+                    scope = sutraObj.scope,
+                    trace = sutraObj.text,
+                    before = currentState,
+                    after = currentState,
+                    explanation = samasaResult.explanation,
+                )
+            )
+        }
 
         val rawStem = samasaResult.compoundStem
         val padasList = padas.map { it.upadesha }
@@ -168,6 +187,11 @@ class SamasaEngine(
             purvaPada = padas.first().upadesha,
             uttaraPada = padas.getOrElse(1) { padas.last() }.upadesha,
             classificationSutra = classificationSutraObj.number,
+            compoundStem = normalizedStem,
+            transformationSutras = listOfNotNull(transformationSutra?.let { (it as Sutra<*, *>).number }),
+            supLopaSutras = applications.map { it.sutra }.filter { it == "2.4.71" }.distinct(),
+            sandhiSutras = applications.map { it.sutra }.filter { it.startsWith("6.1.") || it.startsWith("8.") }.distinct(),
+            inflectionSutras = subantaResult.applications.map { it.sutra }.distinct(),
         )
 
         return DerivationResult(
@@ -213,6 +237,7 @@ class SamasaEngine(
         val candidates = samasaSutras
             .filter {
                 it.samasaType == context.samasaType &&
+                ((it as Sutra<*, *>).chapter <= 2 || context.samasaType == SamasaType.ALUK_TATPURUSA) &&
                 (it as Sutra<*, *>).action != dev.panini.sutra.SutraAction.NISHEDHA &&
                 (it as Sutra<*, *>).role != dev.panini.sutra.SutraRole.Niyama
             }
@@ -234,6 +259,24 @@ class SamasaEngine(
             SamasaType.DVANDVA           -> CartheDvandvahSutra
         }
     }
+
+    private fun selectTransformationSutra(
+        context: SamasaRuleContext,
+        classificationSutra: Sutra<SamasaRuleContext, SamasaRuleResult>,
+    ): Sutra<SamasaRuleContext, SamasaRuleResult>? = samasaSutras
+        .asSequence()
+        .filter {
+            val sutra = it as Sutra<*, *>
+            it.samasaType == context.samasaType &&
+                sutra.number != classificationSutra.number &&
+                sutra.chapter >= 5 &&
+                sutra.role !is dev.panini.sutra.SutraRole.Adhikara &&
+                sutra.role != dev.panini.sutra.SutraRole.Niyama &&
+                sutra.action != dev.panini.sutra.SutraAction.NISHEDHA
+        }
+        .sortedWith(compareByDescending<SamasaSutra> { it.samasaPriority }.thenByDescending { (it as Sutra<*, *>).kramaValue })
+        .firstOrNull { it.matches(context) }
+        ?.let { it as Sutra<SamasaRuleContext, SamasaRuleResult> }
 
     private fun selectTatpurusaFallback(
         context: SamasaRuleContext,
