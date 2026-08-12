@@ -37,6 +37,7 @@ object RdusanasPurudamsoSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
+        if (stem.surface.endsWith('ा')) return false
         val isArStem = stem.upadesha.endsWith("ृ") || stem.surface.endsWith("अर्")
         if (!isArStem) return false
 
@@ -48,7 +49,7 @@ object RdusanasPurudamsoSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        val newSurface = if (stem.surface.endsWith("अर्")) stem.surface.dropLast(2) + "ा" else stem.surface.dropLast(1) + "ा"
+        val newSurface = if (stem.surface.endsWith("र्")) stem.surface.dropLast(2) + "ा" else stem.surface.dropLast(1) + "ा"
         val newTerms = context.terms.dropLast(1)
 
         return DerivationChange(

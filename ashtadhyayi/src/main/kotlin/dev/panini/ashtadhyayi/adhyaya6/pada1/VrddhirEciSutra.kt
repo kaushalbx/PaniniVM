@@ -78,20 +78,21 @@ object VrddhirEciSutra : Sutra<DerivationState, DerivationChange>(
 
         val substitute = getVrddhi(rightChar)
 
-        val newSurface = if (leftChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks) {
-            leftTerm.surface + substitute + rightTerm.surface.drop(1)
+        val rawRightRemainder = rightTerm.surface.drop(1)
+        val rightRemainder = if (rightTerm.itMarkers.isNotEmpty() && rawRightRemainder.endsWith("्")) {
+            rawRightRemainder.dropLast(2)
         } else {
-            leftTerm.surface.dropLast(1) + substitute + rightTerm.surface.drop(1)
+            rawRightRemainder
+        }
+        val newSurface = if (leftChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks) {
+            leftTerm.surface + substitute + rightRemainder
+        } else {
+            leftTerm.surface.dropLast(1) + substitute + rightRemainder
         }
 
         return DerivationChange(
             state = context.copy(
-                terms = terms.dropLast(2) + leftTerm.copy(
-                    surface = newSurface,
-                    // Ekadeśa combines the sounds, not their grammatical identity.
-                    // Preserve the right-hand term's it-status for 1.3.9.
-                    itMarkers = leftTerm.itMarkers + rightTerm.itMarkers,
-                ),
+                terms = terms.dropLast(2) + leftTerm.copy(surface = newSurface),
                 droppedTerms = context.droppedTerms + terms.last().copy(surface = ""),
                 stage = DerivationStage.PADA_FORMED
             ).addSubstitution(VarnaSubstitution(leftTerm.id, leftChar, substitute, sutra)),

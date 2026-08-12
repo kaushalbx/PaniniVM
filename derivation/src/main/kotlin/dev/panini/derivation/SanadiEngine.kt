@@ -91,7 +91,7 @@ object SanadiEngine {
         }
 
         val stem = generateCausativeStem(root)
-        val finalForm = derivationResult?.final?.terms?.lastOrNull()?.surface ?: "${stem.dropLast(1)}यति"
+        val finalForm = derivationResult?.final?.surface ?: "${stem.dropLast(1)}यति"
 
         steps += "3.1.32 [सनाद्यन्ता धातवः]: Declaring $stem as a causative dhātu stem"
         steps += "3.1.68 [कर्तरि शप्] & 6.1.78 [एचोऽयवायावः]: Conjugated form -> $finalForm"
@@ -146,6 +146,7 @@ object SanadiEngine {
     private fun generateCausativeStem(root: String): String = when {
         root == "गम्" -> "गमि"
         root == "दृश्" -> "दर्शि"
+        root == "पच्" -> "पाचि"
         root.endsWith("ू") -> root.dropLast(1) + "ावि"
         root.endsWith("ृ") -> root.dropLast(1) + "ारि"
         root.endsWith("्") -> {

@@ -8,8 +8,13 @@ import dev.panini.dhatupatha.DhatuPatha
 
 class TingantaEngine(private val engine: DerivationEngine = DerivationEngine(dev.panini.ashtadhyayi.Ashtadhyayi.executableSutras)) {
 
-    fun supportsSanadi(dhatu: String, sanadiPratyayas: List<String>, pada: PadaType? = null): Boolean =
-        sanadiPratyayas.firstOrNull() in setOf("णिच्", "सन्", "यङ्")
+    fun supportsSanadi(dhatu: String, sanadiPratyayas: List<String>, pada: PadaType? = null): Boolean {
+        val type = sanadiPratyayas.firstOrNull() ?: return false
+        if (type !in setOf("णिच्", "सन्", "यङ्")) return false
+        if (type != "णिच्") return true
+        val entry = runCatching { findDhatu(dhatu, pada) }.getOrNull() ?: return false
+        return entry.gana in setOf(DhatuGana.DIVADI, DhatuGana.RUDHADI, DhatuGana.CURADI)
+    }
 
     fun derive(request: TingantaDerivationRequest): DerivationResult {
         val dhatu = findDhatu(request.dhatu, request.pada.takeIf { request.sanadiPratyayas.isNotEmpty() })

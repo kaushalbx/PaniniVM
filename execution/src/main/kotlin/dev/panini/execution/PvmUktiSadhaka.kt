@@ -336,8 +336,8 @@ class PvmUktiSadhaka(
                 vacana = tingAffix.vacana,
                 purusha = tingAffix.purusha,
                 lakara = tinganta.lakara,
-                pada = tingAffix.pada.takeIf { useSanadiEngine },
-                sanadiPratyayas = tinganta.dhatu.sanadiPratyayas.takeIf { useSanadiEngine }.orEmpty(),
+                pada = tingAffix.pada.takeIf { useSanadiEngine || tinganta.dhatu.sanadiPratyayas.isNotEmpty() },
+                sanadiPratyayas = tinganta.dhatu.sanadiPratyayas,
             )
             val derived = tingantaEngine.derive(req).final.surface
             if (tinganta.upasargas.isNotEmpty()) {

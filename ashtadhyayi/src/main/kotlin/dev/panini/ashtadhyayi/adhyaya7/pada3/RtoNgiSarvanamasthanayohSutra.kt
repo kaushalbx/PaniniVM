@@ -37,6 +37,7 @@ object RtoNgiSarvanamasthanayohSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
+        if (stem.surface.endsWith("र्")) return false
         val isRStem = stem.upadesha.endsWith("ृ") || stem.surface.endsWith("ृ")
         if (!isRStem) return false
 
@@ -47,7 +48,7 @@ object RtoNgiSarvanamasthanayohSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
-        val newSurface = stem.surface.dropLast(1) + "अर्"
+        val newSurface = stem.surface.dropLast(1) + if (stem.surface.endsWith("ृ")) "र्" else "अर्"
 
         return DerivationChange(
             state = context.replaceTerm(stem.id, stem.copy(surface = newSurface))

@@ -364,7 +364,7 @@ class DerivationEngine(
             )
             current = stateWithSub
         }
-        error("Derivation did not reach a fixed point within $maxSteps steps.")
+        error("Derivation did not reach a fixed point within $maxSteps steps. History: ${applications.takeLast(20).map { "${it.sutra} (${it.before.surface} -> ${it.after.surface})" }}")
     }
 
     private fun completed(initial: DerivationState, current: DerivationState, applications: List<DerivationApplication>, events: List<DerivationEvent>): DerivationResult {
@@ -493,6 +493,7 @@ fun DerivationResult.verifyDerivation(
         "Incomplete derivation for $expectedAffixUpadesha; missing ${requiredSutras - appliedSutras}."
     }
     require(final.stage.ordinal >= expectedStage.ordinal) {
-        "Incomplete derivation for $expectedAffixUpadesha; expected at least $expectedStage, reached ${final.stage}."
+        val recentApplications = applications.takeLast(10).joinToString { it.sutra }
+        "Incomplete derivation for $expectedAffixUpadesha; expected at least $expectedStage, reached ${final.stage}. Recent rules: $recentApplications."
     }
 }

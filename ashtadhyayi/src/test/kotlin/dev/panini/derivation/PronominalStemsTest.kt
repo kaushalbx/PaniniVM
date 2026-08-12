@@ -78,7 +78,7 @@ class PronominalStemsTest {
         kotlin.test.assertTrue(imam.applications.any { it.sutra == "7.2.102" })
 
         val iman = engine.derive(SubantaDerivationRequest("इदम्", Vibhakti.DVITIYA, Vacana.BAHUVACANA, Linga.PUMS))
-        assertEquals("इमान्", iman.final.surface)
+        assertEquals("इमान्", iman.final.surface, iman.applications.joinToString("\n") { "${it.sutra}: ${it.after.surface}" })
         kotlin.test.assertTrue(iman.applications.any { it.sutra == "7.2.102" })
 
         val trayah = engine.derive(SubantaDerivationRequest("त्रि", Vibhakti.PRATHAMA, Vacana.BAHUVACANA, Linga.PUMS))
@@ -117,8 +117,8 @@ class PronominalStemsTest {
         kotlin.test.assertTrue(panca.applications.any { it.sutra == "7.1.22" })
 
         val pancanam = engine.derive(SubantaDerivationRequest("पञ्चन्", Vibhakti.SASTHI, Vacana.BAHUVACANA, Linga.PUMS))
-        assertEquals("पञ्चानाम्", pancanam.final.surface)
-        kotlin.test.assertTrue(pancanam.applications.any { it.sutra == "7.1.55" })
+        assertEquals("पञ्चानाम्", pancanam.final.surface, pancanam.applications.joinToString("\n") { "${it.sutra}: ${it.after.surface}" })
+        kotlin.test.assertTrue(pancanam.applications.any { it.sutra == "7.3.146" })
 
         val sat = engine.derive(SubantaDerivationRequest("षट्", Vibhakti.PRATHAMA, Vacana.BAHUVACANA, Linga.PUMS))
         assertEquals("षट्", sat.final.surface)

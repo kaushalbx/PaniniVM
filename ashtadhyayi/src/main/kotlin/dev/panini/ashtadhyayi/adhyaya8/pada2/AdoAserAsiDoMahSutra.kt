@@ -42,6 +42,28 @@ object AdoAserAsiDoMahSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms.first()
         val rupa = context.effectiveContext.rupa
+        val affix = context.terms.lastOrNull()
+
+        if (rupa.vacana == Vacana.DVIVACANA && affix != null && affix.upadesha in setOf("औ", "औट्")) {
+            return DerivationChange(
+                state = context.copy(
+                    terms = context.terms.dropLast(2) + stem.copy(surface = "अमू"),
+                    droppedTerms = context.droppedTerms + affix.copy(surface = ""),
+                    stage = DerivationStage.FINAL,
+                ),
+                explanation = "8.2.80 & 8.2.81: Derived the dual adas form 'अमू'.",
+            )
+        }
+        if (rupa.vacana == Vacana.BAHUVACANA && affix != null && affix.upadesha == "शी") {
+            return DerivationChange(
+                state = context.copy(
+                    terms = context.terms.dropLast(2) + stem.copy(surface = "अमी"),
+                    droppedTerms = context.droppedTerms + affix.copy(surface = ""),
+                    stage = DerivationStage.FINAL,
+                ),
+                explanation = "8.2.80 & 8.2.81: Derived the nominative-plural adas form 'अमी'.",
+            )
+        }
 
         val replacement = when {
             rupa.vacana == Vacana.BAHUVACANA && stem.surface.endsWith("े") -> stem.surface.dropLast(1) + "ी"

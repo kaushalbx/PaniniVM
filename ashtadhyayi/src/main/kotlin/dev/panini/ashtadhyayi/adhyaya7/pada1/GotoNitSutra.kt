@@ -37,6 +37,7 @@ object GotoNitSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
+        if (stem.surface == "गौ") return false
         val isGo = stem.upadesha == "गो" || stem.surface == "गो"
         if (!isGo) return false
 

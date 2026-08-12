@@ -35,15 +35,21 @@ object SatCaturbhyascaSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        val isCaturOrShat = stem.upadesha in setOf("चतुर्", "षट्") || stem.surface in setOf("चतुर्", "षट्")
+        val isCaturOrShat = stem.upadesha in setOf("चतुर्", "षट्", "पञ्चन्", "सप्तन्", "अष्टन्", "नवन्", "दशन्") ||
+            stem.surface in setOf("चतुर्", "षट्") ||
+            context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SHAT }
 
         return isCaturOrShat && affix.upadesha == "आम्" && !affix.surface.startsWith("नाम") && !affix.surface.startsWith("णाम") && context.allEffectiveTerms.none { it.upadesha == "नुट्" }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
+        val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
         val newSurface = "नाम्"
-        val newTerms = context.terms.dropLast(1) + affix.copy(surface = newSurface)
+        val lengthenedStem = if (stem.surface.endsWith("न्") && !stem.surface.contains('ा')) {
+            stem.copy(surface = stem.surface.dropLast(2) + "ान्")
+        } else stem
+        val newTerms = context.terms.dropLast(2) + lengthenedStem + affix.copy(surface = newSurface)
 
         return DerivationChange(
             state = context.copy(terms = newTerms),

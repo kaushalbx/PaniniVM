@@ -81,7 +81,13 @@ object SarvanamasthaneCasambuddhauSutra : Sutra<DerivationState, DerivationChang
             'इ', 'ि' -> surface.substring(0, index) + "ी" + surface.substring(index + 1)
             'उ', 'ु' -> surface.substring(0, index) + "ू" + surface.substring(index + 1)
             'अ' -> surface.substring(0, index) + "ा" + surface.substring(index + 1)
-            else -> if (!surface.contains('ा')) surface + "ा" else surface
+            else -> if (!surface.contains('ा')) {
+                when {
+                    surface.endsWith("न्") -> surface.dropLast(2) + "ान्"
+                    surface.endsWith('न') -> surface.dropLast(1) + "ान"
+                    else -> surface + "ा"
+                }
+            } else surface
         }
 
         return DerivationChange(

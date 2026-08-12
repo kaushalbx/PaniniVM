@@ -37,6 +37,7 @@ object VasohSamprasaranamSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
+        if (stem.surface.contains("दुष्")) return false
         val isVasStem = stem.upadesha == "विद्वस्" || stem.surface.endsWith("वस्") || stem.surface == "विद्वस्"
         if (!isVasStem) return false
 

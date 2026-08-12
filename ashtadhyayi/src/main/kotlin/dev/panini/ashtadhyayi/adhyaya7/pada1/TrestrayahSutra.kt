@@ -35,7 +35,7 @@ object TrestrayahSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        val isTri = stem.upadesha == "त्रि" || stem.surface == "त्रि"
+        val isTri = stem.surface == "त्रि"
         val isNami = affix.id == "sup-am_6" || affix.upadesha == "आम्" ||
             affix.surface.startsWith("नाम") || affix.surface.startsWith("णाम") ||
             context.droppedTerms.any { it.id == "sup-am_6" }

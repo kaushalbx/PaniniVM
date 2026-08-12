@@ -52,11 +52,10 @@ object AdasAuSulopascaSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
-        val newTerms = context.terms.dropLast(1)
+        val newTerms = context.terms.dropLast(2) + stem.copy(surface = "असौ")
 
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = "असौ"))
-                .copy(terms = newTerms, stage = DerivationStage.ANGAKARYA)
+            state = context.copy(terms = newTerms, stage = DerivationStage.FINAL)
                 .copy(droppedTerms = context.droppedTerms + affix.copy(surface = "")),
             explanation = "7.2.107 & 8.2.80: Substituted 'asau' for 'adas' before nominative singular su."
         )

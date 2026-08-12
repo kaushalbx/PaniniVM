@@ -37,6 +37,7 @@ object StriyamIyangUvangauSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
+        if (stem.surface == "स्त्रिय्") return false
         val isStriStem = stem.upadesha == "स्त्री" || stem.surface == "स्त्री"
         if (!isStriStem) return false
 
