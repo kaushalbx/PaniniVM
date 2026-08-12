@@ -1,6 +1,7 @@
 package dev.panini.dhatupatha.bhvadi
 
 import dev.panini.actions.collection.ListIndexAction
+import dev.panini.actions.control.LoopBreakAction
 import dev.panini.actions.state.StateWaitAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
@@ -28,8 +29,14 @@ class SthaDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = UDATTA,
     operations = listOf(
+        LoopBreakAction.op {
+            optional(Karaka.KARTR)
+            triggeredBy(requiredUpasargas = setOf("वि"))
+            returns(Samjna.SHABDA)
+        },
         StateWaitAction.op {
             requires(Karaka.KARMAN)
+            triggeredBy(forbiddenUpasargas = setOf("वि"))
             returns(Samjna.SHABDA)
         },
         ListIndexAction.op {

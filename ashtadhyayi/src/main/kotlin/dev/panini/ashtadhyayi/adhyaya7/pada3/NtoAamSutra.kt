@@ -39,9 +39,15 @@ object NtoAamSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
+        val shatNumerals = setOf("पञ्चन्", "षट्", "सप्तन्", "अष्टन्", "नवन्", "दशन्")
+        val newSurface = if (stem.upadesha in shatNumerals) {
+            stem.surface.dropLast(2) + "ानाम्"
+        } else {
+            stem.surface.dropLast(1) + "ाम्"
+        }
         return DerivationChange(
             state = context.copy(
-                terms = context.terms.dropLast(2) + stem.copy(surface = stem.surface.dropLast(1) + "ाम्"),
+                terms = context.terms.dropLast(2) + stem.copy(surface = newSurface),
                 droppedTerms = context.droppedTerms + affix.copy(surface = ""),
                 stage = DerivationStage.FINAL,
             ),

@@ -4,6 +4,7 @@ import dev.panini.core.Karaka
 import dev.panini.execution.DhatuOperation
 import dev.panini.execution.ExecutionContext
 import dev.panini.execution.ExecutionExpression
+import dev.panini.core.SupAffix
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.SanskritValue
 import dev.panini.shiksha.Samjna
@@ -39,6 +40,12 @@ object PaniniRuntime {
     fun createReferenceExpression(name: String): ExecutionExpression.Reference {
         return ExecutionExpression.Reference(name)
     }
+
+    @JvmStatic
+    fun createTypedOperandExpression(
+        value: SanskritValue,
+        sup: SupAffix,
+    ): ExecutionExpression.TypedOperand = ExecutionExpression.TypedOperand(value, sup)
 
     @JvmStatic
     fun resolveOperation(

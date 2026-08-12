@@ -1,0 +1,13 @@
+# Typed interactive input examples.
+
+# Unqualified input accepts text.
+नाम + अम् ग्रह् + णिच् + लोट् + सिप् ।
+
+# सत्य as sampradana requests a boolean value.
+अनुमत + अम् सत्य + ङे ग्रह् + णिच् + लोट् + सिप् ।
+
+# विकल्प with the other sampradana values declares an allowed choice set.
+वर्ण + अम् लोहित + ङे नील + ङे विकल्प + ङे ग्रह् + णिच् + लोट् + सिप् ।
+
+# Print the final selected value.
+ग्रह् + घञ् + ङस् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।

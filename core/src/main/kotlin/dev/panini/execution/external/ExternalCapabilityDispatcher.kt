@@ -27,6 +27,10 @@ class ExternalCapabilityDispatcher {
         return handler.handle(payload, effect)
     }
 
+    /** Dispatches only when the host explicitly registered the requested capability. */
+    fun dispatchOrNull(effect: ExecutionEffect, payload: String): String? =
+        handlers[effect]?.handle(payload, effect)
+
     fun clear() {
         handlers.clear()
     }

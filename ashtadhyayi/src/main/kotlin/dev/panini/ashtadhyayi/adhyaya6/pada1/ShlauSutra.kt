@@ -31,7 +31,7 @@ object ShlauSutra : Sutra<DerivationState, DerivationChange>(
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU } ?: return false
         return dhatu.gana == DhatuGana.JUHOTYADI &&
             context.droppedTerms.any { it.upadesha == "शप्" && it.deletionType == LopaType.SHLU } &&
-            context.terms.none { it.id == "abhyasa" }
+            context.allEffectiveTerms.none { it.id == "abhyasa" }
     }
 
     override fun apply(context: DerivationState): DerivationChange {

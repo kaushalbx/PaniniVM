@@ -1,12 +1,13 @@
 package dev.panini.execution.sutra
 
 import dev.panini.dhatupatha.DhatuPathaRegistration
-import dev.panini.execution.DevanagariDigits
 import dev.panini.execution.ExecutableUkti
 import dev.panini.execution.ExecutionBindingResult
 import dev.panini.execution.ExecutionError
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.ExecutionScope
+import dev.panini.execution.ExecutionMetadata
+import dev.panini.execution.KriyaInvocationId
 import dev.panini.execution.Phala
 import dev.panini.execution.Prativacana
 import dev.panini.execution.SambhashanaContext
@@ -15,6 +16,7 @@ import dev.panini.execution.SanskritPrativacanaRenderer
 import dev.panini.execution.SanskritUktiInput
 import dev.panini.execution.SanskritValue
 import dev.panini.execution.SmrtaPhala
+import dev.panini.execution.SmrtaPhalaId
 import dev.panini.execution.ValueEnvironment
 import dev.panini.execution.binding.VyakaranamExecutionAdapter
 import dev.panini.execution.memory.KriyaMemory
@@ -31,15 +33,15 @@ object SutraExecutionPipeline {
         memory: KriyaMemory = KriyaMemory(),
     ): Phala {
         initialize()
-        return when (val binding = VyakaranamExecutionAdapter.bind(input, conversation, memory)) {
+        return when (val binding = VyakaranamExecutionAdapter.bind(input, conversation, memory, scope.environment)) {
             is ExecutionBindingResult.Bound -> {
                 val phala = execute(binding.ukti, conversation, scope, memory)
                     .prependTrace(binding.trace)
                 if (phala is Phala.Siddha) {
                     val metadata = buildMap {
-                        val turnPrefix = "उक्ति-${DevanagariDigits.render(conversation.turnNumber + 1)}"
+                        val turnPrefix = SmrtaPhalaId.turnPrefix(conversation.turnNumber + 1)
                         binding.ukti.invocations.forEachIndexed { idx, inv ->
-                            put("dhatu:$turnPrefix/योग-${idx + 1}", inv.dhatu.upadesha)
+                            put(ExecutionMetadata.dhatu("$turnPrefix/${KriyaInvocationId.of(idx + 1)}"), inv.dhatu.upadesha)
                         }
                     }
                     phala.copy(metadata = metadata)
@@ -131,6 +133,8 @@ object SutraExecutionPipeline {
                     trace = state.executionTrace + machineTrace,
                     typedValues = state.invocationValues,
                     localBindings = state.localBindings,
+                    outputKind = last.outputKind,
+                    controlSignal = last.controlSignal,
                 )
             }
             null -> Phala.Asiddha(
@@ -172,7 +176,7 @@ object SutraExecutionPipeline {
         val nextTurn = conversation.turnNumber + 1
         val remembered = success.values.map { (invocationId, value) ->
             SmrtaPhala(
-                id = "उक्ति-${DevanagariDigits.render(nextTurn)}/$invocationId",
+                id = SmrtaPhalaId.of(nextTurn, invocationId),
                 turnNumber = nextTurn,
                 invocationId = invocationId,
                 value = value,
@@ -181,8 +185,9 @@ object SutraExecutionPipeline {
             )
         }
         val historyMetadata = remembered.mapNotNull { r ->
-            val dhatu = success.metadata["dhatu:${r.invocationId}"] ?: success.metadata["dhatuName"]
-            if (dhatu != null) "dhatu:${r.id}" to dhatu else null
+            val dhatu = success.metadata[ExecutionMetadata.dhatu(r.invocationId)]
+                ?: success.metadata[ExecutionMetadata.DEFAULT_DHATU]
+            if (dhatu != null) ExecutionMetadata.dhatu(r.id) to dhatu else null
         }.toMap()
         val historyTypedResults = remembered.mapNotNull { r ->
             r.typedValue?.let { r.id to it }
@@ -355,6 +360,8 @@ object SutraExecutionPipeline {
                     trace = finalState.executionTrace + machineTrace,
                     typedValues = finalState.invocationValues,
                     localBindings = finalState.localBindings,
+                    outputKind = last.outputKind,
+                    controlSignal = last.controlSignal,
                 )
             }
             null -> Phala.Asiddha(
@@ -389,7 +396,7 @@ object SutraExecutionPipeline {
         val nextTurn = continuation.conversation.turnNumber + 1
         val remembered = success.values.map { (invocationId, value) ->
             SmrtaPhala(
-                id = "उक्ति-${DevanagariDigits.render(nextTurn)}/$invocationId",
+                id = SmrtaPhalaId.of(nextTurn, invocationId),
                 turnNumber = nextTurn,
                 invocationId = invocationId,
                 value = value,

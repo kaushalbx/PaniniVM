@@ -1,5 +1,6 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada4
 
+import dev.panini.ashtadhyayi.adhyaya3.pada1.hasSanadyantaDhatu
 import dev.panini.core.DhatuGana
 import dev.panini.core.Lakara
 import dev.panini.derivation.DerivationChange
@@ -28,7 +29,7 @@ object SerHyapicCaSutra : Sutra<DerivationState, DerivationChange>(
     }
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
-        val replacement = when (context.terms.firstOrNull { it.kind == TermKind.DHATU && it.id != "abhyasa" }?.gana) {
+        val replacement = if (context.hasSanadyantaDhatu()) "" else when (context.terms.firstOrNull { it.kind == TermKind.DHATU && it.id != "abhyasa" }?.gana) {
             DhatuGana.ADADI, DhatuGana.JUHOTYADI, DhatuGana.RUDHADI -> "धि"
             DhatuGana.KRYADI -> "हि"
             else -> ""

@@ -4,8 +4,10 @@ import dev.panini.aryabhatiya.AryabhatiyaDecoder
 import dev.panini.bhutasamkhya.BhutasamkhyaDecoder
 import dev.panini.core.Karaka
 import dev.panini.execution.ExecutionExpression
+import dev.panini.execution.SanskritValue
 import dev.panini.katapayadi.KatapayadiDecoder
 import dev.panini.sankhya.PrimitiveSankhya
+import dev.panini.sankhya.SankhyaExpression
 import dev.panini.vyakaranam.ast.AryabhatiyaPada
 import dev.panini.vyakaranam.ast.BhutasamkhyaPada
 import dev.panini.vyakaranam.ast.KatapayadiPada
@@ -34,18 +36,49 @@ internal object NumeralPadaBinder {
     private val aryabhatiyaDecoder = AryabhatiyaDecoder()
     private val bhutasamkhyaDecoder = BhutasamkhyaDecoder()
 
+    internal fun resolveSemanticValue(pada: Pada): SanskritValue.Sankhya? {
+        val value = when (pada) {
+            is SankhyaPuranaPada -> pada.value
+                ?: sharedSankhyaEvaluator.evaluateStems(pada.stems).value
+            else -> extractNumeralValue(pada)
+        } ?: return null
+        val word = when (pada) {
+            is SankhyaPada -> pada.stems.joinToString(" ")
+            is SankhyaPuranaPada -> pada.stems.joinToString(" ")
+            is KatapayadiPada -> pada.word
+            is AryabhatiyaPada -> pada.word
+            is BhutasamkhyaPada -> pada.terms.joinToString(" ")
+            is SubantaPada -> NumeralAstNormalizer.resolve(pada.pratipadika)?.semanticValue?.word
+                ?: pada.pratipadika.sourceText
+            else -> return null
+        }
+        return SanskritValue.Sankhya(value, word)
+    }
+
     /**
      * Decodes [pada] to a Long if it carries a numeric value, otherwise returns null.
      * Used by the [SankhyaPada] op-stem arm to peek ahead at the next numeral pada.
      */
     internal fun extractNumeralValue(pada: Pada): Long? = when (pada) {
         is SankhyaPada -> pada.value ?: sharedSankhyaEvaluator.evaluateStems(pada.stems).value
-        is SubantaPada -> (pada.pratipadika as? SankhyaPratipadika)?.value
+        is SubantaPada -> NumeralAstNormalizer.resolve(pada.pratipadika)?.semanticValue?.value
             ?: PrimitiveSankhya.fromAnnotatedPratipadika(pada.pratipadika.sourceText)?.value
         is KatapayadiPada -> pada.value ?: katapayadiDecoder.decode(pada.word)
         is AryabhatiyaPada -> pada.value ?: aryabhatiyaDecoder.decode(pada.word)
         is BhutasamkhyaPada -> pada.value ?: bhutasamkhyaDecoder.decodeTerms(pada.terms)
         else -> null
+    }
+
+    /** Extracts an ordinal value only when numeric morphology evaluates to pūraṇa. */
+    internal fun extractOrdinalValue(pada: Pada): Long? {
+        val expression = when (pada) {
+            is SankhyaPuranaPada -> runCatching { sharedSankhyaEvaluator.evaluateStems(pada.stems) }.getOrNull()
+            is SubantaPada -> runCatching {
+                sharedSankhyaEvaluator.evaluateStems(listOf(pada.pratipadika.baseText()))
+            }.getOrNull()
+            else -> null
+        }
+        return (expression as? SankhyaExpression.Purana)?.value
     }
 
     /**
@@ -109,7 +142,14 @@ internal object NumeralPadaBinder {
         inferKarakas: (SubantaPada) -> Set<Karaka>,
         addBinding: (ExecutionExpression, Set<Karaka>) -> Unit,
     ) {
-        val sub = SubantaPada(sourceText, SankhyaPratipadika(sourceText, value), sup)
+        val sub = SubantaPada(
+            sourceText,
+            SankhyaPratipadika(
+                sourceText = sourceText,
+                semanticValue = dev.panini.execution.SanskritValue.Sankhya(value, sourceText),
+            ),
+            sup,
+        )
         addBinding(ExecutionExpression.sankhya(value, sourceText), inferKarakas(sub))
     }
 }

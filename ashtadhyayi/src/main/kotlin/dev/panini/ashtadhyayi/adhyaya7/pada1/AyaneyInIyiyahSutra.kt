@@ -41,7 +41,7 @@ object AyaneyInIyiyahSutra : Sutra<DerivationState, DerivationChange>(
         val firstChar = pratyaya.surface.first()
         val rest = pratyaya.surface.drop(1)
         val replacement = when (firstChar) {
-            'फ' -> "आयन्"
+            'फ' -> "आयन"
             'ढ' -> "एय्"
             'ख' -> "ईन्"
             'छ' -> "ईय्"

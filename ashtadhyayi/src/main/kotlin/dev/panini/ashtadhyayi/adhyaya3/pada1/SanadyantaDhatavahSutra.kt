@@ -1,7 +1,6 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada1
 
 import dev.panini.derivation.DerivationChange
-import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.SamjnaAssignment
@@ -44,9 +43,14 @@ object SanadyantaDhatavahSutra : Sutra<DerivationState, DerivationChange>(
         return DerivationChange(
             state = context.copy(
                 samjnas = context.samjnas + SamjnaAssignment(lastPratyaya.id, Samjna.DHATU),
-                stage = maxOf(context.stage, DerivationStage.ANGAKARYA),
             ),
             explanation = "3.1.32 assigns Dhātu samjñā to the secondary root formed with ${lastPratyaya.upadesha}."
         )
     }
 }
+
+internal fun DerivationState.hasSanadyantaDhatu(): Boolean =
+    samjnas.any { assignment ->
+        assignment.samjna == Samjna.DHATU &&
+            terms.any { it.id == assignment.targetId && it.kind == TermKind.PRATYAYA }
+    }

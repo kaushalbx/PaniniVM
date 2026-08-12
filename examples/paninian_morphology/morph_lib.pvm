@@ -1,0 +1,14 @@
+# रूपसाधन ग्रन्थ — Upasargas, Kṛt Pratyayas, and Tva Type Guards
+
+# अधिकार-सूत्र (Governing Domain: गणित via अधि + कृ + घञ् + सुँ)
+गणित + सुँ इति अधि + कृ + घञ् + सुँ ।
+
+# क्त-प्रत्यय (Memoized Constant Procedure: सिद्ध + क्त + सुँ)
+# Evaluated once and cached in registry
+सिद्ध + क्त + सुँ ।
+द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ॥
+
+# तव्यत्-प्रत्यय (Mandatory Assertion with सङ्ख्यात्व Type Guard: शुध् + णिच् + तव्यत् + सुँ)
+शुध् + णिच् + तव्यत् + सुँ ।
+न प्रथम + अम् सङ्ख्या + त्व + अम् ।
+प्रथम + अम् द्वितीय + अम् च युज् + णिच् + लोट् + सिप् ॥

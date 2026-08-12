@@ -10,7 +10,6 @@ import dev.panini.ashtadhyayi.adhyaya2.pada2.*
 import dev.panini.ashtadhyayi.adhyaya2.pada4.*
 import dev.panini.ashtadhyayi.adhyaya5.pada4.*
 import dev.panini.ashtadhyayi.adhyaya6.pada3.*
-import dev.panini.ashtadhyayi.adhyaya8.pada2.NaloPratipadikantasyaSutra
 import dev.panini.core.Linga
 import dev.panini.core.SamasaType
 import dev.panini.core.Vacana
@@ -19,11 +18,13 @@ import dev.panini.derivation.SubantaDerivationRequest
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
-import dev.panini.linganushasanam.LinganushasanamEngine
-import dev.panini.linganushasanam.LingaRuleContext
 
 /**
  * Input request for compound derivation.
+ *
+ * Each [SamasaPada] carries the upadesha (base stem) of the member and its [Vibhakti]
+ * — the grammatical case it bears in the laukika vigraha. This drives Sūtra selection
+ * without any surface-string heuristics.
  *
  * Example — rājapuruṣaḥ (षष्ठी Tatpuruṣa):
  *   padas = [SamasaPada("राज", Vibhakti.SASTHI), SamasaPada("पुरुष", Vibhakti.PRATHAMA)]
@@ -51,7 +52,6 @@ class SamasaEngine(
     private val sandhiEngine: SandhiEngine = SandhiEngine(derivationEngine),
     private val subantaEngine: SubantaEngine = SubantaEngine(derivationEngine),
     private val samasaSutras: List<SamasaSutra> = Ashtadhyayi.cataloguedSutras.filterIsInstance<SamasaSutra>(),
-    private val linganushasanamEngine: LinganushasanamEngine = LinganushasanamEngine(),
 ) {
     fun derive(request: SamasaDerivationRequest): DerivationResult =
         derive(request.padas, request.type)
@@ -64,8 +64,11 @@ class SamasaEngine(
 
         // 2. Select and apply the classification Sūtra driven by purvaPadaVibhakti
         val classificationSutra = selectClassificationSutra(context)
-        val samasaResult = classificationSutra.apply(context) as? SamasaRuleResult.Formed
+        val classificationResult = classificationSutra.apply(context) as? SamasaRuleResult.Formed
             ?: error("Sūtra ${(classificationSutra as Sutra<*, *>).number} did not form a compound for context: $context")
+
+        val transformationSutra = selectTransformationSutra(context, classificationSutra)
+        val samasaResult = transformationSutra?.apply(context) as? SamasaRuleResult.Formed ?: classificationResult
 
         val applications = mutableListOf<DerivationApplication>()
 
@@ -90,11 +93,6 @@ class SamasaEngine(
         val sutra2_4_71 = Ashtadhyayi.registry.require("2.4.71") as DerivationSutra
         currentState = executeDerivationSutra(sutra2_4_71, currentState, applications)
 
-        // 5b. Sūtra 8.2.7 (नलोपः प्रातिपदिकान्तस्य): Na-lopa for pūrvapadas ending in 'न्' after Sup-lopa
-        if (NaloPratipadikantasyaSutra.matches(currentState)) {
-            currentState = executeDerivationSutra(NaloPratipadikantasyaSutra, currentState, applications)
-        }
-
         // 6. Record classification Sūtra application in the trace
         val classificationSutraObj = classificationSutra as Sutra<*, *>
         applications.add(
@@ -106,16 +104,52 @@ class SamasaEngine(
                 trace = classificationSutraObj.text,
                 before = currentState,
                 after = currentState,
-                explanation = samasaResult.explanation,
+                explanation = classificationResult.explanation,
             )
         )
 
+        transformationSutra?.let { sutra ->
+            val sutraObj = sutra as Sutra<*, *>
+            applications.add(
+                DerivationApplication(
+                    sutra = sutraObj.number,
+                    role = sutraObj.role,
+                    action = sutraObj.action,
+                    scope = sutraObj.scope,
+                    trace = sutraObj.text,
+                    before = currentState,
+                    after = currentState,
+                    explanation = samasaResult.explanation,
+                )
+            )
+        }
+
         val rawStem = samasaResult.compoundStem
-        val effectivePadas = currentState.terms.map { it.surface }
         val padasList = padas.map { it.upadesha }
         val rawPadasConcat = padasList.joinToString("")
-        val effectivePadasConcat = effectivePadas.joinToString("")
         val hasSamasantaKap = rawStem.endsWith("क") && !rawPadasConcat.endsWith("क")
+        val compoundMembers = padasList.mapIndexed { index, surface ->
+            if (index < padas.lastIndex && type != SamasaType.ALUK_TATPURUSA && surface.endsWith("न्")) {
+                surface.dropLast(2)
+            } else {
+                surface
+            }
+        }
+        if (compoundMembers != padasList) {
+            val nLopa = Ashtadhyayi.registry.require("8.2.7") as Sutra<*, *>
+            applications.add(
+                DerivationApplication(
+                    sutra = nLopa.number,
+                    role = nLopa.role,
+                    action = nLopa.action,
+                    scope = nLopa.scope,
+                    trace = nLopa.text,
+                    before = currentState,
+                    after = currentState,
+                    explanation = "8.2.7 deletes final न् from a non-final compound member.",
+                )
+            )
+        }
 
         val sandhiRes = if (rawStem.contains(" ")) {
             val parts = rawStem.split(" ")
@@ -127,10 +161,10 @@ class SamasaEngine(
                 applications.addAll(j.applications)
             }
             res
-        } else if (rawStem == rawPadasConcat || rawStem == effectivePadasConcat || hasSamasantaKap) {
-            var res = effectivePadas.first()
-            for (i in 1 until effectivePadas.size) {
-                val next = effectivePadas[i]
+        } else if (rawStem == rawPadasConcat || hasSamasantaKap) {
+            var res = compoundMembers.first()
+            for (i in 1 until compoundMembers.size) {
+                val next = compoundMembers[i]
                 val j = sandhiEngine.join(res, next)
                 val joined = j.final.surface
                 res = if (joined.isNotBlank() && joined.length >= res.length + next.length - 1) joined else res + next
@@ -151,7 +185,7 @@ class SamasaEngine(
             .replace("ंव", "म्व")
 
         // 9. Decline the compound Prātipadika via SubantaEngine (Pāṇinian Subanta pipeline)
-        val (vibhakti, vacana, linga) = subantaParams(type, padas, pureStem = sandhiRes)
+        val (vibhakti, vacana, linga) = subantaParams(type, padas)
         val subantaResult = subantaEngine.derive(
             SubantaDerivationRequest(normalizedStem, vibhakti, vacana, linga)
         )
@@ -167,11 +201,16 @@ class SamasaEngine(
             alaukikaVigraha = padas.joinToString(" + ") { it.upadesha },
             purvaPada = padas.first().upadesha,
             uttaraPada = padas.getOrElse(1) { padas.last() }.upadesha,
-            classificationSutra = (classificationSutra as Sutra<*, *>).number,
+            classificationSutra = classificationSutraObj.number,
+            compoundStem = normalizedStem,
+            transformationSutras = listOfNotNull(transformationSutra?.let { (it as Sutra<*, *>).number }),
+            supLopaSutras = applications.map { it.sutra }.filter { it == "2.4.71" }.distinct(),
+            sandhiSutras = applications.map { it.sutra }.filter { it.startsWith("6.1.") || it.startsWith("8.") }.distinct(),
+            inflectionSutras = subantaResult.applications.map { it.sutra }.distinct(),
         )
 
         return DerivationResult(
-            initial = DerivationState(terms = initialTerms, stage = DerivationStage.INITIAL),
+            initial = initialState,
             final = finalState,
             applications = applications,
             events = emptyList(),
@@ -180,30 +219,30 @@ class SamasaEngine(
     }
 
     /**
-     * Helper to establish Vibhakti, Vacana, and Linga for compound final Subanta declension.
+     * Returns the (Vibhakti, Vacana, Linga) triple for the final Subanta declension of a compound.
+     * Pāṇinian: After Sup-lopa the compound Prātipadika takes a fresh Prathama ending.
+     * - Avyayibhāva: invariable — Prathama Ekavacana Napumsaka (ends in म्)
+     * - Tatpuruṣa / Bahuvrihi: Prathama Ekavacana Pumliṅga (ends in ः)
+     * - Dvandva: Prathama Dvivacana for 2 members (ौ), Bahuvacana for 3+ (ाः)
      */
-    private fun subantaParams(type: SamasaType, padas: List<SamasaPada>, pureStem: String = ""): Triple<Vibhakti, Vacana, Linga> {
+    private fun subantaParams(type: SamasaType, padas: List<SamasaPada>): Triple<Vibhakti, Vacana, Linga> {
         val count = padas.size
-        val stems = padas.map { it.upadesha }
-        val compoundStem = if (pureStem.isNotBlank()) pureStem else stems.joinToString("")
-        val lingaResult = linganushasanamEngine.resolve(
-            LingaRuleContext(
-                pratipadika = compoundStem,
-                padas = stems,
-                samasaType = type,
-            )
-        )
+        val lastPada = padas.lastOrNull()?.upadesha ?: ""
+        val isNeuterStem = lastPada in setOf("पद", "ज", "कुल", "वन", "अक्ष", "ज्ञान", "फल", "अवच", "अन्तर") ||
+            padas.firstOrNull()?.upadesha == "कृत"
         val isSamaharaDvandva = padas.any { it.upadesha in setOf("पाणि", "पाद", "मार्दङ्गिक", "धाना", "शष्कुलि") }
 
         return when (type) {
             SamasaType.AVYAYIBHAVA, SamasaType.DVIGU ->
                 Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.NAPUMSAKA)
-            SamasaType.TATPURUSA, SamasaType.BAHUVRIHI, SamasaType.KARMADHARAYA, SamasaType.NAN_TATPURUSA, SamasaType.UPAPADA_TATPURUSA, SamasaType.ALUK_TATPURUSA, SamasaType.MAYURAVYAMSAKADI ->
-                Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, lingaResult.linga)
+            SamasaType.MAYURAVYAMSAKADI ->
+                Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, if (padas.firstOrNull()?.upadesha == "मयूर") Linga.PUMS else Linga.NAPUMSAKA)
+            SamasaType.TATPURUSA, SamasaType.BAHUVRIHI, SamasaType.KARMADHARAYA, SamasaType.NAN_TATPURUSA, SamasaType.UPAPADA_TATPURUSA, SamasaType.ALUK_TATPURUSA ->
+                Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, if (isNeuterStem) Linga.NAPUMSAKA else Linga.PUMS)
             SamasaType.DVANDVA ->
                 if (isSamaharaDvandva) Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.NAPUMSAKA)
-                else if (count == 2)   Triple(Vibhakti.PRATHAMA, Vacana.DVIVACANA, lingaResult.linga)
-                else                   Triple(Vibhakti.PRATHAMA, Vacana.BAHUVACANA, lingaResult.linga)
+                else if (count == 2)   Triple(Vibhakti.PRATHAMA, Vacana.DVIVACANA, Linga.PUMS)
+                else                   Triple(Vibhakti.PRATHAMA, Vacana.BAHUVACANA, Linga.PUMS)
         }
     }
 
@@ -216,6 +255,7 @@ class SamasaEngine(
         val candidates = samasaSutras
             .filter {
                 (it.samasaType == context.samasaType || (context.samasaType == SamasaType.KARMADHARAYA && it.samasaType == SamasaType.TATPURUSA)) &&
+                ((it as Sutra<*, *>).chapter <= 2 || context.samasaType == SamasaType.ALUK_TATPURUSA) &&
                 (it as Sutra<*, *>).action != dev.panini.sutra.SutraAction.NISHEDHA &&
                 (it as Sutra<*, *>).role != dev.panini.sutra.SutraRole.Niyama
             }
@@ -237,6 +277,24 @@ class SamasaEngine(
             SamasaType.DVANDVA           -> CartheDvandvahSutra
         }
     }
+
+    private fun selectTransformationSutra(
+        context: SamasaRuleContext,
+        classificationSutra: Sutra<SamasaRuleContext, SamasaRuleResult>,
+    ): Sutra<SamasaRuleContext, SamasaRuleResult>? = samasaSutras
+        .asSequence()
+        .filter {
+            val sutra = it as Sutra<*, *>
+            (it.samasaType == context.samasaType || (context.samasaType == SamasaType.KARMADHARAYA && it.samasaType == SamasaType.TATPURUSA)) &&
+                sutra.number != classificationSutra.number &&
+                sutra.chapter >= 5 &&
+                sutra.role !is dev.panini.sutra.SutraRole.Adhikara &&
+                sutra.role != dev.panini.sutra.SutraRole.Niyama &&
+                sutra.action != dev.panini.sutra.SutraAction.NISHEDHA
+        }
+        .sortedWith(compareByDescending<SamasaSutra> { it.samasaPriority }.thenByDescending { (it as Sutra<*, *>).kramaValue })
+        .firstOrNull { it.matches(context) }
+        ?.let { it as Sutra<SamasaRuleContext, SamasaRuleResult> }
 
     private fun selectTatpurusaFallback(
         context: SamasaRuleContext,
@@ -271,4 +329,3 @@ class SamasaEngine(
         return change.state
     }
 }
-

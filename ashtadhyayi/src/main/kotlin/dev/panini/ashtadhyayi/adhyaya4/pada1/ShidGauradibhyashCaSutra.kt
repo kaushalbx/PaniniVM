@@ -10,6 +10,7 @@ import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.HasMorphosyntax
 import dev.panini.derivation.TermKind
 import dev.panini.ganapatha.GanaPatha
+import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -37,6 +38,7 @@ object ShidGauradibhyashCaSutra : Sutra<DerivationState, DerivationChange>(
             "4.1.3" in context.activeAdhikaras &&
             context.terms.any { term ->
                 term.kind == TermKind.PRATIPADIKA &&
+                    context.samjnas.none { it.targetId == term.id && it.samjna == Samjna.SHAT } &&
                     (term.hasEffectiveMarker(ItMarker.SH) ||
                         GanaPatha.isEligibleMember(48, term.surface, term.lexicalUses))
             } &&

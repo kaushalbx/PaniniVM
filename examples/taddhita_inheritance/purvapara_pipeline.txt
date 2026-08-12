@@ -1,0 +1,20 @@
+# तद्धित ग्रन्थ — Pāṇinian Compound Kriyā Pipeline (6.1.84 एकः पूर्वपरयोः)
+
+# Step 1: Scope declaration
+गणितः इति का ।
+
+# Step 2: Define Kriyā 1 (Multiplication: 5 * 2 = 10)
+गणितस्य गुण् इति सञ्ज्ञा ।
+पञ्च द्वे च योजय ॥
+
+# Step 3: Define Kriyā 2 (Subtraction: 10 - 2 = 8)
+गणितस्य रन्ध्रः इति सञ्ज्ञा ।
+दश द्वे च वियोजय ॥
+
+# Step 4: Execute Compound Pipeline (6.1.84 एकः पूर्वपरयोः)
+# Stage 1 (पूर्व): गुण् (5 * 2 = 10)
+# Stage 2 (पर): रन्ध्र (10 - 2 = 8)
+पञ्च द्वे च गणितस्य गुण्ः गणितस्य रन्ध्रस्य पूर्वस्य परस्य एका कृणु ।
+
+# Step 5: Print result
+मुद्रय फलम् ।

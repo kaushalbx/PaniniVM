@@ -16,6 +16,7 @@ import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.DhatuPrakriti
 import dev.panini.vyakaranam.ast.TingPratyaya
+import dev.panini.sankhya.PrimitiveSankhya
 
 class SubantaEngine(
     private val engine: DerivationEngine = DerivationEngine(dev.panini.ashtadhyayi.Ashtadhyayi.executableSutras),
@@ -39,67 +40,28 @@ class SubantaEngine(
     }
 
     private fun deriveSpecializedDeclension(pratipadika: String, vibhakti: Vibhakti, vacana: Vacana): String? {
-        if (pratipadika.endsWith("त्मन्") || pratipadika.endsWith("आत्मन्")) {
-            val stem = pratipadika.removeSuffix("न्").removeSuffix("न")
-            return when {
-                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.EKAVACANA -> "${stem}ा"
-                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.BAHUVACANA -> "${stem}ानः"
-                else -> null
-            }
-        }
-        return when (pratipadika) {
-            "नदी" -> when {
-                vibhakti == Vibhakti.TRTIYA && vacana == Vacana.EKAVACANA -> "नद्या"
-                vibhakti == Vibhakti.TRTIYA && vacana == Vacana.BAHUVACANA -> "नदीभिः"
-                else -> null
-            }
-            "राजन्" -> when {
-                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.EKAVACANA -> "राजा"
-                vibhakti == Vibhakti.TRTIYA && vacana == Vacana.EKAVACANA -> "राज्ञा"
-                else -> null
-            }
-            "वाच्" -> when {
-                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.EKAVACANA -> "वाक्"
-                vibhakti == Vibhakti.TRTIYA && vacana == Vacana.EKAVACANA -> "वाचा"
-                vibhakti == Vibhakti.TRTIYA && vacana == Vacana.BAHUVACANA -> "वाग्भिः"
-                else -> null
-            }
-            "तद्" -> when {
-                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.EKAVACANA -> "सः"
-                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.DVIVACANA -> "तौ"
-                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.BAHUVACANA -> "ते"
-                vibhakti == Vibhakti.DVITIYA && vacana == Vacana.EKAVACANA -> "तम्"
-                vibhakti == Vibhakti.TRTIYA && vacana == Vacana.EKAVACANA -> "तेन"
-                vibhakti == Vibhakti.CHATURTHI && vacana == Vacana.EKAVACANA -> "तस्मै"
-                vibhakti == Vibhakti.PANCHAMI && vacana == Vacana.EKAVACANA -> "तस्मात्"
-                vibhakti == Vibhakti.SASTHI && vacana == Vacana.EKAVACANA -> "तस्य"
-                vibhakti == Vibhakti.SAPTAMI && vacana == Vacana.EKAVACANA -> "तस्मिन्"
-                else -> null
-            }
-            "यद्" -> when {
-                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.EKAVACANA -> "यः"
-                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.DVIVACANA -> "यौ"
-                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.BAHUVACANA -> "ये"
-                else -> null
-            }
-            "किम्" -> when {
-                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.EKAVACANA -> "कः"
-                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.DVIVACANA -> "कौ"
-                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.BAHUVACANA -> "के"
-                else -> null
-            }
-            "इदम्" -> when {
-                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.EKAVACANA -> "अयम्"
-                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.DVIVACANA -> "इमौ"
-                vibhakti == Vibhakti.PRATHAMA && vacana == Vacana.BAHUVACANA -> "इमे"
-                else -> null
-            }
-            "द्वि" -> when {
-                vacana == Vacana.DVIVACANA -> "द्वी"
-                else -> null
-            }
-            else -> null
-        }
+        return deriveNumeralOverride(pratipadika, vibhakti, vacana)
+    }
+
+    private fun deriveNumeralOverride(
+        pratipadika: String,
+        vibhakti: Vibhakti,
+        vacana: Vacana,
+    ): String? = null
+
+    private fun pluralNumeral(
+        nominativeAccusative: String,
+        instrumental: String,
+        dativeAblative: String,
+        genitive: String,
+        locative: String,
+        vibhakti: Vibhakti,
+    ): String = when (vibhakti) {
+        Vibhakti.PRATHAMA, Vibhakti.DVITIYA -> nominativeAccusative
+        Vibhakti.TRTIYA -> instrumental
+        Vibhakti.CHATURTHI, Vibhakti.PANCHAMI -> dativeAblative
+        Vibhakti.SASTHI -> genitive
+        Vibhakti.SAPTAMI -> locative
     }
 
     fun deriveSupportedParadigm(

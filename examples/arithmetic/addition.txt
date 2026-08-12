@@ -1,7 +1,7 @@
 # Addition Algorithm in PaniniVM Script (.pvm)
 
 # Step 1: Add 1 and 2 (1 + 2 = 3)
-एकम् द्विम् च योजय ।
+एकम् द्वे च योजय ।
 
 # Step 2: Print the result of addition (3 = त्रीणि)
 योगस्य फलम् मुद्रय ।

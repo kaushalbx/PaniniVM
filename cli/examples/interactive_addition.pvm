@@ -1,0 +1,14 @@
+# Interactive addition of two shell inputs.
+# Enter either ASCII digits (for example 10) or Devanagari digits (for example १०).
+
+# Read the first number and bind it to प्रथमम्.
+प्रथम + अम् सङ्ख्या + ङे ग्रह् + णिच् + लोट् + सिप् ।
+
+# Read the second number and bind it to द्वितीयम्.
+द्वितीय + अम् सङ्ख्या + ङे ग्रह् + णिच् + लोट् + सिप् ।
+
+# Add the two captured values.
+प्रथम + अम् द्वितीय + अम् च युज् + णिच् + लोट् + सिप् ।
+
+# Print the result.
+युज् + घञ् + ङस् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।

@@ -1,9 +1,16 @@
 package dev.panini.execution.persistence
 
+import dev.panini.execution.LegacySanskritValueCodec
+import dev.panini.execution.PersistedSamjnaCodec
+import dev.panini.execution.PersistedSanskritValueCodec
 import dev.panini.execution.SambhashanaContext
 import dev.panini.execution.SanskritValue
 import dev.panini.execution.SmrtaPhala
 import dev.panini.shiksha.Samjna
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.DataInputStream
+import java.io.DataOutputStream
 import java.io.File
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
@@ -17,24 +24,24 @@ class FileStateStore(private val storageDir: File) : StateStore {
     }
 
     override fun save(key: String, context: SambhashanaContext) {
-        val lines = mutableListOf("PANINI_STATE_V2")
-        lines += record("CONTEXT", context.speaker, context.listener, context.turnNumber.toString())
+        val lines = mutableListOf(StateFileSchema.HEADER_V2)
+        lines += record(StateRecordType.CONTEXT, context.speaker, context.listener, context.turnNumber.toString())
         context.mentionedEntities.forEach { (name, value) ->
-            lines += record("ENTITY", name, value, encodeSamjnas(context.mentionedEntitySamjnas[name].orEmpty()))
+            lines += record(StateRecordType.ENTITY, name, value, encodeSamjnas(context.mentionedEntitySamjnas[name].orEmpty()))
         }
         context.previousResults.forEach { (name, value) ->
             lines += record(
-                "RESULT", name, value, encodeSamjnas(context.previousResultSamjnas[name].orEmpty()),
+                StateRecordType.RESULT, name, value, encodeSamjnas(context.previousResultSamjnas[name].orEmpty()),
                 encodeTyped(context.previousTypedResults[name]),
             )
         }
         context.resultHistory.forEach { result ->
             lines += record(
-                "HISTORY", result.id, result.turnNumber.toString(), result.invocationId,
+                StateRecordType.HISTORY, result.id, result.turnNumber.toString(), result.invocationId,
                 result.value, encodeSamjnas(result.samjnas), encodeTyped(result.typedValue),
             )
         }
-        context.metadata.forEach { (name, value) -> lines += record("META", name, value) }
+        context.metadata.forEach { (name, value) -> lines += record(StateRecordType.META, name, value) }
         fileFor(key).writeText(lines.joinToString("\n", postfix = "\n"))
     }
 
@@ -42,7 +49,7 @@ class FileStateStore(private val storageDir: File) : StateStore {
         val file = fileFor(key)
         if (!file.exists()) return null
         val lines = file.readLines()
-        if (lines.firstOrNull() != "PANINI_STATE_V2") return null
+        if (lines.firstOrNull() != StateFileSchema.HEADER_V2) return null
 
         var speaker = "प्रयोक्ता"
         var listener = "यन्त्रम्"
@@ -57,25 +64,26 @@ class FileStateStore(private val storageDir: File) : StateStore {
 
         lines.drop(1).filter(String::isNotBlank).forEach { line ->
             val fields = decodeRecord(line)
-            when (fields.firstOrNull()) {
-                "CONTEXT" -> {
+            when (StateRecordType.fromWireName(fields.firstOrNull())) {
+                StateRecordType.CONTEXT -> {
                     speaker = fields[1]; listener = fields[2]; turnNumber = fields[3].toInt()
                 }
-                "ENTITY" -> {
+                StateRecordType.ENTITY -> {
                     entities[fields[1]] = fields[2]; entitySamjnas[fields[1]] = decodeSamjnas(fields[3])
                 }
-                "RESULT" -> {
+                StateRecordType.RESULT -> {
                     val name = fields[1]
                     results[name] = fields[2]
                     resultSamjnas[name] = decodeSamjnas(fields[3])
                     decodeTyped(fields[4], fields[2], resultSamjnas.getValue(name))?.let { typedResults[name] = it }
                 }
-                "HISTORY" -> history += SmrtaPhala(
+                StateRecordType.HISTORY -> history += SmrtaPhala(
                     id = fields[1], turnNumber = fields[2].toInt(), invocationId = fields[3],
                     value = fields[4], samjnas = decodeSamjnas(fields[5]),
                     typedValue = decodeTyped(fields[6], fields[4], decodeSamjnas(fields[5])),
                 )
-                "META" -> metadata[fields[1]] = fields[2]
+                StateRecordType.META -> metadata[fields[1]] = fields[2]
+                null -> Unit
             }
         }
         return SambhashanaContext(
@@ -96,8 +104,8 @@ class FileStateStore(private val storageDir: File) : StateStore {
         return File(storageDir, safe + EXTENSION)
     }
 
-    private fun record(type: String, vararg values: String): String =
-        (listOf(type) + values.map(::encode)).joinToString("\t")
+    private fun record(type: StateRecordType, vararg values: String): String =
+        (listOf(type.name) + values.map(::encode)).joinToString("\t")
 
     private fun decodeRecord(line: String): List<String> = line.split('\t').mapIndexed { index, field ->
         if (index == 0) field else decode(field)
@@ -109,45 +117,31 @@ class FileStateStore(private val storageDir: File) : StateStore {
     private fun decode(value: String): String =
         if (value.isEmpty()) "" else base64Codec.decode(value).decodeToString()
 
-    private fun encodeSamjnas(values: Set<Samjna>): String = values.joinToString(",") {
-        when (it) {
-            is Enum<*> -> it.name
-            is Samjna.Rudhi -> "RUDHI:${it.word}"
-            else -> it.toString()
-        }
-    }
-    private fun decodeSamjnas(value: String): Set<Samjna> = value.split(',').filter(String::isNotEmpty)
-        .mapTo(mutableSetOf()) {
-            if (it.startsWith("RUDHI:")) {
-                Samjna.Rudhi(it.substringAfter("RUDHI:"))
-            } else {
-                Samjna.valueOf(it)
-            }
-        }
+    private fun encodeSamjnas(values: Set<Samjna>): String =
+        values.joinToString(",", transform = PersistedSamjnaCodec::encode)
 
-    private fun encodeTyped(value: SanskritValue?): String = when (value) {
-        is SanskritValue.Sankhya -> "SANKHYA:${value.value}"
-        is SanskritValue.Rational -> "RATIONAL:${value.numerator}/${value.denominator}"
-        is SanskritValue.Satya -> "SATYA:${value.boolean}"
-        is SanskritValue.Shabda -> "SHABDA"
-        is SanskritValue.Gana -> "GANA"
-        is SanskritValue.Suchi -> "SUCHI"
-        null -> ""
+    private fun decodeSamjnas(value: String): Set<Samjna> = value.split(',').filter(String::isNotEmpty)
+        .mapTo(mutableSetOf(), PersistedSamjnaCodec::decode)
+
+    private fun encodeTyped(value: SanskritValue?): String {
+        if (value == null) return ""
+        val bytes = ByteArrayOutputStream().also { output ->
+            DataOutputStream(output).use { PersistedSanskritValueCodec.write(it, value) }
+        }.toByteArray()
+        return VALUE_V2_PREFIX + base64Codec.encode(bytes)
     }
 
     private fun decodeTyped(type: String, display: String, samjnas: Set<Samjna>): SanskritValue? = when {
-        type.startsWith("SANKHYA:") -> SanskritValue.Sankhya(type.substringAfter(':').toLong(), display)
-        type.startsWith("RATIONAL:") -> {
-            val (num, denom) = type.substringAfter(':').split('/').map { it.toLong() }
-            SanskritValue.Rational(num, denom, display)
-        }
-        type.startsWith("SATYA:") -> SanskritValue.Satya(type.substringAfter(':').toBooleanStrict())
-        type == "SHABDA" || type == "GANA" -> SanskritValue.Shabda(display, samjnas)
-        else -> null
+        type.startsWith(VALUE_V2_PREFIX) -> runCatching {
+            val bytes = base64Codec.decode(type.removePrefix(VALUE_V2_PREFIX))
+            DataInputStream(ByteArrayInputStream(bytes)).use(PersistedSanskritValueCodec::read)
+        }.getOrNull()
+        else -> LegacySanskritValueCodec.decode(type, display, samjnas)
     }
 
     private companion object {
         const val EXTENSION = ".state"
+        const val VALUE_V2_PREFIX = "VALUE_V2:"
         val base64Codec = Base64.UrlSafe.withPadding(Base64.PaddingOption.PRESENT_OPTIONAL)
     }
 }

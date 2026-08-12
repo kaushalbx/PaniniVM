@@ -1,12 +1,14 @@
 package dev.panini.execution.binding
 
 import dev.panini.execution.ExecutionExpression
+import dev.panini.execution.KriyaInvocationId
+import dev.panini.execution.SvamRupamEngine
 import dev.panini.shiksha.Samjna
 import dev.panini.vyakaranam.ast.KridantaPratipadika
-import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.vyakaranam.ast.SamasaPratipadika
 import dev.panini.vyakaranam.ast.SankhyaPratipadika
 import dev.panini.vyakaranam.ast.SubantaPada
+import dev.panini.core.SupAffix
 
 /**
  * Converts a [SubantaPada] to an [ExecutionExpression], resolving references to prior
@@ -16,9 +18,6 @@ import dev.panini.vyakaranam.ast.SubantaPada
  * via [BindingContext] instead of individual parameters.
  */
 internal object ExpressionBuilder {
-    /** Prathama is lexical; later ordinals are represented by segmented purāṇa padas. */
-    internal fun ordinalNumber(surface: String): Int? = 1.takeIf { surface == "प्रथम" }
-
     /**
      * Builds an [ExecutionExpression] for [pada] within [ctx], resolving:
      * - Named/typed prior results and local variables → [ExecutionExpression.Reference]
@@ -34,8 +33,14 @@ internal object ExpressionBuilder {
         ctx: BindingContext,
         overridePhalaId: String? = null,
     ): ExecutionExpression {
-        val baseText = pada.pratipadika.baseText()
-        val text = pada.pratipadika.referenceKey()
+        val normalized = NumeralAstNormalizer.normalize(pada)
+        val baseText = normalized.pratipadika.baseText()
+        val text = normalized.pratipadika.referenceKey()
+        val isPhalaReference = PhalaReference.isReference(normalized)
+        ctx.environment.values[text]?.let { value ->
+            val sup = SupAffix.fromUpadesha(normalized.sup.text) ?: SupAffix.AM
+            return ExecutionExpression.TypedOperand(value, sup)
+        }
         var resolvedId: String? = null
 
         if (ctx.conversation?.previousTypedResults?.containsKey(text) == true ||
@@ -43,9 +48,9 @@ internal object ExpressionBuilder {
             ctx.localVariables.contains(text)
         ) {
             resolvedId = text
-        } else if (baseText == "फल") {
+        } else if (isPhalaReference) {
             resolvedId = overridePhalaId ?: (
-                if (ctx.clauseIndex > 0) "योग-${ctx.clauseIndex}"
+                if (ctx.clauseIndex > 0) KriyaInvocationId.of(ctx.clauseIndex)
                 else ctx.memory.latestKriya()?.frame?.id?.value
                     ?: ctx.conversation?.resultHistory?.lastOrNull()?.id
                     ?: ctx.conversation?.previousResults?.keys?.lastOrNull()
@@ -56,25 +61,22 @@ internal object ExpressionBuilder {
             return ExecutionExpression.Reference(resolvedId)
         }
 
-        val sankhyaValue = when (val prat = pada.pratipadika) {
-            is SankhyaPratipadika -> prat.value
-            is MulaPratipadika -> sharedSankhyaGenerator.annotatedPratipadikaValue(prat.text)
-            else -> null
-        }
+        val sankhyaValue = (normalized.pratipadika as? SankhyaPratipadika)?.semanticValue
         val samjnas = buildSet {
             add(Samjna.SHABDA)
             if (sankhyaValue != null) add(Samjna.SANKHYA)
-            if (baseText == "फल") add(Samjna.REFERENCE)
-            when (pada.pratipadika) {
+            if (isPhalaReference) add(Samjna.REFERENCE)
+            when (normalized.pratipadika) {
                 is KridantaPratipadika -> add(Samjna.KRIDANTA)
                 is SamasaPratipadika -> add(Samjna.SAMASA)
                 else -> Unit
             }
         }
         return if (sankhyaValue != null) {
-            ExecutionExpression.Companion.sankhya(sankhyaValue, text)
+            ExecutionExpression.sankhya(sankhyaValue.value, sankhyaValue.word)
         } else {
-            ExecutionExpression.Pada(text, samjnas)
+            val svamRupamValue = SvamRupamEngine.evaluateTerm(baseText)
+            ExecutionExpression.Pada(text, samjnas, value = svamRupamValue)
         }
     }
 }

@@ -3,8 +3,12 @@ package dev.panini.execution.sutra
 import dev.panini.dhatupatha.DhatuPathaRegistration
 import dev.panini.core.Karaka
 import dev.panini.execution.ActionDependency
-import dev.panini.execution.DevanagariDigits
 import dev.panini.execution.ExecutableUkti
+import dev.panini.execution.ExecuteConditional
+import dev.panini.execution.ExecuteInvocation
+import dev.panini.execution.ExecuteRepeat
+import dev.panini.execution.ExecuteSequence
+import dev.panini.execution.ExecutionNode
 import dev.panini.execution.ExecutionBindingResult
 import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.ExecutionPlan
@@ -16,6 +20,7 @@ import dev.panini.execution.SambhashanaContext
 import dev.panini.execution.SanskritUktiInput
 import dev.panini.execution.SanskritValue
 import dev.panini.execution.SmrtaPhala
+import dev.panini.execution.SmrtaPhalaId
 import dev.panini.execution.ValueEnvironment
 import dev.panini.execution.bindingName
 import dev.panini.execution.binding.VyakaranamExecutionAdapter
@@ -91,7 +96,7 @@ object SanskritGranthaSourceCompiler {
 
             val purvaphalaId = currentConversation.resultHistory.lastOrNull()?.id
             val localIds = bound.ukti.invocations.associate {
-                it.id to "उक्ति-${DevanagariDigits.render(turn)}/${it.id}"
+                it.id to SmrtaPhalaId.of(turn, it.id)
             }
             val referenceIds = localIds + (if (purvaphalaId != null) mapOf("पूर्वफल" to purvaphalaId) else emptyMap())
             val knownIds = sutras.mapTo(mutableSetOf()) { it.id.value }
@@ -117,8 +122,10 @@ object SanskritGranthaSourceCompiler {
                         .forEach { add(ActionDependency(it, invocation.id)) }
                 }
             }
+            val remappedControl = bound.ukti.control.remapInvocationIds { localIds.getValue(it) }
             val globalUkti = bound.ukti.copy(
                 invocations = globalInvocations,
+                control = remappedControl,
                 dependencies = dependencies,
             )
             sutras += ExecutableUktiSutraCompiler
@@ -200,7 +207,7 @@ object SanskritGranthaSourceCompiler {
         }.toMap()
         val remembered = plans.map { plan ->
             SmrtaPhala(
-                id = "उक्ति-${DevanagariDigits.render(nextTurn)}/${plan.invocationId}",
+                id = SmrtaPhalaId.of(nextTurn, plan.invocationId),
                 turnNumber = nextTurn,
                 invocationId = plan.invocationId,
                 value = "<${plan.invocationId}>",
@@ -253,11 +260,24 @@ object SanskritGranthaSourceCompiler {
             is ExecutionExpression.Coordination -> copy(
                 members = members.map { it.rewriteReferences(localIds) },
             )
+            is ExecutionExpression.TypedOperand -> this
         }
 
     private fun ExecutionExpression.references(): Set<String> = when (this) {
         is ExecutionExpression.Pada -> emptySet()
         is ExecutionExpression.Reference -> setOf(name)
         is ExecutionExpression.Coordination -> members.flatMapTo(linkedSetOf()) { it.references() }
+        is ExecutionExpression.TypedOperand -> emptySet()
+    }
+
+    private fun ExecutionNode.remapInvocationIds(transform: (String) -> String): ExecutionNode = when (this) {
+        is ExecuteInvocation -> ExecuteInvocation(transform(invocationId))
+        is ExecuteSequence -> ExecuteSequence(nodes.map { it.remapInvocationIds(transform) })
+        is ExecuteConditional -> ExecuteConditional(
+            condition = condition.remapInvocationIds(transform),
+            consequent = consequent.remapInvocationIds(transform),
+            alternate = alternate?.remapInvocationIds(transform),
+        )
+        is ExecuteRepeat -> ExecuteRepeat(iterations.map { it.remapInvocationIds(transform) })
     }
 }

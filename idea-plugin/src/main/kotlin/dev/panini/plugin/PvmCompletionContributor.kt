@@ -25,6 +25,10 @@ class PvmCompletionContributor : CompletionContributor() {
         private val keywords = listOf(
             Triple("च", "conjunction", "And / Join"),
             Triple("इति", "terminator", "End of expression / clause"),
+            Triple("अप", "उपसर्गः", "Upasarga preverb (Sūtra 1.4.59)"),
+            Triple("अधि", "उपसर्गः", "Upasarga preverb (Sūtra 1.4.59)"),
+            Triple("वद्", "धातुः", "Dhātu root (वदँ व्यक्तायां वाचि)"),
+            Triple("कृ", "धातुः", "Dhātu root (डुकृञ् करणे)"),
             Triple("यदि", "conditional", "If condition"),
             Triple("तर्हि", "conditional", "Then clause"),
             Triple("अन्यथा", "conditional", "Else clause"),

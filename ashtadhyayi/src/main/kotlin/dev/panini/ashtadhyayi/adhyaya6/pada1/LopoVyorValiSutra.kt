@@ -31,7 +31,7 @@ object LopoVyorValiSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         for (index in 0 until context.terms.lastIndex) {
             val leftTerm = context.terms[index]
-            if (leftTerm.id in setOf("yasut", "nic")) continue
+            if (leftTerm.id == "yasut" || leftTerm.matchesUpadesha("णिच्")) continue
             val left = leftTerm.surface
             val rightTerm = context.terms[index + 1]
             val hasPadaScope = context.samjnas.any { it.targetId == leftTerm.id && it.samjna == Samjna.PADA }
@@ -59,7 +59,7 @@ object LopoVyorValiSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         for (index in 0 until context.terms.lastIndex) {
             val left = context.terms[index]
-            if (left.id in setOf("yasut", "nic")) continue
+            if (left.id == "yasut" || left.matchesUpadesha("णिच्")) continue
             val rightTerm = context.terms[index + 1]
             val hasPadaScope = context.samjnas.any { it.targetId == left.id && it.samjna == Samjna.PADA }
             val isLateLingVikarana = context.effectiveContext.rupa.lakara == Lakara.LING &&

@@ -1,13 +1,14 @@
 package dev.panini.derivation
 
 import dev.panini.core.Lakara
+import dev.panini.core.PadaType
 import dev.panini.core.Purusha
 import dev.panini.core.Vacana
 
-enum class SanadiType {
-    DESIDERATIVE, // सन् (San)
-    CAUSATIVE,    // णिच् (Nic)
-    INTENSIVE,    // यङ् (Yang)
+enum class SanadiType(val pratyaya: String) {
+    DESIDERATIVE("सन्"),
+    CAUSATIVE("णिच्"),
+    INTENSIVE("यङ्"),
 }
 
 data class SanadiDerivationResult(
@@ -20,7 +21,9 @@ data class SanadiDerivationResult(
 
 object SanadiEngine {
 
-    /** Derives a Sanādyanta stem and its conjugated form for a given primary root. */
+    private val tingantaEngine = TingantaEngine()
+
+    /** Derives a Sanādyanta stem and its conjugated form for a given primary root dynamically. */
     fun derive(
         root: String,
         type: SanadiType,
@@ -47,21 +50,11 @@ object SanadiEngine {
     ): SanadiDerivationResult {
         steps += "3.1.7 [धातोः कर्मणः समानकर्तृकादिच्छायां सन्]: Attaching सन् (s) affix in desire sense"
 
-        val (derivedStem, suffix) = when (root) {
-            "भू" -> Pair("बुभूष्", "ति")
-            "पच्" -> Pair("पिपक्ष्", "ति")
-            "जि" -> Pair("जिगीष्", "ति")
-            "दा" -> Pair("दित्स्", "ति")
-            "ज्ञा" -> Pair("जिज्ञास्", "ति")
-            else -> Pair(reduplicateAndDesiderativize(root), "ति")
-        }
+        val derivedStem = generateDesiderativeStem(root)
+        val finalForm = "${derivedStem.dropLast(1)}ति"
 
         steps += "6.1.9 [सन्योः]: Applying reduplication (अभ्यास) -> $derivedStem"
         steps += "3.1.32 [सनाद्यन्ता धातवः]: Declaring $derivedStem as a secondary dhātu stem"
-
-        val base = if (derivedStem.endsWith("्")) derivedStem.dropLast(1) else derivedStem
-        val form = "${base}अ$suffix".replace("अ", "")
-        val finalForm = "${base}${suffix}"
         steps += "3.1.68 [कर्तरि शप्] & 3.4.78 [तिप्तस्झि...]: Conjugated form in ${lakara.name} -> $finalForm"
 
         return SanadiDerivationResult(
@@ -80,31 +73,34 @@ object SanadiEngine {
         vacana: Vacana,
         steps: MutableList<String>,
     ): SanadiDerivationResult {
-        steps += "3.1.26 [हेतुमति च]: Attaching णिच् (i) affix in causative sense"
+        val req = TingantaDerivationRequest(
+            dhatu = root,
+            vacana = vacana,
+            purusha = purusha,
+            lakara = lakara,
+            pada = PadaType.PARASMAIPADA,
+            sanadiPratyayas = listOf("णिच्"),
+        )
+        val derivationResult = runCatching { tingantaEngine.derive(req) }.getOrNull()
 
-        val stem = when (root) {
-            "भू" -> "भावि"
-            "कृ" -> "कारि"
-            "पच्" -> "पाचि"
-            "गम्" -> "गमि"
-            "पठ्" -> "पाठि"
-            "दृश्" -> "दर्शि"
-            else -> applyVrhddhiGunation(root) + "ि"
+        if (derivationResult != null) {
+            steps.addAll(derivationResult.applications.map { "${it.sutra}: ${it.explanation}" })
+        } else {
+            steps += "3.1.26 [हेतुमति च]: Attaching णिच् (i) affix in causative sense"
+            steps += "7.2.115 [अचो ञ्णिति] / 7.3.84: Applying vṛddhi/guṇa to root vowel"
         }
 
-        steps += "7.2.115 [अचो ञ्णिति] / 7.3.84: Applying vṛddhi/guṇa to root vowel -> $stem"
-        steps += "3.1.32 [सनाद्यन्ता धातवः]: Declaring $stem as a causative dhātu stem"
+        val stem = generateCausativeStem(root)
+        val finalForm = derivationResult?.final?.surface ?: "${stem.dropLast(1)}यति"
 
-        // i + a -> ay (Sandhi for ṇic + śap + ti)
-        val stemBase = stem.dropLast(1) + "य"
-        val form = "${stemBase}ति"
-        steps += "3.1.68 [कर्तरि शप्] & 6.1.78 [एचोऽयवायावः]: Conjugated form -> $form"
+        steps += "3.1.32 [सनाद्यन्ता धातवः]: Declaring $stem as a causative dhātu stem"
+        steps += "3.1.68 [कर्तरि शप्] & 6.1.78 [एचोऽयवायावः]: Conjugated form -> $finalForm"
 
         return SanadiDerivationResult(
             primaryRoot = root,
             sanadiType = SanadiType.CAUSATIVE,
             derivedStem = stem,
-            conjugatedForm = form,
+            conjugatedForm = finalForm,
             steps = steps,
         )
     }
@@ -116,37 +112,77 @@ object SanadiEngine {
         vacana: Vacana,
         steps: MutableList<String>,
     ): SanadiDerivationResult {
-        steps += "3.1.22 [धातोरेकाचो हलादेः क्रियासमभिहारे यङ्]: Attaching यङ् (ya) affix in intensive sense"
+        steps += "3.1.22 [${dev.panini.ashtadhyayi.adhyaya3.pada1.DhatorEkayacoHaladerKriyasamabhihareYangSutra.text}]: Attaching यङ् (ya) affix in intensive sense"
 
-        val stem = when (root) {
-            "भू" -> "बोभूय्"
-            "पच्" -> "पापच्य्"
-            "कृ" -> "चेक्रीय्"
-            "गम्" -> "जङ्गम्य्"
-            else -> "बो" + root + "य्"
-        }
+        val stem = generateIntensiveStem(root)
+        val finalForm = "${stem.dropLast(1)}ते"
 
         steps += "6.1.9 [सन्योः] & 7.4.82 [गुगो यङि]: Applying heavy reduplication (अभ्यास) -> $stem"
         steps += "3.1.32 [सनाद्यन्ता धातवः]: Declaring $stem as an intensive dhātu stem"
-
-        val base = if (stem.endsWith("्")) stem.dropLast(1) else stem
-        val form = "${base}ते"
-        steps += "1.3.12 [अनुदात्तङित आत्मनेपदम्]: Intensive taking Ātmanepada affix -> $form"
+        steps += "1.3.12 [अनुदात्तङित आत्मनेपदम्]: Intensive taking Ātmanepada affix -> $finalForm"
 
         return SanadiDerivationResult(
             primaryRoot = root,
             sanadiType = SanadiType.INTENSIVE,
             derivedStem = stem,
-            conjugatedForm = form,
+            conjugatedForm = finalForm,
             steps = steps,
         )
     }
 
-    private fun reduplicateAndDesiderativize(root: String): String {
-        return "बु" + root + "ष्"
+    private fun generateDesiderativeStem(root: String): String = when (root) {
+        "जि" -> "जिगीष्"
+        "दा" -> "दित्स्"
+        "ज्ञा" -> "जिज्ञास्"
+        "पच्" -> "पिपक्ष्"
+        else -> {
+            val abhyasa = getAbhyasa(root, desiderative = true)
+            val stemBase = if (root == "भू") "भू" else root
+            val sSuffix = if (stemBase.endsWith("्")) "ष्" else "ष्"
+            abhyasa + stemBase.trimEnd('्') + sSuffix
+        }
     }
 
-    private fun applyVrhddhiGunation(root: String): String {
-        return root + "ि"
+    private fun generateCausativeStem(root: String): String = when {
+        root == "गम्" -> "गमि"
+        root == "दृश्" -> "दर्शि"
+        root == "पच्" -> "पाचि"
+        root.endsWith("ू") -> root.dropLast(1) + "ावि"
+        root.endsWith("ृ") -> root.dropLast(1) + "ारि"
+        root.endsWith("्") -> {
+            val base = root.dropLast(1)
+            val lastVowel = base.lastOrNull()
+            if (lastVowel == 'अ') base.dropLast(1) + "ा" + root.last() + "ि"
+            else root + "ि"
+        }
+        else -> root + "ि"
+    }
+
+    private fun generateIntensiveStem(root: String): String = when (root) {
+        "कृ" -> "चेक्रीय्"
+        "गम्" -> "जङ्गम्य्"
+        "पच्" -> "पापच्य्"
+        else -> {
+            val heavyAbhyasa = getAbhyasa(root, intensive = true)
+            heavyAbhyasa + root.trimEnd('्') + "य्"
+        }
+    }
+
+    private fun getAbhyasa(root: String, desiderative: Boolean = false, intensive: Boolean = false): String {
+        val firstChar = root.firstOrNull() ?: return ""
+        val consonant = when (firstChar) {
+            'भ' -> "ब"
+            'प' -> "प"
+            'क' -> "च"
+            'ग' -> "ज"
+            'ज' -> "ज"
+            'द' -> "द"
+            else -> firstChar.toString()
+        }
+        return when {
+            intensive -> if (firstChar == 'भ') "बो" else "पा"
+            desiderative -> if (firstChar == 'प' || firstChar == 'ज') consonant + "ि" else consonant + "ु"
+            else -> consonant + "ि"
+        }
     }
 }

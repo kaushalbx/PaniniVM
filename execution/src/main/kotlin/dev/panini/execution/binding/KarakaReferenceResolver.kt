@@ -3,6 +3,7 @@ package dev.panini.execution.binding
 import dev.panini.analysis.FrameKarakaResolution
 import dev.panini.analysis.KarakaRelation
 import dev.panini.core.Karaka
+import dev.panini.core.Vibhakti
 import dev.panini.execution.ExecutionExpression
 import dev.panini.vyakaranam.ast.KridantaPratipadika
 import dev.panini.vyakaranam.ast.Pada
@@ -17,15 +18,6 @@ internal data class KarakaReferenceResolution(
 
 /** Resolves phrases such as योजनस्य कर्म into participants of a remembered kriyā. */
 internal object KarakaReferenceResolver {
-    private val names = mapOf(
-        "कर्तृ" to Karaka.KARTR,
-        "कर्मन्" to Karaka.KARMAN,
-        "करण" to Karaka.KARANA,
-        "सम्प्रदान" to Karaka.SAMPRADANA,
-        "अपादान" to Karaka.APADANA,
-        "अधिकरण" to Karaka.ADHIKARANA,
-    )
-
     fun resolve(
         padas: List<Pada>,
         subantas: List<SubantaPada>,
@@ -35,10 +27,10 @@ internal object KarakaReferenceResolver {
         val consumedGenitives = mutableSetOf<SubantaPada>()
         val consumedQualifiers = mutableSetOf<Pada>()
         subantas.forEachIndexed { index, referencePada ->
-            val karaka = names[referencePada.pratipadika.baseText()] ?: return@forEachIndexed
+            val karaka = Karaka.fromPratipadika(referencePada.pratipadika.baseText()) ?: return@forEachIndexed
             val order = MemoryOrderQualifierResolver.before(referencePada, padas)
             val genitive = subantas.take(index).lastOrNull {
-                it.sup.text in setOf("ङस्", "आम्") && it.pratipadika is KridantaPratipadika
+                it.hasVibhakti(Vibhakti.SASTHI) && it.pratipadika is KridantaPratipadika
             } ?: return@forEachIndexed
             val upadesha = (genitive.pratipadika as KridantaPratipadika).dhatu.mulaDhatu
                 .let(DhatuCache::get)?.upadesha ?: return@forEachIndexed
@@ -60,8 +52,7 @@ internal object KarakaReferenceResolver {
         val pada = relation.participant.pada
         val pratipadika = pada.pratipadika
         if (pratipadika is SankhyaPratipadika) {
-            val stems = pada.sourceText.split('+').dropLast(1)
-            val value = pratipadika.value ?: NumeralPadaBinder.evaluateStems(stems).value
+            val value = pratipadika.semanticValue.value
             val word = sharedSankhyaGenerator.cardinal(value).final.surface
             return ExecutionExpression.sankhya(value, word)
         }

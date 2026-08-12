@@ -1,5 +1,6 @@
 package dev.panini.derivation
 
+import dev.panini.core.DhatuGana
 import dev.panini.core.Lakara
 import dev.panini.core.PadaType
 import dev.panini.core.TingAffix
@@ -7,10 +8,19 @@ import dev.panini.dhatupatha.DhatuPatha
 
 class TingantaEngine(private val engine: DerivationEngine = DerivationEngine(dev.panini.ashtadhyayi.Ashtadhyayi.executableSutras)) {
 
+    fun supportsSanadi(dhatu: String, sanadiPratyayas: List<String>, pada: PadaType? = null): Boolean {
+        val type = sanadiPratyayas.firstOrNull() ?: return false
+        if (type !in setOf("णिच्", "सन्", "यङ्")) return false
+        if (type != "णिच्") return true
+        val entry = runCatching { findDhatu(dhatu, pada) }.getOrNull() ?: return false
+        return entry.gana in setOf(DhatuGana.DIVADI, DhatuGana.RUDHADI, DhatuGana.CURADI)
+    }
+
     fun derive(request: TingantaDerivationRequest): DerivationResult {
-        val dhatu = findDhatu(request.dhatu)
+        val dhatu = findDhatu(request.dhatu, request.pada.takeIf { request.sanadiPratyayas.isNotEmpty() })
         val targetPada = resolvePada(requireNotNull(dhatu.pada), request.pada)
-        val plan = requireNotNull(TingantaFormPlans.find(request.purusha, request.vacana, targetPada, request.lakara, dhatu.gana)) {
+        val effectiveGana = if (request.sanadiPratyayas.isEmpty()) dhatu.gana else DhatuGana.BHVADI
+        val plan = requireNotNull(TingantaFormPlans.find(request.purusha, request.vacana, targetPada, request.lakara, effectiveGana)) {
             "No complete downstream plan exists for ${TingAffix.select(request.purusha, request.vacana, targetPada)?.upadesha}."
         }
         return engine.derive(request.initialState(dhatu)).apply {
@@ -46,8 +56,14 @@ class TingantaEngine(private val engine: DerivationEngine = DerivationEngine(dev
         )
     }
 
-    private fun findDhatu(dhatu: String) =
-        DhatuPatha.all.firstOrNull { it.upadesha == dhatu || it.derivationalSurface == dhatu || it.sourceSurface == dhatu }
+    private fun findDhatu(dhatu: String, preferredPada: PadaType? = null) =
+        DhatuPatha.all
+            .filter { it.upadesha == dhatu || it.derivationalSurface == dhatu || it.sourceSurface == dhatu }
+            .let { matches ->
+                matches.firstOrNull { candidate ->
+                    preferredPada == null || candidate.pada == preferredPada || candidate.pada == PadaType.UBHAYAPADA
+                } ?: matches.firstOrNull()
+            }
             ?: throw IllegalArgumentException("Unknown dhatu: $dhatu")
 
     private fun resolvePada(dhatuPada: PadaType, requestedPada: PadaType?): PadaType {

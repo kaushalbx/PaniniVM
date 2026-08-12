@@ -2,7 +2,7 @@
 # Emits output stream payload using hu (हावय/हु)
 
 # Step 1: Emit output stream payload
-हविः जुहुधि ।
+हविः हु ।
 
 # Step 2: Print emitted result confirmation
 मुद्रय फलम् ।

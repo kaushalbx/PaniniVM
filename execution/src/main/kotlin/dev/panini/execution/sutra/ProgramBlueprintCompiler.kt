@@ -152,6 +152,14 @@ object ProgramBlueprintCompiler {
             }
         }
         val metadata = fields.decodeTextRecord("metadata", diagnostics, blueprint)
+        val branchCondition = (fields["branchCondition"] as? SutraArthaValue.SutraReference)?.id
+        val branchExpected = (fields["branchExpected"] as? SutraArthaValue.Truth)?.value
+        if ((branchCondition == null) != (branchExpected == null)) {
+            diagnostics += ProgramBlueprintDiagnostic(
+                ProgramBlueprintDiagnosticCode.INVALID_FIELD,
+                "Blueprint ${blueprint.id} must provide both branchCondition and branchExpected.",
+            )
+        }
         val ambiguousBindings = fields.decodeAmbiguousBindings(diagnostics, blueprint)
         val karakaTrace = fields.decodeTextSequence("karakaEvidence", diagnostics, blueprint)
         if (diagnostics.isNotEmpty()) return ProgramBlueprintCompilation.Invalid(diagnostics)
@@ -202,6 +210,24 @@ object ProgramBlueprintCompiler {
                             SutraNirnaya.Blocked(
                                 missing,
                                 listOf("A prerequisite sūtra has not completed."),
+                            )
+                        }
+                        branchCondition != null -> when (val condition = state.invocationValues[branchCondition.value]) {
+                            is dev.panini.execution.SanskritValue.Satya -> if (condition.boolean == branchExpected!!) {
+                                SutraNirnaya.Applicable(
+                                    listOf(InvokeDhatuEffect(invocation, ukti)),
+                                    listOf("The selected conditional branch matches ${branchCondition.value}."),
+                                )
+                            } else {
+                                SutraNirnaya.NotApplicable(
+                                    listOf("The conditional branch does not match ${branchCondition.value}."),
+                                )
+                            }
+                            null -> SutraNirnaya.Invalid(
+                                "Conditional result ${branchCondition.value} is unavailable.",
+                            )
+                            else -> SutraNirnaya.Invalid(
+                                "Conditional result ${branchCondition.value} is not a satya value.",
                             )
                         }
                         else -> SutraNirnaya.Applicable(

@@ -78,10 +78,16 @@ object VrddhirEciSutra : Sutra<DerivationState, DerivationChange>(
 
         val substitute = getVrddhi(rightChar)
 
-        val newSurface = if (leftChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks) {
-            leftTerm.surface + substitute + rightTerm.surface.drop(1)
+        val rawRightRemainder = rightTerm.surface.drop(1)
+        val rightRemainder = if (rightTerm.itMarkers.isNotEmpty() && rawRightRemainder.endsWith("्")) {
+            rawRightRemainder.dropLast(2)
         } else {
-            leftTerm.surface.dropLast(1) + substitute + rightTerm.surface.drop(1)
+            rawRightRemainder
+        }
+        val newSurface = if (leftChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks) {
+            leftTerm.surface + substitute + rightRemainder
+        } else {
+            leftTerm.surface.dropLast(1) + substitute + rightRemainder
         }
 
         return DerivationChange(

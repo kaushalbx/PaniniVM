@@ -1,0 +1,13 @@
+# तद्धित ग्रन्थ — Pāṇinian Nested Genitive Struct Attribute Access (1.1.49 षष्ठी स्थानेयोगा)
+
+# Step 1: Construct inner struct 'सङ्ख्या' with attribute 'मूल्य' = 50 ('पञ्चाशत्')
+पञ्चाशत् मूल्यम् सङ्ख्या ।
+
+# Step 2: Construct outer struct 'गाणित' with attribute 'मान' = 'सङ्ख्या'
+सङ्ख्याम् मानम् गाणितः ।
+
+# Step 3: Query 2-level nested genitive attribute (1.1.49 षष्ठी स्थानेयोगा): गाणित -> मान (सङ्ख्या) -> मूल्य -> 50 (पञ्चाशत्)
+गाणितस्य मानस्य मूल्यम् ।
+
+# Step 4: Print result
+मुद्रय फलम् ।

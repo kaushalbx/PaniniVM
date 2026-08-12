@@ -85,6 +85,51 @@ class KrdantaEngineTest {
     }
 
     @Test
+    fun `ghan derives pvm action stems phonologically`() {
+        val expected = mapOf(
+            "युज्" to "योग",
+            "शिष्" to "शेष",
+            "मूल्" to "मूल",
+            "भज्" to "भाग",
+            "हृ" to "हार",
+        )
+
+        expected.forEach { (dhatu, surface) ->
+            assertEquals(surface, engine.derive(KrdantaDerivationRequest(dhatu, Samjna.GHAN)).final.surface)
+        }
+    }
+
+    @Test
+    fun `lyut derives pvm action stems phonologically`() {
+        val expected = mapOf(
+            "युज्" to "योजन",
+            "गण" to "गणन",
+            "धृ" to "धारण",
+            "स्था" to "स्थान",
+            "जन्" to "जनन",
+            "हृ" to "हरण",
+        )
+
+        expected.forEach { (dhatu, surface) ->
+            val result = engine.derive(KrdantaDerivationRequest(dhatu, Samjna.LYUT))
+            assertEquals(surface, result.final.surface)
+            assertTrue(result.applications.any { it.sutra == "3.3.115" })
+        }
+    }
+
+    @Test
+    fun `source affixes resolve through typed krdanta capability`() {
+        assertEquals("योग", engine.deriveSourceStem("युज्", "घञ्").surface)
+        assertEquals("योजन", engine.deriveSourceStem("युज्", "ल्युट्").surface)
+        assertEquals("धारण", engine.deriveSourceStem("धृ", "अन").surface)
+        assertEquals("हार", engine.deriveSourceStem("हृ", "घञ्").surface)
+        assertTrue(engine.deriveSourceStem("युज्", "घञ्").supportsAStemDeclension)
+        assertEquals("हर", engine.deriveSourceStem("हृ", "क्त").surface)
+        assertEquals("पठ्", engine.deriveSourceStem("पठ्", "क्त").surface)
+        assertTrue(engine.deriveSourceStem("क्षिप्", "घञ्").preservesSourceSurface)
+    }
+
+    @Test
     fun `krdanta provenance contains only explicitly staged rules`() {
         val requests = listOf(
             KrdantaDerivationRequest("कृ", Samjna.KTVA, upasarga = "अनु"),

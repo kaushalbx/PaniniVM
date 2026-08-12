@@ -25,7 +25,7 @@ object JasahShiSutra : Sutra<DerivationState, DerivationChange>(
     pada = 1,
     optional = false,
     kramaValue = 710017,
-    role = SutraRole.Vidhi,
+    role = SutraRole.Apavada,
     action = SutraAction.ADESHA,
     scope = SutraScope.PRATYAYA,
     nimittaScope = NimittaScope.EXTERNAL,
@@ -38,16 +38,18 @@ object JasahShiSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        val isSarvanama = context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SARVANAMA }
-        val endsInA = stem.surface.endsWith('अ') || stem.surface.endsWith('ा')
+        val isTyadadi = stem.upadesha in setOf("त्यद्", "तद्", "यद्", "एतद्", "किम्", "इदम्")
+        val isSarvanama = isTyadadi || context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SARVANAMA }
+        val matras = setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'े', 'ै', 'ो', 'ौ', '्')
+        val endsInA = isTyadadi || (stem.surface.isNotEmpty() && stem.surface.last() !in matras)
 
-        return isSarvanama && endsInA && affix.upadesha == "जस्"
+        if (affix.surface == "ई" || affix.upadesha == "शी") return false
+
+        return isSarvanama && endsInA && (affix.upadesha == "जस्" || affix.id == "sup-jas")
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
-        // 1.1.55: śī is śit, so it replaces the whole jas.
-        // Surface becomes 'ī' after it-processing of 'ś'.
         return DerivationChange(
             state = context.replaceTerm(affix.id, affix.copy(surface = "ई", upadesha = "शी")),
             explanation = "7.1.17: Substituted 'śī' for 'jas' after pronoun stem."

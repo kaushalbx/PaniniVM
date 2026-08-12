@@ -262,6 +262,7 @@ object ClassGenerator {
                 expr.members.forEach { collectConstants(it, collected) }
             }
             is ExecutionExpression.Reference -> {}
+            is ExecutionExpression.TypedOperand -> collected.add(expr.value)
         }
     }
 
@@ -320,6 +321,28 @@ object ClassGenerator {
                     "createReferenceExpression",
                     "(Ljava/lang/String;)Ldev/panini/execution/ExecutionExpression\$Reference;",
                     false
+                )
+            }
+            is ExecutionExpression.TypedOperand -> {
+                val fieldName = requireNotNull(constantFields[expr.value])
+                mv.visitFieldInsn(
+                    GETSTATIC,
+                    className,
+                    fieldName,
+                    "Ldev/panini/execution/SanskritValue;",
+                )
+                mv.visitFieldInsn(
+                    GETSTATIC,
+                    "dev/panini/core/SupAffix",
+                    expr.sup.name,
+                    "Ldev/panini/core/SupAffix;",
+                )
+                mv.visitMethodInsn(
+                    INVOKESTATIC,
+                    "dev/panini/compiler/PaniniRuntime",
+                    "createTypedOperandExpression",
+                    "(Ldev/panini/execution/SanskritValue;Ldev/panini/core/SupAffix;)Ldev/panini/execution/ExecutionExpression\$TypedOperand;",
+                    false,
                 )
             }
         }

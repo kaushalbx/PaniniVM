@@ -53,6 +53,7 @@ PaniniVM Root
 - **Phonological Sandhi Engine**: Type-safe Sandhi Sūtras (`6.1.109`, `6.1.132`, `6.3.111`, `8.3.14`, `8.3.17`, `8.3.22`, `8.4.59`, `8.4.60`, `8.4.62`, `8.4.63`, `8.4.65`) driven by `PratyaharaEngine` (Māheśvara-sūtras).
 - **ANTLR4 Segmented Sanskrit Parser (`:parser`)**: Parses strictly segmented Pāṇinian words (`Prakṛti + Pratyaya`) through one canonical grammar.
 - **JVM Sanskrit Bytecode Compiler (`:compiler`)**: Compiles multi-clause `.pvm` script files directly into native JVM `.class` bytecode carrying stack constants and resolved execution plans.
+- **First-class Sanskrit Kriyā Definitions (`:execution`)**: Reusable `saṃjñā-kriyā` blocks support typed and named inputs, positional or named calls, primitive and structured results, local scope, overload dispatch, multi-file visibility, and direct typed pipeline composition.
 
 ---
 
@@ -65,6 +66,51 @@ The execution path follows a single direction:
 ```text
 segmented input → vyākaraṇa AST → binding → operation resolution → planning → runtime
 ```
+
+## Reusable Typed Sanskrit Kriyās
+
+For a complete language tutorial, see
+[`docs/pvm-language-guide.md`](docs/pvm-language-guide.md).
+For upcoming syntax and tooling milestones, see the
+[`PVM language enhancement plan`](docs/pvm-language-enhancement-plan.md).
+
+A `.pvm` program can declare a reusable operation using a nominal
+`saṃjñā-kriyā` header. Signature declarations are grammatical sentences inside
+the block and are not executed as body actions.
+
+```pvm
+योजन + ल्युट् + सुँ ।
+वाम + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+दक्षिण + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+सङ्ख्या + सुँ इति परिणाम + सुँ ।
+वाम + अम् दक्षिण + अम् च युज् + णिच् + लोट् + सिप् ॥
+```
+
+The operation accepts the original positional call form:
+
+```pvm
+द्वि + अम् त्रि + अम् च योजन + ल्युट् + टा कृ + लोट् + सिप् ।
+```
+
+It also accepts named arguments. A parameter name uses ṣaṣṭhī and its value
+immediately follows in dvitīyā; named arguments may appear in any order.
+
+```pvm
+दक्षिण + ङस् त्रि + अम् वाम + ङस् द्वि + अम् योजन + ल्युट् + टा कृ + लोट् + सिप् ।
+```
+
+Supported signature types are `सङ्ख्या`, `शब्द`, and `सूची`. A result may also
+name a declared `…परिणाम + मतुप्` schema. Typed values retain their semantic
+type when one saṃjñā-kriyā feeds another pipeline stage. The runtime and IDEA
+plugin diagnose duplicate declarations, missing or unknown named arguments,
+arity/type mismatches, incompatible pipeline stages, and invalid result schemas.
+
+Function bodies have isolated child scopes and may call other public or
+file-private `अन्तरङ्ग` definitions. Domain dispatch through `अधिकार`,
+`अपवाद`/`नित्य`/`अन्तरङ्ग` precedence, typed overload selection, and `क्त`
+memoization continue to apply. Optional/default parameters and explicit early
+return syntax are planned conveniences; they are not required for reusable
+first-class definitions.
 
 ---
 
@@ -165,7 +211,7 @@ println(derivationResult.final.surface) // Output: कारु
 
 // Single utterance evaluation via VM
 val vm = PaniniVM()
-val result = vm.eval("दश + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।")
+val result = vm.eval("दशन् + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।")
 if (result is ExecutionResult.Success) {
     println(result.value) // Output: द्वादश
 }

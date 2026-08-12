@@ -1,18 +1,19 @@
-# Lotto Guesser Algorithm in PaniniVM Script (.pvm)
-# Rule 1: Define rules (6 main numbers from 1..48 pool + 1 bonus ball)
+# Lotto Guesser: draw six distinct main numbers and one distinct bonus from 1..48.
 
-# Step 1 & 2: Initialize empty collection/sequence ('क्रम') & draw random picks
-एक + अम् द्वि + अम् त्रि + अम् चतुर् + अम् पञ्च + अम् षट् + अम् च दिव् + णिच् + लोट् + सिप् ।
-दा + लोट् + सिप् दिव् + घञ् + ङस् फल + अम् क्रम + ङे ।
+# One active range drives every draw.
+एक + ङसिँ अष्ट + चत्वारिंशत् + ङि इति सीमा + सुँ ।
 
-# Step 3 & 4: Scale and calculate lottery combinations for 6 draws (6 * 8 = 48)
-षट् + अम् अष्टन् + अम् च गण + णिच् + लोट् + सिप् ।
-दा + लोट् + सिप् गणन + घञ् + ङस् फल + अम् सङ्ख्या + ङे ।
+# Draw the first value and initialize the result list.
+दिव् + णिच् + लोट् + सिप् ततः चयन + ङे दा + लोट् + सिप् ।
+चयन + अम् क्षिप् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् क्षिप् + घञ् + ङस् फल + अम् क्रम + ङे ।
 
-# Step 5: Push and store main lottery draw results into sequence ('क्रम')
-सङ्ख्या + अम् क्षिप् + णिच् + लोट् + सिप् क्रम + अम् ।
-दा + लोट् + सिप् क्षिप् + घञ् + ङस् फल + अम् क्रम + ङे ।
+# Draw five more values; अपादान marks क्रम as the exclusion source.
+पञ्चन् + कृत्वः क्रम + ङसिँ दिव् + णिच् + लोट् + सिप्
+    ततः चयन + ङे दा + लोट् + सिप्
+    ततः क्षिप् + णिच् + लोट् + सिप् क्रम + अम् चयन + अम् च
+    ततः दा + लोट् + सिप् क्षिप् + घञ् + ङस् फल + अम् क्रम + ङे ।
 
-# Step 6: Draw bonus ball (अक्ष) and print final lottery output (मुद्रय)
-अक्ष + अम् दिव् + णिच् + लोट् + सिप् ।
+# Draw a bonus outside the main list, then print both results.
+क्रम + ङसिँ दिव् + णिच् + लोट् + सिप् ततः अक्ष + ङे दा + लोट् + सिप् ।
 मुद्र् + णिच् + लोट् + सिप् क्रम + अम् ।
+मुद्र् + णिच् + लोट् + सिप् अक्ष + अम् ।

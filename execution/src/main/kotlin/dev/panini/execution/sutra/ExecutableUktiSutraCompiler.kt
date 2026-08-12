@@ -1,6 +1,7 @@
 package dev.panini.execution.sutra
 
 import dev.panini.execution.ExecutableUkti
+import dev.panini.execution.branchGuards
 import dev.panini.execution.VakyaPrayojana
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.runtime.GranthaId
@@ -57,6 +58,7 @@ object ExecutableUktiSutraCompiler {
         granthaId: GranthaId = GranthaId("ukti"),
     ): SutraBlueprintGrantha {
         val dependenciesByTarget = ukti.dependencies.groupBy { it.after }
+        val branchGuards = ukti.control.branchGuards()
         val sutras = ukti.invocations.mapIndexed { index, invocation ->
             val id = SutraId(invocation.id)
             val prerequisites = dependenciesByTarget[invocation.id]
@@ -134,6 +136,10 @@ object ExecutableUktiSutraCompiler {
                                 prerequisites.map(SutraArthaValue::SutraReference),
                             ),
                         )
+                        branchGuards[invocation.id]?.let { guard ->
+                            put("branchCondition", SutraArthaValue.SutraReference(SutraId(guard.conditionInvocationId)))
+                            put("branchExpected", SutraArthaValue.Truth(guard.expected))
+                        }
                     },
                 ),
                 relations = prerequisites.mapTo(linkedSetOf()) { SutraRelation.DependsOn(it) },

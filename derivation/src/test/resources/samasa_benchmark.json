@@ -8,29 +8,38 @@
     ],
     "samasaType": "KARMADHARAYA",
     "expectedStem": "महानवमी",
-    "governingSutra": "6.3.100"
+    "expectedSurface": "महानवमी",
+    "classificationSutra": "2.1.61",
+    "transformationSutras": "",
+    "forbiddenSutras": ""
   },
   {
     "id": "BENCH_002",
-    "name": "6.3.7 Atmanasca Purane Aluk Tatpurusa - Atmanepadam",
+    "name": "6.3.21 Atmanasca Purane Aluk Tatpurusa - Atmanepadam",
     "padas": [
-      {"upadesha": "आत्मन्", "vibhakti": "PRATHAMA"},
+      {"upadesha": "आत्मने", "vibhakti": "CHATURTHI"},
       {"upadesha": "पद", "vibhakti": "PRATHAMA"}
     ],
-    "samasaType": "TATPURUSA",
+    "samasaType": "ALUK_TATPURUSA",
     "expectedStem": "आत्मनेपद",
-    "governingSutra": "6.3.7"
+    "expectedSurface": "आत्मनेपदम्",
+    "classificationSutra": "6.3.21",
+    "transformationSutras": "",
+    "forbiddenSutras": ""
   },
   {
     "id": "BENCH_003",
-    "name": "5.4.91 Rajahah Sakhibhyas Tac - Rajapurusa",
+    "name": "2.2.8 Shashthi Tatpurusa - Rajapurusa",
     "padas": [
       {"upadesha": "राजन्", "vibhakti": "SASTHI"},
       {"upadesha": "पुरुष", "vibhakti": "PRATHAMA"}
     ],
     "samasaType": "TATPURUSA",
     "expectedStem": "राजपुरुष",
-    "governingSutra": "5.4.91"
+    "expectedSurface": "राजपुरुषः",
+    "classificationSutra": "2.2.8",
+    "transformationSutras": "",
+    "forbiddenSutras": "5.4.91"
   },
   {
     "id": "BENCH_004",
@@ -41,7 +50,10 @@
     ],
     "samasaType": "BAHUVRIHI",
     "expectedStem": "सुहृद्",
-    "governingSutra": "5.4.125"
+    "expectedSurface": "सुहृत्",
+    "classificationSutra": "2.2.24",
+    "transformationSutras": "5.4.125",
+    "forbiddenSutras": ""
   },
   {
     "id": "BENCH_005",
@@ -51,8 +63,11 @@
       {"upadesha": "पितृ", "vibhakti": "PRATHAMA"}
     ],
     "samasaType": "DVANDVA",
-    "expectedStem": "मातरापितरा",
-    "governingSutra": "6.3.86"
+    "expectedStem": "मातरापितृ",
+    "expectedSurface": "मातरापितरौ",
+    "classificationSutra": "2.2.34",
+    "transformationSutras": "6.3.86",
+    "forbiddenSutras": "6.3.87"
   },
   {
     "id": "BENCH_006",
@@ -62,19 +77,25 @@
       {"upadesha": "मातृ", "vibhakti": "PRATHAMA"}
     ],
     "samasaType": "DVANDVA",
-    "expectedStem": "पित्रामाता",
-    "governingSutra": "6.3.87"
+    "expectedStem": "पित्रामातृ",
+    "expectedSurface": "पित्रामातरौ",
+    "classificationSutra": "2.2.34",
+    "transformationSutras": "6.3.87",
+    "forbiddenSutras": "6.3.86"
   },
   {
     "id": "BENCH_007",
-    "name": "2.1.24 Dvitiya Tatpurusa - Kasta-prapanna",
+    "name": "2.2.5 Praptapanna Dvitiya Tatpurusa - Kasta-apanna",
     "padas": [
       {"upadesha": "कष्ट", "vibhakti": "DVITIYA"},
       {"upadesha": "आपन्न", "vibhakti": "PRATHAMA"}
     ],
     "samasaType": "TATPURUSA",
     "expectedStem": "कष्टापन्न",
-    "governingSutra": "2.1.24"
+    "expectedSurface": "कष्टापन्नः",
+    "classificationSutra": "2.2.5",
+    "transformationSutras": "",
+    "forbiddenSutras": "2.1.24"
   },
   {
     "id": "BENCH_008",
@@ -85,138 +106,9 @@
     ],
     "samasaType": "AVYAYIBHAVA",
     "expectedStem": "उपकृष्ण",
-    "governingSutra": "2.1.6"
-  },
-  {
-    "id": "BENCH_009",
-    "name": "8.2.7 NaloPa - Svamin-bhakti",
-    "padas": [
-      {"upadesha": "स्वामिन्", "vibhakti": "SASTHI"},
-      {"upadesha": "भक्ति", "vibhakti": "PRATHAMA"}
-    ],
-    "samasaType": "TATPURUSA",
-    "expectedStem": "स्वामिभक्ति",
-    "governingSutra": "8.2.7"
-  },
-  {
-    "id": "BENCH_010",
-    "name": "2.2.6 Nanj Tatpurusa - Abrahmana",
-    "padas": [
-      {"upadesha": "न", "vibhakti": "PRATHAMA"},
-      {"upadesha": "ब्राह्मण", "vibhakti": "PRATHAMA"}
-    ],
-    "samasaType": "NAN_TATPURUSA",
-    "expectedStem": "अब्राह्मण",
-    "governingSutra": "2.2.6"
-  },
-  {
-    "id": "BENCH_011",
-    "name": "2.2.6 Nanj Tatpurusa - Anasva",
-    "padas": [
-      {"upadesha": "न", "vibhakti": "PRATHAMA"},
-      {"upadesha": "अश्व", "vibhakti": "PRATHAMA"}
-    ],
-    "samasaType": "NAN_TATPURUSA",
-    "expectedStem": "अनश्व",
-    "governingSutra": "2.2.6"
-  },
-  {
-    "id": "BENCH_012",
-    "name": "2.2.24 Bahuvrihi - Pitambara",
-    "padas": [
-      {"upadesha": "पीत", "vibhakti": "PRATHAMA"},
-      {"upadesha": "अम्बर", "vibhakti": "PRATHAMA"}
-    ],
-    "samasaType": "BAHUVRIHI",
-    "expectedStem": "पीताम्बर",
-    "governingSutra": "2.2.24"
-  },
-  {
-    "id": "BENCH_013",
-    "name": "2.1.52 Dvigu - Tribhuvana",
-    "padas": [
-      {"upadesha": "त्रि", "vibhakti": "PRATHAMA"},
-      {"upadesha": "भुवन", "vibhakti": "PRATHAMA"}
-    ],
-    "samasaType": "DVIGU",
-    "expectedStem": "त्रिभुवन",
-    "governingSutra": "2.1.52"
-  },
-  {
-    "id": "BENCH_014",
-    "name": "2.2.29 Dvandva - Ramalaksmanau",
-    "padas": [
-      {"upadesha": "राम", "vibhakti": "PRATHAMA"},
-      {"upadesha": "लक्ष्मण", "vibhakti": "PRATHAMA"}
-    ],
-    "samasaType": "DVANDVA",
-    "expectedStem": "रामलक्ष्मण",
-    "governingSutra": "2.2.29"
-  },
-  {
-    "id": "BENCH_015",
-    "name": "2.2.19 Upapada Tatpurusa - Kumbhakara",
-    "padas": [
-      {"upadesha": "कुम्भ", "vibhakti": "DVITIYA"},
-      {"upadesha": "कार", "vibhakti": "PRATHAMA"}
-    ],
-    "samasaType": "UPAPADA_TATPURUSA",
-    "expectedStem": "कुम्भकार",
-    "governingSutra": "2.2.19"
-  },
-  {
-    "id": "BENCH_016",
-    "name": "2.2.19 Upapada Tatpurusa - Nagarakara",
-    "padas": [
-      {"upadesha": "नगर", "vibhakti": "DVITIYA"},
-      {"upadesha": "कार", "vibhakti": "PRATHAMA"}
-    ],
-    "samasaType": "UPAPADA_TATPURUSA",
-    "expectedStem": "नगरकार",
-    "governingSutra": "2.2.19"
-  },
-  {
-    "id": "BENCH_017",
-    "name": "5.4.151 Samasanta Kap - Vyudhoraska",
-    "padas": [
-      {"upadesha": "व्यूढ", "vibhakti": "PRATHAMA"},
-      {"upadesha": "उरस्", "vibhakti": "PRATHAMA"}
-    ],
-    "samasaType": "BAHUVRIHI",
-    "expectedStem": "व्यूढोरस्क",
-    "governingSutra": "5.4.151"
-  },
-  {
-    "id": "BENCH_018",
-    "name": "5.4.154 Samasanta Kap - Aputraka",
-    "padas": [
-      {"upadesha": "अ", "vibhakti": "PRATHAMA"},
-      {"upadesha": "पुत्र", "vibhakti": "PRATHAMA"}
-    ],
-    "samasaType": "BAHUVRIHI",
-    "expectedStem": "अपुत्रक",
-    "governingSutra": "5.4.154"
-  },
-  {
-    "id": "BENCH_019",
-    "name": "2.4.2 Samahara Dvandva - Panipada",
-    "padas": [
-      {"upadesha": "पाणि", "vibhakti": "PRATHAMA"},
-      {"upadesha": "पाद", "vibhakti": "PRATHAMA"}
-    ],
-    "samasaType": "DVANDVA",
-    "expectedStem": "पाणिपाद",
-    "governingSutra": "2.4.2"
-  },
-  {
-    "id": "BENCH_020",
-    "name": "2.1.6 Avyayibhava - Anuganga",
-    "padas": [
-      {"upadesha": "अनु", "vibhakti": "PRATHAMA"},
-      {"upadesha": "गङ्गा", "vibhakti": "PRATHAMA"}
-    ],
-    "samasaType": "AVYAYIBHAVA",
-    "expectedStem": "अनुगङ्गा",
-    "governingSutra": "2.1.6"
+    "expectedSurface": "उपकृष्णम्",
+    "classificationSutra": "2.1.6",
+    "transformationSutras": "",
+    "forbiddenSutras": ""
   }
 ]

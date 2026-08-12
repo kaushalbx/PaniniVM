@@ -73,35 +73,35 @@ class SankhyaEvaluator {
         }
 
         // Multiplicative stem + "गुणित" / "हते", e.g. ["द्वि", "गुणित", "शत"] -> 2 * 100 = 200
-        if (stems.size >= 2 && (stems[1] == "गुणित" || stems[1] == "हते")) {
+        if (stems.size >= 2 && SankhyaOperationMarkers.isMultiplication(stems[1])) {
             val coeff = evaluateStems(listOf(stems[0]))
             val rest = if (stems.size >= 3) evaluateStems(stems.subList(2, stems.size)) else SankhyaExpression.Primitive(PrimitiveSankhya.EKA)
             return SankhyaExpression.Multiply(coefficient = coeff, magnitude = rest)
         }
 
         // Division stem + "भक्त" / "हृत", e.g. ["द्वि", "भक्त", "शत"] -> 100 / 2 = 50
-        if (stems.size >= 2 && (stems[1] == "भक्त" || stems[1] == "हृत")) {
+        if (stems.size >= 2 && SankhyaOperationMarkers.isDivision(stems[1])) {
             val divisor = evaluateStems(listOf(stems[0]))
             val rest = if (stems.size >= 3) evaluateStems(stems.subList(2, stems.size)) else SankhyaExpression.Primitive(PrimitiveSankhya.EKA)
             return SankhyaExpression.RationalFraction(numerator = rest.value, denominator = divisor.value)
         }
 
         // Square: ["वर्ग", "कृत", ...] or ["वर्ग", ...]
-        if (stems.isNotEmpty() && stems[0] == "वर्ग") {
-            val startIndex = if (stems.size >= 2 && stems[1] == "कृत") 2 else 1
+        if (stems.isNotEmpty() && SankhyaOperationMarkers.isSquare(stems[0])) {
+            val startIndex = if (stems.size >= 2 && SankhyaOperationMarkers.isConstruction(stems[1])) 2 else 1
             val operand = if (startIndex < stems.size) evaluateStems(stems.subList(startIndex, stems.size)) else SankhyaExpression.Primitive(PrimitiveSankhya.EKA)
             return SankhyaExpression.Square(operand)
         }
 
         // Cube: ["घन", "कृत", ...] or ["घन", ...]
-        if (stems.isNotEmpty() && stems[0] == "घन") {
-            val startIndex = if (stems.size >= 2 && stems[1] == "कृत") 2 else 1
+        if (stems.isNotEmpty() && SankhyaOperationMarkers.isCube(stems[0])) {
+            val startIndex = if (stems.size >= 2 && SankhyaOperationMarkers.isConstruction(stems[1])) 2 else 1
             val operand = if (startIndex < stems.size) evaluateStems(stems.subList(startIndex, stems.size)) else SankhyaExpression.Primitive(PrimitiveSankhya.EKA)
             return SankhyaExpression.Cube(operand)
         }
 
         // SquareRoot: ["मूल", ...] or ["पद", ...]
-        if (stems.isNotEmpty() && (stems[0] == "मूल" || stems[0] == "पद")) {
+        if (stems.isNotEmpty() && SankhyaOperationMarkers.isSquareRoot(stems[0])) {
             val operand = if (stems.size >= 2) evaluateStems(stems.subList(1, stems.size)) else SankhyaExpression.Primitive(PrimitiveSankhya.EKA)
             return SankhyaExpression.SquareRoot(operand)
         }
@@ -238,7 +238,7 @@ class SankhyaEvaluator {
 
     private fun parseStandalonePurana(stem: String): SankhyaExpression.Purana? {
         val baseVal = when (stem) {
-            "प्रथम" -> PrimitiveSankhya.EKA
+            "प्रथम", "प्रथ्" -> PrimitiveSankhya.EKA
             else -> null
         }
         return baseVal?.let { SankhyaExpression.Purana(SankhyaExpression.Primitive(it)) }
@@ -249,20 +249,21 @@ class SankhyaEvaluator {
         if (stems.size == 1) return parseStandalonePurana(stems.single())
 
         val last = stems.last()
-        if (last == "तीय" || last == "थ" || last == "ष्ठ" || last == "म" || last == "तम") {
+        if (last in setOf("अमच्", "तीय", "थत्", "मट्", "डट्", "थ", "ष्ठ", "म", "तम")) {
             val baseStems = stems.dropLast(1)
             val baseExpr = if (baseStems.size == 1) {
                 val s = baseStems.single()
                 when (s) {
+                    "प्रथ्" -> PrimitiveSankhya.EKA
                     "द्वि" -> PrimitiveSankhya.DVI
                     "त्रि" -> PrimitiveSankhya.TRI
                     "चतुर्" -> PrimitiveSankhya.CHATUR
-                    "पञ्च" -> PrimitiveSankhya.PANCHAN
+                    "पञ्च", "पञ्चन्" -> PrimitiveSankhya.PANCHAN
                     "षष्" -> PrimitiveSankhya.SHASH
-                    "सप्त" -> PrimitiveSankhya.SAPTAN
-                    "अष्ट" -> PrimitiveSankhya.ASHTAN
-                    "नव" -> PrimitiveSankhya.NAVAN
-                    "दश" -> PrimitiveSankhya.DASHAN
+                    "सप्त", "सप्तन्" -> PrimitiveSankhya.SAPTAN
+                    "अष्ट", "अष्टन्" -> PrimitiveSankhya.ASHTAN
+                    "नव", "नवन्" -> PrimitiveSankhya.NAVAN
+                    "दश", "दशन्" -> PrimitiveSankhya.DASHAN
                     "शत" -> PrimitiveSankhya.SHATA
                     "सहस्र" -> PrimitiveSankhya.SAHASRA
                     else -> PrimitiveSankhya.fromAnnotatedPratipadika(s)

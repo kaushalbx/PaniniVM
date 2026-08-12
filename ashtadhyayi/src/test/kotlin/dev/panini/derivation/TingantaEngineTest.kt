@@ -11,9 +11,75 @@ import dev.panini.dhatupatha.DhatuPatha
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class TingantaEngineTest {
+
+    @Test
+    fun `da madhyama singular imperative derives dehi`() {
+        val result = TingantaEngine().derive(
+            TingantaDerivationRequest(
+                dhatu = "डुदाञ्",
+                vacana = Vacana.EKAVACANA,
+                purusha = Purusha.MADHYAMA,
+                lakara = Lakara.LOT,
+                pada = PadaType.PARASMAIPADA,
+            ),
+        )
+
+        assertEquals("देहि", result.final.surface)
+        assertTrue(result.applications.any { it.sutra == "6.4.119" })
+    }
+
+    @Test
+    fun `tinganta request preserves an attached nic pratyaya`() {
+        val request = TingantaDerivationRequest(
+            dhatu = "युज्",
+            vacana = Vacana.EKAVACANA,
+            purusha = Purusha.MADHYAMA,
+            lakara = Lakara.LOT,
+            pada = PadaType.PARASMAIPADA,
+            sanadiPratyayas = listOf("णिच्"),
+        )
+        val dhatu = DhatuPatha.all.first { it.upadesha == "युजिँर्" }
+        val state = request.initialState(dhatu)
+
+        assertEquals(listOf("युज्", "अय्"), state.terms.map { it.surface })
+        assertTrue(state.terms.any { it.upadesha == "णिच्" })
+    }
+
+    @Test
+    fun `attached nic forms a causative imperative instead of the mula dhatu vikaranam`() {
+        mapOf("युज्" to "योजय", "गण" to "गणय", "मुद्र्" to "मुद्रय").forEach { (dhatu, expected) ->
+            val result = TingantaEngine().derive(
+                TingantaDerivationRequest(
+                    dhatu = dhatu,
+                    vacana = Vacana.EKAVACANA,
+                    purusha = Purusha.MADHYAMA,
+                    lakara = Lakara.LOT,
+                    pada = PadaType.PARASMAIPADA,
+                    sanadiPratyayas = listOf("णिच्"),
+                ),
+            )
+
+            assertEquals(expected, result.final.surface, dhatu)
+            assertTrue(result.applications.any { it.sutra == "3.1.68" }, dhatu)
+            if (dhatu == "युज्") assertTrue(result.applications.none { it.sutra == "3.1.78" })
+            if (dhatu == "मुद्र्") assertTrue(result.applications.none { it.sutra == "7.3.86" })
+        }
+    }
+
+    @Test
+    fun `sanadi coverage is declared by gana rather than pvm root names`() {
+        val engine = TingantaEngine()
+
+        listOf("युज्", "गण", "मुद्र्").forEach {
+            assertTrue(engine.supportsSanadi(it, listOf("णिच्"), PadaType.PARASMAIPADA), it)
+        }
+        assertFalse(engine.supportsSanadi("हु", listOf("णिच्"), PadaType.PARASMAIPADA))
+        assertFalse(engine.supportsSanadi("मूल्", listOf("णिच्"), PadaType.PARASMAIPADA))
+    }
 
     @Test
     fun `Kryadi imperative uses shna without shap`() {

@@ -2,6 +2,7 @@ package dev.panini.vyakaranam.ast
 
 import dev.panini.core.Lakara
 import dev.panini.core.SupLopa
+import dev.panini.execution.SanskritValue
 
 sealed interface VyakaranamNode {
     val sourceText: String
@@ -10,15 +11,117 @@ sealed interface VyakaranamNode {
 data class Ukti(
     override val sourceText: String,
     val sambodhana: Sambodhana? = null,
-    val vakyas: List<Vakya>,
-    val sambandhas: List<String> = emptyList(),
-    val structure: UktiStructure = UktiStructure.Sequence,
+    val body: ProgramNode,
+) : VyakaranamNode {
+    /** Explicit grammatical query; execution order must be read from [body]. */
+    fun grammaticalVakyas(): List<Vakya> = body.invocations().map(Invocation::vakya)
+}
+
+/**
+ * Uniform, recursive representation of executable structure.
+ *
+ * Grammatical nodes such as [Vakya] remain leaves. Control-flow consumers must
+ * inspect this tree instead of deriving structure from clause positions or text.
+ */
+sealed interface ProgramNode : VyakaranamNode
+
+data class Invocation(
+    val vakya: Vakya,
+    /** Source-level nominal result whose understood return verb was lowered into [vakya]. */
+    val implicitValue: String? = null,
+) : ProgramNode {
+    override val sourceText: String = vakya.sourceText
+}
+
+data class Sequence(
+    override val sourceText: String,
+    val statements: List<ProgramNode>,
+    val connectors: List<String> = emptyList(),
+) : ProgramNode {
+    init {
+        require(statements.isNotEmpty()) { "A sequence must contain at least one statement." }
+        require(connectors.size <= statements.size - 1) {
+            "A sequence cannot have more connectors than statement boundaries."
+        }
+    }
+}
+
+data class Conditional(
+    override val sourceText: String,
+    val condition: ProgramNode,
+    val consequent: ProgramNode,
+    val alternate: ProgramNode? = null,
+    /** One source-written pipeline target lowered into both branches for execution. */
+    val surfacePipelineTarget: ProgramNode? = null,
+) : ProgramNode
+
+/** A command mentioned with इति and supplied as data to a reporting command. */
+data class Quotation(
+    override val sourceText: String,
+    val quoted: Invocation,
+    val reporting: ProgramNode,
+) : ProgramNode
+
+data class Repeat(
+    override val sourceText: String,
+    val count: Int,
+    val body: ProgramNode,
+) : ProgramNode {
+    init {
+        require(count > 0) { "A repetition count must be positive." }
+    }
+}
+
+/** A condition-controlled loop, optionally bounded by a Sanskrit repetition count. */
+data class WhileLoop(
+    override val sourceText: String,
+    val condition: Invocation,
+    val body: ProgramNode,
+    val maximumIterationStems: List<String> = emptyList(),
+    val exhausted: ProgramNode? = null,
+    val resultTarget: ProgramNode? = null,
+) : ProgramNode
+
+data class PipelineStage(
+    override val sourceText: String,
+    val domainStem: String?,
+    val operationStem: String,
 ) : VyakaranamNode
 
-sealed interface UktiStructure {
-    data object Sequence : UktiStructure
-    data class Conditional(val hasAlternate: Boolean) : UktiStructure
-}
+data class Pipeline(
+    override val sourceText: String,
+    val arguments: List<String>,
+    val stages: List<PipelineStage>,
+    val renderPadas: List<Pada> = emptyList(),
+) : ProgramNode
+
+data class ProcedureModifiers(
+    val isInternal: Boolean = false,
+    val isApavada: Boolean = false,
+    val isAntaranga: Boolean = false,
+    val isNitya: Boolean = false,
+)
+
+data class Procedure(
+    override val sourceText: String,
+    val name: String,
+    val domain: String? = null,
+    val body: List<ProgramNode>,
+    val modifiers: ProcedureModifiers = ProcedureModifiers(),
+) : ProgramNode
+
+data class Scope(
+    override val sourceText: String,
+    val domain: String,
+    val body: List<ProgramNode> = emptyList(),
+) : ProgramNode
+
+fun ProgramNode.invocations(): List<Invocation> =
+    depthFirst().filterIsInstance<Invocation>().toList()
+
+/** Invocations in execution order, including copies introduced by [Repeat]. */
+fun ProgramNode.expandedInvocations(): List<Invocation> =
+    depthFirst(expandRepeats = true).filterIsInstance<Invocation>().toList()
 
 data class Sambodhana(
     override val sourceText: String,
@@ -61,7 +164,25 @@ data class AvyayaPada(
     override val sourceText: String,
     val form: String,
     val derivation: AvyayaDerivation? = null,
-) : Pada
+) : Pada {
+    val function: AvyayaFunction? = AvyayaFunction.fromForm(form)
+}
+
+enum class AvyayaFunction {
+    NISHEDHA,
+    QUOTATIVE,
+    REPETITION,
+    ;
+
+    companion object {
+        fun fromForm(form: String): AvyayaFunction? = when (form.trim()) {
+            "न", "मा" -> NISHEDHA
+            "इति" -> QUOTATIVE
+            "पुनः", "पुनर्" -> REPETITION
+            else -> null
+        }
+    }
+}
 
 data class SamuccitaSubanta(
     override val sourceText: String,
@@ -74,7 +195,36 @@ data class MulaPratipadika(
     override val sourceText: String,
     val text: String,
     val vikaras: List<PratipadikaVikara> = emptyList(),
-) : Pratipadika
+) : Pratipadika {
+    val lexicalIdentity: MulaPratipadikaIdentity? = MulaPratipadikaIdentity.fromText(text)
+}
+
+enum class MulaPratipadikaIdentity {
+    ADHIKARA,
+    ANTARANGA,
+    APAVADA,
+    NITYA,
+    PURVA,
+    SAMJNA,
+    SAMAVAYA,
+    ;
+
+    companion object {
+        fun fromText(text: String): MulaPratipadikaIdentity? = when (normalize(text)) {
+            "अधिकार" -> ADHIKARA
+            "अन्तरङ्ग", "अन्तरङ्गा", "अन्तर् + अङ्ग" -> ANTARANGA
+            "अपवाद" -> APAVADA
+            "नित्य", "नि + त्य" -> NITYA
+            "पूर्व" -> PURVA
+            "संज्ञा" -> SAMJNA
+            "समवाय" -> SAMAVAYA
+            else -> null
+        }
+
+        private fun normalize(text: String): String =
+            text.split('+').joinToString(" + ") { it.trim() }.trim()
+    }
+}
 
 data class KridantaPratipadika(
     override val sourceText: String,
@@ -82,7 +232,50 @@ data class KridantaPratipadika(
     val dhatu: DhatuPrakriti,
     val krtPratyaya: String,
     val vikaras: List<PratipadikaVikara> = emptyList(),
-) : Pratipadika
+) : Pratipadika {
+    val krtPratyayaIdentity: KrtPratyayaIdentity? = KrtPratyayaIdentity.fromUpadesha(krtPratyaya)
+    val lexicalIdentity: KridantaLexicalIdentity? = KridantaLexicalIdentity.fromStructure(
+        upasargas = upasargas,
+        mulaDhatu = dhatu.mulaDhatu,
+        krtPratyaya = krtPratyayaIdentity,
+    )
+}
+
+enum class KridantaLexicalIdentity {
+    ADHIKARA,
+    APAVADA,
+    ;
+
+    companion object {
+        fun fromStructure(
+            upasargas: List<String>,
+            mulaDhatu: String,
+            krtPratyaya: KrtPratyayaIdentity?,
+        ): KridantaLexicalIdentity? = when {
+            upasargas == listOf("अधि") &&
+                mulaDhatu == "कृ" &&
+                krtPratyaya == KrtPratyayaIdentity.GHAN -> ADHIKARA
+            upasargas == listOf("अप") &&
+                mulaDhatu == "वद्" &&
+                krtPratyaya == KrtPratyayaIdentity.GHAN -> APAVADA
+            else -> null
+        }
+    }
+}
+
+enum class KrtPratyayaIdentity {
+    KTA,
+    GHAN,
+    ;
+
+    companion object {
+        fun fromUpadesha(upadesha: String): KrtPratyayaIdentity? = when (upadesha.trim()) {
+            "क्त" -> KTA
+            "घञ्" -> GHAN
+            else -> null
+        }
+    }
+}
 
 data class UnadyantaPratipadika(
     override val sourceText: String,
@@ -100,9 +293,23 @@ data class SamasaPratipadika(
 
 data class SankhyaPratipadika(
     override val sourceText: String,
-    val value: Long? = null,
+    val semanticValue: SanskritValue.Sankhya,
     val vikaras: List<PratipadikaVikara> = emptyList(),
-) : Pratipadika
+) : Pratipadika {
+    /** Numeric identity retained independently of the source-written surface. */
+    val value: Long get() = semanticValue.value
+
+    /** Compatibility constructor for callers that have not yet produced a typed value. */
+    constructor(
+        sourceText: String,
+        value: Long,
+        vikaras: List<PratipadikaVikara> = emptyList(),
+    ) : this(
+        sourceText = sourceText,
+        semanticValue = SanskritValue.Sankhya(value, sourceText),
+        vikaras = vikaras,
+    )
+}
 
 data class SankhyaPada(
     override val sourceText: String,
@@ -154,10 +361,26 @@ data class SamasaAnga(
 
 sealed interface PratipadikaVikara : VyakaranamNode
 
+enum class TaddhitaPratyayaClass {
+    POSSESSIVE,
+    APATYA,
+    ;
+
+    companion object {
+        fun fromUpadesha(upadesha: String): TaddhitaPratyayaClass? = when (upadesha.trim()) {
+            "मतुप्", "वतुप्", "मत्", "वत्" -> POSSESSIVE
+            "अण्", "इञ्" -> APATYA
+            else -> null
+        }
+    }
+}
+
 data class TaddhitaVikara(
     override val sourceText: String,
     val pratyaya: String,
-) : PratipadikaVikara
+) : PratipadikaVikara {
+    val pratyayaClass: TaddhitaPratyayaClass? = TaddhitaPratyayaClass.fromUpadesha(pratyaya)
+}
 
 data class StriVikara(
     override val sourceText: String,

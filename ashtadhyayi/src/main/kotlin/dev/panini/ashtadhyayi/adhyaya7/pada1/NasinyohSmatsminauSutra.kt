@@ -27,7 +27,7 @@ object NasinyohSmatsminauSutra : Sutra<DerivationState, DerivationChange>(
     pada = 1,
     optional = false,
     kramaValue = 710015,
-    role = SutraRole.Vidhi,
+    role = SutraRole.Apavada,
     action = SutraAction.ADESHA,
     scope = SutraScope.PRATYAYA,
     nimittaScope = NimittaScope.EXTERNAL,
@@ -40,16 +40,20 @@ object NasinyohSmatsminauSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        val isSarvanama = context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SARVANAMA }
-        if (!isSarvanama) return false
+        val isTyadadi = stem.upadesha in setOf("त्यद्", "तद्", "यद्", "एतद्", "किम्", "इदम्")
+        val isSarvanama = isTyadadi || context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SARVANAMA }
+        val matras = setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'े', 'ै', 'ो', 'ौ', '्')
+        val endsInA = isTyadadi || (stem.surface.isNotEmpty() && stem.surface.last() !in matras)
 
-        val endsInA = stem.surface.endsWith('अ') || stem.surface.endsWith('ा')
-        return endsInA && affix.upadesha in sources
+        if (affix.surface in setOf("स्मात्", "स्मिन्")) return false
+
+        return isSarvanama && endsInA && (affix.upadesha in sources || affix.id in setOf("sup-ngasi", "sup-ngi"))
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
-        val replacement = requireNotNull(YathasamkhyamSutra.map(affix.upadesha, sources, targets))
+        val lookupKey = if (affix.id == "sup-ngasi") "ङसि" else if (affix.id == "sup-ngi") "ङि" else affix.upadesha
+        val replacement = requireNotNull(YathasamkhyamSutra.map(lookupKey, sources, targets))
 
         return DerivationChange(
             state = context.replaceTerm(affix.id, affix.copy(surface = replacement)),

@@ -10,25 +10,161 @@ class VyakaranamAstBuilder {
     fun build(
         context: PaniniyaVyakaranamParser.UktiContext,
     ): Ukti {
-        val vakyas = if (context.conditionalClause() != null) {
-            val condCtx = context.conditionalClause()!!
-            listOf(buildVakya(condCtx.condition!!)) + listOf(buildVakya(condCtx.consequent!!)) + (condCtx.alternate?.let { listOf(buildVakya(it)) } ?: emptyList())
-        } else {
-            context.vakya().map(::buildVakya)
+        val body = context.whileClause()?.let { loop ->
+            val limit = loop.limit?.let(::buildSankhyaAbhyasaPada)
+            WhileLoop(
+                sourceText = loop.text,
+                condition = Invocation(buildVakya(loop.condition!!)),
+                body = Invocation(buildVakya(loop.body!!)),
+                maximumIterationStems = limit?.stems?.dropLast(1).orEmpty(),
+                exhausted = loop.exhausted?.let { Invocation(buildVakya(it)) },
+                resultTarget = loop.target?.let { Invocation(buildVakya(it)) },
+            )
+        } ?: context.conditionalPipelineClause()?.let(::buildConditionalPipeline)
+            ?: context.attributePipelineClause()?.let(::buildAttributePipeline)
+            ?: context.pipelineClause()?.let(::buildPipeline)
+            ?: context.conditionalClause()?.let { clause ->
+                val conditional = buildConditional(clause.conditionalExpression())
+                clause.target?.let { target ->
+                    pipeConditionalResult(conditional, target)
+                } ?: conditional
+            }
+            ?: run {
+            val statements = context.vakya().mapTo(mutableListOf<ProgramNode>()) { Invocation(buildVakya(it)) }
+            val connectors = context.vakyaSambandha().mapTo(mutableListOf()) { it.text }
+            while ("इति" in connectors) {
+                val boundary = connectors.indexOf("इति")
+                val quoted = statements[boundary] as? Invocation
+                    ?: error("The command before इति must be one grammatical invocation.")
+                val reporting = statements[boundary + 1]
+                statements[boundary] = Quotation(
+                    sourceText = "${quoted.sourceText} इति ${reporting.sourceText}",
+                    quoted = quoted,
+                    reporting = reporting,
+                )
+                statements.removeAt(boundary + 1)
+                connectors.removeAt(boundary)
+            }
+            if (statements.size == 1) statements.single()
+            else Sequence(context.text, statements, connectors)
         }
 
         return Ukti(
             sourceText = context.text,
             sambodhana = context.sambodhana()?.let(::buildSambodhana),
-            vakyas = vakyas,
-            sambandhas = context.vakyaSambandha().map { it.text },
-            structure = when {
-                context.conditionalClause() != null ->
-                    UktiStructure.Conditional(context.conditionalClause()!!.alternate != null)
-                else -> UktiStructure.Sequence
-            },
+            body = body,
         )
     }
+
+    private fun buildConditionalPipeline(
+        context: PaniniyaVyakaranamParser.ConditionalPipelineClauseContext,
+    ): Sequence {
+        val stages = listOf(Invocation(buildAkhyataVakya(requireNotNull(context.source)))) +
+            context.stages.map { Invocation(buildAkhyataVakya(it)) } +
+            buildConditional(requireNotNull(context.conditional))
+        return Sequence(
+            sourceText = context.text,
+            statements = stages,
+            connectors = List(stages.size - 1) { "ततः" },
+        )
+    }
+
+    private fun buildAttributePipeline(
+        context: PaniniyaVyakaranamParser.AttributePipelineClauseContext,
+    ): Sequence {
+        val sourcePadas = context.source.map(::buildSubanta)
+        val source = Invocation(NamaVakya(
+            sourceText = sourcePadas.joinToString("") { it.sourceText },
+            padas = sourcePadas,
+        ))
+        val targets = context.targets.map { Invocation(buildAkhyataVakya(it)) }
+        return Sequence(
+            sourceText = context.text,
+            statements = listOf(source) + targets,
+            connectors = List(targets.size) { "ततः" },
+        )
+    }
+
+    private fun buildConditional(
+        context: PaniniyaVyakaranamParser.ConditionalExpressionContext,
+    ): Conditional = Conditional(
+        sourceText = context.text,
+        condition = Invocation(buildVakya(context.condition!!)),
+        consequent = buildConditionalArm(context.consequent!!),
+        alternate = context.nested?.let(::buildConditional)
+            ?: context.alternate?.let(::buildConditionalArm),
+    )
+
+    private fun buildConditionalArm(
+        context: PaniniyaVyakaranamParser.ConditionalArmContext,
+    ): ProgramNode = context.vakya()?.let { Invocation(buildVakya(it)) }
+        ?: implicitValueReturn(requireNotNull(context.value).text)
+
+    /** A nominal branch has an understood return verb, just as a nāma-vākya has an understood copula. */
+    private fun implicitValueReturn(value: String): ProgramNode =
+        (PaniniParser().parse("$value + अम् दा + लोट् + सिप् ।").body as Invocation)
+            .copy(implicitValue = value)
+
+    /** Lowers one written pipeline target into each mutually exclusive branch. */
+    private fun pipeConditionalResult(
+        conditional: Conditional,
+        target: PaniniyaVyakaranamParser.VakyaContext,
+        exposeSurfaceTarget: Boolean = true,
+    ): Conditional = conditional.copy(
+        consequent = pipeBranch(conditional.consequent, target),
+        alternate = conditional.alternate?.let { alternate ->
+            if (alternate is Conditional) {
+                pipeConditionalResult(alternate, target, exposeSurfaceTarget = false)
+            } else {
+                pipeBranch(alternate, target)
+            }
+        },
+        surfacePipelineTarget = if (exposeSurfaceTarget) Invocation(buildVakya(target)) else null,
+    )
+
+    private fun pipeBranch(
+        branch: ProgramNode,
+        target: PaniniyaVyakaranamParser.VakyaContext,
+    ): Sequence = Sequence(
+        sourceText = branch.sourceText + "ततः" + target.text,
+        statements = listOf(branch, Invocation(buildVakya(target))),
+        connectors = listOf("ततः"),
+    )
+
+    private fun buildPipeline(
+        context: PaniniyaVyakaranamParser.PipelineClauseContext,
+    ): Pipeline {
+        val arguments = context.arguments.map(::buildSubanta)
+        val stagePadas = context.stages.map { stage ->
+            val domain = buildSubanta(stage.domain!!)
+            val operation = buildSubanta(stage.operation!!)
+            Triple(
+                PipelineStage(
+                    sourceText = "${canonicalSegmented(domain.sourceText)} ${canonicalSegmented(operation.pratipadika.sourceText)}",
+                    domainStem = canonicalSegmented(domain.pratipadika.sourceText),
+                    operationStem = canonicalSegmented(operation.pratipadika.sourceText),
+                ),
+                domain,
+                operation,
+            )
+        }
+        val purvaPada = buildSubanta(context.purvaparaDirective()!!.purva!!)
+        val paraPada = buildSubanta(context.purvaparaDirective()!!.para!!)
+        return Pipeline(
+            sourceText = context.text,
+            arguments = arguments.map { it.pratipadika.sourceText },
+            stages = stagePadas.map { it.first },
+            renderPadas = arguments +
+                AvyayaPada(sourceText = "च", form = "च") +
+                stagePadas.flatMap { listOf(it.second, it.third) } +
+                listOf(purvaPada, paraPada) +
+                buildSubanta(context.pipelineResult()!!.subantaPada()!!) +
+                buildTinganta(context.tingantaPada()!!),
+        )
+    }
+
+    private fun canonicalSegmented(source: String): String =
+        source.replace("+", " + ").replace(Regex("\\s+"), " ").trim()
 
     private fun buildVakya(
         context: PaniniyaVyakaranamParser.VakyaContext,
@@ -245,6 +381,12 @@ class VyakaranamAstBuilder {
                     text = context.mulaPratipadika()!!.text,
                 )
 
+            context.samjnaQualifierPratipadika() != null ->
+                MulaPratipadika(
+                    sourceText = context.text,
+                    text = context.samjnaQualifierPratipadika()!!.text,
+                )
+
             context.kridantaPratipadika() != null ->
                 buildKridanta(context.kridantaPratipadika()!!)
 
@@ -320,6 +462,12 @@ class VyakaranamAstBuilder {
                 MulaPratipadika(
                     sourceText = mulaContext.text,
                     text = mulaContext.mulaPratipadika()!!.text,
+                )
+
+            mulaContext.samjnaQualifierPratipadika() != null ->
+                MulaPratipadika(
+                    sourceText = mulaContext.text,
+                    text = mulaContext.samjnaQualifierPratipadika()!!.text,
                 )
 
             mulaContext.kridantaPratipadika() != null ->

@@ -50,6 +50,9 @@ object SarvanamasthaneCasambuddhauSutra : Sutra<DerivationState, DerivationChang
         // inherent a (फलन्/फलन).
         val surface = stem.surface
         if (surface.length < 2) return false
+        if (surface.endsWith('ा')) return false
+        val lastVowel = surface.lastOrNull { Varnamala.isVowel(it) }
+        if (lastVowel in setOf('ा', 'ी', 'ू', 'आ', 'ई', 'ऊ')) return false
         val penultimateChar = if (surface.endsWith("्")) {
              if (surface.length >= 3) surface[surface.length - 3] else return false
         } else {
@@ -64,16 +67,28 @@ object SarvanamasthaneCasambuddhauSutra : Sutra<DerivationState, DerivationChang
         val stem = context.terms[context.terms.size - 2]
         val surface = stem.surface
 
-        val index = if (surface.endsWith("्")) surface.length - 3 else surface.length - 2
-        val charToLengthen = surface[index]
-        val lengthened = when (charToLengthen) {
-            'अ' -> "ा"
-            'इ', 'ि' -> "ी"
-            'उ', 'ु' -> "ू"
-            else -> "${charToLengthen}ा"
+        val lastChar = surface.last()
+        val (index, charToLengthen) = if (Varnamala.isVowel(lastChar)) {
+            Pair(surface.length - 1, lastChar)
+        } else if (surface.endsWith("्") && surface.length >= 2 && Varnamala.isVowel(surface[surface.length - 2])) {
+            Pair(surface.length - 2, surface[surface.length - 2])
+        } else {
+            val idx = surface.indexOfLast { Varnamala.isVowel(it) }
+            if (idx >= 0) Pair(idx, surface[idx]) else Pair(if (surface.endsWith("्")) surface.length - 3 else surface.length - 2, surface[if (surface.endsWith("्")) surface.length - 3 else surface.length - 2])
         }
 
-        val newSurface = surface.substring(0, index) + lengthened + surface.substring(index + 1)
+        val newSurface = when (charToLengthen) {
+            'इ', 'ि' -> surface.substring(0, index) + "ी" + surface.substring(index + 1)
+            'उ', 'ु' -> surface.substring(0, index) + "ू" + surface.substring(index + 1)
+            'अ' -> surface.substring(0, index) + "ा" + surface.substring(index + 1)
+            else -> if (!surface.contains('ा')) {
+                when {
+                    surface.endsWith("न्") -> surface.dropLast(2) + "ान्"
+                    surface.endsWith('न') -> surface.dropLast(1) + "ान"
+                    else -> surface + "ा"
+                }
+            } else surface
+        }
 
         return DerivationChange(
             state = context.replaceTerm(stem.id, stem.copy(surface = newSurface))

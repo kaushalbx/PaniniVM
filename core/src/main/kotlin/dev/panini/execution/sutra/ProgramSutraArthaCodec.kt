@@ -5,6 +5,7 @@ import dev.panini.execution.AmbiguousKarakaBinding
 import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.SanskritValue
 import dev.panini.shiksha.Samjna
+import dev.panini.core.SupAffix
 import dev.panini.sutra.runtime.SutraArthaValue
 
 object ProgramSutraArthaCodec {
@@ -63,6 +64,13 @@ object ProgramSutraArthaCodec {
                 "name" to SutraArthaValue.Symbol(expression.name),
             ),
         )
+        is ExecutionExpression.TypedOperand -> SutraArthaValue.Record(
+            mapOf(
+                "expressionType" to SutraArthaValue.Symbol("typedOperand"),
+                "value" to encodeValue(expression.value),
+                "sup" to SutraArthaValue.Symbol(expression.sup.name),
+            ),
+        )
     }
 
     fun decodeExpression(value: SutraArthaValue): ExecutionExpression {
@@ -78,6 +86,10 @@ object ProgramSutraArthaCodec {
                 fields.sequence("members").map(::decodeExpression),
             )
             "reference" -> ExecutionExpression.Reference(fields.symbol("name"))
+            "typedOperand" -> ExecutionExpression.TypedOperand(
+                value = decodeValue(fields.getValue("value")),
+                sup = SupAffix.valueOf(fields.symbol("sup")),
+            )
             else -> throw IllegalArgumentException("Unknown execution expression type.")
         }
     }
@@ -94,6 +106,11 @@ object ProgramSutraArthaCodec {
             "denominator" to SutraArthaValue.Number(value.denominator),
             "word" to SutraArthaValue.Text(value.word),
         )
+        is SanskritValue.Range -> record(
+            "range",
+            "minimum" to encodeValue(value.minimum),
+            "maximum" to encodeValue(value.maximum),
+        )
         is SanskritValue.Shabda -> record(
             "shabda",
             "text" to SutraArthaValue.Text(value.text),
@@ -107,16 +124,23 @@ object ProgramSutraArthaCodec {
             "suchi",
             "items" to SutraArthaValue.Sequence(value.items.map(::encodeValue)),
         )
+        is SanskritValue.Rupa -> record(
+            "rupa",
+            "schema" to SutraArthaValue.Text(value.schema),
+            "fields" to SutraArthaValue.Record(value.fields.mapValues { encodeValue(it.value) }.toMap()),
+        )
         is SanskritValue.Satya -> record(
             "satya",
             "boolean" to SutraArthaValue.Truth(value.boolean),
         )
+        is SanskritValue.Lopa -> record("lopa")
     }
 
     fun decodeValue(value: SutraArthaValue): SanskritValue {
         val fields = (value as? SutraArthaValue.Record)?.fields
             ?: throw IllegalArgumentException("A Sanskrit value must be a semantic record.")
         return when (fields.symbol("valueType")) {
+            "lopa" -> SanskritValue.Lopa
             "sankhya" -> SanskritValue.Sankhya(
                 fields.number("number"),
                 fields.text("word"),
@@ -125,6 +149,10 @@ object ProgramSutraArthaCodec {
                 fields.number("numerator"),
                 fields.number("denominator"),
                 fields.text("word"),
+            )
+            "range" -> SanskritValue.Range(
+                decodeValue(requireNotNull(fields["minimum"])) as SanskritValue.Sankhya,
+                decodeValue(requireNotNull(fields["maximum"])) as SanskritValue.Sankhya,
             )
             "shabda" -> SanskritValue.Shabda(
                 fields.text("text"),
@@ -135,6 +163,10 @@ object ProgramSutraArthaCodec {
             )
             "suchi" -> SanskritValue.Suchi(
                 fields.sequence("items").map(::decodeValue),
+            )
+            "rupa" -> SanskritValue.Rupa(
+                fields.text("schema"),
+                (fields.getValue("fields") as SutraArthaValue.Record).fields.mapValues { decodeValue(it.value) },
             )
             "satya" -> SanskritValue.Satya(fields.truth("boolean"))
             else -> throw IllegalArgumentException("Unknown Sanskrit semantic value type.")

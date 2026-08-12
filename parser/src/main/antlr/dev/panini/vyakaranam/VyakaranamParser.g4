@@ -13,7 +13,11 @@ package dev.panini.parser;
 // ============================================================================
 
 ukti
-    : conditionalClause
+    : whileClause
+    | conditionalPipelineClause
+    | attributePipelineClause
+    | pipelineClause
+    | conditionalClause
     | sambodhana?
       vakya
       (vakyaSambandha vakya)*
@@ -21,8 +25,52 @@ ukti
       EOF
     ;
 
+conditionalPipelineClause
+    : source=akhyataVakya (TATAH stages+=akhyataVakya)*
+      TATAH conditional=conditionalExpression DANDA? EOF
+    ;
+
+attributePipelineClause
+    : source+=subantaPada source+=subantaPada+
+      TATAH targets+=akhyataVakya (TATAH targets+=akhyataVakya)* DANDA? EOF
+    ;
+
+whileClause
+    : limit=sankhyaAbhyasaPada? YAVAT condition=vakya TAVAT body=vakya
+      (ANYATHA exhausted=vakya)? (TATAH target=vakya)? DANDA? EOF
+    ;
+
+pipelineClause
+    : (arguments+=subantaPada)+ CHA
+      stages+=pipelineStage stages+=pipelineStage+
+      purvaparaDirective pipelineResult tingantaPada
+      DANDA? EOF
+    ;
+
+pipelineStage
+    : domain=subantaPada operation=subantaPada
+    ;
+
+purvaparaDirective
+    : purva=subantaPada para=subantaPada
+    ;
+
+pipelineResult
+    : subantaPada
+    ;
+
 conditionalClause
-    : YADI condition=vakya TARHI consequent=vakya (ANYATHA alternate=vakya)? DANDA? EOF
+    : conditionalExpression (TATAH target=vakya)? DANDA? EOF
+    ;
+
+conditionalExpression
+    : YADI condition=vakya TARHI consequent=conditionalArm
+      (ANYATHA (nested=conditionalExpression | alternate=conditionalArm))?
+    ;
+
+conditionalArm
+    : value=pratipadika
+    | vakya
     ;
 
 // ============================================================================
@@ -87,6 +135,7 @@ subantaVakyaPada
 vakyaSambandha
     : CHA
     | VAA
+    | ITI
     | ATHA
     | TATAH
     | ANANTARAM
@@ -183,6 +232,7 @@ pratipadika
 
 pratipadikaMula
     : mulaPratipadika
+    | samjnaQualifierPratipadika
     | kridantaPratipadika
     | unadyantaPratipadika
     | samasaPratipadika
@@ -196,6 +246,11 @@ pratipadikaVikara
 
 mulaPratipadika
     : IDENTIFIER
+    ;
+
+samjnaQualifierPratipadika
+    : NI PLUS TYA
+    | ANTAR PLUS IDENTIFIER
     ;
 
 // ============================================================================
@@ -229,6 +284,8 @@ unadiPratyaya
 taddhitaPratyaya
     : MATUP
     | VATUP
+    | MAT
+    | VAT
     | INI
     | TVA
     | TAL
@@ -249,7 +306,8 @@ taddhitaPratyaya
     | INA
     | DAA
     | DHAA
-    | TRA
+    | TYAP
+    | TYA
     ;
 
 // ============================================================================
@@ -300,6 +358,7 @@ asamasikaPratipadika
 
 asamasikaPratipadikaMula
     : mulaPratipadika
+    | samjnaQualifierPratipadika
     | kridantaPratipadika
     | unadyantaPratipadika
     | LPAREN samasaPratipadika RPAREN
@@ -359,6 +418,7 @@ upasargaKrama
 upasarga
     : PRA
     | PARAA
+    | APA
     | SAM
     | ANUU
     | AVA
@@ -376,6 +436,7 @@ upasarga
     | PRATI
     | PARI
     | UPA
+    | ANTAR
     ;
 
 // ============================================================================
@@ -618,6 +679,7 @@ mulaAvyaya
     | NA
     | ITI
     | API
+    | NI
     | EVA
     | CHA
     | VAA

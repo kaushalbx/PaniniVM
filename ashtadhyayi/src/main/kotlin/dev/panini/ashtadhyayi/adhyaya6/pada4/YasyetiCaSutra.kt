@@ -78,6 +78,7 @@ object YasyetiCaSutra : Sutra<DerivationState, DerivationChange>(
             id = stem.id,
             surface = mergedSurface,
             kind = TermKind.PRATIPADIKA,
+            upadesha = stem.upadesha,
         )
 
         return DerivationChange(

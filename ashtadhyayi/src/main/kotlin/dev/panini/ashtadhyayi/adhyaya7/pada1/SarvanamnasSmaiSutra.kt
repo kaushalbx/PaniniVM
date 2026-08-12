@@ -25,29 +25,27 @@ object SarvanamnasSmaiSutra : Sutra<DerivationState, DerivationChange>(
     pada = 1,
     optional = false,
     kramaValue = 710014,
-    role = SutraRole.Vidhi,
+    role = SutraRole.Apavada,
     action = SutraAction.ADESHA,
     scope = SutraScope.PRATYAYA,
     nimittaScope = NimittaScope.EXTERNAL,
     dependencies = setOf("6.4.1", "1.1.27")
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        // Jurisdictional check
         if ("6.4.1" !in context.activeAdhikaras) return false
-
         if (context.terms.size < 2) return false
+
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        // 1. Stem must be a Sarvanāma
-        val isSarvanama = context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SARVANAMA }
-        if (!isSarvanama) return false
+        val isTyadadi = stem.upadesha in setOf("त्यद्", "तद्", "यद्", "एतद्", "किम्", "इदम्")
+        val isSarvanama = isTyadadi || context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SARVANAMA }
+        val matras = setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'े', 'ै', 'ो', 'ौ', '्')
+        val endsInA = isTyadadi || (stem.surface.isNotEmpty() && stem.surface.last() !in matras)
 
-        // 2. Stem must end in 'a'
-        val endsInA = stem.surface.endsWith('अ') || stem.surface.endsWith('ा')
+        if (affix.surface == "स्मै") return false
 
-        // 3. Affix must be 'ṅe'
-        return endsInA && affix.upadesha == "ङे"
+        return isSarvanama && endsInA && (affix.upadesha == "ङे" || affix.id == "sup-nge")
     }
 
     override fun apply(context: DerivationState): DerivationChange {

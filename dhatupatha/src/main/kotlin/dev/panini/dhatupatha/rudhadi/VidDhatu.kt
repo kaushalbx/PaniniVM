@@ -30,7 +30,12 @@ class VidDhatu : Dhatu(
     operations = listOf(
         ComparisonAction.GreaterThan.op {
             requiresNumbers(shape = ExpressionShape.COORDINATION)
-            triggeredBy(forbiddenAvyayas = setOf("न्यूनतया"))
+            triggeredBy(forbiddenAvyayas = setOf("न्यूनतया"), forbiddenUpasargas = setOf("नि"))
+            returns(Samjna.SATYA)
+        },
+        ComparisonAction.LessThan.op {
+            requiresNumbers(shape = ExpressionShape.COORDINATION)
+            triggeredBy(requiredUpasargas = setOf("नि"))
             returns(Samjna.SATYA)
         },
         MinAction.op {

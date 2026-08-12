@@ -7,6 +7,7 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.HasMorphosyntax
 import dev.panini.derivation.TermKind
 import dev.panini.ganapatha.GanaPatha
+import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -21,9 +22,12 @@ object NaShatsvasradibhyahSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Nishedha, action = SutraAction.NISHEDHA, scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
-        HasMorphosyntax(linga = Linga.STRI).matches(context) && context.terms.any {
+        "STRI_PRATYAYA" !in context.blockedSutras &&
+            HasMorphosyntax(linga = Linga.STRI).matches(context) && context.terms.any {
             it.kind == TermKind.PRATIPADIKA &&
-                (it.surface == "षट्" || GanaPatha.isEligibleMember(46, it.surface, it.lexicalUses))
+                (context.samjnas.any { assignment ->
+                    assignment.targetId == it.id && assignment.samjna == Samjna.SHAT
+                } || it.surface == "षट्" || GanaPatha.isEligibleMember(46, it.surface, it.lexicalUses))
         }
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(

@@ -60,6 +60,7 @@ object Adhyaya7Pada3 {
         StoNgiSutra,
         StoSupiSutra,
         AtoDirghoYaniSutra,
-        VatoYukSutra
+        VatoYukSutra,
+        RtoNgiSarvanamasthanayohSutra
     )
 }

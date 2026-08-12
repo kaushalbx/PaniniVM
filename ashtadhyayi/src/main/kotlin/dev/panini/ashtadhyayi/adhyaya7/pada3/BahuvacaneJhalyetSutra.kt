@@ -42,7 +42,7 @@ object BahuvacaneJhalyetSutra : Sutra<DerivationState, DerivationChange>(
         val isPlural = HasMorphosyntax(vacana = Vacana.BAHUVACANA).matches(context)
 
         return affix.id.startsWith("sup-") &&
-            affix.upadesha != "शि" &&
+            affix.upadesha !in setOf("शि", "शस्") &&
             isAEnding && isPlural && isJhal(firstChar) &&
                 context.samjnas.any { it.targetId == affix.id && it.samjna == Samjna.PRATYAYA }
     }

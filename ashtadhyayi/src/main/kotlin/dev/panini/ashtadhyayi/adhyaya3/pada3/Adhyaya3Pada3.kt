@@ -14,6 +14,7 @@ object Adhyaya3Pada3 {
         StriyamKtinSutra,
         AkartariChaKarakeSamyayamSutra,
         NapumsakeBhaveKtahSutra,
+        LyutCaSutra,
         BhavishyatiLrtSutra,
         LringSutra,
         LutSutra,

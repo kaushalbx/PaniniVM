@@ -1,0 +1,19 @@
+# गणित ग्रन्थ — Reusable math kriyā library
+# All संज्ञा kriyās defined here are available globally to the ग्रन्थसमुच्चय.
+
+# संज्ञा: गणितप्रक्रिया (Generic procedure: Adds प्रथम + द्वितीय, multiplies phala with तृतीय, and prints)
+गणितः ।
+एकम् द्वितीयम् च योजय ।
+फलम् तृतीयम् च गणय ।
+मुद्रय फलम् ॥
+
+# संज्ञा: विभाजनम् (Division procedure with Pāṇinian निषेध-सूत्र zero guard)
+# Niṣedha Sūtra: "न द्वितीय + अम् शून्य + अम् ।" (Divisor must NOT be zero)
+विभाक् ।
+न द्वितीयम् शून्यम् ।
+एकम् द्वितीयम् च भाज् ॥
+
+# संज्ञा: समवाययोजनम् (Collection / List batch fold-addition procedure)
+# Sums all items passed in the collection (समवाय)
+समवायः ।
+समवायम् योजय ॥

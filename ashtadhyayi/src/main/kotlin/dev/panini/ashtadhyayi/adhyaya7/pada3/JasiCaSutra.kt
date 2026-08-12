@@ -1,5 +1,6 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada3
 
+import dev.panini.core.Linga
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
@@ -35,6 +36,9 @@ object JasiCaSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if ("6.4.1" !in context.activeAdhikaras) return false
+        // Neuter जस् first receives शि by 7.1.20, so this जस्-conditioned
+        // guṇa does not operate in that derivation.
+        if (context.effectiveContext.rupa.linga == Linga.NAPUMSAKA) return false
         if (context.terms.size < 2) return false
 
         val stem = context.terms[context.terms.size - 2]
@@ -47,8 +51,8 @@ object JasiCaSutra : Sutra<DerivationState, DerivationChange>(
         val lastChar = stem.surface.lastOrNull() ?: return false
         if (lastChar != 'इ' && lastChar != 'ि' && lastChar != 'उ' && lastChar != 'ु') return false
 
-        // 2. Affix must be 'jas' (upadesha)
-        return affix.upadesha == "जस्"
+        // 2. Affix must be 'jas' (upadesha) and not already substituted by shi
+        return affix.upadesha == "जस्" && affix.surface in setOf("जस्", "अस्", "स")
     }
 
     override fun apply(context: DerivationState): DerivationChange {

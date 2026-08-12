@@ -13,12 +13,11 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
-import dev.panini.execution.ExecutionResult
-import dev.panini.execution.PvmScript
-import dev.panini.execution.VM
 import com.intellij.execution.configurations.RunConfigurationOptions
 import java.io.File
 import java.io.OutputStream
+import java.io.PrintStream
+import java.nio.charset.StandardCharsets
 
 class PvmRunConfigurationOptions : LocatableRunConfigurationOptions() {
     var scriptPath: String? by string("")
@@ -64,14 +63,36 @@ class PvmRunConfiguration(
             val consoleView = TextConsoleBuilderFactory.getInstance().createBuilder(project).console
 
             class PvmProcessHandler : ProcessHandler() {
-                override fun destroyProcessImpl() {}
-                override fun detachProcessImpl() {}
+                private val consoleIo = PvmConsoleIo()
+                val input get() = consoleIo.input
+                @Volatile private var childProcess: Process? = null
+
+                override fun destroyProcessImpl() {
+                    childProcess?.destroy()
+                    consoleIo.close()
+                }
+                override fun detachProcessImpl() {
+                    childProcess = null
+                    consoleIo.close()
+                }
                 override fun detachIsDefault(): Boolean = false
-                override fun getProcessInput(): OutputStream? = null
+                override fun getProcessInput(): OutputStream = consoleIo.inputSink
 
                 fun terminate(exitCode: Int) {
+                    childProcess = null
+                    consoleIo.close()
                     notifyProcessTerminated(exitCode)
                 }
+
+                fun bind(process: Process) {
+                    childProcess = process
+                }
+
+                fun consoleStream(outputType: com.intellij.openapi.util.Key<*>): PrintStream = PrintStream(
+                    consoleIo.output { notifyTextAvailable(it, outputType) },
+                    true,
+                    StandardCharsets.UTF_8,
+                )
             }
 
             val processHandler = PvmProcessHandler()
@@ -93,59 +114,26 @@ class PvmRunConfiguration(
                 }
 
                 if (runViaVm) {
-                    try {
-                        processHandler.notifyTextAvailable("=== PaniniVM Script Execution (Direct VM): ${file.name} ===\n", ProcessOutputTypes.STDOUT)
-                        val statements = PvmScript.parse(file.readText())
-                        val sessionKey = "session_${file.nameWithoutExtension}_${System.currentTimeMillis()}"
-
-                         statements.forEachIndexed { index, statement ->
-                            val res = VM.eval(statement.text, sessionKey = sessionKey)
-                            when (res) {
-                                is ExecutionResult.Success -> {
-                                    if (res.value.isNotBlank() && isPrintResult(res, statement.text)) {
-                                        processHandler.notifyTextAvailable("${res.value}\n", ProcessOutputTypes.STDOUT)
-                                    }
-                                }
-                                is ExecutionResult.Failure -> {
-                                    processHandler.notifyTextAvailable("Error: ${res.message}\n", ProcessOutputTypes.STDERR)
-                                }
-                                is ExecutionResult.NeedsInput -> {
-                                    processHandler.notifyTextAvailable("Needs input: ${res.message} (missing: ${res.missingKarakas})\n", ProcessOutputTypes.STDOUT)
-                                }
-                                is ExecutionResult.Ambiguous -> {
-                                    processHandler.notifyTextAvailable("Ambiguous: ${res.message} (matches: ${res.matchingOperations})\n", ProcessOutputTypes.STDOUT)
-                                }
-                                is ExecutionResult.NeedsApproval -> {
-                                    processHandler.notifyTextAvailable("Needs approval: ID: ${res.invocationId} (effects: ${res.requiredEffects})\n", ProcessOutputTypes.STDOUT)
-                                }
-                                is ExecutionResult.NeedsAcceptance -> {
-                                    processHandler.notifyTextAvailable("Needs acceptance: ID: ${res.invocationId} (from ${res.speaker} to ${res.listener})\n", ProcessOutputTypes.STDOUT)
-                                }
-                            }
-                        }
-                        processHandler.terminate(0)
-                    } catch (e: Throwable) {
-                        val stackTrace = java.io.StringWriter().also { e.printStackTrace(java.io.PrintWriter(it)) }.toString()
-                        processHandler.notifyTextAvailable("Error during execution:\n$stackTrace\n", ProcessOutputTypes.STDERR)
-                        processHandler.terminate(1)
-                    }
+                    val exitCode = PvmRunExecutor().execute(
+                        file = file,
+                        input = processHandler.input,
+                        output = processHandler.consoleStream(ProcessOutputTypes.STDOUT),
+                    )
+                    processHandler.terminate(exitCode)
                 } else {
                     val basePath = project.basePath ?: ""
-                    val isWindows = System.getProperty("os.name").lowercase().contains("win")
-                    val gradlewName = if (isWindows) "gradlew.bat" else "gradlew"
-                    val gradlewFile = File(basePath, gradlewName)
 
                     try {
-                        processHandler.notifyTextAvailable("=== PaniniVM Script Execution (Compilation): ${file.name} ===\n", ProcessOutputTypes.STDOUT)
-                        val process = ProcessBuilder(
-                            gradlewFile.absolutePath,
-                            ":cli:run",
-                            "--args=--eval $path",
-                            "--no-daemon"
-                        )
-                            .directory(File(basePath))
-                            .redirectErrorStream(true)
-                            .start()
+                        processHandler.notifyTextAvailable("=== PaniniVM Script Execution (CLI Process): ${file.name} ===\n", ProcessOutputTypes.STDOUT)
+                        val process = PvmCliProcessLauncher().start(file, File(basePath))
+                        processHandler.bind(process)
+
+                        ApplicationManager.getApplication().executeOnPooledThread {
+                            runCatching {
+                                processHandler.input.copyTo(process.outputStream)
+                                process.outputStream.close()
+                            }
+                        }
 
                         process.inputStream.bufferedReader().use { reader ->
                             var line = reader.readLine()
@@ -169,11 +157,4 @@ class PvmRunConfiguration(
         }
     }
 
-    private fun isPrintResult(res: ExecutionResult.Success, statementText: String): Boolean {
-        val trimmed = statementText.trim()
-        if (trimmed.contains("मुद्र्") || trimmed.contains("दृश्") || trimmed.contains("प्रेष्")) return true
-        return res.trace.any {
-            it.contains("Printed") || it.contains("प्रदर्शनम्") || it.contains("मुद्रणम्") || it.contains("प्रेषणम्")
-        }
-    }
 }

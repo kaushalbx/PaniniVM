@@ -41,8 +41,8 @@ object NgeryahSutra : Sutra<DerivationState, DerivationChange>(
         val endsInA = dev.panini.shiksha.Varnamala.endsWithA(stem.surface) &&
             !dev.panini.shiksha.Varnamala.endsWithAA(stem.surface)
 
-        // 2. Affix must be 'ṅe' (upadesha)
-        return endsInA && affix.upadesha == "ङे" && affix.surface != "य"
+        // 2. Affix must be 'ṅe' (upadesha) and not already substituted
+        return endsInA && affix.upadesha == "ङे" && affix.surface in setOf("ङे", "ए")
     }
 
     override fun apply(context: DerivationState): DerivationChange {

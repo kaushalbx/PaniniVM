@@ -2,10 +2,10 @@
 # Appends items to collection and extracts values
 
 # Step 1: Append elements 'राम' and 'फल' into collection (क्षिप्य)
-रामम् फलम् च क्षिप्य ।
+रामम् फलम् च क्षेपय्य ।
 
 # Step 2: Fetch element 'राम' from collection (नय)
-रामम् नय ।
+रामम् नी ।
 
 # Step 3: Print result of collection operation
 मुद्रय फलम् ।

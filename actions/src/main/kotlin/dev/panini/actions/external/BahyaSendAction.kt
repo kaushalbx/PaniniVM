@@ -7,6 +7,7 @@ import dev.panini.execution.ExecutionContext
 import dev.panini.execution.ExecutionEffect
 import dev.panini.execution.ExecutionError
 import dev.panini.execution.ExecutionResult
+import dev.panini.execution.OutputKind
 
 /** External System Dispatch Action (preṣ / बाह्यप्रेषणम्). */
 object BahyaSendAction : dev.panini.execution.DhatuAction("बाह्यप्रेषणम्", "बाह्यतन्त्राय सन्देशप्रेषणम्") {
@@ -30,6 +31,7 @@ object BahyaSendAction : dev.panini.execution.DhatuAction("बाह्यप्
             output,
             operation.name,
             listOf("Selected operation ${operation.name}.", "Dispatched external effect $effect with payload '$payload'."),
+            outputKind = OutputKind.EXTERNAL,
         )
     }
 }

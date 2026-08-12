@@ -33,7 +33,9 @@ object NtoTaSutra : Sutra<DerivationState, DerivationChange>(
             context.effectiveContext.rupa.vacana != Vacana.EKAVACANA
         ) return false
         val stem = context.terms[context.terms.size - 2]
-        return stem.surface.endsWith("न्") && context.terms.last().upadesha == "टा"
+        if (!stem.surface.endsWith("न्") || context.terms.last().upadesha != "टा") return false
+        val preAn = stem.surface.dropLast(2)
+        return preAn.endsWith("्") || preAn.takeLast(2).contains("्")
     }
 
     override fun apply(context: DerivationState): DerivationChange {

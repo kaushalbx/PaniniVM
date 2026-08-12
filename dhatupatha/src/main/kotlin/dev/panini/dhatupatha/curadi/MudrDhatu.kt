@@ -27,9 +27,16 @@ class MudrDhatu : Dhatu(
     itStatus = ItStatus.SET,
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.UDATTA,
+    blocksNicGuna = true,
     operations = listOf(
         PrintAction.op {
             requires(Karaka.KARMAN)
+            returns(Samjna.SHABDA)
+        },
+        PrintAction.op {
+            requires(Karaka.KARMAN)
+            requires(Karaka.APADANA)
+            requires(Karaka.ADHIKARANA)
             returns(Samjna.SHABDA)
         }
     ),

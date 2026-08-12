@@ -23,7 +23,7 @@ object MatariPitariExtSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     pada = 3,
     optional = false,
     kramaValue = 630086,
-    role = SutraRole.Niyama,
+    role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.DERIVATION,
     samasaType = SamasaType.DVANDVA,
@@ -37,7 +37,7 @@ object MatariPitariExtSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
-        val compoundStem = "मातरापितरा"
+        val compoundStem = "मातरापितृ"
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "6.3.86 derives mātarāpitarā parent dvandva form.",

@@ -1,5 +1,9 @@
 package dev.panini.execution.binding
 
+import dev.panini.core.Vibhakti
+import dev.panini.execution.ExecutionMetadata
+import dev.panini.execution.KriyaInvocationId
+
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.KridantaPratipadika
 import dev.panini.vyakaranam.ast.Pada
@@ -46,7 +50,7 @@ internal object PhalaResolver {
             val explicitOrder = MemoryOrderQualifierResolver.before(phalaPada, padas)
             val idx = subantas.indexOf(phalaPada)
             val genitiveModifier = subantas.take(idx)
-                .lastOrNull { it.sup.text in setOf("ङस्", "आम्") && it !in resolvedGenitives }
+                .lastOrNull { it.hasVibhakti(Vibhakti.SASTHI) && it !in resolvedGenitives }
                 ?: return@forEach
 
             val base = genitiveModifier.pratipadika.baseText()
@@ -65,7 +69,7 @@ internal object PhalaResolver {
             val withinUtteranceMatch = order.select(matchingIndices)
 
             if (withinUtteranceMatch != null) {
-                phalaMap[phalaPada] = "योग-${withinUtteranceMatch + 1}"
+                phalaMap[phalaPada] = KriyaInvocationId.of(withinUtteranceMatch + 1)
                 resolvedGenitives.add(genitiveModifier)
                 if (explicitOrder.isExplicit && explicitOrder.pada != null) {
                     resolvedQualifiers.add(explicitOrder.pada)
@@ -88,8 +92,8 @@ internal object PhalaResolver {
 
             // ---- 3. Compatibility fallback to conversation result history -----------
             val historicalResults = ctx.conversation?.resultHistory?.filter { result ->
-                val dhatuUpadesha = ctx.conversation.metadata["dhatu:${result.invocationId}"]
-                    ?: ctx.conversation.metadata["dhatu:${result.id}"]
+                val dhatuUpadesha = ctx.conversation.metadata[ExecutionMetadata.dhatu(result.invocationId)]
+                    ?: ctx.conversation.metadata[ExecutionMetadata.dhatu(result.id)]
                 val prevDhatu = dhatuUpadesha?.let { DhatuCache.upadeshaDhatuCache[it] }
                     ?: return@filter false
                 val prevRoot = DhatuCache.getDhatuRoot(prevDhatu.upadesha)

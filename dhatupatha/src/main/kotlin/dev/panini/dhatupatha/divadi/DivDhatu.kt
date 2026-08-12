@@ -28,7 +28,17 @@ class DivDhatu : Dhatu(
     operations = listOf(
         RandomChoiceAction.op {
             requires(Karaka.KARMAN)
-            returns(Samjna.SHABDA)
+            returns(Samjna.SHABDA, Samjna.SANKHYA)
+        },
+        RandomChoiceAction.op {
+            requires(Karaka.APADANA)
+            requires(Karaka.ADHIKARANA)
+            optional(Karaka.KARTR)
+            returns(Samjna.SANKHYA)
+        },
+        RandomChoiceAction.op {
+            optional(Karaka.KARTR)
+            returns(Samjna.SANKHYA)
         },
     ),
     surfaceAliases = setOf("दीव्यति", "दीव्", "क्रीडा"),

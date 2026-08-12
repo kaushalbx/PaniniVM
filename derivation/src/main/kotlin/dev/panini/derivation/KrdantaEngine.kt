@@ -12,12 +12,40 @@ data class KrdantaDerivationRequest(
     val upasarga: String? = null,
 )
 
+data class KrdantaSourceStem(
+    val surface: String,
+    val supportsAStemDeclension: Boolean,
+    val preservesSourceSurface: Boolean,
+)
+
 class KrdantaEngine(
     private val pipeline: DerivationPipeline = DerivationPipeline(
         stages = listOf(SutraStage.ANGAKARYA, SutraStage.IT_PROCESSING),
         sutrasForStage = Ashtadhyayi::krdantaSutrasAt,
     ),
 ) {
+    fun deriveSourceStem(dhatu: String, pratyaya: String): KrdantaSourceStem {
+        val samjna = when {
+            pratyaya == "घञ्" && dhatu in supportedGhanDhatus -> Samjna.GHAN
+            pratyaya == "अप्" && dhatu in supportedApDhatus -> Samjna.GHAN
+            pratyaya in setOf("ल्युट्", "अन") && dhatu in supportedLyutDhatus -> Samjna.LYUT
+            else -> null
+        }
+        return if (samjna != null) {
+            KrdantaSourceStem(
+                surface = derive(KrdantaDerivationRequest(dhatu, samjna)).final.surface,
+                supportsAStemDeclension = true,
+                preservesSourceSurface = false,
+            )
+        } else {
+            KrdantaSourceStem(
+                surface = sourceFallbackStems[dhatu] ?: dhatu,
+                supportsAStemDeclension = false,
+                preservesSourceSurface = dhatu in preservedSourceStems,
+            )
+        }
+    }
+
     fun derive(request: KrdantaDerivationRequest): DerivationResult {
         val dhatuEntry = findDhatu(request.dhatu)
         val initial = buildInitialState(request, dhatuEntry, request.dhatu)
@@ -52,6 +80,7 @@ class KrdantaEngine(
             Samjna.KTA, Samjna.KTAVATU -> "1.1.26"
             Samjna.NVUL, Samjna.TRC -> "3.1.133"
             Samjna.GHAN -> "3.3.18"
+            Samjna.LYUT -> "3.3.115"
             else -> error("Unsupported Kṛdanta request: ${request.samjna}")
         }
         return canonicalSutra(number)
@@ -127,9 +156,11 @@ class KrdantaEngine(
             Samjna.TUMUN, Samjna.TAVYA, Samjna.ANIYAR, Samjna.TRC -> {
                 stem = applyGuna(stem)
             }
-            Samjna.NVUL, Samjna.GHAN, Samjna.NYAT -> {
+            Samjna.NVUL, Samjna.NYAT -> {
                 stem = applyVrddhi(stem)
             }
+            Samjna.GHAN -> stem = applyGhanGrade(stem)
+            Samjna.LYUT -> stem = applyLyutGrade(stem)
             else -> Unit
         }
 
@@ -164,6 +195,7 @@ class KrdantaEngine(
         Samjna.NVUL -> "अक"
         Samjna.TRC -> "तृ"
         Samjna.GHAN -> "अ"
+        Samjna.LYUT -> "अन"
         else -> ""
     }
 
@@ -185,6 +217,47 @@ class KrdantaEngine(
         "चि" -> "चाय"
         "जि" -> "जाय"
         "नी" -> "नाय"
+        else -> stem
+    }
+
+    /**
+     * Applies the vowel grade used by the productive GHAÑ derivations exercised by
+     * the VM. Keeping this phonological operation here lets execution request a stem
+     * instead of storing the resulting surface form in a compatibility dictionary.
+     */
+    private fun applyGhanGrade(stem: String): String {
+        val graded = when {
+            stem.endsWith("ू") -> stem.dropLast(1) + "ाव्"
+            'ृ' in stem -> stem.replaceFirst("ृ", "ार्")
+            'ु' in stem -> stem.replaceFirst("ु", "ो")
+            'ि' in stem -> stem.replaceFirst("ि", "े")
+            else -> lengthenFirstInherentA(stem)
+        }
+        // 7.3.52 ca-joḥ ku ghiṇ-ṇyatoḥ: final palatals become velars in this environment.
+        return when {
+            graded.endsWith("ज्") -> graded.dropLast(2) + "ग्"
+            graded.endsWith("च्") -> graded.dropLast(2) + "क्"
+            else -> graded
+        }
+    }
+
+    private fun lengthenFirstInherentA(stem: String): String {
+        val consonants = "कखगघङचछजझञटठडढणतथदधनपफबभमयरलवशषसह"
+        val vowelMarks = "ािीुूृॄेैोौ्"
+        for (index in stem.indices) {
+            if (stem[index] !in consonants) continue
+            val next = stem.getOrNull(index + 1)
+            if (next == null || next !in vowelMarks) {
+                return stem.substring(0, index + 1) + "ा" + stem.substring(index + 1)
+            }
+        }
+        return stem
+    }
+
+    private fun applyLyutGrade(stem: String): String = when {
+        stem == "धृ" -> "धार्"
+        'ृ' in stem -> stem.replaceFirst("ृ", "र्")
+        'ु' in stem -> stem.replaceFirst("ु", "ो")
         else -> stem
     }
 
@@ -217,6 +290,11 @@ class KrdantaEngine(
         // Ṇatva rule: 'र', 'ऋ', 'ृ' in stem turns 'न' to 'ण' in suffix (e.g. kar + anīya -> karaṇīya)
         if ((rendered.contains("र्") || rendered.contains('र') || rendered.contains('ऋ') || rendered.contains('ृ')) && rendered.endsWith("नीय")) {
             rendered = rendered.dropLast(3) + "णीय"
+        } else if (requestIsLyutSuffix(suff) &&
+            (rendered.contains("र्") || rendered.contains('र') || rendered.contains('ऋ') || rendered.contains('ृ')) &&
+            rendered.endsWith('न')
+        ) {
+            rendered = rendered.dropLast(1) + "ण"
         }
 
         if (upasarga.isNotEmpty()) {
@@ -225,11 +303,21 @@ class KrdantaEngine(
         return rendered
     }
 
+    private fun requestIsLyutSuffix(suffix: String): Boolean = suffix == "अन"
+
     private fun fuseUpasarga(upa: String, stem: String): String = when {
         upa == "सम्" && stem.startsWith("भू") -> "सं" + stem
         upa == "सम्" && stem.startsWith("कृ") -> "संस्" + stem
         upa == "अनु" && stem.startsWith("कृ") -> "अनु" + stem
         upa == "प्र" && stem.startsWith("भू") -> "प्र" + stem
         else -> upa + stem
+    }
+
+    private companion object {
+        val supportedGhanDhatus = setOf("युज्", "शिष्", "मूल्", "भज्", "हृ")
+        val supportedApDhatus = setOf("युज्", "शिष्", "मूल्")
+        val supportedLyutDhatus = setOf("युज्", "गण", "धृ", "स्था", "जन्", "हृ")
+        val sourceFallbackStems = mapOf("हृ" to "हर")
+        val preservedSourceStems = setOf("क्षीप्", "क्षिप्")
     }
 }

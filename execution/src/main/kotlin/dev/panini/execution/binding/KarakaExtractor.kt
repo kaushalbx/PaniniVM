@@ -8,6 +8,7 @@ import dev.panini.execution.ExecutionExpression
 import dev.panini.analysis.FrameKarakaResolution
 import dev.panini.analysis.KarakaInference
 import dev.panini.sankhya.PrimitiveSankhya
+import dev.panini.sankhya.SankhyaOperationMarkers
 import dev.panini.shiksha.Karmatva
 import dev.panini.vyakaranam.ast.AryabhatiyaPada
 import dev.panini.vyakaranam.ast.BhutasamkhyaPada
@@ -51,7 +52,7 @@ internal object KarakaExtractor {
             }
 
         val subantas = padas.filterIsInstance<SubantaPada>()
-        val phalaPadas = subantas.filter { it.pratipadika.baseText() == "फल" }
+        val phalaPadas = subantas.filter(PhalaReference::isReference)
 
         // ---- फल resolution (delegated) ---------------------------------------------
         val phalaResolution = PhalaResolver.resolve(phalaPadas, padas, subantas, ctx)
@@ -144,29 +145,34 @@ internal object KarakaExtractor {
                 }
                 is SankhyaPada -> {
                     // अभ्यास-कृत्वः forms are frequency metadata, not argument values.
-                    if (pada.stems.contains("कृत्वः") || pada.stems.contains("कृत्वस")) return@forEachIndexed
+                    if (FrequencyExtractor.isAbhyasa(pada.stems)) return@forEachIndexed
                     // Op-stems (गुणित, वर्ग, …) consume the following numeral pada as their operand.
                     var targetIdx = -1
                     var nextVal: Long? = null
-                    val lastStem = pada.stems.lastOrNull()
-                    val isOpStem = lastStem in setOf("गुणित", "हते", "भक्त", "हृत", "कृत") ||
-                        (pada.stems.size >= 1 && pada.stems[0] in setOf("वर्ग", "घन", "मूल"))
-                    if (isOpStem) {
+                    if (SankhyaOperationMarkers.needsFollowingOperand(pada.stems)) {
                         for (j in (index + 1) until padas.size) {
                             val v = NumeralPadaBinder.extractNumeralValue(padas[j])
                             if (v != null) { targetIdx = j; nextVal = v; break }
                         }
                     }
-                    val fullStems = if (nextVal != null &&
-                        (pada.stems.size <= 2 || (pada.stems.size == 2 && pada.stems[1] == "कृत"))
+                    val fullStems = if (
+                        nextVal != null && SankhyaOperationMarkers.acceptsFollowingOperand(pada.stems)
                     ) {
                         val stemStr = PrimitiveSankhya.fromValue(nextVal)?.let {
                             if (it.purvapada.isNotEmpty()) it.purvapada else it.pratipadika
                         } ?: "शत"
                         consumedPadaIndices.add(targetIdx)
-                        if (pada.stems[0] in setOf("वर्ग", "घन", "मूल")) {
+                        if (SankhyaOperationMarkers.isBindingPrefix(pada.stems[0])) {
                             listOf(pada.stems[0]) +
-                                (if (pada.stems.size >= 2 && pada.stems[1] == "कृत") listOf("कृत") else emptyList()) +
+                                (
+                                    if (pada.stems.size >= 2 &&
+                                        SankhyaOperationMarkers.isConstruction(pada.stems[1])
+                                    ) {
+                                        listOf(pada.stems[1])
+                                    } else {
+                                        emptyList()
+                                    }
+                                ) +
                                 listOf(stemStr)
                         } else {
                             pada.stems + listOf(stemStr)

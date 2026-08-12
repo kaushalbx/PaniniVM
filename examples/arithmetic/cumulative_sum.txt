@@ -1,7 +1,7 @@
 # Cumulative Sum Algorithm: fold 1 + 2 + 3 + 4 + 5 = 15
 
 # Add the complete sequence
-एकम् द्विम् त्रिम् चतुर्म् पञ्चम् च योजय ।
+एकम् द्वे त्रीनि चत्वारि पञ्च च योजय ।
 
 # Print the cumulative sum (15 = पञ्चदश)
 योगस्य फलम् मुद्रय ।

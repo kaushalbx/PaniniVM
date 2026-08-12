@@ -10,6 +10,9 @@ import dev.panini.execution.sutra.ProgramBlueprintCompiler
 import dev.panini.execution.sutra.ProgramBlueprintContext
 import dev.panini.execution.sutra.ProgramBlueprintDiagnosticCode
 import dev.panini.execution.sutra.SutraExecutionPipeline
+import dev.panini.execution.sutra.SutraPipelineContinuation
+import dev.panini.execution.external.ExternalCapabilityDispatcher
+import dev.panini.execution.persistence.FileStateStore
 import dev.panini.sutra.runtime.SutraArthaValue
 import dev.panini.shiksha.Samjna
 import java.nio.file.Path
@@ -59,6 +62,77 @@ class ExecutionLifecycleTest {
 
     @TempDir
     lateinit var storageDir: Path
+
+    @Test
+    fun `conditional execution selects only the matching branch`() {
+        val result = assertIs<Phala.Siddha>(
+            SutraExecutionPipeline.execute(
+                SanskritUktiInput(
+                    speaker = "प्रयोक्ता",
+                    listener = "यन्त्रम्",
+                    text = "यदि दश + अम् द्वि + अम् च विद् + णिच् + लोट् + सिप् " +
+                        "तर्हि एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् " +
+                        "अन्यथा द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ।",
+                ),
+                SambhashanaContext("प्रयोक्ता", "यन्त्रम्"),
+                PaniniVM().defaultScope,
+            ),
+        )
+
+        assertEquals(setOf("योग-1", "योग-2"), result.typedValues.keys)
+        assertEquals(3L, assertIs<SanskritValue.Sankhya>(result.typedValues.getValue("योग-2")).value)
+    }
+
+    @Test
+    fun `conditional execution selects the alternate when condition is false`() {
+        val result = assertIs<Phala.Siddha>(
+            SutraExecutionPipeline.execute(
+                SanskritUktiInput(
+                    speaker = "प्रयोक्ता",
+                    listener = "यन्त्रम्",
+                    text = "यदि एक + अम् द्वि + अम् च विद् + णिच् + लोट् + सिप् " +
+                        "तर्हि एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् " +
+                        "अन्यथा द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ।",
+                ),
+                SambhashanaContext("प्रयोक्ता", "यन्त्रम्"),
+                PaniniVM().defaultScope,
+            ),
+        )
+
+        assertEquals(setOf("योग-1", "योग-3"), result.typedValues.keys)
+        assertEquals(5L, assertIs<SanskritValue.Sankhya>(result.typedValues.getValue("योग-3")).value)
+    }
+
+    @Test
+    fun `conditional branch resumes after approval without entering alternate`() {
+        val vm = PaniniVM()
+        val scope = vm.defaultScope
+        val paused = assertIs<Phala.AnumatiApekshita>(
+            SutraExecutionPipeline.execute(
+                SanskritUktiInput(
+                    speaker = "प्रयोक्ता",
+                    listener = "यन्त्रम्",
+                    text = "यदि दश + अम् द्वि + अम् च विद् + णिच् + लोट् + सिप् " +
+                        "तर्हि वार्ता + अम् प्रेष् + णिच् + लोट् + सिप् " +
+                        "अन्यथा द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ।",
+                ),
+                SambhashanaContext("प्रयोक्ता", "यन्त्रम्"),
+                scope,
+            ),
+        )
+        val continuation = assertIs<SutraPipelineContinuation>(paused.pipelineContinuation)
+
+        val resumed = SutraExecutionPipeline.resume(
+            continuation,
+            scope.copy(
+                capabilities = scope.capabilities + paused.effects,
+                externalDispatcher = ExternalCapabilityDispatcher(),
+            ),
+        )
+        val completed = assertIs<Phala.Siddha>(resumed, resumed.toString())
+
+        assertEquals(setOf("योग-1", "योग-2"), completed.typedValues.keys)
+    }
 
     @Test
     fun `planner honors dependencies rather than source order`() {
@@ -207,11 +281,72 @@ class ExecutionLifecycleTest {
         )
 
         assertIs<ExecutionResult.Success>(vm.resume(paused.continuation, "resume", approvedScope))
-        assertIs<ExecutionResult.Success>(vm.resume(paused.continuation, "resume", approvedScope))
+        assertIs<ExecutionResult.Failure>(vm.resume(paused.continuation, "resume", approvedScope))
 
         val remembered = vm.kriyaMemory("resume").entries.single()
         assertEquals("प्रेषँ", remembered.frame.kriya?.dhatu?.upadesha)
         assertEquals(1, remembered.turn)
+    }
+
+    @Test
+    fun `state store round trips nested typed collections`() {
+        val store = FileStateStore(storageDir.resolve("typed-state").toFile())
+        val value = SanskritValue.Gana(
+            listOf(
+                SanskritValue.Sankhya(2, "द्वि"),
+                SanskritValue.Suchi(
+                    listOf(SanskritValue.Shabda("शब्द"), SanskritValue.Satya(true), SanskritValue.Lopa),
+                ),
+            ),
+        )
+        val context = SambhashanaContext(
+            speaker = "प्रयोक्ता",
+            listener = "यन्त्रम्",
+            previousResults = mapOf("फल" to value.toDisplayText()),
+            previousResultSamjnas = mapOf("फल" to value.samjnas),
+            previousTypedResults = mapOf("फल" to value),
+            resultHistory = listOf(SmrtaPhala("उक्ति-१/योग-1", 1, "योग-1", value.toDisplayText(), value.samjnas, value)),
+            turnNumber = 1,
+        )
+
+        store.save("collections", context)
+
+        assertEquals(context, store.load("collections"))
+    }
+
+    @Test
+    fun `eval reports terminal script failure after an earlier success`() {
+        val vm = PaniniVM(storageDir.resolve("script-result").toFile())
+        val script = """
+            एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।
+            अज्ञात् + लोट् + सिप् ।
+        """.trimIndent()
+        assertIs<ExecutionResult.Failure>(vm.evalScript(script).last())
+
+        assertIs<ExecutionResult.Failure>(vm.eval(script))
+    }
+
+    @Test
+    fun `source classification uses parsed statements instead of text markers`() {
+        val utterance = """
+            एक + अम् द्वि + औट् च
+            युज् + णिच् + लोट् + सिप् ।
+        """.trimIndent()
+        assertEquals(PvmSourceKind.UTTERANCE, PvmScript.classify(utterance))
+        assertEquals("panini.eval", assertIs<ExecutionResult.Success>(PaniniVM().eval(utterance)).operation)
+        assertEquals(PvmSourceKind.UTTERANCE, PvmScript.classify("गणित + सुँ ।"))
+        assertEquals(
+            PvmSourceKind.SCRIPT,
+            PvmScript.classify("गणित + सुँ इति संज्ञा + सुँ ।"),
+        )
+        assertEquals(
+            PvmSourceKind.UTTERANCE,
+            PvmScript.classify("संज्ञा + सुँ ।"),
+            "A marker lexeme without the parsed इति construction remains an utterance.",
+        )
+
+        val script = "$utterance\n$utterance"
+        assertEquals(PvmSourceKind.SCRIPT, PvmScript.classify(script))
     }
 
     @Test
@@ -309,7 +444,7 @@ class ExecutionLifecycleTest {
         assertEquals("sentinel\n", readable.readText())
 
         assertEquals(readable, PvmReadableSanskrit.renderFile(source))
-        assertEquals("एकम् द्वी च योजय ।\n", readable.readText())
+        assertEquals("एकम् द्वे च योजय ।\n", readable.readText())
     }
 
     @Test

@@ -13,8 +13,8 @@ sealed interface Samjna {
     /** Affix & Suffix Classifications (प्रत्यय भेद - Aṣṭādhyāyī 3.1.93, 3.3.1, 4.1.76) */
     enum class Affix : Samjna {
         KRT, UNADI, TADDHITA, SARVADHATUKA, ARDHADHATUKA,
-        GHAN, NVUL, TRC, KTA, SHATRU, SHANAC, GHINUN,
-        AN, IN, CHHA, MATUP, MAYAT, TAL, KTVA, LYAP, TUMUN, TAVYA,
+        GHAN, NVUL, TRC, KTA, SHATRU, SHANAC, GHINUN, KRTVASUC, SUC, DHA,
+        AN, IN, CHHA, MATUP, MAYAT, TAL, KTVA, LYAP, LYUT, TUMUN, TAVYA,
         ANIYAR, NYAT, YAT, KTAVATU, NISHTHA, NIC, SAN, YAN, KYAC,
         YAN_LUK, CAN, TAP, NIP, NIS, NIN, TI_PRATYAYA, TVA, TARAP,
         TAMAP, KVASU, KANAC, YANG, SANADYANTA_DHATU, AN_PRATYAYA,
@@ -28,7 +28,7 @@ sealed interface Samjna {
 
     /** Nominal & Gender Stem Attributes (अङ्ग विशेषण - Aṣṭādhyāyī 1.4.3, 1.4.7, 1.4.18) */
     enum class Stem : Samjna {
-        NADI, GHI, BHA, GHU, PRAGRHYA, SARVANAMA, APRUKTA, SAMBUDDHI, SARVANAMASTHANA, SANKHYA, PURANA, ABHYASA
+        NADI, GHI, BHA, GHU, PRAGRHYA, SARVANAMA, APRUKTA, SAMBUDDHI, SARVANAMASTHANA, SANKHYA, PURANA, ABHYASA, SHAT
     }
 
     /** Indeclinables & Particles (अव्यय/निपात/गति - Aṣṭādhyāyī 1.1.37, 1.4.56, 1.4.59) */
@@ -78,6 +78,9 @@ sealed interface Samjna {
         val SHANAC: Samjna = Affix.SHANAC
         val SANAC: Samjna = Affix.SHANAC
         val GHINUN: Samjna = Affix.GHINUN
+        val KRTVASUC: Samjna = Affix.KRTVASUC
+        val SUC: Samjna = Affix.SUC
+        val DHA: Samjna = Affix.DHA
         val AN: Samjna = Affix.AN
         val IN: Samjna = Affix.IN
         val CHHA: Samjna = Affix.CHHA
@@ -86,6 +89,7 @@ sealed interface Samjna {
         val TAL: Samjna = Affix.TAL
         val KTVA: Samjna = Affix.KTVA
         val LYAP: Samjna = Affix.LYAP
+        val LYUT: Samjna = Affix.LYUT
         val TUMUN: Samjna = Affix.TUMUN
         val TAVYA: Samjna = Affix.TAVYA
         val ANIYAR: Samjna = Affix.ANIYAR
@@ -142,6 +146,7 @@ sealed interface Samjna {
         val SANKHYA: Samjna = Stem.SANKHYA
         val PURANA: Samjna = Stem.PURANA
         val ABHYASA: Samjna = Stem.ABHYASA
+        val SHAT: Samjna = Stem.SHAT
 
         val AVYAYA: Samjna = Avyaya.AVYAYA
         val NIPATA: Samjna = Avyaya.NIPATA

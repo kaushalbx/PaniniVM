@@ -28,10 +28,12 @@ application {
 tasks.withType<Test> {
     useJUnitPlatform()
     workingDir = rootDir
+    systemProperty("panini.cli.test.classpath", sourceSets.main.get().runtimeClasspath.asPath)
 }
 
 tasks.withType<JavaExec> {
     workingDir = rootDir
+    standardInput = System.`in`
 }
 
 tasks.register<JavaExec>("renderExamples") {

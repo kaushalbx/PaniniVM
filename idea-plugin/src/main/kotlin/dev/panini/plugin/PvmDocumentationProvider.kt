@@ -174,6 +174,10 @@ class PvmDocumentationProvider : AbstractDocumentationProvider() {
         val map = mapOf(
             "च" to "<b>च</b> (Conjunction): Joins multiple nominal or verbal expressions.",
             "इति" to "<b>इति</b> (Clause Terminator): Marks completion of a quotation, condition, or expression.",
+            "अप" to "<b>अप</b> (Upasarga): Preverb / Exception marker (Sūtra 1.4.59 <i>उपसर्गाः क्रियायोगे</i>). Used in Apavāda exception marker <code>अप + वद् + घञ् + सुँ</code>.",
+            "अधि" to "<b>अधि</b> (Upasarga): Preverb / Adhikāra marker (Sūtra 1.4.59 <i>उपसर्गाः क्रियायोगे</i>). Used in Adhikāra scope declaration <code>अधि + कृ + घञ् + सुँ</code>.",
+            "वद्" to "<b>वद्</b> (Dhātu): Bhūvādi root <i>वदँ व्यक्तायां वाचि</i> (1.1157). Used in Apavāda <code>अप + वद् + घञ् + सुँ</code>.",
+            "कृ" to "<b>कृ</b> (Dhātu): Tanādi root <i>डुकृञ् करणे</i> (8.10). Used in Adhikāra <code>अधि + कृ + घञ् + सुँ</code>.",
             "यदि" to "<b>यदि</b> (Conditional): Begins a conditional branch expression.",
             "तर्हि" to "<b>तर्हि</b> (Conditional Consequent): Marks the consequence of a <i>यदि</i> clause.",
             "हे" to "<b>हे</b> (Vocative Indicator): Address indicator used with Sambuddhi nominal forms.",

@@ -15,6 +15,19 @@ sealed interface SanskritValue {
         override fun toDisplayText(): String = word
     }
 
+    /** An inclusive numeric interval carried as one semantic value. */
+    data class Range(
+        val minimum: Sankhya,
+        val maximum: Sankhya,
+    ) : SanskritValue {
+        init {
+            require(minimum.value <= maximum.value) { "A range must be ordered." }
+        }
+
+        override val samjnas: Set<Samjna> = setOf(Samjna.SANKHYA, Samjna.GANA, Samjna.SHABDA)
+        override fun toDisplayText(): String = "${minimum.word}तः ${maximum.word}पर्यन्तम्"
+    }
+
     data class Rational(
         val numerator: Long,
         val denominator: Long,
@@ -45,11 +58,26 @@ sealed interface SanskritValue {
         override fun toDisplayText(): String = "[${items.joinToString(", ") { it.toDisplayText() }}]"
     }
 
+    /** A named structured value whose fields remain typed across calls and pipelines. */
+    data class Rupa(
+        val schema: String,
+        val fields: Map<String, SanskritValue>,
+    ) : SanskritValue {
+        override val samjnas: Set<Samjna> = fields.values.flatMap { it.samjnas }.toSet() + Samjna.SHABDA
+        override fun toDisplayText(): String = schema
+    }
+
     data class Satya(
         val boolean: Boolean,
+        val surface: String? = null,
     ) : SanskritValue {
         override val samjnas: Set<Samjna> = setOf(Samjna.SATYA, Samjna.SHABDA)
-        override fun toDisplayText(): String = if (boolean) "सत्यम्" else "असत्यम्"
+        override fun toDisplayText(): String = surface ?: if (boolean) "सत्यम्" else "असत्यम्"
+    }
+
+    data object Lopa : SanskritValue {
+        override val samjnas: Set<Samjna> = setOf(Samjna.LOPA, Samjna.SHABDA)
+        override fun toDisplayText(): String = "लोपः"
     }
 
     companion object {

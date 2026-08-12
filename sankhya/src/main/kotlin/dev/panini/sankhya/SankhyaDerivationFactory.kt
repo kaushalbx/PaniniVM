@@ -9,7 +9,14 @@ import dev.panini.shiksha.Samjna
 class SankhyaDerivationFactory {
 
     fun create(expression: SankhyaExpression): DerivationState {
-        val terms = createTerms(expression, "root", CompoundPosition.STANDALONE)
+        return create(expression, CompoundPosition.STANDALONE)
+    }
+
+    fun createTaddhitaBase(expression: SankhyaExpression): DerivationState =
+        create(expression, CompoundPosition.PURVAPADA)
+
+    private fun create(expression: SankhyaExpression, position: CompoundPosition): DerivationState {
+        val terms = createTerms(expression, "root", position)
 
         val samjnas = terms.flatMap { term ->
             buildList {

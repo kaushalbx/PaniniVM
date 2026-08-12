@@ -1,0 +1,10 @@
+# सीमा ग्रन्थ — Reusable scope isolation test library
+
+# संज्ञा: सीमाप्रक्रिया (Procedure with local variable calculations)
+# 1. Add 1st (प्रथम) + 2nd (द्वितीय) -> stored in local phala
+# 2. Multiply local phala with 3rd (तृतीय) -> stored in local phala
+# 3. Print final phala
+सीमा ।
+एकम् द्वितीयम् च योजय ।
+फलम् तृतीयम् च गणय ।
+मुद्रय फलम् ॥
