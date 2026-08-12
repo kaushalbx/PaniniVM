@@ -37,7 +37,7 @@ object PitramataExtSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
-        val compoundStem = "पित्रामाता"
+        val compoundStem = "पित्रामातृ"
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "6.3.87 derives nipātana form pitrāmātā.",

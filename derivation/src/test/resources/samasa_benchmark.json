@@ -12,25 +12,25 @@
   },
   {
     "id": "BENCH_002",
-    "name": "6.3.7 Atmanasca Purane Aluk Tatpurusa - Atmanepadam",
+    "name": "6.3.21 Atmanasca Purane Aluk Tatpurusa - Atmanepadam",
     "padas": [
-      {"upadesha": "आत्मन्", "vibhakti": "PRATHAMA"},
+      {"upadesha": "आत्मने", "vibhakti": "CHATURTHI"},
       {"upadesha": "पद", "vibhakti": "PRATHAMA"}
     ],
-    "samasaType": "TATPURUSA",
+    "samasaType": "ALUK_TATPURUSA",
     "expectedStem": "आत्मनेपद",
-    "governingSutra": "6.3.7"
+    "governingSutra": "6.3.21"
   },
   {
     "id": "BENCH_003",
-    "name": "5.4.91 Rajahah Sakhibhyas Tac - Rajapurusa",
+    "name": "2.2.8 Shashthi Tatpurusa - Rajapurusa",
     "padas": [
       {"upadesha": "राजन्", "vibhakti": "SASTHI"},
       {"upadesha": "पुरुष", "vibhakti": "PRATHAMA"}
     ],
     "samasaType": "TATPURUSA",
     "expectedStem": "राजपुरुष",
-    "governingSutra": "5.4.91"
+    "governingSutra": "2.2.8"
   },
   {
     "id": "BENCH_004",
@@ -51,7 +51,7 @@
       {"upadesha": "पितृ", "vibhakti": "PRATHAMA"}
     ],
     "samasaType": "DVANDVA",
-    "expectedStem": "मातरापितरा",
+    "expectedStem": "मातरापितृ",
     "governingSutra": "6.3.86"
   },
   {
@@ -62,19 +62,19 @@
       {"upadesha": "मातृ", "vibhakti": "PRATHAMA"}
     ],
     "samasaType": "DVANDVA",
-    "expectedStem": "पित्रामाता",
+    "expectedStem": "पित्रामातृ",
     "governingSutra": "6.3.87"
   },
   {
     "id": "BENCH_007",
-    "name": "2.1.24 Dvitiya Tatpurusa - Kasta-prapanna",
+    "name": "2.2.5 Praptapanna Dvitiya Tatpurusa - Kasta-apanna",
     "padas": [
       {"upadesha": "कष्ट", "vibhakti": "DVITIYA"},
       {"upadesha": "आपन्न", "vibhakti": "PRATHAMA"}
     ],
     "samasaType": "TATPURUSA",
     "expectedStem": "कष्टापन्न",
-    "governingSutra": "2.1.24"
+    "governingSutra": "2.2.5"
   },
   {
     "id": "BENCH_008",
