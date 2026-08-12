@@ -1,0 +1,38 @@
+PaniniVM
+Copyright 2026 Kaushal Kumar Singh
+
+This product includes software developed for the PaniniVM project and is
+licensed under the Apache License, Version 2.0.
+
+Third-party data attribution
+----------------------------
+
+The generated gaṇa catalogues under
+`dhatupatha/src/main/kotlin/dev/panini/dhatupatha/*Dhatus.kt` were imported
+from the `ashtadhyayi-com/data` Dhātupāṭha dataset:
+
+- Source: https://github.com/ashtadhyayi-com/data/blob/master/dhatu/data.txt
+- Imported fields: `aupadeshik`, `baseindex`, `gana`, `pada`, `artha`, and
+  `artha_hindi`.
+- License statement: the `vidyut-prakriya` project records that the
+  ashtadhyayi.com Dhātupāṭha was shared under the MIT License:
+  https://docs.rs/crate/vidyut-prakriya/0.1.0/source/data/README.md
+
+The generated catalogues cover all ten traditional gaṇas:
+
+- `BhvadiDhatus.kt`
+- `AdadiDhatus.kt`
+- `JuhotyadiDhatus.kt`
+- `DivadiDhatus.kt`
+- `SvadiDhatus.kt`
+- `TudadiDhatus.kt`
+- `RudhadiDhatus.kt`
+- `TanadiDhatus.kt`
+- `KryadiDhatus.kt`
+- `CuradiDhatus.kt`
+
+Each catalogue preserves the source upadeśa, Sanskrit and Hindi meanings,
+gaṇa, and pada information. English glosses and normalized derivational
+surfaces are PaniniVM project additions. The third-party dataset retains its
+applicable license; the Apache License 2.0 applies to PaniniVM's original work
+and does not replace third-party terms.

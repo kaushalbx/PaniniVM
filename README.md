@@ -1,5 +1,7 @@
 # PaniniVM
 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+
 **PaniniVM** is a natural programming language in which morphologically
 segmented Sanskrit is executable source code. Its Kotlin runtime combines a
 Pāṇinian derivation engine (*Aṣṭādhyāyī Rūpa-Siddhi*) with typed semantic
@@ -297,6 +299,16 @@ Run all automated unit and integration tests across the Gradle workspace:
 ```sh
 ./gradlew check --no-daemon
 ```
+
+---
+
+## Contributing and license
+
+PaniniVM is copyright © 2026 Kaushal Kumar Singh and is licensed under the
+[Apache License, Version 2.0](LICENSE). Contributions are welcome under the same
+license; see [CONTRIBUTING.md](CONTRIBUTING.md) for testing, grammatical-source,
+and attribution guidance. Third-party data acknowledgements are recorded in
+[NOTICE](NOTICE).
 
 ---
 
