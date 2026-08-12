@@ -3,6 +3,7 @@ package dev.panini.derivation
 import dev.panini.analysis.SamasaPada
 import dev.panini.core.SamasaType
 import dev.panini.core.Vibhakti
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -43,7 +44,7 @@ class SamasaBenchmarkTest {
     }
 
     @Test
-    fun `benchmark test 5 4 91 Rajapurusa`() {
+    fun `benchmark test 2 2 8 Rajapurusa`() {
         val result = samasaEngine.derive(
             padas = listOf(
                 SamasaPada("राजन्", Vibhakti.SASTHI),
@@ -52,7 +53,8 @@ class SamasaBenchmarkTest {
             type = SamasaType.TATPURUSA
         )
         assertNotNull(result)
-        assertTrue(result.final.surface.isNotEmpty())
+        assertEquals("राजपुरुषः", result.final.surface)
+        assertEquals("2.2.8", result.samasaResolution?.classificationSutra)
     }
 
     @Test

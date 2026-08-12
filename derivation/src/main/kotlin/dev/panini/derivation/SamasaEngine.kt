@@ -109,6 +109,13 @@ class SamasaEngine(
         val padasList = padas.map { it.upadesha }
         val rawPadasConcat = padasList.joinToString("")
         val hasSamasantaKap = rawStem.endsWith("क") && !rawPadasConcat.endsWith("क")
+        val compoundMembers = padasList.mapIndexed { index, surface ->
+            if (index < padas.lastIndex && type != SamasaType.ALUK_TATPURUSA && surface.endsWith("न्")) {
+                surface.dropLast(2)
+            } else {
+                surface
+            }
+        }
 
         val sandhiRes = if (rawStem.contains(" ")) {
             val parts = rawStem.split(" ")
@@ -121,9 +128,9 @@ class SamasaEngine(
             }
             res
         } else if (rawStem == rawPadasConcat || hasSamasantaKap) {
-            var res = padas.first().upadesha
-            for (i in 1 until padas.size) {
-                val next = padas[i].upadesha
+            var res = compoundMembers.first()
+            for (i in 1 until compoundMembers.size) {
+                val next = compoundMembers[i]
                 val j = sandhiEngine.join(res, next)
                 val joined = j.final.surface
                 res = if (joined.isNotBlank() && joined.length >= res.length + next.length - 1) joined else res + next
@@ -261,4 +268,3 @@ class SamasaEngine(
         return change.state
     }
 }
-
