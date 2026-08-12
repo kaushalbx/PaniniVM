@@ -1,15 +1,49 @@
 # PaniniVM
 
-**PaniniVM** is a high-performance, modular Kotlin implementation of an executable Pāṇinian derivation engine (*Aṣṭādhyāyī Rūpa-Siddhi*) and natural semantic execution runtime. Implemented sūtras carry typed metadata, executable eligibility, rule dependencies, blocking rules, and state-transition logic. Every derivation retains an ordered, auditable rule trace including applied sūtras, *Adhikāras*, *Paribhāṣās*, *Niṣedhas*, conflicts, and alternatives.
+**PaniniVM** is a natural programming language in which morphologically
+segmented Sanskrit is executable source code. Its Kotlin runtime combines a
+Pāṇinian derivation engine (*Aṣṭādhyāyī Rūpa-Siddhi*) with typed semantic
+execution: grammatical relationships determine data flow, verbal roots select
+operations, and derived identities carry meaning through a program.
+
+Implemented sūtras carry typed metadata, executable eligibility, rule
+dependencies, blocking rules, and state transitions. Every derivation retains
+an ordered, auditable trace of applied sūtras, *Adhikāras*, *Paribhāṣās*,
+*Niṣedhas*, conflicts, and alternatives.
 
 ---
 
-## 🌟 Sanskrit as a Natural Programming Language
+## Sanskrit as a Natural Programming Language
 
 Pāṇini’s Aṣṭādhyāyī is the earliest formal, rule-based computational system in human history. PaniniVM leverages this grammatical machinery to treat Sanskrit not merely as text, but as a **fully executable natural programming language**. By writing structured, morphologically segmented Sanskrit sentences (*Uktis*), you write program specifications directly in natural language:
 
-- **Declarative Logic & Case Grammar**: Grammatical case markings (*Vibhaktis*) define data flow and dependencies (*Kārakas*). For example, accusative case (`KARMAN`) designates inputs/operands, while dative case (`SAMPRADANA`) designates output destinations or variables.
-- **Resumable Gated Execution**: Sentences compile into sequential computational blocks that can interact with the environment, yield on permissions or human-in-the-loop validation, and resume execution.
+- **Meaning comes from grammar**: Case markings (*Vibhaktis*) establish
+  computational relationships through *Kārakas*. Accusative forms identify
+  operands, dative forms identify destinations, and ablative forms can identify
+  sources or exclusions.
+- **Words remain morphologically visible**: Programs are written as fully
+  segmented `Prakṛti + Pratyaya` expressions. Each segment contributes to the
+  grammatical analysis instead of being treated as punctuation-like syntax.
+- **Dhātus express operations**: A verbal root and its affixes select an action;
+  nominal expressions supply its typed participants. Pipelines pass the typed
+  result of one sentence directly into the next.
+- **Natural control and reuse**: Repetition, conditions, ranges, collections,
+  and reusable Sanskrit *kriyā* definitions are language constructs rather
+  than host-language API calls.
+- **Auditable execution**: Source is parsed into a grammatical AST, resolved
+  through Pāṇinian identities, planned, and executed with a traceable semantic
+  path. Capability-sensitive work can pause for approval and resume safely.
+
+For example, this segmented sentence adds two numbers and sends its result
+directly to `योग`:
+
+```pvm
+द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ततः योग + ङे दा + लोट् + सिप् ।
+```
+
+The source is Sanskrit, while its execution model remains statically
+inspectable: `द्वि + अम्` and `त्रि + अम्` are operands, `युज्` supplies
+the operation identity, and `योग + ङे` is the result destination.
 
 ---
 
@@ -114,81 +148,54 @@ first-class definitions.
 
 ---
 
-## CLI Usage
+## Running PaniniVM
 
-### Uṇādipāṭha Subsystem Commands
-
-```sh
-# Etymological lookup for a nominal stem
-./gradlew :cli:run --args="--unadi lookup पितृ"
-
-# Reverse lookup by Dhātu and Pratyaya
-./gradlew :cli:run --args="--unadi pair कृ कनिन्"
-
-# List registered Uṇādipāṭha sūtras
-./gradlew :cli:run --args="--unadi list"
-
-# Step-by-step Aṣṭādhyāyī derivation trace for Uṇādi stems
-./gradlew :cli:run --args="--derive-unadi कृ उण्"
-./gradlew :cli:run --args="--derive-unadi पा तृन्"
-```
-
-### Executing `.pvm` Script Files
+The command-line module evaluates and compiles `.pvm` programs, renders
+readable Sanskrit companions, and provides an interactive REPL. Build the CLI
+distribution once, then use its launcher directly. This is required for
+interactive programs because Gradle's console proxy may not forward terminal
+input correctly.
 
 ```sh
-./gradlew :cli:run --args="--eval src/test/kotlin/dev/panini/parser/addition.pvm"
-./gradlew :cli:run --args="--eval examples/algorithms/fibonacci_array.pvm"
+./gradlew :cli:installDist
 ```
 
-Execution and compilation never rewrite files beside the source. The checked-in
-`.txt` companions are readable Sanskrit renderings of segmented `.pvm` sentences,
-not execution results. Regenerate them explicitly with:
+Run a segmented Sanskrit program, including one that reads interactive input:
 
 ```sh
-./gradlew renderExamples
-# Or render one source/directory through the CLI:
-./gradlew :cli:run --args="--render-readable examples/arithmetic/addition.pvm"
+./cli/build/install/cli/bin/cli --eval examples/algorithms/fibonacci_array.pvm
+./cli/build/install/cli/bin/cli --eval examples/io/io_demo.pvm
+./cli/build/install/cli/bin/cli --eval projects/number-guessing-game/number_guessing_game.pvm
 ```
 
-### Emitting and Executing Canonical Sūtra Programs
+Running the launcher without arguments starts the PaniniVM REPL:
 
 ```sh
-./gradlew :cli:run --args="--emit-grantha src/test/kotlin/dev/panini/parser/addition.pvm addition.sutra"
-./gradlew :cli:run --args="--check-grantha addition.sutra"
-./gradlew :cli:run --args="--grantha addition.sutra"
+./cli/build/install/cli/bin/cli
 ```
 
-The public API processes the same evaluator-free source with
-`PaniniVM.evalGrantha(...)` or `PaniniVM.evalGranthaFile(...)`.
-
-### Compiling `.pvm` Script Files to JVM Bytecode
+Generate readable Sanskrit companions from segmented source, or compile a
+`.pvm` program to a JVM class:
 
 ```sh
-./gradlew :cli:run --args="--compile src/test/kotlin/dev/panini/parser/addition.pvm SanskritAddition"
+./cli/build/install/cli/bin/cli --render-readable examples/algorithms/fibonacci_array.pvm
+./cli/build/install/cli/bin/cli --compile examples/arithmetic/addition.pvm SanskritAddition
 ```
 
-### Derivations & Sūtra Inspection
+Canonical sūtra programs can be emitted, checked, and executed independently:
 
 ```sh
-# Nominal paradigms and individual derivations
-./gradlew :cli:run --args="--paradigm राम"
-./gradlew :cli:run --args="--derive राम SASTHI BAHUVACANA"
-./gradlew :cli:run --args="--derive-karaka राम KARMAN EKAVACANA भू KARTARI"
-
-# Verbal derivations
-./gradlew :cli:run --args="--verb भू"
-./gradlew :cli:run --args="--verb भू LING EKAVACANA"
-./gradlew :cli:run --args="--verb भू LOT बहुवचन"
-
-# Cardinal and ordinal numeral derivations
-./gradlew :cli:run --args="--sankhya 23"
-./gradlew :cli:run --args="--sankhya 6 ordinal"
-./gradlew :cli:run --args="--sankhya 42 cardinal --variants"
-
-# Registry inspection and implementation coverage
-./gradlew :cli:run --args="--coverage"
-./gradlew :cli:run --args="--sutra 7.1.54"
+./cli/build/install/cli/bin/cli --emit-grantha examples/arithmetic/addition.pvm addition.sutra
+./cli/build/install/cli/bin/cli --check-grantha addition.sutra
+./cli/build/install/cli/bin/cli --grantha addition.sutra
 ```
+
+See the complete [CLI command reference](cli/README.md) for Windows launcher
+commands, typed interactive input, derivation tools, and every supported flag.
+
+For `.pvm` editing, diagnostics, navigation, and gutter execution in IntelliJ
+IDEA or Android Studio, see the detailed
+[IDEA plugin installation guide](idea-plugin/README.md#install-the-plugin-from-disk).
 
 ---
 
@@ -221,7 +228,7 @@ if (result is ExecutionResult.Success) {
 
 ## Test Suite Verification
 
-Run all automated unit and integration tests across all 16 Gradle modules:
+Run all automated unit and integration tests across the Gradle workspace:
 
 ```sh
 ./gradlew check --no-daemon
