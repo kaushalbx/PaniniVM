@@ -41,6 +41,9 @@ internal object DirectLeafPlanner {
         val conversation = SambhashanaContext(
             "प्रयोक्ता",
             "यन्त्रम्",
+            previousResults = environment.values["LastResult"]?.let {
+                mapOf("LastResult" to it.toDisplayText())
+            }.orEmpty(),
             previousTypedResults = environment.values,
         )
         val input = SanskritUktiInput(

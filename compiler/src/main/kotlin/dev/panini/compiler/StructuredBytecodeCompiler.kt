@@ -719,6 +719,14 @@ internal object StructuredBytecodeCompiler {
         } else {
             null
         }
+        val directSequenceSlice = if (
+            directSlice == null && directConditionalSlice == null && directWhileSlice == null &&
+            directRepeatSlice == null
+        ) {
+            planDirectFinalSequence(statements)
+        } else {
+            null
+        }
         statements.forEachIndexed { index, sentence ->
             val directPlan = directSlice?.get(index)
             if (directPlan != null) {
@@ -752,6 +760,12 @@ internal object StructuredBytecodeCompiler {
                     lowering.emitDirectPlan(mv, directRepeatSlice.prefix[index])
                 } else {
                     lowering.emitDirectPlans(mv, directRepeatSlice.plans)
+                }
+            } else if (directSequenceSlice != null) {
+                if (index < directSequenceSlice.prefix.size) {
+                    lowering.emitDirectPlan(mv, directSequenceSlice.prefix[index])
+                } else {
+                    lowering.emitDirectPlans(mv, directSequenceSlice.plans)
                 }
             } else {
                 sentence.program?.let {
@@ -947,6 +961,74 @@ internal object StructuredBytecodeCompiler {
     private data class DirectFinalRepeat(
         val prefix: List<ExecutionPlan>,
         val plans: List<ExecutionPlan>,
+    )
+
+    /** Directly lowers a final ततः pipeline after a fully direct prefix. */
+    private fun planDirectFinalSequence(
+        statements: List<PvmScriptStatement.Sentence>,
+    ): DirectFinalSequence? {
+        if (statements.isEmpty()) return null
+        val sequence = statements.last().program as? Sequence ?: return null
+        if (sequence.connectors.any { it != "ततः" } || sequence.statements.any { it !is Invocation }) {
+            return null
+        }
+        var environment = ValueEnvironment()
+        val prefix = buildList {
+            for (sentence in statements.dropLast(1)) {
+                if (sentence.program !is Invocation) return null
+                val plan = DirectLeafPlanner.plan(
+                    sentence.text,
+                    environment = environment,
+                    allowStore = true,
+                ) ?: return null
+                environment = advancePlanningEnvironment(plan, environment) ?: return null
+                add(plan)
+            }
+        }
+        val planned = planDirectSequence(sequence, environment, allowStore = true) ?: return null
+        return DirectFinalSequence(prefix, planned.plans)
+    }
+
+    private fun planDirectSequence(
+        sequence: Sequence,
+        initialEnvironment: ValueEnvironment,
+        allowStore: Boolean,
+    ): PlannedDirectSequence? {
+        if (sequence.connectors.any { it != "ततः" } || sequence.statements.any { it !is Invocation }) {
+            return null
+        }
+        var environment = initialEnvironment
+        val plans = buildList {
+            sequence.statements.filterIsInstance<Invocation>().forEachIndexed { index, invocation ->
+                val alreadyReferencesResult = invocation.vakya.padas.any { pada ->
+                    pada is dev.panini.vyakaranam.ast.SubantaPada &&
+                        pada.pratipadika.sourceText.substringBefore('+').trim() == "फल"
+                }
+                val source = if (index > 0 && !alreadyReferencesResult) {
+                    "फल + अम् ${render(invocation)}"
+                } else {
+                    render(invocation)
+                }
+                val plan = DirectLeafPlanner.plan(
+                    source,
+                    environment = environment,
+                    allowStore = allowStore,
+                ) ?: return null
+                environment = advancePlanningEnvironment(plan, environment) ?: return null
+                add(plan)
+            }
+        }
+        return PlannedDirectSequence(plans, environment)
+    }
+
+    private data class DirectFinalSequence(
+        val prefix: List<ExecutionPlan>,
+        val plans: List<ExecutionPlan>,
+    )
+
+    private data class PlannedDirectSequence(
+        val plans: List<ExecutionPlan>,
+        val environment: ValueEnvironment,
     )
 
 }
