@@ -151,7 +151,8 @@ internal object StructuredBytecodeCompiler {
             node: WhileLoop,
             condition: ExecutionPlan,
             body: ExecutionPlan,
-        ) = emitWhile(mv, node, condition, body)
+            exhausted: ExecutionPlan?,
+        ) = emitWhile(mv, node, condition, body, exhausted)
 
         private fun emitSequence(mv: MethodVisitor, node: Sequence, exactSource: String?) {
             val hasGeneratedStage = node.statements.drop(1).any { statement ->
@@ -397,6 +398,7 @@ internal object StructuredBytecodeCompiler {
             node: WhileLoop,
             directCondition: ExecutionPlan? = null,
             directBody: ExecutionPlan? = null,
+            directExhausted: ExecutionPlan? = null,
         ) {
             val condition = Label()
             val victory = Label()
@@ -487,7 +489,11 @@ internal object StructuredBytecodeCompiler {
             emitLoopOutcome(mv, "विजय", counter)
             mv.visitJumpInsn(GOTO, target)
             mv.visitLabel(exhausted)
-            node.exhausted?.let { emit(mv, it) }
+            if (directExhausted != null) {
+                emitDirect(mv, directExhausted)
+            } else {
+                node.exhausted?.let { emit(mv, it) }
+            }
             emitLoopOutcome(mv, "समाप्ति", counter)
             mv.visitLabel(target)
             node.resultTarget?.let { emitLoopTarget(mv, it) }
@@ -710,6 +716,7 @@ internal object StructuredBytecodeCompiler {
                         directWhileSlice.loop,
                         directWhileSlice.condition,
                         directWhileSlice.body,
+                        directWhileSlice.exhausted,
                     )
                 }
             } else {
@@ -824,7 +831,7 @@ internal object StructuredBytecodeCompiler {
         if (statements.size < 2) return null
         val loop = statements.last().program as? WhileLoop ?: return null
         val body = loop.body as? Invocation ?: return null
-        if (loop.exhausted != null || loop.resultTarget != null) return null
+        if (loop.resultTarget != null) return null
         val usesLatestResult = loop.condition.vakya.padas.any { pada ->
             pada is dev.panini.vyakaranam.ast.SubantaPada &&
                 pada.pratipadika.sourceText.substringBefore('+').trim() == "फल"
@@ -851,7 +858,12 @@ internal object StructuredBytecodeCompiler {
             environment = environment,
             allowStore = true,
         ) ?: return null
-        return DirectFinalWhile(prefix, loop, conditionPlan, bodyPlan)
+        val exhaustedPlan = when (val exhausted = loop.exhausted) {
+            null -> null
+            is Invocation -> DirectLeafPlanner.plan(render(exhausted), environment) ?: return null
+            else -> return null
+        }
+        return DirectFinalWhile(prefix, loop, conditionPlan, bodyPlan, exhaustedPlan)
     }
 
     private data class DirectFinalWhile(
@@ -859,6 +871,7 @@ internal object StructuredBytecodeCompiler {
         val loop: WhileLoop,
         val condition: ExecutionPlan,
         val body: ExecutionPlan,
+        val exhausted: ExecutionPlan?,
     )
 
 }
