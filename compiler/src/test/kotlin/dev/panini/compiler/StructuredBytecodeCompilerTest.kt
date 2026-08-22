@@ -21,6 +21,67 @@ import kotlin.test.assertFailsWith
 
 class StructuredBytecodeCompilerTest {
     @Test
+    fun `constructed list and length execute directly`() {
+        val source = """
+            परिचय + ल्युट् + सुँ ।
+            एक + अम् मुद्र् + लोट् + सिप् ॥
+
+            एक + अम् द्वि + अम् त्रि + अम् च सूची + ङे दा + लोट् + सिप् ।
+            सूची + अम् गण् + लोट् + सिप् ।
+        """.trimIndent()
+        val interpretedResults = PaniniVM().evalScript(source)
+        assertTrue(interpretedResults.none { it is ExecutionResult.Failure }, interpretedResults.toString())
+        val interpreted = interpretedResults.filterIsInstance<ExecutionResult.Success>().last().typedValue
+        val compiled = compileAndInspect(source, "CompiledDirectListLength")
+
+        assertEquals(interpreted, compiled.values.getValue("LastResult"))
+        assertEquals(3L, (compiled.values.getValue("LastResult") as SanskritValue.Sankhya).value)
+        val list = compiled.values.getValue("सूची") as SanskritValue.Suchi
+        assertEquals(listOf(1L, 2L, 3L), list.items.map { (it as SanskritValue.Sankhya).value })
+        assertEquals(1, compiled.runtimeCalls.count { it == "executeDirectStore" })
+        assertEquals(1, compiled.runtimeCalls.count { it == "executeDirect" })
+        assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
+    }
+
+    @Test
+    fun `state backed list indexing executes directly`() {
+        val source = """
+            परिचय + ल्युट् + सुँ ।
+            एक + अम् मुद्र् + लोट् + सिप् ॥
+
+            दशन् + अम् विंशति + अम् त्रिंशत् + अम् च सूची + ङे दा + लोट् + सिप् ।
+            सूची + अम् द्वि + टा स्था + लोट् + सिप् ।
+        """.trimIndent()
+        val interpretedResults = PaniniVM().evalScript(source)
+        assertTrue(interpretedResults.none { it is ExecutionResult.Failure }, interpretedResults.toString())
+        val interpreted = interpretedResults.filterIsInstance<ExecutionResult.Success>().last().typedValue
+        val compiled = compileAndInspect(source, "CompiledDirectListIndex")
+
+        assertEquals(interpreted, compiled.values.getValue("LastResult"))
+        assertEquals(20L, (compiled.values.getValue("LastResult") as SanskritValue.Sankhya).value)
+        assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
+    }
+
+    @Test
+    fun `state backed list containment executes directly`() {
+        val source = """
+            परिचय + ल्युट् + सुँ ।
+            एक + अम् मुद्र् + लोट् + सिप् ॥
+
+            एक + अम् द्वि + अम् त्रि + अम् च सूची + ङे दा + लोट् + सिप् ।
+            सूची + अम् द्वि + टा अस् + लोट् + सिप् ।
+        """.trimIndent()
+        val interpretedResults = PaniniVM().evalScript(source)
+        assertTrue(interpretedResults.none { it is ExecutionResult.Failure }, interpretedResults.toString())
+        val interpreted = interpretedResults.filterIsInstance<ExecutionResult.Success>().last().typedValue
+        val compiled = compileAndInspect(source, "CompiledDirectListContains")
+
+        assertEquals(interpreted, compiled.values.getValue("LastResult"))
+        assertEquals(true, (compiled.values.getValue("LastResult") as SanskritValue.Satya).boolean)
+        assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
+    }
+
+    @Test
     fun `implicit tatah print consumes the direct numeric result`() {
         val source = """
             परिचय + ल्युट् + सुँ ।
@@ -1161,4 +1222,46 @@ class StructuredBytecodeCompilerTest {
         assertEquals("विजय", outcome.fields.getValue("अवस्था").toDisplayText())
         assertEquals(7L, (outcome.fields.getValue("प्रयत्नसङ्ख्या") as SanskritValue.Sankhya).value)
     }
+
+    private fun compileAndInspect(source: String, className: String): CompiledExecution {
+        val bytes = BytecodeCompiler.compile(source, className)
+        val runtimeCalls = mutableListOf<String>()
+        ClassReader(bytes).accept(
+            object : ClassVisitor(ASM9) {
+                override fun visitMethod(
+                    access: Int,
+                    name: String?,
+                    descriptor: String?,
+                    signature: String?,
+                    exceptions: Array<out String>?,
+                ): MethodVisitor? {
+                    if (name != "execute" || descriptor != "()Ljava/util/Map;") return null
+                    return object : MethodVisitor(ASM9) {
+                        override fun visitMethodInsn(
+                            opcode: Int,
+                            owner: String?,
+                            name: String?,
+                            descriptor: String?,
+                            isInterface: Boolean,
+                        ) {
+                            if (owner == "dev/panini/compiler/CompiledProgramRuntime") {
+                                name?.let(runtimeCalls::add)
+                            }
+                        }
+                    }
+                }
+            },
+            0,
+        )
+        val generated = BytecodeCompiler.PaniniClassLoader(javaClass.classLoader)
+            .loadFromBytes(className, bytes)
+        @Suppress("UNCHECKED_CAST")
+        val values = generated.getMethod("execute").invoke(null) as Map<String, SanskritValue>
+        return CompiledExecution(values, runtimeCalls)
+    }
+
+    private data class CompiledExecution(
+        val values: Map<String, SanskritValue>,
+        val runtimeCalls: List<String>,
+    )
 }
