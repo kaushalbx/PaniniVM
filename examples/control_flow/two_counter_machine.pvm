@@ -1,24 +1,36 @@
-# Two-counter Minsky-machine instruction example.
+# Constructive universality witness: a finite program for a two-counter machine.
 #
-# A two-counter machine needs only INC, conditional DEC, and HALT. Those
-# instructions are sufficient for universal computation when programs and
-# counters are allowed to grow without a fixed bound.
-#
-# This finite program demonstrates the instruction pair by transferring five
-# units from गणकएक to गणकद्वि. The yavat loop has no grammatical iteration
-# bound: it halts only when गणकएक becomes zero.
+# अवस्था is the program counter, सङ्ख्या is C1, and योग is C2. The named
+# operations below are machine instructions. Conditional dispatch selects the
+# next instruction, while the unbounded यावत् loop supplies repeated execution.
 
-# Machine state: C1 = 5, C2 = 0.
-पञ्च + अम् गणकएक + ङे दा + लोट् + सिप् ।
-शून्य + अम् गणकद्वि + ङे दा + लोट् + सिप् ।
+# INC(C2); goto instruction 2.
+वृध् + ल्युट् + सुँ ।
+योग + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् योग + ङे ।
+द्वि + अम् अवस्था + ङे दा + लोट् + सिप् ॥
 
-# TRANSFER instruction: DEC(C1); INC(C2).
-स्थानान्तरण + ल्युट् + सुँ ।
-गणकएक + अम् एक + अम् च वि + युज् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् गणकएक + ङे ।
-गणकद्वि + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् गणकद्वि + ङे ॥
+# DEC(C1); goto instruction 1.
+हृ + ल्युट् + सुँ ।
+सङ्ख्या + अम् एक + अम् च वि + युज् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् सङ्ख्या + ङे ।
+एक + अम् अवस्था + ङे दा + लोट् + सिप् ॥
 
-# DEC-and-branch: continue TRANSFER while C1 != 0; otherwise halt.
-यावत् गणकएक + अम् शून्य + अम् च विद् + लोट् + सिप् न तावत् स्थानान्तरण + ल्युट् + टा कृ + लोट् + सिप् ।
+# HALT: program counter := 0.
+स्था + ल्युट् + सुँ ।
+शून्य + अम् अवस्था + ङे दा + लोट् + सिप् ॥
 
-# Observable final machine state: C2 = 5.
-मुद्र् + णिच् + लोट् + सिप् गणकद्वि + अम् ।
+# Instruction 2: if C1 > 0 then DEC(C1), otherwise HALT.
+चर् + ल्युट् + सुँ ।
+यदि सङ्ख्या + अम् शून्य + अम् च विद् + लोट् + सिप् तर्हि हृ + ल्युट् + टा कृ + लोट् + सिप् अन्यथा स्था + ल्युट् + टा कृ + लोट् + सिप् ॥
+
+# Dispatcher: PC > 1 selects instruction 2; otherwise instruction 1.
+दिश् + ल्युट् + सुँ ।
+यदि अवस्था + अम् एक + अम् च विद् + लोट् + सिप् तर्हि चर् + ल्युट् + टा कृ + लोट् + सिप् अन्यथा वृध् + ल्युट् + टा कृ + लोट् + सिप् ॥
+
+# Initial machine configuration: PC=2, C1=3, C2=0.
+द्वि + अम् अवस्था + ङे दा + लोट् + सिप् ।
+त्रि + अम् सङ्ख्या + ङे दा + लोट् + सिप् ।
+शून्य + अम् योग + ङे दा + लोट् + सिप् ।
+
+# Execute until HALT, then observe C2 = 3.
+यावत् अवस्था + अम् शून्य + अम् च विद् + लोट् + सिप् न तावत् दिश् + ल्युट् + टा कृ + लोट् + सिप् ।
+मुद्र् + णिच् + लोट् + सिप् योग + अम् ।

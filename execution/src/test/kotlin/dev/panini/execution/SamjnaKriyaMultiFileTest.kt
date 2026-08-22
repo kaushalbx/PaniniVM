@@ -11,6 +11,44 @@ import kotlin.test.assertTrue
 class SamjnaKriyaMultiFileTest {
 
     @Test
+    fun `named operations can recursively dispatch a two-counter machine`() {
+        val script = """
+            वृध् + ल्युट् + सुँ ।
+            योग + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् योग + ङे ।
+            द्वि + अम् अवस्था + ङे दा + लोट् + सिप् ॥
+
+            हृ + ल्युट् + सुँ ।
+            सङ्ख्या + अम् एक + अम् च वि + युज् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् सङ्ख्या + ङे ।
+            एक + अम् अवस्था + ङे दा + लोट् + सिप् ॥
+
+            स्था + ल्युट् + सुँ ।
+            शून्य + अम् अवस्था + ङे दा + लोट् + सिप् ॥
+
+            चर् + ल्युट् + सुँ ।
+            यदि सङ्ख्या + अम् शून्य + अम् च विद् + लोट् + सिप् तर्हि हृ + ल्युट् + टा कृ + लोट् + सिप् अन्यथा स्था + ल्युट् + टा कृ + लोट् + सिप् ॥
+
+            दिश् + ल्युट् + सुँ ।
+            यदि अवस्था + अम् एक + अम् च विद् + लोट् + सिप् तर्हि चर् + ल्युट् + टा कृ + लोट् + सिप् अन्यथा वृध् + ल्युट् + टा कृ + लोट् + सिप् ॥
+
+            द्वि + अम् अवस्था + ङे दा + लोट् + सिप् ।
+            त्रि + अम् सङ्ख्या + ङे दा + लोट् + सिप् ।
+            शून्य + अम् योग + ङे दा + लोट् + सिप् ।
+            यावत् अवस्था + अम् शून्य + अम् च विद् + लोट् + सिप् न तावत् दिश् + ल्युट् + टा कृ + लोट् + सिप् ।
+            मुद्र् + णिच् + लोट् + सिप् योग + अम् ।
+        """.trimIndent()
+
+        val results = PaniniVM().evalScript(script, sessionKey = "two-counter-dispatch")
+        val invalid = results.filterNot { it is ExecutionResult.Success }
+
+        assertTrue(invalid.isEmpty(), results.toString())
+        assertEquals(
+            "त्रीणि",
+            results.filterIsInstance<ExecutionResult.Success>().last().value,
+            results.toString(),
+        )
+    }
+
+    @Test
     fun `frequency qualifier repeats a samjna kriya body`() {
         val script = """
             प्रयत्न + ल्युट् + सुँ ।

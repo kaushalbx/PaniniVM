@@ -1,24 +1,36 @@
-# Two-counter Minsky-machine instruction example.
+# Constructive universality witness: a finite program for a two-counter machine.
 #
-# A two-counter machine needs only INC, conditional DEC, and HALT. Those
-# instructions are sufficient for universal computation when programs and
-# counters are allowed to grow without a fixed bound.
-#
-# This finite program demonstrates the instruction pair by transferring five
-# units from गणकएक to गणकद्वि. The yavat loop has no grammatical iteration
-# bound: it halts only when गणकएक becomes zero.
+# अवस्था is the program counter, सङ्ख्या is C1, and योग is C2. The named
+# operations below are machine instructions. Conditional dispatch selects the
+# next instruction, while the unbounded यावत् loop supplies repeated execution.
 
-# Machine state: C1 = 5, C2 = 0.
-पञ्च गणकएकाय देहि ।
-शून्यम् गणकद्वये देहि ।
+# INC(C2); goto instruction 2.
+वृत् ।
+योगम् एकम् च योजय ततः देहि फलम् योगाय ।
+द्वि अवस्थायै देहि ॥
 
-# TRANSFER instruction: DEC(C1); INC(C2).
-स्थानान्तरणः ।
-गणकएकम् एकम् च वियोजय ततः देहि फलम् गणकएकाय ।
-गणकद्विम् एकम् च योजय ततः देहि फलम् गणकद्वये ॥
+# DEC(C1); goto instruction 1.
+हरणः ।
+सङ्ख्याम् एकम् च वियोजय ततः देहि फलम् सङ्ख्यायै ।
+एकम् अवस्थायै देहि ॥
 
-# DEC-and-branch: continue TRANSFER while C1 != 0; otherwise halt.
-यावत् गणकएकम् शून्यम् च विद्धि न तावत् स्थानान्तरणेन कृणु ।
+# HALT: program counter := 0.
+स्थानः ।
+शून्यम् अवस्थायै देहि ॥
 
-# Observable final machine state: C2 = 5.
-मुद्रय गणकद्विम् ।
+# Instruction 2: if C1 > 0 then DEC(C1), otherwise HALT.
+चर् ।
+यदि सङ्ख्याम् शून्यम् च विद्धि तर्हि हरणेन कृणु अन्यथा स्थानइन कृणु ॥
+
+# Dispatcher: PC > 1 selects instruction 2; otherwise instruction 1.
+दिच् ।
+यदि अवस्थाम् एकम् च विद्धि तर्हि चरा कृणु अन्यथा वृधा कृणु ॥
+
+# Initial machine configuration: PC=2, C1=3, C2=0.
+द्वि अवस्थायै देहि ।
+त्रि सङ्ख्यायै देहि ।
+शून्यम् योगाय देहि ।
+
+# Execute until HALT, then observe C2 = 3.
+यावत् अवस्थाम् शून्यम् च विद्धि न तावत् दिशा कृणु ।
+मुद्रय योगम् ।
