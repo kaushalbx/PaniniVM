@@ -1,0 +1,24 @@
+# Two-counter Minsky-machine instruction example.
+#
+# A two-counter machine needs only INC, conditional DEC, and HALT. Those
+# instructions are sufficient for universal computation when programs and
+# counters are allowed to grow without a fixed bound.
+#
+# This finite program demonstrates the instruction pair by transferring five
+# units from गणकएक to गणकद्वि. The yavat loop has no grammatical iteration
+# bound: it halts only when गणकएक becomes zero.
+
+# Machine state: C1 = 5, C2 = 0.
+पञ्च + अम् गणकएक + ङे दा + लोट् + सिप् ।
+शून्य + अम् गणकद्वि + ङे दा + लोट् + सिप् ।
+
+# TRANSFER instruction: DEC(C1); INC(C2).
+स्थानान्तरण + ल्युट् + सुँ ।
+गणकएक + अम् एक + अम् च वि + युज् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् गणकएक + ङे ।
+गणकद्वि + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् गणकद्वि + ङे ॥
+
+# DEC-and-branch: continue TRANSFER while C1 != 0; otherwise halt.
+यावत् गणकएक + अम् शून्य + अम् च विद् + लोट् + सिप् न तावत् स्थानान्तरण + ल्युट् + टा कृ + लोट् + सिप् ।
+
+# Observable final machine state: C2 = 5.
+मुद्र् + णिच् + लोट् + सिप् गणकद्वि + अम् ।
