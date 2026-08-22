@@ -21,6 +21,21 @@ import kotlin.test.assertFailsWith
 
 class StructuredBytecodeCompilerTest {
     @Test
+    fun `state backed for each accumulation executes directly`() {
+        val source = collectionProgram("सूची + अम् यु + टा दशन् + ङे अनु + वृत् + लोट् + सिप्")
+        val interpretedResults = PaniniVM().evalScript(source)
+        assertTrue(interpretedResults.none { it is ExecutionResult.Failure }, interpretedResults.toString())
+        val interpreted = interpretedResults.filterIsInstance<ExecutionResult.Success>().last().typedValue
+        val compiled = compileAndInspect(source, "CompiledDirectListForEach")
+
+        assertEquals(interpreted, compiled.values.getValue("LastResult"))
+        assertEquals(16L, (compiled.values.getValue("LastResult") as SanskritValue.Sankhya).value)
+        assertEquals(1, compiled.runtimeCalls.count { it == "executeDirectStore" })
+        assertEquals(1, compiled.runtimeCalls.count { it == "executeDirect" })
+        assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
+    }
+
+    @Test
     fun `higher order list operations execute directly`() {
         val cases = listOf(
             CollectionResultCase(
