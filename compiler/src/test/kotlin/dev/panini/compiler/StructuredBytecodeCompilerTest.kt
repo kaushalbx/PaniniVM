@@ -21,6 +21,32 @@ import kotlin.test.assertFailsWith
 
 class StructuredBytecodeCompilerTest {
     @Test
+    fun `nested stored lists flatten directly`() {
+        val source = """
+            परिचय + ल्युट् + सुँ ।
+            एक + अम् मुद्र् + लोट् + सिप् ॥
+
+            एक + अम् द्वि + अम् च प्रथमा + ङे दा + लोट् + सिप् ।
+            त्रि + अम् चतुर् + अम् च द्वितीया + ङे दा + लोट् + सिप् ।
+            प्रथमा + अम् द्वितीया + अम् च संयुक्ता + ङे दा + लोट् + सिप् ।
+            संयुक्ता + अम् तन् + लोट् + सिप् ।
+        """.trimIndent()
+        val interpretedResults = PaniniVM().evalScript(source)
+        assertTrue(interpretedResults.none { it is ExecutionResult.Failure }, interpretedResults.toString())
+        val interpreted = interpretedResults.filterIsInstance<ExecutionResult.Success>().last().typedValue
+        val compiled = compileAndInspect(source, "CompiledDirectListFlatten")
+
+        assertEquals(interpreted, compiled.values.getValue("LastResult"))
+        val nested = compiled.values.getValue("संयुक्ता") as SanskritValue.Suchi
+        assertTrue(nested.items.all { it is SanskritValue.Suchi }, nested.toString())
+        val flattened = compiled.values.getValue("LastResult") as SanskritValue.Suchi
+        assertEquals(listOf(1L, 2L, 3L, 4L), flattened.items.map { (it as SanskritValue.Sankhya).value })
+        assertEquals(3, compiled.runtimeCalls.count { it == "executeDirectStore" })
+        assertEquals(1, compiled.runtimeCalls.count { it == "executeDirect" })
+        assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
+    }
+
+    @Test
     fun `state backed list transformations execute directly`() {
         val cases = listOf(
             CollectionCase(
