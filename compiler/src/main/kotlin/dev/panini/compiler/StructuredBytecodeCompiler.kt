@@ -129,6 +129,23 @@ internal object StructuredBytecodeCompiler {
 
         fun emitDirectPlan(mv: MethodVisitor, plan: ExecutionPlan) = emitDirect(mv, plan)
 
+        fun emitDirectConditional(
+            mv: MethodVisitor,
+            condition: ExecutionPlan,
+            consequent: ExecutionPlan,
+            alternate: ExecutionPlan?,
+        ) {
+            val alternateLabel = Label()
+            val end = Label()
+            emitDirect(mv, condition, asBoolean = true)
+            mv.visitJumpInsn(IFEQ, alternateLabel)
+            emitDirect(mv, consequent)
+            mv.visitJumpInsn(GOTO, end)
+            mv.visitLabel(alternateLabel)
+            alternate?.let { emitDirect(mv, it) }
+            mv.visitLabel(end)
+        }
+
         private fun emitSequence(mv: MethodVisitor, node: Sequence, exactSource: String?) {
             val hasGeneratedStage = node.statements.drop(1).any { statement ->
                 if (statement !is Invocation) return@any false
@@ -647,10 +664,22 @@ internal object StructuredBytecodeCompiler {
         )
         mv.visitVarInsn(ASTORE, 0)
         val directSlice = planDirectStraightLine(statements)
+        val directConditionalSlice = if (directSlice == null) planDirectFinalConditional(statements) else null
         statements.forEachIndexed { index, sentence ->
             val directPlan = directSlice?.get(index)
             if (directPlan != null) {
                 lowering.emitDirectPlan(mv, directPlan)
+            } else if (directConditionalSlice != null) {
+                if (index < directConditionalSlice.prefix.size) {
+                    lowering.emitDirectPlan(mv, directConditionalSlice.prefix[index])
+                } else {
+                    lowering.emitDirectConditional(
+                        mv,
+                        directConditionalSlice.condition,
+                        directConditionalSlice.consequent,
+                        directConditionalSlice.alternate,
+                    )
+                }
             } else {
                 sentence.program?.let {
                     lowering.emit(
@@ -692,25 +721,68 @@ internal object StructuredBytecodeCompiler {
                     environment = environment,
                     allowStore = true,
                 ) ?: return null
-                val result = runCatching {
-                    PaniniRuntime.execute(
-                        plan.resolved.invocation.dhatu.upadesha,
-                        plan.resolved.operation.name,
-                        plan.resolved.operation.trigger.requiredSanadi.sorted().joinToString(","),
-                        plan.resolved.context.bindings,
-                        environment.values,
-                    )
-                }.getOrNull() ?: return null
-                val destination = plan.resolved.operation.resultBindingKaraka
-                    ?.let(plan.resolved.context.bindings::get)
-                    ?.bindingName()
-                environment = ValueEnvironment(
-                    environment.values + ("LastResult" to result) +
-                        (destination?.let { mapOf(it to result) } ?: emptyMap()),
-                )
+                environment = advancePlanningEnvironment(plan, environment) ?: return null
                 add(plan)
             }
         }
     }
+
+    /** Directly lowers a final simple branch after a fully direct state-building prefix. */
+    private fun planDirectFinalConditional(
+        statements: List<PvmScriptStatement.Sentence>,
+    ): DirectFinalConditional? {
+        if (statements.size < 2) return null
+        val conditional = statements.last().program as? Conditional ?: return null
+        val consequent = conditional.consequent as? Invocation ?: return null
+        val alternate = conditional.alternate as? Invocation ?: return null
+        var environment = ValueEnvironment()
+        val prefix = buildList {
+            for (sentence in statements.dropLast(1)) {
+                if (sentence.program !is Invocation) return null
+                val plan = DirectLeafPlanner.plan(
+                    sentence.text,
+                    environment = environment,
+                    allowStore = true,
+                ) ?: return null
+                environment = advancePlanningEnvironment(plan, environment) ?: return null
+                add(plan)
+            }
+        }
+        val conditionPlan = DirectLeafPlanner.plan(render(conditional.condition), environment)
+            ?.takeIf { dev.panini.shiksha.Samjna.SATYA in it.resolved.operation.resultSamjnas }
+            ?: return null
+        val consequentPlan = DirectLeafPlanner.plan(render(consequent), environment) ?: return null
+        val alternatePlan = DirectLeafPlanner.plan(render(alternate), environment) ?: return null
+        return DirectFinalConditional(prefix, conditionPlan, consequentPlan, alternatePlan)
+    }
+
+    private fun advancePlanningEnvironment(
+        plan: ExecutionPlan,
+        environment: ValueEnvironment,
+    ): ValueEnvironment? {
+        val result = runCatching {
+            PaniniRuntime.execute(
+                plan.resolved.invocation.dhatu.upadesha,
+                plan.resolved.operation.name,
+                plan.resolved.operation.trigger.requiredSanadi.sorted().joinToString(","),
+                plan.resolved.context.bindings,
+                environment.values,
+            )
+        }.getOrNull() ?: return null
+        val destination = plan.resolved.operation.resultBindingKaraka
+            ?.let(plan.resolved.context.bindings::get)
+            ?.bindingName()
+        return ValueEnvironment(
+            environment.values + ("LastResult" to result) +
+                (destination?.let { mapOf(it to result) } ?: emptyMap()),
+        )
+    }
+
+    private data class DirectFinalConditional(
+        val prefix: List<ExecutionPlan>,
+        val condition: ExecutionPlan,
+        val consequent: ExecutionPlan,
+        val alternate: ExecutionPlan?,
+    )
 
 }

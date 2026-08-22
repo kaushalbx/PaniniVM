@@ -21,6 +21,67 @@ import kotlin.test.assertFailsWith
 
 class StructuredBytecodeCompilerTest {
     @Test
+    fun `assigned state feeds a directly compiled final conditional`() {
+        val source = """
+            परिचय + ल्युट् + सुँ ।
+            एक + अम् मुद्र् + लोट् + सिप् ॥
+
+            द्वि + अम् अवस्था + ङे दा + लोट् + सिप् ।
+            यदि अवस्था + अम् एक + अम् च विद् + लोट् + सिप् तर्हि द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् अन्यथा शून्य + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ।
+        """.trimIndent()
+        val interpreted = PaniniVM().evalScript(source)
+            .filterIsInstance<ExecutionResult.Success>().last().typedValue
+        val bytes = BytecodeCompiler.compile(source, "CompiledStateConditional")
+        val executeCalls = mutableListOf<String>()
+        var createsReference = false
+        ClassReader(bytes).accept(
+            object : ClassVisitor(ASM9) {
+                override fun visitMethod(
+                    access: Int,
+                    name: String?,
+                    descriptor: String?,
+                    signature: String?,
+                    exceptions: Array<out String>?,
+                ): MethodVisitor? {
+                    if (name != "execute" || descriptor != "()Ljava/util/Map;") return null
+                    return object : MethodVisitor(ASM9) {
+                        override fun visitMethodInsn(
+                            opcode: Int,
+                            owner: String?,
+                            name: String?,
+                            descriptor: String?,
+                            isInterface: Boolean,
+                        ) {
+                            if (owner == "dev/panini/compiler/CompiledProgramRuntime") {
+                                name?.let(executeCalls::add)
+                            }
+                            if (owner == "dev/panini/compiler/PaniniRuntime" &&
+                                name == "createReferenceExpression"
+                            ) {
+                                createsReference = true
+                            }
+                        }
+                    }
+                }
+            },
+            0,
+        )
+        val generated = BytecodeCompiler.PaniniClassLoader(javaClass.classLoader)
+            .loadFromBytes("CompiledStateConditional", bytes)
+        @Suppress("UNCHECKED_CAST")
+        val values = generated.getMethod("execute").invoke(null) as Map<String, SanskritValue>
+
+        assertEquals(interpreted, values.getValue("LastResult"))
+        assertEquals(5L, (values.getValue("LastResult") as SanskritValue.Sankhya).value)
+        assertEquals(2L, (values.getValue("अवस्था") as SanskritValue.Sankhya).value)
+        assertTrue("executeDirectStore" in executeCalls, executeCalls.toString())
+        assertTrue("executeDirectBoolean" in executeCalls, executeCalls.toString())
+        assertTrue("evaluateBoolean" !in executeCalls, executeCalls.toString())
+        assertTrue("evaluate" !in executeCalls, executeCalls.toString())
+        assertTrue(createsReference)
+    }
+
+    @Test
     fun `straight line assignment is loaded directly by a later numeric leaf`() {
         val source = """
             परिचय + ल्युट् + सुँ ।
