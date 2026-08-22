@@ -145,6 +145,27 @@ class CompiledProgramRuntime private constructor(
         values[bindingName] = it
     }
 
+    fun executeDirectLoopTarget(
+        dhatuUpadesha: String,
+        operationName: String,
+        requiredSanadi: String,
+        bindings: Map<Karaka, ExecutionExpression>,
+    ): SanskritValue {
+        val structured = values["परिणाम"] as? SanskritValue.Rupa
+            ?: error("No compiled loop outcome is available for its result target.")
+        val outcome = structured.fields["अवस्था"]
+            ?: error("The compiled loop outcome has no अवस्था field.")
+        PaniniRuntime.execute(
+            dhatuUpadesha,
+            operationName,
+            requiredSanadi,
+            bindings,
+            values + ("चक्रफल" to outcome),
+        )
+        values["LastResult"] = structured
+        return structured
+    }
+
     fun evaluateBoolean(source: String): Boolean {
         val result = vm.eval(interpolate(source), sessionKey = sessionKey, scope = frameScope())
         val success = result as? ExecutionResult.Success

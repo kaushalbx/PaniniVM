@@ -21,6 +21,59 @@ import kotlin.test.assertFailsWith
 
 class StructuredBytecodeCompilerTest {
     @Test
+    fun `simple loop result target executes without the interpreter bridge`() {
+        val source = """
+            परिचय + ल्युट् + सुँ ।
+            एक + अम् मुद्र् + लोट् + सिप् ॥
+
+            द्वि + अम् अवस्था + ङे दा + लोट् + सिप् ।
+            त्रि + कृत्वः यावत् अवस्था + अम् शून्य + अम् च विद् + लोट् + सिप् तावत् शून्य + अम् अवस्था + ङे दा + लोट् + सिप् ततः परिणाम + ङे दा + लोट् + सिप् ।
+        """.trimIndent()
+        val bytes = BytecodeCompiler.compile(source, "CompiledDirectLoopTarget")
+        val executeCalls = mutableListOf<String>()
+        ClassReader(bytes).accept(
+            object : ClassVisitor(ASM9) {
+                override fun visitMethod(
+                    access: Int,
+                    name: String?,
+                    descriptor: String?,
+                    signature: String?,
+                    exceptions: Array<out String>?,
+                ): MethodVisitor? {
+                    if (name != "execute" || descriptor != "()Ljava/util/Map;") return null
+                    return object : MethodVisitor(ASM9) {
+                        override fun visitMethodInsn(
+                            opcode: Int,
+                            owner: String?,
+                            name: String?,
+                            descriptor: String?,
+                            isInterface: Boolean,
+                        ) {
+                            if (owner == "dev/panini/compiler/CompiledProgramRuntime") {
+                                name?.let(executeCalls::add)
+                            }
+                        }
+                    }
+                }
+            },
+            0,
+        )
+        val generated = BytecodeCompiler.PaniniClassLoader(javaClass.classLoader)
+            .loadFromBytes("CompiledDirectLoopTarget", bytes)
+        @Suppress("UNCHECKED_CAST")
+        val values = generated.getMethod("execute").invoke(null) as Map<String, SanskritValue>
+        val outcome = values.getValue("परिणाम") as SanskritValue.Rupa
+
+        assertEquals(outcome, values.getValue("LastResult"))
+        assertEquals("विजय", outcome.fields.getValue("अवस्था").toDisplayText())
+        assertEquals(1L, (outcome.fields.getValue("प्रयत्नसङ्ख्या") as SanskritValue.Sankhya).value)
+        assertTrue("executeDirectLoopTarget" in executeCalls, executeCalls.toString())
+        assertTrue("evaluateLoopTarget" !in executeCalls, executeCalls.toString())
+        assertTrue("evaluateBoolean" !in executeCalls, executeCalls.toString())
+        assertTrue("evaluate" !in executeCalls, executeCalls.toString())
+    }
+
+    @Test
     fun `bounded direct state loop lowers its exhaustion leaf directly`() {
         val source = """
             परिचय + ल्युट् + सुँ ।

@@ -152,7 +152,8 @@ internal object StructuredBytecodeCompiler {
             condition: ExecutionPlan,
             body: ExecutionPlan,
             exhausted: ExecutionPlan?,
-        ) = emitWhile(mv, node, condition, body, exhausted)
+            resultTarget: ExecutionPlan?,
+        ) = emitWhile(mv, node, condition, body, exhausted, resultTarget)
 
         private fun emitSequence(mv: MethodVisitor, node: Sequence, exactSource: String?) {
             val hasGeneratedStage = node.statements.drop(1).any { statement ->
@@ -244,8 +245,13 @@ internal object StructuredBytecodeCompiler {
             }
         }
 
-        private fun emitDirect(mv: MethodVisitor, plan: ExecutionPlan, asBoolean: Boolean = false) {
-            val bindingName = if (asBoolean) null else plan.resolved.operation.resultBindingKaraka
+        private fun emitDirect(
+            mv: MethodVisitor,
+            plan: ExecutionPlan,
+            asBoolean: Boolean = false,
+            asLoopTarget: Boolean = false,
+        ) {
+            val bindingName = if (asBoolean || asLoopTarget) null else plan.resolved.operation.resultBindingKaraka
                 ?.let(plan.resolved.context.bindings::get)
                 ?.bindingName()
             val bindings = nextLocal++
@@ -282,11 +288,13 @@ internal object StructuredBytecodeCompiler {
                 "dev/panini/compiler/CompiledProgramRuntime",
                 when {
                     asBoolean -> "executeDirectBoolean"
+                    asLoopTarget -> "executeDirectLoopTarget"
                     bindingName != null -> "executeDirectStore"
                     else -> "executeDirect"
                 },
                 when {
                     asBoolean -> "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Z"
+                    asLoopTarget -> "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Ldev/panini/execution/SanskritValue;"
                     bindingName != null -> "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;)Ldev/panini/execution/SanskritValue;"
                     else -> "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Ldev/panini/execution/SanskritValue;"
                 },
@@ -399,6 +407,7 @@ internal object StructuredBytecodeCompiler {
             directCondition: ExecutionPlan? = null,
             directBody: ExecutionPlan? = null,
             directExhausted: ExecutionPlan? = null,
+            directResultTarget: ExecutionPlan? = null,
         ) {
             val condition = Label()
             val victory = Label()
@@ -496,7 +505,7 @@ internal object StructuredBytecodeCompiler {
             }
             emitLoopOutcome(mv, "समाप्ति", counter)
             mv.visitLabel(target)
-            node.resultTarget?.let { emitLoopTarget(mv, it) }
+            node.resultTarget?.let { emitLoopTarget(mv, it, directResultTarget) }
         }
 
         private fun emitLoopOutcome(mv: MethodVisitor, outcome: String, counter: Int) {
@@ -512,7 +521,15 @@ internal object StructuredBytecodeCompiler {
             )
         }
 
-        private fun emitLoopTarget(mv: MethodVisitor, target: ProgramNode) {
+        private fun emitLoopTarget(
+            mv: MethodVisitor,
+            target: ProgramNode,
+            directPlan: ExecutionPlan? = null,
+        ) {
+            if (directPlan != null) {
+                emitDirect(mv, directPlan, asLoopTarget = true)
+                return
+            }
             mv.visitVarInsn(ALOAD, 0)
             mv.visitLdcInsn(normalized(render(target)))
             mv.visitMethodInsn(
@@ -717,6 +734,7 @@ internal object StructuredBytecodeCompiler {
                         directWhileSlice.condition,
                         directWhileSlice.body,
                         directWhileSlice.exhausted,
+                        directWhileSlice.resultTarget,
                     )
                 }
             } else {
@@ -831,7 +849,6 @@ internal object StructuredBytecodeCompiler {
         if (statements.size < 2) return null
         val loop = statements.last().program as? WhileLoop ?: return null
         val body = loop.body as? Invocation ?: return null
-        if (loop.resultTarget != null) return null
         val usesLatestResult = loop.condition.vakya.padas.any { pada ->
             pada is dev.panini.vyakaranam.ast.SubantaPada &&
                 pada.pratipadika.sourceText.substringBefore('+').trim() == "फल"
@@ -863,7 +880,16 @@ internal object StructuredBytecodeCompiler {
             is Invocation -> DirectLeafPlanner.plan(render(exhausted), environment) ?: return null
             else -> return null
         }
-        return DirectFinalWhile(prefix, loop, conditionPlan, bodyPlan, exhaustedPlan)
+        val resultTargetPlan = when (val target = loop.resultTarget) {
+            null -> null
+            is Invocation -> DirectLeafPlanner.plan(
+                "चक्रफल + अम् ${render(target)}",
+                environment = environment.with("चक्रफल", SanskritValue.Shabda("विजय")),
+                allowStore = true,
+            ) ?: return null
+            else -> return null
+        }
+        return DirectFinalWhile(prefix, loop, conditionPlan, bodyPlan, exhaustedPlan, resultTargetPlan)
     }
 
     private data class DirectFinalWhile(
@@ -872,6 +898,7 @@ internal object StructuredBytecodeCompiler {
         val condition: ExecutionPlan,
         val body: ExecutionPlan,
         val exhausted: ExecutionPlan?,
+        val resultTarget: ExecutionPlan?,
     )
 
 }
