@@ -30,7 +30,13 @@ internal object DirectLeafPlanner {
         source: String,
         environment: ValueEnvironment = ValueEnvironment(),
         allowStore: Boolean = false,
-    ): ExecutionPlan? {
+    ): ExecutionPlan? = plans(source, environment, allowStore)?.singleOrNull()
+
+    fun plans(
+        source: String,
+        environment: ValueEnvironment = ValueEnvironment(),
+        allowStore: Boolean = false,
+    ): List<ExecutionPlan>? {
         val segmentedSource = source.replace("+", " + ").replace(Regex("\\s+"), " ").trim()
         val conversation = SambhashanaContext(
             "प्रयोक्ता",
@@ -60,14 +66,14 @@ internal object DirectLeafPlanner {
         }
         val plans = (ExecutionPlanner.plan(program, environment) as? PlanningResult.Planned)
             ?.plans ?: return null
-        return plans.singleOrNull()?.takeIf { plan ->
+        return plans.takeIf { candidates -> candidates.isNotEmpty() && candidates.all { plan ->
             (plan.resolved.operation.name in supportedOperations ||
                 (allowStore && plan.resolved.operation.name == "मूल्यदानम्")) &&
                 (plan.resolved.operation.name != "सङ्ख्यातुलना" ||
                     (plan.resolved.operation.trigger.requiredUpasargas.isEmpty() &&
                         plan.resolved.operation.trigger.requiredAvyayas.isEmpty())) &&
                 plan.resolved.context.bindings.values.all { isEmbeddable(it, environment) }
-        }
+        } }
     }
 
     private fun isEmbeddable(

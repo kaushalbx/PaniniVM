@@ -155,6 +155,9 @@ internal object StructuredBytecodeCompiler {
             resultTarget: ExecutionPlan?,
         ) = emitWhile(mv, node, condition, body, exhausted, resultTarget)
 
+        fun emitDirectPlans(mv: MethodVisitor, plans: List<ExecutionPlan>) =
+            plans.forEach { emitDirect(mv, it) }
+
         private fun emitSequence(mv: MethodVisitor, node: Sequence, exactSource: String?) {
             val hasGeneratedStage = node.statements.drop(1).any { statement ->
                 if (statement !is Invocation) return@any false
@@ -709,6 +712,13 @@ internal object StructuredBytecodeCompiler {
         } else {
             null
         }
+        val directRepeatSlice = if (
+            directSlice == null && directConditionalSlice == null && directWhileSlice == null
+        ) {
+            planDirectFinalRepeat(statements)
+        } else {
+            null
+        }
         statements.forEachIndexed { index, sentence ->
             val directPlan = directSlice?.get(index)
             if (directPlan != null) {
@@ -736,6 +746,12 @@ internal object StructuredBytecodeCompiler {
                         directWhileSlice.exhausted,
                         directWhileSlice.resultTarget,
                     )
+                }
+            } else if (directRepeatSlice != null) {
+                if (index < directRepeatSlice.prefix.size) {
+                    lowering.emitDirectPlan(mv, directRepeatSlice.prefix[index])
+                } else {
+                    lowering.emitDirectPlans(mv, directRepeatSlice.plans)
                 }
             } else {
                 sentence.program?.let {
@@ -899,6 +915,38 @@ internal object StructuredBytecodeCompiler {
         val body: ExecutionPlan,
         val exhausted: ExecutionPlan?,
         val resultTarget: ExecutionPlan?,
+    )
+
+    /** Directly unrolls a final fixed-count utterance after a direct state-building prefix. */
+    private fun planDirectFinalRepeat(
+        statements: List<PvmScriptStatement.Sentence>,
+    ): DirectFinalRepeat? {
+        if (statements.size < 2) return null
+        if (statements.last().program !is Invocation) return null
+        var environment = ValueEnvironment()
+        val prefix = buildList {
+            for (sentence in statements.dropLast(1)) {
+                if (sentence.program !is Invocation) return null
+                val plan = DirectLeafPlanner.plan(
+                    sentence.text,
+                    environment = environment,
+                    allowStore = true,
+                ) ?: return null
+                environment = advancePlanningEnvironment(plan, environment) ?: return null
+                add(plan)
+            }
+        }
+        val repeatedPlans = DirectLeafPlanner.plans(
+            statements.last().text,
+            environment = environment,
+            allowStore = true,
+        )?.takeIf { it.size > 1 } ?: return null
+        return DirectFinalRepeat(prefix, repeatedPlans)
+    }
+
+    private data class DirectFinalRepeat(
+        val prefix: List<ExecutionPlan>,
+        val plans: List<ExecutionPlan>,
     )
 
 }

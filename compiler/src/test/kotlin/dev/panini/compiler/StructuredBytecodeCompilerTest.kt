@@ -21,6 +21,59 @@ import kotlin.test.assertFailsWith
 
 class StructuredBytecodeCompilerTest {
     @Test
+    fun `fixed repetition loads compiled state directly on every iteration`() {
+        val source = """
+            परिचय + ल्युट् + सुँ ।
+            एक + अम् मुद्र् + लोट् + सिप् ॥
+
+            द्वि + अम् अवस्था + ङे दा + लोट् + सिप् ।
+            त्रि + कृत्वः अवस्था + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ।
+        """.trimIndent()
+        val interpreted = PaniniVM().evalScript(source)
+            .filterIsInstance<ExecutionResult.Success>().last().typedValue
+        val bytes = BytecodeCompiler.compile(source, "CompiledDirectStateRepeat")
+        val executeCalls = mutableListOf<String>()
+        ClassReader(bytes).accept(
+            object : ClassVisitor(ASM9) {
+                override fun visitMethod(
+                    access: Int,
+                    name: String?,
+                    descriptor: String?,
+                    signature: String?,
+                    exceptions: Array<out String>?,
+                ): MethodVisitor? {
+                    if (name != "execute" || descriptor != "()Ljava/util/Map;") return null
+                    return object : MethodVisitor(ASM9) {
+                        override fun visitMethodInsn(
+                            opcode: Int,
+                            owner: String?,
+                            name: String?,
+                            descriptor: String?,
+                            isInterface: Boolean,
+                        ) {
+                            if (owner == "dev/panini/compiler/CompiledProgramRuntime") {
+                                name?.let(executeCalls::add)
+                            }
+                        }
+                    }
+                }
+            },
+            0,
+        )
+        val generated = BytecodeCompiler.PaniniClassLoader(javaClass.classLoader)
+            .loadFromBytes("CompiledDirectStateRepeat", bytes)
+        @Suppress("UNCHECKED_CAST")
+        val values = generated.getMethod("execute").invoke(null) as Map<String, SanskritValue>
+
+        assertEquals(interpreted, values.getValue("LastResult"))
+        assertEquals(3L, (values.getValue("LastResult") as SanskritValue.Sankhya).value)
+        assertEquals(2L, (values.getValue("अवस्था") as SanskritValue.Sankhya).value)
+        assertTrue(executeCalls.count { it == "executeDirectStore" } == 1, executeCalls.toString())
+        assertTrue(executeCalls.count { it == "executeDirect" } == 3, executeCalls.toString())
+        assertTrue("evaluate" !in executeCalls, executeCalls.toString())
+    }
+
+    @Test
     fun `simple loop result target executes without the interpreter bridge`() {
         val source = """
             परिचय + ल्युट् + सुँ ।
