@@ -185,27 +185,25 @@ internal object StructuredBytecodeCompiler {
 
         private fun emitWhile(mv: MethodVisitor, node: WhileLoop) {
             val condition = Label()
-            val normalExit = Label()
-            val completion = Label()
+            val victory = Label()
+            val exhausted = Label()
+            val target = Label()
             val bound = node.maximumIterationStems.takeIf(List<String>::isNotEmpty)?.let {
                 dev.panini.sankhya.SankhyaEvaluator().evaluateStems(it).value
             }
-            val counter = bound?.let {
-                val local = nextLocal
-                nextLocal += 2
-                mv.visitInsn(LCONST_0)
-                mv.visitVarInsn(LSTORE, local)
-                local
-            }
+            val counter = nextLocal
+            nextLocal += 2
+            mv.visitInsn(LCONST_0)
+            mv.visitVarInsn(LSTORE, counter)
             mv.visitLabel(condition)
-            if (bound != null && counter != null) {
+            if (bound != null) {
                 mv.visitVarInsn(LLOAD, counter)
                 mv.visitLdcInsn(bound)
                 mv.visitInsn(LCMP)
-                mv.visitJumpInsn(IFGE, completion)
+                mv.visitJumpInsn(IFGE, exhausted)
             }
             emitBoolean(mv, render(node.condition))
-            mv.visitJumpInsn(IFEQ, normalExit)
+            mv.visitJumpInsn(IFEQ, victory)
             mv.visitVarInsn(ALOAD, 0)
             mv.visitMethodInsn(
                 INVOKEVIRTUAL,
@@ -215,6 +213,10 @@ internal object StructuredBytecodeCompiler {
                 false,
             )
             emit(mv, node.body)
+            mv.visitVarInsn(LLOAD, counter)
+            mv.visitInsn(LCONST_1)
+            mv.visitInsn(LADD)
+            mv.visitVarInsn(LSTORE, counter)
             mv.visitVarInsn(ALOAD, 0)
             mv.visitMethodInsn(
                 INVOKEVIRTUAL,
@@ -223,19 +225,42 @@ internal object StructuredBytecodeCompiler {
                 "()Z",
                 false,
             )
-            mv.visitJumpInsn(IFNE, normalExit)
-            counter?.let {
-                mv.visitVarInsn(LLOAD, it)
-                mv.visitInsn(LCONST_1)
-                mv.visitInsn(LADD)
-                mv.visitVarInsn(LSTORE, it)
-            }
+            mv.visitJumpInsn(IFNE, victory)
             mv.visitJumpInsn(GOTO, condition)
-            mv.visitLabel(completion)
-            if (bound != null) node.exhausted?.let { emit(mv, it) }
-            mv.visitJumpInsn(GOTO, normalExit)
-            mv.visitLabel(normalExit)
-            node.resultTarget?.let { emit(mv, it) }
+            mv.visitLabel(victory)
+            emitLoopOutcome(mv, "विजय", counter)
+            mv.visitJumpInsn(GOTO, target)
+            mv.visitLabel(exhausted)
+            node.exhausted?.let { emit(mv, it) }
+            emitLoopOutcome(mv, "समाप्ति", counter)
+            mv.visitLabel(target)
+            node.resultTarget?.let { emitLoopTarget(mv, it) }
+        }
+
+        private fun emitLoopOutcome(mv: MethodVisitor, outcome: String, counter: Int) {
+            mv.visitVarInsn(ALOAD, 0)
+            mv.visitLdcInsn(outcome)
+            mv.visitVarInsn(LLOAD, counter)
+            mv.visitMethodInsn(
+                INVOKEVIRTUAL,
+                "dev/panini/compiler/CompiledProgramRuntime",
+                "publishLoopOutcome",
+                "(Ljava/lang/String;J)V",
+                false,
+            )
+        }
+
+        private fun emitLoopTarget(mv: MethodVisitor, target: ProgramNode) {
+            mv.visitVarInsn(ALOAD, 0)
+            mv.visitLdcInsn(normalized(render(target)))
+            mv.visitMethodInsn(
+                INVOKEVIRTUAL,
+                "dev/panini/compiler/CompiledProgramRuntime",
+                "evaluateLoopTarget",
+                "(Ljava/lang/String;)Ldev/panini/execution/SanskritValue;",
+                false,
+            )
+            mv.visitInsn(POP)
         }
 
         private fun emitRepeat(mv: MethodVisitor, node: Repeat) {

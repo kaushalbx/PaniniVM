@@ -28,6 +28,27 @@ class CompiledProgramRuntime private constructor(
 
     fun consumeBreak(): Boolean = breakRequested.also { breakRequested = false }
 
+    fun publishLoopOutcome(outcome: String, iterations: Long) {
+        val outcomeValue = SanskritValue.Shabda(outcome)
+        val countWord = dev.panini.sankhya.SankhyaGenerator().cardinal(iterations).final.surface
+        val countValue = SanskritValue.Sankhya(iterations, countWord)
+        values["परिणाम"] = SanskritValue.Rupa(
+            schema = "परिणाम",
+            fields = mapOf("अवस्था" to outcomeValue, "प्रयत्नसङ्ख्या" to countValue),
+        )
+        values["प्रयत्नसङ्ख्या"] = countValue
+        values["LastResult"] = outcomeValue
+    }
+
+    fun evaluateLoopTarget(source: String): SanskritValue {
+        val outcome = values["LastResult"]?.toDisplayText()
+            ?: error("No compiled loop outcome is available for its result target.")
+        evaluate("$outcome + अम् $source")
+        val structured = values.getValue("परिणाम")
+        values["LastResult"] = structured
+        return structured
+    }
+
     fun enterConditionIteration() {
         val limit = maxConditionIterations
         if (limit != null && conditionIterations >= limit) {

@@ -19,6 +19,27 @@ import kotlin.test.assertFailsWith
 
 class StructuredBytecodeCompilerTest {
     @Test
+    fun `bounded compiled loop publishes and pipes its exhaustion outcome`() {
+        val source = """
+            हृ + ल्युट् + सुँ ।
+            अवस्था + अम् एक + अम् च वि + युज् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् अवस्था + ङे ॥
+
+            त्रि + अम् अवस्था + ङे दा + लोट् + सिप् ।
+            द्वि + कृत्वः यावत् अवस्था + अम् शून्य + अम् च विद् + लोट् + सिप् तावत् हृ + ल्युट् + टा कृ + लोट् + सिप् अन्यथा समाप्तम् + अम् मुद्र् + लोट् + सिप् ततः मुद्र् + लोट् + सिप् ।
+        """.trimIndent()
+        val interpreted = PaniniVM().evalScript(source)
+            .filterIsInstance<ExecutionResult.Success>().last().typedValue
+        val generated = BytecodeCompiler.compileAndLoad(source, "CompiledLoopOutcome")
+        @Suppress("UNCHECKED_CAST")
+        val values = generated.getMethod("execute").invoke(null) as Map<String, SanskritValue>
+        val outcome = values.getValue("परिणाम") as SanskritValue.Rupa
+
+        assertEquals(interpreted, values.getValue("LastResult"))
+        assertEquals("समाप्ति", outcome.fields.getValue("अवस्था").toDisplayText())
+        assertEquals(2L, (outcome.fields.getValue("प्रयत्नसङ्ख्या") as SanskritValue.Sankhya).value)
+    }
+
+    @Test
     fun `break signal exits the nearest compiled repetition`() {
         val source = """
             प्रयत्न + ल्युट् + सुँ ।
@@ -106,5 +127,8 @@ class StructuredBytecodeCompilerTest {
         assertTrue(IFEQ in jumps, "Conditional and loop exits must use JVM conditional branches.")
         assertTrue(GOTO in jumps, "The unbounded loop must contain a JVM backward branch.")
         assertEquals("त्रीणि", values.getValue("LastResult").toDisplayText())
+        val outcome = values.getValue("परिणाम") as SanskritValue.Rupa
+        assertEquals("विजय", outcome.fields.getValue("अवस्था").toDisplayText())
+        assertEquals(7L, (outcome.fields.getValue("प्रयत्नसङ्ख्या") as SanskritValue.Sankhya).value)
     }
 }
