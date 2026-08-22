@@ -19,6 +19,26 @@ import kotlin.test.assertFailsWith
 
 class StructuredBytecodeCompilerTest {
     @Test
+    fun `break signal exits the nearest compiled repetition`() {
+        val source = """
+            प्रयत्न + ल्युट् + सुँ ।
+            वि + स्था + लोट् + सिप् ॥
+
+            पञ्च + कृत्वः प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
+        """.trimIndent()
+        val interpreted = PaniniVM().evalScript(source)
+            .filterIsInstance<ExecutionResult.Success>()
+            .single { it.controlSignal != null }
+            .typedValue
+        val generated = BytecodeCompiler.compileAndLoad(source, "CompiledBreakRepetition")
+        @Suppress("UNCHECKED_CAST")
+        val compiled = (generated.getMethod("execute").invoke(null) as Map<String, SanskritValue>)
+            .getValue("LastResult")
+
+        assertEquals(interpreted, compiled)
+    }
+
+    @Test
     fun `compiled non-halting loop obeys an explicit host budget`() {
         val source = """
             एक + अम् अवस्था + ङे दा + लोट् + सिप् ।

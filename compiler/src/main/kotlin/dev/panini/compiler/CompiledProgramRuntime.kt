@@ -1,6 +1,7 @@
 package dev.panini.compiler
 
 import dev.panini.execution.ExecutionResult
+import dev.panini.execution.ExecutionControlSignal
 import dev.panini.execution.NamedSamjnaParameterResolver
 import dev.panini.execution.PaniniVM
 import dev.panini.execution.SanskritValue
@@ -21,6 +22,11 @@ class CompiledProgramRuntime private constructor(
     private val values = LinkedHashMap<String, SanskritValue>()
     private val parameterFrames = ArrayDeque<Map<String, String>>()
     private var conditionIterations = 0L
+    private var breakRequested = false
+
+    fun isBreakRequested(): Boolean = breakRequested
+
+    fun consumeBreak(): Boolean = breakRequested.also { breakRequested = false }
 
     fun enterConditionIteration() {
         val limit = maxConditionIterations
@@ -46,6 +52,7 @@ class CompiledProgramRuntime private constructor(
         val result = vm.eval(interpolate(source), sessionKey = sessionKey)
         val success = result as? ExecutionResult.Success
             ?: error("Compiled PaniniVM operation failed: $result")
+        if (success.controlSignal == ExecutionControlSignal.BREAK_LOOP) breakRequested = true
         val value = success.typedValue ?: SanskritValue.of(success.value)
         values["LastResult"] = value
         return value

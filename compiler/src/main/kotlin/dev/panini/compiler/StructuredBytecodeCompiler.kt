@@ -68,7 +68,10 @@ internal object StructuredBytecodeCompiler {
             definition.body.filterNot { sentence ->
                 sentence.isNishedha || SamjnaSignatureDeclarationParser.isDeclaration(sentence)
             }.forEach { sentence ->
-                sentence.program?.let { lowering.emit(mv, it, sentence.text) }
+                sentence.program?.let {
+                    lowering.emit(mv, it, sentence.text)
+                    lowering.emitReturnIfBreak(mv)
+                }
             }
             mv.visitInsn(RETURN)
             mv.visitMaxs(0, 0)
@@ -107,6 +110,21 @@ internal object StructuredBytecodeCompiler {
                 is Procedure -> node.body.forEach { emit(mv, it) }
                 is Scope -> node.body.forEach { emit(mv, it) }
             }
+        }
+
+        fun emitReturnIfBreak(mv: MethodVisitor) {
+            val continueExecution = Label()
+            mv.visitVarInsn(ALOAD, 0)
+            mv.visitMethodInsn(
+                INVOKEVIRTUAL,
+                "dev/panini/compiler/CompiledProgramRuntime",
+                "isBreakRequested",
+                "()Z",
+                false,
+            )
+            mv.visitJumpInsn(IFEQ, continueExecution)
+            mv.visitInsn(RETURN)
+            mv.visitLabel(continueExecution)
         }
 
         private fun emitInvocation(mv: MethodVisitor, node: Invocation, exactSource: String?) {
@@ -197,6 +215,15 @@ internal object StructuredBytecodeCompiler {
                 false,
             )
             emit(mv, node.body)
+            mv.visitVarInsn(ALOAD, 0)
+            mv.visitMethodInsn(
+                INVOKEVIRTUAL,
+                "dev/panini/compiler/CompiledProgramRuntime",
+                "consumeBreak",
+                "()Z",
+                false,
+            )
+            mv.visitJumpInsn(IFNE, normalExit)
             counter?.let {
                 mv.visitVarInsn(LLOAD, it)
                 mv.visitInsn(LCONST_1)
@@ -222,6 +249,15 @@ internal object StructuredBytecodeCompiler {
             mv.visitLdcInsn(node.count)
             mv.visitJumpInsn(IF_ICMPGE, exit)
             emit(mv, node.body)
+            mv.visitVarInsn(ALOAD, 0)
+            mv.visitMethodInsn(
+                INVOKEVIRTUAL,
+                "dev/panini/compiler/CompiledProgramRuntime",
+                "consumeBreak",
+                "()Z",
+                false,
+            )
+            mv.visitJumpInsn(IFNE, exit)
             mv.visitIincInsn(counter, 1)
             mv.visitJumpInsn(GOTO, start)
             mv.visitLabel(exit)
