@@ -2,8 +2,11 @@ package dev.panini.compiler
 
 import dev.panini.execution.PvmScript
 import dev.panini.execution.PvmScriptStatement
+import dev.panini.execution.NamedSamjnaArgumentResolver
 import dev.panini.execution.SamjnaKriya
 import dev.panini.execution.SamjnaKriyaRegistry
+import dev.panini.execution.SamjnaArgumentResolution
+import dev.panini.execution.SamjnaSignatureDeclarationParser
 import dev.panini.vyakaranam.ast.Conditional
 import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.Pipeline
@@ -62,7 +65,9 @@ internal object StructuredBytecodeCompiler {
                 null,
             )
             mv.visitCode()
-            definition.body.filterNot(PvmScriptStatement.Sentence::isNishedha).forEach { sentence ->
+            definition.body.filterNot { sentence ->
+                sentence.isNishedha || SamjnaSignatureDeclarationParser.isDeclaration(sentence)
+            }.forEach { sentence ->
                 sentence.program?.let { lowering.emit(mv, it, sentence.text) }
             }
             mv.visitInsn(RETURN)
@@ -132,12 +137,38 @@ internal object StructuredBytecodeCompiler {
             val invocation = registry.detectInvocation(source)
             val method = invocation?.kriya?.nameStem?.let(methodsByStem::get)
             if (method != null) {
+                val signature = requireNotNull(invocation).kriya.signature
+                val resolution = NamedSamjnaArgumentResolver.resolve(invocation.karmaText, signature)
+                val arguments = when (resolution) {
+                    is SamjnaArgumentResolution.Success -> resolution.terms
+                    is SamjnaArgumentResolution.Failure -> error(resolution.message)
+                }
+                emitStringArray(mv, signature.parameters.map { it.nameStem })
+                emitStringArray(mv, arguments)
+                mv.visitVarInsn(ALOAD, 0)
+                mv.visitInsn(DUP_X2)
+                mv.visitInsn(POP)
+                mv.visitMethodInsn(
+                    INVOKEVIRTUAL,
+                    "dev/panini/compiler/CompiledProgramRuntime",
+                    "enterFrame",
+                    "([Ljava/lang/String;[Ljava/lang/String;)V",
+                    false,
+                )
                 mv.visitVarInsn(ALOAD, 0)
                 mv.visitMethodInsn(
                     INVOKESTATIC,
                     className,
                     method,
                     "(Ldev/panini/compiler/CompiledProgramRuntime;)V",
+                    false,
+                )
+                mv.visitVarInsn(ALOAD, 0)
+                mv.visitMethodInsn(
+                    INVOKEVIRTUAL,
+                    "dev/panini/compiler/CompiledProgramRuntime",
+                    "exitFrame",
+                    "()V",
                     false,
                 )
             } else {
@@ -234,6 +265,17 @@ internal object StructuredBytecodeCompiler {
                 false,
             )
             mv.visitInsn(POP)
+        }
+
+        private fun emitStringArray(mv: MethodVisitor, values: List<String>) {
+            mv.visitLdcInsn(values.size)
+            mv.visitTypeInsn(ANEWARRAY, "java/lang/String")
+            values.forEachIndexed { index, value ->
+                mv.visitInsn(DUP)
+                mv.visitLdcInsn(index)
+                mv.visitLdcInsn(value)
+                mv.visitInsn(AASTORE)
+            }
         }
     }
 

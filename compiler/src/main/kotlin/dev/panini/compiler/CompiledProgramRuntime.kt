@@ -1,6 +1,7 @@
 package dev.panini.compiler
 
 import dev.panini.execution.ExecutionResult
+import dev.panini.execution.NamedSamjnaParameterResolver
 import dev.panini.execution.PaniniVM
 import dev.panini.execution.SanskritValue
 import java.util.LinkedHashMap
@@ -11,9 +12,22 @@ class CompiledProgramRuntime {
     private val vm = PaniniVM()
     private val sessionKey = "compiled-${UUID.randomUUID()}"
     private val values = LinkedHashMap<String, SanskritValue>()
+    private val parameterFrames = ArrayDeque<Map<String, String>>()
+
+    fun enterFrame(names: Array<String>, arguments: Array<String>) {
+        require(names.size == arguments.size) {
+            "Compiled saṃjñā expected ${names.size} arguments, but received ${arguments.size}."
+        }
+        parameterFrames.addLast(names.zip(arguments).toMap())
+    }
+
+    fun exitFrame() {
+        check(parameterFrames.isNotEmpty()) { "No compiled saṃjñā parameter frame is active." }
+        parameterFrames.removeLast()
+    }
 
     fun evaluate(source: String): SanskritValue {
-        val result = vm.eval(source, sessionKey = sessionKey)
+        val result = vm.eval(interpolate(source), sessionKey = sessionKey)
         val success = result as? ExecutionResult.Success
             ?: error("Compiled PaniniVM operation failed: $result")
         val value = success.typedValue ?: SanskritValue.of(success.value)
@@ -22,7 +36,7 @@ class CompiledProgramRuntime {
     }
 
     fun evaluateBoolean(source: String): Boolean {
-        val result = vm.eval(source, sessionKey = sessionKey)
+        val result = vm.eval(interpolate(source), sessionKey = sessionKey)
         val success = result as? ExecutionResult.Success
             ?: error("Compiled PaniniVM condition failed: $result")
         val condition = success.conditionValue ?: (success.typedValue as? SanskritValue.Satya)?.boolean
@@ -30,4 +44,10 @@ class CompiledProgramRuntime {
     }
 
     fun snapshot(): Map<String, SanskritValue> = LinkedHashMap(values)
+
+    private fun interpolate(source: String): String = parameterFrames.reversed().fold(source) { text, frame ->
+        frame.entries.fold(text) { current, (name, argument) ->
+            NamedSamjnaParameterResolver.replace(current, name, argument)
+        }
+    }
 }
