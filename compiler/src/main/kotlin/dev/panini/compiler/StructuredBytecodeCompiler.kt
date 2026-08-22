@@ -378,30 +378,7 @@ internal object StructuredBytecodeCompiler {
         }
 
         private fun emitValue(mv: MethodVisitor, value: SanskritValue) {
-            when (value) {
-                is SanskritValue.Sankhya -> {
-                    mv.visitLdcInsn(value.value)
-                    mv.visitLdcInsn(value.word)
-                    mv.visitMethodInsn(
-                        INVOKESTATIC,
-                        "dev/panini/compiler/PaniniRuntime",
-                        "sankhya",
-                        "(JLjava/lang/String;)Ldev/panini/execution/SanskritValue;",
-                        false,
-                    )
-                }
-                is SanskritValue.Shabda -> {
-                    mv.visitLdcInsn(value.text)
-                    mv.visitMethodInsn(
-                        INVOKESTATIC,
-                        "dev/panini/compiler/PaniniRuntime",
-                        "shabda",
-                        "(Ljava/lang/String;)Ldev/panini/execution/SanskritValue;",
-                        false,
-                    )
-                }
-                else -> error("Unsupported direct leaf constant: $value")
-            }
+            StructuredValueBytecodeEmitter.emit(mv, value)
         }
 
         private fun emitConditional(mv: MethodVisitor, node: Conditional) {

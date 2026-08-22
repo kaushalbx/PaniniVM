@@ -106,8 +106,7 @@ internal object DirectLeafPlanner {
         environment: ValueEnvironment,
     ): Boolean = when (expression) {
         is ExecutionExpression.Pada -> expression.value is SanskritValue.Sankhya
-        is ExecutionExpression.TypedOperand -> expression.value is SanskritValue.Sankhya ||
-            expression.value is SanskritValue.Shabda
+        is ExecutionExpression.TypedOperand -> isSupportedConstant(expression.value)
         is ExecutionExpression.Coordination -> expression.members.all { isConcrete(it, environment) }
         is ExecutionExpression.Reference -> expression.name in environment.values
     }
@@ -116,12 +115,22 @@ internal object DirectLeafPlanner {
         expression: ExecutionExpression,
         environment: ValueEnvironment,
     ): Boolean = when (expression) {
-        is ExecutionExpression.Pada -> expression.value == null ||
-            expression.value is SanskritValue.Sankhya ||
-            expression.value is SanskritValue.Shabda
-        is ExecutionExpression.TypedOperand -> expression.value is SanskritValue.Sankhya ||
-            expression.value is SanskritValue.Shabda
+        is ExecutionExpression.Pada -> expression.value?.let(::isSupportedConstant) ?: true
+        is ExecutionExpression.TypedOperand -> isSupportedConstant(expression.value)
         is ExecutionExpression.Coordination -> expression.members.all { isEmbeddable(it, environment) }
         is ExecutionExpression.Reference -> expression.name in environment.values
+    }
+
+    private fun isSupportedConstant(value: SanskritValue): Boolean = when (value) {
+        is SanskritValue.Sankhya,
+        is SanskritValue.Range,
+        is SanskritValue.Rational,
+        is SanskritValue.Shabda,
+        is SanskritValue.Gana,
+        is SanskritValue.Suchi,
+        is SanskritValue.Rupa,
+        is SanskritValue.Satya,
+        SanskritValue.Lopa,
+        -> true
     }
 }

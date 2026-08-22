@@ -23,8 +23,46 @@ object PaniniRuntime {
 
     @JvmStatic
     fun shabdaWithSamjnas(text: String, samjnas: Array<Samjna>): SanskritValue {
-        return SanskritValue.of(text, samjnas.toSet())
+        return SanskritValue.Shabda(text, samjnas.toSet())
     }
+
+    @JvmStatic
+    fun shabdaWithEncodedSamjnas(text: String, samjnas: Array<String>): SanskritValue = SanskritValue.Shabda(
+        text,
+        samjnas.mapTo(linkedSetOf()) { encoded ->
+            if (encoded.startsWith("RUDHI:")) {
+                Samjna.Rudhi(encoded.removePrefix("RUDHI:"))
+            } else {
+                Samjna.valueOf(encoded)
+            }
+        },
+    )
+
+    @JvmStatic
+    fun suchi(items: Array<SanskritValue>): SanskritValue = SanskritValue.Suchi(items.toList())
+
+    @JvmStatic
+    fun gana(elements: Array<SanskritValue>): SanskritValue = SanskritValue.Gana(elements.toList())
+
+    @JvmStatic
+    fun rupa(schema: String, names: Array<String>, values: Array<SanskritValue>): SanskritValue {
+        require(names.size == values.size) { "Structured value field names and values must have equal sizes." }
+        return SanskritValue.Rupa(schema, names.indices.associate { names[it] to values[it] })
+    }
+
+    @JvmStatic
+    fun satya(boolean: Boolean, surface: String?): SanskritValue = SanskritValue.Satya(boolean, surface)
+
+    @JvmStatic
+    fun range(minimum: SanskritValue.Sankhya, maximum: SanskritValue.Sankhya): SanskritValue =
+        SanskritValue.Range(minimum, maximum)
+
+    @JvmStatic
+    fun rational(numerator: Long, denominator: Long, word: String): SanskritValue =
+        SanskritValue.Rational(numerator, denominator, word)
+
+    @JvmStatic
+    fun lopa(): SanskritValue = SanskritValue.Lopa
 
     @JvmStatic
     fun createPadaExpression(prakriti: String, value: SanskritValue?): ExecutionExpression.Pada {
