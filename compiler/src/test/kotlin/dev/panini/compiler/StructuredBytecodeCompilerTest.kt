@@ -19,6 +19,33 @@ import kotlin.test.assertFailsWith
 
 class StructuredBytecodeCompilerTest {
     @Test
+    fun `compiled named calls enforce signatures and prohibitions`() {
+        val wrongType = """
+            द्विगुणन + ल्युट् + सुँ ।
+            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            सङ्ख्या + सुँ इति परिणाम + सुँ ।
+            मान + अम् द्वि + अम् च गुण् + णिच् + लोट् + सिप् ॥
+            राम + अम् द्विगुणन + ल्युट् + टा कृ + लोट् + सिप् ।
+        """.trimIndent()
+        val prohibited = """
+            विभाज् + ल्युट् + सुँ ।
+            न द्वितीय + अम् शून्य + अम् ।
+            प्रथम + अम् द्वितीय + अम् च भाज् + णिच् + लोट् + सिप् ॥
+            दश + अम् शून्य + अम् च विभाज् + ल्युट् + टा कृ + लोट् + सिप् ।
+        """.trimIndent()
+
+        val typeFailure = assertFailsWith<IllegalArgumentException> {
+            BytecodeCompiler.compile(wrongType, "RejectedCompiledType")
+        }
+        val prohibitionFailure = assertFailsWith<IllegalArgumentException> {
+            BytecodeCompiler.compile(prohibited, "RejectedCompiledProhibition")
+        }
+
+        assertTrue(typeFailure.message.orEmpty().contains("मानप्रकार"))
+        assertTrue(prohibitionFailure.message.orEmpty().contains("निषेध-प्रतिषेध"))
+    }
+
+    @Test
     fun `phala controlled loops have interpreter compiler parity`() {
         fun execute(source: String, className: String): Pair<SanskritValue, SanskritValue> {
             val interpreted = PaniniVM().evalScript(source)

@@ -7,6 +7,10 @@ import dev.panini.execution.SamjnaKriya
 import dev.panini.execution.SamjnaKriyaRegistry
 import dev.panini.execution.SamjnaArgumentResolution
 import dev.panini.execution.SamjnaSignatureDeclarationParser
+import dev.panini.execution.SamjnaValueClassifier
+import dev.panini.execution.DynamicNishedhaEvaluator
+import dev.panini.execution.PuranaPratyayaResolver
+import dev.panini.execution.SamjnaSignatureCompiler
 import dev.panini.vyakaranam.ast.Conditional
 import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.Pipeline
@@ -133,11 +137,7 @@ internal object StructuredBytecodeCompiler {
             val method = invocation?.kriya?.nameStem?.let(methodsByStem::get)
             if (method != null) {
                 val signature = requireNotNull(invocation).kriya.signature
-                val resolution = NamedSamjnaArgumentResolver.resolve(invocation.karmaText, signature)
-                val arguments = when (resolution) {
-                    is SamjnaArgumentResolution.Success -> resolution.terms
-                    is SamjnaArgumentResolution.Failure -> error(resolution.message)
-                }
+                val arguments = resolveArguments(invocation)
                 emitStringArray(mv, signature.parameters.map { it.nameStem })
                 emitStringArray(mv, arguments)
                 mv.visitVarInsn(ALOAD, 0)
@@ -360,6 +360,39 @@ internal object StructuredBytecodeCompiler {
                 mv.visitLdcInsn(value)
                 mv.visitInsn(AASTORE)
             }
+        }
+
+        private fun resolveArguments(invocation: dev.panini.execution.SamjnaInvocation): List<String> {
+            val signature = invocation.kriya.signature
+            val resolution = NamedSamjnaArgumentResolver.resolve(invocation.karmaText, signature)
+            val arguments = when (resolution) {
+                is SamjnaArgumentResolution.Success -> resolution.terms
+                is SamjnaArgumentResolution.Failure -> throw IllegalArgumentException(resolution.message)
+            }
+            require(signature.parameters.size == arguments.size || signature.parameters.isEmpty()) {
+                "संज्ञा-मानसङ्ख्या: '${invocation.kriya.nameStem}' expects ${signature.parameters.size} arguments, but received ${arguments.size}."
+            }
+            signature.parameters.zip(arguments).forEachIndexed { index, (parameter, argument) ->
+                val actual = invocation.argumentValues.getOrNull(index)?.let(SamjnaValueClassifier::classifyValue)
+                    ?: SamjnaValueClassifier.classifyTerm(argument)
+                require(actual == parameter.type) {
+                    "संज्ञा-मानप्रकारः: '${parameter.nameStem}' requires ${parameter.type}."
+                }
+            }
+            invocation.kriya.nishedhaGuards.forEach { guard ->
+                var guardText = guard.text
+                arguments.forEachIndexed { index, argument ->
+                    guardText = PuranaPratyayaResolver.replacePatterns(guardText, index, argument)
+                }
+                val prohibited = DynamicNishedhaEvaluator.evaluateProhibition(guardText)
+                val requiredType = SamjnaSignatureCompiler.inferGuardType(guardText)
+                val typeViolated = requiredType != null &&
+                    arguments.any { SamjnaValueClassifier.classifyTerm(it) != requiredType }
+                require(!prohibited && !typeViolated) {
+                    "निषेध-प्रतिषेधः: Prohibition triggered by '${guard.text.trim()}'"
+                }
+            }
+            return arguments
         }
     }
 
