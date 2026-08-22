@@ -10,6 +10,8 @@ import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.ASM9
 import org.objectweb.asm.Opcodes.GOTO
 import org.objectweb.asm.Opcodes.IFEQ
+import org.objectweb.asm.Opcodes.LCMP
+import org.objectweb.asm.Opcodes.LLOAD
 import java.io.File
 import java.lang.reflect.InvocationTargetException
 import kotlin.test.Test
@@ -18,6 +20,77 @@ import kotlin.test.assertTrue
 import kotlin.test.assertFailsWith
 
 class StructuredBytecodeCompilerTest {
+    @Test
+    fun `large grammatical loop bounds use JVM long counters`() {
+        val source = """
+            शून्य + अम् अवस्था + ङे दा + लोट् + सिप् ।
+            कोटि + कृत्वः यावत् अवस्था + अम् शून्य + अम् च विद् + लोट् + सिप् तावत् एक + अम् अवस्था + ङे दा + लोट् + सिप् ।
+        """.trimIndent()
+        val bytes = BytecodeCompiler.compile(source, "CompiledLargeLoopBound")
+        val instructions = mutableListOf<Int>()
+        ClassReader(bytes).accept(
+            object : ClassVisitor(ASM9) {
+                override fun visitMethod(
+                    access: Int,
+                    name: String?,
+                    descriptor: String?,
+                    signature: String?,
+                    exceptions: Array<out String>?,
+                ): MethodVisitor = object : MethodVisitor(ASM9) {
+                    override fun visitInsn(opcode: Int) {
+                        instructions += opcode
+                    }
+
+                    override fun visitVarInsn(opcode: Int, varIndex: Int) {
+                        instructions += opcode
+                    }
+                }
+            },
+            0,
+        )
+        val generated = BytecodeCompiler.PaniniClassLoader(javaClass.classLoader)
+            .loadFromBytes("CompiledLargeLoopBound", bytes)
+        @Suppress("UNCHECKED_CAST")
+        val result = generated.getMethod("execute").invoke(null) as Map<String, SanskritValue>
+        val outcome = result.getValue("परिणाम") as SanskritValue.Rupa
+
+        assertTrue(LLOAD in instructions)
+        assertTrue(LCMP in instructions)
+        assertEquals(0L, (outcome.fields.getValue("प्रयत्नसङ्ख्या") as SanskritValue.Sankhya).value)
+    }
+
+    @Test
+    fun `nested compiled loops preserve interpreter state parity`() {
+        val source = """
+            हृ + ल्युट् + सुँ ।
+            अन्तरावस्था + अम् एक + अम् च वि + युज् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् अन्तरावस्था + ङे ॥
+
+            क्षि + ल्युट् + सुँ ।
+            बाह्यावस्था + अम् एक + अम् च वि + युज् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् बाह्यावस्था + ङे ॥
+
+            अन्तरचक्र + ल्युट् + सुँ ।
+            द्वि + अम् अन्तरावस्था + ङे दा + लोट् + सिप् ।
+            यावत् अन्तरावस्था + अम् शून्य + अम् च विद् + लोट् + सिप् तावत् हृ + ल्युट् + टा कृ + लोट् + सिप् ॥
+
+            बाह्यचक्र + ल्युट् + सुँ ।
+            अन्तरचक्र + ल्युट् + टा कृ + लोट् + सिप् ।
+            क्षि + ल्युट् + टा कृ + लोट् + सिप् ॥
+
+            द्वि + अम् बाह्यावस्था + ङे दा + लोट् + सिप् ।
+            यावत् बाह्यावस्था + अम् शून्य + अम् च विद् + लोट् + सिप् तावत् बाह्यचक्र + ल्युट् + टा कृ + लोट् + सिप् ।
+            मुद्र् + णिच् + लोट् + सिप् बाह्यावस्था + अम् ।
+        """.trimIndent()
+        val interpreted = PaniniVM().evalScript(source)
+            .filterIsInstance<ExecutionResult.Success>().last().typedValue
+        val generated = BytecodeCompiler.compileAndLoad(source, "CompiledNestedLoops")
+        @Suppress("UNCHECKED_CAST")
+        val compiled = (generated.getMethod("execute").invoke(null) as Map<String, SanskritValue>)
+            .getValue("LastResult")
+
+        assertEquals(interpreted, compiled)
+        assertEquals("शून्यम्", compiled.toDisplayText())
+    }
+
     @Test
     fun `recursive generated samjna calls unwind and resume top-level execution`() {
         val source = """

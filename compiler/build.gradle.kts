@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
     implementation("org.ow2.asm:asm:9.7")
+    implementation("org.ow2.asm:asm-util:9.7")
     implementation(project(":core"))
     implementation(project(":execution"))
     implementation(project(":parser"))

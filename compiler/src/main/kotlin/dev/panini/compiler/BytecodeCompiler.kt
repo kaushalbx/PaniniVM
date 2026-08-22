@@ -25,7 +25,9 @@ object BytecodeCompiler {
         dev.panini.dhatupatha.DhatuPathaRegistration.ensureRegistered()
         val parsedStatements = PvmScript.parse(scriptContent)
         if (StructuredBytecodeCompiler.supports(parsedStatements)) {
-            return StructuredBytecodeCompiler.compile(scriptContent, className)
+            return GeneratedBytecodeVerifier.verify(
+                StructuredBytecodeCompiler.compile(scriptContent, className),
+            )
         }
         var conversation = SambhashanaContext(speaker = "प्रयोक्ता", listener = "यन्त्रम्")
         val statementsPlans = mutableListOf<List<ExecutionPlan>>()
@@ -147,10 +149,12 @@ object BytecodeCompiler {
             )
         }
 
-        return ClassGenerator.generateClass(
-            className,
-            statementsPlans,
-            turnResultIds,
+        return GeneratedBytecodeVerifier.verify(
+            ClassGenerator.generateClass(
+                className,
+                statementsPlans,
+                turnResultIds,
+            ),
         )
     }
 
