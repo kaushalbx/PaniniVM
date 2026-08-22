@@ -11,11 +11,29 @@ import org.objectweb.asm.Opcodes.ASM9
 import org.objectweb.asm.Opcodes.GOTO
 import org.objectweb.asm.Opcodes.IFEQ
 import java.io.File
+import java.lang.reflect.InvocationTargetException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.test.assertFailsWith
 
 class StructuredBytecodeCompilerTest {
+    @Test
+    fun `compiled non-halting loop obeys an explicit host budget`() {
+        val source = """
+            एक + अम् अवस्था + ङे दा + लोट् + सिप् ।
+            यावत् अवस्था + अम् शून्य + अम् च विद् + लोट् + सिप् तावत् एक + अम् अवस्था + ङे दा + लोट् + सिप् ।
+        """.trimIndent()
+        val generated = BytecodeCompiler.compileAndLoad(source, "CompiledBudgetedLoop")
+
+        val thrown = assertFailsWith<InvocationTargetException> {
+            generated.getMethod("execute", java.lang.Long.TYPE).invoke(null, 3L)
+        }
+
+        val limit = thrown.targetException as CompiledExecutionLimitExceededException
+        assertTrue(limit.message.orEmpty().contains("3 iterations"))
+    }
+
     @Test
     fun `parameterized named operation has interpreter compiler parity`() {
         val source = """

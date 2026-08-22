@@ -8,11 +8,27 @@ import java.util.LinkedHashMap
 import java.util.UUID
 
 /** Mutable execution context shared by all methods in one generated program invocation. */
-class CompiledProgramRuntime {
+class CompiledProgramRuntime private constructor(
+    private val maxConditionIterations: Long?,
+) {
+    constructor() : this(null)
+    constructor(maxConditionIterations: Long) : this(maxConditionIterations.also {
+        require(it > 0L) { "The compiled condition-loop budget must be positive." }
+    } as Long?)
+
     private val vm = PaniniVM()
     private val sessionKey = "compiled-${UUID.randomUUID()}"
     private val values = LinkedHashMap<String, SanskritValue>()
     private val parameterFrames = ArrayDeque<Map<String, String>>()
+    private var conditionIterations = 0L
+
+    fun enterConditionIteration() {
+        val limit = maxConditionIterations
+        if (limit != null && conditionIterations >= limit) {
+            throw CompiledExecutionLimitExceededException(limit)
+        }
+        conditionIterations++
+    }
 
     fun enterFrame(names: Array<String>, arguments: Array<String>) {
         require(names.size == arguments.size) {
@@ -51,3 +67,7 @@ class CompiledProgramRuntime {
         }
     }
 }
+
+class CompiledExecutionLimitExceededException(limit: Long) : IllegalStateException(
+    "Compiled condition-controlled execution exhausted its host budget of $limit iterations.",
+)

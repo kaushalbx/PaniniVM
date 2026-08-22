@@ -75,32 +75,9 @@ internal object StructuredBytecodeCompiler {
             mv.visitEnd()
         }
 
-        val execute = cw.visitMethod(ACC_PUBLIC or ACC_STATIC, "execute", "()Ljava/util/Map;", null, null)
-        execute.visitCode()
-        execute.visitTypeInsn(NEW, "dev/panini/compiler/CompiledProgramRuntime")
-        execute.visitInsn(DUP)
-        execute.visitMethodInsn(
-            INVOKESPECIAL,
-            "dev/panini/compiler/CompiledProgramRuntime",
-            "<init>",
-            "()V",
-            false,
-        )
-        execute.visitVarInsn(ASTORE, 0)
-        statements.filterIsInstance<PvmScriptStatement.Sentence>().forEach { sentence ->
-            sentence.program?.let { lowering.emit(execute, it, sentence.text) }
-        }
-        execute.visitVarInsn(ALOAD, 0)
-        execute.visitMethodInsn(
-            INVOKEVIRTUAL,
-            "dev/panini/compiler/CompiledProgramRuntime",
-            "snapshot",
-            "()Ljava/util/Map;",
-            false,
-        )
-        execute.visitInsn(ARETURN)
-        execute.visitMaxs(0, 0)
-        execute.visitEnd()
+        val executable = statements.filterIsInstance<PvmScriptStatement.Sentence>()
+        emitExecute(cw, lowering, executable, withLimit = false)
+        emitExecute(cw, lowering, executable, withLimit = true)
 
         val main = cw.visitMethod(ACC_PUBLIC or ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null)
         main.visitCode()
@@ -211,6 +188,14 @@ internal object StructuredBytecodeCompiler {
             }
             emitBoolean(mv, render(node.condition))
             mv.visitJumpInsn(IFEQ, normalExit)
+            mv.visitVarInsn(ALOAD, 0)
+            mv.visitMethodInsn(
+                INVOKEVIRTUAL,
+                "dev/panini/compiler/CompiledProgramRuntime",
+                "enterConditionIteration",
+                "()V",
+                false,
+            )
             emit(mv, node.body)
             counter?.let {
                 mv.visitVarInsn(LLOAD, it)
@@ -315,6 +300,42 @@ internal object StructuredBytecodeCompiler {
         mv.visitVarInsn(ALOAD, 0)
         mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false)
         mv.visitInsn(RETURN)
+        mv.visitMaxs(0, 0)
+        mv.visitEnd()
+    }
+
+    private fun emitExecute(
+        cw: ClassWriter,
+        lowering: Lowering,
+        statements: List<PvmScriptStatement.Sentence>,
+        withLimit: Boolean,
+    ) {
+        val descriptor = if (withLimit) "(J)Ljava/util/Map;" else "()Ljava/util/Map;"
+        val mv = cw.visitMethod(ACC_PUBLIC or ACC_STATIC, "execute", descriptor, null, null)
+        mv.visitCode()
+        mv.visitTypeInsn(NEW, "dev/panini/compiler/CompiledProgramRuntime")
+        mv.visitInsn(DUP)
+        if (withLimit) mv.visitVarInsn(LLOAD, 0)
+        mv.visitMethodInsn(
+            INVOKESPECIAL,
+            "dev/panini/compiler/CompiledProgramRuntime",
+            "<init>",
+            if (withLimit) "(J)V" else "()V",
+            false,
+        )
+        mv.visitVarInsn(ASTORE, 0)
+        statements.forEach { sentence ->
+            sentence.program?.let { lowering.emit(mv, it, sentence.text) }
+        }
+        mv.visitVarInsn(ALOAD, 0)
+        mv.visitMethodInsn(
+            INVOKEVIRTUAL,
+            "dev/panini/compiler/CompiledProgramRuntime",
+            "snapshot",
+            "()Ljava/util/Map;",
+            false,
+        )
+        mv.visitInsn(ARETURN)
         mv.visitMaxs(0, 0)
         mv.visitEnd()
     }
