@@ -23,7 +23,7 @@ sealed interface ExecutionResult {
         val controlSignal: ExecutionControlSignal? = null,
         val conditionValue: Boolean? = null,
         val loopOutcome: LoopOutcome? = null,
-        val iterationCount: Int? = null,
+        val iterationCount: Long? = null,
     ) : ExecutionResult
 
     data class Failure(

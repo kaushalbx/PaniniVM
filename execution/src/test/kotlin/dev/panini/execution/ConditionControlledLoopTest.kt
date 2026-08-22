@@ -7,6 +7,39 @@ import kotlin.test.assertIs
 
 class ConditionControlledLoopTest {
     @Test
+    fun `host may budget an otherwise unbounded yavat loop`() {
+        val results = PaniniVM(executionLimits = ExecutionLimits(maxConditionIterations = 2L)).evalScript(
+            """
+            प्रयत्न + ल्युट् + सुँ ।
+            वारः + अम् मुद्र् + णिच् + लोट् + सिप् ।
+            एक + अम् द्वि + अम् च विद् + लोट् + सिप् ॥
+            यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
+            """.trimIndent(),
+        )
+
+        val failure = assertIs<ExecutionResult.Failure>(results.last())
+        assertTrue(failure.message.contains("host execution budget of 2"), results.toString())
+        assertEquals(2, results.filterIsInstance<ExecutionResult.Success>()
+            .count { it.outputKind == OutputKind.CONSOLE && it.value == "वारः" })
+    }
+
+    @Test
+    fun `a grammatical loop bound is not restricted by the former host safety ceiling`() {
+        val results = PaniniVM().evalScript(
+            """
+            प्रयत्न + ल्युट् + सुँ ।
+            एक + अम् एक + अम् च विद् + लोट् + सिप् ॥
+            एक + दश + सहस्र + कृत्वः यावत् फल + सुँ तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
+            """.trimIndent(),
+        )
+
+        val completion = results.filterIsInstance<ExecutionResult.Success>()
+            .single { it.loopOutcome != null }
+        assertEquals(0L, completion.iterationCount)
+        assertTrue(results.none { it is ExecutionResult.Failure }, results.toString())
+    }
+
+    @Test
     fun `bounded yavat loop runs until its Sanskrit upper bound`() {
         val results = PaniniVM().evalScript(
             """
@@ -24,7 +57,7 @@ class ConditionControlledLoopTest {
         val completion = results.filterIsInstance<ExecutionResult.Success>()
             .single { it.loopOutcome != null }
         assertEquals(ExecutionResult.LoopOutcome.SAMAPTI, completion.loopOutcome)
-        assertEquals(3, completion.iterationCount)
+        assertEquals(3L, completion.iterationCount)
         assertTrue(results.any { it is ExecutionResult.Success && it.value == "समाप्ति" })
     }
 
@@ -45,7 +78,7 @@ class ConditionControlledLoopTest {
         val completion = results.filterIsInstance<ExecutionResult.Success>()
             .single { it.loopOutcome != null }
         assertEquals(ExecutionResult.LoopOutcome.VIJAYA, completion.loopOutcome)
-        assertEquals(1, completion.iterationCount)
+        assertEquals(1L, completion.iterationCount)
         assertTrue(results.any { it is ExecutionResult.Success && it.value == "विजय" })
         assertTrue(results.none { it is ExecutionResult.Failure })
     }

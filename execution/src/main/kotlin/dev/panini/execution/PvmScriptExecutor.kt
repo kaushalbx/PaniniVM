@@ -267,22 +267,22 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         onResult: ((ExecutionResult) -> Unit)?,
     ): List<ExecutionResult> {
         val results = mutableListOf<ExecutionResult>()
-        val isBounded = loop.maximumIterationStems.isNotEmpty()
-        val maximumIterations = if (!isBounded) {
-            MAX_CONDITION_ITERATIONS
+        val grammaticalBound = if (loop.maximumIterationStems.isEmpty()) {
+            null
         } else {
             val value = dev.panini.sankhya.SankhyaEvaluator()
                 .evaluateStems(loop.maximumIterationStems).value
-            if (value !in 1L..MAX_CONDITION_ITERATIONS.toLong()) {
+            if (value < 1L) {
                 return listOf(
                     ExecutionResult.Failure(
                         ExecutionError.INVALID_VALUE,
-                        "A condition-controlled loop bound must be between 1 and $MAX_CONDITION_ITERATIONS.",
+                        "A condition-controlled loop bound must be positive.",
                     ),
                 )
             }
-            value.toInt()
+            value
         }
+        val hostBudget = vm.executionLimits.maxConditionIterations
         val usesLatestResult = loop.condition.vakya.padas.any { pada ->
             pada is dev.panini.vyakaranam.ast.SubantaPada && pada.pratipadika.baseText() == "फल"
         }
@@ -290,12 +290,12 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             it is dev.panini.vyakaranam.ast.AvyayaPada && it.form == "न"
         }
         var latestConditionValue = false
-        var iterationCount = 0
+        var iterationCount = 0L
 
         fun complete(outcome: ExecutionResult.LoopOutcome): List<ExecutionResult> {
             val outcomeValue = SanskritValue.Shabda(outcome.sanskritName)
             val attemptWord = dev.panini.sankhya.SankhyaGenerator()
-                .cardinal(iterationCount.toLong()).final.surface
+                .cardinal(iterationCount).final.surface
             val attributes = mapOf(
                 "अवस्था" to outcome.sanskritName,
                 "प्रयत्नसङ्ख्या" to attemptWord,
@@ -312,14 +312,14 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 attributes = attributes,
                 typedAttributes = mapOf(
                     "अवस्था" to outcomeValue,
-                    "प्रयत्नसङ्ख्या" to SanskritValue.Sankhya(iterationCount.toLong(), attemptWord),
+                    "प्रयत्नसङ्ख्या" to SanskritValue.Sankhya(iterationCount, attemptWord),
                 ),
             )
             val structuredOutcome = SanskritValue.Rupa(
                 schema = LOOP_RESULT_NAME,
                 fields = mapOf(
                     "अवस्था" to outcomeValue,
-                    "प्रयत्नसङ्ख्या" to SanskritValue.Sankhya(iterationCount.toLong(), attemptWord),
+                    "प्रयत्नसङ्ख्या" to SanskritValue.Sankhya(iterationCount, attemptWord),
                 ),
             )
             val completion = ExecutionResult.Success(
@@ -339,7 +339,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                         mapOf(
                             "फल" to outcomeValue,
                             "परिणाम" to outcomeValue,
-                            "प्रयत्नसङ्ख्या" to SanskritValue.Sankhya(iterationCount.toLong(), iterationCount.toString()),
+                            "प्रयत्नसङ्ख्या" to SanskritValue.Sankhya(iterationCount, iterationCount.toString()),
                         ),
                     ),
                 ),
@@ -360,7 +360,13 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             return results
         }
 
-        repeat(maximumIterations) {
+        while (grammaticalBound == null || iterationCount < grammaticalBound) {
+            if (hostBudget != null && iterationCount >= hostBudget) {
+                return results + ExecutionResult.Failure(
+                    ExecutionError.ACTION_FAILED,
+                    "Condition-controlled loop exhausted its host execution budget of $hostBudget iterations.",
+                )
+            }
             val conditionHolds = if (usesLatestResult) {
                 if (isNegated) !latestConditionValue else latestConditionValue
             } else {
@@ -431,31 +437,23 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 return complete(ExecutionResult.LoopOutcome.VIJAYA)
             }
         }
-        if (!isBounded) {
-            results += ExecutionResult.Failure(
-                ExecutionError.ACTION_FAILED,
-                "Condition-controlled loop exceeded its safety limit of $MAX_CONDITION_ITERATIONS iterations.",
-            )
-        } else {
-            val exhaustedInvocation = loop.exhausted as? dev.panini.vyakaranam.ast.Invocation
-            if (exhaustedInvocation != null) {
-                val exhaustedText = renderInvocation(exhaustedInvocation)
-                val invocation = registry.detectInvocation(exhaustedText, callerSourceFile = sourceFile)
-                val exhaustedResults = if (invocation != null) {
-                    executeSamjnaInvocation(
-                        invocation, sessionKey, scope, speaker, listener, registry,
-                        callerSourceFile = sourceFile, onResult = onResult,
-                    )
-                } else {
-                    listOf(vm.eval(exhaustedText, sessionKey, scope, speaker, listener, isExecutingScript = true)).also {
-                        it.forEach { result -> onResult?.invoke(result) }
-                    }
+        val exhaustedInvocation = loop.exhausted as? dev.panini.vyakaranam.ast.Invocation
+        if (exhaustedInvocation != null) {
+            val exhaustedText = renderInvocation(exhaustedInvocation)
+            val invocation = registry.detectInvocation(exhaustedText, callerSourceFile = sourceFile)
+            val exhaustedResults = if (invocation != null) {
+                executeSamjnaInvocation(
+                    invocation, sessionKey, scope, speaker, listener, registry,
+                    callerSourceFile = sourceFile, onResult = onResult,
+                )
+            } else {
+                listOf(vm.eval(exhaustedText, sessionKey, scope, speaker, listener, isExecutingScript = true)).also {
+                    it.forEach { result -> onResult?.invoke(result) }
                 }
-                results += exhaustedResults
             }
-            return complete(ExecutionResult.LoopOutcome.SAMAPTI)
+            results += exhaustedResults
         }
-        return results
+        return complete(ExecutionResult.LoopOutcome.SAMAPTI)
     }
 
     private fun renderInvocation(invocation: dev.panini.vyakaranam.ast.Invocation): String =
@@ -473,7 +471,6 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
     }
 
     private companion object {
-        const val MAX_CONDITION_ITERATIONS = 10_000
         const val LOOP_RESULT_NAME = "परिणाम"
         const val ATTRIBUTE_PIPE_OPERAND = "विशेषणफल"
     }

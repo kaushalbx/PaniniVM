@@ -7,12 +7,31 @@ import dev.panini.execution.persistence.StateStore
 import java.io.File
 
 /**
+ * Optional host safeguards for PVM execution.
+ *
+ * A null loop budget gives `yāvat ... tāvat` its language-level, condition-controlled
+ * semantics: it continues until its condition becomes false or the program breaks.
+ * Embedders that execute untrusted programs may install a finite budget without making
+ * that budget part of the PVM language definition.
+ */
+data class ExecutionLimits(
+    val maxConditionIterations: Long? = null,
+) {
+    init {
+        require(maxConditionIterations == null || maxConditionIterations > 0L) {
+            "The condition-loop execution budget must be positive when specified."
+        }
+    }
+}
+
+/**
  * Top-level execution facade and API for PaniniVM.
  * Provides simplified evaluation, session persistence, external capability registration,
  * and capability-based security.
  */
 class PaniniVM(
     storageDir: File = File(System.getProperty("java.io.tmpdir"), "paninivm_sessions_" + java.util.UUID.randomUUID()),
+    val executionLimits: ExecutionLimits = ExecutionLimits(),
     val defaultScope: ExecutionScope = ExecutionScope(
         capabilities = setOf(
             ExecutionEffect.PURE,
