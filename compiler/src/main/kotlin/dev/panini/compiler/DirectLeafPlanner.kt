@@ -24,6 +24,7 @@ internal object DirectLeafPlanner {
         "सङ्ख्याहरणम्",
         "सङ्ख्याशेषः",
         "सङ्ख्यातुलना",
+        "विजयः",
     )
 
     fun plan(
@@ -75,6 +76,8 @@ internal object DirectLeafPlanner {
                 (plan.resolved.operation.name != "सङ्ख्यातुलना" ||
                     (plan.resolved.operation.trigger.requiredUpasargas.isEmpty() &&
                         plan.resolved.operation.trigger.requiredAvyayas.isEmpty())) &&
+                (plan.resolved.operation.name != "विजयः" ||
+                    plan.resolved.operation.trigger.requiredUpasargas == setOf("वि")) &&
                 plan.resolved.context.bindings.values.all { isEmbeddable(it, environment) }
         } }
     }

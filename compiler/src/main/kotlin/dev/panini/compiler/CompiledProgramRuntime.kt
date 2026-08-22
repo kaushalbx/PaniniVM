@@ -34,6 +34,11 @@ class CompiledProgramRuntime private constructor(
 
     fun consumeBreak(): Boolean = breakRequested.also { breakRequested = false }
 
+    fun requestBreak(): SanskritValue = SanskritValue.Shabda("विजयः").also {
+        breakRequested = true
+        values["LastResult"] = it
+    }
+
     fun clearReportedCondition() {
         reportedCondition = null
     }

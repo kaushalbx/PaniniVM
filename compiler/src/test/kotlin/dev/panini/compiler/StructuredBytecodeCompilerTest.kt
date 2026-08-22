@@ -837,12 +837,41 @@ class StructuredBytecodeCompilerTest {
             .filterIsInstance<ExecutionResult.Success>()
             .single { it.controlSignal != null }
             .typedValue
-        val generated = BytecodeCompiler.compileAndLoad(source, "CompiledBreakRepetition")
+        val bytes = BytecodeCompiler.compile(source, "CompiledBreakRepetition")
+        val runtimeCalls = mutableListOf<String>()
+        ClassReader(bytes).accept(
+            object : ClassVisitor(ASM9) {
+                override fun visitMethod(
+                    access: Int,
+                    name: String?,
+                    descriptor: String?,
+                    signature: String?,
+                    exceptions: Array<out String>?,
+                ): MethodVisitor = object : MethodVisitor(ASM9) {
+                    override fun visitMethodInsn(
+                        opcode: Int,
+                        owner: String?,
+                        name: String?,
+                        descriptor: String?,
+                        isInterface: Boolean,
+                    ) {
+                        if (owner == "dev/panini/compiler/CompiledProgramRuntime") {
+                            name?.let(runtimeCalls::add)
+                        }
+                    }
+                }
+            },
+            0,
+        )
+        val generated = BytecodeCompiler.PaniniClassLoader(javaClass.classLoader)
+            .loadFromBytes("CompiledBreakRepetition", bytes)
         @Suppress("UNCHECKED_CAST")
         val compiled = (generated.getMethod("execute").invoke(null) as Map<String, SanskritValue>)
             .getValue("LastResult")
 
         assertEquals(interpreted, compiled)
+        assertTrue("requestBreak" in runtimeCalls, runtimeCalls.toString())
+        assertTrue("evaluate" !in runtimeCalls, runtimeCalls.toString())
     }
 
     @Test

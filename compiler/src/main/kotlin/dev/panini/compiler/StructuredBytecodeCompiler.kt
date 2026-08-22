@@ -254,6 +254,18 @@ internal object StructuredBytecodeCompiler {
             asBoolean: Boolean = false,
             asLoopTarget: Boolean = false,
         ) {
+            if (plan.resolved.operation.name == "विजयः") {
+                mv.visitVarInsn(ALOAD, 0)
+                mv.visitMethodInsn(
+                    INVOKEVIRTUAL,
+                    "dev/panini/compiler/CompiledProgramRuntime",
+                    "requestBreak",
+                    "()Ldev/panini/execution/SanskritValue;",
+                    false,
+                )
+                mv.visitInsn(POP)
+                return
+            }
             val bindingName = if (asBoolean || asLoopTarget) null else plan.resolved.operation.resultBindingKaraka
                 ?.let(plan.resolved.context.bindings::get)
                 ?.bindingName()
