@@ -26,9 +26,17 @@ internal object DirectLeafPlanner {
         "सङ्ख्यातुलना",
     )
 
-    fun plan(source: String, allowStore: Boolean = false): ExecutionPlan? {
+    fun plan(
+        source: String,
+        environment: ValueEnvironment = ValueEnvironment(),
+        allowStore: Boolean = false,
+    ): ExecutionPlan? {
         val segmentedSource = source.replace("+", " + ").replace(Regex("\\s+"), " ").trim()
-        val conversation = SambhashanaContext("प्रयोक्ता", "यन्त्रम्")
+        val conversation = SambhashanaContext(
+            "प्रयोक्ता",
+            "यन्त्रम्",
+            previousTypedResults = environment.values,
+        )
         val input = SanskritUktiInput(
             speaker = conversation.speaker,
             listener = conversation.listener,
@@ -50,7 +58,7 @@ internal object DirectLeafPlanner {
             is ProgramGranthaPlanning.Success -> planned.program
             is ProgramGranthaPlanning.Invalid -> return null
         }
-        val plans = (ExecutionPlanner.plan(program, ValueEnvironment()) as? PlanningResult.Planned)
+        val plans = (ExecutionPlanner.plan(program, environment) as? PlanningResult.Planned)
             ?.plans ?: return null
         return plans.singleOrNull()?.takeIf { plan ->
             (plan.resolved.operation.name in supportedOperations ||
@@ -58,17 +66,20 @@ internal object DirectLeafPlanner {
                 (plan.resolved.operation.name != "सङ्ख्यातुलना" ||
                     (plan.resolved.operation.trigger.requiredUpasargas.isEmpty() &&
                         plan.resolved.operation.trigger.requiredAvyayas.isEmpty())) &&
-                plan.resolved.context.bindings.values.all(::isEmbeddable)
+                plan.resolved.context.bindings.values.all { isEmbeddable(it, environment) }
         }
     }
 
-    private fun isEmbeddable(expression: ExecutionExpression): Boolean = when (expression) {
+    private fun isEmbeddable(
+        expression: ExecutionExpression,
+        environment: ValueEnvironment,
+    ): Boolean = when (expression) {
         is ExecutionExpression.Pada -> expression.value == null ||
             expression.value is SanskritValue.Sankhya ||
             expression.value is SanskritValue.Shabda
         is ExecutionExpression.TypedOperand -> expression.value is SanskritValue.Sankhya ||
             expression.value is SanskritValue.Shabda
-        is ExecutionExpression.Coordination -> expression.members.all(::isEmbeddable)
-        is ExecutionExpression.Reference -> false
+        is ExecutionExpression.Coordination -> expression.members.all { isEmbeddable(it, environment) }
+        is ExecutionExpression.Reference -> expression.name in environment.values
     }
 }

@@ -14,6 +14,7 @@ import dev.panini.execution.SamjnaSignatureCompiler
 import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.ExecutionPlan
 import dev.panini.execution.SanskritValue
+import dev.panini.execution.ValueEnvironment
 import dev.panini.execution.bindingName
 import dev.panini.vyakaranam.ast.Conditional
 import dev.panini.vyakaranam.ast.Invocation
@@ -125,6 +126,8 @@ internal object StructuredBytecodeCompiler {
                 is Scope -> node.body.forEach { emit(mv, it) }
             }
         }
+
+        fun emitDirectPlan(mv: MethodVisitor, plan: ExecutionPlan) = emitDirect(mv, plan)
 
         private fun emitSequence(mv: MethodVisitor, node: Sequence, exactSource: String?) {
             val hasGeneratedStage = node.statements.drop(1).any { statement ->
@@ -313,7 +316,16 @@ internal object StructuredBytecodeCompiler {
                         false,
                     )
                 }
-                is ExecutionExpression.Reference -> error("Direct leaves cannot contain runtime references.")
+                is ExecutionExpression.Reference -> {
+                    mv.visitLdcInsn(expression.name)
+                    mv.visitMethodInsn(
+                        INVOKESTATIC,
+                        "dev/panini/compiler/PaniniRuntime",
+                        "createReferenceExpression",
+                        "(Ljava/lang/String;)Ldev/panini/execution/ExecutionExpression\$Reference;",
+                        false,
+                    )
+                }
             }
         }
 
@@ -634,14 +646,20 @@ internal object StructuredBytecodeCompiler {
             false,
         )
         mv.visitVarInsn(ASTORE, 0)
+        val directSlice = planDirectStraightLine(statements)
         statements.forEachIndexed { index, sentence ->
-            sentence.program?.let {
-                lowering.emit(
-                    mv,
-                    it,
-                    sentence.text,
-                    allowDirectStore = index == statements.lastIndex,
-                )
+            val directPlan = directSlice?.get(index)
+            if (directPlan != null) {
+                lowering.emitDirectPlan(mv, directPlan)
+            } else {
+                sentence.program?.let {
+                    lowering.emit(
+                        mv,
+                        it,
+                        sentence.text,
+                        allowDirectStore = index == statements.lastIndex,
+                    )
+                }
             }
         }
         mv.visitVarInsn(ALOAD, 0)
@@ -655,6 +673,44 @@ internal object StructuredBytecodeCompiler {
         mv.visitInsn(ARETURN)
         mv.visitMaxs(0, 0)
         mv.visitEnd()
+    }
+
+    /**
+     * Validates an entire straight-line slice before allowing a nonterminal direct store.
+     * This keeps compiled state authoritative: a slice either stays wholly direct or retains
+     * the existing bridge, except for the independently safe terminal-store optimization.
+     */
+    private fun planDirectStraightLine(
+        statements: List<PvmScriptStatement.Sentence>,
+    ): List<ExecutionPlan>? {
+        if (statements.isEmpty() || statements.any { it.program !is Invocation }) return null
+        var environment = ValueEnvironment()
+        return buildList {
+            for (sentence in statements) {
+                val plan = DirectLeafPlanner.plan(
+                    sentence.text,
+                    environment = environment,
+                    allowStore = true,
+                ) ?: return null
+                val result = runCatching {
+                    PaniniRuntime.execute(
+                        plan.resolved.invocation.dhatu.upadesha,
+                        plan.resolved.operation.name,
+                        plan.resolved.operation.trigger.requiredSanadi.sorted().joinToString(","),
+                        plan.resolved.context.bindings,
+                        environment.values,
+                    )
+                }.getOrNull() ?: return null
+                val destination = plan.resolved.operation.resultBindingKaraka
+                    ?.let(plan.resolved.context.bindings::get)
+                    ?.bindingName()
+                environment = ValueEnvironment(
+                    environment.values + ("LastResult" to result) +
+                        (destination?.let { mapOf(it to result) } ?: emptyMap()),
+                )
+                add(plan)
+            }
+        }
     }
 
 }
