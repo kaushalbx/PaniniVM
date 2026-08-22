@@ -22,20 +22,43 @@ import kotlin.test.assertFailsWith
 class StructuredBytecodeCompilerTest {
     @Test
     fun `compiled execution preserves interpreter failure details`() {
-        val source = """
-            परिचय + ल्युट् + सुँ ।
-            एक + अम् मुद्र् + लोट् + सिप् ॥
-
-            एक + अम् द्वि + अम् त्रि + अम् च चतुर् + टा स्था + लोट् + सिप् ।
-        """.trimIndent()
+        val source = collectionProgram("सूची + अम् चतुर् + टा स्था + लोट् + सिप्")
         val interpreted = PaniniVM().evalScript(source).filterIsInstance<ExecutionResult.Failure>().last()
-        val generated = BytecodeCompiler.compileAndLoad(source, "CompiledInvalidListIndex")
+        val bytes = BytecodeCompiler.compile(source, "CompiledInvalidListIndex")
+        val runtimeCalls = mutableListOf<String>()
+        ClassReader(bytes).accept(
+            object : ClassVisitor(ASM9) {
+                override fun visitMethod(
+                    access: Int,
+                    name: String?,
+                    descriptor: String?,
+                    signature: String?,
+                    exceptions: Array<out String>?,
+                ): MethodVisitor? = object : MethodVisitor(ASM9) {
+                    override fun visitMethodInsn(
+                        opcode: Int,
+                        owner: String?,
+                        name: String?,
+                        descriptor: String?,
+                        isInterface: Boolean,
+                    ) {
+                        if (owner == "dev/panini/compiler/CompiledProgramRuntime") {
+                            name?.let(runtimeCalls::add)
+                        }
+                    }
+                }
+            },
+            0,
+        )
+        val generated = BytecodeCompiler.PaniniClassLoader(javaClass.classLoader)
+            .loadFromBytes("CompiledInvalidListIndex", bytes)
 
         val invocation = assertFailsWith<InvocationTargetException> {
             generated.getMethod("execute").invoke(null)
         }
         val compiled = invocation.targetException as CompiledPaniniExecutionException
 
+        assertTrue("evaluateAndStore" in runtimeCalls, runtimeCalls.toString())
         assertEquals(interpreted.error, compiled.error)
         assertEquals(interpreted.message, compiled.message)
         assertEquals(interpreted.trace, compiled.trace)

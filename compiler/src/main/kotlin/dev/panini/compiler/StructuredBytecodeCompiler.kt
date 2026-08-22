@@ -244,7 +244,11 @@ internal object StructuredBytecodeCompiler {
                 )
             } else {
                 val directPlan = DirectLeafPlanner.plan(source, allowStore = allowDirectStore)
-                if (directPlan != null) emitDirect(mv, directPlan) else emitEval(mv, source)
+                if (directPlan != null) {
+                    emitDirect(mv, directPlan)
+                } else {
+                    emitEval(mv, source, DirectLeafPlanner.resultBindingName(source))
+                }
             }
         }
 
@@ -576,14 +580,19 @@ internal object StructuredBytecodeCompiler {
             )
         }
 
-        private fun emitEval(mv: MethodVisitor, source: String) {
+        private fun emitEval(mv: MethodVisitor, source: String, bindingName: String? = null) {
             mv.visitVarInsn(ALOAD, 0)
             mv.visitLdcInsn(normalized(source))
+            bindingName?.let(mv::visitLdcInsn)
             mv.visitMethodInsn(
                 INVOKEVIRTUAL,
                 "dev/panini/compiler/CompiledProgramRuntime",
-                "evaluate",
-                "(Ljava/lang/String;)Ldev/panini/execution/SanskritValue;",
+                if (bindingName == null) "evaluate" else "evaluateAndStore",
+                if (bindingName == null) {
+                    "(Ljava/lang/String;)Ldev/panini/execution/SanskritValue;"
+                } else {
+                    "(Ljava/lang/String;Ljava/lang/String;)Ldev/panini/execution/SanskritValue;"
+                },
                 false,
             )
             mv.visitInsn(POP)

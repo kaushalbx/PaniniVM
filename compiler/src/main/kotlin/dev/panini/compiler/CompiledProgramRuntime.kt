@@ -117,22 +117,43 @@ class CompiledProgramRuntime private constructor(
         return value
     }
 
+    fun evaluateAndStore(source: String, bindingName: String): SanskritValue = evaluate(source).also {
+        values[bindingName] = it
+    }
+
     fun executeDirect(
         dhatuUpadesha: String,
         operationName: String,
         requiredSanadi: String,
         bindings: Map<Karaka, ExecutionExpression>,
     ): SanskritValue {
+        val runtimeBindings = bindings.mapValues { (_, expression) ->
+            expression.resolveCompiledReferences()
+        }
         val value = PaniniRuntime.execute(
             dhatuUpadesha,
             operationName,
             requiredSanadi,
-            bindings,
+            runtimeBindings,
             values,
         )
         if (value is SanskritValue.Satya) reportedCondition = value.boolean
         values["LastResult"] = value
         return value
+    }
+
+    private fun ExecutionExpression.resolveCompiledReferences(): ExecutionExpression = when (this) {
+        is ExecutionExpression.Pada -> if (value is SanskritValue.Shabda && prakriti in values) {
+            ExecutionExpression.Reference(prakriti)
+        } else {
+            this
+        }
+        is ExecutionExpression.Coordination -> copy(
+            members = members.map { it.resolveCompiledReferences() },
+        )
+        is ExecutionExpression.Reference,
+        is ExecutionExpression.TypedOperand,
+        -> this
     }
 
     fun executeDirectBoolean(
