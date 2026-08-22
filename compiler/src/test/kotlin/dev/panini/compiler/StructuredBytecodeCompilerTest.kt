@@ -21,6 +21,45 @@ import kotlin.test.assertFailsWith
 
 class StructuredBytecodeCompilerTest {
     @Test
+    fun `higher order list operations execute directly`() {
+        val cases = listOf(
+            CollectionResultCase(
+                name = "Map",
+                operation = "सूची + अम् एधँ + टा सम् + यु + लोट् + सिप्",
+                expected = SanskritValue.Suchi(
+                    listOf(
+                        SanskritValue.Sankhya(2L, "द्वे"),
+                        SanskritValue.Sankhya(4L, "चत्वारि"),
+                        SanskritValue.Sankhya(6L, "षट्"),
+                    ),
+                ),
+            ),
+            CollectionResultCase(
+                name = "Filter",
+                operation = "सूची + अम् यु + टा वि + वृज् + लोट् + सिप्",
+                expected = SanskritValue.Suchi(listOf(SanskritValue.Sankhya(2L, "द्वि"))),
+            ),
+            CollectionResultCase(
+                name = "Fold",
+                operation = "सूची + अम् यु + टा शून्य + ङे सम् + क्षिप् + लोट् + सिप्",
+                expected = SanskritValue.Sankhya(6L, "षट्"),
+            ),
+        )
+
+        cases.forEach { case ->
+            val source = collectionProgram(case.operation)
+            val interpretedResults = PaniniVM().evalScript(source)
+            assertTrue(interpretedResults.none { it is ExecutionResult.Failure }, interpretedResults.toString())
+            val interpreted = interpretedResults.filterIsInstance<ExecutionResult.Success>().last().typedValue
+            val compiled = compileAndInspect(source, "CompiledDirectList${case.name}")
+
+            assertEquals(interpreted, compiled.values.getValue("LastResult"), case.name)
+            assertEquals(case.expected, compiled.values.getValue("LastResult"), case.name)
+            assertTrue("evaluate" !in compiled.runtimeCalls, "$case: ${compiled.runtimeCalls}")
+        }
+    }
+
+    @Test
     fun `nested stored lists flatten directly`() {
         val source = """
             परिचय + ल्युट् + सुँ ।
@@ -1371,5 +1410,11 @@ class StructuredBytecodeCompilerTest {
         val name: String,
         val operation: String,
         val expected: List<Long>,
+    )
+
+    private data class CollectionResultCase(
+        val name: String,
+        val operation: String,
+        val expected: SanskritValue,
     )
 }
