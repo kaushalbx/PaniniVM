@@ -14,6 +14,7 @@ import dev.panini.execution.SamjnaSignatureCompiler
 import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.ExecutionPlan
 import dev.panini.execution.SanskritValue
+import dev.panini.execution.bindingName
 import dev.panini.vyakaranam.ast.Conditional
 import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.Pipeline
@@ -107,9 +108,14 @@ internal object StructuredBytecodeCompiler {
     ) {
         private var nextLocal = 1
 
-        fun emit(mv: MethodVisitor, node: ProgramNode, exactSource: String? = null) {
+        fun emit(
+            mv: MethodVisitor,
+            node: ProgramNode,
+            exactSource: String? = null,
+            allowDirectStore: Boolean = false,
+        ) {
             when (node) {
-                is Invocation -> emitInvocation(mv, node, exactSource)
+                is Invocation -> emitInvocation(mv, node, exactSource, allowDirectStore = allowDirectStore)
                 is Sequence -> emitSequence(mv, node, exactSource)
                 is Pipeline, is Quotation -> emitEval(mv, exactSource ?: render(node))
                 is Conditional -> emitConditional(mv, node)
@@ -161,6 +167,7 @@ internal object StructuredBytecodeCompiler {
             node: Invocation,
             exactSource: String?,
             piped: Boolean = false,
+            allowDirectStore: Boolean = false,
         ) {
             val rendered = exactSource ?: render(node)
             val alreadyReferencesResult = node.vakya.padas.any { pada ->
@@ -204,12 +211,15 @@ internal object StructuredBytecodeCompiler {
                     false,
                 )
             } else {
-                val directPlan = DirectLeafPlanner.plan(source)
+                val directPlan = DirectLeafPlanner.plan(source, allowStore = allowDirectStore)
                 if (directPlan != null) emitDirect(mv, directPlan) else emitEval(mv, source)
             }
         }
 
         private fun emitDirect(mv: MethodVisitor, plan: ExecutionPlan, asBoolean: Boolean = false) {
+            val bindingName = if (asBoolean) null else plan.resolved.operation.resultBindingKaraka
+                ?.let(plan.resolved.context.bindings::get)
+                ?.bindingName()
             val bindings = nextLocal++
             mv.visitTypeInsn(NEW, "java/util/HashMap")
             mv.visitInsn(DUP)
@@ -238,14 +248,19 @@ internal object StructuredBytecodeCompiler {
             mv.visitLdcInsn(plan.resolved.operation.name)
             mv.visitLdcInsn(plan.resolved.operation.trigger.requiredSanadi.sorted().joinToString(","))
             mv.visitVarInsn(ALOAD, bindings)
+            if (bindingName != null) mv.visitLdcInsn(bindingName)
             mv.visitMethodInsn(
                 INVOKEVIRTUAL,
                 "dev/panini/compiler/CompiledProgramRuntime",
-                if (asBoolean) "executeDirectBoolean" else "executeDirect",
-                if (asBoolean) {
-                    "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Z"
-                } else {
-                    "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Ldev/panini/execution/SanskritValue;"
+                when {
+                    asBoolean -> "executeDirectBoolean"
+                    bindingName != null -> "executeDirectStore"
+                    else -> "executeDirect"
+                },
+                when {
+                    asBoolean -> "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Z"
+                    bindingName != null -> "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;)Ldev/panini/execution/SanskritValue;"
+                    else -> "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Ldev/panini/execution/SanskritValue;"
                 },
                 false,
             )
@@ -619,8 +634,15 @@ internal object StructuredBytecodeCompiler {
             false,
         )
         mv.visitVarInsn(ASTORE, 0)
-        statements.forEach { sentence ->
-            sentence.program?.let { lowering.emit(mv, it, sentence.text) }
+        statements.forEachIndexed { index, sentence ->
+            sentence.program?.let {
+                lowering.emit(
+                    mv,
+                    it,
+                    sentence.text,
+                    allowDirectStore = index == statements.lastIndex,
+                )
+            }
         }
         mv.visitVarInsn(ALOAD, 0)
         mv.visitMethodInsn(

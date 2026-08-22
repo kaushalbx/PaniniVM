@@ -26,7 +26,7 @@ internal object DirectLeafPlanner {
         "सङ्ख्यातुलना",
     )
 
-    fun plan(source: String): ExecutionPlan? {
+    fun plan(source: String, allowStore: Boolean = false): ExecutionPlan? {
         val segmentedSource = source.replace("+", " + ").replace(Regex("\\s+"), " ").trim()
         val conversation = SambhashanaContext("प्रयोक्ता", "यन्त्रम्")
         val input = SanskritUktiInput(
@@ -53,7 +53,8 @@ internal object DirectLeafPlanner {
         val plans = (ExecutionPlanner.plan(program, ValueEnvironment()) as? PlanningResult.Planned)
             ?.plans ?: return null
         return plans.singleOrNull()?.takeIf { plan ->
-            plan.resolved.operation.name in supportedOperations &&
+            (plan.resolved.operation.name in supportedOperations ||
+                (allowStore && plan.resolved.operation.name == "मूल्यदानम्")) &&
                 (plan.resolved.operation.name != "सङ्ख्यातुलना" ||
                     (plan.resolved.operation.trigger.requiredUpasargas.isEmpty() &&
                         plan.resolved.operation.trigger.requiredAvyayas.isEmpty())) &&
