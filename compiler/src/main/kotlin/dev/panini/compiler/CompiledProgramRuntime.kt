@@ -2,11 +2,13 @@ package dev.panini.compiler
 
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.ExecutionControlSignal
+import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.ExecutionScope
 import dev.panini.execution.NamedSamjnaParameterResolver
 import dev.panini.execution.PaniniVM
 import dev.panini.execution.SanskritValue
 import dev.panini.execution.ValueEnvironment
+import dev.panini.core.Karaka
 import java.util.LinkedHashMap
 import java.util.UUID
 
@@ -102,6 +104,24 @@ class CompiledProgramRuntime private constructor(
         if (success.controlSignal == ExecutionControlSignal.BREAK_LOOP) breakRequested = true
         val value = success.typedValue ?: SanskritValue.of(success.value)
         success.conditionValue?.let { reportedCondition = it }
+        values["LastResult"] = value
+        return value
+    }
+
+    fun executeDirect(
+        dhatuUpadesha: String,
+        operationName: String,
+        requiredSanadi: String,
+        bindings: Map<Karaka, ExecutionExpression>,
+    ): SanskritValue {
+        val value = PaniniRuntime.execute(
+            dhatuUpadesha,
+            operationName,
+            requiredSanadi,
+            bindings,
+            values,
+        )
+        if (value is SanskritValue.Satya) reportedCondition = value.boolean
         values["LastResult"] = value
         return value
     }

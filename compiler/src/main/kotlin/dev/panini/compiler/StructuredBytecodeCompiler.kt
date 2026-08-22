@@ -11,6 +11,9 @@ import dev.panini.execution.SamjnaValueClassifier
 import dev.panini.execution.DynamicNishedhaEvaluator
 import dev.panini.execution.PuranaPratyayaResolver
 import dev.panini.execution.SamjnaSignatureCompiler
+import dev.panini.execution.ExecutionExpression
+import dev.panini.execution.ExecutionPlan
+import dev.panini.execution.SanskritValue
 import dev.panini.vyakaranam.ast.Conditional
 import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.Pipeline
@@ -201,7 +204,124 @@ internal object StructuredBytecodeCompiler {
                     false,
                 )
             } else {
-                emitEval(mv, source)
+                val directPlan = DirectLeafPlanner.plan(source)
+                if (directPlan != null) emitDirect(mv, directPlan) else emitEval(mv, source)
+            }
+        }
+
+        private fun emitDirect(mv: MethodVisitor, plan: ExecutionPlan) {
+            val bindings = nextLocal++
+            mv.visitTypeInsn(NEW, "java/util/HashMap")
+            mv.visitInsn(DUP)
+            mv.visitMethodInsn(INVOKESPECIAL, "java/util/HashMap", "<init>", "()V", false)
+            mv.visitVarInsn(ASTORE, bindings)
+            plan.resolved.context.bindings.forEach { (karaka, expression) ->
+                mv.visitVarInsn(ALOAD, bindings)
+                mv.visitFieldInsn(
+                    GETSTATIC,
+                    "dev/panini/core/Karaka",
+                    karaka.name,
+                    "Ldev/panini/core/Karaka;",
+                )
+                emitExpression(mv, expression)
+                mv.visitMethodInsn(
+                    INVOKEVIRTUAL,
+                    "java/util/HashMap",
+                    "put",
+                    "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;",
+                    false,
+                )
+                mv.visitInsn(POP)
+            }
+            mv.visitVarInsn(ALOAD, 0)
+            mv.visitLdcInsn(plan.resolved.invocation.dhatu.upadesha)
+            mv.visitLdcInsn(plan.resolved.operation.name)
+            mv.visitLdcInsn(plan.resolved.operation.trigger.requiredSanadi.sorted().joinToString(","))
+            mv.visitVarInsn(ALOAD, bindings)
+            mv.visitMethodInsn(
+                INVOKEVIRTUAL,
+                "dev/panini/compiler/CompiledProgramRuntime",
+                "executeDirect",
+                "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Ldev/panini/execution/SanskritValue;",
+                false,
+            )
+            mv.visitInsn(POP)
+        }
+
+        private fun emitExpression(mv: MethodVisitor, expression: ExecutionExpression) {
+            when (expression) {
+                is ExecutionExpression.Pada -> {
+                    mv.visitLdcInsn(expression.prakriti)
+                    expression.value?.let { emitValue(mv, it) } ?: mv.visitInsn(ACONST_NULL)
+                    mv.visitMethodInsn(
+                        INVOKESTATIC,
+                        "dev/panini/compiler/PaniniRuntime",
+                        "createPadaExpression",
+                        "(Ljava/lang/String;Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/ExecutionExpression\$Pada;",
+                        false,
+                    )
+                }
+                is ExecutionExpression.TypedOperand -> {
+                    emitValue(mv, expression.value)
+                    mv.visitFieldInsn(
+                        GETSTATIC,
+                        "dev/panini/core/SupAffix",
+                        expression.sup.name,
+                        "Ldev/panini/core/SupAffix;",
+                    )
+                    mv.visitMethodInsn(
+                        INVOKESTATIC,
+                        "dev/panini/compiler/PaniniRuntime",
+                        "createTypedOperandExpression",
+                        "(Ldev/panini/execution/SanskritValue;Ldev/panini/core/SupAffix;)Ldev/panini/execution/ExecutionExpression\$TypedOperand;",
+                        false,
+                    )
+                }
+                is ExecutionExpression.Coordination -> {
+                    mv.visitLdcInsn(expression.members.size)
+                    mv.visitTypeInsn(ANEWARRAY, "dev/panini/execution/ExecutionExpression")
+                    expression.members.forEachIndexed { index, member ->
+                        mv.visitInsn(DUP)
+                        mv.visitLdcInsn(index)
+                        emitExpression(mv, member)
+                        mv.visitInsn(AASTORE)
+                    }
+                    mv.visitMethodInsn(
+                        INVOKESTATIC,
+                        "dev/panini/compiler/PaniniRuntime",
+                        "createCoordinationExpression",
+                        "([Ldev/panini/execution/ExecutionExpression;)Ldev/panini/execution/ExecutionExpression\$Coordination;",
+                        false,
+                    )
+                }
+                is ExecutionExpression.Reference -> error("Direct leaves cannot contain runtime references.")
+            }
+        }
+
+        private fun emitValue(mv: MethodVisitor, value: SanskritValue) {
+            when (value) {
+                is SanskritValue.Sankhya -> {
+                    mv.visitLdcInsn(value.value)
+                    mv.visitLdcInsn(value.word)
+                    mv.visitMethodInsn(
+                        INVOKESTATIC,
+                        "dev/panini/compiler/PaniniRuntime",
+                        "sankhya",
+                        "(JLjava/lang/String;)Ldev/panini/execution/SanskritValue;",
+                        false,
+                    )
+                }
+                is SanskritValue.Shabda -> {
+                    mv.visitLdcInsn(value.text)
+                    mv.visitMethodInsn(
+                        INVOKESTATIC,
+                        "dev/panini/compiler/PaniniRuntime",
+                        "shabda",
+                        "(Ljava/lang/String;)Ldev/panini/execution/SanskritValue;",
+                        false,
+                    )
+                }
+                else -> error("Unsupported direct leaf constant: $value")
             }
         }
 
