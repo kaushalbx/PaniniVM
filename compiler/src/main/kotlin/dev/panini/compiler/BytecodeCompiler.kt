@@ -23,6 +23,10 @@ object BytecodeCompiler {
      */
     fun compile(scriptContent: String, className: String): ByteArray {
         dev.panini.dhatupatha.DhatuPathaRegistration.ensureRegistered()
+        val parsedStatements = PvmScript.parse(scriptContent)
+        if (StructuredBytecodeCompiler.supports(parsedStatements)) {
+            return StructuredBytecodeCompiler.compile(scriptContent, className)
+        }
         var conversation = SambhashanaContext(speaker = "प्रयोक्ता", listener = "यन्त्रम्")
         val statementsPlans = mutableListOf<List<ExecutionPlan>>()
         val turnResultIds = mutableListOf<List<String>>()
