@@ -2,10 +2,11 @@ package dev.panini.compiler
 
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.ExecutionControlSignal
+import dev.panini.execution.ExecutionScope
 import dev.panini.execution.NamedSamjnaParameterResolver
 import dev.panini.execution.PaniniVM
 import dev.panini.execution.SanskritValue
-import dev.panini.sankhya.PrimitiveSankhya
+import dev.panini.execution.ValueEnvironment
 import java.util.LinkedHashMap
 import java.util.UUID
 
@@ -21,10 +22,11 @@ class CompiledProgramRuntime private constructor(
     private val vm = PaniniVM()
     private val sessionKey = "compiled-${UUID.randomUUID()}"
     private val values = LinkedHashMap<String, SanskritValue>()
-    private val parameterFrames = ArrayDeque<Map<String, String>>()
+    private val parameterFrames = ArrayDeque<ParameterFrame>()
     private var conditionIterations = 0L
     private var breakRequested = false
     private var reportedCondition: Boolean? = null
+    private var nextParameterBinding = 0
 
     fun isBreakRequested(): Boolean = breakRequested
 
@@ -72,7 +74,20 @@ class CompiledProgramRuntime private constructor(
         require(names.size == arguments.size) {
             "Compiled saṃjñā expected ${names.size} arguments, but received ${arguments.size}."
         }
-        parameterFrames.addLast(names.zip(arguments.map(::resolveFrameArgument)).toMap())
+        val typedValues = linkedMapOf<String, SanskritValue>()
+        val replacements = names.zip(arguments).associate { (name, argument) ->
+            val stem = argument.substringBefore('+').trim()
+            if (stem != "फल") {
+                name to argument
+            } else {
+                val result = values["LastResult"]
+                    ?: error("A compiled saṃjñā received फल before any operation produced a result.")
+                val placeholder = "सङ्कलितफल" + "क".repeat(++nextParameterBinding)
+                typedValues[placeholder] = result
+                name to argument.replaceFirst(stem, placeholder)
+            }
+        }
+        parameterFrames.addLast(ParameterFrame(replacements, typedValues))
     }
 
     fun exitFrame() {
@@ -81,7 +96,7 @@ class CompiledProgramRuntime private constructor(
     }
 
     fun evaluate(source: String): SanskritValue {
-        val result = vm.eval(interpolate(source), sessionKey = sessionKey)
+        val result = vm.eval(interpolate(source), sessionKey = sessionKey, scope = frameScope())
         val success = result as? ExecutionResult.Success
             ?: error("Compiled PaniniVM operation failed: $result")
         if (success.controlSignal == ExecutionControlSignal.BREAK_LOOP) breakRequested = true
@@ -92,7 +107,7 @@ class CompiledProgramRuntime private constructor(
     }
 
     fun evaluateBoolean(source: String): Boolean {
-        val result = vm.eval(interpolate(source), sessionKey = sessionKey)
+        val result = vm.eval(interpolate(source), sessionKey = sessionKey, scope = frameScope())
         val success = result as? ExecutionResult.Success
             ?: error("Compiled PaniniVM condition failed: $result")
         val condition = success.conditionValue ?: (success.typedValue as? SanskritValue.Satya)?.boolean
@@ -101,24 +116,22 @@ class CompiledProgramRuntime private constructor(
 
     fun snapshot(): Map<String, SanskritValue> = LinkedHashMap(values)
 
-    private fun resolveFrameArgument(argument: String): String {
-        val stem = argument.substringBefore('+').trim()
-        if (stem != "फल") return argument
-        val result = values["LastResult"]
-            ?: error("A compiled saṃjñā received फल before any operation produced a result.")
-        val sourceText = when (result) {
-            is SanskritValue.Sankhya -> PrimitiveSankhya.fromValue(result.value)?.pratipadika
-                ?: result.toDisplayText()
-            else -> result.toDisplayText()
-        }
-        return argument.replaceFirst(stem, sourceText)
-    }
+    private fun frameScope(): ExecutionScope = ExecutionScope(
+        environment = ValueEnvironment(
+            parameterFrames.fold(emptyMap()) { values, frame -> values + frame.typedValues },
+        ),
+    )
 
     private fun interpolate(source: String): String = parameterFrames.reversed().fold(source) { text, frame ->
-        frame.entries.fold(text) { current, (name, argument) ->
+        frame.replacements.entries.fold(text) { current, (name, argument) ->
             NamedSamjnaParameterResolver.replace(current, name, argument)
         }
     }
+
+    private data class ParameterFrame(
+        val replacements: Map<String, String>,
+        val typedValues: Map<String, SanskritValue>,
+    )
 }
 
 class CompiledExecutionLimitExceededException(limit: Long) : IllegalStateException(

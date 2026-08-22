@@ -21,6 +21,21 @@ import kotlin.test.assertFailsWith
 
 class StructuredBytecodeCompilerTest {
     @Test
+    fun `compiled parameter frames preserve structured values`() {
+        val runtime = CompiledProgramRuntime()
+        runtime.publishLoopOutcome("विजय", 3L)
+        runtime.enterFrame(arrayOf("मान"), arrayOf("फल"))
+
+        val returned = runtime.evaluate("मान + अम् सञ्चित + ङे दा + लोट् + सिप् ।")
+
+        runtime.exitFrame()
+        val structured = returned as SanskritValue.Rupa
+        assertEquals("परिणाम", structured.schema)
+        assertEquals("विजय", structured.fields.getValue("अवस्था").toDisplayText())
+        assertEquals(3L, (structured.fields.getValue("प्रयत्नसङ्ख्या") as SanskritValue.Sankhya).value)
+    }
+
+    @Test
     fun `large grammatical loop bounds use JVM long counters`() {
         val source = """
             शून्य + अम् अवस्था + ङे दा + लोट् + सिप् ।
