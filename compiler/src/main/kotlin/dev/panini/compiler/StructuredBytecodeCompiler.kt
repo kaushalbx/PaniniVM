@@ -107,12 +107,34 @@ internal object StructuredBytecodeCompiler {
         fun emit(mv: MethodVisitor, node: ProgramNode, exactSource: String? = null) {
             when (node) {
                 is Invocation -> emitInvocation(mv, node, exactSource)
-                is Sequence, is Pipeline, is Quotation -> emitEval(mv, exactSource ?: render(node))
+                is Sequence -> emitSequence(mv, node, exactSource)
+                is Pipeline, is Quotation -> emitEval(mv, exactSource ?: render(node))
                 is Conditional -> emitConditional(mv, node)
                 is Repeat -> emitRepeat(mv, node)
                 is WhileLoop -> emitWhile(mv, node)
                 is Procedure -> node.body.forEach { emit(mv, it) }
                 is Scope -> node.body.forEach { emit(mv, it) }
+            }
+        }
+
+        private fun emitSequence(mv: MethodVisitor, node: Sequence, exactSource: String?) {
+            val hasGeneratedStage = node.statements.drop(1).any { statement ->
+                if (statement !is Invocation) return@any false
+                val pipedSource = normalized("फल + अम् ${render(statement)}")
+                registry.detectInvocation(pipedSource)?.kriya?.nameStem in methodsByStem
+            }
+            if (node.connectors.any { it != "ततः" } || !hasGeneratedStage) {
+                emitEval(mv, exactSource ?: render(node))
+                return
+            }
+            node.statements.forEachIndexed { index, statement ->
+                if (index == 0) {
+                    emit(mv, statement)
+                } else if (statement is Invocation) {
+                    emitInvocation(mv, statement, exactSource = null, piped = true)
+                } else {
+                    emit(mv, statement)
+                }
             }
         }
 
@@ -131,8 +153,20 @@ internal object StructuredBytecodeCompiler {
             mv.visitLabel(continueExecution)
         }
 
-        private fun emitInvocation(mv: MethodVisitor, node: Invocation, exactSource: String?) {
-            val source = normalized(exactSource ?: render(node))
+        private fun emitInvocation(
+            mv: MethodVisitor,
+            node: Invocation,
+            exactSource: String?,
+            piped: Boolean = false,
+        ) {
+            val rendered = exactSource ?: render(node)
+            val alreadyReferencesResult = node.vakya.padas.any { pada ->
+                pada is dev.panini.vyakaranam.ast.SubantaPada &&
+                    pada.pratipadika.sourceText.substringBefore('+').trim() == "फल"
+            }
+            val source = normalized(
+                if (piped && !alreadyReferencesResult) "फल + अम् $rendered" else rendered,
+            )
             val invocation = registry.detectInvocation(source)
             val method = invocation?.kriya?.nameStem?.let(methodsByStem::get)
             if (method != null) {
@@ -375,7 +409,7 @@ internal object StructuredBytecodeCompiler {
             signature.parameters.zip(arguments).forEachIndexed { index, (parameter, argument) ->
                 val actual = invocation.argumentValues.getOrNull(index)?.let(SamjnaValueClassifier::classifyValue)
                     ?: SamjnaValueClassifier.classifyTerm(argument)
-                require(actual == parameter.type) {
+                require(argument.substringBefore('+').trim() == "फल" || actual == parameter.type) {
                     "संज्ञा-मानप्रकारः: '${parameter.nameStem}' requires ${parameter.type}."
                 }
             }

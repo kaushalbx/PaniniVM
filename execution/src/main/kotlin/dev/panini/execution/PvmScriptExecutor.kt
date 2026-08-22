@@ -135,8 +135,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         context: ProgramExecutionContext,
     ): List<ExecutionResult> = when (node) {
         is Invocation -> executeInvocationNode(node, context)
-        // A sequence is one evaluator unit: its connectors carry dataflow (especially ततः/फल).
-        is Sequence -> executeEvaluatorNode(node, context)
+        is Sequence -> executeSequenceNode(node, context)
         is Conditional -> executeConditionalNode(node, context)
         is Repeat -> buildList {
             repeat(node.count) {
@@ -178,6 +177,54 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             isExecutingScript = true,
         ),
     ).also { produced -> produced.forEach { context.onResult?.invoke(it) } }
+
+    private fun executeSequenceNode(
+        node: Sequence,
+        context: ProgramExecutionContext,
+    ): List<ExecutionResult> {
+        val hasNamedStage = node.statements.drop(1).any { stage ->
+            stage is Invocation && context.registry.detectInvocation(
+                renderInvocation(stage, pipedKarman = PIPE_OPERAND),
+                callerSourceFile = context.sourceFile,
+            ) != null
+        }
+        if (node.statements.size < 2 || node.connectors.any { it != "ततः" } || !hasNamedStage) {
+            return executeEvaluatorNode(node, context)
+        }
+        val results = mutableListOf<ExecutionResult>()
+        var stageResults = executeProgramNode(
+            node.statements.first(),
+            context.copy(sourceTextOverride = null),
+        )
+        results += stageResults
+        var pipedValue = stageResults.filterIsInstance<ExecutionResult.Success>()
+            .lastOrNull()?.typedValue
+        for (stage in node.statements.drop(1)) {
+            if (stageResults.any { it is ExecutionResult.Failure }) break
+            val invocation = stage as? Invocation
+            stageResults = if (invocation != null && pipedValue != null) {
+                val operand = PIPE_OPERAND
+                val stageScope = context.scope.copy(
+                    environment = context.scope.environment.mergedWith(
+                        ValueEnvironment(mapOf(operand to pipedValue)),
+                    ),
+                )
+                executeInvocationNode(
+                    invocation,
+                    context.copy(
+                        scope = stageScope,
+                        sourceTextOverride = renderInvocation(invocation, pipedKarman = operand),
+                    ),
+                )
+            } else {
+                executeProgramNode(stage, context.copy(sourceTextOverride = null))
+            }
+            results += stageResults
+            pipedValue = stageResults.filterIsInstance<ExecutionResult.Success>()
+                .lastOrNull()?.typedValue ?: pipedValue
+        }
+        return results
+    }
 
     private fun executeInvocationNode(
         node: Invocation,
@@ -560,7 +607,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
 
     private companion object {
         const val LOOP_RESULT_NAME = "परिणाम"
-        const val ATTRIBUTE_PIPE_OPERAND = "विशेषणफल"
+        const val PIPE_OPERAND = "विशेषणफल"
     }
 
     fun evalProject(
@@ -665,6 +712,8 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         signature.parameters.zip(argTerms).withIndex().firstOrNull { (index, pair) ->
             val (parameter, argument) = pair
             val actual = invocation.argumentValues.getOrNull(index)?.let(SamjnaValueClassifier::classifyValue)
+                ?: scope.environment.values[argument.substringBefore('+').trim()]
+                    ?.let(SamjnaValueClassifier::classifyValue)
                 ?: SamjnaValueClassifier.classifyTerm(argument)
             actual != parameter.type
         }?.let { (_, pair) ->
@@ -899,10 +948,10 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         for (target in pipeline.targets) {
             val targetScope = scope.copy(
                 environment = scope.environment.mergedWith(
-                    ValueEnvironment(mapOf(ATTRIBUTE_PIPE_OPERAND to pipedValue)),
+                    ValueEnvironment(mapOf(PIPE_OPERAND to pipedValue)),
                 ),
             )
-            val targetText = renderInvocation(target, pipedKarman = ATTRIBUTE_PIPE_OPERAND)
+            val targetText = renderInvocation(target, pipedKarman = PIPE_OPERAND)
             val invocation = registry.detectInvocation(targetText, callerSourceFile = sourceFile)
             val executedResults = if (invocation != null) {
                 executeSamjnaInvocation(

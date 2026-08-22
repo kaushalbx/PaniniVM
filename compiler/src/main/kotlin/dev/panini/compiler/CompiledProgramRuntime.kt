@@ -5,6 +5,7 @@ import dev.panini.execution.ExecutionControlSignal
 import dev.panini.execution.NamedSamjnaParameterResolver
 import dev.panini.execution.PaniniVM
 import dev.panini.execution.SanskritValue
+import dev.panini.sankhya.PrimitiveSankhya
 import java.util.LinkedHashMap
 import java.util.UUID
 
@@ -71,7 +72,7 @@ class CompiledProgramRuntime private constructor(
         require(names.size == arguments.size) {
             "Compiled saṃjñā expected ${names.size} arguments, but received ${arguments.size}."
         }
-        parameterFrames.addLast(names.zip(arguments).toMap())
+        parameterFrames.addLast(names.zip(arguments.map(::resolveFrameArgument)).toMap())
     }
 
     fun exitFrame() {
@@ -99,6 +100,19 @@ class CompiledProgramRuntime private constructor(
     }
 
     fun snapshot(): Map<String, SanskritValue> = LinkedHashMap(values)
+
+    private fun resolveFrameArgument(argument: String): String {
+        val stem = argument.substringBefore('+').trim()
+        if (stem != "फल") return argument
+        val result = values["LastResult"]
+            ?: error("A compiled saṃjñā received फल before any operation produced a result.")
+        val sourceText = when (result) {
+            is SanskritValue.Sankhya -> PrimitiveSankhya.fromValue(result.value)?.pratipadika
+                ?: result.toDisplayText()
+            else -> result.toDisplayText()
+        }
+        return argument.replaceFirst(stem, sourceText)
+    }
 
     private fun interpolate(source: String): String = parameterFrames.reversed().fold(source) { text, frame ->
         frame.entries.fold(text) { current, (name, argument) ->

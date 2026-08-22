@@ -260,6 +260,31 @@ class StructuredBytecodeCompilerTest {
     }
 
     @Test
+    fun `pipeline result enters a typed generated samjna operation`() {
+        val source = """
+            वर्धन + ल्युट् + सुँ ।
+            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            सङ्ख्या + सुँ इति परिणाम + सुँ ।
+            मान + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥
+
+            एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ततः वर्धन + ल्युट् + टा कृ + लोट् + सिप् ।
+        """.trimIndent()
+        val interpretedResults = PaniniVM().evalScript(source)
+        assertTrue(
+            interpretedResults.none { it is ExecutionResult.Failure },
+            interpretedResults.joinToString(),
+        )
+        val interpreted = interpretedResults.filterIsInstance<ExecutionResult.Success>().last().typedValue
+        val generated = BytecodeCompiler.compileAndLoad(source, "CompiledPipedSamjna")
+        @Suppress("UNCHECKED_CAST")
+        val compiled = (generated.getMethod("execute").invoke(null) as Map<String, SanskritValue>)
+            .getValue("LastResult")
+
+        assertEquals(interpreted, compiled)
+        assertEquals(4L, (compiled as SanskritValue.Sankhya).value)
+    }
+
+    @Test
     fun `two-counter proof compiles to JVM branches and executes`() {
         val source = File("examples/control_flow/two_counter_machine.pvm").readText()
         val bytes = BytecodeCompiler.compile(source, "CompiledTwoCounterMachine")
