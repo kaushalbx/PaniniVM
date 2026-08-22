@@ -19,6 +19,43 @@ import kotlin.test.assertFailsWith
 
 class StructuredBytecodeCompilerTest {
     @Test
+    fun `phala controlled loops have interpreter compiler parity`() {
+        fun execute(source: String, className: String): Pair<SanskritValue, SanskritValue> {
+            val interpreted = PaniniVM().evalScript(source)
+                .filterIsInstance<ExecutionResult.Success>().last().typedValue!!
+            val generated = BytecodeCompiler.compileAndLoad(source, className)
+            @Suppress("UNCHECKED_CAST")
+            val compiled = (generated.getMethod("execute").invoke(null) as Map<String, SanskritValue>)
+                .getValue("LastResult")
+            return interpreted to compiled
+        }
+
+        val exhausted = """
+            प्रयत्न + ल्युट् + सुँ ।
+            एक + अम् द्वि + अम् च विद् + लोट् + सिप् ॥
+            द्वि + कृत्वः यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
+        """.trimIndent()
+        val victory = """
+            प्रयत्न + ल्युट् + सुँ ।
+            द्वि + अम् एक + अम् च विद् + लोट् + सिप् ॥
+            पञ्च + कृत्वः यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
+        """.trimIndent()
+
+        val exhaustedResults = execute(exhausted, "CompiledPhalaExhaustion")
+        val victoryResults = execute(victory, "CompiledPhalaVictory")
+        assertEquals(exhaustedResults.first, exhaustedResults.second)
+        assertEquals(victoryResults.first, victoryResults.second)
+        assertEquals(
+            "समाप्ति",
+            (exhaustedResults.second as SanskritValue.Rupa).fields.getValue("अवस्था").toDisplayText(),
+        )
+        assertEquals(
+            "विजय",
+            (victoryResults.second as SanskritValue.Rupa).fields.getValue("अवस्था").toDisplayText(),
+        )
+    }
+
+    @Test
     fun `bounded compiled loop publishes and pipes its exhaustion outcome`() {
         val source = """
             हृ + ल्युट् + सुँ ।

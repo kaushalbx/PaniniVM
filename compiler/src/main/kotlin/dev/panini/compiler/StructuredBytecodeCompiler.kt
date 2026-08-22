@@ -193,8 +193,20 @@ internal object StructuredBytecodeCompiler {
             }
             val counter = nextLocal
             nextLocal += 2
+            val usesLatestResult = node.condition.vakya.padas.any { pada ->
+                pada is dev.panini.vyakaranam.ast.SubantaPada &&
+                    pada.pratipadika.sourceText.substringBefore('+').trim() == "फल"
+            }
+            val isNegated = node.condition.vakya.padas.any { pada ->
+                pada is dev.panini.vyakaranam.ast.AvyayaPada && pada.form == "न"
+            }
+            val latestCondition = if (usesLatestResult) nextLocal++ else null
             mv.visitInsn(LCONST_0)
             mv.visitVarInsn(LSTORE, counter)
+            latestCondition?.let {
+                mv.visitInsn(ICONST_0)
+                mv.visitVarInsn(ISTORE, it)
+            }
             mv.visitLabel(condition)
             if (bound != null) {
                 mv.visitVarInsn(LLOAD, counter)
@@ -202,8 +214,13 @@ internal object StructuredBytecodeCompiler {
                 mv.visitInsn(LCMP)
                 mv.visitJumpInsn(IFGE, exhausted)
             }
-            emitBoolean(mv, render(node.condition))
-            mv.visitJumpInsn(IFEQ, victory)
+            if (latestCondition != null) {
+                mv.visitVarInsn(ILOAD, latestCondition)
+                mv.visitJumpInsn(if (isNegated) IFNE else IFEQ, victory)
+            } else {
+                emitBoolean(mv, render(node.condition))
+                mv.visitJumpInsn(IFEQ, victory)
+            }
             mv.visitVarInsn(ALOAD, 0)
             mv.visitMethodInsn(
                 INVOKEVIRTUAL,
@@ -212,11 +229,32 @@ internal object StructuredBytecodeCompiler {
                 "()V",
                 false,
             )
+            if (latestCondition != null) {
+                mv.visitVarInsn(ALOAD, 0)
+                mv.visitMethodInsn(
+                    INVOKEVIRTUAL,
+                    "dev/panini/compiler/CompiledProgramRuntime",
+                    "clearReportedCondition",
+                    "()V",
+                    false,
+                )
+            }
             emit(mv, node.body)
             mv.visitVarInsn(LLOAD, counter)
             mv.visitInsn(LCONST_1)
             mv.visitInsn(LADD)
             mv.visitVarInsn(LSTORE, counter)
+            if (latestCondition != null) {
+                mv.visitVarInsn(ALOAD, 0)
+                mv.visitMethodInsn(
+                    INVOKEVIRTUAL,
+                    "dev/panini/compiler/CompiledProgramRuntime",
+                    "requireReportedCondition",
+                    "()Z",
+                    false,
+                )
+                mv.visitVarInsn(ISTORE, latestCondition)
+            }
             mv.visitVarInsn(ALOAD, 0)
             mv.visitMethodInsn(
                 INVOKEVIRTUAL,

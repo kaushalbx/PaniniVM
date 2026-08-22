@@ -23,25 +23,35 @@ class CompiledProgramRuntime private constructor(
     private val parameterFrames = ArrayDeque<Map<String, String>>()
     private var conditionIterations = 0L
     private var breakRequested = false
+    private var reportedCondition: Boolean? = null
 
     fun isBreakRequested(): Boolean = breakRequested
 
     fun consumeBreak(): Boolean = breakRequested.also { breakRequested = false }
 
+    fun clearReportedCondition() {
+        reportedCondition = null
+    }
+
+    fun requireReportedCondition(): Boolean = reportedCondition
+        ?: error("A compiled फल-controlled loop body must produce a truth value.")
+
     fun publishLoopOutcome(outcome: String, iterations: Long) {
         val outcomeValue = SanskritValue.Shabda(outcome)
         val countWord = dev.panini.sankhya.SankhyaGenerator().cardinal(iterations).final.surface
         val countValue = SanskritValue.Sankhya(iterations, countWord)
-        values["परिणाम"] = SanskritValue.Rupa(
+        val structured = SanskritValue.Rupa(
             schema = "परिणाम",
             fields = mapOf("अवस्था" to outcomeValue, "प्रयत्नसङ्ख्या" to countValue),
         )
+        values["परिणाम"] = structured
         values["प्रयत्नसङ्ख्या"] = countValue
-        values["LastResult"] = outcomeValue
+        values["LastResult"] = structured
     }
 
     fun evaluateLoopTarget(source: String): SanskritValue {
-        val outcome = values["LastResult"]?.toDisplayText()
+        val outcome = (values["परिणाम"] as? SanskritValue.Rupa)
+            ?.fields?.get("अवस्था")?.toDisplayText()
             ?: error("No compiled loop outcome is available for its result target.")
         evaluate("$outcome + अम् $source")
         val structured = values.getValue("परिणाम")
@@ -75,6 +85,7 @@ class CompiledProgramRuntime private constructor(
             ?: error("Compiled PaniniVM operation failed: $result")
         if (success.controlSignal == ExecutionControlSignal.BREAK_LOOP) breakRequested = true
         val value = success.typedValue ?: SanskritValue.of(success.value)
+        success.conditionValue?.let { reportedCondition = it }
         values["LastResult"] = value
         return value
     }
