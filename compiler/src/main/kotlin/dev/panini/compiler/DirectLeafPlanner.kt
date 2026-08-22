@@ -72,6 +72,52 @@ internal object DirectLeafPlanner {
         environment: ValueEnvironment = ValueEnvironment(),
         allowStore: Boolean = false,
     ): List<ExecutionPlan>? {
+        val plans = candidatePlans(source, environment) ?: return null
+        return plans.takeIf { candidates -> candidates.isNotEmpty() && candidates.all { plan ->
+            (plan.resolved.operation.name in supportedOperations ||
+                (allowStore && plan.resolved.operation.name == "मूल्यदानम्")) &&
+                (plan.resolved.operation.name != "सङ्ख्यातुलना" ||
+                    (plan.resolved.operation.trigger.requiredUpasargas.isEmpty() &&
+                        plan.resolved.operation.trigger.requiredAvyayas.isEmpty())) &&
+                (plan.resolved.operation.name != "विजयः" ||
+                    plan.resolved.operation.trigger.requiredUpasargas == setOf("वि")) &&
+                (plan.resolved.operation.name != "प्रदर्शनम्" ||
+                    plan.resolved.context.bindings
+                        .filterKeys { it in setOf(Karaka.KARMAN, Karaka.APADANA, Karaka.ADHIKARANA) }
+                        .values.all { isConcrete(it, environment) }) &&
+                plan.resolved.context.bindings.values.all { isEmbeddable(it, environment) }
+        } }
+    }
+
+    fun plansAny(
+        source: String,
+        environment: ValueEnvironment = ValueEnvironment(),
+    ): List<ExecutionPlan>? = candidatePlans(source, environment)?.takeIf { plans ->
+        plans.isNotEmpty() && plans.all { plan ->
+            plan.resolved.context.bindings.values.all(::isMaterializable)
+        }
+    }
+
+    fun planAny(
+        source: String,
+        environment: ValueEnvironment = ValueEnvironment(),
+    ): ExecutionPlan? = plansAny(source, environment)?.singleOrNull()
+
+    private fun candidatePlans(
+        source: String,
+        environment: ValueEnvironment,
+    ): List<ExecutionPlan>? {
+        val symbolicOperands = Regex("([^\\s+।॥]+)\\s*\\+\\s*(?:अम्|औट्|शस्)")
+            .findAll(source)
+            .map { it.groupValues[1].trim() }
+            .filterNot { it in environment.values || isSankhyaStem(it) }
+            .associateWith { name -> SanskritValue.Sankhya(1L, name) }
+        val symbolicInstruments = Regex("([^\\s+।॥]+)\\s*\\+\\s*(?:टा|भ्याम्|भिस्)")
+            .findAll(source)
+            .map { it.groupValues[1].trim() }
+            .filterNot { it in environment.values || isSankhyaStem(it) }
+            .associateWith(SanskritValue::Shabda)
+        val bindingEnvironment = ValueEnvironment(environment.values + symbolicOperands + symbolicInstruments)
         val segmentedSource = source.replace("+", " + ").replace(Regex("\\s+"), " ").trim()
         val conversation = SambhashanaContext(
             "प्रयोक्ता",
@@ -86,7 +132,9 @@ internal object DirectLeafPlanner {
             listener = conversation.listener,
             text = segmentedSource,
         )
-        val ukti = (runCatching { VyakaranamExecutionAdapter.bind(input, conversation) }.getOrNull()
+        val ukti = (runCatching {
+            VyakaranamExecutionAdapter.bind(input, conversation, environment = bindingEnvironment)
+        }.getOrNull()
             as? ExecutionBindingResult.Bound)?.ukti ?: return null
         val program = when (val planned = ProgramBlueprintGranthaPlanner.plan(
             ExecutableUktiSutraCompiler.compileBlueprintGrantha(ukti),
@@ -102,22 +150,96 @@ internal object DirectLeafPlanner {
             is ProgramGranthaPlanning.Success -> planned.program
             is ProgramGranthaPlanning.Invalid -> return null
         }
-        val plans = (ExecutionPlanner.plan(program, environment) as? PlanningResult.Planned)
-            ?.plans ?: return null
-        return plans.takeIf { candidates -> candidates.isNotEmpty() && candidates.all { plan ->
-            (plan.resolved.operation.name in supportedOperations ||
-                (allowStore && plan.resolved.operation.name == "मूल्यदानम्")) &&
-                (plan.resolved.operation.name != "सङ्ख्यातुलना" ||
-                    (plan.resolved.operation.trigger.requiredUpasargas.isEmpty() &&
-                        plan.resolved.operation.trigger.requiredAvyayas.isEmpty())) &&
-                (plan.resolved.operation.name != "विजयः" ||
-                    plan.resolved.operation.trigger.requiredUpasargas == setOf("वि")) &&
-                (plan.resolved.operation.name != "प्रदर्शनम्" ||
-                    plan.resolved.context.bindings
-                        .filterKeys { it in setOf(Karaka.KARMAN, Karaka.APADANA, Karaka.ADHIKARANA) }
-                        .values.all { isConcrete(it, environment) }) &&
-                plan.resolved.context.bindings.values.all { isEmbeddable(it, environment) }
-        } }
+        val symbolicReferences = ukti.invocations
+            .flatMap { invocation -> invocation.bindings.values.flatMap { it.references() } }
+            .filterNot { it in environment.values }
+            .associateWith { name -> SanskritValue.Sankhya(1L, name) }
+        val planningEnvironment = ValueEnvironment(bindingEnvironment.values + symbolicReferences)
+        val symbolicNames = symbolicOperands.keys + symbolicReferences.keys
+        val selectedOperation = when {
+            Regex("सम्\\s*\\+\\s*यु").containsMatchIn(source) -> "सूचीसंयोजनम्"
+            Regex("वि\\s*\\+\\s*वृज्").containsMatchIn(source) -> "सूचीशोधनम्"
+            Regex("सम्\\s*\\+\\s*क्षिप्").containsMatchIn(source) -> "सूचीसङ्क्षेपः"
+            else -> null
+        }
+        val selectedProgram = selectedOperation?.let { operation ->
+            program.copy(
+                ukti = program.ukti.copy(
+                    invocations = program.ukti.invocations.map { invocation ->
+                        if (invocation.dhatu.operations.any { it.name == operation }) {
+                            invocation.copy(selectedOperation = operation)
+                        } else invocation
+                    },
+                ),
+            )
+        } ?: program
+        val planning = ExecutionPlanner.plan(selectedProgram, planningEnvironment)
+        return (planning as? PlanningResult.Planned)
+            ?.plans
+            ?.map { plan ->
+                plan.copy(
+                    resolved = plan.resolved.copy(
+                        context = plan.resolved.context.copy(
+                            bindings = plan.resolved.context.bindings.mapValues { (_, expression) ->
+                                expression.restoreSymbolicReferences(symbolicNames)
+                            },
+                        ),
+                    ),
+                )
+            }
+            ?: return null
+    }
+
+    private fun isSankhyaStem(stem: String): Boolean = runCatching {
+        dev.panini.sankhya.SankhyaEvaluator().evaluateStems(listOf(stem))
+    }.isSuccess
+
+    private fun ExecutionExpression.references(): List<String> = when (this) {
+        is ExecutionExpression.Reference -> listOf(name)
+        is ExecutionExpression.Coordination -> members.flatMap { it.references() }
+        is ExecutionExpression.Pada,
+        is ExecutionExpression.TypedOperand,
+        -> emptyList()
+    }
+
+    private fun ExecutionExpression.restoreSymbolicReferences(
+        symbolicNames: Set<String>,
+    ): ExecutionExpression = when (this) {
+        is ExecutionExpression.Pada -> {
+            val placeholderName = when (val placeholder = value) {
+                is SanskritValue.Sankhya -> placeholder.word
+                is SanskritValue.Shabda -> placeholder.text
+                else -> null
+            }
+            if (prakriti in symbolicNames && placeholderName == prakriti) {
+                ExecutionExpression.Reference(prakriti)
+            } else {
+                this
+            }
+        }
+        is ExecutionExpression.TypedOperand -> {
+            val placeholderName = when (val placeholder = value) {
+                is SanskritValue.Sankhya -> placeholder.word
+                is SanskritValue.Shabda -> placeholder.text
+                else -> null
+            }
+            if (placeholderName in symbolicNames) {
+                ExecutionExpression.Reference(requireNotNull(placeholderName))
+            } else {
+                this
+            }
+        }
+        is ExecutionExpression.Coordination -> copy(
+            members = members.map { it.restoreSymbolicReferences(symbolicNames) },
+        )
+        is ExecutionExpression.Reference -> this
+    }
+
+    private fun isMaterializable(expression: ExecutionExpression): Boolean = when (expression) {
+        is ExecutionExpression.Pada -> expression.value?.let(::isSupportedConstant) ?: true
+        is ExecutionExpression.TypedOperand -> isSupportedConstant(expression.value)
+        is ExecutionExpression.Coordination -> expression.members.all(::isMaterializable)
+        is ExecutionExpression.Reference -> true
     }
 
     private fun isConcrete(

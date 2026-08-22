@@ -1,17 +1,10 @@
 package dev.panini.compiler
 
-import dev.panini.execution.ExecutionResult
-import dev.panini.execution.ExecutionControlSignal
 import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.ExecutionError
-import dev.panini.execution.ExecutionScope
-import dev.panini.execution.NamedSamjnaParameterResolver
-import dev.panini.execution.PaniniVM
 import dev.panini.execution.SanskritValue
-import dev.panini.execution.ValueEnvironment
 import dev.panini.core.Karaka
 import java.util.LinkedHashMap
-import java.util.UUID
 
 /** Mutable execution context shared by all methods in one generated program invocation. */
 class CompiledProgramRuntime private constructor(
@@ -22,14 +15,11 @@ class CompiledProgramRuntime private constructor(
         require(it > 0L) { "The compiled condition-loop budget must be positive." }
     } as Long?)
 
-    private val vm = PaniniVM()
-    private val sessionKey = "compiled-${UUID.randomUUID()}"
     private val values = LinkedHashMap<String, SanskritValue>()
     private val parameterFrames = ArrayDeque<ParameterFrame>()
     private var conditionIterations = 0L
     private var breakRequested = false
     private var reportedCondition: Boolean? = null
-    private var nextParameterBinding = 0
 
     fun isBreakRequested(): Boolean = breakRequested
 
@@ -63,16 +53,6 @@ class CompiledProgramRuntime private constructor(
         values["LastResult"] = structured
     }
 
-    fun evaluateLoopTarget(source: String): SanskritValue {
-        val outcome = (values["परिणाम"] as? SanskritValue.Rupa)
-            ?.fields?.get("अवस्था")?.toDisplayText()
-            ?: error("No compiled loop outcome is available for its result target.")
-        evaluate("$outcome + अम् $source")
-        val structured = values.getValue("परिणाम")
-        values["LastResult"] = structured
-        return structured
-    }
-
     fun enterConditionIteration() {
         val limit = maxConditionIterations
         if (limit != null && conditionIterations >= limit) {
@@ -81,44 +61,38 @@ class CompiledProgramRuntime private constructor(
         conditionIterations++
     }
 
-    fun enterFrame(names: Array<String>, arguments: Array<String>) {
+    fun enterFrame(names: Array<String>, arguments: Array<String>) =
+        enterFrame(names, arguments, arrayOfNulls(names.size))
+
+    fun enterFrame(
+        names: Array<String>,
+        arguments: Array<String>,
+        argumentValues: Array<SanskritValue?>,
+    ) {
         require(names.size == arguments.size) {
             "Compiled saṃjñā expected ${names.size} arguments, but received ${arguments.size}."
         }
-        val typedValues = linkedMapOf<String, SanskritValue>()
-        val replacements = names.zip(arguments).associate { (name, argument) ->
-            val stem = argument.substringBefore('+').trim()
-            if (stem != "फल") {
-                name to argument
-            } else {
-                val result = values["LastResult"]
-                    ?: error("A compiled saṃjñā received फल before any operation produced a result.")
-                val placeholder = "सङ्कलितफल" + "क".repeat(++nextParameterBinding)
-                typedValues[placeholder] = result
-                name to argument.replaceFirst(stem, placeholder)
-            }
+        require(names.size == argumentValues.size) {
+            "Compiled saṃjñā argument values must match its parameter count."
         }
-        parameterFrames.addLast(ParameterFrame(replacements, typedValues))
+        val parameterValues = names.indices.associate { index ->
+            val stem = arguments[index].substringBefore('+').trim()
+            val value = runtimeValue(stem)
+                ?: runCatching {
+                    val evaluated = dev.panini.sankhya.SankhyaEvaluator().evaluateStems(listOf(stem))
+                    val word = dev.panini.sankhya.SankhyaGenerator().cardinal(evaluated.value).final.surface
+                    SanskritValue.Sankhya(evaluated.value, word)
+                }.getOrNull()
+                ?: argumentValues[index]
+                ?: SanskritValue.of(stem)
+            names[index] to value
+        }
+        parameterFrames.addLast(ParameterFrame(parameterValues))
     }
 
     fun exitFrame() {
         check(parameterFrames.isNotEmpty()) { "No compiled saṃjñā parameter frame is active." }
         parameterFrames.removeLast()
-    }
-
-    fun evaluate(source: String): SanskritValue {
-        val result = vm.eval(interpolate(source), sessionKey = sessionKey, scope = frameScope())
-        val success = result as? ExecutionResult.Success
-            ?: throw CompiledPaniniExecutionException.from(result, source)
-        if (success.controlSignal == ExecutionControlSignal.BREAK_LOOP) breakRequested = true
-        val value = success.typedValue ?: SanskritValue.of(success.value)
-        success.conditionValue?.let { reportedCondition = it }
-        values["LastResult"] = value
-        return value
-    }
-
-    fun evaluateAndStore(source: String, bindingName: String): SanskritValue = evaluate(source).also {
-        values[bindingName] = it
     }
 
     fun executeDirect(
@@ -143,18 +117,22 @@ class CompiledProgramRuntime private constructor(
     }
 
     private fun ExecutionExpression.resolveCompiledReferences(): ExecutionExpression = when (this) {
-        is ExecutionExpression.Pada -> if (value is SanskritValue.Shabda && prakriti in values) {
-            ExecutionExpression.Reference(prakriti)
-        } else {
-            this
-        }
+        is ExecutionExpression.Pada -> runtimeValue(prakriti)?.let { resolved ->
+            copy(samjnas = resolved.samjnas, value = resolved)
+        } ?: this
         is ExecutionExpression.Coordination -> copy(
             members = members.map { it.resolveCompiledReferences() },
         )
-        is ExecutionExpression.Reference,
-        is ExecutionExpression.TypedOperand,
-        -> this
+        is ExecutionExpression.Reference -> runtimeValue(name)?.let { resolved ->
+            ExecutionExpression.Pada(name, resolved.samjnas, resolved)
+        } ?: this
+        is ExecutionExpression.TypedOperand -> this
     }
+
+    private fun runtimeValue(name: String): SanskritValue? =
+        parameterFrames.reversed().firstNotNullOfOrNull { it.parameterValues[name] }
+            ?: values[name]
+            ?: if (name == "फल") values["LastResult"] else null
 
     fun executeDirectBoolean(
         dhatuUpadesha: String,
@@ -196,35 +174,12 @@ class CompiledProgramRuntime private constructor(
         return structured
     }
 
-    fun evaluateBoolean(source: String): Boolean {
-        val result = vm.eval(interpolate(source), sessionKey = sessionKey, scope = frameScope())
-        val success = result as? ExecutionResult.Success
-            ?: throw CompiledPaniniExecutionException.from(result, source)
-        val condition = success.conditionValue ?: (success.typedValue as? SanskritValue.Satya)?.boolean
-        return condition ?: throw CompiledPaniniExecutionException(
-            ExecutionError.INVALID_VALUE,
-            "Compiled PaniniVM condition did not produce सत्य/असत्य: $source",
-            success.trace,
-        )
-    }
-
     fun snapshot(): Map<String, SanskritValue> = LinkedHashMap(values)
 
-    private fun frameScope(): ExecutionScope = ExecutionScope(
-        environment = ValueEnvironment(
-            parameterFrames.fold(emptyMap()) { values, frame -> values + frame.typedValues },
-        ),
-    )
-
-    private fun interpolate(source: String): String = parameterFrames.reversed().fold(source) { text, frame ->
-        frame.replacements.entries.fold(text) { current, (name, argument) ->
-            NamedSamjnaParameterResolver.replace(current, name, argument)
-        }
-    }
+    internal fun resolveValue(name: String): SanskritValue? = runtimeValue(name)
 
     private data class ParameterFrame(
-        val replacements: Map<String, String>,
-        val typedValues: Map<String, SanskritValue>,
+        val parameterValues: Map<String, SanskritValue>,
     )
 }
 

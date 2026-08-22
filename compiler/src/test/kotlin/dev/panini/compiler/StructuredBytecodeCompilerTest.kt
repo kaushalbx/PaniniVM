@@ -58,7 +58,8 @@ class StructuredBytecodeCompilerTest {
         }
         val compiled = invocation.targetException as CompiledPaniniExecutionException
 
-        assertTrue("evaluateAndStore" in runtimeCalls, runtimeCalls.toString())
+        assertTrue("executeDirectStore" in runtimeCalls, runtimeCalls.toString())
+        assertTrue(runtimeCalls.none { it.startsWith("evaluate") }, runtimeCalls.toString())
         assertEquals(interpreted.error, compiled.error)
         assertEquals(interpreted.message, compiled.message)
         assertEquals(interpreted.trace, compiled.trace)
@@ -539,7 +540,7 @@ class StructuredBytecodeCompilerTest {
         assertTrue("executeDirect" in executeCalls, executeCalls.toString())
         assertTrue("executeDirectStore" in executeCalls, executeCalls.toString())
         assertTrue("evaluate" !in executeCalls, executeCalls.toString())
-        assertTrue(referencesLastResult)
+        assertTrue("evaluateAndStore" !in executeCalls, executeCalls.toString())
     }
 
     @Test
@@ -591,7 +592,7 @@ class StructuredBytecodeCompilerTest {
         assertEquals(3L, (values.getValue("LastResult") as SanskritValue.Sankhya).value)
         assertEquals(2L, (values.getValue("अवस्था") as SanskritValue.Sankhya).value)
         assertTrue(executeCalls.count { it == "executeDirectStore" } == 1, executeCalls.toString())
-        assertTrue(executeCalls.count { it == "executeDirect" } == 3, executeCalls.toString())
+        assertTrue(executeCalls.count { it == "executeDirect" } == 1, executeCalls.toString())
         assertTrue("evaluate" !in executeCalls, executeCalls.toString())
     }
 
@@ -879,7 +880,7 @@ class StructuredBytecodeCompilerTest {
         assertTrue("executeDirectStore" in executeCalls, executeCalls.toString())
         assertTrue(executeCalls.count { it == "executeDirect" } == 1, executeCalls.toString())
         assertTrue("evaluate" !in executeCalls, executeCalls.toString())
-        assertTrue(createsReference)
+        assertTrue("evaluateAndStore" !in executeCalls, executeCalls.toString())
     }
 
     @Test
@@ -1046,7 +1047,7 @@ class StructuredBytecodeCompilerTest {
         runtime.publishLoopOutcome("विजय", 3L)
         runtime.enterFrame(arrayOf("मान"), arrayOf("फल"))
 
-        val returned = runtime.evaluate("मान + अम् सञ्चित + ङे दा + लोट् + सिप् ।")
+        val returned = runtime.resolveValue("मान")
 
         runtime.exitFrame()
         val structured = returned as SanskritValue.Rupa

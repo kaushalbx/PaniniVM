@@ -64,6 +64,10 @@ internal object StructuredBytecodeCompiler {
         cw.visit(V1_8, ACC_PUBLIC or ACC_SUPER, className, null, "java/lang/Object", null)
         emitConstructor(cw)
 
+        val executable = statements.filterIsInstance<PvmScriptStatement.Sentence>()
+        emitExecute(cw, lowering, executable, withLimit = false)
+        emitExecute(cw, lowering, executable, withLimit = true)
+
         definitions.forEach { definition ->
             val method = requireNotNull(methods[definition])
             val mv = cw.visitMethod(
@@ -86,10 +90,6 @@ internal object StructuredBytecodeCompiler {
             mv.visitMaxs(0, 0)
             mv.visitEnd()
         }
-
-        val executable = statements.filterIsInstance<PvmScriptStatement.Sentence>()
-        emitExecute(cw, lowering, executable, withLimit = false)
-        emitExecute(cw, lowering, executable, withLimit = true)
 
         val main = cw.visitMethod(ACC_PUBLIC or ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null)
         main.visitCode()
@@ -118,7 +118,7 @@ internal object StructuredBytecodeCompiler {
             when (node) {
                 is Invocation -> emitInvocation(mv, node, exactSource, allowDirectStore = allowDirectStore)
                 is Sequence -> emitSequence(mv, node, exactSource)
-                is Pipeline, is Quotation -> emitEval(mv, exactSource ?: render(node))
+                is Pipeline, is Quotation -> emitPlannedSource(mv, exactSource ?: render(node))
                 is Conditional -> emitConditional(mv, node)
                 is Repeat -> emitRepeat(mv, node)
                 is WhileLoop -> emitWhile(mv, node)
@@ -159,13 +159,8 @@ internal object StructuredBytecodeCompiler {
             plans.forEach { emitDirect(mv, it) }
 
         private fun emitSequence(mv: MethodVisitor, node: Sequence, exactSource: String?) {
-            val hasGeneratedStage = node.statements.drop(1).any { statement ->
-                if (statement !is Invocation) return@any false
-                val pipedSource = normalized("फल + अम् ${render(statement)}")
-                registry.detectInvocation(pipedSource)?.kriya?.nameStem in methodsByStem
-            }
-            if (node.connectors.any { it != "ततः" } || !hasGeneratedStage) {
-                emitEval(mv, exactSource ?: render(node))
+            if (node.connectors.any { it != "ततः" } || node.statements.any { it !is Invocation }) {
+                emitPlannedSource(mv, exactSource ?: render(node))
                 return
             }
             node.statements.forEachIndexed { index, statement ->
@@ -202,6 +197,26 @@ internal object StructuredBytecodeCompiler {
             allowDirectStore: Boolean = false,
         ) {
             val rendered = exactSource ?: render(node)
+            val repetition = Regex("^([^\\s+]+)\\s*\\+\\s*[^\\s]*कृत्व[^\\s]*\\s+(.+)$")
+                .find(rendered.trim())
+            if (repetition != null) {
+                val count = dev.panini.sankhya.SankhyaEvaluator()
+                    .evaluateStems(listOf(repetition.groupValues[1])).value.toInt()
+                val counter = nextLocal++
+                val start = Label()
+                val exit = Label()
+                mv.visitInsn(ICONST_0)
+                mv.visitVarInsn(ISTORE, counter)
+                mv.visitLabel(start)
+                mv.visitVarInsn(ILOAD, counter)
+                mv.visitLdcInsn(count)
+                mv.visitJumpInsn(IF_ICMPGE, exit)
+                emitInvocation(mv, node, exactSource = repetition.groupValues[2])
+                mv.visitIincInsn(counter, 1)
+                mv.visitJumpInsn(GOTO, start)
+                mv.visitLabel(exit)
+                return
+            }
             val alreadyReferencesResult = node.vakya.padas.any { pada ->
                 pada is dev.panini.vyakaranam.ast.SubantaPada &&
                     pada.pratipadika.sourceText.substringBefore('+').trim() == "फल"
@@ -214,16 +229,24 @@ internal object StructuredBytecodeCompiler {
             if (method != null) {
                 val signature = requireNotNull(invocation).kriya.signature
                 val arguments = resolveArguments(invocation)
+                val parameterNamesLocal = nextLocal++
+                val argumentsLocal = nextLocal++
+                val argumentValuesLocal = nextLocal++
                 emitStringArray(mv, signature.parameters.map { it.nameStem })
+                mv.visitVarInsn(ASTORE, parameterNamesLocal)
                 emitStringArray(mv, arguments)
+                mv.visitVarInsn(ASTORE, argumentsLocal)
+                emitNullableValueArray(mv, invocation.argumentValues, signature.parameters.size)
+                mv.visitVarInsn(ASTORE, argumentValuesLocal)
                 mv.visitVarInsn(ALOAD, 0)
-                mv.visitInsn(DUP_X2)
-                mv.visitInsn(POP)
+                mv.visitVarInsn(ALOAD, parameterNamesLocal)
+                mv.visitVarInsn(ALOAD, argumentsLocal)
+                mv.visitVarInsn(ALOAD, argumentValuesLocal)
                 mv.visitMethodInsn(
                     INVOKEVIRTUAL,
                     "dev/panini/compiler/CompiledProgramRuntime",
                     "enterFrame",
-                    "([Ljava/lang/String;[Ljava/lang/String;)V",
+                    "([Ljava/lang/String;[Ljava/lang/String;[Ldev/panini/execution/SanskritValue;)V",
                     false,
                 )
                 mv.visitVarInsn(ALOAD, 0)
@@ -247,7 +270,9 @@ internal object StructuredBytecodeCompiler {
                 if (directPlan != null) {
                     emitDirect(mv, directPlan)
                 } else {
-                    emitEval(mv, source, DirectLeafPlanner.resultBindingName(source))
+                    val generalPlan = DirectLeafPlanner.planAny(source)
+                        ?: error("The JVM compiler cannot preplan invocation: $source")
+                    emitDirect(mv, generalPlan)
                 }
             }
         }
@@ -271,8 +296,10 @@ internal object StructuredBytecodeCompiler {
                 return
             }
             val bindingName = if (asBoolean || asLoopTarget) null else plan.resolved.operation.resultBindingKaraka
-                ?.let(plan.resolved.context.bindings::get)
-                ?.bindingName()
+                ?.let { karaka ->
+                    plan.resolved.context.bindings[karaka]?.bindingName()
+                        ?: plan.resolved.invocation.bindings[karaka]?.bindingName()
+                }
             val bindings = nextLocal++
             mv.visitTypeInsn(NEW, "java/util/HashMap")
             mv.visitInsn(DUP)
@@ -429,12 +456,6 @@ internal object StructuredBytecodeCompiler {
                 mv.visitVarInsn(ISTORE, it)
             }
             mv.visitLabel(condition)
-            if (bound != null) {
-                mv.visitVarInsn(LLOAD, counter)
-                mv.visitLdcInsn(bound)
-                mv.visitInsn(LCMP)
-                mv.visitJumpInsn(IFGE, exhausted)
-            }
             if (latestCondition != null) {
                 mv.visitVarInsn(ILOAD, latestCondition)
                 mv.visitJumpInsn(if (isNegated) IFNE else IFEQ, victory)
@@ -445,6 +466,12 @@ internal object StructuredBytecodeCompiler {
                     emitBoolean(mv, render(node.condition))
                 }
                 mv.visitJumpInsn(IFEQ, victory)
+            }
+            if (bound != null) {
+                mv.visitVarInsn(LLOAD, counter)
+                mv.visitLdcInsn(bound)
+                mv.visitInsn(LCMP)
+                mv.visitJumpInsn(IFGE, exhausted)
             }
             mv.visitVarInsn(ALOAD, 0)
             mv.visitMethodInsn(
@@ -526,16 +553,11 @@ internal object StructuredBytecodeCompiler {
                 emitDirect(mv, directPlan, asLoopTarget = true)
                 return
             }
-            mv.visitVarInsn(ALOAD, 0)
-            mv.visitLdcInsn(normalized(render(target)))
-            mv.visitMethodInsn(
-                INVOKEVIRTUAL,
-                "dev/panini/compiler/CompiledProgramRuntime",
-                "evaluateLoopTarget",
-                "(Ljava/lang/String;)Ldev/panini/execution/SanskritValue;",
-                false,
-            )
-            mv.visitInsn(POP)
+            val rendered = render(target)
+            val plan = DirectLeafPlanner.planAny(rendered)
+                ?: DirectLeafPlanner.planAny("चक्रफल + अम् $rendered")
+                ?: error("The JVM compiler cannot preplan loop result target: ${render(target)}")
+            emitDirect(mv, plan, asLoopTarget = true)
         }
 
         private fun emitRepeat(mv: MethodVisitor, node: Repeat) {
@@ -548,7 +570,14 @@ internal object StructuredBytecodeCompiler {
             mv.visitVarInsn(ILOAD, counter)
             mv.visitLdcInsn(node.count)
             mv.visitJumpInsn(IF_ICMPGE, exit)
-            emit(mv, node.body)
+            val body = node.body
+            if (body is Invocation) {
+                val renderedBody = render(body)
+                val bodySource = renderedBody.split(Regex("\\s+")).drop(3).joinToString(" ")
+                emitInvocation(mv, body, exactSource = bodySource)
+            } else {
+                emit(mv, body)
+            }
             mv.visitVarInsn(ALOAD, 0)
             mv.visitMethodInsn(
                 INVOKEVIRTUAL,
@@ -564,38 +593,18 @@ internal object StructuredBytecodeCompiler {
         }
 
         private fun emitBoolean(mv: MethodVisitor, source: String) {
-            val directPlan = DirectLeafPlanner.plan(source)
-            if (directPlan != null && dev.panini.shiksha.Samjna.SATYA in directPlan.resolved.operation.resultSamjnas) {
-                emitDirect(mv, directPlan, asBoolean = true)
-                return
+            val plan = DirectLeafPlanner.plan(source) ?: DirectLeafPlanner.planAny(source)
+                ?: error("The JVM compiler cannot preplan condition: $source")
+            require(dev.panini.shiksha.Samjna.SATYA in plan.resolved.operation.resultSamjnas) {
+                "Compiled condition must produce सत्य/असत्य: $source"
             }
-            mv.visitVarInsn(ALOAD, 0)
-            mv.visitLdcInsn(normalized(source))
-            mv.visitMethodInsn(
-                INVOKEVIRTUAL,
-                "dev/panini/compiler/CompiledProgramRuntime",
-                "evaluateBoolean",
-                "(Ljava/lang/String;)Z",
-                false,
-            )
+            emitDirect(mv, plan, asBoolean = true)
         }
 
-        private fun emitEval(mv: MethodVisitor, source: String, bindingName: String? = null) {
-            mv.visitVarInsn(ALOAD, 0)
-            mv.visitLdcInsn(normalized(source))
-            bindingName?.let(mv::visitLdcInsn)
-            mv.visitMethodInsn(
-                INVOKEVIRTUAL,
-                "dev/panini/compiler/CompiledProgramRuntime",
-                if (bindingName == null) "evaluate" else "evaluateAndStore",
-                if (bindingName == null) {
-                    "(Ljava/lang/String;)Ldev/panini/execution/SanskritValue;"
-                } else {
-                    "(Ljava/lang/String;Ljava/lang/String;)Ldev/panini/execution/SanskritValue;"
-                },
-                false,
-            )
-            mv.visitInsn(POP)
+        private fun emitPlannedSource(mv: MethodVisitor, source: String) {
+            val plans = DirectLeafPlanner.plansAny(source)
+                ?: error("The JVM compiler cannot preplan source without the interpreter bridge: $source")
+            plans.forEach { emitDirect(mv, it) }
         }
 
         private fun emitStringArray(mv: MethodVisitor, values: List<String>) {
@@ -605,6 +614,22 @@ internal object StructuredBytecodeCompiler {
                 mv.visitInsn(DUP)
                 mv.visitLdcInsn(index)
                 mv.visitLdcInsn(value)
+                mv.visitInsn(AASTORE)
+            }
+        }
+
+        private fun emitNullableValueArray(
+            mv: MethodVisitor,
+            values: List<SanskritValue?>,
+            size: Int,
+        ) {
+            mv.visitLdcInsn(size)
+            mv.visitTypeInsn(ANEWARRAY, "dev/panini/execution/SanskritValue")
+            repeat(size) { index ->
+                mv.visitInsn(DUP)
+                mv.visitLdcInsn(index)
+                values.getOrNull(index)?.let { StructuredValueBytecodeEmitter.emit(mv, it) }
+                    ?: mv.visitInsn(ACONST_NULL)
                 mv.visitInsn(AASTORE)
             }
         }
@@ -704,76 +729,17 @@ internal object StructuredBytecodeCompiler {
         )
         mv.visitVarInsn(ASTORE, 0)
         val directSlice = planDirectStraightLine(statements)
-        val directConditionalSlice = if (directSlice == null) planDirectFinalConditional(statements) else null
-        val directWhileSlice = if (directSlice == null && directConditionalSlice == null) {
-            planDirectFinalWhile(statements)
-        } else {
-            null
-        }
-        val directRepeatSlice = if (
-            directSlice == null && directConditionalSlice == null && directWhileSlice == null
-        ) {
-            planDirectFinalRepeat(statements)
-        } else {
-            null
-        }
-        val directSequenceSlice = if (
-            directSlice == null && directConditionalSlice == null && directWhileSlice == null &&
-            directRepeatSlice == null
-        ) {
-            planDirectFinalSequence(statements)
-        } else {
-            null
-        }
         statements.forEachIndexed { index, sentence ->
             val directPlan = directSlice?.get(index)
             if (directPlan != null) {
                 lowering.emitDirectPlan(mv, directPlan)
-            } else if (directConditionalSlice != null) {
-                if (index < directConditionalSlice.prefix.size) {
-                    lowering.emitDirectPlan(mv, directConditionalSlice.prefix[index])
-                } else {
-                    lowering.emitDirectConditional(
-                        mv,
-                        directConditionalSlice.condition,
-                        directConditionalSlice.consequent,
-                        directConditionalSlice.alternate,
-                    )
-                }
-            } else if (directWhileSlice != null) {
-                if (index < directWhileSlice.prefix.size) {
-                    lowering.emitDirectPlan(mv, directWhileSlice.prefix[index])
-                } else {
-                    lowering.emitDirectWhile(
-                        mv,
-                        directWhileSlice.loop,
-                        directWhileSlice.condition,
-                        directWhileSlice.body,
-                        directWhileSlice.exhausted,
-                        directWhileSlice.resultTarget,
-                    )
-                }
-            } else if (directRepeatSlice != null) {
-                if (index < directRepeatSlice.prefix.size) {
-                    lowering.emitDirectPlan(mv, directRepeatSlice.prefix[index])
-                } else {
-                    lowering.emitDirectPlans(mv, directRepeatSlice.plans)
-                }
-            } else if (directSequenceSlice != null) {
-                if (index < directSequenceSlice.prefix.size) {
-                    lowering.emitDirectPlan(mv, directSequenceSlice.prefix[index])
-                } else {
-                    lowering.emitDirectPlans(mv, directSequenceSlice.plans)
-                }
-            } else {
-                sentence.program?.let {
-                    lowering.emit(
-                        mv,
-                        it,
-                        sentence.text,
-                        allowDirectStore = index == statements.lastIndex,
-                    )
-                }
+            } else sentence.program?.let {
+                lowering.emit(
+                    mv,
+                    it,
+                    sentence.text,
+                    allowDirectStore = index == statements.lastIndex,
+                )
             }
         }
         mv.visitVarInsn(ALOAD, 0)
@@ -805,7 +771,12 @@ internal object StructuredBytecodeCompiler {
                     sentence.text,
                     environment = environment,
                     allowStore = true,
-                ) ?: return null
+                ) ?: DirectLeafPlanner.planAny(
+                    sentence.text,
+                    environment = environment,
+                )?.takeIf {
+                    it.resolved.operation.name in setOf("सूचीसंयोजनम्", "सूचीशोधनम्", "सूचीसङ्क्षेपः")
+                } ?: return null
                 environment = advancePlanningEnvironment(plan, environment) ?: return null
                 add(plan)
             }
