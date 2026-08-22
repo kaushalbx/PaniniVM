@@ -21,6 +21,115 @@ import kotlin.test.assertFailsWith
 
 class StructuredBytecodeCompilerTest {
     @Test
+    fun `implicit tatah print consumes the direct numeric result`() {
+        val source = """
+            परिचय + ल्युट् + सुँ ।
+            एक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥
+
+            द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ततः मुद्र् + णिच् + लोट् + सिप् ।
+        """.trimIndent()
+        val interpreted = PaniniVM().evalScript(source)
+            .filterIsInstance<ExecutionResult.Success>().last().typedValue
+        val bytes = BytecodeCompiler.compile(source, "CompiledDirectTatahPrint")
+        val runtimeCalls = mutableListOf<String>()
+        ClassReader(bytes).accept(
+            object : ClassVisitor(ASM9) {
+                override fun visitMethod(
+                    access: Int,
+                    name: String?,
+                    descriptor: String?,
+                    signature: String?,
+                    exceptions: Array<out String>?,
+                ): MethodVisitor? {
+                    if (name != "execute" || descriptor != "()Ljava/util/Map;") return null
+                    return object : MethodVisitor(ASM9) {
+                        override fun visitMethodInsn(
+                            opcode: Int,
+                            owner: String?,
+                            name: String?,
+                            descriptor: String?,
+                            isInterface: Boolean,
+                        ) {
+                            if (owner == "dev/panini/compiler/CompiledProgramRuntime") {
+                                name?.let(runtimeCalls::add)
+                            }
+                        }
+                    }
+                }
+            },
+            0,
+        )
+        val generated = BytecodeCompiler.PaniniClassLoader(javaClass.classLoader)
+            .loadFromBytes("CompiledDirectTatahPrint", bytes)
+        @Suppress("UNCHECKED_CAST")
+        val values = generated.getMethod("execute").invoke(null) as Map<String, SanskritValue>
+
+        assertEquals(interpreted, values.getValue("LastResult"))
+        assertEquals("पञ्च", values.getValue("LastResult").toDisplayText())
+        assertEquals(2, runtimeCalls.count { it == "executeDirect" }, runtimeCalls.toString())
+        assertTrue("evaluate" !in runtimeCalls, runtimeCalls.toString())
+    }
+
+    @Test
+    fun `print leaf loads previously compiled state directly`() {
+        val source = """
+            परिचय + ल्युट् + सुँ ।
+            एक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥
+
+            सप्त + अम् अवस्था + ङे दा + लोट् + सिप् ।
+            अवस्था + अम् मुद्र् + लोट् + सिप् ।
+        """.trimIndent()
+        val interpreted = PaniniVM().evalScript(source)
+            .filterIsInstance<ExecutionResult.Success>().last().typedValue
+        val bytes = BytecodeCompiler.compile(source, "CompiledDirectStatePrint")
+        val runtimeCalls = mutableListOf<String>()
+        var referencesState = false
+        ClassReader(bytes).accept(
+            object : ClassVisitor(ASM9) {
+                override fun visitMethod(
+                    access: Int,
+                    name: String?,
+                    descriptor: String?,
+                    signature: String?,
+                    exceptions: Array<out String>?,
+                ): MethodVisitor? {
+                    if (name != "execute" || descriptor != "()Ljava/util/Map;") return null
+                    return object : MethodVisitor(ASM9) {
+                        override fun visitLdcInsn(value: Any?) {
+                            if (value == "अवस्था") referencesState = true
+                        }
+
+                        override fun visitMethodInsn(
+                            opcode: Int,
+                            owner: String?,
+                            name: String?,
+                            descriptor: String?,
+                            isInterface: Boolean,
+                        ) {
+                            if (owner == "dev/panini/compiler/CompiledProgramRuntime") {
+                                name?.let(runtimeCalls::add)
+                            }
+                        }
+                    }
+                }
+            },
+            0,
+        )
+        val generated = BytecodeCompiler.PaniniClassLoader(javaClass.classLoader)
+            .loadFromBytes("CompiledDirectStatePrint", bytes)
+        @Suppress("UNCHECKED_CAST")
+        val values = generated.getMethod("execute").invoke(null) as Map<String, SanskritValue>
+
+        assertEquals(interpreted, values.getValue("LastResult"))
+        assertEquals(7L, (values.getValue("अवस्था") as SanskritValue.Sankhya).value)
+        assertEquals("सप्त", values.getValue("LastResult").toDisplayText())
+        assertTrue("executeDirectStore" in runtimeCalls, runtimeCalls.toString())
+        assertTrue("executeDirect" in runtimeCalls, runtimeCalls.toString())
+        assertTrue("evaluate" !in runtimeCalls, runtimeCalls.toString())
+        assertTrue(referencesState)
+    }
+
+    @Test
     fun `simple print leaf executes directly without the interpreter bridge`() {
         val source = """
             परिचय + ल्युट् + सुँ ।
