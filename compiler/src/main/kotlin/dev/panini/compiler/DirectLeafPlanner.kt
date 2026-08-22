@@ -1,5 +1,6 @@
 package dev.panini.compiler
 
+import dev.panini.core.Karaka
 import dev.panini.execution.ExecutionBindingResult
 import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.ExecutionPlan
@@ -25,6 +26,7 @@ internal object DirectLeafPlanner {
         "सङ्ख्याशेषः",
         "सङ्ख्यातुलना",
         "विजयः",
+        "प्रदर्शनम्",
     )
 
     fun plan(
@@ -78,8 +80,23 @@ internal object DirectLeafPlanner {
                         plan.resolved.operation.trigger.requiredAvyayas.isEmpty())) &&
                 (plan.resolved.operation.name != "विजयः" ||
                     plan.resolved.operation.trigger.requiredUpasargas == setOf("वि")) &&
+                (plan.resolved.operation.name != "प्रदर्शनम्" ||
+                    plan.resolved.context.bindings
+                        .filterKeys { it in setOf(Karaka.KARMAN, Karaka.APADANA, Karaka.ADHIKARANA) }
+                        .values.all { isConcrete(it, environment) }) &&
                 plan.resolved.context.bindings.values.all { isEmbeddable(it, environment) }
         } }
+    }
+
+    private fun isConcrete(
+        expression: ExecutionExpression,
+        environment: ValueEnvironment,
+    ): Boolean = when (expression) {
+        is ExecutionExpression.Pada -> expression.value is SanskritValue.Sankhya
+        is ExecutionExpression.TypedOperand -> expression.value is SanskritValue.Sankhya ||
+            expression.value is SanskritValue.Shabda
+        is ExecutionExpression.Coordination -> expression.members.all { isConcrete(it, environment) }
+        is ExecutionExpression.Reference -> expression.name in environment.values
     }
 
     private fun isEmbeddable(
