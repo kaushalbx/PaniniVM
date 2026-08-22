@@ -21,6 +21,58 @@ import kotlin.test.assertFailsWith
 
 class StructuredBytecodeCompilerTest {
     @Test
+    fun `literal numeric condition branches without the interpreter bridge`() {
+        val source = """
+            परिचय + ल्युट् + सुँ ।
+            एक + अम् मुद्र् + लोट् + सिप् ॥
+
+            यदि द्वि + अम् एक + अम् च विद् + लोट् + सिप् तर्हि द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् अन्यथा शून्य + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ।
+        """.trimIndent()
+        val interpreted = PaniniVM().evalScript(source)
+            .filterIsInstance<ExecutionResult.Success>().last().typedValue
+        val bytes = BytecodeCompiler.compile(source, "CompiledLiteralCondition")
+        val executeCalls = mutableListOf<String>()
+        ClassReader(bytes).accept(
+            object : ClassVisitor(ASM9) {
+                override fun visitMethod(
+                    access: Int,
+                    name: String?,
+                    descriptor: String?,
+                    signature: String?,
+                    exceptions: Array<out String>?,
+                ): MethodVisitor? {
+                    if (name != "execute" || descriptor != "()Ljava/util/Map;") return null
+                    return object : MethodVisitor(ASM9) {
+                        override fun visitMethodInsn(
+                            opcode: Int,
+                            owner: String?,
+                            name: String?,
+                            descriptor: String?,
+                            isInterface: Boolean,
+                        ) {
+                            if (owner == "dev/panini/compiler/CompiledProgramRuntime") {
+                                name?.let(executeCalls::add)
+                            }
+                        }
+                    }
+                }
+            },
+            0,
+        )
+        val generated = BytecodeCompiler.PaniniClassLoader(javaClass.classLoader)
+            .loadFromBytes("CompiledLiteralCondition", bytes)
+        @Suppress("UNCHECKED_CAST")
+        val compiled = (generated.getMethod("execute").invoke(null) as Map<String, SanskritValue>)
+            .getValue("LastResult")
+
+        assertEquals(interpreted, compiled)
+        assertEquals(5L, (compiled as SanskritValue.Sankhya).value)
+        assertTrue("executeDirectBoolean" in executeCalls, executeCalls.toString())
+        assertTrue("evaluateBoolean" !in executeCalls, executeCalls.toString())
+        assertTrue("evaluate" !in executeCalls, executeCalls.toString())
+    }
+
+    @Test
     fun `pure numeric leaves execute directly without the interpreter bridge`() {
         val source = """
             परिचय + ल्युट् + सुँ ।

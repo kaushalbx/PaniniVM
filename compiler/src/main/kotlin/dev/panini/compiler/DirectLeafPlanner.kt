@@ -23,6 +23,7 @@ internal object DirectLeafPlanner {
         "सङ्ख्यागुणनम्",
         "सङ्ख्याहरणम्",
         "सङ्ख्याशेषः",
+        "सङ्ख्यातुलना",
     )
 
     fun plan(source: String): ExecutionPlan? {
@@ -53,6 +54,9 @@ internal object DirectLeafPlanner {
             ?.plans ?: return null
         return plans.singleOrNull()?.takeIf { plan ->
             plan.resolved.operation.name in supportedOperations &&
+                (plan.resolved.operation.name != "सङ्ख्यातुलना" ||
+                    (plan.resolved.operation.trigger.requiredUpasargas.isEmpty() &&
+                        plan.resolved.operation.trigger.requiredAvyayas.isEmpty())) &&
                 plan.resolved.context.bindings.values.all(::isEmbeddable)
         }
     }

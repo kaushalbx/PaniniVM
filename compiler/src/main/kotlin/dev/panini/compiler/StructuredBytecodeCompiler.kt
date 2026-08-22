@@ -209,7 +209,7 @@ internal object StructuredBytecodeCompiler {
             }
         }
 
-        private fun emitDirect(mv: MethodVisitor, plan: ExecutionPlan) {
+        private fun emitDirect(mv: MethodVisitor, plan: ExecutionPlan, asBoolean: Boolean = false) {
             val bindings = nextLocal++
             mv.visitTypeInsn(NEW, "java/util/HashMap")
             mv.visitInsn(DUP)
@@ -241,11 +241,15 @@ internal object StructuredBytecodeCompiler {
             mv.visitMethodInsn(
                 INVOKEVIRTUAL,
                 "dev/panini/compiler/CompiledProgramRuntime",
-                "executeDirect",
-                "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Ldev/panini/execution/SanskritValue;",
+                if (asBoolean) "executeDirectBoolean" else "executeDirect",
+                if (asBoolean) {
+                    "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Z"
+                } else {
+                    "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Ldev/panini/execution/SanskritValue;"
+                },
                 false,
             )
-            mv.visitInsn(POP)
+            if (!asBoolean) mv.visitInsn(POP)
         }
 
         private fun emitExpression(mv: MethodVisitor, expression: ExecutionExpression) {
@@ -481,6 +485,11 @@ internal object StructuredBytecodeCompiler {
         }
 
         private fun emitBoolean(mv: MethodVisitor, source: String) {
+            val directPlan = DirectLeafPlanner.plan(source)
+            if (directPlan != null && dev.panini.shiksha.Samjna.SATYA in directPlan.resolved.operation.resultSamjnas) {
+                emitDirect(mv, directPlan, asBoolean = true)
+                return
+            }
             mv.visitVarInsn(ALOAD, 0)
             mv.visitLdcInsn(normalized(source))
             mv.visitMethodInsn(

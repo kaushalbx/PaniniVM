@@ -126,6 +126,15 @@ class CompiledProgramRuntime private constructor(
         return value
     }
 
+    fun executeDirectBoolean(
+        dhatuUpadesha: String,
+        operationName: String,
+        requiredSanadi: String,
+        bindings: Map<Karaka, ExecutionExpression>,
+    ): Boolean = (executeDirect(dhatuUpadesha, operationName, requiredSanadi, bindings)
+        as? SanskritValue.Satya)?.boolean
+        ?: error("A directly compiled condition did not produce सत्य/असत्य: $operationName")
+
     fun evaluateBoolean(source: String): Boolean {
         val result = vm.eval(interpolate(source), sessionKey = sessionKey, scope = frameScope())
         val success = result as? ExecutionResult.Success
