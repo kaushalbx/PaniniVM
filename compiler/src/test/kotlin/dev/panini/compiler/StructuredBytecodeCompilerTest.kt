@@ -19,6 +19,31 @@ import kotlin.test.assertFailsWith
 
 class StructuredBytecodeCompilerTest {
     @Test
+    fun `recursive generated samjna calls unwind and resume top-level execution`() {
+        val source = """
+            हृ + ल्युट् + सुँ ।
+            अवस्था + अम् एक + अम् च वि + युज् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् अवस्था + ङे ।
+            गण् + ल्युट् + टा कृ + लोट् + सिप् ॥
+
+            गण् + ल्युट् + सुँ ।
+            यदि अवस्था + अम् शून्य + अम् च विद् + लोट् + सिप् तर्हि हृ + ल्युट् + टा कृ + लोट् + सिप् अन्यथा वि + स्था + लोट् + सिप् ॥
+
+            त्रि + अम् अवस्था + ङे दा + लोट् + सिप् ।
+            गण् + ल्युट् + टा कृ + लोट् + सिप् ।
+            मुद्र् + णिच् + लोट् + सिप् अवस्था + अम् ।
+        """.trimIndent()
+        val interpreted = PaniniVM().evalScript(source)
+            .filterIsInstance<ExecutionResult.Success>().last().typedValue
+        val generated = BytecodeCompiler.compileAndLoad(source, "CompiledRecursiveCountdown")
+        @Suppress("UNCHECKED_CAST")
+        val compiled = (generated.getMethod("execute").invoke(null) as Map<String, SanskritValue>)
+            .getValue("LastResult")
+
+        assertEquals(interpreted, compiled)
+        assertEquals("शून्यम्", compiled.toDisplayText())
+    }
+
+    @Test
     fun `compiled named calls enforce signatures and prohibitions`() {
         val wrongType = """
             द्विगुणन + ल्युट् + सुँ ।
