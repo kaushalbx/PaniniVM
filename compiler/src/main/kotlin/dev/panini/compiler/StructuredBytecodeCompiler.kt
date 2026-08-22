@@ -146,6 +146,13 @@ internal object StructuredBytecodeCompiler {
             mv.visitLabel(end)
         }
 
+        fun emitDirectWhile(
+            mv: MethodVisitor,
+            node: WhileLoop,
+            condition: ExecutionPlan,
+            body: ExecutionPlan,
+        ) = emitWhile(mv, node, condition, body)
+
         private fun emitSequence(mv: MethodVisitor, node: Sequence, exactSource: String?) {
             val hasGeneratedStage = node.statements.drop(1).any { statement ->
                 if (statement !is Invocation) return@any false
@@ -385,7 +392,12 @@ internal object StructuredBytecodeCompiler {
             mv.visitLabel(end)
         }
 
-        private fun emitWhile(mv: MethodVisitor, node: WhileLoop) {
+        private fun emitWhile(
+            mv: MethodVisitor,
+            node: WhileLoop,
+            directCondition: ExecutionPlan? = null,
+            directBody: ExecutionPlan? = null,
+        ) {
             val condition = Label()
             val victory = Label()
             val exhausted = Label()
@@ -420,7 +432,11 @@ internal object StructuredBytecodeCompiler {
                 mv.visitVarInsn(ILOAD, latestCondition)
                 mv.visitJumpInsn(if (isNegated) IFNE else IFEQ, victory)
             } else {
-                emitBoolean(mv, render(node.condition))
+                if (directCondition != null) {
+                    emitDirect(mv, directCondition, asBoolean = true)
+                } else {
+                    emitBoolean(mv, render(node.condition))
+                }
                 mv.visitJumpInsn(IFEQ, victory)
             }
             mv.visitVarInsn(ALOAD, 0)
@@ -441,7 +457,7 @@ internal object StructuredBytecodeCompiler {
                     false,
                 )
             }
-            emit(mv, node.body)
+            if (directBody != null) emitDirect(mv, directBody) else emit(mv, node.body)
             mv.visitVarInsn(LLOAD, counter)
             mv.visitInsn(LCONST_1)
             mv.visitInsn(LADD)
@@ -665,6 +681,11 @@ internal object StructuredBytecodeCompiler {
         mv.visitVarInsn(ASTORE, 0)
         val directSlice = planDirectStraightLine(statements)
         val directConditionalSlice = if (directSlice == null) planDirectFinalConditional(statements) else null
+        val directWhileSlice = if (directSlice == null && directConditionalSlice == null) {
+            planDirectFinalWhile(statements)
+        } else {
+            null
+        }
         statements.forEachIndexed { index, sentence ->
             val directPlan = directSlice?.get(index)
             if (directPlan != null) {
@@ -678,6 +699,17 @@ internal object StructuredBytecodeCompiler {
                         directConditionalSlice.condition,
                         directConditionalSlice.consequent,
                         directConditionalSlice.alternate,
+                    )
+                }
+            } else if (directWhileSlice != null) {
+                if (index < directWhileSlice.prefix.size) {
+                    lowering.emitDirectPlan(mv, directWhileSlice.prefix[index])
+                } else {
+                    lowering.emitDirectWhile(
+                        mv,
+                        directWhileSlice.loop,
+                        directWhileSlice.condition,
+                        directWhileSlice.body,
                     )
                 }
             } else {
@@ -783,6 +815,50 @@ internal object StructuredBytecodeCompiler {
         val condition: ExecutionPlan,
         val consequent: ExecutionPlan,
         val alternate: ExecutionPlan?,
+    )
+
+    /** Directly lowers a final simple state loop after a fully direct initialization prefix. */
+    private fun planDirectFinalWhile(
+        statements: List<PvmScriptStatement.Sentence>,
+    ): DirectFinalWhile? {
+        if (statements.size < 2) return null
+        val loop = statements.last().program as? WhileLoop ?: return null
+        val body = loop.body as? Invocation ?: return null
+        if (loop.exhausted != null || loop.resultTarget != null) return null
+        val usesLatestResult = loop.condition.vakya.padas.any { pada ->
+            pada is dev.panini.vyakaranam.ast.SubantaPada &&
+                pada.pratipadika.sourceText.substringBefore('+').trim() == "फल"
+        }
+        if (usesLatestResult) return null
+        var environment = ValueEnvironment()
+        val prefix = buildList {
+            for (sentence in statements.dropLast(1)) {
+                if (sentence.program !is Invocation) return null
+                val plan = DirectLeafPlanner.plan(
+                    sentence.text,
+                    environment = environment,
+                    allowStore = true,
+                ) ?: return null
+                environment = advancePlanningEnvironment(plan, environment) ?: return null
+                add(plan)
+            }
+        }
+        val conditionPlan = DirectLeafPlanner.plan(render(loop.condition), environment)
+            ?.takeIf { dev.panini.shiksha.Samjna.SATYA in it.resolved.operation.resultSamjnas }
+            ?: return null
+        val bodyPlan = DirectLeafPlanner.plan(
+            render(body),
+            environment = environment,
+            allowStore = true,
+        ) ?: return null
+        return DirectFinalWhile(prefix, loop, conditionPlan, bodyPlan)
+    }
+
+    private data class DirectFinalWhile(
+        val prefix: List<ExecutionPlan>,
+        val loop: WhileLoop,
+        val condition: ExecutionPlan,
+        val body: ExecutionPlan,
     )
 
 }

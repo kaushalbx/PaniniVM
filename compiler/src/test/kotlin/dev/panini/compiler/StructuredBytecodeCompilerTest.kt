@@ -21,6 +21,62 @@ import kotlin.test.assertFailsWith
 
 class StructuredBytecodeCompilerTest {
     @Test
+    fun `bounded state loop loads and stores directly`() {
+        val source = """
+            परिचय + ल्युट् + सुँ ।
+            एक + अम् मुद्र् + लोट् + सिप् ॥
+
+            द्वि + अम् अवस्था + ङे दा + लोट् + सिप् ।
+            त्रि + कृत्वः यावत् अवस्था + अम् शून्य + अम् च विद् + लोट् + सिप् तावत् शून्य + अम् अवस्था + ङे दा + लोट् + सिप् ।
+        """.trimIndent()
+        val interpreted = PaniniVM().evalScript(source)
+            .filterIsInstance<ExecutionResult.Success>().last().typedValue
+        val bytes = BytecodeCompiler.compile(source, "CompiledDirectStateLoop")
+        val executeCalls = mutableListOf<String>()
+        ClassReader(bytes).accept(
+            object : ClassVisitor(ASM9) {
+                override fun visitMethod(
+                    access: Int,
+                    name: String?,
+                    descriptor: String?,
+                    signature: String?,
+                    exceptions: Array<out String>?,
+                ): MethodVisitor? {
+                    if (name != "execute" || descriptor != "()Ljava/util/Map;") return null
+                    return object : MethodVisitor(ASM9) {
+                        override fun visitMethodInsn(
+                            opcode: Int,
+                            owner: String?,
+                            name: String?,
+                            descriptor: String?,
+                            isInterface: Boolean,
+                        ) {
+                            if (owner == "dev/panini/compiler/CompiledProgramRuntime") {
+                                name?.let(executeCalls::add)
+                            }
+                        }
+                    }
+                }
+            },
+            0,
+        )
+        val generated = BytecodeCompiler.PaniniClassLoader(javaClass.classLoader)
+            .loadFromBytes("CompiledDirectStateLoop", bytes)
+        @Suppress("UNCHECKED_CAST")
+        val values = generated.getMethod("execute").invoke(null) as Map<String, SanskritValue>
+
+        assertEquals(interpreted, values.getValue("LastResult"))
+        assertEquals(0L, (values.getValue("अवस्था") as SanskritValue.Sankhya).value)
+        val outcome = values.getValue("परिणाम") as SanskritValue.Rupa
+        assertEquals("विजय", outcome.fields.getValue("अवस्था").toDisplayText())
+        assertEquals(1L, (outcome.fields.getValue("प्रयत्नसङ्ख्या") as SanskritValue.Sankhya).value)
+        assertTrue(executeCalls.count { it == "executeDirectStore" } == 2, executeCalls.toString())
+        assertTrue("executeDirectBoolean" in executeCalls, executeCalls.toString())
+        assertTrue("evaluateBoolean" !in executeCalls, executeCalls.toString())
+        assertTrue("evaluate" !in executeCalls, executeCalls.toString())
+    }
+
+    @Test
     fun `assigned state feeds a directly compiled final conditional`() {
         val source = """
             परिचय + ल्युट् + सुँ ।
