@@ -283,7 +283,15 @@ internal object StructuredBytecodeCompiler {
             asBoolean: Boolean = false,
             asLoopTarget: Boolean = false,
         ) {
-            if (plan.resolved.operation.name == "विजयः") {
+            val instruction = CompilerIrLowering.lowerLeaf(
+                plan,
+                resultMode = when {
+                    asBoolean -> CallResultMode.BOOLEAN
+                    asLoopTarget -> CallResultMode.LOOP_TARGET
+                    else -> CallResultMode.VALUE
+                },
+            )
+            if (instruction == CompilerInstruction.RequestBreak) {
                 mv.visitVarInsn(ALOAD, 0)
                 mv.visitMethodInsn(
                     INVOKEVIRTUAL,
@@ -295,17 +303,14 @@ internal object StructuredBytecodeCompiler {
                 mv.visitInsn(POP)
                 return
             }
-            val bindingName = if (asBoolean || asLoopTarget) null else plan.resolved.operation.resultBindingKaraka
-                ?.let { karaka ->
-                    plan.resolved.context.bindings[karaka]?.bindingName()
-                        ?: plan.resolved.invocation.bindings[karaka]?.bindingName()
-                }
+            val call = instruction as CompilerInstruction.Call
+            val bindingName = call.destination
             val bindings = nextLocal++
             mv.visitTypeInsn(NEW, "java/util/HashMap")
             mv.visitInsn(DUP)
             mv.visitMethodInsn(INVOKESPECIAL, "java/util/HashMap", "<init>", "()V", false)
             mv.visitVarInsn(ASTORE, bindings)
-            plan.resolved.context.bindings.forEach { (karaka, expression) ->
+            call.bindings.forEach { (karaka, expression) ->
                 mv.visitVarInsn(ALOAD, bindings)
                 mv.visitFieldInsn(
                     GETSTATIC,
@@ -324,29 +329,29 @@ internal object StructuredBytecodeCompiler {
                 mv.visitInsn(POP)
             }
             mv.visitVarInsn(ALOAD, 0)
-            mv.visitLdcInsn(plan.resolved.invocation.dhatu.upadesha)
-            mv.visitLdcInsn(plan.resolved.operation.name)
-            mv.visitLdcInsn(plan.resolved.operation.trigger.requiredSanadi.sorted().joinToString(","))
+            mv.visitLdcInsn(call.dhatuUpadesha)
+            mv.visitLdcInsn(call.operationName)
+            mv.visitLdcInsn(call.requiredSanadi)
             mv.visitVarInsn(ALOAD, bindings)
             if (bindingName != null) mv.visitLdcInsn(bindingName)
             mv.visitMethodInsn(
                 INVOKEVIRTUAL,
                 "dev/panini/compiler/CompiledProgramRuntime",
                 when {
-                    asBoolean -> "executeDirectBoolean"
-                    asLoopTarget -> "executeDirectLoopTarget"
+                    call.resultMode == CallResultMode.BOOLEAN -> "executeDirectBoolean"
+                    call.resultMode == CallResultMode.LOOP_TARGET -> "executeDirectLoopTarget"
                     bindingName != null -> "executeDirectStore"
                     else -> "executeDirect"
                 },
                 when {
-                    asBoolean -> "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Z"
-                    asLoopTarget -> "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Ldev/panini/execution/SanskritValue;"
+                    call.resultMode == CallResultMode.BOOLEAN -> "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Z"
+                    call.resultMode == CallResultMode.LOOP_TARGET -> "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Ldev/panini/execution/SanskritValue;"
                     bindingName != null -> "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;)Ldev/panini/execution/SanskritValue;"
                     else -> "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Ldev/panini/execution/SanskritValue;"
                 },
                 false,
             )
-            if (!asBoolean) mv.visitInsn(POP)
+            if (call.resultMode != CallResultMode.BOOLEAN) mv.visitInsn(POP)
         }
 
         private fun emitExpression(mv: MethodVisitor, expression: ExecutionExpression) {
