@@ -21,6 +21,74 @@ import kotlin.test.assertFailsWith
 
 class StructuredBytecodeCompilerTest {
     @Test
+    fun `state backed list transformations execute directly`() {
+        val cases = listOf(
+            CollectionCase(
+                name = "Reverse",
+                operation = "सूची + अम् प्रति + वृत् + लोट् + सिप्",
+                expected = listOf(3L, 2L, 1L),
+            ),
+            CollectionCase(
+                name = "Append",
+                operation = "सूची + अम् चतुर् + अम् च क्षिप् + लोट् + सिप्",
+                expected = listOf(1L, 2L, 3L, 4L),
+            ),
+            CollectionCase(
+                name = "Slice",
+                operation = "सूची + अम् द्वि + टा त्रि + ङे भज् + लोट् + सिप्",
+                expected = listOf(2L, 3L),
+            ),
+        )
+
+        cases.forEach { case ->
+            val source = collectionProgram(case.operation)
+            val interpretedResults = PaniniVM().evalScript(source)
+            assertTrue(interpretedResults.none { it is ExecutionResult.Failure }, interpretedResults.toString())
+            val interpreted = interpretedResults.filterIsInstance<ExecutionResult.Success>().last().typedValue
+            val compiled = compileAndInspect(source, "CompiledDirectList${case.name}")
+
+            assertEquals(interpreted, compiled.values.getValue("LastResult"), case.name)
+            val result = compiled.values.getValue("LastResult") as SanskritValue.Suchi
+            assertEquals(case.expected, result.items.map { (it as SanskritValue.Sankhya).value }, case.name)
+            assertTrue("evaluate" !in compiled.runtimeCalls, "$case: ${compiled.runtimeCalls}")
+        }
+    }
+
+    @Test
+    fun `state backed list pop executes directly`() {
+        val source = collectionProgram("सूची + अम् उद् + हृ + लोट् + सिप्")
+        val interpretedResults = PaniniVM().evalScript(source)
+        assertTrue(interpretedResults.none { it is ExecutionResult.Failure }, interpretedResults.toString())
+        val interpreted = interpretedResults.filterIsInstance<ExecutionResult.Success>().last().typedValue
+        val compiled = compileAndInspect(source, "CompiledDirectListPop")
+
+        assertEquals(interpreted, compiled.values.getValue("LastResult"))
+        assertEquals(3L, (compiled.values.getValue("LastResult") as SanskritValue.Sankhya).value)
+        assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
+    }
+
+    @Test
+    fun `two stored lists concatenate directly`() {
+        val source = """
+            परिचय + ल्युट् + सुँ ।
+            एक + अम् मुद्र् + लोट् + सिप् ॥
+
+            एक + अम् द्वि + अम् च प्रथमा + ङे दा + लोट् + सिप् ।
+            त्रि + अम् चतुर् + अम् च द्वितीया + ङे दा + लोट् + सिप् ।
+            प्रथमा + अम् द्वितीया + ङे सृज् + लोट् + सिप् ।
+        """.trimIndent()
+        val interpretedResults = PaniniVM().evalScript(source)
+        assertTrue(interpretedResults.none { it is ExecutionResult.Failure }, interpretedResults.toString())
+        val interpreted = interpretedResults.filterIsInstance<ExecutionResult.Success>().last().typedValue
+        val compiled = compileAndInspect(source, "CompiledDirectListConcat")
+
+        assertEquals(interpreted, compiled.values.getValue("LastResult"))
+        val result = compiled.values.getValue("LastResult") as SanskritValue.Suchi
+        assertEquals(listOf(1L, 2L, 3L, 4L), result.items.map { (it as SanskritValue.Sankhya).value })
+        assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
+    }
+
+    @Test
     fun `constructed list and length execute directly`() {
         val source = """
             परिचय + ल्युट् + सुँ ।
@@ -1263,5 +1331,19 @@ class StructuredBytecodeCompilerTest {
     private data class CompiledExecution(
         val values: Map<String, SanskritValue>,
         val runtimeCalls: List<String>,
+    )
+
+    private fun collectionProgram(operation: String): String = """
+        परिचय + ल्युट् + सुँ ।
+        एक + अम् मुद्र् + लोट् + सिप् ॥
+
+        एक + अम् द्वि + अम् त्रि + अम् च सूची + ङे दा + लोट् + सिप् ।
+        $operation ।
+    """.trimIndent()
+
+    private data class CollectionCase(
+        val name: String,
+        val operation: String,
+        val expected: List<Long>,
     )
 }
