@@ -3,6 +3,7 @@ package dev.panini.compiler
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.ExecutionControlSignal
 import dev.panini.execution.ExecutionExpression
+import dev.panini.execution.ExecutionError
 import dev.panini.execution.ExecutionScope
 import dev.panini.execution.NamedSamjnaParameterResolver
 import dev.panini.execution.PaniniVM
@@ -44,7 +45,10 @@ class CompiledProgramRuntime private constructor(
     }
 
     fun requireReportedCondition(): Boolean = reportedCondition
-        ?: error("A compiled फल-controlled loop body must produce a truth value.")
+        ?: throw CompiledPaniniExecutionException(
+            ExecutionError.INVALID_VALUE,
+            "A compiled फल-controlled loop body must produce a truth value.",
+        )
 
     fun publishLoopOutcome(outcome: String, iterations: Long) {
         val outcomeValue = SanskritValue.Shabda(outcome)
@@ -105,7 +109,7 @@ class CompiledProgramRuntime private constructor(
     fun evaluate(source: String): SanskritValue {
         val result = vm.eval(interpolate(source), sessionKey = sessionKey, scope = frameScope())
         val success = result as? ExecutionResult.Success
-            ?: error("Compiled PaniniVM operation failed: $result")
+            ?: throw CompiledPaniniExecutionException.from(result, source)
         if (success.controlSignal == ExecutionControlSignal.BREAK_LOOP) breakRequested = true
         val value = success.typedValue ?: SanskritValue.of(success.value)
         success.conditionValue?.let { reportedCondition = it }
@@ -174,9 +178,13 @@ class CompiledProgramRuntime private constructor(
     fun evaluateBoolean(source: String): Boolean {
         val result = vm.eval(interpolate(source), sessionKey = sessionKey, scope = frameScope())
         val success = result as? ExecutionResult.Success
-            ?: error("Compiled PaniniVM condition failed: $result")
+            ?: throw CompiledPaniniExecutionException.from(result, source)
         val condition = success.conditionValue ?: (success.typedValue as? SanskritValue.Satya)?.boolean
-        return condition ?: error("Compiled PaniniVM condition did not produce सत्य/असत्य: $source")
+        return condition ?: throw CompiledPaniniExecutionException(
+            ExecutionError.INVALID_VALUE,
+            "Compiled PaniniVM condition did not produce सत्य/असत्य: $source",
+            success.trace,
+        )
     }
 
     fun snapshot(): Map<String, SanskritValue> = LinkedHashMap(values)

@@ -21,6 +21,27 @@ import kotlin.test.assertFailsWith
 
 class StructuredBytecodeCompilerTest {
     @Test
+    fun `compiled execution preserves interpreter failure details`() {
+        val source = """
+            परिचय + ल्युट् + सुँ ।
+            एक + अम् मुद्र् + लोट् + सिप् ॥
+
+            एक + अम् द्वि + अम् त्रि + अम् च चतुर् + टा स्था + लोट् + सिप् ।
+        """.trimIndent()
+        val interpreted = PaniniVM().evalScript(source).filterIsInstance<ExecutionResult.Failure>().last()
+        val generated = BytecodeCompiler.compileAndLoad(source, "CompiledInvalidListIndex")
+
+        val invocation = assertFailsWith<InvocationTargetException> {
+            generated.getMethod("execute").invoke(null)
+        }
+        val compiled = invocation.targetException as CompiledPaniniExecutionException
+
+        assertEquals(interpreted.error, compiled.error)
+        assertEquals(interpreted.message, compiled.message)
+        assertEquals(interpreted.trace, compiled.trace)
+    }
+
+    @Test
     fun `state backed for each accumulation executes directly`() {
         val source = collectionProgram("सूची + अम् यु + टा दशन् + ङे अनु + वृत् + लोट् + सिप्")
         val interpretedResults = PaniniVM().evalScript(source)

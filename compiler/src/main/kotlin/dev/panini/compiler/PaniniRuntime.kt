@@ -135,9 +135,9 @@ object PaniniRuntime {
                 value
             }
             is ExecutionResult.Failure -> {
-                error("PaniniVM Execution Error: ${result.error} - ${result.message}")
+                throw CompiledPaniniExecutionException.from(result, operation.name)
             }
-            else -> error("Execution resulted in unhandled state: $result")
+            else -> throw CompiledPaniniExecutionException.from(result, operation.name)
         }
     }
 }
