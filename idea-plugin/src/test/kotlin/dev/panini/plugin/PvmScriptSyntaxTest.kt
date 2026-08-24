@@ -8,7 +8,7 @@ import kotlin.test.assertTrue
 class PvmScriptSyntaxTest {
     @Test
     fun `number game procedure is valid as a multi-sentence pvm script`() {
-        val source = File("projects/sankhya-anumana-krida/mukhya.pvm").readText()
+        val source = File("projects/number-guessing-game/number_guessing_game.pvm").readText()
 
         assertTrue(PvmScript.parse(source).isNotEmpty())
     }
