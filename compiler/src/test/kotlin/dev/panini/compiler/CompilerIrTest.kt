@@ -11,6 +11,27 @@ import kotlin.test.assertTrue
 
 class CompilerIrTest {
     @Test
+    fun `procedure call IR carries frame arguments and structured values`() {
+        val value = SanskritValue.Sankhya(2L, "द्वे")
+        val call = CompilerInstruction.ProcedureCall(
+            methodName = "samjna_0",
+            parameterNames = listOf("मान"),
+            arguments = listOf("द्वि"),
+            argumentValues = listOf(value),
+        )
+
+        assertEquals("samjna_0", call.methodName)
+        assertEquals(listOf("मान"), call.parameterNames)
+        assertEquals(listOf(value), call.argumentValues)
+    }
+
+    @Test
+    fun `return and break guard are explicit IR instructions`() {
+        assertIs<CompilerInstruction.Return>(CompilerInstruction.Return)
+        assertIs<CompilerInstruction.ReturnIfBreak>(CompilerInstruction.ReturnIfBreak)
+    }
+
+    @Test
     fun `conditional lowers to branch labels and jump`() {
         val condition = CompilerInstruction.Call(
             dhatuUpadesha = "condition",

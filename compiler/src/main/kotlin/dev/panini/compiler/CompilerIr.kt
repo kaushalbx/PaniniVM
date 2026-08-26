@@ -3,6 +3,7 @@ package dev.panini.compiler
 import dev.panini.core.Karaka
 import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.ExecutionPlan
+import dev.panini.execution.SanskritValue
 import dev.panini.execution.bindingName
 
 /** Backend-neutral instructions produced after grammatical planning. */
@@ -18,6 +19,13 @@ internal sealed interface CompilerInstruction {
         val bindings: Map<Karaka, ExecutionExpression>,
         val destination: String? = null,
         val resultMode: CallResultMode = CallResultMode.VALUE,
+    ) : CompilerInstruction
+
+    data class ProcedureCall(
+        val methodName: String,
+        val parameterNames: List<String>,
+        val arguments: List<String>,
+        val argumentValues: List<SanskritValue?>,
     ) : CompilerInstruction
 
     data object Compare : CompilerInstruction
@@ -51,6 +59,8 @@ internal sealed interface CompilerInstruction {
     data object RequestBreak : CompilerInstruction
 
     data object Return : CompilerInstruction
+
+    data object ReturnIfBreak : CompilerInstruction
 }
 
 internal enum class CallResultMode {

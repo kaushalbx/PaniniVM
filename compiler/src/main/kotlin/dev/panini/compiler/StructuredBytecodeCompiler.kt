@@ -11,9 +11,7 @@ import dev.panini.execution.SamjnaValueClassifier
 import dev.panini.execution.DynamicNishedhaEvaluator
 import dev.panini.execution.PuranaPratyayaResolver
 import dev.panini.execution.SamjnaSignatureCompiler
-import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.ExecutionPlan
-import dev.panini.execution.SanskritValue
 import dev.panini.execution.ValueEnvironment
 import dev.panini.execution.bindingName
 import dev.panini.vyakaranam.ast.Conditional
@@ -27,7 +25,6 @@ import dev.panini.vyakaranam.ast.Scope
 import dev.panini.vyakaranam.ast.Sequence
 import dev.panini.vyakaranam.ast.WhileLoop
 import org.objectweb.asm.ClassWriter
-import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.*
 
@@ -86,7 +83,7 @@ internal object StructuredBytecodeCompiler {
                     lowering.emitReturnIfBreak(mv)
                 }
             }
-            mv.visitInsn(RETURN)
+            lowering.emitReturn(mv)
             mv.visitMaxs(0, 0)
             mv.visitEnd()
         }
@@ -130,189 +127,13 @@ internal object StructuredBytecodeCompiler {
 
         fun emitDirectPlan(mv: MethodVisitor, plan: ExecutionPlan) = emitDirect(mv, plan)
 
-        fun emitDirectConditional(
-            mv: MethodVisitor,
-            condition: ExecutionPlan,
-            consequent: ExecutionPlan,
-            alternate: ExecutionPlan?,
-        ) {
-            val id = nextLabel++
-            val instructions = CompilerIrLowering.lowerConditional(
-                condition = CompilerIrLowering.lowerLeaf(
-                    condition,
-                    CallResultMode.BOOLEAN,
-                ) as CompilerInstruction.Call,
-                consequent = listOf(CompilerIrLowering.lowerLeaf(consequent)),
-                alternate = alternate?.let { listOf(CompilerIrLowering.lowerLeaf(it)) }.orEmpty(),
-                labelPrefix = "conditional_$id",
-            )
-            emitIr(mv, instructions)
-        }
-
         private fun emitIr(mv: MethodVisitor, instructions: List<CompilerInstruction>) {
-            CompilerIrVerifier.verify(instructions)
-            val labels = instructions.filterIsInstance<CompilerInstruction.Label>()
-                .associate { it.name to Label() }
-            val counters = instructions.mapNotNull {
-                when (it) {
-                    is CompilerInstruction.InitializeCounter -> it.name
-                    is CompilerInstruction.TestCounter -> it.name
-                    is CompilerInstruction.IncrementCounter -> it.name
-                    else -> null
-                }
-            }.distinct().associateWith {
+            CompilerIrJvmEmitter(className, mv) { width ->
                 val local = nextLocal
-                nextLocal += 2
+                nextLocal += width
                 local
-            }
-            val loopConditions = instructions.mapNotNull {
-                when (it) {
-                    is CompilerInstruction.InitializeLoopCondition -> it.name
-                    is CompilerInstruction.TestLoopCondition -> it.name
-                    is CompilerInstruction.CaptureReportedCondition -> it.name
-                    else -> null
-                }
-            }.distinct().associateWith { nextLocal++ }
-            instructions.forEach { instruction ->
-                when (instruction) {
-                    is CompilerInstruction.Call -> emitCall(mv, instruction)
-                    is CompilerInstruction.Branch -> mv.visitJumpInsn(
-                        if (instruction.whenTrue) IFNE else IFEQ,
-                        requireNotNull(labels[instruction.target]),
-                    )
-                    is CompilerInstruction.Jump -> mv.visitJumpInsn(
-                        GOTO,
-                        requireNotNull(labels[instruction.target]),
-                    )
-                    is CompilerInstruction.Label -> mv.visitLabel(requireNotNull(labels[instruction.name]))
-                    is CompilerInstruction.InitializeCounter -> {
-                        mv.visitInsn(LCONST_0)
-                        mv.visitVarInsn(LSTORE, requireNotNull(counters[instruction.name]))
-                    }
-                    is CompilerInstruction.TestCounter -> {
-                        val isBelowLimit = Label()
-                        val complete = Label()
-                        mv.visitVarInsn(LLOAD, requireNotNull(counters[instruction.name]))
-                        mv.visitLdcInsn(instruction.limit)
-                        mv.visitInsn(LCMP)
-                        mv.visitJumpInsn(IFLT, isBelowLimit)
-                        mv.visitInsn(ICONST_0)
-                        mv.visitJumpInsn(GOTO, complete)
-                        mv.visitLabel(isBelowLimit)
-                        mv.visitInsn(ICONST_1)
-                        mv.visitLabel(complete)
-                    }
-                    is CompilerInstruction.IncrementCounter -> {
-                        val counter = requireNotNull(counters[instruction.name])
-                        mv.visitVarInsn(LLOAD, counter)
-                        mv.visitInsn(LCONST_1)
-                        mv.visitInsn(LADD)
-                        mv.visitVarInsn(LSTORE, counter)
-                    }
-                    CompilerInstruction.ConsumeBreak -> {
-                        mv.visitVarInsn(ALOAD, 0)
-                        mv.visitMethodInsn(
-                            INVOKEVIRTUAL,
-                            "dev/panini/compiler/CompiledProgramRuntime",
-                            "consumeBreak",
-                            "()Z",
-                            false,
-                        )
-                    }
-                    CompilerInstruction.EnterConditionIteration -> {
-                        mv.visitVarInsn(ALOAD, 0)
-                        mv.visitMethodInsn(
-                            INVOKEVIRTUAL,
-                            "dev/panini/compiler/CompiledProgramRuntime",
-                            "enterConditionIteration",
-                            "()V",
-                            false,
-                        )
-                    }
-                    is CompilerInstruction.PublishLoopOutcome -> {
-                        mv.visitVarInsn(ALOAD, 0)
-                        mv.visitLdcInsn(instruction.outcome)
-                        mv.visitVarInsn(LLOAD, requireNotNull(counters[instruction.counter]))
-                        mv.visitMethodInsn(
-                            INVOKEVIRTUAL,
-                            "dev/panini/compiler/CompiledProgramRuntime",
-                            "publishLoopOutcome",
-                            "(Ljava/lang/String;J)V",
-                            false,
-                        )
-                    }
-                    is CompilerInstruction.InitializeLoopCondition -> {
-                        mv.visitInsn(ICONST_0)
-                        mv.visitVarInsn(ISTORE, requireNotNull(loopConditions[instruction.name]))
-                    }
-                    is CompilerInstruction.TestLoopCondition -> {
-                        val local = requireNotNull(loopConditions[instruction.name])
-                        mv.visitVarInsn(ILOAD, local)
-                        if (!instruction.negated) {
-                            val isTrue = Label()
-                            val complete = Label()
-                            mv.visitJumpInsn(IFNE, isTrue)
-                            mv.visitInsn(ICONST_0)
-                            mv.visitJumpInsn(GOTO, complete)
-                            mv.visitLabel(isTrue)
-                            mv.visitInsn(ICONST_1)
-                            mv.visitLabel(complete)
-                        } else {
-                            val isFalse = Label()
-                            val complete = Label()
-                            mv.visitJumpInsn(IFEQ, isFalse)
-                            mv.visitInsn(ICONST_0)
-                            mv.visitJumpInsn(GOTO, complete)
-                            mv.visitLabel(isFalse)
-                            mv.visitInsn(ICONST_1)
-                            mv.visitLabel(complete)
-                        }
-                    }
-                    CompilerInstruction.ClearReportedCondition -> {
-                        mv.visitVarInsn(ALOAD, 0)
-                        mv.visitMethodInsn(
-                            INVOKEVIRTUAL,
-                            "dev/panini/compiler/CompiledProgramRuntime",
-                            "clearReportedCondition",
-                            "()V",
-                            false,
-                        )
-                    }
-                    is CompilerInstruction.CaptureReportedCondition -> {
-                        mv.visitVarInsn(ALOAD, 0)
-                        mv.visitMethodInsn(
-                            INVOKEVIRTUAL,
-                            "dev/panini/compiler/CompiledProgramRuntime",
-                            "requireReportedCondition",
-                            "()Z",
-                            false,
-                        )
-                        mv.visitVarInsn(ISTORE, requireNotNull(loopConditions[instruction.name]))
-                    }
-                    CompilerInstruction.RequestBreak -> {
-                        mv.visitVarInsn(ALOAD, 0)
-                        mv.visitMethodInsn(
-                            INVOKEVIRTUAL,
-                            "dev/panini/compiler/CompiledProgramRuntime",
-                            "requestBreak",
-                            "()Ldev/panini/execution/SanskritValue;",
-                            false,
-                        )
-                        mv.visitInsn(POP)
-                    }
-                    else -> error("IR instruction is not supported by the JVM backend yet: $instruction")
-                }
-            }
+            }.emit(instructions)
         }
-
-        fun emitDirectWhile(
-            mv: MethodVisitor,
-            node: WhileLoop,
-            condition: ExecutionPlan,
-            body: ExecutionPlan,
-            exhausted: ExecutionPlan?,
-            resultTarget: ExecutionPlan?,
-        ) = emitWhile(mv, node, condition, body, exhausted, resultTarget)
 
         fun emitDirectPlans(mv: MethodVisitor, plans: List<ExecutionPlan>) =
             plans.forEach { emitDirect(mv, it) }
@@ -334,19 +155,10 @@ internal object StructuredBytecodeCompiler {
         }
 
         fun emitReturnIfBreak(mv: MethodVisitor) {
-            val continueExecution = Label()
-            mv.visitVarInsn(ALOAD, 0)
-            mv.visitMethodInsn(
-                INVOKEVIRTUAL,
-                "dev/panini/compiler/CompiledProgramRuntime",
-                "isBreakRequested",
-                "()Z",
-                false,
-            )
-            mv.visitJumpInsn(IFEQ, continueExecution)
-            mv.visitInsn(RETURN)
-            mv.visitLabel(continueExecution)
+            emitIr(mv, listOf(CompilerInstruction.ReturnIfBreak))
         }
+
+        fun emitReturn(mv: MethodVisitor) = emitIr(mv, listOf(CompilerInstruction.Return))
 
         private fun emitInvocation(
             mv: MethodVisitor,
@@ -362,30 +174,19 @@ internal object StructuredBytecodeCompiler {
                 val count = dev.panini.sankhya.SankhyaEvaluator()
                     .evaluateStems(listOf(repetition.groupValues[1])).value.toInt()
                 val repeatedSource = normalized(repetition.groupValues[2])
-                DirectLeafPlanner.planAny(repeatedSource)?.let { plan ->
-                    emitIr(
-                        mv,
-                        CompilerIrLowering.lowerRepeat(
-                            count = count,
-                            body = listOf(CompilerIrLowering.lowerLeaf(plan)),
-                            namePrefix = "repeat_${nextLabel++}",
-                        ),
-                    )
-                    return
+                val repeatedInstruction = lowerProcedureCall(repeatedSource)
+                    ?: DirectLeafPlanner.planAny(repeatedSource)?.let(CompilerIrLowering::lowerLeaf)
+                val instruction = requireNotNull(repeatedInstruction) {
+                    "The JVM compiler cannot lower repeated invocation to IR: $repeatedSource"
                 }
-                val counter = nextLocal++
-                val start = Label()
-                val exit = Label()
-                mv.visitInsn(ICONST_0)
-                mv.visitVarInsn(ISTORE, counter)
-                mv.visitLabel(start)
-                mv.visitVarInsn(ILOAD, counter)
-                mv.visitLdcInsn(count)
-                mv.visitJumpInsn(IF_ICMPGE, exit)
-                emitInvocation(mv, node, exactSource = repetition.groupValues[2])
-                mv.visitIincInsn(counter, 1)
-                mv.visitJumpInsn(GOTO, start)
-                mv.visitLabel(exit)
+                emitIr(
+                    mv,
+                    CompilerIrLowering.lowerRepeat(
+                        count = count,
+                        body = listOf(instruction),
+                        namePrefix = "repeat_${nextLabel++}",
+                    ),
+                )
                 return
             }
             val alreadyReferencesResult = node.vakya.padas.any { pada ->
@@ -395,47 +196,9 @@ internal object StructuredBytecodeCompiler {
             val source = normalized(
                 if (piped && !alreadyReferencesResult) "फल + अम् $rendered" else rendered,
             )
-            val invocation = registry.detectInvocation(source)
-            val method = invocation?.kriya?.nameStem?.let(methodsByStem::get)
-            if (method != null) {
-                val signature = requireNotNull(invocation).kriya.signature
-                val arguments = resolveArguments(invocation)
-                val parameterNamesLocal = nextLocal++
-                val argumentsLocal = nextLocal++
-                val argumentValuesLocal = nextLocal++
-                emitStringArray(mv, signature.parameters.map { it.nameStem })
-                mv.visitVarInsn(ASTORE, parameterNamesLocal)
-                emitStringArray(mv, arguments)
-                mv.visitVarInsn(ASTORE, argumentsLocal)
-                emitNullableValueArray(mv, invocation.argumentValues, signature.parameters.size)
-                mv.visitVarInsn(ASTORE, argumentValuesLocal)
-                mv.visitVarInsn(ALOAD, 0)
-                mv.visitVarInsn(ALOAD, parameterNamesLocal)
-                mv.visitVarInsn(ALOAD, argumentsLocal)
-                mv.visitVarInsn(ALOAD, argumentValuesLocal)
-                mv.visitMethodInsn(
-                    INVOKEVIRTUAL,
-                    "dev/panini/compiler/CompiledProgramRuntime",
-                    "enterFrame",
-                    "([Ljava/lang/String;[Ljava/lang/String;[Ldev/panini/execution/SanskritValue;)V",
-                    false,
-                )
-                mv.visitVarInsn(ALOAD, 0)
-                mv.visitMethodInsn(
-                    INVOKESTATIC,
-                    className,
-                    method,
-                    "(Ldev/panini/compiler/CompiledProgramRuntime;)V",
-                    false,
-                )
-                mv.visitVarInsn(ALOAD, 0)
-                mv.visitMethodInsn(
-                    INVOKEVIRTUAL,
-                    "dev/panini/compiler/CompiledProgramRuntime",
-                    "exitFrame",
-                    "()V",
-                    false,
-                )
+            val procedureCall = lowerProcedureCall(source)
+            if (procedureCall != null) {
+                emitIr(mv, listOf(procedureCall))
             } else {
                 val directPlan = DirectLeafPlanner.plan(source, allowStore = allowDirectStore)
                 if (directPlan != null) {
@@ -446,6 +209,20 @@ internal object StructuredBytecodeCompiler {
                     emitDirect(mv, generalPlan)
                 }
             }
+        }
+
+        private fun lowerProcedureCall(source: String): CompilerInstruction.ProcedureCall? {
+            val invocation = registry.detectInvocation(source) ?: return null
+            val method = invocation.kriya.nameStem.let(methodsByStem::get) ?: return null
+            val signature = invocation.kriya.signature
+            return CompilerInstruction.ProcedureCall(
+                methodName = method,
+                parameterNames = signature.parameters.map { it.nameStem },
+                arguments = resolveArguments(invocation),
+                argumentValues = List(signature.parameters.size) { index ->
+                    invocation.argumentValues.getOrNull(index)
+                },
+            )
         }
 
         private fun emitDirect(
@@ -462,149 +239,14 @@ internal object StructuredBytecodeCompiler {
                     else -> CallResultMode.VALUE
                 },
             )
-            if (instruction == CompilerInstruction.RequestBreak) {
-                mv.visitVarInsn(ALOAD, 0)
-                mv.visitMethodInsn(
-                    INVOKEVIRTUAL,
-                    "dev/panini/compiler/CompiledProgramRuntime",
-                    "requestBreak",
-                    "()Ldev/panini/execution/SanskritValue;",
-                    false,
-                )
-                mv.visitInsn(POP)
-                return
-            }
-            emitCall(mv, instruction as CompilerInstruction.Call)
-        }
-
-        private fun emitCall(mv: MethodVisitor, call: CompilerInstruction.Call) {
-            val bindingName = call.destination
-            val bindings = nextLocal++
-            mv.visitTypeInsn(NEW, "java/util/HashMap")
-            mv.visitInsn(DUP)
-            mv.visitMethodInsn(INVOKESPECIAL, "java/util/HashMap", "<init>", "()V", false)
-            mv.visitVarInsn(ASTORE, bindings)
-            call.bindings.forEach { (karaka, expression) ->
-                mv.visitVarInsn(ALOAD, bindings)
-                mv.visitFieldInsn(
-                    GETSTATIC,
-                    "dev/panini/core/Karaka",
-                    karaka.name,
-                    "Ldev/panini/core/Karaka;",
-                )
-                emitExpression(mv, expression)
-                mv.visitMethodInsn(
-                    INVOKEVIRTUAL,
-                    "java/util/HashMap",
-                    "put",
-                    "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;",
-                    false,
-                )
-                mv.visitInsn(POP)
-            }
-            mv.visitVarInsn(ALOAD, 0)
-            mv.visitLdcInsn(call.dhatuUpadesha)
-            mv.visitLdcInsn(call.operationName)
-            mv.visitLdcInsn(call.requiredSanadi)
-            mv.visitVarInsn(ALOAD, bindings)
-            if (bindingName != null) mv.visitLdcInsn(bindingName)
-            mv.visitMethodInsn(
-                INVOKEVIRTUAL,
-                "dev/panini/compiler/CompiledProgramRuntime",
-                when {
-                    call.resultMode == CallResultMode.BOOLEAN -> "executeDirectBoolean"
-                    call.resultMode == CallResultMode.LOOP_TARGET -> "executeDirectLoopTarget"
-                    bindingName != null -> "executeDirectStore"
-                    else -> "executeDirect"
-                },
-                when {
-                    call.resultMode == CallResultMode.BOOLEAN -> "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Z"
-                    call.resultMode == CallResultMode.LOOP_TARGET -> "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Ldev/panini/execution/SanskritValue;"
-                    bindingName != null -> "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;)Ldev/panini/execution/SanskritValue;"
-                    else -> "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Ldev/panini/execution/SanskritValue;"
-                },
-                false,
-            )
-            if (call.resultMode != CallResultMode.BOOLEAN) mv.visitInsn(POP)
-        }
-
-        private fun emitExpression(mv: MethodVisitor, expression: ExecutionExpression) {
-            when (expression) {
-                is ExecutionExpression.Pada -> {
-                    mv.visitLdcInsn(expression.prakriti)
-                    expression.value?.let { emitValue(mv, it) } ?: mv.visitInsn(ACONST_NULL)
-                    mv.visitMethodInsn(
-                        INVOKESTATIC,
-                        "dev/panini/compiler/PaniniRuntime",
-                        "createPadaExpression",
-                        "(Ljava/lang/String;Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/ExecutionExpression\$Pada;",
-                        false,
-                    )
-                }
-                is ExecutionExpression.TypedOperand -> {
-                    emitValue(mv, expression.value)
-                    mv.visitFieldInsn(
-                        GETSTATIC,
-                        "dev/panini/core/SupAffix",
-                        expression.sup.name,
-                        "Ldev/panini/core/SupAffix;",
-                    )
-                    mv.visitMethodInsn(
-                        INVOKESTATIC,
-                        "dev/panini/compiler/PaniniRuntime",
-                        "createTypedOperandExpression",
-                        "(Ldev/panini/execution/SanskritValue;Ldev/panini/core/SupAffix;)Ldev/panini/execution/ExecutionExpression\$TypedOperand;",
-                        false,
-                    )
-                }
-                is ExecutionExpression.Coordination -> {
-                    mv.visitLdcInsn(expression.members.size)
-                    mv.visitTypeInsn(ANEWARRAY, "dev/panini/execution/ExecutionExpression")
-                    expression.members.forEachIndexed { index, member ->
-                        mv.visitInsn(DUP)
-                        mv.visitLdcInsn(index)
-                        emitExpression(mv, member)
-                        mv.visitInsn(AASTORE)
-                    }
-                    mv.visitMethodInsn(
-                        INVOKESTATIC,
-                        "dev/panini/compiler/PaniniRuntime",
-                        "createCoordinationExpression",
-                        "([Ldev/panini/execution/ExecutionExpression;)Ldev/panini/execution/ExecutionExpression\$Coordination;",
-                        false,
-                    )
-                }
-                is ExecutionExpression.Reference -> {
-                    mv.visitLdcInsn(expression.name)
-                    mv.visitMethodInsn(
-                        INVOKESTATIC,
-                        "dev/panini/compiler/PaniniRuntime",
-                        "createReferenceExpression",
-                        "(Ljava/lang/String;)Ldev/panini/execution/ExecutionExpression\$Reference;",
-                        false,
-                    )
-                }
-            }
-        }
-
-        private fun emitValue(mv: MethodVisitor, value: SanskritValue) {
-            StructuredValueBytecodeEmitter.emit(mv, value)
+            emitIr(mv, listOf(instruction))
         }
 
         private fun emitConditional(mv: MethodVisitor, node: Conditional) {
-            lowerConditionalIr(node)?.let {
-                emitIr(mv, it)
-                return
+            val instructions = requireNotNull(lowerConditionalIr(node)) {
+                "The JVM compiler cannot lower conditional to IR: ${render(node)}"
             }
-            val alternate = Label()
-            val end = Label()
-            emitBoolean(mv, render(node.condition))
-            mv.visitJumpInsn(IFEQ, alternate)
-            emit(mv, node.consequent)
-            mv.visitJumpInsn(GOTO, end)
-            mv.visitLabel(alternate)
-            node.alternate?.let { emit(mv, it) }
-            mv.visitLabel(end)
+            emitIr(mv, instructions)
         }
 
         /**
@@ -631,9 +273,12 @@ internal object StructuredBytecodeCompiler {
         }
 
         private fun lowerPrimitiveBranchIr(node: ProgramNode): List<CompilerInstruction>? = when (node) {
-            is Invocation -> DirectLeafPlanner.planAny(render(node))
-                ?.let(CompilerIrLowering::lowerLeaf)
-                ?.let(::listOf)
+            is Invocation -> {
+                val source = normalized(render(node))
+                val instruction = lowerProcedureCall(source)
+                    ?: DirectLeafPlanner.planAny(source)?.let(CompilerIrLowering::lowerLeaf)
+                instruction?.let(::listOf)
+            }
             is Conditional -> lowerConditionalIr(node)
             is Sequence -> buildList {
                 for (statement in node.statements) {
@@ -655,120 +300,11 @@ internal object StructuredBytecodeCompiler {
             is Pipeline, is Quotation -> null
         }
 
-        private fun emitWhile(
-            mv: MethodVisitor,
-            node: WhileLoop,
-            directCondition: ExecutionPlan? = null,
-            directBody: ExecutionPlan? = null,
-            directExhausted: ExecutionPlan? = null,
-            directResultTarget: ExecutionPlan? = null,
-        ) {
-            if (
-                directCondition == null && directBody == null && directExhausted == null &&
-                directResultTarget == null
-            ) {
-                lowerWhileIr(node)?.let {
-                    emitIr(mv, it)
-                    return
-                }
+        private fun emitWhile(mv: MethodVisitor, node: WhileLoop) {
+            val instructions = requireNotNull(lowerWhileIr(node)) {
+                "The JVM compiler cannot lower while loop to IR: ${render(node)}"
             }
-            val condition = Label()
-            val victory = Label()
-            val exhausted = Label()
-            val target = Label()
-            val bound = node.maximumIterationStems.takeIf(List<String>::isNotEmpty)?.let {
-                dev.panini.sankhya.SankhyaEvaluator().evaluateStems(it).value
-            }
-            val counter = nextLocal
-            nextLocal += 2
-            val usesLatestResult = node.condition.vakya.padas.any { pada ->
-                pada is dev.panini.vyakaranam.ast.SubantaPada &&
-                    pada.pratipadika.sourceText.substringBefore('+').trim() == "फल"
-            }
-            val isNegated = node.condition.vakya.padas.any { pada ->
-                pada is dev.panini.vyakaranam.ast.AvyayaPada && pada.form == "न"
-            }
-            val latestCondition = if (usesLatestResult) nextLocal++ else null
-            mv.visitInsn(LCONST_0)
-            mv.visitVarInsn(LSTORE, counter)
-            latestCondition?.let {
-                mv.visitInsn(ICONST_0)
-                mv.visitVarInsn(ISTORE, it)
-            }
-            mv.visitLabel(condition)
-            if (latestCondition != null) {
-                mv.visitVarInsn(ILOAD, latestCondition)
-                mv.visitJumpInsn(if (isNegated) IFNE else IFEQ, victory)
-            } else {
-                if (directCondition != null) {
-                    emitDirect(mv, directCondition, asBoolean = true)
-                } else {
-                    emitBoolean(mv, render(node.condition))
-                }
-                mv.visitJumpInsn(IFEQ, victory)
-            }
-            if (bound != null) {
-                mv.visitVarInsn(LLOAD, counter)
-                mv.visitLdcInsn(bound)
-                mv.visitInsn(LCMP)
-                mv.visitJumpInsn(IFGE, exhausted)
-            }
-            mv.visitVarInsn(ALOAD, 0)
-            mv.visitMethodInsn(
-                INVOKEVIRTUAL,
-                "dev/panini/compiler/CompiledProgramRuntime",
-                "enterConditionIteration",
-                "()V",
-                false,
-            )
-            if (latestCondition != null) {
-                mv.visitVarInsn(ALOAD, 0)
-                mv.visitMethodInsn(
-                    INVOKEVIRTUAL,
-                    "dev/panini/compiler/CompiledProgramRuntime",
-                    "clearReportedCondition",
-                    "()V",
-                    false,
-                )
-            }
-            if (directBody != null) emitDirect(mv, directBody) else emit(mv, node.body)
-            mv.visitVarInsn(LLOAD, counter)
-            mv.visitInsn(LCONST_1)
-            mv.visitInsn(LADD)
-            mv.visitVarInsn(LSTORE, counter)
-            if (latestCondition != null) {
-                mv.visitVarInsn(ALOAD, 0)
-                mv.visitMethodInsn(
-                    INVOKEVIRTUAL,
-                    "dev/panini/compiler/CompiledProgramRuntime",
-                    "requireReportedCondition",
-                    "()Z",
-                    false,
-                )
-                mv.visitVarInsn(ISTORE, latestCondition)
-            }
-            mv.visitVarInsn(ALOAD, 0)
-            mv.visitMethodInsn(
-                INVOKEVIRTUAL,
-                "dev/panini/compiler/CompiledProgramRuntime",
-                "consumeBreak",
-                "()Z",
-                false,
-            )
-            mv.visitJumpInsn(IFNE, victory)
-            mv.visitJumpInsn(GOTO, condition)
-            mv.visitLabel(victory)
-            emitLoopOutcome(mv, "विजय", counter)
-            mv.visitJumpInsn(GOTO, target)
-            mv.visitLabel(exhausted)
-            if (directExhausted != null) {
-                emitDirect(mv, directExhausted)
-            } else {
-                node.exhausted?.let { emit(mv, it) }
-            }
-            emitLoopOutcome(mv, "समाप्ति", counter)
-            mv.visitLabel(target)
-            node.resultTarget?.let { emitLoopTarget(mv, it, directResultTarget) }
+            emitIr(mv, instructions)
         }
 
         private fun lowerWhileIr(node: WhileLoop): List<CompilerInstruction>? {
@@ -811,79 +347,21 @@ internal object StructuredBytecodeCompiler {
             )
         }
 
-        private fun emitLoopOutcome(mv: MethodVisitor, outcome: String, counter: Int) {
-            mv.visitVarInsn(ALOAD, 0)
-            mv.visitLdcInsn(outcome)
-            mv.visitVarInsn(LLOAD, counter)
-            mv.visitMethodInsn(
-                INVOKEVIRTUAL,
-                "dev/panini/compiler/CompiledProgramRuntime",
-                "publishLoopOutcome",
-                "(Ljava/lang/String;J)V",
-                false,
-            )
-        }
-
-        private fun emitLoopTarget(
-            mv: MethodVisitor,
-            target: ProgramNode,
-            directPlan: ExecutionPlan? = null,
-        ) {
-            if (directPlan != null) {
-                emitDirect(mv, directPlan, asLoopTarget = true)
-                return
-            }
-            val rendered = render(target)
-            val plan = DirectLeafPlanner.planAny(rendered)
-                ?: DirectLeafPlanner.planAny("चक्रफल + अम् $rendered")
-                ?: error("The JVM compiler cannot preplan loop result target: ${render(target)}")
-            emitDirect(mv, plan, asLoopTarget = true)
-        }
-
         private fun emitRepeat(mv: MethodVisitor, node: Repeat) {
-            lowerRepeatIr(node)?.let {
-                emitIr(mv, it)
-                return
+            val instructions = requireNotNull(lowerRepeatIr(node)) {
+                "The JVM compiler cannot lower repetition to IR: ${render(node)}"
             }
-            val counter = nextLocal++
-            val start = Label()
-            val exit = Label()
-            mv.visitInsn(ICONST_0)
-            mv.visitVarInsn(ISTORE, counter)
-            mv.visitLabel(start)
-            mv.visitVarInsn(ILOAD, counter)
-            mv.visitLdcInsn(node.count)
-            mv.visitJumpInsn(IF_ICMPGE, exit)
-            val body = node.body
-            if (body is Invocation) {
-                val renderedBody = render(body)
-                val bodySource = renderedBody.split(Regex("\\s+")).drop(3).joinToString(" ")
-                emitInvocation(mv, body, exactSource = bodySource)
-            } else {
-                emit(mv, body)
-            }
-            mv.visitVarInsn(ALOAD, 0)
-            mv.visitMethodInsn(
-                INVOKEVIRTUAL,
-                "dev/panini/compiler/CompiledProgramRuntime",
-                "consumeBreak",
-                "()Z",
-                false,
-            )
-            mv.visitJumpInsn(IFNE, exit)
-            mv.visitIincInsn(counter, 1)
-            mv.visitJumpInsn(GOTO, start)
-            mv.visitLabel(exit)
+            emitIr(mv, instructions)
         }
 
         private fun lowerRepeatIr(node: Repeat): List<CompilerInstruction>? {
             val body = node.body
             val bodyInstructions = if (body is Invocation) {
                 val renderedBody = render(body)
-                val bodySource = renderedBody.split(Regex("\\s+")).drop(3).joinToString(" ")
-                DirectLeafPlanner.planAny(bodySource)
-                    ?.let(CompilerIrLowering::lowerLeaf)
-                    ?.let(::listOf)
+                val bodySource = normalized(renderedBody.split(Regex("\\s+")).drop(3).joinToString(" "))
+                val instruction = lowerProcedureCall(bodySource)
+                    ?: DirectLeafPlanner.planAny(bodySource)?.let(CompilerIrLowering::lowerLeaf)
+                instruction?.let(::listOf)
             } else {
                 lowerPrimitiveBranchIr(body)
             } ?: return null
@@ -894,46 +372,10 @@ internal object StructuredBytecodeCompiler {
             )
         }
 
-        private fun emitBoolean(mv: MethodVisitor, source: String) {
-            val plan = DirectLeafPlanner.plan(source) ?: DirectLeafPlanner.planAny(source)
-                ?: error("The JVM compiler cannot preplan condition: $source")
-            require(dev.panini.shiksha.Samjna.SATYA in plan.resolved.operation.resultSamjnas) {
-                "Compiled condition must produce सत्य/असत्य: $source"
-            }
-            emitDirect(mv, plan, asBoolean = true)
-        }
-
         private fun emitPlannedSource(mv: MethodVisitor, source: String) {
             val plans = DirectLeafPlanner.plansAny(source)
                 ?: error("The JVM compiler cannot preplan source without the interpreter bridge: $source")
             plans.forEach { emitDirect(mv, it) }
-        }
-
-        private fun emitStringArray(mv: MethodVisitor, values: List<String>) {
-            mv.visitLdcInsn(values.size)
-            mv.visitTypeInsn(ANEWARRAY, "java/lang/String")
-            values.forEachIndexed { index, value ->
-                mv.visitInsn(DUP)
-                mv.visitLdcInsn(index)
-                mv.visitLdcInsn(value)
-                mv.visitInsn(AASTORE)
-            }
-        }
-
-        private fun emitNullableValueArray(
-            mv: MethodVisitor,
-            values: List<SanskritValue?>,
-            size: Int,
-        ) {
-            mv.visitLdcInsn(size)
-            mv.visitTypeInsn(ANEWARRAY, "dev/panini/execution/SanskritValue")
-            repeat(size) { index ->
-                mv.visitInsn(DUP)
-                mv.visitLdcInsn(index)
-                values.getOrNull(index)?.let { StructuredValueBytecodeEmitter.emit(mv, it) }
-                    ?: mv.visitInsn(ACONST_NULL)
-                mv.visitInsn(AASTORE)
-            }
         }
 
         private fun resolveArguments(invocation: dev.panini.execution.SamjnaInvocation): List<String> {
@@ -1085,35 +527,6 @@ internal object StructuredBytecodeCompiler {
         }
     }
 
-    /** Directly lowers a final simple branch after a fully direct state-building prefix. */
-    private fun planDirectFinalConditional(
-        statements: List<PvmScriptStatement.Sentence>,
-    ): DirectFinalConditional? {
-        if (statements.size < 2) return null
-        val conditional = statements.last().program as? Conditional ?: return null
-        val consequent = conditional.consequent as? Invocation ?: return null
-        val alternate = conditional.alternate as? Invocation ?: return null
-        var environment = ValueEnvironment()
-        val prefix = buildList {
-            for (sentence in statements.dropLast(1)) {
-                if (sentence.program !is Invocation) return null
-                val plan = DirectLeafPlanner.plan(
-                    sentence.text,
-                    environment = environment,
-                    allowStore = true,
-                ) ?: return null
-                environment = advancePlanningEnvironment(plan, environment) ?: return null
-                add(plan)
-            }
-        }
-        val conditionPlan = DirectLeafPlanner.plan(render(conditional.condition), environment)
-            ?.takeIf { dev.panini.shiksha.Samjna.SATYA in it.resolved.operation.resultSamjnas }
-            ?: return null
-        val consequentPlan = DirectLeafPlanner.plan(render(consequent), environment) ?: return null
-        val alternatePlan = DirectLeafPlanner.plan(render(alternate), environment) ?: return null
-        return DirectFinalConditional(prefix, conditionPlan, consequentPlan, alternatePlan)
-    }
-
     private fun advancePlanningEnvironment(
         plan: ExecutionPlan,
         environment: ValueEnvironment,
@@ -1136,170 +549,5 @@ internal object StructuredBytecodeCompiler {
         )
     }
 
-    private data class DirectFinalConditional(
-        val prefix: List<ExecutionPlan>,
-        val condition: ExecutionPlan,
-        val consequent: ExecutionPlan,
-        val alternate: ExecutionPlan?,
-    )
-
-    /** Directly lowers a final simple state loop after a fully direct initialization prefix. */
-    private fun planDirectFinalWhile(
-        statements: List<PvmScriptStatement.Sentence>,
-    ): DirectFinalWhile? {
-        if (statements.size < 2) return null
-        val loop = statements.last().program as? WhileLoop ?: return null
-        val body = loop.body as? Invocation ?: return null
-        val usesLatestResult = loop.condition.vakya.padas.any { pada ->
-            pada is dev.panini.vyakaranam.ast.SubantaPada &&
-                pada.pratipadika.sourceText.substringBefore('+').trim() == "फल"
-        }
-        if (usesLatestResult) return null
-        var environment = ValueEnvironment()
-        val prefix = buildList {
-            for (sentence in statements.dropLast(1)) {
-                if (sentence.program !is Invocation) return null
-                val plan = DirectLeafPlanner.plan(
-                    sentence.text,
-                    environment = environment,
-                    allowStore = true,
-                ) ?: return null
-                environment = advancePlanningEnvironment(plan, environment) ?: return null
-                add(plan)
-            }
-        }
-        val conditionPlan = DirectLeafPlanner.plan(render(loop.condition), environment)
-            ?.takeIf { dev.panini.shiksha.Samjna.SATYA in it.resolved.operation.resultSamjnas }
-            ?: return null
-        val bodyPlan = DirectLeafPlanner.plan(
-            render(body),
-            environment = environment,
-            allowStore = true,
-        ) ?: return null
-        val exhaustedPlan = when (val exhausted = loop.exhausted) {
-            null -> null
-            is Invocation -> DirectLeafPlanner.plan(render(exhausted), environment) ?: return null
-            else -> return null
-        }
-        val resultTargetPlan = when (val target = loop.resultTarget) {
-            null -> null
-            is Invocation -> DirectLeafPlanner.plan(
-                "चक्रफल + अम् ${render(target)}",
-                environment = environment.with("चक्रफल", SanskritValue.Shabda("विजय")),
-                allowStore = true,
-            ) ?: return null
-            else -> return null
-        }
-        return DirectFinalWhile(prefix, loop, conditionPlan, bodyPlan, exhaustedPlan, resultTargetPlan)
-    }
-
-    private data class DirectFinalWhile(
-        val prefix: List<ExecutionPlan>,
-        val loop: WhileLoop,
-        val condition: ExecutionPlan,
-        val body: ExecutionPlan,
-        val exhausted: ExecutionPlan?,
-        val resultTarget: ExecutionPlan?,
-    )
-
-    /** Directly unrolls a final fixed-count utterance after a direct state-building prefix. */
-    private fun planDirectFinalRepeat(
-        statements: List<PvmScriptStatement.Sentence>,
-    ): DirectFinalRepeat? {
-        if (statements.size < 2) return null
-        if (statements.last().program !is Invocation) return null
-        var environment = ValueEnvironment()
-        val prefix = buildList {
-            for (sentence in statements.dropLast(1)) {
-                if (sentence.program !is Invocation) return null
-                val plan = DirectLeafPlanner.plan(
-                    sentence.text,
-                    environment = environment,
-                    allowStore = true,
-                ) ?: return null
-                environment = advancePlanningEnvironment(plan, environment) ?: return null
-                add(plan)
-            }
-        }
-        val repeatedPlans = DirectLeafPlanner.plans(
-            statements.last().text,
-            environment = environment,
-            allowStore = true,
-        )?.takeIf { it.size > 1 } ?: return null
-        return DirectFinalRepeat(prefix, repeatedPlans)
-    }
-
-    private data class DirectFinalRepeat(
-        val prefix: List<ExecutionPlan>,
-        val plans: List<ExecutionPlan>,
-    )
-
-    /** Directly lowers a final ततः pipeline after a fully direct prefix. */
-    private fun planDirectFinalSequence(
-        statements: List<PvmScriptStatement.Sentence>,
-    ): DirectFinalSequence? {
-        if (statements.isEmpty()) return null
-        val sequence = statements.last().program as? Sequence ?: return null
-        if (sequence.connectors.any { it != "ततः" } || sequence.statements.any { it !is Invocation }) {
-            return null
-        }
-        var environment = ValueEnvironment()
-        val prefix = buildList {
-            for (sentence in statements.dropLast(1)) {
-                if (sentence.program !is Invocation) return null
-                val plan = DirectLeafPlanner.plan(
-                    sentence.text,
-                    environment = environment,
-                    allowStore = true,
-                ) ?: return null
-                environment = advancePlanningEnvironment(plan, environment) ?: return null
-                add(plan)
-            }
-        }
-        val planned = planDirectSequence(sequence, environment, allowStore = true) ?: return null
-        return DirectFinalSequence(prefix, planned.plans)
-    }
-
-    private fun planDirectSequence(
-        sequence: Sequence,
-        initialEnvironment: ValueEnvironment,
-        allowStore: Boolean,
-    ): PlannedDirectSequence? {
-        if (sequence.connectors.any { it != "ततः" } || sequence.statements.any { it !is Invocation }) {
-            return null
-        }
-        var environment = initialEnvironment
-        val plans = buildList {
-            sequence.statements.filterIsInstance<Invocation>().forEachIndexed { index, invocation ->
-                val alreadyReferencesResult = invocation.vakya.padas.any { pada ->
-                    pada is dev.panini.vyakaranam.ast.SubantaPada &&
-                        pada.pratipadika.sourceText.substringBefore('+').trim() == "फल"
-                }
-                val source = if (index > 0 && !alreadyReferencesResult) {
-                    "फल + अम् ${render(invocation)}"
-                } else {
-                    render(invocation)
-                }
-                val plan = DirectLeafPlanner.plan(
-                    source,
-                    environment = environment,
-                    allowStore = allowStore,
-                ) ?: return null
-                environment = advancePlanningEnvironment(plan, environment) ?: return null
-                add(plan)
-            }
-        }
-        return PlannedDirectSequence(plans, environment)
-    }
-
-    private data class DirectFinalSequence(
-        val prefix: List<ExecutionPlan>,
-        val plans: List<ExecutionPlan>,
-    )
-
-    private data class PlannedDirectSequence(
-        val plans: List<ExecutionPlan>,
-        val environment: ValueEnvironment,
-    )
 
 }
