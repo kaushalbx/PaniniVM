@@ -160,7 +160,11 @@ internal object StructuredBytecodeCompiler {
                     is CompilerInstruction.IncrementCounter -> it.name
                     else -> null
                 }
-            }.distinct().associateWith { nextLocal++ }
+            }.distinct().associateWith {
+                val local = nextLocal
+                nextLocal += 2
+                local
+            }
             instructions.forEach { instruction ->
                 when (instruction) {
                     is CompilerInstruction.Call -> emitCall(mv, instruction)
@@ -174,25 +178,29 @@ internal object StructuredBytecodeCompiler {
                     )
                     is CompilerInstruction.Label -> mv.visitLabel(requireNotNull(labels[instruction.name]))
                     is CompilerInstruction.InitializeCounter -> {
-                        mv.visitInsn(ICONST_0)
-                        mv.visitVarInsn(ISTORE, requireNotNull(counters[instruction.name]))
+                        mv.visitInsn(LCONST_0)
+                        mv.visitVarInsn(LSTORE, requireNotNull(counters[instruction.name]))
                     }
                     is CompilerInstruction.TestCounter -> {
                         val isBelowLimit = Label()
                         val complete = Label()
-                        mv.visitVarInsn(ILOAD, requireNotNull(counters[instruction.name]))
-                        mv.visitLdcInsn(instruction.limit)
-                        mv.visitJumpInsn(IF_ICMPLT, isBelowLimit)
+                        mv.visitVarInsn(LLOAD, requireNotNull(counters[instruction.name]))
+                        mv.visitLdcInsn(instruction.limit.toLong())
+                        mv.visitInsn(LCMP)
+                        mv.visitJumpInsn(IFLT, isBelowLimit)
                         mv.visitInsn(ICONST_0)
                         mv.visitJumpInsn(GOTO, complete)
                         mv.visitLabel(isBelowLimit)
                         mv.visitInsn(ICONST_1)
                         mv.visitLabel(complete)
                     }
-                    is CompilerInstruction.IncrementCounter -> mv.visitIincInsn(
-                        requireNotNull(counters[instruction.name]),
-                        1,
-                    )
+                    is CompilerInstruction.IncrementCounter -> {
+                        val counter = requireNotNull(counters[instruction.name])
+                        mv.visitVarInsn(LLOAD, counter)
+                        mv.visitInsn(LCONST_1)
+                        mv.visitInsn(LADD)
+                        mv.visitVarInsn(LSTORE, counter)
+                    }
                     CompilerInstruction.ConsumeBreak -> {
                         mv.visitVarInsn(ALOAD, 0)
                         mv.visitMethodInsn(
@@ -200,6 +208,28 @@ internal object StructuredBytecodeCompiler {
                             "dev/panini/compiler/CompiledProgramRuntime",
                             "consumeBreak",
                             "()Z",
+                            false,
+                        )
+                    }
+                    CompilerInstruction.EnterConditionIteration -> {
+                        mv.visitVarInsn(ALOAD, 0)
+                        mv.visitMethodInsn(
+                            INVOKEVIRTUAL,
+                            "dev/panini/compiler/CompiledProgramRuntime",
+                            "enterConditionIteration",
+                            "()V",
+                            false,
+                        )
+                    }
+                    is CompilerInstruction.PublishLoopOutcome -> {
+                        mv.visitVarInsn(ALOAD, 0)
+                        mv.visitLdcInsn(instruction.outcome)
+                        mv.visitVarInsn(LLOAD, requireNotNull(counters[instruction.counter]))
+                        mv.visitMethodInsn(
+                            INVOKEVIRTUAL,
+                            "dev/panini/compiler/CompiledProgramRuntime",
+                            "publishLoopOutcome",
+                            "(Ljava/lang/String;J)V",
                             false,
                         )
                     }
@@ -576,6 +606,15 @@ internal object StructuredBytecodeCompiler {
             directExhausted: ExecutionPlan? = null,
             directResultTarget: ExecutionPlan? = null,
         ) {
+            if (
+                directCondition == null && directBody == null && directExhausted == null &&
+                directResultTarget == null
+            ) {
+                lowerUnboundedWhileIr(node)?.let {
+                    emitIr(mv, it)
+                    return
+                }
+            }
             val condition = Label()
             val victory = Label()
             val exhausted = Label()
@@ -673,6 +712,30 @@ internal object StructuredBytecodeCompiler {
             emitLoopOutcome(mv, "समाप्ति", counter)
             mv.visitLabel(target)
             node.resultTarget?.let { emitLoopTarget(mv, it, directResultTarget) }
+        }
+
+        private fun lowerUnboundedWhileIr(node: WhileLoop): List<CompilerInstruction>? {
+            if (
+                node.maximumIterationStems.isNotEmpty() || node.exhausted != null ||
+                node.resultTarget != null
+            ) return null
+            val usesLatestResult = node.condition.vakya.padas.any { pada ->
+                pada is dev.panini.vyakaranam.ast.SubantaPada &&
+                    pada.pratipadika.sourceText.substringBefore('+').trim() == "फल"
+            }
+            if (usesLatestResult) return null
+            val condition = DirectLeafPlanner.planAny(render(node.condition))
+                ?.takeIf { dev.panini.shiksha.Samjna.SATYA in it.resolved.operation.resultSamjnas }
+                ?: return null
+            val body = lowerPrimitiveBranchIr(node.body) ?: return null
+            return CompilerIrLowering.lowerWhile(
+                condition = CompilerIrLowering.lowerLeaf(
+                    condition,
+                    CallResultMode.BOOLEAN,
+                ) as CompilerInstruction.Call,
+                body = body,
+                namePrefix = "while_${nextLabel++}",
+            )
         }
 
         private fun emitLoopOutcome(mv: MethodVisitor, outcome: String, counter: Int) {

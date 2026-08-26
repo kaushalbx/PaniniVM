@@ -133,6 +133,32 @@ class CompilerIrTest {
     }
 
     @Test
+    fun `unbounded while lowers condition budget break and back edge`() {
+        val condition = booleanCall("condition")
+        val body = valueCall("body")
+
+        val instructions = CompilerIrLowering.lowerWhile(condition, listOf(body), "test-while")
+
+        assertEquals(
+            listOf(
+                CompilerInstruction.InitializeCounter("test-while_counter"),
+                CompilerInstruction.Label("test-while_condition"),
+                condition,
+                CompilerInstruction.Branch("test-while_victory"),
+                CompilerInstruction.EnterConditionIteration,
+                body,
+                CompilerInstruction.IncrementCounter("test-while_counter"),
+                CompilerInstruction.ConsumeBreak,
+                CompilerInstruction.Branch("test-while_victory", whenTrue = true),
+                CompilerInstruction.Jump("test-while_condition"),
+                CompilerInstruction.Label("test-while_victory"),
+                CompilerInstruction.PublishLoopOutcome("विजय", "test-while_counter"),
+            ),
+            instructions,
+        )
+    }
+
+    @Test
     fun `IR verifier rejects missing and duplicate labels`() {
         assertFailsWith<IllegalArgumentException> {
             CompilerIrVerifier.verify(listOf(CompilerInstruction.Jump("missing")))

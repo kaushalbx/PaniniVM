@@ -36,6 +36,10 @@ internal sealed interface CompilerInstruction {
 
     data object ConsumeBreak : CompilerInstruction
 
+    data object EnterConditionIteration : CompilerInstruction
+
+    data class PublishLoopOutcome(val outcome: String, val counter: String) : CompilerInstruction
+
     data object RequestBreak : CompilerInstruction
 
     data object Return : CompilerInstruction
@@ -49,6 +53,34 @@ internal enum class CallResultMode {
 
 /** Converts resolved grammatical leaves into a stable compiler representation. */
 internal object CompilerIrLowering {
+    /** Lowers an unbounded condition-controlled loop with host-budget accounting. */
+    fun lowerWhile(
+        condition: CompilerInstruction.Call,
+        body: List<CompilerInstruction>,
+        namePrefix: String = "while",
+    ): List<CompilerInstruction> {
+        require(condition.resultMode == CallResultMode.BOOLEAN) {
+            "While condition must produce a boolean result"
+        }
+        val counter = "${namePrefix}_counter"
+        val conditionLabel = "${namePrefix}_condition"
+        val victory = "${namePrefix}_victory"
+        return buildList {
+            add(CompilerInstruction.InitializeCounter(counter))
+            add(CompilerInstruction.Label(conditionLabel))
+            add(condition)
+            add(CompilerInstruction.Branch(victory))
+            add(CompilerInstruction.EnterConditionIteration)
+            addAll(body)
+            add(CompilerInstruction.IncrementCounter(counter))
+            add(CompilerInstruction.ConsumeBreak)
+            add(CompilerInstruction.Branch(victory, whenTrue = true))
+            add(CompilerInstruction.Jump(conditionLabel))
+            add(CompilerInstruction.Label(victory))
+            add(CompilerInstruction.PublishLoopOutcome("विजय", counter))
+        }.also(CompilerIrVerifier::verify)
+    }
+
     /** Lowers bounded repetition; TestCounter and ConsumeBreak each produce a boolean. */
     fun lowerRepeat(
         count: Int,
