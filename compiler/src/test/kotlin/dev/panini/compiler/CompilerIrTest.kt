@@ -6,8 +6,55 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNull
+import kotlin.test.assertFailsWith
 
 class CompilerIrTest {
+    @Test
+    fun `conditional lowers to branch labels and jump`() {
+        val condition = CompilerInstruction.Call(
+            dhatuUpadesha = "condition",
+            operationName = "condition",
+            requiredSanadi = "",
+            bindings = emptyMap(),
+            resultMode = CallResultMode.BOOLEAN,
+        )
+        val consequent = CompilerInstruction.Call("then", "then", "", emptyMap())
+        val alternate = CompilerInstruction.Call("else", "else", "", emptyMap())
+
+        assertEquals(
+            listOf(
+                condition,
+                CompilerInstruction.Branch("test_alternate"),
+                consequent,
+                CompilerInstruction.Jump("test_end"),
+                CompilerInstruction.Label("test_alternate"),
+                alternate,
+                CompilerInstruction.Label("test_end"),
+            ),
+            CompilerIrLowering.lowerConditional(
+                condition,
+                listOf(consequent),
+                listOf(alternate),
+                "test",
+            ),
+        )
+    }
+
+    @Test
+    fun `IR verifier rejects missing and duplicate labels`() {
+        assertFailsWith<IllegalArgumentException> {
+            CompilerIrVerifier.verify(listOf(CompilerInstruction.Jump("missing")))
+        }
+        assertFailsWith<IllegalArgumentException> {
+            CompilerIrVerifier.verify(
+                listOf(
+                    CompilerInstruction.Label("same"),
+                    CompilerInstruction.Label("same"),
+                ),
+            )
+        }
+    }
+
     @Test
     fun `numeric leaf lowers to a backend neutral call`() {
         val plan = requireNotNull(DirectLeafPlanner.planAny(

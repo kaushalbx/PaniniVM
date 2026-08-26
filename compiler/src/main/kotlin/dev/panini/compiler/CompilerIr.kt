@@ -41,6 +41,32 @@ internal enum class CallResultMode {
 
 /** Converts resolved grammatical leaves into a stable compiler representation. */
 internal object CompilerIrLowering {
+    /**
+     * Lowers a conditional into linear IR. [CompilerInstruction.Branch] jumps
+     * when the boolean value produced by [condition] is false.
+     */
+    fun lowerConditional(
+        condition: CompilerInstruction.Call,
+        consequent: List<CompilerInstruction>,
+        alternate: List<CompilerInstruction> = emptyList(),
+        labelPrefix: String = "conditional",
+    ): List<CompilerInstruction> {
+        require(condition.resultMode == CallResultMode.BOOLEAN) {
+            "Conditional condition must produce a boolean result"
+        }
+        val alternateLabel = "${labelPrefix}_alternate"
+        val endLabel = "${labelPrefix}_end"
+        return buildList {
+            add(condition)
+            add(CompilerInstruction.Branch(alternateLabel))
+            addAll(consequent)
+            add(CompilerInstruction.Jump(endLabel))
+            add(CompilerInstruction.Label(alternateLabel))
+            addAll(alternate)
+            add(CompilerInstruction.Label(endLabel))
+        }.also(CompilerIrVerifier::verify)
+    }
+
     fun lowerLeaf(
         plan: ExecutionPlan,
         resultMode: CallResultMode = CallResultMode.VALUE,
@@ -63,5 +89,24 @@ internal object CompilerIrLowering {
             destination = destination,
             resultMode = resultMode,
         )
+    }
+}
+
+/** Checks structural invariants required by every compiler backend. */
+internal object CompilerIrVerifier {
+    fun verify(instructions: List<CompilerInstruction>) {
+        val labels = instructions.filterIsInstance<CompilerInstruction.Label>()
+        val duplicate = labels.groupingBy { it.name }.eachCount().entries.firstOrNull { it.value > 1 }
+        require(duplicate == null) { "Duplicate IR label: ${duplicate?.key}" }
+
+        val labelNames = labels.mapTo(mutableSetOf()) { it.name }
+        instructions.forEach { instruction ->
+            val target = when (instruction) {
+                is CompilerInstruction.Branch -> instruction.target
+                is CompilerInstruction.Jump -> instruction.target
+                else -> null
+            }
+            require(target == null || target in labelNames) { "Unknown IR label: $target" }
+        }
     }
 }

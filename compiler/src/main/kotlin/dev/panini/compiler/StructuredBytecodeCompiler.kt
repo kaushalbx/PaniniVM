@@ -135,15 +135,49 @@ internal object StructuredBytecodeCompiler {
             consequent: ExecutionPlan,
             alternate: ExecutionPlan?,
         ) {
-            val alternateLabel = Label()
-            val end = Label()
-            emitDirect(mv, condition, asBoolean = true)
-            mv.visitJumpInsn(IFEQ, alternateLabel)
-            emitDirect(mv, consequent)
-            mv.visitJumpInsn(GOTO, end)
-            mv.visitLabel(alternateLabel)
-            alternate?.let { emitDirect(mv, it) }
-            mv.visitLabel(end)
+            val id = nextLocal++
+            val instructions = CompilerIrLowering.lowerConditional(
+                condition = CompilerIrLowering.lowerLeaf(
+                    condition,
+                    CallResultMode.BOOLEAN,
+                ) as CompilerInstruction.Call,
+                consequent = listOf(CompilerIrLowering.lowerLeaf(consequent)),
+                alternate = alternate?.let { listOf(CompilerIrLowering.lowerLeaf(it)) }.orEmpty(),
+                labelPrefix = "conditional_$id",
+            )
+            emitIr(mv, instructions)
+        }
+
+        private fun emitIr(mv: MethodVisitor, instructions: List<CompilerInstruction>) {
+            CompilerIrVerifier.verify(instructions)
+            val labels = instructions.filterIsInstance<CompilerInstruction.Label>()
+                .associate { it.name to Label() }
+            instructions.forEach { instruction ->
+                when (instruction) {
+                    is CompilerInstruction.Call -> emitCall(mv, instruction)
+                    is CompilerInstruction.Branch -> mv.visitJumpInsn(
+                        IFEQ,
+                        requireNotNull(labels[instruction.target]),
+                    )
+                    is CompilerInstruction.Jump -> mv.visitJumpInsn(
+                        GOTO,
+                        requireNotNull(labels[instruction.target]),
+                    )
+                    is CompilerInstruction.Label -> mv.visitLabel(requireNotNull(labels[instruction.name]))
+                    CompilerInstruction.RequestBreak -> {
+                        mv.visitVarInsn(ALOAD, 0)
+                        mv.visitMethodInsn(
+                            INVOKEVIRTUAL,
+                            "dev/panini/compiler/CompiledProgramRuntime",
+                            "requestBreak",
+                            "()Ldev/panini/execution/SanskritValue;",
+                            false,
+                        )
+                        mv.visitInsn(POP)
+                    }
+                    else -> error("IR instruction is not supported by the JVM backend yet: $instruction")
+                }
+            }
         }
 
         fun emitDirectWhile(
@@ -303,7 +337,10 @@ internal object StructuredBytecodeCompiler {
                 mv.visitInsn(POP)
                 return
             }
-            val call = instruction as CompilerInstruction.Call
+            emitCall(mv, instruction as CompilerInstruction.Call)
+        }
+
+        private fun emitCall(mv: MethodVisitor, call: CompilerInstruction.Call) {
             val bindingName = call.destination
             val bindings = nextLocal++
             mv.visitTypeInsn(NEW, "java/util/HashMap")
