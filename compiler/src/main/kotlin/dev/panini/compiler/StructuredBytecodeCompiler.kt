@@ -108,6 +108,7 @@ internal object StructuredBytecodeCompiler {
         private val methodsByStem: Map<String, String>,
     ) {
         private var nextLocal = 1
+        private var nextLabel = 0
 
         fun emit(
             mv: MethodVisitor,
@@ -135,7 +136,7 @@ internal object StructuredBytecodeCompiler {
             consequent: ExecutionPlan,
             alternate: ExecutionPlan?,
         ) {
-            val id = nextLocal++
+            val id = nextLabel++
             val instructions = CompilerIrLowering.lowerConditional(
                 condition = CompilerIrLowering.lowerLeaf(
                     condition,
@@ -455,6 +456,10 @@ internal object StructuredBytecodeCompiler {
         }
 
         private fun emitConditional(mv: MethodVisitor, node: Conditional) {
+            lowerConditionalIr(node)?.let {
+                emitIr(mv, it)
+                return
+            }
             val alternate = Label()
             val end = Label()
             emitBoolean(mv, render(node.condition))
@@ -464,6 +469,52 @@ internal object StructuredBytecodeCompiler {
             mv.visitLabel(alternate)
             node.alternate?.let { emit(mv, it) }
             mv.visitLabel(end)
+        }
+
+        /**
+         * Produces complete IR for conditionals whose leaves are primitive plans.
+         * Named calls continue through the existing emitter until Call IR carries
+         * procedure invocation and argument-frame semantics.
+         */
+        private fun lowerConditionalIr(node: Conditional): List<CompilerInstruction>? {
+            val condition = DirectLeafPlanner.planAny(render(node.condition))
+                ?.takeIf { dev.panini.shiksha.Samjna.SATYA in it.resolved.operation.resultSamjnas }
+                ?: return null
+            val consequent = lowerPrimitiveBranchIr(node.consequent) ?: return null
+            val alternate = node.alternate?.let(::lowerPrimitiveBranchIr) ?: emptyList()
+            if (node.alternate != null && alternate.isEmpty()) return null
+            return CompilerIrLowering.lowerConditional(
+                condition = CompilerIrLowering.lowerLeaf(
+                    condition,
+                    CallResultMode.BOOLEAN,
+                ) as CompilerInstruction.Call,
+                consequent = consequent,
+                alternate = alternate,
+                labelPrefix = "conditional_${nextLabel++}",
+            )
+        }
+
+        private fun lowerPrimitiveBranchIr(node: ProgramNode): List<CompilerInstruction>? = when (node) {
+            is Invocation -> DirectLeafPlanner.planAny(render(node))
+                ?.let(CompilerIrLowering::lowerLeaf)
+                ?.let(::listOf)
+            is Conditional -> lowerConditionalIr(node)
+            is Sequence -> buildList {
+                for (statement in node.statements) {
+                    addAll(lowerPrimitiveBranchIr(statement) ?: return null)
+                }
+            }
+            is Procedure -> buildList {
+                for (statement in node.body) {
+                    addAll(lowerPrimitiveBranchIr(statement) ?: return null)
+                }
+            }
+            is Scope -> buildList {
+                for (statement in node.body) {
+                    addAll(lowerPrimitiveBranchIr(statement) ?: return null)
+                }
+            }
+            is Pipeline, is Quotation, is Repeat, is WhileLoop -> null
         }
 
         private fun emitWhile(

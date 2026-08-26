@@ -41,6 +41,44 @@ class CompilerIrTest {
     }
 
     @Test
+    fun `conditional without alternate still has a valid false target`() {
+        val condition = booleanCall("condition")
+        val consequent = valueCall("then")
+
+        val instructions = CompilerIrLowering.lowerConditional(
+            condition,
+            listOf(consequent),
+            labelPrefix = "single",
+        )
+
+        assertEquals(CompilerInstruction.Branch("single_alternate"), instructions[1])
+        assertEquals(CompilerInstruction.Label("single_alternate"), instructions[4])
+        CompilerIrVerifier.verify(instructions)
+    }
+
+    @Test
+    fun `nested conditional labels remain distinct and valid`() {
+        val inner = CompilerIrLowering.lowerConditional(
+            booleanCall("inner-condition"),
+            listOf(valueCall("inner-then")),
+            listOf(valueCall("inner-else")),
+            "inner",
+        )
+        val outer = CompilerIrLowering.lowerConditional(
+            booleanCall("outer-condition"),
+            inner,
+            listOf(valueCall("outer-else")),
+            "outer",
+        )
+
+        CompilerIrVerifier.verify(outer)
+        assertEquals(
+            outer.filterIsInstance<CompilerInstruction.Label>().map { it.name }.toSet().size,
+            outer.filterIsInstance<CompilerInstruction.Label>().size,
+        )
+    }
+
+    @Test
     fun `IR verifier rejects missing and duplicate labels`() {
         assertFailsWith<IllegalArgumentException> {
             CompilerIrVerifier.verify(listOf(CompilerInstruction.Jump("missing")))
@@ -105,4 +143,20 @@ class CompilerIrTest {
             ).resultMode,
         )
     }
+
+
+    private fun booleanCall(name: String) = CompilerInstruction.Call(
+        dhatuUpadesha = name,
+        operationName = name,
+        requiredSanadi = "",
+        bindings = emptyMap(),
+        resultMode = CallResultMode.BOOLEAN,
+    )
+
+    private fun valueCall(name: String) = CompilerInstruction.Call(
+        dhatuUpadesha = name,
+        operationName = name,
+        requiredSanadi = "",
+        bindings = emptyMap(),
+    )
 }
