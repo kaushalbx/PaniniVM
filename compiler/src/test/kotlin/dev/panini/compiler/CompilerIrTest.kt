@@ -7,6 +7,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 class CompilerIrTest {
     @Test
@@ -88,7 +89,7 @@ class CompilerIrTest {
             listOf(
                 CompilerInstruction.InitializeCounter("test-repeat_counter"),
                 CompilerInstruction.Label("test-repeat_start"),
-                CompilerInstruction.TestCounter("test-repeat_counter", 3),
+                CompilerInstruction.TestCounter("test-repeat_counter", 3L),
                 CompilerInstruction.Branch("test-repeat_exit"),
                 body,
                 CompilerInstruction.ConsumeBreak,
@@ -137,7 +138,11 @@ class CompilerIrTest {
         val condition = booleanCall("condition")
         val body = valueCall("body")
 
-        val instructions = CompilerIrLowering.lowerWhile(condition, listOf(body), "test-while")
+        val instructions = CompilerIrLowering.lowerWhile(
+            condition,
+            listOf(body),
+            namePrefix = "test-while",
+        )
 
         assertEquals(
             listOf(
@@ -153,9 +158,80 @@ class CompilerIrTest {
                 CompilerInstruction.Jump("test-while_condition"),
                 CompilerInstruction.Label("test-while_victory"),
                 CompilerInstruction.PublishLoopOutcome("विजय", "test-while_counter"),
+                CompilerInstruction.Jump("test-while_target"),
+                CompilerInstruction.Label("test-while_target"),
             ),
             instructions,
         )
+    }
+
+    @Test
+    fun `bounded while lowers exhaustion outcome and result target`() {
+        val exhausted = valueCall("exhausted")
+        val target = valueCall("target").copy(resultMode = CallResultMode.LOOP_TARGET)
+
+        val instructions = CompilerIrLowering.lowerWhile(
+            condition = booleanCall("condition"),
+            body = listOf(valueCall("body")),
+            maximumIterations = 4L,
+            exhausted = listOf(exhausted),
+            resultTarget = listOf(target),
+            namePrefix = "bounded",
+        )
+
+        assertEquals(CompilerInstruction.TestCounter("bounded_counter", 4L), instructions[4])
+        assertTrue(instructions.contains(CompilerInstruction.Label("bounded_exhausted")))
+        assertTrue(instructions.contains(CompilerInstruction.PublishLoopOutcome("समाप्ति", "bounded_counter")))
+        assertEquals(target, instructions.last())
+        CompilerIrVerifier.verify(instructions)
+    }
+
+    @Test
+    fun `reported-result while captures each body condition`() {
+        val instructions = CompilerIrLowering.lowerWhile(
+            condition = null,
+            body = listOf(valueCall("body")),
+            usesReportedCondition = true,
+            negatedReportedCondition = true,
+            namePrefix = "reported",
+        )
+
+        assertTrue(instructions.contains(CompilerInstruction.InitializeLoopCondition("reported_reported_condition")))
+        assertTrue(instructions.contains(CompilerInstruction.ClearReportedCondition))
+        assertTrue(instructions.contains(CompilerInstruction.CaptureReportedCondition("reported_reported_condition")))
+    }
+
+    @Test
+    fun `nested while loops retain independent control state`() {
+        val inner = CompilerIrLowering.lowerWhile(
+            booleanCall("inner-condition"),
+            listOf(valueCall("inner-body")),
+            namePrefix = "inner",
+        )
+        val outer = CompilerIrLowering.lowerWhile(
+            booleanCall("outer-condition"),
+            inner,
+            maximumIterations = 2L,
+            namePrefix = "outer",
+        )
+
+        CompilerIrVerifier.verify(outer)
+        assertEquals(
+            setOf("outer_counter", "inner_counter"),
+            outer.filterIsInstance<CompilerInstruction.InitializeCounter>().map { it.name }.toSet(),
+        )
+    }
+
+    @Test
+    fun `IR verifier rejects unknown loop state`() {
+        assertFailsWith<IllegalArgumentException> {
+            CompilerIrVerifier.verify(listOf(CompilerInstruction.IncrementCounter("missing")))
+        }
+        assertFailsWith<IllegalArgumentException> {
+            CompilerIrVerifier.verify(
+                listOf(CompilerInstruction.TestLoopCondition("missing", negated = false)),
+            )
+        }
     }
 
     @Test

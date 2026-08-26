@@ -30,7 +30,7 @@ internal sealed interface CompilerInstruction {
 
     data class InitializeCounter(val name: String) : CompilerInstruction
 
-    data class TestCounter(val name: String, val limit: Int) : CompilerInstruction
+    data class TestCounter(val name: String, val limit: Long) : CompilerInstruction
 
     data class IncrementCounter(val name: String) : CompilerInstruction
 
@@ -39,6 +39,14 @@ internal sealed interface CompilerInstruction {
     data object EnterConditionIteration : CompilerInstruction
 
     data class PublishLoopOutcome(val outcome: String, val counter: String) : CompilerInstruction
+
+    data class InitializeLoopCondition(val name: String) : CompilerInstruction
+
+    data class TestLoopCondition(val name: String, val negated: Boolean) : CompilerInstruction
+
+    data object ClearReportedCondition : CompilerInstruction
+
+    data class CaptureReportedCondition(val name: String) : CompilerInstruction
 
     data object RequestBreak : CompilerInstruction
 
@@ -53,31 +61,65 @@ internal enum class CallResultMode {
 
 /** Converts resolved grammatical leaves into a stable compiler representation. */
 internal object CompilerIrLowering {
-    /** Lowers an unbounded condition-controlled loop with host-budget accounting. */
+    /** Lowers condition-controlled loops, including bounds and reported-result conditions. */
     fun lowerWhile(
-        condition: CompilerInstruction.Call,
+        condition: CompilerInstruction.Call?,
         body: List<CompilerInstruction>,
+        maximumIterations: Long? = null,
+        exhausted: List<CompilerInstruction> = emptyList(),
+        resultTarget: List<CompilerInstruction> = emptyList(),
+        usesReportedCondition: Boolean = false,
+        negatedReportedCondition: Boolean = false,
         namePrefix: String = "while",
     ): List<CompilerInstruction> {
-        require(condition.resultMode == CallResultMode.BOOLEAN) {
+        require(usesReportedCondition || condition?.resultMode == CallResultMode.BOOLEAN) {
             "While condition must produce a boolean result"
         }
+        require(maximumIterations == null || maximumIterations >= 0) {
+            "Maximum iterations must not be negative: $maximumIterations"
+        }
         val counter = "${namePrefix}_counter"
+        val reportedCondition = "${namePrefix}_reported_condition"
         val conditionLabel = "${namePrefix}_condition"
         val victory = "${namePrefix}_victory"
+        val exhaustedLabel = "${namePrefix}_exhausted"
+        val target = "${namePrefix}_target"
         return buildList {
             add(CompilerInstruction.InitializeCounter(counter))
+            if (usesReportedCondition) {
+                add(CompilerInstruction.InitializeLoopCondition(reportedCondition))
+            }
             add(CompilerInstruction.Label(conditionLabel))
-            add(condition)
+            if (usesReportedCondition) {
+                add(CompilerInstruction.TestLoopCondition(reportedCondition, negatedReportedCondition))
+            } else {
+                add(requireNotNull(condition))
+            }
             add(CompilerInstruction.Branch(victory))
+            if (maximumIterations != null) {
+                add(CompilerInstruction.TestCounter(counter, maximumIterations))
+                add(CompilerInstruction.Branch(exhaustedLabel))
+            }
             add(CompilerInstruction.EnterConditionIteration)
+            if (usesReportedCondition) add(CompilerInstruction.ClearReportedCondition)
             addAll(body)
             add(CompilerInstruction.IncrementCounter(counter))
+            if (usesReportedCondition) {
+                add(CompilerInstruction.CaptureReportedCondition(reportedCondition))
+            }
             add(CompilerInstruction.ConsumeBreak)
             add(CompilerInstruction.Branch(victory, whenTrue = true))
             add(CompilerInstruction.Jump(conditionLabel))
             add(CompilerInstruction.Label(victory))
             add(CompilerInstruction.PublishLoopOutcome("विजय", counter))
+            add(CompilerInstruction.Jump(target))
+            if (maximumIterations != null) {
+                add(CompilerInstruction.Label(exhaustedLabel))
+                addAll(exhausted)
+                add(CompilerInstruction.PublishLoopOutcome("समाप्ति", counter))
+            }
+            add(CompilerInstruction.Label(target))
+            addAll(resultTarget)
         }.also(CompilerIrVerifier::verify)
     }
 
@@ -94,7 +136,7 @@ internal object CompilerIrLowering {
         return buildList {
             add(CompilerInstruction.InitializeCounter(counter))
             add(CompilerInstruction.Label(start))
-            add(CompilerInstruction.TestCounter(counter, count))
+            add(CompilerInstruction.TestCounter(counter, count.toLong()))
             add(CompilerInstruction.Branch(exit))
             addAll(body)
             add(CompilerInstruction.ConsumeBreak)
@@ -171,6 +213,39 @@ internal object CompilerIrVerifier {
                 else -> null
             }
             require(target == null || target in labelNames) { "Unknown IR label: $target" }
+        }
+
+        val counters = instructions.filterIsInstance<CompilerInstruction.InitializeCounter>()
+        val duplicateCounter = counters.groupingBy { it.name }.eachCount().entries
+            .firstOrNull { it.value > 1 }
+        require(duplicateCounter == null) { "Duplicate IR counter: ${duplicateCounter?.key}" }
+        val counterNames = counters.mapTo(mutableSetOf()) { it.name }
+        instructions.forEach { instruction ->
+            val counter = when (instruction) {
+                is CompilerInstruction.TestCounter -> instruction.name
+                is CompilerInstruction.IncrementCounter -> instruction.name
+                is CompilerInstruction.PublishLoopOutcome -> instruction.counter
+                else -> null
+            }
+            require(counter == null || counter in counterNames) { "Unknown IR counter: $counter" }
+        }
+
+        val conditions = instructions.filterIsInstance<CompilerInstruction.InitializeLoopCondition>()
+        val duplicateCondition = conditions.groupingBy { it.name }.eachCount().entries
+            .firstOrNull { it.value > 1 }
+        require(duplicateCondition == null) {
+            "Duplicate IR loop condition: ${duplicateCondition?.key}"
+        }
+        val conditionNames = conditions.mapTo(mutableSetOf()) { it.name }
+        instructions.forEach { instruction ->
+            val condition = when (instruction) {
+                is CompilerInstruction.TestLoopCondition -> instruction.name
+                is CompilerInstruction.CaptureReportedCondition -> instruction.name
+                else -> null
+            }
+            require(condition == null || condition in conditionNames) {
+                "Unknown IR loop condition: $condition"
+            }
         }
     }
 }

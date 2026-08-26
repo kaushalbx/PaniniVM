@@ -165,6 +165,14 @@ internal object StructuredBytecodeCompiler {
                 nextLocal += 2
                 local
             }
+            val loopConditions = instructions.mapNotNull {
+                when (it) {
+                    is CompilerInstruction.InitializeLoopCondition -> it.name
+                    is CompilerInstruction.TestLoopCondition -> it.name
+                    is CompilerInstruction.CaptureReportedCondition -> it.name
+                    else -> null
+                }
+            }.distinct().associateWith { nextLocal++ }
             instructions.forEach { instruction ->
                 when (instruction) {
                     is CompilerInstruction.Call -> emitCall(mv, instruction)
@@ -185,7 +193,7 @@ internal object StructuredBytecodeCompiler {
                         val isBelowLimit = Label()
                         val complete = Label()
                         mv.visitVarInsn(LLOAD, requireNotNull(counters[instruction.name]))
-                        mv.visitLdcInsn(instruction.limit.toLong())
+                        mv.visitLdcInsn(instruction.limit)
                         mv.visitInsn(LCMP)
                         mv.visitJumpInsn(IFLT, isBelowLimit)
                         mv.visitInsn(ICONST_0)
@@ -232,6 +240,54 @@ internal object StructuredBytecodeCompiler {
                             "(Ljava/lang/String;J)V",
                             false,
                         )
+                    }
+                    is CompilerInstruction.InitializeLoopCondition -> {
+                        mv.visitInsn(ICONST_0)
+                        mv.visitVarInsn(ISTORE, requireNotNull(loopConditions[instruction.name]))
+                    }
+                    is CompilerInstruction.TestLoopCondition -> {
+                        val local = requireNotNull(loopConditions[instruction.name])
+                        mv.visitVarInsn(ILOAD, local)
+                        if (!instruction.negated) {
+                            val isTrue = Label()
+                            val complete = Label()
+                            mv.visitJumpInsn(IFNE, isTrue)
+                            mv.visitInsn(ICONST_0)
+                            mv.visitJumpInsn(GOTO, complete)
+                            mv.visitLabel(isTrue)
+                            mv.visitInsn(ICONST_1)
+                            mv.visitLabel(complete)
+                        } else {
+                            val isFalse = Label()
+                            val complete = Label()
+                            mv.visitJumpInsn(IFEQ, isFalse)
+                            mv.visitInsn(ICONST_0)
+                            mv.visitJumpInsn(GOTO, complete)
+                            mv.visitLabel(isFalse)
+                            mv.visitInsn(ICONST_1)
+                            mv.visitLabel(complete)
+                        }
+                    }
+                    CompilerInstruction.ClearReportedCondition -> {
+                        mv.visitVarInsn(ALOAD, 0)
+                        mv.visitMethodInsn(
+                            INVOKEVIRTUAL,
+                            "dev/panini/compiler/CompiledProgramRuntime",
+                            "clearReportedCondition",
+                            "()V",
+                            false,
+                        )
+                    }
+                    is CompilerInstruction.CaptureReportedCondition -> {
+                        mv.visitVarInsn(ALOAD, 0)
+                        mv.visitMethodInsn(
+                            INVOKEVIRTUAL,
+                            "dev/panini/compiler/CompiledProgramRuntime",
+                            "requireReportedCondition",
+                            "()Z",
+                            false,
+                        )
+                        mv.visitVarInsn(ISTORE, requireNotNull(loopConditions[instruction.name]))
                     }
                     CompilerInstruction.RequestBreak -> {
                         mv.visitVarInsn(ALOAD, 0)
@@ -595,7 +651,8 @@ internal object StructuredBytecodeCompiler {
                 }
             }
             is Repeat -> lowerRepeatIr(node)
-            is Pipeline, is Quotation, is WhileLoop -> null
+            is WhileLoop -> lowerWhileIr(node)
+            is Pipeline, is Quotation -> null
         }
 
         private fun emitWhile(
@@ -610,7 +667,7 @@ internal object StructuredBytecodeCompiler {
                 directCondition == null && directBody == null && directExhausted == null &&
                 directResultTarget == null
             ) {
-                lowerUnboundedWhileIr(node)?.let {
+                lowerWhileIr(node)?.let {
                     emitIr(mv, it)
                     return
                 }
@@ -714,26 +771,42 @@ internal object StructuredBytecodeCompiler {
             node.resultTarget?.let { emitLoopTarget(mv, it, directResultTarget) }
         }
 
-        private fun lowerUnboundedWhileIr(node: WhileLoop): List<CompilerInstruction>? {
-            if (
-                node.maximumIterationStems.isNotEmpty() || node.exhausted != null ||
-                node.resultTarget != null
-            ) return null
+        private fun lowerWhileIr(node: WhileLoop): List<CompilerInstruction>? {
             val usesLatestResult = node.condition.vakya.padas.any { pada ->
                 pada is dev.panini.vyakaranam.ast.SubantaPada &&
                     pada.pratipadika.sourceText.substringBefore('+').trim() == "फल"
             }
-            if (usesLatestResult) return null
-            val condition = DirectLeafPlanner.planAny(render(node.condition))
-                ?.takeIf { dev.panini.shiksha.Samjna.SATYA in it.resolved.operation.resultSamjnas }
-                ?: return null
+            val isNegated = node.condition.vakya.padas.any { pada ->
+                pada is dev.panini.vyakaranam.ast.AvyayaPada && pada.form == "न"
+            }
+            val condition = if (usesLatestResult) null else {
+                DirectLeafPlanner.planAny(render(node.condition))
+                    ?.takeIf { dev.panini.shiksha.Samjna.SATYA in it.resolved.operation.resultSamjnas }
+                    ?: return null
+            }
             val body = lowerPrimitiveBranchIr(node.body) ?: return null
+            val exhausted = node.exhausted?.let(::lowerPrimitiveBranchIr) ?: emptyList()
+            if (node.exhausted != null && exhausted.isEmpty()) return null
+            val resultTarget = node.resultTarget?.let { target ->
+                val rendered = render(target)
+                val plan = DirectLeafPlanner.planAny(rendered)
+                    ?: DirectLeafPlanner.planAny("चक्रफल + अम् $rendered")
+                    ?: return null
+                listOf(CompilerIrLowering.lowerLeaf(plan, CallResultMode.LOOP_TARGET))
+            } ?: emptyList()
+            val maximumIterations = node.maximumIterationStems.takeIf(List<String>::isNotEmpty)?.let {
+                dev.panini.sankhya.SankhyaEvaluator().evaluateStems(it).value
+            }
             return CompilerIrLowering.lowerWhile(
-                condition = CompilerIrLowering.lowerLeaf(
-                    condition,
-                    CallResultMode.BOOLEAN,
-                ) as CompilerInstruction.Call,
+                condition = condition?.let {
+                    CompilerIrLowering.lowerLeaf(it, CallResultMode.BOOLEAN) as CompilerInstruction.Call
+                },
                 body = body,
+                maximumIterations = maximumIterations,
+                exhausted = exhausted,
+                resultTarget = resultTarget,
+                usesReportedCondition = usesLatestResult,
+                negatedReportedCondition = isNegated,
                 namePrefix = "while_${nextLabel++}",
             )
         }
