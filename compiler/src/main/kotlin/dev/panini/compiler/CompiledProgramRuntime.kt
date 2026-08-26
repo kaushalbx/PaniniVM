@@ -178,6 +178,13 @@ class CompiledProgramRuntime private constructor(
 
     internal fun resolveValue(name: String): SanskritValue? = runtimeValue(name)
 
+    fun loadValue(name: String): SanskritValue = runtimeValue(name)
+        ?: error("No compiled value is bound to '$name'.")
+
+    fun storeValue(name: String, value: SanskritValue) {
+        values[name] = value
+    }
+
     private data class ParameterFrame(
         val parameterValues: Map<String, SanskritValue>,
     )

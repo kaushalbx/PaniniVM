@@ -8,9 +8,13 @@ import dev.panini.execution.bindingName
 
 /** Backend-neutral instructions produced after grammatical planning. */
 internal sealed interface CompilerInstruction {
+    data class Constant(val value: SanskritValue) : CompilerInstruction
+
     data class Load(val name: String) : CompilerInstruction
 
     data class Store(val name: String) : CompilerInstruction
+
+    data object LoadLastResult : CompilerInstruction
 
     data class Call(
         val dhatuUpadesha: String,
@@ -255,6 +259,57 @@ internal object CompilerIrVerifier {
             }
             require(condition == null || condition in conditionNames) {
                 "Unknown IR loop condition: $condition"
+            }
+        }
+        verifyValueStack(instructions)
+    }
+
+    private fun verifyValueStack(instructions: List<CompilerInstruction>) {
+        if (instructions.isEmpty()) return
+        val labelIndices = instructions.mapIndexedNotNull { index, instruction ->
+            (instruction as? CompilerInstruction.Label)?.name?.let { it to index }
+        }.toMap()
+        val depths = mutableMapOf(0 to 0)
+        val pending = ArrayDeque<Int>().apply { add(0) }
+        while (pending.isNotEmpty()) {
+            val index = pending.removeFirst()
+            if (index !in instructions.indices) continue
+            val instruction = instructions[index]
+            val before = requireNotNull(depths[index])
+            val effect = when (instruction) {
+                is CompilerInstruction.Constant,
+                is CompilerInstruction.Load,
+                CompilerInstruction.LoadLastResult,
+                is CompilerInstruction.TestCounter,
+                CompilerInstruction.ConsumeBreak,
+                is CompilerInstruction.TestLoopCondition,
+                -> 1
+                is CompilerInstruction.Store,
+                is CompilerInstruction.Branch,
+                -> -1
+                is CompilerInstruction.Call -> if (instruction.resultMode == CallResultMode.BOOLEAN) 1 else 0
+                else -> 0
+            }
+            val after = before + effect
+            require(after >= 0) { "IR value stack underflow at instruction $index: $instruction" }
+            val successors = when (instruction) {
+                is CompilerInstruction.Jump -> listOf(requireNotNull(labelIndices[instruction.target]))
+                is CompilerInstruction.Branch -> listOfNotNull(
+                    requireNotNull(labelIndices[instruction.target]),
+                    (index + 1).takeIf { it < instructions.size },
+                )
+                CompilerInstruction.Return -> emptyList()
+                else -> listOfNotNull((index + 1).takeIf { it < instructions.size })
+            }
+            successors.forEach { successor ->
+                val previous = depths.putIfAbsent(successor, after)
+                require(previous == null || previous == after) {
+                    "IR value stack depth mismatch at instruction $successor: $previous versus $after"
+                }
+                if (previous == null) pending.add(successor)
+            }
+            if (successors.isEmpty()) {
+                require(after == 0) { "IR leaves $after value(s) on the stack at instruction $index" }
             }
         }
     }

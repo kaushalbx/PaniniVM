@@ -32,6 +32,28 @@ class CompilerIrTest {
     }
 
     @Test
+    fun `constants loads stores and LastResult have balanced value flow`() {
+        val value = SanskritValue.Sankhya(2L, "द्वे")
+        val instructions = listOf(
+            CompilerInstruction.Constant(value),
+            CompilerInstruction.Store("मान"),
+            CompilerInstruction.Load("मान"),
+            CompilerInstruction.Store("LastResult"),
+            CompilerInstruction.LoadLastResult,
+            CompilerInstruction.Store("प्रतिलिपि"),
+        )
+
+        CompilerIrVerifier.verify(instructions)
+    }
+
+    @Test
+    fun `IR verifier rejects value stack underflow`() {
+        assertFailsWith<IllegalArgumentException> {
+            CompilerIrVerifier.verify(listOf(CompilerInstruction.Store("मान")))
+        }
+    }
+
+    @Test
     fun `conditional lowers to branch labels and jump`() {
         val condition = CompilerInstruction.Call(
             dhatuUpadesha = "condition",

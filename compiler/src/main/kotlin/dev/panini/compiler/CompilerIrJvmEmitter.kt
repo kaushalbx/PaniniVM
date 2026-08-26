@@ -34,6 +34,10 @@ internal class CompilerIrJvmEmitter(
 
         instructions.forEach { instruction ->
             when (instruction) {
+                is CompilerInstruction.Constant -> StructuredValueBytecodeEmitter.emit(mv, instruction.value)
+                is CompilerInstruction.Load -> emitLoad(instruction.name)
+                is CompilerInstruction.Store -> emitStore(instruction.name)
+                CompilerInstruction.LoadLastResult -> emitLoad("LastResult")
                 is CompilerInstruction.Call -> emitCall(instruction)
                 is CompilerInstruction.ProcedureCall -> emitProcedureCall(instruction)
                 is CompilerInstruction.Branch -> mv.visitJumpInsn(
@@ -103,6 +107,33 @@ internal class CompilerIrJvmEmitter(
                 else -> error("IR instruction is not supported by the JVM backend yet: $instruction")
             }
         }
+    }
+
+    private fun emitLoad(name: String) {
+        mv.visitVarInsn(ALOAD, 0)
+        mv.visitLdcInsn(name)
+        mv.visitMethodInsn(
+            INVOKEVIRTUAL,
+            RUNTIME,
+            "loadValue",
+            "(Ljava/lang/String;)Ldev/panini/execution/SanskritValue;",
+            false,
+        )
+    }
+
+    private fun emitStore(name: String) {
+        val value = allocateLocal(1)
+        mv.visitVarInsn(ASTORE, value)
+        mv.visitVarInsn(ALOAD, 0)
+        mv.visitLdcInsn(name)
+        mv.visitVarInsn(ALOAD, value)
+        mv.visitMethodInsn(
+            INVOKEVIRTUAL,
+            RUNTIME,
+            "storeValue",
+            "(Ljava/lang/String;Ldev/panini/execution/SanskritValue;)V",
+            false,
+        )
     }
 
     private fun emitCounterTest(counter: Int, limit: Long) {
