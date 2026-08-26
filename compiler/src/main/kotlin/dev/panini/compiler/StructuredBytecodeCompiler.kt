@@ -153,11 +153,19 @@ internal object StructuredBytecodeCompiler {
             CompilerIrVerifier.verify(instructions)
             val labels = instructions.filterIsInstance<CompilerInstruction.Label>()
                 .associate { it.name to Label() }
+            val counters = instructions.mapNotNull {
+                when (it) {
+                    is CompilerInstruction.InitializeCounter -> it.name
+                    is CompilerInstruction.TestCounter -> it.name
+                    is CompilerInstruction.IncrementCounter -> it.name
+                    else -> null
+                }
+            }.distinct().associateWith { nextLocal++ }
             instructions.forEach { instruction ->
                 when (instruction) {
                     is CompilerInstruction.Call -> emitCall(mv, instruction)
                     is CompilerInstruction.Branch -> mv.visitJumpInsn(
-                        IFEQ,
+                        if (instruction.whenTrue) IFNE else IFEQ,
                         requireNotNull(labels[instruction.target]),
                     )
                     is CompilerInstruction.Jump -> mv.visitJumpInsn(
@@ -165,6 +173,36 @@ internal object StructuredBytecodeCompiler {
                         requireNotNull(labels[instruction.target]),
                     )
                     is CompilerInstruction.Label -> mv.visitLabel(requireNotNull(labels[instruction.name]))
+                    is CompilerInstruction.InitializeCounter -> {
+                        mv.visitInsn(ICONST_0)
+                        mv.visitVarInsn(ISTORE, requireNotNull(counters[instruction.name]))
+                    }
+                    is CompilerInstruction.TestCounter -> {
+                        val isBelowLimit = Label()
+                        val complete = Label()
+                        mv.visitVarInsn(ILOAD, requireNotNull(counters[instruction.name]))
+                        mv.visitLdcInsn(instruction.limit)
+                        mv.visitJumpInsn(IF_ICMPLT, isBelowLimit)
+                        mv.visitInsn(ICONST_0)
+                        mv.visitJumpInsn(GOTO, complete)
+                        mv.visitLabel(isBelowLimit)
+                        mv.visitInsn(ICONST_1)
+                        mv.visitLabel(complete)
+                    }
+                    is CompilerInstruction.IncrementCounter -> mv.visitIincInsn(
+                        requireNotNull(counters[instruction.name]),
+                        1,
+                    )
+                    CompilerInstruction.ConsumeBreak -> {
+                        mv.visitVarInsn(ALOAD, 0)
+                        mv.visitMethodInsn(
+                            INVOKEVIRTUAL,
+                            "dev/panini/compiler/CompiledProgramRuntime",
+                            "consumeBreak",
+                            "()Z",
+                            false,
+                        )
+                    }
                     CompilerInstruction.RequestBreak -> {
                         mv.visitVarInsn(ALOAD, 0)
                         mv.visitMethodInsn(
@@ -654,6 +692,10 @@ internal object StructuredBytecodeCompiler {
         }
 
         private fun emitRepeat(mv: MethodVisitor, node: Repeat) {
+            lowerRepeatIr(node)?.let {
+                emitIr(mv, it)
+                return
+            }
             val counter = nextLocal++
             val start = Label()
             val exit = Label()
@@ -683,6 +725,24 @@ internal object StructuredBytecodeCompiler {
             mv.visitIincInsn(counter, 1)
             mv.visitJumpInsn(GOTO, start)
             mv.visitLabel(exit)
+        }
+
+        private fun lowerRepeatIr(node: Repeat): List<CompilerInstruction>? {
+            val body = node.body
+            val bodyInstructions = if (body is Invocation) {
+                val renderedBody = render(body)
+                val bodySource = renderedBody.split(Regex("\\s+")).drop(3).joinToString(" ")
+                DirectLeafPlanner.planAny(bodySource)
+                    ?.let(CompilerIrLowering::lowerLeaf)
+                    ?.let(::listOf)
+            } else {
+                lowerPrimitiveBranchIr(body)
+            } ?: return null
+            return CompilerIrLowering.lowerRepeat(
+                count = node.count,
+                body = bodyInstructions,
+                namePrefix = "repeat_${nextLabel++}",
+            )
         }
 
         private fun emitBoolean(mv: MethodVisitor, source: String) {

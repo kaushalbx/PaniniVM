@@ -22,11 +22,19 @@ internal sealed interface CompilerInstruction {
 
     data object Compare : CompilerInstruction
 
-    data class Branch(val target: String) : CompilerInstruction
+    data class Branch(val target: String, val whenTrue: Boolean = false) : CompilerInstruction
 
     data class Jump(val target: String) : CompilerInstruction
 
     data class Label(val name: String) : CompilerInstruction
+
+    data class InitializeCounter(val name: String) : CompilerInstruction
+
+    data class TestCounter(val name: String, val limit: Int) : CompilerInstruction
+
+    data class IncrementCounter(val name: String) : CompilerInstruction
+
+    data object ConsumeBreak : CompilerInstruction
 
     data object RequestBreak : CompilerInstruction
 
@@ -41,6 +49,30 @@ internal enum class CallResultMode {
 
 /** Converts resolved grammatical leaves into a stable compiler representation. */
 internal object CompilerIrLowering {
+    /** Lowers bounded repetition; TestCounter and ConsumeBreak each produce a boolean. */
+    fun lowerRepeat(
+        count: Int,
+        body: List<CompilerInstruction>,
+        namePrefix: String = "repeat",
+    ): List<CompilerInstruction> {
+        require(count >= 0) { "Repetition count must not be negative: $count" }
+        val counter = "${namePrefix}_counter"
+        val start = "${namePrefix}_start"
+        val exit = "${namePrefix}_exit"
+        return buildList {
+            add(CompilerInstruction.InitializeCounter(counter))
+            add(CompilerInstruction.Label(start))
+            add(CompilerInstruction.TestCounter(counter, count))
+            add(CompilerInstruction.Branch(exit))
+            addAll(body)
+            add(CompilerInstruction.ConsumeBreak)
+            add(CompilerInstruction.Branch(exit, whenTrue = true))
+            add(CompilerInstruction.IncrementCounter(counter))
+            add(CompilerInstruction.Jump(start))
+            add(CompilerInstruction.Label(exit))
+        }.also(CompilerIrVerifier::verify)
+    }
+
     /**
      * Lowers a conditional into linear IR. [CompilerInstruction.Branch] jumps
      * when the boolean value produced by [condition] is false.

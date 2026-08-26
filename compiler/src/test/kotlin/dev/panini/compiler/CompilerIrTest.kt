@@ -79,6 +79,36 @@ class CompilerIrTest {
     }
 
     @Test
+    fun `fixed repetition lowers to counter branch and back edge`() {
+        val body = valueCall("body")
+
+        val instructions = CompilerIrLowering.lowerRepeat(3, listOf(body), "test-repeat")
+
+        assertEquals(
+            listOf(
+                CompilerInstruction.InitializeCounter("test-repeat_counter"),
+                CompilerInstruction.Label("test-repeat_start"),
+                CompilerInstruction.TestCounter("test-repeat_counter", 3),
+                CompilerInstruction.Branch("test-repeat_exit"),
+                body,
+                CompilerInstruction.ConsumeBreak,
+                CompilerInstruction.Branch("test-repeat_exit", whenTrue = true),
+                CompilerInstruction.IncrementCounter("test-repeat_counter"),
+                CompilerInstruction.Jump("test-repeat_start"),
+                CompilerInstruction.Label("test-repeat_exit"),
+            ),
+            instructions,
+        )
+    }
+
+    @Test
+    fun `fixed repetition rejects a negative count`() {
+        assertFailsWith<IllegalArgumentException> {
+            CompilerIrLowering.lowerRepeat(-1, emptyList())
+        }
+    }
+
+    @Test
     fun `IR verifier rejects missing and duplicate labels`() {
         assertFailsWith<IllegalArgumentException> {
             CompilerIrVerifier.verify(listOf(CompilerInstruction.Jump("missing")))
