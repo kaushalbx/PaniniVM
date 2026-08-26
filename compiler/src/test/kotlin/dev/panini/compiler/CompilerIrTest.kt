@@ -54,6 +54,24 @@ class CompilerIrTest {
     }
 
     @Test
+    fun `comparison consumes two values and produces a branch condition`() {
+        val one = SanskritValue.Sankhya(1L, "एकम्")
+        val two = SanskritValue.Sankhya(2L, "द्वे")
+        val instructions = listOf(
+            CompilerInstruction.Constant(one),
+            CompilerInstruction.Constant(two),
+            CompilerInstruction.Compare(ComparisonOperator.LESS_THAN),
+            CompilerInstruction.Branch("false"),
+            CompilerInstruction.Jump("end"),
+            CompilerInstruction.Label("false"),
+            CompilerInstruction.Label("end"),
+        )
+
+        CompilerIrVerifier.verify(instructions)
+        assertTrue(CompilerValueOperations.lessThan(one, two))
+    }
+
+    @Test
     fun `conditional lowers to branch labels and jump`() {
         val condition = CompilerInstruction.Call(
             dhatuUpadesha = "condition",
@@ -318,6 +336,19 @@ class CompilerIrTest {
             }
         }.filterIsInstance<SanskritValue.Sankhya>().map { it.value }
         assertEquals(listOf(1L, 2L), values)
+    }
+
+    @Test
+    fun `value leaf explicitly stores LastResult`() {
+        val plan = requireNotNull(DirectLeafPlanner.planAny(
+            "एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ।",
+        ))
+
+        val instructions = CompilerIrLowering.lowerLeafValues(plan)
+
+        assertEquals(CallResultMode.STACK_VALUE, assertIs<CompilerInstruction.Call>(instructions.first()).resultMode)
+        assertEquals(CompilerInstruction.Store("LastResult"), instructions.last())
+        CompilerIrVerifier.verify(instructions)
     }
 
     @Test

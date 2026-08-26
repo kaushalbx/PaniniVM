@@ -174,16 +174,16 @@ internal object StructuredBytecodeCompiler {
                 val count = dev.panini.sankhya.SankhyaEvaluator()
                     .evaluateStems(listOf(repetition.groupValues[1])).value.toInt()
                 val repeatedSource = normalized(repetition.groupValues[2])
-                val repeatedInstruction = lowerProcedureCall(repeatedSource)
-                    ?: DirectLeafPlanner.planAny(repeatedSource)?.let(CompilerIrLowering::lowerLeaf)
-                val instruction = requireNotNull(repeatedInstruction) {
+                val repeatedInstructions = lowerProcedureCall(repeatedSource)?.let(::listOf)
+                    ?: DirectLeafPlanner.planAny(repeatedSource)?.let(CompilerIrLowering::lowerLeafValues)
+                val body = requireNotNull(repeatedInstructions) {
                     "The JVM compiler cannot lower repeated invocation to IR: $repeatedSource"
                 }
                 emitIr(
                     mv,
                     CompilerIrLowering.lowerRepeat(
                         count = count,
-                        body = listOf(instruction),
+                        body = body,
                         namePrefix = "repeat_${nextLabel++}",
                     ),
                 )
@@ -231,15 +231,12 @@ internal object StructuredBytecodeCompiler {
             asBoolean: Boolean = false,
             asLoopTarget: Boolean = false,
         ) {
-            val instruction = CompilerIrLowering.lowerLeaf(
-                plan,
-                resultMode = when {
-                    asBoolean -> CallResultMode.BOOLEAN
-                    asLoopTarget -> CallResultMode.LOOP_TARGET
-                    else -> CallResultMode.VALUE
-                },
-            )
-            emitIr(mv, listOf(instruction))
+            val instructions = when {
+                asBoolean -> listOf(CompilerIrLowering.lowerLeaf(plan, CallResultMode.BOOLEAN))
+                asLoopTarget -> listOf(CompilerIrLowering.lowerLeaf(plan, CallResultMode.LOOP_TARGET))
+                else -> CompilerIrLowering.lowerLeafValues(plan)
+            }
+            emitIr(mv, instructions)
         }
 
         private fun emitConditional(mv: MethodVisitor, node: Conditional) {
@@ -275,9 +272,8 @@ internal object StructuredBytecodeCompiler {
         private fun lowerPrimitiveBranchIr(node: ProgramNode): List<CompilerInstruction>? = when (node) {
             is Invocation -> {
                 val source = normalized(render(node))
-                val instruction = lowerProcedureCall(source)
-                    ?: DirectLeafPlanner.planAny(source)?.let(CompilerIrLowering::lowerLeaf)
-                instruction?.let(::listOf)
+                lowerProcedureCall(source)?.let(::listOf)
+                    ?: DirectLeafPlanner.planAny(source)?.let(CompilerIrLowering::lowerLeafValues)
             }
             is Conditional -> lowerConditionalIr(node)
             is Sequence -> buildList {
@@ -359,9 +355,8 @@ internal object StructuredBytecodeCompiler {
             val bodyInstructions = if (body is Invocation) {
                 val renderedBody = render(body)
                 val bodySource = normalized(renderedBody.split(Regex("\\s+")).drop(3).joinToString(" "))
-                val instruction = lowerProcedureCall(bodySource)
-                    ?: DirectLeafPlanner.planAny(bodySource)?.let(CompilerIrLowering::lowerLeaf)
-                instruction?.let(::listOf)
+                lowerProcedureCall(bodySource)?.let(::listOf)
+                    ?: DirectLeafPlanner.planAny(bodySource)?.let(CompilerIrLowering::lowerLeafValues)
             } else {
                 lowerPrimitiveBranchIr(body)
             } ?: return null

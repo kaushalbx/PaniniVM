@@ -16,6 +16,8 @@ internal sealed interface CompilerInstruction {
 
     data object LoadLastResult : CompilerInstruction
 
+    data object Duplicate : CompilerInstruction
+
     data class Call(
         val dhatuUpadesha: String,
         val operationName: String,
@@ -32,7 +34,7 @@ internal sealed interface CompilerInstruction {
         val argumentValues: List<SanskritValue?>,
     ) : CompilerInstruction
 
-    data object Compare : CompilerInstruction
+    data class Compare(val operator: ComparisonOperator) : CompilerInstruction
 
     data class Branch(val target: String, val whenTrue: Boolean = false) : CompilerInstruction
 
@@ -69,8 +71,18 @@ internal sealed interface CompilerInstruction {
 
 internal enum class CallResultMode {
     VALUE,
+    STACK_VALUE,
     BOOLEAN,
     LOOP_TARGET,
+}
+
+internal enum class ComparisonOperator {
+    EQUAL,
+    NOT_EQUAL,
+    LESS_THAN,
+    LESS_THAN_OR_EQUAL,
+    GREATER_THAN,
+    GREATER_THAN_OR_EQUAL,
 }
 
 /** Converts resolved grammatical leaves into a stable compiler representation. */
@@ -210,6 +222,19 @@ internal object CompilerIrLowering {
             resultMode = resultMode,
         )
     }
+
+    /** Makes ordinary leaf result flow explicit through LastResult and destination stores. */
+    fun lowerLeafValues(plan: ExecutionPlan): List<CompilerInstruction> {
+        val lowered = lowerLeaf(plan)
+        if (lowered !is CompilerInstruction.Call) return listOf(lowered)
+        val call = lowered.copy(destination = null, resultMode = CallResultMode.STACK_VALUE)
+        return buildList {
+            add(call)
+            if (lowered.destination != null) add(CompilerInstruction.Duplicate)
+            add(CompilerInstruction.Store("LastResult"))
+            lowered.destination?.let { add(CompilerInstruction.Store(it)) }
+        }.also(CompilerIrVerifier::verify)
+    }
 }
 
 /** Checks structural invariants required by every compiler backend. */
@@ -284,10 +309,15 @@ internal object CompilerIrVerifier {
                 CompilerInstruction.ConsumeBreak,
                 is CompilerInstruction.TestLoopCondition,
                 -> 1
+                CompilerInstruction.Duplicate -> 1
                 is CompilerInstruction.Store,
                 is CompilerInstruction.Branch,
                 -> -1
-                is CompilerInstruction.Call -> if (instruction.resultMode == CallResultMode.BOOLEAN) 1 else 0
+                is CompilerInstruction.Compare -> -1
+                is CompilerInstruction.Call -> when (instruction.resultMode) {
+                    CallResultMode.BOOLEAN, CallResultMode.STACK_VALUE -> 1
+                    else -> 0
+                }
                 else -> 0
             }
             val after = before + effect

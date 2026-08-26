@@ -38,6 +38,8 @@ internal class CompilerIrJvmEmitter(
                 is CompilerInstruction.Load -> emitLoad(instruction.name)
                 is CompilerInstruction.Store -> emitStore(instruction.name)
                 CompilerInstruction.LoadLastResult -> emitLoad("LastResult")
+                CompilerInstruction.Duplicate -> mv.visitInsn(DUP)
+                is CompilerInstruction.Compare -> emitComparison(instruction.operator)
                 is CompilerInstruction.Call -> emitCall(instruction)
                 is CompilerInstruction.ProcedureCall -> emitProcedureCall(instruction)
                 is CompilerInstruction.Branch -> mv.visitJumpInsn(
@@ -136,6 +138,24 @@ internal class CompilerIrJvmEmitter(
         )
     }
 
+    private fun emitComparison(operator: ComparisonOperator) {
+        val method = when (operator) {
+            ComparisonOperator.EQUAL -> "equal"
+            ComparisonOperator.NOT_EQUAL -> "notEqual"
+            ComparisonOperator.LESS_THAN -> "lessThan"
+            ComparisonOperator.LESS_THAN_OR_EQUAL -> "lessThanOrEqual"
+            ComparisonOperator.GREATER_THAN -> "greaterThan"
+            ComparisonOperator.GREATER_THAN_OR_EQUAL -> "greaterThanOrEqual"
+        }
+        mv.visitMethodInsn(
+            INVOKESTATIC,
+            "dev/panini/compiler/CompilerValueOperations",
+            method,
+            "(Ldev/panini/execution/SanskritValue;Ldev/panini/execution/SanskritValue;)Z",
+            false,
+        )
+    }
+
     private fun emitCounterTest(counter: Int, limit: Long) {
         val isBelowLimit = Label()
         val complete = Label()
@@ -211,19 +231,23 @@ internal class CompilerIrJvmEmitter(
             RUNTIME,
             when {
                 call.resultMode == CallResultMode.BOOLEAN -> "executeDirectBoolean"
+                call.resultMode == CallResultMode.STACK_VALUE -> "executeDirectValue"
                 call.resultMode == CallResultMode.LOOP_TARGET -> "executeDirectLoopTarget"
                 bindingName != null -> "executeDirectStore"
                 else -> "executeDirect"
             },
             when {
                 call.resultMode == CallResultMode.BOOLEAN -> "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Z"
+                call.resultMode == CallResultMode.STACK_VALUE -> "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Ldev/panini/execution/SanskritValue;"
                 call.resultMode == CallResultMode.LOOP_TARGET -> "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Ldev/panini/execution/SanskritValue;"
                 bindingName != null -> "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;)Ldev/panini/execution/SanskritValue;"
                 else -> "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Ldev/panini/execution/SanskritValue;"
             },
             false,
         )
-        if (call.resultMode != CallResultMode.BOOLEAN) mv.visitInsn(POP)
+        if (call.resultMode !in setOf(CallResultMode.BOOLEAN, CallResultMode.STACK_VALUE)) {
+            mv.visitInsn(POP)
+        }
     }
 
     private fun emitProcedureCall(call: CompilerInstruction.ProcedureCall) {

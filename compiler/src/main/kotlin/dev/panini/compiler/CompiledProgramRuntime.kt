@@ -101,6 +101,17 @@ class CompiledProgramRuntime private constructor(
         requiredSanadi: String,
         bindings: Map<Karaka, ExecutionExpression>,
     ): SanskritValue {
+        val value = executeDirectValue(dhatuUpadesha, operationName, requiredSanadi, bindings)
+        storeValue("LastResult", value)
+        return value
+    }
+
+    fun executeDirectValue(
+        dhatuUpadesha: String,
+        operationName: String,
+        requiredSanadi: String,
+        bindings: Map<Karaka, ExecutionExpression>,
+    ): SanskritValue {
         val runtimeBindings = bindings.mapValues { (_, expression) ->
             expression.resolveCompiledReferences()
         }
@@ -111,8 +122,6 @@ class CompiledProgramRuntime private constructor(
             runtimeBindings,
             values,
         )
-        if (value is SanskritValue.Satya) reportedCondition = value.boolean
-        values["LastResult"] = value
         return value
     }
 
@@ -183,6 +192,9 @@ class CompiledProgramRuntime private constructor(
 
     fun storeValue(name: String, value: SanskritValue) {
         values[name] = value
+        if (name == "LastResult" && value is SanskritValue.Satya) {
+            reportedCondition = value.boolean
+        }
     }
 
     private data class ParameterFrame(
