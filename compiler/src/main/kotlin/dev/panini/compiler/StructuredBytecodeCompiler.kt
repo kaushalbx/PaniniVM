@@ -275,6 +275,18 @@ internal object StructuredBytecodeCompiler {
             if (repetition != null) {
                 val count = dev.panini.sankhya.SankhyaEvaluator()
                     .evaluateStems(listOf(repetition.groupValues[1])).value.toInt()
+                val repeatedSource = normalized(repetition.groupValues[2])
+                DirectLeafPlanner.planAny(repeatedSource)?.let { plan ->
+                    emitIr(
+                        mv,
+                        CompilerIrLowering.lowerRepeat(
+                            count = count,
+                            body = listOf(CompilerIrLowering.lowerLeaf(plan)),
+                            namePrefix = "repeat_${nextLabel++}",
+                        ),
+                    )
+                    return
+                }
                 val counter = nextLocal++
                 val start = Label()
                 val exit = Label()
@@ -552,7 +564,8 @@ internal object StructuredBytecodeCompiler {
                     addAll(lowerPrimitiveBranchIr(statement) ?: return null)
                 }
             }
-            is Pipeline, is Quotation, is Repeat, is WhileLoop -> null
+            is Repeat -> lowerRepeatIr(node)
+            is Pipeline, is Quotation, is WhileLoop -> null
         }
 
         private fun emitWhile(

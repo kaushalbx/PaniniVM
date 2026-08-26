@@ -109,6 +109,30 @@ class CompilerIrTest {
     }
 
     @Test
+    fun `nested fixed repetitions have independent counters and labels`() {
+        val inner = CompilerIrLowering.lowerRepeat(
+            count = 2,
+            body = listOf(valueCall("body")),
+            namePrefix = "inner",
+        )
+        val outer = CompilerIrLowering.lowerRepeat(
+            count = 3,
+            body = inner,
+            namePrefix = "outer",
+        )
+
+        CompilerIrVerifier.verify(outer)
+        assertEquals(
+            setOf("outer_counter", "inner_counter"),
+            outer.filterIsInstance<CompilerInstruction.InitializeCounter>().map { it.name }.toSet(),
+        )
+        assertEquals(
+            4,
+            outer.filterIsInstance<CompilerInstruction.Label>().map { it.name }.toSet().size,
+        )
+    }
+
+    @Test
     fun `IR verifier rejects missing and duplicate labels`() {
         assertFailsWith<IllegalArgumentException> {
             CompilerIrVerifier.verify(listOf(CompilerInstruction.Jump("missing")))
