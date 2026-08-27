@@ -11,6 +11,34 @@ import kotlin.test.assertTrue
 
 class CompilerIrTest {
     @Test
+    fun `whole-program IR verifies procedure targets`() {
+        val call = CompilerInstruction.ProcedureCall("samjna_0", emptyList(), emptyList(), emptyList())
+        val program = CompilerProgram(
+            className = "GeneratedProgram",
+            entryPoint = listOf(call),
+            procedures = listOf(CompilerProcedure("samjna_0", listOf(CompilerInstruction.Return))),
+        )
+
+        CompilerProgramVerifier.verify(program)
+        val failure = assertFailsWith<IllegalArgumentException> {
+            CompilerProgramVerifier.verify(program.copy(procedures = emptyList()))
+        }
+        assertTrue(failure.message.orEmpty().contains("Unknown IR procedure"))
+    }
+
+    @Test
+    fun `whole-program IR rejects duplicate procedures`() {
+        val procedure = CompilerProcedure("samjna_0", listOf(CompilerInstruction.Return))
+        val failure = assertFailsWith<IllegalArgumentException> {
+            CompilerProgramVerifier.verify(
+                CompilerProgram("GeneratedProgram", emptyList(), listOf(procedure, procedure)),
+            )
+        }
+
+        assertTrue(failure.message.orEmpty().contains("Duplicate IR procedure"))
+    }
+
+    @Test
     fun `procedure call IR carries frame arguments and structured values`() {
         val value = SanskritValue.Sankhya(2L, "द्वे")
         val call = CompilerInstruction.ProcedureCall(

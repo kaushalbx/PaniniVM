@@ -6,6 +6,38 @@ import dev.panini.execution.ExecutionPlan
 import dev.panini.execution.SanskritValue
 import dev.panini.execution.bindingName
 
+/** A complete backend-neutral compilation unit. */
+internal data class CompilerProgram(
+    val className: String,
+    val entryPoint: List<CompilerInstruction>,
+    val procedures: List<CompilerProcedure> = emptyList(),
+)
+
+internal data class CompilerProcedure(
+    val methodName: String,
+    val instructions: List<CompilerInstruction>,
+)
+
+internal object CompilerProgramVerifier {
+    fun verify(program: CompilerProgram) {
+        require(program.className.isNotBlank()) { "IR class name must not be blank" }
+        val proceduresByName = program.procedures.groupBy(CompilerProcedure::methodName)
+        val duplicate = proceduresByName.entries.firstOrNull { it.value.size > 1 }
+        require(duplicate == null) { "Duplicate IR procedure: ${duplicate?.key}" }
+
+        CompilerIrVerifier.verify(program.entryPoint)
+        program.procedures.forEach { CompilerIrVerifier.verify(it.instructions) }
+        val procedureNames = proceduresByName.keys
+        (program.entryPoint + program.procedures.flatMap(CompilerProcedure::instructions))
+            .filterIsInstance<CompilerInstruction.ProcedureCall>()
+            .forEach { call ->
+                require(call.methodName in procedureNames) {
+                    "Unknown IR procedure: ${call.methodName}"
+                }
+            }
+    }
+}
+
 /** Backend-neutral instructions produced after grammatical planning. */
 internal sealed interface CompilerInstruction {
     data class Constant(val value: SanskritValue) : CompilerInstruction

@@ -22,9 +22,6 @@ import dev.panini.vyakaranam.ast.Repeat
 import dev.panini.vyakaranam.ast.Scope
 import dev.panini.vyakaranam.ast.Sequence
 import dev.panini.vyakaranam.ast.WhileLoop
-import org.objectweb.asm.ClassWriter
-import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes.*
 
 /** Lowers grammatical control flow to JVM branches while leaves use the normal action runtime. */
 internal object StructuredBytecodeCompiler {
@@ -47,113 +44,74 @@ internal object StructuredBytecodeCompiler {
         val methodsByStem = methods.entries.associate { (definition, method) ->
             samjnaStem(definition.nameSegmented) to method
         }
-        val lowering = Lowering(className, registry, methodsByStem)
-
-        val cw = ClassWriter(ClassWriter.COMPUTE_FRAMES or ClassWriter.COMPUTE_MAXS)
-        cw.visit(V1_8, ACC_PUBLIC or ACC_SUPER, className, null, "java/lang/Object", null)
-        emitConstructor(cw)
-
+        val lowering = Lowering(registry, methodsByStem)
         val executable = statements.filterIsInstance<PvmScriptStatement.Sentence>()
-        emitExecute(cw, lowering, executable, withLimit = false)
-        emitExecute(cw, lowering, executable, withLimit = true)
-
-        definitions.forEach { definition ->
-            val method = requireNotNull(methods[definition])
-            val mv = cw.visitMethod(
-                ACC_PRIVATE or ACC_STATIC,
-                method,
-                "(Ldev/panini/compiler/CompiledProgramRuntime;)V",
-                null,
-                null,
-            )
-            mv.visitCode()
-            definition.body.filterNot { sentence ->
-                sentence.isNishedha || SamjnaSignatureDeclarationParser.isDeclaration(sentence)
-            }.forEach { sentence ->
-                sentence.program?.let {
-                    lowering.emit(mv, it, sentence.text)
-                    lowering.emitReturnIfBreak(mv)
-                }
-            }
-            lowering.emitReturn(mv)
-            mv.visitMaxs(0, 0)
-            mv.visitEnd()
+        val entryPoint = executable.flatMap { sentence ->
+            sentence.program?.let {
+                lowering.lower(it, sentence.text, allowDirectStore = true)
+            }.orEmpty()
         }
-
-        val main = cw.visitMethod(ACC_PUBLIC or ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null)
-        main.visitCode()
-        main.visitMethodInsn(INVOKESTATIC, className, "execute", "()Ljava/util/Map;", false)
-        main.visitInsn(POP)
-        main.visitInsn(RETURN)
-        main.visitMaxs(0, 0)
-        main.visitEnd()
-        cw.visitEnd()
-        return cw.toByteArray()
+        val procedures = definitions.map { definition ->
+            val instructions = definition.body.filterNot { sentence ->
+                sentence.isNishedha || SamjnaSignatureDeclarationParser.isDeclaration(sentence)
+            }.flatMap { sentence ->
+                sentence.program?.let {
+                    lowering.lower(it, sentence.text) + CompilerInstruction.ReturnIfBreak
+                }.orEmpty()
+            } + CompilerInstruction.Return
+            CompilerProcedure(requireNotNull(methods[definition]), instructions)
+        }
+        return CompilerProgramJvmEmitter.emit(CompilerProgram(className, entryPoint, procedures))
     }
 
     private class Lowering(
-        private val className: String,
         private val registry: SamjnaKriyaRegistry,
         private val methodsByStem: Map<String, String>,
     ) {
-        private var nextLocal = 1
         private var nextLabel = 0
 
-        fun emit(
-            mv: MethodVisitor,
+        fun lower(
             node: ProgramNode,
             exactSource: String? = null,
             allowDirectStore: Boolean = false,
-        ) {
-            when (node) {
-                is Invocation -> emitInvocation(mv, node, exactSource, allowDirectStore = allowDirectStore)
-                is Sequence -> emitSequence(mv, node, exactSource)
-                is Pipeline, is Quotation -> emitPlannedSource(mv, exactSource ?: render(node))
-                is Conditional -> emitConditional(mv, node)
-                is Repeat -> emitRepeat(mv, node)
-                is WhileLoop -> emitWhile(mv, node)
-                is Procedure -> node.body.forEach { emit(mv, it) }
-                is Scope -> node.body.forEach { emit(mv, it) }
+        ): List<CompilerInstruction> = when (node) {
+            is Invocation -> lowerInvocation(node, exactSource, allowDirectStore = allowDirectStore)
+            is Sequence -> lowerSequence(node, exactSource)
+            is Pipeline, is Quotation -> lowerPlannedSource(exactSource ?: render(node))
+            is Conditional -> requireNotNull(lowerConditionalIr(node)) {
+                "The JVM compiler cannot lower conditional to IR: ${render(node)}"
             }
+            is Repeat -> requireNotNull(lowerRepeatIr(node)) {
+                "The JVM compiler cannot lower repetition to IR: ${render(node)}"
+            }
+            is WhileLoop -> requireNotNull(lowerWhileIr(node)) {
+                "The JVM compiler cannot lower while loop to IR: ${render(node)}"
+            }
+            is Procedure -> node.body.flatMap { lower(it) }
+            is Scope -> node.body.flatMap { lower(it) }
         }
 
-        private fun emitIr(mv: MethodVisitor, instructions: List<CompilerInstruction>) {
-            CompilerIrJvmEmitter(className, mv) { width ->
-                val local = nextLocal
-                nextLocal += width
-                local
-            }.emit(instructions)
-        }
-
-        private fun emitSequence(mv: MethodVisitor, node: Sequence, exactSource: String?) {
+        private fun lowerSequence(node: Sequence, exactSource: String?): List<CompilerInstruction> {
             if (node.connectors.any { it != "ततः" } || node.statements.any { it !is Invocation }) {
-                emitPlannedSource(mv, exactSource ?: render(node))
-                return
+                return lowerPlannedSource(exactSource ?: render(node))
             }
-            node.statements.forEachIndexed { index, statement ->
+            return node.statements.flatMapIndexed { index, statement ->
                 if (index == 0) {
-                    emit(mv, statement)
+                    lower(statement)
                 } else if (statement is Invocation) {
-                    emitInvocation(mv, statement, exactSource = null, piped = true)
+                    lowerInvocation(statement, exactSource = null, piped = true)
                 } else {
-                    emit(mv, statement)
+                    lower(statement)
                 }
             }
         }
 
-        fun emitReturnIfBreak(mv: MethodVisitor) {
-            emitIr(mv, listOf(CompilerInstruction.ReturnIfBreak))
-        }
-
-        fun emitReturn(mv: MethodVisitor) = emitIr(mv, listOf(CompilerInstruction.Return))
-
-        private fun emitInvocation(
-            mv: MethodVisitor,
+        private fun lowerInvocation(
             node: Invocation,
             exactSource: String?,
             piped: Boolean = false,
             allowDirectStore: Boolean = false,
-        ) {
+        ): List<CompilerInstruction> {
             val rendered = exactSource ?: render(node)
             val repetition = Regex("^([^\\s+]+)\\s*\\+\\s*[^\\s]*कृत्व[^\\s]*\\s+(.+)$")
                 .find(rendered.trim())
@@ -166,15 +124,11 @@ internal object StructuredBytecodeCompiler {
                 val body = requireNotNull(repeatedInstructions) {
                     "The JVM compiler cannot lower repeated invocation to IR: $repeatedSource"
                 }
-                emitIr(
-                    mv,
-                    CompilerIrLowering.lowerRepeat(
+                return CompilerIrLowering.lowerRepeat(
                         count = count,
                         body = body,
                         namePrefix = "repeat_${nextLabel++}",
-                    ),
-                )
-                return
+                    )
             }
             val alreadyReferencesResult = node.vakya.padas.any { pada ->
                 pada is dev.panini.vyakaranam.ast.SubantaPada &&
@@ -184,16 +138,16 @@ internal object StructuredBytecodeCompiler {
                 if (piped && !alreadyReferencesResult) "फल + अम् $rendered" else rendered,
             )
             val procedureCall = lowerProcedureCall(source)
-            if (procedureCall != null) {
-                emitIr(mv, listOf(procedureCall))
+            return if (procedureCall != null) {
+                listOf(procedureCall)
             } else {
                 val directPlan = DirectLeafPlanner.plan(source, allowStore = allowDirectStore)
                 if (directPlan != null) {
-                    emitDirect(mv, directPlan)
+                    lowerDirect(directPlan)
                 } else {
                     val generalPlan = DirectLeafPlanner.planAny(source)
                         ?: error("The JVM compiler cannot preplan invocation: $source")
-                    emitDirect(mv, generalPlan)
+                    lowerDirect(generalPlan)
                 }
             }
         }
@@ -212,26 +166,15 @@ internal object StructuredBytecodeCompiler {
             )
         }
 
-        private fun emitDirect(
-            mv: MethodVisitor,
+        private fun lowerDirect(
             plan: ExecutionPlan,
             asBoolean: Boolean = false,
             asLoopTarget: Boolean = false,
-        ) {
-            val instructions = when {
+        ): List<CompilerInstruction> = when {
                 asBoolean -> listOf(CompilerIrLowering.lowerLeaf(plan, CallResultMode.BOOLEAN))
                 asLoopTarget -> listOf(CompilerIrLowering.lowerLeaf(plan, CallResultMode.LOOP_TARGET))
                 else -> CompilerIrLowering.lowerLeafValues(plan)
             }
-            emitIr(mv, instructions)
-        }
-
-        private fun emitConditional(mv: MethodVisitor, node: Conditional) {
-            val instructions = requireNotNull(lowerConditionalIr(node)) {
-                "The JVM compiler cannot lower conditional to IR: ${render(node)}"
-            }
-            emitIr(mv, instructions)
-        }
 
         /**
          * Produces complete IR for conditionals whose leaves are primitive plans.
@@ -283,13 +226,6 @@ internal object StructuredBytecodeCompiler {
             is Pipeline, is Quotation -> null
         }
 
-        private fun emitWhile(mv: MethodVisitor, node: WhileLoop) {
-            val instructions = requireNotNull(lowerWhileIr(node)) {
-                "The JVM compiler cannot lower while loop to IR: ${render(node)}"
-            }
-            emitIr(mv, instructions)
-        }
-
         private fun lowerWhileIr(node: WhileLoop): List<CompilerInstruction>? {
             val usesLatestResult = node.condition.vakya.padas.any { pada ->
                 pada is dev.panini.vyakaranam.ast.SubantaPada &&
@@ -330,13 +266,6 @@ internal object StructuredBytecodeCompiler {
             )
         }
 
-        private fun emitRepeat(mv: MethodVisitor, node: Repeat) {
-            val instructions = requireNotNull(lowerRepeatIr(node)) {
-                "The JVM compiler cannot lower repetition to IR: ${render(node)}"
-            }
-            emitIr(mv, instructions)
-        }
-
         private fun lowerRepeatIr(node: Repeat): List<CompilerInstruction>? {
             val body = node.body
             val bodyInstructions = if (body is Invocation) {
@@ -354,10 +283,10 @@ internal object StructuredBytecodeCompiler {
             )
         }
 
-        private fun emitPlannedSource(mv: MethodVisitor, source: String) {
+        private fun lowerPlannedSource(source: String): List<CompilerInstruction> {
             val plans = DirectLeafPlanner.plansAny(source)
                 ?: error("The JVM compiler cannot preplan source without the interpreter bridge: $source")
-            plans.forEach { emitDirect(mv, it) }
+            return plans.flatMap(::lowerDirect)
         }
 
         private fun resolveArguments(invocation: dev.panini.execution.SamjnaInvocation): List<String> {
@@ -414,59 +343,5 @@ internal object StructuredBytecodeCompiler {
             name.trim()
         }
     }
-
-    private fun emitConstructor(cw: ClassWriter) {
-        val mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null)
-        mv.visitCode()
-        mv.visitVarInsn(ALOAD, 0)
-        mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false)
-        mv.visitInsn(RETURN)
-        mv.visitMaxs(0, 0)
-        mv.visitEnd()
-    }
-
-    private fun emitExecute(
-        cw: ClassWriter,
-        lowering: Lowering,
-        statements: List<PvmScriptStatement.Sentence>,
-        withLimit: Boolean,
-    ) {
-        val descriptor = if (withLimit) "(J)Ljava/util/Map;" else "()Ljava/util/Map;"
-        val mv = cw.visitMethod(ACC_PUBLIC or ACC_STATIC, "execute", descriptor, null, null)
-        mv.visitCode()
-        mv.visitTypeInsn(NEW, "dev/panini/compiler/CompiledProgramRuntime")
-        mv.visitInsn(DUP)
-        if (withLimit) mv.visitVarInsn(LLOAD, 0)
-        mv.visitMethodInsn(
-            INVOKESPECIAL,
-            "dev/panini/compiler/CompiledProgramRuntime",
-            "<init>",
-            if (withLimit) "(J)V" else "()V",
-            false,
-        )
-        mv.visitVarInsn(ASTORE, 0)
-        statements.forEach { sentence ->
-            sentence.program?.let {
-                lowering.emit(
-                    mv,
-                    it,
-                    sentence.text,
-                    allowDirectStore = true,
-                )
-            }
-        }
-        mv.visitVarInsn(ALOAD, 0)
-        mv.visitMethodInsn(
-            INVOKEVIRTUAL,
-            "dev/panini/compiler/CompiledProgramRuntime",
-            "snapshot",
-            "()Ljava/util/Map;",
-            false,
-        )
-        mv.visitInsn(ARETURN)
-        mv.visitMaxs(0, 0)
-        mv.visitEnd()
-    }
-
 
 }
