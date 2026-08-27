@@ -431,6 +431,24 @@ class CompilerIrTest {
     }
 
     @Test
+    fun `numeric condition lowers operands and comparison without a runtime call`() {
+        val greater = requireNotNull(DirectLeafPlanner.planAny(
+            "द्वि + अम् एक + अम् च विद् + लोट् + सिप् ।",
+        ))
+        val less = requireNotNull(DirectLeafPlanner.planAny(
+            "एक + अम् द्वि + अम् च नि + विद् + लोट् + सिप् ।",
+        ))
+
+        val greaterInstructions = CompilerIrLowering.lowerCondition(greater)
+        val lessInstructions = CompilerIrLowering.lowerCondition(less)
+
+        assertEquals(CompilerInstruction.Compare(ComparisonOperator.GREATER_THAN), greaterInstructions.last())
+        assertEquals(CompilerInstruction.Compare(ComparisonOperator.LESS_THAN), lessInstructions.last())
+        assertTrue(greaterInstructions.none { it is CompilerInstruction.Call })
+        assertTrue(lessInstructions.none { it is CompilerInstruction.Call })
+    }
+
+    @Test
     fun `boolean and loop target modes survive IR lowering`() {
         val condition = requireNotNull(DirectLeafPlanner.planAny(
             "द्वि + अम् एक + अम् च विद् + लोट् + सिप् ।",

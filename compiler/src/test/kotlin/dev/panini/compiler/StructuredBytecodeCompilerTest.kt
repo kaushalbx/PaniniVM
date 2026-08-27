@@ -700,7 +700,7 @@ class StructuredBytecodeCompilerTest {
         assertEquals(1L, (outcome.fields.getValue("प्रयत्नसङ्ख्या") as SanskritValue.Sankhya).value)
         assertTrue(executeCalls.count { it == "storeValue" } == 5, executeCalls.toString())
         assertTrue(executeCalls.count { it == "executeDirectValue" } == 2, executeCalls.toString())
-        assertTrue("executeDirectBoolean" in executeCalls, executeCalls.toString())
+        assertTrue("executeDirectBoolean" !in executeCalls, executeCalls.toString())
         assertTrue("evaluateBoolean" !in executeCalls, executeCalls.toString())
         assertTrue("evaluate" !in executeCalls, executeCalls.toString())
     }
@@ -756,7 +756,7 @@ class StructuredBytecodeCompilerTest {
         assertEquals("विजय", outcome.fields.getValue("अवस्था").toDisplayText())
         assertEquals(1L, (outcome.fields.getValue("प्रयत्नसङ्ख्या") as SanskritValue.Sankhya).value)
         assertTrue(executeCalls.count { it == "storeValue" } == 4, executeCalls.toString())
-        assertTrue("executeDirectBoolean" in executeCalls, executeCalls.toString())
+        assertTrue("executeDirectBoolean" !in executeCalls, executeCalls.toString())
         assertTrue("evaluateBoolean" !in executeCalls, executeCalls.toString())
         assertTrue("evaluate" !in executeCalls, executeCalls.toString())
     }
@@ -816,10 +816,10 @@ class StructuredBytecodeCompilerTest {
         assertEquals(5L, (values.getValue("LastResult") as SanskritValue.Sankhya).value)
         assertEquals(2L, (values.getValue("अवस्था") as SanskritValue.Sankhya).value)
         assertTrue("storeValue" in executeCalls, executeCalls.toString())
-        assertTrue("executeDirectBoolean" in executeCalls, executeCalls.toString())
+        assertTrue("executeDirectBoolean" !in executeCalls, executeCalls.toString())
         assertTrue("evaluateBoolean" !in executeCalls, executeCalls.toString())
         assertTrue("evaluate" !in executeCalls, executeCalls.toString())
-        assertTrue(createsReference)
+        assertTrue(!createsReference)
     }
 
     @Test
@@ -979,7 +979,7 @@ class StructuredBytecodeCompilerTest {
 
         assertEquals(interpreted, compiled)
         assertEquals(5L, (compiled as SanskritValue.Sankhya).value)
-        assertTrue("executeDirectBoolean" in executeCalls, executeCalls.toString())
+        assertTrue("executeDirectBoolean" !in executeCalls, executeCalls.toString())
         assertTrue("evaluateBoolean" !in executeCalls, executeCalls.toString())
         assertTrue("evaluate" !in executeCalls, executeCalls.toString())
     }

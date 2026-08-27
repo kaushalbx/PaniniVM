@@ -189,10 +189,7 @@ internal object StructuredBytecodeCompiler {
             val alternate = node.alternate?.let(::lowerPrimitiveBranchIr) ?: emptyList()
             if (node.alternate != null && alternate.isEmpty()) return null
             return CompilerIrLowering.lowerConditional(
-                condition = CompilerIrLowering.lowerLeaf(
-                    condition,
-                    CallResultMode.BOOLEAN,
-                ) as CompilerInstruction.Call,
+                condition = CompilerIrLowering.lowerCondition(condition),
                 consequent = consequent,
                 alternate = alternate,
                 labelPrefix = "conditional_${nextLabel++}",
@@ -252,10 +249,8 @@ internal object StructuredBytecodeCompiler {
             val maximumIterations = node.maximumIterationStems.takeIf(List<String>::isNotEmpty)?.let {
                 dev.panini.sankhya.SankhyaEvaluator().evaluateStems(it).value
             }
-            return CompilerIrLowering.lowerWhile(
-                condition = condition?.let {
-                    CompilerIrLowering.lowerLeaf(it, CallResultMode.BOOLEAN) as CompilerInstruction.Call
-                },
+            return CompilerIrLowering.lowerWhileInstructions(
+                condition = condition?.let(CompilerIrLowering::lowerCondition),
                 body = body,
                 maximumIterations = maximumIterations,
                 exhausted = exhausted,

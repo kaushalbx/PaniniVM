@@ -128,8 +128,8 @@ internal enum class ArithmeticOperator {
 /** Converts resolved grammatical leaves into a stable compiler representation. */
 internal object CompilerIrLowering {
     /** Lowers condition-controlled loops, including bounds and reported-result conditions. */
-    fun lowerWhile(
-        condition: CompilerInstruction.Call?,
+    fun lowerWhileInstructions(
+        condition: List<CompilerInstruction>?,
         body: List<CompilerInstruction>,
         maximumIterations: Long? = null,
         exhausted: List<CompilerInstruction> = emptyList(),
@@ -138,7 +138,7 @@ internal object CompilerIrLowering {
         negatedReportedCondition: Boolean = false,
         namePrefix: String = "while",
     ): List<CompilerInstruction> {
-        require(usesReportedCondition || condition?.resultMode == CallResultMode.BOOLEAN) {
+        require(usesReportedCondition || !condition.isNullOrEmpty()) {
             "While condition must produce a boolean result"
         }
         require(maximumIterations == null || maximumIterations >= 0) {
@@ -160,7 +160,7 @@ internal object CompilerIrLowering {
             if (usesReportedCondition) {
                 add(CompilerInstruction.TestLoopCondition(reportedCondition, negatedReportedCondition))
             } else {
-                add(requireNotNull(condition))
+                addAll(requireNotNull(condition))
             }
             add(CompilerInstruction.Branch(victory))
             if (maximumIterations != null) {
@@ -196,6 +196,26 @@ internal object CompilerIrLowering {
             addAll(resultTarget)
         }.also(CompilerIrVerifier::verify)
     }
+
+    fun lowerWhile(
+        condition: CompilerInstruction.Call?,
+        body: List<CompilerInstruction>,
+        maximumIterations: Long? = null,
+        exhausted: List<CompilerInstruction> = emptyList(),
+        resultTarget: List<CompilerInstruction> = emptyList(),
+        usesReportedCondition: Boolean = false,
+        negatedReportedCondition: Boolean = false,
+        namePrefix: String = "while",
+    ): List<CompilerInstruction> = lowerWhileInstructions(
+        condition = condition?.let(::listOf),
+        body = body,
+        maximumIterations = maximumIterations,
+        exhausted = exhausted,
+        resultTarget = resultTarget,
+        usesReportedCondition = usesReportedCondition,
+        negatedReportedCondition = negatedReportedCondition,
+        namePrefix = namePrefix,
+    )
 
     /** Lowers bounded repetition using ordinary local value and comparison instructions. */
     fun lowerRepeat(
@@ -235,6 +255,26 @@ internal object CompilerIrLowering {
      * when the boolean value produced by [condition] is false.
      */
     fun lowerConditional(
+        condition: List<CompilerInstruction>,
+        consequent: List<CompilerInstruction>,
+        alternate: List<CompilerInstruction> = emptyList(),
+        labelPrefix: String = "conditional",
+    ): List<CompilerInstruction> {
+        require(condition.isNotEmpty()) { "Conditional condition must produce a boolean result" }
+        val alternateLabel = "${labelPrefix}_alternate"
+        val endLabel = "${labelPrefix}_end"
+        return buildList {
+            addAll(condition)
+            add(CompilerInstruction.Branch(alternateLabel))
+            addAll(consequent)
+            add(CompilerInstruction.Jump(endLabel))
+            add(CompilerInstruction.Label(alternateLabel))
+            addAll(alternate)
+            add(CompilerInstruction.Label(endLabel))
+        }.also(CompilerIrVerifier::verify)
+    }
+
+    fun lowerConditional(
         condition: CompilerInstruction.Call,
         consequent: List<CompilerInstruction>,
         alternate: List<CompilerInstruction> = emptyList(),
@@ -243,17 +283,7 @@ internal object CompilerIrLowering {
         require(condition.resultMode == CallResultMode.BOOLEAN) {
             "Conditional condition must produce a boolean result"
         }
-        val alternateLabel = "${labelPrefix}_alternate"
-        val endLabel = "${labelPrefix}_end"
-        return buildList {
-            add(condition)
-            add(CompilerInstruction.Branch(alternateLabel))
-            addAll(consequent)
-            add(CompilerInstruction.Jump(endLabel))
-            add(CompilerInstruction.Label(alternateLabel))
-            addAll(alternate)
-            add(CompilerInstruction.Label(endLabel))
-        }.also(CompilerIrVerifier::verify)
+        return lowerConditional(listOf(condition), consequent, alternate, labelPrefix)
     }
 
     fun lowerLeaf(
@@ -292,6 +322,27 @@ internal object CompilerIrLowering {
             add(CompilerInstruction.Store("LastResult"))
             lowered.destination?.let { add(CompilerInstruction.Store(it)) }
         }.also(CompilerIrVerifier::verify)
+    }
+
+    /** Lowers a numeric comparison into operand loads followed by a boolean comparison. */
+    fun lowerCondition(plan: ExecutionPlan): List<CompilerInstruction> {
+        if (plan.resolved.operation.name != "सङ्ख्यातुलना") {
+            return listOf(lowerLeaf(plan, CallResultMode.BOOLEAN))
+        }
+        val operands = plan.resolved.context.bindings[Karaka.KARMAN]
+            ?.let(::lowerOperands)
+            .orEmpty()
+        if (operands.size < 2) return listOf(lowerLeaf(plan, CallResultMode.BOOLEAN))
+        val operator = if ("नि" in plan.resolved.operation.trigger.requiredUpasargas) {
+            ComparisonOperator.LESS_THAN
+        } else {
+            ComparisonOperator.GREATER_THAN
+        }
+        return buildList {
+            addAll(operands[0])
+            addAll(operands[1])
+            add(CompilerInstruction.Compare(operator))
+        }
     }
 
     /** Lowers primitive numeric folds and single-value assignment without action dispatch. */
