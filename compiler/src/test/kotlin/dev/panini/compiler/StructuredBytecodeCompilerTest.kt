@@ -319,7 +319,7 @@ class StructuredBytecodeCompilerTest {
 
         assertEquals(interpreted, values.getValue("LastResult"))
         assertEquals("पञ्च", values.getValue("LastResult").toDisplayText())
-        assertEquals(2, runtimeCalls.count { it == "executeDirectValue" }, runtimeCalls.toString())
+        assertEquals(1, runtimeCalls.count { it == "executeDirectValue" }, runtimeCalls.toString())
         assertTrue("evaluate" !in runtimeCalls, runtimeCalls.toString())
     }
 
@@ -478,7 +478,7 @@ class StructuredBytecodeCompilerTest {
         assertEquals(interpreted, values.getValue("LastResult"))
         assertEquals(interpreted, values.getValue("अवस्था"))
         assertEquals(5L, (values.getValue("अवस्था") as SanskritValue.Sankhya).value)
-        assertTrue("executeDirectValue" in executeCalls, executeCalls.toString())
+        assertTrue("executeDirectValue" !in executeCalls, executeCalls.toString())
         assertTrue("storeValue" in executeCalls, executeCalls.toString())
         assertTrue("evaluate" !in executeCalls, executeCalls.toString())
     }
@@ -536,7 +536,7 @@ class StructuredBytecodeCompilerTest {
         assertEquals(interpreted, values.getValue("LastResult"))
         assertEquals(interpreted, values.getValue("अवस्था"))
         assertEquals(5L, (values.getValue("अवस्था") as SanskritValue.Sankhya).value)
-        assertTrue("executeDirectValue" in executeCalls, executeCalls.toString())
+        assertTrue("executeDirectValue" !in executeCalls, executeCalls.toString())
         assertTrue("storeValue" in executeCalls, executeCalls.toString())
         assertTrue("evaluate" !in executeCalls, executeCalls.toString())
         assertTrue("evaluateAndStore" !in executeCalls, executeCalls.toString())
@@ -591,7 +591,7 @@ class StructuredBytecodeCompilerTest {
         assertEquals(3L, (values.getValue("LastResult") as SanskritValue.Sankhya).value)
         assertEquals(2L, (values.getValue("अवस्था") as SanskritValue.Sankhya).value)
         assertTrue(executeCalls.count { it == "storeValue" } == 3, executeCalls.toString())
-        assertTrue(executeCalls.count { it == "executeDirectValue" } == 2, executeCalls.toString())
+        assertTrue(executeCalls.count { it == "executeDirectValue" } == 1, executeCalls.toString())
         assertTrue("evaluate" !in executeCalls, executeCalls.toString())
     }
 
@@ -699,7 +699,7 @@ class StructuredBytecodeCompilerTest {
         assertEquals("समाप्ति", outcome.fields.getValue("अवस्था").toDisplayText())
         assertEquals(1L, (outcome.fields.getValue("प्रयत्नसङ्ख्या") as SanskritValue.Sankhya).value)
         assertTrue(executeCalls.count { it == "storeValue" } == 5, executeCalls.toString())
-        assertTrue(executeCalls.count { it == "executeDirectValue" } == 3, executeCalls.toString())
+        assertTrue(executeCalls.count { it == "executeDirectValue" } == 2, executeCalls.toString())
         assertTrue("executeDirectBoolean" in executeCalls, executeCalls.toString())
         assertTrue("evaluateBoolean" !in executeCalls, executeCalls.toString())
         assertTrue("evaluate" !in executeCalls, executeCalls.toString())
@@ -877,7 +877,7 @@ class StructuredBytecodeCompilerTest {
         assertEquals(3L, (values.getValue("अवस्था") as SanskritValue.Sankhya).value)
         assertEquals(5L, (values.getValue("LastResult") as SanskritValue.Sankhya).value)
         assertTrue("storeValue" in executeCalls, executeCalls.toString())
-        assertTrue(executeCalls.count { it == "executeDirectValue" } == 2, executeCalls.toString())
+        assertTrue(executeCalls.count { it == "executeDirectValue" } == 1, executeCalls.toString())
         assertTrue("evaluate" !in executeCalls, executeCalls.toString())
         assertTrue("evaluateAndStore" !in executeCalls, executeCalls.toString())
     }
@@ -1036,7 +1036,7 @@ class StructuredBytecodeCompilerTest {
 
         assertEquals(interpreted, compiled)
         assertEquals(1L, (compiled as SanskritValue.Sankhya).value)
-        assertEquals(5, executeCalls.count { it == "executeDirectValue" }, executeCalls.toString())
+        assertEquals(0, executeCalls.count { it == "executeDirectValue" }, executeCalls.toString())
         assertTrue("evaluate" !in executeCalls, executeCalls.toString())
     }
 
@@ -1389,7 +1389,7 @@ class StructuredBytecodeCompilerTest {
 
         assertEquals(interpreted, compiled)
         assertEquals(4L, (compiled as SanskritValue.Sankhya).value)
-        assertTrue("executeDirectValue" in executeCalls, executeCalls.toString())
+        assertTrue("executeDirectValue" !in executeCalls, executeCalls.toString())
         assertTrue("evaluate" !in executeCalls, executeCalls.toString())
     }
 

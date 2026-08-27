@@ -417,14 +417,15 @@ class CompilerIrTest {
     }
 
     @Test
-    fun `value leaf explicitly stores LastResult`() {
+    fun `numeric value leaf lowers to arithmetic and stores LastResult`() {
         val plan = requireNotNull(DirectLeafPlanner.planAny(
             "एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ।",
         ))
 
         val instructions = CompilerIrLowering.lowerLeafValues(plan)
 
-        assertEquals(CallResultMode.STACK_VALUE, assertIs<CompilerInstruction.Call>(instructions.first()).resultMode)
+        assertIs<CompilerInstruction.Constant>(instructions.first())
+        assertEquals(CompilerInstruction.Arithmetic(ArithmeticOperator.ADD), instructions[2])
         assertEquals(CompilerInstruction.Store("LastResult"), instructions.last())
         CompilerIrVerifier.verify(instructions)
     }

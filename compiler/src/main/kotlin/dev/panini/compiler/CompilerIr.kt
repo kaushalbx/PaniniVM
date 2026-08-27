@@ -282,6 +282,7 @@ internal object CompilerIrLowering {
 
     /** Makes ordinary leaf result flow explicit through LastResult and destination stores. */
     fun lowerLeafValues(plan: ExecutionPlan): List<CompilerInstruction> {
+        lowerPrimitiveLeafValues(plan)?.let { return it }
         val lowered = lowerLeaf(plan)
         if (lowered !is CompilerInstruction.Call) return listOf(lowered)
         val call = lowered.copy(destination = null, resultMode = CallResultMode.STACK_VALUE)
@@ -291,6 +292,74 @@ internal object CompilerIrLowering {
             add(CompilerInstruction.Store("LastResult"))
             lowered.destination?.let { add(CompilerInstruction.Store(it)) }
         }.also(CompilerIrVerifier::verify)
+    }
+
+    /** Lowers primitive numeric folds and single-value assignment without action dispatch. */
+    private fun lowerPrimitiveLeafValues(plan: ExecutionPlan): List<CompilerInstruction>? {
+        val operation = plan.resolved.operation.name
+        val arithmetic = when (operation) {
+            "सङ्ख्यायोजनम्" -> ArithmeticOperator.ADD
+            "सङ्ख्यावियोगः" -> ArithmeticOperator.SUBTRACT
+            "सङ्ख्यागुणनम्" -> ArithmeticOperator.MULTIPLY
+            "सङ्ख्याहरणम्" -> ArithmeticOperator.DIVIDE
+            "सङ्ख्याशेषः" -> ArithmeticOperator.REMAINDER
+            else -> null
+        }
+        val operands = plan.resolved.context.bindings[Karaka.KARMAN]
+            ?.let(::lowerOperands)
+            ?: return null
+        val valueInstructions = when {
+            arithmetic != null && operands.isNotEmpty() -> buildList {
+                addAll(operands.first())
+                operands.drop(1).forEach { operand ->
+                    addAll(operand)
+                    add(CompilerInstruction.Arithmetic(arithmetic))
+                }
+            }
+            operation == "मूल्यदानम्" -> plan.resolved.context.bindings[Karaka.KARMAN]
+                ?.let(::lowerAssignmentOperand)
+                ?: return null
+            else -> return null
+        }
+        val destination = plan.resolved.operation.resultBindingKaraka
+            ?.let(plan.resolved.context.bindings::get)
+            ?.bindingName()
+            ?: plan.resolved.operation.resultBindingKaraka
+                ?.let(plan.resolved.invocation.bindings::get)
+                ?.bindingName()
+        return buildList {
+            addAll(valueInstructions)
+            if (destination != null) add(CompilerInstruction.Duplicate)
+            add(CompilerInstruction.Store("LastResult"))
+            destination?.let { add(CompilerInstruction.Store(it)) }
+        }.also(CompilerIrVerifier::verify)
+    }
+
+    private fun lowerOperands(expression: ExecutionExpression): List<List<CompilerInstruction>>? = when (expression) {
+        is ExecutionExpression.Coordination -> expression.members.map { member ->
+            lowerOperand(member) ?: return null
+        }
+        else -> listOf(lowerOperand(expression) ?: return null)
+    }
+
+    private fun lowerOperand(expression: ExecutionExpression): List<CompilerInstruction>? = when (expression) {
+        is ExecutionExpression.Pada -> expression.value?.let {
+            listOf(CompilerInstruction.Constant(it))
+        } ?: listOf(CompilerInstruction.Load(expression.prakriti))
+        is ExecutionExpression.TypedOperand -> listOf(CompilerInstruction.Constant(expression.value))
+        is ExecutionExpression.Reference -> listOf(
+            if (expression.name == "फल") CompilerInstruction.LoadLastResult
+            else CompilerInstruction.Load(expression.name),
+        )
+        is ExecutionExpression.Coordination -> null
+    }
+
+    private fun lowerAssignmentOperand(expression: ExecutionExpression): List<CompilerInstruction>? = when (expression) {
+        is ExecutionExpression.Reference -> lowerOperand(expression)
+        is ExecutionExpression.Pada -> expression.takeIf { it.value == null }?.let(::lowerOperand)
+        is ExecutionExpression.TypedOperand,
+        is ExecutionExpression.Coordination,
+        -> null
     }
 }
 
