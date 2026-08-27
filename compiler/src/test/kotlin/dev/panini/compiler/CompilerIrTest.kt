@@ -90,6 +90,17 @@ class CompilerIrTest {
     }
 
     @Test
+    fun `collection operations preserve verifier value types`() {
+        val list = SanskritValue.Suchi(listOf(SanskritValue.Shabda("एक")))
+        CompilerIrVerifier.verify(listOf(
+            CompilerInstruction.Constant(list),
+            CompilerInstruction.Collection(CollectionOperator.REVERSE),
+            CompilerInstruction.Collection(CollectionOperator.LENGTH),
+            CompilerInstruction.Store("LastResult"),
+        ))
+    }
+
+    @Test
     fun `IR verifier rejects value stack underflow`() {
         assertFailsWith<IllegalArgumentException> {
             CompilerIrVerifier.verify(listOf(CompilerInstruction.Store("मान")))

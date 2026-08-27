@@ -40,11 +40,23 @@ internal object CompilerValueOperations {
     @JvmStatic
     fun greaterThanOrEqual(left: SanskritValue, right: SanskritValue): Boolean = number(left) >= number(right)
 
+    @JvmStatic
+    fun listLength(value: SanskritValue): SanskritValue = numeric(collectionItems(value).size.toLong())
+
+    @JvmStatic
+    fun listReverse(value: SanskritValue): SanskritValue = SanskritValue.Suchi(collectionItems(value).reversed())
+
     private fun number(value: SanskritValue): Long = (value as? SanskritValue.Sankhya)?.value
         ?: error("Compiler comparison requires numeric values, but received ${value::class.simpleName}.")
 
     private fun numeric(value: Long): SanskritValue.Sankhya {
         val word = dev.panini.execution.renderSankhyaResult(value) ?: value.toString()
         return SanskritValue.Sankhya(value, word)
+    }
+
+    private fun collectionItems(value: SanskritValue): List<SanskritValue> = when (value) {
+        is SanskritValue.Suchi -> value.items
+        is SanskritValue.Gana -> value.elements
+        else -> error("Compiler collection operation requires a list value, but received ${value::class.simpleName}.")
     }
 }

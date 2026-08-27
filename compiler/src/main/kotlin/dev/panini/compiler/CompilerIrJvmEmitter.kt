@@ -47,6 +47,7 @@ internal class CompilerIrJvmEmitter(
                 CompilerInstruction.LoadLastResult -> emitLoad("LastResult")
                 CompilerInstruction.Duplicate -> mv.visitInsn(DUP)
                 is CompilerInstruction.BuildList -> emitBuildList(instruction.size)
+                is CompilerInstruction.Collection -> emitCollection(instruction.operator)
                 is CompilerInstruction.Compare -> emitComparison(instruction.operator)
                 is CompilerInstruction.Arithmetic -> emitArithmetic(instruction.operator)
                 is CompilerInstruction.Call -> emitCall(instruction)
@@ -134,6 +135,20 @@ internal class CompilerIrJvmEmitter(
             "dev/panini/compiler/PaniniRuntime",
             "suchi",
             "([Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;",
+            false,
+        )
+    }
+
+    private fun emitCollection(operator: CollectionOperator) {
+        val method = when (operator) {
+            CollectionOperator.LENGTH -> "listLength"
+            CollectionOperator.REVERSE -> "listReverse"
+        }
+        mv.visitMethodInsn(
+            INVOKESTATIC,
+            "dev/panini/compiler/CompilerValueOperations",
+            method,
+            "(Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;",
             false,
         )
     }

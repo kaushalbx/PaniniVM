@@ -56,6 +56,8 @@ internal sealed interface CompilerInstruction {
 
     data class BuildList(val size: Int) : CompilerInstruction
 
+    data class Collection(val operator: CollectionOperator) : CompilerInstruction
+
     data class Call(
         val dhatuUpadesha: String,
         val operationName: String,
@@ -125,6 +127,11 @@ internal enum class ArithmeticOperator {
     MULTIPLY,
     DIVIDE,
     REMAINDER,
+}
+
+internal enum class CollectionOperator {
+    LENGTH,
+    REVERSE,
 }
 
 /** Converts resolved grammatical leaves into a stable compiler representation. */
@@ -358,6 +365,11 @@ internal object CompilerIrLowering {
             "सङ्ख्याशेषः" -> ArithmeticOperator.REMAINDER
             else -> null
         }
+        val collection = when (operation) {
+            "सूच्याकारः" -> CollectionOperator.LENGTH
+            "सूचीविलोमः" -> CollectionOperator.REVERSE
+            else -> null
+        }
         val operands = plan.resolved.context.bindings[Karaka.KARMAN]
             ?.let(::lowerOperands)
             ?: return null
@@ -369,6 +381,8 @@ internal object CompilerIrLowering {
                     add(CompilerInstruction.Arithmetic(arithmetic))
                 }
             }
+            collection != null && operands.size == 1 -> operands.single() +
+                CompilerInstruction.Collection(collection)
             operation == "मूल्यदानम्" -> plan.resolved.context.bindings[Karaka.KARMAN]
                 ?.let(::lowerAssignmentOperand)
                 ?: return null
@@ -534,6 +548,14 @@ internal object CompilerIrVerifier {
                     "IR value stack underflow at instruction $index: $instruction"
                 }
                 before.dropLast(instruction.size) + ValueKind.VALUE
+            }
+            is CompilerInstruction.Collection -> {
+                val remaining = pop().first
+                remaining + if (instruction.operator == CollectionOperator.LENGTH) {
+                    ValueKind.NUMBER
+                } else {
+                    ValueKind.VALUE
+                }
             }
             is CompilerInstruction.Store, is CompilerInstruction.StoreLocal -> pop().first
             is CompilerInstruction.Compare -> {
