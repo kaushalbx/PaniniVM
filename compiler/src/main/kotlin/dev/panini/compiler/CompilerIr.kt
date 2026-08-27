@@ -133,6 +133,7 @@ internal enum class CollectionOperator {
     LENGTH,
     REVERSE,
     CONCAT,
+    INDEX,
 }
 
 /** Converts resolved grammatical leaves into a stable compiler representation. */
@@ -370,6 +371,7 @@ internal object CompilerIrLowering {
             "सूच्याकारः" -> CollectionOperator.LENGTH
             "सूचीविलोमः" -> CollectionOperator.REVERSE
             "सूचीसंयोगः" -> CollectionOperator.CONCAT
+            "सूचीस्थानम्" -> CollectionOperator.INDEX
             else -> null
         }
         val operands = plan.resolved.context.bindings[Karaka.KARMAN]
@@ -398,6 +400,15 @@ internal object CompilerIrLowering {
                     operands[0] to operands[1]
                 }
                 left + right + CompilerInstruction.Collection(CollectionOperator.CONCAT)
+            }
+            collection == CollectionOperator.INDEX -> {
+                val list = plan.resolved.context.bindings[Karaka.KARMAN]
+                    ?.let(::lowerSingleCollectionValue)
+                    ?: return null
+                val index = plan.resolved.context.bindings[Karaka.KARANA]
+                    ?.let(::lowerOperand)
+                    ?: return null
+                list + index + CompilerInstruction.Collection(CollectionOperator.INDEX)
             }
             operation == "मूल्यदानम्" -> plan.resolved.context.bindings[Karaka.KARMAN]
                 ?.let(::lowerAssignmentOperand)
@@ -584,7 +595,7 @@ internal object CompilerIrVerifier {
             }
             is CompilerInstruction.Collection -> {
                 val afterRight = pop().first
-                val remaining = if (instruction.operator == CollectionOperator.CONCAT) {
+                val remaining = if (instruction.operator in setOf(CollectionOperator.CONCAT, CollectionOperator.INDEX)) {
                     require(afterRight.isNotEmpty()) {
                         "IR value stack underflow at instruction $index: $instruction"
                     }

@@ -1,5 +1,6 @@
 package dev.panini.compiler
 
+import dev.panini.execution.ExecutionError
 import dev.panini.execution.SanskritValue
 
 /** Backend helper for explicit value IR comparisons. */
@@ -49,6 +50,23 @@ internal object CompilerValueOperations {
     @JvmStatic
     fun listConcat(left: SanskritValue, right: SanskritValue): SanskritValue =
         SanskritValue.Suchi(collectionItems(left) + collectionItems(right))
+
+    @JvmStatic
+    fun listIndex(list: SanskritValue, index: SanskritValue): SanskritValue {
+        val items = collectionItems(list)
+        val numericIndex = (index as? SanskritValue.Sankhya)?.value
+            ?: throw CompiledPaniniExecutionException(
+                ExecutionError.INVALID_VALUE,
+                "Index must be a valid saṅkhyā value.",
+            )
+        if (numericIndex !in 1L..items.size.toLong()) {
+            throw CompiledPaniniExecutionException(
+                ExecutionError.INVALID_VALUE,
+                "Index $numericIndex out of bounds for list of size ${items.size}.",
+            )
+        }
+        return items[numericIndex.toInt() - 1]
+    }
 
     private fun number(value: SanskritValue): Long = (value as? SanskritValue.Sankhya)?.value
         ?: error("Compiler comparison requires numeric values, but received ${value::class.simpleName}.")

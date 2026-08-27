@@ -255,6 +255,7 @@ class StructuredBytecodeCompilerTest {
 
         assertEquals(interpreted, compiled.values.getValue("LastResult"))
         assertEquals(20L, (compiled.values.getValue("LastResult") as SanskritValue.Sankhya).value)
+        assertEquals(1, compiled.runtimeCalls.count { it == "executeDirectValue" })
         assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
     }
 

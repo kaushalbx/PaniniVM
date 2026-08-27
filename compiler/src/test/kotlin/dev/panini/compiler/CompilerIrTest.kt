@@ -97,6 +97,9 @@ class CompilerIrTest {
             CompilerInstruction.Collection(CollectionOperator.REVERSE),
             CompilerInstruction.Duplicate,
             CompilerInstruction.Collection(CollectionOperator.CONCAT),
+            CompilerInstruction.Constant(SanskritValue.Sankhya(1, "एकम्")),
+            CompilerInstruction.Collection(CollectionOperator.INDEX),
+            CompilerInstruction.BuildList(1),
             CompilerInstruction.Collection(CollectionOperator.LENGTH),
             CompilerInstruction.Store("LastResult"),
         ))

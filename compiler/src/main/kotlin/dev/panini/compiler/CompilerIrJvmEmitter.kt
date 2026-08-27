@@ -144,8 +144,9 @@ internal class CompilerIrJvmEmitter(
             CollectionOperator.LENGTH -> "listLength"
             CollectionOperator.REVERSE -> "listReverse"
             CollectionOperator.CONCAT -> "listConcat"
+            CollectionOperator.INDEX -> "listIndex"
         }
-        val descriptor = if (operator == CollectionOperator.CONCAT) {
+        val descriptor = if (operator in setOf(CollectionOperator.CONCAT, CollectionOperator.INDEX)) {
             "(Ldev/panini/execution/SanskritValue;Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;"
         } else {
             "(Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;"
