@@ -143,12 +143,18 @@ internal class CompilerIrJvmEmitter(
         val method = when (operator) {
             CollectionOperator.LENGTH -> "listLength"
             CollectionOperator.REVERSE -> "listReverse"
+            CollectionOperator.CONCAT -> "listConcat"
+        }
+        val descriptor = if (operator == CollectionOperator.CONCAT) {
+            "(Ldev/panini/execution/SanskritValue;Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;"
+        } else {
+            "(Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;"
         }
         mv.visitMethodInsn(
             INVOKESTATIC,
             "dev/panini/compiler/CompilerValueOperations",
             method,
-            "(Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;",
+            descriptor,
             false,
         )
     }

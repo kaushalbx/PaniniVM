@@ -95,6 +95,8 @@ class CompilerIrTest {
         CompilerIrVerifier.verify(listOf(
             CompilerInstruction.Constant(list),
             CompilerInstruction.Collection(CollectionOperator.REVERSE),
+            CompilerInstruction.Duplicate,
+            CompilerInstruction.Collection(CollectionOperator.CONCAT),
             CompilerInstruction.Collection(CollectionOperator.LENGTH),
             CompilerInstruction.Store("LastResult"),
         ))

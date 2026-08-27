@@ -132,6 +132,7 @@ internal enum class ArithmeticOperator {
 internal enum class CollectionOperator {
     LENGTH,
     REVERSE,
+    CONCAT,
 }
 
 /** Converts resolved grammatical leaves into a stable compiler representation. */
@@ -368,6 +369,7 @@ internal object CompilerIrLowering {
         val collection = when (operation) {
             "सूच्याकारः" -> CollectionOperator.LENGTH
             "सूचीविलोमः" -> CollectionOperator.REVERSE
+            "सूचीसंयोगः" -> CollectionOperator.CONCAT
             else -> null
         }
         val operands = plan.resolved.context.bindings[Karaka.KARMAN]
@@ -381,8 +383,22 @@ internal object CompilerIrLowering {
                     add(CompilerInstruction.Arithmetic(arithmetic))
                 }
             }
-            collection != null && operands.size == 1 -> operands.single() +
-                CompilerInstruction.Collection(collection)
+            collection in setOf(CollectionOperator.LENGTH, CollectionOperator.REVERSE) && operands.size == 1 -> operands.single() +
+                CompilerInstruction.Collection(requireNotNull(collection))
+            collection == CollectionOperator.CONCAT -> {
+                val separateRight = plan.resolved.context.bindings[Karaka.SAMPRADANA]
+                    ?.let(::lowerSingleCollectionValue)
+                val (left, right) = if (separateRight != null) {
+                    val separateLeft = plan.resolved.context.bindings[Karaka.KARMAN]
+                        ?.let(::lowerSingleCollectionValue)
+                        ?: return null
+                    separateLeft to separateRight
+                } else {
+                    if (operands.size != 2) return null
+                    operands[0] to operands[1]
+                }
+                left + right + CompilerInstruction.Collection(CollectionOperator.CONCAT)
+            }
             operation == "मूल्यदानम्" -> plan.resolved.context.bindings[Karaka.KARMAN]
                 ?.let(::lowerAssignmentOperand)
                 ?: return null
@@ -418,6 +434,23 @@ internal object CompilerIrLowering {
             if (expression.name == "फल") CompilerInstruction.LoadLastResult
             else CompilerInstruction.Load(expression.name),
         )
+        is ExecutionExpression.Coordination -> null
+    }
+
+    private fun lowerSingleCollectionValue(expression: ExecutionExpression): List<CompilerInstruction>? = when (expression) {
+        is ExecutionExpression.Reference -> lowerOperand(expression)
+        is ExecutionExpression.Pada -> when (val value = expression.value) {
+            null -> listOf(CompilerInstruction.Load(expression.prakriti))
+            is SanskritValue.Suchi, is SanskritValue.Gana -> listOf(CompilerInstruction.Constant(value))
+            is SanskritValue.Sankhya -> value.takeIf { it.word == expression.prakriti }
+                ?.let { listOf(CompilerInstruction.Load(expression.prakriti)) }
+            is SanskritValue.Shabda -> value.takeIf { it.text == expression.prakriti }
+                ?.let { listOf(CompilerInstruction.Load(expression.prakriti)) }
+            else -> null
+        }
+        is ExecutionExpression.TypedOperand -> expression.value
+            .takeIf { it is SanskritValue.Suchi || it is SanskritValue.Gana }
+            ?.let { listOf(CompilerInstruction.Constant(it)) }
         is ExecutionExpression.Coordination -> null
     }
 
@@ -550,7 +583,15 @@ internal object CompilerIrVerifier {
                 before.dropLast(instruction.size) + ValueKind.VALUE
             }
             is CompilerInstruction.Collection -> {
-                val remaining = pop().first
+                val afterRight = pop().first
+                val remaining = if (instruction.operator == CollectionOperator.CONCAT) {
+                    require(afterRight.isNotEmpty()) {
+                        "IR value stack underflow at instruction $index: $instruction"
+                    }
+                    afterRight.dropLast(1)
+                } else {
+                    afterRight
+                }
                 remaining + if (instruction.operator == CollectionOperator.LENGTH) {
                     ValueKind.NUMBER
                 } else {
