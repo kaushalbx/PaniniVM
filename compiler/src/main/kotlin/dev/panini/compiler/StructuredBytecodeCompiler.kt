@@ -12,8 +12,6 @@ import dev.panini.execution.DynamicNishedhaEvaluator
 import dev.panini.execution.PuranaPratyayaResolver
 import dev.panini.execution.SamjnaSignatureCompiler
 import dev.panini.execution.ExecutionPlan
-import dev.panini.execution.ValueEnvironment
-import dev.panini.execution.bindingName
 import dev.panini.vyakaranam.ast.Conditional
 import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.Pipeline
@@ -30,12 +28,6 @@ import org.objectweb.asm.Opcodes.*
 
 /** Lowers grammatical control flow to JVM branches while leaves use the normal action runtime. */
 internal object StructuredBytecodeCompiler {
-    fun supports(statements: List<PvmScriptStatement>): Boolean =
-        statements.any { it is PvmScriptStatement.SamjnaDefinition } ||
-            statements.filterIsInstance<PvmScriptStatement.Sentence>().any { sentence ->
-                sentence.program?.containsControlFlow() == true
-            }
-
     fun compile(scriptContent: String, className: String): ByteArray {
         val statements = PvmScript.parse(scriptContent)
         val definitions = statements.filterIsInstance<PvmScriptStatement.SamjnaDefinition>()
@@ -125,8 +117,6 @@ internal object StructuredBytecodeCompiler {
             }
         }
 
-        fun emitDirectPlan(mv: MethodVisitor, plan: ExecutionPlan) = emitDirect(mv, plan)
-
         private fun emitIr(mv: MethodVisitor, instructions: List<CompilerInstruction>) {
             CompilerIrJvmEmitter(className, mv) { width ->
                 val local = nextLocal
@@ -134,9 +124,6 @@ internal object StructuredBytecodeCompiler {
                 local
             }.emit(instructions)
         }
-
-        fun emitDirectPlans(mv: MethodVisitor, plans: List<ExecutionPlan>) =
-            plans.forEach { emitDirect(mv, it) }
 
         private fun emitSequence(mv: MethodVisitor, node: Sequence, exactSource: String?) {
             if (node.connectors.any { it != "ततः" } || node.statements.any { it !is Invocation }) {
@@ -407,15 +394,6 @@ internal object StructuredBytecodeCompiler {
         }
     }
 
-    private fun ProgramNode.containsControlFlow(): Boolean = when (this) {
-        is Conditional, is Repeat, is WhileLoop -> true
-        is Sequence -> statements.any { it.containsControlFlow() }
-        is Quotation -> reporting.containsControlFlow()
-        is Procedure -> body.any { it.containsControlFlow() }
-        is Scope -> body.any { it.containsControlFlow() }
-        is Invocation, is Pipeline -> false
-    }
-
     private fun render(node: ProgramNode): String = when (node) {
         is Invocation -> node.vakya.padas.joinToString(" ") { it.sourceText }
         is Sequence -> node.statements.mapIndexed { index, statement ->
@@ -467,17 +445,13 @@ internal object StructuredBytecodeCompiler {
             false,
         )
         mv.visitVarInsn(ASTORE, 0)
-        val directSlice = planDirectStraightLine(statements)
-        statements.forEachIndexed { index, sentence ->
-            val directPlan = directSlice?.get(index)
-            if (directPlan != null) {
-                lowering.emitDirectPlan(mv, directPlan)
-            } else sentence.program?.let {
+        statements.forEach { sentence ->
+            sentence.program?.let {
                 lowering.emit(
                     mv,
                     it,
                     sentence.text,
-                    allowDirectStore = index == statements.lastIndex,
+                    allowDirectStore = true,
                 )
             }
         }
@@ -492,56 +466,6 @@ internal object StructuredBytecodeCompiler {
         mv.visitInsn(ARETURN)
         mv.visitMaxs(0, 0)
         mv.visitEnd()
-    }
-
-    /**
-     * Validates an entire straight-line slice before allowing a nonterminal direct store.
-     * This keeps compiled state authoritative: a slice either stays wholly direct or retains
-     * the existing bridge, except for the independently safe terminal-store optimization.
-     */
-    private fun planDirectStraightLine(
-        statements: List<PvmScriptStatement.Sentence>,
-    ): List<ExecutionPlan>? {
-        if (statements.isEmpty() || statements.any { it.program !is Invocation }) return null
-        var environment = ValueEnvironment()
-        return buildList {
-            for (sentence in statements) {
-                val plan = DirectLeafPlanner.plan(
-                    sentence.text,
-                    environment = environment,
-                    allowStore = true,
-                ) ?: DirectLeafPlanner.planAny(
-                    sentence.text,
-                    environment = environment,
-                )?.takeIf {
-                    it.resolved.operation.name in setOf("सूचीसंयोजनम्", "सूचीशोधनम्", "सूचीसङ्क्षेपः")
-                } ?: return null
-                environment = advancePlanningEnvironment(plan, environment) ?: return null
-                add(plan)
-            }
-        }
-    }
-
-    private fun advancePlanningEnvironment(
-        plan: ExecutionPlan,
-        environment: ValueEnvironment,
-    ): ValueEnvironment? {
-        val result = runCatching {
-            PaniniRuntime.execute(
-                plan.resolved.invocation.dhatu.upadesha,
-                plan.resolved.operation.name,
-                plan.resolved.operation.trigger.requiredSanadi.sorted().joinToString(","),
-                plan.resolved.context.bindings,
-                environment.values,
-            )
-        }.getOrNull() ?: return null
-        val destination = plan.resolved.operation.resultBindingKaraka
-            ?.let(plan.resolved.context.bindings::get)
-            ?.bindingName()
-        return ValueEnvironment(
-            environment.values + ("LastResult" to result) +
-                (destination?.let { mapOf(it to result) } ?: emptyMap()),
-        )
     }
 
 
