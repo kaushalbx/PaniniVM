@@ -54,6 +54,8 @@ internal sealed interface CompilerInstruction {
 
     data object Duplicate : CompilerInstruction
 
+    data class BuildList(val size: Int) : CompilerInstruction
+
     data class Call(
         val dhatuUpadesha: String,
         val operationName: String,
@@ -408,9 +410,13 @@ internal object CompilerIrLowering {
     private fun lowerAssignmentOperand(expression: ExecutionExpression): List<CompilerInstruction>? = when (expression) {
         is ExecutionExpression.Reference -> lowerOperand(expression)
         is ExecutionExpression.Pada -> expression.takeIf { it.value == null }?.let(::lowerOperand)
-        is ExecutionExpression.TypedOperand,
-        is ExecutionExpression.Coordination,
-        -> null
+        is ExecutionExpression.Coordination -> buildList {
+            expression.members.forEach { member ->
+                addAll(lowerAssignmentOperand(member) ?: return null)
+            }
+            add(CompilerInstruction.BuildList(expression.members.size))
+        }
+        is ExecutionExpression.TypedOperand -> null
     }
 }
 
@@ -521,6 +527,13 @@ internal object CompilerIrVerifier {
             CompilerInstruction.Duplicate -> {
                 val value = pop().second
                 before + value
+            }
+            is CompilerInstruction.BuildList -> {
+                require(instruction.size >= 0) { "IR list size must not be negative at instruction $index" }
+                require(before.size >= instruction.size) {
+                    "IR value stack underflow at instruction $index: $instruction"
+                }
+                before.dropLast(instruction.size) + ValueKind.VALUE
             }
             is CompilerInstruction.Store, is CompilerInstruction.StoreLocal -> pop().first
             is CompilerInstruction.Compare -> {

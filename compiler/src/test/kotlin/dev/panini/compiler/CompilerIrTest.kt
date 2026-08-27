@@ -75,6 +75,21 @@ class CompilerIrTest {
     }
 
     @Test
+    fun `list construction consumes its elements and produces one value`() {
+        val instructions = listOf(
+            CompilerInstruction.Constant(SanskritValue.Shabda("प्रथम")),
+            CompilerInstruction.Constant(SanskritValue.Shabda("द्वितीय")),
+            CompilerInstruction.BuildList(2),
+            CompilerInstruction.Store("LastResult"),
+        )
+
+        CompilerIrVerifier.verify(instructions)
+        assertFailsWith<IllegalArgumentException> {
+            CompilerIrVerifier.verify(listOf(CompilerInstruction.BuildList(1)))
+        }
+    }
+
+    @Test
     fun `IR verifier rejects value stack underflow`() {
         assertFailsWith<IllegalArgumentException> {
             CompilerIrVerifier.verify(listOf(CompilerInstruction.Store("मान")))

@@ -46,6 +46,7 @@ internal class CompilerIrJvmEmitter(
                 )
                 CompilerInstruction.LoadLastResult -> emitLoad("LastResult")
                 CompilerInstruction.Duplicate -> mv.visitInsn(DUP)
+                is CompilerInstruction.BuildList -> emitBuildList(instruction.size)
                 is CompilerInstruction.Compare -> emitComparison(instruction.operator)
                 is CompilerInstruction.Arithmetic -> emitArithmetic(instruction.operator)
                 is CompilerInstruction.Call -> emitCall(instruction)
@@ -113,6 +114,26 @@ internal class CompilerIrJvmEmitter(
             RUNTIME,
             "loadValue",
             "(Ljava/lang/String;)Ldev/panini/execution/SanskritValue;",
+            false,
+        )
+    }
+
+    private fun emitBuildList(size: Int) {
+        val values = List(size) { allocateLocal(1) }
+        values.asReversed().forEach { local -> mv.visitVarInsn(ASTORE, local) }
+        mv.visitLdcInsn(size)
+        mv.visitTypeInsn(ANEWARRAY, "dev/panini/execution/SanskritValue")
+        values.forEachIndexed { index, local ->
+            mv.visitInsn(DUP)
+            mv.visitLdcInsn(index)
+            mv.visitVarInsn(ALOAD, local)
+            mv.visitInsn(AASTORE)
+        }
+        mv.visitMethodInsn(
+            INVOKESTATIC,
+            "dev/panini/compiler/PaniniRuntime",
+            "suchi",
+            "([Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;",
             false,
         )
     }
