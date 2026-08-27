@@ -36,6 +36,8 @@ internal sealed interface CompilerInstruction {
 
     data class Compare(val operator: ComparisonOperator) : CompilerInstruction
 
+    data class Arithmetic(val operator: ArithmeticOperator) : CompilerInstruction
+
     data class Branch(val target: String, val whenTrue: Boolean = false) : CompilerInstruction
 
     data class Jump(val target: String) : CompilerInstruction
@@ -83,6 +85,14 @@ internal enum class ComparisonOperator {
     LESS_THAN_OR_EQUAL,
     GREATER_THAN,
     GREATER_THAN_OR_EQUAL,
+}
+
+internal enum class ArithmeticOperator {
+    ADD,
+    SUBTRACT,
+    MULTIPLY,
+    DIVIDE,
+    REMAINDER,
 }
 
 /** Converts resolved grammatical leaves into a stable compiler representation. */
@@ -294,34 +304,14 @@ internal object CompilerIrVerifier {
         val labelIndices = instructions.mapIndexedNotNull { index, instruction ->
             (instruction as? CompilerInstruction.Label)?.name?.let { it to index }
         }.toMap()
-        val depths = mutableMapOf(0 to 0)
+        val stacks = mutableMapOf(0 to emptyList<ValueKind>())
         val pending = ArrayDeque<Int>().apply { add(0) }
         while (pending.isNotEmpty()) {
             val index = pending.removeFirst()
             if (index !in instructions.indices) continue
             val instruction = instructions[index]
-            val before = requireNotNull(depths[index])
-            val effect = when (instruction) {
-                is CompilerInstruction.Constant,
-                is CompilerInstruction.Load,
-                CompilerInstruction.LoadLastResult,
-                is CompilerInstruction.TestCounter,
-                CompilerInstruction.ConsumeBreak,
-                is CompilerInstruction.TestLoopCondition,
-                -> 1
-                CompilerInstruction.Duplicate -> 1
-                is CompilerInstruction.Store,
-                is CompilerInstruction.Branch,
-                -> -1
-                is CompilerInstruction.Compare -> -1
-                is CompilerInstruction.Call -> when (instruction.resultMode) {
-                    CallResultMode.BOOLEAN, CallResultMode.STACK_VALUE -> 1
-                    else -> 0
-                }
-                else -> 0
-            }
-            val after = before + effect
-            require(after >= 0) { "IR value stack underflow at instruction $index: $instruction" }
+            val before = requireNotNull(stacks[index])
+            val after = applyStackEffect(before, instruction, index)
             val successors = when (instruction) {
                 is CompilerInstruction.Jump -> listOf(requireNotNull(labelIndices[instruction.target]))
                 is CompilerInstruction.Branch -> listOfNotNull(
@@ -332,15 +322,81 @@ internal object CompilerIrVerifier {
                 else -> listOfNotNull((index + 1).takeIf { it < instructions.size })
             }
             successors.forEach { successor ->
-                val previous = depths.putIfAbsent(successor, after)
+                val previous = stacks.putIfAbsent(successor, after)
                 require(previous == null || previous == after) {
-                    "IR value stack depth mismatch at instruction $successor: $previous versus $after"
+                    "IR value stack mismatch at instruction $successor: $previous versus $after"
                 }
                 if (previous == null) pending.add(successor)
             }
             if (successors.isEmpty()) {
-                require(after == 0) { "IR leaves $after value(s) on the stack at instruction $index" }
+                require(after.isEmpty()) {
+                    "IR leaves ${after.size} value(s) on the stack at instruction $index"
+                }
             }
         }
+    }
+
+    private fun applyStackEffect(
+        before: List<ValueKind>,
+        instruction: CompilerInstruction,
+        index: Int,
+    ): List<ValueKind> {
+        fun pop(expected: ValueKind? = null): Pair<List<ValueKind>, ValueKind> {
+            require(before.isNotEmpty()) { "IR value stack underflow at instruction $index: $instruction" }
+            val actual = before.last()
+            require(expected == null || actual == expected || actual == ValueKind.UNKNOWN) {
+                "IR expected $expected but found $actual at instruction $index: $instruction"
+            }
+            return before.dropLast(1) to actual
+        }
+        return when (instruction) {
+            is CompilerInstruction.Constant -> before + if (instruction.value is SanskritValue.Sankhya) {
+                ValueKind.NUMBER
+            } else {
+                ValueKind.VALUE
+            }
+            is CompilerInstruction.Load, CompilerInstruction.LoadLastResult -> before + ValueKind.UNKNOWN
+            CompilerInstruction.Duplicate -> {
+                val value = pop().second
+                before + value
+            }
+            is CompilerInstruction.Store -> pop().first
+            is CompilerInstruction.Compare -> {
+                val afterRight = pop().first
+                require(afterRight.isNotEmpty()) {
+                    "IR value stack underflow at instruction $index: $instruction"
+                }
+                afterRight.dropLast(1) + ValueKind.BOOLEAN
+            }
+            is CompilerInstruction.Arithmetic -> {
+                val afterRight = pop(ValueKind.NUMBER).first
+                require(afterRight.isNotEmpty()) {
+                    "IR value stack underflow at instruction $index: $instruction"
+                }
+                val left = afterRight.last()
+                require(left == ValueKind.NUMBER || left == ValueKind.UNKNOWN) {
+                    "IR arithmetic requires numeric operands at instruction $index"
+                }
+                afterRight.dropLast(1) + ValueKind.NUMBER
+            }
+            is CompilerInstruction.Branch -> pop(ValueKind.BOOLEAN).first
+            is CompilerInstruction.TestCounter,
+            CompilerInstruction.ConsumeBreak,
+            is CompilerInstruction.TestLoopCondition,
+            -> before + ValueKind.BOOLEAN
+            is CompilerInstruction.Call -> when (instruction.resultMode) {
+                CallResultMode.BOOLEAN -> before + ValueKind.BOOLEAN
+                CallResultMode.STACK_VALUE -> before + ValueKind.UNKNOWN
+                else -> before
+            }
+            else -> before
+        }
+    }
+
+    private enum class ValueKind {
+        VALUE,
+        UNKNOWN,
+        NUMBER,
+        BOOLEAN,
     }
 }

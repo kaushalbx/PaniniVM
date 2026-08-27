@@ -72,6 +72,44 @@ class CompilerIrTest {
     }
 
     @Test
+    fun `arithmetic consumes numbers and produces a storable value`() {
+        val one = SanskritValue.Sankhya(1L, "एकम्")
+        val two = SanskritValue.Sankhya(2L, "द्वे")
+        val instructions = listOf(
+            CompilerInstruction.Constant(one),
+            CompilerInstruction.Constant(two),
+            CompilerInstruction.Arithmetic(ArithmeticOperator.ADD),
+            CompilerInstruction.Store("LastResult"),
+        )
+
+        CompilerIrVerifier.verify(instructions)
+        assertEquals(3L, (CompilerValueOperations.add(one, two) as SanskritValue.Sankhya).value)
+    }
+
+    @Test
+    fun `typed verifier rejects non boolean branch and non numeric arithmetic`() {
+        assertFailsWith<IllegalArgumentException> {
+            CompilerIrVerifier.verify(
+                listOf(
+                    CompilerInstruction.Constant(SanskritValue.Shabda("न सत्यम्")),
+                    CompilerInstruction.Branch("end"),
+                    CompilerInstruction.Label("end"),
+                ),
+            )
+        }
+        assertFailsWith<IllegalArgumentException> {
+            CompilerIrVerifier.verify(
+                listOf(
+                    CompilerInstruction.Constant(SanskritValue.Shabda("रामः")),
+                    CompilerInstruction.Constant(SanskritValue.Sankhya(1L, "एकम्")),
+                    CompilerInstruction.Arithmetic(ArithmeticOperator.ADD),
+                    CompilerInstruction.Store("LastResult"),
+                ),
+            )
+        }
+    }
+
+    @Test
     fun `conditional lowers to branch labels and jump`() {
         val condition = CompilerInstruction.Call(
             dhatuUpadesha = "condition",

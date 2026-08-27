@@ -40,6 +40,7 @@ internal class CompilerIrJvmEmitter(
                 CompilerInstruction.LoadLastResult -> emitLoad("LastResult")
                 CompilerInstruction.Duplicate -> mv.visitInsn(DUP)
                 is CompilerInstruction.Compare -> emitComparison(instruction.operator)
+                is CompilerInstruction.Arithmetic -> emitArithmetic(instruction.operator)
                 is CompilerInstruction.Call -> emitCall(instruction)
                 is CompilerInstruction.ProcedureCall -> emitProcedureCall(instruction)
                 is CompilerInstruction.Branch -> mv.visitJumpInsn(
@@ -106,7 +107,6 @@ internal class CompilerIrJvmEmitter(
                 }
                 CompilerInstruction.Return -> mv.visitInsn(RETURN)
                 CompilerInstruction.ReturnIfBreak -> emitReturnIfBreak()
-                else -> error("IR instruction is not supported by the JVM backend yet: $instruction")
             }
         }
     }
@@ -152,6 +152,23 @@ internal class CompilerIrJvmEmitter(
             "dev/panini/compiler/CompilerValueOperations",
             method,
             "(Ldev/panini/execution/SanskritValue;Ldev/panini/execution/SanskritValue;)Z",
+            false,
+        )
+    }
+
+    private fun emitArithmetic(operator: ArithmeticOperator) {
+        val method = when (operator) {
+            ArithmeticOperator.ADD -> "add"
+            ArithmeticOperator.SUBTRACT -> "subtract"
+            ArithmeticOperator.MULTIPLY -> "multiply"
+            ArithmeticOperator.DIVIDE -> "divide"
+            ArithmeticOperator.REMAINDER -> "remainder"
+        }
+        mv.visitMethodInsn(
+            INVOKESTATIC,
+            "dev/panini/compiler/CompilerValueOperations",
+            method,
+            "(Ldev/panini/execution/SanskritValue;Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;",
             false,
         )
     }

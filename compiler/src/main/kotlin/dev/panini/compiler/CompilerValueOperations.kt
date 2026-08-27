@@ -5,6 +5,21 @@ import dev.panini.execution.SanskritValue
 /** Backend helper for explicit value IR comparisons. */
 internal object CompilerValueOperations {
     @JvmStatic
+    fun add(left: SanskritValue, right: SanskritValue): SanskritValue = numeric(number(left) + number(right))
+
+    @JvmStatic
+    fun subtract(left: SanskritValue, right: SanskritValue): SanskritValue = numeric(number(left) - number(right))
+
+    @JvmStatic
+    fun multiply(left: SanskritValue, right: SanskritValue): SanskritValue = numeric(number(left) * number(right))
+
+    @JvmStatic
+    fun divide(left: SanskritValue, right: SanskritValue): SanskritValue = numeric(number(left) / number(right))
+
+    @JvmStatic
+    fun remainder(left: SanskritValue, right: SanskritValue): SanskritValue = numeric(number(left) % number(right))
+
+    @JvmStatic
     fun equal(left: SanskritValue, right: SanskritValue): Boolean = left == right
 
     @JvmStatic
@@ -24,4 +39,11 @@ internal object CompilerValueOperations {
 
     private fun number(value: SanskritValue): Long = (value as? SanskritValue.Sankhya)?.value
         ?: error("Compiler comparison requires numeric values, but received ${value::class.simpleName}.")
+
+    private fun numeric(value: Long): SanskritValue.Sankhya {
+        val word = runCatching {
+            dev.panini.sankhya.SankhyaGenerator().cardinal(value).final.surface
+        }.getOrElse { value.toString() }
+        return SanskritValue.Sankhya(value, word)
+    }
 }
