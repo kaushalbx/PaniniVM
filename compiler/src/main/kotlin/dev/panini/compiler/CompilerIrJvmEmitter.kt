@@ -15,14 +15,13 @@ internal class CompilerIrJvmEmitter(
         CompilerIrVerifier.verify(instructions)
         val labels = instructions.filterIsInstance<CompilerInstruction.Label>()
             .associate { it.name to Label() }
-        val counters = instructions.mapNotNull {
+        val locals = instructions.mapNotNull {
             when (it) {
-                is CompilerInstruction.InitializeCounter -> it.name
-                is CompilerInstruction.TestCounter -> it.name
-                is CompilerInstruction.IncrementCounter -> it.name
+                is CompilerInstruction.LoadLocal -> it.name
+                is CompilerInstruction.StoreLocal -> it.name
                 else -> null
             }
-        }.distinct().associateWith { allocateLocal(2) }
+        }.distinct().associateWith { allocateLocal(1) }
         val loopConditions = instructions.mapNotNull {
             when (it) {
                 is CompilerInstruction.InitializeLoopCondition -> it.name
@@ -37,6 +36,14 @@ internal class CompilerIrJvmEmitter(
                 is CompilerInstruction.Constant -> StructuredValueBytecodeEmitter.emit(mv, instruction.value)
                 is CompilerInstruction.Load -> emitLoad(instruction.name)
                 is CompilerInstruction.Store -> emitStore(instruction.name)
+                is CompilerInstruction.LoadLocal -> mv.visitVarInsn(
+                    ALOAD,
+                    requireNotNull(locals[instruction.name]),
+                )
+                is CompilerInstruction.StoreLocal -> mv.visitVarInsn(
+                    ASTORE,
+                    requireNotNull(locals[instruction.name]),
+                )
                 CompilerInstruction.LoadLastResult -> emitLoad("LastResult")
                 CompilerInstruction.Duplicate -> mv.visitInsn(DUP)
                 is CompilerInstruction.Compare -> emitComparison(instruction.operator)
@@ -52,32 +59,19 @@ internal class CompilerIrJvmEmitter(
                     requireNotNull(labels[instruction.target]),
                 )
                 is CompilerInstruction.Label -> mv.visitLabel(requireNotNull(labels[instruction.name]))
-                is CompilerInstruction.InitializeCounter -> {
-                    mv.visitInsn(LCONST_0)
-                    mv.visitVarInsn(LSTORE, requireNotNull(counters[instruction.name]))
-                }
-                is CompilerInstruction.TestCounter -> emitCounterTest(
-                    requireNotNull(counters[instruction.name]),
-                    instruction.limit,
-                )
-                is CompilerInstruction.IncrementCounter -> {
-                    val counter = requireNotNull(counters[instruction.name])
-                    mv.visitVarInsn(LLOAD, counter)
-                    mv.visitInsn(LCONST_1)
-                    mv.visitInsn(LADD)
-                    mv.visitVarInsn(LSTORE, counter)
-                }
                 CompilerInstruction.ConsumeBreak -> emitRuntimeBoolean("consumeBreak")
                 CompilerInstruction.EnterConditionIteration -> emitRuntimeVoid("enterConditionIteration")
                 is CompilerInstruction.PublishLoopOutcome -> {
+                    val counter = allocateLocal(1)
+                    mv.visitVarInsn(ASTORE, counter)
                     mv.visitVarInsn(ALOAD, 0)
                     mv.visitLdcInsn(instruction.outcome)
-                    mv.visitVarInsn(LLOAD, requireNotNull(counters[instruction.counter]))
+                    mv.visitVarInsn(ALOAD, counter)
                     mv.visitMethodInsn(
                         INVOKEVIRTUAL,
                         RUNTIME,
-                        "publishLoopOutcome",
-                        "(Ljava/lang/String;J)V",
+                        "publishLoopOutcomeValue",
+                        "(Ljava/lang/String;Ldev/panini/execution/SanskritValue;)V",
                         false,
                     )
                 }
@@ -171,20 +165,6 @@ internal class CompilerIrJvmEmitter(
             "(Ldev/panini/execution/SanskritValue;Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;",
             false,
         )
-    }
-
-    private fun emitCounterTest(counter: Int, limit: Long) {
-        val isBelowLimit = Label()
-        val complete = Label()
-        mv.visitVarInsn(LLOAD, counter)
-        mv.visitLdcInsn(limit)
-        mv.visitInsn(LCMP)
-        mv.visitJumpInsn(IFLT, isBelowLimit)
-        mv.visitInsn(ICONST_0)
-        mv.visitJumpInsn(GOTO, complete)
-        mv.visitLabel(isBelowLimit)
-        mv.visitInsn(ICONST_1)
-        mv.visitLabel(complete)
     }
 
     private fun emitLoopConditionTest(local: Int, negated: Boolean) {

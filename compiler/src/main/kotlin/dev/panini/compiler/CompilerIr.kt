@@ -14,6 +14,10 @@ internal sealed interface CompilerInstruction {
 
     data class Store(val name: String) : CompilerInstruction
 
+    data class LoadLocal(val name: String) : CompilerInstruction
+
+    data class StoreLocal(val name: String) : CompilerInstruction
+
     data object LoadLastResult : CompilerInstruction
 
     data object Duplicate : CompilerInstruction
@@ -44,17 +48,11 @@ internal sealed interface CompilerInstruction {
 
     data class Label(val name: String) : CompilerInstruction
 
-    data class InitializeCounter(val name: String) : CompilerInstruction
-
-    data class TestCounter(val name: String, val limit: Long) : CompilerInstruction
-
-    data class IncrementCounter(val name: String) : CompilerInstruction
-
     data object ConsumeBreak : CompilerInstruction
 
     data object EnterConditionIteration : CompilerInstruction
 
-    data class PublishLoopOutcome(val outcome: String, val counter: String) : CompilerInstruction
+    data class PublishLoopOutcome(val outcome: String) : CompilerInstruction
 
     data class InitializeLoopCondition(val name: String) : CompilerInstruction
 
@@ -121,7 +119,8 @@ internal object CompilerIrLowering {
         val exhaustedLabel = "${namePrefix}_exhausted"
         val target = "${namePrefix}_target"
         return buildList {
-            add(CompilerInstruction.InitializeCounter(counter))
+            add(numberConstant(0))
+            add(CompilerInstruction.StoreLocal(counter))
             if (usesReportedCondition) {
                 add(CompilerInstruction.InitializeLoopCondition(reportedCondition))
             }
@@ -133,13 +132,18 @@ internal object CompilerIrLowering {
             }
             add(CompilerInstruction.Branch(victory))
             if (maximumIterations != null) {
-                add(CompilerInstruction.TestCounter(counter, maximumIterations))
+                add(CompilerInstruction.LoadLocal(counter))
+                add(numberConstant(maximumIterations))
+                add(CompilerInstruction.Compare(ComparisonOperator.LESS_THAN))
                 add(CompilerInstruction.Branch(exhaustedLabel))
             }
             add(CompilerInstruction.EnterConditionIteration)
             if (usesReportedCondition) add(CompilerInstruction.ClearReportedCondition)
             addAll(body)
-            add(CompilerInstruction.IncrementCounter(counter))
+            add(CompilerInstruction.LoadLocal(counter))
+            add(numberConstant(1))
+            add(CompilerInstruction.Arithmetic(ArithmeticOperator.ADD))
+            add(CompilerInstruction.StoreLocal(counter))
             if (usesReportedCondition) {
                 add(CompilerInstruction.CaptureReportedCondition(reportedCondition))
             }
@@ -147,19 +151,21 @@ internal object CompilerIrLowering {
             add(CompilerInstruction.Branch(victory, whenTrue = true))
             add(CompilerInstruction.Jump(conditionLabel))
             add(CompilerInstruction.Label(victory))
-            add(CompilerInstruction.PublishLoopOutcome("विजय", counter))
+            add(CompilerInstruction.LoadLocal(counter))
+            add(CompilerInstruction.PublishLoopOutcome("विजय"))
             add(CompilerInstruction.Jump(target))
             if (maximumIterations != null) {
                 add(CompilerInstruction.Label(exhaustedLabel))
                 addAll(exhausted)
-                add(CompilerInstruction.PublishLoopOutcome("समाप्ति", counter))
+                add(CompilerInstruction.LoadLocal(counter))
+                add(CompilerInstruction.PublishLoopOutcome("समाप्ति"))
             }
             add(CompilerInstruction.Label(target))
             addAll(resultTarget)
         }.also(CompilerIrVerifier::verify)
     }
 
-    /** Lowers bounded repetition; TestCounter and ConsumeBreak each produce a boolean. */
+    /** Lowers bounded repetition using ordinary local value and comparison instructions. */
     fun lowerRepeat(
         count: Int,
         body: List<CompilerInstruction>,
@@ -170,18 +176,27 @@ internal object CompilerIrLowering {
         val start = "${namePrefix}_start"
         val exit = "${namePrefix}_exit"
         return buildList {
-            add(CompilerInstruction.InitializeCounter(counter))
+            add(numberConstant(0))
+            add(CompilerInstruction.StoreLocal(counter))
             add(CompilerInstruction.Label(start))
-            add(CompilerInstruction.TestCounter(counter, count.toLong()))
+            add(CompilerInstruction.LoadLocal(counter))
+            add(numberConstant(count.toLong()))
+            add(CompilerInstruction.Compare(ComparisonOperator.LESS_THAN))
             add(CompilerInstruction.Branch(exit))
             addAll(body)
             add(CompilerInstruction.ConsumeBreak)
             add(CompilerInstruction.Branch(exit, whenTrue = true))
-            add(CompilerInstruction.IncrementCounter(counter))
+            add(CompilerInstruction.LoadLocal(counter))
+            add(numberConstant(1))
+            add(CompilerInstruction.Arithmetic(ArithmeticOperator.ADD))
+            add(CompilerInstruction.StoreLocal(counter))
             add(CompilerInstruction.Jump(start))
             add(CompilerInstruction.Label(exit))
         }.also(CompilerIrVerifier::verify)
     }
+
+    private fun numberConstant(value: Long): CompilerInstruction.Constant =
+        CompilerInstruction.Constant(SanskritValue.Sankhya(value, value.toString()))
 
     /**
      * Lowers a conditional into linear IR. [CompilerInstruction.Branch] jumps
@@ -264,19 +279,11 @@ internal object CompilerIrVerifier {
             require(target == null || target in labelNames) { "Unknown IR label: $target" }
         }
 
-        val counters = instructions.filterIsInstance<CompilerInstruction.InitializeCounter>()
-        val duplicateCounter = counters.groupingBy { it.name }.eachCount().entries
-            .firstOrNull { it.value > 1 }
-        require(duplicateCounter == null) { "Duplicate IR counter: ${duplicateCounter?.key}" }
-        val counterNames = counters.mapTo(mutableSetOf()) { it.name }
+        val localNames = instructions.filterIsInstance<CompilerInstruction.StoreLocal>()
+            .mapTo(mutableSetOf()) { it.name }
         instructions.forEach { instruction ->
-            val counter = when (instruction) {
-                is CompilerInstruction.TestCounter -> instruction.name
-                is CompilerInstruction.IncrementCounter -> instruction.name
-                is CompilerInstruction.PublishLoopOutcome -> instruction.counter
-                else -> null
-            }
-            require(counter == null || counter in counterNames) { "Unknown IR counter: $counter" }
+            val local = (instruction as? CompilerInstruction.LoadLocal)?.name
+            require(local == null || local in localNames) { "Unknown IR local: $local" }
         }
 
         val conditions = instructions.filterIsInstance<CompilerInstruction.InitializeLoopCondition>()
@@ -355,12 +362,15 @@ internal object CompilerIrVerifier {
             } else {
                 ValueKind.VALUE
             }
-            is CompilerInstruction.Load, CompilerInstruction.LoadLastResult -> before + ValueKind.UNKNOWN
+            is CompilerInstruction.Load,
+            is CompilerInstruction.LoadLocal,
+            CompilerInstruction.LoadLastResult,
+            -> before + ValueKind.UNKNOWN
             CompilerInstruction.Duplicate -> {
                 val value = pop().second
                 before + value
             }
-            is CompilerInstruction.Store -> pop().first
+            is CompilerInstruction.Store, is CompilerInstruction.StoreLocal -> pop().first
             is CompilerInstruction.Compare -> {
                 val afterRight = pop().first
                 require(afterRight.isNotEmpty()) {
@@ -380,10 +390,10 @@ internal object CompilerIrVerifier {
                 afterRight.dropLast(1) + ValueKind.NUMBER
             }
             is CompilerInstruction.Branch -> pop(ValueKind.BOOLEAN).first
-            is CompilerInstruction.TestCounter,
             CompilerInstruction.ConsumeBreak,
             is CompilerInstruction.TestLoopCondition,
             -> before + ValueKind.BOOLEAN
+            is CompilerInstruction.PublishLoopOutcome -> pop(ValueKind.NUMBER).first
             is CompilerInstruction.Call -> when (instruction.resultMode) {
                 CallResultMode.BOOLEAN -> before + ValueKind.BOOLEAN
                 CallResultMode.STACK_VALUE -> before + ValueKind.UNKNOWN

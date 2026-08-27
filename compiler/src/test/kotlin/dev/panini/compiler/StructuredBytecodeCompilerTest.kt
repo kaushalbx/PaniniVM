@@ -10,8 +10,7 @@ import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.ASM9
 import org.objectweb.asm.Opcodes.GOTO
 import org.objectweb.asm.Opcodes.IFEQ
-import org.objectweb.asm.Opcodes.LCMP
-import org.objectweb.asm.Opcodes.LLOAD
+import org.objectweb.asm.Opcodes.ALOAD
 import java.io.File
 import java.lang.reflect.InvocationTargetException
 import kotlin.test.Test
@@ -1057,13 +1056,14 @@ class StructuredBytecodeCompilerTest {
     }
 
     @Test
-    fun `large grammatical loop bounds use JVM long counters`() {
+    fun `large grammatical loop bounds use explicit numeric value comparison`() {
         val source = """
             शून्य + अम् अवस्था + ङे दा + लोट् + सिप् ।
             कोटि + कृत्वः यावत् अवस्था + अम् शून्य + अम् च विद् + लोट् + सिप् तावत् एक + अम् अवस्था + ङे दा + लोट् + सिप् ।
         """.trimIndent()
         val bytes = BytecodeCompiler.compile(source, "CompiledLargeLoopBound")
         val instructions = mutableListOf<Int>()
+        val valueCalls = mutableListOf<String>()
         ClassReader(bytes).accept(
             object : ClassVisitor(ASM9) {
                 override fun visitMethod(
@@ -1080,6 +1080,18 @@ class StructuredBytecodeCompilerTest {
                     override fun visitVarInsn(opcode: Int, varIndex: Int) {
                         instructions += opcode
                     }
+
+                    override fun visitMethodInsn(
+                        opcode: Int,
+                        owner: String?,
+                        name: String?,
+                        descriptor: String?,
+                        isInterface: Boolean,
+                    ) {
+                        if (owner == "dev/panini/compiler/CompilerValueOperations") {
+                            name?.let(valueCalls::add)
+                        }
+                    }
                 }
             },
             0,
@@ -1090,8 +1102,8 @@ class StructuredBytecodeCompilerTest {
         val result = generated.getMethod("execute").invoke(null) as Map<String, SanskritValue>
         val outcome = result.getValue("परिणाम") as SanskritValue.Rupa
 
-        assertTrue(LLOAD in instructions)
-        assertTrue(LCMP in instructions)
+        assertTrue(ALOAD in instructions)
+        assertTrue("lessThan" in valueCalls, valueCalls.toString())
         assertEquals(0L, (outcome.fields.getValue("प्रयत्नसङ्ख्या") as SanskritValue.Sankhya).value)
     }
 

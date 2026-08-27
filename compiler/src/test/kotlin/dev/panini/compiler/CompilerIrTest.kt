@@ -186,14 +186,20 @@ class CompilerIrTest {
 
         assertEquals(
             listOf(
-                CompilerInstruction.InitializeCounter("test-repeat_counter"),
+                numericConstant(0),
+                CompilerInstruction.StoreLocal("test-repeat_counter"),
                 CompilerInstruction.Label("test-repeat_start"),
-                CompilerInstruction.TestCounter("test-repeat_counter", 3L),
+                CompilerInstruction.LoadLocal("test-repeat_counter"),
+                numericConstant(3),
+                CompilerInstruction.Compare(ComparisonOperator.LESS_THAN),
                 CompilerInstruction.Branch("test-repeat_exit"),
                 body,
                 CompilerInstruction.ConsumeBreak,
                 CompilerInstruction.Branch("test-repeat_exit", whenTrue = true),
-                CompilerInstruction.IncrementCounter("test-repeat_counter"),
+                CompilerInstruction.LoadLocal("test-repeat_counter"),
+                numericConstant(1),
+                CompilerInstruction.Arithmetic(ArithmeticOperator.ADD),
+                CompilerInstruction.StoreLocal("test-repeat_counter"),
                 CompilerInstruction.Jump("test-repeat_start"),
                 CompilerInstruction.Label("test-repeat_exit"),
             ),
@@ -224,7 +230,7 @@ class CompilerIrTest {
         CompilerIrVerifier.verify(outer)
         assertEquals(
             setOf("outer_counter", "inner_counter"),
-            outer.filterIsInstance<CompilerInstruction.InitializeCounter>().map { it.name }.toSet(),
+            outer.filterIsInstance<CompilerInstruction.StoreLocal>().map { it.name }.toSet(),
         )
         assertEquals(
             4,
@@ -245,18 +251,23 @@ class CompilerIrTest {
 
         assertEquals(
             listOf(
-                CompilerInstruction.InitializeCounter("test-while_counter"),
+                numericConstant(0),
+                CompilerInstruction.StoreLocal("test-while_counter"),
                 CompilerInstruction.Label("test-while_condition"),
                 condition,
                 CompilerInstruction.Branch("test-while_victory"),
                 CompilerInstruction.EnterConditionIteration,
                 body,
-                CompilerInstruction.IncrementCounter("test-while_counter"),
+                CompilerInstruction.LoadLocal("test-while_counter"),
+                numericConstant(1),
+                CompilerInstruction.Arithmetic(ArithmeticOperator.ADD),
+                CompilerInstruction.StoreLocal("test-while_counter"),
                 CompilerInstruction.ConsumeBreak,
                 CompilerInstruction.Branch("test-while_victory", whenTrue = true),
                 CompilerInstruction.Jump("test-while_condition"),
                 CompilerInstruction.Label("test-while_victory"),
-                CompilerInstruction.PublishLoopOutcome("विजय", "test-while_counter"),
+                CompilerInstruction.LoadLocal("test-while_counter"),
+                CompilerInstruction.PublishLoopOutcome("विजय"),
                 CompilerInstruction.Jump("test-while_target"),
                 CompilerInstruction.Label("test-while_target"),
             ),
@@ -278,9 +289,10 @@ class CompilerIrTest {
             namePrefix = "bounded",
         )
 
-        assertEquals(CompilerInstruction.TestCounter("bounded_counter", 4L), instructions[4])
+        assertTrue(instructions.contains(numericConstant(4)))
+        assertTrue(instructions.contains(CompilerInstruction.Compare(ComparisonOperator.LESS_THAN)))
         assertTrue(instructions.contains(CompilerInstruction.Label("bounded_exhausted")))
-        assertTrue(instructions.contains(CompilerInstruction.PublishLoopOutcome("समाप्ति", "bounded_counter")))
+        assertTrue(instructions.contains(CompilerInstruction.PublishLoopOutcome("समाप्ति")))
         assertEquals(target, instructions.last())
         CompilerIrVerifier.verify(instructions)
     }
@@ -317,14 +329,14 @@ class CompilerIrTest {
         CompilerIrVerifier.verify(outer)
         assertEquals(
             setOf("outer_counter", "inner_counter"),
-            outer.filterIsInstance<CompilerInstruction.InitializeCounter>().map { it.name }.toSet(),
+            outer.filterIsInstance<CompilerInstruction.StoreLocal>().map { it.name }.toSet(),
         )
     }
 
     @Test
     fun `IR verifier rejects unknown loop state`() {
         assertFailsWith<IllegalArgumentException> {
-            CompilerIrVerifier.verify(listOf(CompilerInstruction.IncrementCounter("missing")))
+            CompilerIrVerifier.verify(listOf(CompilerInstruction.LoadLocal("missing")))
         }
         assertFailsWith<IllegalArgumentException> {
             CompilerIrVerifier.verify(
@@ -426,5 +438,9 @@ class CompilerIrTest {
         operationName = name,
         requiredSanadi = "",
         bindings = emptyMap(),
+    )
+
+    private fun numericConstant(value: Long) = CompilerInstruction.Constant(
+        SanskritValue.Sankhya(value, value.toString()),
     )
 }
