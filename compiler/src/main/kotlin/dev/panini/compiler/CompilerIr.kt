@@ -16,6 +16,7 @@ internal data class CompilerProgram(
 internal data class CompilerProcedure(
     val methodName: String,
     val instructions: List<CompilerInstruction>,
+    val parameterNames: List<String> = emptyList(),
 )
 
 internal object CompilerProgramVerifier {
@@ -27,14 +28,53 @@ internal object CompilerProgramVerifier {
 
         CompilerIrVerifier.verify(program.entryPoint)
         program.procedures.forEach { CompilerIrVerifier.verify(it.instructions) }
+        verifyFrames(program.entryPoint)
+        program.procedures.forEach { verifyFrames(it.instructions) }
         val procedureNames = proceduresByName.keys
         (program.entryPoint + program.procedures.flatMap(CompilerProcedure::instructions))
-            .filterIsInstance<CompilerInstruction.ProcedureCall>()
+            .filterIsInstance<CompilerInstruction.InvokeProcedure>()
             .forEach { call ->
                 require(call.methodName in procedureNames) {
                     "Unknown IR procedure: ${call.methodName}"
                 }
+                val expected = proceduresByName.getValue(call.methodName).single().parameterNames.size
+                require(call.argumentCount == expected) {
+                    "IR procedure ${call.methodName} expects $expected arguments, but received ${call.argumentCount}"
+                }
             }
+    }
+
+    private fun verifyFrames(instructions: List<CompilerInstruction>) {
+        instructions.forEachIndexed { index, instruction ->
+            when (instruction) {
+                is CompilerInstruction.EnterFrame -> {
+                    require(instruction.parameterNames.size == instruction.arguments.size &&
+                        instruction.parameterNames.size == instruction.argumentValues.size) {
+                        "IR frame argument arrays must have equal sizes at instruction $index"
+                    }
+                    require(instruction.parameterNames.distinct().size == instruction.parameterNames.size) {
+                        "IR frame parameter names must be unique at instruction $index"
+                    }
+                    require(instructions.getOrNull(index + 1) is CompilerInstruction.InvokeProcedure) {
+                        "IR EnterFrame must be followed by InvokeProcedure at instruction $index"
+                    }
+                }
+                is CompilerInstruction.InvokeProcedure -> {
+                    val frame = instructions.getOrNull(index - 1) as? CompilerInstruction.EnterFrame
+                        ?: throw IllegalArgumentException("IR InvokeProcedure requires EnterFrame at instruction $index")
+                    require(frame.parameterNames.size == instruction.argumentCount) {
+                        "IR invocation argument count does not match its frame at instruction $index"
+                    }
+                    require(instructions.getOrNull(index + 1) == CompilerInstruction.ExitFrame) {
+                        "IR InvokeProcedure must be followed by ExitFrame at instruction $index"
+                    }
+                }
+                CompilerInstruction.ExitFrame -> require(instructions.getOrNull(index - 1) is CompilerInstruction.InvokeProcedure) {
+                    "IR ExitFrame requires InvokeProcedure at instruction $index"
+                }
+                else -> Unit
+            }
+        }
     }
 }
 
@@ -71,12 +111,15 @@ internal sealed interface CompilerInstruction {
         val bindings: Map<Karaka, ExecutionExpression>,
     ) : CompilerInstruction
 
-    data class ProcedureCall(
-        val methodName: String,
+    data class EnterFrame(
         val parameterNames: List<String>,
         val arguments: List<String>,
         val argumentValues: List<SanskritValue?>,
     ) : CompilerInstruction
+
+    data class InvokeProcedure(val methodName: String, val argumentCount: Int) : CompilerInstruction
+
+    data object ExitFrame : CompilerInstruction
 
     data class Compare(val operator: ComparisonOperator) : CompilerInstruction
 

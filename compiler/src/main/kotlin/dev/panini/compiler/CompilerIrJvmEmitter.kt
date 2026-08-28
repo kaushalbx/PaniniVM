@@ -68,7 +68,18 @@ internal class CompilerIrJvmEmitter(
                     false,
                 )
                 is CompilerInstruction.Call -> emitCall(instruction)
-                is CompilerInstruction.ProcedureCall -> emitProcedureCall(instruction)
+                is CompilerInstruction.EnterFrame -> emitEnterFrame(instruction)
+                is CompilerInstruction.InvokeProcedure -> {
+                    mv.visitVarInsn(ALOAD, 0)
+                    mv.visitMethodInsn(
+                        INVOKESTATIC,
+                        className,
+                        instruction.methodName,
+                        "(Ldev/panini/compiler/CompiledProgramRuntime;)V",
+                        false,
+                    )
+                }
+                CompilerInstruction.ExitFrame -> emitRuntimeVoid("exitFrame")
                 is CompilerInstruction.Branch -> mv.visitJumpInsn(
                     if (instruction.whenTrue) IFNE else IFEQ,
                     requireNotNull(labels[instruction.target]),
@@ -321,7 +332,7 @@ internal class CompilerIrJvmEmitter(
         )
     }
 
-    private fun emitProcedureCall(call: CompilerInstruction.ProcedureCall) {
+    private fun emitEnterFrame(call: CompilerInstruction.EnterFrame) {
         val parameterNames = allocateLocal(1)
         val arguments = allocateLocal(1)
         val argumentValues = allocateLocal(1)
@@ -342,15 +353,6 @@ internal class CompilerIrJvmEmitter(
             "([Ljava/lang/String;[Ljava/lang/String;[Ldev/panini/execution/SanskritValue;)V",
             false,
         )
-        mv.visitVarInsn(ALOAD, 0)
-        mv.visitMethodInsn(
-            INVOKESTATIC,
-            className,
-            call.methodName,
-            "(Ldev/panini/compiler/CompiledProgramRuntime;)V",
-            false,
-        )
-        emitRuntimeVoid("exitFrame")
     }
 
     private fun emitExpression(expression: ExecutionExpression) {

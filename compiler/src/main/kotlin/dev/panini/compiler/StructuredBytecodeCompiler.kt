@@ -25,7 +25,11 @@ import dev.panini.vyakaranam.ast.WhileLoop
 
 /** Lowers grammatical control flow to JVM branches while leaves use the normal action runtime. */
 internal object StructuredBytecodeCompiler {
-    fun compile(scriptContent: String, className: String): ByteArray {
+    fun compile(scriptContent: String, className: String): ByteArray =
+        CompilerProgramJvmEmitter.emit(lower(scriptContent, className))
+
+    /** Frontend boundary: parses and lowers a complete source unit without emitting JVM bytecode. */
+    internal fun lower(scriptContent: String, className: String): CompilerProgram {
         val statements = PvmScript.parse(scriptContent)
         val definitions = statements.filterIsInstance<PvmScriptStatement.SamjnaDefinition>()
         val registry = SamjnaKriyaRegistry()
@@ -59,9 +63,14 @@ internal object StructuredBytecodeCompiler {
                     lowering.lower(it, sentence.text) + CompilerInstruction.ReturnIfBreak
                 }.orEmpty()
             } + CompilerInstruction.Return
-            CompilerProcedure(requireNotNull(methods[definition]), instructions)
+            CompilerProcedure(
+                methodName = requireNotNull(methods[definition]),
+                instructions = instructions,
+                parameterNames = requireNotNull(registry.resolve(samjnaStem(definition.nameSegmented)))
+                    .signature.parameters.map { it.nameStem },
+            )
         }
-        return CompilerProgramJvmEmitter.emit(CompilerProgram(className, entryPoint, procedures))
+        return CompilerProgram(className, entryPoint, procedures).also(CompilerProgramVerifier::verify)
     }
 
     private class Lowering(
@@ -119,7 +128,7 @@ internal object StructuredBytecodeCompiler {
                 val count = dev.panini.sankhya.SankhyaEvaluator()
                     .evaluateStems(listOf(repetition.groupValues[1])).value.toInt()
                 val repeatedSource = normalized(repetition.groupValues[2])
-                val repeatedInstructions = lowerProcedureCall(repeatedSource)?.let(::listOf)
+                val repeatedInstructions = lowerProcedureCall(repeatedSource)
                     ?: DirectLeafPlanner.planAny(repeatedSource)?.let(CompilerIrLowering::lowerLeafValues)
                 val body = requireNotNull(repeatedInstructions) {
                     "The JVM compiler cannot lower repeated invocation to IR: $repeatedSource"
@@ -139,7 +148,7 @@ internal object StructuredBytecodeCompiler {
             )
             val procedureCall = lowerProcedureCall(source)
             return if (procedureCall != null) {
-                listOf(procedureCall)
+                procedureCall
             } else {
                 val directPlan = DirectLeafPlanner.plan(source, allowStore = allowDirectStore)
                 if (directPlan != null) {
@@ -152,17 +161,21 @@ internal object StructuredBytecodeCompiler {
             }
         }
 
-        private fun lowerProcedureCall(source: String): CompilerInstruction.ProcedureCall? {
+        private fun lowerProcedureCall(source: String): List<CompilerInstruction>? {
             val invocation = registry.detectInvocation(source) ?: return null
             val method = invocation.kriya.nameStem.let(methodsByStem::get) ?: return null
             val signature = invocation.kriya.signature
-            return CompilerInstruction.ProcedureCall(
-                methodName = method,
-                parameterNames = signature.parameters.map { it.nameStem },
-                arguments = resolveArguments(invocation),
-                argumentValues = List(signature.parameters.size) { index ->
-                    invocation.argumentValues.getOrNull(index)
-                },
+            val parameterNames = signature.parameters.map { it.nameStem }
+            return listOf(
+                CompilerInstruction.EnterFrame(
+                    parameterNames = parameterNames,
+                    arguments = resolveArguments(invocation),
+                    argumentValues = List(signature.parameters.size) { index ->
+                        invocation.argumentValues.getOrNull(index)
+                    },
+                ),
+                CompilerInstruction.InvokeProcedure(method, parameterNames.size),
+                CompilerInstruction.ExitFrame,
             )
         }
 
@@ -192,7 +205,7 @@ internal object StructuredBytecodeCompiler {
         private fun lowerPrimitiveBranchIr(node: ProgramNode): List<CompilerInstruction>? = when (node) {
             is Invocation -> {
                 val source = normalized(render(node))
-                lowerProcedureCall(source)?.let(::listOf)
+                lowerProcedureCall(source)
                     ?: DirectLeafPlanner.planAny(source)?.let(CompilerIrLowering::lowerLeafValues)
             }
             is Conditional -> lowerConditionalIr(node)
@@ -259,7 +272,7 @@ internal object StructuredBytecodeCompiler {
             val bodyInstructions = if (body is Invocation) {
                 val renderedBody = render(body)
                 val bodySource = normalized(renderedBody.split(Regex("\\s+")).drop(3).joinToString(" "))
-                lowerProcedureCall(bodySource)?.let(::listOf)
+                lowerProcedureCall(bodySource)
                     ?: DirectLeafPlanner.planAny(bodySource)?.let(CompilerIrLowering::lowerLeafValues)
             } else {
                 lowerPrimitiveBranchIr(body)
