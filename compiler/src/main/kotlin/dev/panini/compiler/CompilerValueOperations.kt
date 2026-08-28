@@ -68,6 +68,49 @@ internal object CompilerValueOperations {
         return items[numericIndex.toInt() - 1]
     }
 
+    @JvmStatic
+    fun listContains(list: SanskritValue, query: SanskritValue): SanskritValue = SanskritValue.Satya(
+        collectionItems(list).any { item -> equivalent(item, query) },
+    )
+
+    @JvmStatic
+    fun listAppend(list: SanskritValue, item: SanskritValue): SanskritValue = SanskritValue.Suchi(
+        collectionItems(list) + item,
+    )
+
+    @JvmStatic
+    fun listPop(list: SanskritValue): SanskritValue {
+        val items = collectionItems(list)
+        if (items.isEmpty()) {
+            throw CompiledPaniniExecutionException(
+                ExecutionError.INVALID_VALUE,
+                "Cannot pop from an empty list.",
+            )
+        }
+        return items.last()
+    }
+
+    @JvmStatic
+    fun listSlice(list: SanskritValue, start: SanskritValue, end: SanskritValue): SanskritValue {
+        val items = collectionItems(list)
+        val startLong = (start as? SanskritValue.Sankhya)?.value
+            ?: throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE, "Start index must be a valid saṅkhyā value.")
+        val endLong = (end as? SanskritValue.Sankhya)?.value
+            ?: throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE, "End index must be a valid saṅkhyā value.")
+        if (startLong !in Int.MIN_VALUE.toLong()..Int.MAX_VALUE.toLong() ||
+            endLong !in Int.MIN_VALUE.toLong()..Int.MAX_VALUE.toLong()
+        ) {
+            throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE, "Slice indices are outside the supported range.")
+        }
+        val from = (startLong.toInt() - 1).coerceAtLeast(0)
+        val to = endLong.toInt().coerceAtMost(items.size)
+        return if (from > to || from >= items.size) {
+            SanskritValue.Suchi(emptyList())
+        } else {
+            SanskritValue.Suchi(items.subList(from, to))
+        }
+    }
+
     private fun number(value: SanskritValue): Long = (value as? SanskritValue.Sankhya)?.value
         ?: error("Compiler comparison requires numeric values, but received ${value::class.simpleName}.")
 
@@ -81,4 +124,12 @@ internal object CompilerValueOperations {
         is SanskritValue.Gana -> value.elements
         else -> error("Compiler collection operation requires a list value, but received ${value::class.simpleName}.")
     }
+
+    private fun equivalent(left: SanskritValue, right: SanskritValue): Boolean =
+        if (left is SanskritValue.Sankhya && right is SanskritValue.Sankhya) {
+            left.value == right.value
+        } else {
+            left.toDisplayText() == right.toDisplayText()
+        }
+
 }

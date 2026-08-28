@@ -174,9 +174,7 @@ class StructuredBytecodeCompilerTest {
             assertEquals(interpreted, compiled.values.getValue("LastResult"), case.name)
             val result = compiled.values.getValue("LastResult") as SanskritValue.Suchi
             assertEquals(case.expected, result.items.map { (it as SanskritValue.Sankhya).value }, case.name)
-            if (case.name == "Reverse") {
-                assertEquals(1, compiled.runtimeCalls.count { it == "executeDirectValue" })
-            }
+            assertEquals(1, compiled.runtimeCalls.count { it == "executeDirectValue" }, case.name)
             assertTrue("evaluate" !in compiled.runtimeCalls, "$case: ${compiled.runtimeCalls}")
         }
     }
@@ -191,6 +189,7 @@ class StructuredBytecodeCompilerTest {
 
         assertEquals(interpreted, compiled.values.getValue("LastResult"))
         assertEquals(3L, (compiled.values.getValue("LastResult") as SanskritValue.Sankhya).value)
+        assertEquals(1, compiled.runtimeCalls.count { it == "executeDirectValue" })
         assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
     }
 
@@ -275,6 +274,7 @@ class StructuredBytecodeCompilerTest {
 
         assertEquals(interpreted, compiled.values.getValue("LastResult"))
         assertEquals(true, (compiled.values.getValue("LastResult") as SanskritValue.Satya).boolean)
+        assertEquals(1, compiled.runtimeCalls.count { it == "executeDirectValue" })
         assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
     }
 

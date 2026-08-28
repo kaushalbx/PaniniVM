@@ -134,6 +134,10 @@ internal enum class CollectionOperator {
     REVERSE,
     CONCAT,
     INDEX,
+    CONTAINS,
+    APPEND,
+    POP,
+    SLICE,
 }
 
 /** Converts resolved grammatical leaves into a stable compiler representation. */
@@ -372,6 +376,10 @@ internal object CompilerIrLowering {
             "सूचीविलोमः" -> CollectionOperator.REVERSE
             "सूचीसंयोगः" -> CollectionOperator.CONCAT
             "सूचीस्थानम्" -> CollectionOperator.INDEX
+            "सूच्यस्तित्वम्" -> CollectionOperator.CONTAINS
+            "सूचीनिक्षेपणम्" -> CollectionOperator.APPEND
+            "सूच्युद्धरणम्" -> CollectionOperator.POP
+            "सूचीविभागः" -> CollectionOperator.SLICE
             else -> null
         }
         val operands = plan.resolved.context.bindings[Karaka.KARMAN]
@@ -409,6 +417,44 @@ internal object CompilerIrLowering {
                     ?.let(::lowerOperand)
                     ?: return null
                 list + index + CompilerInstruction.Collection(CollectionOperator.INDEX)
+            }
+            collection == CollectionOperator.CONTAINS -> {
+                val list = plan.resolved.context.bindings[Karaka.KARMAN]
+                    ?.let(::lowerSingleCollectionValue)
+                    ?: return null
+                val query = (plan.resolved.context.bindings[Karaka.KARANA]
+                    ?: plan.resolved.context.bindings[Karaka.KARTR])
+                    ?.let(::lowerOperand)
+                    ?: return null
+                list + query + CompilerInstruction.Collection(CollectionOperator.CONTAINS)
+            }
+            collection == CollectionOperator.APPEND -> {
+                val expression = plan.resolved.context.bindings[Karaka.KARMAN]
+                    ?: plan.resolved.context.bindings[Karaka.ADHIKARANA]
+                    ?: return null
+                val members = (expression as? ExecutionExpression.Coordination)?.members ?: return null
+                if (members.size != 2) return null
+                val list = lowerSingleCollectionValue(members[0]) ?: return null
+                val item = lowerOperand(members[1]) ?: return null
+                list + item + CompilerInstruction.Collection(CollectionOperator.APPEND)
+            }
+            collection == CollectionOperator.POP -> {
+                val list = plan.resolved.context.bindings[Karaka.KARMAN]
+                    ?.let(::lowerSingleCollectionValue)
+                    ?: return null
+                list + CompilerInstruction.Collection(CollectionOperator.POP)
+            }
+            collection == CollectionOperator.SLICE -> {
+                val list = plan.resolved.context.bindings[Karaka.KARMAN]
+                    ?.let(::lowerSingleCollectionValue)
+                    ?: return null
+                val start = plan.resolved.context.bindings[Karaka.KARANA]
+                    ?.let(::lowerOperand)
+                    ?: return null
+                val end = plan.resolved.context.bindings[Karaka.SAMPRADANA]
+                    ?.let(::lowerOperand)
+                    ?: return null
+                list + start + end + CompilerInstruction.Collection(CollectionOperator.SLICE)
             }
             operation == "मूल्यदानम्" -> plan.resolved.context.bindings[Karaka.KARMAN]
                 ?.let(::lowerAssignmentOperand)
@@ -595,14 +641,22 @@ internal object CompilerIrVerifier {
             }
             is CompilerInstruction.Collection -> {
                 val afterRight = pop().first
-                val remaining = if (instruction.operator in setOf(CollectionOperator.CONCAT, CollectionOperator.INDEX)) {
-                    require(afterRight.isNotEmpty()) {
-                        "IR value stack underflow at instruction $index: $instruction"
-                    }
-                    afterRight.dropLast(1)
-                } else {
-                    afterRight
+                val arity = when (instruction.operator) {
+                    CollectionOperator.CONCAT,
+                    CollectionOperator.INDEX,
+                    CollectionOperator.CONTAINS,
+                    CollectionOperator.APPEND,
+                    -> 2
+                    CollectionOperator.SLICE -> 3
+                    CollectionOperator.LENGTH,
+                    CollectionOperator.REVERSE,
+                    CollectionOperator.POP,
+                    -> 1
                 }
+                require(before.size >= arity) {
+                        "IR value stack underflow at instruction $index: $instruction"
+                }
+                val remaining = before.dropLast(arity)
                 remaining + if (instruction.operator == CollectionOperator.LENGTH) {
                     ValueKind.NUMBER
                 } else {

@@ -145,11 +145,23 @@ internal class CompilerIrJvmEmitter(
             CollectionOperator.REVERSE -> "listReverse"
             CollectionOperator.CONCAT -> "listConcat"
             CollectionOperator.INDEX -> "listIndex"
+            CollectionOperator.CONTAINS -> "listContains"
+            CollectionOperator.APPEND -> "listAppend"
+            CollectionOperator.POP -> "listPop"
+            CollectionOperator.SLICE -> "listSlice"
         }
-        val descriptor = if (operator in setOf(CollectionOperator.CONCAT, CollectionOperator.INDEX)) {
-            "(Ldev/panini/execution/SanskritValue;Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;"
-        } else {
-            "(Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;"
+        val value = "Ldev/panini/execution/SanskritValue;"
+        val descriptor = when (operator) {
+            CollectionOperator.CONCAT,
+            CollectionOperator.INDEX,
+            CollectionOperator.CONTAINS,
+            CollectionOperator.APPEND,
+            -> "($value$value)$value"
+            CollectionOperator.SLICE -> "($value$value$value)$value"
+            CollectionOperator.LENGTH,
+            CollectionOperator.REVERSE,
+            CollectionOperator.POP,
+            -> "($value)$value"
         }
         mv.visitMethodInsn(
             INVOKESTATIC,
