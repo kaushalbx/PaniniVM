@@ -102,6 +102,10 @@ internal sealed interface CompilerInstruction {
 
     data class LoadField(val name: String) : CompilerInstruction
 
+    data class RenderText(val size: Int) : CompilerInstruction
+
+    data object IsEven : CompilerInstruction
+
     data class Collection(val operator: CollectionOperator) : CompilerInstruction
 
     data class Call(
@@ -456,6 +460,18 @@ internal object CompilerIrLowering {
             ?.let(::lowerOperands)
             ?: return null
         val valueInstructions = when {
+            operation == "प्रदर्शनम्" -> {
+                val expression = plan.resolved.context.bindings[Karaka.KARMAN]
+                    ?: plan.resolved.context.bindings[Karaka.KARTR]
+                    ?: return null
+                val values = lowerDisplayOperands(expression) ?: return null
+                buildList {
+                    values.forEach(::addAll)
+                    add(CompilerInstruction.RenderText(values.size))
+                }
+            }
+            operation == "युग्मत्वम्" && operands.isNotEmpty() ->
+                operands.first() + CompilerInstruction.IsEven
             arithmetic != null && operands.isNotEmpty() -> buildList {
                 addAll(operands.first())
                 operands.drop(1).forEach { operand ->
@@ -550,6 +566,27 @@ internal object CompilerIrLowering {
             lowerOperand(member) ?: return null
         }
         else -> listOf(lowerOperand(expression) ?: return null)
+    }
+
+    /** Display can bypass action dispatch only when every operand is already an explicit value/reference. */
+    private fun lowerDisplayOperands(expression: ExecutionExpression): List<List<CompilerInstruction>>? = when (expression) {
+        is ExecutionExpression.Coordination -> expression.members.map { member ->
+            lowerDisplayOperand(member) ?: return null
+        }
+        else -> listOf(lowerDisplayOperand(expression) ?: return null)
+    }
+
+    private fun lowerDisplayOperand(expression: ExecutionExpression): List<CompilerInstruction>? = when (expression) {
+        is ExecutionExpression.Pada -> expression.value?.let {
+            listOf(CompilerInstruction.Constant(it))
+        }
+        is ExecutionExpression.TypedOperand -> listOf(CompilerInstruction.Constant(expression.value))
+        is ExecutionExpression.Reference -> if (expression.name == "फल") {
+            listOf(CompilerInstruction.LoadLastResult)
+        } else {
+            null
+        }
+        is ExecutionExpression.Coordination -> null
     }
 
     private fun lowerOperand(expression: ExecutionExpression): List<CompilerInstruction>? = when (expression) {
@@ -689,10 +726,12 @@ internal object CompilerIrVerifier {
             return before.dropLast(1) to actual
         }
         return when (instruction) {
-            is CompilerInstruction.Constant -> before + if (instruction.value is SanskritValue.Sankhya) {
-                ValueKind.NUMBER
-            } else {
-                ValueKind.VALUE
+            is CompilerInstruction.Constant -> before + when (instruction.value) {
+                is SanskritValue.Sankhya -> ValueKind.NUMBER
+                is SanskritValue.Shabda -> ValueKind.TEXT
+                is SanskritValue.Suchi, is SanskritValue.Gana -> ValueKind.LIST
+                is SanskritValue.Rupa -> ValueKind.RECORD
+                else -> ValueKind.VALUE
             }
             is CompilerInstruction.Load,
             is CompilerInstruction.LoadLocal,
@@ -717,9 +756,17 @@ internal object CompilerIrVerifier {
                 require(before.size >= instruction.fields.size) {
                     "IR value stack underflow at instruction $index: $instruction"
                 }
-                before.dropLast(instruction.fields.size) + ValueKind.VALUE
+                before.dropLast(instruction.fields.size) + ValueKind.RECORD
             }
             is CompilerInstruction.LoadField -> pop().first + ValueKind.UNKNOWN
+            is CompilerInstruction.RenderText -> {
+                require(instruction.size >= 0) { "IR text operand count must not be negative at instruction $index" }
+                require(before.size >= instruction.size) {
+                    "IR value stack underflow at instruction $index: $instruction"
+                }
+                before.dropLast(instruction.size) + ValueKind.TEXT
+            }
+            CompilerInstruction.IsEven -> pop(ValueKind.NUMBER).first + ValueKind.VALUE
             is CompilerInstruction.Collection -> {
                 val afterRight = pop().first
                 val arity = when (instruction.operator) {
@@ -738,10 +785,10 @@ internal object CompilerIrVerifier {
                         "IR value stack underflow at instruction $index: $instruction"
                 }
                 val remaining = before.dropLast(arity)
-                remaining + if (instruction.operator == CollectionOperator.LENGTH) {
-                    ValueKind.NUMBER
-                } else {
-                    ValueKind.VALUE
+                remaining + when (instruction.operator) {
+                    CollectionOperator.LENGTH -> ValueKind.NUMBER
+                    CollectionOperator.INDEX, CollectionOperator.CONTAINS, CollectionOperator.POP -> ValueKind.VALUE
+                    else -> ValueKind.LIST
                 }
             }
             is CompilerInstruction.Store, is CompilerInstruction.StoreLocal -> pop().first
@@ -779,5 +826,8 @@ internal object CompilerIrVerifier {
         UNKNOWN,
         NUMBER,
         BOOLEAN,
+        TEXT,
+        LIST,
+        RECORD,
     }
 }

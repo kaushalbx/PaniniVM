@@ -324,7 +324,7 @@ class StructuredBytecodeCompilerTest {
 
         assertEquals(interpreted, values.getValue("LastResult"))
         assertEquals("पञ्च", values.getValue("LastResult").toDisplayText())
-        assertEquals(1, runtimeCalls.count { it == "executeDirectValue" }, runtimeCalls.toString())
+        assertEquals(0, runtimeCalls.count { it == "executeDirectValue" }, runtimeCalls.toString())
         assertTrue("evaluate" !in runtimeCalls, runtimeCalls.toString())
     }
 
@@ -432,7 +432,7 @@ class StructuredBytecodeCompilerTest {
         val values = generated.getMethod("execute").invoke(null) as Map<String, SanskritValue>
 
         assertEquals(interpreted, values.getValue("LastResult"))
-        assertTrue("executeDirectValue" in runtimeCalls, runtimeCalls.toString())
+        assertTrue("executeDirectValue" !in runtimeCalls, runtimeCalls.toString())
         assertTrue("evaluate" !in runtimeCalls, runtimeCalls.toString())
     }
 

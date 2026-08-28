@@ -6,6 +6,13 @@ import dev.panini.execution.SanskritValue
 /** Backend helper for explicit value IR comparisons. */
 internal object CompilerValueOperations {
     @JvmStatic
+    fun renderText(values: Array<SanskritValue>): SanskritValue =
+        SanskritValue.Shabda(values.joinToString(" ") { it.toDisplayText() })
+
+    @JvmStatic
+    fun isEven(value: SanskritValue): SanskritValue = SanskritValue.Satya(number(value) % 2L == 0L)
+
+    @JvmStatic
     fun booleanize(value: SanskritValue): Boolean = (value as? SanskritValue.Satya)?.boolean
         ?: throw CompiledPaniniExecutionException(
             ExecutionError.INVALID_VALUE,

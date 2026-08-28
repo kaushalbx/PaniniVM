@@ -50,6 +50,14 @@ internal class CompilerIrJvmEmitter(
                 is CompilerInstruction.BuildList -> emitBuildList(instruction.size)
                 is CompilerInstruction.BuildRecord -> emitBuildRecord(instruction.schema, instruction.fields)
                 is CompilerInstruction.LoadField -> emitLoadField(instruction.name)
+                is CompilerInstruction.RenderText -> emitRenderText(instruction.size)
+                CompilerInstruction.IsEven -> mv.visitMethodInsn(
+                    INVOKESTATIC,
+                    "dev/panini/compiler/CompilerValueOperations",
+                    "isEven",
+                    "(Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;",
+                    false,
+                )
                 is CompilerInstruction.Collection -> emitCollection(instruction.operator)
                 is CompilerInstruction.Compare -> emitComparison(instruction.operator)
                 is CompilerInstruction.Arithmetic -> emitArithmetic(instruction.operator)
@@ -182,6 +190,26 @@ internal class CompilerIrJvmEmitter(
             "dev/panini/compiler/CompilerValueOperations",
             "recordField",
             "(Ldev/panini/execution/SanskritValue;Ljava/lang/String;)Ldev/panini/execution/SanskritValue;",
+            false,
+        )
+    }
+
+    private fun emitRenderText(size: Int) {
+        val values = List(size) { allocateLocal(1) }
+        values.asReversed().forEach { local -> mv.visitVarInsn(ASTORE, local) }
+        mv.visitLdcInsn(size)
+        mv.visitTypeInsn(ANEWARRAY, "dev/panini/execution/SanskritValue")
+        values.forEachIndexed { index, local ->
+            mv.visitInsn(DUP)
+            mv.visitLdcInsn(index)
+            mv.visitVarInsn(ALOAD, local)
+            mv.visitInsn(AASTORE)
+        }
+        mv.visitMethodInsn(
+            INVOKESTATIC,
+            "dev/panini/compiler/CompilerValueOperations",
+            "renderText",
+            "([Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;",
             false,
         )
     }

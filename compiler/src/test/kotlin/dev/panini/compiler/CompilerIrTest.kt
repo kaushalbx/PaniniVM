@@ -160,6 +160,52 @@ class CompilerIrTest {
     }
 
     @Test
+    fun `text rendering and truth primitives have typed stack flow`() {
+        val two = SanskritValue.Sankhya(2L, "द्वे")
+        CompilerIrVerifier.verify(
+            listOf(
+                CompilerInstruction.Constant(two),
+                CompilerInstruction.IsEven,
+                CompilerInstruction.Store("समत्वम्"),
+                CompilerInstruction.Constant(SanskritValue.Shabda("फलम्")),
+                CompilerInstruction.Constant(two),
+                CompilerInstruction.RenderText(2),
+                CompilerInstruction.Store("LastResult"),
+            ),
+        )
+        assertEquals(SanskritValue.Satya(true), CompilerValueOperations.isEven(two))
+        assertEquals(
+            "फलम् द्वे",
+            CompilerValueOperations.renderText(arrayOf(SanskritValue.Shabda("फलम्"), two)).toDisplayText(),
+        )
+        assertFailsWith<IllegalArgumentException> {
+            CompilerIrVerifier.verify(
+                listOf(CompilerInstruction.Constant(SanskritValue.Shabda("द्वे")), CompilerInstruction.IsEven),
+            )
+        }
+        assertFailsWith<IllegalArgumentException> {
+            CompilerIrVerifier.verify(listOf(CompilerInstruction.RenderText(1)))
+        }
+    }
+
+    @Test
+    fun `runtime boundary report counts only generic action calls`() {
+        val call = CompilerInstruction.Call("धातुः", "विशिष्टक्रिया", "", emptyMap())
+        val program = CompilerProgram(
+            "GeneratedProgram",
+            listOf(call, CompilerInstruction.Store("LastResult")),
+            listOf(
+                CompilerProcedure(
+                    "samjna_0",
+                    listOf(call, CompilerInstruction.Store("LastResult"), CompilerInstruction.Return),
+                ),
+            ),
+        )
+
+        assertEquals(mapOf("विशिष्टक्रिया" to 2), CompilerRuntimeBoundaryReport.operations(program))
+    }
+
+    @Test
     fun `collection operations preserve verifier value types`() {
         val list = SanskritValue.Suchi(listOf(SanskritValue.Shabda("एक")))
         CompilerIrVerifier.verify(listOf(
