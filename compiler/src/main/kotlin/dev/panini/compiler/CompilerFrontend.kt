@@ -24,7 +24,7 @@ import dev.panini.vyakaranam.ast.Sequence
 import dev.panini.vyakaranam.ast.WhileLoop
 
 /** Lowers grammatical control flow to JVM branches while leaves use the normal action runtime. */
-internal object StructuredBytecodeCompiler {
+internal object CompilerFrontend {
     fun compile(scriptContent: String, className: String): ByteArray =
         CompilerProgramJvmEmitter.emit(lower(scriptContent, className))
 
@@ -128,8 +128,7 @@ internal object StructuredBytecodeCompiler {
                 val count = dev.panini.sankhya.SankhyaEvaluator()
                     .evaluateStems(listOf(repetition.groupValues[1])).value.toInt()
                 val repeatedSource = normalized(repetition.groupValues[2])
-                val repeatedInstructions = lowerProcedureCall(repeatedSource)
-                    ?: DirectLeafPlanner.planAny(repeatedSource)?.let(CompilerIrLowering::lowerLeafValues)
+                val repeatedInstructions = lowerSource(repeatedSource)
                 val body = requireNotNull(repeatedInstructions) {
                     "The JVM compiler cannot lower repeated invocation to IR: $repeatedSource"
                 }
@@ -146,37 +145,37 @@ internal object StructuredBytecodeCompiler {
             val source = normalized(
                 if (piped && !alreadyReferencesResult) "फल + अम् $rendered" else rendered,
             )
-            val procedureCall = lowerProcedureCall(source)
-            return if (procedureCall != null) {
-                procedureCall
-            } else {
-                val directPlan = DirectLeafPlanner.plan(source, allowStore = allowDirectStore)
-                if (directPlan != null) {
-                    lowerDirect(directPlan)
-                } else {
-                    val generalPlan = DirectLeafPlanner.planAny(source)
-                        ?: error("The JVM compiler cannot preplan invocation: $source")
-                    lowerDirect(generalPlan)
-                }
-            }
+            return lowerSource(source, allowDirectStore)
+                ?: error("The JVM compiler cannot preplan invocation: $source")
         }
+
+        private fun lowerSource(source: String, allowStore: Boolean = false): List<CompilerInstruction>? =
+            lowerProcedureCall(source)
+                ?: DirectLeafPlanner.plan(source, allowStore = allowStore)?.let(::lowerDirect)
+                ?: DirectLeafPlanner.planAny(source)?.let(::lowerDirect)
 
         private fun lowerProcedureCall(source: String): List<CompilerInstruction>? {
             val invocation = registry.detectInvocation(source) ?: return null
             val method = invocation.kriya.nameStem.let(methodsByStem::get) ?: return null
             val signature = invocation.kriya.signature
             val parameterNames = signature.parameters.map { it.nameStem }
-            return listOf(
-                CompilerInstruction.EnterFrame(
-                    parameterNames = parameterNames,
-                    arguments = resolveArguments(invocation),
-                    argumentValues = List(signature.parameters.size) { index ->
-                        invocation.argumentValues.getOrNull(index)
-                    },
-                ),
-                CompilerInstruction.InvokeProcedure(method, parameterNames.size),
-                CompilerInstruction.ExitFrame,
-            )
+            val arguments = resolveArguments(invocation)
+            return buildList {
+                arguments.forEachIndexed { index, argument ->
+                    val name = argument.substringBefore('+').trim()
+                    val value = invocation.argumentValues.getOrNull(index)
+                    add(
+                        when {
+                            name == "फल" -> CompilerInstruction.LoadLastResult
+                            value != null -> CompilerInstruction.Constant(value)
+                            else -> CompilerInstruction.ResolveArgument(name, null)
+                        },
+                    )
+                }
+                add(CompilerInstruction.EnterFrame(parameterNames))
+                add(CompilerInstruction.InvokeProcedure(method, parameterNames.size))
+                add(CompilerInstruction.ExitFrame)
+            }
         }
 
         private fun lowerDirect(plan: ExecutionPlan): List<CompilerInstruction> =
@@ -205,8 +204,7 @@ internal object StructuredBytecodeCompiler {
         private fun lowerPrimitiveBranchIr(node: ProgramNode): List<CompilerInstruction>? = when (node) {
             is Invocation -> {
                 val source = normalized(render(node))
-                lowerProcedureCall(source)
-                    ?: DirectLeafPlanner.planAny(source)?.let(CompilerIrLowering::lowerLeafValues)
+                lowerSource(source)
             }
             is Conditional -> lowerConditionalIr(node)
             is Sequence -> buildList {
@@ -272,8 +270,7 @@ internal object StructuredBytecodeCompiler {
             val bodyInstructions = if (body is Invocation) {
                 val renderedBody = render(body)
                 val bodySource = normalized(renderedBody.split(Regex("\\s+")).drop(3).joinToString(" "))
-                lowerProcedureCall(bodySource)
-                    ?: DirectLeafPlanner.planAny(bodySource)?.let(CompilerIrLowering::lowerLeafValues)
+                lowerSource(bodySource)
             } else {
                 lowerPrimitiveBranchIr(body)
             } ?: return null

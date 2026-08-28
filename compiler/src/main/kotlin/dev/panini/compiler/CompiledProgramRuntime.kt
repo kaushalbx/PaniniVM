@@ -48,34 +48,24 @@ class CompiledProgramRuntime private constructor(
         conditionIterations++
     }
 
-    fun enterFrame(names: Array<String>, arguments: Array<String>) =
-        enterFrame(names, arguments, arrayOfNulls(names.size))
-
-    fun enterFrame(
-        names: Array<String>,
-        arguments: Array<String>,
-        argumentValues: Array<SanskritValue?>,
-    ) {
-        require(names.size == arguments.size) {
-            "Compiled saṃjñā expected ${names.size} arguments, but received ${arguments.size}."
-        }
+    fun enterFrame(names: Array<String>, argumentValues: Array<SanskritValue>) {
         require(names.size == argumentValues.size) {
             "Compiled saṃjñā argument values must match its parameter count."
         }
         val parameterValues = names.indices.associate { index ->
-            val stem = arguments[index].substringBefore('+').trim()
-            val value = runtimeValue(stem)
-                ?: runCatching {
-                    val evaluated = dev.panini.sankhya.SankhyaEvaluator().evaluateStems(listOf(stem))
-                    val word = dev.panini.sankhya.SankhyaGenerator().cardinal(evaluated.value).final.surface
-                    SanskritValue.Sankhya(evaluated.value, word)
-                }.getOrNull()
-                ?: argumentValues[index]
-                ?: SanskritValue.of(stem)
-            names[index] to value
+            names[index] to argumentValues[index]
         }
         parameterFrames.addLast(ParameterFrame(parameterValues))
     }
+
+    fun resolveArgument(name: String, fallback: SanskritValue?): SanskritValue = runtimeValue(name)
+        ?: runCatching {
+            val evaluated = dev.panini.sankhya.SankhyaEvaluator().evaluateStems(listOf(name))
+            val word = dev.panini.sankhya.SankhyaGenerator().cardinal(evaluated.value).final.surface
+            SanskritValue.Sankhya(evaluated.value, word)
+        }.getOrNull()
+        ?: fallback
+        ?: SanskritValue.of(name)
 
     fun exitFrame() {
         check(parameterFrames.isNotEmpty()) { "No compiled saṃjñā parameter frame is active." }

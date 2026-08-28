@@ -50,6 +50,7 @@ internal class CompilerIrJvmEmitter(
                 is CompilerInstruction.BuildList -> emitBuildList(instruction.size)
                 is CompilerInstruction.BuildRecord -> emitBuildRecord(instruction.schema, instruction.fields)
                 is CompilerInstruction.LoadField -> emitLoadField(instruction.name)
+                is CompilerInstruction.ResolveArgument -> emitResolveArgument(instruction)
                 is CompilerInstruction.RenderText -> emitRenderText(instruction.size)
                 CompilerInstruction.IsEven -> mv.visitMethodInsn(
                     INVOKESTATIC,
@@ -362,23 +363,38 @@ internal class CompilerIrJvmEmitter(
 
     private fun emitEnterFrame(call: CompilerInstruction.EnterFrame) {
         val parameterNames = allocateLocal(1)
-        val arguments = allocateLocal(1)
-        val argumentValues = allocateLocal(1)
+        val values = List(call.parameterNames.size) { allocateLocal(1) }
+        values.asReversed().forEach { local -> mv.visitVarInsn(ASTORE, local) }
         emitStringArray(call.parameterNames)
         mv.visitVarInsn(ASTORE, parameterNames)
-        emitStringArray(call.arguments)
-        mv.visitVarInsn(ASTORE, arguments)
-        emitNullableValueArray(call.argumentValues, call.parameterNames.size)
-        mv.visitVarInsn(ASTORE, argumentValues)
         mv.visitVarInsn(ALOAD, 0)
         mv.visitVarInsn(ALOAD, parameterNames)
-        mv.visitVarInsn(ALOAD, arguments)
-        mv.visitVarInsn(ALOAD, argumentValues)
+        mv.visitLdcInsn(values.size)
+        mv.visitTypeInsn(ANEWARRAY, "dev/panini/execution/SanskritValue")
+        values.forEachIndexed { index, local ->
+            mv.visitInsn(DUP)
+            mv.visitLdcInsn(index)
+            mv.visitVarInsn(ALOAD, local)
+            mv.visitInsn(AASTORE)
+        }
         mv.visitMethodInsn(
             INVOKEVIRTUAL,
             RUNTIME,
             "enterFrame",
-            "([Ljava/lang/String;[Ljava/lang/String;[Ldev/panini/execution/SanskritValue;)V",
+            "([Ljava/lang/String;[Ldev/panini/execution/SanskritValue;)V",
+            false,
+        )
+    }
+
+    private fun emitResolveArgument(argument: CompilerInstruction.ResolveArgument) {
+        mv.visitVarInsn(ALOAD, 0)
+        mv.visitLdcInsn(argument.name)
+        argument.fallback?.let { StructuredValueBytecodeEmitter.emit(mv, it) } ?: mv.visitInsn(ACONST_NULL)
+        mv.visitMethodInsn(
+            INVOKEVIRTUAL,
+            RUNTIME,
+            "resolveArgument",
+            "(Ljava/lang/String;Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;",
             false,
         )
     }
@@ -450,18 +466,6 @@ internal class CompilerIrJvmEmitter(
             mv.visitInsn(DUP)
             mv.visitLdcInsn(index)
             mv.visitLdcInsn(value)
-            mv.visitInsn(AASTORE)
-        }
-    }
-
-    private fun emitNullableValueArray(values: List<dev.panini.execution.SanskritValue?>, size: Int) {
-        mv.visitLdcInsn(size)
-        mv.visitTypeInsn(ANEWARRAY, "dev/panini/execution/SanskritValue")
-        repeat(size) { index ->
-            mv.visitInsn(DUP)
-            mv.visitLdcInsn(index)
-            values.getOrNull(index)?.let { StructuredValueBytecodeEmitter.emit(mv, it) }
-                ?: mv.visitInsn(ACONST_NULL)
             mv.visitInsn(AASTORE)
         }
     }

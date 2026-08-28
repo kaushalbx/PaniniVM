@@ -16,7 +16,7 @@ object BytecodeCompiler {
     fun compile(scriptContent: String, className: String): ByteArray {
         dev.panini.dhatupatha.DhatuPathaRegistration.ensureRegistered()
         return GeneratedBytecodeVerifier.verify(
-            StructuredBytecodeCompiler.compile(scriptContent, className),
+            CompilerFrontend.compile(scriptContent, className),
         )
     }
 

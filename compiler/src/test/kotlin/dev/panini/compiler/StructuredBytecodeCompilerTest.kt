@@ -1057,7 +1057,7 @@ class StructuredBytecodeCompilerTest {
             ),
         )
         runtime.storeValue("LastResult", structuredOutcome)
-        runtime.enterFrame(arrayOf("मान"), arrayOf("फल"))
+        runtime.enterFrame(arrayOf("मान"), arrayOf(structuredOutcome))
 
         val returned = runtime.resolveValue("मान")
 

@@ -16,7 +16,7 @@ class CompilerIrTest {
         val program = CompilerProgram(
             className = "GeneratedProgram",
             entryPoint = listOf(
-                CompilerInstruction.EnterFrame(emptyList(), emptyList(), emptyList()),
+                CompilerInstruction.EnterFrame(emptyList()),
                 call,
                 CompilerInstruction.ExitFrame,
             ),
@@ -45,14 +45,12 @@ class CompilerIrTest {
     @Test
     fun `procedure call IR carries frame arguments and structured values`() {
         val value = SanskritValue.Sankhya(2L, "द्वे")
-        val frame = CompilerInstruction.EnterFrame(
-            parameterNames = listOf("मान"),
-            arguments = listOf("द्वि"),
-            argumentValues = listOf(value),
-        )
+        val frame = CompilerInstruction.EnterFrame(parameterNames = listOf("मान"))
 
         assertEquals(listOf("मान"), frame.parameterNames)
-        assertEquals(listOf(value), frame.argumentValues)
+        CompilerIrVerifier.verify(
+            listOf(CompilerInstruction.Constant(value), frame),
+        )
     }
 
     @Test
@@ -73,16 +71,23 @@ class CompilerIrTest {
         )
 
         CompilerProgramVerifier.verify(
-            program(CompilerInstruction.EnterFrame(listOf("मान"), listOf("द्वि"), listOf(null)), 1),
+            program(CompilerInstruction.EnterFrame(listOf("मान")), 1).copy(
+                entryPoint = listOf(
+                    CompilerInstruction.Constant(SanskritValue.Sankhya(2L, "द्वे")),
+                    CompilerInstruction.EnterFrame(listOf("मान")),
+                    CompilerInstruction.InvokeProcedure("samjna_0", 1),
+                    CompilerInstruction.ExitFrame,
+                ),
+            ),
         )
         assertFailsWith<IllegalArgumentException> {
             CompilerProgramVerifier.verify(
-                program(CompilerInstruction.EnterFrame(emptyList(), emptyList(), emptyList()), 0),
+                program(CompilerInstruction.EnterFrame(emptyList()), 0),
             )
         }
         assertFailsWith<IllegalArgumentException> {
             CompilerProgramVerifier.verify(
-                program(CompilerInstruction.EnterFrame(listOf("मान"), emptyList(), listOf(null)), 1),
+                program(CompilerInstruction.EnterFrame(listOf("मान", "मान")), 2),
             )
         }
     }

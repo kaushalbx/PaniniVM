@@ -48,10 +48,6 @@ internal object CompilerProgramVerifier {
         instructions.forEachIndexed { index, instruction ->
             when (instruction) {
                 is CompilerInstruction.EnterFrame -> {
-                    require(instruction.parameterNames.size == instruction.arguments.size &&
-                        instruction.parameterNames.size == instruction.argumentValues.size) {
-                        "IR frame argument arrays must have equal sizes at instruction $index"
-                    }
                     require(instruction.parameterNames.distinct().size == instruction.parameterNames.size) {
                         "IR frame parameter names must be unique at instruction $index"
                     }
@@ -117,9 +113,9 @@ internal sealed interface CompilerInstruction {
 
     data class EnterFrame(
         val parameterNames: List<String>,
-        val arguments: List<String>,
-        val argumentValues: List<SanskritValue?>,
     ) : CompilerInstruction
+
+    data class ResolveArgument(val name: String, val fallback: SanskritValue?) : CompilerInstruction
 
     data class InvokeProcedure(val methodName: String, val argumentCount: Int) : CompilerInstruction
 
@@ -735,6 +731,7 @@ internal object CompilerIrVerifier {
             }
             is CompilerInstruction.Load,
             is CompilerInstruction.LoadLocal,
+            is CompilerInstruction.ResolveArgument,
             CompilerInstruction.LoadLastResult,
             -> before + ValueKind.UNKNOWN
             CompilerInstruction.Duplicate -> {
@@ -792,6 +789,12 @@ internal object CompilerIrVerifier {
                 }
             }
             is CompilerInstruction.Store, is CompilerInstruction.StoreLocal -> pop().first
+            is CompilerInstruction.EnterFrame -> {
+                require(before.size >= instruction.parameterNames.size) {
+                    "IR value stack underflow at instruction $index: $instruction"
+                }
+                before.dropLast(instruction.parameterNames.size)
+            }
             is CompilerInstruction.Compare -> {
                 val afterRight = pop().first
                 require(afterRight.isNotEmpty()) {

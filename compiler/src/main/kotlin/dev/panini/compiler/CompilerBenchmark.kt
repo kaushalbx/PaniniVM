@@ -39,11 +39,21 @@ object CompilerBenchmark {
 
     private fun benchmarkCompiler(name: String, source: String, iterations: Int, warmups: Int) {
         val className = "PaniniBenchmark_${name.replace('-', '_')}"
+        lateinit var program: CompilerProgram
+        val lowerElapsed = measureNanoTime {
+            program = CompilerFrontend.lower(source, className)
+        }
+        printResult(name, "lower", 1, lowerElapsed)
+        val boundary = CompilerRuntimeBoundaryReport.operations(program)
+        System.err.println("runtime-boundary,$name,${if (boundary.isEmpty()) "none" else boundary}")
         lateinit var execute: Method
         val compileElapsed = measureNanoTime {
-            execute = BytecodeCompiler.compileAndLoad(source, className).getMethod("execute")
+            val bytes = CompilerProgramJvmEmitter.emit(program)
+            execute = BytecodeCompiler.PaniniClassLoader(javaClass.classLoader)
+                .loadFromBytes(className, bytes)
+                .getMethod("execute")
         }
-        printResult(name, "compile", 1, compileElapsed)
+        printResult(name, "emit-load", 1, compileElapsed)
         repeat(warmups) { execute.invoke(null) }
         val elapsed = measureNanoTime { repeat(iterations) { execute.invoke(null) } }
         printResult(name, "compiled", iterations, elapsed)
