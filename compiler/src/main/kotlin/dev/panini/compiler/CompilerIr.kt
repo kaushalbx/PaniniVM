@@ -56,6 +56,10 @@ internal sealed interface CompilerInstruction {
 
     data class BuildList(val size: Int) : CompilerInstruction
 
+    data class BuildRecord(val schema: String, val fields: List<String>) : CompilerInstruction
+
+    data class LoadField(val name: String) : CompilerInstruction
+
     data class Collection(val operator: CollectionOperator) : CompilerInstruction
 
     data class Call(
@@ -78,6 +82,9 @@ internal sealed interface CompilerInstruction {
 
     data class Arithmetic(val operator: ArithmeticOperator) : CompilerInstruction
 
+    /** Re-renders a numeric value as the runtime's canonical cardinal form. */
+    data object Cardinalize : CompilerInstruction
+
     data class Branch(val target: String, val whenTrue: Boolean = false) : CompilerInstruction
 
     data class Jump(val target: String) : CompilerInstruction
@@ -87,8 +94,6 @@ internal sealed interface CompilerInstruction {
     data object ConsumeBreak : CompilerInstruction
 
     data object EnterConditionIteration : CompilerInstruction
-
-    data class PublishLoopOutcome(val outcome: String) : CompilerInstruction
 
     data class InitializeLoopCondition(val name: String) : CompilerInstruction
 
@@ -198,14 +203,12 @@ internal object CompilerIrLowering {
             add(CompilerInstruction.Branch(victory, whenTrue = true))
             add(CompilerInstruction.Jump(conditionLabel))
             add(CompilerInstruction.Label(victory))
-            add(CompilerInstruction.LoadLocal(counter))
-            add(CompilerInstruction.PublishLoopOutcome("विजय"))
+            addAll(loopOutcome("विजय", counter))
             add(CompilerInstruction.Jump(target))
             if (maximumIterations != null) {
                 add(CompilerInstruction.Label(exhaustedLabel))
                 addAll(exhausted)
-                add(CompilerInstruction.LoadLocal(counter))
-                add(CompilerInstruction.PublishLoopOutcome("समाप्ति"))
+                addAll(loopOutcome("समाप्ति", counter))
             }
             add(CompilerInstruction.Label(target))
             addAll(resultTarget)
@@ -262,8 +265,21 @@ internal object CompilerIrLowering {
         }.also(CompilerIrVerifier::verify)
     }
 
-    private fun numberConstant(value: Long): CompilerInstruction.Constant =
-        CompilerInstruction.Constant(SanskritValue.Sankhya(value, value.toString()))
+    private fun numberConstant(value: Long): CompilerInstruction.Constant = CompilerInstruction.Constant(
+        SanskritValue.Sankhya(value, dev.panini.execution.renderSankhyaResult(value) ?: value.toString()),
+    )
+
+    private fun loopOutcome(outcome: String, counter: String): List<CompilerInstruction> = listOf(
+        CompilerInstruction.Constant(SanskritValue.Shabda(outcome)),
+        CompilerInstruction.LoadLocal(counter),
+        CompilerInstruction.Cardinalize,
+        CompilerInstruction.Duplicate,
+        CompilerInstruction.Store("प्रयत्नसङ्ख्या"),
+        CompilerInstruction.BuildRecord("परिणाम", listOf("अवस्था", "प्रयत्नसङ्ख्या")),
+        CompilerInstruction.Duplicate,
+        CompilerInstruction.Store("परिणाम"),
+        CompilerInstruction.Store("LastResult"),
+    )
 
     /**
      * Lowers a conditional into linear IR. [CompilerInstruction.Branch] jumps
@@ -639,6 +655,16 @@ internal object CompilerIrVerifier {
                 }
                 before.dropLast(instruction.size) + ValueKind.VALUE
             }
+            is CompilerInstruction.BuildRecord -> {
+                require(instruction.fields.distinct().size == instruction.fields.size) {
+                    "IR record fields must be unique at instruction $index"
+                }
+                require(before.size >= instruction.fields.size) {
+                    "IR value stack underflow at instruction $index: $instruction"
+                }
+                before.dropLast(instruction.fields.size) + ValueKind.VALUE
+            }
+            is CompilerInstruction.LoadField -> pop().first + ValueKind.UNKNOWN
             is CompilerInstruction.Collection -> {
                 val afterRight = pop().first
                 val arity = when (instruction.operator) {
@@ -682,11 +708,11 @@ internal object CompilerIrVerifier {
                 }
                 afterRight.dropLast(1) + ValueKind.NUMBER
             }
+            CompilerInstruction.Cardinalize -> pop(ValueKind.NUMBER).first + ValueKind.NUMBER
             is CompilerInstruction.Branch -> pop(ValueKind.BOOLEAN).first
             CompilerInstruction.ConsumeBreak,
             is CompilerInstruction.TestLoopCondition,
             -> before + ValueKind.BOOLEAN
-            is CompilerInstruction.PublishLoopOutcome -> pop(ValueKind.NUMBER).first
             is CompilerInstruction.Call -> when (instruction.resultMode) {
                 CallResultMode.BOOLEAN -> before + ValueKind.BOOLEAN
                 CallResultMode.STACK_VALUE -> before + ValueKind.UNKNOWN

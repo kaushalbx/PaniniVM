@@ -53,12 +53,6 @@ class CompiledProgramRuntime private constructor(
         values["LastResult"] = structured
     }
 
-    fun publishLoopOutcomeValue(outcome: String, iterations: SanskritValue) {
-        val count = (iterations as? SanskritValue.Sankhya)?.value
-            ?: error("Compiled loop iteration count must be numeric.")
-        publishLoopOutcome(outcome, count)
-    }
-
     fun enterConditionIteration() {
         val limit = maxConditionIterations
         if (limit != null && conditionIterations >= limit) {

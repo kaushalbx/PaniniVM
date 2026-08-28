@@ -2,6 +2,7 @@ package dev.panini.compiler
 
 import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.SanskritValue
+import dev.panini.execution.renderSankhyaResult
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -86,6 +87,28 @@ class CompilerIrTest {
         CompilerIrVerifier.verify(instructions)
         assertFailsWith<IllegalArgumentException> {
             CompilerIrVerifier.verify(listOf(CompilerInstruction.BuildList(1)))
+        }
+    }
+
+    @Test
+    fun `record construction and field access have explicit value flow`() {
+        val instructions = listOf(
+            CompilerInstruction.Constant(SanskritValue.Shabda("विजय")),
+            numericConstant(3),
+            CompilerInstruction.BuildRecord("परिणाम", listOf("अवस्था", "प्रयत्नसङ्ख्या")),
+            CompilerInstruction.LoadField("प्रयत्नसङ्ख्या"),
+            CompilerInstruction.Store("LastResult"),
+        )
+
+        CompilerIrVerifier.verify(instructions)
+        assertFailsWith<IllegalArgumentException> {
+            CompilerIrVerifier.verify(
+                listOf(
+                    CompilerInstruction.Constant(SanskritValue.Shabda("विजय")),
+                    CompilerInstruction.Constant(SanskritValue.Shabda("पुनः")),
+                    CompilerInstruction.BuildRecord("परिणाम", listOf("अवस्था", "अवस्था")),
+                ),
+            )
         }
     }
 
@@ -325,8 +348,15 @@ class CompilerIrTest {
                 CompilerInstruction.Branch("test-while_victory", whenTrue = true),
                 CompilerInstruction.Jump("test-while_condition"),
                 CompilerInstruction.Label("test-while_victory"),
+                CompilerInstruction.Constant(SanskritValue.Shabda("विजय")),
                 CompilerInstruction.LoadLocal("test-while_counter"),
-                CompilerInstruction.PublishLoopOutcome("विजय"),
+                CompilerInstruction.Cardinalize,
+                CompilerInstruction.Duplicate,
+                CompilerInstruction.Store("प्रयत्नसङ्ख्या"),
+                CompilerInstruction.BuildRecord("परिणाम", listOf("अवस्था", "प्रयत्नसङ्ख्या")),
+                CompilerInstruction.Duplicate,
+                CompilerInstruction.Store("परिणाम"),
+                CompilerInstruction.Store("LastResult"),
                 CompilerInstruction.Jump("test-while_target"),
                 CompilerInstruction.Label("test-while_target"),
             ),
@@ -351,7 +381,12 @@ class CompilerIrTest {
         assertTrue(instructions.contains(numericConstant(4)))
         assertTrue(instructions.contains(CompilerInstruction.Compare(ComparisonOperator.LESS_THAN)))
         assertTrue(instructions.contains(CompilerInstruction.Label("bounded_exhausted")))
-        assertTrue(instructions.contains(CompilerInstruction.PublishLoopOutcome("समाप्ति")))
+        assertTrue(
+            instructions.contains(
+                CompilerInstruction.BuildRecord("परिणाम", listOf("अवस्था", "प्रयत्नसङ्ख्या")),
+            ),
+        )
+        assertTrue(instructions.contains(CompilerInstruction.Store("परिणाम")))
         assertEquals(target, instructions.last())
         CompilerIrVerifier.verify(instructions)
     }
@@ -519,6 +554,6 @@ class CompilerIrTest {
     )
 
     private fun numericConstant(value: Long) = CompilerInstruction.Constant(
-        SanskritValue.Sankhya(value, value.toString()),
+        SanskritValue.Sankhya(value, renderSankhyaResult(value) ?: value.toString()),
     )
 }

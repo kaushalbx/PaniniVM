@@ -703,7 +703,7 @@ class StructuredBytecodeCompilerTest {
         val outcome = values.getValue("परिणाम") as SanskritValue.Rupa
         assertEquals("समाप्ति", outcome.fields.getValue("अवस्था").toDisplayText())
         assertEquals(1L, (outcome.fields.getValue("प्रयत्नसङ्ख्या") as SanskritValue.Sankhya).value)
-        assertTrue(executeCalls.count { it == "storeValue" } == 5, executeCalls.toString())
+        assertTrue(executeCalls.count { it == "storeValue" } == 11, executeCalls.toString())
         assertTrue(executeCalls.count { it == "executeDirectValue" } == 2, executeCalls.toString())
         assertTrue("executeDirectBoolean" !in executeCalls, executeCalls.toString())
         assertTrue("evaluateBoolean" !in executeCalls, executeCalls.toString())
@@ -760,7 +760,7 @@ class StructuredBytecodeCompilerTest {
         val outcome = values.getValue("परिणाम") as SanskritValue.Rupa
         assertEquals("विजय", outcome.fields.getValue("अवस्था").toDisplayText())
         assertEquals(1L, (outcome.fields.getValue("प्रयत्नसङ्ख्या") as SanskritValue.Sankhya).value)
-        assertTrue(executeCalls.count { it == "storeValue" } == 4, executeCalls.toString())
+        assertTrue(executeCalls.count { it == "storeValue" } == 10, executeCalls.toString())
         assertTrue("executeDirectBoolean" !in executeCalls, executeCalls.toString())
         assertTrue("evaluateBoolean" !in executeCalls, executeCalls.toString())
         assertTrue("evaluate" !in executeCalls, executeCalls.toString())

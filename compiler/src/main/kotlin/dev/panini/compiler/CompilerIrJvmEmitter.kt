@@ -47,9 +47,18 @@ internal class CompilerIrJvmEmitter(
                 CompilerInstruction.LoadLastResult -> emitLoad("LastResult")
                 CompilerInstruction.Duplicate -> mv.visitInsn(DUP)
                 is CompilerInstruction.BuildList -> emitBuildList(instruction.size)
+                is CompilerInstruction.BuildRecord -> emitBuildRecord(instruction.schema, instruction.fields)
+                is CompilerInstruction.LoadField -> emitLoadField(instruction.name)
                 is CompilerInstruction.Collection -> emitCollection(instruction.operator)
                 is CompilerInstruction.Compare -> emitComparison(instruction.operator)
                 is CompilerInstruction.Arithmetic -> emitArithmetic(instruction.operator)
+                CompilerInstruction.Cardinalize -> mv.visitMethodInsn(
+                    INVOKESTATIC,
+                    "dev/panini/compiler/CompilerValueOperations",
+                    "cardinalize",
+                    "(Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;",
+                    false,
+                )
                 is CompilerInstruction.Call -> emitCall(instruction)
                 is CompilerInstruction.ProcedureCall -> emitProcedureCall(instruction)
                 is CompilerInstruction.Branch -> mv.visitJumpInsn(
@@ -63,20 +72,6 @@ internal class CompilerIrJvmEmitter(
                 is CompilerInstruction.Label -> mv.visitLabel(requireNotNull(labels[instruction.name]))
                 CompilerInstruction.ConsumeBreak -> emitRuntimeBoolean("consumeBreak")
                 CompilerInstruction.EnterConditionIteration -> emitRuntimeVoid("enterConditionIteration")
-                is CompilerInstruction.PublishLoopOutcome -> {
-                    val counter = allocateLocal(1)
-                    mv.visitVarInsn(ASTORE, counter)
-                    mv.visitVarInsn(ALOAD, 0)
-                    mv.visitLdcInsn(instruction.outcome)
-                    mv.visitVarInsn(ALOAD, counter)
-                    mv.visitMethodInsn(
-                        INVOKEVIRTUAL,
-                        RUNTIME,
-                        "publishLoopOutcomeValue",
-                        "(Ljava/lang/String;Ldev/panini/execution/SanskritValue;)V",
-                        false,
-                    )
-                }
                 is CompilerInstruction.InitializeLoopCondition -> {
                     mv.visitInsn(ICONST_0)
                     mv.visitVarInsn(ISTORE, requireNotNull(loopConditions[instruction.name]))
@@ -135,6 +130,39 @@ internal class CompilerIrJvmEmitter(
             "dev/panini/compiler/PaniniRuntime",
             "suchi",
             "([Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;",
+            false,
+        )
+    }
+
+    private fun emitBuildRecord(schema: String, fields: List<String>) {
+        val values = List(fields.size) { allocateLocal(1) }
+        values.asReversed().forEach { local -> mv.visitVarInsn(ASTORE, local) }
+        mv.visitLdcInsn(schema)
+        emitStringArray(fields)
+        mv.visitLdcInsn(fields.size)
+        mv.visitTypeInsn(ANEWARRAY, "dev/panini/execution/SanskritValue")
+        values.forEachIndexed { index, local ->
+            mv.visitInsn(DUP)
+            mv.visitLdcInsn(index)
+            mv.visitVarInsn(ALOAD, local)
+            mv.visitInsn(AASTORE)
+        }
+        mv.visitMethodInsn(
+            INVOKESTATIC,
+            "dev/panini/compiler/PaniniRuntime",
+            "rupa",
+            "(Ljava/lang/String;[Ljava/lang/String;[Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;",
+            false,
+        )
+    }
+
+    private fun emitLoadField(name: String) {
+        mv.visitLdcInsn(name)
+        mv.visitMethodInsn(
+            INVOKESTATIC,
+            "dev/panini/compiler/CompilerValueOperations",
+            "recordField",
+            "(Ldev/panini/execution/SanskritValue;Ljava/lang/String;)Ldev/panini/execution/SanskritValue;",
             false,
         )
     }
