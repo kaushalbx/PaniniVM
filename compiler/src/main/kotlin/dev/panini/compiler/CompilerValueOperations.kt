@@ -45,6 +45,19 @@ internal object CompilerValueOperations {
     fun remainder(left: SanskritValue, right: SanskritValue): SanskritValue = numeric(number(left) % number(right))
 
     @JvmStatic
+    fun minimum(left: SanskritValue, right: SanskritValue): SanskritValue = numeric(minOf(number(left), number(right)))
+
+    @JvmStatic
+    fun power(left: SanskritValue, right: SanskritValue): SanskritValue {
+        val base = number(left)
+        val exponent = number(right)
+        require(exponent in 0..Int.MAX_VALUE.toLong()) { "Compiler exponent is unsupported: $exponent" }
+        var result = 1L
+        repeat(exponent.toInt()) { result = Math.multiplyExact(result, base) }
+        return numeric(result)
+    }
+
+    @JvmStatic
     fun equal(left: SanskritValue, right: SanskritValue): Boolean = left == right
 
     @JvmStatic

@@ -122,22 +122,7 @@ internal object CompilerFrontend {
             allowDirectStore: Boolean = false,
         ): List<CompilerInstruction> {
             val rendered = exactSource ?: render(node)
-            val repetition = Regex("^([^\\s+]+)\\s*\\+\\s*[^\\s]*कृत्व[^\\s]*\\s+(.+)$")
-                .find(rendered.trim())
-            if (repetition != null) {
-                val count = dev.panini.sankhya.SankhyaEvaluator()
-                    .evaluateStems(listOf(repetition.groupValues[1])).value.toInt()
-                val repeatedSource = normalized(repetition.groupValues[2])
-                val repeatedInstructions = lowerSource(repeatedSource)
-                val body = requireNotNull(repeatedInstructions) {
-                    "The JVM compiler cannot lower repeated invocation to IR: $repeatedSource"
-                }
-                return CompilerIrLowering.lowerRepeat(
-                        count = count,
-                        body = body,
-                        namePrefix = "repeat_${nextLabel++}",
-                    )
-            }
+            lowerLegacyFrequencyInvocation(rendered)?.let { return it }
             val alreadyReferencesResult = node.vakya.padas.any { pada ->
                 pada is dev.panini.vyakaranam.ast.SubantaPada &&
                     pada.pratipadika.sourceText.substringBefore('+').trim() == "फल"
@@ -147,6 +132,19 @@ internal object CompilerFrontend {
             )
             return lowerSource(source, allowDirectStore)
                 ?: error("The JVM compiler cannot preplan invocation: $source")
+        }
+
+        /** Compatibility for script statements whose analyzed AST has not retained its Repeat wrapper. */
+        private fun lowerLegacyFrequencyInvocation(source: String): List<CompilerInstruction>? {
+            val match = Regex("^([^\\s+]+)\\s*\\+\\s*[^\\s]*कृत्व[^\\s]*\\s+(.+)$")
+                .find(source.trim()) ?: return null
+            val count = dev.panini.sankhya.SankhyaEvaluator()
+                .evaluateStems(listOf(match.groupValues[1])).value.toInt()
+            val bodySource = normalized(match.groupValues[2])
+            val body = requireNotNull(lowerSource(bodySource)) {
+                "The JVM compiler cannot lower repeated invocation to IR: $bodySource"
+            }
+            return CompilerIrLowering.lowerRepeat(count, body, "repeat_${nextLabel++}")
         }
 
         private fun lowerSource(source: String, allowStore: Boolean = false): List<CompilerInstruction>? =

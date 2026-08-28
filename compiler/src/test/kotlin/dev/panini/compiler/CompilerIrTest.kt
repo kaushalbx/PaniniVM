@@ -264,6 +264,11 @@ class CompilerIrTest {
 
         CompilerIrVerifier.verify(instructions)
         assertEquals(3L, (CompilerValueOperations.add(one, two) as SanskritValue.Sankhya).value)
+        assertEquals(1L, (CompilerValueOperations.minimum(one, two) as SanskritValue.Sankhya).value)
+        assertEquals(8L, (CompilerValueOperations.power(two, SanskritValue.Sankhya(3L, "त्रीणि")) as SanskritValue.Sankhya).value)
+        assertFailsWith<IllegalArgumentException> {
+            CompilerValueOperations.power(two, SanskritValue.Sankhya(-1L, "-1"))
+        }
     }
 
     @Test

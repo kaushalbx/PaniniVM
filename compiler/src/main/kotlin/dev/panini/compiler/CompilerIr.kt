@@ -170,6 +170,8 @@ internal enum class ArithmeticOperator {
     MULTIPLY,
     DIVIDE,
     REMAINDER,
+    MINIMUM,
+    POWER,
 }
 
 internal enum class CollectionOperator {
@@ -439,6 +441,8 @@ internal object CompilerIrLowering {
             "सङ्ख्यागुणनम्" -> ArithmeticOperator.MULTIPLY
             "सङ्ख्याहरणम्" -> ArithmeticOperator.DIVIDE
             "सङ्ख्याशेषः" -> ArithmeticOperator.REMAINDER
+            "सङ्ख्यान्यूनत्वम्" -> ArithmeticOperator.MINIMUM
+            "सङ्ख्याघातः" -> ArithmeticOperator.POWER
             else -> null
         }
         val collection = when (operation) {
@@ -468,6 +472,15 @@ internal object CompilerIrLowering {
             }
             operation == "युग्मत्वम्" && operands.isNotEmpty() ->
                 operands.first() + CompilerInstruction.IsEven
+            operation == "सङ्ख्यासाम्यम्" && operands.isNotEmpty() -> buildList {
+                addAll(operands.first())
+                operands.drop(1).forEach { operand ->
+                    addAll(operand)
+                    add(CompilerInstruction.Arithmetic(ArithmeticOperator.ADD))
+                }
+                add(numberConstant(operands.size.toLong()))
+                add(CompilerInstruction.Arithmetic(ArithmeticOperator.DIVIDE))
+            }
             arithmetic != null && operands.isNotEmpty() -> buildList {
                 addAll(operands.first())
                 operands.drop(1).forEach { operand ->

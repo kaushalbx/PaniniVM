@@ -288,6 +288,8 @@ internal class CompilerIrJvmEmitter(
             ArithmeticOperator.MULTIPLY -> "multiply"
             ArithmeticOperator.DIVIDE -> "divide"
             ArithmeticOperator.REMAINDER -> "remainder"
+            ArithmeticOperator.MINIMUM -> "minimum"
+            ArithmeticOperator.POWER -> "power"
         }
         mv.visitMethodInsn(
             INVOKESTATIC,
