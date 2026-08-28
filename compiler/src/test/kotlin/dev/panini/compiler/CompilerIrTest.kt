@@ -6,7 +6,6 @@ import dev.panini.execution.renderSankhyaResult
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
-import kotlin.test.assertNull
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
@@ -198,7 +197,6 @@ class CompilerIrTest {
             operationName = "condition",
             requiredSanadi = "",
             bindings = emptyMap(),
-            resultMode = CallResultMode.BOOLEAN,
         )
         val consequent = CompilerInstruction.Call("then", "then", "", emptyMap())
         val alternate = CompilerInstruction.Call("else", "else", "", emptyMap())
@@ -206,17 +204,22 @@ class CompilerIrTest {
         assertEquals(
             listOf(
                 condition,
+                CompilerInstruction.Duplicate,
+                CompilerInstruction.Store("LastResult"),
+                CompilerInstruction.Booleanize,
                 CompilerInstruction.Branch("test_alternate"),
                 consequent,
+                CompilerInstruction.Store("LastResult"),
                 CompilerInstruction.Jump("test_end"),
                 CompilerInstruction.Label("test_alternate"),
                 alternate,
+                CompilerInstruction.Store("LastResult"),
                 CompilerInstruction.Label("test_end"),
             ),
             CompilerIrLowering.lowerConditional(
                 condition,
-                listOf(consequent),
-                listOf(alternate),
+                listOf(consequent, CompilerInstruction.Store("LastResult")),
+                listOf(alternate, CompilerInstruction.Store("LastResult")),
                 "test",
             ),
         )
@@ -225,16 +228,16 @@ class CompilerIrTest {
     @Test
     fun `conditional without alternate still has a valid false target`() {
         val condition = booleanCall("condition")
-        val consequent = valueCall("then")
+        val consequent = valueInstructions("then")
 
         val instructions = CompilerIrLowering.lowerConditional(
             condition,
-            listOf(consequent),
+            consequent,
             labelPrefix = "single",
         )
 
-        assertEquals(CompilerInstruction.Branch("single_alternate"), instructions[1])
-        assertEquals(CompilerInstruction.Label("single_alternate"), instructions[4])
+        assertEquals(CompilerInstruction.Branch("single_alternate"), instructions[4])
+        assertEquals(CompilerInstruction.Label("single_alternate"), instructions[8])
         CompilerIrVerifier.verify(instructions)
     }
 
@@ -242,14 +245,14 @@ class CompilerIrTest {
     fun `nested conditional labels remain distinct and valid`() {
         val inner = CompilerIrLowering.lowerConditional(
             booleanCall("inner-condition"),
-            listOf(valueCall("inner-then")),
-            listOf(valueCall("inner-else")),
+            valueInstructions("inner-then"),
+            valueInstructions("inner-else"),
             "inner",
         )
         val outer = CompilerIrLowering.lowerConditional(
             booleanCall("outer-condition"),
             inner,
-            listOf(valueCall("outer-else")),
+            valueInstructions("outer-else"),
             "outer",
         )
 
@@ -262,9 +265,9 @@ class CompilerIrTest {
 
     @Test
     fun `fixed repetition lowers to counter branch and back edge`() {
-        val body = valueCall("body")
+        val body = valueInstructions("body")
 
-        val instructions = CompilerIrLowering.lowerRepeat(3, listOf(body), "test-repeat")
+        val instructions = CompilerIrLowering.lowerRepeat(3, body, "test-repeat")
 
         assertEquals(
             listOf(
@@ -275,7 +278,7 @@ class CompilerIrTest {
                 numericConstant(3),
                 CompilerInstruction.Compare(ComparisonOperator.LESS_THAN),
                 CompilerInstruction.Branch("test-repeat_exit"),
-                body,
+                *body.toTypedArray(),
                 CompilerInstruction.ConsumeBreak,
                 CompilerInstruction.Branch("test-repeat_exit", whenTrue = true),
                 CompilerInstruction.LoadLocal("test-repeat_counter"),
@@ -300,7 +303,7 @@ class CompilerIrTest {
     fun `nested fixed repetitions have independent counters and labels`() {
         val inner = CompilerIrLowering.lowerRepeat(
             count = 2,
-            body = listOf(valueCall("body")),
+            body = valueInstructions("body"),
             namePrefix = "inner",
         )
         val outer = CompilerIrLowering.lowerRepeat(
@@ -323,11 +326,11 @@ class CompilerIrTest {
     @Test
     fun `unbounded while lowers condition budget break and back edge`() {
         val condition = booleanCall("condition")
-        val body = valueCall("body")
+        val body = valueInstructions("body")
 
         val instructions = CompilerIrLowering.lowerWhile(
             condition,
-            listOf(body),
+            body,
             namePrefix = "test-while",
         )
 
@@ -339,7 +342,7 @@ class CompilerIrTest {
                 condition,
                 CompilerInstruction.Branch("test-while_victory"),
                 CompilerInstruction.EnterConditionIteration,
-                body,
+                *body.toTypedArray(),
                 CompilerInstruction.LoadLocal("test-while_counter"),
                 numericConstant(1),
                 CompilerInstruction.Arithmetic(ArithmeticOperator.ADD),
@@ -366,15 +369,15 @@ class CompilerIrTest {
 
     @Test
     fun `bounded while lowers exhaustion outcome and result target`() {
-        val exhausted = valueCall("exhausted")
-        val target = valueCall("target").copy(resultMode = CallResultMode.LOOP_TARGET)
+        val exhausted = valueInstructions("exhausted")
+        val target = valueCall("target")
 
         val instructions = CompilerIrLowering.lowerWhile(
             condition = booleanCall("condition"),
-            body = listOf(valueCall("body")),
+            body = valueInstructions("body"),
             maximumIterations = 4L,
-            exhausted = listOf(exhausted),
-            resultTarget = listOf(target),
+            exhausted = exhausted,
+            resultTarget = listOf(target, CompilerInstruction.Store("LastResult")),
             namePrefix = "bounded",
         )
 
@@ -387,7 +390,7 @@ class CompilerIrTest {
             ),
         )
         assertTrue(instructions.contains(CompilerInstruction.Store("परिणाम")))
-        assertEquals(target, instructions.last())
+        assertEquals(CompilerInstruction.Store("LastResult"), instructions.last())
         CompilerIrVerifier.verify(instructions)
     }
 
@@ -395,7 +398,7 @@ class CompilerIrTest {
     fun `reported-result while captures each body condition`() {
         val instructions = CompilerIrLowering.lowerWhile(
             condition = null,
-            body = listOf(valueCall("body")),
+            body = valueInstructions("body"),
             usesReportedCondition = true,
             negatedReportedCondition = true,
             namePrefix = "reported",
@@ -410,7 +413,7 @@ class CompilerIrTest {
     fun `nested while loops retain independent control state`() {
         val inner = CompilerIrLowering.lowerWhile(
             booleanCall("inner-condition"),
-            listOf(valueCall("inner-body")),
+            valueInstructions("inner-body"),
             namePrefix = "inner",
         )
         val outer = CompilerIrLowering.lowerWhile(
@@ -465,8 +468,6 @@ class CompilerIrTest {
         assertEquals("युजिँर्", call.dhatuUpadesha)
         assertEquals("सङ्ख्यायोजनम्", call.operationName)
         assertEquals("", call.requiredSanadi)
-        assertEquals(CallResultMode.VALUE, call.resultMode)
-        assertNull(call.destination)
         val values = call.bindings.values.flatMap { expression ->
             when (expression) {
                 is ExecutionExpression.Coordination -> expression.members
@@ -515,7 +516,7 @@ class CompilerIrTest {
     }
 
     @Test
-    fun `boolean and loop target modes survive IR lowering`() {
+    fun `boolean and loop target behavior lowers to ordinary value IR`() {
         val condition = requireNotNull(DirectLeafPlanner.planAny(
             "द्वि + अम् एक + अम् च विद् + लोट् + सिप् ।",
         ))
@@ -523,18 +524,14 @@ class CompilerIrTest {
             "चक्रफल + अम् मुद्र् + लोट् + सिप् ।",
         ))
 
-        assertEquals(
-            CallResultMode.BOOLEAN,
-            assertIs<CompilerInstruction.Call>(
-                CompilerIrLowering.lowerLeaf(condition, CallResultMode.BOOLEAN),
-            ).resultMode,
-        )
-        assertEquals(
-            CallResultMode.LOOP_TARGET,
-            assertIs<CompilerInstruction.Call>(
-                CompilerIrLowering.lowerLeaf(target, CallResultMode.LOOP_TARGET),
-            ).resultMode,
-        )
+        val conditionInstructions = CompilerIrLowering.lowerCondition(condition)
+        assertEquals(CompilerInstruction.Compare(ComparisonOperator.GREATER_THAN), conditionInstructions.last())
+
+        val targetInstructions = CompilerIrLowering.lowerLoopTarget(target)
+        assertTrue(targetInstructions.contains(CompilerInstruction.LoadField("अवस्था")))
+        assertTrue(targetInstructions.contains(CompilerInstruction.Store("चक्रफल")))
+        assertTrue(targetInstructions.contains(CompilerInstruction.Pop))
+        assertEquals(CompilerInstruction.Store("LastResult"), targetInstructions.last())
     }
 
 
@@ -543,7 +540,6 @@ class CompilerIrTest {
         operationName = name,
         requiredSanadi = "",
         bindings = emptyMap(),
-        resultMode = CallResultMode.BOOLEAN,
     )
 
     private fun valueCall(name: String) = CompilerInstruction.Call(
@@ -551,6 +547,11 @@ class CompilerIrTest {
         operationName = name,
         requiredSanadi = "",
         bindings = emptyMap(),
+    )
+
+    private fun valueInstructions(name: String) = listOf(
+        valueCall(name),
+        CompilerInstruction.Store("LastResult"),
     )
 
     private fun numericConstant(value: Long) = CompilerInstruction.Constant(

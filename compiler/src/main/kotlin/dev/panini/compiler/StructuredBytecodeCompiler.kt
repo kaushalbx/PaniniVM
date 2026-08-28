@@ -166,15 +166,8 @@ internal object StructuredBytecodeCompiler {
             )
         }
 
-        private fun lowerDirect(
-            plan: ExecutionPlan,
-            asBoolean: Boolean = false,
-            asLoopTarget: Boolean = false,
-        ): List<CompilerInstruction> = when {
-                asBoolean -> listOf(CompilerIrLowering.lowerLeaf(plan, CallResultMode.BOOLEAN))
-                asLoopTarget -> listOf(CompilerIrLowering.lowerLeaf(plan, CallResultMode.LOOP_TARGET))
-                else -> CompilerIrLowering.lowerLeafValues(plan)
-            }
+        private fun lowerDirect(plan: ExecutionPlan): List<CompilerInstruction> =
+            CompilerIrLowering.lowerLeafValues(plan)
 
         /**
          * Produces complete IR for conditionals whose leaves are primitive plans.
@@ -241,10 +234,10 @@ internal object StructuredBytecodeCompiler {
             if (node.exhausted != null && exhausted.isEmpty()) return null
             val resultTarget = node.resultTarget?.let { target ->
                 val rendered = render(target)
-                val plan = DirectLeafPlanner.planAny(rendered)
-                    ?: DirectLeafPlanner.planAny("चक्रफल + अम् $rendered")
+                val plan = DirectLeafPlanner.planAny("चक्रफल + अम् $rendered")
+                    ?: DirectLeafPlanner.planAny(rendered)
                     ?: return null
-                listOf(CompilerIrLowering.lowerLeaf(plan, CallResultMode.LOOP_TARGET))
+                CompilerIrLowering.lowerLoopTarget(plan)
             } ?: emptyList()
             val maximumIterations = node.maximumIterationStems.takeIf(List<String>::isNotEmpty)?.let {
                 dev.panini.sankhya.SankhyaEvaluator().evaluateStems(it).value

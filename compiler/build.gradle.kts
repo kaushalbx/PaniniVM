@@ -27,3 +27,12 @@ tasks.withType<Test> {
     useJUnitPlatform()
     workingDir = rootDir
 }
+
+tasks.register<JavaExec>("benchmarkCompiler") {
+    group = "benchmark"
+    description = "Compares PaniniVM interpretation with compiler startup and generated execution."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("dev.panini.compiler.CompilerBenchmark")
+    args(providers.gradleProperty("iterations").getOrElse("1000"))
+    args(providers.gradleProperty("warmups").getOrElse("100"))
+}

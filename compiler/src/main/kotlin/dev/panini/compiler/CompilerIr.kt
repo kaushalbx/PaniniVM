@@ -54,6 +54,8 @@ internal sealed interface CompilerInstruction {
 
     data object Duplicate : CompilerInstruction
 
+    data object Pop : CompilerInstruction
+
     data class BuildList(val size: Int) : CompilerInstruction
 
     data class BuildRecord(val schema: String, val fields: List<String>) : CompilerInstruction
@@ -67,8 +69,6 @@ internal sealed interface CompilerInstruction {
         val operationName: String,
         val requiredSanadi: String,
         val bindings: Map<Karaka, ExecutionExpression>,
-        val destination: String? = null,
-        val resultMode: CallResultMode = CallResultMode.VALUE,
     ) : CompilerInstruction
 
     data class ProcedureCall(
@@ -84,6 +84,8 @@ internal sealed interface CompilerInstruction {
 
     /** Re-renders a numeric value as the runtime's canonical cardinal form. */
     data object Cardinalize : CompilerInstruction
+
+    data object Booleanize : CompilerInstruction
 
     data class Branch(val target: String, val whenTrue: Boolean = false) : CompilerInstruction
 
@@ -108,13 +110,6 @@ internal sealed interface CompilerInstruction {
     data object Return : CompilerInstruction
 
     data object ReturnIfBreak : CompilerInstruction
-}
-
-internal enum class CallResultMode {
-    VALUE,
-    STACK_VALUE,
-    BOOLEAN,
-    LOOP_TARGET,
 }
 
 internal enum class ComparisonOperator {
@@ -311,33 +306,28 @@ internal object CompilerIrLowering {
         alternate: List<CompilerInstruction> = emptyList(),
         labelPrefix: String = "conditional",
     ): List<CompilerInstruction> {
-        require(condition.resultMode == CallResultMode.BOOLEAN) {
-            "Conditional condition must produce a boolean result"
-        }
-        return lowerConditional(listOf(condition), consequent, alternate, labelPrefix)
+        return lowerConditional(
+            listOf(
+                condition,
+                CompilerInstruction.Duplicate,
+                CompilerInstruction.Store("LastResult"),
+                CompilerInstruction.Booleanize,
+            ),
+            consequent,
+            alternate,
+            labelPrefix,
+        )
     }
 
-    fun lowerLeaf(
-        plan: ExecutionPlan,
-        resultMode: CallResultMode = CallResultMode.VALUE,
-    ): CompilerInstruction {
+    fun lowerLeaf(plan: ExecutionPlan): CompilerInstruction {
         if (plan.resolved.operation.name == "विजयः") {
             return CompilerInstruction.RequestBreak
-        }
-        val bindingKaraka = plan.resolved.operation.resultBindingKaraka
-        val destination = if (resultMode == CallResultMode.VALUE && bindingKaraka != null) {
-            plan.resolved.context.bindings[bindingKaraka]?.bindingName()
-                ?: plan.resolved.invocation.bindings[bindingKaraka]?.bindingName()
-        } else {
-            null
         }
         return CompilerInstruction.Call(
             dhatuUpadesha = plan.resolved.invocation.dhatu.upadesha,
             operationName = plan.resolved.operation.name,
             requiredSanadi = plan.resolved.operation.trigger.requiredSanadi.sorted().joinToString(","),
             bindings = plan.resolved.context.bindings,
-            destination = destination,
-            resultMode = resultMode,
         )
     }
 
@@ -346,24 +336,38 @@ internal object CompilerIrLowering {
         lowerPrimitiveLeafValues(plan)?.let { return it }
         val lowered = lowerLeaf(plan)
         if (lowered !is CompilerInstruction.Call) return listOf(lowered)
-        val call = lowered.copy(destination = null, resultMode = CallResultMode.STACK_VALUE)
+        val bindingKaraka = plan.resolved.operation.resultBindingKaraka
+        val destination = bindingKaraka?.let {
+            plan.resolved.context.bindings[it]?.bindingName()
+                ?: plan.resolved.invocation.bindings[it]?.bindingName()
+        }
         return buildList {
-            add(call)
-            if (lowered.destination != null) add(CompilerInstruction.Duplicate)
+            add(lowered)
+            if (destination != null) add(CompilerInstruction.Duplicate)
             add(CompilerInstruction.Store("LastResult"))
-            lowered.destination?.let { add(CompilerInstruction.Store(it)) }
+            destination?.let { add(CompilerInstruction.Store(it)) }
         }.also(CompilerIrVerifier::verify)
     }
+
+    fun lowerLoopTarget(plan: ExecutionPlan): List<CompilerInstruction> = buildList {
+        add(CompilerInstruction.Load("परिणाम"))
+        add(CompilerInstruction.LoadField("अवस्था"))
+        add(CompilerInstruction.Store("चक्रफल"))
+        add(lowerLeaf(plan))
+        add(CompilerInstruction.Pop)
+        add(CompilerInstruction.Load("परिणाम"))
+        add(CompilerInstruction.Store("LastResult"))
+    }.also(CompilerIrVerifier::verify)
 
     /** Lowers a numeric comparison into operand loads followed by a boolean comparison. */
     fun lowerCondition(plan: ExecutionPlan): List<CompilerInstruction> {
         if (plan.resolved.operation.name != "सङ्ख्यातुलना") {
-            return listOf(lowerLeaf(plan, CallResultMode.BOOLEAN))
+            return lowerGenericCondition(plan)
         }
         val operands = plan.resolved.context.bindings[Karaka.KARMAN]
             ?.let(::lowerOperands)
             .orEmpty()
-        if (operands.size < 2) return listOf(lowerLeaf(plan, CallResultMode.BOOLEAN))
+        if (operands.size < 2) return lowerGenericCondition(plan)
         val operator = if ("नि" in plan.resolved.operation.trigger.requiredUpasargas) {
             ComparisonOperator.LESS_THAN
         } else {
@@ -375,6 +379,13 @@ internal object CompilerIrLowering {
             add(CompilerInstruction.Compare(operator))
         }
     }
+
+    private fun lowerGenericCondition(plan: ExecutionPlan): List<CompilerInstruction> = listOf(
+        lowerLeaf(plan),
+        CompilerInstruction.Duplicate,
+        CompilerInstruction.Store("LastResult"),
+        CompilerInstruction.Booleanize,
+    )
 
     /** Lowers primitive numeric folds and single-value assignment without action dispatch. */
     private fun lowerPrimitiveLeafValues(plan: ExecutionPlan): List<CompilerInstruction>? {
@@ -648,6 +659,7 @@ internal object CompilerIrVerifier {
                 val value = pop().second
                 before + value
             }
+            CompilerInstruction.Pop -> pop().first
             is CompilerInstruction.BuildList -> {
                 require(instruction.size >= 0) { "IR list size must not be negative at instruction $index" }
                 require(before.size >= instruction.size) {
@@ -709,15 +721,12 @@ internal object CompilerIrVerifier {
                 afterRight.dropLast(1) + ValueKind.NUMBER
             }
             CompilerInstruction.Cardinalize -> pop(ValueKind.NUMBER).first + ValueKind.NUMBER
+            CompilerInstruction.Booleanize -> pop().first + ValueKind.BOOLEAN
             is CompilerInstruction.Branch -> pop(ValueKind.BOOLEAN).first
             CompilerInstruction.ConsumeBreak,
             is CompilerInstruction.TestLoopCondition,
             -> before + ValueKind.BOOLEAN
-            is CompilerInstruction.Call -> when (instruction.resultMode) {
-                CallResultMode.BOOLEAN -> before + ValueKind.BOOLEAN
-                CallResultMode.STACK_VALUE -> before + ValueKind.UNKNOWN
-                else -> before
-            }
+            is CompilerInstruction.Call -> before + ValueKind.UNKNOWN
             else -> before
         }
     }

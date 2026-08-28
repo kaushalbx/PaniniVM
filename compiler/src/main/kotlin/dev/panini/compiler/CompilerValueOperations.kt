@@ -6,6 +6,13 @@ import dev.panini.execution.SanskritValue
 /** Backend helper for explicit value IR comparisons. */
 internal object CompilerValueOperations {
     @JvmStatic
+    fun booleanize(value: SanskritValue): Boolean = (value as? SanskritValue.Satya)?.boolean
+        ?: throw CompiledPaniniExecutionException(
+            ExecutionError.INVALID_VALUE,
+            "A compiled condition must produce सत्य/असत्य.",
+        )
+
+    @JvmStatic
     fun cardinalize(value: SanskritValue): SanskritValue {
         val number = number(value)
         val word = dev.panini.sankhya.SankhyaGenerator().cardinal(number).final.surface

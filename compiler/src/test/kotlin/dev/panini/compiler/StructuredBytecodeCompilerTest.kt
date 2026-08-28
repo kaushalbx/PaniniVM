@@ -647,7 +647,8 @@ class StructuredBytecodeCompilerTest {
         assertEquals(outcome, values.getValue("LastResult"))
         assertEquals("विजय", outcome.fields.getValue("अवस्था").toDisplayText())
         assertEquals(1L, (outcome.fields.getValue("प्रयत्नसङ्ख्या") as SanskritValue.Sankhya).value)
-        assertTrue("executeDirectLoopTarget" in executeCalls, executeCalls.toString())
+        assertTrue("executeDirectLoopTarget" !in executeCalls, executeCalls.toString())
+        assertTrue("executeDirectValue" in executeCalls, executeCalls.toString())
         assertTrue("evaluateLoopTarget" !in executeCalls, executeCalls.toString())
         assertTrue("evaluateBoolean" !in executeCalls, executeCalls.toString())
         assertTrue("evaluate" !in executeCalls, executeCalls.toString())
@@ -1048,7 +1049,14 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `compiled parameter frames preserve structured values`() {
         val runtime = CompiledProgramRuntime()
-        runtime.publishLoopOutcome("विजय", 3L)
+        val structuredOutcome = SanskritValue.Rupa(
+            "परिणाम",
+            mapOf(
+                "अवस्था" to SanskritValue.Shabda("विजय"),
+                "प्रयत्नसङ्ख्या" to SanskritValue.Sankhya(3L, "त्रीणि"),
+            ),
+        )
+        runtime.storeValue("LastResult", structuredOutcome)
         runtime.enterFrame(arrayOf("मान"), arrayOf("फल"))
 
         val returned = runtime.resolveValue("मान")
@@ -1058,6 +1066,18 @@ class StructuredBytecodeCompilerTest {
         assertEquals("परिणाम", structured.schema)
         assertEquals("विजय", structured.fields.getValue("अवस्था").toDisplayText())
         assertEquals(3L, (structured.fields.getValue("प्रयत्नसङ्ख्या") as SanskritValue.Sankhya).value)
+    }
+
+    @Test
+    fun `compiled runtime exposes only the unified action value entry point`() {
+        val methods = CompiledProgramRuntime::class.java.declaredMethods.map { it.name }.toSet()
+
+        assertTrue("executeDirectValue" in methods)
+        assertTrue("executeDirect" !in methods)
+        assertTrue("executeDirectBoolean" !in methods)
+        assertTrue("executeDirectStore" !in methods)
+        assertTrue("executeDirectLoopTarget" !in methods)
+        assertTrue("publishLoopOutcome" !in methods)
     }
 
     @Test

@@ -40,19 +40,6 @@ class CompiledProgramRuntime private constructor(
             "A compiled फल-controlled loop body must produce a truth value.",
         )
 
-    fun publishLoopOutcome(outcome: String, iterations: Long) {
-        val outcomeValue = SanskritValue.Shabda(outcome)
-        val countWord = dev.panini.sankhya.SankhyaGenerator().cardinal(iterations).final.surface
-        val countValue = SanskritValue.Sankhya(iterations, countWord)
-        val structured = SanskritValue.Rupa(
-            schema = "परिणाम",
-            fields = mapOf("अवस्था" to outcomeValue, "प्रयत्नसङ्ख्या" to countValue),
-        )
-        values["परिणाम"] = structured
-        values["प्रयत्नसङ्ख्या"] = countValue
-        values["LastResult"] = structured
-    }
-
     fun enterConditionIteration() {
         val limit = maxConditionIterations
         if (limit != null && conditionIterations >= limit) {
@@ -95,17 +82,6 @@ class CompiledProgramRuntime private constructor(
         parameterFrames.removeLast()
     }
 
-    fun executeDirect(
-        dhatuUpadesha: String,
-        operationName: String,
-        requiredSanadi: String,
-        bindings: Map<Karaka, ExecutionExpression>,
-    ): SanskritValue {
-        val value = executeDirectValue(dhatuUpadesha, operationName, requiredSanadi, bindings)
-        storeValue("LastResult", value)
-        return value
-    }
-
     fun executeDirectValue(
         dhatuUpadesha: String,
         operationName: String,
@@ -142,46 +118,6 @@ class CompiledProgramRuntime private constructor(
         parameterFrames.reversed().firstNotNullOfOrNull { it.parameterValues[name] }
             ?: values[name]
             ?: if (name == "फल") values["LastResult"] else null
-
-    fun executeDirectBoolean(
-        dhatuUpadesha: String,
-        operationName: String,
-        requiredSanadi: String,
-        bindings: Map<Karaka, ExecutionExpression>,
-    ): Boolean = (executeDirect(dhatuUpadesha, operationName, requiredSanadi, bindings)
-        as? SanskritValue.Satya)?.boolean
-        ?: error("A directly compiled condition did not produce सत्य/असत्य: $operationName")
-
-    fun executeDirectStore(
-        dhatuUpadesha: String,
-        operationName: String,
-        requiredSanadi: String,
-        bindings: Map<Karaka, ExecutionExpression>,
-        bindingName: String,
-    ): SanskritValue = executeDirect(dhatuUpadesha, operationName, requiredSanadi, bindings).also {
-        values[bindingName] = it
-    }
-
-    fun executeDirectLoopTarget(
-        dhatuUpadesha: String,
-        operationName: String,
-        requiredSanadi: String,
-        bindings: Map<Karaka, ExecutionExpression>,
-    ): SanskritValue {
-        val structured = values["परिणाम"] as? SanskritValue.Rupa
-            ?: error("No compiled loop outcome is available for its result target.")
-        val outcome = structured.fields["अवस्था"]
-            ?: error("The compiled loop outcome has no अवस्था field.")
-        PaniniRuntime.execute(
-            dhatuUpadesha,
-            operationName,
-            requiredSanadi,
-            bindings,
-            values + ("चक्रफल" to outcome),
-        )
-        values["LastResult"] = structured
-        return structured
-    }
 
     fun snapshot(): Map<String, SanskritValue> = LinkedHashMap(values)
 

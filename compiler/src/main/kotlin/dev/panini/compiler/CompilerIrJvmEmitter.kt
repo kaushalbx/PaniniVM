@@ -46,6 +46,7 @@ internal class CompilerIrJvmEmitter(
                 )
                 CompilerInstruction.LoadLastResult -> emitLoad("LastResult")
                 CompilerInstruction.Duplicate -> mv.visitInsn(DUP)
+                CompilerInstruction.Pop -> mv.visitInsn(POP)
                 is CompilerInstruction.BuildList -> emitBuildList(instruction.size)
                 is CompilerInstruction.BuildRecord -> emitBuildRecord(instruction.schema, instruction.fields)
                 is CompilerInstruction.LoadField -> emitLoadField(instruction.name)
@@ -57,6 +58,13 @@ internal class CompilerIrJvmEmitter(
                     "dev/panini/compiler/CompilerValueOperations",
                     "cardinalize",
                     "(Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;",
+                    false,
+                )
+                CompilerInstruction.Booleanize -> mv.visitMethodInsn(
+                    INVOKESTATIC,
+                    "dev/panini/compiler/CompilerValueOperations",
+                    "booleanize",
+                    "(Ldev/panini/execution/SanskritValue;)Z",
                     false,
                 )
                 is CompilerInstruction.Call -> emitCall(instruction)
@@ -281,7 +289,6 @@ internal class CompilerIrJvmEmitter(
     }
 
     private fun emitCall(call: CompilerInstruction.Call) {
-        val bindingName = call.destination
         val bindings = allocateLocal(1)
         mv.visitTypeInsn(NEW, "java/util/HashMap")
         mv.visitInsn(DUP)
@@ -305,29 +312,13 @@ internal class CompilerIrJvmEmitter(
         mv.visitLdcInsn(call.operationName)
         mv.visitLdcInsn(call.requiredSanadi)
         mv.visitVarInsn(ALOAD, bindings)
-        if (bindingName != null) mv.visitLdcInsn(bindingName)
         mv.visitMethodInsn(
             INVOKEVIRTUAL,
             RUNTIME,
-            when {
-                call.resultMode == CallResultMode.BOOLEAN -> "executeDirectBoolean"
-                call.resultMode == CallResultMode.STACK_VALUE -> "executeDirectValue"
-                call.resultMode == CallResultMode.LOOP_TARGET -> "executeDirectLoopTarget"
-                bindingName != null -> "executeDirectStore"
-                else -> "executeDirect"
-            },
-            when {
-                call.resultMode == CallResultMode.BOOLEAN -> "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Z"
-                call.resultMode == CallResultMode.STACK_VALUE -> "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Ldev/panini/execution/SanskritValue;"
-                call.resultMode == CallResultMode.LOOP_TARGET -> "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Ldev/panini/execution/SanskritValue;"
-                bindingName != null -> "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;)Ldev/panini/execution/SanskritValue;"
-                else -> "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Ldev/panini/execution/SanskritValue;"
-            },
+            "executeDirectValue",
+            "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Ldev/panini/execution/SanskritValue;",
             false,
         )
-        if (call.resultMode !in setOf(CallResultMode.BOOLEAN, CallResultMode.STACK_VALUE)) {
-            mv.visitInsn(POP)
-        }
     }
 
     private fun emitProcedureCall(call: CompilerInstruction.ProcedureCall) {
