@@ -111,7 +111,8 @@ The following common operations currently avoid the generic action-runtime
 boundary:
 
 - numeric addition, subtraction, multiplication, division, remainder, minimum,
-  exponentiation, average, doubling/scale, and exact integer square root;
+  exponentiation, average, doubling/scale, exact integer square root, and
+  integer hypotenuse;
 - numeric comparisons, equality, truth conversion, and evenness checks;
 - assignment, named loads, local values, procedure arguments, and
   `LastResult`;
@@ -127,13 +128,13 @@ by `Call` IR and dispatched through `executeDirectValue`; this is an action
 runtime call, not interpreter re-entry. `CompilerRuntimeBoundaryReport` reports
 these operations so that direct-lowering work can be prioritized and measured.
 
-## Remaining adapter boundary
+## Shared leaf-planning boundary
 
-- `DirectLeafPlanner` remains the adapter from grammatical execution planning to
-  leaf IR. Symbolic operands, operation disambiguation, and fixed repetition now
-  use parsed padas, resolved grammatical features, and the shared program AST
-  rather than compiler-side source matching. Its remaining role can shrink as
-  the shared planner exposes a compiler-oriented resolved-leaf API.
+- `ResolvedLeafPlanner` lives in the shared execution module and exposes typed,
+  resolved leaf plans to the compiler and other tooling. Symbolic operands,
+  operation disambiguation, and fixed repetition use parsed padas, resolved
+  grammatical features, alternative typed placeholders, and the shared program
+  AST. The former compiler-local `DirectLeafPlanner` has been removed.
 
 ## Verification
 
@@ -199,8 +200,7 @@ steps are:
 1. lower additional deterministic domain operations identified by the boundary
    inventory while retaining random, I/O, resource, and linguistic actions as
    explicit runtime boundaries;
-2. expose the resolved-leaf planning implementation from the shared execution
-   planner so the compiler-local adapter can be removed completely;
-3. support the remaining inventory categories: complex nominal result bindings,
-   cross-file procedure resolution, and structured pipelines;
-4. extend value-kind inference to externally supplied initial state.
+2. finish inference for the four remaining declaration/library edge cases in
+   the repository inventory (implicit collection parameters, cross-file
+   procedure operands, morphology records, and null-safe inherited values);
+3. extend value-kind inference to externally supplied initial state.

@@ -47,8 +47,17 @@ internal object CompilerProgramVerifier {
         val duplicate = proceduresByName.entries.firstOrNull { it.value.size > 1 }
         require(duplicate == null) { "Duplicate IR procedure: ${duplicate?.key}" }
 
-        CompilerIrVerifier.verify(program.entryPoint)
-        program.procedures.forEach { CompilerIrVerifier.verify(it.instructions) }
+        runCatching { CompilerIrVerifier.verify(program.entryPoint) }.getOrElse { error ->
+            throw IllegalArgumentException("IR entry point is invalid: ${error.message}", error)
+        }
+        program.procedures.forEach { procedure ->
+            runCatching { CompilerIrVerifier.verify(procedure.instructions) }.getOrElse { error ->
+                throw IllegalArgumentException(
+                    "IR procedure ${procedure.methodName} is invalid: ${error.message}",
+                    error,
+                )
+            }
+        }
         program.procedures.forEach { procedure ->
             require(procedure.parameterKinds.isEmpty() ||
                 procedure.parameterKinds.size == procedure.parameterNames.size) {
@@ -210,6 +219,7 @@ internal enum class ArithmeticOperator {
     REMAINDER,
     MINIMUM,
     POWER,
+    HYPOTENUSE,
 }
 
 internal enum class NumericUnaryOperator {
@@ -487,6 +497,7 @@ internal object CompilerIrLowering {
             "सङ्ख्याशेषः" -> ArithmeticOperator.REMAINDER
             "सङ्ख्यान्यूनत्वम्" -> ArithmeticOperator.MINIMUM
             "सङ्ख्याघातः" -> ArithmeticOperator.POWER
+            "कर्णसाधनम्" -> ArithmeticOperator.HYPOTENUSE
             else -> null
         }
         val collection = when (operation) {

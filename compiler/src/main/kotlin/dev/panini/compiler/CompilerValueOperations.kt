@@ -80,6 +80,14 @@ internal object CompilerValueOperations {
     }
 
     @JvmStatic
+    fun hypotenuse(left: SanskritValue, right: SanskritValue): SanskritValue {
+        val first = number(left)
+        val second = number(right)
+        val squared = Math.addExact(Math.multiplyExact(first, first), Math.multiplyExact(second, second))
+        return exactSquareRoot(numeric(squared))
+    }
+
+    @JvmStatic
     fun equal(left: SanskritValue, right: SanskritValue): Boolean = left == right
 
     @JvmStatic

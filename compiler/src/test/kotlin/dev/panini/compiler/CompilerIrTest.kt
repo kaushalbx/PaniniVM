@@ -3,6 +3,7 @@ package dev.panini.compiler
 import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.SanskritValue
 import dev.panini.execution.renderSankhyaResult
+import dev.panini.execution.planning.ResolvedLeafPlanner
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -301,6 +302,13 @@ class CompilerIrTest {
         assertEquals(3L, (CompilerValueOperations.add(one, two) as SanskritValue.Sankhya).value)
         assertEquals(1L, (CompilerValueOperations.minimum(one, two) as SanskritValue.Sankhya).value)
         assertEquals(8L, (CompilerValueOperations.power(two, SanskritValue.Sankhya(3L, "त्रीणि")) as SanskritValue.Sankhya).value)
+        assertEquals(
+            5L,
+            (CompilerValueOperations.hypotenuse(
+                SanskritValue.Sankhya(3L, "त्रि"),
+                SanskritValue.Sankhya(4L, "चतुर्"),
+            ) as SanskritValue.Sankhya).value,
+        )
         assertFailsWith<IllegalArgumentException> {
             CompilerValueOperations.power(two, SanskritValue.Sankhya(-1L, "-1"))
         }
@@ -664,7 +672,7 @@ class CompilerIrTest {
 
     @Test
     fun `numeric leaf lowers to a backend neutral call`() {
-        val plan = requireNotNull(DirectLeafPlanner.planAny(
+        val plan = requireNotNull(ResolvedLeafPlanner.planAny(
             "एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ।",
         ))
 
@@ -690,7 +698,7 @@ class CompilerIrTest {
 
     @Test
     fun `numeric value leaf lowers to arithmetic and stores LastResult`() {
-        val plan = requireNotNull(DirectLeafPlanner.planAny(
+        val plan = requireNotNull(ResolvedLeafPlanner.planAny(
             "एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ।",
         ))
 
@@ -704,10 +712,10 @@ class CompilerIrTest {
 
     @Test
     fun `scale and exact square root lower to unary numeric IR`() {
-        val scale = requireNotNull(DirectLeafPlanner.planAny(
+        val scale = requireNotNull(ResolvedLeafPlanner.planAny(
             "पञ्चन् + शस् एध् + णिच् + लोट् + सिप् ।",
         ))
-        val squareRoot = requireNotNull(DirectLeafPlanner.planAny(
+        val squareRoot = requireNotNull(ResolvedLeafPlanner.planAny(
             "नवन् + शस् मूल् + णिच् + लोट् + सिप् ।",
         ))
 
@@ -729,10 +737,10 @@ class CompilerIrTest {
 
     @Test
     fun `numeric condition lowers operands and comparison without a runtime call`() {
-        val greater = requireNotNull(DirectLeafPlanner.planAny(
+        val greater = requireNotNull(ResolvedLeafPlanner.planAny(
             "द्वि + अम् एक + अम् च विद् + लोट् + सिप् ।",
         ))
-        val less = requireNotNull(DirectLeafPlanner.planAny(
+        val less = requireNotNull(ResolvedLeafPlanner.planAny(
             "एक + अम् द्वि + अम् च नि + विद् + लोट् + सिप् ।",
         ))
 
@@ -747,10 +755,10 @@ class CompilerIrTest {
 
     @Test
     fun `boolean and loop target behavior lowers to ordinary value IR`() {
-        val condition = requireNotNull(DirectLeafPlanner.planAny(
+        val condition = requireNotNull(ResolvedLeafPlanner.planAny(
             "द्वि + अम् एक + अम् च विद् + लोट् + सिप् ।",
         ))
-        val target = requireNotNull(DirectLeafPlanner.planAny(
+        val target = requireNotNull(ResolvedLeafPlanner.planAny(
             "चक्रफल + अम् मुद्र् + लोट् + सिप् ।",
         ))
 

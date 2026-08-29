@@ -12,6 +12,7 @@ import dev.panini.execution.DynamicNishedhaEvaluator
 import dev.panini.execution.PuranaPratyayaResolver
 import dev.panini.execution.SamjnaSignatureCompiler
 import dev.panini.execution.ExecutionPlan
+import dev.panini.execution.planning.ResolvedLeafPlanner
 import dev.panini.vyakaranam.ast.Conditional
 import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.Pipeline
@@ -39,14 +40,19 @@ internal object CompilerFrontend {
                     nameSegmented = definition.nameSegmented,
                     nameStem = samjnaStem(definition.nameSegmented),
                     body = definition.body,
+                    domainStem = definition.domainStem,
                 ),
             )
         }
         val methods = definitions.mapIndexed { index, definition ->
             definition to "samjna_$index"
         }.toMap()
-        val methodsByStem = methods.entries.associate { (definition, method) ->
-            samjnaStem(definition.nameSegmented) to method
+        val methodsByStem = buildMap {
+            methods.forEach { (definition, method) ->
+                val stem = samjnaStem(definition.nameSegmented)
+                put(stem, method)
+                put(localSamjnaStem(stem), method)
+            }
         }
         val lowering = Lowering(registry, methodsByStem)
         val executable = statements.filterIsInstance<PvmScriptStatement.Sentence>()
@@ -81,7 +87,6 @@ internal object CompilerFrontend {
         private val methodsByStem: Map<String, String>,
     ) {
         private var nextLabel = 0
-
         fun lower(
             node: ProgramNode,
             exactSource: String? = null,
@@ -89,7 +94,8 @@ internal object CompilerFrontend {
         ): List<CompilerInstruction> = when (node) {
             is Invocation -> lowerInvocation(node, exactSource, allowDirectStore = allowDirectStore)
             is Sequence -> lowerSequence(node, exactSource)
-            is Pipeline, is Quotation -> lowerPlannedSource(exactSource ?: render(node))
+            is Pipeline -> lowerPipeline(node)
+            is Quotation -> lowerPlannedSource(exactSource ?: render(node))
             is Conditional -> lowerConditionalIr(node) ?: throw CompilerUnsupportedException(
                 CompilerUnsupportedKind.CONDITIONAL, render(node), "Cannot lower conditional to compiler IR.",
             )
@@ -140,8 +146,8 @@ internal object CompilerFrontend {
 
         private fun lowerSource(source: String, allowStore: Boolean = false): List<CompilerInstruction>? =
             lowerProcedureCall(source)
-                ?: DirectLeafPlanner.plan(source, allowStore = allowStore)?.let(::lowerDirect)
-                ?: DirectLeafPlanner.planAny(source)?.let(::lowerDirect)
+                ?: ResolvedLeafPlanner.plan(source, allowStore = allowStore)?.let(::lowerDirect)
+                ?: ResolvedLeafPlanner.plansAny(source)?.flatMap(::lowerDirect)
 
         private fun lowerProcedureCall(source: String): List<CompilerInstruction>? {
             val invocation = registry.detectInvocation(source) ?: return null
@@ -151,7 +157,7 @@ internal object CompilerFrontend {
             val parameterKinds = signature.parameters.map { it.type.toCompilerValueKind() }
             val arguments = resolveArguments(invocation)
             return buildList {
-                arguments.forEachIndexed { index, argument ->
+                arguments.take(parameterNames.size).forEachIndexed { index, argument ->
                     val name = argument.substringBefore('+').trim()
                     val value = invocation.argumentValues.getOrNull(index)
                     add(
@@ -168,6 +174,42 @@ internal object CompilerFrontend {
             }
         }
 
+        private fun lowerPipeline(node: Pipeline): List<CompilerInstruction> = buildList {
+            node.stages.forEachIndexed { stageIndex, stage ->
+                val method = methodsByStem[stage.operationStem]
+                    ?: throw CompilerUnsupportedException(
+                        CompilerUnsupportedKind.PIPELINE,
+                        node.sourceText,
+                        "Unknown compiled pipeline stage '${stage.operationStem}'.",
+                    )
+                val kriya = registry.resolve(stage.operationStem)
+                    ?: registry.all().singleOrNull { localSamjnaStem(it.nameStem) == stage.operationStem }
+                    ?: throw CompilerUnsupportedException(
+                        CompilerUnsupportedKind.PIPELINE,
+                        node.sourceText,
+                        "Missing signature for pipeline stage '${stage.operationStem}'.",
+                    )
+                val parameters = kriya.signature.parameters
+                parameters.forEachIndexed { parameterIndex, _ ->
+                    if (stageIndex > 0 && parameterIndex == 0) {
+                        add(CompilerInstruction.LoadLastResult)
+                    } else {
+                        val argument = node.arguments.getOrNull(parameterIndex)
+                            ?: throw CompilerUnsupportedException(
+                                CompilerUnsupportedKind.PIPELINE,
+                                node.sourceText,
+                                "Pipeline stage '${stage.operationStem}' lacks argument ${parameterIndex + 1}.",
+                            )
+                        add(CompilerInstruction.ResolveArgument(argument.substringBefore('+').trim(), null))
+                    }
+                }
+                val kinds = parameters.map { it.type.toCompilerValueKind() }
+                add(CompilerInstruction.EnterFrame(parameters.map { it.nameStem }, kinds))
+                add(CompilerInstruction.InvokeProcedure(method, parameters.size))
+                add(CompilerInstruction.ExitFrame)
+            }
+        }
+
         private fun lowerDirect(plan: ExecutionPlan): List<CompilerInstruction> =
             CompilerIrLowering.lowerLeafValues(plan)
 
@@ -177,7 +219,7 @@ internal object CompilerFrontend {
          * procedure invocation and argument-frame semantics.
          */
         private fun lowerConditionalIr(node: Conditional): List<CompilerInstruction>? {
-            val condition = DirectLeafPlanner.planAny(render(node.condition))
+            val condition = ResolvedLeafPlanner.planAny(render(node.condition))
                 ?.takeIf { dev.panini.shiksha.Samjna.SATYA in it.resolved.operation.resultSamjnas }
                 ?: return null
             val consequent = lowerPrimitiveBranchIr(node.consequent) ?: return null
@@ -226,7 +268,7 @@ internal object CompilerFrontend {
                 pada is dev.panini.vyakaranam.ast.AvyayaPada && pada.form == "न"
             }
             val condition = if (usesLatestResult) null else {
-                DirectLeafPlanner.planAny(render(node.condition))
+                ResolvedLeafPlanner.planAny(render(node.condition))
                     ?.takeIf { dev.panini.shiksha.Samjna.SATYA in it.resolved.operation.resultSamjnas }
                     ?: return null
             }
@@ -235,8 +277,8 @@ internal object CompilerFrontend {
             if (node.exhausted != null && exhausted.isEmpty()) return null
             val resultTarget = node.resultTarget?.let { target ->
                 val rendered = render(target)
-                val plan = DirectLeafPlanner.planAny("चक्रफल + अम् $rendered")
-                    ?: DirectLeafPlanner.planAny(rendered)
+                val plan = ResolvedLeafPlanner.planAny("चक्रफल + अम् $rendered")
+                    ?: ResolvedLeafPlanner.planAny(rendered)
                     ?: return null
                 CompilerIrLowering.lowerLoopTarget(plan)
             } ?: emptyList()
@@ -257,16 +299,7 @@ internal object CompilerFrontend {
 
         private fun lowerRepeatIr(node: Repeat): List<CompilerInstruction>? {
             val body = node.body
-            val bodyInstructions = if (body is Invocation) {
-                val bodySource = normalized(
-                    body.vakya.padas
-                        .filterNot { it is dev.panini.vyakaranam.ast.SankhyaAbhyasaPada }
-                        .joinToString(" ") { it.sourceText },
-                )
-                lowerSource(bodySource)
-            } else {
-                lowerPrimitiveBranchIr(body)
-            } ?: return null
+            val bodyInstructions = runCatching { lower(body) }.getOrNull() ?: return null
             return CompilerIrLowering.lowerRepeat(
                 count = node.count,
                 body = bodyInstructions,
@@ -275,7 +308,7 @@ internal object CompilerFrontend {
         }
 
         private fun lowerPlannedSource(source: String): List<CompilerInstruction> {
-            val plans = DirectLeafPlanner.plansAny(source)
+            val plans = ResolvedLeafPlanner.plansAny(source)
                 ?: throw CompilerUnsupportedException(
                     CompilerUnsupportedKind.PIPELINE, source, "Cannot resolve pipeline stage as compiler leaves.",
                 )
@@ -330,11 +363,17 @@ internal object CompilerFrontend {
 
     private fun samjnaStem(name: String): String {
         val parts = name.split('+').map(String::trim).filter(String::isNotEmpty)
-        return if (parts.lastOrNull() in setOf("सुँ", "औ", "जस्", "अम्", "औट्", "शस्", "टा")) {
+        return if (parts.lastOrNull() in setOf(
+                "सुँ", "औ", "जस्", "अम्", "औट्", "शस्", "टा", "भ्याम्", "भिस्",
+                "ङे", "भ्यस्", "ङसि", "ङसिँ", "ङस्", "ओस्", "आम्", "ङि", "सुप्",
+            )) {
             parts.dropLast(1).joinToString(" + ")
         } else {
             name.trim()
         }
     }
+
+    private fun localSamjnaStem(stem: String): String =
+        stem.substringAfter("ङस्", stem).trim().trimStart('+').trim()
 
 }

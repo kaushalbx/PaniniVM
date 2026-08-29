@@ -293,6 +293,7 @@ internal class CompilerIrJvmEmitter(
             ArithmeticOperator.REMAINDER -> "remainder"
             ArithmeticOperator.MINIMUM -> "minimum"
             ArithmeticOperator.POWER -> "power"
+            ArithmeticOperator.HYPOTENUSE -> "hypotenuse"
         }
         mv.visitMethodInsn(
             INVOKESTATIC,
