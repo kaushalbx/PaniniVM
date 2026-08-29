@@ -112,6 +112,28 @@ object VyakaranamExecutionAdapter {
         }
     }.analyze(ukti)
 
+    /** Preserves explicit Sanskrit frequency morphology in the shared program AST. */
+    internal fun normalizeFrequencyAst(ukti: Ukti): Ukti {
+        if (ukti.body is Repeat) return ukti
+        val count = ukti.grammaticalVakyas().asSequence()
+            .mapNotNull { vakya -> FrequencyExtractor.extractAbhyasaCount(vakya.padas) }
+            .maxOrNull()
+            ?.takeIf { it > 1 }
+            ?: return ukti
+        val body = object : ProgramNodeTransformer() {
+            override fun visitInvocation(node: Invocation): ProgramNode {
+                val padas = node.vakya.padas.filterNot { it is SankhyaAbhyasaPada }
+                val sourceText = padas.joinToString(" ") { it.sourceText }
+                val vakya = when (val original = node.vakya) {
+                    is AkhyataVakya -> original.copy(sourceText = sourceText, padas = padas)
+                    is dev.panini.vyakaranam.ast.NamaVakya -> original.copy(sourceText = sourceText, padas = padas)
+                }
+                return node.copy(vakya = vakya)
+            }
+        }.transform(ukti.body)
+        return ukti.copy(body = Repeat(ukti.body.sourceText, count, body))
+    }
+
     fun bind(
         input: SanskritUktiInput,
         conversation: SambhashanaContext,
@@ -124,8 +146,8 @@ object VyakaranamExecutionAdapter {
         } catch (e: PaniniParseException) {
             return ExecutionBindingResult.Invalid(e.message ?: "Invalid annotated Sanskrit morphology.")
         }
-        val quotations = quotationBindings(ukti.body)
-        val executableUkti = ukti
+        val executableUkti = normalizeFrequencyAst(ukti)
+        val quotations = quotationBindings(executableUkti.body)
 
         var listener = input.listener
         executableUkti.sambodhana?.subanta?.pratipadika?.baseText()?.let { addressed ->
@@ -165,9 +187,13 @@ object VyakaranamExecutionAdapter {
                 evaluated.value.toInt().takeIf { it > 0 }
             }
         }
-        val executionBody = abhyasaCounts.maxOrNull()?.let { count ->
-            Repeat(executableUkti.body.sourceText, count, executableUkti.body)
-        } ?: lowerFrequencyQualifiers(executableUkti.body, utteranceAnalysis)
+        val executionBody = if (executableUkti.body is Repeat) {
+            executableUkti.body
+        } else {
+            abhyasaCounts.maxOrNull()?.let { count ->
+                Repeat(executableUkti.body.sourceText, count, executableUkti.body)
+            } ?: lowerFrequencyQualifiers(executableUkti.body, utteranceAnalysis)
+        }
         val executionVakyas = executionBody.expandedInvocations().map(Invocation::vakya)
         val pipelineKarmanSources = pipelineKarmanSources(executionBody)
 

@@ -21,9 +21,29 @@ object CompilerBenchmark {
                 एक + अम् मुद्र् + लोट् + सिप् ॥
                 दश + कृत्वः एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ।
             """.trimIndent(),
+            "collection" to """
+                परिचय + ल्युट् + सुँ ।
+                एक + अम् मुद्र् + लोट् + सिप् ॥
+                एक + अम् द्वि + अम् त्रि + अम् च सूची + ङे दा + लोट् + सिप् ।
+                सूची + अम् गण् + लोट् + सिप् ।
+            """.trimIndent(),
+            "conditional" to """
+                परिचय + ल्युट् + सुँ ।
+                एक + अम् मुद्र् + लोट् + सिप् ॥
+                यदि द्वि + अम् एक + अम् च विद् + लोट् + सिप् तर्हि त्रि + अम् मुद्र् + लोट् + सिप् अन्यथा चतुर् + अम् मुद्र् + लोट् + सिप् ।
+            """.trimIndent(),
+            "recursive-procedure" to """
+                हृ + ल्युट् + सुँ ।
+                अवस्था + अम् एक + अम् च वि + युज् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् अवस्था + ङे ।
+                गण् + ल्युट् + टा कृ + लोट् + सिप् ॥
+                गण् + ल्युट् + सुँ ।
+                यदि अवस्था + अम् शून्य + अम् च विद् + लोट् + सिप् तर्हि हृ + ल्युट् + टा कृ + लोट् + सिप् अन्यथा वि + स्था + लोट् + सिप् ॥
+                त्रि + अम् अवस्था + ङे दा + लोट् + सिप् ।
+                गण् + ल्युट् + टा कृ + लोट् + सिप् ।
+            """.trimIndent(),
         )
 
-        println("case,engine,iterations,total_ms,ns_per_operation")
+        println("case,phase,iterations,total_ms,ns_per_operation,runtime_boundaries")
         cases.forEach { (name, source) ->
             benchmarkInterpreter(name, source, iterations, warmups)
             benchmarkCompiler(name, source, iterations, warmups)
@@ -43,9 +63,10 @@ object CompilerBenchmark {
         val lowerElapsed = measureNanoTime {
             program = CompilerFrontend.lower(source, className)
         }
-        printResult(name, "lower", 1, lowerElapsed)
         val boundary = CompilerRuntimeBoundaryReport.operations(program)
-        System.err.println("runtime-boundary,$name,${if (boundary.isEmpty()) "none" else boundary}")
+            .entries.joinToString("|") { (operation, count) -> "$operation:$count" }
+            .ifEmpty { "none" }
+        printResult(name, "lower", 1, lowerElapsed, boundary)
         lateinit var execute: Method
         val compileElapsed = measureNanoTime {
             val bytes = CompilerProgramJvmEmitter.emit(program)
@@ -59,9 +80,18 @@ object CompilerBenchmark {
         printResult(name, "compiled", iterations, elapsed)
     }
 
-    private fun printResult(name: String, engine: String, iterations: Int, elapsed: Long) {
+    private fun printResult(
+        name: String,
+        phase: String,
+        iterations: Int,
+        elapsed: Long,
+        runtimeBoundaries: String = "",
+    ) {
         val totalMillis = elapsed / 1_000_000.0
         val nanosPerOperation = elapsed.toDouble() / iterations
-        println("$name,$engine,$iterations,${"%.3f".format(totalMillis)},${"%.1f".format(nanosPerOperation)}")
+        println(
+            "$name,$phase,$iterations,${"%.3f".format(totalMillis)}," +
+                "${"%.1f".format(nanosPerOperation)},$runtimeBoundaries",
+        )
     }
 }

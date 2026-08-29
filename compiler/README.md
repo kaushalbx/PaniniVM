@@ -111,7 +111,7 @@ The following common operations currently avoid the generic action-runtime
 boundary:
 
 - numeric addition, subtraction, multiplication, division, remainder, minimum,
-  exponentiation, and average;
+  exponentiation, average, doubling/scale, and exact integer square root;
 - numeric comparisons, equality, truth conversion, and evenness checks;
 - assignment, named loads, local values, procedure arguments, and
   `LastResult`;
@@ -127,16 +127,13 @@ by `Call` IR and dispatched through `executeDirectValue`; this is an action
 runtime call, not interpreter re-entry. `CompilerRuntimeBoundaryReport` reports
 these operations so that direct-lowering work can be prioritized and measured.
 
-## Known compatibility paths
+## Remaining adapter boundary
 
-- The shared analyzed AST does not always retain the `Repeat` wrapper for a
-  frequency invocation. `CompilerFrontend` therefore contains one isolated
-  `कृत्वः` source compatibility parser. It can be removed when repetition is
-  preserved by the parser/execution AST handoff.
-- `DirectLeafPlanner` still contains source-pattern compatibility logic for
-  several leaf forms. New lowering should prefer resolved grammatical bindings
-  and typed values, with the long-term goal of reducing or deleting those
-  heuristics.
+- `DirectLeafPlanner` remains the adapter from grammatical execution planning to
+  leaf IR. Symbolic operands, operation disambiguation, and fixed repetition now
+  use parsed padas, resolved grammatical features, and the shared program AST
+  rather than compiler-side source matching. Its remaining role can shrink as
+  the shared planner exposes a compiler-oriented resolved-leaf API.
 
 ## Verification
 
@@ -151,10 +148,10 @@ recursion, procedure frames, breaks, bounded and unbounded loops, structured
 values, invalid programs, runtime-boundary counts, generated-bytecode
 verification, and host-budget exhaustion.
 
-The verifier currently tracks exact kinds for constants and primitive results.
-Loads from named storage, locals, arguments, and `LastResult` are conservatively
-typed as unknown. Propagating stored value kinds through control-flow joins is
-the next verifier-strengthening step.
+The verifier propagates value kinds through named storage, locals, `LastResult`,
+and control-flow joins. External values and procedure arguments remain
+conservatively typed as unknown. Static operand checks cover arithmetic,
+cardinalization, branches, and collection operations.
 
 ## Benchmark
 
@@ -170,18 +167,25 @@ This harness is intended for development comparisons. Use JMH and a controlled
 runtime environment for publication-grade measurements. The benchmark also
 prints the runtime-boundary operations for each compiled case.
 
+Generate a CSV inventory for all compilable repository examples with:
+
+```shell
+./gradlew :compiler:inventoryCompilerBoundaries
+```
+
+Use `-PexamplesDir=/path/to/examples` to inventory another example tree. Files
+outside the compiler's current language subset are reported as `unsupported`
+with a diagnostic instead of aborting the inventory.
+
 ## Remaining work
 
 The unified IR and standalone JVM backend are in place. The highest-value next
 steps are:
 
-1. propagate stored value kinds through verifier dataflow and control-flow
-   joins;
-2. preserve repetition in the shared AST and remove the compiler's frequency
-   compatibility parser;
-3. inventory remaining `executeDirectValue` calls and directly lower the most
+1. inventory remaining `executeDirectValue` calls and directly lower the most
    frequent domain operations;
-4. replace remaining `DirectLeafPlanner` source heuristics with resolved
+2. replace remaining `DirectLeafPlanner` source heuristics with resolved
    grammatical data;
-5. expand machine-readable benchmarks across arithmetic, collections, branches,
-   loops, and procedure calls.
+3. extend value-kind inference across procedure signatures and externally
+   supplied initial state;
+4. expand machine-readable benchmarks with procedure-call and recursion cases.

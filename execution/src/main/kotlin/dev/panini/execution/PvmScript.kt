@@ -1,6 +1,7 @@
 package dev.panini.execution
 
 import dev.panini.execution.binding.NumeralAstNormalizer
+import dev.panini.execution.binding.VyakaranamExecutionAdapter
 import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
 import dev.panini.vyakaranam.ast.Procedure
 import dev.panini.vyakaranam.ast.ProcedureModifiers
@@ -313,7 +314,7 @@ object PvmScript {
             .filter { it.isNotEmpty() }
             .map { text ->
                 val trimmed = text.trim()
-                val ukti = parser.parseOrNull(trimmed)
+                val ukti = parser.parseOrNull(trimmed)?.let(VyakaranamExecutionAdapter::normalizeFrequencyAst)
                 val isNishedha = ukti?.grammaticalVakyas()?.any { vakya ->
                     vakya.padas.filterIsInstance<dev.panini.vyakaranam.ast.AvyayaPada>()
                         .any { it.function == dev.panini.vyakaranam.ast.AvyayaFunction.NISHEDHA }

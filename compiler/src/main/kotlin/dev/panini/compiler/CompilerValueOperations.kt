@@ -58,6 +58,28 @@ internal object CompilerValueOperations {
     }
 
     @JvmStatic
+    fun scaleDouble(value: SanskritValue): SanskritValue = numeric(number(value) * 2L)
+
+    @JvmStatic
+    fun exactSquareRoot(value: SanskritValue): SanskritValue {
+        val number = number(value)
+        if (number < 0L) {
+            throw CompiledPaniniExecutionException(
+                ExecutionError.INVALID_VALUE,
+                "Square root of negative number $number is undefined.",
+            )
+        }
+        val root = kotlin.math.sqrt(number.toDouble()).toLong()
+        if ((root > 0L && root > Long.MAX_VALUE / root) || root * root != number) {
+            throw CompiledPaniniExecutionException(
+                ExecutionError.INVALID_VALUE,
+                "Square root of $number is not an exact integer in the current Sanskrit number model.",
+            )
+        }
+        return numeric(root)
+    }
+
+    @JvmStatic
     fun equal(left: SanskritValue, right: SanskritValue): Boolean = left == right
 
     @JvmStatic

@@ -547,6 +547,72 @@ class CompilerIrTest {
     }
 
     @Test
+    fun `IR verifier propagates stored value kinds`() {
+        val text = SanskritValue.Shabda("पाठः")
+        val invalidNamedLoad = listOf(
+            CompilerInstruction.Constant(text),
+            CompilerInstruction.Store("मूल्यम्"),
+            CompilerInstruction.Load("मूल्यम्"),
+            numericConstant(1),
+            CompilerInstruction.Arithmetic(ArithmeticOperator.ADD),
+            CompilerInstruction.Pop,
+        )
+        val invalidLocalLoad = listOf(
+            CompilerInstruction.Constant(text),
+            CompilerInstruction.StoreLocal("local"),
+            CompilerInstruction.LoadLocal("local"),
+            CompilerInstruction.Cardinalize,
+            CompilerInstruction.Pop,
+        )
+
+        assertFailsWith<IllegalArgumentException> { CompilerIrVerifier.verify(invalidNamedLoad) }
+        assertFailsWith<IllegalArgumentException> { CompilerIrVerifier.verify(invalidLocalLoad) }
+    }
+
+    @Test
+    fun `IR verifier merges stored kinds conservatively at control flow joins`() {
+        val instructions = listOf(
+            CompilerInstruction.Constant(SanskritValue.Satya(true)),
+            CompilerInstruction.Booleanize,
+            CompilerInstruction.Branch("text"),
+            numericConstant(1),
+            CompilerInstruction.Store("joined"),
+            CompilerInstruction.Jump("merge"),
+            CompilerInstruction.Label("text"),
+            CompilerInstruction.Constant(SanskritValue.Shabda("पाठः")),
+            CompilerInstruction.Store("joined"),
+            CompilerInstruction.Label("merge"),
+            CompilerInstruction.Load("joined"),
+            CompilerInstruction.Pop,
+        )
+
+        CompilerIrVerifier.verify(instructions)
+    }
+
+    @Test
+    fun `IR verifier rejects statically invalid collection operands`() {
+        assertFailsWith<IllegalArgumentException> {
+            CompilerIrVerifier.verify(
+                listOf(
+                    numericConstant(1),
+                    CompilerInstruction.Collection(CollectionOperator.LENGTH),
+                    CompilerInstruction.Pop,
+                ),
+            )
+        }
+        assertFailsWith<IllegalArgumentException> {
+            CompilerIrVerifier.verify(
+                listOf(
+                    CompilerInstruction.Constant(SanskritValue.Suchi(emptyList())),
+                    CompilerInstruction.Constant(SanskritValue.Shabda("प्रथम")),
+                    CompilerInstruction.Collection(CollectionOperator.INDEX),
+                    CompilerInstruction.Pop,
+                ),
+            )
+        }
+    }
+
+    @Test
     fun `IR verifier rejects missing and duplicate labels`() {
         assertFailsWith<IllegalArgumentException> {
             CompilerIrVerifier.verify(listOf(CompilerInstruction.Jump("missing")))
@@ -599,6 +665,31 @@ class CompilerIrTest {
         assertEquals(CompilerInstruction.Arithmetic(ArithmeticOperator.ADD), instructions[2])
         assertEquals(CompilerInstruction.Store("LastResult"), instructions.last())
         CompilerIrVerifier.verify(instructions)
+    }
+
+    @Test
+    fun `scale and exact square root lower to unary numeric IR`() {
+        val scale = requireNotNull(DirectLeafPlanner.planAny(
+            "पञ्चन् + शस् एध् + णिच् + लोट् + सिप् ।",
+        ))
+        val squareRoot = requireNotNull(DirectLeafPlanner.planAny(
+            "नवन् + शस् मूल् + णिच् + लोट् + सिप् ।",
+        ))
+
+        val scaleInstructions = CompilerIrLowering.lowerLeafValues(scale)
+        val rootInstructions = CompilerIrLowering.lowerLeafValues(squareRoot)
+
+        assertTrue(
+            CompilerInstruction.NumericUnary(NumericUnaryOperator.SCALE_DOUBLE) in scaleInstructions,
+        )
+        assertTrue(
+            CompilerInstruction.NumericUnary(NumericUnaryOperator.EXACT_SQUARE_ROOT) in rootInstructions,
+        )
+        assertEquals(10L, (CompilerValueOperations.scaleDouble(SanskritValue.Sankhya(5, "पञ्च")) as SanskritValue.Sankhya).value)
+        assertEquals(3L, (CompilerValueOperations.exactSquareRoot(SanskritValue.Sankhya(9, "नव")) as SanskritValue.Sankhya).value)
+        assertFailsWith<CompiledPaniniExecutionException> {
+            CompilerValueOperations.exactSquareRoot(SanskritValue.Sankhya(2, "द्वि"))
+        }
     }
 
     @Test

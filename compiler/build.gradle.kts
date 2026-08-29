@@ -36,3 +36,11 @@ tasks.register<JavaExec>("benchmarkCompiler") {
     args(providers.gradleProperty("iterations").getOrElse("1000"))
     args(providers.gradleProperty("warmups").getOrElse("100"))
 }
+
+tasks.register<JavaExec>("inventoryCompilerBoundaries") {
+    group = "verification"
+    description = "Reports generic action-runtime boundaries for compilable example programs."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("dev.panini.compiler.CompilerBoundaryInventory")
+    args(providers.gradleProperty("examplesDir").getOrElse(rootDir.resolve("examples").path))
+}

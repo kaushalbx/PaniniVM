@@ -122,7 +122,6 @@ internal object CompilerFrontend {
             allowDirectStore: Boolean = false,
         ): List<CompilerInstruction> {
             val rendered = exactSource ?: render(node)
-            lowerLegacyFrequencyInvocation(rendered)?.let { return it }
             val alreadyReferencesResult = node.vakya.padas.any { pada ->
                 pada is dev.panini.vyakaranam.ast.SubantaPada &&
                     pada.pratipadika.sourceText.substringBefore('+').trim() == "फल"
@@ -132,19 +131,6 @@ internal object CompilerFrontend {
             )
             return lowerSource(source, allowDirectStore)
                 ?: error("The JVM compiler cannot preplan invocation: $source")
-        }
-
-        /** Compatibility for script statements whose analyzed AST has not retained its Repeat wrapper. */
-        private fun lowerLegacyFrequencyInvocation(source: String): List<CompilerInstruction>? {
-            val match = Regex("^([^\\s+]+)\\s*\\+\\s*[^\\s]*कृत्व[^\\s]*\\s+(.+)$")
-                .find(source.trim()) ?: return null
-            val count = dev.panini.sankhya.SankhyaEvaluator()
-                .evaluateStems(listOf(match.groupValues[1])).value.toInt()
-            val bodySource = normalized(match.groupValues[2])
-            val body = requireNotNull(lowerSource(bodySource)) {
-                "The JVM compiler cannot lower repeated invocation to IR: $bodySource"
-            }
-            return CompilerIrLowering.lowerRepeat(count, body, "repeat_${nextLabel++}")
         }
 
         private fun lowerSource(source: String, allowStore: Boolean = false): List<CompilerInstruction>? =
@@ -266,8 +252,11 @@ internal object CompilerFrontend {
         private fun lowerRepeatIr(node: Repeat): List<CompilerInstruction>? {
             val body = node.body
             val bodyInstructions = if (body is Invocation) {
-                val renderedBody = render(body)
-                val bodySource = normalized(renderedBody.split(Regex("\\s+")).drop(3).joinToString(" "))
+                val bodySource = normalized(
+                    body.vakya.padas
+                        .filterNot { it is dev.panini.vyakaranam.ast.SankhyaAbhyasaPada }
+                        .joinToString(" ") { it.sourceText },
+                )
                 lowerSource(bodySource)
             } else {
                 lowerPrimitiveBranchIr(body)

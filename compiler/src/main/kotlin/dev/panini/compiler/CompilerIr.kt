@@ -125,6 +125,8 @@ internal sealed interface CompilerInstruction {
 
     data class Arithmetic(val operator: ArithmeticOperator) : CompilerInstruction
 
+    data class NumericUnary(val operator: NumericUnaryOperator) : CompilerInstruction
+
     /** Re-renders a numeric value as the runtime's canonical cardinal form. */
     data object Cardinalize : CompilerInstruction
 
@@ -172,6 +174,11 @@ internal enum class ArithmeticOperator {
     REMAINDER,
     MINIMUM,
     POWER,
+}
+
+internal enum class NumericUnaryOperator {
+    SCALE_DOUBLE,
+    EXACT_SQUARE_ROOT,
 }
 
 internal enum class CollectionOperator {
@@ -472,6 +479,10 @@ internal object CompilerIrLowering {
             }
             operation == "युग्मत्वम्" && operands.isNotEmpty() ->
                 operands.first() + CompilerInstruction.IsEven
+            operation == "वर्धनम्" && operands.isNotEmpty() ->
+                operands.first() + CompilerInstruction.NumericUnary(NumericUnaryOperator.SCALE_DOUBLE)
+            operation == "सङ्ख्यामूलम्" && operands.isNotEmpty() ->
+                operands.first() + CompilerInstruction.NumericUnary(NumericUnaryOperator.EXACT_SQUARE_ROOT)
             operation == "सङ्ख्यासाम्यम्" && operands.isNotEmpty() -> buildList {
                 addAll(operands.first())
                 operands.drop(1).forEach { operand ->
@@ -689,14 +700,25 @@ internal object CompilerIrVerifier {
         val labelIndices = instructions.mapIndexedNotNull { index, instruction ->
             (instruction as? CompilerInstruction.Label)?.name?.let { it to index }
         }.toMap()
-        val stacks = mutableMapOf(0 to emptyList<ValueKind>())
+        val states = mutableMapOf(0 to ValueState())
         val pending = ArrayDeque<Int>().apply { add(0) }
         while (pending.isNotEmpty()) {
             val index = pending.removeFirst()
             if (index !in instructions.indices) continue
             val instruction = instructions[index]
-            val before = requireNotNull(stacks[index])
-            val after = applyStackEffect(before, instruction, index)
+            val before = requireNotNull(states[index])
+            val stackAfter = applyStackEffect(before, instruction, index)
+            val after = when (instruction) {
+                is CompilerInstruction.Store -> before.copy(
+                    stack = stackAfter,
+                    values = before.values + (instruction.name to before.stack.last()),
+                )
+                is CompilerInstruction.StoreLocal -> before.copy(
+                    stack = stackAfter,
+                    locals = before.locals + (instruction.name to before.stack.last()),
+                )
+                else -> before.copy(stack = stackAfter)
+            }
             val successors = when (instruction) {
                 is CompilerInstruction.Jump -> listOf(requireNotNull(labelIndices[instruction.target]))
                 is CompilerInstruction.Branch -> listOfNotNull(
@@ -707,25 +729,27 @@ internal object CompilerIrVerifier {
                 else -> listOfNotNull((index + 1).takeIf { it < instructions.size })
             }
             successors.forEach { successor ->
-                val previous = stacks.putIfAbsent(successor, after)
-                require(previous == null || previous == after) {
-                    "IR value stack mismatch at instruction $successor: $previous versus $after"
+                val previous = states[successor]
+                val merged = previous?.merge(after, successor) ?: after
+                if (previous == null || merged != previous) {
+                    states[successor] = merged
+                    pending.add(successor)
                 }
-                if (previous == null) pending.add(successor)
             }
             if (successors.isEmpty()) {
-                require(after.isEmpty()) {
-                    "IR leaves ${after.size} value(s) on the stack at instruction $index"
+                require(after.stack.isEmpty()) {
+                    "IR leaves ${after.stack.size} value(s) on the stack at instruction $index"
                 }
             }
         }
     }
 
     private fun applyStackEffect(
-        before: List<ValueKind>,
+        state: ValueState,
         instruction: CompilerInstruction,
         index: Int,
     ): List<ValueKind> {
+        val before = state.stack
         fun pop(expected: ValueKind? = null): Pair<List<ValueKind>, ValueKind> {
             require(before.isNotEmpty()) { "IR value stack underflow at instruction $index: $instruction" }
             val actual = before.last()
@@ -742,11 +766,10 @@ internal object CompilerIrVerifier {
                 is SanskritValue.Rupa -> ValueKind.RECORD
                 else -> ValueKind.VALUE
             }
-            is CompilerInstruction.Load,
-            is CompilerInstruction.LoadLocal,
-            is CompilerInstruction.ResolveArgument,
-            CompilerInstruction.LoadLastResult,
-            -> before + ValueKind.UNKNOWN
+            is CompilerInstruction.Load -> before + (state.values[instruction.name] ?: ValueKind.UNKNOWN)
+            is CompilerInstruction.LoadLocal -> before + (state.locals[instruction.name] ?: ValueKind.UNKNOWN)
+            is CompilerInstruction.ResolveArgument -> before + ValueKind.UNKNOWN
+            CompilerInstruction.LoadLastResult -> before + (state.values["LastResult"] ?: ValueKind.UNKNOWN)
             CompilerInstruction.Duplicate -> {
                 val value = pop().second
                 before + value
@@ -757,7 +780,7 @@ internal object CompilerIrVerifier {
                 require(before.size >= instruction.size) {
                     "IR value stack underflow at instruction $index: $instruction"
                 }
-                before.dropLast(instruction.size) + ValueKind.VALUE
+                before.dropLast(instruction.size) + ValueKind.LIST
             }
             is CompilerInstruction.BuildRecord -> {
                 require(instruction.fields.distinct().size == instruction.fields.size) {
@@ -778,7 +801,6 @@ internal object CompilerIrVerifier {
             }
             CompilerInstruction.IsEven -> pop(ValueKind.NUMBER).first + ValueKind.VALUE
             is CompilerInstruction.Collection -> {
-                val afterRight = pop().first
                 val arity = when (instruction.operator) {
                     CollectionOperator.CONCAT,
                     CollectionOperator.INDEX,
@@ -793,6 +815,23 @@ internal object CompilerIrVerifier {
                 }
                 require(before.size >= arity) {
                         "IR value stack underflow at instruction $index: $instruction"
+                }
+                val operands = before.takeLast(arity)
+                fun requireKind(position: Int, expected: ValueKind) {
+                    val actual = operands[position]
+                    require(actual == expected || actual == ValueKind.UNKNOWN) {
+                        "IR collection operation requires $expected at instruction $index: $instruction"
+                    }
+                }
+                requireKind(0, ValueKind.LIST)
+                when (instruction.operator) {
+                    CollectionOperator.CONCAT -> requireKind(1, ValueKind.LIST)
+                    CollectionOperator.INDEX -> requireKind(1, ValueKind.NUMBER)
+                    CollectionOperator.SLICE -> {
+                        requireKind(1, ValueKind.NUMBER)
+                        requireKind(2, ValueKind.NUMBER)
+                    }
+                    else -> Unit
                 }
                 val remaining = before.dropLast(arity)
                 remaining + when (instruction.operator) {
@@ -826,6 +865,7 @@ internal object CompilerIrVerifier {
                 }
                 afterRight.dropLast(1) + ValueKind.NUMBER
             }
+            is CompilerInstruction.NumericUnary -> pop(ValueKind.NUMBER).first + ValueKind.NUMBER
             CompilerInstruction.Cardinalize -> pop(ValueKind.NUMBER).first + ValueKind.NUMBER
             CompilerInstruction.Booleanize -> pop().first + ValueKind.BOOLEAN
             is CompilerInstruction.Branch -> pop(ValueKind.BOOLEAN).first
@@ -845,5 +885,32 @@ internal object CompilerIrVerifier {
         TEXT,
         LIST,
         RECORD,
+    }
+
+    private data class ValueState(
+        val stack: List<ValueKind> = emptyList(),
+        val values: Map<String, ValueKind> = emptyMap(),
+        val locals: Map<String, ValueKind> = emptyMap(),
+    ) {
+        fun merge(other: ValueState, index: Int): ValueState {
+            require(stack.size == other.stack.size) {
+                "IR value stack mismatch at instruction $index: $stack versus ${other.stack}"
+            }
+            return ValueState(
+                stack = stack.zip(other.stack, ::mergeKind),
+                values = mergeBindings(values, other.values),
+                locals = mergeBindings(locals, other.locals),
+            )
+        }
+
+        private fun mergeBindings(
+            left: Map<String, ValueKind>,
+            right: Map<String, ValueKind>,
+        ): Map<String, ValueKind> = (left.keys + right.keys).associateWith { name ->
+            mergeKind(left[name] ?: ValueKind.UNKNOWN, right[name] ?: ValueKind.UNKNOWN)
+        }
+
+        private fun mergeKind(left: ValueKind, right: ValueKind): ValueKind =
+            if (left == right) left else ValueKind.UNKNOWN
     }
 }

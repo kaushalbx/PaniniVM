@@ -62,6 +62,7 @@ internal class CompilerIrJvmEmitter(
                 is CompilerInstruction.Collection -> emitCollection(instruction.operator)
                 is CompilerInstruction.Compare -> emitComparison(instruction.operator)
                 is CompilerInstruction.Arithmetic -> emitArithmetic(instruction.operator)
+                is CompilerInstruction.NumericUnary -> emitNumericUnary(instruction.operator)
                 CompilerInstruction.Cardinalize -> mv.visitMethodInsn(
                     INVOKESTATIC,
                     "dev/panini/compiler/CompilerValueOperations",
@@ -296,6 +297,20 @@ internal class CompilerIrJvmEmitter(
             "dev/panini/compiler/CompilerValueOperations",
             method,
             "(Ldev/panini/execution/SanskritValue;Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;",
+            false,
+        )
+    }
+
+    private fun emitNumericUnary(operator: NumericUnaryOperator) {
+        val method = when (operator) {
+            NumericUnaryOperator.SCALE_DOUBLE -> "scaleDouble"
+            NumericUnaryOperator.EXACT_SQUARE_ROOT -> "exactSquareRoot"
+        }
+        mv.visitMethodInsn(
+            INVOKESTATIC,
+            "dev/panini/compiler/CompilerValueOperations",
+            method,
+            "(Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;",
             false,
         )
     }
