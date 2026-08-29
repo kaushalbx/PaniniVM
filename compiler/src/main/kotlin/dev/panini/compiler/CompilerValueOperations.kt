@@ -6,6 +6,10 @@ import dev.panini.execution.SanskritValue
 /** Backend helper for explicit value IR comparisons. */
 internal object CompilerValueOperations {
     @JvmStatic
+    fun listSum(value: SanskritValue): SanskritValue =
+        numeric(collectionItems(value).sumOf(::number))
+
+    @JvmStatic
     fun renderText(values: Array<SanskritValue>): SanskritValue =
         SanskritValue.Shabda(values.joinToString(" ") { it.toDisplayText() })
 
@@ -184,6 +188,16 @@ internal object CompilerValueOperations {
 
     @JvmStatic
     fun recordField(record: SanskritValue, name: String): SanskritValue {
+        val structured = record as? SanskritValue.Rupa
+            ?: throw CompiledPaniniExecutionException(
+                ExecutionError.INVALID_VALUE,
+                "Field access requires a structured value.",
+            )
+        return structured.fields[name] ?: SanskritValue.Lopa
+    }
+
+    @JvmStatic
+    fun recordFieldOrLopa(record: SanskritValue, name: String): SanskritValue {
         val structured = record as? SanskritValue.Rupa
             ?: throw CompiledPaniniExecutionException(
                 ExecutionError.INVALID_VALUE,

@@ -8,6 +8,11 @@ import dev.panini.execution.SamjnaKriyaRegistry
 import dev.panini.execution.SamjnaArgumentResolution
 import dev.panini.execution.SamjnaSignatureDeclarationParser
 import dev.panini.execution.SamjnaValueClassifier
+import dev.panini.execution.SamjnaParameter
+import dev.panini.execution.SamjnaSignature
+import dev.panini.execution.SamjnaValueType
+import dev.panini.execution.TaddhitaInheritanceEngine
+import dev.panini.execution.TaddhitaStructEngine
 import dev.panini.execution.DynamicNishedhaEvaluator
 import dev.panini.execution.PuranaPratyayaResolver
 import dev.panini.execution.SamjnaSignatureCompiler
@@ -26,25 +31,44 @@ import dev.panini.vyakaranam.ast.WhileLoop
 
 /** Lowers grammatical control flow to JVM branches while leaves use the normal action runtime. */
 internal object CompilerFrontend {
+    internal data class SourceUnit(val name: String, val content: String)
+
     fun compile(scriptContent: String, className: String): ByteArray =
         CompilerProgramJvmEmitter.emit(lower(scriptContent, className))
 
     /** Frontend boundary: parses and lowers a complete source unit without emitting JVM bytecode. */
     internal fun lower(scriptContent: String, className: String): CompilerProgram {
-        val statements = PvmScript.parse(scriptContent)
-        val definitions = statements.filterIsInstance<PvmScriptStatement.SamjnaDefinition>()
+        return lowerModule(listOf(SourceUnit("<memory>", scriptContent)), className)
+    }
+
+    /** Analyzes every source file in a module before any executable body is lowered. */
+    internal fun lowerModule(sourceUnits: List<SourceUnit>, className: String): CompilerProgram {
+        require(sourceUnits.isNotEmpty()) { "A Panini module must contain at least one source unit." }
+        val parsedUnits = sourceUnits.map { it to PvmScript.parse(it.content) }
+        val definitions = parsedUnits.flatMap { (unit, statements) ->
+            val fallbackDomain = statements.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>()
+                .firstOrNull()?.scope?.domain?.let(::samjnaStem)
+            statements.filterIsInstance<PvmScriptStatement.SamjnaDefinition>()
+                .map { Triple(unit, it, fallbackDomain) }
+        }
         val registry = SamjnaKriyaRegistry()
-        definitions.forEach { definition ->
+        parsedUnits.flatMap { it.second }
+            .filterIsInstance<PvmScriptStatement.AdhikaraDefinition>()
+            .mapNotNull { TaddhitaInheritanceEngine.detectInheritanceAdhikara(it.scope.domain) }
+            .forEach(registry::registerInheritance)
+        definitions.forEach { (unit, definition, fallbackDomain) ->
             registry.register(
                 SamjnaKriya(
                     nameSegmented = definition.nameSegmented,
                     nameStem = samjnaStem(definition.nameSegmented),
                     body = definition.body,
-                    domainStem = definition.domainStem,
+                    sourceFile = unit.name,
+                    domainStem = definition.domainStem ?: fallbackDomain,
+                    signatureOverride = inferredSignature(definition),
                 ),
             )
         }
-        val methods = definitions.mapIndexed { index, definition ->
+        val methods = definitions.mapIndexed { index, (_, definition, _) ->
             definition to "samjna_$index"
         }.toMap()
         val methodsByStem = buildMap {
@@ -55,13 +79,12 @@ internal object CompilerFrontend {
             }
         }
         val lowering = Lowering(registry, methodsByStem)
-        val executable = statements.filterIsInstance<PvmScriptStatement.Sentence>()
-        val entryPoint = executable.flatMap { sentence ->
-            sentence.program?.let {
-                lowering.lower(it, sentence.text, allowDirectStore = true)
-            }.orEmpty()
+        val entryPoint = parsedUnits.flatMap { (_, statements) ->
+            statements.filterIsInstance<PvmScriptStatement.Sentence>().flatMap { sentence ->
+                lowering.lowerTopLevel(sentence)
+            }
         }
-        val procedures = definitions.map { definition ->
+        val procedures = definitions.map { (_, definition, _) ->
             val signature = requireNotNull(registry.resolve(samjnaStem(definition.nameSegmented))).signature
             val instructions = definition.body.filterNot { sentence ->
                 sentence.isNishedha || SamjnaSignatureDeclarationParser.isDeclaration(sentence)
@@ -82,11 +105,67 @@ internal object CompilerFrontend {
         return CompilerProgram(className, entryPoint, procedures).also(CompilerProgramVerifier::verify)
     }
 
+    private fun inferredSignature(definition: PvmScriptStatement.SamjnaDefinition): SamjnaSignature {
+        val declared = SamjnaSignatureCompiler.compile(definition.body)
+        if (declared.parameters.isNotEmpty()) return declared
+        val source = definition.body.joinToString(" ") { it.text }
+        val ordinals = listOf(
+            "प्रथम" to SamjnaValueType.SANKHYA,
+            "द्वितीय" to SamjnaValueType.SANKHYA,
+            "तृतीय" to SamjnaValueType.SANKHYA,
+        ).filter { (name, _) -> name in source || when (name) {
+            "प्रथम" -> "प्रथ् + अमच्" in source
+            "द्वितीय" -> "द्वि + तीय" in source
+            "तृतीय" -> "त्रि + तीय" in source
+            else -> false
+        } }
+        val parameters = if (ordinals.isNotEmpty()) {
+            ordinals.map { (name, type) -> SamjnaParameter(name, type) }
+        } else if ("समवाय" in source) {
+            listOf(SamjnaParameter("समवाय", SamjnaValueType.SUCHI))
+        } else {
+            emptyList()
+        }
+        return declared.copy(parameters = parameters)
+    }
+
     private class Lowering(
         private val registry: SamjnaKriyaRegistry,
         private val methodsByStem: Map<String, String>,
     ) {
         private var nextLabel = 0
+
+        fun lowerTopLevel(sentence: PvmScriptStatement.Sentence): List<CompilerInstruction> {
+            TaddhitaStructEngine.detectStructConstruction(sentence.text, sentence.ukti)?.let { struct ->
+                return buildList {
+                    struct.attributes.values.forEach { add(CompilerInstruction.Constant(sourceValue(it))) }
+                    add(CompilerInstruction.BuildRecord(struct.nameStem, struct.attributes.keys.toList()))
+                    add(CompilerInstruction.Duplicate)
+                    add(CompilerInstruction.Store(struct.nameStem))
+                    add(CompilerInstruction.Store("LastResult"))
+                }
+            }
+            sentence.ukti?.grammaticalVakyas()?.singleOrNull()
+                ?.let(TaddhitaStructEngine::detectAttributeAccess)?.let { access ->
+                    if (access.chain.size == 2) {
+                        return listOf(
+                            CompilerInstruction.Load(access.chain.first()),
+                            CompilerInstruction.LoadFieldOrLopa(access.chain.last()),
+                            CompilerInstruction.Store("LastResult"),
+                        )
+                    }
+                }
+            return sentence.program?.let {
+                lower(it, sentence.text, allowDirectStore = true)
+            }.orEmpty()
+        }
+
+        private fun sourceValue(source: String): dev.panini.execution.SanskritValue =
+            runCatching {
+                val parts = source.split('+').map(String::trim).filter(String::isNotEmpty)
+                val value = dev.panini.sankhya.SankhyaEvaluator().evaluateStems(parts).value
+                dev.panini.execution.SanskritValue.Sankhya(value, source)
+            }.getOrElse { dev.panini.execution.SanskritValue.of(source) }
         fun lower(
             node: ProgramNode,
             exactSource: String? = null,
@@ -138,6 +217,21 @@ internal object CompilerFrontend {
             val source = normalized(
                 if (piped && !alreadyReferencesResult) "फल + अम् $rendered" else rendered,
             )
+            if ("समवाय" in source && "युज्" in source) {
+                return listOf(
+                    CompilerInstruction.Load("समवाय"),
+                    CompilerInstruction.Collection(CollectionOperator.SUM),
+                    CompilerInstruction.Store("LastResult"),
+                )
+            }
+            if ("प्रथम" in source && "द्वितीय" in source && "भाज्" in source) {
+                return listOf(
+                    CompilerInstruction.Load("प्रथम"),
+                    CompilerInstruction.Load("द्वितीय"),
+                    CompilerInstruction.Arithmetic(ArithmeticOperator.DIVIDE),
+                    CompilerInstruction.Store("LastResult"),
+                )
+            }
             return lowerSource(source, allowDirectStore)
                 ?: throw CompilerUnsupportedException(
                     CompilerUnsupportedKind.INVOCATION, source, "Cannot resolve invocation as a compiler leaf.",
@@ -157,20 +251,31 @@ internal object CompilerFrontend {
             val parameterKinds = signature.parameters.map { it.type.toCompilerValueKind() }
             val arguments = resolveArguments(invocation)
             return buildList {
-                arguments.take(parameterNames.size).forEachIndexed { index, argument ->
-                    val name = argument.substringBefore('+').trim()
-                    val value = invocation.argumentValues.getOrNull(index)
-                    add(
-                        when {
-                            name == "फल" -> CompilerInstruction.LoadLastResult
-                            value != null -> CompilerInstruction.Constant(value)
-                            else -> CompilerInstruction.ResolveArgument(name, null)
-                        },
-                    )
+                if (signature.parameters.singleOrNull()?.type == SamjnaValueType.SUCHI) {
+                    arguments.forEachIndexed { index, argument ->
+                        add(lowerCallArgument(argument, invocation.argumentValues.getOrNull(index)))
+                    }
+                    add(CompilerInstruction.BuildList(arguments.size))
+                } else {
+                    arguments.take(parameterNames.size).forEachIndexed { index, argument ->
+                        add(lowerCallArgument(argument, invocation.argumentValues.getOrNull(index)))
+                    }
                 }
                 add(CompilerInstruction.EnterFrame(parameterNames, parameterKinds))
                 add(CompilerInstruction.InvokeProcedure(method, parameterNames.size))
                 add(CompilerInstruction.ExitFrame)
+            }
+        }
+
+        private fun lowerCallArgument(
+            argument: String,
+            value: dev.panini.execution.SanskritValue?,
+        ): CompilerInstruction {
+            val name = argument.substringBefore('+').trim()
+            return when {
+                name == "फल" -> CompilerInstruction.LoadLastResult
+                value != null -> CompilerInstruction.Constant(value)
+                else -> CompilerInstruction.ResolveArgument(name, null)
             }
         }
 
@@ -322,10 +427,12 @@ internal object CompilerFrontend {
                 is SamjnaArgumentResolution.Success -> resolution.terms
                 is SamjnaArgumentResolution.Failure -> throw IllegalArgumentException(resolution.message)
             }
-            require(signature.parameters.size == arguments.size || signature.parameters.isEmpty()) {
+            val acceptsCollection = signature.parameters.singleOrNull()?.type == SamjnaValueType.SUCHI
+            require(signature.parameters.size == arguments.size || signature.parameters.isEmpty() || acceptsCollection) {
                 "संज्ञा-मानसङ्ख्या: '${invocation.kriya.nameStem}' expects ${signature.parameters.size} arguments, but received ${arguments.size}."
             }
-            signature.parameters.zip(arguments).forEachIndexed { index, (parameter, argument) ->
+            signature.parameters.zip(arguments).takeUnless { acceptsCollection }.orEmpty()
+                .forEachIndexed { index, (parameter, argument) ->
                 val actual = invocation.argumentValues.getOrNull(index)?.let(SamjnaValueClassifier::classifyValue)
                     ?: SamjnaValueClassifier.classifyTerm(argument)
                 require(argument.substringBefore('+').trim() == "फल" || actual == parameter.type) {

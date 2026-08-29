@@ -142,6 +142,9 @@ internal sealed interface CompilerInstruction {
 
     data class LoadField(val name: String) : CompilerInstruction
 
+    /** Loads a record field, producing Pāṇinian Lopa when the field is absent. */
+    data class LoadFieldOrLopa(val name: String) : CompilerInstruction
+
     data class RenderText(val size: Int) : CompilerInstruction
 
     data object IsEven : CompilerInstruction
@@ -228,6 +231,7 @@ internal enum class NumericUnaryOperator {
 }
 
 internal enum class CollectionOperator {
+    SUM,
     LENGTH,
     REVERSE,
     CONCAT,
@@ -849,7 +853,9 @@ internal object CompilerIrVerifier {
                 }
                 before.dropLast(instruction.fields.size) + ValueKind.RECORD
             }
-            is CompilerInstruction.LoadField -> pop().first + ValueKind.UNKNOWN
+            is CompilerInstruction.LoadField,
+            is CompilerInstruction.LoadFieldOrLopa,
+            -> pop().first + ValueKind.UNKNOWN
             is CompilerInstruction.RenderText -> {
                 require(instruction.size >= 0) { "IR text operand count must not be negative at instruction $index" }
                 require(before.size >= instruction.size) {
@@ -867,6 +873,7 @@ internal object CompilerIrVerifier {
                     -> 2
                     CollectionOperator.SLICE -> 3
                     CollectionOperator.LENGTH,
+                    CollectionOperator.SUM,
                     CollectionOperator.REVERSE,
                     CollectionOperator.POP,
                     CollectionOperator.FLATTEN,

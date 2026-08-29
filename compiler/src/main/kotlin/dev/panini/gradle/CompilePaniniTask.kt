@@ -27,10 +27,10 @@ abstract class CompilePaniniTask : DefaultTask() {
         fun compilePaniniFiles(srcFolder: File, outFolder: File) {
             if (!srcFolder.exists()) return
             val pvmFiles = srcFolder.walkTopDown().filter { it.isFile && it.extension == "pvm" }.toList()
-            pvmFiles.forEach { file ->
-                val className = file.nameWithoutExtension.replaceFirstChar { it.uppercase() } + "Program"
-                BytecodeCompiler.compileFile(file, className, outFolder)
-            }
+            if (pvmFiles.isEmpty()) return
+            val moduleName = srcFolder.name.replace(Regex("[^A-Za-z0-9_]"), "_")
+                .replaceFirstChar { it.uppercase() } + "Program"
+            BytecodeCompiler.compileModuleFiles(pvmFiles.sortedBy(File::getPath), moduleName, outFolder)
         }
     }
 }

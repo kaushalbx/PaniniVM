@@ -16,12 +16,13 @@ data class SamjnaKriya(
     val isAntaranga: Boolean = false,
     val isNitya: Boolean = false,
     val isInternal: Boolean = false,
+    val signatureOverride: SamjnaSignature? = null,
     val isMemoized: Boolean = SamjnaHeaderIdentityParser.hasOperationKrtPratyayaIdentity(
         nameSegmented,
         KrtPratyayaIdentity.KTA,
     ),
 ) {
-    val signature: SamjnaSignature by lazy { SamjnaSignatureCompiler.compile(body) }
+    val signature: SamjnaSignature by lazy { signatureOverride ?: SamjnaSignatureCompiler.compile(body) }
 
     val precedence: SamjnaPrecedence get() = when {
         isApavada -> SamjnaPrecedence.APAVADA

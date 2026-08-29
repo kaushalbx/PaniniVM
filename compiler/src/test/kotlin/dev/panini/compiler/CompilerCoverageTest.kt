@@ -4,8 +4,37 @@ import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import dev.panini.execution.SanskritValue
 
 class CompilerCoverageTest {
+    @Test
+    fun `remaining examples compile with module semantics and explicit absent-field IR`() {
+        val modules = listOf(
+            listOf("examples/list_operations/samavaya_lib.pvm", "examples/list_operations/samavaya_mukhya.pvm"),
+            listOf("examples/multifile/ganita.pvm", "examples/multifile/mukhya.pvm"),
+            listOf("examples/paninian_morphology/morph_lib.pvm", "examples/paninian_morphology/morph_mukhya.pvm"),
+        )
+        modules.forEachIndexed { index, paths ->
+            val units = paths.map { path -> CompilerFrontend.SourceUnit(path, File(path).readText()) }
+            CompilerFrontend.lowerModule(units, "ModuleCoverage_$index")
+        }
+
+        val lopaPath = "examples/taddhita_inheritance/lopa_null_safety.pvm"
+        val lopa = CompilerFrontend.lowerModule(
+            listOf(CompilerFrontend.SourceUnit(lopaPath, File(lopaPath).readText())),
+            "LopaCoverage",
+        )
+        assertTrue(lopa.entryPoint.any { it is CompilerInstruction.LoadFieldOrLopa })
+        val generated = BytecodeCompiler.compileAndLoad(File(lopaPath).readText(), "CompiledLopaCoverage")
+        @Suppress("UNCHECKED_CAST")
+        val result = generated.getMethod("execute").invoke(null) as Map<String, SanskritValue>
+        assertEquals("लोपः", result.getValue("LastResult").toDisplayText())
+        assertEquals(
+            SanskritValue.Lopa,
+            CompilerValueOperations.recordFieldOrLopa(SanskritValue.Rupa("रिक्त", emptyMap()), "अभाव"),
+        )
+    }
+
     @Test
     fun `unsupported example count cannot regress and every failure is categorized`() {
         val examples = File("examples").walkTopDown()

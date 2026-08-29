@@ -4,6 +4,8 @@ import java.io.File
 
 object BytecodeCompiler {
 
+    data class ModuleSource(val name: String, val content: String)
+
     fun compileFile(file: File, className: String): ByteArray {
         require(file.exists()) { "PaniniVM script file not found: ${file.absolutePath}" }
         val scriptContent = file.readText()
@@ -18,6 +20,27 @@ object BytecodeCompiler {
         return GeneratedBytecodeVerifier.verify(
             CompilerFrontend.compile(scriptContent, className),
         )
+    }
+
+    /** Compiles source files as one module with module-wide declaration and symbol analysis. */
+    fun compileModule(sources: List<ModuleSource>, className: String): ByteArray {
+        dev.panini.dhatupatha.DhatuPathaRegistration.ensureRegistered()
+        val program = CompilerFrontend.lowerModule(
+            sources.map { CompilerFrontend.SourceUnit(it.name, it.content) },
+            className,
+        )
+        return GeneratedBytecodeVerifier.verify(CompilerProgramJvmEmitter.emit(program))
+    }
+
+    fun compileModuleFiles(files: List<File>, className: String): ByteArray {
+        files.forEach { require(it.exists()) { "PaniniVM script file not found: ${it.absolutePath}" } }
+        return compileModule(files.map { ModuleSource(it.path, it.readText()) }, className)
+    }
+
+    fun compileModuleFiles(files: List<File>, className: String, outputDir: File) {
+        val bytecode = compileModuleFiles(files, className)
+        outputDir.mkdirs()
+        File(outputDir, "$className.class").writeBytes(bytecode)
     }
 
     class PaniniClassLoader(parent: ClassLoader) : ClassLoader(parent) {

@@ -50,6 +50,7 @@ internal class CompilerIrJvmEmitter(
                 is CompilerInstruction.BuildList -> emitBuildList(instruction.size)
                 is CompilerInstruction.BuildRecord -> emitBuildRecord(instruction.schema, instruction.fields)
                 is CompilerInstruction.LoadField -> emitLoadField(instruction.name)
+                is CompilerInstruction.LoadFieldOrLopa -> emitLoadFieldOrLopa(instruction.name)
                 is CompilerInstruction.ResolveArgument -> emitResolveArgument(instruction)
                 is CompilerInstruction.RenderText -> emitRenderText(instruction.size)
                 CompilerInstruction.IsEven -> mv.visitMethodInsn(
@@ -196,6 +197,17 @@ internal class CompilerIrJvmEmitter(
         )
     }
 
+    private fun emitLoadFieldOrLopa(name: String) {
+        mv.visitLdcInsn(name)
+        mv.visitMethodInsn(
+            INVOKESTATIC,
+            "dev/panini/compiler/CompilerValueOperations",
+            "recordFieldOrLopa",
+            "(Ldev/panini/execution/SanskritValue;Ljava/lang/String;)Ldev/panini/execution/SanskritValue;",
+            false,
+        )
+    }
+
     private fun emitRenderText(size: Int) {
         val values = List(size) { allocateLocal(1) }
         values.asReversed().forEach { local -> mv.visitVarInsn(ASTORE, local) }
@@ -218,6 +230,7 @@ internal class CompilerIrJvmEmitter(
 
     private fun emitCollection(operator: CollectionOperator) {
         val method = when (operator) {
+            CollectionOperator.SUM -> "listSum"
             CollectionOperator.LENGTH -> "listLength"
             CollectionOperator.REVERSE -> "listReverse"
             CollectionOperator.CONCAT -> "listConcat"
@@ -237,6 +250,7 @@ internal class CompilerIrJvmEmitter(
             -> "($value$value)$value"
             CollectionOperator.SLICE -> "($value$value$value)$value"
             CollectionOperator.LENGTH,
+            CollectionOperator.SUM,
             CollectionOperator.REVERSE,
             CollectionOperator.POP,
             CollectionOperator.FLATTEN,

@@ -52,7 +52,8 @@ The `:compiler` module compiles multi-clause segmented Sanskrit `.pvm` scripts
 into JVM `.class` bytecode. Compilation uses one backend-neutral pipeline:
 
 ```text
-.pvm source
+.pvm module sources
+    -> module-wide declaration collection and symbol resolution
     -> grammatical parsing and action resolution
     -> CompilerProgram IR
     -> IR verification
@@ -66,8 +67,8 @@ boundary instead.
 
 ## Architecture
 
-- **`BytecodeCompiler`** is the public API for compiling source strings and
-  files, loading generated classes, and writing `.class` files.
+- **`BytecodeCompiler`** is the public API for compiling single-source programs
+  or source-file modules, loading generated classes, and writing `.class` files.
 - **`CompilerFrontend`** parses a complete source unit and lowers it to a
   `CompilerProgram`. It does not emit ASM instructions.
 - **`CompilerProgram`** contains an entry point and independently emitted named
@@ -100,7 +101,8 @@ argument values
     -> ExitFrame
 ```
 
-Constants, named values, locals, `LastResult`, lists, records, fields,
+Constants, named values, locals, `LastResult`, lists, records, fields (including
+explicit `LoadFieldOrLopa` absent-field semantics),
 comparisons, arithmetic, text rendering, and procedure arguments also have
 explicit IR instructions. Consequently, the JVM backend consumes only compiler
 IR and does not inspect the source AST or execution plans.
@@ -200,7 +202,6 @@ steps are:
 1. lower additional deterministic domain operations identified by the boundary
    inventory while retaining random, I/O, resource, and linguistic actions as
    explicit runtime boundaries;
-2. finish inference for the four remaining declaration/library edge cases in
-   the repository inventory (implicit collection parameters, cross-file
-   procedure operands, morphology records, and null-safe inherited values);
+2. add exported-symbol metadata for separately compiled Panini module
+   dependencies;
 3. extend value-kind inference to externally supplied initial state.
