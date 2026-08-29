@@ -226,6 +226,7 @@ internal class CompilerIrJvmEmitter(
             CollectionOperator.APPEND -> "listAppend"
             CollectionOperator.POP -> "listPop"
             CollectionOperator.SLICE -> "listSlice"
+            CollectionOperator.FLATTEN -> "listFlatten"
         }
         val value = "Ldev/panini/execution/SanskritValue;"
         val descriptor = when (operator) {
@@ -238,6 +239,7 @@ internal class CompilerIrJvmEmitter(
             CollectionOperator.LENGTH,
             CollectionOperator.REVERSE,
             CollectionOperator.POP,
+            CollectionOperator.FLATTEN,
             -> "($value)$value"
         }
         mv.visitMethodInsn(

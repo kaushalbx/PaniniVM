@@ -93,6 +93,41 @@ class CompilerIrTest {
     }
 
     @Test
+    fun `whole-program verifier enforces typed procedure frames`() {
+        val procedure = CompilerProcedure(
+            methodName = "typed",
+            instructions = listOf(CompilerInstruction.Return),
+            parameterNames = listOf("मान"),
+            parameterKinds = listOf(CompilerValueKind.NUMBER),
+            returnKind = CompilerValueKind.NUMBER,
+        )
+        fun program(value: SanskritValue, frameKind: CompilerValueKind) = CompilerProgram(
+            "TypedProgram",
+            listOf(
+                CompilerInstruction.Constant(value),
+                CompilerInstruction.EnterFrame(listOf("मान"), listOf(frameKind)),
+                CompilerInstruction.InvokeProcedure("typed", 1),
+                CompilerInstruction.ExitFrame,
+            ),
+            listOf(procedure),
+        )
+
+        CompilerProgramVerifier.verify(
+            program(SanskritValue.Sankhya(2, "द्वि"), CompilerValueKind.NUMBER),
+        )
+        assertFailsWith<IllegalArgumentException> {
+            CompilerProgramVerifier.verify(
+                program(SanskritValue.Shabda("राम"), CompilerValueKind.NUMBER),
+            )
+        }
+        assertFailsWith<IllegalArgumentException> {
+            CompilerProgramVerifier.verify(
+                program(SanskritValue.Sankhya(2, "द्वि"), CompilerValueKind.TEXT),
+            )
+        }
+    }
+
+    @Test
     fun `frame instructions cannot appear without a complete call sequence`() {
         val procedure = CompilerProcedure("samjna_0", listOf(CompilerInstruction.Return))
         assertFailsWith<IllegalArgumentException> {

@@ -4,6 +4,7 @@ import dev.panini.core.Karaka
 import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.ExecutionPlan
 import dev.panini.execution.SanskritValue
+import dev.panini.execution.SamjnaValueType
 import dev.panini.execution.bindingName
 
 /** A complete backend-neutral compilation unit. */
@@ -17,7 +18,27 @@ internal data class CompilerProcedure(
     val methodName: String,
     val instructions: List<CompilerInstruction>,
     val parameterNames: List<String> = emptyList(),
+    val parameterKinds: List<CompilerValueKind> = emptyList(),
+    val returnKind: CompilerValueKind? = null,
 )
+
+internal enum class CompilerValueKind {
+    VALUE,
+    UNKNOWN,
+    NUMBER,
+    BOOLEAN,
+    TEXT,
+    LIST,
+    RECORD,
+}
+
+internal fun SamjnaValueType.toCompilerValueKind(): CompilerValueKind = when (this) {
+    SamjnaValueType.SANKHYA -> CompilerValueKind.NUMBER
+    SamjnaValueType.SHABDA -> CompilerValueKind.TEXT
+    SamjnaValueType.SUCHI -> CompilerValueKind.LIST
+}
+
+private typealias ValueKind = CompilerValueKind
 
 internal object CompilerProgramVerifier {
     fun verify(program: CompilerProgram) {
@@ -28,18 +49,32 @@ internal object CompilerProgramVerifier {
 
         CompilerIrVerifier.verify(program.entryPoint)
         program.procedures.forEach { CompilerIrVerifier.verify(it.instructions) }
+        program.procedures.forEach { procedure ->
+            require(procedure.parameterKinds.isEmpty() ||
+                procedure.parameterKinds.size == procedure.parameterNames.size) {
+                "IR procedure ${procedure.methodName} parameter kind count does not match its names"
+            }
+        }
         verifyFrames(program.entryPoint)
         program.procedures.forEach { verifyFrames(it.instructions) }
-        val procedureNames = proceduresByName.keys
-        (program.entryPoint + program.procedures.flatMap(CompilerProcedure::instructions))
-            .filterIsInstance<CompilerInstruction.InvokeProcedure>()
-            .forEach { call ->
-                require(call.methodName in procedureNames) {
+        (listOf(program.entryPoint) + program.procedures.map(CompilerProcedure::instructions))
+            .forEach { instructions ->
+                instructions.forEachIndexed { index, instruction ->
+                    val call = instruction as? CompilerInstruction.InvokeProcedure ?: return@forEachIndexed
+                    require(call.methodName in proceduresByName) {
                     "Unknown IR procedure: ${call.methodName}"
-                }
-                val expected = proceduresByName.getValue(call.methodName).single().parameterNames.size
-                require(call.argumentCount == expected) {
-                    "IR procedure ${call.methodName} expects $expected arguments, but received ${call.argumentCount}"
+                    }
+                    val procedure = proceduresByName.getValue(call.methodName).single()
+                    val expected = procedure.parameterNames.size
+                    require(call.argumentCount == expected) {
+                        "IR procedure ${call.methodName} expects $expected arguments, but received ${call.argumentCount}"
+                    }
+                    val frame = instructions.getOrNull(index - 1) as? CompilerInstruction.EnterFrame
+                    if (procedure.parameterKinds.isNotEmpty() && frame != null) {
+                        require(frame.parameterKinds == procedure.parameterKinds) {
+                            "IR procedure ${call.methodName} frame kinds do not match its signature"
+                        }
+                    }
                 }
             }
     }
@@ -113,6 +148,7 @@ internal sealed interface CompilerInstruction {
 
     data class EnterFrame(
         val parameterNames: List<String>,
+        val parameterKinds: List<CompilerValueKind> = emptyList(),
     ) : CompilerInstruction
 
     data class ResolveArgument(val name: String, val fallback: SanskritValue?) : CompilerInstruction
@@ -190,6 +226,7 @@ internal enum class CollectionOperator {
     APPEND,
     POP,
     SLICE,
+    FLATTEN,
 }
 
 /** Converts resolved grammatical leaves into a stable compiler representation. */
@@ -461,6 +498,7 @@ internal object CompilerIrLowering {
             "सूचीनिक्षेपणम्" -> CollectionOperator.APPEND
             "सूच्युद्धरणम्" -> CollectionOperator.POP
             "सूचीविभागः" -> CollectionOperator.SLICE
+            "सूचीप्रसारणम्" -> CollectionOperator.FLATTEN
             else -> null
         }
         val operands = plan.resolved.context.bindings[Karaka.KARMAN]
@@ -483,6 +521,11 @@ internal object CompilerIrLowering {
                 operands.first() + CompilerInstruction.NumericUnary(NumericUnaryOperator.SCALE_DOUBLE)
             operation == "सङ्ख्यामूलम्" && operands.isNotEmpty() ->
                 operands.first() + CompilerInstruction.NumericUnary(NumericUnaryOperator.EXACT_SQUARE_ROOT)
+            operation == "सङ्ख्यागणनम्" && operands.isNotEmpty() -> buildList {
+                operands.forEach(::addAll)
+                add(CompilerInstruction.BuildList(operands.size))
+                add(CompilerInstruction.Collection(CollectionOperator.LENGTH))
+            }
             operation == "सङ्ख्यासाम्यम्" && operands.isNotEmpty() -> buildList {
                 addAll(operands.first())
                 operands.drop(1).forEach { operand ->
@@ -499,7 +542,11 @@ internal object CompilerIrLowering {
                     add(CompilerInstruction.Arithmetic(arithmetic))
                 }
             }
-            collection in setOf(CollectionOperator.LENGTH, CollectionOperator.REVERSE) && operands.size == 1 -> operands.single() +
+            collection in setOf(
+                CollectionOperator.LENGTH,
+                CollectionOperator.REVERSE,
+                CollectionOperator.FLATTEN,
+            ) && operands.size == 1 -> operands.single() +
                 CompilerInstruction.Collection(requireNotNull(collection))
             collection == CollectionOperator.CONCAT -> {
                 val separateRight = plan.resolved.context.bindings[Karaka.SAMPRADANA]
@@ -811,6 +858,7 @@ internal object CompilerIrVerifier {
                     CollectionOperator.LENGTH,
                     CollectionOperator.REVERSE,
                     CollectionOperator.POP,
+                    CollectionOperator.FLATTEN,
                     -> 1
                 }
                 require(before.size >= arity) {
@@ -845,6 +893,19 @@ internal object CompilerIrVerifier {
                 require(before.size >= instruction.parameterNames.size) {
                     "IR value stack underflow at instruction $index: $instruction"
                 }
+                require(instruction.parameterKinds.isEmpty() ||
+                    instruction.parameterKinds.size == instruction.parameterNames.size) {
+                    "IR frame parameter kind count does not match its names at instruction $index"
+                }
+                if (instruction.parameterKinds.isNotEmpty()) {
+                    before.takeLast(instruction.parameterKinds.size)
+                        .zip(instruction.parameterKinds)
+                        .forEach { (actual, expected) ->
+                            require(actual == expected || actual == ValueKind.UNKNOWN) {
+                                "IR frame expected $expected but found $actual at instruction $index"
+                            }
+                        }
+                }
                 before.dropLast(instruction.parameterNames.size)
             }
             is CompilerInstruction.Compare -> {
@@ -877,15 +938,6 @@ internal object CompilerIrVerifier {
         }
     }
 
-    private enum class ValueKind {
-        VALUE,
-        UNKNOWN,
-        NUMBER,
-        BOOLEAN,
-        TEXT,
-        LIST,
-        RECORD,
-    }
 
     private data class ValueState(
         val stack: List<ValueKind> = emptyList(),

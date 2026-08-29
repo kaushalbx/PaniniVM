@@ -10,6 +10,7 @@ object CompilerBenchmark {
     fun main(args: Array<String>) {
         val iterations = args.firstOrNull()?.toIntOrNull()?.also { require(it > 0) } ?: 1_000
         val warmups = args.getOrNull(1)?.toIntOrNull()?.also { require(it >= 0) } ?: 100
+        val fork = args.getOrNull(2)?.toIntOrNull() ?: 1
         val cases = linkedMapOf(
             "primitive-arithmetic" to """
                 परिचय + ल्युट् + सुँ ।
@@ -43,21 +44,21 @@ object CompilerBenchmark {
             """.trimIndent(),
         )
 
-        println("case,phase,iterations,total_ms,ns_per_operation,runtime_boundaries")
+        println("fork,case,phase,iterations,total_ms,ns_per_operation,runtime_boundaries")
         cases.forEach { (name, source) ->
-            benchmarkInterpreter(name, source, iterations, warmups)
-            benchmarkCompiler(name, source, iterations, warmups)
+            benchmarkInterpreter(fork, name, source, iterations, warmups)
+            benchmarkCompiler(fork, name, source, iterations, warmups)
         }
     }
 
-    private fun benchmarkInterpreter(name: String, source: String, iterations: Int, warmups: Int) {
+    private fun benchmarkInterpreter(fork: Int, name: String, source: String, iterations: Int, warmups: Int) {
         val vm = PaniniVM()
         repeat(warmups) { vm.evalScript(source) }
         val elapsed = measureNanoTime { repeat(iterations) { vm.evalScript(source) } }
-        printResult(name, "interpreter", iterations, elapsed)
+        printResult(fork, name, "interpreter", iterations, elapsed)
     }
 
-    private fun benchmarkCompiler(name: String, source: String, iterations: Int, warmups: Int) {
+    private fun benchmarkCompiler(fork: Int, name: String, source: String, iterations: Int, warmups: Int) {
         val className = "PaniniBenchmark_${name.replace('-', '_')}"
         lateinit var program: CompilerProgram
         val lowerElapsed = measureNanoTime {
@@ -66,7 +67,7 @@ object CompilerBenchmark {
         val boundary = CompilerRuntimeBoundaryReport.operations(program)
             .entries.joinToString("|") { (operation, count) -> "$operation:$count" }
             .ifEmpty { "none" }
-        printResult(name, "lower", 1, lowerElapsed, boundary)
+        printResult(fork, name, "lower", 1, lowerElapsed, boundary)
         lateinit var execute: Method
         val compileElapsed = measureNanoTime {
             val bytes = CompilerProgramJvmEmitter.emit(program)
@@ -74,13 +75,14 @@ object CompilerBenchmark {
                 .loadFromBytes(className, bytes)
                 .getMethod("execute")
         }
-        printResult(name, "emit-load", 1, compileElapsed)
+        printResult(fork, name, "emit-load", 1, compileElapsed)
         repeat(warmups) { execute.invoke(null) }
         val elapsed = measureNanoTime { repeat(iterations) { execute.invoke(null) } }
-        printResult(name, "compiled", iterations, elapsed)
+        printResult(fork, name, "compiled", iterations, elapsed)
     }
 
     private fun printResult(
+        fork: Int,
         name: String,
         phase: String,
         iterations: Int,
@@ -90,7 +92,7 @@ object CompilerBenchmark {
         val totalMillis = elapsed / 1_000_000.0
         val nanosPerOperation = elapsed.toDouble() / iterations
         println(
-            "$name,$phase,$iterations,${"%.3f".format(totalMillis)}," +
+            "$fork,$name,$phase,$iterations,${"%.3f".format(totalMillis)}," +
                 "${"%.1f".format(nanosPerOperation)},$runtimeBoundaries",
         )
     }

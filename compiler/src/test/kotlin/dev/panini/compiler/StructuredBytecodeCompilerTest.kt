@@ -140,7 +140,7 @@ class StructuredBytecodeCompilerTest {
         val flattened = compiled.values.getValue("LastResult") as SanskritValue.Suchi
         assertEquals(listOf(1L, 2L, 3L, 4L), flattened.items.map { (it as SanskritValue.Sankhya).value })
         assertEquals(7, compiled.runtimeCalls.count { it == "storeValue" })
-        assertEquals(3, compiled.runtimeCalls.count { it == "executeDirectValue" })
+        assertEquals(2, compiled.runtimeCalls.count { it == "executeDirectValue" })
         assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
     }
 

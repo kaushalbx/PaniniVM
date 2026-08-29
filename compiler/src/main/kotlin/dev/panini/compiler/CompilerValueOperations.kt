@@ -104,6 +104,13 @@ internal object CompilerValueOperations {
     fun listReverse(value: SanskritValue): SanskritValue = SanskritValue.Suchi(collectionItems(value).reversed())
 
     @JvmStatic
+    fun listFlatten(value: SanskritValue): SanskritValue = SanskritValue.Suchi(
+        collectionItems(value).flatMap { item ->
+            if (item is SanskritValue.Suchi) item.items else listOf(item)
+        },
+    )
+
+    @JvmStatic
     fun listConcat(left: SanskritValue, right: SanskritValue): SanskritValue =
         SanskritValue.Suchi(collectionItems(left) + collectionItems(right))
 

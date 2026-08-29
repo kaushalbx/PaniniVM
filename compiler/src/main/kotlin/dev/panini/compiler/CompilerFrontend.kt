@@ -56,6 +56,7 @@ internal object CompilerFrontend {
             }.orEmpty()
         }
         val procedures = definitions.map { definition ->
+            val signature = requireNotNull(registry.resolve(samjnaStem(definition.nameSegmented))).signature
             val instructions = definition.body.filterNot { sentence ->
                 sentence.isNishedha || SamjnaSignatureDeclarationParser.isDeclaration(sentence)
             }.flatMap { sentence ->
@@ -66,8 +67,10 @@ internal object CompilerFrontend {
             CompilerProcedure(
                 methodName = requireNotNull(methods[definition]),
                 instructions = instructions,
-                parameterNames = requireNotNull(registry.resolve(samjnaStem(definition.nameSegmented)))
-                    .signature.parameters.map { it.nameStem },
+                parameterNames = signature.parameters.map { it.nameStem },
+                parameterKinds = signature.parameters.map { it.type.toCompilerValueKind() },
+                returnKind = signature.resultType?.toCompilerValueKind()
+                    ?: signature.resultSchema?.let { CompilerValueKind.RECORD },
             )
         }
         return CompilerProgram(className, entryPoint, procedures).also(CompilerProgramVerifier::verify)
@@ -87,15 +90,15 @@ internal object CompilerFrontend {
             is Invocation -> lowerInvocation(node, exactSource, allowDirectStore = allowDirectStore)
             is Sequence -> lowerSequence(node, exactSource)
             is Pipeline, is Quotation -> lowerPlannedSource(exactSource ?: render(node))
-            is Conditional -> requireNotNull(lowerConditionalIr(node)) {
-                "The JVM compiler cannot lower conditional to IR: ${render(node)}"
-            }
-            is Repeat -> requireNotNull(lowerRepeatIr(node)) {
-                "The JVM compiler cannot lower repetition to IR: ${render(node)}"
-            }
-            is WhileLoop -> requireNotNull(lowerWhileIr(node)) {
-                "The JVM compiler cannot lower while loop to IR: ${render(node)}"
-            }
+            is Conditional -> lowerConditionalIr(node) ?: throw CompilerUnsupportedException(
+                CompilerUnsupportedKind.CONDITIONAL, render(node), "Cannot lower conditional to compiler IR.",
+            )
+            is Repeat -> lowerRepeatIr(node) ?: throw CompilerUnsupportedException(
+                CompilerUnsupportedKind.REPETITION, render(node), "Cannot lower repetition body to compiler IR.",
+            )
+            is WhileLoop -> lowerWhileIr(node) ?: throw CompilerUnsupportedException(
+                CompilerUnsupportedKind.LOOP, render(node), "Cannot lower condition-controlled loop to compiler IR.",
+            )
             is Procedure -> node.body.flatMap { lower(it) }
             is Scope -> node.body.flatMap { lower(it) }
         }
@@ -130,7 +133,9 @@ internal object CompilerFrontend {
                 if (piped && !alreadyReferencesResult) "फल + अम् $rendered" else rendered,
             )
             return lowerSource(source, allowDirectStore)
-                ?: error("The JVM compiler cannot preplan invocation: $source")
+                ?: throw CompilerUnsupportedException(
+                    CompilerUnsupportedKind.INVOCATION, source, "Cannot resolve invocation as a compiler leaf.",
+                )
         }
 
         private fun lowerSource(source: String, allowStore: Boolean = false): List<CompilerInstruction>? =
@@ -143,6 +148,7 @@ internal object CompilerFrontend {
             val method = invocation.kriya.nameStem.let(methodsByStem::get) ?: return null
             val signature = invocation.kriya.signature
             val parameterNames = signature.parameters.map { it.nameStem }
+            val parameterKinds = signature.parameters.map { it.type.toCompilerValueKind() }
             val arguments = resolveArguments(invocation)
             return buildList {
                 arguments.forEachIndexed { index, argument ->
@@ -156,7 +162,7 @@ internal object CompilerFrontend {
                         },
                     )
                 }
-                add(CompilerInstruction.EnterFrame(parameterNames))
+                add(CompilerInstruction.EnterFrame(parameterNames, parameterKinds))
                 add(CompilerInstruction.InvokeProcedure(method, parameterNames.size))
                 add(CompilerInstruction.ExitFrame)
             }
@@ -270,7 +276,9 @@ internal object CompilerFrontend {
 
         private fun lowerPlannedSource(source: String): List<CompilerInstruction> {
             val plans = DirectLeafPlanner.plansAny(source)
-                ?: error("The JVM compiler cannot preplan source without the interpreter bridge: $source")
+                ?: throw CompilerUnsupportedException(
+                    CompilerUnsupportedKind.PIPELINE, source, "Cannot resolve pipeline stage as compiler leaves.",
+                )
             return plans.flatMap(::lowerDirect)
         }
 

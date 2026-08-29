@@ -44,3 +44,13 @@ tasks.register<JavaExec>("inventoryCompilerBoundaries") {
     mainClass.set("dev.panini.compiler.CompilerBoundaryInventory")
     args(providers.gradleProperty("examplesDir").getOrElse(rootDir.resolve("examples").path))
 }
+
+tasks.register<JavaExec>("macrobenchmarkCompiler") {
+    group = "benchmark"
+    description = "Runs isolated JVM forks of the compiler macrobenchmark."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("dev.panini.compiler.CompilerMacrobenchmark")
+    args(providers.gradleProperty("forks").getOrElse("5"))
+    args(providers.gradleProperty("iterations").getOrElse("1000"))
+    args(providers.gradleProperty("warmups").getOrElse("100"))
+}

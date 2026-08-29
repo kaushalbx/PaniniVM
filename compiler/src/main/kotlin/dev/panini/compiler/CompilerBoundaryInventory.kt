@@ -9,7 +9,7 @@ object CompilerBoundaryInventory {
         dev.panini.dhatupatha.DhatuPathaRegistration.ensureRegistered()
         val root = File(args.firstOrNull() ?: "examples")
         require(root.isDirectory) { "Compiler inventory directory not found: ${root.absolutePath}" }
-        println("program,status,runtime_boundaries")
+        println("program,status,category,runtime_boundaries_or_diagnostic")
         root.walkTopDown()
             .filter { it.isFile && it.extension == "pvm" }
             .sortedBy { it.relativeTo(root).invariantSeparatorsPath }
@@ -22,9 +22,13 @@ object CompilerBoundaryInventory {
                         .ifEmpty { "none" }
                 }
                 if (result.isSuccess) {
-                    println("${csv(relative)},compiled,${csv(result.getOrThrow())}")
+                    println("${csv(relative)},compiled,NONE,${csv(result.getOrThrow())}")
                 } else {
-                    println("${csv(relative)},unsupported,${csv(result.exceptionOrNull()?.message.orEmpty())}")
+                    val error = requireNotNull(result.exceptionOrNull())
+                    println(
+                        "${csv(relative)},unsupported,${CompilerFailureClassifier.classify(error)}," +
+                            csv(error.message.orEmpty()),
+                    )
                 }
             }
     }

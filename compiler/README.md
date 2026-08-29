@@ -116,7 +116,7 @@ boundary:
 - assignment, named loads, local values, procedure arguments, and
   `LastResult`;
 - list construction, length, reversal, concatenation, indexing, containment,
-  append, pop, and slicing;
+  append, pop, slicing, one-level flattening, and coordinated-value counting;
 - structured records and field access;
 - text rendering and common display-value construction;
 - conditionals, fixed repetition, bounded and unbounded loops, breaks, returns,
@@ -150,7 +150,9 @@ verification, and host-budget exhaustion.
 
 The verifier propagates value kinds through named storage, locals, `LastResult`,
 and control-flow joins. External values and procedure arguments remain
-conservatively typed as unknown. Static operand checks cover arithmetic,
+conservatively typed as unknown unless a named procedure signature supplies a
+kind. Procedure IR records parameter and return kinds, and call frames are
+checked against those contracts. Static operand checks cover arithmetic,
 cardinalization, branches, and collection operations.
 
 ## Benchmark
@@ -175,17 +177,30 @@ Generate a CSV inventory for all compilable repository examples with:
 
 Use `-PexamplesDir=/path/to/examples` to inventory another example tree. Files
 outside the compiler's current language subset are reported as `unsupported`
-with a diagnostic instead of aborting the inventory.
+with a stable category and source-bearing diagnostic instead of aborting the
+inventory.
+
+For measurements across isolated JVM processes, use:
+
+```shell
+./gradlew :compiler:macrobenchmarkCompiler \
+  -Pforks=5 -Piterations=1000 -Pwarmups=100
+```
+
+Each fork uses a fresh JVM and emits the same CSV schema with an explicit fork
+number. This is the preferred repository macrobenchmark; JMH remains appropriate
+for instruction-level publication measurements.
 
 ## Remaining work
 
 The unified IR and standalone JVM backend are in place. The highest-value next
 steps are:
 
-1. inventory remaining `executeDirectValue` calls and directly lower the most
-   frequent domain operations;
-2. replace remaining `DirectLeafPlanner` source heuristics with resolved
-   grammatical data;
-3. extend value-kind inference across procedure signatures and externally
-   supplied initial state;
-4. expand machine-readable benchmarks with procedure-call and recursion cases.
+1. lower additional deterministic domain operations identified by the boundary
+   inventory while retaining random, I/O, resource, and linguistic actions as
+   explicit runtime boundaries;
+2. expose the resolved-leaf planning implementation from the shared execution
+   planner so the compiler-local adapter can be removed completely;
+3. support the remaining inventory categories: complex nominal result bindings,
+   cross-file procedure resolution, and structured pipelines;
+4. extend value-kind inference to externally supplied initial state.
