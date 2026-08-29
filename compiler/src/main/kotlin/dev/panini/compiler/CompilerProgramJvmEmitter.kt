@@ -16,9 +16,10 @@ internal object CompilerProgramJvmEmitter {
         emitConstructor(writer)
         emitExecute(writer, program, withLimit = false)
         emitExecute(writer, program, withLimit = true)
+        emitExecuteWithInitialState(writer, program)
         program.procedures.forEach { procedure ->
             val method = writer.visitMethod(
-                ACC_PRIVATE or ACC_STATIC,
+                ACC_PUBLIC or ACC_STATIC,
                 procedure.methodName,
                 "($RUNTIME_DESCRIPTOR)V",
                 null,
@@ -35,6 +36,30 @@ internal object CompilerProgramJvmEmitter {
         emitMain(writer, program.className)
         writer.visitEnd()
         return writer.toByteArray()
+    }
+
+    private fun emitExecuteWithInitialState(writer: ClassWriter, program: CompilerProgram) {
+        val method = writer.visitMethod(
+            ACC_PUBLIC or ACC_STATIC,
+            "execute",
+            "(Ljava/util/Map;)Ljava/util/Map;",
+            null,
+            null,
+        )
+        method.visitCode()
+        method.visitTypeInsn(NEW, RUNTIME)
+        method.visitInsn(DUP)
+        method.visitVarInsn(ALOAD, 0)
+        method.visitMethodInsn(INVOKESPECIAL, RUNTIME, "<init>", "(Ljava/util/Map;)V", false)
+        method.visitVarInsn(ASTORE, 0)
+        var nextLocal = 1
+        CompilerIrJvmEmitter(program.className, method) { width -> nextLocal.also { nextLocal += width } }
+            .emit(program.entryPoint)
+        method.visitVarInsn(ALOAD, 0)
+        method.visitMethodInsn(INVOKEVIRTUAL, RUNTIME, "snapshot", "()Ljava/util/Map;", false)
+        method.visitInsn(ARETURN)
+        method.visitMaxs(0, 0)
+        method.visitEnd()
     }
 
     private fun emitConstructor(writer: ClassWriter) {

@@ -12,6 +12,16 @@ internal data class CompilerProgram(
     val className: String,
     val entryPoint: List<CompilerInstruction>,
     val procedures: List<CompilerProcedure> = emptyList(),
+    val dependencies: List<CompilerDependencyProcedure> = emptyList(),
+    val initialValueKinds: Map<String, CompilerValueKind> = emptyMap(),
+)
+
+internal data class CompilerDependencyProcedure(
+    val className: String,
+    val methodName: String,
+    val parameterNames: List<String>,
+    val parameterKinds: List<CompilerValueKind>,
+    val returnKind: CompilerValueKind? = null,
 )
 
 internal data class CompilerProcedure(
@@ -44,10 +54,11 @@ internal object CompilerProgramVerifier {
     fun verify(program: CompilerProgram) {
         require(program.className.isNotBlank()) { "IR class name must not be blank" }
         val proceduresByName = program.procedures.groupBy(CompilerProcedure::methodName)
+        val dependenciesByTarget = program.dependencies.associateBy { it.className to it.methodName }
         val duplicate = proceduresByName.entries.firstOrNull { it.value.size > 1 }
         require(duplicate == null) { "Duplicate IR procedure: ${duplicate?.key}" }
 
-        runCatching { CompilerIrVerifier.verify(program.entryPoint) }.getOrElse { error ->
+        runCatching { CompilerIrVerifier.verify(program.entryPoint, program.initialValueKinds) }.getOrElse { error ->
             throw IllegalArgumentException("IR entry point is invalid: ${error.message}", error)
         }
         program.procedures.forEach { procedure ->
@@ -78,11 +89,29 @@ internal object CompilerProgramVerifier {
                     require(call.argumentCount == expected) {
                         "IR procedure ${call.methodName} expects $expected arguments, but received ${call.argumentCount}"
                     }
+                    require(call.resultKind == null || call.resultKind == procedure.returnKind) {
+                        "IR procedure ${call.methodName} result kind does not match its signature"
+                    }
                     val frame = instructions.getOrNull(index - 1) as? CompilerInstruction.EnterFrame
                     if (procedure.parameterKinds.isNotEmpty() && frame != null) {
                         require(frame.parameterKinds == procedure.parameterKinds) {
                             "IR procedure ${call.methodName} frame kinds do not match its signature"
                         }
+                    }
+                }
+                instructions.forEachIndexed { index, instruction ->
+                    val call = instruction as? CompilerInstruction.InvokeDependencyProcedure ?: return@forEachIndexed
+                    val dependency = dependenciesByTarget[call.className to call.methodName]
+                        ?: error("Unknown IR dependency procedure: ${call.className}.${call.methodName}")
+                    require(call.argumentCount == dependency.parameterNames.size) {
+                        "IR dependency ${call.className}.${call.methodName} expects ${dependency.parameterNames.size} arguments, but received ${call.argumentCount}"
+                    }
+                    require(call.resultKind == null || call.resultKind == dependency.returnKind) {
+                        "IR dependency ${call.className}.${call.methodName} result kind does not match its signature"
+                    }
+                    val frame = instructions.getOrNull(index - 1) as? CompilerInstruction.EnterFrame
+                    require(frame?.parameterKinds == dependency.parameterKinds) {
+                        "IR dependency ${call.className}.${call.methodName} frame kinds do not match its signature"
                     }
                 }
             }
@@ -95,7 +124,8 @@ internal object CompilerProgramVerifier {
                     require(instruction.parameterNames.distinct().size == instruction.parameterNames.size) {
                         "IR frame parameter names must be unique at instruction $index"
                     }
-                    require(instructions.getOrNull(index + 1) is CompilerInstruction.InvokeProcedure) {
+                    require(instructions.getOrNull(index + 1) is CompilerInstruction.InvokeProcedure ||
+                        instructions.getOrNull(index + 1) is CompilerInstruction.InvokeDependencyProcedure) {
                         "IR EnterFrame must be followed by InvokeProcedure at instruction $index"
                     }
                 }
@@ -109,7 +139,16 @@ internal object CompilerProgramVerifier {
                         "IR InvokeProcedure must be followed by ExitFrame at instruction $index"
                     }
                 }
-                CompilerInstruction.ExitFrame -> require(instructions.getOrNull(index - 1) is CompilerInstruction.InvokeProcedure) {
+                is CompilerInstruction.InvokeDependencyProcedure -> {
+                    val frame = instructions.getOrNull(index - 1) as? CompilerInstruction.EnterFrame
+                        ?: throw IllegalArgumentException("IR dependency invocation requires EnterFrame at instruction $index")
+                    require(frame.parameterNames.size == instruction.argumentCount)
+                    require(instructions.getOrNull(index + 1) == CompilerInstruction.ExitFrame)
+                }
+                CompilerInstruction.ExitFrame -> require(
+                    instructions.getOrNull(index - 1) is CompilerInstruction.InvokeProcedure ||
+                        instructions.getOrNull(index - 1) is CompilerInstruction.InvokeDependencyProcedure,
+                ) {
                     "IR ExitFrame requires InvokeProcedure at instruction $index"
                 }
                 else -> Unit
@@ -165,7 +204,18 @@ internal sealed interface CompilerInstruction {
 
     data class ResolveArgument(val name: String, val fallback: SanskritValue?) : CompilerInstruction
 
-    data class InvokeProcedure(val methodName: String, val argumentCount: Int) : CompilerInstruction
+    data class InvokeProcedure(
+        val methodName: String,
+        val argumentCount: Int,
+        val resultKind: CompilerValueKind? = null,
+    ) : CompilerInstruction
+
+    data class InvokeDependencyProcedure(
+        val className: String,
+        val methodName: String,
+        val argumentCount: Int,
+        val resultKind: CompilerValueKind? = null,
+    ) : CompilerInstruction
 
     data object ExitFrame : CompilerInstruction
 
@@ -715,7 +765,10 @@ internal object CompilerIrLowering {
 
 /** Checks structural invariants required by every compiler backend. */
 internal object CompilerIrVerifier {
-    fun verify(instructions: List<CompilerInstruction>) {
+    fun verify(
+        instructions: List<CompilerInstruction>,
+        initialValueKinds: Map<String, CompilerValueKind> = emptyMap(),
+    ) {
         val labels = instructions.filterIsInstance<CompilerInstruction.Label>()
         val duplicate = labels.groupingBy { it.name }.eachCount().entries.firstOrNull { it.value > 1 }
         require(duplicate == null) { "Duplicate IR label: ${duplicate?.key}" }
@@ -754,15 +807,18 @@ internal object CompilerIrVerifier {
                 "Unknown IR loop condition: $condition"
             }
         }
-        verifyValueStack(instructions)
+        verifyValueStack(instructions, initialValueKinds)
     }
 
-    private fun verifyValueStack(instructions: List<CompilerInstruction>) {
+    private fun verifyValueStack(
+        instructions: List<CompilerInstruction>,
+        initialValueKinds: Map<String, CompilerValueKind>,
+    ) {
         if (instructions.isEmpty()) return
         val labelIndices = instructions.mapIndexedNotNull { index, instruction ->
             (instruction as? CompilerInstruction.Label)?.name?.let { it to index }
         }.toMap()
-        val states = mutableMapOf(0 to ValueState())
+        val states = mutableMapOf(0 to ValueState(values = initialValueKinds))
         val pending = ArrayDeque<Int>().apply { add(0) }
         while (pending.isNotEmpty()) {
             val index = pending.removeFirst()
@@ -778,6 +834,14 @@ internal object CompilerIrVerifier {
                 is CompilerInstruction.StoreLocal -> before.copy(
                     stack = stackAfter,
                     locals = before.locals + (instruction.name to before.stack.last()),
+                )
+                is CompilerInstruction.InvokeProcedure -> before.copy(
+                    stack = stackAfter,
+                    values = instruction.resultKind?.let { before.values + ("LastResult" to it) } ?: before.values,
+                )
+                is CompilerInstruction.InvokeDependencyProcedure -> before.copy(
+                    stack = stackAfter,
+                    values = instruction.resultKind?.let { before.values + ("LastResult" to it) } ?: before.values,
                 )
                 else -> before.copy(stack = stackAfter)
             }
@@ -901,7 +965,7 @@ internal object CompilerIrVerifier {
                 }
                 val remaining = before.dropLast(arity)
                 remaining + when (instruction.operator) {
-                    CollectionOperator.LENGTH -> ValueKind.NUMBER
+                    CollectionOperator.LENGTH, CollectionOperator.SUM -> ValueKind.NUMBER
                     CollectionOperator.INDEX, CollectionOperator.CONTAINS, CollectionOperator.POP -> ValueKind.VALUE
                     else -> ValueKind.LIST
                 }

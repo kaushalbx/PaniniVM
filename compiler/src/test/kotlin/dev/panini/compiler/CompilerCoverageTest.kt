@@ -36,22 +36,34 @@ class CompilerCoverageTest {
     }
 
     @Test
-    fun `unsupported example count cannot regress and every failure is categorized`() {
-        val examples = File("examples").walkTopDown()
-            .filter { it.isFile && it.extension == "pvm" }
+    fun `every repository example module lowers successfully`() {
+        val root = File("examples")
+        val entries = root.walkTopDown()
+            .filter { it.isFile && it.extension == "pvm" && !it.nameWithoutExtension.endsWith("_lib") && it.nameWithoutExtension != "ganita" }
             .sortedBy(File::getPath)
             .toList()
-        val failures = examples.mapIndexedNotNull { index, file ->
+        val failures = entries.mapIndexedNotNull { index, entry ->
+            val moduleRoot = root.listFiles().orEmpty().filter(File::isDirectory)
+                .first { entry.toPath().startsWith(it.toPath()) }
+            val libraries = moduleRoot.walkTopDown().filter { file ->
+                file.isFile && file.extension == "pvm" && file != entry &&
+                    entry.nameWithoutExtension.contains("mukhya", ignoreCase = true) &&
+                    (file.nameWithoutExtension.endsWith("_lib") || file.nameWithoutExtension == "ganita")
+            }.sortedBy(File::getPath).toList()
             runCatching {
-                CompilerFrontend.lower(file.readText(), "Coverage_$index")
-            }.exceptionOrNull()?.let { file to it }
+                CompilerFrontend.lowerModule(
+                    PaniniModuleDescriptor(
+                        entry.nameWithoutExtension,
+                        libraries.map { PaniniModuleSource(it.path, it.readText(), false) } +
+                            PaniniModuleSource(entry.path, entry.readText(), true),
+                    ),
+                    "Coverage_$index",
+                )
+            }.exceptionOrNull()?.let { entry to it }
         }
 
-        assertTrue(failures.size <= 4, failures.joinToString("\n") { (file, error) ->
+        assertTrue(failures.isEmpty(), failures.joinToString("\n") { (file, error) ->
             "${file.path}: ${error.message}"
-        })
-        assertTrue(failures.none { (_, error) ->
-            CompilerFailureClassifier.classify(error) == CompilerUnsupportedKind.UNKNOWN
         })
     }
 

@@ -90,6 +90,16 @@ internal class CompilerIrJvmEmitter(
                         false,
                     )
                 }
+                is CompilerInstruction.InvokeDependencyProcedure -> {
+                    mv.visitVarInsn(ALOAD, 0)
+                    mv.visitMethodInsn(
+                        INVOKESTATIC,
+                        instruction.className.replace('.', '/'),
+                        instruction.methodName,
+                        "(Ldev/panini/compiler/CompiledProgramRuntime;)V",
+                        false,
+                    )
+                }
                 CompilerInstruction.ExitFrame -> emitRuntimeVoid("exitFrame")
                 is CompilerInstruction.Branch -> mv.visitJumpInsn(
                     if (instruction.whenTrue) IFNE else IFEQ,

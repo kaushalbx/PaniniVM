@@ -69,6 +69,14 @@ boundary instead.
 
 - **`BytecodeCompiler`** is the public API for compiling single-source programs
   or source-file modules, loading generated classes, and writing `.class` files.
+- **`PaniniModuleDescriptor`** defines source membership, entry points, and
+  separately compiled dependencies. `PaniniModuleAnalyzer` collects declarations,
+  resolves domains/inheritance, infers legacy implicit parameters from parsed
+  morphology, checks duplicates, and assigns stable JVM method identities.
+- **`.pvmmeta` artifacts** contain versioned exported procedures, typed
+  signatures, domains, inheritance, and record schemas. Dependency calls resolve
+  from this metadata and compile to direct JVM calls; source files are not needed
+  when consuming an artifact.
 - **`CompilerFrontend`** parses a complete source unit and lowers it to a
   `CompilerProgram`. It does not emit ASM instructions.
 - **`CompilerProgram`** contains an entry point and independently emitted named
@@ -100,6 +108,36 @@ argument values
     -> InvokeProcedure
     -> ExitFrame
 ```
+
+Calls into separately compiled modules use the corresponding
+`InvokeDependencyProcedure` instruction and the same runtime argument frame.
+Generated exported methods are public static JVM methods; internal saṃjñās never
+appear in module metadata.
+
+## Module descriptors
+
+The Gradle compiler treats `src/main/pvm` as one module. An optional
+`src/main/pvm/panini.module` file controls its boundary:
+
+```properties
+name=calculator
+sources=ganita.pvm,mukhya.pvm
+entries=mukhya.pvm
+dependencies=../libraries/ganita.pvmmeta
+```
+
+Without a descriptor, all `.pvm` files below the source directory are members;
+files named `*mukhya*` are entry points when present, otherwise non-`*_lib`
+files are entry points. Compilation emits `<Module>Program.class` and
+`<module>.pvmmeta`.
+
+`BytecodeCompiler.compileModule` accepts an in-memory descriptor, while
+`compileModuleDirectory` performs descriptor discovery and writes both artifact
+files. Metadata has an explicit format version and rejects incompatible input.
+
+Generated programs also expose `execute(Map<String, SanskritValue>)`. The IR
+verifier can seed named-value kinds from `CompilerProgram.initialValueKinds`, and
+procedure/dependency result kinds propagate to `LastResult`.
 
 Constants, named values, locals, `LastResult`, lists, records, fields (including
 explicit `LoadFieldOrLopa` absent-field semantics),
@@ -172,7 +210,7 @@ This harness is intended for development comparisons. Use JMH and a controlled
 runtime environment for publication-grade measurements. The benchmark also
 prints the runtime-boundary operations for each compiled case.
 
-Generate a CSV inventory for all compilable repository examples with:
+Generate a CSV inventory for all repository example modules with:
 
 ```shell
 ./gradlew :compiler:inventoryCompilerBoundaries
@@ -202,6 +240,5 @@ steps are:
 1. lower additional deterministic domain operations identified by the boundary
    inventory while retaining random, I/O, resource, and linguistic actions as
    explicit runtime boundaries;
-2. add exported-symbol metadata for separately compiled Panini module
-   dependencies;
-3. extend value-kind inference to externally supplied initial state.
+2. add richer field-level types to exported record schemas;
+3. package `.class` and `.pvmmeta` pairs into a single distributable archive.

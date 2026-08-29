@@ -28,9 +28,7 @@ abstract class CompilePaniniTask : DefaultTask() {
             if (!srcFolder.exists()) return
             val pvmFiles = srcFolder.walkTopDown().filter { it.isFile && it.extension == "pvm" }.toList()
             if (pvmFiles.isEmpty()) return
-            val moduleName = srcFolder.name.replace(Regex("[^A-Za-z0-9_]"), "_")
-                .replaceFirstChar { it.uppercase() } + "Program"
-            BytecodeCompiler.compileModuleFiles(pvmFiles.sortedBy(File::getPath), moduleName, outFolder)
+            BytecodeCompiler.compileModuleDirectory(srcFolder, outFolder)
         }
     }
 }

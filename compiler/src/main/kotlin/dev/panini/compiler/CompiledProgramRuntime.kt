@@ -14,6 +14,9 @@ class CompiledProgramRuntime private constructor(
     constructor(maxConditionIterations: Long) : this(maxConditionIterations.also {
         require(it > 0L) { "The compiled condition-loop budget must be positive." }
     } as Long?)
+    constructor(initialValues: Map<String, SanskritValue>) : this(null) {
+        values.putAll(initialValues)
+    }
 
     private val values = LinkedHashMap<String, SanskritValue>()
     private val parameterFrames = ArrayDeque<ParameterFrame>()

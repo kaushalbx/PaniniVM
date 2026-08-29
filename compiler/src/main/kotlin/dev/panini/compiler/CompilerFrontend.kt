@@ -9,7 +9,6 @@ import dev.panini.execution.SamjnaArgumentResolution
 import dev.panini.execution.SamjnaSignatureDeclarationParser
 import dev.panini.execution.SamjnaValueClassifier
 import dev.panini.execution.SamjnaParameter
-import dev.panini.execution.SamjnaSignature
 import dev.panini.execution.SamjnaValueType
 import dev.panini.execution.TaddhitaInheritanceEngine
 import dev.panini.execution.TaddhitaStructEngine
@@ -28,10 +27,19 @@ import dev.panini.vyakaranam.ast.Repeat
 import dev.panini.vyakaranam.ast.Scope
 import dev.panini.vyakaranam.ast.Sequence
 import dev.panini.vyakaranam.ast.WhileLoop
+import dev.panini.vyakaranam.ast.MulaPratipadika
+import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
+import dev.panini.vyakaranam.ast.SankhyaPuranaPada
+import dev.panini.vyakaranam.ast.SubantaPada
+import dev.panini.vyakaranam.ast.TingantaPada
 
 /** Lowers grammatical control flow to JVM branches while leaves use the normal action runtime. */
 internal object CompilerFrontend {
-    internal data class SourceUnit(val name: String, val content: String)
+    private sealed interface ProcedureTarget {
+        data class Local(val methodName: String) : ProcedureTarget
+        data class Dependency(val className: String, val methodName: String) : ProcedureTarget
+    }
+    internal data class SourceUnit(val name: String, val content: String, val isEntryPoint: Boolean = true)
 
     fun compile(scriptContent: String, className: String): ByteArray =
         CompilerProgramJvmEmitter.emit(lower(scriptContent, className))
@@ -43,49 +51,76 @@ internal object CompilerFrontend {
 
     /** Analyzes every source file in a module before any executable body is lowered. */
     internal fun lowerModule(sourceUnits: List<SourceUnit>, className: String): CompilerProgram {
-        require(sourceUnits.isNotEmpty()) { "A Panini module must contain at least one source unit." }
-        val parsedUnits = sourceUnits.map { it to PvmScript.parse(it.content) }
-        val definitions = parsedUnits.flatMap { (unit, statements) ->
-            val fallbackDomain = statements.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>()
-                .firstOrNull()?.scope?.domain?.let(::samjnaStem)
-            statements.filterIsInstance<PvmScriptStatement.SamjnaDefinition>()
-                .map { Triple(unit, it, fallbackDomain) }
-        }
+        val descriptor = PaniniModuleDescriptor(
+            className,
+            sourceUnits.map { PaniniModuleSource(it.name, it.content, it.isEntryPoint) },
+        )
+        return lowerModule(descriptor, className)
+    }
+
+    internal fun lowerModule(descriptor: PaniniModuleDescriptor, className: String): CompilerProgram {
+        val analyzed = PaniniModuleAnalyzer.analyze(descriptor)
         val registry = SamjnaKriyaRegistry()
-        parsedUnits.flatMap { it.second }
-            .filterIsInstance<PvmScriptStatement.AdhikaraDefinition>()
-            .mapNotNull { TaddhitaInheritanceEngine.detectInheritanceAdhikara(it.scope.domain) }
-            .forEach(registry::registerInheritance)
-        definitions.forEach { (unit, definition, fallbackDomain) ->
+        analyzed.inheritance.forEach { (child, parent) ->
+            registry.registerInheritance(dev.panini.execution.InheritanceRelation(child, parent))
+        }
+        analyzed.procedures.forEach { procedure ->
             registry.register(
                 SamjnaKriya(
-                    nameSegmented = definition.nameSegmented,
-                    nameStem = samjnaStem(definition.nameSegmented),
-                    body = definition.body,
-                    sourceFile = unit.name,
-                    domainStem = definition.domainStem ?: fallbackDomain,
-                    signatureOverride = inferredSignature(definition),
+                    nameSegmented = procedure.definition.nameSegmented,
+                    nameStem = procedure.symbol,
+                    body = procedure.definition.body,
+                    sourceFile = procedure.source.name,
+                    domainStem = procedure.domain,
+                    isInternal = procedure.visibility == PaniniSymbolVisibility.INTERNAL,
+                    signatureOverride = procedure.signature,
                 ),
             )
         }
-        val methods = definitions.mapIndexed { index, (_, definition, _) ->
-            definition to "samjna_$index"
-        }.toMap()
+        descriptor.dependencies.forEach { dependency ->
+            dependency.inheritance.forEach { (child, parent) ->
+                registry.registerInheritance(dev.panini.execution.InheritanceRelation(child, parent))
+            }
+            dependency.procedures.forEach { procedure ->
+                registry.register(
+                    SamjnaKriya(
+                        nameSegmented = procedure.symbol,
+                        nameStem = procedure.symbol,
+                        body = emptyList(),
+                        sourceFile = "${dependency.moduleName}.pvmmeta",
+                        domainStem = procedure.domain,
+                        signatureOverride = dev.panini.execution.SamjnaSignature(
+                            parameters = procedure.parameters,
+                            resultType = procedure.resultType,
+                            resultSchema = procedure.resultSchema,
+                        ),
+                    ),
+                )
+            }
+        }
+        val methods = analyzed.procedures.associate { it.definition to it.methodName }
         val methodsByStem = buildMap {
-            methods.forEach { (definition, method) ->
-                val stem = samjnaStem(definition.nameSegmented)
-                put(stem, method)
-                put(localSamjnaStem(stem), method)
+            descriptor.dependencies.forEach { dependency ->
+                dependency.procedures.forEach { procedure ->
+                    val target = ProcedureTarget.Dependency(dependency.className, procedure.methodName)
+                    put(procedure.symbol, target)
+                    put(CompilerSymbols.localStem(procedure.symbol), target)
+                }
+            }
+            analyzed.procedures.forEach { procedure ->
+                put(procedure.symbol, ProcedureTarget.Local(procedure.methodName))
+                put(procedure.localSymbol, ProcedureTarget.Local(procedure.methodName))
             }
         }
         val lowering = Lowering(registry, methodsByStem)
-        val entryPoint = parsedUnits.flatMap { (_, statements) ->
+        val entryPoint = analyzed.statements.filterKeys(PaniniModuleSource::isEntryPoint).values.flatMap { statements ->
             statements.filterIsInstance<PvmScriptStatement.Sentence>().flatMap { sentence ->
                 lowering.lowerTopLevel(sentence)
             }
         }
-        val procedures = definitions.map { (_, definition, _) ->
-            val signature = requireNotNull(registry.resolve(samjnaStem(definition.nameSegmented))).signature
+        val procedures = analyzed.procedures.map { procedure ->
+            val definition = procedure.definition
+            val signature = procedure.signature
             val instructions = definition.body.filterNot { sentence ->
                 sentence.isNishedha || SamjnaSignatureDeclarationParser.isDeclaration(sentence)
             }.flatMap { sentence ->
@@ -94,7 +129,7 @@ internal object CompilerFrontend {
                 }.orEmpty()
             } + CompilerInstruction.Return
             CompilerProcedure(
-                methodName = requireNotNull(methods[definition]),
+                methodName = procedure.methodName,
                 instructions = instructions,
                 parameterNames = signature.parameters.map { it.nameStem },
                 parameterKinds = signature.parameters.map { it.type.toCompilerValueKind() },
@@ -102,36 +137,25 @@ internal object CompilerFrontend {
                     ?: signature.resultSchema?.let { CompilerValueKind.RECORD },
             )
         }
-        return CompilerProgram(className, entryPoint, procedures).also(CompilerProgramVerifier::verify)
-    }
-
-    private fun inferredSignature(definition: PvmScriptStatement.SamjnaDefinition): SamjnaSignature {
-        val declared = SamjnaSignatureCompiler.compile(definition.body)
-        if (declared.parameters.isNotEmpty()) return declared
-        val source = definition.body.joinToString(" ") { it.text }
-        val ordinals = listOf(
-            "प्रथम" to SamjnaValueType.SANKHYA,
-            "द्वितीय" to SamjnaValueType.SANKHYA,
-            "तृतीय" to SamjnaValueType.SANKHYA,
-        ).filter { (name, _) -> name in source || when (name) {
-            "प्रथम" -> "प्रथ् + अमच्" in source
-            "द्वितीय" -> "द्वि + तीय" in source
-            "तृतीय" -> "त्रि + तीय" in source
-            else -> false
-        } }
-        val parameters = if (ordinals.isNotEmpty()) {
-            ordinals.map { (name, type) -> SamjnaParameter(name, type) }
-        } else if ("समवाय" in source) {
-            listOf(SamjnaParameter("समवाय", SamjnaValueType.SUCHI))
-        } else {
-            emptyList()
+        val dependencyProcedures = descriptor.dependencies.flatMap { dependency ->
+            dependency.procedures.map { procedure ->
+                CompilerDependencyProcedure(
+                    dependency.className,
+                    procedure.methodName,
+                    procedure.parameters.map(SamjnaParameter::nameStem),
+                    procedure.parameters.map { it.type.toCompilerValueKind() },
+                    procedure.resultType?.toCompilerValueKind()
+                        ?: procedure.resultSchema?.let { CompilerValueKind.RECORD },
+                )
+            }
         }
-        return declared.copy(parameters = parameters)
+        return CompilerProgram(className, entryPoint, procedures, dependencyProcedures)
+            .also(CompilerProgramVerifier::verify)
     }
 
     private class Lowering(
         private val registry: SamjnaKriyaRegistry,
-        private val methodsByStem: Map<String, String>,
+        private val methodsByStem: Map<String, ProcedureTarget>,
     ) {
         private var nextLabel = 0
 
@@ -217,25 +241,53 @@ internal object CompilerFrontend {
             val source = normalized(
                 if (piped && !alreadyReferencesResult) "फल + अम् $rendered" else rendered,
             )
-            if ("समवाय" in source && "युज्" in source) {
+            val collectionParameter = node.vakya.padas.filterIsInstance<SubantaPada>().any { pada ->
+                (pada.pratipadika as? MulaPratipadika)?.lexicalIdentity == MulaPratipadikaIdentity.SAMAVAYA
+            }
+            val dhatu = node.vakya.padas.filterIsInstance<TingantaPada>().singleOrNull()?.dhatu?.mulaDhatu
+            if (collectionParameter && dhatu == "युज्") {
                 return listOf(
                     CompilerInstruction.Load("समवाय"),
                     CompilerInstruction.Collection(CollectionOperator.SUM),
                     CompilerInstruction.Store("LastResult"),
                 )
             }
-            if ("प्रथम" in source && "द्वितीय" in source && "भाज्" in source) {
-                return listOf(
-                    CompilerInstruction.Load("प्रथम"),
-                    CompilerInstruction.Load("द्वितीय"),
-                    CompilerInstruction.Arithmetic(ArithmeticOperator.DIVIDE),
-                    CompilerInstruction.Store("LastResult"),
-                )
-            }
+            lowerImplicitParameterOperation(node, dhatu)?.let { return it }
             return lowerSource(source, allowDirectStore)
                 ?: throw CompilerUnsupportedException(
                     CompilerUnsupportedKind.INVOCATION, source, "Cannot resolve invocation as a compiler leaf.",
                 )
+        }
+
+        private fun lowerImplicitParameterOperation(
+            node: Invocation,
+            dhatu: String?,
+        ): List<CompilerInstruction>? {
+            val operator = when (dhatu) {
+                "युज्", "युज" -> ArithmeticOperator.ADD
+                "गण्", "गण" -> ArithmeticOperator.MULTIPLY
+                "भाज्", "भाज" -> ArithmeticOperator.DIVIDE
+                else -> return null
+            }
+            val operands = node.vakya.padas.mapNotNull { pada ->
+                PuranaPratyayaResolver.ordinalValue(pada)?.let { ordinal ->
+                    val name = when (ordinal) { 1L -> "प्रथम"; 2L -> "द्वितीय"; 3L -> "तृतीय"; else -> return@let null }
+                    return@mapNotNull CompilerInstruction.Load(name)
+                }
+                val subanta = pada as? SubantaPada ?: return@mapNotNull null
+                if (subanta.pratipadika.sourceText.substringBefore('+').trim() == "फल") {
+                    CompilerInstruction.LoadLastResult
+                } else null
+            }
+            if (operands.size < 2 || operands.none { it is CompilerInstruction.Load }) return null
+            return buildList {
+                add(operands.first())
+                operands.drop(1).forEach { operand ->
+                    add(operand)
+                    add(CompilerInstruction.Arithmetic(operator))
+                }
+                add(CompilerInstruction.Store("LastResult"))
+            }
         }
 
         private fun lowerSource(source: String, allowStore: Boolean = false): List<CompilerInstruction>? =
@@ -245,7 +297,7 @@ internal object CompilerFrontend {
 
         private fun lowerProcedureCall(source: String): List<CompilerInstruction>? {
             val invocation = registry.detectInvocation(source) ?: return null
-            val method = invocation.kriya.nameStem.let(methodsByStem::get) ?: return null
+            val target = invocation.kriya.nameStem.let(methodsByStem::get) ?: return null
             val signature = invocation.kriya.signature
             val parameterNames = signature.parameters.map { it.nameStem }
             val parameterKinds = signature.parameters.map { it.type.toCompilerValueKind() }
@@ -262,7 +314,21 @@ internal object CompilerFrontend {
                     }
                 }
                 add(CompilerInstruction.EnterFrame(parameterNames, parameterKinds))
-                add(CompilerInstruction.InvokeProcedure(method, parameterNames.size))
+                add(when (target) {
+                    is ProcedureTarget.Local -> CompilerInstruction.InvokeProcedure(
+                        target.methodName,
+                        parameterNames.size,
+                        signature.resultType?.toCompilerValueKind()
+                            ?: signature.resultSchema?.let { CompilerValueKind.RECORD },
+                    )
+                    is ProcedureTarget.Dependency -> CompilerInstruction.InvokeDependencyProcedure(
+                        target.className,
+                        target.methodName,
+                        parameterNames.size,
+                        signature.resultType?.toCompilerValueKind()
+                            ?: signature.resultSchema?.let { CompilerValueKind.RECORD },
+                    )
+                })
                 add(CompilerInstruction.ExitFrame)
             }
         }
@@ -281,7 +347,7 @@ internal object CompilerFrontend {
 
         private fun lowerPipeline(node: Pipeline): List<CompilerInstruction> = buildList {
             node.stages.forEachIndexed { stageIndex, stage ->
-                val method = methodsByStem[stage.operationStem]
+                val target = methodsByStem[stage.operationStem]
                     ?: throw CompilerUnsupportedException(
                         CompilerUnsupportedKind.PIPELINE,
                         node.sourceText,
@@ -310,7 +376,21 @@ internal object CompilerFrontend {
                 }
                 val kinds = parameters.map { it.type.toCompilerValueKind() }
                 add(CompilerInstruction.EnterFrame(parameters.map { it.nameStem }, kinds))
-                add(CompilerInstruction.InvokeProcedure(method, parameters.size))
+                add(when (target) {
+                    is ProcedureTarget.Local -> CompilerInstruction.InvokeProcedure(
+                        target.methodName,
+                        parameters.size,
+                        kriya.signature.resultType?.toCompilerValueKind()
+                            ?: kriya.signature.resultSchema?.let { CompilerValueKind.RECORD },
+                    )
+                    is ProcedureTarget.Dependency -> CompilerInstruction.InvokeDependencyProcedure(
+                        target.className,
+                        target.methodName,
+                        parameters.size,
+                        kriya.signature.resultType?.toCompilerValueKind()
+                            ?: kriya.signature.resultSchema?.let { CompilerValueKind.RECORD },
+                    )
+                })
                 add(CompilerInstruction.ExitFrame)
             }
         }
@@ -468,19 +548,7 @@ internal object CompilerFrontend {
     private fun normalized(source: String): String =
         source.trim().trimEnd('।', '॥').trim() + " ।"
 
-    private fun samjnaStem(name: String): String {
-        val parts = name.split('+').map(String::trim).filter(String::isNotEmpty)
-        return if (parts.lastOrNull() in setOf(
-                "सुँ", "औ", "जस्", "अम्", "औट्", "शस्", "टा", "भ्याम्", "भिस्",
-                "ङे", "भ्यस्", "ङसि", "ङसिँ", "ङस्", "ओस्", "आम्", "ङि", "सुप्",
-            )) {
-            parts.dropLast(1).joinToString(" + ")
-        } else {
-            name.trim()
-        }
-    }
-
     private fun localSamjnaStem(stem: String): String =
-        stem.substringAfter("ङस्", stem).trim().trimStart('+').trim()
+        CompilerSymbols.localStem(stem)
 
 }

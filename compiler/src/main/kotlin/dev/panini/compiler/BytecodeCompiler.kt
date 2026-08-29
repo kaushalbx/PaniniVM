@@ -5,6 +5,7 @@ import java.io.File
 object BytecodeCompiler {
 
     data class ModuleSource(val name: String, val content: String)
+    data class CompiledModuleArtifact(val bytecode: ByteArray, val metadata: PaniniModuleMetadata)
 
     fun compileFile(file: File, className: String): ByteArray {
         require(file.exists()) { "PaniniVM script file not found: ${file.absolutePath}" }
@@ -24,12 +25,39 @@ object BytecodeCompiler {
 
     /** Compiles source files as one module with module-wide declaration and symbol analysis. */
     fun compileModule(sources: List<ModuleSource>, className: String): ByteArray {
-        dev.panini.dhatupatha.DhatuPathaRegistration.ensureRegistered()
-        val program = CompilerFrontend.lowerModule(
-            sources.map { CompilerFrontend.SourceUnit(it.name, it.content) },
+        val descriptor = PaniniModuleDescriptor(
             className,
+            sources.map { PaniniModuleSource(it.name, it.content) },
         )
-        return GeneratedBytecodeVerifier.verify(CompilerProgramJvmEmitter.emit(program))
+        return compileModule(descriptor, className).bytecode
+    }
+
+    fun compileModule(
+        descriptor: PaniniModuleDescriptor,
+        className: String = descriptor.name.toJvmClassName(),
+    ): CompiledModuleArtifact {
+        dev.panini.dhatupatha.DhatuPathaRegistration.ensureRegistered()
+        val analyzed = PaniniModuleAnalyzer.analyze(descriptor)
+        val bytecode = GeneratedBytecodeVerifier.verify(
+            CompilerProgramJvmEmitter.emit(CompilerFrontend.lowerModule(descriptor, className)),
+        )
+        val metadata = PaniniModuleMetadata(
+            moduleName = descriptor.name,
+            className = className,
+            procedures = analyzed.procedures.filter { it.visibility == PaniniSymbolVisibility.PUBLIC }.map {
+                PaniniExportedProcedure(
+                    symbol = it.symbol,
+                    methodName = it.methodName,
+                    domain = it.domain,
+                    parameters = it.signature.parameters,
+                    resultType = it.signature.resultType,
+                    resultSchema = it.signature.resultSchema,
+                )
+            },
+            inheritance = analyzed.inheritance,
+            schemas = analyzed.schemas,
+        )
+        return CompiledModuleArtifact(bytecode, metadata)
     }
 
     fun compileModuleFiles(files: List<File>, className: String): ByteArray {
@@ -41,6 +69,24 @@ object BytecodeCompiler {
         val bytecode = compileModuleFiles(files, className)
         outputDir.mkdirs()
         File(outputDir, "$className.class").writeBytes(bytecode)
+    }
+
+    fun compileModuleDirectory(sourceDir: File, outputDir: File): CompiledModuleArtifact {
+        val descriptorFile = File(sourceDir, "panini.module")
+        val dependencyPaths = descriptorFile.takeIf(File::isFile)?.readLines()
+            ?.firstOrNull { it.substringBefore('=').trim() == "dependencies" }
+            ?.substringAfter('=')?.split(',')?.map(String::trim)?.filter(String::isNotEmpty).orEmpty()
+        val dependencies = dependencyPaths.map { path ->
+            val file = File(sourceDir, path)
+            require(file.isFile) { "Panini dependency metadata not found: ${file.absolutePath}" }
+            PaniniModuleMetadataCodec.read(file)
+        }
+        val descriptor = PaniniModuleDescriptor.discover(sourceDir, dependencies)
+        val artifact = compileModule(descriptor)
+        outputDir.mkdirs()
+        File(outputDir, "${artifact.metadata.className}.class").writeBytes(artifact.bytecode)
+        PaniniModuleMetadataCodec.write(artifact.metadata, File(outputDir, "${descriptor.name}.pvmmeta"))
+        return artifact
     }
 
     class PaniniClassLoader(parent: ClassLoader) : ClassLoader(parent) {
@@ -68,3 +114,6 @@ object BytecodeCompiler {
         println("Successfully compiled '${file.name}' to ${classFile.absolutePath}")
     }
 }
+
+private fun String.toJvmClassName(): String = replace(Regex("[^A-Za-z0-9_]"), "_")
+    .replaceFirstChar { if (it.isLowerCase()) it.uppercase() else it.toString() } + "Program"
