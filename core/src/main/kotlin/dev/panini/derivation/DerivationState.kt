@@ -213,6 +213,8 @@ data class DerivationTerm(
     val originalSurfaceBeforeDrop: String? = null,
     val createdBySutra: String? = null,
     val establishedBySutras: Set<String> = emptySet(),
+    /** True while a newly introduced upadeśa still requires इत्-saṃjñā and lopa. */
+    val itProcessingPending: Boolean = false,
     /** Underlying lexical head of a compound term, when rules target head identity after surface sandhi. */
     val compoundHeadUpadesha: String? = null,
 ) {

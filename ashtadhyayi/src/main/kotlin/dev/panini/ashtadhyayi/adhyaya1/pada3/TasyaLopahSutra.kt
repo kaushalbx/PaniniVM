@@ -30,35 +30,46 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.LOPA,
     scope = SutraScope.PRATYAYA,
+    stage = dev.panini.sutra.SutraStage.IT_PROCESSING,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
         context.stage == DerivationStage.PRATYAYA_SELECTED || context.terms.any { it.itMarkers.isNotEmpty() }
 
     override fun apply(context: DerivationState): DerivationChange {
+        val pendingTargets = context.terms.filter { it.itProcessingPending }.mapTo(mutableSetOf()) { it.id }
         val newTerms = context.terms.map { term ->
             if (term.itMarkers.isEmpty()) return@map term
+            if (pendingTargets.isNotEmpty() && term.id !in pendingTargets) return@map term
             // A dhātu enters the derivation with its normalized mūla already
             // separated from the Dhātupāṭha upadeśa. Its recorded it-status
             // must not delete actual root sounds from that normalized surface.
-            if (term.kind == TermKind.DHATU) return@map term.copy(itMarkers = emptySet())
+            if (term.kind == TermKind.DHATU && !term.itProcessingPending) {
+                return@map term.copy(itMarkers = emptySet())
+            }
 
             var newSurface = term.surface
 
             // 0. Handle vowel U marker (anunasika U in supi/ting)
             if (term.itMarkers.contains(ItMarker.U)) {
-                newSurface = newSurface.replace("ुँ", "्").replace("ु", "्").replace("ँ", "")
-                    .replace("ि", "्").replace("इ", "्")
+                newSurface = if (term.itProcessingPending && newSurface.endsWith("रुँ")) {
+                    newSurface.dropLast("रुँ".length) + "र्"
+                } else {
+                    newSurface.replace("ुँ", "्").replace("ु", "्").replace("ँ", "")
+                        .replace("ि", "्").replace("इ", "्")
+                }
                 if (newSurface.endsWith("््")) {
                     newSurface = newSurface.dropLast(1)
                 }
             }
 
             // 1. Handle final markers (Halantyam 1.3.3, respecting 1.3.4 Na vibhaktau tusmāḥ)
-            val finalItEndings = listOf("क्", "प्", "ङ्", "ण्", "श्", "ट्", "ञ्", "र्", "ल्", "च्")
-            for (ending in finalItEndings) {
-                if (newSurface.endsWith(ending)) {
-                    newSurface = newSurface.dropLast(2)
-                    break
+            if (term.itMarkers.any { it != ItMarker.U }) {
+                val finalItEndings = listOf("क्", "प्", "ङ्", "ण्", "श्", "ट्", "ञ्", "र्", "ल्", "च्")
+                for (ending in finalItEndings) {
+                    if (newSurface.endsWith(ending)) {
+                        newSurface = newSurface.dropLast(2)
+                        break
+                    }
                 }
             }
 
@@ -82,7 +93,11 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
                 }
             }
 
-            term.copy(surface = newSurface, itMarkers = emptySet()) // Markers are consumed after lopa
+            term.copy(
+                surface = newSurface,
+                itMarkers = emptySet(),
+                itProcessingPending = false,
+            ) // Markers are consumed after lopa
         }
 
         val nextStage = if (context.stage.ordinal > DerivationStage.IT_PROCESSED.ordinal) {

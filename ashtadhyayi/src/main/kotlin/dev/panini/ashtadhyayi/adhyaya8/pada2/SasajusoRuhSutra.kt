@@ -16,7 +16,7 @@ import dev.panini.sutra.SutraType
 object SasajusoRuhSutra : Sutra<DerivationState, DerivationChange>(
     number = "8.2.66",
     text = "ससजुषो रुः",
-    hindiExplanation = "स् के स्थान पर रुँ आदेश होता है।",
+    hindiExplanation = "पदान्त स् तथा सजुष् के अन्तिम ष् के स्थान पर रुँ आदेश होता है।",
     type = SutraType.NITYA,
     chapter = 8,
     pada = 2,
@@ -27,25 +27,40 @@ object SasajusoRuhSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
     stage = dev.panini.sutra.SutraStage.RUTVA,
 ), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean =
-        (context.stage == DerivationStage.IT_PROCESSED || context.stage == DerivationStage.PADA_FORMED || context.stage == DerivationStage.FINAL) &&
-        context.terms.last().surface.endsWith(Vyanjana.SA.halanta) || internalSankhyaIndex(context) >= 0
+    override fun matches(context: DerivationState): Boolean {
+        val eligibleStage = context.stage == DerivationStage.IT_PROCESSED ||
+            context.stage == DerivationStage.PADA_FORMED ||
+            context.stage == DerivationStage.FINAL
+        if (!eligibleStage) return false
+
+        val finalSurface = context.terms.lastOrNull()?.surface ?: return false
+        return finalSurface.endsWith(Vyanjana.SA.halanta) ||
+            finalSurface.endsWith("सजुष्") ||
+            internalSankhyaIndex(context) >= 0
+    }
 
     override fun apply(context: DerivationState): DerivationChange {
         val internalIndex = internalSankhyaIndex(context)
         val target = context.terms[internalIndex.takeIf { it >= 0 } ?: context.terms.lastIndex]
+        val source = if (target.surface.endsWith("सजुष्")) 'ष' else 'स'
         val changed = internalIndex.takeIf { it >= 0 }?.let { index ->
             val target = context.terms[index]
             context.copy(terms = context.terms.toMutableList().also {
-                it[index] = target.copy(surface = target.surface.dropLast(2) + Vyanjana.RA.devanagari)
+                it[index] = target.copy(
+                    surface = target.surface.dropLast(2) + "रुँ",
+                    itProcessingPending = true,
+                )
             })
         } ?: context.copy(
             terms = context.terms.dropLast(1) + context.terms.last()
-                .copy(surface = context.terms.last().surface.dropLast(2) + Vyanjana.RA.devanagari)
+                .copy(
+                    surface = context.terms.last().surface.dropLast(2) + "रुँ",
+                    itProcessingPending = true,
+                )
         )
         return DerivationChange(
-            changed.addSubstitution(VarnaSubstitution(target.id, 'स', Vyanjana.RA.devanagari, number)),
-            "8.2.66 replaces स् with रुँ.",
+            changed.addSubstitution(VarnaSubstitution(target.id, source, "रुँ", number)),
+            "8.2.66 substitutes रुँ for पद-final ${source}्.",
         )
     }
 

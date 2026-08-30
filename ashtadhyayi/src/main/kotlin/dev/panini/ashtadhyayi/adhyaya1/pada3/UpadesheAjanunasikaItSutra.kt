@@ -25,18 +25,24 @@ object UpadesheAjanunasikaItSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Samjna,
     action = SutraAction.SAMJNA,
     scope = SutraScope.PRATYAYA,
+    stage = dev.panini.sutra.SutraStage.IT_PROCESSING,
 ), DerivationSutra {
-    fun hasSamjnaTarget(state: DerivationState): Boolean =
-        state.stage == DerivationStage.PRATYAYA_SELECTED && state.terms.any {
-            it.surface.endsWith(
-                "ँ"
-            ) && ItMarker.U !in it.itMarkers
-        }
+    private fun targets(state: DerivationState) = state.terms.filter { term ->
+        term.surface.endsWith("ँ") && ItMarker.U !in term.itMarkers &&
+            (state.stage == DerivationStage.PRATYAYA_SELECTED || term.itProcessingPending)
+    }
 
-    fun assignSamjna(state: DerivationState): DerivationChange = DerivationChange(
-        state.copy(terms = state.terms.map { if (it.surface.endsWith("ँ")) it.copy(itMarkers = it.itMarkers + ItMarker.U) else it }),
-        "1.3.2 assigns it-status to the nasalized उ of सुँ.",
-    )
+    fun hasSamjnaTarget(state: DerivationState): Boolean = targets(state).isNotEmpty()
+
+    fun assignSamjna(state: DerivationState): DerivationChange {
+        val targets = targets(state)
+        return DerivationChange(
+            state.copy(terms = state.terms.map {
+                if (it in targets) it.copy(itMarkers = it.itMarkers + ItMarker.U) else it
+            }),
+            "1.3.2 assigns इत्-saṃjñā to the nasalized vowel of ${targets.joinToString { it.surface }}.",
+        )
+    }
 
     override fun matches(context: DerivationState): Boolean = hasSamjnaTarget(context)
 

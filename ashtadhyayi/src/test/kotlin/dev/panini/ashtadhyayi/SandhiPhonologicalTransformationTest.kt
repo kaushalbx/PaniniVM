@@ -19,6 +19,7 @@ import dev.panini.derivation.TermKind
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.SamjnaAssignment
 import dev.panini.derivation.SandhiEngine
+import dev.panini.derivation.DerivationEngine
 import dev.panini.shiksha.Samjna
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -47,9 +48,40 @@ class SandhiPhonologicalTransformationTest {
             stage = DerivationStage.PADA_FORMED,
         )
 
+        val change = SasajusoRuhSutra.apply(state)
+        val rutva = change.state
+        assertEquals("रामरुँ", rutva.surface)
+        assertEquals("रुँ", rutva.substitutions.single { it.sutra == "8.2.66" }.replacement)
+        assertTrue(!KharavasanayorVisarjaniyahSutra.matches(rutva))
+
+        val result = DerivationEngine(Ashtadhyayi.executableSutras).derive(state)
+        val relevant = result.applications.filter { it.sutra in setOf("8.2.66", "1.3.2", "1.3.9", "8.3.15") }
+        assertEquals(listOf("8.2.66", "1.3.2", "1.3.9", "8.3.15"), relevant.map { it.sutra })
+        assertEquals(listOf("रामरुँ", "रामरुँ", "रामर्", "रामः"), relevant.map { it.after.surface })
+    }
+
+    @Test
+    fun `rutva covers final sha of sajus`() {
+        val state = DerivationState(
+            terms = listOf(DerivationTerm("ending", "सजुष्", TermKind.PRATIPADIKA, upadesha = "सजुष्")),
+            stage = DerivationStage.PADA_FORMED,
+        )
+
+        assertTrue(SasajusoRuhSutra.matches(state))
         val rutva = SasajusoRuhSutra.apply(state).state
-        assertTrue(KharavasanayorVisarjaniyahSutra.matches(rutva))
-        assertEquals("रामः", KharavasanayorVisarjaniyahSutra.apply(rutva).state.surface)
+        assertEquals("सजुरुँ", rutva.surface)
+        assertEquals('ष', rutva.substitutions.single().source)
+        assertEquals("रुँ", rutva.substitutions.single().replacement)
+    }
+
+    @Test
+    fun `rutva is unavailable before pada processing`() {
+        val state = DerivationState(
+            terms = listOf(DerivationTerm("ending", "रामस्", TermKind.PRATYAYA, upadesha = "रामस्")),
+            stage = DerivationStage.INITIAL,
+        )
+
+        assertTrue(!SasajusoRuhSutra.matches(state))
     }
 
     @Test

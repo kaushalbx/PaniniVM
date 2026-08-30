@@ -40,10 +40,10 @@ object HashiCaSutra : Sutra<DerivationState, DerivationChange>(
         val left = context.terms[context.terms.size - 2]
         val right = context.terms.last()
 
-        // 1. Left term ends in 'r' (from ru) preceded by 'a'
+        // 1. Left term ends in repha (from ru) preceded by 'a'
         val surface = left.surface
-        if (!surface.endsWith('र')) return false
-        if (surface.length < 2 || surface[surface.length - 2] != 'अ') return false
+        if (!surface.endsWith("र्")) return false
+        if (!dev.panini.shiksha.Varnamala.endsWithA(surface.dropLast(2))) return false
 
         // 2. Followed by a voiced consonant (haś)
         val firstChar = right.surface.firstOrNull() ?: return false
@@ -53,7 +53,7 @@ object HashiCaSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val internalIndex = internalSankhyaIndex(context)
         val left = if (internalIndex >= 0) context.terms[internalIndex] else context.terms[context.terms.size - 2]
-        val newSurface = left.surface.dropLast(1) + "ु"
+        val newSurface = left.surface.dropLast(2) + "ु"
 
         return DerivationChange(
             state = context.replaceTerm(left.id, left.copy(surface = newSurface))
@@ -63,8 +63,8 @@ object HashiCaSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     private fun internalSankhyaIndex(context: DerivationState): Int = context.terms.indices.firstOrNull { index ->
-        index < context.terms.lastIndex && context.terms[index].surface.endsWith("र") &&
-            dev.panini.shiksha.Varnamala.endsWithA(context.terms[index].surface.dropLast(1)) &&
+        index < context.terms.lastIndex && context.terms[index].surface.endsWith("र्") &&
+            dev.panini.shiksha.Varnamala.endsWithA(context.terms[index].surface.dropLast(2)) &&
             context.samjnas.any { it.targetId == context.terms[index].id && it.samjna == Samjna.SANKHYA } &&
             context.samjnas.any { it.targetId == context.terms[index + 1].id && it.samjna == Samjna.SANKHYA } &&
             context.terms[index + 1].surface.firstOrNull()?.let {

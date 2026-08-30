@@ -4,6 +4,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.shiksha.Varnamala
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -35,11 +36,11 @@ object AtoRorAplutadSutra : Sutra<DerivationState, DerivationChange>(
         val left = context.terms[context.terms.size - 2]
         val right = context.terms.last()
 
-        // 1. Left term must end in 'ru' (represented as 'r' after 8.2.66 for now)
+        // 1. Left term must end in repha produced from ru by इत्-processing.
         // 2. Preceded by short 'a'
         val surface = left.surface
-        if (!surface.endsWith('र')) return false
-        if (surface.length < 2 || surface[surface.length - 2] != 'अ') return false
+        if (!surface.endsWith("र्")) return false
+        if (!Varnamala.endsWithA(surface.dropLast(2))) return false
 
         // 3. Followed by short 'a'
         return right.surface.startsWith('अ')
@@ -48,7 +49,7 @@ object AtoRorAplutadSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val left = context.terms[context.terms.size - 2]
         // Replace 'r' with 'u'
-        val newSurface = left.surface.dropLast(1) + "ु"
+        val newSurface = left.surface.dropLast(2) + "ु"
 
         return DerivationChange(
             state = context.replaceTerm(left.id, left.copy(surface = newSurface))

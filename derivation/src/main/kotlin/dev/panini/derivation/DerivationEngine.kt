@@ -408,7 +408,8 @@ class DerivationEngine(
                 if (it.isTripadi()) {
                     it.krama >= maxTripadiKrama
                 } else {
-                    maxTripadiKrama == 0
+                    maxTripadiKrama == 0 ||
+                        (it.stage == SutraStage.IT_PROCESSING && state.terms.any { term -> term.itProcessingPending })
                 }
             }
             .filter {
@@ -461,6 +462,7 @@ class DerivationEngine(
             SutraRole.Nishedha, SutraRole.Niyama, SutraRole.Apavada -> 2
             else -> 3
         }
+
     }
 }
 

@@ -50,7 +50,7 @@ object KharavasanayorVisarjaniyahSutra : Sutra<DerivationState, DerivationChange
         val newSurface = if (source == 'ष') {
             target.surface.dropLast(2) + Ayogavaha.VISARGA.devanagari
         } else {
-            target.surface.dropLast(1) + Ayogavaha.VISARGA.devanagari
+            target.surface.dropLast(2) + Ayogavaha.VISARGA.devanagari
         }
 
         return DerivationChange(
@@ -62,7 +62,7 @@ object KharavasanayorVisarjaniyahSutra : Sutra<DerivationState, DerivationChange
     }
 
     private fun targetTerm(context: DerivationState): DerivationTerm? = context.terms.firstOrNull { term ->
-        val isRutva = term.surface.endsWith('र') && context.substitutions.any { substitution ->
+        val isRutva = term.surface.endsWith("र्") && context.substitutions.any { substitution ->
             substitution.targetId == term.id && substitution.sutra == "8.2.66"
         }
         val isSuffixalSha = term.surface.endsWith("ष्") && term.kind == TermKind.PRATYAYA &&

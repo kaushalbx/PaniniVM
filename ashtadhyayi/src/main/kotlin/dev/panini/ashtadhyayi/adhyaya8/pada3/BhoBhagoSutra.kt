@@ -36,13 +36,14 @@ object BhoBhagoSutra : Sutra<DerivationState, DerivationChange>(
         val right = context.terms.last()
 
         val surface = left.surface
-        if (!surface.endsWith('र')) return false // Target is repha (from ru)
+        if (!surface.endsWith("र्")) return false // Target is repha (from ru)
 
         // 1. Check if preceded by bho, bhago, agho, a, or ā
-        val isPrecededByEligible = surface.endsWith("भोर") ||
-                                   surface.endsWith("भगोर") ||
-                                   surface.endsWith("अघोर") ||
-                                   (surface.length >= 2 && (surface[surface.length - 2] == 'अ' || surface[surface.length - 2] == 'ा' || surface[surface.length - 2] == 'आ'))
+        val base = surface.dropLast(2)
+        val isPrecededByEligible = base.endsWith("भो") ||
+                                   base.endsWith("भगो") ||
+                                   base.endsWith("अघो") ||
+                                   dev.panini.shiksha.Varnamala.endsWithA(base)
 
         if (!isPrecededByEligible) return false
 
@@ -56,7 +57,7 @@ object BhoBhagoSutra : Sutra<DerivationState, DerivationChange>(
         val nextChar = context.terms.last().surface.first()
 
         val replacement = "य्"
-        val newSurface = leftTerm.surface.dropLast(1) + replacement
+        val newSurface = leftTerm.surface.dropLast(2) + replacement
 
         return DerivationChange(
             state = context.replaceTerm(leftTerm.id, leftTerm.copy(surface = newSurface)),
