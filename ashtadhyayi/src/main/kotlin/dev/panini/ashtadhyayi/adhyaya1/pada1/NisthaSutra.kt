@@ -52,11 +52,11 @@ object NisthaSutra : Sutra<DerivationState, DerivationChange>(
         } else {
             DerivationTerm(
                 id = "kta_pratyaya",
-                surface = "त",
+                surface = "क्त",
                 kind = TermKind.PRATYAYA,
-                itMarkers = setOf(ItMarker.KIT),
                 upadesha = "क्त",
                 createdBySutra = sutra,
+                itProcessingPending = true,
             )
         }
 

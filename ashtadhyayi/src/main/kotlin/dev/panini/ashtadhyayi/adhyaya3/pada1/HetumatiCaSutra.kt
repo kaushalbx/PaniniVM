@@ -41,11 +41,11 @@ object HetumatiCaSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val nicTerm = DerivationTerm(
             id = "nic_pratyaya",
-            surface = "इ",
+            surface = "णिच्",
             kind = TermKind.PRATYAYA,
-            itMarkers = setOf(ItMarker.NIT, ItMarker.KIT),
             upadesha = "णिच्",
             createdBySutra = sutra,
+            itProcessingPending = true,
         )
         return DerivationChange(
             state = context.copy(

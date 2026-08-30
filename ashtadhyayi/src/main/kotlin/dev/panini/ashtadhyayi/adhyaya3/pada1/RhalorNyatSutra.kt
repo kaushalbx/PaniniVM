@@ -45,9 +45,9 @@ object RhalorNyatSutra : Sutra<DerivationState, DerivationChange>(
             id = "nyat_pratyaya",
             surface = "ण्यत्",
             kind = TermKind.PRATYAYA,
-            itMarkers = setOf(ItMarker.NIT, ItMarker.T),
             upadesha = "ण्यत्",
             createdBySutra = sutra,
+            itProcessingPending = true,
         )
         return DerivationChange(
             state = context.copy(

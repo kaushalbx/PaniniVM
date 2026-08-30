@@ -43,9 +43,9 @@ object AcoYatSutra : Sutra<DerivationState, DerivationChange>(
             id = "yat_pratyaya",
             surface = "यत्",
             kind = TermKind.PRATYAYA,
-            itMarkers = setOf(ItMarker.T),
             upadesha = "यत्",
             createdBySutra = sutra,
+            itProcessingPending = true,
         )
         return DerivationChange(
             state = context.copy(

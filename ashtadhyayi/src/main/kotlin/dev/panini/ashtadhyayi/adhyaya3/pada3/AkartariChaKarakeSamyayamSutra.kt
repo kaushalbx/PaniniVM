@@ -26,7 +26,7 @@ object AkartariChaKarakeSamyayamSutra : Sutra<DerivationState, DerivationChange>
         context.allEffectiveTerms.none { it.upadesha == "घञ्" }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val ghan = DerivationTerm("ghan", "अ", TermKind.PRATYAYA, upadesha = "घञ्")
+        val ghan = DerivationTerm("ghan", "घञ्", TermKind.PRATYAYA, upadesha = "घञ्", itProcessingPending = true)
         return DerivationChange(
             state = context.addTerm(ghan),
             explanation = "3.3.102 prescribes घञ् for non-agent kārakas in saṃjñā.",

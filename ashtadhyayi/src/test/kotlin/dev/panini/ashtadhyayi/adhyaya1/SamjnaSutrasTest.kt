@@ -106,6 +106,10 @@ class SamjnaSutrasTest {
         assertEquals("भू", process("ञिभू", kind = TermKind.DHATU, useInitial = AdirNitudavahSutra))
         assertEquals("अक", process("षक", useInitial = ShahPratyayasyaSutra))
         assertEquals("क", process("ष्क", useInitial = ShahPratyayasyaSutra))
+        assertEquals("य", process("ण्यत्", useInitial = ChutuSutra))
+        assertEquals("य", process("क्यच्", useInitial = LasakvataddhiteSutra))
+        assertEquals("त", process("क्त", useInitial = LasakvataddhiteSutra))
+        assertEquals("आन", process("कानच्", useInitial = LasakvataddhiteSutra))
     }
 
     private fun process(

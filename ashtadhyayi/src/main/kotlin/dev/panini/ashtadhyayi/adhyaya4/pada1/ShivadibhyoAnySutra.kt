@@ -28,7 +28,7 @@ object ShivadibhyoAnySutra : Sutra<DerivationState, DerivationChange>(
             context.allEffectiveTerms.none { it.upadesha == "अण्" }
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
-        context.addTerm(DerivationTerm("shivadi-an-suffix", "अ", TermKind.PRATYAYA, upadesha = "अण्"))
+        context.addTerm(DerivationTerm("shivadi-an-suffix", "अण्", TermKind.PRATYAYA, upadesha = "अण्", itProcessingPending = true))
             .copy(stage = DerivationStage.PRATYAYA_SELECTED),
         "4.1.112 introduces अण् after an eligible शिवादि term in the अपत्य sense.",
     )

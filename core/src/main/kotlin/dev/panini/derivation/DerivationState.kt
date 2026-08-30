@@ -28,6 +28,17 @@ class DerivationState(
         require(terms.isNotEmpty()) { "A derivation requires at least one term." }
     }
 
+    /** Validates the it-processing boundary for workflows that have completed migration. */
+    fun requireCompleteItProcessing(): DerivationState {
+        require(terms.none { it.itProcessingPending }) {
+            "A completed derivation cannot contain an upadeśa awaiting it-processing."
+        }
+        require(terms.none { it.itDesignations.isNotEmpty() }) {
+            "A completed derivation cannot contain unconsumed it-designations."
+        }
+        return this
+    }
+
     val surface: String
         get() = combinedSurface(terms)
 

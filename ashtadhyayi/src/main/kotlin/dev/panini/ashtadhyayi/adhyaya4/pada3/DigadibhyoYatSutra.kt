@@ -22,5 +22,5 @@ object DigadibhyoYatSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi, action = SutraAction.PRATYAYA_SELECTION, scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState) = HasRequestedMeaning(DerivationalMeaning.TATRA_BHAVA).matches(context) && context.terms.any { it.kind == TermKind.PRATIPADIKA && GanaPatha.isEligibleMember(113, it.surface, it.lexicalUses) } && context.allEffectiveTerms.none { it.upadesha == "यत्" }
-    override fun apply(context: DerivationState) = DerivationChange(context.addTerm(DerivationTerm("yat-suffix", "य", TermKind.PRATYAYA, upadesha = "यत्")), "4.3.54 introduces यत् after an eligible दिगादि term in the tatra-bhava sense.")
+    override fun apply(context: DerivationState) = DerivationChange(context.addTerm(DerivationTerm("yat-suffix", "यत्", TermKind.PRATYAYA, upadesha = "यत्", itProcessingPending = true)), "4.3.54 introduces यत् after an eligible दिगादि term in the tatra-bhava sense.")
 }

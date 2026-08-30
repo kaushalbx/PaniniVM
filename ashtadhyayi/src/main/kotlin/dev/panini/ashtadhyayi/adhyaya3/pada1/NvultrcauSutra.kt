@@ -52,11 +52,11 @@ object NvultrcauSutra : Sutra<DerivationState, DerivationChange>(
         } else {
             DerivationTerm(
                 id = "trc_pratyaya",
-                surface = "तृ",
+                surface = "तृच्",
                 kind = TermKind.PRATYAYA,
-                itMarkers = setOf(ItMarker.KIT),
                 upadesha = "तृच्",
                 createdBySutra = sutra,
+                itProcessingPending = true,
             )
         }
 

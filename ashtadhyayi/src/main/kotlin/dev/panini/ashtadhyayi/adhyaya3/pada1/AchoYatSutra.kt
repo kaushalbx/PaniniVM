@@ -28,7 +28,7 @@ object AchoYatSutra : Sutra<DerivationState, DerivationChange>(
         context.allEffectiveTerms.none { it.upadesha == "यत्" }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val yat = DerivationTerm("yat", "य", TermKind.PRATYAYA, upadesha = "यत्")
+        val yat = DerivationTerm("yat", "यत्", TermKind.PRATYAYA, upadesha = "यत्", itProcessingPending = true)
         return DerivationChange(
             state = context.addTerm(yat),
             explanation = "3.1.97 prescribes यत् kṛtya affix after ajanta dhātu.",

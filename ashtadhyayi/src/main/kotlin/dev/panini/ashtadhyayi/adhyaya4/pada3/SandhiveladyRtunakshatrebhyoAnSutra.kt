@@ -22,5 +22,5 @@ object SandhiveladyRtunakshatrebhyoAnSutra : Sutra<DerivationState, DerivationCh
     role = SutraRole.Vidhi, action = SutraAction.PRATYAYA_SELECTION, scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState) = HasDerivationalEnvironment(DerivationalEnvironment.KALAVRTTI).matches(context) && context.terms.any { it.kind == TermKind.PRATIPADIKA && GanaPatha.isEligibleMember(112, it.surface, it.lexicalUses) } && context.allEffectiveTerms.none { it.upadesha == "अण्" }
-    override fun apply(context: DerivationState) = DerivationChange(context.addTerm(DerivationTerm("an-suffix", "अ", TermKind.PRATYAYA, upadesha = "अण्")), "4.3.16 introduces अण् after an eligible संधिवेलादि time expression.")
+    override fun apply(context: DerivationState) = DerivationChange(context.addTerm(DerivationTerm("an-suffix", "अण्", TermKind.PRATYAYA, upadesha = "अण्", itProcessingPending = true)), "4.3.16 introduces अण् after an eligible संधिवेलादि time expression.")
 }

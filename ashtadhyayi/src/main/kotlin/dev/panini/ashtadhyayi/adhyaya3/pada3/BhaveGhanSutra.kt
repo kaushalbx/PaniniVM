@@ -41,11 +41,11 @@ object BhaveGhanSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val ghanTerm = DerivationTerm(
             id = "ghan_pratyaya",
-            surface = "अ",
+            surface = "घञ्",
             kind = TermKind.PRATYAYA,
-            itMarkers = setOf(ItMarker.J, ItMarker.NGIT),
             upadesha = "घञ्",
             createdBySutra = sutra,
+            itProcessingPending = true,
         )
         return DerivationChange(
             state = context.copy(

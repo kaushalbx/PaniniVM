@@ -40,11 +40,11 @@ object NisriSruvbhyahCanSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val canTerm = DerivationTerm(
             id = "can_pratyaya",
-            surface = "अ",
+            surface = "चङ्",
             kind = TermKind.PRATYAYA,
-            itMarkers = setOf(ItMarker.NG),
             upadesha = "चङ्",
             createdBySutra = sutra,
+            itProcessingPending = true,
         )
         return DerivationChange(
             state = context.copy(

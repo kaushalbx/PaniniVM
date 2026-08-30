@@ -55,9 +55,9 @@ object TavyattavyaaniyarahSutra : Sutra<DerivationState, DerivationChange>(
                 id = "tavya_pratyaya",
                 surface = "तव्यत्",
                 kind = TermKind.PRATYAYA,
-                itMarkers = setOf(ItMarker.T),
                 upadesha = "तव्यत्",
                 createdBySutra = sutra,
+                itProcessingPending = true,
             )
         }
 

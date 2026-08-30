@@ -27,7 +27,7 @@ object SuvastvadibhyoAnSutra : Sutra<DerivationState, DerivationChange>(
             context.allEffectiveTerms.none { it.upadesha == "अण्" }
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
-        context.addTerm(DerivationTerm("an-suffix", "अ", TermKind.PRATYAYA, upadesha = "अण्")),
+        context.addTerm(DerivationTerm("an-suffix", "अण्", TermKind.PRATYAYA, upadesha = "अण्", itProcessingPending = true)),
         "4.2.77 introduces अण् after an eligible सुवास्त्वादि term in the residence sense.",
     )
 }

@@ -69,11 +69,12 @@ object ChutuSutra : Sutra<DerivationState, DerivationChange>(
     private fun designateInitial(term: dev.panini.derivation.DerivationTerm, marker: ItMarker): dev.panini.derivation.DerivationTerm {
         val sign = term.surface.getOrNull(1)
         val vowel = when (sign) {
+            '्' -> ""
             'ा' -> "आ"; 'ि' -> "इ"; 'ी' -> "ई"; 'ु' -> "उ"; 'ू' -> "ऊ"
             'ृ' -> "ऋ"; 'ॄ' -> "ॠ"; 'ॢ' -> "ऌ"; 'े' -> "ए"; 'ै' -> "ऐ"; 'ो' -> "ओ"; 'ौ' -> "औ"
             else -> "अ"
         }
-        val length = if (sign in setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ', 'े', 'ै', 'ो', 'ौ')) 2 else 1
+        val length = if (sign == '्' || sign in setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ', 'े', 'ै', 'ो', 'ौ')) 2 else 1
         return term.copy(
             itMarkers = term.itMarkers + marker,
             itDesignations = if (term.itProcessingPending) {

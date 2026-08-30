@@ -48,7 +48,7 @@ object KarmanyAnSutra : Sutra<DerivationState, DerivationChange>(
             surface = "अण्",
             kind = TermKind.PRATYAYA,
             upadesha = "अण्",
-            itMarkers = setOf(ItMarker.NG) // 'ṇ' is ṇit
+            itProcessingPending = true,
         )
         return DerivationChange(
             state = context.addTerm(an).copy(stage = DerivationStage.PRATYAYA_SELECTED),
