@@ -215,6 +215,10 @@ data class DerivationTerm(
     val establishedBySutras: Set<String> = emptySet(),
     /** True while a newly introduced upadeśa still requires इत्-saṃjñā and lopa. */
     val itProcessingPending: Boolean = false,
+    /** Exact spans designated as इत् in the current upadeśa. */
+    val itDesignations: List<ItDesignation> = emptyList(),
+    /** The term into which an āgama is placed by 1.1.46. */
+    val augmentTargetId: String? = null,
     /** Underlying lexical head of a compound term, when rules target head identity after surface sandhi. */
     val compoundHeadUpadesha: String? = null,
 ) {
@@ -237,6 +241,14 @@ data class DerivationTerm(
     fun matchesUpadesha(value: String): Boolean =
         upadesha == value || sthaniProps?.upadesha == value
 }
+
+data class ItDesignation(
+    val start: Int,
+    val endExclusive: Int,
+    val replacementAfterLopa: String = "",
+    val marker: ItMarker,
+    val sutra: String,
+)
 
 data class SthaniProperties(
     val upadesha: String?,

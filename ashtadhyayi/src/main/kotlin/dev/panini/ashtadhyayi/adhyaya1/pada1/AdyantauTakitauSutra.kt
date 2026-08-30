@@ -36,8 +36,12 @@ object AdyantauTakitauSutra : Sutra<DerivationState, DerivationChange>(
         for (i in terms.indices) {
             val term = terms[i]
             if (term.kind == TermKind.AGAMA) {
+                if (term.augmentTargetId == null) continue
+                if (term.itProcessingPending && term.itDesignations.isEmpty()) continue
                 val isTit = term.itMarkers.contains(ItMarker.T) || term.upadesha?.endsWith("ट्") == true
                 val isKit = term.itMarkers.contains(ItMarker.KIT) || term.upadesha?.endsWith("क्") == true
+
+                if (term.augmentTargetId != null && (isTit || isKit)) return true
 
                 if (isTit) {
                     val targetIndex = findTargetIndex(term, terms)
@@ -60,8 +64,32 @@ object AdyantauTakitauSutra : Sutra<DerivationState, DerivationChange>(
         for (i in terms.indices) {
             val term = terms[i]
             if (term.kind == TermKind.AGAMA) {
+                if (term.augmentTargetId == null) continue
+                if (term.itProcessingPending && term.itDesignations.isEmpty()) continue
                 val isTit = term.itMarkers.contains(ItMarker.T) || term.upadesha?.endsWith("ट्") == true
                 val isKit = term.itMarkers.contains(ItMarker.KIT) || term.upadesha?.endsWith("क्") == true
+
+                term.augmentTargetId?.let { targetId ->
+                    val targetIndex = terms.indexOfFirst { it.id == targetId }
+                    if (targetIndex >= 0 && (isTit || isKit)) {
+                        val target = terms[targetIndex]
+                        val designationOffset = if (isTit) 0 else target.surface.length
+                        val merged = target.copy(
+                            surface = if (isTit) term.surface + target.surface else target.surface + term.surface,
+                            itMarkers = target.itMarkers + term.itMarkers,
+                            itDesignations = target.itDesignations + term.itDesignations.map {
+                                it.copy(start = it.start + designationOffset, endExclusive = it.endExclusive + designationOffset)
+                            },
+                            itProcessingPending = target.itProcessingPending || term.itProcessingPending,
+                        )
+                        terms[targetIndex] = merged
+                        terms.removeAt(terms.indexOfFirst { it.id == term.id })
+                        return DerivationChange(
+                            state = context.copy(terms = terms),
+                            explanation = "1.1.46 places the ${if (isTit) "ṭit" else "kit"} augment ${term.upadesha} ${if (isTit) "at the beginning" else "at the end"} of ${target.upadesha}.",
+                        )
+                    }
+                }
 
                 if (isTit) {
                     val targetIndex = findTargetIndex(term, terms)
@@ -92,6 +120,9 @@ object AdyantauTakitauSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     private fun findTargetIndex(agama: DerivationTerm, terms: List<DerivationTerm>): Int {
+        agama.augmentTargetId?.let { targetId ->
+            return terms.indexOfFirst { it.id == targetId }
+        }
         val isTit = agama.itMarkers.contains(ItMarker.T) || agama.upadesha?.endsWith("ट्") == true
         return if (isTit) {
             terms.indexOfFirst { it.kind != TermKind.AGAMA && it.id != "abhyasa" }
@@ -100,4 +131,3 @@ object AdyantauTakitauSutra : Sutra<DerivationState, DerivationChange>(
         }
     }
 }
-

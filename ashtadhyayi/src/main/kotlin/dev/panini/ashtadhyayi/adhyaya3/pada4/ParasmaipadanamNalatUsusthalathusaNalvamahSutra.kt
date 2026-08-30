@@ -6,6 +6,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.SthaniProperties
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -19,24 +20,28 @@ object ParasmaipadanamNalatUsusthalathusaNalvamahSutra : Sutra<DerivationState, 
     type = SutraType.NITYA, chapter = 3, pada = 4, optional = false, kramaValue = 340082,
     role = SutraRole.Vidhi, action = SutraAction.ADESHA, scope = SutraScope.PRATYAYA,
 ), DerivationSutra {
-    private val replacements = mapOf("तिप्" to "अ", "तस्" to "अतुस्", "झि" to "उस्", "सिप्" to "थल्", "थस्" to "अथुस्", "थ" to "अ", "मिप्" to "अ", "वस्" to "व", "मस्" to "म")
+    private val replacements = mapOf("तिप्" to "णल्", "तस्" to "अतुस्", "झि" to "उस्", "सिप्" to "थल्", "थस्" to "अथुस्", "थ" to "अ", "मिप्" to "अ", "वस्" to "व", "मस्" to "म")
 
     override fun matches(context: DerivationState): Boolean {
         val ending = context.terms.last()
         val replacement = replacements[ending.upadesha] ?: return false
         return context.effectiveContext.rupa.lakara == Lakara.LIT &&
-            context.stage.ordinal <= DerivationStage.PRATYAYA_SELECTED.ordinal && ending.surface != replacement
+            ending.surface != replacement
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
         val replacement = requireNotNull(replacements[ending.upadesha])
-        val nal = if (ending.upadesha == "तिप्") {
-            ending.copy(surface = replacement, upadesha = "णल्", itMarkers = ending.itMarkers + ItMarker.NIT)
-        } else {
-            ending.copy(surface = replacement)
-        }
-        return DerivationChange(context.replaceTerm(ending.id, nal),
+        val requiresItProcessing = replacement in setOf("णल्", "थल्")
+        val substituted = ending.copy(
+            surface = replacement,
+            upadesha = if (requiresItProcessing) replacement else ending.upadesha,
+            itMarkers = emptySet(),
+            itDesignations = emptyList(),
+            itProcessingPending = requiresItProcessing,
+            sthaniProps = SthaniProperties(ending.upadesha, emptySet()),
+        )
+        return DerivationChange(context.replaceTerm(ending.id, substituted),
             "3.4.82 replaces the Parasmaipada ${ending.upadesha} ending with $replacement in लिट्.")
     }
 }

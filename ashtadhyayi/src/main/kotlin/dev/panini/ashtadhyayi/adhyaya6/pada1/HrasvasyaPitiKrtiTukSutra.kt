@@ -7,6 +7,7 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
+import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -37,7 +38,8 @@ object HrasvasyaPitiKrtiTukSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms.firstOrNull { it.kind == TermKind.DHATU } ?: return false
         val suffix = context.terms.lastOrNull {
             it.kind == TermKind.PRATYAYA &&
-                (it.itMarkers.contains(ItMarker.P) || it.upadesha == "ल्यप्")
+                (it.itMarkers.contains(ItMarker.P) || it.sthaniProps?.itMarkers?.contains(ItMarker.P) == true) &&
+                it.upadesha in setOf("ल्यप्", "ल्पँ")
         } ?: return false
 
         val isShortVowelEnding = stem.surface.isNotEmpty() && shortVowels.any { stem.surface.endsWith(it) }

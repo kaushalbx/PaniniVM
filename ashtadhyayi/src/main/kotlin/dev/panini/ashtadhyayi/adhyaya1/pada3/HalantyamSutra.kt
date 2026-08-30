@@ -5,6 +5,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.ItDesignation
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Varnamala
@@ -27,9 +28,10 @@ object HalantyamSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Samjna,
     action = SutraAction.SAMJNA,
     scope = SutraScope.PRATYAYA,
+    stage = dev.panini.sutra.SutraStage.IT_PROCESSING,
 ), DerivationSutra {
     fun hasSamjnaTarget(state: DerivationState): Boolean {
-        if (state.stage != DerivationStage.PRATYAYA_SELECTED) return false
+        if (state.stage != DerivationStage.PRATYAYA_SELECTED && state.terms.none { it.itProcessingPending }) return false
 
         return state.terms.any { term ->
             if (term.kind == TermKind.PRATIPADIKA) return@any false
@@ -39,7 +41,11 @@ object HalantyamSutra : Sutra<DerivationState, DerivationChange>(
             val last = term.surface.lastOrNull() ?: return@any false
             if (last != '्' || term.surface.length < 2) return@any false
             val lastChar = term.surface[term.surface.length - 2]
-            Varnamala.isConsonant(lastChar) && term.itMarkers.isEmpty()
+            Varnamala.isConsonant(lastChar) && if (term.itProcessingPending) {
+                term.itDesignations.none { it.endExclusive == term.surface.length }
+            } else {
+                term.itMarkers.isEmpty()
+            }
         }
     }
 
@@ -50,8 +56,31 @@ object HalantyamSutra : Sutra<DerivationState, DerivationChange>(
             val last = term.surface.lastOrNull()
             if (last == '्' && term.surface.length >= 2) {
                 val lastChar = term.surface[term.surface.length - 2]
-                if (Varnamala.isConsonant(lastChar) && term.itMarkers.isEmpty()) {
-                    term.copy(itMarkers = term.itMarkers + ItMarker.KIT)
+                val isUndesignated = if (term.itProcessingPending) {
+                    term.itDesignations.none { it.endExclusive == term.surface.length }
+                } else {
+                    term.itMarkers.isEmpty()
+                }
+                if (Varnamala.isConsonant(lastChar) && isUndesignated) {
+                    val marker = if (!term.itProcessingPending) ItMarker.KIT else when (lastChar) {
+                        'क' -> ItMarker.KIT
+                        'प' -> ItMarker.P
+                        'ङ' -> ItMarker.NGIT
+                        'ण' -> ItMarker.NIT
+                        'श', 'ष' -> ItMarker.SH
+                        else -> ItMarker.GENERIC
+                    }
+                    term.copy(
+                        itMarkers = term.itMarkers + marker,
+                        itDesignations = if (term.itProcessingPending) {
+                            term.itDesignations + ItDesignation(
+                                term.surface.length - 2,
+                                term.surface.length,
+                                marker = marker,
+                                sutra = sutra,
+                            )
+                        } else term.itDesignations,
+                    )
                 } else {
                     term
                 }

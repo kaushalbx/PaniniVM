@@ -48,11 +48,11 @@ object AjadyatasTapSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val tapTerm = DerivationTerm(
             id = "tap_pratyaya",
-            surface = "आ",
+            surface = "टाप्",
             kind = TermKind.PRATYAYA,
-            itMarkers = setOf(ItMarker.T, ItMarker.P),
             upadesha = "टाप्",
             createdBySutra = sutra,
+            itProcessingPending = true,
         )
         return DerivationChange(
             state = context.copy(

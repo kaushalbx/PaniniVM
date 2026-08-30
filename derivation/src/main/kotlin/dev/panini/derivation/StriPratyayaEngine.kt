@@ -12,7 +12,7 @@ data class StriPratyayaRequest(
 
 class StriPratyayaEngine(
     private val pipeline: DerivationPipeline = DerivationPipeline(
-        stages = listOf(SutraStage.PRATYAYA_SELECTION),
+        stages = listOf(SutraStage.PRATYAYA_SELECTION, SutraStage.IT_PROCESSING),
         sutrasForStage = Ashtadhyayi::striPratyayaSutrasAt,
     ),
 ) {

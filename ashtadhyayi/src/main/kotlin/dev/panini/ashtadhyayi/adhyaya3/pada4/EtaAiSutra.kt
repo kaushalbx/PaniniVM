@@ -20,14 +20,20 @@ object EtaAiSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         val ending = context.terms.lastOrNull() ?: return false
         return context.effectiveContext.rupa.lakara == Lakara.LOT &&
-            context.allEffectiveTerms.any { it.id == "lot-at-agama" } &&
+            context.allEffectiveTerms.any { it.id == "lot-at-agama" || "3.4.92" in it.establishedBySutras } &&
             ending.upadesha in setOf("इट्", "वहि", "महिङ्") &&
-            (ending.surface == "ए" || ending.surface.endsWith("े"))
+            (ending.surface.endsWith("ए") || ending.surface.endsWith("े"))
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
-        val replacement = if (ending.surface == "ए") "ऐ" else ending.surface.dropLast(1) + "ै"
+        val replacement = if (ending.surface.endsWith("आए")) {
+            ending.surface.dropLast(2) + "ऐ"
+        } else if (ending.surface.endsWith("ए")) {
+            ending.surface.dropLast(1) + "ऐ"
+        } else {
+            ending.surface.dropLast(1) + "ै"
+        }
         val replaced = context.replaceTerm(ending.id, ending.copy(surface = replacement))
         return DerivationChange(
             replaced.removeTerm("lot-at-agama"),

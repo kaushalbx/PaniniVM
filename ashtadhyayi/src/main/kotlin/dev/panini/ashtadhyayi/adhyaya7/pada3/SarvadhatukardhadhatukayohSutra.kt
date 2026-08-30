@@ -120,6 +120,6 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
         if (context.effectiveContext.rupa.lakara != Lakara.LOT) return true
         val affix = TingAffix.entries.firstOrNull { it.upadesha == context.terms.lastOrNull()?.upadesha } ?: return true
         return affix.pada != PadaType.ATMANEPADA ||
-            context.allEffectiveTerms.any { it.id == "lot-at-agama" }
+            context.allEffectiveTerms.any { it.id == "lot-at-agama" || "3.4.92" in it.establishedBySutras }
     }
 }

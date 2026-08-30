@@ -5,6 +5,7 @@ import dev.panini.ashtadhyayi.adhyaya1.pada1.TaparasTatKalasyaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada2.ArthavadAdhaturSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada2.KrtTaddhitaSamasascaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.BhuvadayoDhatavahSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada3.ChutuSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.HalantyamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.LasakvataddhiteSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.TasyaLopahSutra
@@ -14,6 +15,7 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class SamjnaSutrasTest {
@@ -88,5 +90,38 @@ class SamjnaSutrasTest {
             terms = listOf(DerivationTerm(id = "pratyaya", surface = "ल्युट्", kind = TermKind.PRATYAYA))
         )
         assertTrue(TasyaLopahSutra.matches(state))
+    }
+
+    @Test
+    fun `it rules delete only their designated sounds from raw upadeshas`() {
+        assertEquals("ई", process("ङीप्", useInitial = LasakvataddhiteSutra))
+        assertEquals("आ", process("टाप्", useInitial = ChutuSutra))
+        assertEquals("अ", process("अण्"))
+        assertEquals("अ", process("णल्", useInitial = ChutuSutra))
+        assertEquals("थ", process("थल्"))
+        assertEquals("आ", process("आट्", kind = TermKind.AGAMA))
+    }
+
+    private fun process(
+        upadesha: String,
+        useInitial: dev.panini.derivation.DerivationSutra? = null,
+        kind: TermKind = TermKind.PRATYAYA,
+    ): String {
+        var state = DerivationState(
+            stage = DerivationStage.PRATYAYA_SELECTED,
+            terms = listOf(
+                DerivationTerm(
+                    id = "raw",
+                    surface = upadesha,
+                    kind = kind,
+                    upadesha = upadesha,
+                    itProcessingPending = true,
+                ),
+            ),
+        )
+        useInitial?.let { state = it.apply(state).state }
+        if (HalantyamSutra.matches(state)) state = HalantyamSutra.apply(state).state
+        state = TasyaLopahSutra.apply(state).state
+        return state.terms.single().surface
     }
 }

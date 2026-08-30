@@ -25,7 +25,7 @@ class LitEndingSutrasTest {
     @Test
     fun `3 4 82 assigns all nine lit parasmaipada endings`() {
         val expected = mapOf(
-            "तिप्" to "अ", "तस्" to "अतुस्", "झि" to "उस्",
+            "तिप्" to "णल्", "तस्" to "अतुस्", "झि" to "उस्",
             "सिप्" to "थल्", "थस्" to "अथुस्", "थ" to "अ",
             "मिप्" to "अ", "वस्" to "व", "मस्" to "म",
         )

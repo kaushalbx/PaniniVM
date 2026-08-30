@@ -5,6 +5,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.ItDesignation
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
@@ -29,13 +30,14 @@ object LasakvataddhiteSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Samjna,
     action = SutraAction.SAMJNA,
     scope = SutraScope.PRATYAYA,
+    stage = dev.panini.sutra.SutraStage.IT_PROCESSING,
 ), DerivationSutra {
     fun hasSamjnaTarget(state: DerivationState): Boolean {
-        if (state.stage != DerivationStage.PRATYAYA_SELECTED) return false
+        if (state.stage != DerivationStage.PRATYAYA_SELECTED && state.terms.none { it.itProcessingPending }) return false
 
         return state.terms.any { term ->
             term.kind == TermKind.PRATYAYA && term.surface.isNotEmpty() && isLaShaKu(term.surface.first()) &&
-                !term.itMarkers.contains(ItMarker.KIT)
+                term.itDesignations.none { it.start == 0 }
         }
     }
 
@@ -50,7 +52,19 @@ object LasakvataddhiteSutra : Sutra<DerivationState, DerivationChange>(
                         "ङ" -> ItMarker.NGIT
                         else -> if (isKu(firstChar)) ItMarker.KIT else ItMarker.KIT
                     }
-                    term.copy(itMarkers = term.itMarkers + marker)
+                    val sign = term.surface.getOrNull(1)
+                    val vowel = when (sign) {
+                        'ा' -> "आ"; 'ि' -> "इ"; 'ी' -> "ई"; 'ु' -> "उ"; 'ू' -> "ऊ"
+                        'ृ' -> "ऋ"; 'ॄ' -> "ॠ"; 'ॢ' -> "ऌ"; 'े' -> "ए"; 'ै' -> "ऐ"; 'ो' -> "ओ"; 'ौ' -> "औ"
+                        else -> "अ"
+                    }
+                    val length = if (sign in setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ', 'े', 'ै', 'ो', 'ौ')) 2 else 1
+                    term.copy(
+                        itMarkers = term.itMarkers + marker,
+                        itDesignations = if (term.itProcessingPending) {
+                            term.itDesignations + ItDesignation(0, length, vowel, marker, sutra)
+                        } else term.itDesignations,
+                    )
                 } else term
             } else term
         }

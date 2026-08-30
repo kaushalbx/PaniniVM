@@ -45,6 +45,7 @@ object AcoNnitiSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[stemIndex]
         val affix = context.terms.getOrNull(stemIndex + 1) ?: return false
         if (affix.kind != TermKind.PRATYAYA) return false
+        if (affix.hasEffectiveMarker(ItMarker.KIT) || affix.hasEffectiveMarker(ItMarker.NGIT)) return false
 
         val isNniti = affix.hasEffectiveMarker(ItMarker.NG) ||
                       affix.hasEffectiveMarker(ItMarker.NIT) ||

@@ -42,7 +42,7 @@ object KitiCaSutra : Sutra<DerivationState, DerivationChange>(
         if (!isKit) return false
 
         val stem = context.terms.firstOrNull { it.kind == TermKind.PRATIPADIKA } ?: return false
-        return !isAlreadyVrddhi(stem.surface)
+        return !isAlreadyVrddhi(stem.surface) && applyInitialVrddhi(stem.surface) != stem.surface
     }
 
     override fun apply(context: DerivationState): DerivationChange {

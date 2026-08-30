@@ -31,6 +31,7 @@ object Adhyaya1Pada1 {
         PratyayasyaLupSlulopahSutra,
         TasminNirdistePurvasyaSutra,
         AloAntyatPurvaUpadhaSutra,
+        AdyantauTakitauSutra,
         TasmatItyUttarasyamSutra,
         SasthiSthaneYogaSutra,
         SvamRupamSabdasyasabdasamjnaSutra,

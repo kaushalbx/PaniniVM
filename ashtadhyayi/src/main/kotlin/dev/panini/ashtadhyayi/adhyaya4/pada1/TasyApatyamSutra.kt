@@ -41,8 +41,8 @@ object TasyApatyamSutra : Sutra<DerivationState, DerivationChange>(
             id = "an-apatya",
             surface = "अण्",
             kind = TermKind.PRATYAYA,
-            itMarkers = setOf(ItMarker.NIT),
             upadesha = "अण्",
+            itProcessingPending = true,
         )
         return DerivationChange(
             state = context.copy(

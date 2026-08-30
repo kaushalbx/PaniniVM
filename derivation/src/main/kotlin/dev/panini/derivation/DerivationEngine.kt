@@ -425,7 +425,7 @@ class DerivationEngine(
         val candidates = evaluated.filter { it.change.state != state }
         val conflicts = RuleConflictResolver.resolve(candidates)
         val losers = conflicts.mapTo(mutableSetOf()) { it.loser }
-        val selected = candidates.filterNot { it in losers }.minWithOrNull(candidateOrder) ?: evaluated.firstOrNull()
+        val selected = candidates.filterNot { it in losers }.minWithOrNull(candidateOrder(state)) ?: evaluated.firstOrNull()
         return RuleSelection(candidates, conflicts, selected)
     }
 
@@ -433,7 +433,9 @@ class DerivationEngine(
         if (deferTripadiUntilPada && sutra.isTripadi() && state.stage < DerivationStage.PADA_FORMED) return false
         val isPadaBoundaryDerivation = state.samjnas.count { it.samjna == Samjna.PADA } >= 2 &&
             state.allEffectiveTerms.none { it.kind == TermKind.DHATU || it.kind == TermKind.PRATYAYA }
-        if (isPadaBoundaryDerivation && sutra.stage !in SutraStage.sandhiPhases) return false
+        if (isPadaBoundaryDerivation && sutra.stage !in SutraStage.sandhiPhases &&
+            !(sutra.stage == SutraStage.IT_PROCESSING && state.terms.any { it.itProcessingPending })
+        ) return false
         if (!isPadaBoundaryDerivation && sutra.scope == SutraScope.PADA_BOUNDARY) return false
 
         val activeDomains = sutraActiveAdhikaras[sutra.sutra] ?: emptyList()
@@ -450,16 +452,21 @@ class DerivationEngine(
          * must be established before an operation consumes them; after that,
          * textual order is used only to choose the next independent action.
          */
-        val candidateOrder = compareBy<RuleCandidate>(
-            { agendaDomain(it.sutra) },
+        fun candidateOrder(state: DerivationState) = compareBy<RuleCandidate>(
+            { candidate ->
+                if (candidate.sutra.sutra == "1.3.9" && state.terms.any { it.itProcessingPending }) 1
+                else if (candidate.sutra.sutra == "3.4.92" && state.substitutions.any { it.sutra == "7.3.84" }) 2
+                else if (candidate.sutra.sutra == "3.4.93" && state.allEffectiveTerms.any { "3.4.92" in it.establishedBySutras }) 2
+                else agendaDomain(candidate.sutra)
+            },
             { it.sutra.isTripadi() },
             { if (it.sutra.isTripadi()) it.sutra.krama else -it.sutra.krama },
         )
 
-        fun agendaDomain(sutra: DerivationSutra): Int = when (sutra.role) {
-            SutraRole.Samjna, is SutraRole.Paribhasha, SutraRole.Atidesha -> 0
-            is SutraRole.Adhikara, SutraRole.Anuvrtti -> 1
-            SutraRole.Nishedha, SutraRole.Niyama, SutraRole.Apavada -> 2
+        fun agendaDomain(sutra: DerivationSutra): Int = when {
+            sutra.role == SutraRole.Samjna || sutra.role is SutraRole.Paribhasha || sutra.role == SutraRole.Atidesha -> 0
+            sutra.role is SutraRole.Adhikara || sutra.role == SutraRole.Anuvrtti -> 1
+            sutra.role == SutraRole.Nishedha || sutra.role == SutraRole.Niyama || sutra.role == SutraRole.Apavada -> 2
             else -> 3
         }
 

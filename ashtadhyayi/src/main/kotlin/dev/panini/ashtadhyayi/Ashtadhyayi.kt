@@ -123,10 +123,24 @@ object Ashtadhyayi {
     }
 
     fun sandhiSutrasAt(stage: SutraStage): List<DerivationSutra> = sandhiSutras.at(stage)
-    fun sankhyaSutrasAt(stage: SutraStage): List<DerivationSutra> = sankhyaSutras.at(stage)
+    fun sankhyaSutrasAt(stage: SutraStage): List<DerivationSutra> =
+        if (stage == SutraStage.IT_PROCESSING) {
+            executableSutrasAt(stage).filter { sutra ->
+                (sutra as? Sutra<*, *>)?.let { it.chapter == 1 && it.pada == 3 } == true
+            }
+        } else {
+            sankhyaSutras.at(stage)
+        }
     fun puranaSankhyaSutrasAt(stage: SutraStage): List<DerivationSutra> = puranaSankhyaSutras.at(stage)
     fun krdantaSutrasAt(stage: SutraStage): List<DerivationSutra> = krdantaSutras.at(stage)
-    fun striPratyayaSutrasAt(stage: SutraStage): List<DerivationSutra> = striPratyayaSutras.at(stage)
+    fun striPratyayaSutrasAt(stage: SutraStage): List<DerivationSutra> =
+        if (stage == SutraStage.IT_PROCESSING) {
+            executableSutrasAt(stage).filter { sutra ->
+                (sutra as? Sutra<*, *>)?.let { it.chapter == 1 && it.pada == 3 } == true
+            }
+        } else {
+            striPratyayaSutras.at(stage)
+        }
 
     fun requireExecutable(number: String): DerivationSutra =
         registry.require(number) as? DerivationSutra

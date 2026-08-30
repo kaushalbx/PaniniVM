@@ -40,6 +40,21 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
         val newTerms = context.terms.map { term ->
             if (term.itMarkers.isEmpty()) return@map term
             if (pendingTargets.isNotEmpty() && term.id !in pendingTargets) return@map term
+            if (term.itProcessingPending && term.itDesignations.isNotEmpty()) {
+                val processed = term.itDesignations.sortedByDescending { it.start }.fold(term.surface) { surface, designation ->
+                    surface.replaceRange(designation.start, designation.endExclusive, designation.replacementAfterLopa)
+                }
+                return@map term.copy(
+                    surface = processed,
+                    itMarkers = emptySet(),
+                    itDesignations = emptyList(),
+                    itProcessingPending = false,
+                    sthaniProps = dev.panini.derivation.SthaniProperties(
+                        upadesha = term.sthaniProps?.upadesha ?: term.upadesha,
+                        itMarkers = term.sthaniProps?.itMarkers.orEmpty() + term.itMarkers,
+                    ),
+                )
+            }
             // A dhātu enters the derivation with its normalized mūla already
             // separated from the Dhātupāṭha upadeśa. Its recorded it-status
             // must not delete actual root sounds from that normalized surface.
@@ -96,6 +111,7 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
             term.copy(
                 surface = newSurface,
                 itMarkers = emptySet(),
+                itDesignations = emptyList(),
                 itProcessingPending = false,
             ) // Markers are consumed after lopa
         }

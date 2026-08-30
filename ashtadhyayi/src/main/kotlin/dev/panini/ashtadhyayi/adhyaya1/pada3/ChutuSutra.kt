@@ -5,6 +5,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.ItDesignation
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
@@ -29,13 +30,14 @@ object ChutuSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Samjna,
     action = SutraAction.SAMJNA,
     scope = SutraScope.PRATYAYA,
+    stage = dev.panini.sutra.SutraStage.IT_PROCESSING,
 ), DerivationSutra {
     fun hasSamjnaTarget(state: DerivationState): Boolean {
-        if (state.stage != DerivationStage.PRATYAYA_SELECTED) return false
+        if (state.stage != DerivationStage.PRATYAYA_SELECTED && state.terms.none { it.itProcessingPending }) return false
 
         return state.terms.any { term ->
             term.kind == TermKind.PRATYAYA && term.surface.isNotEmpty() &&
-            (isCu(term.surface.first()) || isTtu(term.surface.first()))
+            (isCu(term.surface.first()) || isTtu(term.surface.first())) && term.itDesignations.none { it.start == 0 }
         }
     }
 
@@ -44,8 +46,8 @@ object ChutuSutra : Sutra<DerivationState, DerivationChange>(
             if (term.kind == TermKind.PRATYAYA && term.surface.isNotEmpty()) {
                 val firstChar = term.surface.first()
                 when {
-                    isCu(firstChar) -> term.copy(itMarkers = term.itMarkers + ItMarker.J) // 'J' used for Ñ-it/Cu-it
-                    isTtu(firstChar) -> term.copy(itMarkers = term.itMarkers + ItMarker.T) // 'T' used for Ṇ-it/Ṭu-it
+                    isCu(firstChar) -> designateInitial(term, ItMarker.J)
+                    isTtu(firstChar) -> designateInitial(term, if (firstChar == 'ण') ItMarker.NIT else ItMarker.T)
                     else -> term
                 }
             } else term
@@ -63,4 +65,20 @@ object ChutuSutra : Sutra<DerivationState, DerivationChange>(
 
     private fun isCu(c: Char): Boolean = c in setOf('च', 'छ', 'ज', 'झ', 'ञ')
     private fun isTtu(c: Char): Boolean = c in setOf('ट', 'ठ', 'ड', 'ढ', 'ण')
+
+    private fun designateInitial(term: dev.panini.derivation.DerivationTerm, marker: ItMarker): dev.panini.derivation.DerivationTerm {
+        val sign = term.surface.getOrNull(1)
+        val vowel = when (sign) {
+            'ा' -> "आ"; 'ि' -> "इ"; 'ी' -> "ई"; 'ु' -> "उ"; 'ू' -> "ऊ"
+            'ृ' -> "ऋ"; 'ॄ' -> "ॠ"; 'ॢ' -> "ऌ"; 'े' -> "ए"; 'ै' -> "ऐ"; 'ो' -> "ओ"; 'ौ' -> "औ"
+            else -> "अ"
+        }
+        val length = if (sign in setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ', 'े', 'ै', 'ो', 'ौ')) 2 else 1
+        return term.copy(
+            itMarkers = term.itMarkers + marker,
+            itDesignations = if (term.itProcessingPending) {
+                term.itDesignations + ItDesignation(0, length, vowel, marker, sutra)
+            } else term.itDesignations,
+        )
+    }
 }
