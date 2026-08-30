@@ -55,6 +55,9 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
                     ),
                 )
             }
+            // Newly introduced upadeśas are processed only from exact spans
+            // assigned by 1.3.2–1.3.8. Never infer a deletion from a marker.
+            if (term.itProcessingPending) return@map term
             // A dhātu enters the derivation with its normalized mūla already
             // separated from the Dhātupāṭha upadeśa. Its recorded it-status
             // must not delete actual root sounds from that normalized surface.
@@ -66,12 +69,8 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
 
             // 0. Handle vowel U marker (anunasika U in supi/ting)
             if (term.itMarkers.contains(ItMarker.U)) {
-                newSurface = if (term.itProcessingPending && newSurface.endsWith("रुँ")) {
-                    newSurface.dropLast("रुँ".length) + "र्"
-                } else {
-                    newSurface.replace("ुँ", "्").replace("ु", "्").replace("ँ", "")
-                        .replace("ि", "्").replace("इ", "्")
-                }
+                newSurface = newSurface.replace("ुँ", "्").replace("ु", "्").replace("ँ", "")
+                    .replace("ि", "्").replace("इ", "्")
                 if (newSurface.endsWith("््")) {
                     newSurface = newSurface.dropLast(1)
                 }

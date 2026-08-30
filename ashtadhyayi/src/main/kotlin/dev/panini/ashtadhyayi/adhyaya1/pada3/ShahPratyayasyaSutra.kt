@@ -5,8 +5,8 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.ItDesignation
 import dev.panini.derivation.TermKind
-import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -29,19 +29,31 @@ object ShahPratyayasyaSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Samjna,
     action = SutraAction.SAMJNA,
     scope = SutraScope.PRATYAYA,
+    stage = dev.panini.sutra.SutraStage.IT_PROCESSING,
 ), DerivationSutra {
     fun hasSamjnaTarget(state: DerivationState): Boolean {
-        if (state.stage != DerivationStage.PRATYAYA_SELECTED) return false
+        if (state.stage != DerivationStage.PRATYAYA_SELECTED && state.terms.none { it.itProcessingPending }) return false
 
         return state.terms.any { term ->
-            term.kind == TermKind.PRATYAYA && term.surface.startsWith('ष')
+            term.kind == TermKind.PRATYAYA && term.surface.startsWith('ष') &&
+                term.itDesignations.none { it.start == 0 }
         }
     }
 
     fun assignSamjna(state: DerivationState): DerivationChange {
         val newTerms = state.terms.map { term ->
             if (term.kind == TermKind.PRATYAYA && term.surface.startsWith('ष')) {
-                term.copy(itMarkers = term.itMarkers + ItMarker.SH)
+                val end = if (term.surface.getOrNull(1) == '्') 2 else 1
+                term.copy(
+                    itMarkers = term.itMarkers + ItMarker.SH,
+                    itDesignations = term.itDesignations + ItDesignation(
+                        start = 0,
+                        endExclusive = end,
+                        replacementAfterLopa = if (end == 1) "अ" else "",
+                        marker = ItMarker.SH,
+                        sutra = sutra,
+                    ),
+                )
             } else term
         }
 

@@ -5,8 +5,8 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.ItDesignation
 import dev.panini.derivation.TermKind
-import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -29,25 +29,23 @@ object AdirNitudavahSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Samjna,
     action = SutraAction.SAMJNA,
     scope = SutraScope.DHATU,
+    stage = dev.panini.sutra.SutraStage.IT_PROCESSING,
 ), DerivationSutra {
     fun hasSamjnaTarget(state: DerivationState): Boolean =
-        state.stage == DerivationStage.INITIAL && state.terms.any { term ->
-            term.kind == TermKind.DHATU && (
-                term.surface.startsWith("ञि") ||
-                term.surface.startsWith("टु") ||
-                term.surface.startsWith("डु")
-            )
+        (state.stage == DerivationStage.INITIAL || state.terms.any { it.itProcessingPending }) &&
+            state.terms.any { term ->
+                term.kind == TermKind.DHATU && initialMarker(term.surface) != null &&
+                    term.itDesignations.none { it.start == 0 }
         }
 
     fun assignSamjna(state: DerivationState): DerivationChange {
         val newTerms = state.terms.map { term ->
             if (term.kind == TermKind.DHATU) {
-                when {
-                    term.surface.startsWith("ञि") -> term.copy(itMarkers = term.itMarkers + ItMarker.KIT) // Using KIT as proxy
-                    term.surface.startsWith("टु") -> term.copy(itMarkers = term.itMarkers + ItMarker.T)
-                    term.surface.startsWith("डु") -> term.copy(itMarkers = term.itMarkers + ItMarker.KIT)
-                    else -> term
-                }
+                val marker = initialMarker(term.surface) ?: return@map term
+                term.copy(
+                    itMarkers = term.itMarkers + marker,
+                    itDesignations = term.itDesignations + ItDesignation(0, 2, marker = marker, sutra = sutra),
+                )
             } else term
         }
         return DerivationChange(
@@ -59,4 +57,11 @@ object AdirNitudavahSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean = hasSamjnaTarget(context)
 
     override fun apply(context: DerivationState): DerivationChange = assignSamjna(context)
+
+    private fun initialMarker(surface: String): ItMarker? = when {
+        surface.startsWith("ञि") -> ItMarker.NYIT
+        surface.startsWith("टु") -> ItMarker.T
+        surface.startsWith("डु") -> ItMarker.DIT
+        else -> null
+    }
 }

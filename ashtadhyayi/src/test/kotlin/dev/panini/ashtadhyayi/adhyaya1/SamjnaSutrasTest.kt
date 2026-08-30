@@ -5,9 +5,11 @@ import dev.panini.ashtadhyayi.adhyaya1.pada1.TaparasTatKalasyaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada2.ArthavadAdhaturSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada2.KrtTaddhitaSamasascaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.BhuvadayoDhatavahSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada3.AdirNitudavahSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.ChutuSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.HalantyamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.LasakvataddhiteSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada3.ShahPratyayasyaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.TasyaLopahSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.UpadesheAjanunasikaItSutra
 import dev.panini.derivation.DerivationStage
@@ -100,6 +102,10 @@ class SamjnaSutrasTest {
         assertEquals("अ", process("णल्", useInitial = ChutuSutra))
         assertEquals("थ", process("थल्"))
         assertEquals("आ", process("आट्", kind = TermKind.AGAMA))
+        assertEquals("कृ", process("डुकृञ्", kind = TermKind.DHATU, useInitial = AdirNitudavahSutra))
+        assertEquals("भू", process("ञिभू", kind = TermKind.DHATU, useInitial = AdirNitudavahSutra))
+        assertEquals("अक", process("षक", useInitial = ShahPratyayasyaSutra))
+        assertEquals("क", process("ष्क", useInitial = ShahPratyayasyaSutra))
     }
 
     private fun process(
