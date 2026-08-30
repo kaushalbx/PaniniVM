@@ -28,7 +28,7 @@ object AbhikshnyeNamulCaSutra : Sutra<DerivationState, DerivationChange>(
         context.allEffectiveTerms.none { it.upadesha == "णमुल्" }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val namul = DerivationTerm("namul", "णमुँल्", TermKind.PRATYAYA, upadesha = "णमुल्", itProcessingPending = true)
+        val namul = DerivationTerm("namul", "णमुँल्", TermKind.PRATYAYA, upadesha = "णमुल्", itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
         return DerivationChange(
             state = context.addTerm(namul),
             explanation = "3.4.22 prescribes णमुल् repetitive action gerund affix in ābhīkṣṇya.",

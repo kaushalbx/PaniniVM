@@ -80,7 +80,14 @@ object AdyantauTakitauSutra : Sutra<DerivationState, DerivationChange>(
                             itDesignations = target.itDesignations + term.itDesignations.map {
                                 it.copy(start = it.start + designationOffset, endExclusive = it.endExclusive + designationOffset)
                             },
-                            itProcessingPending = target.itProcessingPending || term.itProcessingPending,
+                            itProcessingPhase = when {
+                                target.itProcessingPhase == dev.panini.derivation.ItProcessingPhase.DESIGNATED ||
+                                    term.itProcessingPhase == dev.panini.derivation.ItProcessingPhase.DESIGNATED ->
+                                    dev.panini.derivation.ItProcessingPhase.DESIGNATED
+                                target.itProcessingPending || term.itProcessingPending ->
+                                    dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA
+                                else -> dev.panini.derivation.ItProcessingPhase.PROCESSED
+                            },
                         )
                         terms[targetIndex] = merged
                         terms.removeAt(terms.indexOfFirst { it.id == term.id })

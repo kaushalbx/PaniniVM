@@ -55,7 +55,7 @@ object HrasvasyaPitiKrtiTukSutra : Sutra<DerivationState, DerivationChange>(
             kind = TermKind.AGAMA,
             upadesha = "तुक्",
             createdBySutra = sutra,
-            itProcessingPending = true,
+            itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
             augmentTargetId = context.terms[stemIndex].id,
         )
         val newTerms = context.terms.take(stemIndex + 1) + tukTerm + context.terms.drop(stemIndex + 1)

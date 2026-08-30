@@ -42,10 +42,17 @@ object UpadesheAjanunasikaItSutra : Sutra<DerivationState, DerivationChange>(
         val targets = targets(state)
         return DerivationChange(
             state.copy(terms = state.terms.map {
-                if (it in targets) it.copy(
-                    itMarkers = it.itMarkers + ItMarker.U,
-                    itDesignations = it.itDesignations + nasalVowelDesignations(it),
-                ) else it
+                if (it in targets) {
+                    val designations = nasalVowelDesignations(it).map { designation ->
+                        designation.copy(designatedText = it.surface.substring(designation.start, designation.endExclusive))
+                    }
+                    it.copy(
+                        itMarkers = it.itMarkers + ItMarker.U,
+                        itProcessingPhase = if (it.itProcessingPending) dev.panini.derivation.ItProcessingPhase.DESIGNATED else it.itProcessingPhase,
+                        itDesignations = if (it.itProcessingPending) it.itDesignations + designations else it.itDesignations,
+                        deferredItDesignations = if (it.itProcessingPending) it.deferredItDesignations else it.deferredItDesignations + designations,
+                    )
+                } else it
             }),
             "1.3.2 assigns इत्-saṃjñā to the nasalized vowel of ${targets.joinToString { it.surface }}.",
         )
@@ -58,7 +65,8 @@ object UpadesheAjanunasikaItSutra : Sutra<DerivationState, DerivationChange>(
     private fun nasalVowelDesignations(term: dev.panini.derivation.DerivationTerm): List<ItDesignation> =
         term.surface.indices.filter { term.surface[it] == 'ँ' }.mapNotNull { chandrabindu ->
             val vowel = chandrabindu - 1
-            if (vowel < 0 || term.itDesignations.any { it.start == vowel && it.endExclusive == chandrabindu + 1 }) {
+            if (vowel < 0 || (term.itDesignations + term.deferredItDesignations)
+                    .any { it.start == vowel && it.endExclusive == chandrabindu + 1 }) {
                 null
             } else {
                 val isDependentVowel = term.surface[vowel] in setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ', 'े', 'ै', 'ो', 'ौ')

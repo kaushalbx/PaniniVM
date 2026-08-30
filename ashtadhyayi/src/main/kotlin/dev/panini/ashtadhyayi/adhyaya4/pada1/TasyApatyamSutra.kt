@@ -42,7 +42,7 @@ object TasyApatyamSutra : Sutra<DerivationState, DerivationChange>(
             surface = "अण्",
             kind = TermKind.PRATYAYA,
             upadesha = "अण्",
-            itProcessingPending = true,
+            itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
         )
         return DerivationChange(
             state = context.copy(

@@ -36,7 +36,7 @@ object ShahPratyayasyaSutra : Sutra<DerivationState, DerivationChange>(
 
         return state.terms.any { term ->
             term.kind == TermKind.PRATYAYA && term.surface.startsWith('ष') &&
-                term.itDesignations.none { it.start == 0 }
+                (term.itDesignations + term.deferredItDesignations).none { it.start == 0 }
         }
     }
 
@@ -44,15 +44,19 @@ object ShahPratyayasyaSutra : Sutra<DerivationState, DerivationChange>(
         val newTerms = state.terms.map { term ->
             if (term.kind == TermKind.PRATYAYA && term.surface.startsWith('ष')) {
                 val end = if (term.surface.getOrNull(1) == '्') 2 else 1
+                val designation = ItDesignation(
+                    start = 0,
+                    endExclusive = end,
+                    replacementAfterLopa = if (end == 1) "अ" else "",
+                    marker = ItMarker.SH,
+                    sutra = sutra,
+                    designatedText = term.surface.substring(0, end),
+                )
                 term.copy(
                     itMarkers = term.itMarkers + ItMarker.SH,
-                    itDesignations = term.itDesignations + ItDesignation(
-                        start = 0,
-                        endExclusive = end,
-                        replacementAfterLopa = if (end == 1) "अ" else "",
-                        marker = ItMarker.SH,
-                        sutra = sutra,
-                    ),
+                    itProcessingPhase = if (term.itProcessingPending) dev.panini.derivation.ItProcessingPhase.DESIGNATED else term.itProcessingPhase,
+                    itDesignations = if (term.itProcessingPending) term.itDesignations + designation else term.itDesignations,
+                    deferredItDesignations = if (term.itProcessingPending) term.deferredItDesignations else term.deferredItDesignations + designation,
                 )
             } else term
         }

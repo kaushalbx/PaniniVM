@@ -37,7 +37,7 @@ object LasakvataddhiteSutra : Sutra<DerivationState, DerivationChange>(
 
         return state.terms.any { term ->
             term.kind == TermKind.PRATYAYA && term.surface.isNotEmpty() && isLaShaKu(term.surface.first()) &&
-                term.itDesignations.none { it.start == 0 }
+                (term.itDesignations + term.deferredItDesignations).none { it.start == 0 }
         }
     }
 
@@ -60,11 +60,12 @@ object LasakvataddhiteSutra : Sutra<DerivationState, DerivationChange>(
                         else -> "अ"
                     }
                     val length = if (sign == '्' || sign in setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ', 'े', 'ै', 'ो', 'ौ')) 2 else 1
+                    val designation = ItDesignation(0, length, vowel, marker, sutra, designatedText = term.surface.substring(0, length))
                     term.copy(
                         itMarkers = term.itMarkers + marker,
-                        itDesignations = if (term.itProcessingPending) {
-                            term.itDesignations + ItDesignation(0, length, vowel, marker, sutra)
-                        } else term.itDesignations,
+                        itProcessingPhase = if (term.itProcessingPending) dev.panini.derivation.ItProcessingPhase.DESIGNATED else term.itProcessingPhase,
+                        itDesignations = if (term.itProcessingPending) term.itDesignations + designation else term.itDesignations,
+                        deferredItDesignations = if (term.itProcessingPending) term.deferredItDesignations else term.deferredItDesignations + designation,
                     )
                 } else term
             } else term

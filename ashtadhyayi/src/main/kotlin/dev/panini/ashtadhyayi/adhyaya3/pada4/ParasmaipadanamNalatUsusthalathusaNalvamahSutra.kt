@@ -38,7 +38,11 @@ object ParasmaipadanamNalatUsusthalathusaNalvamahSutra : Sutra<DerivationState, 
             upadesha = if (requiresItProcessing) replacement else ending.upadesha,
             itMarkers = emptySet(),
             itDesignations = emptyList(),
-            itProcessingPending = requiresItProcessing,
+            itProcessingPhase = if (requiresItProcessing) {
+                dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA
+            } else {
+                dev.panini.derivation.ItProcessingPhase.PROCESSED
+            },
             sthaniProps = SthaniProperties(ending.upadesha, emptySet()),
         )
         return DerivationChange(context.replaceTerm(ending.id, substituted),

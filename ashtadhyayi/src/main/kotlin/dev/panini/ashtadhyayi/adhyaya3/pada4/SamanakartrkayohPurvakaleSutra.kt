@@ -50,7 +50,7 @@ object SamanakartrkayohPurvakaleSutra : Sutra<DerivationState, DerivationChange>
                 kind = TermKind.PRATYAYA,
                 upadesha = "ल्यप्",
                 createdBySutra = sutra,
-                itProcessingPending = true,
+                itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
             )
         } else {
             DerivationTerm(
@@ -59,7 +59,7 @@ object SamanakartrkayohPurvakaleSutra : Sutra<DerivationState, DerivationChange>
                 kind = TermKind.PRATYAYA,
                 upadesha = "क्त्वा",
                 createdBySutra = sutra,
-                itProcessingPending = true,
+                itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
             )
         }
 

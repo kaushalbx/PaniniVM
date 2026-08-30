@@ -47,7 +47,7 @@ object NisthaSutra : Sutra<DerivationState, DerivationChange>(
                 kind = TermKind.PRATYAYA,
                 upadesha = "क्तवतु",
                 createdBySutra = sutra,
-                itProcessingPending = true,
+                itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
             )
         } else {
             DerivationTerm(
@@ -56,7 +56,7 @@ object NisthaSutra : Sutra<DerivationState, DerivationChange>(
                 kind = TermKind.PRATYAYA,
                 upadesha = "क्त",
                 createdBySutra = sutra,
-                itProcessingPending = true,
+                itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
             )
         }
 

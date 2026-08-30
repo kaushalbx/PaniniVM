@@ -71,7 +71,7 @@ class SamjnaSutrasTest {
     fun testHalantyamSutra() {
         val state = DerivationState(
             stage = DerivationStage.PRATYAYA_SELECTED,
-            terms = listOf(DerivationTerm(id = "pratyaya", surface = "ल्युट्", kind = TermKind.PRATYAYA, itProcessingPending = true))
+            terms = listOf(DerivationTerm(id = "pratyaya", surface = "ल्युट्", kind = TermKind.PRATYAYA, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA))
         )
         assertTrue(HalantyamSutra.matches(state))
     }
@@ -89,7 +89,7 @@ class SamjnaSutrasTest {
     fun testTasyaLopahSutra() {
         val state = DerivationState(
             stage = DerivationStage.PRATYAYA_SELECTED,
-            terms = listOf(DerivationTerm(id = "pratyaya", surface = "ल्युट्", kind = TermKind.PRATYAYA, itProcessingPending = true))
+            terms = listOf(DerivationTerm(id = "pratyaya", surface = "ल्युट्", kind = TermKind.PRATYAYA, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA))
         )
         assertTrue(TasyaLopahSutra.matches(state))
     }
@@ -129,7 +129,7 @@ class SamjnaSutrasTest {
                     surface = upadesha,
                     kind = kind,
                     upadesha = upadesha,
-                    itProcessingPending = true,
+                    itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
                 ),
             ),
         )

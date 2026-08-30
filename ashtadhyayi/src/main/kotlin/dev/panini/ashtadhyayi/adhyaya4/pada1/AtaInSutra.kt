@@ -45,7 +45,7 @@ object AtaInSutra : Sutra<DerivationState, DerivationChange>(
             surface = "इञ्",
             kind = TermKind.PRATYAYA,
             upadesha = "इञ्",
-            itProcessingPending = true,
+            itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
         )
         return DerivationChange(
             state = context.copy(

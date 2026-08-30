@@ -25,5 +25,5 @@ object RgayandibhyoAnSutra : Sutra<DerivationState, DerivationChange>(
         (HasRequestedMeaning(DerivationalMeaning.TATRA_BHAVA).matches(context) || HasRequestedMeaning(DerivationalMeaning.VYAKHYANA).matches(context)) &&
             context.terms.any { it.kind == TermKind.PRATIPADIKA && GanaPatha.isEligibleMember(116, it.surface, it.lexicalUses) } &&
             context.allEffectiveTerms.none { it.upadesha == "अण्" }
-    override fun apply(context: DerivationState) = DerivationChange(context.addTerm(DerivationTerm("an-suffix", "अण्", TermKind.PRATYAYA, upadesha = "अण्", itProcessingPending = true)), "4.3.73 introduces अण् after an eligible ऋगयनादि term.")
+    override fun apply(context: DerivationState) = DerivationChange(context.addTerm(DerivationTerm("an-suffix", "अण्", TermKind.PRATYAYA, upadesha = "अण्", itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)), "4.3.73 introduces अण् after an eligible ऋगयनादि term.")
 }

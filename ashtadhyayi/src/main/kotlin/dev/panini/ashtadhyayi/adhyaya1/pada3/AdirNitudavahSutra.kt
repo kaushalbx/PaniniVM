@@ -44,6 +44,7 @@ object AdirNitudavahSutra : Sutra<DerivationState, DerivationChange>(
                 val marker = initialMarker(term.surface) ?: return@map term
                 term.copy(
                     itMarkers = term.itMarkers + marker,
+                    itProcessingPhase = dev.panini.derivation.ItProcessingPhase.DESIGNATED,
                     itDesignations = term.itDesignations + ItDesignation(0, 2, marker = marker, sutra = sutra),
                 )
             } else term

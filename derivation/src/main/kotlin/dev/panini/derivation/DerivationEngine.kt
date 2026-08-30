@@ -372,6 +372,8 @@ class DerivationEngine(
             current.copy(stage = DerivationStage.FINAL)
         } else {
             current
+        }.let { state ->
+            if (state.stage == DerivationStage.FINAL) state.requireCompleteItProcessing() else state
         }
         val svara = if (finalState.surface.isNotBlank()) {
             val isNitOrNnit = finalState.allEffectiveTerms.any { 

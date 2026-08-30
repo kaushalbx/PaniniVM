@@ -47,7 +47,7 @@ object RhalorNyatSutra : Sutra<DerivationState, DerivationChange>(
             kind = TermKind.PRATYAYA,
             upadesha = "ण्यत्",
             createdBySutra = sutra,
-            itProcessingPending = true,
+            itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
         )
         return DerivationChange(
             state = context.copy(

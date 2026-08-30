@@ -1,12 +1,9 @@
 package dev.panini.ashtadhyayi.adhyaya1.pada3
 
-import dev.panini.core.ItMarker
-import dev.panini.core.Linga
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.TermKind
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -36,97 +33,56 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
         if (context.stage == DerivationStage.PRATYAYA_SELECTED && context.terms.none { it.itProcessingPending }) {
             return true
         }
-        val pendingTargets = context.terms.filter { it.itProcessingPending }
-        val candidates = pendingTargets.ifEmpty { context.terms }
-        return candidates.any { term ->
+        return context.terms.filter { it.itProcessingPending }.any { term ->
             term.itDesignations.isNotEmpty() ||
-                (term.itProcessingPending && term.itMarkers.isEmpty()) ||
-                (!term.itProcessingPending && term.itMarkers.isNotEmpty())
-        }
+                (term.itProcessingPhase == dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA &&
+                    term.itMarkers.isEmpty())
+        } || (context.stage >= DerivationStage.ANGAKARYA &&
+            context.terms.any { it.deferredItDesignations.isNotEmpty() })
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val pendingTargets = context.terms.filter { it.itProcessingPending }.mapTo(mutableSetOf()) { it.id }
         val newTerms = context.terms.map { term ->
             if (pendingTargets.isNotEmpty() && term.id !in pendingTargets) return@map term
-            if (term.itProcessingPending && term.itMarkers.isEmpty() && term.itDesignations.isEmpty()) {
-                return@map term.copy(itProcessingPending = false)
+            if (term.itProcessingPhase == dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA &&
+                term.itMarkers.isEmpty() && term.itDesignations.isEmpty()
+            ) {
+                return@map term.copy(itProcessingPhase = dev.panini.derivation.ItProcessingPhase.PROCESSED)
             }
-            if (term.itDesignations.isNotEmpty()) {
-                val designatedMarkers = term.itDesignations.mapTo(mutableSetOf()) { it.marker }
-                val processed = term.itDesignations.sortedByDescending { it.start }.fold(term.surface) { surface, designation ->
-                    surface.replaceRange(designation.start, designation.endExclusive, designation.replacementAfterLopa)
+            val exactDesignations = term.itDesignations + term.deferredItDesignations
+            if (exactDesignations.isNotEmpty()) {
+                val designatedMarkers = exactDesignations.mapTo(mutableSetOf()) { it.marker }
+                val processed = exactDesignations.sortedByDescending { it.start }.fold(term.surface) { surface, designation ->
+                    val recordedText = designation.designatedText
+                    val recordedSpanStillExists = designation.endExclusive <= surface.length &&
+                        (recordedText == null || surface.substring(designation.start, designation.endExclusive) == recordedText)
+                    val relocatedStart = if (!recordedSpanStillExists && recordedText != null) {
+                        val first = surface.indexOf(recordedText)
+                        if (first >= 0 && first == surface.lastIndexOf(recordedText)) first else -1
+                    } else {
+                        designation.start
+                    }
+                    if (relocatedStart >= 0 && (recordedSpanStillExists || recordedText != null)) {
+                        val relocatedEnd = if (recordedText == null) designation.endExclusive else relocatedStart + recordedText.length
+                        surface.replaceRange(relocatedStart, relocatedEnd, designation.replacementAfterLopa)
+                    } else {
+                        surface
+                    }
                 }
                 return@map term.copy(
                     surface = processed,
                     itMarkers = emptySet(),
                     itDesignations = emptyList(),
-                    itProcessingPending = false,
+                    deferredItDesignations = emptyList(),
+                    itProcessingPhase = dev.panini.derivation.ItProcessingPhase.PROCESSED,
                     sthaniProps = dev.panini.derivation.SthaniProperties(
                         upadesha = term.sthaniProps?.upadesha ?: term.upadesha,
                         itMarkers = term.sthaniProps?.itMarkers.orEmpty() + term.itMarkers + designatedMarkers,
                     ),
                 )
             }
-            if (term.itMarkers.isEmpty()) return@map term
-            // Newly introduced upadeśas are processed only from exact spans
-            // assigned by 1.3.2–1.3.8. Never infer a deletion from a marker.
-            if (term.itProcessingPending) return@map term
-            // A dhātu enters the derivation with its normalized mūla already
-            // separated from the Dhātupāṭha upadeśa. Its recorded it-status
-            // must not delete actual root sounds from that normalized surface.
-            if (term.kind == TermKind.DHATU && !term.itProcessingPending) {
-                return@map term.copy(itMarkers = emptySet())
-            }
-
-            var newSurface = term.surface
-
-            // 0. Handle vowel U marker (anunasika U in supi/ting)
-            if (term.itMarkers.contains(ItMarker.U)) {
-                newSurface = newSurface.replace("ुँ", "्").replace("ु", "्").replace("ँ", "")
-                    .replace("ि", "्").replace("इ", "्")
-                if (newSurface.endsWith("््")) {
-                    newSurface = newSurface.dropLast(1)
-                }
-            }
-
-            // 1. Handle final markers (Halantyam 1.3.3, respecting 1.3.4 Na vibhaktau tusmāḥ)
-            if (term.itMarkers.any { it != ItMarker.U }) {
-                val finalItEndings = listOf("क्", "प्", "ङ्", "ण्", "श्", "ट्", "ञ्", "र्", "ल्", "च्")
-                for (ending in finalItEndings) {
-                    if (newSurface.endsWith(ending)) {
-                        newSurface = newSurface.dropLast(2)
-                        break
-                    }
-                }
-            }
-
-            // 2. Handle initial markers (Chutu, Lashakvataddhite, etc.)
-            if (term.itMarkers.any { it == ItMarker.J || it == ItMarker.T || it == ItMarker.SH || it == ItMarker.KIT || it == ItMarker.NGIT }) {
-                if (newSurface.isNotEmpty() && (newSurface.first() in setOf('च', 'छ', 'ज', 'झ', 'ञ', 'ट', 'ठ', 'ड', 'ढ', 'ण', 'ल', 'श', 'क', 'ख', 'ग', 'घ', 'ङ'))) {
-                    val hasVirama = newSurface.getOrNull(1) == '्'
-                    if (hasVirama) {
-                        newSurface = newSurface.drop(2)
-        } else if (term.upadesha == "जस्" ||
-            (term.upadesha == "शस्" && context.effectiveContext.rupa.linga == Linga.PUMS)
-        ) {
-                        // The initial it of जस्/शस् is removed; the following अ belongs to the
-                        // surviving suffix and licenses the later यण् sandhi.
-                        newSurface = "अ" + newSurface.drop(1)
-                    } else {
-                        // A non-virāma initial it consonant is removed; it does not
-                        // contribute an inherent अ to the remaining pratyaya.
-                        newSurface = newSurface.drop(1)
-                    }
-                }
-            }
-
-            term.copy(
-                surface = newSurface,
-                itMarkers = emptySet(),
-                itDesignations = emptyList(),
-                itProcessingPending = false,
-            ) // Markers are consumed after lopa
+            term
         }
 
         val nextStage = if (context.stage.ordinal > DerivationStage.IT_PROCESSED.ordinal) {

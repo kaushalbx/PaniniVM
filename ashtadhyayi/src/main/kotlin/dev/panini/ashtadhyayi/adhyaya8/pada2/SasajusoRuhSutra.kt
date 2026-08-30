@@ -48,14 +48,14 @@ object SasajusoRuhSutra : Sutra<DerivationState, DerivationChange>(
             context.copy(terms = context.terms.toMutableList().also {
                 it[index] = target.copy(
                     surface = target.surface.dropLast(2) + "रुँ",
-                    itProcessingPending = true,
+                    itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
                 )
             })
         } ?: context.copy(
             terms = context.terms.dropLast(1) + context.terms.last()
                 .copy(
                     surface = context.terms.last().surface.dropLast(2) + "रुँ",
-                    itProcessingPending = true,
+                    itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
                 )
         )
         return DerivationChange(

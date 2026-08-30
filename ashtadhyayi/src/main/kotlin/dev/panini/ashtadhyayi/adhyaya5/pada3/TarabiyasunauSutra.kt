@@ -46,7 +46,7 @@ object TarabiyasunauSutra : Sutra<DerivationState, DerivationChange>(
             kind = TermKind.PRATYAYA,
             upadesha = "तरप्",
             createdBySutra = sutra,
-            itProcessingPending = true,
+            itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
         )
         return DerivationChange(
             state = context.copy(

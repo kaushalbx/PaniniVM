@@ -31,11 +31,16 @@ class DerivationState(
 
     /** Validates the it-processing boundary for workflows that have completed migration. */
     fun requireCompleteItProcessing(): DerivationState {
-        require(terms.none { it.itProcessingPending }) {
-            "A completed derivation cannot contain an upadeśa awaiting it-processing."
+        require(terms.none { it.itProcessingPhase != ItProcessingPhase.PROCESSED }) {
+            val incomplete = terms.filter { it.itProcessingPhase != ItProcessingPhase.PROCESSED }
+                .joinToString { "${it.id}:${it.itProcessingPhase}" }
+            "A completed derivation cannot contain incomplete it-processing: $incomplete."
         }
         require(terms.none { it.itDesignations.isNotEmpty() }) {
             "A completed derivation cannot contain unconsumed it-designations."
+        }
+        require(terms.none { it.deferredItDesignations.isNotEmpty() }) {
+            "A completed derivation cannot contain deferred it-designations."
         }
         return this
     }
@@ -229,15 +234,21 @@ data class DerivationTerm(
     val originalSurfaceBeforeDrop: String? = null,
     val createdBySutra: String? = null,
     val establishedBySutras: Set<String> = emptySet(),
-    /** True while a newly introduced upadeśa still requires इत्-saṃjñā and lopa. */
-    val itProcessingPending: Boolean = false,
+    /** Explicit lifecycle of an upadeśa as it moves through 1.3.2–1.3.9. */
+    val itProcessingPhase: ItProcessingPhase = dev.panini.derivation.ItProcessingPhase.PROCESSED,
     /** Exact spans designated as इत् in the current upadeśa. */
     val itDesignations: List<ItDesignation> = emptyList(),
+    /** Exact designations whose lopa waits for intervening substitution rules. */
+    val deferredItDesignations: List<ItDesignation> = emptyList(),
     /** The term into which an āgama is placed by 1.1.46. */
     val augmentTargetId: String? = null,
     /** Underlying lexical head of a compound term, when rules target head identity after surface sandhi. */
     val compoundHeadUpadesha: String? = null,
 ) {
+    val itProcessingPending: Boolean
+        get() = itProcessingPhase == dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA ||
+            itProcessingPhase == dev.panini.derivation.ItProcessingPhase.DESIGNATED
+
     companion object {
         /** Preserves Dhātupāṭha metadata when a root enters a derivation. */
         fun fromDhatu(dhatu: Dhatu, id: String = "dhatu"): DerivationTerm = DerivationTerm(
@@ -258,12 +269,25 @@ data class DerivationTerm(
         upadesha == value || sthaniProps?.upadesha == value
 }
 
+enum class ItProcessingPhase {
+    /** The term is already an effective form or has no it-processing to perform. */
+    PROCESSED,
+    /** The raw upadeśa is waiting for 1.3.2–1.3.8 to designate exact spans. */
+    RAW_UPADESHA,
+    /** At least one exact span has been designated and awaits 1.3.9. */
+    DESIGNATED,
+    /** Substitution rules must finish before the replacement upadeśa can enter it-processing. */
+    DEFERRED_SUBSTITUTION,
+}
+
 data class ItDesignation(
     val start: Int,
     val endExclusive: Int,
     val replacementAfterLopa: String = "",
     val marker: ItMarker,
     val sutra: String,
+    /** Original designated segment; detects a designation consumed by a later whole-term substitution. */
+    val designatedText: String? = null,
 )
 
 data class SthaniProperties(

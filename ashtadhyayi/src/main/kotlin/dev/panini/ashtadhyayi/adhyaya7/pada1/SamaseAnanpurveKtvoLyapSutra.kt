@@ -46,7 +46,7 @@ object SamaseAnanpurveKtvoLyapSutra : Sutra<DerivationState, DerivationChange>(
             kind = TermKind.PRATYAYA,
             upadesha = "ल्यप्",
             createdBySutra = sutra,
-            itProcessingPending = true,
+            itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
         )
         return DerivationChange(
             state = context.replaceTerm(ktvaTerm.id, lyapTerm),

@@ -52,7 +52,7 @@ object SyatasiLrlrtohSutra : Sutra<DerivationState, DerivationChange>(
                 "तासिँ",
                 TermKind.PRATYAYA,
                 upadesha = "तासि",
-                itProcessingPending = true,
+                itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
             )
         } else {
             DerivationTerm(

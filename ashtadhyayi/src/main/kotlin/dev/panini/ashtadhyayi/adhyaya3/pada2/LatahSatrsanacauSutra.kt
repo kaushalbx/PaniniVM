@@ -57,7 +57,7 @@ object LatahSatrsanacauSutra : Sutra<DerivationState, DerivationChange>(
                 kind = TermKind.PRATYAYA,
                 upadesha = "शतृ",
                 createdBySutra = sutra,
-                itProcessingPending = true,
+                itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
             )
         }
         return DerivationChange(

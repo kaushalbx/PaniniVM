@@ -10,7 +10,7 @@ class DerivationStateInvariantTest {
         assertThrows(IllegalArgumentException::class.java) {
             DerivationState(
                 terms = listOf(
-                    DerivationTerm("suffix", "अण्", TermKind.PRATYAYA, itProcessingPending = true),
+                    DerivationTerm("suffix", "अण्", TermKind.PRATYAYA, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA),
                 ),
                 stage = DerivationStage.FINAL,
             ).requireCompleteItProcessing()

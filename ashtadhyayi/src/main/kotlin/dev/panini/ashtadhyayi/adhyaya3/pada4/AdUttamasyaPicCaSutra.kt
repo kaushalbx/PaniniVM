@@ -49,7 +49,7 @@ object AdUttamasyaPicCaSutra : Sutra<DerivationState, DerivationChange>(
             kind = TermKind.AGAMA,
             upadesha = "आट्",
             createdBySutra = sutra,
-            itProcessingPending = true,
+            itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
             augmentTargetId = ending.id,
         )
         val augmented = ending.copy(
