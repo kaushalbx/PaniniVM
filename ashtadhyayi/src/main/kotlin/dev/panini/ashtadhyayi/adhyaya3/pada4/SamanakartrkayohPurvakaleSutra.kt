@@ -46,20 +46,20 @@ object SamanakartrkayohPurvakaleSutra : Sutra<DerivationState, DerivationChange>
         val gerundTerm = if (hasUpasarga) {
             DerivationTerm(
                 id = "lyap_pratyaya",
-                surface = "य",
+                surface = "ल्यप्",
                 kind = TermKind.PRATYAYA,
-                itMarkers = setOf(ItMarker.P),
-                upadesha = "ल्पँ",
+                upadesha = "ल्यप्",
                 createdBySutra = sutra,
+                itProcessingPending = true,
             )
         } else {
             DerivationTerm(
                 id = "ktva_pratyaya",
-                surface = "त्वा",
+                surface = "क्त्वा",
                 kind = TermKind.PRATYAYA,
-                itMarkers = setOf(ItMarker.KIT),
                 upadesha = "क्त्वा",
                 createdBySutra = sutra,
+                itProcessingPending = true,
             )
         }
 

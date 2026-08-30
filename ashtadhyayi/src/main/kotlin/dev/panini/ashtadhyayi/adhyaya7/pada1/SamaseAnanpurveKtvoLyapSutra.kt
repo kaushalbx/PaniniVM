@@ -42,11 +42,11 @@ object SamaseAnanpurveKtvoLyapSutra : Sutra<DerivationState, DerivationChange>(
         val ktvaTerm = context.terms.last { it.upadesha == "क्त्वा" || it.id == "ktva_pratyaya" }
         val lyapTerm = DerivationTerm(
             id = "lyap_pratyaya",
-            surface = "य",
+            surface = "ल्यप्",
             kind = TermKind.PRATYAYA,
-            itMarkers = setOf(ItMarker.P),
             upadesha = "ल्यप्",
             createdBySutra = sutra,
+            itProcessingPending = true,
         )
         return DerivationChange(
             state = context.replaceTerm(ktvaTerm.id, lyapTerm),

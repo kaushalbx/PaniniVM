@@ -43,11 +43,11 @@ object NvultrcauSutra : Sutra<DerivationState, DerivationChange>(
         val pratyayaTerm = if (isNvul) {
             DerivationTerm(
                 id = "nvul_pratyaya",
-                surface = "अक", // vu -> aka via 7.1.1 Yuvoranākau
+                surface = "ण्वुल्",
                 kind = TermKind.PRATYAYA,
-                itMarkers = setOf(ItMarker.NIT, ItMarker.U),
                 upadesha = "ण्वुल्",
                 createdBySutra = sutra,
+                itProcessingPending = true,
             )
         } else {
             DerivationTerm(

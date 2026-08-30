@@ -49,10 +49,10 @@ object SyatasiLrlrtohSutra : Sutra<DerivationState, DerivationChange>(
         val newTerm = if (isLut) {
             DerivationTerm(
                 "tasi",
-                "तासि",
+                "तासिँ",
                 TermKind.PRATYAYA,
                 upadesha = "तासि",
-                itMarkers = setOf(ItMarker.U)
+                itProcessingPending = true,
             )
         } else {
             DerivationTerm(

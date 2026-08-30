@@ -392,9 +392,17 @@ class DerivationEngine(
             sutraMap[sub.sutra]?.krama
         }.filter { it >= 820000 }
         val maxTripadiKrama = tripadiKramasApplied.maxOrNull() ?: 0
+        val hasPendingItProcessing = state.terms.any { it.itProcessingPending }
 
         val evaluated = sutras.asSequence()
-            .filter { it.sutra !in suppressed && RuleVisibility.permits(it, state) }
+            .filter {
+                it.sutra !in suppressed &&
+                    (RuleVisibility.permits(it, state) ||
+                        (hasPendingItProcessing && it.stage == SutraStage.IT_PROCESSING))
+            }
+            // A newly introduced upadeśa must finish 1.3.2–1.3.9 before
+            // rules outside the it-processing domain can inspect its surface.
+            .filter { !hasPendingItProcessing || it.stage == SutraStage.IT_PROCESSING }
             .filter {
                 val blocker = state.blockedSutras[it.sutra]
                 if (blocker != null) {
@@ -413,7 +421,11 @@ class DerivationEngine(
                 }
             }
             .filter {
-                val visibleState = RuleVisibility.view(it, state, sutraMap)
+                val visibleState = if (hasPendingItProcessing && it.stage == SutraStage.IT_PROCESSING) {
+                    state
+                } else {
+                    RuleVisibility.view(it, state, sutraMap)
+                }
                 isDerivationEligible(it, visibleState) &&
                 it.matches(visibleState)
             }
@@ -454,7 +466,9 @@ class DerivationEngine(
          */
         fun candidateOrder(state: DerivationState) = compareBy<RuleCandidate>(
             { candidate ->
-                if (candidate.sutra.sutra == "1.3.9" && state.terms.any { it.itProcessingPending }) 1
+                if (candidate.sutra.sutra == "1.3.9" && state.terms.any {
+                        it.itProcessingPending || it.itDesignations.isNotEmpty()
+                    }) 1
                 else if (candidate.sutra.sutra == "3.4.92" && state.substitutions.any { it.sutra == "7.3.84" }) 2
                 else if (candidate.sutra.sutra == "3.4.93" && state.allEffectiveTerms.any { "3.4.92" in it.establishedBySutras }) 2
                 else agendaDomain(candidate.sutra)

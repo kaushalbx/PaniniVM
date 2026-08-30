@@ -71,7 +71,7 @@ class SamjnaSutrasTest {
     fun testHalantyamSutra() {
         val state = DerivationState(
             stage = DerivationStage.PRATYAYA_SELECTED,
-            terms = listOf(DerivationTerm(id = "pratyaya", surface = "ल्युट्", kind = TermKind.PRATYAYA))
+            terms = listOf(DerivationTerm(id = "pratyaya", surface = "ल्युट्", kind = TermKind.PRATYAYA, itProcessingPending = true))
         )
         assertTrue(HalantyamSutra.matches(state))
     }
@@ -89,7 +89,7 @@ class SamjnaSutrasTest {
     fun testTasyaLopahSutra() {
         val state = DerivationState(
             stage = DerivationStage.PRATYAYA_SELECTED,
-            terms = listOf(DerivationTerm(id = "pratyaya", surface = "ल्युट्", kind = TermKind.PRATYAYA))
+            terms = listOf(DerivationTerm(id = "pratyaya", surface = "ल्युट्", kind = TermKind.PRATYAYA, itProcessingPending = true))
         )
         assertTrue(TasyaLopahSutra.matches(state))
     }
@@ -110,6 +110,10 @@ class SamjnaSutrasTest {
         assertEquals("य", process("क्यच्", useInitial = LasakvataddhiteSutra))
         assertEquals("त", process("क्त", useInitial = LasakvataddhiteSutra))
         assertEquals("आन", process("कानच्", useInitial = LasakvataddhiteSutra))
+        assertEquals("तुम्", process("तुमुँन्"))
+        assertEquals("अम्", process("णमुँल्", useInitial = ChutuSutra))
+        assertEquals("तवत्", process("क्तवतुँ", useInitial = LasakvataddhiteSutra))
+        assertEquals("वस्", process("क्वसुँ", useInitial = LasakvataddhiteSutra))
     }
 
     private fun process(
@@ -130,6 +134,7 @@ class SamjnaSutrasTest {
             ),
         )
         useInitial?.let { state = it.apply(state).state }
+        if (UpadesheAjanunasikaItSutra.matches(state)) state = UpadesheAjanunasikaItSutra.apply(state).state
         if (HalantyamSutra.matches(state)) state = HalantyamSutra.apply(state).state
         state = TasyaLopahSutra.apply(state).state
         return state.terms.single().surface

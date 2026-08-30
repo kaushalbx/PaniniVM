@@ -35,9 +35,10 @@ object HalantyamSutra : Sutra<DerivationState, DerivationChange>(
 
         return state.terms.any { term ->
             if (term.kind == TermKind.PRATIPADIKA) return@any false
+            if (term.id in state.halantyamExemptTermIds) return@any false
             // These āgamas are already resolved to their effective surfaces;
             // their surviving final consonants are not new it-markers.
-            if (term.id in setOf("siyut", "yasut", "vuk", "nic")) return@any false
+            if (!term.itProcessingPending && term.id in setOf("siyut", "yasut", "vuk", "nic")) return@any false
             val last = term.surface.lastOrNull() ?: return@any false
             if (last != '्' || term.surface.length < 2) return@any false
             val lastChar = term.surface[term.surface.length - 2]
@@ -52,7 +53,8 @@ object HalantyamSutra : Sutra<DerivationState, DerivationChange>(
     fun assignSamjna(state: DerivationState): DerivationChange {
         val newTerms = state.terms.map { term ->
             if (term.kind == TermKind.PRATIPADIKA) return@map term
-            if (term.id in setOf("siyut", "yasut", "vuk", "nic")) return@map term
+            if (term.id in state.halantyamExemptTermIds) return@map term
+            if (!term.itProcessingPending && term.id in setOf("siyut", "yasut", "vuk", "nic")) return@map term
             val last = term.surface.lastOrNull()
             if (last == '्' && term.surface.length >= 2) {
                 val lastChar = term.surface[term.surface.length - 2]

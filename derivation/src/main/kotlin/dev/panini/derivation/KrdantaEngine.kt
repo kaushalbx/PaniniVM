@@ -20,7 +20,7 @@ data class KrdantaSourceStem(
 
 class KrdantaEngine(
     private val pipeline: DerivationPipeline = DerivationPipeline(
-        stages = listOf(SutraStage.ANGAKARYA, SutraStage.IT_PROCESSING),
+        stages = listOf(SutraStage.IT_PROCESSING, SutraStage.ANGAKARYA),
         sutrasForStage = Ashtadhyayi::krdantaSutrasAt,
     ),
 ) {

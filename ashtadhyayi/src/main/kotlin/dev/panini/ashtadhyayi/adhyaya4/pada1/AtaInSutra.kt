@@ -44,8 +44,8 @@ object AtaInSutra : Sutra<DerivationState, DerivationChange>(
             id = "in-apatya",
             surface = "इञ्",
             kind = TermKind.PRATYAYA,
-            itMarkers = setOf(ItMarker.NGIT),
             upadesha = "इञ्",
+            itProcessingPending = true,
         )
         return DerivationChange(
             state = context.copy(

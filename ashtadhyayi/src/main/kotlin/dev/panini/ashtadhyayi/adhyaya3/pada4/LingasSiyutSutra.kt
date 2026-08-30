@@ -41,9 +41,7 @@ object LingasSiyutSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val ting = context.terms.last()
-        // उ is only present for pronunciation and ट् is an it-marker; the
-        // effective augment introduced into the derivation is सीय्.
-        val siyut = DerivationTerm("siyut", "सीय्", TermKind.AGAMA, upadesha = "सीयुट्")
+        val siyut = DerivationTerm("siyut", "सीयुँट्", TermKind.AGAMA, upadesha = "सीयुट्", itProcessingPending = true)
         return DerivationChange(
             context.copy(terms = context.terms.dropLast(1) + siyut + ting),
             "3.4.102 inserts सीयुट् before the liṅ tiṅ termination.",

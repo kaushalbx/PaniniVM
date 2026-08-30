@@ -20,6 +20,7 @@ class DerivationState(
     val activeAdhikaras: Set<String> = emptySet(),
     val inheritedAnuvrtti: Set<String> = emptySet(),
     val blockedSutras: Map<String, String> = emptyMap(),
+    val halantyamExemptTermIds: Set<String> = emptySet(),
     val varnaComparisons: Set<VarnaComparison> = emptySet(),
     val substitutions: List<VarnaSubstitution> = emptyList(),
 ) {
@@ -144,6 +145,7 @@ class DerivationState(
         activeAdhikaras: Set<String> = this.activeAdhikaras,
         inheritedAnuvrtti: Set<String> = this.inheritedAnuvrtti,
         blockedSutras: Map<String, String> = this.blockedSutras,
+        halantyamExemptTermIds: Set<String> = this.halantyamExemptTermIds,
         varnaComparisons: Set<VarnaComparison> = this.varnaComparisons,
         substitutions: List<VarnaSubstitution> = this.substitutions,
     ): DerivationState {
@@ -156,6 +158,7 @@ class DerivationState(
             activeAdhikaras = activeAdhikaras,
             inheritedAnuvrtti = inheritedAnuvrtti,
             blockedSutras = blockedSutras,
+            halantyamExemptTermIds = halantyamExemptTermIds,
             varnaComparisons = varnaComparisons,
             substitutions = substitutions,
         )
@@ -172,6 +175,7 @@ class DerivationState(
             activeAdhikaras == other.activeAdhikaras &&
             inheritedAnuvrtti == other.inheritedAnuvrtti &&
             blockedSutras == other.blockedSutras &&
+            halantyamExemptTermIds == other.halantyamExemptTermIds &&
             varnaComparisons == other.varnaComparisons &&
             substitutions == other.substitutions
     }
@@ -185,13 +189,14 @@ class DerivationState(
         result = 31 * result + activeAdhikaras.hashCode()
         result = 31 * result + inheritedAnuvrtti.hashCode()
         result = 31 * result + blockedSutras.hashCode()
+        result = 31 * result + halantyamExemptTermIds.hashCode()
         result = 31 * result + varnaComparisons.hashCode()
         result = 31 * result + substitutions.hashCode()
         return result
     }
 
     override fun toString(): String {
-        return "DerivationState(terms=$terms, droppedTerms=$droppedTerms, samjnas=$samjnas, stage=$stage, context=$context, activeAdhikaras=$activeAdhikaras, inheritedAnuvrtti=$inheritedAnuvrtti, blockedSutras=$blockedSutras, varnaComparisons=$varnaComparisons, substitutions=$substitutions)"
+        return "DerivationState(terms=$terms, droppedTerms=$droppedTerms, samjnas=$samjnas, stage=$stage, context=$context, activeAdhikaras=$activeAdhikaras, inheritedAnuvrtti=$inheritedAnuvrtti, blockedSutras=$blockedSutras, halantyamExemptTermIds=$halantyamExemptTermIds, varnaComparisons=$varnaComparisons, substitutions=$substitutions)"
     }
 }
 

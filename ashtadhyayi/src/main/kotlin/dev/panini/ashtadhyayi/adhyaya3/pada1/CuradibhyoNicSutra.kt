@@ -37,7 +37,6 @@ object CuradibhyoNicSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        // Effective अय् reflects it-lopa and 6.1.77 before the following शप् vowel.
         val nic = DerivationTerm("nic", "अय्", TermKind.PRATYAYA, upadesha = "णिच्", itMarkers = setOf(ItMarker.NIT))
         return DerivationChange(
             state = context.insertBeforeTingOrLingAugment(nic),

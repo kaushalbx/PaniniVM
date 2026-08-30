@@ -3,7 +3,6 @@ package dev.panini.ashtadhyayi.adhyaya2.pada4
 import dev.panini.core.ItMarker
 import dev.panini.core.Lakara
 import dev.panini.derivation.DerivationChange
-import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.sutra.Sutra
@@ -38,7 +37,6 @@ object LutahPrathamasyaDarauRasahSutra : Sutra<DerivationState, DerivationChange
         val ending = context.terms.lastOrNull() ?: return false
         val replacement = replacements[ending.upadesha] ?: return false
         return context.effectiveContext.rupa.lakara == Lakara.LUT &&
-            context.stage.ordinal <= DerivationStage.PRATYAYA_SELECTED.ordinal &&
             ending.surface != replacement
     }
 

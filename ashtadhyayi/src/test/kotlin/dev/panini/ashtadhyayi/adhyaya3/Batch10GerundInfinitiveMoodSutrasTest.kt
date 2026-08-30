@@ -111,7 +111,10 @@ class Batch10GerundInfinitiveMoodSutrasTest {
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVA)
         )
         assertTrue(SamanakartrkayohPurvakaleSutra.matches(state2))
-        assertEquals("ल्पँ", SamanakartrkayohPurvakaleSutra.apply(state2).state.allEffectiveTerms.last().upadesha)
+        val lyap = SamanakartrkayohPurvakaleSutra.apply(state2).state.allEffectiveTerms.last()
+        assertEquals("ल्यप्", lyap.upadesha)
+        assertEquals("ल्यप्", lyap.surface)
+        assertTrue(lyap.itProcessingPending)
     }
 
     @Test

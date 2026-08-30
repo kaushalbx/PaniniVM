@@ -42,9 +42,7 @@ object YasutParasmaipadesudattoNgicCaSutra : Sutra<DerivationState, DerivationCh
 
     override fun apply(context: DerivationState): DerivationChange {
         val ting = context.terms.last()
-        // उ is only present for pronunciation in the upadeśa and ट् is an it-marker;
-        // the effective augment is यास्.
-        val yasut = DerivationTerm("yasut", "यास्", TermKind.AGAMA, upadesha = "यासुट्")
+        val yasut = DerivationTerm("yasut", "यासुँट्", TermKind.AGAMA, upadesha = "यासुट्", itProcessingPending = true)
         return DerivationChange(
             context.copy(terms = context.terms.dropLast(1) + yasut + ting),
             "3.4.103 inserts यासुट् before the liṅ parasmaipada termination.",

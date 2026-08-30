@@ -51,11 +51,12 @@ object HrasvasyaPitiKrtiTukSutra : Sutra<DerivationState, DerivationChange>(
         val stemIndex = context.terms.indexOfFirst { it.kind == TermKind.DHATU }
         val tukTerm = DerivationTerm(
             id = "tuk_agama",
-            surface = "त्",
+            surface = "तुँक्",
             kind = TermKind.AGAMA,
-            itMarkers = setOf(ItMarker.U, ItMarker.KIT),
             upadesha = "तुक्",
             createdBySutra = sutra,
+            itProcessingPending = true,
+            augmentTargetId = context.terms[stemIndex].id,
         )
         val newTerms = context.terms.take(stemIndex + 1) + tukTerm + context.terms.drop(stemIndex + 1)
         return DerivationChange(

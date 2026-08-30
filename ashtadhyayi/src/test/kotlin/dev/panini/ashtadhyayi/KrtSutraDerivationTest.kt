@@ -24,7 +24,8 @@ class KrtSutraDerivationTest {
         val change = AbhikshnyeNamulCaSutra.apply(state)
         val addedTerm = change.state.allEffectiveTerms.last()
         assertEquals("णमुल्", addedTerm.upadesha)
-        assertEquals("अम्", addedTerm.surface)
+        assertEquals("णमुँल्", addedTerm.surface)
+        assertTrue(addedTerm.itProcessingPending)
     }
 
     @Test

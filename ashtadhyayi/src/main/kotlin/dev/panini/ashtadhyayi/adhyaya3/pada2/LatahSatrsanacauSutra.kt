@@ -53,11 +53,11 @@ object LatahSatrsanacauSutra : Sutra<DerivationState, DerivationChange>(
         } else {
             DerivationTerm(
                 id = "satr_pratyaya",
-                surface = "अत्",
+                surface = "शतृँ",
                 kind = TermKind.PRATYAYA,
-                itMarkers = setOf(ItMarker.SH),
                 upadesha = "शतृ",
                 createdBySutra = sutra,
+                itProcessingPending = true,
             )
         }
         return DerivationChange(

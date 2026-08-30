@@ -41,7 +41,7 @@ object HaladisSeshahSutra : Sutra<DerivationState, DerivationChange>(
         val retainInitialConsonant = surface.firstOrNull() in consonants
         var retainedInitialConsonant = false
         var removeVirama = false
-        return buildString {
+        val shortened = buildString {
             surface.forEach { character ->
                 if (removeVirama && character == '्') {
                     removeVirama = false
@@ -56,6 +56,10 @@ object HaladisSeshahSutra : Sutra<DerivationState, DerivationChange>(
                     append(character)
                 }
             }
+        }
+        val vowelSigns = setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ', 'े', 'ै', 'ो', 'ौ')
+        return shortened.filterIndexed { index, character ->
+            character != '्' || shortened.getOrNull(index + 1) !in vowelSigns
         }
     }
 }

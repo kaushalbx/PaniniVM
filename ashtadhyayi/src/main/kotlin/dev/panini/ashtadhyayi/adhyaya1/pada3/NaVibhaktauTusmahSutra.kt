@@ -33,21 +33,19 @@ object NaVibhaktauTusmahSutra : Sutra<DerivationState, DerivationChange>(
 
         return context.terms.any { term ->
             val isVibhakti = context.samjnas.any { it.targetId == term.id && it.samjna == Samjna.PRATYAYA }
-            isVibhakti && isTuSMa(term.surface)
+            isVibhakti && isTuSMa(term.surface) && term.id !in context.halantyamExemptTermIds
         }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        var state = context
-        context.terms.forEach { term ->
-            if (isTuSMa(term.surface)) {
-                state = state.blockSutra("1.3.3", sutra)
-            }
-        }
+        val protectedIds = context.terms.filter { term ->
+            context.samjnas.any { it.targetId == term.id && it.samjna == Samjna.PRATYAYA } && isTuSMa(term.surface)
+        }.mapTo(mutableSetOf()) { it.id }
+        val state = context.copy(halantyamExemptTermIds = context.halantyamExemptTermIds + protectedIds)
 
         return DerivationChange(
             state = state,
-            explanation = "1.3.4: Blocked 1.3.3 for vibhakti-final dentals, 's', or 'm'."
+            explanation = "1.3.4: Protected each vibhakti-final dental, 's', or 'm' from 1.3.3."
         )
     }
 

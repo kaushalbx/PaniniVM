@@ -43,11 +43,11 @@ object NisthaSutra : Sutra<DerivationState, DerivationChange>(
         val pratyayaTerm = if (isKtavatu) {
             DerivationTerm(
                 id = "ktavatu_pratyaya",
-                surface = "तवत्",
+                surface = "क्तवतुँ",
                 kind = TermKind.PRATYAYA,
-                itMarkers = setOf(ItMarker.KIT, ItMarker.U),
                 upadesha = "क्तवतु",
                 createdBySutra = sutra,
+                itProcessingPending = true,
             )
         } else {
             DerivationTerm(

@@ -29,8 +29,11 @@ object UpadesheAjanunasikaItSutra : Sutra<DerivationState, DerivationChange>(
     stage = dev.panini.sutra.SutraStage.IT_PROCESSING,
 ), DerivationSutra {
     private fun targets(state: DerivationState) = state.terms.filter { term ->
-        term.surface.endsWith("ँ") && ItMarker.U !in term.itMarkers &&
-            (state.stage == DerivationStage.PRATYAYA_SELECTED || term.itProcessingPending)
+        'ँ' in term.surface &&
+            (term.kind != dev.panini.derivation.TermKind.DHATU || term.surface.endsWith("रुँ")) &&
+            (term.itProcessingPending ||
+                (state.stage == DerivationStage.PRATYAYA_SELECTED && term.kind == dev.panini.derivation.TermKind.PRATYAYA)) &&
+            nasalVowelDesignations(term).isNotEmpty()
     }
 
     fun hasSamjnaTarget(state: DerivationState): Boolean = targets(state).isNotEmpty()
@@ -41,13 +44,7 @@ object UpadesheAjanunasikaItSutra : Sutra<DerivationState, DerivationChange>(
             state.copy(terms = state.terms.map {
                 if (it in targets) it.copy(
                     itMarkers = it.itMarkers + ItMarker.U,
-                    itDesignations = it.itDesignations + ItDesignation(
-                        start = it.surface.length - 2,
-                        endExclusive = it.surface.length,
-                        replacementAfterLopa = "्",
-                        marker = ItMarker.U,
-                        sutra = sutra,
-                    ),
+                    itDesignations = it.itDesignations + nasalVowelDesignations(it),
                 ) else it
             }),
             "1.3.2 assigns इत्-saṃjñā to the nasalized vowel of ${targets.joinToString { it.surface }}.",
@@ -57,4 +54,21 @@ object UpadesheAjanunasikaItSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean = hasSamjnaTarget(context)
 
     override fun apply(context: DerivationState): DerivationChange = assignSamjna(context)
+
+    private fun nasalVowelDesignations(term: dev.panini.derivation.DerivationTerm): List<ItDesignation> =
+        term.surface.indices.filter { term.surface[it] == 'ँ' }.mapNotNull { chandrabindu ->
+            val vowel = chandrabindu - 1
+            if (vowel < 0 || term.itDesignations.any { it.start == vowel && it.endExclusive == chandrabindu + 1 }) {
+                null
+            } else {
+                val isDependentVowel = term.surface[vowel] in setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ', 'े', 'ै', 'ो', 'ौ')
+                ItDesignation(
+                    start = vowel,
+                    endExclusive = chandrabindu + 1,
+                    replacementAfterLopa = if (isDependentVowel) "्" else "",
+                    marker = ItMarker.U,
+                    sutra = sutra,
+                )
+            }
+        }
 }

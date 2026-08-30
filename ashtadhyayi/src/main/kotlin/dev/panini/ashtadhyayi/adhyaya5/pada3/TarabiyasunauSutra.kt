@@ -42,11 +42,11 @@ object TarabiyasunauSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val tarapTerm = DerivationTerm(
             id = "tarap_pratyaya",
-            surface = "तर",
+            surface = "तरप्",
             kind = TermKind.PRATYAYA,
-            itMarkers = setOf(ItMarker.P),
             upadesha = "तरप्",
             createdBySutra = sutra,
+            itProcessingPending = true,
         )
         return DerivationChange(
             state = context.copy(

@@ -32,15 +32,28 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.PRATYAYA,
     stage = dev.panini.sutra.SutraStage.IT_PROCESSING,
 ), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean =
-        context.stage == DerivationStage.PRATYAYA_SELECTED || context.terms.any { it.itMarkers.isNotEmpty() }
+    override fun matches(context: DerivationState): Boolean {
+        if (context.stage == DerivationStage.PRATYAYA_SELECTED && context.terms.none { it.itProcessingPending }) {
+            return true
+        }
+        val pendingTargets = context.terms.filter { it.itProcessingPending }
+        val candidates = pendingTargets.ifEmpty { context.terms }
+        return candidates.any { term ->
+            term.itDesignations.isNotEmpty() ||
+                (term.itProcessingPending && term.itMarkers.isEmpty()) ||
+                (!term.itProcessingPending && term.itMarkers.isNotEmpty())
+        }
+    }
 
     override fun apply(context: DerivationState): DerivationChange {
         val pendingTargets = context.terms.filter { it.itProcessingPending }.mapTo(mutableSetOf()) { it.id }
         val newTerms = context.terms.map { term ->
-            if (term.itMarkers.isEmpty()) return@map term
             if (pendingTargets.isNotEmpty() && term.id !in pendingTargets) return@map term
-            if (term.itProcessingPending && term.itDesignations.isNotEmpty()) {
+            if (term.itProcessingPending && term.itMarkers.isEmpty() && term.itDesignations.isEmpty()) {
+                return@map term.copy(itProcessingPending = false)
+            }
+            if (term.itDesignations.isNotEmpty()) {
+                val designatedMarkers = term.itDesignations.mapTo(mutableSetOf()) { it.marker }
                 val processed = term.itDesignations.sortedByDescending { it.start }.fold(term.surface) { surface, designation ->
                     surface.replaceRange(designation.start, designation.endExclusive, designation.replacementAfterLopa)
                 }
@@ -51,10 +64,11 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
                     itProcessingPending = false,
                     sthaniProps = dev.panini.derivation.SthaniProperties(
                         upadesha = term.sthaniProps?.upadesha ?: term.upadesha,
-                        itMarkers = term.sthaniProps?.itMarkers.orEmpty() + term.itMarkers,
+                        itMarkers = term.sthaniProps?.itMarkers.orEmpty() + term.itMarkers + designatedMarkers,
                     ),
                 )
             }
+            if (term.itMarkers.isEmpty()) return@map term
             // Newly introduced upadeśas are processed only from exact spans
             // assigned by 1.3.2–1.3.8. Never infer a deletion from a marker.
             if (term.itProcessingPending) return@map term

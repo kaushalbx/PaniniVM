@@ -15,6 +15,7 @@ import dev.panini.shiksha.Samjna
 class TaddhitaEngine(
     private val derivationEngine: DerivationEngine = DerivationEngine(Ashtadhyayi.executableSutras),
 ) {
+    private val itProcessingEngine = DerivationEngine(Ashtadhyayi.executableSutrasAt(dev.panini.sutra.SutraStage.IT_PROCESSING))
     fun derive(request: TaddhitaDerivationRequest): DerivationResult =
         derivationEngine.derive(request.initialState())
 
@@ -69,17 +70,17 @@ class TaddhitaEngine(
         return when (samjna) {
             Samjna.MATUP -> {
                 val change1 = TadasyastyasminnitiMatupSutra.apply(state)
+                val processed = itProcessingEngine.derive(change1.state)
                 val isAdantaOrM = isAdantaOrM(pratipadika)
-                if (isAdantaOrM && MatorVahSutra.matches(change1.state)) {
-                    val change2 = MatorVahSutra.apply(change1.state)
+                if (isAdantaOrM && MatorVahSutra.matches(processed.final)) {
+                    val change2 = MatorVahSutra.apply(processed.final)
                     buildResult(state, change2.state, listOf(
-                        app(TadasyastyasminnitiMatupSutra, state, change1.state, change1.explanation),
-                        app(MatorVahSutra, change1.state, change2.state, change2.explanation)
-                    ))
-                } else {
-                    buildResult(state, change1.state, listOf(
                         app(TadasyastyasminnitiMatupSutra, state, change1.state, change1.explanation)
-                    ))
+                    ) + processed.applications + app(MatorVahSutra, processed.final, change2.state, change2.explanation))
+                } else {
+                    buildResult(state, processed.final, listOf(
+                        app(TadasyastyasminnitiMatupSutra, state, change1.state, change1.explanation)
+                    ) + processed.applications)
                 }
             }
             Samjna.TVA, Samjna.TAL -> {
@@ -88,11 +89,13 @@ class TaddhitaEngine(
             }
             Samjna.TARAP -> {
                 val change = TarabiyasunauSutra.apply(state)
-                buildResult(state, change.state, listOf(app(TarabiyasunauSutra, state, change.state, change.explanation)))
+                val processed = itProcessingEngine.derive(change.state)
+                buildResult(state, processed.final, listOf(app(TarabiyasunauSutra, state, change.state, change.explanation)) + processed.applications)
             }
             Samjna.TAMAP -> {
                 val change = TamabisthanauSutra.apply(state)
-                buildResult(state, change.state, listOf(app(TamabisthanauSutra, state, change.state, change.explanation)))
+                val processed = itProcessingEngine.derive(change.state)
+                buildResult(state, processed.final, listOf(app(TamabisthanauSutra, state, change.state, change.explanation)) + processed.applications)
             }
             else -> derivationEngine.derive(state)
         }
