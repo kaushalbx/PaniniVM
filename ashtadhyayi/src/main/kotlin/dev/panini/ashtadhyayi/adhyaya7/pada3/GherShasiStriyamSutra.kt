@@ -14,7 +14,7 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
-/** Ghi stem before śas in the feminine: realize the long īḥ accusative plural. */
+/** Ik-final feminine stem before śas: realize the long īḥ/ūḥ accusative plural. */
 object GherShasiStriyamSutra : Sutra<DerivationState, DerivationChange>(
     number = "7.3.126",
     text = "घेशसि स्त्रियाम्",
@@ -38,9 +38,12 @@ object GherShasiStriyamSutra : Sutra<DerivationState, DerivationChange>(
 
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
-        return context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.GHI } &&
+        val isFeminineIkStem = context.samjnas.any {
+            it.targetId == stem.id && it.samjna in setOf(Samjna.GHI, Samjna.NADI)
+        }
+        return isFeminineIkStem &&
             affix.upadesha == "शस्" &&
-            stem.surface.lastOrNull() in setOf('इ', 'ि', 'उ', 'ु')
+            stem.surface.lastOrNull() in setOf('इ', 'ि', 'ई', 'ी', 'उ', 'ु', 'ऊ', 'ू')
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -49,8 +52,12 @@ object GherShasiStriyamSutra : Sutra<DerivationState, DerivationChange>(
         val longVowel = when (stem.surface.last()) {
             'इ' -> "ई"
             'ि' -> "ी"
+            'ई' -> "ई"
+            'ी' -> "ी"
             'उ' -> "ऊ"
             'ु' -> "ू"
+            'ऊ' -> "ऊ"
+            'ू' -> "ू"
             else -> error("GherShasiStriyamSutra matched a non-ik stem")
         }
         return DerivationChange(

@@ -37,6 +37,7 @@ object AstabhyahAushSutra : Sutra<DerivationState, DerivationChange>(
 
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
+        if (affix.upadesha == "औश्") return false
 
         val isAsta = stem.upadesha in setOf("अष्टन्", "अष्ट") || stem.surface in setOf("अष्टन्", "अष्टा", "अष्ट")
         if (!isAsta) return false
@@ -47,11 +48,15 @@ object AstabhyahAushSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
-        val newAffix = affix.copy(id = "aush-adesha", surface = "औ", upadesha = "औश्")
-        val newTerms = context.terms.dropLast(1) + newAffix
-
         return DerivationChange(
-            state = context.copy(terms = newTerms),
+            state = context.replaceWholeAffix(
+                id = affix.id,
+                replacementId = "aush-adesha",
+                surface = "औश्",
+                upadesha = "औश्",
+                sutra = sutra,
+                policy = dev.panini.derivation.WholeAffixDesignationPolicy.FreshUpadesha,
+            ),
             explanation = "7.1.21: Replaced '${affix.surface}' (jas/śas) with 'auś' (au) after aṣṭan/aṣṭā."
         )
     }

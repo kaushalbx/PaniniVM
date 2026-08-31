@@ -35,6 +35,11 @@ object AllopoAnahSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
+        // śi is sarvanāmasthāna, not a weak bha affix. In particular, a
+        // śas -> śi substitution retains that grammatical identity even
+        // though the term id still records its original sup slot.
+        if (affix.upadesha == "शि") return false
+
         // 1. Stem must end in 'न्' (an-ending stem)
         if (!stem.surface.endsWith("न्")) return false
 

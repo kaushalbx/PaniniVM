@@ -49,7 +49,7 @@ object AtoYeyahSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val yasut = context.terms.first { it.id == "yasut" }
         return DerivationChange(
-            context.replaceTerm(yasut.id, yasut.copy(surface = "इय्", itMarkers = emptySet())),
+            context.replaceWholeAffix(yasut.id, "इय्", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
             "7.2.80 replaces यास् with इय् after the a-final aṅga.",
         )
     }

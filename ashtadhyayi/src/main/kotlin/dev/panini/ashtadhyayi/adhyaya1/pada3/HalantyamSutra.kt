@@ -32,8 +32,13 @@ object HalantyamSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     fun hasSamjnaTarget(state: DerivationState): Boolean {
         if (state.stage != DerivationStage.PRATYAYA_SELECTED && state.terms.none { it.itProcessingPending }) return false
+        val pendingIds = state.terms.filter { it.itProcessingPending }.mapTo(mutableSetOf()) { it.id }
 
         return state.terms.any { term ->
+            if (pendingIds.isNotEmpty() && term.id !in pendingIds) return@any false
+            // A processed term whose effective surface already differs from its
+            // recorded upadeśa is not a newly introduced raw upadeśa.
+            if (!term.itProcessingPending && term.surface != term.upadesha) return@any false
             if (term.kind == TermKind.DHATU && !term.itProcessingPending) return@any false
             if (term.kind == TermKind.PRATIPADIKA) return@any false
             if (term.id in state.halantyamExemptTermIds) return@any false
@@ -49,7 +54,10 @@ object HalantyamSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     fun assignSamjna(state: DerivationState): DerivationChange {
+        val pendingIds = state.terms.filter { it.itProcessingPending }.mapTo(mutableSetOf()) { it.id }
         val newTerms = state.terms.map { term ->
+            if (pendingIds.isNotEmpty() && term.id !in pendingIds) return@map term
+            if (!term.itProcessingPending && term.surface != term.upadesha) return@map term
             if (term.kind == TermKind.DHATU && !term.itProcessingPending) return@map term
             if (term.kind == TermKind.PRATIPADIKA) return@map term
             if (term.id in state.halantyamExemptTermIds) return@map term
@@ -97,4 +105,5 @@ object HalantyamSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean = hasSamjnaTarget(context)
 
     override fun apply(context: DerivationState): DerivationChange = assignSamjna(context)
+
 }

@@ -37,8 +37,10 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
             term.itDesignations.isNotEmpty() ||
                 (term.itProcessingPhase == dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA &&
                     term.itMarkers.isEmpty())
-        } || (context.stage >= DerivationStage.ANGAKARYA &&
-            context.terms.any { it.deferredItDesignations.isNotEmpty() })
+        } || context.terms.any {
+            it.deferredItDesignations.isNotEmpty() &&
+                it.itProcessingPhase != dev.panini.derivation.ItProcessingPhase.DEFERRED_SUBSTITUTION
+        }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -50,7 +52,9 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
             ) {
                 return@map term.copy(itProcessingPhase = dev.panini.derivation.ItProcessingPhase.PROCESSED)
             }
-            val exactDesignations = term.itDesignations + term.deferredItDesignations
+            val exactDesignations = term.itDesignations + if (
+                term.itProcessingPhase == dev.panini.derivation.ItProcessingPhase.DEFERRED_SUBSTITUTION
+            ) emptyList() else term.deferredItDesignations
             if (exactDesignations.isNotEmpty()) {
                 val designatedMarkers = exactDesignations.mapTo(mutableSetOf()) { it.marker }
                 val processed = exactDesignations.sortedByDescending { it.start }.fold(term.surface) { surface, designation ->

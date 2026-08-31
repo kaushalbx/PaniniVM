@@ -71,9 +71,10 @@ object NapumsakasyaJhalacahSutra : Sutra<DerivationState, DerivationChange>(
         }
 
         // If no vowel (unlikely for jhal/ac), we'd fallback.
-        // Before शि, the m-it augment is realised as न; retaining a virāma
-        // here would leave the following इ-mātrā unattached (फलन्ि).
-        val numSurface = "न"
+        // Before शि, the m-it augment is realised as the exact consonant न्;
+        // the following independently preserved इ composes with it at the
+        // term boundary.
+        val numSurface = "न्"
         val newStemSurface = if (lastVowelIndex != -1) {
             surface.substring(0, lastVowelIndex + 1) + numSurface + surface.substring(lastVowelIndex + 1)
         } else {

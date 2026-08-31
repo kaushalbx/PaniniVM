@@ -33,7 +33,7 @@ object VyatyayoBahulamSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
         return DerivationChange(
-            context.replaceTerm(ending.id, ending.copy(surface = "नि")),
+            context.replaceWholeAffix(ending.id, "नि", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
             "3.1.85 permits the Vedic नि ending in place of मि.",
         )
     }

@@ -34,8 +34,10 @@ object ChutuSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     fun hasSamjnaTarget(state: DerivationState): Boolean {
         if (state.stage != DerivationStage.PRATYAYA_SELECTED && state.terms.none { it.itProcessingPending }) return false
+        val pendingIds = state.terms.filter { it.itProcessingPending }.mapTo(mutableSetOf()) { it.id }
 
         return state.terms.any { term ->
+            if (pendingIds.isNotEmpty() && term.id !in pendingIds) return@any false
             term.kind == TermKind.PRATYAYA && term.surface.isNotEmpty() &&
             (isCu(term.surface.first()) || isTtu(term.surface.first())) &&
                 (term.itDesignations + term.deferredItDesignations).none { it.start == 0 }
@@ -43,7 +45,9 @@ object ChutuSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     fun assignSamjna(state: DerivationState): DerivationChange {
+        val pendingIds = state.terms.filter { it.itProcessingPending }.mapTo(mutableSetOf()) { it.id }
         val newTerms = state.terms.map { term ->
+            if (pendingIds.isNotEmpty() && term.id !in pendingIds) return@map term
             if (term.kind == TermKind.PRATYAYA && term.surface.isNotEmpty()) {
                 val firstChar = term.surface.first()
                 when {
@@ -77,11 +81,16 @@ object ChutuSutra : Sutra<DerivationState, DerivationChange>(
         }
         val length = if (sign == '्' || sign in setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ', 'े', 'ै', 'ो', 'ौ')) 2 else 1
         val designation = ItDesignation(0, length, vowel, marker, sutra, designatedText = term.surface.substring(0, length))
+        val awaitsJhaSubstitution = term.itProcessingPending && term.upadesha in setOf("झ", "झि")
         return term.copy(
             itMarkers = term.itMarkers + marker,
-            itProcessingPhase = if (term.itProcessingPending) dev.panini.derivation.ItProcessingPhase.DESIGNATED else term.itProcessingPhase,
-            itDesignations = if (term.itProcessingPending) term.itDesignations + designation else term.itDesignations,
-            deferredItDesignations = if (term.itProcessingPending) term.deferredItDesignations else term.deferredItDesignations + designation,
+            itProcessingPhase = when {
+                awaitsJhaSubstitution -> dev.panini.derivation.ItProcessingPhase.DEFERRED_SUBSTITUTION
+                term.itProcessingPending -> dev.panini.derivation.ItProcessingPhase.DESIGNATED
+                else -> term.itProcessingPhase
+            },
+            itDesignations = if (term.itProcessingPending && !awaitsJhaSubstitution) term.itDesignations + designation else term.itDesignations,
+            deferredItDesignations = if (awaitsJhaSubstitution || !term.itProcessingPending) term.deferredItDesignations + designation else term.deferredItDesignations,
         )
     }
 }

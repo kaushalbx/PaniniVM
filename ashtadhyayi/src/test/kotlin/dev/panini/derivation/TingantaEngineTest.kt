@@ -666,7 +666,11 @@ class TingantaEngineTest {
         assertTrue(paradigm.forms.getValue(TingAffix.TA).applications.map { it.sutra }.containsAll(setOf("3.4.102", "7.2.79")))
         assertTrue(paradigm.forms.getValue(TingAffix.JHA).applications.any { it.sutra == "3.4.105" })
         assertTrue(paradigm.forms.getValue(TingAffix.IT).applications.any { it.sutra == "3.4.106" })
-        assertTrue(paradigm.forms.getValue(TingAffix.THAS_A).applications.map { it.sutra }.containsAll(setOf("1.3.4", "8.2.66", "8.3.15")))
+        val thasRules = paradigm.forms.getValue(TingAffix.THAS_A).applications.map { it.sutra }
+        val thasTrace = paradigm.forms.getValue(TingAffix.THAS_A).applications.joinToString("\n") {
+            "${it.sutra}: ${it.after.terms.map { term -> term.id to term.surface }} exempt=${it.after.halantyamExemptTermIds}"
+        }
+        assertTrue(thasRules.containsAll(setOf("1.3.4", "8.2.66", "8.3.15")), thasTrace)
     }
 
     @Test
@@ -845,7 +849,19 @@ class TingantaEngineTest {
         val affixes = TingAffix.entries.filter { it.pada == pada }
         val expectedSurfaces = expected.trim().split(Regex("\\s+"))
         assertEquals(affixes.size, expectedSurfaces.size, "Expected one surface for each $pada slot")
-        assertEquals(affixes.zip(expectedSurfaces).toMap(), surfaces)
+        val expectedByAffix = affixes.zip(expectedSurfaces).toMap()
+        val traces = forms.filter { (affix, result) -> expectedByAffix[affix] != result.final.surface }
+            .entries.joinToString("\n\n") { (affix, result) ->
+                "$affix:\n" + result.applications.joinToString("\n") {
+                    val terms = it.after.terms.joinToString { term ->
+                        val designations = (term.itDesignations + term.deferredItDesignations)
+                            .joinToString { designation -> "${designation.sutra}:${designation.start}..${designation.endExclusive}" }
+                        "${term.id}=${term.surface}[${term.upadesha};${term.itProcessingPhase};$designations]"
+                    }
+                    "${it.sutra}: ${it.before.surface} -> ${it.after.surface} {$terms; exempt=${it.after.halantyamExemptTermIds}}"
+                }
+            }
+        assertEquals(expectedByAffix, surfaces, traces)
     }
 
 }

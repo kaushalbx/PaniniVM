@@ -71,7 +71,12 @@ object YasyetiCaSutra : Sutra<DerivationState, DerivationChange>(
             affixSurface.startsWith("आयन्") || affixSurface.startsWith("आयन") -> stemBase + "ायन्"
             affixSurface.startsWith("एय्") || affixSurface.startsWith("एय") -> stemBase + "ेय्"
             affixSurface.startsWith("यञ्") || affixSurface.startsWith("य") -> stemBase + "्य"
-            else -> stemBase + affixSurface
+            else -> if (stemBase.endsWith('्') && affixSurface.firstOrNull() in
+                setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ', 'े', 'ै', 'ो', 'ौ')) {
+                stemBase.dropLast(1) + affixSurface
+            } else {
+                stemBase + affixSurface
+            }
         }
 
         val updatedTerm = DerivationTerm(

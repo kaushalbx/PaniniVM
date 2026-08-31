@@ -34,6 +34,7 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
         val atoNgitahCompleted = context.droppedTerms.any { it.id == "ato-ngit-it" }
         val isNonAStem = context.terms.firstOrNull { it.kind == TermKind.DHATU }?.gana in nonAStemGanas
         if (lakara == Lakara.LOT && context.substitutions.any { it.sutra in setOf("3.4.90", "3.4.91", "3.4.93") }) return false
+        if (lakara == Lakara.LOT && ending.upadesha == "ध्वम्") return false
         if (lakara == Lakara.LIT && ending.upadesha in setOf("त", "झ")) return false
         if (lakara == Lakara.LUT && ending.upadesha in setOf("त", "आताम्", "झ")) return false
         if (lakara == Lakara.LET && context.substitutions.any { it.sutra in setOf("3.4.94", "3.4.96") }) return false

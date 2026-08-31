@@ -27,11 +27,12 @@ object LopoVyorValiSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.LOPA,
     scope = SutraScope.VARNA,
+    blocks = setOf("6.1.87"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         for (index in 0 until context.terms.lastIndex) {
             val leftTerm = context.terms[index]
-            if (leftTerm.id == "yasut" || leftTerm.matchesUpadesha("णिच्")) continue
+            if (leftTerm.matchesUpadesha("णिच्")) continue
             val left = leftTerm.surface
             val rightTerm = context.terms[index + 1]
             val hasPadaScope = context.samjnas.any { it.targetId == leftTerm.id && it.samjna == Samjna.PADA }
@@ -40,7 +41,12 @@ object LopoVyorValiSutra : Sutra<DerivationState, DerivationChange>(
                 TingAffix.entries.any { it.upadesha == rightTerm.upadesha }
             val isLingSiyut = context.effectiveContext.rupa.lakara == Lakara.LING &&
                 leftTerm.id == "siyut" && TingAffix.entries.any { it.upadesha == rightTerm.upadesha }
-            if (!hasPadaScope && !isLateLingVikarana && !isLingSiyut) continue
+            val isLingYasut = context.effectiveContext.rupa.lakara == Lakara.LING &&
+                leftTerm.matchesUpadesha("यासुट्") && TingAffix.entries.any { it.upadesha == rightTerm.upadesha }
+            val isMergedLingYasut = context.effectiveContext.rupa.lakara == Lakara.LING &&
+                context.droppedTerms.any { it.matchesUpadesha("यासुट्") } &&
+                TingAffix.entries.any { it.upadesha == rightTerm.upadesha }
+            if (!hasPadaScope && !isLateLingVikarana && !isLingSiyut && !isLingYasut && !isMergedLingYasut) continue
             if (context.effectiveContext.rupa.lakara == Lakara.LUNG &&
                 leftTerm.id == "vuk" && rightTerm.upadesha in setOf("च्लि", "सिच्")
             ) continue
@@ -59,7 +65,7 @@ object LopoVyorValiSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         for (index in 0 until context.terms.lastIndex) {
             val left = context.terms[index]
-            if (left.id == "yasut" || left.matchesUpadesha("णिच्")) continue
+            if (left.matchesUpadesha("णिच्")) continue
             val rightTerm = context.terms[index + 1]
             val hasPadaScope = context.samjnas.any { it.targetId == left.id && it.samjna == Samjna.PADA }
             val isLateLingVikarana = context.effectiveContext.rupa.lakara == Lakara.LING &&
@@ -67,7 +73,12 @@ object LopoVyorValiSutra : Sutra<DerivationState, DerivationChange>(
                 TingAffix.entries.any { it.upadesha == rightTerm.upadesha }
             val isLingSiyut = context.effectiveContext.rupa.lakara == Lakara.LING &&
                 left.id == "siyut" && TingAffix.entries.any { it.upadesha == rightTerm.upadesha }
-            if (!hasPadaScope && !isLateLingVikarana && !isLingSiyut) continue
+            val isLingYasut = context.effectiveContext.rupa.lakara == Lakara.LING &&
+                left.matchesUpadesha("यासुट्") && TingAffix.entries.any { it.upadesha == rightTerm.upadesha }
+            val isMergedLingYasut = context.effectiveContext.rupa.lakara == Lakara.LING &&
+                context.droppedTerms.any { it.matchesUpadesha("यासुट्") } &&
+                TingAffix.entries.any { it.upadesha == rightTerm.upadesha }
+            if (!hasPadaScope && !isLateLingVikarana && !isLingSiyut && !isLingYasut && !isMergedLingYasut) continue
             if (context.effectiveContext.rupa.lakara == Lakara.LUNG &&
                 left.id == "vuk" && rightTerm.upadesha in setOf("च्लि", "सिच्")
             ) continue

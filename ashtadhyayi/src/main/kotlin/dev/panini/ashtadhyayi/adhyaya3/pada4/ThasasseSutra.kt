@@ -36,7 +36,7 @@ object ThasasseSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
         return DerivationChange(
-            context.replaceTerm(ending.id, ending.copy(surface = "से")),
+            context.replaceWholeAffix(ending.id, "से", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
             "3.4.80 replaces the Ātmanepada थास् ending with से.",
         )
     }

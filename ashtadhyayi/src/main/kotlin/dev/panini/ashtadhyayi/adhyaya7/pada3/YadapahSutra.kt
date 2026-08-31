@@ -63,7 +63,7 @@ object YadapahSutra : Sutra<DerivationState, DerivationChange>(
         if (affix.upadesha == "टा") {
             return DerivationChange(
                 state = context.replaceTerm(stem.id, stem.copy(surface = stem.surface.dropLast(1)))
-                    .replaceTerm(affix.id, affix.copy(surface = "या"))
+                    .replaceWholeAffix(affix.id, "या", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume)
                     .blockSutra(sutra, sutra)
                     .copy(stage = DerivationStage.PADA_FORMED),
                 explanation = "7.3.113: Formed the instrumental singular -या after an āp stem.",
@@ -81,7 +81,7 @@ object YadapahSutra : Sutra<DerivationState, DerivationChange>(
         }
 
         return DerivationChange(
-            state = context.replaceTerm(affix.id, affix.copy(surface = newSurface))
+            state = context.replaceWholeAffix(affix.id, newSurface, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume)
                 .blockSutra(sutra, sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.113: Added 'yāṭ' augment before ṅit affix and merged."

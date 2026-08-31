@@ -5,6 +5,8 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
+import dev.panini.core.SupAffix
+import dev.panini.core.TingAffix
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -27,19 +29,24 @@ object NaVibhaktauTusmahSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.NISHEDHA,
     scope = SutraScope.PRATYAYA,
     blocks = setOf("1.3.3"),
+    stage = dev.panini.sutra.SutraStage.IT_PROCESSING,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        if (context.stage != DerivationStage.PRATYAYA_SELECTED) return false
+        if (context.stage != DerivationStage.PRATYAYA_SELECTED && context.terms.none { it.itProcessingPending }) return false
+        val pendingIds = context.terms.filter { it.itProcessingPending }.mapTo(mutableSetOf()) { it.id }
 
         return context.terms.any { term ->
-            val isVibhakti = context.samjnas.any { it.targetId == term.id && it.samjna == Samjna.PRATYAYA }
+            if (pendingIds.isNotEmpty() && term.id !in pendingIds) return@any false
+            val isVibhakti = isVibhaktiTerm(context, term)
             isVibhakti && isTuSMa(term.surface) && term.id !in context.halantyamExemptTermIds
         }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
+        val pendingIds = context.terms.filter { it.itProcessingPending }.mapTo(mutableSetOf()) { it.id }
         val protectedIds = context.terms.filter { term ->
-            context.samjnas.any { it.targetId == term.id && it.samjna == Samjna.PRATYAYA } && isTuSMa(term.surface)
+            (pendingIds.isEmpty() || term.id in pendingIds) &&
+            isVibhaktiTerm(context, term) && isTuSMa(term.surface)
         }.mapTo(mutableSetOf()) { it.id }
         val state = context.copy(halantyamExemptTermIds = context.halantyamExemptTermIds + protectedIds)
 
@@ -56,4 +63,9 @@ object NaVibhaktauTusmahSutra : Sutra<DerivationState, DerivationChange>(
                surface.endsWith("द") || surface.endsWith("ध") || surface.endsWith("न") ||
                surface.endsWith("स") || surface.endsWith("म")
     }
+
+    private fun isVibhaktiTerm(context: DerivationState, term: dev.panini.derivation.DerivationTerm): Boolean =
+        context.samjnas.any { it.targetId == term.id && it.samjna == Samjna.PRATYAYA } ||
+            TingAffix.entries.any { it.upadesha == term.upadesha } ||
+            SupAffix.entries.any { it.upadesha == term.upadesha }
 }

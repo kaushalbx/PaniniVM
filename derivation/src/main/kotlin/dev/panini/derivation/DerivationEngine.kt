@@ -472,7 +472,7 @@ class DerivationEngine(
             { candidate ->
                 if (candidate.sutra.sutra == "1.3.9" && state.terms.any {
                         it.itProcessingPending || it.itDesignations.isNotEmpty()
-                    }) 1
+                    }) 4
                 else if (candidate.sutra.sutra == "3.4.92" && state.substitutions.any { it.sutra == "7.3.84" }) 2
                 else if (candidate.sutra.sutra == "3.4.93" && state.allEffectiveTerms.any { "3.4.92" in it.establishedBySutras }) 2
                 else agendaDomain(candidate.sutra)

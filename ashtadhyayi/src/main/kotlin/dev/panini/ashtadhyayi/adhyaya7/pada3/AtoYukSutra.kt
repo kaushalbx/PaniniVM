@@ -60,7 +60,7 @@ object AtoYukSutra : Sutra<DerivationState, DerivationChange>(
         return DerivationChange(
             state = context
                 .replaceTerm(stem.id, stem.copy(surface = stem.surface.dropLast(1)))
-                .replaceTerm(affix.id, affix.copy(surface = "योः", itMarkers = emptySet()))
+                .replaceWholeAffix(affix.id, "योः", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.114: Replaced final ā plus dual ओस् with युक् + ओस्, yielding योः.",
         )

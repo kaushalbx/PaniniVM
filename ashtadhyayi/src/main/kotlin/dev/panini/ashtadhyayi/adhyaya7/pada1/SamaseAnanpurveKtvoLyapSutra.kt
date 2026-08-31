@@ -40,16 +40,15 @@ object SamaseAnanpurveKtvoLyapSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val ktvaTerm = context.terms.last { it.upadesha == "क्त्वा" || it.id == "ktva_pratyaya" }
-        val lyapTerm = DerivationTerm(
-            id = "lyap_pratyaya",
-            surface = "ल्यप्",
-            kind = TermKind.PRATYAYA,
-            upadesha = "ल्यप्",
-            createdBySutra = sutra,
-            itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
-        )
         return DerivationChange(
-            state = context.replaceTerm(ktvaTerm.id, lyapTerm),
+            state = context.replaceWholeAffix(
+                id = ktvaTerm.id,
+                replacementId = "lyap_pratyaya",
+                surface = "ल्यप्",
+                upadesha = "ल्यप्",
+                sutra = sutra,
+                policy = dev.panini.derivation.WholeAffixDesignationPolicy.FreshUpadesha,
+            ),
             explanation = "7.1.37 substitutes ल्यप् (य) for क्त्वा when preceded by an upasarga."
         )
     }

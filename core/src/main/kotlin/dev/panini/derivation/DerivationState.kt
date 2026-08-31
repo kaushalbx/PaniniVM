@@ -111,6 +111,7 @@ class DerivationState(
         sutra: String,
         policy: WholeAffixDesignationPolicy,
         upadesha: String? = null,
+        replacementId: String = id,
     ): DerivationState {
         val term = terms.singleOrNull { it.id == id }
             ?: error("Whole-affix substitution $sutra requires exactly one term named $id.")
@@ -121,7 +122,18 @@ class DerivationState(
             WholeAffixDesignationPolicy.FreshUpadesha -> surface
             else -> term.upadesha
         }
-        return replaceTerm(id, term.replaceWholeAffix(surface, replacementUpadesha, sutra, policy))
+        val replaced = replaceTerm(
+            id,
+            term.replaceWholeAffix(surface, replacementUpadesha, sutra, policy).copy(id = replacementId),
+        )
+        if (replacementId == id) return replaced
+        return replaced.copy(
+            samjnas = replaced.samjnas.mapTo(mutableSetOf()) { assignment ->
+                if (assignment.targetId == id) assignment.copy(targetId = replacementId) else assignment
+            },
+            halantyamExemptTermIds = replaced.halantyamExemptTermIds
+                .let { ids -> if (id in ids) ids - id + replacementId else ids },
+        )
     }
 
     fun removeTerm(id: String, sutra: String? = null): DerivationState {

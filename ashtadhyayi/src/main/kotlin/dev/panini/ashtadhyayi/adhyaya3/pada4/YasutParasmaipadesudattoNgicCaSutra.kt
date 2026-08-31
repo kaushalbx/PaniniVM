@@ -33,11 +33,12 @@ object YasutParasmaipadesudattoNgicCaSutra : Sutra<DerivationState, DerivationCh
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val ting = context.terms.lastOrNull() ?: return false
-        return context.stage == DerivationStage.PRATYAYA_SELECTED &&
+        return context.stage != DerivationStage.INITIAL &&
+            context.terms.none { it.itProcessingPending } &&
             ting.kind == TermKind.PRATYAYA &&
             ting.matchesUpadesha("लिङ्") &&
             TingAffix.entries.any { it.upadesha == ting.upadesha && it.pada == PadaType.PARASMAIPADA } &&
-            context.terms.none { it.id == "yasut" }
+            context.allEffectiveTerms.none { it.id == "yasut" }
     }
 
     override fun apply(context: DerivationState): DerivationChange {

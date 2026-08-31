@@ -6,8 +6,8 @@ import dev.panini.core.TingAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.SthaniProperties
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.WholeAffixDesignationPolicy
 import dev.panini.derivation.term
 import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.sutra.Sutra
@@ -52,15 +52,15 @@ object TiptasjhiSutra : Sutra<DerivationState, DerivationChange>(
         val baseTerm = context.effectiveContext.rupa.let { morphology ->
             requireNotNull(TingAffix.select(requireNotNull(morphology.purusha), requireNotNull(morphology.vacana), targetPada)).term()
         }
-        val replacementTerm = baseTerm.copy(
-            sthaniProps = SthaniProperties(
-                upadesha = lastTerm.upadesha ?: lastTerm.surface,
-                itMarkers = lastTerm.itMarkers
-            )
-        )
-
         return DerivationChange(
-            context.replaceTerm(lastTerm.id, replacementTerm),
+            context.replaceWholeAffix(
+                id = lastTerm.id,
+                surface = baseTerm.surface,
+                sutra = sutra,
+                policy = WholeAffixDesignationPolicy.FreshUpadesha,
+                upadesha = baseTerm.upadesha,
+                replacementId = baseTerm.id,
+            ),
             "3.4.78 substitutes the requested tiṅ termination for ${lastTerm.surface}.",
         )
     }

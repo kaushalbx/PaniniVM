@@ -61,11 +61,20 @@ object LasakvataddhiteSutra : Sutra<DerivationState, DerivationChange>(
                     }
                     val length = if (sign == '्' || sign in setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ', 'े', 'ै', 'ो', 'ौ')) 2 else 1
                     val designation = ItDesignation(0, length, vowel, marker, sutra, designatedText = term.surface.substring(0, length))
+                    // The initial झ् of tiṅ झ/झि is designated here, but
+                    // 7.1.3/7.1.5 (or the liṭ replacement) supersedes that
+                    // exact segment before 1.3.9. Keep the designation alive
+                    // for that substitution to consume explicitly.
+                    val awaitsJhaSubstitution = term.itProcessingPending && term.upadesha in setOf("झ", "झि")
                     term.copy(
                         itMarkers = term.itMarkers + marker,
-                        itProcessingPhase = if (term.itProcessingPending) dev.panini.derivation.ItProcessingPhase.DESIGNATED else term.itProcessingPhase,
-                        itDesignations = if (term.itProcessingPending) term.itDesignations + designation else term.itDesignations,
-                        deferredItDesignations = if (term.itProcessingPending) term.deferredItDesignations else term.deferredItDesignations + designation,
+                        itProcessingPhase = when {
+                            awaitsJhaSubstitution -> dev.panini.derivation.ItProcessingPhase.DEFERRED_SUBSTITUTION
+                            term.itProcessingPending -> dev.panini.derivation.ItProcessingPhase.DESIGNATED
+                            else -> term.itProcessingPhase
+                        },
+                        itDesignations = if (term.itProcessingPending && !awaitsJhaSubstitution) term.itDesignations + designation else term.itDesignations,
+                        deferredItDesignations = if (awaitsJhaSubstitution || !term.itProcessingPending) term.deferredItDesignations + designation else term.deferredItDesignations,
                     )
                 } else term
             } else term
