@@ -53,7 +53,7 @@ object NityamJitahSutra : Sutra<DerivationState, DerivationChange>(
         val lastTerm = context.terms.last()
         val newSurface = lastTerm.surface.dropLast(2)
         return DerivationChange(
-            state = context.replaceTerm(lastTerm.id, lastTerm.copy(surface = newSurface))
+            state = context.replaceWholeAffix(lastTerm.id, newSurface, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume)
                 .copy(stage = DerivationStage.PADA_FORMED),
             explanation = "3.4.99: Dropped final 's' of Parasmaipada suffix."
         )

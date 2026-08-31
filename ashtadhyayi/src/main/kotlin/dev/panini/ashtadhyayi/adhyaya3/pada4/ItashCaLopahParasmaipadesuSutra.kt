@@ -33,7 +33,7 @@ object ItashCaLopahParasmaipadesuSutra : Sutra<DerivationState, DerivationChange
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
         return DerivationChange(
-            context.replaceTerm(ending.id, ending.copy(surface = ending.surface.dropLast(1) + "्")),
+            context.replaceWholeAffix(ending.id, ending.surface.dropLast(1) + "्", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
             "3.4.97 optionally deletes the final इ of the LET Parasmaipada ending.",
         )
     }

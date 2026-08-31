@@ -55,7 +55,7 @@ object AngoNastriyamSutra : Sutra<DerivationState, DerivationChange>(
         val newAffixSurface = "ना"
 
         return DerivationChange(
-            state = context.replaceTerm(affix.id, affix.copy(surface = newAffixSurface, upadesha = "ना"))
+            state = context.replaceWholeAffix(affix.id, newAffixSurface, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume, upadesha = "ना")
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.120: Replaced 'ṭā' affix with 'nā' after non-feminine ghi stem."
         )

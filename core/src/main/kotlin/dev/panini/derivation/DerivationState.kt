@@ -37,10 +37,14 @@ class DerivationState(
             "A completed derivation cannot contain incomplete it-processing: $incomplete."
         }
         require(terms.none { it.itDesignations.isNotEmpty() }) {
-            "A completed derivation cannot contain unconsumed it-designations."
+            val pending = terms.filter { it.itDesignations.isNotEmpty() }
+                .joinToString { "${it.id}:${it.surface}=${it.itDesignations}" }
+            "A completed derivation cannot contain unconsumed it-designations: $pending."
         }
         require(terms.none { it.deferredItDesignations.isNotEmpty() }) {
-            "A completed derivation cannot contain deferred it-designations."
+            val pending = terms.filter { it.deferredItDesignations.isNotEmpty() }
+                .joinToString { "${it.id}:${it.surface}=${it.deferredItDesignations}" }
+            "A completed derivation cannot contain deferred it-designations: $pending."
         }
         return this
     }
@@ -106,14 +110,18 @@ class DerivationState(
         surface: String,
         sutra: String,
         policy: WholeAffixDesignationPolicy,
-        upadesha: String = surface,
+        upadesha: String? = null,
     ): DerivationState {
         val term = terms.singleOrNull { it.id == id }
             ?: error("Whole-affix substitution $sutra requires exactly one term named $id.")
         require(term.kind == TermKind.PRATYAYA || term.kind == TermKind.AGAMA || term.kind == TermKind.AUGMENT) {
             "Whole-affix substitution $sutra cannot target non-affix term $id."
         }
-        return replaceTerm(id, term.replaceWholeAffix(surface, upadesha, sutra, policy))
+        val replacementUpadesha = upadesha ?: when (policy) {
+            WholeAffixDesignationPolicy.FreshUpadesha -> surface
+            else -> term.upadesha
+        }
+        return replaceTerm(id, term.replaceWholeAffix(surface, replacementUpadesha, sutra, policy))
     }
 
     fun removeTerm(id: String, sutra: String? = null): DerivationState {

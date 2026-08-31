@@ -47,7 +47,7 @@ object ShahPratyayasyaSutra : Sutra<DerivationState, DerivationChange>(
                 val designation = ItDesignation(
                     start = 0,
                     endExclusive = end,
-                    replacementAfterLopa = "",
+                    replacementAfterLopa = if (end == 1) "अ" else "",
                     marker = ItMarker.SH,
                     sutra = sutra,
                     designatedText = term.surface.substring(0, end),

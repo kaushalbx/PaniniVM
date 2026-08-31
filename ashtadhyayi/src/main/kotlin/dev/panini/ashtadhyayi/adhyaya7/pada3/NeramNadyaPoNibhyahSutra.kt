@@ -51,7 +51,7 @@ object NeramNadyaPoNibhyahSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
         return DerivationChange(
-            state = context.replaceTerm(affix.id, affix.copy(surface = "आम्", itMarkers = affix.itMarkers + ItMarker.NGIT))
+            state = context.replaceWholeAffix(affix.id, "आम्", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.116: Replaced Locative Singular 'ṅi' with 'ām'."
         )

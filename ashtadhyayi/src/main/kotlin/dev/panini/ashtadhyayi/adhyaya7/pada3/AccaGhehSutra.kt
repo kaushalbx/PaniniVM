@@ -52,7 +52,7 @@ object AccaGhehSutra : Sutra<DerivationState, DerivationChange>(
 
         return DerivationChange(
             state = context.replaceTerm(stem.id, stem.copy(surface = newStemSurface))
-                .replaceTerm(affix.id, affix.copy(surface = newAffixSurface, upadesha = "औ"))
+                .replaceWholeAffix(affix.id, newAffixSurface, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume, upadesha = "औ")
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.119: Substituted 'a' for ghi-stem vowel and 'au' for 'ṅi'."
         )

@@ -5,6 +5,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.WholeAffixDesignationPolicy
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -36,7 +37,12 @@ object ItoAtSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
         return DerivationChange(
-            context.replaceTerm(ending.id, ending.copy(surface = "अ")),
+            context.replaceWholeAffix(
+                id = ending.id,
+                surface = "अ",
+                sutra = number,
+                policy = WholeAffixDesignationPolicy.Consume,
+            ),
             "3.4.106 replaces Ātmanepada इट् with अ in liṅ.",
         )
     }
