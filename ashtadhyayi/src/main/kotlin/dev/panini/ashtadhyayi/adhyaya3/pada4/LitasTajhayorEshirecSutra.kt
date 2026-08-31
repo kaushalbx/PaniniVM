@@ -27,7 +27,7 @@ object LitasTajhayorEshirecSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
         val replacement = if (ending.matchesUpadesha("त")) "ए" else "इरे"
-        return DerivationChange(context.replaceTerm(ending.id, ending.copy(surface = replacement)),
+        return DerivationChange(context.replaceWholeAffix(ending.id, replacement, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
             "3.4.81 replaces ${ending.upadesha} with $replacement in लिट्.")
     }
 }

@@ -53,7 +53,7 @@ object AtomSutra : Sutra<DerivationState, DerivationChange>(
             // The aṅga already supplies अ; the visible remainder of अम् is म्.
             state = context.replaceTerm(
                 affix.id,
-                affix.copy(surface = "म्", upadesha = "अम्", itMarkers = emptySet()),
+                affix.replaceWholeAffix("म्", "अम्", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume).copy(itMarkers = emptySet()),
             ).copy(stage = DerivationStage.FINAL),
             explanation = "7.1.24: Substituted the visible remainder म् of अम् for neuter सु/अम् after an a-stem."
         )

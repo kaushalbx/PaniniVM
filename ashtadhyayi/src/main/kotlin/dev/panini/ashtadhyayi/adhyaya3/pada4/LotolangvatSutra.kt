@@ -29,7 +29,7 @@ object LotolangvatSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
         val replacement = replacements.getValue(requireNotNull(affix.upadesha))
         return DerivationChange(
-            context.replaceTerm(affix.id, affix.copy(surface = replacement))
+            context.replaceWholeAffix(affix.id, replacement, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume)
                 .copy(stage = DerivationStage.PADA_FORMED),
             "3.4.85 applies the loṭ laṅ-style termination replacement."
         )

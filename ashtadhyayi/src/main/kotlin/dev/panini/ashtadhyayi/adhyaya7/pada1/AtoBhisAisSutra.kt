@@ -46,7 +46,7 @@ object AtoBhisAisSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
         return DerivationChange(
-            state = context.replaceTerm(affix.id, affix.copy(surface = "ऐस्"))
+            state = context.replaceWholeAffix(affix.id, "ऐस्", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume)
                 .addSubstitution(VarnaSubstitution(affix.id, 'भ', "ऐस्", sutra)),
             explanation = "7.1.9 substitutes ऐस् for instrumental-plural भिस्."
         )

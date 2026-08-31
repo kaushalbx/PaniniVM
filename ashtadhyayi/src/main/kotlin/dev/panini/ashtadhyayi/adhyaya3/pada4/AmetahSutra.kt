@@ -44,7 +44,7 @@ object AmetahSutra : Sutra<DerivationState, DerivationChange>(
             affix.surface.dropLast(1) + "ाम्"
         }
         return DerivationChange(
-            context.replaceTerm(affix.id, affix.copy(surface = replacement)).copy(stage = DerivationStage.PADA_FORMED),
+            context.replaceWholeAffix(affix.id, replacement, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume).copy(stage = DerivationStage.PADA_FORMED),
             "3.4.90 replaces the LOT ending's ए with आम्.",
         )
     }

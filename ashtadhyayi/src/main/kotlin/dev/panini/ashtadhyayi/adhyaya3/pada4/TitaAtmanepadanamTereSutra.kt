@@ -89,7 +89,7 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
             else -> error("3.4.79 received a non-Ātmanepada ending: ${ending.upadesha}")
         }
         return DerivationChange(
-            context.replaceTerm(ending.id, ending.copy(surface = replacement)),
+            context.replaceWholeAffix(ending.id, replacement, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
             "3.4.79 replaces the टि portion of ${ending.upadesha} with ए.",
         )
     }

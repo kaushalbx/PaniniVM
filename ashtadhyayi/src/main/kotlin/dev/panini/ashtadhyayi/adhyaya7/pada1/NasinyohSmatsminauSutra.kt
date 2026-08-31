@@ -56,7 +56,7 @@ object NasinyohSmatsminauSutra : Sutra<DerivationState, DerivationChange>(
         val replacement = requireNotNull(YathasamkhyamSutra.map(lookupKey, sources, targets))
 
         return DerivationChange(
-            state = context.replaceTerm(affix.id, affix.copy(surface = replacement)),
+            state = context.replaceWholeAffix(affix.id, replacement, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
             explanation = "7.1.15: Substituted $replacement for ${affix.upadesha} after pronoun stem."
         )
     }

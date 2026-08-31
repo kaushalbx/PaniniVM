@@ -34,7 +34,7 @@ object AdabhyastatSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
         return DerivationChange(
-            context.replaceTerm(affix.id, affix.copy(surface = "अति")),
+            context.replaceWholeAffix(affix.id, "अति", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
             "7.1.4 substitutes अत् for झि after the reduplicated base.",
         )
     }

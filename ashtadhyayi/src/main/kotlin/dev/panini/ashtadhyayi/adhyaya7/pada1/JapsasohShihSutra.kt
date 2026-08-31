@@ -40,7 +40,7 @@ object JapsasohShihSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
         return DerivationChange(
-            state = context.replaceTerm(affix.id, affix.copy(surface = "शि", upadesha = "शि")),
+            state = context.replaceWholeAffix(affix.id, "शि", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.FreshUpadesha, upadesha = "शि"),
             explanation = "7.1.20: Substituted 'śi' for neuter plural 'jas/śas'."
         )
     }

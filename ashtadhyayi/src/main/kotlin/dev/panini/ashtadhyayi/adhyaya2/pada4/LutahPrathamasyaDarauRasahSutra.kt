@@ -44,12 +44,13 @@ object LutahPrathamasyaDarauRasahSutra : Sutra<DerivationState, DerivationChange
         val ending = context.terms.last()
         val replacement = requireNotNull(replacements[ending.upadesha])
 
-        // डा has ḍ as it-marker (ṭa-varga initial), which is marked as ItMarker.T
-        val itMarkers = if (replacement == "डा") setOf(ItMarker.T) else emptySet()
-        val newEnding = ending.copy(surface = replacement, upadesha = replacement, itMarkers = itMarkers)
-
         return DerivationChange(
-            state = context.replaceTerm(ending.id, newEnding),
+            state = context.replaceWholeAffix(
+                ending.id, replacement, sutra,
+                if (replacement == "डा") dev.panini.derivation.WholeAffixDesignationPolicy.FreshUpadesha
+                else dev.panini.derivation.WholeAffixDesignationPolicy.Consume,
+                upadesha = replacement,
+            ),
             explanation = "2.4.85 replaces the ending ${ending.upadesha} with $replacement in लुट्."
         )
     }

@@ -54,7 +54,7 @@ object TangasingsamInatsyahSutra : Sutra<DerivationState, DerivationChange>(
 
         // Genitive 'sya' often triggers immediate merger in simplified logic,
         // but here we keep them as distinct terms for the engine to process normally.
-        val newState = context.replaceTerm(affix.id, affix.copy(surface = replacement))
+        val newState = context.replaceWholeAffix(affix.id, replacement, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume)
 
         return DerivationChange(
             state = newState,

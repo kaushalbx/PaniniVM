@@ -26,7 +26,7 @@ class DerivationStateInvariantTest {
                         "suffix",
                         "अण्",
                         TermKind.PRATYAYA,
-                        itDesignations = listOf(ItDesignation(1, 3, marker = ItMarker.NIT, sutra = "1.3.3")),
+                        itDesignations = listOf(ItDesignation(1, 3, marker = ItMarker.NIT, sutra = "1.3.3", designatedText = "ण्")),
                     ),
                 ),
                 stage = DerivationStage.FINAL,

@@ -33,7 +33,7 @@ class DerivationState(
     fun requireCompleteItProcessing(): DerivationState {
         require(terms.none { it.itProcessingPhase != ItProcessingPhase.PROCESSED }) {
             val incomplete = terms.filter { it.itProcessingPhase != ItProcessingPhase.PROCESSED }
-                .joinToString { "${it.id}:${it.itProcessingPhase}" }
+                .joinToString { "${it.id}:${it.surface}:${it.itProcessingPhase}" }
             "A completed derivation cannot contain incomplete it-processing: $incomplete."
         }
         require(terms.none { it.itDesignations.isNotEmpty() }) {
@@ -99,6 +99,22 @@ class DerivationState(
 
     fun replaceTerm(id: String, replacement: DerivationTerm): DerivationState =
         copy(terms = terms.map { if (it.id == id) replacement else it })
+
+    /** Replaces an entire affix while making the fate of every exact it-designation explicit. */
+    fun replaceWholeAffix(
+        id: String,
+        surface: String,
+        sutra: String,
+        policy: WholeAffixDesignationPolicy,
+        upadesha: String = surface,
+    ): DerivationState {
+        val term = terms.singleOrNull { it.id == id }
+            ?: error("Whole-affix substitution $sutra requires exactly one term named $id.")
+        require(term.kind == TermKind.PRATYAYA || term.kind == TermKind.AGAMA || term.kind == TermKind.AUGMENT) {
+            "Whole-affix substitution $sutra cannot target non-affix term $id."
+        }
+        return replaceTerm(id, term.replaceWholeAffix(surface, upadesha, sutra, policy))
+    }
 
     fun removeTerm(id: String, sutra: String? = null): DerivationState {
         val term = terms.find { it.id == id } ?: return this
@@ -267,7 +283,74 @@ data class DerivationTerm(
 
     fun matchesUpadesha(value: String): Boolean =
         upadesha == value || sthaniProps?.upadesha == value
+
+    fun replaceWholeAffix(
+        replacementSurface: String,
+        replacementUpadesha: String,
+        sutra: String,
+        policy: WholeAffixDesignationPolicy,
+    ): DerivationTerm {
+        val allDesignations = itDesignations + deferredItDesignations
+        val inherited = SthaniProperties(
+            upadesha = sthaniProps?.upadesha ?: upadesha,
+            itMarkers = sthaniProps?.itMarkers.orEmpty() + itMarkers,
+        )
+        return when (policy) {
+            is WholeAffixDesignationPolicy.PreserveAndRemap -> {
+                require(policy.remaps.size == allDesignations.size) {
+                    "$sutra must explicitly remap every designation on $id (${allDesignations.size} designations, ${policy.remaps.size} remaps)."
+                }
+                val remapped = allDesignations.map { designation ->
+                    val remap = policy.remaps.singleOrNull {
+                        it.oldStart == designation.start && it.oldEndExclusive == designation.endExclusive
+                    } ?: error("$sutra has no unique remap for ${designation.start}..${designation.endExclusive} on $id.")
+                    require(remap.newStart >= 0 && remap.newEndExclusive <= replacementSurface.length && remap.newStart < remap.newEndExclusive)
+                    val newText = replacementSurface.substring(remap.newStart, remap.newEndExclusive)
+                    designation.copy(start = remap.newStart, endExclusive = remap.newEndExclusive, designatedText = newText)
+                }
+                val activeCount = itDesignations.size
+                copy(
+                    surface = replacementSurface,
+                    upadesha = replacementUpadesha,
+                    itDesignations = remapped.take(activeCount),
+                    deferredItDesignations = remapped.drop(activeCount),
+                    itProcessingPhase = if (activeCount > 0) ItProcessingPhase.DESIGNATED else itProcessingPhase,
+                )
+            }
+            WholeAffixDesignationPolicy.Consume -> copy(
+                surface = replacementSurface,
+                upadesha = replacementUpadesha,
+                itDesignations = emptyList(),
+                deferredItDesignations = emptyList(),
+                itProcessingPhase = ItProcessingPhase.PROCESSED,
+                sthaniProps = inherited,
+            )
+            WholeAffixDesignationPolicy.FreshUpadesha -> copy(
+                surface = replacementSurface,
+                upadesha = replacementUpadesha,
+                itMarkers = emptySet(),
+                itDesignations = emptyList(),
+                deferredItDesignations = emptyList(),
+                itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
+                sthaniProps = inherited,
+                createdBySutra = sutra,
+            )
+        }
+    }
 }
+
+sealed interface WholeAffixDesignationPolicy {
+    data class PreserveAndRemap(val remaps: List<ItDesignationRemap>) : WholeAffixDesignationPolicy
+    data object Consume : WholeAffixDesignationPolicy
+    data object FreshUpadesha : WholeAffixDesignationPolicy
+}
+
+data class ItDesignationRemap(
+    val oldStart: Int,
+    val oldEndExclusive: Int,
+    val newStart: Int,
+    val newEndExclusive: Int,
+)
 
 enum class ItProcessingPhase {
     /** The term is already an effective form or has no it-processing to perform. */
@@ -287,7 +370,7 @@ data class ItDesignation(
     val marker: ItMarker,
     val sutra: String,
     /** Original designated segment; detects a designation consumed by a later whole-term substitution. */
-    val designatedText: String? = null,
+    val designatedText: String,
 )
 
 data class SthaniProperties(

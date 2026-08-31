@@ -33,7 +33,7 @@ object SaUttamasyaSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
         return DerivationChange(
-            context.replaceTerm(ending.id, ending.copy(surface = ending.surface.dropLast(2))),
+            context.replaceWholeAffix(ending.id, ending.surface.dropLast(2), sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
             "3.4.98 optionally deletes final स् from the LET first-person ending.",
         )
     }

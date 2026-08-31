@@ -32,20 +32,10 @@ object ParasmaipadanamNalatUsusthalathusaNalvamahSutra : Sutra<DerivationState, 
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
         val replacement = requireNotNull(replacements[ending.upadesha])
-        val requiresItProcessing = replacement in setOf("णल्", "थल्")
-        val substituted = ending.copy(
-            surface = replacement,
-            upadesha = if (requiresItProcessing) replacement else ending.upadesha,
-            itMarkers = emptySet(),
-            itDesignations = emptyList(),
-            itProcessingPhase = if (requiresItProcessing) {
-                dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA
-            } else {
-                dev.panini.derivation.ItProcessingPhase.PROCESSED
-            },
-            sthaniProps = SthaniProperties(ending.upadesha, emptySet()),
-        )
-        return DerivationChange(context.replaceTerm(ending.id, substituted),
+        val policy = if (replacement in setOf("णल्", "थल्"))
+            dev.panini.derivation.WholeAffixDesignationPolicy.FreshUpadesha
+        else dev.panini.derivation.WholeAffixDesignationPolicy.Consume
+        return DerivationChange(context.replaceWholeAffix(ending.id, replacement, sutra, policy, upadesha = replacement),
             "3.4.82 replaces the Parasmaipada ${ending.upadesha} ending with $replacement in लिट्.")
     }
 }

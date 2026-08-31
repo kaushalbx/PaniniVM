@@ -54,21 +54,13 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
             if (exactDesignations.isNotEmpty()) {
                 val designatedMarkers = exactDesignations.mapTo(mutableSetOf()) { it.marker }
                 val processed = exactDesignations.sortedByDescending { it.start }.fold(term.surface) { surface, designation ->
-                    val recordedText = designation.designatedText
-                    val recordedSpanStillExists = designation.endExclusive <= surface.length &&
-                        (recordedText == null || surface.substring(designation.start, designation.endExclusive) == recordedText)
-                    val relocatedStart = if (!recordedSpanStillExists && recordedText != null) {
-                        val first = surface.indexOf(recordedText)
-                        if (first >= 0 && first == surface.lastIndexOf(recordedText)) first else -1
-                    } else {
-                        designation.start
+                    require(designation.start >= 0 && designation.endExclusive <= surface.length &&
+                        surface.substring(designation.start, designation.endExclusive) == designation.designatedText
+                    ) {
+                        "1.3.9 cannot delete stale designation ${designation.start}..${designation.endExclusive} " +
+                            "(${designation.designatedText}) on ${term.id}:${term.surface}; the substituting rule must remap or consume it."
                     }
-                    if (relocatedStart >= 0 && (recordedSpanStillExists || recordedText != null)) {
-                        val relocatedEnd = if (recordedText == null) designation.endExclusive else relocatedStart + recordedText.length
-                        surface.replaceRange(relocatedStart, relocatedEnd, designation.replacementAfterLopa)
-                    } else {
-                        surface
-                    }
+                    surface.replaceRange(designation.start, designation.endExclusive, designation.replacementAfterLopa)
                 }
                 return@map term.copy(
                     surface = processed,

@@ -48,7 +48,7 @@ object NgeryahSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
         return DerivationChange(
-            state = context.replaceTerm(affix.id, affix.copy(surface = "य")),
+            state = context.replaceWholeAffix(affix.id, "य", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
             explanation = "7.1.13 substitutes 'ya' for the dative-singular 'ṅe' after a-stem."
         )
     }

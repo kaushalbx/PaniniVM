@@ -34,6 +34,6 @@ object SerHyapicCaSutra : Sutra<DerivationState, DerivationChange>(
             DhatuGana.KRYADI -> "हि"
             else -> ""
         }
-        return DerivationChange(context.replaceTerm(affix.id, affix.copy(surface = replacement)).copy(stage = DerivationStage.PADA_FORMED), "3.4.87 replaces सिप् in loṭ.")
+        return DerivationChange(context.replaceWholeAffix(affix.id, replacement, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume).copy(stage = DerivationStage.PADA_FORMED), "3.4.87 replaces सिप् in loṭ.")
     }
 }

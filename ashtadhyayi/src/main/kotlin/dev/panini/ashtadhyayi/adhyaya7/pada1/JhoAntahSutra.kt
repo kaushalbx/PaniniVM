@@ -63,7 +63,7 @@ object JhoAntahSutra : Sutra<DerivationState, DerivationChange>(
         val newSurface = (if (isMatra || isSecondaryAtmanepadaJha) "अन्त" else "अन्त्") + suffix
 
         return DerivationChange(
-            state = context.replaceTerm(affix.id, affix.copy(surface = newSurface)),
+            state = context.replaceWholeAffix(affix.id, newSurface, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
             explanation = "7.1.3 substitutes 'ant' for 'jh' in the affix."
         )
     }

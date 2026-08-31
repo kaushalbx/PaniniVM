@@ -36,7 +36,7 @@ object NadyahAmSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
         return DerivationChange(
-            state = context.replaceTerm(affix.id, affix.copy(surface = "नाम्", itMarkers = emptySet())),
+            state = context.replaceWholeAffix(affix.id, "नाम्", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
             explanation = "7.3.122: Replaced genitive-plural आम् with नाम् after a nadī aṅga.",
         )
     }

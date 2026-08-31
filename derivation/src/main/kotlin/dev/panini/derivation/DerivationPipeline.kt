@@ -55,7 +55,7 @@ class DerivationPipeline(
                 val results = if (phase.stage in branchingStages) {
                     phase.engine.deriveAll(prepared)
                 } else {
-                    listOf(phase.engine.derive(prepared, configForStage(phase.stage)))
+                    listOf(phase.engine.derive(prepared, configForStage(phase.stage).copy(validateFinalItProcessing = false)))
                 }
                 results.map { accumulated.append(it) }
             }
@@ -63,7 +63,9 @@ class DerivationPipeline(
 
         return branches
             .map { accumulated ->
-                val final = finalizeState(accumulated.state)
+                val final = finalizeState(accumulated.state).let { state ->
+                    if (state.stage == DerivationStage.FINAL) state.requireCompleteItProcessing() else state
+                }
                 DerivationResult(
                     initial = initial,
                     final = final,

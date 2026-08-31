@@ -51,7 +51,7 @@ object JasahShiSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
         return DerivationChange(
-            state = context.replaceTerm(affix.id, affix.copy(surface = "ई", upadesha = "शी")),
+            state = context.replaceWholeAffix(affix.id, "शी", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.FreshUpadesha, upadesha = "शी"),
             explanation = "7.1.17: Substituted 'śī' for 'jas' after pronoun stem."
         )
     }

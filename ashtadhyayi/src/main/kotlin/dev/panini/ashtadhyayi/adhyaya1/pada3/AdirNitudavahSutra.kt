@@ -45,7 +45,7 @@ object AdirNitudavahSutra : Sutra<DerivationState, DerivationChange>(
                 term.copy(
                     itMarkers = term.itMarkers + marker,
                     itProcessingPhase = dev.panini.derivation.ItProcessingPhase.DESIGNATED,
-                    itDesignations = term.itDesignations + ItDesignation(0, 2, marker = marker, sutra = sutra),
+                    itDesignations = term.itDesignations + ItDesignation(0, 2, marker = marker, sutra = sutra, designatedText = term.surface.substring(0, 2)),
                 )
             } else term
         }

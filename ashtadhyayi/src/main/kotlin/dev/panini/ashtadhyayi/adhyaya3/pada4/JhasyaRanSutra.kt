@@ -36,7 +36,7 @@ object JhasyaRanSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
         return DerivationChange(
-            context.replaceTerm(ending.id, ending.copy(surface = "रन्")),
+            context.replaceWholeAffix(ending.id, "रन्", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
             "3.4.105 replaces Ātmanepada झ with रन् in liṅ.",
         )
     }

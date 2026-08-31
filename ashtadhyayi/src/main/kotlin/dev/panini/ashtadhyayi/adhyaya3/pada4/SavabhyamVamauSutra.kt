@@ -38,6 +38,6 @@ object SavabhyamVamauSutra : Sutra<DerivationState, DerivationChange>(
             "ध्वम्" -> "ध्वम्"
             else -> replacements.getValue(requireNotNull(affix.upadesha))
         }
-        return DerivationChange(context.replaceTerm(affix.id, affix.copy(surface = replacement)).copy(stage = DerivationStage.PADA_FORMED), "3.4.91 supplies the loṭ first-person termination.")
+        return DerivationChange(context.replaceWholeAffix(affix.id, replacement, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume).copy(stage = DerivationStage.PADA_FORMED), "3.4.91 supplies the loṭ first-person termination.")
     }
 }

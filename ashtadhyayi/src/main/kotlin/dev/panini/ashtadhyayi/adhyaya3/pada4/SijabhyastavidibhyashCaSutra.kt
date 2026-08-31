@@ -38,7 +38,7 @@ object SijabhyastavidibhyashCaSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
         return DerivationChange(
-            context.replaceTerm(ending.id, ending.copy(surface = "उस्")),
+            context.replaceWholeAffix(ending.id, "उस्", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
             "3.4.109 replaces झि with जुस् after the reduplicated base.",
         )
     }

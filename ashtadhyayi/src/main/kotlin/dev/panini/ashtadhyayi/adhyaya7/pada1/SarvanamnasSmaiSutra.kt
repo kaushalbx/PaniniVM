@@ -51,7 +51,7 @@ object SarvanamnasSmaiSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
         return DerivationChange(
-            state = context.replaceTerm(affix.id, affix.copy(surface = "स्मै")),
+            state = context.replaceWholeAffix(affix.id, "स्मै", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
             explanation = "7.1.14 substitutes 'smai' for dative-singular 'ṅe' after a pronoun stem."
         )
     }

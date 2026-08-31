@@ -233,7 +233,9 @@ enum class OptionalRulePolicy {
 
 data class DerivationConfig(
     val optionalRulePolicy: OptionalRulePolicy = OptionalRulePolicy.APPLY_ALL,
-    val optionalRuleSelector: (String) -> Boolean = { true }
+    val optionalRuleSelector: (String) -> Boolean = { true },
+    /** Staged pipelines validate once at their outer completion boundary. */
+    val validateFinalItProcessing: Boolean = true,
 )
 
 class DerivationEngine(
@@ -320,7 +322,7 @@ class DerivationEngine(
                 .map { DerivationEvent.RuleBlocked(it.sutra, current.blockedSutras[it.sutra]!!, "Blocked by grammar.") }
             events += blockedEvents
 
-            val candidate = selection.selected ?: return completed(initial, current, applications, events)
+            val candidate = selection.selected ?: return completed(initial, current, applications, events, config)
 
             val shouldApply = if (candidate.sutra.optional) {
                 when (config.optionalRulePolicy) {
@@ -367,13 +369,13 @@ class DerivationEngine(
         error("Derivation did not reach a fixed point within $maxSteps steps. History: ${applications.takeLast(20).map { "${it.sutra} (${it.before.surface} -> ${it.after.surface})" }}")
     }
 
-    private fun completed(initial: DerivationState, current: DerivationState, applications: List<DerivationApplication>, events: List<DerivationEvent>): DerivationResult {
+    private fun completed(initial: DerivationState, current: DerivationState, applications: List<DerivationApplication>, events: List<DerivationEvent>, config: DerivationConfig): DerivationResult {
         val finalState = if (current.stage == DerivationStage.PADA_FORMED) {
             current.copy(stage = DerivationStage.FINAL)
         } else {
             current
         }.let { state ->
-            if (state.stage == DerivationStage.FINAL) state.requireCompleteItProcessing() else state
+            if (state.stage == DerivationStage.FINAL && config.validateFinalItProcessing) state.requireCompleteItProcessing() else state
         }
         val svara = if (finalState.surface.isNotBlank()) {
             val isNitOrNnit = finalState.allEffectiveTerms.any { 

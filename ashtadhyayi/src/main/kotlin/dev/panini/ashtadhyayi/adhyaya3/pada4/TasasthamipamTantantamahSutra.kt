@@ -64,7 +64,7 @@ object TasasthamipamTantantamahSutra : Sutra<DerivationState, DerivationChange>(
             else -> lastTerm.surface
         }
         return DerivationChange(
-            state = context.replaceTerm(lastTerm.id, lastTerm.copy(surface = substitute, itMarkers = emptySet()))
+            state = context.replaceWholeAffix(lastTerm.id, substitute, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume)
                 .addSubstitution(VarnaSubstitution(lastTerm.id, lastTerm.surface.first(), substitute, sutra))
                 .copy(stage = DerivationStage.PADA_FORMED),
             explanation = "3.4.101: Replaced ending ${lastTerm.upadesha} with $substitute."

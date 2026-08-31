@@ -76,6 +76,7 @@ object UpadesheAjanunasikaItSutra : Sutra<DerivationState, DerivationChange>(
                     replacementAfterLopa = if (isDependentVowel) "्" else "",
                     marker = ItMarker.U,
                     sutra = sutra,
+                    designatedText = term.surface.substring(vowel, chandrabindu + 1),
                 )
             }
         }

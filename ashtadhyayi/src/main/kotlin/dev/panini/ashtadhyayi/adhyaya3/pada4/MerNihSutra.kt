@@ -25,6 +25,6 @@ object MerNihSutra : Sutra<DerivationState, DerivationChange>(
     }
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
-        return DerivationChange(context.replaceTerm(affix.id, affix.copy(surface = "आनि")).copy(stage = DerivationStage.PADA_FORMED), "3.4.89 replaces मिप् in loṭ.")
+        return DerivationChange(context.replaceWholeAffix(affix.id, "आनि", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume).copy(stage = DerivationStage.PADA_FORMED), "3.4.89 replaces मिप् in loṭ.")
     }
 }

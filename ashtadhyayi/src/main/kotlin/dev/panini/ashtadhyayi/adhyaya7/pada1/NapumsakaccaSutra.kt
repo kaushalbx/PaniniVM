@@ -42,7 +42,7 @@ object NapumsakaccaSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
         // 1.1.55: śī replaces the entire affix. Surface becomes 'ī' after it-processing.
         return DerivationChange(
-            state = context.replaceTerm(affix.id, affix.copy(surface = "ई", upadesha = "शी")),
+            state = context.replaceWholeAffix(affix.id, "शी", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.FreshUpadesha, upadesha = "शी"),
             explanation = "7.1.19: Substituted 'śī' for neuter dual 'au/auṭ'."
         )
     }

@@ -35,7 +35,7 @@ object AtmanepadesvAnatahSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last { it.upadesha == "झ" && it.surface.startsWith("झ") }
         return DerivationChange(
-            context.replaceTerm(ending.id, ending.copy(surface = "अत")),
+            context.replaceWholeAffix(ending.id, "अत", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
             "7.1.5 substitutes अत् for the Atmanepada झ after a non-a-final anga.",
         )
     }
