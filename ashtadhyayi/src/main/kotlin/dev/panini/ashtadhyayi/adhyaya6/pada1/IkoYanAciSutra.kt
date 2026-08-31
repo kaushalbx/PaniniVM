@@ -3,6 +3,8 @@ package dev.panini.ashtadhyayi.adhyaya6.pada1
 import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.core.Vacana
 import dev.panini.core.Vibhakti
+import dev.panini.core.Lakara
+import dev.panini.core.TingAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
@@ -38,6 +40,14 @@ object IkoYanAciSutra : Sutra<DerivationState, DerivationChange>(
 
         val terms = context.terms
         val (leftIndex, rightIndex) = targetPair(context) ?: return false
+        val rightTerm = terms[rightIndex]
+        val isPresentSystemTing = context.effectiveContext.rupa.lakara in setOf(
+            Lakara.LAT, Lakara.LOT, Lakara.LANG, Lakara.LING,
+        ) && TingAffix.entries.any { it.upadesha == rightTerm.upadesha }
+        val presentStemEstablished = context.allEffectiveTerms.any {
+            it.upadesha in setOf("शप्", "श्यन्", "श्नु", "श", "श्नम्", "श्ना", "उ")
+        }
+        if (isPresentSystemTing && !presentStemEstablished) return false
         val left = terms[leftIndex].surface.lastOrNull() ?: return false
         val right = terms[rightIndex].surface.firstOrNull() ?: return false
         val isGhiFirstOrSecondDual = context.effectiveContext.rupa.vacana == Vacana.DVIVACANA &&

@@ -16,6 +16,7 @@ object EtaAiSutra : Sutra<DerivationState, DerivationChange>(
     hindiExplanation = "लोट् के उत्तमपुरुष प्रत्यय के एकार के स्थान पर ऐकार होता है।",
     type = SutraType.NITYA, chapter = 3, pada = 4, optional = false, kramaValue = 340093,
     role = SutraRole.Vidhi, action = SutraAction.ADESHA, scope = SutraScope.PRATYAYA,
+    blocks = setOf("6.1.77", "6.1.78", "6.1.87", "6.1.88", "6.1.97", "6.1.101"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val ending = context.terms.lastOrNull() ?: return false

@@ -27,6 +27,7 @@ object LingasSiyutSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.AGAMA,
     scope = SutraScope.PRATYAYA,
+    blocks = setOf("6.1.77", "6.1.78", "6.1.87", "6.1.88", "6.1.97", "6.1.101"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val ting = context.terms.lastOrNull() ?: return false

@@ -352,7 +352,10 @@ data class DerivationTerm(
                 itDesignations = emptyList(),
                 deferredItDesignations = emptyList(),
                 itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
-                sthaniProps = inherited,
+                // A fresh annotated upadeśa supersedes the former affix's
+                // it-status. Keep its identity for substitution provenance,
+                // but do not let consumed markers govern the new raw affix.
+                sthaniProps = SthaniProperties(upadesha = inherited.upadesha, itMarkers = emptySet()),
                 createdBySutra = sutra,
             )
         }

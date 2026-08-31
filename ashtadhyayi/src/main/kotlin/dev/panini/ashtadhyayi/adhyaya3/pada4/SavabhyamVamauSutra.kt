@@ -26,8 +26,7 @@ object SavabhyamVamauSutra : Sutra<DerivationState, DerivationChange>(
         val active = replacement != null &&
             ((context.stage == DerivationStage.PADA_FORMED && affix.surface != replacement) ||
                 (context.stage == DerivationStage.IT_PROCESSED && affix.surface == replacement))
-        val middle = (affix.upadesha == "थास्" && affix.surface == "से") ||
-            (affix.upadesha == "ध्वम्" && affix.surface == "ध्वे")
+        val middle = affix.upadesha == "थास्" && affix.surface == "से"
         return active || middle
     }
 
@@ -35,7 +34,6 @@ object SavabhyamVamauSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
         val replacement = when (affix.upadesha) {
             "थास्" -> "स्व"
-            "ध्वम्" -> "ध्वम्"
             else -> replacements.getValue(requireNotNull(affix.upadesha))
         }
         return DerivationChange(context.replaceWholeAffix(affix.id, replacement, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume).copy(stage = DerivationStage.PADA_FORMED), "3.4.91 supplies the loṭ first-person termination.")

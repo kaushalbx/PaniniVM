@@ -517,7 +517,8 @@ fun DerivationResult.verifyDerivation(
     }
     val appliedSutras = applications.mapTo(mutableSetOf()) { it.sutra }
     require(requiredSutras.all { it in appliedSutras }) {
-        "Incomplete derivation for $expectedAffixUpadesha; missing ${requiredSutras - appliedSutras}."
+        val recentApplications = applications.takeLast(15).joinToString { "${it.sutra} (${it.before} -> ${it.after})" }
+        "Incomplete derivation for $expectedAffixUpadesha; missing ${requiredSutras - appliedSutras}. Recent rules: $recentApplications."
     }
     require(final.stage.ordinal >= expectedStage.ordinal) {
         val recentApplications = applications.takeLast(10).joinToString { it.sutra }

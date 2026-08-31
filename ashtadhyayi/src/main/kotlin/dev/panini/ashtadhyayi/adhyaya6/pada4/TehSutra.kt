@@ -30,6 +30,7 @@ object TehSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.LOPA,
     scope = SutraScope.DERIVATION,
     stage = dev.panini.sutra.SutraStage.ANGAKARYA,
+    blocks = setOf("7.4.50"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val ending = context.terms.lastOrNull() ?: return false
@@ -37,11 +38,12 @@ object TehSutra : Sutra<DerivationState, DerivationChange>(
 
         // Triggers before a ḍit suffix like डा. We detect it via ItMarker.T (representing ṭa-varga initial ḍit)
         val isDit = ending.kind == TermKind.PRATYAYA &&
-            ((ending.itMarkers.contains(ItMarker.T) && ending.surface == "डा") || ending.upadesha == "डट्")
+            (((ending.itMarkers + ending.sthaniProps?.itMarkers.orEmpty()).contains(ItMarker.T) &&
+                ending.matchesUpadesha("डा")) || ending.upadesha == "डट्")
 
         return isDit && (
             (stem.id == "tasi" && stem.surface in setOf("तासि", "तास्")) ||
-                stem.surface.endsWith("त्") ||
+                (stem.id != "tasi" && stem.surface.endsWith("त्")) ||
                 (stem.surface.endsWith("ि") && stem.compoundHeadUpadesha in
                     PuranaNumeralClasses.shashtyadiHeads)
             )

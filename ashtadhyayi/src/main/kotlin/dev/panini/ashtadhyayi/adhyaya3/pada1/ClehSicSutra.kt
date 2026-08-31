@@ -1,12 +1,10 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada1
 
-import dev.panini.core.ItMarker
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.DerivationTerm
-import dev.panini.derivation.TermKind
+import dev.panini.derivation.WholeAffixDesignationPolicy
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -38,15 +36,14 @@ object ClehSicSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val cli = context.terms.first { it.upadesha == "च्लि" }
-        val sic = DerivationTerm(
-            id = cli.id,
-            surface = "सिच्",
-            kind = TermKind.PRATYAYA,
-            itMarkers = setOf(ItMarker.U, ItMarker.KIT),
-            upadesha = "सिच्",
-        )
         return DerivationChange(
-            context.replaceTerm(cli.id, sic).copy(stage = DerivationStage.PRATYAYA_SELECTED),
+            context.replaceWholeAffix(
+                cli.id,
+                "सिच्",
+                sutra,
+                WholeAffixDesignationPolicy.FreshUpadesha,
+                upadesha = "सिच्",
+            ).copy(stage = DerivationStage.PRATYAYA_SELECTED),
             "3.1.44 substitutes सिच् for च्लि.",
         )
     }

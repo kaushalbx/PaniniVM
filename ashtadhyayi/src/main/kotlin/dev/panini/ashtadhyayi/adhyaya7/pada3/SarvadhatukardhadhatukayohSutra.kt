@@ -68,6 +68,9 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
         }
         if (affix.kind != TermKind.PRATYAYA) return false
         if ("1.2.5" in affix.establishedBySutras || AsamyogallitKitSutra.matches(context)) return false
+        // In LIṬ, tip is first replaced by fresh ṇal (3.4.82); its ṇ-it
+        // designation must govern the stronger 7.2.115 vṛddhi before guṇa is considered.
+        if (context.effectiveContext.rupa.lakara == Lakara.LIT && affix.matchesUpadesha("तिप्")) return false
         if (context.effectiveContext.rupa.lakara == Lakara.LIT && affix.surface == affix.upadesha) return false
         if (context.effectiveContext.rupa.lakara == Lakara.LIT && stem.itStatus == ItStatus.SET) return false
         if (context.effectiveContext.rupa.lakara == Lakara.LUNG && stem.matchesUpadesha("भू")) return false

@@ -25,7 +25,7 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.PRATYAYA,
-    blocks = setOf("3.4.94", "6.1.78", "8.2.23"),
+    blocks = setOf("3.4.94", "6.1.77", "6.1.78", "6.1.87", "6.1.101", "8.2.23"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val lakara = context.effectiveContext.rupa.lakara

@@ -39,14 +39,16 @@ object ArdhadhatukasyedValadehSutra : Sutra<DerivationState, DerivationChange>(
             ending.surface in setOf(
                 "अ", "अतुस्", "उस्", "अथुस्", "व", "म",
                 "ए", "आते", "इरे", "से", "आथे", "ध्वे", "वहे", "महे",
-            ) || (ending.surface == "थ" && ending.matchesUpadesha("सिप्"))
+            ) || ending.matchesUpadesha("सिप्")
         val isSipLet = context.allEffectiveTerms.any { it.id == "sip-aorist" }
         val isAniKtvaKtaLyap = (ending.upadesha in setOf("क्त्वा", "क्त", "क्तवतु", "ल्यप्") || ending.surface == "य") &&
             (dhatu?.surface in setOf("भू", "कृ", "हृ", "जि", "चि", "नी") || dhatu?.upadesha in setOf("भू", "कृ", "हृ", "जि", "चि", "नी", "भूँ", "डुकृञ्", "हृञ्", "चिञ्", "जिञ्", "नीञ्") || ending.upadesha == "ल्यप्" || ending.id == "lyap_pratyaya")
         if (isAniKtvaKtaLyap) return false
 
+        // LIṬ is ārdhadhātuka by 3.4.114 even after the lakāra term has been
+        // replaced by a freshly processed tiṅ substitution.
         val isArdhadhatuka = HasDerivationalEnvironment(DerivationalEnvironment.ARDHADHATUKA).matches(context) ||
-            isSipLet
+            context.effectiveContext.rupa.lakara == Lakara.LIT || isLabhAorist || isSipLet
         return isArdhadhatuka &&
             (context.terms.any { it.kind == TermKind.DHATU && (it.itStatus == ItStatus.SET || it.itStatus == ItStatus.VET) } || isLabhPerfectMiddle || isNonKradiPerfect || isLabhAorist) &&
             ending.kind == TermKind.PRATYAYA &&

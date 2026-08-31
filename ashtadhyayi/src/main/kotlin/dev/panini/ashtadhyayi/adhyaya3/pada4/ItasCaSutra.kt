@@ -36,6 +36,11 @@ object ItasCaSutra : Sutra<DerivationState, DerivationChange>(
         val isNit = context.effectiveContext.rupa.lakara in setOf(
             Lakara.LANG, Lakara.LRNG, Lakara.LUNG, Lakara.LING,
         )
+        // In luṅ, 3.1.43 must first introduce cli so that its explicit
+        // whole-affix substitute (sic/kṣa/etc.) can undergo its own lifecycle.
+        if (context.effectiveContext.rupa.lakara == Lakara.LUNG &&
+            context.allEffectiveTerms.none { it.upadesha in setOf("च्लि", "सिच्", "क्स", "चङ्", "अङ्", "चिण्") }
+        ) return false
         // The rule applies only to the nine Parasmaipada tiṅ endings. It
         // therefore removes the surviving इ in ति and सि, but cannot target
         // the Ātmanepada वहि termination.

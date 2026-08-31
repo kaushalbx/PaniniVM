@@ -27,6 +27,7 @@ object KartariShapSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.PRATYAYA_SELECTION,
     scope = SutraScope.DERIVATION,
+    blocks = setOf("6.1.68", "6.1.77", "6.1.78", "6.1.87", "6.1.88", "6.1.97", "6.1.101"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
         context.effectiveContext.rupa.lakara !in setOf(Lakara.LIT, Lakara.LUNG) &&

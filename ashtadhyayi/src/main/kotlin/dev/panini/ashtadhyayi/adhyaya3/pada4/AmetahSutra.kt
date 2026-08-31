@@ -18,7 +18,7 @@ object AmetahSutra : Sutra<DerivationState, DerivationChange>(
     "3.4.90", "आमेतः", "लोट् में झि के स्थान पर अन्तु आदेश होता है।",
     type = SutraType.NITYA, chapter = 3, pada = 4, optional = false, kramaValue = 340090,
     role = SutraRole.Vidhi, action = SutraAction.ADESHA, scope = SutraScope.PRATYAYA,
-    blocks = setOf("7.1.3"),
+    blocks = setOf("7.1.3", "6.1.77", "6.1.87", "6.1.88", "6.1.97", "6.1.101"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val affix = context.terms.lastOrNull() ?: return false

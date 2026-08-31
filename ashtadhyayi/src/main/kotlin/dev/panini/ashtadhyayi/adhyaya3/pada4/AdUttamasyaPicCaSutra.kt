@@ -22,6 +22,7 @@ object AdUttamasyaPicCaSutra : Sutra<DerivationState, DerivationChange>(
     hindiExplanation = "लोट् के उत्तमपुरुष प्रत्ययों के आदि में आट् आगम होता है और वे पित् माने जाते हैं।",
     type = SutraType.NITYA, chapter = 3, pada = 4, optional = false, kramaValue = 340092,
     role = SutraRole.Vidhi, action = SutraAction.AGAMA, scope = SutraScope.PRATYAYA,
+    blocks = setOf("6.1.77", "6.1.87", "6.1.88", "6.1.97", "6.1.101"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val ending = context.terms.lastOrNull() ?: return false

@@ -28,6 +28,9 @@ object GhvasorEddhavabhyasalopashCaSutra : Sutra<DerivationState, DerivationChan
     override fun matches(context: DerivationState): Boolean {
         if (context.effectiveContext.rupa.lakara != Lakara.LOT) return false
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU && it.id != "abhyasa" } ?: return false
+        // The same operation prescribes abhyāsa-lopa, so let the juhotyādi
+        // reduplication be introduced before this rule consumes it.
+        if (dhatu.gana == dev.panini.core.DhatuGana.JUHOTYADI && context.terms.none { it.id == "abhyasa" }) return false
         val ending = context.terms.lastOrNull { it.kind != TermKind.DHATU }
         val dhiEnvironment = ending?.surface == "धि" ||
             context.allEffectiveTerms.any { it.upadesha == "सिप्" && it.surface.isEmpty() }

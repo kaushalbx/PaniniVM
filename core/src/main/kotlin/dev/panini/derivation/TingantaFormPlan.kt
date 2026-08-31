@@ -101,7 +101,7 @@ object TingantaFormPlans {
                 when (affix) {
                     TingAffix.TA, TingAffix.ATAM, TingAffix.JHA, TingAffix.ATHAM -> required += setOf("3.4.79", "3.4.90")
                     TingAffix.THAS_A -> required += setOf("3.4.80", "3.4.91")
-                    TingAffix.DHVAM -> required += setOf("3.4.79", "3.4.91")
+                    TingAffix.DHVAM -> Unit
                     TingAffix.IT, TingAffix.VAHI, TingAffix.MAHING -> required += setOf("3.4.79", "3.4.92", "3.4.93")
                     else -> Unit
                 }
@@ -115,7 +115,7 @@ object TingantaFormPlans {
                 when (affix) {
                     TingAffix.TA, TingAffix.ATAM, TingAffix.JHA, TingAffix.ATHAM -> required += setOf("3.4.79", "3.4.90")
                     TingAffix.THAS_A -> required += setOf("3.4.80", "3.4.91", "8.3.59")
-                    TingAffix.DHVAM -> required += setOf("3.4.79", "3.4.91")
+                    TingAffix.DHVAM -> Unit
                     TingAffix.IT, TingAffix.VAHI, TingAffix.MAHING -> required += setOf("3.4.79", "3.4.92", "3.4.93")
                     else -> Unit
                 }
@@ -181,7 +181,7 @@ object TingantaFormPlans {
         }
         // LUNG (general & 7-variety aorist) plans
         TingAffix.entries.filter { it.pada == PadaType.PARASMAIPADA }.forEach { affix ->
-            add(TingantaFormPlan(affix, Lakara.LUNG, setOf("3.4.78", "6.4.71"), DerivationStage.FINAL))
+            add(TingantaFormPlan(affix, Lakara.LUNG, setOf("3.4.78", "6.4.71"), DerivationStage.IT_PROCESSED))
         }
         TingAffix.entries.filter { it.pada == PadaType.ATMANEPADA }.forEach { affix ->
             val required = mutableSetOf("3.4.78", "6.4.71")

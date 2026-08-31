@@ -23,6 +23,7 @@ object GatisthaghupabhubhyahSicahParasmaipadesuSutra : Sutra<DerivationState, De
     role = SutraRole.Vidhi,
     action = SutraAction.LOPA,
     scope = SutraScope.PRATYAYA,
+    blocks = setOf("6.1.77", "6.1.78", "6.1.87", "6.1.88", "6.1.97", "6.1.101"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val sicIndex = context.terms.indexOfFirst { it.upadesha == "सिच्" }
@@ -35,7 +36,7 @@ object GatisthaghupabhubhyahSicahParasmaipadesuSutra : Sutra<DerivationState, De
     override fun apply(context: DerivationState): DerivationChange {
         val sic = context.terms.first { it.upadesha == "सिच्" }
         return DerivationChange(
-            context.removeTerm(sic.id),
+            context.removeTerm(sic.id, sutra),
             "2.4.77 applies luk to सिच् after भू before a Parasmaipada ending.",
         )
     }
