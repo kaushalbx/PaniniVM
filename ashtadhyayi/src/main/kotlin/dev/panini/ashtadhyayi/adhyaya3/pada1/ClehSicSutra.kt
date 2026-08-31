@@ -39,7 +39,7 @@ object ClehSicSutra : Sutra<DerivationState, DerivationChange>(
         return DerivationChange(
             context.replaceWholeAffix(
                 cli.id,
-                "सिच्",
+                "सिँच्",
                 sutra,
                 WholeAffixDesignationPolicy.FreshUpadesha,
                 upadesha = "सिच्",

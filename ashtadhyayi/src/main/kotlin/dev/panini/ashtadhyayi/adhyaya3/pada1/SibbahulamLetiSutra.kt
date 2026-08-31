@@ -7,6 +7,7 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.LetFormation
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.SthaniProperties
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -29,7 +30,12 @@ object SibbahulamLetiSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         // In this Vedic suffix इ is उच्चारणार्थ and प् is स्वरार्थ; the effective
         // suffix is therefore स् (as in जुष् + इट् + स् + अट् + त्).
-        val sip = DerivationTerm("sip-aorist", "स्", TermKind.PRATYAYA, upadesha = "सिप्")
+        val sip = DerivationTerm(
+            "sip-aorist", "स्", TermKind.PRATYAYA,
+            upadesha = "स्",
+            sthaniProps = SthaniProperties(upadesha = "सिप्", itMarkers = emptySet()),
+            createdBySutra = sutra,
+        )
         val base = context.terms.dropLast(1).map { term ->
             // The vārttika on 3.1.34 treats सिप् as ṇit optionally in Chandas;
             // तॄ therefore has the attested vṛddhi stem तार् in तारिषत्.

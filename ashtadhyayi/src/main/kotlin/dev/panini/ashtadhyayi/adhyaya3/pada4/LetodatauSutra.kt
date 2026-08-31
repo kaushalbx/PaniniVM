@@ -7,6 +7,7 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.LetAugment
 import dev.panini.derivation.LetEOption
+import dev.panini.derivation.LetFormation
 import dev.panini.derivation.TermKind
 import dev.panini.derivation.VarnaSubstitution
 import dev.panini.sutra.Sutra
@@ -34,6 +35,9 @@ object LetodatauSutra : Sutra<DerivationState, DerivationChange>(
             context.stage in setOf(DerivationStage.INITIAL, DerivationStage.FINAL)
         ) return false
         val ending = context.terms.lastOrNull() ?: return false
+        if (context.effectiveContext.letFormation == LetFormation.SIP_AORIST &&
+            context.allEffectiveTerms.none { it.id == "sip-aorist" }
+        ) return false
         if (ending.kind != TermKind.PRATYAYA || context.substitutions.any { it.sutra == "3.4.94" }) return false
         if (ending.matchesUpadesha("तिप्") && ending.surface == "तिप्") return false
         if (ending.matchesUpadesha("सिप्") && ending.surface == "सिप्") return false

@@ -23,7 +23,7 @@ object GatisthaghupabhubhyahSicahParasmaipadesuSutra : Sutra<DerivationState, De
     role = SutraRole.Vidhi,
     action = SutraAction.LOPA,
     scope = SutraScope.PRATYAYA,
-    blocks = setOf("6.1.77", "6.1.78", "6.1.87", "6.1.88", "6.1.97", "6.1.101"),
+    blocks = setOf("6.1.68", "6.1.77", "6.1.78", "6.1.87", "6.1.88", "6.1.97", "6.1.101"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val sicIndex = context.terms.indexOfFirst { it.upadesha == "सिच्" }
