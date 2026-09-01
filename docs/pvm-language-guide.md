@@ -468,10 +468,10 @@ precedence.
 
 See these checked-in examples:
 
-- `examples/multifile/`
-- `examples/private_scope/`
-- `examples/adhikara_domain/`
-- `examples/taddhita_inheritance/`
+- `projects/multifile/`
+- `projects/private_scope/`
+- `projects/adhikara_domain/`
+- `projects/taddhita_inheritance/`
 
 ## 14. Running a `.pvm` program
 

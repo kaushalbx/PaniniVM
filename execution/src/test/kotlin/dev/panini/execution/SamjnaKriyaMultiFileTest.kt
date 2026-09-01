@@ -81,7 +81,7 @@ class SamjnaKriyaMultiFileTest {
     @Test
     fun `test samjna kriya parsing and execution across multi-file project`() {
         val vm = PaniniVM()
-        val entryFile = File("examples/multifile/mukhya.pvm")
+        val entryFile = File("projects/multifile/mukhya.pvm")
         
         val results = vm.evalProject(entryFile)
         
@@ -270,7 +270,7 @@ class SamjnaKriyaMultiFileTest {
     @Test
     fun `test samavaya project multi-file execution from disk`() {
         val vm = PaniniVM()
-        val entryFile = File("examples/list_operations/samavaya_mukhya.pvm")
+        val entryFile = File("projects/list_operations/samavaya_mukhya.pvm")
 
         val results = vm.evalProject(entryFile)
         val successful = results.filterIsInstance<ExecutionResult.Success>()
@@ -307,7 +307,7 @@ class SamjnaKriyaMultiFileTest {
     @Test
     fun `test scope isolation project multi-file execution from disk`() {
         val vm = PaniniVM()
-        val entryFile = File("examples/scope_isolation/isolation_mukhya.pvm")
+        val entryFile = File("projects/scope_isolation/isolation_mukhya.pvm")
 
         val results = vm.evalProject(entryFile)
         val successful = results.filterIsInstance<ExecutionResult.Success>()
@@ -348,7 +348,7 @@ class SamjnaKriyaMultiFileTest {
     @Test
     fun `test antaranga internal samjna project execution from disk`() {
         val vm = PaniniVM()
-        val entryFile = File("examples/private_scope/private_mukhya.pvm")
+        val entryFile = File("projects/private_scope/private_mukhya.pvm")
 
         val results = vm.evalProject(entryFile)
         val successful = results.filterIsInstance<ExecutionResult.Success>()
@@ -359,7 +359,7 @@ class SamjnaKriyaMultiFileTest {
     @Test
     fun `test adhikara domain genitive project execution from disk`() {
         val vm = PaniniVM()
-        val entryFile = File("examples/adhikara_domain/mukhya.pvm")
+        val entryFile = File("projects/adhikara_domain/mukhya.pvm")
 
         val results = vm.evalProject(entryFile)
         val successful = results.filterIsInstance<ExecutionResult.Success>()
@@ -409,7 +409,7 @@ class SamjnaKriyaMultiFileTest {
     @Test
     fun `test paninian morphology project execution from disk`() {
         val vm = PaniniVM()
-        val entryFile = File("examples/paninian_morphology/morph_mukhya.pvm")
+        val entryFile = File("projects/paninian_morphology/morph_mukhya.pvm")
 
         val results = vm.evalProject(entryFile)
         val successful = results.filterIsInstance<ExecutionResult.Success>()
@@ -450,7 +450,7 @@ class SamjnaKriyaMultiFileTest {
     @Test
     fun `test taddhita subclass inheritance apatyadhikara and inherited method invocation`() {
         val vm = PaniniVM()
-        val entryFile = File("examples/taddhita_inheritance/inheritance_mukhya.pvm")
+        val entryFile = File("projects/taddhita_inheritance/inheritance_mukhya.pvm")
 
         val results = vm.evalProject(entryFile)
         val successful = results.filterIsInstance<ExecutionResult.Success>()

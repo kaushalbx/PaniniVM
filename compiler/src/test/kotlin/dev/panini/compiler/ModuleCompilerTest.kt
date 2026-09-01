@@ -14,9 +14,9 @@ class ModuleCompilerTest {
     @Test
     fun `compiled multifile modules match interpreted project results`() {
         listOf(
-            "examples/list_operations/samavaya_mukhya.pvm",
-            "examples/multifile/mukhya.pvm",
-            "examples/paninian_morphology/morph_mukhya.pvm",
+        "projects/list_operations/samavaya_mukhya.pvm",
+        "projects/multifile/mukhya.pvm",
+        "projects/paninian_morphology/morph_mukhya.pvm",
         ).forEachIndexed { index, entryPath ->
             val entry = File(entryPath)
             val libraries = entry.parentFile.walkTopDown().filter { file ->
@@ -42,7 +42,7 @@ class ModuleCompilerTest {
     fun `metadata round trips and dependency procedures execute without source`() {
         val library = PaniniModuleDescriptor(
             "ganita_library",
-            listOf(PaniniModuleSource("ganita.pvm", File("examples/multifile/ganita.pvm").readText(), false)),
+                listOf(PaniniModuleSource("ganita.pvm", File("projects/multifile/ganita.pvm").readText(), false)),
         )
         val libraryArtifact = BytecodeCompiler.compileModule(library, "CompiledGanitaLibrary")
         val metadata = PaniniModuleMetadataCodec.decode(PaniniModuleMetadataCodec.encode(libraryArtifact.metadata))
@@ -51,7 +51,7 @@ class ModuleCompilerTest {
 
         val application = PaniniModuleDescriptor(
             "ganita_application",
-            listOf(PaniniModuleSource("mukhya.pvm", File("examples/multifile/mukhya.pvm").readText(), true)),
+                listOf(PaniniModuleSource("mukhya.pvm", File("projects/multifile/mukhya.pvm").readText(), true)),
             dependencies = listOf(metadata),
         )
         val applicationArtifact = BytecodeCompiler.compileModule(application, "CompiledGanitaApplication")
