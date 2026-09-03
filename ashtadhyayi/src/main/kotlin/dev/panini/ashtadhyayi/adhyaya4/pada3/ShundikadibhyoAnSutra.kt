@@ -22,5 +22,5 @@ object ShundikadibhyoAnSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi, action = SutraAction.PRATYAYA_SELECTION, scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState) = HasRequestedMeaning(DerivationalMeaning.TATAH_AGATA).matches(context) && context.terms.any { it.kind == TermKind.PRATIPADIKA && GanaPatha.isEligibleMember(117, it.surface, it.lexicalUses) } && context.allEffectiveTerms.none { it.upadesha == "अण्" }
-    override fun apply(context: DerivationState) = DerivationChange(context.addTerm(DerivationTerm("an-suffix", "अण्", TermKind.PRATYAYA, upadesha = "अण्", itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)), "4.3.76 introduces अण् after an eligible शुण्डिकादि source term.")
+    override fun apply(context: DerivationState) = DerivationChange(context.addTerm(DerivationTerm("an-suffix", "अण्", TermKind.PRATYAYA, upadesha = "अण्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)), "4.3.76 introduces अण् after an eligible शुण्डिकादि source term.")
 }

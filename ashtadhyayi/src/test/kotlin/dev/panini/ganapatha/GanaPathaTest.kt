@@ -62,6 +62,7 @@ import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.DerivationalContext
 import dev.panini.derivation.DerivationalEnvironment
 import dev.panini.derivation.DerivationalMeaning
+import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.Rupa
 import dev.panini.derivation.SamjnaAssignment
 import dev.panini.derivation.TaddhitaDerivationRequest
@@ -75,6 +76,12 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class GanaPathaTest {
+    private fun assertRawIntroduction(term: DerivationTerm, upadesha: String, sutra: String) {
+        assertEquals(upadesha, term.upadesha)
+        assertEquals(sutra, term.createdBySutra)
+        assertEquals(ItProcessingPhase.RAW_UPADESHA, term.itProcessingPhase)
+    }
+
     private fun pratipadikaState(
         stem: String,
         meaning: DerivationalMeaning? = null,
@@ -409,7 +416,7 @@ class GanaPathaTest {
         val baahvadi = apatyaState("बाहु")
         val gotra = gotraState("कुञ्ज")
 
-        assertEquals("अण्", AshvapatyadibhyashCaSutra.apply(ashvapati).state.terms.last().upadesha)
+        assertRawIntroduction(AshvapatyadibhyashCaSutra.apply(ashvapati).state.terms.last(), "अण्", "4.1.84")
         assertEquals("इञ्", BaahvadibhyashCaSutra.apply(baahvadi).state.terms.last().upadesha)
         assertEquals("च्फञ्", GotreKunjadibhyashCaPhanySutra.apply(gotra).state.terms.last().upadesha)
 
@@ -420,7 +427,7 @@ class GanaPathaTest {
 
         val shivadi = apatyaState("शिव")
         val grshtyadi = apatyaState("गृष्टि")
-        assertEquals("अण्", ShivadibhyoAnySutra.apply(shivadi).state.terms.last().upadesha)
+        assertRawIntroduction(ShivadibhyoAnySutra.apply(shivadi).state.terms.last(), "अण्", "4.1.112")
         assertEquals("ढञ्", GrshtyadibhyashCaSutra.apply(grshtyadi).state.terms.last().upadesha)
 
         val kurvadi = apatyaState("कुरु")
@@ -514,8 +521,8 @@ class GanaPathaTest {
 
         val sankaladi = pratipadikaState("संकल", meaning = DerivationalMeaning.NIVASA)
         val suvastvadi = pratipadikaState("सुवास्तु", meaning = DerivationalMeaning.NIVASA)
-        assertEquals("अण्", SankaladibhyashCaSutra.apply(sankaladi).state.terms.last().upadesha)
-        assertEquals("अण्", SuvastvadibhyoAnSutra.apply(suvastvadi).state.terms.last().upadesha)
+        assertRawIntroduction(SankaladibhyashCaSutra.apply(sankaladi).state.terms.last(), "अण्", "4.2.75")
+        assertRawIntroduction(SuvastvadibhyoAnSutra.apply(suvastvadi).state.terms.last(), "अण्", "4.2.77")
 
         val utkaradi = pratipadikaState("उत्कर", environment = DerivationalEnvironment.CHATURARTHIKA)
         val kattryadi = pratipadikaState("कत्रि", environment = DerivationalEnvironment.CHATURARTHIKA)
@@ -526,8 +533,8 @@ class GanaPathaTest {
 
         val sandhiveladi = pratipadikaState("संध्या", environment = DerivationalEnvironment.KALAVRTTI)
         val digadi = pratipadikaState("दिश्", meaning = DerivationalMeaning.TATRA_BHAVA)
-        assertEquals("अण्", SandhiveladyRtunakshatrebhyoAnSutra.apply(sandhiveladi).state.terms.last().upadesha)
-        assertEquals("यत्", DigadibhyoYatSutra.apply(digadi).state.terms.last().upadesha)
+        assertRawIntroduction(SandhiveladyRtunakshatrebhyoAnSutra.apply(sandhiveladi).state.terms.last(), "अण्", "4.3.16")
+        assertRawIntroduction(DigadibhyoYatSutra.apply(digadi).state.terms.last(), "यत्", "4.3.54")
         val typedDigadi = DerivationState(
             listOf(DerivationTerm("stem", "दिश्", TermKind.PRATIPADIKA)),
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.TATRA_BHAVA),
@@ -535,8 +542,8 @@ class GanaPathaTest {
         assertTrue(DigadibhyoYatSutra.matches(typedDigadi))
         val rgayanadi = pratipadikaState("ऋगयन", meaning = DerivationalMeaning.VYAKHYANA)
         val shundikadi = pratipadikaState("शुण्डिक", meaning = DerivationalMeaning.TATAH_AGATA)
-        assertEquals("अण्", RgayandibhyoAnSutra.apply(rgayanadi).state.terms.last().upadesha)
-        assertEquals("अण्", ShundikadibhyoAnSutra.apply(shundikadi).state.terms.last().upadesha)
+        assertRawIntroduction(RgayandibhyoAnSutra.apply(rgayanadi).state.terms.last(), "अण्", "4.3.73")
+        assertRawIntroduction(ShundikadibhyoAnSutra.apply(shundikadi).state.terms.last(), "अण्", "4.3.76")
         val shandikadi = pratipadikaState("शण्डिक", meaning = DerivationalMeaning.ABHIJANA)
         assertEquals("ञ्य", ShandikadibhyoNyahSutra.apply(shandikadi).state.terms.last().upadesha)
         val arihanadi = pratipadikaState("अरीहण", environment = DerivationalEnvironment.CHATURARTHIKA)
