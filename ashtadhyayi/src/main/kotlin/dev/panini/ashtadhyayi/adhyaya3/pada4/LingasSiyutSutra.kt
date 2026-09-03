@@ -7,6 +7,8 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.NonOperativeUpadeshaFunction
+import dev.panini.derivation.NonOperativeUpadeshaSegment
 import dev.panini.derivation.TermKind
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -42,7 +44,17 @@ object LingasSiyutSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val ting = context.terms.last()
-        val siyut = DerivationTerm("siyut", "सीयुँट्", TermKind.AGAMA, upadesha = "सीयुट्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
+        val siyut = DerivationTerm(
+            "siyut",
+            "सीय्ट्",
+            TermKind.AGAMA,
+            upadesha = "सीयुट्",
+            createdBySutra = number,
+            nonOperativeUpadeshaSegments = listOf(
+                NonOperativeUpadeshaSegment(3, 4, "ु", NonOperativeUpadeshaFunction.UCCARANARTHA),
+            ),
+            itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
+        )
         return DerivationChange(
             context.copy(terms = context.terms.dropLast(1) + siyut + ting),
             "3.4.102 inserts सीयुट् before the liṅ tiṅ termination.",

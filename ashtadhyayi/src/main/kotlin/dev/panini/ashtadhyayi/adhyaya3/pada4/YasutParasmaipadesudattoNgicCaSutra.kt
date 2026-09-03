@@ -2,11 +2,14 @@ package dev.panini.ashtadhyayi.adhyaya3.pada4
 
 import dev.panini.core.PadaType
 import dev.panini.core.TingAffix
+import dev.panini.core.ItMarker
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.NonOperativeUpadeshaFunction
+import dev.panini.derivation.NonOperativeUpadeshaSegment
 import dev.panini.derivation.TermKind
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -43,7 +46,18 @@ object YasutParasmaipadesudattoNgicCaSutra : Sutra<DerivationState, DerivationCh
 
     override fun apply(context: DerivationState): DerivationChange {
         val ting = context.terms.last()
-        val yasut = DerivationTerm("yasut", "यासुँट्", TermKind.AGAMA, upadesha = "यासुट्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
+        val yasut = DerivationTerm(
+            "yasut",
+            "यास्ट्",
+            TermKind.AGAMA,
+            itMarkers = setOf(ItMarker.NGIT),
+            upadesha = "यासुट्",
+            createdBySutra = number,
+            nonOperativeUpadeshaSegments = listOf(
+                NonOperativeUpadeshaSegment(3, 4, "ु", NonOperativeUpadeshaFunction.UCCARANARTHA),
+            ),
+            itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
+        )
         return DerivationChange(
             context.copy(terms = context.terms.dropLast(1) + yasut + ting),
             "3.4.103 inserts यासुट् before the liṅ parasmaipada termination.",

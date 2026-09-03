@@ -3,6 +3,7 @@ package dev.panini.derivation
 import dev.panini.core.DhatuGana
 import dev.panini.core.Lakara
 import dev.panini.core.LopaType
+import dev.panini.core.ItMarker
 import dev.panini.core.PadaType
 import dev.panini.core.Purusha
 import dev.panini.core.TingAffix
@@ -676,6 +677,20 @@ class TingantaEngineTest {
         val yasutIntroduction = result.applications.first { it.sutra == "3.4.103" }
             .after.terms.single { it.id == "yasut" }
         assertEquals("3.4.103", yasutIntroduction.createdBySutra)
+        assertEquals("यासुट्", yasutIntroduction.upadesha)
+        assertEquals("यास्ट्", yasutIntroduction.surface)
+        assertEquals("ु", yasutIntroduction.nonOperativeUpadeshaSegments.single().text)
+        assertTrue(ItMarker.NGIT in yasutIntroduction.itMarkers)
+        val yasutDesignation = result.applications.first { application ->
+            application.sutra == "1.3.3" && application.after.terms.any { term ->
+                term.id == "yasut" && term.itDesignations.any { it.sutra == "1.3.3" }
+            }
+        }.after.terms.single { it.id == "yasut" }.itDesignations.single { it.sutra == "1.3.3" }
+        assertEquals("ट्", yasutDesignation.designatedText)
+        val processedYasut = result.applications.first { application ->
+            application.sutra == "1.3.9" && application.after.terms.any { it.id == "yasut" && it.surface == "यास्" }
+        }.after.terms.single { it.id == "yasut" }
+        assertTrue(processedYasut.hasEffectiveMarker(ItMarker.NGIT))
     }
 
     @Test
@@ -687,6 +702,16 @@ class TingantaEngineTest {
         val siyutIntroduction = taResult.applications.first { it.sutra == "3.4.102" }
             .after.terms.single { it.id == "siyut" }
         assertEquals("3.4.102", siyutIntroduction.createdBySutra)
+        assertEquals("सीयुट्", siyutIntroduction.upadesha)
+        assertEquals("सीय्ट्", siyutIntroduction.surface)
+        assertEquals("ु", siyutIntroduction.nonOperativeUpadeshaSegments.single().text)
+        assertFalse(ItMarker.NGIT in siyutIntroduction.itMarkers)
+        val siyutDesignation = taResult.applications.first { application ->
+            application.sutra == "1.3.3" && application.after.terms.any { term ->
+                term.id == "siyut" && term.itDesignations.any { it.sutra == "1.3.3" }
+            }
+        }.after.terms.single { it.id == "siyut" }.itDesignations.single { it.sutra == "1.3.3" }
+        assertEquals("ट्", siyutDesignation.designatedText)
         assertTrue(paradigm.forms.getValue(TingAffix.JHA).applications.any { it.sutra == "3.4.105" })
         assertTrue(paradigm.forms.getValue(TingAffix.IT).applications.any { it.sutra == "3.4.106" })
         val thasRules = paradigm.forms.getValue(TingAffix.THAS_A).applications.map { it.sutra }
