@@ -7,8 +7,8 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.TermKind
-import dev.panini.shiksha.Svara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -40,7 +40,14 @@ object TudadibhyahShahSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val sha = DerivationTerm("sha", Svara.A.devanagari, TermKind.PRATYAYA, upadesha = "श")
+        val sha = DerivationTerm(
+            id = "sha",
+            surface = "श",
+            kind = TermKind.PRATYAYA,
+            upadesha = "श",
+            createdBySutra = number,
+            itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
+        )
         return DerivationChange(
             state = context.insertBeforeTingOrLingAugment(sha),
             explanation = "3.1.77 introduces श after a Tudādi root.",

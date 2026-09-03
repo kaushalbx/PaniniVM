@@ -187,7 +187,11 @@ class TingantaEngineTest {
 
         (parasmaipada.forms.values + atmanepada.forms.values).forEach { result ->
             assertTrue(result.applications.none { it.sutra == "3.1.68" })
-            assertTrue(result.final.terms.any { it.upadesha == "श" })
+            assertTrue(result.final.terms.any {
+                it.upadesha == "श" && it.createdBySutra == "3.1.77"
+            })
+            assertTrue(result.applications.any { it.sutra == "1.3.8" })
+            assertTrue(result.applications.any { it.sutra == "1.3.9" })
         }
     }
 
