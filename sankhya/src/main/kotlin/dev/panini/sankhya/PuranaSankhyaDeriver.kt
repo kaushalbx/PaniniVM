@@ -21,6 +21,9 @@ class PuranaSankhyaDeriver(
     private val pipeline = DerivationPipeline(
         stages = listOf(
             SutraStage.PRATYAYA_SELECTION,
+            SutraStage.IT_PROCESSING,
+            SutraStage.PRATYAYA_SELECTION,
+            SutraStage.IT_PROCESSING,
             SutraStage.ANGAKARYA,
             SutraStage.PADA_FORMATION,
             SutraStage.THUK_PHONOLOGY,

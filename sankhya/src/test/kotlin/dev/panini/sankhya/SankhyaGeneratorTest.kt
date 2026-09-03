@@ -158,16 +158,16 @@ class SankhyaGeneratorTest {
         assertEquals(listOf("तृ", "तीय"), third.final.terms.map { it.surface })
         assertEquals("5.2.55", third.final.terms.last().createdBySutra)
         val fourth = sut.ordinal(4L)
-        assertEquals(listOf("5.2.51"), fourth.applications.map { it.sutra })
-        assertEquals(listOf("चतुर्", "थ", ""), fourth.final.terms.map { it.surface })
+        assertEquals(listOf("5.2.51", "1.3.7", "1.3.3", "1.3.9"), fourth.applications.map { it.sutra })
+        assertEquals(listOf("चतुर्", "थ", "अ"), fourth.final.terms.map { it.surface })
         assertEquals("5.2.51", fourth.final.terms.single { it.upadesha == "थुक्" }.createdBySutra)
 
         val sixth = sut.ordinal(6L)
         assertEquals("षष्ठ", sixth.final.surface)
-        assertEquals(listOf("5.2.51", "8.4.41"), sixth.applications.map { it.sutra })
-        assertEquals(listOf("षष्", "ठ", ""), sixth.final.terms.map { it.surface })
+        assertEquals(listOf("5.2.51", "1.3.7", "1.3.3", "1.3.9", "8.4.41"), sixth.applications.map { it.sutra })
+        assertEquals(listOf("षष्", "ठ", "अ"), sixth.final.terms.map { it.surface })
         assertEquals(
-            listOf("5.2.49", "8.2.7"),
+            listOf("5.2.49", "1.3.3", "1.3.9", "8.2.7"),
             sut.ordinal(5L).applications.map { it.sutra },
         )
 

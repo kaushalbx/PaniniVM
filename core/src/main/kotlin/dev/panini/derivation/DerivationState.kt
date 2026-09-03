@@ -7,6 +7,7 @@ import dev.panini.dhatupatha.Dhatu
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.LexicalUse
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Varnamala
 
 /**
  * The shared state passed through an Ashtadhyayi derivation.
@@ -64,7 +65,9 @@ class DerivationState(
     private fun combinedSurface(termList: List<DerivationTerm>): String {
         return termList.fold("") { rendered, term ->
             val next = term.surface
-            if (rendered.endsWith('्') && next.firstOrNull() == 'अ') {
+            if (rendered.lastOrNull()?.let(Varnamala::isConsonant) == true && next.firstOrNull() == 'अ') {
+                rendered + next.drop(1)
+            } else if (rendered.endsWith('्') && next.firstOrNull() == 'अ') {
                 rendered.dropLast(1) + next.drop(1)
             } else if (rendered.endsWith('्') && next.firstOrNull() == 'आ') {
                 rendered.dropLast(1) + "ा" + next.drop(1)

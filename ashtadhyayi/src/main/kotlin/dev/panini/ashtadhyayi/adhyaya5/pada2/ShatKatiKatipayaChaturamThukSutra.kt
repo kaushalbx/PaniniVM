@@ -35,10 +35,11 @@ object ShatKatiKatipayaChaturamThukSutra : Sutra<DerivationState, DerivationChan
         )
         val dat = DerivationTerm(
             id = "purana_dat",
-            surface = "",
+            surface = "डट्",
             kind = TermKind.PRATYAYA,
             upadesha = "डट्",
             createdBySutra = sutra,
+            itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
         )
         return DerivationChange(
             context.copy(terms = listOf(target, thuk, dat)),
