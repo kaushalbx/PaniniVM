@@ -354,8 +354,10 @@ class GanaPathaTest {
 
         assertTrue(KandvadibhyoYakSutra.matches(state))
         val result = KandvadibhyoYakSutra.apply(state).state
-        assertEquals(listOf("कण्डूञ्", "य"), result.terms.map { it.surface })
+        assertEquals(listOf("कण्डूञ्", "यक्"), result.terms.map { it.surface })
         assertEquals("यक्", result.terms.last().upadesha)
+        assertEquals(dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA, result.terms.last().itProcessingPhase)
+        assertEquals("3.1.27", result.terms.last().createdBySutra)
         assertFalse(KandvadibhyoYakSutra.matches(result))
     }
 

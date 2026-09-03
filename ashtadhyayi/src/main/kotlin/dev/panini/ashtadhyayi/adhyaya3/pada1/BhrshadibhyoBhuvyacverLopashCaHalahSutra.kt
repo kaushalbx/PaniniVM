@@ -46,7 +46,7 @@ object BhrshadibhyoBhuvyacverLopashCaHalahSutra : Sutra<DerivationState, Derivat
             ) {
                 listOf(
                     term.copy(surface = term.surface.dropFinalHal()),
-                    DerivationTerm("${term.id}-kyan", "य", TermKind.PRATYAYA, upadesha = "क्यङ्"),
+                    DerivationTerm("${term.id}-kyan", "क्यङ्", TermKind.PRATYAYA, upadesha = "क्यङ्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA),
                 )
             } else listOf(term)
         }

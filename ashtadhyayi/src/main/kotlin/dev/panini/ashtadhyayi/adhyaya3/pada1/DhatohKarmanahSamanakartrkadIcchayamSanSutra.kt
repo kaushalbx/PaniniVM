@@ -28,7 +28,7 @@ object DhatohKarmanahSamanakartrkadIcchayamSanSutra : Sutra<DerivationState, Der
         context.allEffectiveTerms.none { it.upadesha == "सन्" }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val san = DerivationTerm("san", "स", TermKind.PRATYAYA, upadesha = "सन्")
+        val san = DerivationTerm("san", "सन्", TermKind.PRATYAYA, upadesha = "सन्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
         return DerivationChange(
             state = context.addTerm(san),
             explanation = "3.1.7 prescribes सन् desiderative affix.",

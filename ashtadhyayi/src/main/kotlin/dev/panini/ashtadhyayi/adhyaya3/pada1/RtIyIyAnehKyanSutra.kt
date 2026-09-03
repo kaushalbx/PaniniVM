@@ -29,7 +29,7 @@ object RtIyIyAnehKyanSutra : Sutra<DerivationState, DerivationChange>(
         context.allEffectiveTerms.none { it.upadesha == "क्यङ्" }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val kyan = DerivationTerm("kyan", "य", TermKind.PRATYAYA, upadesha = "क्यङ्")
+        val kyan = DerivationTerm("kyan", "क्यङ्", TermKind.PRATYAYA, upadesha = "क्यङ्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
         return DerivationChange(
             state = context.addTerm(kyan),
             explanation = "3.1.29 prescribes क्यङ् affix.",

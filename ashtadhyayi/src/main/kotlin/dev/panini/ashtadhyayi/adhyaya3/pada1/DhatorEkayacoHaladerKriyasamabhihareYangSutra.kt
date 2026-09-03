@@ -28,7 +28,7 @@ object DhatorEkayacoHaladerKriyasamabhihareYangSutra : Sutra<DerivationState, De
         context.allEffectiveTerms.none { it.upadesha == "यङ्" }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val yang = DerivationTerm("yang", "य", TermKind.PRATYAYA, upadesha = "यङ्")
+        val yang = DerivationTerm("yang", "यङ्", TermKind.PRATYAYA, upadesha = "यङ्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
         return DerivationChange(
             state = context.addTerm(yang),
             explanation = "3.1.22 prescribes यङ् frequentative affix.",
