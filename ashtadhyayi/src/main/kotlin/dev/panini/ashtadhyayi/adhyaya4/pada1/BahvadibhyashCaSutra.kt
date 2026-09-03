@@ -41,7 +41,7 @@ object BahvadibhyashCaSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
         state = context.addTerm(
-            DerivationTerm("bahvadi-ngish-suffix", "ई", TermKind.PRATYAYA, upadesha = "ङीष्"),
+            DerivationTerm("bahvadi-ngish-suffix", "ङीष्", TermKind.PRATYAYA, upadesha = "ङीष्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA),
         ).copy(stage = DerivationStage.PRATYAYA_SELECTED),
         explanation = "4.1.45 optionally introduces ङीष् after an eligible बह्वादि term.",
     )

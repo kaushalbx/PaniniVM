@@ -46,7 +46,7 @@ object ShidGauradibhyashCaSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
         state = context.addTerm(
-            DerivationTerm("ngish-suffix", "ई", TermKind.PRATYAYA, upadesha = "ङीष्"),
+            DerivationTerm("ngish-suffix", "ङीष्", TermKind.PRATYAYA, upadesha = "ङीष्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA),
         ).copy(stage = DerivationStage.PRATYAYA_SELECTED),
         explanation = "4.1.41 introduces ङीष् after an eligible षित् or गौरादि term.",
     )
