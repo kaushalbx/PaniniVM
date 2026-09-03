@@ -43,7 +43,7 @@ object YasutParasmaipadesudattoNgicCaSutra : Sutra<DerivationState, DerivationCh
 
     override fun apply(context: DerivationState): DerivationChange {
         val ting = context.terms.last()
-        val yasut = DerivationTerm("yasut", "यासुँट्", TermKind.AGAMA, upadesha = "यासुट्", itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
+        val yasut = DerivationTerm("yasut", "यासुँट्", TermKind.AGAMA, upadesha = "यासुट्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
         return DerivationChange(
             context.copy(terms = context.terms.dropLast(1) + yasut + ting),
             "3.4.103 inserts यासुट् before the liṅ parasmaipada termination.",

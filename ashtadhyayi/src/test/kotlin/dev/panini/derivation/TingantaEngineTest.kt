@@ -634,6 +634,9 @@ class TingantaEngineTest {
             assertTrue("3.1.33" in row.appliedSutras, "Form for ${row.affix} is missing 3.1.33")
             assertTrue("8.3.59" in row.appliedSutras, "Form for ${row.affix} is missing 8.3.59")
         }
+        val syaIntroduction = paradigm.forms.getValue(TingAffix.TIP).applications.first { it.sutra == "3.1.33" }
+            .after.terms.single { it.id == "sya" }
+        assertEquals("3.1.33", syaIntroduction.createdBySutra)
     }
 
     @Test
@@ -670,6 +673,9 @@ class TingantaEngineTest {
         assertTrue(applied.indexOf("3.3.161") < applied.indexOf("3.4.78"))
         assertTrue(applied.indexOf("3.4.78") < applied.indexOf("3.4.103"))
         assertTrue(applied.indexOf("3.4.103") < applied.indexOf("7.2.80"))
+        val yasutIntroduction = result.applications.first { it.sutra == "3.4.103" }
+            .after.terms.single { it.id == "yasut" }
+        assertEquals("3.4.103", yasutIntroduction.createdBySutra)
     }
 
     @Test
@@ -677,6 +683,10 @@ class TingantaEngineTest {
         val paradigm = TingantaEngine().deriveSupportedParadigm("लभ्", lakara = Lakara.LING)
         paradigm.assertSurfaces("लभेत लभेयाताम् लभेरन् लभेथाः लभेयाथाम् लभेध्वम् लभेय लभेवहि लभेमहि")
         assertTrue(paradigm.forms.getValue(TingAffix.TA).applications.map { it.sutra }.containsAll(setOf("3.4.102", "7.2.79")))
+        val taResult = paradigm.forms.getValue(TingAffix.TA)
+        val siyutIntroduction = taResult.applications.first { it.sutra == "3.4.102" }
+            .after.terms.single { it.id == "siyut" }
+        assertEquals("3.4.102", siyutIntroduction.createdBySutra)
         assertTrue(paradigm.forms.getValue(TingAffix.JHA).applications.any { it.sutra == "3.4.105" })
         assertTrue(paradigm.forms.getValue(TingAffix.IT).applications.any { it.sutra == "3.4.106" })
         val thasRules = paradigm.forms.getValue(TingAffix.THAS_A).applications.map { it.sutra }
@@ -750,6 +760,9 @@ class TingantaEngineTest {
         listOf(TingAffix.TAS, TingAffix.JHI, TingAffix.SIP).forEach { affix ->
             assertTrue(paradigm.forms.getValue(affix).applications.any { it.sutra == "7.4.50" })
         }
+        val tasiIntroduction = paradigm.forms.getValue(TingAffix.TIP).applications.first { it.sutra == "3.1.33" }
+            .after.terms.single { it.id == "tasi" }
+        assertEquals("3.1.33", tasiIntroduction.createdBySutra)
     }
 
     @Test

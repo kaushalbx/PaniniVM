@@ -42,7 +42,7 @@ object LingasSiyutSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val ting = context.terms.last()
-        val siyut = DerivationTerm("siyut", "सीयुँट्", TermKind.AGAMA, upadesha = "सीयुट्", itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
+        val siyut = DerivationTerm("siyut", "सीयुँट्", TermKind.AGAMA, upadesha = "सीयुट्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
         return DerivationChange(
             context.copy(terms = context.terms.dropLast(1) + siyut + ting),
             "3.4.102 inserts सीयुट् before the liṅ tiṅ termination.",
