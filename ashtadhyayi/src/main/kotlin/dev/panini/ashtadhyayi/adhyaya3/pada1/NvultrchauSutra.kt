@@ -29,7 +29,7 @@ object NvultrchauSutra : Sutra<DerivationState, DerivationChange>(
         context.allEffectiveTerms.none { it.upadesha in setOf("तृच्", "ण्वुल्") }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val trc = DerivationTerm("trc", "तृ", TermKind.PRATYAYA, upadesha = "तृच्")
+        val trc = DerivationTerm("trc", "तृच्", TermKind.PRATYAYA, upadesha = "तृच्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
         return DerivationChange(
             state = context.addTerm(trc),
             explanation = "3.1.133 prescribes तृच् / ण्वुल् agent affix.",

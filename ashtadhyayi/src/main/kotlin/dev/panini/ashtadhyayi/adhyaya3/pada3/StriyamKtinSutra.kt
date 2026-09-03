@@ -28,7 +28,7 @@ object StriyamKtinSutra : Sutra<DerivationState, DerivationChange>(
         context.allEffectiveTerms.none { it.upadesha == "क्तिन्" }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val ktin = DerivationTerm("ktin", "ति", TermKind.PRATYAYA, upadesha = "क्तिन्")
+        val ktin = DerivationTerm("ktin", "क्तिन्", TermKind.PRATYAYA, upadesha = "क्तिन्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
         return DerivationChange(
             state = context.addTerm(ktin),
             explanation = "3.3.94 prescribes क्तिन् feminine action affix.",
