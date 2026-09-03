@@ -28,7 +28,7 @@ object KalaSamayaVelashuTumunSutra : Sutra<DerivationState, DerivationChange>(
         context.allEffectiveTerms.none { it.upadesha == "तुमुन्" }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val tumun = DerivationTerm("tumun", "तुमुँन्", TermKind.PRATYAYA, upadesha = "तुमुन्", itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
+        val tumun = DerivationTerm("tumun", "तुमुँन्", TermKind.PRATYAYA, upadesha = "तुमुन्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
         return DerivationChange(
             state = context.addTerm(tumun),
             explanation = "3.3.167 prescribes तुमुन् infinitive affix.",
