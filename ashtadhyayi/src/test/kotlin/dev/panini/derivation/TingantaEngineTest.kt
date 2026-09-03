@@ -171,7 +171,11 @@ class TingantaEngineTest {
 
         (parasmaipada.forms.values + atmanepada.forms.values).forEach { result ->
             assertTrue(result.applications.none { it.sutra == "3.1.68" })
-            assertTrue(result.final.terms.any { it.upadesha == "श्नु" })
+            assertTrue(result.final.terms.any {
+                it.upadesha == "श्नु" && it.createdBySutra == "3.1.73"
+            })
+            assertTrue(result.applications.any { it.sutra == "1.3.8" })
+            assertTrue(result.applications.any { it.sutra == "1.3.9" })
         }
     }
 
@@ -558,7 +562,12 @@ class TingantaEngineTest {
 
         paradigm.forms.values.forEach { result ->
             assertTrue(result.applications.none { it.sutra == "3.1.68" })
-            assertTrue(result.final.terms.any { it.upadesha == "श्यन्" })
+            assertTrue(result.final.terms.any {
+                it.upadesha == "श्यन्" && it.createdBySutra == "3.1.69"
+            })
+            assertTrue(result.applications.any { it.sutra == "1.3.8" })
+            assertTrue(result.applications.any { it.sutra == "1.3.3" })
+            assertTrue(result.applications.any { it.sutra == "1.3.9" })
             assertTrue(result.applications.any { it.sutra == "8.2.77" })
         }
     }

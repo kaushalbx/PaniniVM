@@ -26,7 +26,8 @@ object AmetahSutra : Sutra<DerivationState, DerivationChange>(
             context.droppedTerms.any { it.id == "shap" || it.upadesha in setOf("श्नम्", "श्लु") }
         if (context.effectiveContext.rupa.lakara != Lakara.LOT || !presentStemEstablished) return false
         val activeJhi = affix.upadesha == "झि" && affix.surface !in setOf("न्तु", "अन्तु", "अतु")
-        val middleE = affix.surface in setOf("ते", "एते", "आते", "न्ते", "अन्ते", "अते", "एथे", "आथे") &&
+        val middleE = setOf("ते", "एते", "आते", "न्ते", "अन्ते", "अते", "एथे", "आथे")
+            .any(affix.surface::endsWith) &&
             context.substitutions.none { it.sutra == "3.4.90" }
         return activeJhi || middleE
     }

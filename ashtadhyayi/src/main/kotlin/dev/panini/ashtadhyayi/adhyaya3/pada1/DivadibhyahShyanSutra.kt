@@ -6,6 +6,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.TermKind
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -36,8 +37,14 @@ object DivadibhyahShyanSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        // श् and final न् are it; retain the effective य् as the vikaraṇa surface.
-        val shyan = DerivationTerm("shyan", "य", TermKind.PRATYAYA, upadesha = "श्यन्")
+        val shyan = DerivationTerm(
+            id = "shyan",
+            surface = "श्यन्",
+            kind = TermKind.PRATYAYA,
+            upadesha = "श्यन्",
+            createdBySutra = number,
+            itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
+        )
         return DerivationChange(
             state = context.insertBeforeTingOrLingAugment(shyan),
             explanation = "3.1.69 introduces श्यन् after a Divādi root.",

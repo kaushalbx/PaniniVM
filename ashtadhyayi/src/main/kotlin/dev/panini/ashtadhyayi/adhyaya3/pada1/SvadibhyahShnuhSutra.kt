@@ -6,6 +6,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.TermKind
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -36,7 +37,14 @@ object SvadibhyahShnuhSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val shnu = DerivationTerm("shnu", "नु", TermKind.PRATYAYA, upadesha = "श्नु")
+        val shnu = DerivationTerm(
+            id = "shnu",
+            surface = "श्नु",
+            kind = TermKind.PRATYAYA,
+            upadesha = "श्नु",
+            createdBySutra = number,
+            itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
+        )
         return DerivationChange(
             state = context.insertBeforeTingOrLingAugment(shnu),
             explanation = "3.1.73 introduces श्नु after a Svādi root.",

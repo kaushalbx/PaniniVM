@@ -55,9 +55,9 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
             val requiresAtoNgitah = ending.upadesha in setOf("आताम्", "आथाम्")
             return ending.surface != replacement && (lakara in setOf(Lakara.LET, Lakara.LIT, Lakara.LOT, Lakara.LRT, Lakara.LUT) || !requiresAtoNgitah || atoNgitahCompleted || isNonAStem)
         }
-        return ending.surface.endsWith("न्त्") &&
-            context.substitutions.any { it.sutra == "7.1.3" } &&
-            ending.upadesha in setOf("झ", "शप्") ||
+        val jhaOutcome = ending.upadesha == "झ" || context.droppedTerms.any { it.upadesha == "झ" }
+        return ending.surface.endsWith("न्त्") && jhaOutcome &&
+            context.substitutions.any { it.sutra == "7.1.3" } ||
             (ending.surface.endsWith("अत") && context.substitutions.any { it.sutra == "7.1.5" })
     }
 
