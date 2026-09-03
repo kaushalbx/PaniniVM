@@ -333,24 +333,43 @@ data class DerivationTerm(
         )
         return when (policy) {
             is WholeAffixDesignationPolicy.PreserveAndRemap -> {
-                require(policy.remaps.size == allDesignations.size) {
-                    "$sutra must explicitly remap every designation on $id (${allDesignations.size} designations, ${policy.remaps.size} remaps)."
+                require(policy.remaps.size + policy.consumed.size == allDesignations.size) {
+                    "$sutra must explicitly remap or consume every designation on $id " +
+                        "(${allDesignations.size} designations, ${policy.remaps.size} remaps, ${policy.consumed.size} consumed)."
                 }
-                val remapped = allDesignations.map { designation ->
-                    val remap = policy.remaps.singleOrNull {
+                fun remap(designation: ItDesignation): ItDesignation? {
+                    val matchingRemaps = policy.remaps.filter {
                         it.oldStart == designation.start && it.oldEndExclusive == designation.endExclusive
-                    } ?: error("$sutra has no unique remap for ${designation.start}..${designation.endExclusive} on $id.")
+                    }
+                    val matchingConsumptions = policy.consumed.filter {
+                        it.oldStart == designation.start && it.oldEndExclusive == designation.endExclusive
+                    }
+                    require(matchingRemaps.size + matchingConsumptions.size == 1) {
+                        "$sutra must uniquely remap or consume ${designation.start}..${designation.endExclusive} on $id."
+                    }
+                    if (matchingConsumptions.isNotEmpty()) return null
+                    val remap = matchingRemaps.single()
                     require(remap.newStart >= 0 && remap.newEndExclusive <= replacementSurface.length && remap.newStart < remap.newEndExclusive)
                     val newText = replacementSurface.substring(remap.newStart, remap.newEndExclusive)
-                    designation.copy(start = remap.newStart, endExclusive = remap.newEndExclusive, designatedText = newText)
+                    return designation.copy(start = remap.newStart, endExclusive = remap.newEndExclusive, designatedText = newText)
                 }
-                val activeCount = itDesignations.size
+                val remappedActive = itDesignations.mapNotNull(::remap)
+                val remappedDeferred = deferredItDesignations.mapNotNull(::remap)
+                val consumedMarkers = allDesignations.filter { designation ->
+                    policy.consumed.any {
+                        it.oldStart == designation.start && it.oldEndExclusive == designation.endExclusive
+                    }
+                }.mapTo(mutableSetOf()) { it.marker }
                 copy(
                     surface = replacementSurface,
                     upadesha = replacementUpadesha,
-                    itDesignations = remapped.take(activeCount),
-                    deferredItDesignations = remapped.drop(activeCount),
-                    itProcessingPhase = if (activeCount > 0) ItProcessingPhase.DESIGNATED else itProcessingPhase,
+                    itDesignations = remappedActive,
+                    deferredItDesignations = remappedDeferred,
+                    itProcessingPhase = if (remappedActive.isNotEmpty()) ItProcessingPhase.DESIGNATED else itProcessingPhase,
+                    sthaniProps = if (consumedMarkers.isEmpty()) sthaniProps else SthaniProperties(
+                        upadesha = sthaniProps?.upadesha ?: upadesha,
+                        itMarkers = sthaniProps?.itMarkers.orEmpty() + consumedMarkers,
+                    ),
                 )
             }
             WholeAffixDesignationPolicy.Consume -> copy(
@@ -381,7 +400,10 @@ data class DerivationTerm(
 }
 
 sealed interface WholeAffixDesignationPolicy {
-    data class PreserveAndRemap(val remaps: List<ItDesignationRemap>) : WholeAffixDesignationPolicy
+    data class PreserveAndRemap(
+        val remaps: List<ItDesignationRemap>,
+        val consumed: List<ItDesignationConsumption> = emptyList(),
+    ) : WholeAffixDesignationPolicy
     data object Consume : WholeAffixDesignationPolicy
     data object FreshUpadesha : WholeAffixDesignationPolicy
 }
@@ -392,6 +414,8 @@ data class ItDesignationRemap(
     val newStart: Int,
     val newEndExclusive: Int,
 )
+
+data class ItDesignationConsumption(val oldStart: Int, val oldEndExclusive: Int)
 
 enum class ItProcessingPhase {
     /** The term is already an effective form or has no it-processing to perform. */

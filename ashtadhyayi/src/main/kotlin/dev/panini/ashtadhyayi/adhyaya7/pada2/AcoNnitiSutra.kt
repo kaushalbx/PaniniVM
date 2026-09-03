@@ -48,8 +48,7 @@ object AcoNnitiSutra : Sutra<DerivationState, DerivationChange>(
         if (affix.hasEffectiveMarker(ItMarker.KIT) || affix.hasEffectiveMarker(ItMarker.NGIT)) return false
 
         val isNniti = affix.hasEffectiveMarker(ItMarker.NG) ||
-                      affix.hasEffectiveMarker(ItMarker.NIT) ||
-                      affix.upadesha?.endsWith("ण्") == true
+                      affix.hasEffectiveMarker(ItMarker.NIT)
         if (!isNniti) return false
 
         val lastChar = stem.surface.lastOrNull() ?: return false

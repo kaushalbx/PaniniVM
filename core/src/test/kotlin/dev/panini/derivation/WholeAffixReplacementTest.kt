@@ -36,6 +36,29 @@ class WholeAffixReplacementTest {
         assertEquals(setOf(ItMarker.P), result.sthaniProps?.itMarkers)
     }
 
+    @Test fun `preserve policy can consume one superseded designation and remap another`() {
+        val term = designated.copy(
+            surface = "फक्",
+            upadesha = "फक्",
+            itDesignations = listOf(
+                ItDesignation(0, 1, marker = ItMarker.T, sutra = "1.3.7", designatedText = "फ"),
+                ItDesignation(1, 3, marker = ItMarker.KIT, sutra = "1.3.3", designatedText = "क्"),
+            ),
+        )
+        val result = term.replaceWholeAffix(
+            "आयन्क्",
+            "फक्",
+            "7.1.2",
+            WholeAffixDesignationPolicy.PreserveAndRemap(
+                remaps = listOf(ItDesignationRemap(1, 3, 4, 6)),
+                consumed = listOf(ItDesignationConsumption(0, 1)),
+            ),
+        )
+
+        assertEquals(listOf(ItMarker.KIT), result.itDesignations.map { it.marker })
+        assertEquals(4 to 6, result.itDesignations.single().let { it.start to it.endExclusive })
+    }
+
     @Test fun `fresh upadesha requires a new it processing pass`() {
         val result = designated.replaceWholeAffix("यप्", "यप्", "x", WholeAffixDesignationPolicy.FreshUpadesha)
         assertEquals(ItProcessingPhase.RAW_UPADESHA, result.itProcessingPhase)

@@ -37,8 +37,7 @@ object KitiCaSutra : Sutra<DerivationState, DerivationChange>(
             pratyaya.id.contains("taddhita") || pratyaya.id.contains("apatya")
         if (!isTaddhita) return false
 
-        val isKit = pratyaya.itMarkers.contains(ItMarker.KIT) ||
-            pratyaya.upadesha == "फक्" || pratyaya.upadesha == "ढक्"
+        val isKit = pratyaya.hasEffectiveMarker(ItMarker.KIT)
         if (!isKit) return false
 
         val stem = context.terms.firstOrNull { it.kind == TermKind.PRATIPADIKA } ?: return false

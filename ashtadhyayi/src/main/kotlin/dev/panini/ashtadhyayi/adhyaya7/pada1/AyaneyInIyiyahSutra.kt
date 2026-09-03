@@ -4,11 +4,15 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.ItDesignationConsumption
+import dev.panini.derivation.ItDesignationRemap
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.WholeAffixDesignationPolicy
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
+import dev.panini.sutra.SutraStage
 import dev.panini.sutra.SutraType
 
 /**
@@ -27,11 +31,14 @@ object AyaneyInIyiyahSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.PRATYAYA,
+    stage = SutraStage.IT_PROCESSING,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val pratyaya = context.terms.lastOrNull { it.kind == TermKind.PRATYAYA } ?: return false
         val firstChar = pratyaya.surface.firstOrNull() ?: return false
-        return firstChar in setOf('फ', 'ढ', 'ख', 'छ', 'घ')
+        if (firstChar !in setOf('फ', 'ढ', 'ख', 'छ', 'घ')) return false
+        val designations = pratyaya.itDesignations + pratyaya.deferredItDesignations
+        return designations.any { it.sutra == "1.3.3" && it.endExclusive == pratyaya.surface.length }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -49,7 +56,30 @@ object AyaneyInIyiyahSutra : Sutra<DerivationState, DerivationChange>(
             else -> pratyaya.surface
         }
         val newSurface = replacement + rest
-        val updatedPratyaya = pratyaya.copy(surface = newSurface)
+        val initialDesignation = (pratyaya.itDesignations + pratyaya.deferredItDesignations).singleOrNull {
+            it.start == 0 && it.endExclusive == 1 && it.designatedText == firstChar.toString()
+        }
+        val remaps = (pratyaya.itDesignations + pratyaya.deferredItDesignations)
+            .filterNot { initialDesignation != null && it == initialDesignation }
+            .map { designation ->
+                ItDesignationRemap(
+                    oldStart = designation.start,
+                    oldEndExclusive = designation.endExclusive,
+                    newStart = designation.start + replacement.length - 1,
+                    newEndExclusive = designation.endExclusive + replacement.length - 1,
+                )
+            }
+        val updatedPratyaya = pratyaya.replaceWholeAffix(
+            replacementSurface = newSurface,
+            replacementUpadesha = pratyaya.upadesha,
+            sutra = sutra,
+            policy = WholeAffixDesignationPolicy.PreserveAndRemap(
+                remaps = remaps,
+                consumed = initialDesignation?.let {
+                    listOf(ItDesignationConsumption(it.start, it.endExclusive))
+                }.orEmpty(),
+            ),
+        )
 
         val newTerms = context.terms.toMutableList()
         newTerms[pratyayaIndex] = updatedPratyaya

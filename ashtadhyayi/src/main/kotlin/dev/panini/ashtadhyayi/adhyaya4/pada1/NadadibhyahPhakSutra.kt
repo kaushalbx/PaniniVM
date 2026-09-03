@@ -39,7 +39,11 @@ object NadadibhyahPhakSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
         state = context.addTerm(
-            DerivationTerm("phak-suffix", "आयन", TermKind.PRATYAYA, upadesha = "फक्"),
+            DerivationTerm(
+                "phak-suffix", "फक्", TermKind.PRATYAYA, upadesha = "फक्",
+                createdBySutra = sutra,
+                itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
+            ),
         ).copy(stage = DerivationStage.PRATYAYA_SELECTED),
         explanation = "4.1.99 introduces फक् in the अपत्य sense after an eligible नडादि term.",
     )

@@ -34,7 +34,10 @@ class TaddhitaEngineTest {
         val state = DerivationState(
             terms = listOf(
                 DerivationTerm("pratipadika", "वत्स", TermKind.PRATIPADIKA, upadesha = "वत्स"),
-                DerivationTerm("phak", "फक्", TermKind.PRATYAYA, upadesha = "फक्")
+                DerivationTerm(
+                    "phak", "फक्", TermKind.PRATYAYA, upadesha = "फक्",
+                    itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
+                )
             ),
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.APATYA)
         )
@@ -50,7 +53,10 @@ class TaddhitaEngineTest {
         val state = DerivationState(
             terms = listOf(
                 DerivationTerm("pratipadika", "विनता", TermKind.PRATIPADIKA, upadesha = "विनता"),
-                DerivationTerm("dhak", "ढक्", TermKind.PRATYAYA, upadesha = "ढक्")
+                DerivationTerm(
+                    "dhak", "ढक्", TermKind.PRATYAYA, upadesha = "ढक्",
+                    itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
+                )
             ),
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.APATYA)
         )

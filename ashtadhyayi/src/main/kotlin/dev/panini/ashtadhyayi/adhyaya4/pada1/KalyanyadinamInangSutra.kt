@@ -36,7 +36,11 @@ object KalyanyadinamInangSutra : Sutra<DerivationState, DerivationChange>(
         }
         return DerivationChange(
             context.copy(terms = context.terms.map { replacements[it.id] ?: it })
-                .addTerm(DerivationTerm("kalyanyadi-dhak-suffix", "एय", TermKind.PRATYAYA, upadesha = "ढक्"))
+                .addTerm(DerivationTerm(
+                    "kalyanyadi-dhak-suffix", "ढक्", TermKind.PRATYAYA, upadesha = "ढक्",
+                    createdBySutra = sutra,
+                    itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
+                ))
                 .copy(stage = DerivationStage.PRATYAYA_SELECTED),
             "4.1.126 replaces the final with इनङ् and introduces ढक् after an eligible कल्याण्यादि term.",
         )
