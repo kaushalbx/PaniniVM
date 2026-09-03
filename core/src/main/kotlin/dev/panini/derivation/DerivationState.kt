@@ -273,6 +273,8 @@ data class DerivationTerm(
     val originalSurfaceBeforeDrop: String? = null,
     val createdBySutra: String? = null,
     val establishedBySutras: Set<String> = emptySet(),
+    /** Written upadeśa material retained for provenance but excluded from the operative surface. */
+    val nonOperativeUpadeshaSegments: List<NonOperativeUpadeshaSegment> = emptyList(),
     /** Explicit lifecycle of an upadeśa as it moves through 1.3.2–1.3.9. */
     val itProcessingPhase: ItProcessingPhase = dev.panini.derivation.ItProcessingPhase.PROCESSED,
     /** Exact spans designated as इत् in the current upadeśa. */
@@ -284,6 +286,17 @@ data class DerivationTerm(
     /** Underlying lexical head of a compound term, when rules target head identity after surface sandhi. */
     val compoundHeadUpadesha: String? = null,
 ) {
+    init {
+        nonOperativeUpadeshaSegments.forEach { segment ->
+            require(segment.start >= 0 && segment.endExclusive <= upadesha.length && segment.start < segment.endExclusive) {
+                "Non-operative upadeśa segment ${segment.start}..${segment.endExclusive} is outside $id:$upadesha."
+            }
+            require(upadesha.substring(segment.start, segment.endExclusive) == segment.text) {
+                "Non-operative upadeśa segment ${segment.start}..${segment.endExclusive} (${segment.text}) is stale on $id:$upadesha."
+            }
+        }
+    }
+
     val itProcessingPending: Boolean
         get() = itProcessingPhase == dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA ||
             itProcessingPhase == dev.panini.derivation.ItProcessingPhase.DESIGNATED
@@ -343,6 +356,7 @@ data class DerivationTerm(
             WholeAffixDesignationPolicy.Consume -> copy(
                 surface = replacementSurface,
                 upadesha = replacementUpadesha,
+                nonOperativeUpadeshaSegments = emptyList(),
                 itDesignations = emptyList(),
                 deferredItDesignations = emptyList(),
                 itProcessingPhase = ItProcessingPhase.PROCESSED,
@@ -351,6 +365,7 @@ data class DerivationTerm(
             WholeAffixDesignationPolicy.FreshUpadesha -> copy(
                 surface = replacementSurface,
                 upadesha = replacementUpadesha,
+                nonOperativeUpadeshaSegments = emptyList(),
                 itMarkers = emptySet(),
                 itDesignations = emptyList(),
                 deferredItDesignations = emptyList(),
@@ -398,6 +413,18 @@ data class ItDesignation(
     /** Original designated segment; detects a designation consumed by a later whole-term substitution. */
     val designatedText: String,
 )
+
+/** An exact written span that explains an upadeśa but never enters grammatical operations. */
+data class NonOperativeUpadeshaSegment(
+    val start: Int,
+    val endExclusive: Int,
+    val text: String,
+    val function: NonOperativeUpadeshaFunction,
+)
+
+enum class NonOperativeUpadeshaFunction {
+    UCCARANARTHA,
+}
 
 data class SthaniProperties(
     val upadesha: String?,

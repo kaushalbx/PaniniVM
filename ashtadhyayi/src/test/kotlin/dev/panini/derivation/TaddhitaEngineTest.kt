@@ -3,6 +3,8 @@ package dev.panini.derivation
 import dev.panini.ashtadhyayi.adhyaya5.pada1.TenaTulyamKriyaCedVatihSutra
 import dev.panini.ashtadhyayi.adhyaya5.pada3.PancamyasTasilSutra
 import dev.panini.ashtadhyayi.adhyaya5.pada3.SaptamyasTralSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada3.HalantyamSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada3.TasyaLopahSutra
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -82,7 +84,20 @@ class TaddhitaEngineTest {
         val change = PancamyasTasilSutra.apply(state)
         val addedTerm = change.state.allEffectiveTerms.last()
         assertEquals("तसिल्", addedTerm.upadesha)
-        assertEquals("तस्", addedTerm.surface)
+        assertEquals("तस्ल्", addedTerm.surface)
+        assertEquals(ItProcessingPhase.RAW_UPADESHA, addedTerm.itProcessingPhase)
+
+        val designated = HalantyamSutra.apply(change.state).state
+        val designation = designated.terms.last().itDesignations.single()
+        assertEquals("1.3.3", designation.sutra)
+        assertEquals("ल्", designation.designatedText)
+        assertEquals(3, designation.start)
+        assertEquals(5, designation.endExclusive)
+
+        val processed = TasyaLopahSutra.apply(designated).state
+        assertEquals("तस्", processed.terms.last().surface)
+        assertEquals(ItProcessingPhase.PROCESSED, processed.terms.last().itProcessingPhase)
+        assertTrue(processed.terms.last().itDesignations.isEmpty())
     }
 
     @Test

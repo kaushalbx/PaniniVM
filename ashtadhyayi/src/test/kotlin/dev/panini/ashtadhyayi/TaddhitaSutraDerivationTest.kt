@@ -6,6 +6,8 @@ import dev.panini.ashtadhyayi.adhyaya5.pada3.SaptamyasTralSutra
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.ItProcessingPhase
+import dev.panini.derivation.NonOperativeUpadeshaFunction
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -33,7 +35,11 @@ class TaddhitaSutraDerivationTest {
         val change = PancamyasTasilSutra.apply(state)
         val addedTerm = change.state.allEffectiveTerms.last()
         assertEquals("तसिल्", addedTerm.upadesha)
-        assertEquals("तस्", addedTerm.surface)
+        assertEquals("तस्ल्", addedTerm.surface)
+        assertEquals("5.3.7", addedTerm.createdBySutra)
+        assertEquals(ItProcessingPhase.RAW_UPADESHA, addedTerm.itProcessingPhase)
+        assertEquals("ि", addedTerm.nonOperativeUpadeshaSegments.single().text)
+        assertEquals(NonOperativeUpadeshaFunction.UCCARANARTHA, addedTerm.nonOperativeUpadeshaSegments.single().function)
     }
 
     @Test
