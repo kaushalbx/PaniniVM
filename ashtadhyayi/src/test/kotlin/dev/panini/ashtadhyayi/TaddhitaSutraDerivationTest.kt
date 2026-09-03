@@ -45,6 +45,7 @@ class TaddhitaSutraDerivationTest {
         val change = SaptamyasTralSutra.apply(state)
         val addedTerm = change.state.allEffectiveTerms.last()
         assertEquals("त्रल्", addedTerm.upadesha)
-        assertEquals("त्र", addedTerm.surface)
+        assertEquals("त्रल्", addedTerm.surface)
+        assertEquals(dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA, addedTerm.itProcessingPhase)
     }
 }

@@ -6,6 +6,7 @@ import dev.panini.ashtadhyayi.adhyaya5.pada2.UbhadUdattoNityamSutra
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.ItProcessingPhase
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -25,7 +26,8 @@ class NumeralTayapTest {
         )
         assertTrue(SankhyayaAvayaveTayapSutra.matches(statePanca))
         val changePanca = SankhyayaAvayaveTayapSutra.apply(statePanca)
-        assertEquals("तय", changePanca.state.terms.last().surface)
+        assertEquals("तयप्", changePanca.state.terms.last().surface)
+        assertEquals(ItProcessingPhase.RAW_UPADESHA, changePanca.state.terms.last().itProcessingPhase)
 
         val stateDvi = DerivationState(
             terms = listOf(
@@ -35,7 +37,8 @@ class NumeralTayapTest {
         )
         assertTrue(SankhyayaAvayaveTayapSutra.matches(stateDvi))
         val changeDvi = SankhyayaAvayaveTayapSutra.apply(stateDvi)
-        assertEquals("तय", changeDvi.state.terms.last().surface)
+        assertEquals("तयप्", changeDvi.state.terms.last().surface)
+        assertEquals(ItProcessingPhase.RAW_UPADESHA, changeDvi.state.terms.last().itProcessingPhase)
     }
 
     @Test
