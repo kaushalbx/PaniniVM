@@ -42,8 +42,12 @@ object YadapahSutra : Sutra<DerivationState, DerivationChange>(
             affix.upadesha == "आम्"
         if (isNadiGenitivePlural) return false
 
-        // 1. The stem must be an actual āp formation, not merely end in long ā.
+        // 1. The stem must be an actual āp formation, not another pit affix
+        // (for example शप्) whose visible remainder happens to be lengthened to ā.
+        val isApFormation = stem.upadesha in setOf("टाप्", "डाप्", "चाप्") ||
+            "4.1.4" in stem.establishedBySutras
         if ((!stem.surface.endsWith('ा') && !stem.surface.endsWith('आ')) ||
+            !isApFormation ||
             !stem.hasEffectiveMarker(ItMarker.P)
         ) return false
 
