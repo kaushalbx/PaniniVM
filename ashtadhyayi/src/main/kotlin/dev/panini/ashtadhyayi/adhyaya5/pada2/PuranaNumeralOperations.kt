@@ -36,10 +36,11 @@ internal fun DerivationState.insertTamat(sutra: String, explanation: String): De
     require(!hasTamat()) { "An ordinal derivation can contain only one तमट् augment." }
     val tamat = DerivationTerm(
         id = "purana_tamat",
-        surface = "तम",
+        surface = "तमट्",
         kind = TermKind.AGAMA,
         upadesha = "तमट्",
         createdBySutra = sutra,
+        itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
     )
     val changedTerms = terms.toMutableList().apply { add(index, tamat) }
     return DerivationChange(copy(terms = changedTerms), explanation)

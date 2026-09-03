@@ -41,6 +41,25 @@ class DerivationPipelineTest {
         assertEquals(2, results.size)
     }
 
+    @Test
+    fun `interleaves it processing before resuming the surrounding phase`() {
+        val selectRaw = TestSutra("test.select", SutraStage.PRATYAYA_SELECTION, "a", "raw", rawOutput = true)
+        val processRaw = TestSutra("test.it", SutraStage.IT_PROCESSING, "raw", "done")
+        val resumeSelection = TestSutra("test.resume", SutraStage.PRATYAYA_SELECTION, "done", "final")
+        val byStage = listOf(selectRaw, processRaw, resumeSelection).groupBy { it.stage }
+        val pipeline = DerivationPipeline(
+            stages = listOf(SutraStage.PRATYAYA_SELECTION),
+            sutrasForStage = { stage -> byStage.getValue(stage) },
+            interleaveItProcessingAt = setOf(SutraStage.PRATYAYA_SELECTION),
+        )
+
+        val result = pipeline.derive(state("a"))
+
+        assertEquals("final", result.final.surface)
+        assertEquals(listOf("test.select", "test.it", "test.resume"), result.applications.map { it.sutra })
+        assertEquals(ItProcessingPhase.PROCESSED, result.final.terms.single().itProcessingPhase)
+    }
+
     private fun pipeline(vararg sutras: DerivationSutra): DerivationPipeline {
         val byStage = sutras.groupBy { it.stage }
         return DerivationPipeline(
@@ -59,6 +78,7 @@ class DerivationPipelineTest {
         private val input: String,
         private val output: String,
         override val optional: Boolean = false,
+        private val rawOutput: Boolean = false,
     ) : DerivationSutra {
         override val krama: Int = if (stage == SutraStage.ANGAKARYA) 1 else 2
         override val type: SutraType = SutraType.NITYA
@@ -74,7 +94,14 @@ class DerivationPipelineTest {
         override fun matches(context: DerivationState): Boolean = context.surface == input
 
         override fun apply(context: DerivationState): DerivationChange = DerivationChange(
-            state = context.replaceTerm("term", context.terms.single().copy(surface = output)),
+            state = context.replaceTerm("term", context.terms.single().copy(
+                surface = output,
+                itProcessingPhase = when {
+                    stage == SutraStage.IT_PROCESSING -> ItProcessingPhase.PROCESSED
+                    rawOutput -> ItProcessingPhase.RAW_UPADESHA
+                    else -> context.terms.single().itProcessingPhase
+                },
+            )),
             explanation = "$input → $output",
         )
     }

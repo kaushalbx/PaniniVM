@@ -15,13 +15,23 @@ class DerivationPipeline(
     private val isStageEnabled: (SutraStage, DerivationState, DerivationState) -> Boolean = { _, _, _ -> true },
     private val finalizeState: (DerivationState) -> DerivationState = { it },
     sutrasForStage: (SutraStage) -> List<DerivationSutra> = Ashtadhyayi::executableSutrasAt,
+    interleaveItProcessingAt: Set<SutraStage> = emptySet(),
 ) {
     private val phases: List<Phase> = stages.map { stage ->
         require(stage != SutraStage.UNSPECIFIED) { "A derivation pipeline cannot route UNSPECIFIED sūtras." }
-        val sutras = sutrasForStage(stage)
-        require(sutras.isNotEmpty()) { "No executable sūtras registered for $stage." }
-        require(sutras.all { it.stage == stage }) { "The $stage registry view contains incorrectly staged sūtras." }
-        Phase(stage, DerivationEngine(sutras))
+        val stageSutras = sutrasForStage(stage)
+        require(stageSutras.isNotEmpty()) { "No executable sūtras registered for $stage." }
+        require(stageSutras.all { it.stage == stage }) { "The $stage registry view contains incorrectly staged sūtras." }
+        val itSutras = if (stage in interleaveItProcessingAt) {
+            require(stage != SutraStage.IT_PROCESSING) { "IT_PROCESSING cannot interleave itself." }
+            sutrasForStage(SutraStage.IT_PROCESSING).also { rules ->
+                require(rules.isNotEmpty()) { "No executable sūtras registered for IT_PROCESSING." }
+                require(rules.all { it.stage == SutraStage.IT_PROCESSING }) {
+                    "The IT_PROCESSING registry view contains incorrectly staged sūtras."
+                }
+            }
+        } else emptyList()
+        Phase(stage, DerivationEngine((stageSutras + itSutras).distinctBy { it.sutra }))
     }
 
     fun derive(initial: DerivationState, bootstrap: List<DerivationSutra> = emptyList()): DerivationResult =

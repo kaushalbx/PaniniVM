@@ -1,6 +1,7 @@
 package dev.panini.sankhya
 
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.ItProcessingPhase
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -158,14 +159,14 @@ class SankhyaGeneratorTest {
         assertEquals(listOf("तृ", "तीय"), third.final.terms.map { it.surface })
         assertEquals("5.2.55", third.final.terms.last().createdBySutra)
         val fourth = sut.ordinal(4L)
-        assertEquals(listOf("5.2.51", "1.3.7", "1.3.3", "1.3.9"), fourth.applications.map { it.sutra })
-        assertEquals(listOf("चतुर्", "थ", "अ"), fourth.final.terms.map { it.surface })
-        assertEquals("5.2.51", fourth.final.terms.single { it.upadesha == "थुक्" }.createdBySutra)
+        assertEquals(listOf("5.2.51", "1.3.7", "1.3.3", "1.3.2", "1.3.9"), fourth.applications.map { it.sutra })
+        assertEquals(listOf("चतुर्", "थ्", "अ"), fourth.final.terms.map { it.surface })
+        assertEquals("5.2.51", fourth.final.terms.single { it.upadesha == "थुँक्" }.createdBySutra)
 
         val sixth = sut.ordinal(6L)
         assertEquals("षष्ठ", sixth.final.surface)
-        assertEquals(listOf("5.2.51", "1.3.7", "1.3.3", "1.3.9", "8.4.41"), sixth.applications.map { it.sutra })
-        assertEquals(listOf("षष्", "ठ", "अ"), sixth.final.terms.map { it.surface })
+        assertEquals(listOf("5.2.51", "1.3.7", "1.3.3", "1.3.2", "1.3.9", "8.4.41"), sixth.applications.map { it.sutra })
+        assertEquals(listOf("षष्", "ठ्", "अ"), sixth.final.terms.map { it.surface })
         assertEquals(
             listOf("5.2.49", "1.3.3", "1.3.9", "8.2.7"),
             sut.ordinal(5L).applications.map { it.sutra },
@@ -175,6 +176,8 @@ class SankhyaGeneratorTest {
             .single { result -> result.applications.any { it.sutra == "5.2.56" } }
         assertEquals("5.2.48", twentiethTamat.final.terms.single { it.upadesha == "डट्" }.createdBySutra)
         assertEquals("5.2.56", twentiethTamat.final.terms.single { it.upadesha == "तमट्" }.createdBySutra)
+        assertTrue(twentiethTamat.final.terms.all { it.itProcessingPhase == ItProcessingPhase.PROCESSED })
+        assertTrue(twentiethTamat.final.terms.all { it.itDesignations.isEmpty() && it.deferredItDesignations.isEmpty() })
     }
 
     @Test
