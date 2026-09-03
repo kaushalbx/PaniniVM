@@ -36,10 +36,11 @@ object TehSutra : Sutra<DerivationState, DerivationChange>(
         val ending = context.terms.lastOrNull() ?: return false
         val stem = context.terms.getOrNull(context.terms.lastIndex - 1) ?: return false
 
-        // Triggers before a ḍit suffix like डा. We detect it via ItMarker.T (representing ṭa-varga initial ḍit)
+        // The initial ड् was designated by 1.3.7; after its lopa, the marker
+        // retained in sthānī provenance continues to license this rule.
         val isDit = ending.kind == TermKind.PRATYAYA &&
-            (((ending.itMarkers + ending.sthaniProps?.itMarkers.orEmpty()).contains(ItMarker.T) &&
-                ending.matchesUpadesha("डा")) || ending.upadesha == "डट्")
+            ending.hasEffectiveMarker(ItMarker.T) &&
+            (ending.matchesUpadesha("डा") || ending.matchesUpadesha("डट्"))
 
         return isDit && (
             (stem.id == "tasi" && stem.surface in setOf("तासि", "तास्")) ||

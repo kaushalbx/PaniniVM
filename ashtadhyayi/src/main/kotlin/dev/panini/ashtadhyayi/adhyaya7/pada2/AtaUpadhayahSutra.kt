@@ -36,7 +36,7 @@ object AtaUpadhayahSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.getOrNull(stemIndex + 1) ?: return false
         
         val isUpadhaA = hasPenultimateA(stem.surface)
-        val isNniti = affix.hasEffectiveMarker(ItMarker.NG) ||
+        val isNniti = affix.hasEffectiveMarker(ItMarker.NYIT) ||
                       affix.hasEffectiveMarker(ItMarker.NIT)
         
         return isUpadhaA && isNniti

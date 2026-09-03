@@ -47,7 +47,7 @@ object AcoNnitiSutra : Sutra<DerivationState, DerivationChange>(
         if (affix.kind != TermKind.PRATYAYA) return false
         if (affix.hasEffectiveMarker(ItMarker.KIT) || affix.hasEffectiveMarker(ItMarker.NGIT)) return false
 
-        val isNniti = affix.hasEffectiveMarker(ItMarker.NG) ||
+        val isNniti = affix.hasEffectiveMarker(ItMarker.NYIT) ||
                       affix.hasEffectiveMarker(ItMarker.NIT)
         if (!isNniti) return false
 

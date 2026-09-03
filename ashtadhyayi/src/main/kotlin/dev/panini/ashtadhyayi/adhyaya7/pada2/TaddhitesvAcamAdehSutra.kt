@@ -37,9 +37,8 @@ object TaddhitesvAcamAdehSutra : Sutra<DerivationState, DerivationChange>(
             pratyaya.id.contains("taddhita") || pratyaya.id.contains("apatya")
         if (!isTaddhita) return false
 
-        val isNgitOrNit = pratyaya.itMarkers.contains(ItMarker.NGIT) ||
-            pratyaya.itMarkers.contains(ItMarker.NIT) ||
-            pratyaya.upadesha == "इञ्" || pratyaya.upadesha == "यञ्" || pratyaya.upadesha == "अण्"
+        val isNgitOrNit = pratyaya.hasEffectiveMarker(ItMarker.NYIT) ||
+            pratyaya.hasEffectiveMarker(ItMarker.NIT)
         if (!isNgitOrNit) return false
 
         val stem = context.terms.firstOrNull { it.kind == TermKind.PRATIPADIKA } ?: return false
