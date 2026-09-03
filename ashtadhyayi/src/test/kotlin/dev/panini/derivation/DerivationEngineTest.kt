@@ -143,8 +143,11 @@ class DerivationEngineTest {
             DerivationStage.PRATYAYA_SELECTED,
             result.applications.single { it.sutra == "4.1.2" }.delta.stageAfter,
         )
-        assertEquals("सुँ", result.final.terms.single { it.id == "sup-su" }.upadesha)
-        assertTrue(result.final.terms.single { it.id == "sup-su" }.itMarkers.isEmpty())
+        val finalSu = result.final.terms.single { it.id == "sup-su" }
+        assertEquals("रुँ", finalSu.upadesha)
+        assertEquals("सुँ", finalSu.sthaniProps?.upadesha)
+        assertEquals("8.2.66", finalSu.createdBySutra)
+        assertTrue(finalSu.itMarkers.isEmpty())
         assertEquals("रामः", result.final.surface)
         assertTrue(result.applications.any { it.sutra == "1.1.1" })
     }
