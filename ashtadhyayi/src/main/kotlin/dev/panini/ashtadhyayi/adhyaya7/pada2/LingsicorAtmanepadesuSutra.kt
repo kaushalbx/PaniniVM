@@ -5,6 +5,7 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.TermKind
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -29,7 +30,15 @@ object LingsicorAtmanepadesuSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val sicIndex = context.terms.indexOfFirst { it.upadesha == "सिच्" }
-        val itAgama = DerivationTerm("it-agama", "इ", TermKind.AGAMA, upadesha = "इट्")
+        val sic = context.terms[sicIndex]
+        val itAgama = DerivationTerm(
+            "it-agama", "इट्", TermKind.AGAMA,
+            upadesha = "इट्",
+            createdBySutra = sutra,
+            itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
+            augmentTargetId = sic.id,
+            mergeIntoAugmentTarget = false,
+        )
         return DerivationChange(
             context.copy(
                 terms = context.terms.take(sicIndex) + itAgama + context.terms.drop(sicIndex),

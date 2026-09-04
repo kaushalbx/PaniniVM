@@ -97,7 +97,9 @@ object AtoGuneSutra : Sutra<DerivationState, DerivationChange>(
 
     private fun targetPairIndex(context: DerivationState): Int? {
         context.terms.indices.firstOrNull { index ->
-            index < context.terms.lastIndex && context.terms[index + 1].isPlacedBeginningAugment(context)
+            index < context.terms.lastIndex &&
+                context.terms[index + 1].isPlacedBeginningAugment(context) &&
+                context.terms[index + 1].surface.firstOrNull() in setOf('अ', 'ए', 'ओ', 'े', 'ो')
         }?.let { return it }
         return context.terms.lastIndex - 1
     }

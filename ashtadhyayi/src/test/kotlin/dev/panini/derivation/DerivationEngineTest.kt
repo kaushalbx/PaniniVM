@@ -58,7 +58,12 @@ class DerivationEngineTest {
             context = DerivationalContext(environments = setOf(DerivationalEnvironment.ARDHADHATUKA)),
         )
         assertTrue(ArdhadhatukasyedValadehSutra.matches(state))
-        assertEquals("इट्", ArdhadhatukasyedValadehSutra.apply(state).state.terms.single { it.id == "it-agama" }.upadesha)
+        val augment = ArdhadhatukasyedValadehSutra.apply(state).state.terms.single { it.id == "it-agama" }
+        assertEquals("इट्", augment.upadesha)
+        assertEquals("इट्", augment.surface)
+        assertEquals("7.2.35", augment.createdBySutra)
+        assertEquals("suffix", augment.augmentTargetId)
+        assertEquals(ItProcessingPhase.RAW_UPADESHA, augment.itProcessingPhase)
     }
 
     @Test
@@ -78,7 +83,7 @@ class DerivationEngineTest {
         )
         val result = DerivationEngine(listOf(ArdhadhatukasyedValadehSutra)).derive(state)
         assertTrue(result.applications.any { it.sutra == "7.2.35" })
-        assertEquals("इ", result.final.terms.single { it.id == "it-agama" }.surface)
+        assertEquals("इट्", result.final.terms.single { it.id == "it-agama" }.surface)
     }
 
     @Test
