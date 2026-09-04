@@ -28,7 +28,7 @@ object BaahvadibhyashCaSutra : Sutra<DerivationState, DerivationChange>(
             context.allEffectiveTerms.none { it.upadesha == "इञ्" }
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
-        context.addTerm(DerivationTerm("iny-suffix", "इ", TermKind.PRATYAYA, upadesha = "इञ्"))
+        context.addTerm(DerivationTerm("iny-suffix", "इञ्", TermKind.PRATYAYA, upadesha = "इञ्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA))
             .copy(stage = DerivationStage.PRATYAYA_SELECTED),
         "4.1.96 introduces इञ् after an eligible बाह्वादि term.",
     )

@@ -28,7 +28,7 @@ object KurvadibhyoNyahSutra : Sutra<DerivationState, DerivationChange>(
             context.allEffectiveTerms.none { it.upadesha == "ण्य" }
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
-        context.addTerm(DerivationTerm("nyah-suffix", "य", TermKind.PRATYAYA, upadesha = "ण्य"))
+        context.addTerm(DerivationTerm("nyah-suffix", "ण्य", TermKind.PRATYAYA, upadesha = "ण्य", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA))
             .copy(stage = DerivationStage.PRATYAYA_SELECTED),
         "4.1.151 introduces ण्य after an eligible कुर्वादि term in the अपत्य sense.",
     )

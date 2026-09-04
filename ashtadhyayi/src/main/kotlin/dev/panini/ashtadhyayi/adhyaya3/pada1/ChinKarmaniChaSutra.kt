@@ -6,6 +6,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.TermKind
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -29,7 +30,7 @@ object ChinKarmaniChaSutra : Sutra<DerivationState, DerivationChange>(
         context.allEffectiveTerms.none { it.upadesha == "चिण्" }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val chin = DerivationTerm("chin", "इ", TermKind.PRATYAYA, upadesha = "चिण्")
+        val chin = DerivationTerm("chin", "चिण्", TermKind.PRATYAYA, upadesha = "चिण्", createdBySutra = sutra, itProcessingPhase = ItProcessingPhase.RAW_UPADESHA)
         return DerivationChange(
             state = context.insertBeforeTingOrLingAugment(chin),
             explanation = "3.1.60 prescribes चिण् vikaraṇa in Luṅ karmaṇi.",

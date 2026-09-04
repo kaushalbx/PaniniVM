@@ -29,7 +29,7 @@ object AnrshyanantaryeBidadibhyoAnySutra : Sutra<DerivationState, DerivationChan
             context.allEffectiveTerms.none { it.upadesha == "अञ्" }
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
-        context.addTerm(DerivationTerm("any-suffix", "अ", TermKind.PRATYAYA, upadesha = "अञ्"))
+        context.addTerm(DerivationTerm("any-suffix", "अञ्", TermKind.PRATYAYA, upadesha = "अञ्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA))
             .copy(stage = DerivationStage.PRATYAYA_SELECTED),
         "4.1.104 introduces अञ् after an eligible बिदादि term.",
     )

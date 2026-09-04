@@ -97,20 +97,34 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
         val rightChar = rightTerm.surface.first()
 
         val substitute = getGuna(rightChar)
+        val isBeginningAugment = leftTerm.kind == TermKind.AGAMA &&
+            !leftTerm.mergeIntoAugmentTarget &&
+            leftTerm.augmentTargetId == rightTerm.id &&
+            "1.1.46" in leftTerm.establishedBySutras
 
-        val newSurface = if (leftChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks) {
+        val newSurface = if (isBeginningAugment) {
+            val initial = when (substitute) {
+                "ा" -> "आ"
+                "े" -> "ए"
+                "ो" -> "ओ"
+                else -> substitute
+            }
+            initial + rightTerm.surface.drop(1)
+        } else if (leftChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks) {
             if (substitute == "अ") leftTerm.surface + rightTerm.surface.drop(1)
             else leftTerm.surface + substitute + rightTerm.surface.drop(1)
         } else {
             leftTerm.surface.dropLast(1) + substitute + rightTerm.surface.drop(1)
         }
+        val mergedTerm = if (isBeginningAugment) rightTerm.copy(surface = newSurface) else leftTerm.copy(surface = newSurface)
+        val consumedTerm = if (isBeginningAugment) leftTerm else rightTerm
 
         return DerivationChange(
             state = context.copy(
-                terms = terms.take(index) + leftTerm.copy(surface = newSurface) + terms.drop(index + 2),
-                droppedTerms = context.droppedTerms + rightTerm.copy(surface = ""),
+                terms = terms.take(index) + mergedTerm + terms.drop(index + 2),
+                droppedTerms = context.droppedTerms + consumedTerm.copy(surface = ""),
                 stage = DerivationStage.PADA_FORMED
-            ).addSubstitution(VarnaSubstitution(leftTerm.id, leftChar, substitute, sutra)),
+            ).addSubstitution(VarnaSubstitution(mergedTerm.id, leftChar, substitute, sutra)),
             explanation = "6.1.87: Guṇa substitution ($substitute) for $leftChar + $rightChar."
         )
     }

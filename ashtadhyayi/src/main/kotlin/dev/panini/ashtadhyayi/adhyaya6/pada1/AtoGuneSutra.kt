@@ -39,6 +39,10 @@ object AtoGuneSutra : Sutra<DerivationState, DerivationChange>(
         val pairIndex = targetPairIndex(context) ?: return false
         val stem = context.terms[pairIndex]
         val affix = context.terms[pairIndex + 1]
+        if (pairIndex > 0 && stem.id == "shap") {
+            val previous = context.terms[pairIndex - 1]
+            if (previous.upadesha == "णिच्" && previous.surface.lastOrNull() in setOf('ए', 'ऐ', 'ओ', 'औ', 'े', 'ै', 'ो', 'ौ')) return false
+        }
         if (stem.id == "shap" && context.terms.any { it.kind == TermKind.DHATU && it.gana == DhatuGana.ADADI }) return false
 
         // The following guṇa vowel belongs to an affix. A second lexical pada is

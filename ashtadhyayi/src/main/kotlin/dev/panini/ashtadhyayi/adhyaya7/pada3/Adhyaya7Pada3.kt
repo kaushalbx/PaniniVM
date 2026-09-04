@@ -11,6 +11,7 @@ object Adhyaya7Pada3 {
         BahuvacaneJhalyetSutra,
         OsiCaSutra,
         HrasvasyaGunaSutra,
+        ThasyaIkahSutra,
         JasiCaSutra,
         GherNitiSutra,
         AccaGhehSutra,

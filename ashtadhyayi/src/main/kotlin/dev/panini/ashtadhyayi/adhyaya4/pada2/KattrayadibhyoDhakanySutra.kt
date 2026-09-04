@@ -26,7 +26,7 @@ object KattrayadibhyoDhakanySutra : Sutra<DerivationState, DerivationChange>(
         context.allEffectiveTerms.none { it.upadesha == "ढकञ्" }
 
     override fun apply(context: DerivationState) = DerivationChange(
-        context.addTerm(DerivationTerm("dhakany-suffix", "एयक", TermKind.PRATYAYA, upadesha = "ढकञ्")),
+        context.addTerm(DerivationTerm("dhakany-suffix", "ढकञ्", TermKind.PRATYAYA, upadesha = "ढकञ्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)),
         "4.2.95 introduces ढकञ् after an eligible कत्त्र्यादि term in a cāturarthika sense.",
     )
 }

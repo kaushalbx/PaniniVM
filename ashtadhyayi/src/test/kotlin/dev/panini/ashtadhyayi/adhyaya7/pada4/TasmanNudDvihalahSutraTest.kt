@@ -23,7 +23,9 @@ class TasmanNudDvihalahSutraTest {
 
         assertTrue(TasmanNudDvihalahSutra.matches(state))
         val result = TasmanNudDvihalahSutra.apply(state).state
-        assertEquals(listOf("आ", "न्", "अङ्ग्"), result.terms.map { it.surface })
+        assertEquals(listOf("आ", "नुट्", "अङ्ग्"), result.terms.map { it.surface })
         assertEquals("नुट्", result.terms[1].upadesha)
+        assertEquals("7.4.71", result.terms[1].createdBySutra)
+        assertEquals("dhatu", result.terms[1].augmentTargetId)
     }
 }

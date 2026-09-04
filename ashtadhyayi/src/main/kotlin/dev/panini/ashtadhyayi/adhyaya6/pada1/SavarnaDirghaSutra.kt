@@ -38,6 +38,10 @@ object SavarnaDirghaSutra : Sutra<DerivationState, DerivationChange>(
         if (context.terms.size < 2) return false
         val (leftIndex, rightIndex) = targetPair(context) ?: return false
         val leftTerm = context.terms[leftIndex]
+        if (leftIndex > 0 && leftTerm.id == "shap") {
+            val previous = context.terms[leftIndex - 1]
+            if (previous.upadesha == "णिच्" && previous.surface.lastOrNull() in setOf('ए', 'ऐ', 'ओ', 'औ', 'े', 'ै', 'ो', 'ौ')) return false
+        }
         if (leftTerm.id == "shap" && context.terms.any { it.kind == TermKind.DHATU && it.gana == DhatuGana.ADADI }) return false
         if (context.effectiveContext.rupa.lakara == Lakara.LOT && context.terms.last().upadesha == "झि") return false
         val leftChar = leftTerm.surface.lastOrNull() ?: return false
@@ -60,19 +64,38 @@ object SavarnaDirghaSutra : Sutra<DerivationState, DerivationChange>(
         val leftChar = leftTerm.surface.last()
         val leftPhoneme = if (leftChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks) 'अ' else leftChar
         val substitute = getDirgha(leftPhoneme)
+        val isBeginningAugment = leftTerm.kind == TermKind.AGAMA &&
+            !leftTerm.mergeIntoAugmentTarget &&
+            leftTerm.augmentTargetId == rightTerm.id &&
+            "1.1.46" in leftTerm.establishedBySutras
 
-        val newSurface = if (leftChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks) {
+        val newSurface = if (isBeginningAugment) {
+            val initial = when (substitute) {
+                "ा" -> "आ"
+                "ी" -> "ई"
+                "ू" -> "ऊ"
+                "ॄ" -> "ॠ"
+                else -> substitute
+            }
+            initial + rightTerm.surface.drop(1)
+        } else if (leftChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks) {
             leftTerm.surface + substitute + rightTerm.surface.drop(1)
         } else {
             leftTerm.surface.dropLast(1) + substitute + rightTerm.surface.drop(1)
         }
+        val mergedTerm = if (isBeginningAugment) {
+            rightTerm.copy(surface = newSurface)
+        } else {
+            leftTerm.copy(surface = newSurface)
+        }
+        val consumedTerm = if (isBeginningAugment) leftTerm else rightTerm
 
         return DerivationChange(
             state = context.copy(
-                terms = terms.take(leftIndex) + leftTerm.copy(surface = newSurface) + terms.drop(rightIndex + 1),
-                droppedTerms = context.droppedTerms + rightTerm.copy(surface = ""),
+                terms = terms.take(leftIndex) + mergedTerm + terms.drop(rightIndex + 1),
+                droppedTerms = context.droppedTerms + consumedTerm.copy(surface = ""),
                 stage = DerivationStage.PADA_FORMED
-            ).addSubstitution(VarnaSubstitution(leftTerm.id, leftPhoneme, substitute, sutra)),
+            ).addSubstitution(VarnaSubstitution(mergedTerm.id, leftPhoneme, substitute, sutra)),
             explanation = "6.1.101: Savarṇa Dīrgha substitution ($substitute) for $leftPhoneme + ${rightTerm.surface.first()}."
         )
     }

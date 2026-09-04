@@ -5,6 +5,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.TermKind
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -29,10 +30,16 @@ object AshnotesCaSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val abhyasaIndex = context.terms.indexOfFirst { it.id == "abhyasa" }
-        val nut = DerivationTerm("nut", "न्", TermKind.AGAMA, upadesha = "नुट्")
+        val dhatu = context.terms.drop(abhyasaIndex + 1).first { it.kind == TermKind.DHATU }
+        val nut = DerivationTerm(
+            "nut", "नुट्", TermKind.AGAMA,
+            upadesha = "नुट्", createdBySutra = sutra,
+            itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
+            augmentTargetId = dhatu.id, mergeIntoAugmentTarget = false,
+        )
         return DerivationChange(
             context.copy(terms = context.terms.take(abhyasaIndex + 1) + nut + context.terms.drop(abhyasaIndex + 1)),
-            "7.4.72 inserts the effective न् of नुट् after the lengthened abhyāsa before अश्नोति.",
+            "7.4.72 introduces raw नुट् after the lengthened abhyāsa, targeted at the beginning of अश्नोति.",
         )
     }
 }

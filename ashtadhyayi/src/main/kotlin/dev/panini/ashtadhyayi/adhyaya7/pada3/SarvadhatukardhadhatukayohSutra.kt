@@ -46,6 +46,9 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
         // Jurisdictional check: Must be in the Aṅga section
         if ("6.4.1" !in context.activeAdhikaras) return false
 
+        val nic = context.terms.firstOrNull { it.matchesUpadesha("णिच्") && it.surface == "इ" }
+        if (nic != null && context.terms.any { it.id == "shap" }) return true
+
         val strongUGrade = strongUGrade(context)
         if (strongUGrade != null) return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.IK, strongUGrade.surface.last())
 
@@ -88,6 +91,15 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
     }
 
     override fun apply(context: DerivationState): DerivationChange {
+        val nic = context.terms.firstOrNull { it.matchesUpadesha("णिच्") && it.surface == "इ" }
+        if (nic != null && context.terms.any { it.id == "shap" }) {
+            return DerivationChange(
+                state = context.replaceTerm(nic.id, nic.copy(surface = "ए"))
+                    .copy(stage = DerivationStage.ANGAKARYA)
+                    .addSubstitution(VarnaSubstitution(nic.id, 'इ', "ए", sutra)),
+                explanation = "7.3.84 applies guṇa to the final इ of the ṇic-ending aṅga before शप्.",
+            )
+        }
         val stem = strongUGrade(context)
             ?: context.terms.first { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         val lastChar = stem.surface.last()

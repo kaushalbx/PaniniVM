@@ -37,7 +37,7 @@ object VakinadinamKukCaSutra : Sutra<DerivationState, DerivationChange>(
         val replacements = bases(context).associate { term -> term.id to term.copy(surface = term.surface + "क") }
         return DerivationChange(
             context.copy(terms = context.terms.map { replacements[it.id] ?: it })
-                .addTerm(DerivationTerm("vakinadi-phiny-suffix", "आयनि", TermKind.PRATYAYA, upadesha = "फिञ्"))
+                .addTerm(DerivationTerm("vakinadi-phiny-suffix", "फिञ्", TermKind.PRATYAYA, upadesha = "फिञ्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA))
                 .copy(stage = DerivationStage.PRATYAYA_SELECTED),
             "4.1.158 introduces कुक् and फिञ् after an eligible वाकिनादि term.",
         )

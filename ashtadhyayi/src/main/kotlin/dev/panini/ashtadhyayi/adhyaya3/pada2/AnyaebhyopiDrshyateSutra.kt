@@ -26,7 +26,7 @@ object AnyaebhyopiDrshyateSutra : Sutra<DerivationState, DerivationChange>(
         context.allEffectiveTerms.none { it.upadesha == "क्विप्" }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val kvip = DerivationTerm("kvip", "", TermKind.PRATYAYA, upadesha = "क्विप्")
+        val kvip = DerivationTerm("kvip", "क्विप्", TermKind.PRATYAYA, upadesha = "क्विप्", createdBySutra = sutra, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
         return DerivationChange(
             state = context.addTerm(kvip),
             explanation = "3.2.178 prescribes क्विप् zero-affix diversely.",

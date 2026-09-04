@@ -42,6 +42,10 @@ object VrddhirEciSutra : Sutra<DerivationState, DerivationChange>(
         if (context.terms.size < 2) return false
         if (augmentRootPair(context) != null) return true
         val leftTerm = context.terms[context.terms.size - 2]
+        if (leftTerm.id == "shap" && context.terms.size > 2) {
+            val previous = context.terms[context.terms.size - 3]
+            if (previous.upadesha == "णिच्" && previous.surface.lastOrNull() in setOf('ए', 'ऐ', 'ओ', 'औ', 'े', 'ै', 'ो', 'ौ')) return false
+        }
         if (leftTerm.id == "shap" && context.terms.any { it.kind == TermKind.DHATU && it.gana == DhatuGana.ADADI }) return false
         val right = context.terms.last().surface.firstOrNull() ?: return false
 
