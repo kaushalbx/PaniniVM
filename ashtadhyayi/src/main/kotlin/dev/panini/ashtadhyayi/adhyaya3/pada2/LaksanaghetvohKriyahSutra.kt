@@ -6,6 +6,7 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.ItProcessingPhase
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -28,7 +29,11 @@ object LaksanaghetvohKriyahSutra : Sutra<DerivationState, DerivationChange>(
         context.allEffectiveTerms.none { it.upadesha in setOf("शतृ", "शानच्") }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val satri = DerivationTerm("satri", "अत्", TermKind.PRATYAYA, upadesha = "शतृ")
+        val satri = DerivationTerm(
+            "satri", "शतृँ", TermKind.PRATYAYA,
+            upadesha = "शतृ", createdBySutra = sutra,
+            itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
+        )
         return DerivationChange(
             state = context.addTerm(satri),
             explanation = "3.2.126 prescribes शतृ / शानच् in lakṣaṇa/hetu.",

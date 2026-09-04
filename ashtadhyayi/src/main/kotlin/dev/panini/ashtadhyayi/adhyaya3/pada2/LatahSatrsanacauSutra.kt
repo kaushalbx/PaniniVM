@@ -1,6 +1,5 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada2
 
-import dev.panini.core.ItMarker
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
@@ -44,11 +43,11 @@ object LatahSatrsanacauSutra : Sutra<DerivationState, DerivationChange>(
         val pratyayaTerm = if (isSanac) {
             DerivationTerm(
                 id = "sanac_pratyaya",
-                surface = "मान",
+                surface = "शानच्",
                 kind = TermKind.PRATYAYA,
-                itMarkers = setOf(ItMarker.SH),
                 upadesha = "शानच्",
                 createdBySutra = sutra,
+                itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
             )
         } else {
             DerivationTerm(
