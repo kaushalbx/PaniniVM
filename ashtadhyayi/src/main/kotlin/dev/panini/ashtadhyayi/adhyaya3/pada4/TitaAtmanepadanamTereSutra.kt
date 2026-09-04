@@ -65,13 +65,23 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
         val ending = context.terms.last()
         if (ending.surface.endsWith("न्त्") && context.substitutions.any { it.sutra == "7.1.3" }) {
             return DerivationChange(
-                context.replaceTerm(ending.id, ending.copy(surface = ending.surface.dropLast(2) + "ते")),
+                context.replaceWholeAffix(
+                    ending.id,
+                    ending.surface.dropLast(2) + "ते",
+                    sutra,
+                    dev.panini.derivation.WholeAffixDesignationPolicy.PreserveAndRemap(emptyList()),
+                ),
                 "3.4.79 replaces the final टि of the झ्-अन्ति outcome with ए.",
             )
         }
         if (ending.surface.endsWith("अत") && context.substitutions.any { it.sutra == "7.1.5" }) {
             return DerivationChange(
-                context.replaceTerm(ending.id, ending.copy(surface = ending.surface + "े")),
+                context.replaceWholeAffix(
+                    ending.id,
+                    ending.surface + "े",
+                    sutra,
+                    dev.panini.derivation.WholeAffixDesignationPolicy.PreserveAndRemap(emptyList()),
+                ),
                 "3.4.79 replaces the टि portion of the 7.1.5 अत् outcome with ए.",
             )
         }
