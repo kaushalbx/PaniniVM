@@ -37,7 +37,11 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
         if (lakara == Lakara.LOT && ending.upadesha == "ध्वम्") return false
         if (lakara == Lakara.LIT && ending.upadesha in setOf("त", "झ")) return false
         if (lakara == Lakara.LUT && ending.upadesha in setOf("त", "आताम्", "झ")) return false
-        if (lakara == Lakara.LET && context.substitutions.any { it.sutra in setOf("3.4.94", "3.4.96") }) return false
+        if (lakara == Lakara.LET && (
+                context.allEffectiveTerms.any { "3.4.94" in it.establishedBySutras } ||
+                    context.substitutions.any { it.sutra == "3.4.96" }
+            )
+        ) return false
         if (lakara == Lakara.LUT && context.substitutions.any { it.sutra == "7.4.52" }) return false
         if (lakara == Lakara.LET && ending.upadesha in setOf("आताम्", "आथाम्") &&
             context.substitutions.any { it.sutra == "3.4.95" }) return false

@@ -85,6 +85,30 @@ class AdyantauTakitauSutraTest {
         assertEquals(state, AdyantauTakitauSutra.apply(state).state)
     }
 
+    @Test
+    fun `placement can retain an explicit augment boundary`() {
+        val state = DerivationState(
+            terms = listOf(
+                DerivationTerm(
+                    id = "augment",
+                    surface = "आट्",
+                    kind = TermKind.AGAMA,
+                    augmentTargetId = "target",
+                    mergeIntoAugmentTarget = false,
+                    itDesignations = listOf(designation(1, 3, "ट्")),
+                    itProcessingPhase = ItProcessingPhase.DESIGNATED,
+                ),
+                DerivationTerm(id = "target", surface = "अन्त्", kind = TermKind.PRATYAYA),
+            ),
+        )
+
+        val result = AdyantauTakitauSutra.apply(state).state
+
+        assertEquals(listOf("आट्", "अन्त्"), result.terms.map { it.surface })
+        assertEquals("target", result.terms.first().augmentTargetId)
+        assertEquals(listOf(1 to 3), result.terms.first().itDesignations.map { it.start to it.endExclusive })
+    }
+
     private fun designation(start: Int, endExclusive: Int, text: String) = ItDesignation(
         start = start,
         endExclusive = endExclusive,

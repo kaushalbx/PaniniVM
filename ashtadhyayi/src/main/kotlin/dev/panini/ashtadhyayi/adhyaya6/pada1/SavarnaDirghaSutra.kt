@@ -97,6 +97,15 @@ object SavarnaDirghaSutra : Sutra<DerivationState, DerivationChange>(
 
     private fun targetPair(context: DerivationState): Pair<Int, Int>? {
         if (context.terms.size < 2) return null
+        context.terms.indices.firstOrNull { index ->
+            if (index == context.terms.lastIndex) return@firstOrNull false
+            val augment = context.terms[index + 1]
+            augment.kind == TermKind.AGAMA &&
+                !augment.mergeIntoAugmentTarget &&
+                augment.augmentTargetId != null &&
+                "1.1.46" in augment.establishedBySutras &&
+                augment.surface.firstOrNull() in setOf('आ', 'ा')
+        }?.let { return it to it + 1 }
         if (context.terms.size > 2 && context.terms.all { it.id.startsWith("sankhya_") }) {
             return (0 until context.terms.lastIndex).firstOrNull { index ->
                 val left = context.terms[index].surface.lastOrNull() ?: return@firstOrNull false

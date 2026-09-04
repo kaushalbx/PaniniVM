@@ -36,13 +36,14 @@ object AtoGuneSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         if (context.stage == DerivationStage.INITIAL || context.stage == DerivationStage.PRATYAYA_SELECTED) return false
         if (context.terms.size < 2) return false
-        val stem = context.terms[context.terms.size - 2]
-        val affix = context.terms.last()
+        val pairIndex = targetPairIndex(context) ?: return false
+        val stem = context.terms[pairIndex]
+        val affix = context.terms[pairIndex + 1]
         if (stem.id == "shap" && context.terms.any { it.kind == TermKind.DHATU && it.gana == DhatuGana.ADADI }) return false
 
         // The following guṇa vowel belongs to an affix. A second lexical pada is
         // external sandhi and remains eligible for rules such as 6.1.101.
-        if (affix.kind != TermKind.PRATYAYA) return false
+        if (affix.kind != TermKind.PRATYAYA && !affix.isPlacedBeginningAugment(context)) return false
 
         // 1. Stem must end in short 'a'
         if (!dev.panini.shiksha.Varnamala.endsWithA(stem.surface)) return false
@@ -56,8 +57,9 @@ object AtoGuneSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val terms = context.terms
-        val stem = terms[terms.size - 2]
-        val affix = terms.last()
+        val pairIndex = requireNotNull(targetPairIndex(context))
+        val stem = terms[pairIndex]
+        val affix = terms[pairIndex + 1]
 
         val firstChar = affix.surface.first()
         val replacement = firstChar.toString()
@@ -84,7 +86,7 @@ object AtoGuneSutra : Sutra<DerivationState, DerivationChange>(
 
         return DerivationChange(
             state = context.copy(
-                terms = terms.dropLast(2) + mergedTerm,
+                terms = terms.take(pairIndex) + mergedTerm + terms.drop(pairIndex + 2),
                 droppedTerms = context.droppedTerms + affix.copy(surface = ""),
                 stage = DerivationStage.ANGAKARYA,
                 samjnas = newSamjnas
@@ -92,4 +94,17 @@ object AtoGuneSutra : Sutra<DerivationState, DerivationChange>(
             explanation = "6.1.97: Pararūpa substitution ($replacement) for a + $firstChar."
         )
     }
+
+    private fun targetPairIndex(context: DerivationState): Int? {
+        context.terms.indices.firstOrNull { index ->
+            index < context.terms.lastIndex && context.terms[index + 1].isPlacedBeginningAugment(context)
+        }?.let { return it }
+        return context.terms.lastIndex - 1
+    }
+
+    private fun dev.panini.derivation.DerivationTerm.isPlacedBeginningAugment(context: DerivationState): Boolean =
+        kind == TermKind.AGAMA &&
+            !mergeIntoAugmentTarget &&
+            augmentTargetId?.let { targetId -> context.terms.any { it.id == targetId && it.kind == TermKind.PRATYAYA } } == true &&
+            "1.1.46" in establishedBySutras
 }

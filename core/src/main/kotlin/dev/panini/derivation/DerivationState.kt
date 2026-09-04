@@ -159,7 +159,14 @@ class DerivationState(
     /** Inserts a stem-forming affix before a liṅ augment, or directly before tiṅ. */
     fun insertBeforeTingOrLingAugment(term: DerivationTerm): DerivationState {
         require(terms.none { it.id == term.id }) { "A derivation term id must be unique: ${term.id}" }
-        val insertionIndex = terms.indexOfFirst { it.id == "yasut" || it.id == "siyut" }
+        val tingId = terms.last().id
+        val insertionIndex = terms.indexOfFirst {
+            it.id == "yasut" || it.id == "siyut" ||
+                (it.kind == TermKind.AGAMA &&
+                    !it.mergeIntoAugmentTarget &&
+                    it.augmentTargetId == tingId &&
+                    "1.1.46" in it.establishedBySutras)
+        }
             .takeIf { it >= 0 }
             ?: terms.lastIndex
         return copy(terms = terms.take(insertionIndex) + term + terms.drop(insertionIndex))
@@ -283,6 +290,8 @@ data class DerivationTerm(
     val deferredItDesignations: List<ItDesignation> = emptyList(),
     /** The term into which an āgama is placed by 1.1.46. */
     val augmentTargetId: String? = null,
+    /** Whether 1.1.46 should fold this āgama into its target immediately. */
+    val mergeIntoAugmentTarget: Boolean = true,
     /** Underlying lexical head of a compound term, when rules target head identity after surface sandhi. */
     val compoundHeadUpadesha: String? = null,
 ) {

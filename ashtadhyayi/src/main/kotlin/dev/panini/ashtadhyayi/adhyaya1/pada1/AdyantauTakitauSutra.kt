@@ -41,6 +41,7 @@ object AdyantauTakitauSutra : Sutra<DerivationState, DerivationChange>(
         for (term in terms) {
             if (term.kind == TermKind.AGAMA) {
                 if (term.augmentTargetId == null) continue
+                if (sutra in term.establishedBySutras) continue
                 if (placementFromDesignation(term) != null) return true
             }
         }
@@ -60,6 +61,20 @@ object AdyantauTakitauSutra : Sutra<DerivationState, DerivationChange>(
                     val targetIndex = terms.indexOfFirst { it.id == targetId }
                     if (targetIndex >= 0) {
                         val target = terms[targetIndex]
+                        if (!term.mergeIntoAugmentTarget) {
+                            val placedAugment = term.copy(
+                                establishedBySutras = term.establishedBySutras + sutra,
+                            )
+                            terms.removeAt(i)
+                            val relocatedTargetIndex = terms.indexOfFirst { it.id == targetId }
+                            terms.add(if (isTit) relocatedTargetIndex else relocatedTargetIndex + 1, placedAugment)
+                            return DerivationChange(
+                                state = context.copy(terms = terms),
+                                explanation = "1.1.46 places the ${if (isTit) "ṭit" else "kit"} augment " +
+                                    "${term.upadesha} at the ${if (isTit) "beginning" else "end"} of ${target.upadesha}, " +
+                                    "retaining the boundary for subsequent operations.",
+                            )
+                        }
                         val targetOffset = if (isTit) term.surface.length else 0
                         val augmentOffset = if (isTit) 0 else target.surface.length
                         val merged = target.copy(

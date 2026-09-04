@@ -38,6 +38,10 @@ object HalngyabbhyoSutra : Sutra<DerivationState, DerivationChange>(
         if (stem.id in setOf("yasut", "shna")) return false
 
         val surface = affix.surface
+        val hasPlacedBeginningAugment = context.allEffectiveTerms.any {
+            it.augmentTargetId == affix.id && "1.1.46" in it.establishedBySutras
+        }
+        if (hasPlacedBeginningAugment) return false
         val isApṛktaHal =
             (surface.length == 1 && Varnamala.isConsonant(surface[0])) ||
                 (surface.length == 2 && surface.last() == '्' && Varnamala.isConsonant(surface.first()))
