@@ -13,14 +13,20 @@ class ParticipleEngineTest {
     fun `satr derives bhavat`() {
         val res = engine.derive(ParticipleDerivationRequest("भू", Samjna.SATR))
         assertEquals("भवत्", res.final.surface)
-        assertTrue(res.applications.any { it.sutra == "3.2.124" })
+        assertTrue(setOf("3.2.124", "3.1.68", "7.3.84", "1.3.9").all { sutra ->
+            res.applications.any { it.sutra == sutra }
+        })
+        res.final.requireCompleteItProcessing()
     }
 
     @Test
     fun `sanac derives labhamana`() {
         val res = engine.derive(ParticipleDerivationRequest("लभ्", Samjna.SANAC))
         assertEquals("लभमान", res.final.surface)
-        assertTrue(res.applications.any { it.sutra == "3.2.124" })
+        assertTrue(setOf("3.2.124", "3.1.68", "7.2.82", "1.1.46", "1.3.9").all { sutra ->
+            res.applications.any { it.sutra == sutra }
+        })
+        res.final.requireCompleteItProcessing()
     }
 
     @Test

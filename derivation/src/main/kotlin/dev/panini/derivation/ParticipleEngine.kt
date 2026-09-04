@@ -5,6 +5,17 @@ import dev.panini.ashtadhyayi.adhyaya3.pada2.KanacCaSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada2.LatahSatrsanacauSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada2.LitahKvasuSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada3.UnadayoBahulamSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada1.AdyantauTakitauSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada3.ChutuSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada3.HalantyamSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada3.LasakvataddhiteSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada3.ShahPratyayasyaSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada3.TasyaLopahSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada3.UpadesheAjanunasikaItSutra
+import dev.panini.ashtadhyayi.adhyaya3.pada1.KartariShapSutra
+import dev.panini.ashtadhyayi.adhyaya6.pada1.EcoYavayavahSutra
+import dev.panini.ashtadhyayi.adhyaya7.pada2.AaneMukSutra
+import dev.panini.ashtadhyayi.adhyaya7.pada3.SarvadhatukardhadhatukayohSutra
 import dev.panini.shiksha.Samjna
 
 /** Request object for Participle and Uṇādi stem derivations. */
@@ -17,6 +28,21 @@ data class ParticipleDerivationRequest(
 class ParticipleEngine(
     private val derivationEngine: DerivationEngine = DerivationEngine(Ashtadhyayi.executableSutras),
 ) {
+    private val presentParticipleEngine = DerivationEngine(listOf(
+        LatahSatrsanacauSutra,
+        KartariShapSutra,
+        UpadesheAjanunasikaItSutra,
+        HalantyamSutra,
+        ChutuSutra,
+        ShahPratyayasyaSutra,
+        LasakvataddhiteSutra,
+        AdyantauTakitauSutra,
+        TasyaLopahSutra,
+        AaneMukSutra,
+        SarvadhatukardhadhatukayohSutra,
+        EcoYavayavahSutra,
+    ))
+
     fun derive(request: ParticipleDerivationRequest): DerivationResult {
         val rootTerm = DerivationTerm("dhatu", request.root, TermKind.DHATU)
         val state = DerivationState(
@@ -25,21 +51,12 @@ class ParticipleEngine(
                 SamjnaAssignment(rootTerm.id, Samjna.DHATU),
                 SamjnaAssignment(rootTerm.id, request.samjna),
             ),
-            activeAdhikaras = setOf("3.1.91"),
+            activeAdhikaras = setOf("3.1.91", "6.4.1"),
             stage = DerivationStage.INITIAL,
         )
 
         return when (request.samjna) {
-            Samjna.SATR -> {
-                val change = LatahSatrsanacauSutra.apply(state)
-                val finalSurface = fuseSurface(request.root, "अत्", request.samjna)
-                buildResult(state, change.state, listOf(app(LatahSatrsanacauSutra, state, change.state, change.explanation)), finalSurface)
-            }
-            Samjna.SANAC -> {
-                val change = LatahSatrsanacauSutra.apply(state)
-                val finalSurface = fuseSurface(request.root, "मान", request.samjna)
-                buildResult(state, change.state, listOf(app(LatahSatrsanacauSutra, state, change.state, change.explanation)), finalSurface)
-            }
+            Samjna.SATR, Samjna.SANAC -> presentParticipleEngine.derive(state)
             Samjna.KVASU -> {
                 val change = LitahKvasuSutra.apply(state)
                 val finalSurface = fuseSurface(request.root, "वस्", request.samjna)

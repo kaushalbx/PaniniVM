@@ -32,7 +32,8 @@ object KartariShapSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean =
         context.effectiveContext.rupa.lakara !in setOf(Lakara.LIT, Lakara.LUNG) &&
                 !(context.effectiveContext.rupa.lakara == Lakara.LET && context.effectiveContext.letFormation == LetFormation.SIP_AORIST) &&
-                context.terms.lastOrNull()?.upadesha in TingAffix.entries.map { it.upadesha } &&
+                context.terms.lastOrNull()?.upadesha in
+                    (TingAffix.entries.map { it.upadesha } + setOf("शतृ", "शानच्")) &&
                 context.allEffectiveTerms.none { it.upadesha in setOf("शप्", "श्यन्", "श्नु", "श", "श्नम्", "श्ना", "उ", "स्य", "तासि") }
 
     override fun apply(context: DerivationState): DerivationChange {
