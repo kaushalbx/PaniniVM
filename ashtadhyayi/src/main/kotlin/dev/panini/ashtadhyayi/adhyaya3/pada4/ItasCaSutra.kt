@@ -5,6 +5,8 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.ItDesignationRemap
+import dev.panini.derivation.TermKind
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -66,9 +68,28 @@ object ItasCaSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val lastTerm = context.terms.last()
         val newSurface = lastTerm.surface.dropLast(1) + '्'
+        val replaced = if (lastTerm.kind == TermKind.PRATYAYA) {
+            val remaps = (lastTerm.itDesignations + lastTerm.deferredItDesignations).map { designation ->
+                ItDesignationRemap(
+                    oldStart = designation.start,
+                    oldEndExclusive = designation.endExclusive,
+                    newStart = designation.start,
+                    newEndExclusive = designation.endExclusive,
+                )
+            }
+            context.replaceWholeAffix(
+                lastTerm.id,
+                newSurface,
+                sutra,
+                dev.panini.derivation.WholeAffixDesignationPolicy.PreserveAndRemap(remaps),
+            )
+        } else {
+            // When 7.1.3 has already joined the jhi outcome to the aṅga,
+            // this is a varṇa operation on that aṅga rather than an affix replacement.
+            context.replaceTerm(lastTerm.id, lastTerm.copy(surface = newSurface))
+        }
         return DerivationChange(
-            state = context.replaceTerm(lastTerm.id, lastTerm.copy(surface = newSurface))
-                .copy(stage = DerivationStage.PADA_FORMED),
+            state = replaced.copy(stage = DerivationStage.PADA_FORMED),
             explanation = "3.4.100: Dropped final short 'i' of Parasmaipada suffix."
         )
     }
