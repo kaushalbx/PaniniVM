@@ -33,7 +33,7 @@ object IgupadhaJnyaPriKirahKahSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val kaTerm = DerivationTerm("ka", "अ", TermKind.PRATYAYA, upadesha = "क")
+        val kaTerm = DerivationTerm("ka", "क", TermKind.PRATYAYA, upadesha = "क", createdBySutra = sutra, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
         return DerivationChange(
             state = context.addTerm(kaTerm),
             explanation = "3.1.135 prescribes क Kṛt agent affix.",

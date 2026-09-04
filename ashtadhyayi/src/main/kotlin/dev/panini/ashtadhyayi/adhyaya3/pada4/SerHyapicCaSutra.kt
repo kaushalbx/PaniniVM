@@ -3,6 +3,7 @@ package dev.panini.ashtadhyayi.adhyaya3.pada4
 import dev.panini.ashtadhyayi.adhyaya3.pada1.hasSanadyantaDhatu
 import dev.panini.core.DhatuGana
 import dev.panini.core.Lakara
+import dev.panini.core.ItMarker
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
@@ -34,6 +35,18 @@ object SerHyapicCaSutra : Sutra<DerivationState, DerivationChange>(
             DhatuGana.KRYADI -> "हि"
             else -> ""
         }
-        return DerivationChange(context.replaceWholeAffix(affix.id, replacement, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume).copy(stage = DerivationStage.PADA_FORMED), "3.4.87 replaces सिप् in loṭ.")
+        val replaced = context.replaceWholeAffix(
+            affix.id, replacement, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume,
+        )
+        val substitute = replaced.terms.first { it.id == affix.id }
+        val sthani = substitute.sthaniProps
+        val explicitlyApit = substitute.copy(
+            itMarkers = substitute.itMarkers - ItMarker.P,
+            sthaniProps = sthani?.copy(itMarkers = sthani.itMarkers - ItMarker.P),
+        )
+        return DerivationChange(
+            replaced.replaceTerm(affix.id, explicitlyApit).copy(stage = DerivationStage.PADA_FORMED),
+            "3.4.87 replaces सिप् with हि and establishes the substitute as apit.",
+        )
     }
 }

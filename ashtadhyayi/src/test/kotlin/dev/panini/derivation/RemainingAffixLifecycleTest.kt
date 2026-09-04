@@ -1,6 +1,7 @@
 package dev.panini.derivation
 
 import dev.panini.ashtadhyayi.adhyaya1.pada1.AdyantauTakitauSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada1.MidacoAntyatParahSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.HalantyamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.ChutuSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.LasakvataddhiteSutra
@@ -10,6 +11,7 @@ import dev.panini.ashtadhyayi.adhyaya1.pada3.UpadesheAjanunasikaItSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada1.CuradibhyoNicSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada2.LatahSatrsanacauSutra
 import dev.panini.ashtadhyayi.adhyaya6.pada1.VerAprktasyaSutra
+import dev.panini.ashtadhyayi.adhyaya6.pada4.ShnasorAllopahSutra
 import dev.panini.ashtadhyayi.adhyaya7.pada2.AaneMukSutra
 import dev.panini.ashtadhyayi.adhyaya7.pada3.ThasyaIkahSutra
 import dev.panini.core.DhatuGana
@@ -88,6 +90,34 @@ class RemainingAffixLifecycleTest {
         state = AdyantauTakitauSutra.apply(state).state
         state = TasyaLopahSutra.apply(state).state
         assertEquals("मान", DerivationState(state.terms.drop(1)).surface)
+        state.requireCompleteItProcessing()
+    }
+
+    @Test
+    fun `shnam designations survive placement and only their exact segments are deleted`() {
+        val root = DerivationTerm("dhatu", "रुध्", TermKind.DHATU)
+        val shnam = rawAffix("shnam", "श्नम्", "3.1.78").copy(augmentTargetId = root.id)
+        val ending = DerivationTerm("ting-tas", "तस्", TermKind.PRATYAYA, upadesha = "तस्")
+        var state = DerivationState(
+            terms = listOf(root, shnam, ending),
+            samjnas = setOf(SamjnaAssignment(ending.id, Samjna.SARVADHATUKA)),
+        )
+
+        state = LasakvataddhiteSutra.apply(state).state
+        state = HalantyamSutra.apply(state).state
+        assertEquals(
+            listOf("1.3.8" to "श्", "1.3.3" to "म्"),
+            state.terms.first { it.id == "shnam" }.itDesignations.map { it.sutra to it.designatedText },
+        )
+        state = MidacoAntyatParahSutra.apply(state).state
+        val placed = state.terms.first { it.id == root.id }
+        assertEquals("रुश्नम्ध्", placed.surface)
+        assertEquals(listOf(2 until 4, 5 until 7), placed.itDesignations.map { it.start until it.endExclusive })
+
+        state = TasyaLopahSutra.apply(state).state
+        assertEquals("रुनध्", state.terms.first { it.id == root.id }.surface)
+        state = ShnasorAllopahSutra.apply(state).state
+        assertEquals("रुन्ध्", state.terms.first { it.id == root.id }.surface)
         state.requireCompleteItProcessing()
     }
 

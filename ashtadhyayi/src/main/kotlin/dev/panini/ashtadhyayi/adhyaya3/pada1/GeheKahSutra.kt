@@ -26,7 +26,7 @@ object GeheKahSutra : Sutra<DerivationState, DerivationChange>(
         context.allEffectiveTerms.none { it.upadesha == "क" }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val ka = DerivationTerm("ka", "अ", TermKind.PRATYAYA, upadesha = "क")
+        val ka = DerivationTerm("ka", "क", TermKind.PRATYAYA, upadesha = "क", createdBySutra = sutra, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
         return DerivationChange(
             state = context.addTerm(ka),
             explanation = "3.1.144 prescribes क affix for grah in house sense.",

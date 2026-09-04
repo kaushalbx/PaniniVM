@@ -1,12 +1,13 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada3
 
-import dev.panini.core.ItMarker
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.NonOperativeUpadeshaFunction
+import dev.panini.derivation.NonOperativeUpadeshaSegment
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -33,27 +34,37 @@ object UnadayoBahulamSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.stage != DerivationStage.INITIAL && context.stage != DerivationStage.PRATYAYA_SELECTED) return false
-        val isUnadiRequested = context.samjnas.any { it.samjna == Samjna.UNADI }
+        val isUnadiRequested = context.samjnas.any { it.samjna in setOf(Samjna.UNADI, Samjna.ASUN, Samjna.USI) }
         val hasDhatu = context.terms.any { it.kind == TermKind.DHATU }
         val hasPratyaya = context.terms.any { it.kind == TermKind.PRATYAYA }
         return isUnadiRequested && hasDhatu && !hasPratyaya
     }
 
     override fun apply(context: DerivationState): DerivationChange {
+        val requested = context.samjnas.map { it.samjna }.first { it in setOf(Samjna.UNADI, Samjna.ASUN, Samjna.USI) }
+        val (surface, upadesha, nonOperative) = when (requested) {
+            Samjna.ASUN -> Triple(
+                "अस्न्", "असुन्",
+                listOf(NonOperativeUpadeshaSegment(2, 3, "ु", NonOperativeUpadeshaFunction.UCCARANARTHA)),
+            )
+            Samjna.USI -> Triple("उसिँ", "उसि", emptyList())
+            else -> Triple("उण्", "उण्", emptyList())
+        }
         val unadiTerm = DerivationTerm(
             id = "unadi_pratyaya",
-            surface = "उ",
+            surface = surface,
             kind = TermKind.PRATYAYA,
-            itMarkers = emptySet(),
-            upadesha = "उण्",
+            upadesha = upadesha,
             createdBySutra = sutra,
+            nonOperativeUpadeshaSegments = nonOperative,
+            itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
         )
         return DerivationChange(
             state = context.copy(
                 terms = context.terms + unadiTerm,
                 stage = DerivationStage.PRATYAYA_SELECTED,
             ),
-            explanation = "3.3.1 introduces Uṇādi affix उण् (उ)."
+            explanation = "3.3.1 introduces raw Uṇādi affix $upadesha."
         )
     }
 }

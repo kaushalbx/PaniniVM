@@ -3,11 +3,14 @@ package dev.panini.ashtadhyayi
 import dev.panini.ashtadhyayi.adhyaya3.pada1.IgupadhaJnyaPriKirahKahSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada2.SupiSthahSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada4.AbhikshnyeNamulCaSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada3.LasakvataddhiteSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada3.TasyaLopahSutra
 import dev.panini.derivation.DerivationalContext
 import dev.panini.derivation.DerivationalMeaning
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.ItProcessingPhase
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -37,7 +40,12 @@ class KrtSutraDerivationTest {
         val change = IgupadhaJnyaPriKirahKahSutra.apply(state)
         val addedTerm = change.state.allEffectiveTerms.last()
         assertEquals("क", addedTerm.upadesha)
-        assertEquals("अ", addedTerm.surface)
+        assertEquals("क", addedTerm.surface)
+        assertEquals("3.1.135", addedTerm.createdBySutra)
+        assertEquals(ItProcessingPhase.RAW_UPADESHA, addedTerm.itProcessingPhase)
+        val designated = LasakvataddhiteSutra.apply(change.state).state
+        assertEquals("1.3.8", designated.terms.last().itDesignations.single().sutra)
+        assertEquals("अ", TasyaLopahSutra.apply(designated).state.terms.last().surface)
     }
 
     @Test
@@ -52,6 +60,11 @@ class KrtSutraDerivationTest {
         val change = SupiSthahSutra.apply(state)
         val addedTerm = change.state.allEffectiveTerms.last()
         assertEquals("क", addedTerm.upadesha)
-        assertEquals("अ", addedTerm.surface)
+        assertEquals("क", addedTerm.surface)
+        assertEquals("3.2.78", addedTerm.createdBySutra)
+        assertEquals(ItProcessingPhase.RAW_UPADESHA, addedTerm.itProcessingPhase)
+        val designated = LasakvataddhiteSutra.apply(change.state).state
+        assertEquals("1.3.8", designated.terms.last().itDesignations.single().sutra)
+        assertEquals("अ", TasyaLopahSutra.apply(designated).state.terms.last().surface)
     }
 }
