@@ -4,7 +4,6 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -57,22 +56,19 @@ object SupiCaSutra : Sutra<DerivationState, DerivationChange>(
         } else {
             stem.surface.dropLast(1) + "ा"
         }
+        val replacement = if (affix.upadesha == "ङि") "े" else "ा"
         val changedState = if (affix.upadesha in completePadaAffixes) {
             val completedSurface = if (affix.upadesha == "ङि") newSurface else newSurface + affix.surface
-            context.copy(
-                terms = terms.dropLast(2) + stem.copy(surface = completedSurface),
-                droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(affix, sutra),
-                stage = DerivationStage.PADA_FORMED
-            )
+            context.mergeTermsByVarnaSubstitution(
+                stem.id, affix.id, completedSurface, oldChar, replacement, sutra,
+            ).copy(stage = DerivationStage.PADA_FORMED)
         } else {
-            context.copy(
-                terms = terms.dropLast(2) + stem.copy(surface = newSurface) + affix,
-                stage = DerivationStage.ANGAKARYA
-            )
+            context.substituteTermSurface(stem.id, newSurface, oldChar, replacement, sutra)
+                .copy(stage = DerivationStage.ANGAKARYA)
         }
 
         return DerivationChange(
-            state = changedState.addSubstitution(VarnaSubstitution(stem.id, oldChar, "ा", sutra)),
+            state = changedState,
             explanation = "7.3.102: Lengthened final 'a' to 'ā' before yañ-initial sup."
         )
     }

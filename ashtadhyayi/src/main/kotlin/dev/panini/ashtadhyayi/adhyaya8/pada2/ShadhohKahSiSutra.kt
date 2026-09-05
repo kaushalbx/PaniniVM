@@ -3,7 +3,6 @@ package dev.panini.ashtadhyayi.adhyaya8.pada2
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -32,8 +31,7 @@ object ShadhohKahSiSutra : Sutra<DerivationState, DerivationChange>(
         val target = context.terms[index]
         val replacement = target.surface.dropLast(2) + "क्"
         return DerivationChange(
-            context.replaceTerm(target.id, target.copy(surface = replacement))
-                .addSubstitution(VarnaSubstitution(target.id, source, "क", sutra)),
+            context.substituteTermSurface(target.id, replacement, source, "क", sutra),
             "8.2.41 substitutes क् for $source before स्.",
         )
     }

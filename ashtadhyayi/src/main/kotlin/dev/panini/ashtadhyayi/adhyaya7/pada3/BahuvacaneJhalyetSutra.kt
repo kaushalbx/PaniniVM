@@ -6,7 +6,6 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.HasMorphosyntax
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -57,21 +56,18 @@ object BahuvacaneJhalyetSutra : Sutra<DerivationState, DerivationChange>(
             stem.surface.dropLast(1) + "े"
         }
 
-        val changedState = if (terms.last().upadesha == "भ्यस्") {
-            context.copy(
-                terms = terms.dropLast(2) + stem.copy(surface = newSurface + terms.last().surface),
-                droppedTerms = context.droppedTerms + dev.panini.derivation.dropTermWithLifecycle(terms.last(), sutra),
-                stage = DerivationStage.PADA_FORMED,
-            )
+        val affix = terms.last()
+        val changedState = if (affix.upadesha == "भ्यस्") {
+            context.mergeTermsByVarnaSubstitution(
+                stem.id, affix.id, newSurface + affix.surface, oldChar, "े", sutra,
+            ).copy(stage = DerivationStage.PADA_FORMED)
         } else {
-            context.copy(
-                terms = terms.dropLast(2) + stem.copy(surface = newSurface) + terms.last(),
-                stage = DerivationStage.ANGAKARYA
-            )
+            context.substituteTermSurface(stem.id, newSurface, oldChar, "े", sutra)
+                .copy(stage = DerivationStage.ANGAKARYA)
         }
 
         return DerivationChange(
-            state = changedState.addSubstitution(VarnaSubstitution(stem.id, oldChar, "े", sutra)),
+            state = changedState,
             explanation = "7.3.103: Substituted 'e' for final 'a' before plural jhal-initial sup."
         )
     }
