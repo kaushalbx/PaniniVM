@@ -6,6 +6,7 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.HasMorphosyntax
+import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.TermKind
 import dev.panini.ganapatha.GanaPatha
 import dev.panini.sutra.Sutra
@@ -28,12 +29,12 @@ object NandigrahipacadibhyoLyuninyacahSutra : Sutra<DerivationState, DerivationC
     action = SutraAction.PRATYAYA_SELECTION,
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
-    private data class Selection(val ganaIndex: Int, val upadesha: String, val surface: String)
+    private data class Selection(val ganaIndex: Int, val upadesha: String)
 
     private val selections = listOf(
-        Selection(36, "ल्यु", "अन"),
-        Selection(37, "णिनि", "इ"),
-        Selection(38, "अच्", "अ"),
+        Selection(36, "ल्यु"),
+        Selection(37, "णिनि"),
+        Selection(38, "अच्"),
     )
 
     override fun matches(context: DerivationState): Boolean =
@@ -50,7 +51,17 @@ object NandigrahipacadibhyoLyuninyacahSutra : Sutra<DerivationState, DerivationC
                 term.kind == TermKind.PRATIPADIKA && selection != null &&
                 context.terms.none { it.id == "${term.id}-3-1-134" }
             ) {
-                listOf(term, DerivationTerm("${term.id}-3-1-134", selection.surface, TermKind.PRATYAYA, upadesha = selection.upadesha))
+                listOf(
+                    term,
+                    DerivationTerm(
+                        id = "${term.id}-3-1-134",
+                        surface = selection.upadesha,
+                        kind = TermKind.PRATYAYA,
+                        upadesha = selection.upadesha,
+                        createdBySutra = sutra,
+                        itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
+                    ),
+                )
             } else listOf(term)
         }
         return DerivationChange(

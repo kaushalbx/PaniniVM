@@ -18,6 +18,7 @@ import dev.panini.ashtadhyayi.adhyaya6.pada4.ShnasorAllopahSutra
 import dev.panini.ashtadhyayi.adhyaya6.pada4.ShnabhyastayorAtahSutra
 import dev.panini.ashtadhyayi.adhyaya6.pada4.IHalyaghohSutra
 import dev.panini.ashtadhyayi.adhyaya7.pada2.AaneMukSutra
+import dev.panini.ashtadhyayi.adhyaya7.pada1.YuvoranakauSutra
 import dev.panini.ashtadhyayi.adhyaya7.pada3.ThasyaIkahSutra
 import dev.panini.core.DhatuGana
 import dev.panini.shiksha.Samjna
@@ -26,6 +27,29 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class RemainingAffixLifecycleTest {
+    @Test
+    fun `3 1 134 affixes begin raw and follow their explicit it lifecycles`() {
+        var lyu = DerivationState(listOf(rawAffix("lyu", "ल्यु", "3.1.134")))
+        lyu = LasakvataddhiteSutra.apply(lyu).state
+        lyu = TasyaLopahSutra.apply(lyu).state
+        assertEquals("यु", lyu.surface)
+        lyu = YuvoranakauSutra.apply(lyu).state
+        assertEquals("अन", lyu.surface)
+        lyu.requireCompleteItProcessing()
+
+        var nini = DerivationState(listOf(rawAffix("nini", "णिनि", "3.1.134")))
+        nini = ChutuSutra.apply(nini).state
+        nini = TasyaLopahSutra.apply(nini).state
+        assertEquals("इनि", nini.surface)
+        nini.requireCompleteItProcessing()
+
+        var ac = DerivationState(listOf(rawAffix("ac", "अच्", "3.1.134")))
+        ac = HalantyamSutra.apply(ac).state
+        ac = TasyaLopahSutra.apply(ac).state
+        assertEquals("अ", ac.surface)
+        ac.requireCompleteItProcessing()
+    }
+
     @Test
     fun `cli is deferred until 3 1 44 consumes it and introduces fresh sic`() {
         val root = DerivationTerm("dhatu", "भू", TermKind.DHATU)
