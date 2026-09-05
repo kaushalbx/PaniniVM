@@ -417,6 +417,35 @@ sealed interface WholeAffixDesignationPolicy {
     data object FreshUpadesha : WholeAffixDesignationPolicy
 }
 
+/** Consumes every designation before an affix is moved out of the active derivation. */
+fun consumeAffixForDrop(
+    term: DerivationTerm,
+    sutra: String,
+    droppedSurface: String = "",
+): DerivationTerm {
+    require(term.kind == TermKind.PRATYAYA || term.kind == TermKind.AGAMA || term.kind == TermKind.AUGMENT) {
+        "$sutra cannot consume non-affix term ${term.id}."
+    }
+    val originalSurface = term.surface
+    return term.replaceWholeAffix(
+        replacementSurface = droppedSurface,
+        replacementUpadesha = term.upadesha,
+        sutra = sutra,
+        policy = WholeAffixDesignationPolicy.Consume,
+    ).copy(
+        droppedBySutra = sutra,
+        originalSurfaceBeforeDrop = originalSurface,
+    )
+}
+
+/** Drops a merged term, enforcing explicit designation consumption whenever that term is an affix. */
+fun dropTermWithLifecycle(term: DerivationTerm, sutra: String): DerivationTerm =
+    if (term.kind == TermKind.PRATYAYA || term.kind == TermKind.AGAMA || term.kind == TermKind.AUGMENT) {
+        consumeAffixForDrop(term, sutra)
+    } else {
+        term.copy(surface = "", droppedBySutra = sutra, originalSurfaceBeforeDrop = term.surface)
+    }
+
 data class ItDesignationRemap(
     val oldStart: Int,
     val oldEndExclusive: Int,

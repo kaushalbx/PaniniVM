@@ -24,6 +24,7 @@ import dev.panini.ashtadhyayi.adhyaya6.pada4.ShnabhyastayorAtahSutra
 import dev.panini.ashtadhyayi.adhyaya6.pada4.IHalyaghohSutra
 import dev.panini.ashtadhyayi.adhyaya7.pada2.AaneMukSutra
 import dev.panini.ashtadhyayi.adhyaya7.pada1.YuvoranakauSutra
+import dev.panini.ashtadhyayi.adhyaya7.pada1.HrasvanadyapoNutSutra
 import dev.panini.ashtadhyayi.adhyaya7.pada3.ThasyaIkahSutra
 import dev.panini.core.DhatuGana
 import dev.panini.core.ItMarker
@@ -34,6 +35,33 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class RemainingAffixLifecycleTest {
+    @Test
+    fun `7 1 54 introduces raw nut and exact it processing places its surviving n`() {
+        val stem = DerivationTerm("stem", "राम", TermKind.PRATIPADIKA)
+        val aam = DerivationTerm(
+            "sup-aam",
+            "आम्",
+            TermKind.PRATYAYA,
+            upadesha = "आम्",
+            itProcessingPhase = ItProcessingPhase.PROCESSED,
+        )
+        var state = HrasvanadyapoNutSutra.apply(
+            DerivationState(listOf(stem, aam), activeAdhikaras = setOf("6.4.1")),
+        ).state
+        val raw = state.terms.last()
+        assertEquals("नुँट्", raw.surface)
+        assertEquals("7.1.54", raw.createdBySutra)
+        assertEquals(ItProcessingPhase.RAW_UPADESHA, raw.itProcessingPhase)
+
+        state = UpadesheAjanunasikaItSutra.apply(state).state
+        state = HalantyamSutra.apply(state).state
+        state = AdyantauTakitauSutra.apply(state).state
+        state = TasyaLopahSutra.apply(state).state
+        assertEquals("नाम्", state.terms.last().surface)
+        assertTrue("7.1.54" in state.terms.last().establishedBySutras)
+        state.requireCompleteItProcessing()
+    }
+
     @Test
     fun `annotated ktavatu matup and tuk retain raw identity and introducing provenance`() {
         val root = DerivationTerm("dhatu", "कृ", TermKind.DHATU)

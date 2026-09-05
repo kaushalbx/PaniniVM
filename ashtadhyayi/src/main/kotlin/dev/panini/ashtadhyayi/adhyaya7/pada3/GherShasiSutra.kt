@@ -57,7 +57,7 @@ object GherShasiSutra : Sutra<DerivationState, DerivationChange>(
         return DerivationChange(
             state = context.copy(
                 terms = context.terms.dropLast(2) + formed,
-                droppedTerms = context.droppedTerms + affix.copy(surface = ""),
+                droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(affix, sutra),
                 stage = DerivationStage.PADA_FORMED,
             ),
             explanation = "7.3.124: Formed the lengthened Ghi base before masculine accusative-plural शस्.",

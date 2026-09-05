@@ -58,7 +58,8 @@ object MidacoAntyatParahSutra : Sutra<DerivationState, DerivationChange>(
                     insertion.id -> null
                     else -> term
                 } },
-                droppedTerms = context.droppedTerms + insertion.copy(surface = "", establishedBySutras = insertion.establishedBySutras + sutra),
+                droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(insertion, sutra)
+                    .copy(establishedBySutras = insertion.establishedBySutras + sutra),
                 // The target's own final consonant was never part of the raw
                 // augment upadeśa. Only the remapped augment designations are
                 // eligible for this IT-processing cycle.

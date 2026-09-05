@@ -82,7 +82,8 @@ object YusmadAsmadSutra : Sutra<DerivationState, DerivationChange>(
 
         return DerivationChange(
             state = context.copy(terms = newTerms, stage = DerivationStage.ANGAKARYA)
-                .copy(droppedTerms = context.droppedTerms + affix.copy(surface = newAffixSurface)),
+                .copy(droppedTerms = context.droppedTerms +
+                    dev.panini.derivation.consumeAffixForDrop(affix, sutra, newAffixSurface)),
             explanation = "7.2.86-7.2.97: Derives $replacement for ${stem.surface} in ${rupa.vibhakti} ${rupa.vacana}."
         )
     }

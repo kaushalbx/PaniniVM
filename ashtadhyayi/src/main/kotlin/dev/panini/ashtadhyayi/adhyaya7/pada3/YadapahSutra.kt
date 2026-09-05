@@ -1,5 +1,7 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada3
 
+import dev.panini.ashtadhyayi.adhyaya7.pada1.HrasvanadyapoNutSutra
+import dev.panini.ashtadhyayi.adhyaya7.pada1.SatCaturbhyascaSutra
 import dev.panini.core.ItMarker
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
@@ -37,6 +39,10 @@ object YadapahSutra : Sutra<DerivationState, DerivationChange>(
 
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
+
+        // 7.1.54-55 supply nuṭ to genitive plural आम् before this later yāṭ rule.
+        if (HrasvanadyapoNutSutra.matches(context) || SatCaturbhyascaSutra.matches(context)) return false
+        if (affix.establishedBySutras.any { it == "7.1.54" || it == "7.1.55" }) return false
 
         val isNadiGenitivePlural = context.samjnas.any { it.targetId == stem.id && it.samjna == dev.panini.shiksha.Samjna.NADI } &&
             affix.upadesha == "आम्"

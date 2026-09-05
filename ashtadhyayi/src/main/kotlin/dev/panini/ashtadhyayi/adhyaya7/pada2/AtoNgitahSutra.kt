@@ -8,6 +8,7 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.WholeAffixDesignationPolicy
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -44,7 +45,12 @@ object AtoNgitahSutra : Sutra<DerivationState, DerivationChange>(
         val ending = context.terms.last()
         if (context.effectiveContext.rupa.lakara in setOf(Lakara.LANG, Lakara.LRNG)) {
             return DerivationChange(
-                context.replaceTerm(ending.id, ending.copy(surface = "इ${ending.surface.drop(1)}")),
+                context.replaceWholeAffix(
+                    ending.id,
+                    "इ${ending.surface.drop(1)}",
+                    sutra,
+                    WholeAffixDesignationPolicy.PreserveAndRemap(emptyList()),
+                ),
                 "7.2.81 replaces the initial आ of ${ending.upadesha} with इ after an a-ending अङ्ग.",
             )
         }

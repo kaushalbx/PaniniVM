@@ -80,7 +80,7 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
                 return DerivationChange(
                     state = context.copy(
                         terms = newTerms,
-                        droppedTerms = context.droppedTerms + rightTerm.copy(surface = ""),
+                        droppedTerms = context.droppedTerms + dev.panini.derivation.dropTermWithLifecycle(rightTerm, sutra),
                         stage = DerivationStage.PADA_FORMED,
                         samjnas = newSamjnas
                     ).addSubstitution(VarnaSubstitution(leftTerm.id, leftChar, replacement, sutra)),

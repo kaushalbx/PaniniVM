@@ -56,7 +56,7 @@ object AdasAuSulopascaSutra : Sutra<DerivationState, DerivationChange>(
 
         return DerivationChange(
             state = context.copy(terms = newTerms, stage = DerivationStage.FINAL)
-                .copy(droppedTerms = context.droppedTerms + affix.copy(surface = "")),
+                .copy(droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(affix, sutra)),
             explanation = "7.2.107 & 8.2.80: Substituted 'asau' for 'adas' before nominative singular su."
         )
     }

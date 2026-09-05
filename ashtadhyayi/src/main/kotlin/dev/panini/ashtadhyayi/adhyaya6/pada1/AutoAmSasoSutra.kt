@@ -50,7 +50,7 @@ object AutoAmSasoSutra : Sutra<DerivationState, DerivationChange>(
 
         return DerivationChange(
             state = context.copy(terms = newTerms, stage = DerivationStage.ANGAKARYA)
-                .copy(droppedTerms = context.droppedTerms + affix.copy(surface = "")),
+                .copy(droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(affix, sutra)),
             explanation = "6.1.93: Merged o-stem with '${affix.surface}' into '$newSurface'."
         )
     }

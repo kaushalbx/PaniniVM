@@ -43,7 +43,7 @@ object RtoSuhSutra : Sutra<DerivationState, DerivationChange>(
         return DerivationChange(
             state = context.copy(
                 terms = context.terms.dropLast(2) + stem.copy(surface = stem.surface.dropLast(1) + "ा"),
-                droppedTerms = context.droppedTerms + affix.copy(surface = ""),
+                droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(affix, sutra),
                 stage = DerivationStage.FINAL,
             ),
             explanation = "7.3.130: Formed the masculine ṛ-stem nominative-singular आ ending before सु.",

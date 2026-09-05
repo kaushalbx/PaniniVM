@@ -68,7 +68,7 @@ object ErAnekacoAsamyogapurvasyaSutra : Sutra<DerivationState, DerivationChange>
         return DerivationChange(
             context.copy(
                 terms = newTerms,
-                droppedTerms = context.droppedTerms + following.copy(surface = ""),
+                droppedTerms = context.droppedTerms + dev.panini.derivation.dropTermWithLifecycle(following, sutra),
                 stage = DerivationStage.ANGAKARYA,
             ),
             "6.4.82 substitutes यण् for the non-conjunct-preceded final i-vowel of the many-vowel aṅga.",

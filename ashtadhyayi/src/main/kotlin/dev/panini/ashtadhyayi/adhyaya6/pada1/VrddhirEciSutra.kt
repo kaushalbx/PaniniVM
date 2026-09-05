@@ -68,7 +68,7 @@ object VrddhirEciSutra : Sutra<DerivationState, DerivationChange>(
             return DerivationChange(
                 state = context.copy(
                     terms = terms.take(index) + newRoot + terms.drop(index + 2),
-                    droppedTerms = context.droppedTerms + augment.copy(surface = ""),
+                    droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(augment, sutra),
                     stage = DerivationStage.PADA_FORMED,
                 ).addSubstitution(VarnaSubstitution(root.id, root.surface.first(), substitute, sutra)),
                 explanation = "6.1.88: Vṛddhi substitution ($substitute) for augment अ + ${root.surface.first()}.",
@@ -97,7 +97,7 @@ object VrddhirEciSutra : Sutra<DerivationState, DerivationChange>(
         return DerivationChange(
             state = context.copy(
                 terms = terms.dropLast(2) + leftTerm.copy(surface = newSurface),
-                droppedTerms = context.droppedTerms + terms.last().copy(surface = ""),
+                droppedTerms = context.droppedTerms + dev.panini.derivation.dropTermWithLifecycle(terms.last(), sutra),
                 stage = DerivationStage.PADA_FORMED
             ).addSubstitution(VarnaSubstitution(leftTerm.id, leftChar, substitute, sutra)),
             explanation = "6.1.88: Vṛddhi substitution ($substitute) for $leftChar + $rightChar."

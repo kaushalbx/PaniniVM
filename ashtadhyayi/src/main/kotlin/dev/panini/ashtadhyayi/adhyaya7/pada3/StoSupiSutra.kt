@@ -41,7 +41,7 @@ object StoSupiSutra : Sutra<DerivationState, DerivationChange>(
         return DerivationChange(
             state = context.copy(
                 terms = context.terms.dropLast(2) + stem.copy(surface = stem.surface.dropLast(2) + "ःसु"),
-                droppedTerms = context.droppedTerms + affix.copy(surface = ""),
+                droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(affix, sutra),
                 stage = DerivationStage.FINAL,
             ),
             explanation = "7.3.158: Formed the neuter s-stem locative-plural ःसु ending before सुप्.",

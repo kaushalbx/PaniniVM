@@ -3,6 +3,9 @@ package dev.panini.ashtadhyayi.adhyaya7.pada1
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.ItProcessingPhase
+import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -39,21 +42,32 @@ object SatCaturbhyascaSutra : Sutra<DerivationState, DerivationChange>(
             stem.surface in setOf("चतुर्", "षट्") ||
             context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SHAT }
 
-        return isCaturOrShat && affix.upadesha == "आम्" && !affix.surface.startsWith("नाम") && !affix.surface.startsWith("णाम") && context.allEffectiveTerms.none { it.upadesha == "नुट्" }
+        return isCaturOrShat && affix.upadesha == "आम्" &&
+            sutra !in affix.establishedBySutras &&
+            context.allEffectiveTerms.none { it.upadesha == "नुँट्" }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
-        val newSurface = "नाम्"
-        val lengthenedStem = if (stem.surface.endsWith("न्") && !stem.surface.contains('ा')) {
-            stem.copy(surface = stem.surface.dropLast(2) + "ान्")
+        val lengthenedStem = if (stem.surface.endsWith("न्")) {
+            val withoutFinalN = stem.surface.dropLast(2)
+            stem.copy(surface = if (withoutFinalN.contains('ा')) withoutFinalN else withoutFinalN + "ा")
         } else stem
-        val newTerms = context.terms.dropLast(2) + lengthenedStem + affix.copy(surface = newSurface)
+        val nut = DerivationTerm(
+            id = "${affix.id}-nut",
+            surface = "नुँट्",
+            kind = TermKind.AGAMA,
+            upadesha = "नुँट्",
+            createdBySutra = sutra,
+            itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
+            augmentTargetId = affix.id,
+            mergeIntoAugmentTarget = true,
+        )
 
         return DerivationChange(
-            state = context.copy(terms = newTerms),
-            explanation = "7.1.55: Added 'nuṭ' augment before 'ām' after catur/ṣaṭ."
+            state = context.copy(terms = context.terms.dropLast(2) + lengthenedStem + affix).addTerm(nut),
+            explanation = "7.1.55 introduces raw नुँट् before आम् after catur/ṣaṭ."
         )
     }
 }

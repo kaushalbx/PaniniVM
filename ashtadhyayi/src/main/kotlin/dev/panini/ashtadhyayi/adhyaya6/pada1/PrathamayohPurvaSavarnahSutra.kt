@@ -84,7 +84,7 @@ object PrathamayohPurvaSavarnahSutra : Sutra<DerivationState, DerivationChange>(
         return DerivationChange(
             state = context.copy(
                 terms = context.terms.dropLast(2) + stem.copy(surface = newSurface),
-                droppedTerms = context.droppedTerms + suffix.copy(surface = ""),
+                droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(suffix, sutra),
                 stage = DerivationStage.PADA_FORMED
             ).addSubstitution(VarnaSubstitution(stem.id, leftPhoneme, substitute, sutra)),
             explanation = "6.1.102: Combined $leftPhoneme + ${suffix.surface.first()} into long $substitute."

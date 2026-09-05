@@ -65,4 +65,14 @@ class WholeAffixReplacementTest {
         assertEquals(emptyList(), result.itDesignations)
         assertEquals(emptySet(), result.itMarkers)
     }
+
+    @Test fun `consume for drop records provenance and leaves no pending designation`() {
+        val result = consumeAffixForDrop(designated, "7.1.1")
+        assertEquals("", result.surface)
+        assertEquals("अप्", result.originalSurfaceBeforeDrop)
+        assertEquals("7.1.1", result.droppedBySutra)
+        assertEquals(ItProcessingPhase.PROCESSED, result.itProcessingPhase)
+        assertEquals(emptyList(), result.itDesignations)
+        assertEquals(setOf(ItMarker.P), result.sthaniProps?.itMarkers)
+    }
 }

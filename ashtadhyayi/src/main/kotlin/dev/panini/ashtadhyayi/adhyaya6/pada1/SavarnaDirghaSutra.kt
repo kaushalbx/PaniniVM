@@ -93,7 +93,7 @@ object SavarnaDirghaSutra : Sutra<DerivationState, DerivationChange>(
         return DerivationChange(
             state = context.copy(
                 terms = terms.take(leftIndex) + mergedTerm + terms.drop(rightIndex + 1),
-                droppedTerms = context.droppedTerms + consumedTerm.copy(surface = ""),
+                droppedTerms = context.droppedTerms + dev.panini.derivation.dropTermWithLifecycle(consumedTerm, sutra),
                 stage = DerivationStage.PADA_FORMED
             ).addSubstitution(VarnaSubstitution(mergedTerm.id, leftPhoneme, substitute, sutra)),
             explanation = "6.1.101: Savarṇa Dīrgha substitution ($substitute) for $leftPhoneme + ${rightTerm.surface.first()}."

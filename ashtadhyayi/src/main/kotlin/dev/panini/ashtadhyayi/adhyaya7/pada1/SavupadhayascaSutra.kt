@@ -52,7 +52,7 @@ object SavupadhayascaSutra : Sutra<DerivationState, DerivationChange>(
 
         return DerivationChange(
             state = context.copy(terms = newTerms, stage = DerivationStage.FINAL)
-                .copy(droppedTerms = context.droppedTerms + affix.copy(surface = "")),
+                .copy(droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(affix, sutra)),
             explanation = "7.1.99 & 7.1.100: Derived 'anaḍvān' for 'anaḍuh' before nominative singular su."
         )
     }

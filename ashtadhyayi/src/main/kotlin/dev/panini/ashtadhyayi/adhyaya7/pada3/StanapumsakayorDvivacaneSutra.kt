@@ -41,7 +41,7 @@ object StanapumsakayorDvivacaneSutra : Sutra<DerivationState, DerivationChange>(
         return DerivationChange(
             state = context.copy(
                 terms = context.terms.dropLast(2) + stem.copy(surface = stem.surface.dropLast(2) + "सी"),
-                droppedTerms = context.droppedTerms + affix.copy(surface = ""),
+                droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(affix, sutra),
                 stage = DerivationStage.FINAL,
             ),
             explanation = "7.3.149: Formed the neuter s-stem nominative/accusative dual सी ending.",

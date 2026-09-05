@@ -120,7 +120,7 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
         return DerivationChange(
             state = context.copy(
                 terms = terms.take(index) + mergedTerm + terms.drop(index + 2),
-                droppedTerms = context.droppedTerms + consumedTerm.copy(surface = ""),
+                droppedTerms = context.droppedTerms + dev.panini.derivation.dropTermWithLifecycle(consumedTerm, sutra),
                 stage = DerivationStage.PADA_FORMED
             ).addSubstitution(VarnaSubstitution(mergedTerm.id, leftChar, substitute, sutra)),
             explanation = "6.1.87: Guṇa substitution ($substitute) for $leftChar + $rightChar."

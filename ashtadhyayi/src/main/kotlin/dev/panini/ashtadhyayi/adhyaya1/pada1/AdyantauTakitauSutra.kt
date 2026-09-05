@@ -79,6 +79,8 @@ object AdyantauTakitauSutra : Sutra<DerivationState, DerivationChange>(
                         val augmentOffset = if (isTit) 0 else target.surface.length
                         val merged = target.copy(
                             surface = if (isTit) term.surface + target.surface else target.surface + term.surface,
+                            establishedBySutras = target.establishedBySutras +
+                                listOfNotNull(term.createdBySutra),
                             itMarkers = target.itMarkers + term.itMarkers,
                             itDesignations = target.itDesignations.shiftedBy(targetOffset) +
                                 term.itDesignations.shiftedBy(augmentOffset),

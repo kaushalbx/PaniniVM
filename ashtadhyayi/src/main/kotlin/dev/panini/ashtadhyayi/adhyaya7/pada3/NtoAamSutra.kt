@@ -48,7 +48,7 @@ object NtoAamSutra : Sutra<DerivationState, DerivationChange>(
         return DerivationChange(
             state = context.copy(
                 terms = context.terms.dropLast(2) + stem.copy(surface = newSurface),
-                droppedTerms = context.droppedTerms + affix.copy(surface = ""),
+                droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(affix, sutra),
                 stage = DerivationStage.FINAL,
             ),
             explanation = "7.3.146: Formed the masculine n-stem genitive-plural नाम् ending before आम्.",

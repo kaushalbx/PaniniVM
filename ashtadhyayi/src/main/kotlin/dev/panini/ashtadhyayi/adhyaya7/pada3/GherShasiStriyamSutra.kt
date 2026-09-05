@@ -63,7 +63,7 @@ object GherShasiStriyamSutra : Sutra<DerivationState, DerivationChange>(
         return DerivationChange(
             state = context.copy(
                 terms = context.terms.dropLast(2) + stem.copy(surface = stem.surface.dropLast(1) + longVowel + "ः"),
-                droppedTerms = context.droppedTerms + affix.copy(surface = ""),
+                droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(affix, sutra),
                 stage = DerivationStage.FINAL,
             ),
             explanation = "7.3.126: Formed the feminine Ghi accusative-plural ending before शस्.",

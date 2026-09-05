@@ -60,7 +60,7 @@ object BahuvacaneJhalyetSutra : Sutra<DerivationState, DerivationChange>(
         val changedState = if (terms.last().upadesha == "भ्यस्") {
             context.copy(
                 terms = terms.dropLast(2) + stem.copy(surface = newSurface + terms.last().surface),
-                droppedTerms = context.droppedTerms + terms.last().copy(surface = ""),
+                droppedTerms = context.droppedTerms + dev.panini.derivation.dropTermWithLifecycle(terms.last(), sutra),
                 stage = DerivationStage.PADA_FORMED,
             )
         } else {

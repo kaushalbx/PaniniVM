@@ -14,6 +14,7 @@ import dev.panini.derivation.DerivationalEnvironment
 import dev.panini.derivation.HasDerivationalEnvironment
 import dev.panini.derivation.TermKind
 import dev.panini.derivation.VarnaSubstitution
+import dev.panini.derivation.WholeAffixDesignationPolicy
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Varnamala
@@ -94,7 +95,12 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
         val nic = context.terms.firstOrNull { it.matchesUpadesha("णिच्") && it.surface == "इ" }
         if (nic != null && context.terms.any { it.id == "shap" }) {
             return DerivationChange(
-                state = context.replaceTerm(nic.id, nic.copy(surface = "ए"))
+                state = context.replaceWholeAffix(
+                    nic.id,
+                    "ए",
+                    sutra,
+                    WholeAffixDesignationPolicy.PreserveAndRemap(emptyList()),
+                )
                     .copy(stage = DerivationStage.ANGAKARYA)
                     .addSubstitution(VarnaSubstitution(nic.id, 'इ', "ए", sutra)),
                 explanation = "7.3.84 applies guṇa to the final इ of the ṇic-ending aṅga before शप्.",

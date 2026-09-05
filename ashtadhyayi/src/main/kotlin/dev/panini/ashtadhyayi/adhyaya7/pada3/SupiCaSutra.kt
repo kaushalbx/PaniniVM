@@ -61,7 +61,7 @@ object SupiCaSutra : Sutra<DerivationState, DerivationChange>(
             val completedSurface = if (affix.upadesha == "ङि") newSurface else newSurface + affix.surface
             context.copy(
                 terms = terms.dropLast(2) + stem.copy(surface = completedSurface),
-                droppedTerms = context.droppedTerms + affix.copy(surface = ""),
+                droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(affix, sutra),
                 stage = DerivationStage.PADA_FORMED
             )
         } else {

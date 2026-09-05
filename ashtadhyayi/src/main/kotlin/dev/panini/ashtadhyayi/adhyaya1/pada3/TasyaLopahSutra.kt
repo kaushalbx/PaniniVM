@@ -65,7 +65,7 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
                             "(${designation.designatedText}) on ${term.id}:${term.surface}; the substituting rule must remap or consume it."
                     }
                     surface.replaceRange(designation.start, designation.endExclusive, designation.replacementAfterLopa)
-                }
+                }.joinDevanagariVowelBoundary()
                 return@map term.copy(
                     surface = processed,
                     itMarkers = emptySet(),
@@ -94,5 +94,14 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
             ),
             explanation = "1.3.9: Performed lopa of it-marked sounds."
         )
+    }
+
+    private fun String.joinDevanagariVowelBoundary(): String {
+        val vowelSigns = linkedMapOf(
+            "्अ" to "", "्आ" to "ा", "्इ" to "ि", "्ई" to "ी",
+            "्उ" to "ु", "्ऊ" to "ू", "्ऋ" to "ृ", "्ॠ" to "ॄ",
+            "्ऌ" to "ॢ", "्ए" to "े", "्ऐ" to "ै", "्ओ" to "ो", "्औ" to "ौ",
+        )
+        return vowelSigns.entries.fold(this) { value, (boundary, sign) -> value.replace(boundary, sign) }
     }
 }

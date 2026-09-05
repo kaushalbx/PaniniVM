@@ -48,7 +48,7 @@ object AdoAserAsiDoMahSutra : Sutra<DerivationState, DerivationChange>(
             return DerivationChange(
                 state = context.copy(
                     terms = context.terms.dropLast(2) + stem.copy(surface = "अमू"),
-                    droppedTerms = context.droppedTerms + affix.copy(surface = ""),
+                    droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(affix, sutra),
                     stage = DerivationStage.FINAL,
                 ),
                 explanation = "8.2.80 & 8.2.81: Derived the dual adas form 'अमू'.",
@@ -58,7 +58,7 @@ object AdoAserAsiDoMahSutra : Sutra<DerivationState, DerivationChange>(
             return DerivationChange(
                 state = context.copy(
                     terms = context.terms.dropLast(2) + stem.copy(surface = "अमी"),
-                    droppedTerms = context.droppedTerms + affix.copy(surface = ""),
+                    droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(affix, sutra),
                     stage = DerivationStage.FINAL,
                 ),
                 explanation = "8.2.80 & 8.2.81: Derived the nominative-plural adas form 'अमी'.",

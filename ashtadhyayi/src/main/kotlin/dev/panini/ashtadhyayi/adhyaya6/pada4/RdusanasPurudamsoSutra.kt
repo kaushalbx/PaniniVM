@@ -55,7 +55,7 @@ object RdusanasPurudamsoSutra : Sutra<DerivationState, DerivationChange>(
         return DerivationChange(
             state = context.replaceTerm(stem.id, stem.copy(surface = newSurface))
                 .copy(terms = newTerms.dropLast(1) + stem.copy(surface = newSurface), stage = DerivationStage.PADA_FORMED)
-                .copy(droppedTerms = context.droppedTerms + affix.copy(surface = "")),
+                .copy(droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(affix, sutra)),
             explanation = "6.4.11 & 8.2.7: Derived '$newSurface' for ṛ-stem before nominative singular su."
         )
     }
