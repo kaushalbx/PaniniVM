@@ -1,21 +1,20 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada1
 
 import dev.panini.core.DhatuGana
-import dev.panini.core.Lakara
-import dev.panini.core.PadaType
 import dev.panini.core.TingAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.ItProcessingPhase
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
-/** 3.1.81: क्र्यादिभ्यः श्ना. The nā/nī vikaraṇa follows Kryādi roots. */
+/** 3.1.81: क्र्यादिभ्यः श्ना. */
 object KryadibhyahShnaSutra : Sutra<DerivationState, DerivationChange>(
     number = "3.1.81",
     text = "क्र्यादिभ्यः श्ना",
@@ -30,23 +29,6 @@ object KryadibhyahShnaSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
     blocks = setOf("3.1.68", "7.3.84"),
 ), DerivationSutra {
-    private val latStrongAffixes = setOf(TingAffix.TIP, TingAffix.SIP, TingAffix.MIP)
-    private val lotStrongAffixes = setOf(
-        TingAffix.TIP,
-        TingAffix.MIP,
-        TingAffix.VAS,
-        TingAffix.MAS,
-        TingAffix.VAHI,
-        TingAffix.MAHING,
-    )
-    private val vowelInitialAffixes = setOf(
-        TingAffix.JHI,
-        TingAffix.ATAM,
-        TingAffix.JHA,
-        TingAffix.ATHAM,
-        TingAffix.IT,
-    )
-
     override fun matches(context: DerivationState): Boolean {
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU } ?: return false
         return dhatu.gana == DhatuGana.KRYADI &&
@@ -55,30 +37,14 @@ object KryadibhyahShnaSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val affix = TingAffix.entries.single { it.upadesha == context.terms.last().upadesha }
-        val strongAffixes = when (context.effectiveContext.rupa.lakara) {
-            Lakara.LOT -> lotStrongAffixes
-            Lakara.LING -> emptySet()
-            else -> latStrongAffixes
-        }
-        val surface = if (
-            context.effectiveContext.rupa.lakara == Lakara.LING &&
-            affix.pada == PadaType.PARASMAIPADA
-        ) {
-            "नी"
-        } else if (context.effectiveContext.rupa.lakara == Lakara.LING) {
-            "न्"
-        } else {
-            when (affix) {
-                in strongAffixes -> "ना"
-                in vowelInitialAffixes -> "न्"
-                else -> "नी"
-            }
-        }
-        val shna = DerivationTerm("shna", surface, TermKind.PRATYAYA, upadesha = "श्ना")
+        val shna = DerivationTerm(
+            "shna", "श्ना", TermKind.PRATYAYA,
+            upadesha = "श्ना", createdBySutra = sutra,
+            itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
+        )
         return DerivationChange(
             context.insertBeforeTingOrLingAugment(shna),
-            "3.1.81 introduces the $surface allomorph of श्ना after a Kryādi root.",
+            "3.1.81 introduces raw श्ना; its surviving ना/नी/न् is determined by subsequent rules.",
         )
     }
 }

@@ -39,7 +39,7 @@ object StunaShtuhSutra : Sutra<DerivationState, DerivationChange>(
         // In the LET सिप् formation the following त् belongs to अट् + त्;
         // the intervening अ prevents actual ṣṭutva (तारिषत्, not *तारिषट्).
         if (context.terms.any { it.id == "sip-aorist" && 'ष' in it.surface }) return false
-        val lungSicIndex = context.terms.indexOfFirst { it.upadesha == "सिच्" && it.surface.endsWith("ष्") }
+        val lungSicIndex = context.terms.indexOfFirst { it.upadesha == "सिँच्" && it.surface.endsWith("ष्") }
         if (lungSicIndex >= 0 && context.terms.getOrNull(lungSicIndex + 1)?.surface?.firstOrNull() in
             setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ऌ', 'ए', 'ऐ', 'ओ', 'औ')) return false
         if (crossTermTarget(context) != null) return true

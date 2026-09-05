@@ -5,6 +5,7 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.TermKind
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -29,14 +30,24 @@ object CliLungiSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val ending = context.terms.lastOrNull() ?: return false
-        val aoristAffixes = setOf("च्लि", "सिच्", "क्स", "चङ्", "अङ्", "चिण्")
+        val aoristAffixes = setOf("च्लि", "सिँच्", "क्स", "चङ्", "अङ्", "चिण्")
         return ending.matchesUpadesha("लुङ्") &&
             context.allEffectiveTerms.none { it.upadesha in aoristAffixes || it.id == "cli" }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
-        val cli = DerivationTerm("cli", "च्लि", TermKind.PRATYAYA, upadesha = "च्लि")
+        // च्लि is the substituted locus of 3.1.44ff., not an independently
+        // processable upadeśa.  A later rule must consume it and explicitly
+        // choose the lifecycle of its replacement.
+        val cli = DerivationTerm(
+            id = "cli",
+            surface = "च्लि",
+            kind = TermKind.PRATYAYA,
+            upadesha = "च्लि",
+            createdBySutra = sutra,
+            itProcessingPhase = ItProcessingPhase.DEFERRED_SUBSTITUTION,
+        )
         return DerivationChange(
             context.copy(
                 terms = context.terms.dropLast(1) + cli + ending,

@@ -48,7 +48,7 @@ object LopoVyorValiSutra : Sutra<DerivationState, DerivationChange>(
                 TingAffix.entries.any { it.upadesha == rightTerm.upadesha }
             if (!hasPadaScope && !isLateLingVikarana && !isLingSiyut && !isLingYasut && !isMergedLingYasut) continue
             if (context.effectiveContext.rupa.lakara == Lakara.LUNG &&
-                leftTerm.id == "vuk" && rightTerm.upadesha in setOf("च्लि", "सिच्")
+                leftTerm.id == "vuk" && rightTerm.upadesha in setOf("च्लि", "सिँच्")
             ) continue
             if (context.effectiveContext.rupa.lakara == Lakara.LING &&
                 rightTerm.matchesUpadesha("मिप्") &&
@@ -80,7 +80,7 @@ object LopoVyorValiSutra : Sutra<DerivationState, DerivationChange>(
                 TingAffix.entries.any { it.upadesha == rightTerm.upadesha }
             if (!hasPadaScope && !isLateLingVikarana && !isLingSiyut && !isLingYasut && !isMergedLingYasut) continue
             if (context.effectiveContext.rupa.lakara == Lakara.LUNG &&
-                left.id == "vuk" && rightTerm.upadesha in setOf("च्लि", "सिच्")
+                left.id == "vuk" && rightTerm.upadesha in setOf("च्लि", "सिँच्")
             ) continue
             if (context.effectiveContext.rupa.lakara == Lakara.LING &&
                 rightTerm.matchesUpadesha("मिप्") &&

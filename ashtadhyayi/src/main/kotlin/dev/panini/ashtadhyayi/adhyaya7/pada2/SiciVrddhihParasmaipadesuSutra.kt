@@ -29,7 +29,7 @@ object SiciVrddhihParasmaipadesuSutra : Sutra<DerivationState, DerivationChange>
     private val parasmaipadaEndings = setOf("तिप्", "तस्", "झि", "सिप्", "थस्", "थ", "मिप्", "वस्", "मस्")
 
     override fun matches(context: DerivationState): Boolean {
-        val hasSic = context.terms.any { it.upadesha == "सिच्" }
+        val hasSic = context.terms.any { it.upadesha == "सिँच्" }
         if (!hasSic) return false
         val isParasmaipada = context.effectiveContext.rupa.pada == PadaType.PARASMAIPADA ||
             context.terms.lastOrNull()?.upadesha in parasmaipadaEndings

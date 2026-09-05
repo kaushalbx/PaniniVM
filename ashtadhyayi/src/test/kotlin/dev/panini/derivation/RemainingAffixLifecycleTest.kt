@@ -9,9 +9,14 @@ import dev.panini.ashtadhyayi.adhyaya1.pada3.ShahPratyayasyaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.TasyaLopahSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.UpadesheAjanunasikaItSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada1.CuradibhyoNicSutra
+import dev.panini.ashtadhyayi.adhyaya3.pada1.ClehSicSutra
+import dev.panini.ashtadhyayi.adhyaya3.pada1.CliLungiSutra
+import dev.panini.ashtadhyayi.adhyaya3.pada1.KryadibhyahShnaSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada2.LatahSatrsanacauSutra
 import dev.panini.ashtadhyayi.adhyaya6.pada1.VerAprktasyaSutra
 import dev.panini.ashtadhyayi.adhyaya6.pada4.ShnasorAllopahSutra
+import dev.panini.ashtadhyayi.adhyaya6.pada4.ShnabhyastayorAtahSutra
+import dev.panini.ashtadhyayi.adhyaya6.pada4.IHalyaghohSutra
 import dev.panini.ashtadhyayi.adhyaya7.pada2.AaneMukSutra
 import dev.panini.ashtadhyayi.adhyaya7.pada3.ThasyaIkahSutra
 import dev.panini.core.DhatuGana
@@ -21,6 +26,29 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class RemainingAffixLifecycleTest {
+    @Test
+    fun `cli is deferred until 3 1 44 consumes it and introduces fresh sic`() {
+        val root = DerivationTerm("dhatu", "भू", TermKind.DHATU)
+        val lung = DerivationTerm("lung", "लुङ्", TermKind.PRATYAYA, upadesha = "लुङ्")
+        var state = CliLungiSutra.apply(DerivationState(listOf(root, lung))).state
+        val cli = state.terms.first { it.id == "cli" }
+        assertEquals("3.1.43", cli.createdBySutra)
+        assertEquals(ItProcessingPhase.DEFERRED_SUBSTITUTION, cli.itProcessingPhase)
+
+        state = ClehSicSutra.apply(state).state
+        val sic = state.terms.first { it.id == "cli" }
+        assertEquals("सिँच्", sic.surface)
+        assertEquals("3.1.44", sic.createdBySutra)
+        assertEquals(ItProcessingPhase.RAW_UPADESHA, sic.itProcessingPhase)
+
+        state = UpadesheAjanunasikaItSutra.apply(state).state
+        state = ChutuSutra.apply(state).state
+        state = HalantyamSutra.apply(state).state
+        state = TasyaLopahSutra.apply(state).state
+        assertEquals("स्", state.terms.first { it.id == "cli" }.surface)
+        state.requireCompleteItProcessing()
+    }
+
     @Test
     fun `kvip is designated exactly before 6 1 67 consumes its processed vi`() {
         var state = DerivationState(listOf(rawAffix("kvip", "क्विप्", "3.2.61")))
@@ -119,6 +147,37 @@ class RemainingAffixLifecycleTest {
         state = ShnasorAllopahSutra.apply(state).state
         assertEquals("रुन्ध्", state.terms.first { it.id == root.id }.surface)
         state.requireCompleteItProcessing()
+    }
+
+    @Test
+    fun `shna enters raw and its surviving vowel follows 6 4 112 and 6 4 113`() {
+        val root = DerivationTerm("dhatu", "क्री", TermKind.DHATU, gana = DhatuGana.KRYADI)
+        val selected = KryadibhyahShnaSutra.apply(
+            DerivationState(listOf(root, DerivationTerm("ting-tip", "तिप्", TermKind.PRATYAYA, upadesha = "तिप्")))
+        ).state
+        val raw = selected.terms.first { it.id == "shna" }
+        assertEquals("श्ना", raw.surface)
+        assertEquals("3.1.81", raw.createdBySutra)
+        assertEquals(ItProcessingPhase.RAW_UPADESHA, raw.itProcessingPhase)
+
+        fun processedShna(ending: DerivationTerm): DerivationState {
+            var state = DerivationState(
+                listOf(root, raw, ending),
+                samjnas = setOf(SamjnaAssignment(ending.id, Samjna.SARVADHATUKA)),
+            )
+            state = LasakvataddhiteSutra.apply(state).state
+            return TasyaLopahSutra.apply(state).state
+        }
+
+        val vowelInitial = processedShna(DerivationTerm("ting-jhi", "अन्ति", TermKind.PRATYAYA, upadesha = "झि"))
+        assertEquals("ना", vowelInitial.terms.first { it.id == "shna" }.surface)
+        val withLopa = ShnabhyastayorAtahSutra.apply(vowelInitial).state
+        assertEquals("न्", withLopa.terms.first { it.id == "shna" }.surface)
+
+        val consonantInitial = processedShna(DerivationTerm("ting-ta", "त", TermKind.PRATYAYA, upadesha = "त"))
+        val withI = IHalyaghohSutra.apply(consonantInitial).state
+        assertEquals("नी", withI.terms.first { it.id == "shna" }.surface)
+        withI.requireCompleteItProcessing()
     }
 
     private fun rawAffix(id: String, upadesha: String, source: String) = DerivationTerm(

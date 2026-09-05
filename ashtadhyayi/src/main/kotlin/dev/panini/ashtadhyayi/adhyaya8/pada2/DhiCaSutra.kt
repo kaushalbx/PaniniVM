@@ -19,7 +19,7 @@ object DhiCaSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val targetIndex = context.terms.indexOfFirst {
-            (it.upadesha == "सिच्" && it.surface == "स्") ||
+            (it.upadesha == "सिँच्" && it.surface == "स्") ||
                 (it.upadesha == "तासि" && it.surface.endsWith("स्"))
         }
         return targetIndex >= 0 && context.terms.getOrNull(targetIndex + 1)?.surface?.startsWith("ध") == true
@@ -27,10 +27,10 @@ object DhiCaSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val target = context.terms.first {
-            (it.upadesha == "सिच्" && it.surface == "स्") ||
+            (it.upadesha == "सिँच्" && it.surface == "स्") ||
                 (it.upadesha == "तासि" && it.surface.endsWith("स्"))
         }
-        val nextState = if (target.upadesha == "सिच्") {
+        val nextState = if (target.upadesha == "सिँच्") {
             context.removeTerm(target.id).copy(stage = DerivationStage.PADA_FORMED)
         } else {
             context.replaceTerm(target.id, target.copy(surface = target.surface.removeSuffix("स्")))

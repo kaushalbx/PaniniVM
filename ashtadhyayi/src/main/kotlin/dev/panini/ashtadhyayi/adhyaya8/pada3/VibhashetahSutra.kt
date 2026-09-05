@@ -22,7 +22,7 @@ object VibhashetahSutra : Sutra<DerivationState, DerivationChange>(
         if (context.allEffectiveTerms.none { it.id == "it-agama" }) return false
         val ending = context.terms.lastOrNull() ?: return false
         return ending.upadesha == "ध्वम्" && ending.surface.startsWith("ध") &&
-            context.droppedTerms.any { it.upadesha == "सिच्" }
+            context.droppedTerms.any { it.upadesha == "सिँच्" }
     }
 
     override fun apply(context: DerivationState): DerivationChange {

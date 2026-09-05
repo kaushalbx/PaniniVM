@@ -24,12 +24,12 @@ object LingsicorAtmanepadesuSutra : Sutra<DerivationState, DerivationChange>(
         val ending = context.terms.lastOrNull() ?: return false
         val isAtmanepada = ending.upadesha in setOf("त", "आताम्", "झ", "थास्", "आथाम्", "ध्वम्", "इट्", "वहि", "महिङ्")
         if (!isAtmanepada) return false
-        val sicIndex = context.terms.indexOfFirst { it.upadesha == "सिच्" && it.surface == "स्" }
+        val sicIndex = context.terms.indexOfFirst { it.upadesha == "सिँच्" && it.surface == "स्" }
         return sicIndex > 0 && context.allEffectiveTerms.none { it.id == "it-agama" }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val sicIndex = context.terms.indexOfFirst { it.upadesha == "सिच्" }
+        val sicIndex = context.terms.indexOfFirst { it.upadesha == "सिँच्" }
         val sic = context.terms[sicIndex]
         val itAgama = DerivationTerm(
             "it-agama", "इट्", TermKind.AGAMA,
