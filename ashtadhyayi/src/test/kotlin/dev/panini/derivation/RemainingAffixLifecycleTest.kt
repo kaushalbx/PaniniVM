@@ -13,6 +13,8 @@ import dev.panini.ashtadhyayi.adhyaya3.pada1.ClehSicSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada1.CliLungiSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada1.KryadibhyahShnaSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada2.LatahSatrsanacauSutra
+import dev.panini.ashtadhyayi.adhyaya3.pada3.ShidbhidadibhyoAngSutra
+import dev.panini.ashtadhyayi.adhyaya4.pada1.AjadyatasTapSutra
 import dev.panini.ashtadhyayi.adhyaya6.pada1.VerAprktasyaSutra
 import dev.panini.ashtadhyayi.adhyaya6.pada4.ShnasorAllopahSutra
 import dev.panini.ashtadhyayi.adhyaya6.pada4.ShnabhyastayorAtahSutra
@@ -21,12 +23,44 @@ import dev.panini.ashtadhyayi.adhyaya7.pada2.AaneMukSutra
 import dev.panini.ashtadhyayi.adhyaya7.pada1.YuvoranakauSutra
 import dev.panini.ashtadhyayi.adhyaya7.pada3.ThasyaIkahSutra
 import dev.panini.core.DhatuGana
+import dev.panini.core.Linga
 import dev.panini.shiksha.Samjna
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class RemainingAffixLifecycleTest {
+    @Test
+    fun `3 3 104 ang reaches feminine aa through fresh tap`() {
+        val stem = DerivationTerm("stem", "विदा", TermKind.PRATIPADIKA)
+        var state = ShidbhidadibhyoAngSutra.apply(
+            DerivationState(
+                terms = listOf(stem),
+                context = DerivationalContext(rupa = Rupa(linga = Linga.STRI)),
+                activeAdhikaras = setOf("4.1.3"),
+            ),
+        ).state
+        val rawAng = state.terms.last()
+        assertEquals("अङ्", rawAng.surface)
+        assertEquals("3.3.104", rawAng.createdBySutra)
+        assertEquals(ItProcessingPhase.RAW_UPADESHA, rawAng.itProcessingPhase)
+
+        state = HalantyamSutra.apply(state).state
+        state = TasyaLopahSutra.apply(state).state
+        assertEquals("अ", state.terms.first { it.upadesha == "अङ्" }.surface)
+
+        state = AjadyatasTapSutra.apply(state).state
+        val rawTap = state.terms.last()
+        assertEquals("टाप्", rawTap.surface)
+        assertEquals("4.1.4", rawTap.createdBySutra)
+        assertEquals(ItProcessingPhase.RAW_UPADESHA, rawTap.itProcessingPhase)
+        state = ChutuSutra.apply(state).state
+        state = HalantyamSutra.apply(state).state
+        state = TasyaLopahSutra.apply(state).state
+        assertEquals("आ", state.terms.last().surface)
+        state.requireCompleteItProcessing()
+    }
+
     @Test
     fun `3 1 134 affixes begin raw and follow their explicit it lifecycles`() {
         var lyu = DerivationState(listOf(rawAffix("lyu", "ल्यु", "3.1.134")))
@@ -37,10 +71,11 @@ class RemainingAffixLifecycleTest {
         assertEquals("अन", lyu.surface)
         lyu.requireCompleteItProcessing()
 
-        var nini = DerivationState(listOf(rawAffix("nini", "णिनि", "3.1.134")))
+        var nini = DerivationState(listOf(rawAffix("nini", "णिनिँ", "3.1.134")))
+        nini = UpadesheAjanunasikaItSutra.apply(nini).state
         nini = ChutuSutra.apply(nini).state
         nini = TasyaLopahSutra.apply(nini).state
-        assertEquals("इनि", nini.surface)
+        assertEquals("इन्", nini.surface)
         nini.requireCompleteItProcessing()
 
         var ac = DerivationState(listOf(rawAffix("ac", "अच्", "3.1.134")))

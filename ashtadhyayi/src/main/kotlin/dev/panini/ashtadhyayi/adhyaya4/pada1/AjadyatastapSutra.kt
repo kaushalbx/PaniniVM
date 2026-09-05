@@ -1,6 +1,7 @@
 package dev.panini.ashtadhyayi.adhyaya4.pada1
 
 import dev.panini.core.ItMarker
+import dev.panini.core.Linga
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
@@ -38,11 +39,18 @@ object AjadyatasTapSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms.firstOrNull { it.kind == TermKind.PRATIPADIKA } ?: return false
         val isAjadiMember = GanaPatha.isEligibleMember(45, stem.surface, stem.lexicalUses)
         val endsInA = stem.surface.endsWith('अ')
+        val processedAng = context.terms.firstOrNull {
+            it.kind == TermKind.PRATYAYA && it.upadesha == "अङ्" &&
+                it.itProcessingPhase == dev.panini.derivation.ItProcessingPhase.PROCESSED && it.surface == "अ"
+        }
 
         val isTapRequested = context.samjnas.any { it.samjna == Samjna.TAP } ||
-            (context.activeAdhikaras.contains("4.1.3") && (isAjadiMember || endsInA))
-        val hasPratyaya = context.terms.any { it.kind == TermKind.PRATYAYA }
-        return isTapRequested && !hasPratyaya
+            (context.activeAdhikaras.contains("4.1.3") && (isAjadiMember || endsInA)) ||
+            (context.effectiveContext.rupa.linga == Linga.STRI && processedAng != null)
+        val hasFemininePratyaya = context.terms.any {
+            it.kind == TermKind.PRATYAYA && it.upadesha != "अङ्"
+        }
+        return isTapRequested && !hasFemininePratyaya
     }
 
     override fun apply(context: DerivationState): DerivationChange {

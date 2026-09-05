@@ -33,7 +33,7 @@ object NandigrahipacadibhyoLyuninyacahSutra : Sutra<DerivationState, DerivationC
 
     private val selections = listOf(
         Selection(36, "ल्यु"),
-        Selection(37, "णिनि"),
+        Selection(37, "णिनिँ"),
         Selection(38, "अच्"),
     )
 
