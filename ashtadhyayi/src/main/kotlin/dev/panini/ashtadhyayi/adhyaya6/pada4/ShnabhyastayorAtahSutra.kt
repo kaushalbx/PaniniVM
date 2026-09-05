@@ -8,7 +8,6 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Varnamala
 import dev.panini.sutra.Sutra
@@ -37,8 +36,7 @@ object ShnabhyastayorAtahSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val shna = requireNotNull(shna(context))
         return DerivationChange(
-            context.replaceTerm(shna.id, shna.copy(surface = shna.surface.dropLast(1) + "्"))
-                .addSubstitution(VarnaSubstitution(shna.id, 'आ', "", sutra)),
+            context.substituteTermSurface(shna.id, shna.surface.dropLast(1) + "्", 'आ', "", sutra),
             "6.4.112 elides the ā of श्ना before a vowel-initial k/ṅ-it sārvadhātuka.",
         )
     }

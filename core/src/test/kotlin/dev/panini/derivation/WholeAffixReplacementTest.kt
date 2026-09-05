@@ -86,6 +86,13 @@ class WholeAffixReplacementTest {
         assertEquals("7.1.1", dropped.droppedBySutra)
     }
 
+    @Test fun `affix removal without a sutra is rejected`() {
+        val stem = DerivationTerm("stem", "राम", TermKind.PRATIPADIKA)
+        assertFailsWith<IllegalArgumentException> {
+            DerivationState(listOf(stem, designated)).removeTerm("affix")
+        }
+    }
+
     @Test fun `segment substitution preserves an exact unaffected designation and records provenance`() {
         val result = DerivationState(listOf(designated)).substituteTermSurface(
             id = "affix", surface = "इप्", source = 'अ', replacement = "इ", sutra = "x",

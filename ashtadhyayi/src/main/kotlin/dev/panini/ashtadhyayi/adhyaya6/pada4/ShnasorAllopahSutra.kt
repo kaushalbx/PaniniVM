@@ -7,7 +7,6 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Varnamala
 import dev.panini.sutra.Sutra
@@ -60,8 +59,7 @@ object ShnasorAllopahSutra : Sutra<DerivationState, DerivationChange>(
         val nIndex = requireNotNull(inherentAAfterInfixN(stem.surface))
         val replacement = stem.surface.substring(0, nIndex + 1) + "्" + stem.surface.substring(nIndex + 1)
         return DerivationChange(
-            context.replaceTerm(stem.id, stem.copy(surface = replacement))
-                .addSubstitution(VarnaSubstitution(stem.id, 'अ', "", sutra)),
+            context.substituteTermSurface(stem.id, replacement, 'अ', "", sutra),
             "6.4.111 deletes the inherent अ after the surviving न of श्नम् before a k/ṅ-it sārvadhātuka ending.",
         )
     }
