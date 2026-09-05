@@ -6,7 +6,6 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.SamjnaAssignment
 import dev.panini.derivation.TermKind
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -57,10 +56,9 @@ object EngiPararupamSutra : Sutra<DerivationState, DerivationChange>(
         val newSurface = prefix.surface.dropLast(1) + replacement + root.surface.drop(1)
 
         return DerivationChange(
-            state = context.copy(
-                terms = terms.dropLast(2) + prefix.copy(surface = newSurface),
-                stage = DerivationStage.ANGAKARYA
-            ).addSubstitution(VarnaSubstitution(prefix.id, prefix.surface.last(), replacement, sutra)),
+            state = context.mergeTermsByVarnaSubstitution(
+                prefix.id, root.id, newSurface, prefix.surface.last(), replacement, sutra,
+            ).copy(stage = DerivationStage.ANGAKARYA),
             explanation = "6.1.94: Pararūpa substitution ($replacement) for prefix-a + root-e/o."
         )
     }

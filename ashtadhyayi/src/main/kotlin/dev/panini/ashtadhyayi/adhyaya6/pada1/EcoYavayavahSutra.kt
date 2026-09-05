@@ -6,7 +6,6 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
@@ -68,22 +67,18 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
                 val base = leftTerm.surface.dropLast(1)
                 val s1 = concatDevanagari(base, replacement)
                 val newSurface = concatDevanagari(s1, rightTerm.surface)
-                val mergedTerm = leftTerm.copy(
-                    surface = newSurface,
-                    sthaniProps = leftTerm.sthaniProps ?: rightTerm.sthaniProps
-                )
-                val newTerms = context.terms.subList(0, i) + mergedTerm + context.terms.subList(i + 2, context.terms.size)
                 val newSamjnas = context.samjnas.map {
                     if (it.targetId == rightTerm.id && it.samjna != Samjna.PRATYAYA) it.copy(targetId = leftTerm.id) else it
                 }.toSet()
+                val merged = context.mergeTermsByVarnaSubstitution(
+                    leftTerm.id, rightTerm.id, newSurface, leftChar, replacement, sutra,
+                ).copy(stage = DerivationStage.PADA_FORMED, samjnas = newSamjnas)
+                val survivor = merged.terms.single { it.id == leftTerm.id }
 
                 return DerivationChange(
-                    state = context.copy(
-                        terms = newTerms,
-                        droppedTerms = context.droppedTerms + dev.panini.derivation.dropTermWithLifecycle(rightTerm, sutra),
-                        stage = DerivationStage.PADA_FORMED,
-                        samjnas = newSamjnas
-                    ).addSubstitution(VarnaSubstitution(leftTerm.id, leftChar, replacement, sutra)),
+                    state = merged.replaceTerm(
+                        leftTerm.id, survivor.copy(sthaniProps = leftTerm.sthaniProps ?: rightTerm.sthaniProps),
+                    ),
                     explanation = "6.1.78: substituted $replacement for $leftChar before vowel."
                 )
             }

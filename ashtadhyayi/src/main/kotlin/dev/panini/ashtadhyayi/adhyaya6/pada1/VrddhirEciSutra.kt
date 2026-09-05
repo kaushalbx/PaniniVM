@@ -64,13 +64,11 @@ object VrddhirEciSutra : Sutra<DerivationState, DerivationChange>(
                 'ओ', 'औ' -> "औ"
                 else -> error("Unsupported ec vowel in ${root.surface}")
             }
-            val newRoot = root.copy(surface = substitute + root.surface.drop(1))
+            val newSurface = substitute + root.surface.drop(1)
             return DerivationChange(
-                state = context.copy(
-                    terms = terms.take(index) + newRoot + terms.drop(index + 2),
-                    droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(augment, sutra),
-                    stage = DerivationStage.PADA_FORMED,
-                ).addSubstitution(VarnaSubstitution(root.id, root.surface.first(), substitute, sutra)),
+                state = context.mergeTermsByVarnaSubstitution(
+                    root.id, augment.id, newSurface, root.surface.first(), substitute, sutra,
+                ).copy(stage = DerivationStage.PADA_FORMED),
                 explanation = "6.1.88: Vṛddhi substitution ($substitute) for augment अ + ${root.surface.first()}.",
             )
         }
@@ -95,11 +93,9 @@ object VrddhirEciSutra : Sutra<DerivationState, DerivationChange>(
         }
 
         return DerivationChange(
-            state = context.copy(
-                terms = terms.dropLast(2) + leftTerm.copy(surface = newSurface),
-                droppedTerms = context.droppedTerms + dev.panini.derivation.dropTermWithLifecycle(terms.last(), sutra),
-                stage = DerivationStage.PADA_FORMED
-            ).addSubstitution(VarnaSubstitution(leftTerm.id, leftChar, substitute, sutra)),
+            state = context.mergeTermsByVarnaSubstitution(
+                leftTerm.id, rightTerm.id, newSurface, leftChar, substitute, sutra,
+            ).copy(stage = DerivationStage.PADA_FORMED),
             explanation = "6.1.88: Vṛddhi substitution ($substitute) for $leftChar + $rightChar."
         )
     }

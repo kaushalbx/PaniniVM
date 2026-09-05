@@ -96,11 +96,9 @@ object IkoYanAciSutra : Sutra<DerivationState, DerivationChange>(
         val mergedSurface = merge(newLeftSurface, rightTerm.surface)
 
         return DerivationChange(
-            state = context.copy(
-                terms = terms.take(leftIndex) + leftTerm.copy(surface = mergedSurface) + terms.drop(rightIndex + 1),
-                droppedTerms = context.droppedTerms + dev.panini.derivation.dropTermWithLifecycle(rightTerm, sutra),
-                stage = DerivationStage.PADA_FORMED
-            ).addSubstitution(VarnaSubstitution(leftTerm.id, leftVowel, replacement, sutra)),
+            state = context.mergeTermsByVarnaSubstitution(
+                leftTerm.id, rightTerm.id, mergedSurface, leftVowel, replacement, sutra,
+            ).copy(stage = DerivationStage.PADA_FORMED),
             explanation = "6.1.77: substituted $replacement for $leftVowel before vowel and merged terms."
         )
     }

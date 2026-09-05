@@ -6,7 +6,6 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -80,21 +79,18 @@ object AtoGuneSutra : Sutra<DerivationState, DerivationChange>(
             stem.surface.dropLast(1) + replacement + affix.surface.drop(1)
         }
 
-        val mergedTerm = stem.copy(
-            surface = newSurface,
-            sthaniProps = stem.sthaniProps ?: affix.sthaniProps
-        )
         val newSamjnas = context.samjnas.map {
             if (it.targetId == affix.id && it.samjna != Samjna.PRATYAYA) it.copy(targetId = stem.id) else it
         }.toSet()
+        val merged = context.mergeTermsByVarnaSubstitution(
+            stem.id, affix.id, newSurface, 'अ', replacement, sutra,
+        ).copy(stage = DerivationStage.ANGAKARYA, samjnas = newSamjnas)
+        val survivingStem = merged.terms.single { it.id == stem.id }
 
         return DerivationChange(
-            state = context.copy(
-                terms = terms.take(pairIndex) + mergedTerm + terms.drop(pairIndex + 2),
-                droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(affix, sutra),
-                stage = DerivationStage.ANGAKARYA,
-                samjnas = newSamjnas
-            ).addSubstitution(VarnaSubstitution(stem.id, 'अ', replacement, sutra)),
+            state = merged.replaceTerm(
+                stem.id, survivingStem.copy(sthaniProps = stem.sthaniProps ?: affix.sthaniProps),
+            ),
             explanation = "6.1.97: Pararūpa substitution ($replacement) for a + $firstChar."
         )
     }
