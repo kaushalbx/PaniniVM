@@ -893,6 +893,7 @@ class TingantaEngineTest {
         )
 
         assertEquals("तारिषत्", result.final.surface)
+        assertTrue(result.final.substitutions.any { it.sutra == "3.1.34" })
         assertTrue(result.applications.map { it.sutra }.containsAll(
             setOf("3.1.34", "1.3.2", "1.3.3", "1.3.9", "3.4.94", "7.2.35", "8.3.59")
         ))

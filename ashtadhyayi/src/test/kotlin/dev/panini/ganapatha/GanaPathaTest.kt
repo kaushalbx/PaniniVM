@@ -457,6 +457,7 @@ class GanaPathaTest {
         val kalyanyadiResult = KalyanyadinamInangSutra.apply(kalyanyadi).state
         assertEquals("कल्याणिन्", kalyanyadiResult.terms.first().surface)
         assertEquals("ढक्", kalyanyadiResult.terms.last().upadesha)
+        assertEquals("4.1.126", kalyanyadiResult.substitutions.single().sutra)
 
         val lohitadi = DerivationState(
             listOf(DerivationTerm("stem", "लोहित", TermKind.PRATIPADIKA)),
@@ -477,6 +478,7 @@ class GanaPathaTest {
         val bhrshadiResult = BhrshadibhyoBhuvyacverLopashCaHalahSutra.apply(bhrshadi).state
         assertEquals("सुमन", bhrshadiResult.terms.first().surface)
         assertEquals("क्यङ्", bhrshadiResult.terms.last().upadesha)
+        assertEquals("3.1.12", bhrshadiResult.substitutions.single().sutra)
 
         val sukhadi = pratipadikaState("सुख", meaning = DerivationalMeaning.KARTR_VEDANA)
         assertEquals("क्यङ्", SukhadibhyoKartrvedanayamSutra.apply(sukhadi).state.terms.last().upadesha)
@@ -584,5 +586,6 @@ class GanaPathaTest {
         val vakinadiResult = VakinadinamKukCaSutra.apply(vakinadi).state
         assertEquals("वाकिनक", vakinadiResult.terms.first().surface)
         assertEquals("फिञ्", vakinadiResult.terms.last().upadesha)
+        assertEquals("4.1.158", vakinadiResult.substitutions.single().sutra)
     }
 }

@@ -31,11 +31,14 @@ object KalyanyadinamInangSutra : Sutra<DerivationState, DerivationChange>(
             context.allEffectiveTerms.none { it.upadesha == "ढक्" }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val replacements = bases(context).associate { term ->
-            term.id to term.copy(surface = term.surface.dropLast(1) + "िन्")
+        var state = context
+        bases(context).forEach { term ->
+            state = state.substituteTermSurface(
+                term.id, term.surface.dropLast(1) + "िन्", term.surface.last(), "िन्", sutra,
+            )
         }
         return DerivationChange(
-            context.copy(terms = context.terms.map { replacements[it.id] ?: it })
+            state
                 .addTerm(DerivationTerm(
                     "kalyanyadi-dhak-suffix", "ढक्", TermKind.PRATYAYA, upadesha = "ढक्",
                     createdBySutra = sutra,

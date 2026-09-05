@@ -7,6 +7,7 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.ItDesignationRemap
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.VarnaSubstitution
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -82,11 +83,11 @@ object ItasCaSutra : Sutra<DerivationState, DerivationChange>(
                 newSurface,
                 sutra,
                 dev.panini.derivation.WholeAffixDesignationPolicy.PreserveAndRemap(remaps),
-            )
+            ).addSubstitution(VarnaSubstitution(lastTerm.id, 'ि', "", sutra))
         } else {
             // When 7.1.3 has already joined the jhi outcome to the aṅga,
             // this is a varṇa operation on that aṅga rather than an affix replacement.
-            context.replaceTerm(lastTerm.id, lastTerm.copy(surface = newSurface))
+            context.substituteTermSurface(lastTerm.id, newSurface, 'ि', "", sutra)
         }
         return DerivationChange(
             state = replaced.copy(stage = DerivationStage.PADA_FORMED),

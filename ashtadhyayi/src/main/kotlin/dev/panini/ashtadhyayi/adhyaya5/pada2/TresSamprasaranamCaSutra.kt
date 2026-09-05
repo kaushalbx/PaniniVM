@@ -31,9 +31,9 @@ object TresSamprasaranamCaSutra : Sutra<DerivationState, DerivationChange>(
             upadesha = "तीय",
             createdBySutra = sutra,
         )
-        val changedBase = target.copy(surface = "तृ")
+        val changed = context.substituteTermSurface(target.id, "तृ", 'ि', "ृ", sutra)
         return DerivationChange(
-            context.replaceTerm(target.id, changedBase).copy(terms = listOf(changedBase, tiya)),
+            changed.addTerm(tiya),
             "$text: त्रि का सम्प्रसारण तृ और तीय प्रत्यय।",
         )
     }
