@@ -66,8 +66,7 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
                 term.surface.endsWith("ु") && context.samjnas.any { it.targetId == term.id && it.samjna == dev.panini.shiksha.Samjna.SANKHYA }
             }
             if (target != null) return DerivationChange(
-                state = context.replaceTerm(target.id, target.copy(surface = target.surface.dropLast(1) + "ो"))
-                    .addSubstitution(VarnaSubstitution(target.id, 'ु', "ो", sutra)),
+                state = context.substituteTermSurface(target.id, target.surface.dropLast(1) + "ो", 'ु', "ो", sutra),
                 explanation = "6.1.87: Guṇa substitution ओ for अ + उ from रुँ."
             )
         }

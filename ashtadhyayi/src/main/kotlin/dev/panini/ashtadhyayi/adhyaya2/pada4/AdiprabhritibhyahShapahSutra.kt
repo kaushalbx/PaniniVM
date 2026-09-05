@@ -35,7 +35,7 @@ object AdiprabhritibhyahShapahSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val shap = context.terms.first { it.upadesha == "शप्" }
         return DerivationChange(
-            context.replaceTerm(shap.id, shap.copy(deletionType = LopaType.LUK)).removeTerm(shap.id),
+            context.replaceTerm(shap.id, shap.copy(deletionType = LopaType.LUK)).removeTerm(shap.id, sutra),
             "2.4.72 applies LUK to शप् after an Adādi root.",
         )
     }

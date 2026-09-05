@@ -63,7 +63,7 @@ object HalngyabbhyoSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
         return DerivationChange(
-            state = context.removeTerm(affix.id).copy(stage = DerivationStage.FINAL),
+            state = context.removeTerm(affix.id, sutra).copy(stage = DerivationStage.FINAL),
             explanation = "6.1.68: Deleted the single-consonant affix after hal/ī/ā."
         )
     }

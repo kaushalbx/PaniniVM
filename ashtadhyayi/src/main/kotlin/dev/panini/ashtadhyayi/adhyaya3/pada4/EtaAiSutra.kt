@@ -42,7 +42,7 @@ object EtaAiSutra : Sutra<DerivationState, DerivationChange>(
             dev.panini.derivation.WholeAffixDesignationPolicy.PreserveAndRemap(emptyList()),
         )
         return DerivationChange(
-            replaced.removeTerm("lot-at-agama"),
+            replaced.removeTerm("lot-at-agama", sutra),
             "3.4.93 replaces the ending's ए with ऐ in the LOT first person.",
         )
     }

@@ -3,7 +3,6 @@ package dev.panini.ashtadhyayi.adhyaya6.pada4
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.core.Lakara
 import dev.panini.core.PadaType
 import dev.panini.shiksha.Varnamala
@@ -33,8 +32,7 @@ object IHalyaghohSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val shna = requireNotNull(shna(context))
         return DerivationChange(
-            context.replaceTerm(shna.id, shna.copy(surface = shna.surface.dropLast(1) + "ी"))
-                .addSubstitution(VarnaSubstitution(shna.id, 'आ', "ई", sutra)),
+            context.substituteTermSurface(shna.id, shna.surface.dropLast(1) + "ी", 'आ', "ई", sutra),
             "6.4.113 substitutes ī for the ā of श्ना before a consonant-initial k/ṅ-it sārvadhātuka.",
         )
     }

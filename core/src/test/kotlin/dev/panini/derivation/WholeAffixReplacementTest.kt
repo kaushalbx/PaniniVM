@@ -75,4 +75,30 @@ class WholeAffixReplacementTest {
         assertEquals(emptyList(), result.itDesignations)
         assertEquals(setOf(ItMarker.P), result.sthaniProps?.itMarkers)
     }
+
+    @Test fun `removeTerm consumes affix designations through the lifecycle`() {
+        val stem = DerivationTerm("stem", "राम", TermKind.PRATIPADIKA)
+        val result = DerivationState(listOf(stem, designated)).removeTerm("affix", "7.1.1")
+        val dropped = result.droppedTerms.single()
+        assertEquals(ItProcessingPhase.PROCESSED, dropped.itProcessingPhase)
+        assertEquals(emptyList(), dropped.itDesignations)
+        assertEquals(setOf(ItMarker.P), dropped.sthaniProps?.itMarkers)
+        assertEquals("7.1.1", dropped.droppedBySutra)
+    }
+
+    @Test fun `segment substitution preserves an exact unaffected designation and records provenance`() {
+        val result = DerivationState(listOf(designated)).substituteTermSurface(
+            id = "affix", surface = "इप्", source = 'अ', replacement = "इ", sutra = "x",
+        )
+        assertEquals("प्", result.terms.single().itDesignations.single().designatedText)
+        assertEquals(VarnaSubstitution("affix", 'अ', "इ", "x"), result.substitutions.single())
+    }
+
+    @Test fun `segment substitution cannot stale an exact designation`() {
+        assertFailsWith<IllegalArgumentException> {
+            DerivationState(listOf(designated)).substituteTermSurface(
+                id = "affix", surface = "इ", source = 'प', replacement = "", sutra = "x",
+            )
+        }
+    }
 }

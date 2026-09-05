@@ -107,6 +107,33 @@ class DerivationState(
     fun replaceTerm(id: String, replacement: DerivationTerm): DerivationState =
         copy(terms = terms.map { if (it.id == id) replacement else it })
 
+    /** Applies a segment-level phonological change and records its sūtra atomically. */
+    fun substituteTermSurface(
+        id: String,
+        surface: String,
+        source: Char,
+        replacement: String,
+        sutra: String,
+    ): DerivationState {
+        val term = terms.singleOrNull { it.id == id }
+            ?: error("Varṇa substitution $sutra requires exactly one term named $id.")
+        require(surface != term.surface) { "$sutra must change the surface of $id." }
+        require(term.itDesignations.all { designation ->
+            designation.endExclusive <= surface.length &&
+                surface.substring(designation.start, designation.endExclusive) == designation.designatedText
+        }) {
+            "$sutra would invalidate an exact it-designation on $id; use replaceWholeAffix with an explicit policy."
+        }
+        require(term.deferredItDesignations.all { designation ->
+            designation.endExclusive <= surface.length &&
+                surface.substring(designation.start, designation.endExclusive) == designation.designatedText
+        }) {
+            "$sutra would invalidate a deferred it-designation on $id; use replaceWholeAffix with an explicit policy."
+        }
+        return replaceTerm(id, term.copy(surface = surface))
+            .addSubstitution(VarnaSubstitution(id, source, replacement, sutra))
+    }
+
     /** Replaces an entire affix while making the fate of every exact it-designation explicit. */
     fun replaceWholeAffix(
         id: String,
@@ -141,13 +168,16 @@ class DerivationState(
 
     fun removeTerm(id: String, sutra: String? = null): DerivationState {
         val term = terms.find { it.id == id } ?: return this
+        require(sutra != null || term.kind !in affixKinds) {
+            "Removing affix $id requires a sūtra so its designations can be consumed explicitly."
+        }
         return copy(
             terms = terms.filter { it.id != id },
-            droppedTerms = droppedTerms + term.copy(
-                surface = "",
-                droppedBySutra = sutra,
-                originalSurfaceBeforeDrop = term.surface
-            )
+            droppedTerms = droppedTerms + if (sutra == null) {
+                term.copy(surface = "", originalSurfaceBeforeDrop = term.surface)
+            } else {
+                dropTermWithLifecycle(term, sutra)
+            },
         )
     }
 
@@ -250,6 +280,8 @@ class DerivationState(
         return "DerivationState(terms=$terms, droppedTerms=$droppedTerms, samjnas=$samjnas, stage=$stage, context=$context, activeAdhikaras=$activeAdhikaras, inheritedAnuvrtti=$inheritedAnuvrtti, blockedSutras=$blockedSutras, halantyamExemptTermIds=$halantyamExemptTermIds, varnaComparisons=$varnaComparisons, substitutions=$substitutions)"
     }
 }
+
+private val affixKinds = setOf(TermKind.PRATYAYA, TermKind.AGAMA, TermKind.AUGMENT)
 
 data class VarnaComparison(
     val leftTermId: String, val rightTermId: String,
