@@ -2,6 +2,8 @@ package dev.panini.derivation
 
 import dev.panini.ashtadhyayi.adhyaya2.pada4.YanoLukasSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada1.SanadyantaDhatavahSutra
+import dev.panini.ashtadhyayi.adhyaya3.pada1.KrdAtinSutra
+import dev.panini.ashtadhyayi.adhyaya3.pada4.SamanakartrkayohPurvakaleSutra
 import dev.panini.ashtadhyayi.adhyaya6.pada1.SanyAngasyaSutra
 import dev.panini.ashtadhyayi.adhyaya6.pada1.AdGunaSutra
 import dev.panini.ashtadhyayi.adhyaya6.pada4.YasyetiCaSutra
@@ -118,5 +120,25 @@ class AffixIdentityPredicateTest {
         assertTrue(dropped.deferredItDesignations.isEmpty())
         assertEquals("2.4.74", dropped.droppedBySutra)
         result.requireCompleteItProcessing()
+    }
+
+    @Test
+    fun `krt and upasarga decisions ignore suggestive term IDs`() {
+        val fakeTing = DerivationTerm("ting-looking", "अ", TermKind.PRATYAYA, upadesha = "घञ्")
+        assertTrue(KrdAtinSutra.matches(DerivationState(listOf(root, fakeTing))))
+
+        val realTing = DerivationTerm("ordinary", "ति", TermKind.PRATYAYA, upadesha = "तिप्")
+        val realSup = DerivationTerm("ordinary", "स्", TermKind.PRATYAYA, upadesha = "सुँ")
+        assertFalse(KrdAtinSutra.matches(DerivationState(listOf(root, realTing))))
+        assertFalse(KrdAtinSutra.matches(DerivationState(listOf(root, realSup))))
+
+        val fakePrefix = DerivationTerm("upasarga-looking", "अ", TermKind.PRATIPADIKA, upadesha = "नर")
+        val selected = SamanakartrkayohPurvakaleSutra.apply(
+            DerivationState(
+                terms = listOf(fakePrefix, root),
+                samjnas = setOf(SamjnaAssignment(root.id, Samjna.KTVA)),
+            ),
+        ).state.terms.last()
+        assertEquals("क्त्वा", selected.upadesha)
     }
 }

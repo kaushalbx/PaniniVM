@@ -41,7 +41,7 @@ object SamanakartrkayohPurvakaleSutra : Sutra<DerivationState, DerivationChange>
 
     override fun apply(context: DerivationState): DerivationChange {
         val hasUpasarga = context.samjnas.any { it.samjna == Samjna.UPASARGA } ||
-            context.terms.any { it.id.contains("upasarga") || it.upadesha in setOf("अनु", "सम्", "प्र", "उप") }
+            context.terms.any { it.upadesha in setOf("अनु", "सम्", "प्र", "उप") }
 
         val gerundTerm = if (hasUpasarga) {
             DerivationTerm(
