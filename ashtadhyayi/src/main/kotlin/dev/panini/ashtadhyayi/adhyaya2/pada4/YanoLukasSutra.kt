@@ -5,6 +5,7 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.WholeAffixDesignationPolicy
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -37,10 +38,14 @@ object YanoLukasSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val yanTerm = context.terms.first { it.upadesha == "यङ्" }
-        val newTerms = context.terms.filterNot { it.id == yanTerm.id }
+        val consumed = context.replaceWholeAffix(
+            id = yanTerm.id,
+            surface = "",
+            sutra = sutra,
+            policy = WholeAffixDesignationPolicy.Consume,
+        )
         return DerivationChange(
-            state = context.copy(
-                terms = newTerms,
+            state = consumed.removeTerm(yanTerm.id, sutra).copy(
                 stage = maxOf(context.stage, DerivationStage.ANGAKARYA),
             ),
             explanation = "2.4.74 performs luk-elision of यङ् affix."

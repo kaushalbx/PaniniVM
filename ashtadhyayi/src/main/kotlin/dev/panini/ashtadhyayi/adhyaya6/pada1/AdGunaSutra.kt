@@ -46,8 +46,7 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
             val rightTerm = context.terms[index + 1]
             if (rightTerm.upadesha == "इट्" && rightTerm.surface.endsWith("ट्")) return@any false
             val isTaddhita = "4.1.76" in context.activeAdhikaras ||
-                rightTerm.upadesha in setOf("अण्", "इञ्", "यञ्", "फक्", "ढक्", "वत्", "तसिल्", "त्रल्") ||
-                rightTerm.id.contains("apatya") || rightTerm.id.contains("taddhita")
+                rightTerm.upadesha in setOf("अण्", "इञ्", "यञ्", "फक्", "ढक्", "वत्", "तसिल्", "त्रल्")
             if (isTaddhita) return@any false
             val right = rightTerm.surface.firstOrNull() ?: return@any false
             val isA = dev.panini.shiksha.Varnamala.endsWithA(leftTerm.surface) ||
@@ -80,8 +79,7 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
                 !(terms[position].id == "shap" && terms.any { it.kind == TermKind.DHATU && it.gana == DhatuGana.ADADI }) &&
                 !(terms[position + 1].upadesha == "इट्" && terms[position + 1].surface.endsWith("ट्")) &&
                 !("4.1.76" in context.activeAdhikaras ||
-                    terms[position + 1].upadesha in setOf("अण्", "इञ्", "यञ्", "फक्", "ढक्", "वत्", "तसिल्", "त्रल्") ||
-                    terms[position + 1].id.contains("apatya") || terms[position + 1].id.contains("taddhita")) &&
+                    terms[position + 1].upadesha in setOf("अण्", "इञ्", "यञ्", "फक्", "ढक्", "वत्", "तसिल्", "त्रल्")) &&
                 !terms[position].surface.endsWith('न') &&
                 (position == 0 ||
                     !Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.EC, terms[position - 1].surface.lastOrNull() ?: return@first false) ||

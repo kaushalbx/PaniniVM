@@ -40,11 +40,9 @@ object YasyetiCaSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
 
         val isTaddhita = "4.1.76" in context.activeAdhikaras ||
-            affix.upadesha in setOf("अण्", "इञ्", "यञ्", "फक्", "ढक्", "वत्", "तसिल्", "त्रल्", "आयन्", "एय्", "ईन्", "ईय्", "इय्", "डट्", "तमट्", "तीयै", "टीयै", "डँ", "मयट्") ||
-            affix.id.contains("taddhita") || affix.id.contains("apatya") || affix.id.contains("purana") || affix.id.contains("sankhya")
+            affix.upadesha in setOf("अण्", "इञ्", "यञ्", "फक्", "ढक्", "वत्", "तसिल्", "त्रल्", "आयन्", "एय्", "ईन्", "ईय्", "इय्", "डट्", "तमट्", "तीयै", "टीयै", "डँ", "मयट्")
 
-        val isStriII = (affix.surface == "ई" || affix.surface == "ी" || affix.upadesha in setOf("ङीप्", "ङीष्", "ङीन्")) &&
-            (affix.id.contains("stri") || affix.id.contains("feminine"))
+        val isStriII = affix.upadesha in setOf("ङीप्", "ङीष्", "ङीन्")
 
         if (!isTaddhita && !isStriII) return false
 

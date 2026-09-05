@@ -33,8 +33,7 @@ object TaddhitesvAcamAdehSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         val pratyaya = context.terms.lastOrNull { it.kind == TermKind.PRATYAYA } ?: return false
         val isTaddhita = "4.1.76" in context.activeAdhikaras ||
-            pratyaya.upadesha in setOf("अण्", "इञ्", "यञ्", "फक्", "ढक्", "वत्", "तसिल्", "त्रल्", "आयन्", "एय्", "ईन्", "ईय्", "इय्") ||
-            pratyaya.id.contains("taddhita") || pratyaya.id.contains("apatya")
+            pratyaya.upadesha in setOf("अण्", "इञ्", "यञ्", "फक्", "ढक्", "वत्", "तसिल्", "त्रल्", "आयन्", "एय्", "ईन्", "ईय्", "इय्")
         if (!isTaddhita) return false
 
         val isNgitOrNit = pratyaya.hasEffectiveMarker(ItMarker.NYIT) ||
