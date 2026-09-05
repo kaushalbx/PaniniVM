@@ -54,7 +54,7 @@ object LatahSatrsanacauSutra : Sutra<DerivationState, DerivationChange>(
                 id = "satr_pratyaya",
                 surface = "शतृँ",
                 kind = TermKind.PRATYAYA,
-                upadesha = "शतृ",
+                upadesha = "शतृँ",
                 createdBySutra = sutra,
                 itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
             )

@@ -26,12 +26,12 @@ object LatahSatriShanacauSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean =
         context.effectiveContext.rupa.lakara == Lakara.LAT &&
         context.effectiveContext.requestedMeaning != null &&
-        context.allEffectiveTerms.none { it.upadesha in setOf("शतृ", "शानच्") }
+        context.allEffectiveTerms.none { it.upadesha in setOf("शतृँ", "शानच्") }
 
     override fun apply(context: DerivationState): DerivationChange {
         val satri = DerivationTerm(
             "satri", "शतृँ", TermKind.PRATYAYA,
-            upadesha = "शतृ", createdBySutra = sutra,
+            upadesha = "शतृँ", createdBySutra = sutra,
             itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
         )
         return DerivationChange(

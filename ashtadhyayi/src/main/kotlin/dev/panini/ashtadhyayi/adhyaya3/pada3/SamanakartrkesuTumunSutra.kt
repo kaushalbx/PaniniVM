@@ -44,7 +44,7 @@ object SamanakartrkesuTumunSutra : Sutra<DerivationState, DerivationChange>(
             id = "tumun_pratyaya",
             surface = "तुमुँन्",
             kind = TermKind.PRATYAYA,
-            upadesha = "तुमुन्",
+            upadesha = "तुमुँन्",
             createdBySutra = sutra,
             itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
         )

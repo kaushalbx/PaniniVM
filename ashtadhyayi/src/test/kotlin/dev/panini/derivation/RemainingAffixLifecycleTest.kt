@@ -2,6 +2,7 @@ package dev.panini.derivation
 
 import dev.panini.ashtadhyayi.adhyaya1.pada1.AdyantauTakitauSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada1.MidacoAntyatParahSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada1.NisthaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.HalantyamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.ChutuSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.LasakvataddhiteSutra
@@ -15,6 +16,8 @@ import dev.panini.ashtadhyayi.adhyaya3.pada1.KryadibhyahShnaSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada2.LatahSatrsanacauSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada3.ShidbhidadibhyoAngSutra
 import dev.panini.ashtadhyayi.adhyaya4.pada1.AjadyatasTapSutra
+import dev.panini.ashtadhyayi.adhyaya5.pada2.TadasyastyasminnitiMatupSutra
+import dev.panini.ashtadhyayi.adhyaya6.pada1.HrasvasyaPitiKrtiTukSutra
 import dev.panini.ashtadhyayi.adhyaya6.pada1.VerAprktasyaSutra
 import dev.panini.ashtadhyayi.adhyaya6.pada4.ShnasorAllopahSutra
 import dev.panini.ashtadhyayi.adhyaya6.pada4.ShnabhyastayorAtahSutra
@@ -23,6 +26,7 @@ import dev.panini.ashtadhyayi.adhyaya7.pada2.AaneMukSutra
 import dev.panini.ashtadhyayi.adhyaya7.pada1.YuvoranakauSutra
 import dev.panini.ashtadhyayi.adhyaya7.pada3.ThasyaIkahSutra
 import dev.panini.core.DhatuGana
+import dev.panini.core.ItMarker
 import dev.panini.core.Linga
 import dev.panini.shiksha.Samjna
 import kotlin.test.Test
@@ -30,6 +34,48 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class RemainingAffixLifecycleTest {
+    @Test
+    fun `annotated ktavatu matup and tuk retain raw identity and introducing provenance`() {
+        val root = DerivationTerm("dhatu", "कृ", TermKind.DHATU)
+        val ktavatu = NisthaSutra.apply(
+            DerivationState(
+                terms = listOf(root),
+                samjnas = setOf(SamjnaAssignment(root.id, Samjna.KTAVATU)),
+            ),
+        ).state.terms.last()
+        assertRawIntroduction(ktavatu, "क्तवतुँ", "1.1.26")
+
+        val stem = DerivationTerm("stem", "धन", TermKind.PRATIPADIKA)
+        val matup = TadasyastyasminnitiMatupSutra.apply(
+            DerivationState(
+                terms = listOf(stem),
+                samjnas = setOf(SamjnaAssignment(stem.id, Samjna.MATUP)),
+            ),
+        ).state.terms.last()
+        assertRawIntroduction(matup, "मतुँप्", "5.2.94")
+
+        val lyap = DerivationTerm(
+            "lyap",
+            "य",
+            TermKind.PRATYAYA,
+            upadesha = "ल्यप्",
+            itMarkers = setOf(ItMarker.P),
+        )
+        val tuk = HrasvasyaPitiKrtiTukSutra.apply(DerivationState(terms = listOf(root, lyap))).state
+            .terms.first { it.id == "tuk_agama" }
+        assertRawIntroduction(tuk, "तुँक्", "6.1.71")
+
+        for ((raw, expected) in listOf(ktavatu to "तवत्", matup to "मत्", tuk to "त्")) {
+            var state = DerivationState(terms = listOf(raw))
+            if (LasakvataddhiteSutra.matches(state)) state = LasakvataddhiteSutra.apply(state).state
+            if (UpadesheAjanunasikaItSutra.matches(state)) state = UpadesheAjanunasikaItSutra.apply(state).state
+            if (HalantyamSutra.matches(state)) state = HalantyamSutra.apply(state).state
+            state = TasyaLopahSutra.apply(state).state
+            assertEquals(expected, state.surface)
+            state.requireCompleteItProcessing()
+        }
+    }
+
     @Test
     fun `3 3 104 ang reaches feminine aa through fresh tap`() {
         val stem = DerivationTerm("stem", "विदा", TermKind.PRATIPADIKA)
@@ -159,6 +205,7 @@ class RemainingAffixLifecycleTest {
         val satrState = DerivationState(listOf(root), samjnas = setOf(SamjnaAssignment(root.id, Samjna.SATR)))
         val rawSatr = LatahSatrsanacauSutra.apply(satrState).state.terms.last()
         assertEquals("शतृँ", rawSatr.surface)
+        assertEquals("शतृँ", rawSatr.upadesha)
         assertEquals("3.2.124", rawSatr.createdBySutra)
         assertEquals(ItProcessingPhase.RAW_UPADESHA, rawSatr.itProcessingPhase)
 
@@ -247,4 +294,11 @@ class RemainingAffixLifecycleTest {
         createdBySutra = source,
         itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
     )
+
+    private fun assertRawIntroduction(term: DerivationTerm, upadesha: String, sutra: String) {
+        assertEquals(upadesha, term.surface)
+        assertEquals(upadesha, term.upadesha)
+        assertEquals(sutra, term.createdBySutra)
+        assertEquals(ItProcessingPhase.RAW_UPADESHA, term.itProcessingPhase)
+    }
 }

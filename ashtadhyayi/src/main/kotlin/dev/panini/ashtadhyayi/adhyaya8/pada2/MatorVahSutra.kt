@@ -29,7 +29,7 @@ object MatorVahSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        val matupTerm = context.terms.firstOrNull { it.upadesha == "मतुप्" || it.id.contains("matup") } ?: return false
+        val matupTerm = context.terms.firstOrNull { it.upadesha == "मतुँप्" } ?: return false
         val stemTerm = context.terms.firstOrNull { it.kind == TermKind.PRATIPADIKA } ?: return false
         return matupTerm.surface == "मत्" && isAdantaOrM(stemTerm.surface)
     }
@@ -42,7 +42,7 @@ object MatorVahSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val matupTerm = context.terms.first { it.upadesha == "मतुप्" || it.id.contains("matup") }
+        val matupTerm = context.terms.first { it.upadesha == "मतुँप्" }
         val updatedTerm = matupTerm.copy(surface = "वत्")
         return DerivationChange(
             state = context.replaceTerm(matupTerm.id, updatedTerm).copy(

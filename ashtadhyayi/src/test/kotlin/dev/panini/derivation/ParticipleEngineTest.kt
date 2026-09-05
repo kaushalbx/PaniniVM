@@ -34,6 +34,11 @@ class ParticipleEngineTest {
         val res = engine.derive(ParticipleDerivationRequest("भू", Samjna.KVASU))
         assertEquals("बभूवस्", res.final.surface)
         assertTrue(setOf("3.2.106", "6.1.8", "7.4.73", "8.4.54", "1.3.9").all { sutra -> res.applications.any { it.sutra == sutra } })
+        val introduced = res.applications.first { it.sutra == "3.2.106" }.after.terms.last()
+        assertEquals("क्वसुँ", introduced.surface)
+        assertEquals("क्वसुँ", introduced.upadesha)
+        assertEquals("3.2.106", introduced.createdBySutra)
+        assertEquals(ItProcessingPhase.RAW_UPADESHA, introduced.itProcessingPhase)
         res.final.requireCompleteItProcessing()
     }
 

@@ -91,7 +91,7 @@ class Batch10GerundInfinitiveMoodSutrasTest {
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVISYAT)
         )
         assertTrue(KalaSamayaVelashuTumunSutra.matches(state))
-        assertEquals("तुमुन्", KalaSamayaVelashuTumunSutra.apply(state).state.allEffectiveTerms.last().upadesha)
+        assertEquals("तुमुँन्", KalaSamayaVelashuTumunSutra.apply(state).state.allEffectiveTerms.last().upadesha)
     }
 
     @Test
@@ -124,7 +124,7 @@ class Batch10GerundInfinitiveMoodSutrasTest {
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVISYAT)
         )
         assertTrue(ShakaDhrshJnAGlaGhatRabhabhLabhaprakramitumunSutra.matches(state))
-        assertEquals("तुमुन्", ShakaDhrshJnAGlaGhatRabhabhLabhaprakramitumunSutra.apply(state).state.allEffectiveTerms.last().upadesha)
+        assertEquals("तुमुँन्", ShakaDhrshJnAGlaGhatRabhabhLabhaprakramitumunSutra.apply(state).state.allEffectiveTerms.last().upadesha)
     }
 
     @Test

@@ -53,7 +53,7 @@ object HrasvasyaPitiKrtiTukSutra : Sutra<DerivationState, DerivationChange>(
             id = "tuk_agama",
             surface = "तुँक्",
             kind = TermKind.AGAMA,
-            upadesha = "तुक्",
+            upadesha = "तुँक्",
             createdBySutra = sutra,
             itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
             augmentTargetId = context.terms[stemIndex].id,

@@ -44,7 +44,7 @@ object TadasyastyasminnitiMatupSutra : Sutra<DerivationState, DerivationChange>(
             id = "matup_pratyaya",
             surface = "मतुँप्",
             kind = TermKind.PRATYAYA,
-            upadesha = "मतुप्",
+            upadesha = "मतुँप्",
             createdBySutra = sutra,
             itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
         )

@@ -25,10 +25,10 @@ object KalaSamayaVelashuTumunSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean =
         context.effectiveContext.rupa.lakara == null &&
         context.effectiveContext.requestedMeaning == DerivationalMeaning.BHAVISYAT &&
-        context.allEffectiveTerms.none { it.upadesha == "तुमुन्" }
+        context.allEffectiveTerms.none { it.upadesha == "तुमुँन्" }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val tumun = DerivationTerm("tumun", "तुमुँन्", TermKind.PRATYAYA, upadesha = "तुमुन्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
+        val tumun = DerivationTerm("tumun", "तुमुँन्", TermKind.PRATYAYA, upadesha = "तुमुँन्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
         return DerivationChange(
             state = context.addTerm(tumun),
             explanation = "3.3.167 prescribes तुमुन् infinitive affix.",

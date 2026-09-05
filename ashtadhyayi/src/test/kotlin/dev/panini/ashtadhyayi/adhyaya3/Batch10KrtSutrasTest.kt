@@ -89,7 +89,7 @@ class Batch10KrtSutrasTest {
         )
         val result = DerivationEngine(listOf(LatahSatriShanacauSutra)).derive(state)
         assertTrue(result.applications.any { it.sutra == "3.2.124" })
-        assertEquals("शतृ", result.final.allEffectiveTerms.last().upadesha)
+        assertEquals("शतृँ", result.final.allEffectiveTerms.last().upadesha)
     }
 
     @Test
@@ -100,7 +100,7 @@ class Batch10KrtSutrasTest {
         )
         val result = DerivationEngine(listOf(LaksanaghetvohKriyahSutra)).derive(state)
         assertTrue(result.applications.any { it.sutra == "3.2.126" })
-        assertEquals("शतृ", result.final.allEffectiveTerms.last().upadesha)
+        assertEquals("शतृँ", result.final.allEffectiveTerms.last().upadesha)
     }
 
     @Test

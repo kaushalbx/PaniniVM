@@ -24,7 +24,7 @@ object KrtTaddhitaSamasascaSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun matches(context: DerivationState): Boolean =
         (context.samjnas.any { it.samjna == Samjna.SAMASA } ||
-         context.allEffectiveTerms.any { it.upadesha in setOf("घञ्", "तव्यत्", "अनीयर", "यत", "क्त", "तुमुन्", "क्त्वा") }) &&
+         context.allEffectiveTerms.any { it.upadesha in setOf("घञ्", "तव्यत्", "अनीयर", "यत", "क्त", "तुमुँन्", "क्त्वा") }) &&
         context.samjnas.none { it.samjna == Samjna.PRATIPADIKA }
 
     override fun apply(context: DerivationState): DerivationChange {

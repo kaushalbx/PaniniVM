@@ -44,7 +44,7 @@ object LitahKvasuSutra : Sutra<DerivationState, DerivationChange>(
             id = "kvasu_pratyaya",
             surface = "क्वसुँ",
             kind = TermKind.PRATYAYA,
-            upadesha = "क्वसु",
+            upadesha = "क्वसुँ",
             createdBySutra = sutra,
             itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
         )
