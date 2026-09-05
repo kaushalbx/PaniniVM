@@ -6,7 +6,6 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -58,10 +57,10 @@ object VavasaneSutra : Sutra<DerivationState, DerivationChange>(
         }
 
         return DerivationChange(
-            state = context.replaceTerm(lastTerm.id, lastTerm.copy(surface = newSurface))
+            state = context.substituteTermSurface(lastTerm.id, newSurface, finalConsonant, substitute, sutra)
                 .copy(stage = DerivationStage.FINAL),
             explanation = "8.4.56: Optionally devoiced $finalConsonant to $substitute at avasāna."
-        ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(lastTerm.id, finalConsonant, substitute, sutra))) }
+        )
     }
 
     override fun applyAll(state: DerivationState): List<DerivationChange> = listOf(

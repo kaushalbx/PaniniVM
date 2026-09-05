@@ -5,7 +5,6 @@ import dev.panini.ashtadhyayi.adhyaya1.pada1.SthaneAntaratamahSutra
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Varnamala
 import dev.panini.sutra.Sutra
@@ -44,9 +43,9 @@ object KhariCaSutra : Sutra<DerivationState, DerivationChange>(
         val newSurface = leftTerm.surface.replaceRange(target.charIndex, target.charIndex + 1, substitute)
 
         return DerivationChange(
-            state = context.replaceTerm(leftTerm.id, leftTerm.copy(surface = newSurface)),
+            state = context.substituteTermSurface(leftTerm.id, newSurface, leftChar, substitute, sutra),
             explanation = "8.4.55: Devoiced $leftChar to $substitute before voiceless sound."
-        ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(leftTerm.id, leftChar, substitute, sutra))) }
+        )
     }
 
     private fun substituteFor(source: Char): String = when (source) {

@@ -53,7 +53,7 @@ object MonusvarahSutra : Sutra<DerivationState, DerivationChange>(
         val newSurface = left.surface.removeSuffix("म्") + Ayogavaha.ANUSVARA.devanagari
 
         return DerivationChange(
-            state = context.replaceTerm(left.id, left.copy(surface = newSurface)),
+            state = context.substituteTermSurface(left.id, newSurface, 'म', Ayogavaha.ANUSVARA.devanagari, sutra),
             explanation = "8.3.23: Final 'm' became Anusvāra before consonant."
         )
     }
@@ -112,7 +112,9 @@ object NashcapadantasyaSutra : Sutra<DerivationState, DerivationChange>(
         }
 
         return DerivationChange(
-            state = context.replaceTerm(targetTerm.id, targetTerm.copy(surface = newSurface)),
+            state = context.substituteTermSurface(
+                targetTerm.id, newSurface, charAt, Ayogavaha.ANUSVARA.devanagari, sutra,
+            ),
             explanation = "8.3.24: Internal '$charAt' became Anusvāra before jhal."
         )
     }

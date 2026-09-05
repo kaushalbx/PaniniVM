@@ -26,6 +26,7 @@ import dev.panini.ashtadhyayi.adhyaya7.pada2.AaneMukSutra
 import dev.panini.ashtadhyayi.adhyaya7.pada1.YuvoranakauSutra
 import dev.panini.ashtadhyayi.adhyaya7.pada1.HrasvanadyapoNutSutra
 import dev.panini.ashtadhyayi.adhyaya7.pada3.ThasyaIkahSutra
+import dev.panini.ashtadhyayi.adhyaya8.pada2.JhalamJashonteSutra
 import dev.panini.core.DhatuGana
 import dev.panini.core.ItMarker
 import dev.panini.core.Linga
@@ -35,6 +36,29 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class RemainingAffixLifecycleTest {
+    @Test
+    fun `8 2 39 remaps a designated final before 1 3 9 deletes that exact substitute`() {
+        val affix = DerivationTerm(
+            id = "affix",
+            surface = "अप्",
+            kind = TermKind.PRATYAYA,
+            upadesha = "अप्",
+            itProcessingPhase = ItProcessingPhase.DESIGNATED,
+            deferredItDesignations = listOf(
+                ItDesignation(1, 3, marker = ItMarker.P, sutra = "1.3.3", designatedText = "प्"),
+            ),
+        )
+        var state = JhalamJashonteSutra.apply(DerivationState(listOf(affix))).state
+        val voiced = state.terms.single()
+        assertEquals("अब्", voiced.surface)
+        assertEquals("ब्", voiced.deferredItDesignations.single().designatedText)
+        assertEquals("1.3.3", voiced.deferredItDesignations.single().sutra)
+
+        state = TasyaLopahSutra.apply(state).state
+        assertEquals("अ", state.surface)
+        state.requireCompleteItProcessing()
+    }
+
     @Test
     fun `7 1 54 introduces raw nut and exact it processing places its surviving n`() {
         val stem = DerivationTerm("stem", "राम", TermKind.PRATIPADIKA)

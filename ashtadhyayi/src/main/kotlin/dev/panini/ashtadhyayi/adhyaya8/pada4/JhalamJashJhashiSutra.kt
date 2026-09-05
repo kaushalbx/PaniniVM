@@ -5,7 +5,6 @@ import dev.panini.ashtadhyayi.adhyaya1.pada1.SthaneAntaratamahSutra
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -60,8 +59,7 @@ object JhalamJashJhashiSutra : Sutra<DerivationState, DerivationChange>(
         val newSurface = leftTerm.surface.replaceRange(leftIndex, leftIndex + 1, substitute)
 
         return DerivationChange(
-            state = context.replaceTerm(leftTerm.id, leftTerm.copy(surface = newSurface))
-                .addSubstitution(VarnaSubstitution(leftTerm.id, leftChar, substitute, sutra)),
+            state = context.substituteTermSurface(leftTerm.id, newSurface, leftChar, substitute, sutra),
             explanation = "8.4.53: Substituted voiced $substitute for $leftChar before ${rightTerm.surface.first()}."
         )
     }

@@ -39,7 +39,7 @@ object AdesapratyayayohSutra : Sutra<DerivationState, DerivationChange>(
         val term = findRetroflexTarget(context) ?: return DerivationChange(context, "8.3.59: No match found")
         val newSurface = term.surface.replace('स', 'ष')
         return DerivationChange(
-            state = context.replaceTerm(term.id, term.copy(surface = newSurface))
+            state = context.substituteTermSurface(term.id, newSurface, 'स', "ष", sutra)
                 .copy(stage = DerivationStage.FINAL),
             explanation = "8.3.59: Retroflexed 's' to 'ṣ' after Iṇ/Ku."
         )

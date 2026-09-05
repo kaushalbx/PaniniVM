@@ -4,7 +4,6 @@ import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Varnamala
 import dev.panini.sutra.Sutra
@@ -74,8 +73,8 @@ object VaPadantasyaSutra : Sutra<DerivationState, DerivationChange>(
         }
 
         return DerivationChange(
-            state = context.replaceTerm(targetTerm.id, targetTerm.copy(surface = newSurface)),
+            state = context.substituteTermSurface(targetTerm.id, newSurface, 'ं', replacement, sutra),
             explanation = "8.4.59: Replaced final Anusvāra with parasavarṇa '$replacement' before yay sound."
-        ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(targetTerm.id, 'ं', replacement, sutra))) }
+        )
     }
 }

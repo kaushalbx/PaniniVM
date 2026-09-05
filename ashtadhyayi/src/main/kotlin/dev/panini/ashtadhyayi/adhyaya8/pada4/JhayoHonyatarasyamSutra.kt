@@ -4,7 +4,6 @@ import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Varnamala
 import dev.panini.sutra.Sutra
@@ -73,8 +72,8 @@ object JhayoHonyatarasyamSutra : Sutra<DerivationState, DerivationChange>(
         }
 
         return DerivationChange(
-            state = context.replaceTerm(targetTerm.id, targetTerm.copy(surface = newSurface)),
+            state = context.substituteTermSurface(targetTerm.id, newSurface, 'ह', replacement, sutra),
             explanation = "8.4.62: Replaced 'h' with $replacement after jhay stop."
-        ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(targetTerm.id, 'ह', replacement, sutra))) }
+        )
     }
 }

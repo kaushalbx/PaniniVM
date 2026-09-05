@@ -7,7 +7,6 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Ayogavaha
 import dev.panini.sutra.Sutra
@@ -54,9 +53,8 @@ object KharavasanayorVisarjaniyahSutra : Sutra<DerivationState, DerivationChange
         }
 
         return DerivationChange(
-            state = context.replaceTerm(target.id, target.copy(surface = newSurface))
-                .copy(stage = DerivationStage.FINAL)
-                .addSubstitution(VarnaSubstitution(target.id, source, Ayogavaha.VISARGA.devanagari, number)),
+            state = context.substituteTermSurface(target.id, newSurface, source, Ayogavaha.VISARGA.devanagari, number)
+                .copy(stage = DerivationStage.FINAL),
             explanation = "8.3.15: Replaced final 'r' with visarga (Avasāna)."
         )
     }
