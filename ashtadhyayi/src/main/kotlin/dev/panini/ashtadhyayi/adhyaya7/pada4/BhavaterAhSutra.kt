@@ -32,7 +32,7 @@ object BhavaterAhSutra : Sutra<DerivationState, DerivationChange>(
         val substituted = abhyasa.surface
             .removeSuffix("उ").removeSuffix("ू").removeSuffix("ु")
         return DerivationChange(
-            context.replaceTerm(abhyasa.id, abhyasa.copy(surface = substituted)),
+            context.substituteTermSurface(abhyasa.id, substituted, 'उ', "अ", sutra),
             "7.4.73 replaces the final उ of the भू abhyāsa ${abhyasa.surface} with inherent अ in लिट्.",
         )
     }

@@ -40,11 +40,9 @@ object NtoAuoSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
         return DerivationChange(
-            state = context.copy(
-                terms = context.terms.dropLast(2) + stem.copy(surface = stem.surface.dropLast(2) + "ानौ"),
-                droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(affix, sutra),
-                stage = DerivationStage.FINAL,
-            ),
+            state = context.mergeTermsByVarnaSubstitution(
+                stem.id, affix.id, stem.surface.dropLast(2) + "ानौ", 'न', "आनौ", sutra,
+            ).copy(stage = DerivationStage.FINAL),
             explanation = "7.3.138: Formed the masculine n-stem dual नौ ending before ${affix.upadesha}.",
         )
     }

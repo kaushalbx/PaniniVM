@@ -52,7 +52,7 @@ object VasohSamprasaranamSutra : Sutra<DerivationState, DerivationChange>(
         val newSurface = stem.surface.replace("द्वस्", "दुष्")
 
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = newSurface))
+            state = context.substituteTermSurface(stem.id, newSurface, 'व', "उ", sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "6.4.131 & 8.3.59: Applied samprasāraṇa 'u' to 'vas' stem before weak vowel affix (becoming $newSurface)."
         )

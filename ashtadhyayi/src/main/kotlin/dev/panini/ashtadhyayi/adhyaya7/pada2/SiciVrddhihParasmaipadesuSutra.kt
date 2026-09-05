@@ -49,9 +49,9 @@ object SiciVrddhihParasmaipadesuSutra : Sutra<DerivationState, DerivationChange>
             stem.surface.startsWith("जि") || stem.surface.startsWith("जे") || stem.upadesha?.startsWith("जि") == true -> "जै"
             else -> stem.surface
         }
-        val updatedDhatu = stem.copy(surface = vrddhiSurface)
         return DerivationChange(
-            context.replaceTerm(stem.id, updatedDhatu).copy(stage = DerivationStage.ANGAKARYA),
+            context.substituteTermSurface(stem.id, vrddhiSurface, '∅', "वृद्धि", sutra)
+                .copy(stage = DerivationStage.ANGAKARYA),
             "7.2.1 applies Vṛddhi to root vowel before सिच् in Parasmaipada.",
         )
     }

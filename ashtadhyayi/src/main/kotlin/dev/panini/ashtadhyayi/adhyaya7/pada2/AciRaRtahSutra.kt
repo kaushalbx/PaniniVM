@@ -43,7 +43,7 @@ object AciRaRtahSutra : Sutra<DerivationState, DerivationChange>(
         val newSurface = stem.surface.dropLast(1) + "्र्"
 
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = newSurface))
+            state = context.substituteTermSurface(stem.id, newSurface, 'ऋ', "र्", sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.2.100: Replaced the final ऋ of '${stem.surface}' with र् before a vowel-initial case ending.",
         )

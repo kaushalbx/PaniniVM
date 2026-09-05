@@ -30,7 +30,7 @@ object KuhohCuhSutra : Sutra<DerivationState, DerivationChange>(
         val replacement = cuhSubstitutions.getValue(abhyasa.surface.first())
         val substituted = replacement + abhyasa.surface.drop(1)
         return DerivationChange(
-            context.replaceTerm(abhyasa.id, abhyasa.copy(surface = substituted)),
+            context.substituteTermSurface(abhyasa.id, substituted, abhyasa.surface.first(), replacement.toString(), sutra),
             "7.4.62 changes initial ${abhyasa.surface.first()} of the abhyāsa to $replacement.",
         )
     }

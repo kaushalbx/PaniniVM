@@ -33,9 +33,8 @@ object CheCaSutra : Sutra<DerivationState, DerivationChange>(
         val (termIndex, charIndex) = findMatch(context)!!
         val term = context.terms[termIndex]
         return DerivationChange(
-            state = context.replaceTerm(
-                term.id,
-                term.copy(surface = term.surface.replaceRange(charIndex, charIndex, "त्")),
+            state = context.substituteTermSurface(
+                term.id, term.surface.replaceRange(charIndex, charIndex, "त्"), '∅', "त्", sutra,
             ),
             explanation = "6.1.73 inserts तुक् after a short vowel before छ्.",
         )

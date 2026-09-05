@@ -47,11 +47,9 @@ object GherNgasyoSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
         return DerivationChange(
-            state = context.copy(
-                terms = context.terms.dropLast(2) + stem.copy(surface = stem.surface + "ऽः"),
-                droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(affix, sutra),
-                stage = DerivationStage.FINAL,
-            ),
+            state = context.mergeTermsByVarnaSubstitution(
+                stem.id, affix.id, stem.surface + "ऽः", '∅', "ऽः", sutra,
+            ).copy(stage = DerivationStage.FINAL),
             explanation = "7.3.125: Formed the singular Ghi ङसि/ङस् ending after guṇa.",
         )
     }

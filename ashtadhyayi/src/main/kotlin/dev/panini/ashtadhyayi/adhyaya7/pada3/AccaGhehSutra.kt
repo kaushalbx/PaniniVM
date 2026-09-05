@@ -51,7 +51,7 @@ object AccaGhehSutra : Sutra<DerivationState, DerivationChange>(
         val newAffixSurface = "औ"
 
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = newStemSurface))
+            state = context.substituteTermSurface(stem.id, newStemSurface, stem.surface.last(), "अ", sutra)
                 .replaceWholeAffix(affix.id, newAffixSurface, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume, upadesha = "औ")
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.119: Substituted 'a' for ghi-stem vowel and 'au' for 'ṅi'."

@@ -57,7 +57,7 @@ object TyadadinamAhSutra : Sutra<DerivationState, DerivationChange>(
         }
 
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = newSurface))
+            state = context.substituteTermSurface(stem.id, newSurface, '∅', "अ", sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.2.102: Substitutes 'a' for the final letter of tyadādi stem '$surface'."
         )

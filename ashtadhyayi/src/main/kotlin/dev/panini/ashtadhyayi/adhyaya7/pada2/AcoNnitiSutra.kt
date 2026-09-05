@@ -64,9 +64,8 @@ object AcoNnitiSutra : Sutra<DerivationState, DerivationChange>(
         val newSurface = stem.surface.dropLast(1) + replacement
 
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = newSurface))
-                .copy(stage = DerivationStage.ANGAKARYA)
-                .addSubstitution(VarnaSubstitution(stem.id, lastChar, replacement, sutra)),
+            state = context.substituteTermSurface(stem.id, newSurface, lastChar, replacement, sutra)
+                .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.2.115: Applied vṛddhi ($replacement) before ñit/ṇit affix."
         )
     }

@@ -91,7 +91,7 @@ object SarvanamasthaneCasambuddhauSutra : Sutra<DerivationState, DerivationChang
         }
 
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = newSurface))
+            state = context.substituteTermSurface(stem.id, newSurface, charToLengthen, "दीर्घ", sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "6.4.8: Lengthened the penultimate vowel of the 'n'-ending stem before Sarvanāmasthāna."
         )

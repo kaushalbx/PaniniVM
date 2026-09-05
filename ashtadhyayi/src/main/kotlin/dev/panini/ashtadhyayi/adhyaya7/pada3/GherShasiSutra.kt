@@ -53,13 +53,10 @@ object GherShasiSutra : Sutra<DerivationState, DerivationChange>(
             'ु' -> "ू"
             else -> error("GherShasiSutra matched a non-ik stem")
         }
-        val formed = stem.copy(surface = stem.surface.dropLast(1) + longVowel + "स्")
         return DerivationChange(
-            state = context.copy(
-                terms = context.terms.dropLast(2) + formed,
-                droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(affix, sutra),
-                stage = DerivationStage.PADA_FORMED,
-            ),
+            state = context.mergeTermsByVarnaSubstitution(
+                stem.id, affix.id, stem.surface.dropLast(1) + longVowel + "स्", stem.surface.last(), longVowel + "स्", sutra,
+            ).copy(stage = DerivationStage.PADA_FORMED),
             explanation = "7.3.124: Formed the lengthened Ghi base before masculine accusative-plural शस्.",
         )
     }

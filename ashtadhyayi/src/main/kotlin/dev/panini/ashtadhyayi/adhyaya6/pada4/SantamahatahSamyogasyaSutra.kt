@@ -55,15 +55,12 @@ object SantamahatahSamyogasyaSutra : Sutra<DerivationState, DerivationChange>(
             else -> stem.surface
         }
 
-        val newTerms = if (affix.id == "sup-su" || affix.upadesha == "सुँ") {
-            context.terms.dropLast(1)
-        } else {
-            context.terms
+        var state = context.substituteTermSurface(stem.id, newSurface, '∅', "दीर्घ", sutra)
+        if (affix.id == "sup-su" || affix.upadesha == "सुँ") {
+            state = state.removeTerm(affix.id, sutra = sutra)
         }
-
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = newSurface))
-                .copy(terms = newTerms.dropLast(1) + stem.copy(surface = newSurface), stage = DerivationStage.ANGAKARYA),
+            state = state.copy(stage = DerivationStage.ANGAKARYA),
             explanation = "6.4.10: Lengthened penultimate vowel of stem '${stem.surface}' before sarvanāmasthāna (becoming $newSurface)."
         )
     }

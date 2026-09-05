@@ -70,7 +70,7 @@ object EngahPadantadatiSutra : Sutra<DerivationState, DerivationChange>(
         val newRightSurface = "ऽ" + right.surface.drop(1)
 
         return DerivationChange(
-            state = context.replaceTerm(right.id, right.copy(surface = newRightSurface))
+            state = context.substituteTermSurface(right.id, newRightSurface, 'अ', "ऽ", sutra)
                 .copy(stage = DerivationStage.FINAL),
             explanation = "6.1.109: Pūrvarūpa substitution for final ${left.surface.last()} + अ."
         )

@@ -56,7 +56,7 @@ object HashiCaSutra : Sutra<DerivationState, DerivationChange>(
         val newSurface = left.surface.dropLast(2) + "ु"
 
         return DerivationChange(
-            state = context.replaceTerm(left.id, left.copy(surface = newSurface))
+            state = context.substituteTermSurface(left.id, newSurface, 'र', "उ", sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "6.1.114: Substituted 'u' for 'ru' before a voiced consonant."
         )

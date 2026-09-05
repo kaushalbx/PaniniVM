@@ -142,14 +142,15 @@ object TasmacChasoNahPumsiSutra : Sutra<DerivationState, DerivationChange>(
                 ).matches(context) &&
                 context.terms.lastOrNull()?.surface?.let { s -> s.endsWith("ास्") || s.endsWith("ीस्") || s.endsWith("ूस्") } == true
 
-    override fun apply(context: DerivationState): DerivationChange = DerivationChange(
-        state = context.copy(
-            terms = context.terms.dropLast(1) + context.terms.last()
-                .copy(surface = context.terms.last().surface.dropLast(2) + "न्"),
-            stage = DerivationStage.FINAL,
-        ),
-        explanation = "6.1.103 replaces final स् with न् after the lengthened stem in masculine accusative plural.",
-    )
+    override fun apply(context: DerivationState): DerivationChange {
+        val term = context.terms.last()
+        return DerivationChange(
+            state = context.substituteTermSurface(
+                term.id, term.surface.dropLast(2) + "न्", 'स', "न", sutra,
+            ).copy(stage = DerivationStage.FINAL),
+            explanation = "6.1.103 replaces final स् with न् after the lengthened stem in masculine accusative plural.",
+        )
+    }
 }
 
 object AmiPurvahSutra : Sutra<DerivationState, DerivationChange>(
@@ -174,10 +175,10 @@ object AmiPurvahSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         return DerivationChange(
-            context.copy(
-                terms = context.terms.dropLast(2) + stem.copy(surface = stem.surface + "म्"),
-                stage = DerivationStage.FINAL
-            ), "6.1.107 retains the preceding vowel before अम्."
+            context.mergeTermsByVarnaSubstitution(
+                stem.id, context.terms.last().id, stem.surface + "म्", 'अ', "", sutra,
+            ).copy(stage = DerivationStage.FINAL),
+            "6.1.107 retains the preceding vowel before अम्."
         )
     }
 }

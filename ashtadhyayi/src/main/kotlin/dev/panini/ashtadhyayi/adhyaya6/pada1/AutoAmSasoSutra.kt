@@ -46,11 +46,10 @@ object AutoAmSasoSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
 
         val newSurface = if (affix.id == "sup-am" || affix.upadesha == "अम्") "गाम्" else "गाः"
-        val newTerms = context.terms.dropLast(2) + stem.copy(surface = newSurface)
-
         return DerivationChange(
-            state = context.copy(terms = newTerms, stage = DerivationStage.ANGAKARYA)
-                .copy(droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(affix, sutra)),
+            state = context.mergeTermsByVarnaSubstitution(
+                stem.id, affix.id, newSurface, 'ओ', "आ", sutra,
+            ).copy(stage = DerivationStage.ANGAKARYA),
             explanation = "6.1.93: Merged o-stem with '${affix.surface}' into '$newSurface'."
         )
     }

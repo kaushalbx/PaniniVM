@@ -32,7 +32,7 @@ object HaladisSeshahSutra : Sutra<DerivationState, DerivationChange>(
         val abhyasa = context.terms.first { it.id == "abhyasa" }
         val shortened = shortenedAbhyasa(abhyasa.surface)
         return DerivationChange(
-            context.replaceTerm(abhyasa.id, abhyasa.copy(surface = shortened)),
+            context.substituteTermSurface(abhyasa.id, shortened, '∅', "हलादिशेष", sutra),
             "7.4.60 retains only the initial consonant of the abhyāsa ${abhyasa.surface}.",
         )
     }

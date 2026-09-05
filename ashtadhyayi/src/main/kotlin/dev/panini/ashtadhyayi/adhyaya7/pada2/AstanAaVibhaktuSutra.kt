@@ -47,7 +47,7 @@ object AstanAaVibhaktuSutra : Sutra<DerivationState, DerivationChange>(
         val replacement = "अष्टा"
 
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = replacement))
+            state = context.substituteTermSurface(stem.id, replacement, 'न', "आ", sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.2.84: Substituted 'aṣṭā' for '${stem.surface}' before case affix."
         )

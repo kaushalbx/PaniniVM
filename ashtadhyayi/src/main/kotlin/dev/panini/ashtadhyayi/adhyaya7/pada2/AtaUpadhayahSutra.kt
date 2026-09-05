@@ -46,10 +46,8 @@ object AtaUpadhayahSutra : Sutra<DerivationState, DerivationChange>(
         val stemIndex = context.terms.indexOfFirst { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         val stem = context.terms[stemIndex]
         val newSurface = applyPenultimateLengthening(stem.surface)
-        val newStem = stem.copy(surface = newSurface)
-        
         return DerivationChange(
-            state = context.replaceTerm(stem.id, newStem)
+            state = context.substituteTermSurface(stem.id, newSurface, 'अ', "आ", sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.2.116: Lengthened penultimate 'अ' in ${stem.surface} to 'आ' before ñit/ṇit suffix."
         )

@@ -61,16 +61,10 @@ object ErAnekacoAsamyogapurvasyaSutra : Sutra<DerivationState, DerivationChange>
             dhatu.surface.dropLast(1) + "य्"
         }
         val merged = yanStem.dropLast(1) + requireNotNull(vowelMatras[firstVowel]) + following.surface.drop(1)
-        val newTerms = context.terms.toMutableList().also {
-            it[dhatuIndex] = dhatu.copy(surface = merged)
-            it.removeAt(dhatuIndex + 1)
-        }
         return DerivationChange(
-            context.copy(
-                terms = newTerms,
-                droppedTerms = context.droppedTerms + dev.panini.derivation.dropTermWithLifecycle(following, sutra),
-                stage = DerivationStage.ANGAKARYA,
-            ),
+            context.mergeTermsByVarnaSubstitution(
+                dhatu.id, following.id, merged, dhatu.surface.last(), "य्", sutra,
+            ).copy(stage = DerivationStage.ANGAKARYA),
             "6.4.82 substitutes यण् for the non-conjunct-preceded final i-vowel of the many-vowel aṅga.",
         )
     }

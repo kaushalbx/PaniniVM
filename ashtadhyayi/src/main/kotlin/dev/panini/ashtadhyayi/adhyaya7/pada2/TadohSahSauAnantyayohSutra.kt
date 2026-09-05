@@ -48,7 +48,7 @@ object TadohSahSauAnantyayohSutra : Sutra<DerivationState, DerivationChange>(
         }
 
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = newSurface))
+            state = context.substituteTermSurface(stem.id, newSurface, 'त', "स", sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.2.106: Replaced non-final 't' with 's' before 'su'."
         )

@@ -60,7 +60,7 @@ object NasiNgasoshCaSutra : Sutra<DerivationState, DerivationChange>(
         val newRightSurface = "ऽ" + right.surface.drop(1)
 
         return DerivationChange(
-            state = context.replaceTerm(right.id, right.copy(surface = newRightSurface))
+            state = context.substituteTermSurface(right.id, newRightSurface, 'अ', "ऽ", sutra)
                 .copy(stage = DerivationStage.PADA_FORMED),
             explanation = "6.1.110: Pūrvarūpa substitution for final vowel + ङसि/ङस्."
         )

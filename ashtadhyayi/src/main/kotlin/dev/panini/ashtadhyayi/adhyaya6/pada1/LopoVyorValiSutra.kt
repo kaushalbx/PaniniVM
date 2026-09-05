@@ -91,7 +91,9 @@ object LopoVyorValiSutra : Sutra<DerivationState, DerivationChange>(
                 Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, right)
             ) {
                 return DerivationChange(
-                    context.replaceTerm(left.id, left.copy(surface = left.surface.dropLast(2))),
+                    context.substituteTermSurface(
+                        left.id, left.surface.dropLast(2), left.surface[left.surface.length - 2], "", sutra,
+                    ),
                     "6.1.66 deletes the final ${left.surface.takeLast(2)} before val.",
                 )
             }

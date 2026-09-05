@@ -41,10 +41,8 @@ object TreStrayahSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val purvapada = context.terms.first()
         val replacement = "त्रयस्"
-        val updatedTerm = purvapada.copy(surface = replacement)
-        val newTerms = listOf(updatedTerm) + context.terms.drop(1)
         return DerivationChange(
-            state = context.copy(terms = newTerms),
+            state = context.substituteTermSurface(purvapada.id, replacement, 'ि', "यस्", sutra),
             explanation = "$text: ${purvapada.surface} -> $replacement"
         )
     }

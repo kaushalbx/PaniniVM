@@ -48,11 +48,10 @@ object SavupadhayascaSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
-        val newTerms = context.terms.dropLast(2) + stem.copy(surface = "अनड्वान्")
-
         return DerivationChange(
-            state = context.copy(terms = newTerms, stage = DerivationStage.FINAL)
-                .copy(droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(affix, sutra)),
+            state = context.mergeTermsByVarnaSubstitution(
+                stem.id, affix.id, "अनड्वान्", '∅', "आन्", sutra,
+            ).copy(stage = DerivationStage.FINAL),
             explanation = "7.1.99 & 7.1.100: Derived 'anaḍvān' for 'anaḍuh' before nominative singular su."
         )
     }

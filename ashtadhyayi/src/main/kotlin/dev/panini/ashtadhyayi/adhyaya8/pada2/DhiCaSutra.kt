@@ -33,7 +33,7 @@ object DhiCaSutra : Sutra<DerivationState, DerivationChange>(
         val nextState = if (target.upadesha == "सिँच्") {
             context.removeTerm(target.id, sutra).copy(stage = DerivationStage.PADA_FORMED)
         } else {
-            context.replaceTerm(target.id, target.copy(surface = target.surface.removeSuffix("स्")))
+            context.substituteTermSurface(target.id, target.surface.removeSuffix("स्"), 'स', "", sutra)
         }
         return DerivationChange(
             nextState,

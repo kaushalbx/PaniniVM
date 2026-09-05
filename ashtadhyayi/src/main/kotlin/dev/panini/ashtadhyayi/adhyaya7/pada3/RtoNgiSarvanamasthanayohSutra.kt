@@ -51,7 +51,7 @@ object RtoNgiSarvanamasthanayohSutra : Sutra<DerivationState, DerivationChange>(
         val newSurface = stem.surface.dropLast(1) + if (stem.surface.endsWith("ृ")) "र्" else "अर्"
 
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = newSurface))
+            state = context.substituteTermSurface(stem.id, newSurface, 'ऋ', "अर्", sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.110: Applied guṇa 'ar' to ṛ-stem '${stem.surface}' before sarvanāmasthāna/ṅi (becoming $newSurface)."
         )

@@ -54,11 +54,9 @@ object GherNgeStriyamSutra : Sutra<DerivationState, DerivationChange>(
         }
         val base = stem.surface.dropLast(1) + ending
         return DerivationChange(
-            state = context.copy(
-                terms = context.terms.dropLast(2) + stem.copy(surface = base),
-                droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(affix, sutra),
-                stage = DerivationStage.FINAL,
-            ),
+            state = context.mergeTermsByVarnaSubstitution(
+                stem.id, affix.id, base, stem.surface.last(), ending, sutra,
+            ).copy(stage = DerivationStage.FINAL),
             explanation = "7.3.127: Formed the feminine Ghi dative-singular यै ending before ङे.",
         )
     }

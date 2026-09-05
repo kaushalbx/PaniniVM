@@ -38,7 +38,7 @@ object VibhashaChatvarimshatPrabhritauSarveshamSutra : Sutra<DerivationState, De
             else -> error("Unexpected pūrvapada ${purvapada.surface}")
         }
         return DerivationChange(
-            context.replaceTerm(purvapada.id, purvapada.copy(surface = replacement)),
+            context.substituteTermSurface(purvapada.id, replacement, '∅', "विकल्पादेश", sutra),
             "6.3.49 optionally applies the substitutions of 6.3.47–48: ${purvapada.surface} → $replacement."
         )
     }

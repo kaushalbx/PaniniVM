@@ -6,6 +6,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.WholeAffixDesignationPolicy
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -57,16 +58,28 @@ object TehSutra : Sutra<DerivationState, DerivationChange>(
         // Delete the ṭi portion ('āsi'/'ās') from tāsi, yielding 't' ('त्').
         // In this engine 6.4.143 runs before 1.3.9 consumes the ḍ-it marker,
         // so the tāsi term can still have its upadeśa surface here.
-        val newStem = if (stem.id == "tasi") {
-            stem.copy(surface = "त्")
+        val newSurface = if (stem.id == "tasi") {
+            "त्"
         } else if (stem.surface.endsWith("त्")) {
-            stem.copy(surface = stem.surface.dropLast(2))
+            stem.surface.dropLast(2)
         } else {
-            stem.copy(surface = stem.surface.dropLast(1))
+            stem.surface.dropLast(1)
+        }
+
+        val state = if (stem.kind in setOf(TermKind.PRATYAYA, TermKind.AGAMA, TermKind.AUGMENT)) {
+            context.replaceWholeAffix(
+                id = stem.id,
+                surface = newSurface,
+                sutra = sutra,
+                policy = WholeAffixDesignationPolicy.Consume,
+                upadesha = stem.upadesha,
+            )
+        } else {
+            context.substituteTermSurface(stem.id, newSurface, '∅', "टिलोप", sutra)
         }
 
         return DerivationChange(
-            state = context.replaceTerm(stem.id, newStem),
+            state = state,
             explanation = "6.4.143 performs lopa of the ṭi portion of ${stem.surface} before a ḍit suffix."
         )
     }

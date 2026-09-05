@@ -50,12 +50,10 @@ object RdusanasPurudamsoSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
 
         val newSurface = if (stem.surface.endsWith("र्")) stem.surface.dropLast(2) + "ा" else stem.surface.dropLast(1) + "ा"
-        val newTerms = context.terms.dropLast(1)
-
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = newSurface))
-                .copy(terms = newTerms.dropLast(1) + stem.copy(surface = newSurface), stage = DerivationStage.PADA_FORMED)
-                .copy(droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(affix, sutra)),
+            state = context.substituteTermSurface(stem.id, newSurface, 'ऋ', "आ", sutra)
+                .removeTerm(affix.id, sutra = sutra)
+                .copy(stage = DerivationStage.PADA_FORMED),
             explanation = "6.4.11 & 8.2.7: Derived '$newSurface' for ṛ-stem before nominative singular su."
         )
     }

@@ -28,6 +28,6 @@ object HrasvahSutra : Sutra<DerivationState, DerivationChange>(
         val shortened = abhyasa.surface
             .replace('आ', 'अ').replace('ई', 'इ').replace('ऊ', 'उ').replace('ॠ', 'ऋ')
             .replace("ा", "").replace('ी', 'ि').replace('ू', 'ु').replace('ॄ', 'ृ')
-        return DerivationChange(context.replaceTerm(abhyasa.id, abhyasa.copy(surface = shortened)), "7.4.59 shortens the vowel of the abhyāsa ${abhyasa.surface}.")
+        return DerivationChange(context.substituteTermSurface(abhyasa.id, shortened, '∅', "ह्रस्व", sutra), "7.4.59 shortens the vowel of the abhyāsa ${abhyasa.surface}.")
     }
 }

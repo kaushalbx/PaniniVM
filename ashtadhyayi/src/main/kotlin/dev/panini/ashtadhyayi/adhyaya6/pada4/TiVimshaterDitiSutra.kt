@@ -35,10 +35,10 @@ object TiVimshaterDitiSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val base = context.terms[context.terms.lastIndex - 1]
-        val changed = base.copy(surface = base.surface.dropLast(2))
+        val changedSurface = base.surface.dropLast(2)
         return DerivationChange(
-            context.replaceTerm(base.id, changed),
-            "$text: ${base.surface} → ${changed.surface}।",
+            context.substituteTermSurface(base.id, changedSurface, 'त', "", sutra),
+            "$text: ${base.surface} → $changedSurface।",
         )
     }
 }

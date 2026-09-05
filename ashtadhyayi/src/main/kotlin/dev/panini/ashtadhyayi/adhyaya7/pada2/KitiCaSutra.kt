@@ -48,16 +48,9 @@ object KitiCaSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[stemIndex]
 
         val newSurface = applyInitialVrddhi(stem.surface)
-        val updatedStem = stem.copy(surface = newSurface)
-
-        val newTerms = context.terms.toMutableList()
-        newTerms[stemIndex] = updatedStem
-
         return DerivationChange(
-            state = context.copy(
-                terms = newTerms,
-                stage = DerivationStage.ANGAKARYA,
-            ),
+            state = context.substituteTermSurface(stem.id, newSurface, '∅', "वृद्धि", sutra)
+                .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.2.118 applies initial vowel Vṛddhi before kit affix: '${stem.surface}' -> '$newSurface'.",
         )
     }

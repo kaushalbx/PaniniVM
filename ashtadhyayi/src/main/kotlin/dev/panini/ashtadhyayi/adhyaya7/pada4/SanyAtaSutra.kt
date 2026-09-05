@@ -38,9 +38,8 @@ object SanyAtaSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val abhyasa = context.terms.first { it.id == "abhyasa" }
         val newSurface = if (abhyasa.surface == "प") "पि" else abhyasa.surface.dropLast(1) + "ि"
-        val newAbhyasa = abhyasa.copy(surface = newSurface)
         return DerivationChange(
-            state = context.replaceTerm(abhyasa.id, newAbhyasa),
+            state = context.substituteTermSurface(abhyasa.id, newSurface, 'अ', "इ", sutra),
             explanation = "7.4.79 replaces short 'a' with 'i' in abhyāsa (${abhyasa.surface} → $newSurface)."
         )
     }

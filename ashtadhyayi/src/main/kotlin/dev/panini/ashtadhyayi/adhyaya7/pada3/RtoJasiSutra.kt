@@ -41,11 +41,9 @@ object RtoJasiSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
         return DerivationChange(
-            state = context.copy(
-                terms = context.terms.dropLast(2) + stem.copy(surface = stem.surface.dropLast(1) + "रः"),
-                droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(affix, sutra),
-                stage = DerivationStage.FINAL,
-            ),
+            state = context.mergeTermsByVarnaSubstitution(
+                stem.id, affix.id, stem.surface.dropLast(1) + "रः", 'ऋ', "अरः", sutra,
+            ).copy(stage = DerivationStage.FINAL),
             explanation = "7.3.132: Formed the masculine ṛ-stem nominative-plural अरः ending before जस्.",
         )
     }

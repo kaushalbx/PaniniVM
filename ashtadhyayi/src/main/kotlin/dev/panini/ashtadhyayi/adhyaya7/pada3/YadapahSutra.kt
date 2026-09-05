@@ -72,7 +72,7 @@ object YadapahSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
         if (affix.upadesha == "टा") {
             return DerivationChange(
-                state = context.replaceTerm(stem.id, stem.copy(surface = stem.surface.dropLast(1)))
+                state = context.substituteTermSurface(stem.id, stem.surface.dropLast(1), stem.surface.last(), "", sutra)
                     .replaceWholeAffix(affix.id, "या", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume)
                     .blockSutra(sutra, sutra)
                     .copy(stage = DerivationStage.PADA_FORMED),

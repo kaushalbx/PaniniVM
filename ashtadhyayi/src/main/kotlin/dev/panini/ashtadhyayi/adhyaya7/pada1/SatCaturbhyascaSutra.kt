@@ -50,10 +50,10 @@ object SatCaturbhyascaSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
-        val lengthenedStem = if (stem.surface.endsWith("न्")) {
+        val lengthenedSurface = if (stem.surface.endsWith("न्")) {
             val withoutFinalN = stem.surface.dropLast(2)
-            stem.copy(surface = if (withoutFinalN.contains('ा')) withoutFinalN else withoutFinalN + "ा")
-        } else stem
+            if (withoutFinalN.contains('ा')) withoutFinalN else withoutFinalN + "ा"
+        } else stem.surface
         val nut = DerivationTerm(
             id = "${affix.id}-nut",
             surface = "नुँट्",
@@ -66,7 +66,9 @@ object SatCaturbhyascaSutra : Sutra<DerivationState, DerivationChange>(
         )
 
         return DerivationChange(
-            state = context.copy(terms = context.terms.dropLast(2) + lengthenedStem + affix).addTerm(nut),
+            state = (if (lengthenedSurface != stem.surface) {
+                context.substituteTermSurface(stem.id, lengthenedSurface, 'न', "आ", sutra)
+            } else context).addTerm(nut),
             explanation = "7.1.55 introduces raw नुँट् before आम् after catur/ṣaṭ."
         )
     }

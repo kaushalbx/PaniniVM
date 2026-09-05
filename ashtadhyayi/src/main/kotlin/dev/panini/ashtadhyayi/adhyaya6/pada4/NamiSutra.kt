@@ -69,9 +69,8 @@ object NamiSutra : Sutra<DerivationState, DerivationChange>(
         }
 
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = newSurface))
-                .copy(stage = DerivationStage.ANGAKARYA)
-                .addSubstitution(VarnaSubstitution(stem.id, sourceChar, replacement, sutra)),
+            state = context.substituteTermSurface(stem.id, newSurface, sourceChar, replacement, sutra)
+                .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "6.4.3: Lengthened stem vowel before 'nām'."
         )
     }

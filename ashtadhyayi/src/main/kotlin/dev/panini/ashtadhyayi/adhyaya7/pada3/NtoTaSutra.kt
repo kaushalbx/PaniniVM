@@ -42,11 +42,9 @@ object NtoTaSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
         return DerivationChange(
-            state = context.copy(
-                terms = context.terms.dropLast(2) + stem.copy(surface = stem.surface.dropLast(1) + "ा"),
-                droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(affix, sutra),
-                stage = DerivationStage.FINAL,
-            ),
+            state = context.mergeTermsByVarnaSubstitution(
+                stem.id, affix.id, stem.surface.dropLast(1) + "ा", '∅', "आ", sutra,
+            ).copy(stage = DerivationStage.FINAL),
             explanation = "7.3.142: Formed the masculine n-stem instrumental-singular ना ending before टा.",
         )
     }
