@@ -121,4 +121,17 @@ class WholeAffixReplacementTest {
         assertEquals("x", result.droppedTerms.single().droppedBySutra)
         assertEquals(VarnaSubstitution("stem", 'अ', "ए", "x"), result.substitutions.single())
     }
+
+    @Test fun `adjacent redistribution preserves both terms and records one substitution`() {
+        val left = DerivationTerm("left", "नी", TermKind.DHATU)
+        val right = DerivationTerm("siyut", "इय", TermKind.AGAMA)
+        val result = DerivationState(listOf(left, right)).redistributeAdjacentTermsByVarnaSubstitution(
+            leftId = "left", rightId = "siyut", leftSurface = "नीय", rightSurface = "य",
+            source = 'ई', replacement = "य्", sutra = "6.1.77",
+        )
+        assertEquals(listOf("left", "siyut"), result.terms.map { it.id })
+        assertEquals(listOf("नीय", "य"), result.terms.map { it.surface })
+        assertEquals(VarnaSubstitution("left", 'ई', "य्", "6.1.77"), result.substitutions.single())
+        assertEquals(emptyList(), result.droppedTerms)
+    }
 }

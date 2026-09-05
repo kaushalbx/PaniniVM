@@ -164,6 +164,50 @@ class DerivationState(
         return substituted.removeTerm(consumedId, sutra)
     }
 
+    /** Redistributes material across two adjacent surviving terms as one phonological operation. */
+    fun redistributeAdjacentTermsByVarnaSubstitution(
+        leftId: String,
+        rightId: String,
+        leftSurface: String,
+        rightSurface: String,
+        source: Char,
+        replacement: String,
+        sutra: String,
+    ): DerivationState {
+        val leftIndex = terms.indexOfFirst { it.id == leftId }
+        val rightIndex = terms.indexOfFirst { it.id == rightId }
+        require(leftIndex >= 0 && rightIndex == leftIndex + 1) {
+            "$sutra requires adjacent ordered terms $leftId and $rightId."
+        }
+        val left = terms[leftIndex]
+        val right = terms[rightIndex]
+        require(left.surface != leftSurface || right.surface != rightSurface) {
+            "$sutra must change at least one surface across $leftId and $rightId."
+        }
+
+        fun requireStableDesignations(term: DerivationTerm, newSurface: String) {
+            require((term.itDesignations + term.deferredItDesignations).all { designation ->
+                designation.endExclusive <= newSurface.length &&
+                    newSurface.substring(designation.start, designation.endExclusive) == designation.designatedText
+            }) {
+                "$sutra would invalidate an exact it-designation on ${term.id}; " +
+                    "use replaceWholeAffix with an explicit policy."
+            }
+        }
+        requireStableDesignations(left, leftSurface)
+        requireStableDesignations(right, rightSurface)
+
+        return copy(
+            terms = terms.map { term ->
+                when (term.id) {
+                    leftId -> term.copy(surface = leftSurface)
+                    rightId -> term.copy(surface = rightSurface)
+                    else -> term
+                }
+            },
+        ).addSubstitution(VarnaSubstitution(leftId, source, replacement, sutra))
+    }
+
     /** Replaces an entire affix while making the fate of every exact it-designation explicit. */
     fun replaceWholeAffix(
         id: String,

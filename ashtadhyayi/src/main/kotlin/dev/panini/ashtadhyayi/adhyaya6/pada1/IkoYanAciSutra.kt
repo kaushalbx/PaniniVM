@@ -83,12 +83,16 @@ object IkoYanAciSutra : Sutra<DerivationState, DerivationChange>(
             leftTerm.surface.dropLast(1) + replacement
         }
         if (rightTerm.id == "siyut") {
-            val newTerms = terms.toMutableList()
-            newTerms[leftIndex] = leftTerm.copy(surface = merge(newLeftSurface, rightTerm.surface.take(1)))
-            newTerms[rightIndex] = rightTerm.copy(surface = rightTerm.surface.drop(1))
             return DerivationChange(
-                state = context.copy(terms = newTerms, stage = DerivationStage.PADA_FORMED)
-                    .addSubstitution(VarnaSubstitution(leftTerm.id, leftVowel, replacement, sutra)),
+                state = context.redistributeAdjacentTermsByVarnaSubstitution(
+                    leftId = leftTerm.id,
+                    rightId = rightTerm.id,
+                    leftSurface = merge(newLeftSurface, rightTerm.surface.take(1)),
+                    rightSurface = rightTerm.surface.drop(1),
+                    source = leftVowel,
+                    replacement = replacement,
+                    sutra = sutra,
+                ).copy(stage = DerivationStage.PADA_FORMED),
                 explanation = "6.1.77: substituted $replacement for $leftVowel before the vowel of सीयुट्.",
             )
         }

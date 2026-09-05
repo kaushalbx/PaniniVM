@@ -9,7 +9,6 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.shiksha.Varnamala
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -53,11 +52,9 @@ object PugantalaghupadhasyaCaSutra : Sutra<DerivationState, DerivationChange>(
         val source = dhatu.surface[index]
         val replacement = requireNotNull(Varnamala.getGuna(source))
         return DerivationChange(
-            state = context.replaceTerm(
-                dhatu.id,
-                dhatu.copy(surface = dhatu.surface.replaceRange(index, index + 1, replacement)),
-            ).copy(stage = DerivationStage.ANGAKARYA)
-                .addSubstitution(VarnaSubstitution(dhatu.id, source, replacement, sutra)),
+            state = context.substituteTermSurface(
+                dhatu.id, dhatu.surface.replaceRange(index, index + 1, replacement), source, replacement, sutra,
+            ).copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.86 applies guṇa to the light upadhā before ṇic or a strong ending.",
         )
     }

@@ -5,7 +5,6 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -63,9 +62,9 @@ object AtoDirghoYaniSutra : Sutra<DerivationState, DerivationChange>(
         }
 
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = newSurface))
+            state = context.substituteTermSurface(stem.id, newSurface, 'अ', "ा", sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.101: Lengthened final 'a' before yañ-initial suffix."
-        ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(stem.id, 'अ', "ा", sutra))) }
+        )
     }
 }
