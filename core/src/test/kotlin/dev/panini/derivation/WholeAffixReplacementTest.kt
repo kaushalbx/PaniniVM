@@ -108,4 +108,17 @@ class WholeAffixReplacementTest {
             )
         }
     }
+
+    @Test fun `term merger records substitution and lifecycle consumes an affix`() {
+        val stem = DerivationTerm("stem", "राम", TermKind.PRATIPADIKA)
+        val result = DerivationState(listOf(stem, designated)).mergeTermsByVarnaSubstitution(
+            survivorId = "stem", consumedId = "affix", surface = "रामे",
+            source = 'अ', replacement = "ए", sutra = "x",
+        )
+        assertEquals(listOf("stem"), result.terms.map { it.id })
+        assertEquals("रामे", result.surface)
+        assertEquals(ItProcessingPhase.PROCESSED, result.droppedTerms.single().itProcessingPhase)
+        assertEquals("x", result.droppedTerms.single().droppedBySutra)
+        assertEquals(VarnaSubstitution("stem", 'अ', "ए", "x"), result.substitutions.single())
+    }
 }

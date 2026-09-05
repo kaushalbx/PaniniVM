@@ -8,7 +8,6 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -113,15 +112,13 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
         } else {
             leftTerm.surface.dropLast(1) + substitute + rightTerm.surface.drop(1)
         }
-        val mergedTerm = if (isBeginningAugment) rightTerm.copy(surface = newSurface) else leftTerm.copy(surface = newSurface)
+        val survivor = if (isBeginningAugment) rightTerm else leftTerm
         val consumedTerm = if (isBeginningAugment) leftTerm else rightTerm
 
         return DerivationChange(
-            state = context.copy(
-                terms = terms.take(index) + mergedTerm + terms.drop(index + 2),
-                droppedTerms = context.droppedTerms + dev.panini.derivation.dropTermWithLifecycle(consumedTerm, sutra),
-                stage = DerivationStage.PADA_FORMED
-            ).addSubstitution(VarnaSubstitution(mergedTerm.id, leftChar, substitute, sutra)),
+            state = context.mergeTermsByVarnaSubstitution(
+                survivor.id, consumedTerm.id, newSurface, leftChar, substitute, sutra,
+            ).copy(stage = DerivationStage.PADA_FORMED),
             explanation = "6.1.87: Guṇa substitution ($substitute) for $leftChar + $rightChar."
         )
     }

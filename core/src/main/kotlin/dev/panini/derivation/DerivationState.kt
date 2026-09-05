@@ -134,6 +134,36 @@ class DerivationState(
             .addSubstitution(VarnaSubstitution(id, source, replacement, sutra))
     }
 
+    /** Merges two adjacent terms while preserving the survivor and lifecycle-dropping the consumed term. */
+    fun mergeTermsByVarnaSubstitution(
+        survivorId: String,
+        consumedId: String,
+        surface: String,
+        source: Char,
+        replacement: String,
+        sutra: String,
+    ): DerivationState {
+        require(survivorId != consumedId) { "$sutra cannot merge a term into itself." }
+        val survivorIndex = terms.indexOfFirst { it.id == survivorId }
+        val consumedIndex = terms.indexOfFirst { it.id == consumedId }
+        require(survivorIndex >= 0 && consumedIndex >= 0) {
+            "$sutra requires both $survivorId and $consumedId for a term merger."
+        }
+        require(kotlin.math.abs(survivorIndex - consumedIndex) == 1) {
+            "$sutra can merge only adjacent terms: $survivorId and $consumedId."
+        }
+        val survivor = terms[survivorIndex]
+        val substituted = if (surface == survivor.surface) {
+            // The visible result can already equal the survivor (for example,
+            // अ + अ after inherent-vowel serialization); consuming the adjacent
+            // term is still a real two-term substitution.
+            addSubstitution(VarnaSubstitution(survivorId, source, replacement, sutra))
+        } else {
+            substituteTermSurface(survivorId, surface, source, replacement, sutra)
+        }
+        return substituted.removeTerm(consumedId, sutra)
+    }
+
     /** Replaces an entire affix while making the fate of every exact it-designation explicit. */
     fun replaceWholeAffix(
         id: String,

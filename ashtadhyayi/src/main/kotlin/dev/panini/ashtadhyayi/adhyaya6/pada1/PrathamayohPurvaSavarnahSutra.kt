@@ -5,7 +5,6 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -82,11 +81,9 @@ object PrathamayohPurvaSavarnahSutra : Sutra<DerivationState, DerivationChange>(
         val newSurface = newStemSurface + remainingSuffix
 
         return DerivationChange(
-            state = context.copy(
-                terms = context.terms.dropLast(2) + stem.copy(surface = newSurface),
-                droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(suffix, sutra),
-                stage = DerivationStage.PADA_FORMED
-            ).addSubstitution(VarnaSubstitution(stem.id, leftPhoneme, substitute, sutra)),
+            state = context.mergeTermsByVarnaSubstitution(
+                stem.id, suffix.id, newSurface, leftPhoneme, substitute, sutra,
+            ).copy(stage = DerivationStage.PADA_FORMED),
             explanation = "6.1.102: Combined $leftPhoneme + ${suffix.surface.first()} into long $substitute."
         )
     }

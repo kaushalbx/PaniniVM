@@ -8,7 +8,6 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Varnamala
 import dev.panini.sutra.Sutra
@@ -83,19 +82,13 @@ object SavarnaDirghaSutra : Sutra<DerivationState, DerivationChange>(
         } else {
             leftTerm.surface.dropLast(1) + substitute + rightTerm.surface.drop(1)
         }
-        val mergedTerm = if (isBeginningAugment) {
-            rightTerm.copy(surface = newSurface)
-        } else {
-            leftTerm.copy(surface = newSurface)
-        }
+        val survivor = if (isBeginningAugment) rightTerm else leftTerm
         val consumedTerm = if (isBeginningAugment) leftTerm else rightTerm
 
         return DerivationChange(
-            state = context.copy(
-                terms = terms.take(leftIndex) + mergedTerm + terms.drop(rightIndex + 1),
-                droppedTerms = context.droppedTerms + dev.panini.derivation.dropTermWithLifecycle(consumedTerm, sutra),
-                stage = DerivationStage.PADA_FORMED
-            ).addSubstitution(VarnaSubstitution(mergedTerm.id, leftPhoneme, substitute, sutra)),
+            state = context.mergeTermsByVarnaSubstitution(
+                survivor.id, consumedTerm.id, newSurface, leftPhoneme, substitute, sutra,
+            ).copy(stage = DerivationStage.PADA_FORMED),
             explanation = "6.1.101: Savarṇa Dīrgha substitution ($substitute) for $leftPhoneme + ${rightTerm.surface.first()}."
         )
     }
