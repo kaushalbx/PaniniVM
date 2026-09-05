@@ -33,7 +33,7 @@ object SanadyantaDhatavahSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun matches(context: DerivationState): Boolean {
         val lastPratyaya = context.terms.lastOrNull { it.kind == TermKind.PRATYAYA } ?: return false
-        val isSanadi = lastPratyaya.upadesha in sanadiAffixes || lastPratyaya.id.contains("pratyaya")
+        val isSanadi = lastPratyaya.upadesha in sanadiAffixes
         val alreadyDhatu = context.samjnas.any { it.targetId == lastPratyaya.id && it.samjna == Samjna.DHATU }
         return isSanadi && !alreadyDhatu
     }

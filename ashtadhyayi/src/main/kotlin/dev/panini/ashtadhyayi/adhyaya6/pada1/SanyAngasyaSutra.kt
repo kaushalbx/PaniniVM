@@ -31,7 +31,7 @@ object SanyAngasyaSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val pratyaya = context.terms.lastOrNull { it.kind == TermKind.PRATYAYA } ?: return false
-        val isSanOrYan = pratyaya.upadesha in setOf("सन्", "यङ्") || pratyaya.id.contains("san") || pratyaya.id.contains("yan")
+        val isSanOrYan = pratyaya.upadesha in setOf("सन्", "यङ्")
         val hasAbhyasa = context.terms.any { it.id == "abhyasa" }
         return isSanOrYan && !hasAbhyasa
     }

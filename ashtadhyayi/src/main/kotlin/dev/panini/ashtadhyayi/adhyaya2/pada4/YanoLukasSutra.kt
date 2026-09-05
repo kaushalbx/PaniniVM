@@ -31,12 +31,12 @@ object YanoLukasSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val isYanLukRequested = context.samjnas.any { it.samjna == Samjna.YAN_LUK }
-        val yanTerm = context.terms.firstOrNull { it.upadesha == "यङ्" || it.id.contains("yan") }
+        val yanTerm = context.terms.firstOrNull { it.upadesha == "यङ्" }
         return isYanLukRequested && yanTerm != null
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val yanTerm = context.terms.first { it.upadesha == "यङ्" || it.id.contains("yan") }
+        val yanTerm = context.terms.first { it.upadesha == "यङ्" }
         val newTerms = context.terms.filterNot { it.id == yanTerm.id }
         return DerivationChange(
             state = context.copy(
