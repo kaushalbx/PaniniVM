@@ -168,7 +168,12 @@ class KrdantaEngine(
         val suffixSurface = buildString {
             if (hasItAgama) append("इ")
             if (hasTukAgama) append("त्")
-            append(fallbackSuffix(request))
+            if (request.samjna == Samjna.LYUT) {
+                state.requireCompleteItProcessing()
+                append(terms.single { it.kind == TermKind.PRATYAYA && it.matchesUpadesha("ल्युट्") }.surface)
+            } else {
+                append(fallbackSuffix(request))
+            }
         }
 
         val fullSurface = fuseStemAndSuffix(upasarga, stem, suffixSurface)
@@ -195,7 +200,6 @@ class KrdantaEngine(
         Samjna.NVUL -> "अक"
         Samjna.TRC -> "तृ"
         Samjna.GHAN -> "अ"
-        Samjna.LYUT -> "अन"
         else -> ""
     }
 

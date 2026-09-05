@@ -113,7 +113,14 @@ class KrdantaEngineTest {
         expected.forEach { (dhatu, surface) ->
             val result = engine.derive(KrdantaDerivationRequest(dhatu, Samjna.LYUT))
             assertEquals(surface, result.final.surface)
-            assertTrue(result.applications.any { it.sutra == "3.3.115" })
+            val introduction = result.applications.first { it.sutra == "3.3.115" }
+            val raw = introduction.after.terms.last()
+            assertEquals("ल्युट्", raw.surface)
+            assertEquals(ItProcessingPhase.RAW_UPADESHA, raw.itProcessingPhase)
+            assertEquals("3.3.115", raw.createdBySutra)
+            assertTrue(result.applications.map { it.sutra }.containsAll(setOf("1.3.8", "1.3.3", "1.3.9", "7.1.1")),
+                result.applications.joinToString("\n") { "${it.sutra}: ${it.before.surface} -> ${it.after.surface}" })
+            result.final.requireCompleteItProcessing()
         }
     }
 

@@ -37,17 +37,18 @@ object LyutCaSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val lyut = DerivationTerm(
             id = "lyut_pratyaya",
-            surface = "अन",
+            surface = "ल्युट्",
             kind = TermKind.PRATYAYA,
             upadesha = "ल्युट्",
             createdBySutra = sutra,
+            itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
         )
         return DerivationChange(
             state = context.copy(
                 terms = context.terms + lyut,
                 stage = DerivationStage.PRATYAYA_SELECTED,
             ),
-            explanation = "3.3.115 introduces ल्युट् (अन) as an action-noun suffix.",
+            explanation = "3.3.115 introduces raw ल्युट् for इत् designation and subsequent 7.1.1 substitution.",
         )
     }
 }

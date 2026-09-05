@@ -28,6 +28,7 @@ object YuvoranakauSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.PRATYAYA,
+    stage = dev.panini.sutra.SutraStage.ANGAKARYA,
     dependencies = setOf("1.3.10")
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
