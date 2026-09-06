@@ -3,6 +3,7 @@ package dev.panini.ashtadhyayi.adhyaya7.pada3
 import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.ashtadhyayi.adhyaya1.pada2.AsamyogallitKitSutra
 import dev.panini.core.DhatuGana
+import dev.panini.core.ItMarker
 import dev.panini.core.Lakara
 import dev.panini.core.PadaType
 import dev.panini.core.TingAffix
@@ -136,6 +137,7 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
         val isArdhadhatukaKrt = followingAffix.upadesha in setOf(
             "क्त", "क्तवतुँ", "क्त्वा", "ल्यप्", "तुमुँन्", "तव्यत्", "अनीयर्", "ण्यत्", "ण्वुल्", "तृच्", "घञ्", "ल्युट्",
         )
+        if (followingAffix.upadesha in setOf("क्त", "क्तवतुँ") && followingAffix.hasEffectiveMarker(ItMarker.KIT)) return false
         return context.terms.any { it.id == "shap" } ||
             (isArdhadhatukaKrt && HasDerivationalEnvironment(DerivationalEnvironment.ARDHADHATUKA).matches(context))
     }

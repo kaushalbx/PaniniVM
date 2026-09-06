@@ -166,6 +166,27 @@ class KrdantaEngineTest {
     }
 
     @Test
+    fun `nic follows the krt-specific it and lopa paths`() {
+        val expected = mapOf(
+            Samjna.KTA to "शोधित",
+            Samjna.KTVA to "शोधयित्वा",
+            Samjna.TUMUN to "शोधयितुम्",
+            Samjna.TAVYA to "शोधयितव्य",
+            Samjna.GHAN to "शोध",
+            Samjna.LYUT to "शोधन",
+        )
+
+        expected.forEach { (samjna, surface) ->
+            val result = engine.derive(KrdantaDerivationRequest("शुध्", samjna, sanadiPratyayas = listOf("णिच्")))
+            assertEquals(surface, result.final.surface, samjna.toString())
+            result.final.requireCompleteItProcessing()
+            if (samjna in setOf(Samjna.GHAN, Samjna.LYUT)) {
+                assertTrue(result.applications.any { it.sutra == "6.4.51" })
+            }
+        }
+    }
+
+    @Test
     fun `krdanta provenance contains only explicitly staged rules`() {
         val requests = listOf(
             KrdantaDerivationRequest("कृ", Samjna.KTVA, upasarga = "अनु"),

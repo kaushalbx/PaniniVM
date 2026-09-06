@@ -42,7 +42,8 @@ object ArdhadhatukasyedValadehSutra : Sutra<DerivationState, DerivationChange>(
                 "ए", "आते", "इरे", "से", "आथे", "ध्वे", "वहे", "महे",
             ) || ending.matchesUpadesha("सिप्")
         val isSipLet = context.allEffectiveTerms.any { it.id == "sip-aorist" }
-        val isNicEndingDhatu = context.allEffectiveTerms.any { it.matchesUpadesha("णिच्") }
+        val isNicEndingDhatu = context.allEffectiveTerms.any { it.matchesUpadesha("णिच्") } &&
+            ending.upadesha !in setOf("क्त", "क्तवतुँ")
         val isAniKtvaKtaLyap = (ending.upadesha in setOf("क्त्वा", "क्त", "क्तवतुँ", "ल्यप्") || ending.surface == "य") &&
             (dhatu?.surface in setOf("भू", "कृ", "हृ", "जि", "चि", "नी") || dhatu?.upadesha in setOf("भू", "कृ", "हृ", "जि", "चि", "नी", "भूँ", "डुकृञ्", "हृञ्", "चिञ्", "जिञ्", "नीञ्") || ending.upadesha == "ल्यप्" || ending.id == "lyap_pratyaya")
         if (isAniKtvaKtaLyap) return false
