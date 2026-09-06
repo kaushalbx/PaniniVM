@@ -21,16 +21,18 @@ object DhatorEkayacoHaladerKriyasamabhihareYangSutra : Sutra<DerivationState, De
     hindiExplanation = "क्रिया की पौनःपुन्य (बार-बार होना) या भृश (अतिशयता) अर्थ में एकाच् तथा हलादि धातु से 'यङ्' प्रत्यय होता है।",
     type = SutraType.NITYA, chapter = 3, pada = 1, optional = false, kramaValue = 310022,
     role = SutraRole.Vidhi, action = SutraAction.PRATYAYA_SELECTION, scope = SutraScope.DERIVATION,
+    blocks = setOf("3.1.25", "3.1.68", "3.1.69", "3.1.73", "3.1.77", "3.1.78", "3.1.79", "3.1.81"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
-        context.effectiveContext.rupa.lakara == null &&
-        context.effectiveContext.requestedMeaning == DerivationalMeaning.BHAVA &&
+        ("यङ्" in context.effectiveContext.requestedSanadi ||
+            (context.effectiveContext.rupa.lakara == null && context.effectiveContext.requestedMeaning == DerivationalMeaning.BHAVA)) &&
         context.allEffectiveTerms.none { it.upadesha == "यङ्" }
 
     override fun apply(context: DerivationState): DerivationChange {
         val yang = DerivationTerm("yang", "यङ्", TermKind.PRATYAYA, upadesha = "यङ्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
+        val introduced = if (context.terms.lastOrNull()?.kind == TermKind.PRATYAYA) context.insertBeforeTingOrLingAugment(yang) else context.addTerm(yang)
         return DerivationChange(
-            state = context.addTerm(yang),
+            state = introduced.copy(stage = context.stage),
             explanation = "3.1.22 prescribes यङ् frequentative affix.",
         )
     }

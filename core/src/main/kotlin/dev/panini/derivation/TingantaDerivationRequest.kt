@@ -29,7 +29,7 @@ data class TingantaDerivationRequest(
     )
 
     private fun initialState(dhatuTerm: DerivationTerm): DerivationState {
-        require(sanadiPratyayas.all { it == "णिच्" }) {
+        require(sanadiPratyayas.all { SanadiAffixes.contains(it) && it in setOf("णिच्", "सन्", "यङ्") }) {
             "Unsupported sanādi pratyaya: ${sanadiPratyayas.joinToString()}"
         }
         require(sanadiPratyayas.distinct().size == sanadiPratyayas.size) {

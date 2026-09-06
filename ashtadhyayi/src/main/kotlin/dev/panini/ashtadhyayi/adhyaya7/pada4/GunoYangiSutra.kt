@@ -5,6 +5,7 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Varnamala
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -29,14 +30,22 @@ object GunoYangiSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        return context.samjnas.any { it.samjna == Samjna.YANG } ||
-               context.allEffectiveTerms.any { it.upadesha == "यङ्" }
+        val hasYang = context.samjnas.any { it.samjna == Samjna.YANG } ||
+            context.allEffectiveTerms.any { it.upadesha == "यङ्" }
+        val abhyasa = context.terms.firstOrNull { it.id == "abhyasa" } ?: return false
+        return hasYang && abhyasa.surface.any { Varnamala.getGuna(it) != null }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
+        val abhyasa = context.terms.first { it.id == "abhyasa" }
+        val vowelIndex = abhyasa.surface.indexOfLast { Varnamala.getGuna(it) != null }
+        require(vowelIndex >= 0) { "7.4.82 requires an ik vowel in the abhyāsa." }
+        val source = abhyasa.surface[vowelIndex]
+        val replacement = requireNotNull(Varnamala.getGuna(source))
+        val surface = abhyasa.surface.replaceRange(vowelIndex, vowelIndex + 1, replacement)
         return DerivationChange(
-            state = context,
-            explanation = "7.4.82 prescribes guṇa substitution for abhyāsa before Yaṅ."
+            state = context.substituteTermSurface(abhyasa.id, surface, source, replacement, sutra),
+            explanation = "7.4.82 substitutes guṇa $replacement for $source in the abhyāsa before Yaṅ."
         )
     }
 }

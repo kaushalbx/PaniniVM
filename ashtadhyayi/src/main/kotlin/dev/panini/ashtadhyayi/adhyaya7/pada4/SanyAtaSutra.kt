@@ -29,8 +29,7 @@ object SanyAtaSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        val pratyaya = context.terms.lastOrNull { it.kind == TermKind.PRATYAYA } ?: return false
-        val isSan = pratyaya.upadesha == "सन्"
+        val isSan = context.terms.any { it.kind == TermKind.PRATYAYA && it.upadesha == "सन्" }
         val abhyasa = context.terms.firstOrNull { it.id == "abhyasa" } ?: return false
         return isSan && (abhyasa.surface.endsWith("अ") || abhyasa.surface == "प")
     }

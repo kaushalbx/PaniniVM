@@ -48,14 +48,14 @@ object SanadiEngine {
         vacana: Vacana,
         steps: MutableList<String>,
     ): SanadiDerivationResult {
-        steps += "3.1.7 [धातोः कर्मणः समानकर्तृकादिच्छायां सन्]: Attaching सन् (s) affix in desire sense"
-
+        val derivation = runCatching {
+            tingantaEngine.derive(
+                TingantaDerivationRequest(root, vacana, purusha, lakara, pada = PadaType.PARASMAIPADA, sanadiPratyayas = listOf("सन्")),
+            )
+        }.getOrNull()
+        if (derivation != null) steps.addAll(derivation.applications.map { "${it.sutra}: ${it.explanation}" })
         val derivedStem = generateDesiderativeStem(root)
-        val finalForm = "${derivedStem.dropLast(1)}ति"
-
-        steps += "6.1.9 [सन्योः]: Applying reduplication (अभ्यास) -> $derivedStem"
-        steps += "3.1.32 [सनाद्यन्ता धातवः]: Declaring $derivedStem as a secondary dhātu stem"
-        steps += "3.1.68 [कर्तरि शप्] & 3.4.78 [तिप्तस्झि...]: Conjugated form in ${lakara.name} -> $finalForm"
+        val finalForm = derivation?.final?.surface ?: "${derivedStem.dropLast(1)}ति"
 
         return SanadiDerivationResult(
             primaryRoot = root,
@@ -112,14 +112,12 @@ object SanadiEngine {
         vacana: Vacana,
         steps: MutableList<String>,
     ): SanadiDerivationResult {
-        steps += "3.1.22 [${dev.panini.ashtadhyayi.adhyaya3.pada1.DhatorEkayacoHaladerKriyasamabhihareYangSutra.text}]: Attaching यङ् (ya) affix in intensive sense"
-
+        val derivation = tingantaEngine.derive(
+            TingantaDerivationRequest(root, vacana, purusha, lakara, pada = PadaType.ATMANEPADA, sanadiPratyayas = listOf("यङ्")),
+        )
+        steps.addAll(derivation.applications.map { "${it.sutra}: ${it.explanation}" })
         val stem = generateIntensiveStem(root)
-        val finalForm = "${stem.dropLast(1)}ते"
-
-        steps += "6.1.9 [सन्योः] & 7.4.82 [गुगो यङि]: Applying heavy reduplication (अभ्यास) -> $stem"
-        steps += "3.1.32 [सनाद्यन्ता धातवः]: Declaring $stem as an intensive dhātu stem"
-        steps += "1.3.12 [अनुदात्तङित आत्मनेपदम्]: Intensive taking Ātmanepada affix -> $finalForm"
+        val finalForm = derivation.final.surface
 
         return SanadiDerivationResult(
             primaryRoot = root,

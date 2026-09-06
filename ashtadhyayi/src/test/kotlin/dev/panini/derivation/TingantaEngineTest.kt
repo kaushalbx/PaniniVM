@@ -76,6 +76,32 @@ class TingantaEngineTest {
     }
 
     @Test
+    fun `requested san and yang enter as raw upadeshas`() {
+        listOf(
+            Triple("सन्", "3.1.7", "बुभूषति"),
+            Triple("यङ्", "3.1.22", "बोभूयते"),
+        ).forEach { (sanadi, introducingSutra, expected) ->
+            val result = TingantaEngine().derive(
+                TingantaDerivationRequest(
+                    dhatu = "भू",
+                    lakara = Lakara.LAT,
+                    pada = if (sanadi == "यङ्") PadaType.ATMANEPADA else PadaType.PARASMAIPADA,
+                    sanadiPratyayas = listOf(sanadi),
+                ),
+            )
+
+            assertEquals(expected, result.final.surface, result.applications.joinToString { it.sutra })
+            val introduction = result.applications.first { it.sutra == introducingSutra }
+            assertEquals(ItProcessingPhase.RAW_UPADESHA, introduction.after.terms.first { it.upadesha == sanadi }.itProcessingPhase)
+            assertTrue(result.applications.any { it.sutra == "1.3.3" }, sanadi)
+            assertTrue(result.applications.any { it.sutra == "1.3.9" }, sanadi)
+            assertTrue(result.applications.any { it.sutra == "3.1.32" }, sanadi)
+            assertTrue(result.applications.any { it.sutra == "6.1.9" }, sanadi)
+            result.final.requireCompleteItProcessing()
+        }
+    }
+
+    @Test
     fun `sanadi coverage is declared by gana rather than pvm root names`() {
         val engine = TingantaEngine()
 
@@ -84,6 +110,10 @@ class TingantaEngineTest {
         }
         assertFalse(engine.supportsSanadi("हु", listOf("णिच्"), PadaType.PARASMAIPADA))
         assertFalse(engine.supportsSanadi("मूल्", listOf("णिच्"), PadaType.PARASMAIPADA))
+        assertTrue(engine.supportsSanadi("भू", listOf("सन्"), PadaType.PARASMAIPADA))
+        assertTrue(engine.supportsSanadi("पच्", listOf("सन्"), PadaType.PARASMAIPADA))
+        assertFalse(engine.supportsSanadi("जि", listOf("सन्"), PadaType.PARASMAIPADA))
+        assertTrue(engine.supportsSanadi("भू", listOf("यङ्"), PadaType.ATMANEPADA))
     }
 
     @Test

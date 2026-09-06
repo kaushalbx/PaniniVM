@@ -11,7 +11,8 @@ class TingantaEngine(private val engine: DerivationEngine = DerivationEngine(dev
     fun supportsSanadi(dhatu: String, sanadiPratyayas: List<String>, pada: PadaType? = null): Boolean {
         val type = sanadiPratyayas.firstOrNull() ?: return false
         if (type !in setOf("णिच्", "सन्", "यङ्")) return false
-        if (type != "णिच्") return true
+        if (type == "सन्") return dhatu in setOf("भू", "पच्")
+        if (type == "यङ्") return dhatu == "भू"
         val entry = runCatching { findDhatu(dhatu, pada) }.getOrNull() ?: return false
         return entry.gana in setOf(DhatuGana.DIVADI, DhatuGana.RUDHADI, DhatuGana.CURADI)
     }
@@ -20,8 +21,14 @@ class TingantaEngine(private val engine: DerivationEngine = DerivationEngine(dev
         require(request.sanadiPratyayas.isEmpty() || supportsSanadi(request.dhatu, request.sanadiPratyayas, request.pada)) {
             "No complete sanādi derivation plan exists for ${request.dhatu} + ${request.sanadiPratyayas.joinToString(" + ")}."
         }
-        val dhatu = findDhatu(request.dhatu, request.pada.takeIf { request.sanadiPratyayas.isNotEmpty() })
-        val targetPada = resolvePada(requireNotNull(dhatu.pada), request.pada)
+        val hasYang = "यङ्" in request.sanadiPratyayas
+        val dhatu = findDhatu(request.dhatu, request.pada.takeIf { request.sanadiPratyayas.isNotEmpty() && !hasYang })
+        val targetPada = if (hasYang) {
+            require(request.pada == null || request.pada == PadaType.ATMANEPADA) { "यङ् derives an Ātmanepada stem." }
+            PadaType.ATMANEPADA
+        } else {
+            resolvePada(requireNotNull(dhatu.pada), request.pada)
+        }
         val effectiveGana = if (request.sanadiPratyayas.isEmpty()) dhatu.gana else DhatuGana.BHVADI
         val plan = requireNotNull(TingantaFormPlans.find(request.purusha, request.vacana, targetPada, request.lakara, effectiveGana)) {
             "No complete downstream plan exists for ${TingAffix.select(request.purusha, request.vacana, targetPada)?.upadesha}."
