@@ -28,12 +28,13 @@ object AtaUpadhayahSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.DHATU,
+    stage = dev.panini.sutra.SutraStage.ANGAKARYA,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val stemIndex = context.terms.indexOfFirst { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         if (stemIndex < 0) return false
         val stem = context.terms[stemIndex]
-        val affix = context.terms.getOrNull(stemIndex + 1) ?: return false
+        val affix = context.terms.drop(stemIndex + 1).firstOrNull { it.kind == TermKind.PRATYAYA } ?: return false
         
         val isUpadhaA = hasPenultimateA(stem.surface)
         val isNniti = affix.hasEffectiveMarker(ItMarker.NYIT) ||

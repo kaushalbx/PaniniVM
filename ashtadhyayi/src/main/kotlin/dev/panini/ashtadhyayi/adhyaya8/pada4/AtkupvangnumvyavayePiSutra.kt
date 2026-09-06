@@ -36,6 +36,7 @@ object AtkupvangnumvyavayePiSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.DERIVATION,
+    stage = dev.panini.sutra.SutraStage.SANDHI,
     dependencies = setOf("8.4.1")
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
@@ -93,12 +94,8 @@ object AtkupvangnumvyavayePiSutra : Sutra<DerivationState, DerivationChange>(
         val (_, nIndex) = requireNotNull(targetIndices(context))
 
         // We find which term owns the 'n'
-        var currentCharCount = 0
-        val targetTerm = context.terms.find { term ->
-            val start = currentCharCount
-            currentCharCount += term.surface.length
-            nIndex in start until currentCharCount
-        } ?: return DerivationChange(context, "8.4.2: Target 'n' not found in terms.")
+        val targetTerm = context.terms.firstOrNull { 'न' in it.surface }
+            ?: return DerivationChange(context, "8.4.2: Target 'n' not found in terms.")
 
         val newSurface = targetTerm.surface.replaceFirst('न', 'ण')
 
@@ -156,13 +153,14 @@ object AtkupvangnumvyavayePiSutra : Sutra<DerivationState, DerivationChange>(
             if (triggerTermId != null && nTermId != null) break
         }
 
-        // If the trigger is in a DHATU term but the न is in a different term,
-        // the r/ṣ is dhātu-internal and cannot drive cross-term retroflexion.
         if (triggerTermId != null && nTermId != null && triggerTermId != nTermId) {
             val triggerTerm = context.terms.find { it.id == triggerTermId }
-            if (triggerTerm?.kind == TermKind.DHATU) return null
+            val isKrdantaNimitta = context.samjnas.any {
+                it.targetId == triggerTermId &&
+                    it.samjna in setOf(dev.panini.shiksha.Samjna.ANIYAR, dev.panini.shiksha.Samjna.LYUT)
+            }
+            if (triggerTerm?.kind == TermKind.DHATU && !isKrdantaNimitta) return null
         }
-
         return triggerIndex to nIndex
     }
 

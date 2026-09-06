@@ -74,6 +74,8 @@ object Ashtadhyayi {
         SutraStage.PRATYAYA_SELECTION,
         SutraStage.ANGAKARYA,
         SutraStage.IT_PROCESSING,
+        SutraStage.VOWEL_SANDHI,
+        SutraStage.SANDHI,
     )
     val striPratyayaSutras: List<DerivationSutra> =
         executableSutrasUnder("4.1.3")

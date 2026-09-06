@@ -104,7 +104,7 @@ class KrdantaEngineTest {
         val expected = mapOf(
             "युज्" to "योजन",
             "गण" to "गणन",
-            "धृ" to "धारण",
+            "धृ" to "धरण",
             "स्था" to "स्थान",
             "जन्" to "जनन",
             "हृ" to "हरण",
@@ -128,7 +128,7 @@ class KrdantaEngineTest {
     fun `source affixes resolve through typed krdanta capability`() {
         assertEquals("योग", engine.deriveSourceStem("युज्", "घञ्").surface)
         assertEquals("योजन", engine.deriveSourceStem("युज्", "ल्युट्").surface)
-        assertEquals("धारण", engine.deriveSourceStem("धृ", "अन").surface)
+        assertEquals("धरण", engine.deriveSourceStem("धृ", "अन").surface)
         assertEquals("हार", engine.deriveSourceStem("हृ", "घञ्").surface)
         assertTrue(engine.deriveSourceStem("युज्", "घञ्").supportsAStemDeclension)
         assertEquals("हर", engine.deriveSourceStem("हृ", "क्त").surface)
@@ -155,5 +155,20 @@ class KrdantaEngineTest {
                 assertIs<DerivationEvent.Completed>(result.events.last()).finalState,
             )
         }
+    }
+
+    @Test
+    fun `krdanta grading and junctions remain visible in the trace`() {
+        fun sutras(dhatu: String, samjna: Samjna): Set<String> {
+            val result = engine.derive(KrdantaDerivationRequest(dhatu, samjna))
+            result.final.requireCompleteItProcessing()
+            return result.applications.mapTo(linkedSetOf()) { it.sutra }
+        }
+
+        assertTrue(sutras("भू", Samjna.TUMUN).containsAll(setOf("7.3.84", "6.1.78")))
+        assertTrue("7.2.115" in sutras("कृ", Samjna.NYAT))
+        assertTrue(sutras("भू", Samjna.NVUL).containsAll(setOf("7.2.115", "7.1.1", "6.1.78")))
+        assertTrue(sutras("युज्", Samjna.GHAN).containsAll(setOf("7.3.86", "7.3.52")))
+        assertTrue(sutras("युज्", Samjna.LYUT).containsAll(setOf("7.3.86", "7.1.1")))
     }
 }

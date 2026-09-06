@@ -34,6 +34,9 @@ object AyaneyInIyiyahSutra : Sutra<DerivationState, DerivationChange>(
     stage = SutraStage.IT_PROCESSING,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
+        // This rule continues the taddhita domain; it must not rewrite the
+        // initial ku-it of a kṛt suffix such as घञ् before 1.3.9 deletes it.
+        if (context.terms.any { it.kind == TermKind.DHATU }) return false
         val pratyaya = context.terms.lastOrNull { it.kind == TermKind.PRATYAYA } ?: return false
         val firstChar = pratyaya.surface.firstOrNull() ?: return false
         if (firstChar !in setOf('फ', 'ढ', 'ख', 'छ', 'घ')) return false

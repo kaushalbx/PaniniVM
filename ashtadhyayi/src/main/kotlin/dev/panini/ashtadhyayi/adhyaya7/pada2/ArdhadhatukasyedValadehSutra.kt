@@ -50,9 +50,13 @@ object ArdhadhatukasyedValadehSutra : Sutra<DerivationState, DerivationChange>(
         // replaced by a freshly processed tiṅ substitution.
         val isArdhadhatuka = HasDerivationalEnvironment(DerivationalEnvironment.ARDHADHATUKA).matches(context) ||
             context.effectiveContext.rupa.lakara == Lakara.LIT || isLabhAorist || isSipLet
+        val vowelInitialAfterScheduledSubstitution = ending.matchesUpadesha("ल्युट्") ||
+            ending.matchesUpadesha("ण्वुल्") || ending.matchesUpadesha("घञ्") ||
+            ending.surface in setOf("यु", "वु")
         return isArdhadhatuka &&
             (context.terms.any { it.kind == TermKind.DHATU && (it.itStatus == ItStatus.SET || it.itStatus == ItStatus.VET) } || isLabhPerfectMiddle || isNonKradiPerfect || isLabhAorist) &&
             ending.kind == TermKind.PRATYAYA &&
+            !vowelInitialAfterScheduledSubstitution &&
             ending.surface.firstOrNull()?.let { char -> char !in vowels } == true &&
             isTransformedLitEnding &&
             context.allEffectiveTerms.none { it.id == "it-agama" }

@@ -34,6 +34,7 @@ object AcoNnitiSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.DHATU,
+    stage = dev.panini.sutra.SutraStage.ANGAKARYA,
     nimittaScope = NimittaScope.EXTERNAL,
     dependencies = setOf("6.4.1"),
     blocks = setOf("7.3.84"),
@@ -43,9 +44,10 @@ object AcoNnitiSutra : Sutra<DerivationState, DerivationChange>(
         val stemIndex = context.terms.indexOfFirst { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         if (stemIndex < 0) return false
         val stem = context.terms[stemIndex]
-        val affix = context.terms.getOrNull(stemIndex + 1) ?: return false
+        val affix = context.terms.drop(stemIndex + 1).firstOrNull { it.kind == TermKind.PRATYAYA } ?: return false
         if (affix.kind != TermKind.PRATYAYA) return false
-        if (affix.hasEffectiveMarker(ItMarker.KIT) || affix.hasEffectiveMarker(ItMarker.NGIT)) return false
+        if ((affix.hasEffectiveMarker(ItMarker.KIT) && !affix.hasEffectiveMarker(ItMarker.NYIT)) ||
+            affix.hasEffectiveMarker(ItMarker.NGIT)) return false
 
         val isNniti = affix.hasEffectiveMarker(ItMarker.NYIT) ||
                       affix.hasEffectiveMarker(ItMarker.NIT)

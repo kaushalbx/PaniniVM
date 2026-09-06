@@ -41,6 +41,7 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.DHATU,
+    stage = dev.panini.sutra.SutraStage.ANGAKARYA,
     dependencies = setOf("6.4.1")
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
@@ -56,12 +57,15 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
         val stemIndex = context.terms.indexOfFirst { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         if (stemIndex < 0) return false
         val stem = context.terms[stemIndex]
+        if (context.effectiveContext.rupa.lakara in setOf(Lakara.LRT, Lakara.LRNG) &&
+            context.allEffectiveTerms.none { it.upadesha == "स्य" }) return false
+        if (context.substitutions.any { it.targetId == stem.id && it.sutra == "6.1.78" }) return false
         if (stem.gana == DhatuGana.JUHOTYADI && context.droppedTerms.none { it.upadesha == "शप्" }) return false
         if (stem.gana == DhatuGana.BHVADI &&
             context.effectiveContext.rupa.lakara in setOf(Lakara.LAT, Lakara.LOT, Lakara.LANG, Lakara.LING, Lakara.LET) &&
             context.allEffectiveTerms.none { it.upadesha == "शप्" }
         ) return false
-        val affix = context.terms.getOrNull(stemIndex + 1) ?: return false
+        val affix = context.terms.drop(stemIndex + 1).firstOrNull { it.kind == TermKind.PRATYAYA } ?: return false
         if (stem.gana == DhatuGana.KRYADI && context.terms.any { it.upadesha == "श्ना" }) return false
         if (stem.gana == DhatuGana.JUHOTYADI) {
             val isLangJus = context.effectiveContext.rupa.lakara == Lakara.LANG &&
@@ -71,6 +75,8 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
             ) return false
         }
         if (affix.kind != TermKind.PRATYAYA) return false
+        if (affix.matchesUpadesha("क्त") || affix.matchesUpadesha("क्तवतुँ") ||
+            affix.matchesUpadesha("क्त्वा") || affix.matchesUpadesha("ल्यप्")) return false
         if ("1.2.5" in affix.establishedBySutras || AsamyogallitKitSutra.matches(context)) return false
         // In LIṬ, tip is first replaced by fresh ṇal (3.4.82); its ṇ-it
         // designation must govern the stronger 7.2.115 vṛddhi before guṇa is considered.
@@ -83,9 +89,6 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
             affix.id == "shap" || affix.id.startsWith("ting-")
 
         if (!isSarvaOrArdha) return false
-
-        // Guna should not apply to the it-augment
-        if (context.allEffectiveTerms.any { it.id == "it-agama" }) return false
 
         val lastChar = stem.surface.lastOrNull() ?: return false
         return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.IK, lastChar)
