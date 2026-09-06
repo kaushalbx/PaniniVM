@@ -29,11 +29,9 @@ object SanadyantaDhatavahSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.SAMJNA,
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
-    private val sanadiAffixes = setOf("णिच्", "सन्", "यङ्", "क्यच्", "क्यङ्", "काम्यच्")
-
     override fun matches(context: DerivationState): Boolean {
         val lastPratyaya = context.terms.lastOrNull { it.kind == TermKind.PRATYAYA } ?: return false
-        val isSanadi = lastPratyaya.upadesha in sanadiAffixes
+        val isSanadi = dev.panini.derivation.SanadiAffixes.contains(lastPratyaya.upadesha)
         val alreadyDhatu = context.samjnas.any { it.targetId == lastPratyaya.id && it.samjna == Samjna.DHATU }
         return isSanadi && !alreadyDhatu
     }

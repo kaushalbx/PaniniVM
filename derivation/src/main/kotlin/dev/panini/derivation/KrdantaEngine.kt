@@ -14,7 +14,22 @@ data class KrdantaDerivationRequest(
     val sanadiPratyayas: List<String> = emptyList(),
 )
 
-data class KrdantaSourceStem(val surface: String, val supportsAStemDeclension: Boolean, val preservesSourceSurface: Boolean)
+sealed interface KrdantaSourceStem {
+    val surface: String
+
+    data class Productive(
+        override val surface: String,
+        val supportsAStemDeclension: Boolean,
+        val derivation: DerivationResult,
+    ) : KrdantaSourceStem
+
+    data class Unresolved(
+        override val surface: String,
+        val reason: Reason,
+    ) : KrdantaSourceStem {
+        enum class Reason { UNKNOWN_DHATU, UNKNOWN_KRT_AFFIX }
+    }
+}
 
 class KrdantaEngine(
     private val pipeline: DerivationPipeline = DerivationPipeline(
@@ -31,12 +46,14 @@ class KrdantaEngine(
     ): KrdantaSourceStem {
         val samjna = sourceAffixSamjna(pratyaya)
         val hasDhatu = DhatuPatha.all.any { it.matchesSurface(dhatu) }
-        if (samjna == null || !hasDhatu) return KrdantaSourceStem(dhatu, false, true)
+        if (samjna == null) return KrdantaSourceStem.Unresolved(dhatu, KrdantaSourceStem.Unresolved.Reason.UNKNOWN_KRT_AFFIX)
+        if (!hasDhatu) return KrdantaSourceStem.Unresolved(dhatu, KrdantaSourceStem.Unresolved.Reason.UNKNOWN_DHATU)
 
-        return KrdantaSourceStem(
-            surface = derive(KrdantaDerivationRequest(dhatu, samjna, sanadiPratyayas = sanadiPratyayas)).final.surface,
+        val result = derive(KrdantaDerivationRequest(dhatu, samjna, sanadiPratyayas = sanadiPratyayas))
+        return KrdantaSourceStem.Productive(
+            surface = result.final.surface,
             supportsAStemDeclension = samjna in setOf(Samjna.GHAN, Samjna.LYUT),
-            preservesSourceSurface = false,
+            derivation = result,
         )
     }
 

@@ -130,11 +130,18 @@ class KrdantaEngineTest {
         assertEquals("योजन", engine.deriveSourceStem("युज्", "ल्युट्").surface)
         assertEquals("धरण", engine.deriveSourceStem("धृ", "अन").surface)
         assertEquals("हार", engine.deriveSourceStem("हृ", "घञ्").surface)
-        assertTrue(engine.deriveSourceStem("युज्", "घञ्").supportsAStemDeclension)
+        assertTrue(assertIs<KrdantaSourceStem.Productive>(engine.deriveSourceStem("युज्", "घञ्")).supportsAStemDeclension)
         assertEquals("हृत", engine.deriveSourceStem("हृ", "क्त").surface)
         assertEquals("पठित", engine.deriveSourceStem("पठ्", "क्त").surface)
         assertEquals("क्षेप", engine.deriveSourceStem("क्षिप्", "घञ्").surface)
-        assertTrue(engine.deriveSourceStem("अज्ञात", "घञ्").preservesSourceSurface)
+        assertEquals(
+            KrdantaSourceStem.Unresolved.Reason.UNKNOWN_DHATU,
+            assertIs<KrdantaSourceStem.Unresolved>(engine.deriveSourceStem("अज्ञात", "घञ्")).reason,
+        )
+        assertEquals(
+            KrdantaSourceStem.Unresolved.Reason.UNKNOWN_KRT_AFFIX,
+            assertIs<KrdantaSourceStem.Unresolved>(engine.deriveSourceStem("युज्", "अज्ञात")).reason,
+        )
     }
 
     @Test

@@ -300,10 +300,12 @@ class PvmUktiSadhaka(
         }
         val baseText = sourceStem?.surface ?: normalized.pratipadika.baseText()
         val supAffix = SupAffix.fromUpadesha(normalized.sup.text) ?: return baseText
-        if (sourceStem?.supportsAStemDeclension == true) {
-            pvmKridantaSurface(baseText, supAffix)?.let { return it }
-        } else if (sourceStem?.preservesSourceSurface == true) {
-            return baseText
+        when (sourceStem) {
+            is dev.panini.derivation.KrdantaSourceStem.Productive -> if (sourceStem.supportsAStemDeclension) {
+                pvmKridantaSurface(baseText, supAffix)?.let { return it }
+            }
+            is dev.panini.derivation.KrdantaSourceStem.Unresolved -> return baseText
+            null -> Unit
         }
         val sankhya = normalized.pratipadika as? SankhyaPratipadika
         val linga = lingaOverride ?: if (sankhya != null) {
