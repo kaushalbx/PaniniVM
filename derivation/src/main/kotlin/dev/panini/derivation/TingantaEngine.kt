@@ -11,7 +11,7 @@ class TingantaEngine(private val engine: DerivationEngine = DerivationEngine(dev
     fun supportsSanadi(dhatu: String, sanadiPratyayas: List<String>, pada: PadaType? = null): Boolean {
         val type = sanadiPratyayas.firstOrNull() ?: return false
         if (type !in setOf("णिच्", "सन्", "यङ्")) return false
-        if (type == "सन्") return dhatu in setOf("भू", "पच्")
+        if (type == "सन्") return dhatu in setOf("भू", "पच्", "जि")
         if (type == "यङ्") return dhatu == "भू"
         val entry = runCatching { findDhatu(dhatu, pada) }.getOrNull() ?: return false
         return entry.gana in setOf(DhatuGana.DIVADI, DhatuGana.RUDHADI, DhatuGana.CURADI)

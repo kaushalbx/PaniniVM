@@ -112,8 +112,44 @@ class TingantaEngineTest {
         assertFalse(engine.supportsSanadi("मूल्", listOf("णिच्"), PadaType.PARASMAIPADA))
         assertTrue(engine.supportsSanadi("भू", listOf("सन्"), PadaType.PARASMAIPADA))
         assertTrue(engine.supportsSanadi("पच्", listOf("सन्"), PadaType.PARASMAIPADA))
-        assertFalse(engine.supportsSanadi("जि", listOf("सन्"), PadaType.PARASMAIPADA))
+        assertTrue(engine.supportsSanadi("जि", listOf("सन्"), PadaType.PARASMAIPADA))
         assertTrue(engine.supportsSanadi("भू", listOf("यङ्"), PadaType.ATMANEPADA))
+    }
+
+    @Test
+    fun `ji desiderative lengthens its anga before san`() {
+        val result = TingantaEngine().derive(
+            TingantaDerivationRequest("जि", lakara = Lakara.LAT, sanadiPratyayas = listOf("सन्")),
+        )
+
+        assertEquals("जिगीषति", result.final.surface, result.applications.joinToString { it.sutra })
+        assertTrue(result.applications.any { it.sutra == "6.4.16" })
+        assertTrue(result.applications.any { it.sutra == "7.3.57" })
+        assertTrue(result.applications.any { it.sutra == "8.3.59" })
+        result.final.requireCompleteItProcessing()
+    }
+
+    @Test
+    fun `san and yang complete their lifecycle across the present paradigm`() {
+        listOf(
+            Triple("भू", "सन्", PadaType.PARASMAIPADA),
+            Triple("भू", "यङ्", PadaType.ATMANEPADA),
+        ).forEach { (dhatu, sanadi, pada) ->
+            TingAffix.entries.filter { it.pada == pada }.forEach { affix ->
+                val result = TingantaEngine().derive(
+                    TingantaDerivationRequest(
+                        dhatu = dhatu,
+                        vacana = affix.vacana,
+                        purusha = affix.purusha,
+                        lakara = Lakara.LAT,
+                        pada = pada,
+                        sanadiPratyayas = listOf(sanadi),
+                    ),
+                )
+                assertTrue(result.applications.any { it.sutra == "3.1.32" }, "$sanadi $affix")
+                result.final.requireCompleteItProcessing()
+            }
+        }
     }
 
     @Test

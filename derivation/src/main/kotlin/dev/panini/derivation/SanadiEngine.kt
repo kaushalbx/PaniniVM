@@ -4,6 +4,7 @@ import dev.panini.core.Lakara
 import dev.panini.core.PadaType
 import dev.panini.core.Purusha
 import dev.panini.core.Vacana
+import dev.panini.shiksha.Varnamala
 
 enum class SanadiType(val pratyaya: String) {
     DESIDERATIVE("सन्"),
@@ -48,14 +49,12 @@ object SanadiEngine {
         vacana: Vacana,
         steps: MutableList<String>,
     ): SanadiDerivationResult {
-        val derivation = runCatching {
-            tingantaEngine.derive(
-                TingantaDerivationRequest(root, vacana, purusha, lakara, pada = PadaType.PARASMAIPADA, sanadiPratyayas = listOf("सन्")),
-            )
-        }.getOrNull()
-        if (derivation != null) steps.addAll(derivation.applications.map { "${it.sutra}: ${it.explanation}" })
-        val derivedStem = generateDesiderativeStem(root)
-        val finalForm = derivation?.final?.surface ?: "${derivedStem.dropLast(1)}ति"
+        val derivation = tingantaEngine.derive(
+            TingantaDerivationRequest(root, vacana, purusha, lakara, pada = PadaType.PARASMAIPADA, sanadiPratyayas = listOf("सन्")),
+        )
+        steps.addAll(derivation.applications.map { "${it.sutra}: ${it.explanation}" })
+        val derivedStem = tracedSanadiStem(derivation, "सन्")
+        val finalForm = derivation.final.surface
 
         return SanadiDerivationResult(
             primaryRoot = root,
@@ -116,7 +115,7 @@ object SanadiEngine {
             TingantaDerivationRequest(root, vacana, purusha, lakara, pada = PadaType.ATMANEPADA, sanadiPratyayas = listOf("यङ्")),
         )
         steps.addAll(derivation.applications.map { "${it.sutra}: ${it.explanation}" })
-        val stem = generateIntensiveStem(root)
+        val stem = tracedSanadiStem(derivation, "यङ्")
         val finalForm = derivation.final.surface
 
         return SanadiDerivationResult(
@@ -128,17 +127,11 @@ object SanadiEngine {
         )
     }
 
-    private fun generateDesiderativeStem(root: String): String = when (root) {
-        "जि" -> "जिगीष्"
-        "दा" -> "दित्स्"
-        "ज्ञा" -> "जिज्ञास्"
-        "पच्" -> "पिपक्ष्"
-        else -> {
-            val abhyasa = getAbhyasa(root, desiderative = true)
-            val stemBase = if (root == "भू") "भू" else root
-            val sSuffix = if (stemBase.endsWith("्")) "ष्" else "ष्"
-            abhyasa + stemBase.trimEnd('्') + sSuffix
-        }
+    private fun tracedSanadiStem(derivation: DerivationResult, pratyaya: String): String {
+        val sanadiIndex = derivation.final.terms.indexOfFirst { it.kind == TermKind.PRATYAYA && it.upadesha == pratyaya }
+        require(sanadiIndex >= 0) { "The completed trace has no surviving $pratyaya term." }
+        val surface = derivation.final.copy(terms = derivation.final.terms.take(sanadiIndex + 1)).surface
+        return if (surface.lastOrNull()?.let(Varnamala::isConsonant) == true) "$surface्" else surface
     }
 
     private fun generateCausativeStem(root: String): String = when {
@@ -156,31 +149,4 @@ object SanadiEngine {
         else -> root + "ि"
     }
 
-    private fun generateIntensiveStem(root: String): String = when (root) {
-        "कृ" -> "चेक्रीय्"
-        "गम्" -> "जङ्गम्य्"
-        "पच्" -> "पापच्य्"
-        else -> {
-            val heavyAbhyasa = getAbhyasa(root, intensive = true)
-            heavyAbhyasa + root.trimEnd('्') + "य्"
-        }
-    }
-
-    private fun getAbhyasa(root: String, desiderative: Boolean = false, intensive: Boolean = false): String {
-        val firstChar = root.firstOrNull() ?: return ""
-        val consonant = when (firstChar) {
-            'भ' -> "ब"
-            'प' -> "प"
-            'क' -> "च"
-            'ग' -> "ज"
-            'ज' -> "ज"
-            'द' -> "द"
-            else -> firstChar.toString()
-        }
-        return when {
-            intensive -> if (firstChar == 'भ') "बो" else "पा"
-            desiderative -> if (firstChar == 'प' || firstChar == 'ज') consonant + "ि" else consonant + "ु"
-            else -> consonant + "ि"
-        }
-    }
 }
