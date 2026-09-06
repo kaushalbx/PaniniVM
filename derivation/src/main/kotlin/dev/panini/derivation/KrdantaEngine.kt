@@ -7,7 +7,12 @@ import dev.panini.shiksha.Samjna
 import dev.panini.sutra.SutraStage
 import dev.panini.shiksha.Varnamala
 
-data class KrdantaDerivationRequest(val dhatu: String, val samjna: Samjna, val upasarga: String? = null)
+data class KrdantaDerivationRequest(
+    val dhatu: String,
+    val samjna: Samjna,
+    val upasarga: String? = null,
+    val sanadiPratyayas: List<String> = emptyList(),
+)
 
 data class KrdantaSourceStem(val surface: String, val supportsAStemDeclension: Boolean, val preservesSourceSurface: Boolean)
 
@@ -19,13 +24,17 @@ class KrdantaEngine(
         interleaveItProcessingAt = setOf(SutraStage.SANDHI),
     ),
 ) {
-    fun deriveSourceStem(dhatu: String, pratyaya: String): KrdantaSourceStem {
+    fun deriveSourceStem(
+        dhatu: String,
+        pratyaya: String,
+        sanadiPratyayas: List<String> = emptyList(),
+    ): KrdantaSourceStem {
         val samjna = sourceAffixSamjna(pratyaya)
         val hasDhatu = DhatuPatha.all.any { it.matchesSurface(dhatu) }
         if (samjna == null || !hasDhatu) return KrdantaSourceStem(dhatu, false, true)
 
         return KrdantaSourceStem(
-            surface = derive(KrdantaDerivationRequest(dhatu, samjna)).final.surface,
+            surface = derive(KrdantaDerivationRequest(dhatu, samjna, sanadiPratyayas = sanadiPratyayas)).final.surface,
             supportsAStemDeclension = samjna in setOf(Samjna.GHAN, Samjna.LYUT),
             preservesSourceSurface = false,
         )
@@ -47,6 +56,12 @@ class KrdantaEngine(
     }
 
     fun derive(request: KrdantaDerivationRequest): DerivationResult {
+        require(request.sanadiPratyayas.all { it == "णिच्" }) {
+            "Unsupported sanādi pratyaya in kṛdanta derivation: ${request.sanadiPratyayas.joinToString()}"
+        }
+        require(request.sanadiPratyayas.distinct().size == request.sanadiPratyayas.size) {
+            "A sanādi affix may be introduced only once in one kṛdanta request."
+        }
         val entry = findDhatu(request.dhatu)
         val initial = buildInitialState(request, entry, request.dhatu)
         val selection = canonicalSelectionSutra(request)
@@ -54,6 +69,7 @@ class KrdantaEngine(
             "Canonical sutra ${selection.sutra} cannot select ${request.samjna} for ${request.dhatu}."
         }
         val bootstrap = buildList {
+            if ("णिच्" in request.sanadiPratyayas) add(canonicalSutra("3.1.26"))
             add(selection)
             if (request.samjna == Samjna.KTVA && !request.upasarga.isNullOrBlank()) {
                 add(canonicalSutra("7.1.37"))
@@ -101,6 +117,7 @@ class KrdantaEngine(
         terms += dhatu
         samjnas += SamjnaAssignment(dhatu.id, Samjna.DHATU)
         samjnas += SamjnaAssignment(dhatu.id, request.samjna)
+        if ("णिच्" in request.sanadiPratyayas) samjnas += SamjnaAssignment(dhatu.id, Samjna.NIC)
         return DerivationState(
             terms = terms,
             samjnas = samjnas,

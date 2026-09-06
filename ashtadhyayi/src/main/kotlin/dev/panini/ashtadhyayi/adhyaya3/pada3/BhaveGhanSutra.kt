@@ -34,7 +34,7 @@ object BhaveGhanSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         if (context.stage != DerivationStage.INITIAL && context.stage != DerivationStage.PRATYAYA_SELECTED) return false
         val isGhanRequested = context.samjnas.any { it.samjna == Samjna.GHAN }
-        val hasPratyaya = context.terms.any { it.kind == TermKind.PRATYAYA }
+        val hasPratyaya = context.terms.any { it.kind == TermKind.PRATYAYA && it.upadesha != "णिच्" }
         return isGhanRequested && !hasPratyaya
     }
 

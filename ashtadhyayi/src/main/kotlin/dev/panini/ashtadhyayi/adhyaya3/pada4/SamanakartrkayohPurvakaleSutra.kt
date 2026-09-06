@@ -35,7 +35,7 @@ object SamanakartrkayohPurvakaleSutra : Sutra<DerivationState, DerivationChange>
     override fun matches(context: DerivationState): Boolean {
         val isKtvaRequested = context.samjnas.any { it.samjna == Samjna.KTVA } ||
             context.context.requestedMeaning == dev.panini.derivation.DerivationalMeaning.BHAVA
-        val hasPratyaya = context.terms.any { it.kind == TermKind.PRATYAYA }
+        val hasPratyaya = context.terms.any { it.kind == TermKind.PRATYAYA && it.upadesha != "णिच्" }
         return isKtvaRequested && !hasPratyaya
     }
 

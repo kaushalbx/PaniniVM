@@ -49,7 +49,7 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
         if ("6.4.1" !in context.activeAdhikaras) return false
 
         val nic = context.terms.firstOrNull { it.matchesUpadesha("णिच्") && it.surface == "इ" }
-        if (nic != null && context.terms.any { it.id == "shap" }) return true
+        if (nic != null && gradesNicEnding(context, nic.id)) return true
 
         val strongUGrade = strongUGrade(context)
         if (strongUGrade != null) return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.IK, strongUGrade.surface.last())
@@ -96,7 +96,7 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
 
     override fun apply(context: DerivationState): DerivationChange {
         val nic = context.terms.firstOrNull { it.matchesUpadesha("णिच्") && it.surface == "इ" }
-        if (nic != null && context.terms.any { it.id == "shap" }) {
+        if (nic != null && gradesNicEnding(context, nic.id)) {
             return DerivationChange(
                 state = context.replaceWholeAffix(
                     nic.id,
@@ -106,7 +106,7 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
                 )
                     .copy(stage = DerivationStage.ANGAKARYA)
                     .addSubstitution(VarnaSubstitution(nic.id, 'इ', "ए", sutra)),
-                explanation = "7.3.84 applies guṇa to the final इ of the ṇic-ending aṅga before शप्.",
+                explanation = "7.3.84 applies guṇa to the final इ of the ṇic-ending aṅga before a sārvadhātuka or ārdhadhātuka suffix.",
             )
         }
         val stem = strongUGrade(context)
@@ -128,6 +128,17 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
                 context.terms.lastOrNull()?.upadesha in strongAffixes(context).map { affix -> affix.upadesha } &&
                 lotAtmanepadaReady(context)
         }
+
+    private fun gradesNicEnding(context: DerivationState, nicId: String): Boolean {
+        val nicIndex = context.terms.indexOfFirst { it.id == nicId }
+        if (nicIndex < 0) return false
+        val followingAffix = context.terms.drop(nicIndex + 1).lastOrNull { it.kind == TermKind.PRATYAYA } ?: return false
+        val isArdhadhatukaKrt = followingAffix.upadesha in setOf(
+            "क्त", "क्तवतुँ", "क्त्वा", "ल्यप्", "तुमुँन्", "तव्यत्", "अनीयर्", "ण्यत्", "ण्वुल्", "तृच्", "घञ्", "ल्युट्",
+        )
+        return context.terms.any { it.id == "shap" } ||
+            (isArdhadhatukaKrt && HasDerivationalEnvironment(DerivationalEnvironment.ARDHADHATUKA).matches(context))
+    }
 
     private fun strongAffixes(context: DerivationState): Set<TingAffix> =
         when (context.effectiveContext.rupa.lakara) {

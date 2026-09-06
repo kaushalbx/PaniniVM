@@ -296,7 +296,7 @@ class PvmUktiSadhaka(
         }
         val kridanta = normalized.pratipadika as? KridantaPratipadika
         val sourceStem = kridanta?.let {
-            krdantaEngine.deriveSourceStem(it.dhatu.mulaDhatu, it.krtPratyaya)
+            krdantaEngine.deriveSourceStem(it.dhatu.mulaDhatu, it.krtPratyaya, it.dhatu.sanadiPratyayas)
         }
         val baseText = sourceStem?.surface ?: normalized.pratipadika.baseText()
         val supAffix = SupAffix.fromUpadesha(normalized.sup.text) ?: return baseText
@@ -372,7 +372,7 @@ class PvmUktiSadhaka(
     private fun Pratipadika.baseText(): String = when (this) {
         is MulaPratipadika -> text
         is SankhyaPratipadika -> sourceText
-        is KridantaPratipadika -> krdantaEngine.deriveSourceStem(dhatu.mulaDhatu, krtPratyaya).surface
+        is KridantaPratipadika -> krdantaEngine.deriveSourceStem(dhatu.mulaDhatu, krtPratyaya, dhatu.sanadiPratyayas).surface
         is UnadyantaPratipadika -> sourceText
         is SamasaPratipadika -> angas.joinToString("") { it.pratipadika.baseText() }
     }

@@ -138,6 +138,27 @@ class KrdantaEngineTest {
     }
 
     @Test
+    fun `sanadi is processed before the krt affix with complete provenance`() {
+        val result = engine.derive(
+            KrdantaDerivationRequest("शुध्", Samjna.TAVYA, sanadiPratyayas = listOf("णिच्")),
+        )
+
+        assertEquals("शोधयितव्य", result.final.surface)
+        assertTrue(
+            result.applications.map { it.sutra }.containsAll(
+                setOf("3.1.26", "3.1.96", "1.3.3", "1.3.7", "1.3.9", "7.2.35", "7.3.84", "6.1.78"),
+            ),
+            result.applications.joinToString { it.sutra },
+        )
+        assertTrue(result.final.terms.any { it.upadesha == "णिच्" })
+        result.final.requireCompleteItProcessing()
+        assertEquals(
+            result.final.surface,
+            engine.deriveSourceStem("शुध्", "तव्यत्", listOf("णिच्")).surface,
+        )
+    }
+
+    @Test
     fun `krdanta provenance contains only explicitly staged rules`() {
         val requests = listOf(
             KrdantaDerivationRequest("कृ", Samjna.KTVA, upasarga = "अनु"),
