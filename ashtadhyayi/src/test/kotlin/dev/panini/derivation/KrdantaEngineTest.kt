@@ -131,9 +131,10 @@ class KrdantaEngineTest {
         assertEquals("धरण", engine.deriveSourceStem("धृ", "अन").surface)
         assertEquals("हार", engine.deriveSourceStem("हृ", "घञ्").surface)
         assertTrue(engine.deriveSourceStem("युज्", "घञ्").supportsAStemDeclension)
-        assertEquals("हर", engine.deriveSourceStem("हृ", "क्त").surface)
-        assertEquals("पठ्", engine.deriveSourceStem("पठ्", "क्त").surface)
-        assertTrue(engine.deriveSourceStem("क्षिप्", "घञ्").preservesSourceSurface)
+        assertEquals("हृत", engine.deriveSourceStem("हृ", "क्त").surface)
+        assertEquals("पठित", engine.deriveSourceStem("पठ्", "क्त").surface)
+        assertEquals("क्षेप", engine.deriveSourceStem("क्षिप्", "घञ्").surface)
+        assertTrue(engine.deriveSourceStem("अज्ञात", "घञ्").preservesSourceSurface)
     }
 
     @Test

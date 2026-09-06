@@ -20,17 +20,30 @@ class KrdantaEngine(
     ),
 ) {
     fun deriveSourceStem(dhatu: String, pratyaya: String): KrdantaSourceStem {
-        val samjna = when {
-            pratyaya == "घञ्" && dhatu in supportedGhanDhatus -> Samjna.GHAN
-            pratyaya == "अप्" && dhatu in supportedApDhatus -> Samjna.GHAN
-            pratyaya in setOf("ल्युट्", "अन") && dhatu in supportedLyutDhatus -> Samjna.LYUT
-            else -> null
-        }
-        return if (samjna != null) {
-            KrdantaSourceStem(derive(KrdantaDerivationRequest(dhatu, samjna)).final.surface, true, false)
-        } else {
-            KrdantaSourceStem(sourceFallbackStems[dhatu] ?: dhatu, false, dhatu in preservedSourceStems)
-        }
+        val samjna = sourceAffixSamjna(pratyaya)
+        val hasDhatu = DhatuPatha.all.any { it.matchesSurface(dhatu) }
+        if (samjna == null || !hasDhatu) return KrdantaSourceStem(dhatu, false, true)
+
+        return KrdantaSourceStem(
+            surface = derive(KrdantaDerivationRequest(dhatu, samjna)).final.surface,
+            supportsAStemDeclension = samjna in setOf(Samjna.GHAN, Samjna.LYUT),
+            preservesSourceSurface = false,
+        )
+    }
+
+    private fun sourceAffixSamjna(pratyaya: String): Samjna? = when (pratyaya) {
+        "क्त" -> Samjna.KTA
+        "क्तवतुँ" -> Samjna.KTAVATU
+        "क्त्वा" -> Samjna.KTVA
+        "तुमुँन्" -> Samjna.TUMUN
+        "तव्यत्" -> Samjna.TAVYA
+        "अनीयर्", "अनीयर" -> Samjna.ANIYAR
+        "ण्यत्" -> Samjna.NYAT
+        "ण्वुल्" -> Samjna.NVUL
+        "तृच्" -> Samjna.TRC
+        "घञ्" -> Samjna.GHAN
+        "ल्युट्", "अन" -> Samjna.LYUT
+        else -> null
     }
 
     fun derive(request: KrdantaDerivationRequest): DerivationResult {
@@ -64,9 +77,15 @@ class KrdantaEngine(
 
     private fun canonicalSutra(number: String) = Ashtadhyayi.requireExecutable(number)
 
-    private fun findDhatu(dhatu: String): Dhatu = DhatuPatha.all.firstOrNull {
-        it.upadesha == dhatu || it.derivationalSurface == dhatu || it.sourceSurface == dhatu
-    } ?: DhatuPatha.all.first()
+    private fun findDhatu(dhatu: String): Dhatu = DhatuPatha.all.firstOrNull { it.matchesSurface(dhatu) }
+        ?: DhatuPatha.all.first()
+
+    private fun Dhatu.matchesSurface(value: String): Boolean {
+        val normalized = value.removeSuffix("्")
+        return sequenceOf(upadesha, derivationalSurface, sourceSurface).any {
+            it == value || it.removeSuffix("्") == normalized
+        }
+    }
 
     private fun buildInitialState(request: KrdantaDerivationRequest, entry: Dhatu, requested: String): DerivationState {
         val terms = mutableListOf<DerivationTerm>()
@@ -89,13 +108,5 @@ class KrdantaEngine(
             stage = DerivationStage.INITIAL,
             context = DerivationalContext(environments = setOf(DerivationalEnvironment.ARDHADHATUKA)),
         )
-    }
-
-    private companion object {
-        val supportedGhanDhatus = setOf("युज्", "शिष्", "मूल्", "भज्", "हृ")
-        val supportedApDhatus = setOf("युज्", "शिष्", "मूल्")
-        val supportedLyutDhatus = setOf("युज्", "गण", "धृ", "स्था", "जन्", "हृ")
-        val sourceFallbackStems = mapOf("हृ" to "हर")
-        val preservedSourceStems = setOf("क्षीप्", "क्षिप्")
     }
 }
