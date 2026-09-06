@@ -4,6 +4,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.SamjnaAssignment
+import dev.panini.derivation.SanadiAffixes
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
@@ -30,19 +31,18 @@ object SanadyantaDhatavahSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        val lastPratyaya = context.terms.lastOrNull { it.kind == TermKind.PRATYAYA } ?: return false
-        val isSanadi = dev.panini.derivation.SanadiAffixes.contains(lastPratyaya.upadesha)
-        val alreadyDhatu = context.samjnas.any { it.targetId == lastPratyaya.id && it.samjna == Samjna.DHATU }
-        return isSanadi && !alreadyDhatu
+        val sanadi = context.terms.lastOrNull { it.kind == TermKind.PRATYAYA && SanadiAffixes.contains(it.upadesha) }
+            ?: return false
+        return context.samjnas.none { it.targetId == sanadi.id && it.samjna == Samjna.DHATU }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val lastPratyaya = context.terms.last { it.kind == TermKind.PRATYAYA }
+        val sanadi = context.terms.last { it.kind == TermKind.PRATYAYA && SanadiAffixes.contains(it.upadesha) }
         return DerivationChange(
             state = context.copy(
-                samjnas = context.samjnas + SamjnaAssignment(lastPratyaya.id, Samjna.DHATU),
+                samjnas = context.samjnas + SamjnaAssignment(sanadi.id, Samjna.DHATU),
             ),
-            explanation = "3.1.32 assigns Dhātu samjñā to the secondary root formed with ${lastPratyaya.upadesha}."
+            explanation = "3.1.32 assigns Dhātu samjñā to the secondary root formed with ${sanadi.upadesha}."
         )
     }
 }

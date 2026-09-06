@@ -17,7 +17,7 @@ object Adhyaya3Pada1 {
         GupDhoopVichchhiPaniPanibhyOyaSutra,
         RtIyIyAnehKyanSutra,
         KamerNingSutra,
-        SanaadyantaDhatavahSutra,
+        SanadyantaDhatavahSutra,
         KasPratyayadAmAmantreLitSutra,
         IjashChaSutra,
         UshavidajabhyashChaSutra,

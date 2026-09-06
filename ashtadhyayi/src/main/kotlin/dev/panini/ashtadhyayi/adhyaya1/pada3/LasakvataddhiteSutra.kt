@@ -50,7 +50,11 @@ object LasakvataddhiteSutra : Sutra<DerivationState, DerivationChange>(
                         "ल" -> ItMarker.LIT
                         "श" -> ItMarker.SH
                         "ङ" -> ItMarker.NGIT
-                        else -> if (isKu(firstChar)) ItMarker.KIT else ItMarker.KIT
+                        "क" -> ItMarker.KIT
+                        "ख" -> ItMarker.KHIT
+                        "ग" -> ItMarker.GIT
+                        "घ" -> ItMarker.GHIT
+                        else -> error("Unsupported 1.3.8 marker $firstChar")
                     }
                     val sign = term.surface.getOrNull(1)
                     val vowel = when (sign) {
