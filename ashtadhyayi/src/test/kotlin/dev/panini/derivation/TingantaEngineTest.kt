@@ -130,22 +130,24 @@ class TingantaEngineTest {
     }
 
     @Test
-    fun `san and yang complete their lifecycle across the present paradigm`() {
+    fun `sanadi affixes complete their lifecycle across supported present paradigms`() {
         listOf(
             Triple("भू", "सन्", PadaType.PARASMAIPADA),
             Triple("भू", "यङ्", PadaType.ATMANEPADA),
+            Triple("भू", "णिच्", PadaType.PARASMAIPADA),
+            Triple("कृ", "णिच्", PadaType.PARASMAIPADA),
+            Triple("पच्", "णिच्", PadaType.PARASMAIPADA),
         ).forEach { (dhatu, sanadi, pada) ->
             TingAffix.entries.filter { it.pada == pada }.forEach { affix ->
-                val result = TingantaEngine().derive(
-                    TingantaDerivationRequest(
+                val request = TingantaDerivationRequest(
                         dhatu = dhatu,
                         vacana = affix.vacana,
                         purusha = affix.purusha,
                         lakara = Lakara.LAT,
                         pada = pada,
                         sanadiPratyayas = listOf(sanadi),
-                    ),
-                )
+                    )
+                val result = if (sanadi == "णिच्") TingantaEngine().deriveExplicitSanadi(request) else TingantaEngine().derive(request)
                 assertTrue(result.applications.any { it.sutra == "3.1.32" }, "$sanadi $affix")
                 result.final.requireCompleteItProcessing()
             }

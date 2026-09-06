@@ -29,29 +29,18 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.PRATYAYA,
     stage = dev.panini.sutra.SutraStage.IT_PROCESSING,
 ), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean {
-        if (context.stage == DerivationStage.PRATYAYA_SELECTED && context.terms.none { it.itProcessingPending }) {
-            return true
-        }
-        return context.terms.filter { it.itProcessingPending }.any { term ->
-            term.itDesignations.isNotEmpty() ||
-                (term.itProcessingPhase == dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA &&
-                    term.itMarkers.isEmpty())
+    override fun matches(context: DerivationState): Boolean =
+        context.terms.any { term ->
+            term.itProcessingPending && term.itDesignations.isNotEmpty()
         } || context.terms.any {
             it.deferredItDesignations.isNotEmpty() &&
                 it.itProcessingPhase != dev.panini.derivation.ItProcessingPhase.DEFERRED_SUBSTITUTION
         }
-    }
 
     override fun apply(context: DerivationState): DerivationChange {
         val pendingTargets = context.terms.filter { it.itProcessingPending }.mapTo(mutableSetOf()) { it.id }
         val newTerms = context.terms.map { term ->
             if (pendingTargets.isNotEmpty() && term.id !in pendingTargets) return@map term
-            if (term.itProcessingPhase == dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA &&
-                term.itMarkers.isEmpty() && term.itDesignations.isEmpty()
-            ) {
-                return@map term.copy(itProcessingPhase = dev.panini.derivation.ItProcessingPhase.PROCESSED)
-            }
             val exactDesignations = term.itDesignations + if (
                 term.itProcessingPhase == dev.panini.derivation.ItProcessingPhase.DEFERRED_SUBSTITUTION
             ) emptyList() else term.deferredItDesignations

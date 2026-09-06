@@ -17,8 +17,17 @@ class TingantaEngine(private val engine: DerivationEngine = DerivationEngine(dev
         return entry.gana in setOf(DhatuGana.DIVADI, DhatuGana.RUDHADI, DhatuGana.CURADI)
     }
 
-    fun derive(request: TingantaDerivationRequest): DerivationResult {
-        require(request.sanadiPratyayas.isEmpty() || supportsSanadi(request.dhatu, request.sanadiPratyayas, request.pada)) {
+    fun derive(request: TingantaDerivationRequest): DerivationResult = deriveInternal(request, allowExplicitPlan = false)
+
+    /** Executes a caller-selected sanādi plan without advertising it for automatic source-language routing. */
+    fun deriveExplicitSanadi(request: TingantaDerivationRequest): DerivationResult {
+        require(request.sanadiPratyayas.isNotEmpty()) { "An explicit sanādi derivation requires a sanādi affix." }
+        return deriveInternal(request, allowExplicitPlan = true)
+    }
+
+    private fun deriveInternal(request: TingantaDerivationRequest, allowExplicitPlan: Boolean): DerivationResult {
+        require(request.sanadiPratyayas.isEmpty() || supportsSanadi(request.dhatu, request.sanadiPratyayas, request.pada) ||
+            (allowExplicitPlan && hasExplicitSanadiPlan(request))) {
             "No complete sanādi derivation plan exists for ${request.dhatu} + ${request.sanadiPratyayas.joinToString(" + ")}."
         }
         val hasYang = "यङ्" in request.sanadiPratyayas
@@ -37,6 +46,9 @@ class TingantaEngine(private val engine: DerivationEngine = DerivationEngine(dev
             verifyDerivation("3.4.78", plan.affix.upadesha, plan.requiredSutras, plan.finalStage)
         }
     }
+
+    private fun hasExplicitSanadiPlan(request: TingantaDerivationRequest): Boolean =
+        request.sanadiPratyayas == listOf("णिच्") && request.dhatu in setOf("भू", "कृ", "पच्")
 
     fun deriveSupportedParadigm(
         dhatu: String,

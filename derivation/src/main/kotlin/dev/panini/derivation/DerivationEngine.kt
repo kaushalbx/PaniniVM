@@ -477,7 +477,7 @@ class DerivationEngine(
                 if (introducesRequestedRawAffix && state.stage != DerivationStage.INITIAL) 0 else 1
             },
             { candidate ->
-                if (candidate.sutra.sutra == "1.3.9" && state.terms.any {
+                if (candidate.sutra.sutra in setOf("1.3.9", "IT-COMPLETE") && state.terms.any {
                         it.itProcessingPending || it.itDesignations.isNotEmpty()
                     }) 4
                 else if (candidate.sutra.sutra == "3.4.92" && state.substitutions.any { it.sutra == "7.3.84" }) 2
@@ -520,7 +520,8 @@ fun DerivationResult.verifyDerivation(
         ?.singleOrNull()
         ?.upadesha
     require(selectedAffix == expectedAffixUpadesha) {
-        "$selectionSutra selected $selectedAffix, but $expectedAffixUpadesha was required."
+        val recent = applications.takeLast(20).joinToString { it.sutra }
+        "$selectionSutra selected $selectedAffix, but $expectedAffixUpadesha was required. Recent rules: $recent."
     }
     val appliedSutras = applications.mapTo(mutableSetOf()) { it.sutra }
     require(requiredSutras.all { it in appliedSutras }) {

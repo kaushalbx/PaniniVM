@@ -3,6 +3,7 @@ package dev.panini.derivation
 import dev.panini.core.Lakara
 import dev.panini.core.PadaType
 import dev.panini.core.Purusha
+import dev.panini.core.TingAffix
 import dev.panini.core.Vacana
 import dev.panini.shiksha.Varnamala
 
@@ -80,20 +81,10 @@ object SanadiEngine {
             pada = PadaType.PARASMAIPADA,
             sanadiPratyayas = listOf("णिच्"),
         )
-        val derivationResult = runCatching { tingantaEngine.derive(req) }.getOrNull()
-
-        if (derivationResult != null) {
-            steps.addAll(derivationResult.applications.map { "${it.sutra}: ${it.explanation}" })
-        } else {
-            steps += "3.1.26 [हेतुमति च]: Attaching णिच् (i) affix in causative sense"
-            steps += "7.2.115 [अचो ञ्णिति] / 7.3.84: Applying vṛddhi/guṇa to root vowel"
-        }
-
-        val stem = generateCausativeStem(root)
-        val finalForm = derivationResult?.final?.surface ?: "${stem.dropLast(1)}यति"
-
-        steps += "3.1.32 [सनाद्यन्ता धातवः]: Declaring $stem as a causative dhātu stem"
-        steps += "3.1.68 [कर्तरि शप्] & 6.1.78 [एचोऽयवायावः]: Conjugated form -> $finalForm"
+        val derivationResult = tingantaEngine.deriveExplicitSanadi(req)
+        steps.addAll(derivationResult.applications.map { "${it.sutra}: ${it.explanation}" })
+        val stem = tracedConjugationalStem(derivationResult)
+        val finalForm = derivationResult.final.surface
 
         return SanadiDerivationResult(
             primaryRoot = root,
@@ -127,26 +118,31 @@ object SanadiEngine {
         )
     }
 
-    private fun tracedSanadiStem(derivation: DerivationResult, pratyaya: String): String {
-        val sanadiIndex = derivation.final.terms.indexOfFirst { it.kind == TermKind.PRATYAYA && it.upadesha == pratyaya }
+    private fun tracedSanadiStem(
+        derivation: DerivationResult,
+        pratyaya: String,
+    ): String {
+        val states = listOf(derivation.final) + derivation.applications.asReversed().map { it.after }
+        val state = states.firstOrNull { candidate ->
+            candidate.terms.any {
+                it.kind == TermKind.PRATYAYA && it.upadesha == pratyaya
+            }
+        } ?: error("The derivation trace has no processed $pratyaya term.")
+        val sanadiIndex = state.terms.indexOfFirst {
+            it.kind == TermKind.PRATYAYA && it.upadesha == pratyaya
+        }
         require(sanadiIndex >= 0) { "The completed trace has no surviving $pratyaya term." }
-        val surface = derivation.final.copy(terms = derivation.final.terms.take(sanadiIndex + 1)).surface
+        val surface = state.copy(terms = state.terms.take(sanadiIndex + 1)).surface
         return if (surface.lastOrNull()?.let(Varnamala::isConsonant) == true) "$surface्" else surface
     }
 
-    private fun generateCausativeStem(root: String): String = when {
-        root == "गम्" -> "गमि"
-        root == "दृश्" -> "दर्शि"
-        root == "पच्" -> "पाचि"
-        root.endsWith("ू") -> root.dropLast(1) + "ावि"
-        root.endsWith("ृ") -> root.dropLast(1) + "ारि"
-        root.endsWith("्") -> {
-            val base = root.dropLast(1)
-            val lastVowel = base.lastOrNull()
-            if (lastVowel == 'अ') base.dropLast(1) + "ा" + root.last() + "ि"
-            else root + "ि"
+    private fun tracedConjugationalStem(derivation: DerivationResult): String {
+        val endingIndex = derivation.final.terms.indexOfLast { term ->
+            TingAffix.entries.any { it.upadesha == term.upadesha || it.upadesha == term.sthaniProps?.upadesha }
         }
-        else -> root + "ि"
+        require(endingIndex > 0) { "The completed causative trace has no tiṅ boundary." }
+        val surface = derivation.final.copy(terms = derivation.final.terms.take(endingIndex)).surface
+        return if (surface.lastOrNull()?.let(Varnamala::isConsonant) == true) "$surface्" else surface
     }
 
 }

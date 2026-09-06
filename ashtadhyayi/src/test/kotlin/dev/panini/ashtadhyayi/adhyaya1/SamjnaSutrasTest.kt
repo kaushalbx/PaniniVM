@@ -8,6 +8,7 @@ import dev.panini.ashtadhyayi.adhyaya1.pada3.BhuvadayoDhatavahSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.AdirNitudavahSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.ChutuSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.HalantyamSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada3.ItProcessingCompletionRule
 import dev.panini.ashtadhyayi.adhyaya1.pada3.LasakvataddhiteSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.ShahPratyayasyaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.TasyaLopahSutra
@@ -19,6 +20,7 @@ import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 
 class SamjnaSutrasTest {
@@ -116,7 +118,11 @@ class SamjnaSutrasTest {
             stage = DerivationStage.PRATYAYA_SELECTED,
             terms = listOf(DerivationTerm(id = "pratyaya", surface = "ल्युट्", kind = TermKind.PRATYAYA, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA))
         )
-        assertTrue(TasyaLopahSutra.matches(state))
+        assertFalse(TasyaLopahSutra.matches(state))
+        assertTrue(ItProcessingCompletionRule.matches(state))
+        val completed = ItProcessingCompletionRule.apply(state).state.terms.single()
+        assertEquals(dev.panini.derivation.ItProcessingPhase.PROCESSED, completed.itProcessingPhase)
+        assertEquals("ल्युट्", completed.surface)
     }
 
     @Test
