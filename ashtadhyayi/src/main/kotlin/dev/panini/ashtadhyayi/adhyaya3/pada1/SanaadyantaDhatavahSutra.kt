@@ -4,6 +4,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.SamjnaAssignment
+import dev.panini.derivation.SanadiAffixes
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -21,12 +22,13 @@ object SanaadyantaDhatavahSutra : Sutra<DerivationState, DerivationChange>(
     type = SutraType.NITYA, chapter = 3, pada = 1, optional = false, kramaValue = 310032,
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.DERIVATION,
 ), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean =
-        context.allEffectiveTerms.any { it.upadesha in setOf("सन्", "क्यच्", "काम्यच्", "क्यङ्", "क्यष्", "णिङ्", "यङ्", "यक्", "आय", "इयङ्", "णिच्") } &&
-        context.samjnas.none { it.samjna == Samjna.DHATU }
+    override fun matches(context: DerivationState): Boolean {
+        val sanadi = context.terms.lastOrNull { SanadiAffixes.contains(it.upadesha) } ?: return false
+        return context.samjnas.none { it.targetId == sanadi.id && it.samjna == Samjna.DHATU }
+    }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val targetTerm = context.allEffectiveTerms.last()
+        val targetTerm = context.terms.last { SanadiAffixes.contains(it.upadesha) }
         val newSamjna = SamjnaAssignment(targetTerm.id, Samjna.DHATU)
         return DerivationChange(
             state = context.withSamjnas(setOf(newSamjna)),

@@ -37,6 +37,7 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
         val engine = Ashtadhyayi.pratyaharaEngine
         for (i in 0 until context.terms.size - 1) {
             val rightTerm = context.terms[i + 1]
+            if (nicGradeStillPending(context, rightTerm.id)) continue
             if (context.effectiveContext.rupa.lakara == Lakara.LET &&
                 rightTerm.upadesha == "झि" && context.substitutions.none { it.sutra == "3.4.94" }
             ) continue
@@ -56,6 +57,7 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
         for (i in 0 until context.terms.size - 1) {
             val leftTerm = context.terms[i]
             val rightTerm = context.terms[i+1]
+            if (nicGradeStillPending(context, rightTerm.id)) continue
             if (context.effectiveContext.rupa.lakara == Lakara.LET &&
                 rightTerm.upadesha == "झि" && context.substitutions.none { it.sutra == "3.4.94" }
             ) continue
@@ -148,4 +150,13 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
     private fun futureStemPending(context: DerivationState): Boolean =
         context.effectiveContext.rupa.lakara in setOf(Lakara.LRT, Lakara.LRNG) &&
             context.allEffectiveTerms.none { it.upadesha == "स्य" }
+
+    private fun nicGradeStillPending(context: DerivationState, rightTermId: String): Boolean {
+        val nic = context.terms.firstOrNull { it.id == rightTermId && it.matchesUpadesha("णिच्") && it.surface == "इ" }
+            ?: return false
+        return context.allEffectiveTerms.none { it.id == "shap" } &&
+            context.terms.dropWhile { it.id != nic.id }.drop(1).none { affix ->
+                affix.upadesha in setOf("क्त", "क्तवतुँ", "क्त्वा", "ल्यप्", "तुमुँन्", "तव्यत्", "अनीयर्", "ण्यत्", "ण्वुल्", "तृच्", "घञ्", "ल्युट्")
+            }
+    }
 }

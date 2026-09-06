@@ -138,7 +138,7 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
             "क्त", "क्तवतुँ", "क्त्वा", "ल्यप्", "तुमुँन्", "तव्यत्", "अनीयर्", "ण्यत्", "ण्वुल्", "तृच्", "घञ्", "ल्युट्",
         )
         if (followingAffix.upadesha in setOf("क्त", "क्तवतुँ") && followingAffix.hasEffectiveMarker(ItMarker.KIT)) return false
-        return context.terms.any { it.id == "shap" } ||
+        return context.allEffectiveTerms.any { it.id == "shap" } ||
             (isArdhadhatukaKrt && HasDerivationalEnvironment(DerivationalEnvironment.ARDHADHATUKA).matches(context))
     }
 

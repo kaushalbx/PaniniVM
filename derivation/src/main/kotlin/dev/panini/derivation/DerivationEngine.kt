@@ -470,6 +470,13 @@ class DerivationEngine(
          */
         fun candidateOrder(state: DerivationState) = compareBy<RuleCandidate>(
             { candidate ->
+                val introducesRequestedRawAffix = candidate.delta.addedTerms.any { term ->
+                    term.itProcessingPhase == ItProcessingPhase.RAW_UPADESHA &&
+                        term.upadesha in state.effectiveContext.requestedSanadi
+                }
+                if (introducesRequestedRawAffix && state.stage != DerivationStage.INITIAL) 0 else 1
+            },
+            { candidate ->
                 if (candidate.sutra.sutra == "1.3.9" && state.terms.any {
                         it.itProcessingPending || it.itDesignations.isNotEmpty()
                     }) 4

@@ -30,12 +30,15 @@ object HetumatiCaSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.PRATYAYA_SELECTION,
     scope = SutraScope.DERIVATION,
+    blocks = setOf("3.1.25", "3.1.68", "3.1.69", "3.1.73", "3.1.77", "3.1.78", "3.1.79", "3.1.81"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.stage != DerivationStage.INITIAL && context.stage != DerivationStage.PRATYAYA_SELECTED) return false
-        val isNicRequested = context.samjnas.any { it.samjna == Samjna.NIC } || context.context.requestedMeaning == dev.panini.derivation.DerivationalMeaning.BHAVA
-        val hasPratyaya = context.terms.any { it.kind == TermKind.PRATYAYA }
-        return isNicRequested && !hasPratyaya
+        val isNicRequested = "णिच्" in context.effectiveContext.requestedSanadi ||
+            context.samjnas.any { it.samjna == Samjna.NIC } ||
+            context.context.requestedMeaning == dev.panini.derivation.DerivationalMeaning.BHAVA
+        val hasNic = context.allEffectiveTerms.any { it.matchesUpadesha("णिच्") }
+        return isNicRequested && !hasNic
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -47,10 +50,16 @@ object HetumatiCaSutra : Sutra<DerivationState, DerivationChange>(
             createdBySutra = sutra,
             itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
         )
+        val introduced = if (context.terms.lastOrNull()?.kind == TermKind.PRATYAYA) {
+            context.insertBeforeTingOrLingAugment(nicTerm)
+        } else {
+            context.addTerm(nicTerm)
+        }
         return DerivationChange(
-            state = context.copy(
-                terms = context.terms + nicTerm,
-                stage = DerivationStage.PRATYAYA_SELECTED,
+            state = introduced.copy(
+                // णिच् creates a secondary dhātu; it does not complete the
+                // later lakāra or kṛt selection represented by this lifecycle stage.
+                stage = context.stage,
             ),
             explanation = "3.1.26 introduces causative suffix णिच् (इ)."
         )

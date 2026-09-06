@@ -47,7 +47,7 @@ object LasakvataddhiteSutra : Sutra<DerivationState, DerivationChange>(
                 val firstChar = term.surface.first()
                 if (isLaShaKu(firstChar)) {
                     val marker = when (firstChar.toString()) {
-                        "ल" -> ItMarker.KIT
+                        "ल" -> ItMarker.LIT
                         "श" -> ItMarker.SH
                         "ङ" -> ItMarker.NGIT
                         else -> if (isKu(firstChar)) ItMarker.KIT else ItMarker.KIT

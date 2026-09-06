@@ -31,7 +31,7 @@ object KryadibhyahShnaSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU } ?: return false
-        return dhatu.gana == DhatuGana.KRYADI &&
+        return !context.hasSanadyantaDhatu() && dhatu.gana == DhatuGana.KRYADI &&
             context.terms.lastOrNull()?.upadesha in TingAffix.entries.map { it.upadesha } &&
             context.allEffectiveTerms.none { it.upadesha == "श्ना" }
     }

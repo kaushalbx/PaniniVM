@@ -34,7 +34,7 @@ class TingantaEngineTest {
     }
 
     @Test
-    fun `tinganta request preserves an attached nic pratyaya`() {
+    fun `tinganta request records nic intent without synthesizing its surface`() {
         val request = TingantaDerivationRequest(
             dhatu = "युज्",
             vacana = Vacana.EKAVACANA,
@@ -46,8 +46,8 @@ class TingantaEngineTest {
         val dhatu = DhatuPatha.all.first { it.upadesha == "युजिँर्" }
         val state = request.initialState(dhatu)
 
-        assertEquals(listOf("युज्", "अय्"), state.terms.map { it.surface })
-        assertTrue(state.terms.any { it.upadesha == "णिच्" })
+        assertEquals(listOf("युज्"), state.terms.map { it.surface })
+        assertEquals(setOf("णिच्"), state.context.requestedSanadi)
     }
 
     @Test
@@ -64,7 +64,11 @@ class TingantaEngineTest {
                 ),
             )
 
-            assertEquals(expected, result.final.surface, dhatu)
+            assertEquals(expected, result.final.surface, "$dhatu: ${result.applications.joinToString { it.sutra }}")
+            val introduction = result.applications.first { it.sutra == "3.1.26" }
+            assertEquals(ItProcessingPhase.RAW_UPADESHA, introduction.after.terms.first { it.upadesha == "णिच्" }.itProcessingPhase)
+            assertTrue(result.applications.map { it.sutra }.containsAll(setOf("1.3.7", "1.3.3", "1.3.9")), dhatu)
+            result.final.requireCompleteItProcessing()
             assertTrue(result.applications.any { it.sutra == "3.1.68" }, dhatu)
             if (dhatu == "युज्") assertTrue(result.applications.none { it.sutra == "3.1.78" })
             if (dhatu == "मुद्र्") assertTrue(result.applications.none { it.sutra == "7.3.86" })

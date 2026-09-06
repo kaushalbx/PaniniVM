@@ -34,7 +34,7 @@ object TudadibhyahShahSutra : Sutra<DerivationState, DerivationChange>(
         val lakara = context.effectiveContext.rupa.lakara
         if (lakara in setOf(Lakara.LUNG, Lakara.LIT, Lakara.LUT, Lakara.LRT, Lakara.LRNG)) return false
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU } ?: return false
-        return dhatu.gana == DhatuGana.TUDADI &&
+        return !context.hasSanadyantaDhatu() && dhatu.gana == DhatuGana.TUDADI &&
             context.terms.lastOrNull()?.upadesha in TingAffix.entries.map { it.upadesha } &&
             context.allEffectiveTerms.none { it.upadesha == "श" }
     }

@@ -26,7 +26,7 @@ class SanadiEngineTest {
     fun `derives causative forms for bhu kru and pac`() {
         val bhuCausative = SanadiEngine.derive("भू", SanadiType.CAUSATIVE)
         assertEquals("भावि", bhuCausative.derivedStem)
-        assertEquals("भावयति", bhuCausative.conjugatedForm)
+        assertEquals("भावयति", bhuCausative.conjugatedForm, bhuCausative.steps.joinToString("\n"))
         assertTrue(bhuCausative.steps.any { it.contains("3.1.26") })
 
         val kruCausative = SanadiEngine.derive("कृ", SanadiType.CAUSATIVE)

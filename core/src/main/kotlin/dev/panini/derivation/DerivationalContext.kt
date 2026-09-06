@@ -41,6 +41,8 @@ data class Rupa(
 data class DerivationalContext(
     /** User-requested derivational meaning; rules establish grammar separately in samjnas. */
     val requestedMeaning: DerivationalMeaning? = null,
+    /** Sanādi identities explicitly requested by the derivation input. */
+    val requestedSanadi: Set<String> = emptySet(),
     /** Meanings established during the derivation by an executable sūtra. */
     val derivedMeanings: Set<DerivationalMeaning> = emptySet(),
     val environments: Set<DerivationalEnvironment> = emptySet(),

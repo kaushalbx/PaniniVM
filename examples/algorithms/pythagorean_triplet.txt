@@ -10,7 +10,7 @@
 धरणम् स्थानम् च जननाय योजय ।
 
 # Step 4: Compute square root of addition result (sqrt(25) = 5)
-जननम् मूलय ।
+जननम् मूल् ।
 
 # Step 5: Print result of square root (मूल् + घञ् + ङस् फल + अम् -> मूलस्य फलम् -> renders 5 = पञ्च)
 मूलस्य फलम् मुद्रय ।

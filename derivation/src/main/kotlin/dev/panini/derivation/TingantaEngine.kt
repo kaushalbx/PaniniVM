@@ -17,6 +17,9 @@ class TingantaEngine(private val engine: DerivationEngine = DerivationEngine(dev
     }
 
     fun derive(request: TingantaDerivationRequest): DerivationResult {
+        require(request.sanadiPratyayas.isEmpty() || supportsSanadi(request.dhatu, request.sanadiPratyayas, request.pada)) {
+            "No complete sanādi derivation plan exists for ${request.dhatu} + ${request.sanadiPratyayas.joinToString(" + ")}."
+        }
         val dhatu = findDhatu(request.dhatu, request.pada.takeIf { request.sanadiPratyayas.isNotEmpty() })
         val targetPada = resolvePada(requireNotNull(dhatu.pada), request.pada)
         val effectiveGana = if (request.sanadiPratyayas.isEmpty()) dhatu.gana else DhatuGana.BHVADI
