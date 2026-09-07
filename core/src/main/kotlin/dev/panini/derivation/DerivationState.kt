@@ -5,6 +5,7 @@ import dev.panini.core.ItMarker
 import dev.panini.core.LopaType
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.shiksha.ItStatus
+import dev.panini.shiksha.Accent
 import dev.panini.shiksha.LexicalUse
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Varnamala
@@ -98,6 +99,12 @@ class DerivationState(
                 rendered + next
             }
         }
+    }
+
+    fun surfaceBeforeTerm(termId: String): String {
+        val index = terms.indexOfFirst { it.id == termId }
+        require(index >= 0) { "Unknown active term $termId." }
+        return combinedSurface(terms.take(index))
     }
 
     val allEffectiveTerms: List<DerivationTerm>
@@ -388,7 +395,7 @@ class DerivationState(
 enum class BlockedOperationDomain { STRI_PRATYAYA_SELECTION }
 
 enum class AccentType { UDATTA, ANUDATTA, SVARITA }
-enum class SvaraNimittaKind { NIT_OR_NGIT, PIT_OR_SUP, EXPLICIT_UDATTA }
+enum class SvaraNimittaKind { PRATYAYA, NIT_OR_NGIT, PIT_OR_SUP, EXPLICIT_UDATTA }
 data class SvaraNimitta(val kind: SvaraNimittaKind, val termId: String, val vowelIndex: Int? = null)
 sealed interface SvaraAssignmentSource {
     data class Sutra(val number: String) : SvaraAssignmentSource
@@ -443,6 +450,9 @@ data class DerivationTerm(
     val compoundHeadUpadesha: String? = null,
     /** Persistent provenance for markers established by exact it-designations. */
     val itMarkerProvenance: Set<ItMarkerProvenance> = emptySet(),
+    /** Accent stated by the lexical source, rather than assigned by an Aṣṭādhyāyī rule. */
+    val lexicalAccent: Accent? = null,
+    val lexicalAccentSource: String? = null,
 ) {
     init {
         nonOperativeUpadeshaSegments.forEach { segment ->
@@ -469,6 +479,8 @@ data class DerivationTerm(
             itStatus = dhatu.itStatus,
             gana = dhatu.gana,
             blocksNicGuna = dhatu.blocksNicGuna,
+            lexicalAccent = dhatu.svara,
+            lexicalAccentSource = "Dhātupāṭha:${dhatu.id}",
         )
     }
 

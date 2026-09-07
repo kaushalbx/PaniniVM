@@ -76,9 +76,14 @@ shape.
 Accent assignment itself belongs to the Aṣṭādhyāyī registry. Executable rules
 3.1.3, 3.1.4, 6.1.158, and 6.1.197 operate in `SutraStage.SVARA` and write
 `SvaraAssignment` values whose source is either the assigning sūtra or explicit
-lexical accent metadata. `SvaraEngine` discovers vowel positions, schedules
-that registry stage, and renders the resulting accents; it contains no
-sūtra-number dispatch table.
+lexical accent metadata. `SvaraEngine` prepares typed nimittas and executes that
+registry stage through the normal `DerivationEngine` resolver. Its grammatical
+applications are appended to the main derivation trace; lexical assignments
+retain their non-sūtra source and create no fictitious application. The shared
+vowel-locus model records independent vowels, mātrās, and inherent अ, and each
+affix trigger carries its exact term-relative vowel index. Rule governance
+expresses 6.1.197 over 3.1.4 and 3.1.4 over 3.1.3, so no private numeric rule
+ordering or sūtra-number dispatch table remains in the renderer.
 
 The transition from `RAW_UPADESHA` to `PROCESSED` when 1.3.2–1.3.8 designate
 no segment is such bookkeeping. `DerivationEngine` performs it without adding

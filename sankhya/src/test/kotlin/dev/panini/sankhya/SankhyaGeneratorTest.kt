@@ -149,27 +149,27 @@ class SankhyaGeneratorTest {
 
         assertTrue(sut.ordinal(1L).applications.isEmpty())
         val second = sut.ordinal(2L)
-        assertEquals(listOf("5.2.54"), second.applications.map { it.sutra })
+        assertEquals(listOf("5.2.54"), second.applications.map { it.sutra }.withoutSvara())
         assertEquals(listOf("द्वि", "तीय"), second.final.terms.map { it.surface })
         assertEquals(TermKind.PRATYAYA, second.final.terms.last().kind)
         assertEquals("5.2.54", second.final.terms.last().createdBySutra)
 
         val third = sut.ordinal(3L)
-        assertEquals(listOf("5.2.55"), third.applications.map { it.sutra })
+        assertEquals(listOf("5.2.55"), third.applications.map { it.sutra }.withoutSvara())
         assertEquals(listOf("तृ", "तीय"), third.final.terms.map { it.surface })
         assertEquals("5.2.55", third.final.terms.last().createdBySutra)
         val fourth = sut.ordinal(4L)
-        assertEquals(listOf("5.2.51", "1.3.7", "1.3.3", "1.3.2", "1.3.9"), fourth.applications.map { it.sutra })
+        assertEquals(listOf("5.2.51", "1.3.7", "1.3.3", "1.3.2", "1.3.9"), fourth.applications.map { it.sutra }.withoutSvara())
         assertEquals(listOf("चतुर्", "थ्", "अ"), fourth.final.terms.map { it.surface })
         assertEquals("5.2.51", fourth.final.terms.single { it.upadesha == "थुँक्" }.createdBySutra)
 
         val sixth = sut.ordinal(6L)
         assertEquals("षष्ठ", sixth.final.surface)
-        assertEquals(listOf("5.2.51", "1.3.7", "1.3.3", "1.3.2", "1.3.9", "8.4.41"), sixth.applications.map { it.sutra })
+        assertEquals(listOf("5.2.51", "1.3.7", "1.3.3", "1.3.2", "1.3.9", "8.4.41"), sixth.applications.map { it.sutra }.withoutSvara())
         assertEquals(listOf("षष्", "ठ्", "अ"), sixth.final.terms.map { it.surface })
         assertEquals(
             listOf("5.2.49", "1.3.3", "1.3.9", "8.2.7"),
-            sut.ordinal(5L).applications.map { it.sutra },
+            sut.ordinal(5L).applications.map { it.sutra }.withoutSvara(),
         )
 
         val twentiethTamat = sut.ordinalVariants(20L)
@@ -179,6 +179,8 @@ class SankhyaGeneratorTest {
         assertTrue(twentiethTamat.final.terms.all { it.itProcessingPhase == ItProcessingPhase.PROCESSED })
         assertTrue(twentiethTamat.final.terms.all { it.itDesignations.isEmpty() && it.deferredItDesignations.isEmpty() })
     }
+
+    private fun List<String>.withoutSvara(): List<String> = filterNot { it in setOf("3.1.3", "3.1.4", "6.1.158", "6.1.197") }
 
     @Test
     fun `derives purana numerals eleven through twenty nine with dat`() {

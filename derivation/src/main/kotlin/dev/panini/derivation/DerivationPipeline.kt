@@ -63,9 +63,9 @@ class DerivationPipeline(
                 if (!isStageEnabled(phase.stage, initial, accumulated.state)) return@flatMap listOf(accumulated)
                 val prepared = prepareStage(phase.stage, accumulated.state)
                 val results = if (phase.stage in branchingStages) {
-                    phase.engine.deriveAll(prepared)
+                    phase.engine.deriveAll(prepared, configForStage(phase.stage).copy(validateFinalItProcessing = false, computeSvara = false))
                 } else {
-                    listOf(phase.engine.derive(prepared, configForStage(phase.stage).copy(validateFinalItProcessing = false)))
+                    listOf(phase.engine.derive(prepared, configForStage(phase.stage).copy(validateFinalItProcessing = false, computeSvara = false)))
                 }
                 results.map { accumulated.append(it) }
             }
@@ -76,11 +76,15 @@ class DerivationPipeline(
                 val final = finalizeState(accumulated.state).let { state ->
                     if (state.stage == DerivationStage.FINAL) state.requireCompleteItProcessing() else state
                 }
+                val svara = if (final.surface.isNotBlank()) SvaraEngine.derive(final) else null
+                val completed = svara?.state ?: final
+                val applications = accumulated.applications + svara?.applications.orEmpty()
                 DerivationResult(
                     initial = initial,
-                    final = final,
-                    applications = accumulated.applications,
-                    events = accumulated.events + DerivationEvent.Completed(final, accumulated.applications.size),
+                    final = completed,
+                    applications = applications,
+                    events = accumulated.events + svara?.events.orEmpty() + DerivationEvent.Completed(completed, applications.size),
+                    svaraResult = svara?.result,
                 )
             }
             .distinctBy { result -> result.final to result.applications.map(DerivationApplication::sutra) }

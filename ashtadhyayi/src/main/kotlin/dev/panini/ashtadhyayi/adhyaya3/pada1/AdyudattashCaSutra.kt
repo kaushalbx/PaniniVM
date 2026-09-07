@@ -4,6 +4,7 @@ import dev.panini.derivation.AccentType
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.SvaraNimittaKind
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -17,10 +18,11 @@ object AdyudattashCaSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.DERIVATION, stage = SutraStage.SVARA,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
-        context.svaraAssignments.none { it.accent == AccentType.UDATTA }
+        context.svaraAssignments.none { it.accent == AccentType.UDATTA } &&
+            context.svaraNimittas.any { it.kind == SvaraNimittaKind.PRATYAYA }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val vowelIndex = svaraVowelPositions(context.surface).lastIndex.coerceAtLeast(0)
+        val vowelIndex = requireNotNull(context.svaraNimittas.first { it.kind == SvaraNimittaKind.PRATYAYA }.vowelIndex)
         return DerivationChange(
             context.assignSvara(vowelIndex, AccentType.UDATTA, number),
             "$text assigns udātta to the initial vowel of the affix."

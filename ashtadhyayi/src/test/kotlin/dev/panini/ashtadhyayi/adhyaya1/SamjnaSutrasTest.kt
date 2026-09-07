@@ -129,7 +129,7 @@ class SamjnaSutrasTest {
         val completed = result.final.terms.single()
         assertEquals(dev.panini.derivation.ItProcessingPhase.PROCESSED, completed.itProcessingPhase)
         assertEquals("अ", completed.surface)
-        assertTrue(result.applications.isEmpty(), "Lifecycle bookkeeping must not appear as a grammatical application")
+        assertTrue(result.applications.none { it.sutra.startsWith("1.3.") }, "Lifecycle bookkeeping must not appear as a grammatical application")
         assertTrue(result.final.substitutions.isEmpty(), "Lifecycle bookkeeping must not appear as a varṇa substitution")
     }
 
@@ -159,7 +159,7 @@ class SamjnaSutrasTest {
         val result = dev.panini.derivation.DerivationEngine(rules).derive(raw)
 
         assertEquals("अ", result.final.surface)
-        assertEquals(listOf("1.3.3", "1.3.9"), result.applications.map { it.sutra })
+        assertEquals(listOf("1.3.3", "1.3.9"), result.applications.map { it.sutra }.filter { it.startsWith("1.3.") })
         val designation = result.applications.first().after.terms.single().itDesignations.single()
         assertEquals("ण्", designation.designatedText)
         assertEquals("1.3.3", designation.sutra)

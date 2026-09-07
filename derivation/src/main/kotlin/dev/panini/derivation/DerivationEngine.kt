@@ -246,6 +246,8 @@ data class DerivationConfig(
     val optionalRuleSelector: (String) -> Boolean = { true },
     /** Staged pipelines validate once at their outer completion boundary. */
     val validateFinalItProcessing: Boolean = true,
+    /** Prevents recursive svara completion when this engine is itself executing the SVARA stage. */
+    val computeSvara: Boolean = true,
 )
 
 class DerivationEngine(
@@ -275,7 +277,10 @@ class DerivationEngine(
         deriveInternal(initial, emptySet(), config, maxSteps)
 
     /** Produces both outcomes for each optional sūtra instead of silently choosing one. */
-    fun deriveAll(initial: DerivationState, maxSteps: Int = 100): List<DerivationResult> {
+    fun deriveAll(initial: DerivationState, maxSteps: Int = 100): List<DerivationResult> =
+        deriveAll(initial, DerivationConfig(), maxSteps)
+
+    fun deriveAll(initial: DerivationState, config: DerivationConfig, maxSteps: Int = 100): List<DerivationResult> {
         val pending = ArrayDeque<Set<String>>().apply { add(emptySet()) }
         val visitedSuppressions = mutableSetOf<Set<String>>()
         val branchedSutras = linkedSetOf<String>()
@@ -287,7 +292,7 @@ class DerivationEngine(
             val result = deriveInternal(
                 initial = initial,
                 suppressed = suppressed,
-                config = DerivationConfig(OptionalRulePolicy.APPLY_ALL),
+                config = config.copy(optionalRulePolicy = OptionalRulePolicy.APPLY_ALL),
                 maxSteps = maxSteps,
             )
             results += result
@@ -447,12 +452,15 @@ class DerivationEngine(
         }.let { state ->
             if (state.stage == DerivationStage.FINAL && config.validateFinalItProcessing) state.requireCompleteItProcessing() else state
         }
-        val svara = if (finalState.surface.isNotBlank()) {
-            SvaraEngine.computeSvara(finalState.surface, SvaraContext.from(finalState))
-        } else {
-            null
-        }
-        return DerivationResult(initial, finalState, applications, events + DerivationEvent.Completed(finalState, applications.size), svaraResult = svara)
+        val svara = if (config.computeSvara && finalState.surface.isNotBlank()) SvaraEngine.derive(finalState) else null
+        val completedState = svara?.state ?: finalState
+        val completedApplications = applications + svara?.applications.orEmpty()
+        val completedEvents = events + svara?.events.orEmpty()
+        return DerivationResult(
+            initial, completedState, completedApplications,
+            completedEvents + DerivationEvent.Completed(completedState, completedApplications.size),
+            svaraResult = svara?.result,
+        )
     }
 
     private fun select(state: DerivationState, suppressed: Set<String>): RuleSelection {
