@@ -73,6 +73,13 @@ typed `SvaraContext` built from this evidence and exact sup identity; it does no
 infer a sup or marker trigger from the final spelling or from generic pratyaya
 shape.
 
+Accent assignment itself belongs to the Aṣṭādhyāyī registry. Executable rules
+3.1.3, 3.1.4, 6.1.158, and 6.1.197 operate in `SutraStage.SVARA` and write
+`SvaraAssignment` values whose source is either the assigning sūtra or explicit
+lexical accent metadata. `SvaraEngine` discovers vowel positions, schedules
+that registry stage, and renders the resulting accents; it contains no
+sūtra-number dispatch table.
+
 The transition from `RAW_UPADESHA` to `PROCESSED` when 1.3.2–1.3.8 designate
 no segment is such bookkeeping. `DerivationEngine` performs it without adding
 an application or rule event, and only when its active rule set contains the

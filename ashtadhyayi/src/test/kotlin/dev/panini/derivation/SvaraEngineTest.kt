@@ -4,8 +4,22 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import java.nio.file.Path
+import kotlin.io.path.readText
 
 class SvaraEngineTest {
+    @Test
+    fun `svara sutras are executable registry members and renderer contains no rule table`() {
+        val rules = dev.panini.ashtadhyayi.Ashtadhyayi.executableSutrasAt(dev.panini.sutra.SutraStage.SVARA)
+        assertEquals(setOf("3.1.3", "3.1.4", "6.1.158", "6.1.197"), rules.map { it.sutra }.toSet())
+
+        val source = sequenceOf(
+            Path.of("derivation", "src", "main", "kotlin", "dev", "panini", "derivation", "SvaraEngine.kt"),
+            Path.of("..", "derivation", "src", "main", "kotlin", "dev", "panini", "derivation", "SvaraEngine.kt"),
+        ).first { it.toFile().isFile }.readText()
+        listOf("3.1.3", "3.1.4", "6.1.158", "6.1.197").forEach { assertFalse(it in source) }
+    }
+
 
     @Test
     fun `test 6 1 158 single udatta rule for agni`() {

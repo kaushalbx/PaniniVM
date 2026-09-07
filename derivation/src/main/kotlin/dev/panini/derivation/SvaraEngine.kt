@@ -3,12 +3,6 @@ package dev.panini.derivation
 import dev.panini.core.ItMarker
 import dev.panini.core.SupAffix
 
-enum class AccentType {
-    UDATTA,   // उदात्त (High pitch)
-    ANUDATTA, // अनुदात्त (Low pitch)
-    SVARITA,  // स्वरित (Circumflex)
-}
-
 data class AccentedVowel(
     val vowel: Char,
     val accent: AccentType,
@@ -66,42 +60,41 @@ object SvaraEngine {
         word: String,
         context: SvaraContext = SvaraContext(),
     ): SvaraResult {
-        val rules = mutableListOf<String>()
         val vowelPositions = findVowelPositions(word)
 
         if (vowelPositions.isEmpty()) {
-            return SvaraResult(word, -1, emptyList(), word, listOf("No vowels found in word"))
+            return SvaraResult(word, -1, emptyList(), word, emptyList())
         }
 
-        // Determine Udātta vowel index (0-indexed position among vowels in word)
         val explicit = context.triggers.firstOrNull { it.kind == SvaraTriggerKind.EXPLICIT_UDATTA }
-        val nitOrNgit = context.triggers.firstOrNull { it.kind == SvaraTriggerKind.NIT_OR_NGIT }
-        val pitOrSup = context.triggers.firstOrNull { it.kind == SvaraTriggerKind.PIT_OR_SUP }
-        val udattaVowelIndex = when {
-            explicit != null -> {
-                val vowelIndex = requireNotNull(explicit.vowelIndex) { "An explicit udātta trigger requires a vowel index." }
-                rules += "Explicit Udātta specified at vowel index $vowelIndex"
-                vowelIndex.coerceIn(0, vowelPositions.size - 1)
-            }
-            nitOrNgit != null -> {
-                rules += "6.1.197 [ञ्नित्यादिर्नित्यम्]: Ñ-it / N-it affix gives initial accent (आयुदात्त)"
-                0 // First vowel is Udātta
-            }
-            pitOrSup != null -> {
-                rules += "3.1.4 [अनुदात्तौ सुप्पितौ]: Sup/Pit affix is Anudātta, stem retains accent (अन्तोदात्त)"
-                (vowelPositions.size - 2).coerceAtLeast(0)
-            }
-            else -> {
-                rules += "3.1.3 [आयुदात्तश्च]: Default affix accent on final/suffix vowel (अन्तोदात्त)"
-                vowelPositions.size - 1
-            }
-        }
+        var state = DerivationState(
+            terms = listOf(DerivationTerm("svara-pada", word, TermKind.PRATIPADIKA)),
+            stage = DerivationStage.FINAL,
+            svaraNimittas = context.triggers.map { trigger ->
+                SvaraNimitta(SvaraNimittaKind.valueOf(trigger.kind.name), trigger.termId, trigger.vowelIndex)
+            },
+            svaraAssignments = explicit?.let { trigger ->
+                val index = requireNotNull(trigger.vowelIndex) { "An explicit udātta trigger requires a vowel index." }
+                listOf(SvaraAssignment(index.coerceIn(0, vowelPositions.lastIndex), AccentType.UDATTA, SvaraAssignmentSource.Lexical(trigger.termId)))
+            }.orEmpty(),
+        )
+        val rules = mutableListOf<String>()
+        val svaraSutras = dev.panini.ashtadhyayi.Ashtadhyayi.executableSutrasAt(dev.panini.sutra.SutraStage.SVARA)
+            .sortedByDescending { it.krama }
+        do {
+            val applicable = svaraSutras.firstOrNull { it.matches(state) }
+            if (applicable == null) break
+            val change = applicable.apply(state)
+            require(change.state != state) { "Svara sūtra ${applicable.sutra} matched without assigning an accent." }
+            state = change.state.recordAppliedSutra(applicable.sutra)
+            val text = (applicable as? dev.panini.sutra.Sutra<*, *>)?.text ?: applicable.sutra
+            rules += "${applicable.sutra} [$text]: ${change.explanation}"
+        } while (true)
 
-        rules += "6.1.158 [अनुदात्तं पदमेकवर्जम्]: Word has 1 Udātta; all other ${vowelPositions.size - 1} vowels become Anudātta"
-
-        val accentedVowels = vowelPositions.mapIndexed { idx, pos ->
-            val accent = if (idx == udattaVowelIndex) AccentType.UDATTA else AccentType.ANUDATTA
-            AccentedVowel(word[pos], accent, pos)
+        val assignments = state.svaraAssignments.associateBy { it.vowelIndex }
+        val udattaVowelIndex = state.svaraAssignments.single { it.accent == AccentType.UDATTA }.vowelIndex
+        val accentedVowels = vowelPositions.mapIndexed { index, position ->
+            AccentedVowel(word[position], assignments.getValue(index).accent, position)
         }
 
         val formatted = formatDevanagariAccents(word, vowelPositions, udattaVowelIndex)

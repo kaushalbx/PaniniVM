@@ -27,6 +27,8 @@ class DerivationState(
     val substitutions: List<VarnaSubstitution> = emptyList(),
     /** Applied grammatical rules, separate from concrete varṇa substitutions. */
     val appliedSutras: List<String> = emptyList(),
+    val svaraNimittas: List<SvaraNimitta> = emptyList(),
+    val svaraAssignments: List<SvaraAssignment> = emptyList(),
 ) {
 
     init {
@@ -300,6 +302,9 @@ class DerivationState(
     fun recordAppliedSutra(sutraNumber: String): DerivationState =
         copy(appliedSutras = appliedSutras + sutraNumber)
 
+    fun assignSvara(vowelIndex: Int, accent: AccentType, sutra: String): DerivationState =
+        copy(svaraAssignments = svaraAssignments + SvaraAssignment(vowelIndex, accent, SvaraAssignmentSource.Sutra(sutra)))
+
     fun copy(
         terms: List<DerivationTerm> = this.terms,
         droppedTerms: List<DerivationTerm> = this.droppedTerms,
@@ -314,6 +319,8 @@ class DerivationState(
         varnaComparisons: Set<VarnaComparison> = this.varnaComparisons,
         substitutions: List<VarnaSubstitution> = this.substitutions,
         appliedSutras: List<String> = this.appliedSutras,
+        svaraNimittas: List<SvaraNimitta> = this.svaraNimittas,
+        svaraAssignments: List<SvaraAssignment> = this.svaraAssignments,
     ): DerivationState {
         return DerivationState(
             terms = terms,
@@ -329,6 +336,8 @@ class DerivationState(
             varnaComparisons = varnaComparisons,
             substitutions = substitutions,
             appliedSutras = appliedSutras,
+            svaraNimittas = svaraNimittas,
+            svaraAssignments = svaraAssignments,
         )
     }
 
@@ -347,7 +356,9 @@ class DerivationState(
             halantyamExemptTermIds == other.halantyamExemptTermIds &&
             varnaComparisons == other.varnaComparisons &&
             substitutions == other.substitutions
-            && appliedSutras == other.appliedSutras
+            && appliedSutras == other.appliedSutras &&
+            svaraNimittas == other.svaraNimittas &&
+            svaraAssignments == other.svaraAssignments
     }
 
     override fun hashCode(): Int {
@@ -364,15 +375,26 @@ class DerivationState(
         result = 31 * result + varnaComparisons.hashCode()
         result = 31 * result + substitutions.hashCode()
         result = 31 * result + appliedSutras.hashCode()
+        result = 31 * result + svaraNimittas.hashCode()
+        result = 31 * result + svaraAssignments.hashCode()
         return result
     }
 
     override fun toString(): String {
-        return "DerivationState(terms=$terms, droppedTerms=$droppedTerms, samjnas=$samjnas, stage=$stage, context=$context, activeAdhikaras=$activeAdhikaras, inheritedAnuvrtti=$inheritedAnuvrtti, blockedSutras=$blockedSutras, blockedOperations=$blockedOperations, halantyamExemptTermIds=$halantyamExemptTermIds, varnaComparisons=$varnaComparisons, substitutions=$substitutions, appliedSutras=$appliedSutras)"
+        return "DerivationState(terms=$terms, droppedTerms=$droppedTerms, samjnas=$samjnas, stage=$stage, context=$context, activeAdhikaras=$activeAdhikaras, inheritedAnuvrtti=$inheritedAnuvrtti, blockedSutras=$blockedSutras, blockedOperations=$blockedOperations, halantyamExemptTermIds=$halantyamExemptTermIds, varnaComparisons=$varnaComparisons, substitutions=$substitutions, appliedSutras=$appliedSutras, svaraNimittas=$svaraNimittas, svaraAssignments=$svaraAssignments)"
     }
 }
 
 enum class BlockedOperationDomain { STRI_PRATYAYA_SELECTION }
+
+enum class AccentType { UDATTA, ANUDATTA, SVARITA }
+enum class SvaraNimittaKind { NIT_OR_NGIT, PIT_OR_SUP, EXPLICIT_UDATTA }
+data class SvaraNimitta(val kind: SvaraNimittaKind, val termId: String, val vowelIndex: Int? = null)
+sealed interface SvaraAssignmentSource {
+    data class Sutra(val number: String) : SvaraAssignmentSource
+    data class Lexical(val source: String) : SvaraAssignmentSource
+}
+data class SvaraAssignment(val vowelIndex: Int, val accent: AccentType, val source: SvaraAssignmentSource)
 
 private val affixKinds = setOf(TermKind.PRATYAYA, TermKind.AGAMA, TermKind.AUGMENT)
 
