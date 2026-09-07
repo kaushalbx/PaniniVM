@@ -8,7 +8,6 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -46,8 +45,7 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
             val rightTerm = context.terms[index + 1]
             if (rightTerm.upadesha == "इट्" && rightTerm.surface.endsWith("ट्")) return@any false
             val isTaddhita = "4.1.76" in context.activeAdhikaras ||
-                rightTerm.upadesha in setOf("अण्", "इञ्", "यञ्", "फक्", "ढक्", "वत्", "तसिल्", "त्रल्") ||
-                rightTerm.id.contains("apatya") || rightTerm.id.contains("taddhita")
+                rightTerm.upadesha in setOf("अण्", "इञ्", "यञ्", "फक्", "ढक्", "वत्", "तसिल्", "त्रल्")
             if (isTaddhita) return@any false
             val right = rightTerm.surface.firstOrNull() ?: return@any false
             val isA = dev.panini.shiksha.Varnamala.endsWithA(leftTerm.surface) ||
@@ -67,8 +65,7 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
                 term.surface.endsWith("ु") && context.samjnas.any { it.targetId == term.id && it.samjna == dev.panini.shiksha.Samjna.SANKHYA }
             }
             if (target != null) return DerivationChange(
-                state = context.replaceTerm(target.id, target.copy(surface = target.surface.dropLast(1) + "ो"))
-                    .addSubstitution(VarnaSubstitution(target.id, 'ु', "ो", sutra)),
+                state = context.substituteTermSurface(target.id, target.surface.dropLast(1) + "ो", 'ु', "ो", sutra),
                 explanation = "6.1.87: Guṇa substitution ओ for अ + उ from रुँ."
             )
         }
@@ -80,8 +77,7 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
                 !(terms[position].id == "shap" && terms.any { it.kind == TermKind.DHATU && it.gana == DhatuGana.ADADI }) &&
                 !(terms[position + 1].upadesha == "इट्" && terms[position + 1].surface.endsWith("ट्")) &&
                 !("4.1.76" in context.activeAdhikaras ||
-                    terms[position + 1].upadesha in setOf("अण्", "इञ्", "यञ्", "फक्", "ढक्", "वत्", "तसिल्", "त्रल्") ||
-                    terms[position + 1].id.contains("apatya") || terms[position + 1].id.contains("taddhita")) &&
+                    terms[position + 1].upadesha in setOf("अण्", "इञ्", "यञ्", "फक्", "ढक्", "वत्", "तसिल्", "त्रल्")) &&
                 !terms[position].surface.endsWith('न') &&
                 (position == 0 ||
                     !Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.EC, terms[position - 1].surface.lastOrNull() ?: return@first false) ||
@@ -97,20 +93,32 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
         val rightChar = rightTerm.surface.first()
 
         val substitute = getGuna(rightChar)
+        val isBeginningAugment = leftTerm.kind == TermKind.AGAMA &&
+            !leftTerm.mergeIntoAugmentTarget &&
+            leftTerm.augmentTargetId == rightTerm.id &&
+            "1.1.46" in leftTerm.establishedBySutras
 
-        val newSurface = if (leftChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks) {
+        val newSurface = if (isBeginningAugment) {
+            val initial = when (substitute) {
+                "ा" -> "आ"
+                "े" -> "ए"
+                "ो" -> "ओ"
+                else -> substitute
+            }
+            initial + rightTerm.surface.drop(1)
+        } else if (leftChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks) {
             if (substitute == "अ") leftTerm.surface + rightTerm.surface.drop(1)
             else leftTerm.surface + substitute + rightTerm.surface.drop(1)
         } else {
             leftTerm.surface.dropLast(1) + substitute + rightTerm.surface.drop(1)
         }
+        val survivor = if (isBeginningAugment) rightTerm else leftTerm
+        val consumedTerm = if (isBeginningAugment) leftTerm else rightTerm
 
         return DerivationChange(
-            state = context.copy(
-                terms = terms.take(index) + leftTerm.copy(surface = newSurface) + terms.drop(index + 2),
-                droppedTerms = context.droppedTerms + rightTerm.copy(surface = ""),
-                stage = DerivationStage.PADA_FORMED
-            ).addSubstitution(VarnaSubstitution(leftTerm.id, leftChar, substitute, sutra)),
+            state = context.mergeTermsByVarnaSubstitution(
+                survivor.id, consumedTerm.id, newSurface, leftChar, substitute, sutra,
+            ).copy(stage = DerivationStage.PADA_FORMED),
             explanation = "6.1.87: Guṇa substitution ($substitute) for $leftChar + $rightChar."
         )
     }

@@ -41,11 +41,9 @@ object RtoNgasyosSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
         return DerivationChange(
-            state = context.copy(
-                terms = context.terms.dropLast(2) + stem.copy(surface = stem.surface.dropLast(1) + "ुः"),
-                droppedTerms = context.droppedTerms + affix.copy(surface = ""),
-                stage = DerivationStage.FINAL,
-            ),
+            state = context.mergeTermsByVarnaSubstitution(
+                stem.id, affix.id, stem.surface.dropLast(1) + "ुः", 'ऋ', "उः", sutra,
+            ).copy(stage = DerivationStage.FINAL),
             explanation = "7.3.135: Formed the masculine ṛ-stem singular उः ending before ${affix.upadesha}.",
         )
     }

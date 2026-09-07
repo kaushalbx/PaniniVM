@@ -34,17 +34,15 @@ object YasyetiCaSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         if ("6.4.1" !in context.activeAdhikaras) return false
         if (context.terms.size < 2) return false
-        if (context.substitutions.any { it.sutra == "6.4.148" }) return false
+        if ("6.4.148" in context.appliedSutras) return false
 
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
         val isTaddhita = "4.1.76" in context.activeAdhikaras ||
-            affix.upadesha in setOf("अण्", "इञ्", "यञ्", "फक्", "ढक्", "वत्", "तसिल्", "त्रल्", "आयन्", "एय्", "ईन्", "ईय्", "इय्", "डट्", "तमट्", "तीयै", "टीयै", "डँ", "मयट्") ||
-            affix.id.contains("taddhita") || affix.id.contains("apatya") || affix.id.contains("purana") || affix.id.contains("sankhya")
+            affix.upadesha in setOf("अण्", "इञ्", "यञ्", "फक्", "ढक्", "वत्", "तसिल्", "त्रल्", "आयन्", "एय्", "ईन्", "ईय्", "इय्", "डट्", "तमट्", "तीयै", "टीयै", "डँ", "मयट्")
 
-        val isStriII = (affix.surface == "ई" || affix.surface == "ी" || affix.upadesha in setOf("ङीप्", "ङीष्", "ङीन्")) &&
-            (affix.id.contains("stri") || affix.id.contains("feminine"))
+        val isStriII = affix.upadesha in setOf("ङीप्", "ङीष्", "ङीन्")
 
         if (!isTaddhita && !isStriII) return false
 

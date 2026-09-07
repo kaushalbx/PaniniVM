@@ -42,7 +42,7 @@ object ClehSicSutra : Sutra<DerivationState, DerivationChange>(
                 "सिँच्",
                 sutra,
                 WholeAffixDesignationPolicy.FreshUpadesha,
-                upadesha = "सिच्",
+                upadesha = "सिँच्",
             ).copy(stage = DerivationStage.PRATYAYA_SELECTED),
             "3.1.44 substitutes सिच् for च्लि.",
         )

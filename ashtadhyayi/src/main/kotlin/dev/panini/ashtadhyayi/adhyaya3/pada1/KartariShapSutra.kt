@@ -6,9 +6,9 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.LetFormation
 import dev.panini.derivation.TermKind
-import dev.panini.shiksha.Svara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -32,11 +32,19 @@ object KartariShapSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean =
         context.effectiveContext.rupa.lakara !in setOf(Lakara.LIT, Lakara.LUNG) &&
                 !(context.effectiveContext.rupa.lakara == Lakara.LET && context.effectiveContext.letFormation == LetFormation.SIP_AORIST) &&
-                context.terms.lastOrNull()?.upadesha in TingAffix.entries.map { it.upadesha } &&
+                context.terms.lastOrNull()?.upadesha in
+                    (TingAffix.entries.map { it.upadesha } + setOf("शतृँ", "शानच्")) &&
                 context.allEffectiveTerms.none { it.upadesha in setOf("शप्", "श्यन्", "श्नु", "श", "श्नम्", "श्ना", "उ", "स्य", "तासि") }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val shap = DerivationTerm("shap", Svara.A.devanagari, TermKind.PRATYAYA, upadesha = "शप्")
+        val shap = DerivationTerm(
+            id = "shap",
+            surface = "शप्",
+            kind = TermKind.PRATYAYA,
+            upadesha = "शप्",
+            createdBySutra = number,
+            itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
+        )
         return DerivationChange(
             state = context.insertBeforeTingOrLingAugment(shap),
             explanation = "3.1.68 introduces शप् after the dhātu.",

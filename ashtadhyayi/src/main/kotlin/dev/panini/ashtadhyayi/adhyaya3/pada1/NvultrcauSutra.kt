@@ -34,7 +34,7 @@ object NvultrcauSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         if (context.stage != DerivationStage.INITIAL && context.stage != DerivationStage.PRATYAYA_SELECTED) return false
         val isAgentRequested = context.samjnas.any { it.samjna == Samjna.NVUL || it.samjna == Samjna.TRC }
-        val hasPratyaya = context.terms.any { it.kind == TermKind.PRATYAYA }
+        val hasPratyaya = context.terms.any { it.kind == TermKind.PRATYAYA && !dev.panini.derivation.SanadiAffixes.contains(it.upadesha) }
         return isAgentRequested && !hasPratyaya
     }
 

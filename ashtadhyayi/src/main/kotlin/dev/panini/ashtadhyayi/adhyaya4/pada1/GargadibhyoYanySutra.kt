@@ -40,7 +40,11 @@ object GargadibhyoYanySutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
         state = context.addTerm(
-            DerivationTerm("yany-suffix", "य", TermKind.PRATYAYA, upadesha = "यञ्"),
+            DerivationTerm(
+                "yany-suffix", "यञ्", TermKind.PRATYAYA, upadesha = "यञ्",
+                createdBySutra = sutra,
+                itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
+            ),
         ).copy(stage = DerivationStage.PRATYAYA_SELECTED),
         explanation = "4.1.105 introduces यञ् in the अपत्य sense after an eligible गर्गादि term.",
     )

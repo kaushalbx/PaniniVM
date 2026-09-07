@@ -2,6 +2,7 @@ package dev.panini.ashtadhyayi.adhyaya4.pada1
 
 import dev.panini.core.Linga
 import dev.panini.derivation.DerivationChange
+import dev.panini.derivation.BlockedOperationDomain
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.HasMorphosyntax
@@ -22,7 +23,7 @@ object NaShatsvasradibhyahSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Nishedha, action = SutraAction.NISHEDHA, scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
-        "STRI_PRATYAYA" !in context.blockedSutras &&
+        BlockedOperationDomain.STRI_PRATYAYA_SELECTION !in context.blockedOperations &&
             HasMorphosyntax(linga = Linga.STRI).matches(context) && context.terms.any {
             it.kind == TermKind.PRATIPADIKA &&
                 (context.samjnas.any { assignment ->
@@ -31,7 +32,7 @@ object NaShatsvasradibhyahSutra : Sutra<DerivationState, DerivationChange>(
         }
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
-        context.blockSutra("STRI_PRATYAYA", "4.1.10"),
+        context.blockOperation(BlockedOperationDomain.STRI_PRATYAYA_SELECTION, "4.1.10"),
         "4.1.10 blocks every feminine affix after a ṣaṭ-designated or eligible स्वस्रादि stem.",
     )
 }

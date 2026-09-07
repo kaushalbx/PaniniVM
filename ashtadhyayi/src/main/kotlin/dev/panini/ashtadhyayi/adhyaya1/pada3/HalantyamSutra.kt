@@ -72,6 +72,7 @@ object HalantyamSutra : Sutra<DerivationState, DerivationChange>(
                         'प' -> ItMarker.P
                         'ङ' -> ItMarker.NGIT
                         'ण' -> ItMarker.NIT
+                        'ञ' -> ItMarker.NYIT
                         'श', 'ष' -> ItMarker.SH
                         else -> ItMarker.GENERIC
                     }

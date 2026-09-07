@@ -40,7 +40,7 @@ object KandvadibhyoYakSutra : Sutra<DerivationState, DerivationChange>(
                 GanaPatha.isEligibleMember(35, term.surface, term.lexicalUses) &&
                 context.terms.none { it.id == "${term.id}-yak" }
             ) {
-                listOf(term, DerivationTerm("${term.id}-yak", "य", TermKind.PRATYAYA, upadesha = "यक्"))
+                listOf(term, DerivationTerm("${term.id}-yak", "यक्", TermKind.PRATYAYA, upadesha = "यक्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA))
             } else listOf(term)
         }
         return DerivationChange(

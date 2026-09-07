@@ -5,6 +5,7 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.WholeAffixDesignationPolicy
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -31,16 +32,20 @@ object YanoLukasSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val isYanLukRequested = context.samjnas.any { it.samjna == Samjna.YAN_LUK }
-        val yanTerm = context.terms.firstOrNull { it.upadesha == "यङ्" || it.id.contains("yan") }
+        val yanTerm = context.terms.firstOrNull { it.upadesha == "यङ्" }
         return isYanLukRequested && yanTerm != null
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val yanTerm = context.terms.first { it.upadesha == "यङ्" || it.id.contains("yan") }
-        val newTerms = context.terms.filterNot { it.id == yanTerm.id }
+        val yanTerm = context.terms.first { it.upadesha == "यङ्" }
+        val consumed = context.replaceWholeAffix(
+            id = yanTerm.id,
+            surface = "",
+            sutra = sutra,
+            policy = WholeAffixDesignationPolicy.Consume,
+        )
         return DerivationChange(
-            state = context.copy(
-                terms = newTerms,
+            state = consumed.removeTerm(yanTerm.id, sutra).copy(
                 stage = maxOf(context.stage, DerivationStage.ANGAKARYA),
             ),
             explanation = "2.4.74 performs luk-elision of यङ् affix."

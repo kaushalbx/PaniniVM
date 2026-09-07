@@ -15,13 +15,23 @@ class DerivationPipeline(
     private val isStageEnabled: (SutraStage, DerivationState, DerivationState) -> Boolean = { _, _, _ -> true },
     private val finalizeState: (DerivationState) -> DerivationState = { it },
     sutrasForStage: (SutraStage) -> List<DerivationSutra> = Ashtadhyayi::executableSutrasAt,
+    interleaveItProcessingAt: Set<SutraStage> = emptySet(),
 ) {
     private val phases: List<Phase> = stages.map { stage ->
         require(stage != SutraStage.UNSPECIFIED) { "A derivation pipeline cannot route UNSPECIFIED sūtras." }
-        val sutras = sutrasForStage(stage)
-        require(sutras.isNotEmpty()) { "No executable sūtras registered for $stage." }
-        require(sutras.all { it.stage == stage }) { "The $stage registry view contains incorrectly staged sūtras." }
-        Phase(stage, DerivationEngine(sutras))
+        val stageSutras = sutrasForStage(stage)
+        require(stageSutras.isNotEmpty()) { "No executable sūtras registered for $stage." }
+        require(stageSutras.all { it.stage == stage }) { "The $stage registry view contains incorrectly staged sūtras." }
+        val itSutras = if (stage in interleaveItProcessingAt) {
+            require(stage != SutraStage.IT_PROCESSING) { "IT_PROCESSING cannot interleave itself." }
+            sutrasForStage(SutraStage.IT_PROCESSING).also { rules ->
+                require(rules.isNotEmpty()) { "No executable sūtras registered for IT_PROCESSING." }
+                require(rules.all { it.stage == SutraStage.IT_PROCESSING }) {
+                    "The IT_PROCESSING registry view contains incorrectly staged sūtras."
+                }
+            }
+        } else emptyList()
+        Phase(stage, DerivationEngine((stageSutras + itSutras).distinctBy { it.sutra }))
     }
 
     fun derive(initial: DerivationState, bootstrap: List<DerivationSutra> = emptyList()): DerivationResult =
@@ -53,9 +63,9 @@ class DerivationPipeline(
                 if (!isStageEnabled(phase.stage, initial, accumulated.state)) return@flatMap listOf(accumulated)
                 val prepared = prepareStage(phase.stage, accumulated.state)
                 val results = if (phase.stage in branchingStages) {
-                    phase.engine.deriveAll(prepared)
+                    phase.engine.deriveAll(prepared, configForStage(phase.stage).copy(validateFinalItProcessing = false, computeSvara = false))
                 } else {
-                    listOf(phase.engine.derive(prepared, configForStage(phase.stage).copy(validateFinalItProcessing = false)))
+                    listOf(phase.engine.derive(prepared, configForStage(phase.stage).copy(validateFinalItProcessing = false, computeSvara = false)))
                 }
                 results.map { accumulated.append(it) }
             }
@@ -66,11 +76,15 @@ class DerivationPipeline(
                 val final = finalizeState(accumulated.state).let { state ->
                     if (state.stage == DerivationStage.FINAL) state.requireCompleteItProcessing() else state
                 }
+                val svara = if (final.surface.isNotBlank()) SvaraEngine.derive(final) else null
+                val completed = svara?.state ?: final
+                val applications = accumulated.applications + svara?.applications.orEmpty()
                 DerivationResult(
                     initial = initial,
-                    final = final,
-                    applications = accumulated.applications,
-                    events = accumulated.events + DerivationEvent.Completed(final, accumulated.applications.size),
+                    final = completed,
+                    applications = applications,
+                    events = accumulated.events + svara?.events.orEmpty() + DerivationEvent.Completed(completed, applications.size),
+                    svaraResult = svara?.result,
                 )
             }
             .distinctBy { result -> result.final to result.applications.map(DerivationApplication::sutra) }
@@ -101,7 +115,7 @@ class DerivationPipeline(
                 explanation = change.explanation,
             )
             return copy(
-                state = change.state,
+            state = change.state.recordAppliedSutra(sutra.sutra),
                 applications = applications + application,
                 events = events + DerivationEvent.RuleApplied(
                     sutra.sutra,

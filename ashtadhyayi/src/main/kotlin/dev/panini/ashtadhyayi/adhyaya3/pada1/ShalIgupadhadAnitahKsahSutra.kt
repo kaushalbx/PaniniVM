@@ -1,12 +1,10 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada1
 
-import dev.panini.core.ItMarker
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.DerivationTerm
-import dev.panini.derivation.TermKind
+import dev.panini.derivation.WholeAffixDesignationPolicy
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -32,21 +30,20 @@ object ShalIgupadhadAnitahKsahSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         val cli = context.terms.firstOrNull { it.upadesha == "च्लि" } ?: return false
         return context.allEffectiveTerms.any { term ->
-            term.surface in ksaRoots || (term.upadesha != null && ksaRoots.any { root -> term.upadesha!!.startsWith(root) })
+            term.surface in ksaRoots || ksaRoots.any { root -> term.upadesha.startsWith(root) }
         }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val cli = context.terms.first { it.upadesha == "च्लि" }
-        val ksa = DerivationTerm(
-            id = cli.id,
-            surface = "क्स",
-            kind = TermKind.PRATYAYA,
-            itMarkers = setOf(ItMarker.KIT),
-            upadesha = "क्स",
-        )
         return DerivationChange(
-            context.replaceTerm(cli.id, ksa).copy(stage = DerivationStage.PRATYAYA_SELECTED),
+            context.replaceWholeAffix(
+                id = cli.id,
+                surface = "क्स",
+                sutra = sutra,
+                policy = WholeAffixDesignationPolicy.Consume,
+                upadesha = "क्स",
+            ).copy(stage = DerivationStage.PRATYAYA_SELECTED),
             "3.1.45 substitutes क्स for च्लि after śal-ending aniṭ root.",
         )
     }

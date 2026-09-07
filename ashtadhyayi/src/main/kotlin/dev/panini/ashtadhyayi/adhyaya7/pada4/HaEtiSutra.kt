@@ -36,8 +36,8 @@ object HaEtiSutra : Sutra<DerivationState, DerivationChange>(
         val ending = context.terms[tasiIndex + 1]
         return DerivationChange(
             context
-                .replaceTerm(tasi.id, tasi.copy(surface = tasi.surface.removeSuffix("स्")))
-                .replaceTerm(ending.id, ending.copy(surface = "हे")),
+                .substituteTermSurface(tasi.id, tasi.surface.removeSuffix("स्"), 'स', "", sutra)
+                .substituteTermSurface(ending.id, "हे", 'ए', "हे", sutra),
             "7.4.52 replaces the final स of तास् with ह before the e-ending.",
         )
     }

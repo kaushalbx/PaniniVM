@@ -30,7 +30,7 @@ object SupiSthahSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val kaTerm = DerivationTerm("ka", "अ", TermKind.PRATYAYA, upadesha = "क")
+        val kaTerm = DerivationTerm("ka", "क", TermKind.PRATYAYA, upadesha = "क", createdBySutra = sutra, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
         return DerivationChange(
             state = context.addTerm(kaTerm),
             explanation = "3.2.78 prescribes क Kṛt affix after sthā root with subanta upapada.",

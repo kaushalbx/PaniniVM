@@ -1,13 +1,13 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada1
 
 import dev.panini.core.DhatuGana
-import dev.panini.core.Lakara
 import dev.panini.core.TingAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.ItProcessingPhase
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -29,20 +29,6 @@ object RudhadibhyahShnamSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DHATU,
     blocks = setOf("3.1.68", "7.3.84"),
 ), DerivationSutra {
-    /** Strong affixes for LAT and other lakāras (TIP, SIP, MIP). */
-    private val latStrongAffixes = setOf(TingAffix.TIP, TingAffix.SIP, TingAffix.MIP)
-
-    /**
-     * Strong affixes for LOT — same expanded set as Kryādi: the 1st-person
-     * Ātmanepada affixes that receive ā-initial substitutes (3.4.92–3.4.93)
-     * also condition guṇa/strong nasal in the imperative.
-     */
-    private val lotStrongAffixes = setOf(
-        TingAffix.TIP, TingAffix.MIP,
-        TingAffix.VAS, TingAffix.MAS,
-        TingAffix.IT, TingAffix.VAHI, TingAffix.MAHING,
-    )
-
     override fun matches(context: DerivationState): Boolean {
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU } ?: return false
         return !context.hasSanadyantaDhatu() &&
@@ -53,28 +39,15 @@ object RudhadibhyahShnamSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val dhatu = context.terms.first { it.kind == TermKind.DHATU }
-        val affix = TingAffix.entries.single { it.upadesha == context.terms.last().upadesha }
-        val strongAffixes = when (context.effectiveContext.rupa.lakara) {
-            Lakara.LOT -> lotStrongAffixes
-            Lakara.LING -> emptySet()
-            else -> latStrongAffixes
-        }
-        val nasal = if (affix in strongAffixes) "न" else "न्"
-        val insertionIndex = requireNotNull(finalVowelEnd(dhatu.surface)) {
-            "3.1.78 requires a vowel in ${dhatu.surface}."
-        }
-        val infixed = dhatu.surface.substring(0, insertionIndex) + nasal + dhatu.surface.substring(insertionIndex)
-        val shnam = DerivationTerm("shnam", "", TermKind.PRATYAYA, upadesha = "श्नम्")
-        return DerivationChange(
-            context.replaceTerm(dhatu.id, dhatu.copy(surface = infixed))
-                .copy(droppedTerms = context.droppedTerms + shnam),
-            "3.1.78 infixes the surviving $nasal of श्नम् after the final vowel of ${dhatu.surface}.",
+        val shnam = DerivationTerm(
+            "shnam", "श्नम्", TermKind.PRATYAYA,
+            upadesha = "श्नम्", createdBySutra = sutra,
+            itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
+            augmentTargetId = dhatu.id,
         )
-    }
-
-    private fun finalVowelEnd(surface: String): Int? {
-        val vowels = setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ऌ', 'ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ', 'े', 'ै', 'ो', 'ौ')
-        val index = surface.indexOfLast { it in vowels }
-        return index.takeIf { it >= 0 }?.plus(1)
+        return DerivationChange(
+            context.insertBeforeTingOrLingAugment(shnam),
+            "3.1.78 introduces raw श्नम् for placement after the final vowel by 1.1.47.",
+        )
     }
 }

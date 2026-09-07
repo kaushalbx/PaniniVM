@@ -4,7 +4,6 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -52,9 +51,9 @@ object OsiCaSutra : Sutra<DerivationState, DerivationChange>(
         }
 
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = newSurface))
+            state = context.substituteTermSurface(stem.id, newSurface, oldChar, "े", sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.104: Substituted 'e' for final 'a' before 'os'."
-        ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(stem.id, oldChar, "े", sutra))) }
+        )
     }
 }

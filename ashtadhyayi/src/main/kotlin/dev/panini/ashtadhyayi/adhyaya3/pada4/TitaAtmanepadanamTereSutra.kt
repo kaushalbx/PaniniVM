@@ -33,14 +33,18 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
         val ending = context.terms.last()
         val atoNgitahCompleted = context.droppedTerms.any { it.id == "ato-ngit-it" }
         val isNonAStem = context.terms.firstOrNull { it.kind == TermKind.DHATU }?.gana in nonAStemGanas
-        if (lakara == Lakara.LOT && context.substitutions.any { it.sutra in setOf("3.4.90", "3.4.91", "3.4.93") }) return false
+        if (lakara == Lakara.LOT && context.appliedSutras.any { it in setOf("3.4.90", "3.4.91", "3.4.93") }) return false
         if (lakara == Lakara.LOT && ending.upadesha == "ध्वम्") return false
         if (lakara == Lakara.LIT && ending.upadesha in setOf("त", "झ")) return false
         if (lakara == Lakara.LUT && ending.upadesha in setOf("त", "आताम्", "झ")) return false
-        if (lakara == Lakara.LET && context.substitutions.any { it.sutra in setOf("3.4.94", "3.4.96") }) return false
-        if (lakara == Lakara.LUT && context.substitutions.any { it.sutra == "7.4.52" }) return false
+        if (lakara == Lakara.LET && (
+                context.allEffectiveTerms.any { "3.4.94" in it.establishedBySutras } ||
+                    "3.4.96" in context.appliedSutras
+            )
+        ) return false
+        if (lakara == Lakara.LUT && "7.4.52" in context.appliedSutras) return false
         if (lakara == Lakara.LET && ending.upadesha in setOf("आताम्", "आथाम्") &&
-            context.substitutions.any { it.sutra == "3.4.95" }) return false
+            "3.4.95" in context.appliedSutras) return false
         val replacement = when (ending.upadesha) {
             "त" -> "ते"
             "आताम्" -> if (lakara in setOf(Lakara.LOT, Lakara.LRT) && !isNonAStem) "एते" else if (lakara == Lakara.LAT && atoNgitahCompleted) "ते" else "आते"
@@ -55,23 +59,33 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
             val requiresAtoNgitah = ending.upadesha in setOf("आताम्", "आथाम्")
             return ending.surface != replacement && (lakara in setOf(Lakara.LET, Lakara.LIT, Lakara.LOT, Lakara.LRT, Lakara.LUT) || !requiresAtoNgitah || atoNgitahCompleted || isNonAStem)
         }
-        return ending.surface.endsWith("न्त्") &&
-            context.substitutions.any { it.sutra == "7.1.3" } &&
-            ending.upadesha in setOf("झ", "शप्") ||
-            (ending.surface.endsWith("अत") && context.substitutions.any { it.sutra == "7.1.5" })
+        val jhaOutcome = ending.upadesha == "झ" || context.droppedTerms.any { it.upadesha == "झ" }
+        return ending.surface.endsWith("न्त्") && jhaOutcome &&
+            "7.1.3" in context.appliedSutras ||
+            (ending.surface.endsWith("अत") && "7.1.5" in context.appliedSutras)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
-        if (ending.surface.endsWith("न्त्") && context.substitutions.any { it.sutra == "7.1.3" }) {
+        if (ending.surface.endsWith("न्त्") && "7.1.3" in context.appliedSutras) {
             return DerivationChange(
-                context.replaceTerm(ending.id, ending.copy(surface = ending.surface.dropLast(2) + "ते")),
+                context.replaceWholeAffix(
+                    ending.id,
+                    ending.surface.dropLast(2) + "ते",
+                    sutra,
+                    dev.panini.derivation.WholeAffixDesignationPolicy.PreserveAndRemap(emptyList()),
+                ),
                 "3.4.79 replaces the final टि of the झ्-अन्ति outcome with ए.",
             )
         }
-        if (ending.surface.endsWith("अत") && context.substitutions.any { it.sutra == "7.1.5" }) {
+        if (ending.surface.endsWith("अत") && "7.1.5" in context.appliedSutras) {
             return DerivationChange(
-                context.replaceTerm(ending.id, ending.copy(surface = ending.surface + "े")),
+                context.replaceWholeAffix(
+                    ending.id,
+                    ending.surface + "े",
+                    sutra,
+                    dev.panini.derivation.WholeAffixDesignationPolicy.PreserveAndRemap(emptyList()),
+                ),
                 "3.4.79 replaces the टि portion of the 7.1.5 अत् outcome with ए.",
             )
         }

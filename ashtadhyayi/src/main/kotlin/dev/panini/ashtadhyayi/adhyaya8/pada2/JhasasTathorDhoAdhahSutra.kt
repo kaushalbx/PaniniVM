@@ -4,7 +4,6 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -40,8 +39,7 @@ object JhasasTathorDhoAdhahSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms[dhatuIndex + 1]
         val source = affix.surface.first()
         return DerivationChange(
-            context.replaceTerm(affix.id, affix.copy(surface = "ध" + affix.surface.drop(1)))
-                .addSubstitution(VarnaSubstitution(affix.id, source, "ध", sutra)),
+            context.substituteTermSurface(affix.id, "ध" + affix.surface.drop(1), source, "ध", sutra),
             "8.2.40 substitutes ध for $source after a jhaṣ-final root.",
         )
     }

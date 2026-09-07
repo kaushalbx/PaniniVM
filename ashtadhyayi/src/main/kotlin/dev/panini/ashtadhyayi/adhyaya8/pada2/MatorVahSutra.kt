@@ -5,6 +5,7 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.WholeAffixDesignationPolicy
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -29,7 +30,7 @@ object MatorVahSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        val matupTerm = context.terms.firstOrNull { it.upadesha == "मतुप्" || it.id.contains("matup") } ?: return false
+        val matupTerm = context.terms.firstOrNull { it.upadesha == "मतुँप्" } ?: return false
         val stemTerm = context.terms.firstOrNull { it.kind == TermKind.PRATIPADIKA } ?: return false
         return matupTerm.surface == "मत्" && isAdantaOrM(stemTerm.surface)
     }
@@ -42,10 +43,14 @@ object MatorVahSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val matupTerm = context.terms.first { it.upadesha == "मतुप्" || it.id.contains("matup") }
-        val updatedTerm = matupTerm.copy(surface = "वत्")
+        val matupTerm = context.terms.first { it.upadesha == "मतुँप्" }
         return DerivationChange(
-            state = context.replaceTerm(matupTerm.id, updatedTerm).copy(
+            state = context.replaceWholeAffix(
+                id = matupTerm.id,
+                surface = "वत्",
+                sutra = sutra,
+                policy = WholeAffixDesignationPolicy.PreserveAndRemap(emptyList()),
+            ).copy(
                 stage = maxOf(context.stage, DerivationStage.ANGAKARYA)
             ),
             explanation = "8.2.9 changes मतुप् (मत् → वत्) after a/m-ending stem."

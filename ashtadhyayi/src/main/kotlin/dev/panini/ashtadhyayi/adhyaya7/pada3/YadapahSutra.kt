@@ -1,5 +1,7 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada3
 
+import dev.panini.ashtadhyayi.adhyaya7.pada1.HrasvanadyapoNutSutra
+import dev.panini.ashtadhyayi.adhyaya7.pada1.SatCaturbhyascaSutra
 import dev.panini.core.ItMarker
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
@@ -38,12 +40,20 @@ object YadapahSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
+        // 7.1.54-55 supply nuṭ to genitive plural आम् before this later yāṭ rule.
+        if (HrasvanadyapoNutSutra.matches(context) || SatCaturbhyascaSutra.matches(context)) return false
+        if (affix.establishedBySutras.any { it == "7.1.54" || it == "7.1.55" }) return false
+
         val isNadiGenitivePlural = context.samjnas.any { it.targetId == stem.id && it.samjna == dev.panini.shiksha.Samjna.NADI } &&
             affix.upadesha == "आम्"
         if (isNadiGenitivePlural) return false
 
-        // 1. The stem must be an actual āp formation, not merely end in long ā.
+        // 1. The stem must be an actual āp formation, not another pit affix
+        // (for example शप्) whose visible remainder happens to be lengthened to ā.
+        val isApFormation = stem.upadesha in setOf("टाप्", "डाप्", "चाप्") ||
+            "4.1.4" in stem.establishedBySutras
         if ((!stem.surface.endsWith('ा') && !stem.surface.endsWith('आ')) ||
+            !isApFormation ||
             !stem.hasEffectiveMarker(ItMarker.P)
         ) return false
 
@@ -62,7 +72,7 @@ object YadapahSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
         if (affix.upadesha == "टा") {
             return DerivationChange(
-                state = context.replaceTerm(stem.id, stem.copy(surface = stem.surface.dropLast(1)))
+                state = context.substituteTermSurface(stem.id, stem.surface.dropLast(1), stem.surface.last(), "", sutra)
                     .replaceWholeAffix(affix.id, "या", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume)
                     .blockSutra(sutra, sutra)
                     .copy(stage = DerivationStage.PADA_FORMED),

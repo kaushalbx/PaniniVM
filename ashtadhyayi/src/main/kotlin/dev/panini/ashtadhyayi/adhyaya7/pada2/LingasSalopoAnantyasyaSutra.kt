@@ -6,6 +6,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.WholeAffixDesignationPolicy
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -48,7 +49,12 @@ object LingasSalopoAnantyasyaSutra : Sutra<DerivationState, DerivationChange>(
         val siyut = context.terms.firstOrNull { it.id == "siyut" }
         if (siyut != null) {
             return DerivationChange(
-                context.replaceTerm(siyut.id, siyut.copy(surface = siyut.surface.drop(1))),
+                context.replaceWholeAffix(
+                    siyut.id,
+                    siyut.surface.drop(1),
+                    sutra,
+                    WholeAffixDesignationPolicy.PreserveAndRemap(emptyList()),
+                ),
                 "7.2.79 removes the initial स् of सीय्.",
             )
         }
@@ -60,7 +66,12 @@ object LingasSalopoAnantyasyaSutra : Sutra<DerivationState, DerivationChange>(
             yasut.surface.removeSuffix("स्")
         }
         return DerivationChange(
-            context.replaceTerm(yasut.id, yasut.copy(surface = surface, itMarkers = emptySet())),
+            context.replaceWholeAffix(
+                yasut.id,
+                surface,
+                sutra,
+                WholeAffixDesignationPolicy.PreserveAndRemap(emptyList()),
+            ),
             "7.2.79 removes the non-final स् of यास्.",
         )
     }

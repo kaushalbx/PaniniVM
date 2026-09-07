@@ -61,11 +61,9 @@ object GherShasiStriyamSutra : Sutra<DerivationState, DerivationChange>(
             else -> error("GherShasiStriyamSutra matched a non-ik stem")
         }
         return DerivationChange(
-            state = context.copy(
-                terms = context.terms.dropLast(2) + stem.copy(surface = stem.surface.dropLast(1) + longVowel + "ः"),
-                droppedTerms = context.droppedTerms + affix.copy(surface = ""),
-                stage = DerivationStage.FINAL,
-            ),
+            state = context.mergeTermsByVarnaSubstitution(
+                stem.id, affix.id, stem.surface.dropLast(1) + longVowel + "ः", stem.surface.last(), longVowel + "ः", sutra,
+            ).copy(stage = DerivationStage.FINAL),
             explanation = "7.3.126: Formed the feminine Ghi accusative-plural ending before शस्.",
         )
     }

@@ -3,7 +3,6 @@ package dev.panini.ashtadhyayi.adhyaya8.pada4
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.shiksha.Varnamala
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -41,9 +40,9 @@ object StosShcunaShcuhSutra : Sutra<DerivationState, DerivationChange>(
         val newSurface = targetTerm.surface.replaceRange(match.charIndex, match.charIndex + 1, replacement)
 
         return DerivationChange(
-            state = context.replaceTerm(targetTerm.id, targetTerm.copy(surface = newSurface)),
+            state = context.substituteTermSurface(targetTerm.id, newSurface, targetChar, replacement, sutra),
             explanation = "8.4.40: Palatalized $targetChar to $replacement in contact with ${match.triggerChar}."
-        ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(targetTerm.id, targetChar, replacement, sutra))) }
+        )
     }
 
     private fun findMatch(context: DerivationState): Match? {

@@ -35,9 +35,14 @@ object EtaAiSutra : Sutra<DerivationState, DerivationChange>(
         } else {
             ending.surface.dropLast(1) + "ै"
         }
-        val replaced = context.replaceTerm(ending.id, ending.copy(surface = replacement))
+        val replaced = context.replaceWholeAffix(
+            ending.id,
+            replacement,
+            sutra,
+            dev.panini.derivation.WholeAffixDesignationPolicy.PreserveAndRemap(emptyList()),
+        )
         return DerivationChange(
-            replaced.removeTerm("lot-at-agama"),
+            replaced.removeTerm("lot-at-agama", sutra),
             "3.4.93 replaces the ending's ए with ऐ in the LOT first person.",
         )
     }

@@ -28,7 +28,7 @@ object TavyattavyanIyarahSutra : Sutra<DerivationState, DerivationChange>(
         context.allEffectiveTerms.none { it.upadesha in setOf("तव्यत्", "तव्य", "अनीयर्") }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val tavyat = DerivationTerm("tavyat", "तव्य", TermKind.PRATYAYA, upadesha = "तव्यत्")
+        val tavyat = DerivationTerm("tavyat", "तव्यत्", TermKind.PRATYAYA, upadesha = "तव्यत्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
         return DerivationChange(
             state = context.addTerm(tavyat),
             explanation = "3.1.96 prescribes तव्यत् kṛtya affix.",

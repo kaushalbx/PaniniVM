@@ -20,7 +20,7 @@ object SnatSatSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
-        context.allEffectiveTerms.any { it.upadesha in setOf("शतृ", "शानच्") } &&
+        context.allEffectiveTerms.any { it.upadesha in setOf("शतृँ", "शानच्") } &&
         "1.1.38" !in context.activeAdhikaras
 
     override fun apply(context: DerivationState): DerivationChange =

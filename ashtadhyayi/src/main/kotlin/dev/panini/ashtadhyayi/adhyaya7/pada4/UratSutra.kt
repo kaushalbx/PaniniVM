@@ -29,7 +29,7 @@ object UratSutra : Sutra<DerivationState, DerivationChange>(
             .replace('ऋ', 'अ').replace('ॠ', 'अ')
             .replace("ृ", "").replace("ॄ", "")
         return DerivationChange(
-            context.replaceTerm(abhyasa.id, abhyasa.copy(surface = substituted)),
+            context.substituteTermSurface(abhyasa.id, substituted, 'ऋ', "अ", sutra),
             "7.4.66 replaces ऋ in the abhyāsa ${abhyasa.surface} with अ.",
         )
     }

@@ -5,11 +5,12 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.LetAugment
 import dev.panini.derivation.LetEOption
 import dev.panini.derivation.LetFormation
 import dev.panini.derivation.TermKind
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -38,7 +39,7 @@ object LetodatauSutra : Sutra<DerivationState, DerivationChange>(
         if (context.effectiveContext.letFormation == LetFormation.SIP_AORIST &&
             context.allEffectiveTerms.none { it.id == "sip-aorist" }
         ) return false
-        if (ending.kind != TermKind.PRATYAYA || context.substitutions.any { it.sutra == "3.4.94" }) return false
+        if (ending.kind != TermKind.PRATYAYA || sutra in ending.establishedBySutras) return false
         if (ending.matchesUpadesha("तिप्") && ending.surface == "तिप्") return false
         if (ending.matchesUpadesha("सिप्") && ending.surface == "सिप्") return false
         if (ending.matchesUpadesha("झि") && ending.surface.startsWith("झ")) return false
@@ -53,19 +54,24 @@ object LetodatauSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
-        val augment = context.effectiveContext.letAugment
-        val augmentedSurface = when (augment) {
-            LetAugment.AT -> when {
-                ending.surface.startsWith("अ") -> "आ${ending.surface.drop(1)}"
-                ending.surface.startsWith("ऐ") -> "ै${ending.surface.drop(1)}"
-                else -> "अ${ending.surface}"
-            }
-            LetAugment.AAT -> if (ending.surface.startsWith("अ")) "आ${ending.surface.drop(1)}" else "आ${ending.surface}"
+        val augmentUpadesha = when (context.effectiveContext.letAugment) {
+            LetAugment.AT -> "अट्"
+            LetAugment.AAT -> "आट्"
         }
+        val augment = DerivationTerm(
+            id = "let-at-agama",
+            surface = augmentUpadesha,
+            kind = TermKind.AGAMA,
+            upadesha = augmentUpadesha,
+            createdBySutra = sutra,
+            itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
+            augmentTargetId = ending.id,
+            mergeIntoAugmentTarget = false,
+        )
+        val target = ending.copy(establishedBySutras = ending.establishedBySutras + sutra)
         return DerivationChange(
-            context.replaceTerm(ending.id, ending.copy(surface = augmentedSurface))
-                .addSubstitution(VarnaSubstitution(ending.id, ending.surface.first(), augmentedSurface, sutra)),
-            "3.4.94 attaches the ${if (augment == LetAugment.AT) "अट्" else "आट्"} augment at the beginning of the LET ending.",
+            context.copy(terms = context.terms.dropLast(1) + augment + target),
+            "3.4.94 introduces $augmentUpadesha as a raw augment targeted at the beginning of the LET ending.",
         )
     }
 }

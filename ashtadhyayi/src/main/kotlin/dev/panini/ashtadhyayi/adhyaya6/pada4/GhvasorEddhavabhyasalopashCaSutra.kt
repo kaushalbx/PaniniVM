@@ -41,8 +41,14 @@ object GhvasorEddhavabhyasalopashCaSutra : Sutra<DerivationState, DerivationChan
         val dhatu = context.terms.first { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         val ending = context.terms.lastOrNull { it.kind != TermKind.DHATU }
         val endingSurvives = ending?.surface == "धि"
-        var state = context.replaceTerm(dhatu.id, dhatu.copy(surface = if (endingSurvives) "दे" else "देहि"))
-        if (ending != null) state = state.replaceTerm(ending.id, ending.copy(surface = if (endingSurvives) "हि" else ""))
+        var state = context.substituteTermSurface(
+            dhatu.id, if (endingSurvives) "दे" else "देहि", 'आ', "ए", sutra,
+        )
+        if (ending != null) {
+            state = state.substituteTermSurface(
+                ending.id, if (endingSurvives) "हि" else "", 'ध', if (endingSurvives) "ह" else "", sutra,
+            )
+        }
         if (state.terms.any { it.id == "abhyasa" }) state = state.removeTerm("abhyasa", sutra = sutra)
         return DerivationChange(state, "6.4.119 forms देहि from the ghu root दा before धि.")
     }

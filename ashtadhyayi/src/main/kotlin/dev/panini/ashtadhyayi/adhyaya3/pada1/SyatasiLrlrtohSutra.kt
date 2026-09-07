@@ -52,6 +52,7 @@ object SyatasiLrlrtohSutra : Sutra<DerivationState, DerivationChange>(
                 "तासिँ",
                 TermKind.PRATYAYA,
                 upadesha = "तासि",
+                createdBySutra = number,
                 itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
             )
         } else {
@@ -59,7 +60,8 @@ object SyatasiLrlrtohSutra : Sutra<DerivationState, DerivationChange>(
                 "sya",
                 "स्य",
                 TermKind.PRATYAYA,
-                upadesha = "स्य"
+                upadesha = "स्य",
+                createdBySutra = number,
             )
         }
         val targetText = if (isLut) "तासि" else "स्य"

@@ -31,7 +31,7 @@ object SharngaravadyanyoNginSutra : Sutra<DerivationState, DerivationChange>(
             context.allEffectiveTerms.none { it.upadesha == "ङीन्" }
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
-        context.addTerm(DerivationTerm("ngin-suffix", "ई", TermKind.PRATYAYA, upadesha = "ङीन्"))
+        context.addTerm(DerivationTerm("ngin-suffix", "ङीन्", TermKind.PRATYAYA, upadesha = "ङीन्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA))
             .copy(stage = DerivationStage.PRATYAYA_SELECTED),
         "4.1.73 introduces ङीन् after an eligible शार्ङ्गरवादि term in the feminine.",
     )

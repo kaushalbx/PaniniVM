@@ -28,7 +28,7 @@ object GrshtyadibhyashCaSutra : Sutra<DerivationState, DerivationChange>(
             context.allEffectiveTerms.none { it.upadesha == "ढञ्" }
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
-        context.addTerm(DerivationTerm("dhany-suffix", "एय", TermKind.PRATYAYA, upadesha = "ढञ्"))
+        context.addTerm(DerivationTerm("dhany-suffix", "ढञ्", TermKind.PRATYAYA, upadesha = "ढञ्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA))
             .copy(stage = DerivationStage.PRATYAYA_SELECTED),
         "4.1.136 introduces ढञ् after an eligible गृष्ट्यादि term in the अपत्य sense.",
     )

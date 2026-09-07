@@ -34,7 +34,7 @@ object NisthaSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val isNisthaRequested = context.samjnas.any { it.samjna == Samjna.KTA || it.samjna == Samjna.KTAVATU }
-        val hasPratyaya = context.terms.any { it.upadesha == "क्त" || it.upadesha == "क्तवतु" }
+        val hasPratyaya = context.terms.any { it.upadesha == "क्त" || it.upadesha == "क्तवतुँ" }
         return isNisthaRequested && !hasPratyaya
     }
 
@@ -45,7 +45,7 @@ object NisthaSutra : Sutra<DerivationState, DerivationChange>(
                 id = "ktavatu_pratyaya",
                 surface = "क्तवतुँ",
                 kind = TermKind.PRATYAYA,
-                upadesha = "क्तवतु",
+                upadesha = "क्तवतुँ",
                 createdBySutra = sutra,
                 itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
             )

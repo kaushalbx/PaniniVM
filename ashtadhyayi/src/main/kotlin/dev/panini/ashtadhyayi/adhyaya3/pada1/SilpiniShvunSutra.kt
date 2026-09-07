@@ -26,7 +26,7 @@ object SilpiniShvunSutra : Sutra<DerivationState, DerivationChange>(
         context.allEffectiveTerms.none { it.upadesha == "ष्वुन्" }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val shvun = DerivationTerm("shvun", "अक", TermKind.PRATYAYA, upadesha = "ष्वुन्")
+        val shvun = DerivationTerm("shvun", "ष्वुन्", TermKind.PRATYAYA, upadesha = "ष्वुन्", createdBySutra = sutra, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
         return DerivationChange(
             state = context.addTerm(shvun),
             explanation = "3.1.145 prescribes ष्वुन् agent affix for artisan sense.",

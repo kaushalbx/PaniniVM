@@ -68,7 +68,7 @@ object AllopoAnahSutra : Sutra<DerivationState, DerivationChange>(
         val newSurface = surface.dropLast(2) + "्न्"
 
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = newSurface))
+            state = context.substituteTermSurface(stem.id, newSurface, 'अ', "", sutra)
                 .copy(stage = DerivationStage.PADA_FORMED),
             explanation = "6.4.134: Elided the vowel 'a' of an-stem before weak vowel affix."
         )

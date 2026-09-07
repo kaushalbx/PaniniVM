@@ -4,7 +4,6 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -39,7 +38,7 @@ object StunaShtuhSutra : Sutra<DerivationState, DerivationChange>(
         // In the LET सिप् formation the following त् belongs to अट् + त्;
         // the intervening अ prevents actual ṣṭutva (तारिषत्, not *तारिषट्).
         if (context.terms.any { it.id == "sip-aorist" && 'ष' in it.surface }) return false
-        val lungSicIndex = context.terms.indexOfFirst { it.upadesha == "सिच्" && it.surface.endsWith("ष्") }
+        val lungSicIndex = context.terms.indexOfFirst { it.upadesha == "सिँच्" && it.surface.endsWith("ष्") }
         if (lungSicIndex >= 0 && context.terms.getOrNull(lungSicIndex + 1)?.surface?.firstOrNull() in
             setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ऌ', 'ए', 'ऐ', 'ओ', 'औ')) return false
         if (crossTermTarget(context) != null) return true
@@ -53,9 +52,9 @@ object StunaShtuhSutra : Sutra<DerivationState, DerivationChange>(
             val target = term.surface.first()
             val newSurface = replacement + term.surface.drop(1)
             return DerivationChange(
-                state = context.replaceTerm(term.id, term.copy(surface = newSurface)),
+                state = context.substituteTermSurface(term.id, newSurface, target, replacement, sutra),
                 explanation = "8.4.41: Retroflexed $target to $replacement after a preceding ष्.",
-            ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(term.id, target, replacement, sutra))) }
+            )
         }
         val (targetIndex, triggerChar) = findMatch(context.surface)!!
         val targetChar = context.surface[targetIndex]
@@ -79,9 +78,9 @@ object StunaShtuhSutra : Sutra<DerivationState, DerivationChange>(
             targetTerm.surface.substring(localIndex + 1)
 
         return DerivationChange(
-            state = context.replaceTerm(targetTerm.id, targetTerm.copy(surface = newSurface)),
+            state = context.substituteTermSurface(targetTerm.id, newSurface, targetChar, replacement, sutra),
             explanation = "8.4.41: Retroflexed $targetChar to $replacement in contact with $triggerChar."
-        ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(targetTerm.id, targetChar, replacement, sutra))) }
+        )
     }
 
     private fun findMatch(surface: String): Pair<Int, Char>? {

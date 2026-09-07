@@ -29,18 +29,16 @@ object SanyAtaSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        val pratyaya = context.terms.lastOrNull { it.kind == TermKind.PRATYAYA } ?: return false
-        val isSan = pratyaya.upadesha == "सन्" || pratyaya.id.contains("san")
+        val isSan = context.terms.any { it.kind == TermKind.PRATYAYA && it.upadesha == "सन्" }
         val abhyasa = context.terms.firstOrNull { it.id == "abhyasa" } ?: return false
-        return isSan && abhyasa.surface.endsWith("अ") || abhyasa.surface == "प"
+        return isSan && (abhyasa.surface.endsWith("अ") || abhyasa.surface == "प")
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val abhyasa = context.terms.first { it.id == "abhyasa" }
         val newSurface = if (abhyasa.surface == "प") "पि" else abhyasa.surface.dropLast(1) + "ि"
-        val newAbhyasa = abhyasa.copy(surface = newSurface)
         return DerivationChange(
-            state = context.replaceTerm(abhyasa.id, newAbhyasa),
+            state = context.substituteTermSurface(abhyasa.id, newSurface, 'अ', "इ", sutra),
             explanation = "7.4.79 replaces short 'a' with 'i' in abhyāsa (${abhyasa.surface} → $newSurface)."
         )
     }

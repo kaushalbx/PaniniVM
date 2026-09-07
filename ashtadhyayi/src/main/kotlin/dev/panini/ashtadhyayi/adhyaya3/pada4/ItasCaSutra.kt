@@ -5,6 +5,9 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.ItDesignationRemap
+import dev.panini.derivation.TermKind
+import dev.panini.derivation.VarnaSubstitution
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -39,7 +42,7 @@ object ItasCaSutra : Sutra<DerivationState, DerivationChange>(
         // In luṅ, 3.1.43 must first introduce cli so that its explicit
         // whole-affix substitute (sic/kṣa/etc.) can undergo its own lifecycle.
         if (context.effectiveContext.rupa.lakara == Lakara.LUNG &&
-            context.allEffectiveTerms.none { it.upadesha in setOf("च्लि", "सिच्", "क्स", "चङ्", "अङ्", "चिण्") }
+            context.allEffectiveTerms.none { it.upadesha in setOf("च्लि", "सिँच्", "क्स", "चङ्", "अङ्", "चिण्") }
         ) return false
         // The rule applies only to the nine Parasmaipada tiṅ endings. It
         // therefore removes the surviving इ in ति and सि, but cannot target
@@ -66,9 +69,28 @@ object ItasCaSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val lastTerm = context.terms.last()
         val newSurface = lastTerm.surface.dropLast(1) + '्'
+        val replaced = if (lastTerm.kind == TermKind.PRATYAYA) {
+            val remaps = (lastTerm.itDesignations + lastTerm.deferredItDesignations).map { designation ->
+                ItDesignationRemap(
+                    oldStart = designation.start,
+                    oldEndExclusive = designation.endExclusive,
+                    newStart = designation.start,
+                    newEndExclusive = designation.endExclusive,
+                )
+            }
+            context.replaceWholeAffix(
+                lastTerm.id,
+                newSurface,
+                sutra,
+                dev.panini.derivation.WholeAffixDesignationPolicy.PreserveAndRemap(remaps),
+            ).addSubstitution(VarnaSubstitution(lastTerm.id, 'ि', "", sutra))
+        } else {
+            // When 7.1.3 has already joined the jhi outcome to the aṅga,
+            // this is a varṇa operation on that aṅga rather than an affix replacement.
+            context.substituteTermSurface(lastTerm.id, newSurface, 'ि', "", sutra)
+        }
         return DerivationChange(
-            state = context.replaceTerm(lastTerm.id, lastTerm.copy(surface = newSurface))
-                .copy(stage = DerivationStage.PADA_FORMED),
+            state = replaced.copy(stage = DerivationStage.PADA_FORMED),
             explanation = "3.4.100: Dropped final short 'i' of Parasmaipada suffix."
         )
     }

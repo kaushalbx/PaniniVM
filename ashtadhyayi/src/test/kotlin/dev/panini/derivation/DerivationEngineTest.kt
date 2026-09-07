@@ -58,7 +58,12 @@ class DerivationEngineTest {
             context = DerivationalContext(environments = setOf(DerivationalEnvironment.ARDHADHATUKA)),
         )
         assertTrue(ArdhadhatukasyedValadehSutra.matches(state))
-        assertEquals("इट्", ArdhadhatukasyedValadehSutra.apply(state).state.terms.single { it.id == "it-agama" }.upadesha)
+        val augment = ArdhadhatukasyedValadehSutra.apply(state).state.terms.single { it.id == "it-agama" }
+        assertEquals("इट्", augment.upadesha)
+        assertEquals("इट्", augment.surface)
+        assertEquals("7.2.35", augment.createdBySutra)
+        assertEquals("suffix", augment.augmentTargetId)
+        assertEquals(ItProcessingPhase.RAW_UPADESHA, augment.itProcessingPhase)
     }
 
     @Test
@@ -78,7 +83,7 @@ class DerivationEngineTest {
         )
         val result = DerivationEngine(listOf(ArdhadhatukasyedValadehSutra)).derive(state)
         assertTrue(result.applications.any { it.sutra == "7.2.35" })
-        assertEquals("इ", result.final.terms.single { it.id == "it-agama" }.surface)
+        assertEquals("इट्", result.final.terms.single { it.id == "it-agama" }.surface)
     }
 
     @Test
@@ -143,8 +148,11 @@ class DerivationEngineTest {
             DerivationStage.PRATYAYA_SELECTED,
             result.applications.single { it.sutra == "4.1.2" }.delta.stageAfter,
         )
-        assertEquals("सुँ", result.final.terms.single { it.id == "sup-su" }.upadesha)
-        assertTrue(result.final.terms.single { it.id == "sup-su" }.itMarkers.isEmpty())
+        val finalSu = result.final.terms.single { it.id == "sup-su" }
+        assertEquals("रुँ", finalSu.upadesha)
+        assertEquals("सुँ", finalSu.sthaniProps?.upadesha)
+        assertEquals("8.2.66", finalSu.createdBySutra)
+        assertTrue(finalSu.itMarkers.isEmpty())
         assertEquals("रामः", result.final.surface)
         assertTrue(result.applications.any { it.sutra == "1.1.1" })
     }
@@ -363,16 +371,16 @@ class DerivationEngineTest {
     @Test
     fun `engine detects a cycle before reaching the step limit`() {
         val toFinal = object : Sutra<DerivationState, DerivationChange>(
-            number = "9.1.3", text = "test", hindiExplanation = "test", type = SutraType.NITYA,
-            chapter = 9, pada = 1, optional = false, kramaValue = 910003,
+            number = "6.4.130", text = "test", hindiExplanation = "test", type = SutraType.NITYA,
+            chapter = 6, pada = 4, optional = false, kramaValue = 640130,
             role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.DERIVATION,
         ), DerivationSutra {
             override fun matches(context: DerivationState): Boolean = context.stage == DerivationStage.INITIAL
             override fun apply(context: DerivationState): DerivationChange = AdvanceDerivationStage(DerivationStage.FINAL, "Advance.").apply(context)
         }
         val toInitial = object : Sutra<DerivationState, DerivationChange>(
-            number = "9.1.4", text = "test", hindiExplanation = "test", type = SutraType.NITYA,
-            chapter = 9, pada = 1, optional = false, kramaValue = 910004,
+            number = "6.4.131", text = "test", hindiExplanation = "test", type = SutraType.NITYA,
+            chapter = 6, pada = 4, optional = false, kramaValue = 640131,
             role = SutraRole.Vidhi, action = SutraAction.VIDHI, scope = SutraScope.DERIVATION,
         ), DerivationSutra {
             override fun matches(context: DerivationState): Boolean = context.stage == DerivationStage.FINAL
@@ -418,6 +426,8 @@ class DerivationEngineTest {
         assertEquals("राम", result.final.surface)
         assertTrue(SamjnaAssignment("stem", Samjna.VRDDHI) in result.final.samjnas)
         assertEquals(listOf("1.1.1"), result.applications.map { it.sutra })
+        assertEquals(listOf("1.1.1"), result.final.appliedSutras)
+        assertTrue(result.final.substitutions.isEmpty(), "A saṃjñā application is not a varṇa substitution")
         assertEquals("1.1.1", result.events.filterIsInstance<DerivationEvent.RuleConsidered>().single().sutra)
         assertEquals("1.1.1", result.events.filterIsInstance<DerivationEvent.RuleApplied>().single().sutra)
         assertEquals(1, (result.events.last() as DerivationEvent.Completed).applicationCount)

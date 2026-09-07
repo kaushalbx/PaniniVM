@@ -35,7 +35,7 @@ object StoBhyadiSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = stem.surface.dropLast(2) + "ो"))
+            state = context.substituteTermSurface(stem.id, stem.surface.dropLast(2) + "ो", 'स', "ओ", sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.152: Formed the neuter s-stem ओ-grade before a bhy- ending.",
         )

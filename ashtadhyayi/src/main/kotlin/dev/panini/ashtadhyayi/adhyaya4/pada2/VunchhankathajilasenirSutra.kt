@@ -34,7 +34,7 @@ object VunchhankathajilasenirSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val terms = context.terms.flatMap { term ->
             val selection = selections.firstOrNull { GanaPatha.isEligibleMember(it.gana, term.surface, term.lexicalUses) }
-            if (term.kind == TermKind.PRATIPADIKA && selection != null && context.terms.none { it.id == "${term.id}-4-2-80" }) listOf(term, DerivationTerm("${term.id}-4-2-80", selection.surface, TermKind.PRATYAYA, upadesha = selection.upadesha)) else listOf(term)
+            if (term.kind == TermKind.PRATIPADIKA && selection != null && context.terms.none { it.id == "${term.id}-4-2-80" }) listOf(term, DerivationTerm("${term.id}-4-2-80", selection.upadesha, TermKind.PRATYAYA, upadesha = selection.upadesha, createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)) else listOf(term)
         }
         return DerivationChange(context.copy(terms = terms), "4.2.80 selects the yathāsaṅkhya affix for the eligible Gaṇa.")
     }

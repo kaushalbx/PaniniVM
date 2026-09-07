@@ -1,18 +1,11 @@
 package dev.panini.derivation
 
 import dev.panini.core.ItMarker
+import dev.panini.core.SupAffix
+import dev.panini.shiksha.Accent
+import dev.panini.sutra.SutraStage
 
-enum class AccentType {
-    UDATTA,   // उदात्त (High pitch)
-    ANUDATTA, // अनुदात्त (Low pitch)
-    SVARITA,  // स्वरित (Circumflex)
-}
-
-data class AccentedVowel(
-    val vowel: Char,
-    val accent: AccentType,
-    val positionIndex: Int,
-)
+data class AccentedVowel(val vowel: Char, val accent: AccentType, val positionIndex: Int)
 
 data class SvaraResult(
     val word: String,
@@ -22,88 +15,89 @@ data class SvaraResult(
     val rulesApplied: List<String>,
 )
 
-object SvaraEngine {
+enum class SvaraTriggerKind { PRATYAYA, NIT_OR_NGIT, PIT_OR_SUP, EXPLICIT_UDATTA }
 
-    private val VOWELS = setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ए', 'ऐ', 'ओ', 'औ')
-    private val MATRAS = setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'े', 'ै', 'ो', 'ौ')
+data class SvaraTrigger(
+    val kind: SvaraTriggerKind,
+    val termId: String,
+    val marker: ItMarker? = null,
+    val designationSutra: String? = null,
+    val vowelIndex: Int? = null,
+    val lexicalSource: String? = null,
+)
 
-    /** Computes the Pāṇinian Svara (Udātta, Anudātta, Svarita) assignment for a word. */
-    fun computeSvara(
-        word: String,
-        isNitOrNnit: Boolean = false,
-        isPitOrSup: Boolean = false,
-        hasExplicitUdattapa: Int? = null,
-    ): SvaraResult {
-        val rules = mutableListOf<String>()
-        val vowelPositions = findVowelPositions(word)
-
-        if (vowelPositions.isEmpty()) {
-            return SvaraResult(word, -1, emptyList(), word, listOf("No vowels found in word"))
-        }
-
-        // Determine Udātta vowel index (0-indexed position among vowels in word)
-        val udattaVowelIndex = when {
-            hasExplicitUdattapa != null -> {
-                rules += "Explicit Udātta specified at vowel index $hasExplicitUdattapa"
-                hasExplicitUdattapa.coerceIn(0, vowelPositions.size - 1)
-            }
-            isNitOrNnit -> {
-                rules += "6.1.197 [ञ्नित्यादिर्नित्यम्]: Ñ-it / N-it affix gives initial accent (आयुदात्त)"
-                0 // First vowel is Udātta
-            }
-            isPitOrSup -> {
-                rules += "3.1.4 [अनुदात्तौ सुप्पितौ]: Sup/Pit affix is Anudātta, stem retains accent (अन्तोदात्त)"
-                (vowelPositions.size - 2).coerceAtLeast(0)
-            }
-            else -> {
-                rules += "3.1.3 [आयुदात्तश्च]: Default affix accent on final/suffix vowel (अन्तोदात्त)"
-                vowelPositions.size - 1
-            }
-        }
-
-        rules += "6.1.158 [अनुदात्तं पदमेकवर्जम्]: Word has 1 Udātta; all other ${vowelPositions.size - 1} vowels become Anudātta"
-
-        val accentedVowels = vowelPositions.mapIndexed { idx, pos ->
-            val accent = if (idx == udattaVowelIndex) AccentType.UDATTA else AccentType.ANUDATTA
-            AccentedVowel(word[pos], accent, pos)
-        }
-
-        val formatted = formatDevanagariAccents(word, vowelPositions, udattaVowelIndex)
-
-        return SvaraResult(
-            word = word,
-            udattaVowelIndex = udattaVowelIndex,
-            vowels = accentedVowels,
-            formattedDevanagari = formatted,
-            rulesApplied = rules,
-        )
-    }
-
-    private fun findVowelPositions(word: String): List<Int> {
-        val positions = mutableListOf<Int>()
-        for (i in word.indices) {
-            val ch = word[i]
-            if (ch in VOWELS || ch in MATRAS) {
-                positions.add(i)
-            }
-        }
-        return positions
-    }
-
-    private fun formatDevanagariAccents(word: String, vowelPositions: List<Int>, udattaIdx: Int): String {
-        val sb = StringBuilder()
-        var vCount = 0
-        for (i in word.indices) {
-            val ch = word[i]
-            sb.append(ch)
-            if (ch in VOWELS || ch in MATRAS) {
-                if (vCount != udattaIdx) {
-                    // Anudātta underbar \u0952
-                    sb.append("\u0952")
+data class SvaraContext(val triggers: List<SvaraTrigger> = emptyList()) {
+    companion object {
+        fun from(state: DerivationState): SvaraContext = SvaraContext(buildList {
+            state.terms.forEach { term ->
+                val prefixVowels = DevanagariVowelLoci.positions(state.surfaceBeforeTerm(term.id)).size
+                if (term.kind == TermKind.PRATYAYA && DevanagariVowelLoci.positions(term.surface).isNotEmpty()) {
+                    add(SvaraTrigger(SvaraTriggerKind.PRATYAYA, term.id, vowelIndex = prefixVowels))
                 }
-                vCount++
+                term.itMarkerProvenance.filter { it.marker == ItMarker.NIT || it.marker == ItMarker.NGIT }.forEach {
+                    add(SvaraTrigger(SvaraTriggerKind.NIT_OR_NGIT, term.id, it.marker, it.designationSutra, prefixVowels))
+                }
+                term.itMarkerProvenance.filter { it.marker == ItMarker.P }.forEach {
+                    add(SvaraTrigger(SvaraTriggerKind.PIT_OR_SUP, term.id, it.marker, it.designationSutra, prefixVowels))
+                }
+                if (SupAffix.entries.any { affix -> term.matchesUpadesha(affix.upadesha) }) {
+                    add(SvaraTrigger(SvaraTriggerKind.PIT_OR_SUP, term.id, vowelIndex = prefixVowels))
+                }
+                if (term.lexicalAccent == Accent.UDATTA) {
+                    add(SvaraTrigger(SvaraTriggerKind.EXPLICIT_UDATTA, term.id, vowelIndex = prefixVowels, lexicalSource = term.lexicalAccentSource))
+                }
+            }
+        })
+    }
+}
+
+data class SvaraDerivation(
+    val state: DerivationState,
+    val applications: List<DerivationApplication>,
+    val events: List<DerivationEvent>,
+    val result: SvaraResult?,
+)
+
+object SvaraEngine {
+    fun derive(state: DerivationState, context: SvaraContext = SvaraContext.from(state)): SvaraDerivation {
+        val positions = DevanagariVowelLoci.positions(state.surface)
+        if (positions.isEmpty()) return SvaraDerivation(state, emptyList(), emptyList(), null)
+        val explicit = context.triggers.firstOrNull { it.kind == SvaraTriggerKind.EXPLICIT_UDATTA }
+        val prepared = state.copy(
+            svaraNimittas = context.triggers.map { SvaraNimitta(SvaraNimittaKind.valueOf(it.kind.name), it.termId, it.vowelIndex) },
+            svaraAssignments = explicit?.let {
+                val index = requireNotNull(it.vowelIndex) { "An explicit udātta trigger requires a vowel index." }
+                listOf(SvaraAssignment(index, AccentType.UDATTA, SvaraAssignmentSource.Lexical(it.lexicalSource ?: it.termId)))
+            }.orEmpty(),
+        )
+        val derivation = DerivationEngine(dev.panini.ashtadhyayi.Ashtadhyayi.executableSutrasAt(SutraStage.SVARA))
+            .derive(prepared, DerivationConfig(validateFinalItProcessing = false, computeSvara = false))
+        if (derivation.final.svaraAssignments.none { it.accent == AccentType.UDATTA }) {
+            return SvaraDerivation(derivation.final, derivation.applications, derivation.events.filterNot { it is DerivationEvent.Completed }, null)
+        }
+        val assignments = derivation.final.svaraAssignments.associateBy { it.vowelIndex }
+        val udatta = derivation.final.svaraAssignments.single { it.accent == AccentType.UDATTA }.vowelIndex
+        val vowels = positions.mapIndexed { index, position -> AccentedVowel(state.surface[position], assignments.getValue(index).accent, position) }
+        val result = SvaraResult(
+            state.surface, udatta, vowels, format(state.surface, positions, udatta),
+            derivation.applications.map { it.trace + ": " + it.explanation },
+        )
+        return SvaraDerivation(derivation.final, derivation.applications, derivation.events.filterNot { it is DerivationEvent.Completed }, result)
+    }
+
+    fun computeSvara(word: String, context: SvaraContext = SvaraContext()): SvaraResult {
+        val state = DerivationState(listOf(DerivationTerm("svara-pada", word, TermKind.PRATIPADIKA)), stage = DerivationStage.FINAL)
+        return requireNotNull(derive(state, context).result) { "No grammatical or lexical rule established an udātta for $word." }
+    }
+
+    private fun format(word: String, positions: List<Int>, udatta: Int): String = buildString {
+        var vowel = 0
+        word.indices.forEach { index ->
+            append(word[index])
+            if (index in positions) {
+                if (vowel != udatta) append('\u0952')
+                vowel++
             }
         }
-        return sb.toString()
     }
 }

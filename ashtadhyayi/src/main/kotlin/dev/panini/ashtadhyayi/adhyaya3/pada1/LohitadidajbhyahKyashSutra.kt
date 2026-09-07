@@ -27,7 +27,7 @@ object LohitadidajbhyahKyashSutra : Sutra<DerivationState, DerivationChange>(
             context.allEffectiveTerms.none { it.upadesha == "क्यष्" }
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
-        context.addTerm(DerivationTerm("kyash-suffix", "य", TermKind.PRATYAYA, upadesha = "क्यष्")),
+        context.addTerm(DerivationTerm("kyash-suffix", "क्यष्", TermKind.PRATYAYA, upadesha = "क्यष्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)),
         "3.1.13 introduces क्यष् after an eligible लोहितादि term in the becoming sense.",
     )
 }

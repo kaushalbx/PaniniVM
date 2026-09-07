@@ -4,8 +4,7 @@ import dev.panini.core.Lakara
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.DerivationTerm
-import dev.panini.derivation.TermKind
+import dev.panini.derivation.WholeAffixDesignationPolicy
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -28,9 +27,15 @@ object LanSakatayanasyaIvaSutra : Sutra<DerivationState, DerivationChange>(
         context.allEffectiveTerms.any { it.upadesha == "झि" }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val jus = DerivationTerm("jus", "उस्", TermKind.PRATYAYA, upadesha = "जुस्")
+        val jhi = context.allEffectiveTerms.last { it.upadesha == "झि" }
         return DerivationChange(
-            state = context.replaceTerm(context.allEffectiveTerms.last { it.upadesha == "झि" }.id, jus),
+            state = context.replaceWholeAffix(
+                id = jhi.id,
+                surface = "जुस्",
+                sutra = sutra,
+                policy = WholeAffixDesignationPolicy.FreshUpadesha,
+                upadesha = "जुस्",
+            ),
             explanation = "3.4.111 substitutes जुस् for झि in Laṅ.",
         )
     }

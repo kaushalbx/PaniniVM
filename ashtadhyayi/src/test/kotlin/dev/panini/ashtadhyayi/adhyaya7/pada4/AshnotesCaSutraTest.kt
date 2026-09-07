@@ -23,7 +23,9 @@ class AshnotesCaSutraTest {
 
         assertTrue(AshnotesCaSutra.matches(state))
         val result = AshnotesCaSutra.apply(state).state
-        assertEquals(listOf("आ", "न्", "अश्"), result.terms.map { it.surface })
+        assertEquals(listOf("आ", "नुट्", "अश्"), result.terms.map { it.surface })
         assertEquals("नुट्", result.terms[1].upadesha)
+        assertEquals("7.4.72", result.terms[1].createdBySutra)
+        assertEquals("dhatu", result.terms[1].augmentTargetId)
     }
 }

@@ -18,6 +18,12 @@ class TingantaEngineGranthaTest {
         assertEquals("भवति", bhavati.final.surface)
         assertTrue(bhavati.applications.any { it.sutra == "3.4.78" })
         assertTrue(bhavati.applications.any { it.sutra == "3.1.68" })
+        assertTrue(bhavati.applications.any { it.sutra == "1.3.8" })
+        assertTrue(bhavati.applications.any { it.sutra == "1.3.3" })
+        assertTrue(bhavati.applications.any { it.sutra == "1.3.9" })
+        assertTrue(bhavati.final.droppedTerms.any {
+            it.upadesha == "शप्" && it.createdBySutra == "3.1.68"
+        })
 
         val bhavatah = engine.derive(TingantaDerivationRequest("भू", Vacana.DVIVACANA, Purusha.PRATHAMA, Lakara.LAT, pada = PadaType.PARASMAIPADA))
         assertEquals("भवतः", bhavatah.final.surface)

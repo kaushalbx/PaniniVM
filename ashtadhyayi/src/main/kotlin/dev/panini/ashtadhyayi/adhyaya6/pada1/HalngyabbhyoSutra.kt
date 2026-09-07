@@ -31,13 +31,17 @@ object HalngyabbhyoSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         if (context.effectiveContext.rupa.lakara == Lakara.LET &&
             context.allEffectiveTerms.any { it.id == "sip-aorist" } &&
-            context.substitutions.none { it.sutra == "3.4.94" }) return false
+            "3.4.94" !in context.appliedSutras) return false
         if (context.terms.size < 2) return false
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
         if (stem.id in setOf("yasut", "shna")) return false
 
         val surface = affix.surface
+        val hasPlacedBeginningAugment = context.allEffectiveTerms.any {
+            it.augmentTargetId == affix.id && "1.1.46" in it.establishedBySutras
+        }
+        if (hasPlacedBeginningAugment) return false
         val isApṛktaHal =
             (surface.length == 1 && Varnamala.isConsonant(surface[0])) ||
                 (surface.length == 2 && surface.last() == '्' && Varnamala.isConsonant(surface.first()))
@@ -59,7 +63,7 @@ object HalngyabbhyoSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
         return DerivationChange(
-            state = context.removeTerm(affix.id).copy(stage = DerivationStage.FINAL),
+            state = context.removeTerm(affix.id, sutra).copy(stage = DerivationStage.FINAL),
             explanation = "6.1.68: Deleted the single-consonant affix after hal/ī/ā."
         )
     }

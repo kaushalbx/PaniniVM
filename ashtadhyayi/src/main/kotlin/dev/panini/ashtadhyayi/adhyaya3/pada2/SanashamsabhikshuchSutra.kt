@@ -26,7 +26,7 @@ object SanashamsabhikshuchSutra : Sutra<DerivationState, DerivationChange>(
         context.allEffectiveTerms.none { it.upadesha == "उच्" }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val uc = DerivationTerm("uc", "उ", TermKind.PRATYAYA, upadesha = "उच्")
+        val uc = DerivationTerm("uc", "उच्", TermKind.PRATYAYA, upadesha = "उच्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
         return DerivationChange(
             state = context.addTerm(uc),
             explanation = "3.2.168 prescribes उच् agent affix.",

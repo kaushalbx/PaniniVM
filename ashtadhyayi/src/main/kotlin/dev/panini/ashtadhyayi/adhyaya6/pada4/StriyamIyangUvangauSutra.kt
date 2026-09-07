@@ -51,7 +51,7 @@ object StriyamIyangUvangauSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
 
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = "स्त्रिय्"))
+            state = context.substituteTermSurface(stem.id, "स्त्रिय्", 'ई', "इय्", sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "6.4.79: Applied 'iyaṅ' (iy) substitution to 'strī' stem before vowel affix (becoming striy-)."
         )

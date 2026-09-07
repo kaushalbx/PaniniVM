@@ -5,6 +5,7 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.VarnaSubstitution
+import dev.panini.derivation.WholeAffixDesignationPolicy
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
@@ -43,20 +44,23 @@ object SasajusoRuhSutra : Sutra<DerivationState, DerivationChange>(
         val internalIndex = internalSankhyaIndex(context)
         val target = context.terms[internalIndex.takeIf { it >= 0 } ?: context.terms.lastIndex]
         val source = if (target.surface.endsWith("सजुष्")) 'ष' else 'स'
+        fun withFreshRutva(term: dev.panini.derivation.DerivationTerm): dev.panini.derivation.DerivationTerm {
+            val rawRutva = term.surface.dropLast(2) + "रुँ"
+            return term.replaceWholeAffix(
+                replacementSurface = rawRutva,
+                replacementUpadesha = rawRutva,
+                sutra = number,
+                policy = WholeAffixDesignationPolicy.FreshUpadesha,
+            )
+        }
         val changed = internalIndex.takeIf { it >= 0 }?.let { index ->
             val target = context.terms[index]
             context.copy(terms = context.terms.toMutableList().also {
-                it[index] = target.copy(
-                    surface = target.surface.dropLast(2) + "रुँ",
-                    itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
-                )
+                it[index] = withFreshRutva(target)
             })
         } ?: context.copy(
             terms = context.terms.dropLast(1) + context.terms.last()
-                .copy(
-                    surface = context.terms.last().surface.dropLast(2) + "रुँ",
-                    itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
-                )
+                .let(::withFreshRutva)
         )
         return DerivationChange(
             changed.addSubstitution(VarnaSubstitution(target.id, source, "रुँ", number)),

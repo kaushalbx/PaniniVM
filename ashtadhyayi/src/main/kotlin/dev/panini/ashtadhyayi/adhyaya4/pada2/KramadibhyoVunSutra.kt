@@ -27,7 +27,7 @@ object KramadibhyoVunSutra : Sutra<DerivationState, DerivationChange>(
             context.allEffectiveTerms.none { it.upadesha == "वुन्" }
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
-        context.addTerm(DerivationTerm("vun-suffix", "इक", TermKind.PRATYAYA, upadesha = "वुन्")),
+        context.addTerm(DerivationTerm("vun-suffix", "वुन्", TermKind.PRATYAYA, upadesha = "वुन्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)),
         "4.2.61 introduces वुन् after an eligible क्रमादि term in the study-or-knowledge sense.",
     )
 }

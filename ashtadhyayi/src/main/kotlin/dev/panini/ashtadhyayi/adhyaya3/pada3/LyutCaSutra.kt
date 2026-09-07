@@ -30,24 +30,25 @@ object LyutCaSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         if (context.stage != DerivationStage.INITIAL && context.stage != DerivationStage.PRATYAYA_SELECTED) return false
         val isLyutRequested = context.samjnas.any { it.samjna == Samjna.LYUT }
-        val hasPratyaya = context.terms.any { it.kind == TermKind.PRATYAYA }
+        val hasPratyaya = context.terms.any { it.kind == TermKind.PRATYAYA && !dev.panini.derivation.SanadiAffixes.contains(it.upadesha) }
         return isLyutRequested && !hasPratyaya
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val lyut = DerivationTerm(
             id = "lyut_pratyaya",
-            surface = "अन",
+            surface = "ल्युट्",
             kind = TermKind.PRATYAYA,
             upadesha = "ल्युट्",
             createdBySutra = sutra,
+            itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
         )
         return DerivationChange(
             state = context.copy(
                 terms = context.terms + lyut,
                 stage = DerivationStage.PRATYAYA_SELECTED,
             ),
-            explanation = "3.3.115 introduces ल्युट् (अन) as an action-noun suffix.",
+            explanation = "3.3.115 introduces raw ल्युट् for इत् designation and subsequent 7.1.1 substitution.",
         )
     }
 }

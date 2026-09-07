@@ -46,11 +46,9 @@ object GherAuoSutra : Sutra<DerivationState, DerivationChange>(
             else -> error("GherAuoSutra matched a non-ik stem")
         }
         return DerivationChange(
-            state = context.copy(
-                terms = context.terms.dropLast(2) + stem.copy(surface = stem.surface.dropLast(1) + longVowel),
-                droppedTerms = context.droppedTerms + affix.copy(surface = ""),
-                stage = DerivationStage.PADA_FORMED,
-            ),
+            state = context.mergeTermsByVarnaSubstitution(
+                stem.id, affix.id, stem.surface.dropLast(1) + longVowel, stem.surface.last(), longVowel, sutra,
+            ).copy(stage = DerivationStage.PADA_FORMED),
             explanation = "7.3.123: Lengthened the Ghi stem before ${affix.upadesha} dual.",
         )
     }

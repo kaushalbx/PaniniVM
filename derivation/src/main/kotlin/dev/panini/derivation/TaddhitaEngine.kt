@@ -43,7 +43,11 @@ class TaddhitaEngine(
 
         val finalSurface = "${finalStem}ः"
         val finalTerm = DerivationTerm("taddhita_apatya", finalSurface, TermKind.PRATIPADIKA, upadesha = finalSurface)
-        val finalState = state.copy(terms = listOf(finalTerm), stage = DerivationStage.FINAL)
+        val finalState = state.copy(
+            terms = listOf(finalTerm),
+            stage = DerivationStage.FINAL,
+            appliedSutras = listOf(TasyApatyamSutra.sutra, TasyApatyamSutra.sutra),
+        )
 
         val app1 = app(TasyApatyamSutra, state, state, "4.1.92 prescribes patronymic affix $pratyayaUpadesha.")
         val app2 = app(TasyApatyamSutra, state, finalState, "7.2.117 applies initial vṛddhi and 6.4.148 elides final vowel -> $finalSurface.")
@@ -104,7 +108,11 @@ class TaddhitaEngine(
     private fun buildResult(initial: DerivationState, final: DerivationState, apps: List<DerivationApplication>): DerivationResult {
         val fusedSurface = final.terms.joinToString("") { it.surface }
         val finalTerm = DerivationTerm("taddhita_final", fusedSurface, TermKind.PRATIPADIKA, upadesha = fusedSurface)
-        val cleanFinal = final.copy(terms = listOf(finalTerm), stage = DerivationStage.FINAL)
+        val cleanFinal = final.copy(
+            terms = listOf(finalTerm),
+            stage = DerivationStage.FINAL,
+            appliedSutras = initial.appliedSutras + apps.map { it.sutra },
+        )
         return DerivationResult(initial, cleanFinal, apps, emptyList())
     }
 

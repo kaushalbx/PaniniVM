@@ -34,7 +34,7 @@ object BhaurikyaadyaishukaryadibhyoVidhalbhaktalauSutra : Sutra<DerivationState,
         val terms = context.terms.flatMap { term ->
             val selection = selectionFor(term)
             if (term.kind == TermKind.PRATIPADIKA && selection != null && context.terms.none { it.id == "${term.id}-4-2-54" }) {
-                listOf(term, DerivationTerm("${term.id}-4-2-54", selection.surface, TermKind.PRATYAYA, upadesha = selection.upadesha))
+                listOf(term, DerivationTerm("${term.id}-4-2-54", selection.upadesha, TermKind.PRATYAYA, upadesha = selection.upadesha, createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA))
             } else listOf(term)
         }
         return DerivationChange(context.copy(terms = terms), "4.2.54 selects विधल् or भक्तल् for the corresponding viṣaya-deśa Gaṇa.")

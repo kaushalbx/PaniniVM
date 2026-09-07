@@ -6,7 +6,6 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
@@ -38,8 +37,9 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
         val engine = Ashtadhyayi.pratyaharaEngine
         for (i in 0 until context.terms.size - 1) {
             val rightTerm = context.terms[i + 1]
+            if (nicGradeStillPending(context, rightTerm.id)) continue
             if (context.effectiveContext.rupa.lakara == Lakara.LET &&
-                rightTerm.upadesha == "झि" && context.substitutions.none { it.sutra == "3.4.94" }
+                rightTerm.upadesha == "झि" && "3.4.94" !in context.appliedSutras
             ) continue
             if (lotEndingReplacementPending(context, rightTerm.surface)) continue
             val left = context.terms[i].surface.lastOrNull() ?: continue
@@ -57,8 +57,9 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
         for (i in 0 until context.terms.size - 1) {
             val leftTerm = context.terms[i]
             val rightTerm = context.terms[i+1]
+            if (nicGradeStillPending(context, rightTerm.id)) continue
             if (context.effectiveContext.rupa.lakara == Lakara.LET &&
-                rightTerm.upadesha == "झि" && context.substitutions.none { it.sutra == "3.4.94" }
+                rightTerm.upadesha == "झि" && "3.4.94" !in context.appliedSutras
             ) continue
             if (lotEndingReplacementPending(context, rightTerm.surface)) continue
             val leftChar = leftTerm.surface.lastOrNull() ?: continue
@@ -68,22 +69,18 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
                 val base = leftTerm.surface.dropLast(1)
                 val s1 = concatDevanagari(base, replacement)
                 val newSurface = concatDevanagari(s1, rightTerm.surface)
-                val mergedTerm = leftTerm.copy(
-                    surface = newSurface,
-                    sthaniProps = leftTerm.sthaniProps ?: rightTerm.sthaniProps
-                )
-                val newTerms = context.terms.subList(0, i) + mergedTerm + context.terms.subList(i + 2, context.terms.size)
                 val newSamjnas = context.samjnas.map {
                     if (it.targetId == rightTerm.id && it.samjna != Samjna.PRATYAYA) it.copy(targetId = leftTerm.id) else it
                 }.toSet()
+                val merged = context.mergeTermsByVarnaSubstitution(
+                    leftTerm.id, rightTerm.id, newSurface, leftChar, replacement, sutra,
+                ).copy(stage = DerivationStage.PADA_FORMED, samjnas = newSamjnas)
+                val survivor = merged.terms.single { it.id == leftTerm.id }
 
                 return DerivationChange(
-                    state = context.copy(
-                        terms = newTerms,
-                        droppedTerms = context.droppedTerms + rightTerm.copy(surface = ""),
-                        stage = DerivationStage.PADA_FORMED,
-                        samjnas = newSamjnas
-                    ).addSubstitution(VarnaSubstitution(leftTerm.id, leftChar, replacement, sutra)),
+                    state = merged.replaceTerm(
+                        leftTerm.id, survivor.copy(sthaniProps = leftTerm.sthaniProps ?: rightTerm.sthaniProps),
+                    ),
                     explanation = "6.1.78: substituted $replacement for $leftChar before vowel."
                 )
             }
@@ -148,9 +145,18 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
     private fun lotEndingReplacementPending(context: DerivationState, surface: String): Boolean =
         context.effectiveContext.rupa.lakara == Lakara.LOT &&
             surface in setOf("ते", "एते", "आते", "न्ते", "अन्ते", "अते", "एथे", "आथे") &&
-            context.substitutions.none { it.sutra == "3.4.90" }
+            "3.4.90" !in context.appliedSutras
 
     private fun futureStemPending(context: DerivationState): Boolean =
         context.effectiveContext.rupa.lakara in setOf(Lakara.LRT, Lakara.LRNG) &&
             context.allEffectiveTerms.none { it.upadesha == "स्य" }
+
+    private fun nicGradeStillPending(context: DerivationState, rightTermId: String): Boolean {
+        val nic = context.terms.firstOrNull { it.id == rightTermId && it.matchesUpadesha("णिच्") && it.surface == "इ" }
+            ?: return false
+        return context.allEffectiveTerms.none { it.id == "shap" } &&
+            context.terms.dropWhile { it.id != nic.id }.drop(1).none { affix ->
+                affix.upadesha in setOf("क्त", "क्तवतुँ", "क्त्वा", "ल्यप्", "तुमुँन्", "तव्यत्", "अनीयर्", "ण्यत्", "ण्वुल्", "तृच्", "घञ्", "ल्युट्")
+            }
+    }
 }

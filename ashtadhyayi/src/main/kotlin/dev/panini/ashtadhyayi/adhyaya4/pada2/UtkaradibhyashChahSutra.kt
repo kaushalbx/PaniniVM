@@ -26,7 +26,7 @@ object UtkaradibhyashChahSutra : Sutra<DerivationState, DerivationChange>(
         context.allEffectiveTerms.none { it.upadesha == "छ" }
 
     override fun apply(context: DerivationState) = DerivationChange(
-        context.addTerm(DerivationTerm("chha-suffix", "ईय", TermKind.PRATYAYA, upadesha = "छ")),
+        context.addTerm(DerivationTerm("chha-suffix", "छ", TermKind.PRATYAYA, upadesha = "छ", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)),
         "4.2.90 introduces छ after an eligible उत्करादि term in a cāturarthika sense.",
     )
 }

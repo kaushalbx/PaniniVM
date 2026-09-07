@@ -27,7 +27,7 @@ object UtsadibhyoAnySutra : Sutra<DerivationState, DerivationChange>(
             context.allEffectiveTerms.none { it.upadesha == "अञ्" }
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
-        context.addTerm(DerivationTerm("any-suffix", "अ", TermKind.PRATYAYA, upadesha = "अञ्")),
+        context.addTerm(DerivationTerm("any-suffix", "अञ्", TermKind.PRATYAYA, upadesha = "अञ्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)),
         "4.1.86 introduces अञ् after an eligible उत्सादि term in a prāg-dīvyatīya sense.",
     )
 }

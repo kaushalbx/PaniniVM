@@ -50,7 +50,7 @@ object SamyogantasyaLopaSutra : Sutra<DerivationState, DerivationChange>(
         val newSurface = lastTerm.surface.dropLast(2)
 
         return DerivationChange(
-            state = context.replaceTerm(lastTerm.id, lastTerm.copy(surface = newSurface))
+            state = context.substituteTermSurface(lastTerm.id, newSurface, lastTerm.surface[lastTerm.surface.length - 2], "", sutra)
                 .copy(stage = DerivationStage.FINAL),
             explanation = "8.2.23: Deleted final member of consonant cluster at pada-end."
         )

@@ -28,7 +28,7 @@ object NapumsakeBhaveKtahSutra : Sutra<DerivationState, DerivationChange>(
         context.allEffectiveTerms.none { it.upadesha == "क्त" }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val kta = DerivationTerm("kta", "त", TermKind.PRATYAYA, upadesha = "क्त")
+        val kta = DerivationTerm("kta", "क्त", TermKind.PRATYAYA, upadesha = "क्त", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
         return DerivationChange(
             state = context.addTerm(kta),
             explanation = "3.3.114 prescribes क्त neuter action affix.",

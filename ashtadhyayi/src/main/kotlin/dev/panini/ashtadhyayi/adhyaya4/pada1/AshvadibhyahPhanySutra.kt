@@ -28,7 +28,7 @@ object AshvadibhyahPhanySutra : Sutra<DerivationState, DerivationChange>(
             context.allEffectiveTerms.none { it.upadesha == "फञ्" }
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
-        context.addTerm(DerivationTerm("phany-suffix", "आयन", TermKind.PRATYAYA, upadesha = "फञ्"))
+        context.addTerm(DerivationTerm("phany-suffix", "फञ्", TermKind.PRATYAYA, upadesha = "फञ्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA))
             .copy(stage = DerivationStage.PRATYAYA_SELECTED),
         "4.1.110 introduces फञ् after an eligible अश्वादि term in the गोत्र sense.",
     )

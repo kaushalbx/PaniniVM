@@ -5,8 +5,10 @@ import dev.panini.core.ItMarker
 import dev.panini.core.LopaType
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.shiksha.ItStatus
+import dev.panini.shiksha.Accent
 import dev.panini.shiksha.LexicalUse
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Varnamala
 
 /**
  * The shared state passed through an Ashtadhyayi derivation.
@@ -20,9 +22,14 @@ class DerivationState(
     val activeAdhikaras: Set<String> = emptySet(),
     val inheritedAnuvrtti: Set<String> = emptySet(),
     val blockedSutras: Map<String, String> = emptyMap(),
+    val blockedOperations: Map<BlockedOperationDomain, String> = emptyMap(),
     val halantyamExemptTermIds: Set<String> = emptySet(),
     val varnaComparisons: Set<VarnaComparison> = emptySet(),
     val substitutions: List<VarnaSubstitution> = emptyList(),
+    /** Applied grammatical rules, separate from concrete varṇa substitutions. */
+    val appliedSutras: List<String> = emptyList(),
+    val svaraNimittas: List<SvaraNimitta> = emptyList(),
+    val svaraAssignments: List<SvaraAssignment> = emptyList(),
 ) {
 
     init {
@@ -31,18 +38,18 @@ class DerivationState(
 
     /** Validates the it-processing boundary for workflows that have completed migration. */
     fun requireCompleteItProcessing(): DerivationState {
-        require(terms.none { it.itProcessingPhase != ItProcessingPhase.PROCESSED }) {
-            val incomplete = terms.filter { it.itProcessingPhase != ItProcessingPhase.PROCESSED }
+        require(allEffectiveTerms.none { it.itProcessingPhase != ItProcessingPhase.PROCESSED }) {
+            val incomplete = allEffectiveTerms.filter { it.itProcessingPhase != ItProcessingPhase.PROCESSED }
                 .joinToString { "${it.id}:${it.surface}:${it.itProcessingPhase}" }
             "A completed derivation cannot contain incomplete it-processing: $incomplete."
         }
-        require(terms.none { it.itDesignations.isNotEmpty() }) {
-            val pending = terms.filter { it.itDesignations.isNotEmpty() }
+        require(allEffectiveTerms.none { it.itDesignations.isNotEmpty() }) {
+            val pending = allEffectiveTerms.filter { it.itDesignations.isNotEmpty() }
                 .joinToString { "${it.id}:${it.surface}=${it.itDesignations}" }
             "A completed derivation cannot contain unconsumed it-designations: $pending."
         }
-        require(terms.none { it.deferredItDesignations.isNotEmpty() }) {
-            val pending = terms.filter { it.deferredItDesignations.isNotEmpty() }
+        require(allEffectiveTerms.none { it.deferredItDesignations.isNotEmpty() }) {
+            val pending = allEffectiveTerms.filter { it.deferredItDesignations.isNotEmpty() }
                 .joinToString { "${it.id}:${it.surface}=${it.deferredItDesignations}" }
             "A completed derivation cannot contain deferred it-designations: $pending."
         }
@@ -64,7 +71,9 @@ class DerivationState(
     private fun combinedSurface(termList: List<DerivationTerm>): String {
         return termList.fold("") { rendered, term ->
             val next = term.surface
-            if (rendered.endsWith('्') && next.firstOrNull() == 'अ') {
+            if (rendered.lastOrNull()?.let(Varnamala::isConsonant) == true && next.firstOrNull() == 'अ') {
+                rendered + next.drop(1)
+            } else if (rendered.endsWith('्') && next.firstOrNull() == 'अ') {
                 rendered.dropLast(1) + next.drop(1)
             } else if (rendered.endsWith('्') && next.firstOrNull() == 'आ') {
                 rendered.dropLast(1) + "ा" + next.drop(1)
@@ -92,6 +101,12 @@ class DerivationState(
         }
     }
 
+    fun surfaceBeforeTerm(termId: String): String {
+        val index = terms.indexOfFirst { it.id == termId }
+        require(index >= 0) { "Unknown active term $termId." }
+        return combinedSurface(terms.take(index))
+    }
+
     val allEffectiveTerms: List<DerivationTerm>
         get() = terms + droppedTerms
 
@@ -103,6 +118,107 @@ class DerivationState(
 
     fun replaceTerm(id: String, replacement: DerivationTerm): DerivationState =
         copy(terms = terms.map { if (it.id == id) replacement else it })
+
+    /** Applies a segment-level phonological change and records its sūtra atomically. */
+    fun substituteTermSurface(
+        id: String,
+        surface: String,
+        source: Char,
+        replacement: String,
+        sutra: String,
+    ): DerivationState {
+        val term = terms.singleOrNull { it.id == id }
+            ?: error("Varṇa substitution $sutra requires exactly one term named $id.")
+        require(surface != term.surface) { "$sutra must change the surface of $id." }
+        require(term.itDesignations.all { designation ->
+            designation.endExclusive <= surface.length &&
+                surface.substring(designation.start, designation.endExclusive) == designation.designatedText
+        }) {
+            "$sutra would invalidate an exact it-designation on $id; use replaceWholeAffix with an explicit policy."
+        }
+        require(term.deferredItDesignations.all { designation ->
+            designation.endExclusive <= surface.length &&
+                surface.substring(designation.start, designation.endExclusive) == designation.designatedText
+        }) {
+            "$sutra would invalidate a deferred it-designation on $id; use replaceWholeAffix with an explicit policy."
+        }
+        return replaceTerm(id, term.copy(surface = surface))
+            .addSubstitution(VarnaSubstitution(id, source, replacement, sutra))
+    }
+
+    /** Merges two adjacent terms while preserving the survivor and lifecycle-dropping the consumed term. */
+    fun mergeTermsByVarnaSubstitution(
+        survivorId: String,
+        consumedId: String,
+        surface: String,
+        source: Char,
+        replacement: String,
+        sutra: String,
+    ): DerivationState {
+        require(survivorId != consumedId) { "$sutra cannot merge a term into itself." }
+        val survivorIndex = terms.indexOfFirst { it.id == survivorId }
+        val consumedIndex = terms.indexOfFirst { it.id == consumedId }
+        require(survivorIndex >= 0 && consumedIndex >= 0) {
+            "$sutra requires both $survivorId and $consumedId for a term merger."
+        }
+        require(kotlin.math.abs(survivorIndex - consumedIndex) == 1) {
+            "$sutra can merge only adjacent terms: $survivorId and $consumedId."
+        }
+        val survivor = terms[survivorIndex]
+        val substituted = if (surface == survivor.surface) {
+            // The visible result can already equal the survivor (for example,
+            // अ + अ after inherent-vowel serialization); consuming the adjacent
+            // term is still a real two-term substitution.
+            addSubstitution(VarnaSubstitution(survivorId, source, replacement, sutra))
+        } else {
+            substituteTermSurface(survivorId, surface, source, replacement, sutra)
+        }
+        return substituted.removeTerm(consumedId, sutra)
+    }
+
+    /** Redistributes material across two adjacent surviving terms as one phonological operation. */
+    fun redistributeAdjacentTermsByVarnaSubstitution(
+        leftId: String,
+        rightId: String,
+        leftSurface: String,
+        rightSurface: String,
+        source: Char,
+        replacement: String,
+        sutra: String,
+    ): DerivationState {
+        val leftIndex = terms.indexOfFirst { it.id == leftId }
+        val rightIndex = terms.indexOfFirst { it.id == rightId }
+        require(leftIndex >= 0 && rightIndex == leftIndex + 1) {
+            "$sutra requires adjacent ordered terms $leftId and $rightId."
+        }
+        val left = terms[leftIndex]
+        val right = terms[rightIndex]
+        require(left.surface != leftSurface || right.surface != rightSurface) {
+            "$sutra must change at least one surface across $leftId and $rightId."
+        }
+
+        fun requireStableDesignations(term: DerivationTerm, newSurface: String) {
+            require((term.itDesignations + term.deferredItDesignations).all { designation ->
+                designation.endExclusive <= newSurface.length &&
+                    newSurface.substring(designation.start, designation.endExclusive) == designation.designatedText
+            }) {
+                "$sutra would invalidate an exact it-designation on ${term.id}; " +
+                    "use replaceWholeAffix with an explicit policy."
+            }
+        }
+        requireStableDesignations(left, leftSurface)
+        requireStableDesignations(right, rightSurface)
+
+        return copy(
+            terms = terms.map { term ->
+                when (term.id) {
+                    leftId -> term.copy(surface = leftSurface)
+                    rightId -> term.copy(surface = rightSurface)
+                    else -> term
+                }
+            },
+        ).addSubstitution(VarnaSubstitution(leftId, source, replacement, sutra))
+    }
 
     /** Replaces an entire affix while making the fate of every exact it-designation explicit. */
     fun replaceWholeAffix(
@@ -138,13 +254,16 @@ class DerivationState(
 
     fun removeTerm(id: String, sutra: String? = null): DerivationState {
         val term = terms.find { it.id == id } ?: return this
+        require(sutra != null || term.kind !in affixKinds) {
+            "Removing affix $id requires a sūtra so its designations can be consumed explicitly."
+        }
         return copy(
             terms = terms.filter { it.id != id },
-            droppedTerms = droppedTerms + term.copy(
-                surface = "",
-                droppedBySutra = sutra,
-                originalSurfaceBeforeDrop = term.surface
-            )
+            droppedTerms = droppedTerms + if (sutra == null) {
+                term.copy(surface = "", originalSurfaceBeforeDrop = term.surface)
+            } else {
+                dropTermWithLifecycle(term, sutra)
+            },
         )
     }
 
@@ -156,7 +275,14 @@ class DerivationState(
     /** Inserts a stem-forming affix before a liṅ augment, or directly before tiṅ. */
     fun insertBeforeTingOrLingAugment(term: DerivationTerm): DerivationState {
         require(terms.none { it.id == term.id }) { "A derivation term id must be unique: ${term.id}" }
-        val insertionIndex = terms.indexOfFirst { it.id == "yasut" || it.id == "siyut" }
+        val tingId = terms.last().id
+        val insertionIndex = terms.indexOfFirst {
+            it.id == "yasut" || it.id == "siyut" ||
+                (it.kind == TermKind.AGAMA &&
+                    !it.mergeIntoAugmentTarget &&
+                    it.augmentTargetId == tingId &&
+                    "1.1.46" in it.establishedBySutras)
+        }
             .takeIf { it >= 0 }
             ?: terms.lastIndex
         return copy(terms = terms.take(insertionIndex) + term + terms.drop(insertionIndex))
@@ -171,11 +297,20 @@ class DerivationState(
     fun blockSutra(sutraNumber: String, blocker: String): DerivationState =
         copy(blockedSutras = blockedSutras + (sutraNumber to blocker))
 
+    fun blockOperation(operation: BlockedOperationDomain, blocker: String): DerivationState =
+        copy(blockedOperations = blockedOperations + (operation to blocker))
+
     fun addComparison(comparison: VarnaComparison): DerivationState =
         copy(varnaComparisons = varnaComparisons + comparison)
 
     fun addSubstitution(substitution: VarnaSubstitution): DerivationState =
         copy(substitutions = substitutions + substitution)
+
+    fun recordAppliedSutra(sutraNumber: String): DerivationState =
+        copy(appliedSutras = appliedSutras + sutraNumber)
+
+    fun assignSvara(vowelIndex: Int, accent: AccentType, sutra: String): DerivationState =
+        copy(svaraAssignments = svaraAssignments + SvaraAssignment(vowelIndex, accent, SvaraAssignmentSource.Sutra(sutra)))
 
     fun copy(
         terms: List<DerivationTerm> = this.terms,
@@ -186,9 +321,13 @@ class DerivationState(
         activeAdhikaras: Set<String> = this.activeAdhikaras,
         inheritedAnuvrtti: Set<String> = this.inheritedAnuvrtti,
         blockedSutras: Map<String, String> = this.blockedSutras,
+        blockedOperations: Map<BlockedOperationDomain, String> = this.blockedOperations,
         halantyamExemptTermIds: Set<String> = this.halantyamExemptTermIds,
         varnaComparisons: Set<VarnaComparison> = this.varnaComparisons,
         substitutions: List<VarnaSubstitution> = this.substitutions,
+        appliedSutras: List<String> = this.appliedSutras,
+        svaraNimittas: List<SvaraNimitta> = this.svaraNimittas,
+        svaraAssignments: List<SvaraAssignment> = this.svaraAssignments,
     ): DerivationState {
         return DerivationState(
             terms = terms,
@@ -199,9 +338,13 @@ class DerivationState(
             activeAdhikaras = activeAdhikaras,
             inheritedAnuvrtti = inheritedAnuvrtti,
             blockedSutras = blockedSutras,
+            blockedOperations = blockedOperations,
             halantyamExemptTermIds = halantyamExemptTermIds,
             varnaComparisons = varnaComparisons,
             substitutions = substitutions,
+            appliedSutras = appliedSutras,
+            svaraNimittas = svaraNimittas,
+            svaraAssignments = svaraAssignments,
         )
     }
 
@@ -216,9 +359,13 @@ class DerivationState(
             activeAdhikaras == other.activeAdhikaras &&
             inheritedAnuvrtti == other.inheritedAnuvrtti &&
             blockedSutras == other.blockedSutras &&
+            blockedOperations == other.blockedOperations &&
             halantyamExemptTermIds == other.halantyamExemptTermIds &&
             varnaComparisons == other.varnaComparisons &&
             substitutions == other.substitutions
+            && appliedSutras == other.appliedSutras &&
+            svaraNimittas == other.svaraNimittas &&
+            svaraAssignments == other.svaraAssignments
     }
 
     override fun hashCode(): Int {
@@ -230,16 +377,33 @@ class DerivationState(
         result = 31 * result + activeAdhikaras.hashCode()
         result = 31 * result + inheritedAnuvrtti.hashCode()
         result = 31 * result + blockedSutras.hashCode()
+        result = 31 * result + blockedOperations.hashCode()
         result = 31 * result + halantyamExemptTermIds.hashCode()
         result = 31 * result + varnaComparisons.hashCode()
         result = 31 * result + substitutions.hashCode()
+        result = 31 * result + appliedSutras.hashCode()
+        result = 31 * result + svaraNimittas.hashCode()
+        result = 31 * result + svaraAssignments.hashCode()
         return result
     }
 
     override fun toString(): String {
-        return "DerivationState(terms=$terms, droppedTerms=$droppedTerms, samjnas=$samjnas, stage=$stage, context=$context, activeAdhikaras=$activeAdhikaras, inheritedAnuvrtti=$inheritedAnuvrtti, blockedSutras=$blockedSutras, halantyamExemptTermIds=$halantyamExemptTermIds, varnaComparisons=$varnaComparisons, substitutions=$substitutions)"
+        return "DerivationState(terms=$terms, droppedTerms=$droppedTerms, samjnas=$samjnas, stage=$stage, context=$context, activeAdhikaras=$activeAdhikaras, inheritedAnuvrtti=$inheritedAnuvrtti, blockedSutras=$blockedSutras, blockedOperations=$blockedOperations, halantyamExemptTermIds=$halantyamExemptTermIds, varnaComparisons=$varnaComparisons, substitutions=$substitutions, appliedSutras=$appliedSutras, svaraNimittas=$svaraNimittas, svaraAssignments=$svaraAssignments)"
     }
 }
+
+enum class BlockedOperationDomain { STRI_PRATYAYA_SELECTION }
+
+enum class AccentType { UDATTA, ANUDATTA, SVARITA }
+enum class SvaraNimittaKind { PRATYAYA, NIT_OR_NGIT, PIT_OR_SUP, EXPLICIT_UDATTA }
+data class SvaraNimitta(val kind: SvaraNimittaKind, val termId: String, val vowelIndex: Int? = null)
+sealed interface SvaraAssignmentSource {
+    data class Sutra(val number: String) : SvaraAssignmentSource
+    data class Lexical(val source: String) : SvaraAssignmentSource
+}
+data class SvaraAssignment(val vowelIndex: Int, val accent: AccentType, val source: SvaraAssignmentSource)
+
+private val affixKinds = setOf(TermKind.PRATYAYA, TermKind.AGAMA, TermKind.AUGMENT)
 
 data class VarnaComparison(
     val leftTermId: String, val rightTermId: String,
@@ -270,6 +434,8 @@ data class DerivationTerm(
     val originalSurfaceBeforeDrop: String? = null,
     val createdBySutra: String? = null,
     val establishedBySutras: Set<String> = emptySet(),
+    /** Written upadeśa material retained for provenance but excluded from the operative surface. */
+    val nonOperativeUpadeshaSegments: List<NonOperativeUpadeshaSegment> = emptyList(),
     /** Explicit lifecycle of an upadeśa as it moves through 1.3.2–1.3.9. */
     val itProcessingPhase: ItProcessingPhase = dev.panini.derivation.ItProcessingPhase.PROCESSED,
     /** Exact spans designated as इत् in the current upadeśa. */
@@ -278,9 +444,27 @@ data class DerivationTerm(
     val deferredItDesignations: List<ItDesignation> = emptyList(),
     /** The term into which an āgama is placed by 1.1.46. */
     val augmentTargetId: String? = null,
+    /** Whether 1.1.46 should fold this āgama into its target immediately. */
+    val mergeIntoAugmentTarget: Boolean = true,
     /** Underlying lexical head of a compound term, when rules target head identity after surface sandhi. */
     val compoundHeadUpadesha: String? = null,
+    /** Persistent provenance for markers established by exact it-designations. */
+    val itMarkerProvenance: Set<ItMarkerProvenance> = emptySet(),
+    /** Accent stated by the lexical source, rather than assigned by an Aṣṭādhyāyī rule. */
+    val lexicalAccent: Accent? = null,
+    val lexicalAccentSource: String? = null,
 ) {
+    init {
+        nonOperativeUpadeshaSegments.forEach { segment ->
+            require(segment.start >= 0 && segment.endExclusive <= upadesha.length && segment.start < segment.endExclusive) {
+                "Non-operative upadeśa segment ${segment.start}..${segment.endExclusive} is outside $id:$upadesha."
+            }
+            require(upadesha.substring(segment.start, segment.endExclusive) == segment.text) {
+                "Non-operative upadeśa segment ${segment.start}..${segment.endExclusive} (${segment.text}) is stale on $id:$upadesha."
+            }
+        }
+    }
+
     val itProcessingPending: Boolean
         get() = itProcessingPhase == dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA ||
             itProcessingPhase == dev.panini.derivation.ItProcessingPhase.DESIGNATED
@@ -295,6 +479,8 @@ data class DerivationTerm(
             itStatus = dhatu.itStatus,
             gana = dhatu.gana,
             blocksNicGuna = dhatu.blocksNicGuna,
+            lexicalAccent = dhatu.svara,
+            lexicalAccentSource = "Dhātupāṭha:${dhatu.id}",
         )
     }
 
@@ -317,29 +503,49 @@ data class DerivationTerm(
         )
         return when (policy) {
             is WholeAffixDesignationPolicy.PreserveAndRemap -> {
-                require(policy.remaps.size == allDesignations.size) {
-                    "$sutra must explicitly remap every designation on $id (${allDesignations.size} designations, ${policy.remaps.size} remaps)."
+                require(policy.remaps.size + policy.consumed.size == allDesignations.size) {
+                    "$sutra must explicitly remap or consume every designation on $id " +
+                        "(${allDesignations.size} designations, ${policy.remaps.size} remaps, ${policy.consumed.size} consumed)."
                 }
-                val remapped = allDesignations.map { designation ->
-                    val remap = policy.remaps.singleOrNull {
+                fun remap(designation: ItDesignation): ItDesignation? {
+                    val matchingRemaps = policy.remaps.filter {
                         it.oldStart == designation.start && it.oldEndExclusive == designation.endExclusive
-                    } ?: error("$sutra has no unique remap for ${designation.start}..${designation.endExclusive} on $id.")
+                    }
+                    val matchingConsumptions = policy.consumed.filter {
+                        it.oldStart == designation.start && it.oldEndExclusive == designation.endExclusive
+                    }
+                    require(matchingRemaps.size + matchingConsumptions.size == 1) {
+                        "$sutra must uniquely remap or consume ${designation.start}..${designation.endExclusive} on $id."
+                    }
+                    if (matchingConsumptions.isNotEmpty()) return null
+                    val remap = matchingRemaps.single()
                     require(remap.newStart >= 0 && remap.newEndExclusive <= replacementSurface.length && remap.newStart < remap.newEndExclusive)
                     val newText = replacementSurface.substring(remap.newStart, remap.newEndExclusive)
-                    designation.copy(start = remap.newStart, endExclusive = remap.newEndExclusive, designatedText = newText)
+                    return designation.copy(start = remap.newStart, endExclusive = remap.newEndExclusive, designatedText = newText)
                 }
-                val activeCount = itDesignations.size
+                val remappedActive = itDesignations.mapNotNull(::remap)
+                val remappedDeferred = deferredItDesignations.mapNotNull(::remap)
+                val consumedMarkers = allDesignations.filter { designation ->
+                    policy.consumed.any {
+                        it.oldStart == designation.start && it.oldEndExclusive == designation.endExclusive
+                    }
+                }.mapTo(mutableSetOf()) { it.marker }
                 copy(
                     surface = replacementSurface,
                     upadesha = replacementUpadesha,
-                    itDesignations = remapped.take(activeCount),
-                    deferredItDesignations = remapped.drop(activeCount),
-                    itProcessingPhase = if (activeCount > 0) ItProcessingPhase.DESIGNATED else itProcessingPhase,
+                    itDesignations = remappedActive,
+                    deferredItDesignations = remappedDeferred,
+                    itProcessingPhase = if (remappedActive.isNotEmpty()) ItProcessingPhase.DESIGNATED else itProcessingPhase,
+                    sthaniProps = if (consumedMarkers.isEmpty()) sthaniProps else SthaniProperties(
+                        upadesha = sthaniProps?.upadesha ?: upadesha,
+                        itMarkers = sthaniProps?.itMarkers.orEmpty() + consumedMarkers,
+                    ),
                 )
             }
             WholeAffixDesignationPolicy.Consume -> copy(
                 surface = replacementSurface,
                 upadesha = replacementUpadesha,
+                nonOperativeUpadeshaSegments = emptyList(),
                 itDesignations = emptyList(),
                 deferredItDesignations = emptyList(),
                 itProcessingPhase = ItProcessingPhase.PROCESSED,
@@ -348,7 +554,9 @@ data class DerivationTerm(
             WholeAffixDesignationPolicy.FreshUpadesha -> copy(
                 surface = replacementSurface,
                 upadesha = replacementUpadesha,
+                nonOperativeUpadeshaSegments = emptyList(),
                 itMarkers = emptySet(),
+                itMarkerProvenance = emptySet(),
                 itDesignations = emptyList(),
                 deferredItDesignations = emptyList(),
                 itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
@@ -363,10 +571,42 @@ data class DerivationTerm(
 }
 
 sealed interface WholeAffixDesignationPolicy {
-    data class PreserveAndRemap(val remaps: List<ItDesignationRemap>) : WholeAffixDesignationPolicy
+    data class PreserveAndRemap(
+        val remaps: List<ItDesignationRemap>,
+        val consumed: List<ItDesignationConsumption> = emptyList(),
+    ) : WholeAffixDesignationPolicy
     data object Consume : WholeAffixDesignationPolicy
     data object FreshUpadesha : WholeAffixDesignationPolicy
 }
+
+/** Consumes every designation before an affix is moved out of the active derivation. */
+fun consumeAffixForDrop(
+    term: DerivationTerm,
+    sutra: String,
+    droppedSurface: String = "",
+): DerivationTerm {
+    require(term.kind == TermKind.PRATYAYA || term.kind == TermKind.AGAMA || term.kind == TermKind.AUGMENT) {
+        "$sutra cannot consume non-affix term ${term.id}."
+    }
+    val originalSurface = term.surface
+    return term.replaceWholeAffix(
+        replacementSurface = droppedSurface,
+        replacementUpadesha = term.upadesha,
+        sutra = sutra,
+        policy = WholeAffixDesignationPolicy.Consume,
+    ).copy(
+        droppedBySutra = sutra,
+        originalSurfaceBeforeDrop = originalSurface,
+    )
+}
+
+/** Drops a merged term, enforcing explicit designation consumption whenever that term is an affix. */
+fun dropTermWithLifecycle(term: DerivationTerm, sutra: String): DerivationTerm =
+    if (term.kind == TermKind.PRATYAYA || term.kind == TermKind.AGAMA || term.kind == TermKind.AUGMENT) {
+        consumeAffixForDrop(term, sutra)
+    } else {
+        term.copy(surface = "", droppedBySutra = sutra, originalSurfaceBeforeDrop = term.surface)
+    }
 
 data class ItDesignationRemap(
     val oldStart: Int,
@@ -374,6 +614,8 @@ data class ItDesignationRemap(
     val newStart: Int,
     val newEndExclusive: Int,
 )
+
+data class ItDesignationConsumption(val oldStart: Int, val oldEndExclusive: Int)
 
 enum class ItProcessingPhase {
     /** The term is already an effective form or has no it-processing to perform. */
@@ -395,6 +637,24 @@ data class ItDesignation(
     /** Original designated segment; detects a designation consumed by a later whole-term substitution. */
     val designatedText: String,
 )
+
+data class ItMarkerProvenance(
+    val marker: ItMarker,
+    val designationSutra: String,
+    val designatedText: String,
+)
+
+/** An exact written span that explains an upadeśa but never enters grammatical operations. */
+data class NonOperativeUpadeshaSegment(
+    val start: Int,
+    val endExclusive: Int,
+    val text: String,
+    val function: NonOperativeUpadeshaFunction,
+)
+
+enum class NonOperativeUpadeshaFunction {
+    UCCARANARTHA,
+}
 
 data class SthaniProperties(
     val upadesha: String?,

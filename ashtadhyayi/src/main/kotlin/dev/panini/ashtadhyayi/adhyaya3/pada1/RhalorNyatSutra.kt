@@ -36,7 +36,7 @@ object RhalorNyatSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         if (context.stage != DerivationStage.INITIAL && context.stage != DerivationStage.PRATYAYA_SELECTED) return false
         val isNyatRequested = context.samjnas.any { it.samjna == Samjna.NYAT } || context.context.requestedMeaning == dev.panini.derivation.DerivationalMeaning.BHAVA
-        val hasPratyaya = context.terms.any { it.kind == TermKind.PRATYAYA }
+        val hasPratyaya = context.terms.any { it.kind == TermKind.PRATYAYA && !dev.panini.derivation.SanadiAffixes.contains(it.upadesha) }
         return isNyatRequested && !hasPratyaya
     }
 

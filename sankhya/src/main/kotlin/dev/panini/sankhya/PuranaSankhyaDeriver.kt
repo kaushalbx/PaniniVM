@@ -33,9 +33,10 @@ class PuranaSankhyaDeriver(
             else DerivationConfig()
         },
         isStageEnabled = { stage, _, state ->
-            stage != SutraStage.THUK_PHONOLOGY || state.terms.any { it.upadesha == "थुक्" }
+            stage != SutraStage.THUK_PHONOLOGY || state.terms.any { it.upadesha == "थुँक्" }
         },
         sutrasForStage = Ashtadhyayi::puranaSankhyaSutrasAt,
+        interleaveItProcessingAt = setOf(SutraStage.PRATYAYA_SELECTION),
     )
 
     fun derive(value: Long): DerivationResult {

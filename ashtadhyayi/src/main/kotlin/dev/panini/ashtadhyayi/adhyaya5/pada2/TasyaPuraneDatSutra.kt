@@ -43,12 +43,11 @@ object TasyaPuraneDatSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val datTerm = DerivationTerm(
             id = "purana_dat",
-            // After its it-markers are removed, डट् contributes the inherent a already
-            // represented by the final consonant of the Devanāgarī base.
-            surface = "",
+            surface = "डट्",
             kind = TermKind.PRATYAYA,
             upadesha = "डट्",
             createdBySutra = sutra,
+            itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
         )
         return DerivationChange(
             state = context.copy(terms = context.terms + datTerm),

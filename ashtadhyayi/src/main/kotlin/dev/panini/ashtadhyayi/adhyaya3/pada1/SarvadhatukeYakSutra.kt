@@ -6,6 +6,7 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.ItProcessingPhase
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -27,7 +28,10 @@ object SarvadhatukeYakSutra : Sutra<DerivationState, DerivationChange>(
         context.allEffectiveTerms.none { it.upadesha == "यक्" }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val yak = DerivationTerm("yak", "य", TermKind.PRATYAYA, upadesha = "यक्")
+        val yak = DerivationTerm(
+            "yak", "यक्", TermKind.PRATYAYA, upadesha = "यक्",
+            createdBySutra = sutra, itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
+        )
         return DerivationChange(
             state = context.addTerm(yak),
             explanation = "3.1.67 prescribes यक् in karmaṇi/bhāve Sārvadhātuka.",

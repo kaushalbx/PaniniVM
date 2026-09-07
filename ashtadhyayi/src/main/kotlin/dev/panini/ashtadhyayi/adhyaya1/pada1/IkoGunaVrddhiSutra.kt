@@ -5,7 +5,6 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.PhonologicalRequest
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
@@ -71,10 +70,13 @@ object IkoGunaVrddhiSutra : Sutra<DerivationState, DerivationChange>(
                         replacement
                     }
 
-                    state = state.replaceTerm(
+                    state = state.substituteTermSurface(
                         term.id,
-                        term.copy(surface = term.surface.replaceFirst(sourceChar.toString(), finalReplacement))
-                    ).addSubstitution(VarnaSubstitution(term.id, sourceChar, finalReplacement, sutra))
+                        term.surface.replaceFirst(sourceChar.toString(), finalReplacement),
+                        sourceChar,
+                        finalReplacement,
+                        sutra,
+                    )
                 }
             }
         }

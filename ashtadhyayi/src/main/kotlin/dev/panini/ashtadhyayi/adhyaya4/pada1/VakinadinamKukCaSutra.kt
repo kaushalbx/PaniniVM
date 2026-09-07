@@ -34,10 +34,13 @@ object VakinadinamKukCaSutra : Sutra<DerivationState, DerivationChange>(
             bases(context).isNotEmpty() && context.allEffectiveTerms.none { it.upadesha == "फिञ्" }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val replacements = bases(context).associate { term -> term.id to term.copy(surface = term.surface + "क") }
+        var state = context
+        bases(context).forEach { term ->
+            state = state.substituteTermSurface(term.id, term.surface + "क", '∅', "क", sutra)
+        }
         return DerivationChange(
-            context.copy(terms = context.terms.map { replacements[it.id] ?: it })
-                .addTerm(DerivationTerm("vakinadi-phiny-suffix", "आयनि", TermKind.PRATYAYA, upadesha = "फिञ्"))
+            state
+                .addTerm(DerivationTerm("vakinadi-phiny-suffix", "फिञ्", TermKind.PRATYAYA, upadesha = "फिञ्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA))
                 .copy(stage = DerivationStage.PRATYAYA_SELECTED),
             "4.1.158 introduces कुक् and फिञ् after an eligible वाकिनादि term.",
         )

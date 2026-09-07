@@ -74,6 +74,8 @@ object Ashtadhyayi {
         SutraStage.PRATYAYA_SELECTION,
         SutraStage.ANGAKARYA,
         SutraStage.IT_PROCESSING,
+        SutraStage.VOWEL_SANDHI,
+        SutraStage.SANDHI,
     )
     val striPratyayaSutras: List<DerivationSutra> =
         executableSutrasUnder("4.1.3")
@@ -131,7 +133,14 @@ object Ashtadhyayi {
         } else {
             sankhyaSutras.at(stage)
         }
-    fun puranaSankhyaSutrasAt(stage: SutraStage): List<DerivationSutra> = puranaSankhyaSutras.at(stage)
+    fun puranaSankhyaSutrasAt(stage: SutraStage): List<DerivationSutra> =
+        if (stage == SutraStage.IT_PROCESSING) {
+            executableSutrasAt(stage).filter { sutra ->
+                (sutra as? Sutra<*, *>)?.let { it.chapter == 1 && it.pada == 3 } == true
+            }
+        } else {
+            puranaSankhyaSutras.at(stage)
+        }
     fun krdantaSutrasAt(stage: SutraStage): List<DerivationSutra> = krdantaSutras.at(stage)
     fun striPratyayaSutrasAt(stage: SutraStage): List<DerivationSutra> =
         if (stage == SutraStage.IT_PROCESSING) {

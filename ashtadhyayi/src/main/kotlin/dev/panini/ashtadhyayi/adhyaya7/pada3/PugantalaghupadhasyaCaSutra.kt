@@ -9,7 +9,8 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
-import dev.panini.derivation.VarnaSubstitution
+import dev.panini.derivation.DerivationalEnvironment
+import dev.panini.derivation.HasDerivationalEnvironment
 import dev.panini.shiksha.Varnamala
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -30,6 +31,7 @@ object PugantalaghupadhasyaCaSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.DHATU,
+    stage = dev.panini.sutra.SutraStage.ANGAKARYA,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU } ?: return false
@@ -43,7 +45,13 @@ object PugantalaghupadhasyaCaSutra : Sutra<DerivationState, DerivationChange>(
             Lakara.LANG -> ending in setOf(TingAffix.TIP, TingAffix.SIP, TingAffix.MIP)
             else -> false
         }
-        return (((hasNic && !dhatu.blocksNicGuna) && ending != null) || isAdadiStrong) &&
+        val beforeArdhadhatuka = HasDerivationalEnvironment(DerivationalEnvironment.ARDHADHATUKA).matches(context) &&
+            context.terms.dropWhile { it.id != dhatu.id }.drop(1).any {
+                it.kind == TermKind.PRATYAYA &&
+                    !it.matchesUpadesha("क्त") && !it.matchesUpadesha("क्तवतुँ") &&
+                    !it.matchesUpadesha("क्त्वा") && !it.matchesUpadesha("ल्यप्")
+            }
+        return ((((hasNic && !dhatu.blocksNicGuna) && ending != null) || isAdadiStrong || beforeArdhadhatuka)) &&
             lightUpadhaIndex(dhatu.surface) != null
     }
 
@@ -53,11 +61,9 @@ object PugantalaghupadhasyaCaSutra : Sutra<DerivationState, DerivationChange>(
         val source = dhatu.surface[index]
         val replacement = requireNotNull(Varnamala.getGuna(source))
         return DerivationChange(
-            state = context.replaceTerm(
-                dhatu.id,
-                dhatu.copy(surface = dhatu.surface.replaceRange(index, index + 1, replacement)),
-            ).copy(stage = DerivationStage.ANGAKARYA)
-                .addSubstitution(VarnaSubstitution(dhatu.id, source, replacement, sutra)),
+            state = context.substituteTermSurface(
+                dhatu.id, dhatu.surface.replaceRange(index, index + 1, replacement), source, replacement, sutra,
+            ).copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.86 applies guṇa to the light upadhā before ṇic or a strong ending.",
         )
     }

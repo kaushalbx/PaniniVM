@@ -50,7 +50,7 @@ object GotoNitSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
 
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = "गौ"))
+            state = context.substituteTermSurface(stem.id, "गौ", 'ओ', "औ", sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.1.90 & 7.2.115: Applied vṛddhi 'au' to 'go' stem before ṇit-sarvanāmasthāna."
         )

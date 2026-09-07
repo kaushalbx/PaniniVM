@@ -1,7 +1,6 @@
 package dev.panini.derivation
 
 import dev.panini.core.Kala
-import dev.panini.core.ItMarker
 import dev.panini.core.Lakara
 import dev.panini.core.PadaType
 import dev.panini.core.Prayoga
@@ -29,18 +28,17 @@ data class TingantaDerivationRequest(
         DerivationTerm.fromDhatu(dhatu),
     )
 
-    private fun initialState(dhatuTerm: DerivationTerm) = DerivationState(
-        listOf(dhatuTerm) + sanadiPratyayas.mapIndexed { index, pratyaya ->
-            require(pratyaya == "णिच्") { "Unsupported sanādi pratyaya: $pratyaya" }
-            DerivationTerm(
-                id = "sanadi_$index",
-                surface = "अय्",
-                kind = TermKind.PRATYAYA,
-                itMarkers = setOf(ItMarker.NIT, ItMarker.GENERIC),
-                upadesha = pratyaya,
-            )
-        },
+    private fun initialState(dhatuTerm: DerivationTerm): DerivationState {
+        require(sanadiPratyayas.all { SanadiAffixes.contains(it) && it in setOf("णिच्", "सन्", "यङ्") }) {
+            "Unsupported sanādi pratyaya: ${sanadiPratyayas.joinToString()}"
+        }
+        require(sanadiPratyayas.distinct().size == sanadiPratyayas.size) {
+            "A sanādi affix may be introduced only once in one tiṅanta request."
+        }
+        return DerivationState(
+        listOf(dhatuTerm),
         context = DerivationalContext(
+            requestedSanadi = sanadiPratyayas.toSet(),
             kala = when (lakara) {
                 Lakara.LRT, Lakara.LRNG, Lakara.LUT -> Kala.BHAVISYAT
                 Lakara.LANG, Lakara.LIT, Lakara.LUNG -> Kala.BHUTA
@@ -55,5 +53,6 @@ data class TingantaDerivationRequest(
                 else -> emptySet()
             },
         ),
-    )
+        )
+    }
 }

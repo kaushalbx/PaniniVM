@@ -39,7 +39,7 @@ object BhrnamItSutra : Sutra<DerivationState, DerivationChange>(
             .replace('ऋ', 'इ').replace('ॠ', 'इ')
             .replace('ृ', 'ि').replace('ॄ', 'ि')
         return DerivationChange(
-            context.replaceTerm(abhyasa.id, abhyasa.copy(surface = substituted)),
+            context.substituteTermSurface(abhyasa.id, substituted, 'ऋ', "इ", sutra),
             "7.4.76 replaces ऋ with इ in the भृञ् abhyāsa ${abhyasa.surface}.",
         )
     }

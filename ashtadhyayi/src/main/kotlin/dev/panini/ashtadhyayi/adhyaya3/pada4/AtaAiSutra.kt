@@ -25,7 +25,12 @@ object AtaAiSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
         return DerivationChange(
-            context.replaceTerm(ending.id, ending.copy(surface = "ऐ${ending.surface.drop(1)}")),
+            context.replaceWholeAffix(
+                ending.id,
+                "ऐ${ending.surface.drop(1)}",
+                sutra,
+                dev.panini.derivation.WholeAffixDesignationPolicy.PreserveAndRemap(emptyList()),
+            ),
             "3.4.95 replaces the initial आ of the dual Ātmanepada ending with ऐ.",
         )
     }

@@ -42,7 +42,9 @@ class Batch10GerundInfinitiveMoodSutrasTest {
             )
         )
         assertTrue(EchaIgGhanSutra.matches(state))
-        assertEquals("धि", EchaIgGhanSutra.apply(state).state.allEffectiveTerms.first().surface)
+        val result = EchaIgGhanSutra.apply(state).state
+        assertEquals("धि", result.allEffectiveTerms.first().surface)
+        assertEquals("3.3.56", result.substitutions.single().sutra)
     }
 
     @Test
@@ -91,7 +93,7 @@ class Batch10GerundInfinitiveMoodSutrasTest {
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVISYAT)
         )
         assertTrue(KalaSamayaVelashuTumunSutra.matches(state))
-        assertEquals("तुमुन्", KalaSamayaVelashuTumunSutra.apply(state).state.allEffectiveTerms.last().upadesha)
+        assertEquals("तुमुँन्", KalaSamayaVelashuTumunSutra.apply(state).state.allEffectiveTerms.last().upadesha)
     }
 
     @Test
@@ -124,7 +126,7 @@ class Batch10GerundInfinitiveMoodSutrasTest {
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVISYAT)
         )
         assertTrue(ShakaDhrshJnAGlaGhatRabhabhLabhaprakramitumunSutra.matches(state))
-        assertEquals("तुमुन्", ShakaDhrshJnAGlaGhatRabhabhLabhaprakramitumunSutra.apply(state).state.allEffectiveTerms.last().upadesha)
+        assertEquals("तुमुँन्", ShakaDhrshJnAGlaGhatRabhabhLabhaprakramitumunSutra.apply(state).state.allEffectiveTerms.last().upadesha)
     }
 
     @Test

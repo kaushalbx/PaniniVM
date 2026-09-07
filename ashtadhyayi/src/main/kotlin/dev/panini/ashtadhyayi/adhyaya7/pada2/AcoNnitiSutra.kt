@@ -34,6 +34,7 @@ object AcoNnitiSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.DHATU,
+    stage = dev.panini.sutra.SutraStage.ANGAKARYA,
     nimittaScope = NimittaScope.EXTERNAL,
     dependencies = setOf("6.4.1"),
     blocks = setOf("7.3.84"),
@@ -43,13 +44,13 @@ object AcoNnitiSutra : Sutra<DerivationState, DerivationChange>(
         val stemIndex = context.terms.indexOfFirst { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         if (stemIndex < 0) return false
         val stem = context.terms[stemIndex]
-        val affix = context.terms.getOrNull(stemIndex + 1) ?: return false
+        val affix = context.terms.drop(stemIndex + 1).firstOrNull { it.kind == TermKind.PRATYAYA } ?: return false
         if (affix.kind != TermKind.PRATYAYA) return false
-        if (affix.hasEffectiveMarker(ItMarker.KIT) || affix.hasEffectiveMarker(ItMarker.NGIT)) return false
+        if ((affix.hasEffectiveMarker(ItMarker.KIT) && !affix.hasEffectiveMarker(ItMarker.NYIT)) ||
+            affix.hasEffectiveMarker(ItMarker.NGIT)) return false
 
-        val isNniti = affix.hasEffectiveMarker(ItMarker.NG) ||
-                      affix.hasEffectiveMarker(ItMarker.NIT) ||
-                      affix.upadesha?.endsWith("ण्") == true
+        val isNniti = affix.hasEffectiveMarker(ItMarker.NYIT) ||
+                      affix.hasEffectiveMarker(ItMarker.NIT)
         if (!isNniti) return false
 
         val lastChar = stem.surface.lastOrNull() ?: return false
@@ -65,9 +66,8 @@ object AcoNnitiSutra : Sutra<DerivationState, DerivationChange>(
         val newSurface = stem.surface.dropLast(1) + replacement
 
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = newSurface))
-                .copy(stage = DerivationStage.ANGAKARYA)
-                .addSubstitution(VarnaSubstitution(stem.id, lastChar, replacement, sutra)),
+            state = context.substituteTermSurface(stem.id, newSurface, lastChar, replacement, sutra)
+                .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.2.115: Applied vṛddhi ($replacement) before ñit/ṇit affix."
         )
     }

@@ -28,7 +28,7 @@ object RadorApsutra : Sutra<DerivationState, DerivationChange>(
         context.allEffectiveTerms.none { it.upadesha == "अप्" }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val ap = DerivationTerm("ap", "अ", TermKind.PRATYAYA, upadesha = "अप्")
+        val ap = DerivationTerm("ap", "अप्", TermKind.PRATYAYA, upadesha = "अप्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
         return DerivationChange(
             state = context.addTerm(ap),
             explanation = "3.3.57 prescribes अप् affix for ṛ/u-ending roots.",

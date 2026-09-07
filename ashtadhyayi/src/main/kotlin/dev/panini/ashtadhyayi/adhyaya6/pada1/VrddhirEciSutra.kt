@@ -42,6 +42,10 @@ object VrddhirEciSutra : Sutra<DerivationState, DerivationChange>(
         if (context.terms.size < 2) return false
         if (augmentRootPair(context) != null) return true
         val leftTerm = context.terms[context.terms.size - 2]
+        if (leftTerm.id == "shap" && context.terms.size > 2) {
+            val previous = context.terms[context.terms.size - 3]
+            if (previous.upadesha == "णिच्" && previous.surface.lastOrNull() in setOf('ए', 'ऐ', 'ओ', 'औ', 'े', 'ै', 'ो', 'ौ')) return false
+        }
         if (leftTerm.id == "shap" && context.terms.any { it.kind == TermKind.DHATU && it.gana == DhatuGana.ADADI }) return false
         val right = context.terms.last().surface.firstOrNull() ?: return false
 
@@ -60,13 +64,11 @@ object VrddhirEciSutra : Sutra<DerivationState, DerivationChange>(
                 'ओ', 'औ' -> "औ"
                 else -> error("Unsupported ec vowel in ${root.surface}")
             }
-            val newRoot = root.copy(surface = substitute + root.surface.drop(1))
+            val newSurface = substitute + root.surface.drop(1)
             return DerivationChange(
-                state = context.copy(
-                    terms = terms.take(index) + newRoot + terms.drop(index + 2),
-                    droppedTerms = context.droppedTerms + augment.copy(surface = ""),
-                    stage = DerivationStage.PADA_FORMED,
-                ).addSubstitution(VarnaSubstitution(root.id, root.surface.first(), substitute, sutra)),
+                state = context.mergeTermsByVarnaSubstitution(
+                    root.id, augment.id, newSurface, root.surface.first(), substitute, sutra,
+                ).copy(stage = DerivationStage.PADA_FORMED),
                 explanation = "6.1.88: Vṛddhi substitution ($substitute) for augment अ + ${root.surface.first()}.",
             )
         }
@@ -91,11 +93,9 @@ object VrddhirEciSutra : Sutra<DerivationState, DerivationChange>(
         }
 
         return DerivationChange(
-            state = context.copy(
-                terms = terms.dropLast(2) + leftTerm.copy(surface = newSurface),
-                droppedTerms = context.droppedTerms + terms.last().copy(surface = ""),
-                stage = DerivationStage.PADA_FORMED
-            ).addSubstitution(VarnaSubstitution(leftTerm.id, leftChar, substitute, sutra)),
+            state = context.mergeTermsByVarnaSubstitution(
+                leftTerm.id, rightTerm.id, newSurface, leftChar, substitute, sutra,
+            ).copy(stage = DerivationStage.PADA_FORMED),
             explanation = "6.1.88: Vṛddhi substitution ($substitute) for $leftChar + $rightChar."
         )
     }
@@ -142,14 +142,15 @@ object TasmacChasoNahPumsiSutra : Sutra<DerivationState, DerivationChange>(
                 ).matches(context) &&
                 context.terms.lastOrNull()?.surface?.let { s -> s.endsWith("ास्") || s.endsWith("ीस्") || s.endsWith("ूस्") } == true
 
-    override fun apply(context: DerivationState): DerivationChange = DerivationChange(
-        state = context.copy(
-            terms = context.terms.dropLast(1) + context.terms.last()
-                .copy(surface = context.terms.last().surface.dropLast(2) + "न्"),
-            stage = DerivationStage.FINAL,
-        ),
-        explanation = "6.1.103 replaces final स् with न् after the lengthened stem in masculine accusative plural.",
-    )
+    override fun apply(context: DerivationState): DerivationChange {
+        val term = context.terms.last()
+        return DerivationChange(
+            state = context.substituteTermSurface(
+                term.id, term.surface.dropLast(2) + "न्", 'स', "न", sutra,
+            ).copy(stage = DerivationStage.FINAL),
+            explanation = "6.1.103 replaces final स् with न् after the lengthened stem in masculine accusative plural.",
+        )
+    }
 }
 
 object AmiPurvahSutra : Sutra<DerivationState, DerivationChange>(
@@ -174,10 +175,10 @@ object AmiPurvahSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         return DerivationChange(
-            context.copy(
-                terms = context.terms.dropLast(2) + stem.copy(surface = stem.surface + "म्"),
-                stage = DerivationStage.FINAL
-            ), "6.1.107 retains the preceding vowel before अम्."
+            context.mergeTermsByVarnaSubstitution(
+                stem.id, context.terms.last().id, stem.surface + "म्", 'अ', "", sutra,
+            ).copy(stage = DerivationStage.FINAL),
+            "6.1.107 retains the preceding vowel before अम्."
         )
     }
 }

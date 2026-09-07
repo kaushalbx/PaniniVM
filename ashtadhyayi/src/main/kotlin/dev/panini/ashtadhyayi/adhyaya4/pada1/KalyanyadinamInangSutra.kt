@@ -31,12 +31,19 @@ object KalyanyadinamInangSutra : Sutra<DerivationState, DerivationChange>(
             context.allEffectiveTerms.none { it.upadesha == "ढक्" }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val replacements = bases(context).associate { term ->
-            term.id to term.copy(surface = term.surface.dropLast(1) + "िन्")
+        var state = context
+        bases(context).forEach { term ->
+            state = state.substituteTermSurface(
+                term.id, term.surface.dropLast(1) + "िन्", term.surface.last(), "िन्", sutra,
+            )
         }
         return DerivationChange(
-            context.copy(terms = context.terms.map { replacements[it.id] ?: it })
-                .addTerm(DerivationTerm("kalyanyadi-dhak-suffix", "एय", TermKind.PRATYAYA, upadesha = "ढक्"))
+            state
+                .addTerm(DerivationTerm(
+                    "kalyanyadi-dhak-suffix", "ढक्", TermKind.PRATYAYA, upadesha = "ढक्",
+                    createdBySutra = sutra,
+                    itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
+                ))
                 .copy(stage = DerivationStage.PRATYAYA_SELECTED),
             "4.1.126 replaces the final with इनङ् and introduces ढक् after an eligible कल्याण्यादि term.",
         )

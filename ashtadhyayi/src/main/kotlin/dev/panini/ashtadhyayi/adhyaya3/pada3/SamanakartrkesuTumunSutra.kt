@@ -35,7 +35,7 @@ object SamanakartrkesuTumunSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         if (context.stage != DerivationStage.INITIAL && context.stage != DerivationStage.PRATYAYA_SELECTED) return false
         val isTumunRequested = context.samjnas.any { it.samjna == Samjna.TUMUN }
-        val hasPratyaya = context.terms.any { it.kind == TermKind.PRATYAYA }
+        val hasPratyaya = context.terms.any { it.kind == TermKind.PRATYAYA && !dev.panini.derivation.SanadiAffixes.contains(it.upadesha) }
         return isTumunRequested && !hasPratyaya
     }
 
@@ -44,7 +44,7 @@ object SamanakartrkesuTumunSutra : Sutra<DerivationState, DerivationChange>(
             id = "tumun_pratyaya",
             surface = "तुमुँन्",
             kind = TermKind.PRATYAYA,
-            upadesha = "तुमुन्",
+            upadesha = "तुमुँन्",
             createdBySutra = sutra,
             itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
         )

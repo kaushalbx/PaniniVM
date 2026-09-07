@@ -42,10 +42,11 @@ object NantadAsankhyaderMatSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val matTerm = DerivationTerm(
             id = "purana_mat",
-            surface = "म",
+            surface = "मट्",
             kind = TermKind.AGAMA,
             upadesha = "मट्",
             createdBySutra = sutra,
+            itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
         )
         return DerivationChange(
             state = context.copy(terms = context.terms + matTerm),

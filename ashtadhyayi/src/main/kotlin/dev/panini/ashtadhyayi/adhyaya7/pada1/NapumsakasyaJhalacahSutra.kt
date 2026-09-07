@@ -82,9 +82,8 @@ object NapumsakasyaJhalacahSutra : Sutra<DerivationState, DerivationChange>(
         }
 
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = newStemSurface))
-                .copy(stage = DerivationStage.ANGAKARYA)
-                .addSubstitution(VarnaSubstitution(stem.id, 'अ', "न", sutra)),
+            state = context.substituteTermSurface(stem.id, newStemSurface, '∅', "न्", sutra)
+                .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.1.72: Added 'num' augment (न्) after the last vowel of the neuter stem."
         )
     }

@@ -44,7 +44,7 @@ object TasastyorLopahSutra : Sutra<DerivationState, DerivationChange>(
         val newSurface = tasiTerm.surface.removeSuffix("स्")
 
         return DerivationChange(
-            state = context.replaceTerm(tasiTerm.id, tasiTerm.copy(surface = newSurface)),
+            state = context.substituteTermSurface(tasiTerm.id, newSurface, 'स', "", sutra),
             explanation = "7.4.50: Deletes the final 's' of 'tās' before a suffix starting with '${context.terms[tasiIndex + 1].surface.first()}'."
         )
     }

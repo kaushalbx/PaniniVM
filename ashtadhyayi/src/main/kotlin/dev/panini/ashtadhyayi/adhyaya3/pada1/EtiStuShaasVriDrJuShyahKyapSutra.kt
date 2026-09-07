@@ -28,7 +28,7 @@ object EtiStuShaasVriDrJuShyahKyapSutra : Sutra<DerivationState, DerivationChang
         context.allEffectiveTerms.none { it.upadesha == "क्यप्" }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val kyap = DerivationTerm("kyap", "य", TermKind.PRATYAYA, upadesha = "क्यप्")
+        val kyap = DerivationTerm("kyap", "क्यप्", TermKind.PRATYAYA, upadesha = "क्यप्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
         return DerivationChange(
             state = context.addTerm(kyap),
             explanation = "3.1.109 prescribes क्यप् kṛtya affix after i, stu, śās, etc.",

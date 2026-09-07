@@ -4,7 +4,6 @@ import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Varnamala
 import dev.panini.sutra.Sutra
@@ -70,8 +69,8 @@ object DhralopePurvasyaDirghonahSutra : Sutra<DerivationState, DerivationChange>
         val newSurface = surface.dropLast(1) + replacement
 
         return DerivationChange(
-            state = context.replaceTerm(targetTerm.id, targetTerm.copy(surface = newSurface)),
+            state = context.substituteTermSurface(targetTerm.id, newSurface, lastChar, replacement, sutra),
             explanation = "6.3.111: Lengthened preceding aṇ vowel after ḍh/r lopa."
-        ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(targetTerm.id, lastChar, replacement, sutra))) }
+        )
     }
 }

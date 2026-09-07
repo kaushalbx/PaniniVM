@@ -56,7 +56,7 @@ object SadbhyoLukSutra : Sutra<DerivationState, DerivationChange>(
         return DerivationChange(
             state = context.copy(
                 terms = newTerms,
-                droppedTerms = context.droppedTerms + affix.copy(surface = ""),
+                droppedTerms = context.droppedTerms + dev.panini.derivation.consumeAffixForDrop(affix, sutra),
                 // 1.1.62 preserves the grammatical effect of the deleted
                 // sup, so pada formation and subsequent Tripādī rules remain.
                 stage = DerivationStage.ANGAKARYA,

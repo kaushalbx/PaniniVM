@@ -40,11 +40,9 @@ object NtoJasiSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
         return DerivationChange(
-            state = context.copy(
-                terms = context.terms.dropLast(2) + stem.copy(surface = stem.surface.dropLast(2) + "ानः"),
-                droppedTerms = context.droppedTerms + affix.copy(surface = ""),
-                stage = DerivationStage.FINAL,
-            ),
+            state = context.mergeTermsByVarnaSubstitution(
+                stem.id, affix.id, stem.surface.dropLast(2) + "ानः", 'न', "आनः", sutra,
+            ).copy(stage = DerivationStage.FINAL),
             explanation = "7.3.139: Formed the masculine n-stem nominative-plural आनः ending before जस्.",
         )
     }

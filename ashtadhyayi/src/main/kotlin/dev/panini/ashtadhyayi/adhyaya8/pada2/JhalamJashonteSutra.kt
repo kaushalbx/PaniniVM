@@ -6,7 +6,10 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.ItDesignationRemap
+import dev.panini.derivation.TermKind
 import dev.panini.derivation.VarnaSubstitution
+import dev.panini.derivation.WholeAffixDesignationPolicy
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
@@ -60,11 +63,27 @@ object JhalamJashonteSutra : Sutra<DerivationState, DerivationChange>(
             lastTerm.surface.dropLast(2) + substitute + '्'
         }
 
+        val changed = if (lastTerm.kind in setOf(TermKind.PRATYAYA, TermKind.AGAMA, TermKind.AUGMENT)) {
+            val remaps = (lastTerm.itDesignations + lastTerm.deferredItDesignations).map { designation ->
+                ItDesignationRemap(
+                    designation.start, designation.endExclusive,
+                    designation.start, designation.endExclusive,
+                )
+            }
+            context.replaceWholeAffix(
+                id = lastTerm.id,
+                surface = newSurface,
+                sutra = sutra,
+                policy = WholeAffixDesignationPolicy.PreserveAndRemap(remaps),
+            ).addSubstitution(VarnaSubstitution(lastTerm.id, finalConsonant, substitute, sutra))
+        } else {
+            context.substituteTermSurface(lastTerm.id, newSurface, finalConsonant, substitute, sutra)
+        }
+
         return DerivationChange(
-            state = context.replaceTerm(lastTerm.id, lastTerm.copy(surface = newSurface))
-                .copy(stage = DerivationStage.FINAL),
+            state = changed.copy(stage = DerivationStage.FINAL),
             explanation = "8.2.39: Voiced the final consonant $finalConsonant to $substitute."
-        ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(lastTerm.id, finalConsonant, substitute, sutra))) }
+        )
     }
 
     private fun getFinalConsonant(surface: String): Char? {

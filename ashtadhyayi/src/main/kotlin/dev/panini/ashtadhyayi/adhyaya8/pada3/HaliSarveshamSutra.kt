@@ -4,7 +4,6 @@ import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -68,9 +67,9 @@ object HaliSarveshamSutra : Sutra<DerivationState, DerivationChange>(
         val newSurface = elideFinal(surface)
 
         return DerivationChange(
-            state = context.replaceTerm(targetTerm.id, targetTerm.copy(surface = newSurface)),
+            state = context.substituteTermSurface(targetTerm.id, newSurface, 'य', "", sutra),
             explanation = "8.3.22: Elided 'y' (hali sarveṣām) before hal consonant."
-        ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(targetTerm.id, 'य', "", sutra))) }
+        )
     }
 
     private fun elideFinal(surface: String): String = when {

@@ -28,7 +28,7 @@ object TikadibhyahPhinySutra : Sutra<DerivationState, DerivationChange>(
             context.allEffectiveTerms.none { it.upadesha == "फिञ्" }
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
-        context.addTerm(DerivationTerm("phiny-suffix", "आयनि", TermKind.PRATYAYA, upadesha = "फिञ्"))
+        context.addTerm(DerivationTerm("phiny-suffix", "फिञ्", TermKind.PRATYAYA, upadesha = "फिञ्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA))
             .copy(stage = DerivationStage.PRATYAYA_SELECTED),
         "4.1.154 introduces फिञ् after an eligible तिकादि term in the अपत्य sense.",
     )

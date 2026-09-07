@@ -36,13 +36,17 @@ object SibbahulamLetiSutra : Sutra<DerivationState, DerivationChange>(
             createdBySutra = sutra,
             itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
         )
-        val base = context.terms.dropLast(1).map { term ->
+        var state = context
+        context.terms.dropLast(1).forEach { term ->
             // The vārttika on 3.1.34 treats सिप् as ṇit optionally in Chandas;
             // तॄ therefore has the attested vṛddhi stem तार् in तारिषत्.
-            if (term.kind == TermKind.DHATU && term.upadesha == "तॄ") term.copy(surface = "तार्") else term
+            if (term.kind == TermKind.DHATU && term.upadesha == "तॄ") {
+                state = state.substituteTermSurface(term.id, "तार्", 'ॄ', "आर्", sutra)
+            }
         }
+        val ending = state.terms.last()
         return DerivationChange(
-            context.copy(terms = base + sip + context.terms.last()),
+            state.copy(terms = state.terms.dropLast(1) + sip + ending),
             "3.1.34 introduces the optional सिप् aorist suffix before the LET ending.",
         )
     }

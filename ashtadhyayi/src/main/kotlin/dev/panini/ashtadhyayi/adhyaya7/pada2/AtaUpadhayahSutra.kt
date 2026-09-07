@@ -28,15 +28,16 @@ object AtaUpadhayahSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.DHATU,
+    stage = dev.panini.sutra.SutraStage.ANGAKARYA,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val stemIndex = context.terms.indexOfFirst { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         if (stemIndex < 0) return false
         val stem = context.terms[stemIndex]
-        val affix = context.terms.getOrNull(stemIndex + 1) ?: return false
+        val affix = context.terms.drop(stemIndex + 1).firstOrNull { it.kind == TermKind.PRATYAYA } ?: return false
         
         val isUpadhaA = hasPenultimateA(stem.surface)
-        val isNniti = affix.hasEffectiveMarker(ItMarker.NG) ||
+        val isNniti = affix.hasEffectiveMarker(ItMarker.NYIT) ||
                       affix.hasEffectiveMarker(ItMarker.NIT)
         
         return isUpadhaA && isNniti
@@ -46,10 +47,8 @@ object AtaUpadhayahSutra : Sutra<DerivationState, DerivationChange>(
         val stemIndex = context.terms.indexOfFirst { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         val stem = context.terms[stemIndex]
         val newSurface = applyPenultimateLengthening(stem.surface)
-        val newStem = stem.copy(surface = newSurface)
-        
         return DerivationChange(
-            state = context.replaceTerm(stem.id, newStem)
+            state = context.substituteTermSurface(stem.id, newSurface, 'अ', "आ", sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.2.116: Lengthened penultimate 'अ' in ${stem.surface} to 'आ' before ñit/ṇit suffix."
         )

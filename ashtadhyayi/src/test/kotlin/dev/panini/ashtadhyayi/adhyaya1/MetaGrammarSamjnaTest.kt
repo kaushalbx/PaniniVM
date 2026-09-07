@@ -22,7 +22,7 @@ class MetaGrammarSamjnaTest {
 
     @Test
     fun testSnatSatSutra() {
-        val state = DerivationState(terms = listOf(DerivationTerm("affix", "शतृ", TermKind.PRATYAYA, upadesha = "शतृ")))
+        val state = DerivationState(terms = listOf(DerivationTerm("affix", "शतृँ", TermKind.PRATYAYA, upadesha = "शतृँ")))
         assertTrue(SnatSatSutra.matches(state))
     }
 

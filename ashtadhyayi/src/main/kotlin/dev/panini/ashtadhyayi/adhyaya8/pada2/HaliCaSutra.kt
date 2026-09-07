@@ -5,7 +5,6 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -38,9 +37,8 @@ object HaliCaSutra : Sutra<DerivationState, DerivationChange>(
             it.kind == TermKind.DHATU && it.matchesUpadesha("दिवुँ") && it.surface == "दिव्"
         }
         return DerivationChange(
-            state = context.replaceTerm(root.id, root.copy(surface = "दीव्"))
-                .copy(stage = DerivationStage.FINAL)
-                .addSubstitution(VarnaSubstitution(root.id, 'ि', "ी", sutra)),
+            state = context.substituteTermSurface(root.id, "दीव्", 'ि', "ी", sutra)
+                .copy(stage = DerivationStage.FINAL),
             explanation = "8.2.77 lengthens the vowel of दिव् before the consonantal श्यन् remainder.",
         )
     }

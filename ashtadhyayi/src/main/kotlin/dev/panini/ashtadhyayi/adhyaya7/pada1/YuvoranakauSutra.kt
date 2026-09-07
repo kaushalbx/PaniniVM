@@ -4,6 +4,7 @@ import dev.panini.ashtadhyayi.adhyaya1.pada3.YathasamkhyamSutra
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.WholeAffixDesignationPolicy
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -27,6 +28,7 @@ object YuvoranakauSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.PRATYAYA,
+    stage = dev.panini.sutra.SutraStage.ANGAKARYA,
     dependencies = setOf("1.3.10")
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
@@ -40,7 +42,12 @@ object YuvoranakauSutra : Sutra<DerivationState, DerivationChange>(
         val replacement = requireNotNull(YathasamkhyamSutra.map(target.surface, sources, targets))
 
         return DerivationChange(
-            state = context.replaceTerm(target.id, target.copy(surface = replacement)),
+            state = context.replaceWholeAffix(
+                id = target.id,
+                surface = replacement,
+                sutra = sutra,
+                policy = WholeAffixDesignationPolicy.Consume,
+            ),
             explanation = "7.1.1: Substituted $replacement for ${target.surface} (Yuvoranākau)."
         )
     }

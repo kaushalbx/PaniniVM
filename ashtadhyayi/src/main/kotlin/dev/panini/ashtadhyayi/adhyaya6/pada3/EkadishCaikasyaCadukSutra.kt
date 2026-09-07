@@ -24,7 +24,7 @@ object EkadishCaikasyaCadukSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val target = context.terms[0]
         return DerivationChange(
-            context.replaceTerm(target.id, target.copy(surface = "एका")),
+            context.substituteTermSurface(target.id, "एका", '∅', "आ", sutra),
             "6.3.76: आदुक् gives एका in एकादश."
         )
     }

@@ -3,6 +3,10 @@ package dev.panini.ashtadhyayi.adhyaya7.pada1
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.ItProcessingPhase
+import dev.panini.derivation.TermKind
+import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -35,23 +39,39 @@ object HrasvanadyapoNutSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
+        val governedBySatCatur = stem.upadesha in
+            setOf("चतुर्", "षट्", "पञ्चन्", "सप्तन्", "अष्टन्", "नवन्", "दशन्") ||
+            stem.surface in setOf("चतुर्", "षट्") ||
+            context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SHAT }
+        if (governedBySatCatur) return false
+
         // Match any short vowel or ā-stem (āp-stem)
         val lastChar = stem.surface.lastOrNull() ?: return false
         val isShortVowel = lastChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks ||
                 lastChar in setOf('इ', 'ि', 'उ', 'ु', 'ऋ', 'ृ', 'ऌ', 'ॢ')
         val isApStem = lastChar == 'ा' || lastChar == 'आ'
 
-        return (isShortVowel || isApStem) && affix.upadesha == "आम्" && affix.surface != "नाम्" && context.allEffectiveTerms.none { it.upadesha == "नुट्" }
+        return (isShortVowel || isApStem) && affix.upadesha == "आम्" &&
+            sutra !in affix.establishedBySutras &&
+            context.allEffectiveTerms.none { it.upadesha == "नुँट्" }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
-        val newSurface = "नाम्"
-        val newTerms = context.terms.dropLast(1) + affix.copy(surface = newSurface)
+        val nut = DerivationTerm(
+            id = "${affix.id}-nut",
+            surface = "नुँट्",
+            kind = TermKind.AGAMA,
+            upadesha = "नुँट्",
+            createdBySutra = sutra,
+            itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
+            augmentTargetId = affix.id,
+            mergeIntoAugmentTarget = true,
+        )
 
         return DerivationChange(
-            state = context.copy(terms = newTerms),
-            explanation = "7.1.54: Added 'nuṭ' augment before 'ām' and merged into 'nām'."
+            state = context.addTerm(nut),
+            explanation = "7.1.54 introduces raw नुँट् for placement before आम्."
         )
     }
 }

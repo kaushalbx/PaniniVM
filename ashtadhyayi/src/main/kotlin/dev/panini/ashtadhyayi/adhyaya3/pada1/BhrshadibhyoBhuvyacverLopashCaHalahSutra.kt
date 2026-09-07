@@ -37,21 +37,27 @@ object BhrshadibhyoBhuvyacverLopashCaHalahSutra : Sutra<DerivationState, Derivat
         }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val terms = context.terms.flatMap { term ->
+        var state = context
+        context.terms.forEach { term ->
             if (
                 term.kind == TermKind.PRATIPADIKA &&
                 term.upadesha != "च्वि" &&
                 GanaPatha.isEligibleMember(32, term.surface, term.lexicalUses) &&
                 context.terms.none { it.id == "${term.id}-kyan" }
             ) {
-                listOf(
-                    term.copy(surface = term.surface.dropFinalHal()),
-                    DerivationTerm("${term.id}-kyan", "य", TermKind.PRATYAYA, upadesha = "क्यङ्"),
+                val newSurface = term.surface.dropFinalHal()
+                if (newSurface != term.surface) {
+                    state = state.substituteTermSurface(
+                        term.id, newSurface, term.surface[term.surface.length - 2], "", sutra,
+                    )
+                }
+                state = state.addTerm(
+                    DerivationTerm("${term.id}-kyan", "क्यङ्", TermKind.PRATYAYA, upadesha = "क्यङ्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA),
                 )
-            } else listOf(term)
+            }
         }
         return DerivationChange(
-            state = context.copy(terms = terms),
+            state = state,
             explanation = "3.1.12 introduces क्यङ् after eligible भृशादि terms in the becoming sense and deletes a final hal.",
         )
     }

@@ -42,7 +42,7 @@ object SukhadibhyoKartrvedanayamSutra : Sutra<DerivationState, DerivationChange>
                 GanaPatha.isEligibleMember(34, term.surface, term.lexicalUses) &&
                 context.terms.none { it.id == "${term.id}-kyan" }
             ) {
-                listOf(term, DerivationTerm("${term.id}-kyan", "य", TermKind.PRATYAYA, upadesha = "क्यङ्"))
+                listOf(term, DerivationTerm("${term.id}-kyan", "क्यङ्", TermKind.PRATYAYA, upadesha = "क्यङ्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA))
             } else listOf(term)
         }
         return DerivationChange(

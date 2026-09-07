@@ -22,5 +22,5 @@ object ShandikadibhyoNyahSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi, action = SutraAction.PRATYAYA_SELECTION, scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState) = HasRequestedMeaning(DerivationalMeaning.ABHIJANA).matches(context) && context.terms.any { it.kind == TermKind.PRATIPADIKA && GanaPatha.isEligibleMember(118, it.surface, it.lexicalUses) } && context.allEffectiveTerms.none { it.upadesha == "ञ्य" }
-    override fun apply(context: DerivationState) = DerivationChange(context.addTerm(DerivationTerm("nya-suffix", "य", TermKind.PRATYAYA, upadesha = "ञ्य")), "4.3.92 introduces ञ्य after an eligible शण्डिकादि term in the abhijana sense.")
+    override fun apply(context: DerivationState) = DerivationChange(context.addTerm(DerivationTerm("nya-suffix", "ञ्य", TermKind.PRATYAYA, upadesha = "ञ्य", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)), "4.3.92 introduces ञ्य after an eligible शण्डिकादि term in the abhijana sense.")
 }

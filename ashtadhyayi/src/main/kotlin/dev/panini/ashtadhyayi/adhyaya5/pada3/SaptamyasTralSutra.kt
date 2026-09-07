@@ -27,7 +27,7 @@ object SaptamyasTralSutra : Sutra<DerivationState, DerivationChange>(
         context.allEffectiveTerms.none { it.upadesha == "त्रल्" || it.upadesha == "त्र" }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val tralTerm = DerivationTerm("tral", "त्र", TermKind.PRATYAYA, upadesha = "त्रल्")
+        val tralTerm = DerivationTerm("tral", "त्रल्", TermKind.PRATYAYA, upadesha = "त्रल्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
         return DerivationChange(
             state = context.addTerm(tralTerm),
             explanation = "5.3.7 prescribes त्रल् (त्र) locative Avyaya-Taddhita affix.",

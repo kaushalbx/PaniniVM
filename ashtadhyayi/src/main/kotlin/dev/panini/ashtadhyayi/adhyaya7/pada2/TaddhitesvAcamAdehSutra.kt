@@ -33,13 +33,11 @@ object TaddhitesvAcamAdehSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         val pratyaya = context.terms.lastOrNull { it.kind == TermKind.PRATYAYA } ?: return false
         val isTaddhita = "4.1.76" in context.activeAdhikaras ||
-            pratyaya.upadesha in setOf("अण्", "इञ्", "यञ्", "फक्", "ढक्", "वत्", "तसिल्", "त्रल्", "आयन्", "एय्", "ईन्", "ईय्", "इय्") ||
-            pratyaya.id.contains("taddhita") || pratyaya.id.contains("apatya")
+            pratyaya.upadesha in setOf("अण्", "इञ्", "यञ्", "फक्", "ढक्", "वत्", "तसिल्", "त्रल्", "आयन्", "एय्", "ईन्", "ईय्", "इय्")
         if (!isTaddhita) return false
 
-        val isNgitOrNit = pratyaya.itMarkers.contains(ItMarker.NGIT) ||
-            pratyaya.itMarkers.contains(ItMarker.NIT) ||
-            pratyaya.upadesha == "इञ्" || pratyaya.upadesha == "यञ्" || pratyaya.upadesha == "अण्"
+        val isNgitOrNit = pratyaya.hasEffectiveMarker(ItMarker.NYIT) ||
+            pratyaya.hasEffectiveMarker(ItMarker.NIT)
         if (!isNgitOrNit) return false
 
         val stem = context.terms.firstOrNull { it.kind == TermKind.PRATIPADIKA } ?: return false
@@ -51,16 +49,9 @@ object TaddhitesvAcamAdehSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[stemIndex]
 
         val newSurface = applyInitialVrddhi(stem.surface)
-        val updatedStem = stem.copy(surface = newSurface)
-
-        val newTerms = context.terms.toMutableList()
-        newTerms[stemIndex] = updatedStem
-
         return DerivationChange(
-            state = context.copy(
-                terms = newTerms,
-                stage = DerivationStage.ANGAKARYA,
-            ),
+            state = context.substituteTermSurface(stem.id, newSurface, '∅', "वृद्धि", sutra)
+                .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.2.117 applies initial vowel Vṛddhi to '${stem.surface}' -> '$newSurface'.",
         )
     }

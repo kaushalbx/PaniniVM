@@ -3,7 +3,6 @@ package dev.panini.ashtadhyayi.adhyaya8.pada4
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -49,8 +48,8 @@ object AbhyaseCarCaSutra : Sutra<DerivationState, DerivationChange>(
         val substitute = carOrJash.getValue(source)
         val newSurface = substitute + abhyasa.surface.drop(1)
         return DerivationChange(
-            state = context.replaceTerm(abhyasa.id, abhyasa.copy(surface = newSurface)),
+            state = context.substituteTermSurface(abhyasa.id, newSurface, source, substitute.toString(), sutra),
             explanation = "8.4.54 changes $source to its nearest $substitute substitute in the abhyāsa.",
-        ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(abhyasa.id, source, substitute.toString(), sutra))) }
+        )
     }
 }

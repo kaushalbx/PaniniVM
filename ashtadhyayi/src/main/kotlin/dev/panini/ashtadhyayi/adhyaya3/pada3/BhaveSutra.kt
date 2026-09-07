@@ -29,7 +29,7 @@ object BhaveSutra : Sutra<DerivationState, DerivationChange>(
         context.allEffectiveTerms.none { it.upadesha == "घञ्" }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val ghan = DerivationTerm("ghan", "घञ्", TermKind.PRATYAYA, upadesha = "घञ्", itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
+        val ghan = DerivationTerm("ghan", "घञ्", TermKind.PRATYAYA, upadesha = "घञ्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)
         return DerivationChange(
             state = context.addTerm(ghan),
             explanation = "3.3.18 prescribes घञ् action affix in bhāve.",

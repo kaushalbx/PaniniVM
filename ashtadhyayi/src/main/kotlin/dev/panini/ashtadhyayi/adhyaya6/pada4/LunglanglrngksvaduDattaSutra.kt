@@ -5,6 +5,7 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.TermKind
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -42,16 +43,23 @@ object LunglanglrngksvaduDattaSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val terms = context.terms
         val dhatuIndex = terms.indexOfFirst { it.kind == TermKind.DHATU }
+        val target = terms.getOrNull(dhatuIndex) ?: terms.first()
+        val augment = DerivationTerm(
+            "at-agama", "अट्", TermKind.AGAMA,
+            upadesha = "अट्", createdBySutra = sutra,
+            itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
+            augmentTargetId = target.id, mergeIntoAugmentTarget = false,
+        )
         val newTerms = if (dhatuIndex >= 0) {
             terms.take(dhatuIndex) +
-            DerivationTerm("at-agama", "अ", TermKind.AGAMA, upadesha = "अट्") +
+            augment +
             terms.drop(dhatuIndex)
         } else {
-            listOf(DerivationTerm("at-agama", "अ", TermKind.AGAMA, upadesha = "अट्")) + terms
+            listOf(augment) + terms
         }
         return DerivationChange(
             state = context.copy(terms = newTerms, stage = DerivationStage.IT_PROCESSED),
-            explanation = "6.4.71: Prepend अट् augment before the verbal root."
+            explanation = "6.4.71 introduces raw अट् targeted at the beginning of the verbal root."
         )
     }
 }

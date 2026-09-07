@@ -5,7 +5,6 @@ import dev.panini.core.TingAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -38,8 +37,7 @@ object InahShidhvamLunglitamDhoAngatSutra : Sutra<DerivationState, DerivationCha
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
         return DerivationChange(
-            context.replaceTerm(ending.id, ending.copy(surface = "ढ" + ending.surface.drop(1)))
-                .addSubstitution(VarnaSubstitution(ending.id, 'ध', "ढ", sutra)),
+            context.substituteTermSurface(ending.id, "ढ" + ending.surface.drop(1), 'ध', "ढ", sutra),
             "8.3.78 substitutes ढ् for the ध् of षीध्वम् after the aṅga.",
         )
     }

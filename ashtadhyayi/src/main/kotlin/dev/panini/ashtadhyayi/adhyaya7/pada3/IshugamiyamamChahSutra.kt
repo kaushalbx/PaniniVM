@@ -5,7 +5,6 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -45,9 +44,8 @@ object IshugamiyamamChahSutra : Sutra<DerivationState, DerivationChange>(
         val replacement = "छ"
         val surface = dhatu.surface.dropLast(2) + replacement + "्"
         return DerivationChange(
-            state = context.replaceTerm(dhatu.id, dhatu.copy(surface = surface))
-                .copy(stage = DerivationStage.ANGAKARYA)
-                .addSubstitution(VarnaSubstitution(dhatu.id, source, replacement, sutra)),
+            state = context.substituteTermSurface(dhatu.id, surface, source, replacement, sutra)
+                .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.77 replaces the final of ${dhatu.surface} with छ् before the śit stem-forming affix.",
         )
     }

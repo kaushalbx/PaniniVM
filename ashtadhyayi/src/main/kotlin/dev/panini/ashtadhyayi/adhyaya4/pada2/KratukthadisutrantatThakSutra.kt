@@ -27,7 +27,7 @@ object KratukthadisutrantatThakSutra : Sutra<DerivationState, DerivationChange>(
             context.allEffectiveTerms.none { it.upadesha == "ठक्" }
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
-        context.addTerm(DerivationTerm("thak-suffix", "इक", TermKind.PRATYAYA, upadesha = "ठक्")),
+        context.addTerm(DerivationTerm("thak-suffix", "ठक्", TermKind.PRATYAYA, upadesha = "ठक्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)),
         "4.2.60 introduces ठक् after an eligible उक्थादि term in the study-or-knowledge sense.",
     )
 }

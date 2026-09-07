@@ -1,5 +1,7 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada1
 
+import dev.panini.core.SupAffix
+import dev.panini.core.TingAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
@@ -32,7 +34,8 @@ object KrdAtinSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         val last = context.terms.lastOrNull() ?: return false
         val isKrtCandidate = last.kind == TermKind.PRATYAYA &&
-            !last.id.contains("ting") && !last.id.contains("sup") &&
+            TingAffix.fromUpadesha(last.upadesha) == null &&
+            SupAffix.fromUpadesha(last.upadesha) == null &&
             context.samjnas.none { it.targetId == last.id && it.samjna == Samjna.KRT }
         return isKrtCandidate
     }

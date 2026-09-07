@@ -47,10 +47,11 @@ object SankhyayaAvayaveTayapSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val tayapTerm = DerivationTerm(
             id = "taddhita_tayap",
-            surface = "तय",
+            surface = "तयप्",
             kind = TermKind.PRATYAYA,
             upadesha = "तयप्",
             createdBySutra = sutra,
+            itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
         )
         return DerivationChange(
             state = context.copy(terms = context.terms + tayapTerm),

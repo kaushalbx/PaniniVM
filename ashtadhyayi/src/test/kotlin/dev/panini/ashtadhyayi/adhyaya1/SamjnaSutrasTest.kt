@@ -12,12 +12,15 @@ import dev.panini.ashtadhyayi.adhyaya1.pada3.LasakvataddhiteSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.ShahPratyayasyaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.TasyaLopahSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.UpadesheAjanunasikaItSutra
+import dev.panini.core.ItMarker
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.ItProcessingPhase
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 
 class SamjnaSutrasTest {
@@ -86,12 +89,80 @@ class SamjnaSutrasTest {
     }
 
     @Test
+    fun `lasakvataddhite preserves the exact initial marker class`() {
+        val expected = mapOf(
+            "ल्युट्" to ItMarker.LIT,
+            "शप्" to ItMarker.SH,
+            "कल्पित" to ItMarker.KIT,
+            "खल्पित" to ItMarker.KHIT,
+            "गल्पित" to ItMarker.GIT,
+            "घल्पित" to ItMarker.GHIT,
+            "ङल्पित" to ItMarker.NGIT,
+        )
+
+        expected.forEach { (upadesha, marker) ->
+            val state = DerivationState(
+                stage = DerivationStage.PRATYAYA_SELECTED,
+                terms = listOf(DerivationTerm("pratyaya", upadesha, TermKind.PRATYAYA)),
+            )
+            val designated = LasakvataddhiteSutra.apply(state).state.terms.single().deferredItDesignations.single()
+            assertEquals(marker, designated.marker, upadesha)
+            assertEquals(upadesha.take(if (upadesha.getOrNull(1) == '्') 2 else 1), designated.designatedText)
+            assertEquals("1.3.8", designated.sutra)
+        }
+    }
+
+    @Test
     fun testTasyaLopahSutra() {
         val state = DerivationState(
             stage = DerivationStage.PRATYAYA_SELECTED,
-            terms = listOf(DerivationTerm(id = "pratyaya", surface = "ल्युट्", kind = TermKind.PRATYAYA, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA))
+            terms = listOf(DerivationTerm(id = "pratyaya", surface = "अ", kind = TermKind.PRATYAYA, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA))
         )
-        assertTrue(TasyaLopahSutra.matches(state))
+        assertFalse(TasyaLopahSutra.matches(state))
+        val result = dev.panini.derivation.DerivationEngine(
+            listOf(
+                AdirNitudavahSutra, ShahPratyayasyaSutra, ChutuSutra,
+                UpadesheAjanunasikaItSutra, HalantyamSutra, LasakvataddhiteSutra,
+                TasyaLopahSutra,
+            ),
+        ).derive(state)
+        val completed = result.final.terms.single()
+        assertEquals(dev.panini.derivation.ItProcessingPhase.PROCESSED, completed.itProcessingPhase)
+        assertEquals("अ", completed.surface)
+        assertTrue(result.applications.none { it.sutra.startsWith("1.3.") }, "Lifecycle bookkeeping must not appear as a grammatical application")
+        assertTrue(result.final.substitutions.isEmpty(), "Lifecycle bookkeeping must not appear as a varṇa substitution")
+    }
+
+    @Test
+    fun `a partial pipeline leaves raw upadesha for its later it-processing phase`() {
+        val raw = DerivationState(terms = listOf(
+            DerivationTerm("agama", "तुँक्", TermKind.AGAMA, itProcessingPhase = ItProcessingPhase.RAW_UPADESHA),
+        ))
+
+        val result = dev.panini.derivation.DerivationEngine(emptyList()).derive(raw)
+
+        assertEquals(ItProcessingPhase.RAW_UPADESHA, result.final.terms.single().itProcessingPhase)
+        assertTrue(result.applications.isEmpty())
+        assertTrue(result.final.substitutions.isEmpty())
+    }
+
+    @Test
+    fun `exact designation is deleted only by 1 3 9`() {
+        val raw = DerivationState(terms = listOf(
+            DerivationTerm("affix", "अण्", TermKind.PRATYAYA, itProcessingPhase = ItProcessingPhase.RAW_UPADESHA),
+        ))
+        val rules = listOf(
+            UpadesheAjanunasikaItSutra, HalantyamSutra, dev.panini.ashtadhyayi.adhyaya1.pada3.NaVibhaktauTusmahSutra,
+            AdirNitudavahSutra, ShahPratyayasyaSutra, ChutuSutra, LasakvataddhiteSutra, TasyaLopahSutra,
+        )
+
+        val result = dev.panini.derivation.DerivationEngine(rules).derive(raw)
+
+        assertEquals("अ", result.final.surface)
+        assertEquals(listOf("1.3.3", "1.3.9"), result.applications.map { it.sutra }.filter { it.startsWith("1.3.") })
+        val designation = result.applications.first().after.terms.single().itDesignations.single()
+        assertEquals("ण्", designation.designatedText)
+        assertEquals("1.3.3", designation.sutra)
     }
 
     @Test

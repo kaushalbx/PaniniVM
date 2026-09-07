@@ -34,26 +34,26 @@ object MonusvarahSutra : Sutra<DerivationState, DerivationChange>(
     stage = SutraStage.SANDHI,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        if (context.terms.any { it.kind == TermKind.PRATYAYA }) return false
         if (context.terms.size < 2) return false
-        val left = context.terms[context.terms.size - 2]
-        val right = context.terms.last()
-
-        // 1. Left must be a Pada and end in 'm'
-        val isPada = context.samjnas.any { it.targetId == left.id && it.samjna == Samjna.PADA }
-        if (!isPada || !left.surface.endsWith("म्")) return false
-
-        // 2. Right must start with a consonant (hal)
-        val firstChar = right.surface.firstOrNull() ?: return false
-        return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, firstChar)
+        return context.terms.zipWithNext().any { (left, right) ->
+            val isBoundaryTerm = context.samjnas.any {
+                it.targetId == left.id && it.samjna in setOf(Samjna.PADA, Samjna.UPASARGA)
+            }
+            isBoundaryTerm && left.surface.endsWith("म्") &&
+                right.surface.firstOrNull()?.let { Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, it) } == true
+        }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val left = context.terms[context.terms.size - 2]
+        val left = context.terms.zipWithNext().first { (candidate, right) ->
+            context.samjnas.any { it.targetId == candidate.id && it.samjna in setOf(Samjna.PADA, Samjna.UPASARGA) } &&
+                candidate.surface.endsWith("म्") &&
+                right.surface.firstOrNull()?.let { Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, it) } == true
+        }.first
         val newSurface = left.surface.removeSuffix("म्") + Ayogavaha.ANUSVARA.devanagari
 
         return DerivationChange(
-            state = context.replaceTerm(left.id, left.copy(surface = newSurface)),
+            state = context.substituteTermSurface(left.id, newSurface, 'म', Ayogavaha.ANUSVARA.devanagari, sutra),
             explanation = "8.3.23: Final 'm' became Anusvāra before consonant."
         )
     }
@@ -112,7 +112,9 @@ object NashcapadantasyaSutra : Sutra<DerivationState, DerivationChange>(
         }
 
         return DerivationChange(
-            state = context.replaceTerm(targetTerm.id, targetTerm.copy(surface = newSurface)),
+            state = context.substituteTermSurface(
+                targetTerm.id, newSurface, charAt, Ayogavaha.ANUSVARA.devanagari, sutra,
+            ),
             explanation = "8.3.24: Internal '$charAt' became Anusvāra before jhal."
         )
     }

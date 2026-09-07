@@ -22,13 +22,13 @@ object VibhashetahSutra : Sutra<DerivationState, DerivationChange>(
         if (context.allEffectiveTerms.none { it.id == "it-agama" }) return false
         val ending = context.terms.lastOrNull() ?: return false
         return ending.upadesha == "ध्वम्" && ending.surface.startsWith("ध") &&
-            context.droppedTerms.any { it.upadesha == "सिच्" }
+            context.droppedTerms.any { it.upadesha == "सिँच्" }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
         return DerivationChange(
-            context.replaceTerm(ending.id, ending.copy(surface = "ढ" + ending.surface.drop(1))),
+            context.substituteTermSurface(ending.id, "ढ" + ending.surface.drop(1), 'ध', "ढ", sutra),
             "8.3.79 optionally substitutes ढ् for the LUNG ending's ध् after इट्.",
         )
     }

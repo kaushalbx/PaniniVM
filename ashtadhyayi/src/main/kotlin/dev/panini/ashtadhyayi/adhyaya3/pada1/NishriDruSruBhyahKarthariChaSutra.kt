@@ -5,6 +5,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.TermKind
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -25,10 +26,10 @@ object NishriDruSruBhyahKarthariChaSutra : Sutra<DerivationState, DerivationChan
     override fun matches(context: DerivationState): Boolean =
         context.effectiveContext.rupa.lakara == Lakara.LUNG &&
         context.allEffectiveTerms.any { it.upadesha in setOf("श्रीञ्", "द्रु", "स्रु", "निश्री", "निश्रीञ्") || it.surface in setOf("श्री", "द्रु", "स्रु", "निश्री") } &&
-        context.allEffectiveTerms.none { it.upadesha in setOf("चङ्", "सिच्", "अङ्", "चिण्") }
+        context.allEffectiveTerms.none { it.upadesha in setOf("चङ्", "सिँच्", "अङ्", "चिण्") }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val cang = DerivationTerm("cang", "अ", TermKind.PRATYAYA, upadesha = "चङ्")
+        val cang = DerivationTerm("cang", "चङ्", TermKind.PRATYAYA, upadesha = "चङ्", createdBySutra = sutra, itProcessingPhase = ItProcessingPhase.RAW_UPADESHA)
         return DerivationChange(
             state = context.insertBeforeTingOrLingAugment(cang),
             explanation = "3.1.48 prescribes चङ् vikaraṇa in Luṅ.",

@@ -45,7 +45,7 @@ object NaloPratipadikantasyaSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms.first()
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = stem.surface.dropLast(2))),
+            state = context.substituteTermSurface(stem.id, stem.surface.dropLast(2), 'न', "", sutra),
             explanation = "8.2.7: Deleted final न् of the prātipadika.",
         )
     }

@@ -26,7 +26,7 @@ object GatisthaghupabhubhyahSicahParasmaipadesuSutra : Sutra<DerivationState, De
     blocks = setOf("6.1.68", "6.1.77", "6.1.78", "6.1.87", "6.1.88", "6.1.97", "6.1.101"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        val sicIndex = context.terms.indexOfFirst { it.upadesha == "सिच्" }
+        val sicIndex = context.terms.indexOfFirst { it.upadesha == "सिँच्" }
         if (sicIndex <= 0 || sicIndex == context.terms.lastIndex) return false
         val dhatu = context.terms.subList(0, sicIndex).lastOrNull { it.kind == TermKind.DHATU } ?: return false
         val ending = context.terms.last()
@@ -34,7 +34,7 @@ object GatisthaghupabhubhyahSicahParasmaipadesuSutra : Sutra<DerivationState, De
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val sic = context.terms.first { it.upadesha == "सिच्" }
+        val sic = context.terms.first { it.upadesha == "सिँच्" }
         return DerivationChange(
             context.removeTerm(sic.id, sutra),
             "2.4.77 applies luk to सिच् after भू before a Parasmaipada ending.",

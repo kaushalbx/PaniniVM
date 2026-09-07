@@ -4,7 +4,6 @@ import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -60,8 +59,8 @@ object BhoBhagoSutra : Sutra<DerivationState, DerivationChange>(
         val newSurface = leftTerm.surface.dropLast(2) + replacement
 
         return DerivationChange(
-            state = context.replaceTerm(leftTerm.id, leftTerm.copy(surface = newSurface)),
+            state = context.substituteTermSurface(leftTerm.id, newSurface, 'र', replacement, sutra),
             explanation = "8.3.17: Replaced 'ru' with 'y' before voiced sound '$nextChar'."
-        ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(leftTerm.id, 'र', replacement, sutra))) }
+        )
     }
 }

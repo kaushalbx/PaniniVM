@@ -52,6 +52,11 @@ class SandhiPhonologicalTransformationTest {
         val rutva = change.state
         assertEquals("रामरुँ", rutva.surface)
         assertEquals("रुँ", rutva.substitutions.single { it.sutra == "8.2.66" }.replacement)
+        val rawRutva = rutva.terms.single()
+        assertEquals("रामरुँ", rawRutva.upadesha)
+        assertEquals("8.2.66", rawRutva.createdBySutra)
+        assertEquals(dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA, rawRutva.itProcessingPhase)
+        assertEquals("रामस्", rawRutva.sthaniProps?.upadesha)
         assertTrue(!KharavasanayorVisarjaniyahSutra.matches(rutva))
 
         val result = DerivationEngine(Ashtadhyayi.executableSutras).derive(state)
@@ -70,6 +75,9 @@ class SandhiPhonologicalTransformationTest {
         assertTrue(SasajusoRuhSutra.matches(state))
         val rutva = SasajusoRuhSutra.apply(state).state
         assertEquals("सजुरुँ", rutva.surface)
+        assertEquals("सजुरुँ", rutva.terms.single().upadesha)
+        assertEquals("8.2.66", rutva.terms.single().createdBySutra)
+        assertEquals("सजुष्", rutva.terms.single().sthaniProps?.upadesha)
         assertEquals('ष', rutva.substitutions.single().source)
         assertEquals("रुँ", rutva.substitutions.single().replacement)
     }

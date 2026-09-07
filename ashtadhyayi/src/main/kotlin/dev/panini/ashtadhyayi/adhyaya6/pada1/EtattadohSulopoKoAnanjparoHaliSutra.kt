@@ -4,7 +4,6 @@ import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -68,8 +67,8 @@ object EtattadohSulopoKoAnanjparoHaliSutra : Sutra<DerivationState, DerivationCh
         }
 
         return DerivationChange(
-            state = context.replaceTerm(targetTerm.id, targetTerm.copy(surface = newSurface)),
+            state = context.substituteTermSurface(targetTerm.id, newSurface, 'ः', "", sutra),
             explanation = "6.1.132: Elided visarga (su-lopa) from ${targetTerm.surface} before hal."
-        ).let { it.copy(state = it.state.addSubstitution(VarnaSubstitution(targetTerm.id, 'ः', "", sutra))) }
+        )
     }
 }

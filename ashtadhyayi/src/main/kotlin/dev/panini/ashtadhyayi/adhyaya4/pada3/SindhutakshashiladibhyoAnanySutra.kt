@@ -26,6 +26,6 @@ object SindhutakshashiladibhyoAnanySutra : Sutra<DerivationState, DerivationChan
     override fun matches(context: DerivationState) = HasRequestedMeaning(DerivationalMeaning.ABHIJANA).matches(context) && context.terms.any { term -> term.kind == TermKind.PRATIPADIKA && selections.any { GanaPatha.isEligibleMember(it.gana, term.surface, term.lexicalUses) } }
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(context.copy(terms = context.terms.flatMap { term ->
         val selection = selections.firstOrNull { GanaPatha.isEligibleMember(it.gana, term.surface, term.lexicalUses) }
-        if (term.kind == TermKind.PRATIPADIKA && selection != null && context.terms.none { it.id == "${term.id}-4-3-93" }) listOf(term, DerivationTerm("${term.id}-4-3-93", selection.surface, TermKind.PRATYAYA, upadesha = selection.upadesha)) else listOf(term)
+        if (term.kind == TermKind.PRATIPADIKA && selection != null && context.terms.none { it.id == "${term.id}-4-3-93" }) listOf(term, DerivationTerm("${term.id}-4-3-93", selection.upadesha, TermKind.PRATYAYA, upadesha = selection.upadesha, createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)) else listOf(term)
     }), "4.3.93 selects अण् or अञ् for the corresponding abhijana Gaṇa.")
 }

@@ -4,7 +4,7 @@ import dev.panini.ashtadhyayi.adhyaya3.pada1.DhatohKarmanahSamanakartrkadIcchaya
 import dev.panini.ashtadhyayi.adhyaya3.pada1.DhatorEkayacoHaladerKriyasamabhihareYangSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada1.GupTijKitsadbhyahSanSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada1.HetumatiCaSutra
-import dev.panini.ashtadhyayi.adhyaya3.pada1.SanaadyantaDhatavahSutra
+import dev.panini.ashtadhyayi.adhyaya3.pada1.SanadyantaDhatavahSutra
 import dev.panini.derivation.DerivationEngine
 import dev.panini.derivation.DerivationalContext
 import dev.panini.derivation.DerivationalMeaning
@@ -62,14 +62,14 @@ class SanadyantaSutrasTest {
     }
 
     @Test
-    fun `assigns dhātu saṃjñā via SanaadyantaDhatavahSutra`() {
+    fun `assigns dhātu saṃjñā via SanadyantaDhatavahSutra`() {
         val state = DerivationState(
             terms = listOf(
                 DerivationTerm("root", "भू", TermKind.DHATU, upadesha = "भू"),
                 DerivationTerm("san", "स", TermKind.PRATYAYA, upadesha = "सन्")
             )
         )
-        val result = DerivationEngine(listOf(SanaadyantaDhatavahSutra)).derive(state)
+        val result = DerivationEngine(listOf(SanadyantaDhatavahSutra)).derive(state)
         assertTrue(result.applications.any { it.sutra == "3.1.32" })
     }
 }

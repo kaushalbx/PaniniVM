@@ -1,12 +1,12 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada1
 
 import dev.panini.core.DhatuGana
-import dev.panini.core.ItMarker
 import dev.panini.core.TingAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.TermKind
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -27,7 +27,6 @@ object CuradibhyoNicSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Apavada,
     action = SutraAction.PRATYAYA_SELECTION,
     scope = SutraScope.DERIVATION,
-    blocks = setOf("7.3.84"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU } ?: return false
@@ -37,7 +36,11 @@ object CuradibhyoNicSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val nic = DerivationTerm("nic", "अय्", TermKind.PRATYAYA, upadesha = "णिच्", itMarkers = setOf(ItMarker.NIT))
+        val nic = DerivationTerm(
+            "nic", "णिच्", TermKind.PRATYAYA,
+            upadesha = "णिच्", createdBySutra = sutra,
+            itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
+        )
         return DerivationChange(
             state = context.insertBeforeTingOrLingAugment(nic),
             explanation = "3.1.25 introduces णिच् after a Curādi root.",

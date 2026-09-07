@@ -5,6 +5,7 @@ import dev.panini.derivation.DerivationalMeaning
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.TermKind
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -29,7 +30,7 @@ object KamerNingSutra : Sutra<DerivationState, DerivationChange>(
         context.allEffectiveTerms.none { it.upadesha == "णिङ्" }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val ning = DerivationTerm("ning", "इ", TermKind.PRATYAYA, upadesha = "णिङ्")
+        val ning = DerivationTerm("ning", "णिङ्", TermKind.PRATYAYA, upadesha = "णिङ्", createdBySutra = sutra, itProcessingPhase = ItProcessingPhase.RAW_UPADESHA)
         return DerivationChange(
             state = context.addTerm(ning),
             explanation = "3.1.30 prescribes णिङ् affix for kam.",

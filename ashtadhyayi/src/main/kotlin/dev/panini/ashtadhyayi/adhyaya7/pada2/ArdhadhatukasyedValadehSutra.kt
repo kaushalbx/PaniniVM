@@ -8,6 +8,7 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.DerivationalEnvironment
 import dev.panini.derivation.HasDerivationalEnvironment
+import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.ItStatus
 import dev.panini.sutra.Sutra
@@ -41,7 +42,9 @@ object ArdhadhatukasyedValadehSutra : Sutra<DerivationState, DerivationChange>(
                 "ए", "आते", "इरे", "से", "आथे", "ध्वे", "वहे", "महे",
             ) || ending.matchesUpadesha("सिप्")
         val isSipLet = context.allEffectiveTerms.any { it.id == "sip-aorist" }
-        val isAniKtvaKtaLyap = (ending.upadesha in setOf("क्त्वा", "क्त", "क्तवतु", "ल्यप्") || ending.surface == "य") &&
+        val isNicEndingDhatu = context.allEffectiveTerms.any { it.matchesUpadesha("णिच्") } &&
+            ending.upadesha !in setOf("क्त", "क्तवतुँ")
+        val isAniKtvaKtaLyap = (ending.upadesha in setOf("क्त्वा", "क्त", "क्तवतुँ", "ल्यप्") || ending.surface == "य") &&
             (dhatu?.surface in setOf("भू", "कृ", "हृ", "जि", "चि", "नी") || dhatu?.upadesha in setOf("भू", "कृ", "हृ", "जि", "चि", "नी", "भूँ", "डुकृञ्", "हृञ्", "चिञ्", "जिञ्", "नीञ्") || ending.upadesha == "ल्यप्" || ending.id == "lyap_pratyaya")
         if (isAniKtvaKtaLyap) return false
 
@@ -49,9 +52,14 @@ object ArdhadhatukasyedValadehSutra : Sutra<DerivationState, DerivationChange>(
         // replaced by a freshly processed tiṅ substitution.
         val isArdhadhatuka = HasDerivationalEnvironment(DerivationalEnvironment.ARDHADHATUKA).matches(context) ||
             context.effectiveContext.rupa.lakara == Lakara.LIT || isLabhAorist || isSipLet
+        val vowelInitialAfterScheduledSubstitution = ending.matchesUpadesha("ल्युट्") ||
+            ending.matchesUpadesha("ण्वुल्") || ending.matchesUpadesha("घञ्") ||
+            ending.surface in setOf("यु", "वु")
         return isArdhadhatuka &&
-            (context.terms.any { it.kind == TermKind.DHATU && (it.itStatus == ItStatus.SET || it.itStatus == ItStatus.VET) } || isLabhPerfectMiddle || isNonKradiPerfect || isLabhAorist) &&
+            (context.terms.any { it.kind == TermKind.DHATU && (it.itStatus == ItStatus.SET || it.itStatus == ItStatus.VET) } ||
+                isNicEndingDhatu || isLabhPerfectMiddle || isNonKradiPerfect || isLabhAorist) &&
             ending.kind == TermKind.PRATYAYA &&
+            !vowelInitialAfterScheduledSubstitution &&
             ending.surface.firstOrNull()?.let { char -> char !in vowels } == true &&
             isTransformedLitEnding &&
             context.allEffectiveTerms.none { it.id == "it-agama" }
@@ -59,10 +67,20 @@ object ArdhadhatukasyedValadehSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val dhatuIndex = context.terms.indexOfFirst { it.kind == TermKind.DHATU && it.id != "abhyasa" }
-        val itAgama = DerivationTerm("it-agama", "इ", TermKind.AGAMA, upadesha = "इट्")
+        val nicIndex = context.terms.indexOfFirst { it.matchesUpadesha("णिच्") }
+        val targetIndex = if (nicIndex > dhatuIndex) nicIndex + 1 else dhatuIndex + 1
+        val target = context.terms[targetIndex]
+        val itAgama = DerivationTerm(
+            "it-agama", "इट्", TermKind.AGAMA,
+            upadesha = "इट्",
+            createdBySutra = sutra,
+            itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
+            augmentTargetId = target.id,
+            mergeIntoAugmentTarget = false,
+        )
         return DerivationChange(
             context.copy(
-                terms = context.terms.take(dhatuIndex + 1) + itAgama + context.terms.drop(dhatuIndex + 1),
+                terms = context.terms.take(targetIndex) + itAgama + context.terms.drop(targetIndex),
                 stage = maxOf(context.stage, DerivationStage.IT_PROCESSED),
             ),
             "7.2.35 inserts इट् after the seṭ root before a consonant-initial (valādi) ārddhadhātuka affix.",

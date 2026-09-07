@@ -4,6 +4,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.ItMarkerProvenance
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -29,29 +30,18 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.PRATYAYA,
     stage = dev.panini.sutra.SutraStage.IT_PROCESSING,
 ), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean {
-        if (context.stage == DerivationStage.PRATYAYA_SELECTED && context.terms.none { it.itProcessingPending }) {
-            return true
-        }
-        return context.terms.filter { it.itProcessingPending }.any { term ->
-            term.itDesignations.isNotEmpty() ||
-                (term.itProcessingPhase == dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA &&
-                    term.itMarkers.isEmpty())
+    override fun matches(context: DerivationState): Boolean =
+        context.terms.any { term ->
+            term.itProcessingPending && term.itDesignations.isNotEmpty()
         } || context.terms.any {
             it.deferredItDesignations.isNotEmpty() &&
                 it.itProcessingPhase != dev.panini.derivation.ItProcessingPhase.DEFERRED_SUBSTITUTION
         }
-    }
 
     override fun apply(context: DerivationState): DerivationChange {
         val pendingTargets = context.terms.filter { it.itProcessingPending }.mapTo(mutableSetOf()) { it.id }
         val newTerms = context.terms.map { term ->
             if (pendingTargets.isNotEmpty() && term.id !in pendingTargets) return@map term
-            if (term.itProcessingPhase == dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA &&
-                term.itMarkers.isEmpty() && term.itDesignations.isEmpty()
-            ) {
-                return@map term.copy(itProcessingPhase = dev.panini.derivation.ItProcessingPhase.PROCESSED)
-            }
             val exactDesignations = term.itDesignations + if (
                 term.itProcessingPhase == dev.panini.derivation.ItProcessingPhase.DEFERRED_SUBSTITUTION
             ) emptyList() else term.deferredItDesignations
@@ -65,10 +55,13 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
                             "(${designation.designatedText}) on ${term.id}:${term.surface}; the substituting rule must remap or consume it."
                     }
                     surface.replaceRange(designation.start, designation.endExclusive, designation.replacementAfterLopa)
-                }
+                }.joinDevanagariVowelBoundary()
                 return@map term.copy(
                     surface = processed,
                     itMarkers = emptySet(),
+                    itMarkerProvenance = term.itMarkerProvenance + exactDesignations.map { designation ->
+                        ItMarkerProvenance(designation.marker, designation.sutra, designation.designatedText)
+                    },
                     itDesignations = emptyList(),
                     deferredItDesignations = emptyList(),
                     itProcessingPhase = dev.panini.derivation.ItProcessingPhase.PROCESSED,
@@ -94,5 +87,14 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
             ),
             explanation = "1.3.9: Performed lopa of it-marked sounds."
         )
+    }
+
+    private fun String.joinDevanagariVowelBoundary(): String {
+        val vowelSigns = linkedMapOf(
+            "्अ" to "", "्आ" to "ा", "्इ" to "ि", "्ई" to "ी",
+            "्उ" to "ु", "्ऊ" to "ू", "्ऋ" to "ृ", "्ॠ" to "ॄ",
+            "्ऌ" to "ॢ", "्ए" to "े", "्ऐ" to "ै", "्ओ" to "ो", "्औ" to "ौ",
+        )
+        return vowelSigns.entries.fold(this) { value, (boundary, sign) -> value.replace(boundary, sign) }
     }
 }

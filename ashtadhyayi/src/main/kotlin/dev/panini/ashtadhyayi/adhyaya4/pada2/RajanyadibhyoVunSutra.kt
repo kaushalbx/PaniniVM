@@ -27,7 +27,7 @@ object RajanyadibhyoVunSutra : Sutra<DerivationState, DerivationChange>(
             context.allEffectiveTerms.none { it.upadesha == "वुञ्" }
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
-        context.addTerm(DerivationTerm("vun-suffix", "अक", TermKind.PRATYAYA, upadesha = "वुञ्")),
+        context.addTerm(DerivationTerm("vun-suffix", "वुञ्", TermKind.PRATYAYA, upadesha = "वुञ्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)),
         "4.2.53 introduces वुञ् after an eligible राजन्यादि term in the viṣaya-deśa sense.",
     )
 }

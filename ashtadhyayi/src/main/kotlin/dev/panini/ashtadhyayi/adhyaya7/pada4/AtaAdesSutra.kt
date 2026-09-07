@@ -29,7 +29,7 @@ object AtaAdesSutra : Sutra<DerivationState, DerivationChange>(
         val abhyasa = context.terms.first { it.id == "abhyasa" }
         val lengthened = 'आ' + abhyasa.surface.drop(1)
         return DerivationChange(
-            context.replaceTerm(abhyasa.id, abhyasa.copy(surface = lengthened)),
+            context.substituteTermSurface(abhyasa.id, lengthened, 'अ', "आ", sutra),
             "7.4.70 lengthens the initial अ of the abhyāsa ${abhyasa.surface} in लिट्.",
         )
     }

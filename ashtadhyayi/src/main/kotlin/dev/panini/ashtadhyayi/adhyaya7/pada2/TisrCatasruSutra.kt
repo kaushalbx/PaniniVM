@@ -53,7 +53,7 @@ object TisrCatasruSutra : Sutra<DerivationState, DerivationChange>(
         }
 
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = replacement))
+            state = context.substituteTermSurface(stem.id, replacement, '∅', "स्त्रीआदेश", sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.2.99: Substituted '$replacement' for '${stem.surface}' in feminine gender."
         )

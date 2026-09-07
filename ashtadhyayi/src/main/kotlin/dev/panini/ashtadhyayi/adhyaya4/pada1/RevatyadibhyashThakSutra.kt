@@ -28,7 +28,7 @@ object RevatyadibhyashThakSutra : Sutra<DerivationState, DerivationChange>(
             context.allEffectiveTerms.none { it.upadesha == "ठक्" }
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
-        context.addTerm(DerivationTerm("thak-suffix", "इक", TermKind.PRATYAYA, upadesha = "ठक्"))
+        context.addTerm(DerivationTerm("thak-suffix", "ठक्", TermKind.PRATYAYA, upadesha = "ठक्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA))
             .copy(stage = DerivationStage.PRATYAYA_SELECTED),
         "4.1.146 introduces ठक् after an eligible रेवत्यादि term in the अपत्य sense.",
     )

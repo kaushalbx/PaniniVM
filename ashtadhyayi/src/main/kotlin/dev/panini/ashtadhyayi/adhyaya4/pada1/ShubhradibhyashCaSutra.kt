@@ -28,7 +28,11 @@ object ShubhradibhyashCaSutra : Sutra<DerivationState, DerivationChange>(
             context.allEffectiveTerms.none { it.upadesha == "ढक्" }
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
-        context.addTerm(DerivationTerm("shubhradi-dhak-suffix", "एय", TermKind.PRATYAYA, upadesha = "ढक्"))
+        context.addTerm(DerivationTerm(
+            "shubhradi-dhak-suffix", "ढक्", TermKind.PRATYAYA, upadesha = "ढक्",
+            createdBySutra = sutra,
+            itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
+        ))
             .copy(stage = DerivationStage.PRATYAYA_SELECTED),
         "4.1.123 introduces ढक् after an eligible शुभ्रादि term in the अपत्य sense.",
     )

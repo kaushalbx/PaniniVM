@@ -11,8 +11,24 @@ import dev.panini.sutra.SutraVisibility
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertFailsWith
 
 class DerivationPipelineTest {
+    @Test
+    fun `result rejects application history divergence`() {
+        val initial = state("a")
+        val final = initial.copy(stage = DerivationStage.FINAL)
+        val sutra = TestSutra("test.1", SutraStage.ANGAKARYA, "a", "b")
+        val application = DerivationApplication(
+            sutra.sutra, sutra.role, sutra.action, sutra.scope, sutra.renderTrace(),
+            initial, final, "test",
+        )
+
+        assertFailsWith<IllegalArgumentException> {
+            DerivationResult(initial, final, listOf(application), emptyList())
+        }
+    }
+
     @Test
     fun `runs metadata phases in order and consolidates provenance`() {
         val pipeline = pipeline(
@@ -24,6 +40,7 @@ class DerivationPipelineTest {
 
         assertEquals("c", result.final.surface)
         assertEquals(listOf("test.1", "test.2"), result.applications.map { it.sutra })
+        assertEquals(result.applications.map { it.sutra }, result.final.appliedSutras)
         assertEquals(1, result.events.count { it is DerivationEvent.Completed })
         assertEquals(2, assertIs<DerivationEvent.Completed>(result.events.last()).applicationCount)
     }
@@ -39,6 +56,25 @@ class DerivationPipelineTest {
 
         assertEquals(setOf("a", "c"), results.map { it.final.surface }.toSet())
         assertEquals(2, results.size)
+    }
+
+    @Test
+    fun `interleaves it processing before resuming the surrounding phase`() {
+        val selectRaw = TestSutra("test.select", SutraStage.PRATYAYA_SELECTION, "a", "raw", rawOutput = true)
+        val processRaw = TestSutra("test.it", SutraStage.IT_PROCESSING, "raw", "done")
+        val resumeSelection = TestSutra("test.resume", SutraStage.PRATYAYA_SELECTION, "done", "final")
+        val byStage = listOf(selectRaw, processRaw, resumeSelection).groupBy { it.stage }
+        val pipeline = DerivationPipeline(
+            stages = listOf(SutraStage.PRATYAYA_SELECTION),
+            sutrasForStage = { stage -> byStage.getValue(stage) },
+            interleaveItProcessingAt = setOf(SutraStage.PRATYAYA_SELECTION),
+        )
+
+        val result = pipeline.derive(state("a"))
+
+        assertEquals("final", result.final.surface)
+        assertEquals(listOf("test.select", "test.it", "test.resume"), result.applications.map { it.sutra })
+        assertEquals(ItProcessingPhase.PROCESSED, result.final.terms.single().itProcessingPhase)
     }
 
     private fun pipeline(vararg sutras: DerivationSutra): DerivationPipeline {
@@ -59,6 +95,7 @@ class DerivationPipelineTest {
         private val input: String,
         private val output: String,
         override val optional: Boolean = false,
+        private val rawOutput: Boolean = false,
     ) : DerivationSutra {
         override val krama: Int = if (stage == SutraStage.ANGAKARYA) 1 else 2
         override val type: SutraType = SutraType.NITYA
@@ -74,7 +111,14 @@ class DerivationPipelineTest {
         override fun matches(context: DerivationState): Boolean = context.surface == input
 
         override fun apply(context: DerivationState): DerivationChange = DerivationChange(
-            state = context.replaceTerm("term", context.terms.single().copy(surface = output)),
+            state = context.replaceTerm("term", context.terms.single().copy(
+                surface = output,
+                itProcessingPhase = when {
+                    stage == SutraStage.IT_PROCESSING -> ItProcessingPhase.PROCESSED
+                    rawOutput -> ItProcessingPhase.RAW_UPADESHA
+                    else -> context.terms.single().itProcessingPhase
+                },
+            )),
             explanation = "$input → $output",
         )
     }

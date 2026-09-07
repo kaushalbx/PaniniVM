@@ -50,10 +50,8 @@ object DvyashtanahSankhyayamSutra : Sutra<DerivationState, DerivationChange>(
                 else -> purvapada.surface
             }
         }
-        val updatedTerm = purvapada.copy(surface = replacement)
-        val newTerms = listOf(updatedTerm) + context.terms.drop(1)
         return DerivationChange(
-            state = context.copy(terms = newTerms),
+            state = context.substituteTermSurface(purvapada.id, replacement, '∅', "आ", sutra),
             explanation = "$text: ${purvapada.surface} -> $replacement"
         )
     }

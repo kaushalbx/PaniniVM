@@ -46,7 +46,7 @@ object TrestrayahSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = "त्रय"))
+            state = context.substituteTermSurface(stem.id, "त्रय", 'ि', "य", sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.1.53: Replaced stem 'tri' with 'traya' before genitive plural 'nāmi'."
         )

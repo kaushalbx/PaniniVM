@@ -46,21 +46,17 @@ object AdoAserAsiDoMahSutra : Sutra<DerivationState, DerivationChange>(
 
         if (rupa.vacana == Vacana.DVIVACANA && affix != null && affix.upadesha in setOf("औ", "औट्")) {
             return DerivationChange(
-                state = context.copy(
-                    terms = context.terms.dropLast(2) + stem.copy(surface = "अमू"),
-                    droppedTerms = context.droppedTerms + affix.copy(surface = ""),
-                    stage = DerivationStage.FINAL,
-                ),
+                state = context.substituteTermSurface(stem.id, "अमू", 'द', "म", sutra)
+                    .removeTerm(affix.id, sutra = sutra)
+                    .copy(stage = DerivationStage.FINAL),
                 explanation = "8.2.80 & 8.2.81: Derived the dual adas form 'अमू'.",
             )
         }
         if (rupa.vacana == Vacana.BAHUVACANA && affix != null && affix.upadesha == "शी") {
             return DerivationChange(
-                state = context.copy(
-                    terms = context.terms.dropLast(2) + stem.copy(surface = "अमी"),
-                    droppedTerms = context.droppedTerms + affix.copy(surface = ""),
-                    stage = DerivationStage.FINAL,
-                ),
+                state = context.substituteTermSurface(stem.id, "अमी", 'द', "म", sutra)
+                    .removeTerm(affix.id, sutra = sutra)
+                    .copy(stage = DerivationStage.FINAL),
                 explanation = "8.2.80 & 8.2.81: Derived the nominative-plural adas form 'अमी'.",
             )
         }
@@ -74,7 +70,7 @@ object AdoAserAsiDoMahSutra : Sutra<DerivationState, DerivationChange>(
         }
 
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = replacement))
+            state = context.substituteTermSurface(stem.id, replacement, 'द', "म", sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "8.2.80 & 8.2.81: Substituted '$replacement' (d->m and vowel mutation) for adas stem."
         )

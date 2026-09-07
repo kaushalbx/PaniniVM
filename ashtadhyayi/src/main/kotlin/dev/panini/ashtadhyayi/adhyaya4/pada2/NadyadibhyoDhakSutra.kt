@@ -26,7 +26,11 @@ object NadyadibhyoDhakSutra : Sutra<DerivationState, DerivationChange>(
         context.allEffectiveTerms.none { it.upadesha == "ढक्" }
 
     override fun apply(context: DerivationState) = DerivationChange(
-        context.addTerm(DerivationTerm("dhak-suffix", "एय", TermKind.PRATYAYA, upadesha = "ढक्")),
+        context.addTerm(DerivationTerm(
+            "dhak-suffix", "ढक्", TermKind.PRATYAYA, upadesha = "ढक्",
+            createdBySutra = sutra,
+            itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA,
+        )),
         "4.2.97 introduces ढक् after an eligible नद्यादि term in the birth-or-origin sense.",
     )
 }

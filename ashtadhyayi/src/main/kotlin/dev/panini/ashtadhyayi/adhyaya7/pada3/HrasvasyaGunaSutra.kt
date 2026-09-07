@@ -4,7 +4,6 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Varnamala
 import dev.panini.sutra.NimittaScope
@@ -60,9 +59,8 @@ object HrasvasyaGunaSutra : Sutra<DerivationState, DerivationChange>(
         val newSurface = stem.surface.dropLast(1) + replacement
 
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = newSurface))
-                .copy(stage = DerivationStage.ANGAKARYA)
-                .addSubstitution(VarnaSubstitution(stem.id, lastChar, replacement, sutra)),
+            state = context.substituteTermSurface(stem.id, newSurface, lastChar, replacement, sutra)
+                .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.108: Applied guna ($replacement) to short final vowel before Sambuddhi."
         )
     }

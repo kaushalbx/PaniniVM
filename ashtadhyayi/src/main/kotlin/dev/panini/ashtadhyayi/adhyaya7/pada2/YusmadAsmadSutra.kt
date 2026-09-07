@@ -78,11 +78,10 @@ object YusmadAsmadSutra : Sutra<DerivationState, DerivationChange>(
             }
         }
 
-        val newTerms = context.terms.dropLast(2) + stem.copy(surface = replacement)
-
         return DerivationChange(
-            state = context.copy(terms = newTerms, stage = DerivationStage.ANGAKARYA)
-                .copy(droppedTerms = context.droppedTerms + affix.copy(surface = newAffixSurface)),
+            state = context.mergeTermsByVarnaSubstitution(
+                stem.id, affix.id, replacement, '∅', "सर्वादेश", sutra,
+            ).copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.2.86-7.2.97: Derives $replacement for ${stem.surface} in ${rupa.vibhakti} ${rupa.vacana}."
         )
     }

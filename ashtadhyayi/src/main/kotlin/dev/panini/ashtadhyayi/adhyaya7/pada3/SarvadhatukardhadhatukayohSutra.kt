@@ -3,6 +3,7 @@ package dev.panini.ashtadhyayi.adhyaya7.pada3
 import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.ashtadhyayi.adhyaya1.pada2.AsamyogallitKitSutra
 import dev.panini.core.DhatuGana
+import dev.panini.core.ItMarker
 import dev.panini.core.Lakara
 import dev.panini.core.PadaType
 import dev.panini.core.TingAffix
@@ -14,6 +15,7 @@ import dev.panini.derivation.DerivationalEnvironment
 import dev.panini.derivation.HasDerivationalEnvironment
 import dev.panini.derivation.TermKind
 import dev.panini.derivation.VarnaSubstitution
+import dev.panini.derivation.WholeAffixDesignationPolicy
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Varnamala
@@ -40,11 +42,15 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.DHATU,
+    stage = dev.panini.sutra.SutraStage.ANGAKARYA,
     dependencies = setOf("6.4.1")
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         // Jurisdictional check: Must be in the Aṅga section
         if ("6.4.1" !in context.activeAdhikaras) return false
+
+        val nic = context.terms.firstOrNull { it.matchesUpadesha("णिच्") && it.surface == "इ" }
+        if (nic != null && gradesNicEnding(context, nic.id)) return true
 
         val strongUGrade = strongUGrade(context)
         if (strongUGrade != null) return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.IK, strongUGrade.surface.last())
@@ -52,12 +58,15 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
         val stemIndex = context.terms.indexOfFirst { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         if (stemIndex < 0) return false
         val stem = context.terms[stemIndex]
+        if (context.effectiveContext.rupa.lakara in setOf(Lakara.LRT, Lakara.LRNG) &&
+            context.allEffectiveTerms.none { it.upadesha == "स्य" }) return false
+        if (context.substitutions.any { it.targetId == stem.id && it.sutra == "6.1.78" }) return false
         if (stem.gana == DhatuGana.JUHOTYADI && context.droppedTerms.none { it.upadesha == "शप्" }) return false
         if (stem.gana == DhatuGana.BHVADI &&
             context.effectiveContext.rupa.lakara in setOf(Lakara.LAT, Lakara.LOT, Lakara.LANG, Lakara.LING, Lakara.LET) &&
             context.allEffectiveTerms.none { it.upadesha == "शप्" }
         ) return false
-        val affix = context.terms.getOrNull(stemIndex + 1) ?: return false
+        val affix = context.terms.drop(stemIndex + 1).firstOrNull { it.kind == TermKind.PRATYAYA } ?: return false
         if (stem.gana == DhatuGana.KRYADI && context.terms.any { it.upadesha == "श्ना" }) return false
         if (stem.gana == DhatuGana.JUHOTYADI) {
             val isLangJus = context.effectiveContext.rupa.lakara == Lakara.LANG &&
@@ -67,6 +76,8 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
             ) return false
         }
         if (affix.kind != TermKind.PRATYAYA) return false
+        if (affix.matchesUpadesha("क्त") || affix.matchesUpadesha("क्तवतुँ") ||
+            affix.matchesUpadesha("क्त्वा") || affix.matchesUpadesha("ल्यप्")) return false
         if ("1.2.5" in affix.establishedBySutras || AsamyogallitKitSutra.matches(context)) return false
         // In LIṬ, tip is first replaced by fresh ṇal (3.4.82); its ṇ-it
         // designation must govern the stronger 7.2.115 vṛddhi before guṇa is considered.
@@ -80,14 +91,25 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
 
         if (!isSarvaOrArdha) return false
 
-        // Guna should not apply to the it-augment
-        if (context.allEffectiveTerms.any { it.id == "it-agama" }) return false
-
         val lastChar = stem.surface.lastOrNull() ?: return false
         return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.IK, lastChar)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
+        val nic = context.terms.firstOrNull { it.matchesUpadesha("णिच्") && it.surface == "इ" }
+        if (nic != null && gradesNicEnding(context, nic.id)) {
+            return DerivationChange(
+                state = context.replaceWholeAffix(
+                    nic.id,
+                    "ए",
+                    sutra,
+                    WholeAffixDesignationPolicy.PreserveAndRemap(emptyList()),
+                )
+                    .copy(stage = DerivationStage.ANGAKARYA)
+                    .addSubstitution(VarnaSubstitution(nic.id, 'इ', "ए", sutra)),
+                explanation = "7.3.84 applies guṇa to the final इ of the ṇic-ending aṅga before a sārvadhātuka or ārdhadhātuka suffix.",
+            )
+        }
         val stem = strongUGrade(context)
             ?: context.terms.first { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         val lastChar = stem.surface.last()
@@ -95,9 +117,8 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
         val newSurface = stem.surface.dropLast(1) + replacement
 
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = newSurface))
-                .copy(stage = DerivationStage.ANGAKARYA)
-                .addSubstitution(VarnaSubstitution(stem.id, lastChar, replacement, sutra)),
+            state = context.substituteTermSurface(stem.id, newSurface, lastChar, replacement, sutra)
+                .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.84: Applied guna ($replacement) within Aṅgasya jurisdiction."
         )
     }
@@ -108,6 +129,18 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
                 context.terms.lastOrNull()?.upadesha in strongAffixes(context).map { affix -> affix.upadesha } &&
                 lotAtmanepadaReady(context)
         }
+
+    private fun gradesNicEnding(context: DerivationState, nicId: String): Boolean {
+        val nicIndex = context.terms.indexOfFirst { it.id == nicId }
+        if (nicIndex < 0) return false
+        val followingAffix = context.terms.drop(nicIndex + 1).lastOrNull { it.kind == TermKind.PRATYAYA } ?: return false
+        val isArdhadhatukaKrt = followingAffix.upadesha in setOf(
+            "क्त", "क्तवतुँ", "क्त्वा", "ल्यप्", "तुमुँन्", "तव्यत्", "अनीयर्", "ण्यत्", "ण्वुल्", "तृच्", "घञ्", "ल्युट्",
+        )
+        if (followingAffix.upadesha in setOf("क्त", "क्तवतुँ") && followingAffix.hasEffectiveMarker(ItMarker.KIT)) return false
+        return context.allEffectiveTerms.any { it.id == "shap" } ||
+            (isArdhadhatukaKrt && HasDerivationalEnvironment(DerivationalEnvironment.ARDHADHATUKA).matches(context))
+    }
 
     private fun strongAffixes(context: DerivationState): Set<TingAffix> =
         when (context.effectiveContext.rupa.lakara) {

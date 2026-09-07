@@ -32,6 +32,7 @@ object Adhyaya1Pada1 {
         TasminNirdistePurvasyaSutra,
         AloAntyatPurvaUpadhaSutra,
         AdyantauTakitauSutra,
+        MidacoAntyatParahSutra,
         TasmatItyUttarasyamSutra,
         SasthiSthaneYogaSutra,
         SvamRupamSabdasyasabdasamjnaSutra,

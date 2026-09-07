@@ -28,7 +28,7 @@ object KambojalLukSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val target = context.terms.first { it.kind == TermKind.PRATYAYA && it.upadesha == "अञ्" }
         return DerivationChange(
-            state = context.removeTerm(target.id),
+            state = context.removeTerm(target.id, sutra),
             explanation = "4.1.175 applies लुक् to अञ् after an eligible कम्बोजादि term in the तद्राज sense.",
         )
     }

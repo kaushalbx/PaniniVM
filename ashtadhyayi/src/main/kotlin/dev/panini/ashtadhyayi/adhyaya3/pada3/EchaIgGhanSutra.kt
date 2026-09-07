@@ -28,7 +28,7 @@ object EchaIgGhanSutra : Sutra<DerivationState, DerivationChange>(
         val root = context.allEffectiveTerms.firstOrNull { it.kind == TermKind.DHATU }
         val newState = if (root != null && root.surface.endsWith("ै")) {
             val newSurface = root.surface.dropLast(1) + "ि"
-            context.replaceTerm(root.id, root.copy(surface = newSurface))
+            context.substituteTermSurface(root.id, newSurface, 'ै', "ि", sutra)
         } else {
             context.activateAdhikara("3.3.56")
         }

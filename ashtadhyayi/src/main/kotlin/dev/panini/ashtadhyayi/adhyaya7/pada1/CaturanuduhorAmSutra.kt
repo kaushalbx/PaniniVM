@@ -60,7 +60,7 @@ object CaturanuduhorAmSutra : Sutra<DerivationState, DerivationChange>(
         }
 
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = newSurface))
+            state = context.substituteTermSurface(stem.id, newSurface, '∅', "आम्", sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.1.98: Added 'ām' augment to ${stem.surface} before sarvanāmasthāna (becoming $newSurface)."
         )

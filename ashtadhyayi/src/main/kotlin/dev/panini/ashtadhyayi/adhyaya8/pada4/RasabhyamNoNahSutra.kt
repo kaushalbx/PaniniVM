@@ -70,7 +70,7 @@ object RasabhyamNoNahSutra : Sutra<DerivationState, DerivationChange>(
         val newSurface = targetTerm.surface.replaceFirst('न', 'ण')
 
         return DerivationChange(
-            state = context.replaceTerm(targetTerm.id, targetTerm.copy(surface = newSurface))
+            state = context.substituteTermSurface(targetTerm.id, newSurface, 'न', "ण", sutra)
                 .copy(stage = DerivationStage.FINAL),
             explanation = "8.4.1: Retroflexed 'n' to 'ṇ' immediately following '${surface[triggerIndex]}'."
         )

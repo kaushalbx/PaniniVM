@@ -3,6 +3,7 @@ package dev.panini.derivation
 import dev.panini.core.DhatuGana
 import dev.panini.core.Lakara
 import dev.panini.core.LopaType
+import dev.panini.core.ItMarker
 import dev.panini.core.PadaType
 import dev.panini.core.Purusha
 import dev.panini.core.TingAffix
@@ -33,7 +34,7 @@ class TingantaEngineTest {
     }
 
     @Test
-    fun `tinganta request preserves an attached nic pratyaya`() {
+    fun `tinganta request records nic intent without synthesizing its surface`() {
         val request = TingantaDerivationRequest(
             dhatu = "युज्",
             vacana = Vacana.EKAVACANA,
@@ -45,8 +46,8 @@ class TingantaEngineTest {
         val dhatu = DhatuPatha.all.first { it.upadesha == "युजिँर्" }
         val state = request.initialState(dhatu)
 
-        assertEquals(listOf("युज्", "अय्"), state.terms.map { it.surface })
-        assertTrue(state.terms.any { it.upadesha == "णिच्" })
+        assertEquals(listOf("युज्"), state.terms.map { it.surface })
+        assertEquals(setOf("णिच्"), state.context.requestedSanadi)
     }
 
     @Test
@@ -63,10 +64,40 @@ class TingantaEngineTest {
                 ),
             )
 
-            assertEquals(expected, result.final.surface, dhatu)
+            assertEquals(expected, result.final.surface, "$dhatu: ${result.applications.joinToString { it.sutra }}")
+            val introduction = result.applications.first { it.sutra == "3.1.26" }
+            assertEquals(ItProcessingPhase.RAW_UPADESHA, introduction.after.terms.first { it.upadesha == "णिच्" }.itProcessingPhase)
+            assertTrue(result.applications.map { it.sutra }.containsAll(setOf("1.3.7", "1.3.3", "1.3.9")), dhatu)
+            result.final.requireCompleteItProcessing()
             assertTrue(result.applications.any { it.sutra == "3.1.68" }, dhatu)
             if (dhatu == "युज्") assertTrue(result.applications.none { it.sutra == "3.1.78" })
             if (dhatu == "मुद्र्") assertTrue(result.applications.none { it.sutra == "7.3.86" })
+        }
+    }
+
+    @Test
+    fun `requested san and yang enter as raw upadeshas`() {
+        listOf(
+            Triple("सन्", "3.1.7", "बुभूषति"),
+            Triple("यङ्", "3.1.22", "बोभूयते"),
+        ).forEach { (sanadi, introducingSutra, expected) ->
+            val result = TingantaEngine().derive(
+                TingantaDerivationRequest(
+                    dhatu = "भू",
+                    lakara = Lakara.LAT,
+                    pada = if (sanadi == "यङ्") PadaType.ATMANEPADA else PadaType.PARASMAIPADA,
+                    sanadiPratyayas = listOf(sanadi),
+                ),
+            )
+
+            assertEquals(expected, result.final.surface, result.applications.joinToString { it.sutra })
+            val introduction = result.applications.first { it.sutra == introducingSutra }
+            assertEquals(ItProcessingPhase.RAW_UPADESHA, introduction.after.terms.first { it.upadesha == sanadi }.itProcessingPhase)
+            assertTrue(result.applications.any { it.sutra == "1.3.3" }, sanadi)
+            assertTrue(result.applications.any { it.sutra == "1.3.9" }, sanadi)
+            assertTrue(result.applications.any { it.sutra == "3.1.32" }, sanadi)
+            assertTrue(result.applications.any { it.sutra == "6.1.9" }, sanadi)
+            result.final.requireCompleteItProcessing()
         }
     }
 
@@ -79,6 +110,48 @@ class TingantaEngineTest {
         }
         assertFalse(engine.supportsSanadi("हु", listOf("णिच्"), PadaType.PARASMAIPADA))
         assertFalse(engine.supportsSanadi("मूल्", listOf("णिच्"), PadaType.PARASMAIPADA))
+        assertTrue(engine.supportsSanadi("भू", listOf("सन्"), PadaType.PARASMAIPADA))
+        assertTrue(engine.supportsSanadi("पच्", listOf("सन्"), PadaType.PARASMAIPADA))
+        assertTrue(engine.supportsSanadi("जि", listOf("सन्"), PadaType.PARASMAIPADA))
+        assertTrue(engine.supportsSanadi("भू", listOf("यङ्"), PadaType.ATMANEPADA))
+    }
+
+    @Test
+    fun `ji desiderative lengthens its anga before san`() {
+        val result = TingantaEngine().derive(
+            TingantaDerivationRequest("जि", lakara = Lakara.LAT, sanadiPratyayas = listOf("सन्")),
+        )
+
+        assertEquals("जिगीषति", result.final.surface, result.applications.joinToString { it.sutra })
+        assertTrue(result.applications.any { it.sutra == "6.4.16" })
+        assertTrue(result.applications.any { it.sutra == "7.3.57" })
+        assertTrue(result.applications.any { it.sutra == "8.3.59" })
+        result.final.requireCompleteItProcessing()
+    }
+
+    @Test
+    fun `sanadi affixes complete their lifecycle across supported present paradigms`() {
+        listOf(
+            Triple("भू", "सन्", PadaType.PARASMAIPADA),
+            Triple("भू", "यङ्", PadaType.ATMANEPADA),
+            Triple("भू", "णिच्", PadaType.PARASMAIPADA),
+            Triple("कृ", "णिच्", PadaType.PARASMAIPADA),
+            Triple("पच्", "णिच्", PadaType.PARASMAIPADA),
+        ).forEach { (dhatu, sanadi, pada) ->
+            TingAffix.entries.filter { it.pada == pada }.forEach { affix ->
+                val request = TingantaDerivationRequest(
+                        dhatu = dhatu,
+                        vacana = affix.vacana,
+                        purusha = affix.purusha,
+                        lakara = Lakara.LAT,
+                        pada = pada,
+                        sanadiPratyayas = listOf(sanadi),
+                    )
+                val result = if (sanadi == "णिच्") TingantaEngine().deriveExplicitSanadi(request) else TingantaEngine().derive(request)
+                assertTrue(result.applications.any { it.sutra == "3.1.32" }, "$sanadi $affix")
+                result.final.requireCompleteItProcessing()
+            }
+        }
     }
 
     @Test
@@ -171,7 +244,11 @@ class TingantaEngineTest {
 
         (parasmaipada.forms.values + atmanepada.forms.values).forEach { result ->
             assertTrue(result.applications.none { it.sutra == "3.1.68" })
-            assertTrue(result.final.terms.any { it.upadesha == "श्नु" })
+            assertTrue(result.final.terms.any {
+                it.upadesha == "श्नु" && it.createdBySutra == "3.1.73"
+            })
+            assertTrue(result.applications.any { it.sutra == "1.3.8" })
+            assertTrue(result.applications.any { it.sutra == "1.3.9" })
         }
     }
 
@@ -183,7 +260,11 @@ class TingantaEngineTest {
 
         (parasmaipada.forms.values + atmanepada.forms.values).forEach { result ->
             assertTrue(result.applications.none { it.sutra == "3.1.68" })
-            assertTrue(result.final.terms.any { it.upadesha == "श" })
+            assertTrue(result.final.terms.any {
+                it.upadesha == "श" && it.createdBySutra == "3.1.77"
+            })
+            assertTrue(result.applications.any { it.sutra == "1.3.8" })
+            assertTrue(result.applications.any { it.sutra == "1.3.9" })
         }
     }
 
@@ -558,7 +639,12 @@ class TingantaEngineTest {
 
         paradigm.forms.values.forEach { result ->
             assertTrue(result.applications.none { it.sutra == "3.1.68" })
-            assertTrue(result.final.terms.any { it.upadesha == "श्यन्" })
+            assertTrue(result.final.terms.any {
+                it.upadesha == "श्यन्" && it.createdBySutra == "3.1.69"
+            })
+            assertTrue(result.applications.any { it.sutra == "1.3.8" })
+            assertTrue(result.applications.any { it.sutra == "1.3.3" })
+            assertTrue(result.applications.any { it.sutra == "1.3.9" })
             assertTrue(result.applications.any { it.sutra == "8.2.77" })
         }
     }
@@ -621,6 +707,9 @@ class TingantaEngineTest {
             assertTrue("3.1.33" in row.appliedSutras, "Form for ${row.affix} is missing 3.1.33")
             assertTrue("8.3.59" in row.appliedSutras, "Form for ${row.affix} is missing 8.3.59")
         }
+        val syaIntroduction = paradigm.forms.getValue(TingAffix.TIP).applications.first { it.sutra == "3.1.33" }
+            .after.terms.single { it.id == "sya" }
+        assertEquals("3.1.33", syaIntroduction.createdBySutra)
     }
 
     @Test
@@ -657,6 +746,23 @@ class TingantaEngineTest {
         assertTrue(applied.indexOf("3.3.161") < applied.indexOf("3.4.78"))
         assertTrue(applied.indexOf("3.4.78") < applied.indexOf("3.4.103"))
         assertTrue(applied.indexOf("3.4.103") < applied.indexOf("7.2.80"))
+        val yasutIntroduction = result.applications.first { it.sutra == "3.4.103" }
+            .after.terms.single { it.id == "yasut" }
+        assertEquals("3.4.103", yasutIntroduction.createdBySutra)
+        assertEquals("यासुट्", yasutIntroduction.upadesha)
+        assertEquals("यास्ट्", yasutIntroduction.surface)
+        assertEquals("ु", yasutIntroduction.nonOperativeUpadeshaSegments.single().text)
+        assertTrue(ItMarker.NGIT in yasutIntroduction.itMarkers)
+        val yasutDesignation = result.applications.first { application ->
+            application.sutra == "1.3.3" && application.after.terms.any { term ->
+                term.id == "yasut" && term.itDesignations.any { it.sutra == "1.3.3" }
+            }
+        }.after.terms.single { it.id == "yasut" }.itDesignations.single { it.sutra == "1.3.3" }
+        assertEquals("ट्", yasutDesignation.designatedText)
+        val processedYasut = result.applications.first { application ->
+            application.sutra == "1.3.9" && application.after.terms.any { it.id == "yasut" && it.surface == "यास्" }
+        }.after.terms.single { it.id == "yasut" }
+        assertTrue(processedYasut.hasEffectiveMarker(ItMarker.NGIT))
     }
 
     @Test
@@ -664,6 +770,20 @@ class TingantaEngineTest {
         val paradigm = TingantaEngine().deriveSupportedParadigm("लभ्", lakara = Lakara.LING)
         paradigm.assertSurfaces("लभेत लभेयाताम् लभेरन् लभेथाः लभेयाथाम् लभेध्वम् लभेय लभेवहि लभेमहि")
         assertTrue(paradigm.forms.getValue(TingAffix.TA).applications.map { it.sutra }.containsAll(setOf("3.4.102", "7.2.79")))
+        val taResult = paradigm.forms.getValue(TingAffix.TA)
+        val siyutIntroduction = taResult.applications.first { it.sutra == "3.4.102" }
+            .after.terms.single { it.id == "siyut" }
+        assertEquals("3.4.102", siyutIntroduction.createdBySutra)
+        assertEquals("सीयुट्", siyutIntroduction.upadesha)
+        assertEquals("सीय्ट्", siyutIntroduction.surface)
+        assertEquals("ु", siyutIntroduction.nonOperativeUpadeshaSegments.single().text)
+        assertFalse(ItMarker.NGIT in siyutIntroduction.itMarkers)
+        val siyutDesignation = taResult.applications.first { application ->
+            application.sutra == "1.3.3" && application.after.terms.any { term ->
+                term.id == "siyut" && term.itDesignations.any { it.sutra == "1.3.3" }
+            }
+        }.after.terms.single { it.id == "siyut" }.itDesignations.single { it.sutra == "1.3.3" }
+        assertEquals("ट्", siyutDesignation.designatedText)
         assertTrue(paradigm.forms.getValue(TingAffix.JHA).applications.any { it.sutra == "3.4.105" })
         assertTrue(paradigm.forms.getValue(TingAffix.IT).applications.any { it.sutra == "3.4.106" })
         val thasRules = paradigm.forms.getValue(TingAffix.THAS_A).applications.map { it.sutra }
@@ -737,6 +857,9 @@ class TingantaEngineTest {
         listOf(TingAffix.TAS, TingAffix.JHI, TingAffix.SIP).forEach { affix ->
             assertTrue(paradigm.forms.getValue(affix).applications.any { it.sutra == "7.4.50" })
         }
+        val tasiIntroduction = paradigm.forms.getValue(TingAffix.TIP).applications.first { it.sutra == "3.1.33" }
+            .after.terms.single { it.id == "tasi" }
+        assertEquals("3.1.33", tasiIntroduction.createdBySutra)
     }
 
     @Test
@@ -842,6 +965,7 @@ class TingantaEngineTest {
         )
 
         assertEquals("तारिषत्", result.final.surface)
+        assertTrue(result.final.substitutions.any { it.sutra == "3.1.34" })
         assertTrue(result.applications.map { it.sutra }.containsAll(
             setOf("3.1.34", "1.3.2", "1.3.3", "1.3.9", "3.4.94", "7.2.35", "8.3.59")
         ))

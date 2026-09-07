@@ -45,7 +45,7 @@ object IdoAyamSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
 
         return DerivationChange(
-            state = context.replaceTerm(stem.id, stem.copy(surface = "अयम्"))
+            state = context.substituteTermSurface(stem.id, "अयम्", 'इ', "अय", sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.2.111: Replaced 'idam' with 'ayam' before nominative singular 'su'."
         )

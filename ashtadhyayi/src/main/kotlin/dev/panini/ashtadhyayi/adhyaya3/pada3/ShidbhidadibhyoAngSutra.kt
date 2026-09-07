@@ -6,6 +6,7 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.HasMorphosyntax
+import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.TermKind
 import dev.panini.ganapatha.GanaPatha
 import dev.panini.sutra.Sutra
@@ -35,7 +36,17 @@ object ShidbhidadibhyoAngSutra : Sutra<DerivationState, DerivationChange>(
                 GanaPatha.isEligibleMember(42, term.surface, term.lexicalUses) &&
                 context.terms.none { it.id == "${term.id}-ang" }
             ) {
-                listOf(term, DerivationTerm("${term.id}-ang", "आ", TermKind.PRATYAYA, upadesha = "अङ्"))
+                listOf(
+                    term,
+                    DerivationTerm(
+                        id = "${term.id}-ang",
+                        surface = "अङ्",
+                        kind = TermKind.PRATYAYA,
+                        upadesha = "अङ्",
+                        createdBySutra = sutra,
+                        itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
+                    ),
+                )
             } else listOf(term)
         }
         return DerivationChange(context.copy(terms = terms), "3.3.104 introduces अङ् after an eligible भिदादि stem in the feminine.")

@@ -31,7 +31,7 @@ object KraudyadibhyashCaSutra : Sutra<DerivationState, DerivationChange>(
             context.allEffectiveTerms.none { it.upadesha == "ष्यङ्" }
 
     override fun apply(context: DerivationState): DerivationChange = DerivationChange(
-        context.addTerm(DerivationTerm("shyang-suffix", "य", TermKind.PRATYAYA, upadesha = "ष्यङ्"))
+        context.addTerm(DerivationTerm("shyang-suffix", "ष्यङ्", TermKind.PRATYAYA, upadesha = "ष्यङ्", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA))
             .copy(stage = DerivationStage.PRATYAYA_SELECTED),
         "4.1.80 introduces ष्यङ् after an eligible क्रौड्यादि term in feminine gotra derivation.",
     )

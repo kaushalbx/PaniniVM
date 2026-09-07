@@ -5,7 +5,7 @@
 # next instruction, while the unbounded यावत् loop supplies repeated execution.
 
 # INC(C2); goto instruction 2.
-वृत् ।
+वर्धनः ।
 योगम् एकम् च योजय ततः देहि फलम् योगाय ।
 द्वि अवस्थै देहि ॥
 
@@ -19,12 +19,12 @@
 शून्यम् अवस्थै देहि ॥
 
 # Instruction 2: if C1 > 0 then DEC(C1), otherwise HALT.
-चर् ।
+चरणयः ।
 यदि सङ्ख्याम् शून्यम् च विद्धि तर्हि हरणेन कृणु अन्यथा स्थानइन कृणु ॥
 
 # Dispatcher: PC > 1 selects instruction 2; otherwise instruction 1.
-दिच् ।
-यदि अवस्थाम् एकम् च विद्धि तर्हि चरा कृणु अन्यथा वृधा कृणु ॥
+देशनः ।
+यदि अवस्थाम् एकम् च विद्धि तर्हि चरणयेन कृणु अन्यथा वर्धनइन कृणु ॥
 
 # Initial machine configuration: PC=2, C1=3, C2=0.
 द्वि अवस्थै देहि ।
@@ -32,5 +32,5 @@
 शून्यम् योगाय देहि ।
 
 # Execute until HALT, then observe C2 = 3.
-यावत् अवस्थाम् शून्यम् च विद्धि न तावत् दिशा कृणु ।
+यावत् अवस्थाम् शून्यम् च विद्धि न तावत् देशनइन कृणु ।
 मुद्रय योगम् ।

@@ -296,14 +296,16 @@ class PvmUktiSadhaka(
         }
         val kridanta = normalized.pratipadika as? KridantaPratipadika
         val sourceStem = kridanta?.let {
-            krdantaEngine.deriveSourceStem(it.dhatu.mulaDhatu, it.krtPratyaya)
+            krdantaEngine.deriveSourceStem(it.dhatu.mulaDhatu, it.krtPratyaya, it.dhatu.sanadiPratyayas)
         }
         val baseText = sourceStem?.surface ?: normalized.pratipadika.baseText()
         val supAffix = SupAffix.fromUpadesha(normalized.sup.text) ?: return baseText
-        if (sourceStem?.supportsAStemDeclension == true) {
-            pvmKridantaSurface(baseText, supAffix)?.let { return it }
-        } else if (sourceStem?.preservesSourceSurface == true) {
-            return baseText
+        when (sourceStem) {
+            is dev.panini.derivation.KrdantaSourceStem.Productive -> if (sourceStem.supportsAStemDeclension) {
+                pvmKridantaSurface(baseText, supAffix)?.let { return it }
+            }
+            is dev.panini.derivation.KrdantaSourceStem.Unresolved -> return baseText
+            null -> Unit
         }
         val sankhya = normalized.pratipadika as? SankhyaPratipadika
         val linga = lingaOverride ?: if (sankhya != null) {
@@ -372,7 +374,7 @@ class PvmUktiSadhaka(
     private fun Pratipadika.baseText(): String = when (this) {
         is MulaPratipadika -> text
         is SankhyaPratipadika -> sourceText
-        is KridantaPratipadika -> krdantaEngine.deriveSourceStem(dhatu.mulaDhatu, krtPratyaya).surface
+        is KridantaPratipadika -> krdantaEngine.deriveSourceStem(dhatu.mulaDhatu, krtPratyaya, dhatu.sanadiPratyayas).surface
         is UnadyantaPratipadika -> sourceText
         is SamasaPratipadika -> angas.joinToString("") { it.pratipadika.baseText() }
     }
