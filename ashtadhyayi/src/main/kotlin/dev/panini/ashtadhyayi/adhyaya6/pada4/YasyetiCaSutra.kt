@@ -34,7 +34,7 @@ object YasyetiCaSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         if ("6.4.1" !in context.activeAdhikaras) return false
         if (context.terms.size < 2) return false
-        if (context.substitutions.any { it.sutra == "6.4.148" }) return false
+        if ("6.4.148" in context.appliedSutras) return false
 
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()

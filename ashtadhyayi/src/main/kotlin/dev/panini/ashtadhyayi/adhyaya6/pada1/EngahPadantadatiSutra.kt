@@ -44,7 +44,7 @@ object EngahPadantadatiSutra : Sutra<DerivationState, DerivationChange>(
                 Lakara.LUNG,
                 Lakara.LING,
             ) &&
-            right.matchesUpadesha("मिप्") && context.substitutions.any { it.sutra == "3.4.101" }
+            right.matchesUpadesha("मिप्") && "3.4.101" in context.appliedSutras
         ) return false
 
         // 1. Left term must be a 'pada' (per 1.4.14)

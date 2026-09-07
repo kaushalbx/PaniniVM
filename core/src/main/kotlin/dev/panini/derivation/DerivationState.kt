@@ -25,6 +25,8 @@ class DerivationState(
     val halantyamExemptTermIds: Set<String> = emptySet(),
     val varnaComparisons: Set<VarnaComparison> = emptySet(),
     val substitutions: List<VarnaSubstitution> = emptyList(),
+    /** Applied grammatical rules, separate from concrete varṇa substitutions. */
+    val appliedSutras: List<String> = emptyList(),
 ) {
 
     init {
@@ -295,6 +297,9 @@ class DerivationState(
     fun addSubstitution(substitution: VarnaSubstitution): DerivationState =
         copy(substitutions = substitutions + substitution)
 
+    fun recordAppliedSutra(sutraNumber: String): DerivationState =
+        copy(appliedSutras = appliedSutras + sutraNumber)
+
     fun copy(
         terms: List<DerivationTerm> = this.terms,
         droppedTerms: List<DerivationTerm> = this.droppedTerms,
@@ -308,6 +313,7 @@ class DerivationState(
         halantyamExemptTermIds: Set<String> = this.halantyamExemptTermIds,
         varnaComparisons: Set<VarnaComparison> = this.varnaComparisons,
         substitutions: List<VarnaSubstitution> = this.substitutions,
+        appliedSutras: List<String> = this.appliedSutras,
     ): DerivationState {
         return DerivationState(
             terms = terms,
@@ -322,6 +328,7 @@ class DerivationState(
             halantyamExemptTermIds = halantyamExemptTermIds,
             varnaComparisons = varnaComparisons,
             substitutions = substitutions,
+            appliedSutras = appliedSutras,
         )
     }
 
@@ -340,6 +347,7 @@ class DerivationState(
             halantyamExemptTermIds == other.halantyamExemptTermIds &&
             varnaComparisons == other.varnaComparisons &&
             substitutions == other.substitutions
+            && appliedSutras == other.appliedSutras
     }
 
     override fun hashCode(): Int {
@@ -355,11 +363,12 @@ class DerivationState(
         result = 31 * result + halantyamExemptTermIds.hashCode()
         result = 31 * result + varnaComparisons.hashCode()
         result = 31 * result + substitutions.hashCode()
+        result = 31 * result + appliedSutras.hashCode()
         return result
     }
 
     override fun toString(): String {
-        return "DerivationState(terms=$terms, droppedTerms=$droppedTerms, samjnas=$samjnas, stage=$stage, context=$context, activeAdhikaras=$activeAdhikaras, inheritedAnuvrtti=$inheritedAnuvrtti, blockedSutras=$blockedSutras, blockedOperations=$blockedOperations, halantyamExemptTermIds=$halantyamExemptTermIds, varnaComparisons=$varnaComparisons, substitutions=$substitutions)"
+        return "DerivationState(terms=$terms, droppedTerms=$droppedTerms, samjnas=$samjnas, stage=$stage, context=$context, activeAdhikaras=$activeAdhikaras, inheritedAnuvrtti=$inheritedAnuvrtti, blockedSutras=$blockedSutras, blockedOperations=$blockedOperations, halantyamExemptTermIds=$halantyamExemptTermIds, varnaComparisons=$varnaComparisons, substitutions=$substitutions, appliedSutras=$appliedSutras)"
     }
 }
 

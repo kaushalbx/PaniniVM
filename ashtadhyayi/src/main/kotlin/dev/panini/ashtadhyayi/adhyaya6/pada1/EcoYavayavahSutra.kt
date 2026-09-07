@@ -39,7 +39,7 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
             val rightTerm = context.terms[i + 1]
             if (nicGradeStillPending(context, rightTerm.id)) continue
             if (context.effectiveContext.rupa.lakara == Lakara.LET &&
-                rightTerm.upadesha == "झि" && context.substitutions.none { it.sutra == "3.4.94" }
+                rightTerm.upadesha == "झि" && "3.4.94" !in context.appliedSutras
             ) continue
             if (lotEndingReplacementPending(context, rightTerm.surface)) continue
             val left = context.terms[i].surface.lastOrNull() ?: continue
@@ -59,7 +59,7 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
             val rightTerm = context.terms[i+1]
             if (nicGradeStillPending(context, rightTerm.id)) continue
             if (context.effectiveContext.rupa.lakara == Lakara.LET &&
-                rightTerm.upadesha == "झि" && context.substitutions.none { it.sutra == "3.4.94" }
+                rightTerm.upadesha == "झि" && "3.4.94" !in context.appliedSutras
             ) continue
             if (lotEndingReplacementPending(context, rightTerm.surface)) continue
             val leftChar = leftTerm.surface.lastOrNull() ?: continue
@@ -145,7 +145,7 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
     private fun lotEndingReplacementPending(context: DerivationState, surface: String): Boolean =
         context.effectiveContext.rupa.lakara == Lakara.LOT &&
             surface in setOf("ते", "एते", "आते", "न्ते", "अन्ते", "अते", "एथे", "आथे") &&
-            context.substitutions.none { it.sutra == "3.4.90" }
+            "3.4.90" !in context.appliedSutras
 
     private fun futureStemPending(context: DerivationState): Boolean =
         context.effectiveContext.rupa.lakara in setOf(Lakara.LRT, Lakara.LRNG) &&

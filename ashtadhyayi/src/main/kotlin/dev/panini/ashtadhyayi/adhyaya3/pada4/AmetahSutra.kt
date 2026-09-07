@@ -28,7 +28,7 @@ object AmetahSutra : Sutra<DerivationState, DerivationChange>(
         val activeJhi = affix.upadesha == "झि" && affix.surface !in setOf("न्तु", "अन्तु", "अतु")
         val middleE = setOf("ते", "एते", "आते", "न्ते", "अन्ते", "अते", "एथे", "आथे")
             .any(affix.surface::endsWith) &&
-            context.substitutions.none { it.sutra == "3.4.90" }
+            "3.4.90" !in context.appliedSutras
         return activeJhi || middleE
     }
     override fun apply(context: DerivationState): DerivationChange {

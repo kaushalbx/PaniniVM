@@ -55,6 +55,13 @@ an explicitly selected external grammatical corpus such as the Uṇādipāṭha)
 Lifecycle bookkeeping must not be represented by an invented sūtra, a
 synthetic rule number, or a dummy `VarnaSubstitution`.
 
+The scheduler records successfully applied grammar in `appliedSutras` for
+ordering and one-application guards. `VarnaSubstitution` is reserved for an
+actual change of written material and carries its target, source, replacement,
+and assigning sūtra. Consequently a saṃjñā, adhikāra, or other non-phonological
+application can be present in `appliedSutras` and the public trace without
+creating a fictitious character substitution.
+
 The transition from `RAW_UPADESHA` to `PROCESSED` when 1.3.2–1.3.8 designate
 no segment is such bookkeeping. `DerivationEngine` performs it without adding
 an application or rule event, and only when its active rule set contains the

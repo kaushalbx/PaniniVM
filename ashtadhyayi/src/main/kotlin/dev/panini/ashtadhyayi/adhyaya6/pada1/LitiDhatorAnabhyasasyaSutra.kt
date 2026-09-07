@@ -23,7 +23,7 @@ object LitiDhatorAnabhyasasyaSutra : Sutra<DerivationState, DerivationChange>(
         context.effectiveContext.rupa.lakara == Lakara.LIT &&
             context.terms.any { it.kind == TermKind.DHATU } &&
             context.terms.none { it.id == "abhyasa" } &&
-            context.substitutions.none { it.sutra == "6.4.120" }
+            "6.4.120" !in context.appliedSutras
 
     override fun apply(context: DerivationState): DerivationChange {
         val index = context.terms.indexOfFirst { it.kind == TermKind.DHATU }

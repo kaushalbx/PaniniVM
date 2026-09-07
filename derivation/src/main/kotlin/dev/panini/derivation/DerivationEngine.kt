@@ -310,7 +310,7 @@ class DerivationEngine(
         var preselectedChange = firstChange
         val applications = mutableListOf<DerivationApplication>()
         val events = mutableListOf<DerivationEvent>()
-        val visited = mutableSetOf(initial.copy(substitutions = emptyList()))
+        val visited = mutableSetOf(initial.copy(substitutions = emptyList(), appliedSutras = emptyList()))
         val suppressedRules = suppressed.toMutableSet()
 
         repeat(maxSteps) {
@@ -370,19 +370,17 @@ class DerivationEngine(
             applications += application
             events += DerivationEvent.RuleApplied(application.sutra, current, change.state, change.explanation)
 
-            val nextStateKey = change.state.copy(substitutions = emptyList())
+            val stateWithApplication = change.state.recordAppliedSutra(candidate.sutra.sutra)
+            val nextStateKey = stateWithApplication.copy(substitutions = emptyList(), appliedSutras = emptyList())
             if (nextStateKey in visited) {
-                val nextSelection = select(change.state, suppressedRules)
+                val nextSelection = select(stateWithApplication, suppressedRules)
                 require(nextSelection.selected == null) {
                     "Derivation entered a cycle after applying ${candidate.sutra.sutra}. History: ${applications.map { "${it.sutra} (${it.before.surface} -> ${it.after.surface})" }}"
                 }
             }
             visited.add(nextStateKey)
 
-            val stateWithSub = change.state.copy(
-                substitutions = change.state.substitutions + VarnaSubstitution("", ' ', "", candidate.sutra.sutra)
-            )
-            current = stateWithSub
+            current = stateWithApplication
         }
         error("Derivation did not reach a fixed point within $maxSteps steps. History: ${applications.takeLast(20).map { "${it.sutra} (${it.before.surface} -> ${it.after.surface})" }}")
     }
@@ -456,8 +454,8 @@ class DerivationEngine(
     }
 
     private fun select(state: DerivationState, suppressed: Set<String>): RuleSelection {
-        val tripadiKramasApplied = state.substitutions.mapNotNull { sub ->
-            sutraMap[sub.sutra]?.krama
+        val tripadiKramasApplied = state.appliedSutras.mapNotNull { applied ->
+            sutraMap[applied]?.krama
         }.filter { it >= 820000 }
         val maxTripadiKrama = tripadiKramasApplied.maxOrNull() ?: 0
         val hasPendingItProcessing = state.terms.any { it.itProcessingPending }
@@ -544,7 +542,7 @@ class DerivationEngine(
                 if (candidate.sutra.sutra == "1.3.9" && state.terms.any {
                         it.itProcessingPending || it.itDesignations.isNotEmpty()
                     }) 4
-                else if (candidate.sutra.sutra == "3.4.92" && state.substitutions.any { it.sutra == "7.3.84" }) 2
+                else if (candidate.sutra.sutra == "3.4.92" && "7.3.84" in state.appliedSutras) 2
                 else if (candidate.sutra.sutra == "3.4.93" && state.allEffectiveTerms.any { "3.4.92" in it.establishedBySutras }) 2
                 else agendaDomain(candidate.sutra)
             },

@@ -24,7 +24,7 @@ object SerHyapicCaSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         val affix = context.terms.lastOrNull() ?: return false
         return context.effectiveContext.rupa.lakara == Lakara.LOT && affix.upadesha == "सिप्" &&
-            context.substitutions.none { it.sutra == "3.4.87" } &&
+            "3.4.87" !in context.appliedSutras &&
             ((context.stage == DerivationStage.PADA_FORMED && affix.surface.isNotEmpty()) ||
                 (context.stage == DerivationStage.IT_PROCESSED && affix.surface.isEmpty()))
     }

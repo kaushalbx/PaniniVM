@@ -39,7 +39,7 @@ object SarvanamasthaneCasambuddhauSutra : Sutra<DerivationState, DerivationChang
 
         // 1. Stem must end in consonant 'न्', or have received a 'num' augment substitution (7.1.70-73), or carry 'num'/'nuṭ' terms
         val isNStemOrNum = stem.surface.endsWith("न्") ||
-            context.substitutions.any { it.sutra in setOf("7.1.70", "7.1.71", "7.1.72", "7.1.73") } ||
+            context.appliedSutras.any { it in setOf("7.1.70", "7.1.71", "7.1.72", "7.1.73") } ||
             context.terms.any { it.upadesha == "नुट्" || it.upadesha == "नुम्" }
         if (!isNStemOrNum) return false
 

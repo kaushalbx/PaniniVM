@@ -31,7 +31,7 @@ object HalngyabbhyoSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         if (context.effectiveContext.rupa.lakara == Lakara.LET &&
             context.allEffectiveTerms.any { it.id == "sip-aorist" } &&
-            context.substitutions.none { it.sutra == "3.4.94" }) return false
+            "3.4.94" !in context.appliedSutras) return false
         if (context.terms.size < 2) return false
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()

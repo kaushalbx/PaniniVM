@@ -40,7 +40,7 @@ object ShnasorAllopahSutra : Sutra<DerivationState, DerivationChange>(
             context.allEffectiveTerms.none { "3.4.92" in it.establishedBySutras }
         ) return false
         if (rupa.lakara == Lakara.LOT && ending.matchesUpadesha("सिप्") &&
-            context.substitutions.none { it.sutra == "3.4.87" }
+            "3.4.87" !in context.appliedSutras
         ) return false
         val isSarvadhatuka = context.samjnas.any { it.targetId == ending.id && it.samjna == Samjna.SARVADHATUKA }
         // 1.2.4 makes an apit sārvadhātuka affix ṅ-it. Reading the surviving
