@@ -1,6 +1,6 @@
 package dev.panini.ashtadhyayi.adhyaya3
 
-import dev.panini.ashtadhyayi.adhyaya3.pada1.AchoYatSutra
+import dev.panini.ashtadhyayi.adhyaya3.pada1.AcoYatSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada1.GeheKahSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada1.NvultrchauSutra
 import dev.panini.ashtadhyayi.adhyaya3.pada1.RhalorNyatSutra
@@ -30,7 +30,7 @@ class Batch10KrtSutrasTest {
             terms = listOf(DerivationTerm("root", "जि", TermKind.DHATU, upadesha = "जि")),
             context = DerivationalContext(requestedMeaning = DerivationalMeaning.BHAVA)
         )
-        val result = DerivationEngine(listOf(AchoYatSutra)).derive(state)
+        val result = DerivationEngine(listOf(AcoYatSutra)).derive(state)
         assertTrue(result.applications.any { it.sutra == "3.1.97" })
         assertEquals("यत्", result.final.allEffectiveTerms.last().upadesha)
     }
