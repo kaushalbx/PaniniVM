@@ -577,7 +577,11 @@ class GanaPathaTest {
         assertEquals("अञ्", UtsadibhyoAnySutra.apply(utsadi).state.terms.last().upadesha)
 
         val svasradi = striState("स्वसृ")
-        assertEquals("4.1.10", NaShatsvasradibhyahSutra.apply(svasradi).state.blockedSutras["STRI_PRATYAYA"])
+        assertEquals(
+            "4.1.10",
+            NaShatsvasradibhyahSutra.apply(svasradi).state.blockedOperations[dev.panini.derivation.BlockedOperationDomain.STRI_PRATYAYA_SELECTION],
+        )
+        assertTrue(NaShatsvasradibhyahSutra.apply(svasradi).state.blockedSutras.isEmpty())
 
         val krodadi = pratipadikaState("क्रोडा", environment = DerivationalEnvironment.SVANGA, linga = Linga.STRI)
         assertEquals("4.1.56", NaKrodadibahvacahSutra.apply(krodadi).state.blockedSutras["4.1.54"])

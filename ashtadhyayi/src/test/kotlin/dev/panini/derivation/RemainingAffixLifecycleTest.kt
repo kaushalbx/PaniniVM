@@ -1,5 +1,6 @@
 package dev.panini.derivation
 
+import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.ashtadhyayi.adhyaya1.pada1.AdyantauTakitauSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada1.MidacoAntyatParahSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada1.NisthaSutra
@@ -191,6 +192,13 @@ class RemainingAffixLifecycleTest {
         val cli = state.terms.first { it.id == "cli" }
         assertEquals("3.1.43", cli.createdBySutra)
         assertEquals(ItProcessingPhase.DEFERRED_SUBSTITUTION, cli.itProcessingPhase)
+
+        val itOnly = DerivationEngine(Ashtadhyayi.executableSutrasAt(dev.panini.sutra.SutraStage.IT_PROCESSING))
+            .derive(state)
+        val stillDeferred = itOnly.final.terms.first { it.id == "cli" }
+        assertEquals(ItProcessingPhase.DEFERRED_SUBSTITUTION, stillDeferred.itProcessingPhase)
+        assertTrue(stillDeferred.deferredItDesignations.isNotEmpty())
+        assertEquals("च्लि", stillDeferred.surface)
 
         state = ClehSicSutra.apply(state).state
         val sic = state.terms.first { it.id == "cli" }

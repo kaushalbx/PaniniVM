@@ -21,6 +21,7 @@ class DerivationState(
     val activeAdhikaras: Set<String> = emptySet(),
     val inheritedAnuvrtti: Set<String> = emptySet(),
     val blockedSutras: Map<String, String> = emptyMap(),
+    val blockedOperations: Map<BlockedOperationDomain, String> = emptyMap(),
     val halantyamExemptTermIds: Set<String> = emptySet(),
     val varnaComparisons: Set<VarnaComparison> = emptySet(),
     val substitutions: List<VarnaSubstitution> = emptyList(),
@@ -285,6 +286,9 @@ class DerivationState(
     fun blockSutra(sutraNumber: String, blocker: String): DerivationState =
         copy(blockedSutras = blockedSutras + (sutraNumber to blocker))
 
+    fun blockOperation(operation: BlockedOperationDomain, blocker: String): DerivationState =
+        copy(blockedOperations = blockedOperations + (operation to blocker))
+
     fun addComparison(comparison: VarnaComparison): DerivationState =
         copy(varnaComparisons = varnaComparisons + comparison)
 
@@ -300,6 +304,7 @@ class DerivationState(
         activeAdhikaras: Set<String> = this.activeAdhikaras,
         inheritedAnuvrtti: Set<String> = this.inheritedAnuvrtti,
         blockedSutras: Map<String, String> = this.blockedSutras,
+        blockedOperations: Map<BlockedOperationDomain, String> = this.blockedOperations,
         halantyamExemptTermIds: Set<String> = this.halantyamExemptTermIds,
         varnaComparisons: Set<VarnaComparison> = this.varnaComparisons,
         substitutions: List<VarnaSubstitution> = this.substitutions,
@@ -313,6 +318,7 @@ class DerivationState(
             activeAdhikaras = activeAdhikaras,
             inheritedAnuvrtti = inheritedAnuvrtti,
             blockedSutras = blockedSutras,
+            blockedOperations = blockedOperations,
             halantyamExemptTermIds = halantyamExemptTermIds,
             varnaComparisons = varnaComparisons,
             substitutions = substitutions,
@@ -330,6 +336,7 @@ class DerivationState(
             activeAdhikaras == other.activeAdhikaras &&
             inheritedAnuvrtti == other.inheritedAnuvrtti &&
             blockedSutras == other.blockedSutras &&
+            blockedOperations == other.blockedOperations &&
             halantyamExemptTermIds == other.halantyamExemptTermIds &&
             varnaComparisons == other.varnaComparisons &&
             substitutions == other.substitutions
@@ -344,6 +351,7 @@ class DerivationState(
         result = 31 * result + activeAdhikaras.hashCode()
         result = 31 * result + inheritedAnuvrtti.hashCode()
         result = 31 * result + blockedSutras.hashCode()
+        result = 31 * result + blockedOperations.hashCode()
         result = 31 * result + halantyamExemptTermIds.hashCode()
         result = 31 * result + varnaComparisons.hashCode()
         result = 31 * result + substitutions.hashCode()
@@ -351,9 +359,11 @@ class DerivationState(
     }
 
     override fun toString(): String {
-        return "DerivationState(terms=$terms, droppedTerms=$droppedTerms, samjnas=$samjnas, stage=$stage, context=$context, activeAdhikaras=$activeAdhikaras, inheritedAnuvrtti=$inheritedAnuvrtti, blockedSutras=$blockedSutras, halantyamExemptTermIds=$halantyamExemptTermIds, varnaComparisons=$varnaComparisons, substitutions=$substitutions)"
+        return "DerivationState(terms=$terms, droppedTerms=$droppedTerms, samjnas=$samjnas, stage=$stage, context=$context, activeAdhikaras=$activeAdhikaras, inheritedAnuvrtti=$inheritedAnuvrtti, blockedSutras=$blockedSutras, blockedOperations=$blockedOperations, halantyamExemptTermIds=$halantyamExemptTermIds, varnaComparisons=$varnaComparisons, substitutions=$substitutions)"
     }
 }
+
+enum class BlockedOperationDomain { STRI_PRATYAYA_SELECTION }
 
 private val affixKinds = setOf(TermKind.PRATYAYA, TermKind.AGAMA, TermKind.AUGMENT)
 

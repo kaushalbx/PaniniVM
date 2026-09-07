@@ -46,3 +46,32 @@ Derivation rules must keep grammatical identity separate from the current writte
 - Use `consumeAffixForDrop`, or `removeTerm(id, sutra)`, for affix deletion. Anonymous affix removal is rejected.
 
 `TasyaLopah` deletes only the exact segment carried by a surviving `ItDesignation`. Rules must never infer deletion from `ItMarker`, spelling, term IDs, or affix shape. A completed derivation must pass `requireCompleteItProcessing()` and contain neither pending lifecycle phases nor unconsumed immediate or deferred designations.
+
+### Grammatical provenance and internal transitions
+
+`DerivationApplication` and `DerivationEvent.RuleApplied` are reserved for real
+grammatical rules. Their identifiers must name catalogued Aṣṭādhyāyī sūtras (or
+an explicitly selected external grammatical corpus such as the Uṇādipāṭha).
+Lifecycle bookkeeping must not be represented by an invented sūtra, a
+synthetic rule number, or a dummy `VarnaSubstitution`.
+
+The transition from `RAW_UPADESHA` to `PROCESSED` when 1.3.2–1.3.8 designate
+no segment is such bookkeeping. `DerivationEngine` performs it without adding
+an application or rule event, and only when its active rule set contains the
+designation rules. A partial phase that introduces a raw upadeśa leaves it raw
+for the later `IT_PROCESSING` phase. This ownership rule prevents an aṅgakārya,
+rutva, or sandhi-only phase from prematurely completing a newly introduced
+affix or āgama.
+
+Immediate exact designations remain active until 1.3.9 consumes them. Deferred
+designations remain attached while the term is in `DEFERRED_SUBSTITUTION` and
+become eligible for deletion only after the licensed whole-affix substitution.
+These transitions may change internal lifecycle state, but only the grammatical
+sūtras that designate, substitute, or delete material appear in the derivation
+trace.
+
+Control domains are likewise separate from sūtra identity. For example, the
+prohibition of feminine-affix selection is represented by the typed
+`BlockedOperationDomain.STRI_PRATYAYA_SELECTION`; `blockedSutras` contains only
+actual sūtra numbers, so symbolic control labels cannot leak into grammatical
+provenance.
