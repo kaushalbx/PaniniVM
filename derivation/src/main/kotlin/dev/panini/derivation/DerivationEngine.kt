@@ -2,6 +2,8 @@ package dev.panini.derivation
 
 import dev.panini.analysis.KarakaResolution
 import dev.panini.analysis.SamasaResolution
+import dev.panini.core.SupAffix
+import dev.panini.core.TingAffix
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraPriority
 import dev.panini.sutra.SutraRole
@@ -312,6 +314,7 @@ class DerivationEngine(
         val suppressedRules = suppressed.toMutableSet()
 
         repeat(maxSteps) {
+            current = completeUndesignatedRawTerms(current)
             val selection = select(current, suppressedRules)
             events += selection.candidates.map { DerivationEvent.RuleConsidered(it.sutra.sutra) }
             events += selection.conflicts.map { DerivationEvent.RuleBlocked(it.loser.sutra.sutra, it.winner.sutra.sutra, it.reason) }
@@ -322,7 +325,22 @@ class DerivationEngine(
                 .map { DerivationEvent.RuleBlocked(it.sutra, current.blockedSutras[it.sutra]!!, "Blocked by grammar.") }
             events += blockedEvents
 
-            val candidate = selection.selected ?: return completed(initial, current, applications, events, config)
+            val candidate = selection.selected
+            if (candidate?.sutra?.isTripadi() == true) {
+                val lifecycleCompleted = advanceCompletedItProcessing(current)
+                if (lifecycleCompleted != current) {
+                    current = lifecycleCompleted
+                    return@repeat
+                }
+            }
+            if (candidate == null) {
+                val lifecycleCompleted = advanceCompletedItProcessing(current)
+                if (lifecycleCompleted != current) {
+                    current = lifecycleCompleted
+                    return@repeat
+                }
+                return completed(initial, current, applications, events, config)
+            }
 
             val shouldApply = if (candidate.sutra.optional) {
                 when (config.optionalRulePolicy) {
@@ -367,6 +385,52 @@ class DerivationEngine(
             current = stateWithSub
         }
         error("Derivation did not reach a fixed point within $maxSteps steps. History: ${applications.takeLast(20).map { "${it.sutra} (${it.before.surface} -> ${it.after.surface})" }}")
+    }
+
+    /**
+     * Closes the engine lifecycle after 1.3.2–1.3.8 have had an opportunity
+     * to designate an इत् segment. This is state bookkeeping, not a
+     * grammatical operation, so it deliberately creates no trace entry.
+     */
+    private fun completeUndesignatedRawTerms(state: DerivationState): DerivationState {
+        val designationRules = sutras.filter { it.krama in 130002..130008 }
+        // A staged pipeline may introduce a raw upadeśa before its dedicated
+        // IT_PROCESSING phase. Only that phase may declare the designation
+        // pass exhausted; an arbitrary partial rule set must leave it raw.
+        if (designationRules.isEmpty()) return state
+        val hasExactDeletionPending = state.terms.any {
+            it.itDesignations.isNotEmpty() ||
+                (it.deferredItDesignations.isNotEmpty() && it.itProcessingPhase != ItProcessingPhase.DEFERRED_SUBSTITUTION)
+        }
+        if (hasExactDeletionPending) return state
+
+        val designationStillApplicable = designationRules.any { sutra ->
+            sutra.sutra !in state.blockedSutras &&
+                isDerivationEligible(sutra, state) &&
+                sutra.matches(RuleVisibility.view(sutra, state, sutraMap))
+        }
+        if (designationStillApplicable) return state
+
+        val completedTerms = state.terms.map { term ->
+            if (term.itProcessingPhase == ItProcessingPhase.RAW_UPADESHA &&
+                term.itMarkers.isEmpty() &&
+                term.itDesignations.isEmpty() &&
+                term.deferredItDesignations.isEmpty()
+            ) term.copy(itProcessingPhase = ItProcessingPhase.PROCESSED) else term
+        }
+        return if (completedTerms == state.terms) state else state.copy(terms = completedTerms)
+    }
+
+    private fun advanceCompletedItProcessing(state: DerivationState): DerivationState {
+        val selectedEndingUpadeshas = SupAffix.entries.mapTo(mutableSetOf()) { it.upadesha } +
+            TingAffix.entries.map { it.upadesha }
+        val selectedEndingIsProcessed = state.stage == DerivationStage.PRATYAYA_SELECTED &&
+            state.terms.any { term ->
+                (term.id.startsWith("ting-") || selectedEndingUpadeshas.any(term::matchesUpadesha)) &&
+                    !term.itProcessingPending
+            }
+        if (!selectedEndingIsProcessed) return state
+        return state.copy(stage = DerivationStage.IT_PROCESSED)
     }
 
     private fun completed(initial: DerivationState, current: DerivationState, applications: List<DerivationApplication>, events: List<DerivationEvent>, config: DerivationConfig): DerivationResult {
@@ -477,7 +541,7 @@ class DerivationEngine(
                 if (introducesRequestedRawAffix && state.stage != DerivationStage.INITIAL) 0 else 1
             },
             { candidate ->
-                if (candidate.sutra.sutra in setOf("1.3.9", "IT-COMPLETE") && state.terms.any {
+                if (candidate.sutra.sutra == "1.3.9" && state.terms.any {
                         it.itProcessingPending || it.itDesignations.isNotEmpty()
                     }) 4
                 else if (candidate.sutra.sutra == "3.4.92" && state.substitutions.any { it.sutra == "7.3.84" }) 2

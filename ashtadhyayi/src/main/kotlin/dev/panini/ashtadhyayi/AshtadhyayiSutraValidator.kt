@@ -12,9 +12,13 @@ import dev.panini.vyakaranam.parser.PaniniParser
  */
 object AshtadhyayiSutraValidator {
     private val parser = PaniniParser()
+    private val canonicalNumber = Regex("[1-8]\\.[1-4]\\.\\d+V?")
 
     fun validate(sutras: Iterable<Sutra<*, *>>): List<SutraCatalogIssue> = buildList {
         sutras.forEach { sutra ->
+            if (!canonicalNumber.matches(sutra.number)) {
+                add(SutraCatalogIssue(sutra.number, "Noncanonical Aṣṭādhyāyī sūtra number"))
+            }
             val source = sutra.segmentedSource ?: return@forEach
             parser.validate(source).forEach { error ->
                 add(

@@ -27,8 +27,17 @@ class AshtadhyayiSutraValidatorTest {
         assertTrue(issues.single().message.startsWith("Invalid segmented source"))
     }
 
-    private fun sutra(segmentedSource: String) = object : Sutra<Unit, Unit>(
-        number = "1.1.1",
+    @Test
+    fun `rejects an administrative identifier as an Ashtadhyayi sutra number`() {
+        val issues = AshtadhyayiSutraValidator.validate(listOf(sutra(null, "IT-COMPLETE")))
+
+        assertEquals(1, issues.size)
+        assertEquals("IT-COMPLETE", issues.single().sutra)
+        assertEquals("Noncanonical Aṣṭādhyāyī sūtra number", issues.single().message)
+    }
+
+    private fun sutra(segmentedSource: String?, number: String = "1.1.1") = object : Sutra<Unit, Unit>(
+        number = number,
         text = "वृद्धिरादैच्",
         segmentedSource = segmentedSource,
         hindiExplanation = "",
