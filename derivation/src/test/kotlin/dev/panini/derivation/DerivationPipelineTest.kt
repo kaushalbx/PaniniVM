@@ -11,8 +11,24 @@ import dev.panini.sutra.SutraVisibility
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertFailsWith
 
 class DerivationPipelineTest {
+    @Test
+    fun `result rejects application history divergence`() {
+        val initial = state("a")
+        val final = initial.copy(stage = DerivationStage.FINAL)
+        val sutra = TestSutra("test.1", SutraStage.ANGAKARYA, "a", "b")
+        val application = DerivationApplication(
+            sutra.sutra, sutra.role, sutra.action, sutra.scope, sutra.renderTrace(),
+            initial, final, "test",
+        )
+
+        assertFailsWith<IllegalArgumentException> {
+            DerivationResult(initial, final, listOf(application), emptyList())
+        }
+    }
+
     @Test
     fun `runs metadata phases in order and consolidates provenance`() {
         val pipeline = pipeline(
@@ -24,6 +40,7 @@ class DerivationPipelineTest {
 
         assertEquals("c", result.final.surface)
         assertEquals(listOf("test.1", "test.2"), result.applications.map { it.sutra })
+        assertEquals(result.applications.map { it.sutra }, result.final.appliedSutras)
         assertEquals(1, result.events.count { it is DerivationEvent.Completed })
         assertEquals(2, assertIs<DerivationEvent.Completed>(result.events.last()).applicationCount)
     }

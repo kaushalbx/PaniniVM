@@ -57,6 +57,10 @@ class RemainingAffixLifecycleTest {
 
         state = TasyaLopahSutra.apply(state).state
         assertEquals("अ", state.surface)
+        assertEquals(
+            ItMarkerProvenance(ItMarker.P, "1.3.3", "ब्"),
+            state.terms.single().itMarkerProvenance.single(),
+        )
         state.requireCompleteItProcessing()
     }
 

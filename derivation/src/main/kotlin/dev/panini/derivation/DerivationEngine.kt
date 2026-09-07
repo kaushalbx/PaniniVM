@@ -43,7 +43,15 @@ data class DerivationResult(
     val karakaResolution: KarakaResolution? = null,
     val svaraResult: SvaraResult? = null,
     val samasaResolution: SamasaResolution? = null,
-)
+) {
+    init {
+        val expectedApplied = initial.appliedSutras + applications.map { it.sutra }
+        require(final.appliedSutras == expectedApplied) {
+            "Derivation applications and applied-sūtra history diverged: expected $expectedApplied, " +
+                "found ${final.appliedSutras}."
+        }
+    }
+}
 
 /**
  * A concrete possible application.  Conflict resolution works on these, not
@@ -440,13 +448,7 @@ class DerivationEngine(
             if (state.stage == DerivationStage.FINAL && config.validateFinalItProcessing) state.requireCompleteItProcessing() else state
         }
         val svara = if (finalState.surface.isNotBlank()) {
-            val isNitOrNnit = finalState.allEffectiveTerms.any { 
-                it.itMarkers.contains(dev.panini.core.ItMarker.NIT) || it.itMarkers.contains(dev.panini.core.ItMarker.NGIT) 
-            }
-            val isPitOrSup = finalState.allEffectiveTerms.any { 
-                it.itMarkers.contains(dev.panini.core.ItMarker.P) || it.kind == TermKind.PRATYAYA 
-            }
-            SvaraEngine.computeSvara(finalState.surface, isNitOrNnit = isNitOrNnit, isPitOrSup = isPitOrSup)
+            SvaraEngine.computeSvara(finalState.surface, SvaraContext.from(finalState))
         } else {
             null
         }

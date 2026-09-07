@@ -193,7 +193,11 @@ class SamasaEngine(
 
         val finalSurface = subantaResult.final.surface
         val finalTerm = DerivationTerm("samasa_final", finalSurface, TermKind.PRATIPADIKA, upadesha = finalSurface)
-        val finalState = currentState.copy(terms = listOf(finalTerm), stage = DerivationStage.FINAL)
+        val finalState = currentState.copy(
+            terms = listOf(finalTerm),
+            stage = DerivationStage.FINAL,
+            appliedSutras = initialState.appliedSutras + applications.map { it.sutra },
+        )
 
         val resolution = SamasaResolution(
             type = type,

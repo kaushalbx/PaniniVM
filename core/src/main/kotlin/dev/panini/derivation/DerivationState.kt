@@ -35,18 +35,18 @@ class DerivationState(
 
     /** Validates the it-processing boundary for workflows that have completed migration. */
     fun requireCompleteItProcessing(): DerivationState {
-        require(terms.none { it.itProcessingPhase != ItProcessingPhase.PROCESSED }) {
-            val incomplete = terms.filter { it.itProcessingPhase != ItProcessingPhase.PROCESSED }
+        require(allEffectiveTerms.none { it.itProcessingPhase != ItProcessingPhase.PROCESSED }) {
+            val incomplete = allEffectiveTerms.filter { it.itProcessingPhase != ItProcessingPhase.PROCESSED }
                 .joinToString { "${it.id}:${it.surface}:${it.itProcessingPhase}" }
             "A completed derivation cannot contain incomplete it-processing: $incomplete."
         }
-        require(terms.none { it.itDesignations.isNotEmpty() }) {
-            val pending = terms.filter { it.itDesignations.isNotEmpty() }
+        require(allEffectiveTerms.none { it.itDesignations.isNotEmpty() }) {
+            val pending = allEffectiveTerms.filter { it.itDesignations.isNotEmpty() }
                 .joinToString { "${it.id}:${it.surface}=${it.itDesignations}" }
             "A completed derivation cannot contain unconsumed it-designations: $pending."
         }
-        require(terms.none { it.deferredItDesignations.isNotEmpty() }) {
-            val pending = terms.filter { it.deferredItDesignations.isNotEmpty() }
+        require(allEffectiveTerms.none { it.deferredItDesignations.isNotEmpty() }) {
+            val pending = allEffectiveTerms.filter { it.deferredItDesignations.isNotEmpty() }
                 .joinToString { "${it.id}:${it.surface}=${it.deferredItDesignations}" }
             "A completed derivation cannot contain deferred it-designations: $pending."
         }
@@ -419,6 +419,8 @@ data class DerivationTerm(
     val mergeIntoAugmentTarget: Boolean = true,
     /** Underlying lexical head of a compound term, when rules target head identity after surface sandhi. */
     val compoundHeadUpadesha: String? = null,
+    /** Persistent provenance for markers established by exact it-designations. */
+    val itMarkerProvenance: Set<ItMarkerProvenance> = emptySet(),
 ) {
     init {
         nonOperativeUpadeshaSegments.forEach { segment ->
@@ -520,6 +522,7 @@ data class DerivationTerm(
                 upadesha = replacementUpadesha,
                 nonOperativeUpadeshaSegments = emptyList(),
                 itMarkers = emptySet(),
+                itMarkerProvenance = emptySet(),
                 itDesignations = emptyList(),
                 deferredItDesignations = emptyList(),
                 itProcessingPhase = ItProcessingPhase.RAW_UPADESHA,
@@ -598,6 +601,12 @@ data class ItDesignation(
     val marker: ItMarker,
     val sutra: String,
     /** Original designated segment; detects a designation consumed by a later whole-term substitution. */
+    val designatedText: String,
+)
+
+data class ItMarkerProvenance(
+    val marker: ItMarker,
+    val designationSutra: String,
     val designatedText: String,
 )
 

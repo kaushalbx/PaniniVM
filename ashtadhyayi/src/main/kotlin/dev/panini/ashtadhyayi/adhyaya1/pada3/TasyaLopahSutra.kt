@@ -4,6 +4,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.ItMarkerProvenance
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -58,6 +59,9 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
                 return@map term.copy(
                     surface = processed,
                     itMarkers = emptySet(),
+                    itMarkerProvenance = term.itMarkerProvenance + exactDesignations.map { designation ->
+                        ItMarkerProvenance(designation.marker, designation.sutra, designation.designatedText)
+                    },
                     itDesignations = emptyList(),
                     deferredItDesignations = emptyList(),
                     itProcessingPhase = dev.panini.derivation.ItProcessingPhase.PROCESSED,

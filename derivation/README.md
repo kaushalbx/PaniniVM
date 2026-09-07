@@ -62,6 +62,17 @@ and assigning sūtra. Consequently a saṃjñā, adhikāra, or other non-phonolo
 application can be present in `appliedSutras` and the public trace without
 creating a fictitious character substitution.
 
+Every `DerivationResult` checks that its `appliedSutras` is exactly the initial
+history followed by its public `DerivationApplication`s. Completed workflow
+boundaries enforce the it-processing invariant; phase-local results may still
+carry raw material specifically owned by a following IT-processing phase.
+
+After 1.3.9, `ItMarkerProvenance` retains the exact designated segment and the
+1.3.2–1.3.8 sūtra that assigned it. Downstream accent computation receives a
+typed `SvaraContext` built from this evidence and exact sup identity; it does not
+infer a sup or marker trigger from the final spelling or from generic pratyaya
+shape.
+
 The transition from `RAW_UPADESHA` to `PROCESSED` when 1.3.2–1.3.8 designate
 no segment is such bookkeeping. `DerivationEngine` performs it without adding
 an application or rule event, and only when its active rule set contains the

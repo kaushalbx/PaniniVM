@@ -11,18 +11,26 @@ import kotlin.test.assertTrue
 class AtomicSurfaceMutationArchitectureTest {
     @Test
     fun `executable grammar rules use atomic surface mutation APIs`() {
-        val sourceRoot = sequenceOf(
-            Path.of("ashtadhyayi", "src", "main", "kotlin"),
-            Path.of("src", "main", "kotlin"),
-        ).firstOrNull { it.isDirectory() } ?: error("Cannot locate the Aṣṭādhyāyī source tree.")
+        val modules = listOf("ashtadhyayi", "derivation", "core")
+        val sourceRoots = modules.mapNotNull { module ->
+            sequenceOf(
+                Path.of(module, "src", "main", "kotlin"),
+                Path.of("..", module, "src", "main", "kotlin"),
+                Path.of("src", "main", "kotlin").takeIf { module == "ashtadhyayi" },
+            ).filterNotNull().firstOrNull { it.isDirectory() }
+        }.distinct()
+        require(sourceRoots.isNotEmpty()) { "Cannot locate the derivation source trees." }
 
-        val violations = Files.walk(sourceRoot).use { paths ->
-            val lifecycleOwners = setOf(
-                "AdyantauTakitauSutra.kt",
-                "MidacoAntyatParahSutra.kt",
-                "TasyaLopahSutra.kt",
-            )
-            paths.filter { it.extension == "kt" }
+        val lifecycleOwners = setOf(
+            "AdyantauTakitauSutra.kt",
+            "MidacoAntyatParahSutra.kt",
+            "TasyaLopahSutra.kt",
+            "DerivationState.kt",
+            "DerivationEngine.kt",
+        )
+        val violations = sourceRoots.flatMap { sourceRoot ->
+            Files.walk(sourceRoot).use { paths ->
+                paths.filter { it.extension == "kt" }
                 .filter { it.fileName.toString() !in lifecycleOwners }
                 .map { path -> path to path.readText() }
                 .filter { (_, source) ->
@@ -31,6 +39,7 @@ class AtomicSurfaceMutationArchitectureTest {
                 .map { (path, _) -> sourceRoot.relativize(path).toString() }
                 .sorted()
                 .toList()
+            }
         }
 
         assertTrue(

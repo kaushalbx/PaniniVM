@@ -1,6 +1,7 @@
 package dev.panini.derivation
 
 import dev.panini.core.ItMarker
+import dev.panini.core.SupAffix
 
 enum class AccentType {
     UDATTA,   // उदात्त (High pitch)
@@ -22,6 +23,39 @@ data class SvaraResult(
     val rulesApplied: List<String>,
 )
 
+enum class SvaraTriggerKind { NIT_OR_NGIT, PIT_OR_SUP, EXPLICIT_UDATTA }
+
+/** Grammatical evidence used by svara rules; never inferred from the final spelling. */
+data class SvaraTrigger(
+    val kind: SvaraTriggerKind,
+    val termId: String,
+    val marker: ItMarker? = null,
+    val designationSutra: String? = null,
+    val vowelIndex: Int? = null,
+)
+
+data class SvaraContext(val triggers: List<SvaraTrigger> = emptyList()) {
+    companion object {
+        fun from(state: DerivationState): SvaraContext = SvaraContext(buildList {
+            state.allEffectiveTerms.forEach { term ->
+                term.itMarkerProvenance
+                    .filter { it.marker == ItMarker.NIT || it.marker == ItMarker.NGIT }
+                    .forEach { provenance ->
+                        add(SvaraTrigger(SvaraTriggerKind.NIT_OR_NGIT, term.id, provenance.marker, provenance.designationSutra))
+                    }
+                term.itMarkerProvenance
+                    .filter { it.marker == ItMarker.P }
+                    .forEach { provenance ->
+                        add(SvaraTrigger(SvaraTriggerKind.PIT_OR_SUP, term.id, provenance.marker, provenance.designationSutra))
+                    }
+                if (SupAffix.entries.any { affix -> term.matchesUpadesha(affix.upadesha) }) {
+                    add(SvaraTrigger(SvaraTriggerKind.PIT_OR_SUP, term.id))
+                }
+            }
+        })
+    }
+}
+
 object SvaraEngine {
 
     private val VOWELS = setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ए', 'ऐ', 'ओ', 'औ')
@@ -30,9 +64,7 @@ object SvaraEngine {
     /** Computes the Pāṇinian Svara (Udātta, Anudātta, Svarita) assignment for a word. */
     fun computeSvara(
         word: String,
-        isNitOrNnit: Boolean = false,
-        isPitOrSup: Boolean = false,
-        hasExplicitUdattapa: Int? = null,
+        context: SvaraContext = SvaraContext(),
     ): SvaraResult {
         val rules = mutableListOf<String>()
         val vowelPositions = findVowelPositions(word)
@@ -42,16 +74,20 @@ object SvaraEngine {
         }
 
         // Determine Udātta vowel index (0-indexed position among vowels in word)
+        val explicit = context.triggers.firstOrNull { it.kind == SvaraTriggerKind.EXPLICIT_UDATTA }
+        val nitOrNgit = context.triggers.firstOrNull { it.kind == SvaraTriggerKind.NIT_OR_NGIT }
+        val pitOrSup = context.triggers.firstOrNull { it.kind == SvaraTriggerKind.PIT_OR_SUP }
         val udattaVowelIndex = when {
-            hasExplicitUdattapa != null -> {
-                rules += "Explicit Udātta specified at vowel index $hasExplicitUdattapa"
-                hasExplicitUdattapa.coerceIn(0, vowelPositions.size - 1)
+            explicit != null -> {
+                val vowelIndex = requireNotNull(explicit.vowelIndex) { "An explicit udātta trigger requires a vowel index." }
+                rules += "Explicit Udātta specified at vowel index $vowelIndex"
+                vowelIndex.coerceIn(0, vowelPositions.size - 1)
             }
-            isNitOrNnit -> {
+            nitOrNgit != null -> {
                 rules += "6.1.197 [ञ्नित्यादिर्नित्यम्]: Ñ-it / N-it affix gives initial accent (आयुदात्त)"
                 0 // First vowel is Udātta
             }
-            isPitOrSup -> {
+            pitOrSup != null -> {
                 rules += "3.1.4 [अनुदात्तौ सुप्पितौ]: Sup/Pit affix is Anudātta, stem retains accent (अन्तोदात्त)"
                 (vowelPositions.size - 2).coerceAtLeast(0)
             }
