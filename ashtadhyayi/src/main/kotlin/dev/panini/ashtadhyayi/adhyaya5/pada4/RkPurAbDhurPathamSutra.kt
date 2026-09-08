@@ -11,18 +11,18 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 /**
- * Sūtra 5.4.68: ऋक्पूरब्धूरपथामानक्शत्.
+ * Sūtra 5.4.74: ऋक्पूरप्धूःपथामानक्षे.
  * Prescribes Samāsānta a-pratyaya for compounds ending in ṛc, pur, ap, dhur, pathin.
  */
 object RkPurAbDhurPathamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
-    number = "5.4.68",
-    text = "ऋक्पूरब्धूरपथामानक्शत्",
+    number = "5.4.74",
+    text = "ऋक्पूरप्धूःपथामानक्षे",
     hindiExplanation = "ऋक्, पूर्, अप्, धूर् तथा पथिन् उत्तरपद वाले समासों से नित्य 'अ' (समासान्त) प्रत्यय होता है (उदा. अर्द्धर्चम्, विष्णुपुरम्)।",
     type = SutraType.NITYA,
     chapter = 5,
     pada = 4,
     optional = false,
-    kramaValue = 540068,
+    kramaValue = 540074,
     role = SutraRole.Niyama,
     action = SutraAction.PRATYAYA_SELECTION,
     scope = SutraScope.DERIVATION,
@@ -39,7 +39,7 @@ object RkPurAbDhurPathamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         val compoundStem = context.padas.joinToString("") { it.upadesha } + "अ"
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
-            explanation = "5.4.68 adds Samāsānta 'a' suffix for ṛc/pur/ap/dhur/pathin ending compound '$compoundStem'.",
+            explanation = "5.4.74 adds Samāsānta 'a' suffix for ṛc/pur/ap/dhur/pathin ending compound '$compoundStem'.",
         )
     }
 }

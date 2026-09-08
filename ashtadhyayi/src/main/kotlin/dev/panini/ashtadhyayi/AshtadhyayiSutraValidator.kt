@@ -20,7 +20,13 @@ object AshtadhyayiSutraValidator {
     )
 
     fun validate(sutras: Iterable<Sutra<*, *>>): List<SutraCatalogIssue> = buildList {
-        sutras.forEach { sutra ->
+        val materialized = sutras.toList()
+        materialized.groupBy { it.number }
+            .filterValues { it.size > 1 }
+            .forEach { (number, duplicates) ->
+                add(SutraCatalogIssue(number, "Duplicate Aṣṭādhyāyī sūtra number (${duplicates.size} definitions)"))
+            }
+        materialized.forEach { sutra ->
             if (!canonicalNumber.matches(sutra.number)) {
                 add(SutraCatalogIssue(sutra.number, "Noncanonical Aṣṭādhyāyī sūtra number"))
             } else {

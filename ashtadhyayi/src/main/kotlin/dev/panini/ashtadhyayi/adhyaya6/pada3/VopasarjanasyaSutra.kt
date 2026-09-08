@@ -35,7 +35,12 @@ object VopasarjanasyaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
         val uttara = context.uttaraPada.upadesha
-        val compoundStem = "स" + uttara
+        val compoundStem = when {
+            uttara.startsWith("अ") || uttara.startsWith("आ") -> "सा" + uttara.drop(1)
+            uttara.startsWith("इ") || uttara.startsWith("ई") -> "से" + uttara.drop(1)
+            uttara.startsWith("उ") || uttara.startsWith("ऊ") -> "सो" + uttara.drop(1)
+            else -> "स" + uttara
+        }
 
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,

@@ -183,6 +183,7 @@ class SamasaEngine(
         val padasList = padas.map { it.upadesha }
         val rawPadasConcat = padasList.joinToString("")
         val hasSamasantaKap = rawStem.endsWith("क") && !rawPadasConcat.endsWith("क")
+        val hasPriorStemTransformation = transformationSutras.any { it.samasaPhase == SamasaRulePhase.STEM_TRANSFORMATION }
         val compoundMembers = padasList.mapIndexed { index, surface ->
             if (index < padas.lastIndex && type != SamasaType.ALUK_TATPURUSA && surface.endsWith("न्")) {
                 surface.dropLast(2)
@@ -216,6 +217,11 @@ class SamasaEngine(
                 applications.addAll(j.applications)
             }
             res
+        } else if (hasSamasantaKap && hasPriorStemTransformation) {
+            // The ordered transformation pipeline has already composed the
+            // stem substitution and samāsānta. Rejoining the original padas
+            // here would undo the earlier substitution.
+            rawStem
         } else if (rawStem == rawPadasConcat || hasSamasantaKap) {
             val res = joinCompoundMembers(compoundMembers, applications)
             if (hasSamasantaKap) {
