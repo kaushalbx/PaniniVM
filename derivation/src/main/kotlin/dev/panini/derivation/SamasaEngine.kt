@@ -124,6 +124,28 @@ class SamasaEngine(
             )
         }
 
+        // Rules following the primary samāsa designation can govern member
+        // order (2.2.30 ff.) or the collective interpretation of a dvandva
+        // (2.4.1 ff.).  They belong in the derivation trace, but must never
+        // replace 2.2.29 as the classification rule.
+        selectPostClassificationSutras(context, classificationSutra, transformationSutra)
+            .forEach { sutra ->
+                val sutraObj = sutra as Sutra<*, *>
+                val result = sutra.apply(context) as? SamasaRuleResult.Formed
+                applications.add(
+                    DerivationApplication(
+                        sutra = sutraObj.number,
+                        role = sutraObj.role,
+                        action = sutraObj.action,
+                        scope = sutraObj.scope,
+                        trace = sutraObj.text,
+                        before = currentState,
+                        after = currentState,
+                        explanation = result?.explanation ?: sutraObj.text,
+                    )
+                )
+            }
+
         val rawStem = samasaResult.compoundStem
         val padasList = padas.map { it.upadesha }
         val rawPadasConcat = padasList.joinToString("")
@@ -323,6 +345,25 @@ class SamasaEngine(
         .sortedWith(compareByDescending<SamasaSutra> { it.samasaPriority }.thenByDescending { (it as Sutra<*, *>).kramaValue })
         .firstOrNull { it.matches(context) }
         ?.let { it as Sutra<SamasaRuleContext, SamasaRuleResult> }
+
+    private fun selectPostClassificationSutras(
+        context: SamasaRuleContext,
+        classificationSutra: Sutra<SamasaRuleContext, SamasaRuleResult>,
+        transformationSutra: Sutra<SamasaRuleContext, SamasaRuleResult>?,
+    ): List<Sutra<SamasaRuleContext, SamasaRuleResult>> = samasaSutras
+        .asSequence()
+        .filter {
+            val sutra = it as Sutra<*, *>
+            it.samasaType == context.samasaType &&
+                sutra.number != classificationSutra.number &&
+                sutra.number != transformationSutra?.number &&
+                ((sutra.chapter == 2 && sutra.pada == 2 && sutra.kramaValue in 220030..220038) ||
+                    (sutra.chapter == 2 && sutra.pada == 4))
+        }
+        .filter { it.matches(context) }
+        .sortedBy { (it as Sutra<*, *>).kramaValue }
+        .map { it as Sutra<SamasaRuleContext, SamasaRuleResult> }
+        .toList()
 
     private fun selectTatpurusaFallback(
         context: SamasaRuleContext,

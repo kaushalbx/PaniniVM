@@ -116,7 +116,7 @@ class SamasaEngineTest {
             ),
             SamasaType.KARMADHARAYA,
         )
-        assertEquals("नीलोत्पलः", result.final.terms.last().surface)
+        assertEquals("नीलोत्पलम्", result.final.terms.last().surface)
         assertTrue(result.applications.any { it.sutra == "2.1.57" })
     }
 
@@ -1202,7 +1202,7 @@ class SamasaEngineTest {
     }
 
     @Test
-    fun `test Ktena Trtiya Tatpurusha (2 1 86)`() {
+    fun `test Krta Trtiya Tatpurusha (2 1 32)`() {
         val result = engine.derive(
             listOf(
                 SamasaPada("अहि", Vibhakti.TRTIYA),
@@ -1210,7 +1210,7 @@ class SamasaEngineTest {
             ),
             SamasaType.TATPURUSA,
         )
-        assertTrue(result.applications.any { it.sutra == "2.1.86" })
+        assertTrue(result.applications.any { it.sutra == "2.1.32" })
     }
 
     @Test
@@ -1274,7 +1274,7 @@ class SamasaEngineTest {
     }
 
     @Test
-    fun `test Gahane Kathina Tatpurusha (2 1 91)`() {
+    fun `test Dvitiya Tatpurusha fallback does not use artificial rule number`() {
         val result = engine.derive(
             listOf(
                 SamasaPada("गहन", Vibhakti.DVITIYA),
@@ -1282,7 +1282,8 @@ class SamasaEngineTest {
             ),
             SamasaType.TATPURUSA,
         )
-        assertTrue(result.applications.any { it.sutra == "2.1.91" })
+        assertTrue(result.applications.any { it.sutra == "2.1.24" })
+        assertTrue(result.applications.none { it.sutra == "2.1.91" })
     }
 
     @Test
@@ -4419,7 +4420,6 @@ class SamasaEngineTest {
         assertTrue(sutra.matches(context))
     }
 }
-
 
 
 
