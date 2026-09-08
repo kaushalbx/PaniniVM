@@ -295,25 +295,19 @@ class SamasaEngine(
         semanticRelations: Set<SamasaSemanticRelation>,
     ): Triple<Vibhakti, Vacana, Linga> {
         val count = padas.size
-        val lastPada = padas.lastOrNull()?.upadesha ?: ""
-        val isNeuterStem = lastPada in setOf(
-            "पद", "ज", "कुल", "वन", "अक्ष", "ज्ञान", "फल", "अवच", "अन्तर",
-            "भय", "उत्पल", "कमल",
-        ) ||
-            padas.firstOrNull()?.upadesha == "कृत"
-        val isSamaharaDvandva = padas.any { it.upadesha in setOf("पाणि", "पाद", "मार्दङ्गिक", "धाना", "शष्कुलि") }
+        val declaredLinga = outputLinga ?: padas.lastOrNull()?.linga
+        val declaredVacana = outputVacana ?: padas.lastOrNull()?.vacana
 
         val inferred = when (type) {
             SamasaType.AVYAYIBHAVA, SamasaType.DVIGU ->
                 Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.NAPUMSAKA)
             SamasaType.MAYURAVYAMSAKADI ->
-                Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, if (padas.firstOrNull()?.upadesha == "मयूर") Linga.PUMS else Linga.NAPUMSAKA)
+                Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, declaredLinga ?: Linga.PUMS)
             SamasaType.TATPURUSA, SamasaType.BAHUVRIHI, SamasaType.KARMADHARAYA, SamasaType.NAN_TATPURUSA, SamasaType.UPAPADA_TATPURUSA, SamasaType.ALUK_TATPURUSA ->
-                Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, if (isNeuterStem) Linga.NAPUMSAKA else Linga.PUMS)
+                Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, declaredLinga ?: Linga.PUMS)
             SamasaType.DVANDVA ->
-                if (isSamaharaDvandva) Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.NAPUMSAKA)
-                else if (count == 2)   Triple(Vibhakti.PRATHAMA, Vacana.DVIVACANA, Linga.PUMS)
-                else                   Triple(Vibhakti.PRATHAMA, Vacana.BAHUVACANA, Linga.PUMS)
+                if (count == 2) Triple(Vibhakti.PRATHAMA, Vacana.DVIVACANA, declaredLinga ?: Linga.PUMS)
+                else Triple(Vibhakti.PRATHAMA, Vacana.BAHUVACANA, declaredLinga ?: Linga.PUMS)
         }
         if (strictSemantics) {
             val strictDefaults = when (type) {
@@ -330,8 +324,8 @@ class SamasaEngine(
         }
         return Triple(
             inferred.first,
-            outputVacana ?: padas.lastOrNull()?.vacana ?: inferred.second,
-            outputLinga ?: padas.lastOrNull()?.linga ?: inferred.third,
+            declaredVacana ?: inferred.second,
+            declaredLinga ?: inferred.third,
         )
     }
 

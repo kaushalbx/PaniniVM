@@ -35,6 +35,7 @@ class ConsonantStemSamasaTest {
                 SamasaPada("ज्ञान", Vibhakti.PRATHAMA),
             ),
             SamasaType.TATPURUSA,
+            outputLinga = dev.panini.core.Linga.NAPUMSAKA,
         )
         assertEquals("आत्मज्ञानम्", result.final.surface)
         assertTrue(result.applications.any { it.sutra == "8.2.7" })
@@ -48,6 +49,7 @@ class ConsonantStemSamasaTest {
                 SamasaPada("फल", Vibhakti.PRATHAMA),
             ),
             SamasaType.TATPURUSA,
+            outputLinga = dev.panini.core.Linga.NAPUMSAKA,
         )
         assertEquals("कर्मफलम्", result.final.surface)
         assertTrue(result.applications.any { it.sutra == "8.2.7" })

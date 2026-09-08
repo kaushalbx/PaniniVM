@@ -41,22 +41,17 @@ class SamasaBenchmarkTest {
         val json = requireNotNull(javaClass.getResource("/samasa_benchmark.json")) {
             "Missing samasa_benchmark.json test resource"
         }.readText()
-        return json.trim().removePrefix("[").removeSuffix("]")
-            .split(Regex("\\n\\s*},\\s*\\n\\s*\\{"))
-            .map { raw -> parseCase(raw.trim().removePrefix("{").removeSuffix("}")) }
+        val records = TestJsonParser.parse(json) as? List<*> ?: error("Benchmark root must be a JSON array")
+        return records.map { parseCase(it as? Map<*, *> ?: error("Benchmark entry must be an object")) }
     }
 
-    private fun parseCase(raw: String): BenchmarkCase {
-        fun field(name: String): String = Regex("\\\"$name\\\"\\s*:\\s*\\\"([^\\\"]*)\\\"")
-            .find(raw)?.groupValues?.get(1) ?: error("Missing '$name' in benchmark case: $raw")
-        fun optionalField(name: String): String? = Regex("\\\"$name\\\"\\s*:\\s*\\\"([^\\\"]*)\\\"")
-            .find(raw)?.groupValues?.get(1)
-        val padasBlock = Regex("\\\"padas\\\"\\s*:\\s*\\[(.*?)]", RegexOption.DOT_MATCHES_ALL)
-            .find(raw)?.groupValues?.get(1) ?: error("Missing padas in benchmark case: $raw")
-        val padas = Regex("\\{\\s*\\\"upadesha\\\"\\s*:\\s*\\\"([^\\\"]+)\\\"\\s*,\\s*\\\"vibhakti\\\"\\s*:\\s*\\\"([^\\\"]+)\\\"\\s*}")
-            .findAll(padasBlock)
-            .map { match -> SamasaPada(match.groupValues[1], Vibhakti.valueOf(match.groupValues[2])) }
-            .toList()
+    private fun parseCase(raw: Map<*, *>): BenchmarkCase {
+        fun field(name: String): String = raw[name] as? String ?: error("Missing '$name' in benchmark case: $raw")
+        fun optionalField(name: String): String? = raw[name] as? String
+        val padas = (raw["padas"] as? List<*>)?.map { item ->
+            val pada = item as? Map<*, *> ?: error("Pada must be an object: $item")
+            SamasaPada(pada["upadesha"] as String, Vibhakti.valueOf(pada["vibhakti"] as String))
+        } ?: error("Missing padas in benchmark case: $raw")
         val transformations = field("transformationSutras").split(',').filter { it.isNotBlank() }
         val forbidden = field("forbiddenSutras").split(',').filter { it.isNotBlank() }
 

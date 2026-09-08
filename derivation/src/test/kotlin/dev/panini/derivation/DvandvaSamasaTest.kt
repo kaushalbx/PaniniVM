@@ -47,6 +47,8 @@ class DvandvaSamasaTest {
                 SamasaPada("पाद", Vibhakti.PRATHAMA),
             ),
             SamasaType.DVANDVA,
+            outputLinga = dev.panini.core.Linga.NAPUMSAKA,
+            outputVacana = dev.panini.core.Vacana.EKAVACANA,
         )
         assertEquals("पाणिपादम्", result.final.surface)
     }

@@ -18,6 +18,7 @@ class SamasaEngineTest {
         val result = engine.derive(
             listOf(SamasaPada("सर्प", Vibhakti.PANCHAMI), SamasaPada("भय", Vibhakti.PRATHAMA)),
             SamasaType.TATPURUSA,
+            outputLinga = dev.panini.core.Linga.NAPUMSAKA,
         )
         assertEquals("सर्पभयम्", result.final.terms.last().surface)
     }
@@ -158,6 +159,7 @@ class SamasaEngineTest {
                 SamasaPada("उत्पल", Vibhakti.PRATHAMA),
             ),
             SamasaType.KARMADHARAYA,
+            outputLinga = dev.panini.core.Linga.NAPUMSAKA,
         )
         assertEquals("नीलोत्पलम्", result.final.terms.last().surface)
         assertTrue(result.applications.any { it.sutra == "2.1.57" })
@@ -277,6 +279,7 @@ class SamasaEngineTest {
                 SamasaPada("पद", Vibhakti.PRATHAMA),
             ),
             SamasaType.ALUK_TATPURUSA,
+            outputLinga = dev.panini.core.Linga.NAPUMSAKA,
         )
         assertEquals("आत्मनेपदम्", result.final.terms.last().surface)
         assertTrue(result.applications.any { it.sutra == "6.3.21" })
@@ -391,6 +394,8 @@ class SamasaEngineTest {
                 SamasaPada("पाद", Vibhakti.PRATHAMA),
             ),
             SamasaType.DVANDVA,
+            outputLinga = dev.panini.core.Linga.NAPUMSAKA,
+            outputVacana = dev.panini.core.Vacana.EKAVACANA,
         )
         assertEquals("पाणिपादम्", result.final.terms.last().surface)
         assertTrue(result.applications.any { it.sutra == "2.4.2" })
@@ -489,6 +494,7 @@ class SamasaEngineTest {
                 SamasaPada("अकृत", Vibhakti.PRATHAMA),
             ),
             SamasaType.KARMADHARAYA,
+            outputLinga = dev.panini.core.Linga.NAPUMSAKA,
         )
         assertEquals("कृताकृतम्", result.final.terms.last().surface)
         assertTrue(result.applications.any { it.sutra == "2.1.60" })
@@ -3951,8 +3957,6 @@ class SamasaEngineTest {
         assertTrue(sutra.matches(context))
     }
 }
-
-
 
 
 

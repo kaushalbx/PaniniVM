@@ -35,6 +35,7 @@ class KarmadharayaSamasaTest {
                 SamasaPada("उत्पल", Vibhakti.PRATHAMA),
             ),
             SamasaType.KARMADHARAYA,
+            outputLinga = dev.panini.core.Linga.NAPUMSAKA,
         )
         assertEquals("नीलोत्पलम्", result.final.surface)
         assertTrue(result.applications.isNotEmpty())

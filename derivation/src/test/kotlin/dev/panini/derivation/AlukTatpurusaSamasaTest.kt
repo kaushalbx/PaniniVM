@@ -22,6 +22,7 @@ class AlukTatpurusaSamasaTest {
                 SamasaPada("पद", Vibhakti.PRATHAMA),
             ),
             SamasaType.ALUK_TATPURUSA,
+            outputLinga = dev.panini.core.Linga.NAPUMSAKA,
         )
         assertEquals("आत्मनेपदम्", result.final.surface)
         assertTrue(result.applications.isNotEmpty())
@@ -35,6 +36,7 @@ class AlukTatpurusaSamasaTest {
                 SamasaPada("पद", Vibhakti.PRATHAMA),
             ),
             SamasaType.ALUK_TATPURUSA,
+            outputLinga = dev.panini.core.Linga.NAPUMSAKA,
         )
         assertEquals("परस्मैपदम्", result.final.surface)
         assertTrue(result.applications.isNotEmpty())
