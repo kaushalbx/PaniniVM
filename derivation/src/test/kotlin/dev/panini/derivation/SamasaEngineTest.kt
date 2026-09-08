@@ -1,15 +1,57 @@
 package dev.panini.derivation
 
 import dev.panini.analysis.SamasaPada
+import dev.panini.analysis.SamasaSemanticRelation
 import dev.panini.core.SamasaType
 import dev.panini.core.Vibhakti
 import dev.panini.shiksha.Samjna
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.test.assertFailsWith
 
 class SamasaEngineTest {
     private val engine = SamasaEngine()
+
+    @Test
+    fun `consonant-initial member does not trigger destructive external sandhi`() {
+        val result = engine.derive(
+            listOf(SamasaPada("सर्प", Vibhakti.PANCHAMI), SamasaPada("भय", Vibhakti.PRATHAMA)),
+            SamasaType.TATPURUSA,
+        )
+        assertEquals("सर्पभयम्", result.final.terms.last().surface)
+    }
+
+    @Test
+    fun `strict derivation accepts explicitly licensed karmadharaya`() {
+        val result = engine.derive(
+            SamasaDerivationRequest(
+                padas = listOf(SamasaPada("नील"), SamasaPada("उत्पल")),
+                type = SamasaType.KARMADHARAYA,
+                semanticRelations = setOf(
+                    SamasaSemanticRelation.SAMARTHYA,
+                    SamasaSemanticRelation.QUALIFIER_QUALIFIED,
+                ),
+                strictSemantics = true,
+            ),
+        )
+        assertEquals("नीलोत्पलम्", result.final.terms.last().surface)
+    }
+
+    @Test
+    fun `strict derivation rejects unlicensed bahuvrihi`() {
+        val error = assertFailsWith<IllegalArgumentException> {
+            engine.derive(
+                SamasaDerivationRequest(
+                    padas = listOf(SamasaPada("पीत"), SamasaPada("अम्बर")),
+                    type = SamasaType.BAHUVRIHI,
+                    semanticRelations = setOf(SamasaSemanticRelation.SAMARTHYA),
+                    strictSemantics = true,
+                ),
+            )
+        }
+        assertTrue(error.message.orEmpty().contains("EXTERNAL_REFERENT"))
+    }
 
     @Test
     fun `test Avyayibhava compound derivation`() {
@@ -3908,7 +3950,6 @@ class SamasaEngineTest {
         assertTrue(sutra.matches(context))
     }
 }
-
 
 
 

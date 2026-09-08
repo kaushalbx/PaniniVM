@@ -21,6 +21,19 @@ data class SamasaPada(
     val vacana: Vacana? = null,
 )
 
+/** Semantic facts supplied by the vigraha, rather than guessed from its words. */
+enum class SamasaSemanticRelation {
+    SAMARTHYA,
+    CASE_RELATION,
+    QUALIFIER_QUALIFIED,
+    EXTERNAL_REFERENT,
+    COORDINATION,
+    COLLECTIVE,
+    INDECLINABLE_RELATION,
+    UPAPADA_RELATION,
+    NUMERAL_GROUP,
+}
+
 /**
  * The input context provided to every Samāsa Sūtra (Adhyāyas 2.1–2.2).
  * Carries all information needed for principled Pāṇinian matching
@@ -34,6 +47,8 @@ data class SamasaRuleContext(
     val samasaType: SamasaType,
     val outputLinga: Linga? = null,
     val outputVacana: Vacana? = null,
+    val semanticRelations: Set<SamasaSemanticRelation> = emptySet(),
+    val strictSemantics: Boolean = false,
 ) {
     val purvaPada: SamasaPada get() = padas.first()
     val uttaraPada: SamasaPada get() = padas.last()

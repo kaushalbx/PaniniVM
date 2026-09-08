@@ -4,6 +4,7 @@ import dev.panini.analysis.SamasaPada
 import dev.panini.analysis.SamasaResolution
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
+import dev.panini.analysis.SamasaSemanticRelation
 import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.ashtadhyayi.adhyaya2.pada1.*
 import dev.panini.ashtadhyayi.adhyaya2.pada2.*
@@ -36,6 +37,8 @@ data class SamasaDerivationRequest(
     val type: SamasaType,
     val outputLinga: Linga? = null,
     val outputVacana: Vacana? = null,
+    val semanticRelations: Set<SamasaSemanticRelation> = emptySet(),
+    val strictSemantics: Boolean = false,
 )
 
 /**
@@ -57,13 +60,15 @@ class SamasaEngine(
     private val samasaSutras: List<SamasaSutra> = Ashtadhyayi.cataloguedSutras.filterIsInstance<SamasaSutra>(),
 ) {
     fun derive(request: SamasaDerivationRequest): DerivationResult =
-        derive(request.padas, request.type, request.outputLinga, request.outputVacana)
+        derive(request.padas, request.type, request.outputLinga, request.outputVacana, request.semanticRelations, request.strictSemantics)
 
     fun derive(
         padas: List<SamasaPada>,
         type: SamasaType,
         outputLinga: Linga? = null,
         outputVacana: Vacana? = null,
+        semanticRelations: Set<SamasaSemanticRelation> = emptySet(),
+        strictSemantics: Boolean = false,
     ): DerivationResult {
         require(padas.isNotEmpty()) { "At least one pada is required for Samāsa derivation." }
 
@@ -73,7 +78,10 @@ class SamasaEngine(
             samasaType = type,
             outputLinga = outputLinga,
             outputVacana = outputVacana,
+            semanticRelations = semanticRelations,
+            strictSemantics = strictSemantics,
         )
+        validateSemanticLicense(context)
 
         // 2. Select and apply the classification Sūtra driven by purvaPadaVibhakti
         val classificationSutra = selectClassificationSutra(context)
@@ -197,14 +205,7 @@ class SamasaEngine(
             }
             res
         } else if (rawStem == rawPadasConcat || hasSamasantaKap) {
-            var res = compoundMembers.first()
-            for (i in 1 until compoundMembers.size) {
-                val next = compoundMembers[i]
-                val j = sandhiEngine.join(res, next)
-                val joined = j.final.surface
-                res = if (joined.isNotBlank() && joined.length >= res.length + next.length - 1) joined else res + next
-                applications.addAll(j.applications)
-            }
+            val res = joinCompoundMembers(compoundMembers, applications)
             if (hasSamasantaKap) {
                 if (res.endsWith("ः")) res.dropLast(1) + "स्क" else res + "क"
             } else res
@@ -313,6 +314,54 @@ class SamasaEngine(
         stem.endsWith("इ") || stem.endsWith("ई") || stem.endsWith("उ") || stem.endsWith("ऊ") -> stem
         stem.endsWith("म्") -> stem
         else -> stem + "म्"
+    }
+
+    private fun joinCompoundMembers(
+        members: List<String>,
+        applications: MutableList<DerivationApplication>,
+    ): String {
+        var result = members.first()
+        for (next in members.drop(1)) {
+            // A written Devanagari consonant already includes its inherent /a/.
+            // External sandhi is therefore relevant here only before an explicit
+            // independent vowel; running it before another consonant corrupts the
+            // interior of words (सर्प + भय must remain सर्पभय, not सर्भय).
+            if (next.firstOrNull() in independentVowels) {
+                val joined = sandhiEngine.join(result, next)
+                val surface = joined.final.surface
+                result = if (surface.isNotBlank() && surface.length >= result.length + next.length - 1) surface else result + next
+                applications.addAll(joined.applications)
+            } else {
+                result += next
+            }
+        }
+        return result
+    }
+
+    private fun validateSemanticLicense(context: SamasaRuleContext) {
+        if (!context.strictSemantics) return
+        val required = buildSet {
+            add(SamasaSemanticRelation.SAMARTHYA)
+            add(
+                when (context.samasaType) {
+                    SamasaType.AVYAYIBHAVA -> SamasaSemanticRelation.INDECLINABLE_RELATION
+                    SamasaType.KARMADHARAYA -> SamasaSemanticRelation.QUALIFIER_QUALIFIED
+                    SamasaType.BAHUVRIHI -> SamasaSemanticRelation.EXTERNAL_REFERENT
+                    SamasaType.DVANDVA -> SamasaSemanticRelation.COORDINATION
+                    SamasaType.DVIGU -> SamasaSemanticRelation.NUMERAL_GROUP
+                    SamasaType.UPAPADA_TATPURUSA -> SamasaSemanticRelation.UPAPADA_RELATION
+                    else -> SamasaSemanticRelation.CASE_RELATION
+                },
+            )
+        }
+        val missing = required - context.semanticRelations
+        require(missing.isEmpty()) {
+            "Samāsa ${context.samasaType} is not semantically licensed; missing: ${missing.joinToString()}."
+        }
+    }
+
+    private companion object {
+        val independentVowels = setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ऌ', 'ए', 'ऐ', 'ओ', 'औ')
     }
 
     /**
