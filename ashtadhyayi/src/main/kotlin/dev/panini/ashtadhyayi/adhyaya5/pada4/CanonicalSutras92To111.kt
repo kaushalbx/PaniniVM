@@ -1,0 +1,21 @@
+package dev.panini.ashtadhyayi.adhyaya5.pada4
+
+/** Canonical identities retained inactive until their complete conditions are represented. */
+object GorAtaddhitalukiSutra : CanonicalInactiveSamasaSutra(92, "गोरतद्धितलुकि")
+object AgrakhyayamUrasahSutra : CanonicalInactiveSamasaSutra(93, "अग्राख्यायामुरसः")
+object AnoAsmayassarasamJatisamjnayohSutra : CanonicalInactiveSamasaSutra(94, "अनोऽश्मायस्सरसां जातिसंज्ञयोः")
+object GramakautabhyamCaTaksnahSutra : CanonicalInactiveSamasaSutra(95, "ग्रामकौटाभ्यां च तक्ष्णः")
+object AtehSunahSutra : CanonicalInactiveSamasaSutra(96, "अतेः शुनः")
+object UpamanadApranisuSutra : CanonicalInactiveSamasaSutra(97, "उपमानादप्राणिषु")
+object UttaramrgapurvacCaSakthnahSutra : CanonicalInactiveSamasaSutra(98, "उत्तरमृगपूर्वाच्च सक्थ्नः")
+object NavoDvigohSutra : CanonicalInactiveSamasaSutra(99, "नावो द्विगोः")
+object AnasantanNapumsakacChandasiSutra : CanonicalInactiveSamasaSutra(103, "अनसन्तान्नपुंसकाच्छन्दसि")
+object BrahmanoJanapadakhyayamSutra : CanonicalInactiveSamasaSutra(104, "ब्रह्मणो जानपदाख्यायाम्")
+object KumahadbhyamAnyatarasyamSutra : CanonicalInactiveSamasaSutra(105, "कुमहद्भ्यामन्यतरस्याम्")
+object DvandvacCudasahantatSamahareSutra : CanonicalInactiveSamasaSutra(106, "द्वन्द्वाच्चुदषहान्तात् समाहारे")
+object AvyayibhaveSaratprabhrtibhyahSutra : CanonicalInactiveSamasaSutra(107, "अव्ययीभावे शरत्प्रभृतिभ्यः")
+object AnasCaSutra : CanonicalInactiveSamasaSutra(108, "अनश्च")
+object NapumsakadAnyatarasyamSutra : CanonicalInactiveSamasaSutra(109, "नपुंसकादन्यतरस्याम्")
+object NadipaurnamasyagrahayanibhyahSutra : CanonicalInactiveSamasaSutra(110, "नदीपौर्णमास्याग्रहायणीभ्यः")
+object JhayahSutra : CanonicalInactiveSamasaSutra(111, "झयः")
+object GiresCaSenakasyaSutra : CanonicalInactiveSamasaSutra(112, "गिरेश्च सेनकस्य")

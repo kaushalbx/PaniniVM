@@ -17,7 +17,7 @@ import dev.panini.sutra.SutraType
  */
 object RajahahSakhibhyasTacSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "5.4.91",
-    text = "राजाहःसखिभ्यष्टच्",
+    text = "राजाऽहस्सखिभ्यष्टच्",
     hindiExplanation = "राजन्, अहन् तथा सखि उत्तरपद वाले तत्पुरुष समास से नित्य समासान्त 'अ' (टच्) प्रत्यय होता है (उदा. महाराजः, परमसखः)।",
     type = SutraType.NITYA,
     chapter = 5,
