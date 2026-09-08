@@ -16,6 +16,7 @@ object AshtadhyayiSutraValidator {
     private val canonicalPadaLimits = mapOf(
         (2 to 1) to 72,
         (2 to 2) to 38,
+        (5 to 4) to 160,
     )
 
     fun validate(sutras: Iterable<Sutra<*, *>>): List<SutraCatalogIssue> = buildList {

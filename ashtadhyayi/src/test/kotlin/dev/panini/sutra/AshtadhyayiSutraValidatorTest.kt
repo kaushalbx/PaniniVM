@@ -45,6 +45,14 @@ class AshtadhyayiSutraValidatorTest {
         assertTrue(issues.single().message.contains("canonical limit"))
     }
 
+    @Test
+    fun `rejects a fabricated samasanta number beyond 5 4 160`() {
+        val issues = AshtadhyayiSutraValidator.validate(listOf(sutra(null, "5.4.161")))
+
+        assertEquals(1, issues.size)
+        assertTrue(issues.single().message.contains("canonical limit"))
+    }
+
     private fun sutra(segmentedSource: String?, number: String = "1.1.1") = object : Sutra<Unit, Unit>(
         number = number,
         text = "वृद्धिरादैच्",
