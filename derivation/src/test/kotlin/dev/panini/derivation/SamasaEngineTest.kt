@@ -32,6 +32,7 @@ class SamasaEngineTest {
                     SamasaSemanticRelation.SAMARTHYA,
                     SamasaSemanticRelation.QUALIFIER_QUALIFIED,
                 ),
+                outputLinga = dev.panini.core.Linga.NAPUMSAKA,
                 strictSemantics = true,
             ),
         )
@@ -3950,7 +3951,6 @@ class SamasaEngineTest {
         assertTrue(sutra.matches(context))
     }
 }
-
 
 
 

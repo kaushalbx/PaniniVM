@@ -88,8 +88,19 @@ class SamasaEngine(
         val classificationResult = classificationSutra.apply(context) as? SamasaRuleResult.Formed
             ?: error("Sūtra ${(classificationSutra as Sutra<*, *>).number} did not form a compound for context: $context")
 
-        val transformationSutra = selectTransformationSutra(context, classificationSutra)
-        val samasaResult = transformationSutra?.apply(context) as? SamasaRuleResult.Formed ?: classificationResult
+        val transformationSutras = selectTransformationSutras(context, classificationSutra)
+        var samasaResult = classificationResult
+        val baseStem = padas.joinToString("") { it.upadesha }
+        val transformationResults = transformationSutras.map { sutra ->
+            val result = sutra.apply(context) as? SamasaRuleResult.Formed ?: return@map sutra to null
+            val composedStem = if (result.compoundStem.startsWith(baseStem)) {
+                samasaResult.compoundStem + result.compoundStem.removePrefix(baseStem)
+            } else {
+                result.compoundStem
+            }
+            samasaResult = result.copy(compoundStem = composedStem)
+            sutra to samasaResult
+        }
 
         val applications = mutableListOf<DerivationApplication>()
 
@@ -129,7 +140,8 @@ class SamasaEngine(
             )
         )
 
-        transformationSutra?.let { sutra ->
+        transformationResults.forEach { (sutra, result) ->
+            if (result == null) return@forEach
             val sutraObj = sutra as Sutra<*, *>
             applications.add(
                 DerivationApplication(
@@ -140,7 +152,7 @@ class SamasaEngine(
                     trace = sutraObj.text,
                     before = currentState,
                     after = currentState,
-                    explanation = samasaResult.explanation,
+                    explanation = result.explanation,
                 )
             )
         }
@@ -149,7 +161,7 @@ class SamasaEngine(
         // order (2.2.30 ff.) or the collective interpretation of a dvandva
         // (2.4.1 ff.).  They belong in the derivation trace, but must never
         // replace 2.2.29 as the classification rule.
-        selectPostClassificationSutras(context, classificationSutra, transformationSutra)
+        selectPostClassificationSutras(context, classificationSutra, transformationSutras)
             .forEach { sutra ->
                 val sutraObj = sutra as Sutra<*, *>
                 val result = sutra.apply(context) as? SamasaRuleResult.Formed
@@ -222,7 +234,7 @@ class SamasaEngine(
             .replace("ंव", "म्व")
 
         // 9. Decline the compound Prātipadika via SubantaEngine (Pāṇinian Subanta pipeline)
-        val (vibhakti, vacana, linga) = subantaParams(type, padas, outputLinga, outputVacana)
+        val (vibhakti, vacana, linga) = subantaParams(type, padas, outputLinga, outputVacana, strictSemantics, semanticRelations)
         val subantaResult = subantaEngine.derive(
             SubantaDerivationRequest(normalizedStem, vibhakti, vacana, linga)
         )
@@ -252,7 +264,7 @@ class SamasaEngine(
             uttaraPada = padas.getOrElse(1) { padas.last() }.upadesha,
             classificationSutra = classificationSutraObj.number,
             compoundStem = normalizedStem,
-            transformationSutras = listOfNotNull(transformationSutra?.let { (it as Sutra<*, *>).number }),
+            transformationSutras = transformationSutras.map { (it as Sutra<*, *>).number },
             supLopaSutras = applications.map { it.sutra }.filter { it == "2.4.71" }.distinct(),
             sandhiSutras = applications.map { it.sutra }.filter { it.startsWith("6.1.") || it.startsWith("8.") }.distinct(),
             inflectionSutras = subantaResult.applications.map { it.sutra }.distinct(),
@@ -279,6 +291,8 @@ class SamasaEngine(
         padas: List<SamasaPada>,
         outputLinga: Linga?,
         outputVacana: Vacana?,
+        strictSemantics: Boolean,
+        semanticRelations: Set<SamasaSemanticRelation>,
     ): Triple<Vibhakti, Vacana, Linga> {
         val count = padas.size
         val lastPada = padas.lastOrNull()?.upadesha ?: ""
@@ -300,6 +314,19 @@ class SamasaEngine(
                 if (isSamaharaDvandva) Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.NAPUMSAKA)
                 else if (count == 2)   Triple(Vibhakti.PRATHAMA, Vacana.DVIVACANA, Linga.PUMS)
                 else                   Triple(Vibhakti.PRATHAMA, Vacana.BAHUVACANA, Linga.PUMS)
+        }
+        if (strictSemantics) {
+            val strictDefaults = when (type) {
+                SamasaType.AVYAYIBHAVA, SamasaType.DVIGU ->
+                    Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.NAPUMSAKA)
+                SamasaType.DVANDVA -> if (SamasaSemanticRelation.COLLECTIVE in semanticRelations) {
+                    Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.NAPUMSAKA)
+                } else {
+                    Triple(Vibhakti.PRATHAMA, outputVacana ?: if (count == 2) Vacana.DVIVACANA else Vacana.BAHUVACANA, requireNotNull(outputLinga))
+                }
+                else -> Triple(Vibhakti.PRATHAMA, outputVacana ?: Vacana.EKAVACANA, requireNotNull(outputLinga))
+            }
+            return strictDefaults
         }
         return Triple(
             inferred.first,
@@ -358,6 +385,13 @@ class SamasaEngine(
         require(missing.isEmpty()) {
             "Samāsa ${context.samasaType} is not semantically licensed; missing: ${missing.joinToString()}."
         }
+        if (context.samasaType !in setOf(SamasaType.AVYAYIBHAVA, SamasaType.DVIGU) &&
+            !(context.samasaType == SamasaType.DVANDVA && SamasaSemanticRelation.COLLECTIVE in context.semanticRelations)
+        ) {
+            requireNotNull(context.outputLinga) {
+                "Strict samāsa derivation requires outputLinga for ${context.samasaType}; it cannot be inferred from a word list."
+            }
+        }
     }
 
     private companion object {
@@ -397,10 +431,11 @@ class SamasaEngine(
         }
     }
 
-    private fun selectTransformationSutra(
+    private fun selectTransformationSutras(
         context: SamasaRuleContext,
         classificationSutra: Sutra<SamasaRuleContext, SamasaRuleResult>,
-    ): Sutra<SamasaRuleContext, SamasaRuleResult>? = samasaSutras
+    ): List<Sutra<SamasaRuleContext, SamasaRuleResult>> {
+        val matches = samasaSutras
         .asSequence()
         .filter {
             val sutra = it as Sutra<*, *>
@@ -411,21 +446,27 @@ class SamasaEngine(
                 sutra.role != dev.panini.sutra.SutraRole.Niyama &&
                 sutra.action != dev.panini.sutra.SutraAction.NISHEDHA
         }
-        .sortedWith(compareByDescending<SamasaSutra> { it.samasaPriority }.thenByDescending { (it as Sutra<*, *>).kramaValue })
-        .firstOrNull { it.matches(context) }
-        ?.let { it as Sutra<SamasaRuleContext, SamasaRuleResult> }
+        .filter { it.matches(context) }
+        .toList()
+        return listOf(SamasaRulePhase.STEM_TRANSFORMATION, SamasaRulePhase.SAMASANTA)
+            .mapNotNull { phase ->
+                matches.filter { it.samasaPhase == phase }
+                    .maxWithOrNull(compareBy<SamasaSutra> { it.samasaPriority }.thenBy { (it as Sutra<*, *>).kramaValue })
+                    ?.let { it as Sutra<SamasaRuleContext, SamasaRuleResult> }
+            }
+    }
 
     private fun selectPostClassificationSutras(
         context: SamasaRuleContext,
         classificationSutra: Sutra<SamasaRuleContext, SamasaRuleResult>,
-        transformationSutra: Sutra<SamasaRuleContext, SamasaRuleResult>?,
+        transformationSutras: List<Sutra<SamasaRuleContext, SamasaRuleResult>>,
     ): List<Sutra<SamasaRuleContext, SamasaRuleResult>> = samasaSutras
         .asSequence()
         .filter {
             val sutra = it as Sutra<*, *>
             it.samasaType == context.samasaType &&
                 sutra.number != classificationSutra.number &&
-                sutra.number != transformationSutra?.number &&
+                transformationSutras.none { selected -> selected.number == sutra.number } &&
                 it.samasaPhase in setOf(SamasaRulePhase.MEMBER_ORDERING, SamasaRulePhase.NUMBER_GENDER)
         }
         .filter { it.matches(context) }

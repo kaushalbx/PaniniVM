@@ -37,7 +37,7 @@ class AvyayibhavaSamasaTest {
             ),
             SamasaType.AVYAYIBHAVA,
         )
-        assertEquals("अनुगङ्गा", result.final.surface)
+        assertEquals("अनुगङ्गम्", result.final.surface)
         assertTrue(result.applications.isNotEmpty())
     }
 
@@ -50,7 +50,7 @@ class AvyayibhavaSamasaTest {
             ),
             SamasaType.AVYAYIBHAVA,
         )
-        assertEquals("यथाशक्तिः", result.final.surface)
+        assertEquals("यथाशक्ति", result.final.surface)
         assertTrue(result.applications.isNotEmpty())
     }
 }

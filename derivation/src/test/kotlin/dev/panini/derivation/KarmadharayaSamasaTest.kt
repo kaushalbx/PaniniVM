@@ -36,7 +36,7 @@ class KarmadharayaSamasaTest {
             ),
             SamasaType.KARMADHARAYA,
         )
-        assertEquals("नीलोत्पलः", result.final.surface)
+        assertEquals("नीलोत्पलम्", result.final.surface)
         assertTrue(result.applications.isNotEmpty())
     }
 
