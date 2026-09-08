@@ -54,6 +54,14 @@ class AshtadhyayiSutraValidatorTest {
     }
 
     @Test
+    fun `rejects a fabricated compound accent number beyond 6 3 139`() {
+        val issues = AshtadhyayiSutraValidator.validate(listOf(sutra(null, "6.3.140")))
+
+        assertEquals(1, issues.size)
+        assertTrue(issues.single().message.contains("canonical limit"))
+    }
+
+    @Test
     fun `rejects duplicate sutra identities`() {
         val issues = AshtadhyayiSutraValidator.validate(
             listOf(sutra(null, "5.4.150"), sutra(null, "5.4.150")),

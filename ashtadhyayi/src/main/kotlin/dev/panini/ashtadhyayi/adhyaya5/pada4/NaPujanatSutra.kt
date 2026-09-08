@@ -2,6 +2,7 @@ package dev.panini.ashtadhyayi.adhyaya5.pada4
 
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
+import dev.panini.analysis.SamasaSemanticRelation
 import dev.panini.core.SamasaType
 import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
@@ -33,7 +34,7 @@ object NaPujanatSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val first = context.padas.first().upadesha
-        return first == "सु" || first == "अति"
+        return (first == "सु" || first == "अति") && SamasaSemanticRelation.PRAISE in context.semanticRelations
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {

@@ -32,6 +32,18 @@ enum class SamasaSemanticRelation {
     INDECLINABLE_RELATION,
     UPAPADA_RELATION,
     NUMERAL_GROUP,
+    /** The derivation belongs to the Vedic/chandas register. */
+    VEDIC_REGISTER,
+    /** A numeral denotes the external referent, not merely a lexical numeral. */
+    NUMERICAL_REFERENT,
+    /** The vigraha expresses praise or honour. */
+    PRAISE,
+    /** The vigraha uses a member in censure/reproach (kṣepa). */
+    CENSURE,
+    /** The vigraha expresses a measure or spatial dimension. */
+    MEASURE_DIMENSION,
+    /** Applicability depends on membership in a named lexical gaṇa. */
+    LEXICAL_GANA_MEMBERSHIP,
 }
 
 /**

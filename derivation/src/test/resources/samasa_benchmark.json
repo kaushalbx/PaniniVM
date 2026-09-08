@@ -65,7 +65,7 @@
   },
   {
     "id": "BENCH_005",
-    "name": "6.3.86 Matari Pitari Dvandva - Matarapitara",
+    "name": "6.3.32 Matari Pitari Dvandva - Matarapitara",
     "padas": [
       {"upadesha": "मातृ", "vibhakti": "PRATHAMA"},
       {"upadesha": "पितृ", "vibhakti": "PRATHAMA"}
@@ -73,27 +73,28 @@
     "samasaType": "DVANDVA",
     "outputLinga": "PUMS",
     "outputVacana": "DVIVACANA",
-    "expectedStem": "मातरापितृ",
-    "expectedSurface": "मातरापितरौ",
+    "expectedStem": "मातरपितृ",
+    "expectedSurface": "मातरपितरौ",
     "classificationSutra": "2.2.29",
-    "transformationSutras": "6.3.86",
-    "forbiddenSutras": "6.3.87"
+    "transformationSutras": "6.3.32",
+    "forbiddenSutras": "6.3.33"
   },
   {
     "id": "BENCH_006",
-    "name": "6.3.87 Pitramata Dvandva Nipātana",
+    "name": "6.3.33 Pitramata Dvandva Nipātana",
     "padas": [
       {"upadesha": "पितृ", "vibhakti": "PRATHAMA"},
       {"upadesha": "मातृ", "vibhakti": "PRATHAMA"}
     ],
     "samasaType": "DVANDVA",
+    "semanticRelations": ["VEDIC_REGISTER"],
     "outputLinga": "PUMS",
     "outputVacana": "DVIVACANA",
-    "expectedStem": "पित्रामातृ",
-    "expectedSurface": "पित्रामातरौ",
+    "expectedStem": "पितरामातृ",
+    "expectedSurface": "पितरामातरौ",
     "classificationSutra": "2.2.29",
-    "transformationSutras": "6.3.87",
-    "forbiddenSutras": "6.3.86"
+    "transformationSutras": "6.3.33",
+    "forbiddenSutras": "6.3.32"
   },
   {
     "id": "BENCH_007",

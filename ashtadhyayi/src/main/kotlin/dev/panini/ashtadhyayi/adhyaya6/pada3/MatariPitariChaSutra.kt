@@ -11,21 +11,20 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 /**
- * Sūtra 6.3.32: मातरि पितरि च.
- * Pūrvapada rule for mātṛ and pitṛ in Devatā-dvandva.
- * Example: मातापितरौ (mātāpitarau), मातरापितरौ (mātarāpitarau).
+ * Sūtra 6.3.32: मातरपितरावुदीचाम्.
+ * Northern usage optionally preserves the r-form in the first member.
  */
 object MatariPitariChaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "6.3.32",
-    text = "मातरि पितरि च",
-    hindiExplanation = "माता तथा पिता द्वन्द्व समास में मातरापितरौ, मातापितरौ रूप निष्पन्न होते हैं।",
+    text = "मातरपितरावुदीचाम्",
+    hindiExplanation = "उदीचों के प्रयोग में मातृ-पितृ द्वन्द्व का मातरपितरौ रूप होता है।",
     type = SutraType.NITYA,
     chapter = 6,
     pada = 3,
     optional = false,
     kramaValue = 630032,
-    role = SutraRole.Niyama,
-    action = SutraAction.NIYAMA,
+    role = SutraRole.Vidhi,
+    action = SutraAction.ADESHA,
     scope = SutraScope.DERIVATION,
     samasaType = SamasaType.DVANDVA,
     samasaPriority = 10,
@@ -38,10 +37,10 @@ object MatariPitariChaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
-        val compoundStem = "मातापितृ"
+        val compoundStem = "मातरपितृ"
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
-            explanation = "6.3.32 forms mātāpitṛ in '$compoundStem'.",
+            explanation = "6.3.32 forms the northern variant mātarapitṛ in '$compoundStem'.",
         )
     }
 }

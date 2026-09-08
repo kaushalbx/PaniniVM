@@ -1,6 +1,7 @@
 package dev.panini.derivation
 
 import dev.panini.analysis.SamasaPada
+import dev.panini.analysis.SamasaSemanticRelation
 import dev.panini.core.SamasaType
 import dev.panini.core.Vibhakti
 import org.junit.jupiter.api.DynamicTest
@@ -20,6 +21,8 @@ class SamasaBenchmarkTest {
                     type = case.samasaType,
                     outputLinga = case.outputLinga,
                     outputVacana = case.outputVacana,
+                    semanticRelations = case.semanticRelations,
+                    strictSemantics = case.strictSemantics,
                 )
             )
             val resolution = requireNotNull(result.samasaResolution)
@@ -54,6 +57,9 @@ class SamasaBenchmarkTest {
         } ?: error("Missing padas in benchmark case: $raw")
         val transformations = field("transformationSutras").split(',').filter { it.isNotBlank() }
         val forbidden = field("forbiddenSutras").split(',').filter { it.isNotBlank() }
+        val semanticRelations = (raw["semanticRelations"] as? List<*>)
+            ?.mapTo(mutableSetOf()) { SamasaSemanticRelation.valueOf(it as String) }
+            ?: emptySet()
 
         return BenchmarkCase(
             id = field("id"),
@@ -67,6 +73,8 @@ class SamasaBenchmarkTest {
             forbiddenSutras = forbidden,
             outputLinga = optionalField("outputLinga")?.let(dev.panini.core.Linga::valueOf),
             outputVacana = optionalField("outputVacana")?.let(dev.panini.core.Vacana::valueOf),
+            semanticRelations = semanticRelations,
+            strictSemantics = raw["strictSemantics"] as? Boolean ?: false,
         )
     }
 
@@ -82,5 +90,7 @@ class SamasaBenchmarkTest {
         val forbiddenSutras: List<String>,
         val outputLinga: dev.panini.core.Linga?,
         val outputVacana: dev.panini.core.Vacana?,
+        val semanticRelations: Set<SamasaSemanticRelation>,
+        val strictSemantics: Boolean,
     )
 }

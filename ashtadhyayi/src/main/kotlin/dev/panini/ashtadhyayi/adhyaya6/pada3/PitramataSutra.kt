@@ -2,6 +2,7 @@ package dev.panini.ashtadhyayi.adhyaya6.pada3
 
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
+import dev.panini.analysis.SamasaSemanticRelation
 import dev.panini.core.SamasaType
 import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
@@ -11,21 +12,20 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 /**
- * Sūtra 6.3.33: पित्रा माता.
- * Pūrvapada rule for pitṛ before mātṛ in Devatā-dvandva.
- * Example: पितामातरौ (pitāmātarau).
+ * Sūtra 6.3.33: पितरामातरा च च्छन्दसि.
+ * Vedic nipātana; it must not leak into ordinary-language derivation.
  */
 object PitramataSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "6.3.33",
-    text = "पित्रा माता",
-    hindiExplanation = "माता उत्तरपद परे होने पर पितृ शब्द का पिता रूप सिद्ध होता है (उदा. पितामातरौ)।",
+    text = "पितरामातरा च च्छन्दसि",
+    hindiExplanation = "छन्दस् में पितरामातरा रूप निपातित है।",
     type = SutraType.NITYA,
     chapter = 6,
     pada = 3,
     optional = false,
     kramaValue = 630033,
-    role = SutraRole.Niyama,
-    action = SutraAction.NIYAMA,
+    role = SutraRole.Vidhi,
+    action = SutraAction.ADESHA,
     scope = SutraScope.DERIVATION,
     samasaType = SamasaType.DVANDVA,
     samasaPriority = 10,
@@ -34,11 +34,12 @@ object PitramataSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         if (context.padas.size < 2) return false
         val first = context.padas.first().upadesha
         val last = context.padas.last().upadesha
-        return (first == "पितृ" || first == "पिता") && (last == "मातृ" || last == "माता")
+        return SamasaSemanticRelation.VEDIC_REGISTER in context.semanticRelations &&
+            (first == "पितृ" || first == "पिता") && (last == "मातृ" || last == "माता")
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
-        val compoundStem = "पितामातृ"
+        val compoundStem = "पितरामातृ"
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "6.3.33 forms pitāmātṛ in '$compoundStem'.",

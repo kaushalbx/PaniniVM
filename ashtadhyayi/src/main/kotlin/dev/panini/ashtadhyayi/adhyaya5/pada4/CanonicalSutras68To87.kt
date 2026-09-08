@@ -32,10 +32,6 @@ abstract class CanonicalInactiveSamasaSutra(number: Int, text: String) :
 }
 
 object SamasantahSutra : CanonicalInactiveSamasaSutra(68, "समासान्ताः")
-object NanjastatpurusatSutra : CanonicalInactiveSamasaSutra(71, "नञस्तत्पुरुषात्")
-object PathoVibhasaSutra : CanonicalInactiveSamasaSutra(72, "पथो विभाषा")
-object BahuvrihauSankhyeyeDajabahuganatSutra : CanonicalInactiveSamasaSutra(73, "बहुव्रीहौ संख्येये डजबहुगणात्")
-object AcPratyanvavapurvatSamalomnahSutra : CanonicalInactiveSamasaSutra(75, "अच् प्रत्यन्ववपूर्वात् सामलोम्नः")
 object AcaturadicCanonicalSutra : CanonicalInactiveSamasaSutra(77, "अचतुरविचतुरसुचतुरस्त्रीपुंसधेन्वनडुहर्क्सामवाङ्मनसाक्षिभ्रुवदारगवोर्वष्ठीवपदष्ठीवनक्तंदिवरत्रिंदिवाहर्दिवसरजसनिःश्रेयसपुरुषायुषद्व्यायुषत्र्यायुषर्ग्यजुषजातोक्षमहोक्षवृद्धोक्षोपशुनगोष्ठश्वाः")
 object BrahmahastibhyamVarcasahSutra : CanonicalInactiveSamasaSutra(78, "ब्रह्महस्तिभ्यां वर्चसः")
 object AvasamandhebhyasTamasahSutra : CanonicalInactiveSamasaSutra(79, "अवसमन्धेभ्यस्तमसः")
@@ -44,6 +40,4 @@ object AnvavataptadRahasahSutra : CanonicalInactiveSamasaSutra(81, "अन्व
 object PraterUrasahSaptamisthatSutra : CanonicalInactiveSamasaSutra(82, "प्रतेरुरसः सप्तमीस्थात्")
 object AnugavamAyameSutra : CanonicalInactiveSamasaSutra(83, "अनुगवमायामे")
 object DvistavaTristavaVedihSutra : CanonicalInactiveSamasaSutra(84, "द्विस्तावा त्रिस्तावा वेदिः")
-object UpasargadAdhvanahSutra : CanonicalInactiveSamasaSutra(85, "उपसर्गादध्वनः")
-object TatpurusasyangulehSankhyavyayadehSutra : CanonicalInactiveSamasaSutra(86, "तत्पुरुषस्याङ्गुलेः संख्याऽव्ययादेः")
 object AhasRatrehSutra : CanonicalInactiveSamasaSutra(87, "अहस्सर्वैकदेशसंख्यातपुण्याच्च रात्रेः")

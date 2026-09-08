@@ -435,6 +435,13 @@ class SamasaEngine(
         context: SamasaRuleContext,
         classificationSutra: Sutra<SamasaRuleContext, SamasaRuleResult>,
     ): List<Sutra<SamasaRuleContext, SamasaRuleResult>> {
+        val samasantaProhibited = samasaSutras.any {
+            val sutra = it as Sutra<*, *>
+            sutra.action == dev.panini.sutra.SutraAction.NISHEDHA && it.matches(context)
+        }
+        // 5.4.72 is prāpta-vibhāṣā: for nañ + pathin it restores the otherwise
+        // prohibited samāsānta branch of 5.4.71.
+        val samasantaRestored = PathoVibhasaSutra.matches(context)
         val matches = samasaSutras
         .asSequence()
         .filter {
@@ -445,6 +452,7 @@ class SamasaEngine(
                 sutra.role !is dev.panini.sutra.SutraRole.Adhikara &&
                 sutra.role != dev.panini.sutra.SutraRole.Niyama &&
                 sutra.action != dev.panini.sutra.SutraAction.NISHEDHA
+                && (it.samasaPhase != SamasaRulePhase.SAMASANTA || !samasantaProhibited || samasantaRestored)
         }
         .filter { it.matches(context) }
         .toList()

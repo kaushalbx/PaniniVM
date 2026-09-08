@@ -36,7 +36,7 @@ class DvandvaSamasaTest {
             ),
             SamasaType.DVANDVA,
         )
-        assertEquals("मातरापितरौ", result.final.surface)
+        assertEquals("मातरपितरौ", result.final.surface)
     }
 
     @Test
