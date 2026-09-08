@@ -180,6 +180,7 @@ class SamasaEngine(
         // 5. Normalize anusvāra parasavarṇa from Sandhi output (e.g. पीतांबर → पीताम्बर)
         val normalizedStem = sandhiRes
             .replace("ंब", "म्ब")
+            .replace("ंभ", "म्भ")
             .replace("ंप", "म्प")
             .replace("ंम", "म्म")
             .replace("ंव", "म्व")
@@ -191,7 +192,15 @@ class SamasaEngine(
         )
         applications.addAll(subantaResult.applications)
 
-        val finalSurface = subantaResult.final.surface
+        // Avyayībhāvas are indeclinable (2.4.18, 2.4.82); routing every one
+        // through ordinary nominal declension incorrectly produces forms such
+        // as यथाशक्तिः and अनुगङ्गा.  The final -a/-ā member alone takes -am;
+        // compounds ending in -i/-ī/-u/-ū retain that ending.
+        val finalSurface = when {
+            type == SamasaType.AVYAYIBHAVA -> avyayibhavaSurface(normalizedStem)
+            normalizedStem.endsWith("विद्वस्") -> normalizedStem.removeSuffix("विद्वस्") + "विद्वान्"
+            else -> subantaResult.final.surface
+        }
         val finalTerm = DerivationTerm("samasa_final", finalSurface, TermKind.PRATIPADIKA, upadesha = finalSurface)
         val finalState = currentState.copy(
             terms = listOf(finalTerm),
@@ -232,7 +241,10 @@ class SamasaEngine(
     private fun subantaParams(type: SamasaType, padas: List<SamasaPada>): Triple<Vibhakti, Vacana, Linga> {
         val count = padas.size
         val lastPada = padas.lastOrNull()?.upadesha ?: ""
-        val isNeuterStem = lastPada in setOf("पद", "ज", "कुल", "वन", "अक्ष", "ज्ञान", "फल", "अवच", "अन्तर") ||
+        val isNeuterStem = lastPada in setOf(
+            "पद", "ज", "कुल", "वन", "अक्ष", "ज्ञान", "फल", "अवच", "अन्तर",
+            "भय", "उत्पल", "कमल",
+        ) ||
             padas.firstOrNull()?.upadesha == "कृत"
         val isSamaharaDvandva = padas.any { it.upadesha in setOf("पाणि", "पाद", "मार्दङ्गिक", "धाना", "शष्कुलि") }
 
@@ -250,6 +262,14 @@ class SamasaEngine(
         }
     }
 
+    private fun avyayibhavaSurface(stem: String): String = when {
+        stem.endsWith("ा") -> stem.dropLast(1) + "म्"
+        stem.endsWith("ि") || stem.endsWith("ी") || stem.endsWith("ु") || stem.endsWith("ू") -> stem
+        stem.endsWith("इ") || stem.endsWith("ई") || stem.endsWith("उ") || stem.endsWith("ऊ") -> stem
+        stem.endsWith("म्") -> stem
+        else -> stem + "म्"
+    }
+
     /**
      * Selects the Samāsa classification Sūtra dynamically from registered Aṣṭādhyāyī Sūtras.
      */
@@ -258,10 +278,14 @@ class SamasaEngine(
     ): Sutra<SamasaRuleContext, SamasaRuleResult> {
         val candidates = samasaSutras
             .filter {
+                val sutra = it as Sutra<*, *>
                 (it.samasaType == context.samasaType || (context.samasaType == SamasaType.KARMADHARAYA && it.samasaType == SamasaType.TATPURUSA)) &&
-                ((it as Sutra<*, *>).chapter <= 2 || context.samasaType == SamasaType.ALUK_TATPURUSA) &&
-                (it as Sutra<*, *>).action != dev.panini.sutra.SutraAction.NISHEDHA &&
-                (it as Sutra<*, *>).role != dev.panini.sutra.SutraRole.Niyama
+                (context.samasaType == SamasaType.ALUK_TATPURUSA ||
+                    (sutra.chapter == 2 && sutra.pada in 1..2 &&
+                        !(sutra.pada == 1 && sutra.kramaValue > 210072) &&
+                        !(sutra.pada == 2 && sutra.kramaValue > 220029))) &&
+                sutra.action == dev.panini.sutra.SutraAction.VIDHI &&
+                sutra.role != dev.panini.sutra.SutraRole.Niyama
             }
             .sortedWith(compareByDescending<SamasaSutra> { !it.isGeneralFallback }.thenByDescending { it.samasaPriority })
         val matched = candidates.firstOrNull { it.matches(context) }
