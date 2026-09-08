@@ -36,6 +36,15 @@ class AshtadhyayiSutraValidatorTest {
         assertEquals("Noncanonical Aṣṭādhyāyī sūtra number", issues.single().message)
     }
 
+    @Test
+    fun `rejects a fabricated number beyond a canonical pada limit`() {
+        val issues = AshtadhyayiSutraValidator.validate(listOf(sutra(null, "2.1.86")))
+
+        assertEquals(1, issues.size)
+        assertEquals("2.1.86", issues.single().sutra)
+        assertTrue(issues.single().message.contains("canonical limit"))
+    }
+
     private fun sutra(segmentedSource: String?, number: String = "1.1.1") = object : Sutra<Unit, Unit>(
         number = number,
         text = "वृद्धिरादैच्",

@@ -17,6 +17,7 @@ import dev.panini.core.Vibhakti
 import dev.panini.derivation.SubantaDerivationRequest
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.SamasaSutra
+import dev.panini.sutra.SamasaRulePhase
 import dev.panini.sutra.Sutra
 
 /**
@@ -33,6 +34,8 @@ import dev.panini.sutra.Sutra
 data class SamasaDerivationRequest(
     val padas: List<SamasaPada>,
     val type: SamasaType,
+    val outputLinga: Linga? = null,
+    val outputVacana: Vacana? = null,
 )
 
 /**
@@ -54,13 +57,23 @@ class SamasaEngine(
     private val samasaSutras: List<SamasaSutra> = Ashtadhyayi.cataloguedSutras.filterIsInstance<SamasaSutra>(),
 ) {
     fun derive(request: SamasaDerivationRequest): DerivationResult =
-        derive(request.padas, request.type)
+        derive(request.padas, request.type, request.outputLinga, request.outputVacana)
 
-    fun derive(padas: List<SamasaPada>, type: SamasaType): DerivationResult {
+    fun derive(
+        padas: List<SamasaPada>,
+        type: SamasaType,
+        outputLinga: Linga? = null,
+        outputVacana: Vacana? = null,
+    ): DerivationResult {
         require(padas.isNotEmpty()) { "At least one pada is required for Samāsa derivation." }
 
         // 1. Build SamasaRuleContext — the authentic input to all classification Sūtras
-        val context = SamasaRuleContext(padas = padas, samasaType = type)
+        val context = SamasaRuleContext(
+            padas = padas,
+            samasaType = type,
+            outputLinga = outputLinga,
+            outputVacana = outputVacana,
+        )
 
         // 2. Select and apply the classification Sūtra driven by purvaPadaVibhakti
         val classificationSutra = selectClassificationSutra(context)
@@ -208,7 +221,7 @@ class SamasaEngine(
             .replace("ंव", "म्व")
 
         // 9. Decline the compound Prātipadika via SubantaEngine (Pāṇinian Subanta pipeline)
-        val (vibhakti, vacana, linga) = subantaParams(type, padas)
+        val (vibhakti, vacana, linga) = subantaParams(type, padas, outputLinga, outputVacana)
         val subantaResult = subantaEngine.derive(
             SubantaDerivationRequest(normalizedStem, vibhakti, vacana, linga)
         )
@@ -260,7 +273,12 @@ class SamasaEngine(
      * - Tatpuruṣa / Bahuvrihi: Prathama Ekavacana Pumliṅga (ends in ः)
      * - Dvandva: Prathama Dvivacana for 2 members (ौ), Bahuvacana for 3+ (ाः)
      */
-    private fun subantaParams(type: SamasaType, padas: List<SamasaPada>): Triple<Vibhakti, Vacana, Linga> {
+    private fun subantaParams(
+        type: SamasaType,
+        padas: List<SamasaPada>,
+        outputLinga: Linga?,
+        outputVacana: Vacana?,
+    ): Triple<Vibhakti, Vacana, Linga> {
         val count = padas.size
         val lastPada = padas.lastOrNull()?.upadesha ?: ""
         val isNeuterStem = lastPada in setOf(
@@ -270,7 +288,7 @@ class SamasaEngine(
             padas.firstOrNull()?.upadesha == "कृत"
         val isSamaharaDvandva = padas.any { it.upadesha in setOf("पाणि", "पाद", "मार्दङ्गिक", "धाना", "शष्कुलि") }
 
-        return when (type) {
+        val inferred = when (type) {
             SamasaType.AVYAYIBHAVA, SamasaType.DVIGU ->
                 Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.NAPUMSAKA)
             SamasaType.MAYURAVYAMSAKADI ->
@@ -282,6 +300,11 @@ class SamasaEngine(
                 else if (count == 2)   Triple(Vibhakti.PRATHAMA, Vacana.DVIVACANA, Linga.PUMS)
                 else                   Triple(Vibhakti.PRATHAMA, Vacana.BAHUVACANA, Linga.PUMS)
         }
+        return Triple(
+            inferred.first,
+            outputVacana ?: padas.lastOrNull()?.vacana ?: inferred.second,
+            outputLinga ?: padas.lastOrNull()?.linga ?: inferred.third,
+        )
     }
 
     private fun avyayibhavaSurface(stem: String): String = when {
@@ -302,10 +325,7 @@ class SamasaEngine(
             .filter {
                 val sutra = it as Sutra<*, *>
                 (it.samasaType == context.samasaType || (context.samasaType == SamasaType.KARMADHARAYA && it.samasaType == SamasaType.TATPURUSA)) &&
-                (context.samasaType == SamasaType.ALUK_TATPURUSA ||
-                    (sutra.chapter == 2 && sutra.pada in 1..2 &&
-                        !(sutra.pada == 1 && sutra.kramaValue > 210072) &&
-                        !(sutra.pada == 2 && sutra.kramaValue > 220029))) &&
+                (context.samasaType == SamasaType.ALUK_TATPURUSA || it.samasaPhase == SamasaRulePhase.CLASSIFICATION) &&
                 sutra.action == dev.panini.sutra.SutraAction.VIDHI &&
                 sutra.role != dev.panini.sutra.SutraRole.Niyama
             }
@@ -337,7 +357,7 @@ class SamasaEngine(
             val sutra = it as Sutra<*, *>
             (it.samasaType == context.samasaType || (context.samasaType == SamasaType.KARMADHARAYA && it.samasaType == SamasaType.TATPURUSA)) &&
                 sutra.number != classificationSutra.number &&
-                sutra.chapter >= 5 &&
+                it.samasaPhase in setOf(SamasaRulePhase.STEM_TRANSFORMATION, SamasaRulePhase.SAMASANTA) &&
                 sutra.role !is dev.panini.sutra.SutraRole.Adhikara &&
                 sutra.role != dev.panini.sutra.SutraRole.Niyama &&
                 sutra.action != dev.panini.sutra.SutraAction.NISHEDHA
@@ -357,8 +377,7 @@ class SamasaEngine(
             it.samasaType == context.samasaType &&
                 sutra.number != classificationSutra.number &&
                 sutra.number != transformationSutra?.number &&
-                ((sutra.chapter == 2 && sutra.pada == 2 && sutra.kramaValue in 220030..220038) ||
-                    (sutra.chapter == 2 && sutra.pada == 4))
+                it.samasaPhase in setOf(SamasaRulePhase.MEMBER_ORDERING, SamasaRulePhase.NUMBER_GENDER)
         }
         .filter { it.matches(context) }
         .sortedBy { (it as Sutra<*, *>).kramaValue }

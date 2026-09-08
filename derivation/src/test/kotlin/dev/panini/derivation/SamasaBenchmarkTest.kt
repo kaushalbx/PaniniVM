@@ -14,7 +14,14 @@ class SamasaBenchmarkTest {
     @TestFactory
     fun `canonical samasa benchmark`(): List<DynamicTest> = loadCases().map { case ->
         DynamicTest.dynamicTest("${case.id}: ${case.name}") {
-            val result = samasaEngine.derive(case.padas, case.samasaType)
+            val result = samasaEngine.derive(
+                SamasaDerivationRequest(
+                    padas = case.padas,
+                    type = case.samasaType,
+                    outputLinga = case.outputLinga,
+                    outputVacana = case.outputVacana,
+                )
+            )
             val resolution = requireNotNull(result.samasaResolution)
 
             assertEquals(case.expectedStem, resolution.compoundStem, "compound stem")
@@ -42,6 +49,8 @@ class SamasaBenchmarkTest {
     private fun parseCase(raw: String): BenchmarkCase {
         fun field(name: String): String = Regex("\\\"$name\\\"\\s*:\\s*\\\"([^\\\"]*)\\\"")
             .find(raw)?.groupValues?.get(1) ?: error("Missing '$name' in benchmark case: $raw")
+        fun optionalField(name: String): String? = Regex("\\\"$name\\\"\\s*:\\s*\\\"([^\\\"]*)\\\"")
+            .find(raw)?.groupValues?.get(1)
         val padasBlock = Regex("\\\"padas\\\"\\s*:\\s*\\[(.*?)]", RegexOption.DOT_MATCHES_ALL)
             .find(raw)?.groupValues?.get(1) ?: error("Missing padas in benchmark case: $raw")
         val padas = Regex("\\{\\s*\\\"upadesha\\\"\\s*:\\s*\\\"([^\\\"]+)\\\"\\s*,\\s*\\\"vibhakti\\\"\\s*:\\s*\\\"([^\\\"]+)\\\"\\s*}")
@@ -61,6 +70,8 @@ class SamasaBenchmarkTest {
             classificationSutra = field("classificationSutra"),
             transformationSutras = transformations,
             forbiddenSutras = forbidden,
+            outputLinga = optionalField("outputLinga")?.let(dev.panini.core.Linga::valueOf),
+            outputVacana = optionalField("outputVacana")?.let(dev.panini.core.Vacana::valueOf),
         )
     }
 
@@ -74,5 +85,7 @@ class SamasaBenchmarkTest {
         val classificationSutra: String,
         val transformationSutras: List<String>,
         val forbiddenSutras: List<String>,
+        val outputLinga: dev.panini.core.Linga?,
+        val outputVacana: dev.panini.core.Vacana?,
     )
 }

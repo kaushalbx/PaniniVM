@@ -161,6 +161,7 @@
       {"upadesha": "भय", "vibhakti": "PRATHAMA"}
     ],
     "samasaType": "TATPURUSA",
+    "outputLinga": "NAPUMSAKA",
     "expectedStem": "चोरभय",
     "expectedSurface": "चोरभयम्",
     "classificationSutra": "2.1.37",
@@ -203,6 +204,7 @@
       {"upadesha": "उत्पल", "vibhakti": "PRATHAMA"}
     ],
     "samasaType": "KARMADHARAYA",
+    "outputLinga": "NAPUMSAKA",
     "expectedStem": "नीलोत्पल",
     "expectedSurface": "नीलोत्पलम्",
     "classificationSutra": "2.1.57",
@@ -217,6 +219,7 @@
       {"upadesha": "कमल", "vibhakti": "PRATHAMA"}
     ],
     "samasaType": "KARMADHARAYA",
+    "outputLinga": "NAPUMSAKA",
     "expectedStem": "नीलकमल",
     "expectedSurface": "नीलकमलम्",
     "classificationSutra": "2.1.57",

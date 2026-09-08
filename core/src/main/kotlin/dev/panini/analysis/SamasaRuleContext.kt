@@ -2,6 +2,8 @@ package dev.panini.analysis
 
 import dev.panini.core.SamasaType
 import dev.panini.core.Vibhakti
+import dev.panini.core.Linga
+import dev.panini.core.Vacana
 import dev.panini.shiksha.Samjna
 
 /**
@@ -15,6 +17,8 @@ data class SamasaPada(
     val upadesha: String,
     val vibhakti: Vibhakti = Vibhakti.PRATHAMA,
     val samjnas: Set<Samjna> = emptySet(),
+    val linga: Linga? = null,
+    val vacana: Vacana? = null,
 )
 
 /**
@@ -28,6 +32,8 @@ data class SamasaPada(
 data class SamasaRuleContext(
     val padas: List<SamasaPada>,
     val samasaType: SamasaType,
+    val outputLinga: Linga? = null,
+    val outputVacana: Vacana? = null,
 ) {
     val purvaPada: SamasaPada get() = padas.first()
     val uttaraPada: SamasaPada get() = padas.last()

@@ -4,6 +4,14 @@ import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
 import dev.panini.core.SamasaType
 
+enum class SamasaRulePhase {
+    CLASSIFICATION,
+    MEMBER_ORDERING,
+    NUMBER_GENDER,
+    STEM_TRANSFORMATION,
+    SAMASANTA,
+}
+
 /**
  * Interface implemented by all nominal compound (Samāsa) Sūtras in the Aṣṭādhyāyī.
  *
@@ -11,6 +19,8 @@ import dev.panini.core.SamasaType
  * an Aluk compound, and its matching/application methods.
  */
 interface SamasaSutra {
+    /** The stage at which this rule participates in compound derivation. */
+    val samasaPhase: SamasaRulePhase
     /** The primary compound classification prescribed or governed by this Sūtra. */
     val samasaType: SamasaType?
 
