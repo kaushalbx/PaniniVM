@@ -606,5 +606,218 @@
     "classificationSutra": "2.1.6",
     "transformationSutras": "",
     "forbiddenSutras": "2.1.97"
+  },
+  {
+    "id": "BENCH_043",
+    "name": "2.1.24 Dvitiya Tatpurusa - Vanagata",
+    "padas": [
+      {"upadesha": "वन", "vibhakti": "DVITIYA"},
+      {"upadesha": "गत", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "TATPURUSA",
+    "outputLinga": "PUMS",
+    "expectedStem": "वनगत",
+    "expectedSurface": "वनगतः",
+    "classificationSutra": "2.1.24",
+    "transformationSutras": "",
+    "forbiddenSutras": "2.2.8"
+  },
+  {
+    "id": "BENCH_044",
+    "name": "2.1.32 Instrumental Krta Tatpurusa - Agnidagdha",
+    "padas": [
+      {"upadesha": "अग्नि", "vibhakti": "TRTIYA"},
+      {"upadesha": "दग्ध", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "TATPURUSA",
+    "outputLinga": "PUMS",
+    "expectedStem": "अग्निदग्ध",
+    "expectedSurface": "अग्निदग्धः",
+    "classificationSutra": "2.1.32",
+    "transformationSutras": "",
+    "forbiddenSutras": "2.1.86"
+  },
+  {
+    "id": "BENCH_045",
+    "name": "2.2.8 Shashthi Tatpurusa - Rajabhavana",
+    "padas": [
+      {"upadesha": "राजन्", "vibhakti": "SASTHI"},
+      {"upadesha": "भवन", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "TATPURUSA",
+    "outputLinga": "NAPUMSAKA",
+    "expectedStem": "राजभवन",
+    "expectedSurface": "राजभवनम्",
+    "classificationSutra": "2.2.8",
+    "transformationSutras": "",
+    "forbiddenSutras": "2.2.93"
+  },
+  {
+    "id": "BENCH_046",
+    "name": "2.2.8 Shashthi Tatpurusa Feminine - Devapuja",
+    "padas": [
+      {"upadesha": "देव", "vibhakti": "SASTHI"},
+      {"upadesha": "पूजा", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "TATPURUSA",
+    "outputLinga": "STRI",
+    "expectedStem": "देवपूजा",
+    "expectedSurface": "देवपूजा",
+    "classificationSutra": "2.2.8",
+    "transformationSutras": "",
+    "forbiddenSutras": "2.1.57"
+  },
+  {
+    "id": "BENCH_047",
+    "name": "2.1.57 Karmadharaya - Raktakamala",
+    "padas": [
+      {"upadesha": "रक्त", "vibhakti": "PRATHAMA"},
+      {"upadesha": "कमल", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "KARMADHARAYA",
+    "outputLinga": "NAPUMSAKA",
+    "expectedStem": "रक्तकमल",
+    "expectedSurface": "रक्तकमलम्",
+    "classificationSutra": "2.1.57",
+    "transformationSutras": "",
+    "forbiddenSutras": "2.2.24"
+  },
+  {
+    "id": "BENCH_048",
+    "name": "2.1.57 Karmadharaya - Shvetavastra",
+    "padas": [
+      {"upadesha": "श्वेत", "vibhakti": "PRATHAMA"},
+      {"upadesha": "वस्त्र", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "KARMADHARAYA",
+    "outputLinga": "NAPUMSAKA",
+    "expectedStem": "श्वेतवस्त्र",
+    "expectedSurface": "श्वेतवस्त्रम्",
+    "classificationSutra": "2.1.57",
+    "transformationSutras": "",
+    "forbiddenSutras": "2.2.24"
+  },
+  {
+    "id": "BENCH_049",
+    "name": "2.2.24 Bahuvrihi - Mahabahu",
+    "padas": [
+      {"upadesha": "महा", "vibhakti": "PRATHAMA"},
+      {"upadesha": "बाहु", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "BAHUVRIHI",
+    "outputLinga": "PUMS",
+    "expectedStem": "महाबाहु",
+    "expectedSurface": "महाबाहुः",
+    "classificationSutra": "2.2.24",
+    "transformationSutras": "",
+    "forbiddenSutras": "2.1.57"
+  },
+  {
+    "id": "BENCH_050",
+    "name": "2.2.24 Bahuvrihi - Shvetavastra Possessor",
+    "padas": [
+      {"upadesha": "श्वेत", "vibhakti": "PRATHAMA"},
+      {"upadesha": "वस्त्र", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "BAHUVRIHI",
+    "outputLinga": "PUMS",
+    "expectedStem": "श्वेतवस्त्र",
+    "expectedSurface": "श्वेतवस्त्रः",
+    "classificationSutra": "2.2.24",
+    "transformationSutras": "",
+    "forbiddenSutras": "2.1.57"
+  },
+  {
+    "id": "BENCH_051",
+    "name": "2.2.29 Dvandva - Shivakeshava",
+    "padas": [
+      {"upadesha": "शिव", "vibhakti": "PRATHAMA"},
+      {"upadesha": "केशव", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "DVANDVA",
+    "outputLinga": "PUMS",
+    "outputVacana": "DVIVACANA",
+    "expectedStem": "शिवकेशव",
+    "expectedSurface": "शिवकेशवौ",
+    "classificationSutra": "2.2.29",
+    "transformationSutras": "",
+    "forbiddenSutras": "2.2.92"
+  },
+  {
+    "id": "BENCH_052",
+    "name": "2.2.29 Three-member Dvandva Explicit Plural",
+    "padas": [
+      {"upadesha": "शिव", "vibhakti": "PRATHAMA"},
+      {"upadesha": "केशव", "vibhakti": "PRATHAMA"},
+      {"upadesha": "माधव", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "DVANDVA",
+    "outputLinga": "PUMS",
+    "outputVacana": "BAHUVACANA",
+    "expectedStem": "शिवकेशवमाधव",
+    "expectedSurface": "शिवकेशवमाधवाः",
+    "classificationSutra": "2.2.29",
+    "transformationSutras": "",
+    "forbiddenSutras": "2.2.24"
+  },
+  {
+    "id": "BENCH_053",
+    "name": "2.2.6 Nan Tatpurusa - Adharma",
+    "padas": [
+      {"upadesha": "न", "vibhakti": "PRATHAMA"},
+      {"upadesha": "धर्म", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "NAN_TATPURUSA",
+    "outputLinga": "PUMS",
+    "expectedStem": "अधर्म",
+    "expectedSurface": "अधर्मः",
+    "classificationSutra": "2.2.6",
+    "transformationSutras": "",
+    "forbiddenSutras": "2.1.95"
+  },
+  {
+    "id": "BENCH_054",
+    "name": "2.2.19 Upapada Tatpurusa - Vedajna",
+    "padas": [
+      {"upadesha": "वेद", "vibhakti": "DVITIYA"},
+      {"upadesha": "ज्ञ", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "UPAPADA_TATPURUSA",
+    "outputLinga": "PUMS",
+    "expectedStem": "वेदज्ञ",
+    "expectedSurface": "वेदज्ञः",
+    "classificationSutra": "2.2.19",
+    "transformationSutras": "",
+    "forbiddenSutras": "2.2.89"
+  },
+  {
+    "id": "BENCH_055",
+    "name": "2.1.52 Dvigu - Triphala",
+    "padas": [
+      {"upadesha": "त्रि", "vibhakti": "PRATHAMA"},
+      {"upadesha": "फल", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "DVIGU",
+    "outputLinga": "NAPUMSAKA",
+    "outputVacana": "EKAVACANA",
+    "expectedStem": "त्रिफल",
+    "expectedSurface": "त्रिफलम्",
+    "classificationSutra": "2.1.52",
+    "transformationSutras": "",
+    "forbiddenSutras": "2.1.92"
+  },
+  {
+    "id": "BENCH_056",
+    "name": "2.1.6 Avyayibhava - Upavana",
+    "padas": [
+      {"upadesha": "उप", "vibhakti": "PRATHAMA"},
+      {"upadesha": "वन", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "AVYAYIBHAVA",
+    "expectedStem": "उपवन",
+    "expectedSurface": "उपवनम्",
+    "classificationSutra": "2.1.6",
+    "transformationSutras": "",
+    "forbiddenSutras": "2.1.97"
   }
 ]
