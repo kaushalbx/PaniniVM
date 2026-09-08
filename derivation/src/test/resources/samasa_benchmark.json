@@ -49,7 +49,7 @@
   },
   {
     "id": "BENCH_004",
-    "name": "5.4.125 Suhrd Durhrdau - Suhrd",
+    "name": "5.4.150 Suhrd Durhrdau - Suhrd",
     "padas": [
       {"upadesha": "सु", "vibhakti": "PRATHAMA"},
       {"upadesha": "हृदय", "vibhakti": "PRATHAMA"}
@@ -60,7 +60,7 @@
     "expectedStem": "सुहृद्",
     "expectedSurface": "सुहृत्",
     "classificationSutra": "2.2.24",
-    "transformationSutras": "5.4.125",
+    "transformationSutras": "5.4.150",
     "forbiddenSutras": ""
   },
   {

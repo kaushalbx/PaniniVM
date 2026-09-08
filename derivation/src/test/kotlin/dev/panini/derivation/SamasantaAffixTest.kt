@@ -8,7 +8,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 /**
- * Dedicated test suite for Samāsānta affixes (5.4.91, 5.4.125, etc.).
+ * Dedicated test suite for Samāsānta affixes (5.4.91, 5.4.150, etc.).
  */
 class SamasantaAffixTest {
 

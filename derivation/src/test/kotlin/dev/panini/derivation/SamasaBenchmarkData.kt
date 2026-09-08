@@ -62,7 +62,7 @@ object SamasaBenchmarkData {
             expectedSutra = "8.2.7",
         ),
 
-        // 2. Samāsānta affixes (5.4.91, 5.4.125, etc.)
+        // 2. Samāsānta affixes (5.4.91, 5.4.150, etc.)
         SamasaTestCase(
             id = "SAMASANTA_001",
             description = "5.4.91 Rajahah Sakhibhyas Tac - mahat + rajan",
