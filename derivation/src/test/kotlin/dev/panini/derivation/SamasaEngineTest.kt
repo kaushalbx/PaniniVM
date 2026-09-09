@@ -1,6 +1,7 @@
 package dev.panini.derivation
 
 import dev.panini.analysis.SamasaPada
+import dev.panini.analysis.SamasaMorphologicalFeature
 import dev.panini.analysis.SamasaSemanticRelation
 import dev.panini.core.SamasaType
 import dev.panini.core.Vibhakti
@@ -24,6 +25,28 @@ class SamasaEngineTest {
         assertEquals(setOf("कापुरुष", "कुपुरुष"), alternatives.map { it.compoundStem }.toSet())
         assertTrue(alternatives.any { "6.3.106" in it.transformationSutras })
         assertTrue(alternatives.any { "6.3.106" !in it.transformationSutras })
+    }
+
+    @Test
+    fun `overlapping optional transformations expose the competing canonical rule`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada(
+                    "नदी",
+                    morphologicalFeatures = setOf(
+                        SamasaMorphologicalFeature.NADI,
+                        SamasaMorphologicalFeature.UGIT_DERIVED,
+                    ),
+                ),
+                SamasaPada("रूप"),
+            ),
+            SamasaType.TATPURUSA,
+            outputLinga = dev.panini.core.Linga.PUMS,
+        )
+        val alternatives = requireNotNull(result.samasaResolution).alternatives
+
+        assertTrue(alternatives.any { "6.3.45" in it.transformationSutras })
+        assertTrue(alternatives.any { "6.3.44" in it.transformationSutras })
     }
 
     @Test

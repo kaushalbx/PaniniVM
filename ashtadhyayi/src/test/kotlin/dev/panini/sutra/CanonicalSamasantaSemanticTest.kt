@@ -10,6 +10,12 @@ import dev.panini.ashtadhyayi.adhyaya5.pada4.NanjastatpurusatSutra
 import dev.panini.ashtadhyayi.adhyaya5.pada4.PathoVibhasaSutra
 import dev.panini.ashtadhyayi.adhyaya5.pada4.TatpurusasyangulehSankhyavyayadehSutra
 import dev.panini.ashtadhyayi.adhyaya5.pada4.UpasargadAdhvanahSutra
+import dev.panini.ashtadhyayi.adhyaya5.pada4.AngulerDaruniSutra
+import dev.panini.ashtadhyayi.adhyaya5.pada4.AnNasikayahSamjnayamNasamCasthulatSutra
+import dev.panini.ashtadhyayi.adhyaya5.pada4.DaksinerMaLubdhayogeSutra
+import dev.panini.ashtadhyayi.adhyaya5.pada4.IcKarmavyatihareSutra
+import dev.panini.ashtadhyayi.adhyaya5.pada4.VayasiDantasyaDatruSutra
+import dev.panini.ashtadhyayi.adhyaya5.pada4.NispravanisCaSutra
 import dev.panini.core.SamasaType
 import dev.panini.shiksha.Samjna
 import kotlin.test.Test
@@ -58,5 +64,17 @@ class CanonicalSamasantaSemanticTest {
         assertTrue(TatpurusasyangulehSankhyavyayadehSutra.matches(context(SamasaPada("द्वि"), SamasaPada("अङ्गुलि"), SamasaType.TATPURUSA)))
         assertTrue(TatpurusasyangulehSankhyavyayadehSutra.matches(context(SamasaPada("निर्", samjnas = setOf(Samjna.AVYAYA)), SamasaPada("अङ्गुलि"), SamasaType.TATPURUSA)))
         assertFalse(TatpurusasyangulehSankhyavyayadehSutra.matches(context(SamasaPada("दीर्घ"), SamasaPada("अङ्गुलि"), SamasaType.TATPURUSA)))
+    }
+
+    @Test fun `later samasanta rules reject lexical and semantic near misses`() {
+        val nearMisses=listOf(
+            AngulerDaruniSutra to context(SamasaPada("द्वि"),SamasaPada("अङ्गुलि"),SamasaType.BAHUVRIHI),
+            AnNasikayahSamjnayamNasamCasthulatSutra to context(SamasaPada("सु"),SamasaPada("नासिका"),SamasaType.BAHUVRIHI),
+            DaksinerMaLubdhayogeSutra to context(SamasaPada("दक्षिण"),SamasaPada("पुरुष"),SamasaType.BAHUVRIHI),
+            IcKarmavyatihareSutra to context(SamasaPada("दण्ड"),SamasaPada("दण्ड"),SamasaType.BAHUVRIHI),
+            VayasiDantasyaDatruSutra to context(SamasaPada("द्वि"),SamasaPada("दन्त"),SamasaType.BAHUVRIHI),
+            NispravanisCaSutra to context(SamasaPada("निस्"),SamasaPada("प्रवाण"),SamasaType.BAHUVRIHI),
+        )
+        nearMisses.forEach { (rule,candidate) -> assertFalse(rule.matches(candidate),"${rule.number} overmatched") }
     }
 }

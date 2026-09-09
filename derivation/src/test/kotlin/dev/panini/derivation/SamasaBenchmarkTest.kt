@@ -37,6 +37,12 @@ class SamasaBenchmarkTest {
             assertTrue(result.final.stage == DerivationStage.FINAL, "samasa derivation must be terminal")
             assertTrue(result.final.terms.size == 1, "completed samasa must contain one final term")
             assertTrue(result.final.surface.none { it == '\u0000' }, "surface must not contain sentinel material")
+            resolution.operations.forEach { operation ->
+                assertTrue(
+                    operation.memberEdits.keys.all { it in case.padas.indices },
+                    "${operation.sutra} edited a member outside the compound boundary",
+                )
+            }
         }
     }
 

@@ -436,9 +436,15 @@ class SamasaEngine(
         primarySurface: String,
     ): List<SamasaAlternative> {
         val optional=selected.filter { it.optional }
-        if(optional.isEmpty()) return emptyList()
-        val branches=(1 until (1 shl optional.size)).map { omittedMask ->
-            val retained=selected.filter { rule -> rule !in optional || omittedMask and (1 shl optional.indexOf(rule))==0 }
+        val competitors=matchingOptionalCompetitors(context,selected)
+        if(optional.isEmpty() && competitors.isEmpty()) return emptyList()
+        val omittedSelections=(1 until (1 shl optional.size)).map { omittedMask ->
+            selected.filter { rule -> rule !in optional || omittedMask and (1 shl optional.indexOf(rule))==0 }
+        }
+        val competitorSelections=competitors.map { competitor ->
+            selected.filter { it.samasaPhase!=competitor.samasaPhase }+competitor
+        }
+        val branches=(omittedSelections+competitorSelections).distinctBy { rules -> rules.map { it.number } }.map { retained ->
             var formed=classificationResult
             val branchMembers=padas.map { it.upadesha }.toMutableList()
             var branchSuffix=""
@@ -569,6 +575,25 @@ class SamasaEngine(
     private fun matchingSamasantaProhibitions(context: SamasaRuleContext) = samasaSutras
         .map { it as Sutra<SamasaRuleContext,SamasaRuleResult> }
         .filter { it.action==dev.panini.sutra.SutraAction.NISHEDHA && (it as SamasaSutra).matches(context) }
+
+    private fun matchingOptionalCompetitors(
+        context: SamasaRuleContext,
+        selected: List<Sutra<SamasaRuleContext,SamasaRuleResult>>,
+    ): List<Sutra<SamasaRuleContext,SamasaRuleResult>> {
+        val selectedNumbers=selected.map { it.number }.toSet()
+        val replaceablePhases=selected.filter { it.optional }.map { (it as SamasaSutra).samasaPhase }.toSet()
+        if(replaceablePhases.isEmpty()) return emptyList()
+        val prohibited=matchingSamasantaProhibitions(context).isNotEmpty() && !PathoVibhasaSutra.matches(context)
+        return samasaSutras.asSequence()
+            .filter { candidate ->
+                val sutra=candidate as Sutra<*,*>
+                sutra.optional && sutra.number !in selectedNumbers && candidate.samasaPhase in replaceablePhases &&
+                    (candidate is UniversalSamasaTransformation || candidate.samasaType==context.samasaType || (context.samasaType==SamasaType.KARMADHARAYA && candidate.samasaType==SamasaType.TATPURUSA)) &&
+                    (candidate.samasaPhase!=SamasaRulePhase.SAMASANTA || !prohibited) && candidate.matches(context)
+            }
+            .map { it as Sutra<SamasaRuleContext,SamasaRuleResult> }
+            .toList()
+    }
 
     private fun selectPostClassificationSutras(
         context: SamasaRuleContext,
