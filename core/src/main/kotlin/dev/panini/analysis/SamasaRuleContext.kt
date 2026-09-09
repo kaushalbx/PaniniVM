@@ -19,7 +19,24 @@ data class SamasaPada(
     val samjnas: Set<Samjna> = emptySet(),
     val linga: Linga? = null,
     val vacana: Vacana? = null,
+    /** Explicit masculine counterpart used by puṃvadbhāva rules; never guessed lexically. */
+    val masculineCounterpart: String? = null,
+    val morphologicalFeatures: Set<SamasaMorphologicalFeature> = emptySet(),
 )
+
+enum class SamasaMorphologicalFeature {
+    FEMININE_UUNG,
+    ORDINAL,
+    PRIYADI,
+    K_UPADHA,
+    VRDDHI_CAUSING_TADDHITA,
+    COLOR_OR_MODIFICATION_TADDHITA,
+    BODY_PART_I_ENDING,
+    JATI,
+    FEMININE_NGI,
+    NADI,
+    UGIT_DERIVED,
+}
 
 /** Semantic facts supplied by the vigraha, rather than guessed from its words. */
 enum class SamasaSemanticRelation {
@@ -42,6 +59,24 @@ enum class SamasaSemanticRelation {
     CENSURE,
     /** The vigraha expresses a measure or spatial dimension. */
     MEASURE_DIMENSION,
+    /** The members are related through teaching or study (vidyā-sambandha). */
+    STUDY_RELATION,
+    /** The members are related by descent or blood (yoni-sambandha). */
+    BLOOD_RELATION,
+    /** The coordinated members are names of deities. */
+    DEVATA_COORDINATION,
+    /** The compound is used as a proper name (saṃjñā). */
+    PROPER_NAME,
+    /** Saha denotes extension through the end of a text. */
+    TEXT_COMPLETION,
+    /** Saha denotes excess or addition. */
+    EXCESS,
+    /** Saha accompanies an indirectly apprehended second object. */
+    INDIRECT_SECOND,
+    /** The uttarapada denotes time. */
+    TIME_REFERENCE,
+    /** The uttarapada denotes something that is to be filled with water. */
+    WATER_FILLED,
     /** Applicability depends on membership in a named lexical gaṇa. */
     LEXICAL_GANA_MEMBERSHIP,
 }

@@ -363,7 +363,7 @@
     "expectedStem": "अविद्वस्",
     "expectedSurface": "अविद्वान्",
     "classificationSutra": "2.2.6",
-    "transformationSutras": "",
+    "transformationSutras": "6.3.73",
     "forbiddenSutras": "2.1.57"
   },
   {
@@ -379,7 +379,7 @@
     "expectedStem": "अब्राह्मण",
     "expectedSurface": "अब्राह्मणः",
     "classificationSutra": "2.2.6",
-    "transformationSutras": "",
+    "transformationSutras": "6.3.73",
     "forbiddenSutras": "2.1.57"
   },
   {
@@ -611,7 +611,7 @@
     "expectedStem": "अनीश्वर",
     "expectedSurface": "अनीश्वरः",
     "classificationSutra": "2.2.6",
-    "transformationSutras": "",
+    "transformationSutras": "6.3.74",
     "forbiddenSutras": "2.1.95"
   },
   {
@@ -641,7 +641,7 @@
     "expectedStem": "अनश्व",
     "expectedSurface": "अनश्वः",
     "classificationSutra": "2.2.6",
-    "transformationSutras": "",
+    "transformationSutras": "6.3.74",
     "forbiddenSutras": "2.2.89"
   },
   {
@@ -825,7 +825,7 @@
     "expectedStem": "अधर्म",
     "expectedSurface": "अधर्मः",
     "classificationSutra": "2.2.6",
-    "transformationSutras": "",
+    "transformationSutras": "6.3.73",
     "forbiddenSutras": "2.1.95"
   },
   {
@@ -1038,7 +1038,7 @@
     "expectedStem": "अकुशल",
     "expectedSurface": "अकुशलः",
     "classificationSutra": "2.2.6",
-    "transformationSutras": "",
+    "transformationSutras": "6.3.73",
     "forbiddenSutras": "2.1.95"
   },
   {
@@ -1236,7 +1236,7 @@
     "expectedStem": "अनार्य",
     "expectedSurface": "अनार्यः",
     "classificationSutra": "2.2.6",
-    "transformationSutras": "",
+    "transformationSutras": "6.3.74",
     "forbiddenSutras": "2.2.89"
   },
   {
@@ -1301,5 +1301,67 @@
     "classificationSutra": "2.1.6",
     "transformationSutras": "",
     "forbiddenSutras": "2.1.97"
+  },
+  {
+    "id": "BENCH_085",
+    "name": "6.3.29 deity dvandva - Dyavadeva",
+    "padas": [
+      {"upadesha": "दिव्", "vibhakti": "PRATHAMA"},
+      {"upadesha": "देव", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "DVANDVA",
+    "semanticRelations": ["DEVATA_COORDINATION"],
+    "outputLinga": "PUMS",
+    "outputVacana": "DVIVACANA",
+    "expectedStem": "द्यावादेव",
+    "expectedSurface": "द्यावादेवौ",
+    "classificationSutra": "2.2.29",
+    "transformationSutras": "6.3.29",
+    "forbiddenSutras": "6.3.26"
+  },
+  {
+    "id": "BENCH_086",
+    "name": "6.3.50 Hrdaya before Lekha",
+    "padas": [
+      {"upadesha": "हृदय", "vibhakti": "SASTHI"},
+      {"upadesha": "लेख", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "TATPURUSA",
+    "outputLinga": "PUMS",
+    "expectedStem": "हृद्लेख",
+    "expectedSurface": "हृद्लेखः",
+    "classificationSutra": "2.2.8",
+    "transformationSutras": "6.3.50",
+    "forbiddenSutras": ""
+  },
+  {
+    "id": "BENCH_087",
+    "name": "6.3.58 Udaka before Vahana",
+    "padas": [
+      {"upadesha": "उदक", "vibhakti": "SASTHI"},
+      {"upadesha": "वाहन", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "TATPURUSA",
+    "outputLinga": "NAPUMSAKA",
+    "expectedStem": "उद्वाहन",
+    "expectedSurface": "उद्वाहनम्",
+    "classificationSutra": "2.2.8",
+    "transformationSutras": "6.3.58",
+    "forbiddenSutras": "6.3.57"
+  },
+  {
+    "id": "BENCH_088",
+    "name": "6.3.81 Saha substitution in Avyayibhava",
+    "padas": [
+      {"upadesha": "सह", "vibhakti": "PRATHAMA"},
+      {"upadesha": "कृत", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "AVYAYIBHAVA",
+    "outputLinga": "NAPUMSAKA",
+    "expectedStem": "सकृत",
+    "expectedSurface": "सकृतम्",
+    "classificationSutra": "2.1.6",
+    "transformationSutras": "6.3.81",
+    "forbiddenSutras": "6.3.82"
   }
 ]

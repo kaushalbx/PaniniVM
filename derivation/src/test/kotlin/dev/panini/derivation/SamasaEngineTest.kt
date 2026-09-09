@@ -1426,6 +1426,7 @@ class SamasaEngineTest {
                 SamasaPada("सोम", Vibhakti.PRATHAMA),
             ),
             samasaType = SamasaType.DVANDVA,
+            semanticRelations = setOf(SamasaSemanticRelation.DEVATA_COORDINATION),
         )
         assertTrue(sutra.matches(context))
     }
@@ -1439,6 +1440,7 @@ class SamasaEngineTest {
                 SamasaPada("पृथ्वी", Vibhakti.PRATHAMA),
             ),
             samasaType = SamasaType.DVANDVA,
+            semanticRelations = setOf(SamasaSemanticRelation.DEVATA_COORDINATION),
         )
         assertTrue(sutra.matches(context))
     }
@@ -1452,6 +1454,7 @@ class SamasaEngineTest {
                 SamasaPada("नक्ता", Vibhakti.PRATHAMA),
             ),
             samasaType = SamasaType.DVANDVA,
+            semanticRelations = setOf(SamasaSemanticRelation.DEVATA_COORDINATION),
         )
         assertTrue(sutra.matches(context))
     }

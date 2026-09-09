@@ -2,6 +2,7 @@ package dev.panini.ashtadhyayi.adhyaya6.pada3
 
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
+import dev.panini.analysis.SamasaSemanticRelation
 import dev.panini.core.SamasaType
 import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
@@ -34,6 +35,7 @@ object DivasChaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         val first = context.padas.first().upadesha
         val last = context.padas.last().upadesha
         return context.samasaType == SamasaType.DVANDVA &&
+            SamasaSemanticRelation.DEVATA_COORDINATION in context.semanticRelations &&
             (first == "दिव्" || first == "दिवा") && (last == "पृथ्वी" || last == "पृथिवी")
     }
 

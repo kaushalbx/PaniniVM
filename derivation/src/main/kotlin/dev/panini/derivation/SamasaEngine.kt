@@ -18,6 +18,7 @@ import dev.panini.core.Vibhakti
 import dev.panini.derivation.SubantaDerivationRequest
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.SamasaSutra
+import dev.panini.sutra.UniversalSamasaTransformation
 import dev.panini.sutra.SamasaRulePhase
 import dev.panini.sutra.Sutra
 
@@ -459,7 +460,7 @@ class SamasaEngine(
         .asSequence()
         .filter {
             val sutra = it as Sutra<*, *>
-            (it.samasaType == context.samasaType || (context.samasaType == SamasaType.KARMADHARAYA && it.samasaType == SamasaType.TATPURUSA)) &&
+            (it is UniversalSamasaTransformation || it.samasaType == context.samasaType || (context.samasaType == SamasaType.KARMADHARAYA && it.samasaType == SamasaType.TATPURUSA)) &&
                 sutra.number != classificationSutra.number &&
                 it.samasaPhase in setOf(SamasaRulePhase.STEM_TRANSFORMATION, SamasaRulePhase.SAMASANTA) &&
                 sutra.role !is dev.panini.sutra.SutraRole.Adhikara &&

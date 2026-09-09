@@ -42,3 +42,6 @@ interface SamasaSutra {
     /** Applies the compound transformation rule. */
     fun apply(context: SamasaRuleContext): SamasaRuleResult
 }
+
+/** A stem operation whose canonical domain is compounds generally, not one samāsa class. */
+interface UniversalSamasaTransformation

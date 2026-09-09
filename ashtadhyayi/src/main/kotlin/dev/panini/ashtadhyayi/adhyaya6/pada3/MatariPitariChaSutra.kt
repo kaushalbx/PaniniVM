@@ -27,13 +27,14 @@ object MatariPitariChaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     action = SutraAction.ADESHA,
     scope = SutraScope.DERIVATION,
     samasaType = SamasaType.DVANDVA,
-    samasaPriority = 10,
+    samasaPriority = 30,
 ), SamasaSutra {
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val first = context.padas.first().upadesha
         val last = context.padas.last().upadesha
-        return (first == "मातृ" || first == "माता") && (last == "पितृ" || last == "पिता")
+        return context.samasaType == SamasaType.DVANDVA &&
+            (first == "मातृ" || first == "माता") && (last == "पितृ" || last == "पिता")
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
