@@ -98,7 +98,7 @@
   },
   {
     "id": "BENCH_007",
-    "name": "2.2.5 Praptapanna Dvitiya Tatpurusa - Kasta-apanna",
+    "name": "2.2.4 Praptapanna Dvitiya Tatpurusa - Kasta-apanna",
     "padas": [
       {"upadesha": "कष्ट", "vibhakti": "DVITIYA"},
       {"upadesha": "आपन्न", "vibhakti": "PRATHAMA"}
@@ -108,7 +108,7 @@
     "outputVacana": "EKAVACANA",
     "expectedStem": "कष्टापन्न",
     "expectedSurface": "कष्टापन्नः",
-    "classificationSutra": "2.2.5",
+    "classificationSutra": "2.2.4",
     "transformationSutras": "",
     "forbiddenSutras": "2.1.24"
   },

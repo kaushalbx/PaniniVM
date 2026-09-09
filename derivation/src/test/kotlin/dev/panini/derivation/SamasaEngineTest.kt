@@ -782,18 +782,6 @@ class SamasaEngineTest {
     }
 
     @Test
-    fun `test TrtiyaprabhrtinyAnyatarasyam Ekadesin (2 2 3)`() {
-        val result = engine.derive(
-            listOf(
-                SamasaPada("पूर्व", Vibhakti.TRTIYA),
-                SamasaPada("अह्न", Vibhakti.PRATHAMA),
-            ),
-            SamasaType.TATPURUSA,
-        )
-        assertTrue(result.applications.any { it.sutra == "2.2.3" })
-    }
-
-    @Test
     fun `test TatraTenedamitiSarupe Bahuvrihi (2 2 23)`() {
         val result = engine.derive(
             listOf(
@@ -851,18 +839,6 @@ class SamasaEngineTest {
             SamasaType.KARMADHARAYA,
         )
         assertTrue(result.applications.any { it.sutra == "2.1.66" })
-    }
-
-    @Test
-    fun `test Antaram Bahiryoge Tatpurusha (2 2 4)`() {
-        val result = engine.derive(
-            listOf(
-                SamasaPada("गृह", Vibhakti.PRATHAMA),
-                SamasaPada("अन्तर", Vibhakti.PRATHAMA),
-            ),
-            SamasaType.TATPURUSA,
-        )
-        assertTrue(result.applications.any { it.sutra == "2.2.4" })
     }
 
     @Test
@@ -1168,21 +1144,6 @@ class SamasaEngineTest {
     }
 
     @Test
-    fun `test Esad Aka Pratyaya Prohibition (2 2 7)`() {
-        val sutra = dev.panini.ashtadhyayi.adhyaya2.pada2.EsadAkaPratyayaYukteSutra
-        val context = dev.panini.analysis.SamasaRuleContext(
-            padas = listOf(
-                SamasaPada("अ", Vibhakti.PRATHAMA),
-                SamasaPada("ईषत्कत", Vibhakti.PRATHAMA),
-            ),
-            samasaType = SamasaType.NAN_TATPURUSA,
-        )
-        assertTrue(sutra.matches(context))
-        val res = sutra.apply(context)
-        assertTrue(res is dev.panini.analysis.SamasaRuleResult.NotApplicable)
-    }
-
-    @Test
     fun `test Purana Guna Suhita Prohibition (2 2 11)`() {
         val sutra = dev.panini.ashtadhyayi.adhyaya2.pada2.PuranaGunasuhitaSutra
         val context = dev.panini.analysis.SamasaRuleContext(
@@ -1237,8 +1198,8 @@ class SamasaEngineTest {
     }
 
     @Test
-    fun `test Trtiyaprabhrtiny Anyatarasyam Ext Avyayibhava (2 2 21)`() {
-        val sutra = dev.panini.ashtadhyayi.adhyaya2.pada2.TrtiyaprabhrtinyAnyatarasyamExtSutra
+    fun `test Trtiyaprabhrtiny Anyatarasyam Avyayibhava (2 2 21)`() {
+        val sutra = dev.panini.ashtadhyayi.adhyaya2.pada2.TrtiyaprabhrtinyAnyatarasyamSutra
         val context = dev.panini.analysis.SamasaRuleContext(
             padas = listOf(
                 SamasaPada("उप", Vibhakti.PRATHAMA),

@@ -11,19 +11,19 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 /**
- * Sūtra 2.2.5: प्राप्तापन्ने च द्वितीयायाः.
+ * Sūtra 2.2.4: प्राप्तापन्ने च द्वितीयया.
  * Prescribes option for prāpta and āpanna compounds with dvitīyā subanta.
  * Example: प्राप्तः जीविकाम् = प्राप्तजीविकः / जीविकाप्राप्तः.
  */
 object PraptapanneChADvitiyayaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
-    number = "2.2.5",
-    text = "प्राप्तापन्ने च द्वितीयायाः",
+    number = "2.2.4",
+    text = "प्राप्तापन्ने च द्वितीयया",
     hindiExplanation = "प्राप्त तथा आपन्न शब्द का द्वितीयान्त समर्थ सुबन्त के साथ विकल्प से तत्पुरुष समास होता है (उदा. प्राप्तजीविकः)।",
     type = SutraType.NITYA,
     chapter = 2,
     pada = 2,
     optional = true,
-    kramaValue = 220005,
+    kramaValue = 220004,
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
@@ -44,7 +44,7 @@ object PraptapanneChADvitiyayaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>
         val compoundStem = context.padas.joinToString("") { it.upadesha }
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
-            explanation = "2.2.5 forms Prāpta/Āpanna Tatpuruṣa compound '$compoundStem'.",
+            explanation = "2.2.4 forms Prāpta/Āpanna Tatpuruṣa compound '$compoundStem'.",
         )
     }
 }
