@@ -11,19 +11,19 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 /**
- * Sūtra 6.3.8: मनसः संज्ञायाम्.
+ * Sūtra 6.3.4: मनसः संज्ञायाम्.
  * Prescribes Aluk of Saptamī vibhakti for manas in proper names.
  * Example: मनसिजः (manasijaḥ).
  */
 object ManasahSamjnayamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
-    number = "6.3.8",
+    number = "6.3.4",
     text = "मनसः संज्ञायाम्",
     hindiExplanation = "संज्ञा (नाम) विषय में मनस् शब्द की सप्तमी विभक्ति का अलुक् होता है (उदा. मनसिजः)।",
     type = SutraType.NITYA,
     chapter = 6,
     pada = 3,
     optional = false,
-    kramaValue = 630008,
+    kramaValue = 630004,
     role = SutraRole.Niyama,
     action = SutraAction.NIYAMA,
     scope = SutraScope.DERIVATION,
@@ -41,7 +41,7 @@ object ManasahSamjnayamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         val compoundStem = context.padas.joinToString("") { it.upadesha }
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
-            explanation = "6.3.8 preserves Saptamī case affix (Aluk) for manas in '$compoundStem'.",
+            explanation = "6.3.4 preserves Saptamī case affix (Aluk) for manas in '$compoundStem'.",
         )
     }
 }

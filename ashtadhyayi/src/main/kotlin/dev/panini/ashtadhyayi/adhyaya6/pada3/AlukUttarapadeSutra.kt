@@ -12,13 +12,13 @@ import dev.panini.sutra.SutraType
 import dev.panini.sutra.SamasaSutra
 
 /**
- * Sūtra 6.3.1: अलुक उत्तरपदे.
+ * Sūtra 6.3.1: अलुगुत्तरपदे.
  * Adhikāra Sūtra governing non-elision (aluk) of case markers of the prior member (pūrvapada)
  * when followed by an uttarapada in compounds.
  */
 object AlukUttarapadeSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "6.3.1",
-    text = "अलुक उत्तरपदे",
+    text = "अलुगुत्तरपदे",
     hindiExplanation = "उत्तरपद परे होने पर पूर्वपद की विभक्ति का अलुक् (अलोप) होता है।",
     type = SutraType.ADHIKARA,
     chapter = 6,
@@ -38,7 +38,7 @@ object AlukUttarapadeSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         val stem = context.padas.joinToString("") { it.upadesha }
         return SamasaRuleResult.Formed(
             compoundStem = stem,
-            explanation = "6.3.1 (अलुक उत्तरपदे) preserves pūrvapada vibhakti for Aluk compound '$stem'.",
+            explanation = "6.3.1 (अलुगुत्तरपदे) preserves pūrvapada vibhakti for Aluk compound '$stem'.",
         )
     }
 }

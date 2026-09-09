@@ -17,7 +17,7 @@
   },
   {
     "id": "BENCH_002",
-    "name": "6.3.21 Atmanasca Purane Aluk Tatpurusa - Atmanepadam",
+    "name": "6.3.6 Atmanasca Purane Aluk Tatpurusa - Atmanepadam",
     "padas": [
       {"upadesha": "आत्मने", "vibhakti": "CHATURTHI"},
       {"upadesha": "पद", "vibhakti": "PRATHAMA"}
@@ -27,7 +27,7 @@
     "outputVacana": "EKAVACANA",
     "expectedStem": "आत्मनेपद",
     "expectedSurface": "आत्मनेपदम्",
-    "classificationSutra": "6.3.21",
+    "classificationSutra": "6.3.6",
     "transformationSutras": "",
     "forbiddenSutras": ""
   },

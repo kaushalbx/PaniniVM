@@ -12,19 +12,19 @@ import dev.panini.sutra.SutraType
 import dev.panini.sutra.SamasaSutra
 
 /**
- * Sūtra 6.3.21: आत्मनश्च पूरणे.
+ * Sūtra 6.3.6: आत्मनश्च पूरणे.
  * Prescribes Aluk of case endings for 'ātmane' / 'parasmai' before 'pada' etc.
  * Examples: आत्मनेपदम्, परस्मैपदम्.
  */
 object AtmanascaPuraneSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
-    number = "6.3.21",
+    number = "6.3.6",
     text = "आत्मनश्च पूरणे",
     hindiExplanation = "आत्मने तथा परस्मै पदों का पद उत्तरपद परे होने पर अलुक् होता है (उदा. आत्मनेपदम्, परस्मैपदम्)।",
     type = SutraType.NITYA,
     chapter = 6,
     pada = 3,
     optional = false,
-    kramaValue = 630021,
+    kramaValue = 630006,
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
@@ -43,7 +43,7 @@ object AtmanascaPuraneSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         val stem = purva + context.padas.drop(1).joinToString("") { it.upadesha }
         return SamasaRuleResult.Formed(
             compoundStem = stem,
-            explanation = "6.3.21 (आत्मनश्च पूरणे) preserves case ending for Aluk compound '$stem'.",
+            explanation = "6.3.6 (आत्मनश्च पूरणे) preserves case ending for Aluk compound '$stem'.",
         )
     }
 }
