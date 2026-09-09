@@ -12,11 +12,11 @@ import dev.panini.sutra.SutraType
 import dev.panini.sutra.SamasaSutra
 
 /**
- * 5.4.151: उरःप्रभृतिभ्यः कप्च.
+ * 5.4.151: उरःप्रभृतिभ्यः कप्.
  */
 object UrahPrabhrtibhyahKapSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "5.4.151",
-    text = "उरःप्रभृतिभ्यः कप्च",
+    text = "उरःप्रभृतिभ्यः कप्",
     hindiExplanation = "उरःप्रभृतिभ्यः उत्तरपदभ्यो बहुव्रीहौ कप् प्रत्ययो भवति।",
     type = SutraType.NITYA,
     chapter = 5,

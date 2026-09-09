@@ -3,6 +3,7 @@ package dev.panini.ashtadhyayi.adhyaya5.pada4
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
 import dev.panini.core.SamasaType
+import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -32,7 +33,7 @@ object NadyrtaschaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         if (context.padas.size < 2) return false
         val uttara = context.uttaraPada.upadesha
         return context.samasaType == SamasaType.BAHUVRIHI &&
-            (uttara.endsWith("ी") || uttara.endsWith("ू") || uttara.endsWith("ऋ") || uttara.endsWith("ृ"))
+            (Samjna.NADI in context.uttaraPada.samjnas || uttara.endsWith("ऋ") || uttara.endsWith("ृ"))
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {

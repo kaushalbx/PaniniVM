@@ -3,6 +3,7 @@ package dev.panini.derivation
 import dev.panini.analysis.SamasaPada
 import dev.panini.core.SamasaType
 import dev.panini.core.Vibhakti
+import dev.panini.shiksha.Samjna
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -54,24 +55,11 @@ class SamasantaAffixTest {
     }
 
     @Test
-    fun `test 5 4 154 Kap affix after negative Bahuvrihi`() {
-        val result = engine.derive(
-            listOf(
-                SamasaPada("अ", Vibhakti.PRATHAMA),
-                SamasaPada("पुत्र", Vibhakti.PRATHAMA),
-            ),
-            SamasaType.BAHUVRIHI,
-        )
-        assertEquals("अपुत्रकः", result.final.surface)
-        assertTrue(result.applications.any { it.sutra == "5.4.154" })
-    }
-
-    @Test
     fun `test 5 4 153 Kap affix after nadi ending Bahuvrihi`() {
         val result = engine.derive(
             listOf(
                 SamasaPada("बहु", Vibhakti.PRATHAMA),
-                SamasaPada("कुमारी", Vibhakti.PRATHAMA),
+                SamasaPada("कुमारी", Vibhakti.PRATHAMA, samjnas = setOf(Samjna.NADI)),
             ),
             SamasaType.BAHUVRIHI,
         )

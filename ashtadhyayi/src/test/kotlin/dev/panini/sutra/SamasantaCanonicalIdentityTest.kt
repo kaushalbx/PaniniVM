@@ -120,4 +120,39 @@ class SamasantaCanonicalIdentityTest {
 
         assertEquals(expected, actual)
     }
+
+    @Test
+    fun `5 4 151 through 160 retain canonical identities`() {
+        val expected = linkedMapOf(
+            "5.4.151" to "उरःप्रभृतिभ्यः कप्",
+            "5.4.152" to "इनः स्त्रियाम्",
+            "5.4.153" to "नद्यृतश्च",
+            "5.4.154" to "शेषाद्विभाषा",
+            "5.4.155" to "न संज्ञायाम्",
+            "5.4.156" to "ईयसश्च",
+            "5.4.157" to "वन्दिते भ्रातुः",
+            "5.4.158" to "ऋतश्छन्दसि",
+            "5.4.159" to "नाडीतन्त्र्योः स्वाङ्गे",
+            "5.4.160" to "निष्प्रवाणिश्च",
+        )
+        val actual = Adhyaya5Pada4.sutras
+            .filter { it.number in expected }
+            .associate { it.number to it.text }
+
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun `every samasanta sutra from 5 4 68 through 160 is registered exactly once`() {
+        val expectedNumbers = (68..160).map { "5.4.$it" }
+        val registrations = Adhyaya5Pada4.sutras
+            .filter { sutra ->
+                sutra.number.removePrefix("5.4.").toIntOrNull()?.let { it in 68..160 } == true
+            }
+            .groupingBy { it.number }
+            .eachCount()
+
+        assertEquals(expectedNumbers, registrations.keys.sortedBy { it.substringAfterLast('.').toInt() })
+        assertEquals(expectedNumbers.associateWith { 1 }, registrations)
+    }
 }

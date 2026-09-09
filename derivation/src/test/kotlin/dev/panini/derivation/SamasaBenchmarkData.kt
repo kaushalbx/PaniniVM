@@ -97,22 +97,11 @@ object SamasaBenchmarkData {
             expectedSutra = "5.4.151",
         ),
         SamasaTestCase(
-            id = "SAMASANTA_004",
-            description = "5.4.154 Kap affix - a + putra",
-            padas = listOf(
-                SamasaPada("अ", Vibhakti.PRATHAMA),
-                SamasaPada("पुत्र", Vibhakti.PRATHAMA),
-            ),
-            type = SamasaType.BAHUVRIHI,
-            expectedSurface = "अपुत्रकः",
-            expectedSutra = "5.4.154",
-        ),
-        SamasaTestCase(
             id = "SAMASANTA_005",
             description = "5.4.153 Kap affix - bahu + kumari",
             padas = listOf(
                 SamasaPada("बहु", Vibhakti.PRATHAMA),
-                SamasaPada("कुमारी", Vibhakti.PRATHAMA),
+                SamasaPada("कुमारी", Vibhakti.PRATHAMA, samjnas = setOf(dev.panini.shiksha.Samjna.NADI)),
             ),
             type = SamasaType.BAHUVRIHI,
             expectedSurface = "बहुकुमारीकः",

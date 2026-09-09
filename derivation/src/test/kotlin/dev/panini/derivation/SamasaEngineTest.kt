@@ -344,7 +344,7 @@ class SamasaEngineTest {
         val result = engine.derive(
             listOf(
                 SamasaPada("बहु", Vibhakti.PRATHAMA),
-                SamasaPada("कुमारी", Vibhakti.PRATHAMA),
+                SamasaPada("कुमारी", Vibhakti.PRATHAMA, samjnas = setOf(Samjna.NADI)),
             ),
             SamasaType.BAHUVRIHI,
         )
@@ -353,16 +353,16 @@ class SamasaEngineTest {
     }
 
     @Test
-    fun `test Bahuvrihi NanoAstyarthanam Kap pratyaya (5 4 154)`() {
+    fun `5 4 153 does not infer Nadi designation from a long i ending`() {
         val result = engine.derive(
             listOf(
-                SamasaPada("अ", Vibhakti.PRATHAMA),
-                SamasaPada("पुत्र", Vibhakti.PRATHAMA),
+                SamasaPada("बहु", Vibhakti.PRATHAMA),
+                SamasaPada("गौरी", Vibhakti.PRATHAMA),
             ),
             SamasaType.BAHUVRIHI,
         )
-        assertEquals("अपुत्रकः", result.final.terms.last().surface)
-        assertTrue(result.applications.any { it.sutra == "5.4.154" })
+
+        assertTrue(result.applications.none { it.sutra == "5.4.153" })
     }
 
     @Test
@@ -2530,18 +2530,6 @@ class SamasaEngineTest {
         assertTrue(sutra.matches(context))
     }
 
-    @Test
-    fun `test Apacadibhyo Ac (5 4 156)`() {
-        val sutra = dev.panini.ashtadhyayi.adhyaya5.pada4.ApacadibhyoAcSutra
-        val context = dev.panini.analysis.SamasaRuleContext(
-            padas = listOf(
-                SamasaPada("सु", Vibhakti.PRATHAMA),
-                SamasaPada("देव", Vibhakti.PRATHAMA),
-            ),
-            samasaType = SamasaType.BAHUVRIHI,
-        )
-        assertTrue(sutra.matches(context))
-    }
 
 
     @Test
@@ -2560,18 +2548,6 @@ class SamasaEngineTest {
 
 
 
-    @Test
-    fun `test Ancatas Canopadah (5 4 158)`() {
-        val sutra = dev.panini.ashtadhyayi.adhyaya5.pada4.AncatasCanopadahSutra
-        val context = dev.panini.analysis.SamasaRuleContext(
-            padas = listOf(
-                SamasaPada("प्राक्", Vibhakti.PRATHAMA),
-                SamasaPada("प्राञ्च्", Vibhakti.PRATHAMA),
-            ),
-            samasaType = SamasaType.BAHUVRIHI,
-        )
-        assertTrue(sutra.matches(context))
-    }
 
 
 
