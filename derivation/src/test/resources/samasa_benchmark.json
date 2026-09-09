@@ -1,7 +1,7 @@
 [
   {
     "id": "BENCH_001",
-    "name": "6.3.100 Mahat in Karmadharaya - Mahanavami",
+    "name": "6.3.46 Mahat in Karmadharaya - Mahanavami",
     "padas": [
       {"upadesha": "महत्", "vibhakti": "PRATHAMA"},
       {"upadesha": "नवमी", "vibhakti": "PRATHAMA"}
@@ -12,7 +12,7 @@
     "expectedStem": "महानवमी",
     "expectedSurface": "महानवमी",
     "classificationSutra": "2.1.61",
-    "transformationSutras": "",
+    "transformationSutras": "6.3.46",
     "forbiddenSutras": ""
   },
   {

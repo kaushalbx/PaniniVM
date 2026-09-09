@@ -11,36 +11,39 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 /**
- * Sūtra 6.3.25: त्रेः स्त्रियाम्.
- * Feminine substitution for tri in compounds (tisṛ).
+ * Sūtra 6.3.27: ईदग्नेः सोमवरुणयोः.
+ * Long ī substitution for agni before soma or varuṇa (agnīṣomau).
  */
-object TrehStriyamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
-    number = "6.3.25",
-    text = "त्रेः स्त्रियाम्",
-    hindiExplanation = "स्त्रीलिङ्ग अर्थ में त्रि शब्द के स्थान पर तिसृ आदेश होता है।",
+object IdAgnehSomavarunayohSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
+    number = "6.3.27",
+    text = "ईदग्नेः सोमवरुणयोः",
+    hindiExplanation = "अग्नि शब्द को सोम अथवा वरुण परे होने पर ईकार आदेश होता है (उदा. अग्नीषोमौ)।",
     type = SutraType.NITYA,
     chapter = 6,
     pada = 3,
     optional = false,
-    kramaValue = 630025,
+    kramaValue = 630027,
     role = SutraRole.Niyama,
     action = SutraAction.NIYAMA,
     scope = SutraScope.DERIVATION,
-    samasaType = SamasaType.DVIGU,
+    samasaType = SamasaType.DVANDVA,
     samasaPriority = 10,
 ), SamasaSutra {
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val first = context.padas.first().upadesha
-        return first == "त्रि"
+        val last = context.padas.last().upadesha
+        return context.samasaType == SamasaType.DVANDVA && first == "अग्नि" && (last == "सोम" || last == "वरुण")
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
         val last = context.padas.last().upadesha
-        val compoundStem = "तिसृ" + last
+        val compoundStem = "अग्नी" + last
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
-            explanation = "6.3.25 applies feminine substitution tisṛ for tri in '$compoundStem'.",
+            explanation = "6.3.27 substitutes long ī for agni in '$compoundStem'.",
         )
     }
 }
+
+

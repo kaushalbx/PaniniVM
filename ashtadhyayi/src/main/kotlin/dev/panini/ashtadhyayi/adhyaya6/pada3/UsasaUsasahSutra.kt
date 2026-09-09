@@ -11,13 +11,13 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 /**
- * Sūtra 6.3.31: उषसोऽुषसः.
+ * Sūtra 6.3.31: उषासोषसः.
  * Aluk / Pūrvapada rule for uṣas in Devatā-dvandva.
  * Example: उषासानक्ता.
  */
 object UsasaUsasahSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "6.3.31",
-    text = "उषसोऽुषसः",
+    text = "उषासोषसः",
     hindiExplanation = "नक्ता उत्तरपद परे होने पर उषस् शब्द का उषासा रूप निष्पन्न होता है (उदा. उषासानक्ता)।",
     type = SutraType.NITYA,
     chapter = 6,
@@ -34,7 +34,8 @@ object UsasaUsasahSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         if (context.padas.size < 2) return false
         val first = context.padas.first().upadesha
         val last = context.padas.last().upadesha
-        return (first == "उषस्" || first == "उषास्") && last == "नक्ता"
+        return context.samasaType == SamasaType.DVANDVA &&
+            (first == "उषस्" || first == "उषास्") && last == "नक्ता"
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {

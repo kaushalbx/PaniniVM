@@ -463,7 +463,6 @@ class SamasaEngine(
                 sutra.number != classificationSutra.number &&
                 it.samasaPhase in setOf(SamasaRulePhase.STEM_TRANSFORMATION, SamasaRulePhase.SAMASANTA) &&
                 sutra.role !is dev.panini.sutra.SutraRole.Adhikara &&
-                sutra.role != dev.panini.sutra.SutraRole.Niyama &&
                 sutra.action != dev.panini.sutra.SutraAction.NISHEDHA
                 && (it.samasaPhase != SamasaRulePhase.SAMASANTA || !samasantaProhibited || samasantaRestored)
         }

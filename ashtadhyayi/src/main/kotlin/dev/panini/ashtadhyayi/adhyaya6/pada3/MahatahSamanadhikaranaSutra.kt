@@ -11,13 +11,13 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 /**
- * Sūtra 6.3.46: महतः समानाधिकरणजातीययोः.
+ * Sūtra 6.3.46: आन्महतः समानाधिकरणजातीययोः.
  * Prescribes substitution of mahā for mahat before co-referential or jātīya terms.
  * Example: महाराजः (mahārājaḥ), महापुरुषः (mahāpuruṣaḥ).
  */
 object MahatahSamanadhikaranaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "6.3.46",
-    text = "महतः समानाधिकरणजातीययोः",
+    text = "आन्महतः समानाधिकरणजातीययोः",
     hindiExplanation = "समानाधिकरण उत्तरपद तथा जातीयर् प्रत्यय परे होने पर महत् पूर्वपद को 'महा' (आकार) आदेश होता है (उदा. महाराजः, महापुरुषः)।",
     type = SutraType.NITYA,
     chapter = 6,
@@ -33,8 +33,8 @@ object MahatahSamanadhikaranaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val first = context.padas.first().upadesha
-        return (context.samasaType == SamasaType.KARMADHARAYA || context.samasaType == SamasaType.BAHUVRIHI || context.samasaType == SamasaType.TATPURUSA) &&
-            (first == "महत्" || first == "महान्" || first == "महा")
+        return context.samasaType == SamasaType.KARMADHARAYA &&
+            (first == "महत्" || first == "महान्")
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
