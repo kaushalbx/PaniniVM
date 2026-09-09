@@ -161,8 +161,8 @@ class SamasaEngine(
         // order (2.2.30 ff.) or the collective interpretation of a dvandva
         // (2.4.1 ff.).  They belong in the derivation trace, but must never
         // replace 2.2.29 as the classification rule.
-        selectPostClassificationSutras(context, classificationSutra, transformationSutras)
-            .forEach { sutra ->
+        val postClassificationSutras = selectPostClassificationSutras(context, classificationSutra, transformationSutras)
+        postClassificationSutras.forEach { sutra ->
                 val sutraObj = sutra as Sutra<*, *>
                 val result = sutra.apply(context) as? SamasaRuleResult.Formed
                 applications.add(
@@ -192,7 +192,7 @@ class SamasaEngine(
             }
         }
         if (compoundMembers != padasList) {
-            val nLopa = Ashtadhyayi.registry.require("8.2.7") as Sutra<*, *>
+            val nLopa = Ashtadhyayi.registry.require("8.2.7")
             applications.add(
                 DerivationApplication(
                     sutra = nLopa.number,
@@ -240,7 +240,16 @@ class SamasaEngine(
             .replace("ंव", "म्व")
 
         // 9. Decline the compound Prātipadika via SubantaEngine (Pāṇinian Subanta pipeline)
-        val (vibhakti, vacana, linga) = subantaParams(type, padas, outputLinga, outputVacana, strictSemantics, semanticRelations)
+        val collectiveByRule = postClassificationSutras.any { it.number == "2.4.2" || it.number == "2.4.6" }
+        val (vibhakti, vacana, linga) = subantaParams(
+            type,
+            padas,
+            outputLinga,
+            outputVacana,
+            strictSemantics,
+            semanticRelations,
+            collectiveByRule,
+        )
         val subantaResult = subantaEngine.derive(
             SubantaDerivationRequest(normalizedStem, vibhakti, vacana, linga)
         )
@@ -299,10 +308,14 @@ class SamasaEngine(
         outputVacana: Vacana?,
         strictSemantics: Boolean,
         semanticRelations: Set<SamasaSemanticRelation>,
+        collectiveByRule: Boolean,
     ): Triple<Vibhakti, Vacana, Linga> {
         val count = padas.size
         val declaredLinga = outputLinga ?: padas.lastOrNull()?.linga
         val declaredVacana = outputVacana ?: padas.lastOrNull()?.vacana
+        if (collectiveByRule) {
+            return Triple(Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.NAPUMSAKA)
+        }
 
         val inferred = when (type) {
             SamasaType.AVYAYIBHAVA, SamasaType.DVIGU ->

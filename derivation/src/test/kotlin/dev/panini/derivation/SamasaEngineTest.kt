@@ -233,6 +233,7 @@ class SamasaEngineTest {
         )
         assertEquals("घनश्यामः", result.final.terms.last().surface)
         assertTrue(result.applications.any { it.sutra == "2.1.55" })
+        assertEquals("2.1.55", result.samasaResolution?.classificationSutra)
     }
 
     @Test
@@ -397,8 +398,6 @@ class SamasaEngineTest {
                 SamasaPada("पाद", Vibhakti.PRATHAMA),
             ),
             SamasaType.DVANDVA,
-            outputLinga = dev.panini.core.Linga.NAPUMSAKA,
-            outputVacana = dev.panini.core.Vacana.EKAVACANA,
         )
         assertEquals("पाणिपादम्", result.final.terms.last().surface)
         assertTrue(result.applications.any { it.sutra == "2.4.2" })
@@ -408,12 +407,39 @@ class SamasaEngineTest {
     fun `test Dvandva JatirApraninam Samahara (2 4 6)`() {
         val result = engine.derive(
             listOf(
-                SamasaPada("धाना", Vibhakti.PRATHAMA),
-                SamasaPada("शष्कुलि", Vibhakti.PRATHAMA),
+                SamasaPada("बदर", Vibhakti.PRATHAMA),
+                SamasaPada("आमलक", Vibhakti.PRATHAMA),
             ),
             SamasaType.DVANDVA,
         )
         assertTrue(result.applications.any { it.sutra == "2.4.6" })
+        assertEquals("बदरामलकम्", result.final.terms.last().surface)
+    }
+
+    @Test
+    fun `2 4 6 rejects a mixed nonliving and living dvandva`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("धाना", Vibhakti.PRATHAMA),
+                SamasaPada("पुरुष", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.DVANDVA,
+        )
+
+        assertTrue(result.applications.none { it.sutra == "2.4.6" })
+    }
+
+    @Test
+    fun `2 4 collective rules do not leak into non dvandva compounds`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("धाना", Vibhakti.PRATHAMA),
+                SamasaPada("शष्कुलि", Vibhakti.PRATHAMA),
+            ),
+            SamasaType.KARMADHARAYA,
+        )
+
+        assertTrue(result.applications.none { it.sutra == "2.4.2" || it.sutra == "2.4.6" })
     }
 
     @Test
