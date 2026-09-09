@@ -14,6 +14,19 @@ class SamasaEngineTest {
     private val engine = SamasaEngine()
 
     @Test
+    fun `optional transformations expose both applied and omitted derivations`() {
+        val result = engine.derive(
+            listOf(SamasaPada("कु"), SamasaPada("पुरुष")),
+            SamasaType.TATPURUSA,
+            outputLinga = dev.panini.core.Linga.PUMS,
+        )
+        val alternatives = requireNotNull(result.samasaResolution).alternatives
+        assertEquals(setOf("कापुरुष", "कुपुरुष"), alternatives.map { it.compoundStem }.toSet())
+        assertTrue(alternatives.any { "6.3.106" in it.transformationSutras })
+        assertTrue(alternatives.any { "6.3.106" !in it.transformationSutras })
+    }
+
+    @Test
     fun `stem transformation precedes samasanta in ordered pipeline`() {
         val result = engine.derive(
             listOf(

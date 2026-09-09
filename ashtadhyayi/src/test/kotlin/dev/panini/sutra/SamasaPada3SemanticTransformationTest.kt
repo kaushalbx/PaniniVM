@@ -59,7 +59,7 @@ class SamasaPada3SemanticTransformationTest {
     @Test fun `6 3 50 to 60 lexical substitutions do not overmatch`() {
         val cases: List<Triple<SamasaSutra, SamasaRuleContext, String>> = listOf(
             Triple(HrdayasyaHrllekhayadanalasesuSutra,context("हृदय","लेख"),"हृद्लेख"),
-            Triple(PadasyaPadajyatigopahatesuSutra,context("पाद","उपहत"),"पद्उपहत"),
+            Triple(PadasyaPadajyatigopahatesuSutra,context("पाद","उपहत"),"पद् उपहत"),
             Triple(PesamVasaVahanaDhisuCaSutra,context("उदक","वाहन"),"उद्वाहन"),
             Triple(ManthaudanaSaktuBinduVajraSutra,context("उदक","बिन्दु"),"उद्बिन्दु"),
         )

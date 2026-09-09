@@ -657,7 +657,7 @@
     "expectedStem": "उपनदी",
     "expectedSurface": "उपनदी",
     "classificationSutra": "2.1.6",
-    "transformationSutras": "",
+    "transformationSutras": "5.4.110",
     "forbiddenSutras": "2.1.97"
   },
   {
@@ -1328,8 +1328,8 @@
     ],
     "samasaType": "TATPURUSA",
     "outputLinga": "PUMS",
-    "expectedStem": "हृद्लेख",
-    "expectedSurface": "हृद्लेखः",
+    "expectedStem": "हृल्लेख",
+    "expectedSurface": "हृल्लेखः",
     "classificationSutra": "2.2.8",
     "transformationSutras": "6.3.50",
     "forbiddenSutras": ""
@@ -1361,7 +1361,52 @@
     "expectedStem": "सकृत",
     "expectedSurface": "सकृतम्",
     "classificationSutra": "2.1.6",
-    "transformationSutras": "6.3.81",
+    "transformationSutras": "6.3.81,5.4.111",
     "forbiddenSutras": "6.3.82"
+  },
+  {
+    "id": "BENCH_089",
+    "name": "6.3.106 Optional Ku substitution before Purusha",
+    "padas": [
+      {"upadesha": "कु", "vibhakti": "PRATHAMA"},
+      {"upadesha": "पुरुष", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "TATPURUSA",
+    "outputLinga": "PUMS",
+    "expectedStem": "कापुरुष",
+    "expectedSurface": "कापुरुषः",
+    "classificationSutra": "2.2.18",
+    "transformationSutras": "6.3.106",
+    "forbiddenSutras": "6.3.107"
+  },
+  {
+    "id": "BENCH_090",
+    "name": "6.3.85 Samana substitution before Gotra",
+    "padas": [
+      {"upadesha": "समान", "vibhakti": "PRATHAMA"},
+      {"upadesha": "गोत्र", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "TATPURUSA",
+    "outputLinga": "NAPUMSAKA",
+    "expectedStem": "सगोत्र",
+    "expectedSurface": "सगोत्रम्",
+    "classificationSutra": "2.2.8",
+    "transformationSutras": "6.3.85",
+    "forbiddenSutras": "6.3.84"
+  },
+  {
+    "id": "BENCH_091",
+    "name": "6.3.128 Visva substitution before Vasu",
+    "padas": [
+      {"upadesha": "विश्व", "vibhakti": "PRATHAMA"},
+      {"upadesha": "वसु", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "TATPURUSA",
+    "outputLinga": "PUMS",
+    "expectedStem": "विश्वावसु",
+    "expectedSurface": "विश्वावसुः",
+    "classificationSutra": "2.2.8",
+    "transformationSutras": "6.3.128",
+    "forbiddenSutras": "6.3.129"
   }
 ]

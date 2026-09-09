@@ -4,9 +4,11 @@ import dev.panini.analysis.*
 import dev.panini.sutra.*
 
 private fun hasFirst(c: SamasaRuleContext, word: String) = c.padas.size >= 2 && c.purvaPada.upadesha == word
-private fun replaceFirst(c: SamasaRuleContext, replacement: String, rule: String) = SamasaRuleResult.Formed(
-    replacement + c.padas.drop(1).joinToString("") { it.upadesha }, "$rule substitutes $replacement for the pūrvapada."
-)
+private fun replaceFirst(c: SamasaRuleContext, replacement: String, rule: String): SamasaRuleResult {
+    val remainder=c.padas.drop(1).joinToString(""){it.upadesha}
+    val stem=if(remainder.firstOrNull() in setOf('अ','आ','इ','ई','उ','ऊ','ऋ','ॠ','ऌ','ए','ऐ','ओ','औ')) "$replacement $remainder" else replacement+remainder
+    return SamasaRuleResult.Formed(stem,"$rule substitutes $replacement for the pūrvapada.")
+}
 
 /** 6.3.50: हृदयस्य हृल्लेखयदणलासेषु (compound-member portion: लेख, लास). */
 object HrdayasyaHrllekhayadanalasesuSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
