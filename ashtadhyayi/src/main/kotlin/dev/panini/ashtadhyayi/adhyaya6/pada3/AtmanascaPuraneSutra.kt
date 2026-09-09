@@ -44,6 +44,7 @@ object AtmanascaPuraneSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         return SamasaRuleResult.Formed(
             compoundStem = stem,
             explanation = "6.3.6 (आत्मनश्च पूरणे) preserves case ending for Aluk compound '$stem'.",
+            memberEdits = if(context.purvaPada.upadesha=="आत्मन्") mapOf(0 to purva) else emptyMap(),
         )
     }
 }

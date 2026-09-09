@@ -3,6 +3,7 @@ package dev.panini.derivation
 import dev.panini.analysis.SamasaPada
 import dev.panini.analysis.SamasaResolution
 import dev.panini.analysis.SamasaAlternative
+import dev.panini.analysis.SamasaTransformationOperation
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
 import dev.panini.analysis.SamasaSemanticRelation
@@ -91,22 +92,24 @@ class SamasaEngine(
             ?: error("Sūtra ${(classificationSutra as Sutra<*, *>).number} did not form a compound for context: $context")
 
         val transformationSutras = selectTransformationSutras(context, classificationSutra)
+        val prohibitedSutras=matchingSamasantaProhibitions(context)
         var samasaResult = classificationResult
-        val baseStem = padas.joinToString("") { it.upadesha }
         val transformedMembers = padas.map { it.upadesha }.toMutableList()
+        classificationResult.memberEdits.forEach { (index,replacement) -> transformedMembers[index]=replacement }
+        var samasantaSuffix=classificationResult.samasantaSuffix.orEmpty()
+        var wholeStem: String?=classificationResult.compoundStem.takeIf { classificationResult.wholeStemOverride }
         val transformationResults = transformationSutras.map { sutra ->
             val result = sutra.apply(context) as? SamasaRuleResult.Formed ?: return@map sutra to null
             result.memberEdits.forEach { (index, replacement) ->
                 require(index in transformedMembers.indices) { "${(sutra as Sutra<*, *>).number} edits absent samāsa member $index." }
                 transformedMembers[index] = replacement
             }
-            val structuredStem = transformedMembers.joinToString("")
-            val composedStem = if (result.memberEdits.isNotEmpty()) {
-                structuredStem
-            } else if (result.compoundStem.startsWith(baseStem)) {
-                samasaResult.compoundStem + result.compoundStem.removePrefix(baseStem)
-            } else {
-                result.compoundStem
+            result.samasantaSuffix?.let { samasantaSuffix=it }
+            val composedStem = when {
+                result.wholeStemOverride -> result.compoundStem.also { wholeStem=it }
+                result.memberEdits.isNotEmpty() -> transformedMembers.joinToString("")+samasantaSuffix
+                result.samasantaSuffix!=null -> (wholeStem ?: transformedMembers.joinToString(""))+samasantaSuffix
+                else -> result.compoundStem
             }
             samasaResult = result.copy(compoundStem = composedStem)
             sutra to samasaResult
@@ -189,12 +192,7 @@ class SamasaEngine(
                 )
             }
 
-        val structuredStem = transformedMembers.joinToString("")
-        val rawStem = if (samasaResult.compoundStem.startsWith(structuredStem)) {
-            transformedMembers.joinToString(" ") + samasaResult.compoundStem.removePrefix(structuredStem)
-        } else {
-            samasaResult.compoundStem
-        }
+        val rawStem = wholeStem?.plus(samasantaSuffix) ?: transformedMembers.joinToString(" ")+samasantaSuffix
         val padasList = padas.map { it.upadesha }
         val rawPadasConcat = padasList.joinToString("")
         val hasSamasantaKap = rawStem.endsWith("क") && !rawPadasConcat.endsWith("क")
@@ -296,6 +294,15 @@ class SamasaEngine(
             sandhiSutras = applications.map { it.sutra }.filter { it.startsWith("6.1.") || it.startsWith("8.") }.distinct(),
             inflectionSutras = subantaResult?.applications.orEmpty().map { it.sutra }.distinct(),
             alternatives = alternatives,
+            operations = transformationResults.mapNotNull { (sutra,result) -> result?.let {
+                SamasaTransformationOperation(
+                    sutra=(sutra as Sutra<*,*>).number,
+                    memberEdits=it.memberEdits,
+                    samasantaSuffix=it.samasantaSuffix,
+                    wholeStemOverride=it.compoundStem.takeIf { _ -> it.wholeStemOverride },
+                )
+            } },
+            prohibitedSutras=prohibitedSutras.map { it.number },
         )
 
         return DerivationResult(
@@ -433,19 +440,23 @@ class SamasaEngine(
         val branches=(1 until (1 shl optional.size)).map { omittedMask ->
             val retained=selected.filter { rule -> rule !in optional || omittedMask and (1 shl optional.indexOf(rule))==0 }
             var formed=classificationResult
-            val base=padas.joinToString(""){it.upadesha}
             val branchMembers=padas.map { it.upadesha }.toMutableList()
+            var branchSuffix=""
+            var branchWhole: String?=null
             retained.forEach { rule ->
                 val next=rule.apply(context) as? SamasaRuleResult.Formed ?: return@forEach
                 next.memberEdits.forEach { (index,replacement) -> branchMembers[index]=replacement }
-                val composed=if(next.memberEdits.isNotEmpty()) branchMembers.joinToString("")
-                    else if(next.compoundStem.startsWith(base)) formed.compoundStem+next.compoundStem.removePrefix(base)
-                    else next.compoundStem
+                next.samasantaSuffix?.let { branchSuffix=it }
+                val composed=when {
+                    next.wholeStemOverride -> next.compoundStem.also { branchWhole=it }
+                    next.memberEdits.isNotEmpty() -> branchMembers.joinToString("")+branchSuffix
+                    next.samasantaSuffix!=null -> (branchWhole ?: branchMembers.joinToString(""))+branchSuffix
+                    else -> next.compoundStem
+                }
                 formed=next.copy(compoundStem=composed)
             }
             val scratch=mutableListOf<DerivationApplication>()
-            val branchBase=branchMembers.joinToString("")
-            val rawBranch=if(formed.compoundStem.startsWith(branchBase)) branchMembers.joinToString(" ")+formed.compoundStem.removePrefix(branchBase) else formed.compoundStem
+            val rawBranch=branchWhole?.plus(branchSuffix) ?: branchMembers.joinToString(" ")+branchSuffix
             val stem=materializeSamasaStem(rawBranch,padas,type,retained.any { it.samasaPhase==SamasaRulePhase.STEM_TRANSFORMATION },scratch)
                 .replace("ंब","म्ब").replace("ंभ","म्भ").replace("ंप","म्प").replace("ंम","म्म").replace("ंव","म्व")
                 .replace("हृद्ल","हृल्ल").replace("हृद्श","हृच्छ")
@@ -457,7 +468,7 @@ class SamasaEngine(
             SamasaAlternative(stem,surface,retained.map { it.number })
         }
         return (listOf(SamasaAlternative(primaryStem,primarySurface,selected.map { it.number }))+branches)
-            .distinctBy { it.compoundStem to it.surface }
+            .distinctBy { Triple(it.compoundStem,it.surface,it.transformationSutras) }
     }
 
     private fun validateSemanticLicense(context: SamasaRuleContext) {
@@ -530,10 +541,7 @@ class SamasaEngine(
         context: SamasaRuleContext,
         classificationSutra: Sutra<SamasaRuleContext, SamasaRuleResult>,
     ): List<Sutra<SamasaRuleContext, SamasaRuleResult>> {
-        val samasantaProhibited = samasaSutras.any {
-            val sutra = it as Sutra<*, *>
-            sutra.action == dev.panini.sutra.SutraAction.NISHEDHA && it.matches(context)
-        }
+        val samasantaProhibited = matchingSamasantaProhibitions(context).isNotEmpty()
         // 5.4.72 is prāpta-vibhāṣā: for nañ + pathin it restores the otherwise
         // prohibited samāsānta branch of 5.4.71.
         val samasantaRestored = PathoVibhasaSutra.matches(context)
@@ -557,6 +565,10 @@ class SamasaEngine(
                     ?.let { it as Sutra<SamasaRuleContext, SamasaRuleResult> }
             }
     }
+
+    private fun matchingSamasantaProhibitions(context: SamasaRuleContext) = samasaSutras
+        .map { it as Sutra<SamasaRuleContext,SamasaRuleResult> }
+        .filter { it.action==dev.panini.sutra.SutraAction.NISHEDHA && (it as SamasaSutra).matches(context) }
 
     private fun selectPostClassificationSutras(
         context: SamasaRuleContext,

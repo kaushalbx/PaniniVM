@@ -16,8 +16,9 @@ object AnangRtoDvandveSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         context.samasaType == SamasaType.DVANDVA && (context.purvaPada.upadesha.endsWith("ऋ") || context.purvaPada.upadesha.endsWith("ृ")) &&
         context.semanticRelations.any { it == SamasaSemanticRelation.STUDY_RELATION || it == SamasaSemanticRelation.BLOOD_RELATION }
 
-    override fun apply(context: SamasaRuleContext): SamasaRuleResult = SamasaRuleResult.Formed(
-        context.purvaPada.upadesha.removeSuffix("ऋ").removeSuffix("ृ") + "ा" + context.padas.drop(1).joinToString("") { it.upadesha },
+    override fun apply(context: SamasaRuleContext): SamasaRuleResult { val first=context.purvaPada.upadesha.removeSuffix("ऋ").removeSuffix("ृ")+"ा"; return SamasaRuleResult.Formed(
+        first + context.padas.drop(1).joinToString("") { it.upadesha },
         "6.3.25 substitutes ānaṅ for the first member's final ṛ.",
-    )
+        memberEdits=mapOf(0 to first),
+    ) }
 }

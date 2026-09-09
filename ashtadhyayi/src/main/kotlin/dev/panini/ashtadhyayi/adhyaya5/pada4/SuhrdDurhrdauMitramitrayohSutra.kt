@@ -43,6 +43,7 @@ object SuhrdDurhrdauMitramitrayohSutra : Sutra<SamasaRuleContext, SamasaRuleResu
         return SamasaRuleResult.Formed(
             compoundStem = stem,
             explanation = "5.4.150 derives nipātana form '$stem'.",
+            wholeStemOverride = true,
         )
     }
 }

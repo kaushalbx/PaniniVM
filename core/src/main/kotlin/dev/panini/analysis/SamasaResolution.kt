@@ -19,6 +19,15 @@ data class SamasaResolution(
     val inflectionSutras: List<String> = emptyList(),
     /** Additional valid outputs created by optional samāsa operations. */
     val alternatives: List<SamasaAlternative> = emptyList(),
+    val operations: List<SamasaTransformationOperation> = emptyList(),
+    val prohibitedSutras: List<String> = emptyList(),
+)
+
+data class SamasaTransformationOperation(
+    val sutra: String,
+    val memberEdits: Map<Int,String> = emptyMap(),
+    val samasantaSuffix: String? = null,
+    val wholeStemOverride: String? = null,
 )
 
 data class SamasaAlternative(

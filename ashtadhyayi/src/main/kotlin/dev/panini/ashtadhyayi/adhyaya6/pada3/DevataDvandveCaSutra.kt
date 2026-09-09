@@ -19,6 +19,6 @@ object DevataDvandveCaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
         val first = context.purvaPada.upadesha
         val anang = if (first.endsWith("अ")) first.dropLast(1) + "ा" else first + "ा"
-        return SamasaRuleResult.Formed(anang + context.padas.drop(1).joinToString("") { it.upadesha }, "6.3.26 applies ānaṅ in a devatā-dvandva.")
+        return SamasaRuleResult.Formed(anang + context.padas.drop(1).joinToString("") { it.upadesha }, "6.3.26 applies ānaṅ in a devatā-dvandva.",memberEdits=mapOf(0 to anang))
     }
 }

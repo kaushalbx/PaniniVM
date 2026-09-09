@@ -33,7 +33,16 @@ abstract class ActiveSamasantaSutra(
     samasaType = samasaType,
     samasaPriority = priority,
 ), SamasaSutra {
-    protected fun formed(stem: String) = SamasaRuleResult.Formed(stem, "$number forms samāsānta stem '$stem'.")
+    protected fun formed(context: SamasaRuleContext, stem: String): SamasaRuleResult.Formed {
+        val members=context.padas.map { it.upadesha }
+        val base=members.joinToString("")
+        val leading=members.dropLast(1).joinToString("")
+        return when {
+            stem.startsWith(base) -> SamasaRuleResult.Formed(stem,"$number forms samāsānta stem '$stem'.",samasantaSuffix=stem.removePrefix(base))
+            stem.startsWith(leading) -> SamasaRuleResult.Formed(stem,"$number forms samāsānta stem '$stem'.",memberEdits=mapOf(members.lastIndex to stem.removePrefix(leading)))
+            else -> SamasaRuleResult.Formed(stem,"$number forms irregular samāsānta stem '$stem'.",wholeStemOverride=true)
+        }
+    }
 }
 
 /** 5.4.71 blocks the following samāsānta affixes in a nañ-tatpuruṣa. */
@@ -51,7 +60,7 @@ object NanjastatpurusatSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
 /** 5.4.72 optionally restores the a-affix for nañ + pathin. */
 object PathoVibhasaSutra : ActiveSamasantaSutra(72, "पथो विभाषा", true, SamasaType.NAN_TATPURUSA, 40) {
     override fun matches(context: SamasaRuleContext) = context.padas.size >= 2 && context.uttaraPada.upadesha == "पथिन्"
-    override fun apply(context: SamasaRuleContext) = formed("अपथ")
+    override fun apply(context: SamasaRuleContext) = formed(context,"अपथ")
 }
 
 /** 5.4.73 requires a genuinely numerical external referent; lexical shape alone is insufficient. */
@@ -59,13 +68,13 @@ object BahuvrihauSankhyeyeDajabahuganatSutra : ActiveSamasantaSutra(73, "बह�
     override fun matches(context: SamasaRuleContext) =
         context.padas.size >= 2 && SamasaSemanticRelation.NUMERICAL_REFERENT in context.semanticRelations &&
             context.purvaPada.upadesha !in setOf("बहु", "गण")
-    override fun apply(context: SamasaRuleContext) = formed(context.padas.joinToString("") { it.upadesha } + "अ")
+    override fun apply(context: SamasaRuleContext) = formed(context,context.padas.joinToString("") { it.upadesha } + "अ")
 }
 
 object AcPratyanvavapurvatSamalomnahSutra : ActiveSamasantaSutra(75, "अच् प्रत्यन्ववपूर्वात् सामलोम्नः", samasaType = SamasaType.TATPURUSA) {
     override fun matches(context: SamasaRuleContext) = context.padas.size >= 2 &&
         context.purvaPada.upadesha in setOf("प्रति", "अनु", "अव") && context.uttaraPada.upadesha in setOf("सामन्", "लोमन्")
-    override fun apply(context: SamasaRuleContext) = formed(context.purvaPada.upadesha + context.uttaraPada.upadesha.removeSuffix("न्"))
+    override fun apply(context: SamasaRuleContext) = formed(context,context.purvaPada.upadesha + context.uttaraPada.upadesha.removeSuffix("न्"))
 }
 
 object UpasargadAdhvanahSutra : ActiveSamasantaSutra(85, "उपसर्गादध्वनः", samasaType = SamasaType.TATPURUSA) {
@@ -74,7 +83,7 @@ object UpasargadAdhvanahSutra : ActiveSamasantaSutra(85, "उपसर्गा�
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
         val prefix = context.purvaPada.upadesha
         val stem = if (prefix == "प्र") "प्राध्व" else prefix + "अध्व"
-        return formed(stem)
+        return formed(context,stem)
     }
 }
 
@@ -84,6 +93,6 @@ object TatpurusasyangulehSankhyavyayadehSutra : ActiveSamasantaSutra(86, "तत
         (context.purvaPada.upadesha in numerals || Samjna.AVYAYA in context.purvaPada.samjnas)
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
         val prefix = if (context.purvaPada.upadesha == "द्वि") "द्व्य" else context.purvaPada.upadesha
-        return formed(prefix + "ङ्गुल")
+        return formed(context,prefix + "ङ्गुल")
     }
 }

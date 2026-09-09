@@ -52,6 +52,7 @@ object MayuravyamsakadayascaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         return SamasaRuleResult.Formed(
             compoundStem = stem,
             explanation = "2.1.72 (मयूरव्यंसकादयश्च) forms Nitya Tatpuruṣa compound '$stem'.",
+            wholeStemOverride = stem!=context.padas.joinToString("") { it.upadesha },
         )
     }
 }

@@ -42,6 +42,7 @@ object UrahPrabhrtibhyahKapSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "5.4.151: Added samāsānta kap-pratyaya after uraḥprabhṛti stem ($compoundStem).",
+            samasantaSuffix = "क",
         )
     }
 }

@@ -49,6 +49,7 @@ object TatpuruseKrtiBahulamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "6.3.14 (तत्पुरुषे कृति बहुलम्) preserves Saptamī vibhakti for '$compoundStem'.",
+            memberEdits = if(adjustedUttara!=uttara) mapOf(1 to adjustedUttara) else emptyMap(),
         )
     }
 }

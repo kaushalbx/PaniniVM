@@ -45,7 +45,7 @@ object IdAgnehSomavarunayohSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "6.3.27 substitutes long ī for agni in '$compoundStem'.",
+            memberEdits = mapOf(0 to "अग्नी"),
         )
     }
 }
-

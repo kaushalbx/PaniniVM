@@ -15,6 +15,6 @@ object DivoDyavaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         context.samasaType == SamasaType.DVANDVA && SamasaSemanticRelation.DEVATA_COORDINATION in context.semanticRelations &&
         context.purvaPada.upadesha == "दिव्"
     override fun apply(context: SamasaRuleContext): SamasaRuleResult = SamasaRuleResult.Formed(
-        "द्यावा" + context.padas.drop(1).joinToString("") { it.upadesha }, "6.3.29 substitutes dyāvā for div.",
+        "द्यावा" + context.padas.drop(1).joinToString("") { it.upadesha }, "6.3.29 substitutes dyāvā for div.",memberEdits=mapOf(0 to "द्यावा"),
     )
 }

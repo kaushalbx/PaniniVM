@@ -52,6 +52,10 @@ object RajahahSakhibhyasTacSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "5.4.91 adds Samāsānta ṭac ('a') suffix after rājan/ahan/sakhi yielding stem '$compoundStem'.",
+            memberEdits = buildMap {
+                if(context.purvaPada.upadesha=="महत्") put(0,"महा")
+                put(context.padas.lastIndex,convertedLast)
+            },
         )
     }
 }

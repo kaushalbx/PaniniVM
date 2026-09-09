@@ -40,6 +40,41 @@ class SamasaEngineTest {
         assertEquals(listOf("6.3.82", "5.4.151"), resolution.transformationSutras)
         assertEquals("सोरस्क", resolution.compoundStem)
         assertTrue(result.applications.indexOfFirst { it.sutra == "6.3.82" } < result.applications.indexOfFirst { it.sutra == "5.4.151" })
+        assertEquals(mapOf(0 to "स"),resolution.operations.first { it.sutra=="6.3.82" }.memberEdits)
+        assertEquals("क",resolution.operations.first { it.sutra=="5.4.151" }.samasantaSuffix)
+    }
+
+    @Test
+    fun `optional samasanta keeps applied and omitted trace branches even when surface is identical`() {
+        val result=engine.derive(
+            listOf(SamasaPada("सह"),SamasaPada("कृत")),
+            SamasaType.AVYAYIBHAVA,
+            outputLinga=dev.panini.core.Linga.NAPUMSAKA,
+        )
+        val alternatives=requireNotNull(result.samasaResolution).alternatives
+        assertTrue(alternatives.any { "5.4.111" in it.transformationSutras })
+        assertTrue(alternatives.any { "5.4.111" !in it.transformationSutras })
+    }
+
+    @Test
+    fun `three member compounds retain boundaries until materialization`() {
+        val result=engine.derive(
+            listOf(SamasaPada("राजन्",Vibhakti.SASTHI),SamasaPada("देव"),SamasaPada("पुरुष")),
+            SamasaType.TATPURUSA,
+            outputLinga=dev.panini.core.Linga.PUMS,
+        )
+        assertEquals("राजदेवपुरुष",requireNotNull(result.samasaResolution).compoundStem)
+        assertEquals("राजदेवपुरुषः",result.final.terms.last().surface)
+    }
+
+    @Test
+    fun `samasanta prohibitions are explicit in the resolution trace`() {
+        val result=engine.derive(
+            listOf(SamasaPada("नञ्"),SamasaPada("पथिन्")),
+            SamasaType.NAN_TATPURUSA,
+            outputLinga=dev.panini.core.Linga.PUMS,
+        )
+        assertTrue("5.4.71" in requireNotNull(result.samasaResolution).prohibitedSutras)
     }
 
     @Test

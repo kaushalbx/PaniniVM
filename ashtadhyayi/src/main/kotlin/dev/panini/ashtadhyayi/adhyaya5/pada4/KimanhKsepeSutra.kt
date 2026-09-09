@@ -41,6 +41,7 @@ object KimanhKsepeSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "5.4.70 adds Samāsānta 'a' suffix after kim in censure '$compoundStem'.",
+            samasantaSuffix = "अ",
         )
     }
 }

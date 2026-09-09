@@ -90,7 +90,7 @@ object VacamyamaPurandarauCaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     type=SutraType.NITYA, chapter=6, pada=3, optional=false, kramaValue=630069, role=SutraRole.Vidhi, action=SutraAction.ADESHA, scope=SutraScope.DERIVATION, samasaPriority=50,
 ), SamasaSutra, UniversalSamasaTransformation {
     override fun matches(context: SamasaRuleContext)=context.padas.size>=2 && (context.purvaPada.upadesha to context.uttaraPada.upadesha) in setOf("वाच्" to "यम","पुर्" to "दर")
-    override fun apply(context: SamasaRuleContext)=SamasaRuleResult.Formed(if(context.purvaPada.upadesha=="वाच्")"वाचंयम" else "पुरन्दर","6.3.69 supplies the prescribed irregular form.")
+    override fun apply(context: SamasaRuleContext)=SamasaRuleResult.Formed(if(context.purvaPada.upadesha=="वाच्")"वाचंयम" else "पुरन्दर","6.3.69 supplies the prescribed irregular form.",wholeStemOverride=true)
 }
 
 /** 6.3.70: कारे सत्यागदस्य. */

@@ -73,6 +73,17 @@ class SamasaPada3SemanticTransformationTest {
         assertEquals("पद् उपहत",result.compoundStem)
     }
 
+    @Test fun `dvandva substitutions retain independently addressable members`() {
+        val cases=listOf(
+            AnangRtoDvandveSutra.apply(context("मातृ","पितृ",SamasaType.DVANDVA)) to mapOf(0 to "माता"),
+            IdAgnehSomavarunayohSutra.apply(context("अग्नि","सोम",SamasaType.DVANDVA)) to mapOf(0 to "अग्नी"),
+            DivoDyavaSutra.apply(context("दिव्","पृथ्वी",SamasaType.DVANDVA)) to mapOf(0 to "द्यावा"),
+            MatariPitariChaSutra.apply(context("मातृ","पितृ",SamasaType.DVANDVA)) to mapOf(0 to "मातर",1 to "पितृ"),
+            PitramataSutra.apply(context("पितृ","मातृ",SamasaType.DVANDVA)) to mapOf(0 to "पितरा",1 to "मातृ"),
+        )
+        cases.forEach { (result,expected) -> assertEquals(expected,(result as SamasaRuleResult.Formed).memberEdits) }
+    }
+
     @Test fun `6 3 57 requires proper-name semantics`() {
         val c=context("उदक","पर्वत",relations=setOf(SamasaSemanticRelation.PROPER_NAME))
         assertTrue(UdakasyodahSamjnayamSutra.matches(c))

@@ -45,6 +45,7 @@ object DivasChaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "6.3.30 preserves divā before $last in '$compoundStem'.",
+            memberEdits = mapOf(0 to "दिवा"),
         )
     }
 }

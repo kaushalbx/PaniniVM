@@ -41,6 +41,7 @@ object AksnoAdarsanatSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "5.4.76 adds Samāsānta 'a' suffix after akṣi in '$compoundStem'.",
+            samasantaSuffix = "अ",
         )
     }
 }

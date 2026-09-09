@@ -42,6 +42,7 @@ object MatariPitariChaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "6.3.32 forms the northern variant mātarapitṛ in '$compoundStem'.",
+            memberEdits = mapOf(0 to "मातर",1 to "पितृ"),
         )
     }
 }

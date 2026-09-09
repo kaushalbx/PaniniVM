@@ -15,11 +15,15 @@ sealed interface SamasaRuleResult {
      * @param memberEdits   Indexed replacements of compound members.  The
      *                      derivation engine composes these structurally and
      *                      joins the members only when sandhi is performed.
+     * @param samasantaSuffix suffix appended after the transformed members.
+     * @param wholeStemOverride true only for an indivisible irregular form.
      */
     data class Formed(
         val compoundStem: String,
         val explanation: String,
         val memberEdits: Map<Int, String> = emptyMap(),
+        val samasantaSuffix: String? = null,
+        val wholeStemOverride: Boolean = false,
     ) : SamasaRuleResult
 
     /**

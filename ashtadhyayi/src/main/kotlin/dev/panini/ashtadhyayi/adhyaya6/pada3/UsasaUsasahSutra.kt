@@ -45,6 +45,7 @@ object UsasaUsasahSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "6.3.31 forms uṣāsānaktā in '$compoundStem'.",
+            memberEdits = mapOf(0 to "उषासा",1 to "नक्ता"),
         )
     }
 }

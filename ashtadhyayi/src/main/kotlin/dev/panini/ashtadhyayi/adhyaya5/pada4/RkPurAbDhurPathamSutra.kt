@@ -40,6 +40,7 @@ object RkPurAbDhurPathamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "5.4.74 adds Samāsānta 'a' suffix for ṛc/pur/ap/dhur/pathin ending compound '$compoundStem'.",
+            samasantaSuffix = "अ",
         )
     }
 }

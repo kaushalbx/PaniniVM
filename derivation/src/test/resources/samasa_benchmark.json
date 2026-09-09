@@ -1408,5 +1408,20 @@
     "classificationSutra": "2.2.8",
     "transformationSutras": "6.3.128",
     "forbiddenSutras": "6.3.129"
+  },
+  {
+    "id": "BENCH_092",
+    "name": "Structured 6.3.82 substitution followed by 5.4.151 kap",
+    "padas": [
+      {"upadesha": "सह", "vibhakti": "TRTIYA"},
+      {"upadesha": "उरस्", "vibhakti": "PRATHAMA"}
+    ],
+    "samasaType": "BAHUVRIHI",
+    "outputLinga": "PUMS",
+    "expectedStem": "सोरस्क",
+    "expectedSurface": "सोरस्कः",
+    "classificationSutra": "2.2.28",
+    "transformationSutras": "6.3.82,5.4.151",
+    "forbiddenSutras": "6.3.81"
   }
 ]

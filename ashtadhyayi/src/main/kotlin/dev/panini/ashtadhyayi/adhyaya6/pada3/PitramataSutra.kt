@@ -44,6 +44,7 @@ object PitramataSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "6.3.33 forms pitāmātṛ in '$compoundStem'.",
+            memberEdits = mapOf(0 to "पितरा",1 to "मातृ"),
         )
     }
 }

@@ -130,7 +130,7 @@ object DvyAntarUpasargebhyoApaItSutra : Sutra<SamasaRuleContext, SamasaRuleResul
     type=SutraType.NITYA, chapter=6, pada=3, optional=false, kramaValue=630097, role=SutraRole.Vidhi, action=SutraAction.ADESHA, scope=SutraScope.DERIVATION, samasaPriority=40,
 ), SamasaSutra, UniversalSamasaTransformation {
     override fun matches(context: SamasaRuleContext)=atLeastTwo(context) && context.uttaraPada.upadesha=="अप्" && (context.purvaPada.upadesha in setOf("द्वि","अन्तर्") || Samjna.UPASARGA in context.purvaPada.samjnas)
-    override fun apply(context: SamasaRuleContext)=SamasaRuleResult.Formed(context.purvaPada.upadesha+"ई","6.3.97 substitutes ई for अप्.")
+    override fun apply(context: SamasaRuleContext)=SamasaRuleResult.Formed(context.purvaPada.upadesha+"ई","6.3.97 substitutes ई for अप्.",memberEdits=mapOf(1 to "ई"))
 }
 
 /** 6.3.98: ऊदनोर्देशे. */
@@ -139,7 +139,7 @@ object UdAnorDeseSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     type=SutraType.NITYA, chapter=6, pada=3, optional=false, kramaValue=630098, role=SutraRole.Vidhi, action=SutraAction.ADESHA, scope=SutraScope.DERIVATION, samasaPriority=50,
 ), SamasaSutra, UniversalSamasaTransformation {
     override fun matches(context: SamasaRuleContext)=atLeastTwo(context) && context.purvaPada.upadesha=="अनु" && context.uttaraPada.upadesha=="अप्" && SamasaSemanticRelation.LOCALITY in context.semanticRelations
-    override fun apply(context: SamasaRuleContext)=SamasaRuleResult.Formed("अनू","6.3.98 substitutes ऊ for अप् after अनु.")
+    override fun apply(context: SamasaRuleContext)=SamasaRuleResult.Formed("अनू","6.3.98 substitutes ऊ for अप् after अनु.",memberEdits=mapOf(1 to "ऊ"))
 }
 
 /** 6.3.99: अषष्ठ्यतृतीयास्थस्यान्यस्य दुग्... (compound-member portion). */
