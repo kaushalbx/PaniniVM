@@ -10,7 +10,7 @@ private fun joinedWith(c: SamasaRuleContext, first: String) = first + c.padas.dr
 private fun substitution(c: SamasaRuleContext, first: String, rule: String): SamasaRuleResult {
     val remainder=c.padas.drop(1).joinToString(""){it.upadesha}
     val stem=if(remainder.firstOrNull() in initialVowels) "$first $remainder" else first+remainder
-    return SamasaRuleResult.Formed(stem, "$rule supplies the prescribed pūrvapada form.")
+    return SamasaRuleResult.Formed(stem, "$rule supplies the prescribed pūrvapada form.", memberEdits=mapOf(0 to first))
 }
 private fun atLeastTwo(c: SamasaRuleContext)=c.padas.size>=2
 private val initialVowels=setOf('अ','आ','इ','ई','उ','ऊ','ऋ','ॠ','ऌ','ए','ऐ','ओ','औ')

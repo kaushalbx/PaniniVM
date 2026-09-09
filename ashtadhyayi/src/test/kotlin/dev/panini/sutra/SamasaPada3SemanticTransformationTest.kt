@@ -67,6 +67,12 @@ class SamasaPada3SemanticTransformationTest {
         assertFalse(HrdayasyaHrllekhayadanalasesuSutra.matches(context("हृदय","वन")))
     }
 
+    @Test fun `compound transformations expose structured member edits`() {
+        val result=PadasyaPadajyatigopahatesuSutra.apply(context("पाद","उपहत")) as SamasaRuleResult.Formed
+        assertEquals(mapOf(0 to "पद्"),result.memberEdits)
+        assertEquals("पद् उपहत",result.compoundStem)
+    }
+
     @Test fun `6 3 57 requires proper-name semantics`() {
         val c=context("उदक","पर्वत",relations=setOf(SamasaSemanticRelation.PROPER_NAME))
         assertTrue(UdakasyodahSamjnayamSutra.matches(c))

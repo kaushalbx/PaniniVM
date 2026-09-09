@@ -17,12 +17,13 @@ private fun pumvadEligible(c: SamasaRuleContext): Boolean {
 }
 private fun masculineStem(c: SamasaRuleContext, rule: String) = SamasaRuleResult.Formed(
     requireNotNull(c.purvaPada.masculineCounterpart) + c.padas.drop(1).joinToString("") { it.upadesha },
-    "$rule applies puṃvadbhāva using the explicitly supplied masculine counterpart."
+    "$rule applies puṃvadbhāva using the explicitly supplied masculine counterpart.",
+    memberEdits=mapOf(0 to requireNotNull(c.purvaPada.masculineCounterpart)),
 )
 private fun shortenFeminine(c: SamasaRuleContext, rule: String): SamasaRuleResult {
     val p = c.purvaPada.upadesha
     val short = when { p.endsWith("ी") -> p.dropLast(1) + "ि"; p.endsWith("ई") -> p.dropLast(1) + "इ"; else -> p }
-    return SamasaRuleResult.Formed(short + c.padas.drop(1).joinToString("") { it.upadesha }, "$rule shortens the feminine final vowel.")
+    return SamasaRuleResult.Formed(short + c.padas.drop(1).joinToString("") { it.upadesha }, "$rule shortens the feminine final vowel.", memberEdits=mapOf(0 to short))
 }
 private val ghaClass = setOf("तर", "तम", "रूप", "कल्प", "चेल", "ब्रुव", "गोत्र", "मत", "हत")
 

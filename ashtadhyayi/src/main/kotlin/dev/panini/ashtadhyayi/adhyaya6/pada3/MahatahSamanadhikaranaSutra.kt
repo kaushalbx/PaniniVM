@@ -47,6 +47,7 @@ object MahatahSamanadhikaranaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "6.3.46 substitutes mahā for mahat in '$compoundStem'.",
+            memberEdits = mapOf(0 to "महा"),
         )
     }
 }

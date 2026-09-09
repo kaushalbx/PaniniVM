@@ -93,9 +93,17 @@ class SamasaEngine(
         val transformationSutras = selectTransformationSutras(context, classificationSutra)
         var samasaResult = classificationResult
         val baseStem = padas.joinToString("") { it.upadesha }
+        val transformedMembers = padas.map { it.upadesha }.toMutableList()
         val transformationResults = transformationSutras.map { sutra ->
             val result = sutra.apply(context) as? SamasaRuleResult.Formed ?: return@map sutra to null
-            val composedStem = if (result.compoundStem.startsWith(baseStem)) {
+            result.memberEdits.forEach { (index, replacement) ->
+                require(index in transformedMembers.indices) { "${(sutra as Sutra<*, *>).number} edits absent samāsa member $index." }
+                transformedMembers[index] = replacement
+            }
+            val structuredStem = transformedMembers.joinToString("")
+            val composedStem = if (result.memberEdits.isNotEmpty()) {
+                structuredStem
+            } else if (result.compoundStem.startsWith(baseStem)) {
                 samasaResult.compoundStem + result.compoundStem.removePrefix(baseStem)
             } else {
                 result.compoundStem
@@ -181,7 +189,12 @@ class SamasaEngine(
                 )
             }
 
-        val rawStem = samasaResult.compoundStem
+        val structuredStem = transformedMembers.joinToString("")
+        val rawStem = if (samasaResult.compoundStem.startsWith(structuredStem)) {
+            transformedMembers.joinToString(" ") + samasaResult.compoundStem.removePrefix(structuredStem)
+        } else {
+            samasaResult.compoundStem
+        }
         val padasList = padas.map { it.upadesha }
         val rawPadasConcat = padasList.joinToString("")
         val hasSamasantaKap = rawStem.endsWith("क") && !rawPadasConcat.endsWith("क")
@@ -360,8 +373,10 @@ class SamasaEngine(
         members: List<String>,
         applications: MutableList<DerivationApplication>,
     ): String {
-        var result = members.first()
-        for (next in members.drop(1)) {
+        val nonEmptyMembers=members.filter { it.isNotEmpty() }
+        if(nonEmptyMembers.isEmpty()) return ""
+        var result = nonEmptyMembers.first()
+        for (next in nonEmptyMembers.drop(1)) {
             // A written Devanagari consonant already includes its inherent /a/.
             // External sandhi is therefore relevant here only before an explicit
             // independent vowel; running it before another consonant corrupts the
@@ -392,9 +407,10 @@ class SamasaEngine(
             if(index<padas.lastIndex && type!=SamasaType.ALUK_TATPURUSA && surface.endsWith("न्")) surface.dropLast(2) else surface
         }
         return if(rawStem.contains(" ")) {
-            val parts=rawStem.split(" "); var res=parts.first()
-            for(p in parts.drop(1)){ val j=sandhiEngine.join(res,p); val joined=j.final.surface; res=if(joined.isNotBlank()&&joined.length>=res.length+p.length-1)joined else res+p; applications.addAll(j.applications) }
-            res
+            val parts=rawStem.split(" ").mapIndexed { index, part ->
+                if(index<padas.lastIndex && type!=SamasaType.ALUK_TATPURUSA && part.endsWith("न्")) part.dropLast(2) else part
+            }
+            joinCompoundMembers(parts,applications)
         } else if(hasSamasantaKap && hasPriorStemTransformation) rawStem
         else if(rawStem==rawPadasConcat || hasSamasantaKap){ val res=joinCompoundMembers(members,applications); if(hasSamasantaKap){if(res.endsWith("ः"))res.dropLast(1)+"स्क" else res+"क"}else res }
         else rawStem
@@ -418,13 +434,19 @@ class SamasaEngine(
             val retained=selected.filter { rule -> rule !in optional || omittedMask and (1 shl optional.indexOf(rule))==0 }
             var formed=classificationResult
             val base=padas.joinToString(""){it.upadesha}
+            val branchMembers=padas.map { it.upadesha }.toMutableList()
             retained.forEach { rule ->
                 val next=rule.apply(context) as? SamasaRuleResult.Formed ?: return@forEach
-                val composed=if(next.compoundStem.startsWith(base)) formed.compoundStem+next.compoundStem.removePrefix(base) else next.compoundStem
+                next.memberEdits.forEach { (index,replacement) -> branchMembers[index]=replacement }
+                val composed=if(next.memberEdits.isNotEmpty()) branchMembers.joinToString("")
+                    else if(next.compoundStem.startsWith(base)) formed.compoundStem+next.compoundStem.removePrefix(base)
+                    else next.compoundStem
                 formed=next.copy(compoundStem=composed)
             }
             val scratch=mutableListOf<DerivationApplication>()
-            val stem=materializeSamasaStem(formed.compoundStem,padas,type,retained.any { it.samasaPhase==SamasaRulePhase.STEM_TRANSFORMATION },scratch)
+            val branchBase=branchMembers.joinToString("")
+            val rawBranch=if(formed.compoundStem.startsWith(branchBase)) branchMembers.joinToString(" ")+formed.compoundStem.removePrefix(branchBase) else formed.compoundStem
+            val stem=materializeSamasaStem(rawBranch,padas,type,retained.any { it.samasaPhase==SamasaRulePhase.STEM_TRANSFORMATION },scratch)
                 .replace("ंब","म्ब").replace("ंभ","म्भ").replace("ंप","म्प").replace("ंम","म्म").replace("ंव","म्व")
                 .replace("हृद्ल","हृल्ल").replace("हृद्श","हृच्छ")
             val surface=when {

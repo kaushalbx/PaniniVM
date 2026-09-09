@@ -9,7 +9,7 @@ private fun laterMembers(c: SamasaRuleContext)=c.padas.drop(1).joinToString(""){
 private fun changedFirst(c: SamasaRuleContext, first: String, rule: String): SamasaRuleResult {
     val remainder=laterMembers(c)
     val stem=if(remainder.firstOrNull() in setOf('अ','आ','इ','ई','उ','ऊ','ऋ','ॠ','ऌ','ए','ऐ','ओ','औ')) "$first $remainder" else first+remainder
-    return SamasaRuleResult.Formed(stem,"$rule performs the prescribed compound-member substitution.")
+    return SamasaRuleResult.Formed(stem,"$rule performs the prescribed compound-member substitution.",memberEdits=mapOf(0 to first))
 }
 private fun lengthenFinal(word:String)=when {
     word.endsWith("ि")->word.dropLast(1)+"ी"; word.endsWith("ु")->word.dropLast(1)+"ू"; word.endsWith("ृ")->word.dropLast(1)+"ॄ"

@@ -13,7 +13,7 @@ private fun saStem(c: SamasaRuleContext, rule: String): SamasaRuleResult {
         u.startsWith("उ") || u.startsWith("ऊ") -> "सो${u.drop(1)}"
         else -> "स$u"
     }
-    return SamasaRuleResult.Formed(stem, "$rule substitutes स for सह.")
+    return SamasaRuleResult.Formed(stem, "$rule substitutes स for सह.", memberEdits=mapOf(0 to "स"))
 }
 
 /** 6.3.78: सहस्य सः संज्ञायाम्. */

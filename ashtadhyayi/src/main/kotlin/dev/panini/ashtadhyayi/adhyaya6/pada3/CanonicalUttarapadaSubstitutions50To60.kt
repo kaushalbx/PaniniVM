@@ -7,7 +7,7 @@ private fun hasFirst(c: SamasaRuleContext, word: String) = c.padas.size >= 2 && 
 private fun replaceFirst(c: SamasaRuleContext, replacement: String, rule: String): SamasaRuleResult {
     val remainder=c.padas.drop(1).joinToString(""){it.upadesha}
     val stem=if(remainder.firstOrNull() in setOf('अ','आ','इ','ई','उ','ऊ','ऋ','ॠ','ऌ','ए','ऐ','ओ','औ')) "$replacement $remainder" else replacement+remainder
-    return SamasaRuleResult.Formed(stem,"$rule substitutes $replacement for the pūrvapada.")
+    return SamasaRuleResult.Formed(stem,"$rule substitutes $replacement for the pūrvapada.",memberEdits=mapOf(0 to replacement))
 }
 
 /** 6.3.50: हृदयस्य हृल्लेखयदणलासेषु (compound-member portion: लेख, लास). */

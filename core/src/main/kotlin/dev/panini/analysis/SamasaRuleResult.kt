@@ -12,10 +12,14 @@ sealed interface SamasaRuleResult {
      *
      * @param compoundStem  The joined stem without case ending (e.g. "राजपुरुष").
      * @param explanation   Human-readable Pāṇinian trace of what happened.
+     * @param memberEdits   Indexed replacements of compound members.  The
+     *                      derivation engine composes these structurally and
+     *                      joins the members only when sandhi is performed.
      */
     data class Formed(
         val compoundStem: String,
         val explanation: String,
+        val memberEdits: Map<Int, String> = emptyMap(),
     ) : SamasaRuleResult
 
     /**

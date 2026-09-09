@@ -17,7 +17,7 @@ object NalopoNanjahSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     samasaType=SamasaType.NAN_TATPURUSA, samasaPriority=10,
 ), SamasaSutra {
     override fun matches(context: SamasaRuleContext) = nanContext(context) && context.uttaraPada.upadesha.firstOrNull() !in vowels && context.uttaraPada.upadesha !in prakrtiUttara
-    override fun apply(context: SamasaRuleContext) = SamasaRuleResult.Formed(prefixed("अ", context), "6.3.73 deletes न् of नञ्.")
+    override fun apply(context: SamasaRuleContext) = SamasaRuleResult.Formed(prefixed("अ", context), "6.3.73 deletes न् of नञ्.", memberEdits=mapOf(0 to "अ"))
 }
 
 /** 6.3.74: तस्मान्नुडचि. */
@@ -32,7 +32,7 @@ object TasmanNudAciSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         val u = context.uttaraPada.upadesha
         val matra = mapOf('अ' to "", 'आ' to "ा", 'इ' to "ि", 'ई' to "ी", 'उ' to "ु", 'ऊ' to "ू", 'ऋ' to "ृ", 'ए' to "े", 'ऐ' to "ै", 'ओ' to "ो", 'औ' to "ौ")[u.first()]
         val stem = if (matra == null) "अन्$u" else "अन$matra${u.drop(1)}"
-        return SamasaRuleResult.Formed(stem, "6.3.73 and 6.3.74 yield नुट् before a vowel-initial uttarapada.")
+        return SamasaRuleResult.Formed(stem, "6.3.73 and 6.3.74 yield नुट् before a vowel-initial uttarapada.", memberEdits=mapOf(0 to stem,1 to ""))
     }
 }
 
@@ -45,5 +45,5 @@ object NabhraanNapaanNavedaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     samasaType=SamasaType.NAN_TATPURUSA, samasaPriority=30,
 ), SamasaSutra {
     override fun matches(context: SamasaRuleContext) = nanContext(context) && context.uttaraPada.upadesha in prakrtiUttara
-    override fun apply(context: SamasaRuleContext) = SamasaRuleResult.Formed(prefixed("न", context), "6.3.75 preserves नञ् in the listed lexical forms.")
+    override fun apply(context: SamasaRuleContext) = SamasaRuleResult.Formed(prefixed("न", context), "6.3.75 preserves नञ् in the listed lexical forms.", memberEdits=mapOf(0 to "न"))
 }

@@ -45,6 +45,7 @@ object VopasarjanasyaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "6.3.82: Replaced 'saha' with 'sa' in Bahuvrīhi ($compoundStem).",
+            memberEdits = mapOf(0 to "स"),
         )
     }
 }
