@@ -416,7 +416,7 @@
   },
   {
     "id": "BENCH_027",
-    "name": "2.1.6 Avyayibhava - Anuganga",
+    "name": "2.1.15 Avyayibhava - Anuganga",
     "padas": [
       {"upadesha": "अनु", "vibhakti": "PRATHAMA"},
       {"upadesha": "गङ्गा", "vibhakti": "PRATHAMA"}
@@ -426,7 +426,7 @@
     "outputVacana": "EKAVACANA",
     "expectedStem": "अनुगङ्गा",
     "expectedSurface": "अनुगङ्गम्",
-    "classificationSutra": "2.1.9",
+    "classificationSutra": "2.1.15",
     "transformationSutras": "",
     "forbiddenSutras": "2.2.24"
   },

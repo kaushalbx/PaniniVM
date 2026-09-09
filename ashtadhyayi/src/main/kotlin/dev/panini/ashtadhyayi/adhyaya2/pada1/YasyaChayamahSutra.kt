@@ -11,19 +11,19 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 /**
- * Sūtra 2.1.10: यस्य चायामः.
+ * Sūtra 2.1.16: यस्य चायामः.
  * Prescribes Avyayībhāva compound with 'anu' when expressing length or extent of a landmark.
  * Example: गङ्गायाः आयामः = अनुगङ्गम् (anugaṅgam).
  */
 object YasyaChayamahSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
-    number = "2.1.10",
+    number = "2.1.16",
     text = "यस्य चायामः",
     hindiExplanation = "जिसका आयाम (दैर्घ्य) गम्यमान हो, उस अर्थ में 'अनु' अव्यय का समर्थ सुबन्त के साथ अव्ययीभाव समास होता है (उदा. अनुगङ्गम्)।",
     type = SutraType.NITYA,
     chapter = 2,
     pada = 1,
     optional = false,
-    kramaValue = 210010,
+    kramaValue = 210016,
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
@@ -41,7 +41,7 @@ object YasyaChayamahSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         val compoundStem = context.padas.joinToString("") { it.upadesha }
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
-            explanation = "2.1.10 forms Anu-āyāma Avyayībhāva compound '$compoundStem'.",
+            explanation = "2.1.16 forms Anu-āyāma Avyayībhāva compound '$compoundStem'.",
         )
     }
 }

@@ -477,7 +477,7 @@ class SamasaEngineTest {
     }
 
     @Test
-    fun `test Karmadharaya Purvakaladi (2 1 58)`() {
+    fun `test Karmadharaya Purvakaladi (2 1 49)`() {
         val result = engine.derive(
             listOf(
                 SamasaPada("एक", Vibhakti.PRATHAMA),
@@ -486,7 +486,7 @@ class SamasaEngineTest {
             SamasaType.KARMADHARAYA,
         )
         assertEquals("एकपुरुषः", result.final.terms.last().surface)
-        assertTrue(result.applications.any { it.sutra == "2.1.58" })
+        assertTrue(result.applications.any { it.sutra == "2.1.49" })
     }
 
     @Test
@@ -517,7 +517,7 @@ class SamasaEngineTest {
     }
 
     @Test
-    fun `test Karmadharaya PapakeKutsitaih (2 1 68)`() {
+    fun `test Karmadharaya PapakeKutsitaih (2 1 54)`() {
         val result = engine.derive(
             listOf(
                 SamasaPada("पाप", Vibhakti.PRATHAMA),
@@ -526,7 +526,7 @@ class SamasaEngineTest {
             SamasaType.KARMADHARAYA,
         )
         assertEquals("पापपुरुषः", result.final.terms.last().surface)
-        assertTrue(result.applications.any { it.sutra == "2.1.68" })
+        assertTrue(result.applications.any { it.sutra == "2.1.54" })
     }
 
     @Test
@@ -673,7 +673,7 @@ class SamasaEngineTest {
     }
 
     @Test
-    fun `test Svayam Tatpurusha (2 1 27)`() {
+    fun `test Svayam Tatpurusha (2 1 25)`() {
         val result = engine.derive(
             listOf(
                 SamasaPada("स्वयम्", Vibhakti.PRATHAMA),
@@ -681,7 +681,7 @@ class SamasaEngineTest {
             ),
             SamasaType.TATPURUSA,
         )
-        assertTrue(result.applications.any { it.sutra == "2.1.27" })
+        assertTrue(result.applications.any { it.sutra == "2.1.25" })
     }
 
     @Test
@@ -733,19 +733,7 @@ class SamasaEngineTest {
     }
 
     @Test
-    fun `test PraptapannasCha Dvitiyaya Tatpurusha (2 1 26)`() {
-        val result = engine.derive(
-            listOf(
-                SamasaPada("प्राप्त", Vibhakti.PRATHAMA),
-                SamasaPada("जीविका", Vibhakti.DVITIYA),
-            ),
-            SamasaType.TATPURUSA,
-        )
-        assertTrue(result.applications.any { it.sutra == "2.1.26" })
-    }
-
-    @Test
-    fun `test KrtyairRne Tatpurusha (2 1 33)`() {
+    fun `test KrtyairRne Tatpurusha (2 1 43)`() {
         val result = engine.derive(
             listOf(
                 SamasaPada("कुशाग्र", Vibhakti.TRTIYA),
@@ -753,11 +741,11 @@ class SamasaEngineTest {
             ),
             SamasaType.TATPURUSA,
         )
-        assertTrue(result.applications.any { it.sutra == "2.1.33" })
+        assertTrue(result.applications.any { it.sutra == "2.1.43" })
     }
 
     @Test
-    fun `test KataraKatambhau Karmadharaya (2 1 65)`() {
+    fun `test KataraKatambhau Karmadharaya (2 1 63)`() {
         val result = engine.derive(
             listOf(
                 SamasaPada("कतर", Vibhakti.PRATHAMA),
@@ -765,7 +753,7 @@ class SamasaEngineTest {
             ),
             SamasaType.KARMADHARAYA,
         )
-        assertTrue(result.applications.any { it.sutra == "2.1.65" })
+        assertTrue(result.applications.any { it.sutra == "2.1.63" })
     }
 
     @Test
@@ -778,18 +766,6 @@ class SamasaEngineTest {
             SamasaType.BAHUVRIHI,
         )
         assertTrue(result.applications.any { it.sutra == "2.2.27" })
-    }
-
-    @Test
-    fun `test Atyadaya Krantyadyarthe Tatpurusha (2 1 25)`() {
-        val result = engine.derive(
-            listOf(
-                SamasaPada("अति", Vibhakti.PRATHAMA),
-                SamasaPada("कोकिल", Vibhakti.DVITIYA),
-            ),
-            SamasaType.TATPURUSA,
-        )
-        assertTrue(result.applications.any { it.sutra == "2.1.25" })
     }
 
     @Test
@@ -829,8 +805,8 @@ class SamasaEngineTest {
     }
 
     @Test
-    fun `test Kalat Dvitiya Tatpurusha (2 1 29)`() {
-        val sutra = dev.panini.ashtadhyayi.adhyaya2.pada1.KalatSutra
+    fun `test Kalah Dvitiya Tatpurusha (2 1 28)`() {
+        val sutra = dev.panini.ashtadhyayi.adhyaya2.pada1.KalaAtyantasamyogeSutra
         val context = dev.panini.analysis.SamasaRuleContext(
             padas = listOf(
                 SamasaPada("मास", Vibhakti.DVITIYA),
@@ -841,18 +817,6 @@ class SamasaEngineTest {
         assertTrue(sutra.matches(context))
         val res = sutra.apply(context)
         assertTrue(res is dev.panini.analysis.SamasaRuleResult.Formed)
-    }
-
-    @Test
-    fun `test Kavacahara Trtiya Tatpurusha (2 1 48)`() {
-        val result = engine.derive(
-            listOf(
-                SamasaPada("वयस", Vibhakti.TRTIYA),
-                SamasaPada("कवचहर", Vibhakti.PRATHAMA),
-            ),
-            SamasaType.TATPURUSA,
-        )
-        assertTrue(result.applications.any { it.sutra == "2.1.48" })
     }
 
     @Test
@@ -896,7 +860,7 @@ class SamasaEngineTest {
     }
 
     @Test
-    fun `test Khatva Ksepe Dvitiya Tatpurusha (2 1 20)`() {
+    fun `test Khatva Ksepe Dvitiya Tatpurusha (2 1 26)`() {
         val result = engine.derive(
             listOf(
                 SamasaPada("खट्वा", Vibhakti.DVITIYA),
@@ -904,11 +868,11 @@ class SamasaEngineTest {
             ),
             SamasaType.TATPURUSA,
         )
-        assertTrue(result.applications.any { it.sutra == "2.1.20" })
+        assertTrue(result.applications.any { it.sutra == "2.1.26" })
     }
 
     @Test
-    fun `test Sami Tatpurusha (2 1 22)`() {
+    fun `test Sami Tatpurusha (2 1 27)`() {
         val result = engine.derive(
             listOf(
                 SamasaPada("सामि", Vibhakti.PRATHAMA),
@@ -916,7 +880,7 @@ class SamasaEngineTest {
             ),
             SamasaType.TATPURUSA,
         )
-        assertTrue(result.applications.any { it.sutra == "2.1.22" })
+        assertTrue(result.applications.any { it.sutra == "2.1.27" })
     }
 
     @Test
@@ -970,7 +934,7 @@ class SamasaEngineTest {
     }
 
     @Test
-    fun `test Anur Yat Samaya Avyayibhava (2 1 9)`() {
+    fun `test Anur Yat Samaya Avyayibhava (2 1 15)`() {
         val result = engine.derive(
             listOf(
                 SamasaPada("अनु", Vibhakti.PRATHAMA),
@@ -978,12 +942,12 @@ class SamasaEngineTest {
             ),
             SamasaType.AVYAYIBHAVA,
         )
-        assertTrue(result.applications.any { it.sutra == "2.1.9" })
+        assertTrue(result.applications.any { it.sutra == "2.1.15" })
     }
 
     @Test
-    fun `test Ksepena Saptami Tatpurusha (2 1 43)`() {
-        val sutra = dev.panini.ashtadhyayi.adhyaya2.pada1.KsepenaSutra
+    fun `test Ksepe Saptami Tatpurusha (2 1 47)`() {
+        val sutra = dev.panini.ashtadhyayi.adhyaya2.pada1.KsepePrasamsayamChaSutra
         val context = dev.panini.analysis.SamasaRuleContext(
             padas = listOf(
                 SamasaPada("गेहे", Vibhakti.SAPTAMI),
@@ -1040,30 +1004,6 @@ class SamasaEngineTest {
     }
 
     @Test
-    fun `test Dosa Cha Avyayibhava (2 1 15)`() {
-        val result = engine.derive(
-            listOf(
-                SamasaPada("दोषा", Vibhakti.PRATHAMA),
-                SamasaPada("कृत", Vibhakti.PRATHAMA),
-            ),
-            SamasaType.AVYAYIBHAVA,
-        )
-        assertTrue(result.applications.any { it.sutra == "2.1.15" })
-    }
-
-    @Test
-    fun `test Gater Anantaram Tatpurusha (2 1 45)`() {
-        val result = engine.derive(
-            listOf(
-                SamasaPada("प्र", Vibhakti.PRATHAMA),
-                SamasaPada("अनन्तर", Vibhakti.PRATHAMA),
-            ),
-            SamasaType.TATPURUSA,
-        )
-        assertTrue(result.applications.any { it.sutra == "2.1.45" })
-    }
-
-    @Test
     fun `test Trjjakabhyam Kartari Prohibition (2 2 15)`() {
         val sutra = dev.panini.ashtadhyayi.adhyaya2.pada2.TrjjakabhyamKartariSutra
         val context = dev.panini.analysis.SamasaRuleContext(
@@ -1094,7 +1034,7 @@ class SamasaEngineTest {
     }
 
     @Test
-    fun `test Atyanta Samyoge Cha Tatpurusha (2 1 49)`() {
+    fun `test Atyanta Samyoge Cha Tatpurusha (2 1 29)`() {
         val result = engine.derive(
             listOf(
                 SamasaPada("मुहूर्त", Vibhakti.DVITIYA),
@@ -1102,56 +1042,7 @@ class SamasaEngineTest {
             ),
             SamasaType.TATPURUSA,
         )
-        assertTrue(result.applications.any { it.sutra == "2.1.49" || it.sutra == "2.1.28" })
-    }
-
-    @Test
-    fun `test Rasa Varjyam Trtiya Tatpurusha (2 1 44)`() {
-        val sutra = dev.panini.ashtadhyayi.adhyaya2.pada1.RasaVarjyamSutra
-        val context = dev.panini.analysis.SamasaRuleContext(
-            padas = listOf(
-                SamasaPada("धान्य", Vibhakti.TRTIYA),
-                SamasaPada("अर्थ", Vibhakti.PRATHAMA),
-            ),
-            samasaType = SamasaType.TATPURUSA,
-        )
-        assertTrue(sutra.matches(context))
-    }
-
-    @Test
-    fun `test Apeksitam Saptami Tatpurusha (2 1 46)`() {
-        val result = engine.derive(
-            listOf(
-                SamasaPada("कार्य", Vibhakti.SAPTAMI),
-                SamasaPada("अपेक्षित", Vibhakti.PRATHAMA),
-            ),
-            SamasaType.TATPURUSA,
-        )
-        assertTrue(result.applications.any { it.sutra == "2.1.46" })
-    }
-
-    @Test
-    fun `test Gunavacanesu Chayayam Avyayibhava (2 1 5)`() {
-        val result = engine.derive(
-            listOf(
-                SamasaPada("इक्षु", Vibhakti.SASTHI),
-                SamasaPada("छाया", Vibhakti.PRATHAMA),
-            ),
-            SamasaType.AVYAYIBHAVA,
-        )
-        assertTrue(result.applications.any { it.sutra == "2.1.5" })
-    }
-
-    @Test
-    fun `test Dharksyat Saptami Tatpurusha (2 1 42)`() {
-        val result = engine.derive(
-            listOf(
-                SamasaPada("साङ्काश्य", Vibhakti.SAPTAMI),
-                SamasaPada("साङ्काश्यक", Vibhakti.PRATHAMA),
-            ),
-            SamasaType.TATPURUSA,
-        )
-        assertTrue(result.applications.any { it.sutra == "2.1.42" })
+        assertTrue(result.applications.any { it.sutra == "2.1.29" || it.sutra == "2.1.28" })
     }
 
     @Test

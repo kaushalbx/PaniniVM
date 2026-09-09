@@ -14,19 +14,19 @@ import dev.panini.sutra.SamasaSutra
 import dev.panini.sankhya.SankhyaResolver
 
 /**
- * 2.1.58: पूर्वकालैकसर्वजरत्पुराणनवकेवलाः समानाधिकरणेन.
+ * 2.1.49: पूर्वकालैकसर्वजरत्पुराणनवकेवलाः समानाधिकरणेन.
  *
  * Stems 'pūrvakāla', 'eka', 'sarva', 'jarat', 'purāṇa', 'nava', 'kevala' compound with a co-referential nominal in Karmadhāraya.
  */
 object PurvakaladiSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
-    number = "2.1.58",
+    number = "2.1.49",
     text = "पूर्वकालैकसर्वजरत्पुराणनवकेवलाः समानाधिकरणेन",
     hindiExplanation = "पूर्वकाल, एक, सर्व, जरत्, पुराण, नव, केवल एते समानाधिकरणेन सुबन्तेन समस्यन्ते, सोऽपि कर्मधारयः।",
     type = SutraType.NITYA,
     chapter = 2,
     pada = 1,
     optional = false,
-    kramaValue = 210058,
+    kramaValue = 210049,
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
@@ -45,7 +45,7 @@ object PurvakaladiSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
 
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
-            explanation = "2.1.58: Formed Karmadhāraya compound with pūrvakālādi modifier ($compoundStem).",
+            explanation = "2.1.49: Formed Karmadhāraya compound with pūrvakālādi modifier ($compoundStem).",
         )
     }
 }

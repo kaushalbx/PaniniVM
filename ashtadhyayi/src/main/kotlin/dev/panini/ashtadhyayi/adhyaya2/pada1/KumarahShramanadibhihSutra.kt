@@ -18,7 +18,7 @@ import dev.panini.sutra.SutraType
  */
 object KumarahShramanadibhihSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "2.1.70",
-    text = "कुमारः श्रमणादिभिः",
+    text = "कुमारः श्रमणाऽऽदिभिः",
     hindiExplanation = "कुमार शब्द का श्रमणा आदि गण के शब्दों के साथ कर्मधारय तत्पुरुष समास होता है (उदा. कुमारश्रमणा)।",
     type = SutraType.NITYA,
     chapter = 2,

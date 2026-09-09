@@ -12,19 +12,19 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 /**
- * Sūtra 2.1.33: कृत्यैर्ऋणे.
+ * Sūtra 2.1.43: कृत्यैर्ऋणे.
  * Prescribes Tṛtīyā Tatpuruṣa compound with kṛtya-ending words when obligation/debt is signified.
  * Example: कुशाग्रच्छेद्यः.
  */
 object KrtyairRneSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
-    number = "2.1.33",
+    number = "2.1.43",
     text = "कृत्यैर्ऋणे",
     hindiExplanation = "तृतीयान्त समर्थ सुबन्त का कृत्य प्रत्ययान्त के साथ ऋण अर्थ में तत्पुरुष समास होता है (उदा. कुशाग्रच्छेद्यः)।",
     type = SutraType.NITYA,
     chapter = 2,
     pada = 1,
     optional = false,
-    kramaValue = 210033,
+    kramaValue = 210043,
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
@@ -45,7 +45,7 @@ object KrtyairRneSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         val compoundStem = context.padas.joinToString("") { it.upadesha }
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
-            explanation = "2.1.33 forms Kṛtya-Ṛṇa Tatpuruṣa compound '$compoundStem'.",
+            explanation = "2.1.43 forms Kṛtya-Ṛṇa Tatpuruṣa compound '$compoundStem'.",
         )
     }
 }

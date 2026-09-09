@@ -11,19 +11,19 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 /**
- * 2.1.69: चतुष्पादो गर्भिण्या.
+ * 2.1.71: चतुष्पादो गर्भिण्या.
  *
  * A four-legged animal stem compounds with 'garbhiṇī' in Karmadhāraya.
  */
 object ChatuspadoGarbhinyaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
-    number = "2.1.69",
+    number = "2.1.71",
     text = "चतुष्पादो गर्भिण्या",
     hindiExplanation = "चतुष्पादः सुबन्तः गर्भिणीशब्देन सह समस्यते, सोऽपि कर्मधारयः।",
     type = SutraType.NITYA,
     chapter = 2,
     pada = 1,
     optional = false,
-    kramaValue = 210069,
+    kramaValue = 210071,
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
@@ -41,7 +41,7 @@ object ChatuspadoGarbhinyaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
 
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
-            explanation = "2.1.69: Formed Chatuṣpāda Karmadhāraya compound ($compoundStem).",
+            explanation = "2.1.71: Formed Chatuṣpāda Karmadhāraya compound ($compoundStem).",
         )
     }
 }

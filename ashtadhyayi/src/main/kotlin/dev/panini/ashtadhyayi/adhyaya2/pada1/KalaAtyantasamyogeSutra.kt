@@ -18,7 +18,7 @@ import dev.panini.sutra.SutraType
  */
 object KalaAtyantasamyogeSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "2.1.28",
-    text = "कालाः अत्यन्तसंयोगे",
+    text = "कालाः",
     hindiExplanation = "अत्यन्तसंयोगे गम्यमाने कालवाचिनः सुबन्ताः समर्थेन सुबन्तेन सह समस्यन्ते, सोऽपि तत्पुरुषः।",
     type = SutraType.NITYA,
     chapter = 2,

@@ -17,7 +17,7 @@ import dev.panini.sutra.SutraType
  */
 object YuvaKhalatiPalitaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "2.1.67",
-    text = "युवा खलतिपलितवलितछत्रितैः",
+    text = "युवा खलतिपलितवलिनजरतीभिः",
     hindiExplanation = "युवन् शब्द का खलति, पलित, वलिन, वलित, छत्रित आदि शब्दों के साथ कर्मधारय समास होता है (उदा. युवखलतिः)।",
     type = SutraType.NITYA,
     chapter = 2,

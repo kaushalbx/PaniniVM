@@ -11,19 +11,19 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 /**
- * Sūtra 2.1.22: सामि.
+ * Sūtra 2.1.27: सामि.
  * Prescribes Dvitīyā Tatpuruṣa / Avyayībhāva compound when indeclinable 'sāmi' (half) compounds with a kta-participle.
  * Example: सामि कृतम् = सामिकृतम् (sāmikṛtam - half done).
  */
 object SamiSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
-    number = "2.1.22",
+    number = "2.1.27",
     text = "सामि",
     hindiExplanation = "सामि (अर्ध) अव्यय का क्तान्त सुबन्त के साथ तत्पुरुष समास होता है (उदा. सामिकृतम्)।",
     type = SutraType.NITYA,
     chapter = 2,
     pada = 1,
     optional = false,
-    kramaValue = 210022,
+    kramaValue = 210027,
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
@@ -41,7 +41,7 @@ object SamiSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         val compoundStem = context.padas.joinToString("") { it.upadesha }
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
-            explanation = "2.1.22 forms Sāmi Tatpuruṣa compound '$compoundStem'.",
+            explanation = "2.1.27 forms Sāmi Tatpuruṣa compound '$compoundStem'.",
         )
     }
 }

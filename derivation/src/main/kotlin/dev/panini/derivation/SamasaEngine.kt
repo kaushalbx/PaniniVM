@@ -424,7 +424,7 @@ class SamasaEngine(
             SamasaType.UPAPADA_TATPURUSA    -> UpapadamAtingSutra
             SamasaType.ALUK_TATPURUSA       -> AlukUttarapadeSutra
             SamasaType.MAYURAVYAMSAKADI     -> MayuravyamsakadayascaSutra
-            SamasaType.KARMADHARAYA      -> VisesanamVisesyenaSutra
+            SamasaType.KARMADHARAYA      -> VisesanamVisesyenaBahulamSutra
             SamasaType.DVIGU             -> SankhyapurvoDviguhSutra
             SamasaType.BAHUVRIHI         -> AnekamAnyapadartheSutra
             SamasaType.DVANDVA           -> CartheDvandvahSutra
@@ -485,8 +485,8 @@ class SamasaEngine(
     private fun selectTatpurusaFallback(
         context: SamasaRuleContext,
     ): Sutra<SamasaRuleContext, SamasaRuleResult> = when (context.purvaPadaVibhakti) {
-        Vibhakti.DVITIYA   -> DvitiyaShritatitaSutra   // 2.1.24
-        Vibhakti.TRTIYA    -> TrtiyaTatkrtharthenaSutra // 2.1.30
+        Vibhakti.DVITIYA   -> DvitIyaSritatitapatitagatatyastapraptapannaihSutra // 2.1.24
+        Vibhakti.TRTIYA    -> TrtiyaTatkrtarthenaGunavacanenaSutra // 2.1.30
         Vibhakti.CHATURTHI -> CaturthiTadarthartheSutra // 2.1.36
         Vibhakti.PANCHAMI  -> PancamiBhayenaSutra       // 2.1.37
         Vibhakti.SAPTAMI   -> SaptamiSaundaihSutra       // 2.1.40

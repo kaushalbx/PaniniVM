@@ -20,7 +20,7 @@ import dev.panini.shiksha.NadiClassifier
  */
 object AnyapadartheChaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "2.1.21",
-    text = "अन्यपदार्थे च",
+    text = "अन्यपदार्थे च संज्ञायाम्",
     hindiExplanation = "अन्यपदार्थे वर्तमाना नदीभिः सह संख्या समस्यते, सोऽप्यव्ययीभावः।",
     type = SutraType.NITYA,
     chapter = 2,

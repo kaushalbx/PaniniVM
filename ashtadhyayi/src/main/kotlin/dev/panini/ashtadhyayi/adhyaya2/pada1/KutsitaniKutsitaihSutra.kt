@@ -11,13 +11,13 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 /**
- * Sūtra 2.1.68: कुत्सितानि कुत्सितैः.
+ * Sūtra 2.1.53: कुत्सितानि कुत्सनैः.
  * Prescribes Karmadhāraya compound when a blameworthy word (kutsita) compounds with another blameworthy word.
  * Example: वैयाकरणखसूचिः (vaiyākaraṇakhasūciḥ - a bad grammarian looking at sky).
  */
 object KutsitaniKutsitaihSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "2.1.53",
-    text = "कुत्सितानि कुत्सितैः",
+    text = "कुत्सितानि कुत्सनैः",
     hindiExplanation = "कुत्सित (निन्दित) अर्थ वाले प्रथमान्त सुबन्तों का कुत्सितवाचक सुबन्तों के साथ कर्मधारय समास होता है (उदा. वैयाकरणखसूचिः)।",
     type = SutraType.NITYA,
     chapter = 2,
@@ -43,7 +43,7 @@ object KutsitaniKutsitaihSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         val compoundStem = context.padas.joinToString("") { it.upadesha }
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
-            explanation = "2.1.68 forms Kutsita Karmadhāraya compound '$compoundStem'.",
+            explanation = "2.1.53 forms Kutsita Karmadhāraya compound '$compoundStem'.",
         )
     }
 }

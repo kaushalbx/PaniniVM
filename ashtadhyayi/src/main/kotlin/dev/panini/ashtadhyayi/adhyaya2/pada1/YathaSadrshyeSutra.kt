@@ -17,7 +17,7 @@ import dev.panini.sutra.SutraType
  */
 object YathaSadrshyeSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "2.1.7",
-    text = "यथाऽसादृश्ये",
+    text = "यथाऽसादृये",
     hindiExplanation = "असादृश्य (योग्यता, वीप्सा, पदार्थानतिवृत्ति) अर्थों में 'यथा' अव्यय का समर्थ सुबन्त के साथ अव्ययीभाव समास होता है (उदा. यथाशक्ति)।",
     type = SutraType.NITYA,
     chapter = 2,

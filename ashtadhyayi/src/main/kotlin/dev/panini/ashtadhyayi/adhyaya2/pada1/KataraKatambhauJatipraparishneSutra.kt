@@ -11,19 +11,19 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 /**
- * Sūtra 2.1.65: कतरकतभौ जातिपरिप्रश्ने.
+ * Sūtra 2.1.63: कतरकतमौ जातिपरिप्रश्ने.
  * Prescribes Karmadhāraya compound of 'katara' or 'katama' in questions about class/lineage.
  * Example: कतरकठः, कतमकठः.
  */
 object KataraKatambhauJatipraparishneSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
-    number = "2.1.65",
-    text = "कतरकतभौ जातिपरिप्रश्ने",
+    number = "2.1.63",
+    text = "कतरकतमौ जातिपरिप्रश्ने",
     hindiExplanation = "जाति प्रश्न अर्थ में कतर और कतम शब्दों का समर्थ सुबन्त के साथ कर्मधारय समास होता है (उदा. कतरकठः)।",
     type = SutraType.NITYA,
     chapter = 2,
     pada = 1,
     optional = false,
-    kramaValue = 210065,
+    kramaValue = 210063,
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
@@ -43,7 +43,7 @@ object KataraKatambhauJatipraparishneSutra : Sutra<SamasaRuleContext, SamasaRule
         val compoundStem = context.padas.joinToString("") { it.upadesha }
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
-            explanation = "2.1.65 forms Katara-Katama Karmadhāraya compound '$compoundStem'.",
+            explanation = "2.1.63 forms Katara-Katama Karmadhāraya compound '$compoundStem'.",
         )
     }
 }

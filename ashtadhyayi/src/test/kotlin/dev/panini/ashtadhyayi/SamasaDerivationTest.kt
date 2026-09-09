@@ -5,15 +5,15 @@ import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
 import dev.panini.ashtadhyayi.adhyaya2.pada1.AvyayamVibhaktiSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.CaturthiTadarthartheSutra
-import dev.panini.ashtadhyayi.adhyaya2.pada1.DvitiyaShritatitaSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada1.DvitIyaSritatitapatitagatatyastapraptapannaihSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.PancamiBhayenaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.SankhyapurvoDviguhSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.SaptamiSaundaihSutra
-import dev.panini.ashtadhyayi.adhyaya2.pada1.TrtiyaTatkrtharthenaSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada1.TrtiyaTatkrtarthenaGunavacanenaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.MayuravyamsakadayascaSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.UpamananiSamanyavacanaihSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada1.UpamitamVyaghradibhihSutra
-import dev.panini.ashtadhyayi.adhyaya2.pada1.VisesanamVisesyenaSutra
+import dev.panini.ashtadhyayi.adhyaya2.pada1.VisesanamVisesyenaBahulamSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.AnekamAnyapadartheSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.CartheDvandvahSutra
 import dev.panini.ashtadhyayi.adhyaya2.pada2.NanjSutra
@@ -58,8 +58,8 @@ class SamasaDerivationTest {
             ),
             samasaType = SamasaType.TATPURUSA,
         )
-        assertTrue(DvitiyaShritatitaSutra.matches(context))
-        val result = DvitiyaShritatitaSutra.apply(context) as SamasaRuleResult.Formed
+        assertTrue(DvitIyaSritatitapatitagatatyastapraptapannaihSutra.matches(context))
+        val result = DvitIyaSritatitapatitagatatyastapraptapannaihSutra.apply(context) as SamasaRuleResult.Formed
         assertEquals("कृष्णश्रित", result.compoundStem)
     }
 
@@ -86,8 +86,8 @@ class SamasaDerivationTest {
             ),
             samasaType = SamasaType.TATPURUSA,
         )
-        assertTrue(TrtiyaTatkrtharthenaSutra.matches(context))
-        val result = TrtiyaTatkrtharthenaSutra.apply(context) as SamasaRuleResult.Formed
+        assertTrue(TrtiyaTatkrtarthenaGunavacanenaSutra.matches(context))
+        val result = TrtiyaTatkrtarthenaGunavacanenaSutra.apply(context) as SamasaRuleResult.Formed
         assertEquals("शङ्कुलखण्ड", result.compoundStem)
     }
 
@@ -170,8 +170,8 @@ class SamasaDerivationTest {
             ),
             samasaType = SamasaType.KARMADHARAYA,
         )
-        assertTrue(VisesanamVisesyenaSutra.matches(context))
-        val result = VisesanamVisesyenaSutra.apply(context) as SamasaRuleResult.Formed
+        assertTrue(VisesanamVisesyenaBahulamSutra.matches(context))
+        val result = VisesanamVisesyenaBahulamSutra.apply(context) as SamasaRuleResult.Formed
         assertEquals("नीलउत्पल", result.compoundStem)
     }
 
