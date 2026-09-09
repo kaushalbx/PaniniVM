@@ -18,7 +18,7 @@ import dev.panini.sutra.SutraType
  */
 object TrjjakabhyamKartariSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "2.2.15",
-    text = "तृज्जकाभ्यां कर्तरि",
+    text = "तृजकाभ्यां कर्तरि",
     hindiExplanation = "कर्तरि षष्ठी का तृच् तथा अक प्रत्ययान्तों के साथ समास का निषेध होता है (उदा. स्रष्टा त्रिभुवनस्य)।",
     type = SutraType.NITYA,
     chapter = 2,

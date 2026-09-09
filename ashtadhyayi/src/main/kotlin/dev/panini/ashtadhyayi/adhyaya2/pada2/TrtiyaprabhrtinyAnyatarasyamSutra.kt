@@ -3,6 +3,7 @@ package dev.panini.ashtadhyayi.adhyaya2.pada2
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
 import dev.panini.core.SamasaType
+import dev.panini.core.Vibhakti
 import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -29,9 +30,18 @@ object TrtiyaprabhrtinyAnyatarasyamSutra : Sutra<SamasaRuleContext, SamasaRuleRe
     samasaType = SamasaType.AVYAYIBHAVA,
     samasaPriority = 10,
 ), SamasaSutra {
+    private val licensedVibhaktis = setOf(
+        Vibhakti.TRTIYA,
+        Vibhakti.CHATURTHI,
+        Vibhakti.PANCHAMI,
+        Vibhakti.SASTHI,
+        Vibhakti.SAPTAMI,
+    )
+
     override fun matches(context: SamasaRuleContext): Boolean {
         return context.padas.size >= 2 &&
-            context.samasaType == SamasaType.AVYAYIBHAVA
+            context.samasaType == SamasaType.AVYAYIBHAVA &&
+            context.padas.any { it.vibhakti in licensedVibhaktis }
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {

@@ -37,6 +37,7 @@ object PraptapanneChADvitiyayaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>
         val purva = context.purvaPada.upadesha
         val uttara = context.uttaraPada.upadesha
         return context.samasaType == SamasaType.TATPURUSA &&
+            context.padas.any { it.vibhakti == dev.panini.core.Vibhakti.DVITIYA } &&
             (praptaWords.contains(purva) || praptaWords.contains(uttara))
     }
 

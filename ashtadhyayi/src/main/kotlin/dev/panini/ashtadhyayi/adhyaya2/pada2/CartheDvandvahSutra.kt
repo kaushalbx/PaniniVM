@@ -31,7 +31,8 @@ object CartheDvandvahSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     isGeneralFallback = true,
 ), SamasaSutra {
     // Dvandva is 'ca'-coordinated: any two prathama-inflected nominals qualify
-    override fun matches(context: SamasaRuleContext): Boolean = context.padas.size >= 2
+    override fun matches(context: SamasaRuleContext): Boolean =
+        context.samasaType == SamasaType.DVANDVA && context.padas.size >= 2
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
         val stem = context.padas.joinToString("") { it.upadesha }

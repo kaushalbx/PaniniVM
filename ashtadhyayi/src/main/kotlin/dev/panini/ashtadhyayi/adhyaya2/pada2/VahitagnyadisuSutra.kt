@@ -17,7 +17,7 @@ import dev.panini.sutra.SutraType
  */
 object VahitagnyadisuSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "2.2.37",
-    text = "वाहिताग्न्यादिषु",
+    text = "वाऽऽहिताग्न्यादिषु",
     hindiExplanation = "आहिताग्नि आदि गण में निष्ठा प्रत्ययान्त पद का विकल्प से उत्तर प्रयोग होता है (उदा. आहिताग्निः)।",
     type = SutraType.NITYA,
     chapter = 2,

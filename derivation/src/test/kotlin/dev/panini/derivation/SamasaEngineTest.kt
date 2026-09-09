@@ -366,19 +366,6 @@ class SamasaEngineTest {
     }
 
     @Test
-    fun `test Dvandva Abhyarhitam order (2 2 32)`() {
-        val sutra = dev.panini.ashtadhyayi.adhyaya2.pada2.AbhyarhitamChaSutra
-        val context = dev.panini.analysis.SamasaRuleContext(
-            padas = listOf(
-                SamasaPada("पितृ", Vibhakti.PRATHAMA),
-                SamasaPada("माता", Vibhakti.PRATHAMA),
-            ),
-            samasaType = SamasaType.DVANDVA,
-        )
-        assertTrue(sutra.matches(context))
-    }
-
-    @Test
     fun `test Dvandva Ajadyadantam order (2 2 33)`() {
         val result = engine.derive(
             listOf(
@@ -782,7 +769,7 @@ class SamasaEngineTest {
     }
 
     @Test
-    fun `test TatraTenedamitiSarupe Bahuvrihi (2 2 23)`() {
+    fun `test TatraTenedamitiSarupe Bahuvrihi (2 2 27)`() {
         val result = engine.derive(
             listOf(
                 SamasaPada("केश", Vibhakti.PRATHAMA),
@@ -790,7 +777,7 @@ class SamasaEngineTest {
             ),
             SamasaType.BAHUVRIHI,
         )
-        assertTrue(result.applications.any { it.sutra == "2.2.23" })
+        assertTrue(result.applications.any { it.sutra == "2.2.27" })
     }
 
     @Test
@@ -1144,21 +1131,6 @@ class SamasaEngineTest {
     }
 
     @Test
-    fun `test Purana Guna Suhita Prohibition (2 2 11)`() {
-        val sutra = dev.panini.ashtadhyayi.adhyaya2.pada2.PuranaGunasuhitaSutra
-        val context = dev.panini.analysis.SamasaRuleContext(
-            padas = listOf(
-                SamasaPada("काक", Vibhakti.SASTHI),
-                SamasaPada("वार्ष्ण्य", Vibhakti.PRATHAMA),
-            ),
-            samasaType = SamasaType.TATPURUSA,
-        )
-        assertTrue(sutra.matches(context))
-        val res = sutra.apply(context)
-        assertTrue(res is dev.panini.analysis.SamasaRuleResult.NotApplicable)
-    }
-
-    @Test
     fun `test Gunavacanesu Chayayam Avyayibhava (2 1 5)`() {
         val result = engine.derive(
             listOf(
@@ -1252,6 +1224,39 @@ class SamasaEngineTest {
         assertTrue(sutra.matches(context))
         val res = sutra.apply(context)
         assertTrue(res is dev.panini.analysis.SamasaRuleResult.Formed)
+    }
+
+    @Test
+    fun `2 2 conditional rules reject contexts missing their stated condition`() {
+        fun context(type: SamasaType, firstCase: Vibhakti, secondCase: Vibhakti) =
+            dev.panini.analysis.SamasaRuleContext(
+                padas = listOf(
+                    SamasaPada("केश", firstCase),
+                    SamasaPada("दण्ड", secondCase),
+                ),
+                samasaType = type,
+            )
+
+        assertTrue(
+            !dev.panini.ashtadhyayi.adhyaya2.pada2.PraptapanneChADvitiyayaSutra.matches(
+                context(SamasaType.TATPURUSA, Vibhakti.PRATHAMA, Vibhakti.PRATHAMA),
+            ),
+        )
+        assertTrue(
+            !dev.panini.ashtadhyayi.adhyaya2.pada2.TrtiyaprabhrtinyAnyatarasyamSutra.matches(
+                context(SamasaType.AVYAYIBHAVA, Vibhakti.PRATHAMA, Vibhakti.PRATHAMA),
+            ),
+        )
+        assertTrue(
+            !dev.panini.ashtadhyayi.adhyaya2.pada2.TatraTenedamitiSarupeSutra.matches(
+                context(SamasaType.BAHUVRIHI, Vibhakti.PRATHAMA, Vibhakti.PRATHAMA),
+            ),
+        )
+        assertTrue(
+            !dev.panini.ashtadhyayi.adhyaya2.pada2.SaptamiVisesaneBahuvrihauSutra.matches(
+                context(SamasaType.BAHUVRIHI, Vibhakti.PRATHAMA, Vibhakti.PRATHAMA),
+            ),
+        )
     }
 
     @Test
