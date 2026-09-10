@@ -28,7 +28,8 @@ object UpasarjanamPurvamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     action = SutraAction.NIYAMA,
     scope = SutraScope.DERIVATION,
     samasaType = SamasaType.TATPURUSA,
-    samasaPriority = 100,
+    isGeneralFallback = true,
+    samasaPriority = 0,
 ), SamasaSutra {
     override fun matches(context: SamasaRuleContext): Boolean {
         return context.padas.size >= 2

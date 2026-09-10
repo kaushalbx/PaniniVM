@@ -2,6 +2,7 @@ package dev.panini.ashtadhyayi.adhyaya2.pada2
 
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
+import dev.panini.analysis.SamasaSemanticRelation
 import dev.panini.core.SamasaType
 import dev.panini.core.Vibhakti
 import dev.panini.sutra.SamasaSutra
@@ -34,7 +35,8 @@ object AdhikaranavacinasChaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     override fun matches(context: SamasaRuleContext): Boolean {
         return context.samasaType == SamasaType.TATPURUSA &&
             context.purvaPadaVibhakti == Vibhakti.SASTHI &&
-            context.padas.size >= 2
+            context.padas.size >= 2 &&
+            SamasaSemanticRelation.LOCATIVE_RELATION in context.semanticRelations
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {

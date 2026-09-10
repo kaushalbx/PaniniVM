@@ -989,6 +989,7 @@ class SamasaEngineTest {
                 dev.panini.analysis.SamasaPada("द्विज", dev.panini.core.Vibhakti.PRATHAMA),
             ),
             samasaType = dev.panini.core.SamasaType.TATPURUSA,
+            semanticRelations = setOf(SamasaSemanticRelation.NIRDHARANA),
         )
         assertTrue(sutra.matches(context))
         val res = sutra.apply(context)
@@ -1053,7 +1054,9 @@ class SamasaEngineTest {
                 SamasaPada("दोह", Vibhakti.PRATHAMA),
             ),
             samasaType = SamasaType.TATPURUSA,
+            semanticRelations = setOf(SamasaSemanticRelation.OBJECT_RELATION),
         )
+        assertTrue(sutra.matches(context))
         val res = sutra.apply(context)
         assertTrue(res is dev.panini.analysis.SamasaRuleResult.NotApplicable)
     }
@@ -1116,6 +1119,7 @@ class SamasaEngineTest {
                 SamasaPada("पूजित", Vibhakti.PRATHAMA),
             ),
             samasaType = SamasaType.TATPURUSA,
+            semanticRelations = setOf(SamasaSemanticRelation.WORSHIP),
         )
         assertTrue(sutra.matches(context))
         val res = sutra.apply(context)
@@ -1131,6 +1135,7 @@ class SamasaEngineTest {
                 SamasaPada("मत", Vibhakti.PRATHAMA),
             ),
             samasaType = SamasaType.TATPURUSA,
+            semanticRelations = setOf(SamasaSemanticRelation.LOCATIVE_RELATION),
         )
         assertTrue(sutra.matches(context))
         val res = sutra.apply(context)
@@ -1159,9 +1164,14 @@ class SamasaEngineTest {
         val context = dev.panini.analysis.SamasaRuleContext(
             padas = listOf(
                 SamasaPada("त्रिभुवन", Vibhakti.SASTHI),
-                SamasaPada("स्रष्टृ", Vibhakti.PRATHAMA),
+                SamasaPada(
+                    "स्रष्टृ",
+                    Vibhakti.PRATHAMA,
+                    morphologicalFeatures = setOf(SamasaMorphologicalFeature.TRC_AKA_DERIVED),
+                ),
             ),
             samasaType = SamasaType.TATPURUSA,
+            semanticRelations = setOf(SamasaSemanticRelation.AGENT_RELATION),
         )
         assertTrue(sutra.matches(context))
         val res = sutra.apply(context)
@@ -1174,9 +1184,14 @@ class SamasaEngineTest {
         val context = dev.panini.analysis.SamasaRuleContext(
             padas = listOf(
                 SamasaPada("भवत्", Vibhakti.SASTHI),
-                SamasaPada("शायिका", Vibhakti.PRATHAMA),
+                SamasaPada(
+                    "शायिका",
+                    Vibhakti.PRATHAMA,
+                    morphologicalFeatures = setOf(SamasaMorphologicalFeature.KRIT_DERIVED),
+                ),
             ),
             samasaType = SamasaType.TATPURUSA,
+            semanticRelations = setOf(SamasaSemanticRelation.AGENT_RELATION),
         )
         assertTrue(sutra.matches(context))
         val res = sutra.apply(context)

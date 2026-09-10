@@ -265,7 +265,7 @@ class SamasaEngine(
         val alternatives = optionalAlternatives(
             context=context,
             classificationResult=classificationResult,
-            selected=transformationSutras,
+            selected=transformationSutras + postClassificationSutras,
             type=type,
             padas=padas,
             vibhakti=vibhakti,
@@ -557,14 +557,19 @@ class SamasaEngine(
             val sutra = it as Sutra<*, *>
             (it is UniversalSamasaTransformation || it.samasaType == context.samasaType || (context.samasaType == SamasaType.KARMADHARAYA && it.samasaType == SamasaType.TATPURUSA)) &&
                 sutra.number != classificationSutra.number &&
-                it.samasaPhase in setOf(SamasaRulePhase.STEM_TRANSFORMATION, SamasaRulePhase.SAMASANTA) &&
+                (it.samasaPhase in setOf(SamasaRulePhase.STEM_TRANSFORMATION, SamasaRulePhase.SAMASANTA) ||
+                    (it.samasaPhase == SamasaRulePhase.CLASSIFICATION && sutra.role == dev.panini.sutra.SutraRole.Niyama)) &&
                 sutra.role !is dev.panini.sutra.SutraRole.Adhikara &&
                 sutra.action != dev.panini.sutra.SutraAction.NISHEDHA
                 && (it.samasaPhase != SamasaRulePhase.SAMASANTA || !samasantaProhibited || samasantaRestored)
         }
         .filter { it.matches(context) }
         .toList()
-        return listOf(SamasaRulePhase.STEM_TRANSFORMATION, SamasaRulePhase.SAMASANTA)
+        return listOf(
+            SamasaRulePhase.CLASSIFICATION,
+            SamasaRulePhase.STEM_TRANSFORMATION,
+            SamasaRulePhase.SAMASANTA,
+        )
             .mapNotNull { phase ->
                 matches.filter { it.samasaPhase == phase }
                     .maxWithOrNull(compareBy<SamasaSutra> { it.samasaPriority }.thenBy { (it as Sutra<*, *>).kramaValue })
@@ -609,9 +614,16 @@ class SamasaEngine(
                 it.samasaPhase in setOf(SamasaRulePhase.MEMBER_ORDERING, SamasaRulePhase.NUMBER_GENDER)
         }
         .filter { it.matches(context) }
+        .groupBy { it.samasaPhase }
+        .values
+        .mapNotNull { candidates ->
+            candidates.maxWithOrNull(
+                compareBy<SamasaSutra> { it.samasaPriority }
+                    .thenBy { (it as Sutra<*, *>).kramaValue },
+            )
+        }
         .sortedBy { (it as Sutra<*, *>).kramaValue }
         .map { it as Sutra<SamasaRuleContext, SamasaRuleResult> }
-        .toList()
 
     private fun selectTatpurusaFallback(
         context: SamasaRuleContext,

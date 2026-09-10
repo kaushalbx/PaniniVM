@@ -40,6 +40,7 @@ enum class SamasaMorphologicalFeature {
     MONOSYLLABIC,
     KHIT_DERIVED,
     KRIT_DERIVED,
+    TRC_AKA_DERIVED,
     PRONOUN,
     INDECLINABLE,
     KVI_DERIVED,
@@ -123,6 +124,16 @@ enum class SamasaSemanticRelation {
     RESIDUAL_KAP_OPTION,
     /** Applicability depends on membership in a named lexical gaṇa. */
     LEXICAL_GANA_MEMBERSHIP,
+    /** Genitive relation specifies one member selected from a group. */
+    NIRDHARANA,
+    /** A kta expression carries the sense of worship or reverence. */
+    WORSHIP,
+    /** A kta expression denotes its locus rather than an ordinary possessor. */
+    LOCATIVE_RELATION,
+    /** The genitive member is construed as the object of a derivative. */
+    OBJECT_RELATION,
+    /** The genitive member is construed as the agent of a derivative. */
+    AGENT_RELATION,
 }
 
 /**
