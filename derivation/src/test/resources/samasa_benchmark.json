@@ -3363,5 +3363,17 @@
     "classificationSutra": "2.2.24",
     "transformationSutras": "5.4.160",
     "forbiddenSutras": ""
+  },
+  {
+    "id": "BENCH_159",
+    "name": "8.2.72 Vidvas prior member before Alaya",
+    "padas": [{"upadesha": "विद्वस्", "vibhakti": "SASTHI"}, {"upadesha": "आलय", "vibhakti": "PRATHAMA"}],
+    "samasaType": "TATPURUSA",
+    "outputLinga": "PUMS",
+    "expectedStem": "विद्वदालय",
+    "expectedSurface": "विद्वदालयः",
+    "classificationSutra": "2.2.8",
+    "transformationSutras": "8.2.72",
+    "forbiddenSutras": "2.2.93"
   }
 ]

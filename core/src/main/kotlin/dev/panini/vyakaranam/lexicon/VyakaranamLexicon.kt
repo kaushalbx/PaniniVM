@@ -19,6 +19,24 @@ interface PratipadikaLexicon {
     fun findPratipadika(text: String): PratipadikaEntry?
 }
 
+/** Canonical lexical classes used by rules whose domain is a named gana. */
+enum class PratipadikaGana {
+    TYADADI,
+    PERSONAL_PRONOUN,
+}
+
+object PratipadikaGanaMembership {
+    private val members = mapOf(
+        PratipadikaGana.TYADADI to setOf("त्यद्", "तद्", "यद्", "एतद्", "किम्", "इदम्", "अदस्", "द्वि"),
+        PratipadikaGana.PERSONAL_PRONOUN to setOf("युष्मद्", "अस्मद्"),
+    )
+
+    fun belongsTo(text: String, gana: PratipadikaGana): Boolean = text.trim() in members.getValue(gana)
+
+    fun isPronominal(text: String): Boolean =
+        belongsTo(text, PratipadikaGana.TYADADI) || belongsTo(text, PratipadikaGana.PERSONAL_PRONOUN)
+}
+
 /** Shared lexical metadata for established pratipadikas used across runtimes. */
 object StandardPratipadikaLexicon : PratipadikaLexicon {
     private val entries = buildMap {

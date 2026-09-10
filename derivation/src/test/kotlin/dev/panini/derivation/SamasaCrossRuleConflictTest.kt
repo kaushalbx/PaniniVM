@@ -56,6 +56,21 @@ class SamasaCrossRuleConflictTest {
         }
     }
 
+    @Test
+    fun `vidvas plus alaya preserves alaya member order`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("विद्वस्", Vibhakti.SASTHI),
+                SamasaPada("आलय"),
+            ),
+            SamasaType.TATPURUSA,
+            outputLinga = Linga.PUMS,
+        )
+        assertEquals("विद्वदालय", requireNotNull(result.samasaResolution).compoundStem)
+        assertEquals("विद्वदालयः", result.final.surface)
+        assertEquals(listOf("8.2.72"), requireNotNull(result.samasaResolution).transformationSutras)
+    }
+
     private fun derive(
         first: SamasaPada,
         last: SamasaPada,
