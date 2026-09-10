@@ -21,7 +21,9 @@ class SamasaCoverageReportTest {
             File("derivation/src/test/kotlin/dev/panini/derivation/SamasaEngineTest.kt"),
             File("derivation/src/test/kotlin/dev/panini/derivation/SamasaPada2PipelineTest.kt"),
             File("derivation/src/test/kotlin/dev/panini/derivation/Samasanta69To112PipelineTest.kt"),
+            File("derivation/src/test/kotlin/dev/panini/derivation/Samasanta114To160PipelineTest.kt"),
             File("ashtadhyayi/src/test/kotlin/dev/panini/sutra/Samasanta69To112EvidenceTest.kt"),
+            File("ashtadhyayi/src/test/kotlin/dev/panini/sutra/Samasanta114To160EvidenceTest.kt"),
         ).joinToString("\n") { it.readText() }
         val derivationAsserted=Regex("[2568]\\.[1-4]\\.\\d+")
             .findAll(evidenceText).map { it.value }.toSet()
@@ -60,8 +62,8 @@ class SamasaCoverageReportTest {
         output.writeText(report)
         println(report)
         val padaOneAndTwo=registeredRules.filter { it.chapter == 2 && it.pada in 1..2 }
-        val earlySamasanta=registeredRules.filter { it.chapter == 5 && it.pada == 4 && it.kramaValue <= 540112 }
-        val gatedRules=padaOneAndTwo+earlySamasanta
+        val samasanta=registeredRules.filter { it.chapter == 5 && it.pada == 4 && it.kramaValue <= 540160 }
+        val gatedRules=padaOneAndTwo+samasanta
         val missingPositive=gatedRules.filter { it.action != SutraAction.NISHEDHA && it.number !in positivelyTested }
         val missingProhibition=gatedRules.filter { it.action == SutraAction.NISHEDHA && it.number !in negativelyTested }
         assertTrue(registered.isNotEmpty())

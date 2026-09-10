@@ -260,6 +260,7 @@ class SamasaEngine(
         val finalSurface = when {
             type == SamasaType.AVYAYIBHAVA -> avyayibhavaSurface(normalizedStem)
             normalizedStem.endsWith("विद्वस्") -> normalizedStem.removeSuffix("विद्वस्") + "विद्वान्"
+            TrikakutParvateSutra.matches(context) -> "त्रिककुत्"
             else -> requireNotNull(subantaResult).final.surface
         }
         val alternatives = optionalAlternatives(
@@ -547,7 +548,6 @@ class SamasaEngine(
         context: SamasaRuleContext,
         classificationSutra: Sutra<SamasaRuleContext, SamasaRuleResult>,
     ): List<Sutra<SamasaRuleContext, SamasaRuleResult>> {
-        val samasantaProhibited = matchingSamasantaProhibitions(context).isNotEmpty()
         // 5.4.72 is prāpta-vibhāṣā: for nañ + pathin it restores the otherwise
         // prohibited samāsānta branch of 5.4.71.
         val samasantaRestored = PathoVibhasaSutra.matches(context)
@@ -561,7 +561,7 @@ class SamasaEngine(
                     (it.samasaPhase == SamasaRulePhase.CLASSIFICATION && sutra.role == dev.panini.sutra.SutraRole.Niyama)) &&
                 sutra.role !is dev.panini.sutra.SutraRole.Adhikara &&
                 sutra.action != dev.panini.sutra.SutraAction.NISHEDHA
-                && (it.samasaPhase != SamasaRulePhase.SAMASANTA || !samasantaProhibited || samasantaRestored)
+                && (it.samasaPhase != SamasaRulePhase.SAMASANTA || !isSamasantaProhibited(it, context) || samasantaRestored)
         }
         .filter { it.matches(context) }
         .toList()
@@ -581,6 +581,17 @@ class SamasaEngine(
         .map { it as Sutra<SamasaRuleContext,SamasaRuleResult> }
         .filter { it.action==dev.panini.sutra.SutraAction.NISHEDHA && (it as SamasaSutra).matches(context) }
 
+    private fun isSamasantaProhibited(candidate: SamasaSutra, context: SamasaRuleContext): Boolean =
+        matchingSamasantaProhibitions(context).any { prohibition ->
+            when (prohibition.number) {
+                // 5.4.155-159 continue the kap domain opened by 5.4.151;
+                // they do not cancel unrelated earlier or lexical samāsāntas.
+                "5.4.155", "5.4.156", "5.4.157", "5.4.158", "5.4.159" ->
+                    (candidate as Sutra<*, *>).number in setOf("5.4.151", "5.4.152", "5.4.153", "5.4.154")
+                else -> true
+            }
+        }
+
     private fun matchingOptionalCompetitors(
         context: SamasaRuleContext,
         selected: List<Sutra<SamasaRuleContext,SamasaRuleResult>>,
@@ -588,13 +599,12 @@ class SamasaEngine(
         val selectedNumbers=selected.map { it.number }.toSet()
         val replaceablePhases=selected.filter { it.optional }.map { (it as SamasaSutra).samasaPhase }.toSet()
         if(replaceablePhases.isEmpty()) return emptyList()
-        val prohibited=matchingSamasantaProhibitions(context).isNotEmpty() && !PathoVibhasaSutra.matches(context)
         return samasaSutras.asSequence()
             .filter { candidate ->
                 val sutra=candidate as Sutra<*,*>
                 sutra.optional && sutra.number !in selectedNumbers && candidate.samasaPhase in replaceablePhases &&
                     (candidate is UniversalSamasaTransformation || candidate.samasaType==context.samasaType || (context.samasaType==SamasaType.KARMADHARAYA && candidate.samasaType==SamasaType.TATPURUSA)) &&
-                    (candidate.samasaPhase!=SamasaRulePhase.SAMASANTA || !prohibited) && candidate.matches(context)
+                    (candidate.samasaPhase!=SamasaRulePhase.SAMASANTA || !isSamasantaProhibited(candidate, context) || PathoVibhasaSutra.matches(context)) && candidate.matches(context)
             }
             .map { it as Sutra<SamasaRuleContext,SamasaRuleResult> }
             .toList()
