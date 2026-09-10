@@ -17,8 +17,12 @@ class SamasaCoverageReportTest {
         val benchmarkText=File("derivation/src/test/resources/samasa_benchmark.json").readText()
         val benchmarkCount=(TestJsonParser.parse(benchmarkText) as List<*>).size
         val benchmarked=Regex("[2568]\\.[1-4]\\.\\d+").findAll(benchmarkText).map { it.value }.toSortedSet(compareBy(::sutraKey))
-        val evidenceText=listOf("SamasaEngineTest.kt", "SamasaPada2PipelineTest.kt")
-            .joinToString("\n") { File("derivation/src/test/kotlin/dev/panini/derivation/$it").readText() }
+        val evidenceText=listOf(
+            File("derivation/src/test/kotlin/dev/panini/derivation/SamasaEngineTest.kt"),
+            File("derivation/src/test/kotlin/dev/panini/derivation/SamasaPada2PipelineTest.kt"),
+            File("derivation/src/test/kotlin/dev/panini/derivation/Samasanta69To112PipelineTest.kt"),
+            File("ashtadhyayi/src/test/kotlin/dev/panini/sutra/Samasanta69To112EvidenceTest.kt"),
+        ).joinToString("\n") { it.readText() }
         val derivationAsserted=Regex("[2568]\\.[1-4]\\.\\d+")
             .findAll(evidenceText).map { it.value }.toSet()
         val forbidden=Regex("\"forbiddenSutras\"\\s*:\\s*\"([^\"]*)\"").findAll(benchmarkText)
@@ -27,7 +31,10 @@ class SamasaCoverageReportTest {
         val testText=File("ashtadhyayi/src/test").walkTopDown().filter { it.extension=="kt" }.joinToString("\n") { it.readText() }+
             File("derivation/src/test").walkTopDown().filter { it.extension=="kt" }.joinToString("\n") { it.readText() }
         val testReferenced=registered.filterTo(sortedSetOf(compareBy(::sutraKey))) { number -> number in testText }
-        val positivelyTested=registered.filterTo(sortedSetOf(compareBy(::sutraKey))) { it in benchmarked || it in derivationAsserted }
+        val positivelyTested=registeredRules.filter {
+            it.action != SutraAction.NISHEDHA &&
+                (it.number in benchmarked || it.number in derivationAsserted || it.javaClass.simpleName in evidenceText)
+        }.mapTo(sortedSetOf(compareBy(::sutraKey))) { it.number }
         val negativelyTested=registeredRules.filter {
             it.number in forbidden || (it.action == SutraAction.NISHEDHA && it.javaClass.simpleName in evidenceText)
         }.mapTo(sortedSetOf(compareBy(::sutraKey))) { it.number }
@@ -53,12 +60,14 @@ class SamasaCoverageReportTest {
         output.writeText(report)
         println(report)
         val padaOneAndTwo=registeredRules.filter { it.chapter == 2 && it.pada in 1..2 }
-        val missingPositive=padaOneAndTwo.filter { it.action != SutraAction.NISHEDHA && it.number !in positivelyTested }
-        val missingProhibition=padaOneAndTwo.filter { it.action == SutraAction.NISHEDHA && it.number !in negativelyTested }
+        val earlySamasanta=registeredRules.filter { it.chapter == 5 && it.pada == 4 && it.kramaValue <= 540112 }
+        val gatedRules=padaOneAndTwo+earlySamasanta
+        val missingPositive=gatedRules.filter { it.action != SutraAction.NISHEDHA && it.number !in positivelyTested }
+        val missingProhibition=gatedRules.filter { it.action == SutraAction.NISHEDHA && it.number !in negativelyTested }
         assertTrue(registered.isNotEmpty())
         assertTrue(positivelyTested.isNotEmpty() && negativelyTested.isNotEmpty())
-        assertTrue(missingPositive.isEmpty(), "2.1–2.2 rules without positive evidence: ${missingPositive.map { it.number }}")
-        assertTrue(missingProhibition.isEmpty(), "2.1–2.2 prohibitions without evidence: ${missingProhibition.map { it.number }}")
+        assertTrue(missingPositive.isEmpty(), "Gated samāsa rules without positive evidence: ${missingPositive.map { it.number }}")
+        assertTrue(missingProhibition.isEmpty(), "Gated samāsa prohibitions without evidence: ${missingProhibition.map { it.number }}")
     }
 
     private fun sutraKey(number:String)=number.split('.').fold(0) { acc,part -> acc*1000+part.toInt() }

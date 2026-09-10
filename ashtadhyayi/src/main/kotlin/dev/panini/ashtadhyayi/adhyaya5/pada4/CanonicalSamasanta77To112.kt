@@ -39,5 +39,14 @@ object AvyayibhaveSaratprabhrtibhyahSutra:ActiveSamasantaSutra(107,"अव्य
 object AnasCaSutra:ActiveSamasantaSutra(108,"अनश्च",samasaType=SamasaType.AVYAYIBHAVA){override fun matches(c:SamasaRuleContext)=c.padas.size>=2&&c.uttaraPada.upadesha.endsWith("अन्");override fun apply(c:SamasaRuleContext)=formed(c,finalAsA(c))}
 object NapumsakadAnyatarasyamSutra:ActiveSamasantaSutra(109,"नपुंसकादन्यतरस्याम्",true,SamasaType.AVYAYIBHAVA,20){override fun matches(c:SamasaRuleContext)=c.padas.size>=2&&c.uttaraPada.linga==Linga.NAPUMSAKA&&c.uttaraPada.upadesha.endsWith("अन्");override fun apply(c:SamasaRuleContext)=formed(c,finalAsA(c))}
 object NadipaurnamasyagrahayanibhyahSutra:ActiveSamasantaSutra(110,"नदीपौर्णमास्याग्रहायणीभ्यः",true,SamasaType.AVYAYIBHAVA){override fun matches(c:SamasaRuleContext)=c.padas.size>=2&&c.uttaraPada.upadesha in setOf("नदी","पौर्णमासी","आग्रहायणी");override fun apply(c:SamasaRuleContext)=formed(c,finalAsA(c))}
-object JhayahSutra:ActiveSamasantaSutra(111,"झयः",true,SamasaType.AVYAYIBHAVA){override fun matches(c:SamasaRuleContext)=c.padas.size>=2&&c.uttaraPada.upadesha.lastOrNull() in setOf('क','ख','ग','घ','च','छ','ज','झ','ट','ठ','ड','ढ','त','थ','द','ध','प','फ','ब','भ');override fun apply(c:SamasaRuleContext)=formed(c,members(c))}
+object JhayahSutra:ActiveSamasantaSutra(111,"झयः",true,SamasaType.AVYAYIBHAVA){
+    private val jhay=setOf('क','ख','ग','घ','च','छ','ज','झ','ट','ठ','ड','ढ','त','थ','द','ध','प','फ','ब','भ')
+    override fun matches(c:SamasaRuleContext):Boolean {
+        if(c.padas.size<2)return false
+        val stem=c.uttaraPada.upadesha
+        val finalConsonant=if(stem.endsWith('्')&&stem.length>=2)stem[stem.lastIndex-1]else stem.lastOrNull()
+        return finalConsonant in jhay
+    }
+    override fun apply(c:SamasaRuleContext)=formed(c,members(c))
+}
 object GiresCaSenakasyaSutra:ActiveSamasantaSutra(112,"गिरेश्च सेनकस्य",samasaType=SamasaType.AVYAYIBHAVA){override fun matches(c:SamasaRuleContext)=c.padas.size>=2&&c.uttaraPada.upadesha=="गिरि";override fun apply(c:SamasaRuleContext)=formed(c,finalAsA(c))}

@@ -2,6 +2,7 @@ package dev.panini.ashtadhyayi.adhyaya5.pada4
 
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
+import dev.panini.analysis.SamasaSemanticRelation
 import dev.panini.core.SamasaType
 import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
@@ -33,7 +34,7 @@ object AksnoAdarsanatSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val last = context.padas.last().upadesha
-        return last == "अक्षि"
+        return last == "अक्षि" && SamasaSemanticRelation.NOT_LITERAL_EYE in context.semanticRelations
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {

@@ -1391,6 +1391,7 @@ class SamasaEngineTest {
                 SamasaPada("अक्षि", Vibhakti.PRATHAMA),
             ),
             samasaType = SamasaType.AVYAYIBHAVA,
+            semanticRelations = setOf(SamasaSemanticRelation.NOT_LITERAL_EYE),
         )
         assertTrue(sutra.matches(context))
     }
@@ -1431,6 +1432,7 @@ class SamasaEngineTest {
                 SamasaPada("राजन्", Vibhakti.PRATHAMA),
             ),
             samasaType = SamasaType.TATPURUSA,
+            semanticRelations = setOf(SamasaSemanticRelation.CENSURE),
         )
         assertTrue(sutra.matches(context))
     }
