@@ -15,13 +15,16 @@ class SamasaCoverageReportTest {
         val benchmarkText=File("derivation/src/test/resources/samasa_benchmark.json").readText()
         val benchmarkCount=(TestJsonParser.parse(benchmarkText) as List<*>).size
         val benchmarked=Regex("[2568]\\.[1-4]\\.\\d+").findAll(benchmarkText).map { it.value }.toSortedSet(compareBy(::sutraKey))
+        val engineTestText=File("derivation/src/test/kotlin/dev/panini/derivation/SamasaEngineTest.kt").readText()
+        val derivationAsserted=Regex("sutra\\s*==\\s*\"([2568]\\.[1-4]\\.\\d+)\"")
+            .findAll(engineTestText).map { it.groupValues[1] }.toSet()
         val forbidden=Regex("\"forbiddenSutras\"\\s*:\\s*\"([^\"]*)\"").findAll(benchmarkText)
             .flatMap { it.groupValues[1].split(',').asSequence() }.map(String::trim).filter(String::isNotEmpty).toSet()
         val rejectionCount=(TestJsonParser.parse(File("derivation/src/test/resources/samasa_rejection_benchmark.json").readText()) as List<*>).size
         val testText=File("ashtadhyayi/src/test").walkTopDown().filter { it.extension=="kt" }.joinToString("\n") { it.readText() }+
             File("derivation/src/test").walkTopDown().filter { it.extension=="kt" }.joinToString("\n") { it.readText() }
         val testReferenced=registered.filterTo(sortedSetOf(compareBy(::sutraKey))) { number -> number in testText }
-        val positivelyTested=registered.filterTo(sortedSetOf(compareBy(::sutraKey))) { it in benchmarked }
+        val positivelyTested=registered.filterTo(sortedSetOf(compareBy(::sutraKey))) { it in benchmarked || it in derivationAsserted }
         val negativelyTested=registered.filterTo(sortedSetOf(compareBy(::sutraKey))) { it in forbidden }
         val report=buildString {
             appendLine("Samāsa rule coverage")
@@ -31,10 +34,11 @@ class SamasaCoverageReportTest {
             appendLine("negative-tested=${negativelyTested.size}")
             appendLine("test-referenced=${testReferenced.size}")
             appendLine("canonical-benchmark-cases=$benchmarkCount")
+            appendLine("derivation-asserted-rules=${derivationAsserted.size}")
             appendLine("strict-rejection-cases=$rejectionCount")
             appendLine()
-            appendLine("Registered but not benchmarked:")
-            registered.filterNot { it in benchmarked }.forEach(::appendLine)
+            appendLine("Registered rules without positive derivation evidence:")
+            registered.filterNot { it in positivelyTested }.forEach(::appendLine)
             appendLine()
             appendLine("rule,registered,executable,positive-tested,negative-tested")
             registered.forEach { number -> appendLine("$number,yes,yes,${if(number in positivelyTested)"yes" else "no"},${if(number in negativelyTested)"yes" else "no"}") }

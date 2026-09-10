@@ -2,6 +2,7 @@ package dev.panini.ashtadhyayi.adhyaya2.pada1
 
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
+import dev.panini.analysis.SamasaSemanticRelation
 import dev.panini.core.SamasaType
 import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
@@ -34,7 +35,8 @@ object AnurYatSamayaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         if (context.padas.size < 2) return false
         val purva = context.purvaPada.upadesha
         return context.samasaType == SamasaType.AVYAYIBHAVA &&
-            purva == "अनु"
+            purva == "अनु" &&
+            SamasaSemanticRelation.MEASURE_DIMENSION !in context.semanticRelations
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {

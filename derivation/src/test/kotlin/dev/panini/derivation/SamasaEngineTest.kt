@@ -574,6 +574,31 @@ class SamasaEngineTest {
     }
 
     @Test
+    fun `test Avyayibhava extent selects Yasya Chayamah (2 1 16)`() {
+        val result = engine.derive(
+            SamasaDerivationRequest(
+                padas = listOf(SamasaPada("अनु"), SamasaPada("गङ्गा")),
+                type = SamasaType.AVYAYIBHAVA,
+                semanticRelations = setOf(SamasaSemanticRelation.MEASURE_DIMENSION),
+            ),
+        )
+        assertTrue(result.applications.any { it.sutra == "2.1.16" })
+        assertTrue(result.applications.none { it.sutra == "2.1.15" })
+    }
+
+    @Test
+    fun `test Avyayibhava numeral river name (2 1 21)`() {
+        val result = engine.derive(
+            listOf(SamasaPada("पञ्च"), SamasaPada("गङ्गा")),
+            SamasaType.AVYAYIBHAVA,
+        )
+        assertTrue(
+            result.applications.any { it.sutra == "2.1.21" },
+            "selected ${result.samasaResolution?.classificationSutra}",
+        )
+    }
+
+    @Test
     fun `test Karmadharaya Purvakaladi (2 1 49)`() {
         val result = engine.derive(
             listOf(
@@ -598,6 +623,15 @@ class SamasaEngineTest {
         )
         assertEquals("कृताकृतम्", result.final.terms.last().surface)
         assertTrue(result.applications.any { it.sutra == "2.1.60" })
+    }
+
+    @Test
+    fun `test Shrenyadi Karmadharaya (2 1 59)`() {
+        val result = engine.derive(
+            listOf(SamasaPada("श्रेणि"), SamasaPada("कृत")),
+            SamasaType.KARMADHARAYA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.1.59" })
     }
 
     @Test
@@ -803,6 +837,24 @@ class SamasaEngineTest {
             SamasaType.KARMADHARAYA,
         )
         assertTrue(result.applications.any { it.sutra == "2.1.67" })
+    }
+
+    @Test
+    fun `test Kumara Shramanadi Karmadharaya (2 1 70)`() {
+        val result = engine.derive(
+            listOf(SamasaPada("कुमार"), SamasaPada("श्रमणा")),
+            SamasaType.KARMADHARAYA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.1.70" })
+    }
+
+    @Test
+    fun `test quadruped Garbhini Karmadharaya (2 1 71)`() {
+        val result = engine.derive(
+            listOf(SamasaPada("गो"), SamasaPada("गर्भिणी")),
+            SamasaType.KARMADHARAYA,
+        )
+        assertTrue(result.applications.any { it.sutra == "2.1.71" })
     }
 
     @Test
@@ -1094,6 +1146,7 @@ class SamasaEngineTest {
                 SamasaPada("गङ्गा", Vibhakti.SASTHI),
             ),
             samasaType = SamasaType.AVYAYIBHAVA,
+            semanticRelations = setOf(SamasaSemanticRelation.MEASURE_DIMENSION),
         )
         assertTrue(sutra.matches(context))
         val res = sutra.apply(context)
