@@ -15,6 +15,33 @@ class ConsonantStemSamasaTest {
     private val engine = SamasaEngine()
 
     @Test
+    fun `subanta engine handles masculine halant stems generically`() {
+        val subanta = SubantaEngine()
+        assertEquals(
+            "त्रिककुत्",
+            subanta.derive(
+                SubantaDerivationRequest(
+                    "त्रिककुद्",
+                    Vibhakti.PRATHAMA,
+                    dev.panini.core.Vacana.EKAVACANA,
+                    dev.panini.core.Linga.PUMS,
+                ),
+            ).final.surface,
+        )
+        assertEquals(
+            "सुहृत्",
+            subanta.derive(
+                SubantaDerivationRequest(
+                    "सुहृद्",
+                    Vibhakti.PRATHAMA,
+                    dev.panini.core.Vacana.EKAVACANA,
+                    dev.panini.core.Linga.PUMS,
+                ),
+            ).final.surface,
+        )
+    }
+
+    @Test
     fun `test rajan stem drops final n in Shashthi Tatpurusa`() {
         val result = engine.derive(
             listOf(

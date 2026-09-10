@@ -52,6 +52,21 @@ class Samasanta114To160PipelineTest {
         assertTrue("5.4.154" !in resolution.transformationSutras)
     }
 
+    @Test
+    fun `5 4 147 survives later kap prohibition and declines as a consonant stem`() {
+        val result = engine.derive(
+            listOf(SamasaPada("त्रि"), SamasaPada("ककुद")),
+            SamasaType.BAHUVRIHI,
+            outputLinga = Linga.PUMS,
+            semanticRelations = setOf(SamasaSemanticRelation.PROPER_NAME),
+        )
+        val resolution = requireNotNull(result.samasaResolution)
+        assertEquals("त्रिककुद्", resolution.compoundStem)
+        assertEquals("त्रिककुत्", result.final.surface)
+        assertTrue("5.4.147" in resolution.transformationSutras)
+        assertTrue("5.4.155" in resolution.prohibitedSutras)
+    }
+
     private fun derive(
         first: SamasaPada,
         last: SamasaPada,

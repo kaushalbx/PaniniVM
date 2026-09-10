@@ -260,7 +260,6 @@ class SamasaEngine(
         val finalSurface = when {
             type == SamasaType.AVYAYIBHAVA -> avyayibhavaSurface(normalizedStem)
             normalizedStem.endsWith("विद्वस्") -> normalizedStem.removeSuffix("विद्वस्") + "विद्वान्"
-            TrikakutParvateSutra.matches(context) -> "त्रिककुत्"
             else -> requireNotNull(subantaResult).final.surface
         }
         val alternatives = optionalAlternatives(
@@ -509,6 +508,10 @@ class SamasaEngine(
 
     private companion object {
         val independentVowels = setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ऌ', 'ए', 'ऐ', 'ओ', 'औ')
+        /** Missing entries are general prohibitions; listed entries have explicit targets. */
+        val samasantaProhibitionTargets = (155..159).associate { number ->
+            "5.4.$number" to setOf("5.4.151", "5.4.152", "5.4.153", "5.4.154")
+        }
     }
 
     /**
@@ -583,13 +586,8 @@ class SamasaEngine(
 
     private fun isSamasantaProhibited(candidate: SamasaSutra, context: SamasaRuleContext): Boolean =
         matchingSamasantaProhibitions(context).any { prohibition ->
-            when (prohibition.number) {
-                // 5.4.155-159 continue the kap domain opened by 5.4.151;
-                // they do not cancel unrelated earlier or lexical samāsāntas.
-                "5.4.155", "5.4.156", "5.4.157", "5.4.158", "5.4.159" ->
-                    (candidate as Sutra<*, *>).number in setOf("5.4.151", "5.4.152", "5.4.153", "5.4.154")
-                else -> true
-            }
+            val targets = samasantaProhibitionTargets[prohibition.number]
+            targets == null || (candidate as Sutra<*, *>).number in targets
         }
 
     private fun matchingOptionalCompetitors(

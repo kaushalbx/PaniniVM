@@ -22,6 +22,7 @@ class SamasaCoverageReportTest {
             File("derivation/src/test/kotlin/dev/panini/derivation/SamasaPada2PipelineTest.kt"),
             File("derivation/src/test/kotlin/dev/panini/derivation/Samasanta69To112PipelineTest.kt"),
             File("derivation/src/test/kotlin/dev/panini/derivation/Samasanta114To160PipelineTest.kt"),
+            File("derivation/src/test/kotlin/dev/panini/derivation/SamasaCrossRuleConflictTest.kt"),
             File("ashtadhyayi/src/test/kotlin/dev/panini/sutra/Samasanta69To112EvidenceTest.kt"),
             File("ashtadhyayi/src/test/kotlin/dev/panini/sutra/Samasanta114To160EvidenceTest.kt"),
         ).joinToString("\n") { it.readText() }

@@ -22,7 +22,7 @@ class SubantaEngine(
     private val engine: DerivationEngine = DerivationEngine(dev.panini.ashtadhyayi.Ashtadhyayi.executableSutras),
 ) {
     fun derive(request: SubantaDerivationRequest): DerivationResult {
-        val specializedForm = deriveSpecializedDeclension(request.pratipadika, request.vibhakti, request.vacana)
+        val specializedForm = deriveSpecializedDeclension(request.pratipadika, request.vibhakti, request.vacana, request.linga)
         if (specializedForm != null) {
             val stemTerm = DerivationTerm("pratipadika", request.pratipadika, TermKind.PRATIPADIKA)
             val finalTerm = DerivationTerm("subanta_final", specializedForm, TermKind.PRATIPADIKA, upadesha = specializedForm)
@@ -39,8 +39,40 @@ class SubantaEngine(
         }
     }
 
-    private fun deriveSpecializedDeclension(pratipadika: String, vibhakti: Vibhakti, vacana: Vacana): String? {
-        return deriveNumeralOverride(pratipadika, vibhakti, vacana)
+    private fun deriveSpecializedDeclension(
+        pratipadika: String,
+        vibhakti: Vibhakti,
+        vacana: Vacana,
+        linga: Linga,
+    ): String? = deriveConsonantNominative(pratipadika, vibhakti, vacana, linga)
+        ?: deriveNumeralOverride(pratipadika, vibhakti, vacana)
+
+    /**
+     * Masculine consonant stems have a zero nominative singular ending after
+     * the final-s cluster is resolved.  Preserve the halant stem boundary and
+     * apply the regular word-final neutralization instead of routing the form
+     * through the default a-stem plan.
+     */
+    private fun deriveConsonantNominative(
+        pratipadika: String,
+        vibhakti: Vibhakti,
+        vacana: Vacana,
+        linga: Linga,
+    ): String? {
+        if (!pratipadika.endsWith('्') || vibhakti != Vibhakti.PRATHAMA ||
+            vacana != Vacana.EKAVACANA || linga != Linga.PUMS
+        ) return null
+        if (pratipadika in setOf("तद्", "यद्", "एतद्", "युष्मद्", "अस्मद्")) return null
+        val final = pratipadika.getOrNull(pratipadika.lastIndex - 1) ?: return null
+        val neutral = when (final) {
+            'ग', 'घ' -> 'क'
+            'ज', 'झ' -> 'क'
+            'ड', 'ढ' -> 'ट'
+            'द', 'ध' -> 'त'
+            'ब', 'भ' -> 'प'
+            else -> return null
+        }
+        return pratipadika.dropLast(2) + neutral + '्'
     }
 
     private fun deriveNumeralOverride(
