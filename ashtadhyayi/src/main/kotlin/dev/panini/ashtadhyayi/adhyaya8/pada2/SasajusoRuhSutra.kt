@@ -4,6 +4,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.TermKind
 import dev.panini.derivation.VarnaSubstitution
 import dev.panini.derivation.WholeAffixDesignationPolicy
 import dev.panini.shiksha.Samjna
@@ -37,11 +38,11 @@ object SasajusoRuhSutra : Sutra<DerivationState, DerivationChange>(
         val finalSurface = context.terms.lastOrNull()?.surface ?: return false
         return finalSurface.endsWith(Vyanjana.SA.halanta) ||
             finalSurface.endsWith("सजुष्") ||
-            internalSankhyaIndex(context) >= 0
+            internalPadaIndex(context) >= 0
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val internalIndex = internalSankhyaIndex(context)
+        val internalIndex = internalPadaIndex(context)
         val target = context.terms[internalIndex.takeIf { it >= 0 } ?: context.terms.lastIndex]
         val source = if (target.surface.endsWith("सजुष्")) 'ष' else 'स'
         fun withFreshRutva(term: dev.panini.derivation.DerivationTerm): dev.panini.derivation.DerivationTerm {
@@ -68,9 +69,13 @@ object SasajusoRuhSutra : Sutra<DerivationState, DerivationChange>(
         )
     }
 
-    private fun internalSankhyaIndex(context: DerivationState): Int = context.terms.indices.firstOrNull { index ->
-        index < context.terms.lastIndex && context.terms[index].surface.endsWith(Vyanjana.SA.halanta) &&
-            context.samjnas.any { it.targetId == context.terms[index].id && it.samjna == Samjna.SANKHYA } &&
-            context.samjnas.any { it.targetId == context.terms[index + 1].id && it.samjna == Samjna.SANKHYA }
+    private fun internalPadaIndex(context: DerivationState): Int = context.terms.indices.firstOrNull { index ->
+        if (index >= context.terms.lastIndex || !context.terms[index].surface.endsWith(Vyanjana.SA.halanta)) return@firstOrNull false
+        val leftId = context.terms[index].id
+        val rightId = context.terms[index + 1].id
+        val bothPadas = context.terms.all { it.kind == TermKind.PRATIPADIKA } &&
+            listOf(leftId, rightId).all { id -> context.samjnas.any { it.targetId == id && it.samjna == Samjna.PADA } }
+        val bothSankhya = listOf(leftId, rightId).all { id -> context.samjnas.any { it.targetId == id && it.samjna == Samjna.SANKHYA } }
+        bothPadas || bothSankhya
     } ?: -1
 }

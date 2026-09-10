@@ -3375,5 +3375,26 @@
     "classificationSutra": "2.2.8",
     "transformationSutras": "8.2.72",
     "forbiddenSutras": "2.2.93"
+  },
+  {
+    "id": "BENCH_160",
+    "name": "Regular rutva at internal boundary - Manoratha",
+    "padas": [
+      {
+        "upadesha": "मनस्",
+        "vibhakti": "SASTHI"
+      },
+      {
+        "upadesha": "रथ",
+        "vibhakti": "PRATHAMA"
+      }
+    ],
+    "samasaType": "TATPURUSA",
+    "outputLinga": "PUMS",
+    "expectedStem": "मनोरथ",
+    "expectedSurface": "मनोरथः",
+    "classificationSutra": "2.2.9",
+    "transformationSutras": "",
+    "forbiddenSutras": ""
   }
 ]

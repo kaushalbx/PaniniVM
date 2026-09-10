@@ -71,6 +71,27 @@ class SamasaCrossRuleConflictTest {
         assertEquals(listOf("8.2.72"), requireNotNull(result.samasaResolution).transformationSutras)
     }
 
+    @Test
+    fun `s final prior member undergoes regular rutva before voiced consonant`() {
+        val result = engine.derive(
+            listOf(
+                SamasaPada("मनस्", Vibhakti.SASTHI),
+                SamasaPada("रथ"),
+            ),
+            SamasaType.TATPURUSA,
+            outputLinga = Linga.PUMS,
+        )
+        assertEquals(
+            "मनोरथ",
+            requireNotNull(result.samasaResolution).compoundStem,
+            result.applications.joinToString { "${it.sutra}:${it.after.surface}" },
+        )
+        assertEquals("मनोरथः", result.final.surface)
+        assertTrue(result.applications.any { it.sutra == "8.2.66" })
+        assertTrue(result.applications.any { it.sutra == "6.1.114" })
+        assertTrue(result.applications.any { it.sutra == "6.1.87" })
+    }
+
     private fun derive(
         first: SamasaPada,
         last: SamasaPada,

@@ -388,7 +388,7 @@ class SamasaEngine(
             // External sandhi is therefore relevant here only before an explicit
             // independent vowel; running it before another consonant corrupts the
             // interior of words (सर्प + भय must remain सर्पभय, not सर्भय).
-            if (next.firstOrNull() in independentVowels) {
+            if (next.firstOrNull() in independentVowels || result.endsWith("स्")) {
                 val joined = sandhiEngine.join(result, next)
                 val surface = joined.final.surface
                 result = if (surface.isNotBlank() && surface.length >= result.length + next.length - 1) surface else result + next
