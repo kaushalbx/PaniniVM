@@ -17,7 +17,7 @@ import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.DhatuPrakriti
 import dev.panini.vyakaranam.ast.TingPratyaya
 import dev.panini.sankhya.PrimitiveSankhya
-import dev.panini.vyakaranam.lexicon.PratipadikaGanaMembership
+import dev.panini.ganapatha.SarvadiGana
 
 class SubantaEngine(
     private val engine: DerivationEngine = DerivationEngine(dev.panini.ashtadhyayi.Ashtadhyayi.executableSutras),
@@ -63,7 +63,7 @@ class SubantaEngine(
         if (!pratipadika.endsWith('्') || vibhakti != Vibhakti.PRATHAMA ||
             vacana != Vacana.EKAVACANA || linga != Linga.PUMS
         ) return null
-        if (PratipadikaGanaMembership.isPronominal(pratipadika)) return null
+        if (SarvadiGana.contains(pratipadika)) return null
         val final = pratipadika.getOrNull(pratipadika.lastIndex - 1) ?: return null
         val neutral = when (final) {
             'ग', 'घ' -> 'क'
