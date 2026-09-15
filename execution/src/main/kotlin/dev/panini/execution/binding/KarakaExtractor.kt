@@ -20,6 +20,8 @@ import dev.panini.vyakaranam.ast.SankhyaAbhyasaPada
 import dev.panini.vyakaranam.ast.SankhyaPada
 import dev.panini.vyakaranam.ast.SankhyaPuranaPada
 import dev.panini.vyakaranam.ast.SubantaPada
+import dev.panini.vyakaranam.ast.MulaPratipadika
+import dev.panini.vyakaranam.ast.TingantaPada
 
 /**
  * Extracts kāraka bindings from a clause's pādas, delegating:
@@ -53,6 +55,9 @@ internal object KarakaExtractor {
             }
 
         val subantas = padas.filterIsInstance<SubantaPada>()
+        val isCopularClause = padas.filterIsInstance<TingantaPada>().any {
+            it.dhatu.mulaDhatu == "असँ"
+        }
         val phalaPadas = subantas.filter(PhalaReference::isReference)
 
         // ---- फल resolution (delegated) ---------------------------------------------
@@ -150,6 +155,13 @@ internal object KarakaExtractor {
                     trace += "परि + अन्त + अम् licenses inclusive limits $minimum..$maximum."
                 }
                 is SubantaPada -> {
+                    val copularPredicate = (ctx.dhatu.upadesha == "असँ" || isCopularClause) &&
+                        SupAffix.candidates(pada.sup.text).any { it.vibhakti == dev.panini.core.Vibhakti.PRATHAMA } &&
+                        (pada.pratipadika as? MulaPratipadika)?.text in setOf("सम", "न्यून", "अधिक")
+                    if (copularPredicate) {
+                        addBinding(ExpressionBuilder.build(pada, ctx), setOf(Karaka.KARMAN))
+                        return@forEachIndexed
+                    }
                     val rememberedParticipant = karakaReferenceResolution.expressions[pada]
                     if (rememberedParticipant != null) {
                         addBinding(rememberedParticipant, inferKarakas(pada))

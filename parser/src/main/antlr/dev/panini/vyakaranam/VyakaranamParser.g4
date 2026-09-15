@@ -300,6 +300,8 @@ pratipadikaVikara
 
 mulaPratipadika
     : IDENTIFIER
+    | ADHIKA
+    | UNA
     ;
 
 samjnaQualifierPratipadika

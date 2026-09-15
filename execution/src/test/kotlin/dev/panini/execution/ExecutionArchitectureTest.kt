@@ -65,9 +65,9 @@ class ExecutionArchitectureTest {
 
         assertEquals(
             """
-                एकम् धरणाय देहि ।
-                स्थानम् धरणम् च योजय ।
-                देहि योजनस्य फलम् जननाय ।
+                एकं धरणाय देहि ।
+                स्थानं धरणं च योजय ।
+                देहि योजनस्य फलं जननाय ।
                 मुद्रय जननम् ।
             """.trimIndent(),
             PvmUktiSadhaka().sadhayaScript(source),

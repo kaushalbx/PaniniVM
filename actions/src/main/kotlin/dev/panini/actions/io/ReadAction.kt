@@ -24,7 +24,8 @@ object ReadAction : dev.panini.execution.DhatuAction("स्वीकरणम�
             is ExecutionExpression.Reference -> expression.name
             else -> expression?.let(context::resolve)?.firstOrNull()
         } ?: "आगतम्"
-        val typeNames = context.bindings[Karaka.SAMPRADANA]?.let(context::resolve).orEmpty()
+        val typeNames = listOf(Karaka.SAMPRADANA, Karaka.KARANA)
+            .flatMap { karaka -> context.bindings[karaka]?.let(context::resolve).orEmpty() }
         val inputType = when {
             typeNames.any { it in numericTypeNames } -> InputValueType.NUMBER
             typeNames.any { it in booleanTypeNames } -> InputValueType.BOOLEAN
@@ -86,7 +87,7 @@ object ReadAction : dev.panini.execution.DhatuAction("स्वीकरणम�
         return SanskritValue.Sankhya(value, surface)
     }
 
-    private val numericTypeNames = setOf("सङ्ख्या", "संख्या")
+    private val numericTypeNames = setOf("सङ्ख्या", "संख्या", "सङ्ख्यात्व", "संख्यात्व", "सङ्ख्यात्वेन", "संख्यात्वेन")
     private val booleanTypeNames = setOf("सत्य", "सत्यम्", "तर्क", "बूलियन")
     private val choiceTypeNames = setOf("विकल्प", "विकल्पः")
 }

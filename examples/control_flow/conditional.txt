@@ -5,4 +5,4 @@
 दश त्रीनि च वियोजय ।
 
 # Step 2: Print result of conditional branch (7 = सप्त)
-योगस्य फलम् मुद्रय ।
+योगस्य फलं मुद्रय ।

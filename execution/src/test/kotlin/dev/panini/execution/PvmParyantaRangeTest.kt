@@ -12,7 +12,7 @@ class PvmParyantaRangeTest {
             "एक + ङसिँ दशन् + शस् परि + अन्त + अम् सङ्ख्या + अम् चिञ् + श्नु + लोट् + सिप् ।",
         )
 
-        assertEquals("एकस्मात् दश पर्यन्तम् सङ्ख्याम् चिनु ।", rendered)
+        assertEquals("एकस्माद् दश पर्यन्तं सङ्ख्यां चिनु ।", rendered)
     }
 
     @Test

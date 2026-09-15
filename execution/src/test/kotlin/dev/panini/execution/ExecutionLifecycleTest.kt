@@ -340,6 +340,10 @@ class ExecutionLifecycleTest {
             PvmScript.classify("गणित + सुँ इति संज्ञा + सुँ ।"),
         )
         assertEquals(
+            PvmSourceKind.SCRIPT,
+            PvmScript.classify("प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।"),
+        )
+        assertEquals(
             PvmSourceKind.UTTERANCE,
             PvmScript.classify("संज्ञा + सुँ ।"),
             "A marker lexeme without the parsed इति construction remains an utterance.",
@@ -444,7 +448,7 @@ class ExecutionLifecycleTest {
         assertEquals("sentinel\n", readable.readText())
 
         assertEquals(readable, PvmReadableSanskrit.renderFile(source))
-        assertEquals("एकम् द्वे च योजय ।\n", readable.readText())
+        assertEquals("एकं द्वे च योजय ।\n", readable.readText())
     }
 
     @Test

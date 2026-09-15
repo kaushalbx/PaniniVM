@@ -3,18 +3,18 @@
 
 # Kriya-samjna: define one reusable guessing attempt.
 # The procedure reads a bounded input, compares it, and prints dynamic feedback.
-प्रयत्न ।
-निवेशम् सङ्ख्यै ग्रह् ।
-यदि ग्रहणस्य फलम् रहस्येन समम् असति तर्हि विजयः अन्यथा यदि ग्राहस्य फलम् रहस्यम् च निविद्धि तर्हि लघु अन्यथा गुरु ततः मुद्रय ॥
+प्रयत्नः इति प्रक्रिया अस्ति ।
+निवेशं सङ्ख्यया गृहाण ।
+यदि ग्रहणस्य फलं रहस्येन समम् अस्ति तर्हि विजयः अन्यथा यदि ग्रहणस्य फलं रहस्यात् न्यूनम् अस्ति तर्हि लघु अन्यथा गुरु ततः मुद्रय ॥
 
 # 1. Choose a number from the explicit inclusive range and store it as the secret.
-एकस्मात् दश पर्यन्तम् सङ्ख्याम् चिनु ततः रहस्याय देहि ।
+एकस्माद् दश पर्यन्तं सङ्ख्यां चिनु ततः चयनस्य फलं रहस्ये स्थापय ।
 
 # 2. Quote a grammatical command; iti makes mudr print it without executing it.
 सङ्ख्याम् ऊहस्व इति मुद्रय ।
 
 # 3. Continue while the latest comparison is false; the loop exposes its structured outcome.
-यावत् विजयः न भवति तावत् पञ्चमस्य प्रयत्नस्य पर्यन्तम् प्रयत्नम् कुरु अन्यथा प्रयत्नाः समाप्ताः इति मुद्रय ।
+यावद् विजयः न भवति तावत् पञ्चमस्य प्रयत्नस्य पर्यन्तं प्रयत्नं कुरु अन्यथा प्रयत्नानां समाप्तिं मुद्रय ।
 
 # 4. Reveal the secret number after all attempts are finished.
-रहस्यम् मुद्रय ।
+रहस्यं मुद्रय ।

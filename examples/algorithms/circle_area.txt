@@ -4,7 +4,7 @@
 त्रीनि त्रीनि च गणय ।
 
 # Step 2: Multiply the latest multiplication result by 3 -> 27
-गणनस्य फलम् त्रीनि च गणय ।
+गणनस्य फलं त्रीनि च गणय ।
 
 # Print circle area result (renders 27 = सप्तविंशतिः)
-गणनस्य फलम् मुद्रय ।
+गणनस्य फलं मुद्रय ।

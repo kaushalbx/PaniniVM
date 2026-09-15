@@ -9,6 +9,8 @@ import dev.panini.vyakaranam.ast.KridantaPratipadika
 import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
 import dev.panini.vyakaranam.ast.SubantaPada
+import dev.panini.vyakaranam.ast.Quotation
+import dev.panini.vyakaranam.ast.invocations
 import dev.panini.vyakaranam.parser.PaniniParser
 
 enum class SamjnaDefinitionQualifier {
@@ -29,6 +31,12 @@ object SamjnaDefinitionMarkerParser {
 
     fun hasExplicitMarker(source: String): Boolean {
         val ukti = parser.parseOrNull(source.trim().trimEnd('।', '॥', ' ')) ?: return false
+        val quotation = ukti.body as? Quotation
+        if (quotation != null) {
+            return quotation.reporting.invocations().flatMap { it.vakya.padas }
+                .filterIsInstance<SubantaPada>()
+                .any { it.definitionQualifier() != null }
+        }
         val padas = ukti.grammaticalVakyas().flatMap { it.padas }
         val itiIndices = padas.indices.filter { index ->
             (padas[index] as? AvyayaPada)?.function == AvyayaFunction.QUOTATIVE
@@ -41,6 +49,14 @@ object SamjnaDefinitionMarkerParser {
     /** Returns the declaration prefix before the final explicit marker. */
     fun headerPrefix(source: String): String? {
         val ukti = parser.parseOrNull(source.trim().trimEnd('।', '॥', ' ')) ?: return null
+        val quotation = ukti.body as? Quotation
+        if (quotation != null && quotation.reporting.invocations().flatMap { it.vakya.padas }
+                .filterIsInstance<SubantaPada>().any { it.definitionQualifier() != null }
+        ) {
+            return quotation.quoted.vakya.padas
+                .joinToString(" ") { SamjnaInvocationMatcher.normalizeIdentity(it.sourceText) }
+                .ifBlank { null }
+        }
         val padas = ukti.grammaticalVakyas().flatMap { it.padas }
         val markerIndex = padas.indices.lastOrNull { index ->
             (padas[index] as? SubantaPada)?.definitionQualifier() != null
@@ -55,6 +71,18 @@ object SamjnaDefinitionMarkerParser {
 
     fun qualifiers(source: String): ParsedSamjnaQualifiers? {
         val ukti = parser.parseOrNull(source.trim().trimEnd('।', '॥', ' ')) ?: return null
+        val quotation = ukti.body as? Quotation
+        if (quotation != null) {
+            val qualifierPadas = quotation.reporting.invocations().flatMap { it.vakya.padas }
+            val declarationSource = quotation.quoted.vakya.padas
+                .joinToString(" ") { SamjnaInvocationMatcher.normalizeIdentity(it.sourceText) }
+                .ifBlank { return null }
+            return ParsedSamjnaQualifiers(
+                declarationSource = declarationSource,
+                qualifiers = qualifierPadas.filterIsInstance<SubantaPada>()
+                    .mapNotNull { it.definitionQualifier() }.toSet(),
+            )
+        }
         val padas = ukti.grammaticalVakyas().flatMap { it.padas }
         val firstItiIndex = padas.indexOfFirst {
             (it as? AvyayaPada)?.function == AvyayaFunction.QUOTATIVE
@@ -78,6 +106,7 @@ object SamjnaDefinitionMarkerParser {
         return when (val base = pratipadika) {
             is MulaPratipadika -> when (base.lexicalIdentity) {
                 MulaPratipadikaIdentity.SAMJNA -> SamjnaDefinitionQualifier.SAMJNA
+                MulaPratipadikaIdentity.PRAKRIYA -> SamjnaDefinitionQualifier.SAMJNA
                 MulaPratipadikaIdentity.APAVADA -> SamjnaDefinitionQualifier.APAVADA
                 MulaPratipadikaIdentity.NITYA -> SamjnaDefinitionQualifier.NITYA
                 MulaPratipadikaIdentity.ANTARANGA -> SamjnaDefinitionQualifier.ANTARANGA

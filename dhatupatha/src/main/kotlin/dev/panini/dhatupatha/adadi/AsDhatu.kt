@@ -2,6 +2,7 @@ package dev.panini.dhatupatha.adadi
 
 import dev.panini.actions.collection.ListContainsAction
 import dev.panini.actions.comparison.CopularEqualityAction
+import dev.panini.actions.comparison.CopularOrderAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.Lakara
@@ -32,6 +33,13 @@ class AsDhatu : Dhatu(
         CopularEqualityAction.op {
             requires(Karaka.KARTR)
             requires(Karaka.KARANA)
+            requires(Karaka.KARMAN, samjnas = arrayOf(Samjna.SHABDA))
+            triggeredBy(allowedLakaras = setOf(Lakara.LAT))
+            returns(Samjna.SATYA)
+        },
+        CopularOrderAction.op {
+            requires(Karaka.KARTR, samjnas = arrayOf(Samjna.SANKHYA))
+            requires(Karaka.APADANA, samjnas = arrayOf(Samjna.SANKHYA))
             requires(Karaka.KARMAN, samjnas = arrayOf(Samjna.SHABDA))
             triggeredBy(allowedLakaras = setOf(Lakara.LAT))
             returns(Samjna.SATYA)
