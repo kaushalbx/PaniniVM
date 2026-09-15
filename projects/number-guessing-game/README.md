@@ -13,7 +13,7 @@ The example demonstrates:
 - one grammatical inclusive range, `एक + ङसिँ दशन् + शस् परि + अन्त + अम्`;
 - numeric input with `ग्रह्` and the `सङ्ख्या` type marker;
 - an explicit ablative lower bound and `परि + अन्त + अम्` upper-limit construction;
-- grammatical `… इति मुद्र्` quotation without treating the quoted verb as `कर्मन्`;
+- grammatical `सङ्ख्याम् ऊहस्व इति मुद्रय` quotation without treating the quoted verb as `कर्मन्`;
 - one persistent variable, `रहस्य`, assigned with `दा`;
 - direct use of each action's latest `फल`, without a temporary guess variable;
 - direct `ततः` result piping into a following action's missing `कर्मन्`;

@@ -11,7 +11,7 @@
 एकस्मात् दश पर्यन्तम् सङ्ख्याम् चिनु ततः रहस्याय देहि ।
 
 # 2. Quote a grammatical command; iti makes mudr print it without executing it.
-सङ्ख्याम् अनुमिनु इति मुद्रय ।
+सङ्ख्याम् ऊहस्व इति मुद्रय ।
 
 # 3. Continue while the latest comparison is false; the loop exposes its structured outcome.
 पञ्चकृत्वः यावत् फलम् न तावत् प्रयत्न कृणु अन्यथा प्रयत्नाःम् समाप्ताःम् च मुद्रय ।
