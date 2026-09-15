@@ -19,6 +19,16 @@ Certificate of Origin sign-off are not currently required.
 
 ## Before opening a pull request
 
+- Treat grammatical validity as a hard acceptance requirement: every `.pvm`
+  program accepted by the parser must be valid Sanskrit under PaniniVM's
+  supported grammatical system.
+- Design programming behavior around a supported Sanskrit construction. Do not
+  introduce DSL-only particles, case uses, word-order rules, implicit operands,
+  or undeclined placeholders merely because they simplify implementation.
+- For every new language construct, test (1) its segmented derivation, (2) its
+  grammatical AST and semantic relations, (3) its grammatical readable surface,
+  (4) execution parity, and (5) rejection of tempting but ungrammatical
+  shorthand.
 - Keep executable `.pvm` sentences in segmented Sanskrit and source comments in
   English.
 - Add or update tests for behavioral changes.
@@ -37,3 +47,7 @@ Include the segmented input, actual result, expected result, relevant sūtra or
 source citation, and the smallest reproducible example. Distinguish a surface
 rendering problem from an AST, derivation, binding, or runtime problem whenever
 possible.
+
+A construct that executes but cannot be rendered as an equivalent grammatical
+Sanskrit utterance is a language-validity defect, not merely a presentation
+issue.

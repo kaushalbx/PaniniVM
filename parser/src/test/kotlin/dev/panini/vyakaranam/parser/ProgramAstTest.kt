@@ -10,6 +10,7 @@ import dev.panini.vyakaranam.ast.WhileLoop
 import dev.panini.vyakaranam.ast.Sequence
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 
@@ -65,6 +66,17 @@ class ProgramAstTest {
         assertEquals(listOf("पञ्च"), loop.maximumIterationStems)
         assertEquals("विजय+सुँन", loop.condition.sourceText)
         assertIs<Invocation>(loop.body)
+    }
+
+    @Test
+    fun `bounded loop requires the grammatical source affix rather than a rendered form`() {
+        listOf("कृत्वस्", "कृत्वः").forEach { renderedForm ->
+            assertFailsWith<PaniniParseException> {
+                parser.parse(
+                    "पञ्च + $renderedForm यावत् विजय + सुँ न तावत् प्रयत्न + अम् कृ + लोट् + सिप् ।",
+                )
+            }
+        }
     }
 
     @Test

@@ -34,6 +34,32 @@ PaniniVM Root
 segmented input → vyākaraṇa AST → binding → operation resolution → planning → runtime
 ```
 
+### Non-negotiable grammatical-validity invariant
+
+Every `.pvm` input admitted to the execution pipeline MUST be grammatical
+Sanskrit under the grammatical system implemented by PaniniVM. The segmented
+notation exposes derivation; it does not create a second, less grammatical
+language. Parser convenience, runtime simplicity, or familiar programming
+syntax is never sufficient justification for accepting an otherwise invalid
+Sanskrit construction.
+
+This invariant applies across the pipeline:
+
+- the parser may recognize only structures for which a supported Sanskrit
+  analysis exists;
+- the AST must preserve the grammatical relations that license the program's
+  meaning rather than attach programming meaning to punctuation or word order;
+- binding and execution must derive their semantics from those relations;
+- readable rendering must produce a grammatical Sanskrit utterance equivalent
+  in meaning to the segmented source; and
+- an unimplemented grammatical construction must be rejected as unsupported,
+  not accepted through a DSL-only exception.
+
+Language features therefore follow this order: establish the Sanskrit
+expression and its derivation, encode its grammatical AST, bind its semantics,
+then implement execution. Runtime semantics adapt to the licensed Sanskrit
+expression, never the reverse.
+
 The parser retains `Prakṛti + Pratyaya` structure. Analysis assigns grammatical
 and semantic identities. Binding resolves Kāraka-marked participants and typed
 values. Planning determines executable actions and control flow. The runtime
