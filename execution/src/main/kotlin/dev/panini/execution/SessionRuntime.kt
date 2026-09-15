@@ -39,6 +39,7 @@ internal class SessionRuntime(
         scope: ExecutionScope,
         speaker: String,
         listener: String,
+        evaluateCondition: Boolean = false,
     ): ExecutionResult {
         val activeContext = if (sessionKey != null) {
             sessions.getOrPut(sessionKey) {
@@ -51,7 +52,7 @@ internal class SessionRuntime(
         val analysis = VyakaranamExecutionAdapter.analyzeForMemory(utterance)
         val effectiveScope = effectiveScope(scope)
         val memory = sessionKey?.let(::kriyaMemory) ?: KriyaMemory()
-        val turn = SutraExecutionPipeline.executeTurn(input, activeContext, effectiveScope, memory)
+        val turn = SutraExecutionPipeline.executeTurn(input, activeContext, effectiveScope, memory, evaluateCondition)
         val phala = turn.response.phala
 
         if (phala is Phala.Siddha && sessionKey != null) {

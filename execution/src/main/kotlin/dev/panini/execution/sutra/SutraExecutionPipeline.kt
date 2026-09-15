@@ -31,11 +31,12 @@ object SutraExecutionPipeline {
         conversation: SambhashanaContext,
         scope: ExecutionScope,
         memory: KriyaMemory = KriyaMemory(),
+        evaluateCondition: Boolean = false,
     ): Phala {
         initialize()
         return when (val binding = VyakaranamExecutionAdapter.bind(input, conversation, memory, scope.environment)) {
             is ExecutionBindingResult.Bound -> {
-                val phala = execute(binding.ukti, conversation, scope, memory)
+                val phala = execute(binding.ukti, conversation, scope, memory, evaluateCondition)
                     .prependTrace(binding.trace)
                 if (phala is Phala.Siddha) {
                     val metadata = buildMap {
@@ -65,6 +66,7 @@ object SutraExecutionPipeline {
         conversation: SambhashanaContext,
         scope: ExecutionScope,
         memory: KriyaMemory = KriyaMemory(),
+        evaluateCondition: Boolean = false,
     ): Phala {
         initialize()
         if (ukti.speaker != conversation.speaker || ukti.listener != conversation.listener) {
@@ -90,6 +92,7 @@ object SutraExecutionPipeline {
             ),
             scope,
             ProgramAvastha(environment(conversation, scope, memory)),
+            evaluateCondition,
         )
         val (result, program) = when (execution) {
             is ProgramGranthaExecution.Completed -> execution.result to execution.program
@@ -169,8 +172,9 @@ object SutraExecutionPipeline {
         conversation: SambhashanaContext,
         scope: ExecutionScope,
         memory: KriyaMemory = KriyaMemory(),
+        evaluateCondition: Boolean = false,
     ): SambhashanaTurn {
-        val response = SanskritPrativacanaRenderer.render(execute(input, conversation, scope, memory))
+        val response = SanskritPrativacanaRenderer.render(execute(input, conversation, scope, memory, evaluateCondition))
         val success = response.phala as? Phala.Siddha
             ?: return SambhashanaTurn(response, conversation)
         val nextTurn = conversation.turnNumber + 1

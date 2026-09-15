@@ -158,6 +158,8 @@ data class TingantaPada(
     val dhatu: DhatuPrakriti,
     val lakara: Lakara,
     val ting: TingPratyaya,
+    /** Explicit gaṇa-vikaraṇa when the upadeśa alone is lexically ambiguous. */
+    val vikarana: String? = null,
 ) : Pada
 
 data class AvyayaPada(
@@ -187,6 +189,14 @@ enum class AvyayaFunction {
 data class SamuccitaSubanta(
     override val sourceText: String,
     val members: List<SubantaPada>,
+) : Pada
+
+/** The inclusive सीमा licensed by an ablative source and segmented पर्यन्तम्. */
+data class ParyantaRangePada(
+    override val sourceText: String,
+    val lowerLimit: SankhyaPada,
+    val upperLimit: SankhyaPada,
+    val marker: SubantaPada,
 ) : Pada
 
 sealed interface Pratipadika : VyakaranamNode

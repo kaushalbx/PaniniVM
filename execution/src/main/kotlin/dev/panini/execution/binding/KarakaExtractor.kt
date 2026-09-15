@@ -14,6 +14,7 @@ import dev.panini.vyakaranam.ast.AryabhatiyaPada
 import dev.panini.vyakaranam.ast.BhutasamkhyaPada
 import dev.panini.vyakaranam.ast.KatapayadiPada
 import dev.panini.vyakaranam.ast.Pada
+import dev.panini.vyakaranam.ast.ParyantaRangePada
 import dev.panini.vyakaranam.ast.SamuccitaSubanta
 import dev.panini.vyakaranam.ast.SankhyaAbhyasaPada
 import dev.panini.vyakaranam.ast.SankhyaPada
@@ -135,6 +136,19 @@ internal object KarakaExtractor {
             if (pada in karakaReferenceResolution.consumedGenitives) return@forEachIndexed
             if (pada in karakaReferenceResolution.consumedQualifiers) return@forEachIndexed
             when (pada) {
+                is ParyantaRangePada -> {
+                    val minimum = NumeralPadaBinder.evaluateStems(pada.lowerLimit.stems).value
+                    val maximum = NumeralPadaBinder.evaluateStems(pada.upperLimit.stems).value
+                    addBinding(
+                        ExecutionExpression.sankhya(minimum, pada.lowerLimit.sourceText),
+                        setOf(Karaka.APADANA),
+                    )
+                    addBinding(
+                        ExecutionExpression.sankhya(maximum, pada.upperLimit.sourceText),
+                        setOf(Karaka.ADHIKARANA),
+                    )
+                    trace += "परि + अन्त + अम् licenses inclusive limits $minimum..$maximum."
+                }
                 is SubantaPada -> {
                     val rememberedParticipant = karakaReferenceResolution.expressions[pada]
                     if (rememberedParticipant != null) {

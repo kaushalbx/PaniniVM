@@ -75,6 +75,17 @@ class PaniniVM(
         return sessionRuntime.eval(utterance, sessionKey, scope, speaker, listener)
     }
 
+    /** Evaluates a grammatical, pure, truth-valued declarative proposition as a condition. */
+    internal fun evalCondition(
+        utterance: String,
+        sessionKey: String? = null,
+        scope: ExecutionScope = defaultScope,
+        speaker: String = "प्रयोक्ता",
+        listener: String = "यन्त्रम्",
+    ): ExecutionResult = sessionRuntime.eval(
+        utterance, sessionKey, scope, speaker, listener, evaluateCondition = true,
+    )
+
     fun resume(
         continuation: Any,
         sessionKey: String? = null,

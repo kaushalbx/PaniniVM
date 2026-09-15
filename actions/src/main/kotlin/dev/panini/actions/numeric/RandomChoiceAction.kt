@@ -14,7 +14,8 @@ object RandomChoiceAction : DhatuAction("क्रीडा", "यादृच�
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
         val activeRange = context.activeRange()
         val apadanaValues = context.bindings[Karaka.APADANA]?.let(context::resolveValues).orEmpty()
-        val minimum = apadanaValues.singleOrNull().asNumericValue() ?: activeRange?.minimum?.value
+        val explicitMinimum = apadanaValues.singleOrNull().asNumericValue()
+        val minimum = explicitMinimum ?: activeRange?.minimum?.value
         val maximum = context.numericBound(Karaka.ADHIKARANA) ?: activeRange?.maximum?.value
         if (minimum != null && maximum != null && (minimum > maximum || maximum - minimum > MAX_RANGE_SPAN)) {
             return ExecutionResult.Failure(
@@ -23,7 +24,9 @@ object RandomChoiceAction : DhatuAction("क्रीडा", "यादृच�
             )
         }
         val expression = context.bindings[Karaka.KARMAN] ?: context.bindings[Karaka.KARTR]
-        val excludedValues = (expression?.let(context::resolveValues).orEmpty() + apadanaValues)
+        val exclusions = expression?.let(context::resolveValues).orEmpty() +
+            if (explicitMinimum == null) apadanaValues else emptyList()
+        val excludedValues = exclusions
             .flatMap { value -> if (value is SanskritValue.Suchi) value.items else listOf(value) }
             .mapNotNull { (it as? SanskritValue.Sankhya)?.value }
             .toSet()

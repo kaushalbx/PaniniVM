@@ -1,6 +1,7 @@
 package dev.panini.execution
 
 import dev.panini.core.Linga
+import dev.panini.core.DhatuGana
 import dev.panini.core.SamasaType
 import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
@@ -27,6 +28,7 @@ import dev.panini.vyakaranam.ast.BhutasamkhyaPada
 import dev.panini.vyakaranam.ast.KatapayadiPada
 import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.vyakaranam.ast.Pada
+import dev.panini.vyakaranam.ast.ParyantaRangePada
 import dev.panini.vyakaranam.ast.Pratipadika
 import dev.panini.vyakaranam.ast.SamasaPratipadika
 import dev.panini.vyakaranam.ast.SamuccitaSubanta
@@ -225,6 +227,11 @@ class PvmUktiSadhaka(
     }
 
     fun sadhayaPada(pada: Pada, linga: Linga? = null): String = when (pada) {
+        is ParyantaRangePada -> listOf(
+            sadhayaSankhya(pada.lowerLimit),
+            sadhayaSankhya(pada.upperLimit),
+            sadhayaSubanta(pada.marker),
+        ).joinToString(" ")
         is SubantaPada -> sadhayaSubanta(pada, linga)
         is SamuccitaSubanta -> pada.members.joinToString(" ") { sadhayaSubanta(it) } + " च"
         is TingantaPada -> sadhayaTinganta(pada)
@@ -342,8 +349,18 @@ class PvmUktiSadhaka(
 
     fun sadhayaTinganta(tinganta: TingantaPada): String {
         val rawDhatu = tinganta.dhatu.mulaDhatu
+        val explicitGana = when (tinganta.vikarana) {
+            "शप्" -> DhatuGana.BHVADI
+            "श्यन्" -> DhatuGana.DIVADI
+            "श्नु" -> DhatuGana.SVADI
+            "श्नम्" -> DhatuGana.RUDHADI
+            "श्ना", "श्नाम्" -> DhatuGana.KRYADI
+            "उ" -> DhatuGana.TANADI
+            "श" -> DhatuGana.TUDADI
+            else -> null
+        }
         val derivationDhatu = DhatuPatha.all.firstOrNull { candidate ->
-            candidate.preferredForSourceDerivation &&
+            (explicitGana == null && candidate.preferredForSourceDerivation || candidate.gana == explicitGana) &&
                 (candidate.upadesha == rawDhatu || candidate.derivationalSurface == rawDhatu || candidate.sourceSurface == rawDhatu)
         }?.upadesha ?: rawDhatu
         val tingAffix = TingAffix.fromUpadesha(tinganta.ting.text) ?: return rawDhatu

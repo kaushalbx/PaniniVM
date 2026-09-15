@@ -5,6 +5,8 @@ import dev.panini.vyakaranam.ast.AkhyataVakya
 import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.NamaVakya
 import dev.panini.vyakaranam.ast.Pipeline
+import dev.panini.vyakaranam.ast.ParyantaRangePada
+import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.vyakaranam.ast.Quotation
 import dev.panini.vyakaranam.ast.WhileLoop
 import dev.panini.vyakaranam.ast.Sequence
@@ -16,6 +18,23 @@ import kotlin.test.assertNull
 
 class ProgramAstTest {
     private val parser = PaniniParser()
+
+    @Test
+    fun `segmented paryanta construction becomes a typed inclusive range`() {
+        val invocation = assertIs<Invocation>(
+            parser.parse(
+                "एक + ङसिँ दशन् + शस् परि + अन्त + अम् सङ्ख्या + अम् चिञ् + श्नु + लोट् + सिप् ।",
+            ).body,
+        )
+
+        val range = assertIs<ParyantaRangePada>(invocation.vakya.padas.first())
+        assertEquals(listOf("एक"), range.lowerLimit.stems)
+        assertEquals("ङसिँ", range.lowerLimit.sup.text)
+        assertEquals(listOf("दशन्"), range.upperLimit.stems)
+        assertEquals("शस्", range.upperLimit.sup.text)
+        assertEquals("पर्यन्त", assertIs<MulaPratipadika>(range.marker.pratipadika).text)
+        assertEquals("श्नु", assertIs<AkhyataVakya>(invocation.vakya).tinganta.vikarana)
+    }
 
     @Test
     fun `sequence owns its statements and connectors`() {

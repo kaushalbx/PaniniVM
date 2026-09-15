@@ -213,6 +213,9 @@ class VyakaranamAstBuilder {
         context: PaniniyaVyakaranamParser.VakyaPadaContext,
     ): Pada =
         when {
+            context.paryantaRange() != null ->
+                buildParyantaRange(context.paryantaRange()!!)
+
             context.subantaVakyaPada() != null ->
                 buildSubantaVakyaPada(context.subantaVakyaPada()!!).single()
 
@@ -221,6 +224,31 @@ class VyakaranamAstBuilder {
 
             else -> error("अज्ञातं वाक्यपदम्: ${context.text}")
         }
+
+    private fun buildParyantaRange(
+        context: PaniniyaVyakaranamParser.ParyantaRangeContext,
+    ): ParyantaRangePada {
+        require(context.limitBase!!.text == "अन्त") {
+            "पर्यन्त-range marker requires परि + अन्त + अम्."
+        }
+        fun numeral(stems: List<String>, sup: String, source: String) = SankhyaPada(
+            sourceText = source,
+            stems = stems,
+            sup = SupPratyaya(sourceText = sup, text = sup),
+        )
+        val lower = context.lower!!
+        val upper = context.upper!!
+        return ParyantaRangePada(
+            sourceText = context.text,
+            lowerLimit = numeral(lower.sankhyaStem().map { it.text }, lower.ablativeSup().text, lower.text),
+            upperLimit = numeral(upper.sankhyaStem().map { it.text }, upper.accusativeSup().text, upper.text),
+            marker = SubantaPada(
+                sourceText = "परि+अन्त+अम्",
+                pratipadika = MulaPratipadika(sourceText = "परि+अन्त", text = "पर्यन्त"),
+                sup = SupPratyaya(sourceText = "अम्", text = "अम्"),
+            ),
+        )
+    }
 
     private fun buildSankhyaPada(
         context: PaniniyaVyakaranamParser.SankhyaPadaContext,
@@ -519,6 +547,7 @@ class VyakaranamAstBuilder {
                 sourceText = context.tingPratyaya()!!.text,
                 text = context.tingPratyaya()!!.text,
             ),
+            vikarana = context.vikarana()?.text,
         )
 
     private fun buildDhatu(

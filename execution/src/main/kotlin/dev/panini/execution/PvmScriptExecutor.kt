@@ -188,7 +188,12 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 callerSourceFile = context.sourceFile,
             ) != null
         }
-        if (node.statements.size < 2 || node.connectors.any { it != "ततः" } || !hasNamedStage) {
+        val startsWithImplicitValue = (node.statements.firstOrNull() as? Invocation)?.implicitValue != null
+        if (
+            node.statements.size < 2 ||
+            node.connectors.any { it != "ततः" } ||
+            (!hasNamedStage && !startsWithImplicitValue)
+        ) {
             return executeEvaluatorNode(node, context)
         }
         val results = mutableListOf<ExecutionResult>()
@@ -241,10 +246,14 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             )
         } else {
             listOf(
-                vm.eval(
-                    text, context.sessionKey, context.scope, context.speaker, context.listener,
-                    isExecutingScript = true,
-                ),
+                if (context.conditionEvaluation) {
+                    vm.evalCondition(text, context.sessionKey, context.scope, context.speaker, context.listener)
+                } else {
+                    vm.eval(
+                        text, context.sessionKey, context.scope, context.speaker, context.listener,
+                        isExecutingScript = true,
+                    )
+                },
             ).also { produced -> produced.forEach { context.onResult?.invoke(it) } }
         }
     }
@@ -263,7 +272,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         }
         val conditionResults = executeProgramNode(
             node.condition,
-            context.copy(onResult = null, sourceTextOverride = null),
+            context.copy(onResult = null, sourceTextOverride = null, conditionEvaluation = true),
         )
         val success = conditionResults.filterIsInstance<ExecutionResult.Success>().lastOrNull()
         val condition = success?.conditionValue ?: (success?.typedValue as? SanskritValue.Satya)?.boolean
@@ -274,9 +283,12 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             )
         }
         val branch = if (condition) node.consequent else node.alternate
-        return branch?.let {
+        val branchResults = branch?.let {
             executeProgramNode(it, context.copy(sourceTextOverride = null))
         }.orEmpty()
+        // Preserve the grammatical condition's satya-phala for an enclosing
+        // फल-controlled loop even when the selected branch prints feedback.
+        return conditionResults + branchResults
     }
 
     private fun List<ExecutionResult>.hasBreakSignal(): Boolean = any {
@@ -294,6 +306,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         val structSchemas: Map<String, TaddhitaStructSchema>,
         val onResult: ((ExecutionResult) -> Unit)?,
         val sourceTextOverride: String? = null,
+        val conditionEvaluation: Boolean = false,
     )
 
     private fun containsAttributeCondition(
@@ -534,13 +547,12 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                         ExecutionError.INVALID_VALUE,
                         "A structured attribute used by the loop condition could not be resolved.",
                     )
-                val conditionResult = vm.eval(
+                val conditionResult = vm.evalCondition(
                     renderInvocation(resolvedCondition),
                     sessionKey,
                     scope.copy(environment = scope.environment.mergedWith(ValueEnvironment(operandValues))),
                     speaker,
                     listener,
-                    isExecutingScript = true,
                 )
                 val success = conditionResult as? ExecutionResult.Success
                 (success?.conditionValue ?: (success?.typedValue as? SanskritValue.Satya)?.boolean) == true
@@ -552,6 +564,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 ProgramExecutionContext(
                     sessionKey, scope, speaker, listener, registry, sourceFile,
                     structStore, structSchemas, onResult,
+                    conditionEvaluation = usesLatestResult,
                 ),
             )
             results += iterationResults
