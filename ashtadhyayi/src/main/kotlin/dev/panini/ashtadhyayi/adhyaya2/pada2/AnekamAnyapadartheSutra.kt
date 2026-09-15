@@ -32,7 +32,9 @@ object AnekamAnyapadartheSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     isGeneralFallback = true,
 ), SamasaSutra {
     override fun matches(context: SamasaRuleContext): Boolean =
-        context.padas.size >= 2 && context.purvaPadaVibhakti == Vibhakti.PRATHAMA
+        context.samasaType == SamasaType.BAHUVRIHI &&
+            context.padas.size >= 2 &&
+            context.purvaPadaVibhakti == Vibhakti.PRATHAMA
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
         val stem = context.padas.joinToString("") { it.upadesha }

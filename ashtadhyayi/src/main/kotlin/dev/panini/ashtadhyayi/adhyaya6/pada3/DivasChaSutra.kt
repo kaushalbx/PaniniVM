@@ -2,6 +2,7 @@ package dev.panini.ashtadhyayi.adhyaya6.pada3
 
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
+import dev.panini.analysis.SamasaSemanticRelation
 import dev.panini.core.SamasaType
 import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
@@ -11,12 +12,12 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 /**
- * Sūtra 6.3.30: दिवश्च.
+ * Sūtra 6.3.30: दिवसश्च पृथिव्याम्.
  * Aluk for div before pṛthivī (divāpṛthivyau).
  */
 object DivasChaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "6.3.30",
-    text = "दिवश्च",
+    text = "दिवसश्च पृथिव्याम्",
     hindiExplanation = "पृथ्वी उत्तरपद परे होने पर दिव् शब्द का 'दिवा' रूप सिद्ध (अलुक्/दीर्घ) होता है (उदा. दिवापृथिव्यौ)।",
     type = SutraType.NITYA,
     chapter = 6,
@@ -33,7 +34,9 @@ object DivasChaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         if (context.padas.size < 2) return false
         val first = context.padas.first().upadesha
         val last = context.padas.last().upadesha
-        return (first == "दिव्" || first == "दिवा") && (last == "पृथ्वी" || last == "पृथिवी")
+        return context.samasaType == SamasaType.DVANDVA &&
+            SamasaSemanticRelation.DEVATA_COORDINATION in context.semanticRelations &&
+            (first == "दिव्" || first == "दिवा") && (last == "पृथ्वी" || last == "पृथिवी")
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
@@ -42,6 +45,7 @@ object DivasChaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "6.3.30 preserves divā before $last in '$compoundStem'.",
+            memberEdits = mapOf(0 to "दिवा"),
         )
     }
 }

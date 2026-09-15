@@ -48,6 +48,7 @@ class NanTatpurusaSamasaTest {
                 SamasaPada("ज्ञान", Vibhakti.PRATHAMA),
             ),
             SamasaType.NAN_TATPURUSA,
+            outputLinga = dev.panini.core.Linga.NAPUMSAKA,
         )
         assertEquals("अज्ञानम्", result.final.surface)
         assertTrue(result.applications.any { it.sutra == "2.2.6" })

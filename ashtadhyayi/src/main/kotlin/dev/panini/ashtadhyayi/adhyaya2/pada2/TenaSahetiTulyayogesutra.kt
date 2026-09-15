@@ -23,9 +23,10 @@ object TenaSahetiTulyayogesutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     optional = false,
     kramaValue = 220028,
     role = SutraRole.Vidhi,
-    action = SutraAction.SAMJNA,
+    action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
     samasaType = SamasaType.BAHUVRIHI,
+    samasaPriority = 10,
 ), SamasaSutra {
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false

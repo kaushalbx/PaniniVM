@@ -15,6 +15,33 @@ class ConsonantStemSamasaTest {
     private val engine = SamasaEngine()
 
     @Test
+    fun `subanta engine handles masculine halant stems generically`() {
+        val subanta = SubantaEngine()
+        assertEquals(
+            "त्रिककुत्",
+            subanta.derive(
+                SubantaDerivationRequest(
+                    "त्रिककुद्",
+                    Vibhakti.PRATHAMA,
+                    dev.panini.core.Vacana.EKAVACANA,
+                    dev.panini.core.Linga.PUMS,
+                ),
+            ).final.surface,
+        )
+        assertEquals(
+            "सुहृत्",
+            subanta.derive(
+                SubantaDerivationRequest(
+                    "सुहृद्",
+                    Vibhakti.PRATHAMA,
+                    dev.panini.core.Vacana.EKAVACANA,
+                    dev.panini.core.Linga.PUMS,
+                ),
+            ).final.surface,
+        )
+    }
+
+    @Test
     fun `test rajan stem drops final n in Shashthi Tatpurusa`() {
         val result = engine.derive(
             listOf(
@@ -35,6 +62,7 @@ class ConsonantStemSamasaTest {
                 SamasaPada("ज्ञान", Vibhakti.PRATHAMA),
             ),
             SamasaType.TATPURUSA,
+            outputLinga = dev.panini.core.Linga.NAPUMSAKA,
         )
         assertEquals("आत्मज्ञानम्", result.final.surface)
         assertTrue(result.applications.any { it.sutra == "8.2.7" })
@@ -48,6 +76,7 @@ class ConsonantStemSamasaTest {
                 SamasaPada("फल", Vibhakti.PRATHAMA),
             ),
             SamasaType.TATPURUSA,
+            outputLinga = dev.panini.core.Linga.NAPUMSAKA,
         )
         assertEquals("कर्मफलम्", result.final.surface)
         assertTrue(result.applications.any { it.sutra == "8.2.7" })

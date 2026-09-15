@@ -11,6 +11,7 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.ganapatha.SarvadiGana
 
 /**
  * 7.2.102: tyadādīnām aḥ.
@@ -31,15 +32,15 @@ object TyadadinamAhSutra : Sutra<DerivationState, DerivationChange>(
     nimittaScope = NimittaScope.BOTH,
     dependencies = setOf("6.4.1"),
 ), DerivationSutra {
-    private val TYADADI_STEMS = setOf("त्यद्", "तद्", "यद्", "एतद्", "किम्", "इदम्", "अदस्", "द्वि")
-
     override fun matches(context: DerivationState): Boolean {
         if (context.terms.size < 2) return false
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
         if (stem.surface == "अयम्") return false
-        val isTyadadi = stem.upadesha in TYADADI_STEMS || stem.surface in TYADADI_STEMS
-        val hasConsonantEnding = stem.surface.endsWith("्") || stem.surface in setOf("किम्", "इदम्", "द्वि")
+        val isTyadadi = listOf(stem.upadesha, stem.surface).any { text ->
+            SarvadiGana.antarGanasContaining(text).any { it.name == "त्यदादिः" }
+        }
+        val hasConsonantEnding = stem.surface.endsWith("्") || stem.surface in setOf("इदम्", "द्वि")
         return isTyadadi && hasConsonantEnding &&
             (affix.id.startsWith("sup-") || context.droppedTerms.any { it.id.startsWith("sup-") })
     }
@@ -48,7 +49,6 @@ object TyadadinamAhSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val surface = stem.surface
         val newSurface = when (surface) {
-            "किम्" -> "क"
             "इदम्" -> "इम"
             // In the feminine derivation, 4.1.4 supplies टाप् after this
             // substitution; retain its आ so 7.1.18 can operate on द्वा + औ.

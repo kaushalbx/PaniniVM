@@ -11,6 +11,7 @@ data class PratipadikaEntry(
     val linga: Set<Linga>,
     val stemClass: String? = null,
     val ganaNames: Set<String> = emptySet(),
+    val lingaRuleIds: Set<String> = emptySet(),
     val categories: Set<NominalCategory> = emptySet(),
     val semanticRelations: Set<SemanticRelation> = emptySet(),
 )
@@ -22,9 +23,6 @@ interface PratipadikaLexicon {
 /** Shared lexical metadata for established pratipadikas used across runtimes. */
 object StandardPratipadikaLexicon : PratipadikaLexicon {
     private val entries = buildMap {
-        listOf("हविस्", "मनस्", "पयस्", "उरस्", "चक्षुस्").forEach { text ->
-            put(text, PratipadikaEntry(text, setOf(Linga.NAPUMSAKA)))
-        }
         listOf("सङ्ख्या", "गुण", "वृद्धि", "लोप", "साधकतमम्", "कर्म", "करणम्").forEach { text ->
             put(
                 text,

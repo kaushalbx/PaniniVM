@@ -18,7 +18,7 @@ import dev.panini.sutra.SutraType
  */
 object StokantikadharthaniPancamyaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "2.1.39",
-    text = "स्तोकन्तिकदूरार्थकृच्छ्राणि कृच्छ्रेण",
+    text = "स्तोकान्तिकदूरार्थकृच्छ्राणि क्तेन",
     hindiExplanation = "स्तोक, अन्तिक, दूर तथा कृच्छ्र अर्थ वाले सुबन्ताः पञ्चम्यन्ताः कृतान्तेन सह समस्यन्ते, सोऽपि तत्पुरुषः।",
     type = SutraType.NITYA,
     chapter = 2,

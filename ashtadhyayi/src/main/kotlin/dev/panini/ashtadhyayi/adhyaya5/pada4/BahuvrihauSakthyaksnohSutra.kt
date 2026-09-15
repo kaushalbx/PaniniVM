@@ -41,6 +41,7 @@ object BahuvrihauSakthyaksnohSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "5.4.113 adds Samāsānta ṣac ('a') for sakthi/akṣi in '$compoundStem'.",
+            samasantaSuffix = "अ",
         )
     }
 }

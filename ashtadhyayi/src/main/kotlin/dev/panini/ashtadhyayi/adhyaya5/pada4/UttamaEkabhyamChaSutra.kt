@@ -41,6 +41,7 @@ object UttamaEkabhyamChaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "5.4.90 applies ahna replacement after uttama/eka in '$compoundStem'.",
+            memberEdits = mapOf(context.padas.lastIndex to "अह्न"),
         )
     }
 }

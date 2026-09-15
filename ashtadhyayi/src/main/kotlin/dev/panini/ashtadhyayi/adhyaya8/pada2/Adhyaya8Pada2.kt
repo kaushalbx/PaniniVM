@@ -15,5 +15,6 @@ object Adhyaya8Pada2 {
         SamyogantasyaLopaSutra,
         HaliCaSutra,
         AdoAserAsiDoMahSutra,
+        VasransudhvasvanaduhamDahSutra,
     )
 }

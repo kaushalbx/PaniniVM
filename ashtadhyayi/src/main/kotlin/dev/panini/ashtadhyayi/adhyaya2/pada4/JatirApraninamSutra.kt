@@ -29,12 +29,12 @@ object JatirApraninamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     samasaType = SamasaType.DVANDVA,
     samasaPriority = 10,
 ), SamasaSutra {
-    private val apraniJatiWords = setOf("धाना", "शष्कुलि", "बदर", "ामलक")
+    private val apraniJatiWords = setOf("धाना", "शष्कुलि", "बदर", "आमलक")
 
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val padas = context.padas.map { it.upadesha }
-        return context.samasaType == SamasaType.DVANDVA && padas.any { it in apraniJatiWords }
+        return context.samasaType == SamasaType.DVANDVA && padas.all { it in apraniJatiWords }
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {

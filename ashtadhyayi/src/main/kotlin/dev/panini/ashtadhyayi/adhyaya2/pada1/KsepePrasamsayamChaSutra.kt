@@ -11,13 +11,13 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 /**
- * Sūtra 2.1.47: क्षेपे प्रशंसायां च.
+ * Sūtra 2.1.47: क्षेपे.
  * Prescribes Saptamī Tatpuruṣa compound in deprecation or laudatory context.
  * Example: पात्रे सम्मिताः = पात्रेसम्सम्मिताः / पात्रसम्मिताः (pātrasammitāḥ - fit only to eat).
  */
 object KsepePrasamsayamChaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "2.1.47",
-    text = "क्षेपे प्रशंसायां च",
+    text = "क्षेपे",
     hindiExplanation = "क्षेप (निन्दा) अथवा प्रशंसा अर्थ में सप्तम्यन्त समर्थ सुबन्त का समास होता है (उदा. पात्रसम्मिताः)।",
     type = SutraType.NITYA,
     chapter = 2,

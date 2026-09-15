@@ -1,6 +1,7 @@
 package dev.panini.derivation
 
 import dev.panini.analysis.SamasaPada
+import dev.panini.analysis.SamasaSemanticRelation
 import dev.panini.core.SamasaType
 import dev.panini.core.Vibhakti
 import org.junit.jupiter.api.DynamicTest
@@ -14,7 +15,16 @@ class SamasaBenchmarkTest {
     @TestFactory
     fun `canonical samasa benchmark`(): List<DynamicTest> = loadCases().map { case ->
         DynamicTest.dynamicTest("${case.id}: ${case.name}") {
-            val result = samasaEngine.derive(case.padas, case.samasaType)
+            val result = samasaEngine.derive(
+                SamasaDerivationRequest(
+                    padas = case.padas,
+                    type = case.samasaType,
+                    outputLinga = case.outputLinga,
+                    outputVacana = case.outputVacana,
+                    semanticRelations = case.semanticRelations,
+                    strictSemantics = case.strictSemantics,
+                )
+            )
             val resolution = requireNotNull(result.samasaResolution)
 
             assertEquals(case.expectedStem, resolution.compoundStem, "compound stem")
@@ -27,6 +37,12 @@ class SamasaBenchmarkTest {
             assertTrue(result.final.stage == DerivationStage.FINAL, "samasa derivation must be terminal")
             assertTrue(result.final.terms.size == 1, "completed samasa must contain one final term")
             assertTrue(result.final.surface.none { it == '\u0000' }, "surface must not contain sentinel material")
+            resolution.operations.forEach { operation ->
+                assertTrue(
+                    operation.memberEdits.keys.all { it in case.padas.indices },
+                    "${operation.sutra} edited a member outside the compound boundary",
+                )
+            }
         }
     }
 
@@ -34,22 +50,22 @@ class SamasaBenchmarkTest {
         val json = requireNotNull(javaClass.getResource("/samasa_benchmark.json")) {
             "Missing samasa_benchmark.json test resource"
         }.readText()
-        return json.trim().removePrefix("[").removeSuffix("]")
-            .split(Regex("\\n\\s*},\\s*\\n\\s*\\{"))
-            .map { raw -> parseCase(raw.trim().removePrefix("{").removeSuffix("}")) }
+        val records = TestJsonParser.parse(json) as? List<*> ?: error("Benchmark root must be a JSON array")
+        return records.map { parseCase(it as? Map<*, *> ?: error("Benchmark entry must be an object")) }
     }
 
-    private fun parseCase(raw: String): BenchmarkCase {
-        fun field(name: String): String = Regex("\\\"$name\\\"\\s*:\\s*\\\"([^\\\"]*)\\\"")
-            .find(raw)?.groupValues?.get(1) ?: error("Missing '$name' in benchmark case: $raw")
-        val padasBlock = Regex("\\\"padas\\\"\\s*:\\s*\\[(.*?)]", RegexOption.DOT_MATCHES_ALL)
-            .find(raw)?.groupValues?.get(1) ?: error("Missing padas in benchmark case: $raw")
-        val padas = Regex("\\{\\s*\\\"upadesha\\\"\\s*:\\s*\\\"([^\\\"]+)\\\"\\s*,\\s*\\\"vibhakti\\\"\\s*:\\s*\\\"([^\\\"]+)\\\"\\s*}")
-            .findAll(padasBlock)
-            .map { match -> SamasaPada(match.groupValues[1], Vibhakti.valueOf(match.groupValues[2])) }
-            .toList()
+    private fun parseCase(raw: Map<*, *>): BenchmarkCase {
+        fun field(name: String): String = raw[name] as? String ?: error("Missing '$name' in benchmark case: $raw")
+        fun optionalField(name: String): String? = raw[name] as? String
+        val padas = (raw["padas"] as? List<*>)?.map { item ->
+            val pada = item as? Map<*, *> ?: error("Pada must be an object: $item")
+            SamasaPada(pada["upadesha"] as String, Vibhakti.valueOf(pada["vibhakti"] as String))
+        } ?: error("Missing padas in benchmark case: $raw")
         val transformations = field("transformationSutras").split(',').filter { it.isNotBlank() }
         val forbidden = field("forbiddenSutras").split(',').filter { it.isNotBlank() }
+        val semanticRelations = (raw["semanticRelations"] as? List<*>)
+            ?.mapTo(mutableSetOf()) { SamasaSemanticRelation.valueOf(it as String) }
+            ?: emptySet()
 
         return BenchmarkCase(
             id = field("id"),
@@ -61,6 +77,10 @@ class SamasaBenchmarkTest {
             classificationSutra = field("classificationSutra"),
             transformationSutras = transformations,
             forbiddenSutras = forbidden,
+            outputLinga = optionalField("outputLinga")?.let(dev.panini.core.Linga::valueOf),
+            outputVacana = optionalField("outputVacana")?.let(dev.panini.core.Vacana::valueOf),
+            semanticRelations = semanticRelations,
+            strictSemantics = raw["strictSemantics"] as? Boolean ?: false,
         )
     }
 
@@ -74,5 +94,9 @@ class SamasaBenchmarkTest {
         val classificationSutra: String,
         val transformationSutras: List<String>,
         val forbiddenSutras: List<String>,
+        val outputLinga: dev.panini.core.Linga?,
+        val outputVacana: dev.panini.core.Vacana?,
+        val semanticRelations: Set<SamasaSemanticRelation>,
+        val strictSemantics: Boolean,
     )
 }

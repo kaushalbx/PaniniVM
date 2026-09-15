@@ -42,6 +42,7 @@ object DvitribhyamAnjalehSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "5.4.102 adds Samāsānta 'a' after dvi/tri + añjali in '$compoundStem'.",
+            samasantaSuffix = "अ",
         )
     }
 }

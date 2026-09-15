@@ -22,6 +22,7 @@ class MayuravyamsakadiSamasaTest {
                 SamasaPada("व्यंसक", Vibhakti.PRATHAMA),
             ),
             SamasaType.MAYURAVYAMSAKADI,
+            outputLinga = dev.panini.core.Linga.PUMS,
         )
         assertEquals("मयूरव्यंसकः", result.final.surface)
         assertTrue(result.applications.any { it.sutra == "2.1.72" || it.sutra == "2.1.106" })
@@ -35,6 +36,7 @@ class MayuravyamsakadiSamasaTest {
                 SamasaPada("अवच", Vibhakti.PRATHAMA),
             ),
             SamasaType.MAYURAVYAMSAKADI,
+            outputLinga = dev.panini.core.Linga.NAPUMSAKA,
         )
         assertEquals("उच्चावचम्", result.final.surface)
         assertTrue(result.applications.any { it.sutra == "2.1.72" || it.sutra == "2.1.106" })
@@ -48,6 +50,7 @@ class MayuravyamsakadiSamasaTest {
                 SamasaPada("राजन्", Vibhakti.PRATHAMA),
             ),
             SamasaType.MAYURAVYAMSAKADI,
+            outputLinga = dev.panini.core.Linga.NAPUMSAKA,
         )
         assertEquals("राजान्तरम्", resRaja.final.surface)
 
@@ -57,6 +60,7 @@ class MayuravyamsakadiSamasaTest {
                 SamasaPada("ग्राम", Vibhakti.PRATHAMA),
             ),
             SamasaType.MAYURAVYAMSAKADI,
+            outputLinga = dev.panini.core.Linga.NAPUMSAKA,
         )
         assertEquals("ग्रामान्तरम्", resGrama.final.surface)
     }

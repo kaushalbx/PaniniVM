@@ -40,6 +40,7 @@ abstract class Sutra<C, R>(
     val isNitya: Boolean = true,
     val isGeneralFallback: Boolean = false,
     val samasaPriority: Int = 0,
+    val samasaPhase: SamasaRulePhase = inferSamasaRulePhase(chapter, pada, kramaValue),
 ) : ScopedSutra, GovernedSutra, TraceableSutra {
 
     /** Every loaded sūtra must state its own eligibility and grammatical change. */
@@ -60,4 +61,13 @@ abstract class Sutra<C, R>(
 
     override val examples: List<SutraExample>
         get() = examplesValue
+}
+
+private fun inferSamasaRulePhase(chapter: Int, pada: Int, krama: Int): SamasaRulePhase = when {
+    chapter == 2 && pada == 1 -> SamasaRulePhase.CLASSIFICATION
+    chapter == 2 && pada == 2 && krama <= 220029 -> SamasaRulePhase.CLASSIFICATION
+    chapter == 2 && pada == 2 -> SamasaRulePhase.MEMBER_ORDERING
+    chapter == 2 && pada == 4 -> SamasaRulePhase.NUMBER_GENDER
+    chapter == 5 && pada == 4 -> SamasaRulePhase.SAMASANTA
+    else -> SamasaRulePhase.STEM_TRANSFORMATION
 }

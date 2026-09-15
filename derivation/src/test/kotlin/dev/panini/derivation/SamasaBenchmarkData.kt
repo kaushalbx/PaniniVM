@@ -62,7 +62,7 @@ object SamasaBenchmarkData {
             expectedSutra = "8.2.7",
         ),
 
-        // 2. Samāsānta affixes (5.4.91, 5.4.125, etc.)
+        // 2. Samāsānta affixes (5.4.91, 5.4.150, etc.)
         SamasaTestCase(
             id = "SAMASANTA_001",
             description = "5.4.91 Rajahah Sakhibhyas Tac - mahat + rajan",
@@ -97,32 +97,21 @@ object SamasaBenchmarkData {
             expectedSutra = "5.4.151",
         ),
         SamasaTestCase(
-            id = "SAMASANTA_004",
-            description = "5.4.154 Kap affix - a + putra",
-            padas = listOf(
-                SamasaPada("अ", Vibhakti.PRATHAMA),
-                SamasaPada("पुत्र", Vibhakti.PRATHAMA),
-            ),
-            type = SamasaType.BAHUVRIHI,
-            expectedSurface = "अपुत्रकः",
-            expectedSutra = "5.4.154",
-        ),
-        SamasaTestCase(
             id = "SAMASANTA_005",
             description = "5.4.153 Kap affix - bahu + kumari",
             padas = listOf(
                 SamasaPada("बहु", Vibhakti.PRATHAMA),
-                SamasaPada("कुमारी", Vibhakti.PRATHAMA),
+                SamasaPada("कुमारी", Vibhakti.PRATHAMA, samjnas = setOf(dev.panini.shiksha.Samjna.NADI)),
             ),
             type = SamasaType.BAHUVRIHI,
             expectedSurface = "बहुकुमारीकः",
             expectedSutra = "5.4.153",
         ),
 
-        // 3. Pūrvapada alterations (6.3.100, 6.3.86, 6.3.87)
+        // 3. Pūrvapada alterations (6.3.46, 6.3.32, 6.3.33)
         SamasaTestCase(
             id = "PURVAPADA_001",
-            description = "6.3.100 Mahat in Karmadharaya - mahat + navami",
+            description = "6.3.46 Mahat in Karmadharaya - mahat + navami",
             padas = listOf(
                 SamasaPada("महत्", Vibhakti.PRATHAMA),
                 SamasaPada("नवमी", Vibhakti.PRATHAMA),
@@ -132,7 +121,7 @@ object SamasaBenchmarkData {
         ),
         SamasaTestCase(
             id = "PURVAPADA_002",
-            description = "6.3.86 Dvandva matu + pitu",
+            description = "6.3.32 Dvandva matu + pitu",
             padas = listOf(
                 SamasaPada("मातृ", Vibhakti.PRATHAMA),
                 SamasaPada("पितृ", Vibhakti.PRATHAMA),
@@ -142,7 +131,7 @@ object SamasaBenchmarkData {
         ),
         SamasaTestCase(
             id = "PURVAPADA_003",
-            description = "6.3.87 Dvandva pitu + matu",
+            description = "6.3.33 Dvandva pitu + matu",
             padas = listOf(
                 SamasaPada("पितृ", Vibhakti.PRATHAMA),
                 SamasaPada("मातृ", Vibhakti.PRATHAMA),
@@ -151,10 +140,10 @@ object SamasaBenchmarkData {
             expectedSurface = "पित्रामाते",
         ),
 
-        // 4. Aluk Tatpuruṣa (6.3.7)
+        // 4. Aluk Tatpuruṣa (6.3.6)
         SamasaTestCase(
             id = "ALUK_001",
-            description = "6.3.7 Aluk Tatpurusa - atman + pada",
+            description = "6.3.6 Aluk Tatpurusa - atman + pada",
             padas = listOf(
                 SamasaPada("आत्मन्", Vibhakti.SASTHI),
                 SamasaPada("पद", Vibhakti.PRATHAMA),

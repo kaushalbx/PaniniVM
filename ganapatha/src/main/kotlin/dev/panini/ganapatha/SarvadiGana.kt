@@ -21,6 +21,11 @@ object SarvadiGana : Gana(
             members = listOf("डतर", "डतम", "अन्य", "अन्यतर", "इतर"),
             derivedForms = setOf("कतर", "कतम", "यतर", "यतम", "ततर", "ततम", "एकतर", "एकतम"),
         ),
+        AntarGana(
+            name = "त्यदादिः",
+            members = listOf("त्यद्", "तद्", "यद्", "एतद्", "इदम्", "अदस्", "एक", "द्वि"),
+            condition = "7.2.102 त्यदादीनामः",
+        ),
     ),
     sanskritMeaning = "सर्वादिगणे विद्यमानानाम् शब्दानाम् 'सर्वनाम' इति संज्ञा भवति ।",
     englishMeaning = "The words belonging to the सर्वादिगण are called सर्वनाम.",

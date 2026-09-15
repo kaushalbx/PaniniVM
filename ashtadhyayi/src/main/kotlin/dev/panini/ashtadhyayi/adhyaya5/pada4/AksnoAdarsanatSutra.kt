@@ -2,6 +2,7 @@ package dev.panini.ashtadhyayi.adhyaya5.pada4
 
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
+import dev.panini.analysis.SamasaSemanticRelation
 import dev.panini.core.SamasaType
 import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
@@ -11,19 +12,19 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 /**
- * Sūtra 5.4.69: अक्ष्णोऽदर्शनात्.
+ * Sūtra 5.4.76: अक्ष्णोऽदर्शनात्.
  * Prescribes Samāsānta a-pratyaya after akṣi when it denotes invisible / non-eye.
  * Example: परोक्षम् (parokṣam).
  */
 object AksnoAdarsanatSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
-    number = "5.4.69",
+    number = "5.4.76",
     text = "अक्ष्णोऽदर्शनात्",
     hindiExplanation = "अदर्शन अर्थ में अक्षि शब्द उत्तरपद वाले समास से समासान्त 'अ' (टच्) प्रत्यय होता है (उदा. परोक्षम्, प्रत्यक्षम्)।",
     type = SutraType.NITYA,
     chapter = 5,
     pada = 4,
     optional = false,
-    kramaValue = 540069,
+    kramaValue = 540076,
     role = SutraRole.Niyama,
     action = SutraAction.PRATYAYA_SELECTION,
     scope = SutraScope.DERIVATION,
@@ -33,14 +34,15 @@ object AksnoAdarsanatSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val last = context.padas.last().upadesha
-        return last == "अक्षि"
+        return last == "अक्षि" && SamasaSemanticRelation.NOT_LITERAL_EYE in context.semanticRelations
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
         val compoundStem = context.padas.joinToString("") { it.upadesha } + "अ"
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
-            explanation = "5.4.69 adds Samāsānta 'a' suffix after akṣi in '$compoundStem'.",
+            explanation = "5.4.76 adds Samāsānta 'a' suffix after akṣi in '$compoundStem'.",
+            samasantaSuffix = "अ",
         )
     }
 }

@@ -1,0 +1,80 @@
+[
+  {
+    "id": "REJECT_001",
+    "name": "Bahuvrihi without samarthya",
+    "padas": [{"upadesha": "पीत", "vibhakti": "PRATHAMA"}, {"upadesha": "अम्बर", "vibhakti": "PRATHAMA"}],
+    "samasaType": "BAHUVRIHI",
+    "outputLinga": "PUMS",
+    "semanticRelations": ["EXTERNAL_REFERENT"],
+    "expectedMissing": "SAMARTHYA"
+  },
+  {
+    "id": "REJECT_002",
+    "name": "Bahuvrihi without external referent",
+    "padas": [{"upadesha": "पीत", "vibhakti": "PRATHAMA"}, {"upadesha": "अम्बर", "vibhakti": "PRATHAMA"}],
+    "samasaType": "BAHUVRIHI",
+    "outputLinga": "PUMS",
+    "semanticRelations": ["SAMARTHYA"],
+    "expectedMissing": "EXTERNAL_REFERENT"
+  },
+  {
+    "id": "REJECT_003",
+    "name": "Karmadharaya without qualifier relation",
+    "padas": [{"upadesha": "नील", "vibhakti": "PRATHAMA"}, {"upadesha": "उत्पल", "vibhakti": "PRATHAMA"}],
+    "samasaType": "KARMADHARAYA",
+    "outputLinga": "NAPUMSAKA",
+    "semanticRelations": ["SAMARTHYA"],
+    "expectedMissing": "QUALIFIER_QUALIFIED"
+  },
+  {
+    "id": "REJECT_004",
+    "name": "Dvandva without coordination",
+    "padas": [{"upadesha": "राम", "vibhakti": "PRATHAMA"}, {"upadesha": "लक्ष्मण", "vibhakti": "PRATHAMA"}],
+    "samasaType": "DVANDVA",
+    "outputLinga": "PUMS",
+    "semanticRelations": ["SAMARTHYA"],
+    "expectedMissing": "COORDINATION"
+  },
+  {
+    "id": "REJECT_005",
+    "name": "Tatpurusa without declared output gender",
+    "padas": [{"upadesha": "राजन्", "vibhakti": "SASTHI"}, {"upadesha": "पुरुष", "vibhakti": "PRATHAMA"}],
+    "samasaType": "TATPURUSA",
+    "semanticRelations": ["SAMARTHYA", "CASE_RELATION"],
+    "expectedMissing": "outputLinga"
+  },
+  {
+    "id": "REJECT_006",
+    "name": "Avyayibhava without indeclinable relation",
+    "padas": [{"upadesha": "यथा", "vibhakti": "PRATHAMA"}, {"upadesha": "शक्ति", "vibhakti": "PRATHAMA"}],
+    "samasaType": "AVYAYIBHAVA",
+    "semanticRelations": ["SAMARTHYA"],
+    "expectedMissing": "INDECLINABLE_RELATION"
+  },
+  {
+    "id": "REJECT_007",
+    "name": "Dvigu without numeral-group meaning",
+    "padas": [{"upadesha": "त्रि", "vibhakti": "PRATHAMA"}, {"upadesha": "लोक", "vibhakti": "PRATHAMA"}],
+    "samasaType": "DVIGU",
+    "semanticRelations": ["SAMARTHYA"],
+    "expectedMissing": "NUMERAL_GROUP"
+  },
+  {
+    "id": "REJECT_008",
+    "name": "Upapada tatpurusa without upapada relation",
+    "padas": [{"upadesha": "कुम्भ", "vibhakti": "DVITIYA"}, {"upadesha": "कार", "vibhakti": "PRATHAMA"}],
+    "samasaType": "UPAPADA_TATPURUSA",
+    "outputLinga": "PUMS",
+    "semanticRelations": ["SAMARTHYA"],
+    "expectedMissing": "UPAPADA_RELATION"
+  },
+  {
+    "id": "REJECT_009",
+    "name": "Nan tatpurusa without case relation",
+    "padas": [{"upadesha": "न", "vibhakti": "PRATHAMA"}, {"upadesha": "कुशल", "vibhakti": "PRATHAMA"}],
+    "samasaType": "NAN_TATPURUSA",
+    "outputLinga": "PUMS",
+    "semanticRelations": ["SAMARTHYA"],
+    "expectedMissing": "CASE_RELATION"
+  }
+]

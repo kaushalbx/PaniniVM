@@ -50,7 +50,7 @@ import dev.panini.vyakaranam.ast.accept
 import dev.panini.vyakaranam.ast.Sequence
 import dev.panini.vyakaranam.ast.WhileLoop
 import dev.panini.vyakaranam.lexicon.PratipadikaLexicon
-import dev.panini.vyakaranam.lexicon.StandardPratipadikaLexicon
+import dev.panini.linganushasanam.PaninianPratipadikaLexicon
 import dev.panini.vyakaranam.parser.PaniniParser
 
 /**
@@ -63,7 +63,7 @@ class PvmUktiSadhaka(
     private val tingantaEngine: TingantaEngine = TingantaEngine(derivationEngine),
     private val krdantaEngine: KrdantaEngine = KrdantaEngine(),
     private val samasaEngine: SamasaEngine = SamasaEngine(),
-    private val pratipadikaLexicon: PratipadikaLexicon = StandardPratipadikaLexicon,
+    private val pratipadikaLexicon: PratipadikaLexicon = PaninianPratipadikaLexicon,
     private val parser: PaniniParser = PaniniParser(),
 ) {
 

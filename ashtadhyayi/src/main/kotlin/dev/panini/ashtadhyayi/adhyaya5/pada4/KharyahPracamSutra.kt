@@ -42,6 +42,7 @@ object KharyahPracamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "5.4.101 applies Samāsānta for khārī in '$compoundStem'.",
+            memberEdits = mapOf(context.padas.lastIndex to "खार"),
         )
     }
 }

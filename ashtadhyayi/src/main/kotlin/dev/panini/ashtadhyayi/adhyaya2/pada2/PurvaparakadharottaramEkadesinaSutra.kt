@@ -17,7 +17,7 @@ import dev.panini.sutra.SutraType
  */
 object PurvaparakadharottaramEkadesinaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "2.2.1",
-    text = "पूर्वापराधरोत्तरमेकदेशिनाैकाधिकरणे",
+    text = "पूर्वापराधरोत्तरमेकदेशिनैकाधिकरणे",
     hindiExplanation = "पूर्व, अपर, अधर, उत्तर सुबन्ताः एकदेशिना सुबन्तेन सह समस्यन्ते, सोऽपि तत्पुरुषः।",
     type = SutraType.NITYA,
     chapter = 2,

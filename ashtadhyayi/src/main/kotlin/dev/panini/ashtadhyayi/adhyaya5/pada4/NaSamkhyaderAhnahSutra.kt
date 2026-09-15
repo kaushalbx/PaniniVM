@@ -17,7 +17,7 @@ import dev.panini.sutra.SutraType
  */
 object NaSamkhyaderAhnahSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "5.4.89",
-    text = "न संख्यादेरह्नः",
+    text = "न संख्याऽऽदेः समाहारे",
     hindiExplanation = "संख्यावाचक पूर्वपद के पश्चात् अहन् का 'अह्न' आदेश नहीं होता (उदा. द्व्यहः, त्र्यहः)।",
     type = SutraType.NITYA,
     chapter = 5,

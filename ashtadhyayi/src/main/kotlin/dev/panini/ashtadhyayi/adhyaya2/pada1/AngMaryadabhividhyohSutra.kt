@@ -17,7 +17,7 @@ import dev.panini.sutra.SutraType
  */
 object AngMaryadabhividhyohSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "2.1.13",
-    text = "आङ् मर्यादाभिविध्योः",
+    text = "आङ् मर्यादाऽभिविध्योः",
     hindiExplanation = "मर्यादा तथा अभिविधि अर्थ में आङ् अव्यय पञ्चम्यन्त के साथ समस्यते, सोऽव्ययीभावः।",
     type = SutraType.NITYA,
     chapter = 2,

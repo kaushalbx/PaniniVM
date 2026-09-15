@@ -493,7 +493,9 @@ class DerivationEngine(
                     it.krama >= maxTripadiKrama
                 } else {
                     maxTripadiKrama == 0 ||
-                        (it.stage == SutraStage.IT_PROCESSING && state.terms.any { term -> term.itProcessingPending })
+                        (it.stage == SutraStage.IT_PROCESSING && state.terms.any { term -> term.itProcessingPending }) ||
+                        (it.sutra in setOf("6.1.113", "6.1.114") && "8.2.66" in state.appliedSutras) ||
+                        (it.sutra == "6.1.87" && state.substitutions.lastOrNull()?.sutra == "6.1.114")
                 }
             }
             .filter {

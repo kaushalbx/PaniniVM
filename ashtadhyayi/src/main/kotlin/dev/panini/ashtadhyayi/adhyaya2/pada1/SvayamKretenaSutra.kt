@@ -16,14 +16,14 @@ import dev.panini.sutra.SutraType
  * Example: स्वयं कृतम् = स्वयंकृतम्.
  */
 object SvayamKretenaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
-    number = "2.1.27",
-    text = "स्वयं कृतेन",
+    number = "2.1.25",
+    text = "स्वयं क्तेन",
     hindiExplanation = "स्वयम् अव्यय का कृत प्रत्ययान्त सुबन्त के साथ तृतीया तत्पुरुष समास होता है (उदा. स्वयंकृतम्)।",
     type = SutraType.NITYA,
     chapter = 2,
     pada = 1,
     optional = false,
-    kramaValue = 210027,
+    kramaValue = 210025,
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,

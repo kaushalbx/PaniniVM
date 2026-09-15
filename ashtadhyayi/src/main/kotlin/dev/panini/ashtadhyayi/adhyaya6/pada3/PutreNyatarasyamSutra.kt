@@ -12,19 +12,19 @@ import dev.panini.sutra.SutraType
 import dev.panini.sutra.SamasaSutra
 
 /**
- * Sūtra 6.3.9: पुत्रेऽन्यतरस्याम्.
+ * Sūtra 6.3.22: पुत्रेऽन्यतरस्याम्.
  * Prescribes optional Aluk of Ṣaṣṭhī (6th case) for pūrvapada before 'putra'.
  * Example: देवयान्याः पुत्रः = देवयान्याःपुत्रः.
  */
 object PutreNyatarasyamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
-    number = "6.3.9",
+    number = "6.3.22",
     text = "पुत्रेऽन्यतरस्याम्",
     hindiExplanation = "पुत्र शब्द उत्तरपद परे होने पर षष्ठी विभक्ति का विकल्प से अलुक् होता है (उदा. देवयान्याःपुत्रः)।",
     type = SutraType.NITYA,
     chapter = 6,
     pada = 3,
     optional = true,
-    kramaValue = 630009,
+    kramaValue = 630022,
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
@@ -32,14 +32,14 @@ object PutreNyatarasyamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
 ), SamasaSutra {
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
-        return context.uttaraPada.upadesha == "पुत्र"
+        return context.samasaType == SamasaType.ALUK_TATPURUSA && context.uttaraPada.upadesha == "पुत्र"
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
         val stem = context.padas.joinToString("") { it.upadesha }
         return SamasaRuleResult.Formed(
             compoundStem = stem,
-            explanation = "6.3.9 (पुत्रेऽन्यतरस्याम्) preserves Ṣaṣṭhī vibhakti before 'putra' for '$stem'.",
+            explanation = "6.3.22 (पुत्रेऽन्यतरस्याम्) optionally preserves Ṣaṣṭhī vibhakti before 'putra' for '$stem'.",
         )
     }
 }

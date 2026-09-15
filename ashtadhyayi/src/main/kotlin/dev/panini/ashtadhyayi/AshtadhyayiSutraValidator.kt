@@ -13,11 +13,29 @@ import dev.panini.vyakaranam.parser.PaniniParser
 object AshtadhyayiSutraValidator {
     private val parser = PaniniParser()
     private val canonicalNumber = Regex("[1-8]\\.[1-4]\\.\\d+V?")
+    private val canonicalPadaLimits = mapOf(
+        (2 to 1) to 72,
+        (2 to 2) to 38,
+        (5 to 4) to 160,
+        (6 to 3) to 139,
+    )
 
     fun validate(sutras: Iterable<Sutra<*, *>>): List<SutraCatalogIssue> = buildList {
-        sutras.forEach { sutra ->
+        val materialized = sutras.toList()
+        materialized.groupBy { it.number }
+            .filterValues { it.size > 1 }
+            .forEach { (number, duplicates) ->
+                add(SutraCatalogIssue(number, "Duplicate Aṣṭādhyāyī sūtra number (${duplicates.size} definitions)"))
+            }
+        materialized.forEach { sutra ->
             if (!canonicalNumber.matches(sutra.number)) {
                 add(SutraCatalogIssue(sutra.number, "Noncanonical Aṣṭādhyāyī sūtra number"))
+            } else {
+                val components = sutra.number.removeSuffix("V").split('.').map(String::toInt)
+                val limit = canonicalPadaLimits[components[0] to components[1]]
+                if (limit != null && components[2] > limit) {
+                    add(SutraCatalogIssue(sutra.number, "Sūtra number exceeds the canonical limit for ${components[0]}.${components[1]} ($limit)"))
+                }
             }
             val source = sutra.segmentedSource ?: return@forEach
             parser.validate(source).forEach { error ->

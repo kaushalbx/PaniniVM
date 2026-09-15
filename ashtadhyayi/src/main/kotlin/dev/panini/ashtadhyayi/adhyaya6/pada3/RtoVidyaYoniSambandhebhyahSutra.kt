@@ -2,7 +2,9 @@ package dev.panini.ashtadhyayi.adhyaya6.pada3
 
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
+import dev.panini.analysis.SamasaSemanticRelation
 import dev.panini.core.SamasaType
+import dev.panini.core.Vibhakti
 import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -10,37 +12,33 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
-/**
- * Sūtra 6.3.34: ऋतो विद्यायोनिसम्बन्धेभ्यः.
- * Pūrvapada ān substitution for ṛ-ending kinship/teacher relation words in Dvandva.
- * Example: होतापोतारौ (hotāpotārau).
- */
+/** 6.3.23: ऋतो विद्यायोनिसम्बन्धेभ्यः. */
 object RtoVidyaYoniSambandhebhyahSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
-    number = "6.3.34",
+    number = "6.3.23",
     text = "ऋतो विद्यायोनिसम्बन्धेभ्यः",
-    hindiExplanation = "विद्या सम्बन्ध तथा योनिसम्बन्ध वाची ऋदन्त पूर्वपद को द्वन्द्व समास में आनङ् (आ) आदेश होता है (उदा. होतापोतारौ)।",
+    hindiExplanation = "विद्या अथवा योनि सम्बन्ध में ऋकारान्त पूर्वपद की षष्ठी विभक्ति का अलुक् होता है।",
     type = SutraType.NITYA,
     chapter = 6,
     pada = 3,
     optional = false,
-    kramaValue = 630034,
-    role = SutraRole.Niyama,
-    action = SutraAction.NIYAMA,
+    kramaValue = 630023,
+    role = SutraRole.Vidhi,
+    action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
-    samasaType = SamasaType.DVANDVA,
-    samasaPriority = 10,
+    samasaType = SamasaType.ALUK_TATPURUSA,
+    samasaPriority = 20,
 ), SamasaSutra {
-    override fun matches(context: SamasaRuleContext): Boolean {
-        if (context.padas.size < 2) return false
-        val first = context.padas.first().upadesha
-        return context.samasaType == SamasaType.DVANDVA && (first == "होतृ" || first == "पोतृ" || first == "नेष्टृ" || first == "उद्गातृ")
-    }
+    override fun matches(context: SamasaRuleContext): Boolean =
+        context.padas.size >= 2 &&
+            context.samasaType == SamasaType.ALUK_TATPURUSA &&
+            context.purvaPada.vibhakti == Vibhakti.SASTHI &&
+            (context.purvaPada.upadesha.endsWith("ऋ") || context.purvaPada.upadesha.endsWith("ृ")) &&
+            context.semanticRelations.any {
+                it == SamasaSemanticRelation.STUDY_RELATION || it == SamasaSemanticRelation.BLOOD_RELATION
+            }
 
-    override fun apply(context: SamasaRuleContext): SamasaRuleResult {
-        val compoundStem = context.padas.joinToString("") { it.upadesha }
-        return SamasaRuleResult.Formed(
-            compoundStem = compoundStem,
-            explanation = "6.3.34 applies ānaṅ substitution for ṛ-ending relation word in '$compoundStem'.",
-        )
-    }
+    override fun apply(context: SamasaRuleContext): SamasaRuleResult = SamasaRuleResult.Formed(
+        compoundStem = context.padas.joinToString("") { it.upadesha },
+        explanation = "6.3.23 preserves the genitive ending after an ṛ-final relationship word.",
+    )
 }

@@ -59,7 +59,8 @@ class PronominalStemsTest {
 
         val kah = engine.derive(SubantaDerivationRequest("किम्", Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.PUMS))
         assertEquals("कः", kah.final.surface)
-        kotlin.test.assertTrue(kah.applications.any { it.sutra == "7.2.102" })
+        kotlin.test.assertTrue(kah.applications.any { it.sutra == "7.2.103" })
+        kotlin.test.assertTrue(kah.applications.none { it.sutra == "7.2.102" })
 
         val ayam = engine.derive(SubantaDerivationRequest("इदम्", Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.PUMS))
         assertEquals("अयम्", ayam.final.surface)

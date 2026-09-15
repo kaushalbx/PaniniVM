@@ -41,6 +41,7 @@ object ArdhacChaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "5.4.100 adds Samāsānta ac for ardha + nau in '$compoundStem'.",
+            memberEdits = mapOf(context.padas.lastIndex to "नाव"),
         )
     }
 }

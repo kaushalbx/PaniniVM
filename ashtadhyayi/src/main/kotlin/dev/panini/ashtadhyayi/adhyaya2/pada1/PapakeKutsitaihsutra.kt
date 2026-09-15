@@ -12,19 +12,19 @@ import dev.panini.sutra.SutraType
 import dev.panini.sutra.SamasaSutra
 
 /**
- * 2.1.68: पापे कुत्सितैः / पापकैः कुत्सितैः.
+ * 2.1.54: पापाणके कुत्सितैः.
  *
  * Deprecatory adjectives 'pāpa', 'kutsita' compound with depreciated nominals in Karmadhāraya.
  */
 object PapakeKutsitaihsutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
-    number = "2.1.68",
-    text = "पापे कुत्सितैः",
+    number = "2.1.54",
+    text = "पापाणके कुत्सितैः",
     hindiExplanation = "पाप-शब्दः कुत्सितैः सुबन्तैः सह समस्यते, सोऽपि कर्मधारयः।",
     type = SutraType.NITYA,
     chapter = 2,
     pada = 1,
     optional = false,
-    kramaValue = 210068,
+    kramaValue = 210054,
     role = SutraRole.Vidhi,
     action = SutraAction.VIDHI,
     scope = SutraScope.DERIVATION,
@@ -43,7 +43,7 @@ object PapakeKutsitaihsutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
 
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
-            explanation = "2.1.68: Formed Karmadhāraya compound with deprecatory adjective ($compoundStem).",
+            explanation = "2.1.54: Formed Karmadhāraya compound with deprecatory adjective ($compoundStem).",
         )
     }
 }

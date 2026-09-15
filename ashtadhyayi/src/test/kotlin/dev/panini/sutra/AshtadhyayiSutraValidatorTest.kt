@@ -36,6 +36,42 @@ class AshtadhyayiSutraValidatorTest {
         assertEquals("Noncanonical Aṣṭādhyāyī sūtra number", issues.single().message)
     }
 
+    @Test
+    fun `rejects a fabricated number beyond a canonical pada limit`() {
+        val issues = AshtadhyayiSutraValidator.validate(listOf(sutra(null, "2.1.86")))
+
+        assertEquals(1, issues.size)
+        assertEquals("2.1.86", issues.single().sutra)
+        assertTrue(issues.single().message.contains("canonical limit"))
+    }
+
+    @Test
+    fun `rejects a fabricated samasanta number beyond 5 4 160`() {
+        val issues = AshtadhyayiSutraValidator.validate(listOf(sutra(null, "5.4.161")))
+
+        assertEquals(1, issues.size)
+        assertTrue(issues.single().message.contains("canonical limit"))
+    }
+
+    @Test
+    fun `rejects a fabricated compound accent number beyond 6 3 139`() {
+        val issues = AshtadhyayiSutraValidator.validate(listOf(sutra(null, "6.3.140")))
+
+        assertEquals(1, issues.size)
+        assertTrue(issues.single().message.contains("canonical limit"))
+    }
+
+    @Test
+    fun `rejects duplicate sutra identities`() {
+        val issues = AshtadhyayiSutraValidator.validate(
+            listOf(sutra(null, "5.4.150"), sutra(null, "5.4.150")),
+        )
+
+        assertEquals(1, issues.size)
+        assertEquals("5.4.150", issues.single().sutra)
+        assertTrue(issues.single().message.contains("Duplicate"))
+    }
+
     private fun sutra(segmentedSource: String?, number: String = "1.1.1") = object : Sutra<Unit, Unit>(
         number = number,
         text = "वृद्धिरादैच्",

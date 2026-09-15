@@ -8,19 +8,22 @@ import dev.panini.core.Linga
 class LinganushasanamEngine(
     private val sutras: List<LinganushasanaSutra> = LinganushasanamRegistry.sutras
 ) {
+    fun resolveOrNull(context: LingaRuleContext): LingaRuleResult.Matched? {
+        for (sutra in sutras) {
+            if (sutra.matches(context)) {
+                val result = sutra.apply(context)
+                if (result is LingaRuleResult.Matched) return result
+            }
+        }
+        return null
+    }
+
     /**
      * Resolves the Pāṇinian gender for the given [LingaRuleContext].
      * Defaults to [Linga.PUMS] if no specific Sūtra matches.
      */
     fun resolve(context: LingaRuleContext): LingaRuleResult.Matched {
-        for (sutra in sutras) {
-            if (sutra.matches(context)) {
-                val res = sutra.apply(context)
-                if (res is LingaRuleResult.Matched) {
-                    return res
-                }
-            }
-        }
+        resolveOrNull(context)?.let { return it }
         return LingaRuleResult.Matched(
             linga = Linga.PUMS,
             ruleId = "LINGA_DEFAULT",

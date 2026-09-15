@@ -2,6 +2,7 @@ package dev.panini.ashtadhyayi.adhyaya2.pada2
 
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
+import dev.panini.analysis.SamasaSemanticRelation
 import dev.panini.core.SamasaType
 import dev.panini.core.Vibhakti
 import dev.panini.sutra.SamasaSutra
@@ -18,7 +19,7 @@ import dev.panini.sutra.SutraType
  */
 object AdhikaranavacinasChaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "2.2.13",
-    text = "अधिकरणवाचिनश् च",
+    text = "अधिकरणवाचिना च",
     hindiExplanation = "अधिकरण अर्थ में विहित क्तान्त सुबन्त का षष्ठ्यन्त के साथ समास का निषेध होता है।",
     type = SutraType.NITYA,
     chapter = 2,
@@ -34,7 +35,8 @@ object AdhikaranavacinasChaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     override fun matches(context: SamasaRuleContext): Boolean {
         return context.samasaType == SamasaType.TATPURUSA &&
             context.purvaPadaVibhakti == Vibhakti.SASTHI &&
-            context.padas.size >= 2
+            context.padas.size >= 2 &&
+            SamasaSemanticRelation.LOCATIVE_RELATION in context.semanticRelations
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {

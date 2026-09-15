@@ -43,6 +43,7 @@ object AhnoHnaEtebhyahSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "5.4.88 replaces ahan with ahna after $purva in '$compoundStem'.",
+            memberEdits = mapOf(context.padas.lastIndex to "अह्न"),
         )
     }
 }

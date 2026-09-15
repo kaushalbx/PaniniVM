@@ -45,11 +45,14 @@ object MayuravyamsakadayascaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
         val stem = when {
             first == "उच्च" && second == "अवच" -> "उच्चावच"
             first == "मयूर" && second == "व्यंसक" -> "मयूरव्यंसक"
+            first == "अन्य" && second == "राजन्" -> "राजान्तर"
+            first == "अन्य" && second == "ग्राम" -> "ग्रामान्तर"
             else -> context.padas.joinToString("") { it.upadesha }
         }
         return SamasaRuleResult.Formed(
             compoundStem = stem,
             explanation = "2.1.72 (मयूरव्यंसकादयश्च) forms Nitya Tatpuruṣa compound '$stem'.",
+            wholeStemOverride = stem!=context.padas.joinToString("") { it.upadesha },
         )
     }
 }

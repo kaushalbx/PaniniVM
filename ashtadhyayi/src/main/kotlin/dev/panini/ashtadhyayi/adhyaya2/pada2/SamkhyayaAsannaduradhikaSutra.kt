@@ -19,7 +19,7 @@ import dev.panini.sutra.SutraType
  */
 object SamkhyayaAsannaduradhikaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "2.2.25",
-    text = "संख्याया आसन्नादूराधिकसंख्याः संख्येये",
+    text = "संख्ययाऽव्ययासन्नादूराधिकसंख्याः संख्येये",
     hindiExplanation = "संख्यावाचक सुबन्त का आसन्न, अदूर, अधिक, उप तथा संख्यावाचक सुबन्त के साथ बहुव्रीहि समास होता है (उदा. उपपञ्चाशत्, द्वित्राः)।",
     type = SutraType.NITYA,
     chapter = 2,
