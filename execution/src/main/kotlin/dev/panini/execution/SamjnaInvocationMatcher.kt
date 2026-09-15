@@ -28,6 +28,32 @@ object SamjnaInvocationMatcher {
         val verbIndex = padas.indexOfFirst { it is TingantaPada }
         if (verbIndex < 0) return null
 
+        val verb = padas[verbIndex] as TingantaPada
+        val cognateObject = if (verb.dhatu.mulaDhatu in setOf("कृ", "डुकृञ्")) {
+            padas.withIndex().lastOrNull { (index, pada) ->
+                index < verbIndex && pada is SubantaPada &&
+                    pada.vibhakti() == Vibhakti.DVITIYA &&
+                    knownOperationStems.any { known ->
+                        cognateBase(known) == pada.pratipadika.samjnaIdentity()
+                    }
+            }
+        } else null
+        if (cognateObject != null) {
+            val operationPada = cognateObject.value as SubantaPada
+            val operationStem = knownOperationStems.first {
+                cognateBase(it) == operationPada.pratipadika.samjnaIdentity()
+            }
+            val karmaText = padas.take(cognateObject.index)
+                .joinToString(" ") { normalizeIdentity(it.sourceText) }
+                .trim()
+            return SamjnaInvocationShape(
+                operationStem = operationStem,
+                domainStem = null,
+                karmaText = karmaText,
+                ukti = ukti,
+            )
+        }
+
         val instrumental = padas.withIndex().firstOrNull { (index, pada) ->
             index < verbIndex && pada is SubantaPada &&
                 pada.vibhakti() == Vibhakti.TRTIYA &&
@@ -54,6 +80,9 @@ object SamjnaInvocationMatcher {
 
     internal fun normalizeIdentity(value: String): String =
         value.split('+').joinToString(" + ") { it.trim() }.trim()
+
+    private fun cognateBase(value: String): String =
+        normalizeIdentity(value).removeSuffix(" + ल्युट्")
 
     private fun SubantaPada.vibhakti(): Vibhakti? = SupAffix.fromUpadesha(sup.text)?.vibhakti
 

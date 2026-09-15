@@ -10,14 +10,44 @@ class VyakaranamAstBuilder {
     fun build(
         context: PaniniyaVyakaranamParser.UktiContext,
     ): Ukti {
-        val body = context.whileClause()?.let { loop ->
+        val body = context.quotationClause()?.let { quotation ->
+            Quotation(
+                sourceText = quotation.text,
+                quoted = Invocation(buildVakya(requireNotNull(quotation.quoted))),
+                reporting = Invocation(buildAkhyataVakya(requireNotNull(quotation.reporting))),
+            )
+        } ?: context.whileClause()?.let { loop ->
             val limit = loop.limit?.let(::buildSankhyaAbhyasaPada)
+            val boundary = loop.boundary?.let { boundaryContext ->
+                val ordinal = buildSankhyaPuranaPada(boundaryContext.ordinal!!)
+                val attempt = buildSubanta(boundaryContext.attempt!!)
+                require((attempt.pratipadika as? MulaPratipadika)?.text == "प्रयत्न") {
+                    "A bounded attempt loop requires प्रयत्नस्य as its boundary noun."
+                }
+                require(requireNotNull(boundaryContext.limitBase).text == "अन्त") {
+                    "Only अन्त licenses the पर्यन्त boundary relation."
+                }
+                listOf<Pada>(
+                    ordinal,
+                    attempt,
+                    AvyayaPada(boundaryContext.text, "पर्यन्तम्"),
+                )
+            }.orEmpty()
             WhileLoop(
                 sourceText = loop.text,
                 condition = Invocation(buildVakya(loop.condition!!)),
                 body = Invocation(buildVakya(loop.body!!)),
-                maximumIterationStems = limit?.stems?.dropLast(1).orEmpty(),
-                exhausted = loop.exhausted?.let { Invocation(buildVakya(it)) },
+                maximumIterationStems = limit?.stems?.dropLast(1)
+                    ?: (boundary.firstOrNull() as? SankhyaPuranaPada)?.stems?.dropLast(1).orEmpty(),
+                maximumBoundaryPadas = boundary,
+                exhausted = loop.exhausted?.let { exhausted ->
+                    exhausted.plain?.let { Invocation(buildVakya(it)) }
+                        ?: Quotation(
+                            sourceText = exhausted.text,
+                            quoted = Invocation(buildVakya(requireNotNull(exhausted.quoted))),
+                            reporting = Invocation(buildVakya(requireNotNull(exhausted.reporting))),
+                        )
+                },
                 resultTarget = loop.target?.let { Invocation(buildVakya(it)) },
             )
         } ?: context.conditionalPipelineClause()?.let(::buildConditionalPipeline)

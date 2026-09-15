@@ -99,6 +99,20 @@ class ProgramAstTest {
     }
 
     @Test
+    fun `ordinal attempt boundary builds a bounded condition loop`() {
+        val loop = assertIs<WhileLoop>(
+            parser.parse(
+                "यावत् विजय + सुँ न भू + लट् + तिप् तावत् " +
+                    "पञ्चन् + म + ङस् प्रयत्न + ङस् परि + अन्त + अम् " +
+                    "प्रयत्न + अम् डुकृञ् + उ + लोट् + सिप् ।",
+            ).body,
+        )
+
+        assertEquals(listOf("पञ्चन्"), loop.maximumIterationStems)
+        assertEquals(3, loop.maximumBoundaryPadas.size)
+    }
+
+    @Test
     fun `bounded loop may own an exhaustion clause`() {
         val loop = assertIs<WhileLoop>(
             parser.parse(

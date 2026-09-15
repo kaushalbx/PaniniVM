@@ -460,10 +460,12 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         }
         val hostBudget = vm.executionLimits.maxConditionIterations
         val usesLatestResult = loop.condition.vakya.padas.any { pada ->
-            pada is dev.panini.vyakaranam.ast.SubantaPada && pada.pratipadika.baseText() == "फल"
+            pada is dev.panini.vyakaranam.ast.SubantaPada &&
+                pada.pratipadika.baseText() in setOf("फल", "विजय")
         }
         val isNegated = loop.condition.vakya.padas.any {
-            it is dev.panini.vyakaranam.ast.AvyayaPada && it.form == "न"
+            (it is dev.panini.vyakaranam.ast.AvyayaPada && it.form == "न") ||
+                (it is dev.panini.vyakaranam.ast.SubantaPada && it.pratipadika.baseText() == "असत्य")
         }
         var latestConditionValue = false
         var iterationCount = 0L
@@ -573,7 +575,10 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 val reportedCondition = iterationResults.asSequence()
                     .filterIsInstance<ExecutionResult.Success>()
                     .mapNotNull { it.conditionValue }
-                    .lastOrNull()
+                    // A reusable attempt may perform subordinate comparisons in
+                    // its selected branch.  Its leading condition is the
+                    // procedure's फल; branch-local truth values must not replace it.
+                    .firstOrNull()
                     ?: return results + ExecutionResult.Failure(
                         ExecutionError.INVALID_VALUE,
                         "A फल-controlled loop body must produce a truth value.",

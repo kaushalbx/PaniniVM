@@ -78,6 +78,7 @@ data class WhileLoop(
     val condition: Invocation,
     val body: ProgramNode,
     val maximumIterationStems: List<String> = emptyList(),
+    val maximumBoundaryPadas: List<Pada> = emptyList(),
     val exhausted: ProgramNode? = null,
     val resultTarget: ProgramNode? = null,
 ) : ProgramNode

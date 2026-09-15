@@ -374,8 +374,8 @@ object VyakaranamExecutionAdapter {
                 }.getOrDefault(stem)
                 ExecutionExpression.Pada(surface)
             }.toMutableList<ExecutionExpression>()
-        (vakya as? AkhyataVakya)?.tinganta?.dhatu?.mulaDhatu?.let { verb ->
-            words += ExecutionExpression.Pada(verb)
+        (vakya as? AkhyataVakya)?.tinganta?.let { tinganta ->
+            words += ExecutionExpression.Pada(dev.panini.execution.PvmUktiSadhaka().sadhayaTinganta(tinganta))
         }
         val karman = when (words.size) {
             0 -> null

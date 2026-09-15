@@ -13,7 +13,8 @@ package dev.panini.parser;
 // ============================================================================
 
 ukti
-    : whileClause
+    : quotationClause
+    | whileClause
     | conditionalPipelineClause
     | attributePipelineClause
     | pipelineClause
@@ -23,6 +24,10 @@ ukti
       (vakyaSambandha vakya)*
       DANDA?
       EOF
+    ;
+
+quotationClause
+    : quoted=vakya ITI reporting=akhyataVakya DANDA? EOF
     ;
 
 conditionalPipelineClause
@@ -36,8 +41,21 @@ attributePipelineClause
     ;
 
 whileClause
-    : limit=sankhyaAbhyasaPada? YAVAT condition=vakya TAVAT body=vakya
-      (ANYATHA exhausted=vakya)? (TATAH target=vakya)? DANDA? EOF
+    : (limit=sankhyaAbhyasaPada YAVAT condition=vakya TAVAT body=vakya
+      | YAVAT condition=vakya TAVAT boundary=ordinalAttemptBoundary body=vakya
+      | YAVAT condition=vakya TAVAT body=vakya)
+      (ANYATHA exhausted=whileExhausted)? (TATAH target=vakya)? DANDA? EOF
+    ;
+
+whileExhausted
+    : quoted=vakya ITI reporting=vakya
+    | plain=vakya
+    ;
+
+/* “up to the fifth attempt”: पञ्चमस्य प्रयत्नस्य पर्यन्तम्. */
+ordinalAttemptBoundary
+    : ordinal=sankhyaPuranaPada attempt=subantaPada
+      PARI PLUS limitBase=IDENTIFIER PLUS SUP_AM
     ;
 
 pipelineClause

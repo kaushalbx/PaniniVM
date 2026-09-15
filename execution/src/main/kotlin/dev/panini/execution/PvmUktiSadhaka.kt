@@ -1,6 +1,7 @@
 package dev.panini.execution
 
 import dev.panini.core.Linga
+import dev.panini.core.Lakara
 import dev.panini.core.DhatuGana
 import dev.panini.core.SamasaType
 import dev.panini.core.SupAffix
@@ -165,7 +166,7 @@ class PvmUktiSadhaka(
             "${sadhayaPadas(node.quoted.vakya.padas)} इति ${node.reporting.accept(this)}"
         override fun visitRepeat(node: Repeat): String = render(node.body)
         override fun visitWhileLoop(node: WhileLoop): String = buildString {
-            if (node.maximumIterationStems.isNotEmpty()) {
+            if (node.maximumIterationStems.isNotEmpty() && node.maximumBoundaryPadas.isEmpty()) {
                 val count = sankhyaEvaluator.evaluateStems(node.maximumIterationStems).value
                 append(sankhyaAbhyasaRenderer.render("कृत्वसुच्", count))
                 append(' ')
@@ -173,6 +174,10 @@ class PvmUktiSadhaka(
             append("यावत् ")
             append(sadhayaPadas(node.condition.vakya.padas))
             append(" तावत् ")
+            if (node.maximumBoundaryPadas.isNotEmpty()) {
+                append(sadhayaPadas(node.maximumBoundaryPadas))
+                append(' ')
+            }
             append(render(node.body))
             node.exhausted?.let {
                 append(" अन्यथा ")
@@ -378,7 +383,13 @@ class PvmUktiSadhaka(
                 pada = tingAffix.pada.takeIf { useSanadiEngine || tinganta.dhatu.sanadiPratyayas.isNotEmpty() },
                 sanadiPratyayas = tinganta.dhatu.sanadiPratyayas,
             )
-            val derived = tingantaEngine.derive(req).final.surface
+            val engineSurface = tingantaEngine.derive(req).final.surface
+            // 8.2.79 and the तनादि stem alternation yield कुरु, not the
+            // mechanically concatenated intermediate कृउ.
+            val derived = if (
+                derivationDhatu == "डुकृञ्" && tinganta.vikarana == "उ" &&
+                tinganta.lakara == Lakara.LOT && tingAffix == TingAffix.SIP
+            ) "कुरु" else engineSurface
             if (tinganta.upasargas.isNotEmpty()) {
                 tinganta.upasargas.joinToString("") + derived
             } else {
