@@ -58,7 +58,7 @@ class ProgramAstTest {
     fun `yavat tavat builds a bounded condition loop`() {
         val loop = assertIs<WhileLoop>(
             parser.parse(
-                "पञ्च + कृत्वः यावत् विजय + सुँ न तावत् प्रयत्न + अम् कृ + लोट् + सिप् ।",
+                "पञ्च + कृत्वसुच् यावत् विजय + सुँ न तावत् प्रयत्न + अम् कृ + लोट् + सिप् ।",
             ).body,
         )
 
@@ -71,7 +71,7 @@ class ProgramAstTest {
     fun `bounded loop may own an exhaustion clause`() {
         val loop = assertIs<WhileLoop>(
             parser.parse(
-                "द्वि + कृत्वः यावत् फल + सुँ न तावत् प्रयत्न + अम् कृ + लोट् + सिप् " +
+                "द्वि + कृत्वसुच् यावत् फल + सुँ न तावत् प्रयत्न + अम् कृ + लोट् + सिप् " +
                     "अन्यथा समाप्त + अम् मुद्र् + लोट् + सिप् ।",
             ).body,
         )
@@ -191,7 +191,7 @@ class ProgramAstTest {
     fun `loop may pipe its named outcome to a target`() {
         val loop = assertIs<WhileLoop>(
             parser.parse(
-                "द्वि + कृत्वः यावत् फल + सुँ न तावत् प्रयत्न + अम् कृ + लोट् + सिप् " +
+                "द्वि + कृत्वसुच् यावत् फल + सुँ न तावत् प्रयत्न + अम् कृ + लोट् + सिप् " +
                     "ततः परिणाम + ङे दा + लोट् + सिप् ।",
             ).body,
         )

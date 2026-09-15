@@ -54,7 +54,7 @@ class SamjnaKriyaMultiFileTest {
             प्रयत्न + ल्युट् + सुँ ।
             आवृत्ति + अम् मुद्र् + णिच् + लोट् + सिप् ॥
 
-            पञ्च + कृत्वः प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
+            पञ्च + कृत्वसुच् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
         """.trimIndent()
 
         val successes = PaniniVM().evalScript(script).filterIsInstance<ExecutionResult.Success>()
@@ -68,7 +68,7 @@ class SamjnaKriyaMultiFileTest {
             प्रयत्न + ल्युट् + सुँ ।
             वि + स्था + लोट् + सिप् ॥
 
-            पञ्च + कृत्वः प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
+            पञ्च + कृत्वसुच् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
         """.trimIndent()
 
         val results = PaniniVM().evalScript(script)

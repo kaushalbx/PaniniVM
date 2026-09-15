@@ -164,8 +164,9 @@ class PvmUktiSadhaka(
         override fun visitRepeat(node: Repeat): String = render(node.body)
         override fun visitWhileLoop(node: WhileLoop): String = buildString {
             if (node.maximumIterationStems.isNotEmpty()) {
-                append(node.maximumIterationStems.joinToString(" + "))
-                append(" + कृत्वः ")
+                val count = sankhyaEvaluator.evaluateStems(node.maximumIterationStems).value
+                append(sankhyaAbhyasaRenderer.render("कृत्वसुच्", count))
+                append(' ')
             }
             append("यावत् ")
             append(sadhayaPadas(node.condition.vakya.padas))

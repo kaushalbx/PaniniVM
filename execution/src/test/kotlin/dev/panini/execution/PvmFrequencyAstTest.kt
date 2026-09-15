@@ -10,7 +10,7 @@ class PvmFrequencyAstTest {
     @Test
     fun `script parsing preserves fixed repetition in the shared AST`() {
         val sentence = assertIs<PvmScriptStatement.Sentence>(
-            PvmScript.parse("त्रि + कृत्वः एक + अम् मुद्र् + लोट् + सिप् ।").single(),
+            PvmScript.parse("त्रि + कृत्वसुच् एक + अम् मुद्र् + लोट् + सिप् ।").single(),
         )
 
         val repeat = assertIs<Repeat>(sentence.program)

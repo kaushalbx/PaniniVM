@@ -1,0 +1,23 @@
+# Number Guessing Game
+# The program chooses one secret number. The player gets five attempts.
+
+# One scoped range is reused by random choice, input validation, and output.
+एकस्मात् दशन् इति सीमा ।
+
+# Kriya-samjna: define one reusable guessing attempt.
+# The procedure reads a bounded input, compares it, and prints dynamic feedback.
+प्रयत्न ।
+निवेशम् सङ्ख्यै ग्रह् ।
+यदि रहस्यम् ग्राहस्य फलेन अस तर्हि विजयः अन्यथा यदि ग्राहस्य फलम् रहस्यम् च निविद्धि तर्हि लघु अन्यथा गुरु ततः मुद्रय ॥
+
+# 1. Dynamically choose a number from the scoped inclusive range.
+देवय ततः रहस्याय देहि ।
+
+# 2. Quote a grammatical command; iti makes mudr print it without executing it.
+सङ्ख्याम् अनुमिनु इति मुद्रय ।
+
+# 3. Continue while the latest comparison is false; the loop exposes its structured outcome.
+पञ्चकृत्वः यावत् फलम् न तावत् प्रयत्न कृणु अन्यथा प्रयत्नाःम् समाप्ताःम् च मुद्रय ।
+
+# 4. Reveal the secret number after all attempts are finished.
+रहस्यम् मुद्रय ।

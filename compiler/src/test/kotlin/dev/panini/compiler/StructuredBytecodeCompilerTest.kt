@@ -554,7 +554,7 @@ class StructuredBytecodeCompilerTest {
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             द्वि + अम् अवस्था + ङे दा + लोट् + सिप् ।
-            त्रि + कृत्वः अवस्था + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ।
+            त्रि + कृत्वसुच् अवस्था + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ।
         """.trimIndent()
         val interpreted = PaniniVM().evalScript(source)
             .filterIsInstance<ExecutionResult.Success>().last().typedValue
@@ -607,7 +607,7 @@ class StructuredBytecodeCompilerTest {
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             द्वि + अम् अवस्था + ङे दा + लोट् + सिप् ।
-            त्रि + कृत्वः यावत् अवस्था + अम् शून्य + अम् च विद् + लोट् + सिप् तावत् शून्य + अम् अवस्था + ङे दा + लोट् + सिप् ततः परिणाम + ङे दा + लोट् + सिप् ।
+            त्रि + कृत्वसुच् यावत् अवस्था + अम् शून्य + अम् च विद् + लोट् + सिप् तावत् शून्य + अम् अवस्था + ङे दा + लोट् + सिप् ततः परिणाम + ङे दा + लोट् + सिप् ।
         """.trimIndent()
         val bytes = BytecodeCompiler.compile(source, "CompiledDirectLoopTarget")
         val executeCalls = mutableListOf<String>()
@@ -661,7 +661,7 @@ class StructuredBytecodeCompilerTest {
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             द्वि + अम् अवस्था + ङे दा + लोट् + सिप् ।
-            एक + कृत्वः यावत् अवस्था + अम् शून्य + अम् च विद् + लोट् + सिप् तावत् एक + अम् अवस्था + ङे दा + लोट् + सिप् अन्यथा द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ।
+            एक + कृत्वसुच् यावत् अवस्था + अम् शून्य + अम् च विद् + लोट् + सिप् तावत् एक + अम् अवस्था + ङे दा + लोट् + सिप् अन्यथा द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ।
         """.trimIndent()
         val interpreted = PaniniVM().evalScript(source)
             .filterIsInstance<ExecutionResult.Success>().last().typedValue
@@ -718,7 +718,7 @@ class StructuredBytecodeCompilerTest {
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             द्वि + अम् अवस्था + ङे दा + लोट् + सिप् ।
-            त्रि + कृत्वः यावत् अवस्था + अम् शून्य + अम् च विद् + लोट् + सिप् तावत् शून्य + अम् अवस्था + ङे दा + लोट् + सिप् ।
+            त्रि + कृत्वसुच् यावत् अवस्था + अम् शून्य + अम् च विद् + लोट् + सिप् तावत् शून्य + अम् अवस्था + ङे दा + लोट् + सिप् ।
         """.trimIndent()
         val interpreted = PaniniVM().evalScript(source)
             .filterIsInstance<ExecutionResult.Success>().last().typedValue
@@ -1084,7 +1084,7 @@ class StructuredBytecodeCompilerTest {
     fun `large grammatical loop bounds use explicit numeric value comparison`() {
         val source = """
             शून्य + अम् अवस्था + ङे दा + लोट् + सिप् ।
-            कोटि + कृत्वः यावत् अवस्था + अम् शून्य + अम् च विद् + लोट् + सिप् तावत् एक + अम् अवस्था + ङे दा + लोट् + सिप् ।
+            कोटि + कृत्वसुच् यावत् अवस्था + अम् शून्य + अम् च विद् + लोट् + सिप् तावत् एक + अम् अवस्था + ङे दा + लोट् + सिप् ।
         """.trimIndent()
         val bytes = BytecodeCompiler.compile(source, "CompiledLargeLoopBound")
         val instructions = mutableListOf<Int>()
@@ -1231,12 +1231,12 @@ class StructuredBytecodeCompilerTest {
         val exhausted = """
             प्रयत्न + ल्युट् + सुँ ।
             एक + अम् द्वि + अम् च विद् + लोट् + सिप् ॥
-            द्वि + कृत्वः यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
+            द्वि + कृत्वसुच् यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
         """.trimIndent()
         val victory = """
             प्रयत्न + ल्युट् + सुँ ।
             द्वि + अम् एक + अम् च विद् + लोट् + सिप् ॥
-            पञ्च + कृत्वः यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
+            पञ्च + कृत्वसुच् यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
         """.trimIndent()
 
         val exhaustedResults = execute(exhausted, "CompiledPhalaExhaustion")
@@ -1260,7 +1260,7 @@ class StructuredBytecodeCompilerTest {
             अवस्था + अम् एक + अम् च वि + युज् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् अवस्था + ङे ॥
 
             त्रि + अम् अवस्था + ङे दा + लोट् + सिप् ।
-            द्वि + कृत्वः यावत् अवस्था + अम् शून्य + अम् च विद् + लोट् + सिप् तावत् हृ + ल्युट् + टा कृ + लोट् + सिप् अन्यथा समाप्तम् + अम् मुद्र् + लोट् + सिप् ततः मुद्र् + लोट् + सिप् ।
+            द्वि + कृत्वसुच् यावत् अवस्था + अम् शून्य + अम् च विद् + लोट् + सिप् तावत् हृ + ल्युट् + टा कृ + लोट् + सिप् अन्यथा समाप्तम् + अम् मुद्र् + लोट् + सिप् ततः मुद्र् + लोट् + सिप् ।
         """.trimIndent()
         val interpreted = PaniniVM().evalScript(source)
             .filterIsInstance<ExecutionResult.Success>().last().typedValue
@@ -1280,7 +1280,7 @@ class StructuredBytecodeCompilerTest {
             प्रयत्न + ल्युट् + सुँ ।
             वि + स्था + लोट् + सिप् ॥
 
-            पञ्च + कृत्वः प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
+            पञ्च + कृत्वसुच् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
         """.trimIndent()
         val interpreted = PaniniVM().evalScript(source)
             .filterIsInstance<ExecutionResult.Success>()
