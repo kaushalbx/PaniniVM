@@ -127,8 +127,17 @@ class VyakaranamAstBuilder {
 
     private fun buildConditionalArm(
         context: PaniniyaVyakaranamParser.ConditionalArmContext,
-    ): ProgramNode = context.vakya()?.let { Invocation(buildVakya(it)) }
+    ): ProgramNode = context.vakya()?.let {
+        val vakya = buildVakya(it)
+        val nominal = (vakya as? NamaVakya)?.padas?.singleOrNull() as? SubantaPada
+        if (nominal != null) implicitSubantaReturn(nominal) else Invocation(vakya)
+    }
         ?: implicitValueReturn(requireNotNull(context.value).text)
+
+    /** A one-word nominative branch is a Sanskrit zero-copula value clause. */
+    private fun implicitSubantaReturn(value: SubantaPada): ProgramNode =
+        (PaniniParser().parse("${value.pratipadika.sourceText} + अम् दा + लोट् + सिप् ।").body as Invocation)
+            .copy(implicitValue = value.sourceText)
 
     /** A nominal branch has an understood return verb, just as a nāma-vākya has an understood copula. */
     private fun implicitValueReturn(value: String): ProgramNode =

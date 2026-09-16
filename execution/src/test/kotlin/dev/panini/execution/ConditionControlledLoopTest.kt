@@ -7,6 +7,22 @@ import kotlin.test.assertIs
 
 class ConditionControlledLoopTest {
     @Test
+    fun `nominative victory branch returns a value instead of executing as an incomplete action`() {
+        val results = PaniniVM().evalScript(
+            """
+            प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् तर्हि विजय + सुँ अन्यथा गुरु ततः मुद्र् + णिच् + लोट् + सिप् ॥
+            यावत् विजय + सुँ न भू + लट् + तिप् तावत् पञ्चन् + म + ङस् प्रयत्न + ङस् परि + अन्त + अम् प्रयत्न + अम् डुकृञ् + उ + लोट् + सिप् ।
+            """.trimIndent(),
+        )
+
+        assertTrue(results.none { it is ExecutionResult.Failure || it is ExecutionResult.NeedsInput }, results.toString())
+        val completion = results.filterIsInstance<ExecutionResult.Success>().single { it.loopOutcome != null }
+        assertEquals(ExecutionResult.LoopOutcome.VIJAYA, completion.loopOutcome)
+        assertEquals(1L, completion.iterationCount)
+    }
+
+    @Test
     fun `host may budget an otherwise unbounded yavat loop`() {
         val results = PaniniVM(executionLimits = ExecutionLimits(maxConditionIterations = 2L)).evalScript(
             """
