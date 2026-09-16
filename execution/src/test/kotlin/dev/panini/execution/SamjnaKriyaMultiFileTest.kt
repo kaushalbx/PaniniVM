@@ -2,6 +2,9 @@ package dev.panini.execution
 
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.PaniniVM
+import dev.panini.vyakaranam.parser.PaniniParser
+import dev.panini.vyakaranam.ast.ProcedurePrecedence
+import dev.panini.vyakaranam.ast.ProcedureVisibility
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -134,7 +137,7 @@ class SamjnaKriyaMultiFileTest {
             nameStem = SamjnaKriyaRegistry.stripSupSuffix("युज् + ल्युट् + सुँ"),
             body = listOf(PvmScriptStatement.Sentence("युज् + णिच् + लोट् + सिप् ॥")),
             sourceFile = "ganita.pvm",
-            isApavada = false,
+            precedence = ProcedurePrecedence.DEFAULT,
         )
         registry.register(utsargaKriya)
 
@@ -147,7 +150,7 @@ class SamjnaKriyaMultiFileTest {
             nameStem = SamjnaKriyaRegistry.stripSupSuffix("युज् + ल्युट् + सुँ"),
             body = listOf(PvmScriptStatement.Sentence("एक + अम् युज् + णिच् + लोट् + सिप् ॥")),
             sourceFile = "mukhya.pvm",
-            isApavada = true,
+            precedence = ProcedurePrecedence.APAVADA,
         )
         registry.register(apavadaKriya)
 
@@ -165,16 +168,41 @@ class SamjnaKriyaMultiFileTest {
             ),
         )
 
-        val invocation = registry.detectInvocation("एक + अम् द्वि + अम् च युज् + ल्युट् + टा कृ + लोट् + सिप् ।")
+        val invocation = registry.detectInvocation(
+            PaniniParser().parse("एक + अम् द्वि + अम् च युज् + ल्युट् + टा कृ + लोट् + सिप् ।"),
+        )
         assertNotNull(invocation, "Instrumental case with कृ must be detected as saṃjñā invocation.")
         assertEquals("एक + अम् द्वि + अम् च", invocation.karmaText)
         assertEquals("युज् + ल्युट् + सुँ", invocation.kriya.nameSegmented)
     }
 
     @Test
+    fun `AST invocation detection preserves the semantic pipe operand position`() {
+        val registry = SamjnaKriyaRegistry()
+        registry.register(
+            SamjnaKriya(
+                nameSegmented = "युज् + ल्युट् + सुँ",
+                nameStem = "युज् + ल्युट्",
+                body = listOf(PvmScriptStatement.Sentence("युज् + णिच् + लोट् + सिप् ॥")),
+            ),
+        )
+        val ukti = PaniniParser().parse("द्वि + अम् युज् + ल्युट् + टा कृ + लोट् + सिप् ।")
+
+        val preDetected = registry.detectInvocation(ukti, injectedKarman = "विशेषणफल" to null)
+        assertNotNull(preDetected)
+        assertEquals(listOf(null, null), preDetected.argumentValues)
+
+        val operand = SanskritValue.Sankhya(3, "त्रि")
+        val detected = registry.detectInvocation(ukti, injectedKarman = "विशेषणफल" to operand)
+        assertNotNull(detected)
+        assertEquals("विशेषणफल + अम् द्वि + अम्", detected.karmaText)
+        assertEquals(listOf(operand, null), detected.argumentValues)
+    }
+
+    @Test
     fun `AST invocation matcher extracts operation domain and karma roles`() {
         val source = "पञ्च + अम् गणित + ङस् युज् + ल्युट् + टा कृ + लोट् + सिप् ।"
-        val shape = SamjnaInvocationMatcher.match(source, setOf("युज् + ल्युट्"))
+        val shape = SamjnaInvocationMatcher.match(PaniniParser().parse(source), setOf("युज् + ल्युट्"))
 
         assertNotNull(shape)
         assertEquals("युज् + ल्युट्", shape.operationStem)
@@ -182,7 +210,7 @@ class SamjnaKriyaMultiFileTest {
         assertEquals("पञ्च + अम्", shape.karmaText)
 
         val taddhita = SamjnaInvocationMatcher.match(
-            "पञ्च + अम् गुण + वत् + ङस् वर्द्धन + ल्युट् + टा कृ + लोट् + सिप् ।",
+            PaniniParser().parse("पञ्च + अम् गुण + वत् + ङस् वर्द्धन + ल्युट् + टा कृ + लोट् + सिप् ।"),
             setOf("वर्द्धन + ल्युट्"),
         )
         assertNotNull(taddhita)
@@ -233,7 +261,7 @@ class SamjnaKriyaMultiFileTest {
 
         // Test with zero operand (should trigger Niṣedha prohibition)
         val invocationText = "दस + अम् शून्य + अम् च विभाज् + ल्युट् + टा कृ + लोट् + सिप् ।"
-        val invocation = registry.detectInvocation(invocationText)
+        val invocation = registry.detectInvocation(PaniniParser().parse(invocationText))
         assertNotNull(invocation)
 
         val results = vm.evalScript(invocationText, samjnaRegistry = registry)
@@ -317,8 +345,14 @@ class SamjnaKriyaMultiFileTest {
 
     @Test
     fun `test antaranga internal samjna parsing and visibility`() {
+        val header = "द्विगुणन + ल्युट् + सुँ इति अन्तरङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।"
+        val headerQualifiers = SamjnaDefinitionMarkerParser.qualifiers(header)
+        assertTrue(
+            SamjnaDefinitionQualifier.ANTARANGA in headerQualifiers?.qualifiers.orEmpty(),
+            headerQualifiers.toString(),
+        )
         val script = """
-            अन्तरङ्गा द्विगुणन + ल्युट् + सुँ ।
+            $header
             प्रथम + अम् द्वि + अम् च गण + णिच् + लोट् + सिप् ॥
 
             जटिलगणित + ल्युट् + सुँ ।
@@ -329,20 +363,39 @@ class SamjnaKriyaMultiFileTest {
         assertEquals(2, parsed.size)
 
         val internalDef = parsed[0] as PvmScriptStatement.SamjnaDefinition
-        assertTrue(internalDef.isInternal, "Header with अन्तरङ्गा prefix must set isInternal = true.")
+        assertTrue(internalDef.isInternal, "An अन्तरङ्गा प्रक्रिया declaration must set internal visibility.")
+        assertTrue(!internalDef.isAntaranga, "Internal visibility must not change overload precedence.")
         assertEquals("द्विगुणन + ल्युट् + सुँ", internalDef.nameSegmented)
 
         val publicDef = parsed[1] as PvmScriptStatement.SamjnaDefinition
         assertTrue(!publicDef.isInternal, "Standard saṃjñā header must set isInternal = false.")
 
-        val alternateInternal = PvmScript.parse(
-            """
-            अन्तरङ्ग द्विगुणन + ल्युट् + सुँ ।
-            प्रथम + अम् द्वि + अम् च गण + णिच् + लोट् + सिप् ॥
-            """.trimIndent(),
-        ).single() as PvmScriptStatement.SamjnaDefinition
-        assertTrue(alternateInternal.isInternal)
-        assertEquals("द्विगुणन + ल्युट् + सुँ", alternateInternal.nameSegmented)
+        assertTrue(
+            PvmScript.parse("अन्तरङ्गा द्विगुणन + ल्युट् + सुँ ।").none {
+                it is PvmScriptStatement.SamjnaDefinition
+            },
+            "A bare अन्तरङ्गा prefix is not a grammatical procedure declaration.",
+        )
+    }
+
+    @Test
+    fun `internal prakriya is visible only to its source file`() {
+        val registry = SamjnaKriyaRegistry()
+        registry.register(
+            SamjnaKriya(
+                nameSegmented = "द्विगुणन + ल्युट् + सुँ",
+                nameStem = "द्विगुणन + ल्युट्",
+                body = listOf(PvmScriptStatement.Sentence("द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ॥")),
+                sourceFile = "library.pvm",
+                visibility = ProcedureVisibility.INTERNAL,
+            ),
+        )
+        val invocation = "द्विगुणन + ल्युट् + टा कृ + लोट् + सिप् ।"
+
+        val ukti = PaniniParser().parse(invocation)
+        assertNotNull(registry.detectInvocation(ukti, callerSourceFile = "library.pvm"))
+        assertEquals(null, registry.detectInvocation(ukti, callerSourceFile = "main.pvm"))
+        assertEquals(null, registry.detectInvocation(ukti))
     }
 
     @Test

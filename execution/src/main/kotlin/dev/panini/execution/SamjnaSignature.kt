@@ -113,10 +113,3 @@ object SamjnaValueClassifier {
         else -> SamjnaValueType.SHABDA
     }
 }
-
-enum class SamjnaPrecedence(val rank: Int) {
-    DEFAULT(0),
-    NITYA(1),
-    ANTARANGA(2),
-    APAVADA(3),
-}

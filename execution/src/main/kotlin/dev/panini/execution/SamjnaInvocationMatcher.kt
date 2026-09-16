@@ -5,7 +5,6 @@ import dev.panini.core.Vibhakti
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.Ukti
-import dev.panini.vyakaranam.parser.PaniniParser
 
 data class SamjnaInvocationShape(
     val operationStem: String,
@@ -16,14 +15,11 @@ data class SamjnaInvocationShape(
 
 /** Extracts invocation identity and grammatical roles from the parsed utterance. */
 object SamjnaInvocationMatcher {
-    private val parser = PaniniParser()
-
+    /** Matches invocation identity directly from the canonical AST. */
     fun match(
-        sentenceText: String,
+        ukti: Ukti,
         knownOperationStems: Set<String>,
-        preParsedUkti: Ukti? = null,
     ): SamjnaInvocationShape? {
-        val ukti = preParsedUkti ?: runCatching { parser.parse(sentenceText.trim()) }.getOrNull() ?: return null
         val padas = ukti.grammaticalVakyas().flatMap { it.padas }
         val verbIndex = padas.indexOfFirst { it is TingantaPada }
         if (verbIndex < 0) return null

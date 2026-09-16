@@ -18,6 +18,8 @@ import dev.panini.execution.SamjnaSignatureCompiler
 import dev.panini.execution.ExecutionPlan
 import dev.panini.execution.planning.ResolvedLeafPlanner
 import dev.panini.vyakaranam.ast.Conditional
+import dev.panini.vyakaranam.ast.ProcedureVisibility
+import dev.panini.vyakaranam.parser.PaniniParser
 import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.Pipeline
 import dev.panini.vyakaranam.ast.Procedure
@@ -72,7 +74,11 @@ internal object CompilerFrontend {
                     body = procedure.definition.body,
                     sourceFile = procedure.source.name,
                     domainStem = procedure.domain,
-                    isInternal = procedure.visibility == PaniniSymbolVisibility.INTERNAL,
+                    visibility = if (procedure.visibility == PaniniSymbolVisibility.INTERNAL) {
+                        ProcedureVisibility.INTERNAL
+                    } else {
+                        ProcedureVisibility.PUBLIC
+                    },
                     signatureOverride = procedure.signature,
                 ),
             )
@@ -296,7 +302,8 @@ internal object CompilerFrontend {
                 ?: ResolvedLeafPlanner.plansAny(source)?.flatMap(::lowerDirect)
 
         private fun lowerProcedureCall(source: String): List<CompilerInstruction>? {
-            val invocation = registry.detectInvocation(source) ?: return null
+            val ukti = PaniniParser().parseOrNull(source) ?: return null
+            val invocation = registry.detectInvocation(ukti) ?: return null
             val target = invocation.kriya.nameStem.let(methodsByStem::get) ?: return null
             val signature = invocation.kriya.signature
             val parameterNames = signature.parameters.map { it.nameStem }

@@ -11,6 +11,8 @@ import dev.panini.execution.memory.withMemoryId
 import dev.panini.execution.persistence.StateStore
 import dev.panini.execution.sutra.SutraExecutionPipeline
 import dev.panini.execution.sutra.SutraPipelineContinuation
+import dev.panini.vyakaranam.ast.Ukti
+import dev.panini.core.Karaka
 import java.util.Collections
 import java.util.WeakHashMap
 import java.util.concurrent.ConcurrentHashMap
@@ -58,6 +60,63 @@ internal class SessionRuntime(
         if (phala is Phala.Siddha && sessionKey != null) {
             persistSuccessfulTurn(sessionKey, turn.context)
             analysis?.let { rememberKriyas(sessionKey, turn.context.turnNumber, it.frames, phala) }
+        }
+        return phala.toExecutionResult("panini.eval")
+    }
+
+    /** Executes a canonical AST directly, without a render-and-reparse cycle. */
+    fun eval(
+        ukti: Ukti,
+        sessionKey: String?,
+        scope: ExecutionScope,
+        speaker: String,
+        listener: String,
+        evaluateCondition: Boolean = false,
+        injectedBindings: Map<Karaka, ExecutionExpression> = emptyMap(),
+    ): ExecutionResult {
+        val activeContext = if (sessionKey != null) {
+            sessions.getOrPut(sessionKey) {
+                store.load(sessionKey) ?: SambhashanaContext(speaker = speaker, listener = listener)
+            }
+        } else {
+            SambhashanaContext(speaker = speaker, listener = listener)
+        }
+        val input = SanskritUktiInput(
+            text = ukti.sourceText.ifBlank { ukti.body.sourceText },
+            speaker = activeContext.speaker,
+            listener = activeContext.listener,
+        )
+        val effectiveScope = effectiveScope(scope)
+        val memory = sessionKey?.let(::kriyaMemory) ?: KriyaMemory()
+        val binding = VyakaranamExecutionAdapter.bind(
+            input, ukti, activeContext, memory, effectiveScope.environment, injectedBindings,
+        )
+        val turn = when (binding) {
+            is ExecutionBindingResult.Bound -> SutraExecutionPipeline.executeTurn(
+                binding.ukti, binding.trace, activeContext, effectiveScope, memory, evaluateCondition,
+            )
+            is ExecutionBindingResult.NeedsInput -> SambhashanaTurn(
+                SanskritPrativacanaRenderer.render(
+                    Phala.Asiddha(ExecutionResult.NeedsInput(emptySet(), binding.message), emptyList()),
+                ),
+                activeContext,
+            )
+            is ExecutionBindingResult.Invalid -> SambhashanaTurn(
+                SanskritPrativacanaRenderer.render(
+                    Phala.Asiddha(
+                        ExecutionResult.Failure(ExecutionError.INVALID_VALUE, binding.message),
+                        emptyList(),
+                    ),
+                ),
+                activeContext,
+            )
+        }
+        val phala = turn.response.phala
+        if (phala is Phala.Siddha && sessionKey != null) {
+            persistSuccessfulTurn(sessionKey, turn.context)
+            VyakaranamExecutionAdapter.analyzeForMemory(ukti)?.let {
+                rememberKriyas(sessionKey, turn.context.turnNumber, it.frames, phala)
+            }
         }
         return phala.toExecutionResult("panini.eval")
     }

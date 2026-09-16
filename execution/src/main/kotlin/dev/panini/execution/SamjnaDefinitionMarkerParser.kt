@@ -15,6 +15,7 @@ import dev.panini.vyakaranam.parser.PaniniParser
 
 enum class SamjnaDefinitionQualifier {
     SAMJNA,
+    PRAKRIYA,
     APAVADA,
     NITYA,
     ANTARANGA,
@@ -106,7 +107,7 @@ object SamjnaDefinitionMarkerParser {
         return when (val base = pratipadika) {
             is MulaPratipadika -> when (base.lexicalIdentity) {
                 MulaPratipadikaIdentity.SAMJNA -> SamjnaDefinitionQualifier.SAMJNA
-                MulaPratipadikaIdentity.PRAKRIYA -> SamjnaDefinitionQualifier.SAMJNA
+                MulaPratipadikaIdentity.PRAKRIYA -> SamjnaDefinitionQualifier.PRAKRIYA
                 MulaPratipadikaIdentity.APAVADA -> SamjnaDefinitionQualifier.APAVADA
                 MulaPratipadikaIdentity.NITYA -> SamjnaDefinitionQualifier.NITYA
                 MulaPratipadikaIdentity.ANTARANGA -> SamjnaDefinitionQualifier.ANTARANGA

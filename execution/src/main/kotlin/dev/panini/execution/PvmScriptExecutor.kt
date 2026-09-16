@@ -6,12 +6,14 @@ import dev.panini.vyakaranam.ast.Conditional
 import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.Pipeline
 import dev.panini.vyakaranam.ast.Procedure
+import dev.panini.vyakaranam.ast.ProcedurePrecedence
 import dev.panini.vyakaranam.ast.ProgramNode
 import dev.panini.vyakaranam.ast.Quotation
 import dev.panini.vyakaranam.ast.Repeat
 import dev.panini.vyakaranam.ast.Scope
 import dev.panini.vyakaranam.ast.Sequence
 import dev.panini.vyakaranam.ast.WhileLoop
+import dev.panini.vyakaranam.ast.Ukti
 import java.io.File
 
 /** Executes PVM scripts and projects behind the stable [PaniniVM] facade. */
@@ -50,7 +52,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         )
         val structStore = mutableMapOf<String, TaddhitaStruct>()
         val structSchemas = mutableMapOf<String, TaddhitaStructSchema>()
-        val context = ProgramExecutionContext(
+        val context = ExecutionContext(
             effectiveSessionKey, effectiveScope, speaker, listener, registry, sourceFile,
             structStore, structSchemas, onResult,
         )
@@ -71,17 +73,15 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 }
                 constructedStruct != null -> structStore[constructedStruct.nameStem] = constructedStruct
                 attributePipeline != null -> executeAttributePipeline(
-                    attributePipeline, structStore, effectiveSessionKey, effectiveScope,
-                    speaker, listener, registry, sourceFile, onResult,
+                    attributePipeline,
+                    context,
                 ).also(results::addAll)
                 attributeAccess != null -> resolveNestedAttribute(attributeAccess, structStore).let {
                     results += it
                     onResult?.invoke(it)
                 }
                 conditional != null && containsAttributeCondition(conditional) -> {
-                    val result = executeAttributeConditional(
-                        conditional, structStore, effectiveSessionKey, effectiveScope, speaker, listener,
-                    )
+                    val result = executeAttributeConditional(conditional, context)
                     results += result
                     onResult?.invoke(result)
                 }
@@ -90,39 +90,16 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                     context.copy(sourceTextOverride = statement.text),
                 ).also(results::addAll)
                 else -> {
-                    val invocation = registry.detectInvocation(
+                    val result = vm.eval(
                         statement.text,
-                        callerSourceFile = sourceFile,
-                        preParsedUkti = statement.ukti,
+                        effectiveSessionKey,
+                        effectiveScope,
+                        speaker,
+                        listener,
+                        isExecutingScript = true,
                     )
-                    if (invocation != null) {
-                        val invocationResults = executeSamjnaInvocation(
-                            invocation,
-                            effectiveSessionKey,
-                            effectiveScope,
-                            speaker,
-                            listener,
-                            registry,
-                            callerSourceFile = sourceFile,
-                            onResult = onResult,
-                        )
-                        results += if (invocationResults.any { it is ExecutionResult.Success }) {
-                            invocationResults.filterIsInstance<ExecutionResult.Success>()
-                        } else {
-                            invocationResults
-                        }
-                    } else {
-                        val result = vm.eval(
-                            statement.text,
-                            effectiveSessionKey,
-                            effectiveScope,
-                            speaker,
-                            listener,
-                            isExecutingScript = true,
-                        )
-                        results += result
-                        onResult?.invoke(result)
-                    }
+                    results += result
+                    onResult?.invoke(result)
                 }
             }
         }
@@ -132,7 +109,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
     /** The single recursive execution boundary for every parsed executable node. */
     private fun executeProgramNode(
         node: ProgramNode,
-        context: ProgramExecutionContext,
+        context: ExecutionContext,
     ): List<ExecutionResult> = when (node) {
         is Invocation -> executeInvocationNode(node, context)
         is Sequence -> executeSequenceNode(node, context)
@@ -144,11 +121,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 if (produced.hasBreakSignal()) return@buildList
             }
         }
-        is WhileLoop -> executeWhileLoop(
-            node, context.sessionKey, context.scope, context.speaker, context.listener,
-            context.registry, context.sourceFile, context.structStore, context.structSchemas,
-            context.onResult,
-        )
+        is WhileLoop -> executeWhileLoop(node, context)
         is Pipeline -> PurvaparaPipelineEngine.executePipeline(
             node, vm, context.sessionKey, context.scope, context.speaker, context.listener,
             context.registry, callerSourceFile = context.sourceFile,
@@ -164,28 +137,30 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
 
     private fun executeEvaluatorNode(
         node: ProgramNode,
-        context: ProgramExecutionContext,
+        context: ExecutionContext,
     ): List<ExecutionResult> = listOf(
-        vm.eval(
-            context.sourceTextOverride?.trim()?.let {
-                it.trimEnd('।', '॥').trim() + " ।"
-            } ?: (renderProgramSegmented(node) + " ।"),
+        vm.evalParsed(
+            Ukti(
+                sourceText = context.sourceTextOverride ?: node.sourceText,
+                body = node,
+            ),
             context.sessionKey,
             context.scope,
             context.speaker,
             context.listener,
-            isExecutingScript = true,
+            evaluateCondition = context.conditionEvaluation,
         ),
     ).also { produced -> produced.forEach { context.onResult?.invoke(it) } }
 
     private fun executeSequenceNode(
         node: Sequence,
-        context: ProgramExecutionContext,
+        context: ExecutionContext,
     ): List<ExecutionResult> {
         val hasNamedStage = node.statements.drop(1).any { stage ->
             stage is Invocation && context.registry.detectInvocation(
-                renderInvocation(stage, pipedKarman = PIPE_OPERAND),
+                Ukti(sourceText = stage.sourceText, body = stage),
                 callerSourceFile = context.sourceFile,
+                injectedKarman = PIPE_OPERAND to null,
             ) != null
         }
         val startsWithImplicitValue = (node.statements.firstOrNull() as? Invocation)?.implicitValue != null
@@ -219,6 +194,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                     context.copy(
                         scope = stageScope,
                         sourceTextOverride = renderInvocation(invocation, pipedKarman = operand),
+                        injectedKarman = operand to pipedValue,
                     ),
                 )
             } else {
@@ -233,40 +209,45 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
 
     private fun executeInvocationNode(
         node: Invocation,
-        context: ProgramExecutionContext,
+        context: ExecutionContext,
     ): List<ExecutionResult> {
         val text = context.sourceTextOverride?.trim()?.let {
             it.trimEnd('।', '॥').trim() + " ।"
         } ?: renderInvocation(node)
-        val invocation = context.registry.detectInvocation(text, callerSourceFile = context.sourceFile)
+        val parsedUkti = Ukti(sourceText = text, body = node)
+        val invocation = context.registry.detectInvocation(
+            parsedUkti,
+            callerSourceFile = context.sourceFile,
+            injectedKarman = context.injectedKarman,
+        )
         return if (invocation != null) {
             executeSamjnaInvocation(
-                invocation, context.sessionKey, context.scope, context.speaker, context.listener,
-                context.registry, callerSourceFile = context.sourceFile, onResult = context.onResult,
+                invocation,
+                context,
             )
         } else {
             listOf(
-                if (context.conditionEvaluation) {
-                    vm.evalCondition(text, context.sessionKey, context.scope, context.speaker, context.listener)
-                } else {
-                    vm.eval(
-                        text, context.sessionKey, context.scope, context.speaker, context.listener,
-                        isExecutingScript = true,
-                    )
-                },
+                vm.evalParsed(
+                    parsedUkti,
+                    context.sessionKey,
+                    context.scope,
+                    context.speaker,
+                    context.listener,
+                    evaluateCondition = context.conditionEvaluation,
+                    injectedBindings = context.injectedKarman?.let { (reference, _) ->
+                        mapOf(dev.panini.core.Karaka.KARMAN to ExecutionExpression.Reference(reference))
+                    }.orEmpty(),
+                ),
             ).also { produced -> produced.forEach { context.onResult?.invoke(it) } }
         }
     }
 
     private fun executeConditionalNode(
         node: Conditional,
-        context: ProgramExecutionContext,
+        context: ExecutionContext,
     ): List<ExecutionResult> {
         if (containsAttributeCondition(node)) {
-            val result = executeAttributeConditional(
-                node, context.structStore, context.sessionKey, context.scope,
-                context.speaker, context.listener,
-            )
+            val result = executeAttributeConditional(node, context)
             context.onResult?.invoke(result)
             return listOf(result)
         }
@@ -295,7 +276,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         it is ExecutionResult.Success && it.controlSignal == ExecutionControlSignal.BREAK_LOOP
     }
 
-    private data class ProgramExecutionContext(
+    private data class ExecutionContext(
         val sessionKey: String,
         val scope: ExecutionScope,
         val speaker: String,
@@ -307,6 +288,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         val onResult: ((ExecutionResult) -> Unit)?,
         val sourceTextOverride: String? = null,
         val conditionEvaluation: Boolean = false,
+        val injectedKarman: Pair<String, SanskritValue?>? = null,
     )
 
     private fun containsAttributeCondition(
@@ -318,25 +300,22 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
 
     private fun executeAttributeConditional(
         conditional: dev.panini.vyakaranam.ast.Conditional,
-        structStore: Map<String, TaddhitaStruct>,
-        sessionKey: String,
-        scope: ExecutionScope,
-        speaker: String,
-        listener: String,
+        context: ExecutionContext,
     ): ExecutionResult {
         val operandValues = linkedMapOf<String, SanskritValue>()
-        val resolved = resolveAttributeConditions(conditional, structStore, operandValues)
+        val resolved = resolveAttributeConditions(conditional, context.structStore, operandValues)
             ?: return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
                 "A structured attribute used by the condition could not be resolved.",
             )
-        return vm.eval(
-            renderConditionalSegmented(resolved) + " ।",
-            sessionKey,
-            scope.copy(environment = scope.environment.mergedWith(ValueEnvironment(operandValues))),
-            speaker,
-            listener,
-            isExecutingScript = true,
+        return vm.evalParsed(
+            Ukti(sourceText = resolved.sourceText, body = resolved),
+            context.sessionKey,
+            context.scope.copy(
+                environment = context.scope.environment.mergedWith(ValueEnvironment(operandValues)),
+            ),
+            context.speaker,
+            context.listener,
         )
     }
 
@@ -432,15 +411,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
 
     private fun executeWhileLoop(
         loop: WhileLoop,
-        sessionKey: String,
-        scope: ExecutionScope,
-        speaker: String,
-        listener: String,
-        registry: SamjnaKriyaRegistry,
-        sourceFile: String?,
-        structStore: MutableMap<String, TaddhitaStruct>,
-        structSchemas: Map<String, TaddhitaStructSchema>,
-        onResult: ((ExecutionResult) -> Unit)?,
+        context: ExecutionContext,
     ): List<ExecutionResult> {
         val results = mutableListOf<ExecutionResult>()
         val grammaticalBound = if (loop.maximumIterationStems.isEmpty()) {
@@ -478,14 +449,14 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 "अवस्था" to outcome.sanskritName,
                 "प्रयत्नसङ्ख्या" to attemptWord,
             )
-            val schema = structSchemas[LOOP_RESULT_NAME]
+            val schema = context.structSchemas[LOOP_RESULT_NAME]
             if (schema != null && schema.fields.toSet() != attributes.keys) {
                 return results + ExecutionResult.Failure(
                     ExecutionError.INVALID_VALUE,
                     "The परिणाम schema requires ${schema.fields}, but the loop produced ${attributes.keys}.",
                 )
             }
-            structStore[LOOP_RESULT_NAME] = TaddhitaStruct(
+            context.structStore[LOOP_RESULT_NAME] = TaddhitaStruct(
                 nameStem = LOOP_RESULT_NAME,
                 attributes = attributes,
                 typedAttributes = mapOf(
@@ -508,11 +479,11 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 iterationCount = iterationCount,
             )
             results += completion
-            onResult?.invoke(completion)
+            context.onResult?.invoke(completion)
 
             val target = loop.resultTarget ?: return results
-            val targetScope = scope.copy(
-                environment = scope.environment.mergedWith(
+            val targetScope = context.scope.copy(
+                environment = context.scope.environment.mergedWith(
                     ValueEnvironment(
                         mapOf(
                             "फल" to outcomeValue,
@@ -524,10 +495,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             )
             val targetResults = executeProgramNode(
                 target,
-                ProgramExecutionContext(
-                    sessionKey, targetScope, speaker, listener, registry, sourceFile,
-                    structStore, structSchemas, onResult,
-                ),
+                context.copy(scope = targetScope, sourceTextOverride = null),
             )
             results += targetResults
             return results
@@ -544,17 +512,20 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 if (isNegated) !latestConditionValue else latestConditionValue
             } else {
                 val operandValues = linkedMapOf<String, SanskritValue>()
-                val resolvedCondition = replaceAttributeReference(loop.condition, structStore, operandValues)
+                val resolvedCondition = replaceAttributeReference(loop.condition, context.structStore, operandValues)
                     ?: return results + ExecutionResult.Failure(
                         ExecutionError.INVALID_VALUE,
                         "A structured attribute used by the loop condition could not be resolved.",
                     )
-                val conditionResult = vm.evalCondition(
-                    renderInvocation(resolvedCondition),
-                    sessionKey,
-                    scope.copy(environment = scope.environment.mergedWith(ValueEnvironment(operandValues))),
-                    speaker,
-                    listener,
+                val conditionResult = vm.evalParsed(
+                    Ukti(sourceText = resolvedCondition.sourceText, body = resolvedCondition),
+                    sessionKey = context.sessionKey,
+                    scope = context.scope.copy(
+                        environment = context.scope.environment.mergedWith(ValueEnvironment(operandValues)),
+                    ),
+                    speaker = context.speaker,
+                    listener = context.listener,
+                    evaluateCondition = true,
                 )
                 val success = conditionResult as? ExecutionResult.Success
                 (success?.conditionValue ?: (success?.typedValue as? SanskritValue.Satya)?.boolean) == true
@@ -563,9 +534,8 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
 
             val iterationResults = executeProgramNode(
                 loop.body,
-                ProgramExecutionContext(
-                    sessionKey, scope, speaker, listener, registry, sourceFile,
-                    structStore, structSchemas, onResult,
+                context.copy(
+                    sourceTextOverride = null,
                     conditionEvaluation = usesLatestResult,
                 ),
             )
@@ -599,10 +569,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         if (exhausted != null) {
             val exhaustedResults = executeProgramNode(
                 exhausted,
-                ProgramExecutionContext(
-                    sessionKey, scope, speaker, listener, registry, sourceFile,
-                    structStore, structSchemas, onResult,
-                ),
+                context.copy(sourceTextOverride = null),
             )
             results += exhaustedResults
         }
@@ -708,7 +675,32 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         registry: SamjnaKriyaRegistry,
         callerSourceFile: String? = null,
         onResult: ((ExecutionResult) -> Unit)? = null,
+    ): List<ExecutionResult> = executeSamjnaInvocation(
+        invocation,
+        ExecutionContext(
+            sessionKey = sessionKey,
+            scope = scope,
+            speaker = speaker,
+            listener = listener,
+            registry = registry,
+            sourceFile = callerSourceFile,
+            structStore = mutableMapOf(),
+            structSchemas = emptyMap(),
+            onResult = onResult,
+        ),
+    )
+
+    private fun executeSamjnaInvocation(
+        invocation: SamjnaInvocation,
+        context: ExecutionContext,
     ): List<ExecutionResult> {
+        val sessionKey = context.sessionKey
+        val scope = context.scope
+        val speaker = context.speaker
+        val listener = context.listener
+        val registry = context.registry
+        val callerSourceFile = context.sourceFile
+        val onResult = context.onResult
         val results = mutableListOf<ExecutionResult>()
         val signature = invocation.kriya.signature
         val argumentResolution = NamedSamjnaArgumentResolver.resolve(invocation.karmaText, signature)
@@ -796,9 +788,13 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 results += if (parsedProgram != null) {
                     executeProgramNode(
                         parsedProgram,
-                        ProgramExecutionContext(
-                            sessionKey, childScope, speaker, listener, registry, kriyaSourceFile,
-                            mutableMapOf(), emptyMap(), onResult, sentenceText,
+                        context.copy(
+                            scope = childScope,
+                            sourceFile = kriyaSourceFile,
+                            structStore = mutableMapOf(),
+                            structSchemas = emptyMap(),
+                            sourceTextOverride = sentenceText,
+                            injectedKarman = null,
                         ),
                     )
                 } else {
@@ -866,10 +862,12 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 body = definition.body,
                 sourceFile = sourceFile,
                 domainStem = procedure.domain ?: deriveDomainStem(procedure.name) ?: fallbackDomainStem,
-                isApavada = procedure.modifiers.isApavada,
-                isAntaranga = includeExecutionModifiers && procedure.modifiers.isAntaranga,
-                isNitya = includeExecutionModifiers && procedure.modifiers.isNitya,
-                isInternal = procedure.modifiers.isInternal,
+                visibility = procedure.modifiers.visibility,
+                precedence = if (includeExecutionModifiers) {
+                    procedure.modifiers.precedence
+                } else {
+                    ProcedurePrecedence.DEFAULT
+                },
             ),
         )
     }
@@ -950,35 +948,28 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
 
     private fun executeAttributePipeline(
         pipeline: AttributePipeline,
-        structStore: Map<String, TaddhitaStruct>,
-        sessionKey: String,
-        scope: ExecutionScope,
-        speaker: String,
-        listener: String,
-        registry: SamjnaKriyaRegistry,
-        sourceFile: String?,
-        onResult: ((ExecutionResult) -> Unit)?,
+        context: ExecutionContext,
     ): List<ExecutionResult> {
-        val source = resolveNestedAttribute(pipeline.access, structStore, inflectResult = true)
+        val source = resolveNestedAttribute(pipeline.access, context.structStore, inflectResult = true)
         if (source !is ExecutionResult.Success) return listOf(source)
         var pipedValue = source.typedValue ?: return listOf(source)
         val results = mutableListOf<ExecutionResult>(source)
         for (target in pipeline.targets) {
-            val targetScope = scope.copy(
-                environment = scope.environment.mergedWith(
+            val targetScope = context.scope.copy(
+                environment = context.scope.environment.mergedWith(
                     ValueEnvironment(mapOf(PIPE_OPERAND to pipedValue)),
                 ),
             )
-            val targetText = renderInvocation(target, pipedKarman = PIPE_OPERAND)
-            val invocation = registry.detectInvocation(targetText, callerSourceFile = sourceFile)
-            val executedResults = if (invocation != null) {
-                executeSamjnaInvocation(
-                    invocation, sessionKey, targetScope, speaker, listener, registry,
-                    callerSourceFile = sourceFile, onResult = null,
-                )
-            } else {
-                listOf(vm.eval(targetText, sessionKey, targetScope, speaker, listener, isExecutingScript = true))
-            }
+            val targetText = renderInvocation(target)
+            val executedResults = executeInvocationNode(
+                target,
+                context.copy(
+                    scope = targetScope,
+                    onResult = null,
+                    sourceTextOverride = targetText,
+                    injectedKarman = PIPE_OPERAND to pipedValue,
+                ),
+            )
             val targetResults = executedResults.map { result ->
                 if (result is ExecutionResult.Success && result.outputKind == OutputKind.CONSOLE) {
                     result.copy(typedValue = pipedValue)
@@ -987,7 +978,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 }
             }
             results += targetResults
-            targetResults.forEach { onResult?.invoke(it) }
+            targetResults.forEach { context.onResult?.invoke(it) }
             if (targetResults.any { it !is ExecutionResult.Success }) break
             pipedValue = targetResults.filterIsInstance<ExecutionResult.Success>()
                 .lastOrNull()?.typedValue ?: pipedValue

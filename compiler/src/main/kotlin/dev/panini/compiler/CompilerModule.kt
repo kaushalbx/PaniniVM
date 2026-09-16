@@ -202,7 +202,7 @@ internal object PaniniModuleAnalyzer {
                 AnalyzedProcedure(
                     source, definition, symbol, CompilerSymbols.localStem(symbol), domain,
                     signature,
-                    if (definition.procedure.modifiers.isInternal) PaniniSymbolVisibility.INTERNAL else PaniniSymbolVisibility.PUBLIC,
+                    if (definition.isInternal) PaniniSymbolVisibility.INTERNAL else PaniniSymbolVisibility.PUBLIC,
                     "samjna_${stableMethodSuffix(source.name, domain, symbol, signature, definition)}",
                 )
             }

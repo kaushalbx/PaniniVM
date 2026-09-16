@@ -60,10 +60,8 @@ object SamjnaScriptValidator {
                 nameStem = SamjnaKriyaRegistry.stripSupSuffix(definition.nameSegmented),
                 body = definition.body,
                 domainStem = definition.domainStem,
-                isInternal = definition.isInternal,
-                isApavada = definition.isApavada,
-                isAntaranga = definition.isAntaranga,
-                isNitya = definition.isNitya,
+                visibility = definition.procedure.modifiers.visibility,
+                precedence = definition.procedure.modifiers.precedence,
             )
             registry.register(kriya)
         }
@@ -73,7 +71,7 @@ object SamjnaScriptValidator {
             if (pipeline != null) {
                 validatePipeline(source, pipeline, registry, diagnostics)
             } else {
-                registry.detectInvocation(sentence.text, preParsedUkti = sentence.ukti)?.let { invocation ->
+                sentence.ukti?.let(registry::detectInvocation)?.let { invocation ->
                     validateCall(source, invocation, diagnostics)
                 }
             }

@@ -85,6 +85,13 @@ object VyakaranamExecutionAdapter {
         return analyze(ukti)
     }
 
+    internal fun analyzeForMemory(ukti: Ukti): UktiAnalysis? {
+        if (ukti.grammaticalVakyas().filterIsInstance<AkhyataVakya>().any { DhatuCache.resolve(it.tinganta) == null }) {
+            return null
+        }
+        return analyze(ukti)
+    }
+
     private fun analyze(ukti: Ukti): UktiAnalysis = UktiAnalyzer { vakya, frameId ->
         val akhyata = vakya as? AkhyataVakya
         if (akhyata == null) {
@@ -146,6 +153,19 @@ object VyakaranamExecutionAdapter {
         } catch (e: PaniniParseException) {
             return ExecutionBindingResult.Invalid(e.message ?: "Invalid annotated Sanskrit morphology.")
         }
+        return bind(input, ukti, conversation, memory, environment)
+    }
+
+    /** Binds an already parsed utterance without serializing and reparsing its AST. */
+    fun bind(
+        input: SanskritUktiInput,
+        ukti: Ukti,
+        conversation: SambhashanaContext,
+        memory: KriyaMemory = KriyaMemory(),
+        environment: ValueEnvironment = ValueEnvironment(),
+        injectedBindings: Map<Karaka, ExecutionExpression> = emptyMap(),
+    ): ExecutionBindingResult {
+        if (input.text.isBlank()) return ExecutionBindingResult.Invalid("The Sanskrit utterance is empty.")
         val executableUkti = normalizeFrequencyAst(ukti)
         val quotations = quotationBindings(executableUkti.body)
 
@@ -229,6 +249,7 @@ object VyakaranamExecutionAdapter {
                 prayer = prayer,
                 pipelineKarmanSource = pipelineKarmanSources[index + 1],
                 quotedVakya = quotations[vakya],
+                injectedBindings = injectedBindings,
             )
             invocations += invocation
             val bindingKaraka = dhatu.operations.firstOrNull { it.resultBindingKaraka != null }?.resultBindingKaraka
@@ -309,6 +330,7 @@ object VyakaranamExecutionAdapter {
         prayer: Boolean,
         pipelineKarmanSource: Int?,
         quotedVakya: Vakya?,
+        injectedBindings: Map<Karaka, ExecutionExpression> = emptyMap(),
     ): DhatuInvocation {
         val extracted = KarakaExtractor.extractKarakas(padas, ctx)
         val bindings = extracted.bindings.toMutableMap()
@@ -316,6 +338,11 @@ object VyakaranamExecutionAdapter {
             bindQuotation(quotedVakya, ctx).forEach { (karaka, expression) ->
                 bindings.putIfAbsent(karaka, expression)
             }
+        }
+        injectedBindings.forEach { (karaka, expression) ->
+            bindings[karaka] = bindings[karaka]?.let { written ->
+                ExecutionExpression.Coordination(listOf(expression, written))
+            } ?: expression
         }
         if (pipelineKarmanSource != null && Karaka.KARMAN !in bindings) {
             bindings[Karaka.KARMAN] = ExecutionExpression.Reference(

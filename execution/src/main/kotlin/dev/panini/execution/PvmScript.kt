@@ -2,9 +2,10 @@ package dev.panini.execution
 
 import dev.panini.execution.binding.NumeralAstNormalizer
 import dev.panini.execution.binding.VyakaranamExecutionAdapter
-import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
 import dev.panini.vyakaranam.ast.Procedure
 import dev.panini.vyakaranam.ast.ProcedureModifiers
+import dev.panini.vyakaranam.ast.ProcedurePrecedence
+import dev.panini.vyakaranam.ast.ProcedureVisibility
 import dev.panini.vyakaranam.ast.ProgramNode
 import dev.panini.vyakaranam.ast.Scope
 
@@ -37,10 +38,10 @@ sealed interface PvmScriptStatement {
         override val text: String get() = procedure.sourceText
         val nameSegmented: String get() = procedure.name
         val domainStem: String? get() = procedure.domain
-        val isInternal: Boolean get() = procedure.modifiers.isInternal
-        val isApavada: Boolean get() = procedure.modifiers.isApavada
-        val isAntaranga: Boolean get() = procedure.modifiers.isAntaranga
-        val isNitya: Boolean get() = procedure.modifiers.isNitya
+        val isInternal: Boolean get() = procedure.modifiers.visibility == ProcedureVisibility.INTERNAL
+        val isApavada: Boolean get() = procedure.modifiers.precedence == ProcedurePrecedence.APAVADA
+        val isAntaranga: Boolean get() = procedure.modifiers.precedence == ProcedurePrecedence.ANTARANGA
+        val isNitya: Boolean get() = procedure.modifiers.precedence == ProcedurePrecedence.NITYA
     }
 
     /**
@@ -218,13 +219,21 @@ object PvmScript {
         body: List<PvmScriptStatement.Sentence>,
         blockText: List<String>,
     ): PvmScriptStatement.SamjnaDefinition {
-        val internalHeader = splitInternalHeader(header)
-        val rawName = internalHeader.nominalSource
-        val parsed = SamjnaDefinitionMarkerParser.qualifiers(rawName)
-        val declarationSource = parsed?.declarationSource ?: rawName
+        val parsed = SamjnaDefinitionMarkerParser.qualifiers(header)
+        val declarationSource = parsed?.declarationSource ?: header
         val methodHeader = TaddhitaStructEngine.detectMethodHeader(declarationSource)
         val cleanName = methodHeader?.second ?: declarationSource
         val qualifiers = parsed?.qualifiers.orEmpty()
+        val isInternalProcedure =
+            SamjnaDefinitionQualifier.PRAKRIYA in qualifiers &&
+                SamjnaDefinitionQualifier.ANTARANGA in qualifiers
+        val precedence = when {
+            SamjnaDefinitionQualifier.APAVADA in qualifiers -> ProcedurePrecedence.APAVADA
+            SamjnaDefinitionQualifier.NITYA in qualifiers -> ProcedurePrecedence.NITYA
+            SamjnaDefinitionQualifier.ANTARANGA in qualifiers && !isInternalProcedure ->
+                ProcedurePrecedence.ANTARANGA
+            else -> ProcedurePrecedence.DEFAULT
+        }
         return PvmScriptStatement.SamjnaDefinition(
             procedure = Procedure(
                 sourceText = blockText.joinToString("\n"),
@@ -232,10 +241,12 @@ object PvmScript {
                 domain = methodHeader?.first,
                 body = body.mapNotNull(PvmScriptStatement.Sentence::program),
                 modifiers = ProcedureModifiers(
-                    isInternal = internalHeader.isInternal,
-                    isApavada = SamjnaDefinitionQualifier.APAVADA in qualifiers,
-                    isAntaranga = SamjnaDefinitionQualifier.ANTARANGA in qualifiers,
-                    isNitya = SamjnaDefinitionQualifier.NITYA in qualifiers,
+                    visibility = if (isInternalProcedure) {
+                        ProcedureVisibility.INTERNAL
+                    } else {
+                        ProcedureVisibility.PUBLIC
+                    },
+                    precedence = precedence,
                 ),
             ),
             body = body,
@@ -252,12 +263,12 @@ object PvmScript {
         val trimmed = line.trim()
         if (trimmed.isEmpty() || isAdhikaraLine(trimmed) || isRangeDefinitionLine(trimmed)) return null
 
-        SamjnaDefinitionMarkerParser.headerPrefix(trimmed)?.let { return it }
+        // Preserve the complete grammatical declaration so its AST qualifiers
+        // remain available when the Procedure node is constructed.
+        SamjnaDefinitionMarkerParser.headerPrefix(trimmed)?.let { return trimmed }
 
-        val internalHeader = splitInternalHeader(trimmed)
-        val nominalSource = internalHeader.nominalSource
-        if (SamjnaHeaderIdentityParser.parse(nominalSource) == null) return null
-        val ukti = parser.parseOrNull(nominalSource.trimEnd('।', '॥', ' ')) ?: return null
+        if (SamjnaHeaderIdentityParser.parse(trimmed) == null) return null
+        val ukti = parser.parseOrNull(trimmed.trimEnd('।', '॥', ' ')) ?: return null
         if (ukti.grammaticalVakyas().flatMap { it.padas }
                 .any { it is dev.panini.vyakaranam.ast.TingantaPada }
         ) {
@@ -270,8 +281,7 @@ object PvmScript {
                     dev.panini.core.Vibhakti.DVITIYA
             }
         if (hasAccusative) return null
-        val normalized = nominalSource.trimEnd('।', '॥', ' ').trim()
-        return if (internalHeader.isInternal) "${internalHeader.marker} $normalized" else normalized
+        return trimmed.trimEnd('।', '॥', ' ').trim()
     }
 
     private fun stripComment(line: String): String {
@@ -286,25 +296,6 @@ object PvmScript {
     }
 
     private val parser = dev.panini.vyakaranam.parser.PaniniParser()
-
-    private data class InternalHeader(
-        val marker: String? = null,
-        val nominalSource: String,
-    ) {
-        val isInternal: Boolean get() = marker != null
-    }
-
-    private fun splitInternalHeader(header: String): InternalHeader {
-        val separator = header.indexOf(' ')
-        if (separator <= 0) return InternalHeader(nominalSource = header.trim())
-        val marker = header.substring(0, separator)
-        val isInternal = MulaPratipadikaIdentity.fromText(marker) == MulaPratipadikaIdentity.ANTARANGA
-        return if (isInternal) {
-            InternalHeader(marker, header.substring(separator + 1).trim())
-        } else {
-            InternalHeader(nominalSource = header.trim())
-        }
-    }
 
     private fun parseSentences(joinedText: String): List<PvmScriptStatement.Sentence> {
         if (joinedText.isBlank()) return emptyList()

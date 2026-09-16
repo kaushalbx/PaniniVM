@@ -2,6 +2,8 @@ package dev.panini.execution
 
 import dev.panini.core.SupAffix
 import dev.panini.vyakaranam.ast.KrtPratyayaIdentity
+import dev.panini.vyakaranam.ast.ProcedurePrecedence
+import dev.panini.vyakaranam.ast.ProcedureVisibility
 
 /**
  * A user-defined reusable kriyā, named via the संज्ञा-सूत्र pattern.
@@ -12,10 +14,8 @@ data class SamjnaKriya(
     val body: List<PvmScriptStatement.Sentence>,
     val sourceFile: String? = null,
     val domainStem: String? = null,
-    val isApavada: Boolean = false,
-    val isAntaranga: Boolean = false,
-    val isNitya: Boolean = false,
-    val isInternal: Boolean = false,
+    val visibility: ProcedureVisibility = ProcedureVisibility.PUBLIC,
+    val precedence: ProcedurePrecedence = ProcedurePrecedence.DEFAULT,
     val signatureOverride: SamjnaSignature? = null,
     val isMemoized: Boolean = SamjnaHeaderIdentityParser.hasOperationKrtPratyayaIdentity(
         nameSegmented,
@@ -24,12 +24,7 @@ data class SamjnaKriya(
 ) {
     val signature: SamjnaSignature by lazy { signatureOverride ?: SamjnaSignatureCompiler.compile(body) }
 
-    val precedence: SamjnaPrecedence get() = when {
-        isApavada -> SamjnaPrecedence.APAVADA
-        isAntaranga -> SamjnaPrecedence.ANTARANGA
-        isNitya -> SamjnaPrecedence.NITYA
-        else -> SamjnaPrecedence.DEFAULT
-    }
+    val isInternal: Boolean get() = visibility == ProcedureVisibility.INTERNAL
 
     val nishedhaGuards: List<PvmScriptStatement.Sentence> = body.filter { it.isNishedha }
     val vidhiSentences: List<PvmScriptStatement.Sentence> = body.filterNot {
@@ -75,7 +70,7 @@ class SamjnaKriyaRegistry {
     fun resolve(stem: String, callerSourceFile: String? = null): SamjnaKriya? {
         val list = registry[stem] ?: return null
         val kriya = list.lastOrNull() ?: return null
-        if (kriya.isInternal && callerSourceFile != null && kriya.sourceFile != null && callerSourceFile != kriya.sourceFile) {
+        if (kriya.isInternal && kriya.sourceFile != null && callerSourceFile != kriya.sourceFile) {
             return null // File-private saṃjñā hidden from external caller
         }
         return kriya
@@ -103,9 +98,7 @@ class SamjnaKriyaRegistry {
                 SamjnaInvocationMatcher.normalizeIdentity(it.nameStem) == normalizedOperation &&
                     domainMatches(it.domainStem, domainStem)
             }
-            .filterNot {
-                it.isInternal && callerSourceFile != null && it.sourceFile != null && callerSourceFile != it.sourceFile
-            }
+            .filterNot { it.isInternal && it.sourceFile != null && callerSourceFile != it.sourceFile }
             .sortedWith(
                 compareByDescending<SamjnaKriya> { it.precedence.rank }
                     .thenByDescending { AntaratamaOverloadEngine.match(it.signature, argumentTerms).rank },
@@ -116,53 +109,47 @@ class SamjnaKriyaRegistry {
         return SamjnaInvocation(kriya, karmaText, sourceText, argumentValues = argumentValues)
     }
 
-    fun detectInvocation(sentenceText: String, callerSourceFile: String? = null, preParsedUkti: dev.panini.vyakaranam.ast.Ukti? = null): SamjnaInvocation? {
+    /** Detects a reusable procedure from a parsed invocation without reparsing rendered text. */
+    fun detectInvocation(
+        ukti: dev.panini.vyakaranam.ast.Ukti,
+        callerSourceFile: String? = null,
+        injectedKarman: Pair<String, SanskritValue?>? = null,
+    ): SamjnaInvocation? {
         if (registry.isEmpty()) return null
-
-        val isAntaranga = AntarangaScopeEngine.detectAntaranga(sentenceText, preParsedUkti)
-        val textToProcess = if (isAntaranga) {
-            AntarangaScopeEngine.stripAntarangaDirective(sentenceText, preParsedUkti)
-        } else {
-            sentenceText
-        }
 
         val allKriyas = registry.values.flatten().distinctBy { System.identityHashCode(it) }
         val knownStems = allKriyas.mapTo(mutableSetOf()) {
             SamjnaInvocationMatcher.normalizeIdentity(it.nameStem)
         }
-        val invocationShape = SamjnaInvocationMatcher.match(
-            textToProcess,
-            knownStems,
-            preParsedUkti.takeUnless { isAntaranga },
-        )
-        val karmaText = invocationShape?.karmaText ?: textToProcess
-        val argTerms = SubantaKarakaParser.extractKarmaTerms(karmaText, invocationShape?.ukti)
-
+        val shape = SamjnaInvocationMatcher.match(ukti, knownStems) ?: return null
+        val injectedText = injectedKarman?.first?.let { "$it + अम्" }.orEmpty()
+        val karmaText = listOf(injectedText, shape.karmaText)
+            .filter(String::isNotBlank)
+            .joinToString(" ")
+        val writtenTerms = SubantaKarakaParser.extractKarmaTerms(shape.karmaText, shape.ukti)
+        val argumentTerms = listOfNotNull(injectedKarman?.first) + writtenTerms
         val candidates = allKriyas.sortedWith(
             compareByDescending<SamjnaKriya> { it.precedence.rank }
                 .thenByDescending {
                     val resolved = NamedSamjnaArgumentResolver.resolve(karmaText, it.signature)
-                    val ordered = (resolved as? SamjnaArgumentResolution.Success)?.terms ?: argTerms
+                    val ordered = (resolved as? SamjnaArgumentResolution.Success)?.terms ?: argumentTerms
                     AntaratamaOverloadEngine.match(it.signature, ordered).rank
                 },
         )
-        if (invocationShape != null) {
-            candidates.firstOrNull { kriya ->
-                SamjnaInvocationMatcher.normalizeIdentity(kriya.nameStem) == invocationShape.operationStem &&
-                    domainMatches(kriya.domainStem, invocationShape.domainStem)
-            }?.let { kriya ->
-                if (!kriya.isInternal || callerSourceFile == null || kriya.sourceFile == null || callerSourceFile == kriya.sourceFile) {
-                    return SamjnaInvocation(
-                        kriya = kriya,
-                        karmaText = invocationShape.karmaText,
-                        fullText = sentenceText,
-                        ukti = invocationShape.ukti,
-                    )
-                }
-            }
-        }
-
-        return null
+        val kriya = candidates.firstOrNull { candidate ->
+            SamjnaInvocationMatcher.normalizeIdentity(candidate.nameStem) == shape.operationStem &&
+                domainMatches(candidate.domainStem, shape.domainStem) &&
+                (!candidate.isInternal || candidate.sourceFile == null || callerSourceFile == candidate.sourceFile)
+        } ?: return null
+        return SamjnaInvocation(
+            kriya = kriya,
+            karmaText = karmaText,
+            fullText = ukti.sourceText,
+            ukti = ukti,
+            argumentValues =
+                (if (injectedKarman != null) listOf(injectedKarman.second) else emptyList()) +
+                    List(writtenTerms.size) { null },
+        )
     }
 
     private fun domainMatches(expected: String?, actual: String?): Boolean {
@@ -195,3 +182,11 @@ data class SamjnaInvocation(
     val ukti: dev.panini.vyakaranam.ast.Ukti? = null,
     val argumentValues: List<SanskritValue?> = emptyList(),
 )
+
+private val ProcedurePrecedence.rank: Int
+    get() = when (this) {
+        ProcedurePrecedence.DEFAULT -> 0
+        ProcedurePrecedence.NITYA -> 1
+        ProcedurePrecedence.ANTARANGA -> 2
+        ProcedurePrecedence.APAVADA -> 3
+    }

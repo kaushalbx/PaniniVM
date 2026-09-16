@@ -96,11 +96,13 @@ data class Pipeline(
     val renderPadas: List<Pada> = emptyList(),
 ) : ProgramNode
 
+enum class ProcedureVisibility { PUBLIC, INTERNAL }
+
+enum class ProcedurePrecedence { DEFAULT, NITYA, ANTARANGA, APAVADA }
+
 data class ProcedureModifiers(
-    val isInternal: Boolean = false,
-    val isApavada: Boolean = false,
-    val isAntaranga: Boolean = false,
-    val isNitya: Boolean = false,
+    val visibility: ProcedureVisibility = ProcedureVisibility.PUBLIC,
+    val precedence: ProcedurePrecedence = ProcedurePrecedence.DEFAULT,
 )
 
 data class Procedure(

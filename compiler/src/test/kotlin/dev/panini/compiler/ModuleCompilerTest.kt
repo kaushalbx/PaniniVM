@@ -82,7 +82,7 @@ class ModuleCompilerTest {
     @Test
     fun `internal symbols stay private and duplicate declarations fail analysis`() {
         val internalSource = """
-            अन्तरङ्ग + सुँ इति रहस्य + ल्युट् + सुँ ।
+            रहस्य + ल्युट् + सुँ इति अन्तरङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ॥
         """.trimIndent()
         val internalArtifact = BytecodeCompiler.compileModule(

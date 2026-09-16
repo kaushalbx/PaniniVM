@@ -5,6 +5,8 @@ import dev.panini.execution.memory.FileKriyaMemoryStore
 import dev.panini.execution.persistence.FileStateStore
 import dev.panini.execution.persistence.StateStore
 import java.io.File
+import dev.panini.vyakaranam.ast.Ukti
+import dev.panini.core.Karaka
 
 /**
  * Optional host safeguards for PVM execution.
@@ -84,6 +86,19 @@ class PaniniVM(
         listener: String = "यन्त्रम्",
     ): ExecutionResult = sessionRuntime.eval(
         utterance, sessionKey, scope, speaker, listener, evaluateCondition = true,
+    )
+
+    /** Internal AST-native entry point used by the script interpreter. */
+    internal fun evalParsed(
+        ukti: Ukti,
+        sessionKey: String? = null,
+        scope: ExecutionScope = defaultScope,
+        speaker: String = "प्रयोक्ता",
+        listener: String = "यन्त्रम्",
+        evaluateCondition: Boolean = false,
+        injectedBindings: Map<Karaka, ExecutionExpression> = emptyMap(),
+    ): ExecutionResult = sessionRuntime.eval(
+        ukti, sessionKey, scope, speaker, listener, evaluateCondition, injectedBindings,
     )
 
     fun resume(
