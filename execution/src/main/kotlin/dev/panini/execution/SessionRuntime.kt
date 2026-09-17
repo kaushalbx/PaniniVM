@@ -51,10 +51,12 @@ internal class SessionRuntime(
             SambhashanaContext(speaker = speaker, listener = listener)
         }
         val input = SanskritUktiInput(text = utterance, speaker = activeContext.speaker, listener = activeContext.listener)
-        val analysis = VyakaranamExecutionAdapter.analyzeForMemory(utterance)
         val effectiveScope = effectiveScope(scope)
         val memory = sessionKey?.let(::kriyaMemory) ?: KriyaMemory()
-        val turn = SutraExecutionPipeline.executeTurn(input, activeContext, effectiveScope, memory, evaluateCondition)
+        val (binding, analysis) = VyakaranamExecutionAdapter.bindWithAnalysis(
+            input, activeContext, memory, effectiveScope.environment,
+        )
+        val turn = executeBinding(binding, activeContext, effectiveScope, memory, evaluateCondition)
         val phala = turn.response.phala
 
         if (phala is Phala.Siddha && sessionKey != null) {
@@ -91,26 +93,7 @@ internal class SessionRuntime(
         val binding = VyakaranamExecutionAdapter.bind(
             input, ukti, activeContext, memory, effectiveScope.environment, injectedBindings,
         )
-        val turn = when (binding) {
-            is ExecutionBindingResult.Bound -> SutraExecutionPipeline.executeTurn(
-                binding.ukti, binding.trace, activeContext, effectiveScope, memory, evaluateCondition,
-            )
-            is ExecutionBindingResult.NeedsInput -> SambhashanaTurn(
-                SanskritPrativacanaRenderer.render(
-                    Phala.Asiddha(ExecutionResult.NeedsInput(emptySet(), binding.message), emptyList()),
-                ),
-                activeContext,
-            )
-            is ExecutionBindingResult.Invalid -> SambhashanaTurn(
-                SanskritPrativacanaRenderer.render(
-                    Phala.Asiddha(
-                        ExecutionResult.Failure(ExecutionError.INVALID_VALUE, binding.message),
-                        emptyList(),
-                    ),
-                ),
-                activeContext,
-            )
-        }
+        val turn = executeBinding(binding, activeContext, effectiveScope, memory, evaluateCondition)
         val phala = turn.response.phala
         if (phala is Phala.Siddha && sessionKey != null) {
             persistSuccessfulTurn(sessionKey, turn.context)
@@ -137,6 +120,33 @@ internal class SessionRuntime(
             }
         }
         return phala.toExecutionResult("panini.resume")
+    }
+
+    private fun executeBinding(
+        binding: ExecutionBindingResult,
+        context: SambhashanaContext,
+        scope: ExecutionScope,
+        memory: KriyaMemory,
+        evaluateCondition: Boolean,
+    ): SambhashanaTurn = when (binding) {
+        is ExecutionBindingResult.Bound -> SutraExecutionPipeline.executeTurn(
+            binding.ukti, binding.trace, context, scope, memory, evaluateCondition,
+        )
+        is ExecutionBindingResult.NeedsInput -> SambhashanaTurn(
+            SanskritPrativacanaRenderer.render(
+                Phala.Asiddha(ExecutionResult.NeedsInput(emptySet(), binding.message), emptyList()),
+            ),
+            context,
+        )
+        is ExecutionBindingResult.Invalid -> SambhashanaTurn(
+            SanskritPrativacanaRenderer.render(
+                Phala.Asiddha(
+                    ExecutionResult.Failure(ExecutionError.INVALID_VALUE, binding.message),
+                    emptyList(),
+                ),
+            ),
+            context,
+        )
     }
 
     fun load(sessionKey: String): SambhashanaContext? = store.load(sessionKey)?.also {

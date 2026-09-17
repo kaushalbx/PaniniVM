@@ -42,7 +42,14 @@ object PrakriyaScriptValidator {
                 replacement = suggestion.replacement,
             )
         }
-        val statements = runCatching { PvmScript.parse(source) }.getOrElse { return diagnostics }
+        val statements = runCatching { PvmScript.parse(source) }.getOrElse { error ->
+            diagnostics += PrakriyaDiagnostic(
+                offset = 0,
+                length = source.length.coerceAtLeast(1),
+                message = error.message ?: "The reusable प्रक्रिया body is not valid Sanskrit.",
+            )
+            return diagnostics
+        }
         val registry = PrakriyaRegistry()
 
         statements.filterIsInstance<PvmScriptStatement.Sentence>().mapNotNull { sentence ->

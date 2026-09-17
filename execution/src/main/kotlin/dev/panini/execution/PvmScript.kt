@@ -219,6 +219,10 @@ object PvmScript {
         body: List<PvmScriptStatement.Sentence>,
         blockText: List<String>,
     ): PvmScriptStatement.PrakriyaDefinition {
+        require(body.all { it.program != null }) {
+            val invalid = body.first { it.program == null }.text
+            "A reusable प्रक्रिया body contains invalid Sanskrit: '$invalid'."
+        }
         val parsed = PrakriyaDefinitionMarkerParser.qualifiers(header)
         val declarationSource = parsed?.declarationSource ?: header
         val methodHeader = TaddhitaStructEngine.detectMethodHeader(declarationSource)

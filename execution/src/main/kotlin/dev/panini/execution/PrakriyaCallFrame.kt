@@ -8,8 +8,6 @@ data class PrakriyaCallFrame(
     val parameterBindings: Map<String, SanskritValue>,
     val arguments: List<SanskritValue>,
     val localScope: ExecutionScope,
-    val callerSource: String?,
-    var returnValue: SanskritValue? = null,
 ) {
     companion object {
         private val sankhyaEvaluator = SankhyaEvaluator()
@@ -18,7 +16,6 @@ data class PrakriyaCallFrame(
             invocation: PrakriyaInvocation,
             orderedTerms: List<String>,
             callerScope: ExecutionScope,
-            callerSource: String?,
         ): PrakriyaCallFrame {
             val remaining = invocation.arguments.toMutableList()
             val values = orderedTerms.map { term ->
@@ -46,7 +43,6 @@ data class PrakriyaCallFrame(
                 localScope = callerScope.copy(
                     environment = ValueEnvironment(callerScope.environment.values + bindings + referenceBindings),
                 ),
-                callerSource = callerSource,
             )
         }
     }

@@ -309,10 +309,6 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         ),
     )
 
-    private companion object {
-        const val PIPE_OPERAND = "विशेषणफल"
-    }
-
     fun evalProject(
         entryFile: File,
         sessionKey: String?,
@@ -403,11 +399,6 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                         injectedKarman = null,
                     ),
                 )
-            },
-            evaluateFallback = { text, scope ->
-                vm.eval(text, context.sessionKey, scope, context.speaker, context.listener).also {
-                    context.onResult?.invoke(it)
-                }
             },
         ),
     )

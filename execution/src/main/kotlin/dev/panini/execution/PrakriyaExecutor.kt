@@ -17,7 +17,6 @@ internal class PrakriyaExecutor {
             sourceFile: String?,
             sourceText: String,
         ) -> List<ExecutionResult>,
-        val evaluateFallback: (text: String, scope: ExecutionScope) -> ExecutionResult,
     )
 
     fun execute(request: Request): List<ExecutionResult> {
@@ -32,7 +31,6 @@ internal class PrakriyaExecutor {
             invocation,
             argTerms,
             request.scope,
-            request.callerSourceFile,
         )
 
         validateArguments(invocation, signature, argTerms, callFrame)?.let { return listOf(it) }
@@ -51,14 +49,13 @@ internal class PrakriyaExecutor {
         repeat(repetitionCount) {
             invocation.kriya.vidhiSentences.forEach { sentence ->
                 val sourceFile = invocation.kriya.sourceFile ?: request.callerSourceFile
-                val boundProgram = sentence.program?.let {
-                    PrakriyaAstArgumentBinder.bind(it, signature.parameters, callFrame.arguments.size)
+                val program = requireNotNull(sentence.program) {
+                    "A reusable प्रक्रिया body must contain a parsed Sanskrit program: '${sentence.text}'."
                 }
-                results += if (boundProgram != null) {
-                    request.executeBody(boundProgram, callFrame.localScope, sourceFile, sentence.text)
-                } else {
-                    listOf(request.evaluateFallback(sentence.text, callFrame.localScope))
-                }
+                val boundProgram = PrakriyaAstArgumentBinder.bind(
+                    program, signature.parameters, callFrame.arguments.size,
+                )
+                results += request.executeBody(boundProgram, callFrame.localScope, sourceFile, sentence.text)
             }
             if (results.any {
                     it is ExecutionResult.Success && it.controlSignal == ExecutionControlSignal.BREAK_LOOP

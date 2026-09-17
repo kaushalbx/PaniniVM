@@ -28,6 +28,12 @@ data class Prakriya(
         KrtPratyayaIdentity.KTA,
     ),
 ) {
+    init {
+        require(body.all { it.program != null }) {
+            "Every reusable प्रक्रिया body sentence must be valid, parsed Sanskrit."
+        }
+    }
+
     val signature: PrakriyaSignature by lazy { signatureOverride ?: PrakriyaSignatureCompiler.compile(body) }
 
     val isInternal: Boolean get() = visibility == PrakriyaVisibility.INTERNAL

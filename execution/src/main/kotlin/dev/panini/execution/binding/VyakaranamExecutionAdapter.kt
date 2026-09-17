@@ -147,7 +147,9 @@ object VyakaranamExecutionAdapter {
         memory: KriyaMemory = KriyaMemory(),
         environment: ValueEnvironment = ValueEnvironment(),
     ): ExecutionBindingResult {
-        if (input.text.isBlank()) return ExecutionBindingResult.Invalid("The Sanskrit utterance is empty.")
+        if (input.text.isBlank()) {
+            return ExecutionBindingResult.Invalid("The Sanskrit utterance is empty.")
+        }
         val ukti = try {
             parser.parse(input.text)
         } catch (e: PaniniParseException) {
@@ -164,8 +166,39 @@ object VyakaranamExecutionAdapter {
         memory: KriyaMemory = KriyaMemory(),
         environment: ValueEnvironment = ValueEnvironment(),
         injectedBindings: Map<Karaka, ExecutionExpression> = emptyMap(),
-    ): ExecutionBindingResult {
-        if (input.text.isBlank()) return ExecutionBindingResult.Invalid("The Sanskrit utterance is empty.")
+    ): ExecutionBindingResult = bindParsed(
+        input, ukti, conversation, memory, environment, injectedBindings,
+    ).first
+
+    /** Parses, binds, and returns the analysis already produced by binding for memory recording. */
+    internal fun bindWithAnalysis(
+        input: SanskritUktiInput,
+        conversation: SambhashanaContext,
+        memory: KriyaMemory = KriyaMemory(),
+        environment: ValueEnvironment = ValueEnvironment(),
+    ): Pair<ExecutionBindingResult, UktiAnalysis?> {
+        if (input.text.isBlank()) {
+            return ExecutionBindingResult.Invalid("The Sanskrit utterance is empty.") to null
+        }
+        val ukti = try {
+            parser.parse(input.text)
+        } catch (e: PaniniParseException) {
+            return ExecutionBindingResult.Invalid(e.message ?: "Invalid annotated Sanskrit morphology.") to null
+        }
+        return bindParsed(input, ukti, conversation, memory, environment)
+    }
+
+    private fun bindParsed(
+        input: SanskritUktiInput,
+        ukti: Ukti,
+        conversation: SambhashanaContext,
+        memory: KriyaMemory,
+        environment: ValueEnvironment,
+        injectedBindings: Map<Karaka, ExecutionExpression> = emptyMap(),
+    ): Pair<ExecutionBindingResult, UktiAnalysis?> {
+        if (input.text.isBlank()) {
+            return ExecutionBindingResult.Invalid("The Sanskrit utterance is empty.") to null
+        }
         val executableUkti = normalizeFrequencyAst(ukti)
         val quotations = quotationBindings(executableUkti.body)
 
@@ -175,14 +208,14 @@ object VyakaranamExecutionAdapter {
         }
 
         if (input.speaker != conversation.speaker) {
-            return ExecutionBindingResult.Invalid("Utterance speaker does not match the trusted conversation context.")
+            return ExecutionBindingResult.Invalid("Utterance speaker does not match the trusted conversation context.") to null
         }
         val unresolved = executableUkti.grammaticalVakyas().filterIsInstance<AkhyataVakya>()
             .firstOrNull { DhatuCache.resolve(it.tinganta) == null }
         if (unresolved != null) {
             return ExecutionBindingResult.Invalid(
                 "Unknown verbal action/dhātu: ${unresolved.tinganta.sourceText}",
-            )
+            ) to null
         }
         val utteranceAnalysis = analyze(executableUkti)
 
@@ -222,10 +255,10 @@ object VyakaranamExecutionAdapter {
             val tinganta = (vakya as? AkhyataVakya)?.tinganta
             val dhatu = if (tinganta != null) {
                 DhatuCache.resolve(tinganta)
-                    ?: return ExecutionBindingResult.Invalid("Unknown verbal action/dhātu: ${tinganta.sourceText}")
+                    ?: return ExecutionBindingResult.Invalid("Unknown verbal action/dhātu: ${tinganta.sourceText}") to null
             } else {
                 DhatuCache["असँ"]
-                    ?: return ExecutionBindingResult.Invalid("Imputed copular action 'अस्' not registered in DhatuPatha.")
+                    ?: return ExecutionBindingResult.Invalid("Imputed copular action 'अस्' not registered in DhatuPatha.") to null
             }
             val frame = utteranceAnalysis.frames.firstOrNull { it.vakya == vakya } ?: return@forEachIndexed
             val ctx = BindingContext(
@@ -267,9 +300,9 @@ object VyakaranamExecutionAdapter {
             lakara == Lakara.LOT || lakara == null -> VakyaPrayojana.AJNA
             else -> VakyaPrayojana.VIDHANA
         }
-        if (invocations.isEmpty()) return ExecutionBindingResult.Invalid("No executable verbal action was identified.")
+        if (invocations.isEmpty()) return ExecutionBindingResult.Invalid("No executable verbal action was identified.") to null
         if (listener != conversation.listener) {
-            return ExecutionBindingResult.Invalid("Addressed listener does not match the trusted conversation context.")
+            return ExecutionBindingResult.Invalid("Addressed listener does not match the trusted conversation context.") to null
         }
         return ExecutionBindingResult.Bound(
             ExecutableUkti(
@@ -283,7 +316,7 @@ object VyakaranamExecutionAdapter {
                 control = buildExecutionControl(executionBody),
             ),
             listOf("Bound canonical vyākaraṇa AST with ${ukti.grammaticalVakyas().size} clause(s) directly to execution."),
-        )
+        ) to utteranceAnalysis
     }
 
     private fun buildExecutionControl(root: ProgramNode): ExecutionNode {

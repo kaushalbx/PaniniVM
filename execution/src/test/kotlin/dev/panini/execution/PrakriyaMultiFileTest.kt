@@ -135,7 +135,7 @@ class PrakriyaMultiFileTest {
         val utsargaKriya = Prakriya(
             nameSegmented = "युज् + ल्युट् + सुँ",
             nameStem = PrakriyaRegistry.stripSupSuffix("युज् + ल्युट् + सुँ"),
-            body = listOf(PvmScriptStatement.Sentence("युज् + णिच् + लोट् + सिप् ॥")),
+            body = listOf(sentence("युज् + णिच् + लोट् + सिप् ॥")),
             sourceFile = "ganita.pvm",
             precedence = PrakriyaPrecedence.DEFAULT,
         )
@@ -148,7 +148,7 @@ class PrakriyaMultiFileTest {
         val apavadaKriya = Prakriya(
             nameSegmented = "युज् + ल्युट् + सुँ",
             nameStem = PrakriyaRegistry.stripSupSuffix("युज् + ल्युट् + सुँ"),
-            body = listOf(PvmScriptStatement.Sentence("एक + अम् युज् + णिच् + लोट् + सिप् ॥")),
+            body = listOf(sentence("एक + अम् युज् + णिच् + लोट् + सिप् ॥")),
             sourceFile = "mukhya.pvm",
             precedence = PrakriyaPrecedence.APAVADA,
         )
@@ -164,7 +164,7 @@ class PrakriyaMultiFileTest {
             Prakriya(
                 nameSegmented = "युज् + ल्युट् + सुँ",
                 nameStem = "युज् + ल्युट्",
-                body = listOf(PvmScriptStatement.Sentence("युज् + णिच् + लोट् + सिप् ॥")),
+                body = listOf(sentence("युज् + णिच् + लोट् + सिप् ॥")),
             ),
         )
 
@@ -186,7 +186,7 @@ class PrakriyaMultiFileTest {
             Prakriya(
                 nameSegmented = "युज् + ल्युट् + सुँ",
                 nameStem = "युज् + ल्युट्",
-                body = listOf(PvmScriptStatement.Sentence("युज् + णिच् + लोट् + सिप् ॥")),
+                body = listOf(sentence("युज् + णिच् + लोट् + सिप् ॥")),
             ),
         )
         val ukti = PaniniParser().parse("द्वि + अम् युज् + ल्युट् + टा कृ + लोट् + सिप् ।")
@@ -391,7 +391,7 @@ class PrakriyaMultiFileTest {
             Prakriya(
                 nameSegmented = "द्विगुणन + ल्युट् + सुँ",
                 nameStem = "द्विगुणन + ल्युट्",
-                body = listOf(PvmScriptStatement.Sentence("द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ॥")),
+                body = listOf(sentence("द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ॥")),
                 sourceFile = "library.pvm",
                 visibility = PrakriyaVisibility.INTERNAL,
             ),
@@ -515,4 +515,7 @@ class PrakriyaMultiFileTest {
         val successful = results.filterIsInstance<ExecutionResult.Success>()
         assertTrue(successful.any { it.value == "सप्त" }, "Calling inherited method वर्द्धनेन via child struct गाणितवत् should return 7 (सप्त). Results: $results")
     }
+
+    private fun sentence(text: String): PvmScriptStatement.Sentence =
+        PvmScript.parse(text).single() as PvmScriptStatement.Sentence
 }

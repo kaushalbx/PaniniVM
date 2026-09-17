@@ -196,7 +196,4 @@ internal class StructuredValueExecutor {
     private fun typedOperandName(index: Int): String =
         "विशेषणफल" + dev.panini.sankhya.SankhyaGenerator().cardinal(index.toLong() + 1L).final.surface
 
-    private companion object {
-        const val PIPE_OPERAND = "विशेषणफल"
-    }
 }

@@ -63,7 +63,7 @@ class PrakriyaAstArgumentBinderTest {
             environment = ValueEnvironment(mapOf("वाम" to SanskritValue.Sankhya(99, "नवनवतिः"))),
         )
 
-        val frame = PrakriyaCallFrame.create(invocation, listOf("द्वि"), callerScope, "caller.pvm")
+        val frame = PrakriyaCallFrame.create(invocation, listOf("द्वि"), callerScope)
 
         assertEquals(argument, frame.localScope.environment.values["वाम"])
         assertEquals(99, (callerScope.environment.values["वाम"] as SanskritValue.Sankhya).value)
@@ -97,7 +97,6 @@ class PrakriyaAstArgumentBinderTest {
             invocation,
             invocation.arguments.map(PrakriyaArgument::term),
             ExecutionScope(),
-            null,
         )
 
         assertEquals(values, frame.arguments)
@@ -105,7 +104,7 @@ class PrakriyaAstArgumentBinderTest {
     }
 
     @Test
-    fun `procedure execution does not reparse rendered body text`() {
+    fun `prakriya execution does not reparse rendered body text`() {
         val source = File("execution/src/main/kotlin/dev/panini/execution/PvmScriptExecutor.kt").readText()
 
         assertFalse("PvmScript.parse(sentenceText)" in source)

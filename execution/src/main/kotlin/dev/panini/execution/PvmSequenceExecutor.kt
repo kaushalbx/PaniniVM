@@ -48,8 +48,4 @@ internal class PvmSequenceExecutor {
         }
         return results
     }
-
-    companion object {
-        const val PIPE_OPERAND = "विशेषणफल"
-    }
 }

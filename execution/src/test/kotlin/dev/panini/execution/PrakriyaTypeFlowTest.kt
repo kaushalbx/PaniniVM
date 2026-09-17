@@ -4,8 +4,22 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
+import kotlin.test.assertFailsWith
 
 class PrakriyaTypeFlowTest {
+    @Test
+    fun `invalid prakriya bodies are rejected before execution`() {
+        val source = """
+            प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            अवैध + ॥
+        """.trimIndent()
+
+        assertFailsWith<IllegalArgumentException> { PvmScript.parse(source) }
+        assertTrue(
+            PrakriyaScriptValidator.validate(source).any { it.message.contains("invalid Sanskrit") },
+        )
+    }
+
     @Test
     fun `samjna declaration is rejected as a reusable prakriya marker`() {
         val source = "गणित + सुँ इति संज्ञा + सुँ ।"
