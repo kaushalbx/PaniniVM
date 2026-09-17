@@ -8,7 +8,7 @@ import dev.panini.vyakaranam.ast.Pada
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.Ukti
 
-data class SamjnaInvocationShape(
+data class PrakriyaInvocationShape(
     val operationStem: String,
     val domainStem: String?,
     val karmaText: String,
@@ -17,12 +17,12 @@ data class SamjnaInvocationShape(
 )
 
 /** Extracts invocation identity and grammatical roles from the parsed utterance. */
-object SamjnaInvocationMatcher {
+object PrakriyaInvocationMatcher {
     /** Matches invocation identity directly from the canonical AST. */
     fun match(
         ukti: Ukti,
         knownOperationStems: Set<String>,
-    ): SamjnaInvocationShape? {
+    ): PrakriyaInvocationShape? {
         val padas = ukti.grammaticalVakyas().flatMap { it.padas }
         val verbIndex = padas.indexOfFirst { it is TingantaPada }
         if (verbIndex < 0) return null
@@ -33,19 +33,19 @@ object SamjnaInvocationMatcher {
                 index < verbIndex && pada is SubantaPada &&
                     pada.vibhakti() == Vibhakti.DVITIYA &&
                     knownOperationStems.any { known ->
-                        cognateBase(known) == pada.pratipadika.samjnaIdentity()
+                        cognateBase(known) == pada.pratipadika.prakriyaIdentity()
                     }
             }
         } else null
         if (cognateObject != null) {
             val operationPada = cognateObject.value as SubantaPada
             val operationStem = knownOperationStems.first {
-                cognateBase(it) == operationPada.pratipadika.samjnaIdentity()
+                cognateBase(it) == operationPada.pratipadika.prakriyaIdentity()
             }
             val karmaText = padas.take(cognateObject.index)
                 .joinToString(" ") { normalizeIdentity(it.sourceText) }
                 .trim()
-            return SamjnaInvocationShape(
+            return PrakriyaInvocationShape(
                 operationStem = operationStem,
                 domainStem = null,
                 karmaText = karmaText,
@@ -57,7 +57,7 @@ object SamjnaInvocationMatcher {
         val instrumental = padas.withIndex().firstOrNull { (index, pada) ->
             index < verbIndex && pada is SubantaPada &&
                 pada.vibhakti() == Vibhakti.TRTIYA &&
-                pada.pratipadika.samjnaIdentity() in knownOperationStems
+                pada.pratipadika.prakriyaIdentity() in knownOperationStems
         } ?: return null
         val operationPada = instrumental.value as SubantaPada
         val domainEntry = padas.withIndex().take(instrumental.index)
@@ -70,9 +70,9 @@ object SamjnaInvocationMatcher {
         val karmaText = padas.take(boundaryIndex)
             .joinToString(" ") { normalizeIdentity(it.sourceText) }
             .trim()
-        return SamjnaInvocationShape(
-            operationStem = operationPada.pratipadika.samjnaIdentity(),
-            domainStem = domainPada?.pratipadika?.samjnaDomainIdentity(),
+        return PrakriyaInvocationShape(
+            operationStem = operationPada.pratipadika.prakriyaIdentity(),
+            domainStem = domainPada?.pratipadika?.prakriyaDomainIdentity(),
             karmaText = karmaText,
             argumentPadas = padas.take(boundaryIndex).flatMap(::argumentPadas),
             ukti = ukti,

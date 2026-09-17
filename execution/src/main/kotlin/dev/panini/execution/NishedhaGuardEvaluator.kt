@@ -17,7 +17,7 @@ object NishedhaGuardEvaluator {
 
     fun isProhibited(
         guard: PvmScriptStatement.Sentence,
-        parameters: List<SamjnaParameter>,
+        parameters: List<PrakriyaParameter>,
         argumentTerms: List<String>,
         argumentValues: List<SanskritValue?> = emptyList(),
     ): Boolean {

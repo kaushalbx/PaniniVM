@@ -9,7 +9,7 @@ internal class PvmSequenceExecutor {
     fun execute(
         node: Sequence,
         scope: ExecutionScope,
-        registry: SamjnaKriyaRegistry,
+        registry: PrakriyaRegistry,
         sourceFile: String?,
         evaluateWhole: () -> List<ExecutionResult>,
         executeNode: (dev.panini.vyakaranam.ast.ProgramNode) -> List<ExecutionResult>,

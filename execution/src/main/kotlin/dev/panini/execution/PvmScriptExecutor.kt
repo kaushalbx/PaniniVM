@@ -16,7 +16,7 @@ import java.io.File
 
 /** Executes PVM scripts and projects behind the stable [PaniniVM] facade. */
 internal class PvmScriptExecutor(private val vm: PaniniVM) {
-    private val samjnaProcedureExecutor = SamjnaProcedureExecutor()
+    private val prakriyaExecutor = PrakriyaExecutor()
     private val structuredValueExecutor = StructuredValueExecutor()
     private val projectLoader = PvmProjectLoader()
     private val sequenceExecutor = PvmSequenceExecutor()
@@ -28,14 +28,14 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         scope: ExecutionScope,
         speaker: String,
         listener: String,
-        samjnaRegistry: SamjnaKriyaRegistry? = null,
+        prakriyaRegistry: PrakriyaRegistry? = null,
         onResult: ((ExecutionResult) -> Unit)? = null,
     ): List<ExecutionResult> {
         val results = mutableListOf<ExecutionResult>()
         val effectiveSessionKey = sessionKey ?: "script-${System.identityHashCode(scriptContent)}"
         val parsed = PvmScript.parse(scriptContent)
 
-        val registry = samjnaRegistry ?: SamjnaKriyaRegistry()
+        val registry = prakriyaRegistry ?: PrakriyaRegistry()
         projectLoader.registerDeclarations(registry, parsed, sourceFile)
 
         val activeRange = parsed.filterIsInstance<PvmScriptStatement.RangeDefinition>()
@@ -44,7 +44,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             ValueEnvironment(mapOf(ACTIVE_RANGE_NAME to it))
         } ?: ValueEnvironment()
         val effectiveScope = scope.copy(
-            samjnaRegistry = registry,
+            prakriyaRegistry = registry,
             environment = scope.environment.mergedWith(rangeEnvironment),
         )
         val structStore = mutableMapOf<String, TaddhitaStruct>()
@@ -188,7 +188,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             injectedKarman = context.injectedKarman,
         )
         return if (invocation != null) {
-            executeSamjnaInvocation(
+            executePrakriyaInvocation(
                 invocation,
                 context,
             )
@@ -248,7 +248,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         val scope: ExecutionScope,
         val speaker: String,
         val listener: String,
-        val registry: SamjnaKriyaRegistry,
+        val registry: PrakriyaRegistry,
         val sourceFile: String?,
         val structStore: MutableMap<String, TaddhitaStruct>,
         val structSchemas: Map<String, TaddhitaStructSchema>,
@@ -334,7 +334,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             scope = scope,
             speaker = speaker,
             listener = listener,
-            samjnaRegistry = registry,
+            prakriyaRegistry = registry,
             onResult = onResult,
         )
     }
@@ -358,16 +358,16 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         }
     }
 
-    fun executeSamjnaInvocation(
-        invocation: SamjnaInvocation,
+    fun executePrakriyaInvocation(
+        invocation: PrakriyaInvocation,
         sessionKey: String,
         scope: ExecutionScope,
         speaker: String,
         listener: String,
-        registry: SamjnaKriyaRegistry,
+        registry: PrakriyaRegistry,
         callerSourceFile: String? = null,
         onResult: ((ExecutionResult) -> Unit)? = null,
-    ): List<ExecutionResult> = executeSamjnaInvocation(
+    ): List<ExecutionResult> = executePrakriyaInvocation(
         invocation,
         ExecutionContext(
             sessionKey = sessionKey,
@@ -382,11 +382,11 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         ),
     )
 
-    private fun executeSamjnaInvocation(
-        invocation: SamjnaInvocation,
+    private fun executePrakriyaInvocation(
+        invocation: PrakriyaInvocation,
         context: ExecutionContext,
-    ): List<ExecutionResult> = samjnaProcedureExecutor.execute(
-        SamjnaProcedureExecutor.Request(
+    ): List<ExecutionResult> = prakriyaExecutor.execute(
+        PrakriyaExecutor.Request(
             invocation = invocation,
             scope = context.scope,
             registry = context.registry,

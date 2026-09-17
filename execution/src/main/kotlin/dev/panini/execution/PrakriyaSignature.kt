@@ -3,38 +3,38 @@ package dev.panini.execution
 import dev.panini.sankhya.SankhyaEvaluator
 
 /** Semantic value types used by saṃjñā signatures and overload resolution. */
-enum class SamjnaValueType {
+enum class PrakriyaValueType {
     SANKHYA,
     SHABDA,
     SUCHI,
 }
 
-data class SamjnaParameter(
+data class PrakriyaParameter(
     val nameStem: String,
-    val type: SamjnaValueType,
+    val type: PrakriyaValueType,
 )
 
-data class SamjnaSignature(
-    val argumentType: SamjnaValueType? = null,
-    val parameters: List<SamjnaParameter> = emptyList(),
-    val resultType: SamjnaValueType? = null,
+data class PrakriyaSignature(
+    val argumentType: PrakriyaValueType? = null,
+    val parameters: List<PrakriyaParameter> = emptyList(),
+    val resultType: PrakriyaValueType? = null,
     val resultSchema: String? = null,
 )
 
 /**
  * Compatibility boundary that compiles surface type guards into a typed signature.
- * Runtime dispatch consumes [SamjnaSignature] and does not inspect rule-body text.
+ * Runtime dispatch consumes [PrakriyaSignature] and does not inspect rule-body text.
  */
-object SamjnaSignatureCompiler {
+object PrakriyaSignatureCompiler {
     private val typeMarkers = linkedMapOf(
-        SamjnaValueType.SANKHYA to listOf("सङ्ख्या + त्व", "सङ्ख्यात्व"),
-        SamjnaValueType.SHABDA to listOf("शब्द + त्व", "शब्दत्व"),
-        SamjnaValueType.SUCHI to listOf("सूची + त्व", "सूचीत्व"),
+        PrakriyaValueType.SANKHYA to listOf("सङ्ख्या + त्व", "सङ्ख्यात्व"),
+        PrakriyaValueType.SHABDA to listOf("शब्द + त्व", "शब्दत्व"),
+        PrakriyaValueType.SUCHI to listOf("सूची + त्व", "सूचीत्व"),
     )
 
-    fun compile(body: List<PvmScriptStatement.Sentence>): SamjnaSignature {
-        val parameters = body.mapNotNull(SamjnaSignatureDeclarationParser::parameter)
-        val resultDeclarations = body.mapNotNull(SamjnaSignatureDeclarationParser::result)
+    fun compile(body: List<PvmScriptStatement.Sentence>): PrakriyaSignature {
+        val parameters = body.mapNotNull(PrakriyaSignatureDeclarationParser::parameter)
+        val resultDeclarations = body.mapNotNull(PrakriyaSignatureDeclarationParser::result)
         val resultType = resultDeclarations.singleOrNull()?.type
         val resultSchema = resultDeclarations.singleOrNull()?.schema
         val guardedTypes = body.asSequence()
@@ -42,7 +42,7 @@ object SamjnaSignatureCompiler {
             .mapNotNull { inferGuardType(it.text) }
             .distinct()
             .toList()
-        return SamjnaSignature(
+        return PrakriyaSignature(
             argumentType = guardedTypes.singleOrNull(),
             parameters = parameters,
             resultType = resultType,
@@ -50,13 +50,13 @@ object SamjnaSignatureCompiler {
         )
     }
 
-    fun inferGuardType(text: String): SamjnaValueType? =
+    fun inferGuardType(text: String): PrakriyaValueType? =
         typeMarkers.entries.firstOrNull { (_, markers) -> markers.any(text::contains) }?.key
 }
 
 /** Parses grammatical signature declarations embedded at the start of a saṃjñā block. */
-object SamjnaSignatureDeclarationParser {
-    data class ResultDeclaration(val type: SamjnaValueType? = null, val schema: String? = null)
+object PrakriyaSignatureDeclarationParser {
+    data class ResultDeclaration(val type: PrakriyaValueType? = null, val schema: String? = null)
     private val typeSource = "(सङ्ख्या|शब्द|सूची)"
     private val parameterPattern = Regex(
         "^\\s*(.+?)\\s*\\+\\s*सुँ\\s+$typeSource\\s*\\+\\s*सुँ\\s+इति\\s+मान\\s*\\+\\s*सुँ\\s*[।॥]?\\s*$",
@@ -68,9 +68,9 @@ object SamjnaSignatureDeclarationParser {
         "^\\s*(.+?)\\s*\\+\\s*सुँ\\s+इति\\s+परिणाम\\s*\\+\\s*सुँ\\s*[।॥]?\\s*$",
     )
 
-    fun parameter(sentence: PvmScriptStatement.Sentence): SamjnaParameter? {
+    fun parameter(sentence: PvmScriptStatement.Sentence): PrakriyaParameter? {
         val match = parameterPattern.matchEntire(sentence.text) ?: return null
-        return SamjnaParameter(match.groupValues[1].trim(), type(match.groupValues[2]))
+        return PrakriyaParameter(match.groupValues[1].trim(), type(match.groupValues[2]))
     }
 
     fun result(sentence: PvmScriptStatement.Sentence): ResultDeclaration? {
@@ -82,34 +82,34 @@ object SamjnaSignatureDeclarationParser {
         return ResultDeclaration(schema = schema)
     }
 
-    fun resultType(sentence: PvmScriptStatement.Sentence): SamjnaValueType? = result(sentence)?.type
+    fun resultType(sentence: PvmScriptStatement.Sentence): PrakriyaValueType? = result(sentence)?.type
 
     fun isDeclaration(sentence: PvmScriptStatement.Sentence): Boolean =
         parameter(sentence) != null || result(sentence) != null
 
-    private fun type(source: String): SamjnaValueType = when (source) {
-        "सङ्ख्या" -> SamjnaValueType.SANKHYA
-        "शब्द" -> SamjnaValueType.SHABDA
-        "सूची" -> SamjnaValueType.SUCHI
+    private fun type(source: String): PrakriyaValueType = when (source) {
+        "सङ्ख्या" -> PrakriyaValueType.SANKHYA
+        "शब्द" -> PrakriyaValueType.SHABDA
+        "सूची" -> PrakriyaValueType.SUCHI
         else -> error("Unsupported saṃjñā value type: $source")
     }
 }
 
-object SamjnaValueClassifier {
+object PrakriyaValueClassifier {
     private val sankhyaEvaluator = SankhyaEvaluator()
 
-    fun classifyTerm(term: String): SamjnaValueType =
+    fun classifyTerm(term: String): PrakriyaValueType =
         if (term.toLongOrNull() != null ||
             runCatching { sankhyaEvaluator.evaluateStems(listOf(term)).value }.getOrNull() != null
         ) {
-            SamjnaValueType.SANKHYA
+            PrakriyaValueType.SANKHYA
         } else {
-            SamjnaValueType.SHABDA
+            PrakriyaValueType.SHABDA
         }
 
-    fun classifyValue(value: SanskritValue): SamjnaValueType = when (value) {
-        is SanskritValue.Sankhya, is SanskritValue.Rational, is SanskritValue.Range -> SamjnaValueType.SANKHYA
-        is SanskritValue.Suchi, is SanskritValue.Gana -> SamjnaValueType.SUCHI
-        else -> SamjnaValueType.SHABDA
+    fun classifyValue(value: SanskritValue): PrakriyaValueType = when (value) {
+        is SanskritValue.Sankhya, is SanskritValue.Rational, is SanskritValue.Range -> PrakriyaValueType.SANKHYA
+        is SanskritValue.Suchi, is SanskritValue.Gana -> PrakriyaValueType.SUCHI
+        else -> PrakriyaValueType.SHABDA
     }
 }

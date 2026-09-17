@@ -13,7 +13,7 @@ import dev.panini.vyakaranam.ast.Quotation
 import dev.panini.vyakaranam.ast.invocations
 import dev.panini.vyakaranam.parser.PaniniParser
 
-enum class SamjnaDefinitionQualifier {
+enum class PrakriyaDefinitionQualifier {
     SAMJNA,
     PRAKRIYA,
     APAVADA,
@@ -21,13 +21,13 @@ enum class SamjnaDefinitionQualifier {
     ANTARANGA,
 }
 
-data class ParsedSamjnaQualifiers(
+data class ParsedPrakriyaQualifiers(
     val declarationSource: String,
-    val qualifiers: Set<SamjnaDefinitionQualifier>,
+    val qualifiers: Set<PrakriyaDefinitionQualifier>,
 )
 
 /** Recognizes explicit saṃjñā-definition qualifiers following इति. */
-object SamjnaDefinitionMarkerParser {
+object PrakriyaDefinitionMarkerParser {
     private val parser = PaniniParser()
 
     fun hasExplicitMarker(source: String): Boolean {
@@ -55,7 +55,7 @@ object SamjnaDefinitionMarkerParser {
                 .filterIsInstance<SubantaPada>().any { it.definitionQualifier() != null }
         ) {
             return quotation.quoted.vakya.padas
-                .joinToString(" ") { SamjnaInvocationMatcher.normalizeIdentity(it.sourceText) }
+                .joinToString(" ") { PrakriyaInvocationMatcher.normalizeIdentity(it.sourceText) }
                 .ifBlank { null }
         }
         val padas = ukti.grammaticalVakyas().flatMap { it.padas }
@@ -66,19 +66,19 @@ object SamjnaDefinitionMarkerParser {
             (padas[index] as? AvyayaPada)?.function == AvyayaFunction.QUOTATIVE
         } ?: return null
         return padas.take(itiIndex)
-            .joinToString(" ") { SamjnaInvocationMatcher.normalizeIdentity(it.sourceText) }
+            .joinToString(" ") { PrakriyaInvocationMatcher.normalizeIdentity(it.sourceText) }
             .ifBlank { null }
     }
 
-    fun qualifiers(source: String): ParsedSamjnaQualifiers? {
+    fun qualifiers(source: String): ParsedPrakriyaQualifiers? {
         val ukti = parser.parseOrNull(source.trim().trimEnd('।', '॥', ' ')) ?: return null
         val quotation = ukti.body as? Quotation
         if (quotation != null) {
             val qualifierPadas = quotation.reporting.invocations().flatMap { it.vakya.padas }
             val declarationSource = quotation.quoted.vakya.padas
-                .joinToString(" ") { SamjnaInvocationMatcher.normalizeIdentity(it.sourceText) }
+                .joinToString(" ") { PrakriyaInvocationMatcher.normalizeIdentity(it.sourceText) }
                 .ifBlank { return null }
-            return ParsedSamjnaQualifiers(
+            return ParsedPrakriyaQualifiers(
                 declarationSource = declarationSource,
                 qualifiers = qualifierPadas.filterIsInstance<SubantaPada>()
                     .mapNotNull { it.definitionQualifier() }.toSet(),
@@ -91,9 +91,9 @@ object SamjnaDefinitionMarkerParser {
         val declarationPadas = if (firstItiIndex >= 0) padas.take(firstItiIndex) else padas
         val qualifierPadas = if (firstItiIndex >= 0) padas.drop(firstItiIndex + 1) else emptyList()
         val declarationSource = declarationPadas
-            .joinToString(" ") { SamjnaInvocationMatcher.normalizeIdentity(it.sourceText) }
+            .joinToString(" ") { PrakriyaInvocationMatcher.normalizeIdentity(it.sourceText) }
             .ifBlank { return null }
-        return ParsedSamjnaQualifiers(
+        return ParsedPrakriyaQualifiers(
             declarationSource = declarationSource,
             qualifiers = qualifierPadas
                 .filterIsInstance<SubantaPada>()
@@ -102,18 +102,18 @@ object SamjnaDefinitionMarkerParser {
         )
     }
 
-    private fun SubantaPada.definitionQualifier(): SamjnaDefinitionQualifier? {
+    private fun SubantaPada.definitionQualifier(): PrakriyaDefinitionQualifier? {
         if (SupAffix.fromUpadesha(sup.text)?.vibhakti != Vibhakti.PRATHAMA) return null
         return when (val base = pratipadika) {
             is MulaPratipadika -> when (base.lexicalIdentity) {
-                MulaPratipadikaIdentity.SAMJNA -> SamjnaDefinitionQualifier.SAMJNA
-                MulaPratipadikaIdentity.PRAKRIYA -> SamjnaDefinitionQualifier.PRAKRIYA
-                MulaPratipadikaIdentity.APAVADA -> SamjnaDefinitionQualifier.APAVADA
-                MulaPratipadikaIdentity.NITYA -> SamjnaDefinitionQualifier.NITYA
-                MulaPratipadikaIdentity.ANTARANGA -> SamjnaDefinitionQualifier.ANTARANGA
+                MulaPratipadikaIdentity.SAMJNA -> PrakriyaDefinitionQualifier.SAMJNA
+                MulaPratipadikaIdentity.PRAKRIYA -> PrakriyaDefinitionQualifier.PRAKRIYA
+                MulaPratipadikaIdentity.APAVADA -> PrakriyaDefinitionQualifier.APAVADA
+                MulaPratipadikaIdentity.NITYA -> PrakriyaDefinitionQualifier.NITYA
+                MulaPratipadikaIdentity.ANTARANGA -> PrakriyaDefinitionQualifier.ANTARANGA
                 else -> null
             }
-            is KridantaPratipadika -> SamjnaDefinitionQualifier.APAVADA.takeIf {
+            is KridantaPratipadika -> PrakriyaDefinitionQualifier.APAVADA.takeIf {
                 base.lexicalIdentity == KridantaLexicalIdentity.APAVADA
             }
             else -> null

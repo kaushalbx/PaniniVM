@@ -4,7 +4,7 @@ import dev.panini.core.Karaka
 import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.ExecutionPlan
 import dev.panini.execution.SanskritValue
-import dev.panini.execution.SamjnaValueType
+import dev.panini.execution.PrakriyaValueType
 import dev.panini.execution.bindingName
 
 /** A complete backend-neutral compilation unit. */
@@ -42,10 +42,10 @@ internal enum class CompilerValueKind {
     RECORD,
 }
 
-internal fun SamjnaValueType.toCompilerValueKind(): CompilerValueKind = when (this) {
-    SamjnaValueType.SANKHYA -> CompilerValueKind.NUMBER
-    SamjnaValueType.SHABDA -> CompilerValueKind.TEXT
-    SamjnaValueType.SUCHI -> CompilerValueKind.LIST
+internal fun PrakriyaValueType.toCompilerValueKind(): CompilerValueKind = when (this) {
+    PrakriyaValueType.SANKHYA -> CompilerValueKind.NUMBER
+    PrakriyaValueType.SHABDA -> CompilerValueKind.TEXT
+    PrakriyaValueType.SUCHI -> CompilerValueKind.LIST
 }
 
 private typealias ValueKind = CompilerValueKind

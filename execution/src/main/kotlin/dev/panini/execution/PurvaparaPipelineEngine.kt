@@ -16,7 +16,7 @@ object PurvaparaPipelineEngine {
         scope: ExecutionScope,
         speaker: String,
         listener: String,
-        registry: SamjnaKriyaRegistry,
+        registry: PrakriyaRegistry,
         callerSourceFile: String? = null,
     ): List<ExecutionResult> {
         if (pipeline.stages.size < 2) {
@@ -50,7 +50,7 @@ object PurvaparaPipelineEngine {
                 )
             }
 
-            val stageResults = vm.executeSamjnaInvocation(
+            val stageResults = vm.executePrakriyaInvocation(
                 invocation, sessionKey, scope, speaker, listener, registry, callerSourceFile = callerSourceFile,
             )
             val stageSuccess = stageResults.filterIsInstance<ExecutionResult.Success>().lastOrNull()

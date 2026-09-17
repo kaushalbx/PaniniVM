@@ -23,10 +23,10 @@ object ProcedureAstArgumentBinder {
 
     fun referenceKey(index: Int): String = "$KEY_PREFIX$index"
 
-    fun bind(node: ProgramNode, parameters: List<SamjnaParameter>, argumentCount: Int): ProgramNode {
+    fun bind(node: ProgramNode, parameters: List<PrakriyaParameter>, argumentCount: Int): ProgramNode {
         val names = parameters.mapIndexed { index, parameter -> parameter.nameStem to index }.toMap()
         fun parameterIndex(pada: SubantaPada): Int? {
-            val stem = SamjnaInvocationMatcher.normalizeIdentity(pada.pratipadika.sourceText)
+            val stem = PrakriyaInvocationMatcher.normalizeIdentity(pada.pratipadika.sourceText)
             return names[stem] ?: (NumeralPadaBinder.extractOrdinalValue(pada)
                 ?: PuranaPratyayaResolver.ordinalValue(pada))
                 ?.toInt()?.minus(1)?.takeIf { it in 0 until argumentCount }
@@ -115,7 +115,7 @@ object ProcedureAstArgumentBinder {
 
             override fun visitPipeline(node: Pipeline): ProgramNode = node.copy(
                 arguments = node.arguments.map { argument ->
-                    names[SamjnaInvocationMatcher.normalizeIdentity(argument)]
+                    names[PrakriyaInvocationMatcher.normalizeIdentity(argument)]
                         ?.let(::referenceKey) ?: argument
                 },
                 renderPadas = node.renderPadas.map(::bindPada),

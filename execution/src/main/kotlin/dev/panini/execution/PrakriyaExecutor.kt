@@ -5,11 +5,11 @@ import dev.panini.vyakaranam.ast.ProgramNode
 import dev.panini.vyakaranam.ast.Repeat
 
 /** Executes one reusable saṃjñā procedure independently of script control-flow orchestration. */
-internal class SamjnaProcedureExecutor {
+internal class PrakriyaExecutor {
     data class Request(
-        val invocation: SamjnaInvocation,
+        val invocation: PrakriyaInvocation,
         val scope: ExecutionScope,
-        val registry: SamjnaKriyaRegistry,
+        val registry: PrakriyaRegistry,
         val callerSourceFile: String?,
         val executeBody: (
             program: ProgramNode,
@@ -23,11 +23,11 @@ internal class SamjnaProcedureExecutor {
     fun execute(request: Request): List<ExecutionResult> {
         val invocation = request.invocation
         val signature = invocation.kriya.signature
-        val argumentResolution = SamjnaInvocationArgumentResolver.resolve(invocation)
-        if (argumentResolution is SamjnaArgumentResolution.Failure) {
+        val argumentResolution = PrakriyaInvocationArgumentResolver.resolve(invocation)
+        if (argumentResolution is PrakriyaArgumentResolution.Failure) {
             return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE, argumentResolution.message))
         }
-        val argTerms = (argumentResolution as SamjnaArgumentResolution.Success).terms
+        val argTerms = (argumentResolution as PrakriyaArgumentResolution.Success).terms
         val callFrame = ProcedureCallFrame.create(
             invocation,
             argTerms,
@@ -76,8 +76,8 @@ internal class SamjnaProcedureExecutor {
     }
 
     private fun validateArguments(
-        invocation: SamjnaInvocation,
-        signature: SamjnaSignature,
+        invocation: PrakriyaInvocation,
+        signature: PrakriyaSignature,
         terms: List<String>,
         frame: ProcedureCallFrame,
     ): ExecutionResult.Failure? {
@@ -88,8 +88,8 @@ internal class SamjnaProcedureExecutor {
             )
         }
         val mismatch = signature.parameters.zip(terms).withIndex().firstOrNull { (index, pair) ->
-            val actual = frame.arguments.getOrNull(index)?.let(SamjnaValueClassifier::classifyValue)
-                ?: SamjnaValueClassifier.classifyTerm(pair.second)
+            val actual = frame.arguments.getOrNull(index)?.let(PrakriyaValueClassifier::classifyValue)
+                ?: PrakriyaValueClassifier.classifyTerm(pair.second)
             actual != pair.first.type
         } ?: return null
         return ExecutionResult.Failure(
@@ -99,7 +99,7 @@ internal class SamjnaProcedureExecutor {
     }
 
     private fun validateGuards(
-        invocation: SamjnaInvocation,
+        invocation: PrakriyaInvocation,
         terms: List<String>,
         frame: ProcedureCallFrame,
     ): ExecutionResult.Failure? {
@@ -111,7 +111,7 @@ internal class SamjnaProcedureExecutor {
                     terms,
                     frame.arguments,
                 ) || requiredType != null && frame.arguments.any {
-                    SamjnaValueClassifier.classifyValue(it) != requiredType
+                    PrakriyaValueClassifier.classifyValue(it) != requiredType
                 }
             ) {
                 return ExecutionResult.Failure(
@@ -124,14 +124,14 @@ internal class SamjnaProcedureExecutor {
     }
 
     private fun validateResult(
-        invocation: SamjnaInvocation,
-        registry: SamjnaKriyaRegistry,
+        invocation: PrakriyaInvocation,
+        registry: PrakriyaRegistry,
         results: List<ExecutionResult>,
     ): ExecutionResult.Failure? {
         val signature = invocation.kriya.signature
         signature.resultType?.let { expected ->
             val finalResult = results.lastOrNull() as? ExecutionResult.Success ?: return null
-            val actual = SamjnaValueClassifier.classifyValue(
+            val actual = PrakriyaValueClassifier.classifyValue(
                 finalResult.typedValue ?: SanskritValue.of(finalResult.value),
             )
             if (actual != expected) {

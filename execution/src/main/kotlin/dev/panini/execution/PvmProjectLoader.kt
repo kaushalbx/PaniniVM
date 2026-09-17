@@ -6,20 +6,20 @@ import java.io.File
 /** Discovers project sources and registers their reusable grammatical declarations. */
 internal class PvmProjectLoader {
     fun registerDeclarations(
-        registry: SamjnaKriyaRegistry,
+        registry: PrakriyaRegistry,
         statements: List<PvmScriptStatement>,
         sourceFile: String?,
         includeExecutionModifiers: Boolean = true,
     ) {
         val fallbackDomain = statements.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>()
-            .firstOrNull()?.let { deriveSamjnaStem(it.scope.domain) }
+            .firstOrNull()?.let { derivePrakriyaStem(it.scope.domain) }
         registerInheritances(registry, statements)
-        statements.filterIsInstance<PvmScriptStatement.SamjnaDefinition>().forEach { definition ->
+        statements.filterIsInstance<PvmScriptStatement.PrakriyaDefinition>().forEach { definition ->
             val procedure = definition.procedure
             registry.register(
-                SamjnaKriya(
+                Prakriya(
                     nameSegmented = procedure.name,
-                    nameStem = deriveSamjnaStem(procedure.name),
+                    nameStem = derivePrakriyaStem(procedure.name),
                     body = definition.body,
                     sourceFile = sourceFile,
                     domainStem = procedure.domain ?: deriveDomainStem(procedure.name) ?: fallbackDomain,
@@ -34,10 +34,10 @@ internal class PvmProjectLoader {
         }
     }
 
-    fun loadLibraryRegistry(entryFile: File): SamjnaKriyaRegistry {
+    fun loadLibraryRegistry(entryFile: File): PrakriyaRegistry {
         val projectDir = entryFile.parentFile ?: entryFile.absoluteFile.parentFile
             ?: error("Cannot determine project directory for ${entryFile.path}")
-        val registry = SamjnaKriyaRegistry()
+        val registry = PrakriyaRegistry()
         projectDir.walkTopDown()
             .filter { it.isFile && it.extension == "pvm" && it.canonicalPath != entryFile.canonicalPath }
             .sortedBy(File::getName)
@@ -60,7 +60,7 @@ internal class PvmProjectLoader {
     }
 
     private fun registerInheritances(
-        registry: SamjnaKriyaRegistry,
+        registry: PrakriyaRegistry,
         statements: List<PvmScriptStatement>,
     ) {
         statements.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>().forEach { adhikara ->
@@ -70,11 +70,11 @@ internal class PvmProjectLoader {
         }
     }
 
-    private fun deriveSamjnaStem(nameSegmented: String): String =
-        requireNotNull(SamjnaHeaderIdentityParser.parse(nameSegmented)) {
+    private fun derivePrakriyaStem(nameSegmented: String): String =
+        requireNotNull(PrakriyaHeaderIdentityParser.parse(nameSegmented)) {
             "Unable to parse saṃjñā header identity: $nameSegmented"
         }.operationStem
 
     private fun deriveDomainStem(nameSegmented: String): String? =
-        SamjnaHeaderIdentityParser.parse(nameSegmented)?.domainStem
+        PrakriyaHeaderIdentityParser.parse(nameSegmented)?.domainStem
 }

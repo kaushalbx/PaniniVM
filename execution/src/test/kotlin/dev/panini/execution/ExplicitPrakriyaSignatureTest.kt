@@ -5,7 +5,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
-class ExplicitSamjnaSignatureTest {
+class ExplicitPrakriyaSignatureTest {
     private val vm = PaniniVM()
 
     @Test
@@ -111,16 +111,16 @@ class ExplicitSamjnaSignatureTest {
             वाम + अम् मुद्र् + णिच् + लोट् + सिप् ॥
             """.trimIndent(),
         )
-        val definition = assertIs<PvmScriptStatement.SamjnaDefinition>(statements.single())
-        val signature = SamjnaSignatureCompiler.compile(definition.body)
+        val definition = assertIs<PvmScriptStatement.PrakriyaDefinition>(statements.single())
+        val signature = PrakriyaSignatureCompiler.compile(definition.body)
 
         assertEquals(
             listOf(
-                SamjnaParameter("वाम", SamjnaValueType.SANKHYA),
-                SamjnaParameter("दक्षिण", SamjnaValueType.SHABDA),
+                PrakriyaParameter("वाम", PrakriyaValueType.SANKHYA),
+                PrakriyaParameter("दक्षिण", PrakriyaValueType.SHABDA),
             ),
             signature.parameters,
         )
-        assertEquals(SamjnaValueType.SUCHI, signature.resultType)
+        assertEquals(PrakriyaValueType.SUCHI, signature.resultType)
     }
 }

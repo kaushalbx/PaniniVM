@@ -54,14 +54,14 @@ class AntaratamaOverloadTest {
 
     @Test
     fun `typed signatures are compiled once and ranked structurally`() {
-        val numeric = SamjnaSignatureCompiler.compile(
+        val numeric = PrakriyaSignatureCompiler.compile(
             listOf(PvmScriptStatement.Sentence("न प्रथम + अम् सङ्ख्या + त्व + अम् ।", isNishedha = true)),
         )
-        val text = SamjnaSignatureCompiler.compile(
+        val text = PrakriyaSignatureCompiler.compile(
             listOf(PvmScriptStatement.Sentence("न प्रथम + अम् शब्द + त्व + अम् ।", isNishedha = true)),
         )
 
-        assertEquals(SamjnaValueType.SANKHYA, numeric.argumentType)
+        assertEquals(PrakriyaValueType.SANKHYA, numeric.argumentType)
         assertEquals(AntaratamaOverloadEngine.TypeMatch.EXACT, AntaratamaOverloadEngine.match(numeric, listOf("पञ्च")))
         assertEquals(AntaratamaOverloadEngine.TypeMatch.MISMATCH, AntaratamaOverloadEngine.match(text, listOf("पञ्च")))
         assertNotEquals(numeric, text)

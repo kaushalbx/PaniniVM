@@ -16,7 +16,7 @@ class ProcedureAstArgumentBinderTest {
             गणित + ङस् वृध् + ल्युट् + सुँ ।
             प्रथ् + अमच् + अम् द्वि + तीय + अम् च युज् + लोट् + सिप् ॥
             """.trimIndent(),
-        ).single() as PvmScriptStatement.SamjnaDefinition
+        ).single() as PvmScriptStatement.PrakriyaDefinition
 
         val bound = ProcedureAstArgumentBinder.bind(
             requireNotNull(definition.body.single().program),
@@ -42,16 +42,16 @@ class ProcedureAstArgumentBinderTest {
 
     @Test
     fun `call frame parameters shadow caller values without mutating caller scope`() {
-        val kriya = SamjnaKriya(
+        val kriya = Prakriya(
             nameSegmented = "युज् + ल्युट् + सुँ",
             nameStem = "युज् + ल्युट्",
             body = emptyList(),
-            signatureOverride = SamjnaSignature(
-                parameters = listOf(SamjnaParameter("वाम", SamjnaValueType.SANKHYA)),
+            signatureOverride = PrakriyaSignature(
+                parameters = listOf(PrakriyaParameter("वाम", PrakriyaValueType.SANKHYA)),
             ),
         )
         val argument = SanskritValue.Sankhya(2, "द्वि")
-        val invocation = SamjnaInvocation(
+        val invocation = PrakriyaInvocation(
             kriya = kriya,
             karmaText = "द्वि + अम्",
             fullText = "",
@@ -77,14 +77,14 @@ class ProcedureAstArgumentBinderTest {
             SanskritValue.Rupa("फलरूप", mapOf("मान" to SanskritValue.Sankhya(2, "द्वि"))),
         )
         val parameters = listOf("सूची", "सीमा", "रूप").map {
-            SamjnaParameter(it, SamjnaValueType.SHABDA)
+            PrakriyaParameter(it, PrakriyaValueType.SHABDA)
         }
-        val invocation = SamjnaInvocation(
-            kriya = SamjnaKriya(
+        val invocation = PrakriyaInvocation(
+            kriya = Prakriya(
                 nameSegmented = "वह् + ल्युट् + सुँ",
                 nameStem = "वह् + ल्युट्",
                 body = emptyList(),
-                signatureOverride = SamjnaSignature(parameters = parameters),
+                signatureOverride = PrakriyaSignature(parameters = parameters),
             ),
             karmaText = "",
             fullText = "",
@@ -119,7 +119,7 @@ class ProcedureAstArgumentBinderTest {
             न द्वितीय + अम् शून्य + अम् ।
             प्रथम + अम् द्वितीय + अम् च भाज् + णिच् + लोट् + सिप् ॥
             """.trimIndent(),
-        ).single() as PvmScriptStatement.SamjnaDefinition
+        ).single() as PvmScriptStatement.PrakriyaDefinition
         val guard = definition.body.single { it.isNishedha }
 
         assertTrue(

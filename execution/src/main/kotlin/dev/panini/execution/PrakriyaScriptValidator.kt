@@ -3,50 +3,50 @@ package dev.panini.execution
 import dev.panini.vyakaranam.ast.Pipeline
 import dev.panini.sankhya.CanonicalNumeralStem
 
-enum class SamjnaDiagnosticSeverity { ERROR, WARNING }
+enum class PrakriyaDiagnosticSeverity { ERROR, WARNING }
 
-data class SamjnaDiagnostic(
+data class PrakriyaDiagnostic(
     val offset: Int,
     val length: Int,
     val message: String,
-    val severity: SamjnaDiagnosticSeverity = SamjnaDiagnosticSeverity.ERROR,
+    val severity: PrakriyaDiagnosticSeverity = PrakriyaDiagnosticSeverity.ERROR,
     val replacement: String? = null,
 )
 
 /** Performs declaration and call checks without executing the script. */
-object SamjnaScriptValidator {
-    fun validate(source: String): List<SamjnaDiagnostic> {
+object PrakriyaScriptValidator {
+    fun validate(source: String): List<PrakriyaDiagnostic> {
         val diagnostics = CanonicalNumeralStem.suggestions(source).mapTo(mutableListOf()) { suggestion ->
-            SamjnaDiagnostic(
+            PrakriyaDiagnostic(
                 offset = suggestion.offset,
                 length = suggestion.surface.length,
                 message = "Use canonical numeral stem '${suggestion.canonical}' before a segmented suffix.",
-                severity = SamjnaDiagnosticSeverity.WARNING,
+                severity = PrakriyaDiagnosticSeverity.WARNING,
                 replacement = suggestion.canonical,
             )
         }
         DirectResultAssignment.suggestions(source).forEach { suggestion ->
-            diagnostics += SamjnaDiagnostic(
+            diagnostics += PrakriyaDiagnostic(
                 offset = suggestion.offset,
                 length = suggestion.length,
                 message = "The preceding ततः result can be assigned directly without an explicit फल lookup.",
-                severity = SamjnaDiagnosticSeverity.WARNING,
+                severity = PrakriyaDiagnosticSeverity.WARNING,
                 replacement = suggestion.replacement,
             )
         }
         val statements = runCatching { PvmScript.parse(source) }.getOrElse { return diagnostics }
-        val registry = SamjnaKriyaRegistry()
+        val registry = PrakriyaRegistry()
 
         statements.filterIsInstance<PvmScriptStatement.Sentence>().mapNotNull { sentence ->
             TaddhitaStructEngine.detectResultSchema(sentence.text, sentence.ukti)
         }.forEach(registry::registerSchema)
 
-        statements.filterIsInstance<PvmScriptStatement.SamjnaDefinition>().forEach { definition ->
-            val parameters = definition.body.mapNotNull(SamjnaSignatureDeclarationParser::parameter)
-            parameters.groupBy(SamjnaParameter::nameStem).filterValues { it.size > 1 }.keys.forEach { name ->
+        statements.filterIsInstance<PvmScriptStatement.PrakriyaDefinition>().forEach { definition ->
+            val parameters = definition.body.mapNotNull(PrakriyaSignatureDeclarationParser::parameter)
+            parameters.groupBy(PrakriyaParameter::nameStem).filterValues { it.size > 1 }.keys.forEach { name ->
                 diagnostics += diagnostic(source, name, "The parameter '$name' is declared more than once.")
             }
-            val results = definition.body.mapNotNull(SamjnaSignatureDeclarationParser::result)
+            val results = definition.body.mapNotNull(PrakriyaSignatureDeclarationParser::result)
             if (results.size > 1) {
                 diagnostics += diagnostic(source, "परिणाम", "A संज्ञा-क्रिया may declare only one result.")
             }
@@ -55,9 +55,9 @@ object SamjnaScriptValidator {
                     diagnostics += diagnostic(source, schema, "No परिणाम schema named '$schema' is declared.")
                 }
             }
-            val kriya = SamjnaKriya(
+            val kriya = Prakriya(
                 nameSegmented = definition.nameSegmented,
-                nameStem = SamjnaKriyaRegistry.stripSupSuffix(definition.nameSegmented),
+                nameStem = PrakriyaRegistry.stripSupSuffix(definition.nameSegmented),
                 body = definition.body,
                 domainStem = definition.domainStem,
                 visibility = definition.procedure.modifiers.visibility,
@@ -82,11 +82,11 @@ object SamjnaScriptValidator {
     private fun validatePipeline(
         source: String,
         pipeline: Pipeline,
-        registry: SamjnaKriyaRegistry,
-        diagnostics: MutableList<SamjnaDiagnostic>,
+        registry: PrakriyaRegistry,
+        diagnostics: MutableList<PrakriyaDiagnostic>,
     ) {
         var arguments = pipeline.arguments
-        var precedingType: SamjnaValueType? = null
+        var precedingType: PrakriyaValueType? = null
         pipeline.stages.forEach { stage ->
             val invocation = registry.resolveStructuredInvocation(
                 stage.operationStem,
@@ -110,25 +110,25 @@ object SamjnaScriptValidator {
                     )
                 }
             }
-            precedingType = signature.resultType ?: signature.resultSchema?.let { SamjnaValueType.SHABDA }
+            precedingType = signature.resultType ?: signature.resultSchema?.let { PrakriyaValueType.SHABDA }
             arguments = listOf("फल") + pipeline.arguments.drop(1)
         }
     }
 
     private fun validateCall(
         source: String,
-        invocation: SamjnaInvocation,
-        diagnostics: MutableList<SamjnaDiagnostic>,
+        invocation: PrakriyaInvocation,
+        diagnostics: MutableList<PrakriyaDiagnostic>,
     ) {
         val signature = invocation.kriya.signature
         if (signature.parameters.isEmpty()) return
         val callName = invocation.kriya.nameStem.substringBefore(" + ")
-        val resolution = SamjnaInvocationArgumentResolver.resolve(invocation)
-        if (resolution is SamjnaArgumentResolution.Failure) {
+        val resolution = PrakriyaInvocationArgumentResolver.resolve(invocation)
+        if (resolution is PrakriyaArgumentResolution.Failure) {
             diagnostics += diagnostic(source, callName, resolution.message)
             return
         }
-        val arguments = (resolution as SamjnaArgumentResolution.Success).terms
+        val arguments = (resolution as PrakriyaArgumentResolution.Success).terms
         if (arguments.size != signature.parameters.size) {
             diagnostics += diagnostic(
                 source,
@@ -138,14 +138,14 @@ object SamjnaScriptValidator {
             return
         }
         signature.parameters.zip(arguments).firstOrNull { (parameter, argument) ->
-            parameter.type != SamjnaValueClassifier.classifyTerm(argument)
+            parameter.type != PrakriyaValueClassifier.classifyTerm(argument)
         }?.let { (parameter, _) ->
             diagnostics += diagnostic(source, callName, "Parameter '${parameter.nameStem}' requires ${parameter.type}.")
         }
     }
 
-    private fun diagnostic(source: String, token: String, message: String): SamjnaDiagnostic {
+    private fun diagnostic(source: String, token: String, message: String): PrakriyaDiagnostic {
         val offset = source.indexOf(token).coerceAtLeast(0)
-        return SamjnaDiagnostic(offset, token.length.coerceAtLeast(1), message)
+        return PrakriyaDiagnostic(offset, token.length.coerceAtLeast(1), message)
     }
 }

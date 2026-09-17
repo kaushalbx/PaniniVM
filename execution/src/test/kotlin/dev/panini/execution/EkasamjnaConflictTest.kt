@@ -12,7 +12,7 @@ class EkasamjnaConflictTest {
     fun testNityaHeaderScriptParsing() {
         val statements = PvmScript.parse("गणित + ङस् गुण् + ल्युट् + सुँ इति नि + त्य + सुँ इति संज्ञा + सुँ ।")
         assertTrue(statements.isNotEmpty(), "Expected non-empty script statements for Nitya header line")
-        val defn = statements.first() as PvmScriptStatement.SamjnaDefinition
+        val defn = statements.first() as PvmScriptStatement.PrakriyaDefinition
         assertTrue(defn.isNitya, "Expected isNitya to be true for Nitya header definition")
         assertEquals("गणित + ङस् गुण् + ल्युट् + सुँ", defn.nameSegmented)
     }
@@ -21,10 +21,10 @@ class EkasamjnaConflictTest {
     fun testStructuralHeaderQualifiers() {
         val antaranga = PvmScript.parse(
             "गणित + ङस् गुण् + ल्युट् + सुँ इति अन्तर् + अङ्ग + सुँ इति संज्ञा + सुँ ।",
-        ).single() as PvmScriptStatement.SamjnaDefinition
+        ).single() as PvmScriptStatement.PrakriyaDefinition
         val apavada = PvmScript.parse(
             "गणित + ङस् गुण् + ल्युट् + सुँ इति अप + वद् + घञ् + सुँ इति संज्ञा + सुँ ।",
-        ).single() as PvmScriptStatement.SamjnaDefinition
+        ).single() as PvmScriptStatement.PrakriyaDefinition
 
         assertTrue(antaranga.isAntaranga)
         assertEquals("गणित + ङस् गुण् + ल्युट् + सुँ", antaranga.nameSegmented)

@@ -8,10 +8,10 @@ import kotlin.test.assertTrue
 class SamjnaTypeFlowTest {
     @Test
     fun `validator recommends canonical segmented numeral stems`() {
-        val diagnostics = SamjnaScriptValidator.validate("पञ्च + शस् दश + अम् च मुद्र् + लोट् + सिप् ।")
+        val diagnostics = PrakriyaScriptValidator.validate("पञ्च + शस् दश + अम् च मुद्र् + लोट् + सिप् ।")
 
-        assertEquals(listOf("पञ्चन्", "दशन्"), diagnostics.mapNotNull(SamjnaDiagnostic::replacement))
-        assertTrue(diagnostics.all { it.severity == SamjnaDiagnosticSeverity.WARNING })
+        assertEquals(listOf("पञ्चन्", "दशन्"), diagnostics.mapNotNull(PrakriyaDiagnostic::replacement))
+        assertTrue(diagnostics.all { it.severity == PrakriyaDiagnosticSeverity.WARNING })
     }
 
     @Test
@@ -26,7 +26,7 @@ class SamjnaTypeFlowTest {
             त्रि + अम् योजन + ल्युट् + टा कृ + लोट् + सिप् ।
         """.trimIndent()
 
-        val messages = SamjnaScriptValidator.validate(source).map(SamjnaDiagnostic::message)
+        val messages = PrakriyaScriptValidator.validate(source).map(PrakriyaDiagnostic::message)
 
         assertTrue(messages.any { it.contains("declared more than once") }, messages.toString())
         assertTrue(messages.any { it.contains("expects 2 arguments") }, messages.toString())
@@ -41,13 +41,13 @@ class SamjnaTypeFlowTest {
             विजय + अम् दा + लोट् + सिप् ॥
         """.trimIndent()
 
-        val definition = assertIs<PvmScriptStatement.SamjnaDefinition>(
-            PvmScript.parse(source).filterIsInstance<PvmScriptStatement.SamjnaDefinition>().single(),
+        val definition = assertIs<PvmScriptStatement.PrakriyaDefinition>(
+            PvmScript.parse(source).filterIsInstance<PvmScriptStatement.PrakriyaDefinition>().single(),
         )
-        val signature = SamjnaSignatureCompiler.compile(definition.body)
+        val signature = PrakriyaSignatureCompiler.compile(definition.body)
 
         assertEquals("अनुमानपरिणाम", signature.resultSchema)
-        assertTrue(SamjnaScriptValidator.validate(source).isEmpty())
+        assertTrue(PrakriyaScriptValidator.validate(source).isEmpty())
     }
 
     @Test

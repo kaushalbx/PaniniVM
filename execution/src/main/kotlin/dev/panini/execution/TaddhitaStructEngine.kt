@@ -191,17 +191,17 @@ object TaddhitaStructEngine {
         else -> canonicalSource().substringBeforeLast(" + ${supText()}").trim()
     }
 
-    private fun Pada.canonicalSource(): String = SamjnaInvocationMatcher.normalizeIdentity(sourceText)
+    private fun Pada.canonicalSource(): String = PrakriyaInvocationMatcher.normalizeIdentity(sourceText)
 
     private fun SubantaPada.canonicalSource(): String =
-        "${pratipadika.sourceText} + ${sup.text}".let(SamjnaInvocationMatcher::normalizeIdentity)
+        "${pratipadika.sourceText} + ${sup.text}".let(PrakriyaInvocationMatcher::normalizeIdentity)
 
     private fun Pratipadika.isMatup(): Boolean =
         vikaras().any { it.pratyayaClass == TaddhitaPratyayaClass.POSSESSIVE }
 
     private fun Pratipadika.baseIdentity(): String = when (this) {
         is MulaPratipadika -> text
-        else -> SamjnaInvocationMatcher.normalizeIdentity(sourceText).substringBefore(" + ").trim()
+        else -> PrakriyaInvocationMatcher.normalizeIdentity(sourceText).substringBefore(" + ").trim()
     }
 
     private fun Pratipadika.vikaras(): List<TaddhitaVikara> = when (this) {

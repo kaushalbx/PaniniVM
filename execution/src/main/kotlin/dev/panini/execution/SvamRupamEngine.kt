@@ -18,7 +18,7 @@ object SvamRupamEngine {
      * otherwise returns its self-referential literal [SanskritValue.Shabda].
      */
     fun evaluateTerm(term: String): SanskritValue {
-        val cleanTerm = SamjnaKriyaRegistry.stripSupSuffix(term)
+        val cleanTerm = PrakriyaRegistry.stripSupSuffix(term)
         return if (isTechnicalSamjna(cleanTerm) || isTechnicalSamjna(term)) {
             SanskritValue.of(term)
         } else {
@@ -31,7 +31,7 @@ object SvamRupamEngine {
      * Checks if a term represents a self-referential literal (स्वं रूपम्).
      */
     fun isSelfReferentialLiteral(term: String): Boolean {
-        val cleanTerm = SamjnaKriyaRegistry.stripSupSuffix(term)
+        val cleanTerm = PrakriyaRegistry.stripSupSuffix(term)
         return !isTechnicalSamjna(cleanTerm) && !isTechnicalSamjna(term)
     }
 

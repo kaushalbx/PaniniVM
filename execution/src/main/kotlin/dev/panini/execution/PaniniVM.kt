@@ -115,11 +115,11 @@ class PaniniVM(
         scope: ExecutionScope = defaultScope,
         speaker: String = "प्रयोक्ता",
         listener: String = "यन्त्रम्",
-        samjnaRegistry: SamjnaKriyaRegistry? = null,
+        prakriyaRegistry: PrakriyaRegistry? = null,
         onResult: ((ExecutionResult) -> Unit)? = null,
     ): List<ExecutionResult> = scriptExecutor.evalScript(
         scriptContent, sessionKey = sessionKey, scope = scope, speaker = speaker, listener = listener,
-        samjnaRegistry = samjnaRegistry, onResult = onResult,
+        prakriyaRegistry = prakriyaRegistry, onResult = onResult,
     )
 
     fun evalScriptWithFileContext(
@@ -129,10 +129,10 @@ class PaniniVM(
         scope: ExecutionScope = defaultScope,
         speaker: String = "प्रयोक्ता",
         listener: String = "यन्त्रम्",
-        samjnaRegistry: SamjnaKriyaRegistry? = null,
+        prakriyaRegistry: PrakriyaRegistry? = null,
         onResult: ((ExecutionResult) -> Unit)? = null,
     ): List<ExecutionResult> = scriptExecutor.evalScript(
-        scriptContent, sourceFile, sessionKey, scope, speaker, listener, samjnaRegistry, onResult,
+        scriptContent, sourceFile, sessionKey, scope, speaker, listener, prakriyaRegistry, onResult,
     )
 
     fun evalProject(
@@ -144,16 +144,16 @@ class PaniniVM(
         onResult: ((ExecutionResult) -> Unit)? = null,
     ): List<ExecutionResult> = scriptExecutor.evalProject(entryFile, sessionKey, scope, speaker, listener, onResult)
 
-    internal fun executeSamjnaInvocation(
-        invocation: SamjnaInvocation,
+    internal fun executePrakriyaInvocation(
+        invocation: PrakriyaInvocation,
         sessionKey: String,
         scope: ExecutionScope,
         speaker: String,
         listener: String,
-        registry: SamjnaKriyaRegistry,
+        registry: PrakriyaRegistry,
         callerSourceFile: String? = null,
         onResult: ((ExecutionResult) -> Unit)? = null,
-    ): List<ExecutionResult> = scriptExecutor.executeSamjnaInvocation(
+    ): List<ExecutionResult> = scriptExecutor.executePrakriyaInvocation(
         invocation, sessionKey, scope, speaker, listener, registry, callerSourceFile, onResult,
     )
 

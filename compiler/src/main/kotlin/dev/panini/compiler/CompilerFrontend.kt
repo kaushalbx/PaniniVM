@@ -2,14 +2,14 @@ package dev.panini.compiler
 
 import dev.panini.execution.PvmScript
 import dev.panini.execution.PvmScriptStatement
-import dev.panini.execution.SamjnaInvocationArgumentResolver
-import dev.panini.execution.SamjnaKriya
-import dev.panini.execution.SamjnaKriyaRegistry
-import dev.panini.execution.SamjnaArgumentResolution
-import dev.panini.execution.SamjnaSignatureDeclarationParser
-import dev.panini.execution.SamjnaValueClassifier
-import dev.panini.execution.SamjnaParameter
-import dev.panini.execution.SamjnaValueType
+import dev.panini.execution.PrakriyaInvocationArgumentResolver
+import dev.panini.execution.Prakriya
+import dev.panini.execution.PrakriyaRegistry
+import dev.panini.execution.PrakriyaArgumentResolution
+import dev.panini.execution.PrakriyaSignatureDeclarationParser
+import dev.panini.execution.PrakriyaValueClassifier
+import dev.panini.execution.PrakriyaParameter
+import dev.panini.execution.PrakriyaValueType
 import dev.panini.execution.TaddhitaInheritanceEngine
 import dev.panini.execution.TaddhitaStructEngine
 import dev.panini.execution.NishedhaGuardEvaluator
@@ -61,13 +61,13 @@ internal object CompilerFrontend {
 
     internal fun lowerModule(descriptor: PaniniModuleDescriptor, className: String): CompilerProgram {
         val analyzed = PaniniModuleAnalyzer.analyze(descriptor)
-        val registry = SamjnaKriyaRegistry()
+        val registry = PrakriyaRegistry()
         analyzed.inheritance.forEach { (child, parent) ->
             registry.registerInheritance(dev.panini.execution.InheritanceRelation(child, parent))
         }
         analyzed.procedures.forEach { procedure ->
             registry.register(
-                SamjnaKriya(
+                Prakriya(
                     nameSegmented = procedure.definition.nameSegmented,
                     nameStem = procedure.symbol,
                     body = procedure.definition.body,
@@ -88,13 +88,13 @@ internal object CompilerFrontend {
             }
             dependency.procedures.forEach { procedure ->
                 registry.register(
-                    SamjnaKriya(
+                    Prakriya(
                         nameSegmented = procedure.symbol,
                         nameStem = procedure.symbol,
                         body = emptyList(),
                         sourceFile = "${dependency.moduleName}.pvmmeta",
                         domainStem = procedure.domain,
-                        signatureOverride = dev.panini.execution.SamjnaSignature(
+                        signatureOverride = dev.panini.execution.PrakriyaSignature(
                             parameters = procedure.parameters,
                             resultType = procedure.resultType,
                             resultSchema = procedure.resultSchema,
@@ -127,7 +127,7 @@ internal object CompilerFrontend {
             val definition = procedure.definition
             val signature = procedure.signature
             val instructions = definition.body.filterNot { sentence ->
-                sentence.isNishedha || SamjnaSignatureDeclarationParser.isDeclaration(sentence)
+                sentence.isNishedha || PrakriyaSignatureDeclarationParser.isDeclaration(sentence)
             }.flatMap { sentence ->
                 sentence.program?.let {
                     lowering.lower(it, sentence.text) + CompilerInstruction.ReturnIfBreak
@@ -147,7 +147,7 @@ internal object CompilerFrontend {
                 CompilerDependencyProcedure(
                     dependency.className,
                     procedure.methodName,
-                    procedure.parameters.map(SamjnaParameter::nameStem),
+                    procedure.parameters.map(PrakriyaParameter::nameStem),
                     procedure.parameters.map { it.type.toCompilerValueKind() },
                     procedure.resultType?.toCompilerValueKind()
                         ?: procedure.resultSchema?.let { CompilerValueKind.RECORD },
@@ -159,7 +159,7 @@ internal object CompilerFrontend {
     }
 
     private class Lowering(
-        private val registry: SamjnaKriyaRegistry,
+        private val registry: PrakriyaRegistry,
         private val methodsByStem: Map<String, ProcedureTarget>,
     ) {
         private var nextLabel = 0
@@ -309,7 +309,7 @@ internal object CompilerFrontend {
             val parameterKinds = signature.parameters.map { it.type.toCompilerValueKind() }
             val arguments = resolveArguments(invocation)
             return buildList {
-                if (signature.parameters.singleOrNull()?.type == SamjnaValueType.SUCHI) {
+                if (signature.parameters.singleOrNull()?.type == PrakriyaValueType.SUCHI) {
                     arguments.forEachIndexed { index, argument ->
                         add(lowerCallArgument(argument, invocation.argumentValues.getOrNull(index)))
                     }
@@ -360,7 +360,7 @@ internal object CompilerFrontend {
                         "Unknown compiled pipeline stage '${stage.operationStem}'.",
                     )
                 val kriya = registry.resolve(stage.operationStem)
-                    ?: registry.all().singleOrNull { localSamjnaStem(it.nameStem) == stage.operationStem }
+                    ?: registry.all().singleOrNull { localPrakriyaStem(it.nameStem) == stage.operationStem }
                     ?: throw CompilerUnsupportedException(
                         CompilerUnsupportedKind.PIPELINE,
                         node.sourceText,
@@ -506,21 +506,21 @@ internal object CompilerFrontend {
             return plans.flatMap(::lowerDirect)
         }
 
-        private fun resolveArguments(invocation: dev.panini.execution.SamjnaInvocation): List<String> {
+        private fun resolveArguments(invocation: dev.panini.execution.PrakriyaInvocation): List<String> {
             val signature = invocation.kriya.signature
-            val resolution = SamjnaInvocationArgumentResolver.resolve(invocation)
+            val resolution = PrakriyaInvocationArgumentResolver.resolve(invocation)
             val arguments = when (resolution) {
-                is SamjnaArgumentResolution.Success -> resolution.terms
-                is SamjnaArgumentResolution.Failure -> throw IllegalArgumentException(resolution.message)
+                is PrakriyaArgumentResolution.Success -> resolution.terms
+                is PrakriyaArgumentResolution.Failure -> throw IllegalArgumentException(resolution.message)
             }
-            val acceptsCollection = signature.parameters.singleOrNull()?.type == SamjnaValueType.SUCHI
+            val acceptsCollection = signature.parameters.singleOrNull()?.type == PrakriyaValueType.SUCHI
             require(signature.parameters.size == arguments.size || signature.parameters.isEmpty() || acceptsCollection) {
                 "संज्ञा-मानसङ्ख्या: '${invocation.kriya.nameStem}' expects ${signature.parameters.size} arguments, but received ${arguments.size}."
             }
             signature.parameters.zip(arguments).takeUnless { acceptsCollection }.orEmpty()
                 .forEachIndexed { index, (parameter, argument) ->
-                val actual = invocation.argumentValues.getOrNull(index)?.let(SamjnaValueClassifier::classifyValue)
-                    ?: SamjnaValueClassifier.classifyTerm(argument)
+                val actual = invocation.argumentValues.getOrNull(index)?.let(PrakriyaValueClassifier::classifyValue)
+                    ?: PrakriyaValueClassifier.classifyTerm(argument)
                 require(argument.substringBefore('+').trim() == "फल" || actual == parameter.type) {
                     "संज्ञा-मानप्रकारः: '${parameter.nameStem}' requires ${parameter.type}."
                 }
@@ -534,7 +534,7 @@ internal object CompilerFrontend {
                 )
                 val requiredType = signature.argumentType
                 val typeViolated = requiredType != null &&
-                    arguments.any { SamjnaValueClassifier.classifyTerm(it) != requiredType }
+                    arguments.any { PrakriyaValueClassifier.classifyTerm(it) != requiredType }
                 require(!prohibited && !typeViolated) {
                     "निषेध-प्रतिषेधः: Prohibition triggered by '${guard.text.trim()}'"
                 }
@@ -555,7 +555,7 @@ internal object CompilerFrontend {
     private fun normalized(source: String): String =
         source.trim().trimEnd('।', '॥').trim() + " ।"
 
-    private fun localSamjnaStem(stem: String): String =
+    private fun localPrakriyaStem(stem: String): String =
         CompilerSymbols.localStem(stem)
 
 }

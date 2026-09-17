@@ -14,7 +14,7 @@ import dev.panini.vyakaranam.ast.AryabhatiyaPada
 /**
  * A user-defined reusable kriyā, named via the संज्ञा-सूत्र pattern.
  */
-data class SamjnaKriya(
+data class Prakriya(
     val nameSegmented: String,
     val nameStem: String,
     val body: List<PvmScriptStatement.Sentence>,
@@ -22,28 +22,28 @@ data class SamjnaKriya(
     val domainStem: String? = null,
     val visibility: ProcedureVisibility = ProcedureVisibility.PUBLIC,
     val precedence: ProcedurePrecedence = ProcedurePrecedence.DEFAULT,
-    val signatureOverride: SamjnaSignature? = null,
-    val isMemoized: Boolean = SamjnaHeaderIdentityParser.hasOperationKrtPratyayaIdentity(
+    val signatureOverride: PrakriyaSignature? = null,
+    val isMemoized: Boolean = PrakriyaHeaderIdentityParser.hasOperationKrtPratyayaIdentity(
         nameSegmented,
         KrtPratyayaIdentity.KTA,
     ),
 ) {
-    val signature: SamjnaSignature by lazy { signatureOverride ?: SamjnaSignatureCompiler.compile(body) }
+    val signature: PrakriyaSignature by lazy { signatureOverride ?: PrakriyaSignatureCompiler.compile(body) }
 
     val isInternal: Boolean get() = visibility == ProcedureVisibility.INTERNAL
 
     val nishedhaGuards: List<PvmScriptStatement.Sentence> = body.filter { it.isNishedha }
     val vidhiSentences: List<PvmScriptStatement.Sentence> = body.filterNot {
-        it.isNishedha || SamjnaSignatureDeclarationParser.isDeclaration(it)
+        it.isNishedha || PrakriyaSignatureDeclarationParser.isDeclaration(it)
     }
 }
 
 /**
  * Global registry of saṃjñā kriyās for a project/session.
  */
-class SamjnaKriyaRegistry {
+class PrakriyaRegistry {
 
-    private val registry = linkedMapOf<String, MutableList<SamjnaKriya>>()
+    private val registry = linkedMapOf<String, MutableList<Prakriya>>()
     private val memoizedCache = mutableMapOf<String, ExecutionResult>()
     private val inheritanceMap = mutableMapOf<String, String>() // childStem -> parentStem
     private val schemas = linkedMapOf<String, TaddhitaStructSchema>()
@@ -67,13 +67,13 @@ class SamjnaKriyaRegistry {
         memoizedCache["$kriyaStem::$argsKey"] = result
     }
 
-    fun register(kriya: SamjnaKriya) {
+    fun register(kriya: Prakriya) {
         val key = if (kriya.domainStem != null) "${kriya.domainStem}::${kriya.nameStem}" else kriya.nameStem
         registry.getOrPut(key) { mutableListOf() }.add(kriya)
         registry.getOrPut(kriya.nameStem) { mutableListOf() }.add(kriya)
     }
 
-    fun resolve(stem: String, callerSourceFile: String? = null): SamjnaKriya? {
+    fun resolve(stem: String, callerSourceFile: String? = null): Prakriya? {
         val list = registry[stem] ?: return null
         val kriya = list.lastOrNull() ?: return null
         if (kriya.isInternal && kriya.sourceFile != null && callerSourceFile != kriya.sourceFile) {
@@ -82,7 +82,7 @@ class SamjnaKriyaRegistry {
         return kriya
     }
 
-    fun all(): List<SamjnaKriya> = registry.values.flatten().distinctBy { it.nameStem + (it.domainStem ?: "") }
+    fun all(): List<Prakriya> = registry.values.flatten().distinctBy { it.nameStem + (it.domainStem ?: "") }
 
     fun isEmpty(): Boolean = registry.isEmpty()
 
@@ -95,24 +95,24 @@ class SamjnaKriyaRegistry {
         sourceText: String,
         callerSourceFile: String? = null,
         argumentValues: List<SanskritValue?> = emptyList(),
-    ): SamjnaInvocation? {
-        val normalizedOperation = SamjnaInvocationMatcher.normalizeIdentity(operationStem)
+    ): PrakriyaInvocation? {
+        val normalizedOperation = PrakriyaInvocationMatcher.normalizeIdentity(operationStem)
         val candidates = registry.values.flatten()
             .distinctBy { System.identityHashCode(it) }
             .asSequence()
             .filter {
-                SamjnaInvocationMatcher.normalizeIdentity(it.nameStem) == normalizedOperation &&
+                PrakriyaInvocationMatcher.normalizeIdentity(it.nameStem) == normalizedOperation &&
                     domainMatches(it.domainStem, domainStem)
             }
             .filterNot { it.isInternal && it.sourceFile != null && callerSourceFile != it.sourceFile }
             .sortedWith(
-                compareByDescending<SamjnaKriya> { it.precedence.rank }
+                compareByDescending<Prakriya> { it.precedence.rank }
                     .thenByDescending { AntaratamaOverloadEngine.match(it.signature, argumentTerms).rank },
             )
             .toList()
         val kriya = candidates.firstOrNull() ?: return null
         val karmaText = argumentTerms.joinToString(" ") { "$it + अम्" }
-        return SamjnaInvocation(
+        return PrakriyaInvocation(
             kriya,
             karmaText,
             sourceText,
@@ -132,14 +132,14 @@ class SamjnaKriyaRegistry {
         ukti: dev.panini.vyakaranam.ast.Ukti,
         callerSourceFile: String? = null,
         injectedKarman: Pair<String, SanskritValue?>? = null,
-    ): SamjnaInvocation? {
+    ): PrakriyaInvocation? {
         if (registry.isEmpty()) return null
 
         val allKriyas = registry.values.flatten().distinctBy { System.identityHashCode(it) }
         val knownStems = allKriyas.mapTo(mutableSetOf()) {
-            SamjnaInvocationMatcher.normalizeIdentity(it.nameStem)
+            PrakriyaInvocationMatcher.normalizeIdentity(it.nameStem)
         }
-        val shape = SamjnaInvocationMatcher.match(ukti, knownStems) ?: return null
+        val shape = PrakriyaInvocationMatcher.match(ukti, knownStems) ?: return null
         val injectedText = injectedKarman?.first?.let { "$it + अम्" }.orEmpty()
         val karmaText = listOf(injectedText, shape.karmaText)
             .filter(String::isNotBlank)
@@ -148,26 +148,26 @@ class SamjnaKriyaRegistry {
         val writtenTerms = writtenPadas.map(Pada::argumentTerm)
         val argumentTerms = listOfNotNull(injectedKarman?.first) + writtenTerms
         val candidates = allKriyas.sortedWith(
-            compareByDescending<SamjnaKriya> { it.precedence.rank }
+            compareByDescending<Prakriya> { it.precedence.rank }
                 .thenByDescending {
                     val resolved = if (injectedKarman == null) {
-                        NamedSamjnaArgumentResolver.resolve(
+                        NamedPrakriyaArgumentResolver.resolve(
                             shape.argumentPadas.filterIsInstance<SubantaPada>(),
                             it.signature,
                         )
                     } else {
-                        NamedSamjnaArgumentResolver.resolve(karmaText, it.signature)
+                        NamedPrakriyaArgumentResolver.resolve(karmaText, it.signature)
                     }
-                    val ordered = (resolved as? SamjnaArgumentResolution.Success)?.terms ?: argumentTerms
+                    val ordered = (resolved as? PrakriyaArgumentResolution.Success)?.terms ?: argumentTerms
                     AntaratamaOverloadEngine.match(it.signature, ordered).rank
                 },
         )
         val kriya = candidates.firstOrNull { candidate ->
-            SamjnaInvocationMatcher.normalizeIdentity(candidate.nameStem) == shape.operationStem &&
+            PrakriyaInvocationMatcher.normalizeIdentity(candidate.nameStem) == shape.operationStem &&
                 domainMatches(candidate.domainStem, shape.domainStem) &&
                 (!candidate.isInternal || candidate.sourceFile == null || callerSourceFile == candidate.sourceFile)
         } ?: return null
-        return SamjnaInvocation(
+        return PrakriyaInvocation(
             kriya = kriya,
             karmaText = karmaText,
             fullText = ukti.sourceText,
@@ -191,11 +191,11 @@ class SamjnaKriyaRegistry {
 
     private fun domainMatches(expected: String?, actual: String?): Boolean {
         if (expected == null || actual == null) return expected == actual
-        val normalizedExpected = SamjnaInvocationMatcher.normalizeIdentity(stripSupSuffix(expected))
-        val normalizedActual = SamjnaInvocationMatcher.normalizeIdentity(stripSupSuffix(actual))
+        val normalizedExpected = PrakriyaInvocationMatcher.normalizeIdentity(stripSupSuffix(expected))
+        val normalizedActual = PrakriyaInvocationMatcher.normalizeIdentity(stripSupSuffix(actual))
         if (normalizedExpected == normalizedActual) return true
         val parent = inheritanceMap[actual] ?: inheritanceMap[normalizedActual] ?: return false
-        return SamjnaInvocationMatcher.normalizeIdentity(stripSupSuffix(parent)) == normalizedExpected
+        return PrakriyaInvocationMatcher.normalizeIdentity(stripSupSuffix(parent)) == normalizedExpected
     }
 
     companion object {
@@ -212,8 +212,8 @@ class SamjnaKriyaRegistry {
     }
 }
 
-data class SamjnaInvocation(
-    val kriya: SamjnaKriya,
+data class PrakriyaInvocation(
+    val kriya: Prakriya,
     val karmaText: String,
     val fullText: String,
     val ukti: dev.panini.vyakaranam.ast.Ukti? = null,

@@ -15,7 +15,7 @@ data class ProcedureCallFrame(
         private val sankhyaEvaluator = SankhyaEvaluator()
 
         fun create(
-            invocation: SamjnaInvocation,
+            invocation: PrakriyaInvocation,
             orderedTerms: List<String>,
             callerScope: ExecutionScope,
             callerSource: String?,

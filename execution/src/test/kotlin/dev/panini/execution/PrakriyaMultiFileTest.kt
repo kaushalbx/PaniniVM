@@ -11,7 +11,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-class SamjnaKriyaMultiFileTest {
+class PrakriyaMultiFileTest {
 
     @Test
     fun `named operations can recursively dispatch a two-counter machine`() {
@@ -105,7 +105,7 @@ class SamjnaKriyaMultiFileTest {
 
         val parsed = PvmScript.parse(script)
         assertEquals(1, parsed.size)
-        val samjna = parsed.first() as PvmScriptStatement.SamjnaDefinition
+        val samjna = parsed.first() as PvmScriptStatement.PrakriyaDefinition
         assertEquals("युज् + ल्युट् + सुँ", samjna.nameSegmented)
         assertEquals(1, samjna.body.size)
         assertEquals("युज् + णिच् + लोट् + सिप् ॥", samjna.body.first().text)
@@ -121,7 +121,7 @@ class SamjnaKriyaMultiFileTest {
 
         val parsed = PvmScript.parse(script)
         assertEquals(1, parsed.size)
-        val samjna = parsed.first() as PvmScriptStatement.SamjnaDefinition
+        val samjna = parsed.first() as PvmScriptStatement.PrakriyaDefinition
         assertEquals("युज् + ल्युट् + सुँ", samjna.nameSegmented)
         assertEquals(2, samjna.body.size)
         assertEquals("एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ।", samjna.body[0].text)
@@ -130,11 +130,11 @@ class SamjnaKriyaMultiFileTest {
 
     @Test
     fun `test samjna registry stem extraction and apavada overrides`() {
-        val registry = SamjnaKriyaRegistry()
+        val registry = PrakriyaRegistry()
 
-        val utsargaKriya = SamjnaKriya(
+        val utsargaKriya = Prakriya(
             nameSegmented = "युज् + ल्युट् + सुँ",
-            nameStem = SamjnaKriyaRegistry.stripSupSuffix("युज् + ल्युट् + सुँ"),
+            nameStem = PrakriyaRegistry.stripSupSuffix("युज् + ल्युट् + सुँ"),
             body = listOf(PvmScriptStatement.Sentence("युज् + णिच् + लोट् + सिप् ॥")),
             sourceFile = "ganita.pvm",
             precedence = ProcedurePrecedence.DEFAULT,
@@ -145,9 +145,9 @@ class SamjnaKriyaMultiFileTest {
         assertEquals("ganita.pvm", registry.resolve("युज् + ल्युट्")?.sourceFile)
 
         // Apavāda (entry-point override)
-        val apavadaKriya = SamjnaKriya(
+        val apavadaKriya = Prakriya(
             nameSegmented = "युज् + ल्युट् + सुँ",
-            nameStem = SamjnaKriyaRegistry.stripSupSuffix("युज् + ल्युट् + सुँ"),
+            nameStem = PrakriyaRegistry.stripSupSuffix("युज् + ल्युट् + सुँ"),
             body = listOf(PvmScriptStatement.Sentence("एक + अम् युज् + णिच् + लोट् + सिप् ॥")),
             sourceFile = "mukhya.pvm",
             precedence = ProcedurePrecedence.APAVADA,
@@ -159,9 +159,9 @@ class SamjnaKriyaMultiFileTest {
 
     @Test
     fun `test samjna invocation detection`() {
-        val registry = SamjnaKriyaRegistry()
+        val registry = PrakriyaRegistry()
         registry.register(
-            SamjnaKriya(
+            Prakriya(
                 nameSegmented = "युज् + ल्युट् + सुँ",
                 nameStem = "युज् + ल्युट्",
                 body = listOf(PvmScriptStatement.Sentence("युज् + णिच् + लोट् + सिप् ॥")),
@@ -181,9 +181,9 @@ class SamjnaKriyaMultiFileTest {
 
     @Test
     fun `AST invocation detection preserves the semantic pipe operand position`() {
-        val registry = SamjnaKriyaRegistry()
+        val registry = PrakriyaRegistry()
         registry.register(
-            SamjnaKriya(
+            Prakriya(
                 nameSegmented = "युज् + ल्युट् + सुँ",
                 nameStem = "युज् + ल्युट्",
                 body = listOf(PvmScriptStatement.Sentence("युज् + णिच् + लोट् + सिप् ॥")),
@@ -208,14 +208,14 @@ class SamjnaKriyaMultiFileTest {
     @Test
     fun `AST invocation matcher extracts operation domain and karma roles`() {
         val source = "पञ्च + अम् गणित + ङस् युज् + ल्युट् + टा कृ + लोट् + सिप् ।"
-        val shape = SamjnaInvocationMatcher.match(PaniniParser().parse(source), setOf("युज् + ल्युट्"))
+        val shape = PrakriyaInvocationMatcher.match(PaniniParser().parse(source), setOf("युज् + ल्युट्"))
 
         assertNotNull(shape)
         assertEquals("युज् + ल्युट्", shape.operationStem)
         assertEquals("गणित", shape.domainStem)
         assertEquals("पञ्च + अम्", shape.karmaText)
 
-        val taddhita = SamjnaInvocationMatcher.match(
+        val taddhita = PrakriyaInvocationMatcher.match(
             PaniniParser().parse("पञ्च + अम् गुण + वत् + ङस् वर्द्धन + ल्युट् + टा कृ + लोट् + सिप् ।"),
             setOf("वर्द्धन + ल्युट्"),
         )
@@ -233,10 +233,10 @@ class SamjnaKriyaMultiFileTest {
 
         val parsed = PvmScript.parse(script)
         assertEquals(1, parsed.size)
-        val samjnaDef = parsed.first() as PvmScriptStatement.SamjnaDefinition
-        val kriya = SamjnaKriya(
+        val samjnaDef = parsed.first() as PvmScriptStatement.PrakriyaDefinition
+        val kriya = Prakriya(
             nameSegmented = samjnaDef.nameSegmented,
-            nameStem = SamjnaKriyaRegistry.stripSupSuffix(samjnaDef.nameSegmented),
+            nameStem = PrakriyaRegistry.stripSupSuffix(samjnaDef.nameSegmented),
             body = samjnaDef.body,
         )
 
@@ -249,18 +249,18 @@ class SamjnaKriyaMultiFileTest {
     @Test
     fun `test nishedha sutra prohibition guard enforcement on zero operand`() {
         val vm = PaniniVM()
-        val registry = SamjnaKriyaRegistry()
+        val registry = PrakriyaRegistry()
         val script = """
             विभाज् + ल्युट् + सुँ ।
             न द्वितीय + अम् शून्य + अम् ।
             प्रथम + अम् द्वितीय + अम् च भाज् + णिच् + लोट् + सिप् ॥
         """.trimIndent()
 
-        val parsed = PvmScript.parse(script).first() as PvmScriptStatement.SamjnaDefinition
+        val parsed = PvmScript.parse(script).first() as PvmScriptStatement.PrakriyaDefinition
         registry.register(
-            SamjnaKriya(
+            Prakriya(
                 nameSegmented = parsed.nameSegmented,
-                nameStem = SamjnaKriyaRegistry.stripSupSuffix(parsed.nameSegmented),
+                nameStem = PrakriyaRegistry.stripSupSuffix(parsed.nameSegmented),
                 body = parsed.body,
             ),
         )
@@ -270,7 +270,7 @@ class SamjnaKriyaMultiFileTest {
         val invocation = registry.detectInvocation(PaniniParser().parse(invocationText))
         assertNotNull(invocation)
 
-        val results = vm.evalScript(invocationText, samjnaRegistry = registry)
+        val results = vm.evalScript(invocationText, prakriyaRegistry = registry)
         val failure = results.filterIsInstance<ExecutionResult.Failure>().firstOrNull()
         assertNotNull(failure, "Evaluation with zero argument must trigger Niṣedha failure.")
         assertTrue(failure.message.contains("निषेध-प्रतिषेधः"), "Failure message must reference Niṣedha prohibition.")
@@ -279,23 +279,23 @@ class SamjnaKriyaMultiFileTest {
     @Test
     fun `test samavaya list batch fold addition in samjna`() {
         val vm = PaniniVM()
-        val registry = SamjnaKriyaRegistry()
+        val registry = PrakriyaRegistry()
         val script = """
             समवाय + ल्युट् + सुँ ।
             समवाय + अम् युज् + णिच् + लोट् + सिप् ॥
         """.trimIndent()
 
-        val parsed = PvmScript.parse(script).first() as PvmScriptStatement.SamjnaDefinition
+        val parsed = PvmScript.parse(script).first() as PvmScriptStatement.PrakriyaDefinition
         registry.register(
-            SamjnaKriya(
+            Prakriya(
                 nameSegmented = parsed.nameSegmented,
-                nameStem = SamjnaKriyaRegistry.stripSupSuffix(parsed.nameSegmented),
+                nameStem = PrakriyaRegistry.stripSupSuffix(parsed.nameSegmented),
                 body = parsed.body,
             ),
         )
 
         val invocationText = "एक + अम् द्वि + अम् त्रि + अम् चतुर् + अम् पञ्च + अम् च समवाय + ल्युट् + टा कृ + लोट् + सिप् ।"
-        val results = vm.evalScript(invocationText, samjnaRegistry = registry)
+        val results = vm.evalScript(invocationText, prakriyaRegistry = registry)
         val successful = results.filterIsInstance<ExecutionResult.Success>()
         assertTrue(successful.isNotEmpty())
         assertEquals("पञ्चदश", successful.last().value, "Sum of 1 + 2 + 3 + 4 + 5 in saṃjñā list fold should be पञ्चदश (15).")
@@ -315,23 +315,23 @@ class SamjnaKriyaMultiFileTest {
     @Test
     fun `test samjna execution scope isolation child environment`() {
         val vm = PaniniVM()
-        val registry = SamjnaKriyaRegistry()
+        val registry = PrakriyaRegistry()
         val script = """
             गुणप्रक्रिया + ल्युट् + सुँ ।
             द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ॥
         """.trimIndent()
 
-        val parsed = PvmScript.parse(script).first() as PvmScriptStatement.SamjnaDefinition
+        val parsed = PvmScript.parse(script).first() as PvmScriptStatement.PrakriyaDefinition
         registry.register(
-            SamjnaKriya(
+            Prakriya(
                 nameSegmented = parsed.nameSegmented,
-                nameStem = SamjnaKriyaRegistry.stripSupSuffix(parsed.nameSegmented),
+                nameStem = PrakriyaRegistry.stripSupSuffix(parsed.nameSegmented),
                 body = parsed.body,
             ),
         )
 
         val callerScope = ExecutionScope(environment = ValueEnvironment(mapOf("मुख्यस्थ" to dev.panini.execution.SanskritValue.of("सौम्य"))))
-        val results = vm.evalScript("गुणप्रक्रिया + ल्युट् + टा कृ + लोट् + सिप् ।", scope = callerScope, samjnaRegistry = registry)
+        val results = vm.evalScript("गुणप्रक्रिया + ल्युट् + टा कृ + लोट् + सिप् ।", scope = callerScope, prakriyaRegistry = registry)
         val successful = results.filterIsInstance<ExecutionResult.Success>()
         assertTrue(successful.isNotEmpty())
         assertEquals("पञ्च", successful.last().value)
@@ -352,9 +352,9 @@ class SamjnaKriyaMultiFileTest {
     @Test
     fun `test antaranga internal samjna parsing and visibility`() {
         val header = "द्विगुणन + ल्युट् + सुँ इति अन्तरङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।"
-        val headerQualifiers = SamjnaDefinitionMarkerParser.qualifiers(header)
+        val headerQualifiers = PrakriyaDefinitionMarkerParser.qualifiers(header)
         assertTrue(
-            SamjnaDefinitionQualifier.ANTARANGA in headerQualifiers?.qualifiers.orEmpty(),
+            PrakriyaDefinitionQualifier.ANTARANGA in headerQualifiers?.qualifiers.orEmpty(),
             headerQualifiers.toString(),
         )
         val script = """
@@ -368,17 +368,17 @@ class SamjnaKriyaMultiFileTest {
         val parsed = PvmScript.parse(script)
         assertEquals(2, parsed.size)
 
-        val internalDef = parsed[0] as PvmScriptStatement.SamjnaDefinition
+        val internalDef = parsed[0] as PvmScriptStatement.PrakriyaDefinition
         assertTrue(internalDef.isInternal, "An अन्तरङ्गा प्रक्रिया declaration must set internal visibility.")
         assertTrue(!internalDef.isAntaranga, "Internal visibility must not change overload precedence.")
         assertEquals("द्विगुणन + ल्युट् + सुँ", internalDef.nameSegmented)
 
-        val publicDef = parsed[1] as PvmScriptStatement.SamjnaDefinition
+        val publicDef = parsed[1] as PvmScriptStatement.PrakriyaDefinition
         assertTrue(!publicDef.isInternal, "Standard saṃjñā header must set isInternal = false.")
 
         assertTrue(
             PvmScript.parse("अन्तरङ्गा द्विगुणन + ल्युट् + सुँ ।").none {
-                it is PvmScriptStatement.SamjnaDefinition
+                it is PvmScriptStatement.PrakriyaDefinition
             },
             "A bare अन्तरङ्गा prefix is not a grammatical procedure declaration.",
         )
@@ -386,9 +386,9 @@ class SamjnaKriyaMultiFileTest {
 
     @Test
     fun `internal prakriya is visible only to its source file`() {
-        val registry = SamjnaKriyaRegistry()
+        val registry = PrakriyaRegistry()
         registry.register(
-            SamjnaKriya(
+            Prakriya(
                 nameSegmented = "द्विगुणन + ल्युट् + सुँ",
                 nameStem = "द्विगुणन + ल्युट्",
                 body = listOf(PvmScriptStatement.Sentence("द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ॥")),
@@ -455,11 +455,11 @@ class SamjnaKriyaMultiFileTest {
         assertNotNull(adhikara, "Morphological Adhikāra header with अधि + कृ + घञ् + सुँ must be parsed.")
         assertEquals("गणित + सुँ", adhikara.domainSegmented)
 
-        val ktaDef = parsed.filterIsInstance<PvmScriptStatement.SamjnaDefinition>().firstOrNull()
+        val ktaDef = parsed.filterIsInstance<PvmScriptStatement.PrakriyaDefinition>().firstOrNull()
         assertNotNull(ktaDef)
-        val kriya = SamjnaKriya(
+        val kriya = Prakriya(
             nameSegmented = ktaDef.nameSegmented,
-            nameStem = SamjnaKriyaRegistry.stripSupSuffix(ktaDef.nameSegmented),
+            nameStem = PrakriyaRegistry.stripSupSuffix(ktaDef.nameSegmented),
             body = ktaDef.body,
         )
         assertTrue(kriya.isMemoized, "Saṃjñā with क्त pratyaya must have isMemoized = true.")
