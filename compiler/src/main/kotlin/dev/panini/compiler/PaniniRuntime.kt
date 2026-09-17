@@ -58,6 +58,14 @@ object PaniniRuntime {
         SanskritValue.Range(minimum, maximum)
 
     @JvmStatic
+    fun randomRange(minimum: Long, maximum: Long): SanskritValue {
+        require(minimum <= maximum) { "Random range minimum must not exceed its maximum." }
+        val value = kotlin.random.Random.nextLong(minimum, maximum + 1L)
+        val word = dev.panini.sankhya.SankhyaGenerator().cardinal(value).final.surface
+        return SanskritValue.Sankhya(value, word)
+    }
+
+    @JvmStatic
     fun rational(numerator: Long, denominator: Long, word: String): SanskritValue =
         SanskritValue.Rational(numerator, denominator, word)
 

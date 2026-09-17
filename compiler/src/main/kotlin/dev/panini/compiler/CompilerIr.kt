@@ -4,7 +4,7 @@ import dev.panini.core.Karaka
 import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.ExecutionPlan
 import dev.panini.execution.SanskritValue
-import dev.panini.execution.SamjnaValueType
+import dev.panini.execution.PrakriyaValueType
 import dev.panini.execution.bindingName
 
 /** A complete backend-neutral compilation unit. */
@@ -42,10 +42,10 @@ internal enum class CompilerValueKind {
     RECORD,
 }
 
-internal fun SamjnaValueType.toCompilerValueKind(): CompilerValueKind = when (this) {
-    SamjnaValueType.SANKHYA -> CompilerValueKind.NUMBER
-    SamjnaValueType.SHABDA -> CompilerValueKind.TEXT
-    SamjnaValueType.SUCHI -> CompilerValueKind.LIST
+internal fun PrakriyaValueType.toCompilerValueKind(): CompilerValueKind = when (this) {
+    PrakriyaValueType.SANKHYA -> CompilerValueKind.NUMBER
+    PrakriyaValueType.SHABDA -> CompilerValueKind.TEXT
+    PrakriyaValueType.SUCHI -> CompilerValueKind.LIST
 }
 
 private typealias ValueKind = CompilerValueKind
@@ -187,6 +187,8 @@ internal sealed interface CompilerInstruction {
     data class RenderText(val size: Int) : CompilerInstruction
 
     data object IsEven : CompilerInstruction
+
+    data class RandomRange(val minimum: Long, val maximum: Long) : CompilerInstruction
 
     data class Collection(val operator: CollectionOperator) : CompilerInstruction
 
@@ -928,6 +930,12 @@ internal object CompilerIrVerifier {
                 before.dropLast(instruction.size) + ValueKind.TEXT
             }
             CompilerInstruction.IsEven -> pop(ValueKind.NUMBER).first + ValueKind.VALUE
+            is CompilerInstruction.RandomRange -> {
+                require(instruction.minimum <= instruction.maximum) {
+                    "IR random range minimum exceeds maximum at instruction $index"
+                }
+                before + ValueKind.NUMBER
+            }
             is CompilerInstruction.Collection -> {
                 val arity = when (instruction.operator) {
                     CollectionOperator.CONCAT,

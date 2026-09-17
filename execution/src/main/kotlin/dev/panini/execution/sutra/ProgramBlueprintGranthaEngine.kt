@@ -105,10 +105,11 @@ object ProgramBlueprintGranthaEngine {
         context: ProgramBlueprintContext,
         scope: ExecutionScope,
         initialState: ProgramAvastha,
+        evaluateCondition: Boolean = false,
     ): ProgramGranthaExecution {
         return when (val validation = validate(grantha, context)) {
             is ProgramGranthaValidation.Valid ->
-                execute(validation.grantha, scope, initialState)
+                execute(validation.grantha, scope, initialState, evaluateCondition)
             is ProgramGranthaValidation.InvalidSource ->
                 ProgramGranthaExecution.InvalidSource(validation.diagnostics)
             is ProgramGranthaValidation.InvalidBlueprint ->
@@ -122,6 +123,7 @@ object ProgramBlueprintGranthaEngine {
         compiled: SutraGrantha<ProgramAvastha>,
         scope: ExecutionScope,
         initialState: ProgramAvastha,
+        evaluateCondition: Boolean = false,
     ): ProgramGranthaExecution {
         val program = when (val lowering = SutraGranthaCompiler.lower(compiled)) {
             is SutraGranthaLowering.Success -> lowering.program
@@ -135,7 +137,7 @@ object ProgramBlueprintGranthaEngine {
             currentGrantha = compiled.id,
         )
         return ProgramGranthaExecution.Completed(
-            result = SutraMachine(ProgramSutraEffectInterpreter(executionScope)).process(
+            result = SutraMachine(ProgramSutraEffectInterpreter(executionScope, evaluateCondition)).process(
                 program,
                 initialState,
             ),

@@ -31,24 +31,13 @@ object SutraExecutionPipeline {
         conversation: SambhashanaContext,
         scope: ExecutionScope,
         memory: KriyaMemory = KriyaMemory(),
+        evaluateCondition: Boolean = false,
     ): Phala {
         initialize()
         return when (val binding = VyakaranamExecutionAdapter.bind(input, conversation, memory, scope.environment)) {
-            is ExecutionBindingResult.Bound -> {
-                val phala = execute(binding.ukti, conversation, scope, memory)
-                    .prependTrace(binding.trace)
-                if (phala is Phala.Siddha) {
-                    val metadata = buildMap {
-                        val turnPrefix = SmrtaPhalaId.turnPrefix(conversation.turnNumber + 1)
-                        binding.ukti.invocations.forEachIndexed { idx, inv ->
-                            put(ExecutionMetadata.dhatu("$turnPrefix/${KriyaInvocationId.of(idx + 1)}"), inv.dhatu.upadesha)
-                        }
-                    }
-                    phala.copy(metadata = metadata)
-                } else {
-                    phala
-                }
-            }
+            is ExecutionBindingResult.Bound -> executeBound(
+                binding.ukti, binding.trace, conversation, scope, memory, evaluateCondition,
+            )
             is ExecutionBindingResult.NeedsInput -> Phala.Asiddha(
                 ExecutionResult.NeedsInput(emptySet(), binding.message),
                 emptyList(),
@@ -60,11 +49,31 @@ object SutraExecutionPipeline {
         }
     }
 
+    private fun executeBound(
+        ukti: ExecutableUkti,
+        bindingTrace: List<String>,
+        conversation: SambhashanaContext,
+        scope: ExecutionScope,
+        memory: KriyaMemory,
+        evaluateCondition: Boolean,
+    ): Phala {
+        val phala = execute(ukti, conversation, scope, memory, evaluateCondition).prependTrace(bindingTrace)
+        if (phala !is Phala.Siddha) return phala
+        val metadata = buildMap {
+            val turnPrefix = SmrtaPhalaId.turnPrefix(conversation.turnNumber + 1)
+            ukti.invocations.forEachIndexed { idx, inv ->
+                put(ExecutionMetadata.dhatu("$turnPrefix/${KriyaInvocationId.of(idx + 1)}"), inv.dhatu.upadesha)
+            }
+        }
+        return phala.copy(metadata = metadata)
+    }
+
     fun execute(
         ukti: ExecutableUkti,
         conversation: SambhashanaContext,
         scope: ExecutionScope,
         memory: KriyaMemory = KriyaMemory(),
+        evaluateCondition: Boolean = false,
     ): Phala {
         initialize()
         if (ukti.speaker != conversation.speaker || ukti.listener != conversation.listener) {
@@ -90,6 +99,7 @@ object SutraExecutionPipeline {
             ),
             scope,
             ProgramAvastha(environment(conversation, scope, memory)),
+            evaluateCondition,
         )
         val (result, program) = when (execution) {
             is ProgramGranthaExecution.Completed -> execution.result to execution.program
@@ -169,8 +179,31 @@ object SutraExecutionPipeline {
         conversation: SambhashanaContext,
         scope: ExecutionScope,
         memory: KriyaMemory = KriyaMemory(),
+        evaluateCondition: Boolean = false,
     ): SambhashanaTurn {
-        val response = SanskritPrativacanaRenderer.render(execute(input, conversation, scope, memory))
+        val response = SanskritPrativacanaRenderer.render(execute(input, conversation, scope, memory, evaluateCondition))
+        return advanceTurn(response, conversation)
+    }
+
+    /** Executes an already-bound AST utterance while preserving normal turn bookkeeping. */
+    fun executeTurn(
+        ukti: ExecutableUkti,
+        bindingTrace: List<String>,
+        conversation: SambhashanaContext,
+        scope: ExecutionScope,
+        memory: KriyaMemory = KriyaMemory(),
+        evaluateCondition: Boolean = false,
+    ): SambhashanaTurn {
+        val response = SanskritPrativacanaRenderer.render(
+            executeBound(ukti, bindingTrace, conversation, scope, memory, evaluateCondition),
+        )
+        return advanceTurn(response, conversation)
+    }
+
+    private fun advanceTurn(
+        response: Prativacana,
+        conversation: SambhashanaContext,
+    ): SambhashanaTurn {
         val success = response.phala as? Phala.Siddha
             ?: return SambhashanaTurn(response, conversation)
         val nextTurn = conversation.turnNumber + 1

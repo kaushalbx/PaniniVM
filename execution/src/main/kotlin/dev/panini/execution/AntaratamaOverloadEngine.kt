@@ -12,17 +12,17 @@ object AntaratamaOverloadEngine {
         EXACT(2),
     }
 
-    fun match(signature: SamjnaSignature, argTerms: List<String>): TypeMatch {
+    fun match(signature: PrakriyaSignature, argTerms: List<String>): TypeMatch {
         if (signature.parameters.isNotEmpty()) {
             if (signature.parameters.size != argTerms.size) return TypeMatch.MISMATCH
             return if (signature.parameters.zip(argTerms).all { (parameter, argument) ->
-                    SamjnaValueClassifier.classifyTerm(argument) == parameter.type
+                    PrakriyaValueClassifier.classifyTerm(argument) == parameter.type
                 }
             ) TypeMatch.EXACT else TypeMatch.MISMATCH
         }
         val expected = signature.argumentType ?: return TypeMatch.UNCONSTRAINED
         if (argTerms.isEmpty()) return TypeMatch.MISMATCH
-        return if (argTerms.all { SamjnaValueClassifier.classifyTerm(it) == expected }) {
+        return if (argTerms.all { PrakriyaValueClassifier.classifyTerm(it) == expected }) {
             TypeMatch.EXACT
         } else {
             TypeMatch.MISMATCH

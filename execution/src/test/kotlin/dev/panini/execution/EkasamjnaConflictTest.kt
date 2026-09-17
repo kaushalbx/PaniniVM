@@ -10,9 +10,9 @@ class EkasamjnaConflictTest {
 
     @Test
     fun testNityaHeaderScriptParsing() {
-        val statements = PvmScript.parse("गणित + ङस् गुण् + ल्युट् + सुँ इति नि + त्य + सुँ इति संज्ञा + सुँ ।")
+        val statements = PvmScript.parse("गणित + ङस् गुण् + ल्युट् + सुँ इति नि + त्य + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।")
         assertTrue(statements.isNotEmpty(), "Expected non-empty script statements for Nitya header line")
-        val defn = statements.first() as PvmScriptStatement.SamjnaDefinition
+        val defn = statements.first() as PvmScriptStatement.PrakriyaDefinition
         assertTrue(defn.isNitya, "Expected isNitya to be true for Nitya header definition")
         assertEquals("गणित + ङस् गुण् + ल्युट् + सुँ", defn.nameSegmented)
     }
@@ -20,11 +20,11 @@ class EkasamjnaConflictTest {
     @Test
     fun testStructuralHeaderQualifiers() {
         val antaranga = PvmScript.parse(
-            "गणित + ङस् गुण् + ल्युट् + सुँ इति अन्तर् + अङ्ग + सुँ इति संज्ञा + सुँ ।",
-        ).single() as PvmScriptStatement.SamjnaDefinition
+            "गणित + ङस् गुण् + ल्युट् + सुँ इति अन्तर् + अङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।",
+        ).single() as PvmScriptStatement.PrakriyaDefinition
         val apavada = PvmScript.parse(
-            "गणित + ङस् गुण् + ल्युट् + सुँ इति अप + वद् + घञ् + सुँ इति संज्ञा + सुँ ।",
-        ).single() as PvmScriptStatement.SamjnaDefinition
+            "गणित + ङस् गुण् + ल्युट् + सुँ इति अप + वद् + घञ् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।",
+        ).single() as PvmScriptStatement.PrakriyaDefinition
 
         assertTrue(antaranga.isAntaranga)
         assertEquals("गणित + ङस् गुण् + ल्युट् + सुँ", antaranga.nameSegmented)
@@ -39,19 +39,19 @@ class EkasamjnaConflictTest {
             गणित + सुँ इति अधि + कृ + घञ् + सुँ ।
 
             # 1. Utsarga (Default rule - Priority 1): 5 + 5 = 10 (दश)
-            गणित + ङस् गुण् + ल्युट् + सुँ इति संज्ञा + सुँ ।
+            गणित + ङस् गुण् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             पञ्च + अम् पञ्च + अम् च युज् + णिच् + लोट् + सिप् ॥
 
             # 2. Nitya rule (Mandatory rule - Priority 2): 10 + 10 = 20 (विंशति)
-            गणित + ङस् गुण् + ल्युट् + सुँ इति नि + त्य + सुँ इति संज्ञा + सुँ ।
+            गणित + ङस् गुण् + ल्युट् + सुँ इति नि + त्य + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।
             दश + अम् दश + अम् च युज् + णिच् + लोट् + सिप् ॥
 
             # 3. Antaranga rule (Internal rule - Priority 3): 10 + 20 = 30 (त्रिंशत्)
-            गणित + ङस् गुण् + ल्युट् + सुँ इति अन्तर् + अङ्ग + सुँ इति संज्ञा + सुँ ।
+            गणित + ङस् गुण् + ल्युट् + सुँ इति अन्तर् + अङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।
             दश + अम् विंशति + अम् च युज् + णिच् + लोट् + सिप् ॥
 
             # 4. Apavada rule (Exception rule - Priority 4): 10 + 30 = 40 (चत्वारिंशत्)
-            गणित + ङस् गुण् + ल्युट् + सुँ इति अप + वद् + घञ् + सुँ इति संज्ञा + सुँ ।
+            गणित + ङस् गुण् + ल्युट् + सुँ इति अप + वद् + घञ् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।
             दश + अम् त्रिंशत् + अम् च युज् + णिच् + लोट् + सिप् ॥
 
             # Test invocation: Sūtra 1.4.1 Ekasaṁjñā conflict resolution selects Apavāda (Level 4) -> चत्वारिंशत्
@@ -70,15 +70,15 @@ class EkasamjnaConflictTest {
             गणित + सुँ इति अधि + कृ + घञ् + सुँ ।
 
             # Utsarga (Level 1)
-            गणित + ङस् गुण् + ल्युट् + सुँ इति संज्ञा + सुँ ।
+            गणित + ङस् गुण् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             पञ्च + अम् पञ्च + अम् च युज् + णिच् + लोट् + सिप् ॥
 
             # Nitya (Level 2)
-            गणित + ङस् गुण् + ल्युट् + सुँ इति नि + त्य + सुँ इति संज्ञा + सुँ ।
+            गणित + ङस् गुण् + ल्युट् + सुँ इति नि + त्य + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।
             दश + अम् दश + अम् च युज् + णिच् + लोट् + सिप् ॥
 
             # Antaranga (Level 3)
-            गणित + ङस् गुण् + ल्युट् + सुँ इति अन्तर् + अङ्ग + सुँ इति संज्ञा + सुँ ।
+            गणित + ङस् गुण् + ल्युट् + सुँ इति अन्तर् + अङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।
             दश + अम् विंशति + अम् च युज् + णिच् + लोट् + सिप् ॥
 
             # Invocation without Apavāda: Antaranga (Level 3) wins -> त्रिंशत्
@@ -97,11 +97,11 @@ class EkasamjnaConflictTest {
             गणित + सुँ इति अधि + कृ + घञ् + सुँ ।
 
             # Utsarga (Level 1)
-            गणित + ङस् गुण् + ल्युट् + सुँ इति संज्ञा + सुँ ।
+            गणित + ङस् गुण् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             पञ्च + अम् पञ्च + अम् च युज् + णिच् + लोट् + सिप् ॥
 
             # Nitya (Level 2)
-            गणित + ङस् गुण् + ल्युट् + सुँ इति नि + त्य + सुँ इति संज्ञा + सुँ ।
+            गणित + ङस् गुण् + ल्युट् + सुँ इति नि + त्य + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।
             दश + अम् दश + अम् च युज् + णिच् + लोट् + सिप् ॥
 
             # Invocation without Apavāda or Antaraṅga: Nitya (Level 2) wins -> विंशति

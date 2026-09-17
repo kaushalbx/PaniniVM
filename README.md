@@ -19,6 +19,19 @@ an ordered, auditable trace of applied sūtras, *Adhikāras*, *Paribhāṣās*,
 
 Pāṇini’s Aṣṭādhyāyī is the earliest formal, rule-based computational system in human history. PaniniVM leverages this grammatical machinery to treat Sanskrit not merely as text, but as a **fully executable natural programming language**. By writing structured, morphologically segmented Sanskrit sentences (*Uktis*), you write program specifications directly in natural language:
 
+> **Grammatical validity is a language invariant.** Every program accepted as a
+> valid `.pvm` program must also be valid Sanskrit according to the grammatical
+> system PaniniVM implements. Programming semantics must adapt to Sanskrit;
+> Sanskrit grammar must never be weakened, redefined, or bypassed to accommodate
+> programming conventions.
+
+Consequently, token recognition or AST construction alone does not make a
+program valid. Every executable construct must have a supported morphological,
+syntactic, and semantic analysis, and its readable rendering must be a
+grammatical Sanskrit utterance with the same meaning. Constructs for which that
+analysis is not yet implemented are unsupported rather than accepted as
+special-purpose shorthand.
+
 - **Meaning comes from grammar**: Case markings (*Vibhaktis*) establish
   computational relationships through *Kārakas*. Accusative forms identify
   operands, dative forms identify destinations, and ablative forms can identify
@@ -117,7 +130,7 @@ complete source is segmented Sanskrit; comments remain in English.
 सङ्ख्या + अम् अनुमिनु + लोट् + सिप् इति मुद्र् + णिच् + लोट् + सिप् ।
 
 # Repeat until success or five attempts are exhausted.
-पञ्चन् + कृत्वः यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप्
+पञ्चन् + कृत्वसुच् यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप्
 अन्यथा प्रयत्नाः + अम् समाप्ताः + अम् च मुद्र् + णिच् + लोट् + सिप् ।
 
 # Reveal the secret.
@@ -134,7 +147,7 @@ complete source is segmented Sanskrit; comments remain in English.
 | `ग्रह् + णिच् + लोट् + सिप्` | Forms the executable input command from a dhātu and verbal affixes. |
 | `ततः रहस्य + ङे दा ...` | Pipes the preceding typed result directly into `रहस्य`. |
 | `यदि ... तर्हि ... अन्यथा` | Selects success, low, or high feedback conditionally. |
-| `पञ्चन् + कृत्वः` | Bounds repetition to five attempts. |
+| `पञ्चन् + कृत्वसुच्` | Derives `पञ्चकृत्वः` and bounds repetition to five attempts. |
 | `यावत् फल + सुँ न तावत्` | Continues while the latest comparison result is false. |
 | `अन्यथा` after the loop | Runs the exhaustion branch only if all attempts are consumed. |
 
@@ -175,7 +188,7 @@ For upcoming syntax and tooling milestones, see the
 [`PVM language enhancement plan`](docs/pvm-language-enhancement-plan.md).
 
 A `.pvm` program can declare a reusable operation using a nominal
-`saṃjñā-kriyā` header. Signature declarations are grammatical sentences inside
+`prakriyā` header. Signature declarations are grammatical sentences inside
 the block and are not executed as body actions.
 
 ```pvm
@@ -201,7 +214,7 @@ immediately follows in dvitīyā; named arguments may appear in any order.
 
 Supported signature types are `सङ्ख्या`, `शब्द`, and `सूची`. A result may also
 name a declared `…परिणाम + मतुप्` schema. Typed values retain their semantic
-type when one saṃjñā-kriyā feeds another pipeline stage. The runtime and IDEA
+type when one prakriyā feeds another pipeline stage. The runtime and IDEA
 plugin diagnose duplicate declarations, missing or unknown named arguments,
 arity/type mismatches, incompatible pipeline stages, and invalid result schemas.
 

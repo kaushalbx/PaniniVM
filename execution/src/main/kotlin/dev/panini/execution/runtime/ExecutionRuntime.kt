@@ -1,14 +1,24 @@
 package dev.panini.execution
 
 import dev.panini.execution.binding.PhalaReference
+import dev.panini.shiksha.Samjna
 
 object ExecutionRuntime {
     fun execute(
         planning: PlanningResult.Planned,
         scope: ExecutionScope,
         environment: ValueEnvironment = scope.environment,
+        evaluateCondition: Boolean = false,
     ): Phala {
-        if (planning.plans.any { it.disposition !in setOf(ExecutionDisposition.EXECUTE, ExecutionDisposition.REQUEST_EXECUTION) }) {
+        val executableDisposition = planning.plans.all {
+            it.disposition in setOf(ExecutionDisposition.EXECUTE, ExecutionDisposition.REQUEST_EXECUTION)
+        }
+        val grammaticalCondition = evaluateCondition && planning.plans.all {
+            it.disposition == ExecutionDisposition.DECLARE &&
+                it.requiredEffects == setOf(ExecutionEffect.PURE) &&
+                Samjna.SATYA in it.resolved.operation.resultSamjnas
+        }
+        if (!executableDisposition && !grammaticalCondition) {
             val disposition = requireNotNull(planning.plans.firstOrNull()?.disposition)
             return Phala.Avagata(
                 disposition,

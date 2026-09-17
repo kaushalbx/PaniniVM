@@ -21,7 +21,7 @@ data class ExecutionScope(
     },
     val authorizedSpeakers: Set<String> = emptySet(),
     val acceptedInvocations: Set<String> = emptySet(),
-    val samjnaRegistry: SamjnaKriyaRegistry? = null,
+    val prakriyaRegistry: PrakriyaRegistry? = null,
 )
 
 sealed interface AuthorityDecision {

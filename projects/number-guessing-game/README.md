@@ -2,20 +2,18 @@
 
 A console number-guessing project written in Sanskrit as a PaniniVM `.pvm`
 program. PaniniVM chooses a number from 1 through 10 and gives the player five
-validated numeric guesses.
+numeric guesses.
 
 For a step-by-step introduction to the syntax used here, see the
 [`PVM language guide`](../../docs/pvm-language-guide.md).
 
 The example demonstrates:
 
-- random choice with `दिव्`;
-- one scoped inclusive range, `एक + ङसिँ दशन् + ङि इति सीमा + सुँ`;
+- selection with the Dhātupāṭha upadeśa `चिञ्` and explicit Svādi vikaraṇa `श्नु`;
+- one grammatical inclusive range, `एक + ङसिँ दशन् + शस् परि + अन्त + अम्`;
 - numeric input with `ग्रह्` and the `सङ्ख्या` type marker;
-- the same scoped range reused as input bounds;
-- dynamic instruction rendering from segmented ablative and locative bounds;
-- grammatical `… इति मुद्र्` quotation without treating the quoted verb as `कर्मन्`;
-- implicit reuse of the scoped range by `दिव्`, `ग्रह्`, and `मुद्र्`;
+- an explicit ablative lower bound and `परि + अन्त + अम्` upper-limit construction;
+- grammatical `सङ्ख्याम् ऊहस्व इति मुद्रय` quotation without treating the quoted verb as `कर्मन्`;
 - one persistent variable, `रहस्य`, assigned with `दा`;
 - direct use of each action's latest `फल`, without a temporary guess variable;
 - direct `ततः` result piping into a following action's missing `कर्मन्`;
@@ -24,7 +22,8 @@ The example demonstrates:
 - nested conditionals with `यदि … तर्हि … अन्यथा यदि …`;
 - bare branch values in `यदि … तर्हि लघु अन्यथा गुरु ततः मुद्र्`, with one print action;
 - dynamic `लघु` and `गुरु` feedback for low and high guesses;
-- a reusable kriyā-saṃjñā declared as `प्रयत्न + ल्युट् + सुँ`;
+- a final equality test in the reusable attempt, whose truth value controls the loop;
+- a reusable prakriyā declared by `प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप्`;
 - a bounded result-controlled loop using `पञ्चन् + कृत्वः यावत् फल + सुँ न तावत्`;
 - natural loop termination from the comparison's typed truth value.
 - an `अन्यथा` exhaustion clause that runs only when all five attempts are consumed.
@@ -35,7 +34,7 @@ The example demonstrates:
 
 ## Reusable kriyā support
 
-The game uses the reusable `प्रयत्न + ल्युट् + सुँ` saṃjñā-kriyā. PaniniVM also
+The game uses the reusable `प्रयत्न` prakriyā. PaniniVM also
 supports explicit typed signatures for reusable operations, including named
 parameters, named call-site arguments, and declared result schemas. A typed
 definition can therefore be written as:
@@ -49,7 +48,7 @@ definition can therefore be written as:
 ```
 
 Callers may pass the values positionally or name them with ṣaṣṭhī/dvitīyā
-pairs. This keeps larger game procedures reusable without introducing extra
+pairs. This keeps larger game prakriyās reusable without introducing extra
 temporary variables merely to preserve argument order.
 
 ## Run

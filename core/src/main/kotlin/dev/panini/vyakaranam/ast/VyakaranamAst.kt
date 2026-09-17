@@ -78,6 +78,7 @@ data class WhileLoop(
     val condition: Invocation,
     val body: ProgramNode,
     val maximumIterationStems: List<String> = emptyList(),
+    val maximumBoundaryPadas: List<Pada> = emptyList(),
     val exhausted: ProgramNode? = null,
     val resultTarget: ProgramNode? = null,
 ) : ProgramNode
@@ -95,19 +96,21 @@ data class Pipeline(
     val renderPadas: List<Pada> = emptyList(),
 ) : ProgramNode
 
-data class ProcedureModifiers(
-    val isInternal: Boolean = false,
-    val isApavada: Boolean = false,
-    val isAntaranga: Boolean = false,
-    val isNitya: Boolean = false,
+enum class PrakriyaVisibility { PUBLIC, INTERNAL }
+
+enum class PrakriyaPrecedence { DEFAULT, NITYA, ANTARANGA, APAVADA }
+
+data class PrakriyaModifiers(
+    val visibility: PrakriyaVisibility = PrakriyaVisibility.PUBLIC,
+    val precedence: PrakriyaPrecedence = PrakriyaPrecedence.DEFAULT,
 )
 
-data class Procedure(
+data class Prakriya(
     override val sourceText: String,
     val name: String,
     val domain: String? = null,
     val body: List<ProgramNode>,
-    val modifiers: ProcedureModifiers = ProcedureModifiers(),
+    val modifiers: PrakriyaModifiers = PrakriyaModifiers(),
 ) : ProgramNode
 
 data class Scope(
@@ -158,6 +161,8 @@ data class TingantaPada(
     val dhatu: DhatuPrakriti,
     val lakara: Lakara,
     val ting: TingPratyaya,
+    /** Explicit gaṇa-vikaraṇa when the upadeśa alone is lexically ambiguous. */
+    val vikarana: String? = null,
 ) : Pada
 
 data class AvyayaPada(
@@ -189,6 +194,14 @@ data class SamuccitaSubanta(
     val members: List<SubantaPada>,
 ) : Pada
 
+/** The inclusive सीमा licensed by an ablative source and segmented पर्यन्तम्. */
+data class ParyantaRangePada(
+    override val sourceText: String,
+    val lowerLimit: SankhyaPada,
+    val upperLimit: SankhyaPada,
+    val marker: SubantaPada,
+) : Pada
+
 sealed interface Pratipadika : VyakaranamNode
 
 data class MulaPratipadika(
@@ -205,6 +218,7 @@ enum class MulaPratipadikaIdentity {
     APAVADA,
     NITYA,
     PURVA,
+    PRAKRIYA,
     SAMJNA,
     SAMAVAYA,
     ;
@@ -216,6 +230,7 @@ enum class MulaPratipadikaIdentity {
             "अपवाद" -> APAVADA
             "नित्य", "नि + त्य" -> NITYA
             "पूर्व" -> PURVA
+            "प्रक्रिया" -> PRAKRIYA
             "संज्ञा" -> SAMJNA
             "समवाय" -> SAMAVAYA
             else -> null

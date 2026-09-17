@@ -11,6 +11,7 @@ import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.KridantaPratipadika
 import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.vyakaranam.ast.Pada
+import dev.panini.vyakaranam.ast.ParyantaRangePada
 import dev.panini.vyakaranam.ast.Pratipadika
 import dev.panini.vyakaranam.ast.SamasaPratipadika
 import dev.panini.vyakaranam.ast.AryabhatiyaPada
@@ -67,6 +68,10 @@ data class AnalyzedSamuccita(
     val members: List<SubantaAnalysis>,
 ) : PadaAnalysis
 
+data class AnalyzedParyantaRange(
+    override val pada: ParyantaRangePada,
+) : PadaAnalysis
+
 /** Resolves encoded numeral syntax before it becomes a typed numeral prātipadika. */
 fun interface SankhyaPadaValueResolver {
     fun resolve(pada: Pada): SanskritValue.Sankhya?
@@ -120,6 +125,8 @@ class PadaAnalyzer(
                     pada = pada,
                     members = pada.members.map(::analyzeSubanta),
                 )
+
+            is ParyantaRangePada -> AnalyzedParyantaRange(pada)
 
             is SankhyaPada -> analyzeSankhya(pada, pada.sup)
 

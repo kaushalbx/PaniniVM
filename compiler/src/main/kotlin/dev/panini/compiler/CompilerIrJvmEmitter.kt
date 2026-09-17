@@ -60,6 +60,17 @@ internal class CompilerIrJvmEmitter(
                     "(Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;",
                     false,
                 )
+                is CompilerInstruction.RandomRange -> {
+                    mv.visitLdcInsn(instruction.minimum)
+                    mv.visitLdcInsn(instruction.maximum)
+                    mv.visitMethodInsn(
+                        INVOKESTATIC,
+                        "dev/panini/compiler/PaniniRuntime",
+                        "randomRange",
+                        "(JJ)Ldev/panini/execution/SanskritValue;",
+                        false,
+                    )
+                }
                 is CompilerInstruction.Collection -> emitCollection(instruction.operator)
                 is CompilerInstruction.Compare -> emitComparison(instruction.operator)
                 is CompilerInstruction.Arithmetic -> emitArithmetic(instruction.operator)

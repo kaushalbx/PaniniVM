@@ -4,14 +4,38 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
+import kotlin.test.assertFailsWith
 
-class SamjnaTypeFlowTest {
+class PrakriyaTypeFlowTest {
+    @Test
+    fun `invalid prakriya bodies are rejected before execution`() {
+        val source = """
+            प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            अवैध + ॥
+        """.trimIndent()
+
+        assertFailsWith<IllegalArgumentException> { PvmScript.parse(source) }
+        assertTrue(
+            PrakriyaScriptValidator.validate(source).any { it.message.contains("invalid Sanskrit") },
+        )
+    }
+
+    @Test
+    fun `samjna declaration is rejected as a reusable prakriya marker`() {
+        val source = "गणित + सुँ इति संज्ञा + सुँ ।"
+
+        assertEquals(PvmSourceKind.UTTERANCE, PvmScript.classify(source))
+        val diagnostic = PrakriyaScriptValidator.validate(source).single()
+        assertTrue(diagnostic.message.contains("declare reusable code"))
+        assertEquals("इति प्रक्रिया + सुँ असँ + लट् + तिप्", diagnostic.replacement)
+    }
+
     @Test
     fun `validator recommends canonical segmented numeral stems`() {
-        val diagnostics = SamjnaScriptValidator.validate("पञ्च + शस् दश + अम् च मुद्र् + लोट् + सिप् ।")
+        val diagnostics = PrakriyaScriptValidator.validate("पञ्च + शस् दश + अम् च मुद्र् + लोट् + सिप् ।")
 
-        assertEquals(listOf("पञ्चन्", "दशन्"), diagnostics.mapNotNull(SamjnaDiagnostic::replacement))
-        assertTrue(diagnostics.all { it.severity == SamjnaDiagnosticSeverity.WARNING })
+        assertEquals(listOf("पञ्चन्", "दशन्"), diagnostics.mapNotNull(PrakriyaDiagnostic::replacement))
+        assertTrue(diagnostics.all { it.severity == PrakriyaDiagnosticSeverity.WARNING })
     }
 
     @Test
@@ -26,7 +50,7 @@ class SamjnaTypeFlowTest {
             त्रि + अम् योजन + ल्युट् + टा कृ + लोट् + सिप् ।
         """.trimIndent()
 
-        val messages = SamjnaScriptValidator.validate(source).map(SamjnaDiagnostic::message)
+        val messages = PrakriyaScriptValidator.validate(source).map(PrakriyaDiagnostic::message)
 
         assertTrue(messages.any { it.contains("declared more than once") }, messages.toString())
         assertTrue(messages.any { it.contains("expects 2 arguments") }, messages.toString())
@@ -41,17 +65,17 @@ class SamjnaTypeFlowTest {
             विजय + अम् दा + लोट् + सिप् ॥
         """.trimIndent()
 
-        val definition = assertIs<PvmScriptStatement.SamjnaDefinition>(
-            PvmScript.parse(source).filterIsInstance<PvmScriptStatement.SamjnaDefinition>().single(),
+        val definition = assertIs<PvmScriptStatement.PrakriyaDefinition>(
+            PvmScript.parse(source).filterIsInstance<PvmScriptStatement.PrakriyaDefinition>().single(),
         )
-        val signature = SamjnaSignatureCompiler.compile(definition.body)
+        val signature = PrakriyaSignatureCompiler.compile(definition.body)
 
         assertEquals("अनुमानपरिणाम", signature.resultSchema)
-        assertTrue(SamjnaScriptValidator.validate(source).isEmpty())
+        assertTrue(PrakriyaScriptValidator.validate(source).isEmpty())
     }
 
     @Test
-    fun `typed values remain typed between samjna pipeline stages`() {
+    fun `typed values remain typed between prakriya pipeline stages`() {
         val results = PaniniVM().evalScript(
             """
             गणित + सुँ इति अधिकार + सुँ ।

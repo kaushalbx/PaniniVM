@@ -21,6 +21,7 @@ import dev.panini.sutra.runtime.SutraId
  */
 class ProgramSutraEffectInterpreter(
     private val scope: ExecutionScope,
+    private val evaluateCondition: Boolean = false,
 ) : SutraEffectInterpreter<ProgramAvastha> {
     override fun apply(
         effect: SutraEffect<ProgramAvastha>,
@@ -48,7 +49,7 @@ class ProgramSutraEffectInterpreter(
                     "Planning failed for ${invocation.id}.",
                 )
             is PlanningResult.Planned -> {
-                val phala = ExecutionRuntime.execute(planning, scope, state.environment)
+                val phala = ExecutionRuntime.execute(planning, scope, state.environment, evaluateCondition)
                 val next = when (phala) {
                     is Phala.Siddha -> {
                         val produced = phala.typedValues + phala.localBindings

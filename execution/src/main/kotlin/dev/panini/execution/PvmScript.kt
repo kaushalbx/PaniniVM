@@ -2,9 +2,10 @@ package dev.panini.execution
 
 import dev.panini.execution.binding.NumeralAstNormalizer
 import dev.panini.execution.binding.VyakaranamExecutionAdapter
-import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
-import dev.panini.vyakaranam.ast.Procedure
-import dev.panini.vyakaranam.ast.ProcedureModifiers
+import dev.panini.vyakaranam.ast.Prakriya
+import dev.panini.vyakaranam.ast.PrakriyaModifiers
+import dev.panini.vyakaranam.ast.PrakriyaPrecedence
+import dev.panini.vyakaranam.ast.PrakriyaVisibility
 import dev.panini.vyakaranam.ast.ProgramNode
 import dev.panini.vyakaranam.ast.Scope
 
@@ -21,26 +22,26 @@ sealed interface PvmScriptStatement {
     }
 
     /**
-     * A named kriyā definition using the संज्ञा-सूत्र pattern:
+     * A named reusable prakriyā declaration:
      *
-     *     गुण् + ल्युट् + सुँ इति संज्ञा ।
+     *     गुण् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
      *         संख्या + अम् संख्या + अम् च गुण् + णिच् + लोट् + सिप् ।
      *     इति ॥
      *
      * [nameSegmented] is the segmented prātipadika form (e.g. "गुण् + ल्युट् + सुँ").
-     * [body] contains the vākya sentences that form the procedure.
+     * [body] contains the vākya sentences that form the prakriyā.
      */
-    data class SamjnaDefinition(
-        val procedure: Procedure,
+    data class PrakriyaDefinition(
+        val prakriya: Prakriya,
         val body: List<Sentence>,
     ) : PvmScriptStatement {
-        override val text: String get() = procedure.sourceText
-        val nameSegmented: String get() = procedure.name
-        val domainStem: String? get() = procedure.domain
-        val isInternal: Boolean get() = procedure.modifiers.isInternal
-        val isApavada: Boolean get() = procedure.modifiers.isApavada
-        val isAntaranga: Boolean get() = procedure.modifiers.isAntaranga
-        val isNitya: Boolean get() = procedure.modifiers.isNitya
+        override val text: String get() = prakriya.sourceText
+        val nameSegmented: String get() = prakriya.name
+        val domainStem: String? get() = prakriya.domain
+        val isInternal: Boolean get() = prakriya.modifiers.visibility == PrakriyaVisibility.INTERNAL
+        val isApavada: Boolean get() = prakriya.modifiers.precedence == PrakriyaPrecedence.APAVADA
+        val isAntaranga: Boolean get() = prakriya.modifiers.precedence == PrakriyaPrecedence.ANTARANGA
+        val isNitya: Boolean get() = prakriya.modifiers.precedence == PrakriyaPrecedence.NITYA
     }
 
     /**
@@ -72,7 +73,7 @@ object PvmScript {
 
     fun classify(source: String): PvmSourceKind {
         val statements = parse(source)
-        val loneDefinition = statements.singleOrNull() as? PvmScriptStatement.SamjnaDefinition
+        val loneDefinition = statements.singleOrNull() as? PvmScriptStatement.PrakriyaDefinition
         if (loneDefinition != null && loneDefinition.body.isEmpty() && !hasExplicitDefinitionMarker(source)) {
             return PvmSourceKind.UTTERANCE
         }
@@ -86,13 +87,13 @@ object PvmScript {
     }
 
     private fun hasExplicitDefinitionMarker(source: String): Boolean =
-        SamjnaDefinitionMarkerParser.hasExplicitMarker(source)
+        PrakriyaDefinitionMarkerParser.hasExplicitMarker(source)
 
     fun parse(source: String): List<PvmScriptStatement> {
         val rawLines = source.lines()
 
-        val samjnaDefinitions = mutableListOf<PvmScriptStatement.SamjnaDefinition>()
-        val nonSamjnaLines = mutableListOf<String>()
+        val prakriyaDefinitions = mutableListOf<PvmScriptStatement.PrakriyaDefinition>()
+        val nonPrakriyaLines = mutableListOf<String>()
 
         var inBlock = false
         var currentName = ""
@@ -103,14 +104,14 @@ object PvmScript {
             val stripped = stripComment(line).trim()
 
             if (!inBlock) {
-                val rawHeaderName = extractSamjnaHeaderName(stripped)
+                val rawHeaderName = extractPrakriyaHeaderName(stripped)
                 if (rawHeaderName != null) {
                     inBlock = true
                     currentName = rawHeaderName
                     currentBodyLines = mutableListOf()
                     currentBlockText = mutableListOf(line)
                 } else {
-                    nonSamjnaLines += line
+                    nonPrakriyaLines += line
                 }
             } else {
                 currentBlockText += line
@@ -125,7 +126,7 @@ object PvmScript {
                         .joinToString(" ")
                     val bodySentences = parseSentences(bodyText)
 
-                    samjnaDefinitions += samjnaDefinition(currentName, bodySentences, currentBlockText)
+                    prakriyaDefinitions += prakriyaDefinition(currentName, bodySentences, currentBlockText)
                     inBlock = false
                 }
             }
@@ -138,15 +139,15 @@ object PvmScript {
                 .joinToString(" ")
             val bodySentences = parseSentences(bodyText)
 
-            samjnaDefinitions += samjnaDefinition(currentName, bodySentences, currentBlockText)
+            prakriyaDefinitions += prakriyaDefinition(currentName, bodySentences, currentBlockText)
             inBlock = false
         }
 
         val adhikaraDefinitions = mutableListOf<PvmScriptStatement.AdhikaraDefinition>()
         val rangeDefinitions = mutableListOf<PvmScriptStatement.RangeDefinition>()
-        val regularNonSamjnaLines = mutableListOf<String>()
+        val regularNonPrakriyaLines = mutableListOf<String>()
 
-        nonSamjnaLines.forEach { line ->
+        nonPrakriyaLines.forEach { line ->
             val stripped = stripComment(line).trim()
             val range = extractRangeDefinition(stripped)
             val adhikaraDomain = extractAdhikaraDomain(stripped)
@@ -160,11 +161,11 @@ object PvmScript {
                     ),
                 )
             } else {
-                regularNonSamjnaLines += line
+                regularNonPrakriyaLines += line
             }
         }
 
-        val sanitizedLines = regularNonSamjnaLines
+        val sanitizedLines = regularNonPrakriyaLines
             .map { stripComment(it).trim() }
             .filter { it.isNotEmpty() }
 
@@ -174,7 +175,7 @@ object PvmScript {
             parseSentences(sanitizedLines.joinToString(" "))
         }
 
-        return samjnaDefinitions + adhikaraDefinitions + rangeDefinitions + sentences
+        return prakriyaDefinitions + adhikaraDefinitions + rangeDefinitions + sentences
     }
 
     private fun isRangeDefinitionLine(line: String): Boolean =
@@ -213,29 +214,42 @@ object PvmScript {
         return runCatching { SanskritValue.Range(minimum, maximum) }.getOrNull()
     }
 
-    private fun samjnaDefinition(
+    private fun prakriyaDefinition(
         header: String,
         body: List<PvmScriptStatement.Sentence>,
         blockText: List<String>,
-    ): PvmScriptStatement.SamjnaDefinition {
-        val internalHeader = splitInternalHeader(header)
-        val rawName = internalHeader.nominalSource
-        val parsed = SamjnaDefinitionMarkerParser.qualifiers(rawName)
-        val declarationSource = parsed?.declarationSource ?: rawName
+    ): PvmScriptStatement.PrakriyaDefinition {
+        require(body.all { it.program != null }) {
+            val invalid = body.first { it.program == null }.text
+            "A reusable प्रक्रिया body contains invalid Sanskrit: '$invalid'."
+        }
+        val parsed = PrakriyaDefinitionMarkerParser.qualifiers(header)
+        val declarationSource = parsed?.declarationSource ?: header
         val methodHeader = TaddhitaStructEngine.detectMethodHeader(declarationSource)
         val cleanName = methodHeader?.second ?: declarationSource
         val qualifiers = parsed?.qualifiers.orEmpty()
-        return PvmScriptStatement.SamjnaDefinition(
-            procedure = Procedure(
+        val isInternalProcedure =
+            PrakriyaDefinitionQualifier.PRAKRIYA in qualifiers &&
+                PrakriyaDefinitionQualifier.ANTARANGA in qualifiers
+        val precedence = when {
+            PrakriyaDefinitionQualifier.APAVADA in qualifiers -> PrakriyaPrecedence.APAVADA
+            PrakriyaDefinitionQualifier.NITYA in qualifiers -> PrakriyaPrecedence.NITYA
+            PrakriyaDefinitionQualifier.ANTARANGA in qualifiers -> PrakriyaPrecedence.ANTARANGA
+            else -> PrakriyaPrecedence.DEFAULT
+        }
+        return PvmScriptStatement.PrakriyaDefinition(
+            prakriya = Prakriya(
                 sourceText = blockText.joinToString("\n"),
                 name = cleanName,
                 domain = methodHeader?.first,
                 body = body.mapNotNull(PvmScriptStatement.Sentence::program),
-                modifiers = ProcedureModifiers(
-                    isInternal = internalHeader.isInternal,
-                    isApavada = SamjnaDefinitionQualifier.APAVADA in qualifiers,
-                    isAntaranga = SamjnaDefinitionQualifier.ANTARANGA in qualifiers,
-                    isNitya = SamjnaDefinitionQualifier.NITYA in qualifiers,
+                modifiers = PrakriyaModifiers(
+                    visibility = if (isInternalProcedure) {
+                        PrakriyaVisibility.INTERNAL
+                    } else {
+                        PrakriyaVisibility.PUBLIC
+                    },
+                    precedence = precedence,
                 ),
             ),
             body = body,
@@ -248,16 +262,20 @@ object PvmScript {
 
     internal fun extractAdhikaraDomain(line: String): String? = AdhikaraHeaderParser.domain(line)
 
-    internal fun extractSamjnaHeaderName(line: String): String? {
+    internal fun extractPrakriyaHeaderName(line: String): String? {
         val trimmed = line.trim()
         if (trimmed.isEmpty() || isAdhikaraLine(trimmed) || isRangeDefinitionLine(trimmed)) return null
 
-        SamjnaDefinitionMarkerParser.headerPrefix(trimmed)?.let { return it }
+        // Preserve the complete grammatical declaration so its AST qualifiers
+        // remain available when the Prakriya node is constructed.
+        PrakriyaDefinitionMarkerParser.headerPrefix(trimmed)?.let { return trimmed }
 
-        val internalHeader = splitInternalHeader(trimmed)
-        val nominalSource = internalHeader.nominalSource
-        if (SamjnaHeaderIdentityParser.parse(nominalSource) == null) return null
-        val ukti = parser.parseOrNull(nominalSource.trimEnd('।', '॥', ' ')) ?: return null
+        val ukti = parser.parseOrNull(trimmed.trimEnd('।', '॥', ' ')) ?: return null
+        if (ukti.grammaticalVakyas().flatMap { it.padas }
+                .any { (it as? dev.panini.vyakaranam.ast.AvyayaPada)?.function ==
+                    dev.panini.vyakaranam.ast.AvyayaFunction.QUOTATIVE }
+        ) return null
+        if (PrakriyaHeaderIdentityParser.parse(trimmed) == null) return null
         if (ukti.grammaticalVakyas().flatMap { it.padas }
                 .any { it is dev.panini.vyakaranam.ast.TingantaPada }
         ) {
@@ -270,8 +288,7 @@ object PvmScript {
                     dev.panini.core.Vibhakti.DVITIYA
             }
         if (hasAccusative) return null
-        val normalized = nominalSource.trimEnd('।', '॥', ' ').trim()
-        return if (internalHeader.isInternal) "${internalHeader.marker} $normalized" else normalized
+        return trimmed.trimEnd('।', '॥', ' ').trim()
     }
 
     private fun stripComment(line: String): String {
@@ -286,25 +303,6 @@ object PvmScript {
     }
 
     private val parser = dev.panini.vyakaranam.parser.PaniniParser()
-
-    private data class InternalHeader(
-        val marker: String? = null,
-        val nominalSource: String,
-    ) {
-        val isInternal: Boolean get() = marker != null
-    }
-
-    private fun splitInternalHeader(header: String): InternalHeader {
-        val separator = header.indexOf(' ')
-        if (separator <= 0) return InternalHeader(nominalSource = header.trim())
-        val marker = header.substring(0, separator)
-        val isInternal = MulaPratipadikaIdentity.fromText(marker) == MulaPratipadikaIdentity.ANTARANGA
-        return if (isInternal) {
-            InternalHeader(marker, header.substring(separator + 1).trim())
-        } else {
-            InternalHeader(nominalSource = header.trim())
-        }
-    }
 
     private fun parseSentences(joinedText: String): List<PvmScriptStatement.Sentence> {
         if (joinedText.isBlank()) return emptyList()

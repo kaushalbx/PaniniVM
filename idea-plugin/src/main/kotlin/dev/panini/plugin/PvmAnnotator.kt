@@ -7,8 +7,8 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import dev.panini.execution.PvmScript
-import dev.panini.execution.SamjnaScriptValidator
-import dev.panini.execution.SamjnaDiagnosticSeverity
+import dev.panini.execution.PrakriyaScriptValidator
+import dev.panini.execution.PrakriyaDiagnosticSeverity
 import dev.panini.vyakaranam.parser.PaniniParser
 
 class PvmAnnotator : Annotator {
@@ -24,16 +24,16 @@ class PvmAnnotator : Annotator {
         }
         if (text.isBlank()) return
 
-        // A .pvm file is a script, not one grammatical utterance. Procedure
+        // A .pvm file is a script, not one grammatical utterance. Prakriya
         // declarations legitimately contain several danda-delimited sentences,
         // so validate the script structure before falling back to a single-
         // utterance diagnostic for incomplete or malformed editor text.
         if (runCatching { PvmScript.parse(text) }.isSuccess) {
-            SamjnaScriptValidator.validate(text).forEach { diagnostic ->
+            PrakriyaScriptValidator.validate(text).forEach { diagnostic ->
                 val start = diagnostic.offset.coerceIn(0, text.length)
                 val end = (start + diagnostic.length).coerceIn(start, text.length)
                 val annotation = holder.newAnnotation(
-                    if (diagnostic.severity == SamjnaDiagnosticSeverity.WARNING) HighlightSeverity.WARNING else HighlightSeverity.ERROR,
+                    if (diagnostic.severity == PrakriyaDiagnosticSeverity.WARNING) HighlightSeverity.WARNING else HighlightSeverity.ERROR,
                     diagnostic.message,
                 )
                     .range(TextRange(start, end))

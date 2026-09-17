@@ -26,11 +26,7 @@ object SvadiDhatus {
             PadaType.UBHAYAPADA, ItStatus.ANIT, Karmatva.SAKARMAKA, Accent.ANUDATTA,
         )
         dhatu(MiDhatu())
-        dhatu(
-            "05.0005", 5, "चिञ्", "चि",
-            "चयने", "चुनना, बटोरना, एकत्र करना", "to collect, to select, to pick",
-            PadaType.UBHAYAPADA, ItStatus.ANIT, Karmatva.DVIKARMAKA, Accent.ANUDATTA,
-        )
+        dhatu(ChiDhatu())
         dhatu(
             "05.0006", 6, "स्तृञ्", "स्तृ",
             "आच्छादने", "आच्छादित करना, ढकना, फैलाना, विस्तार होना या करना, बिछाना", "to cover,to eclipse, to spread, to expand",

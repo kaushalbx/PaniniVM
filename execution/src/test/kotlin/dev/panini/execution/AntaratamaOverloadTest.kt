@@ -14,7 +14,7 @@ class AntaratamaOverloadTest {
         val parser = dev.panini.vyakaranam.parser.PaniniParser()
         val lines = listOf(
             "गणित + सुँ इति अधि + कृ + घञ् + सुँ ।",
-            "गणित + ङस् युज् + ल्युट् + सुँ इति संज्ञा + सुँ ।",
+            "गणित + ङस् युज् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।",
             "न प्रथम + अम् सङ्ख्या + त्व + अम् ।",
             "प्रथम + अम् द्वितीय + अम् च युज् + णिच् + लोट् + सिप् ॥",
             "पञ्च + अम् पञ्च + अम् च गणित + ङस् युज् + ल्युट् + टा कृ + लोट् + सिप् ।",
@@ -33,12 +33,12 @@ class AntaratamaOverloadTest {
             गणित + सुँ इति अधि + कृ + घञ् + सुँ ।
 
             # Overload 1 (Numeric constraint): Adds numbers (5 + 5 = 10 -> दश)
-            गणित + ङस् युज् + ल्युट् + सुँ इति संज्ञा + सुँ ।
+            गणित + ङस् युज् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             न प्रथम + अम् सङ्ख्या + त्व + अम् ।
             प्रथम + अम् द्वितीय + अम् च युज् + णिच् + लोट् + सिप् ॥
 
             # Overload 2 (Text constraint): Concatenates text ("राम" + "कृष्ण" -> "रामकृष्ण")
-            गणित + ङस् युज् + ल्युट् + सुँ इति संज्ञा + सुँ ।
+            गणित + ङस् युज् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             न प्रथम + अम् शब्द + त्व + अम् ।
             राम + अम् कृष्ण + अम् च युज् + णिच् + लोट् + सिप् ॥
 
@@ -54,14 +54,14 @@ class AntaratamaOverloadTest {
 
     @Test
     fun `typed signatures are compiled once and ranked structurally`() {
-        val numeric = SamjnaSignatureCompiler.compile(
+        val numeric = PrakriyaSignatureCompiler.compile(
             listOf(PvmScriptStatement.Sentence("न प्रथम + अम् सङ्ख्या + त्व + अम् ।", isNishedha = true)),
         )
-        val text = SamjnaSignatureCompiler.compile(
+        val text = PrakriyaSignatureCompiler.compile(
             listOf(PvmScriptStatement.Sentence("न प्रथम + अम् शब्द + त्व + अम् ।", isNishedha = true)),
         )
 
-        assertEquals(SamjnaValueType.SANKHYA, numeric.argumentType)
+        assertEquals(PrakriyaValueType.SANKHYA, numeric.argumentType)
         assertEquals(AntaratamaOverloadEngine.TypeMatch.EXACT, AntaratamaOverloadEngine.match(numeric, listOf("पञ्च")))
         assertEquals(AntaratamaOverloadEngine.TypeMatch.MISMATCH, AntaratamaOverloadEngine.match(text, listOf("पञ्च")))
         assertNotEquals(numeric, text)

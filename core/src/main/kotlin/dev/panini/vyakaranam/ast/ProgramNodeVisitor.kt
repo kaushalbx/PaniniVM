@@ -8,7 +8,7 @@ interface ProgramNodeVisitor<out R> {
     fun visitRepeat(node: Repeat): R
     fun visitWhileLoop(node: WhileLoop): R
     fun visitPipeline(node: Pipeline): R
-    fun visitProcedure(node: Procedure): R
+    fun visitPrakriya(node: Prakriya): R
     fun visitScope(node: Scope): R
 }
 
@@ -20,7 +20,7 @@ fun <R> ProgramNode.accept(visitor: ProgramNodeVisitor<R>): R = when (this) {
     is Repeat -> visitor.visitRepeat(this)
     is WhileLoop -> visitor.visitWhileLoop(this)
     is Pipeline -> visitor.visitPipeline(this)
-    is Procedure -> visitor.visitProcedure(this)
+    is Prakriya -> visitor.visitPrakriya(this)
     is Scope -> visitor.visitScope(this)
 }
 
@@ -58,7 +58,7 @@ private object ProgramNodeChildren : ProgramNodeVisitor<List<ProgramNode>> {
     override fun visitWhileLoop(node: WhileLoop): List<ProgramNode> =
         listOfNotNull(node.body, node.exhausted, node.resultTarget)
     override fun visitPipeline(node: Pipeline): List<ProgramNode> = emptyList()
-    override fun visitProcedure(node: Procedure): List<ProgramNode> = node.body
+    override fun visitPrakriya(node: Prakriya): List<ProgramNode> = node.body
     override fun visitScope(node: Scope): List<ProgramNode> = node.body
 }
 
@@ -91,7 +91,7 @@ open class ProgramNodeTransformer : ProgramNodeVisitor<ProgramNode> {
 
     override fun visitPipeline(node: Pipeline): ProgramNode = node
 
-    override fun visitProcedure(node: Procedure): ProgramNode =
+    override fun visitPrakriya(node: Prakriya): ProgramNode =
         node.copy(body = node.body.map(::transform))
 
     override fun visitScope(node: Scope): ProgramNode =

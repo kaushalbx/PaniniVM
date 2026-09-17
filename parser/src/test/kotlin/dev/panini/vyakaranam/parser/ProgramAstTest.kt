@@ -5,16 +5,36 @@ import dev.panini.vyakaranam.ast.AkhyataVakya
 import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.NamaVakya
 import dev.panini.vyakaranam.ast.Pipeline
+import dev.panini.vyakaranam.ast.ParyantaRangePada
+import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.vyakaranam.ast.Quotation
 import dev.panini.vyakaranam.ast.WhileLoop
 import dev.panini.vyakaranam.ast.Sequence
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 
 class ProgramAstTest {
     private val parser = PaniniParser()
+
+    @Test
+    fun `segmented paryanta construction becomes a typed inclusive range`() {
+        val invocation = assertIs<Invocation>(
+            parser.parse(
+                "एक + ङसिँ दशन् + शस् परि + अन्त + अम् सङ्ख्या + अम् चिञ् + श्नु + लोट् + सिप् ।",
+            ).body,
+        )
+
+        val range = assertIs<ParyantaRangePada>(invocation.vakya.padas.first())
+        assertEquals(listOf("एक"), range.lowerLimit.stems)
+        assertEquals("ङसिँ", range.lowerLimit.sup.text)
+        assertEquals(listOf("दशन्"), range.upperLimit.stems)
+        assertEquals("शस्", range.upperLimit.sup.text)
+        assertEquals("पर्यन्त", assertIs<MulaPratipadika>(range.marker.pratipadika).text)
+        assertEquals("श्नु", assertIs<AkhyataVakya>(invocation.vakya).tinganta.vikarana)
+    }
 
     @Test
     fun `sequence owns its statements and connectors`() {
@@ -58,7 +78,7 @@ class ProgramAstTest {
     fun `yavat tavat builds a bounded condition loop`() {
         val loop = assertIs<WhileLoop>(
             parser.parse(
-                "पञ्च + कृत्वः यावत् विजय + सुँ न तावत् प्रयत्न + अम् कृ + लोट् + सिप् ।",
+                "पञ्च + कृत्वसुच् यावत् विजय + सुँ न तावत् प्रयत्न + अम् कृ + लोट् + सिप् ।",
             ).body,
         )
 
@@ -68,10 +88,35 @@ class ProgramAstTest {
     }
 
     @Test
+    fun `bounded loop requires the grammatical source affix rather than a rendered form`() {
+        listOf("कृत्वस्", "कृत्वः").forEach { renderedForm ->
+            assertFailsWith<PaniniParseException> {
+                parser.parse(
+                    "पञ्च + $renderedForm यावत् विजय + सुँ न तावत् प्रयत्न + अम् कृ + लोट् + सिप् ।",
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `ordinal attempt boundary builds a bounded condition loop`() {
+        val loop = assertIs<WhileLoop>(
+            parser.parse(
+                "यावत् विजय + सुँ न भू + लट् + तिप् तावत् " +
+                    "पञ्चन् + म + ङस् प्रयत्न + ङस् परि + अन्त + अम् " +
+                    "प्रयत्न + अम् डुकृञ् + उ + लोट् + सिप् ।",
+            ).body,
+        )
+
+        assertEquals(listOf("पञ्चन्"), loop.maximumIterationStems)
+        assertEquals(3, loop.maximumBoundaryPadas.size)
+    }
+
+    @Test
     fun `bounded loop may own an exhaustion clause`() {
         val loop = assertIs<WhileLoop>(
             parser.parse(
-                "द्वि + कृत्वः यावत् फल + सुँ न तावत् प्रयत्न + अम् कृ + लोट् + सिप् " +
+                "द्वि + कृत्वसुच् यावत् फल + सुँ न तावत् प्रयत्न + अम् कृ + लोट् + सिप् " +
                     "अन्यथा समाप्त + अम् मुद्र् + लोट् + सिप् ।",
             ).body,
         )
@@ -191,7 +236,7 @@ class ProgramAstTest {
     fun `loop may pipe its named outcome to a target`() {
         val loop = assertIs<WhileLoop>(
             parser.parse(
-                "द्वि + कृत्वः यावत् फल + सुँ न तावत् प्रयत्न + अम् कृ + लोट् + सिप् " +
+                "द्वि + कृत्वसुच् यावत् फल + सुँ न तावत् प्रयत्न + अम् कृ + लोट् + सिप् " +
                     "ततः परिणाम + ङे दा + लोट् + सिप् ।",
             ).body,
         )

@@ -24,7 +24,7 @@ class PvmBlockBoundaryTest {
 
     @Test
     fun `standalone double danda closes a definition without iti body`() {
-        val definition = assertIs<PvmScriptStatement.SamjnaDefinition>(
+        val definition = assertIs<PvmScriptStatement.PrakriyaDefinition>(
             PvmScript.parse(
                 """
                 गणित + सुँ ।
@@ -36,7 +36,7 @@ class PvmBlockBoundaryTest {
 
         assertEquals(1, definition.body.size)
         assertEquals("एक + अम् कृ + लोट् + सिप् ।", definition.body.single().text)
-        assertEquals("गणित + सुँ", definition.procedure.name)
-        assertEquals(1, definition.procedure.body.size)
+        assertEquals("गणित + सुँ", definition.prakriya.name)
+        assertEquals(1, definition.prakriya.body.size)
     }
 }

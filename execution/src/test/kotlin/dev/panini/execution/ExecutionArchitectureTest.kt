@@ -10,6 +10,51 @@ import kotlin.test.assertTrue
 
 class ExecutionArchitectureTest {
     @Test
+    fun `parsed invocation executes without reparsing its source text`() {
+        val parsed = dev.panini.vyakaranam.parser.PaniniParser()
+            .parse("एक + अम् मुद्र् + णिच् + लोट् + सिप् ।")
+            .copy(sourceText = "this text is deliberately not parseable Sanskrit")
+
+        val result = PaniniVM().evalParsed(parsed)
+
+        assertIs<ExecutionResult.Success>(result, result.toString())
+        assertEquals("एक", result.value)
+    }
+
+    @Test
+    fun `piped karman is injected semantically without rewriting Sanskrit source`() {
+        val parsed = dev.panini.vyakaranam.parser.PaniniParser()
+            .parse("मुद्र् + णिच् + लोट् + सिप् ।")
+            .copy(sourceText = "no synthetic operand is present in this text")
+        val operand = SanskritValue.Sankhya(3, "त्रि")
+        val scope = PaniniVM().defaultScope.copy(
+            environment = ValueEnvironment(mapOf("विशेषणफल" to operand)),
+        )
+
+        val result = PaniniVM(defaultScope = scope).evalParsed(
+            parsed,
+            injectedBindings = mapOf(
+                dev.panini.core.Karaka.KARMAN to ExecutionExpression.Reference("विशेषणफल"),
+            ),
+        )
+
+        assertIs<ExecutionResult.Success>(result, result.toString())
+        assertEquals("त्रि", result.value)
+    }
+
+    @Test
+    fun `parsed quotation executes without reparsing its source text`() {
+        val parsed = dev.panini.vyakaranam.parser.PaniniParser()
+            .parse("सङ्ख्या + अम् ऊहँ + लोट् + थास् इति मुद्र् + णिच् + लोट् + सिप् ।")
+            .copy(sourceText = "this quotation source is deliberately invalid")
+
+        val result = PaniniVM().evalParsed(parsed)
+
+        assertIs<ExecutionResult.Success>(result, result.toString())
+        assertEquals("सङ्ख्याम् ऊहस्व", result.value)
+    }
+
+    @Test
     fun `operation catalog resolves exact upadesha only`() {
         DhatuPathaRegistration.ensureRegistered()
         val catalog = DhatuPathaRegistration.operationCatalog
@@ -65,9 +110,9 @@ class ExecutionArchitectureTest {
 
         assertEquals(
             """
-                एकम् धरणाय देहि ।
-                स्थानम् धरणम् च योजय ।
-                देहि योजनस्य फलम् जननाय ।
+                एकं धरणाय देहि ।
+                स्थानं धरणं च योजय ।
+                देहि योजनस्य फलं जननाय ।
                 मुद्रय जननम् ।
             """.trimIndent(),
             PvmUktiSadhaka().sadhayaScript(source),

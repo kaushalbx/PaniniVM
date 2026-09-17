@@ -7,10 +7,10 @@
 चत्वारि चत्वारि च स्थानाय गणय ।
 
 # Step 3: Add results of multiplication (16) and previous multiplication (9) -> 25
-धरणम् स्थानम् च जननाय योजय ।
+धरणं स्थानं च जननाय योजय ।
 
 # Step 4: Compute square root of addition result (sqrt(25) = 5)
-जननम् मूल् ।
+जननं मूल् ।
 
 # Step 5: Print result of square root (मूल् + घञ् + ङस् फल + अम् -> मूलस्य फलम् -> renders 5 = पञ्च)
-मूलस्य फलम् मुद्रय ।
+मूलस्य फलं मुद्रय ।

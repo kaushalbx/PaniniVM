@@ -28,7 +28,7 @@ object AdhikaraHeaderParser {
         val domain = padas.take(markerIndex).filterIsInstance<SubantaPada>().lastOrNull()
             ?.takeIf { SupAffix.fromUpadesha(it.sup.text)?.vibhakti == Vibhakti.PRATHAMA }
             ?: return null
-        return SamjnaInvocationMatcher.normalizeIdentity(domain.sourceText)
+        return PrakriyaInvocationMatcher.normalizeIdentity(domain.sourceText)
     }
 
     private fun SubantaPada.isAdhikaraMarker(): Boolean = when (val base = pratipadika) {

@@ -10,24 +10,24 @@ import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.TaddhitaVikara
 import dev.panini.vyakaranam.parser.PaniniParser
 
-data class SamjnaHeaderIdentity(
+data class PrakriyaHeaderIdentity(
     val operationStem: String,
     val domainStem: String?,
 )
 
 /** Extracts saṃjñā operation and domain identities from nominal case structure. */
-object SamjnaHeaderIdentityParser {
+object PrakriyaHeaderIdentityParser {
     private val parser = PaniniParser()
 
-    fun parse(source: String): SamjnaHeaderIdentity? {
+    fun parse(source: String): PrakriyaHeaderIdentity? {
         val subantas = parseSubantas(source) ?: return null
         val operation = subantas.lastOrNull()
             ?.takeIf { it.vibhakti() == Vibhakti.PRATHAMA }
             ?: return null
         val domain = subantas.dropLast(1).lastOrNull { it.vibhakti() == Vibhakti.SASTHI }
-        return SamjnaHeaderIdentity(
-            operationStem = operation.pratipadika.samjnaIdentity(),
-            domainStem = domain?.pratipadika?.samjnaDomainIdentity(),
+        return PrakriyaHeaderIdentity(
+            operationStem = operation.pratipadika.prakriyaIdentity(),
+            domainStem = domain?.pratipadika?.prakriyaDomainIdentity(),
         )
     }
 
@@ -45,7 +45,7 @@ object SamjnaHeaderIdentityParser {
         SupAffix.fromUpadesha(sup.text)?.vibhakti
 }
 
-internal fun Pratipadika.samjnaIdentity(): String = SamjnaInvocationMatcher.normalizeIdentity(
+internal fun Pratipadika.prakriyaIdentity(): String = PrakriyaInvocationMatcher.normalizeIdentity(
     when (this) {
         is MulaPratipadika -> text
         is KridantaPratipadika -> sourceText
@@ -53,9 +53,9 @@ internal fun Pratipadika.samjnaIdentity(): String = SamjnaInvocationMatcher.norm
     },
 )
 
-internal fun Pratipadika.samjnaDomainIdentity(): String {
-    if (this is MulaPratipadika) return SamjnaInvocationMatcher.normalizeIdentity(text)
-    return taddhitaVikaras().asReversed().fold(samjnaIdentity()) { identity, vikara ->
+internal fun Pratipadika.prakriyaDomainIdentity(): String {
+    if (this is MulaPratipadika) return PrakriyaInvocationMatcher.normalizeIdentity(text)
+    return taddhitaVikaras().asReversed().fold(prakriyaIdentity()) { identity, vikara ->
         identity.removeSuffix(" + ${vikara.pratyaya}")
     }
 }

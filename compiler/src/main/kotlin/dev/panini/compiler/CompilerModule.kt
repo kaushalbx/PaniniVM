@@ -3,10 +3,10 @@ package dev.panini.compiler
 import dev.panini.execution.PvmScript
 import dev.panini.execution.PvmScriptStatement
 import dev.panini.execution.PuranaPratyayaResolver
-import dev.panini.execution.SamjnaParameter
-import dev.panini.execution.SamjnaSignature
-import dev.panini.execution.SamjnaSignatureCompiler
-import dev.panini.execution.SamjnaValueType
+import dev.panini.execution.PrakriyaParameter
+import dev.panini.execution.PrakriyaSignature
+import dev.panini.execution.PrakriyaSignatureCompiler
+import dev.panini.execution.PrakriyaValueType
 import dev.panini.execution.TaddhitaInheritanceEngine
 import dev.panini.execution.TaddhitaStructEngine
 import dev.panini.vyakaranam.ast.MulaPratipadika
@@ -85,8 +85,8 @@ data class PaniniExportedProcedure(
     val symbol: String,
     val methodName: String,
     val domain: String?,
-    val parameters: List<SamjnaParameter>,
-    val resultType: SamjnaValueType?,
+    val parameters: List<PrakriyaParameter>,
+    val resultType: PrakriyaValueType?,
     val resultSchema: String?,
 )
 
@@ -140,11 +140,11 @@ object PaniniModuleMetadataCodec {
             val parts = line.split('|')
             val parameters = parts[4].takeIf(String::isNotEmpty)?.split(',')?.map { parameter ->
                 val pair = parameter.split(':', limit = 2)
-                SamjnaParameter(decoded(pair[0]), SamjnaValueType.valueOf(pair[1]))
+                PrakriyaParameter(decoded(pair[0]), PrakriyaValueType.valueOf(pair[1]))
             }.orEmpty()
             PaniniExportedProcedure(
                 decoded(parts[1]), decoded(parts[2]), decoded(parts[3]).ifBlank { null }, parameters,
-                parts[5].takeIf(String::isNotEmpty)?.let(SamjnaValueType::valueOf),
+                parts[5].takeIf(String::isNotEmpty)?.let(PrakriyaValueType::valueOf),
                 decoded(parts[6]).ifBlank { null },
             )
         }
@@ -172,11 +172,11 @@ object PaniniModuleMetadataCodec {
 
 internal data class AnalyzedProcedure(
     val source: PaniniModuleSource,
-    val definition: PvmScriptStatement.SamjnaDefinition,
+    val definition: PvmScriptStatement.PrakriyaDefinition,
     val symbol: String,
     val localSymbol: String,
     val domain: String?,
-    val signature: SamjnaSignature,
+    val signature: PrakriyaSignature,
     val visibility: PaniniSymbolVisibility,
     val methodName: String,
 )
@@ -195,22 +195,22 @@ internal object PaniniModuleAnalyzer {
         val procedures = statements.flatMap { (source, unitStatements) ->
             val fallbackDomain = unitStatements.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>()
                 .firstOrNull()?.scope?.domain?.let(CompilerSymbols::stem)
-            unitStatements.filterIsInstance<PvmScriptStatement.SamjnaDefinition>().map { definition ->
+            unitStatements.filterIsInstance<PvmScriptStatement.PrakriyaDefinition>().map { definition ->
                 val symbol = CompilerSymbols.stem(definition.nameSegmented)
                 val domain = definition.domainStem ?: fallbackDomain
                 val signature = inferSignature(definition)
                 AnalyzedProcedure(
                     source, definition, symbol, CompilerSymbols.localStem(symbol), domain,
                     signature,
-                    if (definition.procedure.modifiers.isInternal) PaniniSymbolVisibility.INTERNAL else PaniniSymbolVisibility.PUBLIC,
-                    "samjna_${stableMethodSuffix(source.name, domain, symbol, signature, definition)}",
+                    if (definition.isInternal) PaniniSymbolVisibility.INTERNAL else PaniniSymbolVisibility.PUBLIC,
+                    "prakriya_${stableMethodSuffix(source.name, domain, symbol, signature, definition)}",
                 )
             }
         }
         procedures.groupBy {
             listOf(
                 it.domain.orEmpty(), it.localSymbol, signatureKey(it.signature),
-                it.definition.procedure.modifiers.toString(),
+                it.definition.prakriya.modifiers.toString(),
             )
         }
             .entries.firstOrNull { it.value.size > 1 }?.let { duplicate ->
@@ -225,8 +225,8 @@ internal object PaniniModuleAnalyzer {
         return AnalyzedPaniniModule(descriptor, statements, procedures, inheritance, schemas)
     }
 
-    private fun inferSignature(definition: PvmScriptStatement.SamjnaDefinition): SamjnaSignature {
-        val declared = SamjnaSignatureCompiler.compile(definition.body)
+    private fun inferSignature(definition: PvmScriptStatement.PrakriyaDefinition): PrakriyaSignature {
+        val declared = PrakriyaSignatureCompiler.compile(definition.body)
         if (declared.parameters.isNotEmpty()) return declared
         val padas = definition.body.flatMap { sentence ->
             sentence.ukti?.grammaticalVakyas()?.flatMap { it.padas }.orEmpty()
@@ -234,27 +234,27 @@ internal object PaniniModuleAnalyzer {
         val ordinalValues = padas.mapNotNull(PuranaPratyayaResolver::ordinalValue).distinct().sorted()
         val ordinalParameters = ordinalValues.mapNotNull { value ->
             val name = when (value) { 1L -> "प्रथम"; 2L -> "द्वितीय"; 3L -> "तृतीय"; else -> null }
-            name?.let { SamjnaParameter(it, SamjnaValueType.SANKHYA) }
+            name?.let { PrakriyaParameter(it, PrakriyaValueType.SANKHYA) }
         }
         val hasCollection = padas.filterIsInstance<SubantaPada>().any { pada ->
             (pada.pratipadika as? MulaPratipadika)?.lexicalIdentity == MulaPratipadikaIdentity.SAMAVAYA
         }
         return declared.copy(parameters = when {
             ordinalParameters.isNotEmpty() -> ordinalParameters
-            hasCollection -> listOf(SamjnaParameter("समवाय", SamjnaValueType.SUCHI))
+            hasCollection -> listOf(PrakriyaParameter("समवाय", PrakriyaValueType.SUCHI))
             else -> emptyList()
         })
     }
 
-    private fun signatureKey(signature: SamjnaSignature): String = signature.parameters.joinToString { it.type.name }
+    private fun signatureKey(signature: PrakriyaSignature): String = signature.parameters.joinToString { it.type.name }
     private fun stableMethodSuffix(
         source: String,
         domain: String?,
         symbol: String,
-        signature: SamjnaSignature,
-        definition: PvmScriptStatement.SamjnaDefinition,
+        signature: PrakriyaSignature,
+        definition: PvmScriptStatement.PrakriyaDefinition,
     ): String = (listOf(
-        source, domain.orEmpty(), symbol, signatureKey(signature), definition.procedure.modifiers.toString(),
+        source, domain.orEmpty(), symbol, signatureKey(signature), definition.prakriya.modifiers.toString(),
     ).joinToString("\u0000")).hashCode().toUInt().toString(16)
 }
 

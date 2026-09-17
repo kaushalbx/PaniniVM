@@ -1,5 +1,6 @@
 package dev.panini.execution.binding
 
+import dev.panini.core.DhatuGana
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.vyakaranam.ast.TingantaPada
@@ -87,6 +88,23 @@ internal object DhatuCache {
      */
     internal fun resolve(tinganta: TingantaPada): Dhatu? {
         val text = tinganta.dhatu.mulaDhatu
+        val requiredGana = when (tinganta.vikarana) {
+            "शप्" -> DhatuGana.BHVADI
+            "श्यन्" -> DhatuGana.DIVADI
+            "श्नु" -> DhatuGana.SVADI
+            "श्नम्" -> DhatuGana.RUDHADI
+            "श्ना" -> DhatuGana.KRYADI
+            "उ" -> DhatuGana.TANADI
+            "श्नाम्" -> DhatuGana.KRYADI
+            "श" -> DhatuGana.TUDADI
+            else -> null
+        }
+        if (requiredGana != null) {
+            return DhatuPatha.all.singleOrNull { candidate ->
+                candidate.gana == requiredGana &&
+                    (candidate.upadesha == text || candidate.sourceSurface == text || candidate.derivationalSurface == text)
+            }
+        }
         val cached = dhatuCacheMap[text]
         if (cached != null) return cached
         return dhatuCacheMap[text.normalizeDhatuSurface()]

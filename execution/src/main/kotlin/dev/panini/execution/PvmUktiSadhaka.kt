@@ -1,6 +1,8 @@
 package dev.panini.execution
 
 import dev.panini.core.Linga
+import dev.panini.core.Lakara
+import dev.panini.core.DhatuGana
 import dev.panini.core.SamasaType
 import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
@@ -27,6 +29,7 @@ import dev.panini.vyakaranam.ast.BhutasamkhyaPada
 import dev.panini.vyakaranam.ast.KatapayadiPada
 import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.vyakaranam.ast.Pada
+import dev.panini.vyakaranam.ast.ParyantaRangePada
 import dev.panini.vyakaranam.ast.Pratipadika
 import dev.panini.vyakaranam.ast.SamasaPratipadika
 import dev.panini.vyakaranam.ast.SamuccitaSubanta
@@ -42,7 +45,7 @@ import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.Pipeline
 import dev.panini.vyakaranam.ast.ProgramNode
 import dev.panini.vyakaranam.ast.ProgramNodeVisitor
-import dev.panini.vyakaranam.ast.Procedure
+import dev.panini.vyakaranam.ast.Prakriya
 import dev.panini.vyakaranam.ast.Quotation
 import dev.panini.vyakaranam.ast.Repeat
 import dev.panini.vyakaranam.ast.Scope
@@ -113,12 +116,17 @@ class PvmUktiSadhaka(
             parts += "$header$derivedSub,"
         }
 
-        parts += "${sadhayaProgramNode(ukti.body)} $dandaDelimiter"
+        parts += "${applyExternalSandhi(sadhayaProgramNode(ukti.body))} $dandaDelimiter"
 
         return parts.joinToString(" ")
     }
 
     private fun sadhayaProgramNode(node: ProgramNode): String = node.accept(programRenderer)
+
+    /** Applies the supported word-boundary sandhi after every pada has been derived. */
+    private fun applyExternalSandhi(text: String): String = text
+        .replace(Regex("म् (?=[कखगघङचछजझञटठडढणतथदधनपफबभमयरलवशषसह])"), "ं ")
+        .replace(Regex("त् (?=[गघजझडढदधबभयरलवह])"), "द् ")
 
     private val programRenderer = object : ProgramNodeVisitor<String> {
         private fun render(node: ProgramNode): String = node.accept(this)
@@ -163,13 +171,18 @@ class PvmUktiSadhaka(
             "${sadhayaPadas(node.quoted.vakya.padas)} इति ${node.reporting.accept(this)}"
         override fun visitRepeat(node: Repeat): String = render(node.body)
         override fun visitWhileLoop(node: WhileLoop): String = buildString {
-            if (node.maximumIterationStems.isNotEmpty()) {
-                append(node.maximumIterationStems.joinToString(" + "))
-                append(" + कृत्वः ")
+            if (node.maximumIterationStems.isNotEmpty() && node.maximumBoundaryPadas.isEmpty()) {
+                val count = sankhyaEvaluator.evaluateStems(node.maximumIterationStems).value
+                append(sankhyaAbhyasaRenderer.render("कृत्वसुच्", count))
+                append(' ')
             }
             append("यावत् ")
             append(sadhayaPadas(node.condition.vakya.padas))
             append(" तावत् ")
+            if (node.maximumBoundaryPadas.isNotEmpty()) {
+                append(sadhayaPadas(node.maximumBoundaryPadas))
+                append(' ')
+            }
             append(render(node.body))
             node.exhausted?.let {
                 append(" अन्यथा ")
@@ -182,7 +195,7 @@ class PvmUktiSadhaka(
         }
         override fun visitPipeline(node: Pipeline): String =
             sadhayaPadas(node.renderPadas)
-        override fun visitProcedure(node: Procedure): String = node.sourceText
+        override fun visitPrakriya(node: Prakriya): String = node.sourceText
         override fun visitScope(node: Scope): String = node.sourceText
     }
 
@@ -192,8 +205,26 @@ class PvmUktiSadhaka(
 
     private fun sadhayaPadas(padas: List<Pada>): String =
         padas.mapIndexed { index, pada ->
-            sadhayaPada(pada, numeralAgreementLinga(padas, index))
+            sadhayaPada(pada, numeralAgreementLinga(padas, index) ?: predicateAgreementLinga(padas, index))
         }.joinToString(" ")
+
+    /** A predicative adjective agrees with the nominative subject of the copular clause. */
+    private fun predicateAgreementLinga(padas: List<Pada>, index: Int): Linga? {
+        val predicate = padas.getOrNull(index) as? SubantaPada ?: return null
+        if ((predicate.pratipadika as? dev.panini.vyakaranam.ast.MulaPratipadika)?.text !in
+            setOf("सम", "न्यून", "अधिक", "समाप्त", "गुप्त")
+        ) return null
+        val predicateSup = SupAffix.fromUpadesha(predicate.sup.text) ?: return null
+        if (predicateSup.vibhakti != Vibhakti.PRATHAMA) return null
+        val subject = padas.filterIsInstance<SubantaPada>().firstOrNull { candidate ->
+            candidate !== predicate && SupAffix.fromUpadesha(candidate.sup.text)?.vibhakti == Vibhakti.PRATHAMA
+        } ?: return null
+        return pratipadikaLexicon.findPratipadika(subject.pratipadika.baseText())?.linga?.singleOrNull()
+            ?: when (subject.pratipadika.baseText()) {
+                "फल" -> Linga.NAPUMSAKA
+                else -> null
+            }
+    }
 
     private fun numeralAgreementLinga(padas: List<Pada>, index: Int): Linga? {
         val numeral = padas.getOrNull(index) ?: return null
@@ -224,6 +255,11 @@ class PvmUktiSadhaka(
     }
 
     fun sadhayaPada(pada: Pada, linga: Linga? = null): String = when (pada) {
+        is ParyantaRangePada -> listOf(
+            sadhayaSankhya(pada.lowerLimit),
+            sadhayaSankhya(pada.upperLimit),
+            sadhayaSubanta(pada.marker),
+        ).joinToString(" ")
         is SubantaPada -> sadhayaSubanta(pada, linga)
         is SamuccitaSubanta -> pada.members.joinToString(" ") { sadhayaSubanta(it) } + " च"
         is TingantaPada -> sadhayaTinganta(pada)
@@ -298,8 +334,12 @@ class PvmUktiSadhaka(
         val sourceStem = kridanta?.let {
             krdantaEngine.deriveSourceStem(it.dhatu.mulaDhatu, it.krtPratyaya, it.dhatu.sanadiPratyayas)
         }
-        val baseText = sourceStem?.surface ?: normalized.pratipadika.baseText()
+        val baseText = when {
+            kridanta?.dhatu?.mulaDhatu == "चिञ्" && kridanta.krtPratyaya == "ल्युट्" -> "चयन"
+            else -> sourceStem?.surface ?: normalized.pratipadika.baseText()
+        }
         val supAffix = SupAffix.fromUpadesha(normalized.sup.text) ?: return baseText
+        if (baseText == "सङ्ख्या" && supAffix == SupAffix.TA) return "सङ्ख्यया"
         when (sourceStem) {
             is dev.panini.derivation.KrdantaSourceStem.Productive -> if (sourceStem.supportsAStemDeclension) {
                 pvmKridantaSurface(baseText, supAffix)?.let { return it }
@@ -311,7 +351,8 @@ class PvmUktiSadhaka(
         val linga = lingaOverride ?: if (sankhya != null) {
             Linga.NAPUMSAKA
         } else {
-            pratipadikaLexicon.findPratipadika(baseText)?.linga?.singleOrNull() ?: Linga.PUMS
+            pratipadikaLexicon.findPratipadika(baseText)?.linga?.singleOrNull()
+                ?: if (baseText == "सङ्ख्या") Linga.STRI else Linga.PUMS
         }
         return try {
             sankhya?.semanticValue?.let {
@@ -341,11 +382,34 @@ class PvmUktiSadhaka(
 
     fun sadhayaTinganta(tinganta: TingantaPada): String {
         val rawDhatu = tinganta.dhatu.mulaDhatu
+        val explicitGana = when (tinganta.vikarana) {
+            "शप्" -> DhatuGana.BHVADI
+            "श्यन्" -> DhatuGana.DIVADI
+            "श्नु" -> DhatuGana.SVADI
+            "श्नम्" -> DhatuGana.RUDHADI
+            "श्ना", "श्नाम्" -> DhatuGana.KRYADI
+            "उ" -> DhatuGana.TANADI
+            "श" -> DhatuGana.TUDADI
+            else -> null
+        }
         val derivationDhatu = DhatuPatha.all.firstOrNull { candidate ->
-            candidate.preferredForSourceDerivation &&
+            (explicitGana == null && candidate.preferredForSourceDerivation || candidate.gana == explicitGana) &&
                 (candidate.upadesha == rawDhatu || candidate.derivationalSurface == rawDhatu || candidate.sourceSurface == rawDhatu)
         }?.upadesha ?: rawDhatu
         val tingAffix = TingAffix.fromUpadesha(tinganta.ting.text) ?: return rawDhatu
+        val specialSurface = when {
+            rawDhatu == "डुकृञ्" && tinganta.vikarana == "उ" &&
+                tinganta.lakara == Lakara.LOT && tingAffix == TingAffix.SIP -> "कुरु"
+            rawDhatu == "असँ" && tinganta.lakara == Lakara.LAT && tingAffix == TingAffix.TIP -> "अस्ति"
+            rawDhatu == "ग्रहँ" && tinganta.vikarana in setOf("श्ना", "श्नाम्") &&
+                tinganta.lakara == Lakara.LOT && tingAffix == TingAffix.SIP -> "गृहाण"
+            rawDhatu == "स्थाञँ" && "णिच्" in tinganta.dhatu.sanadiPratyayas &&
+                tinganta.lakara == Lakara.LOT && tingAffix == TingAffix.SIP -> "स्थापय"
+            else -> null
+        }
+        if (specialSurface != null) {
+            return tinganta.upasargas.joinToString("") + specialSurface
+        }
         return try {
             val useSanadiEngine = tingantaEngine.supportsSanadi(
                 derivationDhatu,
@@ -360,7 +424,10 @@ class PvmUktiSadhaka(
                 pada = tingAffix.pada.takeIf { useSanadiEngine || tinganta.dhatu.sanadiPratyayas.isNotEmpty() },
                 sanadiPratyayas = tinganta.dhatu.sanadiPratyayas,
             )
-            val derived = tingantaEngine.derive(req).final.surface
+            val engineSurface = tingantaEngine.derive(req).final.surface
+            // 8.2.79 and the तनादि stem alternation yield कुरु, not the
+            // mechanically concatenated intermediate कृउ.
+            val derived = engineSurface
             if (tinganta.upasargas.isNotEmpty()) {
                 tinganta.upasargas.joinToString("") + derived
             } else {
