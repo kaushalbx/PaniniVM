@@ -443,12 +443,22 @@ internal object CompilerFrontend {
         private fun lowerConditionalIr(node: Conditional): List<CompilerInstruction>? {
             val condition = ResolvedLeafPlanner.planAny(render(node.condition))
                 ?.takeIf { dev.panini.shiksha.Samjna.SATYA in it.resolved.operation.resultSamjnas }
-                ?: return null
-            val consequent = lowerPrimitiveBranchIr(node.consequent) ?: return null
-            val alternate = node.alternate?.let(::lowerPrimitiveBranchIr) ?: emptyList()
-            if (node.alternate != null && alternate.isEmpty()) return null
+                ?.let(CompilerIrLowering::lowerCondition)
+                ?: (lower(node.condition) + CompilerInstruction.Booleanize)
+            val consequent = lowerPrimitiveBranchIr(node.consequent) ?: throw CompilerUnsupportedException(
+                CompilerUnsupportedKind.CONDITIONAL,
+                render(node.consequent),
+                "Cannot lower the consequent branch to compiler IR (${node.consequent::class.simpleName}).",
+            )
+            val alternate = node.alternate?.let { alternateNode ->
+                lowerPrimitiveBranchIr(alternateNode) ?: throw CompilerUnsupportedException(
+                    CompilerUnsupportedKind.CONDITIONAL,
+                    render(alternateNode),
+                    "Cannot lower the alternate branch to compiler IR (${alternateNode::class.simpleName}).",
+                )
+            } ?: emptyList()
             return CompilerIrLowering.lowerConditional(
-                condition = CompilerIrLowering.lowerCondition(condition),
+                condition = condition,
                 consequent = consequent,
                 alternate = alternate,
                 labelPrefix = "conditional_${nextLabel++}",
@@ -457,13 +467,38 @@ internal object CompilerFrontend {
 
         private fun lowerPrimitiveBranchIr(node: ProgramNode): List<CompilerInstruction>? = when (node) {
             is Invocation -> {
-                val source = normalized(render(node))
-                lowerSource(source)
+                if (node.vakya.padas.none { it is TingantaPada }) {
+                    val value = node.vakya.padas.filterIsInstance<SubantaPada>().firstOrNull()
+                        ?.pratipadika?.sourceText?.substringBefore('+')?.trim()
+                        ?: return null
+                    listOf(
+                        CompilerInstruction.Constant(dev.panini.execution.SanskritValue.Shabda(value)),
+                        CompilerInstruction.Store("LastResult"),
+                    )
+                } else {
+                    val source = normalized(render(node))
+                    val dhatu = node.vakya.padas.filterIsInstance<TingantaPada>()
+                        .singleOrNull()?.dhatu?.mulaDhatu
+                    val lowered = lowerSource(source) ?: when {
+                        dhatu?.startsWith("मुद्र्") == true -> lowerSource("फल + अम् $source")
+                        else -> null
+                    }
+                    lowered ?: throw CompilerUnsupportedException(
+                        CompilerUnsupportedKind.INVOCATION,
+                        source,
+                        "Cannot lower conditional invocation with padas " +
+                            node.vakya.padas.joinToString { it::class.simpleName.orEmpty() },
+                    )
+                }
             }
             is Conditional -> lowerConditionalIr(node)
             is Sequence -> buildList {
                 for (statement in node.statements) {
-                    addAll(lowerPrimitiveBranchIr(statement) ?: return null)
+                    addAll(lowerPrimitiveBranchIr(statement) ?: throw CompilerUnsupportedException(
+                        CompilerUnsupportedKind.CONDITIONAL,
+                        render(statement),
+                        "Cannot lower a sequence statement in a conditional branch (${statement::class.simpleName}).",
+                    ))
                 }
             }
             is PrakriyaNode -> buildList {
