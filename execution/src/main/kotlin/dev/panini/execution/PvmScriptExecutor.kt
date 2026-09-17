@@ -1,12 +1,10 @@
 package dev.panini.execution
 
-import dev.panini.execution.binding.FrequencyExtractor
 import dev.panini.execution.binding.baseText
 import dev.panini.vyakaranam.ast.Conditional
 import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.Pipeline
 import dev.panini.vyakaranam.ast.Procedure
-import dev.panini.vyakaranam.ast.ProcedurePrecedence
 import dev.panini.vyakaranam.ast.ProgramNode
 import dev.panini.vyakaranam.ast.Quotation
 import dev.panini.vyakaranam.ast.Repeat
@@ -18,6 +16,11 @@ import java.io.File
 
 /** Executes PVM scripts and projects behind the stable [PaniniVM] facade. */
 internal class PvmScriptExecutor(private val vm: PaniniVM) {
+    private val samjnaProcedureExecutor = SamjnaProcedureExecutor()
+    private val structuredValueExecutor = StructuredValueExecutor()
+    private val projectLoader = PvmProjectLoader()
+    private val sequenceExecutor = PvmSequenceExecutor()
+    private val loopExecutor = PvmLoopExecutor()
     fun evalScript(
         scriptContent: String,
         sourceFile: String? = null,
@@ -33,13 +36,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         val parsed = PvmScript.parse(scriptContent)
 
         val registry = samjnaRegistry ?: SamjnaKriyaRegistry()
-        val topDomainDefn = parsed.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>().firstOrNull()
-        val topDomainStem = topDomainDefn?.let { deriveSamjnaStem(it.scope.domain) }
-
-        parsed.filterIsInstance<PvmScriptStatement.SamjnaDefinition>().forEach { defn ->
-            registerSamjna(registry, defn, sourceFile, topDomainStem)
-        }
-        registerInheritances(registry, parsed)
+        projectLoader.registerDeclarations(registry, parsed, sourceFile)
 
         val activeRange = parsed.filterIsInstance<PvmScriptStatement.RangeDefinition>()
             .lastOrNull()?.range
@@ -62,7 +59,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             val declaredSchema = TaddhitaStructEngine.detectResultSchema(statement.text, statement.ukti)
             val attributeAccess = statement.ukti?.grammaticalVakyas()?.singleOrNull()
                 ?.let(TaddhitaStructEngine::detectAttributeAccess)
-            val attributePipeline = detectAttributePipeline(statement.program)
+            val attributePipeline = structuredValueExecutor.detectPipeline(statement.program)
             val program = statement.program
             val conditional = program as? dev.panini.vyakaranam.ast.Conditional
 
@@ -72,16 +69,16 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                     registry.registerSchema(declaredSchema)
                 }
                 constructedStruct != null -> structStore[constructedStruct.nameStem] = constructedStruct
-                attributePipeline != null -> executeAttributePipeline(
+                attributePipeline != null -> executeStructuredPipeline(
                     attributePipeline,
                     context,
                 ).also(results::addAll)
-                attributeAccess != null -> resolveNestedAttribute(attributeAccess, structStore).let {
+                attributeAccess != null -> structuredValueExecutor.resolve(attributeAccess, structStore).let {
                     results += it
                     onResult?.invoke(it)
                 }
-                conditional != null && containsAttributeCondition(conditional) -> {
-                    val result = executeAttributeConditional(conditional, context)
+                conditional != null && structuredValueExecutor.containsAttributeCondition(conditional) -> {
+                    val result = executeStructuredConditional(conditional, context)
                     results += result
                     onResult?.invoke(result)
                 }
@@ -155,57 +152,27 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
     private fun executeSequenceNode(
         node: Sequence,
         context: ExecutionContext,
-    ): List<ExecutionResult> {
-        val hasNamedStage = node.statements.drop(1).any { stage ->
-            stage is Invocation && context.registry.detectInvocation(
-                Ukti(sourceText = stage.sourceText, body = stage),
-                callerSourceFile = context.sourceFile,
-                injectedKarman = PIPE_OPERAND to null,
-            ) != null
-        }
-        val startsWithImplicitValue = (node.statements.firstOrNull() as? Invocation)?.implicitValue != null
-        if (
-            node.statements.size < 2 ||
-            node.connectors.any { it != "ततः" } ||
-            (!hasNamedStage && !startsWithImplicitValue)
-        ) {
-            return executeEvaluatorNode(node, context)
-        }
-        val results = mutableListOf<ExecutionResult>()
-        var stageResults = executeProgramNode(
-            node.statements.first(),
-            context.copy(sourceTextOverride = null),
-        )
-        results += stageResults
-        var pipedValue = stageResults.filterIsInstance<ExecutionResult.Success>()
-            .lastOrNull()?.typedValue
-        for (stage in node.statements.drop(1)) {
-            if (stageResults.any { it is ExecutionResult.Failure }) break
-            val invocation = stage as? Invocation
-            stageResults = if (invocation != null && pipedValue != null) {
-                val operand = PIPE_OPERAND
-                val stageScope = context.scope.copy(
-                    environment = context.scope.environment.mergedWith(
-                        ValueEnvironment(mapOf(operand to pipedValue)),
+    ): List<ExecutionResult> = sequenceExecutor.execute(
+        node = node,
+        scope = context.scope,
+        registry = context.registry,
+        sourceFile = context.sourceFile,
+        evaluateWhole = { executeEvaluatorNode(node, context) },
+        executeNode = { executeProgramNode(it, context.copy(sourceTextOverride = null)) },
+        executePipedInvocation = { invocation, scope, injected ->
+            executeInvocationNode(
+                invocation,
+                context.copy(
+                    scope = scope,
+                    sourceTextOverride = ProgramNodeRenderer.invocation(
+                        invocation,
+                        pipedKarman = injected.first,
                     ),
-                )
-                executeInvocationNode(
-                    invocation,
-                    context.copy(
-                        scope = stageScope,
-                        sourceTextOverride = renderInvocation(invocation, pipedKarman = operand),
-                        injectedKarman = operand to pipedValue,
-                    ),
-                )
-            } else {
-                executeProgramNode(stage, context.copy(sourceTextOverride = null))
-            }
-            results += stageResults
-            pipedValue = stageResults.filterIsInstance<ExecutionResult.Success>()
-                .lastOrNull()?.typedValue ?: pipedValue
-        }
-        return results
-    }
+                    injectedKarman = injected,
+                ),
+            )
+        },
+    )
 
     private fun executeInvocationNode(
         node: Invocation,
@@ -213,7 +180,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
     ): List<ExecutionResult> {
         val text = context.sourceTextOverride?.trim()?.let {
             it.trimEnd('।', '॥').trim() + " ।"
-        } ?: renderInvocation(node)
+        } ?: ProgramNodeRenderer.invocation(node)
         val parsedUkti = Ukti(sourceText = text, body = node)
         val invocation = context.registry.detectInvocation(
             parsedUkti,
@@ -246,8 +213,8 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         node: Conditional,
         context: ExecutionContext,
     ): List<ExecutionResult> {
-        if (containsAttributeCondition(node)) {
-            val result = executeAttributeConditional(node, context)
+        if (structuredValueExecutor.containsAttributeCondition(node)) {
+            val result = executeStructuredConditional(node, context)
             context.onResult?.invoke(result)
             return listOf(result)
         }
@@ -291,307 +258,58 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         val injectedKarman: Pair<String, SanskritValue?>? = null,
     )
 
-    private fun containsAttributeCondition(
-        conditional: dev.panini.vyakaranam.ast.Conditional,
-    ): Boolean = ((conditional.condition as? dev.panini.vyakaranam.ast.Invocation)?.vakya
-        ?.let(TaddhitaStructEngine::detectAttributeReference) != null) ||
-        (conditional.alternate as? dev.panini.vyakaranam.ast.Conditional)
-            ?.let(::containsAttributeCondition) == true
-
-    private fun executeAttributeConditional(
-        conditional: dev.panini.vyakaranam.ast.Conditional,
+    private fun executeStructuredConditional(
+        conditional: Conditional,
         context: ExecutionContext,
-    ): ExecutionResult {
-        val operandValues = linkedMapOf<String, SanskritValue>()
-        val resolved = resolveAttributeConditions(conditional, context.structStore, operandValues)
-            ?: return ExecutionResult.Failure(
-                ExecutionError.INVALID_VALUE,
-                "A structured attribute used by the condition could not be resolved.",
-            )
-        return vm.evalParsed(
+    ): ExecutionResult = structuredValueExecutor.executeConditional(
+        conditional,
+        context.structStore,
+    ) { resolved, operands ->
+        vm.evalParsed(
             Ukti(sourceText = resolved.sourceText, body = resolved),
             context.sessionKey,
-            context.scope.copy(
-                environment = context.scope.environment.mergedWith(ValueEnvironment(operandValues)),
-            ),
+            context.scope.copy(environment = context.scope.environment.mergedWith(operands)),
             context.speaker,
             context.listener,
         )
     }
 
-    private fun resolveAttributeConditions(
-        conditional: dev.panini.vyakaranam.ast.Conditional,
-        structStore: Map<String, TaddhitaStruct>,
-        operandValues: MutableMap<String, SanskritValue>,
-    ): dev.panini.vyakaranam.ast.Conditional? {
-        val conditionInvocation = conditional.condition as? dev.panini.vyakaranam.ast.Invocation ?: return null
-        val condition = replaceAttributeReference(conditionInvocation, structStore, operandValues) ?: return null
-        val alternate = conditional.alternate?.let { node ->
-            if (node is dev.panini.vyakaranam.ast.Conditional) {
-                resolveAttributeConditions(node, structStore, operandValues) ?: return null
-            } else {
-                node
-            }
-        }
-        return conditional.copy(condition = condition, alternate = alternate)
-    }
-
-    private fun replaceAttributeReference(
-        invocation: dev.panini.vyakaranam.ast.Invocation,
-        structStore: Map<String, TaddhitaStruct>,
-        operandValues: MutableMap<String, SanskritValue> = linkedMapOf(),
-    ): dev.panini.vyakaranam.ast.Invocation? {
-        var current = invocation
-        while (true) {
-            val reference = TaddhitaStructEngine.detectAttributeReference(current.vakya)
-                ?: return current
-            val resolved = resolveNestedAttribute(reference.access, structStore) as? ExecutionResult.Success
-                ?: return null
-            val operandName = typedOperandName(operandValues.size)
-            operandValues[operandName] = requireNotNull(resolved.typedValue)
-            val sup = reference.access.resultAffix.upadesha
-            val replacement = dev.panini.vyakaranam.ast.SubantaPada(
-                sourceText = "$operandName+$sup",
-                pratipadika = dev.panini.vyakaranam.ast.MulaPratipadika(operandName, operandName),
-                sup = dev.panini.vyakaranam.ast.SupPratyaya(sup, sup),
-            )
-            val padas = current.vakya.padas.toMutableList().apply {
-                subList(reference.padaRange.first, reference.padaRange.last + 1).clear()
-                add(reference.padaRange.first, replacement)
-            }
-            val vakya = current.vakya as? dev.panini.vyakaranam.ast.AkhyataVakya ?: return null
-            current = current.copy(vakya = vakya.copy(padas = padas))
-        }
-    }
-
-    private fun typedOperandName(index: Int): String =
-        "विशेषणफल" + dev.panini.sankhya.SankhyaGenerator().cardinal(index.toLong() + 1L).final.surface
-
-    private fun renderConditionalSegmented(
-        conditional: dev.panini.vyakaranam.ast.Conditional,
-        includePipelineTarget: Boolean = true,
-    ): String = buildString {
-        val hasSharedTarget = includePipelineTarget && conditional.surfacePipelineTarget != null
-        val stripLoweredTargets = hasSharedTarget || !includePipelineTarget
-        append("यदि ")
-        append(renderProgramSegmented(conditional.condition))
-        append(" तर्हि ")
-        append(renderConditionalBranch(conditional.consequent, stripLoweredTargets))
-        conditional.alternate?.let {
-            append(" अन्यथा ")
-            append(renderConditionalBranch(it, stripLoweredTargets))
-        }
-        if (hasSharedTarget) {
-            append(" ततः ")
-            append(renderProgramSegmented(requireNotNull(conditional.surfacePipelineTarget)))
-        }
-    }
-
-    private fun renderConditionalBranch(
-        node: dev.panini.vyakaranam.ast.ProgramNode,
-        stripPipelineTarget: Boolean,
-    ): String = when {
-        !stripPipelineTarget -> renderProgramSegmented(node)
-        node is dev.panini.vyakaranam.ast.Conditional -> renderConditionalSegmented(node, false)
-        node is dev.panini.vyakaranam.ast.Sequence && node.connectors.lastOrNull() == "ततः" ->
-            renderProgramSegmented(node.statements.first())
-        else -> renderProgramSegmented(node)
-    }
-
-    private fun renderProgramSegmented(node: dev.panini.vyakaranam.ast.ProgramNode): String = when (node) {
-        is dev.panini.vyakaranam.ast.Invocation -> node.implicitValue
-            ?: node.vakya.padas.joinToString(" ") { it.sourceText }
-        is dev.panini.vyakaranam.ast.Sequence -> node.statements.mapIndexed { index, statement ->
-            val connector = if (index == 0) "" else "${node.connectors.getOrNull(index - 1) ?: "।"} "
-            connector + renderProgramSegmented(statement)
-        }.joinToString(" ")
-        is dev.panini.vyakaranam.ast.Conditional -> renderConditionalSegmented(node)
-        else -> node.sourceText
-    }
-
     private fun executeWhileLoop(
         loop: WhileLoop,
         context: ExecutionContext,
-    ): List<ExecutionResult> {
-        val results = mutableListOf<ExecutionResult>()
-        val grammaticalBound = if (loop.maximumIterationStems.isEmpty()) {
-            null
-        } else {
-            val value = dev.panini.sankhya.SankhyaEvaluator()
-                .evaluateStems(loop.maximumIterationStems).value
-            if (value < 1L) {
-                return listOf(
-                    ExecutionResult.Failure(
-                        ExecutionError.INVALID_VALUE,
-                        "A condition-controlled loop bound must be positive.",
+    ): List<ExecutionResult> = loopExecutor.execute(
+        PvmLoopExecutor.Request(
+            loop = loop,
+            scope = context.scope,
+            structStore = context.structStore,
+            structSchemas = context.structSchemas,
+            hostBudget = vm.executionLimits.maxConditionIterations,
+            executeNode = { node, scope, conditionEvaluation ->
+                executeProgramNode(
+                    node,
+                    context.copy(
+                        scope = scope,
+                        sourceTextOverride = null,
+                        conditionEvaluation = conditionEvaluation,
                     ),
                 )
-            }
-            value
-        }
-        val hostBudget = vm.executionLimits.maxConditionIterations
-        val usesLatestResult = loop.condition.vakya.padas.any { pada ->
-            pada is dev.panini.vyakaranam.ast.SubantaPada &&
-                pada.pratipadika.baseText() in setOf("फल", "विजय")
-        }
-        val isNegated = loop.condition.vakya.padas.any {
-            (it is dev.panini.vyakaranam.ast.AvyayaPada && it.form == "न") ||
-                (it is dev.panini.vyakaranam.ast.SubantaPada && it.pratipadika.baseText() == "असत्य")
-        }
-        var latestConditionValue = false
-        var iterationCount = 0L
-
-        fun complete(outcome: ExecutionResult.LoopOutcome): List<ExecutionResult> {
-            val outcomeValue = SanskritValue.Shabda(outcome.sanskritName)
-            val attemptWord = dev.panini.sankhya.SankhyaGenerator()
-                .cardinal(iterationCount).final.surface
-            val attributes = mapOf(
-                "अवस्था" to outcome.sanskritName,
-                "प्रयत्नसङ्ख्या" to attemptWord,
-            )
-            val schema = context.structSchemas[LOOP_RESULT_NAME]
-            if (schema != null && schema.fields.toSet() != attributes.keys) {
-                return results + ExecutionResult.Failure(
-                    ExecutionError.INVALID_VALUE,
-                    "The परिणाम schema requires ${schema.fields}, but the loop produced ${attributes.keys}.",
-                )
-            }
-            context.structStore[LOOP_RESULT_NAME] = TaddhitaStruct(
-                nameStem = LOOP_RESULT_NAME,
-                attributes = attributes,
-                typedAttributes = mapOf(
-                    "अवस्था" to outcomeValue,
-                    "प्रयत्नसङ्ख्या" to SanskritValue.Sankhya(iterationCount, attemptWord),
-                ),
-            )
-            val structuredOutcome = SanskritValue.Rupa(
-                schema = LOOP_RESULT_NAME,
-                fields = mapOf(
-                    "अवस्था" to outcomeValue,
-                    "प्रयत्नसङ्ख्या" to SanskritValue.Sankhya(iterationCount, attemptWord),
-                ),
-            )
-            val completion = ExecutionResult.Success(
-                value = outcome.sanskritName,
-                operation = "pvm.while",
-                typedValue = structuredOutcome,
-                loopOutcome = outcome,
-                iterationCount = iterationCount,
-            )
-            results += completion
-            context.onResult?.invoke(completion)
-
-            val target = loop.resultTarget ?: return results
-            val targetScope = context.scope.copy(
-                environment = context.scope.environment.mergedWith(
-                    ValueEnvironment(
-                        mapOf(
-                            "फल" to outcomeValue,
-                            "परिणाम" to outcomeValue,
-                            "प्रयत्नसङ्ख्या" to SanskritValue.Sankhya(iterationCount, iterationCount.toString()),
-                        ),
-                    ),
-                ),
-            )
-            val targetResults = executeProgramNode(
-                target,
-                context.copy(scope = targetScope, sourceTextOverride = null),
-            )
-            results += targetResults
-            return results
-        }
-
-        while (grammaticalBound == null || iterationCount < grammaticalBound) {
-            if (hostBudget != null && iterationCount >= hostBudget) {
-                return results + ExecutionResult.Failure(
-                    ExecutionError.ACTION_FAILED,
-                    "Condition-controlled loop exhausted its host execution budget of $hostBudget iterations.",
-                )
-            }
-            val conditionHolds = if (usesLatestResult) {
-                if (isNegated) !latestConditionValue else latestConditionValue
-            } else {
-                val operandValues = linkedMapOf<String, SanskritValue>()
-                val resolvedCondition = replaceAttributeReference(loop.condition, context.structStore, operandValues)
-                    ?: return results + ExecutionResult.Failure(
-                        ExecutionError.INVALID_VALUE,
-                        "A structured attribute used by the loop condition could not be resolved.",
-                    )
-                val conditionResult = vm.evalParsed(
-                    Ukti(sourceText = resolvedCondition.sourceText, body = resolvedCondition),
-                    sessionKey = context.sessionKey,
-                    scope = context.scope.copy(
-                        environment = context.scope.environment.mergedWith(ValueEnvironment(operandValues)),
-                    ),
-                    speaker = context.speaker,
-                    listener = context.listener,
+            },
+            evaluateCondition = { invocation, scope ->
+                vm.evalParsed(
+                    Ukti(sourceText = invocation.sourceText, body = invocation),
+                    context.sessionKey,
+                    scope,
+                    context.speaker,
+                    context.listener,
                     evaluateCondition = true,
                 )
-                val success = conditionResult as? ExecutionResult.Success
-                (success?.conditionValue ?: (success?.typedValue as? SanskritValue.Satya)?.boolean) == true
-            }
-            if (!conditionHolds) return complete(ExecutionResult.LoopOutcome.VIJAYA)
-
-            val iterationResults = executeProgramNode(
-                loop.body,
-                context.copy(
-                    sourceTextOverride = null,
-                    conditionEvaluation = usesLatestResult,
-                ),
-            )
-            results += iterationResults
-            iterationCount++
-            if (usesLatestResult) {
-                val reportedCondition = iterationResults.asSequence()
-                    .filterIsInstance<ExecutionResult.Success>()
-                    .mapNotNull { it.conditionValue }
-                    // A reusable attempt may perform subordinate comparisons in
-                    // its selected branch.  Its leading condition is the
-                    // procedure's फल; branch-local truth values must not replace it.
-                    .firstOrNull()
-                    ?: return results + ExecutionResult.Failure(
-                        ExecutionError.INVALID_VALUE,
-                        "A फल-controlled loop body must produce a truth value.",
-                    )
-                latestConditionValue = reportedCondition
-            }
-            if (iterationResults.any {
-                    it is ExecutionResult.Success && it.controlSignal == ExecutionControlSignal.BREAK_LOOP
-                }
-            ) {
-                return complete(ExecutionResult.LoopOutcome.VIJAYA)
-            }
-            if (usesLatestResult && (if (isNegated) latestConditionValue else !latestConditionValue)) {
-                return complete(ExecutionResult.LoopOutcome.VIJAYA)
-            }
-        }
-        val exhausted = loop.exhausted
-        if (exhausted != null) {
-            val exhaustedResults = executeProgramNode(
-                exhausted,
-                context.copy(sourceTextOverride = null),
-            )
-            results += exhaustedResults
-        }
-        return complete(ExecutionResult.LoopOutcome.SAMAPTI)
-    }
-
-    private fun renderInvocation(invocation: dev.panini.vyakaranam.ast.Invocation): String =
-        renderInvocation(invocation, pipedKarman = null)
-
-    private fun renderInvocation(
-        invocation: dev.panini.vyakaranam.ast.Invocation,
-        pipedKarman: String?,
-    ): String = buildString {
-        if (pipedKarman != null) append("$pipedKarman + अम् ")
-        append(invocation.vakya.padas.joinToString(" ") { pada ->
-            pada.sourceText.replace("+", " + ").replace(Regex("\\s+"), " ").trim()
-        })
-        append(" ।")
-    }
+            },
+            resolveCondition = { structuredValueExecutor.resolveInvocation(it, context.structStore) },
+            onResult = context.onResult,
+        ),
+    )
 
     private companion object {
-        const val LOOP_RESULT_NAME = "परिणाम"
         const val PIPE_OPERAND = "विशेषणफल"
     }
 
@@ -605,29 +323,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
     ): List<ExecutionResult> {
         require(entryFile.exists()) { "PaniniVM entry-point file not found: ${entryFile.absolutePath}" }
 
-        val projectDir = entryFile.parentFile ?: entryFile.absoluteFile.parentFile
-            ?: error("Cannot determine project directory for ${entryFile.path}")
-        val libraryFiles = projectDir.walkTopDown()
-            .filter { it.isFile && it.extension == "pvm" && it.canonicalPath != entryFile.canonicalPath }
-            .sortedBy { it.name }
-            .toList()
-
-        val registry = SamjnaKriyaRegistry()
-        for (libraryFile in libraryFiles) {
-            val parsed = PvmScript.parse(libraryFile.readText())
-            val fileDomainDefn = parsed.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>().firstOrNull()
-            val fileDomainStem = fileDomainDefn?.let { deriveSamjnaStem(it.scope.domain) }
-            registerInheritances(registry, parsed)
-            parsed.filterIsInstance<PvmScriptStatement.SamjnaDefinition>().forEach { definition ->
-                registerSamjna(
-                    registry,
-                    definition,
-                    libraryFile.name,
-                    fileDomainStem,
-                    includeExecutionModifiers = false,
-                )
-            }
-        }
+        val registry = projectLoader.loadLibraryRegistry(entryFile)
 
         val effectiveSessionKey = sessionKey
             ?: "project-${entryFile.nameWithoutExtension}-${System.currentTimeMillis()}"
@@ -652,11 +348,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         onResult: ((ExecutionResult) -> Unit)? = null,
     ): List<ExecutionResult> {
         require(file.exists()) { "PaniniVM script file not found: ${file.absolutePath}" }
-        val projectDir = file.parentFile ?: file.absoluteFile.parentFile
-        val hasSiblingPvm = projectDir?.walkTopDown()?.any {
-            it.isFile && it.extension == "pvm" && it.canonicalPath != file.canonicalPath
-        } == true
-        return if (hasSiblingPvm) {
+        return if (projectLoader.hasSiblingSource(file)) {
             evalProject(file, sessionKey, scope, speaker, listener, onResult)
         } else {
             evalScript(
@@ -693,275 +385,43 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
     private fun executeSamjnaInvocation(
         invocation: SamjnaInvocation,
         context: ExecutionContext,
-    ): List<ExecutionResult> {
-        val sessionKey = context.sessionKey
-        val scope = context.scope
-        val speaker = context.speaker
-        val listener = context.listener
-        val registry = context.registry
-        val callerSourceFile = context.sourceFile
-        val onResult = context.onResult
-        val results = mutableListOf<ExecutionResult>()
-        val signature = invocation.kriya.signature
-        val argumentResolution = NamedSamjnaArgumentResolver.resolve(invocation.karmaText, signature)
-        if (argumentResolution is SamjnaArgumentResolution.Failure) {
-            return listOf(
-                ExecutionResult.Failure(ExecutionError.INVALID_VALUE, argumentResolution.message),
-            )
-        }
-        val argTerms = (argumentResolution as SamjnaArgumentResolution.Success).terms
-
-        if (signature.parameters.isNotEmpty() && signature.parameters.size != argTerms.size) {
-            return listOf(
-                ExecutionResult.Failure(
-                    ExecutionError.INVALID_VALUE,
-                    "संज्ञा-मानसङ्ख्या: '${invocation.kriya.nameStem}' expects ${signature.parameters.size} arguments, but received ${argTerms.size}.",
-                ),
-            )
-        }
-        signature.parameters.zip(argTerms).withIndex().firstOrNull { (index, pair) ->
-            val (parameter, argument) = pair
-            val actual = invocation.argumentValues.getOrNull(index)?.let(SamjnaValueClassifier::classifyValue)
-                ?: scope.environment.values[argument.substringBefore('+').trim()]
-                    ?.let(SamjnaValueClassifier::classifyValue)
-                ?: SamjnaValueClassifier.classifyTerm(argument)
-            actual != parameter.type
-        }?.let { (_, pair) ->
-            val parameter = pair.first
-            return listOf(
-                ExecutionResult.Failure(
-                    ExecutionError.INVALID_VALUE,
-                    "संज्ञा-मानप्रकारः: '${parameter.nameStem}' requires ${parameter.type}.",
-                ),
-            )
-        }
-
-        if (invocation.kriya.isMemoized) {
-            registry.getCachedResult(invocation.kriya.nameStem, invocation.karmaText)?.let {
-                return listOf(it)
-            }
-        }
-
-        invocation.kriya.nishedhaGuards.forEach { guard ->
-            var guardText = guard.text
-            argTerms.forEachIndexed { index, argument ->
-                guardText = PuranaPratyayaResolver.replacePatterns(guardText, index, argument)
-            }
-            val isProhibited = DynamicNishedhaEvaluator.evaluateProhibition(guardText)
-            val requiredType = SamjnaSignatureCompiler.inferGuardType(guardText)
-            val isTypeViolated = requiredType != null &&
-                argTerms.any { SamjnaValueClassifier.classifyTerm(it) != requiredType }
-            if (isProhibited || isTypeViolated) {
-                return listOf(
-                    ExecutionResult.Failure(
-                        ExecutionError.ACTION_FAILED,
-                        "निषेध-प्रतिषेधः: Prohibition triggered by '${guard.text.trim()}'",
+    ): List<ExecutionResult> = samjnaProcedureExecutor.execute(
+        SamjnaProcedureExecutor.Request(
+            invocation = invocation,
+            scope = context.scope,
+            registry = context.registry,
+            callerSourceFile = context.sourceFile,
+            executeBody = { program, scope, sourceFile, sourceText ->
+                executeProgramNode(
+                    program,
+                    context.copy(
+                        scope = scope,
+                        sourceFile = sourceFile,
+                        structStore = mutableMapOf(),
+                        structSchemas = emptyMap(),
+                        sourceTextOverride = sourceText,
+                        injectedKarman = null,
                     ),
                 )
-            }
-        }
-
-        val repetitionCount = (invocation.ukti?.body as? Repeat)?.count
-            ?: invocation.ukti?.grammaticalVakyas()?.firstOrNull()?.padas
-                ?.let(FrequencyExtractor::extractAbhyasaCount)
-            ?: 1
-        repeat(repetitionCount) {
-            val childScope = scope.copy(environment = ValueEnvironment(scope.environment.values))
-            invocation.kriya.vidhiSentences.forEach { bodySentence ->
-                var sentenceText = bodySentence.text
-                argTerms.forEachIndexed { index, argument ->
-                    sentenceText = PuranaPratyayaResolver.replacePatterns(sentenceText, index, argument)
+            },
+            evaluateFallback = { text, scope ->
+                vm.eval(text, context.sessionKey, scope, context.speaker, context.listener).also {
+                    context.onResult?.invoke(it)
                 }
-                signature.parameters.zip(argTerms).forEach { (parameter, argument) ->
-                    sentenceText = NamedSamjnaParameterResolver.replace(
-                        sentenceText,
-                        parameter.nameStem,
-                        argument,
-                    )
-                }
-                sentenceText = SamavayaParameterResolver.replace(sentenceText, invocation.karmaText)
-
-                val kriyaSourceFile = invocation.kriya.sourceFile ?: callerSourceFile
-                val parsedProgram = PvmScript.parse(sentenceText)
-                    .filterIsInstance<PvmScriptStatement.Sentence>()
-                    .singleOrNull()?.program
-                results += if (parsedProgram != null) {
-                    executeProgramNode(
-                        parsedProgram,
-                        context.copy(
-                            scope = childScope,
-                            sourceFile = kriyaSourceFile,
-                            structStore = mutableMapOf(),
-                            structSchemas = emptyMap(),
-                            sourceTextOverride = sentenceText,
-                            injectedKarman = null,
-                        ),
-                    )
-                } else {
-                    listOf(vm.eval(sentenceText, sessionKey, childScope, speaker, listener)).also {
-                        it.forEach { result -> onResult?.invoke(result) }
-                    }
-                }
-            }
-            if (results.any { it is ExecutionResult.Success && it.controlSignal == ExecutionControlSignal.BREAK_LOOP }) {
-                return results
-            }
-        }
-
-        if (invocation.kriya.isMemoized) {
-            (results.lastOrNull() as? ExecutionResult.Success)?.let {
-                registry.cacheResult(invocation.kriya.nameStem, invocation.karmaText, it)
-            }
-        }
-        signature.resultType?.let { expected ->
-            val finalResult = results.lastOrNull() as? ExecutionResult.Success
-                ?: return results
-            val typedValue = finalResult.typedValue ?: SanskritValue.of(finalResult.value)
-            val actual = SamjnaValueClassifier.classifyValue(typedValue)
-            if (actual != expected) {
-                return results + ExecutionResult.Failure(
-                    ExecutionError.INVALID_VALUE,
-                    "संज्ञा-परिणामप्रकारः: '${invocation.kriya.nameStem}' declared $expected but returned $actual.",
-                )
-            }
-        }
-        signature.resultSchema?.let { expectedSchema ->
-            val declaredSchema = registry.resolveSchema(expectedSchema)
-                ?: return results + ExecutionResult.Failure(
-                    ExecutionError.INVALID_VALUE,
-                    "संज्ञा-परिणामरूपम्: No schema named '$expectedSchema' is declared.",
-                )
-            val finalResult = results.lastOrNull() as? ExecutionResult.Success ?: return results
-            val structured = finalResult.typedValue as? SanskritValue.Rupa
-                ?: return results + ExecutionResult.Failure(
-                    ExecutionError.INVALID_VALUE,
-                    "संज्ञा-परिणामरूपम्: '${invocation.kriya.nameStem}' must return '$expectedSchema'.",
-                )
-            if (structured.schema != expectedSchema || structured.fields.keys != declaredSchema.fields.toSet()) {
-                return results + ExecutionResult.Failure(
-                    ExecutionError.INVALID_VALUE,
-                    "संज्ञा-परिणामरूपम्: '$expectedSchema' requires ${declaredSchema.fields}, but returned ${structured.fields.keys}.",
-                )
-            }
-        }
-        return results
-    }
-
-    private fun registerSamjna(
-        registry: SamjnaKriyaRegistry,
-        definition: PvmScriptStatement.SamjnaDefinition,
-        sourceFile: String?,
-        fallbackDomainStem: String?,
-        includeExecutionModifiers: Boolean = true,
-    ) {
-        val procedure = definition.procedure
-        registry.register(
-            SamjnaKriya(
-                nameSegmented = procedure.name,
-                nameStem = deriveSamjnaStem(procedure.name),
-                body = definition.body,
-                sourceFile = sourceFile,
-                domainStem = procedure.domain ?: deriveDomainStem(procedure.name) ?: fallbackDomainStem,
-                visibility = procedure.modifiers.visibility,
-                precedence = if (includeExecutionModifiers) {
-                    procedure.modifiers.precedence
-                } else {
-                    ProcedurePrecedence.DEFAULT
-                },
-            ),
-        )
-    }
-
-    private fun registerInheritances(
-        registry: SamjnaKriyaRegistry,
-        statements: List<PvmScriptStatement>,
-    ) {
-        statements.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>().forEach { adhikara ->
-            TaddhitaInheritanceEngine.detectInheritanceAdhikara(adhikara.scope.domain)?.let {
-                registry.registerInheritance(it)
-            }
-        }
-    }
-
-    private fun resolveNestedAttribute(
-        access: TaddhitaAttributeAccess,
-        structStore: Map<String, TaddhitaStruct>,
-        inflectResult: Boolean = false,
-    ): ExecutionResult {
-        val chain = access.chain
-        var currentObject: TaddhitaStruct? = structStore[chain[0]]
-        var resolvedValue: SanskritValue? = null
-        var failedStep: String? = null
-        for (index in 1 until chain.size) {
-            val key = chain[index]
-            if (currentObject == null) {
-                failedStep = chain[index - 1]
-                break
-            }
-            val typedAttribute = currentObject.typedAttributes[key]
-            val attribute = currentObject.attributes[key]
-            if (typedAttribute != null || attribute != null) {
-                if (index == chain.lastIndex) {
-                    resolvedValue = typedAttribute ?: SanskritValue.of(requireNotNull(attribute))
-                } else {
-                    currentObject = attribute?.let(structStore::get)
-                }
-            } else if (index == chain.lastIndex) {
-                resolvedValue = SanskritValue.Lopa
-            } else {
-                failedStep = key
-                break
-            }
-        }
-        return if (resolvedValue != null) {
-            if (inflectResult) {
-                resolvedValue = inflectAttributeValue(resolvedValue, access.resultAffix)
-            }
-            ExecutionResult.Success(
-                operation = "taddhita.nested_query",
-                value = resolvedValue.toDisplayText(),
-                typedValue = resolvedValue,
-            )
-        } else {
-            ExecutionResult.Failure(
-                ExecutionError.INVALID_VALUE,
-                "षष्ठी-असंगतिः: Attribute '$failedStep' not found in nested genitive chain $chain",
-            )
-        }
-    }
-
-    private data class AttributePipeline(
-        val access: TaddhitaAttributeAccess,
-        val targets: List<dev.panini.vyakaranam.ast.Invocation>,
+            },
+        ),
     )
 
-    private fun detectAttributePipeline(program: dev.panini.vyakaranam.ast.ProgramNode?): AttributePipeline? {
-        val sequence = program as? dev.panini.vyakaranam.ast.Sequence ?: return null
-        if (sequence.statements.size < 2 || sequence.connectors.any { it != "ततः" }) return null
-        val source = sequence.statements.first() as? dev.panini.vyakaranam.ast.Invocation ?: return null
-        val targets = sequence.statements.drop(1).map {
-            it as? dev.panini.vyakaranam.ast.Invocation ?: return null
-        }
-        val access = TaddhitaStructEngine.detectAttributeAccess(source.vakya) ?: return null
-        return AttributePipeline(access, targets)
-    }
-
-    private fun executeAttributePipeline(
-        pipeline: AttributePipeline,
+    private fun executeStructuredPipeline(
+        pipeline: StructuredValueExecutor.AttributePipeline,
         context: ExecutionContext,
-    ): List<ExecutionResult> {
-        val source = resolveNestedAttribute(pipeline.access, context.structStore, inflectResult = true)
-        if (source !is ExecutionResult.Success) return listOf(source)
-        var pipedValue = source.typedValue ?: return listOf(source)
-        val results = mutableListOf<ExecutionResult>(source)
-        for (target in pipeline.targets) {
-            val targetScope = context.scope.copy(
-                environment = context.scope.environment.mergedWith(
-                    ValueEnvironment(mapOf(PIPE_OPERAND to pipedValue)),
-                ),
-            )
-            val targetText = renderInvocation(target)
-            val executedResults = executeInvocationNode(
+    ): List<ExecutionResult> = structuredValueExecutor.executePipeline(
+        pipeline,
+        context.scope,
+        context.structStore,
+        executeTarget = { target, targetScope, pipedValue ->
+            val targetText = ProgramNodeRenderer.invocation(target)
+            executeInvocationNode(
                 target,
                 context.copy(
                     scope = targetScope,
@@ -970,60 +430,8 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                     injectedKarman = PIPE_OPERAND to pipedValue,
                 ),
             )
-            val targetResults = executedResults.map { result ->
-                if (result is ExecutionResult.Success && result.outputKind == OutputKind.CONSOLE) {
-                    result.copy(typedValue = pipedValue)
-                } else {
-                    result
-                }
-            }
-            results += targetResults
-            targetResults.forEach { context.onResult?.invoke(it) }
-            if (targetResults.any { it !is ExecutionResult.Success }) break
-            pipedValue = targetResults.filterIsInstance<ExecutionResult.Success>()
-                .lastOrNull()?.typedValue ?: pipedValue
-        }
-        return results
-    }
+        },
+        onResult = context.onResult,
+    )
 
-    private fun inflectAttributeValue(
-        value: SanskritValue,
-        affix: dev.panini.core.SupAffix,
-    ): SanskritValue {
-        return when (value) {
-            is SanskritValue.Sankhya -> inflectNumeral(value, affix)
-            is SanskritValue.Shabda -> value.copy(text = deriveSubantaSurface(value.text, affix))
-            is SanskritValue.Satya -> value.copy(
-                surface = deriveSubantaSurface(if (value.boolean) "सत्य" else "असत्य", affix),
-            )
-            else -> value
-        }
-    }
-
-    private fun inflectNumeral(
-        number: SanskritValue.Sankhya,
-        affix: dev.panini.core.SupAffix,
-    ): SanskritValue.Sankhya {
-        val surface = dev.panini.sankhya.SankhyaGenerator().decline(
-            number.value, affix.vibhakti, affix.vacana,
-        )
-        return number.copy(word = surface)
-    }
-
-    private fun deriveSubantaSurface(
-        stem: String,
-        affix: dev.panini.core.SupAffix,
-    ): String = runCatching {
-        dev.panini.derivation.SubantaEngine().derive(
-            dev.panini.derivation.SubantaDerivationRequest(stem, affix.vibhakti, affix.vacana),
-        ).final.surface
-    }.getOrDefault(stem)
-
-    private fun deriveSamjnaStem(nameSegmented: String): String =
-        requireNotNull(SamjnaHeaderIdentityParser.parse(nameSegmented)) {
-            "Unable to parse saṃjñā header identity: $nameSegmented"
-        }.operationStem
-
-    private fun deriveDomainStem(nameSegmented: String): String? =
-        SamjnaHeaderIdentityParser.parse(nameSegmented)?.domainStem
 }

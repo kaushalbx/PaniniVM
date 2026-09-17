@@ -3,6 +3,7 @@ package dev.panini.execution
 import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
 import dev.panini.vyakaranam.ast.SubantaPada
+import dev.panini.vyakaranam.ast.SamuccitaSubanta
 import dev.panini.vyakaranam.parser.PaniniParser
 
 sealed interface SamjnaArgumentResolution {
@@ -19,8 +20,31 @@ object NamedSamjnaArgumentResolver {
         if (signature.parameters.isEmpty()) return SamjnaArgumentResolution.Success(positional, false)
         val padas = parser.parseOrNull(karmaText.trim())?.grammaticalVakyas()
             ?.flatMap { it.padas }
-            ?.filterIsInstance<SubantaPada>()
+            ?.flatMap {
+                when (it) {
+                    is SubantaPada -> listOf(it)
+                    is SamuccitaSubanta -> it.members
+                    else -> emptyList()
+                }
+            }
             .orEmpty()
+        return resolve(padas, signature, positional)
+    }
+
+    /** Resolves argument order from the canonical AST without rendering and reparsing it. */
+    fun resolve(padas: List<SubantaPada>, signature: SamjnaSignature): SamjnaArgumentResolution {
+        val positional = padas
+            .filter { it.vibhakti() == Vibhakti.DVITIYA }
+            .map { it.pratipadika.sourceText.trim() }
+        return resolve(padas, signature, positional)
+    }
+
+    private fun resolve(
+        padas: List<SubantaPada>,
+        signature: SamjnaSignature,
+        positional: List<String>,
+    ): SamjnaArgumentResolution {
+        if (signature.parameters.isEmpty()) return SamjnaArgumentResolution.Success(positional, false)
         val pairs = padas.mapIndexedNotNull { index, pada ->
             if (pada.vibhakti() != Vibhakti.SASTHI) return@mapIndexedNotNull null
             val value = padas.getOrNull(index + 1)?.takeIf { it.vibhakti() == Vibhakti.DVITIYA }

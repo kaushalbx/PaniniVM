@@ -174,6 +174,9 @@ class SamjnaKriyaMultiFileTest {
         assertNotNull(invocation, "Instrumental case with कृ must be detected as saṃjñā invocation.")
         assertEquals("एक + अम् द्वि + अम् च", invocation.karmaText)
         assertEquals("युज् + ल्युट् + सुँ", invocation.kriya.nameSegmented)
+        assertEquals(listOf("एक", "द्वि"), invocation.arguments.map { it.term })
+        assertTrue(invocation.arguments.all { it.pada != null })
+        assertTrue(invocation.arguments.all { it.origin == ProcedureArgumentOrigin.WRITTEN })
     }
 
     @Test
@@ -197,6 +200,9 @@ class SamjnaKriyaMultiFileTest {
         assertNotNull(detected)
         assertEquals("विशेषणफल + अम् द्वि + अम्", detected.karmaText)
         assertEquals(listOf(operand, null), detected.argumentValues)
+        assertEquals(listOf(ProcedureArgumentOrigin.PIPE, ProcedureArgumentOrigin.WRITTEN), detected.arguments.map { it.origin })
+        assertEquals(operand, detected.arguments.first().value)
+        assertEquals("द्वि", detected.arguments.last().term)
     }
 
     @Test
@@ -406,7 +412,7 @@ class SamjnaKriyaMultiFileTest {
         val results = vm.evalProject(entryFile)
         val successful = results.filterIsInstance<ExecutionResult.Success>()
         assertTrue(successful.isNotEmpty(), "Private scope project execution should succeed.")
-        assertEquals("दश", successful.last().value, "Result of (3 * 2) + 4 via private helper should be दश (10).")
+        assertEquals("दश", successful.last().value, "Result of (3 * 2) + 4 via private helper should be दश (10). Results: $results")
     }
 
     @Test

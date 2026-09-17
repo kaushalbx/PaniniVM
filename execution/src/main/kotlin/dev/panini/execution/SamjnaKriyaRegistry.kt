@@ -4,6 +4,12 @@ import dev.panini.core.SupAffix
 import dev.panini.vyakaranam.ast.KrtPratyayaIdentity
 import dev.panini.vyakaranam.ast.ProcedurePrecedence
 import dev.panini.vyakaranam.ast.ProcedureVisibility
+import dev.panini.vyakaranam.ast.SubantaPada
+import dev.panini.vyakaranam.ast.Pada
+import dev.panini.vyakaranam.ast.SankhyaPada
+import dev.panini.vyakaranam.ast.SankhyaPuranaPada
+import dev.panini.vyakaranam.ast.KatapayadiPada
+import dev.panini.vyakaranam.ast.AryabhatiyaPada
 
 /**
  * A user-defined reusable kriyā, named via the संज्ञा-सूत्र pattern.
@@ -106,7 +112,19 @@ class SamjnaKriyaRegistry {
             .toList()
         val kriya = candidates.firstOrNull() ?: return null
         val karmaText = argumentTerms.joinToString(" ") { "$it + अम्" }
-        return SamjnaInvocation(kriya, karmaText, sourceText, argumentValues = argumentValues)
+        return SamjnaInvocation(
+            kriya,
+            karmaText,
+            sourceText,
+            argumentValues = argumentValues,
+            arguments = argumentTerms.mapIndexed { index, term ->
+                ProcedureArgument(
+                    term = term,
+                    value = argumentValues.getOrNull(index),
+                    origin = ProcedureArgumentOrigin.WRITTEN,
+                )
+            },
+        )
     }
 
     /** Detects a reusable procedure from a parsed invocation without reparsing rendered text. */
@@ -126,12 +144,20 @@ class SamjnaKriyaRegistry {
         val karmaText = listOf(injectedText, shape.karmaText)
             .filter(String::isNotBlank)
             .joinToString(" ")
-        val writtenTerms = SubantaKarakaParser.extractKarmaTerms(shape.karmaText, shape.ukti)
+        val writtenPadas = shape.argumentPadas.filter(Pada::isAccusative)
+        val writtenTerms = writtenPadas.map(Pada::argumentTerm)
         val argumentTerms = listOfNotNull(injectedKarman?.first) + writtenTerms
         val candidates = allKriyas.sortedWith(
             compareByDescending<SamjnaKriya> { it.precedence.rank }
                 .thenByDescending {
-                    val resolved = NamedSamjnaArgumentResolver.resolve(karmaText, it.signature)
+                    val resolved = if (injectedKarman == null) {
+                        NamedSamjnaArgumentResolver.resolve(
+                            shape.argumentPadas.filterIsInstance<SubantaPada>(),
+                            it.signature,
+                        )
+                    } else {
+                        NamedSamjnaArgumentResolver.resolve(karmaText, it.signature)
+                    }
                     val ordered = (resolved as? SamjnaArgumentResolution.Success)?.terms ?: argumentTerms
                     AntaratamaOverloadEngine.match(it.signature, ordered).rank
                 },
@@ -149,6 +175,17 @@ class SamjnaKriyaRegistry {
             argumentValues =
                 (if (injectedKarman != null) listOf(injectedKarman.second) else emptyList()) +
                     List(writtenTerms.size) { null },
+            arguments =
+                listOfNotNull(injectedKarman?.let { (term, value) ->
+                    ProcedureArgument(term, value = value, origin = ProcedureArgumentOrigin.PIPE)
+                }) + writtenPadas.map { pada ->
+                    ProcedureArgument(
+                        term = pada.argumentTerm(),
+                        pada = pada,
+                        origin = ProcedureArgumentOrigin.WRITTEN,
+                    )
+                },
+            argumentSyntax = shape.argumentPadas,
         )
     }
 
@@ -181,7 +218,40 @@ data class SamjnaInvocation(
     val fullText: String,
     val ukti: dev.panini.vyakaranam.ast.Ukti? = null,
     val argumentValues: List<SanskritValue?> = emptyList(),
+    val arguments: List<ProcedureArgument> = emptyList(),
+    val argumentSyntax: List<Pada> = emptyList(),
 )
+
+enum class ProcedureArgumentOrigin { WRITTEN, PIPE }
+
+/** One procedure operand, preserving both its grammatical AST and semantic value when known. */
+data class ProcedureArgument(
+    val term: String,
+    val pada: Pada? = null,
+    val value: SanskritValue? = null,
+    val origin: ProcedureArgumentOrigin,
+)
+
+private fun Pada.isAccusative(): Boolean {
+    val supText = when (this) {
+        is SubantaPada -> sup.text
+        is SankhyaPada -> sup.text
+        is SankhyaPuranaPada -> sup.text
+        is KatapayadiPada -> sup.text
+        is AryabhatiyaPada -> sup.text
+        else -> return false
+    }
+    return SupAffix.fromUpadesha(supText)?.vibhakti == dev.panini.core.Vibhakti.DVITIYA
+}
+
+private fun Pada.argumentTerm(): String = when (this) {
+    is SubantaPada -> pratipadika.sourceText.trim()
+    is SankhyaPada -> stems.joinToString(" + ")
+    is SankhyaPuranaPada -> stems.joinToString(" + ")
+    is KatapayadiPada -> word
+    is AryabhatiyaPada -> word
+    else -> sourceText.substringBeforeLast('+').trim()
+}
 
 private val ProcedurePrecedence.rank: Int
     get() = when (this) {

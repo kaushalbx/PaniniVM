@@ -3,6 +3,8 @@ package dev.panini.execution
 import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
 import dev.panini.vyakaranam.ast.SubantaPada
+import dev.panini.vyakaranam.ast.SamuccitaSubanta
+import dev.panini.vyakaranam.ast.Pada
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.Ukti
 
@@ -10,6 +12,7 @@ data class SamjnaInvocationShape(
     val operationStem: String,
     val domainStem: String?,
     val karmaText: String,
+    val argumentPadas: List<Pada>,
     val ukti: Ukti,
 )
 
@@ -46,6 +49,7 @@ object SamjnaInvocationMatcher {
                 operationStem = operationStem,
                 domainStem = null,
                 karmaText = karmaText,
+                argumentPadas = padas.take(cognateObject.index).flatMap(::argumentPadas),
                 ukti = ukti,
             )
         }
@@ -70,6 +74,7 @@ object SamjnaInvocationMatcher {
             operationStem = operationPada.pratipadika.samjnaIdentity(),
             domainStem = domainPada?.pratipadika?.samjnaDomainIdentity(),
             karmaText = karmaText,
+            argumentPadas = padas.take(boundaryIndex).flatMap(::argumentPadas),
             ukti = ukti,
         )
     }
@@ -81,5 +86,10 @@ object SamjnaInvocationMatcher {
         normalizeIdentity(value).removeSuffix(" + ल्युट्")
 
     private fun SubantaPada.vibhakti(): Vibhakti? = SupAffix.fromUpadesha(sup.text)?.vibhakti
+
+    private fun argumentPadas(pada: Pada): List<Pada> = when (pada) {
+        is SamuccitaSubanta -> pada.members
+        else -> listOf(pada)
+    }
 
 }
