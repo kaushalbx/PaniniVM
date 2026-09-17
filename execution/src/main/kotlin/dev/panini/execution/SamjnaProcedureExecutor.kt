@@ -1,11 +1,8 @@
 package dev.panini.execution
 
-import dev.panini.core.SupAffix
-import dev.panini.core.Vibhakti
 import dev.panini.execution.binding.FrequencyExtractor
 import dev.panini.vyakaranam.ast.ProgramNode
 import dev.panini.vyakaranam.ast.Repeat
-import dev.panini.vyakaranam.ast.SubantaPada
 
 /** Executes one reusable saṃjñā procedure independently of script control-flow orchestration. */
 internal class SamjnaProcedureExecutor {
@@ -26,19 +23,7 @@ internal class SamjnaProcedureExecutor {
     fun execute(request: Request): List<ExecutionResult> {
         val invocation = request.invocation
         val signature = invocation.kriya.signature
-        val astResolution = NamedSamjnaArgumentResolver.resolve(
-            invocation.argumentSyntax.filterIsInstance<SubantaPada>(),
-            signature,
-        )
-        val hasNamedSyntax = invocation.argumentSyntax.filterIsInstance<SubantaPada>().any {
-            SupAffix.fromUpadesha(it.sup.text)?.vibhakti == Vibhakti.SASTHI
-        }
-        val argumentResolution = when {
-            hasNamedSyntax -> astResolution
-            invocation.arguments.isNotEmpty() ->
-                SamjnaArgumentResolution.Success(invocation.arguments.map(ProcedureArgument::term), false)
-            else -> NamedSamjnaArgumentResolver.resolve(invocation.karmaText, signature)
-        }
+        val argumentResolution = SamjnaInvocationArgumentResolver.resolve(invocation)
         if (argumentResolution is SamjnaArgumentResolution.Failure) {
             return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE, argumentResolution.message))
         }
@@ -56,7 +41,7 @@ internal class SamjnaProcedureExecutor {
                 return listOf(it)
             }
         }
-        validateGuards(invocation, argTerms)?.let { return listOf(it) }
+        validateGuards(invocation, argTerms, callFrame)?.let { return listOf(it) }
 
         val results = mutableListOf<ExecutionResult>()
         val repetitionCount = (invocation.ukti?.body as? Repeat)?.count
@@ -116,15 +101,18 @@ internal class SamjnaProcedureExecutor {
     private fun validateGuards(
         invocation: SamjnaInvocation,
         terms: List<String>,
+        frame: ProcedureCallFrame,
     ): ExecutionResult.Failure? {
         invocation.kriya.nishedhaGuards.forEach { guard ->
-            var guardText = guard.text
-            terms.forEachIndexed { index, argument ->
-                guardText = PuranaPratyayaResolver.replacePatterns(guardText, index, argument)
-            }
-            val requiredType = SamjnaSignatureCompiler.inferGuardType(guardText)
-            if (DynamicNishedhaEvaluator.evaluateProhibition(guardText) ||
-                requiredType != null && terms.any { SamjnaValueClassifier.classifyTerm(it) != requiredType }
+            val requiredType = invocation.kriya.signature.argumentType
+            if (NishedhaGuardEvaluator.isProhibited(
+                    guard,
+                    invocation.kriya.signature.parameters,
+                    terms,
+                    frame.arguments,
+                ) || requiredType != null && frame.arguments.any {
+                    SamjnaValueClassifier.classifyValue(it) != requiredType
+                }
             ) {
                 return ExecutionResult.Failure(
                     ExecutionError.ACTION_FAILED,

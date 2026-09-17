@@ -5,6 +5,7 @@ import dev.panini.vyakaranam.ast.depthFirst
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import java.io.File
 
 class ProcedureAstArgumentBinderTest {
@@ -108,5 +109,32 @@ class ProcedureAstArgumentBinderTest {
         val source = File("execution/src/main/kotlin/dev/panini/execution/PvmScriptExecutor.kt").readText()
 
         assertFalse("PvmScript.parse(sentenceText)" in source)
+    }
+
+    @Test
+    fun `nishedha guard binds ordinal parameters in its stored AST`() {
+        val definition = PvmScript.parse(
+            """
+            विभाज् + ल्युट् + सुँ ।
+            न द्वितीय + अम् शून्य + अम् ।
+            प्रथम + अम् द्वितीय + अम् च भाज् + णिच् + लोट् + सिप् ॥
+            """.trimIndent(),
+        ).single() as PvmScriptStatement.SamjnaDefinition
+        val guard = definition.body.single { it.isNishedha }
+
+        assertTrue(
+            NishedhaGuardEvaluator.isProhibited(
+                guard,
+                parameters = emptyList(),
+                argumentTerms = listOf("दश", "शून्य"),
+            ),
+        )
+        assertFalse(
+            NishedhaGuardEvaluator.isProhibited(
+                guard,
+                parameters = emptyList(),
+                argumentTerms = listOf("दश", "द्वि"),
+            ),
+        )
     }
 }

@@ -18,7 +18,7 @@ import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.WhileLoop
 
 /** Rebinds procedure placeholders in the already-parsed body AST. */
-internal object ProcedureAstArgumentBinder {
+object ProcedureAstArgumentBinder {
     private const val KEY_PREFIX = "__pvm_parameter_"
 
     fun referenceKey(index: Int): String = "$KEY_PREFIX$index"

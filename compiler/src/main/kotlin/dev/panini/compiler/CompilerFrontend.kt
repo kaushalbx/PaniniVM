@@ -2,7 +2,7 @@ package dev.panini.compiler
 
 import dev.panini.execution.PvmScript
 import dev.panini.execution.PvmScriptStatement
-import dev.panini.execution.NamedSamjnaArgumentResolver
+import dev.panini.execution.SamjnaInvocationArgumentResolver
 import dev.panini.execution.SamjnaKriya
 import dev.panini.execution.SamjnaKriyaRegistry
 import dev.panini.execution.SamjnaArgumentResolution
@@ -12,9 +12,8 @@ import dev.panini.execution.SamjnaParameter
 import dev.panini.execution.SamjnaValueType
 import dev.panini.execution.TaddhitaInheritanceEngine
 import dev.panini.execution.TaddhitaStructEngine
-import dev.panini.execution.DynamicNishedhaEvaluator
+import dev.panini.execution.NishedhaGuardEvaluator
 import dev.panini.execution.PuranaPratyayaResolver
-import dev.panini.execution.SamjnaSignatureCompiler
 import dev.panini.execution.ExecutionPlan
 import dev.panini.execution.planning.ResolvedLeafPlanner
 import dev.panini.vyakaranam.ast.Conditional
@@ -509,7 +508,7 @@ internal object CompilerFrontend {
 
         private fun resolveArguments(invocation: dev.panini.execution.SamjnaInvocation): List<String> {
             val signature = invocation.kriya.signature
-            val resolution = NamedSamjnaArgumentResolver.resolve(invocation.karmaText, signature)
+            val resolution = SamjnaInvocationArgumentResolver.resolve(invocation)
             val arguments = when (resolution) {
                 is SamjnaArgumentResolution.Success -> resolution.terms
                 is SamjnaArgumentResolution.Failure -> throw IllegalArgumentException(resolution.message)
@@ -527,12 +526,13 @@ internal object CompilerFrontend {
                 }
             }
             invocation.kriya.nishedhaGuards.forEach { guard ->
-                var guardText = guard.text
-                arguments.forEachIndexed { index, argument ->
-                    guardText = PuranaPratyayaResolver.replacePatterns(guardText, index, argument)
-                }
-                val prohibited = DynamicNishedhaEvaluator.evaluateProhibition(guardText)
-                val requiredType = SamjnaSignatureCompiler.inferGuardType(guardText)
+                val prohibited = NishedhaGuardEvaluator.isProhibited(
+                    guard,
+                    signature.parameters,
+                    arguments,
+                    invocation.argumentValues,
+                )
+                val requiredType = signature.argumentType
                 val typeViolated = requiredType != null &&
                     arguments.any { SamjnaValueClassifier.classifyTerm(it) != requiredType }
                 require(!prohibited && !typeViolated) {

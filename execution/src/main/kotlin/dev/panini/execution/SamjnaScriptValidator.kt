@@ -123,7 +123,7 @@ object SamjnaScriptValidator {
         val signature = invocation.kriya.signature
         if (signature.parameters.isEmpty()) return
         val callName = invocation.kriya.nameStem.substringBefore(" + ")
-        val resolution = NamedSamjnaArgumentResolver.resolve(invocation.karmaText, signature)
+        val resolution = SamjnaInvocationArgumentResolver.resolve(invocation)
         if (resolution is SamjnaArgumentResolution.Failure) {
             diagnostics += diagnostic(source, callName, resolution.message)
             return
