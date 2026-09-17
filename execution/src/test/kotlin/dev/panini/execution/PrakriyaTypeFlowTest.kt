@@ -5,7 +5,17 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
-class SamjnaTypeFlowTest {
+class PrakriyaTypeFlowTest {
+    @Test
+    fun `samjna declaration is rejected as a reusable prakriya marker`() {
+        val source = "गणित + सुँ इति संज्ञा + सुँ ।"
+
+        assertEquals(PvmSourceKind.UTTERANCE, PvmScript.classify(source))
+        val diagnostic = PrakriyaScriptValidator.validate(source).single()
+        assertTrue(diagnostic.message.contains("declare reusable code"))
+        assertEquals("इति प्रक्रिया + सुँ असँ + लट् + तिप्", diagnostic.replacement)
+    }
+
     @Test
     fun `validator recommends canonical segmented numeral stems`() {
         val diagnostics = PrakriyaScriptValidator.validate("पञ्च + शस् दश + अम् च मुद्र् + लोट् + सिप् ।")
@@ -51,7 +61,7 @@ class SamjnaTypeFlowTest {
     }
 
     @Test
-    fun `typed values remain typed between samjna pipeline stages`() {
+    fun `typed values remain typed between prakriya pipeline stages`() {
         val results = PaniniVM().evalScript(
             """
             गणित + सुँ इति अधिकार + सुँ ।

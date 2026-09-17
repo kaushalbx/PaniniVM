@@ -1,6 +1,6 @@
 package dev.panini.execution
 
-import dev.panini.vyakaranam.ast.ProcedurePrecedence
+import dev.panini.vyakaranam.ast.PrakriyaPrecedence
 import java.io.File
 
 /** Discovers project sources and registers their reusable grammatical declarations. */
@@ -15,19 +15,19 @@ internal class PvmProjectLoader {
             .firstOrNull()?.let { derivePrakriyaStem(it.scope.domain) }
         registerInheritances(registry, statements)
         statements.filterIsInstance<PvmScriptStatement.PrakriyaDefinition>().forEach { definition ->
-            val procedure = definition.procedure
+            val prakriya = definition.prakriya
             registry.register(
                 Prakriya(
-                    nameSegmented = procedure.name,
-                    nameStem = derivePrakriyaStem(procedure.name),
+                    nameSegmented = prakriya.name,
+                    nameStem = derivePrakriyaStem(prakriya.name),
                     body = definition.body,
                     sourceFile = sourceFile,
-                    domainStem = procedure.domain ?: deriveDomainStem(procedure.name) ?: fallbackDomain,
-                    visibility = procedure.modifiers.visibility,
+                    domainStem = prakriya.domain ?: deriveDomainStem(prakriya.name) ?: fallbackDomain,
+                    visibility = prakriya.modifiers.visibility,
                     precedence = if (includeExecutionModifiers) {
-                        procedure.modifiers.precedence
+                        prakriya.modifiers.precedence
                     } else {
-                        ProcedurePrecedence.DEFAULT
+                        PrakriyaPrecedence.DEFAULT
                     },
                 ),
             )

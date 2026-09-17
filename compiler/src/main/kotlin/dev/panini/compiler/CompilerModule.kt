@@ -210,7 +210,7 @@ internal object PaniniModuleAnalyzer {
         procedures.groupBy {
             listOf(
                 it.domain.orEmpty(), it.localSymbol, signatureKey(it.signature),
-                it.definition.procedure.modifiers.toString(),
+                it.definition.prakriya.modifiers.toString(),
             )
         }
             .entries.firstOrNull { it.value.size > 1 }?.let { duplicate ->
@@ -254,7 +254,7 @@ internal object PaniniModuleAnalyzer {
         signature: PrakriyaSignature,
         definition: PvmScriptStatement.PrakriyaDefinition,
     ): String = (listOf(
-        source, domain.orEmpty(), symbol, signatureKey(signature), definition.procedure.modifiers.toString(),
+        source, domain.orEmpty(), symbol, signatureKey(signature), definition.prakriya.modifiers.toString(),
     ).joinToString("\u0000")).hashCode().toUInt().toString(16)
 }
 

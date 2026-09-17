@@ -188,6 +188,8 @@ internal sealed interface CompilerInstruction {
 
     data object IsEven : CompilerInstruction
 
+    data class RandomRange(val minimum: Long, val maximum: Long) : CompilerInstruction
+
     data class Collection(val operator: CollectionOperator) : CompilerInstruction
 
     data class Call(
@@ -928,6 +930,12 @@ internal object CompilerIrVerifier {
                 before.dropLast(instruction.size) + ValueKind.TEXT
             }
             CompilerInstruction.IsEven -> pop(ValueKind.NUMBER).first + ValueKind.VALUE
+            is CompilerInstruction.RandomRange -> {
+                require(instruction.minimum <= instruction.maximum) {
+                    "IR random range minimum exceeds maximum at instruction $index"
+                }
+                before + ValueKind.NUMBER
+            }
             is CompilerInstruction.Collection -> {
                 val arity = when (instruction.operator) {
                     CollectionOperator.CONCAT,

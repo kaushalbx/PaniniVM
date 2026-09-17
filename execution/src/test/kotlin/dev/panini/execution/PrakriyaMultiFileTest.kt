@@ -3,8 +3,8 @@ package dev.panini.execution
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.PaniniVM
 import dev.panini.vyakaranam.parser.PaniniParser
-import dev.panini.vyakaranam.ast.ProcedurePrecedence
-import dev.panini.vyakaranam.ast.ProcedureVisibility
+import dev.panini.vyakaranam.ast.PrakriyaPrecedence
+import dev.panini.vyakaranam.ast.PrakriyaVisibility
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -137,7 +137,7 @@ class PrakriyaMultiFileTest {
             nameStem = PrakriyaRegistry.stripSupSuffix("युज् + ल्युट् + सुँ"),
             body = listOf(PvmScriptStatement.Sentence("युज् + णिच् + लोट् + सिप् ॥")),
             sourceFile = "ganita.pvm",
-            precedence = ProcedurePrecedence.DEFAULT,
+            precedence = PrakriyaPrecedence.DEFAULT,
         )
         registry.register(utsargaKriya)
 
@@ -150,7 +150,7 @@ class PrakriyaMultiFileTest {
             nameStem = PrakriyaRegistry.stripSupSuffix("युज् + ल्युट् + सुँ"),
             body = listOf(PvmScriptStatement.Sentence("एक + अम् युज् + णिच् + लोट् + सिप् ॥")),
             sourceFile = "mukhya.pvm",
-            precedence = ProcedurePrecedence.APAVADA,
+            precedence = PrakriyaPrecedence.APAVADA,
         )
         registry.register(apavadaKriya)
 
@@ -176,7 +176,7 @@ class PrakriyaMultiFileTest {
         assertEquals("युज् + ल्युट् + सुँ", invocation.kriya.nameSegmented)
         assertEquals(listOf("एक", "द्वि"), invocation.arguments.map { it.term })
         assertTrue(invocation.arguments.all { it.pada != null })
-        assertTrue(invocation.arguments.all { it.origin == ProcedureArgumentOrigin.WRITTEN })
+        assertTrue(invocation.arguments.all { it.origin == PrakriyaArgumentOrigin.WRITTEN })
     }
 
     @Test
@@ -200,7 +200,7 @@ class PrakriyaMultiFileTest {
         assertNotNull(detected)
         assertEquals("विशेषणफल + अम् द्वि + अम्", detected.karmaText)
         assertEquals(listOf(operand, null), detected.argumentValues)
-        assertEquals(listOf(ProcedureArgumentOrigin.PIPE, ProcedureArgumentOrigin.WRITTEN), detected.arguments.map { it.origin })
+        assertEquals(listOf(PrakriyaArgumentOrigin.PIPE, PrakriyaArgumentOrigin.WRITTEN), detected.arguments.map { it.origin })
         assertEquals(operand, detected.arguments.first().value)
         assertEquals("द्वि", detected.arguments.last().term)
     }
@@ -350,7 +350,7 @@ class PrakriyaMultiFileTest {
     }
 
     @Test
-    fun `test antaranga internal samjna parsing and visibility`() {
+    fun `test antaranga internal prakriya parsing visibility and precedence`() {
         val header = "द्विगुणन + ल्युट् + सुँ इति अन्तरङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।"
         val headerQualifiers = PrakriyaDefinitionMarkerParser.qualifiers(header)
         assertTrue(
@@ -370,17 +370,17 @@ class PrakriyaMultiFileTest {
 
         val internalDef = parsed[0] as PvmScriptStatement.PrakriyaDefinition
         assertTrue(internalDef.isInternal, "An अन्तरङ्गा प्रक्रिया declaration must set internal visibility.")
-        assertTrue(!internalDef.isAntaranga, "Internal visibility must not change overload precedence.")
+        assertTrue(internalDef.isAntaranga, "An अन्तरङ्गा प्रक्रिया must carry antaranga precedence.")
         assertEquals("द्विगुणन + ल्युट् + सुँ", internalDef.nameSegmented)
 
         val publicDef = parsed[1] as PvmScriptStatement.PrakriyaDefinition
-        assertTrue(!publicDef.isInternal, "Standard saṃjñā header must set isInternal = false.")
+        assertTrue(!publicDef.isInternal, "A standard prakriyā declaration must set isInternal = false.")
 
         assertTrue(
             PvmScript.parse("अन्तरङ्गा द्विगुणन + ल्युट् + सुँ ।").none {
                 it is PvmScriptStatement.PrakriyaDefinition
             },
-            "A bare अन्तरङ्गा prefix is not a grammatical procedure declaration.",
+            "A bare अन्तरङ्गा prefix is not a grammatical prakriyā declaration.",
         )
     }
 
@@ -393,7 +393,7 @@ class PrakriyaMultiFileTest {
                 nameStem = "द्विगुणन + ल्युट्",
                 body = listOf(PvmScriptStatement.Sentence("द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ॥")),
                 sourceFile = "library.pvm",
-                visibility = ProcedureVisibility.INTERNAL,
+                visibility = PrakriyaVisibility.INTERNAL,
             ),
         )
         val invocation = "द्विगुणन + ल्युट् + टा कृ + लोट् + सिप् ।"

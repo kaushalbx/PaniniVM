@@ -8,7 +8,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import java.io.File
 
-class ProcedureAstArgumentBinderTest {
+class PrakriyaAstArgumentBinderTest {
     @Test
     fun `ordinal placeholders bind in stored AST without reparsing`() {
         val definition = PvmScript.parse(
@@ -18,7 +18,7 @@ class ProcedureAstArgumentBinderTest {
             """.trimIndent(),
         ).single() as PvmScriptStatement.PrakriyaDefinition
 
-        val bound = ProcedureAstArgumentBinder.bind(
+        val bound = PrakriyaAstArgumentBinder.bind(
             requireNotNull(definition.body.single().program),
             parameters = emptyList(),
             argumentCount = 2,
@@ -56,14 +56,14 @@ class ProcedureAstArgumentBinderTest {
             karmaText = "द्वि + अम्",
             fullText = "",
             arguments = listOf(
-                ProcedureArgument("द्वि", value = argument, origin = ProcedureArgumentOrigin.PIPE),
+                PrakriyaArgument("द्वि", value = argument, origin = PrakriyaArgumentOrigin.PIPE),
             ),
         )
         val callerScope = ExecutionScope(
             environment = ValueEnvironment(mapOf("वाम" to SanskritValue.Sankhya(99, "नवनवतिः"))),
         )
 
-        val frame = ProcedureCallFrame.create(invocation, listOf("द्वि"), callerScope, "caller.pvm")
+        val frame = PrakriyaCallFrame.create(invocation, listOf("द्वि"), callerScope, "caller.pvm")
 
         assertEquals(argument, frame.localScope.environment.values["वाम"])
         assertEquals(99, (callerScope.environment.values["वाम"] as SanskritValue.Sankhya).value)
@@ -89,13 +89,13 @@ class ProcedureAstArgumentBinderTest {
             karmaText = "",
             fullText = "",
             arguments = values.mapIndexed { index, value ->
-                ProcedureArgument("मान$index", value = value, origin = ProcedureArgumentOrigin.PIPE)
+                PrakriyaArgument("मान$index", value = value, origin = PrakriyaArgumentOrigin.PIPE)
             },
         )
 
-        val frame = ProcedureCallFrame.create(
+        val frame = PrakriyaCallFrame.create(
             invocation,
-            invocation.arguments.map(ProcedureArgument::term),
+            invocation.arguments.map(PrakriyaArgument::term),
             ExecutionScope(),
             null,
         )

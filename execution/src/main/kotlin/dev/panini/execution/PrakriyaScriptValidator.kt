@@ -25,6 +25,14 @@ object PrakriyaScriptValidator {
                 replacement = suggestion.canonical,
             )
         }
+        Regex("इति\\s+संज्ञा(?:\\s*\\+\\s*सुँ)?").findAll(source).forEach { legacy ->
+            diagnostics += PrakriyaDiagnostic(
+                offset = legacy.range.first,
+                length = legacy.value.length,
+                message = "संज्ञा denotes a grammatical technical term; declare reusable code with 'इति प्रक्रिया अस्ति'.",
+                replacement = "इति प्रक्रिया + सुँ असँ + लट् + तिप्",
+            )
+        }
         DirectResultAssignment.suggestions(source).forEach { suggestion ->
             diagnostics += PrakriyaDiagnostic(
                 offset = suggestion.offset,
@@ -48,7 +56,7 @@ object PrakriyaScriptValidator {
             }
             val results = definition.body.mapNotNull(PrakriyaSignatureDeclarationParser::result)
             if (results.size > 1) {
-                diagnostics += diagnostic(source, "परिणाम", "A संज्ञा-क्रिया may declare only one result.")
+                diagnostics += diagnostic(source, "परिणाम", "A प्रक्रिया may declare only one result.")
             }
             results.singleOrNull()?.schema?.let { schema ->
                 if (registry.resolveSchema(schema) == null) {
@@ -60,8 +68,8 @@ object PrakriyaScriptValidator {
                 nameStem = PrakriyaRegistry.stripSupSuffix(definition.nameSegmented),
                 body = definition.body,
                 domainStem = definition.domainStem,
-                visibility = definition.procedure.modifiers.visibility,
-                precedence = definition.procedure.modifiers.precedence,
+                visibility = definition.prakriya.modifiers.visibility,
+                precedence = definition.prakriya.modifiers.precedence,
             )
             registry.register(kriya)
         }

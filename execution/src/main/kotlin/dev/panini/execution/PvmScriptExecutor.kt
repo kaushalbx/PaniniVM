@@ -4,7 +4,7 @@ import dev.panini.execution.binding.baseText
 import dev.panini.vyakaranam.ast.Conditional
 import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.Pipeline
-import dev.panini.vyakaranam.ast.Procedure
+import dev.panini.vyakaranam.ast.Prakriya
 import dev.panini.vyakaranam.ast.ProgramNode
 import dev.panini.vyakaranam.ast.Quotation
 import dev.panini.vyakaranam.ast.Repeat
@@ -124,7 +124,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             context.registry, callerSourceFile = context.sourceFile,
         ).also { produced -> produced.forEach { context.onResult?.invoke(it) } }
         is Quotation -> executeEvaluatorNode(node, context)
-        is Procedure -> node.body.flatMap {
+        is Prakriya -> node.body.flatMap {
             executeProgramNode(it, context.copy(sourceTextOverride = null))
         }
         is Scope -> node.body.flatMap {

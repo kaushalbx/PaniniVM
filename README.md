@@ -188,7 +188,7 @@ For upcoming syntax and tooling milestones, see the
 [`PVM language enhancement plan`](docs/pvm-language-enhancement-plan.md).
 
 A `.pvm` program can declare a reusable operation using a nominal
-`saṃjñā-kriyā` header. Signature declarations are grammatical sentences inside
+`prakriyā` header. Signature declarations are grammatical sentences inside
 the block and are not executed as body actions.
 
 ```pvm
@@ -214,7 +214,7 @@ immediately follows in dvitīyā; named arguments may appear in any order.
 
 Supported signature types are `सङ्ख्या`, `शब्द`, and `सूची`. A result may also
 name a declared `…परिणाम + मतुप्` schema. Typed values retain their semantic
-type when one saṃjñā-kriyā feeds another pipeline stage. The runtime and IDEA
+type when one prakriyā feeds another pipeline stage. The runtime and IDEA
 plugin diagnose duplicate declarations, missing or unknown named arguments,
 arity/type mismatches, incompatible pipeline stages, and invalid result schemas.
 

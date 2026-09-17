@@ -23,7 +23,7 @@ The example demonstrates:
 - bare branch values in `यदि … तर्हि लघु अन्यथा गुरु ततः मुद्र्`, with one print action;
 - dynamic `लघु` and `गुरु` feedback for low and high guesses;
 - a final equality test in the reusable attempt, whose truth value controls the loop;
-- a reusable kriyā-saṃjñā declared as `प्रयत्न + ल्युट् + सुँ`;
+- a reusable prakriyā declared by `प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप्`;
 - a bounded result-controlled loop using `पञ्चन् + कृत्वः यावत् फल + सुँ न तावत्`;
 - natural loop termination from the comparison's typed truth value.
 - an `अन्यथा` exhaustion clause that runs only when all five attempts are consumed.
@@ -34,7 +34,7 @@ The example demonstrates:
 
 ## Reusable kriyā support
 
-The game uses the reusable `प्रयत्न + ल्युट् + सुँ` saṃjñā-kriyā. PaniniVM also
+The game uses the reusable `प्रयत्न` prakriyā. PaniniVM also
 supports explicit typed signatures for reusable operations, including named
 parameters, named call-site arguments, and declared result schemas. A typed
 definition can therefore be written as:
@@ -48,7 +48,7 @@ definition can therefore be written as:
 ```
 
 Callers may pass the values positionally or name them with ṣaṣṭhī/dvitīyā
-pairs. This keeps larger game procedures reusable without introducing extra
+pairs. This keeps larger game prakriyās reusable without introducing extra
 temporary variables merely to preserve argument order.
 
 ## Run

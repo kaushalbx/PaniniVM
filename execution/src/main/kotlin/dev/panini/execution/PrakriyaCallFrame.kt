@@ -3,8 +3,8 @@ package dev.panini.execution
 import dev.panini.execution.binding.NumeralPadaBinder
 import dev.panini.sankhya.SankhyaEvaluator
 
-/** Runtime state owned by one reusable-procedure call. */
-data class ProcedureCallFrame(
+/** Runtime state owned by one reusable prakriyā call. */
+data class PrakriyaCallFrame(
     val parameterBindings: Map<String, SanskritValue>,
     val arguments: List<SanskritValue>,
     val localScope: ExecutionScope,
@@ -19,7 +19,7 @@ data class ProcedureCallFrame(
             orderedTerms: List<String>,
             callerScope: ExecutionScope,
             callerSource: String?,
-        ): ProcedureCallFrame {
+        ): PrakriyaCallFrame {
             val remaining = invocation.arguments.toMutableList()
             val values = orderedTerms.map { term ->
                 val normalized = term.substringBefore('+').trim()
@@ -38,9 +38,9 @@ data class ProcedureCallFrame(
                 .zip(values)
                 .associate { (parameter, value) -> parameter.nameStem to value }
             val referenceBindings = values.mapIndexed { index, value ->
-                ProcedureAstArgumentBinder.referenceKey(index) to value
+                PrakriyaAstArgumentBinder.referenceKey(index) to value
             }.toMap()
-            return ProcedureCallFrame(
+            return PrakriyaCallFrame(
                 parameterBindings = bindings,
                 arguments = values,
                 localScope = callerScope.copy(

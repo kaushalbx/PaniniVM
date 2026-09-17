@@ -40,7 +40,7 @@ import dev.panini.vyakaranam.ast.Pipeline
 import dev.panini.vyakaranam.ast.ProgramNode
 import dev.panini.vyakaranam.ast.ProgramNodeTransformer
 import dev.panini.vyakaranam.ast.ProgramNodeVisitor
-import dev.panini.vyakaranam.ast.Procedure
+import dev.panini.vyakaranam.ast.Prakriya
 import dev.panini.vyakaranam.ast.Quotation
 import dev.panini.vyakaranam.ast.Repeat
 import dev.panini.vyakaranam.ast.SankhyaAbhyasaPada
@@ -305,8 +305,8 @@ object VyakaranamExecutionAdapter {
             override fun visitWhileLoop(node: WhileLoop): ExecutionNode = build(node.body)
             override fun visitPipeline(node: Pipeline): ExecutionNode =
                 error("Pipelines are executed through their semantic stage engine.")
-            override fun visitProcedure(node: Procedure): ExecutionNode =
-                error("Procedure declarations are registered before utterance binding.")
+            override fun visitPrakriya(node: Prakriya): ExecutionNode =
+                error("Prakriya declarations are registered before utterance binding.")
             override fun visitScope(node: Scope): ExecutionNode =
                 error("Scope declarations are registered before utterance binding.")
         }
@@ -461,7 +461,7 @@ object VyakaranamExecutionAdapter {
                 body
             }
             is Pipeline -> Shape(emptySet(), emptySet())
-            is Procedure -> Shape(emptySet(), emptySet())
+            is Prakriya -> Shape(emptySet(), emptySet())
             is Scope -> Shape(emptySet(), emptySet())
         }
 

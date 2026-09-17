@@ -13,7 +13,7 @@ import kotlin.test.assertTrue
 class CompilerIrTest {
     @Test
     fun `whole-program IR verifies procedure targets`() {
-        val call = CompilerInstruction.InvokeProcedure("samjna_0", 0)
+        val call = CompilerInstruction.InvokeProcedure("prakriya_0", 0)
         val program = CompilerProgram(
             className = "GeneratedProgram",
             entryPoint = listOf(
@@ -21,7 +21,7 @@ class CompilerIrTest {
                 call,
                 CompilerInstruction.ExitFrame,
             ),
-            procedures = listOf(CompilerProcedure("samjna_0", listOf(CompilerInstruction.Return))),
+            procedures = listOf(CompilerProcedure("prakriya_0", listOf(CompilerInstruction.Return))),
         )
 
         CompilerProgramVerifier.verify(program)
@@ -33,7 +33,7 @@ class CompilerIrTest {
 
     @Test
     fun `whole-program IR rejects duplicate procedures`() {
-        val procedure = CompilerProcedure("samjna_0", listOf(CompilerInstruction.Return))
+        val procedure = CompilerProcedure("prakriya_0", listOf(CompilerInstruction.Return))
         val failure = assertFailsWith<IllegalArgumentException> {
             CompilerProgramVerifier.verify(
                 CompilerProgram("GeneratedProgram", emptyList(), listOf(procedure, procedure)),
@@ -57,7 +57,7 @@ class CompilerIrTest {
     @Test
     fun `whole-program verifier checks explicit frame shape and procedure arity`() {
         val procedure = CompilerProcedure(
-            methodName = "samjna_0",
+            methodName = "prakriya_0",
             instructions = listOf(CompilerInstruction.Return),
             parameterNames = listOf("मान"),
         )
@@ -65,7 +65,7 @@ class CompilerIrTest {
             className = "GeneratedProgram",
             entryPoint = listOf(
                 frame,
-                CompilerInstruction.InvokeProcedure("samjna_0", count),
+                CompilerInstruction.InvokeProcedure("prakriya_0", count),
                 CompilerInstruction.ExitFrame,
             ),
             procedures = listOf(procedure),
@@ -76,7 +76,7 @@ class CompilerIrTest {
                 entryPoint = listOf(
                     CompilerInstruction.Constant(SanskritValue.Sankhya(2L, "द्वे")),
                     CompilerInstruction.EnterFrame(listOf("मान")),
-                    CompilerInstruction.InvokeProcedure("samjna_0", 1),
+                    CompilerInstruction.InvokeProcedure("prakriya_0", 1),
                     CompilerInstruction.ExitFrame,
                 ),
             ),
@@ -130,12 +130,12 @@ class CompilerIrTest {
 
     @Test
     fun `frame instructions cannot appear without a complete call sequence`() {
-        val procedure = CompilerProcedure("samjna_0", listOf(CompilerInstruction.Return))
+        val procedure = CompilerProcedure("prakriya_0", listOf(CompilerInstruction.Return))
         assertFailsWith<IllegalArgumentException> {
             CompilerProgramVerifier.verify(
                 CompilerProgram(
                     "GeneratedProgram",
-                    listOf(CompilerInstruction.InvokeProcedure("samjna_0", 0)),
+                    listOf(CompilerInstruction.InvokeProcedure("prakriya_0", 0)),
                     listOf(procedure),
                 ),
             )
@@ -237,7 +237,7 @@ class CompilerIrTest {
             listOf(call, CompilerInstruction.Store("LastResult")),
             listOf(
                 CompilerProcedure(
-                    "samjna_0",
+                    "prakriya_0",
                     listOf(call, CompilerInstruction.Store("LastResult"), CompilerInstruction.Return),
                 ),
             ),

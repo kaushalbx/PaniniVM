@@ -336,8 +336,9 @@ class ExecutionLifecycleTest {
         assertEquals("panini.eval", assertIs<ExecutionResult.Success>(PaniniVM().eval(utterance)).operation)
         assertEquals(PvmSourceKind.UTTERANCE, PvmScript.classify("गणित + सुँ ।"))
         assertEquals(
-            PvmSourceKind.SCRIPT,
+            PvmSourceKind.UTTERANCE,
             PvmScript.classify("गणित + सुँ इति संज्ञा + सुँ ।"),
+            "संज्ञा names a technical term; it does not declare reusable code.",
         )
         assertEquals(
             PvmSourceKind.SCRIPT,

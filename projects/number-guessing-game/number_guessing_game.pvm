@@ -1,8 +1,8 @@
 # Number Guessing Game
 # The program chooses one secret number. The player gets five attempts.
 
-# Kriya-samjna: define one reusable guessing attempt.
-# The procedure reads a bounded input, compares it, and prints dynamic feedback.
+# Prakriya: define one reusable guessing attempt.
+# The prakriya reads a bounded input, compares it, and prints dynamic feedback.
 प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
 निवेश + अम् सङ्ख्या + टा ग्रहँ + श्ना + लोट् + सिप् ।
 यदि ग्रह् + ल्युट् + ङस् फल + सुँ रहस्य + टा सम + सुँ असँ + लट् + तिप् तर्हि विजय + सुँ अन्यथा यदि ग्रह् + ल्युट् + ङस् फल + सुँ रहस्य + ङसिँ न्यून + सुँ असँ + लट् + तिप् तर्हि लघु अन्यथा गुरु ततः मुद्र् + णिच् + लोट् + सिप् ॥

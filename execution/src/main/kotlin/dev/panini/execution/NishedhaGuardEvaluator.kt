@@ -22,12 +22,12 @@ object NishedhaGuardEvaluator {
         argumentValues: List<SanskritValue?> = emptyList(),
     ): Boolean {
         val program = guard.program ?: return false
-        val bound = ProcedureAstArgumentBinder.bind(program, parameters, argumentTerms.size)
+        val bound = PrakriyaAstArgumentBinder.bind(program, parameters, argumentTerms.size)
         val values = argumentTerms.mapIndexed { index, term ->
             argumentValues.getOrNull(index) ?: materialize(term)
         }
         val environment = values.mapIndexed { index, value ->
-            ProcedureAstArgumentBinder.referenceKey(index) to value
+            PrakriyaAstArgumentBinder.referenceKey(index) to value
         }.toMap()
         val padas = bound.invocations().flatMap { it.vakya.padas }
         if (padas.filterIsInstance<AvyayaPada>().none { it.function == AvyayaFunction.NISHEDHA }) return false

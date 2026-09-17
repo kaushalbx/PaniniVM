@@ -14,7 +14,6 @@ import dev.panini.vyakaranam.ast.invocations
 import dev.panini.vyakaranam.parser.PaniniParser
 
 enum class PrakriyaDefinitionQualifier {
-    SAMJNA,
     PRAKRIYA,
     APAVADA,
     NITYA,
@@ -26,7 +25,7 @@ data class ParsedPrakriyaQualifiers(
     val qualifiers: Set<PrakriyaDefinitionQualifier>,
 )
 
-/** Recognizes explicit saṃjñā-definition qualifiers following इति. */
+/** Recognizes explicit prakriyā-definition qualifiers following इति. */
 object PrakriyaDefinitionMarkerParser {
     private val parser = PaniniParser()
 
@@ -36,14 +35,15 @@ object PrakriyaDefinitionMarkerParser {
         if (quotation != null) {
             return quotation.reporting.invocations().flatMap { it.vakya.padas }
                 .filterIsInstance<SubantaPada>()
-                .any { it.definitionQualifier() != null }
+                .any { it.definitionQualifier() == PrakriyaDefinitionQualifier.PRAKRIYA }
         }
         val padas = ukti.grammaticalVakyas().flatMap { it.padas }
         val itiIndices = padas.indices.filter { index ->
             (padas[index] as? AvyayaPada)?.function == AvyayaFunction.QUOTATIVE
         }
         return itiIndices.any { itiIndex ->
-            padas.drop(itiIndex + 1).filterIsInstance<SubantaPada>().any { it.definitionQualifier() != null }
+            padas.drop(itiIndex + 1).filterIsInstance<SubantaPada>()
+                .any { it.definitionQualifier() == PrakriyaDefinitionQualifier.PRAKRIYA }
         }
     }
 
@@ -52,7 +52,8 @@ object PrakriyaDefinitionMarkerParser {
         val ukti = parser.parseOrNull(source.trim().trimEnd('।', '॥', ' ')) ?: return null
         val quotation = ukti.body as? Quotation
         if (quotation != null && quotation.reporting.invocations().flatMap { it.vakya.padas }
-                .filterIsInstance<SubantaPada>().any { it.definitionQualifier() != null }
+                .filterIsInstance<SubantaPada>()
+                .any { it.definitionQualifier() == PrakriyaDefinitionQualifier.PRAKRIYA }
         ) {
             return quotation.quoted.vakya.padas
                 .joinToString(" ") { PrakriyaInvocationMatcher.normalizeIdentity(it.sourceText) }
@@ -60,7 +61,7 @@ object PrakriyaDefinitionMarkerParser {
         }
         val padas = ukti.grammaticalVakyas().flatMap { it.padas }
         val markerIndex = padas.indices.lastOrNull { index ->
-            (padas[index] as? SubantaPada)?.definitionQualifier() != null
+            (padas[index] as? SubantaPada)?.definitionQualifier() == PrakriyaDefinitionQualifier.PRAKRIYA
         } ?: return null
         val itiIndex = (0 until markerIndex).lastOrNull { index ->
             (padas[index] as? AvyayaPada)?.function == AvyayaFunction.QUOTATIVE
@@ -106,7 +107,6 @@ object PrakriyaDefinitionMarkerParser {
         if (SupAffix.fromUpadesha(sup.text)?.vibhakti != Vibhakti.PRATHAMA) return null
         return when (val base = pratipadika) {
             is MulaPratipadika -> when (base.lexicalIdentity) {
-                MulaPratipadikaIdentity.SAMJNA -> PrakriyaDefinitionQualifier.SAMJNA
                 MulaPratipadikaIdentity.PRAKRIYA -> PrakriyaDefinitionQualifier.PRAKRIYA
                 MulaPratipadikaIdentity.APAVADA -> PrakriyaDefinitionQualifier.APAVADA
                 MulaPratipadikaIdentity.NITYA -> PrakriyaDefinitionQualifier.NITYA

@@ -96,21 +96,21 @@ data class Pipeline(
     val renderPadas: List<Pada> = emptyList(),
 ) : ProgramNode
 
-enum class ProcedureVisibility { PUBLIC, INTERNAL }
+enum class PrakriyaVisibility { PUBLIC, INTERNAL }
 
-enum class ProcedurePrecedence { DEFAULT, NITYA, ANTARANGA, APAVADA }
+enum class PrakriyaPrecedence { DEFAULT, NITYA, ANTARANGA, APAVADA }
 
-data class ProcedureModifiers(
-    val visibility: ProcedureVisibility = ProcedureVisibility.PUBLIC,
-    val precedence: ProcedurePrecedence = ProcedurePrecedence.DEFAULT,
+data class PrakriyaModifiers(
+    val visibility: PrakriyaVisibility = PrakriyaVisibility.PUBLIC,
+    val precedence: PrakriyaPrecedence = PrakriyaPrecedence.DEFAULT,
 )
 
-data class Procedure(
+data class Prakriya(
     override val sourceText: String,
     val name: String,
     val domain: String? = null,
     val body: List<ProgramNode>,
-    val modifiers: ProcedureModifiers = ProcedureModifiers(),
+    val modifiers: PrakriyaModifiers = PrakriyaModifiers(),
 ) : ProgramNode
 
 data class Scope(

@@ -2,10 +2,10 @@ package dev.panini.execution
 
 import dev.panini.execution.binding.NumeralAstNormalizer
 import dev.panini.execution.binding.VyakaranamExecutionAdapter
-import dev.panini.vyakaranam.ast.Procedure
-import dev.panini.vyakaranam.ast.ProcedureModifiers
-import dev.panini.vyakaranam.ast.ProcedurePrecedence
-import dev.panini.vyakaranam.ast.ProcedureVisibility
+import dev.panini.vyakaranam.ast.Prakriya
+import dev.panini.vyakaranam.ast.PrakriyaModifiers
+import dev.panini.vyakaranam.ast.PrakriyaPrecedence
+import dev.panini.vyakaranam.ast.PrakriyaVisibility
 import dev.panini.vyakaranam.ast.ProgramNode
 import dev.panini.vyakaranam.ast.Scope
 
@@ -22,26 +22,26 @@ sealed interface PvmScriptStatement {
     }
 
     /**
-     * A named kriyā definition using the संज्ञा-सूत्र pattern:
+     * A named reusable prakriyā declaration:
      *
-     *     गुण् + ल्युट् + सुँ इति संज्ञा ।
+     *     गुण् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
      *         संख्या + अम् संख्या + अम् च गुण् + णिच् + लोट् + सिप् ।
      *     इति ॥
      *
      * [nameSegmented] is the segmented prātipadika form (e.g. "गुण् + ल्युट् + सुँ").
-     * [body] contains the vākya sentences that form the procedure.
+     * [body] contains the vākya sentences that form the prakriyā.
      */
     data class PrakriyaDefinition(
-        val procedure: Procedure,
+        val prakriya: Prakriya,
         val body: List<Sentence>,
     ) : PvmScriptStatement {
-        override val text: String get() = procedure.sourceText
-        val nameSegmented: String get() = procedure.name
-        val domainStem: String? get() = procedure.domain
-        val isInternal: Boolean get() = procedure.modifiers.visibility == ProcedureVisibility.INTERNAL
-        val isApavada: Boolean get() = procedure.modifiers.precedence == ProcedurePrecedence.APAVADA
-        val isAntaranga: Boolean get() = procedure.modifiers.precedence == ProcedurePrecedence.ANTARANGA
-        val isNitya: Boolean get() = procedure.modifiers.precedence == ProcedurePrecedence.NITYA
+        override val text: String get() = prakriya.sourceText
+        val nameSegmented: String get() = prakriya.name
+        val domainStem: String? get() = prakriya.domain
+        val isInternal: Boolean get() = prakriya.modifiers.visibility == PrakriyaVisibility.INTERNAL
+        val isApavada: Boolean get() = prakriya.modifiers.precedence == PrakriyaPrecedence.APAVADA
+        val isAntaranga: Boolean get() = prakriya.modifiers.precedence == PrakriyaPrecedence.ANTARANGA
+        val isNitya: Boolean get() = prakriya.modifiers.precedence == PrakriyaPrecedence.NITYA
     }
 
     /**
@@ -228,23 +228,22 @@ object PvmScript {
             PrakriyaDefinitionQualifier.PRAKRIYA in qualifiers &&
                 PrakriyaDefinitionQualifier.ANTARANGA in qualifiers
         val precedence = when {
-            PrakriyaDefinitionQualifier.APAVADA in qualifiers -> ProcedurePrecedence.APAVADA
-            PrakriyaDefinitionQualifier.NITYA in qualifiers -> ProcedurePrecedence.NITYA
-            PrakriyaDefinitionQualifier.ANTARANGA in qualifiers && !isInternalProcedure ->
-                ProcedurePrecedence.ANTARANGA
-            else -> ProcedurePrecedence.DEFAULT
+            PrakriyaDefinitionQualifier.APAVADA in qualifiers -> PrakriyaPrecedence.APAVADA
+            PrakriyaDefinitionQualifier.NITYA in qualifiers -> PrakriyaPrecedence.NITYA
+            PrakriyaDefinitionQualifier.ANTARANGA in qualifiers -> PrakriyaPrecedence.ANTARANGA
+            else -> PrakriyaPrecedence.DEFAULT
         }
         return PvmScriptStatement.PrakriyaDefinition(
-            procedure = Procedure(
+            prakriya = Prakriya(
                 sourceText = blockText.joinToString("\n"),
                 name = cleanName,
                 domain = methodHeader?.first,
                 body = body.mapNotNull(PvmScriptStatement.Sentence::program),
-                modifiers = ProcedureModifiers(
+                modifiers = PrakriyaModifiers(
                     visibility = if (isInternalProcedure) {
-                        ProcedureVisibility.INTERNAL
+                        PrakriyaVisibility.INTERNAL
                     } else {
-                        ProcedureVisibility.PUBLIC
+                        PrakriyaVisibility.PUBLIC
                     },
                     precedence = precedence,
                 ),
@@ -264,11 +263,15 @@ object PvmScript {
         if (trimmed.isEmpty() || isAdhikaraLine(trimmed) || isRangeDefinitionLine(trimmed)) return null
 
         // Preserve the complete grammatical declaration so its AST qualifiers
-        // remain available when the Procedure node is constructed.
+        // remain available when the Prakriya node is constructed.
         PrakriyaDefinitionMarkerParser.headerPrefix(trimmed)?.let { return trimmed }
 
-        if (PrakriyaHeaderIdentityParser.parse(trimmed) == null) return null
         val ukti = parser.parseOrNull(trimmed.trimEnd('।', '॥', ' ')) ?: return null
+        if (ukti.grammaticalVakyas().flatMap { it.padas }
+                .any { (it as? dev.panini.vyakaranam.ast.AvyayaPada)?.function ==
+                    dev.panini.vyakaranam.ast.AvyayaFunction.QUOTATIVE }
+        ) return null
+        if (PrakriyaHeaderIdentityParser.parse(trimmed) == null) return null
         if (ukti.grammaticalVakyas().flatMap { it.padas }
                 .any { it is dev.panini.vyakaranam.ast.TingantaPada }
         ) {

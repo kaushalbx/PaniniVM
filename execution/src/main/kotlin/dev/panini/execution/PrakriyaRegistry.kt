@@ -2,8 +2,8 @@ package dev.panini.execution
 
 import dev.panini.core.SupAffix
 import dev.panini.vyakaranam.ast.KrtPratyayaIdentity
-import dev.panini.vyakaranam.ast.ProcedurePrecedence
-import dev.panini.vyakaranam.ast.ProcedureVisibility
+import dev.panini.vyakaranam.ast.PrakriyaPrecedence
+import dev.panini.vyakaranam.ast.PrakriyaVisibility
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.Pada
 import dev.panini.vyakaranam.ast.SankhyaPada
@@ -12,7 +12,7 @@ import dev.panini.vyakaranam.ast.KatapayadiPada
 import dev.panini.vyakaranam.ast.AryabhatiyaPada
 
 /**
- * A user-defined reusable kriyā, named via the संज्ञा-सूत्र pattern.
+ * A user-defined reusable prakriyā declared by a grammatical प्रक्रिया statement.
  */
 data class Prakriya(
     val nameSegmented: String,
@@ -20,8 +20,8 @@ data class Prakriya(
     val body: List<PvmScriptStatement.Sentence>,
     val sourceFile: String? = null,
     val domainStem: String? = null,
-    val visibility: ProcedureVisibility = ProcedureVisibility.PUBLIC,
-    val precedence: ProcedurePrecedence = ProcedurePrecedence.DEFAULT,
+    val visibility: PrakriyaVisibility = PrakriyaVisibility.PUBLIC,
+    val precedence: PrakriyaPrecedence = PrakriyaPrecedence.DEFAULT,
     val signatureOverride: PrakriyaSignature? = null,
     val isMemoized: Boolean = PrakriyaHeaderIdentityParser.hasOperationKrtPratyayaIdentity(
         nameSegmented,
@@ -30,7 +30,7 @@ data class Prakriya(
 ) {
     val signature: PrakriyaSignature by lazy { signatureOverride ?: PrakriyaSignatureCompiler.compile(body) }
 
-    val isInternal: Boolean get() = visibility == ProcedureVisibility.INTERNAL
+    val isInternal: Boolean get() = visibility == PrakriyaVisibility.INTERNAL
 
     val nishedhaGuards: List<PvmScriptStatement.Sentence> = body.filter { it.isNishedha }
     val vidhiSentences: List<PvmScriptStatement.Sentence> = body.filterNot {
@@ -118,16 +118,16 @@ class PrakriyaRegistry {
             sourceText,
             argumentValues = argumentValues,
             arguments = argumentTerms.mapIndexed { index, term ->
-                ProcedureArgument(
+                PrakriyaArgument(
                     term = term,
                     value = argumentValues.getOrNull(index),
-                    origin = ProcedureArgumentOrigin.WRITTEN,
+                    origin = PrakriyaArgumentOrigin.WRITTEN,
                 )
             },
         )
     }
 
-    /** Detects a reusable procedure from a parsed invocation without reparsing rendered text. */
+    /** Detects a reusable prakriyā from a parsed invocation without reparsing rendered text. */
     fun detectInvocation(
         ukti: dev.panini.vyakaranam.ast.Ukti,
         callerSourceFile: String? = null,
@@ -177,12 +177,12 @@ class PrakriyaRegistry {
                     List(writtenTerms.size) { null },
             arguments =
                 listOfNotNull(injectedKarman?.let { (term, value) ->
-                    ProcedureArgument(term, value = value, origin = ProcedureArgumentOrigin.PIPE)
+                    PrakriyaArgument(term, value = value, origin = PrakriyaArgumentOrigin.PIPE)
                 }) + writtenPadas.map { pada ->
-                    ProcedureArgument(
+                    PrakriyaArgument(
                         term = pada.argumentTerm(),
                         pada = pada,
-                        origin = ProcedureArgumentOrigin.WRITTEN,
+                        origin = PrakriyaArgumentOrigin.WRITTEN,
                     )
                 },
             argumentSyntax = shape.argumentPadas,
@@ -218,18 +218,18 @@ data class PrakriyaInvocation(
     val fullText: String,
     val ukti: dev.panini.vyakaranam.ast.Ukti? = null,
     val argumentValues: List<SanskritValue?> = emptyList(),
-    val arguments: List<ProcedureArgument> = emptyList(),
+    val arguments: List<PrakriyaArgument> = emptyList(),
     val argumentSyntax: List<Pada> = emptyList(),
 )
 
-enum class ProcedureArgumentOrigin { WRITTEN, PIPE }
+enum class PrakriyaArgumentOrigin { WRITTEN, PIPE }
 
-/** One procedure operand, preserving both its grammatical AST and semantic value when known. */
-data class ProcedureArgument(
+/** One prakriyā operand, preserving both its grammatical AST and semantic value when known. */
+data class PrakriyaArgument(
     val term: String,
     val pada: Pada? = null,
     val value: SanskritValue? = null,
-    val origin: ProcedureArgumentOrigin,
+    val origin: PrakriyaArgumentOrigin,
 )
 
 private fun Pada.isAccusative(): Boolean {
@@ -253,10 +253,10 @@ private fun Pada.argumentTerm(): String = when (this) {
     else -> sourceText.substringBeforeLast('+').trim()
 }
 
-private val ProcedurePrecedence.rank: Int
+private val PrakriyaPrecedence.rank: Int
     get() = when (this) {
-        ProcedurePrecedence.DEFAULT -> 0
-        ProcedurePrecedence.NITYA -> 1
-        ProcedurePrecedence.ANTARANGA -> 2
-        ProcedurePrecedence.APAVADA -> 3
+        PrakriyaPrecedence.DEFAULT -> 0
+        PrakriyaPrecedence.NITYA -> 1
+        PrakriyaPrecedence.ANTARANGA -> 2
+        PrakriyaPrecedence.APAVADA -> 3
     }

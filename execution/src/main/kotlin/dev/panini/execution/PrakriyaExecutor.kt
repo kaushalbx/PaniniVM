@@ -4,7 +4,7 @@ import dev.panini.execution.binding.FrequencyExtractor
 import dev.panini.vyakaranam.ast.ProgramNode
 import dev.panini.vyakaranam.ast.Repeat
 
-/** Executes one reusable saṃjñā procedure independently of script control-flow orchestration. */
+/** Executes one reusable prakriyā independently of script control-flow orchestration. */
 internal class PrakriyaExecutor {
     data class Request(
         val invocation: PrakriyaInvocation,
@@ -28,7 +28,7 @@ internal class PrakriyaExecutor {
             return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE, argumentResolution.message))
         }
         val argTerms = (argumentResolution as PrakriyaArgumentResolution.Success).terms
-        val callFrame = ProcedureCallFrame.create(
+        val callFrame = PrakriyaCallFrame.create(
             invocation,
             argTerms,
             request.scope,
@@ -52,7 +52,7 @@ internal class PrakriyaExecutor {
             invocation.kriya.vidhiSentences.forEach { sentence ->
                 val sourceFile = invocation.kriya.sourceFile ?: request.callerSourceFile
                 val boundProgram = sentence.program?.let {
-                    ProcedureAstArgumentBinder.bind(it, signature.parameters, callFrame.arguments.size)
+                    PrakriyaAstArgumentBinder.bind(it, signature.parameters, callFrame.arguments.size)
                 }
                 results += if (boundProgram != null) {
                     request.executeBody(boundProgram, callFrame.localScope, sourceFile, sentence.text)
@@ -79,12 +79,12 @@ internal class PrakriyaExecutor {
         invocation: PrakriyaInvocation,
         signature: PrakriyaSignature,
         terms: List<String>,
-        frame: ProcedureCallFrame,
+        frame: PrakriyaCallFrame,
     ): ExecutionResult.Failure? {
         if (signature.parameters.isNotEmpty() && signature.parameters.size != terms.size) {
             return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
-                "संज्ञा-मानसङ्ख्या: '${invocation.kriya.nameStem}' expects ${signature.parameters.size} arguments, but received ${terms.size}.",
+                "प्रक्रिया-मानसङ्ख्या: '${invocation.kriya.nameStem}' expects ${signature.parameters.size} arguments, but received ${terms.size}.",
             )
         }
         val mismatch = signature.parameters.zip(terms).withIndex().firstOrNull { (index, pair) ->
@@ -94,14 +94,14 @@ internal class PrakriyaExecutor {
         } ?: return null
         return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
-            "संज्ञा-मानप्रकारः: '${mismatch.value.first.nameStem}' requires ${mismatch.value.first.type}.",
+            "प्रक्रिया-मानप्रकारः: '${mismatch.value.first.nameStem}' requires ${mismatch.value.first.type}.",
         )
     }
 
     private fun validateGuards(
         invocation: PrakriyaInvocation,
         terms: List<String>,
-        frame: ProcedureCallFrame,
+        frame: PrakriyaCallFrame,
     ): ExecutionResult.Failure? {
         invocation.kriya.nishedhaGuards.forEach { guard ->
             val requiredType = invocation.kriya.signature.argumentType
@@ -137,25 +137,25 @@ internal class PrakriyaExecutor {
             if (actual != expected) {
                 return ExecutionResult.Failure(
                     ExecutionError.INVALID_VALUE,
-                    "संज्ञा-परिणामप्रकारः: '${invocation.kriya.nameStem}' declared $expected but returned $actual.",
+                    "प्रक्रिया-परिणामप्रकारः: '${invocation.kriya.nameStem}' declared $expected but returned $actual.",
                 )
             }
         }
         signature.resultSchema?.let { expected ->
             val schema = registry.resolveSchema(expected) ?: return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
-                "संज्ञा-परिणामरूपम्: No schema named '$expected' is declared.",
+                "प्रक्रिया-परिणामरूपम्: No schema named '$expected' is declared.",
             )
             val finalResult = results.lastOrNull() as? ExecutionResult.Success ?: return null
             val structured = finalResult.typedValue as? SanskritValue.Rupa
                 ?: return ExecutionResult.Failure(
                     ExecutionError.INVALID_VALUE,
-                    "संज्ञा-परिणामरूपम्: '${invocation.kriya.nameStem}' must return '$expected'.",
+                    "प्रक्रिया-परिणामरूपम्: '${invocation.kriya.nameStem}' must return '$expected'.",
                 )
             if (structured.schema != expected || structured.fields.keys != schema.fields.toSet()) {
                 return ExecutionResult.Failure(
                     ExecutionError.INVALID_VALUE,
-                    "संज्ञा-परिणामरूपम्: '$expected' requires ${schema.fields}, but returned ${structured.fields.keys}.",
+                    "प्रक्रिया-परिणामरूपम्: '$expected' requires ${schema.fields}, but returned ${structured.fields.keys}.",
                 )
             }
         }

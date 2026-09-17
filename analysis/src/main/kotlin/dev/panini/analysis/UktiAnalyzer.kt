@@ -5,7 +5,7 @@ import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.Pipeline
 import dev.panini.vyakaranam.ast.ProgramNode
 import dev.panini.vyakaranam.ast.ProgramNodeVisitor
-import dev.panini.vyakaranam.ast.Procedure
+import dev.panini.vyakaranam.ast.Prakriya
 import dev.panini.vyakaranam.ast.Quotation
 import dev.panini.vyakaranam.ast.Repeat
 import dev.panini.vyakaranam.ast.Scope
@@ -121,7 +121,7 @@ class UktiAnalyzer(
             override fun visitWhileLoop(node: WhileLoop): Pair<KriyaId, KriyaId> = visit(node.body)
             override fun visitPipeline(node: Pipeline): Pair<KriyaId, KriyaId> =
                 error("A semantic pipeline does not contain grammatical kriya frames.")
-            override fun visitProcedure(node: Procedure): Pair<KriyaId, KriyaId> =
+            override fun visitPrakriya(node: Prakriya): Pair<KriyaId, KriyaId> =
                 error("A procedure declaration is not an analyzable utterance.")
             override fun visitScope(node: Scope): Pair<KriyaId, KriyaId> =
                 error("A scope declaration is not an analyzable utterance.")

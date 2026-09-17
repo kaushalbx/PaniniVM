@@ -24,7 +24,7 @@ class PvmAnnotator : Annotator {
         }
         if (text.isBlank()) return
 
-        // A .pvm file is a script, not one grammatical utterance. Procedure
+        // A .pvm file is a script, not one grammatical utterance. Prakriya
         // declarations legitimately contain several danda-delimited sentences,
         // so validate the script structure before falling back to a single-
         // utterance diagnostic for incomplete or malformed editor text.

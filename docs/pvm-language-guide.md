@@ -305,7 +305,7 @@ The loop automatically publishes a structured `परिणाम` with:
 
 ### 11.1 Basic definition
 
-A nominal header opens a reusable saṃjñā-kriyā. The final body sentence ends
+A grammatical `प्रक्रिया` declaration opens a reusable prakriyā. The final body sentence ends
 with `॥`:
 
 ```pvm
@@ -372,7 +372,7 @@ and incorrectly typed arguments.
 
 Each invocation receives an isolated child environment. It can read caller
 values but does not leak temporary body values back into the caller. A body may
-invoke another registered saṃjñā-kriyā.
+invoke another registered prakriyā.
 
 Prefix a definition with `अन्तरङ्गा` to make it file-private:
 
@@ -392,7 +392,7 @@ An अधिकार declaration governs following definitions:
 A definition can also carry the domain explicitly:
 
 ```pvm
-गणित + ङस् योजन + ल्युट् + सुँ इति संज्ञा + सुँ ।
+गणित + ङस् योजन + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
 ...
 ```
 
@@ -463,7 +463,7 @@ my-project/
 
 Public definitions are available across files. `अन्तरङ्गा` definitions remain
 visible only to calls originating in their defining file. An entry-point
-`अपवाद` definition can override a library default according to saṃjñā
+`अपवाद` definition can override a library default according to prakriyā
 precedence.
 
 See these checked-in examples:
@@ -499,7 +499,7 @@ multi-sentence definitions and loops in a `.pvm` file.
 ## 15. IDEA plugin support
 
 The IDEA plugin provides `.pvm` syntax highlighting, run actions, and live
-diagnostics. For typed saṃjñā-kriyās it reports:
+diagnostics. For typed prakriyās it reports:
 
 - duplicate parameter or result declarations;
 - unknown, missing, or duplicate named arguments;
