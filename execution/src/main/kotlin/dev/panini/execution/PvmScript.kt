@@ -16,6 +16,7 @@ sealed interface PvmScriptStatement {
         override val text: String,
         val ukti: dev.panini.vyakaranam.ast.Ukti? = null,
         val isNishedha: Boolean = false,
+        val semantics: PvmSentenceSemantics = PvmSentenceSemantics.Executable,
     ) : PvmScriptStatement {
         val program: ProgramNode?
             get() = ukti?.body
@@ -317,7 +318,8 @@ object PvmScript {
                     vakya.padas.filterIsInstance<dev.panini.vyakaranam.ast.AvyayaPada>()
                         .any { it.function == dev.panini.vyakaranam.ast.AvyayaFunction.NISHEDHA }
                 } == true
-                PvmScriptStatement.Sentence(text = text, ukti = ukti, isNishedha = isNishedha)
+                val sentence = PvmScriptStatement.Sentence(text = text, ukti = ukti, isNishedha = isNishedha)
+                sentence.copy(semantics = PvmSentenceClassifier.classify(sentence))
             }
             .toList()
     }

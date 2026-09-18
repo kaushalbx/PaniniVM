@@ -42,28 +42,10 @@ internal class SessionRuntime(
         speaker: String,
         listener: String,
         evaluateCondition: Boolean = false,
-    ): ExecutionResult {
-        val activeContext = if (sessionKey != null) {
-            sessions.getOrPut(sessionKey) {
-                store.load(sessionKey) ?: SambhashanaContext(speaker = speaker, listener = listener)
-            }
-        } else {
-            SambhashanaContext(speaker = speaker, listener = listener)
-        }
-        val input = SanskritUktiInput(text = utterance, speaker = activeContext.speaker, listener = activeContext.listener)
-        val effectiveScope = effectiveScope(scope)
-        val memory = sessionKey?.let(::kriyaMemory) ?: KriyaMemory()
-        val (binding, analysis) = VyakaranamExecutionAdapter.bindWithAnalysis(
-            input, activeContext, memory, effectiveScope.environment,
-        )
-        val turn = executeBinding(binding, activeContext, effectiveScope, memory, evaluateCondition)
-        val phala = turn.response.phala
-
-        if (phala is Phala.Siddha && sessionKey != null) {
-            persistSuccessfulTurn(sessionKey, turn.context)
-            analysis?.let { rememberKriyas(sessionKey, turn.context.turnNumber, it.frames, phala) }
-        }
-        return phala.toExecutionResult("panini.eval")
+    ): ExecutionResult = evaluate(
+        utterance, sessionKey, scope, speaker, listener, evaluateCondition,
+    ) { input, context, memory, environment ->
+        VyakaranamExecutionAdapter.bindWithAnalysis(input, context, memory, environment)
     }
 
     /** Executes a canonical AST directly, without a render-and-reparse cycle. */
@@ -75,6 +57,28 @@ internal class SessionRuntime(
         listener: String,
         evaluateCondition: Boolean = false,
         injectedBindings: Map<Karaka, ExecutionExpression> = emptyMap(),
+    ): ExecutionResult = evaluate(
+        ukti.sourceText.ifBlank { ukti.body.sourceText },
+        sessionKey, scope, speaker, listener, evaluateCondition,
+    ) { input, context, memory, environment ->
+        VyakaranamExecutionAdapter.bindWithAnalysis(
+            input, ukti, context, memory, environment, injectedBindings,
+        )
+    }
+
+    private fun evaluate(
+        text: String,
+        sessionKey: String?,
+        scope: ExecutionScope,
+        speaker: String,
+        listener: String,
+        evaluateCondition: Boolean,
+        bind: (
+            SanskritUktiInput,
+            SambhashanaContext,
+            KriyaMemory,
+            ValueEnvironment,
+        ) -> Pair<ExecutionBindingResult, dev.panini.analysis.UktiAnalysis?>,
     ): ExecutionResult {
         val activeContext = if (sessionKey != null) {
             sessions.getOrPut(sessionKey) {
@@ -84,22 +88,18 @@ internal class SessionRuntime(
             SambhashanaContext(speaker = speaker, listener = listener)
         }
         val input = SanskritUktiInput(
-            text = ukti.sourceText.ifBlank { ukti.body.sourceText },
+            text = text,
             speaker = activeContext.speaker,
             listener = activeContext.listener,
         )
         val effectiveScope = effectiveScope(scope)
         val memory = sessionKey?.let(::kriyaMemory) ?: KriyaMemory()
-        val binding = VyakaranamExecutionAdapter.bind(
-            input, ukti, activeContext, memory, effectiveScope.environment, injectedBindings,
-        )
+        val (binding, analysis) = bind(input, activeContext, memory, effectiveScope.environment)
         val turn = executeBinding(binding, activeContext, effectiveScope, memory, evaluateCondition)
         val phala = turn.response.phala
         if (phala is Phala.Siddha && sessionKey != null) {
             persistSuccessfulTurn(sessionKey, turn.context)
-            VyakaranamExecutionAdapter.analyzeForMemory(ukti)?.let {
-                rememberKriyas(sessionKey, turn.context.turnNumber, it.frames, phala)
-            }
+            analysis?.let { rememberKriyas(sessionKey, turn.context.turnNumber, it.frames, phala) }
         }
         return phala.toExecutionResult("panini.eval")
     }

@@ -42,9 +42,10 @@ internal class PvmProjectLoader {
             .filter { it.isFile && it.extension == "pvm" && it.canonicalPath != entryFile.canonicalPath }
             .sortedBy(File::getName)
             .forEach { library ->
+                val source = runCatching { library.readText() }.getOrNull() ?: return@forEach
                 registerDeclarations(
                     registry,
-                    PvmScript.parse(library.readText()),
+                    PvmScript.parse(source),
                     sourceFile = library.name,
                     includeExecutionModifiers = false,
                 )

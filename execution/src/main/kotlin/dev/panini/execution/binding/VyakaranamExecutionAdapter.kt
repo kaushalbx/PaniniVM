@@ -188,6 +188,18 @@ object VyakaranamExecutionAdapter {
         return bindParsed(input, ukti, conversation, memory, environment)
     }
 
+    /** Binds a caller-owned AST and returns the analysis produced by that same pass. */
+    internal fun bindWithAnalysis(
+        input: SanskritUktiInput,
+        ukti: Ukti,
+        conversation: SambhashanaContext,
+        memory: KriyaMemory = KriyaMemory(),
+        environment: ValueEnvironment = ValueEnvironment(),
+        injectedBindings: Map<Karaka, ExecutionExpression> = emptyMap(),
+    ): Pair<ExecutionBindingResult, UktiAnalysis?> = bindParsed(
+        input, ukti, conversation, memory, environment, injectedBindings,
+    )
+
     private fun bindParsed(
         input: SanskritUktiInput,
         ukti: Ukti,

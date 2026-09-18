@@ -29,3 +29,10 @@ tasks.withType<Test> {
         },
     )
 }
+
+tasks.register<JavaExec>("executionBenchmark") {
+    group = "benchmark"
+    description = "Benchmarks script parsing and interpreted execution."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("dev.panini.execution.ExecutionBenchmark")
+}

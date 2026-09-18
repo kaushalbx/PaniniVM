@@ -3,6 +3,10 @@ package dev.panini.execution
 import java.io.File
 
 /** Process-wide compatibility facade backed by a lazily initialized [PaniniVM]. */
+@Deprecated(
+    message = "Use an explicit PaniniVM instance; the process-wide facade hides session ownership.",
+    replaceWith = ReplaceWith("PaniniVM()"),
+)
 object VM {
     private val instance by lazy { PaniniVM() }
 
