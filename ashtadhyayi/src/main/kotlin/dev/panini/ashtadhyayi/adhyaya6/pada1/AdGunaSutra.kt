@@ -113,7 +113,12 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
                 else -> leftTerm.surface + substitute + rightTerm.surface.drop(1)
             }
         } else {
-            leftTerm.surface.dropLast(1) + substitute + rightTerm.surface.drop(1)
+            if (leftChar == 'ा' && substitute == "अर्") {
+                // Removing ा exposes the consonant's inherent अ, so only र् is written.
+                leftTerm.surface.dropLast(1) + "र्" + rightTerm.surface.drop(1)
+            } else {
+                leftTerm.surface.dropLast(1) + substitute + rightTerm.surface.drop(1)
+            }
         }
         val survivor = if (isBeginningAugment) rightTerm else leftTerm
         val consumedTerm = if (isBeginningAugment) leftTerm else rightTerm
