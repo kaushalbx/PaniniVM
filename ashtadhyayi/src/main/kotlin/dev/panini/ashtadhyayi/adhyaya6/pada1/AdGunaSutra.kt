@@ -106,8 +106,12 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
             }
             initial + rightTerm.surface.drop(1)
         } else if (leftChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks) {
-            if (substitute == "अ") leftTerm.surface + rightTerm.surface.drop(1)
-            else leftTerm.surface + substitute + rightTerm.surface.drop(1)
+            when (substitute) {
+                "अ" -> leftTerm.surface + rightTerm.surface.drop(1)
+                // The consonant already carries the initial अ of अर्.
+                "अर्" -> leftTerm.surface + "र्" + rightTerm.surface.drop(1)
+                else -> leftTerm.surface + substitute + rightTerm.surface.drop(1)
+            }
         } else {
             leftTerm.surface.dropLast(1) + substitute + rightTerm.surface.drop(1)
         }
