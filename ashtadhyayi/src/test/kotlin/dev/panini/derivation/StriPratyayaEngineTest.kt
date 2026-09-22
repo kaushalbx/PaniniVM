@@ -17,6 +17,8 @@ class StriPratyayaEngineTest {
         val res1 = engine.derive(StriPratyayaRequest("अज", Samjna.TAP))
         assertEquals("अजा", res1.final.surface)
         assertTrue(res1.applications.any { it.sutra == "4.1.4" })
+        assertTrue(res1.applications.any { it.sutra == "3.1.4" })
+        assertEquals("अजा", res1.svaraResult?.word)
 
         val res2 = engine.derive(StriPratyayaRequest("बाल", Samjna.TAP))
         assertEquals("बाला", res2.final.surface)

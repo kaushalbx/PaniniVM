@@ -29,7 +29,7 @@ class SubantaEngine(
             val finalTerm = DerivationTerm("subanta_final", specializedForm, TermKind.PRATIPADIKA, upadesha = specializedForm)
             val initialState = DerivationState(terms = listOf(stemTerm), stage = DerivationStage.INITIAL)
             val finalState = initialState.copy(terms = listOf(finalTerm), stage = DerivationStage.FINAL)
-            return DerivationResult(initialState, finalState, emptyList(), emptyList())
+            return DerivationResult(initialState, finalState, emptyList(), emptyList()).completeSvara()
         }
 
         val plan = requireNotNull(SubantaFormPlans.find(request.vibhakti, request.vacana)) {

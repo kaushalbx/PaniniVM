@@ -25,6 +25,8 @@ class SamasaEngineTest {
         assertEquals(setOf("कापुरुष", "कुपुरुष"), alternatives.map { it.compoundStem }.toSet())
         assertTrue(alternatives.any { "6.3.106" in it.transformationSutras })
         assertTrue(alternatives.any { "6.3.106" !in it.transformationSutras })
+        assertEquals(result.final.surface, result.svaraResult?.word)
+        assertTrue(result.final.svaraAssignments.isNotEmpty())
     }
 
     @Test

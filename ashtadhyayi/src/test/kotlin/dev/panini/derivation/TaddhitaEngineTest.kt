@@ -126,6 +126,8 @@ class TaddhitaEngineTest {
         assertEquals("रूपवत्", res1.final.surface)
         assertTrue(res1.applications.any { it.sutra == "5.2.94" })
         assertTrue(res1.applications.any { it.sutra == "8.2.9" })
+        assertTrue(res1.applications.any { it.sutra == "3.1.4" })
+        assertEquals("रूपवत्", res1.svaraResult?.word)
 
         val res2 = TaddhitaEngine().derive("धी", dev.panini.shiksha.Samjna.MATUP)
         assertEquals("धीमत्", res2.final.surface)

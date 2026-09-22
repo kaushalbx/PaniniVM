@@ -85,6 +85,18 @@ affix trigger carries its exact term-relative vowel index. Rule governance
 expresses 6.1.197 over 3.1.4 and 3.1.4 over 3.1.3, so no private numeric rule
 ordering or sūtra-number dispatch table remains in the renderer.
 
+Lexical accent metadata carries both its catalog source and a term-local vowel
+ordinal. Dhātupāṭha entries with a single derivational vowel receive the unique
+locus automatically; a multi-vowel entry remains unassigned until its source
+provides an explicit locus rather than guessing a vowel. Likewise, an इत्
+marker on a zero-surface suffix cannot manufacture an affix-vowel target.
+
+Intermediate pipelines disable svara computation. Manually assembled final
+results use `completeSvara()` only after their visible surface is stable.
+Specialized strī and taddhita builders retain the pre-synthesis affix evidence
+for that final pass; samāsa transfers a subanta accent result only when the
+subanta and compound final surfaces are exactly identical.
+
 The transition from `RAW_UPADESHA` to `PROCESSED` when 1.3.2–1.3.8 designate
 no segment is such bookkeeping. `DerivationEngine` performs it without adding
 an application or rule event, and only when its active rule set contains the

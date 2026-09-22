@@ -453,6 +453,8 @@ data class DerivationTerm(
     /** Accent stated by the lexical source, rather than assigned by an Aṣṭādhyāyī rule. */
     val lexicalAccent: Accent? = null,
     val lexicalAccentSource: String? = null,
+    /** Zero-based vowel ordinal inside this term; null means the lexical source did not identify a usable locus. */
+    val lexicalAccentVowelIndex: Int? = null,
 ) {
     init {
         nonOperativeUpadeshaSegments.forEach { segment ->
@@ -481,6 +483,9 @@ data class DerivationTerm(
             blocksNicGuna = dhatu.blocksNicGuna,
             lexicalAccent = dhatu.svara,
             lexicalAccentSource = "Dhātupāṭha:${dhatu.id}",
+            lexicalAccentVowelIndex = DevanagariVowelLoci.positions(dhatu.derivationalSurface)
+                .takeIf { it.size == 1 }
+                ?.let { 0 },
         )
     }
 

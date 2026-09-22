@@ -262,6 +262,7 @@ class SamasaEngine(
             normalizedStem.endsWith("विद्वस्") -> normalizedStem.removeSuffix("विद्वस्") + "विद्वान्"
             else -> requireNotNull(subantaResult).final.surface
         }
+        val finalSubantaSvara = subantaResult?.takeIf { it.final.surface == finalSurface }
         val alternatives = optionalAlternatives(
             context=context,
             classificationResult=classificationResult,
@@ -279,6 +280,8 @@ class SamasaEngine(
             terms = listOf(finalTerm),
             stage = DerivationStage.FINAL,
             appliedSutras = initialState.appliedSutras + applications.map { it.sutra },
+            svaraNimittas = finalSubantaSvara?.final?.svaraNimittas.orEmpty(),
+            svaraAssignments = finalSubantaSvara?.final?.svaraAssignments.orEmpty(),
         )
 
         val resolution = SamasaResolution(
@@ -310,6 +313,7 @@ class SamasaEngine(
             final = finalState,
             applications = applications,
             events = emptyList(),
+            svaraResult = finalSubantaSvara?.svaraResult,
             samasaResolution = resolution,
         )
     }

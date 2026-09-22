@@ -14,6 +14,7 @@ class StriPratyayaEngine(
     private val pipeline: DerivationPipeline = DerivationPipeline(
         stages = listOf(SutraStage.PRATYAYA_SELECTION, SutraStage.IT_PROCESSING),
         sutrasForStage = Ashtadhyayi::striPratyayaSutrasAt,
+        computeSvaraAtCompletion = false,
     ),
 ) {
     fun derive(request: StriPratyayaRequest): DerivationResult {
@@ -21,11 +22,12 @@ class StriPratyayaEngine(
         val result = pipeline.derive(initial)
 
         val synthesizedState = synthesizeFeminineStem(result.final, request)
-        return result.copy(
+        val synthesized = result.copy(
             final = synthesizedState,
             events = result.events.filterNot { it is DerivationEvent.Completed } +
                 DerivationEvent.Completed(synthesizedState, result.applications.size),
         )
+        return synthesized.completeSvara(SvaraContext.from(result.final))
     }
 
     private fun buildInitialState(request: StriPratyayaRequest): DerivationState {

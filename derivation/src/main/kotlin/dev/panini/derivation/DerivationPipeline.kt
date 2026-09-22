@@ -16,6 +16,7 @@ class DerivationPipeline(
     private val finalizeState: (DerivationState) -> DerivationState = { it },
     sutrasForStage: (SutraStage) -> List<DerivationSutra> = Ashtadhyayi::executableSutrasAt,
     interleaveItProcessingAt: Set<SutraStage> = emptySet(),
+    private val computeSvaraAtCompletion: Boolean = true,
 ) {
     private val phases: List<Phase> = stages.map { stage ->
         require(stage != SutraStage.UNSPECIFIED) { "A derivation pipeline cannot route UNSPECIFIED sūtras." }
@@ -76,7 +77,7 @@ class DerivationPipeline(
                 val final = finalizeState(accumulated.state).let { state ->
                     if (state.stage == DerivationStage.FINAL) state.requireCompleteItProcessing() else state
                 }
-                val svara = if (final.surface.isNotBlank()) SvaraEngine.derive(final) else null
+                val svara = if (computeSvaraAtCompletion && final.surface.isNotBlank()) SvaraEngine.derive(final) else null
                 val completed = svara?.state ?: final
                 val applications = accumulated.applications + svara?.applications.orEmpty()
                 DerivationResult(

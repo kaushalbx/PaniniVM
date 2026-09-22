@@ -74,7 +74,7 @@ class TaddhitaEngine(
         return when (samjna) {
             Samjna.MATUP -> {
                 val change1 = TadasyastyasminnitiMatupSutra.apply(state)
-                val processed = itProcessingEngine.derive(change1.state)
+                val processed = processIt(change1.state)
                 val isAdantaOrM = isAdantaOrM(pratipadika)
                 if (isAdantaOrM && MatorVahSutra.matches(processed.final)) {
                     val change2 = MatorVahSutra.apply(processed.final)
@@ -93,12 +93,12 @@ class TaddhitaEngine(
             }
             Samjna.TARAP -> {
                 val change = TarabiyasunauSutra.apply(state)
-                val processed = itProcessingEngine.derive(change.state)
+                val processed = processIt(change.state)
                 buildResult(state, processed.final, listOf(app(TarabiyasunauSutra, state, change.state, change.explanation)) + processed.applications)
             }
             Samjna.TAMAP -> {
                 val change = TamabisthanauSutra.apply(state)
-                val processed = itProcessingEngine.derive(change.state)
+                val processed = processIt(change.state)
                 buildResult(state, processed.final, listOf(app(TamabisthanauSutra, state, change.state, change.explanation)) + processed.applications)
             }
             else -> derivationEngine.derive(state)
@@ -114,7 +114,13 @@ class TaddhitaEngine(
             appliedSutras = initial.appliedSutras + apps.map { it.sutra },
         )
         return DerivationResult(initial, cleanFinal, apps, emptyList())
+            .completeSvara(SvaraContext.from(final))
     }
+
+    private fun processIt(state: DerivationState): DerivationResult = itProcessingEngine.derive(
+        state,
+        DerivationConfig(validateFinalItProcessing = false, computeSvara = false),
+    )
 
     private fun app(sutra: DerivationSutra, before: DerivationState, after: DerivationState, explanation: String): DerivationApplication =
         DerivationApplication(
