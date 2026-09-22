@@ -13,13 +13,13 @@ internal class PvmSequenceExecutor {
         sourceFile: String?,
         evaluateWhole: () -> List<ExecutionResult>,
         executeNode: (dev.panini.vyakaranam.ast.ProgramNode) -> List<ExecutionResult>,
-        executePipedInvocation: (Invocation, ExecutionScope, Pair<String, SanskritValue?>) -> List<ExecutionResult>,
+        executePipedInvocation: (Invocation, ExecutionScope, InjectedKarmanBinding) -> List<ExecutionResult>,
     ): List<ExecutionResult> {
         val hasNamedStage = node.statements.drop(1).any { stage ->
             stage is Invocation && registry.detectInvocation(
                 Ukti(sourceText = stage.sourceText, body = stage),
                 callerSourceFile = sourceFile,
-                injectedKarman = PIPE_OPERAND to null,
+                injectedKarman = InjectedKarmanBinding(PIPE_OPERAND, null),
             ) != null
         }
         val startsWithImplicitValue = (node.statements.firstOrNull() as? Invocation)?.implicitValue != null
@@ -40,7 +40,7 @@ internal class PvmSequenceExecutor {
                         ValueEnvironment(mapOf(PIPE_OPERAND to requireNotNull(pipedValue))),
                     ),
                 )
-                executePipedInvocation(invocation, stageScope, PIPE_OPERAND to pipedValue)
+                executePipedInvocation(invocation, stageScope, InjectedKarmanBinding(PIPE_OPERAND, pipedValue))
             } else executeNode(stage)
             results += stageResults
             pipedValue = stageResults.filterIsInstance<ExecutionResult.Success>()

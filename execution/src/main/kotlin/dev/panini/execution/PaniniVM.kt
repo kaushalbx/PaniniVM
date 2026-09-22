@@ -45,6 +45,7 @@ class PaniniVM(
         linguisticServices = dev.panini.derivation.LinguisticActionsInitializer.services(),
         sankhyaRenderer = dev.panini.sankhya.SankhyaCountingFormRenderer(),
     ),
+    val executionMetrics: ExecutionMetrics = ExecutionMetrics(),
 ) {
     val store: StateStore = FileStateStore(storageDir)
     private val kriyaMemoryStore = FileKriyaMemoryStore(storageDir)

@@ -3,6 +3,7 @@ package dev.panini.execution
 import dev.panini.analysis.KriyaFrame
 import dev.panini.analysis.KriyaId
 import dev.panini.execution.binding.VyakaranamExecutionAdapter
+import dev.panini.execution.binding.AnalyzedExecutionBinding
 import dev.panini.execution.external.ExternalCapabilityDispatcher
 import dev.panini.execution.memory.FileKriyaMemoryStore
 import dev.panini.execution.memory.KriyaMemory
@@ -78,7 +79,7 @@ internal class SessionRuntime(
             SambhashanaContext,
             KriyaMemory,
             ValueEnvironment,
-        ) -> Pair<ExecutionBindingResult, dev.panini.analysis.UktiAnalysis?>,
+        ) -> AnalyzedExecutionBinding,
     ): ExecutionResult {
         val activeContext = if (sessionKey != null) {
             sessions.getOrPut(sessionKey) {
@@ -94,12 +95,16 @@ internal class SessionRuntime(
         )
         val effectiveScope = effectiveScope(scope)
         val memory = sessionKey?.let(::kriyaMemory) ?: KriyaMemory()
-        val (binding, analysis) = bind(input, activeContext, memory, effectiveScope.environment)
-        val turn = executeBinding(binding, activeContext, effectiveScope, memory, evaluateCondition)
+        val analyzedBinding = bind(input, activeContext, memory, effectiveScope.environment)
+        val turn = executeBinding(
+            analyzedBinding.binding, activeContext, effectiveScope, memory, evaluateCondition,
+        )
         val phala = turn.response.phala
         if (phala is Phala.Siddha && sessionKey != null) {
             persistSuccessfulTurn(sessionKey, turn.context)
-            analysis?.let { rememberKriyas(sessionKey, turn.context.turnNumber, it.frames, phala) }
+            analyzedBinding.analysis?.let {
+                rememberKriyas(sessionKey, turn.context.turnNumber, it.frames, phala)
+            }
         }
         return phala.toExecutionResult("panini.eval")
     }

@@ -18,10 +18,11 @@ import java.io.File
 internal class PvmScriptExecutor(private val vm: PaniniVM) {
     private val prakriyaExecutor = PrakriyaExecutor()
     private val structuredValueExecutor = StructuredValueExecutor()
-    private val projectLoader = PvmProjectLoader()
+    private val projectLoader = PvmProjectLoader(vm.executionMetrics)
     private val sequenceExecutor = PvmSequenceExecutor()
     private val loopExecutor = PvmLoopExecutor()
     private val invocationExecutor = PvmInvocationExecutor(vm)
+    private val conditionalExecutor = PvmConditionalExecutor(vm, structuredValueExecutor)
     fun evalScript(
         scriptContent: String,
         sourceFile: String? = null,
@@ -35,6 +36,8 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         val results = mutableListOf<ExecutionResult>()
         val effectiveSessionKey = sessionKey ?: "script-${System.identityHashCode(scriptContent)}"
         val parsed = PvmScript.parse(scriptContent)
+        if (sourceFile != null) vm.executionMetrics.recordParsedFile()
+        vm.executionMetrics.recordParsedSentences(parsed.sentenceCount())
 
         val registry = prakriyaRegistry ?: PrakriyaRegistry()
         projectLoader.registerDeclarations(registry, parsed, sourceFile)
@@ -70,13 +73,10 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 ).also(results::addAll)
                 is PvmSentenceSemantics.AttributeAccess -> structuredValueExecutor.resolve(semantics.access, structStore).let {
                     results += it
-                    onResult?.invoke(it)
+                    context.publish(it)
                 }
-                is PvmSentenceSemantics.StructuredConditional -> {
-                    val result = executeStructuredConditional(semantics.conditional, context)
-                    results += result
-                    onResult?.invoke(result)
-                }
+                is PvmSentenceSemantics.StructuredConditional ->
+                    executeProgramNode(semantics.conditional, context).also(results::addAll)
                 PvmSentenceSemantics.Executable -> if (program != null) {
                     executeProgramNode(program, context).also(results::addAll)
                 } else {
@@ -89,7 +89,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                         isExecutingScript = true,
                     )
                     results += result
-                    onResult?.invoke(result)
+                    context.publish(result)
                 }
             }
         }
@@ -100,7 +100,9 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
     private fun executeProgramNode(
         node: ProgramNode,
         context: ExecutionContext,
-    ): List<ExecutionResult> = when (node) {
+    ): List<ExecutionResult> {
+        vm.executionMetrics.recordAstNode()
+        return when (node) {
         is Invocation -> executeInvocationNode(node, context)
         is Sequence -> executeSequenceNode(node, context)
         is Conditional -> executeConditionalNode(node, context)
@@ -115,13 +117,14 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         is Pipeline -> PurvaparaPipelineEngine.executePipeline(
             node, vm, context.sessionKey, context.scope, context.speaker, context.listener,
             context.registry, callerSourceFile = context.sourceFile,
-        ).also { produced -> produced.forEach { context.onResult?.invoke(it) } }
+        ).also(context::publish)
         is Quotation -> executeEvaluatorNode(node, context)
         is Prakriya -> node.body.flatMap {
             executeProgramNode(it, context)
         }
         is Scope -> node.body.flatMap {
             executeProgramNode(it, context)
+        }
         }
     }
 
@@ -140,7 +143,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             context.listener,
             evaluateCondition = context.conditionEvaluation,
         ),
-    ).also { produced -> produced.forEach { context.onResult?.invoke(it) } }
+    ).also(context::publish)
 
     private fun executeSequenceNode(
         node: Sequence,
@@ -185,32 +188,25 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
     private fun executeConditionalNode(
         node: Conditional,
         context: ExecutionContext,
-    ): List<ExecutionResult> {
-        if (PvmSentenceClassifier.containsAttributeCondition(node)) {
-            val result = executeStructuredConditional(node, context)
-            context.onResult?.invoke(result)
-            return listOf(result)
-        }
-        val conditionResults = executeProgramNode(
-            node.condition,
-            context.copy(onResult = null, conditionEvaluation = true),
-        )
-        val success = conditionResults.filterIsInstance<ExecutionResult.Success>().lastOrNull()
-        val condition = success?.conditionValue ?: (success?.typedValue as? SanskritValue.Satya)?.boolean
-        if (condition == null) {
-            return conditionResults + ExecutionResult.Failure(
-                ExecutionError.INVALID_VALUE,
-                "A conditional expression must produce a truth value.",
-            )
-        }
-        val branch = if (condition) node.consequent else node.alternate
-        val branchResults = branch?.let {
-            executeProgramNode(it, context)
-        }.orEmpty()
-        // Preserve the grammatical condition's satya-phala for an enclosing
-        // फल-controlled loop even when the selected branch prints feedback.
-        return conditionResults + branchResults
-    }
+    ): List<ExecutionResult> = conditionalExecutor.execute(
+        PvmConditionalExecutor.Request(
+            conditional = node,
+            executeNode = { child, conditionEvaluation ->
+                executeProgramNode(
+                    child,
+                    if (conditionEvaluation) {
+                        context.copy(onResult = null, conditionEvaluation = true)
+                    } else context,
+                )
+            },
+            sessionKey = context.sessionKey,
+            scope = context.scope,
+            speaker = context.speaker,
+            listener = context.listener,
+            structStore = context.structStore,
+            onResult = context.onResult,
+        ),
+    )
 
     private fun List<ExecutionResult>.hasBreakSignal(): Boolean = any {
         it is ExecutionResult.Success && it.controlSignal == ExecutionControlSignal.BREAK_LOOP
@@ -227,23 +223,15 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         val structSchemas: Map<String, TaddhitaStructSchema>,
         val onResult: ((ExecutionResult) -> Unit)?,
         val conditionEvaluation: Boolean = false,
-        val injectedKarman: Pair<String, SanskritValue?>? = null,
-    )
+        val injectedKarman: InjectedKarmanBinding? = null,
+    ) {
+        fun publish(result: ExecutionResult) {
+            onResult?.invoke(result)
+        }
 
-    private fun executeStructuredConditional(
-        conditional: Conditional,
-        context: ExecutionContext,
-    ): ExecutionResult = structuredValueExecutor.executeConditional(
-        conditional,
-        context.structStore,
-    ) { resolved, operands ->
-        vm.evalParsed(
-            Ukti(sourceText = resolved.sourceText, body = resolved),
-            context.sessionKey,
-            context.scope.copy(environment = context.scope.environment.mergedWith(operands)),
-            context.speaker,
-            context.listener,
-        )
+        fun publish(results: Iterable<ExecutionResult>) {
+            results.forEach(::publish)
+        }
     }
 
     private fun executeWhileLoop(
@@ -319,7 +307,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             evalProject(file, sessionKey, scope, speaker, listener, onResult)
         } else {
             evalScript(
-                file.readText(), sessionKey = sessionKey, scope = scope, speaker = speaker,
+                file.readText(), sourceFile = file.name, sessionKey = sessionKey, scope = scope, speaker = speaker,
                 listener = listener, onResult = onResult,
             )
         }
@@ -352,7 +340,9 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
     private fun executePrakriyaInvocation(
         invocation: PrakriyaInvocation,
         context: ExecutionContext,
-    ): List<ExecutionResult> = prakriyaExecutor.execute(
+    ): List<ExecutionResult> {
+        vm.executionMetrics.recordPrakriyaCall()
+        return prakriyaExecutor.execute(
         PrakriyaExecutor.Request(
             invocation = invocation,
             scope = context.scope,
@@ -371,7 +361,8 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 )
             },
         ),
-    )
+        )
+    }
 
     private fun executeStructuredPipeline(
         pipeline: PvmSentenceSemantics.AttributePipeline,
@@ -386,11 +377,19 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 context.copy(
                     scope = targetScope,
                     onResult = null,
-                    injectedKarman = PIPE_OPERAND to pipedValue,
+                    injectedKarman = InjectedKarmanBinding(PIPE_OPERAND, pipedValue),
                 ),
             )
         },
         onResult = context.onResult,
     )
+
+    private fun List<PvmScriptStatement>.sentenceCount(): Int = sumOf { statement ->
+        when (statement) {
+            is PvmScriptStatement.Sentence -> 1
+            is PvmScriptStatement.PrakriyaDefinition -> statement.body.size
+            is PvmScriptStatement.AdhikaraDefinition, is PvmScriptStatement.RangeDefinition -> 0
+        }
+    }
 
 }

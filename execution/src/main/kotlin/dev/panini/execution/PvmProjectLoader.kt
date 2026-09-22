@@ -4,7 +4,7 @@ import dev.panini.vyakaranam.ast.PrakriyaPrecedence
 import java.io.File
 
 /** Discovers project sources and registers their reusable grammatical declarations. */
-internal class PvmProjectLoader {
+internal class PvmProjectLoader(private val metrics: ExecutionMetrics? = null) {
     fun registerDeclarations(
         registry: PrakriyaRegistry,
         statements: List<PvmScriptStatement>,
@@ -43,9 +43,19 @@ internal class PvmProjectLoader {
             .sortedBy(File::getName)
             .forEach { library ->
                 val source = runCatching { library.readText() }.getOrNull() ?: return@forEach
+                metrics?.recordProjectCacheMiss()
+                metrics?.recordParsedFile()
+                val parsed = PvmScript.parse(source)
+                metrics?.recordParsedSentences(parsed.sumOf { statement ->
+                    when (statement) {
+                        is PvmScriptStatement.Sentence -> 1
+                        is PvmScriptStatement.PrakriyaDefinition -> statement.body.size
+                        is PvmScriptStatement.AdhikaraDefinition, is PvmScriptStatement.RangeDefinition -> 0
+                    }
+                })
                 registerDeclarations(
                     registry,
-                    PvmScript.parse(source),
+                    parsed,
                     sourceFile = library.name,
                     includeExecutionModifiers = false,
                 )

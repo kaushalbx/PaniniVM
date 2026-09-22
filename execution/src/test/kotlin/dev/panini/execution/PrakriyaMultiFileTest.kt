@@ -191,12 +191,12 @@ class PrakriyaMultiFileTest {
         )
         val ukti = PaniniParser().parse("द्वि + अम् युज् + ल्युट् + टा कृ + लोट् + सिप् ।")
 
-        val preDetected = registry.detectInvocation(ukti, injectedKarman = "विशेषणफल" to null)
+        val preDetected = registry.detectInvocation(ukti, injectedKarman = InjectedKarmanBinding("विशेषणफल", null))
         assertNotNull(preDetected)
         assertEquals(listOf(null, null), preDetected.argumentValues)
 
         val operand = SanskritValue.Sankhya(3, "त्रि")
-        val detected = registry.detectInvocation(ukti, injectedKarman = "विशेषणफल" to operand)
+        val detected = registry.detectInvocation(ukti, injectedKarman = InjectedKarmanBinding("विशेषणफल", operand))
         assertNotNull(detected)
         assertEquals("विशेषणफल + अम् द्वि + अम्", detected.karmaText)
         assertEquals(listOf(operand, null), detected.argumentValues)

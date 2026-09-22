@@ -299,7 +299,18 @@ val result = vm.eval("दशन् + अम् द्वि + औट् च य�
 if (result is ExecutionResult.Success) {
     println(result.value) // Output: द्वादश
 }
+
+// Optional execution observability
+println(vm.executionMetrics.snapshot())
 ```
+
+### Execution API
+
+Create and retain an explicit `PaniniVM` instance. The process-wide `VM` facade
+and `ExecutionEngine` have been removed. Submit grammatical source through
+`PaniniVM.eval(...)`, `evalScript(...)`, `evalFile(...)`, or `evalProject(...)` so
+parsing, grammatical binding, capability checks, session memory, and execution
+follow the same supported path.
 
 ---
 

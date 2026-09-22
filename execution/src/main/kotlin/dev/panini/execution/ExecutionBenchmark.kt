@@ -16,8 +16,8 @@ object ExecutionBenchmark {
                 योग + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
                 एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ॥
                 आवरण + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-                योग + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ॥
-                आवरण + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।
+                योग + अम् डुकृञ् + उ + लोट् + सिप् ॥
+                आवरण + अम् डुकृञ् + उ + लोट् + सिप् ।
             """.trimIndent(),
             "structured-attribute-pipeline" to """
                 पञ्चन् + दशत + अम् मूल्य + अम् सङ्ख्या + मतुप् + सुँ ।
@@ -25,19 +25,26 @@ object ExecutionBenchmark {
             """.trimIndent(),
         )
 
-        println("case,phase,statements,iterations,total_ms,ns_per_operation")
+        println(
+            "case,phase,statements,iterations,total_ms,ns_per_operation," +
+                "parsed_sentences,ast_nodes,prakriya_calls,rendered_or_reparsed_sources",
+        )
         cases.forEach { (name, source) ->
             val statements = PvmScript.parse(source).size
             repeat(warmups) { PvmScript.parse(source) }
             val parseElapsed = measureNanoTime { repeat(iterations) { PvmScript.parse(source) } }
-            printResult(name, "parse", statements, iterations, parseElapsed)
+            printResult(
+                name, "parse", statements, iterations, parseElapsed,
+                parsedSentences = statements.toLong() * iterations,
+            )
 
             val vm = PaniniVM()
             repeat(warmups) { vm.evalScript(source) }
+            vm.executionMetrics.reset()
             val executionElapsed = measureNanoTime {
                 repeat(iterations) { vm.evalScript(source) }
             }
-            printResult(name, "interpret", statements, iterations, executionElapsed)
+            printResult(name, "interpret", statements, iterations, executionElapsed, vm.executionMetrics.snapshot())
         }
     }
 
@@ -47,10 +54,14 @@ object ExecutionBenchmark {
         statements: Int,
         iterations: Int,
         elapsed: Long,
+        metrics: ExecutionMetricsSnapshot? = null,
+        parsedSentences: Long = metrics?.parsedSentences ?: 0,
     ) {
         println(
             "$name,$phase,$statements,$iterations,${"%.3f".format(elapsed / 1_000_000.0)}," +
-                "${"%.1f".format(elapsed.toDouble() / iterations)}",
+                "${"%.1f".format(elapsed.toDouble() / iterations)}," +
+                "$parsedSentences,${metrics?.executedAstNodes ?: 0},${metrics?.prakriyaCalls ?: 0}," +
+                "${metrics?.renderedOrReparsedSources ?: 0}",
         )
     }
 }
