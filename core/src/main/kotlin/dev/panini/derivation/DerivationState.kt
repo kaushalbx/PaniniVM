@@ -165,6 +165,10 @@ class DerivationState(
             "$sutra can merge only adjacent terms: $survivorId and $consumedId."
         }
         val survivor = terms[survivorIndex]
+        val consumed = terms[consumedIndex]
+        val consumedAffixVowelIndex = if (consumed.kind == TermKind.PRATYAYA &&
+            DevanagariVowelLoci.positions(consumed.surface).isNotEmpty()
+        ) DevanagariVowelLoci.positions(combinedSurface(terms.take(consumedIndex))).size else null
         val substituted = if (surface == survivor.surface) {
             // The visible result can already equal the survivor (for example,
             // अ + अ after inherent-vowel serialization); consuming the adjacent
@@ -173,7 +177,25 @@ class DerivationState(
         } else {
             substituteTermSurface(survivorId, surface, source, replacement, sutra)
         }
-        return substituted.removeTerm(consumedId, sutra)
+        val removed = substituted.removeTerm(consumedId, sutra)
+        val survivingLocus = consumedAffixVowelIndex?.let { oldIndex ->
+            val wordIndex = DevanagariVowelLoci.positions(removed.surface).indices.lastOrNull()
+                ?.let(oldIndex::coerceAtMost) ?: return@let null
+            val currentSurvivor = removed.terms.firstOrNull { it.id == survivorId } ?: return@let null
+            val prefixCount = DevanagariVowelLoci.positions(removed.surfaceBeforeTerm(survivorId)).size
+            val survivorVowelCount = DevanagariVowelLoci.positions(currentSurvivor.surface).size
+            val localIndex = wordIndex - prefixCount
+            if (localIndex !in 0 until survivorVowelCount) null
+            else survivorId to (survivorVowelCount - 1 - localIndex)
+        }
+        return if (survivingLocus == null) removed else removed.copy(
+            droppedTerms = removed.droppedTerms.map { dropped ->
+                if (dropped.id == consumedId) dropped.copy(
+                    mergedIntoTermId = survivingLocus.first,
+                    mergedAffixVowelFromEnd = survivingLocus.second,
+                ) else dropped
+            },
+        )
     }
 
     /** Redistributes material across two adjacent surviving terms as one phonological operation. */
@@ -455,6 +477,10 @@ data class DerivationTerm(
     val lexicalAccentSource: String? = null,
     /** Zero-based vowel ordinal inside this term; null means the lexical source did not identify a usable locus. */
     val lexicalAccentVowelIndex: Int? = null,
+    /** Surviving term that contains this consumed affix's vowel after a phonological merge. */
+    val mergedIntoTermId: String? = null,
+    /** Vowel ordinal counted from that surviving term's end, stable across changes before the locus. */
+    val mergedAffixVowelFromEnd: Int? = null,
 ) {
     init {
         nonOperativeUpadeshaSegments.forEach { segment ->

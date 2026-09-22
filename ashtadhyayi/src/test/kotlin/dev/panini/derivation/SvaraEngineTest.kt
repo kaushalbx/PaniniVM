@@ -184,4 +184,27 @@ class SvaraEngineTest {
         )
         assertFalse(SvaraContext.from(DerivationState(listOf(stem))).triggers.any { it.kind == SvaraTriggerKind.PIT_OR_SUP })
     }
+
+    @Test
+    fun `phonological term merge retains the exact surviving affix vowel locus`() {
+        val state = DerivationState(listOf(
+            DerivationTerm("stem", "पच्", TermKind.DHATU),
+            DerivationTerm(
+                "affix", "अ", TermKind.PRATYAYA,
+                itMarkerProvenance = setOf(ItMarkerProvenance(dev.panini.core.ItMarker.NIT, "1.3.3", "ण्")),
+            ),
+        )).mergeTermsByVarnaSubstitution("stem", "affix", "पच", 'अ', "अ", "test-merge")
+
+        val trigger = SvaraContext.from(state).triggers.single { it.kind == SvaraTriggerKind.NIT_OR_NGIT }
+        assertEquals(1, trigger.vowelIndex)
+        val result = SvaraEngine.derive(state)
+        assertEquals(1, result.result?.udattaVowelIndex)
+        assertTrue(result.applications.any { it.sutra == "6.1.197" })
+
+        val expandedStem = state.substituteTermSurface("stem", "पापच", 'प', "पाप", "test-prefix-change")
+        assertEquals(
+            2,
+            SvaraContext.from(expandedStem).triggers.single { it.kind == SvaraTriggerKind.NIT_OR_NGIT }.vowelIndex,
+        )
+    }
 }

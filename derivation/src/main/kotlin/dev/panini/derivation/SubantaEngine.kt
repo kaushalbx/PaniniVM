@@ -27,8 +27,14 @@ class SubantaEngine(
         if (specializedForm != null) {
             val stemTerm = DerivationTerm("pratipadika", request.pratipadika, TermKind.PRATIPADIKA)
             val finalTerm = DerivationTerm("subanta_final", specializedForm, TermKind.PRATIPADIKA, upadesha = specializedForm)
+            val selectedSup = SupAffix.select(request.vibhakti, request.vacana)
+            val supEvidence = DerivationTerm(
+                "specialized-sup", "", TermKind.PRATYAYA,
+                upadesha = selectedSup.upadesha,
+                originalSurfaceBeforeDrop = selectedSup.upadesha,
+            )
             val initialState = DerivationState(terms = listOf(stemTerm), stage = DerivationStage.INITIAL)
-            val finalState = initialState.copy(terms = listOf(finalTerm), stage = DerivationStage.FINAL)
+            val finalState = initialState.copy(terms = listOf(finalTerm, supEvidence), stage = DerivationStage.FINAL)
             return DerivationResult(initialState, finalState, emptyList(), emptyList()).completeSvara()
         }
 

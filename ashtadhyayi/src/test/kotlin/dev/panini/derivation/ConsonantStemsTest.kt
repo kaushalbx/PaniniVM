@@ -33,6 +33,14 @@ class ConsonantStemsTest {
         val vak = engine.derive(SubantaDerivationRequest("वाच्", Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.STRI))
         assertEquals("वाक्", vak.final.surface)
         kotlin.test.assertTrue(vak.applications.any { it.sutra == "8.2.30" })
+        val suhrt = engine.derive(SubantaDerivationRequest("सुहृद्", Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.PUMS))
+        assertEquals("सुहृत्", suhrt.final.surface)
+        kotlin.test.assertTrue(suhrt.applications.any { it.sutra == "3.1.4" })
+        kotlin.test.assertTrue(suhrt.applications.any { it.sutra == "6.1.158" })
+        kotlin.test.assertTrue(suhrt.final.terms.any {
+            it.id == "specialized-sup" && it.surface.isEmpty() && it.upadesha == "सुँ"
+        })
+        assertEquals("सुहृत्", suhrt.svaraResult?.word)
 
         val vaca = engine.derive(SubantaDerivationRequest("वाच्", Vibhakti.TRTIYA, Vacana.EKAVACANA, Linga.STRI))
         assertEquals("वाचा", vaca.final.surface)

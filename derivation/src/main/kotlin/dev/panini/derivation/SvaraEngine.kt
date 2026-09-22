@@ -56,6 +56,26 @@ data class SvaraContext(val triggers: List<SvaraTrigger> = emptyList()) {
                     ))
                 }
             }
+            state.droppedTerms.filter {
+                it.kind == TermKind.PRATYAYA && it.mergedIntoTermId != null && it.mergedAffixVowelFromEnd != null
+            }.forEach { term ->
+                val survivorId = requireNotNull(term.mergedIntoTermId)
+                val survivor = state.terms.firstOrNull { it.id == survivorId } ?: return@forEach
+                val survivorVowels = DevanagariVowelLoci.positions(survivor.surface)
+                val localIndex = survivorVowels.lastIndex - requireNotNull(term.mergedAffixVowelFromEnd)
+                if (localIndex !in survivorVowels.indices) return@forEach
+                val vowelIndex = DevanagariVowelLoci.positions(state.surfaceBeforeTerm(survivorId)).size + localIndex
+                add(SvaraTrigger(SvaraTriggerKind.PRATYAYA, term.id, vowelIndex = vowelIndex))
+                term.itMarkerProvenance.filter { it.marker == ItMarker.NIT || it.marker == ItMarker.NGIT }.forEach {
+                    add(SvaraTrigger(SvaraTriggerKind.NIT_OR_NGIT, term.id, it.marker, it.designationSutra, vowelIndex))
+                }
+                term.itMarkerProvenance.filter { it.marker == ItMarker.P }.forEach {
+                    add(SvaraTrigger(SvaraTriggerKind.PIT_OR_SUP, term.id, it.marker, it.designationSutra, vowelIndex))
+                }
+                if (SupAffix.entries.any { affix -> term.matchesUpadesha(affix.upadesha) }) {
+                    add(SvaraTrigger(SvaraTriggerKind.PIT_OR_SUP, term.id, vowelIndex = vowelIndex))
+                }
+            }
         })
     }
 }
