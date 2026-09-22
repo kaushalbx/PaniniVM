@@ -15,6 +15,7 @@ object Adhyaya3Pada2 {
         KanacCaSutra,
         LatahSatrsanacauSutra,
         LaksanaghetvohKriyahSutra,
+        NisthaSutra,
         SanashamsabhikshuchSutra,
         AnyaebhyopiDrshyateSutra,
     )

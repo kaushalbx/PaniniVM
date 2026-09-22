@@ -88,6 +88,9 @@ class KrdantaEngine(
         val bootstrap = buildList {
             if ("णिच्" in request.sanadiPratyayas) add(canonicalSutra("3.1.26"))
             add(selection)
+            if (request.samjna == Samjna.KTA || request.samjna == Samjna.KTAVATU) {
+                add(canonicalSutra("1.1.26"))
+            }
             if (request.samjna == Samjna.KTVA && !request.upasarga.isNullOrBlank()) {
                 add(canonicalSutra("7.1.37"))
                 add(canonicalSutra("6.1.71"))
@@ -101,7 +104,7 @@ class KrdantaEngine(
         Samjna.TUMUN -> "3.3.158"
         Samjna.TAVYA, Samjna.ANIYAR -> "3.1.96"
         Samjna.NYAT -> "3.1.124"
-        Samjna.KTA, Samjna.KTAVATU -> "1.1.26"
+        Samjna.KTA, Samjna.KTAVATU -> "3.2.102"
         Samjna.NVUL, Samjna.TRC -> "3.1.133"
         Samjna.GHAN -> "3.3.18"
         Samjna.LYUT -> "3.3.115"

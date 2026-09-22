@@ -65,6 +65,7 @@ object YasyetiCaSutra : Sutra<DerivationState, DerivationChange>(
 
         val affixSurface = affix.surface
         val mergedSurface = when {
+            affixSurface == "अ" && dev.panini.shiksha.Varnamala.endsWithA(stemBase) -> stemBase
             affixSurface.startsWith("इञ्") || affixSurface.startsWith("इ") -> stemBase + "ि"
             affixSurface.startsWith("आयन्") || affixSurface.startsWith("आयन") -> stemBase + "ायन्"
             affixSurface.startsWith("एय्") || affixSurface.startsWith("एय") -> stemBase + "ेय्"

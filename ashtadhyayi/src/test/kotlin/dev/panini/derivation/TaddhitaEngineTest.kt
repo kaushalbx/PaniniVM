@@ -12,6 +12,15 @@ import kotlin.test.assertTrue
 class TaddhitaEngineTest {
 
     @Test
+    fun `derives Vasudeva stem through registered apatya rules`() {
+        val result = TaddhitaEngine().derive("वसुदेव", DerivationalMeaning.APATYA)
+        assertEquals("वासुदेव", result.final.surface)
+        assertTrue(result.applications.any { it.sutra == "4.1.92" })
+        assertTrue(result.applications.any { it.sutra == "7.2.117" })
+        assertTrue(result.applications.any { it.sutra == "6.4.148" })
+    }
+
+    @Test
     fun `derives Dasarathi from Dasaratha for Apatya`() {
         val result = TaddhitaEngine().derive("दशरथ", DerivationalMeaning.APATYA)
         assertTrue(result.applications.any { it.sutra == "4.1.95" })
@@ -160,12 +169,33 @@ class TaddhitaEngineTest {
     fun `derivePatronymic derives Vasudevah Dasarathih and Gargyah`() {
         val res1 = TaddhitaEngine().derivePatronymic("वसुदेव", dev.panini.shiksha.Samjna.AN_PRATYAYA)
         assertEquals("वासुदेवः", res1.final.surface)
-        assertTrue(res1.applications.any { it.sutra == "4.1.92" })
+        assertPatronymicProvenance(res1, "4.1.92", "अण्")
 
         val res2 = TaddhitaEngine().derivePatronymic("दशरथ", dev.panini.shiksha.Samjna.IN_PRATYAYA)
         assertEquals("दाशरथिः", res2.final.surface)
+        assertPatronymicProvenance(res2, "4.1.95", "इञ्")
 
         val res3 = TaddhitaEngine().derivePatronymic("गर्ग", dev.panini.shiksha.Samjna.YAN_PRATYAYA)
         assertEquals("गार्ग्यः", res3.final.surface)
+        assertPatronymicProvenance(res3, "4.1.105", "यञ्")
+    }
+
+    private fun assertPatronymicProvenance(result: DerivationResult, selectionSutra: String, affix: String) {
+        assertEquals(1, result.applications.count { it.sutra == selectionSutra })
+        val introduction = result.applications.single { application ->
+            application.sutra == selectionSutra && application.after.terms.any { it.upadesha == affix }
+        }
+        val introducedAffix = introduction.after.terms.single { it.upadesha == affix }
+        assertEquals(selectionSutra, introducedAffix.createdBySutra)
+        assertEquals(ItProcessingPhase.RAW_UPADESHA, introducedAffix.itProcessingPhase)
+        assertTrue(result.applications.any { it.sutra == "1.3.3" })
+        assertTrue(result.applications.any { it.sutra == "1.3.9" })
+        assertTrue(result.applications.any { it.sutra == "7.2.117" })
+        assertTrue(result.applications.any { it.sutra == "6.4.148" })
+        assertTrue(result.applications.any { it.sutra == "3.1.4" })
+        assertTrue(result.applications.any { it.sutra == "6.1.158" })
+        assertTrue(result.applications.none { it.sutra == "4.1.4" })
+        assertEquals(result.final.surface, result.svaraResult?.word)
+        result.final.requireCompleteItProcessing()
     }
 }

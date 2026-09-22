@@ -3,7 +3,7 @@ package dev.panini.derivation
 import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.ashtadhyayi.adhyaya1.pada1.AdyantauTakitauSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada1.MidacoAntyatParahSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada1.NisthaSutra
+import dev.panini.ashtadhyayi.adhyaya3.pada2.NisthaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.HalantyamSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.ChutuSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada3.LasakvataddhiteSutra
@@ -100,7 +100,7 @@ class RemainingAffixLifecycleTest {
                 samjnas = setOf(SamjnaAssignment(root.id, Samjna.KTAVATU)),
             ),
         ).state.terms.last()
-        assertRawIntroduction(ktavatu, "क्तवतुँ", "1.1.26")
+        assertRawIntroduction(ktavatu, "क्तवतुँ", "3.2.102")
 
         val stem = DerivationTerm("stem", "धन", TermKind.PRATIPADIKA)
         val matup = TadasyastyasminnitiMatupSutra.apply(

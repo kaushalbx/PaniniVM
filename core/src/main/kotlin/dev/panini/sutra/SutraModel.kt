@@ -1,5 +1,6 @@
 package dev.panini.sutra
 
+import dev.panini.core.Vibhakti
 
 /** Closed vocabulary for a sūtra's primary grammatical function. */
 sealed interface SutraRole {
@@ -92,4 +93,14 @@ enum class ParibhashaScope {
     FULL_TERM_SUBSTITUTION,
     ORIGINAL_PROPERTY_INHERITANCE,
     GENERAL,
+}
+
+/** Explicit case marking in a sūtra statement; never inferred from a surface ending. */
+data class RuleOperandReference(val vibhakti: Vibhakti)
+
+/** Operand relationship supplied by 1.1.49, 1.1.66, or 1.1.67. */
+enum class RuleOperandRelation {
+    SUBSTITUTION_TARGET,
+    IMMEDIATELY_PRECEDING,
+    IMMEDIATELY_FOLLOWING,
 }

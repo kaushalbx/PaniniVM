@@ -3,6 +3,7 @@ package dev.panini.ashtadhyayi.adhyaya4.pada1
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.core.Linga
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -27,7 +28,8 @@ object StriyamSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        return !context.activeAdhikaras.contains(number)
+        return context.effectiveContext.rupa.linga == Linga.STRI &&
+            !context.activeAdhikaras.contains(number)
     }
 
     override fun apply(context: DerivationState): DerivationChange {

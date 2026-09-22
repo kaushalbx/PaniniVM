@@ -1,13 +1,19 @@
 package dev.panini.ashtadhyayi.adhyaya1
 
+import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.ashtadhyayi.adhyaya1.pada1.AdirAntyenaSahetaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada1.SasthiSthaneYogaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada1.TatiSankhyaSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada1.TasmatItyUttarasyamSutra
-import dev.panini.ashtadhyayi.adhyaya1.pada1.TasminNirdistePurvasyaSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada1.TasmadItyUttarasyaSutra
+import dev.panini.ashtadhyayi.adhyaya1.pada1.TasminnitiNirdishtePurvasyaSutra
+import dev.panini.core.Vibhakti
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
+import dev.panini.sutra.RuleOperandReference
+import dev.panini.sutra.RuleOperandRelation
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
@@ -20,21 +26,42 @@ class InterpretativeSamjnaTest {
     }
 
     @Test
-    fun testTasminNirdistePurvasyaSutra() {
-        assertTrue(TasminNirdistePurvasyaSutra.matches("अचि"))
-        assertTrue(TasminNirdistePurvasyaSutra.apply("अचि"))
+    fun `1 1 66 resolves an explicit locative operand to its immediate predecessor`() {
+        val locative = RuleOperandReference(Vibhakti.SAPTAMI)
+        assertTrue(TasminnitiNirdishtePurvasyaSutra.matches(locative))
+        assertEquals(RuleOperandRelation.IMMEDIATELY_PRECEDING, TasminnitiNirdishtePurvasyaSutra.apply(locative))
+        assertFalse(TasminnitiNirdishtePurvasyaSutra.matches(RuleOperandReference(Vibhakti.PANCHAMI)))
     }
 
     @Test
-    fun testTasmatItyUttarasyamSutra() {
-        assertTrue(TasmatItyUttarasyamSutra.matches("तस्मात्"))
-        assertTrue(TasmatItyUttarasyamSutra.apply("तस्मात्"))
+    fun `1 1 67 resolves an explicit ablative operand to its immediate successor`() {
+        val ablative = RuleOperandReference(Vibhakti.PANCHAMI)
+        assertTrue(TasmadItyUttarasyaSutra.matches(ablative))
+        assertEquals(RuleOperandRelation.IMMEDIATELY_FOLLOWING, TasmadItyUttarasyaSutra.apply(ablative))
+        assertFalse(TasmadItyUttarasyaSutra.matches(RuleOperandReference(Vibhakti.SAPTAMI)))
     }
 
     @Test
-    fun testSasthiSthaneYogaSutra() {
-        assertTrue(SasthiSthaneYogaSutra.matches("इकः"))
-        assertTrue(SasthiSthaneYogaSutra.apply("इकः"))
+    fun `1 1 49 resolves an explicit genitive operand as the substitution target`() {
+        val genitive = RuleOperandReference(Vibhakti.SASTHI)
+        assertTrue(SasthiSthaneYogaSutra.matches(genitive))
+        assertEquals(RuleOperandRelation.SUBSTITUTION_TARGET, SasthiSthaneYogaSutra.apply(genitive))
+        assertFalse(SasthiSthaneYogaSutra.matches(RuleOperandReference(Vibhakti.SAPTAMI)))
+    }
+
+    @Test
+    fun `canonical interpretive sutras are catalogued once and are not executable derivation rules`() {
+        val expected = mapOf(
+            "1.1.49" to "षष्ठी स्थानेयोगा",
+            "1.1.66" to "तस्मिन्निति निर्दिष्टे पूर्वस्य",
+            "1.1.67" to "तस्मादित्युत्तरस्य",
+        )
+        expected.forEach { (number, text) ->
+            val matches = Ashtadhyayi.registry.sutras.filter { it.number == number }
+            assertEquals(1, matches.size)
+            assertEquals(text, matches.single().text)
+            assertFalse(Ashtadhyayi.runtimeSutras.any { it.number == number })
+        }
     }
 
     @Test

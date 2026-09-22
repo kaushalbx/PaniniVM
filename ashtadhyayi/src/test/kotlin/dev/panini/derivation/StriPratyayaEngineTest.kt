@@ -2,6 +2,9 @@ package dev.panini.derivation
 
 import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.shiksha.Samjna
+import dev.panini.ashtadhyayi.adhyaya4.pada1.AjadyatasTapSutra
+import dev.panini.ashtadhyayi.adhyaya4.pada1.StriyamSutra
+import dev.panini.core.Linga
 import dev.panini.sutra.SutraStage
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -9,6 +12,18 @@ import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class StriPratyayaEngineTest {
+
+    @Test
+    fun `feminine adhikara and tap cannot enter a masculine derivation`() {
+        val masculine = SubantaDerivationRequest(
+            "वासुदेव",
+            dev.panini.core.Vibhakti.PRATHAMA,
+            dev.panini.core.Vacana.EKAVACANA,
+            Linga.PUMS,
+        ).initialState()
+        kotlin.test.assertFalse(StriyamSutra.matches(masculine))
+        kotlin.test.assertFalse(AjadyatasTapSutra.matches(masculine.copy(activeAdhikaras = setOf("4.1.3"))))
+    }
 
     private val engine = StriPratyayaEngine()
 
