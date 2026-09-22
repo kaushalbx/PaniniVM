@@ -76,6 +76,15 @@ data class SvaraContext(val triggers: List<SvaraTrigger> = emptyList()) {
                     add(SvaraTrigger(SvaraTriggerKind.PIT_OR_SUP, term.id, vowelIndex = vowelIndex))
                 }
             }
+            val finalWordVowel = DevanagariVowelLoci.positions(state.surface).indices.lastOrNull()
+            if (finalWordVowel != null) {
+                state.droppedTerms.filter { term ->
+                    term.kind == TermKind.PRATYAYA && term.mergedIntoTermId == null &&
+                        SupAffix.entries.any { affix -> term.matchesUpadesha(affix.upadesha) }
+                }.forEach { term ->
+                    add(SvaraTrigger(SvaraTriggerKind.PIT_OR_SUP, term.id, vowelIndex = finalWordVowel))
+                }
+            }
         })
     }
 }

@@ -93,6 +93,13 @@ class DerivationState(
                     else -> error("Unsupported independent vowel ${next.first()}")
                 }
                 rendered.dropLast(1) + vowelSign + next.drop(1)
+            } else if (rendered.lastOrNull()?.let(Varnamala::isConsonant) == true &&
+                next.firstOrNull() in setOf('आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ऌ', 'ए', 'ऐ', 'ओ', 'औ')) {
+                val vowelSign = mapOf(
+                    'आ' to "ा", 'इ' to "ि", 'ई' to "ी", 'उ' to "ु", 'ऊ' to "ू", 'ऋ' to "ृ",
+                    'ॠ' to "ॄ", 'ऌ' to "ॢ", 'ए' to "े", 'ऐ' to "ै", 'ओ' to "ो", 'औ' to "ौ",
+                ).getValue(next.first())
+                rendered + vowelSign + next.drop(1)
             } else if (rendered.endsWith('्') && next.firstOrNull() in setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ', 'े', 'ै', 'ो', 'ौ')) {
                 rendered.dropLast(1) + next
             } else {
@@ -118,6 +125,23 @@ class DerivationState(
 
     fun replaceTerm(id: String, replacement: DerivationTerm): DerivationState =
         copy(terms = terms.map { if (it.id == id) replacement else it })
+
+    /**
+     * Replaces a complete non-affix surface when a grammatical rule prescribes
+     * a lexical/member-level substitute rather than a single-varṇa operation.
+     * Affixes must use [replaceWholeAffix] so their exact it-designations receive
+     * an explicit preserve, consume, or fresh-upadeśa policy.
+     */
+    fun replaceWholeTermSurface(id: String, surface: String, sutra: String): DerivationState {
+        val term = terms.single { it.id == id }
+        require(term.kind != TermKind.PRATYAYA && term.kind != TermKind.AGAMA) {
+            "$sutra must use replaceWholeAffix for ${term.kind} term $id."
+        }
+        require(term.itDesignations.isEmpty() && term.deferredItDesignations.isEmpty()) {
+            "$sutra cannot replace $id while exact it-designations remain pending."
+        }
+        return replaceTerm(id, term.copy(surface = surface))
+    }
 
     /** Applies a segment-level phonological change and records its sūtra atomically. */
     fun substituteTermSurface(

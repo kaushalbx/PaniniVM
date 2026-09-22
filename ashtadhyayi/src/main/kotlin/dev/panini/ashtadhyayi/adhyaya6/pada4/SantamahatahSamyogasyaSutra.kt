@@ -37,7 +37,9 @@ object SantamahatahSamyogasyaSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        val isEligibleStem = stem.upadesha in setOf("महत्", "विद्वस्") || stem.surface in setOf("महत्", "विद्वस्", "महन्त्", "विद्वन्स्")
+        val isEligibleStem = stem.upadesha in setOf("महत्", "विद्वस्") ||
+            stem.compoundHeadUpadesha in setOf("महत्", "विद्वस्") ||
+            stem.surface in setOf("महत्", "विद्वस्", "महन्त्", "विद्वन्स्")
         if (!isEligibleStem) return false
 
         val isSarvanamasthana = affix.id in setOf("sup-su", "sup-au", "sup-jas", "sup-am", "sup-aut") ||
@@ -49,14 +51,15 @@ object SantamahatahSamyogasyaSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
+        val isSu = affix.id == "sup-su" || affix.upadesha == "सुँ"
         val newSurface = when {
-            stem.surface.contains("मह") -> if (affix.id == "sup-su" || affix.upadesha == "सुँ") "महान्" else "महान्त्"
-            stem.surface.contains("विद्व") -> if (affix.id == "sup-su" || affix.upadesha == "सुँ") "विद्वान्" else "विद्वान्स्"
+            stem.surface.endsWith("महत्") -> stem.surface.removeSuffix("महत्") + if (isSu) "महान्" else "महान्त्"
+            stem.surface.endsWith("विद्वस्") -> stem.surface.removeSuffix("विद्वस्") + if (isSu) "विद्वान्" else "विद्वान्स्"
             else -> stem.surface
         }
 
-        var state = context.substituteTermSurface(stem.id, newSurface, '∅', "दीर्घ", sutra)
-        if (affix.id == "sup-su" || affix.upadesha == "सुँ") {
+        var state = context.replaceWholeTermSurface(stem.id, newSurface, sutra)
+        if (isSu) {
             state = state.removeTerm(affix.id, sutra = sutra)
         }
         return DerivationChange(

@@ -118,10 +118,7 @@ class TaddhitaEngine(
     }
 
     private fun buildResult(initial: DerivationState, final: DerivationState, apps: List<DerivationApplication>): DerivationResult {
-        val fusedSurface = final.terms.joinToString("") { it.surface }
-        val finalTerm = DerivationTerm("taddhita_final", fusedSurface, TermKind.PRATIPADIKA, upadesha = fusedSurface)
         val cleanFinal = final.copy(
-            terms = listOf(finalTerm),
             stage = DerivationStage.FINAL,
             appliedSutras = initial.appliedSutras + apps.map { it.sutra },
         )

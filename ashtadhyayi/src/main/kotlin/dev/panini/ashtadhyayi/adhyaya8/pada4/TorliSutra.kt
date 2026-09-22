@@ -32,43 +32,39 @@ object TorliSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     private val tuVarga = Varnamala.expandUdit("तु")
 
-    override fun matches(context: DerivationState): Boolean {
-        if (context.terms.size < 2) return false
-        return (0 until context.terms.size - 1).any { i ->
-            val curr = context.terms[i].surface
-            val next = context.terms[i + 1].surface
-            if (curr.isEmpty() || !next.startsWith("ल")) return@any false
-            val lastChar = curr.trimEnd('्').lastOrNull() ?: return@any false
-            lastChar in tuVarga
-        }
-    }
+    override fun matches(context: DerivationState): Boolean = findMatch(context) != null
 
     override fun apply(context: DerivationState): DerivationChange {
-        val targetIndex = (0 until context.terms.size - 1).first { i ->
-            val curr = context.terms[i].surface
-            val next = context.terms[i + 1].surface
-            if (curr.isEmpty() || !next.startsWith("ल")) return@first false
-            val lastChar = curr.trimEnd('्').lastOrNull() ?: return@first false
-            lastChar in tuVarga
-        }
-
-        val targetTerm = context.terms[targetIndex]
+        val match = requireNotNull(findMatch(context))
+        val targetTerm = context.terms[match.termIndex]
         val surface = targetTerm.surface
-        val lastChar = surface.trimEnd('्').last()
-        val isNasal = lastChar == 'न' || surface.endsWith("न्")
+        val isNasal = match.targetChar == 'न'
         val replacement = if (isNasal) "ँल्" else "ल्"
-
-        val newSurface = when {
-            surface.endsWith("त्") || surface.endsWith("थ्") || surface.endsWith("द्") || surface.endsWith("ध्") || surface.endsWith("न्") ->
-                surface.dropLast(2) + replacement
-            surface.endsWith("त") || surface.endsWith("थ") || surface.endsWith("द") || surface.endsWith("ध") || surface.endsWith("न") ->
-                surface.dropLast(1) + replacement
-            else -> surface
-        }
+        val viramaFollowsInSameTerm = surface.getOrNull(match.charIndex + 1) == '्'
+        val end = match.charIndex + if (viramaFollowsInSameTerm) 2 else 1
+        val newSurface = surface.replaceRange(match.charIndex, end, replacement)
 
         return DerivationChange(
-            state = context.substituteTermSurface(targetTerm.id, newSurface, surface.last(), replacement, sutra),
+            state = context.substituteTermSurface(targetTerm.id, newSurface, match.targetChar, replacement, sutra),
             explanation = "8.4.60: Assimilated ta-varga to $replacement before 'l'."
         )
     }
+
+    private fun findMatch(context: DerivationState): Match? {
+        val characters = context.terms.flatMapIndexed { termIndex, term ->
+            term.surface.mapIndexed { charIndex, char -> OwnedChar(termIndex, charIndex, char) }
+        }
+        for (index in 0 until characters.size - 2) {
+            val target = characters[index]
+            val virama = characters[index + 1]
+            val trigger = characters[index + 2]
+            if (target.char in tuVarga && virama.char == '्' && trigger.char == 'ल') {
+                return Match(target.termIndex, target.charIndex, target.char)
+            }
+        }
+        return null
+    }
+
+    private data class OwnedChar(val termIndex: Int, val charIndex: Int, val char: Char)
+    private data class Match(val termIndex: Int, val charIndex: Int, val targetChar: Char)
 }

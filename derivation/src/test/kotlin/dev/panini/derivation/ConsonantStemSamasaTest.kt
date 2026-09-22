@@ -51,7 +51,10 @@ class ConsonantStemSamasaTest {
             SamasaType.TATPURUSA,
         )
         assertEquals("राजपुरुषः", result.final.surface)
-        assertTrue(result.applications.any { it.sutra == "8.2.7" })
+        val nLopa = result.applications.single { it.sutra == "8.2.7" }
+        assertTrue(nLopa.delta.changedTerms.isNotEmpty())
+        assertEquals("राजन्", nLopa.delta.changedTerms.single().before.surface)
+        assertEquals("राज", nLopa.delta.changedTerms.single().after.surface)
     }
 
     @Test

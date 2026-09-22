@@ -72,6 +72,18 @@ class SamasaCrossRuleConflictTest {
     }
 
     @Test
+    fun `vidvas as compound head inflects through regular six four ten`() {
+        val result = engine.derive(
+            listOf(SamasaPada("नञ्"), SamasaPada("विद्वस्")),
+            SamasaType.NAN_TATPURUSA,
+            outputLinga = Linga.PUMS,
+        )
+        assertEquals("अविद्वान्", result.final.surface)
+        assertTrue(result.applications.any { it.sutra == "6.4.10" })
+        assertTrue(result.applications.none { it.explanation.contains("shortcut", ignoreCase = true) })
+    }
+
+    @Test
     fun `s final prior member undergoes regular rutva before voiced consonant`() {
         val result = engine.derive(
             listOf(

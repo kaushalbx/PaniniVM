@@ -3,6 +3,7 @@ package dev.panini.ashtadhyayi.adhyaya8.pada2
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
@@ -27,23 +28,33 @@ object NaloPratipadikantasyaSutra : Sutra<DerivationState, DerivationChange>(
     stage = dev.panini.sutra.SutraStage.PADA_FORMATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        if (context.terms.isEmpty()) return false
-        val stem = context.terms.first()
-        val affix = context.terms.getOrNull(1)
+        return findTarget(context) != null
+    }
 
-        val insideSankhyaCompound = affix != null && context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SANKHYA } &&
-            context.samjnas.any { it.targetId == affix.id && it.samjna == Samjna.SANKHYA }
+    private fun findTarget(context: DerivationState): DerivationTerm? {
+        if (context.terms.isEmpty()) return null
+        return context.terms.withIndex().firstNotNullOfOrNull { (index, stem) ->
+            val affix = context.terms.getOrNull(index + 1)
 
-        val hasDroppedSup = context.droppedTerms.any { it.id.startsWith("sup-") }
+            val insideSankhyaCompound = affix != null && context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SANKHYA } &&
+                context.samjnas.any { it.targetId == affix.id && it.samjna == Samjna.SANKHYA }
+            val insideSamasa = affix != null && context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SAMASA } &&
+                context.samjnas.any { it.targetId == affix.id && it.samjna == Samjna.SAMASA }
 
-        val isPratipadikaNanta = stem.upadesha.endsWith("न्") || stem.upadesha in setOf("पञ्चन्", "सप्तन्", "अष्टन्", "नवन्", "दशन्")
+            val hasDroppedSup = context.droppedTerms.any { it.id.startsWith("sup-") }
 
-        return isPratipadikaNanta && stem.kind == TermKind.PRATIPADIKA && stem.surface.endsWith("न्") &&
-            (affix == null || affix.upadesha in setOf("भ्याम्", "भिस्", "भ्यस्", "सुप्", "मट्", "सु", "नाम्") || insideSankhyaCompound || hasDroppedSup)
+            val isPratipadikaNanta = stem.upadesha.endsWith("न्") || stem.upadesha in setOf("पञ्चन्", "सप्तन्", "अष्टन्", "नवन्", "दशन्")
+
+            stem.takeIf {
+                isPratipadikaNanta && stem.kind == TermKind.PRATIPADIKA && stem.surface.endsWith("न्") &&
+                    (affix == null || affix.upadesha in setOf("भ्याम्", "भिस्", "भ्यस्", "सुप्", "मट्", "सु", "नाम्") ||
+                        insideSankhyaCompound || insideSamasa || hasDroppedSup)
+            }
+        }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val stem = context.terms.first()
+        val stem = requireNotNull(findTarget(context))
         return DerivationChange(
             state = context.substituteTermSurface(stem.id, stem.surface.dropLast(2), 'न', "", sutra),
             explanation = "8.2.7: Deleted final न् of the prātipadika.",
