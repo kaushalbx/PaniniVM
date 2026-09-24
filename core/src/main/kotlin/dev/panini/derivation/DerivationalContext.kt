@@ -6,6 +6,7 @@ import dev.panini.core.Linga
 import dev.panini.core.PadaType
 import dev.panini.core.Prayoga
 import dev.panini.core.Purusha
+import dev.panini.core.SamasaType
 import dev.panini.core.Vacana
 import dev.panini.core.Vibhakti
 
@@ -52,6 +53,8 @@ data class DerivationalContext(
     val letFormation: LetFormation = LetFormation.PRESENT_STEM,
     val letEOption: LetEOption = LetEOption.E,
     val rupa: Rupa = Rupa(),
+    /** Compound class established by the samāsa derivation, when applicable. */
+    val samasaType: SamasaType? = null,
 ) {
     fun has(environment: DerivationalEnvironment): Boolean = environment in environments
 }

@@ -226,26 +226,20 @@ class SamasaEngine(
             semanticRelations,
             collectiveByRule,
         )
-        val subantaResult = if (type == SamasaType.AVYAYIBHAVA) null else subantaEngine.derive(
+        val subantaResult = subantaEngine.derive(
             SubantaDerivationRequest(
                 normalizedStem,
                 vibhakti,
                 vacana,
                 linga,
                 compoundHeadUpadesha = padas.last().upadesha,
+                samasaType = type,
             )
         )
-        subantaResult?.let { applications.addAll(it.applications) }
+        applications.addAll(subantaResult.applications)
 
-        // Avyayībhāvas are indeclinable (2.4.18, 2.4.82); routing every one
-        // through ordinary nominal declension incorrectly produces forms such
-        // as यथाशक्तिः and अनुगङ्गा.  The final -a/-ā member alone takes -am;
-        // compounds ending in -i/-ī/-u/-ū retain that ending.
-        val finalSurface = when {
-            type == SamasaType.AVYAYIBHAVA -> avyayibhavaSurface(normalizedStem)
-            else -> requireNotNull(subantaResult).final.surface
-        }
-        val finalSubantaSvara = subantaResult?.takeIf { it.final.surface == finalSurface }
+        val finalSurface = subantaResult.final.surface
+        val finalSubantaSvara = subantaResult
         val alternatives = optionalAlternatives(
             context=context,
             classificationResult=classificationResult,
@@ -262,8 +256,8 @@ class SamasaEngine(
             terms = listOf(DerivationTerm("samasa-final", finalSurface, TermKind.PRATIPADIKA, upadesha = finalSurface)),
             stage = DerivationStage.FINAL,
             appliedSutras = initialState.appliedSutras + applications.map { it.sutra },
-            svaraNimittas = finalSubantaSvara?.final?.svaraNimittas.orEmpty(),
-            svaraAssignments = finalSubantaSvara?.final?.svaraAssignments.orEmpty(),
+            svaraNimittas = finalSubantaSvara.final.svaraNimittas,
+            svaraAssignments = finalSubantaSvara.final.svaraAssignments,
         )
 
         val resolution = SamasaResolution(
@@ -277,7 +271,7 @@ class SamasaEngine(
             transformationSutras = transformationSutras.map { (it as Sutra<*, *>).number },
             supLopaSutras = applications.map { it.sutra }.filter { it == "2.4.71" }.distinct(),
             sandhiSutras = applications.map { it.sutra }.filter { it.startsWith("6.1.") || it.startsWith("8.") }.distinct(),
-            inflectionSutras = subantaResult?.applications.orEmpty().map { it.sutra }.distinct(),
+            inflectionSutras = subantaResult.applications.map { it.sutra }.distinct(),
             alternatives = alternatives,
             operations = transformationResults.mapNotNull { (sutra,result) -> result?.let {
                 SamasaTransformationOperation(
@@ -295,7 +289,7 @@ class SamasaEngine(
             final = finalState,
             applications = applications,
             events = emptyList(),
-            svaraResult = finalSubantaSvara?.svaraResult,
+            svaraResult = finalSubantaSvara.svaraResult,
             samasaResolution = resolution,
         )
     }
@@ -352,14 +346,6 @@ class SamasaEngine(
             declaredVacana ?: inferred.second,
             declaredLinga ?: inferred.third,
         )
-    }
-
-    private fun avyayibhavaSurface(stem: String): String = when {
-        stem.endsWith("ा") -> stem.dropLast(1) + "म्"
-        stem.endsWith("ि") || stem.endsWith("ी") || stem.endsWith("ु") || stem.endsWith("ू") -> stem
-        stem.endsWith("इ") || stem.endsWith("ई") || stem.endsWith("उ") || stem.endsWith("ऊ") -> stem
-        stem.endsWith("म्") -> stem
-        else -> stem + "म्"
     }
 
     private fun joinCompoundMembers(
@@ -516,18 +502,16 @@ class SamasaEngine(
                 DerivationState(listOf(DerivationTerm("samasa-alternative", materialized, TermKind.PRATIPADIKA))),
                 scratch,
             )
-            val surface=when {
-                type==SamasaType.AVYAYIBHAVA -> avyayibhavaSurface(stem)
-                else -> subantaEngine.derive(
-                    SubantaDerivationRequest(
-                        stem,
-                        vibhakti,
-                        vacana,
-                        linga,
-                        compoundHeadUpadesha = padas.last().upadesha,
-                    ),
-                ).final.surface
-            }
+            val surface = subantaEngine.derive(
+                SubantaDerivationRequest(
+                    stem,
+                    vibhakti,
+                    vacana,
+                    linga,
+                    compoundHeadUpadesha = padas.last().upadesha,
+                    samasaType = type,
+                ),
+            ).final.surface
             SamasaAlternative(stem,surface,retained.map { it.number })
         }
         return (listOf(SamasaAlternative(primaryStem,primarySurface,selected.map { it.number }))+branches)

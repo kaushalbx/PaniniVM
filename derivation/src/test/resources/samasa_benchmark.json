@@ -912,7 +912,7 @@
     "outputLinga": "NAPUMSAKA",
     "outputVacana": "EKAVACANA",
     "expectedStem": "उपनदी",
-    "expectedSurface": "उपनदी",
+    "expectedSurface": "उपनदि",
     "classificationSutra": "2.1.6",
     "transformationSutras": "5.4.110",
     "forbiddenSutras": "2.1.97"

@@ -1,6 +1,7 @@
 package dev.panini.ashtadhyayi.adhyaya6.pada1
 
 import dev.panini.core.Lakara
+import dev.panini.core.SamasaType
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
@@ -29,6 +30,9 @@ object HalngyabbhyoSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
+        // Sup in an avyayībhāva is governed by 2.4.82–2.4.83 after the
+        // compound's neuter hrasva; 6.1.68 must not consume that affix first.
+        if (context.effectiveContext.samasaType == SamasaType.AVYAYIBHAVA) return false
         if (context.effectiveContext.rupa.lakara == Lakara.LET &&
             context.allEffectiveTerms.any { it.id == "sip-aorist" } &&
             "3.4.94" !in context.appliedSutras) return false

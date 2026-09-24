@@ -27,6 +27,7 @@ object Adhyaya1Pada1 {
         NaLumatangasyaSutra,
         SarvanamaSutra,
         SvaradiNipatamAvyayamSutra,
+        AvyayibhavasCaSutra,
         AdarsanamLopaSutra,
         PratyayasyaLupSlulopahSutra,
         SasthiSthaneYogaSutra,
