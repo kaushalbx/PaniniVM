@@ -156,6 +156,8 @@ class SamasaEngine(
         transformationResults.forEach { (sutra, result) ->
             if (result == null) return@forEach
             val sutraObj = sutra as Sutra<*, *>
+            val before = currentState
+            currentState = applySamasaRuleResult(currentState, result, sutraObj.number)
             applications.add(
                 DerivationApplication(
                     sutra = sutraObj.number,
@@ -163,7 +165,7 @@ class SamasaEngine(
                     action = sutraObj.action,
                     scope = sutraObj.scope,
                     trace = sutraObj.text,
-                    before = currentState,
+                    before = before,
                     after = currentState,
                     explanation = result.explanation,
                 )
@@ -178,6 +180,8 @@ class SamasaEngine(
         postClassificationSutras.forEach { sutra ->
                 val sutraObj = sutra as Sutra<*, *>
                 val result = sutra.apply(context) as? SamasaRuleResult.Formed
+                val before = currentState
+                if (result != null) currentState = applySamasaRuleResult(currentState, result, sutraObj.number)
                 applications.add(
                     DerivationApplication(
                         sutra = sutraObj.number,
@@ -185,7 +189,7 @@ class SamasaEngine(
                         action = sutraObj.action,
                         scope = sutraObj.scope,
                         trace = sutraObj.text,
-                        before = currentState,
+                        before = before,
                         after = currentState,
                         explanation = result?.explanation ?: sutraObj.text,
                     )
@@ -197,45 +201,19 @@ class SamasaEngine(
         val rawPadasConcat = padasList.joinToString("")
         val hasSamasantaKap = rawStem.endsWith("क") && !rawPadasConcat.endsWith("क")
         val hasPriorStemTransformation = transformationSutras.any { it.samasaPhase == SamasaRulePhase.STEM_TRANSFORMATION }
-        val compoundMembers = padasList.mapIndexed { index, surface ->
-            if (index < padas.lastIndex && type != SamasaType.ALUK_TATPURUSA && surface.endsWith("न्")) {
-                surface.dropLast(2)
-            } else {
-                surface
+        if (type != SamasaType.ALUK_TATPURUSA) {
+            val nLopa = Ashtadhyayi.registry.require("8.2.7") as DerivationSutra
+            while (nLopa.matches(currentState)) {
+                currentState = executeDerivationSutra(nLopa, currentState, applications)
             }
         }
-        if (compoundMembers != padasList) {
-            val nLopa = Ashtadhyayi.registry.require("8.2.7")
-            applications.add(
-                DerivationApplication(
-                    sutra = nLopa.number,
-                    role = nLopa.role,
-                    action = nLopa.action,
-                    scope = nLopa.scope,
-                    trace = nLopa.text,
-                    before = currentState,
-                    after = currentState,
-                    explanation = "8.2.7 deletes final न् from a non-final compound member.",
-                )
-            )
-        }
+        val effectiveMembers = currentState.terms
+            .filter { it.id.startsWith("pada_") }
+            .map { it.surface }
 
-        val sandhiRes = materializeSamasaStem(rawStem, padas, type, hasPriorStemTransformation, applications)
+        val sandhiRes = materializeSamasaStem(rawStem, padas, type, hasPriorStemTransformation, applications, effectiveMembers)
 
-        // 5. Normalize anusvāra parasavarṇa from Sandhi output (e.g. पीतांबर → पीताम्बर)
-        val parasavarnaStem = sandhiRes
-            .replace("ंब", "म्ब")
-            .replace("ंभ", "म्भ")
-            .replace("ंप", "म्प")
-            .replace("ंम", "म्म")
-            .replace("ंव", "म्व")
-        val normalizedStem = parasavarnaStem.replace("हृद्ल", "हृल्ल").replace("हृद्श", "हृच्छ")
-        listOf("8.4.60" to ("हृद्ल" in parasavarnaStem), "8.4.40" to ("हृद्श" in parasavarnaStem)).forEach { (number, applied) ->
-            if (applied) {
-                val sutra = Ashtadhyayi.registry.require(number)
-                applications.add(DerivationApplication(sutra.number,sutra.role,sutra.action,sutra.scope,sutra.text,currentState,currentState,"$number applies at the substituted internal compound boundary."))
-            }
-        }
+        val normalizedStem = normalizeCompoundPhonology(sandhiRes, currentState, applications)
 
         // 9. Decline the compound Prātipadika via SubantaEngine (Pāṇinian Subanta pipeline)
         val collectiveByRule = postClassificationSutras.any { it.number == "2.4.2" || it.number == "2.4.6" }
@@ -248,20 +226,20 @@ class SamasaEngine(
             semanticRelations,
             collectiveByRule,
         )
-        val subantaResult = if (type == SamasaType.AVYAYIBHAVA) null else subantaEngine.derive(
-            SubantaDerivationRequest(normalizedStem, vibhakti, vacana, linga)
+        val subantaResult = subantaEngine.derive(
+            SubantaDerivationRequest(
+                normalizedStem,
+                vibhakti,
+                vacana,
+                linga,
+                compoundHeadUpadesha = padas.last().upadesha,
+                samasaType = type,
+            )
         )
-        subantaResult?.let { applications.addAll(it.applications) }
+        applications.addAll(subantaResult.applications)
 
-        // Avyayībhāvas are indeclinable (2.4.18, 2.4.82); routing every one
-        // through ordinary nominal declension incorrectly produces forms such
-        // as यथाशक्तिः and अनुगङ्गा.  The final -a/-ā member alone takes -am;
-        // compounds ending in -i/-ī/-u/-ū retain that ending.
-        val finalSurface = when {
-            type == SamasaType.AVYAYIBHAVA -> avyayibhavaSurface(normalizedStem)
-            normalizedStem.endsWith("विद्वस्") -> normalizedStem.removeSuffix("विद्वस्") + "विद्वान्"
-            else -> requireNotNull(subantaResult).final.surface
-        }
+        val finalSurface = subantaResult.final.surface
+        val finalSubantaSvara = subantaResult
         val alternatives = optionalAlternatives(
             context=context,
             classificationResult=classificationResult,
@@ -274,11 +252,12 @@ class SamasaEngine(
             primaryStem=normalizedStem,
             primarySurface=finalSurface,
         )
-        val finalTerm = DerivationTerm("samasa_final", finalSurface, TermKind.PRATIPADIKA, upadesha = finalSurface)
         val finalState = currentState.copy(
-            terms = listOf(finalTerm),
+            terms = listOf(DerivationTerm("samasa-final", finalSurface, TermKind.PRATIPADIKA, upadesha = finalSurface)),
             stage = DerivationStage.FINAL,
             appliedSutras = initialState.appliedSutras + applications.map { it.sutra },
+            svaraNimittas = finalSubantaSvara.final.svaraNimittas,
+            svaraAssignments = finalSubantaSvara.final.svaraAssignments,
         )
 
         val resolution = SamasaResolution(
@@ -292,7 +271,7 @@ class SamasaEngine(
             transformationSutras = transformationSutras.map { (it as Sutra<*, *>).number },
             supLopaSutras = applications.map { it.sutra }.filter { it == "2.4.71" }.distinct(),
             sandhiSutras = applications.map { it.sutra }.filter { it.startsWith("6.1.") || it.startsWith("8.") }.distinct(),
-            inflectionSutras = subantaResult?.applications.orEmpty().map { it.sutra }.distinct(),
+            inflectionSutras = subantaResult.applications.map { it.sutra }.distinct(),
             alternatives = alternatives,
             operations = transformationResults.mapNotNull { (sutra,result) -> result?.let {
                 SamasaTransformationOperation(
@@ -310,6 +289,7 @@ class SamasaEngine(
             final = finalState,
             applications = applications,
             events = emptyList(),
+            svaraResult = finalSubantaSvara.svaraResult,
             samasaResolution = resolution,
         )
     }
@@ -368,14 +348,6 @@ class SamasaEngine(
         )
     }
 
-    private fun avyayibhavaSurface(stem: String): String = when {
-        stem.endsWith("ा") -> stem.dropLast(1) + "म्"
-        stem.endsWith("ि") || stem.endsWith("ी") || stem.endsWith("ु") || stem.endsWith("ू") -> stem
-        stem.endsWith("इ") || stem.endsWith("ई") || stem.endsWith("उ") || stem.endsWith("ऊ") -> stem
-        stem.endsWith("म्") -> stem
-        else -> stem + "म्"
-    }
-
     private fun joinCompoundMembers(
         members: List<String>,
         applications: MutableList<DerivationApplication>,
@@ -406,11 +378,11 @@ class SamasaEngine(
         type: SamasaType,
         hasPriorStemTransformation: Boolean,
         applications: MutableList<DerivationApplication>,
+        effectiveMembers: List<String>? = null,
     ): String {
         val rawPadasConcat=padas.joinToString(""){it.upadesha}
         val hasSamasantaKap=rawStem.endsWith("क") && !rawPadasConcat.endsWith("क")
-        val members=padas.mapIndexed { index,pada ->
-            val surface=pada.upadesha
+        val members=(effectiveMembers ?: padas.map { it.upadesha }).mapIndexed { index,surface ->
             if(index<padas.lastIndex && type!=SamasaType.ALUK_TATPURUSA && surface.endsWith("न्")) surface.dropLast(2) else surface
         }
         return if(rawStem.contains(" ")) {
@@ -421,6 +393,61 @@ class SamasaEngine(
         } else if(hasSamasantaKap && hasPriorStemTransformation) rawStem
         else if(rawStem==rawPadasConcat || hasSamasantaKap){ val res=joinCompoundMembers(members,applications); if(hasSamasantaKap){if(res.endsWith("ः"))res.dropLast(1)+"स्क" else res+"क"}else res }
         else rawStem
+    }
+
+    /** Apply internal compound phonology through registered derivation rules. */
+    private fun normalizeCompoundPhonology(
+        stem: String,
+        template: DerivationState,
+        applications: MutableList<DerivationApplication>,
+    ): String {
+        var state = template.copy(
+            terms = listOf(
+                DerivationTerm(
+                    id = "samasa-stem",
+                    surface = stem,
+                    kind = TermKind.PRATIPADIKA,
+                    upadesha = stem,
+                ),
+            ),
+            stage = DerivationStage.PADA_FORMED,
+        )
+        for (number in listOf("8.4.58", "8.4.40", "8.4.60")) {
+            val rule = Ashtadhyayi.registry.require(number) as DerivationSutra
+            while (rule.matches(state)) {
+                state = executeDerivationSutra(rule, state, applications)
+            }
+        }
+        return state.terms.single().surface
+    }
+
+    private fun applySamasaRuleResult(
+        state: DerivationState,
+        result: SamasaRuleResult.Formed,
+        sutra: String,
+    ): DerivationState {
+        var changed = state
+        result.memberEdits.forEach { (index, replacement) ->
+            val term = changed.terms.getOrNull(index) ?: return@forEach
+            if (term.surface != replacement) {
+                changed = changed.replaceWholeTermSurface(term.id, replacement, sutra)
+            }
+        }
+        result.samasantaSuffix?.takeIf { it.isNotEmpty() }?.let { suffix ->
+            val id = "samasanta-$sutra"
+            if (changed.terms.none { it.id == id }) {
+                changed = changed.addTerm(
+                    DerivationTerm(id, suffix, TermKind.PRATYAYA, upadesha = suffix, createdBySutra = sutra),
+                )
+            }
+        }
+        if (result.wholeStemOverride) {
+            val first = changed.terms.first()
+            changed = changed.replaceWholeTermSurface(first.id, result.compoundStem, sutra)
+            val replacement = changed.terms.first().copy(upadesha = result.compoundStem)
+            changed = changed.copy(terms = listOf(replacement))
+        }
+        return changed
     }
 
     private fun optionalAlternatives(
@@ -463,14 +490,28 @@ class SamasaEngine(
             }
             val scratch=mutableListOf<DerivationApplication>()
             val rawBranch=branchWhole?.plus(branchSuffix) ?: branchMembers.joinToString(" ")+branchSuffix
-            val stem=materializeSamasaStem(rawBranch,padas,type,retained.any { it.samasaPhase==SamasaRulePhase.STEM_TRANSFORMATION },scratch)
-                .replace("ंब","म्ब").replace("ंभ","म्भ").replace("ंप","म्प").replace("ंम","म्म").replace("ंव","म्व")
-                .replace("हृद्ल","हृल्ल").replace("हृद्श","हृच्छ")
-            val surface=when {
-                type==SamasaType.AVYAYIBHAVA -> avyayibhavaSurface(stem)
-                stem.endsWith("विद्वस्") -> stem.removeSuffix("विद्वस्")+"विद्वान्"
-                else -> subantaEngine.derive(SubantaDerivationRequest(stem,vibhakti,vacana,linga)).final.surface
-            }
+            val materialized = materializeSamasaStem(
+                rawBranch,
+                padas,
+                type,
+                retained.any { it.samasaPhase == SamasaRulePhase.STEM_TRANSFORMATION },
+                scratch,
+            )
+            val stem = normalizeCompoundPhonology(
+                materialized,
+                DerivationState(listOf(DerivationTerm("samasa-alternative", materialized, TermKind.PRATIPADIKA))),
+                scratch,
+            )
+            val surface = subantaEngine.derive(
+                SubantaDerivationRequest(
+                    stem,
+                    vibhakti,
+                    vacana,
+                    linga,
+                    compoundHeadUpadesha = padas.last().upadesha,
+                    samasaType = type,
+                ),
+            ).final.surface
             SamasaAlternative(stem,surface,retained.map { it.number })
         }
         return (listOf(SamasaAlternative(primaryStem,primarySurface,selected.map { it.number }))+branches)

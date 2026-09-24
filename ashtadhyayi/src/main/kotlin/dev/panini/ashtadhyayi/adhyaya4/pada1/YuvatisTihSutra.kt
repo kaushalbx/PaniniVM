@@ -39,6 +39,7 @@ object YuvatisTihSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
+        val stem = context.terms.first { it.kind == TermKind.PRATIPADIKA }
         val tiTerm = DerivationTerm(
             id = "ti_pratyaya",
             surface = "ति",
@@ -46,9 +47,10 @@ object YuvatisTihSutra : Sutra<DerivationState, DerivationChange>(
             upadesha = "ति",
             createdBySutra = sutra,
         )
+        val changed = context.substituteTermSurface(stem.id, stem.surface.removeSuffix("न्"), 'न', "", sutra)
         return DerivationChange(
-            state = context.copy(
-                terms = context.terms + tiTerm,
+            state = changed.copy(
+                terms = changed.terms + tiTerm,
                 stage = DerivationStage.PRATYAYA_SELECTED,
             ),
             explanation = "4.1.74 introduces feminine suffix ति (ति)."

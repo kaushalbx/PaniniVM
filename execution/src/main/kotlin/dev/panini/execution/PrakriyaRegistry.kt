@@ -137,7 +137,7 @@ class PrakriyaRegistry {
     fun detectInvocation(
         ukti: dev.panini.vyakaranam.ast.Ukti,
         callerSourceFile: String? = null,
-        injectedKarman: Pair<String, SanskritValue?>? = null,
+        injectedKarman: InjectedKarmanBinding? = null,
     ): PrakriyaInvocation? {
         if (registry.isEmpty()) return null
 
@@ -146,13 +146,13 @@ class PrakriyaRegistry {
             PrakriyaInvocationMatcher.normalizeIdentity(it.nameStem)
         }
         val shape = PrakriyaInvocationMatcher.match(ukti, knownStems) ?: return null
-        val injectedText = injectedKarman?.first?.let { "$it + अम्" }.orEmpty()
+        val injectedText = injectedKarman?.reference?.let { "$it + अम्" }.orEmpty()
         val karmaText = listOf(injectedText, shape.karmaText)
             .filter(String::isNotBlank)
             .joinToString(" ")
         val writtenPadas = shape.argumentPadas.filter(Pada::isAccusative)
         val writtenTerms = writtenPadas.map(Pada::argumentTerm)
-        val argumentTerms = listOfNotNull(injectedKarman?.first) + writtenTerms
+        val argumentTerms = listOfNotNull(injectedKarman?.reference) + writtenTerms
         val candidates = allKriyas.sortedWith(
             compareByDescending<Prakriya> { it.precedence.rank }
                 .thenByDescending {
@@ -179,11 +179,11 @@ class PrakriyaRegistry {
             fullText = ukti.sourceText,
             ukti = ukti,
             argumentValues =
-                (if (injectedKarman != null) listOf(injectedKarman.second) else emptyList()) +
+                (if (injectedKarman != null) listOf(injectedKarman.value) else emptyList()) +
                     List(writtenTerms.size) { null },
             arguments =
-                listOfNotNull(injectedKarman?.let { (term, value) ->
-                    PrakriyaArgument(term, value = value, origin = PrakriyaArgumentOrigin.PIPE)
+                listOfNotNull(injectedKarman?.let { injected ->
+                    PrakriyaArgument(injected.reference, value = injected.value, origin = PrakriyaArgumentOrigin.PIPE)
                 }) + writtenPadas.map { pada ->
                     PrakriyaArgument(
                         term = pada.argumentTerm(),

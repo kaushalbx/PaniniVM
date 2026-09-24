@@ -10,5 +10,6 @@ object Adhyaya1Pada2 {
         PrathamanirdistamSamasaUpasarjanamSutra,
         ArthavadAdhaturSutra,
         KrtTaddhitaSamasascaSutra,
+        HrasvoNapumsakePratipadikasyaSutra,
     )
 }

@@ -2,9 +2,17 @@ package dev.panini.execution
 
 import dev.panini.vyakaranam.ast.PrakriyaPrecedence
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 
 /** Discovers project sources and registers their reusable grammatical declarations. */
-internal class PvmProjectLoader {
+internal class PvmProjectLoader(private val metrics: ExecutionMetrics? = null) {
+    private data class CachedSource(
+        val lastModified: Long,
+        val length: Long,
+        val statements: List<PvmScriptStatement>,
+    )
+
+    private val parsedLibraries = ConcurrentHashMap<String, CachedSource>()
     fun registerDeclarations(
         registry: PrakriyaRegistry,
         statements: List<PvmScriptStatement>,
@@ -42,14 +50,38 @@ internal class PvmProjectLoader {
             .filter { it.isFile && it.extension == "pvm" && it.canonicalPath != entryFile.canonicalPath }
             .sortedBy(File::getName)
             .forEach { library ->
+                val parsed = parsedLibrary(library) ?: return@forEach
                 registerDeclarations(
                     registry,
-                    PvmScript.parse(library.readText()),
+                    parsed,
                     sourceFile = library.name,
                     includeExecutionModifiers = false,
                 )
             }
         return registry
+    }
+
+    private fun parsedLibrary(library: File): List<PvmScriptStatement>? {
+        val path = library.canonicalPath
+        val modified = library.lastModified()
+        val length = library.length()
+        parsedLibraries[path]?.takeIf { it.lastModified == modified && it.length == length }?.let {
+            metrics?.recordProjectCacheHit()
+            return it.statements
+        }
+        val source = runCatching { library.readText() }.getOrNull() ?: return null
+        val parsed = PvmScript.parse(source)
+        parsedLibraries[path] = CachedSource(modified, length, parsed)
+        metrics?.recordProjectCacheMiss()
+        metrics?.recordParsedFile()
+        metrics?.recordParsedSentences(parsed.sumOf { statement ->
+            when (statement) {
+                is PvmScriptStatement.Sentence -> 1
+                is PvmScriptStatement.PrakriyaDefinition -> statement.body.size
+                is PvmScriptStatement.AdhikaraDefinition, is PvmScriptStatement.RangeDefinition -> 0
+            }
+        })
+        return parsed
     }
 
     fun hasSiblingSource(file: File): Boolean {

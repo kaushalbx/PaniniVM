@@ -5,6 +5,7 @@ import dev.panini.core.Linga
 import dev.panini.core.ItMarker
 import dev.panini.core.NominalCategory
 import dev.panini.core.Prayoga
+import dev.panini.core.SamasaType
 import dev.panini.core.Vacana
 import dev.panini.core.Vibhakti
 import dev.panini.analysis.SemanticRelation
@@ -20,6 +21,9 @@ data class SubantaDerivationRequest(
     val vacana: Vacana,
     val linga: Linga = Linga.PUMS,
     val stemFormation: NominalStemFormation = NominalStemFormation.UNSPECIFIED,
+    /** Underlying lexical head when [pratipadika] is a compound surface. */
+    val compoundHeadUpadesha: String? = null,
+    val samasaType: SamasaType? = null,
 ) {
     init {
         require(pratipadika.isNotBlank()) { "A prātipadika is required." }
@@ -33,10 +37,12 @@ data class SubantaDerivationRequest(
                 TermKind.PRATIPADIKA,
                 itMarkers = stemFormation.retainedItMarkers,
                 establishedBySutras = stemFormation.establishedBySutras,
+                compoundHeadUpadesha = compoundHeadUpadesha,
             ),
         ),
         context = DerivationalContext(
             rupa = Rupa(linga = linga, vibhakti = vibhakti, vacana = vacana),
+            samasaType = samasaType,
         ),
     )
 }

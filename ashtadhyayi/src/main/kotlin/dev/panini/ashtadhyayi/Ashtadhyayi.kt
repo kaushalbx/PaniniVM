@@ -143,12 +143,12 @@ object Ashtadhyayi {
         }
     fun krdantaSutrasAt(stage: SutraStage): List<DerivationSutra> = krdantaSutras.at(stage)
     fun striPratyayaSutrasAt(stage: SutraStage): List<DerivationSutra> =
-        if (stage == SutraStage.IT_PROCESSING) {
-            executableSutrasAt(stage).filter { sutra ->
+        when (stage) {
+            SutraStage.PRATYAYA_SELECTION -> striPratyayaSutras.at(stage)
+            SutraStage.IT_PROCESSING -> executableSutrasAt(stage).filter { sutra ->
                 (sutra as? Sutra<*, *>)?.let { it.chapter == 1 && it.pada == 3 } == true
             }
-        } else {
-            striPratyayaSutras.at(stage)
+            else -> executableSutrasAt(stage)
         }
 
     fun requireExecutable(number: String): DerivationSutra =

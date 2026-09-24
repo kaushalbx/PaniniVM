@@ -1,5 +1,6 @@
 package dev.panini.ashtadhyayi.adhyaya1
 
+import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.ashtadhyayi.adhyaya1.pada1.KtaKtavatuNisthaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada1.TaparasTatKalasyaSutra
 import dev.panini.ashtadhyayi.adhyaya1.pada2.ArthavadAdhaturSutra
@@ -29,6 +30,16 @@ class SamjnaSutrasTest {
     fun testKtaKtavatuNisthaSutra() {
         val state = DerivationState(terms = listOf(DerivationTerm("affix", "क्त", TermKind.PRATYAYA, upadesha = "क्त")))
         assertTrue(KtaKtavatuNisthaSutra.matches(state))
+    }
+
+    @Test
+    fun `nistha designation and affix prescription retain separate canonical identities`() {
+        val designation = Ashtadhyayi.registry.sutras.filter { it.number == "1.1.26" }
+        val prescription = Ashtadhyayi.registry.sutras.filter { it.number == "3.2.102" }
+        assertEquals(1, designation.size)
+        assertEquals("क्तक्तवतू निष्ठा", designation.single().text)
+        assertEquals(1, prescription.size)
+        assertEquals("निष्ठा", prescription.single().text)
     }
 
     @Test

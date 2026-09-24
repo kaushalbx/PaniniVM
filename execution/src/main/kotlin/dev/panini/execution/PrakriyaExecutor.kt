@@ -15,7 +15,6 @@ internal class PrakriyaExecutor {
             program: ProgramNode,
             scope: ExecutionScope,
             sourceFile: String?,
-            sourceText: String,
         ) -> List<ExecutionResult>,
     )
 
@@ -55,7 +54,7 @@ internal class PrakriyaExecutor {
                 val boundProgram = PrakriyaAstArgumentBinder.bind(
                     program, signature.parameters, callFrame.arguments.size,
                 )
-                results += request.executeBody(boundProgram, callFrame.localScope, sourceFile, sentence.text)
+                results += request.executeBody(boundProgram, callFrame.localScope, sourceFile)
             }
             if (results.any {
                     it is ExecutionResult.Success && it.controlSignal == ExecutionControlSignal.BREAK_LOOP

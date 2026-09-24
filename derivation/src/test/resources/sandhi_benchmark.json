@@ -1,0 +1,582 @@
+[
+  {
+    "id": "SANDHI_001",
+    "name": "6.1.101 savarna dirgha after implicit a",
+    "left": "राम",
+    "right": "अवतार",
+    "expected": "रामावतार",
+    "requiredSutras": "6.1.101",
+    "forbiddenSutras": "6.1.97"
+  },
+  {
+    "id": "SANDHI_002",
+    "name": "6.1.101 savarna dirgha in grishma-artuh",
+    "left": "ग्रीष्म",
+    "right": "अर्तुः",
+    "expected": "ग्रीष्मार्तुः",
+    "requiredSutras": "6.1.101",
+    "forbiddenSutras": "6.1.87,6.1.97"
+  },
+  {
+    "id": "SANDHI_003",
+    "name": "6.1.101 savarna dirgha in mama-arnam",
+    "left": "मम",
+    "right": "अर्णम्",
+    "expected": "ममार्णम्",
+    "requiredSutras": "6.1.101",
+    "forbiddenSutras": "6.1.87,6.1.97"
+  },
+  {
+    "id": "SANDHI_004",
+    "name": "6.1.87 guna of vocalic r after implicit a",
+    "left": "ग्रीष्म",
+    "right": "ऋतुः",
+    "expected": "ग्रीष्मर्तुः",
+    "requiredSutras": "6.1.87",
+    "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_005",
+    "name": "6.1.109 purvarupa after pada-final e",
+    "left": "हरे",
+    "right": "अस्ति",
+    "expected": "हरेऽस्ति",
+    "requiredSutras": "6.1.109",
+    "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_006",
+    "name": "8.3.23 anusvara and 8.4.59 optional padanta parasavarna",
+    "left": "सम्",
+    "right": "करोति",
+    "expected": "सङ्करोति",
+    "requiredSutras": "8.3.23,8.4.59",
+    "forbiddenSutras": ""
+  },
+  {
+    "id": "SANDHI_007", "name": "vidya plus alaya", "left": "विद्या", "right": "आलयः",
+    "expected": "विद्यालयः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87"
+  },
+  {
+    "id": "SANDHI_008", "name": "hima plus acala", "left": "हिम", "right": "अचलः",
+    "expected": "हिमाचलः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87"
+  },
+  {
+    "id": "SANDHI_009", "name": "dharma plus artha", "left": "धर्म", "right": "अर्थः",
+    "expected": "धर्मार्थः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87"
+  },
+  {
+    "id": "SANDHI_010", "name": "deva plus alaya", "left": "देव", "right": "आलयः",
+    "expected": "देवालयः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87"
+  },
+  {
+    "id": "SANDHI_011", "name": "shiva plus alaya", "left": "शिव", "right": "आलयः",
+    "expected": "शिवालयः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87"
+  },
+  {
+    "id": "SANDHI_012", "name": "kavi plus isha", "left": "कवि", "right": "ईशः",
+    "expected": "कवीशः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.77"
+  },
+  {
+    "id": "SANDHI_013", "name": "muni plus ishvara", "left": "मुनि", "right": "ईश्वरः",
+    "expected": "मुनीश्वरः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.77"
+  },
+  {
+    "id": "SANDHI_014", "name": "giri plus isha", "left": "गिरि", "right": "ईशः",
+    "expected": "गिरीशः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.77"
+  },
+  {
+    "id": "SANDHI_015", "name": "guru plus upadesha", "left": "गुरु", "right": "उपदेशः",
+    "expected": "गुरूपदेशः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.77"
+  },
+  {
+    "id": "SANDHI_016", "name": "bhanu plus udaya", "left": "भानु", "right": "उदयः",
+    "expected": "भानूदयः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.77"
+  },
+  {
+    "id": "SANDHI_017", "name": "vadhu plus utsava", "left": "वधू", "right": "उत्सवः",
+    "expected": "वधूत्सवः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.77"
+  },
+  {
+    "id": "SANDHI_018", "name": "nara plus indra", "left": "नर", "right": "इन्द्रः",
+    "expected": "नरेन्द्रः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_019", "name": "deva plus isha", "left": "देव", "right": "ईशः",
+    "expected": "देवेशः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_020", "name": "gana plus isha", "left": "गण", "right": "ईशः",
+    "expected": "गणेशः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_021", "name": "maha plus ishvara", "left": "महा", "right": "ईश्वरः",
+    "expected": "महेश्वरः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_022", "name": "sura plus isha", "left": "सुर", "right": "ईशः",
+    "expected": "सुरेशः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_023", "name": "loka plus upakara", "left": "लोक", "right": "उपकारः",
+    "expected": "लोकोपकारः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_024", "name": "surya plus udaya", "left": "सूर्य", "right": "उदयः",
+    "expected": "सूर्योदयः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_025", "name": "hita plus upadesha", "left": "हित", "right": "उपदेशः",
+    "expected": "हितोपदेशः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_026", "name": "maha plus utsava", "left": "महा", "right": "उत्सवः",
+    "expected": "महोत्सवः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_027", "name": "deva plus rishi", "left": "देव", "right": "ऋषिः",
+    "expected": "देवर्षिः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_028", "name": "raja plus rishi", "left": "राज", "right": "ऋषिः",
+    "expected": "राजर्षिः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_029", "name": "brahma plus rishi", "left": "ब्रह्म", "right": "ऋषिः",
+    "expected": "ब्रह्मर्षिः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_030", "name": "sada plus eva", "left": "सदा", "right": "एव",
+    "expected": "सदैव", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87"
+  },
+  {
+    "id": "SANDHI_031", "name": "tatha plus eva", "left": "तथा", "right": "एव",
+    "expected": "तथैव", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87"
+  },
+  {
+    "id": "SANDHI_032", "name": "eka plus ekam", "left": "एक", "right": "एकम्",
+    "expected": "एकैकम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87"
+  },
+  {
+    "id": "SANDHI_033", "name": "mata plus aikya", "left": "मत", "right": "ऐक्यम्",
+    "expected": "मतैक्यम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87"
+  },
+  {
+    "id": "SANDHI_034", "name": "jala plus ogha", "left": "जल", "right": "ओघः",
+    "expected": "जलौघः", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87"
+  },
+  {
+    "id": "SANDHI_035", "name": "maha plus aushadha", "left": "महा", "right": "औषधम्",
+    "expected": "महौषधम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87"
+  },
+  {
+    "id": "SANDHI_036", "name": "vana plus aushadhi", "left": "वन", "right": "औषधिः",
+    "expected": "वनौषधिः", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87"
+  },
+  {
+    "id": "SANDHI_037", "name": "iti plus adi", "left": "इति", "right": "आदि",
+    "expected": "इत्यादि", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_038", "name": "yadi plus api", "left": "यदि", "right": "अपि",
+    "expected": "यद्यपि", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_039", "name": "ati plus acara", "left": "अति", "right": "आचारः",
+    "expected": "अत्याचारः", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_040", "name": "prati plus ekam", "left": "प्रति", "right": "एकम्",
+    "expected": "प्रत्येकम्", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_041", "name": "abhi plus udaya", "left": "अभि", "right": "उदयः",
+    "expected": "अभ्युदयः", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_042", "name": "ni plus una", "left": "नि", "right": "ऊनम्",
+    "expected": "न्यूनम्", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_043", "name": "su plus agata", "left": "सु", "right": "आगतम्",
+    "expected": "स्वागतम्", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_044", "name": "anu plus aya", "left": "अनु", "right": "अयः",
+    "expected": "अन्वयः", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_045", "name": "anu plus eshana", "left": "अनु", "right": "एषणम्",
+    "expected": "अन्वेषणम्", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_046", "name": "madhu plus ari", "left": "मधु", "right": "अरिः",
+    "expected": "मध्वरिः", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_047", "name": "te plus api", "left": "ते", "right": "अपि",
+    "expected": "तेऽपि", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_048", "name": "hare plus ava", "left": "हरे", "right": "अव",
+    "expected": "हरेऽव", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_049", "name": "prabho plus anugrihana", "left": "प्रभो", "right": "अनुगृहाण",
+    "expected": "प्रभोऽनुगृहाण", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_050", "name": "guro plus astu", "left": "गुरो", "right": "अस्तु",
+    "expected": "गुरोऽस्तु", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_051", "name": "pustaka plus alaya", "left": "पुस्तक", "right": "आलयः",
+    "expected": "पुस्तकालयः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87"
+  },
+  {
+    "id": "SANDHI_052", "name": "deva plus arcana", "left": "देव", "right": "अर्चना",
+    "expected": "देवार्चना", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87"
+  },
+  {
+    "id": "SANDHI_053", "name": "loka plus acara", "left": "लोक", "right": "आचारः",
+    "expected": "लोकाचारः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87"
+  },
+  {
+    "id": "SANDHI_054", "name": "daya plus ananda", "left": "दया", "right": "आनन्दः",
+    "expected": "दयानन्दः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87"
+  },
+  {
+    "id": "SANDHI_055", "name": "vidya plus arthi", "left": "विद्या", "right": "अर्थी",
+    "expected": "विद्यार्थी", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87"
+  },
+  {
+    "id": "SANDHI_056", "name": "kavi plus ishvara", "left": "कवि", "right": "ईश्वरः",
+    "expected": "कवीश्वरः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.77"
+  },
+  {
+    "id": "SANDHI_057", "name": "devi plus iccha", "left": "देवी", "right": "इच्छा",
+    "expected": "देवीच्छा", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.77"
+  },
+  {
+    "id": "SANDHI_058", "name": "sadhu plus ukti", "left": "साधु", "right": "उक्तिः",
+    "expected": "साधूक्तिः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.77"
+  },
+  {
+    "id": "SANDHI_059", "name": "laghu plus uttara", "left": "लघु", "right": "उत्तरम्",
+    "expected": "लघूत्तरम्", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.77"
+  },
+  {
+    "id": "SANDHI_060", "name": "vadhu plus urmi", "left": "वधू", "right": "ऊर्मिः",
+    "expected": "वधूर्मिः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.77"
+  },
+  {
+    "id": "SANDHI_061", "name": "nara plus isha", "left": "नर", "right": "ईशः",
+    "expected": "नरेशः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_062", "name": "shastra plus udaya", "left": "शास्त्र", "right": "उदयः",
+    "expected": "शास्त्रोदयः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_063", "name": "dharma plus upadesha", "left": "धर्म", "right": "उपदेशः",
+    "expected": "धर्मोपदेशः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_064", "name": "purusha plus uttama", "left": "पुरुष", "right": "उत्तमः",
+    "expected": "पुरुषोत्तमः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_065", "name": "maha plus udaya", "left": "महा", "right": "उदयः",
+    "expected": "महोदयः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_066", "name": "maha plus rishi", "left": "महा", "right": "ऋषिः",
+    "expected": "महर्षिः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_067", "name": "tapa plus rishi", "left": "तप", "right": "ऋषिः",
+    "expected": "तपर्षिः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_068", "name": "brahma plus utsava", "left": "ब्रह्म", "right": "उत्सवः",
+    "expected": "ब्रह्मोत्सवः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_069", "name": "katha plus upakatha", "left": "कथा", "right": "उपकथा",
+    "expected": "कथोपकथा", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_070", "name": "ganga plus udaka", "left": "गङ्गा", "right": "उदकम्",
+    "expected": "गङ्गोदकम्", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_071", "name": "yatha plus ucita", "left": "यथा", "right": "उचितम्",
+    "expected": "यथोचितम्", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_072", "name": "hita plus iccha", "left": "हित", "right": "इच्छा",
+    "expected": "हितेच्छा", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_073", "name": "tada plus eva", "left": "तदा", "right": "एव",
+    "expected": "तदैव", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87"
+  },
+  {
+    "id": "SANDHI_074", "name": "yada plus eva", "left": "यदा", "right": "एव",
+    "expected": "यदैव", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87"
+  },
+  {
+    "id": "SANDHI_075", "name": "kada plus eva", "left": "कदा", "right": "एव",
+    "expected": "कदैव", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87"
+  },
+  {
+    "id": "SANDHI_076", "name": "maha plus aishvarya", "left": "महा", "right": "ऐश्वर्यम्",
+    "expected": "महैश्वर्यम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87"
+  },
+  {
+    "id": "SANDHI_077", "name": "dharma plus aikya", "left": "धर्म", "right": "ऐक्यम्",
+    "expected": "धर्मैक्यम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87"
+  },
+  {
+    "id": "SANDHI_078", "name": "maha plus ojas", "left": "महा", "right": "ओजः",
+    "expected": "महौजः", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87"
+  },
+  {
+    "id": "SANDHI_079", "name": "maha plus audarya", "left": "महा", "right": "औदार्यम्",
+    "expected": "महौदार्यम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87"
+  },
+  {
+    "id": "SANDHI_080", "name": "parama plus aushadha", "left": "परम", "right": "औषधम्",
+    "expected": "परमौषधम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87"
+  },
+  {
+    "id": "SANDHI_081", "name": "iti plus artha", "left": "इति", "right": "अर्थः",
+    "expected": "इत्यर्थः", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_082", "name": "ati plus avashyaka", "left": "अति", "right": "आवश्यकम्",
+    "expected": "अत्यावश्यकम्", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_083", "name": "ati plus uttama", "left": "अति", "right": "उत्तमः",
+    "expected": "अत्युत्तमः", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_084", "name": "prati plus uttara", "left": "प्रति", "right": "उत्तरम्",
+    "expected": "प्रत्युत्तरम्", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_085", "name": "prati plus asha", "left": "प्रति", "right": "आशा",
+    "expected": "प्रत्याशा", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_086", "name": "abhi plus agata", "left": "अभि", "right": "आगतम्",
+    "expected": "अभ्यागतम्", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_087", "name": "pari plus atana", "left": "परि", "right": "अटनम्",
+    "expected": "पर्यटनम्", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_088", "name": "anu plus adesha", "left": "अनु", "right": "आदेशः",
+    "expected": "अन्वादेशः", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_089", "name": "su plus asti", "left": "सु", "right": "अस्ति",
+    "expected": "स्वस्ति", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_090", "name": "bahu plus artha", "left": "बहु", "right": "अर्थः",
+    "expected": "बह्वर्थः", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_091", "name": "rame plus asti", "left": "रामे", "right": "अस्ति",
+    "expected": "रामेऽस्ति", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_092", "name": "vane plus asti", "left": "वने", "right": "अस्ति",
+    "expected": "वनेऽस्ति", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_093", "name": "grihe plus api", "left": "गृहे", "right": "अपि",
+    "expected": "गृहेऽपि", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_094", "name": "grame plus adya", "left": "ग्रामे", "right": "अद्य",
+    "expected": "ग्रामेऽद्य", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_095", "name": "shive plus arcana", "left": "शिवे", "right": "अर्चना",
+    "expected": "शिवेऽर्चना", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_096", "name": "sadho plus atra", "left": "साधो", "right": "अत्र",
+    "expected": "साधोऽत्र", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_097", "name": "bho plus atra", "left": "भो", "right": "अत्र",
+    "expected": "भोऽत्र", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_098", "name": "aho plus adbhuta", "left": "अहो", "right": "अद्भुतम्",
+    "expected": "अहोऽद्भुतम्", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_099", "name": "vishno plus ava", "left": "विष्णो", "right": "अव",
+    "expected": "विष्णोऽव", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101"
+  },
+  {
+    "id": "SANDHI_100", "name": "guro plus anugraha", "left": "गुरो", "right": "अनुग्रहः",
+    "expected": "गुरोऽनुग्रहः", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101"
+  },
+  { "id": "SANDHI_101", "name": "veda plus adhyayana", "left": "वेद", "right": "अध्ययनम्", "expected": "वेदाध्ययनम्", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_102", "name": "shoka plus agni", "left": "शोक", "right": "अग्निः", "expected": "शोकाग्निः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_103", "name": "pada plus artha", "left": "पद", "right": "अर्थः", "expected": "पदार्थः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_104", "name": "loka plus artha", "left": "लोक", "right": "अर्थः", "expected": "लोकार्थः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_105", "name": "dharma plus ashraya", "left": "धर्म", "right": "आश्रयः", "expected": "धर्माश्रयः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_106", "name": "maha plus atma", "left": "महा", "right": "आत्मा", "expected": "महात्मा", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_107", "name": "katha plus amrita", "left": "कथा", "right": "अमृतम्", "expected": "कथामृतम्", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_108", "name": "seva plus ashrama", "left": "सेवा", "right": "आश्रमः", "expected": "सेवाश्रमः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_109", "name": "sima plus atikrama", "left": "सीमा", "right": "अतिक्रमः", "expected": "सीमातिक्रमः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_110", "name": "sena plus adhipati", "left": "सेना", "right": "अधिपतिः", "expected": "सेनाधिपतिः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_111", "name": "nara plus ishvara", "left": "नर", "right": "ईश्वरः", "expected": "नरेश्वरः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_112", "name": "parama plus ishvara", "left": "परम", "right": "ईश्वरः", "expected": "परमेश्वरः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_113", "name": "yoga plus ishvara", "left": "योग", "right": "ईश्वरः", "expected": "योगेश्वरः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_114", "name": "dharma plus udaya", "left": "धर्म", "right": "उदयः", "expected": "धर्मोदयः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_115", "name": "shubha plus udaya", "left": "शुभ", "right": "उदयः", "expected": "शुभोदयः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_116", "name": "purva plus uttara", "left": "पूर्व", "right": "उत्तरम्", "expected": "पूर्वोत्तरम्", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_117", "name": "maha plus upakara", "left": "महा", "right": "उपकारः", "expected": "महोपकारः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_118", "name": "yatha plus ishta", "left": "यथा", "right": "इष्टम्", "expected": "यथेष्टम्", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_119", "name": "sapta plus rishaya", "left": "सप्त", "right": "ऋषयः", "expected": "सप्तर्षयः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_120", "name": "loka plus utsava", "left": "लोक", "right": "उत्सवः", "expected": "लोकोत्सवः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_121", "name": "adya plus eva", "left": "अद्य", "right": "एव", "expected": "अद्यैव", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_122", "name": "sarvada plus eva", "left": "सर्वदा", "right": "एव", "expected": "सर्वदैव", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_123", "name": "na plus eva", "left": "न", "right": "एव", "expected": "नैव", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_124", "name": "eka plus eva", "left": "एक", "right": "एव", "expected": "एकैव", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_125", "name": "loka plus aishvarya", "left": "लोक", "right": "ऐश्वर्यम्", "expected": "लोकैश्वर्यम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_126", "name": "maha plus aikya", "left": "महा", "right": "ऐक्यम्", "expected": "महैक्यम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_127", "name": "ganga plus ogha", "left": "गङ्गा", "right": "ओघः", "expected": "गङ्गौघः", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_128", "name": "maha plus aushadhi", "left": "महा", "right": "औषधिः", "expected": "महौषधिः", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_129", "name": "parama plus audarya", "left": "परम", "right": "औदार्यम्", "expected": "परमौदार्यम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_130", "name": "divya plus aushadha", "left": "दिव्य", "right": "औषधम्", "expected": "दिव्यौषधम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_131", "name": "iti plus eva", "left": "इति", "right": "एव", "expected": "इत्येव", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_132", "name": "iti plus ukta", "left": "इति", "right": "उक्तम्", "expected": "इत्युक्तम्", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_133", "name": "adhi plus ayana", "left": "अधि", "right": "अयनम्", "expected": "अध्ययनम्", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_134", "name": "adhi plus atma", "left": "अधि", "right": "आत्मम्", "expected": "अध्यात्मम्", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_135", "name": "prati plus ahas", "left": "प्रति", "right": "अहः", "expected": "प्रत्यहः", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_136", "name": "prati plus agamana", "left": "प्रति", "right": "आगमनम्", "expected": "प्रत्यागमनम्", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_137", "name": "vi plus akarana", "left": "वि", "right": "आकरणम्", "expected": "व्याकरणम्", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_138", "name": "vi plus aya", "left": "वि", "right": "अयः", "expected": "व्ययः", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_139", "name": "abhi plus arthana", "left": "अभि", "right": "अर्थना", "expected": "अभ्यर्थना", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_140", "name": "anu plus ikshana", "left": "अनु", "right": "ईक्षणम्", "expected": "अन्वीक्षणम्", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_141", "name": "deve plus asti", "left": "देवे", "right": "अस्ति", "expected": "देवेऽस्ति", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_142", "name": "pustake plus api", "left": "पुस्तके", "right": "अपि", "expected": "पुस्तकेऽपि", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_143", "name": "kshetre plus adya", "left": "क्षेत्रे", "right": "अद्य", "expected": "क्षेत्रेऽद्य", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_144", "name": "nagare plus atra", "left": "नगरे", "right": "अत्र", "expected": "नगरेऽत्र", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_145", "name": "vidyalaye plus adhyayana", "left": "विद्यालये", "right": "अध्ययनम्", "expected": "विद्यालयेऽध्ययनम्", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_146", "name": "prabho plus astu", "left": "प्रभो", "right": "अस्तु", "expected": "प्रभोऽस्तु", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_147", "name": "guro plus api", "left": "गुरो", "right": "अपि", "expected": "गुरोऽपि", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_148", "name": "vishno plus atra", "left": "विष्णो", "right": "अत्र", "expected": "विष्णोऽत्र", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_149", "name": "sadho plus ava", "left": "साधो", "right": "अव", "expected": "साधोऽव", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_150", "name": "aho plus adbhutam", "left": "अहो", "right": "अद्भुतम्", "expected": "अहोऽद्भुतम्", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_151", "name": "asha plus aloka", "left": "आशा", "right": "आलोकः", "expected": "आशालोकः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_152", "name": "kala plus alaya", "left": "कला", "right": "आलयः", "expected": "कलालयः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_153", "name": "sabha plus adhyaksha", "left": "सभा", "right": "अध्यक्षः", "expected": "सभाध्यक्षः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_154", "name": "raja plus adhikara", "left": "राज", "right": "अधिकारः", "expected": "राजाधिकारः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_155", "name": "jana plus adesha", "left": "जन", "right": "आदेशः", "expected": "जनादेशः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_156", "name": "shabda plus artha", "left": "शब्द", "right": "अर्थः", "expected": "शब्दार्थः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_157", "name": "mula plus artha", "left": "मूल", "right": "अर्थः", "expected": "मूलार्थः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_158", "name": "satya plus artha", "left": "सत्य", "right": "अर्थः", "expected": "सत्यार्थः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_159", "name": "maha plus arghya", "left": "महा", "right": "अर्घ्यम्", "expected": "महार्घ्यम्", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_160", "name": "kripa plus acarya", "left": "कृपा", "right": "आचार्यः", "expected": "कृपाचार्यः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_161", "name": "grama plus adhikari", "left": "ग्राम", "right": "अधिकारी", "expected": "ग्रामाधिकारी", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_162", "name": "nyaya plus adhisha", "left": "न्याय", "right": "अधीशः", "expected": "न्यायाधीशः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_163", "name": "desha plus adhyaksha", "left": "देश", "right": "अध्यक्षः", "expected": "देशाध्यक्षः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_164", "name": "kavi plus ishvari", "left": "कवि", "right": "ईश्वरी", "expected": "कवीश्वरी", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.77" },
+  { "id": "SANDHI_165", "name": "nadi plus ishvara", "left": "नदी", "right": "ईश्वरः", "expected": "नदीश्वरः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.77" },
+  { "id": "SANDHI_166", "name": "ravi plus isha", "left": "रवि", "right": "ईशः", "expected": "रवीशः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.77" },
+  { "id": "SANDHI_167", "name": "muni plus isha", "left": "मुनि", "right": "ईशः", "expected": "मुनीशः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.77" },
+  { "id": "SANDHI_168", "name": "sadhu plus upadesha", "left": "साधु", "right": "उपदेशः", "expected": "साधूपदेशः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.77" },
+  { "id": "SANDHI_169", "name": "guru plus ukti", "left": "गुरु", "right": "उक्तिः", "expected": "गुरूक्तिः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.77" },
+  { "id": "SANDHI_170", "name": "vapu plus urmi", "left": "वपु", "right": "ऊर्मिः", "expected": "वपूर्मिः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.77" },
+  { "id": "SANDHI_171", "name": "loka plus ishvara", "left": "लोक", "right": "ईश्वरः", "expected": "लोकेश्वरः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_172", "name": "dharma plus ishvara", "left": "धर्म", "right": "ईश्वरः", "expected": "धर्मेश्वरः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_173", "name": "sarva plus ishvara", "left": "सर्व", "right": "ईश्वरः", "expected": "सर्वेश्वरः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_174", "name": "veda plus ukta", "left": "वेद", "right": "उक्तम्", "expected": "वेदोक्तम्", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_175", "name": "shastra plus ukta", "left": "शास्त्र", "right": "उक्तम्", "expected": "शास्त्रोक्तम्", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_176", "name": "purva plus ukta", "left": "पूर्व", "right": "उक्तम्", "expected": "पूर्वोक्तम्", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_177", "name": "maha plus udyoga", "left": "महा", "right": "उद्योगः", "expected": "महोद्योगः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_178", "name": "nava plus udaya", "left": "नव", "right": "उदयः", "expected": "नवोदयः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_179", "name": "bhagya plus udaya", "left": "भाग्य", "right": "उदयः", "expected": "भाग्योदयः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_180", "name": "dharma plus utsava", "left": "धर्म", "right": "उत्सवः", "expected": "धर्मोत्सवः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_181", "name": "grama plus utsava", "left": "ग्राम", "right": "उत्सवः", "expected": "ग्रामोत्सवः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_182", "name": "loka plus upayoga", "left": "लोक", "right": "उपयोगः", "expected": "लोकोपयोगः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_183", "name": "sarva plus upayogi", "left": "सर्व", "right": "उपयोगी", "expected": "सर्वोपयोगी", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_184", "name": "maha plus upadesha", "left": "महा", "right": "उपदेशः", "expected": "महोपदेशः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_185", "name": "yatha plus isha", "left": "यथा", "right": "ईशः", "expected": "यथेशः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_186", "name": "tava plus iccha", "left": "तव", "right": "इच्छा", "expected": "तवेच्छा", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_187", "name": "mama plus iccha", "left": "मम", "right": "इच्छा", "expected": "ममेच्छा", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_188", "name": "nara plus rishi", "left": "नर", "right": "ऋषिः", "expected": "नरर्षिः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_189", "name": "tapa plus ritu", "left": "तप", "right": "ऋतुः", "expected": "तपर्तुः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_190", "name": "maha plus riddhi", "left": "महा", "right": "ऋद्धिः", "expected": "महर्द्धिः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_191", "name": "atra plus eva", "left": "अत्र", "right": "एव", "expected": "अत्रैव", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_192", "name": "tatra plus eva", "left": "तत्र", "right": "एव", "expected": "तत्रैव", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_193", "name": "kutra plus eva", "left": "कुत्र", "right": "एव", "expected": "कुत्रैव", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_194", "name": "sarva plus eva", "left": "सर्व", "right": "एव", "expected": "सर्वैव", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_195", "name": "tatha plus ekam", "left": "तथा", "right": "एकम्", "expected": "तथैकम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_196", "name": "yatha plus ekam", "left": "यथा", "right": "एकम्", "expected": "यथैकम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_197", "name": "dharma plus aishvarya", "left": "धर्म", "right": "ऐश्वर्यम्", "expected": "धर्मैश्वर्यम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_198", "name": "rajya plus aishvarya", "left": "राज्य", "right": "ऐश्वर्यम्", "expected": "राज्यैश्वर्यम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_199", "name": "maha plus aikantika", "left": "महा", "right": "ऐकान्तिकम्", "expected": "महैकान्तिकम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_200", "name": "jana plus aikya", "left": "जन", "right": "ऐक्यम्", "expected": "जनैक्यम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_201", "name": "shabda plus aikya", "left": "शब्द", "right": "ऐक्यम्", "expected": "शब्दैक्यम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_202", "name": "maha plus ojasvi", "left": "महा", "right": "ओजस्वी", "expected": "महौजस्वी", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_203", "name": "jala plus ogha", "left": "जला", "right": "ओघः", "expected": "जलौघः", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_204", "name": "nadi plus ogha", "left": "नदा", "right": "ओघः", "expected": "नदौघः", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_205", "name": "maha plus audarya", "left": "महा", "right": "औदार्यम्", "expected": "महौदार्यम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_206", "name": "dharma plus audarya", "left": "धर्म", "right": "औदार्यम्", "expected": "धर्मौदार्यम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_207", "name": "jana plus aushadha", "left": "जन", "right": "औषधम्", "expected": "जनौषधम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_208", "name": "vana plus aushadha", "left": "वन", "right": "औषधम्", "expected": "वनौषधम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_209", "name": "parama plus aushadhi", "left": "परम", "right": "औषधिः", "expected": "परमौषधिः", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_210", "name": "divya plus audarya", "left": "दिव्य", "right": "औदार्यम्", "expected": "दिव्यौदार्यम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_211", "name": "iti plus atra", "left": "इति", "right": "अत्र", "expected": "इत्यत्र", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_212", "name": "iti plus asti", "left": "इति", "right": "अस्ति", "expected": "इत्यस्ति", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_213", "name": "yadi plus atra", "left": "यदि", "right": "अत्र", "expected": "यद्यत्र", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_214", "name": "yadi plus evam", "left": "यदि", "right": "एवम्", "expected": "यद्येवम्", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_215", "name": "prati plus aham", "left": "प्रति", "right": "अहम्", "expected": "प्रत्यहम्", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_216", "name": "prati plus artha", "left": "प्रति", "right": "अर्थः", "expected": "प्रत्यर्थः", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_217", "name": "prati plus avartana", "left": "प्रति", "right": "आवर्तनम्", "expected": "प्रत्यावर्तनम्", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_218", "name": "abhi plus artha", "left": "अभि", "right": "अर्थः", "expected": "अभ्यर्थः", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_219", "name": "abhi plus upari", "left": "अभि", "right": "उपरि", "expected": "अभ्युपरि", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_220", "name": "pari plus avarana", "left": "परि", "right": "आवरणम्", "expected": "पर्यावरणम्", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_221", "name": "pari plus alocana", "left": "परि", "right": "आलोचनम्", "expected": "पर्यालोचनम्", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_222", "name": "vi plus akhyana", "left": "वि", "right": "आख्यानम्", "expected": "व्याख्यानम्", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_223", "name": "vi plus apaka", "left": "वि", "right": "आपकः", "expected": "व्यापकः", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_224", "name": "vi plus ayama", "left": "वि", "right": "आयामः", "expected": "व्यायामः", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_225", "name": "ni plus aya", "left": "नि", "right": "अयः", "expected": "न्ययः", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_226", "name": "su plus artha", "left": "सु", "right": "अर्थः", "expected": "स्वर्थः", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_227", "name": "su plus alpa", "left": "सु", "right": "अल्पम्", "expected": "स्वल्पम्", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_228", "name": "anu plus artha", "left": "अनु", "right": "अर्थः", "expected": "अन्वर्थः", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_229", "name": "anu plus agama", "left": "अनु", "right": "आगमः", "expected": "अन्वागमः", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_230", "name": "bahu plus ayama", "left": "बहु", "right": "आयामः", "expected": "बह्वायामः", "requiredSutras": "6.1.77", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_231", "name": "rame plus api", "left": "रामे", "right": "अपि", "expected": "रामेऽपि", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_232", "name": "vane plus adya", "left": "वने", "right": "अद्य", "expected": "वनेऽद्य", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_233", "name": "grihe plus atra", "left": "गृहे", "right": "अत्र", "expected": "गृहेऽत्र", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_234", "name": "grame plus asti", "left": "ग्रामे", "right": "अस्ति", "expected": "ग्रामेऽस्ति", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_235", "name": "nagare plus api", "left": "नगरे", "right": "अपि", "expected": "नगरेऽपि", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_236", "name": "kshetre plus asti", "left": "क्षेत्रे", "right": "अस्ति", "expected": "क्षेत्रेऽस्ति", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_237", "name": "deve plus atra", "left": "देवे", "right": "अत्र", "expected": "देवेऽत्र", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_238", "name": "loke plus asti", "left": "लोके", "right": "अस्ति", "expected": "लोकेऽस्ति", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_239", "name": "jale plus api", "left": "जले", "right": "अपि", "expected": "जलेऽपि", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_240", "name": "pathashalaye plus adya", "left": "पाठशालाये", "right": "अद्य", "expected": "पाठशालायेऽद्य", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_241", "name": "prabho plus atra", "left": "प्रभो", "right": "अत्र", "expected": "प्रभोऽत्र", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_242", "name": "prabho plus api", "left": "प्रभो", "right": "अपि", "expected": "प्रभोऽपि", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_243", "name": "guro plus atra", "left": "गुरो", "right": "अत्र", "expected": "गुरोऽत्र", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_244", "name": "guro plus adya", "left": "गुरो", "right": "अद्य", "expected": "गुरोऽद्य", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_245", "name": "vishno plus asti", "left": "विष्णो", "right": "अस्ति", "expected": "विष्णोऽस्ति", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_246", "name": "vishno plus api", "left": "विष्णो", "right": "अपि", "expected": "विष्णोऽपि", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_247", "name": "sadho plus atra", "left": "साधो", "right": "अत्र", "expected": "साधोऽत्र", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_248", "name": "sadho plus asti", "left": "साधो", "right": "अस्ति", "expected": "साधोऽस्ति", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_249", "name": "aho plus atra", "left": "अहो", "right": "अत्र", "expected": "अहोऽत्र", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_250", "name": "aho plus api", "left": "अहो", "right": "अपि", "expected": "अहोऽपि", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" }
+]

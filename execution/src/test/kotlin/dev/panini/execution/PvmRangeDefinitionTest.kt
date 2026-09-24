@@ -8,7 +8,7 @@ import kotlin.test.assertTrue
 class PvmRangeDefinitionTest {
     @Test
     fun `parses one scoped inclusive range`() {
-        val statement = PvmScript.parse("एक + ङसिँ दश + ङि इति सीमा + सुँ ।").single()
+        val statement = PvmScript.parse("एक + ङसिँ दशन् + शस् परि + अन्त + अम् इति सीमा + सुँ ।").single()
         val definition = assertIs<PvmScriptStatement.RangeDefinition>(statement, statement.toString())
 
         assertEquals(1L, definition.range.minimum.value)
@@ -16,10 +16,18 @@ class PvmRangeDefinitionTest {
     }
 
     @Test
+    fun `locative upper bound is rejected as a range declaration`() {
+        val source = "एक + ङसिँ दश + ङि इति सीमा + सुँ ।"
+
+        assertIs<PvmScriptStatement.Sentence>(PvmScript.parse(source).single())
+        assertTrue(PrakriyaScriptValidator.validate(source).any { "पर्यन्त" in it.message })
+    }
+
+    @Test
     fun `scoped range drives choice and quoted output but not ordinary printing`() {
         val results = PaniniVM().evalScript(
             """
-            एक + ङसिँ दश + ङि इति सीमा + सुँ ।
+            एक + ङसिँ दशन् + शस् परि + अन्त + अम् इति सीमा + सुँ ।
             दिव् + णिच् + लोट् + सिप् ततः रहस्य + ङे दा + लोट् + सिप् ।
             सङ्ख्या + अम् अनुमिनु + लोट् + सिप् इति मुद्र् + णिच् + लोट् + सिप् ।
             समाप्ताः + अम् मुद्र् + णिच् + लोट् + सिप् ।

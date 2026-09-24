@@ -110,9 +110,101 @@ class SvaraEngineTest {
             "dhatu", "भू", TermKind.DHATU,
             lexicalAccent = dev.panini.shiksha.Accent.UDATTA,
             lexicalAccentSource = "Dhātupāṭha:test",
+            lexicalAccentVowelIndex = 0,
         )))
         val result = SvaraEngine.derive(state)
         assertEquals(SvaraAssignmentSource.Lexical("Dhātupāṭha:test"), result.state.svaraAssignments.single().source)
         assertFalse(result.applications.any { it.sutra == "3.1.3" })
+    }
+
+    @Test
+    fun `dhatupatha accent metadata reaches the exact derivation term locus`() {
+        val dhatu = kotlin.test.assertNotNull(dev.panini.dhatupatha.DhatuPatha.find("01.0001"))
+        val term = DerivationTerm.fromDhatu(dhatu)
+
+        assertEquals(dev.panini.shiksha.Accent.UDATTA, term.lexicalAccent)
+        assertEquals("Dhātupāṭha:01.0001", term.lexicalAccentSource)
+        assertEquals(0, term.lexicalAccentVowelIndex)
+        val result = SvaraEngine.derive(DerivationState(listOf(term)))
+        assertEquals(SvaraAssignmentSource.Lexical("Dhātupāṭha:01.0001"), result.state.svaraAssignments.single().source)
+    }
+
+    @Test
+    fun `all populated dhatupatha accents retain catalog provenance without guessed loci`() {
+        val accented = dev.panini.dhatupatha.DhatuPatha.all.filter { it.svara != null }
+        assertTrue(accented.isNotEmpty())
+        accented.forEach { dhatu ->
+            val term = DerivationTerm.fromDhatu(dhatu)
+            assertEquals(dhatu.svara, term.lexicalAccent)
+            assertEquals("Dhātupāṭha:${dhatu.id}", term.lexicalAccentSource)
+            val vowelCount = DevanagariVowelLoci.positions(dhatu.derivationalSurface).size
+            assertEquals(if (vowelCount == 1) 0 else null, term.lexicalAccentVowelIndex)
+        }
+    }
+
+    @Test
+    fun `zero surface affix marker cannot target a nonexistent vowel`() {
+        val state = DerivationState(listOf(
+            DerivationTerm("stem", "अग्नि", TermKind.PRATIPADIKA),
+            DerivationTerm(
+                "zero-affix", "", TermKind.PRATYAYA, upadesha = "अण्",
+                itMarkerProvenance = setOf(ItMarkerProvenance(dev.panini.core.ItMarker.NIT, "1.3.3", "ण्")),
+            ),
+        ))
+
+        val context = SvaraContext.from(state)
+        assertFalse(context.triggers.any { it.kind == SvaraTriggerKind.NIT_OR_NGIT || it.kind == SvaraTriggerKind.PRATYAYA })
+        assertEquals(null, SvaraEngine.derive(state).result)
+    }
+
+    @Test
+    fun `whole affix replacement preserves or clears svara provenance by policy`() {
+        val affix = DerivationTerm(
+            "affix", "अप्", TermKind.PRATYAYA, upadesha = "अप्",
+            itMarkerProvenance = setOf(ItMarkerProvenance(dev.panini.core.ItMarker.P, "1.3.3", "प्")),
+        )
+        val preserved = affix.replaceWholeAffix(
+            "यप्", "यप्", "test-preserve",
+            WholeAffixDesignationPolicy.PreserveAndRemap(emptyList()),
+        )
+        val fresh = affix.replaceWholeAffix(
+            "णिच्", "णिच्", "test-fresh",
+            WholeAffixDesignationPolicy.FreshUpadesha,
+        )
+
+        assertTrue(SvaraContext.from(DerivationState(listOf(preserved))).triggers.any { it.kind == SvaraTriggerKind.PIT_OR_SUP })
+        assertFalse(SvaraContext.from(DerivationState(listOf(fresh))).triggers.any { it.kind == SvaraTriggerKind.PIT_OR_SUP })
+    }
+
+    @Test
+    fun `pit provenance on a non affix cannot trigger 3 1 4`() {
+        val stem = DerivationTerm(
+            "stem", "अप्", TermKind.PRATIPADIKA,
+            itMarkerProvenance = setOf(ItMarkerProvenance(dev.panini.core.ItMarker.P, "1.3.3", "प्")),
+        )
+        assertFalse(SvaraContext.from(DerivationState(listOf(stem))).triggers.any { it.kind == SvaraTriggerKind.PIT_OR_SUP })
+    }
+
+    @Test
+    fun `phonological term merge retains the exact surviving affix vowel locus`() {
+        val state = DerivationState(listOf(
+            DerivationTerm("stem", "पच्", TermKind.DHATU),
+            DerivationTerm(
+                "affix", "अ", TermKind.PRATYAYA,
+                itMarkerProvenance = setOf(ItMarkerProvenance(dev.panini.core.ItMarker.NIT, "1.3.3", "ण्")),
+            ),
+        )).mergeTermsByVarnaSubstitution("stem", "affix", "पच", 'अ', "अ", "test-merge")
+
+        val trigger = SvaraContext.from(state).triggers.single { it.kind == SvaraTriggerKind.NIT_OR_NGIT }
+        assertEquals(1, trigger.vowelIndex)
+        val result = SvaraEngine.derive(state)
+        assertEquals(1, result.result?.udattaVowelIndex)
+        assertTrue(result.applications.any { it.sutra == "6.1.197" })
+
+        val expandedStem = state.substituteTermSurface("stem", "पापच", 'प', "पाप", "test-prefix-change")
+        assertEquals(
+            2,
+            SvaraContext.from(expandedStem).triggers.single { it.kind == SvaraTriggerKind.NIT_OR_NGIT }.vowelIndex,
+        )
     }
 }

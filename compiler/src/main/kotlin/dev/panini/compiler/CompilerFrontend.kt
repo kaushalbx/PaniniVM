@@ -30,6 +30,7 @@ import dev.panini.vyakaranam.ast.Sequence
 import dev.panini.vyakaranam.ast.WhileLoop
 import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
+import dev.panini.vyakaranam.ast.ParyantaRangePada
 import dev.panini.vyakaranam.ast.SankhyaPuranaPada
 import dev.panini.vyakaranam.ast.SankhyaPada
 import dev.panini.vyakaranam.ast.SubantaPada
@@ -273,24 +274,21 @@ internal object CompilerFrontend {
         ): List<CompilerInstruction>? {
             if (dhatu?.startsWith("चि") != true && "चिञ्" !in source) return null
             val evaluator = dev.panini.sankhya.SankhyaEvaluator()
-            val astBounds = node.vakya.padas.mapNotNull { pada ->
+            val astBounds = node.vakya.padas.flatMap { pada ->
                 when (pada) {
-                    is SankhyaPada -> pada.value ?: evaluator.evaluateStems(pada.stems).value
+                    is ParyantaRangePada -> listOf(pada.lowerLimit, pada.upperLimit).map { bound ->
+                        bound.value ?: evaluator.evaluateStems(bound.stems).value
+                    }
+                    is SankhyaPada -> listOf(pada.value ?: evaluator.evaluateStems(pada.stems).value)
                     is SubantaPada -> (pada.pratipadika as? MulaPratipadika)?.text?.let { stem ->
                         runCatching { evaluator.evaluateStems(listOf(stem)).value }.getOrNull()
-                    }
-                    else -> null
+                    }?.let(::listOf).orEmpty()
+                    else -> emptyList()
                 }
             }
-            val bounds = if (astBounds.size >= 2) astBounds else {
-                val match = Regex(
-                    "([^\\s+]+)\\s*\\+\\s*ङसिँ\\s*([^\\s+]+)\\s*\\+\\s*शस्",
-                ).find(source) ?: return null
-                match.groupValues.drop(1).map { evaluator.evaluateStems(listOf(it)).value }
-            }
-            if (bounds.size < 2) return null
+            if (astBounds.size < 2) return null
             return listOf(
-                CompilerInstruction.RandomRange(bounds[0], bounds[1]),
+                CompilerInstruction.RandomRange(astBounds[0], astBounds[1]),
                 CompilerInstruction.Store("LastResult"),
             )
         }

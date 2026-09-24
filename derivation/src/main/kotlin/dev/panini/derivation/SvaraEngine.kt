@@ -31,20 +31,58 @@ data class SvaraContext(val triggers: List<SvaraTrigger> = emptyList()) {
         fun from(state: DerivationState): SvaraContext = SvaraContext(buildList {
             state.terms.forEach { term ->
                 val prefixVowels = DevanagariVowelLoci.positions(state.surfaceBeforeTerm(term.id)).size
-                if (term.kind == TermKind.PRATYAYA && DevanagariVowelLoci.positions(term.surface).isNotEmpty()) {
+                val termHasVowel = DevanagariVowelLoci.positions(term.surface).isNotEmpty()
+                if (term.kind == TermKind.PRATYAYA && termHasVowel) {
                     add(SvaraTrigger(SvaraTriggerKind.PRATYAYA, term.id, vowelIndex = prefixVowels))
                 }
-                term.itMarkerProvenance.filter { it.marker == ItMarker.NIT || it.marker == ItMarker.NGIT }.forEach {
+                term.itMarkerProvenance.filter {
+                    term.kind == TermKind.PRATYAYA && termHasVowel && (it.marker == ItMarker.NIT || it.marker == ItMarker.NGIT)
+                }.forEach {
                     add(SvaraTrigger(SvaraTriggerKind.NIT_OR_NGIT, term.id, it.marker, it.designationSutra, prefixVowels))
                 }
-                term.itMarkerProvenance.filter { it.marker == ItMarker.P }.forEach {
+                term.itMarkerProvenance.filter { term.kind == TermKind.PRATYAYA && it.marker == ItMarker.P }.forEach {
                     add(SvaraTrigger(SvaraTriggerKind.PIT_OR_SUP, term.id, it.marker, it.designationSutra, prefixVowels))
                 }
-                if (SupAffix.entries.any { affix -> term.matchesUpadesha(affix.upadesha) }) {
+                if (term.kind == TermKind.PRATYAYA && SupAffix.entries.any { affix -> term.matchesUpadesha(affix.upadesha) }) {
                     add(SvaraTrigger(SvaraTriggerKind.PIT_OR_SUP, term.id, vowelIndex = prefixVowels))
                 }
-                if (term.lexicalAccent == Accent.UDATTA) {
-                    add(SvaraTrigger(SvaraTriggerKind.EXPLICIT_UDATTA, term.id, vowelIndex = prefixVowels, lexicalSource = term.lexicalAccentSource))
+                val lexicalVowelIndex = term.lexicalAccentVowelIndex
+                if (term.lexicalAccent == Accent.UDATTA && lexicalVowelIndex != null) {
+                    add(SvaraTrigger(
+                        SvaraTriggerKind.EXPLICIT_UDATTA,
+                        term.id,
+                        vowelIndex = prefixVowels + lexicalVowelIndex,
+                        lexicalSource = term.lexicalAccentSource,
+                    ))
+                }
+            }
+            state.droppedTerms.filter {
+                it.kind == TermKind.PRATYAYA && it.mergedIntoTermId != null && it.mergedAffixVowelFromEnd != null
+            }.forEach { term ->
+                val survivorId = requireNotNull(term.mergedIntoTermId)
+                val survivor = state.terms.firstOrNull { it.id == survivorId } ?: return@forEach
+                val survivorVowels = DevanagariVowelLoci.positions(survivor.surface)
+                val localIndex = survivorVowels.lastIndex - requireNotNull(term.mergedAffixVowelFromEnd)
+                if (localIndex !in survivorVowels.indices) return@forEach
+                val vowelIndex = DevanagariVowelLoci.positions(state.surfaceBeforeTerm(survivorId)).size + localIndex
+                add(SvaraTrigger(SvaraTriggerKind.PRATYAYA, term.id, vowelIndex = vowelIndex))
+                term.itMarkerProvenance.filter { it.marker == ItMarker.NIT || it.marker == ItMarker.NGIT }.forEach {
+                    add(SvaraTrigger(SvaraTriggerKind.NIT_OR_NGIT, term.id, it.marker, it.designationSutra, vowelIndex))
+                }
+                term.itMarkerProvenance.filter { it.marker == ItMarker.P }.forEach {
+                    add(SvaraTrigger(SvaraTriggerKind.PIT_OR_SUP, term.id, it.marker, it.designationSutra, vowelIndex))
+                }
+                if (SupAffix.entries.any { affix -> term.matchesUpadesha(affix.upadesha) }) {
+                    add(SvaraTrigger(SvaraTriggerKind.PIT_OR_SUP, term.id, vowelIndex = vowelIndex))
+                }
+            }
+            val finalWordVowel = DevanagariVowelLoci.positions(state.surface).indices.lastOrNull()
+            if (finalWordVowel != null) {
+                state.droppedTerms.filter { term ->
+                    term.kind == TermKind.PRATYAYA && term.mergedIntoTermId == null &&
+                        SupAffix.entries.any { affix -> term.matchesUpadesha(affix.upadesha) }
+                }.forEach { term ->
+                    add(SvaraTrigger(SvaraTriggerKind.PIT_OR_SUP, term.id, vowelIndex = finalWordVowel))
                 }
             }
         })
@@ -100,4 +138,18 @@ object SvaraEngine {
             }
         }
     }
+}
+
+/** Adds the final svara stage to a manually assembled result without inventing missing evidence. */
+fun DerivationResult.completeSvara(context: SvaraContext = SvaraContext.from(final)): DerivationResult {
+    if (svaraResult != null || final.surface.isBlank()) return this
+    val svara = SvaraEngine.derive(final, context)
+    val completedApplications = applications + svara.applications
+    return copy(
+        final = svara.state,
+        applications = completedApplications,
+        events = events.filterNot { it is DerivationEvent.Completed } + svara.events +
+            DerivationEvent.Completed(svara.state, completedApplications.size),
+        svaraResult = svara.result,
+    )
 }

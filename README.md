@@ -109,31 +109,28 @@ Gradle's `:cli:run` task, because Gradle's console proxy may buffer input.
 ## Write your first `.pvm` program
 
 The [number-guessing game](projects/number-guessing-game/number_guessing_game.pvm)
-chooses a number from one through ten and gives the player five attempts. Its
-complete source is segmented Sanskrit; comments remain in English.
+chooses a number directly from the explicit inclusive range one through ten and
+gives the player up to five attempts. It does not declare a separate programming
+`range` object: the range is part of the grammatical choice sentence itself.
+The complete source is segmented Sanskrit; comments remain in English.
 
 ```pvm
-# One range is reused by random choice, input validation, and output.
-एक + ङसिँ दशन् + ङि इति सीमा + सुँ ।
+# Prakriya: define one reusable guessing attempt.
+# The prakriya reads a bounded input, compares it, and prints dynamic feedback.
+प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+निवेश + अम् सङ्ख्या + टा ग्रहँ + श्ना + लोट् + सिप् ।
+यदि ग्रह् + ल्युट् + ङस् फल + सुँ रहस्य + टा सम + सुँ असँ + लट् + तिप् तर्हि विजय + सुँ अन्यथा यदि ग्रह् + ल्युट् + ङस् फल + सुँ रहस्य + ङसिँ न्यून + सुँ असँ + लट् + तिप् तर्हि लघु अन्यथा गुरु ततः मुद्र् + णिच् + लोट् + सिप् ॥
 
-# Define one reusable guessing attempt.
-प्रयत्न + ल्युट् + सुँ ।
-निवेश + अम् सङ्ख्या + ङे ग्रह् + णिच् + लोट् + सिप् ।
-यदि रहस्य + अम् ग्रह् + घञ् + ङस् फल + टा अस् + लोट् + सिप् तर्हि विजयः
-अन्यथा यदि ग्रह् + घञ् + ङस् फल + अम् रहस्य + अम् च नि + विद् + लोट् + सिप्
-तर्हि लघु अन्यथा गुरु ततः मुद्र् + णिच् + लोट् + सिप् ॥
+# 1. Choose a number from the explicit inclusive range and store it as the secret.
+एक + ङसिँ दशन् + शस् परि + अन्त + अम् सङ्ख्या + अम् चिञ् + श्नु + लोट् + सिप् ततः चिञ् + ल्युट् + ङस् फल + अम् रहस्य + ङि स्थाञँ + णिच् + लोट् + सिप् ।
 
-# Choose the secret and store the direct pipeline result.
-दिव् + णिच् + लोट् + सिप् ततः रहस्य + ङे दा + लोट् + सिप् ।
+# 2. Quote a grammatical command; iti makes mudr print it without executing it.
+सङ्ख्या + अम् ऊहँ + लोट् + थास् इति मुद्र् + णिच् + लोट् + सिप् ।
 
-# Print a dynamically rendered instruction.
-सङ्ख्या + अम् अनुमिनु + लोट् + सिप् इति मुद्र् + णिच् + लोट् + सिप् ।
+# 3. Continue while victory has not occurred, up to the fifth attempt.
+यावत् विजय + सुँ न भू + लट् + तिप् तावत् पञ्चन् + म + ङस् प्रयत्न + ङस् परि + अन्त + अम् प्रयत्न + अम् डुकृञ् + उ + लोट् + सिप् अन्यथा प्रयत्न + आम् समाप्ति + अम् मुद्र् + णिच् + लोट् + सिप् ।
 
-# Repeat until success or five attempts are exhausted.
-पञ्चन् + कृत्वसुच् यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप्
-अन्यथा प्रयत्नाः + अम् समाप्ताः + अम् च मुद्र् + णिच् + लोट् + सिप् ।
-
-# Reveal the secret.
+# 4. Reveal the secret number after all attempts are finished.
 रहस्य + अम् मुद्र् + णिच् + लोट् + सिप् ।
 ```
 
@@ -141,14 +138,16 @@ complete source is segmented Sanskrit; comments remain in English.
 
 | Segmented form | Programming role |
 |---|---|
-| `एक + ङसिँ दशन् + ङि इति सीमा + सुँ` | Declares the inclusive range used by random choice and validation. |
+| `प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप्` | Grammatically declares `प्रयत्नः` to be a reusable `प्रक्रिया`. |
 | `निवेश + अम्` | Marks the input value as *karman* through the accusative ending. |
-| `सङ्ख्या + ङे` | Supplies the numeric input type through the dative ending. |
-| `ग्रह् + णिच् + लोट् + सिप्` | Forms the executable input command from a dhātu and verbal affixes. |
-| `ततः रहस्य + ङे दा ...` | Pipes the preceding typed result directly into `रहस्य`. |
+| `सङ्ख्या + टा ग्रहँ + श्ना + लोट् + सिप्` | Reads the input as a number using the grammatical instrumental type relation. |
+| `एक + ङसिँ दशन् + शस् परि + अन्त + अम्` | Expresses the inclusive bounds “from one through ten” inside the choice sentence. |
+| `सङ्ख्या + अम् चिञ् + श्नु + लोट् + सिप्` | Commands the VM to choose a number from those explicit bounds. |
+| `चिञ् + ल्युट् + ङस् फल + अम् रहस्य + ङि स्थाञँ ...` | Stores the typed result of choosing in `रहस्य`. |
 | `यदि ... तर्हि ... अन्यथा` | Selects success, low, or high feedback conditionally. |
-| `पञ्चन् + कृत्वसुच्` | Derives `पञ्चकृत्वः` and bounds repetition to five attempts. |
-| `यावत् फल + सुँ न तावत्` | Continues while the latest comparison result is false. |
+| `सङ्ख्या + अम् ऊहँ + लोट् + थास् इति` | Quotes the grammatical command `सङ्ख्याम् ऊहस्व` instead of executing it. |
+| `यावत् विजय + सुँ न भू + लट् + तिप् तावत्` | Continues while victory has not occurred. |
+| `पञ्चन् + म + ङस् प्रयत्न + ङस् परि + अन्त + अम्` | Bounds the loop through the fifth attempt. |
 | `अन्यथा` after the loop | Runs the exhaustion branch only if all attempts are consumed. |
 
 Run it with the installed launcher:
@@ -162,23 +161,22 @@ revealed number will vary.
 
 ```text
 [PaniniVM CLI] Executing file: number_guessing_game.pvm
-एकतः दशन्पर्यन्तं सङ्ख्याम् अनुमिनु
+सङ्ख्याम् ऊहस्व
 Enter value for निवेश (number):
-लघु
+5
+गुरु
 Enter value for निवेश (number):
-लघु
+4
+गुरु
 Enter value for निवेश (number):
-लघु
-Enter value for निवेश (number):
-लघु
-Enter value for निवेश (number):
-लघु
-प्रयत्नाः समाप्ताः
-षट्
+3
+विजय
+त्रीणि
 ```
 
-This session entered `1`, `2`, `3`, `4`, and `5`; the generated secret was
-`6`. Input outside the declared range is rejected without consuming an attempt.
+In this possible session, the generated secret was `3`; the player found it on
+the third attempt. A run that never reaches `विजय` instead prints the exhaustion
+message after the fifth attempt and then reveals the secret.
 
 ## Reusable Typed Sanskrit Kriyās
 
@@ -301,7 +299,18 @@ val result = vm.eval("दशन् + अम् द्वि + औट् च य�
 if (result is ExecutionResult.Success) {
     println(result.value) // Output: द्वादश
 }
+
+// Optional execution observability
+println(vm.executionMetrics.snapshot())
 ```
+
+### Execution API
+
+Create and retain an explicit `PaniniVM` instance. The process-wide `VM` facade
+and `ExecutionEngine` have been removed. Submit grammatical source through
+`PaniniVM.eval(...)`, `evalScript(...)`, `evalFile(...)`, or `evalProject(...)` so
+parsing, grammatical binding, capability checks, session memory, and execution
+follow the same supported path.
 
 ---
 

@@ -8,7 +8,10 @@ object Adhyaya2Pada4 {
         JuhotyadibhyahShluhSutra,
         GatisthaghupabhubhyahSicahParasmaipadesuSutra,
         LutahPrathamasyaDarauRasahSutra,
+        AvyayibhavasCaNapumsakamSutra,
         SupoDhatuPratipadikayohSutra,
+        AvyayadApsupahSutra,
+        NavyayibhavadAtoAmtvapancamyahSutra,
         DvandvaschaPranituryaSutra,
         JatirApraninamSutra,
     )

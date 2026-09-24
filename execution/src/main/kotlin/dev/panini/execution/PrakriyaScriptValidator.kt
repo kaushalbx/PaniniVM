@@ -1,7 +1,12 @@
 package dev.panini.execution
 
 import dev.panini.vyakaranam.ast.Pipeline
+import dev.panini.core.SupAffix
+import dev.panini.core.Vibhakti
 import dev.panini.sankhya.CanonicalNumeralStem
+import dev.panini.vyakaranam.ast.MulaPratipadika
+import dev.panini.vyakaranam.ast.ParyantaRangePada
+import dev.panini.vyakaranam.ast.SubantaPada
 
 enum class PrakriyaDiagnosticSeverity { ERROR, WARNING }
 
@@ -25,14 +30,6 @@ object PrakriyaScriptValidator {
                 replacement = suggestion.canonical,
             )
         }
-        Regex("इति\\s+संज्ञा(?:\\s*\\+\\s*सुँ)?").findAll(source).forEach { legacy ->
-            diagnostics += PrakriyaDiagnostic(
-                offset = legacy.range.first,
-                length = legacy.value.length,
-                message = "संज्ञा denotes a grammatical technical term; declare reusable code with 'इति प्रक्रिया अस्ति'.",
-                replacement = "इति प्रक्रिया + सुँ असँ + लट् + तिप्",
-            )
-        }
         DirectResultAssignment.suggestions(source).forEach { suggestion ->
             diagnostics += PrakriyaDiagnostic(
                 offset = suggestion.offset,
@@ -51,6 +48,29 @@ object PrakriyaScriptValidator {
             return diagnostics
         }
         val registry = PrakriyaRegistry()
+
+        legacySamjnaMarkers(source, statements).forEach { legacy ->
+            diagnostics += PrakriyaDiagnostic(
+                offset = legacy.first,
+                length = legacy.last - legacy.first + 1,
+                message = "संज्ञा denotes a grammatical technical term; declare reusable code with 'इति प्रक्रिया अस्ति'.",
+                replacement = "इति प्रक्रिया + सुँ असँ + लट् + तिप्",
+            )
+        }
+
+        statements.filterIsInstance<PvmScriptStatement.Sentence>().forEach { sentence ->
+            val declaration = sentence.ukti?.let(ItiDeclarationAnalyzer::analyze) ?: return@forEach
+            val marker = declaration.nominativeMarker ?: return@forEach
+            if ((marker.pratipadika as? MulaPratipadika)?.text == "सीमा" &&
+                declaration.declaredPadas.none { it is ParyantaRangePada }
+            ) {
+                diagnostics += diagnostic(
+                    source,
+                    "सीमा",
+                    "A सीमा requires an ablative lower bound and a segmented पर्यन्त upper boundary.",
+                )
+            }
+        }
 
         statements.filterIsInstance<PvmScriptStatement.Sentence>().mapNotNull { sentence ->
             TaddhitaStructEngine.detectResultSchema(sentence.text, sentence.ukti)
@@ -156,6 +176,30 @@ object PrakriyaScriptValidator {
             parameter.type != PrakriyaValueClassifier.classifyTerm(argument)
         }?.let { (parameter, _) ->
             diagnostics += diagnostic(source, callName, "Parameter '${parameter.nameStem}' requires ${parameter.type}.")
+        }
+    }
+
+    private fun legacySamjnaMarkers(
+        source: String,
+        statements: List<PvmScriptStatement>,
+    ): List<IntRange> {
+        val legacyMarkers = statements
+            .filterIsInstance<PvmScriptStatement.Sentence>()
+            .mapNotNull { sentence ->
+                val declaration = sentence.ukti?.let(ItiDeclarationAnalyzer::analyze) ?: return@mapNotNull null
+                val marker = declaration.nominativeMarker ?: return@mapNotNull null
+                if ((marker.pratipadika as? MulaPratipadika)?.text != "संज्ञा" ||
+                    SupAffix.fromUpadesha(marker.sup.text)?.vibhakti != Vibhakti.PRATHAMA
+                ) return@mapNotNull null
+                "इति${marker.sourceText.filterNot(Char::isWhitespace)}"
+            }
+        if (legacyMarkers.isEmpty()) return emptyList()
+        val sourceMap = SourceTextMap(source)
+        var searchFrom = 0
+        return legacyMarkers.mapNotNull { marker ->
+            val located = sourceMap.locate(marker, searchFrom) ?: return@mapNotNull null
+            searchFrom = located.nextCompactOffset
+            located.span.start until located.span.endExclusive
         }
     }
 

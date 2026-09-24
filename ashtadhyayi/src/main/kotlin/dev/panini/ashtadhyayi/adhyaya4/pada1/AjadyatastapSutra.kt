@@ -44,9 +44,12 @@ object AjadyatasTapSutra : Sutra<DerivationState, DerivationChange>(
                 it.itProcessingPhase == dev.panini.derivation.ItProcessingPhase.PROCESSED && it.surface == "अ"
         }
 
-        val isTapRequested = context.samjnas.any { it.samjna == Samjna.TAP } ||
-            (context.activeAdhikaras.contains("4.1.3") && (isAjadiMember || endsInA)) ||
-            (context.effectiveContext.rupa.linga == Linga.STRI && processedAng != null)
+        val feminineRequested = context.effectiveContext.rupa.linga == Linga.STRI
+        val isTapRequested = feminineRequested && (
+            context.samjnas.any { it.samjna == Samjna.TAP } ||
+                (context.activeAdhikaras.contains("4.1.3") && (isAjadiMember || endsInA)) ||
+                processedAng != null
+            )
         val hasFemininePratyaya = context.terms.any {
             it.kind == TermKind.PRATYAYA && it.upadesha != "अङ्"
         }

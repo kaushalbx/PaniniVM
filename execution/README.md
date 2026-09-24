@@ -28,7 +28,6 @@ c:\Users\User\Documents\SanskritSandhi\execution\src\main\kotlin\dev\panini\exec
 │
 ├── runtime/
 │   ├── ExecutionRuntime.kt     # Concrete execution engine for atomic action sūtras
-│   ├── ExecutionEngine.kt      # Core VM evaluation loop
 │   └── ValueEnvironment.kt     # Centralized type-safe value context mapper
 │
 ├── planning/

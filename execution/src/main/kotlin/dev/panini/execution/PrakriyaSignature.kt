@@ -1,6 +1,10 @@
 package dev.panini.execution
 
 import dev.panini.sankhya.SankhyaEvaluator
+import dev.panini.core.SupAffix
+import dev.panini.core.Vibhakti
+import dev.panini.vyakaranam.ast.MulaPratipadika
+import dev.panini.vyakaranam.ast.SubantaPada
 
 /** Semantic value types used by saṃjñā signatures and overload resolution. */
 enum class PrakriyaValueType {
@@ -57,42 +61,64 @@ object PrakriyaSignatureCompiler {
 /** Parses grammatical signature declarations embedded at the start of a saṃjñā block. */
 object PrakriyaSignatureDeclarationParser {
     data class ResultDeclaration(val type: PrakriyaValueType? = null, val schema: String? = null)
-    private val typeSource = "(सङ्ख्या|शब्द|सूची)"
-    private val parameterPattern = Regex(
-        "^\\s*(.+?)\\s*\\+\\s*सुँ\\s+$typeSource\\s*\\+\\s*सुँ\\s+इति\\s+मान\\s*\\+\\s*सुँ\\s*[।॥]?\\s*$",
-    )
-    private val resultPattern = Regex(
-        "^\\s*$typeSource\\s*\\+\\s*सुँ\\s+इति\\s+परिणाम\\s*\\+\\s*सुँ\\s*[।॥]?\\s*$",
-    )
-    private val schemaResultPattern = Regex(
-        "^\\s*(.+?)\\s*\\+\\s*सुँ\\s+इति\\s+परिणाम\\s*\\+\\s*सुँ\\s*[।॥]?\\s*$",
-    )
 
-    fun parameter(sentence: PvmScriptStatement.Sentence): PrakriyaParameter? {
-        val match = parameterPattern.matchEntire(sentence.text) ?: return null
-        return PrakriyaParameter(match.groupValues[1].trim(), type(match.groupValues[2]))
+    sealed interface Declaration {
+        data class Parameter(val value: PrakriyaParameter) : Declaration
+        data class Result(val value: ResultDeclaration) : Declaration
     }
 
-    fun result(sentence: PvmScriptStatement.Sentence): ResultDeclaration? {
-        resultPattern.matchEntire(sentence.text)?.groupValues?.get(1)?.let {
-            return ResultDeclaration(type = type(it))
-        }
-        val schema = schemaResultPattern.matchEntire(sentence.text)?.groupValues?.get(1)?.trim() ?: return null
-        if (schema in setOf("सङ्ख्या", "शब्द", "सूची")) return null
-        return ResultDeclaration(schema = schema)
+    fun declaration(sentence: PvmScriptStatement.Sentence): Declaration? =
+        parameterOrNull(sentence)?.let(Declaration::Parameter)
+            ?: resultOrNull(sentence)?.let(Declaration::Result)
+
+    fun parameter(sentence: PvmScriptStatement.Sentence): PrakriyaParameter? =
+        (declaration(sentence) as? Declaration.Parameter)?.value
+
+    fun result(sentence: PvmScriptStatement.Sentence): ResultDeclaration? =
+        (declaration(sentence) as? Declaration.Result)?.value
+
+    private fun parameterOrNull(sentence: PvmScriptStatement.Sentence): PrakriyaParameter? {
+        val (declared, marker) = declarationPadas(sentence) ?: return null
+        if (marker.singleStem() != "मान" || declared.size != 2) return null
+        val parameterName = declared[0].singleStem() ?: return null
+        val parameterType = declared[1].singleStem()?.let(::typeOrNull) ?: return null
+        return PrakriyaParameter(parameterName, parameterType)
+    }
+
+    private fun resultOrNull(sentence: PvmScriptStatement.Sentence): ResultDeclaration? {
+        val (declared, marker) = declarationPadas(sentence) ?: return null
+        if (marker.singleStem() != "परिणाम" || declared.size != 1) return null
+        val result = declared.single().singleStem() ?: return null
+        return typeOrNull(result)?.let { ResultDeclaration(type = it) }
+            ?: ResultDeclaration(schema = result)
     }
 
     fun resultType(sentence: PvmScriptStatement.Sentence): PrakriyaValueType? = result(sentence)?.type
 
     fun isDeclaration(sentence: PvmScriptStatement.Sentence): Boolean =
-        parameter(sentence) != null || result(sentence) != null
+        declaration(sentence) != null
 
-    private fun type(source: String): PrakriyaValueType = when (source) {
+    private fun typeOrNull(source: String): PrakriyaValueType? = when (source) {
         "सङ्ख्या" -> PrakriyaValueType.SANKHYA
         "शब्द" -> PrakriyaValueType.SHABDA
         "सूची" -> PrakriyaValueType.SUCHI
-        else -> error("Unsupported saṃjñā value type: $source")
+        else -> null
     }
+
+    private fun declarationPadas(
+        sentence: PvmScriptStatement.Sentence,
+    ): Pair<List<SubantaPada>, SubantaPada>? {
+        val declaration = sentence.ukti?.let(ItiDeclarationAnalyzer::analyze) ?: return null
+        val declared = declaration.declaredPadas.filterIsInstance<SubantaPada>()
+        val marker = declaration.nominativeMarker ?: return null
+        if ((declared + marker).any { SupAffix.fromUpadesha(it.sup.text)?.vibhakti != Vibhakti.PRATHAMA }) {
+            return null
+        }
+        return declared to marker
+    }
+
+    private fun SubantaPada.singleStem(): String? =
+        (pratipadika as? MulaPratipadika)?.text
 }
 
 object PrakriyaValueClassifier {

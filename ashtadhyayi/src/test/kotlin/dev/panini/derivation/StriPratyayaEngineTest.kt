@@ -2,6 +2,9 @@ package dev.panini.derivation
 
 import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.shiksha.Samjna
+import dev.panini.ashtadhyayi.adhyaya4.pada1.AjadyatasTapSutra
+import dev.panini.ashtadhyayi.adhyaya4.pada1.StriyamSutra
+import dev.panini.core.Linga
 import dev.panini.sutra.SutraStage
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -10,13 +13,28 @@ import kotlin.test.assertTrue
 
 class StriPratyayaEngineTest {
 
+    @Test
+    fun `feminine adhikara and tap cannot enter a masculine derivation`() {
+        val masculine = SubantaDerivationRequest(
+            "वासुदेव",
+            dev.panini.core.Vibhakti.PRATHAMA,
+            dev.panini.core.Vacana.EKAVACANA,
+            Linga.PUMS,
+        ).initialState()
+        kotlin.test.assertFalse(StriyamSutra.matches(masculine))
+        kotlin.test.assertFalse(AjadyatasTapSutra.matches(masculine.copy(activeAdhikaras = setOf("4.1.3"))))
+    }
+
     private val engine = StriPratyayaEngine()
 
     @Test
     fun `tap derives aja and bala`() {
         val res1 = engine.derive(StriPratyayaRequest("अज", Samjna.TAP))
         assertEquals("अजा", res1.final.surface)
+        assertTrue(res1.final.terms.none { it.id == "feminine_stem_final" })
         assertTrue(res1.applications.any { it.sutra == "4.1.4" })
+        assertTrue(res1.applications.any { it.sutra == "3.1.4" })
+        assertEquals("अजा", res1.svaraResult?.word)
 
         val res2 = engine.derive(StriPratyayaRequest("बाल", Samjna.TAP))
         assertEquals("बाला", res2.final.surface)
@@ -43,7 +61,21 @@ class StriPratyayaEngineTest {
     fun `nin derives nari`() {
         val res = engine.derive(StriPratyayaRequest("नृ", Samjna.NIN))
         assertEquals("नारी", res.final.surface)
-        assertTrue(res.applications.any { it.sutra == "4.1.73" })
+        val selection = res.applications.single { it.sutra == "4.1.73" }
+        assertTrue(selection.explanation.contains("नृनरयोर्वृद्धिश्च"))
+        assertTrue(selection.delta.changedTerms.isNotEmpty())
+        assertTrue(selection.delta.addedTerms.any { it.upadesha == "ङीन्" })
+        assertTrue(res.applications.any { it.sutra == "1.3.9" })
+        assertTrue(res.applications.none { it.sutra == "4.1.8" })
+    }
+
+    @Test
+    fun `traditional extension also derives nari from nara`() {
+        val res = engine.derive(StriPratyayaRequest("नर", Samjna.NIN))
+        assertEquals("नारी", res.final.surface)
+        val selection = res.applications.single { it.sutra == "4.1.73" }
+        assertTrue(selection.explanation.contains("नृनरयोर्वृद्धिश्च"))
+        assertTrue(selection.delta.addedTerms.any { it.upadesha == "ङीन्" })
     }
 
     @Test
@@ -51,6 +83,7 @@ class StriPratyayaEngineTest {
         val res = engine.derive(StriPratyayaRequest("युवन्", Samjna.TI_PRATYAYA))
         assertEquals("युवति", res.final.surface)
         assertTrue(res.applications.any { it.sutra == "4.1.74" })
+        assertTrue(res.applications.single { it.sutra == "4.1.74" }.delta.changedTerms.isNotEmpty())
     }
 
     @Test

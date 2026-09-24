@@ -141,6 +141,8 @@ class MainTest {
         assertEquals(output.first(), sanskritLabels.first())
         assertTrue(output.any { it.startsWith("7.1.54 ") })
         assertTrue(output.any { it.startsWith("6.4.3 ") })
+        assertTrue(output.any { it.startsWith("स्वर —") })
+        assertTrue(output.any { it.contains("sūtra 3.1.4") })
     }
 
     @Test

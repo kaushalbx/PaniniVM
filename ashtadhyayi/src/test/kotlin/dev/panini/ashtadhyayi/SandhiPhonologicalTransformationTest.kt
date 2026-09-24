@@ -42,6 +42,21 @@ class SandhiPhonologicalTransformationTest {
     }
 
     @Test
+    fun `savarna dirgha joins implicit a with initial a in user reported words`() {
+        val engine = SandhiEngine()
+
+        assertEquals("ग्रीष्मार्तुः", engine.join("ग्रीष्म", "अर्तुः").final.surface)
+        assertEquals("ममार्णम्", engine.join("मम", "अर्णम्").final.surface)
+    }
+
+    @Test
+    fun `ad guna joins implicit a with initial vocalic r`() {
+        val result = SandhiEngine().join("ग्रीष्म", "ऋतुः")
+
+        assertEquals("ग्रीष्मर्तुः", result.final.surface, result.applications.joinToString { it.sutra })
+    }
+
+    @Test
     fun `visarga rule consumes recorded rutva provenance`() {
         val state = DerivationState(
             terms = listOf(DerivationTerm("ending", "रामस्", TermKind.PRATYAYA, upadesha = "रामस्")),

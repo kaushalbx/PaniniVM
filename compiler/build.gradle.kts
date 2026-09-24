@@ -23,6 +23,13 @@ dependencies {
     testImplementation(kotlin("test"))
 }
 
+tasks.register<JavaExec>("compilerBenchmark") {
+    group = "benchmark"
+    description = "Benchmarks interpreted and compiled execution."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("dev.panini.compiler.CompilerBenchmark")
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
     workingDir = rootDir

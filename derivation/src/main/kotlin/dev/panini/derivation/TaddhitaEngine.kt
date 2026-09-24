@@ -1,19 +1,20 @@
 package dev.panini.derivation
 
 import dev.panini.ashtadhyayi.Ashtadhyayi
-import dev.panini.ashtadhyayi.adhyaya4.pada1.AtaInSutra
-import dev.panini.ashtadhyayi.adhyaya4.pada1.GargadibhyoYanySutra
-import dev.panini.ashtadhyayi.adhyaya4.pada1.TasyApatyamSutra
 import dev.panini.ashtadhyayi.adhyaya5.pada1.TasyaBhavasTvatalauSutra
 import dev.panini.ashtadhyayi.adhyaya5.pada2.TadasyastyasminnitiMatupSutra
 import dev.panini.ashtadhyayi.adhyaya5.pada3.TamabisthanauSutra
 import dev.panini.ashtadhyayi.adhyaya5.pada3.TarabiyasunauSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada2.MatorVahSutra
+import dev.panini.core.Linga
+import dev.panini.core.Vacana
+import dev.panini.core.Vibhakti
 import dev.panini.shiksha.Samjna
 
 /** Main entry point for performing secondary nominal (Taddhita) derivations. */
 class TaddhitaEngine(
     private val derivationEngine: DerivationEngine = DerivationEngine(Ashtadhyayi.executableSutras),
+    private val subantaEngine: SubantaEngine = SubantaEngine(),
 ) {
     private val itProcessingEngine = DerivationEngine(Ashtadhyayi.executableSutrasAt(dev.panini.sutra.SutraStage.IT_PROCESSING))
     fun derive(request: TaddhitaDerivationRequest): DerivationResult =
@@ -23,36 +24,47 @@ class TaddhitaEngine(
         derive(TaddhitaDerivationRequest(pratipadika, meaning))
 
     fun derivePatronymic(pratipadika: String, samjna: Samjna = Samjna.AN_PRATYAYA): DerivationResult {
-        val stemTerm = DerivationTerm("pratipadika", pratipadika, TermKind.PRATIPADIKA)
-        val state = DerivationState(
-            terms = listOf(stemTerm),
-            samjnas = setOf(
-                SamjnaAssignment(stemTerm.id, Samjna.PRATIPADIKA),
-                SamjnaAssignment(stemTerm.id, samjna),
-            ),
-            activeAdhikaras = setOf("4.1.76"),
-            stage = DerivationStage.INITIAL,
+        val (meaning, expectedAffix) = when (samjna) {
+            Samjna.IN_PRATYAYA -> DerivationalMeaning.APATYA to "इञ्"
+            Samjna.YAN_PRATYAYA -> DerivationalMeaning.GOTRA to "यञ्"
+            Samjna.AN_PRATYAYA, Samjna.APATYA -> DerivationalMeaning.APATYA to "अण्"
+            else -> error("Unsupported patronymic designation: $samjna")
+        }
+        val stemInitial = TaddhitaDerivationRequest(pratipadika, meaning).initialState()
+        val stemResult = derivationEngine.derive(
+            stemInitial,
+            DerivationConfig(computeSvara = false),
         )
-
-        val vrhddhiStem = applyAdiVrhddhi(pratipadika)
-        val (finalStem, pratyayaUpadesha) = when (samjna) {
-            Samjna.IN_PRATYAYA -> Pair(vrhddhiStem + "ि", "इञ्")
-            Samjna.YAN_PRATYAYA -> Pair(vrhddhiStem + "्य", "यञ्")
-            else -> Pair(vrhddhiStem, "अण्")
+        val introduction = stemResult.applications.firstOrNull { application ->
+            application.after.terms.any { it.kind == TermKind.PRATYAYA && it.upadesha == expectedAffix }
+        }
+        requireNotNull(introduction) {
+            "Registered taddhita rules did not introduce $expectedAffix for $pratipadika."
         }
 
-        val finalSurface = "${finalStem}ः"
-        val finalTerm = DerivationTerm("taddhita_apatya", finalSurface, TermKind.PRATIPADIKA, upadesha = finalSurface)
-        val finalState = state.copy(
-            terms = listOf(finalTerm),
-            stage = DerivationStage.FINAL,
-            appliedSutras = listOf(TasyApatyamSutra.sutra, TasyApatyamSutra.sutra),
+        val nominal = subantaEngine.derive(
+            SubantaDerivationRequest(
+                stemResult.final.surface,
+                Vibhakti.PRATHAMA,
+                Vacana.EKAVACANA,
+                Linga.PUMS,
+            ),
         )
-
-        val app1 = app(TasyApatyamSutra, state, state, "4.1.92 prescribes patronymic affix $pratyayaUpadesha.")
-        val app2 = app(TasyApatyamSutra, state, finalState, "7.2.117 applies initial vṛddhi and 6.4.148 elides final vowel -> $finalSurface.")
-
-        return DerivationResult(state, finalState, listOf(app1, app2), emptyList())
+        val applications = stemResult.applications + nominal.applications
+        val finalState = nominal.final.copy(
+            droppedTerms = stemResult.final.droppedTerms + nominal.final.droppedTerms,
+            appliedSutras = stemResult.initial.appliedSutras + applications.map { it.sutra },
+        )
+        val events = stemResult.events.filterNot { it is DerivationEvent.Completed } +
+            nominal.events.filterNot { it is DerivationEvent.Completed } +
+            DerivationEvent.Completed(finalState, applications.size)
+        return DerivationResult(
+            initial = stemResult.initial,
+            final = finalState,
+            applications = applications,
+            events = events,
+            svaraResult = nominal.svaraResult,
+        )
     }
 
     fun derive(pratipadika: String, samjna: Samjna): DerivationResult {
@@ -74,7 +86,7 @@ class TaddhitaEngine(
         return when (samjna) {
             Samjna.MATUP -> {
                 val change1 = TadasyastyasminnitiMatupSutra.apply(state)
-                val processed = itProcessingEngine.derive(change1.state)
+                val processed = processIt(change1.state)
                 val isAdantaOrM = isAdantaOrM(pratipadika)
                 if (isAdantaOrM && MatorVahSutra.matches(processed.final)) {
                     val change2 = MatorVahSutra.apply(processed.final)
@@ -93,12 +105,12 @@ class TaddhitaEngine(
             }
             Samjna.TARAP -> {
                 val change = TarabiyasunauSutra.apply(state)
-                val processed = itProcessingEngine.derive(change.state)
+                val processed = processIt(change.state)
                 buildResult(state, processed.final, listOf(app(TarabiyasunauSutra, state, change.state, change.explanation)) + processed.applications)
             }
             Samjna.TAMAP -> {
                 val change = TamabisthanauSutra.apply(state)
-                val processed = itProcessingEngine.derive(change.state)
+                val processed = processIt(change.state)
                 buildResult(state, processed.final, listOf(app(TamabisthanauSutra, state, change.state, change.explanation)) + processed.applications)
             }
             else -> derivationEngine.derive(state)
@@ -106,15 +118,18 @@ class TaddhitaEngine(
     }
 
     private fun buildResult(initial: DerivationState, final: DerivationState, apps: List<DerivationApplication>): DerivationResult {
-        val fusedSurface = final.terms.joinToString("") { it.surface }
-        val finalTerm = DerivationTerm("taddhita_final", fusedSurface, TermKind.PRATIPADIKA, upadesha = fusedSurface)
         val cleanFinal = final.copy(
-            terms = listOf(finalTerm),
             stage = DerivationStage.FINAL,
             appliedSutras = initial.appliedSutras + apps.map { it.sutra },
         )
         return DerivationResult(initial, cleanFinal, apps, emptyList())
+            .completeSvara(SvaraContext.from(final))
     }
+
+    private fun processIt(state: DerivationState): DerivationResult = itProcessingEngine.derive(
+        state,
+        DerivationConfig(validateFinalItProcessing = false, computeSvara = false),
+    )
 
     private fun app(sutra: DerivationSutra, before: DerivationState, after: DerivationState, explanation: String): DerivationApplication =
         DerivationApplication(
@@ -129,15 +144,4 @@ class TaddhitaEngine(
         return stem.last() !in matras
     }
 
-    private fun applyAdiVrhddhi(stem: String): String {
-        if (stem.isEmpty()) return stem
-        return when {
-            stem.startsWith("व") -> "वा" + stem.substring(1)
-            stem.startsWith("द") -> "दा" + stem.substring(1)
-            stem.startsWith("ग") -> "गा" + stem.substring(1)
-            stem.startsWith("इ") || stem.startsWith("ई") -> "ऐ" + stem.substring(1)
-            stem.startsWith("उ") || stem.startsWith("ऊ") -> "औ" + stem.substring(1)
-            else -> stem
-        }
-    }
 }

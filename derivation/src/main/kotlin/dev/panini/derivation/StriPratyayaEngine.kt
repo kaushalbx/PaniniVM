@@ -12,20 +12,14 @@ data class StriPratyayaRequest(
 
 class StriPratyayaEngine(
     private val pipeline: DerivationPipeline = DerivationPipeline(
-        stages = listOf(SutraStage.PRATYAYA_SELECTION, SutraStage.IT_PROCESSING),
+        stages = listOf(SutraStage.PRATYAYA_SELECTION, SutraStage.IT_PROCESSING, SutraStage.ANGAKARYA, SutraStage.VOWEL_SANDHI, SutraStage.SANDHI),
         sutrasForStage = Ashtadhyayi::striPratyayaSutrasAt,
+        computeSvaraAtCompletion = false,
     ),
 ) {
     fun derive(request: StriPratyayaRequest): DerivationResult {
         val initial = buildInitialState(request)
-        val result = pipeline.derive(initial)
-
-        val synthesizedState = synthesizeFeminineStem(result.final, request)
-        return result.copy(
-            final = synthesizedState,
-            events = result.events.filterNot { it is DerivationEvent.Completed } +
-                DerivationEvent.Completed(synthesizedState, result.applications.size),
-        )
+        return pipeline.derive(initial).completeSvara()
     }
 
     private fun buildInitialState(request: StriPratyayaRequest): DerivationState {
@@ -49,36 +43,4 @@ class StriPratyayaEngine(
         )
     }
 
-    private fun synthesizeFeminineStem(state: DerivationState, request: StriPratyayaRequest): DerivationState {
-        val pratyayaTerm = state.terms.lastOrNull { it.kind == TermKind.PRATYAYA }
-        val pSurf = pratyayaTerm?.surface ?: "आ"
-
-        val finalSurface = fuseFeminineStem(request.stem, pSurf, request.samjna)
-
-        val finalTerm = DerivationTerm(
-            id = "feminine_stem_final",
-            surface = finalSurface,
-            kind = TermKind.PRATIPADIKA,
-            upadesha = finalSurface,
-        )
-
-        return state.copy(
-            terms = listOf(finalTerm),
-            stage = DerivationStage.FINAL,
-        )
-    }
-
-    private fun fuseFeminineStem(stem: String, suff: String, samjna: Samjna): String = when {
-        stem == "युवन्" && (suff == "ति" || samjna == Samjna.TI_PRATYAYA) -> "युवति"
-        stem == "नृ" && suff == "ई" -> "नारी"
-        stem == "कर्तृ" && suff == "ई" -> "कर्त्री"
-        stem == "कुमार" -> "कुमारी"
-        stem == "दण्डिन्" && suff == "ई" -> "दण्डिनी"
-        stem == "गौर" -> "गौरी"
-        stem == "अज" -> "अजा"
-        stem == "बाल" -> "बाला"
-        stem.endsWith("अ") -> stem.dropLast(1) + suff
-        stem.endsWith("इ") || stem.endsWith("उ") -> stem + suff
-        else -> stem + suff
-    }
 }

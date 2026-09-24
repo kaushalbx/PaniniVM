@@ -10,6 +10,7 @@ import dev.panini.core.TingAffix
 import dev.panini.derivation.DerivationEngine
 import dev.panini.derivation.KrdantaEngine
 import dev.panini.derivation.SamasaEngine
+import dev.panini.derivation.SandhiEngine
 import dev.panini.derivation.SubantaDerivationRequest
 import dev.panini.derivation.SubantaEngine
 import dev.panini.derivation.TingantaDerivationRequest
@@ -65,7 +66,8 @@ class PvmUktiSadhaka(
     private val subantaEngine: SubantaEngine = SubantaEngine(derivationEngine),
     private val tingantaEngine: TingantaEngine = TingantaEngine(derivationEngine),
     private val krdantaEngine: KrdantaEngine = KrdantaEngine(),
-    private val samasaEngine: SamasaEngine = SamasaEngine(),
+    private val samasaEngine: SamasaEngine = SamasaEngine(derivationEngine),
+    private val sandhiEngine: SandhiEngine = SandhiEngine(derivationEngine),
     private val pratipadikaLexicon: PratipadikaLexicon = PaninianPratipadikaLexicon,
     private val parser: PaniniParser = PaniniParser(),
 ) {
@@ -123,10 +125,19 @@ class PvmUktiSadhaka(
 
     private fun sadhayaProgramNode(node: ProgramNode): String = node.accept(programRenderer)
 
-    /** Applies the supported word-boundary sandhi after every pada has been derived. */
-    private fun applyExternalSandhi(text: String): String = text
-        .replace(Regex("म् (?=[कखगघङचछजझञटठडढणतथदधनपफबभमयरलवशषसह])"), "ं ")
-        .replace(Regex("त् (?=[गघजझडढदधबभयरलवह])"), "द् ")
+    /** Applies rule-driven external sandhi after every pada has been derived. */
+    private fun applyExternalSandhi(text: String): String {
+        val words = text.split(' ').filter { it.isNotBlank() }
+        if (words.size < 2) return text
+        val rendered = mutableListOf(words.first())
+        words.drop(1).forEach { right ->
+            val left = rendered.removeLast()
+            rendered += sandhiEngine.joinPadas(left, right)
+                .split(' ')
+                .filter { it.isNotBlank() }
+        }
+        return rendered.joinToString(" ")
+    }
 
     private val programRenderer = object : ProgramNodeVisitor<String> {
         private fun render(node: ProgramNode): String = node.accept(this)
@@ -255,11 +266,7 @@ class PvmUktiSadhaka(
     }
 
     fun sadhayaPada(pada: Pada, linga: Linga? = null): String = when (pada) {
-        is ParyantaRangePada -> listOf(
-            sadhayaSankhya(pada.lowerLimit),
-            sadhayaSankhya(pada.upperLimit),
-            sadhayaSubanta(pada.marker),
-        ).joinToString(" ")
+        is ParyantaRangePada -> sadhayaParyantaRange(pada)
         is SubantaPada -> sadhayaSubanta(pada, linga)
         is SamuccitaSubanta -> pada.members.joinToString(" ") { sadhayaSubanta(it) } + " च"
         is TingantaPada -> sadhayaTinganta(pada)
@@ -270,6 +277,23 @@ class PvmUktiSadhaka(
         is KatapayadiPada -> pada.sourceText
         is AryabhatiyaPada -> pada.sourceText
         is BhutasamkhyaPada -> pada.sourceText
+    }
+
+    private fun sadhayaParyantaRange(range: ParyantaRangePada): String {
+        val lower = sadhayaSankhya(range.lowerLimit)
+        val upperValue = range.upperLimit.value
+            ?: sankhyaEvaluator.evaluateStems(range.upperLimit.stems).value
+        val upper = sankhyaGenerator.cardinal(upperValue).final.surface
+        val boundary = range.marker.pratipadika.baseText()
+        val upperBoundary = samasaEngine.derive(
+            padas = listOf(
+                SamasaPada(upper, Vibhakti.PRATHAMA),
+                SamasaPada(boundary, Vibhakti.PRATHAMA, linga = Linga.NAPUMSAKA),
+            ),
+            type = SamasaType.KARMADHARAYA,
+            outputLinga = Linga.NAPUMSAKA,
+        ).final.surface
+        return "$lower $upperBoundary"
     }
 
     fun sadhayaSankhya(pada: SankhyaPada, linga: Linga? = null): String {

@@ -25,7 +25,7 @@ class AvyayibhavaSamasaTest {
             SamasaType.AVYAYIBHAVA,
         )
         assertEquals("उपकृष्णम्", result.final.surface)
-        assertTrue(result.applications.any { it.sutra == "2.1.6" })
+        assertTrue(result.applications.map { it.sutra }.containsAll(listOf("2.1.6", "1.1.41", "2.4.18", "2.4.83", "7.1.24")))
     }
 
     @Test
@@ -37,8 +37,8 @@ class AvyayibhavaSamasaTest {
             ),
             SamasaType.AVYAYIBHAVA,
         )
-        assertEquals("अनुगङ्गम्", result.final.surface)
-        assertTrue(result.applications.isNotEmpty())
+        assertEquals("अनुगङ्गम्", result.final.surface, result.applications.joinToString("\n") { "${it.sutra}: ${it.before.surface} -> ${it.after.surface}" })
+        assertTrue(result.applications.map { it.sutra }.containsAll(listOf("1.2.47", "2.4.83")))
     }
 
     @Test
@@ -51,6 +51,6 @@ class AvyayibhavaSamasaTest {
             SamasaType.AVYAYIBHAVA,
         )
         assertEquals("यथाशक्ति", result.final.surface)
-        assertTrue(result.applications.isNotEmpty())
+        assertTrue(result.applications.any { it.sutra == "2.4.82" })
     }
 }

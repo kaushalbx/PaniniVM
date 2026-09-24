@@ -38,7 +38,8 @@ object VasohSamprasaranamSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
 
         if (stem.surface.contains("दुष्")) return false
-        val isVasStem = stem.upadesha == "विद्वस्" || stem.surface.endsWith("वस्") || stem.surface == "विद्वस्"
+        val isVasStem = stem.upadesha == "विद्वस्" || stem.compoundHeadUpadesha == "विद्वस्" ||
+            stem.surface.endsWith("वस्") || stem.surface == "विद्वस्"
         if (!isVasStem) return false
 
         val isBhaVowelAffix = affix.id in setOf(

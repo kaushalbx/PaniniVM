@@ -93,6 +93,13 @@ class DerivationState(
                     else -> error("Unsupported independent vowel ${next.first()}")
                 }
                 rendered.dropLast(1) + vowelSign + next.drop(1)
+            } else if (rendered.lastOrNull()?.let(Varnamala::isConsonant) == true &&
+                next.firstOrNull() in setOf('आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ऌ', 'ए', 'ऐ', 'ओ', 'औ')) {
+                val vowelSign = mapOf(
+                    'आ' to "ा", 'इ' to "ि", 'ई' to "ी", 'उ' to "ु", 'ऊ' to "ू", 'ऋ' to "ृ",
+                    'ॠ' to "ॄ", 'ऌ' to "ॢ", 'ए' to "े", 'ऐ' to "ै", 'ओ' to "ो", 'औ' to "ौ",
+                ).getValue(next.first())
+                rendered + vowelSign + next.drop(1)
             } else if (rendered.endsWith('्') && next.firstOrNull() in setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ', 'े', 'ै', 'ो', 'ौ')) {
                 rendered.dropLast(1) + next
             } else {
@@ -118,6 +125,23 @@ class DerivationState(
 
     fun replaceTerm(id: String, replacement: DerivationTerm): DerivationState =
         copy(terms = terms.map { if (it.id == id) replacement else it })
+
+    /**
+     * Replaces a complete non-affix surface when a grammatical rule prescribes
+     * a lexical/member-level substitute rather than a single-varṇa operation.
+     * Affixes must use [replaceWholeAffix] so their exact it-designations receive
+     * an explicit preserve, consume, or fresh-upadeśa policy.
+     */
+    fun replaceWholeTermSurface(id: String, surface: String, sutra: String): DerivationState {
+        val term = terms.single { it.id == id }
+        require(term.kind != TermKind.PRATYAYA && term.kind != TermKind.AGAMA) {
+            "$sutra must use replaceWholeAffix for ${term.kind} term $id."
+        }
+        require(term.itDesignations.isEmpty() && term.deferredItDesignations.isEmpty()) {
+            "$sutra cannot replace $id while exact it-designations remain pending."
+        }
+        return replaceTerm(id, term.copy(surface = surface))
+    }
 
     /** Applies a segment-level phonological change and records its sūtra atomically. */
     fun substituteTermSurface(
@@ -165,6 +189,10 @@ class DerivationState(
             "$sutra can merge only adjacent terms: $survivorId and $consumedId."
         }
         val survivor = terms[survivorIndex]
+        val consumed = terms[consumedIndex]
+        val consumedAffixVowelIndex = if (consumed.kind == TermKind.PRATYAYA &&
+            DevanagariVowelLoci.positions(consumed.surface).isNotEmpty()
+        ) DevanagariVowelLoci.positions(combinedSurface(terms.take(consumedIndex))).size else null
         val substituted = if (surface == survivor.surface) {
             // The visible result can already equal the survivor (for example,
             // अ + अ after inherent-vowel serialization); consuming the adjacent
@@ -173,7 +201,25 @@ class DerivationState(
         } else {
             substituteTermSurface(survivorId, surface, source, replacement, sutra)
         }
-        return substituted.removeTerm(consumedId, sutra)
+        val removed = substituted.removeTerm(consumedId, sutra)
+        val survivingLocus = consumedAffixVowelIndex?.let { oldIndex ->
+            val wordIndex = DevanagariVowelLoci.positions(removed.surface).indices.lastOrNull()
+                ?.let(oldIndex::coerceAtMost) ?: return@let null
+            val currentSurvivor = removed.terms.firstOrNull { it.id == survivorId } ?: return@let null
+            val prefixCount = DevanagariVowelLoci.positions(removed.surfaceBeforeTerm(survivorId)).size
+            val survivorVowelCount = DevanagariVowelLoci.positions(currentSurvivor.surface).size
+            val localIndex = wordIndex - prefixCount
+            if (localIndex !in 0 until survivorVowelCount) null
+            else survivorId to (survivorVowelCount - 1 - localIndex)
+        }
+        return if (survivingLocus == null) removed else removed.copy(
+            droppedTerms = removed.droppedTerms.map { dropped ->
+                if (dropped.id == consumedId) dropped.copy(
+                    mergedIntoTermId = survivingLocus.first,
+                    mergedAffixVowelFromEnd = survivingLocus.second,
+                ) else dropped
+            },
+        )
     }
 
     /** Redistributes material across two adjacent surviving terms as one phonological operation. */
@@ -453,6 +499,12 @@ data class DerivationTerm(
     /** Accent stated by the lexical source, rather than assigned by an Aṣṭādhyāyī rule. */
     val lexicalAccent: Accent? = null,
     val lexicalAccentSource: String? = null,
+    /** Zero-based vowel ordinal inside this term; null means the lexical source did not identify a usable locus. */
+    val lexicalAccentVowelIndex: Int? = null,
+    /** Surviving term that contains this consumed affix's vowel after a phonological merge. */
+    val mergedIntoTermId: String? = null,
+    /** Vowel ordinal counted from that surviving term's end, stable across changes before the locus. */
+    val mergedAffixVowelFromEnd: Int? = null,
 ) {
     init {
         nonOperativeUpadeshaSegments.forEach { segment ->
@@ -481,6 +533,9 @@ data class DerivationTerm(
             blocksNicGuna = dhatu.blocksNicGuna,
             lexicalAccent = dhatu.svara,
             lexicalAccentSource = "Dhātupāṭha:${dhatu.id}",
+            lexicalAccentVowelIndex = DevanagariVowelLoci.positions(dhatu.derivationalSurface)
+                .takeIf { it.size == 1 }
+                ?.let { 0 },
         )
     }
 

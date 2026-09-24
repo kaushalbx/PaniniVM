@@ -9,6 +9,13 @@ import kotlin.test.assertEquals
 class ConsonantStemsTest {
 
     @Test
+    fun `regular pipeline derives masculine consonant nominative without specialized synthesis`() {
+        val request = SubantaDerivationRequest("सुहृद्", Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.PUMS)
+        val result = DerivationEngine(dev.panini.ashtadhyayi.Ashtadhyayi.executableSutras).derive(request.initialState())
+        assertEquals("सुहृत्", result.final.surface)
+    }
+
+    @Test
     fun `test specialized declensions for nadi rajan and vac`() {
         val engine = SubantaEngine()
 
@@ -33,6 +40,14 @@ class ConsonantStemsTest {
         val vak = engine.derive(SubantaDerivationRequest("वाच्", Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.STRI))
         assertEquals("वाक्", vak.final.surface)
         kotlin.test.assertTrue(vak.applications.any { it.sutra == "8.2.30" })
+        val suhrt = engine.derive(SubantaDerivationRequest("सुहृद्", Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.PUMS))
+        assertEquals("सुहृत्", suhrt.final.surface)
+        kotlin.test.assertTrue(suhrt.applications.any { it.sutra == "3.1.4" })
+        kotlin.test.assertTrue(suhrt.applications.any { it.sutra == "6.1.158" })
+        kotlin.test.assertTrue(suhrt.applications.any { it.sutra.startsWith("8.") })
+        kotlin.test.assertTrue(suhrt.final.droppedTerms.any { it.matchesUpadesha("सुँ") })
+        kotlin.test.assertTrue(suhrt.final.terms.none { it.id == "specialized-sup" })
+        assertEquals("सुहृत्", suhrt.svaraResult?.word)
 
         val vaca = engine.derive(SubantaDerivationRequest("वाच्", Vibhakti.TRTIYA, Vacana.EKAVACANA, Linga.STRI))
         assertEquals("वाचा", vaca.final.surface)
@@ -74,6 +89,18 @@ class ConsonantStemsTest {
         val vidusah = engine.derive(SubantaDerivationRequest("विद्वस्", Vibhakti.DVITIYA, Vacana.BAHUVACANA, Linga.PUMS))
         assertEquals("विदुषः", vidusah.final.surface)
         kotlin.test.assertTrue(vidusah.applications.any { it.sutra == "6.4.131" })
+
+        val avidvan = engine.derive(
+            SubantaDerivationRequest(
+                "अविद्वस्",
+                Vibhakti.PRATHAMA,
+                Vacana.EKAVACANA,
+                Linga.PUMS,
+                compoundHeadUpadesha = "विद्वस्",
+            ),
+        )
+        assertEquals("अविद्वान्", avidvan.final.surface)
+        kotlin.test.assertTrue(avidvan.applications.any { it.sutra == "6.4.10" })
 
         // mahat stem tests
         val mahan = engine.derive(SubantaDerivationRequest("महत्", Vibhakti.PRATHAMA, Vacana.EKAVACANA, Linga.PUMS))

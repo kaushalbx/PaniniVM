@@ -25,6 +25,8 @@ class BahuvrihiSamasaTest {
         )
         assertEquals("पीताम्बरः", result.final.surface)
         assertTrue(result.applications.any { it.sutra == "2.2.24" })
+        val parasavarna = result.applications.single { it.sutra == "8.4.58" }
+        assertTrue(parasavarna.delta.changedTerms.isNotEmpty())
     }
 
     @Test
