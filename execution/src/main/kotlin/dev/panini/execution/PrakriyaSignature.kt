@@ -4,11 +4,7 @@ import dev.panini.sankhya.SankhyaEvaluator
 import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
 import dev.panini.vyakaranam.ast.MulaPratipadika
-import dev.panini.vyakaranam.ast.AvyayaFunction
-import dev.panini.vyakaranam.ast.AvyayaPada
-import dev.panini.vyakaranam.ast.Quotation
 import dev.panini.vyakaranam.ast.SubantaPada
-import dev.panini.vyakaranam.ast.invocations
 
 /** Semantic value types used by saṃjñā signatures and overload resolution. */
 enum class PrakriyaValueType {
@@ -66,7 +62,22 @@ object PrakriyaSignatureCompiler {
 object PrakriyaSignatureDeclarationParser {
     data class ResultDeclaration(val type: PrakriyaValueType? = null, val schema: String? = null)
 
-    fun parameter(sentence: PvmScriptStatement.Sentence): PrakriyaParameter? {
+    sealed interface Declaration {
+        data class Parameter(val value: PrakriyaParameter) : Declaration
+        data class Result(val value: ResultDeclaration) : Declaration
+    }
+
+    fun declaration(sentence: PvmScriptStatement.Sentence): Declaration? =
+        parameterOrNull(sentence)?.let(Declaration::Parameter)
+            ?: resultOrNull(sentence)?.let(Declaration::Result)
+
+    fun parameter(sentence: PvmScriptStatement.Sentence): PrakriyaParameter? =
+        (declaration(sentence) as? Declaration.Parameter)?.value
+
+    fun result(sentence: PvmScriptStatement.Sentence): ResultDeclaration? =
+        (declaration(sentence) as? Declaration.Result)?.value
+
+    private fun parameterOrNull(sentence: PvmScriptStatement.Sentence): PrakriyaParameter? {
         val (declared, marker) = declarationPadas(sentence) ?: return null
         if (marker.singleStem() != "मान" || declared.size != 2) return null
         val parameterName = declared[0].singleStem() ?: return null
@@ -74,7 +85,7 @@ object PrakriyaSignatureDeclarationParser {
         return PrakriyaParameter(parameterName, parameterType)
     }
 
-    fun result(sentence: PvmScriptStatement.Sentence): ResultDeclaration? {
+    private fun resultOrNull(sentence: PvmScriptStatement.Sentence): ResultDeclaration? {
         val (declared, marker) = declarationPadas(sentence) ?: return null
         if (marker.singleStem() != "परिणाम" || declared.size != 1) return null
         val result = declared.single().singleStem() ?: return null
@@ -85,7 +96,7 @@ object PrakriyaSignatureDeclarationParser {
     fun resultType(sentence: PvmScriptStatement.Sentence): PrakriyaValueType? = result(sentence)?.type
 
     fun isDeclaration(sentence: PvmScriptStatement.Sentence): Boolean =
-        parameter(sentence) != null || result(sentence) != null
+        declaration(sentence) != null
 
     private fun typeOrNull(source: String): PrakriyaValueType? = when (source) {
         "सङ्ख्या" -> PrakriyaValueType.SANKHYA
@@ -97,18 +108,9 @@ object PrakriyaSignatureDeclarationParser {
     private fun declarationPadas(
         sentence: PvmScriptStatement.Sentence,
     ): Pair<List<SubantaPada>, SubantaPada>? {
-        val ukti = sentence.ukti ?: return null
-        val (declarationPadas, reportingPadas) = (ukti.body as? Quotation)?.let { quotation ->
-            quotation.quoted.vakya.padas to quotation.reporting.invocations().flatMap { it.vakya.padas }
-        } ?: run {
-            val padas = ukti.grammaticalVakyas().flatMap { it.padas }
-            val iti = padas.indexOfFirst { (it as? AvyayaPada)?.function == AvyayaFunction.QUOTATIVE }
-            if (iti < 0) return null
-            padas.take(iti) to padas.drop(iti + 1)
-        }
-        val declared = declarationPadas.filterIsInstance<SubantaPada>()
-        val marker = reportingPadas
-            .filterIsInstance<SubantaPada>().singleOrNull() ?: return null
+        val declaration = sentence.ukti?.let(ItiDeclarationAnalyzer::analyze) ?: return null
+        val declared = declaration.declaredPadas.filterIsInstance<SubantaPada>()
+        val marker = declaration.nominativeMarker ?: return null
         if ((declared + marker).any { SupAffix.fromUpadesha(it.sup.text)?.vibhakti != Vibhakti.PRATHAMA }) {
             return null
         }

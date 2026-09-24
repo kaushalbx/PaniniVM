@@ -4,9 +4,8 @@ import dev.panini.vyakaranam.ast.Pipeline
 import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
 import dev.panini.sankhya.CanonicalNumeralStem
-import dev.panini.vyakaranam.ast.AvyayaFunction
-import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.MulaPratipadika
+import dev.panini.vyakaranam.ast.ParyantaRangePada
 import dev.panini.vyakaranam.ast.SubantaPada
 
 enum class PrakriyaDiagnosticSeverity { ERROR, WARNING }
@@ -31,14 +30,6 @@ object PrakriyaScriptValidator {
                 replacement = suggestion.canonical,
             )
         }
-        legacySamjnaMarkers(source).forEach { legacy ->
-            diagnostics += PrakriyaDiagnostic(
-                offset = legacy.first,
-                length = legacy.last - legacy.first + 1,
-                message = "संज्ञा denotes a grammatical technical term; declare reusable code with 'इति प्रक्रिया अस्ति'.",
-                replacement = "इति प्रक्रिया + सुँ असँ + लट् + तिप्",
-            )
-        }
         DirectResultAssignment.suggestions(source).forEach { suggestion ->
             diagnostics += PrakriyaDiagnostic(
                 offset = suggestion.offset,
@@ -57,6 +48,29 @@ object PrakriyaScriptValidator {
             return diagnostics
         }
         val registry = PrakriyaRegistry()
+
+        legacySamjnaMarkers(source, statements).forEach { legacy ->
+            diagnostics += PrakriyaDiagnostic(
+                offset = legacy.first,
+                length = legacy.last - legacy.first + 1,
+                message = "संज्ञा denotes a grammatical technical term; declare reusable code with 'इति प्रक्रिया अस्ति'.",
+                replacement = "इति प्रक्रिया + सुँ असँ + लट् + तिप्",
+            )
+        }
+
+        statements.filterIsInstance<PvmScriptStatement.Sentence>().forEach { sentence ->
+            val declaration = sentence.ukti?.let(ItiDeclarationAnalyzer::analyze) ?: return@forEach
+            val marker = declaration.nominativeMarker ?: return@forEach
+            if ((marker.pratipadika as? MulaPratipadika)?.text == "सीमा" &&
+                declaration.declaredPadas.none { it is ParyantaRangePada }
+            ) {
+                diagnostics += diagnostic(
+                    source,
+                    "सीमा",
+                    "A सीमा requires an ablative lower bound and a segmented पर्यन्त upper boundary.",
+                )
+            }
+        }
 
         statements.filterIsInstance<PvmScriptStatement.Sentence>().mapNotNull { sentence ->
             TaddhitaStructEngine.detectResultSchema(sentence.text, sentence.ukti)
@@ -165,42 +179,28 @@ object PrakriyaScriptValidator {
         }
     }
 
-    private fun legacySamjnaMarkers(source: String): List<IntRange> {
-        val legacyMarkers = runCatching { PvmScript.parse(source) }.getOrDefault(emptyList())
+    private fun legacySamjnaMarkers(
+        source: String,
+        statements: List<PvmScriptStatement>,
+    ): List<IntRange> {
+        val legacyMarkers = statements
             .filterIsInstance<PvmScriptStatement.Sentence>()
             .mapNotNull { sentence ->
-                val padas = sentence.ukti?.grammaticalVakyas()?.flatMap { it.padas } ?: return@mapNotNull null
-                val iti = padas.indexOfFirst { (it as? AvyayaPada)?.function == AvyayaFunction.QUOTATIVE }
-                val marker = padas.getOrNull(iti + 1) as? SubantaPada ?: return@mapNotNull null
+                val declaration = sentence.ukti?.let(ItiDeclarationAnalyzer::analyze) ?: return@mapNotNull null
+                val marker = declaration.nominativeMarker ?: return@mapNotNull null
                 if ((marker.pratipadika as? MulaPratipadika)?.text != "संज्ञा" ||
                     SupAffix.fromUpadesha(marker.sup.text)?.vibhakti != Vibhakti.PRATHAMA
                 ) return@mapNotNull null
                 "इति${marker.sourceText.filterNot(Char::isWhitespace)}"
             }
         if (legacyMarkers.isEmpty()) return emptyList()
-        val compact = compactSource(source)
+        val sourceMap = SourceTextMap(source)
         var searchFrom = 0
         return legacyMarkers.mapNotNull { marker ->
-            val start = compact.text.indexOf(marker, searchFrom)
-            if (start < 0) return@mapNotNull null
-            val end = start + marker.length - 1
-            searchFrom = end + 1
-            compact.sourceOffsets[start]..compact.sourceOffsets[end]
+            val located = sourceMap.locate(marker, searchFrom) ?: return@mapNotNull null
+            searchFrom = located.nextCompactOffset
+            located.span.start until located.span.endExclusive
         }
-    }
-
-    private data class CompactSource(val text: String, val sourceOffsets: List<Int>)
-
-    private fun compactSource(source: String): CompactSource {
-        val text = StringBuilder(source.length)
-        val offsets = ArrayList<Int>(source.length)
-        source.forEachIndexed { index, character ->
-            if (!character.isWhitespace()) {
-                text.append(character)
-                offsets += index
-            }
-        }
-        return CompactSource(text.toString(), offsets)
     }
 
     private fun diagnostic(source: String, token: String, message: String): PrakriyaDiagnostic {

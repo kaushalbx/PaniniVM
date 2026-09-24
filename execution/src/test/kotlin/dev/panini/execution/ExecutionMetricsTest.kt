@@ -40,4 +40,33 @@ class ExecutionMetricsTest {
             directory.delete()
         }
     }
+
+    @Test
+    fun `project libraries are cached and invalidated by file state`() {
+        val directory = kotlin.io.path.createTempDirectory("pvm-project-cache-").toFile()
+        val entry = File(directory, "main.pvm")
+        val library = File(directory, "library.pvm")
+        try {
+            entry.writeText("योग + अम् डुकृञ् + उ + लोट् + सिप् ।")
+            library.writeText(
+                """
+                योग + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+                एक + अम् मुद्र् + लोट् + सिप् ॥
+                """.trimIndent(),
+            )
+            val metrics = ExecutionMetrics()
+            val vm = PaniniVM(executionMetrics = metrics)
+
+            vm.evalProject(entry)
+            vm.evalProject(entry)
+            assertEquals(1, metrics.snapshot().projectCacheMisses)
+            assertEquals(1, metrics.snapshot().projectCacheHits)
+
+            library.appendText("\n# cache invalidation")
+            vm.evalProject(entry)
+            assertEquals(2, metrics.snapshot().projectCacheMisses)
+        } finally {
+            directory.deleteRecursively()
+        }
+    }
 }

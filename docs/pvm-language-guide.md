@@ -233,7 +233,7 @@ interactive request.
 Declare one inclusive range with pañcamī and saptamī bounds:
 
 ```pvm
-एक + ङसिँ दशन् + ङि इति सीमा + सुँ ।
+एक + ङसिँ दशन् + शस् परि + अन्त + अम् इति सीमा + सुँ ।
 ```
 
 The active range can be reused by random selection, numeric input validation,

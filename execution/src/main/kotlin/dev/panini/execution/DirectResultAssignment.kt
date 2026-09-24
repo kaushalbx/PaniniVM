@@ -22,19 +22,15 @@ object DirectResultAssignment {
             val sequence = sentence.program as? Sequence ?: return@flatMap emptyList()
             sequence.statements.drop(1).filterIsInstance<Invocation>().mapNotNull(::verboseAssignment)
         }
-        val compact = compactSource(source)
+        val sourceMap = SourceTextMap(source)
         var searchFrom = 0
         return candidates.mapNotNull { (invocation, target) ->
             val needle = invocation.sourceText.filterNot(Char::isWhitespace).trimEnd('।', '॥')
-            val compactStart = compact.text.indexOf(needle, searchFrom)
-            if (compactStart < 0) return@mapNotNull null
-            val compactEnd = compactStart + needle.length - 1
-            searchFrom = compactEnd + 1
-            val sourceStart = compact.sourceOffsets[compactStart]
-            val sourceEnd = compact.sourceOffsets[compactEnd] + 1
+            val located = sourceMap.locate(needle, searchFrom) ?: return@mapNotNull null
+            searchFrom = located.nextCompactOffset
             DirectResultAssignmentSuggestion(
-                offset = sourceStart,
-                length = sourceEnd - sourceStart,
+                offset = located.span.start,
+                length = located.span.length,
                 replacement = "$target + ङे दा + लोट् + सिप्",
             )
         }
@@ -57,17 +53,4 @@ object DirectResultAssignment {
 
     private fun SubantaPada.vibhakti(): Vibhakti? = SupAffix.fromUpadesha(sup.text)?.vibhakti
 
-    private data class CompactSource(val text: String, val sourceOffsets: List<Int>)
-
-    private fun compactSource(source: String): CompactSource {
-        val text = StringBuilder(source.length)
-        val offsets = ArrayList<Int>(source.length)
-        source.forEachIndexed { index, character ->
-            if (!character.isWhitespace()) {
-                text.append(character)
-                offsets += index
-            }
-        }
-        return CompactSource(text.toString(), offsets)
-    }
 }
