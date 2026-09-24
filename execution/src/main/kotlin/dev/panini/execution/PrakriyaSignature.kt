@@ -1,6 +1,14 @@
 package dev.panini.execution
 
 import dev.panini.sankhya.SankhyaEvaluator
+import dev.panini.core.SupAffix
+import dev.panini.core.Vibhakti
+import dev.panini.vyakaranam.ast.MulaPratipadika
+import dev.panini.vyakaranam.ast.AvyayaFunction
+import dev.panini.vyakaranam.ast.AvyayaPada
+import dev.panini.vyakaranam.ast.Quotation
+import dev.panini.vyakaranam.ast.SubantaPada
+import dev.panini.vyakaranam.ast.invocations
 
 /** Semantic value types used by saṃjñā signatures and overload resolution. */
 enum class PrakriyaValueType {
@@ -57,29 +65,21 @@ object PrakriyaSignatureCompiler {
 /** Parses grammatical signature declarations embedded at the start of a saṃjñā block. */
 object PrakriyaSignatureDeclarationParser {
     data class ResultDeclaration(val type: PrakriyaValueType? = null, val schema: String? = null)
-    private val typeSource = "(सङ्ख्या|शब्द|सूची)"
-    private val parameterPattern = Regex(
-        "^\\s*(.+?)\\s*\\+\\s*सुँ\\s+$typeSource\\s*\\+\\s*सुँ\\s+इति\\s+मान\\s*\\+\\s*सुँ\\s*[।॥]?\\s*$",
-    )
-    private val resultPattern = Regex(
-        "^\\s*$typeSource\\s*\\+\\s*सुँ\\s+इति\\s+परिणाम\\s*\\+\\s*सुँ\\s*[।॥]?\\s*$",
-    )
-    private val schemaResultPattern = Regex(
-        "^\\s*(.+?)\\s*\\+\\s*सुँ\\s+इति\\s+परिणाम\\s*\\+\\s*सुँ\\s*[।॥]?\\s*$",
-    )
 
     fun parameter(sentence: PvmScriptStatement.Sentence): PrakriyaParameter? {
-        val match = parameterPattern.matchEntire(sentence.text) ?: return null
-        return PrakriyaParameter(match.groupValues[1].trim(), type(match.groupValues[2]))
+        val (declared, marker) = declarationPadas(sentence) ?: return null
+        if (marker.singleStem() != "मान" || declared.size != 2) return null
+        val parameterName = declared[0].singleStem() ?: return null
+        val parameterType = declared[1].singleStem()?.let(::typeOrNull) ?: return null
+        return PrakriyaParameter(parameterName, parameterType)
     }
 
     fun result(sentence: PvmScriptStatement.Sentence): ResultDeclaration? {
-        resultPattern.matchEntire(sentence.text)?.groupValues?.get(1)?.let {
-            return ResultDeclaration(type = type(it))
-        }
-        val schema = schemaResultPattern.matchEntire(sentence.text)?.groupValues?.get(1)?.trim() ?: return null
-        if (schema in setOf("सङ्ख्या", "शब्द", "सूची")) return null
-        return ResultDeclaration(schema = schema)
+        val (declared, marker) = declarationPadas(sentence) ?: return null
+        if (marker.singleStem() != "परिणाम" || declared.size != 1) return null
+        val result = declared.single().singleStem() ?: return null
+        return typeOrNull(result)?.let { ResultDeclaration(type = it) }
+            ?: ResultDeclaration(schema = result)
     }
 
     fun resultType(sentence: PvmScriptStatement.Sentence): PrakriyaValueType? = result(sentence)?.type
@@ -87,12 +87,36 @@ object PrakriyaSignatureDeclarationParser {
     fun isDeclaration(sentence: PvmScriptStatement.Sentence): Boolean =
         parameter(sentence) != null || result(sentence) != null
 
-    private fun type(source: String): PrakriyaValueType = when (source) {
+    private fun typeOrNull(source: String): PrakriyaValueType? = when (source) {
         "सङ्ख्या" -> PrakriyaValueType.SANKHYA
         "शब्द" -> PrakriyaValueType.SHABDA
         "सूची" -> PrakriyaValueType.SUCHI
-        else -> error("Unsupported saṃjñā value type: $source")
+        else -> null
     }
+
+    private fun declarationPadas(
+        sentence: PvmScriptStatement.Sentence,
+    ): Pair<List<SubantaPada>, SubantaPada>? {
+        val ukti = sentence.ukti ?: return null
+        val (declarationPadas, reportingPadas) = (ukti.body as? Quotation)?.let { quotation ->
+            quotation.quoted.vakya.padas to quotation.reporting.invocations().flatMap { it.vakya.padas }
+        } ?: run {
+            val padas = ukti.grammaticalVakyas().flatMap { it.padas }
+            val iti = padas.indexOfFirst { (it as? AvyayaPada)?.function == AvyayaFunction.QUOTATIVE }
+            if (iti < 0) return null
+            padas.take(iti) to padas.drop(iti + 1)
+        }
+        val declared = declarationPadas.filterIsInstance<SubantaPada>()
+        val marker = reportingPadas
+            .filterIsInstance<SubantaPada>().singleOrNull() ?: return null
+        if ((declared + marker).any { SupAffix.fromUpadesha(it.sup.text)?.vibhakti != Vibhakti.PRATHAMA }) {
+            return null
+        }
+        return declared to marker
+    }
+
+    private fun SubantaPada.singleStem(): String? =
+        (pratipadika as? MulaPratipadika)?.text
 }
 
 object PrakriyaValueClassifier {

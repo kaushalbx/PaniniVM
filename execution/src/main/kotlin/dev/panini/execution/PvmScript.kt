@@ -2,12 +2,23 @@ package dev.panini.execution
 
 import dev.panini.execution.binding.NumeralAstNormalizer
 import dev.panini.execution.binding.VyakaranamExecutionAdapter
+import dev.panini.vyakaranam.ast.AvyayaFunction
+import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.Prakriya
 import dev.panini.vyakaranam.ast.PrakriyaModifiers
 import dev.panini.vyakaranam.ast.PrakriyaPrecedence
 import dev.panini.vyakaranam.ast.PrakriyaVisibility
 import dev.panini.vyakaranam.ast.ProgramNode
+import dev.panini.vyakaranam.ast.Quotation
 import dev.panini.vyakaranam.ast.Scope
+import dev.panini.vyakaranam.ast.SubantaPada
+import dev.panini.vyakaranam.ast.MulaPratipadika
+import dev.panini.vyakaranam.ast.ParyantaRangePada
+import dev.panini.vyakaranam.ast.SankhyaPada
+import dev.panini.vyakaranam.ast.SankhyaPratipadika
+import dev.panini.vyakaranam.ast.invocations
+import dev.panini.core.SupAffix
+import dev.panini.core.Vibhakti
 
 sealed interface PvmScriptStatement {
     val text: String
@@ -179,39 +190,57 @@ object PvmScript {
         return prakriyaDefinitions + adhikaraDefinitions + rangeDefinitions + sentences
     }
 
-    private fun isRangeDefinitionLine(line: String): Boolean =
-        Regex("इति\\s+सीमा\\s*\\+\\s*सुँ\\s*[।॥]?$").containsMatchIn(line)
+    private fun isRangeDefinitionLine(line: String): Boolean = extractRangeDefinition(line) != null
 
     private fun extractRangeDefinition(line: String): SanskritValue.Range? {
-        if (!isRangeDefinitionLine(line)) return null
         val ukti = parser.parseOrNull(line.trimEnd('।', '॥', ' ')) ?: return null
-        val rangePadas = (ukti.body as? dev.panini.vyakaranam.ast.Quotation)
-            ?.quoted?.vakya?.padas
-            ?: ukti.grammaticalVakyas().flatMap { it.padas }
-        data class NumericPada(val value: Long, val word: String, val sup: String)
+        val (rangePadas, reportingPadas) = (ukti.body as? Quotation)?.let { quotation ->
+            quotation.quoted.vakya.padas to quotation.reporting.invocations().flatMap { it.vakya.padas }
+        } ?: run {
+            val padas = ukti.grammaticalVakyas().flatMap { it.padas }
+            val iti = padas.indexOfFirst { (it as? AvyayaPada)?.function == AvyayaFunction.QUOTATIVE }
+            if (iti < 0) return null
+            padas.take(iti) to padas.drop(iti + 1)
+        }
+        val marker = reportingPadas
+            .filterIsInstance<SubantaPada>()
+            .singleOrNull() ?: return null
+        if ((marker.pratipadika as? MulaPratipadika)?.text != "सीमा" ||
+            SupAffix.fromUpadesha(marker.sup.text)?.vibhakti != Vibhakti.PRATHAMA
+        ) return null
         val evaluator = dev.panini.sankhya.SankhyaEvaluator()
-        val numericPadas = rangePadas.mapNotNull { pada ->
-            when (pada) {
-                is dev.panini.vyakaranam.ast.SankhyaPada -> NumericPada(
-                    pada.value ?: evaluator.evaluateStems(pada.stems).value,
-                    pada.stems.joinToString(" "),
-                    pada.sup.text,
-                )
-                is dev.panini.vyakaranam.ast.SubantaPada -> {
-                    val normalized = NumeralAstNormalizer.normalize(pada)
-                    val value = (normalized.pratipadika as? dev.panini.vyakaranam.ast.SankhyaPratipadika)
-                        ?.semanticValue ?: return@mapNotNull null
-                    NumericPada(value.value, value.word, normalized.sup.text)
+        fun value(pada: dev.panini.vyakaranam.ast.SankhyaPada): SanskritValue.Sankhya = SanskritValue.Sankhya(
+            pada.value ?: evaluator.evaluateStems(pada.stems).value,
+            pada.stems.joinToString(" "),
+        )
+        val explicitRange = rangePadas.filterIsInstance<ParyantaRangePada>().singleOrNull()
+        val bounds = if (explicitRange != null) {
+            listOf(value(explicitRange.lowerLimit), value(explicitRange.upperLimit))
+        } else {
+            rangePadas.mapNotNull { pada ->
+                when (pada) {
+                    is SankhyaPada -> SanskritValue.Sankhya(
+                        pada.value ?: evaluator.evaluateStems(pada.stems).value,
+                        pada.stems.joinToString(" "),
+                    ) to pada.sup.text
+                    is SubantaPada -> {
+                        val normalized = NumeralAstNormalizer.normalize(pada)
+                        val number = (normalized.pratipadika as? SankhyaPratipadika)?.semanticValue
+                            ?: return@mapNotNull null
+                        number to normalized.sup.text
+                    }
+                    else -> null
                 }
-                else -> null
+            }.let { numeric ->
+                fun bound(vibhakti: Vibhakti): SanskritValue.Sankhya? = numeric.firstOrNull { (_, sup) ->
+                    SupAffix.candidates(sup).any { it.vibhakti == vibhakti }
+                }?.first
+                listOfNotNull(bound(Vibhakti.PANCHAMI), bound(Vibhakti.SAPTAMI))
             }
         }
-        fun bound(vibhakti: dev.panini.core.Vibhakti): SanskritValue.Sankhya? = numericPadas
-            .firstOrNull { pada ->
-                dev.panini.core.SupAffix.candidates(pada.sup).any { it.vibhakti == vibhakti }
-            }?.let { pada -> SanskritValue.Sankhya(pada.value, pada.word) }
-        val minimum = bound(dev.panini.core.Vibhakti.PANCHAMI) ?: return null
-        val maximum = bound(dev.panini.core.Vibhakti.SAPTAMI) ?: return null
+        if (bounds.size != 2) return null
+        val minimum = bounds[0]
+        val maximum = bounds[1]
         return runCatching { SanskritValue.Range(minimum, maximum) }.getOrNull()
     }
 
@@ -323,4 +352,5 @@ object PvmScript {
             }
             .toList()
     }
+
 }
