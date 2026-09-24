@@ -1,6 +1,8 @@
 package dev.panini.execution
 
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 
 /** Explicit generator for readable Sanskrit companions to segmented `.pvm` sources. */
 object PvmReadableSanskrit {
@@ -13,7 +15,18 @@ object PvmReadableSanskrit {
         }
         val rendered = PvmUktiSadhaka().sadhayaScript(source.readText()).trimEnd()
         target.parentFile?.mkdirs()
-        target.writeText("$rendered\n")
+        val temporary = File.createTempFile(".${target.name}.", ".tmp", target.parentFile)
+        try {
+            temporary.writeText("$rendered\n")
+            Files.move(
+                temporary.toPath(),
+                target.toPath(),
+                StandardCopyOption.REPLACE_EXISTING,
+                StandardCopyOption.ATOMIC_MOVE,
+            )
+        } finally {
+            temporary.delete()
+        }
         return target
     }
 
