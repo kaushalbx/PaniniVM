@@ -2,6 +2,9 @@ package dev.panini.ashtadhyayi.adhyaya1.pada2
 
 import dev.panini.core.Linga
 import dev.panini.derivation.*
+import dev.panini.shiksha.isDirgha
+import dev.panini.shiksha.lastSvara
+import dev.panini.shiksha.withFinalHrasva
 import dev.panini.sutra.*
 
 /** 1.2.47 ह्रस्वो नपुंसके प्रातिपदिकस्य. */
@@ -22,18 +25,12 @@ object HrasvoNapumsakePratipadikasyaSutra : Sutra<DerivationState, DerivationCha
         val term = context.terms.first {
             it.kind == TermKind.PRATIPADIKA && it.surface == it.upadesha && longFinal(it.surface)
         }
-        val surface = when {
-            term.surface.endsWith("ा") -> term.surface.dropLast(1)
-            term.surface.endsWith("ी") -> term.surface.dropLast(1) + "ि"
-            term.surface.endsWith("ू") -> term.surface.dropLast(1) + "ु"
-            term.surface.endsWith("ॄ") -> term.surface.dropLast(1) + "ृ"
-            else -> term.surface
-        }
+        val surface = term.surface.withFinalHrasva()
         return DerivationChange(
             context.replaceWholeTermSurface(term.id, surface, sutra),
             "1.2.47 shortens the final vowel of a neuter prātipadika.",
         )
     }
 
-    private fun longFinal(surface: String): Boolean = surface.lastOrNull() in setOf('ा', 'ी', 'ू', 'ॄ')
+    private fun longFinal(surface: String): Boolean = surface.lastSvara()?.isDirgha == true
 }

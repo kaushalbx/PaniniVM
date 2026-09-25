@@ -7,6 +7,10 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.toDevanagari
+import dev.panini.shiksha.toVarnas
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -42,7 +46,7 @@ object AmetahSutra : Sutra<DerivationState, DerivationChange>(
         } else if (affix.upadesha == "झ" && context.terms.any { it.id == "shna" }) {
             "अताम्"
         } else {
-            affix.surface.dropLast(1) + "ाम्"
+            (affix.varnas.dropLast(1) + listOf(Svara.AA, Vyanjana.MA)).toDevanagari()
         }
         return DerivationChange(
             context.replaceWholeAffix(affix.id, replacement, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume).copy(stage = DerivationStage.PADA_FORMED),

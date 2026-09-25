@@ -7,6 +7,11 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.SamjnaAssignment
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.firstVarna
+import dev.panini.shiksha.lastVarna
+import dev.panini.shiksha.toDevanagari
+import dev.panini.shiksha.toVarnas
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -39,12 +44,11 @@ object EngiPararupamSutra : Sutra<DerivationState, DerivationChange>(
         if (root.kind != TermKind.DHATU || SamjnaAssignment(prefix.id, Samjna.UPASARGA) !in context.samjnas) return false
 
         // 1. Must be an a-ending prefix.
-        val isAPrefix = prefix.surface.endsWith('अ') || prefix.surface.endsWith('ा')
+        val isAPrefix = prefix.surface.lastVarna() in setOf(Svara.A, Svara.AA)
         if (!isAPrefix) return false
 
         // 2. Root must start with 'e' or 'o'
-        val firstChar = root.surface.firstOrNull() ?: return false
-        return firstChar == 'ए' || firstChar == 'ओ' || firstChar == 'े' || firstChar == 'ो'
+        return root.surface.firstVarna() in setOf(Svara.E, Svara.O)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -52,14 +56,17 @@ object EngiPararupamSutra : Sutra<DerivationState, DerivationChange>(
         val prefix = terms[terms.size - 2]
         val root = terms.last()
 
-        val replacement = root.surface.first().toString()
-        val newSurface = prefix.surface.dropLast(1) + replacement + root.surface.drop(1)
+        val prefixVarnas = prefix.varnas
+        val rootVarnas = root.varnas
+        val source = prefixVarnas.last()
+        val replacement = listOf(rootVarnas.first())
+        val newSurface = (prefixVarnas.dropLast(1) + replacement + rootVarnas.drop(1)).toDevanagari()
 
         return DerivationChange(
             state = context.mergeTermsByVarnaSubstitution(
-                prefix.id, root.id, newSurface, prefix.surface.last(), replacement, sutra,
+                prefix.id, root.id, newSurface, source, replacement, sutra,
             ).copy(stage = DerivationStage.ANGAKARYA),
-            explanation = "6.1.94: Pararūpa substitution ($replacement) for prefix-a + root-e/o."
+            explanation = "6.1.94: Pararūpa substitution (${replacement.toDevanagari()}) for prefix-a + root-e/o."
         )
     }
 }

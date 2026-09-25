@@ -9,7 +9,13 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
 import dev.panini.pratyahara.Pratyahara
+import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Varnamala
+import dev.panini.shiksha.firstVarna
+import dev.panini.shiksha.lastVarna
+import dev.panini.shiksha.toDevanagari
+import dev.panini.shiksha.toDirgha
+import dev.panini.shiksha.toVarnas
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -39,19 +45,20 @@ object SavarnaDirghaSutra : Sutra<DerivationState, DerivationChange>(
         val leftTerm = context.terms[leftIndex]
         if (leftIndex > 0 && leftTerm.id == "shap") {
             val previous = context.terms[leftIndex - 1]
-            if (previous.upadesha == "णिच्" && previous.surface.lastOrNull() in setOf('ए', 'ऐ', 'ओ', 'औ', 'े', 'ै', 'ो', 'ौ')) return false
+            val previousFinal = previous.surface.lastVarna()
+            if (previous.upadesha == "णिच्" && previousFinal != null &&
+                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.EC, previousFinal)
+            ) return false
         }
         if (leftTerm.id == "shap" && context.terms.any { it.kind == TermKind.DHATU && it.gana == DhatuGana.ADADI }) return false
         if (context.effectiveContext.rupa.lakara == Lakara.LOT && context.terms.last().upadesha == "झि") return false
-        val leftChar = leftTerm.surface.lastOrNull() ?: return false
-        val right = context.terms[rightIndex].surface.firstOrNull() ?: return false
+        val left = leftTerm.surface.lastVarna() ?: return false
+        val right = context.terms[rightIndex].surface.firstVarna() ?: return false
 
-        val leftPhoneme = if (leftChar !in Varnamala.independentVowelsOrMarks) 'अ' else leftChar
         val engine = Ashtadhyayi.pratyaharaEngine
-        return engine.contains(Pratyahara.AK, leftPhoneme) &&
+        return engine.contains(Pratyahara.AK, left) &&
             engine.contains(Pratyahara.AK, right) &&
-            normalize(leftPhoneme) == normalize(right) &&
-            Varnamala.areSavarna(leftPhoneme, right)
+            Varnamala.areSavarna(left, right)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -60,55 +67,29 @@ object SavarnaDirghaSutra : Sutra<DerivationState, DerivationChange>(
         val leftTerm = terms[leftIndex]
         val rightTerm = terms[rightIndex]
 
-        val leftChar = leftTerm.surface.last()
-        val leftPhoneme = if (leftChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks) 'अ' else leftChar
-        val substitute = getDirgha(leftPhoneme)
+        val leftVowel = requireNotNull(leftTerm.surface.lastVarna() as? Svara)
+        val substitute = listOf(if (leftVowel in setOf(Svara.L, Svara.LL)) Svara.RR else leftVowel.toDirgha())
         val isBeginningAugment = leftTerm.kind == TermKind.AGAMA &&
             !leftTerm.mergeIntoAugmentTarget &&
             leftTerm.augmentTargetId == rightTerm.id &&
             "1.1.46" in leftTerm.establishedBySutras
 
+        val rightVarnas = rightTerm.varnas
         val newSurface = if (isBeginningAugment) {
-            val initial = when (substitute) {
-                "ा" -> "आ"
-                "ी" -> "ई"
-                "ू" -> "ऊ"
-                "ॄ" -> "ॠ"
-                else -> substitute
-            }
-            initial + rightTerm.surface.drop(1)
-        } else if (leftChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks) {
-            leftTerm.surface + substitute + rightTerm.surface.drop(1)
+            (substitute + rightVarnas.drop(1)).toDevanagari()
         } else {
-            leftTerm.surface.dropLast(1) + substitute + rightTerm.surface.drop(1)
+            (leftTerm.varnas.dropLast(1) + substitute + rightVarnas.drop(1)).toDevanagari()
         }
         val survivor = if (isBeginningAugment) rightTerm else leftTerm
         val consumedTerm = if (isBeginningAugment) leftTerm else rightTerm
 
         return DerivationChange(
             state = context.mergeTermsByVarnaSubstitution(
-                survivor.id, consumedTerm.id, newSurface, leftPhoneme, substitute, sutra,
+                survivor.id, consumedTerm.id, newSurface, leftVowel, substitute, sutra,
             ).copy(stage = DerivationStage.PADA_FORMED),
-            explanation = "6.1.101: Savarṇa Dīrgha substitution ($substitute) for $leftPhoneme + ${rightTerm.surface.first()}."
+            explanation = "6.1.101: Savarṇa Dīrgha substitution (${substitute.toDevanagari()}) " +
+                "for $leftVowel + ${rightVarnas.first()}."
         )
-    }
-
-    private fun getDirgha(c: Char): String = when (normalize(c)) {
-        'अ' -> "ा"
-        'इ' -> "ी"
-        'उ' -> "ू"
-        'ऋ' -> "ॄ"
-        'ऌ' -> "ॄ" // ऌ doesn't have a dīrgha; ऋ is its savarṇa equivalent.
-        else -> c.toString()
-    }
-
-    private fun normalize(c: Char): Char = when (c) {
-        'अ', 'आ', 'ा' -> 'अ'
-        'इ', 'ई', 'ि', 'ी' -> 'इ'
-        'उ', 'ऊ', 'ु', 'ू' -> 'उ'
-        'ऋ', 'ॠ', 'ृ', 'ॄ' -> 'ऋ'
-        'ऌ', 'ॢ' -> 'ऌ'
-        else -> c
     }
 
     private fun targetPair(context: DerivationState): Pair<Int, Int>? {
@@ -120,14 +101,13 @@ object SavarnaDirghaSutra : Sutra<DerivationState, DerivationChange>(
                 !augment.mergeIntoAugmentTarget &&
                 augment.augmentTargetId != null &&
                 "1.1.46" in augment.establishedBySutras &&
-                augment.surface.firstOrNull() in setOf('आ', 'ा')
+                augment.surface.firstVarna() == Svara.AA
         }?.let { return it to it + 1 }
         if (context.terms.size > 2 && context.terms.all { it.id.startsWith("sankhya_") }) {
             return (0 until context.terms.lastIndex).firstOrNull { index ->
-                val left = context.terms[index].surface.lastOrNull() ?: return@firstOrNull false
-                val right = context.terms[index + 1].surface.firstOrNull() ?: return@firstOrNull false
-                val leftPhoneme = if (left !in Varnamala.independentVowelsOrMarks) 'अ' else left
-                normalize(leftPhoneme) == normalize(right) && Varnamala.areSavarna(leftPhoneme, right)
+                val left = context.terms[index].surface.lastVarna() ?: return@firstOrNull false
+                val right = context.terms[index + 1].surface.firstVarna() ?: return@firstOrNull false
+                Varnamala.areSavarna(left, right)
             }?.let { it to it + 1 }
         }
         return (context.terms.lastIndex - 1) to context.terms.lastIndex

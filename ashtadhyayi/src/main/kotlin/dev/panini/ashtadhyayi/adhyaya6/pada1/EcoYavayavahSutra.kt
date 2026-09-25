@@ -8,6 +8,13 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.firstVarna
+import dev.panini.shiksha.lastVarna
+import dev.panini.shiksha.toDevanagari
+import dev.panini.shiksha.toVarnas
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -42,8 +49,8 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
                 rightTerm.upadesha == "झि" && "3.4.94" !in context.appliedSutras
             ) continue
             if (lotEndingReplacementPending(context, rightTerm.surface)) continue
-            val left = context.terms[i].surface.lastOrNull() ?: continue
-            val right = rightTerm.surface.firstOrNull() ?: continue
+            val left = context.terms[i].surface.lastVarna() ?: continue
+            val right = rightTerm.surface.firstVarna() ?: continue
             if (engine.contains(Pratyahara.EC, left) && engine.contains(Pratyahara.AC, right)) {
                 return true
             }
@@ -62,18 +69,18 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
                 rightTerm.upadesha == "झि" && "3.4.94" !in context.appliedSutras
             ) continue
             if (lotEndingReplacementPending(context, rightTerm.surface)) continue
-            val leftChar = leftTerm.surface.lastOrNull() ?: continue
-            val rightChar = rightTerm.surface.firstOrNull() ?: continue
-            if (engine.contains(Pratyahara.EC, leftChar) && engine.contains(Pratyahara.AC, rightChar)) {
-                val replacement = getAdesha(leftChar)
-                val base = leftTerm.surface.dropLast(1)
-                val s1 = concatDevanagari(base, replacement)
-                val newSurface = concatDevanagari(s1, rightTerm.surface)
+            val leftVarna = leftTerm.surface.lastVarna() ?: continue
+            val rightVarna = rightTerm.surface.firstVarna() ?: continue
+            if (engine.contains(Pratyahara.EC, leftVarna) && engine.contains(Pratyahara.AC, rightVarna)) {
+                val replacement = requireNotNull(adesha[leftVarna])
+                val newSurface = (
+                    leftTerm.varnas.dropLast(1) + replacement + rightTerm.varnas
+                ).toDevanagari()
                 val newSamjnas = context.samjnas.map {
                     if (it.targetId == rightTerm.id && it.samjna != Samjna.PRATYAYA) it.copy(targetId = leftTerm.id) else it
                 }.toSet()
                 val merged = context.mergeTermsByVarnaSubstitution(
-                    leftTerm.id, rightTerm.id, newSurface, leftChar, replacement, sutra,
+                    leftTerm.id, rightTerm.id, newSurface, leftVarna, replacement, sutra,
                 ).copy(stage = DerivationStage.PADA_FORMED, samjnas = newSamjnas)
                 val survivor = merged.terms.single { it.id == leftTerm.id }
 
@@ -81,66 +88,19 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
                     state = merged.replaceTerm(
                         leftTerm.id, survivor.copy(sthaniProps = leftTerm.sthaniProps ?: rightTerm.sthaniProps),
                     ),
-                    explanation = "6.1.78: substituted $replacement for $leftChar before vowel."
+                    explanation = "6.1.78: substituted ${replacement.toDevanagari()} for $leftVarna before vowel."
                 )
             }
         }
         return DerivationChange(context, "6.1.78: No match found")
     }
 
-    private fun concatDevanagari(s1: String, s2: String): String {
-        if (s1.isEmpty()) return s2
-        if (s2.isEmpty()) return s1
-
-        if (s1.endsWith('्')) {
-            val firstChar = s2.first()
-            if (firstChar == 'अ') {
-                return s1.dropLast(1) + s2.drop(1)
-            }
-            if (firstChar in setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ', 'े', 'ै', 'ो', 'ौ')) {
-                return s1.dropLast(1) + s2
-            }
-            val matra = getMatra(firstChar)
-            if (matra != null) {
-                return s1.dropLast(1) + matra + s2.drop(1)
-            }
-        }
-
-        if (s1.last() !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks && s2.startsWith('अ')) {
-            return s1 + s2.drop(1)
-        }
-
-        if (s1.last() !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks) {
-            val matra = getMatra(s2.first())
-            if (matra != null) return s1 + matra + s2.drop(1)
-        }
-
-        return s1 + s2
-    }
-
-    private fun getMatra(c: Char): Char? = when (c) {
-        'आ' -> 'ा'
-        'इ' -> 'ि'
-        'ई' -> 'ी'
-        'उ' -> 'ु'
-        'ऊ' -> 'ू'
-        'ऋ' -> 'ृ'
-        'ॠ' -> 'ॄ'
-        'ऌ' -> 'ॢ'
-        'ए' -> 'े'
-        'ऐ' -> 'ै'
-        'ओ' -> 'ो'
-        'औ' -> 'ौ'
-        else -> null
-    }
-
-    private fun getAdesha(c: Char): String = when (c) {
-        'ए', 'े' -> "अय्"
-        'ओ', 'ो' -> "अव्"
-        'ऐ', 'ै' -> "आय्"
-        'औ', 'ौ' -> "आव्"
-        else -> ""
-    }
+    private val adesha: Map<Varna, List<Varna>> = mapOf(
+        Svara.E to listOf(Svara.A, Vyanjana.YA),
+        Svara.O to listOf(Svara.A, Vyanjana.VA),
+        Svara.AI to listOf(Svara.AA, Vyanjana.YA),
+        Svara.AU to listOf(Svara.AA, Vyanjana.VA),
+    )
 
     private fun lotEndingReplacementPending(context: DerivationState, surface: String): Boolean =
         context.effectiveContext.rupa.lakara == Lakara.LOT &&

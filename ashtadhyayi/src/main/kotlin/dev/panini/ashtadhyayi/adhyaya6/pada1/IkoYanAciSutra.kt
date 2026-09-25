@@ -9,10 +9,16 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Varnamala
 import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.firstVarna
+import dev.panini.shiksha.lastVarna
+import dev.panini.shiksha.toDevanagari
+import dev.panini.shiksha.toVarnas
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -48,8 +54,8 @@ object IkoYanAciSutra : Sutra<DerivationState, DerivationChange>(
             it.upadesha in setOf("शप्", "श्यन्", "श्नु", "श", "श्नम्", "श्ना", "उ")
         }
         if (isPresentSystemTing && !presentStemEstablished) return false
-        val left = terms[leftIndex].surface.lastOrNull() ?: return false
-        val right = terms[rightIndex].surface.firstOrNull() ?: return false
+        val left = terms[leftIndex].surface.lastVarna() ?: return false
+        val right = terms[rightIndex].surface.firstVarna() ?: return false
         val isGhiFirstOrSecondDual = context.effectiveContext.rupa.vacana == Vacana.DVIVACANA &&
             context.effectiveContext.rupa.vibhakti in setOf(Vibhakti.PRATHAMA, Vibhakti.DVITIYA) &&
             context.samjnas.any { it.targetId == terms[leftIndex].id && it.samjna == Samjna.GHI }
@@ -58,13 +64,11 @@ object IkoYanAciSutra : Sutra<DerivationState, DerivationChange>(
         val engine = Ashtadhyayi.pratyaharaEngine
         val sankhyaPair = context.samjnas.any { it.targetId == terms[leftIndex].id && it.samjna == Samjna.SANKHYA } &&
             context.samjnas.any { it.targetId == terms[rightIndex].id && it.samjna == Samjna.SANKHYA }
-        val leftIsIk = engine.contains(Pratyahara.IK, left) ||
-            (sankhyaPair && normalizeIk(left) in setOf('इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ऌ'))
-        val rightIsAc = engine.contains(Pratyahara.AC, right) ||
-            (sankhyaPair && right in setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ऌ', 'ए', 'ऐ', 'ओ', 'औ'))
+        val leftIsIk = engine.contains(Pratyahara.IK, left) || (sankhyaPair && left in yan)
+        val rightIsAc = engine.contains(Pratyahara.AC, right) || (sankhyaPair && right is Svara)
         return leftIsIk &&
                rightIsAc &&
-               !isSavarna(left, right) // Savarna-dirgha (6.1.101) takes precedence
+               !Varnamala.areSavarna(left, right) // Savarṇa-dīrgha (6.1.101) takes precedence
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -73,37 +77,32 @@ object IkoYanAciSutra : Sutra<DerivationState, DerivationChange>(
         val leftTerm = terms[leftIndex]
         val rightTerm = terms[rightIndex]
 
-        val leftVowel = leftTerm.surface.last()
-        val replacement = yanFor(leftVowel)
-
-        val isMatra = leftVowel in setOf('ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ')
-        val newLeftSurface = if (isMatra) {
-            leftTerm.surface.dropLast(1) + "्" + replacement
-        } else {
-            leftTerm.surface.dropLast(1) + replacement
-        }
+        val leftVowel = requireNotNull(leftTerm.surface.lastVarna() as? Svara)
+        val replacement = listOf(requireNotNull(yan[leftVowel]))
+        val leftBase = leftTerm.varnas.dropLast(1) + replacement
+        val rightVarnas = rightTerm.varnas
         if (rightTerm.id == "siyut") {
             return DerivationChange(
                 state = context.redistributeAdjacentTermsByVarnaSubstitution(
                     leftId = leftTerm.id,
                     rightId = rightTerm.id,
-                    leftSurface = merge(newLeftSurface, rightTerm.surface.take(1)),
-                    rightSurface = rightTerm.surface.drop(1),
+                    leftSurface = (leftBase + rightVarnas.first()).toDevanagari(),
+                    rightSurface = rightVarnas.drop(1).toDevanagari(),
                     source = leftVowel,
                     replacement = replacement,
                     sutra = sutra,
                 ).copy(stage = DerivationStage.PADA_FORMED),
-                explanation = "6.1.77: substituted $replacement for $leftVowel before the vowel of सीयुट्.",
+                explanation = "6.1.77: substituted ${replacement.toDevanagari()} for $leftVowel before the vowel of सीयुट्.",
             )
         }
 
-        val mergedSurface = merge(newLeftSurface, rightTerm.surface)
+        val mergedSurface = (leftBase + rightVarnas).toDevanagari()
 
         return DerivationChange(
             state = context.mergeTermsByVarnaSubstitution(
                 leftTerm.id, rightTerm.id, mergedSurface, leftVowel, replacement, sutra,
             ).copy(stage = DerivationStage.PADA_FORMED),
-            explanation = "6.1.77: substituted $replacement for $leftVowel before vowel and merged terms."
+            explanation = "6.1.77: substituted ${replacement.toDevanagari()} for $leftVowel before vowel and merged terms."
         )
     }
 
@@ -113,74 +112,21 @@ object IkoYanAciSutra : Sutra<DerivationState, DerivationChange>(
         if (context.terms.size < 2) return null
         if (context.terms.size > 2 && context.terms.all { it.id.startsWith("sankhya_") }) {
             return (0 until context.terms.lastIndex).firstOrNull { index ->
-                normalizeIk(context.terms[index].surface.lastOrNull() ?: return@firstOrNull false) in
-                    setOf('इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ऌ') &&
-                    context.terms[index + 1].surface.firstOrNull() in
-                    setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ऌ', 'ए', 'ऐ', 'ओ', 'औ')
+                context.terms[index].surface.lastVarna() in yan &&
+                    context.terms[index + 1].surface.firstVarna() is Svara
             }?.let { it to it + 1 }
         }
         return (context.terms.lastIndex - 1) to context.terms.lastIndex
     }
 
-    private fun merge(left: String, right: String): String {
-        if (left.endsWith('्') && right.isNotEmpty()) {
-            val first = right.first()
-            val matra = when (first) {
-                'अ' -> ""
-                'आ' -> "ा"
-                'इ' -> "ि"
-                'ई' -> "ी"
-                'उ' -> "ु"
-                'ऊ' -> "ू"
-                'ऋ' -> "ृ"
-                'ॠ' -> "ॄ"
-                'ऌ' -> "ॢ"
-                'ए' -> "े"
-                'ऐ' -> "ै"
-                'ओ' -> "ो"
-                'औ' -> "ौ"
-                'ा' -> "ा"
-                'ि' -> "ि"
-                'ी' -> "ी"
-                'ु' -> "ु"
-                'ू' -> "ू"
-                'ृ' -> "ृ"
-                'ॄ' -> "ॄ"
-                'ॢ' -> "ॢ"
-                'े' -> "े"
-                'ै' -> "ै"
-                'ो' -> "ो"
-                'ौ' -> "ौ"
-                else -> null
-            }
-            if (matra != null) {
-                return left.dropLast(1) + matra + right.drop(1)
-            }
-        }
-        return left + right
-    }
-
-    private fun isSavarna(left: Char, right: Char): Boolean {
-        // Simple savarna check: same vowel family
-        val iks = setOf('इ', 'ई', 'ि', 'ी')
-        val uks = setOf('उ', 'ऊ', 'ु', 'ू')
-        val rks = setOf('ऋ', 'ॠ', 'ृ', 'ॄ')
-        return (left in iks && right in iks) || (left in uks && right in uks) || (left in rks && right in rks)
-    }
-
-    private fun yanFor(c: Char): String = when(c) {
-        'इ', 'ई', 'ि', 'ी' -> Vyanjana.YA.halanta
-        'उ', 'ऊ', 'ु', 'ू' -> Vyanjana.VA.halanta
-        'ऋ', 'ॠ', 'ृ', 'ॄ' -> Vyanjana.RA.halanta
-        'ऌ', 'ॢ' -> Vyanjana.LA.halanta
-        else -> ""
-    }
-
-    private fun normalizeIk(c: Char): Char = when (c) {
-        'ि', 'ी' -> 'इ'
-        'ु', 'ू' -> 'उ'
-        'ृ', 'ॄ' -> 'ऋ'
-        'ॢ' -> 'ऌ'
-        else -> c
-    }
+    private val yan: Map<Varna, Vyanjana> = mapOf(
+        Svara.I to Vyanjana.YA,
+        Svara.II to Vyanjana.YA,
+        Svara.U to Vyanjana.VA,
+        Svara.UU to Vyanjana.VA,
+        Svara.R to Vyanjana.RA,
+        Svara.RR to Vyanjana.RA,
+        Svara.L to Vyanjana.LA,
+        Svara.LL to Vyanjana.LA,
+    )
 }

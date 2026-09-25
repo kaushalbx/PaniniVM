@@ -10,6 +10,8 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
 import dev.panini.derivation.SthaniProperties
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.lastVarna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -28,7 +30,7 @@ object AdUttamasyaPicCaSutra : Sutra<DerivationState, DerivationChange>(
         val ending = context.terms.lastOrNull() ?: return false
         val ganaReady = when (context.terms.firstOrNull { it.kind == TermKind.DHATU }?.gana) {
             DhatuGana.BHVADI -> context.allEffectiveTerms.any { it.upadesha == "शप्" } ||
-                context.terms.first { it.kind == TermKind.DHATU }.surface.lastOrNull() !in setOf('इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ऌ', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ')
+                context.terms.first { it.kind == TermKind.DHATU }.surface.lastVarna() !is Svara
             DhatuGana.SVADI -> context.allEffectiveTerms.any { it.id == "shnu" }
             DhatuGana.JUHOTYADI -> context.terms.any { it.id == "abhyasa" }
             else -> true

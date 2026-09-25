@@ -7,7 +7,10 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.ItDesignationRemap
 import dev.panini.derivation.TermKind
-import dev.panini.derivation.VarnaSubstitution
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.lastVarna
+import dev.panini.shiksha.toDevanagari
+import dev.panini.shiksha.toVarnas
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -63,12 +66,12 @@ object ItasCaSutra : Sutra<DerivationState, DerivationChange>(
         // final इ is still the Parasmaipada tiṅ इ governed by this sūtra.
         val isJhiJoinedToAnga = context.droppedTerms.any { it.matchesUpadesha("झि") }
 
-        return isNit && (isParasmaipadaTing || isJhiJoinedToAnga) && lastTerm.surface.endsWith('ि')
+        return isNit && (isParasmaipadaTing || isJhiJoinedToAnga) && lastTerm.surface.lastVarna() == Svara.I
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val lastTerm = context.terms.last()
-        val newSurface = lastTerm.surface.dropLast(1) + '्'
+        val newSurface = lastTerm.varnas.dropLast(1).toDevanagari()
         val replaced = if (lastTerm.kind == TermKind.PRATYAYA) {
             val remaps = (lastTerm.itDesignations + lastTerm.deferredItDesignations).map { designation ->
                 ItDesignationRemap(
@@ -83,11 +86,11 @@ object ItasCaSutra : Sutra<DerivationState, DerivationChange>(
                 newSurface,
                 sutra,
                 dev.panini.derivation.WholeAffixDesignationPolicy.PreserveAndRemap(remaps),
-            ).addSubstitution(VarnaSubstitution(lastTerm.id, 'ि', "", sutra))
+            ).addVarnaSubstitution(lastTerm.id, Svara.I, emptyList(), sutra)
         } else {
             // When 7.1.3 has already joined the jhi outcome to the aṅga,
             // this is a varṇa operation on that aṅga rather than an affix replacement.
-            context.substituteTermSurface(lastTerm.id, newSurface, 'ि', "", sutra)
+            context.substituteTermSurface(lastTerm.id, newSurface, Svara.I, emptyList(), sutra)
         }
         return DerivationChange(
             state = replaced.copy(stage = DerivationStage.PADA_FORMED),

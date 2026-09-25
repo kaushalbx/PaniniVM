@@ -4,6 +4,10 @@ import dev.panini.core.Lakara
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.lastVarna
+import dev.panini.shiksha.toDevanagari
+import dev.panini.shiksha.toVarnas
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -23,18 +27,16 @@ object EtaAiSutra : Sutra<DerivationState, DerivationChange>(
         return context.effectiveContext.rupa.lakara == Lakara.LOT &&
             context.allEffectiveTerms.any { it.id == "lot-at-agama" || "3.4.92" in it.establishedBySutras } &&
             ending.upadesha in setOf("इट्", "वहि", "महिङ्") &&
-            (ending.surface.endsWith("ए") || ending.surface.endsWith("े"))
+            ending.surface.lastVarna() == Svara.E
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
-        val replacement = if (ending.surface.endsWith("आए")) {
-            ending.surface.dropLast(2) + "ऐ"
-        } else if (ending.surface.endsWith("ए")) {
-            ending.surface.dropLast(1) + "ऐ"
-        } else {
-            ending.surface.dropLast(1) + "ै"
-        }
+        val varnas = ending.varnas
+        val replacedPrefix = if (varnas.takeLast(2) == listOf(Svara.AA, Svara.E)) {
+            varnas.dropLast(2)
+        } else varnas.dropLast(1)
+        val replacement = (replacedPrefix + Svara.AI).toDevanagari()
         val replaced = context.replaceWholeAffix(
             ending.id,
             replacement,

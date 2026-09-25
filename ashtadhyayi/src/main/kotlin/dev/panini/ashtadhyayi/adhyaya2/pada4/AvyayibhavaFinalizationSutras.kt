@@ -5,6 +5,9 @@ import dev.panini.core.SamasaType
 import dev.panini.core.Vibhakti
 import dev.panini.derivation.*
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.endsWithVarna
+import dev.panini.shiksha.lastSvara
 import dev.panini.sutra.*
 
 /** 2.4.18 अव्ययीभावश्च — the compound is neuter. */
@@ -40,7 +43,7 @@ object AvyayadApsupahSutra : Sutra<DerivationState, DerivationChange>(
         val sup = context.terms.lastOrNull { it.kind == TermKind.PRATYAYA } ?: return false
         val isAvyaya = SamjnaAssignment(stem.id, Samjna.AVYAYA) in context.samjnas
         val neuterHrasvaPending = context.effectiveContext.rupa.linga == Linga.NAPUMSAKA &&
-            stem.surface.lastOrNull() in setOf('ा', 'ी', 'ू', 'ॄ')
+            stem.surface.lastSvara() in setOf(Svara.AA, Svara.II, Svara.UU, Svara.RR, Svara.LL)
         return isAvyaya && !neuterHrasvaPending &&
             !(context.context.samasaType == SamasaType.AVYAYIBHAVA && isAdanta(stem.surface)) &&
             sup.droppedBySutra == null
@@ -54,7 +57,7 @@ object AvyayadApsupahSutra : Sutra<DerivationState, DerivationChange>(
         )
     }
 
-    private fun isAdanta(surface: String): Boolean = surface.lastOrNull()?.let { it !in setOf('ा','ि','ी','ु','ू','ृ','ॄ','ॢ','े','ै','ो','ौ','ं','ः','्') } == true
+    private fun isAdanta(surface: String): Boolean = surface.endsWithVarna(Svara.A)
 }
 
 /** 2.4.83 नाव्ययीभावादतोऽम्त्वपञ्चम्याः. */
@@ -80,5 +83,5 @@ object NavyayibhavadAtoAmtvapancamyahSutra : Sutra<DerivationState, DerivationCh
         )
     }
 
-    private fun isAdanta(surface: String): Boolean = surface.lastOrNull()?.let { it !in setOf('ा','ि','ी','ु','ू','ृ','ॄ','ॢ','े','ै','ो','ौ','ं','ः','्') } == true
+    private fun isAdanta(surface: String): Boolean = surface.endsWithVarna(Svara.A)
 }

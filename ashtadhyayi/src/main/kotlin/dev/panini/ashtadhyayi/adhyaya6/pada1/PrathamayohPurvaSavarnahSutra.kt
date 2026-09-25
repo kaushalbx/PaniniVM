@@ -5,6 +5,13 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.pratyahara.Pratyahara
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.firstVarna
+import dev.panini.shiksha.lastVarna
+import dev.panini.shiksha.toDevanagari
+import dev.panini.shiksha.toDirgha
+import dev.panini.shiksha.toVarnas
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -39,23 +46,21 @@ object PrathamayohPurvaSavarnahSutra : Sutra<DerivationState, DerivationChange>(
         val suffixId = suffix.id
         if (suffixId !in setOf("sup-au", "sup-jas", "sup-aut", "sup-sas")) return false
 
-        val leftChar = stem.surface.lastOrNull() ?: return false
-        val leftPhoneme = if (leftChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks) 'अ' else leftChar
+        val leftPhoneme = stem.surface.lastVarna() as? Svara ?: return false
 
         // The implemented scope of 6.1.102 is a/ā + vowel.  Ik-final
         // aṅgas take their own यण् path under 6.1.77.
-        if (leftPhoneme !in setOf('अ', 'आ', 'ा')) return false
+        if (leftPhoneme !in setOf(Svara.A, Svara.AA)) return false
 
         val engine = Ashtadhyayi.pratyaharaEngine
-        if (!engine.contains(dev.panini.pratyahara.Pratyahara.AK, leftPhoneme)) return false
+        if (!engine.contains(Pratyahara.AK, leftPhoneme)) return false
 
-        val rightChar = suffix.surface.firstOrNull() ?: return false
-        if (!engine.contains(dev.panini.pratyahara.Pratyahara.AC, rightChar)) return false
+        val rightChar = suffix.surface.firstVarna() ?: return false
+        if (!engine.contains(Pratyahara.AC, rightChar)) return false
 
         // Ami Purvah (6.1.107) has precedence for sup-am.
         // Nadici (6.1.104) block:
-        if ((leftPhoneme == 'अ' || leftPhoneme == 'आ' || leftPhoneme == 'ा') &&
-            engine.contains(dev.panini.pratyahara.Pratyahara.IC, rightChar)) {
+        if (engine.contains(Pratyahara.IC, rightChar)) {
             return false
         }
 
@@ -66,43 +71,17 @@ object PrathamayohPurvaSavarnahSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val suffix = context.terms.last()
 
-        val leftChar = stem.surface.last()
-        val leftPhoneme = if (leftChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks) 'अ' else leftChar
-
-        val substitute = getDirgha(leftPhoneme)
-
-        val newStemSurface = if (leftChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks) {
-            stem.surface + substitute
-        } else {
-            stem.surface.dropLast(1) + substitute
-        }
-
-        val remainingSuffix = suffix.surface.drop(1)
-        val newSurface = newStemSurface + remainingSuffix
+        val stemVarnas = stem.varnas
+        val suffixVarnas = suffix.varnas
+        val leftPhoneme = stemVarnas.last() as Svara
+        val substitute = listOf(leftPhoneme.toDirgha())
+        val newSurface = (stemVarnas.dropLast(1) + substitute + suffixVarnas.drop(1)).toDevanagari()
 
         return DerivationChange(
             state = context.mergeTermsByVarnaSubstitution(
                 stem.id, suffix.id, newSurface, leftPhoneme, substitute, sutra,
             ).copy(stage = DerivationStage.PADA_FORMED),
-            explanation = "6.1.102: Combined $leftPhoneme + ${suffix.surface.first()} into long $substitute."
+            explanation = "6.1.102: Combined $leftPhoneme + ${suffixVarnas.first()} into long ${substitute.toDevanagari()}."
         )
-    }
-
-    private fun getDirgha(c: Char): String = when (normalize(c)) {
-        'अ' -> "ा"
-        'इ' -> "ी"
-        'उ' -> "ू"
-        'ऋ' -> "ॄ"
-        'ऌ' -> "ॄ"
-        else -> c.toString()
-    }
-
-    private fun normalize(c: Char): Char = when (c) {
-        'अ', 'आ', 'ा' -> 'अ'
-        'इ', 'ई', 'ि', 'ी' -> 'इ'
-        'उ', 'ऊ', 'ु', 'ू' -> 'उ'
-        'ऋ', 'ॠ', 'ृ', 'ॄ' -> 'ऋ'
-        'ऌ', 'ॢ' -> 'ऌ'
-        else -> c
     }
 }

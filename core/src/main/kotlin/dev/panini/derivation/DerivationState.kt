@@ -9,6 +9,9 @@ import dev.panini.shiksha.Accent
 import dev.panini.shiksha.LexicalUse
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Varnamala
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.toDevanagari
+import dev.panini.shiksha.toVarnas
 
 /**
  * The shared state passed through an Ashtadhyayi derivation.
@@ -170,6 +173,21 @@ class DerivationState(
             .addSubstitution(VarnaSubstitution(id, source, replacement, sutra))
     }
 
+    /** Transitional varṇa-native entry point while substitution traces still serialize text. */
+    fun substituteTermSurface(
+        id: String,
+        surface: String,
+        source: Varna,
+        replacement: List<Varna>,
+        sutra: String,
+    ): DerivationState = substituteTermSurface(
+        id = id,
+        surface = surface,
+        source = source.devanagari.single(),
+        replacement = replacement.toDevanagari(),
+        sutra = sutra,
+    )
+
     /** Merges two adjacent terms while preserving the survivor and lifecycle-dropping the consumed term. */
     fun mergeTermsByVarnaSubstitution(
         survivorId: String,
@@ -222,6 +240,23 @@ class DerivationState(
         )
     }
 
+    /** Transitional varṇa-native entry point while substitution traces still serialize text. */
+    fun mergeTermsByVarnaSubstitution(
+        survivorId: String,
+        consumedId: String,
+        surface: String,
+        source: Varna,
+        replacement: List<Varna>,
+        sutra: String,
+    ): DerivationState = mergeTermsByVarnaSubstitution(
+        survivorId = survivorId,
+        consumedId = consumedId,
+        surface = surface,
+        source = source.devanagari.single(),
+        replacement = replacement.toDevanagari(),
+        sutra = sutra,
+    )
+
     /** Redistributes material across two adjacent surviving terms as one phonological operation. */
     fun redistributeAdjacentTermsByVarnaSubstitution(
         leftId: String,
@@ -265,6 +300,25 @@ class DerivationState(
             },
         ).addSubstitution(VarnaSubstitution(leftId, source, replacement, sutra))
     }
+
+    /** Transitional varṇa-native entry point while substitution traces still serialize text. */
+    fun redistributeAdjacentTermsByVarnaSubstitution(
+        leftId: String,
+        rightId: String,
+        leftSurface: String,
+        rightSurface: String,
+        source: Varna,
+        replacement: List<Varna>,
+        sutra: String,
+    ): DerivationState = redistributeAdjacentTermsByVarnaSubstitution(
+        leftId = leftId,
+        rightId = rightId,
+        leftSurface = leftSurface,
+        rightSurface = rightSurface,
+        source = source.devanagari.single(),
+        replacement = replacement.toDevanagari(),
+        sutra = sutra,
+    )
 
     /** Replaces an entire affix while making the fate of every exact it-designation explicit. */
     fun replaceWholeAffix(
@@ -351,6 +405,16 @@ class DerivationState(
 
     fun addSubstitution(substitution: VarnaSubstitution): DerivationState =
         copy(substitutions = substitutions + substitution)
+
+    /** Records a phonological substitution without exposing Unicode serialization to a sūtra. */
+    fun addVarnaSubstitution(
+        targetId: String,
+        source: Varna,
+        replacement: List<Varna>,
+        sutra: String,
+    ): DerivationState = addSubstitution(
+        VarnaSubstitution(targetId, source.devanagari.single(), replacement.toDevanagari(), sutra),
+    )
 
     fun recordAppliedSutra(sutraNumber: String): DerivationState =
         copy(appliedSutras = appliedSutras + sutraNumber)
@@ -506,6 +570,14 @@ data class DerivationTerm(
     /** Vowel ordinal counted from that surviving term's end, stable across changes before the locus. */
     val mergedAffixVowelFromEnd: Int? = null,
 ) {
+    /**
+     * Cached phonological form of [surface]. During the transition [surface]
+     * remains the constructor boundary, but sūtras must reason over this field.
+     * A data-class copy that changes [surface] creates a new term and therefore
+     * a new cache, so the two representations cannot become stale.
+     */
+    val varnas: List<Varna> by lazy(LazyThreadSafetyMode.PUBLICATION) { surface.toVarnas() }
+
     init {
         nonOperativeUpadeshaSegments.forEach { segment ->
             require(segment.start >= 0 && segment.endExclusive <= upadesha.length && segment.start < segment.endExclusive) {
