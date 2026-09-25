@@ -7,6 +7,8 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -52,7 +54,7 @@ object YadapahSutra : Sutra<DerivationState, DerivationChange>(
         // (for example शप्) whose visible remainder happens to be lengthened to ā.
         val isApFormation = stem.upadesha in setOf("टाप्", "डाप्", "चाप्") ||
             "4.1.4" in stem.establishedBySutras
-        if ((!stem.surface.endsWith('ा') && !stem.surface.endsWith('आ')) ||
+        if (stem.varnas.lastOrNull() != Svara.AA ||
             !isApFormation ||
             !stem.hasEffectiveMarker(ItMarker.P)
         ) return false
@@ -72,7 +74,10 @@ object YadapahSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
         if (affix.upadesha == "टा") {
             return DerivationChange(
-                state = context.substituteTermSurface(stem.id, stem.surface.dropLast(1), stem.surface.last(), "", sutra)
+                state = context.substituteTermSurface(
+                    stem.id, (stem.varnas.dropLast(1) + Svara.A).toDevanagari(),
+                    Svara.AA, listOf(Svara.A), sutra,
+                )
                     .replaceWholeAffix(affix.id, "या", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume)
                     .blockSutra(sutra, sutra)
                     .copy(stage = DerivationStage.PADA_FORMED),

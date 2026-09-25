@@ -5,6 +5,8 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -33,16 +35,16 @@ object IshugamiyamamChahSutra : Sutra<DerivationState, DerivationChange>(
             dhatu.matchesUpadesha("गमॢँ") ||
             dhatu.matchesUpadesha("यमँ")
         val following = context.terms.getOrNull(dhatuIndex + 1)
-        return eligible && dhatu.surface.endsWith('्') &&
+        return eligible && dhatu.varnas.lastOrNull() is Vyanjana &&
             following?.upadesha in setOf("शप्", "श") &&
             context.substitutions.none { it.sutra == sutra && it.targetId == dhatu.id }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val dhatu = context.terms.first { it.kind == TermKind.DHATU }
-        val source = dhatu.surface[dhatu.surface.lastIndex - 1]
-        val replacement = "छ"
-        val surface = dhatu.surface.dropLast(2) + replacement + "्"
+        val source = dhatu.varnas.last() as Vyanjana
+        val replacement = listOf(Vyanjana.CHA)
+        val surface = (dhatu.varnas.dropLast(1) + replacement).toDevanagari()
         return DerivationChange(
             state = context.substituteTermSurface(dhatu.id, surface, source, replacement, sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),

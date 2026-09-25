@@ -7,6 +7,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.shiksha.Svara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -34,7 +35,7 @@ object RtoSuhSutra : Sutra<DerivationState, DerivationChange>(
             context.effectiveContext.rupa.vacana != Vacana.EKAVACANA
         ) return false
         val stem = context.terms[context.terms.size - 2]
-        return stem.surface.lastOrNull() in setOf('ऋ', 'ृ') && context.terms.last().upadesha == "सुँ"
+        return stem.varnas.lastOrNull() == Svara.R && context.terms.last().upadesha == "सुँ"
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -42,7 +43,7 @@ object RtoSuhSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
         return DerivationChange(
             state = context.mergeTermsByVarnaSubstitution(
-                stem.id, affix.id, stem.surface.dropLast(1) + "ा", 'ऋ', "आ", sutra,
+                stem.id, affix.id, stem.withFinalReplacement(rToSu), Svara.R, rToSu, sutra,
             ).copy(stage = DerivationStage.FINAL),
             explanation = "7.3.130: Formed the masculine ṛ-stem nominative-singular आ ending before सु.",
         )

@@ -6,6 +6,7 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -45,7 +46,7 @@ object AmiSarvanamnasSutSutra : Sutra<DerivationState, DerivationChange>(
         if (!isSarvanama) return false
 
         // 2. Stem must end in 'a'
-        val endsInA = stem.surface.endsWith('अ') || stem.surface.endsWith('ा')
+        val endsInA = stem.varnas.lastOrNull() in setOf(Svara.A, Svara.AA)
 
         // 3. Affix must be 'ām' and 'suṭ' not already added
         return endsInA && affix.upadesha == "आम्" && context.allEffectiveTerms.none { it.upadesha == "सुट्" }

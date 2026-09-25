@@ -7,6 +7,8 @@ import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.isHrasva
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -46,10 +48,9 @@ object HrasvanadyapoNutSutra : Sutra<DerivationState, DerivationChange>(
         if (governedBySatCatur) return false
 
         // Match any short vowel or ā-stem (āp-stem)
-        val lastChar = stem.surface.lastOrNull() ?: return false
-        val isShortVowel = lastChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks ||
-                lastChar in setOf('इ', 'ि', 'उ', 'ु', 'ऋ', 'ृ', 'ऌ', 'ॢ')
-        val isApStem = lastChar == 'ा' || lastChar == 'आ'
+        val finalVowel = stem.varnas.lastOrNull() as? Svara
+        val isShortVowel = finalVowel?.isHrasva == true
+        val isApStem = finalVowel == Svara.AA
 
         return (isShortVowel || isApStem) && affix.upadesha == "आम्" &&
             sutra !in affix.establishedBySutras &&

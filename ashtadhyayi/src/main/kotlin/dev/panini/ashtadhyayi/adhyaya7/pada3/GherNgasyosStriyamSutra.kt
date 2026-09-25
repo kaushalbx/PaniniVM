@@ -8,6 +8,11 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Ayogavaha
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -40,20 +45,22 @@ object GherNgasyosStriyamSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
         return context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.GHI } &&
             affix.upadesha in setOf("ङसि", "ङस्") &&
-            stem.surface.lastOrNull() in setOf('इ', 'ि', 'ए', 'े', 'उ', 'ु', 'ओ', 'ो')
+            stem.varnas.lastOrNull() in setOf(Svara.I, Svara.E, Svara.U, Svara.O)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
-        val ending = when (stem.surface.last()) {
-            'इ', 'ि', 'ए', 'े' -> "्याः"
-            'उ', 'ु', 'ओ', 'ो' -> "्वाः"
+        val source = stem.varnas.last() as Svara
+        val ending: List<Varna> = when (source) {
+            Svara.I, Svara.E -> listOf(Vyanjana.YA, Svara.AA, Ayogavaha.VISARGA)
+            Svara.U, Svara.O -> listOf(Vyanjana.VA, Svara.AA, Ayogavaha.VISARGA)
             else -> error("GherNgasyosStriyamSutra matched a non-ik stem")
         }
+        val surface = (stem.varnas.dropLast(1) + ending).toDevanagari()
         return DerivationChange(
             state = context.mergeTermsByVarnaSubstitution(
-                stem.id, affix.id, stem.surface.dropLast(1) + ending, stem.surface.last(), ending, sutra,
+                stem.id, affix.id, surface, source, ending, sutra,
             ).copy(stage = DerivationStage.FINAL),
             explanation = "7.3.128: Formed the feminine Ghi singular ङसि/ङस् त्याः ending.",
         )

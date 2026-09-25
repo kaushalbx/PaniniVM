@@ -6,6 +6,9 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Varnamala
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.isHrasva
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -45,23 +48,22 @@ object HrasvasyaGunaSutra : Sutra<DerivationState, DerivationChange>(
         val isSambuddhi = context.samjnas.any { it.targetId == affix.id && it.samjna == Samjna.SAMBUDDHI }
 
         // 2. Stem must end in a short vowel
-        val lastChar = stem.surface.lastOrNull() ?: return false
-        val isShort = lastChar == 'इ' || lastChar == 'ि' || lastChar == 'उ' || lastChar == 'ु' || lastChar == 'ऋ' || lastChar == 'ृ'
+        val finalVowel = stem.varnas.lastOrNull() as? Svara
+        val isShort = finalVowel?.isHrasva == true && finalVowel != Svara.A && finalVowel != Svara.L
 
         return isSambuddhi && isShort
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
-        val lastChar = stem.surface.last()
-        val replacement = requireNotNull(Varnamala.getGuna(lastChar))
-
-        val newSurface = stem.surface.dropLast(1) + replacement
+        val source = stem.varnas.last() as Svara
+        val replacement = requireNotNull(Varnamala.getGuna(source))
+        val newSurface = (stem.varnas.dropLast(1) + replacement).toDevanagari()
 
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, newSurface, lastChar, replacement, sutra)
+            state = context.substituteTermSurface(stem.id, newSurface, source, replacement, sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
-            explanation = "7.3.108: Applied guna ($replacement) to short final vowel before Sambuddhi."
+            explanation = "7.3.108: Applied guna (${replacement.toDevanagari()}) to short final vowel before Sambuddhi."
         )
     }
 }

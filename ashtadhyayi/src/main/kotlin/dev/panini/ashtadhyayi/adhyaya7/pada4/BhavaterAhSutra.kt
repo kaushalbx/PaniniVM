@@ -6,6 +6,8 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -24,15 +26,14 @@ object BhavaterAhSutra : Sutra<DerivationState, DerivationChange>(
         val bhu = context.terms.any { it.kind == TermKind.DHATU && it.id != "abhyasa" && it.matchesUpadesha("भू") }
         return context.effectiveContext.rupa.lakara == Lakara.LIT && bhu &&
             context.samjnas.any { it.targetId == abhyasa.id && it.samjna == Samjna.ABHYASA } &&
-            (abhyasa.surface.endsWith('उ') || abhyasa.surface.endsWith('ु'))
+            abhyasa.varnas.lastOrNull() == Svara.U
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val abhyasa = context.terms.first { it.id == "abhyasa" }
-        val substituted = abhyasa.surface
-            .removeSuffix("उ").removeSuffix("ू").removeSuffix("ु")
+        val substituted = (abhyasa.varnas.dropLast(1) + Svara.A).toDevanagari()
         return DerivationChange(
-            context.substituteTermSurface(abhyasa.id, substituted, 'उ', "अ", sutra),
+            context.substituteTermSurface(abhyasa.id, substituted, Svara.U, listOf(Svara.A), sutra),
             "7.4.73 replaces the final उ of the भू abhyāsa ${abhyasa.surface} with inherent अ in लिट्.",
         )
     }
