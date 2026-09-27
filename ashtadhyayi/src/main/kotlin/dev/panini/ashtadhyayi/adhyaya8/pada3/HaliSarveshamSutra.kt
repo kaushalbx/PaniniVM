@@ -5,6 +5,10 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.pratyahara.Pratyahara
+import dev.panini.shiksha.Ayogavaha
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -31,50 +35,49 @@ object HaliSarveshamSutra : Sutra<DerivationState, DerivationChange>(
     stage = SutraStage.SANDHI,
 ), DerivationSutra {
 
-    private val vocativePrefixes = setOf("भो", "भगो", "अघो")
-
     override fun matches(context: DerivationState): Boolean {
         if (context.terms.size < 2) return false
         return (0 until context.terms.size - 1).any { i ->
-            val curr = context.terms[i].surface
-            val next = context.terms[i + 1].surface
-
-            val isBhoOrAPurva = vocativePrefixes.any { curr.startsWith(it) } ||
-                    curr.endsWith("ाः") || curr.endsWith("ास्") || curr.endsWith("ाय्") || curr.endsWith("ा")
-
-            val nextStartsWithHal = next.isNotEmpty() && Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, next.first())
-
-            isBhoOrAPurva && nextStartsWithHal && elideFinal(curr) != curr
+            val curr = context.terms[i].varnas
+            val next = context.terms[i + 1].varnas.firstOrNull() ?: return@any false
+            eligibleFinal(curr) != null && next is Vyanjana &&
+                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, next.devanagari.single())
         }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val targetIndex = (0 until context.terms.size - 1).first { i ->
-            val curr = context.terms[i].surface
-            val next = context.terms[i + 1].surface
-
-            val isBhoOrAPurva = vocativePrefixes.any { curr.startsWith(it) } ||
-                    curr.endsWith("ाः") || curr.endsWith("ास्") || curr.endsWith("ाय्") || curr.endsWith("ा")
-
-            val nextStartsWithHal = next.isNotEmpty() && Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, next.first())
-
-            isBhoOrAPurva && nextStartsWithHal && elideFinal(curr) != curr
+            val curr = context.terms[i].varnas
+            val next = context.terms[i + 1].varnas.firstOrNull() ?: return@first false
+            eligibleFinal(curr) != null && next is Vyanjana &&
+                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, next.devanagari.single())
         }
 
         val targetTerm = context.terms[targetIndex]
-        val surface = targetTerm.surface
-
-        val newSurface = elideFinal(surface)
+        val (dropCount, source) = requireNotNull(eligibleFinal(targetTerm.varnas))
 
         return DerivationChange(
-            state = context.substituteTermSurface(targetTerm.id, newSurface, 'य', "", sutra),
+            state = context.substituteTermVarnas(targetTerm.id, targetTerm.varnas.dropLast(dropCount), source, emptyList(), sutra),
             explanation = "8.3.22: Elided 'y' (hali sarveṣām) before hal consonant."
         )
     }
 
-    private fun elideFinal(surface: String): String = when {
-        surface.endsWith("य्") -> surface.dropLast(2)
-        surface.endsWith("य") || surface.endsWith("ः") || surface.endsWith("स्") -> surface.dropLast(1)
-        else -> surface
+    private fun eligibleFinal(varnas: List<Varna>): Pair<Int, Varna>? {
+        val hasEligibleBase = eligiblePrefixes.any { prefix -> varnas.take(prefix.size) == prefix } ||
+            varnas.dropLast(if (varnas.takeLast(2) == listOf(Vyanjana.YA, Svara.A)) 2 else 1).lastOrNull() == Svara.AA
+        if (!hasEligibleBase) return null
+        return when {
+            varnas.takeLast(2) == listOf(Vyanjana.YA, Svara.A) -> 2 to Vyanjana.YA
+            varnas.lastOrNull() == Vyanjana.YA -> 1 to Vyanjana.YA
+            varnas.lastOrNull() == Ayogavaha.VISARGA -> 1 to Ayogavaha.VISARGA
+            varnas.lastOrNull() == Vyanjana.SA -> 1 to Vyanjana.SA
+            else -> null
+        }
     }
+
+    private val eligiblePrefixes: List<List<Varna>> = listOf(
+        listOf(Vyanjana.BHA, Svara.O),
+        listOf(Vyanjana.BHA, Svara.A, Vyanjana.GA, Svara.O),
+        listOf(Svara.A, Vyanjana.GHA, Svara.O),
+    )
 }

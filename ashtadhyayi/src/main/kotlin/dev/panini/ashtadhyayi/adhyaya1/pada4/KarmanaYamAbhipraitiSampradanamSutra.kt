@@ -9,6 +9,7 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.analysis.KarakaEvidence
+import dev.panini.analysis.KarakaDhatuDomains
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
@@ -27,17 +28,7 @@ object KarmanaYamAbhipraitiSampradanamSutra : Sutra<KarakaRuleContext, KarakaRul
                 (SemanticRelation.DESIRED_OBJECT in other.semanticRelations ||
                     other.possibleVibhaktis.contains(Vibhakti.DVITIYA))
         }
-        val normalized = context.dhatu.surface.trimEnd('्', 'ँ')
-        val isExcludedSampradana = normalized.contains("क्रुध") || normalized.contains("द्रुह") ||
-                               normalized == "ईर्ष्या" || normalized == "असूया" ||
-                               normalized.startsWith("ईर्ष्य") || normalized.startsWith("असूय") ||
-                               normalized == "रुच" || normalized == "रोच" || normalized.startsWith("रोच") ||
-                               normalized == "स्पृह" || normalized == "स्पृहय" || normalized.startsWith("स्पृह") ||
-                               normalized == "धृ" || normalized == "धारय" || normalized.startsWith("धारय") ||
-                               normalized == "श्लाघ" || normalized == "ह्नु" || normalized == "स्था" || normalized == "शप" ||
-                               normalized.startsWith("श्लाघ") || normalized.startsWith("ह्नु") || normalized.startsWith("तिष्ठ") || normalized.startsWith("शप") ||
-                               normalized == "प्रतिश्रु" || normalized == "आश्रु" || normalized.startsWith("प्रतिशृ") || normalized.startsWith("आशृ") ||
-                               normalized == "अनुगृ" || normalized == "प्रतिगृ" || normalized.startsWith("अनुगृ") || normalized.startsWith("प्रतिगृ")
+        val isExcludedSampradana = KarakaDhatuDomains.isExcludedGeneralSampradana(context.dhatu)
         val isRecipient = SemanticRelation.RECIPIENT in context.participant.semanticRelations
         val isCandidate = Karaka.SAMPRADANA in context.candidates
         return !isExcludedSampradana && isRecipient && isCandidate && (hasKarmanCoArgument || context.allParticipants.size <= 1)

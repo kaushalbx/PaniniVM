@@ -1,11 +1,13 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada1
 
 import dev.panini.core.Linga
+import dev.panini.core.SupAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -36,18 +38,27 @@ object AtoBhisAisSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        val isAEnding = dev.panini.shiksha.Varnamala.endsWithA(stem.surface) ||
-            dev.panini.shiksha.Varnamala.endsWithAA(stem.surface)
+        val isAEnding = stem.varnas.lastOrNull() in setOf(Svara.A, Svara.AA)
 
-        return isAEnding && affix.surface == "भिस्" &&
+        return isAEnding && affix.matchesUpadesha(SupAffix.BHIS.upadesha) &&
+                affix.varnas == SupAffix.BHIS.initialVarnas &&
                 context.samjnas.any { it.targetId == affix.id && it.samjna == Samjna.PRATYAYA }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
         return DerivationChange(
-            state = context.replaceWholeAffix(affix.id, "ऐस्", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume)
-                .addSubstitution(VarnaSubstitution(affix.id, 'भ', "ऐस्", sutra)),
+            state = context.replaceWholeAffix(
+                affix.id,
+                listOf(Svara.AI, Vyanjana.SA),
+                sutra,
+                dev.panini.derivation.WholeAffixDesignationPolicy.Consume,
+            ).addVarnaSubstitution(
+                affix.id,
+                Vyanjana.BHA,
+                listOf(Svara.AI, Vyanjana.SA),
+                sutra,
+            ),
             explanation = "7.1.9 substitutes ऐस् for instrumental-plural भिस्."
         )
     }

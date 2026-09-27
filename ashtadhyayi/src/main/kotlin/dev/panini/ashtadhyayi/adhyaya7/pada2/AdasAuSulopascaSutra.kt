@@ -1,10 +1,15 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada2
 
 import dev.panini.core.Linga
+import dev.panini.core.SupAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -42,10 +47,11 @@ object AdasAuSulopascaSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        val isAdas = stem.upadesha == "अदस्" || stem.surface in setOf("अदस्", "अद")
+        val isAdas = stem.upadesha == "अदस्" || stem.varnas in adasForms
         if (!isAdas) return false
 
-        val isSu = affix.id == "sup-su" || affix.upadesha == "सुँ" || affix.surface == "स्"
+        val isSu = affix.id == "sup-su" || affix.matchesUpadesha(SupAffix.SU.upadesha) ||
+            affix.varnas == listOf(Vyanjana.SA)
         return isSu
     }
 
@@ -53,9 +59,22 @@ object AdasAuSulopascaSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
         return DerivationChange(
-            state = context.mergeTermsByVarnaSubstitution(stem.id, affix.id, "असौ", 'द', "सौ", sutra)
+            state = context.mergeTermsByVarnaSubstitution(
+                stem.id,
+                affix.id,
+                result.toDevanagari(),
+                Vyanjana.DA,
+                listOf(Vyanjana.SA, Svara.AU),
+                sutra,
+            )
                 .copy(stage = DerivationStage.FINAL),
             explanation = "7.2.107 & 8.2.80: Substituted 'asau' for 'adas' before nominative singular su."
         )
     }
+
+    private val adasForms = setOf(
+        listOf(Svara.A, Vyanjana.DA, Svara.A, Vyanjana.SA),
+        listOf(Svara.A, Vyanjana.DA, Svara.A),
+    )
+    private val result: List<Varna> = listOf(Svara.A, Vyanjana.SA, Svara.AU)
 }

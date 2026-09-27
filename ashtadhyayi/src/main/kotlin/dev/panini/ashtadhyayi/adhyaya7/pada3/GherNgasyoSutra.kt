@@ -8,6 +8,11 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Ayogavaha
+import dev.panini.shiksha.OrthographicSign
+import dev.panini.shiksha.OrthographicSignPlacement
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -40,15 +45,22 @@ object GherNgasyoSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
         return context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.GHI } &&
             affix.upadesha in setOf("ङसि", "ङस्") &&
-            stem.surface.lastOrNull() in setOf('ए', 'े', 'ओ', 'ो')
+            stem.varnas.lastOrNull() in setOf(Svara.E, Svara.O)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
+        val resultVarnas = stem.varnas + Ayogavaha.VISARGA
+        val signs = listOf(OrthographicSignPlacement(OrthographicSign.AVAGRAHA, stem.varnas.size))
+        val surface = resultVarnas.toDevanagari(signs)
+        val merged = context.mergeTermsByVarnaSubstitution(
+            stem.id, affix.id, surface, affix.varnas.first(), listOf(Ayogavaha.VISARGA), sutra,
+        )
         return DerivationChange(
-            state = context.mergeTermsByVarnaSubstitution(
-                stem.id, affix.id, stem.surface + "ऽः", '∅', "ऽः", sutra,
+            state = merged.replaceTerm(
+                stem.id,
+                merged.terms.single { it.id == stem.id }.copy(orthographicSigns = signs),
             ).copy(stage = DerivationStage.FINAL),
             explanation = "7.3.125: Formed the singular Ghi ङसि/ङस् ending after guṇa.",
         )

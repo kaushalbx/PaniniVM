@@ -8,6 +8,7 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.analysis.KarakaEvidence
+import dev.panini.analysis.KarakaDhatuDomains
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
@@ -21,9 +22,7 @@ object ShlaghahnusthashapamJnyipsyamanahSutra : Sutra<KarakaRuleContext, KarakaR
     adhikara = setOf("1.4.23"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
-        val normalized = context.dhatu.surface.trimEnd('्', 'ँ')
-        val isShlaghEtc = normalized == "श्लाघ" || normalized == "ह्नु" || normalized == "स्था" || normalized == "शप" ||
-                          normalized.startsWith("श्लाघ") || normalized.startsWith("ह्नु") || normalized.startsWith("तिष्ठ") || normalized.startsWith("शप")
+        val isShlaghEtc = KarakaDhatuDomains.isShlaghHnuSthaShap(context.dhatu)
         return isShlaghEtc && SemanticRelation.RECIPIENT in context.participant.semanticRelations && Karaka.SAMPRADANA in context.candidates
     }
 

@@ -46,7 +46,7 @@ object PrathamayohPurvaSavarnahSutra : Sutra<DerivationState, DerivationChange>(
         val suffixId = suffix.id
         if (suffixId !in setOf("sup-au", "sup-jas", "sup-aut", "sup-sas")) return false
 
-        val leftPhoneme = stem.surface.lastVarna() as? Svara ?: return false
+        val leftPhoneme = stem.varnas.lastOrNull() as? Svara ?: return false
 
         // The implemented scope of 6.1.102 is a/ā + vowel.  Ik-final
         // aṅgas take their own यण् path under 6.1.77.
@@ -55,7 +55,7 @@ object PrathamayohPurvaSavarnahSutra : Sutra<DerivationState, DerivationChange>(
         val engine = Ashtadhyayi.pratyaharaEngine
         if (!engine.contains(Pratyahara.AK, leftPhoneme)) return false
 
-        val rightChar = suffix.surface.firstVarna() ?: return false
+        val rightChar = suffix.varnas.firstOrNull() ?: return false
         if (!engine.contains(Pratyahara.AC, rightChar)) return false
 
         // Ami Purvah (6.1.107) has precedence for sup-am.

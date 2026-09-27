@@ -5,6 +5,8 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.core.SanadiAffix
+import dev.panini.derivation.matchesAffix
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
@@ -34,10 +36,10 @@ object HetumatiCaSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.stage != DerivationStage.INITIAL && context.stage != DerivationStage.PRATYAYA_SELECTED) return false
-        val isNicRequested = "णिच्" in context.effectiveContext.requestedSanadi ||
+        val isNicRequested = SanadiAffix.NIC.upadesha in context.effectiveContext.requestedSanadi ||
             context.samjnas.any { it.samjna == Samjna.NIC } ||
             context.context.requestedMeaning == dev.panini.derivation.DerivationalMeaning.BHAVA
-        val hasNic = context.allEffectiveTerms.any { it.matchesUpadesha("णिच्") }
+        val hasNic = context.allEffectiveTerms.any { it.matchesAffix(SanadiAffix.NIC) }
         return isNicRequested && !hasNic
     }
 

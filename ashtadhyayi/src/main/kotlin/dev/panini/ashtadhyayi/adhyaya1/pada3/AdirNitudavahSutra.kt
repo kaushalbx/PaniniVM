@@ -7,6 +7,9 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.ItDesignation
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.DerivationTerm
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -34,18 +37,18 @@ object AdirNitudavahSutra : Sutra<DerivationState, DerivationChange>(
     fun hasSamjnaTarget(state: DerivationState): Boolean =
         (state.stage == DerivationStage.INITIAL || state.terms.any { it.itProcessingPending }) &&
             state.terms.any { term ->
-                term.kind == TermKind.DHATU && initialMarker(term.surface) != null &&
+                term.kind == TermKind.DHATU && initialMarker(term) != null &&
                     term.itDesignations.none { it.start == 0 }
         }
 
     fun assignSamjna(state: DerivationState): DerivationChange {
         val newTerms = state.terms.map { term ->
             if (term.kind == TermKind.DHATU) {
-                val marker = initialMarker(term.surface) ?: return@map term
+                val marker = initialMarker(term) ?: return@map term
                 term.copy(
                     itMarkers = term.itMarkers + marker,
                     itProcessingPhase = dev.panini.derivation.ItProcessingPhase.DESIGNATED,
-                    itDesignations = term.itDesignations + ItDesignation(0, 2, marker = marker, sutra = sutra, designatedText = term.surface.substring(0, 2)),
+                    itDesignations = term.itDesignations + ItDesignation(0, 2, marker = marker, sutra = sutra, designatedText = term.orthographicDesignationText(0, 2)),
                 )
             } else term
         }
@@ -59,10 +62,10 @@ object AdirNitudavahSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange = assignSamjna(context)
 
-    private fun initialMarker(surface: String): ItMarker? = when {
-        surface.startsWith("ञि") -> ItMarker.NYIT
-        surface.startsWith("टु") -> ItMarker.T
-        surface.startsWith("डु") -> ItMarker.DIT
+    private fun initialMarker(term: DerivationTerm): ItMarker? = when (term.varnas.take(2)) {
+        listOf(Vyanjana.NYA, Svara.I) -> ItMarker.NYIT
+        listOf(Vyanjana.TTA, Svara.U) -> ItMarker.T
+        listOf(Vyanjana.DDA, Svara.U) -> ItMarker.DIT
         else -> null
     }
 }

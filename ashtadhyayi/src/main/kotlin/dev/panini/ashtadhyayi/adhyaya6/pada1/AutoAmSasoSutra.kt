@@ -4,6 +4,10 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.shiksha.Ayogavaha
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -34,7 +38,7 @@ object AutoAmSasoSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        val isOStem = stem.upadesha == "गो" || stem.surface.endsWith("ो") || stem.surface in setOf("गो", "गौ")
+        val isOStem = stem.upadesha == "गो" || stem.varnas.lastOrNull() in setOf(Svara.O, Svara.AU)
         if (!isOStem) return false
 
         val isAmOrSas = affix.id in setOf("sup-am", "sup-sas") || affix.upadesha in setOf("अम्", "शस्")
@@ -45,10 +49,15 @@ object AutoAmSasoSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        val newSurface = if (affix.id == "sup-am" || affix.upadesha == "अम्") "गाम्" else "गाः"
+        val replacement = if (affix.id == "sup-am" || affix.upadesha == "अम्") {
+            listOf(Vyanjana.GA, Svara.AA, Vyanjana.MA)
+        } else {
+            listOf(Vyanjana.GA, Svara.AA, Ayogavaha.VISARGA)
+        }
+        val newSurface = replacement.toDevanagari()
         return DerivationChange(
             state = context.mergeTermsByVarnaSubstitution(
-                stem.id, affix.id, newSurface, 'ओ', "आ", sutra,
+                stem.id, affix.id, newSurface, Svara.O, replacement, sutra,
             ).copy(stage = DerivationStage.ANGAKARYA),
             explanation = "6.1.93: Merged o-stem with '${affix.surface}' into '$newSurface'."
         )

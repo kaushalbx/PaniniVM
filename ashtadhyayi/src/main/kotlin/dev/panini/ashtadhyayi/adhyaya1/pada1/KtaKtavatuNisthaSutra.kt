@@ -3,6 +3,8 @@ package dev.panini.ashtadhyayi.adhyaya1.pada1
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.core.KrtAffix
+import dev.panini.derivation.matchesAnyAffix
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -20,7 +22,7 @@ object KtaKtavatuNisthaSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Samjna, action = SutraAction.SAMJNA, scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
-        context.allEffectiveTerms.any { it.upadesha in setOf("क्त", "क्तवतुँ") } &&
+        context.allEffectiveTerms.any { it.matchesAnyAffix(KrtAffix.KTA, KrtAffix.KTAVATU) } &&
         "1.1.26" !in context.activeAdhikaras
 
     override fun apply(context: DerivationState): DerivationChange =

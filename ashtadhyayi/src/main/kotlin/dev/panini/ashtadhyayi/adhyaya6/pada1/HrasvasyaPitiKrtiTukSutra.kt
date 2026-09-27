@@ -8,6 +8,8 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.isHrasva
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -32,8 +34,6 @@ object HrasvasyaPitiKrtiTukSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.DERIVATION,
     stage = dev.panini.sutra.SutraStage.ANGAKARYA,
 ), DerivationSutra {
-    private val shortVowels = setOf('इ', 'ि', 'उ', 'ु', 'ऋ', 'ृ', 'अ')
-
     override fun matches(context: DerivationState): Boolean {
         val stem = context.terms.firstOrNull { it.kind == TermKind.DHATU } ?: return false
         val suffix = context.terms.lastOrNull {
@@ -42,7 +42,7 @@ object HrasvasyaPitiKrtiTukSutra : Sutra<DerivationState, DerivationChange>(
                 it.upadesha in setOf("ल्यप्", "ल्पँ")
         } ?: return false
 
-        val isShortVowelEnding = stem.surface.isNotEmpty() && shortVowels.any { stem.surface.endsWith(it) }
+        val isShortVowelEnding = (stem.varnas.lastOrNull() as? Svara)?.isHrasva == true
         val isPitKrt = context.allEffectiveTerms.none { it.id == "tuk_agama" }
         return isShortVowelEnding && isPitKrt
     }

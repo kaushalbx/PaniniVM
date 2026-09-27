@@ -6,6 +6,7 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
+import dev.panini.shiksha.Svara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -23,7 +24,7 @@ object BhuvoVuglunglitoSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean =
         context.effectiveContext.rupa.lakara in setOf(Lakara.LUNG, Lakara.LIT) &&
             context.terms.indexOfFirst { it.kind == TermKind.DHATU && it.id != "abhyasa" && it.matchesUpadesha("भू") }.let { index ->
-                index >= 0 && context.terms.getOrNull(index + 1)?.surface?.firstOrNull() in setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ए', 'ऐ', 'ओ', 'औ')
+                index >= 0 && context.terms.getOrNull(index + 1)?.varnas?.firstOrNull() is Svara
             } &&
             context.terms.none { it.id == "vuk" }
 

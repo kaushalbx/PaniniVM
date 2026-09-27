@@ -4,6 +4,9 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -35,9 +38,11 @@ object TrestrayahSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        val isTri = stem.surface == "त्रि"
+        val isTri = stem.varnas == tri
+        val nam = listOf(Vyanjana.NA, Svara.AA, Vyanjana.MA)
+        val nnam = listOf(Vyanjana.NNA, Svara.AA, Vyanjana.MA)
         val isNami = affix.id == "sup-am_6" || affix.upadesha == "आम्" ||
-            affix.surface.startsWith("नाम") || affix.surface.startsWith("णाम") ||
+            affix.varnas.take(nam.size) == nam || affix.varnas.take(nnam.size) == nnam ||
             context.droppedTerms.any { it.id == "sup-am_6" }
 
         return isTri && isNami
@@ -46,9 +51,12 @@ object TrestrayahSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, "त्रय", 'ि', "य", sutra)
+            state = context.substituteTermVarnas(stem.id, traya, Svara.I, listOf(Svara.A, Vyanjana.YA, Svara.A), sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.1.53: Replaced stem 'tri' with 'traya' before genitive plural 'nāmi'."
         )
     }
+
+    private val tri: List<Varna> = listOf(Vyanjana.TA, Vyanjana.RA, Svara.I)
+    private val traya: List<Varna> = listOf(Vyanjana.TA, Vyanjana.RA, Svara.A, Vyanjana.YA, Svara.A)
 }

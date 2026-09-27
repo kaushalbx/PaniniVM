@@ -5,6 +5,7 @@ import dev.panini.core.Linga
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.shiksha.Svara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -40,7 +41,7 @@ object TangasingsamInatsyahSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
 
         // 1. Stem must end in 'a'
-        if (!dev.panini.shiksha.Varnamala.endsWithA(stem.surface) && !dev.panini.shiksha.Varnamala.endsWithAA(stem.surface)) return false
+        if (stem.varnas.lastOrNull() !in setOf(Svara.A, Svara.AA)) return false
 
         if (affix.surface in setOf("स्मात्", "स्मिन्", "स्मै")) return false
 

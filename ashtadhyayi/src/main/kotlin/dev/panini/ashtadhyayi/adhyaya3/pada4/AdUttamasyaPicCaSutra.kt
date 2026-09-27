@@ -30,7 +30,7 @@ object AdUttamasyaPicCaSutra : Sutra<DerivationState, DerivationChange>(
         val ending = context.terms.lastOrNull() ?: return false
         val ganaReady = when (context.terms.firstOrNull { it.kind == TermKind.DHATU }?.gana) {
             DhatuGana.BHVADI -> context.allEffectiveTerms.any { it.upadesha == "शप्" } ||
-                context.terms.first { it.kind == TermKind.DHATU }.surface.lastVarna() !is Svara
+                context.terms.first { it.kind == TermKind.DHATU }.varnas.lastOrNull() !is Svara
             DhatuGana.SVADI -> context.allEffectiveTerms.any { it.id == "shnu" }
             DhatuGana.JUHOTYADI -> context.terms.any { it.id == "abhyasa" }
             else -> true

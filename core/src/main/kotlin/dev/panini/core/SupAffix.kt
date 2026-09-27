@@ -1,6 +1,8 @@
 package dev.panini.core
 
 import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.toVarnas
 
 /** The 21 sup slots of 4.1.2; each enum entry is its one executable source. */
 enum class SupAffix(
@@ -33,6 +35,7 @@ enum class SupAffix(
     SUP(Vibhakti.SAPTAMI, Vacana.BAHUVACANA, "सुप्");
 
     val id: String get() = "sup-" + name.lowercase().replace('_', '-')
+    val initialVarnas: List<Varna> by lazy(LazyThreadSafetyMode.PUBLICATION) { initialSurface.toVarnas() }
 
     companion object {
         /**

@@ -4,6 +4,8 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -37,7 +39,9 @@ object KimahKahSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, "क", 'म', "क", sutra)
+            state = context.substituteTermVarnas(
+                stem.id, listOf(Vyanjana.KA, Svara.A), Vyanjana.MA, listOf(Vyanjana.KA), sutra,
+            )
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.2.103 substitutes क for किम् before a case affix.",
         )

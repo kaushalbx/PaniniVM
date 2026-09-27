@@ -9,6 +9,10 @@ import dev.panini.derivation.DerivationalMeaning
 import dev.panini.derivation.HasRequestedMeaning
 import dev.panini.derivation.TermKind
 import dev.panini.ganapatha.GanaPatha
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.replaceVarna
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -33,8 +37,14 @@ object KalyanyadinamInangSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         var state = context
         bases(context).forEach { term ->
+            val source = term.varnas.last()
+            val replacement = listOf(Svara.I, Vyanjana.NA)
             state = state.substituteTermSurface(
-                term.id, term.surface.dropLast(1) + "िन्", term.surface.last(), "िन्", sutra,
+                term.id,
+                term.varnas.replaceVarna(term.varnas.lastIndex, replacement).toDevanagari(),
+                source,
+                replacement,
+                sutra,
             )
         }
         return DerivationChange(

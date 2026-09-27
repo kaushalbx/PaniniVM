@@ -38,13 +38,13 @@ object AdengGunaSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
         context.terms.any { term ->
-            term.surface.any { it in gunaChars } &&
+            term.varnas.any { it in gunaVarnas } &&
             context.samjnas.none { it.targetId == term.id && it.samjna == Samjna.GUNA }
         }
 
     override fun apply(context: DerivationState): DerivationChange {
         val newSamjnas = context.terms.filter { term ->
-            term.surface.any { it in gunaChars }
+            term.varnas.any { it in gunaVarnas }
         }.map { SamjnaAssignment(it.id, Samjna.GUNA) }
 
         return DerivationChange(
@@ -54,4 +54,4 @@ object AdengGunaSutra : Sutra<DerivationState, DerivationChange>(
     }
 }
 
-private val gunaChars = setOf('अ', 'ए', 'ओ', 'े', 'ो')
+private val gunaVarnas = setOf(Svara.A, Svara.E, Svara.O)

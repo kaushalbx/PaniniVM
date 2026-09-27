@@ -9,6 +9,9 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.replaceVarna
+import dev.panini.shiksha.toDevanagari
 
 /**
  * 7.3.104: osi ca.
@@ -36,22 +39,17 @@ object OsiCaSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        return dev.panini.shiksha.Varnamala.endsWithA(stem.surface) &&
+        return stem.varnas.lastOrNull() == Svara.A &&
             affix.upadesha == "ओस्" &&
             affix.surface == "ओस्"
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
-        val oldChar = stem.surface.last()
-        val newSurface = if (oldChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks) {
-            stem.surface + "े"
-        } else {
-            stem.surface.dropLast(1) + "े"
-        }
+        val newVarnas = stem.varnas.replaceVarna(stem.varnas.lastIndex, listOf(Svara.E))
 
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, newSurface, oldChar, "े", sutra)
+            state = context.substituteTermSurface(stem.id, newVarnas.toDevanagari(), Svara.A, listOf(Svara.E), sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.104: Substituted 'e' for final 'a' before 'os'."
         )

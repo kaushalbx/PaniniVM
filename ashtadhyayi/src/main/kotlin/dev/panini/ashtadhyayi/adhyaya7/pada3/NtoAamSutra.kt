@@ -1,12 +1,16 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada3
 
 import dev.panini.core.Linga
+import dev.panini.core.SupAffix
 import dev.panini.core.Vacana
 import dev.panini.core.Vibhakti
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.matchesSupAffix
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -33,21 +37,26 @@ object NtoAamSutra : Sutra<DerivationState, DerivationChange>(
             context.effectiveContext.rupa.vacana != Vacana.BAHUVACANA
         ) return false
         val stem = context.terms[context.terms.size - 2]
-        return stem.surface.endsWith("न्") && context.terms.last().upadesha == "आम्"
+        return stem.isNFinal() && context.terms.last().matchesSupAffix(SupAffix.AM_6)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
         val shatNumerals = setOf("पञ्चन्", "षट्", "सप्तन्", "अष्टन्", "नवन्", "दशन्")
-        val newSurface = if (stem.upadesha in shatNumerals) {
-            stem.surface.dropLast(2) + "ानाम्"
+        val replacement = if (stem.upadesha in shatNumerals) {
+            listOf(Svara.AA, Vyanjana.NA, Svara.AA, Vyanjana.MA)
         } else {
-            stem.surface.dropLast(1) + "ाम्"
+            listOf(Vyanjana.NA, Svara.AA, Vyanjana.MA)
+        }
+        val newSurface = if (stem.upadesha in shatNumerals) {
+            stem.replaceFinalAn(replacement)
+        } else {
+            stem.extendFinalN(listOf(Svara.AA, Vyanjana.MA))
         }
         return DerivationChange(
             state = context.mergeTermsByVarnaSubstitution(
-                stem.id, affix.id, newSurface, 'न', "आम्", sutra,
+                stem.id, affix.id, newSurface, Vyanjana.NA, replacement, sutra,
             ).copy(stage = DerivationStage.FINAL),
             explanation = "7.3.146: Formed the masculine n-stem genitive-plural नाम् ending before आम्.",
         )

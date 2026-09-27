@@ -5,6 +5,8 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -29,7 +31,9 @@ object AtaEkahalmadhyeAnadesaderLitiSutra : Sutra<DerivationState, DerivationCha
         val dhatu = context.terms.first { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         return DerivationChange(
             context.removeTerm("abhyasa", sutra = sutra)
-                .substituteTermSurface(dhatu.id, "लेभ्", 'अ', "ए", sutra),
+                .substituteTermVarnas(
+                    dhatu.id, listOf(Vyanjana.LA, Svara.E, Vyanjana.BHA), Svara.A, listOf(Svara.E), sutra,
+                ),
             "6.4.120 deletes the abhyāsa and changes the root vowel अ to ए in the weak perfect stem लेभ्.",
         )
     }

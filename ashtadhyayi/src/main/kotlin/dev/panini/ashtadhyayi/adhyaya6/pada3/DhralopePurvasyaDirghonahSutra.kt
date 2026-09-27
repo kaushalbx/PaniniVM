@@ -1,11 +1,10 @@
 package dev.panini.ashtadhyayi.adhyaya6.pada3
 
-import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.pratyahara.Pratyahara
-import dev.panini.shiksha.Varnamala
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.toDirgha
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -37,40 +36,22 @@ object DhralopePurvasyaDirghonahSutra : Sutra<DerivationState, DerivationChange>
         val hasLopa = context.substitutions.any { it.sutra == "8.3.14" || it.sutra == "8.3.15" }
         if (!hasLopa) return false
 
-        return context.terms.any { term ->
-            val surface = term.surface
-            val lastChar = surface.lastOrNull() ?: return@any false
-            val hrasva = Varnamala.getHrasva(lastChar).firstOrNull() ?: lastChar
-            Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.AK, hrasva)
-        }
+        return context.terms.any { it.varnas.lastOrNull() in anVowels }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val targetIndex = context.terms.indexOfFirst { term ->
-            val surface = term.surface
-            val lastChar = surface.lastOrNull() ?: return@indexOfFirst false
-            val hrasva = Varnamala.getHrasva(lastChar).firstOrNull() ?: lastChar
-            Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.AK, hrasva)
-        }
+        val targetIndex = context.terms.indexOfFirst { it.varnas.lastOrNull() in anVowels }
 
         val targetTerm = context.terms[targetIndex]
-        val surface = targetTerm.surface
-        val lastChar = surface.last()
-
-        val replacement = when (lastChar) {
-            'अ' -> "आ"
-            'इ' -> "ई"
-            'उ' -> "ऊ"
-            'ि' -> "ी"
-            'ु' -> "ू"
-            else -> "ा"
-        }
-
-        val newSurface = surface.dropLast(1) + replacement
+        val source = targetTerm.varnas.last() as Svara
+        val replacement = source.toDirgha()
+        val result = targetTerm.varnas.dropLast(1) + replacement
 
         return DerivationChange(
-            state = context.substituteTermSurface(targetTerm.id, newSurface, lastChar, replacement, sutra),
+            state = context.substituteTermVarnas(targetTerm.id, result, source, listOf(replacement), sutra),
             explanation = "6.3.111: Lengthened preceding aṇ vowel after ḍh/r lopa."
         )
     }
+
+    private val anVowels = setOf(Svara.A, Svara.I, Svara.U)
 }

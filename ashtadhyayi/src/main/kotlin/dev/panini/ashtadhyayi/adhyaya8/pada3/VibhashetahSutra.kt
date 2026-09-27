@@ -4,6 +4,7 @@ import dev.panini.core.Lakara
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -21,14 +22,17 @@ object VibhashetahSutra : Sutra<DerivationState, DerivationChange>(
         if (context.effectiveContext.rupa.lakara != Lakara.LUNG) return false
         if (context.allEffectiveTerms.none { it.id == "it-agama" }) return false
         val ending = context.terms.lastOrNull() ?: return false
-        return ending.upadesha == "ध्वम्" && ending.surface.startsWith("ध") &&
+        return ending.upadesha == "ध्वम्" && ending.varnas.firstOrNull() == Vyanjana.DHA &&
             context.droppedTerms.any { it.upadesha == "सिँच्" }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
         return DerivationChange(
-            context.substituteTermSurface(ending.id, "ढ" + ending.surface.drop(1), 'ध', "ढ", sutra),
+            context.substituteTermVarnas(
+                ending.id, listOf(Vyanjana.DDHA) + ending.varnas.drop(1),
+                Vyanjana.DHA, listOf(Vyanjana.DDHA), sutra,
+            ),
             "8.3.79 optionally substitutes ढ् for the LUNG ending's ध् after इट्.",
         )
     }

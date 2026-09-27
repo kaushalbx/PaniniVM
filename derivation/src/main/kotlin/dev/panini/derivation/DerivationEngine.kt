@@ -214,12 +214,20 @@ object RuleVisibility {
             toRevert.asReversed().forEach { sub ->
                 visibleTerms = visibleTerms.map { term ->
                     if (term.id == sub.targetId) {
-                        val index = term.surface.lastIndexOf(sub.replacement)
-                        if (index >= 0) {
-                            val newSurface = term.surface.substring(0, index) + sub.source + term.surface.substring(index + sub.replacement.length)
-                            term.copy(surface = newSurface)
+                        val originalSurface = sub.originalSurface
+                        if (originalSurface != null) {
+                            term.copy(
+                                surface = originalSurface,
+                                orthographicSigns = sub.originalOrthographicSigns ?: term.orthographicSigns,
+                            )
                         } else {
-                            term
+                            val index = term.surface.lastIndexOf(sub.replacement)
+                            if (index >= 0) {
+                                val newSurface = term.surface.substring(0, index) + sub.source + term.surface.substring(index + sub.replacement.length)
+                                term.copy(surface = newSurface)
+                            } else {
+                                term
+                            }
                         }
                     } else {
                         term

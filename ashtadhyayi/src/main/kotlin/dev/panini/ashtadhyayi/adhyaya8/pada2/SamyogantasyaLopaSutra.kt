@@ -5,6 +5,7 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -38,19 +39,16 @@ object SamyogantasyaLopaSutra : Sutra<DerivationState, DerivationChange>(
         if (!isPada) return false
 
         // 2. Must end in a consonant cluster (saṃyoga, per 1.1.7)
-        val surface = lastTerm.surface
-        if (surface.length < 3) return false
-
-        return surface.endsWith('्') && surface[surface.length - 3] == '्'
+        return lastTerm.varnas.size >= 2 && lastTerm.varnas.takeLast(2).all { it is Vyanjana }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val lastTerm = context.terms.last()
         // 1.1.52: Delete only the final member of the cluster (consonant + virama)
-        val newSurface = lastTerm.surface.dropLast(2)
+        val source = lastTerm.varnas.last()
 
         return DerivationChange(
-            state = context.substituteTermSurface(lastTerm.id, newSurface, lastTerm.surface[lastTerm.surface.length - 2], "", sutra)
+            state = context.substituteTermVarnas(lastTerm.id, lastTerm.varnas.dropLast(1), source, emptyList(), sutra)
                 .copy(stage = DerivationStage.FINAL),
             explanation = "8.2.23: Deleted final member of consonant cluster at pada-end."
         )

@@ -1,11 +1,12 @@
 package dev.panini.ashtadhyayi.adhyaya8.pada4
 
 import dev.panini.ashtadhyayi.Ashtadhyayi
-import dev.panini.ashtadhyayi.adhyaya1.pada1.SthaneAntaratamahSutra
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.pratyahara.Pratyahara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -35,41 +36,39 @@ object JhalamJashJhashiSutra : Sutra<DerivationState, DerivationChange>(
         // For simplicity, we check across term boundaries.
         if (context.terms.size < 2) return false
 
-        val leftSurface = context.terms[context.terms.size - 2].surface
-        val leftIndex = finalConsonantIndex(leftSurface) ?: return false
-        val left = leftSurface[leftIndex]
-        val right = context.terms.last().surface.firstOrNull() ?: return false
+        val left = context.terms[context.terms.size - 2].varnas.lastOrNull() ?: return false
+        val right = context.terms.last().varnas.firstOrNull() ?: return false
 
         val engine = Ashtadhyayi.pratyaharaEngine
         return engine.contains(Pratyahara.JHAL, left) &&
             engine.contains(Pratyahara.JHASH, right) &&
-            substituteFor(left) != left.toString()
+            substituteFor(left) != left
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val terms = context.terms
         val leftTerm = terms[terms.size - 2]
         val rightTerm = terms.last()
-
-        val leftIndex = requireNotNull(finalConsonantIndex(leftTerm.surface))
-        val leftChar = leftTerm.surface[leftIndex]
-
-        val substitute = substituteFor(leftChar)
-
-        val newSurface = leftTerm.surface.replaceRange(leftIndex, leftIndex + 1, substitute)
+        val source = leftTerm.varnas.last()
+        val substitute = substituteFor(source)
+        val result = leftTerm.varnas.dropLast(1) + substitute
 
         return DerivationChange(
-            state = context.substituteTermSurface(leftTerm.id, newSurface, leftChar, substitute, sutra),
-            explanation = "8.4.53: Substituted voiced $substitute for $leftChar before ${rightTerm.surface.first()}."
+            state = context.substituteTermVarnas(leftTerm.id, result, source, listOf(substitute), sutra),
+            explanation = "8.4.53: Substituted voiced ${substitute.devanagari} before ${rightTerm.varnas.first().devanagari}."
         )
     }
 
-    private fun substituteFor(source: Char): String =
-        SthaneAntaratamahSutra.selectBest(source, setOf("ज", "ब", "ग", "ड", "द"))
-
-    private fun finalConsonantIndex(surface: String): Int? = when {
-        surface.isEmpty() -> null
-        surface.endsWith('्') && surface.length >= 2 -> surface.lastIndex - 1
-        else -> surface.lastIndex
+    private fun substituteFor(source: Varna): Varna = when (source) {
+        Vyanjana.CA, Vyanjana.CHA, Vyanjana.JA, Vyanjana.JHA -> Vyanjana.JA
+        Vyanjana.TTA, Vyanjana.TTHA, Vyanjana.DDA, Vyanjana.DDHA -> Vyanjana.DDA
+        Vyanjana.TA, Vyanjana.THA, Vyanjana.DA, Vyanjana.DHA -> Vyanjana.DA
+        Vyanjana.KA, Vyanjana.KHA, Vyanjana.GA, Vyanjana.GHA -> Vyanjana.GA
+        Vyanjana.PA, Vyanjana.PHA, Vyanjana.BA, Vyanjana.BHA -> Vyanjana.BA
+        Vyanjana.SHA -> Vyanjana.JA
+        Vyanjana.SSA -> Vyanjana.DDA
+        Vyanjana.SA -> Vyanjana.DA
+        Vyanjana.HA -> Vyanjana.GA
+        else -> source
     }
 }

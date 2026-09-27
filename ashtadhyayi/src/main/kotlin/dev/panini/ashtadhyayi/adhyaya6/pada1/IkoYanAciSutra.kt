@@ -54,8 +54,8 @@ object IkoYanAciSutra : Sutra<DerivationState, DerivationChange>(
             it.upadesha in setOf("शप्", "श्यन्", "श्नु", "श", "श्नम्", "श्ना", "उ")
         }
         if (isPresentSystemTing && !presentStemEstablished) return false
-        val left = terms[leftIndex].surface.lastVarna() ?: return false
-        val right = terms[rightIndex].surface.firstVarna() ?: return false
+        val left = terms[leftIndex].varnas.lastOrNull() ?: return false
+        val right = terms[rightIndex].varnas.firstOrNull() ?: return false
         val isGhiFirstOrSecondDual = context.effectiveContext.rupa.vacana == Vacana.DVIVACANA &&
             context.effectiveContext.rupa.vibhakti in setOf(Vibhakti.PRATHAMA, Vibhakti.DVITIYA) &&
             context.samjnas.any { it.targetId == terms[leftIndex].id && it.samjna == Samjna.GHI }
@@ -77,7 +77,7 @@ object IkoYanAciSutra : Sutra<DerivationState, DerivationChange>(
         val leftTerm = terms[leftIndex]
         val rightTerm = terms[rightIndex]
 
-        val leftVowel = requireNotNull(leftTerm.surface.lastVarna() as? Svara)
+        val leftVowel = requireNotNull(leftTerm.varnas.lastOrNull() as? Svara)
         val replacement = listOf(requireNotNull(yan[leftVowel]))
         val leftBase = leftTerm.varnas.dropLast(1) + replacement
         val rightVarnas = rightTerm.varnas
@@ -112,8 +112,8 @@ object IkoYanAciSutra : Sutra<DerivationState, DerivationChange>(
         if (context.terms.size < 2) return null
         if (context.terms.size > 2 && context.terms.all { it.id.startsWith("sankhya_") }) {
             return (0 until context.terms.lastIndex).firstOrNull { index ->
-                context.terms[index].surface.lastVarna() in yan &&
-                    context.terms[index + 1].surface.firstVarna() is Svara
+                context.terms[index].varnas.lastOrNull() in yan &&
+                    context.terms[index + 1].varnas.firstOrNull() is Svara
             }?.let { it to it + 1 }
         }
         return (context.terms.lastIndex - 1) to context.terms.lastIndex

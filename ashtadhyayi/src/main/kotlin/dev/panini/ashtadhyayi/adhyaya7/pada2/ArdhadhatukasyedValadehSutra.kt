@@ -11,6 +11,7 @@ import dev.panini.derivation.HasDerivationalEnvironment
 import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.ItStatus
+import dev.panini.shiksha.Svara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -25,7 +26,6 @@ object ArdhadhatukasyedValadehSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi, action = SutraAction.AGAMA, scope = SutraScope.DERIVATION,
     stage = dev.panini.sutra.SutraStage.IT_PROCESSING,
 ), DerivationSutra {
-    private val vowels = setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ऌ', 'ए', 'ऐ', 'ओ', 'औ')
     override fun matches(context: DerivationState): Boolean {
         val ending = context.terms.lastOrNull() ?: return false
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU && it.id != "abhyasa" }
@@ -60,7 +60,7 @@ object ArdhadhatukasyedValadehSutra : Sutra<DerivationState, DerivationChange>(
                 isNicEndingDhatu || isLabhPerfectMiddle || isNonKradiPerfect || isLabhAorist) &&
             ending.kind == TermKind.PRATYAYA &&
             !vowelInitialAfterScheduledSubstitution &&
-            ending.surface.firstOrNull()?.let { char -> char !in vowels } == true &&
+            ending.varnas.firstOrNull()?.let { it !is Svara } == true &&
             isTransformedLitEnding &&
             context.allEffectiveTerms.none { it.id == "it-agama" }
     }

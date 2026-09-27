@@ -8,6 +8,7 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.analysis.KarakaEvidence
+import dev.panini.analysis.KarakaDhatuDomains
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
@@ -21,13 +22,7 @@ object AdharoAdhikaranamSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     adhikara = setOf("1.4.23"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
-        val normalized = context.dhatu.surface.trimEnd('्', 'ँ')
-        val isExcludedLocus = normalized == "अधिशी" || normalized == "अधिस्था" || normalized == "अधिआस्" ||
-                        normalized == "अधिशे" || normalized == "अधितिष्ठ्" || normalized == "अध्यास्" ||
-                        normalized.startsWith("अधिशे") || normalized.startsWith("अधितिष्ठ") || normalized.startsWith("अध्यास्") ||
-                        normalized == "उपवस्" || normalized == "अनुवस्" || normalized == "अधिवस्" || normalized == "आवस्" ||
-                        normalized.startsWith("उपवस") || normalized.startsWith("अनुवस") || normalized.startsWith("अधिवस") || normalized.startsWith("आवस") ||
-                        normalized == "अभिनिविश" || normalized.startsWith("अभिनिविश")
+        val isExcludedLocus = KarakaDhatuDomains.isExcludedAdhikaranaLocus(context.dhatu)
         return !isExcludedLocus && SemanticRelation.LOCATION in context.participant.semanticRelations && Karaka.ADHIKARANA in context.candidates
     }
 

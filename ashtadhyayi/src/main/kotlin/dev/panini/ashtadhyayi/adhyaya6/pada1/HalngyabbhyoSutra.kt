@@ -6,7 +6,8 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.shiksha.Varnamala
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -41,25 +42,20 @@ object HalngyabbhyoSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
         if (stem.id in setOf("yasut", "shna")) return false
 
-        val surface = affix.surface
         val hasPlacedBeginningAugment = context.allEffectiveTerms.any {
             it.augmentTargetId == affix.id && "1.1.46" in it.establishedBySutras
         }
         if (hasPlacedBeginningAugment) return false
-        val isApṛktaHal =
-            (surface.length == 1 && Varnamala.isConsonant(surface[0])) ||
-                (surface.length == 2 && surface.last() == '्' && Varnamala.isConsonant(surface.first()))
+        val isApṛktaHal = affix.varnas.firstOrNull() is Vyanjana &&
+            (affix.varnas.size == 1 || affix.varnas.drop(1) == listOf(Svara.A))
         if (!isApṛktaHal) return false
 
         val isEligibleAffix = affix.upadesha in setOf("सुँ", "तिप्", "सिप्")
         if (!isEligibleAffix) return false
 
-        val stemSurface = stem.surface
-        if (stemSurface.isEmpty()) return false
-        val lastChar = stemSurface.last()
-
-        val endsInHal = stemSurface.endsWith('्')
-        val endsInDirghaFeminine = lastChar == 'ी' || lastChar == 'ा'
+        val final = stem.varnas.lastOrNull() ?: return false
+        val endsInHal = final is Vyanjana
+        val endsInDirghaFeminine = final in setOf(Svara.II, Svara.AA)
 
         return endsInHal || endsInDirghaFeminine
     }

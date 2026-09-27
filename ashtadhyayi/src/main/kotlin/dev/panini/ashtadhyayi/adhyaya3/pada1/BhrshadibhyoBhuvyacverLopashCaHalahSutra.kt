@@ -8,6 +8,8 @@ import dev.panini.derivation.DerivationalMeaning
 import dev.panini.derivation.HasRequestedMeaning
 import dev.panini.derivation.TermKind
 import dev.panini.ganapatha.GanaPatha
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -45,10 +47,11 @@ object BhrshadibhyoBhuvyacverLopashCaHalahSutra : Sutra<DerivationState, Derivat
                 GanaPatha.isEligibleMember(32, term.surface, term.lexicalUses) &&
                 context.terms.none { it.id == "${term.id}-kyan" }
             ) {
-                val newSurface = term.surface.dropFinalHal()
-                if (newSurface != term.surface) {
+                val final = term.varnas.lastOrNull()
+                if (final is Vyanjana) {
+                    val newSurface = term.varnas.dropLast(1).toDevanagari()
                     state = state.substituteTermSurface(
-                        term.id, newSurface, term.surface[term.surface.length - 2], "", sutra,
+                        term.id, newSurface, final, emptyList(), sutra,
                     )
                 }
                 state = state.addTerm(
@@ -61,6 +64,4 @@ object BhrshadibhyoBhuvyacverLopashCaHalahSutra : Sutra<DerivationState, Derivat
             explanation = "3.1.12 introduces क्यङ् after eligible भृशादि terms in the becoming sense and deletes a final hal.",
         )
     }
-
-    private fun String.dropFinalHal(): String = if (endsWith("्")) dropLast(2) else this
 }

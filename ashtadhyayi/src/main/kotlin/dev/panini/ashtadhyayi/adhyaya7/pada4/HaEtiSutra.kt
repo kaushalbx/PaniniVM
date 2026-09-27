@@ -4,6 +4,8 @@ import dev.panini.core.Lakara
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -26,18 +28,18 @@ object HaEtiSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.effectiveContext.rupa.lakara != Lakara.LUT) return false
-        val tasiIndex = context.terms.indexOfFirst { it.upadesha == "तासि" && it.surface.endsWith("स्") }
-        return tasiIndex >= 0 && context.terms.getOrNull(tasiIndex + 1)?.surface == "ए"
+        val tasiIndex = context.terms.indexOfFirst { it.upadesha == "तासि" && it.varnas.lastOrNull() == Vyanjana.SA }
+        return tasiIndex >= 0 && context.terms.getOrNull(tasiIndex + 1)?.varnas == listOf(Svara.E)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val tasiIndex = context.terms.indexOfFirst { it.upadesha == "तासि" && it.surface.endsWith("स्") }
+        val tasiIndex = context.terms.indexOfFirst { it.upadesha == "तासि" && it.varnas.lastOrNull() == Vyanjana.SA }
         val tasi = context.terms[tasiIndex]
         val ending = context.terms[tasiIndex + 1]
         return DerivationChange(
             context
-                .substituteTermSurface(tasi.id, tasi.surface.removeSuffix("स्"), 'स', "", sutra)
-                .substituteTermSurface(ending.id, "हे", 'ए', "हे", sutra),
+                .substituteTermVarnas(tasi.id, tasi.varnas.dropLast(1), Vyanjana.SA, emptyList(), sutra)
+                .substituteTermVarnas(ending.id, listOf(Vyanjana.HA, Svara.E), Svara.E, listOf(Vyanjana.HA, Svara.E), sutra),
             "7.4.52 replaces the final स of तास् with ह before the e-ending.",
         )
     }

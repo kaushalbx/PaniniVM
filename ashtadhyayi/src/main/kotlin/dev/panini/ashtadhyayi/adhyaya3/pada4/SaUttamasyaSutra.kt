@@ -9,6 +9,7 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.shiksha.Vyanjana
 
 /** 3.4.98: स उत्तमस्य. Optionally deletes स् from LET first-person वस् and मस्. */
 object SaUttamasyaSutra : Sutra<DerivationState, DerivationChange>(
@@ -27,13 +28,13 @@ object SaUttamasyaSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         val ending = context.terms.lastOrNull() ?: return false
         return context.effectiveContext.rupa.lakara == Lakara.LET &&
-            ending.upadesha in setOf("वस्", "मस्") && ending.surface.endsWith("स्")
+            ending.upadesha in setOf("वस्", "मस्") && ending.varnas.lastOrNull() == Vyanjana.SA
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
         return DerivationChange(
-            context.replaceWholeAffix(ending.id, ending.surface.dropLast(2), sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
+            context.replaceWholeAffix(ending.id, ending.varnas.dropLast(1), sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
             "3.4.98 optionally deletes final स् from the LET first-person ending.",
         )
     }

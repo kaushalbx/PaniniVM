@@ -27,7 +27,7 @@ object EtaAiSutra : Sutra<DerivationState, DerivationChange>(
         return context.effectiveContext.rupa.lakara == Lakara.LOT &&
             context.allEffectiveTerms.any { it.id == "lot-at-agama" || "3.4.92" in it.establishedBySutras } &&
             ending.upadesha in setOf("इट्", "वहि", "महिङ्") &&
-            ending.surface.lastVarna() == Svara.E
+            ending.varnas.lastOrNull() == Svara.E
     }
 
     override fun apply(context: DerivationState): DerivationChange {

@@ -8,6 +8,8 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Ayogavaha
+import dev.panini.shiksha.Vyanjana
 import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
@@ -61,10 +63,13 @@ object YadapahSutra : Sutra<DerivationState, DerivationChange>(
 
         // 2. Affix must be ṅit
         val isNgit = affix.hasEffectiveMarker(ItMarker.NGIT) ||
-            affix.upadesha in setOf("ङि", "टा") || affix.surface == "आम्"
+            affix.upadesha in setOf("ङि", "टा") || affix.varnas == listOf(Svara.AA, Vyanjana.MA)
 
         // Prevent infinite loop by checking if we already applied 'yā'
-        val alreadyApplied = affix.surface.startsWith("या") || affix.surface.startsWith("यै")
+        val alreadyApplied = affix.varnas.take(2) in setOf(
+            listOf(Vyanjana.YA, Svara.AA),
+            listOf(Vyanjana.YA, Svara.AI),
+        )
 
         return isNgit && !alreadyApplied
     }
@@ -78,25 +83,24 @@ object YadapahSutra : Sutra<DerivationState, DerivationChange>(
                     stem.id, (stem.varnas.dropLast(1) + Svara.A).toDevanagari(),
                     Svara.AA, listOf(Svara.A), sutra,
                 )
-                    .replaceWholeAffix(affix.id, "या", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume)
+                    .replaceWholeAffix(affix.id, listOf(Vyanjana.YA, Svara.AA), sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume)
                     .blockSutra(sutra, sutra)
                     .copy(stage = DerivationStage.PADA_FORMED),
                 explanation = "7.3.113: Formed the instrumental singular -या after an āp stem.",
             )
         }
-        val newSurface = when (affix.upadesha) {
-            "ङसि", "ङस्" -> "याः"
-            else -> when (affix.surface) {
-            "ङे" -> "यै"
-            "अे" -> "यै"
-            "अस्" -> "यास्"
-            "आम्" -> "याम्"
-            else -> "या" + affix.surface
+        val newVarnas = when (affix.upadesha) {
+            "ङसि", "ङस्" -> listOf(Vyanjana.YA, Svara.AA, Ayogavaha.VISARGA)
+            else -> when (affix.varnas) {
+            listOf(Vyanjana.NGA, Svara.E), listOf(Svara.A, Svara.E) -> listOf(Vyanjana.YA, Svara.AI)
+            listOf(Svara.A, Vyanjana.SA) -> listOf(Vyanjana.YA, Svara.AA, Vyanjana.SA)
+            listOf(Svara.AA, Vyanjana.MA) -> listOf(Vyanjana.YA, Svara.AA, Vyanjana.MA)
+            else -> listOf(Vyanjana.YA, Svara.AA) + affix.varnas
             }
         }
 
         return DerivationChange(
-            state = context.replaceWholeAffix(affix.id, newSurface, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume)
+            state = context.replaceWholeAffix(affix.id, newVarnas, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume)
                 .blockSutra(sutra, sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.113: Added 'yāṭ' augment before ṅit affix and merged."

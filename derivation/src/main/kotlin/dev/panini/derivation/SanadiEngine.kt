@@ -3,14 +3,18 @@ package dev.panini.derivation
 import dev.panini.core.Lakara
 import dev.panini.core.PadaType
 import dev.panini.core.Purusha
+import dev.panini.core.SanadiAffix
 import dev.panini.core.TingAffix
 import dev.panini.core.Vacana
 import dev.panini.shiksha.Varnamala
 
-enum class SanadiType(val pratyaya: String) {
-    DESIDERATIVE("सन्"),
-    CAUSATIVE("णिच्"),
-    INTENSIVE("यङ्"),
+enum class SanadiType(val affix: SanadiAffix) {
+    DESIDERATIVE(SanadiAffix.SAN),
+    CAUSATIVE(SanadiAffix.NIC),
+    INTENSIVE(SanadiAffix.YANG),
+    ;
+
+    val pratyaya: String get() = affix.upadesha
 }
 
 data class SanadiDerivationResult(

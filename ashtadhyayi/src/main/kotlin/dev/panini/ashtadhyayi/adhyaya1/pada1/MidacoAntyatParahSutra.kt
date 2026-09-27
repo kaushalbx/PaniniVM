@@ -6,6 +6,8 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.ItDesignation
 import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.TermKind
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.*
 
 /**
@@ -41,11 +43,13 @@ object MidacoAntyatParahSutra : Sutra<DerivationState, DerivationChange>(
         val targetIndex = context.terms.indexOfFirst { it.id == insertion.augmentTargetId }
         require(targetIndex >= 0) { "1.1.47 cannot find target ${insertion.augmentTargetId}." }
         val target = context.terms[targetIndex]
-        val insertionIndex = requireNotNull(finalVowelEnd(target.surface)) {
+        val finalVowelIndex = target.varnas.indexOfLast { it is Svara }
+        require(finalVowelIndex >= 0) {
             "1.1.47 requires a vowel in ${target.surface}."
         }
+        val insertionIndex = target.orthographicBoundaryAfterVarna(finalVowelIndex)
         val merged = target.copy(
-            surface = target.surface.substring(0, insertionIndex) + insertion.surface + target.surface.substring(insertionIndex),
+            surface = (target.varnas.take(finalVowelIndex + 1) + insertion.varnas + target.varnas.drop(finalVowelIndex + 1)).toDevanagari(),
             itDesignations = target.itDesignations + insertion.itDesignations.shiftedBy(insertionIndex),
             deferredItDesignations = target.deferredItDesignations + insertion.deferredItDesignations.shiftedBy(insertionIndex),
             itProcessingPhase = ItProcessingPhase.DESIGNATED,
@@ -73,11 +77,6 @@ object MidacoAntyatParahSutra : Sutra<DerivationState, DerivationChange>(
         (term.itDesignations + term.deferredItDesignations).singleOrNull {
             it.sutra == "1.3.3" && it.endExclusive == term.surface.length && it.designatedText == "म्"
         }
-
-    private fun finalVowelEnd(surface: String): Int? {
-        val vowels = setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ऌ', 'ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ', 'े', 'ै', 'ो', 'ौ')
-        return surface.indexOfLast { it in vowels }.takeIf { it >= 0 }?.plus(1)
-    }
 
     private fun List<ItDesignation>.shiftedBy(offset: Int): List<ItDesignation> = map {
         it.copy(start = it.start + offset, endExclusive = it.endExclusive + offset)

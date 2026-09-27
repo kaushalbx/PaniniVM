@@ -5,6 +5,7 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.SamjnaAssignment
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Ayogavaha
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraInput
@@ -31,7 +32,7 @@ object MukhanasikavacanoAnunasikahSutra : Sutra<DerivationState, DerivationChang
     traceTemplateValue = "{sutra} assigns अनुनासिक to explicitly nasalised sound material.",
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean = context.terms.any { term ->
-        term.surface.any { it in nasalisationMarks } && SamjnaAssignment(
+        term.hasNasalizedMaterial() && SamjnaAssignment(
             term.id,
             Samjna.ANUNASIKA
         ) !in context.samjnas
@@ -39,7 +40,7 @@ object MukhanasikavacanoAnunasikahSutra : Sutra<DerivationState, DerivationChang
 
     override fun apply(context: DerivationState): DerivationChange {
         val assignments =
-            context.terms.filter { it.surface.any { mark -> mark in nasalisationMarks } }
+            context.terms.filter { it.hasNasalizedMaterial() }
                 .map { SamjnaAssignment(it.id, Samjna.ANUNASIKA) }.toSet()
         return DerivationChange(
             context.withSamjnas(assignments),
@@ -48,4 +49,5 @@ object MukhanasikavacanoAnunasikahSutra : Sutra<DerivationState, DerivationChang
     }
 }
 
-private val nasalisationMarks = setOf('ँ', 'ं')
+private fun dev.panini.derivation.DerivationTerm.hasNasalizedMaterial(): Boolean =
+    phonologicalText.effectiveVarnas.any { it.nasalized } || Ayogavaha.ANUSVARA in varnas

@@ -9,6 +9,7 @@ import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.TermKind
 import dev.panini.derivation.WholeAffixDesignationPolicy
+import dev.panini.shiksha.Svara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -33,7 +34,7 @@ object AtoNgitahSutra : Sutra<DerivationState, DerivationChange>(
         val ending = context.terms.last()
         if (context.terms.any { it.kind == TermKind.DHATU && it.gana == DhatuGana.ADADI }) return false
         val hasAEndingAnga = context.terms.any {
-            it.id in setOf("shap", "shyan", "sha", "sya") && dev.panini.shiksha.Varnamala.endsWithA(it.surface)
+            it.id in setOf("shap", "shyan", "sha", "sya") && it.varnas.lastOrNull() == Svara.A
         }
         return context.effectiveContext.rupa.lakara in setOf(Lakara.LAT, Lakara.LANG, Lakara.LRNG) &&
             ending.upadesha in setOf("आताम्", "आथाम्") &&
@@ -47,7 +48,7 @@ object AtoNgitahSutra : Sutra<DerivationState, DerivationChange>(
             return DerivationChange(
                 context.replaceWholeAffix(
                     ending.id,
-                    "इ${ending.surface.drop(1)}",
+                    listOf(Svara.I) + ending.varnas.drop(1),
                     sutra,
                     WholeAffixDesignationPolicy.PreserveAndRemap(emptyList()),
                 ),

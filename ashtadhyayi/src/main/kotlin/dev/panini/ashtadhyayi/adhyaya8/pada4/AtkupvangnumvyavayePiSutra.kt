@@ -12,7 +12,10 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.HasMorphosyntax
 import dev.panini.derivation.TermKind
 import dev.panini.pratyahara.Pratyahara
-import dev.panini.shiksha.Varnamala
+import dev.panini.shiksha.Ayogavaha
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -41,25 +44,22 @@ object AtkupvangnumvyavayePiSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (HasMorphosyntax(vibhakti = Vibhakti.DVITIYA, vacana = Vacana.BAHUVACANA).matches(context)) return false
-        // Matches if there is an 'n' preceded by 'r' or 'ṣ' with only allowed intervenors.
-        val surface = context.surface
-        val (rIndex, nIndex) = targetIndices(context) ?: return false
+        val target = findTarget(context) ?: return false
+        val positions = phonologicalPositions(context)
 
         // 8.4.37: padāntasya blocks retroflexion at the end of a word (ending in 'न्')
-        val isPadanta = nIndex == surface.length - 2 && surface[nIndex + 1] == '्'
-        if (isPadanta) return false
+        if (target.targetPosition == positions.lastIndex) return false
 
         // 8.4.39: kṣubhnādiṣu ca blocks ṇatva for kṣubhnādi gaṇa words (e.g. bhuvana, kṣubdha)
-        if (surface.contains("भुवन") || surface.contains("क्षुब्ध")) return false
+        val allVarnas = positions.map { it.varna }
+        if (allVarnas.containsSubsequence(bhuvana) || allVarnas.containsSubsequence(kshubdha)) return false
 
         // 8.4.35: No retroflexion if 'n' is followed by a dental consonant (t-varga: t, th, d, dh, n)
-        val nextCharIndex = if (nIndex + 1 < surface.length && surface[nIndex + 1] == '्') nIndex + 2 else nIndex + 1
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU && it.gana == DhatuGana.RUDHADI }
-        val dhatuEnd = dhatu?.surface?.length ?: -1
-        val isStrongRudhadiShnam = nIndex < dhatuEnd &&
-            surface.getOrNull(nIndex + 1) != '्' &&
+        val isStrongRudhadiShnam = target.term.id == dhatu?.id &&
+            target.term.varnas.getOrNull(target.varnaIndex + 1) is Svara &&
             context.droppedTerms.any { it.upadesha == "श्नम्" }
-        val isKryadiShnaNasal = context.terms.any { it.id == "shna" && 'न' in it.surface }
+        val isKryadiShnaNasal = context.terms.any { it.id == "shna" && Vyanjana.NA in it.varnas }
 
         // Guard: do not retroflex a nasal that lives inside a tiṅ affix term that is not
         // part of a known vikaraṇa nasal (Rudhādi श्नम् infix or Kryādi श्ना).
@@ -69,68 +69,49 @@ object AtkupvangnumvyavayePiSutra : Sutra<DerivationState, DerivationChange>(
         // so we specifically exclude only the tiṅ-affix family by upadeśa membership.
         if (!isStrongRudhadiShnam && !isKryadiShnaNasal) {
             val tingUpadeshas = TingAffix.entries.mapTo(mutableSetOf()) { it.upadesha }
-            var charCount = 0
-            val targetTerm = context.terms.find { term ->
-                val start = charCount
-                charCount += term.surface.length
-                nIndex in start until charCount
-            }
-            if (targetTerm?.kind == TermKind.PRATYAYA && targetTerm.upadesha in tingUpadeshas) return false
+            if (target.term.kind == TermKind.PRATYAYA && target.term.upadesha in tingUpadeshas) return false
         }
 
-        if (nextCharIndex < surface.length) {
-            val nextChar = surface[nextCharIndex]
-            if (!isStrongRudhadiShnam && !isKryadiShnaNasal && nextChar in setOf('त', 'थ', 'द', 'ध', 'न')) return false
+        positions.getOrNull(target.targetPosition + 1)?.varna?.let { next ->
+            if (!isStrongRudhadiShnam && !isKryadiShnaNasal && next in dentalVarga) return false
         }
 
-
-        val intervenors = surface.substring(rIndex + 1, nIndex)
-        return intervenors.all { isAllowed(it) } && apply(context).state != context
+        return positions.subList(target.triggerPosition + 1, target.targetPosition).all { isAllowed(it.varna) }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        // Find the term containing the 'n' and replace it
-        val surface = context.surface
-        val (_, nIndex) = requireNotNull(targetIndices(context))
-
-        // We find which term owns the 'n'
-        val targetTerm = context.terms.firstOrNull { 'न' in it.surface }
-            ?: return DerivationChange(context, "8.4.2: Target 'n' not found in terms.")
-
-        val newSurface = targetTerm.surface.replaceFirst('न', 'ण')
+        val target = findTarget(context) ?: return DerivationChange(context, "8.4.2: Target 'n' not found in terms.")
+        val result = target.term.varnas.toMutableList().also { it[target.varnaIndex] = Vyanjana.NNA }
 
         return DerivationChange(
-            state = context.substituteTermSurface(targetTerm.id, newSurface, 'न', "ण", sutra)
+            state = context.substituteTermVarnas(target.term.id, result, Vyanjana.NA, listOf(Vyanjana.NNA), sutra)
                 .copy(stage = DerivationStage.FINAL),
             explanation = "8.4.2: Retroflexed 'n' to 'ṇ' with allowed intervenors."
         )
     }
 
-    private fun isAllowed(c: Char): Boolean {
-        if (c == '्') return true // Virama is transparent
+    private fun isAllowed(varna: Varna): Boolean {
         val engine = Ashtadhyayi.pratyaharaEngine
-        return engine.contains(Pratyahara.AC, c) || // Aṭ includes all vowels
-               c in setOf('ह', 'य', 'व', 'र') ||    // Remainder of Aṭ
-               c in Varnamala.expandUdit("कु") ||
-               c in Varnamala.expandUdit("पु") ||
-               c == 'ं' // Num results in Anusvara
+        return engine.contains(Pratyahara.AC, varna) ||
+            varna in atRemainder || varna in ku || varna in pu || varna == Ayogavaha.ANUSVARA
     }
 
-    private fun targetIndices(context: DerivationState): Pair<Int, Int>? {
-        val surface = context.surface
+    private fun findTarget(context: DerivationState): Target? {
+        val positions = phonologicalPositions(context)
         val shna = context.terms.firstOrNull { it.id == "shna" }
         if (shna != null) {
-            if ('ण' in shna.surface || 'न' !in shna.surface) return null
-            val shnaIndex = context.terms.indexOf(shna)
-            val nIndex = context.copy(terms = context.terms.take(shnaIndex)).surface.length
-            val triggerIndex = surface.substring(0, nIndex).lastIndexOfAny(setOf('र', 'ष', 'ऋ', 'ृ', 'ॠ', 'ॄ'))
-            if (triggerIndex >= 0) return triggerIndex to nIndex
-            return null
+            if (Vyanjana.NNA in shna.varnas) return null
+            val targetPosition = positions.indexOfFirst { it.term.id == shna.id && it.varna == Vyanjana.NA }
+            if (targetPosition < 0) return null
+            val triggerPosition = (targetPosition - 1 downTo 0).firstOrNull { positions[it].varna in triggers } ?: return null
+            val owned = positions[targetPosition]
+            return Target(owned.term, owned.varnaIndex, triggerPosition, targetPosition)
         }
-        val triggerIndex = surface.lastIndexOfAny(setOf('र', 'ष', 'ऋ', 'ृ', 'ॠ', 'ॄ'))
-        if (triggerIndex < 0) return null
-        val nIndex = surface.indexOf('न', triggerIndex)
-        if (nIndex < 0) return null
+        val triggerPosition = positions.indexOfLast { it.varna in triggers }
+        if (triggerPosition < 0) return null
+        val targetPosition = (triggerPosition + 1..positions.lastIndex).firstOrNull { positions[it].varna == Vyanjana.NA } ?: return null
+        val triggerOwned = positions[triggerPosition]
+        val targetOwned = positions[targetPosition]
 
         // Guard: if the r/ṣ trigger is inside a DHATU term but the target न is in a
         // *different* (non-DHATU / suffix) term, the dhātu's internal r/ṣ cannot serve
@@ -138,36 +119,35 @@ object AtkupvangnumvyavayePiSutra : Sutra<DerivationState, DerivationChange>(
         // forms like चोर-य-आनि where र is buried in the stem and न is a suffix sound.
         // Note: when both trigger and target are in the same DHATU (e.g. Rudhadi's
         // शनम्-infixed forms like रुनध्), the rule should still fire.
-        var charCount = 0
-        var triggerTermId: String? = null
-        var nTermId: String? = null
-        for (term in context.terms) {
-            val termStart = charCount
-            charCount += term.surface.length
-            if (triggerTermId == null && triggerIndex in termStart until charCount) {
-                triggerTermId = term.id
-            }
-            if (nTermId == null && nIndex in termStart until charCount) {
-                nTermId = term.id
-            }
-            if (triggerTermId != null && nTermId != null) break
-        }
-
-        if (triggerTermId != null && nTermId != null && triggerTermId != nTermId) {
-            val triggerTerm = context.terms.find { it.id == triggerTermId }
+        if (triggerOwned.term.id != targetOwned.term.id) {
             val isKrdantaNimitta = context.samjnas.any {
-                it.targetId == triggerTermId &&
+                it.targetId == triggerOwned.term.id &&
                     it.samjna in setOf(dev.panini.shiksha.Samjna.ANIYAR, dev.panini.shiksha.Samjna.LYUT)
             }
-            if (triggerTerm?.kind == TermKind.DHATU && !isKrdantaNimitta) return null
+            if (triggerOwned.term.kind == TermKind.DHATU && !isKrdantaNimitta) return null
         }
-        return triggerIndex to nIndex
+        return Target(targetOwned.term, targetOwned.varnaIndex, triggerPosition, targetPosition)
     }
 
-    private fun String.lastIndexOfAny(chars: Set<Char>): Int {
-        for (i in length - 1 downTo 0) {
-            if (this[i] in chars) return i
-        }
-        return -1
+    private fun phonologicalPositions(context: DerivationState): List<OwnedVarna> = context.terms.flatMap { term ->
+        term.varnas.mapIndexed { index, varna -> OwnedVarna(term, index, varna) }
     }
+
+    private fun List<Varna>.containsSubsequence(needle: List<Varna>): Boolean =
+        needle.isNotEmpty() && windowed(needle.size).any { it == needle }
+
+    private val triggers = setOf(Vyanjana.RA, Vyanjana.SSA, Svara.R, Svara.RR)
+    private val atRemainder = setOf(Vyanjana.HA, Vyanjana.YA, Vyanjana.VA, Vyanjana.RA)
+    private val ku = setOf(Vyanjana.KA, Vyanjana.KHA, Vyanjana.GA, Vyanjana.GHA, Vyanjana.NGA)
+    private val pu = setOf(Vyanjana.PA, Vyanjana.PHA, Vyanjana.BA, Vyanjana.BHA, Vyanjana.MA)
+    private val dentalVarga = setOf(Vyanjana.TA, Vyanjana.THA, Vyanjana.DA, Vyanjana.DHA, Vyanjana.NA)
+    private val bhuvana: List<Varna> = listOf(Vyanjana.BHA, Svara.U, Vyanjana.VA, Svara.A, Vyanjana.NA, Svara.A)
+    private val kshubdha: List<Varna> = listOf(Vyanjana.KA, Vyanjana.SSA, Svara.U, Vyanjana.BA, Vyanjana.DHA, Svara.A)
+    private data class OwnedVarna(val term: dev.panini.derivation.DerivationTerm, val varnaIndex: Int, val varna: Varna)
+    private data class Target(
+        val term: dev.panini.derivation.DerivationTerm,
+        val varnaIndex: Int,
+        val triggerPosition: Int,
+        val targetPosition: Int,
+    )
 }

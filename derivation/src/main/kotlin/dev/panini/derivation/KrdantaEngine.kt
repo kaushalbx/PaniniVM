@@ -3,6 +3,8 @@ package dev.panini.derivation
 import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.dhatupatha.DhatuPatha
+import dev.panini.core.KrtAffix
+import dev.panini.core.SanadiAffix
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.SutraStage
 import dev.panini.shiksha.Varnamala
@@ -57,23 +59,23 @@ class KrdantaEngine(
         )
     }
 
-    private fun sourceAffixSamjna(pratyaya: String): Samjna? = when (pratyaya) {
-        "क्त" -> Samjna.KTA
-        "क्तवतुँ" -> Samjna.KTAVATU
-        "क्त्वा" -> Samjna.KTVA
-        "तुमुँन्" -> Samjna.TUMUN
-        "तव्यत्" -> Samjna.TAVYA
-        "अनीयर्", "अनीयर" -> Samjna.ANIYAR
-        "ण्यत्" -> Samjna.NYAT
-        "ण्वुल्" -> Samjna.NVUL
-        "तृच्" -> Samjna.TRC
-        "घञ्" -> Samjna.GHAN
-        "ल्युट्", "अन" -> Samjna.LYUT
+    private fun sourceAffixSamjna(pratyaya: String): Samjna? = when (KrtAffix.fromUpadesha(pratyaya)) {
+        KrtAffix.KTA -> Samjna.KTA
+        KrtAffix.KTAVATU -> Samjna.KTAVATU
+        KrtAffix.KTVA -> Samjna.KTVA
+        KrtAffix.TUMUN -> Samjna.TUMUN
+        KrtAffix.TAVYAT -> Samjna.TAVYA
+        KrtAffix.ANIYAR -> Samjna.ANIYAR
+        KrtAffix.NYAT -> Samjna.NYAT
+        KrtAffix.NVUL -> Samjna.NVUL
+        KrtAffix.TRC -> Samjna.TRC
+        KrtAffix.GHAN -> Samjna.GHAN
+        KrtAffix.LYUT -> Samjna.LYUT
         else -> null
     }
 
     fun derive(request: KrdantaDerivationRequest): DerivationResult {
-        require(request.sanadiPratyayas.all { it == "णिच्" }) {
+        require(request.sanadiPratyayas.all { SanadiAffix.fromUpadesha(it) == SanadiAffix.NIC }) {
             "Unsupported sanādi pratyaya in kṛdanta derivation: ${request.sanadiPratyayas.joinToString()}"
         }
         require(request.sanadiPratyayas.distinct().size == request.sanadiPratyayas.size) {
@@ -86,7 +88,7 @@ class KrdantaEngine(
             "Canonical sutra ${selection.sutra} cannot select ${request.samjna} for ${request.dhatu}."
         }
         val bootstrap = buildList {
-            if ("णिच्" in request.sanadiPratyayas) add(canonicalSutra("3.1.26"))
+            if (request.sanadiPratyayas.any { SanadiAffix.fromUpadesha(it) == SanadiAffix.NIC }) add(canonicalSutra("3.1.26"))
             add(selection)
             if (request.samjna == Samjna.KTA || request.samjna == Samjna.KTAVATU) {
                 add(canonicalSutra("1.1.26"))
@@ -137,7 +139,9 @@ class KrdantaEngine(
         terms += dhatu
         samjnas += SamjnaAssignment(dhatu.id, Samjna.DHATU)
         samjnas += SamjnaAssignment(dhatu.id, request.samjna)
-        if ("णिच्" in request.sanadiPratyayas) samjnas += SamjnaAssignment(dhatu.id, Samjna.NIC)
+        if (request.sanadiPratyayas.any { SanadiAffix.fromUpadesha(it) == SanadiAffix.NIC }) {
+            samjnas += SamjnaAssignment(dhatu.id, Samjna.NIC)
+        }
         return DerivationState(
             terms = terms,
             samjnas = samjnas,

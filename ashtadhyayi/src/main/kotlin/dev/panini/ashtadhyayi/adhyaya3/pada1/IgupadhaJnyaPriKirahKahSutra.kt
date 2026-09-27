@@ -1,12 +1,11 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada1
 
-import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
-import dev.panini.pratyahara.Pratyahara
+import dev.panini.shiksha.Svara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -29,7 +28,7 @@ object IgupadhaJnyaPriKirahKahSutra : Sutra<DerivationState, DerivationChange>(
         if (context.effectiveContext.rupa.lakara != null) return false
         if (context.allEffectiveTerms.any { it.kind == TermKind.PRATYAYA }) return false
         val rootTerm = context.allEffectiveTerms.firstOrNull { it.kind == TermKind.DHATU } ?: return false
-        return rootTerm.upadesha in specialRoots || isIgupadha(rootTerm.surface)
+        return rootTerm.upadesha in specialRoots || isIgupadha(rootTerm.varnas)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -40,9 +39,8 @@ object IgupadhaJnyaPriKirahKahSutra : Sutra<DerivationState, DerivationChange>(
         )
     }
 
-    private fun isIgupadha(text: String): Boolean {
-        if (text.length < 2) return false
-        val penult = text[text.length - 2]
-        return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.IK, penult)
-    }
+    private fun isIgupadha(varnas: List<dev.panini.shiksha.Varna>): Boolean =
+        varnas.getOrNull(varnas.lastIndex - 1) in setOf(
+            Svara.I, Svara.II, Svara.U, Svara.UU, Svara.R, Svara.RR, Svara.L, Svara.LL,
+        )
 }

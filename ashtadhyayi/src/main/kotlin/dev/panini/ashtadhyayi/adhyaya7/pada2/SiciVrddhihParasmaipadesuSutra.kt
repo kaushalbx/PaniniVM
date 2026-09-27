@@ -6,6 +6,9 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -35,24 +38,37 @@ object SiciVrddhihParasmaipadesuSutra : Sutra<DerivationState, DerivationChange>
             context.terms.lastOrNull()?.upadesha in parasmaipadaEndings
         if (!isParasmaipada) return false
         val stem = context.terms.firstOrNull { it.kind == TermKind.DHATU } ?: return false
-        if (stem.surface in setOf("हार्", "नै", "कार", "जै")) return false
-        return stem.surface in setOf("हृ", "हर्", "नी", "ने", "कृ", "कर", "जि", "जे") ||
-            (stem.upadesha != null && setOf("हृ", "नी", "कृ", "जि").any { root -> stem.upadesha!!.startsWith(root) })
+        if (vrddhiTargets.values.any { stem.varnas == it }) return false
+        return vrddhiKey(stem) != null
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms.first { it.kind == TermKind.DHATU }
-        val vrddhiSurface = when {
-            stem.surface.startsWith("हृ") || stem.surface.startsWith("हर्") || stem.upadesha?.startsWith("हृ") == true -> "हार्"
-            stem.surface.startsWith("नी") || stem.surface.startsWith("ने") || stem.upadesha?.startsWith("नी") == true -> "नै"
-            stem.surface.startsWith("कृ") || stem.surface.startsWith("कर") || stem.upadesha?.startsWith("कृ") == true -> "कार"
-            stem.surface.startsWith("जि") || stem.surface.startsWith("जे") || stem.upadesha?.startsWith("जि") == true -> "जै"
-            else -> stem.surface
-        }
+        val source = requireNotNull(vrddhiKey(stem))
+        val result = vrddhiTargets.getValue(source)
         return DerivationChange(
-            context.substituteTermSurface(stem.id, vrddhiSurface, '∅', "वृद्धि", sutra)
+            context.substituteTermVarnas(stem.id, result, source, result, sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             "7.2.1 applies Vṛddhi to root vowel before सिच् in Parasmaipada.",
         )
     }
+
+    private fun vrddhiKey(stem: dev.panini.derivation.DerivationTerm): Vyanjana? =
+        sourcePatterns.entries.firstOrNull { (_, patterns) ->
+            patterns.any { pattern -> stem.varnas.take(pattern.size) == pattern } ||
+                patterns.any { pattern -> stem.upadeshaVarnas.take(pattern.size) == pattern }
+        }?.key
+
+    private val sourcePatterns: Map<Vyanjana, List<List<Varna>>> = mapOf(
+        Vyanjana.HA to listOf(listOf(Vyanjana.HA, Svara.R), listOf(Vyanjana.HA, Svara.A, Vyanjana.RA)),
+        Vyanjana.NA to listOf(listOf(Vyanjana.NA, Svara.II), listOf(Vyanjana.NA, Svara.E)),
+        Vyanjana.KA to listOf(listOf(Vyanjana.KA, Svara.R), listOf(Vyanjana.KA, Svara.A, Vyanjana.RA)),
+        Vyanjana.JA to listOf(listOf(Vyanjana.JA, Svara.I), listOf(Vyanjana.JA, Svara.E)),
+    )
+    private val vrddhiTargets: Map<Vyanjana, List<Varna>> = mapOf(
+        Vyanjana.HA to listOf(Vyanjana.HA, Svara.AA, Vyanjana.RA),
+        Vyanjana.NA to listOf(Vyanjana.NA, Svara.AI),
+        Vyanjana.KA to listOf(Vyanjana.KA, Svara.AA, Vyanjana.RA, Svara.A),
+        Vyanjana.JA to listOf(Vyanjana.JA, Svara.AI),
+    )
 }

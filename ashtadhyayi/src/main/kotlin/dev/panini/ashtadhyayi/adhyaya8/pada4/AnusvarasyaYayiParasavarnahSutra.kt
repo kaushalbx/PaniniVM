@@ -5,7 +5,9 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.pratyahara.Pratyahara
-import dev.panini.shiksha.Varnamala
+import dev.panini.shiksha.Ayogavaha
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -30,47 +32,38 @@ object AnusvarasyaYayiParasavarnahSutra : Sutra<DerivationState, DerivationChang
     action = SutraAction.ADESHA,
     scope = SutraScope.VARNA,
 ), DerivationSutra {
-    override fun matches(context: DerivationState): Boolean {
-        val surface = context.surface
-        val index = surface.indexOf('ं')
-        if (index == -1 || index == surface.length - 1) return false
-
-        val nextChar = surface[index + 1]
-        return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.YAY, nextChar)
-    }
+    override fun matches(context: DerivationState): Boolean = findTarget(context) != null
 
     override fun apply(context: DerivationState): DerivationChange {
-        val surface = context.surface
-        val index = surface.indexOf('ं')
-        val nextChar = surface[index + 1]
-
-        // Per 1.1.50, we pick the substitute that matches Sthāna.
-        // For Anusvāra, we look for the Nasal member of the varga of nextChar.
-        val vargaInfo = Varnamala.getVargaInfo(nextChar)
-        val substitute = if (vargaInfo != null) {
-            val member = Varnamala.getVargaMember(vargaInfo.first, 4)
-            if (member != null) member.toString() + "्" else "न्"
-        } else {
-            // Semivowels (y, l, v) have nasalized counterparts (anunāsika).
-            // Simplified here to just use the base nasal or the char itself.
-            "न्"
-        }
-
-        var offset = 0
-        val targetTerm = context.terms.find { term ->
-            val start = offset
-            offset += term.surface.length
-            index in start until offset
-        } ?: return DerivationChange(context, "8.4.58: Target anusvāra not found.")
-
-        val newSurface = targetTerm.surface.replaceFirst("ं", substitute)
-        if (newSurface == targetTerm.surface) {
-            return DerivationChange(context, "8.4.58: Parasavarṇa substitution already reflected in this term.")
-        }
+        val target = findTarget(context) ?: return DerivationChange(context, "8.4.58: Target anusvāra not found.")
+        val substitute = nasalFor(target.follower)
+        val result = target.term.varnas.toMutableList().also { it[target.varnaIndex] = substitute }
 
         return DerivationChange(
-            state = context.substituteTermSurface(targetTerm.id, newSurface, 'ं', substitute, sutra),
-            explanation = "8.4.58: Replaced Anusvāra with nasal parasavarṇa '$substitute' before '$nextChar'."
+            state = context.substituteTermVarnas(target.term.id, result, Ayogavaha.ANUSVARA, listOf(substitute), sutra),
+            explanation = "8.4.58: Replaced Anusvāra with nasal parasavarṇa '${substitute.devanagari}'."
         )
     }
+
+    private fun findTarget(context: DerivationState): Target? {
+        val positions = context.terms.flatMap { term -> term.varnas.indices.map { index -> term to index } }
+        for (position in 0 until positions.lastIndex) {
+            val (term, index) = positions[position]
+            if (term.varnas[index] != Ayogavaha.ANUSVARA) continue
+            val follower = positions[position + 1].first.varnas[positions[position + 1].second]
+            if (Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.YAY, follower)) return Target(term, index, follower)
+        }
+        return null
+    }
+
+    private fun nasalFor(follower: Varna): Vyanjana = when (follower) {
+        Vyanjana.KA, Vyanjana.KHA, Vyanjana.GA, Vyanjana.GHA, Vyanjana.NGA -> Vyanjana.NGA
+        Vyanjana.CA, Vyanjana.CHA, Vyanjana.JA, Vyanjana.JHA, Vyanjana.NYA -> Vyanjana.NYA
+        Vyanjana.TTA, Vyanjana.TTHA, Vyanjana.DDA, Vyanjana.DDHA, Vyanjana.NNA -> Vyanjana.NNA
+        Vyanjana.TA, Vyanjana.THA, Vyanjana.DA, Vyanjana.DHA, Vyanjana.NA -> Vyanjana.NA
+        Vyanjana.PA, Vyanjana.PHA, Vyanjana.BA, Vyanjana.BHA, Vyanjana.MA -> Vyanjana.MA
+        else -> Vyanjana.NA
+    }
+
+    private data class Target(val term: dev.panini.derivation.DerivationTerm, val varnaIndex: Int, val follower: Varna)
 }

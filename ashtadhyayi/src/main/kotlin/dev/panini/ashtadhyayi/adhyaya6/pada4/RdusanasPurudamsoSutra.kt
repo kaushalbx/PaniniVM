@@ -4,6 +4,8 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -37,8 +39,9 @@ object RdusanasPurudamsoSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        if (stem.surface.endsWith('ा')) return false
-        val isArStem = stem.upadesha.endsWith("ृ") || stem.surface.endsWith("अर्")
+        if (stem.varnas.lastOrNull() == Svara.AA) return false
+        val isArStem = stem.upadeshaVarnas.lastOrNull() == Svara.R ||
+            stem.varnas.takeLast(2) == listOf(Svara.A, Vyanjana.RA)
         if (!isArStem) return false
 
         val isSu = affix.id == "sup-su" || affix.upadesha == "सुँ"
@@ -49,12 +52,13 @@ object RdusanasPurudamsoSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        val newSurface = if (stem.surface.endsWith("र्")) stem.surface.dropLast(2) + "ा" else stem.surface.dropLast(1) + "ा"
+        val source = if (stem.varnas.takeLast(2) == listOf(Svara.A, Vyanjana.RA)) Vyanjana.RA else Svara.R
+        val result = if (source == Vyanjana.RA) stem.varnas.dropLast(2) + Svara.AA else stem.varnas.dropLast(1) + Svara.AA
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, newSurface, 'ऋ', "आ", sutra)
+            state = context.substituteTermVarnas(stem.id, result, source, listOf(Svara.AA), sutra)
                 .removeTerm(affix.id, sutra = sutra)
                 .copy(stage = DerivationStage.PADA_FORMED),
-            explanation = "6.4.11 & 8.2.7: Derived '$newSurface' for ṛ-stem before nominative singular su."
+            explanation = "6.4.11 & 8.2.7 derives the lengthened ṛ-stem before nominative singular su."
         )
     }
 }

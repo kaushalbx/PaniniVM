@@ -7,6 +7,7 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -47,7 +48,8 @@ object YuvatisTihSutra : Sutra<DerivationState, DerivationChange>(
             upadesha = "ति",
             createdBySutra = sutra,
         )
-        val changed = context.substituteTermSurface(stem.id, stem.surface.removeSuffix("न्"), 'न', "", sutra)
+        val result = if (stem.varnas.lastOrNull() == Vyanjana.NA) stem.varnas.dropLast(1) else stem.varnas
+        val changed = context.substituteTermVarnas(stem.id, result, Vyanjana.NA, emptyList(), sutra)
         return DerivationChange(
             state = changed.copy(
                 terms = changed.terms + tiTerm,

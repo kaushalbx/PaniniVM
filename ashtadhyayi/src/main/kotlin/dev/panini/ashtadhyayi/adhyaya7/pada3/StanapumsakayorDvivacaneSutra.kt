@@ -12,6 +12,9 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 
 /** Neuter s-stem nominative/accusative dual: form the sī ending. */
 object StanapumsakayorDvivacaneSutra : Sutra<DerivationState, DerivationChange>(
@@ -32,14 +35,14 @@ object StanapumsakayorDvivacaneSutra : Sutra<DerivationState, DerivationChange>(
             context.effectiveContext.rupa.vacana != Vacana.DVIVACANA ||
             context.effectiveContext.rupa.vibhakti !in setOf(Vibhakti.PRATHAMA, Vibhakti.DVITIYA)
         ) return false
-        return context.terms[context.terms.size - 2].surface.endsWith("स्")
+        return context.terms[context.terms.size - 2].isSFinal()
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
         return DerivationChange(
-            state = context.mergeTermsByVarnaSubstitution(stem.id, affix.id, stem.surface.dropLast(2) + "सी", 'स', "सी", sutra)
+            state = context.mergeTermsByVarnaSubstitution(stem.id, affix.id, stem.replaceFinalS(listOf(Svara.A, Vyanjana.SA, Svara.II)).toDevanagari(), Vyanjana.SA, listOf(Svara.A, Vyanjana.SA, Svara.II), sutra)
                 .copy(stage = DerivationStage.FINAL),
             explanation = "7.3.149: Formed the neuter s-stem nominative/accusative dual सी ending.",
         )

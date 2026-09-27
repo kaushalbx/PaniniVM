@@ -4,6 +4,9 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -37,9 +40,9 @@ object VasohSamprasaranamSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        if (stem.surface.contains("दुष्")) return false
+        if (stem.varnas.windowed(3).any { it == dus }) return false
         val isVasStem = stem.upadesha == "विद्वस्" || stem.compoundHeadUpadesha == "विद्वस्" ||
-            stem.surface.endsWith("वस्") || stem.surface == "विद्वस्"
+            stem.varnas.takeLast(3) == vas
         if (!isVasStem) return false
 
         val isBhaVowelAffix = affix.id in setOf(
@@ -50,12 +53,18 @@ object VasohSamprasaranamSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
-        val newSurface = stem.surface.replace("द्वस्", "दुष्")
+        val locus = stem.varnas.windowed(dvas.size).indexOfLast { it == dvas }
+        require(locus >= 0)
+        val result = stem.varnas.take(locus) + dus + stem.varnas.drop(locus + dvas.size)
 
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, newSurface, 'व', "उ", sutra)
+            state = context.substituteTermVarnas(stem.id, result, Vyanjana.VA, listOf(Svara.U), sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
-            explanation = "6.4.131 & 8.3.59: Applied samprasāraṇa 'u' to 'vas' stem before weak vowel affix (becoming $newSurface)."
+            explanation = "6.4.131 & 8.3.59 applies samprasāraṇa 'u' to the 'vas' stem before a weak vowel affix."
         )
     }
+
+    private val vas: List<Varna> = listOf(Vyanjana.VA, Svara.A, Vyanjana.SA)
+    private val dvas: List<Varna> = listOf(Vyanjana.DA, Vyanjana.VA, Svara.A, Vyanjana.SA)
+    private val dus: List<Varna> = listOf(Vyanjana.DA, Svara.U, Vyanjana.SSA)
 }

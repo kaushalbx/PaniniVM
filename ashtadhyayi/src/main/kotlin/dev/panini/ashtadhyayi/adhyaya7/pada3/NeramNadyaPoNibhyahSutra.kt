@@ -6,6 +6,7 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -43,10 +44,12 @@ object NeramNadyaPoNibhyahSutra : Sutra<DerivationState, DerivationChange>(
         // The rule covers nadī, āp, and nī.  A nadī stem need not be ā-final.
         val isNadi = context.samjnas.any { it.targetId == stem.id && it.samjna == dev.panini.shiksha.Samjna.NADI }
         val isAp = stem.varnas.lastOrNull() == Svara.AA
-        if (!isNadi && !isAp && stem.surface != "नी") return false
+        if (!isNadi && !isAp && stem.varnas != listOf(Vyanjana.NA, Svara.II)) return false
 
         // 2. Affix must be 'ṅi' (Locative Singular)
-        return affix.upadesha == "ङि" && affix.surface != "आम्" && !affix.surface.startsWith("या")
+        return affix.upadesha == "ङि" &&
+            affix.varnas != listOf(Svara.AA, Vyanjana.MA) &&
+            affix.varnas.take(2) != listOf(Vyanjana.YA, Svara.AA)
     }
 
     override fun apply(context: DerivationState): DerivationChange {

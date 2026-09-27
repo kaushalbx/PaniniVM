@@ -5,7 +5,8 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.core.Lakara
 import dev.panini.core.PadaType
-import dev.panini.shiksha.Varnamala
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -26,13 +27,15 @@ object IHalyaghohSutra : Sutra<DerivationState, DerivationChange>(
         val lingAtmanepada = context.effectiveContext.rupa.lakara == Lakara.LING &&
             context.effectiveContext.rupa.pada == PadaType.ATMANEPADA
         return !lingAtmanepada && isKngitSarvadhatuka(context, shna) &&
-            nextInitial(context, shna)?.let(Varnamala::isConsonant) == true
+            nextInitial(context, shna) is Vyanjana
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val shna = requireNotNull(shna(context))
         return DerivationChange(
-            context.substituteTermSurface(shna.id, shna.surface.dropLast(1) + "ी", 'आ', "ई", sutra),
+            context.substituteTermVarnas(
+                shna.id, shna.varnas.dropLast(1) + Svara.II, Svara.AA, listOf(Svara.II), sutra,
+            ),
             "6.4.113 substitutes ī for the ā of श्ना before a consonant-initial k/ṅ-it sārvadhātuka.",
         )
     }

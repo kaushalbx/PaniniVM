@@ -9,7 +9,7 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.toDevanagari
-import dev.panini.shiksha.toVarnas
+import dev.panini.shiksha.Varna
 import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -30,8 +30,7 @@ object AmetahSutra : Sutra<DerivationState, DerivationChange>(
             context.droppedTerms.any { it.id == "shap" || it.upadesha in setOf("श्नम्", "श्लु") }
         if (context.effectiveContext.rupa.lakara != Lakara.LOT || !presentStemEstablished) return false
         val activeJhi = affix.upadesha == "झि" && affix.surface !in setOf("न्तु", "अन्तु", "अतु")
-        val middleE = setOf("ते", "एते", "आते", "न्ते", "अन्ते", "अते", "एथे", "आथे")
-            .any(affix.surface::endsWith) &&
+        val middleE = middleESuffixes.any { suffix -> affix.varnas.endsWith(suffix) } &&
             "3.4.90" !in context.appliedSutras
         return activeJhi || middleE
     }
@@ -53,4 +52,18 @@ object AmetahSutra : Sutra<DerivationState, DerivationChange>(
             "3.4.90 replaces the LOT ending's ए with आम्.",
         )
     }
+
+    private val middleESuffixes: List<List<Varna>> = listOf(
+        listOf(Vyanjana.TA, Svara.E),
+        listOf(Svara.E, Vyanjana.TA, Svara.E),
+        listOf(Svara.AA, Vyanjana.TA, Svara.E),
+        listOf(Vyanjana.NA, Vyanjana.TA, Svara.E),
+        listOf(Svara.A, Vyanjana.NA, Vyanjana.TA, Svara.E),
+        listOf(Svara.A, Vyanjana.TA, Svara.E),
+        listOf(Svara.E, Vyanjana.THA, Svara.E),
+        listOf(Svara.AA, Vyanjana.THA, Svara.E),
+    )
+
+    private fun List<dev.panini.shiksha.Varna>.endsWith(suffix: List<dev.panini.shiksha.Varna>): Boolean =
+        size >= suffix.size && subList(size - suffix.size, size) == suffix
 }

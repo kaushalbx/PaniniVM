@@ -1,11 +1,16 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada4
 
 import dev.panini.core.Lakara
+import dev.panini.core.TingAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.VarnaSubstitution
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -30,7 +35,7 @@ object TasasthamipamTantantamahSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.PRATYAYA,
     blocks = setOf("7.2.80"),
 ), DerivationSutra {
-    private val ELIGIBLE_ENDINGS = setOf("तस्", "थस्", "थ", "मिप्")
+    private val eligibleEndings = setOf(TingAffix.TAS, TingAffix.THAS, TingAffix.THA, TingAffix.MIP)
 
     override fun matches(context: DerivationState): Boolean {
         if (context.stage == DerivationStage.INITIAL || context.stage == DerivationStage.PRATYAYA_SELECTED) return false
@@ -39,35 +44,31 @@ object TasasthamipamTantantamahSutra : Sutra<DerivationState, DerivationChange>(
         val isNit = context.effectiveContext.rupa.lakara in setOf(
             Lakara.LANG, Lakara.LRNG, Lakara.LUNG, Lakara.LING,
         )
-        val targetUpadesha = lastTerm.upadesha ?: ""
-        val eligible = targetUpadesha in ELIGIBLE_ENDINGS
+        val target = eligibleEndings.singleOrNull { lastTerm.matchesUpadesha(it.upadesha) }
+        val eligible = target != null
         val substitutionRecorded = context.substitutions.any { it.sutra == sutra && it.targetId == lastTerm.id }
 
-        val isAlreadyApplied = when (targetUpadesha) {
-            "तस्" -> lastTerm.surface == "ताम्"
-            "थस्" -> lastTerm.surface == "तम्"
-            "थ" -> lastTerm.surface == "त"
-            "मिप्" -> lastTerm.surface == "अम्"
-            else -> false
-        }
+        val isAlreadyApplied = target?.let { lastTerm.varnas == replacements[it] } == true
 
         return isNit && eligible && !isAlreadyApplied && !substitutionRecorded
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val lastTerm = context.terms.last()
-        val substitute = when (lastTerm.upadesha) {
-            "तस्" -> "ताम्"
-            "थस्" -> "तम्"
-            "थ" -> "त"
-            "मिप्" -> "अम्"
-            else -> lastTerm.surface
-        }
+        val affix = requireNotNull(eligibleEndings.singleOrNull { lastTerm.matchesUpadesha(it.upadesha) })
+        val substitute = requireNotNull(replacements[affix])
         return DerivationChange(
-            state = context.replaceWholeAffix(lastTerm.id, substitute, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume)
-                .addSubstitution(VarnaSubstitution(lastTerm.id, lastTerm.surface.first(), substitute, sutra))
+            state = context.replaceWholeAffix(lastTerm.id, substitute.toDevanagari(), sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume)
+                .addSubstitution(VarnaSubstitution(lastTerm.id, lastTerm.varnas.first().devanagari.single(), substitute.toDevanagari(), sutra))
                 .copy(stage = DerivationStage.PADA_FORMED),
-            explanation = "3.4.101: Replaced ending ${lastTerm.upadesha} with $substitute."
+            explanation = "3.4.101: Replaced ending ${lastTerm.upadesha} with ${substitute.toDevanagari()}."
         )
     }
+
+    private val replacements: Map<TingAffix, List<Varna>> = mapOf(
+        TingAffix.TAS to listOf(Vyanjana.TA, Svara.AA, Vyanjana.MA),
+        TingAffix.THAS to listOf(Vyanjana.TA, Svara.A, Vyanjana.MA),
+        TingAffix.THA to listOf(Vyanjana.TA, Svara.A),
+        TingAffix.MIP to listOf(Svara.A, Vyanjana.MA),
+    )
 }

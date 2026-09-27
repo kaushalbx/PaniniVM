@@ -6,8 +6,12 @@ import dev.panini.core.TingAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.core.SanadiAffix
+import dev.panini.derivation.matchesAffix
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -32,8 +36,7 @@ object LopoVyorValiSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         for (index in 0 until context.terms.lastIndex) {
             val leftTerm = context.terms[index]
-            if (leftTerm.matchesUpadesha("णिच्")) continue
-            val left = leftTerm.surface
+            if (leftTerm.matchesAffix(SanadiAffix.NIC)) continue
             val rightTerm = context.terms[index + 1]
             val hasPadaScope = context.samjnas.any { it.targetId == leftTerm.id && it.samjna == Samjna.PADA }
             val isLateLingVikarana = context.effectiveContext.rupa.lakara == Lakara.LING &&
@@ -54,9 +57,9 @@ object LopoVyorValiSutra : Sutra<DerivationState, DerivationChange>(
                 rightTerm.matchesUpadesha("मिप्") &&
                 context.allEffectiveTerms.any { it.matchesUpadesha("यासुट्") }
             ) continue
-            val right = rightTerm.surface.firstOrNull() ?: continue
-            if ((left.endsWith("व्") || left.endsWith("य्")) &&
-                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, right)
+            val right = rightTerm.varnas.firstOrNull() as? Vyanjana ?: continue
+            if (leftTerm.varnas.lastOrNull() in setOf(Vyanjana.VA, Vyanjana.YA) &&
+                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, right.devanagari.single())
             ) return true
         }
         return false
@@ -65,7 +68,7 @@ object LopoVyorValiSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         for (index in 0 until context.terms.lastIndex) {
             val left = context.terms[index]
-            if (left.matchesUpadesha("णिच्")) continue
+            if (left.matchesAffix(SanadiAffix.NIC)) continue
             val rightTerm = context.terms[index + 1]
             val hasPadaScope = context.samjnas.any { it.targetId == left.id && it.samjna == Samjna.PADA }
             val isLateLingVikarana = context.effectiveContext.rupa.lakara == Lakara.LING &&
@@ -86,15 +89,16 @@ object LopoVyorValiSutra : Sutra<DerivationState, DerivationChange>(
                 rightTerm.matchesUpadesha("मिप्") &&
                 context.allEffectiveTerms.any { it.matchesUpadesha("यासुट्") }
             ) continue
-            val right = rightTerm.surface.firstOrNull() ?: continue
-            if ((left.surface.endsWith("व्") || left.surface.endsWith("य्")) &&
-                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, right)
+            val right = rightTerm.varnas.firstOrNull() as? Vyanjana ?: continue
+            val source = left.varnas.lastOrNull()
+            if (source in setOf(Vyanjana.VA, Vyanjana.YA) &&
+                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, right.devanagari.single())
             ) {
                 return DerivationChange(
                     context.substituteTermSurface(
-                        left.id, left.surface.dropLast(2), left.surface[left.surface.length - 2], "", sutra,
+                        left.id, left.varnas.dropLast(1).toDevanagari(), requireNotNull(source), emptyList(), sutra,
                     ),
-                    "6.1.66 deletes the final ${left.surface.takeLast(2)} before val.",
+                    "6.1.66 deletes the final ${source.devanagari} before val.",
                 )
             }
         }

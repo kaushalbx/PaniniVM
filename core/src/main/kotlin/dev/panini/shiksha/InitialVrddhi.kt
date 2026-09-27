@@ -1,5 +1,14 @@
 package dev.panini.shiksha
 
+/** Replaces the first vowel by its Vṛddhi substitute in phonological space. */
+fun List<Varna>.withInitialVrddhi(): List<Varna> {
+    val vowelIndex = indexOfFirst { it is Svara }
+    if (vowelIndex < 0) return this
+    val vowel = this[vowelIndex] as Svara
+    val replacement = Varnamala.getVrddhi(vowel) ?: return this
+    return take(vowelIndex) + replacement + drop(vowelIndex + 1)
+}
+
 /** Applies Vṛddhi to the first vowel of a Devanāgarī stem. */
 fun applyInitialVrddhi(stem: String): String {
     val value = stem.trim()

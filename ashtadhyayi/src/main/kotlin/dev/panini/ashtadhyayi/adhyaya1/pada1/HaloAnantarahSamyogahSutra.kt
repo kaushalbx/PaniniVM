@@ -5,7 +5,8 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.SamjnaAssignment
 import dev.panini.shiksha.Samjna
-import dev.panini.shiksha.Varnamala
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
 import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -36,13 +37,13 @@ object HaloAnantarahSamyogahSutra : Sutra<DerivationState, DerivationChange>(
     traceTemplateValue = "{sutra} assigns संयोग to an uninterrupted hal cluster.",
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean = context.terms.any { term ->
-        hasConsonantCluster(term.surface) && context.samjnas.none {
+        hasConsonantCluster(term.varnas) && context.samjnas.none {
             it.targetId == term.id && it.samjna == Samjna.SAMYOGA
         }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val assignments = context.terms.filter { hasConsonantCluster(it.surface) }
+        val assignments = context.terms.filter { hasConsonantCluster(it.varnas) }
             .map { SamjnaAssignment(it.id, Samjna.SAMYOGA) }.toSet()
         return DerivationChange(
             context.withSamjnas(assignments),
@@ -50,16 +51,15 @@ object HaloAnantarahSamyogahSutra : Sutra<DerivationState, DerivationChange>(
         )
     }
 
-    private fun hasConsonantCluster(surface: String): Boolean {
+    private fun hasConsonantCluster(varnas: List<Varna>): Boolean {
         var count = 0
-        surface.forEach { char ->
+        varnas.forEach { varna ->
             when {
-                Varnamala.isConsonant(char) -> {
+                varna is Vyanjana -> {
                     count++
                     if (count >= 2) return true
                 }
-                char == Vyanjana.VIRAMA -> Unit
-                else -> count = 0
+                varna is Svara -> count = 0
             }
         }
         return false

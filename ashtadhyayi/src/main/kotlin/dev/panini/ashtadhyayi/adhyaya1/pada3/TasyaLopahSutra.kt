@@ -5,6 +5,8 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.ItMarkerProvenance
+import dev.panini.shiksha.OrthographicSign
+import dev.panini.shiksha.joinDevanagariVowelBoundary
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -49,7 +51,12 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
                 val designatedMarkers = exactDesignations.mapTo(mutableSetOf()) { it.marker }
                 val processed = exactDesignations.sortedByDescending { it.start }.fold(term.surface) { surface, designation ->
                     require(designation.start >= 0 && designation.endExclusive <= surface.length &&
-                        surface.substring(designation.start, designation.endExclusive) == designation.designatedText
+                        surface.regionMatches(
+                            designation.start,
+                            designation.designatedText,
+                            0,
+                            designation.designatedText.length,
+                        )
                     ) {
                         "1.3.9 cannot delete stale designation ${designation.start}..${designation.endExclusive} " +
                             "(${designation.designatedText}) on ${term.id}:${term.surface}; the substituting rule must remap or consume it."
@@ -64,6 +71,13 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
                     },
                     itDesignations = emptyList(),
                     deferredItDesignations = emptyList(),
+                    orthographicSigns = if (exactDesignations.any {
+                            OrthographicSign.CHANDRABINDU.devanagari in it.designatedText
+                        }) {
+                        term.orthographicSigns.filterNot { it.sign == OrthographicSign.CHANDRABINDU }
+                    } else {
+                        term.orthographicSigns
+                    },
                     itProcessingPhase = dev.panini.derivation.ItProcessingPhase.PROCESSED,
                     sthaniProps = dev.panini.derivation.SthaniProperties(
                         upadesha = term.sthaniProps?.upadesha ?: term.upadesha,
@@ -87,14 +101,5 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
             ),
             explanation = "1.3.9: Performed lopa of it-marked sounds."
         )
-    }
-
-    private fun String.joinDevanagariVowelBoundary(): String {
-        val vowelSigns = linkedMapOf(
-            "्अ" to "", "्आ" to "ा", "्इ" to "ि", "्ई" to "ी",
-            "्उ" to "ु", "्ऊ" to "ू", "्ऋ" to "ृ", "्ॠ" to "ॄ",
-            "्ऌ" to "ॢ", "्ए" to "े", "्ऐ" to "ै", "्ओ" to "ो", "्औ" to "ौ",
-        )
-        return vowelSigns.entries.fold(this) { value, (boundary, sign) -> value.replace(boundary, sign) }
     }
 }

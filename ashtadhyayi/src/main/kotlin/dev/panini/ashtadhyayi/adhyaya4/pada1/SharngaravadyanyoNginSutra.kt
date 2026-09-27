@@ -10,6 +10,9 @@ import dev.panini.derivation.HasMorphosyntax
 import dev.panini.derivation.TermKind
 import dev.panini.ganapatha.GanaPatha
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -32,18 +35,18 @@ object SharngaravadyanyoNginSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
         HasMorphosyntax(linga = Linga.STRI).matches(context) &&
-            (context.terms.any { it.kind == TermKind.PRATIPADIKA && it.surface in setOf("नृ", "नर") } ||
+            (context.terms.any { it.kind == TermKind.PRATIPADIKA && it.varnas in nrForms } ||
                 context.samjnas.any { it.samjna == Samjna.NIN } ||
                 context.terms.any { it.kind == TermKind.PRATIPADIKA && GanaPatha.isEligibleMember(51, it.surface, it.lexicalUses) }) &&
             context.allEffectiveTerms.none { it.upadesha == "ङीन्" }
 
     override fun apply(context: DerivationState): DerivationChange {
         val nrOrNara = context.terms.singleOrNull {
-            it.kind == TermKind.PRATIPADIKA && it.surface in setOf("नृ", "नर")
+            it.kind == TermKind.PRATIPADIKA && it.varnas in nrForms
         }
-        val withVrddhi = when (nrOrNara?.surface) {
-            "नृ" -> context.substituteTermSurface(nrOrNara.id, "नार्", 'ऋ', "आर्", number)
-            "नर" -> context.substituteTermSurface(nrOrNara.id, "नार्", 'अ', "आर्", number)
+        val withVrddhi = when (nrOrNara?.varnas) {
+            nr -> context.substituteTermVarnas(nrOrNara.id, naar, Svara.R, listOf(Svara.AA, Vyanjana.RA), number)
+            nara -> context.substituteTermVarnas(nrOrNara.id, naar, Svara.A, listOf(Svara.AA, Vyanjana.RA), number)
             else -> context
         }
         val result = withVrddhi.addTerm(
@@ -60,4 +63,9 @@ object SharngaravadyanyoNginSutra : Sutra<DerivationState, DerivationChange>(
         }
         return DerivationChange(result, explanation)
     }
+
+    private val nr: List<Varna> = listOf(Vyanjana.NA, Svara.R)
+    private val nara: List<Varna> = listOf(Vyanjana.NA, Svara.A, Vyanjana.RA, Svara.A)
+    private val naar: List<Varna> = listOf(Vyanjana.NA, Svara.AA, Vyanjana.RA)
+    private val nrForms = setOf(nr, nara)
 }

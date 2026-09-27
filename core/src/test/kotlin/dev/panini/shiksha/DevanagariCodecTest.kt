@@ -6,6 +6,14 @@ import kotlin.test.assertFailsWith
 
 class DevanagariCodecTest {
     @Test
+    fun `replaces a varna by phonological index`() {
+        assertEquals(
+            listOf(Vyanjana.KA, Svara.O),
+            listOf<Varna>(Vyanjana.KA, Svara.U).replaceVarna(1, listOf(Svara.O)),
+        )
+    }
+
+    @Test
     fun `parses orthography as phonological varnas`() {
         assertEquals(listOf(Vyanjana.KA, Svara.A), "क".toVarnas())
         assertEquals(listOf(Vyanjana.KA, Svara.AA), "का".toVarnas())

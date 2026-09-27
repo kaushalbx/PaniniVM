@@ -11,6 +11,7 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.shiksha.Vyanjana
 
 /** 3.4.109: सिजभ्यस्तविदिभ्यश्च. झि is replaced by जुस् after an abhyasta base. */
 object SijabhyastavidibhyashCaSutra : Sutra<DerivationState, DerivationChange>(
@@ -31,7 +32,7 @@ object SijabhyastavidibhyashCaSutra : Sutra<DerivationState, DerivationChange>(
         val ending = context.terms.lastOrNull() ?: return false
         return context.effectiveContext.rupa.lakara == Lakara.LANG &&
             ending.upadesha == TingAffix.JHI.upadesha &&
-            ending.surface.startsWith('झ') &&
+            ending.varnas.firstOrNull() == Vyanjana.JHA &&
             context.samjnas.any { it.targetId == "abhyasa" && it.samjna == Samjna.ABHYASA }
     }
 

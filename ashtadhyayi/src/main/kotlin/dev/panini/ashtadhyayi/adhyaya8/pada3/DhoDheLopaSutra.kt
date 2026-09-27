@@ -3,6 +3,7 @@ package dev.panini.ashtadhyayi.adhyaya8.pada3
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -32,38 +33,20 @@ object DhoDheLopaSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         if (context.terms.size < 2) return false
         return (0 until context.terms.size - 1).any { i ->
-            val curr = context.terms[i].surface
-            val next = context.terms[i + 1].surface
-
-            val currEndsWithDha = curr.endsWith("ढ") || curr.endsWith("ढ्")
-            val nextStartsWithDha = next.startsWith("ढ") || next.startsWith("ढ्")
-
-            currEndsWithDha && nextStartsWithDha
+            context.terms[i].varnas.lastOrNull() == Vyanjana.DDHA &&
+                context.terms[i + 1].varnas.firstOrNull() == Vyanjana.DDHA
         }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val targetIndex = (0 until context.terms.size - 1).first { i ->
-            val curr = context.terms[i].surface
-            val next = context.terms[i + 1].surface
-
-            val currEndsWithDha = curr.endsWith("ढ") || curr.endsWith("ढ्")
-            val nextStartsWithDha = next.startsWith("ढ") || next.startsWith("ढ्")
-
-            currEndsWithDha && nextStartsWithDha
+            context.terms[i].varnas.lastOrNull() == Vyanjana.DDHA &&
+                context.terms[i + 1].varnas.firstOrNull() == Vyanjana.DDHA
         }
 
         val targetTerm = context.terms[targetIndex]
-        val surface = targetTerm.surface
-
-        val newSurface = when {
-            surface.endsWith("ढ्") -> surface.dropLast(2)
-            surface.endsWith("ढ") -> surface.dropLast(1)
-            else -> surface
-        }
-
         return DerivationChange(
-            state = context.substituteTermSurface(targetTerm.id, newSurface, 'ढ', "", sutra),
+            state = context.substituteTermVarnas(targetTerm.id, targetTerm.varnas.dropLast(1), Vyanjana.DDHA, emptyList(), sutra),
             explanation = "8.3.14: Elided 'ḍh' before another 'ḍh'."
         )
     }

@@ -5,6 +5,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -30,7 +31,7 @@ object AsamyogallitKitSutra : Sutra<DerivationState, DerivationChange>(
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU && it.id != "abhyasa" } ?: return false
         val affix = context.terms.lastOrNull()?.takeIf { it.kind == TermKind.PRATYAYA } ?: return false
         val isPit = affix.id in setOf("ting-tip", "ting-sip", "ting-mip")
-        return !endsInConsonantCluster(dhatu.surface) &&
+        return !endsInConsonantCluster(dhatu.varnas) &&
             affix.id.startsWith("ting-") &&
             !isPit &&
             sutra !in affix.establishedBySutras
@@ -47,6 +48,6 @@ object AsamyogallitKitSutra : Sutra<DerivationState, DerivationChange>(
         )
     }
 
-    private fun endsInConsonantCluster(surface: String): Boolean =
-        surface.endsWith('्') && surface.getOrNull(surface.lastIndex - 2) == '्'
+    private fun endsInConsonantCluster(varnas: List<dev.panini.shiksha.Varna>): Boolean =
+        varnas.takeLast(2).all { it is Vyanjana } && varnas.size >= 2
 }

@@ -5,8 +5,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.pratyahara.Pratyahara
-import dev.panini.shiksha.Svara
-import dev.panini.shiksha.Varnamala
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -36,64 +35,31 @@ object ShashChoAtiSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         if (context.terms.size < 2) return false
         return (0 until context.terms.size - 1).any { i ->
-            val curr = context.terms[i].surface
-            val next = context.terms[i + 1].surface
-            if (!curr.endsWith('्')) return@any false
-            val lastChar = curr.dropLast(1).lastOrNull() ?: return@any false
-            if (!Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAY, lastChar)) return@any false
-            if (!next.startsWith('श')) return@any false
-
-            val rawFollower = next.dropWhile { it == 'श' || it == '्' }.firstOrNull() ?: return@any false
-            val follower = if (Svara.fromMatra(rawFollower) != null) normalizeVowelMark(rawFollower) else rawFollower
-
-            Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.AT, follower) || Varnamala.isVowel(follower)
+            val curr = context.terms[i].varnas
+            val next = context.terms[i + 1].varnas
+            val follower = next.getOrNull(1) ?: return@any false
+            Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAY, curr.lastOrNull() ?: return@any false) &&
+                next.firstOrNull() == Vyanjana.SHA &&
+                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.AT, follower)
         }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val targetIndex = (0 until context.terms.size - 1).first { i ->
-            val curr = context.terms[i].surface
-            val next = context.terms[i + 1].surface
-            if (!curr.endsWith('्')) return@first false
-            val lastChar = curr.dropLast(1).lastOrNull() ?: return@first false
-            if (!Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAY, lastChar)) return@first false
-            if (!next.startsWith('श')) return@first false
-
-            val rawFollower = next.dropWhile { it == 'श' || it == '्' }.firstOrNull() ?: return@first false
-            val follower = if (Svara.fromMatra(rawFollower) != null) normalizeVowelMark(rawFollower) else rawFollower
-
-            Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.AT, follower) || Varnamala.isVowel(follower)
+            val curr = context.terms[i].varnas
+            val next = context.terms[i + 1].varnas
+            val follower = next.getOrNull(1) ?: return@first false
+            Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAY, curr.lastOrNull() ?: return@first false) &&
+                next.firstOrNull() == Vyanjana.SHA &&
+                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.AT, follower)
         } + 1
 
         val targetTerm = context.terms[targetIndex]
-        val surface = targetTerm.surface
-
-        val newSurface = if (surface.startsWith("श्")) {
-            "छ्" + surface.drop(2)
-        } else if (surface.startsWith("श")) {
-            "छ" + surface.drop(1)
-        } else {
-            surface
-        }
+        val result = listOf(Vyanjana.CHA) + targetTerm.varnas.drop(1)
 
         return DerivationChange(
-            state = context.substituteTermSurface(targetTerm.id, newSurface, 'श', "छ", sutra),
+            state = context.substituteTermVarnas(targetTerm.id, result, Vyanjana.SHA, listOf(Vyanjana.CHA), sutra),
             explanation = "8.4.63: Substituted 'ś' with 'ch' after jhay stop."
         )
-    }
-
-    private fun normalizeVowelMark(mark: Char): Char = when (mark) {
-        'ा' -> 'आ'
-        'ि' -> 'इ'
-        'ी' -> 'ई'
-        'ु' -> 'उ'
-        'ू' -> 'ऊ'
-        'ृ' -> 'ऋ'
-        'ॄ' -> 'ॠ'
-        'े' -> 'ए'
-        'ै' -> 'ऐ'
-        'ो' -> 'ओ'
-        'ौ' -> 'औ'
-        else -> mark
     }
 }

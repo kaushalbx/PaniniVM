@@ -8,6 +8,8 @@ import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.LetFormation
 import dev.panini.derivation.TermKind
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -41,7 +43,13 @@ object SibbahulamLetiSutra : Sutra<DerivationState, DerivationChange>(
             // The vārttika on 3.1.34 treats सिप् as ṇit optionally in Chandas;
             // तॄ therefore has the attested vṛddhi stem तार् in तारिषत्.
             if (term.kind == TermKind.DHATU && term.upadesha == "तॄ") {
-                state = state.substituteTermSurface(term.id, "तार्", 'ॄ', "आर्", sutra)
+                state = state.substituteTermVarnas(
+                    term.id,
+                    listOf(Vyanjana.TA, Svara.AA, Vyanjana.RA),
+                    Svara.RR,
+                    listOf(Svara.AA, Vyanjana.RA),
+                    sutra,
+                )
             }
         }
         val ending = state.terms.last()

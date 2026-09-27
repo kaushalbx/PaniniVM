@@ -7,6 +7,9 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -41,34 +44,31 @@ object HashiCaSutra : Sutra<DerivationState, DerivationChange>(
         val right = context.terms.last()
 
         // 1. Left term ends in repha (from ru) preceded by 'a'
-        val surface = left.surface
-        if (!surface.endsWith("र्")) return false
-        if (!dev.panini.shiksha.Varnamala.endsWithA(surface.dropLast(2))) return false
+        if (left.varnas.takeLast(2) != listOf(Svara.A, Vyanjana.RA)) return false
 
         // 2. Followed by a voiced consonant (haś)
-        val firstChar = right.surface.firstOrNull() ?: return false
-        return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAS, firstChar)
+        val first = right.varnas.firstOrNull() as? Vyanjana ?: return false
+        return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAS, first.devanagari.single())
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val internalIndex = internalSankhyaIndex(context)
         val left = if (internalIndex >= 0) context.terms[internalIndex] else context.terms[context.terms.size - 2]
-        val newSurface = left.surface.dropLast(2) + "ु"
+        val newSurface = (left.varnas.dropLast(2) + Svara.U).toDevanagari()
 
         return DerivationChange(
-            state = context.substituteTermSurface(left.id, newSurface, 'र', "उ", sutra)
+            state = context.substituteTermSurface(left.id, newSurface, Vyanjana.RA, listOf(Svara.U), sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "6.1.114: Substituted 'u' for 'ru' before a voiced consonant."
         )
     }
 
     private fun internalSankhyaIndex(context: DerivationState): Int = context.terms.indices.firstOrNull { index ->
-        index < context.terms.lastIndex && context.terms[index].surface.endsWith("र्") &&
-            dev.panini.shiksha.Varnamala.endsWithA(context.terms[index].surface.dropLast(2)) &&
+        index < context.terms.lastIndex && context.terms[index].varnas.takeLast(2) == listOf(Svara.A, Vyanjana.RA) &&
             context.samjnas.any { it.targetId == context.terms[index].id && it.samjna == Samjna.SANKHYA } &&
             context.samjnas.any { it.targetId == context.terms[index + 1].id && it.samjna == Samjna.SANKHYA } &&
-            context.terms[index + 1].surface.firstOrNull()?.let {
-                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAS, it)
+            (context.terms[index + 1].varnas.firstOrNull() as? Vyanjana)?.let {
+                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAS, it.devanagari.single())
             } == true
     } ?: -1
 }

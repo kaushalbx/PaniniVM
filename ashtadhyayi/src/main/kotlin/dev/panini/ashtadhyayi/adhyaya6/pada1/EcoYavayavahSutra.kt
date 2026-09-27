@@ -49,8 +49,8 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
                 rightTerm.upadesha == "झि" && "3.4.94" !in context.appliedSutras
             ) continue
             if (lotEndingReplacementPending(context, rightTerm.surface)) continue
-            val left = context.terms[i].surface.lastVarna() ?: continue
-            val right = rightTerm.surface.firstVarna() ?: continue
+            val left = context.terms[i].varnas.lastOrNull() ?: continue
+            val right = rightTerm.varnas.firstOrNull() ?: continue
             if (engine.contains(Pratyahara.EC, left) && engine.contains(Pratyahara.AC, right)) {
                 return true
             }
@@ -69,8 +69,8 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
                 rightTerm.upadesha == "झि" && "3.4.94" !in context.appliedSutras
             ) continue
             if (lotEndingReplacementPending(context, rightTerm.surface)) continue
-            val leftVarna = leftTerm.surface.lastVarna() ?: continue
-            val rightVarna = rightTerm.surface.firstVarna() ?: continue
+            val leftVarna = leftTerm.varnas.lastOrNull() ?: continue
+            val rightVarna = rightTerm.varnas.firstOrNull() ?: continue
             if (engine.contains(Pratyahara.EC, leftVarna) && engine.contains(Pratyahara.AC, rightVarna)) {
                 val replacement = requireNotNull(adesha[leftVarna])
                 val newSurface = (

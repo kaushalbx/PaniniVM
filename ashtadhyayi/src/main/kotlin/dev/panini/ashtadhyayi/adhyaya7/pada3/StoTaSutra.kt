@@ -12,6 +12,9 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 
 /** Neuter s-stem before ṭā: form the sā instrumental singular. */
 object StoTaSutra : Sutra<DerivationState, DerivationChange>(
@@ -32,14 +35,14 @@ object StoTaSutra : Sutra<DerivationState, DerivationChange>(
             context.effectiveContext.rupa.vibhakti != Vibhakti.TRTIYA ||
             context.effectiveContext.rupa.vacana != Vacana.EKAVACANA
         ) return false
-        return context.terms[context.terms.size - 2].surface.endsWith("स्") && context.terms.last().upadesha == "टा"
+        return context.terms[context.terms.size - 2].isSFinal() && context.terms.last().upadesha == "टा"
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
         return DerivationChange(
-            state = context.mergeTermsByVarnaSubstitution(stem.id, affix.id, stem.surface.dropLast(1) + "ा", '∅', "आ", sutra)
+            state = context.mergeTermsByVarnaSubstitution(stem.id, affix.id, stem.extendFinalS(listOf(Svara.AA)).toDevanagari(), Vyanjana.SA, listOf(Vyanjana.SA, Svara.AA), sutra)
                 .copy(stage = DerivationStage.FINAL),
             explanation = "7.3.151: Formed the neuter s-stem instrumental-singular सा ending before टा.",
         )

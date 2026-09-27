@@ -1,12 +1,16 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada3
 
 import dev.panini.core.Linga
+import dev.panini.core.SupAffix
 import dev.panini.core.Vacana
 import dev.panini.core.Vibhakti
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.matchesSupAffix
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -33,7 +37,9 @@ object NtoAuoSutra : Sutra<DerivationState, DerivationChange>(
             context.effectiveContext.rupa.vibhakti !in setOf(Vibhakti.PRATHAMA, Vibhakti.DVITIYA)
         ) return false
         val stem = context.terms[context.terms.size - 2]
-        return stem.surface.endsWith("न्") && context.terms.last().upadesha in setOf("औ", "औट्")
+        val affix = context.terms.last()
+        return stem.isNFinal() &&
+            (affix.matchesSupAffix(SupAffix.AU) || affix.matchesSupAffix(SupAffix.AUT))
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -41,7 +47,8 @@ object NtoAuoSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
         return DerivationChange(
             state = context.mergeTermsByVarnaSubstitution(
-                stem.id, affix.id, stem.surface.dropLast(2) + "ानौ", 'न', "आनौ", sutra,
+                stem.id, affix.id, stem.replaceFinalAn(listOf(Svara.AA, Vyanjana.NA, Svara.AU)),
+                Vyanjana.NA, listOf(Svara.AA, Vyanjana.NA, Svara.AU), sutra,
             ).copy(stage = DerivationStage.FINAL),
             explanation = "7.3.138: Formed the masculine n-stem dual नौ ending before ${affix.upadesha}.",
         )

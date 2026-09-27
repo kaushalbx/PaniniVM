@@ -44,11 +44,11 @@ object EngiPararupamSutra : Sutra<DerivationState, DerivationChange>(
         if (root.kind != TermKind.DHATU || SamjnaAssignment(prefix.id, Samjna.UPASARGA) !in context.samjnas) return false
 
         // 1. Must be an a-ending prefix.
-        val isAPrefix = prefix.surface.lastVarna() in setOf(Svara.A, Svara.AA)
+        val isAPrefix = prefix.varnas.lastOrNull() in setOf(Svara.A, Svara.AA)
         if (!isAPrefix) return false
 
         // 2. Root must start with 'e' or 'o'
-        return root.surface.firstVarna() in setOf(Svara.E, Svara.O)
+        return root.varnas.firstOrNull() in setOf(Svara.E, Svara.O)
     }
 
     override fun apply(context: DerivationState): DerivationChange {

@@ -4,6 +4,9 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -39,30 +42,38 @@ object CaturanuduhorAmSutra : Sutra<DerivationState, DerivationChange>(
 
         // A later feminine substitution retains the lexical upadeśa, but it
         // is no longer the चतुर् aṅga to which this augment applies.
-        if (stem.surface !in setOf("चतुर्", "अनडुह्")) return false
-
-        if (stem.surface.contains("चत्वा") || stem.surface.contains("अनड्वा")) return false
+        if (stem.varnas !in eligibleStems) return false
 
         // Sarvanāmasthāna affixes for catur: jas (7.1.20 shi in neuter!), su, au, etc.
         val isSarvanamasthana = affix.id in setOf("sup-jas", "sup-su", "sup-au", "sup-aut", "sup-am") ||
             affix.upadesha in setOf("जस्", "सुँ", "औ", "औट्", "अम्", "शी", "शि") ||
-            affix.surface in setOf("इ", "शी", "अस्", "जस्")
+            affix.varnas in sarvanamasthanaSurfaces
 
         return isSarvanamasthana
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
-        val newSurface = when (stem.surface) {
-            "चतुर्" -> "चत्वार्"
-            "अनडुह्" -> "अनड्वाह्"
-            else -> stem.surface.replace("तुर्", "त्वार्").replace("डुह्", "ड्वाह्")
-        }
+        val result = requireNotNull(replacements[stem.varnas])
 
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, newSurface, '∅', "आम्", sutra)
+            state = context.substituteTermVarnas(
+                stem.id, result, Svara.U, listOf(Vyanjana.VA, Svara.AA), sutra,
+            )
                 .copy(stage = DerivationStage.ANGAKARYA),
-            explanation = "7.1.98: Added 'ām' augment to ${stem.surface} before sarvanāmasthāna (becoming $newSurface)."
+            explanation = "7.1.98: Added 'ām' augment before sarvanāmasthāna."
         )
     }
+
+    private val catur: List<Varna> = listOf(Vyanjana.CA, Svara.A, Vyanjana.TA, Svara.U, Vyanjana.RA)
+    private val anaduh: List<Varna> = listOf(Svara.A, Vyanjana.NA, Svara.A, Vyanjana.DDA, Svara.U, Vyanjana.HA)
+    private val eligibleStems = setOf(catur, anaduh)
+    private val replacements: Map<List<Varna>, List<Varna>> = mapOf(
+        catur to listOf(Vyanjana.CA, Svara.A, Vyanjana.TA, Vyanjana.VA, Svara.AA, Vyanjana.RA),
+        anaduh to listOf(Svara.A, Vyanjana.NA, Svara.A, Vyanjana.DDA, Vyanjana.VA, Svara.AA, Vyanjana.HA),
+    )
+    private val sarvanamasthanaSurfaces: Set<List<Varna>> = setOf(
+        listOf(Svara.I), listOf(Vyanjana.SHA, Svara.II),
+        listOf(Svara.A, Vyanjana.SA), listOf(Vyanjana.JA, Svara.A, Vyanjana.SA),
+    )
 }

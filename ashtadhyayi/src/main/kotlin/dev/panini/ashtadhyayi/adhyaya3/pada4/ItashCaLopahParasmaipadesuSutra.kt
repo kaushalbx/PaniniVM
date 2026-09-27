@@ -9,6 +9,7 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.shiksha.Svara
 
 /** 3.4.97: इतश्च लोपः परस्मैपदेषु. Gives the secondary-ending LET variants. */
 object ItashCaLopahParasmaipadesuSutra : Sutra<DerivationState, DerivationChange>(
@@ -27,13 +28,13 @@ object ItashCaLopahParasmaipadesuSutra : Sutra<DerivationState, DerivationChange
     override fun matches(context: DerivationState): Boolean {
         val ending = context.terms.lastOrNull() ?: return false
         return context.effectiveContext.rupa.lakara == Lakara.LET &&
-            ending.upadesha in setOf("तिप्", "झि", "सिप्") && ending.surface.endsWith('ि')
+            ending.upadesha in setOf("तिप्", "झि", "सिप्") && ending.varnas.lastOrNull() == Svara.I
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
         return DerivationChange(
-            context.replaceWholeAffix(ending.id, ending.surface.dropLast(1) + "्", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
+            context.replaceWholeAffix(ending.id, ending.varnas.dropLast(1), sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
             "3.4.97 optionally deletes the final इ of the LET Parasmaipada ending.",
         )
     }

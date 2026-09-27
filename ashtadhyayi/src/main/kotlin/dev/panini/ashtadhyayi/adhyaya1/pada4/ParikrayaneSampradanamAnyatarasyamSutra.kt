@@ -8,6 +8,7 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.analysis.KarakaEvidence
+import dev.panini.analysis.KarakaDhatuDomains
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
@@ -21,8 +22,7 @@ object ParikrayaneSampradanamAnyatarasyamSutra : Sutra<KarakaRuleContext, Karaka
     adhikara = setOf("1.4.23"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
-        val normalized = context.dhatu.surface.trimEnd('्', 'ँ')
-        val isParikrayana = normalized == "परिक्री" || normalized == "क्री" || normalized.startsWith("परिक्री") || normalized.startsWith("क्री")
+        val isParikrayana = KarakaDhatuDomains.isParikrayana(context.dhatu)
         return isParikrayana && SemanticRelation.INSTRUMENT in context.participant.semanticRelations && Karaka.SAMPRADANA in context.candidates
     }
 

@@ -16,6 +16,8 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 
 /** 3.4.94: लेटोऽडाटौ. Selects either the अट् or आट् branch requested by the caller. */
 object LetodatauSutra : Sutra<DerivationState, DerivationChange>(
@@ -42,13 +44,13 @@ object LetodatauSutra : Sutra<DerivationState, DerivationChange>(
         if (ending.kind != TermKind.PRATYAYA || sutra in ending.establishedBySutras) return false
         if (ending.matchesUpadesha("तिप्") && ending.surface == "तिप्") return false
         if (ending.matchesUpadesha("सिप्") && ending.surface == "सिप्") return false
-        if (ending.matchesUpadesha("झि") && ending.surface.startsWith("झ")) return false
+        if (ending.matchesUpadesha("झि") && ending.varnas.firstOrNull() == Vyanjana.JHA) return false
         if (ending.matchesUpadesha("मिप्") && ending.surface != "नि") return false
         val atmanepadaUpadeshas = setOf("त", "आताम्", "झ", "थास्", "आथाम्", "ध्वम्", "इट्", "वहि", "महिङ्")
         if (ending.upadesha in atmanepadaUpadeshas && ending.surface == ending.upadesha) return false
         if (ending.upadesha in setOf("आताम्", "आथाम्") && ending.surface !in setOf("ऐते", "ऐथे")) return false
         if (context.effectiveContext.letEOption == LetEOption.AI &&
-            ending.upadesha in atmanepadaUpadeshas && ending.surface.endsWith("े")) return false
+            ending.upadesha in atmanepadaUpadeshas && ending.varnas.lastOrNull() == Svara.E) return false
         return ending.id.startsWith("ting-")
     }
 

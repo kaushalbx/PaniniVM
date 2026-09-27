@@ -9,10 +9,14 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.core.SanadiAffix
+import dev.panini.derivation.matchesAffix
 import dev.panini.derivation.HasMorphosyntax
 import dev.panini.derivation.TermKind
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.replaceVarna
 import dev.panini.shiksha.Varnamala
 import dev.panini.shiksha.firstVarna
 import dev.panini.shiksha.lastVarna
@@ -49,16 +53,16 @@ object VrddhirEciSutra : Sutra<DerivationState, DerivationChange>(
         val leftTerm = context.terms[context.terms.size - 2]
         if (leftTerm.id == "shap" && context.terms.size > 2) {
             val previous = context.terms[context.terms.size - 3]
-            if (previous.upadesha == "णिच्" && previous.surface.lastVarna()?.let {
+            if (previous.matchesAffix(SanadiAffix.NIC) && previous.varnas.lastOrNull()?.let {
                     Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.EC, it)
                 } == true
             ) return false
         }
         if (leftTerm.id == "shap" && context.terms.any { it.kind == TermKind.DHATU && it.gana == DhatuGana.ADADI }) return false
-        val right = context.terms.last().surface.firstVarna() ?: return false
+        val right = context.terms.last().varnas.firstOrNull() ?: return false
 
         val engine = Ashtadhyayi.pratyaharaEngine
-        val isA = leftTerm.surface.lastVarna() in setOf(Svara.A, Svara.AA)
+        val isA = leftTerm.varnas.lastOrNull() in setOf(Svara.A, Svara.AA)
         return isA && engine.contains(Pratyahara.EC, right)
     }
 
@@ -108,7 +112,7 @@ object VrddhirEciSutra : Sutra<DerivationState, DerivationChange>(
             val left = context.terms[index]
             val right = context.terms[index + 1]
             left.id == "at-agama" && right.kind == TermKind.DHATU &&
-                right.surface.firstVarna()?.let { engine.contains(Pratyahara.EC, it) } == true
+                right.varnas.firstOrNull()?.let { engine.contains(Pratyahara.EC, it) } == true
         }
     }
 }
@@ -142,7 +146,11 @@ object TasmacChasoNahPumsiSutra : Sutra<DerivationState, DerivationChange>(
         val term = context.terms.last()
         return DerivationChange(
             state = context.substituteTermSurface(
-                term.id, term.surface.dropLast(2) + "न्", 'स', "न", sutra,
+                term.id,
+                term.varnas.replaceVarna(term.varnas.lastIndex, listOf(Vyanjana.NA)).toDevanagari(),
+                Vyanjana.SA,
+                listOf(Vyanjana.NA),
+                sutra,
             ).copy(stage = DerivationStage.FINAL),
             explanation = "6.1.103 replaces final स् with न् after the lengthened stem in masculine accusative plural.",
         )
@@ -172,7 +180,12 @@ object AmiPurvahSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         return DerivationChange(
             context.mergeTermsByVarnaSubstitution(
-                stem.id, context.terms.last().id, stem.surface + "म्", 'अ', "", sutra,
+                stem.id,
+                context.terms.last().id,
+                (stem.varnas + Vyanjana.MA).toDevanagari(),
+                Svara.A,
+                emptyList(),
+                sutra,
             ).copy(stage = DerivationStage.FINAL),
             "6.1.107 retains the preceding vowel before अम्."
         )

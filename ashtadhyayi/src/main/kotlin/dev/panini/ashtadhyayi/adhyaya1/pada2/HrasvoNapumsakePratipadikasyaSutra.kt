@@ -3,8 +3,10 @@ package dev.panini.ashtadhyayi.adhyaya1.pada2
 import dev.panini.core.Linga
 import dev.panini.derivation.*
 import dev.panini.shiksha.isDirgha
-import dev.panini.shiksha.lastSvara
-import dev.panini.shiksha.withFinalHrasva
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.replaceVarna
+import dev.panini.shiksha.toDevanagari
+import dev.panini.shiksha.toHrasva
 import dev.panini.sutra.*
 
 /** 1.2.47 ह्रस्वो नपुंसके प्रातिपदिकस्य. */
@@ -18,19 +20,20 @@ object HrasvoNapumsakePratipadikasyaSutra : Sutra<DerivationState, DerivationCha
     override fun matches(context: DerivationState): Boolean =
         context.effectiveContext.rupa.linga == Linga.NAPUMSAKA &&
             context.terms.any {
-                it.kind == TermKind.PRATIPADIKA && it.surface == it.upadesha && longFinal(it.surface)
+                it.kind == TermKind.PRATIPADIKA && it.surface == it.upadesha && longFinal(it)
             }
 
     override fun apply(context: DerivationState): DerivationChange {
         val term = context.terms.first {
-            it.kind == TermKind.PRATIPADIKA && it.surface == it.upadesha && longFinal(it.surface)
+            it.kind == TermKind.PRATIPADIKA && it.surface == it.upadesha && longFinal(it)
         }
-        val surface = term.surface.withFinalHrasva()
+        val final = term.varnas.last() as Svara
+        val surface = term.varnas.replaceVarna(term.varnas.lastIndex, listOf(final.toHrasva())).toDevanagari()
         return DerivationChange(
             context.replaceWholeTermSurface(term.id, surface, sutra),
             "1.2.47 shortens the final vowel of a neuter prātipadika.",
         )
     }
 
-    private fun longFinal(surface: String): Boolean = surface.lastSvara()?.isDirgha == true
+    private fun longFinal(term: DerivationTerm): Boolean = (term.varnas.lastOrNull() as? Svara)?.isDirgha == true
 }

@@ -7,9 +7,9 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.HasMorphosyntax
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.pratyahara.Pratyahara
-import dev.panini.shiksha.Varnamala
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -50,39 +50,22 @@ object NapumsakasyaJhalacahSutra : Sutra<DerivationState, DerivationChange>(
         if (!isSarvanamasthana) return false
 
         // 2. Stem must end in Ac or Jhal
-        val lastChar = stem.surface.lastOrNull() ?: return false
+        val final = stem.varnas.lastOrNull() ?: return false
         val engine = Ashtadhyayi.pratyaharaEngine
-        val endsInAcOrJhal = engine.contains(Pratyahara.AC, lastChar) || engine.contains(Pratyahara.JHAL, lastChar)
+        val endsInAcOrJhal = final is Svara ||
+            final is Vyanjana && engine.contains(Pratyahara.JHAL, final.devanagari.single())
 
         return endsInAcOrJhal && context.substitutions.none { it.sutra == sutra }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
-        val surface = stem.surface
-
-        // 1.1.47: Mit (marked with M) goes after the last vowel of the term.
-        var lastVowelIndex = -1
-        for (i in surface.indices.reversed()) {
-            if (Varnamala.isVowel(surface[i])) {
-                lastVowelIndex = i
-                break
-            }
-        }
-
-        // If no vowel (unlikely for jhal/ac), we'd fallback.
-        // Before शि, the m-it augment is realised as the exact consonant न्;
-        // the following independently preserved इ composes with it at the
-        // term boundary.
-        val numSurface = "न्"
-        val newStemSurface = if (lastVowelIndex != -1) {
-            surface.substring(0, lastVowelIndex + 1) + numSurface + surface.substring(lastVowelIndex + 1)
-        } else {
-            surface + numSurface
-        }
+        // 1.1.47: m-it is placed after the final vowel, in phonological-token space.
+        val lastVowelIndex = stem.varnas.indexOfLast { it is Svara }
+        val insertionBoundary = if (lastVowelIndex >= 0) lastVowelIndex + 1 else stem.varnas.size
 
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, newStemSurface, '∅', "न्", sutra)
+            state = context.insertTermVarnas(stem.id, insertionBoundary, listOf(Vyanjana.NA), sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.1.72: Added 'num' augment (न्) after the last vowel of the neuter stem."
         )

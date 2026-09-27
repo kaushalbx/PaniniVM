@@ -9,6 +9,7 @@ import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Ayogavaha
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -39,32 +40,30 @@ object KharavasanayorVisarjaniyahSutra : Sutra<DerivationState, DerivationChange
         val index = context.terms.indexOf(target)
         if (index == context.terms.lastIndex) return true
 
-        val next = context.terms[index + 1].surface.firstOrNull() ?: return false
-        return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.KHAR, next)
+        val next = context.terms[index + 1].varnas.firstOrNull() as? Vyanjana ?: return false
+        return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.KHAR, next.devanagari.single())
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val target = requireNotNull(targetTerm(context))
-        val source = if (target.surface.endsWith("ष्")) 'ष' else 'र'
-        val newSurface = if (source == 'ष') {
-            target.surface.dropLast(2) + Ayogavaha.VISARGA.devanagari
-        } else {
-            target.surface.dropLast(2) + Ayogavaha.VISARGA.devanagari
-        }
+        val source = target.varnas.last()
+        val result = target.varnas.dropLast(1) + Ayogavaha.VISARGA
 
         return DerivationChange(
-            state = context.substituteTermSurface(target.id, newSurface, source, Ayogavaha.VISARGA.devanagari, number)
+            state = context.substituteTermVarnas(
+                target.id, result, emptyList(), source, listOf(Ayogavaha.VISARGA), number,
+            )
                 .copy(stage = DerivationStage.FINAL),
             explanation = "8.3.15: Replaced final 'r' with visarga (Avasāna)."
         )
     }
 
     private fun targetTerm(context: DerivationState): DerivationTerm? = context.terms.firstOrNull { term ->
-        val isRutva = term.surface.endsWith("र्") && context.substitutions.any { substitution ->
+        val isRutva = term.varnas.lastOrNull() == Vyanjana.RA && context.substitutions.any { substitution ->
             substitution.targetId == term.id && substitution.sutra == "8.2.66"
         }
-        val isSuffixalSha = term.surface.endsWith("ष्") && term.kind == TermKind.PRATYAYA &&
-            term.upadesha.endsWith("स्")
+        val isSuffixalSha = term.varnas.lastOrNull() == Vyanjana.SSA && term.kind == TermKind.PRATYAYA &&
+            term.upadeshaVarnas.lastOrNull() == Vyanjana.SA
         isRutva || isSuffixalSha
     }
 }

@@ -11,6 +11,8 @@ import dev.panini.analysis.KarakaEvidence
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 
 /**
  * Sūtra 1.4.38 राधिक्योर्यस्य विप्रश्नः.
@@ -26,7 +28,10 @@ object RadhiksyorYasyaViprasnahSutra : Sutra<KarakaRuleContext, KarakaRuleResult
 ) {
     override fun matches(context: KarakaRuleContext): Boolean =
         (context.candidates.isEmpty() || Karaka.SAMPRADANA in context.candidates) &&
-            (context.dhatu.surface.startsWith("राध्") || context.dhatu.surface.startsWith("ईक्ष्") || context.dhatu.surface == "राध" || context.dhatu.surface == "ईक्ष") &&
+            (context.dhatu.varnas.take(3) in setOf(
+                listOf(Vyanjana.RA, Svara.AA, Vyanjana.DHA),
+                listOf(Svara.II, Vyanjana.KA, Vyanjana.SSA),
+            )) &&
             SemanticRelation.INQUIRY_DESTINY_TARGET in context.participant.semanticRelations
 
     override fun apply(context: KarakaRuleContext) = KarakaRuleResult.Assigned(

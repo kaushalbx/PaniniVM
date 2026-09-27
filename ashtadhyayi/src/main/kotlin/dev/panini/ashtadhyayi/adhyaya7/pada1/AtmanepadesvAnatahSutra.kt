@@ -6,6 +6,8 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -27,13 +29,13 @@ object AtmanepadesvAnatahSutra : Sutra<DerivationState, DerivationChange>(
             DhatuGana.ADADI, DhatuGana.JUHOTYADI, DhatuGana.SVADI, DhatuGana.RUDHADI, DhatuGana.TANADI, DhatuGana.KRYADI,
         )
         if (lakara in setOf(Lakara.LAT, Lakara.LOT, Lakara.LANG) && !hasNonAStemVikarana) return false
-        val endingIndex = context.terms.indexOfLast { it.upadesha == "झ" && it.surface.startsWith("झ") }
+        val endingIndex = context.terms.indexOfLast { it.upadesha == "झ" && it.varnas.firstOrNull() == Vyanjana.JHA }
         if (endingIndex <= 0) return false
-        return !context.terms[endingIndex - 1].surface.endsWith("अ")
+        return context.terms[endingIndex - 1].varnas.lastOrNull() != Svara.A
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val ending = context.terms.last { it.upadesha == "झ" && it.surface.startsWith("झ") }
+        val ending = context.terms.last { it.upadesha == "झ" && it.varnas.firstOrNull() == Vyanjana.JHA }
         return DerivationChange(
             context.replaceWholeAffix(ending.id, "अत", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
             "7.1.5 substitutes अत् for the Atmanepada झ after a non-a-final anga.",

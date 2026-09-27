@@ -9,6 +9,8 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.replaceVarna
 
 /** 3.4.95: आत ऐ. The आ of the two dual Ātmanepada endings becomes ऐ in LET. */
 object AtaAiSutra : Sutra<DerivationState, DerivationChange>(
@@ -27,7 +29,7 @@ object AtaAiSutra : Sutra<DerivationState, DerivationChange>(
         return DerivationChange(
             context.replaceWholeAffix(
                 ending.id,
-                "ऐ${ending.surface.drop(1)}",
+                ending.varnas.replaceVarna(0, listOf(Svara.AI)),
                 sutra,
                 dev.panini.derivation.WholeAffixDesignationPolicy.PreserveAndRemap(emptyList()),
             ),

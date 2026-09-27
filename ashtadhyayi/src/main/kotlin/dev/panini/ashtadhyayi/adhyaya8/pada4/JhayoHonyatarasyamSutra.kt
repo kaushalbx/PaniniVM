@@ -5,7 +5,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.pratyahara.Pratyahara
-import dev.panini.shiksha.Varnamala
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -36,44 +36,36 @@ object JhayoHonyatarasyamSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         if (context.terms.size < 2) return false
         return (0 until context.terms.size - 1).any { i ->
-            val curr = context.terms[i].surface
-            val next = context.terms[i + 1].surface
-            if (curr.isEmpty() || !next.startsWith("ह")) return@any false
-            val lastChar = curr.trimEnd('्').lastOrNull() ?: return@any false
-            Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAY, lastChar)
+            val last = context.terms[i].varnas.lastOrNull() ?: return@any false
+            context.terms[i + 1].varnas.firstOrNull() == Vyanjana.HA &&
+                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAY, last)
         }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val prevIndex = (0 until context.terms.size - 1).first { i ->
-            val curr = context.terms[i].surface
-            val next = context.terms[i + 1].surface
-            if (curr.isEmpty() || !next.startsWith("ह")) return@first false
-            val lastChar = curr.trimEnd('्').lastOrNull() ?: return@first false
-            Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAY, lastChar)
+            val last = context.terms[i].varnas.lastOrNull() ?: return@first false
+            context.terms[i + 1].varnas.firstOrNull() == Vyanjana.HA &&
+                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAY, last)
         }
 
         val prevTerm = context.terms[prevIndex]
         val targetTerm = context.terms[prevIndex + 1]
-        val lastChar = prevTerm.surface.trimEnd('्').last()
-
-        val info = Varnamala.getVargaInfo(lastChar)
-        val replacement = if (info != null) {
-            Varnamala.getVargaMember(info.first, 3)?.toString() ?: "ध"
-        } else {
-            "ध"
-        }
-
-        val surface = targetTerm.surface
-        val newSurface = if (surface.startsWith("ह")) {
-            replacement + surface.substring(1)
-        } else {
-            surface
-        }
+        val replacement = fourthOfVarga(prevTerm.varnas.last())
+        val result = listOf(replacement) + targetTerm.varnas.drop(1)
 
         return DerivationChange(
-            state = context.substituteTermSurface(targetTerm.id, newSurface, 'ह', replacement, sutra),
-            explanation = "8.4.62: Replaced 'h' with $replacement after jhay stop."
+            state = context.substituteTermVarnas(targetTerm.id, result, Vyanjana.HA, listOf(replacement), sutra),
+            explanation = "8.4.62: Replaced 'h' with ${replacement.devanagari} after jhay stop."
         )
+    }
+
+    private fun fourthOfVarga(source: dev.panini.shiksha.Varna): Vyanjana = when (source) {
+        Vyanjana.KA, Vyanjana.KHA, Vyanjana.GA, Vyanjana.GHA -> Vyanjana.GHA
+        Vyanjana.CA, Vyanjana.CHA, Vyanjana.JA, Vyanjana.JHA -> Vyanjana.JHA
+        Vyanjana.TTA, Vyanjana.TTHA, Vyanjana.DDA, Vyanjana.DDHA -> Vyanjana.DDHA
+        Vyanjana.TA, Vyanjana.THA, Vyanjana.DA, Vyanjana.DHA -> Vyanjana.DHA
+        Vyanjana.PA, Vyanjana.PHA, Vyanjana.BA, Vyanjana.BHA -> Vyanjana.BHA
+        else -> Vyanjana.DHA
     }
 }

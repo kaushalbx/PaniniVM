@@ -1,12 +1,11 @@
 package dev.panini.ashtadhyayi.adhyaya6.pada1
 
-import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -43,8 +42,7 @@ object PlutaPragrhyahSutra : Sutra<DerivationState, DerivationChange>(
         if (!isPragrhya) return false
 
         // 2. Check if right term starts with a vowel (Ac)
-        val firstChar = right.surface.firstOrNull() ?: return false
-        return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.AC, firstChar)
+        return right.varnas.firstOrNull() is Svara
     }
 
     override fun apply(context: DerivationState): DerivationChange {

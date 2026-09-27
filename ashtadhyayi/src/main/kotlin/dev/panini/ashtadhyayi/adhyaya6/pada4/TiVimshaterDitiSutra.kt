@@ -4,6 +4,9 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
+import dev.panini.shiksha.Ayogavaha
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -29,16 +32,20 @@ object TiVimshaterDitiSutra : Sutra<DerivationState, DerivationChange>(
         if (context.terms.size < 2) return false
         val base = context.terms[context.terms.lastIndex - 1]
         val suffix = context.terms.last()
-        return base.kind == TermKind.PRATIPADIKA && base.surface.endsWith("विंशति") &&
+        return base.kind == TermKind.PRATIPADIKA && base.varnas.takeLast(vimshati.size) == vimshati &&
             suffix.kind == TermKind.PRATYAYA && suffix.upadesha == "डट्"
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val base = context.terms[context.terms.lastIndex - 1]
-        val changedSurface = base.surface.dropLast(2)
+        val result = base.varnas.dropLast(2)
         return DerivationChange(
-            context.substituteTermSurface(base.id, changedSurface, 'त', "", sutra),
-            "$text: ${base.surface} → $changedSurface।",
+            context.substituteTermVarnas(base.id, result, Vyanjana.TA, emptyList(), sutra),
+            "$text deletes final ti from ${base.surface}.",
         )
     }
+
+    private val vimshati = listOf(
+        Vyanjana.VA, Svara.I, Ayogavaha.ANUSVARA, Vyanjana.SHA, Svara.A, Vyanjana.TA, Svara.I,
+    )
 }

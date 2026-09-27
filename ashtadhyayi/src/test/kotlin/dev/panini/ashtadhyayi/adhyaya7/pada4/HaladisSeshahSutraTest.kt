@@ -21,4 +21,16 @@ class HaladisSeshahSutraTest {
         val result = HaladisSeshahSutra.apply(state).state
         assertEquals("स", result.terms.single().surface)
     }
+
+    @Test
+    fun `7 4 60 removes later consonants by varna position in a conjunct spelling`() {
+        val state = DerivationState(
+            listOf(DerivationTerm("abhyasa", "स्तद्", TermKind.DHATU, upadesha = "स्तद्")),
+            samjnas = setOf(SamjnaAssignment("abhyasa", Samjna.ABHYASA)),
+        )
+
+        val result = HaladisSeshahSutra.apply(state).state
+
+        assertEquals("स", result.terms.single().surface)
+    }
 }

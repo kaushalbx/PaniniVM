@@ -3,6 +3,7 @@ package dev.panini.ashtadhyayi.adhyaya8.pada2
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -27,19 +28,19 @@ object ShadhohKahSiSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val index = targetIndex(context)
-        val source = context.terms[index].surface.dropLast(1).last()
         val target = context.terms[index]
-        val replacement = target.surface.dropLast(2) + "क्"
+        val source = target.varnas.last()
+        val replacement = target.varnas.dropLast(1) + Vyanjana.KA
         return DerivationChange(
-            context.substituteTermSurface(target.id, replacement, source, "क", sutra),
+            context.substituteTermVarnas(target.id, replacement, source, listOf(Vyanjana.KA), sutra),
             "8.2.41 substitutes क् for $source before स्.",
         )
     }
 
     private fun targetIndex(context: DerivationState): Int =
         (0 until context.terms.lastIndex).firstOrNull { index ->
-            val left = context.terms[index].surface
-            val right = context.terms[index + 1].surface
-            left.length >= 2 && left.endsWith('्') && left[left.length - 2] in setOf('ष', 'ढ') && right.startsWith('स')
+            val left = context.terms[index].varnas
+            val right = context.terms[index + 1].varnas
+            left.lastOrNull() in setOf(Vyanjana.SSA, Vyanjana.DDHA) && right.firstOrNull() == Vyanjana.SA
         } ?: -1
 }

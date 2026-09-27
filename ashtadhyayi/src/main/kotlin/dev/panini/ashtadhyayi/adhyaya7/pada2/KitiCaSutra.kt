@@ -11,7 +11,10 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
-import dev.panini.shiksha.applyInitialVrddhi
+import dev.panini.shiksha.withInitialVrddhi
+import dev.panini.shiksha.toDevanagari
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varnamala
 
 /**
  * 7.2.118: kiti ca.
@@ -40,26 +43,22 @@ object KitiCaSutra : Sutra<DerivationState, DerivationChange>(
         if (!isKit) return false
 
         val stem = context.terms.firstOrNull { it.kind == TermKind.PRATIPADIKA } ?: return false
-        return !isAlreadyVrddhi(stem.surface) && applyInitialVrddhi(stem.surface) != stem.surface
+        return stem.varnas.withInitialVrddhi() != stem.varnas
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stemIndex = context.terms.indexOfFirst { it.kind == TermKind.PRATIPADIKA }
         val stem = context.terms[stemIndex]
 
-        val newSurface = applyInitialVrddhi(stem.surface)
+        val source = stem.varnas.first { it is Svara } as Svara
+        val replacement = requireNotNull(Varnamala.getVrddhi(source))
+        val newVarnas = stem.varnas.withInitialVrddhi()
+        val newSurface = newVarnas.toDevanagari()
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, newSurface, '∅', "वृद्धि", sutra)
+            state = context.substituteTermVarnas(stem.id, newVarnas, source, replacement, sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.2.118 applies initial vowel Vṛddhi before kit affix: '${stem.surface}' -> '$newSurface'.",
         )
-    }
-
-    private fun isAlreadyVrddhi(s: String): Boolean = when {
-        s.startsWith("ना") || s.startsWith("वा") || s.startsWith("भा") || s.startsWith("रा") -> true
-        s.startsWith("वै") || s.startsWith("सै") || s.startsWith("दै") -> true
-        s.startsWith("औ") || s.startsWith("सौ") -> true
-        else -> false
     }
 
 }

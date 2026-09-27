@@ -4,6 +4,9 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -31,7 +34,7 @@ object AciRaRtahSutra : Sutra<DerivationState, DerivationChange>(
 
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
-        if (stem.surface !in setOf("तिसृ", "चतसृ")) return false
+        if (stem.upadesha !in setOf("तिसृ", "चतसृ") && stem.varnas !in eligibleStems) return false
 
         // जस् and शस् expose vowel-initial अस् after their indicatory consonant is removed.
         return affix.id in setOf("sup-au", "sup-jas", "sup-am", "sup-aut", "sup-shas") ||
@@ -40,12 +43,17 @@ object AciRaRtahSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
-        val newSurface = stem.surface.dropLast(1) + "्र्"
+        val result = stem.varnas.dropLast(1) + Vyanjana.RA
 
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, newSurface, 'ऋ', "र्", sutra)
+            state = context.substituteTermVarnas(stem.id, result, Svara.R, listOf(Vyanjana.RA), sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.2.100: Replaced the final ऋ of '${stem.surface}' with र् before a vowel-initial case ending.",
         )
     }
+
+    private val eligibleStems: Set<List<Varna>> = setOf(
+        listOf(Vyanjana.TA, Svara.I, Vyanjana.SA, Svara.R),
+        listOf(Vyanjana.CA, Svara.A, Vyanjana.TA, Svara.A, Vyanjana.SA, Svara.R),
+    )
 }

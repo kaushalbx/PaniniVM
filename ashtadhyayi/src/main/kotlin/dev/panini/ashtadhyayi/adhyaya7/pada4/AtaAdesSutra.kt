@@ -5,6 +5,9 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.replaceVarna
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -22,14 +25,14 @@ object AtaAdesSutra : Sutra<DerivationState, DerivationChange>(
         val abhyasa = context.terms.firstOrNull { it.id == "abhyasa" } ?: return false
         return context.effectiveContext.rupa.lakara == Lakara.LIT &&
             context.samjnas.any { it.targetId == abhyasa.id && it.samjna == Samjna.ABHYASA } &&
-            abhyasa.surface.startsWith('अ')
+            abhyasa.varnas.firstOrNull() == Svara.A
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val abhyasa = context.terms.first { it.id == "abhyasa" }
-        val lengthened = 'आ' + abhyasa.surface.drop(1)
+        val lengthened = abhyasa.varnas.replaceVarna(0, listOf(Svara.AA))
         return DerivationChange(
-            context.substituteTermSurface(abhyasa.id, lengthened, 'अ', "आ", sutra),
+            context.substituteTermSurface(abhyasa.id, lengthened.toDevanagari(), Svara.A, listOf(Svara.AA), sutra),
             "7.4.70 lengthens the initial अ of the abhyāsa ${abhyasa.surface} in लिट्.",
         )
     }

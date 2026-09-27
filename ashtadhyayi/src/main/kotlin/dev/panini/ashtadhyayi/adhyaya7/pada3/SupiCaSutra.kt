@@ -5,6 +5,11 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.replaceVarna
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -32,38 +37,28 @@ object SupiCaSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
 
         // Must be a-ending stem and sup affix starting with Yañ
-        val isAEnding = dev.panini.shiksha.Varnamala.endsWithA(stem.surface)
-        val firstChar = affix.surface.firstOrNull() ?: return false
+        val isAEnding = stem.varnas.lastOrNull() == Svara.A
+        val firstVarna = affix.varnas.firstOrNull() ?: return false
 
         val isSupEnvironment = affix.id.startsWith("sup-") && context.samjnas.any { it.targetId == affix.id && it.samjna == Samjna.PRATYAYA }
         return isAEnding && affix.upadesha !in setOf("टा", "ओस्", "अम्", "सुँ", "सु") && isSupEnvironment &&
-            (isYan(firstChar) || affix.upadesha in completePadaAffixes)
+            (isYan(firstVarna) || affix.upadesha in completePadaAffixes)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val terms = context.terms
         val stem = terms[terms.size - 2]
         val affix = terms.last()
-        val oldChar = stem.surface.last()
-        val newSurface = if (affix.upadesha == "ङि") {
-            if (oldChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks) {
-                stem.surface + "े"
-            } else {
-                stem.surface.dropLast(1) + "े"
-            }
-        } else if (oldChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks) {
-            stem.surface + "ा"
-        } else {
-            stem.surface.dropLast(1) + "ा"
-        }
-        val replacement = if (affix.upadesha == "ङि") "े" else "ा"
+        val replacement = if (affix.upadesha == "ङि") Svara.E else Svara.AA
+        val newVarnas = stem.varnas.replaceVarna(stem.varnas.lastIndex, listOf(replacement))
+        val newSurface = newVarnas.toDevanagari()
         val changedState = if (affix.upadesha in completePadaAffixes) {
-            val completedSurface = if (affix.upadesha == "ङि") newSurface else newSurface + affix.surface
+            val completedSurface = if (affix.upadesha == "ङि") newSurface else (newVarnas + affix.varnas).toDevanagari()
             context.mergeTermsByVarnaSubstitution(
-                stem.id, affix.id, completedSurface, oldChar, replacement, sutra,
+                stem.id, affix.id, completedSurface, Svara.A, listOf(replacement), sutra,
             ).copy(stage = DerivationStage.PADA_FORMED)
         } else {
-            context.substituteTermSurface(stem.id, newSurface, oldChar, replacement, sutra)
+            context.substituteTermSurface(stem.id, newSurface, Svara.A, listOf(replacement), sutra)
                 .copy(stage = DerivationStage.ANGAKARYA)
         }
 
@@ -74,7 +69,7 @@ object SupiCaSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     /** यण् is य्, व्, र्, ल्; the nasals do not license 7.3.102. */
-    private fun isYan(c: Char): Boolean = c in setOf('य', 'व', 'र', 'ल')
+    private fun isYan(varna: Varna): Boolean = varna in setOf(Vyanjana.YA, Vyanjana.VA, Vyanjana.RA, Vyanjana.LA)
 
     private val completePadaAffixes = setOf("भ्याम्")
 }

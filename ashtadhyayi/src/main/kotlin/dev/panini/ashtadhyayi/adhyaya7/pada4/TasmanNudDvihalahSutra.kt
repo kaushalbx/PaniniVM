@@ -7,6 +7,8 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.TermKind
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -20,17 +22,12 @@ object TasmanNudDvihalahSutra : Sutra<DerivationState, DerivationChange>(
     type = SutraType.NITYA, chapter = 7, pada = 4, optional = false, kramaValue = 740071,
     role = SutraRole.Vidhi, action = SutraAction.AGAMA, scope = SutraScope.DHATU,
 ), DerivationSutra {
-    private val consonants = setOf(
-        'क', 'ख', 'ग', 'घ', 'ङ', 'च', 'छ', 'ज', 'झ', 'ञ', 'ट', 'ठ', 'ड', 'ढ', 'ण',
-        'त', 'थ', 'द', 'ध', 'न', 'प', 'फ', 'ब', 'भ', 'म', 'य', 'र', 'ल', 'व', 'श', 'ष', 'स', 'ह',
-    )
-
     override fun matches(context: DerivationState): Boolean {
         val abhyasaIndex = context.terms.indexOfFirst { it.id == "abhyasa" }
         val dhatu = context.terms.drop(abhyasaIndex + 1).firstOrNull { it.kind == TermKind.DHATU } ?: return false
         return context.effectiveContext.rupa.lakara == Lakara.LIT &&
-            abhyasaIndex >= 0 && context.terms[abhyasaIndex].surface.startsWith('आ') &&
-            dhatu.surface.count { it in consonants } >= 2 && context.terms.none { it.id == "nut" }
+            abhyasaIndex >= 0 && context.terms[abhyasaIndex].varnas.firstOrNull() == Svara.AA &&
+            dhatu.varnas.count { it is Vyanjana } >= 2 && context.terms.none { it.id == "nut" }
     }
 
     override fun apply(context: DerivationState): DerivationChange {

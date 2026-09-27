@@ -25,6 +25,15 @@ fun Svara.toDirgha(): Svara = when (this) {
     else -> this
 }
 
+/** The exact phonological guṇa substitute prescribed for an ik vowel. */
+fun Svara.toGunaVarnas(): List<Varna> = when (this) {
+    Svara.I, Svara.II -> listOf(Svara.E)
+    Svara.U, Svara.UU -> listOf(Svara.O)
+    Svara.R, Svara.RR -> listOf(Svara.A, Vyanjana.RA)
+    Svara.L, Svara.LL -> listOf(Svara.A, Vyanjana.LA)
+    else -> error("Guṇa is not defined here for $this.")
+}
+
 fun String.withFinalHrasva(): String {
     val final = requireNotNull(lastSvara()) { "A final vowel is required in '$this'." }
     return replaceLastVarna(final, listOf(final.toHrasva()))

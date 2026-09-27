@@ -12,6 +12,10 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.shiksha.Ayogavaha
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 
 /** Neuter s-stem before os: form the soḥ genitive/locative dual. */
 object StoOsiSutra : Sutra<DerivationState, DerivationChange>(
@@ -32,14 +36,14 @@ object StoOsiSutra : Sutra<DerivationState, DerivationChange>(
             context.effectiveContext.rupa.vacana != Vacana.DVIVACANA ||
             context.effectiveContext.rupa.vibhakti !in setOf(Vibhakti.SASTHI, Vibhakti.SAPTAMI)
         ) return false
-        return context.terms[context.terms.size - 2].surface.endsWith("स्") && context.terms.last().upadesha == "ओस्"
+        return context.terms[context.terms.size - 2].isSFinal() && context.terms.last().upadesha == "ओस्"
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
         return DerivationChange(
-            state = context.mergeTermsByVarnaSubstitution(stem.id, affix.id, stem.surface.dropLast(1) + "ोः", '∅', "ओः", sutra)
+            state = context.mergeTermsByVarnaSubstitution(stem.id, affix.id, stem.extendFinalS(listOf(Svara.O, Ayogavaha.VISARGA)).toDevanagari(), Vyanjana.SA, listOf(Vyanjana.SA, Svara.O, Ayogavaha.VISARGA), sutra)
                 .copy(stage = DerivationStage.FINAL),
             explanation = "7.3.155: Formed the neuter s-stem dual सोः ending before ओस्.",
         )

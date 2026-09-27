@@ -7,6 +7,8 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.core.SanadiAffix
+import dev.panini.derivation.matchesAffix
 import dev.panini.derivation.TermKind
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Svara
@@ -45,15 +47,15 @@ object SavarnaDirghaSutra : Sutra<DerivationState, DerivationChange>(
         val leftTerm = context.terms[leftIndex]
         if (leftIndex > 0 && leftTerm.id == "shap") {
             val previous = context.terms[leftIndex - 1]
-            val previousFinal = previous.surface.lastVarna()
-            if (previous.upadesha == "णिच्" && previousFinal != null &&
+            val previousFinal = previous.varnas.lastOrNull()
+            if (previous.matchesAffix(SanadiAffix.NIC) && previousFinal != null &&
                 Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.EC, previousFinal)
             ) return false
         }
         if (leftTerm.id == "shap" && context.terms.any { it.kind == TermKind.DHATU && it.gana == DhatuGana.ADADI }) return false
         if (context.effectiveContext.rupa.lakara == Lakara.LOT && context.terms.last().upadesha == "झि") return false
-        val left = leftTerm.surface.lastVarna() ?: return false
-        val right = context.terms[rightIndex].surface.firstVarna() ?: return false
+        val left = leftTerm.varnas.lastOrNull() ?: return false
+        val right = context.terms[rightIndex].varnas.firstOrNull() ?: return false
 
         val engine = Ashtadhyayi.pratyaharaEngine
         return engine.contains(Pratyahara.AK, left) &&
@@ -67,7 +69,7 @@ object SavarnaDirghaSutra : Sutra<DerivationState, DerivationChange>(
         val leftTerm = terms[leftIndex]
         val rightTerm = terms[rightIndex]
 
-        val leftVowel = requireNotNull(leftTerm.surface.lastVarna() as? Svara)
+        val leftVowel = requireNotNull(leftTerm.varnas.lastOrNull() as? Svara)
         val substitute = listOf(if (leftVowel in setOf(Svara.L, Svara.LL)) Svara.RR else leftVowel.toDirgha())
         val isBeginningAugment = leftTerm.kind == TermKind.AGAMA &&
             !leftTerm.mergeIntoAugmentTarget &&
@@ -101,12 +103,12 @@ object SavarnaDirghaSutra : Sutra<DerivationState, DerivationChange>(
                 !augment.mergeIntoAugmentTarget &&
                 augment.augmentTargetId != null &&
                 "1.1.46" in augment.establishedBySutras &&
-                augment.surface.firstVarna() == Svara.AA
+                augment.varnas.firstOrNull() == Svara.AA
         }?.let { return it to it + 1 }
         if (context.terms.size > 2 && context.terms.all { it.id.startsWith("sankhya_") }) {
             return (0 until context.terms.lastIndex).firstOrNull { index ->
-                val left = context.terms[index].surface.lastVarna() ?: return@firstOrNull false
-                val right = context.terms[index + 1].surface.firstVarna() ?: return@firstOrNull false
+                val left = context.terms[index].varnas.lastOrNull() ?: return@firstOrNull false
+                val right = context.terms[index + 1].varnas.firstOrNull() ?: return@firstOrNull false
                 Varnamala.areSavarna(left, right)
             }?.let { it to it + 1 }
         }

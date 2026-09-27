@@ -5,6 +5,9 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.pratyahara.Pratyahara
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -34,33 +37,34 @@ object BhoBhagoSutra : Sutra<DerivationState, DerivationChange>(
         val left = context.terms[context.terms.size - 2]
         val right = context.terms.last()
 
-        val surface = left.surface
-        if (!surface.endsWith("र्")) return false // Target is repha (from ru)
+        if (left.varnas.lastOrNull() != Vyanjana.RA) return false
 
         // 1. Check if preceded by bho, bhago, agho, a, or ā
-        val base = surface.dropLast(2)
-        val isPrecededByEligible = base.endsWith("भो") ||
-                                   base.endsWith("भगो") ||
-                                   base.endsWith("अघो") ||
-                                   dev.panini.shiksha.Varnamala.endsWithA(base)
+        val base = left.varnas.dropLast(1)
+        val isPrecededByEligible = eligibleBases.any { base.takeLast(it.size) == it } ||
+            base.lastOrNull() == Svara.A
 
         if (!isPrecededByEligible) return false
 
         // 2. Check if followed by Aś (vowels + voiced consonants)
-        val nextChar = right.surface.firstOrNull() ?: return false
-        return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.ASH, nextChar)
+        val next = right.varnas.firstOrNull() ?: return false
+        return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.ASH, next.devanagari.single())
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val leftTerm = context.terms[context.terms.size - 2]
-        val nextChar = context.terms.last().surface.first()
-
-        val replacement = "य्"
-        val newSurface = leftTerm.surface.dropLast(2) + replacement
+        val next = context.terms.last().varnas.first()
+        val result = leftTerm.varnas.dropLast(1) + Vyanjana.YA
 
         return DerivationChange(
-            state = context.substituteTermSurface(leftTerm.id, newSurface, 'र', replacement, sutra),
-            explanation = "8.3.17: Replaced 'ru' with 'y' before voiced sound '$nextChar'."
+            state = context.substituteTermVarnas(leftTerm.id, result, Vyanjana.RA, listOf(Vyanjana.YA), sutra),
+            explanation = "8.3.17 replaces ru with y before voiced sound $next."
         )
     }
+
+    private val eligibleBases: List<List<Varna>> = listOf(
+        listOf(Vyanjana.BHA, Svara.O),
+        listOf(Vyanjana.BHA, Svara.A, Vyanjana.GA, Svara.O),
+        listOf(Svara.A, Vyanjana.GHA, Svara.O),
+    )
 }

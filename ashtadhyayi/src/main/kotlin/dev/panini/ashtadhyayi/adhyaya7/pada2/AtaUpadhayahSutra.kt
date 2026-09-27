@@ -6,6 +6,8 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -36,7 +38,7 @@ object AtaUpadhayahSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[stemIndex]
         val affix = context.terms.drop(stemIndex + 1).firstOrNull { it.kind == TermKind.PRATYAYA } ?: return false
         
-        val isUpadhaA = hasPenultimateA(stem.surface)
+        val isUpadhaA = penultimateAIndex(stem.varnas) != null
         val isNniti = affix.hasEffectiveMarker(ItMarker.NYIT) ||
                       affix.hasEffectiveMarker(ItMarker.NIT)
         
@@ -46,42 +48,15 @@ object AtaUpadhayahSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val stemIndex = context.terms.indexOfFirst { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         val stem = context.terms[stemIndex]
-        val newSurface = applyPenultimateLengthening(stem.surface)
+        val locus = requireNotNull(penultimateAIndex(stem.varnas))
+        val result = stem.varnas.take(locus) + Svara.AA + stem.varnas.drop(locus + 1)
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, newSurface, 'अ', "आ", sutra)
+            state = context.substituteTermVarnas(stem.id, result, Svara.A, listOf(Svara.AA), sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.2.116: Lengthened penultimate 'अ' in ${stem.surface} to 'आ' before ñit/ṇit suffix."
         )
     }
 
-    private fun hasPenultimateA(surface: String): Boolean {
-        if (surface == "अश्") return true
-        if (surface.endsWith('्') && surface.length >= 3) {
-            val charBeforeLastConsonant = surface[surface.length - 3]
-            return charBeforeLastConsonant !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks &&
-                charBeforeLastConsonant != '्' &&
-                charBeforeLastConsonant != 'ा' &&
-                charBeforeLastConsonant != 'ि' &&
-                charBeforeLastConsonant != 'ी' &&
-                charBeforeLastConsonant != 'ु' &&
-                charBeforeLastConsonant != 'ू' &&
-                charBeforeLastConsonant != 'ृ' &&
-                charBeforeLastConsonant != 'ॄ' &&
-                charBeforeLastConsonant != 'ॢ' &&
-                charBeforeLastConsonant != 'े' &&
-                charBeforeLastConsonant != 'ै' &&
-                charBeforeLastConsonant != 'ो' &&
-                charBeforeLastConsonant != 'ौ'
-        }
-        return false
-    }
-
-    private fun applyPenultimateLengthening(surface: String): String {
-        if (surface == "अश्") return "आश्"
-        if (surface.endsWith('्') && surface.length >= 3) {
-            val len = surface.length
-            return surface.substring(0, len - 2) + "ा" + surface.substring(len - 2)
-        }
-        return surface
-    }
+    private fun penultimateAIndex(varnas: List<dev.panini.shiksha.Varna>): Int? =
+        varnas.lastIndex.takeIf { it > 0 && varnas[it] is Vyanjana && varnas[it - 1] == Svara.A }?.minus(1)
 }

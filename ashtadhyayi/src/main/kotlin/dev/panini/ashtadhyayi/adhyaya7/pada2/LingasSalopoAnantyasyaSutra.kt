@@ -7,6 +7,8 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
 import dev.panini.derivation.WholeAffixDesignationPolicy
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -30,7 +32,7 @@ object LingasSalopoAnantyasyaSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         if (context.effectiveContext.rupa.lakara != Lakara.LING) return false
         val siyut = context.terms.firstOrNull { it.id == "siyut" }
-        if (siyut != null) return siyut.surface.startsWith('स')
+        if (siyut != null) return siyut.varnas.firstOrNull() == Vyanjana.SA
 
         val yasut = context.terms.firstOrNull { it.id == "yasut" } ?: return false
         val gana = context.terms.firstOrNull { it.kind == TermKind.DHATU && it.gana != null }?.gana
@@ -42,7 +44,7 @@ object LingasSalopoAnantyasyaSutra : Sutra<DerivationState, DerivationChange>(
                 it.id in setOf("shap", "shyan", "shnu", "sha", "tanadi-u", "shna")
             }
         }
-        return stemFormationComplete && yasut.surface.endsWith("स्")
+        return stemFormationComplete && yasut.varnas.lastOrNull() == Vyanjana.SA
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -51,7 +53,7 @@ object LingasSalopoAnantyasyaSutra : Sutra<DerivationState, DerivationChange>(
             return DerivationChange(
                 context.replaceWholeAffix(
                     siyut.id,
-                    siyut.surface.drop(1),
+                    siyut.varnas.drop(1),
                     sutra,
                     WholeAffixDesignationPolicy.PreserveAndRemap(emptyList()),
                 ),
@@ -60,15 +62,15 @@ object LingasSalopoAnantyasyaSutra : Sutra<DerivationState, DerivationChange>(
         }
 
         val yasut = context.terms.first { it.id == "yasut" }
-        val surface = if (context.terms.last().matchesUpadesha("झि")) {
-            "य्"
+        val replacement = if (context.terms.last().matchesUpadesha("झि")) {
+            listOf(Vyanjana.YA)
         } else {
-            yasut.surface.removeSuffix("स्")
+            yasut.varnas.dropLast(1)
         }
         return DerivationChange(
             context.replaceWholeAffix(
                 yasut.id,
-                surface,
+                replacement,
                 sutra,
                 WholeAffixDesignationPolicy.PreserveAndRemap(emptyList()),
             ),

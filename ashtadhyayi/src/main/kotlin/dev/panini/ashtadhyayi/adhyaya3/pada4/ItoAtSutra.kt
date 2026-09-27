@@ -6,6 +6,8 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.WholeAffixDesignationPolicy
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -31,7 +33,7 @@ object ItoAtSutra : Sutra<DerivationState, DerivationChange>(
         return context.effectiveContext.rupa.lakara == Lakara.LING &&
             context.stage != DerivationStage.INITIAL &&
             ending.matchesUpadesha("इट्") &&
-            (ending.surface.contains('इ') || ending.surface.contains('ट'))
+            (Svara.I in ending.varnas || Vyanjana.TTA in ending.varnas)
     }
 
     override fun apply(context: DerivationState): DerivationChange {

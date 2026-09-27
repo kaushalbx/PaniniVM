@@ -66,7 +66,7 @@ object ItasCaSutra : Sutra<DerivationState, DerivationChange>(
         // final इ is still the Parasmaipada tiṅ इ governed by this sūtra.
         val isJhiJoinedToAnga = context.droppedTerms.any { it.matchesUpadesha("झि") }
 
-        return isNit && (isParasmaipadaTing || isJhiJoinedToAnga) && lastTerm.surface.lastVarna() == Svara.I
+        return isNit && (isParasmaipadaTing || isJhiJoinedToAnga) && lastTerm.varnas.lastOrNull() == Svara.I
     }
 
     override fun apply(context: DerivationState): DerivationChange {

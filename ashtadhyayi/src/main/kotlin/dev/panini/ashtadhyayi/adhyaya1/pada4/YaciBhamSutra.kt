@@ -1,12 +1,12 @@
 package dev.panini.ashtadhyayi.adhyaya1.pada4
 
-import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.SamjnaAssignment
-import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -40,9 +40,8 @@ object YaciBhamSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
 
         // 1. Check if affix starts with 'y' or Ac
-        val firstChar = affix.surface.firstOrNull() ?: return false
-        val engine = Ashtadhyayi.pratyaharaEngine
-        val isYOrAc = firstChar == 'य' || engine.contains(Pratyahara.AC, firstChar)
+        val firstVarna = affix.varnas.firstOrNull() ?: return false
+        val isYOrAc = firstVarna == Vyanjana.YA || firstVarna is Svara
 
         if (!isYOrAc) return false
 

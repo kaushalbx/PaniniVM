@@ -5,13 +5,14 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.core.SanadiAffix
+import dev.panini.derivation.matchesAffix
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.firstVarna
 import dev.panini.shiksha.lastVarna
 import dev.panini.shiksha.toDevanagari
-import dev.panini.shiksha.toVarnas
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -45,7 +46,7 @@ object AtoGuneSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms[pairIndex + 1]
         if (pairIndex > 0 && stem.id == "shap") {
             val previous = context.terms[pairIndex - 1]
-            if (previous.upadesha == "णिच्" && previous.surface.lastVarna() in setOf(Svara.E, Svara.AI, Svara.O, Svara.AU)) return false
+            if (previous.matchesAffix(SanadiAffix.NIC) && previous.varnas.lastOrNull() in setOf(Svara.E, Svara.AI, Svara.O, Svara.AU)) return false
         }
         if (stem.id == "shap" && context.terms.any { it.kind == TermKind.DHATU && it.gana == DhatuGana.ADADI }) return false
 
@@ -54,10 +55,10 @@ object AtoGuneSutra : Sutra<DerivationState, DerivationChange>(
         if (affix.kind != TermKind.PRATYAYA && !affix.isPlacedBeginningAugment(context)) return false
 
         // 1. Stem must end in short 'a'
-        if (!dev.panini.shiksha.Varnamala.endsWithA(stem.surface)) return false
+        if (stem.varnas.lastOrNull() != Svara.A) return false
 
         // 2. Affix must start with a Guṇa vowel
-        val isGuna = affix.surface.firstVarna() in setOf(Svara.A, Svara.E, Svara.O)
+        val isGuna = affix.varnas.firstOrNull() in setOf(Svara.A, Svara.E, Svara.O)
 
         return isGuna
     }
@@ -93,7 +94,7 @@ object AtoGuneSutra : Sutra<DerivationState, DerivationChange>(
         context.terms.indices.firstOrNull { index ->
             index < context.terms.lastIndex &&
                 context.terms[index + 1].isPlacedBeginningAugment(context) &&
-                context.terms[index + 1].surface.firstVarna() in setOf(Svara.A, Svara.E, Svara.O)
+                context.terms[index + 1].varnas.firstOrNull() in setOf(Svara.A, Svara.E, Svara.O)
         }?.let { return it }
         return context.terms.lastIndex - 1
     }

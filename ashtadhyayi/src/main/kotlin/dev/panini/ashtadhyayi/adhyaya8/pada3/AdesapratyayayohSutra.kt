@@ -7,6 +7,7 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
+import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.TermKind
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.sutra.Sutra
@@ -14,6 +15,9 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
 
 /**
  * 8.3.59: ādeśapratyayayoḥ.
@@ -36,16 +40,22 @@ object AdesapratyayayohSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean = findRetroflexTarget(context) != null
 
     override fun apply(context: DerivationState): DerivationChange {
-        val term = findRetroflexTarget(context) ?: return DerivationChange(context, "8.3.59: No match found")
-        val newSurface = term.surface.replace('स', 'ष')
+        val target = findRetroflexTarget(context) ?: return DerivationChange(context, "8.3.59: No match found")
+        val result = target.term.varnas.toMutableList().also { it[target.varnaIndex] = Vyanjana.SSA }
         return DerivationChange(
-            state = context.substituteTermSurface(term.id, newSurface, 'स', "ष", sutra)
+            state = context.substituteTermVarnas(
+                target.term.id,
+                result,
+                Vyanjana.SA,
+                listOf(Vyanjana.SSA),
+                sutra,
+            )
                 .copy(stage = DerivationStage.FINAL),
             explanation = "8.3.59: Retroflexed 's' to 'ṣ' after Iṇ/Ku."
         )
     }
 
-    private fun findRetroflexTarget(context: DerivationState): DerivationTerm? {
+    private fun findRetroflexTarget(context: DerivationState): RetroflexTarget? {
         val isSipLet = context.allEffectiveTerms.any { it.id == "sip-aorist" }
         val isLungSic = context.effectiveContext.rupa.lakara == Lakara.LUNG &&
             context.allEffectiveTerms.any { it.upadesha == "सिँच्" || it.upadesha == "क्स" }
@@ -57,80 +67,58 @@ object AdesapratyayayohSutra : Sutra<DerivationState, DerivationChange>(
             !isSipLet && !isLungSic && !isLabhPerfect && !isFutureSya
         ) return null
         if (isSipLet) {
-            val sipIndex = context.terms.indexOfFirst { it.id == "sip-aorist" && 'स' in it.surface }
-            if (sipIndex > 0 && context.terms[sipIndex - 1].surface.endsWith("इ")) {
-                return context.terms[sipIndex]
+            val sipIndex = context.terms.indexOfFirst { it.id == "sip-aorist" && Vyanjana.SA in it.varnas }
+            if (sipIndex > 0 && context.terms[sipIndex - 1].varnas.lastOrNull() == Svara.I) {
+                return RetroflexTarget(context.terms[sipIndex], context.terms[sipIndex].varnas.indexOf(Vyanjana.SA))
             }
         }
         if (isLungSic) {
-            val sicIndex = context.terms.indexOfFirst { it.upadesha == "सिँच्" && 'स' in it.surface }
-            if (sicIndex > 0 && context.terms[sicIndex - 1].surface.endsWith("इ")) {
-                return context.terms[sicIndex]
+            val sicIndex = context.terms.indexOfFirst { it.upadesha == "सिँच्" && Vyanjana.SA in it.varnas }
+            if (sicIndex > 0 && context.terms[sicIndex - 1].varnas.lastOrNull() == Svara.I) {
+                return RetroflexTarget(context.terms[sicIndex], context.terms[sicIndex].varnas.indexOf(Vyanjana.SA))
             }
         }
         if (isLabhPerfect) {
-            val endingIndex = context.terms.indexOfFirst { it.upadesha == "थास्" && 'स' in it.surface }
-            if (endingIndex > 0 && context.terms[endingIndex - 1].surface.endsWith("इ")) {
-                return context.terms[endingIndex]
+            val endingIndex = context.terms.indexOfFirst { it.upadesha == "थास्" && Vyanjana.SA in it.varnas }
+            if (endingIndex > 0 && context.terms[endingIndex - 1].varnas.lastOrNull() == Svara.I) {
+                return RetroflexTarget(context.terms[endingIndex], context.terms[endingIndex].varnas.indexOf(Vyanjana.SA))
             }
         }
 
         val engine = Ashtadhyayi.pratyaharaEngine
-        val surface = context.surface
         for (i in 0 until context.terms.size) {
             val term = context.terms[i]
             if (term.kind != TermKind.PRATYAYA) continue
-            val termSurface = term.surface
-
-            val sIndex = termSurface.indexOf('स')
+            if (term.itProcessingPhase != ItProcessingPhase.PROCESSED) continue
+            if (term.itDesignations.isNotEmpty() || term.deferredItDesignations.isNotEmpty()) continue
+            val sIndex = term.varnas.indexOf(Vyanjana.SA)
             if (sIndex == -1) continue
 
             // 8.3.55: apādāntasya - target must not be at the end of the word
-            val prefixLength = context.terms.take(i).sumOf { it.surface.length }
-            val absoluteSIndex = prefixLength + sIndex
-            val isAtEnd = absoluteSIndex == surface.length - 1 ||
-                (absoluteSIndex == surface.length - 2 && surface.endsWith('्'))
+            val isAtEnd = term.varnas.drop(sIndex + 1).isEmpty() &&
+                context.terms.drop(i + 1).all { it.varnas.isEmpty() }
             val followsStandaloneTanadiU = i > 0 &&
-                context.terms[i - 1].id == "tanadi-u" && context.terms[i - 1].surface == "उ"
+                context.terms[i - 1].id == "tanadi-u" && context.terms[i - 1].varnas == listOf(Svara.U)
             if (isAtEnd && !followsStandaloneTanadiU) continue
 
-            val preChar = if (sIndex == 0) {
+            val precedingVarna = if (sIndex == 0) {
                 if (i == 0) continue
-                val stem = context.terms[i - 1].surface
-                val stemFinal = stem.lastOrNull() ?: continue
-                when {
-                    stemFinal == '्' && stem.length >= 2 -> stem[stem.length - 2]
-                    stemFinal !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks -> 'अ'
-                    else -> stemFinal
-                }
+                context.terms[i - 1].varnas.lastOrNull() ?: continue
             } else {
-                termSurface[sIndex - 1]
+                term.varnas[sIndex - 1]
             }
 
-            val isInIn = engine.contains(Pratyahara.IN, independentVowel(preChar))
-            val isInKu = isKu(preChar)
+            val isInIn = engine.contains(Pratyahara.IN, precedingVarna)
+            val isInKu = precedingVarna in ku
             val isTanadiStrongStem = i > 0 &&
-                context.terms[i - 1].id == "tanadi-u" && context.terms[i - 1].surface == "ओ"
+                context.terms[i - 1].id == "tanadi-u" && context.terms[i - 1].varnas == listOf(Svara.O)
 
-            if (!isTanadiStrongStem && (isInIn || isInKu)) return term
+            if (!isTanadiStrongStem && (isInIn || isInKu)) return RetroflexTarget(term, sIndex)
         }
         return null
     }
 
-    private fun independentVowel(c: Char): Char = when (c) {
-        'ि' -> 'इ'
-        'ी' -> 'ई'
-        'ु' -> 'उ'
-        'ू' -> 'ऊ'
-        'ृ' -> 'ऋ'
-        'ॄ' -> 'ॠ'
-        'ॢ' -> 'ऌ'
-        'े' -> 'ए'
-        'ै' -> 'ऐ'
-        'ो' -> 'ओ'
-        'ौ' -> 'औ'
-        else -> c
-    }
+    private data class RetroflexTarget(val term: DerivationTerm, val varnaIndex: Int)
 
-    private fun isKu(c: Char): Boolean = c in setOf('क', 'ख', 'ग', 'घ', 'ङ')
+    private val ku: Set<Varna> = setOf(Vyanjana.KA, Vyanjana.KHA, Vyanjana.GA, Vyanjana.GHA, Vyanjana.NGA)
 }

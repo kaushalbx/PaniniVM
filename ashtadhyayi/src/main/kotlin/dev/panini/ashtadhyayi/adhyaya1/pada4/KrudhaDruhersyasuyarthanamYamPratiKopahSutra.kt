@@ -8,6 +8,7 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.analysis.KarakaEvidence
+import dev.panini.analysis.KarakaDhatuDomains
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
@@ -21,11 +22,8 @@ object KrudhaDruhersyasuyarthanamYamPratiKopahSutra : Sutra<KarakaRuleContext, K
     adhikara = setOf("1.4.23"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
-        val normalized = context.dhatu.surface.trimEnd('्', 'ँ')
-        val isAngerVerb = normalized.contains("क्रुध") || normalized.contains("द्रुह") ||
-                           normalized == "ईर्ष्या" || normalized == "असूया" ||
-                           normalized.startsWith("ईर्ष्य") || normalized.startsWith("असूय")
-        val hasUpasarga = normalized.startsWith("अभि") || normalized.startsWith("प्र") || normalized.startsWith("प्रति") || normalized.startsWith("अनु")
+        val isAngerVerb = KarakaDhatuDomains.isAnger(context.dhatu)
+        val hasUpasarga = KarakaDhatuDomains.hasAngerUpasarga(context.dhatu)
         return !hasUpasarga && isAngerVerb && SemanticRelation.RECIPIENT in context.participant.semanticRelations && Karaka.SAMPRADANA in context.candidates
     }
 

@@ -1,12 +1,17 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada3
 
 import dev.panini.core.Linga
+import dev.panini.core.SupAffix
 import dev.panini.core.Vacana
 import dev.panini.core.Vibhakti
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.matchesSupAffix
+import dev.panini.shiksha.Ayogavaha
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -33,7 +38,9 @@ object NtoOsiSutra : Sutra<DerivationState, DerivationChange>(
             context.effectiveContext.rupa.vibhakti !in setOf(Vibhakti.SASTHI, Vibhakti.SAPTAMI)
         ) return false
         val stem = context.terms[context.terms.size - 2]
-        return stem.surface.endsWith("न्") && context.terms.last().upadesha == "ओस्"
+        val affix = context.terms.last()
+        return stem.isNFinal() &&
+            (affix.matchesSupAffix(SupAffix.OS_6) || affix.matchesSupAffix(SupAffix.OS_7))
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -41,7 +48,8 @@ object NtoOsiSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
         return DerivationChange(
             state = context.mergeTermsByVarnaSubstitution(
-                stem.id, affix.id, stem.surface.dropLast(1) + "ोः", '∅', "ओः", sutra,
+                stem.id, affix.id, stem.extendFinalN(listOf(Svara.O, Ayogavaha.VISARGA)),
+                Vyanjana.NA, listOf(Vyanjana.NA, Svara.O, Ayogavaha.VISARGA), sutra,
             ).copy(stage = DerivationStage.FINAL),
             explanation = "7.3.145: Formed the masculine n-stem dual नोः ending before ओस्.",
         )

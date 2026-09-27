@@ -7,6 +7,9 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.ItDesignation
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.nasalizedVowelOrthographicSpans
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -29,8 +32,8 @@ object UpadesheAjanunasikaItSutra : Sutra<DerivationState, DerivationChange>(
     stage = dev.panini.sutra.SutraStage.IT_PROCESSING,
 ), DerivationSutra {
     private fun targets(state: DerivationState) = state.terms.filter { term ->
-        'ँ' in term.surface &&
-            (term.kind != dev.panini.derivation.TermKind.DHATU || term.surface.endsWith("रुँ")) &&
+        term.surface.nasalizedVowelOrthographicSpans().isNotEmpty() &&
+            (term.kind != dev.panini.derivation.TermKind.DHATU || term.varnas.takeLast(2) == listOf(Vyanjana.RA, Svara.U)) &&
             (term.itProcessingPending ||
                 (state.stage == DerivationStage.PRATYAYA_SELECTED && term.kind == dev.panini.derivation.TermKind.PRATYAYA)) &&
             nasalVowelDesignations(term).isNotEmpty()
@@ -44,7 +47,7 @@ object UpadesheAjanunasikaItSutra : Sutra<DerivationState, DerivationChange>(
             state.copy(terms = state.terms.map {
                 if (it in targets) {
                     val designations = nasalVowelDesignations(it).map { designation ->
-                        designation.copy(designatedText = it.surface.substring(designation.start, designation.endExclusive))
+                        designation.copy(designatedText = it.orthographicDesignationText(designation.start, designation.endExclusive))
                     }
                     it.copy(
                         itMarkers = it.itMarkers + ItMarker.U,
@@ -63,20 +66,18 @@ object UpadesheAjanunasikaItSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange = assignSamjna(context)
 
     private fun nasalVowelDesignations(term: dev.panini.derivation.DerivationTerm): List<ItDesignation> =
-        term.surface.indices.filter { term.surface[it] == 'ँ' }.mapNotNull { chandrabindu ->
-            val vowel = chandrabindu - 1
-            if (vowel < 0 || (term.itDesignations + term.deferredItDesignations)
-                    .any { it.start == vowel && it.endExclusive == chandrabindu + 1 }) {
+        term.surface.nasalizedVowelOrthographicSpans().mapNotNull { span ->
+            if ((term.itDesignations + term.deferredItDesignations)
+                    .any { it.start == span.start && it.endExclusive == span.endExclusive }) {
                 null
             } else {
-                val isDependentVowel = term.surface[vowel] in setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ', 'े', 'ै', 'ो', 'ौ')
                 ItDesignation(
-                    start = vowel,
-                    endExclusive = chandrabindu + 1,
-                    replacementAfterLopa = if (isDependentVowel) "्" else "",
+                    start = span.start,
+                    endExclusive = span.endExclusive,
+                    replacementAfterLopa = if (span.dependentVowelSign) "्" else "",
                     marker = ItMarker.U,
                     sutra = sutra,
-                    designatedText = term.surface.substring(vowel, chandrabindu + 1),
+                    designatedText = span.text,
                 )
             }
         }

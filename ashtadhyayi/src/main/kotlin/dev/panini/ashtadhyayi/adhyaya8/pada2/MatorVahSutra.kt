@@ -6,6 +6,8 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
 import dev.panini.derivation.WholeAffixDesignationPolicy
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -32,15 +34,10 @@ object MatorVahSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         val matupTerm = context.terms.firstOrNull { it.upadesha == "मतुँप्" } ?: return false
         val stemTerm = context.terms.firstOrNull { it.kind == TermKind.PRATIPADIKA } ?: return false
-        return matupTerm.surface == "मत्" && isAdantaOrM(stemTerm.surface)
+        return matupTerm.varnas == matVarnas && stemTerm.varnas.lastOrNull() in setOf(Svara.A, Vyanjana.MA)
     }
 
-    private fun isAdantaOrM(stem: String): Boolean {
-        if (stem.isEmpty()) return false
-        if (stem.endsWith("म्") || stem.endsWith("म")) return true
-        val matras = setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'े', 'ै', 'ो', 'ौ', 'ं', 'ः', '्')
-        return stem.last() !in matras
-    }
+    private val matVarnas = listOf(Vyanjana.MA, Svara.A, Vyanjana.TA)
 
     override fun apply(context: DerivationState): DerivationChange {
         val matupTerm = context.terms.first { it.upadesha == "मतुँप्" }

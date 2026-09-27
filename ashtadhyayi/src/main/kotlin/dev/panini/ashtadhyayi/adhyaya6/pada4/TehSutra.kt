@@ -7,6 +7,8 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
 import dev.panini.derivation.WholeAffixDesignationPolicy
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -44,9 +46,12 @@ object TehSutra : Sutra<DerivationState, DerivationChange>(
             (ending.matchesUpadesha("डा") || ending.matchesUpadesha("डट्"))
 
         return isDit && (
-            (stem.id == "tasi" && stem.surface in setOf("तासि", "तास्")) ||
-                (stem.id != "tasi" && stem.surface.endsWith("त्")) ||
-                (stem.surface.endsWith("ि") && stem.compoundHeadUpadesha in
+            (stem.id == "tasi" && stem.varnas in setOf(
+                listOf(Vyanjana.TA, Svara.AA, Vyanjana.SA, Svara.I),
+                listOf(Vyanjana.TA, Svara.AA, Vyanjana.SA),
+            )) ||
+                (stem.id != "tasi" && stem.varnas.lastOrNull() == Vyanjana.TA) ||
+                (stem.varnas.lastOrNull() == Svara.I && stem.compoundHeadUpadesha in
                     PuranaNumeralClasses.shashtyadiHeads)
             )
     }
@@ -58,24 +63,20 @@ object TehSutra : Sutra<DerivationState, DerivationChange>(
         // Delete the ṭi portion ('āsi'/'ās') from tāsi, yielding 't' ('त्').
         // In this engine 6.4.143 runs before 1.3.9 consumes the ḍ-it marker,
         // so the tāsi term can still have its upadeśa surface here.
-        val newSurface = if (stem.id == "tasi") {
-            "त्"
-        } else if (stem.surface.endsWith("त्")) {
-            stem.surface.dropLast(2)
-        } else {
-            stem.surface.dropLast(1)
-        }
+        val source = stem.varnas.last()
+        val replacement = if (source == Svara.I) listOf(Svara.A) else emptyList()
+        val result = if (stem.id == "tasi") listOf(Vyanjana.TA) else stem.varnas.dropLast(1) + replacement
 
         val state = if (stem.kind in setOf(TermKind.PRATYAYA, TermKind.AGAMA, TermKind.AUGMENT)) {
             context.replaceWholeAffix(
                 id = stem.id,
-                surface = newSurface,
+                varnas = result,
                 sutra = sutra,
                 policy = WholeAffixDesignationPolicy.Consume,
                 upadesha = stem.upadesha,
             )
         } else {
-            context.substituteTermSurface(stem.id, newSurface, '∅', "टिलोप", sutra)
+            context.substituteTermVarnas(stem.id, result, source, replacement, sutra)
         }
 
         return DerivationChange(

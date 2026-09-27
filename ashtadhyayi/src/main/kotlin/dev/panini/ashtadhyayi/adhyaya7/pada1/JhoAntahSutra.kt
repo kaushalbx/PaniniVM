@@ -7,6 +7,9 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -45,8 +48,7 @@ object JhoAntahSutra : Sutra<DerivationState, DerivationChange>(
             context.droppedTerms.none { it.id == "shap" }) return false
 
         // 1. Affix must start with 'jh'
-        val surface = affix.surface
-        val startsWithJh = surface.startsWith('झ')
+        val startsWithJh = affix.varnas.firstOrNull() == Vyanjana.JHA
 
         // 2. Must be a Pratyaya
         val isPratyaya = context.samjnas.any { it.targetId == affix.id && it.samjna == Samjna.PRATYAYA }
@@ -56,14 +58,15 @@ object JhoAntahSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val affix = context.terms.last()
-        val suffix = affix.surface.drop(1)
-        val isMatra = suffix.firstOrNull() in setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ', 'े', 'ै', 'ो', 'ौ')
+        val rawSuffix = affix.varnas.drop(1)
+        val suffix = if (rawSuffix.firstOrNull() == Svara.A) rawSuffix.drop(1) else rawSuffix
         val isSecondaryAtmanepadaJha = context.effectiveContext.rupa.lakara in setOf(Lakara.LANG, Lakara.LRNG) &&
             affix.upadesha == "झ"
-        val newSurface = (if (isMatra || isSecondaryAtmanepadaJha) "अन्त" else "अन्त्") + suffix
+        val replacement: List<Varna> = listOf(Svara.A, Vyanjana.NA, Vyanjana.TA) +
+            (if (isSecondaryAtmanepadaJha && suffix.isEmpty()) listOf(Svara.A) else suffix)
 
         return DerivationChange(
-            state = context.replaceWholeAffix(affix.id, newSurface, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
+            state = context.replaceWholeAffix(affix.id, replacement, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume),
             explanation = "7.1.3 substitutes 'ant' for 'jh' in the affix."
         )
     }

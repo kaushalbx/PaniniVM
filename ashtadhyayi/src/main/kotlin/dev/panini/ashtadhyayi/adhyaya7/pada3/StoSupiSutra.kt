@@ -12,6 +12,10 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.shiksha.Ayogavaha
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 
 /** Neuter s-stem before sup: form the ḥsu locative plural. */
 object StoSupiSutra : Sutra<DerivationState, DerivationChange>(
@@ -32,14 +36,14 @@ object StoSupiSutra : Sutra<DerivationState, DerivationChange>(
             context.effectiveContext.rupa.vibhakti != Vibhakti.SAPTAMI ||
             context.effectiveContext.rupa.vacana != Vacana.BAHUVACANA
         ) return false
-        return context.terms[context.terms.size - 2].surface.endsWith("स्") && context.terms.last().upadesha == "सुप्"
+        return context.terms[context.terms.size - 2].isSFinal() && context.terms.last().upadesha == "सुप्"
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
         return DerivationChange(
-            state = context.mergeTermsByVarnaSubstitution(stem.id, affix.id, stem.surface.dropLast(2) + "ःसु", 'स', "ःसु", sutra)
+            state = context.mergeTermsByVarnaSubstitution(stem.id, affix.id, stem.replaceFinalS(listOf(Svara.A, Ayogavaha.VISARGA, Vyanjana.SA, Svara.U)).toDevanagari(), Vyanjana.SA, listOf(Svara.A, Ayogavaha.VISARGA, Vyanjana.SA, Svara.U), sutra)
                 .copy(stage = DerivationStage.FINAL),
             explanation = "7.3.158: Formed the neuter s-stem locative-plural ःसु ending before सुप्.",
         )

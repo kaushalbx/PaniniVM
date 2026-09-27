@@ -8,6 +8,7 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.analysis.KarakaEvidence
+import dev.panini.analysis.KarakaDhatuDomains
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 
@@ -24,11 +25,8 @@ object JugupsaViramaPramadarthanamSutra : Sutra<KarakaRuleContext, KarakaRuleRes
     inputs = setOf(SutraInput.DHATU, SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA_CANDIDATE),
     adhikara = setOf("1.4.23", "1.4.24"),
 ) {
-    private val targetRoots = setOf("जुगुप्स्", "रम्", "मद्", "जुगुप्सते", "विराम", "प्रमाद्यति")
-
     override fun matches(context: KarakaRuleContext): Boolean {
-        val root = context.dhatu.surface.trimEnd('्', 'ँ')
-        val matchesRoot = targetRoots.any { r -> root.contains(r) || r.contains(root) }
+        val matchesRoot = KarakaDhatuDomains.isJugupsaViramaPramada(context.dhatu)
         return matchesRoot && Karaka.APADANA in context.candidates
     }
 

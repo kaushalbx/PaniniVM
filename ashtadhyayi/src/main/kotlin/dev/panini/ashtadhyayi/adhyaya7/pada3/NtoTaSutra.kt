@@ -1,12 +1,16 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada3
 
 import dev.panini.core.Linga
+import dev.panini.core.SupAffix
 import dev.panini.core.Vacana
 import dev.panini.core.Vibhakti
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.matchesSupAffix
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -33,9 +37,10 @@ object NtoTaSutra : Sutra<DerivationState, DerivationChange>(
             context.effectiveContext.rupa.vacana != Vacana.EKAVACANA
         ) return false
         val stem = context.terms[context.terms.size - 2]
-        if (!stem.surface.endsWith("न्") || context.terms.last().upadesha != "टा") return false
-        val preAn = stem.surface.dropLast(2)
-        return preAn.endsWith("्") || preAn.takeLast(2).contains("्")
+        if (!stem.isNFinal() || !context.terms.last().matchesSupAffix(SupAffix.TA)) return false
+        return stem.varnas.size >= 4 &&
+            stem.varnas.takeLast(2) == listOf(Svara.A, Vyanjana.NA) &&
+            stem.varnas[stem.varnas.lastIndex - 3] is Vyanjana
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -43,7 +48,8 @@ object NtoTaSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
         return DerivationChange(
             state = context.mergeTermsByVarnaSubstitution(
-                stem.id, affix.id, stem.surface.dropLast(1) + "ा", '∅', "आ", sutra,
+                stem.id, affix.id, stem.extendFinalN(listOf(Svara.AA)),
+                Vyanjana.NA, listOf(Vyanjana.NA, Svara.AA), sutra,
             ).copy(stage = DerivationStage.FINAL),
             explanation = "7.3.142: Formed the masculine n-stem instrumental-singular ना ending before टा.",
         )

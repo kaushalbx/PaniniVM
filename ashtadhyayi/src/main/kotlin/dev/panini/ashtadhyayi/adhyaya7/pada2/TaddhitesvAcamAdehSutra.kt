@@ -11,7 +11,10 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
-import dev.panini.shiksha.applyInitialVrddhi
+import dev.panini.shiksha.withInitialVrddhi
+import dev.panini.shiksha.toDevanagari
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varnamala
 
 /**
  * 7.2.117: taddhiteṣv acām ādeḥ.
@@ -41,26 +44,22 @@ object TaddhitesvAcamAdehSutra : Sutra<DerivationState, DerivationChange>(
         if (!isNgitOrNit) return false
 
         val stem = context.terms.firstOrNull { it.kind == TermKind.PRATIPADIKA } ?: return false
-        return !isAlreadyVrddhi(stem.surface)
+        return stem.varnas.withInitialVrddhi() != stem.varnas
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stemIndex = context.terms.indexOfFirst { it.kind == TermKind.PRATIPADIKA }
         val stem = context.terms[stemIndex]
 
-        val newSurface = applyInitialVrddhi(stem.surface)
+        val source = stem.varnas.first { it is Svara } as Svara
+        val replacement = requireNotNull(Varnamala.getVrddhi(source))
+        val newVarnas = stem.varnas.withInitialVrddhi()
+        val newSurface = newVarnas.toDevanagari()
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, newSurface, '∅', "वृद्धि", sutra)
+            state = context.substituteTermVarnas(stem.id, newVarnas, source, replacement, sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.2.117 applies initial vowel Vṛddhi to '${stem.surface}' -> '$newSurface'.",
         )
-    }
-
-    private fun isAlreadyVrddhi(s: String): Boolean = when {
-        s.startsWith("दा") || s.startsWith("गा") || s.startsWith("वा") || s.startsWith("भा") || s.startsWith("रा") -> true
-        s.startsWith("वै") || s.startsWith("सै") || s.startsWith("दै") || s.startsWith("शै") -> true
-        s.startsWith("औ") || s.startsWith("सौ") || s.startsWith("गौ") -> true
-        else -> false
     }
 
 }
