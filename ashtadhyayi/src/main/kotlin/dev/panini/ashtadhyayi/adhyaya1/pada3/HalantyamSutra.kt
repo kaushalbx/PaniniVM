@@ -8,7 +8,7 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.ItDesignation
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
-import dev.panini.shiksha.Varnamala
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -45,10 +45,7 @@ object HalantyamSutra : Sutra<DerivationState, DerivationChange>(
             // These āgamas are already resolved to their effective surfaces;
             // their surviving final consonants are not new it-markers.
             if (!term.itProcessingPending && term.id in setOf("siyut", "yasut", "vuk", "nic")) return@any false
-            val last = term.surface.lastOrNull() ?: return@any false
-            if (last != '्' || term.surface.length < 2) return@any false
-            val lastChar = term.surface[term.surface.length - 2]
-            Varnamala.isConsonant(lastChar) &&
+            term.varnas.lastOrNull() is Vyanjana &&
                 (term.itDesignations + term.deferredItDesignations).none { it.endExclusive == term.surface.length }
         }
     }
@@ -62,26 +59,26 @@ object HalantyamSutra : Sutra<DerivationState, DerivationChange>(
             if (term.kind == TermKind.PRATIPADIKA) return@map term
             if (term.id in state.halantyamExemptTermIds) return@map term
             if (!term.itProcessingPending && term.id in setOf("siyut", "yasut", "vuk", "nic")) return@map term
-            val last = term.surface.lastOrNull()
-            if (last == '्' && term.surface.length >= 2) {
-                val lastChar = term.surface[term.surface.length - 2]
+            val last = term.varnas.lastOrNull()
+            if (last is Vyanjana) {
                 val isUndesignated = (term.itDesignations + term.deferredItDesignations).none { it.endExclusive == term.surface.length }
-                if (Varnamala.isConsonant(lastChar) && isUndesignated) {
-                    val marker = when (lastChar) {
-                        'क' -> ItMarker.KIT
-                        'प' -> ItMarker.P
-                        'ङ' -> ItMarker.NGIT
-                        'ण' -> ItMarker.NIT
-                        'ञ' -> ItMarker.NYIT
-                        'श', 'ष' -> ItMarker.SH
+                if (isUndesignated) {
+                    val marker = when (last) {
+                        Vyanjana.KA -> ItMarker.KIT
+                        Vyanjana.PA -> ItMarker.P
+                        Vyanjana.NGA -> ItMarker.NGIT
+                        Vyanjana.NNA -> ItMarker.NIT
+                        Vyanjana.NYA -> ItMarker.NYIT
+                        Vyanjana.SHA, Vyanjana.SSA -> ItMarker.SH
                         else -> ItMarker.GENERIC
                     }
+                    val start = term.orthographicStartOfFinalVarna()
                     val designation = ItDesignation(
-                        term.surface.length - 2,
+                        start,
                         term.surface.length,
                         marker = marker,
                         sutra = sutra,
-                        designatedText = term.surface.takeLast(2),
+                        designatedText = term.orthographicDesignationText(start, term.surface.length),
                     )
                     term.copy(
                         itMarkers = term.itMarkers + marker,

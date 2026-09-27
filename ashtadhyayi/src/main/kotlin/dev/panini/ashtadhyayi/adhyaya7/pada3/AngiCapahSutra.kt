@@ -4,6 +4,8 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -39,7 +41,7 @@ object AngiCapahSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
 
         // 1. Stem must end in 'ā' (representing Āp)
-        if (!stem.surface.endsWith('ा') && !stem.surface.endsWith('आ')) return false
+        if (stem.varnas.lastOrNull() != Svara.AA) return false
 
         // 2. Affix must be 'āṅ' (ṭā) or 'os'
         // 'ṭā' results in 'in' after 7.1.12 for a-stems, but for ā-stems it remains 'ā' or is handled here.
@@ -49,13 +51,11 @@ object AngiCapahSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
-        val lastChar = stem.surface.last()
-        val replacement = "े"
-
-        val newSurface = stem.surface.dropLast(1) + replacement
+        val replacement = listOf(Svara.E)
+        val newSurface = (stem.varnas.dropLast(1) + replacement).toDevanagari()
 
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, newSurface, lastChar, replacement, sutra)
+            state = context.substituteTermSurface(stem.id, newSurface, Svara.AA, replacement, sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.105: Replaced final 'ā' with 'e' before 'āṅ/os'."
         )

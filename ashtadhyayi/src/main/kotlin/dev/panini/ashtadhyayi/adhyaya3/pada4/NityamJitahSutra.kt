@@ -10,6 +10,7 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.shiksha.Vyanjana
 
 /**
  * 3.4.99: nityaṃ jitaḥ.
@@ -44,16 +45,15 @@ object NityamJitahSutra : Sutra<DerivationState, DerivationChange>(
             "ting-mas",
         )
         val isUpadeshaS = lastTerm.upadesha?.endsWith("स्") == true
-        val endsWithS = lastTerm.surface.endsWith("स्")
+        val endsWithS = lastTerm.varnas.lastOrNull() == Vyanjana.SA
 
         return isNit && isParasmaipadaEnding && isUpadeshaS && endsWithS
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val lastTerm = context.terms.last()
-        val newSurface = lastTerm.surface.dropLast(2)
         return DerivationChange(
-            state = context.replaceWholeAffix(lastTerm.id, newSurface, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume)
+            state = context.replaceWholeAffix(lastTerm.id, lastTerm.varnas.dropLast(1), sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume)
                 .copy(stage = DerivationStage.PADA_FORMED),
             explanation = "3.4.99: Dropped final 's' of Parasmaipada suffix."
         )

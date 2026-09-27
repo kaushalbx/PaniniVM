@@ -4,9 +4,12 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -46,51 +49,41 @@ object YasyetiCaSutra : Sutra<DerivationState, DerivationChange>(
 
         if (!isTaddhita && !isStriII) return false
 
-        if (stem.surface.endsWith('्')) return false
-
-        return dev.panini.shiksha.Varnamala.endsWithA(stem.surface) ||
-            dev.panini.shiksha.Varnamala.endsWithAA(stem.surface) ||
-            stem.surface.endsWith('इ') || stem.surface.endsWith('ि') || stem.surface.endsWith('ी')
+        return stem.varnas.lastOrNull() in deletableFinals
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val stemIndex = context.terms.size - 2
-        val stem = context.terms[stemIndex]
+        val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
-
-        val stemBase = when {
-            stem.surface.endsWith('ा') || stem.surface.endsWith('ि') || stem.surface.endsWith('ी') -> stem.surface.dropLast(1)
-            else -> stem.surface
-        }
-
-        val affixSurface = affix.surface
-        val mergedSurface = when {
-            affixSurface == "अ" && dev.panini.shiksha.Varnamala.endsWithA(stemBase) -> stemBase
-            affixSurface.startsWith("इञ्") || affixSurface.startsWith("इ") -> stemBase + "ि"
-            affixSurface.startsWith("आयन्") || affixSurface.startsWith("आयन") -> stemBase + "ायन्"
-            affixSurface.startsWith("एय्") || affixSurface.startsWith("एय") -> stemBase + "ेय्"
-            affixSurface.startsWith("यञ्") || affixSurface.startsWith("य") -> stemBase + "्य"
-            else -> if (stemBase.endsWith('्') && affixSurface.firstOrNull() in
-                setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ', 'े', 'ै', 'ो', 'ौ')) {
-                stemBase.dropLast(1) + affixSurface
-            } else {
-                stemBase + affixSurface
+        val source = requireNotNull(stem.varnas.lastOrNull() as? Svara)
+        val stemBase = stem.varnas.dropLast(1)
+        val mergedVarnas = when (affix.upadesha) {
+            "अण्" -> stemBase + affix.varnas
+            "इञ्" -> stemBase + Svara.I
+            "आयन्" -> stemBase + ayan
+            "एय्" -> stemBase + eya
+            "यञ्" -> stemBase + ya
+            else -> when (affix.varnas) {
+                ayanWithInherentA -> stemBase + ayan
+                eyaWithInherentA -> stemBase + eya
+                yaWithInherentA -> stemBase + ya
+                else -> stemBase + affix.varnas
             }
         }
 
-        val updatedTerm = DerivationTerm(
-            id = stem.id,
-            surface = mergedSurface,
-            kind = TermKind.PRATIPADIKA,
-            upadesha = stem.upadesha,
-        )
-
         return DerivationChange(
-            state = context.copy(
-                terms = context.terms.dropLast(2) + updatedTerm,
-                stage = DerivationStage.PADA_FORMED,
-            ),
-            explanation = "6.4.148: Deleted final stem vowel before Taddhita affix, producing '$mergedSurface'.",
+            state = context.mergeTermsByVarnaSubstitution(
+                stem.id, affix.id, mergedVarnas.toDevanagari(), source, emptyList(), sutra,
+            ).copy(stage = DerivationStage.PADA_FORMED),
+            explanation = "6.4.148: Deleted the final stem vowel before the Taddhita affix.",
         )
     }
+
+    private val deletableFinals: Set<Varna> = setOf(Svara.A, Svara.AA, Svara.I, Svara.II)
+    private val ayan: List<Varna> = listOf(Svara.AA, Vyanjana.YA, Svara.A, Vyanjana.NA)
+    private val ayanWithInherentA: List<Varna> = ayan + Svara.A
+    private val eya: List<Varna> = listOf(Svara.E, Vyanjana.YA)
+    private val eyaWithInherentA: List<Varna> = eya + Svara.A
+    private val ya: List<Varna> = listOf(Vyanjana.YA, Svara.A)
+    private val yaWithInherentA: List<Varna> = ya
 }

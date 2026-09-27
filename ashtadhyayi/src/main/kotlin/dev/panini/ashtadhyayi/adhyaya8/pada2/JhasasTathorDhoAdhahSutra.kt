@@ -4,6 +4,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -24,28 +25,25 @@ object JhasasTathorDhoAdhahSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.ADESHA,
     scope = SutraScope.PRATYAYA,
 ), DerivationSutra {
-    private val jhash = setOf('झ', 'भ', 'घ', 'ढ', 'ध')
+    private val jhash = setOf(Vyanjana.JHA, Vyanjana.BHA, Vyanjana.GHA, Vyanjana.DDHA, Vyanjana.DHA)
 
     override fun matches(context: DerivationState): Boolean {
         val dhatuIndex = context.terms.indexOfFirst { it.kind == TermKind.DHATU }
         if (dhatuIndex < 0) return false
         val dhatu = context.terms[dhatuIndex]
         val affix = context.terms.getOrNull(dhatuIndex + 1) ?: return false
-        return finalConsonant(dhatu.surface) in jhash && affix.surface.firstOrNull() in setOf('त', 'थ')
+        return dhatu.varnas.lastOrNull() in jhash && affix.varnas.firstOrNull() in setOf(Vyanjana.TA, Vyanjana.THA)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val dhatuIndex = context.terms.indexOfFirst { it.kind == TermKind.DHATU }
         val affix = context.terms[dhatuIndex + 1]
-        val source = affix.surface.first()
+        val source = affix.varnas.first()
+        val result = listOf(Vyanjana.DHA) + affix.varnas.drop(1)
         return DerivationChange(
-            context.substituteTermSurface(affix.id, "ध" + affix.surface.drop(1), source, "ध", sutra),
+            context.substituteTermVarnas(affix.id, result, source, listOf(Vyanjana.DHA), sutra),
             "8.2.40 substitutes ध for $source after a jhaṣ-final root.",
         )
     }
 
-    private fun finalConsonant(surface: String): Char? = when {
-        surface.endsWith('्') && surface.length >= 2 -> surface[surface.length - 2]
-        else -> surface.lastOrNull()
-    }
 }

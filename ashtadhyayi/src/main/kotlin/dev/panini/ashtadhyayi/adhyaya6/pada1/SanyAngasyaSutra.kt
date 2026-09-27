@@ -1,11 +1,17 @@
 package dev.panini.ashtadhyayi.adhyaya6.pada1
 
+import dev.panini.core.SanadiAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.matchesAnyAffix
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -31,11 +37,10 @@ object SanyAngasyaSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val pratyaya = context.terms.lastOrNull {
-            it.kind == TermKind.PRATYAYA && it.upadesha in setOf("सन्", "यङ्")
+            it.kind == TermKind.PRATYAYA && it.matchesAnyAffix(SanadiAffix.SAN, SanadiAffix.YANG)
         } ?: return false
-        val isSanOrYan = pratyaya.upadesha in setOf("सन्", "यङ्")
         val hasAbhyasa = context.terms.any { it.id == "abhyasa" }
-        return isSanOrYan && !hasAbhyasa
+        return !hasAbhyasa
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -43,7 +48,8 @@ object SanyAngasyaSutra : Sutra<DerivationState, DerivationChange>(
         if (rootIndex < 0) return DerivationChange(context, "No root found for reduplication.")
         val root = context.terms[rootIndex]
 
-        val abhyasaSurface = computeAbhyasa(root.surface)
+        val abhyasaVarnas = computeAbhyasa(root.varnas)
+        val abhyasaSurface = abhyasaVarnas.toDevanagari()
         val abhyasaTerm = DerivationTerm(
             id = "abhyasa",
             surface = abhyasaSurface,
@@ -62,13 +68,17 @@ object SanyAngasyaSutra : Sutra<DerivationState, DerivationChange>(
         )
     }
 
-    private fun computeAbhyasa(rootSurface: String): String = when (rootSurface) {
-        "भू" -> "बु"
-        "कृ" -> "चि"
-        "पठ्" -> "प"
-        "जि" -> "जि"
-        "चि" -> "चि"
-        "नी" -> "नि"
-        else -> if (rootSurface.isNotEmpty()) rootSurface.take(1) else rootSurface
+    private fun computeAbhyasa(root: List<Varna>): List<Varna> = when (root) {
+        listOf<Varna>(Vyanjana.BHA, Svara.UU) -> listOf(Vyanjana.BA, Svara.U)
+        listOf<Varna>(Vyanjana.KA, Svara.R) -> listOf(Vyanjana.CA, Svara.I)
+        listOf<Varna>(Vyanjana.PA, Svara.A, Vyanjana.THA) -> listOf(Vyanjana.PA, Svara.A)
+        listOf<Varna>(Vyanjana.JA, Svara.I) -> root
+        listOf<Varna>(Vyanjana.CA, Svara.I) -> root
+        listOf<Varna>(Vyanjana.NA, Svara.II) -> listOf(Vyanjana.NA, Svara.I)
+        else -> when (val initial = root.firstOrNull()) {
+            null -> emptyList()
+            is Vyanjana -> listOf(initial, Svara.A)
+            else -> listOf(initial)
+        }
     }
 }

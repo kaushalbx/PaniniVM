@@ -6,6 +6,8 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -21,7 +23,7 @@ object TresSamprasaranamCaSutra : Sutra<DerivationState, DerivationChange>(
     blocks = setOf("5.2.48"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean = context.samjnas.any { it.samjna == Samjna.PURANA } &&
-        context.terms.singleOrNull()?.surface == "त्रि" && context.terms.none { it.upadesha == "तीय" }
+        context.terms.singleOrNull()?.varnas == tri && context.terms.none { it.upadesha == "तीय" }
     override fun apply(context: DerivationState): DerivationChange {
         val target = context.terms.single()
         val tiya = DerivationTerm(
@@ -31,10 +33,14 @@ object TresSamprasaranamCaSutra : Sutra<DerivationState, DerivationChange>(
             upadesha = "तीय",
             createdBySutra = sutra,
         )
-        val changed = context.substituteTermSurface(target.id, "तृ", 'ि', "ृ", sutra)
+        val changed = context.substituteTermVarnas(
+            target.id, listOf(Vyanjana.TA, Svara.R), Svara.I, listOf(Svara.R), sutra,
+        )
         return DerivationChange(
             changed.addTerm(tiya),
             "$text: त्रि का सम्प्रसारण तृ और तीय प्रत्यय।",
         )
     }
+
+    private val tri = listOf(Vyanjana.TA, Vyanjana.RA, Svara.I)
 }

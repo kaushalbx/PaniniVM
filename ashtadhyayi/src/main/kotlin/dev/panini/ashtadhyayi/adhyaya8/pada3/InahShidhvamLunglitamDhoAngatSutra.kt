@@ -5,6 +5,8 @@ import dev.panini.core.TingAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -28,16 +30,19 @@ object InahShidhvamLunglitamDhoAngatSutra : Sutra<DerivationState, DerivationCha
     override fun matches(context: DerivationState): Boolean {
         if (context.effectiveContext.rupa.lakara != Lakara.LING) return false
         val ending = context.terms.lastOrNull() ?: return false
-        if (ending.upadesha != TingAffix.DHVAM.upadesha || !ending.surface.startsWith('ध')) return false
+        if (ending.upadesha != TingAffix.DHVAM.upadesha || ending.varnas.firstOrNull() != Vyanjana.DHA) return false
         val endingIndex = context.terms.lastIndex
-        val angaSurface = context.copy(terms = context.terms.take(endingIndex)).surface
-        return angaSurface.endsWith("षी")
+        val angaVarnas = context.terms.take(endingIndex).flatMap { it.varnas }
+        return angaVarnas.takeLast(2) == listOf(Vyanjana.SSA, Svara.II)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
         return DerivationChange(
-            context.substituteTermSurface(ending.id, "ढ" + ending.surface.drop(1), 'ध', "ढ", sutra),
+            context.substituteTermVarnas(
+                ending.id, listOf(Vyanjana.DDHA) + ending.varnas.drop(1),
+                Vyanjana.DHA, listOf(Vyanjana.DDHA), sutra,
+            ),
             "8.3.78 substitutes ढ् for the ध् of षीध्वम् after the aṅga.",
         )
     }

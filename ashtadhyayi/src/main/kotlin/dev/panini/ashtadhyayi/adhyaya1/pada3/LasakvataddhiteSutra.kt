@@ -8,6 +8,9 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.ItDesignation
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -36,35 +39,29 @@ object LasakvataddhiteSutra : Sutra<DerivationState, DerivationChange>(
         if (state.stage != DerivationStage.PRATYAYA_SELECTED && state.terms.none { it.itProcessingPending }) return false
 
         return state.terms.any { term ->
-            term.kind == TermKind.PRATYAYA && term.surface.isNotEmpty() && isLaShaKu(term.surface.first()) &&
+            term.kind == TermKind.PRATYAYA && term.varnas.isNotEmpty() && isLaShaKu(term.varnas.first()) &&
                 (term.itDesignations + term.deferredItDesignations).none { it.start == 0 }
         }
     }
 
     fun assignSamjna(state: DerivationState): DerivationChange {
         val newTerms = state.terms.map { term ->
-            if (term.kind == TermKind.PRATYAYA && term.surface.isNotEmpty()) {
-                val firstChar = term.surface.first()
-                if (isLaShaKu(firstChar)) {
-                    val marker = when (firstChar.toString()) {
-                        "ल" -> ItMarker.LIT
-                        "श" -> ItMarker.SH
-                        "ङ" -> ItMarker.NGIT
-                        "क" -> ItMarker.KIT
-                        "ख" -> ItMarker.KHIT
-                        "ग" -> ItMarker.GIT
-                        "घ" -> ItMarker.GHIT
-                        else -> error("Unsupported 1.3.8 marker $firstChar")
+            if (term.kind == TermKind.PRATYAYA && term.varnas.isNotEmpty()) {
+                val firstVarna = term.varnas.first()
+                if (isLaShaKu(firstVarna)) {
+                    val marker = when (firstVarna) {
+                        Vyanjana.LA -> ItMarker.LIT
+                        Vyanjana.SHA -> ItMarker.SH
+                        Vyanjana.NGA -> ItMarker.NGIT
+                        Vyanjana.KA -> ItMarker.KIT
+                        Vyanjana.KHA -> ItMarker.KHIT
+                        Vyanjana.GA -> ItMarker.GIT
+                        Vyanjana.GHA -> ItMarker.GHIT
+                        else -> error("Unsupported 1.3.8 marker $firstVarna")
                     }
-                    val sign = term.surface.getOrNull(1)
-                    val vowel = when (sign) {
-                        '्' -> ""
-                        'ा' -> "आ"; 'ि' -> "इ"; 'ी' -> "ई"; 'ु' -> "उ"; 'ू' -> "ऊ"
-                        'ृ' -> "ऋ"; 'ॄ' -> "ॠ"; 'ॢ' -> "ऌ"; 'े' -> "ए"; 'ै' -> "ऐ"; 'ो' -> "ओ"; 'ौ' -> "औ"
-                        else -> "अ"
-                    }
-                    val length = if (sign == '्' || sign in setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ', 'े', 'ै', 'ो', 'ौ')) 2 else 1
-                    val designation = ItDesignation(0, length, vowel, marker, sutra, designatedText = term.surface.substring(0, length))
+                    val vowel = (term.varnas.getOrNull(1) as? Svara)?.devanagari.orEmpty()
+                    val length = term.orthographicEndAfterInitialVarna()
+                    val designation = ItDesignation(0, length, vowel, marker, sutra, designatedText = term.orthographicDesignationText(0, length))
                     // The initial झ् of tiṅ झ/झि is designated here, but
                     // 7.1.3/7.1.5 (or the liṭ replacement) supersedes that
                     // exact segment before 1.3.9. Keep the designation alive
@@ -94,6 +91,7 @@ object LasakvataddhiteSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange = assignSamjna(context)
 
-    private fun isLaShaKu(c: Char): Boolean = c == 'ल' || c == 'श' || isKu(c)
-    private fun isKu(c: Char): Boolean = c in setOf('क', 'ख', 'ग', 'घ', 'ङ')
+    private fun isLaShaKu(varna: Varna): Boolean = varna in setOf(
+        Vyanjana.LA, Vyanjana.SHA, Vyanjana.KA, Vyanjana.KHA, Vyanjana.GA, Vyanjana.GHA, Vyanjana.NGA,
+    )
 }

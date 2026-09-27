@@ -10,6 +10,10 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.replaceVarna
+import dev.panini.shiksha.toDevanagari
 
 /**
  * 7.3.110: ṛto ṅi-sarvanāmasthānayoḥ.
@@ -37,9 +41,7 @@ object RtoNgiSarvanamasthanayohSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        if (stem.surface.endsWith("र्")) return false
-        val isRStem = stem.upadesha.endsWith("ृ") || stem.surface.endsWith("ृ")
-        if (!isRStem) return false
+        if (stem.varnas.lastOrNull() != Svara.R) return false
 
         val isEligibleAffix = affix.id in setOf("sup-su", "sup-au", "sup-jas", "sup-am", "sup-aut", "sup-ngi") ||
             affix.upadesha in setOf("सुँ", "औ", "जस्", "अम्", "औट्", "ङि")
@@ -48,10 +50,12 @@ object RtoNgiSarvanamasthanayohSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
-        val newSurface = stem.surface.dropLast(1) + if (stem.surface.endsWith("ृ")) "र्" else "अर्"
+        val guna = listOf(Svara.A, Vyanjana.RA)
+        val newVarnas = stem.varnas.replaceVarna(stem.varnas.lastIndex, guna)
+        val newSurface = newVarnas.toDevanagari()
 
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, newSurface, 'ऋ', "अर्", sutra)
+            state = context.substituteTermSurface(stem.id, newSurface, Svara.R, guna, sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.110: Applied guṇa 'ar' to ṛ-stem '${stem.surface}' before sarvanāmasthāna/ṅi (becoming $newSurface)."
         )

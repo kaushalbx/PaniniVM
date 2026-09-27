@@ -12,6 +12,9 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 
 /** Neuter s-stem before ām: form the sām genitive plural. */
 object StoAamSutra : Sutra<DerivationState, DerivationChange>(
@@ -32,14 +35,14 @@ object StoAamSutra : Sutra<DerivationState, DerivationChange>(
             context.effectiveContext.rupa.vibhakti != Vibhakti.SASTHI ||
             context.effectiveContext.rupa.vacana != Vacana.BAHUVACANA
         ) return false
-        return context.terms[context.terms.size - 2].surface.endsWith("स्") && context.terms.last().upadesha == "आम्"
+        return context.terms[context.terms.size - 2].isSFinal() && context.terms.last().upadesha == "आम्"
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
         return DerivationChange(
-            state = context.mergeTermsByVarnaSubstitution(stem.id, affix.id, stem.surface.dropLast(1) + "ाम्", '∅', "आम्", sutra)
+            state = context.mergeTermsByVarnaSubstitution(stem.id, affix.id, stem.extendFinalS(listOf(Svara.AA, Vyanjana.MA)).toDevanagari(), Vyanjana.SA, listOf(Vyanjana.SA, Svara.AA, Vyanjana.MA), sutra)
                 .copy(stage = DerivationStage.FINAL),
             explanation = "7.3.156: Formed the neuter s-stem genitive-plural साम् ending before आम्.",
         )

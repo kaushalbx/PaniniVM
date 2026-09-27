@@ -11,6 +11,10 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.replaceVarna
+import dev.panini.shiksha.toDevanagari
 
 /**
  * 7.3.101: ato dīrgho yañi.
@@ -46,23 +50,21 @@ object AtoDirghoYaniSutra : Sutra<DerivationState, DerivationChange>(
         if (!affix.id.startsWith("ting-")) return false
         if (affix.upadesha == "ङि") return false
 
-        val isAEnding = dev.panini.shiksha.Varnamala.endsWithA(stem.surface)
-        val startsWithYan = affix.surface.firstOrNull() in setOf('य', 'व', 'र', 'ल', 'ञ', 'म', 'ङ', 'ण', 'न')
+        val isAEnding = stem.varnas.lastOrNull() == Svara.A
+        val startsWithYan = affix.varnas.firstOrNull() in setOf(
+            Vyanjana.YA, Vyanjana.VA, Vyanjana.RA, Vyanjana.LA, Vyanjana.NYA,
+            Vyanjana.MA, Vyanjana.NGA, Vyanjana.NNA, Vyanjana.NA,
+        )
 
         return isAEnding && startsWithYan
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
-        val lastChar = stem.surface.last()
-        val newSurface = if (lastChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks) {
-            stem.surface + "ा"
-        } else {
-            stem.surface.dropLast(1) + "ा"
-        }
+        val newVarnas = stem.varnas.replaceVarna(stem.varnas.lastIndex, listOf(Svara.AA))
 
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, newSurface, 'अ', "ा", sutra)
+            state = context.substituteTermSurface(stem.id, newVarnas.toDevanagari(), Svara.A, listOf(Svara.AA), sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.101: Lengthened final 'a' before yañ-initial suffix."
         )

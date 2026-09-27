@@ -8,6 +8,9 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.ItDesignation
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -38,8 +41,8 @@ object ChutuSutra : Sutra<DerivationState, DerivationChange>(
 
         return state.terms.any { term ->
             if (pendingIds.isNotEmpty() && term.id !in pendingIds) return@any false
-            term.kind == TermKind.PRATYAYA && term.surface.isNotEmpty() &&
-            (isCu(term.surface.first()) || isTtu(term.surface.first())) &&
+            term.kind == TermKind.PRATYAYA && term.varnas.isNotEmpty() &&
+            (isCu(term.varnas.first()) || isTtu(term.varnas.first())) &&
                 (term.itDesignations + term.deferredItDesignations).none { it.start == 0 }
         }
     }
@@ -48,11 +51,11 @@ object ChutuSutra : Sutra<DerivationState, DerivationChange>(
         val pendingIds = state.terms.filter { it.itProcessingPending }.mapTo(mutableSetOf()) { it.id }
         val newTerms = state.terms.map { term ->
             if (pendingIds.isNotEmpty() && term.id !in pendingIds) return@map term
-            if (term.kind == TermKind.PRATYAYA && term.surface.isNotEmpty()) {
-                val firstChar = term.surface.first()
+            if (term.kind == TermKind.PRATYAYA && term.varnas.isNotEmpty()) {
+                val firstVarna = term.varnas.first()
                 when {
-                    isCu(firstChar) -> designateInitial(term, ItMarker.J)
-                    isTtu(firstChar) -> designateInitial(term, if (firstChar == 'ण') ItMarker.NIT else ItMarker.T)
+                    isCu(firstVarna) -> designateInitial(term, ItMarker.J)
+                    isTtu(firstVarna) -> designateInitial(term, if (firstVarna == Vyanjana.NNA) ItMarker.NIT else ItMarker.T)
                     else -> term
                 }
             } else term
@@ -68,19 +71,13 @@ object ChutuSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange = assignSamjna(context)
 
-    private fun isCu(c: Char): Boolean = c in setOf('च', 'छ', 'ज', 'झ', 'ञ')
-    private fun isTtu(c: Char): Boolean = c in setOf('ट', 'ठ', 'ड', 'ढ', 'ण')
+    private fun isCu(varna: Varna): Boolean = varna in setOf(Vyanjana.CA, Vyanjana.CHA, Vyanjana.JA, Vyanjana.JHA, Vyanjana.NYA)
+    private fun isTtu(varna: Varna): Boolean = varna in setOf(Vyanjana.TTA, Vyanjana.TTHA, Vyanjana.DDA, Vyanjana.DDHA, Vyanjana.NNA)
 
     private fun designateInitial(term: dev.panini.derivation.DerivationTerm, marker: ItMarker): dev.panini.derivation.DerivationTerm {
-        val sign = term.surface.getOrNull(1)
-        val vowel = when (sign) {
-            '्' -> ""
-            'ा' -> "आ"; 'ि' -> "इ"; 'ी' -> "ई"; 'ु' -> "उ"; 'ू' -> "ऊ"
-            'ृ' -> "ऋ"; 'ॄ' -> "ॠ"; 'ॢ' -> "ऌ"; 'े' -> "ए"; 'ै' -> "ऐ"; 'ो' -> "ओ"; 'ौ' -> "औ"
-            else -> "अ"
-        }
-        val length = if (sign == '्' || sign in setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ', 'े', 'ै', 'ो', 'ौ')) 2 else 1
-        val designation = ItDesignation(0, length, vowel, marker, sutra, designatedText = term.surface.substring(0, length))
+        val vowel = (term.varnas.getOrNull(1) as? Svara)?.devanagari.orEmpty()
+        val length = term.orthographicEndAfterInitialVarna()
+        val designation = ItDesignation(0, length, vowel, marker, sutra, designatedText = term.orthographicDesignationText(0, length))
         val awaitsJhaSubstitution = term.itProcessingPending && term.upadesha in setOf("झ", "झि")
         return term.copy(
             itMarkers = term.itMarkers + marker,

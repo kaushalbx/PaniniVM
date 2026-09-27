@@ -3,7 +3,9 @@ package dev.panini.ashtadhyayi.adhyaya8.pada4
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.DerivationTerm
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -33,103 +35,56 @@ object StunaShtuhSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val shnaIndex = context.terms.indexOfFirst { it.id == "shna" }
-        if (shnaIndex >= 0 && context.terms[shnaIndex].surface.endsWith("ण्") &&
-            context.terms.getOrNull(shnaIndex + 1)?.surface?.startsWith("न") == true) return false
+        if (shnaIndex >= 0 && context.terms[shnaIndex].varnas.lastOrNull() == Vyanjana.NNA &&
+            context.terms.getOrNull(shnaIndex + 1)?.varnas?.firstOrNull() == Vyanjana.NA) return false
         // In the LET सिप् formation the following त् belongs to अट् + त्;
         // the intervening अ prevents actual ṣṭutva (तारिषत्, not *तारिषट्).
-        if (context.terms.any { it.id == "sip-aorist" && 'ष' in it.surface }) return false
-        val lungSicIndex = context.terms.indexOfFirst { it.upadesha == "सिँच्" && it.surface.endsWith("ष्") }
-        if (lungSicIndex >= 0 && context.terms.getOrNull(lungSicIndex + 1)?.surface?.firstOrNull() in
-            setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ऌ', 'ए', 'ऐ', 'ओ', 'औ')) return false
-        if (crossTermTarget(context) != null) return true
-        val match = findMatch(context.surface) ?: return false
-        val target = context.surface[match.first]
-        return getReplacement(target) != target.toString()
+        if (context.terms.any { it.id == "sip-aorist" && Vyanjana.SSA in it.varnas }) return false
+        val lungSicIndex = context.terms.indexOfFirst { it.upadesha == "सिँच्" && it.varnas.lastOrNull() == Vyanjana.SSA }
+        if (lungSicIndex >= 0 && context.terms.getOrNull(lungSicIndex + 1)?.varnas?.firstOrNull() is Svara) return false
+        return findMatch(context) != null
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        crossTermTarget(context)?.let { (term, replacement) ->
-            val target = term.surface.first()
-            val newSurface = replacement + term.surface.drop(1)
-            return DerivationChange(
-                state = context.substituteTermSurface(term.id, newSurface, target, replacement, sutra),
-                explanation = "8.4.41: Retroflexed $target to $replacement after a preceding ष्.",
-            )
-        }
-        val (targetIndex, triggerChar) = findMatch(context.surface)!!
-        val targetChar = context.surface[targetIndex]
-        val replacement = getReplacement(targetChar)
-
-        // Find the term containing targetIndex
-        var offset = 0
-        var targetTerm = context.terms.first()
-        var localIndex = 0
-        for (term in context.terms) {
-            val start = offset
-            offset += term.surface.length
-            if (targetIndex in start until offset) {
-                targetTerm = term
-                localIndex = targetIndex - start
-                break
-            }
-        }
-
-        val newSurface = targetTerm.surface.substring(0, localIndex) + replacement +
-            targetTerm.surface.substring(localIndex + 1)
+        val match = requireNotNull(findMatch(context))
+        val targetTerm = context.terms[match.termIndex]
+        val source = targetTerm.varnas[match.varnaIndex]
+        val replacement = getReplacement(source)
+        val result = targetTerm.varnas.toMutableList().also { it[match.varnaIndex] = replacement }
 
         return DerivationChange(
-            state = context.substituteTermSurface(targetTerm.id, newSurface, targetChar, replacement, sutra),
-            explanation = "8.4.41: Retroflexed $targetChar to $replacement in contact with $triggerChar."
+            state = context.substituteTermVarnas(
+                targetTerm.id, result, emptyList(), source, listOf(replacement), sutra,
+            ),
+            explanation = "8.4.41: Retroflexed ${source.devanagari} to ${replacement.devanagari} in contact with ${match.trigger.devanagari}."
         )
     }
 
-    private fun findMatch(surface: String): Pair<Int, Char>? {
-        for (i in 0 until surface.length - 2) {
-            val curr = surface[i]
-            if (surface[i + 1] != '्') continue
-            val nextIndex = i + 2
-            val next = surface[nextIndex]
-            if (isStu(curr) && isShtu(next)) {
-                return Pair(i, next)
+    private fun findMatch(context: DerivationState): Match? {
+        val positions = context.terms.flatMapIndexed { termIndex, term ->
+            term.varnas.mapIndexed { varnaIndex, varna -> OwnedVarna(termIndex, varnaIndex, varna) }
+        }
+        for (i in 0 until positions.lastIndex) {
+            val curr = positions[i]
+            val next = positions[i + 1]
+            if (curr.varna in stu && next.varna in shtu) {
+                return Match(curr.termIndex, curr.varnaIndex, next.varna)
             }
-            if (isShtu(curr) && isStu(next)) {
-                return Pair(nextIndex, curr)
+            if (curr.varna in shtu && next.varna in stu) {
+                return Match(next.termIndex, next.varnaIndex, curr.varna)
             }
         }
         return null
     }
 
-    private fun crossTermTarget(context: DerivationState): Pair<DerivationTerm, String>? {
-        for (i in 0 until context.terms.lastIndex) {
-            if (!context.terms[i].surface.endsWith("ष्")) continue
-            val right = context.terms[i + 1]
-            val replacement = when (right.surface.firstOrNull()) {
-                'त' -> "ट"
-                'थ' -> "ठ"
-                'द' -> "ड"
-                'ध' -> "ढ"
-                'न' -> "ण"
-                else -> null
-            } ?: continue
-            return right to replacement
-        }
-        return null
-    }
+    private fun getReplacement(target: Varna): Varna = replacements[target] ?: target
 
-    private fun isStu(c: Char): Boolean = c in setOf('स', 'त', 'थ', 'द', 'ध', 'न') || c.toString().startsWithAny(setOf("स", "त", "थ", "द", "ध", "न"))
-    private fun isShtu(c: Char): Boolean = c in setOf('ष', 'ट', 'ठ', 'ड', 'ढ', 'ण') || c.toString().startsWithAny(setOf("ष", "ट", "ठ", "ड", "ढ", "ण"))
-
-    private fun String.startsWithAny(set: Set<String>) = set.any { this.startsWith(it) }
-
-    private fun getReplacement(target: Char): String {
-        if (target == 'स') return "ष"
-        return when (target) {
-            'त' -> "ट"
-            'थ' -> "ठ"
-            'द' -> "ड"
-            'ध' -> "ढ"
-            'न' -> "ण"
-            else -> target.toString()
-        }
-    }
+    private val stu = setOf(Vyanjana.SA, Vyanjana.TA, Vyanjana.THA, Vyanjana.DA, Vyanjana.DHA, Vyanjana.NA)
+    private val shtu = setOf(Vyanjana.SSA, Vyanjana.TTA, Vyanjana.TTHA, Vyanjana.DDA, Vyanjana.DDHA)
+    private val replacements = mapOf<Varna, Varna>(
+        Vyanjana.SA to Vyanjana.SSA, Vyanjana.TA to Vyanjana.TTA, Vyanjana.THA to Vyanjana.TTHA,
+        Vyanjana.DA to Vyanjana.DDA, Vyanjana.DHA to Vyanjana.DDHA, Vyanjana.NA to Vyanjana.NNA,
+    )
+    private data class OwnedVarna(val termIndex: Int, val varnaIndex: Int, val varna: Varna)
+    private data class Match(val termIndex: Int, val varnaIndex: Int, val trigger: Varna)
 }

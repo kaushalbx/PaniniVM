@@ -7,6 +7,9 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.HasMorphosyntax
+import dev.panini.derivation.DerivationTerm
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -36,50 +39,33 @@ object RasabhyamNoNahSutra : Sutra<DerivationState, DerivationChange>(
 
         // 3.4.105 substitutes रन् for the liṅ Ātmanepada झ ending. The
         // attested potential ending remains dental, e.g. लभेरन्.
-        if (context.terms.any { it.surface == "रन्" }) return false
-
-        val surface = context.surface
-
-        // Find triggers: र (r) or ष (ṣ)
-        val triggerIndex = surface.lastIndexOfAny(setOf('र', 'ष', 'ऋ', 'ृ', 'ॠ', 'ॄ'))
-        if (triggerIndex == -1) return false
-        if (surface[triggerIndex] in setOf('र', 'ष') && surface.getOrNull(triggerIndex + 1) != '्') return false
-
-        // Find target: न (n)
-        val targetIndex = surface.indexOf('न', triggerIndex)
-        if (targetIndex == -1) return false
-
-        // 8.4.1 requires NO intervening characters except virama
-        val intervenors = surface.substring(triggerIndex + 1, targetIndex).replace("्", "")
-        return intervenors.isEmpty()
+        if (context.terms.any { it.varnas == listOf(Vyanjana.RA, Svara.A, Vyanjana.NA) }) return false
+        return findTarget(context) != null
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val surface = context.surface
-        val triggerIndex = surface.lastIndexOfAny(setOf('र', 'ष', 'ऋ', 'ृ', 'ॠ', 'ॄ'))
-        val targetIndex = surface.indexOf('न', triggerIndex)
-
-        var offset = 0
-        val targetTerm = context.terms.find { term ->
-            val start = offset
-            offset += term.surface.length
-            targetIndex in start until offset
-        } ?: return DerivationChange(context, "8.4.1: Target 'n' not found.")
-
-        if ('न' !in targetTerm.surface) return DerivationChange(context, "8.4.1: Target 'n' not found in its term.")
-        val newSurface = targetTerm.surface.replaceFirst('न', 'ण')
+        val target = findTarget(context) ?: return DerivationChange(context, "8.4.1: Target 'n' not found.")
+        val result = target.term.varnas.toMutableList().also { it[target.varnaIndex] = Vyanjana.NNA }
 
         return DerivationChange(
-            state = context.substituteTermSurface(targetTerm.id, newSurface, 'न', "ण", sutra)
+            state = context.substituteTermVarnas(target.term.id, result, Vyanjana.NA, listOf(Vyanjana.NNA), sutra)
                 .copy(stage = DerivationStage.FINAL),
-            explanation = "8.4.1: Retroflexed 'n' to 'ṇ' immediately following '${surface[triggerIndex]}'."
+            explanation = "8.4.1: Retroflexed 'n' to 'ṇ' immediately following '${target.trigger.devanagari}'."
         )
     }
 
-    private fun String.lastIndexOfAny(chars: Set<Char>): Int {
-        for (i in length - 1 downTo 0) {
-            if (this[i] in chars) return i
+    private fun findTarget(context: DerivationState): Target? {
+        val positions = context.terms.flatMap { term -> term.varnas.indices.map { term to it } }
+        for (i in 0 until positions.lastIndex) {
+            val (triggerTerm, triggerIndex) = positions[i]
+            val trigger = triggerTerm.varnas[triggerIndex]
+            if (trigger !in triggers) continue
+            val (targetTerm, targetIndex) = positions[i + 1]
+            if (targetTerm.varnas[targetIndex] == Vyanjana.NA) return Target(targetTerm, targetIndex, trigger)
         }
-        return -1
+        return null
     }
+
+    private val triggers = setOf(Vyanjana.RA, Vyanjana.SSA, Svara.R, Svara.RR)
+    private data class Target(val term: DerivationTerm, val varnaIndex: Int, val trigger: dev.panini.shiksha.Varna)
 }

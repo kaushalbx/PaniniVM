@@ -10,6 +10,9 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 
 /** Neuter s-stem before bhy- endings: form the o-grade oblique base. */
 object StoBhyadiSutra : Sutra<DerivationState, DerivationChange>(
@@ -29,13 +32,13 @@ object StoBhyadiSutra : Sutra<DerivationState, DerivationChange>(
         if (context.terms.size < 2 || context.effectiveContext.rupa.linga != Linga.NAPUMSAKA) return false
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
-        return stem.surface.endsWith("स्") && affix.upadesha in setOf("भ्याम्", "भिस्", "भ्यस्")
+        return stem.isSFinal() && affix.upadesha in setOf("भ्याम्", "भिस्", "भ्यस्")
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, stem.surface.dropLast(2) + "ो", 'स', "ओ", sutra)
+            state = context.substituteTermSurface(stem.id, stem.replaceFinalS(listOf(Svara.O)).toDevanagari(), Vyanjana.SA, listOf(Svara.O), sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.152: Formed the neuter s-stem ओ-grade before a bhy- ending.",
         )

@@ -1,14 +1,12 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada2
 
-import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.core.ItMarker
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
-import dev.panini.derivation.VarnaSubstitution
-import dev.panini.pratyahara.Pratyahara
+import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Varnamala
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
@@ -53,22 +51,21 @@ object AcoNnitiSutra : Sutra<DerivationState, DerivationChange>(
                       affix.hasEffectiveMarker(ItMarker.NIT)
         if (!isNniti) return false
 
-        val lastChar = stem.surface.lastOrNull() ?: return false
-        val replacement = Varnamala.getVrddhi(lastChar) ?: return false
-        return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.AC, lastChar) && replacement != lastChar.toString()
+        val final = stem.varnas.lastOrNull() as? Svara ?: return false
+        val replacement = Varnamala.getVrddhi(final) ?: return false
+        return replacement != listOf(final)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms.first { it.kind == TermKind.DHATU && it.id != "abhyasa" }
-        val lastChar = stem.surface.last()
-        val replacement = requireNotNull(Varnamala.getVrddhi(lastChar))
-
-        val newSurface = stem.surface.dropLast(1) + replacement
+        val source = stem.varnas.last() as Svara
+        val replacement = requireNotNull(Varnamala.getVrddhi(source))
+        val result = stem.varnas.dropLast(1) + replacement
 
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, newSurface, lastChar, replacement, sutra)
+            state = context.substituteTermVarnas(stem.id, result, source, replacement, sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
-            explanation = "7.2.115: Applied vṛddhi ($replacement) before ñit/ṇit affix."
+            explanation = "7.2.115 applies vṛddhi before a ñit/ṇit affix."
         )
     }
 }

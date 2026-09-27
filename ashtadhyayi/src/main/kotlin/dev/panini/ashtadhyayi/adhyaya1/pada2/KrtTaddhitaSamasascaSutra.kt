@@ -1,9 +1,11 @@
 package dev.panini.ashtadhyayi.adhyaya1.pada2
 
+import dev.panini.core.KrtAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.SamjnaAssignment
+import dev.panini.derivation.matchesAnyAffix
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -24,7 +26,12 @@ object KrtTaddhitaSamasascaSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun matches(context: DerivationState): Boolean =
         (context.samjnas.any { it.samjna == Samjna.SAMASA } ||
-         context.allEffectiveTerms.any { it.upadesha in setOf("घञ्", "तव्यत्", "अनीयर", "यत", "क्त", "तुमुँन्", "क्त्वा") }) &&
+         context.allEffectiveTerms.any {
+             it.matchesAnyAffix(
+                 KrtAffix.GHAN, KrtAffix.TAVYAT, KrtAffix.ANIYAR, KrtAffix.YAT,
+                 KrtAffix.KTA, KrtAffix.TUMUN, KrtAffix.KTVA,
+             )
+         }) &&
         context.samjnas.none { it.samjna == Samjna.PRATIPADIKA }
 
     override fun apply(context: DerivationState): DerivationChange {

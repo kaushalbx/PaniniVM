@@ -5,6 +5,8 @@ import dev.panini.core.TingAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.core.SanadiAffix
+import dev.panini.derivation.matchesAffix
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.TermKind
@@ -32,7 +34,7 @@ object CuradibhyoNicSutra : Sutra<DerivationState, DerivationChange>(
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU } ?: return false
         return dhatu.gana == DhatuGana.CURADI &&
             context.terms.lastOrNull()?.upadesha in TingAffix.entries.map { it.upadesha } &&
-            context.allEffectiveTerms.none { it.upadesha == "णिच्" }
+            context.allEffectiveTerms.none { it.matchesAffix(SanadiAffix.NIC) }
     }
 
     override fun apply(context: DerivationState): DerivationChange {

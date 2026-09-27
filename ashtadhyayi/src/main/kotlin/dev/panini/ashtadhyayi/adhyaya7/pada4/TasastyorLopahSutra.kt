@@ -3,6 +3,7 @@ package dev.panini.ashtadhyayi.adhyaya7.pada4
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -33,19 +34,17 @@ object TasastyorLopahSutra : Sutra<DerivationState, DerivationChange>(
         val tasiTerm = context.terms[tasiIndex]
         val nextTerm = context.terms[tasiIndex + 1]
 
-        return tasiTerm.surface.endsWith("स्") &&
-            (nextTerm.surface.startsWith("स") || nextTerm.surface.startsWith("र"))
+        return tasiTerm.varnas.lastOrNull() == Vyanjana.SA &&
+            nextTerm.varnas.firstOrNull() in setOf(Vyanjana.SA, Vyanjana.RA)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val tasiIndex = context.terms.indexOfFirst { it.upadesha == "तासि" || it.id == "tasi" }
         val tasiTerm = context.terms[tasiIndex]
 
-        val newSurface = tasiTerm.surface.removeSuffix("स्")
-
         return DerivationChange(
-            state = context.substituteTermSurface(tasiTerm.id, newSurface, 'स', "", sutra),
-            explanation = "7.4.50: Deletes the final 's' of 'tās' before a suffix starting with '${context.terms[tasiIndex + 1].surface.first()}'."
+            state = context.substituteTermVarnas(tasiTerm.id, tasiTerm.varnas.dropLast(1), Vyanjana.SA, emptyList(), sutra),
+            explanation = "7.4.50 deletes the final 's' of 'tās' before an s/r-initial suffix."
         )
     }
 }

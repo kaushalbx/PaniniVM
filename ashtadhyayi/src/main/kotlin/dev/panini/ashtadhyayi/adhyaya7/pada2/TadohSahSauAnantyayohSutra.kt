@@ -4,6 +4,8 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -35,20 +37,22 @@ object TadohSahSauAnantyayohSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
         val isTadOrEtad = stem.upadesha in setOf("तद्", "एतद्") || stem.surface in setOf("तद्", "त", "एतद्", "एत")
-        return isTadOrEtad && affix.id == "sup-su" && (stem.surface.startsWith("त") || stem.surface.startsWith("एत"))
+        val beginsWithTad = stem.varnas.firstOrNull() == Vyanjana.TA ||
+            stem.varnas.take(2) == listOf(Svara.E, Vyanjana.TA)
+        return isTadOrEtad && affix.id == "sup-su" && beginsWithTad
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
-        val surface = stem.surface
-        val newSurface = if (surface.startsWith("एत")) {
-            "एष" + surface.drop(2)
+        val (locus, replacement) = if (stem.varnas.take(2) == listOf(Svara.E, Vyanjana.TA)) {
+            1 to Vyanjana.SSA
         } else {
-            "स" + surface.drop(1)
+            0 to Vyanjana.SA
         }
+        val result = stem.varnas.take(locus) + replacement + stem.varnas.drop(locus + 1)
 
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, newSurface, 'त', "स", sutra)
+            state = context.substituteTermVarnas(stem.id, result, Vyanjana.TA, listOf(replacement), sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.2.106: Replaced non-final 't' with 's' before 'su'."
         )

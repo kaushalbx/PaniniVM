@@ -8,6 +8,10 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -39,23 +43,22 @@ object GherNgeStriyamSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
         return context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.GHI } &&
-            affix.upadesha == "ङे" && stem.surface.lastOrNull() in setOf('इ', 'ि', 'उ', 'ु')
+            affix.upadesha == "ङे" && stem.varnas.lastOrNull() in setOf(Svara.I, Svara.U)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
-        val ending = when (stem.surface.last()) {
-            'इ' -> "यै"
-            'ि' -> "्यै"
-            'उ' -> "वै"
-            'ु' -> "्वै"
+        val source = stem.varnas.last() as Svara
+        val ending: List<Varna> = when (source) {
+            Svara.I -> listOf(Vyanjana.YA, Svara.AI)
+            Svara.U -> listOf(Vyanjana.VA, Svara.AI)
             else -> error("GherNgeStriyamSutra matched a non-ik stem")
         }
-        val base = stem.surface.dropLast(1) + ending
+        val base = (stem.varnas.dropLast(1) + ending).toDevanagari()
         return DerivationChange(
             state = context.mergeTermsByVarnaSubstitution(
-                stem.id, affix.id, base, stem.surface.last(), ending, sutra,
+                stem.id, affix.id, base, source, ending, sutra,
             ).copy(stage = DerivationStage.FINAL),
             explanation = "7.3.127: Formed the feminine Ghi dative-singular यै ending before ङे.",
         )

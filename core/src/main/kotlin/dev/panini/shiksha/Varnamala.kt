@@ -10,39 +10,43 @@ object Varnamala {
     fun isVowel(c: Char): Boolean = Svara.fromIndependent(c) != null || Svara.fromMatra(c) != null
     fun isConsonant(c: Char): Boolean = Vyanjana.fromDevanagari(c) != null
 
-    fun getSthana(c: Char): Set<Sthana> {
-        return when (val varna = fromChar(c)) {
+    fun getSthana(varna: Varna): Set<Sthana> =
+        when (varna) {
             is Svara -> varna.sthana.constituents()
             is Vyanjana -> varna.sthana.flatMap { it.constituents() }.toSet()
             else -> emptySet()
         }
-    }
 
-    fun getAbhyantaraPrayatna(c: Char): AbhyantaraPrayatna? {
-        return when (val varna = fromChar(c)) {
+    fun getSthana(c: Char): Set<Sthana> = fromChar(c)?.let(::getSthana).orEmpty()
+
+    fun getAbhyantaraPrayatna(varna: Varna): AbhyantaraPrayatna? =
+        when (varna) {
             is Svara -> varna.abhyantaraPrayatna
             is Vyanjana -> varna.abhyantaraPrayatna
             else -> null
         }
+
+    fun getAbhyantaraPrayatna(c: Char): AbhyantaraPrayatna? =
+        fromChar(c)?.let(::getAbhyantaraPrayatna)
+
+    fun areSavarna(first: Varna, second: Varna): Boolean {
+        if (first == second) return true
+        if ((first is Svara) != (second is Svara)) return false
+        if (first is Svara && second is Svara) {
+            val firstFamily = svaraFamily(first)
+            val secondFamily = svaraFamily(second)
+            return firstFamily == secondFamily ||
+                firstFamily == Svara.R && secondFamily == Svara.L ||
+                firstFamily == Svara.L && secondFamily == Svara.R
+        }
+        return (getSthana(first) intersect getSthana(second)).isNotEmpty() &&
+            getAbhyantaraPrayatna(first) == getAbhyantaraPrayatna(second)
     }
 
     fun areSavarna(c1: Char, c2: Char): Boolean {
-        if (c1 == c2) return true
         val v1 = fromChar(c1) ?: return false
         val v2 = fromChar(c2) ?: return false
-        if ((v1 is Svara && v2 is Vyanjana) || (v1 is Vyanjana && v2 is Svara)) return false
-
-        if (v1 is Svara && v2 is Svara) {
-            val n1 = normalize(c1)
-            val n2 = normalize(c2)
-            return n1 == n2 || (n1 == 'ऋ' && n2 == 'ऌ') || (n1 == 'ऌ' && n2 == 'ऋ')
-        }
-
-        val s1 = getSthana(c1)
-        val s2 = getSthana(c2)
-        val p1 = getAbhyantaraPrayatna(c1)
-        val p2 = getAbhyantaraPrayatna(c2)
-        return (s1 intersect s2).isNotEmpty() && p1 == p2
+        return areSavarna(v1, v2)
     }
 
     /** 1.1.69: Maps Udit (ku, cu, etc.) to their respective vargas. */
@@ -72,6 +76,8 @@ object Varnamala {
     }
 
     /** 1.1.48: eca igghrasvādeśe. Mapping EC to IK for shortening. */
+    fun getHrasva(svara: Svara): Svara = svara.toHrasva()
+
     fun getHrasva(c: Char): String {
         return when (c) {
             'आ', 'ा' -> "अ"
@@ -95,6 +101,14 @@ object Varnamala {
         else -> null
     }
 
+    fun getGuna(svara: Svara): List<Varna>? = when (svara) {
+        Svara.I, Svara.II -> listOf(Svara.E)
+        Svara.U, Svara.UU -> listOf(Svara.O)
+        Svara.R, Svara.RR -> listOf(Svara.A, Vyanjana.RA)
+        Svara.L, Svara.LL -> listOf(Svara.A, Vyanjana.LA)
+        else -> null
+    }
+
     fun getVrddhi(c: Char): String? = when (c) {
         'अ', 'आ' -> Svara.AA.devanagari
         'ा' -> "ा"
@@ -110,6 +124,14 @@ object Varnamala {
         'ऋ', 'ॠ' -> Svara.AA.devanagari + Vyanjana.RA.halanta
         'ऌ' -> Svara.AA.devanagari + Vyanjana.LA.halanta
         else -> null
+    }
+
+    fun getVrddhi(svara: Svara): List<Varna>? = when (svara) {
+        Svara.A, Svara.AA -> listOf(Svara.AA)
+        Svara.I, Svara.II, Svara.E, Svara.AI -> listOf(Svara.AI)
+        Svara.U, Svara.UU, Svara.O, Svara.AU -> listOf(Svara.AU)
+        Svara.R, Svara.RR -> listOf(Svara.AA, Vyanjana.RA)
+        Svara.L, Svara.LL -> listOf(Svara.AA, Vyanjana.LA)
     }
 
     fun normalize(c: Char): Char = when (c) {
@@ -131,28 +153,20 @@ object Varnamala {
         add(Vyanjana.VIRAMA)
     }
 
-    fun endsWithA(surface: String): Boolean {
-        if (surface.isEmpty()) return false
-        val last = surface.last()
-        if (last == 'अ') return true
-        return last !in independentVowelsOrMarks
-    }
+    fun endsWithA(surface: String): Boolean = surface.lastSvara() == Svara.A
 
-    fun endsWithAA(surface: String): Boolean {
-        if (surface.isEmpty()) return false
-        val last = surface.last()
-        return last == 'आ' || last == 'ा'
-    }
+    fun endsWithAA(surface: String): Boolean = surface.lastSvara() == Svara.AA
 
-    fun endsWithI(surface: String): Boolean {
-        if (surface.isEmpty()) return false
-        val last = surface.last()
-        return last == 'इ' || last == 'ि'
-    }
+    fun endsWithI(surface: String): Boolean = surface.lastSvara() == Svara.I
 
-    fun endsWithU(surface: String): Boolean {
-        if (surface.isEmpty()) return false
-        val last = surface.last()
-        return last == 'उ' || last == 'ु'
+    fun endsWithU(surface: String): Boolean = surface.lastSvara() == Svara.U
+
+    private fun svaraFamily(svara: Svara): Svara = when (svara) {
+        Svara.A, Svara.AA -> Svara.A
+        Svara.I, Svara.II -> Svara.I
+        Svara.U, Svara.UU -> Svara.U
+        Svara.R, Svara.RR -> Svara.R
+        Svara.L, Svara.LL -> Svara.L
+        else -> svara
     }
 }

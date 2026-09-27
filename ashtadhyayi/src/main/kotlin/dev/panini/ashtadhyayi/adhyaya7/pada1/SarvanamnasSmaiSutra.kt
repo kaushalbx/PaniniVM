@@ -4,6 +4,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -40,8 +41,7 @@ object SarvanamnasSmaiSutra : Sutra<DerivationState, DerivationChange>(
 
         val isTyadadi = stem.upadesha in setOf("त्यद्", "तद्", "यद्", "एतद्", "किम्", "इदम्")
         val isSarvanama = isTyadadi || context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SARVANAMA }
-        val matras = setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'े', 'ै', 'ो', 'ौ', '्')
-        val endsInA = isTyadadi || (stem.surface.isNotEmpty() && stem.surface.last() !in matras)
+        val endsInA = isTyadadi || stem.varnas.lastOrNull() == Svara.A
 
         if (affix.surface == "स्मै") return false
 

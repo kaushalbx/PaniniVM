@@ -1,5 +1,8 @@
 package dev.panini.sankhya
 
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.toVarnas
+
 data class CanonicalNumeralStemSuggestion(
     val offset: Int,
     val surface: String,
@@ -37,4 +40,12 @@ object CanonicalNumeralStem {
             lineStart += line.length + 1
         }
     }
+}
+
+/** Canonical phonological identities governed by 1.1.24. */
+object ShatNumeralIdentity {
+    private val identities: Set<List<Varna>> =
+        setOf("पञ्चन्", "षष्", "षट्", "सप्तन्", "अष्टन्", "नवन्", "दशन्").mapTo(mutableSetOf()) { it.toVarnas() }
+
+    fun contains(varnas: List<Varna>): Boolean = varnas in identities
 }

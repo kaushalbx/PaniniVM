@@ -5,6 +5,8 @@ import dev.panini.core.Vibhakti
 import dev.panini.core.Linga
 import dev.panini.core.Vacana
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.toVarnas
 
 /**
  * A single member (pada) of a compound, carrying its base stem, upadesha, vibhakti, and saṃjñās.
@@ -22,7 +24,18 @@ data class SamasaPada(
     /** Explicit masculine counterpart used by puṃvadbhāva rules; never guessed lexically. */
     val masculineCounterpart: String? = null,
     val morphologicalFeatures: Set<SamasaMorphologicalFeature> = emptySet(),
-)
+) {
+    val varnas: List<Varna> by lazy(LazyThreadSafetyMode.PUBLICATION) { upadesha.toVarnas() }
+}
+
+/** Phonological lexical domain of 8.2.72, kept outside the sūtra implementation. */
+object PadaFinalDIdentity {
+    private val vas = "वस्".toVarnas()
+    private val lexicalMembers = setOf("स्रंस्", "ध्वंस्", "अनडुह्").mapTo(mutableSetOf()) { it.toVarnas() }
+
+    fun contains(varnas: List<Varna>): Boolean =
+        varnas in lexicalMembers || (varnas.size >= vas.size && varnas.takeLast(vas.size) == vas)
+}
 
 enum class SamasaMorphologicalFeature {
     FEMININE_UUNG,

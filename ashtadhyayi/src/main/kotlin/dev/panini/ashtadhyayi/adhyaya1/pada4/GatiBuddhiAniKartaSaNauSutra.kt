@@ -9,6 +9,7 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.analysis.KarakaEvidence
+import dev.panini.analysis.KarakaDhatuDomains
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 
@@ -28,11 +29,8 @@ object GatiBuddhiAniKartaSaNauSutra : Sutra<KarakaRuleContext, KarakaRuleResult>
     inputs = setOf(SutraInput.DHATU, SutraInput.SEMANTIC_FEATURE, SutraInput.KARAKA_CANDIDATE),
     adhikara = setOf("1.4.23", "1.4.49"),
 ) {
-    private val hrKrRoots = setOf("हृ", "कृ", "हार", "कार", "हर", "कर")
-
     override fun matches(context: KarakaRuleContext): Boolean {
-        val root = context.dhatu.surface.trimEnd('्', 'ँ')
-        val isHrKr = hrKrRoots.any { r -> root.contains(r) || r.contains(root) }
+        val isHrKr = KarakaDhatuDomains.isHrKr(context.dhatu)
         return context.prayoga == Prayoga.CAUSATIVE &&
             !isHrKr &&
             SemanticRelation.PROMPTER_CAUSE !in context.participant.semanticRelations &&

@@ -1,15 +1,17 @@
 package dev.panini.core
 
 import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.toVarnas
 
 /** The 21 sup slots of 4.1.2; each enum entry is its one executable source. */
 enum class SupAffix(
     val vibhakti: Vibhakti,
     val vacana: Vacana,
-    val upadesha: String,
-    val initialSurface: String = upadesha,
-    val itMarkers: Set<ItMarker> = emptySet(),
-) {
+    override val upadesha: String,
+    override val initialSurface: String = upadesha,
+    override val itMarkers: Set<ItMarker> = emptySet(),
+) : TypedAffix {
     SU(Vibhakti.PRATHAMA, Vacana.EKAVACANA, "सुँ"),
     AU(Vibhakti.PRATHAMA, Vacana.DVIVACANA, Svara.AU.devanagari),
     JAS(Vibhakti.PRATHAMA, Vacana.BAHUVACANA, "जस्", itMarkers = setOf(ItMarker.J)),
@@ -33,6 +35,7 @@ enum class SupAffix(
     SUP(Vibhakti.SAPTAMI, Vacana.BAHUVACANA, "सुप्");
 
     val id: String get() = "sup-" + name.lowercase().replace('_', '-')
+    val initialVarnas: List<Varna> by lazy(LazyThreadSafetyMode.PUBLICATION) { initialSurface.toVarnas() }
 
     companion object {
         /**

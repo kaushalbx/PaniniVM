@@ -4,6 +4,8 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -50,7 +52,9 @@ object GotoNitSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
 
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, "गौ", 'ओ', "औ", sutra)
+            state = context.substituteTermVarnas(
+                stem.id, listOf(Vyanjana.GA, Svara.AU), Svara.O, listOf(Svara.AU), sutra,
+            )
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.1.90 & 7.2.115: Applied vṛddhi 'au' to 'go' stem before ṇit-sarvanāmasthāna."
         )

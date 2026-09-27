@@ -5,7 +5,10 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.shiksha.Varnamala
+import dev.panini.shiksha.Ayogavaha
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -36,14 +39,15 @@ object AtoYukSutra : Sutra<DerivationState, DerivationChange>(
         if (context.terms.size == 1) {
             val term = context.terms.single()
             return context.effectiveContext.rupa.linga == Linga.STRI &&
-                term.surface.endsWith("ओस्")
+                term.upadeshaVarnas.lastOrNull() == Svara.AA &&
+                term.varnas.takeLast(2) == listOf(Svara.O, Vyanjana.SA)
         }
         if (context.terms.size < 2) return false
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
-        return Varnamala.endsWithAA(stem.surface) &&
+        return stem.varnas.lastOrNull() == Svara.AA &&
             affix.upadesha == "ओस्" &&
-            affix.surface != "योः"
+            affix.varnas != listOf(Vyanjana.YA, Svara.O, Ayogavaha.VISARGA)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -51,7 +55,11 @@ object AtoYukSutra : Sutra<DerivationState, DerivationChange>(
             val term = context.terms.single()
             return DerivationChange(
                 state = context.substituteTermSurface(
-                    term.id, term.surface.removeSuffix("ओस्") + "योः", 'ओ', "यो", sutra,
+                    term.id,
+                    (term.varnas.dropLast(2) + listOf(Vyanjana.YA, Svara.O, Ayogavaha.VISARGA)).toDevanagari(),
+                    Svara.O,
+                    listOf(Vyanjana.YA, Svara.O),
+                    sutra,
                 )
                     .copy(stage = DerivationStage.PADA_FORMED),
                 explanation = "7.3.114: Introduced युक् into the merged ā-final dual ओस् form, yielding योः.",
@@ -61,8 +69,19 @@ object AtoYukSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
         return DerivationChange(
             state = context
-                .substituteTermSurface(stem.id, stem.surface.dropLast(1), stem.surface.last(), "", sutra)
-                .replaceWholeAffix(affix.id, "योः", sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume)
+                .substituteTermSurface(
+                    stem.id,
+                    (stem.varnas.dropLast(1) + Svara.A).toDevanagari(),
+                    Svara.AA,
+                    listOf(Svara.A),
+                    sutra,
+                )
+                .replaceWholeAffix(
+                    affix.id,
+                    listOf(Vyanjana.YA, Svara.O, Ayogavaha.VISARGA),
+                    sutra,
+                    dev.panini.derivation.WholeAffixDesignationPolicy.Consume,
+                )
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.114: Replaced final ā plus dual ओस् with युक् + ओस्, yielding योः.",
         )

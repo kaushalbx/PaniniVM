@@ -6,6 +6,8 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.PhonologicalRequest
 import dev.panini.pratyahara.Pratyahara
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
 import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -44,49 +46,38 @@ object IkoGunaVrddhiSutra : Sutra<DerivationState, DerivationChange>(
 
         val engine = Ashtadhyayi.pratyaharaEngine
         return context.terms.any { term ->
-            term.surface.any { engine.contains(Pratyahara.IK, it) }
+            term.varnas.any { engine.contains(Pratyahara.IK, it) }
         }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val isVrddhi = context.effectiveContext.phonologicalRequest == PhonologicalRequest.VRDDHI
-        val candidates = if (isVrddhi) vrddhiVowels else gunaVowels
-
-        var state = context
         val engine = Ashtadhyayi.pratyaharaEngine
-
-        context.terms.forEach { term ->
-            term.surface.forEach { sourceChar ->
-                if (engine.contains(Pratyahara.IK, sourceChar)) {
-                    val replacement = SthaneAntaratamahSutra.selectBest(sourceChar, candidates)
-
-                    // Pāṇinian special case: 1.1.51 (uraṇ raparaḥ).
-                    // When 'a' replaces 'ṛ', it is followed by 'r'.
-                    val finalReplacement = if ((sourceChar == 'ऋ' || sourceChar == 'ॠ' || sourceChar == 'ृ' || sourceChar == 'ॄ') && (replacement == "अ" || replacement == "ा")) {
-                         replacement + Vyanjana.RA.halanta
-                    } else if ((sourceChar == 'ऌ' || sourceChar == 'ॢ') && (replacement == "अ" || replacement == "ा")) {
-                         replacement + Vyanjana.LA.halanta
-                    } else {
-                        replacement
-                    }
-
-                    state = state.substituteTermSurface(
-                        term.id,
-                        term.surface.replaceFirst(sourceChar.toString(), finalReplacement),
-                        sourceChar,
-                        finalReplacement,
-                        sutra,
-                    )
-                }
-            }
-        }
+        val term = context.terms.first { candidate -> candidate.varnas.any { engine.contains(Pratyahara.IK, it) } }
+        val index = term.varnas.indexOfFirst { engine.contains(Pratyahara.IK, it) }
+        val source = term.varnas[index] as Svara
+        val replacement = if (isVrddhi) source.toVrddhiVarnas() else source.toGunaVarnas()
+        val result = term.varnas.take(index) + replacement + term.varnas.drop(index + 1)
 
         return DerivationChange(
-            state,
+            context.substituteTermVarnas(term.id, result, source, replacement, sutra),
             "$sutra applies ${if (isVrddhi) "वृद्धि" else "गुण"} substitution via similarity (1.1.50)."
         )
     }
 }
 
-private val gunaVowels = setOf("अ", "ए", "ओ")
-private val vrddhiVowels = setOf("आ", "ऐ", "औ")
+private fun Svara.toGunaVarnas(): List<Varna> = when (this) {
+    Svara.I, Svara.II -> listOf(Svara.E)
+    Svara.U, Svara.UU -> listOf(Svara.O)
+    Svara.R, Svara.RR -> listOf(Svara.A, Vyanjana.RA)
+    Svara.L, Svara.LL -> listOf(Svara.A, Vyanjana.LA)
+    else -> error("$this is not an ik vowel.")
+}
+
+private fun Svara.toVrddhiVarnas(): List<Varna> = when (this) {
+    Svara.I, Svara.II -> listOf(Svara.AI)
+    Svara.U, Svara.UU -> listOf(Svara.AU)
+    Svara.R, Svara.RR -> listOf(Svara.AA, Vyanjana.RA)
+    Svara.L, Svara.LL -> listOf(Svara.AA, Vyanjana.LA)
+    else -> error("$this is not an ik vowel.")
+}

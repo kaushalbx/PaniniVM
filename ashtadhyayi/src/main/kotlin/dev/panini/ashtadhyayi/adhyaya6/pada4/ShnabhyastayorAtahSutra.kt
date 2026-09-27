@@ -9,7 +9,8 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
-import dev.panini.shiksha.Varnamala
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -30,31 +31,31 @@ object ShnabhyastayorAtahSutra : Sutra<DerivationState, DerivationChange>(
         val lingAtmanepada = context.effectiveContext.rupa.lakara == Lakara.LING &&
             context.effectiveContext.rupa.pada == PadaType.ATMANEPADA
         return isKngitSarvadhatuka(context, shna) &&
-            (lingAtmanepada || nextInitial(context, shna)?.let(Varnamala::isVowel) == true)
+            (lingAtmanepada || nextInitial(context, shna) is Svara)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val shna = requireNotNull(shna(context))
         return DerivationChange(
-            context.substituteTermSurface(shna.id, shna.surface.dropLast(1) + "्", 'आ', "", sutra),
+            context.substituteTermVarnas(shna.id, shna.varnas.dropLast(1), Svara.AA, emptyList(), sutra),
             "6.4.112 elides the ā of श्ना before a vowel-initial k/ṅ-it sārvadhātuka.",
         )
     }
 }
 
 internal fun shna(context: DerivationState) = context.terms.firstOrNull {
-    it.kind == TermKind.PRATYAYA && it.matchesUpadesha("श्ना") && it.surface.endsWith('ा')
+    it.kind == TermKind.PRATYAYA && it.matchesUpadesha("श्ना") && it.varnas.lastOrNull() == Svara.AA
 }
 
-internal fun nextInitial(context: DerivationState, shna: dev.panini.derivation.DerivationTerm): Char? {
+internal fun nextInitial(context: DerivationState, shna: dev.panini.derivation.DerivationTerm): dev.panini.shiksha.Varna? {
     val following = context.terms.drop(context.terms.indexOf(shna) + 1)
-    val first = following.firstOrNull { it.surface.isNotEmpty() } ?: return null
+    val first = following.firstOrNull { it.varnas.isNotEmpty() } ?: return null
     // 7.1.3/7.1.5 later give झि and झ their vowel-initial substitutes.  The
     // āṅga operation is conditioned by that grammatical substitute, not by
     // the temporary raw spelling of the tiṅ termination.
     return when (first.upadesha) {
-        "झि", "झ" -> 'अ'
-        else -> first.surface.first()
+        "झि", "झ" -> Svara.A
+        else -> first.varnas.first()
     }
 }
 

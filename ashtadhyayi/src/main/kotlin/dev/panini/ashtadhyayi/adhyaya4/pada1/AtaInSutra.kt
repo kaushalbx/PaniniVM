@@ -13,6 +13,8 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 
 /** 4.1.95: अत इञ्. Introduces इञ् affix after short-a ending nominal stem for Apatya. */
 object AtaInSutra : Sutra<DerivationState, DerivationChange>(
@@ -34,7 +36,10 @@ object AtaInSutra : Sutra<DerivationState, DerivationChange>(
         val meaning = context.context.requestedMeaning ?: return false
         if (meaning != DerivationalMeaning.APATYA && meaning != DerivationalMeaning.ANANTARA_APATYA) return false
         val stem = context.terms.firstOrNull { it.kind == TermKind.PRATIPADIKA } ?: return false
-        if (!stem.surface.endsWith('अ') && !stem.surface.endsWith('थ')) return false
+        val explicitAOrTha = stem.varnas.lastOrNull() == Svara.A &&
+            (stem.varnas.getOrNull(stem.varnas.lastIndex - 1) !is Vyanjana ||
+                stem.varnas.takeLast(2) == listOf(Vyanjana.THA, Svara.A))
+        if (!explicitAOrTha) return false
         if (GargadibhyoYanySutra.matches(context)) return false
         return context.terms.none { it.kind == TermKind.PRATYAYA }
     }

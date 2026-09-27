@@ -15,6 +15,7 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.shiksha.Svara
 
 /**
  * 4.1.4: अजाद्यतष्टाप्.
@@ -38,7 +39,8 @@ object AjadyatasTapSutra : Sutra<DerivationState, DerivationChange>(
         if (context.stage != DerivationStage.INITIAL && context.stage != DerivationStage.PRATYAYA_SELECTED) return false
         val stem = context.terms.firstOrNull { it.kind == TermKind.PRATIPADIKA } ?: return false
         val isAjadiMember = GanaPatha.isEligibleMember(45, stem.surface, stem.lexicalUses)
-        val endsInA = stem.surface.endsWith('अ')
+        val endsInA = stem.varnas.lastOrNull() == Svara.A &&
+            (stem.compoundHeadVarnas?.lastOrNull() ?: Svara.A) == Svara.A
         val processedAng = context.terms.firstOrNull {
             it.kind == TermKind.PRATYAYA && it.upadesha == "अङ्" &&
                 it.itProcessingPhase == dev.panini.derivation.ItProcessingPhase.PROCESSED && it.surface == "अ"

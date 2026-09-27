@@ -4,6 +4,10 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Ayogavaha
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -31,19 +35,28 @@ object TreStrayahSutra : Sutra<DerivationState, DerivationChange>(
         val purvapada = context.terms.firstOrNull() ?: return false
         val uttarapada = context.terms.getOrNull(1) ?: return false
 
-        val purvaMatch = purvapada.surface == "त्रि"
+        val purvaMatch = purvapada.varnas == tri
         val isUttaraSankhya = context.samjnas.any { it.targetId == uttarapada.id && it.samjna == Samjna.SANKHYA } &&
-            uttarapada.surface in setOf("दश", "विंशति", "त्रिंशत्")
+            uttarapada.varnas in followingNumerals
 
         return purvaMatch && isUttaraSankhya
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val purvapada = context.terms.first()
-        val replacement = "त्रयस्"
+        val replacement = listOf(Vyanjana.TA, Vyanjana.RA, Svara.A, Vyanjana.YA, Svara.A, Vyanjana.SA)
         return DerivationChange(
-            state = context.substituteTermSurface(purvapada.id, replacement, 'ि', "यस्", sutra),
-            explanation = "$text: ${purvapada.surface} -> $replacement"
+            state = context.substituteTermVarnas(
+                purvapada.id, replacement, Svara.I, listOf(Vyanjana.YA, Svara.A, Vyanjana.SA), sutra,
+            ),
+            explanation = "$text: ${purvapada.surface} -> ${replacement.toDevanagari()}"
         )
     }
+
+    private val tri = listOf(Vyanjana.TA, Vyanjana.RA, Svara.I)
+    private val followingNumerals = setOf(
+        listOf(Vyanjana.DA, Svara.A, Vyanjana.SHA, Svara.A),
+        listOf(Vyanjana.VA, Svara.I, Ayogavaha.ANUSVARA, Vyanjana.SHA, Svara.A, Vyanjana.TA, Svara.I),
+        listOf(Vyanjana.TA, Vyanjana.RA, Svara.I, Ayogavaha.ANUSVARA, Vyanjana.SHA, Svara.A, Vyanjana.TA),
+    )
 }

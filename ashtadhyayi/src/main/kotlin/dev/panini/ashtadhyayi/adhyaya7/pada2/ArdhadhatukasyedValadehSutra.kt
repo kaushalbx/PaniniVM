@@ -1,6 +1,8 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada2
 
 import dev.panini.core.Lakara
+import dev.panini.core.KrtAffix
+import dev.panini.core.SanadiAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
@@ -9,8 +11,14 @@ import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.DerivationalEnvironment
 import dev.panini.derivation.HasDerivationalEnvironment
 import dev.panini.derivation.ItProcessingPhase
+import dev.panini.derivation.PhonologicalIdentity
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.containsCurrentSequence
+import dev.panini.derivation.hasAnyCurrentForm
+import dev.panini.derivation.matchesAffix
+import dev.panini.derivation.matchesAnyAffix
 import dev.panini.shiksha.ItStatus
+import dev.panini.shiksha.Svara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -25,27 +33,34 @@ object ArdhadhatukasyedValadehSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi, action = SutraAction.AGAMA, scope = SutraScope.DERIVATION,
     stage = dev.panini.sutra.SutraStage.IT_PROCESSING,
 ), DerivationSutra {
-    private val vowels = setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ऌ', 'ए', 'ऐ', 'ओ', 'औ')
     override fun matches(context: DerivationState): Boolean {
         val ending = context.terms.lastOrNull() ?: return false
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         val isLabhPerfectMiddle = context.effectiveContext.rupa.lakara == Lakara.LIT &&
             dhatu?.upadesha == "डुलभँष्" && ending.upadesha in setOf("थास्", "ध्वम्", "वहि", "महिङ्")
         val isNonKradiPerfect = context.effectiveContext.rupa.lakara == Lakara.LIT &&
-            dhatu != null && dhatu.surface !in KrsrbhrvrstudrusrusruvoLitiSutra.KRADI_ROOTS &&
+            dhatu != null && !KrsrbhrvrstudrusrusruvoLitiSutra.isKradiRoot(dhatu) &&
             "1.2.5" in ending.establishedBySutras
         val isLabhAorist = context.effectiveContext.rupa.lakara == Lakara.LUNG &&
-            (dhatu?.upadesha?.contains("लभ") == true || dhatu?.surface?.contains("लभ") == true || dhatu?.surface?.contains("स्रम्भ") == true)
+            (dhatu?.containsCurrentSequence(PhonologicalIdentity.LABH) == true ||
+                dhatu?.containsCurrentSequence(PhonologicalIdentity.SRAMBH) == true)
         val isTransformedLitEnding = context.effectiveContext.rupa.lakara != Lakara.LIT ||
-            ending.surface in setOf(
-                "अ", "अतुस्", "उस्", "अथुस्", "व", "म",
-                "ए", "आते", "इरे", "से", "आथे", "ध्वे", "वहे", "महे",
+            ending.hasAnyCurrentForm(
+                PhonologicalIdentity.A, PhonologicalIdentity.ATUS, PhonologicalIdentity.US,
+                PhonologicalIdentity.ATHUS, PhonologicalIdentity.VA, PhonologicalIdentity.MA,
+                PhonologicalIdentity.E, PhonologicalIdentity.AATE, PhonologicalIdentity.IRE,
+                PhonologicalIdentity.SE, PhonologicalIdentity.AATHE, PhonologicalIdentity.DHVE,
+                PhonologicalIdentity.VAHE, PhonologicalIdentity.MAHE,
             ) || ending.matchesUpadesha("सिप्")
         val isSipLet = context.allEffectiveTerms.any { it.id == "sip-aorist" }
-        val isNicEndingDhatu = context.allEffectiveTerms.any { it.matchesUpadesha("णिच्") } &&
-            ending.upadesha !in setOf("क्त", "क्तवतुँ")
-        val isAniKtvaKtaLyap = (ending.upadesha in setOf("क्त्वा", "क्त", "क्तवतुँ", "ल्यप्") || ending.surface == "य") &&
-            (dhatu?.surface in setOf("भू", "कृ", "हृ", "जि", "चि", "नी") || dhatu?.upadesha in setOf("भू", "कृ", "हृ", "जि", "चि", "नी", "भूँ", "डुकृञ्", "हृञ्", "चिञ्", "जिञ्", "नीञ्") || ending.upadesha == "ल्यप्" || ending.id == "lyap_pratyaya")
+        val isNicEndingDhatu = context.allEffectiveTerms.any { it.matchesAffix(SanadiAffix.NIC) } &&
+            !ending.matchesAnyAffix(KrtAffix.KTA, KrtAffix.KTAVATU)
+        val isAniKtvaKtaLyap = (ending.matchesAnyAffix(KrtAffix.KTVA, KrtAffix.KTA, KrtAffix.KTAVATU, KrtAffix.LYAP) ||
+            ending.varnas == listOf(dev.panini.shiksha.Vyanjana.YA, Svara.A)) &&
+            (dhatu?.hasAnyCurrentForm(
+                PhonologicalIdentity.BHU, PhonologicalIdentity.KR, PhonologicalIdentity.HR,
+                PhonologicalIdentity.JI, PhonologicalIdentity.CI, PhonologicalIdentity.NI,
+            ) == true || dhatu?.upadesha in setOf("भू", "कृ", "हृ", "जि", "चि", "नी", "भूँ", "डुकृञ्", "हृञ्", "चिञ्", "जिञ्", "नीञ्") || ending.matchesAffix(KrtAffix.LYAP) || ending.id == "lyap_pratyaya")
         if (isAniKtvaKtaLyap) return false
 
         // LIṬ is ārdhadhātuka by 3.4.114 even after the lakāra term has been
@@ -54,20 +69,20 @@ object ArdhadhatukasyedValadehSutra : Sutra<DerivationState, DerivationChange>(
             context.effectiveContext.rupa.lakara == Lakara.LIT || isLabhAorist || isSipLet
         val vowelInitialAfterScheduledSubstitution = ending.matchesUpadesha("ल्युट्") ||
             ending.matchesUpadesha("ण्वुल्") || ending.matchesUpadesha("घञ्") ||
-            ending.surface in setOf("यु", "वु")
+            ending.hasAnyCurrentForm(PhonologicalIdentity.YU, PhonologicalIdentity.VU)
         return isArdhadhatuka &&
             (context.terms.any { it.kind == TermKind.DHATU && (it.itStatus == ItStatus.SET || it.itStatus == ItStatus.VET) } ||
                 isNicEndingDhatu || isLabhPerfectMiddle || isNonKradiPerfect || isLabhAorist) &&
             ending.kind == TermKind.PRATYAYA &&
             !vowelInitialAfterScheduledSubstitution &&
-            ending.surface.firstOrNull()?.let { char -> char !in vowels } == true &&
+            ending.varnas.firstOrNull()?.let { it !is Svara } == true &&
             isTransformedLitEnding &&
             context.allEffectiveTerms.none { it.id == "it-agama" }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val dhatuIndex = context.terms.indexOfFirst { it.kind == TermKind.DHATU && it.id != "abhyasa" }
-        val nicIndex = context.terms.indexOfFirst { it.matchesUpadesha("णिच्") }
+        val nicIndex = context.terms.indexOfFirst { it.matchesAffix(SanadiAffix.NIC) }
         val targetIndex = if (nicIndex > dhatuIndex) nicIndex + 1 else dhatuIndex + 1
         val target = context.terms[targetIndex]
         val itAgama = DerivationTerm(

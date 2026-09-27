@@ -5,6 +5,9 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.replaceVarna
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -31,14 +34,15 @@ object SanyAtaSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         val isSan = context.terms.any { it.kind == TermKind.PRATYAYA && it.upadesha == "सन्" }
         val abhyasa = context.terms.firstOrNull { it.id == "abhyasa" } ?: return false
-        return isSan && (abhyasa.surface.endsWith("अ") || abhyasa.surface == "प")
+        return isSan && abhyasa.varnas.lastOrNull() == Svara.A
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val abhyasa = context.terms.first { it.id == "abhyasa" }
-        val newSurface = if (abhyasa.surface == "प") "पि" else abhyasa.surface.dropLast(1) + "ि"
+        val newVarnas = abhyasa.varnas.replaceVarna(abhyasa.varnas.lastIndex, listOf(Svara.I))
+        val newSurface = newVarnas.toDevanagari()
         return DerivationChange(
-            state = context.substituteTermSurface(abhyasa.id, newSurface, 'अ', "इ", sutra),
+            state = context.substituteTermSurface(abhyasa.id, newSurface, Svara.A, listOf(Svara.I), sutra),
             explanation = "7.4.79 replaces short 'a' with 'i' in abhyāsa (${abhyasa.surface} → $newSurface)."
         )
     }

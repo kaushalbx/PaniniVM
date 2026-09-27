@@ -12,6 +12,10 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.shiksha.Ayogavaha
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 
 /** Neuter s-stem before singular ṅasi/ṅas: form the saḥ ending. */
 object StoNgasyosSutra : Sutra<DerivationState, DerivationChange>(
@@ -33,14 +37,14 @@ object StoNgasyosSutra : Sutra<DerivationState, DerivationChange>(
             context.effectiveContext.rupa.vibhakti !in setOf(Vibhakti.PANCHAMI, Vibhakti.SASTHI)
         ) return false
         val stem = context.terms[context.terms.size - 2]
-        return stem.surface.endsWith("स्") && context.terms.last().upadesha in setOf("ङसि", "ङस्")
+        return stem.isSFinal() && context.terms.last().upadesha in setOf("ङसि", "ङस्")
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
         return DerivationChange(
-            state = context.mergeTermsByVarnaSubstitution(stem.id, affix.id, stem.surface.dropLast(1) + "ः", '∅', "ः", sutra)
+            state = context.mergeTermsByVarnaSubstitution(stem.id, affix.id, stem.extendFinalS(listOf(Svara.A, Ayogavaha.VISARGA)).toDevanagari(), Vyanjana.SA, listOf(Vyanjana.SA, Svara.A, Ayogavaha.VISARGA), sutra)
                 .copy(stage = DerivationStage.FINAL),
             explanation = "7.3.154: Formed the neuter s-stem singular सः ending before ${affix.upadesha}.",
         )

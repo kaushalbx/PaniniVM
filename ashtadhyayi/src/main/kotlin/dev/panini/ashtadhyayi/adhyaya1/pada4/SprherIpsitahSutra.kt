@@ -8,6 +8,7 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.analysis.KarakaEvidence
+import dev.panini.analysis.KarakaDhatuDomains
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
@@ -21,8 +22,7 @@ object SprherIpsitahSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     adhikara = setOf("1.4.23"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
-        val normalized = context.dhatu.surface.trimEnd('्', 'ँ')
-        val isSprha = normalized == "स्पृह" || normalized == "स्पृहय्" || normalized.startsWith("स्पृह")
+        val isSprha = KarakaDhatuDomains.isSprha(context.dhatu)
         return isSprha && SemanticRelation.RECIPIENT in context.participant.semanticRelations && Karaka.SAMPRADANA in context.candidates
     }
 

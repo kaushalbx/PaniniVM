@@ -8,6 +8,10 @@ import dev.panini.derivation.ItDesignationConsumption
 import dev.panini.derivation.ItDesignationRemap
 import dev.panini.derivation.TermKind
 import dev.panini.derivation.WholeAffixDesignationPolicy
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -38,8 +42,7 @@ object AyaneyInIyiyahSutra : Sutra<DerivationState, DerivationChange>(
         // initial ku-it of a kṛt suffix such as घञ् before 1.3.9 deletes it.
         if (context.terms.any { it.kind == TermKind.DHATU }) return false
         val pratyaya = context.terms.lastOrNull { it.kind == TermKind.PRATYAYA } ?: return false
-        val firstChar = pratyaya.surface.firstOrNull() ?: return false
-        if (firstChar !in setOf('फ', 'ढ', 'ख', 'छ', 'घ')) return false
+        if (pratyaya.varnas.firstOrNull() !in initialSubstitutes) return false
         val designations = pratyaya.itDesignations + pratyaya.deferredItDesignations
         return designations.any { it.sutra == "1.3.3" && it.endExclusive == pratyaya.surface.length }
     }
@@ -48,19 +51,13 @@ object AyaneyInIyiyahSutra : Sutra<DerivationState, DerivationChange>(
         val pratyayaIndex = context.terms.indexOfLast { it.kind == TermKind.PRATYAYA }
         val pratyaya = context.terms[pratyayaIndex]
 
-        val firstChar = pratyaya.surface.first()
-        val rest = pratyaya.surface.drop(1)
-        val replacement = when (firstChar) {
-            'फ' -> "आयन"
-            'ढ' -> "एय्"
-            'ख' -> "ईन्"
-            'छ' -> "ईय्"
-            'घ' -> "इय्"
-            else -> pratyaya.surface
-        }
-        val newSurface = replacement + rest
+        val first = pratyaya.varnas.first()
+        val replacementVarnas = initialSubstitutes.getValue(first)
+        val replacement = replacementVarnas.toDevanagari()
+        val remainder = pratyaya.varnas.drop(if (pratyaya.varnas.getOrNull(1) == Svara.A) 2 else 1)
+        val newSurface = (replacementVarnas + remainder).toDevanagari()
         val initialDesignation = (pratyaya.itDesignations + pratyaya.deferredItDesignations).singleOrNull {
-            it.start == 0 && it.endExclusive == 1 && it.designatedText == firstChar.toString()
+            it.start == 0 && it.endExclusive == 1 && it.designatedText == first.devanagari
         }
         val remaps = (pratyaya.itDesignations + pratyaya.deferredItDesignations)
             .filterNot { initialDesignation != null && it == initialDesignation }
@@ -92,7 +89,15 @@ object AyaneyInIyiyahSutra : Sutra<DerivationState, DerivationChange>(
                 terms = newTerms,
                 stage = DerivationStage.PRATYAYA_SELECTED,
             ),
-            explanation = "7.1.2 substitutes $replacement for initial '$firstChar' of pratyaya.",
+            explanation = "7.1.2 substitutes $replacement for initial ${first.devanagari} of pratyaya.",
         )
     }
+
+    private val initialSubstitutes: Map<Varna, List<Varna>> = mapOf(
+        Vyanjana.PHA to listOf(Svara.AA, Vyanjana.YA, Svara.A, Vyanjana.NA, Svara.A),
+        Vyanjana.DDHA to listOf(Svara.E, Vyanjana.YA),
+        Vyanjana.KHA to listOf(Svara.II, Vyanjana.NA),
+        Vyanjana.CHA to listOf(Svara.II, Vyanjana.YA),
+        Vyanjana.GHA to listOf(Svara.I, Vyanjana.YA),
+    )
 }

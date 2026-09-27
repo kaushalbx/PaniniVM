@@ -12,6 +12,8 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.ganapatha.SarvadiGana
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 
 /**
  * 7.2.102: tyadādīnām aḥ.
@@ -40,26 +42,28 @@ object TyadadinamAhSutra : Sutra<DerivationState, DerivationChange>(
         val isTyadadi = listOf(stem.upadesha, stem.surface).any { text ->
             SarvadiGana.antarGanasContaining(text).any { it.name == "त्यदादिः" }
         }
-        val hasConsonantEnding = stem.surface.endsWith("्") || stem.surface in setOf("इदम्", "द्वि")
+        val hasConsonantEnding = stem.varnas.lastOrNull() is Vyanjana || stem.varnas in setOf(idam, dvi)
         return isTyadadi && hasConsonantEnding &&
             (affix.id.startsWith("sup-") || context.droppedTerms.any { it.id.startsWith("sup-") })
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
-        val surface = stem.surface
-        val newSurface = when (surface) {
-            "इदम्" -> "इम"
+        val result = when (stem.varnas) {
+            idam -> listOf(Svara.I, Vyanjana.MA, Svara.A)
             // In the feminine derivation, 4.1.4 supplies टाप् after this
             // substitution; retain its आ so 7.1.18 can operate on द्वा + औ.
-            "द्वि" -> if (context.effectiveContext.rupa.linga == Linga.STRI) "द्वा" else "द्व"
-            else -> if (surface.endsWith("्")) surface.dropLast(2) else surface.dropLast(1)
+            dvi -> listOf(Vyanjana.DA, Vyanjana.VA, if (context.effectiveContext.rupa.linga == Linga.STRI) Svara.AA else Svara.A)
+            else -> stem.varnas.dropLast(1)
         }
 
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, newSurface, '∅', "अ", sutra)
+            state = context.substituteTermVarnas(stem.id, result, stem.varnas.last(), listOf(Svara.A), sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
-            explanation = "7.2.102: Substitutes 'a' for the final letter of tyadādi stem '$surface'."
+            explanation = "7.2.102 substitutes 'a' for the final letter of tyadādi stem ${stem.surface}."
         )
     }
+
+    private val idam = listOf(Svara.I, Vyanjana.DA, Svara.A, Vyanjana.MA)
+    private val dvi = listOf(Vyanjana.DA, Vyanjana.VA, Svara.I)
 }

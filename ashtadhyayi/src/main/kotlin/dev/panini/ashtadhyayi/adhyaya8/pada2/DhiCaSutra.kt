@@ -4,6 +4,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -19,21 +20,21 @@ object DhiCaSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val targetIndex = context.terms.indexOfFirst {
-            (it.upadesha == "सिँच्" && it.surface == "स्") ||
-                (it.upadesha == "तासि" && it.surface.endsWith("स्"))
+            (it.upadesha == "सिँच्" && it.varnas == listOf(Vyanjana.SA)) ||
+                (it.upadesha == "तासि" && it.varnas.lastOrNull() == Vyanjana.SA)
         }
-        return targetIndex >= 0 && context.terms.getOrNull(targetIndex + 1)?.surface?.startsWith("ध") == true
+        return targetIndex >= 0 && context.terms.getOrNull(targetIndex + 1)?.varnas?.firstOrNull() == Vyanjana.DHA
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val target = context.terms.first {
-            (it.upadesha == "सिँच्" && it.surface == "स्") ||
-                (it.upadesha == "तासि" && it.surface.endsWith("स्"))
+            (it.upadesha == "सिँच्" && it.varnas == listOf(Vyanjana.SA)) ||
+                (it.upadesha == "तासि" && it.varnas.lastOrNull() == Vyanjana.SA)
         }
         val nextState = if (target.upadesha == "सिँच्") {
             context.removeTerm(target.id, sutra).copy(stage = DerivationStage.PADA_FORMED)
         } else {
-            context.substituteTermSurface(target.id, target.surface.removeSuffix("स्"), 'स', "", sutra)
+            context.substituteTermVarnas(target.id, target.varnas.dropLast(1), Vyanjana.SA, emptyList(), sutra)
         }
         return DerivationChange(
             nextState,

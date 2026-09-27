@@ -10,6 +10,7 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 import dev.panini.sutra.SamasaSutra
+import dev.panini.shiksha.Svara
 
 /**
  * 2.2.34: अल्पाच्तरम्.
@@ -29,17 +30,13 @@ object AlpactaramSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     samasaType = SamasaType.DVANDVA,
     samasaPriority = 1,
 ), SamasaSutra {
-    private val vowels = setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ए', 'ऐ', 'ओ', 'औ')
-
-    private fun countVowels(s: String): Int = s.count { it in vowels }
-
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         return context.samasaType == SamasaType.DVANDVA
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
-        val sortedPadas = context.padas.sortedBy { countVowels(it.upadesha) }
+        val sortedPadas = context.padas.sortedBy { pada -> pada.varnas.count { it is Svara } }
         val compoundStem = sortedPadas.joinToString("") { it.upadesha }
 
         return SamasaRuleResult.Formed(

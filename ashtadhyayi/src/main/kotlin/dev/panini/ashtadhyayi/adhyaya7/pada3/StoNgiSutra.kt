@@ -12,6 +12,9 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 
 /** Neuter s-stem before ṅi: form the si locative singular. */
 object StoNgiSutra : Sutra<DerivationState, DerivationChange>(
@@ -32,14 +35,14 @@ object StoNgiSutra : Sutra<DerivationState, DerivationChange>(
             context.effectiveContext.rupa.vibhakti != Vibhakti.SAPTAMI ||
             context.effectiveContext.rupa.vacana != Vacana.EKAVACANA
         ) return false
-        return context.terms[context.terms.size - 2].surface.endsWith("स्") && context.terms.last().upadesha == "ङि"
+        return context.terms[context.terms.size - 2].isSFinal() && context.terms.last().upadesha == "ङि"
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
         return DerivationChange(
-            state = context.mergeTermsByVarnaSubstitution(stem.id, affix.id, stem.surface.dropLast(1) + "ि", '∅', "इ", sutra)
+            state = context.mergeTermsByVarnaSubstitution(stem.id, affix.id, stem.extendFinalS(listOf(Svara.I)).toDevanagari(), Vyanjana.SA, listOf(Vyanjana.SA, Svara.I), sutra)
                 .copy(stage = DerivationStage.FINAL),
             explanation = "7.3.157: Formed the neuter s-stem locative-singular सि ending before ङि.",
         )

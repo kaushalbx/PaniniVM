@@ -7,6 +7,7 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.ItDesignation
 import dev.panini.derivation.TermKind
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -35,22 +36,22 @@ object ShahPratyayasyaSutra : Sutra<DerivationState, DerivationChange>(
         if (state.stage != DerivationStage.PRATYAYA_SELECTED && state.terms.none { it.itProcessingPending }) return false
 
         return state.terms.any { term ->
-            term.kind == TermKind.PRATYAYA && term.surface.startsWith('ष') &&
+            term.kind == TermKind.PRATYAYA && term.varnas.firstOrNull() == Vyanjana.SSA &&
                 (term.itDesignations + term.deferredItDesignations).none { it.start == 0 }
         }
     }
 
     fun assignSamjna(state: DerivationState): DerivationChange {
         val newTerms = state.terms.map { term ->
-            if (term.kind == TermKind.PRATYAYA && term.surface.startsWith('ष')) {
-                val end = if (term.surface.getOrNull(1) == '्') 2 else 1
+            if (term.kind == TermKind.PRATYAYA && term.varnas.firstOrNull() == Vyanjana.SSA) {
+                val end = term.orthographicEndAfterInitialVarna()
                 val designation = ItDesignation(
                     start = 0,
                     endExclusive = end,
                     replacementAfterLopa = if (end == 1) "अ" else "",
                     marker = ItMarker.SH,
                     sutra = sutra,
-                    designatedText = term.surface.substring(0, end),
+                    designatedText = term.orthographicDesignationText(0, end),
                 )
                 term.copy(
                     itMarkers = term.itMarkers + ItMarker.SH,

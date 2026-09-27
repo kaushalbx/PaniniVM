@@ -4,8 +4,10 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.VarnaSubstitution
-import dev.panini.shiksha.Varnamala
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.isHrasva
+import dev.panini.shiksha.toDirgha
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -41,39 +43,29 @@ object NamiSutra : Sutra<DerivationState, DerivationChange>(
 
         // 1. Check if affix is 'nām' (combination of nuṭ + ām)
         // In our engine, this appears as 'nuṭ-augment' + 'ām' or merged as 'नाम्'
-        val isNam = affix.surface.startsWith("नाम्") || affix.upadesha == "आम्" && context.terms.any { it.upadesha == "नुट्" }
+        val nam = listOf(Vyanjana.NA, Svara.AA, Vyanjana.MA)
+        val isNam = affix.varnas.take(nam.size) == nam ||
+            affix.upadesha == "आम्" && context.terms.any { it.upadesha == "नुट्" }
 
         if (!isNam) return false
 
         // 2. Stem must end in a short vowel
-        val lastChar = stem.surface.lastOrNull() ?: return false
-        val isConsonant = lastChar !in Varnamala.independentVowelsOrMarks
-        if (isConsonant) return true
-        return Varnamala.isVowel(lastChar) && !isAlreadyLong(lastChar)
+        val final = stem.varnas.lastOrNull() ?: return false
+        return final is Svara && final.isHrasva
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
-        val lastChar = stem.surface.last()
-        val (newSurface, sourceChar, replacement) = if (lastChar !in Varnamala.independentVowelsOrMarks) {
-            Triple(stem.surface + "ा", 'अ', "ा")
-        } else {
-            val lengthened = when (lastChar) {
-                'अ' -> "ा"
-                'इ', 'ि' -> "ी"
-                'उ', 'ु' -> "ू"
-                'ऋ', 'ृ' -> "ॄ"
-                else -> lastChar.toString()
-            }
-            Triple(stem.surface.dropLast(1) + lengthened, lastChar, lengthened)
-        }
+        val final = stem.varnas.last()
+        val source = final as Svara
+        val replacement = source.toDirgha()
+        val result = stem.varnas.dropLast(1) + replacement
 
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, newSurface, sourceChar, replacement, sutra)
+            state = context.substituteTermVarnas(stem.id, result, source, listOf(replacement), sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "6.4.3: Lengthened stem vowel before 'nām'."
         )
     }
 
-    private fun isAlreadyLong(c: Char): Boolean = c in setOf('आ', 'ा', 'ई', 'ी', 'ऊ', 'ू', 'ॠ', 'ॄ', 'ए', 'े', 'ऐ', 'ै', 'ओ', 'ो', 'औ', 'ौ')
 }

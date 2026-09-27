@@ -11,6 +11,7 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.shiksha.Svara
 
 /**
  * Sūtra 3.1.36 इजादेश्च गुरुमतोऽनृच्छः.
@@ -24,7 +25,10 @@ object IjashChaSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
         context.effectiveContext.rupa.lakara == Lakara.LIT &&
-        context.allEffectiveTerms.any { term -> term.kind == TermKind.DHATU && (term.upadesha in setOf("ईक्ष्", "ईक्षँ") || term.surface.startsWith("ई") || term.surface.startsWith("ऊ")) } &&
+        context.allEffectiveTerms.any { term ->
+            term.kind == TermKind.DHATU &&
+                (term.upadesha in setOf("ईक्ष्", "ईक्षँ") || term.varnas.firstOrNull() in setOf(Svara.II, Svara.UU))
+        } &&
         context.allEffectiveTerms.none { it.upadesha == "आम्" }
 
     override fun apply(context: DerivationState): DerivationChange {

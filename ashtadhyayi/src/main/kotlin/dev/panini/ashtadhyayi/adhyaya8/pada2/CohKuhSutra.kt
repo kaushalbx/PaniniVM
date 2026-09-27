@@ -5,7 +5,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.pratyahara.Pratyahara
-import dev.panini.shiksha.Varnamala
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -35,14 +35,13 @@ object CohKuhSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val match = findMatch(context)!!
         val targetTerm = context.terms[match.termIndex]
-        val targetChar = targetTerm.surface[match.charIndex]
-        val vargaInfo = Varnamala.getVargaInfo(targetChar)!!
-        val replacement = Varnamala.getVargaMember("कु", vargaInfo.second)!!.toString()
-        val newSurface = targetTerm.surface.replaceRange(match.charIndex, match.charIndex + 1, replacement)
+        val source = targetTerm.varnas[match.varnaIndex] as Vyanjana
+        val replacement = kuSubstitutes.getValue(source)
+        val result = targetTerm.varnas.take(match.varnaIndex) + replacement + targetTerm.varnas.drop(match.varnaIndex + 1)
 
         return DerivationChange(
-            state = context.substituteTermSurface(targetTerm.id, newSurface, targetChar, replacement, sutra),
-            explanation = "8.2.30: Substituted ka-varga '$replacement' for ca-varga '$targetChar'."
+            state = context.substituteTermVarnas(targetTerm.id, result, source, listOf(replacement), sutra),
+            explanation = "8.2.30 substitutes ka-varga $replacement for ca-varga $source."
         )
     }
 
@@ -50,33 +49,32 @@ object CohKuhSutra : Sutra<DerivationState, DerivationChange>(
         val abhyasaIds = context.samjnas
             .filter { it.samjna == dev.panini.shiksha.Samjna.ABHYASA }
             .mapTo(mutableSetOf()) { it.targetId }
-        val characters = context.terms.flatMapIndexed { termIndex, term ->
-            term.surface.mapIndexed { charIndex, char -> OwnedChar(termIndex, charIndex, term.id, char) }
+        val finalTermIndex = context.terms.indexOfLast { it.varnas.isNotEmpty() }
+        val finalTerm = context.terms.getOrNull(finalTermIndex)
+        if (finalTerm != null && finalTerm.varnas.lastOrNull() in kuSubstitutes.keys && finalTerm.id !in abhyasaIds) {
+            return Match(finalTermIndex, finalTerm.varnas.lastIndex)
         }
-        val finalConsonant = characters.getOrNull(characters.lastIndex - 1)
-        if (characters.lastOrNull()?.char == '्' && finalConsonant != null &&
-            finalConsonant.char in CU_CHARS && finalConsonant.termId !in abhyasaIds
-        ) {
-            return Match(finalConsonant.termIndex, finalConsonant.charIndex)
-        }
-        for (i in 0 until characters.size - 2) {
-            val target = characters[i]
-            if (target.char !in CU_CHARS || target.termId in abhyasaIds) continue
-            if (characters[i + 1].char != '्') continue
-            val following = characters[i + 2]
-            // The jhal condition is a grammatical boundary condition. It
-            // must not rewrite an inherited internal cluster such as ञ्च in पञ्च.
-            if (target.termId != following.termId &&
-                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAL, following.char)
+        for (termIndex in 0 until context.terms.lastIndex) {
+            val target = context.terms[termIndex]
+            val following = context.terms[termIndex + 1]
+            val final = target.varnas.lastOrNull()
+            val initial = following.varnas.firstOrNull()
+            if (final in kuSubstitutes.keys && target.id !in abhyasaIds && initial is Vyanjana &&
+                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAL, initial.devanagari.single())
             ) {
-                return Match(target.termIndex, target.charIndex)
+                return Match(termIndex, target.varnas.lastIndex)
             }
         }
         return null
     }
 
-    private data class OwnedChar(val termIndex: Int, val charIndex: Int, val termId: String, val char: Char)
-    private data class Match(val termIndex: Int, val charIndex: Int)
+    private data class Match(val termIndex: Int, val varnaIndex: Int)
 
-    private val CU_CHARS = setOf('च', 'छ', 'ज', 'झ', 'ञ')
+    private val kuSubstitutes = mapOf(
+        Vyanjana.CA to Vyanjana.KA,
+        Vyanjana.CHA to Vyanjana.KHA,
+        Vyanjana.JA to Vyanjana.GA,
+        Vyanjana.JHA to Vyanjana.GHA,
+        Vyanjana.NYA to Vyanjana.NGA,
+    )
 }

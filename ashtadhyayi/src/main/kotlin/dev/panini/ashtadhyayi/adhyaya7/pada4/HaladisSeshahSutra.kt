@@ -4,6 +4,9 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -17,49 +20,33 @@ object HaladisSeshahSutra : Sutra<DerivationState, DerivationChange>(
     type = SutraType.NITYA, chapter = 7, pada = 4, optional = false, kramaValue = 740060,
     role = SutraRole.Vidhi, action = SutraAction.LOPA, scope = SutraScope.DHATU,
 ), DerivationSutra {
-    private val consonants = setOf(
-        'क', 'ख', 'ग', 'घ', 'ङ', 'च', 'छ', 'ज', 'झ', 'ञ', 'ट', 'ठ', 'ड', 'ढ', 'ण',
-        'त', 'थ', 'द', 'ध', 'न', 'प', 'फ', 'ब', 'भ', 'म', 'य', 'र', 'ल', 'व', 'श', 'ष', 'स', 'ह',
-    )
-
     override fun matches(context: DerivationState): Boolean {
         val abhyasa = context.terms.firstOrNull { it.id == "abhyasa" } ?: return false
         return context.samjnas.any { it.targetId == abhyasa.id && it.samjna == Samjna.ABHYASA } &&
-            shortenedAbhyasa(abhyasa.surface) != abhyasa.surface
+            shortenedAbhyasa(abhyasa.varnas) != abhyasa.varnas
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val abhyasa = context.terms.first { it.id == "abhyasa" }
-        val shortened = shortenedAbhyasa(abhyasa.surface)
+        val shortenedVarnas = shortenedAbhyasa(abhyasa.varnas)
+        val retainedInitialCount = if (abhyasa.varnas.firstOrNull() is Vyanjana) 1 else 0
+        val firstRemovedConsonant = abhyasa.varnas.drop(retainedInitialCount).first { it is Vyanjana }
         return DerivationChange(
-            context.substituteTermSurface(abhyasa.id, shortened, '∅', "हलादिशेष", sutra),
+            context.substituteTermSurface(
+                abhyasa.id,
+                shortenedVarnas.toDevanagari(),
+                firstRemovedConsonant,
+                emptyList(),
+                sutra,
+            ),
             "7.4.60 retains only the initial consonant of the abhyāsa ${abhyasa.surface}.",
         )
     }
 
-    private fun shortenedAbhyasa(surface: String): String {
-        val retainInitialConsonant = surface.firstOrNull() in consonants
-        var retainedInitialConsonant = false
-        var removeVirama = false
-        val shortened = buildString {
-            surface.forEach { character ->
-                if (removeVirama && character == '्') {
-                    removeVirama = false
-                } else if (character in consonants) {
-                    if (retainInitialConsonant && !retainedInitialConsonant) {
-                        append(character)
-                        retainedInitialConsonant = true
-                    } else {
-                        removeVirama = true
-                    }
-                } else {
-                    append(character)
-                }
-            }
+    private fun shortenedAbhyasa(varnas: List<Varna>) =
+        if (varnas.firstOrNull() is Vyanjana) {
+            varnas.filterIndexed { index, varna -> index == 0 || varna !is Vyanjana }
+        } else {
+            varnas.filterNot { it is Vyanjana }
         }
-        val vowelSigns = setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'ॄ', 'ॢ', 'े', 'ै', 'ो', 'ौ')
-        return shortened.filterIndexed { index, character ->
-            character != '्' || shortened.getOrNull(index + 1) !in vowelSigns
-        }
-    }
 }

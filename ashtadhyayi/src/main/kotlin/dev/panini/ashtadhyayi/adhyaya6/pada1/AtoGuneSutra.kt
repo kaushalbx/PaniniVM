@@ -5,8 +5,14 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.core.SanadiAffix
+import dev.panini.derivation.matchesAffix
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.firstVarna
+import dev.panini.shiksha.lastVarna
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -40,7 +46,7 @@ object AtoGuneSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms[pairIndex + 1]
         if (pairIndex > 0 && stem.id == "shap") {
             val previous = context.terms[pairIndex - 1]
-            if (previous.upadesha == "णिच्" && previous.surface.lastOrNull() in setOf('ए', 'ऐ', 'ओ', 'औ', 'े', 'ै', 'ो', 'ौ')) return false
+            if (previous.matchesAffix(SanadiAffix.NIC) && previous.varnas.lastOrNull() in setOf(Svara.E, Svara.AI, Svara.O, Svara.AU)) return false
         }
         if (stem.id == "shap" && context.terms.any { it.kind == TermKind.DHATU && it.gana == DhatuGana.ADADI }) return false
 
@@ -49,11 +55,10 @@ object AtoGuneSutra : Sutra<DerivationState, DerivationChange>(
         if (affix.kind != TermKind.PRATYAYA && !affix.isPlacedBeginningAugment(context)) return false
 
         // 1. Stem must end in short 'a'
-        if (!dev.panini.shiksha.Varnamala.endsWithA(stem.surface)) return false
+        if (stem.varnas.lastOrNull() != Svara.A) return false
 
         // 2. Affix must start with a Guṇa vowel
-        val firstChar = affix.surface.firstOrNull() ?: return false
-        val isGuna = firstChar in setOf('अ', 'ए', 'ओ', 'े', 'ो')
+        val isGuna = affix.varnas.firstOrNull() in setOf(Svara.A, Svara.E, Svara.O)
 
         return isGuna
     }
@@ -64,26 +69,16 @@ object AtoGuneSutra : Sutra<DerivationState, DerivationChange>(
         val stem = terms[pairIndex]
         val affix = terms[pairIndex + 1]
 
-        val firstChar = affix.surface.first()
-        val replacement = firstChar.toString()
-
-        val lastChar = stem.surface.last()
-        val newSurface = if (lastChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks) {
-            val vowelMark = when (firstChar) {
-                'ए' -> "े"
-                'ओ' -> "ो"
-                else -> ""
-            }
-            stem.surface + vowelMark + affix.surface.drop(1)
-        } else {
-            stem.surface.dropLast(1) + replacement + affix.surface.drop(1)
-        }
+        val stemVarnas = stem.varnas
+        val affixVarnas = affix.varnas
+        val replacement = listOf(affixVarnas.first())
+        val newSurface = (stemVarnas.dropLast(1) + replacement + affixVarnas.drop(1)).toDevanagari()
 
         val newSamjnas = context.samjnas.map {
             if (it.targetId == affix.id && it.samjna != Samjna.PRATYAYA) it.copy(targetId = stem.id) else it
         }.toSet()
         val merged = context.mergeTermsByVarnaSubstitution(
-            stem.id, affix.id, newSurface, 'अ', replacement, sutra,
+            stem.id, affix.id, newSurface, Svara.A, replacement, sutra,
         ).copy(stage = DerivationStage.ANGAKARYA, samjnas = newSamjnas)
         val survivingStem = merged.terms.single { it.id == stem.id }
 
@@ -91,7 +86,7 @@ object AtoGuneSutra : Sutra<DerivationState, DerivationChange>(
             state = merged.replaceTerm(
                 stem.id, survivingStem.copy(sthaniProps = stem.sthaniProps ?: affix.sthaniProps),
             ),
-            explanation = "6.1.97: Pararūpa substitution ($replacement) for a + $firstChar."
+            explanation = "6.1.97: Pararūpa substitution (${replacement.toDevanagari()}) for a + ${affixVarnas.first()}."
         )
     }
 
@@ -99,7 +94,7 @@ object AtoGuneSutra : Sutra<DerivationState, DerivationChange>(
         context.terms.indices.firstOrNull { index ->
             index < context.terms.lastIndex &&
                 context.terms[index + 1].isPlacedBeginningAugment(context) &&
-                context.terms[index + 1].surface.firstOrNull() in setOf('अ', 'ए', 'ओ', 'े', 'ो')
+                context.terms[index + 1].varnas.firstOrNull() in setOf(Svara.A, Svara.E, Svara.O)
         }?.let { return it }
         return context.terms.lastIndex - 1
     }

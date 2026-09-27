@@ -4,6 +4,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -27,7 +28,7 @@ object AdabhyastatSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val affix = context.terms.lastOrNull() ?: return false
-        return affix.upadesha == "झि" && affix.surface.startsWith('झ') &&
+        return affix.upadesha == "झि" && affix.varnas.firstOrNull() == Vyanjana.JHA &&
             context.samjnas.any { it.targetId == "abhyasa" && it.samjna == Samjna.ABHYASA }
     }
 

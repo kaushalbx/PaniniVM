@@ -6,6 +6,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
+import dev.panini.shiksha.Svara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraPriority
@@ -40,9 +41,7 @@ object AtoYeyahSutra : Sutra<DerivationState, DerivationChange>(
 
         val precedingAnga = context.terms[yasutIndex - 1]
         val yasut = context.terms[yasutIndex]
-        val endsInA = precedingAnga.surface.endsWith('अ') ||
-            precedingAnga.surface.endsWith('a') ||
-            precedingAnga.id in setOf("shyan", "sha")
+        val endsInA = precedingAnga.varnas.lastOrNull() == Svara.A || precedingAnga.id in setOf("shyan", "sha")
         return endsInA && yasut.surface == "यास्"
     }
 

@@ -11,6 +11,9 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.replaceVarna
 
 /** 3.4.79: टित आत्मनेपदानां टेरे. */
 object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
@@ -60,29 +63,29 @@ object TitaAtmanepadanamTereSutra : Sutra<DerivationState, DerivationChange>(
             return ending.surface != replacement && (lakara in setOf(Lakara.LET, Lakara.LIT, Lakara.LOT, Lakara.LRT, Lakara.LUT) || !requiresAtoNgitah || atoNgitahCompleted || isNonAStem)
         }
         val jhaOutcome = ending.upadesha == "झ" || context.droppedTerms.any { it.upadesha == "झ" }
-        return ending.surface.endsWith("न्त्") && jhaOutcome &&
+        return ending.varnas.takeLast(2) == listOf(Vyanjana.NA, Vyanjana.TA) && jhaOutcome &&
             "7.1.3" in context.appliedSutras ||
-            (ending.surface.endsWith("अत") && "7.1.5" in context.appliedSutras)
+            (ending.varnas.takeLast(3) == listOf(Svara.A, Vyanjana.TA, Svara.A) && "7.1.5" in context.appliedSutras)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
-        if (ending.surface.endsWith("न्त्") && "7.1.3" in context.appliedSutras) {
+        if (ending.varnas.takeLast(2) == listOf(Vyanjana.NA, Vyanjana.TA) && "7.1.3" in context.appliedSutras) {
             return DerivationChange(
                 context.replaceWholeAffix(
                     ending.id,
-                    ending.surface.dropLast(2) + "ते",
+                    ending.varnas.replaceVarna(ending.varnas.lastIndex, listOf(Vyanjana.TA, Svara.E)),
                     sutra,
                     dev.panini.derivation.WholeAffixDesignationPolicy.PreserveAndRemap(emptyList()),
                 ),
                 "3.4.79 replaces the final टि of the झ्-अन्ति outcome with ए.",
             )
         }
-        if (ending.surface.endsWith("अत") && "7.1.5" in context.appliedSutras) {
+        if (ending.varnas.takeLast(3) == listOf(Svara.A, Vyanjana.TA, Svara.A) && "7.1.5" in context.appliedSutras) {
             return DerivationChange(
                 context.replaceWholeAffix(
                     ending.id,
-                    ending.surface + "े",
+                    ending.varnas.replaceVarna(ending.varnas.lastIndex, listOf(Svara.E)),
                     sutra,
                     dev.panini.derivation.WholeAffixDesignationPolicy.PreserveAndRemap(emptyList()),
                 ),

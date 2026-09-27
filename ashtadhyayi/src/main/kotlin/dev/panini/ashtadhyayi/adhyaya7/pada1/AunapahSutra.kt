@@ -3,6 +3,7 @@ package dev.panini.ashtadhyayi.adhyaya7.pada1
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.shiksha.Svara
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -34,7 +35,7 @@ object AunapahSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        val endsInAA = stem.surface.endsWith('ा') || stem.surface.endsWith('आ')
+        val endsInAA = stem.varnas.lastOrNull() == Svara.AA
         val isEligibleAffix = affix.upadesha == "औ" || affix.upadesha == "औट्"
 
         return endsInAA && isEligibleAffix

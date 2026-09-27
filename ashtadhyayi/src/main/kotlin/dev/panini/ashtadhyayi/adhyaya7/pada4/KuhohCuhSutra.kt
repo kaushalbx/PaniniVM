@@ -4,6 +4,9 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.replaceVarna
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -17,21 +20,29 @@ object KuhohCuhSutra : Sutra<DerivationState, DerivationChange>(
     type = SutraType.NITYA, chapter = 7, pada = 4, optional = false, kramaValue = 740062,
     role = SutraRole.Vidhi, action = SutraAction.ADESHA, scope = SutraScope.DHATU,
 ), DerivationSutra {
-    private val cuhSubstitutions = mapOf('क' to 'च', 'ख' to 'छ', 'ग' to 'ज', 'घ' to 'झ', 'ङ' to 'ञ', 'ह' to 'ज')
+    private val cuhSubstitutions = mapOf(
+        Vyanjana.KA to Vyanjana.CA,
+        Vyanjana.KHA to Vyanjana.CHA,
+        Vyanjana.GA to Vyanjana.JA,
+        Vyanjana.GHA to Vyanjana.JHA,
+        Vyanjana.NGA to Vyanjana.NYA,
+        Vyanjana.HA to Vyanjana.JA,
+    )
 
     override fun matches(context: DerivationState): Boolean {
         val abhyasa = context.terms.firstOrNull { it.id == "abhyasa" } ?: return false
         return context.samjnas.any { it.targetId == abhyasa.id && it.samjna == Samjna.ABHYASA } &&
-            abhyasa.surface.firstOrNull() in cuhSubstitutions
+            abhyasa.varnas.firstOrNull() in cuhSubstitutions
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val abhyasa = context.terms.first { it.id == "abhyasa" }
-        val replacement = cuhSubstitutions.getValue(abhyasa.surface.first())
-        val substituted = replacement + abhyasa.surface.drop(1)
+        val source = abhyasa.varnas.first() as Vyanjana
+        val replacement = cuhSubstitutions.getValue(source)
+        val substituted = abhyasa.varnas.replaceVarna(0, listOf(replacement))
         return DerivationChange(
-            context.substituteTermSurface(abhyasa.id, substituted, abhyasa.surface.first(), replacement.toString(), sutra),
-            "7.4.62 changes initial ${abhyasa.surface.first()} of the abhyāsa to $replacement.",
+            context.substituteTermSurface(abhyasa.id, substituted.toDevanagari(), source, listOf(replacement), sutra),
+            "7.4.62 changes initial $source of the abhyāsa to $replacement.",
         )
     }
 }

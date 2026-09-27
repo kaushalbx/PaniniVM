@@ -1,12 +1,13 @@
 package dev.panini.ashtadhyayi.adhyaya8.pada4
 
 import dev.panini.ashtadhyayi.Ashtadhyayi
-import dev.panini.ashtadhyayi.adhyaya1.pada1.SthaneAntaratamahSutra
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.pratyahara.Pratyahara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -36,8 +37,8 @@ object VavasaneSutra : Sutra<DerivationState, DerivationChange>(
         if (context.stage != DerivationStage.PADA_FORMED && context.stage != DerivationStage.FINAL) return false
 
         val lastTerm = context.terms.lastOrNull() ?: return false
-        val finalConsonant = getFinalConsonant(lastTerm.surface) ?: return false
-        if (finalConsonant in setOf('च', 'ट', 'त', 'क', 'प', 'श', 'ष', 'स', 'ह')) return false
+        val finalConsonant = lastTerm.varnas.lastOrNull() ?: return false
+        if (finalConsonant in alreadyDevoiced) return false
 
         val engine = Ashtadhyayi.pratyaharaEngine
         return engine.contains(Pratyahara.JHAL, finalConsonant)
@@ -45,21 +46,14 @@ object VavasaneSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val lastTerm = context.terms.last()
-        val finalConsonant = getFinalConsonant(lastTerm.surface)!!
-
-        val potentialSubstitutes = setOf("च", "ट", "त", "क", "प")
-        val substitute = SthaneAntaratamahSutra.selectBest(finalConsonant, potentialSubstitutes)
-
-        val newSurface = if (lastTerm.surface.endsWith('र')) {
-            lastTerm.surface.dropLast(1) + substitute
-        } else {
-            lastTerm.surface.dropLast(2) + substitute + '्'
-        }
+        val finalConsonant = lastTerm.varnas.last()
+        val substitute = devoiced(finalConsonant)
+        val result = lastTerm.varnas.dropLast(1) + substitute
 
         return DerivationChange(
-            state = context.substituteTermSurface(lastTerm.id, newSurface, finalConsonant, substitute, sutra)
+            state = context.substituteTermVarnas(lastTerm.id, result, finalConsonant, listOf(substitute), sutra)
                 .copy(stage = DerivationStage.FINAL),
-            explanation = "8.4.56: Optionally devoiced $finalConsonant to $substitute at avasāna."
+            explanation = "8.4.56: Optionally devoiced ${finalConsonant.devanagari} to ${substitute.devanagari} at avasāna."
         )
     }
 
@@ -68,12 +62,17 @@ object VavasaneSutra : Sutra<DerivationState, DerivationChange>(
         DerivationChange(state, "8.4.56: Declined optional devoicing at avasāna.", applied = false)
     )
 
-    private fun getFinalConsonant(surface: String): Char? {
-        if (surface.isEmpty()) return null
-        if (surface.endsWith('र')) return 'र'
-        if (surface.endsWith('्') && surface.length >= 2) {
-            return surface[surface.length - 2]
-        }
-        return null
+    private fun devoiced(source: Varna): Vyanjana = when (source) {
+        Vyanjana.JA, Vyanjana.JHA -> Vyanjana.CA
+        Vyanjana.DDA, Vyanjana.DDHA -> Vyanjana.TTA
+        Vyanjana.DA, Vyanjana.DHA -> Vyanjana.TA
+        Vyanjana.GA, Vyanjana.GHA -> Vyanjana.KA
+        Vyanjana.BA, Vyanjana.BHA -> Vyanjana.PA
+        else -> Vyanjana.TA
     }
+
+    private val alreadyDevoiced: Set<Varna> = setOf(
+        Vyanjana.CA, Vyanjana.TTA, Vyanjana.TA, Vyanjana.KA, Vyanjana.PA,
+        Vyanjana.SHA, Vyanjana.SSA, Vyanjana.SA, Vyanjana.HA,
+    )
 }

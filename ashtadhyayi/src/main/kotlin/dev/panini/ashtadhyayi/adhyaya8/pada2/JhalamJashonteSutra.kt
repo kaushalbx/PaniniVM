@@ -12,6 +12,7 @@ import dev.panini.derivation.VarnaSubstitution
 import dev.panini.derivation.WholeAffixDesignationPolicy
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -42,26 +43,22 @@ object JhalamJashonteSutra : Sutra<DerivationState, DerivationChange>(
         val internal = internalSankhyaTerm(context)
         if (isSankhyaCompound(context) && internal == null) return false
         val lastTerm = internal ?: context.terms.lastOrNull() ?: return false
-        val finalConsonant = getFinalConsonant(lastTerm.surface) ?: return false
-        if (finalConsonant == 'स') return false
-        if (finalConsonant in setOf('ज', 'ब', 'ग', 'ड', 'द')) return false
+        val finalConsonant = getFinalConsonant(lastTerm) ?: return false
+        if (finalConsonant == Vyanjana.SA) return false
+        if (finalConsonant in jash) return false
         val engine = Ashtadhyayi.pratyaharaEngine
-        return engine.contains(Pratyahara.JHAL, finalConsonant)
+        return engine.contains(Pratyahara.JHAL, finalConsonant.devanagari.single())
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val lastTerm = internalSankhyaTerm(context) ?: context.terms.last()
-        val finalConsonant = getFinalConsonant(lastTerm.surface)!!
+        val finalConsonant = requireNotNull(getFinalConsonant(lastTerm))
 
         // Use 1.1.50 logic to pick the best voiced substitute
         val potentialSubstitutes = setOf("ज", "ब", "ग", "ड", "द")
-        val substitute = SthaneAntaratamahSutra.selectBest(finalConsonant, potentialSubstitutes)
-
-        val newSurface = if (lastTerm.surface.endsWith('र')) {
-            lastTerm.surface.dropLast(1) + substitute
-        } else {
-            lastTerm.surface.dropLast(2) + substitute + '्'
-        }
+        val substituteText = SthaneAntaratamahSutra.selectBest(finalConsonant.devanagari.single(), potentialSubstitutes)
+        val substitute = requireNotNull(Vyanjana.fromDevanagari(substituteText.single()))
+        val result = lastTerm.varnas.dropLast(1) + substitute
 
         val changed = if (lastTerm.kind in setOf(TermKind.PRATYAYA, TermKind.AGAMA, TermKind.AUGMENT)) {
             val remaps = (lastTerm.itDesignations + lastTerm.deferredItDesignations).map { designation ->
@@ -72,12 +69,12 @@ object JhalamJashonteSutra : Sutra<DerivationState, DerivationChange>(
             }
             context.replaceWholeAffix(
                 id = lastTerm.id,
-                surface = newSurface,
+                varnas = result,
                 sutra = sutra,
                 policy = WholeAffixDesignationPolicy.PreserveAndRemap(remaps),
-            ).addSubstitution(VarnaSubstitution(lastTerm.id, finalConsonant, substitute, sutra))
+            ).addSubstitution(VarnaSubstitution(lastTerm.id, finalConsonant.devanagari.single(), substitute.devanagari, sutra))
         } else {
-            context.substituteTermSurface(lastTerm.id, newSurface, finalConsonant, substitute, sutra)
+            context.substituteTermVarnas(lastTerm.id, result, finalConsonant, listOf(substitute), sutra)
         }
 
         return DerivationChange(
@@ -86,20 +83,15 @@ object JhalamJashonteSutra : Sutra<DerivationState, DerivationChange>(
         )
     }
 
-    private fun getFinalConsonant(surface: String): Char? {
-        if (surface.isEmpty()) return null
-        if (surface.endsWith('र')) return 'र'
-        if (surface.endsWith('्') && surface.length >= 2) {
-            return surface[surface.length - 2]
-        }
-        return null
-    }
+    private fun getFinalConsonant(term: dev.panini.derivation.DerivationTerm): Vyanjana? = term.varnas.lastOrNull() as? Vyanjana
 
     private fun internalSankhyaTerm(context: DerivationState) = context.terms.firstOrNull { term ->
         term != context.terms.last() && context.samjnas.any { it.targetId == term.id && it.samjna == Samjna.SANKHYA } &&
-            getFinalConsonant(term.surface) != null
+            getFinalConsonant(term) != null
     }
 
     private fun isSankhyaCompound(context: DerivationState): Boolean = context.terms.size > 1 &&
         context.terms.all { term -> context.samjnas.any { it.targetId == term.id && it.samjna == Samjna.SANKHYA } }
+
+    private val jash = setOf(Vyanjana.JA, Vyanjana.BA, Vyanjana.GA, Vyanjana.DDA, Vyanjana.DA)
 }

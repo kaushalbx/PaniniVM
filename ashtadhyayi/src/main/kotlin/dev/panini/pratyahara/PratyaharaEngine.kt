@@ -1,9 +1,8 @@
 package dev.panini.pratyahara
 
-import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Varna
 import dev.panini.shiksha.Varnamala
-import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.Svara
 
 class PratyaharaEngine(
     sutras: List<MaheshvaraSutra> = MaheshvaraSutras.all,
@@ -34,15 +33,13 @@ class PratyaharaEngine(
     fun contains(pratyahara: Pratyahara, char: Char): Boolean {
         val normalizedChar = Varnamala.normalize(char)
         val varna = Varnamala.fromChar(normalizedChar) ?: return false
-        val set = derive(pratyahara)
+        return contains(pratyahara, varna)
+    }
 
-        // Handle matras and independent vowels as equivalent for matching
-        return when (varna) {
-            is Svara -> set.any {
-                it is Svara && (it == varna || Varnamala.normalize(it.devanagari.single()) == Varnamala.normalize(varna.devanagari.single()))
-            }
-            is Vyanjana -> set.contains(varna)
-            else -> false
-        }
+    /** Canonical phonological membership API; orthographic adapters delegate here. */
+    fun contains(pratyahara: Pratyahara, varna: Varna): Boolean {
+        val members = derive(pratyahara)
+        return varna in members ||
+            (varna is Svara && members.filterIsInstance<Svara>().any { Varnamala.areSavarna(it, varna) })
     }
 }

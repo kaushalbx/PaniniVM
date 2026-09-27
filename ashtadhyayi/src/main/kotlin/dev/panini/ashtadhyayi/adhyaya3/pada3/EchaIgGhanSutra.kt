@@ -1,9 +1,14 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada3
 
+import dev.panini.core.KrtAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.matchesAffix
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.replaceVarna
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -21,14 +26,14 @@ object EchaIgGhanSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi, action = SutraAction.ADESHA, scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
-        context.allEffectiveTerms.any { it.upadesha == "घञ्" } &&
+        context.allEffectiveTerms.any { it.matchesAffix(KrtAffix.GHAN) } &&
         "3.3.56" !in context.activeAdhikaras
 
     override fun apply(context: DerivationState): DerivationChange {
         val root = context.allEffectiveTerms.firstOrNull { it.kind == TermKind.DHATU }
-        val newState = if (root != null && root.surface.endsWith("ै")) {
-            val newSurface = root.surface.dropLast(1) + "ि"
-            context.substituteTermSurface(root.id, newSurface, 'ै', "ि", sutra)
+        val newState = if (root != null && root.varnas.lastOrNull() == Svara.AI) {
+            val newSurface = root.varnas.replaceVarna(root.varnas.lastIndex, listOf(Svara.I)).toDevanagari()
+            context.substituteTermSurface(root.id, newSurface, Svara.AI, listOf(Svara.I), sutra)
         } else {
             context.activateAdhikara("3.3.56")
         }

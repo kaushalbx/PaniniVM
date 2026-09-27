@@ -6,6 +6,10 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -40,7 +44,7 @@ object SanvalLaghuniCanpareSutra : Sutra<DerivationState, DerivationChange>(
         if (rootIndex < 0) return DerivationChange(context, "No root found for caṅ-reduplication.")
         val root = context.terms[rootIndex]
 
-        val abhyasaSurface = computeCanAbhyasa(root.surface)
+        val abhyasaSurface = computeCanAbhyasa(root.varnas).toDevanagari()
         val abhyasaTerm = DerivationTerm(
             id = "can_abhyasa",
             surface = abhyasaSurface,
@@ -59,10 +63,14 @@ object SanvalLaghuniCanpareSutra : Sutra<DerivationState, DerivationChange>(
         )
     }
 
-    private fun computeCanAbhyasa(rootSurface: String): String = when (rootSurface) {
-        "भू" -> "अबी"
-        "कृ" -> "अची"
-        "पठ्" -> "अपी"
-        else -> "अ" + rootSurface.take(1)
+    private fun computeCanAbhyasa(root: List<Varna>): List<Varna> = when (root) {
+        listOf<Varna>(Vyanjana.BHA, Svara.UU) -> listOf(Svara.A, Vyanjana.BA, Svara.II)
+        listOf<Varna>(Vyanjana.KA, Svara.R) -> listOf(Svara.A, Vyanjana.CA, Svara.II)
+        listOf<Varna>(Vyanjana.PA, Svara.A, Vyanjana.THA) -> listOf(Svara.A, Vyanjana.PA, Svara.II)
+        else -> when (val initial = root.firstOrNull()) {
+            null -> listOf(Svara.A)
+            is Vyanjana -> listOf(Svara.A, initial, Svara.A)
+            else -> listOf(Svara.A, initial)
+        }
     }
 }

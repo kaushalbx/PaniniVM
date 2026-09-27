@@ -7,6 +7,11 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.HasMorphosyntax
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.replaceVarna
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -34,35 +39,30 @@ object BahuvacaneJhalyetSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
 
         // 7.3.103 applies to a-final aṅgas; feminine ā-stems retain their ā.
-        val isAEnding = dev.panini.shiksha.Varnamala.endsWithA(stem.surface) &&
-            !dev.panini.shiksha.Varnamala.endsWithAA(stem.surface)
-        val firstChar = affix.surface.firstOrNull() ?: return false
+        val isAEnding = stem.varnas.lastOrNull() == Svara.A
+        val firstVarna = affix.varnas.firstOrNull() ?: return false
 
         val isPlural = HasMorphosyntax(vacana = Vacana.BAHUVACANA).matches(context)
 
         return affix.id.startsWith("sup-") &&
             affix.upadesha !in setOf("शि", "शस्") &&
-            isAEnding && isPlural && isJhal(firstChar) &&
+            isAEnding && isPlural && isJhal(firstVarna) &&
                 context.samjnas.any { it.targetId == affix.id && it.samjna == Samjna.PRATYAYA }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val terms = context.terms
         val stem = terms[terms.size - 2]
-        val oldChar = stem.surface.last()
-        val newSurface = if (oldChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks) {
-            stem.surface + "े"
-        } else {
-            stem.surface.dropLast(1) + "े"
-        }
+        val newVarnas = stem.varnas.replaceVarna(stem.varnas.lastIndex, listOf(Svara.E))
+        val newSurface = newVarnas.toDevanagari()
 
         val affix = terms.last()
         val changedState = if (affix.upadesha == "भ्यस्") {
             context.mergeTermsByVarnaSubstitution(
-                stem.id, affix.id, newSurface + affix.surface, oldChar, "े", sutra,
+                stem.id, affix.id, (newVarnas + affix.varnas).toDevanagari(), Svara.A, listOf(Svara.E), sutra,
             ).copy(stage = DerivationStage.PADA_FORMED)
         } else {
-            context.substituteTermSurface(stem.id, newSurface, oldChar, "े", sutra)
+            context.substituteTermSurface(stem.id, newSurface, Svara.A, listOf(Svara.E), sutra)
                 .copy(stage = DerivationStage.ANGAKARYA)
         }
 
@@ -72,7 +72,11 @@ object BahuvacaneJhalyetSutra : Sutra<DerivationState, DerivationChange>(
         )
     }
 
-    private fun isJhal(c: Char): Boolean = c in setOf(
-        'झ', 'भ', 'घ', 'ढ', 'ध', 'ज', 'ब', 'ग', 'ड', 'द', 'ख', 'फ', 'छ', 'ठ', 'थ', 'च', 'ट', 'त', 'क', 'प', 'श', 'ष', 'स', 'ह'
+    private fun isJhal(varna: Varna): Boolean = varna in setOf(
+        Vyanjana.JHA, Vyanjana.BHA, Vyanjana.GHA, Vyanjana.DDHA, Vyanjana.DHA,
+        Vyanjana.JA, Vyanjana.BA, Vyanjana.GA, Vyanjana.DDA, Vyanjana.DA,
+        Vyanjana.KHA, Vyanjana.PHA, Vyanjana.CHA, Vyanjana.TTHA, Vyanjana.THA,
+        Vyanjana.CA, Vyanjana.TTA, Vyanjana.TA, Vyanjana.KA, Vyanjana.PA,
+        Vyanjana.SHA, Vyanjana.SSA, Vyanjana.SA, Vyanjana.HA,
     )
 }

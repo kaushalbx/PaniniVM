@@ -5,6 +5,8 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -45,7 +47,13 @@ object IdoAyamSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
 
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, "अयम्", 'इ', "अय", sutra)
+            state = context.substituteTermVarnas(
+                stem.id,
+                listOf(Svara.A, Vyanjana.YA, Svara.A, Vyanjana.MA),
+                Svara.I,
+                listOf(Svara.A, Vyanjana.YA),
+                sutra,
+            )
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.2.111: Replaced 'idam' with 'ayam' before nominative singular 'su'."
         )

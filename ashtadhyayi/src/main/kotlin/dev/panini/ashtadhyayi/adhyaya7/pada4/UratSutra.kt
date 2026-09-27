@@ -4,6 +4,8 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -20,16 +22,15 @@ object UratSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         val abhyasa = context.terms.firstOrNull { it.id == "abhyasa" } ?: return false
         return context.samjnas.any { it.targetId == abhyasa.id && it.samjna == Samjna.ABHYASA } &&
-            abhyasa.surface.any { it == 'ऋ' || it == 'ॠ' || it == 'ृ' || it == 'ॄ' }
+            abhyasa.varnas.any { it in setOf(Svara.R, Svara.RR) }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val abhyasa = context.terms.first { it.id == "abhyasa" }
-        val substituted = abhyasa.surface
-            .replace('ऋ', 'अ').replace('ॠ', 'अ')
-            .replace("ृ", "").replace("ॄ", "")
+        val source = abhyasa.varnas.first { it in setOf(Svara.R, Svara.RR) }
+        val substituted = abhyasa.varnas.map { if (it in setOf(Svara.R, Svara.RR)) Svara.A else it }.toDevanagari()
         return DerivationChange(
-            context.substituteTermSurface(abhyasa.id, substituted, 'ऋ', "अ", sutra),
+            context.substituteTermSurface(abhyasa.id, substituted, source, listOf(Svara.A), sutra),
             "7.4.66 replaces ऋ in the abhyāsa ${abhyasa.surface} with अ.",
         )
     }

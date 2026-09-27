@@ -8,6 +8,9 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.OrthographicSign
+import dev.panini.shiksha.OrthographicSignPlacement
+import dev.panini.shiksha.Svara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -52,13 +55,11 @@ object EngahPadantadatiSutra : Sutra<DerivationState, DerivationChange>(
         if (!isPada) return false
 
         // 2. Left term must end in 'e' or 'o' (Eṅ)
-        val lastChar = left.surface.lastOrNull() ?: return false
-        val engine = Ashtadhyayi.pratyaharaEngine
-        if (!engine.contains(Pratyahara.EN, lastChar)) return false
+        val last = left.varnas.lastOrNull()
+        if (last !in setOf(Svara.E, Svara.O)) return false
 
         // 3. Right term must start with short 'a'
-        val nextChar = right.surface.firstOrNull() ?: return false
-        return nextChar == 'अ'
+        return right.varnas.firstOrNull() == Svara.A
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -67,12 +68,15 @@ object EngahPadantadatiSutra : Sutra<DerivationState, DerivationChange>(
         val right = terms.last()
 
         // Pūrvarūpa: the first vowel stays, the second disappears (represented by avagraha in modern script)
-        val newRightSurface = "ऽ" + right.surface.drop(1)
+        val newVarnas = right.varnas.drop(1)
+        val signs = right.orthographicSigns.map {
+            it.copy(afterVarnaCount = (it.afterVarnaCount - 1).coerceAtLeast(0))
+        } + OrthographicSignPlacement(OrthographicSign.AVAGRAHA, 0)
 
         return DerivationChange(
-            state = context.substituteTermSurface(right.id, newRightSurface, 'अ', "ऽ", sutra)
+            state = context.substituteTermVarnas(right.id, newVarnas, signs, Svara.A, emptyList(), sutra)
                 .copy(stage = DerivationStage.FINAL),
-            explanation = "6.1.109: Pūrvarūpa substitution for final ${left.surface.last()} + अ."
+            explanation = "6.1.109: Pūrvarūpa substitution for final ${left.varnas.last().devanagari} + अ."
         )
     }
 }

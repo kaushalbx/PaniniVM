@@ -6,6 +6,7 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -43,10 +44,11 @@ object NaloPratipadikantasyaSutra : Sutra<DerivationState, DerivationChange>(
 
             val hasDroppedSup = context.droppedTerms.any { it.id.startsWith("sup-") }
 
-            val isPratipadikaNanta = stem.upadesha.endsWith("न्") || stem.upadesha in setOf("पञ्चन्", "सप्तन्", "अष्टन्", "नवन्", "दशन्")
+            val isPratipadikaNanta = stem.upadeshaVarnas.lastOrNull() == Vyanjana.NA ||
+                stem.upadesha in setOf("पञ्चन्", "सप्तन्", "अष्टन्", "नवन्", "दशन्")
 
             stem.takeIf {
-                isPratipadikaNanta && stem.kind == TermKind.PRATIPADIKA && stem.surface.endsWith("न्") &&
+                isPratipadikaNanta && stem.kind == TermKind.PRATIPADIKA && stem.varnas.lastOrNull() == Vyanjana.NA &&
                     (affix == null || affix.upadesha in setOf("भ्याम्", "भिस्", "भ्यस्", "सुप्", "मट्", "सु", "नाम्") ||
                         insideSankhyaCompound || insideSamasa || hasDroppedSup)
             }
@@ -56,7 +58,7 @@ object NaloPratipadikantasyaSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val stem = requireNotNull(findTarget(context))
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, stem.surface.dropLast(2), 'न', "", sutra),
+            state = context.substituteTermVarnas(stem.id, stem.varnas.dropLast(1), Vyanjana.NA, emptyList(), sutra),
             explanation = "8.2.7: Deleted final न् of the prātipadika.",
         )
     }

@@ -7,6 +7,8 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
 import dev.panini.core.SupAffix
 import dev.panini.core.TingAffix
+import dev.panini.derivation.DerivationTerm
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -38,7 +40,7 @@ object NaVibhaktauTusmahSutra : Sutra<DerivationState, DerivationChange>(
         return context.terms.any { term ->
             if (pendingIds.isNotEmpty() && term.id !in pendingIds) return@any false
             val isVibhakti = isVibhaktiTerm(context, term)
-            isVibhakti && isTuSMa(term.surface) && term.id !in context.halantyamExemptTermIds
+            isVibhakti && isTuSMa(term) && term.id !in context.halantyamExemptTermIds
         }
     }
 
@@ -46,7 +48,7 @@ object NaVibhaktauTusmahSutra : Sutra<DerivationState, DerivationChange>(
         val pendingIds = context.terms.filter { it.itProcessingPending }.mapTo(mutableSetOf()) { it.id }
         val protectedIds = context.terms.filter { term ->
             (pendingIds.isEmpty() || term.id in pendingIds) &&
-            isVibhaktiTerm(context, term) && isTuSMa(term.surface)
+            isVibhaktiTerm(context, term) && isTuSMa(term)
         }.mapTo(mutableSetOf()) { it.id }
         val state = context.copy(halantyamExemptTermIds = context.halantyamExemptTermIds + protectedIds)
 
@@ -56,13 +58,10 @@ object NaVibhaktauTusmahSutra : Sutra<DerivationState, DerivationChange>(
         )
     }
 
-    private fun isTuSMa(surface: String): Boolean {
-        return surface.endsWith("त्") || surface.endsWith("थ्") || surface.endsWith("द्") ||
-               surface.endsWith("ध्") || surface.endsWith("न्") || surface.endsWith("स्") ||
-               surface.endsWith("म्") || surface.endsWith("त") || surface.endsWith("थ") ||
-               surface.endsWith("द") || surface.endsWith("ध") || surface.endsWith("न") ||
-               surface.endsWith("स") || surface.endsWith("म")
-    }
+    private fun isTuSMa(term: DerivationTerm): Boolean = term.varnas.lastOrNull() in setOf(
+        Vyanjana.TA, Vyanjana.THA, Vyanjana.DA, Vyanjana.DHA, Vyanjana.NA,
+        Vyanjana.SA, Vyanjana.MA,
+    )
 
     private fun isVibhaktiTerm(context: DerivationState, term: dev.panini.derivation.DerivationTerm): Boolean =
         context.samjnas.any { it.targetId == term.id && it.samjna == Samjna.PRATYAYA } ||

@@ -5,6 +5,8 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -41,12 +43,20 @@ object GhvasorEddhavabhyasalopashCaSutra : Sutra<DerivationState, DerivationChan
         val dhatu = context.terms.first { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         val ending = context.terms.lastOrNull { it.kind != TermKind.DHATU }
         val endingSurvives = ending?.surface == "धि"
-        var state = context.substituteTermSurface(
-            dhatu.id, if (endingSurvives) "दे" else "देहि", 'आ', "ए", sutra,
+        var state = context.substituteTermVarnas(
+            dhatu.id,
+            if (endingSurvives) listOf(Vyanjana.DA, Svara.E) else listOf(Vyanjana.DA, Svara.E, Vyanjana.HA, Svara.I),
+            Svara.AA,
+            listOf(Svara.E),
+            sutra,
         )
         if (ending != null) {
-            state = state.substituteTermSurface(
-                ending.id, if (endingSurvives) "हि" else "", 'ध', if (endingSurvives) "ह" else "", sutra,
+            state = state.substituteTermVarnas(
+                ending.id,
+                if (endingSurvives) listOf(Vyanjana.HA, Svara.I) else emptyList(),
+                Vyanjana.DHA,
+                if (endingSurvives) listOf(Vyanjana.HA) else emptyList(),
+                sutra,
             )
         }
         if (state.terms.any { it.id == "abhyasa" }) state = state.removeTerm("abhyasa", sutra = sutra)

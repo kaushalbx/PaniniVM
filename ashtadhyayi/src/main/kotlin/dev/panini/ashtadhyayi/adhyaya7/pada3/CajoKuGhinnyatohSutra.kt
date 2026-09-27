@@ -10,6 +10,9 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraStage
 import dev.panini.sutra.SutraType
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.replaceVarna
+import dev.panini.shiksha.toDevanagari
 
 /** 7.3.52: चजोः कु घिण्ण्यतोः. */
 object CajoKuGhinnyatohSutra : Sutra<DerivationState, DerivationChange>(
@@ -29,17 +32,17 @@ object CajoKuGhinnyatohSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU } ?: return false
         val affix = context.terms.firstOrNull { it.kind == TermKind.PRATYAYA } ?: return false
-        return (dhatu.surface.endsWith("च्") || dhatu.surface.endsWith("ज्")) &&
+        return dhatu.varnas.lastOrNull() in setOf(Vyanjana.CA, Vyanjana.JA) &&
             (affix.matchesUpadesha("घञ्") || affix.matchesUpadesha("ण्यत्"))
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val dhatu = context.terms.first { it.kind == TermKind.DHATU }
-        val source = dhatu.surface[dhatu.surface.length - 2]
-        val replacement = if (source == 'च') "क" else "ग"
-        val newSurface = dhatu.surface.dropLast(2) + replacement + "्"
+        val source = dhatu.varnas.last()
+        val replacement = if (source == Vyanjana.CA) Vyanjana.KA else Vyanjana.GA
+        val newSurface = dhatu.varnas.replaceVarna(dhatu.varnas.lastIndex, listOf(replacement)).toDevanagari()
         return DerivationChange(
-            context.substituteTermSurface(dhatu.id, newSurface, source, replacement, sutra),
+            context.substituteTermSurface(dhatu.id, newSurface, source, listOf(replacement), sutra),
             "7.3.52 substitutes the corresponding guttural for final $source before घञ्/ण्यत्.",
         )
     }

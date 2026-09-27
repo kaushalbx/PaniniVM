@@ -3,7 +3,8 @@ package dev.panini.ashtadhyayi.adhyaya8.pada4
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.shiksha.Varnamala
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -35,45 +36,45 @@ object StosShcunaShcuhSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val match = findMatch(context)!!
         val targetTerm = context.terms[match.termIndex]
-        val targetChar = targetTerm.surface[match.charIndex]
-        val replacement = getReplacement(targetChar)
-        val newSurface = targetTerm.surface.replaceRange(match.charIndex, match.charIndex + 1, replacement)
+        val source = targetTerm.varnas[match.varnaIndex]
+        val replacement = getReplacement(source)
+        val result = targetTerm.varnas.toMutableList().also { it[match.varnaIndex] = replacement }
 
         return DerivationChange(
-            state = context.substituteTermSurface(targetTerm.id, newSurface, targetChar, replacement, sutra),
-            explanation = "8.4.40: Palatalized $targetChar to $replacement in contact with ${match.triggerChar}."
+            state = context.substituteTermVarnas(targetTerm.id, result, source, listOf(replacement), sutra),
+            explanation = "8.4.40: Palatalized ${source.devanagari} to ${replacement.devanagari} in contact with ${match.trigger.devanagari}."
         )
     }
 
     private fun findMatch(context: DerivationState): Match? {
-        val characters = context.terms.flatMapIndexed { termIndex, term ->
-            term.surface.mapIndexed { charIndex, char -> OwnedChar(termIndex, charIndex, char) }
+        val varnas = context.terms.flatMapIndexed { termIndex, term ->
+            term.varnas.mapIndexed { varnaIndex, varna -> OwnedVarna(termIndex, varnaIndex, varna) }
         }
-        for (i in 0 until characters.size - 2) {
-            val curr = characters[i]
-            val virama = characters[i + 1]
-            val next = characters[i + 2]
-            if (virama.char != '्') continue
-            if (isStu(curr.char) && isShcu(next.char)) {
-                return Match(curr.termIndex, curr.charIndex, next.char)
+        for (i in 0 until varnas.lastIndex) {
+            val curr = varnas[i]
+            val next = varnas[i + 1]
+            if (isStu(curr.varna) && isShcu(next.varna)) {
+                return Match(curr.termIndex, curr.varnaIndex, next.varna)
             }
-            if (isShcu(curr.char) && isStu(next.char)) {
-                return Match(next.termIndex, next.charIndex, curr.char)
+            if (isShcu(curr.varna) && isStu(next.varna)) {
+                return Match(next.termIndex, next.varnaIndex, curr.varna)
             }
         }
         return null
     }
 
-    private fun isStu(c: Char): Boolean = c in setOf('स', 'त', 'थ', 'द', 'ध', 'न')
+    private fun isStu(varna: Varna): Boolean = varna in stu
 
-    private fun isShcu(c: Char): Boolean = c in setOf('श', 'च', 'छ', 'ज', 'झ', 'ञ')
+    private fun isShcu(varna: Varna): Boolean = varna in shcu
 
-    private fun getReplacement(target: Char): String {
-        if (target == 'स') return "श"
-        val vargaInfo = Varnamala.getVargaInfo(target) ?: return target.toString()
-        return Varnamala.getVargaMember("चु", vargaInfo.second)?.toString() ?: target.toString()
-    }
+    private fun getReplacement(target: Varna): Varna = replacements[target] ?: target
 
-    private data class OwnedChar(val termIndex: Int, val charIndex: Int, val char: Char)
-    private data class Match(val termIndex: Int, val charIndex: Int, val triggerChar: Char)
+    private val stu = setOf(Vyanjana.SA, Vyanjana.TA, Vyanjana.THA, Vyanjana.DA, Vyanjana.DHA, Vyanjana.NA)
+    private val shcu = setOf(Vyanjana.SHA, Vyanjana.CA, Vyanjana.CHA, Vyanjana.JA, Vyanjana.JHA, Vyanjana.NYA)
+    private val replacements = mapOf<Varna, Varna>(
+        Vyanjana.SA to Vyanjana.SHA, Vyanjana.TA to Vyanjana.CA, Vyanjana.THA to Vyanjana.CHA,
+        Vyanjana.DA to Vyanjana.JA, Vyanjana.DHA to Vyanjana.JHA, Vyanjana.NA to Vyanjana.NYA,
+    )
+    private data class OwnedVarna(val termIndex: Int, val varnaIndex: Int, val varna: Varna)
+    private data class Match(val termIndex: Int, val varnaIndex: Int, val trigger: Varna)
 }

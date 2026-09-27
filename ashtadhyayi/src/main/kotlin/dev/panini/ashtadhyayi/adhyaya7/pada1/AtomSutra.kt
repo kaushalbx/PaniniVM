@@ -6,6 +6,7 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.HasMorphosyntax
+import dev.panini.shiksha.Svara
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -41,7 +42,7 @@ object AtomSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
 
         // A consonant without a virāma carries the inherent a; e.g. फल is a-final.
-        val endsInA = dev.panini.shiksha.Varnamala.endsWithA(stem.surface)
+        val endsInA = stem.varnas.lastOrNull() == Svara.A
         return endsInA &&
             (affix.upadesha == "सुँ" || affix.upadesha == "अम्") &&
             affix.surface != "म्"

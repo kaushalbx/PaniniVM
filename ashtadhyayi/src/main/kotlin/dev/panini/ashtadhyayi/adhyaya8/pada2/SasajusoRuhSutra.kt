@@ -8,7 +8,12 @@ import dev.panini.derivation.TermKind
 import dev.panini.derivation.VarnaSubstitution
 import dev.panini.derivation.WholeAffixDesignationPolicy
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.OrthographicSign
+import dev.panini.shiksha.OrthographicSignPlacement
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
 import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -35,24 +40,26 @@ object SasajusoRuhSutra : Sutra<DerivationState, DerivationChange>(
             context.stage == DerivationStage.FINAL
         if (!eligibleStage) return false
 
-        val finalSurface = context.terms.lastOrNull()?.surface ?: return false
-        return finalSurface.endsWith(Vyanjana.SA.halanta) ||
-            finalSurface.endsWith("सजुष्") ||
+        val finalVarnas = context.terms.lastOrNull()?.varnas ?: return false
+        return finalVarnas.lastOrNull() == Vyanjana.SA ||
+            finalVarnas.takeLast(sajus.size) == sajus ||
             internalPadaIndex(context) >= 0
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val internalIndex = internalPadaIndex(context)
         val target = context.terms[internalIndex.takeIf { it >= 0 } ?: context.terms.lastIndex]
-        val source = if (target.surface.endsWith("सजुष्")) 'ष' else 'स'
+        val source = if (target.varnas.takeLast(sajus.size) == sajus) Vyanjana.SSA else Vyanjana.SA
         fun withFreshRutva(term: dev.panini.derivation.DerivationTerm): dev.panini.derivation.DerivationTerm {
-            val rawRutva = term.surface.dropLast(2) + "रुँ"
+            val varnas = term.varnas.dropLast(1) + listOf(Vyanjana.RA, Svara.U)
+            val signs = listOf(OrthographicSignPlacement(OrthographicSign.CHANDRABINDU, varnas.size))
+            val rawRutva = varnas.toDevanagari(signs)
             return term.replaceWholeAffix(
                 replacementSurface = rawRutva,
                 replacementUpadesha = rawRutva,
                 sutra = number,
                 policy = WholeAffixDesignationPolicy.FreshUpadesha,
-            )
+            ).copy(orthographicSigns = signs)
         }
         val changed = internalIndex.takeIf { it >= 0 }?.let { index ->
             val target = context.terms[index]
@@ -64,13 +71,13 @@ object SasajusoRuhSutra : Sutra<DerivationState, DerivationChange>(
                 .let(::withFreshRutva)
         )
         return DerivationChange(
-            changed.addSubstitution(VarnaSubstitution(target.id, source, "रुँ", number)),
+            changed.addSubstitution(VarnaSubstitution(target.id, source.devanagari.single(), "रुँ", number)),
             "8.2.66 substitutes रुँ for पद-final ${source}्.",
         )
     }
 
     private fun internalPadaIndex(context: DerivationState): Int = context.terms.indices.firstOrNull { index ->
-        if (index >= context.terms.lastIndex || !context.terms[index].surface.endsWith(Vyanjana.SA.halanta)) return@firstOrNull false
+        if (index >= context.terms.lastIndex || context.terms[index].varnas.lastOrNull() != Vyanjana.SA) return@firstOrNull false
         val leftId = context.terms[index].id
         val rightId = context.terms[index + 1].id
         val bothPadas = context.terms.all { it.kind == TermKind.PRATIPADIKA } &&
@@ -78,4 +85,6 @@ object SasajusoRuhSutra : Sutra<DerivationState, DerivationChange>(
         val bothSankhya = listOf(leftId, rightId).all { id -> context.samjnas.any { it.targetId == id && it.samjna == Samjna.SANKHYA } }
         bothPadas || bothSankhya
     } ?: -1
+
+    private val sajus: List<Varna> = listOf(Vyanjana.SA, Svara.A, Vyanjana.JA, Svara.U, Vyanjana.SSA)
 }

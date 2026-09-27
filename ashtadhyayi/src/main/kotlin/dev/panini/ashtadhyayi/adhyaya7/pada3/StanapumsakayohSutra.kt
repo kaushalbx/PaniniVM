@@ -12,6 +12,10 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.shiksha.Ayogavaha
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 
 /** Neuter s-stem nominative/accusative singular: form the final visarga. */
 object StanapumsakayohSutra : Sutra<DerivationState, DerivationChange>(
@@ -32,14 +36,14 @@ object StanapumsakayohSutra : Sutra<DerivationState, DerivationChange>(
             context.effectiveContext.rupa.vacana != Vacana.EKAVACANA ||
             context.effectiveContext.rupa.vibhakti !in setOf(Vibhakti.PRATHAMA, Vibhakti.DVITIYA)
         ) return false
-        return context.terms[context.terms.size - 2].surface.endsWith("स्")
+        return context.terms[context.terms.size - 2].isSFinal()
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
         return DerivationChange(
-            state = context.mergeTermsByVarnaSubstitution(stem.id, affix.id, stem.surface.dropLast(2) + "ः", 'स', "ः", sutra)
+            state = context.mergeTermsByVarnaSubstitution(stem.id, affix.id, stem.replaceFinalS(listOf(Svara.A, Ayogavaha.VISARGA)).toDevanagari(), Vyanjana.SA, listOf(Svara.A, Ayogavaha.VISARGA), sutra)
                 .copy(stage = DerivationStage.FINAL),
             explanation = "7.3.148: Formed the neuter s-stem nominative/accusative singular visarga.",
         )

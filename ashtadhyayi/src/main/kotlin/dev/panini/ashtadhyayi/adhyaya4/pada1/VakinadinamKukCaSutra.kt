@@ -11,6 +11,8 @@ import dev.panini.derivation.HasDerivationalEnvironment
 import dev.panini.derivation.HasRequestedMeaning
 import dev.panini.derivation.TermKind
 import dev.panini.ganapatha.GanaPatha
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -36,7 +38,9 @@ object VakinadinamKukCaSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         var state = context
         bases(context).forEach { term ->
-            state = state.substituteTermSurface(term.id, term.surface + "क", '∅', "क", sutra)
+            state = state.insertTermVarnas(
+                term.id, term.varnas.size, listOf(Vyanjana.KA, Svara.A), sutra,
+            )
         }
         return DerivationChange(
             state

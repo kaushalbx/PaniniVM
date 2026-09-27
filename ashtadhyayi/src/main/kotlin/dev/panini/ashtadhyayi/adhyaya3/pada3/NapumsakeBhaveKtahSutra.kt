@@ -1,11 +1,13 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada3
 
+import dev.panini.core.KrtAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationalMeaning
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.matchesAffix
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -25,7 +27,7 @@ object NapumsakeBhaveKtahSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean =
         context.effectiveContext.rupa.lakara == null &&
         context.effectiveContext.requestedMeaning == DerivationalMeaning.BHAVA &&
-        context.allEffectiveTerms.none { it.upadesha == "क्त" }
+        context.allEffectiveTerms.none { it.matchesAffix(KrtAffix.KTA) }
 
     override fun apply(context: DerivationState): DerivationChange {
         val kta = DerivationTerm("kta", "क्त", TermKind.PRATYAYA, upadesha = "क्त", createdBySutra = number, itProcessingPhase = dev.panini.derivation.ItProcessingPhase.RAW_UPADESHA)

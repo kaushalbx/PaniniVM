@@ -54,4 +54,13 @@ class PratyaharaEngineTest {
         assertTrue(Vyanjana.SA in result)
         assertTrue(Vyanjana.GA !in result)
     }
+
+    @Test
+    fun `tests membership by phonological varna`() {
+        assertTrue(engine.contains(Pratyahara.AC, Svara.I))
+        assertTrue(engine.contains(Pratyahara.AC, Svara.AA))
+        assertTrue(engine.contains(Pratyahara.AC, Svara.II))
+        assertTrue(engine.contains(Pratyahara.HAL, Vyanjana.KA))
+        assertTrue(!engine.contains(Pratyahara.AC, Vyanjana.KA))
+    }
 }

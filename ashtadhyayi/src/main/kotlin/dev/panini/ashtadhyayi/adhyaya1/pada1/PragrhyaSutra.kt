@@ -8,6 +8,7 @@ import dev.panini.derivation.HasMorphosyntax
 import dev.panini.derivation.SamjnaAssignment
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -39,10 +40,7 @@ object PragrhyaSutra : Sutra<DerivationState, DerivationChange>(
             val isNonNadiStem = term.kind == TermKind.PRATIPADIKA &&
                 context.samjnas.none { it.targetId == term.id && it.samjna == Samjna.NADI }
             if (term.kind != TermKind.PRATYAYA && !isNonNadiStem) return@any false
-            val surface = term.surface
-            val isEligibleVowel = surface.endsWith('ई') || surface.endsWith('ी') ||
-                                 surface.endsWith('ऊ') || surface.endsWith('ू') ||
-                                 surface.endsWith('ए') || surface.endsWith('े')
+            val isEligibleVowel = term.varnas.lastOrNull() in setOf(Svara.II, Svara.UU, Svara.E)
 
             isEligibleVowel && context.samjnas.none { it.targetId == term.id && it.samjna == Samjna.PRAGRHYA }
         }
@@ -53,10 +51,7 @@ object PragrhyaSutra : Sutra<DerivationState, DerivationChange>(
             val isNonNadiStem = term.kind == TermKind.PRATIPADIKA &&
                 context.samjnas.none { it.targetId == term.id && it.samjna == Samjna.NADI }
             if (term.kind != TermKind.PRATYAYA && !isNonNadiStem) return@filter false
-            val surface = term.surface
-            surface.endsWith('ई') || surface.endsWith('ी') ||
-            surface.endsWith('ऊ') || surface.endsWith('ू') ||
-            surface.endsWith('ए') || surface.endsWith('े')
+            term.varnas.lastOrNull() in setOf(Svara.II, Svara.UU, Svara.E)
         }.map { SamjnaAssignment(it.id, Samjna.PRAGRHYA) }.toSet()
 
         return DerivationChange(

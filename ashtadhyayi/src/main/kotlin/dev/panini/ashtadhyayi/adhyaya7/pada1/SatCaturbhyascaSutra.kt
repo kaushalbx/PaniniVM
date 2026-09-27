@@ -7,6 +7,8 @@ import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -50,10 +52,10 @@ object SatCaturbhyascaSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
-        val lengthenedSurface = if (stem.surface.endsWith("न्")) {
-            val withoutFinalN = stem.surface.dropLast(2)
-            if (withoutFinalN.contains('ा')) withoutFinalN else withoutFinalN + "ा"
-        } else stem.surface
+        val lengthenedVarnas = if (stem.varnas.lastOrNull() == Vyanjana.NA) {
+            val withoutFinalN = stem.varnas.dropLast(1)
+            if (Svara.AA in withoutFinalN) withoutFinalN else withoutFinalN + Svara.AA
+        } else stem.varnas
         val nut = DerivationTerm(
             id = "${affix.id}-nut",
             surface = "नुँट्",
@@ -66,8 +68,8 @@ object SatCaturbhyascaSutra : Sutra<DerivationState, DerivationChange>(
         )
 
         return DerivationChange(
-            state = (if (lengthenedSurface != stem.surface) {
-                context.substituteTermSurface(stem.id, lengthenedSurface, 'न', "आ", sutra)
+            state = (if (lengthenedVarnas != stem.varnas) {
+                context.substituteTermVarnas(stem.id, lengthenedVarnas, Vyanjana.NA, listOf(Svara.AA), sutra)
             } else context).addTerm(nut),
             explanation = "7.1.55 introduces raw नुँट् before आम् after catur/ṣaṭ."
         )

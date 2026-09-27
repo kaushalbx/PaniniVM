@@ -5,6 +5,9 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.toDevanagari
+import dev.panini.shiksha.toVarnas
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -47,11 +50,13 @@ object AccaGhehSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        val newStemSurface = stem.surface.dropLast(1) + "अ"
+        val stemVarnas = stem.varnas
+        val sourceVowel = stemVarnas.last() as Svara
+        val newStemSurface = (stemVarnas.dropLast(1) + Svara.A).toDevanagari()
         val newAffixSurface = "औ"
 
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, newStemSurface, stem.surface.last(), "अ", sutra)
+            state = context.substituteTermSurface(stem.id, newStemSurface, sourceVowel, listOf(Svara.A), sutra)
                 .replaceWholeAffix(affix.id, newAffixSurface, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume, upadesha = "औ")
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.119: Substituted 'a' for ghi-stem vowel and 'au' for 'ṅi'."

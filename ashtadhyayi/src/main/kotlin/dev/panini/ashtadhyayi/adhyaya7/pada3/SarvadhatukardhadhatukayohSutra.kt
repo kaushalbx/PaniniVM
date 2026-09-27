@@ -14,11 +14,14 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationalEnvironment
 import dev.panini.derivation.HasDerivationalEnvironment
 import dev.panini.derivation.TermKind
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.derivation.WholeAffixDesignationPolicy
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Varnamala
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.replaceVarna
+import dev.panini.shiksha.toDevanagari
+import dev.panini.shiksha.toGunaVarnas
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -49,11 +52,11 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
         // Jurisdictional check: Must be in the Aṅga section
         if ("6.4.1" !in context.activeAdhikaras) return false
 
-        val nic = context.terms.firstOrNull { it.matchesUpadesha("णिच्") && it.surface == "इ" }
+        val nic = context.terms.firstOrNull { it.matchesUpadesha("णिच्") && it.varnas == listOf(Svara.I) }
         if (nic != null && gradesNicEnding(context, nic.id)) return true
 
         val strongUGrade = strongUGrade(context)
-        if (strongUGrade != null) return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.IK, strongUGrade.surface.last())
+        if (strongUGrade != null) return strongUGrade.varnas.lastOrNull() in ikVowels
 
         val stemIndex = context.terms.indexOfFirst { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         if (stemIndex < 0) return false
@@ -91,35 +94,34 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
 
         if (!isSarvaOrArdha) return false
 
-        val lastChar = stem.surface.lastOrNull() ?: return false
-        return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.IK, lastChar)
+        return stem.varnas.lastOrNull() in ikVowels
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val nic = context.terms.firstOrNull { it.matchesUpadesha("णिच्") && it.surface == "इ" }
+        val nic = context.terms.firstOrNull { it.matchesUpadesha("णिच्") && it.varnas == listOf(Svara.I) }
         if (nic != null && gradesNicEnding(context, nic.id)) {
             return DerivationChange(
                 state = context.replaceWholeAffix(
                     nic.id,
-                    "ए",
+                    listOf(Svara.E),
                     sutra,
                     WholeAffixDesignationPolicy.PreserveAndRemap(emptyList()),
                 )
                     .copy(stage = DerivationStage.ANGAKARYA)
-                    .addSubstitution(VarnaSubstitution(nic.id, 'इ', "ए", sutra)),
+                    .addVarnaSubstitution(nic.id, Svara.I, listOf(Svara.E), sutra),
                 explanation = "7.3.84 applies guṇa to the final इ of the ṇic-ending aṅga before a sārvadhātuka or ārdhadhātuka suffix.",
             )
         }
         val stem = strongUGrade(context)
             ?: context.terms.first { it.kind == TermKind.DHATU && it.id != "abhyasa" }
-        val lastChar = stem.surface.last()
-        val replacement = requireNotNull(Varnamala.getGuna(lastChar))
-        val newSurface = stem.surface.dropLast(1) + replacement
+        val source = stem.varnas.last() as Svara
+        val replacement = source.toGunaVarnas()
+        val newSurface = stem.varnas.replaceVarna(stem.varnas.lastIndex, replacement).toDevanagari()
 
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, newSurface, lastChar, replacement, sutra)
+            state = context.substituteTermSurface(stem.id, newSurface, source, replacement, sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
-            explanation = "7.3.84: Applied guna ($replacement) within Aṅgasya jurisdiction."
+            explanation = "7.3.84: Applied guṇa (${replacement.toDevanagari()}) within Aṅgasya jurisdiction."
         )
     }
 
@@ -158,4 +160,6 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
         return affix.pada != PadaType.ATMANEPADA ||
             context.allEffectiveTerms.any { it.id == "lot-at-agama" || "3.4.92" in it.establishedBySutras }
     }
+
+    private val ikVowels = setOf(Svara.I, Svara.II, Svara.U, Svara.UU, Svara.R, Svara.RR, Svara.L, Svara.LL)
 }

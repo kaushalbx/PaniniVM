@@ -7,6 +7,7 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.ItProcessingPhase
 import dev.panini.derivation.TermKind
+import dev.panini.shiksha.Svara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -24,7 +25,7 @@ object AshnotesCaSutra : Sutra<DerivationState, DerivationChange>(
         val abhyasaIndex = context.terms.indexOfFirst { it.id == "abhyasa" }
         val dhatu = context.terms.drop(abhyasaIndex + 1).firstOrNull { it.kind == TermKind.DHATU } ?: return false
         return context.effectiveContext.rupa.lakara == Lakara.LIT &&
-            abhyasaIndex >= 0 && context.terms[abhyasaIndex].surface.startsWith('आ') &&
+            abhyasaIndex >= 0 && context.terms[abhyasaIndex].varnas.firstOrNull() == Svara.AA &&
             dhatu.matchesUpadesha("अश्") && context.terms.none { it.id == "nut" }
     }
 

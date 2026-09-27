@@ -1,11 +1,16 @@
 package dev.panini.ashtadhyayi.adhyaya6.pada1
 
 import dev.panini.ashtadhyayi.Ashtadhyayi
+import dev.panini.core.SupAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.matchesAnyAffix
 import dev.panini.pratyahara.Pratyahara
+import dev.panini.shiksha.OrthographicSign
+import dev.panini.shiksha.OrthographicSignPlacement
+import dev.panini.shiksha.Svara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraPriority
@@ -40,16 +45,14 @@ object NasiNgasoshCaSutra : Sutra<DerivationState, DerivationChange>(
         val right = context.terms.last()
 
         // 1. Left term must end in 'e' or 'o' (usually from Ghi guna)
-        val lastChar = left.surface.lastOrNull() ?: return false
-        val engine = Ashtadhyayi.pratyaharaEngine
-        val isEng = engine.contains(Pratyahara.EC, lastChar) && (lastChar in setOf('ए', 'ओ', 'े', 'ो'))
+        val isEng = left.varnas.lastOrNull() in setOf(Svara.E, Svara.O)
 
         if (!isEng) return false
 
         // 2. Right term must be the 'a' of ṅasi or ṅas
         // In our engine, suffixes are already it-processed, so 'ṅasi' is 'as' or 'i'
         // depending on previous rules. Specifically, ṅasi/ṅas starts with 'a'.
-        return right.upadesha in setOf("ङसि", "ङस्") && right.surface.startsWith('अ')
+        return right.matchesAnyAffix(SupAffix.NGASI, SupAffix.NGAS) && right.varnas.firstOrNull() == Svara.A
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -57,10 +60,13 @@ object NasiNgasoshCaSutra : Sutra<DerivationState, DerivationChange>(
         val right = terms.last()
 
         // Pūrvarūpa: replace the 'a' with avagraha or delete it.
-        val newRightSurface = "ऽ" + right.surface.drop(1)
+        val newVarnas = right.varnas.drop(1)
+        val signs = right.orthographicSigns.map {
+            it.copy(afterVarnaCount = (it.afterVarnaCount - 1).coerceAtLeast(0))
+        } + OrthographicSignPlacement(OrthographicSign.AVAGRAHA, 0)
 
         return DerivationChange(
-            state = context.substituteTermSurface(right.id, newRightSurface, 'अ', "ऽ", sutra)
+            state = context.substituteTermVarnas(right.id, newVarnas, signs, Svara.A, emptyList(), sutra)
                 .copy(stage = DerivationStage.PADA_FORMED),
             explanation = "6.1.110: Pūrvarūpa substitution for final vowel + ङसि/ङस्."
         )

@@ -5,6 +5,9 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -27,19 +30,22 @@ object HaliCaSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val index = context.terms.indexOfFirst {
-            it.kind == TermKind.DHATU && it.matchesUpadesha("दिवुँ") && it.surface == "दिव्"
+            it.kind == TermKind.DHATU && it.matchesUpadesha("दिवुँ") && it.varnas == divVarnas
         }
         return index >= 0 && context.terms.getOrNull(index + 1)?.upadesha == "श्यन्"
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val root = context.terms.first {
-            it.kind == TermKind.DHATU && it.matchesUpadesha("दिवुँ") && it.surface == "दिव्"
+            it.kind == TermKind.DHATU && it.matchesUpadesha("दिवुँ") && it.varnas == divVarnas
         }
         return DerivationChange(
-            state = context.substituteTermSurface(root.id, "दीव्", 'ि', "ी", sutra)
+            state = context.substituteTermVarnas(root.id, diivVarnas, Svara.I, listOf(Svara.II), sutra)
                 .copy(stage = DerivationStage.FINAL),
             explanation = "8.2.77 lengthens the vowel of दिव् before the consonantal श्यन् remainder.",
         )
     }
+
+    private val divVarnas: List<Varna> = listOf(Vyanjana.DA, Svara.I, Vyanjana.VA)
+    private val diivVarnas: List<Varna> = listOf(Vyanjana.DA, Svara.II, Vyanjana.VA)
 }

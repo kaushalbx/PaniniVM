@@ -3,7 +3,10 @@ package dev.panini.ashtadhyayi.adhyaya8.pada4
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.shiksha.Varnamala
+import dev.panini.shiksha.OrthographicSign
+import dev.panini.shiksha.OrthographicSignPlacement
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -30,41 +33,43 @@ object TorliSutra : Sutra<DerivationState, DerivationChange>(
     scope = SutraScope.PADA_BOUNDARY,
     stage = SutraStage.SANDHI,
 ), DerivationSutra {
-    private val tuVarga = Varnamala.expandUdit("तु")
+    private val tuVarga = setOf(Vyanjana.TA, Vyanjana.THA, Vyanjana.DA, Vyanjana.DHA, Vyanjana.NA)
 
     override fun matches(context: DerivationState): Boolean = findMatch(context) != null
 
     override fun apply(context: DerivationState): DerivationChange {
         val match = requireNotNull(findMatch(context))
         val targetTerm = context.terms[match.termIndex]
-        val surface = targetTerm.surface
-        val isNasal = match.targetChar == 'न'
-        val replacement = if (isNasal) "ँल्" else "ल्"
-        val viramaFollowsInSameTerm = surface.getOrNull(match.charIndex + 1) == '्'
-        val end = match.charIndex + if (viramaFollowsInSameTerm) 2 else 1
-        val newSurface = surface.replaceRange(match.charIndex, end, replacement)
+        val source = targetTerm.varnas[match.varnaIndex]
+        val result = targetTerm.varnas.toMutableList().also { it[match.varnaIndex] = Vyanjana.LA }
+        val signs = if (source == Vyanjana.NA) {
+            targetTerm.orthographicSigns + OrthographicSignPlacement(OrthographicSign.CHANDRABINDU, match.varnaIndex)
+        } else {
+            targetTerm.orthographicSigns
+        }
 
         return DerivationChange(
-            state = context.substituteTermSurface(targetTerm.id, newSurface, match.targetChar, replacement, sutra),
-            explanation = "8.4.60: Assimilated ta-varga to $replacement before 'l'."
+            state = context.substituteTermVarnas(
+                targetTerm.id, result, signs, source, listOf(Vyanjana.LA), sutra,
+            ),
+            explanation = "8.4.60: Assimilated ta-varga to l before l."
         )
     }
 
     private fun findMatch(context: DerivationState): Match? {
-        val characters = context.terms.flatMapIndexed { termIndex, term ->
-            term.surface.mapIndexed { charIndex, char -> OwnedChar(termIndex, charIndex, char) }
+        val varnas = context.terms.flatMapIndexed { termIndex, term ->
+            term.varnas.mapIndexed { varnaIndex, varna -> OwnedVarna(termIndex, varnaIndex, varna) }
         }
-        for (index in 0 until characters.size - 2) {
-            val target = characters[index]
-            val virama = characters[index + 1]
-            val trigger = characters[index + 2]
-            if (target.char in tuVarga && virama.char == '्' && trigger.char == 'ल') {
-                return Match(target.termIndex, target.charIndex, target.char)
+        for (index in 0 until varnas.lastIndex) {
+            val target = varnas[index]
+            val trigger = varnas[index + 1]
+            if (target.varna in tuVarga && trigger.varna == Vyanjana.LA) {
+                return Match(target.termIndex, target.varnaIndex)
             }
         }
         return null
     }
 
-    private data class OwnedChar(val termIndex: Int, val charIndex: Int, val char: Char)
-    private data class Match(val termIndex: Int, val charIndex: Int, val targetChar: Char)
+    private data class OwnedVarna(val termIndex: Int, val varnaIndex: Int, val varna: Varna)
+    private data class Match(val termIndex: Int, val varnaIndex: Int)
 }

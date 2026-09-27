@@ -5,6 +5,8 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.pratyahara.Pratyahara
+import dev.panini.shiksha.Ayogavaha
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -31,28 +33,20 @@ object VisarjaniyasyaSahSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.terms.size < 2) return false
-        val left = context.terms[context.terms.size - 2].surface
-        val right = context.terms.last().surface
-
-        if (!left.endsWith('ः')) return false
-
-        val nextChar = right.firstOrNull() ?: return false
-        return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.KHAR, nextChar)
+        val left = context.terms[context.terms.size - 2]
+        val next = context.terms.last().varnas.firstOrNull() as? Vyanjana ?: return false
+        return left.varnas.lastOrNull() == Ayogavaha.VISARGA &&
+            Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.KHAR, next.devanagari.single())
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val leftTerm = context.terms[context.terms.size - 2]
-        val rightTerm = context.terms.last()
-        val nextChar = rightTerm.surface.first()
-
-        // Basic replacement is 's'. Subsequent rules (8.4.40, 8.4.41) will
-        // handle conversion to 'ś' or 'ṣ' if needed.
-        val replacement = "स्"
-        val newSurface = leftTerm.surface.dropLast(1) + replacement
+        val next = context.terms.last().varnas.first()
+        val result = leftTerm.varnas.dropLast(1) + Vyanjana.SA
 
         return DerivationChange(
-            state = context.substituteTermSurface(leftTerm.id, newSurface, 'ः', replacement, sutra),
-            explanation = "8.3.34: Replaced visarga with 's' before khar sound '$nextChar'."
+            state = context.substituteTermVarnas(leftTerm.id, result, Ayogavaha.VISARGA, listOf(Vyanjana.SA), sutra),
+            explanation = "8.3.34 replaces visarga with s before khar sound $next."
         )
     }
 }

@@ -1,12 +1,17 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada3
 
 import dev.panini.core.Linga
+import dev.panini.core.SupAffix
 import dev.panini.core.Vacana
 import dev.panini.core.Vibhakti
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.matchesSupAffix
+import dev.panini.shiksha.Ayogavaha
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -33,7 +38,7 @@ object NtoJasiSutra : Sutra<DerivationState, DerivationChange>(
             context.effectiveContext.rupa.vacana != Vacana.BAHUVACANA
         ) return false
         val stem = context.terms[context.terms.size - 2]
-        return stem.surface.endsWith("न्") && context.terms.last().upadesha == "जस्"
+        return stem.isNFinal() && context.terms.last().matchesSupAffix(SupAffix.JAS)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -41,7 +46,9 @@ object NtoJasiSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
         return DerivationChange(
             state = context.mergeTermsByVarnaSubstitution(
-                stem.id, affix.id, stem.surface.dropLast(2) + "ानः", 'न', "आनः", sutra,
+                stem.id, affix.id,
+                stem.replaceFinalAn(listOf(Svara.AA, Vyanjana.NA, Svara.A, Ayogavaha.VISARGA)),
+                Vyanjana.NA, listOf(Svara.AA, Vyanjana.NA, Svara.A, Ayogavaha.VISARGA), sutra,
             ).copy(stage = DerivationStage.FINAL),
             explanation = "7.3.139: Formed the masculine n-stem nominative-plural आनः ending before जस्.",
         )

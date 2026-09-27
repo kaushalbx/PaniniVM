@@ -7,6 +7,8 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Varnamala
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -47,8 +49,7 @@ object JasiCaSutra : Sutra<DerivationState, DerivationChange>(
         val isGhi = context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.GHI }
         if (!isGhi) return false
 
-        val lastChar = stem.surface.lastOrNull() ?: return false
-        if (lastChar != 'इ' && lastChar != 'ि' && lastChar != 'उ' && lastChar != 'ु') return false
+        if (stem.varnas.lastOrNull() !in setOf(Svara.I, Svara.U)) return false
 
         // 2. Affix must be 'jas' (upadesha) and not already substituted by shi
         return affix.upadesha == "जस्" && affix.surface in setOf("जस्", "अस्", "स")
@@ -56,15 +57,14 @@ object JasiCaSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
-        val lastChar = stem.surface.last()
-        val replacement = requireNotNull(Varnamala.getGuna(lastChar))
-
-        val newSurface = stem.surface.dropLast(1) + replacement
+        val source = stem.varnas.last() as Svara
+        val replacement = requireNotNull(Varnamala.getGuna(source))
+        val newSurface = (stem.varnas.dropLast(1) + replacement).toDevanagari()
 
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, newSurface, lastChar, replacement, sutra)
+            state = context.substituteTermSurface(stem.id, newSurface, source, replacement, sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
-            explanation = "7.3.109: Applied guna ($replacement) to 'ghi' stem before 'jas'."
+            explanation = "7.3.109: Applied guna (${replacement.toDevanagari()}) to 'ghi' stem before 'jas'."
         )
     }
 }

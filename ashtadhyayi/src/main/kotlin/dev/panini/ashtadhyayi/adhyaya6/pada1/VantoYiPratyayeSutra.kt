@@ -5,6 +5,10 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -37,31 +41,28 @@ object VantoYiPratyayeSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
 
         // 1. Affix must be a Pratyaya and start with 'y'
-        val isYPratyaya = affix.surface.startsWith('य') &&
+        val isYPratyaya = affix.varnas.firstOrNull() == Vyanjana.YA &&
                         context.samjnas.any { it.targetId == affix.id && it.samjna == Samjna.PRATYAYA }
         if (!isYPratyaya) return false
 
         // 2. Stem must end in 'o' or 'au'
-        val lastChar = stem.surface.lastOrNull() ?: return false
-        return lastChar == 'ओ' || lastChar == 'ो' || lastChar == 'औ' || lastChar == 'ौ'
+        return stem.varnas.lastOrNull() in setOf(Svara.O, Svara.AU)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
-        val lastChar = stem.surface.last()
-
-        val replacement = when (lastChar) {
-            'ओ', 'ो' -> "अव्"
-            'औ', 'ौ' -> "आव्"
-            else -> ""
+        val source = stem.varnas.last() as Svara
+        val replacement: List<Varna> = when (source) {
+            Svara.O -> listOf(Svara.A, Vyanjana.VA)
+            Svara.AU -> listOf(Svara.AA, Vyanjana.VA)
+            else -> error("6.1.79 matched a non-ec stem")
         }
-
-        val newSurface = stem.surface.dropLast(1) + replacement
+        val newSurface = (stem.varnas.dropLast(1) + replacement).toDevanagari()
 
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, newSurface, lastChar, replacement, sutra)
+            state = context.substituteTermSurface(stem.id, newSurface, source, replacement, sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
-            explanation = "6.1.79: Substituted '$replacement' for '$lastChar' before y-initial affix."
+            explanation = "6.1.79: Substituted '${replacement.toDevanagari()}' for '$source' before y-initial affix."
         )
     }
 }

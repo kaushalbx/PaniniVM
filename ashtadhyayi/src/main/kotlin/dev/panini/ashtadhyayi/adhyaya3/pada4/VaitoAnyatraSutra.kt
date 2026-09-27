@@ -10,6 +10,8 @@ import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.replaceVarna
 
 /** 3.4.96: वैतोऽन्यत्र. Outside 3.4.95, LET optionally changes ending ए to ऐ. */
 object VaitoAnyatraSutra : Sutra<DerivationState, DerivationChange>(
@@ -21,7 +23,7 @@ object VaitoAnyatraSutra : Sutra<DerivationState, DerivationChange>(
         val ending = context.terms.lastOrNull() ?: return false
         return context.effectiveContext.rupa.lakara == Lakara.LET &&
             context.effectiveContext.letEOption == LetEOption.AI &&
-            ending.upadesha !in setOf("आताम्", "आथाम्") && ending.surface.endsWith("े")
+            ending.upadesha !in setOf("आताम्", "आथाम्") && ending.varnas.lastOrNull() == Svara.E
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -29,7 +31,7 @@ object VaitoAnyatraSutra : Sutra<DerivationState, DerivationChange>(
         return DerivationChange(
             context.replaceWholeAffix(
                 ending.id,
-                ending.surface.dropLast(1) + "ै",
+                ending.varnas.replaceVarna(ending.varnas.lastIndex, listOf(Svara.AI)),
                 sutra,
                 dev.panini.derivation.WholeAffixDesignationPolicy.PreserveAndRemap(emptyList()),
             ),

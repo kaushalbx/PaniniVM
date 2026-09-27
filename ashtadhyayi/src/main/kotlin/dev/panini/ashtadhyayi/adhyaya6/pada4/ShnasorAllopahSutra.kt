@@ -8,7 +8,8 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
-import dev.panini.shiksha.Varnamala
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -51,21 +52,21 @@ object ShnasorAllopahSutra : Sutra<DerivationState, DerivationChange>(
         // 1.2.4 supplies ṅ-it status to an apit sārvadhātuka ending. A later
         // explicit p-it assignment (3.4.92) blocks that atideśa.
         val isKngit = separateKngit || !ending.hasEffectiveMarker(ItMarker.P)
-        return isSarvadhatuka && isKngit && inherentAAfterInfixN(stem.surface) != null
+        return isSarvadhatuka && isKngit && inherentAAfterInfixN(stem.varnas) != null
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms.first { it.kind == TermKind.DHATU && "1.1.47" in it.establishedBySutras }
-        val nIndex = requireNotNull(inherentAAfterInfixN(stem.surface))
-        val replacement = stem.surface.substring(0, nIndex + 1) + "्" + stem.surface.substring(nIndex + 1)
+        val aIndex = requireNotNull(inherentAAfterInfixN(stem.varnas))
+        val result = stem.varnas.take(aIndex) + stem.varnas.drop(aIndex + 1)
         return DerivationChange(
-            context.substituteTermSurface(stem.id, replacement, 'अ', "", sutra),
+            context.substituteTermVarnas(stem.id, result, Svara.A, emptyList(), sutra),
             "6.4.111 deletes the inherent अ after the surviving न of श्नम् before a k/ṅ-it sārvadhātuka ending.",
         )
     }
 
-    private fun inherentAAfterInfixN(surface: String): Int? =
-        surface.indices.firstOrNull { index ->
-            surface[index] == 'न' && surface.getOrNull(index + 1)?.let(Varnamala::isConsonant) == true
+    private fun inherentAAfterInfixN(varnas: List<dev.panini.shiksha.Varna>): Int? =
+        (1 until varnas.lastIndex).firstOrNull { index ->
+            varnas[index - 1] == Vyanjana.NA && varnas[index] == Svara.A && varnas[index + 1] is Vyanjana
         }
 }

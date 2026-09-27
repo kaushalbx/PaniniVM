@@ -8,6 +8,10 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
+import dev.panini.shiksha.toDirgha
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -40,22 +44,18 @@ object GherShasiSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
         return context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.GHI } &&
             affix.upadesha == "शस्" &&
-            stem.surface.lastOrNull() in setOf('इ', 'ि', 'उ', 'ु')
+            stem.varnas.lastOrNull() in setOf(Svara.I, Svara.U)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
-        val longVowel = when (stem.surface.last()) {
-            'इ' -> "ई"
-            'ि' -> "ी"
-            'उ' -> "ऊ"
-            'ु' -> "ू"
-            else -> error("GherShasiSutra matched a non-ik stem")
-        }
+        val source = stem.varnas.last() as Svara
+        val replacement = listOf(source.toDirgha(), Vyanjana.SA)
+        val surface = (stem.varnas.dropLast(1) + replacement).toDevanagari()
         return DerivationChange(
             state = context.mergeTermsByVarnaSubstitution(
-                stem.id, affix.id, stem.surface.dropLast(1) + longVowel + "स्", stem.surface.last(), longVowel + "स्", sutra,
+                stem.id, affix.id, surface, source, replacement, sutra,
             ).copy(stage = DerivationStage.PADA_FORMED),
             explanation = "7.3.124: Formed the lengthened Ghi base before masculine accusative-plural शस्.",
         )

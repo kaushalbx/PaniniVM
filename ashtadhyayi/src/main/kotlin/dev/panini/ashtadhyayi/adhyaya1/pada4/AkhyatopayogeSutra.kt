@@ -8,6 +8,7 @@ import dev.panini.sutra.SutraRole
 import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.analysis.KarakaEvidence
+import dev.panini.analysis.KarakaDhatuDomains
 import dev.panini.analysis.KarakaRuleContext
 import dev.panini.analysis.KarakaRuleResult
 import dev.panini.analysis.SemanticRelation
@@ -21,8 +22,7 @@ object AkhyatopayogeSutra : Sutra<KarakaRuleContext, KarakaRuleResult>(
     adhikara = setOf("1.4.23"),
 ) {
     override fun matches(context: KarakaRuleContext): Boolean {
-        val normalized = context.dhatu.surface.trimEnd('्', 'ँ')
-        val isLearningVerb = normalized == "अधी" || normalized == "पठ" || normalized.startsWith("अधी") || normalized.startsWith("पठ")
+        val isLearningVerb = KarakaDhatuDomains.isLearning(context.dhatu)
         return isLearningVerb && SemanticRelation.SOURCE in context.participant.semanticRelations && Karaka.APADANA in context.candidates
     }
 

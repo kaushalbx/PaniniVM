@@ -4,10 +4,15 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.core.SanadiAffix
+import dev.panini.core.KrtAffix
+import dev.panini.derivation.matchesAffix
+import dev.panini.derivation.matchesAnyAffix
 import dev.panini.derivation.DerivationalEnvironment
 import dev.panini.derivation.HasDerivationalEnvironment
 import dev.panini.derivation.TermKind
 import dev.panini.derivation.consumeAffixForDrop
+import dev.panini.shiksha.Svara
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -31,22 +36,20 @@ object NerAnitiSutra : Sutra<DerivationState, DerivationChange>(
     dependencies = setOf("6.4.1"),
     blocks = setOf("7.3.84"),
 ), DerivationSutra {
-    private val vowels = setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ऌ', 'ए', 'ऐ', 'ओ', 'औ')
-
     override fun matches(context: DerivationState): Boolean {
         if ("6.4.1" !in context.activeAdhikaras ||
             !HasDerivationalEnvironment(DerivationalEnvironment.ARDHADHATUKA).matches(context)
         ) return false
-        val nicIndex = context.terms.indexOfFirst { it.matchesUpadesha("णिच्") && it.surface == "इ" }
+        val nicIndex = context.terms.indexOfFirst { it.matchesAffix(SanadiAffix.NIC) && it.surface == "इ" }
         if (nicIndex < 0) return false
         val following = context.terms.drop(nicIndex + 1).firstOrNull { it.kind == TermKind.PRATYAYA } ?: return false
-        val vowelInitialAfterItProcessing = following.surface.firstOrNull() in vowels ||
-            following.matchesUpadesha("घञ्") || following.matchesUpadesha("ल्युट्")
+        val vowelInitialAfterItProcessing = following.varnas.firstOrNull() is Svara ||
+            following.matchesAnyAffix(KrtAffix.GHAN, KrtAffix.LYUT)
         return vowelInitialAfterItProcessing && context.terms.none { it.id == "it-agama" }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val nic = context.terms.first { it.matchesUpadesha("णिच्") && it.surface == "इ" }
+        val nic = context.terms.first { it.matchesAffix(SanadiAffix.NIC) && it.surface == "इ" }
         return DerivationChange(
             state = context.copy(
                 terms = context.terms.filterNot { it.id == nic.id },

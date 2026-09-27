@@ -10,6 +10,8 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 import dev.panini.sutra.SamasaSutra
+import dev.panini.analysis.SamasaPada
+import dev.panini.shiksha.Svara
 
 /**
  * 2.2.33: अजाद्यदन्तम्.
@@ -29,20 +31,16 @@ object AjadyadantamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     samasaType = SamasaType.DVANDVA,
     samasaPriority = 5,
 ), SamasaSutra {
-    private val vowels = setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ए', 'ऐ', 'ओ', 'औ')
-    private val matras = setOf('ा', 'ि', 'ी', 'ु', 'ू', 'े', 'ै', 'ो', 'ौ', 'ृ', '्', 'ः', 'ं')
-
-    private fun isAjadyadanta(s: String): Boolean =
-        s.isNotEmpty() && s.first() in vowels && s.last() !in matras
+    private fun isAjadyadanta(pada: SamasaPada): Boolean =
+        pada.varnas.firstOrNull() is Svara && pada.varnas.lastOrNull() == Svara.A
 
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
-        val padas = context.padas.map { it.upadesha }
-        return context.samasaType == SamasaType.DVANDVA && padas.any { isAjadyadanta(it) }
+        return context.samasaType == SamasaType.DVANDVA && context.padas.any(::isAjadyadanta)
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
-        val sortedPadas = context.padas.sortedByDescending { isAjadyadanta(it.upadesha) }
+        val sortedPadas = context.padas.sortedByDescending(::isAjadyadanta)
         val compoundStem = sortedPadas.joinToString("") { it.upadesha }
 
         return SamasaRuleResult.Formed(

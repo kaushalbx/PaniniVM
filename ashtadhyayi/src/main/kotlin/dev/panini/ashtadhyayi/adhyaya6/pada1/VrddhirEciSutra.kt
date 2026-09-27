@@ -9,10 +9,19 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.core.SanadiAffix
+import dev.panini.derivation.matchesAffix
 import dev.panini.derivation.HasMorphosyntax
 import dev.panini.derivation.TermKind
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.pratyahara.Pratyahara
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.replaceVarna
+import dev.panini.shiksha.Varnamala
+import dev.panini.shiksha.firstVarna
+import dev.panini.shiksha.lastVarna
+import dev.panini.shiksha.toDevanagari
+import dev.panini.shiksha.toVarnas
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraPriority
@@ -44,13 +53,16 @@ object VrddhirEciSutra : Sutra<DerivationState, DerivationChange>(
         val leftTerm = context.terms[context.terms.size - 2]
         if (leftTerm.id == "shap" && context.terms.size > 2) {
             val previous = context.terms[context.terms.size - 3]
-            if (previous.upadesha == "णिच्" && previous.surface.lastOrNull() in setOf('ए', 'ऐ', 'ओ', 'औ', 'े', 'ै', 'ो', 'ौ')) return false
+            if (previous.matchesAffix(SanadiAffix.NIC) && previous.varnas.lastOrNull()?.let {
+                    Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.EC, it)
+                } == true
+            ) return false
         }
         if (leftTerm.id == "shap" && context.terms.any { it.kind == TermKind.DHATU && it.gana == DhatuGana.ADADI }) return false
-        val right = context.terms.last().surface.firstOrNull() ?: return false
+        val right = context.terms.last().varnas.firstOrNull() ?: return false
 
         val engine = Ashtadhyayi.pratyaharaEngine
-        val isA = dev.panini.shiksha.Varnamala.endsWithA(leftTerm.surface) || dev.panini.shiksha.Varnamala.endsWithAA(leftTerm.surface)
+        val isA = leftTerm.varnas.lastOrNull() in setOf(Svara.A, Svara.AA)
         return isA && engine.contains(Pratyahara.EC, right)
     }
 
@@ -59,51 +71,39 @@ object VrddhirEciSutra : Sutra<DerivationState, DerivationChange>(
         augmentRootPair(context)?.let { index ->
             val augment = terms[index]
             val root = terms[index + 1]
-            val substitute = when (root.surface.first()) {
-                'ए', 'ऐ' -> "ऐ"
-                'ओ', 'औ' -> "औ"
-                else -> error("Unsupported ec vowel in ${root.surface}")
+            val rootVarnas = root.varnas
+            val rootVowel = rootVarnas.first() as Svara
+            val substitute = requireNotNull(Varnamala.getVrddhi(rootVowel)) {
+                "Unsupported ec vowel in ${root.surface}"
             }
-            val newSurface = substitute + root.surface.drop(1)
+            val newSurface = (substitute + rootVarnas.drop(1)).toDevanagari()
             return DerivationChange(
                 state = context.mergeTermsByVarnaSubstitution(
-                    root.id, augment.id, newSurface, root.surface.first(), substitute, sutra,
+                    root.id, augment.id, newSurface, rootVowel, substitute, sutra,
                 ).copy(stage = DerivationStage.PADA_FORMED),
-                explanation = "6.1.88: Vṛddhi substitution ($substitute) for augment अ + ${root.surface.first()}.",
+                explanation = "6.1.88: Vṛddhi substitution (${substitute.toDevanagari()}) for augment अ + ${rootVowel.devanagari}.",
             )
         }
         val leftTerm = terms[terms.size - 2]
         val rightTerm = terms.last()
 
-        val leftChar = leftTerm.surface.last()
-        val rightChar = rightTerm.surface.first()
-
-        val substitute = getVrddhi(rightChar)
-
-        val rawRightRemainder = rightTerm.surface.drop(1)
-        val rightRemainder = if (rightTerm.itMarkers.isNotEmpty() && rawRightRemainder.endsWith("्")) {
-            rawRightRemainder.dropLast(2)
-        } else {
-            rawRightRemainder
+        val leftVarnas = leftTerm.varnas
+        val rightVarnas = rightTerm.varnas
+        val leftVowel = leftVarnas.last() as Svara
+        val rightVowel = rightVarnas.first() as Svara
+        val substitute = requireNotNull(Varnamala.getVrddhi(rightVowel))
+        var rightRemainder = rightVarnas.drop(1)
+        if (rightTerm.itMarkers.isNotEmpty() && rightRemainder.lastOrNull() !is Svara) {
+            rightRemainder = rightRemainder.dropLast(1)
         }
-        val newSurface = if (leftChar !in dev.panini.shiksha.Varnamala.independentVowelsOrMarks) {
-            leftTerm.surface + substitute + rightRemainder
-        } else {
-            leftTerm.surface.dropLast(1) + substitute + rightRemainder
-        }
+        val newSurface = (leftVarnas.dropLast(1) + substitute + rightRemainder).toDevanagari()
 
         return DerivationChange(
             state = context.mergeTermsByVarnaSubstitution(
-                leftTerm.id, rightTerm.id, newSurface, leftChar, substitute, sutra,
+                leftTerm.id, rightTerm.id, newSurface, leftVowel, substitute, sutra,
             ).copy(stage = DerivationStage.PADA_FORMED),
-            explanation = "6.1.88: Vṛddhi substitution ($substitute) for $leftChar + $rightChar."
+            explanation = "6.1.88: Vṛddhi substitution (${substitute.toDevanagari()}) for ${leftVowel.devanagari} + ${rightVowel.devanagari}."
         )
-    }
-
-    private fun getVrddhi(right: Char): String = when (right) {
-        'ए', 'ऐ', 'े', 'ै' -> "ै"
-        'ओ', 'औ', 'ो', 'ौ' -> "ौ"
-        else -> "ा"
     }
 
     private fun augmentRootPair(context: DerivationState): Int? {
@@ -112,7 +112,7 @@ object VrddhirEciSutra : Sutra<DerivationState, DerivationChange>(
             val left = context.terms[index]
             val right = context.terms[index + 1]
             left.id == "at-agama" && right.kind == TermKind.DHATU &&
-                right.surface.firstOrNull()?.let { engine.contains(Pratyahara.EC, it) } == true
+                right.varnas.firstOrNull()?.let { engine.contains(Pratyahara.EC, it) } == true
         }
     }
 }
@@ -140,13 +140,20 @@ object TasmacChasoNahPumsiSutra : Sutra<DerivationState, DerivationChange>(
                     vibhakti = Vibhakti.DVITIYA,
                     vacana = Vacana.BAHUVACANA,
                 ).matches(context) &&
-                context.terms.lastOrNull()?.surface?.let { s -> s.endsWith("ास्") || s.endsWith("ीस्") || s.endsWith("ूस्") } == true
+                context.terms.lastOrNull()?.varnas?.let { varnas ->
+                    varnas.lastOrNull() == Vyanjana.SA &&
+                        varnas.getOrNull(varnas.lastIndex - 1) in setOf(Svara.AA, Svara.II, Svara.UU)
+                } == true
 
     override fun apply(context: DerivationState): DerivationChange {
         val term = context.terms.last()
         return DerivationChange(
-            state = context.substituteTermSurface(
-                term.id, term.surface.dropLast(2) + "न्", 'स', "न", sutra,
+            state = context.substituteTermVarnas(
+                term.id,
+                term.varnas.replaceVarna(term.varnas.lastIndex, listOf(Vyanjana.NA)),
+                Vyanjana.SA,
+                listOf(Vyanjana.NA),
+                sutra,
             ).copy(stage = DerivationStage.FINAL),
             explanation = "6.1.103 replaces final स् with न् after the lengthened stem in masculine accusative plural.",
         )
@@ -176,7 +183,12 @@ object AmiPurvahSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         return DerivationChange(
             context.mergeTermsByVarnaSubstitution(
-                stem.id, context.terms.last().id, stem.surface + "म्", 'अ', "", sutra,
+                stem.id,
+                context.terms.last().id,
+                (stem.varnas + Vyanjana.MA).toDevanagari(),
+                Svara.A,
+                emptyList(),
+                sutra,
             ).copy(stage = DerivationStage.FINAL),
             "6.1.107 retains the preceding vowel before अम्."
         )
