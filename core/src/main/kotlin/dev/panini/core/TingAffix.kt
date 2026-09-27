@@ -5,8 +5,10 @@ enum class TingAffix(
     val purusha: Purusha,
     val vacana: Vacana,
     val pada: PadaType,
-    val upadesha: String,
-) {
+    override val upadesha: String,
+    override val initialSurface: String = upadesha,
+    override val itMarkers: Set<ItMarker> = emptySet(),
+) : TypedAffix {
     // Parasmaipada (9)
     TIP(Purusha.PRATHAMA, Vacana.EKAVACANA, PadaType.PARASMAIPADA, "तिप्"),
     TAS(Purusha.PRATHAMA, Vacana.DVIVACANA, PadaType.PARASMAIPADA, "तस्"),

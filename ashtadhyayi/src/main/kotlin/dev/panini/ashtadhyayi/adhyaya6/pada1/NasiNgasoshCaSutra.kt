@@ -1,10 +1,12 @@
 package dev.panini.ashtadhyayi.adhyaya6.pada1
 
 import dev.panini.ashtadhyayi.Ashtadhyayi
+import dev.panini.core.SupAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.matchesAnyAffix
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.OrthographicSign
 import dev.panini.shiksha.OrthographicSignPlacement
@@ -50,7 +52,7 @@ object NasiNgasoshCaSutra : Sutra<DerivationState, DerivationChange>(
         // 2. Right term must be the 'a' of ṅasi or ṅas
         // In our engine, suffixes are already it-processed, so 'ṅasi' is 'as' or 'i'
         // depending on previous rules. Specifically, ṅasi/ṅas starts with 'a'.
-        return right.upadesha in setOf("ङसि", "ङस्") && right.varnas.firstOrNull() == Svara.A
+        return right.matchesAnyAffix(SupAffix.NGASI, SupAffix.NGAS) && right.varnas.firstOrNull() == Svara.A
     }
 
     override fun apply(context: DerivationState): DerivationChange {

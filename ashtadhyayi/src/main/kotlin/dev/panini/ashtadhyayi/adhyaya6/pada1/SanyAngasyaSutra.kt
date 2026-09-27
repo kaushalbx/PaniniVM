@@ -1,11 +1,13 @@
 package dev.panini.ashtadhyayi.adhyaya6.pada1
 
+import dev.panini.core.SanadiAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.matchesAnyAffix
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Varna
 import dev.panini.shiksha.Vyanjana
@@ -35,11 +37,10 @@ object SanyAngasyaSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val pratyaya = context.terms.lastOrNull {
-            it.kind == TermKind.PRATYAYA && it.upadesha in setOf("सन्", "यङ्")
+            it.kind == TermKind.PRATYAYA && it.matchesAnyAffix(SanadiAffix.SAN, SanadiAffix.YANG)
         } ?: return false
-        val isSanOrYan = pratyaya.upadesha in setOf("सन्", "यङ्")
         val hasAbhyasa = context.terms.any { it.id == "abhyasa" }
-        return isSanOrYan && !hasAbhyasa
+        return !hasAbhyasa
     }
 
     override fun apply(context: DerivationState): DerivationChange {

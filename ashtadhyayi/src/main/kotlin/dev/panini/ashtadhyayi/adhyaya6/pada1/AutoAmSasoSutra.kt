@@ -1,9 +1,12 @@
 package dev.panini.ashtadhyayi.adhyaya6.pada1
 
+import dev.panini.core.SupAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.matchesAnyAffix
+import dev.panini.derivation.matchesSupAffix
 import dev.panini.shiksha.Ayogavaha
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Vyanjana
@@ -41,7 +44,7 @@ object AutoAmSasoSutra : Sutra<DerivationState, DerivationChange>(
         val isOStem = stem.upadesha == "गो" || stem.varnas.lastOrNull() in setOf(Svara.O, Svara.AU)
         if (!isOStem) return false
 
-        val isAmOrSas = affix.id in setOf("sup-am", "sup-sas") || affix.upadesha in setOf("अम्", "शस्")
+        val isAmOrSas = affix.matchesAnyAffix(SupAffix.AM, SupAffix.SAS)
         return isAmOrSas
     }
 
@@ -49,7 +52,7 @@ object AutoAmSasoSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        val replacement = if (affix.id == "sup-am" || affix.upadesha == "अम्") {
+        val replacement = if (affix.matchesSupAffix(SupAffix.AM)) {
             listOf(Vyanjana.GA, Svara.AA, Vyanjana.MA)
         } else {
             listOf(Vyanjana.GA, Svara.AA, Ayogavaha.VISARGA)

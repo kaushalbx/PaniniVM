@@ -140,14 +140,17 @@ object TasmacChasoNahPumsiSutra : Sutra<DerivationState, DerivationChange>(
                     vibhakti = Vibhakti.DVITIYA,
                     vacana = Vacana.BAHUVACANA,
                 ).matches(context) &&
-                context.terms.lastOrNull()?.surface?.let { s -> s.endsWith("ास्") || s.endsWith("ीस्") || s.endsWith("ूस्") } == true
+                context.terms.lastOrNull()?.varnas?.let { varnas ->
+                    varnas.lastOrNull() == Vyanjana.SA &&
+                        varnas.getOrNull(varnas.lastIndex - 1) in setOf(Svara.AA, Svara.II, Svara.UU)
+                } == true
 
     override fun apply(context: DerivationState): DerivationChange {
         val term = context.terms.last()
         return DerivationChange(
-            state = context.substituteTermSurface(
+            state = context.substituteTermVarnas(
                 term.id,
-                term.varnas.replaceVarna(term.varnas.lastIndex, listOf(Vyanjana.NA)).toDevanagari(),
+                term.varnas.replaceVarna(term.varnas.lastIndex, listOf(Vyanjana.NA)),
                 Vyanjana.SA,
                 listOf(Vyanjana.NA),
                 sutra,

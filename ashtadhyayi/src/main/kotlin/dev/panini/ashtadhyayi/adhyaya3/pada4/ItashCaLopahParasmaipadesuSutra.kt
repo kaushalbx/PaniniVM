@@ -1,9 +1,11 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada4
 
 import dev.panini.core.Lakara
+import dev.panini.core.TingAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.matchesAnyAffix
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -28,7 +30,8 @@ object ItashCaLopahParasmaipadesuSutra : Sutra<DerivationState, DerivationChange
     override fun matches(context: DerivationState): Boolean {
         val ending = context.terms.lastOrNull() ?: return false
         return context.effectiveContext.rupa.lakara == Lakara.LET &&
-            ending.upadesha in setOf("तिप्", "झि", "सिप्") && ending.varnas.lastOrNull() == Svara.I
+            ending.matchesAnyAffix(TingAffix.TIP, TingAffix.JHI, TingAffix.SIP) &&
+            ending.varnas.lastOrNull() == Svara.I
     }
 
     override fun apply(context: DerivationState): DerivationChange {

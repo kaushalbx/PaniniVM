@@ -5,6 +5,7 @@ sealed interface TypedAffix {
     val upadesha: String
     val initialSurface: String
     val itMarkers: Set<ItMarker>
+    val alternateUpadeshas: Set<String> get() = emptySet()
 }
 
 enum class SanadiAffix(
@@ -28,6 +29,7 @@ enum class KrtAffix(
     override val upadesha: String,
     override val initialSurface: String = upadesha,
     override val itMarkers: Set<ItMarker> = emptySet(),
+    override val alternateUpadeshas: Set<String> = emptySet(),
 ) : TypedAffix {
     KTA("क्त"),
     KTAVATU("क्तवतुँ"),
@@ -35,7 +37,8 @@ enum class KrtAffix(
     LYAP("ल्यप्"),
     TUMUN("तुमुँन्"),
     TAVYAT("तव्यत्"),
-    ANIYAR("अनीयर्"),
+    ANIYAR("अनीयर्", alternateUpadeshas = setOf("अनीयर")),
+    YAT("यत्", alternateUpadeshas = setOf("यत")),
     NYAT("ण्यत्"),
     NVUL("ण्वुल्"),
     TRC("तृच्"),
@@ -45,6 +48,7 @@ enum class KrtAffix(
     companion object {
         fun fromUpadesha(value: String): KrtAffix? = when (val normalized = value.trim()) {
             "अनीयर" -> ANIYAR
+            "यत" -> YAT
             "अन" -> LYUT
             else -> entries.singleOrNull { it.upadesha == normalized }
         }

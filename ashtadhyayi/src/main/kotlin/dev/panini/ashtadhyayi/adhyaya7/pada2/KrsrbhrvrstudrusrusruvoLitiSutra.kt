@@ -4,7 +4,9 @@ import dev.panini.core.Lakara
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.PhonologicalIdentity
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.hasAnyCurrentForm
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -29,7 +31,7 @@ object KrsrbhrvrstudrusrusruvoLitiSutra : Sutra<DerivationState, DerivationChang
         if (context.effectiveContext.rupa.lakara != Lakara.LIT) return false
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU && it.id != "abhyasa" } ?: return false
         val affix = context.terms.lastOrNull()?.takeIf { it.kind == TermKind.PRATYAYA } ?: return false
-        return dhatu.surface in KRADI_ROOTS && sutra !in affix.establishedBySutras
+        return isKradiRoot(dhatu) && sutra !in affix.establishedBySutras
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -40,5 +42,9 @@ object KrsrbhrvrstudrusrusruvoLitiSutra : Sutra<DerivationState, DerivationChang
         )
     }
 
-    internal val KRADI_ROOTS = setOf("कृ", "सृ", "भृ", "वृ", "स्तु", "द्रु", "स्रु", "श्रु")
+    internal fun isKradiRoot(term: dev.panini.derivation.DerivationTerm): Boolean = term.hasAnyCurrentForm(
+        PhonologicalIdentity.KR, PhonologicalIdentity.SR, PhonologicalIdentity.BHR,
+        PhonologicalIdentity.VR, PhonologicalIdentity.STU, PhonologicalIdentity.DRU,
+        PhonologicalIdentity.SRU, PhonologicalIdentity.SHRU,
+    )
 }

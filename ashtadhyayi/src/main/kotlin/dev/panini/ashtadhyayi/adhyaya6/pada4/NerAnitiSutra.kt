@@ -5,7 +5,9 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.core.SanadiAffix
+import dev.panini.core.KrtAffix
 import dev.panini.derivation.matchesAffix
+import dev.panini.derivation.matchesAnyAffix
 import dev.panini.derivation.DerivationalEnvironment
 import dev.panini.derivation.HasDerivationalEnvironment
 import dev.panini.derivation.TermKind
@@ -42,7 +44,7 @@ object NerAnitiSutra : Sutra<DerivationState, DerivationChange>(
         if (nicIndex < 0) return false
         val following = context.terms.drop(nicIndex + 1).firstOrNull { it.kind == TermKind.PRATYAYA } ?: return false
         val vowelInitialAfterItProcessing = following.varnas.firstOrNull() is Svara ||
-            following.matchesUpadesha("घञ्") || following.matchesUpadesha("ल्युट्")
+            following.matchesAnyAffix(KrtAffix.GHAN, KrtAffix.LYUT)
         return vowelInitialAfterItProcessing && context.terms.none { it.id == "it-agama" }
     }
 

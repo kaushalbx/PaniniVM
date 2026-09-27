@@ -2,10 +2,13 @@ package dev.panini.ashtadhyayi.adhyaya6.pada1
 
 import dev.panini.core.Lakara
 import dev.panini.core.SamasaType
+import dev.panini.core.SupAffix
+import dev.panini.core.TingAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.matchesAnyAffix
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
@@ -50,7 +53,7 @@ object HalngyabbhyoSutra : Sutra<DerivationState, DerivationChange>(
             (affix.varnas.size == 1 || affix.varnas.drop(1) == listOf(Svara.A))
         if (!isApṛktaHal) return false
 
-        val isEligibleAffix = affix.upadesha in setOf("सुँ", "तिप्", "सिप्")
+        val isEligibleAffix = affix.matchesAnyAffix(SupAffix.SU, TingAffix.TIP, TingAffix.SIP)
         if (!isEligibleAffix) return false
 
         val final = stem.varnas.lastOrNull() ?: return false

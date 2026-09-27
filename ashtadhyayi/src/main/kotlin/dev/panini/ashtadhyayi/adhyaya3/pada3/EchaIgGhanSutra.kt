@@ -1,9 +1,11 @@
 package dev.panini.ashtadhyayi.adhyaya3.pada3
 
+import dev.panini.core.KrtAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.matchesAffix
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.replaceVarna
 import dev.panini.shiksha.toDevanagari
@@ -24,7 +26,7 @@ object EchaIgGhanSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi, action = SutraAction.ADESHA, scope = SutraScope.DERIVATION,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
-        context.allEffectiveTerms.any { it.upadesha == "घञ्" } &&
+        context.allEffectiveTerms.any { it.matchesAffix(KrtAffix.GHAN) } &&
         "3.3.56" !in context.activeAdhikaras
 
     override fun apply(context: DerivationState): DerivationChange {
