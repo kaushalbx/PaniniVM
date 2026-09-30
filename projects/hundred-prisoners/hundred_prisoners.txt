@@ -1,0 +1,44 @@
+# One Hundred Prisoners Riddle — one random trial of cycle-following.
+#
+# In the standard puzzle, the setup supplies a uniformly random permutation;
+# the prisoners do not construct or alter it. This program models that setup by
+# drawing every number from 1..100 exactly once in random order, then runs the
+# prisoners' cycle-following strategy on the resulting permutation.
+#
+# पेटिकाक्रम is the random permutation. बन्दिसङ्ख्या is the current prisoner's
+# number, and पेटिकाक्रमाङ्क is the next box to open. Each prisoner follows the
+# values as pointers and may inspect at most 50 boxes. सर्वजय remains true only
+# when every prisoner finds their own number.
+
+# Open the box named by पेटिकाक्रमाङ्क, read its slip, follow that pointer, and record
+# whether the prisoner's own number was found.
+पेटिकादर्शनम् इति प्रक्रिया अस्ति ।
+पेटिकाक्रमं पेटिकाक्रमाङ्केण स्थ ।
+फलं पेटिकाक्रमाङ्काय देहि ।
+पेटिकाक्रमाङ्कः बन्दिसङ्ख्या समः अस्ति ।
+फलं स्वसङ्ख्याप्राप्त्यै देहि ॥
+
+# Run the complete strategy for one prisoner.
+बन्दीप्रयत्नः इति प्रक्रिया अस्ति ।
+बन्दिसङ्ख्यां पेटिकाक्रमाङ्काय देहि ।
+असत्यं स्वसङ्ख्याप्राप्त्यै देहि ।
+पञ्चाशत्कृत्वः यावत् स्वसङ्ख्याप्राप्तिः न भवति तावत् पेटिकादर्शनं कुरु ।
+यदि स्वसङ्ख्याप्राप्तिः सत्येन समा अस्ति तर्हि सत्यं सर्वजयाय देहि अन्यथा असत्यं सर्वजयाय देहि ।
+बन्दिसङ्ख्याम् एकं च योजय ततः बन्दिसङ्ख्यै देहि फलम् ॥
+
+# Construct one uniformly random permutation by drawing all values from 1..100
+# without replacement. The exclusion list makes every permutation equally likely.
+एकस्मात् शतपर्यन्तम् इति सीमा ।
+पेटिकाक्रमनिर्माणम् इति प्रक्रिया अस्ति ।
+चिनु ततः चयनाय देहि ।
+चयनं क्षेपय ततः देहि क्षेपस्य फलं पेटिकाक्रमाय ।
+नवनवतिकृत्वः पेटिकाक्रमात् चिनु ततः चयनाय देहि ततः क्षेपय पेटिकाक्रमं चयनं च ततः देहि क्षेपस्य फलं पेटिकाक्रमाय ॥
+पेटिकाक्रमनिर्माणं कुरु ।
+
+# Execute the pointer-following strategy for all 100 prisoners.
+एकं बन्दिसङ्ख्यै देहि ।
+सत्यं सर्वजयाय देहि ।
+शतकृत्वः बन्दीप्रयत्नं कुरु ।
+
+# Report whether this random permutation has a cycle longer than 50.
+यदि सर्वजयः सत्येन समः अस्ति तर्हि जयं मुद्रय अन्यथा पराजयं मुद्रय ।

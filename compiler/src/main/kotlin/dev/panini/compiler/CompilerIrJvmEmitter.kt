@@ -66,8 +66,12 @@ internal class CompilerIrJvmEmitter(
                     mv.visitMethodInsn(
                         INVOKESTATIC,
                         "dev/panini/compiler/PaniniRuntime",
-                        "randomRange",
-                        "(JJ)Ldev/panini/execution/SanskritValue;",
+                        if (instruction.excludeCollection) "randomRangeExcluding" else "randomRange",
+                        if (instruction.excludeCollection) {
+                            "(Ldev/panini/execution/SanskritValue;JJ)Ldev/panini/execution/SanskritValue;"
+                        } else {
+                            "(JJ)Ldev/panini/execution/SanskritValue;"
+                        },
                         false,
                     )
                 }

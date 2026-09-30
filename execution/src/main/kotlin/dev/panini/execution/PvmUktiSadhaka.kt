@@ -13,6 +13,8 @@ import dev.panini.derivation.SamasaEngine
 import dev.panini.derivation.SandhiEngine
 import dev.panini.derivation.SubantaDerivationRequest
 import dev.panini.derivation.SubantaEngine
+import dev.panini.derivation.StriPratyayaEngine
+import dev.panini.derivation.StriPratyayaRequest
 import dev.panini.derivation.TingantaDerivationRequest
 import dev.panini.derivation.TingantaEngine
 import dev.panini.dhatupatha.DhatuPatha
@@ -39,6 +41,7 @@ import dev.panini.vyakaranam.ast.SankhyaPada
 import dev.panini.vyakaranam.ast.SankhyaPratipadika
 import dev.panini.vyakaranam.ast.SankhyaPuranaPada
 import dev.panini.vyakaranam.ast.SubantaPada
+import dev.panini.vyakaranam.ast.StriVikara
 import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.vyakaranam.ast.UnadyantaPratipadika
 import dev.panini.vyakaranam.ast.Conditional
@@ -68,16 +71,40 @@ class PvmUktiSadhaka(
     private val krdantaEngine: KrdantaEngine = KrdantaEngine(),
     private val samasaEngine: SamasaEngine = SamasaEngine(derivationEngine),
     private val sandhiEngine: SandhiEngine = SandhiEngine(derivationEngine),
+    private val striPratyayaEngine: StriPratyayaEngine = StriPratyayaEngine(),
     private val pratipadikaLexicon: PratipadikaLexicon = PaninianPratipadikaLexicon,
     private val parser: PaniniParser = PaniniParser(),
 ) {
 
     fun sadhayaScript(scriptContent: String): String {
-        return scriptContent.lines().joinToString("\n") { line ->
+        val renderedLines = mutableListOf<String>()
+        val pendingCode = mutableListOf<String>()
+        val pendingComments = mutableListOf<String>()
+
+        fun renderPending() {
+            if (pendingCode.isEmpty()) return
+            val source = pendingCode.joinToString(" ")
+            val surface = try {
+                sadhayaLine(source)
+            } catch (_: Throwable) {
+                source
+            }
+            renderedLines += if (pendingComments.isEmpty()) {
+                surface
+            } else {
+                "$surface ${pendingComments.joinToString(" ")}"
+            }
+            pendingCode.clear()
+            pendingComments.clear()
+        }
+
+        scriptContent.lines().forEach { line ->
             val trimmed = line.trim()
             when {
-                trimmed.isEmpty() -> ""
-                trimmed.startsWith("#") || trimmed.startsWith("//") -> line
+                trimmed.isEmpty() && pendingCode.isEmpty() -> renderedLines += ""
+                trimmed.startsWith("#") || trimmed.startsWith("//") -> {
+                    if (pendingCode.isEmpty()) renderedLines += line else pendingComments += trimmed
+                }
                 else -> {
                     val commentIdx = when {
                         trimmed.contains("#") && trimmed.contains("//") -> minOf(trimmed.indexOf('#'), trimmed.indexOf("//"))
@@ -89,18 +116,17 @@ class PvmUktiSadhaka(
                     val commentPart = if (commentIdx != -1) line.substring(line.indexOf(if (trimmed.contains('#')) '#' else '/')) else ""
 
                     if (codePart.isEmpty()) {
-                        line
+                        if (pendingCode.isEmpty()) renderedLines += line else if (commentPart.isNotEmpty()) pendingComments += commentPart
                     } else {
-                        val hasDanda = codePart.endsWith("।") || codePart.endsWith("॥") || codePart.contains("।") || codePart.contains("॥")
-                        var surface = try { sadhayaLine(codePart) } catch (_: Throwable) { codePart }
-                        if (!hasDanda) {
-                            surface = surface.replace("॥", "").replace("।", "").replace(Regex("\\s+"), " ").trim()
-                        }
-                        if (commentPart.isNotEmpty()) "$surface $commentPart" else surface
+                        pendingCode += codePart
+                        if (commentPart.isNotEmpty()) pendingComments += commentPart
+                        if (codePart.contains('।') || codePart.contains('॥')) renderPending()
                     }
                 }
             }
         }
+        renderPending()
+        return renderedLines.joinToString("\n")
     }
 
     fun sadhayaLine(lineText: String): String {
@@ -362,6 +388,20 @@ class PvmUktiSadhaka(
             kridanta?.dhatu?.mulaDhatu == "चिञ्" && kridanta.krtPratyaya == "ल्युट्" -> "चयन"
             else -> sourceStem?.surface ?: normalized.pratipadika.baseText()
         }
+        val explicitStri = (normalized.pratipadika as? MulaPratipadika)
+            ?.vikaras
+            ?.filterIsInstance<StriVikara>()
+            ?.lastOrNull()
+        val explicitlyFeminineBase = explicitStri?.let { vikara ->
+            val samjna = when (vikara.pratyaya) {
+                "टाप्", "डाप्", "चाप्" -> dev.panini.shiksha.Samjna.TAP
+                "ङीप्" -> dev.panini.shiksha.Samjna.NIP
+                "ङीष्" -> dev.panini.shiksha.Samjna.NIS
+                "ङीन्" -> dev.panini.shiksha.Samjna.NIN
+                else -> null
+            }
+            samjna?.let { striPratyayaEngine.derive(StriPratyayaRequest(baseText, it)).final.surface }
+        }
         val supAffix = SupAffix.fromUpadesha(normalized.sup.text) ?: return baseText
         if (baseText == "सङ्ख्या" && supAffix == SupAffix.TA) return "सङ्ख्यया"
         when (sourceStem) {
@@ -372,7 +412,7 @@ class PvmUktiSadhaka(
             null -> Unit
         }
         val sankhya = normalized.pratipadika as? SankhyaPratipadika
-        val linga = lingaOverride ?: if (sankhya != null) {
+        val linga = if (explicitStri != null) Linga.STRI else lingaOverride ?: if (sankhya != null) {
             Linga.NAPUMSAKA
         } else {
             pratipadikaLexicon.findPratipadika(baseText)?.linga?.singleOrNull()
@@ -386,6 +426,7 @@ class PvmUktiSadhaka(
             // source segmentation remains provenance and the fallback rendering.
             val derivationBase = sankhya?.semanticValue?.value
                 ?.let { PrimitiveSankhya.fromValue(it)?.pratipadika }
+                ?: explicitlyFeminineBase
                 ?: baseText
             val req = SubantaDerivationRequest(derivationBase, supAffix.vibhakti, supAffix.vacana, linga)
             subantaEngine.derive(req).final.surface

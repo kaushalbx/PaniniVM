@@ -264,6 +264,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 )
             },
             resolveCondition = { structuredValueExecutor.resolveInvocation(it, context.structStore) },
+            resolveValue = { vm.runtimeValue(context.sessionKey, it) },
             onResult = context.onResult,
         ),
     )

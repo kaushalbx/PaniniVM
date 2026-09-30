@@ -158,6 +158,9 @@ internal class SessionRuntime(
         sessions[sessionKey] = it
     }
 
+    fun value(sessionKey: String, name: String): SanskritValue? =
+        sessions[sessionKey]?.previousTypedResults?.get(name)
+
     fun save(sessionKey: String) {
         sessions[sessionKey]?.let { store.save(sessionKey, it) }
     }

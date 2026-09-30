@@ -20,6 +20,20 @@ import kotlin.test.assertFailsWith
 
 class StructuredBytecodeCompilerTest {
     @Test
+    fun `natural range choice excludes values in ablative collection`() {
+        val source = """
+            एक + ङसिँ द्वि + शस् परि + अन्त + अम् इति सीमा + सुँ ।
+            एक + अम् क्षिप् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् क्षिप् + घञ् + ङस् फल + अम् क्रम + ङे ।
+            क्रम + ङसिँ चिञ् + श्नु + लोट् + सिप् ततः चयन + ङे दा + लोट् + सिप् ।
+        """.trimIndent()
+
+        val compiled = compileAndInspect(source, "CompiledNaturalExcludedChoice")
+
+        assertEquals(2L, (compiled.values.getValue("चयन") as SanskritValue.Sankhya).value)
+        assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
+    }
+
+    @Test
     fun `compiled execution preserves interpreter failure details`() {
         val source = collectionProgram("सूची + अम् चतुर् + टा स्था + लोट् + सिप्")
         val interpreted = PaniniVM().evalScript(source).filterIsInstance<ExecutionResult.Failure>().last()
@@ -255,6 +269,24 @@ class StructuredBytecodeCompilerTest {
         assertEquals(interpreted, compiled.values.getValue("LastResult"))
         assertEquals(20L, (compiled.values.getValue("LastResult") as SanskritValue.Sankhya).value)
         assertEquals(1, compiled.runtimeCalls.count { it == "executeDirectValue" })
+        assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
+    }
+
+    @Test
+    fun `state backed list indexing accepts a numeric index stored under a symbolic name`() {
+        val source = """
+            दशन् + अम् विंशति + अम् त्रिंशत् + अम् च सूची + ङे दा + लोट् + सिप् ।
+            द्वि + अम् क्रमाङ्क + ङे दा + लोट् + सिप् ।
+            सूची + अम् क्रमाङ्क + टा स्था + लोट् + सिप् ।
+        """.trimIndent()
+        val interpretedResults = PaniniVM().evalScript(source)
+        assertTrue(interpretedResults.none { it is ExecutionResult.Failure }, interpretedResults.toString())
+        val interpreted = interpretedResults.filterIsInstance<ExecutionResult.Success>().last().typedValue
+        val compiled = compileAndInspect(source, "CompiledDirectNamedListIndex")
+
+        assertEquals(interpreted, compiled.values.getValue("LastResult"))
+        assertEquals(20L, (compiled.values.getValue("LastResult") as SanskritValue.Sankhya).value)
+        assertEquals(2, compiled.runtimeCalls.count { it == "executeDirectValue" })
         assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
     }
 
@@ -709,6 +741,27 @@ class StructuredBytecodeCompilerTest {
         assertTrue("executeDirectBoolean" !in executeCalls, executeCalls.toString())
         assertTrue("evaluateBoolean" !in executeCalls, executeCalls.toString())
         assertTrue("evaluate" !in executeCalls, executeCalls.toString())
+    }
+
+    @Test
+    fun `bounded loop reads a negated named truth state directly`() {
+        val source = """
+            शून्य + अम् एक + अम् च विद् + लोट् + सिप् ।
+            फल + अम् अवस्था + ङे दा + लोट् + सिप् ।
+            त्रि + कृत्वसुच् यावत् अवस्था + सुँ न भू + लट् + तिप् तावत् एक + अम् मुद्र् + लोट् + सिप् ।
+        """.trimIndent()
+        val interpretedResults = PaniniVM().evalScript(source)
+        assertTrue(interpretedResults.none { it is ExecutionResult.Failure }, interpretedResults.toString())
+        val interpreted = interpretedResults.filterIsInstance<ExecutionResult.Success>().last().typedValue
+        val compiled = compileAndInspect(source, "CompiledNegatedNamedTruthLoop")
+
+        assertEquals(interpreted, compiled.values.getValue("LastResult"))
+        assertEquals(false, (compiled.values.getValue("अवस्था") as SanskritValue.Satya).boolean)
+        val outcome = compiled.values.getValue("LastResult") as SanskritValue.Rupa
+        assertEquals("समाप्ति", outcome.fields.getValue("अवस्था").toDisplayText())
+        assertEquals(3L, (outcome.fields.getValue("प्रयत्नसङ्ख्या") as SanskritValue.Sankhya).value)
+        assertTrue("evaluateBoolean" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
+        assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
     }
 
     @Test

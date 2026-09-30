@@ -190,6 +190,9 @@ class PaniniVM(
 
     fun loadSession(sessionKey: String): SambhashanaContext? = sessionRuntime.load(sessionKey)
 
+    internal fun runtimeValue(sessionKey: String, name: String): SanskritValue? =
+        sessionRuntime.value(sessionKey, name)
+
     fun saveSession(sessionKey: String) = sessionRuntime.save(sessionKey)
 
     fun listSessions(): List<String> = sessionRuntime.listKeys()

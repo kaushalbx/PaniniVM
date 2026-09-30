@@ -7,6 +7,19 @@ import kotlin.test.assertIs
 
 class ConditionControlledLoopTest {
     @Test
+    fun `sanskrit truth literals retain typed values through assignment`() {
+        val results = PaniniVM().evalScript(
+            """
+            सत्य + अम् ध्वज + ङे दा + लोट् + सिप् ।
+            असत्य + अम् ध्वज + ङे दा + लोट् + सिप् ।
+            """.trimIndent(),
+        ).filterIsInstance<ExecutionResult.Success>()
+
+        assertEquals(SanskritValue.Satya(true), results.first().typedValue)
+        assertEquals(SanskritValue.Satya(false), results.last().typedValue)
+    }
+
+    @Test
     fun `nominative victory branch returns a value instead of executing as an incomplete action`() {
         val results = PaniniVM().evalScript(
             """

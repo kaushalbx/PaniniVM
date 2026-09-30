@@ -12,6 +12,7 @@ import dev.panini.execution.PrakriyaParameter
 import dev.panini.execution.PrakriyaValueType
 import dev.panini.execution.TaddhitaInheritanceEngine
 import dev.panini.execution.TaddhitaStructEngine
+import dev.panini.execution.SanskritValue
 import dev.panini.execution.NishedhaGuardEvaluator
 import dev.panini.execution.PuranaPratyayaResolver
 import dev.panini.execution.ExecutionPlan
@@ -119,7 +120,11 @@ internal object CompilerFrontend {
                 put(procedure.localSymbol, ProcedureTarget.Local(procedure.methodName))
             }
         }
-        val lowering = Lowering(registry, methodsByStem)
+        val activeRange = analyzed.statements.values.flatten()
+            .filterIsInstance<PvmScriptStatement.RangeDefinition>()
+            .lastOrNull()
+            ?.range
+        val lowering = Lowering(registry, methodsByStem, activeRange)
         val entryPoint = analyzed.statements.filterKeys(PaniniModuleSource::isEntryPoint).values.flatMap { statements ->
             statements.filterIsInstance<PvmScriptStatement.Sentence>().flatMap { sentence ->
                 lowering.lowerTopLevel(sentence)
@@ -163,6 +168,7 @@ internal object CompilerFrontend {
     private class Lowering(
         private val registry: PrakriyaRegistry,
         private val methodsByStem: Map<String, ProcedureTarget>,
+        private val activeRange: SanskritValue.Range?,
     ) {
         private var nextLabel = 0
 
@@ -286,11 +292,28 @@ internal object CompilerFrontend {
                     else -> emptyList()
                 }
             }
-            if (astBounds.size < 2) return null
-            return listOf(
-                CompilerInstruction.RandomRange(astBounds[0], astBounds[1]),
-                CompilerInstruction.Store("LastResult"),
-            )
+            val bounds = if (astBounds.size >= 2) {
+                astBounds[0] to astBounds[1]
+            } else {
+                activeRange?.let { it.minimum.value to it.maximum.value } ?: return null
+            }
+            val exclusionName = node.vakya.padas.filterIsInstance<SubantaPada>()
+                .firstOrNull { pada ->
+                    dev.panini.core.SupAffix.fromUpadesha(pada.sup.text)?.vibhakti ==
+                        dev.panini.core.Vibhakti.PANCHAMI &&
+                        (pada.pratipadika as? MulaPratipadika)?.text?.let { stem ->
+                            runCatching { evaluator.evaluateStems(listOf(stem)) }.isFailure
+                        } == true
+                }
+                ?.pratipadika
+                ?.sourceText
+                ?.substringBefore('+')
+                ?.trim()
+            return buildList {
+                exclusionName?.let { add(CompilerInstruction.Load(it)) }
+                add(CompilerInstruction.RandomRange(bounds.first, bounds.second, exclusionName != null))
+                add(CompilerInstruction.Store("LastResult"))
+            }
         }
 
         private fun lowerImplicitParameterOperation(
@@ -534,9 +557,30 @@ internal object CompilerFrontend {
                         CompilerInstruction.Compare(ComparisonOperator.EQUAL),
                     )
                 } else {
+                    val truthState = node.condition.vakya.padas.filterIsInstance<SubantaPada>()
+                        .singleOrNull()
+                        ?.pratipadika
+                        ?.sourceText
+                        ?.substringBefore('+')
+                        ?.trim()
                     ResolvedLeafPlanner.planAny(render(node.condition))
                         ?.takeIf { dev.panini.shiksha.Samjna.SATYA in it.resolved.operation.resultSamjnas }
                         ?.let(CompilerIrLowering::lowerCondition)
+                        ?: truthState?.let { name ->
+                            listOf(
+                                CompilerInstruction.Load(name),
+                                CompilerInstruction.Constant(dev.panini.execution.SanskritValue.Satya(!isNegated)),
+                                CompilerInstruction.Compare(ComparisonOperator.EQUAL),
+                            )
+                        }
+                        ?: runCatching { lower(node.condition) }
+                            .getOrNull()
+                            ?.plus(
+                                listOf(
+                                    CompilerInstruction.LoadLastResult,
+                                    CompilerInstruction.Booleanize,
+                                ),
+                            )
                         ?: return null
                 }
             }

@@ -188,7 +188,12 @@ internal sealed interface CompilerInstruction {
 
     data object IsEven : CompilerInstruction
 
-    data class RandomRange(val minimum: Long, val maximum: Long) : CompilerInstruction
+    /** Produces a random number in the inclusive range, optionally consuming a collection to exclude. */
+    data class RandomRange(
+        val minimum: Long,
+        val maximum: Long,
+        val excludeCollection: Boolean = false,
+    ) : CompilerInstruction
 
     data class Collection(val operator: CollectionOperator) : CompilerInstruction
 
@@ -634,7 +639,7 @@ internal object CompilerIrLowering {
                     ?.let(::lowerSingleCollectionValue)
                     ?: return null
                 val index = plan.resolved.context.bindings[Karaka.KARANA]
-                    ?.let(::lowerOperand)
+                    ?.let(::lowerNumericOperand)
                     ?: return null
                 list + index + CompilerInstruction.Collection(CollectionOperator.INDEX)
             }
@@ -669,10 +674,10 @@ internal object CompilerIrLowering {
                     ?.let(::lowerSingleCollectionValue)
                     ?: return null
                 val start = plan.resolved.context.bindings[Karaka.KARANA]
-                    ?.let(::lowerOperand)
+                    ?.let(::lowerNumericOperand)
                     ?: return null
                 val end = plan.resolved.context.bindings[Karaka.SAMPRADANA]
-                    ?.let(::lowerOperand)
+                    ?.let(::lowerNumericOperand)
                     ?: return null
                 list + start + end + CompilerInstruction.Collection(CollectionOperator.SLICE)
             }
@@ -728,6 +733,25 @@ internal object CompilerIrLowering {
             listOf(CompilerInstruction.Constant(it))
         } ?: listOf(CompilerInstruction.Load(expression.prakriti))
         is ExecutionExpression.TypedOperand -> listOf(CompilerInstruction.Constant(expression.value))
+        is ExecutionExpression.Reference -> listOf(
+            if (expression.name == "फल") CompilerInstruction.LoadLastResult
+            else CompilerInstruction.Load(expression.name),
+        )
+        is ExecutionExpression.Coordination -> null
+    }
+
+    /** A collection position is numeric: unresolved/self-form padas are state references, not text literals. */
+    private fun lowerNumericOperand(expression: ExecutionExpression): List<CompilerInstruction>? = when (expression) {
+        is ExecutionExpression.Pada -> when (val value = expression.value) {
+            is SanskritValue.Sankhya -> listOf(CompilerInstruction.Constant(value))
+            null, is SanskritValue.Shabda -> listOf(CompilerInstruction.Load(expression.prakriti))
+            else -> null
+        }
+        is ExecutionExpression.TypedOperand -> when (val value = expression.value) {
+            is SanskritValue.Sankhya -> listOf(CompilerInstruction.Constant(value))
+            is SanskritValue.Shabda -> listOf(CompilerInstruction.Load(value.text))
+            else -> null
+        }
         is ExecutionExpression.Reference -> listOf(
             if (expression.name == "फल") CompilerInstruction.LoadLastResult
             else CompilerInstruction.Load(expression.name),
@@ -934,7 +958,11 @@ internal object CompilerIrVerifier {
                 require(instruction.minimum <= instruction.maximum) {
                     "IR random range minimum exceeds maximum at instruction $index"
                 }
-                before + ValueKind.NUMBER
+                if (instruction.excludeCollection) {
+                    pop(ValueKind.LIST).first + ValueKind.NUMBER
+                } else {
+                    before + ValueKind.NUMBER
+                }
             }
             is CompilerInstruction.Collection -> {
                 val arity = when (instruction.operator) {
@@ -958,7 +986,7 @@ internal object CompilerIrVerifier {
                 fun requireKind(position: Int, expected: ValueKind) {
                     val actual = operands[position]
                     require(actual == expected || actual == ValueKind.UNKNOWN) {
-                        "IR collection operation requires $expected at instruction $index: $instruction"
+                        "IR collection operation requires $expected but found $actual at instruction $index: $instruction"
                     }
                 }
                 requireKind(0, ValueKind.LIST)
