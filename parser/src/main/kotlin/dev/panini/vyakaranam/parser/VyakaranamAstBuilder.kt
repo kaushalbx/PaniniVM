@@ -1,6 +1,8 @@
 package dev.panini.vyakaranam.parser
 
 import dev.panini.core.Lakara
+import dev.panini.core.SupAffix
+import dev.panini.core.Vibhakti
 import dev.panini.core.SupLopa
 import dev.panini.vyakaranam.ast.*
 import dev.panini.parser.VyakaranamParser as PaniniyaVyakaranamParser
@@ -21,10 +23,18 @@ class VyakaranamAstBuilder {
             val boundary = loop.boundary?.let { boundaryContext ->
                 val ordinal = buildSankhyaPuranaPada(boundaryContext.ordinal!!)
                 val attempt = buildSubanta(boundaryContext.attempt!!)
-                require((attempt.pratipadika as? MulaPratipadika)?.text == "प्रयत्न") {
+                require(
+                    (attempt.pratipadika as? MulaPratipadika)?.lexicalIdentity ==
+                        MulaPratipadikaIdentity.PRAYATNA,
+                ) {
                     "A bounded attempt loop requires प्रयत्नस्य as its boundary noun."
                 }
-                require(requireNotNull(boundaryContext.limitBase).text == "अन्त") {
+                require(
+                    MulaPratipadikaIdentity.fromText(
+                        requireNotNull(requireNotNull(boundaryContext.limitBase).text),
+                    ) ==
+                        MulaPratipadikaIdentity.ANTA,
+                ) {
                     "Only अन्त licenses the पर्यन्त boundary relation."
                 }
                 listOf<Pada>(
@@ -132,17 +142,22 @@ class VyakaranamAstBuilder {
         val nominal = (vakya as? NamaVakya)?.padas?.singleOrNull() as? SubantaPada
         if (nominal != null) implicitSubantaReturn(nominal) else Invocation(vakya)
     }
-        ?: implicitValueReturn(requireNotNull(context.value).text)
+        ?: implicitPratipadikaReturn(buildPratipadika(requireNotNull(context.value)))
 
     /** A one-word nominative branch is a Sanskrit zero-copula value clause. */
     private fun implicitSubantaReturn(value: SubantaPada): ProgramNode =
         (PaniniParser().parse("${value.pratipadika.sourceText} + अम् दा + लोट् + सिप् ।").body as Invocation)
-            .copy(implicitValue = value.sourceText)
+            .copy(implicitValue = value.sourceText, implicitValuePada = value)
 
-    /** A nominal branch has an understood return verb, just as a nāma-vākya has an understood copula. */
-    private fun implicitValueReturn(value: String): ProgramNode =
-        (PaniniParser().parse("$value + अम् दा + लोट् + सिप् ।").body as Invocation)
-            .copy(implicitValue = value)
+    /** A bare nominal branch has an understood nominative ending and return verb. */
+    private fun implicitPratipadikaReturn(value: Pratipadika): ProgramNode =
+        implicitSubantaReturn(
+            SubantaPada(
+                sourceText = "${value.sourceText} + सुँ",
+                pratipadika = value,
+                sup = SupPratyaya(sourceText = "सुँ", text = "सुँ"),
+            ),
+        )
 
     /** Lowers one written pipeline target into each mutually exclusive branch. */
     private fun pipeConditionalResult(
@@ -174,9 +189,18 @@ class VyakaranamAstBuilder {
         context: PaniniyaVyakaranamParser.PipelineClauseContext,
     ): Pipeline {
         val arguments = context.arguments.map(::buildSubanta)
+        val isNaturalSequence = context.purvaparaDirective() == null
         val stagePadas = context.stages.map { stage ->
             val domain = buildSubanta(stage.domain!!)
             val operation = buildSubanta(stage.operation!!)
+            if (isNaturalSequence) {
+                require(SupAffix.fromUpadesha(domain.sup.text)?.vibhakti == Vibhakti.SASTHI) {
+                    "A sequential procedure stage requires its domain in ṣaṣṭhī."
+                }
+                require(SupAffix.fromUpadesha(operation.sup.text)?.vibhakti == Vibhakti.TRTIYA) {
+                    "A sequential procedure stage requires its operation in tṛtīyā."
+                }
+            }
             Triple(
                 PipelineStage(
                     sourceText = "${canonicalSegmented(domain.sourceText)} ${canonicalSegmented(operation.pratipadika.sourceText)}",
@@ -187,17 +211,30 @@ class VyakaranamAstBuilder {
                 operation,
             )
         }
-        val purvaPada = buildSubanta(context.purvaparaDirective()!!.purva!!)
-        val paraPada = buildSubanta(context.purvaparaDirective()!!.para!!)
+        val legacyDirective = context.purvaparaDirective()
+        val renderedStages = if (isNaturalSequence) {
+            stagePadas.flatMapIndexed { index, (_, domain, operation) ->
+                buildList<Pada> {
+                    if (index > 0) add(AvyayaPada(sourceText = "ततः", form = "ततः"))
+                    add(domain)
+                    add(operation)
+                }
+            }
+        } else {
+            val purvaPada = buildSubanta(requireNotNull(legacyDirective).purva!!)
+            val paraPada = buildSubanta(legacyDirective.para!!)
+            stagePadas.flatMap { listOf(it.second, it.third) } +
+                listOf(purvaPada, paraPada) +
+                buildSubanta(context.pipelineResult()!!.subantaPada()!!)
+        }
         return Pipeline(
             sourceText = context.text,
             arguments = arguments.map { it.pratipadika.sourceText },
             stages = stagePadas.map { it.first },
+            argumentPadas = arguments,
             renderPadas = arguments +
                 AvyayaPada(sourceText = "च", form = "च") +
-                stagePadas.flatMap { listOf(it.second, it.third) } +
-                listOf(purvaPada, paraPada) +
-                buildSubanta(context.pipelineResult()!!.subantaPada()!!) +
+                renderedStages +
                 buildTinganta(context.tingantaPada()!!),
         )
     }
@@ -267,20 +304,48 @@ class VyakaranamAstBuilder {
     private fun buildParyantaRange(
         context: PaniniyaVyakaranamParser.ParyantaRangeContext,
     ): ParyantaRangePada {
-        require(context.limitBase!!.text == "अन्त") {
+        require(
+            MulaPratipadikaIdentity.fromText(requireNotNull(context.limitBase!!.text)) ==
+                MulaPratipadikaIdentity.ANTA,
+        ) {
             "पर्यन्त-range marker requires परि + अन्त + अम्."
         }
-        fun numeral(stems: List<String>, sup: String, source: String) = SankhyaPada(
-            sourceText = source,
-            stems = stems,
-            sup = SupPratyaya(sourceText = sup, text = sup),
-        )
         val lower = context.lower!!
         val upper = context.upper!!
+        fun lowerBoundary(): SankhyaBoundaryPada {
+            lower.ablativeNumeral()?.let { numeral ->
+                return SankhyaPada(
+                    sourceText = numeral.text,
+                    stems = numeral.sankhyaStem().map { it.text },
+                    sup = SupPratyaya(numeral.ablativeSup().text, numeral.ablativeSup().text),
+                )
+            }
+            val ordinal = requireNotNull(lower.ablativeOrdinal())
+            return SankhyaPuranaPada(
+                sourceText = ordinal.text,
+                stems = ordinal.sankhyaStem().map { it.text } + ordinal.puranaPratyaya().text,
+                sup = SupPratyaya(ordinal.ablativeSup().text, ordinal.ablativeSup().text),
+            )
+        }
+        fun upperBoundary(): SankhyaBoundaryPada {
+            upper.accusativeNumeral()?.let { numeral ->
+                return SankhyaPada(
+                    sourceText = numeral.text,
+                    stems = numeral.sankhyaStem().map { it.text },
+                    sup = SupPratyaya(numeral.accusativeSup().text, numeral.accusativeSup().text),
+                )
+            }
+            val ordinal = requireNotNull(upper.accusativeOrdinal())
+            return SankhyaPuranaPada(
+                sourceText = ordinal.text,
+                stems = ordinal.sankhyaStem().map { it.text } + ordinal.puranaPratyaya().text,
+                sup = SupPratyaya(ordinal.accusativeSup().text, ordinal.accusativeSup().text),
+            )
+        }
         return ParyantaRangePada(
             sourceText = context.text,
-            lowerLimit = numeral(lower.sankhyaStem().map { it.text }, lower.ablativeSup().text, lower.text),
-            upperLimit = numeral(upper.sankhyaStem().map { it.text }, upper.accusativeSup().text, upper.text),
+            lowerLimit = lowerBoundary(),
+            upperLimit = upperBoundary(),
             marker = SubantaPada(
                 sourceText = "परि+अन्त+अम्",
                 pratipadika = MulaPratipadika(sourceText = "परि+अन्त", text = "पर्यन्त"),

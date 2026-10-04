@@ -5,6 +5,7 @@ import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
 import dev.panini.sankhya.CanonicalNumeralStem
 import dev.panini.vyakaranam.ast.MulaPratipadika
+import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
 import dev.panini.vyakaranam.ast.ParyantaRangePada
 import dev.panini.vyakaranam.ast.SubantaPada
 
@@ -61,7 +62,7 @@ object PrakriyaScriptValidator {
         statements.filterIsInstance<PvmScriptStatement.Sentence>().forEach { sentence ->
             val declaration = sentence.ukti?.let(ItiDeclarationAnalyzer::analyze) ?: return@forEach
             val marker = declaration.nominativeMarker ?: return@forEach
-            if ((marker.pratipadika as? MulaPratipadika)?.text == "सीमा" &&
+            if ((marker.pratipadika as? MulaPratipadika)?.lexicalIdentity == MulaPratipadikaIdentity.SIMA &&
                 declaration.declaredPadas.none { it is ParyantaRangePada }
             ) {
                 diagnostics += diagnostic(
@@ -92,7 +93,7 @@ object PrakriyaScriptValidator {
             }
             val kriya = Prakriya(
                 nameSegmented = definition.nameSegmented,
-                nameStem = PrakriyaRegistry.stripSupSuffix(definition.nameSegmented),
+                nameStem = definition.prakriya.nameIdentity,
                 body = definition.body,
                 domainStem = definition.domainStem,
                 visibility = definition.prakriya.modifiers.visibility,
@@ -120,7 +121,14 @@ object PrakriyaScriptValidator {
         registry: PrakriyaRegistry,
         diagnostics: MutableList<PrakriyaDiagnostic>,
     ) {
-        var arguments = pipeline.arguments
+        val originalArguments = pipeline.arguments.mapIndexed { index, term ->
+            PrakriyaArgument(
+                term = term,
+                pada = pipeline.argumentPadas.getOrNull(index),
+                origin = PrakriyaArgumentOrigin.WRITTEN,
+            )
+        }
+        var arguments = originalArguments
         var precedingType: PrakriyaValueType? = null
         pipeline.stages.forEach { stage ->
             val invocation = registry.resolveStructuredInvocation(
@@ -134,19 +142,30 @@ object PrakriyaScriptValidator {
                 if (signature.parameters.size != arguments.size) {
                     diagnostics += diagnostic(
                         source,
-                        stage.operationStem.substringBefore(" + "),
-                        "'${stage.operationStem}' expects ${signature.parameters.size} arguments, but receives ${arguments.size}.",
+                        stage.operationStem,
+                        PrakriyaDiagnostics.arity(stage.operationStem, signature.parameters.size, arguments.size),
                     )
                 } else if (precedingType != null && signature.parameters.first().type != precedingType) {
                     diagnostics += diagnostic(
                         source,
-                        stage.operationStem.substringBefore(" + "),
+                        stage.operationStem,
                         "Pipeline type mismatch: ${signature.parameters.first().type} cannot consume $precedingType.",
                     )
                 }
             }
             precedingType = signature.resultType ?: signature.resultSchema?.let { PrakriyaValueType.SHABDA }
-            arguments = listOf("फल") + pipeline.arguments.drop(1)
+            val resultPlaceholder = when (precedingType) {
+                PrakriyaValueType.SANKHYA -> SanskritValue.Sankhya(0, "शून्य")
+                PrakriyaValueType.SUCHI -> SanskritValue.Suchi(emptyList())
+                else -> SanskritValue.Shabda("फल")
+            }
+            arguments = listOf(
+                PrakriyaArgument(
+                    term = "फल",
+                    value = resultPlaceholder,
+                    origin = PrakriyaArgumentOrigin.PIPE,
+                ),
+            ) + originalArguments.drop(1)
         }
     }
 
@@ -157,7 +176,7 @@ object PrakriyaScriptValidator {
     ) {
         val signature = invocation.kriya.signature
         if (signature.parameters.isEmpty()) return
-        val callName = invocation.kriya.nameStem.substringBefore(" + ")
+        val callName = invocation.kriya.nameStem
         val resolution = PrakriyaInvocationArgumentResolver.resolve(invocation)
         if (resolution is PrakriyaArgumentResolution.Failure) {
             diagnostics += diagnostic(source, callName, resolution.message)
@@ -168,14 +187,14 @@ object PrakriyaScriptValidator {
             diagnostics += diagnostic(
                 source,
                 callName,
-                "'$callName' expects ${signature.parameters.size} arguments, but receives ${arguments.size}.",
+                PrakriyaDiagnostics.arity(callName, signature.parameters.size, arguments.size),
             )
             return
         }
         signature.parameters.zip(arguments).firstOrNull { (parameter, argument) ->
             parameter.type != PrakriyaValueClassifier.classifyTerm(argument)
         }?.let { (parameter, _) ->
-            diagnostics += diagnostic(source, callName, "Parameter '${parameter.nameStem}' requires ${parameter.type}.")
+            diagnostics += diagnostic(source, callName, PrakriyaDiagnostics.parameterType(parameter))
         }
     }
 
@@ -188,7 +207,7 @@ object PrakriyaScriptValidator {
             .mapNotNull { sentence ->
                 val declaration = sentence.ukti?.let(ItiDeclarationAnalyzer::analyze) ?: return@mapNotNull null
                 val marker = declaration.nominativeMarker ?: return@mapNotNull null
-                if ((marker.pratipadika as? MulaPratipadika)?.text != "संज्ञा" ||
+                if ((marker.pratipadika as? MulaPratipadika)?.lexicalIdentity != MulaPratipadikaIdentity.SAMJNA ||
                     SupAffix.fromUpadesha(marker.sup.text)?.vibhakti != Vibhakti.PRATHAMA
                 ) return@mapNotNull null
                 "इति${marker.sourceText.filterNot(Char::isWhitespace)}"

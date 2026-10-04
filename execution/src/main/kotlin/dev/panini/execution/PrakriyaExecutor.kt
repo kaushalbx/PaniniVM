@@ -25,10 +25,11 @@ internal class PrakriyaExecutor {
         if (argumentResolution is PrakriyaArgumentResolution.Failure) {
             return listOf(ExecutionResult.Failure(ExecutionError.INVALID_VALUE, argumentResolution.message))
         }
-        val argTerms = (argumentResolution as PrakriyaArgumentResolution.Success).terms
-        val callFrame = PrakriyaCallFrame.create(
+        val resolvedArguments = (argumentResolution as PrakriyaArgumentResolution.Success).arguments
+        val argTerms = argumentResolution.terms
+        val callFrame = PrakriyaCallFrame.createResolved(
             invocation,
-            argTerms,
+            resolvedArguments,
             request.scope,
         )
 
@@ -80,7 +81,7 @@ internal class PrakriyaExecutor {
         if (signature.parameters.isNotEmpty() && signature.parameters.size != terms.size) {
             return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
-                "प्रक्रिया-मानसङ्ख्या: '${invocation.kriya.nameStem}' expects ${signature.parameters.size} arguments, but received ${terms.size}.",
+                PrakriyaDiagnostics.arity(invocation.kriya.nameStem, signature.parameters.size, terms.size),
             )
         }
         val mismatch = signature.parameters.zip(terms).withIndex().firstOrNull { (index, pair) ->
@@ -90,7 +91,7 @@ internal class PrakriyaExecutor {
         } ?: return null
         return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
-            "प्रक्रिया-मानप्रकारः: '${mismatch.value.first.nameStem}' requires ${mismatch.value.first.type}.",
+            PrakriyaDiagnostics.parameterType(mismatch.value.first),
         )
     }
 
@@ -104,7 +105,6 @@ internal class PrakriyaExecutor {
             if (NishedhaGuardEvaluator.isProhibited(
                     guard,
                     invocation.kriya.signature.parameters,
-                    terms,
                     frame.arguments,
                 ) || requiredType != null && frame.arguments.any {
                     PrakriyaValueClassifier.classifyValue(it) != requiredType

@@ -5,6 +5,7 @@ import dev.panini.vyakaranam.ast.AkhyataVakya
 import dev.panini.vyakaranam.ast.Conditional
 import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.MulaPratipadika
+import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
 import dev.panini.vyakaranam.ast.NamaVakya
 import dev.panini.vyakaranam.ast.Pada
 import dev.panini.vyakaranam.ast.Pipeline
@@ -16,6 +17,7 @@ import dev.panini.vyakaranam.ast.SankhyaPuranaPada
 import dev.panini.vyakaranam.ast.SankhyaPada
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.WhileLoop
+import dev.panini.vyakaranam.ast.semanticKey
 
 /** Rebinds prakriyā placeholders in the already-parsed body AST. */
 object PrakriyaAstArgumentBinder {
@@ -26,7 +28,7 @@ object PrakriyaAstArgumentBinder {
     fun bind(node: ProgramNode, parameters: List<PrakriyaParameter>, argumentCount: Int): ProgramNode {
         val names = parameters.mapIndexed { index, parameter -> parameter.nameStem to index }.toMap()
         fun parameterIndex(pada: SubantaPada): Int? {
-            val stem = PrakriyaInvocationMatcher.normalizeIdentity(pada.pratipadika.sourceText)
+            val stem = pada.pratipadika.semanticKey()
             return names[stem] ?: (NumeralPadaBinder.extractOrdinalValue(pada)
                 ?: PuranaPratyayaResolver.ordinalValue(pada))
                 ?.toInt()?.minus(1)?.takeIf { it in 0 until argumentCount }
@@ -67,7 +69,10 @@ object PrakriyaAstArgumentBinder {
                 index?.let { reference(pada, it) } ?: pada
             }
             is SubantaPada -> {
-                if (pada.pratipadika.sourceText.trim() == "समवाय" && argumentCount > 0) {
+                if (
+                    (pada.pratipadika as? MulaPratipadika)?.lexicalIdentity ==
+                    MulaPratipadikaIdentity.SAMAVAYA && argumentCount > 0
+                ) {
                     val members = (0 until argumentCount).map { reference(pada, it) }
                     SamuccitaSubanta(members.joinToString(" ") { it.sourceText }, members)
                 } else {
@@ -114,10 +119,13 @@ object PrakriyaAstArgumentBinder {
             )
 
             override fun visitPipeline(node: Pipeline): ProgramNode = node.copy(
-                arguments = node.arguments.map { argument ->
-                    names[PrakriyaInvocationMatcher.normalizeIdentity(argument)]
-                        ?.let(::referenceKey) ?: argument
+                arguments = node.arguments.mapIndexed { index, argument ->
+                    val identity = (node.argumentPadas.getOrNull(index) as? SubantaPada)
+                        ?.pratipadika?.semanticKey()
+                        ?: return@mapIndexed argument
+                    names[identity]?.let(::referenceKey) ?: argument
                 },
+                argumentPadas = node.argumentPadas.map(::bindPada),
                 renderPadas = node.renderPadas.map(::bindPada),
             )
         }.transform(node)

@@ -63,6 +63,9 @@ pipelineClause
       stages+=pipelineStage stages+=pipelineStage+
       purvaparaDirective pipelineResult tingantaPada
       DANDA? EOF
+    | (arguments+=subantaPada)+ CHA
+      stages+=pipelineStage (TATAH stages+=pipelineStage)+
+      tingantaPada DANDA? EOF
     ;
 
 pipelineStage
@@ -150,9 +153,19 @@ vakyaPada
  * only अन्त licenses the पर्यन्त limit relation.
  */
 paryantaRange
-    : lower=ablativeNumeral
-      upper=accusativeNumeral
+    : lower=ablativeBoundary
+      upper=accusativeBoundary
       PARI PLUS limitBase=IDENTIFIER PLUS SUP_AM
+    ;
+
+ablativeBoundary
+    : ablativeNumeral
+    | ablativeOrdinal
+    ;
+
+accusativeBoundary
+    : accusativeNumeral
+    | accusativeOrdinal
     ;
 
 ablativeNumeral
@@ -161,6 +174,14 @@ ablativeNumeral
 
 accusativeNumeral
     : (sankhyaStem PLUS)+ accusativeSup
+    ;
+
+ablativeOrdinal
+    : (sankhyaStem PLUS)+ puranaPratyaya PLUS ablativeSup
+    ;
+
+accusativeOrdinal
+    : (sankhyaStem PLUS)+ puranaPratyaya PLUS accusativeSup
     ;
 
 ablativeSup
@@ -242,6 +263,7 @@ puranaPratyaya
     | PRATYAYA_MA
     | PRATYAYA_TAMA
     | PRATYAYA_TIYA
+    | PRATYAYA_AMACH
     ;
 
 sankhyaAbhyasaPada
@@ -745,7 +767,8 @@ mulaAvyaya
     | KHALU
     | NANU
     | ATHA
-    | TATAH
+    // TATAH is reserved as the structural sequence boundary. Allowing it here
+    // lets an akhyāta greedily absorb the next stage's pre-verbal operands.
     | ANANTARAM
     | KINTU
     | ATAH

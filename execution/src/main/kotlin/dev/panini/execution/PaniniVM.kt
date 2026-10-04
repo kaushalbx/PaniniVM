@@ -98,8 +98,26 @@ class PaniniVM(
         listener: String = "यन्त्रम्",
         evaluateCondition: Boolean = false,
         injectedBindings: Map<Karaka, ExecutionExpression> = emptyMap(),
+        persistSession: Boolean = true,
     ): ExecutionResult = sessionRuntime.eval(
-        ukti, sessionKey, scope, speaker, listener, evaluateCondition, injectedBindings,
+        ukti, sessionKey, scope, speaker, listener, evaluateCondition, injectedBindings, persistSession,
+    )
+
+    /** Executes an utterance in a script's shared discourse without forcing disk persistence. */
+    internal fun evalScriptUtterance(
+        utterance: String,
+        sessionKey: String,
+        scope: ExecutionScope,
+        speaker: String,
+        listener: String,
+        persistSession: Boolean,
+    ): ExecutionResult = sessionRuntime.eval(
+        utterance,
+        sessionKey,
+        scope,
+        speaker,
+        listener,
+        persistSession = persistSession,
     )
 
     fun resume(
@@ -154,8 +172,9 @@ class PaniniVM(
         registry: PrakriyaRegistry,
         callerSourceFile: String? = null,
         onResult: ((ExecutionResult) -> Unit)? = null,
+        persistSession: Boolean = true,
     ): List<ExecutionResult> = scriptExecutor.executePrakriyaInvocation(
-        invocation, sessionKey, scope, speaker, listener, registry, callerSourceFile, onResult,
+        invocation, sessionKey, scope, speaker, listener, registry, callerSourceFile, onResult, persistSession,
     )
 
     private val granthaExecutor by lazy { GranthaExecutor(store, externalDispatcher) }
@@ -186,7 +205,10 @@ class PaniniVM(
         speaker: String = "प्रयोक्ता",
         listener: String = "यन्त्रम्",
         onResult: ((ExecutionResult) -> Unit)? = null,
-    ): List<ExecutionResult> = scriptExecutor.evalFile(file, sessionKey, scope, speaker, listener, onResult)
+        persistSession: Boolean = sessionKey != null,
+    ): List<ExecutionResult> = scriptExecutor.evalFile(
+        file, sessionKey, scope, speaker, listener, onResult, persistSession,
+    )
 
     fun loadSession(sessionKey: String): SambhashanaContext? = sessionRuntime.load(sessionKey)
 

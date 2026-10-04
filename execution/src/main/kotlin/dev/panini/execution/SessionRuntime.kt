@@ -43,8 +43,9 @@ internal class SessionRuntime(
         speaker: String,
         listener: String,
         evaluateCondition: Boolean = false,
+        persistSession: Boolean = true,
     ): ExecutionResult = evaluate(
-        utterance, sessionKey, scope, speaker, listener, evaluateCondition,
+        utterance, sessionKey, scope, speaker, listener, evaluateCondition, persistSession,
     ) { input, context, memory, environment ->
         VyakaranamExecutionAdapter.bindWithAnalysis(input, context, memory, environment)
     }
@@ -58,9 +59,10 @@ internal class SessionRuntime(
         listener: String,
         evaluateCondition: Boolean = false,
         injectedBindings: Map<Karaka, ExecutionExpression> = emptyMap(),
+        persistSession: Boolean = true,
     ): ExecutionResult = evaluate(
         ukti.sourceText.ifBlank { ukti.body.sourceText },
-        sessionKey, scope, speaker, listener, evaluateCondition,
+        sessionKey, scope, speaker, listener, evaluateCondition, persistSession,
     ) { input, context, memory, environment ->
         VyakaranamExecutionAdapter.bindWithAnalysis(
             input, ukti, context, memory, environment, injectedBindings,
@@ -74,6 +76,7 @@ internal class SessionRuntime(
         speaker: String,
         listener: String,
         evaluateCondition: Boolean,
+        persistSession: Boolean,
         bind: (
             SanskritUktiInput,
             SambhashanaContext,
@@ -83,7 +86,8 @@ internal class SessionRuntime(
     ): ExecutionResult {
         val activeContext = if (sessionKey != null) {
             sessions.getOrPut(sessionKey) {
-                store.load(sessionKey) ?: SambhashanaContext(speaker = speaker, listener = listener)
+                (if (persistSession) store.load(sessionKey) else null)
+                    ?: SambhashanaContext(speaker = speaker, listener = listener)
             }
         } else {
             SambhashanaContext(speaker = speaker, listener = listener)
@@ -94,16 +98,18 @@ internal class SessionRuntime(
             listener = activeContext.listener,
         )
         val effectiveScope = effectiveScope(scope)
-        val memory = sessionKey?.let(::kriyaMemory) ?: KriyaMemory()
+        val memory = sessionKey?.let {
+            if (persistSession) kriyaMemory(it) else kriyaMemories.computeIfAbsent(it) { KriyaMemory() }
+        } ?: KriyaMemory()
         val analyzedBinding = bind(input, activeContext, memory, effectiveScope.environment)
         val turn = executeBinding(
             analyzedBinding.binding, activeContext, effectiveScope, memory, evaluateCondition,
         )
         val phala = turn.response.phala
         if (phala is Phala.Siddha && sessionKey != null) {
-            persistSuccessfulTurn(sessionKey, turn.context)
+            recordSuccessfulTurn(sessionKey, turn.context, persistSession)
             analyzedBinding.analysis?.let {
-                rememberKriyas(sessionKey, turn.context.turnNumber, it.frames, phala)
+                rememberKriyas(sessionKey, turn.context.turnNumber, it.frames, phala, persistSession)
             }
         }
         return phala.toExecutionResult("panini.eval")
@@ -119,7 +125,7 @@ internal class SessionRuntime(
         val turn = SutraExecutionPipeline.resumeTurn(typedContinuation, effectiveScope(scope))
         val phala = turn.response.phala
         if (phala is Phala.Siddha && sessionKey != null) {
-            persistSuccessfulTurn(sessionKey, turn.context)
+            recordSuccessfulTurn(sessionKey, turn.context, persistSession = true)
             VyakaranamExecutionAdapter.analyzeForMemory(typedContinuation.input.text)?.let { analysis ->
                 rememberKriyas(sessionKey, turn.context.turnNumber, analysis.frames, phala)
             }
@@ -196,9 +202,9 @@ internal class SessionRuntime(
         externalDispatcher = scope.externalDispatcher ?: externalDispatcher,
     )
 
-    private fun persistSuccessfulTurn(sessionKey: String, context: SambhashanaContext) {
+    private fun recordSuccessfulTurn(sessionKey: String, context: SambhashanaContext, persistSession: Boolean) {
         sessions[sessionKey] = context
-        store.save(sessionKey, context)
+        if (persistSession) store.save(sessionKey, context)
     }
 
     private fun rememberKriyas(
@@ -206,6 +212,7 @@ internal class SessionRuntime(
         turn: Int,
         frames: List<KriyaFrame>,
         phala: Phala.Siddha,
+        persistSession: Boolean = true,
     ) {
         if (frames.isEmpty()) return
         val invocationValues = phala.typedValues.entries
@@ -221,7 +228,7 @@ internal class SessionRuntime(
         if (remembered.isNotEmpty()) {
             val memory = kriyaMemory(sessionKey).remember(remembered)
             kriyaMemories[sessionKey] = memory
-            kriyaMemoryStore.save(sessionKey, memory)
+            if (persistSession) kriyaMemoryStore.save(sessionKey, memory)
         }
     }
 }

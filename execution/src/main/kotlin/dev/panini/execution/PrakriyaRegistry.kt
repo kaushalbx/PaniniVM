@@ -10,6 +10,8 @@ import dev.panini.vyakaranam.ast.SankhyaPada
 import dev.panini.vyakaranam.ast.SankhyaPuranaPada
 import dev.panini.vyakaranam.ast.KatapayadiPada
 import dev.panini.vyakaranam.ast.AryabhatiyaPada
+import dev.panini.vyakaranam.ast.BhutasamkhyaPada
+import dev.panini.vyakaranam.ast.semanticKey
 
 /**
  * A user-defined reusable prakriyā declared by a grammatical प्रक्रिया statement.
@@ -94,42 +96,36 @@ class PrakriyaRegistry {
 
     val size: Int get() = registry.size
 
+    /** Resolves an already parsed/synthesized pipeline stage without reconstructing Sanskrit text. */
     fun resolveStructuredInvocation(
         operationStem: String,
         domainStem: String?,
-        argumentTerms: List<String>,
+        arguments: List<PrakriyaArgument>,
         sourceText: String,
         callerSourceFile: String? = null,
-        argumentValues: List<SanskritValue?> = emptyList(),
     ): PrakriyaInvocation? {
-        val normalizedOperation = PrakriyaInvocationMatcher.normalizeIdentity(operationStem)
-        val candidates = registry.values.flatten()
+        val argumentTypes = arguments.map { argument ->
+            argument.value?.let(PrakriyaValueClassifier::classifyValue)
+                ?: argument.pada?.let(PrakriyaValueClassifier::classifyPada)
+                ?: PrakriyaValueType.SHABDA
+        }
+        val kriya = registry.values.flatten()
             .distinctBy { System.identityHashCode(it) }
             .asSequence()
-            .filter {
-                PrakriyaInvocationMatcher.normalizeIdentity(it.nameStem) == normalizedOperation &&
-                    domainMatches(it.domainStem, domainStem)
-            }
+            .filter { it.nameStem == operationStem && domainMatches(it.domainStem, domainStem) }
             .filterNot { it.isInternal && it.sourceFile != null && callerSourceFile != it.sourceFile }
             .sortedWith(
                 compareByDescending<Prakriya> { it.precedence.rank }
-                    .thenByDescending { AntaratamaOverloadEngine.match(it.signature, argumentTerms).rank },
+                    .thenByDescending { AntaratamaOverloadEngine.matchTypes(it.signature, argumentTypes).rank },
             )
-            .toList()
-        val kriya = candidates.firstOrNull() ?: return null
-        val karmaText = argumentTerms.joinToString(" ") { "$it + अम्" }
+            .firstOrNull() ?: return null
         return PrakriyaInvocation(
-            kriya,
-            karmaText,
-            sourceText,
-            argumentValues = argumentValues,
-            arguments = argumentTerms.mapIndexed { index, term ->
-                PrakriyaArgument(
-                    term = term,
-                    value = argumentValues.getOrNull(index),
-                    origin = PrakriyaArgumentOrigin.WRITTEN,
-                )
-            },
+            kriya = kriya,
+            karmaText = arguments.joinToString(" ") { it.term },
+            fullText = sourceText,
+            argumentValues = arguments.map(PrakriyaArgument::value),
+            arguments = arguments,
+            argumentSyntax = arguments.mapNotNull(PrakriyaArgument::pada),
         )
     }
 
@@ -142,9 +138,7 @@ class PrakriyaRegistry {
         if (registry.isEmpty()) return null
 
         val allKriyas = registry.values.flatten().distinctBy { System.identityHashCode(it) }
-        val knownStems = allKriyas.mapTo(mutableSetOf()) {
-            PrakriyaInvocationMatcher.normalizeIdentity(it.nameStem)
-        }
+        val knownStems = allKriyas.mapTo(mutableSetOf()) { it.nameStem }
         val shape = PrakriyaInvocationMatcher.match(ukti, knownStems) ?: return null
         val injectedText = injectedKarman?.reference?.let { "$it + अम्" }.orEmpty()
         val karmaText = listOf(injectedText, shape.karmaText)
@@ -153,23 +147,31 @@ class PrakriyaRegistry {
         val writtenPadas = shape.argumentPadas.filter(Pada::isAccusative)
         val writtenTerms = writtenPadas.map(Pada::argumentTerm)
         val argumentTerms = listOfNotNull(injectedKarman?.reference) + writtenTerms
+        val argumentTypes = listOfNotNull(
+            injectedKarman?.value?.let(PrakriyaValueClassifier::classifyValue)
+                ?: injectedKarman?.let { PrakriyaValueType.SHABDA },
+        ) + writtenPadas.map(PrakriyaValueClassifier::classifyPada)
         val candidates = allKriyas.sortedWith(
             compareByDescending<Prakriya> { it.precedence.rank }
                 .thenByDescending {
-                    val resolved = if (injectedKarman == null) {
-                        NamedPrakriyaArgumentResolver.resolve(
+                    val orderedTypes = if (injectedKarman == null) {
+                        val resolved = NamedPrakriyaArgumentResolver.resolve(
                             shape.argumentPadas.filterIsInstance<SubantaPada>(),
                             it.signature,
                         )
+                        (resolved as? PrakriyaArgumentResolution.Success)?.arguments?.map { argument ->
+                            argument.argument.value?.let(PrakriyaValueClassifier::classifyValue)
+                                ?: argument.argument.pada?.let(PrakriyaValueClassifier::classifyPada)
+                                ?: PrakriyaValueType.SHABDA
+                        } ?: argumentTypes
                     } else {
-                        NamedPrakriyaArgumentResolver.resolve(karmaText, it.signature)
+                        argumentTypes
                     }
-                    val ordered = (resolved as? PrakriyaArgumentResolution.Success)?.terms ?: argumentTerms
-                    AntaratamaOverloadEngine.match(it.signature, ordered).rank
+                    AntaratamaOverloadEngine.matchTypes(it.signature, orderedTypes).rank
                 },
         )
         val kriya = candidates.firstOrNull { candidate ->
-            PrakriyaInvocationMatcher.normalizeIdentity(candidate.nameStem) == shape.operationStem &&
+            candidate.nameStem == shape.operationStem &&
                 domainMatches(candidate.domainStem, shape.domainStem) &&
                 (!candidate.isInternal || candidate.sourceFile == null || callerSourceFile == candidate.sourceFile)
         } ?: return null
@@ -197,25 +199,10 @@ class PrakriyaRegistry {
 
     private fun domainMatches(expected: String?, actual: String?): Boolean {
         if (expected == null || actual == null) return expected == actual
-        val normalizedExpected = PrakriyaInvocationMatcher.normalizeIdentity(stripSupSuffix(expected))
-        val normalizedActual = PrakriyaInvocationMatcher.normalizeIdentity(stripSupSuffix(actual))
-        if (normalizedExpected == normalizedActual) return true
-        val parent = inheritanceMap[actual] ?: inheritanceMap[normalizedActual] ?: return false
-        return PrakriyaInvocationMatcher.normalizeIdentity(stripSupSuffix(parent)) == normalizedExpected
+        if (expected == actual) return true
+        return inheritanceMap[actual] == expected
     }
 
-    companion object {
-        internal fun stripSupSuffix(nameSegmented: String): String {
-            val parts = nameSegmented.split("+").map { it.trim() }
-            if (parts.size <= 1) return nameSegmented
-            val lastPart = parts.last()
-            return if (SupAffix.fromUpadesha(lastPart) != null) {
-                parts.dropLast(1).joinToString(" + ")
-            } else {
-                nameSegmented
-            }
-        }
-    }
 }
 
 data class PrakriyaInvocation(
@@ -245,18 +232,20 @@ private fun Pada.isAccusative(): Boolean {
         is SankhyaPuranaPada -> sup.text
         is KatapayadiPada -> sup.text
         is AryabhatiyaPada -> sup.text
+        is BhutasamkhyaPada -> sup.text
         else -> return false
     }
     return SupAffix.fromUpadesha(supText)?.vibhakti == dev.panini.core.Vibhakti.DVITIYA
 }
 
 private fun Pada.argumentTerm(): String = when (this) {
-    is SubantaPada -> pratipadika.sourceText.trim()
+    is SubantaPada -> pratipadika.semanticKey()
     is SankhyaPada -> stems.joinToString(" + ")
     is SankhyaPuranaPada -> stems.joinToString(" + ")
     is KatapayadiPada -> word
     is AryabhatiyaPada -> word
-    else -> sourceText.substringBeforeLast('+').trim()
+    is BhutasamkhyaPada -> terms.joinToString(" + ")
+    else -> error("Only a parsed accusative nominal can be a procedure argument: $sourceText")
 }
 
 private val PrakriyaPrecedence.rank: Int

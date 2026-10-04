@@ -32,6 +32,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         listener: String,
         prakriyaRegistry: PrakriyaRegistry? = null,
         onResult: ((ExecutionResult) -> Unit)? = null,
+        persistSession: Boolean = sessionKey != null,
     ): List<ExecutionResult> {
         val results = mutableListOf<ExecutionResult>()
         val effectiveSessionKey = sessionKey ?: "script-${System.identityHashCode(scriptContent)}"
@@ -42,20 +43,16 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         val registry = prakriyaRegistry ?: PrakriyaRegistry()
         projectLoader.registerDeclarations(registry, parsed, sourceFile)
 
-        val activeRange = parsed.filterIsInstance<PvmScriptStatement.RangeDefinition>()
-            .lastOrNull()?.range
-        val rangeEnvironment = activeRange?.let {
-            ValueEnvironment(mapOf(ACTIVE_RANGE_NAME to it))
-        } ?: ValueEnvironment()
+        val discourse = PvmDiscourseContext.from(parsed)
         val effectiveScope = scope.copy(
             prakriyaRegistry = registry,
-            environment = scope.environment.mergedWith(rangeEnvironment),
+            environment = scope.environment.mergedWith(discourse.valueEnvironment()),
         )
         val structStore = mutableMapOf<String, TaddhitaStruct>()
         val structSchemas = mutableMapOf<String, TaddhitaStructSchema>()
         val context = ExecutionContext(
             effectiveSessionKey, effectiveScope, speaker, listener, registry, sourceFile,
-            structStore, structSchemas, onResult,
+            structStore, structSchemas, onResult, persistSession,
         )
 
         parsed.filterIsInstance<PvmScriptStatement.Sentence>().forEach { statement ->
@@ -65,8 +62,17 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                     structSchemas[semantics.schema.nameStem] = semantics.schema
                     registry.registerSchema(semantics.schema)
                 }
-                is PvmSentenceSemantics.StructConstruction ->
-                    structStore[semantics.struct.nameStem] = semantics.struct
+                is PvmSentenceSemantics.StructFieldAssertion -> {
+                    val assertion = semantics.assertion
+                    val existing = structStore[assertion.ownerStem]
+                    structStore[assertion.ownerStem] = TaddhitaStruct(
+                        nameStem = assertion.ownerStem,
+                        attributes = existing?.attributes.orEmpty() +
+                            (assertion.fieldStem to assertion.valueStem),
+                        typedAttributes = existing?.typedAttributes.orEmpty() +
+                            (assertion.fieldStem to TaddhitaStructEngine.assertionValue(assertion)),
+                    )
+                }
                 is PvmSentenceSemantics.AttributePipeline -> executeStructuredPipeline(
                     semantics,
                     context,
@@ -80,13 +86,13 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                 PvmSentenceSemantics.Executable -> if (program != null) {
                     executeProgramNode(program, context).also(results::addAll)
                 } else {
-                    val result = vm.eval(
+                    val result = vm.evalScriptUtterance(
                         statement.text,
                         effectiveSessionKey,
                         effectiveScope,
                         speaker,
                         listener,
-                        isExecutingScript = true,
+                        persistSession,
                     )
                     results += result
                     context.publish(result)
@@ -117,6 +123,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         is Pipeline -> PurvaparaPipelineEngine.executePipeline(
             node, vm, context.sessionKey, context.scope, context.speaker, context.listener,
             context.registry, callerSourceFile = context.sourceFile,
+            persistSession = context.persistSession,
         ).also(context::publish)
         is Quotation -> executeEvaluatorNode(node, context)
         is Prakriya -> node.body.flatMap {
@@ -142,6 +149,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             context.speaker,
             context.listener,
             evaluateCondition = context.conditionEvaluation,
+            persistSession = context.persistSession,
         ),
     ).also(context::publish)
 
@@ -179,6 +187,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             registry = context.registry,
             sourceFile = context.sourceFile,
             conditionEvaluation = context.conditionEvaluation,
+            persistSession = context.persistSession,
             injectedKarman = context.injectedKarman,
             onResult = context.onResult,
             executePrakriya = { executePrakriyaInvocation(it, context) },
@@ -203,7 +212,9 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             scope = context.scope,
             speaker = context.speaker,
             listener = context.listener,
+            persistSession = context.persistSession,
             structStore = context.structStore,
+            resolveValue = { vm.runtimeValue(context.sessionKey, it) },
             onResult = context.onResult,
         ),
     )
@@ -222,6 +233,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         val structStore: MutableMap<String, TaddhitaStruct>,
         val structSchemas: Map<String, TaddhitaStructSchema>,
         val onResult: ((ExecutionResult) -> Unit)?,
+        val persistSession: Boolean,
         val conditionEvaluation: Boolean = false,
         val injectedKarman: InjectedKarmanBinding? = null,
     ) {
@@ -261,6 +273,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                     context.speaker,
                     context.listener,
                     evaluateCondition = true,
+                    persistSession = context.persistSession,
                 )
             },
             resolveCondition = { structuredValueExecutor.resolveInvocation(it, context.structStore) },
@@ -276,6 +289,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         speaker: String,
         listener: String,
         onResult: ((ExecutionResult) -> Unit)? = null,
+        persistSession: Boolean = sessionKey != null,
     ): List<ExecutionResult> {
         require(entryFile.exists()) { "PaniniVM entry-point file not found: ${entryFile.absolutePath}" }
 
@@ -292,6 +306,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             listener = listener,
             prakriyaRegistry = registry,
             onResult = onResult,
+            persistSession = persistSession,
         )
     }
 
@@ -302,14 +317,15 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         speaker: String,
         listener: String,
         onResult: ((ExecutionResult) -> Unit)? = null,
+        persistSession: Boolean = sessionKey != null,
     ): List<ExecutionResult> {
         require(file.exists()) { "PaniniVM script file not found: ${file.absolutePath}" }
         return if (projectLoader.hasSiblingSource(file)) {
-            evalProject(file, sessionKey, scope, speaker, listener, onResult)
+            evalProject(file, sessionKey, scope, speaker, listener, onResult, persistSession)
         } else {
             evalScript(
                 file.readText(), sourceFile = file.name, sessionKey = sessionKey, scope = scope, speaker = speaker,
-                listener = listener, onResult = onResult,
+                listener = listener, onResult = onResult, persistSession = persistSession,
             )
         }
     }
@@ -323,6 +339,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         registry: PrakriyaRegistry,
         callerSourceFile: String? = null,
         onResult: ((ExecutionResult) -> Unit)? = null,
+        persistSession: Boolean = true,
     ): List<ExecutionResult> = executePrakriyaInvocation(
         invocation,
         ExecutionContext(
@@ -335,6 +352,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             structStore = mutableMapOf(),
             structSchemas = emptyMap(),
             onResult = onResult,
+            persistSession = persistSession,
         ),
     )
 

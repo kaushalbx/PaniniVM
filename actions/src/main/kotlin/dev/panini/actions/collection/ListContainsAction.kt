@@ -11,10 +11,11 @@ import dev.panini.execution.SanskritValue
 /** Check if a list contains a specific element. */
 object ListContainsAction : DhatuAction("सूच्यस्तित्वम्", "सूच्याम् तत्त्वस्य अस्तित्व-परीक्षणम् (कन्टेन्स्)") {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
-        val listExpr = context.bindings[Karaka.KARMAN]
+        val listExpr = context.bindings[Karaka.ADHIKARANA]
+            ?: context.bindings[Karaka.KARMAN]
             ?: return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
-                "List contains check requires a list in KARMAN."
+                "सूच्यस्तित्वे अधिकरणरूपेण सूची अपेक्षिता।"
             )
 
         val list = context.resolveValues(listExpr)
@@ -24,12 +25,12 @@ object ListContainsAction : DhatuAction("सूच्यस्तित्वम
             list
         }
 
-        // Find query element in KARANA or KARTR
-        val queryExpr = context.bindings[Karaka.KARANA]
-            ?: context.bindings[Karaka.KARTR]
+        // The natural existential frame makes the entity the nominative kartṛ.
+        val queryExpr = context.bindings[Karaka.KARTR]
+            ?: context.bindings[Karaka.KARANA]
             ?: return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
-                "List contains check requires a query element in KARANA or KARTR."
+                "सूच्यस्तित्वे कर्तृरूपेण अन्वेष्यं वस्तु अपेक्षितम्।"
             )
 
         val queryValues = context.resolveValues(queryExpr)
@@ -40,7 +41,7 @@ object ListContainsAction : DhatuAction("सूच्यस्तित्वम
 
         val trace = listOf(
             "Selected operation ${operation.name}.",
-            "Checked if list contains elements: $queryText."
+            "Checked whether ${queryText.joinToString()} exists in the locative collection."
         )
 
         return ExecutionResult.Success(

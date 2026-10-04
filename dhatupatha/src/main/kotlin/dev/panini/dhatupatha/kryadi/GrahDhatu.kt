@@ -1,6 +1,9 @@
 package dev.panini.dhatupatha.kryadi
 
 import dev.panini.actions.io.ReadAction
+import dev.panini.actions.collection.ListIndexAction
+import dev.panini.actions.collection.ListCollectAction
+import dev.panini.actions.collection.ListSliceAction
 import dev.panini.core.DhatuGana
 import dev.panini.core.Karaka
 import dev.panini.core.PadaType
@@ -28,8 +31,29 @@ class GrahDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.UDATTA,
     operations = listOf(
+        ListCollectAction.op {
+            triggeredBy(requiredUpasargas = setOf("सम्"))
+            requires(Karaka.KARMAN)
+            returns(Samjna.GANA, Samjna.SHABDA)
+        },
+        ListSliceAction.op {
+            requires(Karaka.KARMAN)      // अंशम् — the portion to be taken
+            requires(Karaka.SAMBANDHA)   // सूच्याः — collection whose portion it is
+            requires(Karaka.APADANA)     // द्वितीयात् — inclusive starting position
+            requires(Karaka.ADHIKARANA)  // तृतीयपर्यन्तम् — inclusive end position
+            triggeredBy(forbiddenUpasargas = setOf("सम्"))
+            returns(Samjna.GANA)
+        },
+        ListIndexAction.op {
+            requires(Karaka.KARMAN)      // मूल्यम् — the value to be taken
+            requires(Karaka.APADANA)     // the source collection
+            requires(Karaka.ADHIKARANA)  // the position in that collection
+            triggeredBy(forbiddenUpasargas = setOf("सम्"))
+            returns(Samjna.SHABDA, Samjna.SANKHYA)
+        },
         ReadAction.op {
             requires(Karaka.KARMAN); returns(Samjna.SHABDA)
+            triggeredBy(forbiddenUpasargas = setOf("सम्"))
             optional(Karaka.SAMPRADANA, Karaka.KARANA, Karaka.APADANA, Karaka.ADHIKARANA)
             effects(ExecutionEffect.READ_RESOURCE)
             bindsResultTo(Karaka.KARMAN)

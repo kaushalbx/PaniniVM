@@ -1,8 +1,8 @@
 # List & Collection Operations Demo in PaniniVM Script (.pvm)
-# Appends items to collection and extracts values
+# Gathers items into a collection and extracts values
 
-# Step 1: Append elements 'राम' and 'फल' into collection (क्षिप्य)
-रामं फलं च क्षेपय ।
+# Step 1: Gather 'राम' and 'फल' into one ordered collection (सङ्गृह्य)
+रामं फलं च सङ्गृहाण ।
 
 # Step 2: Fetch element 'राम' from collection (नय)
 रामं नी ।

@@ -119,7 +119,7 @@ The complete source is segmented Sanskrit; comments remain in English.
 # The prakriya reads a bounded input, compares it, and prints dynamic feedback.
 प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
 निवेश + अम् सङ्ख्या + टा ग्रहँ + श्ना + लोट् + सिप् ।
-यदि ग्रह् + ल्युट् + ङस् फल + सुँ रहस्य + टा सम + सुँ असँ + लट् + तिप् तर्हि विजय + सुँ अन्यथा यदि ग्रह् + ल्युट् + ङस् फल + सुँ रहस्य + ङसिँ न्यून + सुँ असँ + लट् + तिप् तर्हि लघु अन्यथा गुरु ततः मुद्र् + णिच् + लोट् + सिप् ॥
+यदि ग्रह् + ल्युट् + ङस् फल + सुँ रहस्य + टा सम + सुँ असँ + लट् + तिप् तर्हि विजय + सुँ अन्यथा यदि ग्रह् + ल्युट् + ङस् फल + सुँ रहस्य + ङसिँ न्यून + सुँ असँ + लट् + तिप् तर्हि लघु अन्यथा गुरु ततः फल + अम् मुद्र् + णिच् + लोट् + सिप् ॥
 
 # 1. Choose a number from the explicit inclusive range and store it as the secret.
 एक + ङसिँ दशन् + शस् परि + अन्त + अम् सङ्ख्या + अम् चिञ् + श्नु + लोट् + सिप् ततः चिञ् + ल्युट् + ङस् फल + अम् रहस्य + ङि स्थाञँ + णिच् + लोट् + सिप् ।
@@ -128,7 +128,7 @@ The complete source is segmented Sanskrit; comments remain in English.
 सङ्ख्या + अम् ऊहँ + लोट् + थास् इति मुद्र् + णिच् + लोट् + सिप् ।
 
 # 3. Continue while victory has not occurred, up to the fifth attempt.
-यावत् विजय + सुँ न भू + लट् + तिप् तावत् पञ्चन् + म + ङस् प्रयत्न + ङस् परि + अन्त + अम् प्रयत्न + अम् डुकृञ् + उ + लोट् + सिप् अन्यथा प्रयत्न + आम् समाप्ति + अम् मुद्र् + णिच् + लोट् + सिप् ।
+यावत् विजय + सुँ न भू + लट् + तिप् तावत् पञ्चन् + म + ङस् प्रयत्न + ङस् परि + अन्त + अम् प्रयत्न + टा डुकृञ् + उ + लोट् + सिप् अन्यथा प्रयत्न + आम् समाप्ति + अम् मुद्र् + णिच् + लोट् + सिप् ।
 
 # 4. Reveal the secret number after all attempts are finished.
 रहस्य + अम् मुद्र् + णिच् + लोट् + सिप् ।
@@ -203,15 +203,18 @@ The operation accepts the original positional call form:
 द्वि + अम् त्रि + अम् च योजन + ल्युट् + टा कृ + लोट् + सिप् ।
 ```
 
-It also accepts named arguments. A parameter name uses ṣaṣṭhī and its value
+It also accepts named arguments. A parameter slot uses saptamī and its value
 immediately follows in dvitīyā; named arguments may appear in any order.
 
 ```pvm
-दक्षिण + ङस् त्रि + अम् वाम + ङस् द्वि + अम् योजन + ल्युट् + टा कृ + लोट् + सिप् ।
+दक्षिण + ङि त्रि + अम् वाम + ङि द्वि + अम् योजन + ल्युट् + टा कृ + लोट् + सिप् ।
 ```
 
 Supported signature types are `सङ्ख्या`, `शब्द`, and `सूची`. A result may also
-name a declared `…परिणाम + मतुप्` schema. Typed values retain their semantic
+name a declared structured schema. Schemas use an ordinary genitive relation:
+coordinated nominative subjects “are fields of” the schema, for example
+`अवस्था + सुँ प्रयत्नसङ्ख्या + सुँ च अनुमानपरिणाम + ङस् क्षेत्र + जस् असँ + लट् + झि`.
+Typed values retain their semantic
 type when one prakriyā feeds another pipeline stage. The runtime and IDEA
 plugin diagnose duplicate declarations, missing or unknown named arguments,
 arity/type mismatches, incompatible pipeline stages, and invalid result schemas.

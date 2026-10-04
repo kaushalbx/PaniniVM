@@ -41,7 +41,6 @@ internal class StructuredValueExecutor {
     fun resolve(
         access: TaddhitaAttributeAccess,
         structStore: Map<String, TaddhitaStruct>,
-        inflectResult: Boolean = false,
     ): ExecutionResult {
         val chain = access.chain
         var currentObject: TaddhitaStruct? = structStore[chain[0]]
@@ -74,7 +73,6 @@ internal class StructuredValueExecutor {
                 "षष्ठी-असंगतिः: Attribute '$failedStep' not found in nested genitive chain $chain",
             )
         }
-        if (inflectResult) resolvedValue = inflectAttributeValue(resolvedValue, access.resultAffix)
         return ExecutionResult.Success(
             operation = "taddhita.nested_query",
             value = resolvedValue.toDisplayText(),
@@ -89,7 +87,7 @@ internal class StructuredValueExecutor {
         executeTarget: (Invocation, ExecutionScope, SanskritValue) -> List<ExecutionResult>,
         onResult: ((ExecutionResult) -> Unit)?,
     ): List<ExecutionResult> {
-        val source = resolve(pipeline.access, structStore, inflectResult = true)
+        val source = resolve(pipeline.access, structStore)
         if (source !is ExecutionResult.Success) return listOf(source)
         var pipedValue = source.typedValue ?: return listOf(source)
         val results = mutableListOf<ExecutionResult>(source)
@@ -151,28 +149,6 @@ internal class StructuredValueExecutor {
             current = current.copy(vakya = vakya.copy(padas = padas))
         }
     }
-
-    private fun inflectAttributeValue(value: SanskritValue, affix: dev.panini.core.SupAffix): SanskritValue =
-        when (value) {
-            is SanskritValue.Sankhya -> value.copy(
-                word = dev.panini.sankhya.SankhyaGenerator().decline(
-                    value.value,
-                    affix.vibhakti,
-                    affix.vacana,
-                ),
-            )
-            is SanskritValue.Shabda -> value.copy(text = deriveSubantaSurface(value.text, affix))
-            is SanskritValue.Satya -> value.copy(
-                surface = deriveSubantaSurface(if (value.boolean) "सत्य" else "असत्य", affix),
-            )
-            else -> value
-        }
-
-    private fun deriveSubantaSurface(stem: String, affix: dev.panini.core.SupAffix): String = runCatching {
-        dev.panini.derivation.SubantaEngine().derive(
-            dev.panini.derivation.SubantaDerivationRequest(stem, affix.vibhakti, affix.vacana),
-        ).final.surface
-    }.getOrDefault(stem)
 
     private fun typedOperandName(index: Int): String =
         "विशेषणफल" + dev.panini.sankhya.SankhyaGenerator().cardinal(index.toLong() + 1L).final.surface

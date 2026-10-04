@@ -7,21 +7,25 @@ import dev.panini.execution.ExecutionContext
 import dev.panini.execution.ExecutionError
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.SanskritValue
+import dev.panini.execution.NaturalOperation
+import dev.panini.execution.NaturalOperationResolver
 
 /** Slice a list from start index to end index (inclusive, 1-indexed). */
 object ListSliceAction : DhatuAction("सूचीविभागः", "सूच्याः एकस्मात् स्थानात् अन्यस्थानं यावत् विभागः") {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
-        val listExpr = context.bindings[Karaka.KARMAN]
+        val naturalFrame = NaturalOperationResolver.resolve(operation, context)
+            as? NaturalOperation.CollectionSlice
+        val listExpr = naturalFrame?.collection ?: context.bindings[Karaka.KARMAN]
             ?: return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
                 "List slice execution requires a list in KARMAN."
             )
-        val startExpr = context.bindings[Karaka.KARANA]
+        val startExpr = naturalFrame?.start ?: context.bindings[Karaka.KARANA]
             ?: return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
                 "List slice execution requires a start index in KARANA."
             )
-        val endExpr = context.bindings[Karaka.SAMPRADANA]
+        val endExpr = naturalFrame?.endInclusive ?: context.bindings[Karaka.SAMPRADANA]
             ?: return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
                 "List slice execution requires an end index in SAMPRADANA."

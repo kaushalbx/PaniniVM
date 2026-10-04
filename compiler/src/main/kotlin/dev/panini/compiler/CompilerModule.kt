@@ -194,13 +194,13 @@ internal object PaniniModuleAnalyzer {
         val statements = descriptor.sources.associateWith { PvmScript.parse(it.content) }
         val procedures = statements.flatMap { (source, unitStatements) ->
             val fallbackDomain = unitStatements.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>()
-                .firstOrNull()?.scope?.domain?.let(CompilerSymbols::stem)
+                .firstOrNull()?.scope?.domainIdentity
             unitStatements.filterIsInstance<PvmScriptStatement.PrakriyaDefinition>().map { definition ->
-                val symbol = CompilerSymbols.stem(definition.nameSegmented)
-                val domain = definition.domainStem ?: fallbackDomain
+                val symbol = definition.prakriya.nameIdentity
+                val domain = definition.prakriya.domainIdentity ?: fallbackDomain
                 val signature = inferSignature(definition)
                 AnalyzedProcedure(
-                    source, definition, symbol, CompilerSymbols.localStem(symbol), domain,
+                    source, definition, symbol, symbol, domain,
                     signature,
                     if (definition.isInternal) PaniniSymbolVisibility.INTERNAL else PaniniSymbolVisibility.PUBLIC,
                     "prakriya_${stableMethodSuffix(source.name, domain, symbol, signature, definition)}",
@@ -256,16 +256,4 @@ internal object PaniniModuleAnalyzer {
     ): String = (listOf(
         source, domain.orEmpty(), symbol, signatureKey(signature), definition.prakriya.modifiers.toString(),
     ).joinToString("\u0000")).hashCode().toUInt().toString(16)
-}
-
-internal object CompilerSymbols {
-    fun stem(name: String): String {
-        val parts = name.split('+').map(String::trim).filter(String::isNotEmpty)
-        return if (parts.lastOrNull() in setOf(
-                "सुँ", "औ", "जस्", "अम्", "औट्", "शस्", "टा", "भ्याम्", "भिस्",
-                "ङे", "भ्यस्", "ङसि", "ङसिँ", "ङस्", "ओस्", "आम्", "ङि", "सुप्",
-            )) parts.dropLast(1).joinToString(" + ") else name.trim()
-    }
-
-    fun localStem(stem: String): String = stem.substringAfter("ङस्", stem).trim().trimStart('+').trim()
 }

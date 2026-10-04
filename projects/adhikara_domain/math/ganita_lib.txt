@@ -3,6 +3,6 @@
 # अधिकार-सूत्र (Governing Domain Scope: गणित in pure segmented Nominative + सुँ)
 गणितः इति अधिकारः ।
 
-# संज्ञा: योजनम् (Addition procedure fully segmented: युज् + णिच् + ल्युट् + सुँ)
-योजनः ।
-एकम् द्वितीयम् च योजय ॥
+# प्रक्रिया: योजनम् (Addition procedure fully segmented: युज् + णिच् + ल्युट् + सुँ)
+योजनम् इति प्रक्रिया अस्ति ।
+एकं द्वितीयं च योजय ॥

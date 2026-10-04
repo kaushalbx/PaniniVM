@@ -20,17 +20,17 @@ internal class PvmProjectLoader(private val metrics: ExecutionMetrics? = null) {
         includeExecutionModifiers: Boolean = true,
     ) {
         val fallbackDomain = statements.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>()
-            .firstOrNull()?.let { derivePrakriyaStem(it.scope.domain) }
+            .firstOrNull()?.scope?.domainIdentity
         registerInheritances(registry, statements)
         statements.filterIsInstance<PvmScriptStatement.PrakriyaDefinition>().forEach { definition ->
             val prakriya = definition.prakriya
             registry.register(
                 Prakriya(
                     nameSegmented = prakriya.name,
-                    nameStem = derivePrakriyaStem(prakriya.name),
+                    nameStem = prakriya.nameIdentity,
                     body = definition.body,
                     sourceFile = sourceFile,
-                    domainStem = prakriya.domain ?: deriveDomainStem(prakriya.name) ?: fallbackDomain,
+                    domainStem = prakriya.domainIdentity ?: fallbackDomain,
                     visibility = prakriya.modifiers.visibility,
                     precedence = if (includeExecutionModifiers) {
                         prakriya.modifiers.precedence
@@ -102,11 +102,4 @@ internal class PvmProjectLoader(private val metrics: ExecutionMetrics? = null) {
         }
     }
 
-    private fun derivePrakriyaStem(nameSegmented: String): String =
-        requireNotNull(PrakriyaHeaderIdentityParser.parse(nameSegmented)) {
-            "Unable to parse saṃjñā header identity: $nameSegmented"
-        }.operationStem
-
-    private fun deriveDomainStem(nameSegmented: String): String? =
-        PrakriyaHeaderIdentityParser.parse(nameSegmented)?.domainStem
 }

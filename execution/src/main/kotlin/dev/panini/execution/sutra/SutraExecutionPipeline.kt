@@ -18,6 +18,7 @@ import dev.panini.execution.SanskritValue
 import dev.panini.execution.SmrtaPhala
 import dev.panini.execution.SmrtaPhalaId
 import dev.panini.execution.ValueEnvironment
+import dev.panini.execution.appendedPersistently
 import dev.panini.execution.binding.VyakaranamExecutionAdapter
 import dev.panini.execution.memory.KriyaMemory
 import dev.panini.sankhya.SankhyaCountingFormRenderer
@@ -222,27 +223,19 @@ object SutraExecutionPipeline {
                 ?: success.metadata[ExecutionMetadata.DEFAULT_DHATU]
             if (dhatu != null) ExecutionMetadata.dhatu(r.id) to dhatu else null
         }.toMap()
-        val historyTypedResults = remembered.mapNotNull { r ->
-            r.typedValue?.let { r.id to it }
-        }.toMap()
-        val historyDisplayResults = remembered.map { r ->
-            r.id to r.value
-        }.toMap()
         return SambhashanaTurn(
             response,
             conversation.copy(
                 previousResults = conversation.previousResults +
                     success.values +
-                    historyDisplayResults +
                     success.localBindings.mapValues { it.value.toDisplayText() },
                 previousResultSamjnas = conversation.previousResultSamjnas +
                     success.samjnas +
                     success.localBindings.mapValues { it.value.samjnas },
                 previousTypedResults = conversation.previousTypedResults +
                     success.typedValues +
-                    historyTypedResults +
                     success.localBindings,
-                resultHistory = conversation.resultHistory + remembered,
+                resultHistory = conversation.resultHistory.appendedPersistently(remembered),
                 turnNumber = nextTurn,
                 metadata = conversation.metadata + success.metadata + historyMetadata,
             ),
@@ -258,7 +251,6 @@ object SutraExecutionPipeline {
         conversation.resultHistory.forEach { result ->
             val valObj = result.typedValue ?: SanskritValue.of(result.value, result.samjnas)
             historicalValues[result.id] = valObj
-            historicalValues[result.invocationId] = valObj
         }
         val conversationEnvironment = ValueEnvironment.from(
             displayValues = conversation.mentionedEntities + conversation.previousResults,
@@ -449,7 +441,7 @@ object SutraExecutionPipeline {
                 previousTypedResults = continuation.conversation.previousTypedResults +
                     success.typedValues +
                     success.localBindings,
-                resultHistory = continuation.conversation.resultHistory + remembered,
+                resultHistory = continuation.conversation.resultHistory.appendedPersistently(remembered),
                 turnNumber = nextTurn,
                 metadata = continuation.conversation.metadata + success.metadata,
             ),

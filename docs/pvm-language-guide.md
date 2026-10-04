@@ -109,7 +109,7 @@ PaniniVM carries values as typed `SanskritValue` objects. Common types are:
 | `शब्द` | text |
 | `सूची` | ordered collection |
 | `सत्य` | truth value |
-| named `…परिणाम` | structured value with typed fields |
+| grammatically declared schema | structured value with typed fields |
 
 Sanskrit number stems can be used directly:
 
@@ -198,12 +198,28 @@ Pipelines may contain multiple stages:
 The runtime transports semantic values rather than rendering and re-parsing
 strings between stages.
 
-## 7. Assignment and variables
-
-Use `दा` with a caturthī destination to retain a result:
+Reusable procedures can form the same ordered pipeline. Put every procedure's
+domain in ṣaṣṭhī, put the action noun in tṛtīyā to mark the means, and use
+`ततः` to state the ordering:
 
 ```pvm
-दिव् + णिच् + लोट् + सिप् ततः रहस्य + ङे दा + लोट् + सिप् ।
+पञ्चन् + शस् द्वि + औट् च
+गणित + ङस् गण + ल्युट् + टा
+ततः गणित + ङस् वि + युज् + णिच् + ल्युट् + टा
+डुकृञ् + उ + लोट् + सिप् ।
+```
+
+This renders as “पञ्च द्वे च गणितस्य गणनेन ततः गणितस्य वियोजनेन
+कुरु।” The instrumental endings are semantic: they identify the procedure
+stages, while `ततः` determines their execution order. The older
+`पूर्वस्य परस्य एका कुरु` directive remains accepted only for compatibility.
+
+## 7. Assignment and variables
+
+Use causative `स्था` with a locative destination to retain a result:
+
+```pvm
+सङ्ख्या + अम् चिञ् + श्नु + लोट् + सिप् ततः फल + अम् रहस्य + ङि स्था + णिच् + लोट् + सिप् ।
 ```
 
 Later sentences can consume the named value:
@@ -214,6 +230,71 @@ Later sentences can consume the named value:
 
 Prefer direct `फल` references and `ततः` pipelines when a value is used only
 once. Introduce a name when the value must survive across several sentences.
+
+### 7.1 Collection membership
+
+Express membership as an ordinary existential clause: the sought member is
+nominative and the collection is locative.
+
+```pvm
+यदि द्वि + सुँ सूची + ङि असँ + लट् + तिप्
+    तर्हि सत्य + अम् सदस्यता + ङि स्था + णिच् + लोट् + सिप्
+    अन्यथा असत्य + अम् सदस्यता + ङि स्था + णिच् + लोट् + सिप् ।
+```
+
+This means “if two is in the list.” The
+nominative identifies what exists; the locative identifies where it exists.
+A standalone present-tense existential is treated as an assertion. Put it in a
+`यदि` or `यावत्` clause when its truth value controls execution. The older
+accusative-list/instrumental-member frame remains accepted for compatibility.
+
+### 7.2 Collection concatenation
+
+Join two collections with causative `सम् + युज्`. The collection being
+extended is accusative, while the collection joined with it is instrumental:
+
+```pvm
+पूर्वसूची + अम् उत्तरसूची + टा सम् + युज् + णिच् + लोट् + सिप् ।
+```
+
+This renders as `पूर्वसूचीम् उत्तरसूच्या संयोजय`—“join the first list with the
+second list.” The upasarga `सम्` supplies the “together” sense and distinguishes
+collection joining from bare arithmetic `युज्`. The instrumental participant
+is resolved as the expressed secondary agent of the causative construction;
+the runtime and compiler consume that kāraka binding rather than its position.
+The older `सृज्` frame with a dative second collection remains accepted only
+for compatibility.
+
+### 7.3 Collection cardinality
+
+Count the members of a collection with ordinary transitive `गण्`:
+
+```pvm
+सूची + अम् गण् + णिच् + लोट् + सिप् ।
+```
+
+This renders as `सूचीं गणय`—“count the list.” The accusative collection is the
+object being counted. Its resolved `कर्मन्` binding supplies the collection to
+both the interpreter action and the compiler's direct length instruction; the
+meaning does not depend on the variable name or operand position.
+
+### 7.4 Collection slicing
+
+Take an inclusive portion of a collection by expressing the collection as a
+genitive whole and its ordinal limits with `पर्यन्तम्`:
+
+```pvm
+सूची + ङस् द्वि + तीय + ङसिँ त्रि + तीय + शस् परि + अन्त + अम्
+    अंश + अम् ग्रहँ + श्ना + लोट् + सिप् ।
+```
+
+This renders as `सूच्याः द्वितीयात् तृतीयपर्यन्तम् अंशं गृहाण`—“take the
+portion of the list from the second through the third.” The genitive identifies
+the whole, the ablative ordinal identifies the inclusive source boundary, and
+segmented `परि + अन्त + अम्` licenses the inclusive upper boundary. These
+roles become a `CollectionSlice` semantic node consumed identically by the
+interpreter and compiler. The older instrumental-start/dative-end `भज्` frame
+is retained only for compatibility.
 
 ## 8. Input and validation
 
@@ -230,7 +311,8 @@ interactive request.
 
 ### 8.1 Scoped numeric range
 
-Declare one inclusive range with pañcamī and saptamī bounds:
+Declare one inclusive range with a pañcamī starting point and an accusative
+`पर्यन्तम्` boundary:
 
 ```pvm
 एक + ङसिँ दशन् + शस् परि + अन्त + अम् इति सीमा + सुँ ।
@@ -240,7 +322,7 @@ The active range can be reused by random selection, numeric input validation,
 and dynamically rendered instructions:
 
 ```pvm
-दिव् + णिच् + लोट् + सिप् ।
+सङ्ख्या + अम् चिञ् + श्नु + लोट् + सिप् ।
 निवेश + अम् सङ्ख्या + ङे ग्रह् + णिच् + लोट् + सिप् ।
 ```
 
@@ -355,18 +437,20 @@ untyped and migrated definitions.
 
 ### 11.4 Named call
 
-For a named argument, write the parameter in ṣaṣṭhī and immediately follow it
-with its value in dvitīyā:
+For a named argument, place the parameter slot in saptamī and immediately
+follow it with its value in dvitīyā. Thus `दक्षिणे त्रि` means “three in the
+right-hand slot”:
 
 ```pvm
-दक्षिण + ङस् त्रि + शस्
-वाम + ङस् द्वि + औट्
+दक्षिण + ङि त्रि + शस्
+वाम + ङि द्वि + औट्
 योजन + ल्युट् + टा कृ + लोट् + सिप् ।
 ```
 
 Named arguments may appear in any order. One call must be entirely positional
 or entirely named. The validator reports unknown, duplicate, missing, mixed,
-and incorrectly typed arguments.
+and incorrectly typed arguments. The older ṣaṣṭhī label remains accepted only
+for source compatibility.
 
 ### 11.5 Scope and nested calls
 
@@ -377,7 +461,7 @@ invoke another registered prakriyā.
 Prefix a definition with `अन्तरङ्गा` to make it file-private:
 
 ```pvm
-अन्तरङ्गा द्विगुणन + ल्युट् + सुँ ।
+अन्तरङ्गा गण + ल्युट् + सुँ ।
 प्रथम + अम् द्वि + औट् च गण् + णिच् + लोट् + सिप् ॥
 ```
 
@@ -402,29 +486,42 @@ and `नित्य` qualifiers participate in precedence. A definition named w
 
 ## 12. Structured values and result schemas
 
-### 12.1 Construct and access a मतुप् structure
+### 12.1 Assert and access fields of a मतुप् possessor
 
-Pairs of accusative values and field names construct a structure:
-
-```pvm
-दशन् + शस् मूल्य + अम् पञ्चन् + शस् परिमाण + अम् च गुण + मतुप् + सुँ ।
-```
-
-Use ṣaṣṭhī to read a field:
+Each field is introduced by an ordinary copular assertion: the possessor is in
+ṣaṣṭhī, the field is the nominative subject, and its value is the nominative
+predicate. Repeated assertions about the same possessor form one structure:
 
 ```pvm
-गुण + मतुप् + ङस् मूल्य + अम् ।
+गुण + मतुप् + ङस् मूल्य + सुँ दशन् + जस् असँ + लट् + तिप् ।
+गुण + मतुप् + ङस् परिमाण + सुँ पञ्चन् + जस् असँ + लट् + तिप् ।
 ```
+
+Readable Sanskrit: `गुणवतः मूल्यं दश अस्ति। गुणवतः परिमाणं पञ्च अस्ति।`
+There is no alternating positional value/name list.
+
+Use ṣaṣṭhī to identify the possessor and an accusative field as the object of
+`ग्रह्` (“obtain”):
+
+```pvm
+गुण + मतुप् + ङस् मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।
+```
+
+Readable Sanskrit: `गुणवतः मूल्यं गृहाण।`
 
 Nested genitive access is also supported.
 
 ### 12.2 Declare a result schema
 
-A schema name ends in `परिणाम` and lists its required fields:
+A schema declaration states that coordinated nominative subjects are plural
+`क्षेत्र` (“fields”) belonging to a genitive schema. The schema name is an
+ordinary identifier; its spelling has no hidden suffix convention:
 
 ```pvm
-अवस्था + अम् प्रयत्नसङ्ख्या + अम् अनुमानपरिणाम + मतुप् + सुँ ।
+अवस्था + सुँ प्रयत्नसङ्ख्या + सुँ च अनुमानपरिणाम + ङस् क्षेत्र + जस् असँ + लट् + झि ।
 ```
+
+Readable Sanskrit: `अवस्था प्रयत्नसङ्ख्या च अनुमानपरिणामस्य क्षेत्राः सन्ति।`
 
 A typed kriyā can declare that schema as its result:
 
@@ -441,8 +538,8 @@ pipelines, compiled semantic codecs, and persisted state.
 ### 12.3 Read the automatic loop result
 
 ```pvm
-परिणाम + मतुप् + ङस् अवस्था + अम् ।
-परिणाम + मतुप् + ङस् प्रयत्नसङ्ख्या + अम् ।
+परिणाम + मतुप् + ङस् अवस्था + अम् ग्रहँ + श्ना + लोट् + सिप् ।
+परिणाम + मतुप् + ङस् प्रयत्नसङ्ख्या + अम् ग्रहँ + श्ना + लोट् + सिप् ।
 ```
 
 These accesses do not require copying the fields into temporary variables.
@@ -539,11 +636,12 @@ bindings updated inside a `कृत्वः` body are carried into the next it
 so variables such as Fibonacci state and collection accumulators need no
 special loop-only syntax.
 
-For random selection from an active range, an अपादान collection is an
-exclusion source. This selects from `सीमा` after removing values in `क्रम`:
+For random selection from an active range, state exclusion explicitly with the
+absolutive `वर्जयित्वा`. This selects from `सीमा` after removing values in
+`क्रम`:
 
 ```pvm
-क्रम + ङसिँ दिव् + णिच् + लोट् + सिप् ।
+क्रम + अम् वृज् + णिच् + क्त्वा सङ्ख्या + अम् चिञ् + श्नु + लोट् + सिप् ।
 ```
 
 Keep segments spaced consistently so the highlighted range identifies the
@@ -568,12 +666,13 @@ definition block.
 ### Wrong number or type of arguments
 
 Compare the call with the `… इति मान + सुँ` declarations. In a named call, each
-ṣaṣṭhī parameter must be immediately followed by one dvitīyā value.
+saptamī parameter slot must be immediately followed by one dvitīyā value.
 
 ### A structured result is rejected
 
-Confirm that the schema name ends in `परिणाम`, is declared before use, and that
-the returned field names exactly match its declaration.
+Confirm that the schema was declared before use with the plural
+`…स्य क्षेत्राः सन्ति` frame and that the returned field names exactly match
+its declaration.
 
 ### Output appears after an input prompt unexpectedly
 

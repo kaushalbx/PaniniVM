@@ -134,7 +134,7 @@ class PrakriyaMultiFileTest {
 
         val utsargaKriya = Prakriya(
             nameSegmented = "युज् + ल्युट् + सुँ",
-            nameStem = PrakriyaRegistry.stripSupSuffix("युज् + ल्युट् + सुँ"),
+            nameStem = "युज् + ल्युट्",
             body = listOf(sentence("युज् + णिच् + लोट् + सिप् ॥")),
             sourceFile = "ganita.pvm",
             precedence = PrakriyaPrecedence.DEFAULT,
@@ -147,7 +147,7 @@ class PrakriyaMultiFileTest {
         // Apavāda (entry-point override)
         val apavadaKriya = Prakriya(
             nameSegmented = "युज् + ल्युट् + सुँ",
-            nameStem = PrakriyaRegistry.stripSupSuffix("युज् + ल्युट् + सुँ"),
+            nameStem = "युज् + ल्युट्",
             body = listOf(sentence("एक + अम् युज् + णिच् + लोट् + सिप् ॥")),
             sourceFile = "mukhya.pvm",
             precedence = PrakriyaPrecedence.APAVADA,
@@ -177,6 +177,57 @@ class PrakriyaMultiFileTest {
         assertEquals(listOf("एक", "द्वि"), invocation.arguments.map { it.term })
         assertTrue(invocation.arguments.all { it.pada != null })
         assertTrue(invocation.arguments.all { it.origin == PrakriyaArgumentOrigin.WRITTEN })
+    }
+
+    @Test
+    fun `procedure invocation requires instrumental means rather than stripped cognate object`() {
+        val registry = PrakriyaRegistry().apply {
+            register(
+                Prakriya(
+                    nameSegmented = "युज् + ल्युट् + सुँ",
+                    nameStem = "युज् + ल्युट्",
+                    body = listOf(sentence("युज् + णिच् + लोट् + सिप् ॥")),
+                ),
+            )
+        }
+
+        assertEquals(
+            null,
+            registry.detectInvocation(
+                PaniniParser().parse("एक + अम् युज् + अम् कृ + लोट् + सिप् ।"),
+            ),
+        )
+        assertNotNull(
+            registry.detectInvocation(
+                PaniniParser().parse("एक + अम् युज् + ल्युट् + टा कृ + लोट् + सिप् ।"),
+            ),
+        )
+    }
+
+    @Test
+    fun `procedure invocation accepts a parsed bhutasamkhya object`() {
+        val registry = PrakriyaRegistry().apply {
+            register(
+                Prakriya(
+                    nameSegmented = "युज् + ल्युट् + सुँ",
+                    nameStem = "युज् + ल्युट्",
+                    body = listOf(sentence("युज् + णिच् + लोट् + सिप् ॥")),
+                ),
+            )
+        }
+
+        val invocation = assertNotNull(
+            registry.detectInvocation(
+                PaniniParser().parse(
+                    "भूतसङ्ख्या नेत्र + वेद + अम् युज् + ल्युट् + टा कृ + लोट् + सिप् ।",
+                ),
+            ),
+        )
+
+        assertEquals(listOf("नेत्र + वेद"), invocation.arguments.map(PrakriyaArgument::term))
+        assertEquals(42L, invocation.arguments.single().pada
+            ?.let(dev.panini.execution.binding.NumeralPadaBinder::resolveSemanticValue)
+            ?.value)
     }
 
     @Test
@@ -236,7 +287,7 @@ class PrakriyaMultiFileTest {
         val samjnaDef = parsed.first() as PvmScriptStatement.PrakriyaDefinition
         val kriya = Prakriya(
             nameSegmented = samjnaDef.nameSegmented,
-            nameStem = PrakriyaRegistry.stripSupSuffix(samjnaDef.nameSegmented),
+            nameStem = samjnaDef.prakriya.nameIdentity,
             body = samjnaDef.body,
         )
 
@@ -260,7 +311,7 @@ class PrakriyaMultiFileTest {
         registry.register(
             Prakriya(
                 nameSegmented = parsed.nameSegmented,
-                nameStem = PrakriyaRegistry.stripSupSuffix(parsed.nameSegmented),
+                nameStem = parsed.prakriya.nameIdentity,
                 body = parsed.body,
             ),
         )
@@ -289,7 +340,7 @@ class PrakriyaMultiFileTest {
         registry.register(
             Prakriya(
                 nameSegmented = parsed.nameSegmented,
-                nameStem = PrakriyaRegistry.stripSupSuffix(parsed.nameSegmented),
+                nameStem = parsed.prakriya.nameIdentity,
                 body = parsed.body,
             ),
         )
@@ -325,7 +376,7 @@ class PrakriyaMultiFileTest {
         registry.register(
             Prakriya(
                 nameSegmented = parsed.nameSegmented,
-                nameStem = PrakriyaRegistry.stripSupSuffix(parsed.nameSegmented),
+                nameStem = parsed.prakriya.nameIdentity,
                 body = parsed.body,
             ),
         )
@@ -351,7 +402,7 @@ class PrakriyaMultiFileTest {
 
     @Test
     fun `test antaranga internal prakriya parsing visibility and precedence`() {
-        val header = "द्विगुणन + ल्युट् + सुँ इति अन्तरङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।"
+        val header = "गण + ल्युट् + सुँ इति अन्तरङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।"
         val headerQualifiers = PrakriyaDefinitionMarkerParser.qualifiers(header)
         assertTrue(
             PrakriyaDefinitionQualifier.ANTARANGA in headerQualifiers?.qualifiers.orEmpty(),
@@ -362,7 +413,7 @@ class PrakriyaMultiFileTest {
             प्रथम + अम् द्वि + अम् च गण + णिच् + लोट् + सिप् ॥
 
             जटिलगणित + ल्युट् + सुँ ।
-            प्रथम + अम् द्विगुणन + ल्युट् + टा कृ + लोट् + सिप् ॥
+            प्रथम + अम् गण + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ॥
         """.trimIndent()
 
         val parsed = PvmScript.parse(script)
@@ -371,13 +422,13 @@ class PrakriyaMultiFileTest {
         val internalDef = parsed[0] as PvmScriptStatement.PrakriyaDefinition
         assertTrue(internalDef.isInternal, "An अन्तरङ्गा प्रक्रिया declaration must set internal visibility.")
         assertTrue(internalDef.isAntaranga, "An अन्तरङ्गा प्रक्रिया must carry antaranga precedence.")
-        assertEquals("द्विगुणन + ल्युट् + सुँ", internalDef.nameSegmented)
+        assertEquals("गण + ल्युट् + सुँ", internalDef.nameSegmented)
 
         val publicDef = parsed[1] as PvmScriptStatement.PrakriyaDefinition
         assertTrue(!publicDef.isInternal, "A standard prakriyā declaration must set isInternal = false.")
 
         assertTrue(
-            PvmScript.parse("अन्तरङ्गा द्विगुणन + ल्युट् + सुँ ।").none {
+            PvmScript.parse("अन्तरङ्गा गण + ल्युट् + सुँ ।").none {
                 it is PvmScriptStatement.PrakriyaDefinition
             },
             "A bare अन्तरङ्गा prefix is not a grammatical prakriyā declaration.",
@@ -389,14 +440,14 @@ class PrakriyaMultiFileTest {
         val registry = PrakriyaRegistry()
         registry.register(
             Prakriya(
-                nameSegmented = "द्विगुणन + ल्युट् + सुँ",
-                nameStem = "द्विगुणन + ल्युट्",
+                nameSegmented = "गण + ल्युट् + सुँ",
+                nameStem = "गण + ल्युट्",
                 body = listOf(sentence("द्वि + अम् मुद्र् + णिच् + लोट् + सिप् ॥")),
                 sourceFile = "library.pvm",
                 visibility = PrakriyaVisibility.INTERNAL,
             ),
         )
-        val invocation = "द्विगुणन + ल्युट् + टा कृ + लोट् + सिप् ।"
+        val invocation = "गण + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।"
 
         val ukti = PaniniParser().parse(invocation)
         assertNotNull(registry.detectInvocation(ukti, callerSourceFile = "library.pvm"))
@@ -439,6 +490,7 @@ class PrakriyaMultiFileTest {
         val adhikara = parsed.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>().firstOrNull()
         assertNotNull(adhikara, "Adhikāra sūtra with अधिकार + सुँ must be parsed.")
         assertEquals("गणित + सुँ", adhikara.domainSegmented)
+        assertEquals("गणित", adhikara.scope.domainIdentity)
     }
 
     @Test
@@ -454,12 +506,13 @@ class PrakriyaMultiFileTest {
         val adhikara = parsed.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>().firstOrNull()
         assertNotNull(adhikara, "Morphological Adhikāra header with अधि + कृ + घञ् + सुँ must be parsed.")
         assertEquals("गणित + सुँ", adhikara.domainSegmented)
+        assertEquals("गणित", adhikara.scope.domainIdentity)
 
         val ktaDef = parsed.filterIsInstance<PvmScriptStatement.PrakriyaDefinition>().firstOrNull()
         assertNotNull(ktaDef)
         val kriya = Prakriya(
             nameSegmented = ktaDef.nameSegmented,
-            nameStem = PrakriyaRegistry.stripSupSuffix(ktaDef.nameSegmented),
+            nameStem = ktaDef.prakriya.nameIdentity,
             body = ktaDef.body,
         )
         assertTrue(kriya.isMemoized, "Saṃjñā with क्त pratyaya must have isMemoized = true.")
@@ -480,8 +533,9 @@ class PrakriyaMultiFileTest {
     fun `test taddhita struct matup creation and genitive attribute access`() {
         val vm = PaniniVM()
         val script = """
-            दश + अम् मूल्य + अम् पञ्च + अम् परिमाण + अम् गुण + वत् + सुँ ।
-            गुण + वत् + ङस् मूल्य + अम् ।
+            गुण + वत् + ङस् मूल्य + सुँ दश + सुँ असँ + लट् + तिप् ।
+            गुण + वत् + ङस् परिमाण + सुँ पञ्च + सुँ असँ + लट् + तिप् ।
+            गुण + वत् + ङस् मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।
         """.trimIndent()
 
         val results = vm.evalScript(script)

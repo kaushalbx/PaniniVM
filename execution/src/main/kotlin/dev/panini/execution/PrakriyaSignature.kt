@@ -4,13 +4,36 @@ import dev.panini.sankhya.SankhyaEvaluator
 import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
 import dev.panini.vyakaranam.ast.MulaPratipadika
+import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
 import dev.panini.vyakaranam.ast.SubantaPada
+import dev.panini.vyakaranam.ast.TaddhitaVikara
+import dev.panini.vyakaranam.ast.TaddhitaPratyayaClass
+import dev.panini.vyakaranam.ast.semanticKey
 
 /** Semantic value types used by saṃjñā signatures and overload resolution. */
 enum class PrakriyaValueType {
     SANKHYA,
     SHABDA,
     SUCHI,
+    ;
+
+    val sanskritName: String
+        get() = when (this) {
+            SANKHYA -> "सङ्ख्या"
+            SHABDA -> "शब्द"
+            SUCHI -> "सूची"
+        }
+}
+
+/** Shared Sanskrit diagnostics for grammatical procedure declarations and calls. */
+object PrakriyaDiagnostics {
+    fun arity(procedure: String, expected: Int, actual: Int): String =
+        "प्रक्रिया-मानसङ्ख्यादोषः: '$procedure' इत्यस्याः प्रक्रियायाः " +
+            "$expected मानानि अपेक्षितानि, $actual प्राप्तानि।"
+
+    fun parameterType(parameter: PrakriyaParameter): String =
+        "प्रक्रिया-मानप्रकारदोषः: '${parameter.nameStem}' इति मानं " +
+            "${parameter.type.sanskritName}-प्रकारम् अपेक्षते।"
 }
 
 data class PrakriyaParameter(
@@ -30,12 +53,6 @@ data class PrakriyaSignature(
  * Runtime dispatch consumes [PrakriyaSignature] and does not inspect rule-body text.
  */
 object PrakriyaSignatureCompiler {
-    private val typeMarkers = linkedMapOf(
-        PrakriyaValueType.SANKHYA to listOf("सङ्ख्या + त्व", "सङ्ख्यात्व"),
-        PrakriyaValueType.SHABDA to listOf("शब्द + त्व", "शब्दत्व"),
-        PrakriyaValueType.SUCHI to listOf("सूची + त्व", "सूचीत्व"),
-    )
-
     fun compile(body: List<PvmScriptStatement.Sentence>): PrakriyaSignature {
         val parameters = body.mapNotNull(PrakriyaSignatureDeclarationParser::parameter)
         val resultDeclarations = body.mapNotNull(PrakriyaSignatureDeclarationParser::result)
@@ -43,7 +60,7 @@ object PrakriyaSignatureCompiler {
         val resultSchema = resultDeclarations.singleOrNull()?.schema
         val guardedTypes = body.asSequence()
             .filter { it.isNishedha }
-            .mapNotNull { inferGuardType(it.text) }
+            .mapNotNull(::inferGuardType)
             .distinct()
             .toList()
         return PrakriyaSignature(
@@ -54,8 +71,27 @@ object PrakriyaSignatureCompiler {
         )
     }
 
-    fun inferGuardType(text: String): PrakriyaValueType? =
-        typeMarkers.entries.firstOrNull { (_, markers) -> markers.any(text::contains) }?.key
+    /** Reads a type predicate from its parsed भाववाचक `त्व` derivation. */
+    fun inferGuardType(sentence: PvmScriptStatement.Sentence): PrakriyaValueType? =
+        sentence.ukti?.grammaticalVakyas()
+            ?.flatMap { it.padas }
+            ?.filterIsInstance<SubantaPada>()
+            ?.mapNotNull { pada ->
+                val stem = pada.pratipadika as? MulaPratipadika ?: return@mapNotNull null
+                if (stem.vikaras.filterIsInstance<TaddhitaVikara>().none {
+                        it.pratyayaClass == TaddhitaPratyayaClass.BHAVA
+                    }
+                ) {
+                    return@mapNotNull null
+                }
+                when (stem.lexicalIdentity) {
+                    MulaPratipadikaIdentity.SANKHYA -> PrakriyaValueType.SANKHYA
+                    MulaPratipadikaIdentity.SHABDA -> PrakriyaValueType.SHABDA
+                    MulaPratipadikaIdentity.SUCHI -> PrakriyaValueType.SUCHI
+                    else -> null
+                }
+            }
+            ?.singleOrNull()
 }
 
 /** Parses grammatical signature declarations embedded at the start of a saṃjñā block. */
@@ -79,17 +115,17 @@ object PrakriyaSignatureDeclarationParser {
 
     private fun parameterOrNull(sentence: PvmScriptStatement.Sentence): PrakriyaParameter? {
         val (declared, marker) = declarationPadas(sentence) ?: return null
-        if (marker.singleStem() != "मान" || declared.size != 2) return null
-        val parameterName = declared[0].singleStem() ?: return null
-        val parameterType = declared[1].singleStem()?.let(::typeOrNull) ?: return null
+        if (marker.lexicalIdentity() != MulaPratipadikaIdentity.MANA || declared.size != 2) return null
+        val parameterName = declared[0].pratipadika.semanticKey()
+        val parameterType = declared[1].lexicalIdentity()?.let(::typeOrNull) ?: return null
         return PrakriyaParameter(parameterName, parameterType)
     }
 
     private fun resultOrNull(sentence: PvmScriptStatement.Sentence): ResultDeclaration? {
         val (declared, marker) = declarationPadas(sentence) ?: return null
-        if (marker.singleStem() != "परिणाम" || declared.size != 1) return null
-        val result = declared.single().singleStem() ?: return null
-        return typeOrNull(result)?.let { ResultDeclaration(type = it) }
+        if (marker.lexicalIdentity() != MulaPratipadikaIdentity.PARINAMA || declared.size != 1) return null
+        val result = declared.single().pratipadika.semanticKey()
+        return declared.single().lexicalIdentity()?.let(::typeOrNull)?.let { ResultDeclaration(type = it) }
             ?: ResultDeclaration(schema = result)
     }
 
@@ -98,10 +134,10 @@ object PrakriyaSignatureDeclarationParser {
     fun isDeclaration(sentence: PvmScriptStatement.Sentence): Boolean =
         declaration(sentence) != null
 
-    private fun typeOrNull(source: String): PrakriyaValueType? = when (source) {
-        "सङ्ख्या" -> PrakriyaValueType.SANKHYA
-        "शब्द" -> PrakriyaValueType.SHABDA
-        "सूची" -> PrakriyaValueType.SUCHI
+    private fun typeOrNull(identity: MulaPratipadikaIdentity): PrakriyaValueType? = when (identity) {
+        MulaPratipadikaIdentity.SANKHYA -> PrakriyaValueType.SANKHYA
+        MulaPratipadikaIdentity.SHABDA -> PrakriyaValueType.SHABDA
+        MulaPratipadikaIdentity.SUCHI -> PrakriyaValueType.SUCHI
         else -> null
     }
 
@@ -117,8 +153,8 @@ object PrakriyaSignatureDeclarationParser {
         return declared to marker
     }
 
-    private fun SubantaPada.singleStem(): String? =
-        (pratipadika as? MulaPratipadika)?.text
+    private fun SubantaPada.lexicalIdentity(): MulaPratipadikaIdentity? =
+        (pratipadika as? MulaPratipadika)?.lexicalIdentity
 }
 
 object PrakriyaValueClassifier {
@@ -138,4 +174,9 @@ object PrakriyaValueClassifier {
         is SanskritValue.Suchi, is SanskritValue.Gana -> PrakriyaValueType.SUCHI
         else -> PrakriyaValueType.SHABDA
     }
+
+    fun classifyPada(pada: dev.panini.vyakaranam.ast.Pada): PrakriyaValueType =
+        dev.panini.execution.binding.NumeralPadaBinder.resolveSemanticValue(pada)
+            ?.let { PrakriyaValueType.SANKHYA }
+            ?: PrakriyaValueType.SHABDA
 }

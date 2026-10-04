@@ -1,11 +1,14 @@
 package dev.panini.compiler
 
+import dev.panini.core.Karaka
+import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.PvmScript
 import dev.panini.execution.PvmScriptStatement
 import dev.panini.execution.PrakriyaInvocationArgumentResolver
 import dev.panini.execution.Prakriya
 import dev.panini.execution.PrakriyaRegistry
 import dev.panini.execution.PrakriyaArgumentResolution
+import dev.panini.execution.ResolvedPrakriyaArgument
 import dev.panini.execution.PrakriyaSignatureDeclarationParser
 import dev.panini.execution.PrakriyaValueClassifier
 import dev.panini.execution.PrakriyaParameter
@@ -14,12 +17,12 @@ import dev.panini.execution.TaddhitaInheritanceEngine
 import dev.panini.execution.TaddhitaStructEngine
 import dev.panini.execution.SanskritValue
 import dev.panini.execution.NishedhaGuardEvaluator
-import dev.panini.execution.PuranaPratyayaResolver
+import dev.panini.execution.NaturalSemanticNormalizer
 import dev.panini.execution.ExecutionPlan
+import dev.panini.execution.InjectedKarmanBinding
 import dev.panini.execution.planning.ResolvedLeafPlanner
 import dev.panini.vyakaranam.ast.Conditional
 import dev.panini.vyakaranam.ast.PrakriyaVisibility
-import dev.panini.vyakaranam.parser.PaniniParser
 import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.Pipeline
 import dev.panini.vyakaranam.ast.Prakriya as PrakriyaNode
@@ -28,14 +31,20 @@ import dev.panini.vyakaranam.ast.Quotation
 import dev.panini.vyakaranam.ast.Repeat
 import dev.panini.vyakaranam.ast.Scope
 import dev.panini.vyakaranam.ast.Sequence
+import dev.panini.vyakaranam.ast.SequenceConnector
 import dev.panini.vyakaranam.ast.WhileLoop
+import dev.panini.vyakaranam.ast.AvyayaPada
+import dev.panini.vyakaranam.ast.AvyayaFunction
 import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
+import dev.panini.vyakaranam.ast.SankhyaPratipadika
+import dev.panini.vyakaranam.ast.semanticKey
 import dev.panini.vyakaranam.ast.ParyantaRangePada
 import dev.panini.vyakaranam.ast.SankhyaPuranaPada
 import dev.panini.vyakaranam.ast.SankhyaPada
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.TingantaPada
+import dev.panini.vyakaranam.ast.Ukti
 
 /** Lowers grammatical control flow to JVM branches while leaves use the normal action runtime. */
 internal object CompilerFrontend {
@@ -112,7 +121,6 @@ internal object CompilerFrontend {
                 dependency.procedures.forEach { procedure ->
                     val target = ProcedureTarget.Dependency(dependency.className, procedure.methodName)
                     put(procedure.symbol, target)
-                    put(CompilerSymbols.localStem(procedure.symbol), target)
                 }
             }
             analyzed.procedures.forEach { procedure ->
@@ -120,11 +128,8 @@ internal object CompilerFrontend {
                 put(procedure.localSymbol, ProcedureTarget.Local(procedure.methodName))
             }
         }
-        val activeRange = analyzed.statements.values.flatten()
-            .filterIsInstance<PvmScriptStatement.RangeDefinition>()
-            .lastOrNull()
-            ?.range
-        val lowering = Lowering(registry, methodsByStem, activeRange)
+        val discourse = dev.panini.execution.PvmDiscourseContext.from(analyzed.statements.values.flatten())
+        val lowering = Lowering(registry, methodsByStem, discourse)
         val entryPoint = analyzed.statements.filterKeys(PaniniModuleSource::isEntryPoint).values.flatMap { statements ->
             statements.filterIsInstance<PvmScriptStatement.Sentence>().flatMap { sentence ->
                 lowering.lowerTopLevel(sentence)
@@ -168,17 +173,23 @@ internal object CompilerFrontend {
     private class Lowering(
         private val registry: PrakriyaRegistry,
         private val methodsByStem: Map<String, ProcedureTarget>,
-        private val activeRange: SanskritValue.Range?,
+        private val discourse: dev.panini.execution.PvmDiscourseContext,
     ) {
         private var nextLabel = 0
+        private val assertedStructFields =
+            mutableMapOf<String, LinkedHashMap<String, dev.panini.execution.TaddhitaFieldAssertion>>()
 
         fun lowerTopLevel(sentence: PvmScriptStatement.Sentence): List<CompilerInstruction> {
-            TaddhitaStructEngine.detectStructConstruction(sentence.text, sentence.ukti)?.let { struct ->
+            TaddhitaStructEngine.detectFieldAssertion(sentence.text, sentence.ukti)?.let { assertion ->
+                val fields = assertedStructFields.getOrPut(assertion.ownerStem, ::linkedMapOf)
+                fields[assertion.fieldStem] = assertion
                 return buildList {
-                    struct.attributes.values.forEach { add(CompilerInstruction.Constant(sourceValue(it))) }
-                    add(CompilerInstruction.BuildRecord(struct.nameStem, struct.attributes.keys.toList()))
+                    fields.values.forEach {
+                        add(CompilerInstruction.Constant(TaddhitaStructEngine.assertionValue(it)))
+                    }
+                    add(CompilerInstruction.BuildRecord(assertion.ownerStem, fields.keys.toList()))
                     add(CompilerInstruction.Duplicate)
-                    add(CompilerInstruction.Store(struct.nameStem))
+                    add(CompilerInstruction.Store(assertion.ownerStem))
                     add(CompilerInstruction.Store("LastResult"))
                 }
             }
@@ -197,12 +208,6 @@ internal object CompilerFrontend {
             }.orEmpty()
         }
 
-        private fun sourceValue(source: String): dev.panini.execution.SanskritValue =
-            runCatching {
-                val parts = source.split('+').map(String::trim).filter(String::isNotEmpty)
-                val value = dev.panini.sankhya.SankhyaEvaluator().evaluateStems(parts).value
-                dev.panini.execution.SanskritValue.Sankhya(value, source)
-            }.getOrElse { dev.panini.execution.SanskritValue.of(source) }
         fun lower(
             node: ProgramNode,
             exactSource: String? = null,
@@ -211,7 +216,7 @@ internal object CompilerFrontend {
             is Invocation -> lowerInvocation(node, exactSource, allowDirectStore = allowDirectStore)
             is Sequence -> lowerSequence(node, exactSource)
             is Pipeline -> lowerPipeline(node)
-            is Quotation -> lowerPlannedSource(exactSource ?: render(node))
+            is Quotation -> lowerPlannedNode(node)
             is Conditional -> lowerConditionalIr(node) ?: throw CompilerUnsupportedException(
                 CompilerUnsupportedKind.CONDITIONAL, render(node), "Cannot lower conditional to compiler IR.",
             )
@@ -226,8 +231,10 @@ internal object CompilerFrontend {
         }
 
         private fun lowerSequence(node: Sequence, exactSource: String?): List<CompilerInstruction> {
-            if (node.connectors.any { it != "ततः" } || node.statements.any { it !is Invocation }) {
-                return lowerPlannedSource(exactSource ?: render(node))
+            if (node.connectorKinds.any { it != SequenceConnector.ANANTARYA } ||
+                node.statements.any { it !is Invocation }
+            ) {
+                return lowerPlannedNode(node)
             }
             return node.statements.flatMapIndexed { index, statement ->
                 if (index == 0) {
@@ -249,41 +256,52 @@ internal object CompilerFrontend {
             val rendered = exactSource ?: render(node)
             val alreadyReferencesResult = node.vakya.padas.any { pada ->
                 pada is dev.panini.vyakaranam.ast.SubantaPada &&
-                    pada.pratipadika.sourceText.substringBefore('+').trim() == "फल"
+                    NaturalSemanticNormalizer.isPriorResult(pada)
             }
-            val source = normalized(
-                if (piped && !alreadyReferencesResult) "फल + अम् $rendered" else rendered,
-            )
-            val collectionParameter = node.vakya.padas.filterIsInstance<SubantaPada>().any { pada ->
-                (pada.pratipadika as? MulaPratipadika)?.lexicalIdentity == MulaPratipadikaIdentity.SAMAVAYA
-            }
-            val dhatu = node.vakya.padas.filterIsInstance<TingantaPada>().singleOrNull()?.dhatu?.mulaDhatu
-            lowerRangeChoice(node, dhatu, rendered)?.let { return it }
-            if (collectionParameter && dhatu == "युज्") {
+            val source = normalized(rendered)
+            val naturalSemantic = NaturalSemanticNormalizer.normalize(node)
+            lowerRangeChoice(node)?.let { return it }
+            if (naturalSemantic == NaturalSemanticNormalizer.Operation.CollectionParameterSum) {
                 return listOf(
                     CompilerInstruction.Load("समवाय"),
                     CompilerInstruction.Collection(CollectionOperator.SUM),
                     CompilerInstruction.Store("LastResult"),
                 )
             }
-            lowerImplicitParameterOperation(node, dhatu)?.let { return it }
-            return lowerSource(source, allowDirectStore)
+            (naturalSemantic as? NaturalSemanticNormalizer.Operation.ProcedureParameterArithmetic)
+                ?.let(::lowerImplicitParameterOperation)
+                ?.let { return it }
+            lowerProcedureCall(node, piped)?.let { return it }
+            val consumesPriorResult = piped && !alreadyReferencesResult ||
+                naturalSemantic ==
+                NaturalSemanticNormalizer.Operation.DisplayPriorResult
+            val injectedBindings = if (consumesPriorResult) {
+                mapOf(Karaka.KARMAN to ExecutionExpression.Reference("LastResult"))
+            } else {
+                emptyMap()
+            }
+            return (ResolvedLeafPlanner.plan(
+                node,
+                allowStore = allowDirectStore,
+                injectedBindings = injectedBindings,
+            ) ?: ResolvedLeafPlanner.planAny(
+                node,
+                injectedBindings = injectedBindings,
+            ))?.let(::lowerDirect)
                 ?: throw CompilerUnsupportedException(
                     CompilerUnsupportedKind.INVOCATION, source, "Cannot resolve invocation as a compiler leaf.",
                 )
         }
 
-        private fun lowerRangeChoice(
-            node: Invocation,
-            dhatu: String?,
-            source: String,
-        ): List<CompilerInstruction>? {
-            if (dhatu?.startsWith("चि") != true && "चिञ्" !in source) return null
+        private fun lowerRangeChoice(node: Invocation): List<CompilerInstruction>? {
+            val semantic = NaturalSemanticNormalizer.normalize(node)
+                as? NaturalSemanticNormalizer.Operation.RangeChoice
+                ?: return null
             val evaluator = dev.panini.sankhya.SankhyaEvaluator()
             val astBounds = node.vakya.padas.flatMap { pada ->
                 when (pada) {
                     is ParyantaRangePada -> listOf(pada.lowerLimit, pada.upperLimit).map { bound ->
-                        bound.value ?: evaluator.evaluateStems(bound.stems).value
+                        requireNotNull(NaturalSemanticNormalizer.boundaryValue(bound))
                     }
                     is SankhyaPada -> listOf(pada.value ?: evaluator.evaluateStems(pada.stems).value)
                     is SubantaPada -> (pada.pratipadika as? MulaPratipadika)?.text?.let { stem ->
@@ -295,20 +313,9 @@ internal object CompilerFrontend {
             val bounds = if (astBounds.size >= 2) {
                 astBounds[0] to astBounds[1]
             } else {
-                activeRange?.let { it.minimum.value to it.maximum.value } ?: return null
+                discourse.activeRange?.let { it.minimum.value to it.maximum.value } ?: return null
             }
-            val exclusionName = node.vakya.padas.filterIsInstance<SubantaPada>()
-                .firstOrNull { pada ->
-                    dev.panini.core.SupAffix.fromUpadesha(pada.sup.text)?.vibhakti ==
-                        dev.panini.core.Vibhakti.PANCHAMI &&
-                        (pada.pratipadika as? MulaPratipadika)?.text?.let { stem ->
-                            runCatching { evaluator.evaluateStems(listOf(stem)) }.isFailure
-                        } == true
-                }
-                ?.pratipadika
-                ?.sourceText
-                ?.substringBefore('+')
-                ?.trim()
+            val exclusionName = semantic.exclusionName
             return buildList {
                 exclusionName?.let { add(CompilerInstruction.Load(it)) }
                 add(CompilerInstruction.RandomRange(bounds.first, bounds.second, exclusionName != null))
@@ -317,24 +324,27 @@ internal object CompilerFrontend {
         }
 
         private fun lowerImplicitParameterOperation(
-            node: Invocation,
-            dhatu: String?,
+            semantic: NaturalSemanticNormalizer.Operation.ProcedureParameterArithmetic,
         ): List<CompilerInstruction>? {
-            val operator = when (dhatu) {
-                "युज्", "युज" -> ArithmeticOperator.ADD
-                "गण्", "गण" -> ArithmeticOperator.MULTIPLY
-                "भाज्", "भाज" -> ArithmeticOperator.DIVIDE
-                else -> return null
+            val operator = when (semantic.kind) {
+                NaturalSemanticNormalizer.ArithmeticKind.ADD -> ArithmeticOperator.ADD
+                NaturalSemanticNormalizer.ArithmeticKind.MULTIPLY -> ArithmeticOperator.MULTIPLY
+                NaturalSemanticNormalizer.ArithmeticKind.DIVIDE -> ArithmeticOperator.DIVIDE
             }
-            val operands = node.vakya.padas.mapNotNull { pada ->
-                PuranaPratyayaResolver.ordinalValue(pada)?.let { ordinal ->
-                    val name = when (ordinal) { 1L -> "प्रथम"; 2L -> "द्वितीय"; 3L -> "तृतीय"; else -> return@let null }
-                    return@mapNotNull CompilerInstruction.Load(name)
+            val operands = semantic.operands.mapNotNull { operand ->
+                when (operand) {
+                    NaturalSemanticNormalizer.ProcedureOperand.PriorResult ->
+                        CompilerInstruction.LoadLastResult
+                    is NaturalSemanticNormalizer.ProcedureOperand.Parameter -> {
+                        val name = when (operand.position) {
+                            1L -> "प्रथम"
+                            2L -> "द्वितीय"
+                            3L -> "तृतीय"
+                            else -> return@mapNotNull null
+                        }
+                        CompilerInstruction.Load(name)
+                    }
                 }
-                val subanta = pada as? SubantaPada ?: return@mapNotNull null
-                if (subanta.pratipadika.sourceText.substringBefore('+').trim() == "फल") {
-                    CompilerInstruction.LoadLastResult
-                } else null
             }
             if (operands.size < 2 || operands.none { it is CompilerInstruction.Load }) return null
             return buildList {
@@ -347,14 +357,17 @@ internal object CompilerFrontend {
             }
         }
 
-        private fun lowerSource(source: String, allowStore: Boolean = false): List<CompilerInstruction>? =
-            lowerProcedureCall(source)
-                ?: ResolvedLeafPlanner.plan(source, allowStore = allowStore)?.let(::lowerDirect)
-                ?: ResolvedLeafPlanner.plansAny(source)?.flatMap(::lowerDirect)
+        /** Lowers an already parsed call without rendering and reparsing its Sanskrit. */
+        private fun lowerProcedureCall(node: Invocation, piped: Boolean): List<CompilerInstruction>? {
+            val ukti = Ukti(node.sourceText, body = node)
+            val injected = if (piped) InjectedKarmanBinding("LastResult", null) else null
+            val invocation = registry.detectInvocation(ukti, injectedKarman = injected) ?: return null
+            return lowerProcedureInvocation(invocation)
+        }
 
-        private fun lowerProcedureCall(source: String): List<CompilerInstruction>? {
-            val ukti = PaniniParser().parseOrNull(source) ?: return null
-            val invocation = registry.detectInvocation(ukti) ?: return null
+        private fun lowerProcedureInvocation(
+            invocation: dev.panini.execution.PrakriyaInvocation,
+        ): List<CompilerInstruction>? {
             val target = invocation.kriya.nameStem.let(methodsByStem::get) ?: return null
             val signature = invocation.kriya.signature
             val parameterNames = signature.parameters.map { it.nameStem }
@@ -392,12 +405,13 @@ internal object CompilerFrontend {
         }
 
         private fun lowerCallArgument(
-            argument: String,
-            value: dev.panini.execution.SanskritValue?,
+            argument: ResolvedPrakriyaArgument,
+            fallbackValue: dev.panini.execution.SanskritValue?,
         ): CompilerInstruction {
-            val name = argument.substringBefore('+').trim()
+            val value = argument.argument.value ?: fallbackValue
+            val name = argument.referenceName
             return when {
-                name == "फल" -> CompilerInstruction.LoadLastResult
+                argument.isPriorResult -> CompilerInstruction.LoadLastResult
                 value != null -> CompilerInstruction.Constant(value)
                 else -> CompilerInstruction.ResolveArgument(name, null)
             }
@@ -412,7 +426,7 @@ internal object CompilerFrontend {
                         "Unknown compiled pipeline stage '${stage.operationStem}'.",
                     )
                 val kriya = registry.resolve(stage.operationStem)
-                    ?: registry.all().singleOrNull { localPrakriyaStem(it.nameStem) == stage.operationStem }
+                    ?: registry.all().singleOrNull { it.nameStem == stage.operationStem }
                     ?: throw CompilerUnsupportedException(
                         CompilerUnsupportedKind.PIPELINE,
                         node.sourceText,
@@ -423,13 +437,13 @@ internal object CompilerFrontend {
                     if (stageIndex > 0 && parameterIndex == 0) {
                         add(CompilerInstruction.LoadLastResult)
                     } else {
-                        val argument = node.arguments.getOrNull(parameterIndex)
+                        val argumentPada = node.argumentPadas.getOrNull(parameterIndex) as? SubantaPada
                             ?: throw CompilerUnsupportedException(
                                 CompilerUnsupportedKind.PIPELINE,
                                 node.sourceText,
-                                "Pipeline stage '${stage.operationStem}' lacks argument ${parameterIndex + 1}.",
+                                "Pipeline stage '${stage.operationStem}' lacks parsed nominal argument ${parameterIndex + 1}.",
                             )
-                        add(CompilerInstruction.ResolveArgument(argument.substringBefore('+').trim(), null))
+                        add(CompilerInstruction.ResolveArgument(argumentPada.pratipadika.semanticKey(), null))
                     }
                 }
                 val kinds = parameters.map { it.type.toCompilerValueKind() }
@@ -462,7 +476,15 @@ internal object CompilerFrontend {
          * procedure invocation and argument-frame semantics.
          */
         private fun lowerConditionalIr(node: Conditional): List<CompilerInstruction>? {
-            val condition = ResolvedLeafPlanner.planAny(render(node.condition))
+            val truthTest = (node.condition as? Invocation)?.let(NaturalSemanticNormalizer::normalize)
+                as? NaturalSemanticNormalizer.Operation.TruthTest
+            val condition = if (truthTest != null) {
+                listOf(
+                    CompilerInstruction.Load(truthTest.stateName),
+                    CompilerInstruction.Constant(dev.panini.execution.SanskritValue.Satya(!truthTest.negated)),
+                    CompilerInstruction.Compare(ComparisonOperator.EQUAL),
+                )
+            } else (node.condition as? Invocation)?.let(ResolvedLeafPlanner::planAny)
                 ?.takeIf { dev.panini.shiksha.Samjna.SATYA in it.resolved.operation.resultSamjnas }
                 ?.let(CompilerIrLowering::lowerCondition)
                 ?: (lower(node.condition) + CompilerInstruction.Booleanize)
@@ -489,24 +511,29 @@ internal object CompilerFrontend {
         private fun lowerPrimitiveBranchIr(node: ProgramNode): List<CompilerInstruction>? = when (node) {
             is Invocation -> {
                 if (node.vakya.padas.none { it is TingantaPada }) {
-                    val value = node.vakya.padas.filterIsInstance<SubantaPada>().firstOrNull()
-                        ?.pratipadika?.sourceText?.substringBefore('+')?.trim()
+                    val pratipadika = (node.implicitValuePada as? SubantaPada)?.pratipadika
+                        ?: node.vakya.padas.filterIsInstance<SubantaPada>().firstOrNull()?.pratipadika
                         ?: return null
+                    val value = when (pratipadika) {
+                        is SankhyaPratipadika -> pratipadika.semanticValue
+                        is MulaPratipadika -> when (pratipadika.lexicalIdentity) {
+                            MulaPratipadikaIdentity.SATYA ->
+                                dev.panini.execution.SanskritValue.Satya(true, pratipadika.text)
+                            MulaPratipadikaIdentity.ASATYA ->
+                                dev.panini.execution.SanskritValue.Satya(false, pratipadika.text)
+                            else -> dev.panini.execution.SanskritValue.Shabda(pratipadika.semanticKey())
+                        }
+                        else -> dev.panini.execution.SanskritValue.Shabda(pratipadika.semanticKey())
+                    }
                     listOf(
-                        CompilerInstruction.Constant(dev.panini.execution.SanskritValue.Shabda(value)),
+                        CompilerInstruction.Constant(value),
                         CompilerInstruction.Store("LastResult"),
                     )
                 } else {
-                    val source = normalized(render(node))
-                    val dhatu = node.vakya.padas.filterIsInstance<TingantaPada>()
-                        .singleOrNull()?.dhatu?.mulaDhatu
-                    val lowered = lowerSource(source) ?: when {
-                        dhatu?.startsWith("मुद्र्") == true -> lowerSource("फल + अम् $source")
-                        else -> null
-                    }
-                    lowered ?: throw CompilerUnsupportedException(
+                    runCatching { lowerInvocation(node, exactSource = null) }.getOrNull()
+                        ?: throw CompilerUnsupportedException(
                         CompilerUnsupportedKind.INVOCATION,
-                        source,
+                        normalized(render(node)),
                         "Cannot lower conditional invocation with padas " +
                             node.vakya.padas.joinToString { it::class.simpleName.orEmpty() },
                     )
@@ -540,36 +567,32 @@ internal object CompilerFrontend {
         private fun lowerWhileIr(node: WhileLoop): List<CompilerInstruction>? {
             val usesLatestResult = node.condition.vakya.padas.any { pada ->
                 pada is dev.panini.vyakaranam.ast.SubantaPada &&
-                    pada.pratipadika.sourceText.substringBefore('+').trim() == "फल"
+                    NaturalSemanticNormalizer.isPriorResult(pada)
             }
-            val isNegated = node.condition.vakya.padas.any { pada ->
-                pada is dev.panini.vyakaranam.ast.AvyayaPada && pada.form == "न"
-            }
-            val testsVictory = node.condition.vakya.padas.any { pada ->
-                pada is SubantaPada &&
-                    pada.pratipadika.sourceText.substringBefore('+').trim() == "विजय"
+            val normalizedTruth = NaturalSemanticNormalizer.normalize(node.condition)
+                as? NaturalSemanticNormalizer.Operation.TruthTest
+            val reportedOutcome = NaturalSemanticNormalizer.normalize(node.condition)
+                as? NaturalSemanticNormalizer.Operation.ReportedOutcomeTest
+            val isNegated = normalizedTruth?.negated ?: node.condition.vakya.padas.any { pada ->
+                pada is AvyayaPada && pada.function == AvyayaFunction.NISHEDHA
             }
             val condition = if (usesLatestResult) null else {
-                if (testsVictory) {
+                if (reportedOutcome != null) {
                     listOf(
                         CompilerInstruction.LoadLastResult,
-                        CompilerInstruction.Constant(dev.panini.execution.SanskritValue.Shabda("विजय")),
+                        CompilerInstruction.Constant(
+                            dev.panini.execution.SanskritValue.Shabda(reportedOutcome.outcomeName),
+                        ),
                         CompilerInstruction.Compare(ComparisonOperator.EQUAL),
                     )
                 } else {
-                    val truthState = node.condition.vakya.padas.filterIsInstance<SubantaPada>()
-                        .singleOrNull()
-                        ?.pratipadika
-                        ?.sourceText
-                        ?.substringBefore('+')
-                        ?.trim()
-                    ResolvedLeafPlanner.planAny(render(node.condition))
+                    ResolvedLeafPlanner.planAny(node.condition)
                         ?.takeIf { dev.panini.shiksha.Samjna.SATYA in it.resolved.operation.resultSamjnas }
                         ?.let(CompilerIrLowering::lowerCondition)
-                        ?: truthState?.let { name ->
+                        ?: normalizedTruth?.let { truth ->
                             listOf(
-                                CompilerInstruction.Load(name),
-                                CompilerInstruction.Constant(dev.panini.execution.SanskritValue.Satya(!isNegated)),
+                                CompilerInstruction.Load(truth.stateName),
+                                CompilerInstruction.Constant(dev.panini.execution.SanskritValue.Satya(!truth.negated)),
                                 CompilerInstruction.Compare(ComparisonOperator.EQUAL),
                             )
                         }
@@ -588,9 +611,14 @@ internal object CompilerFrontend {
             val exhausted = node.exhausted?.let { runCatching { lower(it) }.getOrNull() } ?: emptyList()
             if (node.exhausted != null && exhausted.isEmpty()) return null
             val resultTarget = node.resultTarget?.let { target ->
-                val rendered = render(target)
-                val plan = ResolvedLeafPlanner.planAny("चक्रफल + अम् $rendered")
-                    ?: ResolvedLeafPlanner.planAny(rendered)
+                val plan = (target as? Invocation)?.let { invocation ->
+                    ResolvedLeafPlanner.planAny(
+                        invocation,
+                        injectedBindings = mapOf(
+                            Karaka.KARMAN to ExecutionExpression.Reference("चक्रफल"),
+                        ),
+                    ) ?: ResolvedLeafPlanner.planAny(invocation)
+                } ?: ResolvedLeafPlanner.plansAny(target)?.singleOrNull()
                     ?: return null
                 CompilerIrLowering.lowerLoopTarget(plan)
             } ?: emptyList()
@@ -604,7 +632,7 @@ internal object CompilerFrontend {
                 exhausted = exhausted,
                 resultTarget = resultTarget,
                 usesReportedCondition = usesLatestResult,
-                negatedReportedCondition = isNegated,
+                negatedReportedCondition = reportedOutcome?.negated ?: isNegated,
                 namePrefix = "while_${nextLabel++}",
             )
         }
@@ -619,38 +647,47 @@ internal object CompilerFrontend {
             )
         }
 
-        private fun lowerPlannedSource(source: String): List<CompilerInstruction> {
-            val plans = ResolvedLeafPlanner.plansAny(source)
+        private fun lowerPlannedNode(node: ProgramNode): List<CompilerInstruction> {
+            val plans = ResolvedLeafPlanner.plansAny(node)
                 ?: throw CompilerUnsupportedException(
-                    CompilerUnsupportedKind.PIPELINE, source, "Cannot resolve pipeline stage as compiler leaves.",
+                    CompilerUnsupportedKind.PIPELINE,
+                    render(node),
+                    "Cannot resolve parsed compound node as compiler leaves.",
                 )
             return plans.flatMap(::lowerDirect)
         }
 
-        private fun resolveArguments(invocation: dev.panini.execution.PrakriyaInvocation): List<String> {
+        private fun resolveArguments(
+            invocation: dev.panini.execution.PrakriyaInvocation,
+        ): List<ResolvedPrakriyaArgument> {
             val signature = invocation.kriya.signature
             val resolution = PrakriyaInvocationArgumentResolver.resolve(invocation)
-            val arguments = when (resolution) {
-                is PrakriyaArgumentResolution.Success -> resolution.terms
+            val resolvedArguments = when (resolution) {
+                is PrakriyaArgumentResolution.Success -> resolution.arguments
                 is PrakriyaArgumentResolution.Failure -> throw IllegalArgumentException(resolution.message)
             }
+            val arguments = resolvedArguments.map { it.argument.term }
             val acceptsCollection = signature.parameters.singleOrNull()?.type == PrakriyaValueType.SUCHI
             require(signature.parameters.size == arguments.size || signature.parameters.isEmpty() || acceptsCollection) {
-                "प्रक्रिया-मानसङ्ख्या: '${invocation.kriya.nameStem}' expects ${signature.parameters.size} arguments, but received ${arguments.size}."
+                dev.panini.execution.PrakriyaDiagnostics.arity(
+                    invocation.kriya.nameStem,
+                    signature.parameters.size,
+                    arguments.size,
+                )
             }
             signature.parameters.zip(arguments).takeUnless { acceptsCollection }.orEmpty()
                 .forEachIndexed { index, (parameter, argument) ->
                 val actual = invocation.argumentValues.getOrNull(index)?.let(PrakriyaValueClassifier::classifyValue)
                     ?: PrakriyaValueClassifier.classifyTerm(argument)
-                require(argument.substringBefore('+').trim() == "फल" || actual == parameter.type) {
-                    "प्रक्रिया-मानप्रकारः: '${parameter.nameStem}' requires ${parameter.type}."
+                require(resolvedArguments[index].isPriorResult || actual == parameter.type) {
+                    dev.panini.execution.PrakriyaDiagnostics.parameterType(parameter)
                 }
             }
             invocation.kriya.nishedhaGuards.forEach { guard ->
-                val prohibited = NishedhaGuardEvaluator.isProhibited(
+                val prohibited = NishedhaGuardEvaluator.isProhibitedResolved(
                     guard,
                     signature.parameters,
-                    arguments,
+                    resolvedArguments,
                     invocation.argumentValues,
                 )
                 val requiredType = signature.argumentType
@@ -660,7 +697,7 @@ internal object CompilerFrontend {
                     "निषेध-प्रतिषेधः: Prohibition triggered by '${guard.text.trim()}'"
                 }
             }
-            return arguments
+            return resolvedArguments
         }
     }
 
@@ -675,8 +712,5 @@ internal object CompilerFrontend {
 
     private fun normalized(source: String): String =
         source.trim().trimEnd('।', '॥').trim() + " ।"
-
-    private fun localPrakriyaStem(stem: String): String =
-        CompilerSymbols.localStem(stem)
 
 }

@@ -5,8 +5,11 @@ import dev.panini.core.Vibhakti
 import dev.panini.vyakaranam.ast.AkhyataVakya
 import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.MulaPratipadika
+import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
 import dev.panini.vyakaranam.ast.Sequence
 import dev.panini.vyakaranam.ast.SubantaPada
+import dev.panini.execution.binding.CanonicalDhatuIdentity
+import dev.panini.execution.binding.canonicalDhatuIdentity
 
 data class DirectResultAssignmentSuggestion(
     val offset: Int,
@@ -38,10 +41,11 @@ object DirectResultAssignment {
 
     private fun verboseAssignment(invocation: Invocation): Pair<Invocation, String>? {
         val vakya = invocation.vakya as? AkhyataVakya ?: return null
-        if (vakya.tinganta.dhatu.mulaDhatu != "दा") return null
+        if (vakya.tinganta.canonicalDhatuIdentity() != CanonicalDhatuIdentity.DA) return null
         val subantas = vakya.padas.filterIsInstance<SubantaPada>()
         val phala = subantas.indexOfFirst {
-            it.stem() == "फल" && it.vibhakti() == Vibhakti.DVITIYA
+            (it.pratipadika as? MulaPratipadika)?.lexicalIdentity == MulaPratipadikaIdentity.PHALA &&
+                it.vibhakti() == Vibhakti.DVITIYA
         }
         if (phala <= 0 || subantas.take(phala).none { it.vibhakti() == Vibhakti.SASTHI }) return null
         val target = subantas.drop(phala + 1).singleOrNull { it.vibhakti() == Vibhakti.CHATURTHI }

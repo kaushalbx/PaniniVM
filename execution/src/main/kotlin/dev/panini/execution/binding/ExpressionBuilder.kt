@@ -6,6 +6,8 @@ import dev.panini.execution.SanskritValue
 import dev.panini.execution.SvamRupamEngine
 import dev.panini.shiksha.Samjna
 import dev.panini.vyakaranam.ast.KridantaPratipadika
+import dev.panini.vyakaranam.ast.MulaPratipadika
+import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
 import dev.panini.vyakaranam.ast.SamasaPratipadika
 import dev.panini.vyakaranam.ast.SankhyaPratipadika
 import dev.panini.vyakaranam.ast.SubantaPada
@@ -35,10 +37,9 @@ internal object ExpressionBuilder {
         overridePhalaId: String? = null,
     ): ExecutionExpression {
         val normalized = NumeralAstNormalizer.normalize(pada)
-        val baseText = normalized.pratipadika.baseText()
         val text = normalized.pratipadika.referenceKey()
         val isPhalaReference = PhalaReference.isReference(normalized)
-        ctx.environment.values[text]?.let { value ->
+        if (!isPhalaReference) ctx.environment.values[text]?.let { value ->
             val sup = SupAffix.fromUpadesha(normalized.sup.text) ?: SupAffix.AM
             return ExecutionExpression.TypedOperand(value, sup)
         }
@@ -58,8 +59,8 @@ internal object ExpressionBuilder {
             )
         }
 
-        if (resolvedId != null) {
-            return ExecutionExpression.Reference(resolvedId)
+        if (resolvedId != null || isPhalaReference) {
+            return ExecutionExpression.Reference(resolvedId ?: PhalaReference.RUNTIME_KEY)
         }
 
         val sankhyaValue = (normalized.pratipadika as? SankhyaPratipadika)?.semanticValue
@@ -76,10 +77,11 @@ internal object ExpressionBuilder {
         return if (sankhyaValue != null) {
             ExecutionExpression.sankhya(sankhyaValue.value, sankhyaValue.word)
         } else {
-            val svamRupamValue = when (baseText) {
-                "सत्य" -> SanskritValue.Satya(true)
-                "असत्य" -> SanskritValue.Satya(false)
-                else -> SvamRupamEngine.evaluateTerm(baseText)
+            val lexicalIdentity = (normalized.pratipadika as? MulaPratipadika)?.lexicalIdentity
+            val svamRupamValue = when (lexicalIdentity) {
+                MulaPratipadikaIdentity.SATYA -> SanskritValue.Satya(true)
+                MulaPratipadikaIdentity.ASATYA -> SanskritValue.Satya(false)
+                else -> SvamRupamEngine.evaluate(normalized.pratipadika)
             }
             ExecutionExpression.Pada(text, samjnas, value = svamRupamValue)
         }

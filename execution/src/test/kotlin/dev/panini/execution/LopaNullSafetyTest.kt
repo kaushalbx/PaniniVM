@@ -11,12 +11,12 @@ class LopaNullSafetyTest {
     @Test
     fun testLopaNullSafetyAbsentAttributeQuery() {
         val script = """
-            # Step 1: Construct struct 'सङ्ख्या' with attribute 'मूल्य' = 50 ('पञ्चाशत्' -> पञ्चन् + दशत)
-            पञ्चन् + दशत + अम् मूल्य + अम् सङ्ख्या + मतुप् + सुँ ।
+            # Step 1: Construct struct 'सङ्ख्या' with attribute 'मूल्य' = 50 ('पञ्चाशत्')
+            सङ्ख्या + मतुप् + ङस् मूल्य + सुँ पञ्चाशत् + सुँ असँ + लट् + तिप् ।
 
             # Step 2: Query absent attribute 'ज्ञाता' on struct 'सङ्ख्या' (1.1.60 अदर्शनं लोपः)
             # Sūtra 1.1.60 defines non-perception (अदर्शनम्) as Lopa (लोपः)
-            सङ्ख्या + मतुप् + ङस् ज्ञा + क्त + टाप् + अम् ।
+            सङ्ख्या + मतुप् + ङस् ज्ञा + क्त + टाप् + अम् ग्रहँ + श्ना + लोट् + सिप् ।
         """.trimIndent()
 
         val results = vm.evalScript(script)

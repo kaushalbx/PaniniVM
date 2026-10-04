@@ -8,12 +8,16 @@ import dev.panini.execution.ExecutionError
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.SambhashanaContext
 import dev.panini.execution.SanskritValue
+import dev.panini.execution.NaturalOperation
+import dev.panini.execution.NaturalOperationResolver
 import dev.panini.actions.missingKaraka
 
 /** Variable Assignment & Value Binding (dā / मूल्यदानम्). */
 object VariableAssignAction : DhatuAction("मूल्यदानम्", "मूल्यस्य संविभाजनम्") {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
-        val expression = context.bindings[Karaka.KARMAN]
+        val naturalFrame = NaturalOperationResolver.resolve(operation, context)
+            as? NaturalOperation.StatePlacement
+        val expression = naturalFrame?.value ?: context.bindings[Karaka.KARMAN]
             ?: return missingKaraka(operation, Karaka.KARMAN)
         val values = context.resolveValues(expression)
         if (values.isEmpty()) {

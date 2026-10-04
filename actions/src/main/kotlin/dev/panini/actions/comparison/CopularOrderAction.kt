@@ -15,14 +15,6 @@ object CopularOrderAction : DhatuAction("न्यूनता", "एकस्�
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
         val subject = context.bindings[Karaka.KARTR] ?: return missingKaraka(operation, Karaka.KARTR)
         val standard = context.bindings[Karaka.APADANA] ?: return missingKaraka(operation, Karaka.APADANA)
-        val predicate = context.bindings[Karaka.KARMAN] ?: return missingKaraka(operation, Karaka.KARMAN)
-        val predicateText = context.resolve(predicate).singleOrNull()?.removeSuffix("म्")?.removeSuffix("ं")
-        if (predicateText != "न्यून") {
-            return ExecutionResult.Failure(
-                ExecutionError.INVALID_VALUE,
-                "Copular order requires न्यूनम् as its predicate.",
-            )
-        }
         val left = context.resolveSankhyaValues(subject)?.singleOrNull()
             ?: return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "The subject of न्यूनम् must be a number.")
         val right = context.resolveSankhyaValues(standard)?.singleOrNull()

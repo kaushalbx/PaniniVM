@@ -308,6 +308,7 @@ MAYAT           : 'मयट्';
 PRATYAYA_MA     : 'म';
 PRATYAYA_TAMA   : 'तम';
 PRATYAYA_TIYA   : 'तीय';
+PRATYAYA_AMACH  : 'अमच्';
 TASIL           : 'तसिल्';
 AN              : 'अण्';
 INJ             : 'इञ्';

@@ -13,4 +13,4 @@
 धरणं स्थानं च वियोजय ।
 
 # Step 4: Output the minimum subset sum difference result (renders 1 = एकम्)
-योगस्य फलं मुद्रय ।
+वियोगस्य फलं मुद्रय ।

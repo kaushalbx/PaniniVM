@@ -21,7 +21,7 @@ class PvmParyantaRangeTest {
             "त्रिंशत् + अम् च सम् + गण् + णिच् + लोट् + सिप् ।",
         )
 
-        assertEquals("त्रिंशत् च गण् ।", rendered)
+        assertEquals("त्रिंशत् च सङ्गणय ।", rendered)
     }
 
     @Test

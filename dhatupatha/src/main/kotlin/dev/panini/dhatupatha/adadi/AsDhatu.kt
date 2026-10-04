@@ -45,6 +45,14 @@ class AsDhatu : Dhatu(
             returns(Samjna.SATYA)
         },
         ListContainsAction.op {
+            requires(Karaka.KARTR)       // the entity whose presence is asserted
+            requires(Karaka.ADHIKARANA) // the collection in which it exists
+            triggeredBy(allowedLakaras = setOf(Lakara.LAT))
+            returns(Samjna.SATYA)
+        },
+        // Compatibility frame: prefer "वस्तु सूचीस्थम् अस्ति" expressed by
+        // nominative वस्तु and locative सूची in new programs.
+        ListContainsAction.op {
             requires(Karaka.KARMAN)
             optional(Karaka.KARANA)
             returns(Samjna.SATYA)

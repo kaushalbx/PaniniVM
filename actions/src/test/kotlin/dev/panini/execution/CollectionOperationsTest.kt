@@ -8,6 +8,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class CollectionOperationsTest {
     @Test
@@ -215,6 +216,50 @@ class CollectionOperationsTest {
     }
 
     @Test
+    fun `GrahDhatu retrieves a value from an ablative collection at a locative position`() {
+        DhatuPathaRegistration.ensureRegistered()
+        val grah = DhatuPatha.all.first { it.upadesha == "ग्रहँ" }
+        val indexOp = grah.operations.first { it.name == "सूचीस्थानम्" }
+        val list = SanskritValue.Suchi(
+            listOf(
+                SanskritValue.Sankhya(10L, "दश"),
+                SanskritValue.Sankhya(20L, "विंशति"),
+            ),
+        )
+        val context = ExecutionContext(
+            bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Pada("मूल्य"),
+                Karaka.APADANA to ExecutionExpression.TypedOperand(list, dev.panini.core.SupAffix.NGASI),
+                Karaka.ADHIKARANA to ExecutionExpression.sankhya(2L, "द्वि"),
+            ),
+        )
+
+        val result = indexOp.action.execute(context, indexOp)
+
+        assertIs<ExecutionResult.Success>(result)
+        assertEquals(20L, (result.typedValue as SanskritValue.Sankhya).value)
+    }
+
+    @Test
+    fun `GrahDhatu gathers accusative objects when prefixed by sam`() {
+        DhatuPathaRegistration.ensureRegistered()
+        val grah = DhatuPatha.all.first { it.upadesha == "ग्रहँ" }
+        val collect = grah.operations.single { it.name == "सूचीसङ्ग्रहः" }
+        val context = ExecutionContext(
+            bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Coordination(
+                    ExecutionExpression.sankhya(1L, "एक"),
+                    ExecutionExpression.sankhya(2L, "द्वि"),
+                ),
+            ),
+        )
+
+        val result = assertIs<ExecutionResult.Success>(collect.action.execute(context, collect))
+        val list = assertIs<SanskritValue.Suchi>(result.typedValue)
+        assertEquals(listOf(1L, 2L), list.items.map { (it as SanskritValue.Sankhya).value })
+    }
+
+    @Test
     fun `BhajDhatu executes ListSliceAction to slice elements`() {
         DhatuPathaRegistration.ensureRegistered()
         val bhaj = DhatuPatha.all.first { it.id == "01.1153" }
@@ -312,6 +357,28 @@ class CollectionOperationsTest {
         val result = ifOp.action.execute(context, ifOp)
         assertIs<ExecutionResult.Success>(result)
         assertEquals(15L, (result.typedValue as SanskritValue.Sankhya).value)
+    }
+
+    @Test
+    fun `IfAction rejects an untyped word that merely spells truth`() {
+        DhatuPathaRegistration.ensureRegistered()
+        val ifOp = DhatuPatha.all.first { it.id == "09.0043" }
+            .operations.first { it.name == "निर्णयः" }
+        val context = ExecutionContext(
+            bindings = mapOf(
+                Karaka.APADANA to ExecutionExpression.Pada(
+                    "सत्यम्",
+                    setOf(Samjna.SHABDA),
+                    SanskritValue.Shabda("सत्यम्"),
+                ),
+                Karaka.KARANA to ExecutionExpression.Pada("यु"),
+            ),
+        )
+
+        val result = assertIs<ExecutionResult.Failure>(ifOp.action.execute(context, ifOp))
+
+        assertEquals(ExecutionError.INVALID_VALUE, result.error)
+        assertTrue(result.message.contains("typed truth value"))
     }
 
     @Test

@@ -1,12 +1,12 @@
 # गुप्त ग्रन्थ — Reusable library with file-private internal prakriyās
 
-# अन्तरङ्गा प्रक्रिया: द्विगुणनम् (File-private internal helper procedure)
+# अन्तरङ्गा प्रक्रिया: गणनम् (File-private internal helper procedure; doubles its operand)
 # Only visible and callable within private_lib.pvm
-द्विगुणन + ल्युट् + सुँ इति अन्तरङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।
+गण + ल्युट् + सुँ इति अन्तरङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।
 प्रथम + अम् द्वि + औट् च गण + णिच् + लोट् + सिप् ॥
 
 # प्रक्रिया: जटिलगणितम् (Public prakriyā accessible to all .pvm files)
-# Invokes internal helper द्विगुणनम् locally
-जटिलगणित + ल्युट् + सुँ ।
-प्रथम + अम् द्विगुणन + ल्युट् + टा कृ + लोट् + सिप् ।
+# Invokes internal helper गणनम् locally
+जटिलगणित + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+प्रथम + अम् गण + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।
 फल + अम् द्वितीय + अम् च युज् + णिच् + लोट् + सिप् ॥

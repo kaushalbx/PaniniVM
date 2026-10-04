@@ -28,6 +28,12 @@ class KshipDhatu : Dhatu(
     svara = Accent.ANUDATTA,
     operations = listOf(
         ListPushAction.op {
+            requires(Karaka.KARMAN)      // the value being inserted
+            requires(Karaka.ADHIKARANA)  // the collection receiving it
+            triggeredBy(requiredUpasargas = setOf("नि"))
+            returns(Samjna.GANA, Samjna.SHABDA)
+        },
+        ListPushAction.op {
             requires(Karaka.KARMAN); returns(Samjna.GANA, Samjna.SHABDA)
         },
         ListFoldAction.op {

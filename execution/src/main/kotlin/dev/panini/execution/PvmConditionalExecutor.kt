@@ -16,7 +16,9 @@ internal class PvmConditionalExecutor(
         val scope: ExecutionScope,
         val speaker: String,
         val listener: String,
+        val persistSession: Boolean,
         val structStore: Map<String, TaddhitaStruct>,
+        val resolveValue: (String) -> SanskritValue? = { null },
         val onResult: ((ExecutionResult) -> Unit)?,
     )
 
@@ -27,7 +29,28 @@ internal class PvmConditionalExecutor(
             request.onResult?.invoke(result)
             return listOf(result)
         }
-        val conditionResults = request.executeNode(node.condition, true)
+        val truthTest = (node.condition as? dev.panini.vyakaranam.ast.Invocation)
+            ?.let(NaturalSemanticNormalizer::normalize)
+            as? NaturalSemanticNormalizer.Operation.TruthTest
+        val conditionResults = truthTest?.let { test ->
+            val state = request.scope.environment.values[test.stateName]
+                ?: request.resolveValue(test.stateName)
+            val truth = (state as? SanskritValue.Satya)?.boolean
+            if (truth == null) {
+                null
+            } else {
+                val value = if (test.negated) !truth else truth
+                listOf(
+                    ExecutionResult.Success(
+                        value = if (value) "सत्यम्" else "असत्यम्",
+                        operation = "pvm.truth-test",
+                        trace = listOf("Resolved the nominative copular subject '${test.stateName}' as a truth state."),
+                        typedValue = SanskritValue.Satya(value),
+                        conditionValue = value,
+                    ),
+                )
+            }
+        } ?: request.executeNode(node.condition, true)
         val success = conditionResults.filterIsInstance<ExecutionResult.Success>().lastOrNull()
         val condition = success?.conditionValue ?: (success?.typedValue as? SanskritValue.Satya)?.boolean
         if (condition == null) {
@@ -56,6 +79,7 @@ internal class PvmConditionalExecutor(
             request.scope.copy(environment = request.scope.environment.mergedWith(operands)),
             request.speaker,
             request.listener,
+            persistSession = request.persistSession,
         )
     }
 }

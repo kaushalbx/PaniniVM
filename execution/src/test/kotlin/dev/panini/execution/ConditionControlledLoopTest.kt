@@ -25,7 +25,7 @@ class ConditionControlledLoopTest {
             """
             प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् तर्हि विजय + सुँ अन्यथा गुरु ततः मुद्र् + णिच् + लोट् + सिप् ॥
-            यावत् विजय + सुँ न भू + लट् + तिप् तावत् पञ्चन् + म + ङस् प्रयत्न + ङस् परि + अन्त + अम् प्रयत्न + अम् डुकृञ् + उ + लोट् + सिप् ।
+            यावत् विजय + सुँ न भू + लट् + तिप् तावत् पञ्चन् + म + ङस् प्रयत्न + ङस् परि + अन्त + अम् प्रयत्न + टा डुकृञ् + उ + लोट् + सिप् ।
             """.trimIndent(),
         )
 
@@ -119,8 +119,8 @@ class ConditionControlledLoopTest {
             प्रयत्न + ल्युट् + सुँ ।
             एक + अम् द्वि + अम् च विद् + लोट् + सिप् ॥
             द्वि + कृत्वसुच् यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
-            परिणाम + मतुप् + ङस् अवस्था + अम् ।
-            परिणाम + मतुप् + ङस् प्रयत्नसङ्ख्या + अम् ।
+            परिणाम + मतुप् + ङस् अवस्था + अम् ग्रहँ + श्ना + लोट् + सिप् ।
+            परिणाम + मतुप् + ङस् प्रयत्नसङ्ख्या + अम् ग्रहँ + श्ना + लोट् + सिप् ।
             """.trimIndent(),
         )
 
@@ -134,20 +134,20 @@ class ConditionControlledLoopTest {
     }
 
     @Test
-    fun `typed numeric attribute keeps its type while sup controls pipeline rendering`() {
+    fun `typed numeric attribute keeps its type through natural retrieval pipelines`() {
         val results = PaniniVM().evalScript(
             """
             प्रयत्न + ल्युट् + सुँ ।
             एक + अम् द्वि + अम् च विद् + लोट् + सिप् ॥
             द्वि + कृत्वसुच् यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
-            परिणाम + मतुप् + ङस् प्रयत्नसङ्ख्या + औ ततः मुद्र् + लोट् + सिप् ।
-            परिणाम + मतुप् + ङस् प्रयत्नसङ्ख्या + भ्याम् ततः मुद्र् + लोट् + सिप् ।
+            परिणाम + मतुप् + ङस् प्रयत्नसङ्ख्या + अम् ग्रहँ + श्ना + लोट् + सिप् ततः मुद्र् + लोट् + सिप् ।
+            परिणाम + मतुप् + ङस् प्रयत्नसङ्ख्या + अम् ग्रहँ + श्ना + लोट् + सिप् ततः मुद्र् + लोट् + सिप् ।
             """.trimIndent(),
         )
 
         val console = results.filterIsInstance<ExecutionResult.Success>()
             .filter { it.outputKind == OutputKind.CONSOLE }
-        assertEquals(listOf("द्वे", "द्वाभ्याम्"), console.map { it.value }, results.toString())
+        assertEquals(listOf("द्वि", "द्वि"), console.map { it.value }, results.toString())
         console.forEach {
             assertEquals(2, assertIs<SanskritValue.Sankhya>(it.typedValue).value)
         }
@@ -155,19 +155,19 @@ class ConditionControlledLoopTest {
     }
 
     @Test
-    fun `plural numeral attribute renders the requested case`() {
+    fun `plural numeral attribute remains typed after natural retrieval`() {
         val results = PaniniVM().evalScript(
             """
             प्रयत्न + ल्युट् + सुँ ।
             एक + अम् द्वि + अम् च विद् + लोट् + सिप् ॥
             त्रि + कृत्वसुच् यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
-            परिणाम + मतुप् + ङस् प्रयत्नसङ्ख्या + भिस् ततः मुद्र् + लोट् + सिप् ।
+            परिणाम + मतुप् + ङस् प्रयत्नसङ्ख्या + अम् ग्रहँ + श्ना + लोट् + सिप् ततः मुद्र् + लोट् + सिप् ।
             """.trimIndent(),
         )
 
         val printed = results.filterIsInstance<ExecutionResult.Success>()
             .single { it.outputKind == OutputKind.CONSOLE }
-        assertEquals("त्रिभिः", printed.value)
+        assertEquals("त्रि", printed.value)
         assertEquals(3, assertIs<SanskritValue.Sankhya>(printed.typedValue).value)
         assertTrue(results.none { it is ExecutionResult.Failure }, results.toString())
     }
@@ -196,7 +196,7 @@ class ConditionControlledLoopTest {
             प्रयत्न + ल्युट् + सुँ ।
             एक + अम् द्वि + अम् च विद् + लोट् + सिप् ॥
             त्रि + कृत्वसुच् यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
-            परिणाम + अम् फलित + अम् क्रीडा + मतुप् + सुँ ।
+            क्रीडा + मतुप् + ङस् फलित + सुँ परिणाम + सुँ असँ + लट् + तिप् ।
             यदि क्रीडा + मतुप् + ङस् फलित + मतुप् + ङस् प्रयत्नसङ्ख्या + अम् द्वि + अम् च विद् + लोट् + सिप् तर्हि जय + अम् मुद्र् + लोट् + सिप् अन्यथा पराजय + अम् मुद्र् + लोट् + सिप् ।
             """.trimIndent(),
         )
@@ -213,7 +213,7 @@ class ConditionControlledLoopTest {
             प्रयत्न + ल्युट् + सुँ ।
             एक + अम् द्वि + अम् च विद् + लोट् + सिप् ॥
             त्रि + कृत्वसुच् यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
-            परिणाम + मतुप् + ङस् प्रयत्नसङ्ख्या + अम् ततः द्वि + अम् च गण् + णिच् + लोट् + सिप् ततः मुद्र् + लोट् + सिप् ।
+            परिणाम + मतुप् + ङस् प्रयत्नसङ्ख्या + अम् ग्रहँ + श्ना + लोट् + सिप् ततः द्वि + अम् च गण् + णिच् + लोट् + सिप् ततः मुद्र् + लोट् + सिप् ।
             """.trimIndent(),
         )
 
@@ -252,11 +252,11 @@ class ConditionControlledLoopTest {
     fun `declared result schema validates the automatic loop structure`() {
         val results = PaniniVM().evalScript(
             """
-            अवस्था + अम् प्रयत्नसङ्ख्या + अम् परिणाम + मतुप् + सुँ ।
+            अवस्था + सुँ प्रयत्नसङ्ख्या + सुँ च परिणाम + ङस् क्षेत्र + जस् असँ + लट् + झि ।
             प्रयत्न + ल्युट् + सुँ ।
             एक + अम् द्वि + अम् च विद् + लोट् + सिप् ॥
             द्वि + कृत्वसुच् यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
-            परिणाम + मतुप् + ङस् प्रयत्नसङ्ख्या + अम् ।
+            परिणाम + मतुप् + ङस् प्रयत्नसङ्ख्या + अम् ग्रहँ + श्ना + लोट् + सिप् ।
             """.trimIndent(),
         )
 
@@ -271,7 +271,7 @@ class ConditionControlledLoopTest {
     fun `result schema rejects a mismatched automatic structure`() {
         val results = PaniniVM().evalScript(
             """
-            अवस्था + अम् क्षेत्र + अम् परिणाम + मतुप् + सुँ ।
+            अवस्था + सुँ क्षेत्र + सुँ च परिणाम + ङस् क्षेत्र + जस् असँ + लट् + झि ।
             प्रयत्न + ल्युट् + सुँ ।
             एक + अम् द्वि + अम् च विद् + लोट् + सिप् ॥
             एक + कृत्वसुच् यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।

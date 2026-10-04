@@ -4,6 +4,8 @@ import dev.panini.execution.binding.baseText
 import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.AvyayaFunction
 import dev.panini.vyakaranam.ast.ProgramNode
+import dev.panini.vyakaranam.ast.MulaPratipadika
+import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.WhileLoop
 
@@ -32,15 +34,18 @@ internal class PvmLoopExecutor {
             )
             value
         }
-        val usesLatestResult = loop.condition.vakya.padas.any {
-            it is SubantaPada && it.pratipadika.baseText() in setOf("फल", "विजय")
+        val normalizedCondition = NaturalSemanticNormalizer.normalize(loop.condition)
+        val reportedOutcome = normalizedCondition as? NaturalSemanticNormalizer.Operation.ReportedOutcomeTest
+        val usesLatestResult = reportedOutcome != null || loop.condition.vakya.padas.any {
+            it is SubantaPada && NaturalSemanticNormalizer.isPriorResult(it)
         }
         val hasExplicitNegation = loop.condition.vakya.padas.any {
             it is AvyayaPada && it.function == AvyayaFunction.NISHEDHA
         }
-        val isNegated = hasExplicitNegation || loop.condition.vakya.padas.any {
-                (it is SubantaPada && it.pratipadika.baseText() == "असत्य")
-        }
+        val isNegated = reportedOutcome?.negated ?: (hasExplicitNegation || loop.condition.vakya.padas.any {
+                it is SubantaPada &&
+                    (it.pratipadika as? MulaPratipadika)?.lexicalIdentity == MulaPratipadikaIdentity.ASATYA
+        })
         val truthStateName = loop.condition.vakya.padas.filterIsInstance<SubantaPada>()
             .singleOrNull()
             ?.pratipadika

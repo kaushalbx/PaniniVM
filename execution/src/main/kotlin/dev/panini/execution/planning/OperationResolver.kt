@@ -19,7 +19,7 @@ object OperationResolver {
         if (operations.isEmpty()) {
             return OperationResolution.Invalid(
                 ExecutionError.DHATU_NOT_EXECUTABLE,
-                "Dhātu ${dhatu.upadesha} has no executable operations.",
+                "अक्रियाधातुः: ${dhatu.upadesha} इत्यस्य निष्पादनीया क्रिया नास्ति।",
             )
         }
 
@@ -49,7 +49,8 @@ object OperationResolver {
                 }.toSet()
                 return OperationResolution.MissingInput(
                     missing,
-                    "Required kārakas are missing for dhātu ${dhatu.upadesha}: $missing",
+                "कारकाभावः: ${dhatu.upadesha} इति धातुः " +
+                    "${missing.joinToString { it.sanskritName }} कारकम् अपेक्षते।",
                 )
             }
             val reason = evaluations.firstNotNullOfOrNull { (_, _, result) ->
@@ -135,22 +136,37 @@ object OperationResolver {
                 is ExecutionExpression.Reference -> ExpressionShape.REFERENCE
                 is ExecutionExpression.TypedOperand -> ExpressionShape.LITERAL
             }
-            if (requirement.shape != null && requirement.shape != shape) {
-                return SignatureEvaluation.Incompatible("${requirement.karaka} requires ${requirement.shape}, but received $shape.")
+            val expectedShape = requirement.shape
+            if (expectedShape != null && expectedShape != shape) {
+                return SignatureEvaluation.Incompatible(
+                    "कारकरूपदोषः: ${requirement.karaka.sanskritName} कारके " +
+                        "${expectedShape.sanskritName} अपेक्षितम्, ${shape.sanskritName} प्राप्तम्।",
+                )
             }
             val typedValues = context.resolveValues(expression)
             if (typedValues.isEmpty()) {
-                return SignatureEvaluation.Incompatible("${requirement.karaka} contains an unresolved reference.")
+                return SignatureEvaluation.Incompatible(
+                    "कारकनिर्देशदोषः: ${requirement.karaka.sanskritName} कारकस्य निर्देशः न सिद्धः।",
+                )
             }
             if (typedValues.size < requirement.minimumMembers) {
-                return SignatureEvaluation.Incompatible("${requirement.karaka} requires at least ${requirement.minimumMembers} members.")
+                return SignatureEvaluation.Incompatible(
+                    "कारकसङ्ख्यादोषः: ${requirement.karaka.sanskritName} कारके न्यूनातिन्यूनं " +
+                        "${requirement.minimumMembers} पदानि अपेक्षितानि।",
+                )
             }
             val maxMembers = requirement.maximumMembers
             if (maxMembers != null && typedValues.size > maxMembers) {
-                return SignatureEvaluation.Incompatible("${requirement.karaka} accepts at most $maxMembers members.")
+                return SignatureEvaluation.Incompatible(
+                    "कारकसङ्ख्यादोषः: ${requirement.karaka.sanskritName} कारके अधिकात्यधिकं " +
+                        "$maxMembers पदानि स्वीक्रियन्ते।",
+                )
             }
             if (typedValues.any { !it.samjnas.containsAll(requirement.memberSamjnas) }) {
-                return SignatureEvaluation.Incompatible("Every ${requirement.karaka} member requires saṃjñās ${requirement.memberSamjnas}.")
+                return SignatureEvaluation.Incompatible(
+                    "कारकसंज्ञादोषः: ${requirement.karaka.sanskritName} कारकस्य प्रत्येकं पदं " +
+                        "${requirement.memberSamjnas} संज्ञाः अपेक्षते।",
+                )
             }
         }
         return SignatureEvaluation.Compatible
@@ -161,6 +177,13 @@ object OperationResolver {
         data class Missing(val karakas: Set<Karaka>) : SignatureEvaluation
         data class Incompatible(val reason: String) : SignatureEvaluation
     }
+
+    private val ExpressionShape.sanskritName: String
+        get() = when (this) {
+            ExpressionShape.LITERAL -> "एकपदम्"
+            ExpressionShape.COORDINATION -> "समुच्चितपदम्"
+            ExpressionShape.REFERENCE -> "निर्दिष्टपदम्"
+        }
 }
 
 fun DhatuInvocation.executionContext(

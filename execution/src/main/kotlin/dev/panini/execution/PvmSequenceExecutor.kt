@@ -2,6 +2,7 @@ package dev.panini.execution
 
 import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.Sequence
+import dev.panini.vyakaranam.ast.SequenceConnector
 import dev.panini.vyakaranam.ast.Ukti
 
 /** Executes ततः sequences and carries typed results between their stages. */
@@ -23,7 +24,8 @@ internal class PvmSequenceExecutor {
             ) != null
         }
         val startsWithImplicitValue = (node.statements.firstOrNull() as? Invocation)?.implicitValue != null
-        if (node.statements.size < 2 || node.connectors.any { it != "ततः" } ||
+        if (node.statements.size < 2 ||
+            node.connectorKinds.any { it != SequenceConnector.ANANTARYA } ||
             (!hasNamedStage && !startsWithImplicitValue)
         ) return evaluateWhole()
 

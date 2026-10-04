@@ -6,6 +6,50 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class PvmUktiSadhakaConnectorTest {
+    @Test
+    fun `sam plus grah renders as grammatical sangrhana`() {
+        assertEquals(
+            "एकं द्वि च सङ्गृहाण ।",
+            PvmUktiSadhaka().sadhayaLine("एक + अम् द्वि + अम् च सम् + ग्रहँ + श्ना + लोट् + सिप् ।"),
+        )
+    }
+
+    @Test
+    fun `locative membership renders as an existential sentence`() {
+        assertEquals(
+            "फलं सूच्याम् अस्ति ।",
+            PvmUktiSadhaka().sadhayaLine("फल + सुँ सूची + ङि असँ + लट् + तिप् ।"),
+        )
+    }
+
+    @Test
+    fun `instrumental collection companion renders with causative yuj`() {
+        assertEquals(
+            "पूर्वसूचीम् उत्तरसूच्या संयोजय ।",
+            PvmUktiSadhaka().sadhayaLine(
+                "पूर्वसूची + अम् उत्तरसूची + टा सम् + युज् + णिच् + लोट् + सिप् ।",
+            ),
+        )
+    }
+
+    @Test
+    fun `collection cardinality renders as ordinary transitive counting`() {
+        assertEquals(
+            "सूचीं गणय ।",
+            PvmUktiSadhaka().sadhayaLine("सूची + अम् गण् + णिच् + लोट् + सिप् ।"),
+        )
+    }
+
+    @Test
+    fun `collection slice renders with ordinal paryanta limits`() {
+        assertEquals(
+            "सूच्याः द्वितीयात् तृतीयपर्यन्तम् अंशं गृहाण ।",
+            PvmUktiSadhaka().sadhayaLine(
+                "सूची + ङस् द्वि + तीय + ङसिँ त्रि + तीय + शस् परि + अन्त + अम् " +
+                    "अंश + अम् ग्रहँ + श्ना + लोट् + सिप् ।",
+            ),
+        )
+    }
     private val sadhaka = PvmUktiSadhaka()
 
     @Test
@@ -31,6 +75,51 @@ class PvmUktiSadhakaConnectorTest {
         assertFalse(" दा" in rendered, rendered)
         assertEquals(1, Regex("ततः").findAll(rendered).count(), rendered)
         assertTrue("लघु" in rendered && "गुरु" in rendered, rendered)
+    }
+
+    @Test
+    fun `segmented nominal conditional result is rendered from its retained AST`() {
+        val rendered = sadhaka.sadhayaLine(
+            "यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् " +
+                "तर्हि विजय + सुँ अन्यथा गुरु ततः फल + अम् मुद्र् + लोट् + सिप् ।",
+        )
+
+        assertTrue("तर्हि विजयः" in rendered, rendered)
+        assertFalse("विजय+सुँ" in rendered, rendered)
+        assertFalse("+" in rendered, rendered)
+    }
+
+    @Test
+    fun `traditional numeral code words render with their grammatical case`() {
+        val katapayadi = sadhaka.sadhayaLine(
+            "कटपयादि माधव + अम् कटपयादि खग + अम् च युज् + णिच् + लोट् + सिप् ।",
+        )
+        val aryabhatiya = sadhaka.sadhayaLine(
+            "आर्यभटीय गि + अम् आर्यभटीय चयि + अम् च गण् + णिच् + लोट् + सिप् ।",
+        )
+
+        assertFalse("+" in katapayadi, katapayadi)
+        assertFalse("+" in aryabhatiya, aryabhatiya)
+        assertTrue("माधवं" in katapayadi && "खगं" in katapayadi, katapayadi)
+    }
+
+    @Test
+    fun `possessive matup on feminine aa stem renders the vat form`() {
+        assertEquals(
+            "सङ्ख्यावतः मूल्यं पञ्चाशद् अस्ति ।",
+            sadhaka.sadhayaLine(
+                "सङ्ख्या + मतुप् + ङस् मूल्य + सुँ पञ्चाशत् + सुँ असँ + लट् + तिप् ।",
+            ),
+        )
+    }
+
+    @Test
+    fun `lyut action nouns render as neuter`() {
+        assertEquals("गणनम् ।", sadhaka.sadhayaLine("गण + ल्युट् + सुँ ।"))
+        assertEquals(
+            "एकं गणनेन कुरु ।",
+            sadhaka.sadhayaLine("एक + अम् गण + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।"),
+        )
     }
 
     @Test
@@ -78,5 +167,47 @@ class PvmUktiSadhakaConnectorTest {
             rendered,
         )
         assertFalse("+" in rendered, rendered)
+    }
+
+    @Test
+    fun `locative state placement and collection insertion render as natural imperatives`() {
+        assertEquals(
+            "सत्यं सर्वजये स्थापय ।",
+            sadhaka.sadhayaLine(
+                "सत्य + अम् सर्वजय + ङि स्था + णिच् + लोट् + सिप् ।",
+            ),
+        )
+        assertEquals(
+            "चयनं पेटिकाक्रमे निक्षिप ।",
+            sadhaka.sadhayaLine(
+                "चयन + अम् पेटिकाक्रम + ङि नि + क्षिप् + लोट् + सिप् ।",
+            ),
+        )
+        assertEquals(
+            "फलं बन्दिसङ्ख्यायां स्थापय ।",
+            sadhaka.sadhayaLine(
+                "फल + अम् बन्दिसङ्ख्या + ङि स्था + णिच् + लोट् + सिप् ।",
+            ),
+        )
+    }
+
+    @Test
+    fun `indexed retrieval renders source position and object compositionally`() {
+        assertEquals(
+            "पेटिकाक्रमात् पेटिकाक्रमाङ्के मूल्यं गृहाण ।",
+            sadhaka.sadhayaLine(
+                "पेटिकाक्रम + ङसिँ पेटिकाक्रमाङ्क + ङि मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।",
+            ),
+        )
+    }
+
+    @Test
+    fun `exclusion absolutive renders as a natural subordinate action`() {
+        assertEquals(
+            "पेटिकाक्रमं वर्जयित्वा चिनु ।",
+            sadhaka.sadhayaLine(
+                "पेटिकाक्रम + अम् वृज् + णिच् + क्त्वा चिञ् + श्नु + लोट् + सिप् ।",
+            ),
+        )
     }
 }

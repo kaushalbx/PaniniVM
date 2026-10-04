@@ -21,6 +21,7 @@ import dev.panini.vyakaranam.ast.SankhyaPada
 import dev.panini.vyakaranam.ast.SankhyaPuranaPada
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.MulaPratipadika
+import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
 import dev.panini.vyakaranam.ast.TingantaPada
 
 /**
@@ -56,7 +57,7 @@ internal object KarakaExtractor {
 
         val subantas = padas.filterIsInstance<SubantaPada>()
         val isCopularClause = padas.filterIsInstance<TingantaPada>().any {
-            it.dhatu.mulaDhatu == "असँ"
+            it.canonicalDhatuIdentity() == CanonicalDhatuIdentity.AS
         }
         val phalaPadas = subantas.filter(PhalaReference::isReference)
 
@@ -68,7 +69,7 @@ internal object KarakaExtractor {
 
         fun inferKarakas(pada: SubantaPada): Set<Karaka> {
             val relation = ctx.frame.relations.firstOrNull {
-                it.participant.pada.sourceText == pada.sourceText
+                it.participant.pada === pada
             }
             if (relation == null) {
                 val supAffix = SupAffix.fromUpadesha(pada.sup.text)
@@ -142,8 +143,12 @@ internal object KarakaExtractor {
             if (pada in karakaReferenceResolution.consumedQualifiers) return@forEachIndexed
             when (pada) {
                 is ParyantaRangePada -> {
-                    val minimum = NumeralPadaBinder.evaluateStems(pada.lowerLimit.stems).value
-                    val maximum = NumeralPadaBinder.evaluateStems(pada.upperLimit.stems).value
+                    fun boundaryValue(boundary: dev.panini.vyakaranam.ast.SankhyaBoundaryPada): Long =
+                        requireNotNull(dev.panini.execution.NaturalSemanticNormalizer.boundaryValue(boundary)) {
+                            "क्रमसीमायाः पूरणार्थः न ज्ञातः: ${boundary.sourceText}"
+                        }
+                    val minimum = boundaryValue(pada.lowerLimit)
+                    val maximum = boundaryValue(pada.upperLimit)
                     addBinding(
                         ExecutionExpression.sankhya(minimum, pada.lowerLimit.sourceText),
                         setOf(Karaka.APADANA),
@@ -155,9 +160,14 @@ internal object KarakaExtractor {
                     trace += "परि + अन्त + अम् licenses inclusive limits $minimum..$maximum."
                 }
                 is SubantaPada -> {
-                    val copularPredicate = (ctx.dhatu.upadesha == "असँ" || isCopularClause) &&
+                    val copularPredicate =
+                        (ctx.dhatu.canonicalDhatuIdentity() == CanonicalDhatuIdentity.AS || isCopularClause) &&
                         SupAffix.candidates(pada.sup.text).any { it.vibhakti == dev.panini.core.Vibhakti.PRATHAMA } &&
-                        (pada.pratipadika as? MulaPratipadika)?.text in setOf("सम", "न्यून", "अधिक")
+                        (pada.pratipadika as? MulaPratipadika)?.lexicalIdentity in setOf(
+                            MulaPratipadikaIdentity.SAMA,
+                            MulaPratipadikaIdentity.NYUNA,
+                            MulaPratipadikaIdentity.ADHIKA,
+                        )
                     if (copularPredicate) {
                         addBinding(ExpressionBuilder.build(pada, ctx), setOf(Karaka.KARMAN))
                         return@forEachIndexed
@@ -229,22 +239,11 @@ internal object KarakaExtractor {
 
         // ---- post-processing: collapse multiple bindings for the same kāraka --------
 
-        val bindings = grouped.mapValues { (karaka, values) ->
-            val filteredValues = if (karaka == Karaka.KARMAN && values.size > 1) {
-                val abhyasaPadas = padas.filterIsInstance<SankhyaAbhyasaPada>()
-                val nonAbhyasa = values.filterNot { expr ->
-                    expr is ExecutionExpression.Pada && abhyasaPadas.any { p ->
-                        p.sourceText.contains(expr.prakriti) ||
-                            expr.prakriti.contains(p.sourceText) ||
-                            p.stems.contains(expr.prakriti)
-                    }
-                }
-                if (nonAbhyasa.isNotEmpty()) nonAbhyasa else values
-            } else {
-                values
-            }
-            if (filteredValues.size == 1) filteredValues.single()
-            else ExecutionExpression.Coordination(filteredValues)
+        val bindings = grouped.mapValues { (_, values) ->
+            // SankhyaAbhyasaPada is excluded structurally in the dispatch above;
+            // no spelling comparison is needed to distinguish frequency from karman.
+            if (values.size == 1) values.single()
+            else ExecutionExpression.Coordination(values)
         }
         trace += ctx.frame.qualifications.map { "Kriyā qualification ${it.kind}: ${it.value}" }
         return ExtractedBindings(bindings, ambiguous, trace.distinct())

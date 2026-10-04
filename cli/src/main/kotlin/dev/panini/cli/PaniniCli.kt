@@ -83,8 +83,12 @@ class PaniniCli(
         outputStream.println("[PaniniVM CLI] Executing file: ${file.name}")
         val checkpoint = vm.checkpointSession(sessionKey)
         val resolvedResults = try {
-            vm.evalFile(file, sessionKey = sessionKey, onResult = ::streamResult)
-                .map { resolveInteractive(it) }
+            vm.evalFile(
+                file,
+                sessionKey = sessionKey,
+                onResult = ::streamResult,
+                persistSession = false,
+            ).map { resolveInteractive(it) }
         } catch (terminated: InteractiveInputTerminated) {
             vm.restoreSession(sessionKey, checkpoint)
             listOf(terminated.toFailure())

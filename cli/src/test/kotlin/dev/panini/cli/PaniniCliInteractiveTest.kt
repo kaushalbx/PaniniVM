@@ -173,4 +173,28 @@ class PaniniCliInteractiveTest {
         assertTrue(vm.listSessions().isEmpty())
         assertTrue(!output.toString(Charsets.UTF_8).contains("Exception"))
     }
+
+    @Test
+    fun `ordinary file execution does not create a disk session`() {
+        val directory = Files.createTempDirectory("transient-cli-script")
+        val storage = Files.createDirectory(directory.resolve("sessions"))
+        val script = directory.resolve("transient.pvm")
+        try {
+            Files.writeString(script, "एक + अम् सङ्ख्या + ङि स्था + णिच् + लोट् + सिप् ।")
+            val vm = PaniniVM(storageDir = storage.toFile())
+            val cli = PaniniCli(
+                vm = vm,
+                inputStream = ByteArrayInputStream(byteArrayOf()),
+                outputStream = PrintStream(ByteArrayOutputStream(), true, Charsets.UTF_8),
+            )
+
+            val results = cli.executeScriptFile(script.toFile())
+
+            assertTrue(results.none { it is ExecutionResult.Failure })
+            assertTrue(vm.listSessions().isEmpty())
+            assertTrue(storage.toFile().walkTopDown().none { it.isFile })
+        } finally {
+            directory.toFile().deleteRecursively()
+        }
+    }
 }

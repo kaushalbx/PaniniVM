@@ -11,11 +11,31 @@ import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.parser.PaniniParser
 
+data class ParsedAdhikaraHeader(
+    val domainSource: String,
+    val domainIdentity: String,
+)
+
 /** Recognizes an adhikāra declaration from its parsed nominal construction. */
 object AdhikaraHeaderParser {
     private val parser = PaniniParser()
 
-    fun domain(source: String): String? {
+    fun parse(source: String): ParsedAdhikaraHeader? {
+        val domain = domainPada(source) ?: return null
+        return ParsedAdhikaraHeader(
+            // Compatibility projection for rendering and inheritance declarations.
+            domainSource = PrakriyaInvocationMatcher.normalizeIdentity(domain.sourceText),
+            domainIdentity = domain.pratipadika.prakriyaIdentity(),
+        )
+    }
+
+    fun domain(source: String): String? = parse(source)?.domainSource
+
+    /** Canonical case-free identity used by registries and module symbols. */
+    fun domainIdentity(source: String): String? =
+        parse(source)?.domainIdentity
+
+    private fun domainPada(source: String): SubantaPada? {
         val ukti = parser.parseOrNull(source.trim().trimEnd('।', '॥', ' ')) ?: return null
         val padas = ukti.grammaticalVakyas().flatMap { it.padas }
         val markerIndex = padas.indexOfLast { pada ->
@@ -28,7 +48,7 @@ object AdhikaraHeaderParser {
         val domain = padas.take(markerIndex).filterIsInstance<SubantaPada>().lastOrNull()
             ?.takeIf { SupAffix.fromUpadesha(it.sup.text)?.vibhakti == Vibhakti.PRATHAMA }
             ?: return null
-        return PrakriyaInvocationMatcher.normalizeIdentity(domain.sourceText)
+        return domain
     }
 
     private fun SubantaPada.isAdhikaraMarker(): Boolean = when (val base = pratipadika) {

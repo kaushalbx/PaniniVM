@@ -2,15 +2,34 @@ package dev.panini.compiler
 
 import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.SanskritValue
+import dev.panini.execution.ValueEnvironment
 import dev.panini.execution.renderSankhyaResult
 import dev.panini.execution.planning.ResolvedLeafPlanner
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class CompilerIrTest {
+    @Test
+    fun `phala morphology is canonicalized before runtime load IR`() {
+        val program = CompilerFrontend.lower(
+            """
+            द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ।
+            फल + अम् अवस्था + ङे दा + लोट् + सिप् ।
+            """.trimIndent(),
+            "CanonicalPhalaIr",
+        )
+
+        assertFalse(
+            program.entryPoint.any { it == CompilerInstruction.Load("फल") },
+            program.entryPoint.toString(),
+        )
+        assertTrue(CompilerInstruction.LoadLastResult in program.entryPoint, program.entryPoint.toString())
+    }
+
     @Test
     fun `whole-program IR verifies procedure targets`() {
         val call = CompilerInstruction.InvokeProcedure("prakriya_0", 0)
@@ -751,6 +770,30 @@ class CompilerIrTest {
         assertEquals(CompilerInstruction.Compare(ComparisonOperator.LESS_THAN), lessInstructions.last())
         assertTrue(greaterInstructions.none { it is CompilerInstruction.Call })
         assertTrue(lessInstructions.none { it is CompilerInstruction.Call })
+    }
+
+    @Test
+    fun `locative collection membership lowers from its karaka frame`() {
+        val plan = requireNotNull(
+            ResolvedLeafPlanner.planAny(
+                "द्वि + सुँ सूची + ङि असँ + लट् + तिप् ।",
+                ValueEnvironment(
+                    mapOf(
+                        "सूची" to SanskritValue.Suchi(
+                            listOf(SanskritValue.Sankhya(2, "द्वि")),
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        val instructions = CompilerIrLowering.lowerCondition(plan)
+
+        assertTrue(
+            CompilerInstruction.Collection(CollectionOperator.CONTAINS) in instructions,
+            instructions.toString(),
+        )
+        assertTrue(instructions.none { it is CompilerInstruction.Call }, instructions.toString())
     }
 
     @Test

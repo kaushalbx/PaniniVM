@@ -16,6 +16,8 @@ import dev.panini.sutra.runtime.SutraId
 import dev.panini.sutra.runtime.SutraProgram
 import dev.panini.sutra.runtime.SutraRelation
 import dev.panini.sutra.runtime.SutraSource
+import java.util.Collections
+import java.util.WeakHashMap
 
 /**
  * Compatibility compiler used during the incremental migration. It preserves
@@ -23,6 +25,9 @@ import dev.panini.sutra.runtime.SutraSource
  * runtime sūtra.
  */
 object ExecutableUktiSutraCompiler {
+    private val blueprintCache = Collections.synchronizedMap(
+        WeakHashMap<ExecutableUkti, SutraBlueprintGrantha>(),
+    )
     fun compile(ukti: ExecutableUkti): SutraProgram<ProgramAvastha> {
         return when (val lowering = SutraGranthaCompiler.lower(compileGrantha(ukti))) {
             is SutraGranthaLowering.Success -> lowering.program
@@ -56,6 +61,15 @@ object ExecutableUktiSutraCompiler {
     fun compileBlueprintGrantha(
         ukti: ExecutableUkti,
         granthaId: GranthaId = GranthaId("ukti"),
+    ): SutraBlueprintGrantha = if (granthaId.value == "ukti") {
+        blueprintCache.getOrPut(ukti) { compileBlueprintGranthaUncached(ukti, granthaId) }
+    } else {
+        compileBlueprintGranthaUncached(ukti, granthaId)
+    }
+
+    private fun compileBlueprintGranthaUncached(
+        ukti: ExecutableUkti,
+        granthaId: GranthaId,
     ): SutraBlueprintGrantha {
         val dependenciesByTarget = ukti.dependencies.groupBy { it.after }
         val branchGuards = ukti.control.branchGuards()

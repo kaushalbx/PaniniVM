@@ -9,6 +9,7 @@ import dev.panini.vyakaranam.ast.SamasaPratipadika
 import dev.panini.vyakaranam.ast.SankhyaPratipadika
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.UnadyantaPratipadika
+import dev.panini.vyakaranam.ast.semanticKey
 
 internal fun SubantaPada.hasVibhakti(vibhakti: Vibhakti): Boolean =
     SupAffix.candidates(sup.text).any { it.vibhakti == vibhakti }
@@ -36,15 +37,4 @@ internal fun Pratipadika.baseText(): String = when (this) {
  * The external sup belongs to [SubantaPada], so it deliberately cannot affect
  * this key.
  */
-internal fun Pratipadika.referenceKey(): String = when (this) {
-    is SankhyaPratipadika -> sourceText
-    is MulaPratipadika -> text
-    is KridantaPratipadika -> buildList {
-        addAll(upasargas)
-        add(dhatu.mulaDhatu)
-        addAll(dhatu.sanadiPratyayas)
-        add(krtPratyaya)
-    }.joinToString("+")
-    is UnadyantaPratipadika -> sourceText
-    is SamasaPratipadika -> angas.joinToString("-") { it.pratipadika.referenceKey() }
-}
+internal fun Pratipadika.referenceKey(): String = semanticKey()

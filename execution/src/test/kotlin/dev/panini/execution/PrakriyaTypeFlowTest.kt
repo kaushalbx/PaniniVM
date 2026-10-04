@@ -53,13 +53,13 @@ class PrakriyaTypeFlowTest {
         val messages = PrakriyaScriptValidator.validate(source).map(PrakriyaDiagnostic::message)
 
         assertTrue(messages.any { it.contains("declared more than once") }, messages.toString())
-        assertTrue(messages.any { it.contains("expects 2 arguments") }, messages.toString())
+        assertTrue(messages.any { it.contains("2 मानानि अपेक्षितानि") }, messages.toString())
     }
 
     @Test
     fun `custom structured result declaration resolves its schema`() {
         val source = """
-            अवस्था + अम् प्रयत्नसङ्ख्या + अम् अनुमानपरिणाम + मतुप् + सुँ ।
+            अवस्था + सुँ प्रयत्नसङ्ख्या + सुँ च अनुमानपरिणाम + ङस् क्षेत्र + जस् असँ + लट् + झि ।
             अनुमान + ल्युट् + सुँ ।
             अनुमानपरिणाम + सुँ इति परिणाम + सुँ ।
             विजय + अम् दा + लोट् + सिप् ॥
