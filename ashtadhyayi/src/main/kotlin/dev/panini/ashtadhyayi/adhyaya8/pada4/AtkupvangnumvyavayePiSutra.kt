@@ -43,7 +43,6 @@ object AtkupvangnumvyavayePiSutra : Sutra<DerivationState, DerivationChange>(
     dependencies = setOf("8.4.1")
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        if (HasMorphosyntax(vibhakti = Vibhakti.DVITIYA, vacana = Vacana.BAHUVACANA).matches(context)) return false
         val target = findTarget(context) ?: return false
         val positions = phonologicalPositions(context)
 

@@ -14,7 +14,7 @@ class NestedGenitiveStructTest {
         assertEquals(
             "गुणवतः मूल्यं दश अस्ति ।",
             PvmUktiSadhaka().sadhayaLine(
-                "गुण + मतुप् + ङस् मूल्य + सुँ दश + सुँ असँ + लट् + तिप् ।",
+                "गुण + मतुप् + ङस् मूल्य + सुँ दशन् + जस् असँ + लट् + तिप् ।",
             ),
         )
     }

@@ -14,7 +14,8 @@ class TingantaEngine(private val engine: DerivationEngine = DerivationEngine(dev
         if (type == "सन्") return dhatu in setOf("भू", "पच्", "जि")
         if (type == "यङ्") return dhatu == "भू"
         val entry = runCatching { findDhatu(dhatu, pada) }.getOrNull() ?: return false
-        return entry.gana in setOf(DhatuGana.DIVADI, DhatuGana.RUDHADI, DhatuGana.CURADI)
+        return entry.gana in setOf(DhatuGana.DIVADI, DhatuGana.RUDHADI, DhatuGana.CURADI) ||
+            entry.sourceSurface == "स्था"
     }
 
     fun derive(request: TingantaDerivationRequest): DerivationResult = deriveInternal(request, allowExplicitPlan = false)
@@ -31,7 +32,7 @@ class TingantaEngine(private val engine: DerivationEngine = DerivationEngine(dev
             "No complete sanādi derivation plan exists for ${request.dhatu} + ${request.sanadiPratyayas.joinToString(" + ")}."
         }
         val hasYang = "यङ्" in request.sanadiPratyayas
-        val dhatu = findDhatu(request.dhatu, request.pada.takeIf { request.sanadiPratyayas.isNotEmpty() && !hasYang })
+        val dhatu = findDhatu(request.dhatu, request.pada.takeIf { request.sanadiPratyayas.isNotEmpty() && !hasYang }, request.gana)
         val targetPada = if (hasYang) {
             require(request.pada == null || request.pada == PadaType.ATMANEPADA) { "यङ् derives an Ātmanepada stem." }
             PadaType.ATMANEPADA
@@ -78,9 +79,10 @@ class TingantaEngine(private val engine: DerivationEngine = DerivationEngine(dev
         )
     }
 
-    private fun findDhatu(dhatu: String, preferredPada: PadaType? = null) =
+    private fun findDhatu(dhatu: String, preferredPada: PadaType? = null, gana: DhatuGana? = null) =
         DhatuPatha.all
-            .filter { it.upadesha == dhatu || it.derivationalSurface == dhatu || it.sourceSurface == dhatu }
+            .filter { (gana == null || it.gana == gana) &&
+                (it.upadesha == dhatu || it.derivationalSurface == dhatu || it.sourceSurface == dhatu) }
             .let { matches ->
                 matches.firstOrNull { candidate ->
                     preferredPada == null || candidate.pada == preferredPada || candidate.pada == PadaType.UBHAYAPADA

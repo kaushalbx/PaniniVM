@@ -13,6 +13,56 @@ package dev.panini.parser;
 // ============================================================================
 
 ukti
+    : utterance (DANDA | DOUBLE_DANDA)? EOF
+    ;
+
+document
+    : documentItem* (trailingHeader=prakriyaHeader | trailing=utterance)? EOF
+    ;
+
+documentItem
+    : prakriyaBlock
+    | prakriyaHeader DANDA
+    | utterance (DANDA | DOUBLE_DANDA)
+    ;
+
+prakriyaEntry
+    : prakriyaBlock EOF
+    ;
+
+rangeDeclarationEntry
+    : rangeDeclaration DANDA? EOF
+    ;
+
+rangeDeclaration
+    : boundary=paryantaRange ITI marker=subantaPada
+    ;
+
+scopeDeclarationEntry
+    : scopeDeclaration DANDA? EOF
+    ;
+
+scopeDeclaration
+    : domain=subantaPada ITI marker=subantaPada
+    ;
+
+// Explicit nominal naming declaration; lexical marker/qualifier meaning is
+// validated from the parsed morphology by the AST builder.
+prakriyaBlock
+    : prakriyaHeader DANDA
+      (body+=utterance DANDA)* body+=utterance DOUBLE_DANDA
+    ;
+
+prakriyaHeader
+    : names+=subantaPada+ ITI declaration=prakriyaDeclaration
+    ;
+
+prakriyaDeclaration
+    : qualifiers+=subantaPada* PRAKRIYA_NOUN PLUS markerSup=supPratyaya copula=tingantaPada
+    ;
+
+// Reusable clause content: document/block entry rules own their delimiters and EOF.
+utterance
     : quotationClause
     | whileClause
     | conditionalPipelineClause
@@ -22,29 +72,27 @@ ukti
     | sambodhana?
       vakya
       (vakyaSambandha vakya)*
-      DANDA?
-      EOF
     ;
 
 quotationClause
-    : quoted=vakya ITI reporting=akhyataVakya DANDA? EOF
+    : quoted=vakya ITI reporting=akhyataVakya
     ;
 
 conditionalPipelineClause
     : source=akhyataVakya (TATAH stages+=akhyataVakya)*
-      TATAH conditional=conditionalExpression DANDA? EOF
+      TATAH conditional=conditionalExpression
     ;
 
 attributePipelineClause
     : source+=subantaPada source+=subantaPada+
-      TATAH targets+=akhyataVakya (TATAH targets+=akhyataVakya)* DANDA? EOF
+      TATAH targets+=akhyataVakya (TATAH targets+=akhyataVakya)*
     ;
 
 whileClause
     : (limit=sankhyaAbhyasaPada YAVAT condition=vakya TAVAT body=vakya
       | YAVAT condition=vakya TAVAT boundary=ordinalAttemptBoundary body=vakya
       | YAVAT condition=vakya TAVAT body=vakya)
-      (ANYATHA exhausted=whileExhausted)? (TATAH target=vakya)? DANDA? EOF
+      (ANYATHA exhausted=whileExhausted)? (TATAH target=vakya)?
     ;
 
 whileExhausted
@@ -62,10 +110,9 @@ pipelineClause
     : (arguments+=subantaPada)+ CHA
       stages+=pipelineStage stages+=pipelineStage+
       purvaparaDirective pipelineResult tingantaPada
-      DANDA? EOF
     | (arguments+=subantaPada)+ CHA
       stages+=pipelineStage (TATAH stages+=pipelineStage)+
-      tingantaPada DANDA? EOF
+      tingantaPada
     ;
 
 pipelineStage
@@ -81,7 +128,7 @@ pipelineResult
     ;
 
 conditionalClause
-    : conditionalExpression (TATAH target=vakya)? DANDA? EOF
+    : conditionalExpression (TATAH target=vakya)?
     ;
 
 conditionalExpression
@@ -217,7 +264,6 @@ vakyaSambandha
     | KINTU
     | ATAH
     | YATAH
-    | DANDA
     ;
 
 // ============================================================================
@@ -286,6 +332,9 @@ bhutasamkhyaPada
 
 sankhyaStem
     : IDENTIFIER
+    | PRAKRIYA_NOUN
+    | UNA
+    | ADHIKA
     ;
 
 // ============================================================================
@@ -322,6 +371,7 @@ pratipadikaVikara
 
 mulaPratipadika
     : IDENTIFIER
+    | PRAKRIYA_NOUN
     | ADHIKA
     | UNA
     ;
@@ -533,33 +583,12 @@ tingantaPada
 // विस्तृतव्युत्पत्तिः
 // ============================================================================
 
+// Derivation entry uses the same segmented verbal morphology as ordinary source.
+// Augments, reduplication and substitutions are licensed by the derivation engine,
+// not supplied as invented constructor calls in source text.
 vyutpattiTinganta
-    : vyutpattiAnga
-      PLUS lakara
-      PLUS tingPratyaya
+    : tingantaPada
       EOF
-    ;
-
-vyutpattiAnga
-    : vyutpattiAvayava
-      (PLUS vyutpattiAvayava)*
-    ;
-
-vyutpattiAvayava
-    : upasarga
-    | dhatuPrakriti
-    | agama
-    | vikarana
-    | abhyasa
-    | adesham
-    ;
-
-abhyasa
-    : ABHYASA LPAREN IDENTIFIER RPAREN
-    ;
-
-adesham
-    : ADESHA LPAREN IDENTIFIER RPAREN
     ;
 
 // ============================================================================
@@ -639,7 +668,6 @@ vikarana
     | SHNAM
     | SHNA
     | U_VIKARANA
-    | SHNAAM
     | YAK
     | SHAH
     | SYA

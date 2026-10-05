@@ -12,6 +12,23 @@ import kotlin.test.assertTrue
 
 class ModuleCompilerTest {
     @Test
+    fun `module procedure domains follow preceding adhikara in each source unit`() {
+        val source = """
+            पूर्व + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            गणित + सुँ इति अधिकार + सुँ ।
+            मध्य + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            भाषा + सुँ इति अधिकार + सुँ ।
+            उत्तर + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            गणित + ङस् प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+        """.trimIndent()
+        val analyzed = PaniniModuleAnalyzer.analyze(PaniniModuleDescriptor("scopes",
+            listOf(PaniniModuleSource("first.pvm", source, false),
+                PaniniModuleSource("second.pvm", "स्वतन्त्र + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।", false))))
+        assertEquals(mapOf("पूर्व" to null, "मध्य" to "गणित", "उत्तर" to "भाषा",
+            "प्रयत्न" to "गणित", "स्वतन्त्र" to null), analyzed.procedures.associate { it.localSymbol to it.domain })
+    }
+
+    @Test
     fun `compiled multifile modules match interpreted project results`() {
         listOf(
         "projects/list_operations/samavaya_mukhya.pvm",
@@ -82,7 +99,7 @@ class ModuleCompilerTest {
     @Test
     fun `internal symbols stay private and duplicate declarations fail analysis`() {
         val internalSource = """
-            रहस्य + ल्युट् + सुँ इति अन्तरङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            रहस्य + सुँ इति अन्तरङ्ग + टाप् + सुँ प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ॥
         """.trimIndent()
         val internalArtifact = BytecodeCompiler.compileModule(
@@ -92,7 +109,7 @@ class ModuleCompilerTest {
         assertTrue(internalArtifact.metadata.procedures.isEmpty())
 
         val declaration = """
-            योग + ल्युट् + सुँ ।
+            योग + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ॥
         """.trimIndent()
         val error = assertFailsWith<IllegalStateException> {

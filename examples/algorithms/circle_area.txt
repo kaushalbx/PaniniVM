@@ -1,10 +1,10 @@
 # Circle Area Approximation Algorithm: A = pi * r^2 for radius r = 3, pi ~ 3 -> A = 27
 
 # Step 1: Compute r^2 = 3 * 3 = 9
-त्रीनि त्रीनि च गणय ।
+त्रीणि त्रीणि च गणय ।
 
 # Step 2: Multiply the latest multiplication result by 3 -> 27
-गणनस्य फलं त्रीनि च गणय ।
+गणनस्य फलं त्रीणि च गणय ।
 
 # Print circle area result (renders 27 = सप्तविंशतिः)
 गणनस्य फलं मुद्रय ।

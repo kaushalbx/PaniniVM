@@ -1,11 +1,11 @@
 # List & Collection Operations Demo in PaniniVM Script (.pvm)
 # Gathers items into a collection and extracts values
 
-# Step 1: Gather 'राम' and 'फल' into one ordered collection (सङ्गृह्य)
-रामं फलं च सङ्गृहाण ।
+# Step 1: Gather Rama and Sita into an ordered collection and store it.
+रामं सीतां च सङ्गृहाण ततः फलं सूच्यां स्थापय ।
 
-# Step 2: Fetch element 'राम' from collection (नय)
-रामं नी ।
+# Step 2: Extract the final member of the list; the stored list stays intact.
+सूच्याः अन्तिमम् उद्धर ।
 
 # Step 3: Print result of collection operation
-मुद्रय फलम् ।
+फलं मुद्रय ।

@@ -192,6 +192,8 @@ internal sealed interface CompilerInstruction {
     data object IsEven : CompilerInstruction
 
     /** Produces a random number in the inclusive range, optionally consuming a collection to exclude. */
+    data class RandomActiveRange(val excludeCollection: Boolean = false) : CompilerInstruction
+
     data class RandomRange(
         val minimum: Long,
         val maximum: Long,
@@ -524,6 +526,14 @@ internal object CompilerIrLowering {
 
     /** Lowers a numeric comparison into operand loads followed by a boolean comparison. */
     fun lowerCondition(plan: ExecutionPlan): List<CompilerInstruction> {
+        if (plan.resolved.operation.name == "न्यूनता") {
+            val operator = copularOrderOperator(plan)
+            val subject = plan.resolved.context.bindings[Karaka.KARTR]?.let(::lowerOperands)
+            val standard = plan.resolved.context.bindings[Karaka.APADANA]?.let(::lowerOperands)
+            if (operator != null && subject?.size == 1 && standard?.size == 1) {
+                return subject.single() + standard.single() + CompilerInstruction.Compare(operator)
+            }
+        }
         if (plan.resolved.operation.name != "सङ्ख्यातुलना") {
             return lowerGenericCondition(plan)
         }
@@ -542,6 +552,13 @@ internal object CompilerIrLowering {
             add(CompilerInstruction.Compare(operator))
         }
     }
+
+    private fun copularOrderOperator(plan: ExecutionPlan): ComparisonOperator? =
+        when (dev.panini.execution.CopularPredicate.from(plan.resolved.context.bindings[Karaka.KARMAN])) {
+            dev.panini.execution.CopularPredicate.LESS_THAN -> ComparisonOperator.LESS_THAN
+            dev.panini.execution.CopularPredicate.GREATER_THAN -> ComparisonOperator.GREATER_THAN
+            else -> null
+        }
 
     private fun lowerGenericCondition(plan: ExecutionPlan): List<CompilerInstruction> =
         lowerPrimitiveLeafValues(plan)?.let { primitive ->
@@ -586,6 +603,13 @@ internal object CompilerIrLowering {
             ?.let(::lowerOperands)
             .orEmpty()
         val valueInstructions = when {
+            operation == "न्यूनता" -> {
+                val operator = copularOrderOperator(plan) ?: return null
+                val subject = plan.resolved.context.bindings[Karaka.KARTR]?.let(::lowerOperands)
+                val standard = plan.resolved.context.bindings[Karaka.APADANA]?.let(::lowerOperands)
+                if (subject?.size != 1 || standard?.size != 1) return null
+                subject.single() + standard.single() + CompilerInstruction.Compare(operator)
+            }
             operation == "सूचीसङ्ग्रहः" &&
                 naturalOperation is NaturalOperation.CollectionFormation &&
                 operands.isNotEmpty() -> buildList {
@@ -700,7 +724,9 @@ internal object CompilerIrLowering {
                 list + item + CompilerInstruction.Collection(CollectionOperator.APPEND)
             }
             collection == CollectionOperator.POP -> {
-                val list = plan.resolved.context.bindings[Karaka.KARMAN]
+                val frame = naturalOperation as? NaturalOperation.CollectionExtraction
+                if (frame != null && plan.resolved.context.resolve(frame.member) != listOf("अन्तिम")) return null
+                val list = (frame?.collection ?: plan.resolved.context.bindings[Karaka.KARMAN])
                     ?.let(::lowerSingleCollectionValue)
                     ?: return null
                 list + CompilerInstruction.Collection(CollectionOperator.POP)
@@ -1011,6 +1037,11 @@ internal object CompilerIrVerifier {
                 } else {
                     before + ValueKind.NUMBER
                 }
+            }
+            is CompilerInstruction.RandomActiveRange -> {
+                val afterExclusion = if (instruction.excludeCollection) pop(ValueKind.LIST).first else before
+                require(afterExclusion.isNotEmpty()) { "IR active range operand missing at instruction $index" }
+                afterExclusion.dropLast(1) + ValueKind.NUMBER
             }
             is CompilerInstruction.Collection -> {
                 val arity = when (instruction.operator) {

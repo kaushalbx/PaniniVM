@@ -215,6 +215,10 @@ class PaniniVM(
     internal fun runtimeValue(sessionKey: String, name: String): SanskritValue? =
         sessionRuntime.value(sessionKey, name)
 
+    internal fun retainStructuredResult(sessionKey: String, value: SanskritValue, speaker: String,
+        listener: String, persistSession: Boolean) =
+        sessionRuntime.retainStructuredResult(sessionKey, value, speaker, listener, persistSession)
+
     fun saveSession(sessionKey: String) = sessionRuntime.save(sessionKey)
 
     fun listSessions(): List<String> = sessionRuntime.listKeys()

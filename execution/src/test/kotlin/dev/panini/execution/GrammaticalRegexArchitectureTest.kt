@@ -82,7 +82,9 @@ class GrammaticalRegexArchitectureTest {
         assertFalse("name == \"फल\"" in frontend)
         assertTrue("argument.referenceName" in frontend)
         assertTrue(".isPriorResult" in frontend)
-        assertTrue("PvmDiscourseContext.from" in frontend)
+        assertFalse("PvmDiscourseContext.from" in frontend, "Later ranges must not be hoisted into earlier statements.")
+        assertTrue("CompilerInstruction.RandomActiveRange" in frontend)
+        assertTrue("CompilerInstruction.Constant(statement.range)" in frontend)
         assertFalse("filterIsInstance<PvmScriptStatement.RangeDefinition>()" in frontend)
 
         val irLowering = File(
@@ -226,7 +228,8 @@ class GrammaticalRegexArchitectureTest {
             repository,
             "execution/src/main/kotlin/dev/panini/execution/PvmScriptExecutor.kt",
         ).readText()
-        assertTrue("PvmDiscourseContext.from" in scriptExecutor)
+        assertFalse("PvmDiscourseContext.from" in scriptExecutor)
+        assertTrue("context.scope.environment.with(ACTIVE_RANGE_NAME, item.range)" in scriptExecutor)
         assertFalse("filterIsInstance<PvmScriptStatement.RangeDefinition>()" in scriptExecutor)
 
         val directAssignment = File(
@@ -433,7 +436,8 @@ class GrammaticalRegexArchitectureTest {
         assertTrue("MulaPratipadikaIdentity.SATYA" in leafPlanner)
         assertTrue("MulaPratipadikaIdentity.ASATYA" in leafPlanner)
         assertFalse("it.sup.text in setOf" in leafPlanner)
-        assertTrue("it.vibhakti() == Vibhakti.DVITIYA" in leafPlanner)
+        assertTrue("pada.vibhakti() == Vibhakti.DVITIYA" in leafPlanner)
+        assertTrue("isCopularOrderParticipant(parsedUkti, pada)" in leafPlanner)
         assertTrue("it.vibhakti() == Vibhakti.TRTIYA" in leafPlanner)
     }
 }

@@ -18,6 +18,7 @@ data class TingantaDerivationRequest(
     val letEOption: LetEOption = LetEOption.E,
     val pada: PadaType? = null,
     val sanadiPratyayas: List<String> = emptyList(),
+    val gana: dev.panini.core.DhatuGana? = null,
 ) {
     fun initialState(): DerivationState = initialState(
         DerivationTerm("dhatu", dhatu, TermKind.DHATU),

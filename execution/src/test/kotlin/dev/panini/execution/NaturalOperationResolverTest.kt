@@ -20,6 +20,44 @@ import kotlin.test.assertTrue
 
 class NaturalOperationResolverTest {
     @Test
+    fun `locative ordinal selects the second member as a one based position`() {
+        val results = PaniniVM().evalScript(
+            """
+            एक + अम् द्वि + अम् त्रि + अम् च सम् + ग्रहँ + श्ना + लोट् + सिप्
+                ततः फल + अम् सूची + ङि स्था + णिच् + लोट् + सिप् ।
+            सूची + ङसिँ द्वि + तीय + ङि मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।
+            """.trimIndent(),
+        )
+        assertTrue(results.none { it is ExecutionResult.Failure || it is ExecutionResult.NeedsInput }, results.toString())
+        assertEquals(2L, assertIs<SanskritValue.Sankhya>(assertIs<ExecutionResult.Success>(results.last()).typedValue).value)
+    }
+
+    @Test
+    fun `unsupported extraction member fails rather than silently returning the last value`() {
+        val results = PaniniVM().evalScript(
+            """
+            एक + अम् द्वि + अम् च सम् + ग्रहँ + श्ना + लोट् + सिप्
+                ततः फल + अम् सूची + ङि स्था + णिच् + लोट् + सिप् ।
+            सूची + ङस् प्रथम + अम् उद् + हृ + लोट् + सिप् ।
+            """.trimIndent(),
+        )
+        assertIs<ExecutionResult.Failure>(results.last())
+    }
+
+    @Test
+    fun `genitive collection supplies the final extracted member`() {
+        val results = PaniniVM().evalScript(
+            """
+            एक + अम् द्वि + अम् च सम् + ग्रहँ + श्ना + लोट् + सिप्
+                ततः फल + अम् सूची + ङि स्था + णिच् + लोट् + सिप् ।
+            सूची + ङस् अन्तिम + अम् उद् + हृ + लोट् + सिप् ।
+            """.trimIndent(),
+        )
+        assertTrue(results.none { it is ExecutionResult.Failure || it is ExecutionResult.NeedsInput }, results.toString())
+        assertEquals(2L, assertIs<SanskritValue.Sankhya>(assertIs<ExecutionResult.Success>(results.last()).typedValue).value)
+    }
+
+    @Test
     fun `natural placement remains visible inside repeated arithmetic`() {
         val source = """
             एक + अम् गुणक + ङि स्था + णिच् + लोट् + सिप् ।

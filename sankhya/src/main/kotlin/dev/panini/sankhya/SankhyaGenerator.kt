@@ -25,17 +25,41 @@ class SankhyaGenerator(
 
     fun cardinalVariants(value: Long): List<DerivationResult> = cardinalDeriver.deriveVariants(value)
 
+    /** Gender of the grammatical head of the canonical cardinal expression. */
+    fun intrinsicLinga(value: Long): Linga? =
+        intrinsicLinga(expressionBuilder.build(value))
+
+    fun intrinsicLinga(expression: SankhyaExpression): Linga? =
+        expression.headPrimitive().inflectionClass.intrinsicLinga
+
     /** Returns the cardinal surface requested by one sup case-and-number slot. */
     fun decline(
         value: Long,
         vibhakti: Vibhakti,
         vacana: Vacana,
         linga: Linga = Linga.NAPUMSAKA,
+    ): String = decline(expressionBuilder.build(value), vibhakti, vacana, linga)
+
+    /** Declines the supplied construction without replacing it by a same-value numeral. */
+    fun decline(
+        expression: SankhyaExpression,
+        vibhakti: Vibhakti,
+        vacana: Vacana,
+        linga: Linga = Linga.NAPUMSAKA,
     ): String {
-        val pratipadika = PrimitiveSankhya.fromValue(value)?.pratipadika
-            ?: cardinal(value).final.surface
+        val value = expression.value
+        val effectiveLinga = expression.headPrimitive().inflectionClass.intrinsicLinga ?: linga
+        val base = (expression as? SankhyaExpression.Primitive)?.sankhya?.pratipadika
+            ?: derivationEngine.derive(derivationFactory.create(expression)).final.surface
+        val pratipadika = if (value == 1L && effectiveLinga == Linga.STRI) {
+            dev.panini.derivation.StriPratyayaEngine().derive(
+                dev.panini.derivation.StriPratyayaRequest(base, dev.panini.shiksha.Samjna.TAP),
+            ).final.surface
+        } else base
         return SubantaEngine().derive(
-            SubantaDerivationRequest(pratipadika, vibhakti, vacana, linga),
+            SubantaDerivationRequest(pratipadika, vibhakti, vacana, effectiveLinga,
+                if (value == 1L && effectiveLinga == Linga.STRI) dev.panini.derivation.NominalStemFormation.AP
+                else dev.panini.derivation.NominalStemFormation.UNSPECIFIED),
         ).final.surface
     }
 

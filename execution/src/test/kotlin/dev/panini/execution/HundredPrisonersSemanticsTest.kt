@@ -6,6 +6,21 @@ import kotlin.test.assertTrue
 
 class HundredPrisonersSemanticsTest {
     @Test
+    fun `active range keeps indexed grah distinct from console input`() {
+        val results = PaniniVM().evalScript(
+            """
+            एक + ङसिँ शत + शस् परि + अन्त + अम् इति सीमा + सुँ ।
+            द्वि + अम् एक + अम् च सम् + ग्रहँ + श्ना + लोट् + सिप्
+                ततः फल + अम् पेटिकाक्रम + ङि स्था + णिच् + लोट् + सिप् ।
+            एक + अम् पेटिकाक्रमाङ्क + ङि स्था + णिच् + लोट् + सिप् ।
+            पेटिकाक्रम + ङसिँ पेटिकाक्रमाङ्क + ङि मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।
+            """.trimIndent(),
+        )
+
+        assertTrue(results.none { it is ExecutionResult.Failure || it is ExecutionResult.NeedsInput }, results.toString())
+    }
+
+    @Test
     fun `box inspection retrieves by grammatical source and location roles`() {
         val results = PaniniVM().evalScript(
             """

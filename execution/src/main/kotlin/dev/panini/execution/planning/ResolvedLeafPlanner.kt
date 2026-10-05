@@ -14,6 +14,9 @@ import dev.panini.execution.SanskritValue
 import dev.panini.execution.ValueEnvironment
 import dev.panini.execution.bindingName
 import dev.panini.execution.binding.VyakaranamExecutionAdapter
+import dev.panini.execution.binding.canonicalDhatuIdentity
+import dev.panini.execution.binding.CanonicalDhatuIdentity
+import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.execution.sutra.ExecutableUktiSutraCompiler
 import dev.panini.execution.sutra.ProgramBlueprintContext
 import dev.panini.execution.sutra.ProgramBlueprintGranthaPlanner
@@ -204,7 +207,9 @@ object ResolvedLeafPlanner {
             }
         }.toSet()
         val symbolicOperands = parsedSubantas.asSequence()
-            .filter { it.vibhakti() == Vibhakti.DVITIYA }
+            .filter { pada ->
+                isCopularOrderParticipant(parsedUkti, pada) || pada.vibhakti() == Vibhakti.DVITIYA
+            }
             .flatMap { pada ->
                 sequenceOf(
                     pada.pratipadika.sourceText.trim(),
@@ -299,6 +304,18 @@ object ResolvedLeafPlanner {
             }
             ?: return null
     }
+
+    private fun isCopularOrderParticipant(ukti: Ukti, pada: SubantaPada): Boolean =
+        pada.vibhakti() in setOf(Vibhakti.PRATHAMA, Vibhakti.PANCHAMI) &&
+            (pada.pratipadika as? MulaPratipadika)?.lexicalIdentity !in setOf(MulaPratipadikaIdentity.NYUNA, MulaPratipadikaIdentity.ADHIKA) &&
+            ukti.grammaticalVakyas().any { vakya ->
+                pada in vakya.padas &&
+                    vakya.padas.filterIsInstance<TingantaPada>().any { it.canonicalDhatuIdentity() == CanonicalDhatuIdentity.AS } &&
+                    vakya.padas.filterIsInstance<SubantaPada>().any {
+                        it.vibhakti() == Vibhakti.PRATHAMA &&
+                            (it.pratipadika as? MulaPratipadika)?.lexicalIdentity in setOf(MulaPratipadikaIdentity.NYUNA, MulaPratipadikaIdentity.ADHIKA)
+                    }
+            }
 
     private fun isSupported(
         plan: ExecutionPlan,

@@ -42,13 +42,13 @@ class ExplicitPrakriyaSignatureTest {
     fun `named call arguments bind by parameter name instead of source order`() {
         val results = vm.evalScript(
             """
-            व्यवकलन + ल्युट् + सुँ ।
+            व्यवकलन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             वाम + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
             दक्षिण + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
             सङ्ख्या + सुँ इति परिणाम + सुँ ।
             वाम + अम् दक्षिण + अम् च वि + युज् + णिच् + लोट् + सिप् ॥
 
-            दक्षिण + ङि द्वि + अम् वाम + ङि पञ्च + अम् व्यवकलन + ल्युट् + टा कृ + लोट् + सिप् ।
+            दक्षिण + ङि द्वि + अम् वाम + ङि पञ्च + अम् व्यवकलन + टा कृ + लोट् + सिप् ।
             """.trimIndent(),
         )
 
@@ -60,13 +60,13 @@ class ExplicitPrakriyaSignatureTest {
     fun `resolved named arguments retain parameter roles and source morphology`() {
         val parsed = PvmScript.parse(
             """
-            व्यवकलन + ल्युट् + सुँ ।
+            व्यवकलन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             वाम + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
             दक्षिण + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
             सङ्ख्या + सुँ इति परिणाम + सुँ ।
             वाम + अम् दक्षिण + अम् च वि + युज् + णिच् + लोट् + सिप् ॥
 
-            दक्षिण + ङि द्वि + अम् वाम + ङि पञ्च + अम् व्यवकलन + ल्युट् + टा कृ + लोट् + सिप् ।
+            दक्षिण + ङि द्वि + अम् वाम + ङि पञ्च + अम् व्यवकलन + टा कृ + लोट् + सिप् ।
             """.trimIndent(),
         )
         val definition = assertIs<PvmScriptStatement.PrakriyaDefinition>(parsed[0])
@@ -98,17 +98,17 @@ class ExplicitPrakriyaSignatureTest {
     @Test
     fun `named call rejects unknown and duplicate parameter names`() {
         val definition = """
-            योजन + ल्युट् + सुँ ।
+            योजन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             वाम + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
             दक्षिण + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
             सङ्ख्या + सुँ इति परिणाम + सुँ ।
             वाम + अम् दक्षिण + अम् च युज् + णिच् + लोट् + सिप् ॥
         """.trimIndent()
         val unknown = vm.evalScript(
-            definition + "\nअज्ञात + ङस् द्वि + अम् दक्षिण + ङस् त्रि + अम् योजन + ल्युट् + टा कृ + लोट् + सिप् ।",
+            definition + "\nअज्ञात + ङस् द्वि + अम् दक्षिण + ङस् त्रि + अम् योजन + टा कृ + लोट् + सिप् ।",
         )
         val duplicate = vm.evalScript(
-            definition + "\nवाम + ङस् द्वि + अम् वाम + ङस् त्रि + अम् योजन + ल्युट् + टा कृ + लोट् + सिप् ।",
+            definition + "\nवाम + ङस् द्वि + अम् वाम + ङस् त्रि + अम् योजन + टा कृ + लोट् + सिप् ।",
         )
 
         assertTrue(assertIs<ExecutionResult.Failure>(unknown.last()).message.contains("अज्ञातमानानि"))
@@ -118,13 +118,13 @@ class ExplicitPrakriyaSignatureTest {
     @Test
     fun `named typed parameters are bound and declaration sentences are not executed`() {
         val script = """
-            योजन + ल्युट् + सुँ ।
+            योजन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             वाम + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
             दक्षिण + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
             सङ्ख्या + सुँ इति परिणाम + सुँ ।
             वाम + अम् दक्षिण + अम् च युज् + णिच् + लोट् + सिप् ॥
 
-            द्वि + अम् त्रि + अम् च योजन + ल्युट् + टा कृ + लोट् + सिप् ।
+            द्वि + अम् त्रि + अम् च योजन + टा कृ + लोट् + सिप् ।
         """.trimIndent()
 
         val results = vm.evalScript(script)
@@ -138,13 +138,13 @@ class ExplicitPrakriyaSignatureTest {
     fun `explicit signature rejects the wrong arity`() {
         val results = vm.evalScript(
             """
-            योजन + ल्युट् + सुँ ।
+            योजन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             वाम + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
             दक्षिण + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
             सङ्ख्या + सुँ इति परिणाम + सुँ ।
             वाम + अम् दक्षिण + अम् च युज् + णिच् + लोट् + सिप् ॥
 
-            द्वि + अम् योजन + ल्युट् + टा कृ + लोट् + सिप् ।
+            द्वि + अम् योजन + टा कृ + लोट् + सिप् ।
             """.trimIndent(),
         )
 
@@ -156,7 +156,7 @@ class ExplicitPrakriyaSignatureTest {
     fun `explicit signature rejects an incompatible argument type`() {
         val results = vm.evalScript(
             """
-            गण + ल्युट् + सुँ ।
+            गण + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
             सङ्ख्या + सुँ इति परिणाम + सुँ ।
             मान + अम् द्वि + अम् च गुण् + णिच् + लोट् + सिप् ॥
@@ -174,7 +174,7 @@ class ExplicitPrakriyaSignatureTest {
     fun `signature compiler preserves individual names types and result`() {
         val statements = PvmScript.parse(
             """
-            योजन + ल्युट् + सुँ ।
+            योजन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             वाम + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
             दक्षिण + सुँ शब्द + सुँ इति मान + सुँ ।
             सूची + सुँ इति परिणाम + सुँ ।
@@ -198,7 +198,7 @@ class ExplicitPrakriyaSignatureTest {
     fun `derived parameter names retain their complete morphological identity`() {
         val statements = PvmScript.parse(
             """
-            वह् + ल्युट् + सुँ ।
+            वह् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             युज् + ल्युट् + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
             सङ्ख्या + सुँ इति परिणाम + सुँ ।
             युज् + ल्युट् + अम् मुद्र् + णिच् + लोट् + सिप् ॥

@@ -32,21 +32,23 @@ object ListSliceAction : DhatuAction("सूचीविभागः", "सू�
             )
 
         val list = context.resolveValues(listExpr)
-        val listItems = if (list.size == 1 && list.first() is SanskritValue.Suchi) {
-            (list.first() as SanskritValue.Suchi).items
-        } else {
-            list
+        val listItems = when (val whole = list.singleOrNull()) {
+            is SanskritValue.Suchi -> whole.items
+            is SanskritValue.Gana -> whole.elements
+            else -> if (naturalFrame == null) list else return ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE, "Collection slicing requires one genitive collection.",
+            )
         }
 
-        val startLong = context.resolveValues(startExpr).filterIsInstance<SanskritValue.Sankhya>().firstOrNull()?.value
+        val startLong = (context.resolveValues(startExpr).singleOrNull() as? SanskritValue.Sankhya)?.value
             ?: return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
-                "Start index must be a valid saṅkhyā value."
+                "Start index must resolve to exactly one saṅkhyā value."
             )
-        val endLong = context.resolveValues(endExpr).filterIsInstance<SanskritValue.Sankhya>().firstOrNull()?.value
+        val endLong = (context.resolveValues(endExpr).singleOrNull() as? SanskritValue.Sankhya)?.value
             ?: return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
-                "End index must be a valid saṅkhyā value."
+                "End index must resolve to exactly one saṅkhyā value."
             )
         if (startLong !in Int.MIN_VALUE.toLong()..Int.MAX_VALUE.toLong() ||
             endLong !in Int.MIN_VALUE.toLong()..Int.MAX_VALUE.toLong()
@@ -59,7 +61,7 @@ object ListSliceAction : DhatuAction("सूचीविभागः", "सू�
         val startVal = startLong.toInt()
         val endVal = endLong.toInt()
 
-        val start = (startVal - 1).coerceAtLeast(0)
+        val start = (startLong - 1L).coerceAtLeast(0L).toInt()
         val end = endVal.coerceAtMost(listItems.size)
 
         if (start > end || start >= listItems.size) {

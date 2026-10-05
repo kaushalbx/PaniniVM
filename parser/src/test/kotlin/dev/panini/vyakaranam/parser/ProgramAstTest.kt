@@ -32,6 +32,69 @@ class ProgramAstTest {
     private val parser = PaniniParser()
 
     @Test
+    fun `kryadi affix uses shna and rejects the unsupported alias`() {
+        val verb = assertIs<AkhyataVakya>(assertIs<Invocation>(parser.parse(
+            "ग्रहँ + श्ना + लोट् + सिप् ।",
+        ).body).vakya).tinganta
+        assertEquals(dev.panini.vyakaranam.ast.Vikarana.SHNA, verb.vikarana)
+        assertFailsWith<PaniniParseException> {
+            parser.parse("ग्रहँ + श्नाम् + लोट् + सिप् ।")
+        }
+    }
+
+    @Test
+    fun `block terminator has a distinct token without changing utterance acceptance`() {
+        val lexer = dev.panini.parser.VyakaranamLexer(
+            org.antlr.v4.kotlinruntime.CharStreams.fromString("। ॥ ."),
+        )
+        assertEquals(dev.panini.parser.VyakaranamLexer.Tokens.DANDA, lexer.nextToken().type)
+        assertEquals(dev.panini.parser.VyakaranamLexer.Tokens.DOUBLE_DANDA, lexer.nextToken().type)
+        assertEquals(dev.panini.parser.VyakaranamLexer.Tokens.DANDA, lexer.nextToken().type)
+        for (terminator in listOf("।", "॥", ".", "")) {
+            assertIs<Invocation>(parser.parse("एक + अम् मुद्र् + णिच् + लोट् + सिप् $terminator").body)
+        }
+        assertFailsWith<PaniniParseException> {
+            parser.parse("एक + अम् मुद्र् + णिच् + लोट् + सिप् ॥ द्वि + औट् मुद्र् + णिच् + लोट् + सिप् ।")
+        }
+    }
+
+    @Test
+    fun `clause rules can build adjacent native AST nodes without consuming document EOF`() {
+        val tokens = org.antlr.v4.kotlinruntime.CommonTokenStream(
+            dev.panini.parser.VyakaranamLexer(org.antlr.v4.kotlinruntime.CharStreams.fromString(
+                "एक + अम् मुद्र् + णिच् + लोट् + सिप् । " +
+                    "द्वि + औट् मुद्र् + णिच् + लोट् + सिप् ।",
+            )),
+        )
+        val grammar = dev.panini.parser.VyakaranamParser(tokens)
+        val builder = VyakaranamAstBuilder()
+        val first = builder.build(grammar.utterance())
+        assertIs<Invocation>(first.body)
+        assertEquals(dev.panini.parser.VyakaranamLexer.Tokens.DANDA, tokens.LA(1))
+        tokens.consume()
+        val second = builder.build(grammar.utterance())
+        assertIs<Invocation>(second.body)
+        assertEquals(dev.panini.parser.VyakaranamLexer.Tokens.DANDA, tokens.LA(1))
+        tokens.consume()
+        assertEquals(org.antlr.v4.kotlinruntime.Token.EOF, tokens.LA(1))
+        assertEquals(false, first.sourceText.contains("<EOF>"))
+        assertEquals(false, second.sourceText.contains("<EOF>"))
+    }
+
+    @Test
+    fun `every grammar vikarana retains typed upadesha identity`() {
+        for (affix in dev.panini.vyakaranam.ast.Vikarana.entries) {
+            val invocation = assertIs<Invocation>(
+                parser.parse("भू + ${affix.upadesha} + लट् + तिप् ।").body,
+            )
+            assertEquals(affix, assertIs<AkhyataVakya>(invocation.vakya).tinganta.vikarana)
+        }
+        assertFailsWith<IllegalStateException> {
+            dev.panini.vyakaranam.ast.Vikarana.fromUpadesha("ना")
+        }
+    }
+
+    @Test
     fun `segmented paryanta construction becomes a typed inclusive range`() {
         val invocation = assertIs<Invocation>(
             parser.parse(
@@ -45,7 +108,7 @@ class ProgramAstTest {
         assertEquals(listOf("दशन्"), range.upperLimit.stems)
         assertEquals("शस्", range.upperLimit.sup.text)
         assertEquals("पर्यन्त", assertIs<MulaPratipadika>(range.marker.pratipadika).text)
-        assertEquals("श्नु", assertIs<AkhyataVakya>(invocation.vakya).tinganta.vikarana)
+        assertEquals(dev.panini.vyakaranam.ast.Vikarana.SHNU, assertIs<AkhyataVakya>(invocation.vakya).tinganta.vikarana)
     }
 
     @Test

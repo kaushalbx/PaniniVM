@@ -35,7 +35,7 @@ class PrakriyaAstArgumentBinderTest {
     fun `ordinal placeholders bind in stored AST without reparsing`() {
         val definition = PvmScript.parse(
             """
-            गणित + ङस् वृध् + ल्युट् + सुँ ।
+            गणित + ङस् वृध् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             प्रथ् + अमच् + अम् द्वि + तीय + अम् च युज् + लोट् + सिप् ॥
             """.trimIndent(),
         ).single() as PvmScriptStatement.PrakriyaDefinition
@@ -203,7 +203,7 @@ class PrakriyaAstArgumentBinderTest {
     fun `nishedha guard binds ordinal parameters in its stored AST`() {
         val definition = PvmScript.parse(
             """
-            विभाज् + ल्युट् + सुँ ।
+            विभाज् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             न द्वितीय + अम् शून्य + अम् ।
             प्रथम + अम् द्वितीय + अम् च भाज् + णिच् + लोट् + सिप् ॥
             """.trimIndent(),
@@ -233,7 +233,7 @@ class PrakriyaAstArgumentBinderTest {
 
         val comparisonGuard = (PvmScript.parse(
             """
-            तुल् + ल्युट् + सुँ ।
+            तुल् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             न प्रथम + अम् द्वितीय + अम् ।
             प्रथम + अम् द्वितीय + अम् च युज् + लोट् + सिप् ॥
             """.trimIndent(),

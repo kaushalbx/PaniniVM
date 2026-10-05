@@ -33,29 +33,34 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         prakriyaRegistry: PrakriyaRegistry? = null,
         onResult: ((ExecutionResult) -> Unit)? = null,
         persistSession: Boolean = sessionKey != null,
+        parsedStatements: List<PvmScriptStatement>? = null,
     ): List<ExecutionResult> {
         val results = mutableListOf<ExecutionResult>()
         val effectiveSessionKey = sessionKey ?: "script-${System.identityHashCode(scriptContent)}"
-        val parsed = PvmScript.parse(scriptContent)
+        val parsed = parsedStatements ?: PvmScript.parse(scriptContent)
         if (sourceFile != null) vm.executionMetrics.recordParsedFile()
         vm.executionMetrics.recordParsedSentences(parsed.sentenceCount())
 
         val registry = prakriyaRegistry ?: PrakriyaRegistry()
         projectLoader.registerDeclarations(registry, parsed, sourceFile)
 
-        val discourse = PvmDiscourseContext.from(parsed)
         val effectiveScope = scope.copy(
             prakriyaRegistry = registry,
-            environment = scope.environment.mergedWith(discourse.valueEnvironment()),
         )
         val structStore = mutableMapOf<String, TaddhitaStruct>()
         val structSchemas = mutableMapOf<String, TaddhitaStructSchema>()
-        val context = ExecutionContext(
+        var context = ExecutionContext(
             effectiveSessionKey, effectiveScope, speaker, listener, registry, sourceFile,
             structStore, structSchemas, onResult, persistSession,
         )
 
-        parsed.filterIsInstance<PvmScriptStatement.Sentence>().forEach { statement ->
+        parsed.forEach { item ->
+            if (item is PvmScriptStatement.RangeDefinition) {
+                context = context.copy(scope = context.scope.copy(environment =
+                    context.scope.environment.with(ACTIVE_RANGE_NAME, item.range)))
+                return@forEach
+            }
+            val statement = item as? PvmScriptStatement.Sentence ?: return@forEach
             val program = statement.program
             when (val semantics = statement.semantics) {
                 is PvmSentenceSemantics.SchemaDeclaration -> {
@@ -78,6 +83,9 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
                     context,
                 ).also(results::addAll)
                 is PvmSentenceSemantics.AttributeAccess -> structuredValueExecutor.resolve(semantics.access, structStore).let {
+                    if (it is ExecutionResult.Success) it.typedValue?.let { value ->
+                        vm.retainStructuredResult(effectiveSessionKey, value, speaker, listener, persistSession)
+                    }
                     results += it
                     context.publish(it)
                 }

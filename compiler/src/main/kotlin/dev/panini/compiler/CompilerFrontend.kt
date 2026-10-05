@@ -71,8 +71,9 @@ internal object CompilerFrontend {
         return lowerModule(descriptor, className)
     }
 
-    internal fun lowerModule(descriptor: PaniniModuleDescriptor, className: String): CompilerProgram {
-        val analyzed = PaniniModuleAnalyzer.analyze(descriptor)
+    internal fun lowerModule(descriptor: PaniniModuleDescriptor, className: String,
+        parseSource: (String) -> List<PvmScriptStatement> = PvmScript::parse): CompilerProgram {
+        val analyzed = PaniniModuleAnalyzer.analyze(descriptor, parseSource)
         val registry = PrakriyaRegistry()
         analyzed.inheritance.forEach { (child, parent) ->
             registry.registerInheritance(dev.panini.execution.InheritanceRelation(child, parent))
@@ -128,11 +129,15 @@ internal object CompilerFrontend {
                 put(procedure.localSymbol, ProcedureTarget.Local(procedure.methodName))
             }
         }
-        val discourse = dev.panini.execution.PvmDiscourseContext.from(analyzed.statements.values.flatten())
-        val lowering = Lowering(registry, methodsByStem, discourse)
+        val lowering = Lowering(registry, methodsByStem)
         val entryPoint = analyzed.statements.filterKeys(PaniniModuleSource::isEntryPoint).values.flatMap { statements ->
-            statements.filterIsInstance<PvmScriptStatement.Sentence>().flatMap { sentence ->
-                lowering.lowerTopLevel(sentence)
+            statements.flatMap { statement ->
+                when (statement) {
+                    is PvmScriptStatement.RangeDefinition -> listOf(CompilerInstruction.Constant(statement.range),
+                        CompilerInstruction.Store(dev.panini.execution.ACTIVE_RANGE_NAME))
+                    is PvmScriptStatement.Sentence -> lowering.lowerTopLevel(statement)
+                    else -> emptyList()
+                }
             }
         }
         val procedures = analyzed.procedures.map { procedure ->
@@ -173,7 +178,6 @@ internal object CompilerFrontend {
     private class Lowering(
         private val registry: PrakriyaRegistry,
         private val methodsByStem: Map<String, ProcedureTarget>,
-        private val discourse: dev.panini.execution.PvmDiscourseContext,
     ) {
         private var nextLabel = 0
         private val assertedStructFields =
@@ -310,15 +314,12 @@ internal object CompilerFrontend {
                     else -> emptyList()
                 }
             }
-            val bounds = if (astBounds.size >= 2) {
-                astBounds[0] to astBounds[1]
-            } else {
-                discourse.activeRange?.let { it.minimum.value to it.maximum.value } ?: return null
-            }
             val exclusionName = semantic.exclusionName
             return buildList {
+                if (astBounds.size < 2) add(CompilerInstruction.Load(dev.panini.execution.ACTIVE_RANGE_NAME))
                 exclusionName?.let { add(CompilerInstruction.Load(it)) }
-                add(CompilerInstruction.RandomRange(bounds.first, bounds.second, exclusionName != null))
+                if (astBounds.size >= 2) add(CompilerInstruction.RandomRange(astBounds[0], astBounds[1], exclusionName != null))
+                else add(CompilerInstruction.RandomActiveRange(exclusionName != null))
                 add(CompilerInstruction.Store("LastResult"))
             }
         }

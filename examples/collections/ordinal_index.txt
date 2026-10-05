@@ -1,0 +1,6 @@
+# Ordinal positions are one-based: take the second member of a collection.
+# The collection is the ablative source; the ordinal is its locative position.
+
+एकं द्वे त्रीणि च सङ्गृहाण ततः फलं सूच्यां स्थापय ।
+
+सूच्याः द्वितीये मूल्यं गृहाण ततः फलं मुद्रय ।

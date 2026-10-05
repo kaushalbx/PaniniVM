@@ -27,17 +27,19 @@ object ListIndexAction : DhatuAction("सूचीस्थानम्", "स�
             )
 
         val list = context.resolveValues(listExpr)
-        val listItems = if (list.size == 1 && list.first() is SanskritValue.Suchi) {
-            (list.first() as SanskritValue.Suchi).items
-        } else {
-            list
+        val listItems = when (val whole = list.singleOrNull()) {
+            is SanskritValue.Suchi -> whole.items
+            is SanskritValue.Gana -> whole.elements
+            else -> if (naturalFrame == null) list else return ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE, "Indexed retrieval requires one source collection.",
+            )
         }
 
         val indexValues = context.resolveValues(indexExpr)
-        val indexSankhya = indexValues.filterIsInstance<SanskritValue.Sankhya>().firstOrNull()
+        val indexSankhya = indexValues.singleOrNull() as? SanskritValue.Sankhya
             ?: return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
-                "Index must be a valid saṅkhyā value."
+                "Index must resolve to exactly one saṅkhyā value."
             )
 
         if (indexSankhya.value !in 1L..listItems.size.toLong()) {

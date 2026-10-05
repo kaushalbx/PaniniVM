@@ -44,7 +44,7 @@ object ShnabhyastayorAtahSutra : Sutra<DerivationState, DerivationChange>(
 }
 
 internal fun shna(context: DerivationState) = context.terms.firstOrNull {
-    it.kind == TermKind.PRATYAYA && it.matchesUpadesha("श्ना") && it.varnas.lastOrNull() == Svara.AA
+    it.kind == TermKind.PRATYAYA && it.upadesha == "श्ना" && it.varnas.lastOrNull() == Svara.AA
 }
 
 internal fun nextInitial(context: DerivationState, shna: dev.panini.derivation.DerivationTerm): dev.panini.shiksha.Varna? {

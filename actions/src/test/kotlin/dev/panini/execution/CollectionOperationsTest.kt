@@ -12,6 +12,101 @@ import kotlin.test.assertTrue
 
 class CollectionOperationsTest {
     @Test
+    fun `natural membership uses typed structural equality and unpacks groups`() {
+        val operation = dev.panini.actions.collection.ListContainsAction.op()
+        val number = SanskritValue.Sankhya(2, "द्वि")
+        val record = SanskritValue.Rupa("बिन्दु", mapOf("मान" to number))
+        val cases = listOf(
+            Triple(SanskritValue.Suchi(listOf(number)), number.copy(word = "द्वे"), true),
+            Triple(SanskritValue.Gana(listOf(number)), number.copy(word = "द्वे"), true),
+            Triple(SanskritValue.Suchi(listOf(number)), SanskritValue.Shabda("द्वि"), false),
+            Triple(SanskritValue.Suchi(listOf(record)), record.copy(fields = mapOf("मान" to SanskritValue.Sankhya(3, "त्रि"))), false),
+        )
+        cases.forEach { (collection, query, expected) ->
+            val context = ExecutionContext(bindings = mapOf(
+                Karaka.ADHIKARANA to ExecutionExpression.Pada("सूची", value = collection),
+                Karaka.KARTR to ExecutionExpression.Pada("वस्तु", value = query),
+            ))
+            val result = assertIs<ExecutionResult.Success>(operation.action.execute(context, operation))
+            assertEquals(expected, assertIs<SanskritValue.Satya>(result.typedValue).boolean)
+        }
+    }
+
+    @Test
+    fun `natural membership rejects a scalar location`() {
+        val operation = dev.panini.actions.collection.ListContainsAction.op()
+        val context = ExecutionContext(bindings = mapOf(
+            Karaka.ADHIKARANA to ExecutionExpression.sankhya(2, "द्वि"),
+            Karaka.KARTR to ExecutionExpression.sankhya(2, "द्वि"),
+        ))
+        assertIs<ExecutionResult.Failure>(operation.action.execute(context, operation))
+    }
+
+    @Test
+    fun `slice clips the minimum supported lower bound without overflow`() {
+        DhatuPathaRegistration.ensureRegistered()
+        val operation = DhatuPatha.all.first { it.upadesha == "ग्रहँ" }.operations.first { it.name == "सूचीविभागः" }
+        val list = SanskritValue.Suchi(listOf(SanskritValue.Sankhya(7, "सप्त")))
+        val context = ExecutionContext(bindings = mapOf(
+            Karaka.KARMAN to ExecutionExpression.Pada("अंश"),
+            Karaka.SAMBANDHA to ExecutionExpression.TypedOperand(list, dev.panini.core.SupAffix.NGAS),
+            Karaka.APADANA to ExecutionExpression.sankhya(Int.MIN_VALUE.toLong(), "न्यूनतम"),
+            Karaka.ADHIKARANA to ExecutionExpression.sankhya(1, "एक"),
+        ))
+        assertEquals(list, assertIs<ExecutionResult.Success>(operation.action.execute(context, operation)).typedValue)
+    }
+
+    @Test
+    fun `indexed retrieval rejects coordinated and mixed index operands`() {
+        DhatuPathaRegistration.ensureRegistered()
+        val operation = DhatuPatha.all.first { it.upadesha == "ग्रहँ" }.operations.first { it.name == "सूचीस्थानम्" }
+        val source = ExecutionExpression.TypedOperand(
+            SanskritValue.Suchi(listOf(SanskritValue.Sankhya(10, "दश"))), dev.panini.core.SupAffix.NGASI,
+        )
+        for (extra in listOf(ExecutionExpression.sankhya(2, "द्वि"), ExecutionExpression.Pada("अज्ञात"))) {
+            val context = ExecutionContext(bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Pada("मूल्य"),
+                Karaka.APADANA to source,
+                Karaka.ADHIKARANA to ExecutionExpression.Coordination(ExecutionExpression.sankhya(1, "एक"), extra),
+            ))
+            assertIs<ExecutionResult.Failure>(operation.action.execute(context, operation))
+        }
+    }
+
+    @Test
+    fun `natural indexed retrieval unwraps gana and rejects scalar sources`() {
+        DhatuPathaRegistration.ensureRegistered()
+        val operation = DhatuPatha.all.first { it.upadesha == "ग्रहँ" }.operations.first { it.name == "सूचीस्थानम्" }
+        val context = ExecutionContext(bindings = mapOf(
+            Karaka.KARMAN to ExecutionExpression.Pada("मूल्य"),
+            Karaka.APADANA to ExecutionExpression.TypedOperand(
+                SanskritValue.Gana(listOf(SanskritValue.Sankhya(10, "दश"), SanskritValue.Sankhya(20, "विंशति"))),
+                dev.panini.core.SupAffix.NGASI,
+            ),
+            Karaka.ADHIKARANA to ExecutionExpression.sankhya(2, "द्वि"),
+        ))
+        val result = assertIs<ExecutionResult.Success>(operation.action.execute(context, operation))
+        assertEquals(20L, assertIs<SanskritValue.Sankhya>(result.typedValue).value)
+        val scalar = context.copy(bindings = context.bindings + (
+            Karaka.APADANA to ExecutionExpression.sankhya(10, "दश")
+        ))
+        assertIs<ExecutionResult.Failure>(operation.action.execute(scalar, operation))
+    }
+
+    @Test
+    fun `natural extraction rejects scalar and empty genitive wholes`() {
+        DhatuPathaRegistration.ensureRegistered()
+        val operation = DhatuPatha.all.first { it.upadesha == "हृञ्" }.operations.first { it.name == "सूच्युद्धरणम्" }
+        for (value in listOf(SanskritValue.Sankhya(2, "द्वि"), SanskritValue.Suchi(emptyList()))) {
+            val context = ExecutionContext(bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Pada("अन्तिम"),
+                Karaka.SAMBANDHA to ExecutionExpression.TypedOperand(value, dev.panini.core.SupAffix.NGAS),
+            ))
+            assertIs<ExecutionResult.Failure>(operation.action.execute(context, operation))
+        }
+    }
+
+    @Test
     fun `HrDhatu executes ListPopAction to pop last element`() {
         DhatuPathaRegistration.ensureRegistered()
         val hr = DhatuPatha.all.first { it.upadesha == "हृञ्" }

@@ -38,6 +38,7 @@ object AjadyatasTapSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         if (context.stage != DerivationStage.INITIAL && context.stage != DerivationStage.PRATYAYA_SELECTED) return false
         val stem = context.terms.firstOrNull { it.kind == TermKind.PRATIPADIKA } ?: return false
+        if ("4.1.4" in stem.establishedBySutras) return false
         val isAjadiMember = GanaPatha.isEligibleMember(45, stem.surface, stem.lexicalUses)
         val endsInA = stem.varnas.lastOrNull() == Svara.A &&
             (stem.compoundHeadVarnas?.lastOrNull() ?: Svara.A) == Svara.A

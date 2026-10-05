@@ -75,6 +75,12 @@ internal class CompilerIrJvmEmitter(
                         false,
                     )
                 }
+                is CompilerInstruction.RandomActiveRange -> {
+                    if (!instruction.excludeCollection) mv.visitInsn(ACONST_NULL)
+                    mv.visitMethodInsn(INVOKESTATIC, "dev/panini/compiler/CompilerValueOperations",
+                        "randomActiveRange",
+                        "(Ldev/panini/execution/SanskritValue;Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;", false)
+                }
                 is CompilerInstruction.Collection -> emitCollection(instruction.operator)
                 is CompilerInstruction.Compare -> emitComparison(instruction.operator)
                 is CompilerInstruction.Arithmetic -> emitArithmetic(instruction.operator)

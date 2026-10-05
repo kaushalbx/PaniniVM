@@ -4,6 +4,31 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class SankhyaEvaluatorTest {
+    @Test
+    fun `incomplete comparison numeral constructions report missing operands`() {
+        for (marker in listOf("अधिक", "ऊन", "न्यून")) {
+            for (stems in listOf(listOf(marker), listOf(marker, "शत"), listOf("एक", marker))) {
+                val failure = kotlin.test.assertFailsWith<IllegalArgumentException> {
+                    evaluator.evaluateStems(stems)
+                }
+                kotlin.test.assertTrue(marker in failure.message.orEmpty(), failure.message)
+            }
+        }
+        kotlin.test.assertFailsWith<IllegalArgumentException> {
+            evaluator.evaluateStems(listOf("अभि", "अधिक", "शत"))
+        }
+    }
+
+    @Test
+    fun `comparison numeral operands must respect the base magnitude`() {
+        for (marker in listOf("अधिक", "ऊन", "न्यून")) {
+            for (operand in listOf("शून्य", "शत", "सहस्र")) {
+                kotlin.test.assertFailsWith<IllegalArgumentException> {
+                    evaluator.evaluateStems(listOf(operand, marker, "शत"))
+                }
+            }
+        }
+    }
 
     private val evaluator = SankhyaEvaluator()
 

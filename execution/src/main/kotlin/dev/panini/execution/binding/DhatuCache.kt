@@ -1,6 +1,5 @@
 package dev.panini.execution.binding
 
-import dev.panini.core.DhatuGana
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.vyakaranam.ast.DhatuPrakriti
@@ -67,6 +66,15 @@ internal object DhatuCache {
         map
     }
 
+    /** Source derivations accept roots, not inflected or nominal surface aliases. */
+    private val sourceRootCache: Map<String, List<Dhatu>> by lazy {
+        DhatuPatha.all.filter { it.operations.isNotEmpty() }.flatMap { dhatu ->
+            listOf(dhatu.upadesha, dhatu.sourceSurface, dhatu.derivationalSurface)
+                .flatMap { root -> listOf(root, root.normalizeDhatuSurface()) }
+                .distinct().map { root -> root to dhatu }
+        }.groupBy({ it.first }, { it.second })
+    }
+
     /**
      * Data-driven root index: maps every known dhātu surface form, alias, and
      * operation stem to the canonical root string used for फल resolution.
@@ -114,17 +122,7 @@ internal object DhatuCache {
      */
     internal fun resolve(tinganta: TingantaPada): Dhatu? {
         val text = tinganta.dhatu.mulaDhatu
-        val requiredGana = when (tinganta.vikarana) {
-            "शप्" -> DhatuGana.BHVADI
-            "श्यन्" -> DhatuGana.DIVADI
-            "श्नु" -> DhatuGana.SVADI
-            "श्नम्" -> DhatuGana.RUDHADI
-            "श्ना" -> DhatuGana.KRYADI
-            "उ" -> DhatuGana.TANADI
-            "श्नाम्" -> DhatuGana.KRYADI
-            "श" -> DhatuGana.TUDADI
-            else -> null
-        }
+        val requiredGana = tinganta.vikarana?.gana
         if (requiredGana != null) {
             val candidates = DhatuPatha.all.filter { candidate ->
                 candidate.gana == requiredGana &&
@@ -136,15 +134,16 @@ internal object DhatuCache {
             return candidates.filter { it.operations.isNotEmpty() }.singleOrNull()
                 ?: candidates.singleOrNull()
         }
-        val cached = dhatuCacheMap[text]
-        if (cached != null) return cached
-        return dhatuCacheMap[text.normalizeDhatuSurface()]
+        return sourceCandidates(text).singleOrNull()
     }
 
     /** Resolves a non-finite derivation through the same canonical lexicon. */
     internal fun resolve(prakriti: DhatuPrakriti): Dhatu? =
-        dhatuCacheMap[prakriti.mulaDhatu]
-            ?: dhatuCacheMap[prakriti.mulaDhatu.normalizeDhatuSurface()]
+        sourceCandidates(prakriti.mulaDhatu).singleOrNull()
+
+    private fun sourceCandidates(text: String): List<Dhatu> =
+        (sourceRootCache[text] ?: sourceRootCache[text.normalizeDhatuSurface()]).orEmpty()
+            .distinctBy { it.id }
 
     /**
      * Returns the canonical root string for an action [stem] (e.g. an operation name

@@ -7,6 +7,11 @@ import dev.panini.core.Karaka
  * resolution. These values contain no spelling or word-order assumptions.
  */
 sealed interface NaturalOperation {
+    /** The selected member of a collection expressed in the genitive. */
+    data class CollectionExtraction(
+        val collection: ExecutionExpression,
+        val member: ExecutionExpression,
+    ) : NaturalOperation
     data class StatePlacement(
         val value: ExecutionExpression,
         val destination: ExecutionExpression,
@@ -62,6 +67,11 @@ object NaturalOperationResolver {
     fun resolve(operation: DhatuOperation, context: ExecutionContext): NaturalOperation? {
         val bindings = context.bindings
         return when (operation.name) {
+            "सूच्युद्धरणम्" -> {
+                val collection = bindings[Karaka.SAMBANDHA] ?: return null
+                val member = bindings[Karaka.KARMAN] ?: return null
+                NaturalOperation.CollectionExtraction(collection, member)
+            }
             "मूल्यदानम्" -> {
                 val value = bindings[Karaka.KARMAN] ?: return null
                 val destination = bindings[Karaka.ADHIKARANA] ?: return null

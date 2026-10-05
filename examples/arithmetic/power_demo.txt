@@ -1,10 +1,10 @@
 # Exponentiation / Power Algorithm: Compute 3^4 (81)
 
 # Set base 'आधार' = 3 (त्रि)
-त्रीनि आधारे स्थापय ।
+त्रीणि आधारे स्थापय ।
 
 # Initialize power result 'घात' = 3 (त्रि)
-त्रीनि घाते स्थापय ।
+त्रीणि घाते स्थापय ।
 
 # Loop 3 times (त्रिकृत्वः): multiply 'घात' by 'आधार' and assign directly to 'घात' (घाताय)
 त्रिकृत्वः घातम् आधारं च गणय ततः फलं घाते स्थापय ।

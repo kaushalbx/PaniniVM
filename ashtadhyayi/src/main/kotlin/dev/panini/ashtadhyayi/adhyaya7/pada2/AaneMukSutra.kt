@@ -28,6 +28,7 @@ object AaneMukSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean = context.terms.any {
         it.kind == TermKind.PRATYAYA && it.upadesha == "शानच्" &&
+            it.createdBySutra != "3.1.83" && "3.1.83" !in it.establishedBySutras &&
             it.surface == "आन" && it.itProcessingPhase == ItProcessingPhase.PROCESSED
     } && context.allEffectiveTerms.none { it.createdBySutra == sutra }
 

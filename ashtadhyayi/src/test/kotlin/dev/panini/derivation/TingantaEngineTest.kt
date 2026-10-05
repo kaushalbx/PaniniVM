@@ -16,6 +16,107 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class TingantaEngineTest {
+    @Test
+    fun `kru imperative derives kuru without renderer substitution`() {
+        checkRendererImperative("कृ", DhatuGana.TANADI, "कुरु")
+    }
+
+    @Test
+    fun `grah imperative derives grhana without renderer substitution`() {
+        checkRendererImperative("ग्रह्", DhatuGana.KRYADI, "गृहाण")
+    }
+
+    private fun checkRendererImperative(root: String, gana: DhatuGana, surface: String) {
+            val result = TingantaEngine().derive(TingantaDerivationRequest(
+                dhatu = root, gana = gana, vacana = Vacana.EKAVACANA,
+                purusha = Purusha.MADHYAMA, lakara = Lakara.LOT,
+                pada = PadaType.PARASMAIPADA,
+            ))
+            assertEquals(surface, result.final.surface, root)
+            val required = when (root) {
+                "कृ" -> setOf("3.4.87", "7.3.84", "6.4.110", "6.4.106")
+                "ग्रह्" -> setOf("6.1.16", "6.1.108", "3.1.83", "6.4.105", "8.4.2")
+                else -> emptySet()
+            }
+            assertTrue(result.applications.map { it.sutra }.containsAll(required),
+                "$root requires $required; applied ${result.applications.map { it.sutra }}")
+            result.final.requireCompleteItProcessing()
+    }
+    @Test
+    fun `stha causative augment composes with present person and number endings`() {
+        val engine = TingantaEngine()
+        val expected = listOf(
+            Triple(Purusha.PRATHAMA, Vacana.EKAVACANA, "स्थापयति"),
+            Triple(Purusha.PRATHAMA, Vacana.DVIVACANA, "स्थापयतः"),
+            Triple(Purusha.PRATHAMA, Vacana.BAHUVACANA, "स्थापयन्ति"),
+            Triple(Purusha.MADHYAMA, Vacana.EKAVACANA, "स्थापयसि"),
+            Triple(Purusha.UTTAMA, Vacana.EKAVACANA, "स्थापयामि"),
+        )
+        for ((person, number, surface) in expected) {
+            val result = engine.derive(TingantaDerivationRequest(
+                dhatu = "स्था", gana = DhatuGana.BHVADI,
+                vacana = number, purusha = person, lakara = Lakara.LAT,
+                pada = PadaType.PARASMAIPADA, sanadiPratyayas = listOf("णिच्"),
+            ))
+            assertEquals(surface, result.final.surface)
+            assertEquals(1, result.applications.count { it.sutra == "7.3.36" })
+            result.final.requireCompleteItProcessing()
+        }
+        val ordinary = engine.derive(TingantaDerivationRequest(
+            dhatu = "स्था", gana = DhatuGana.BHVADI,
+            lakara = Lakara.LAT, pada = PadaType.PARASMAIPADA,
+        ))
+        assertEquals("तिष्ठति", ordinary.final.surface)
+        assertTrue(ordinary.applications.any { it.sutra == "7.3.78" })
+        assertFalse(ordinary.applications.any { it.sutra == "7.3.36" })
+    }
+    @Test
+    fun `stha causative imperative derives sthapaya through nic`() {
+        val result = TingantaEngine().derive(TingantaDerivationRequest(
+            dhatu = "स्था", gana = DhatuGana.BHVADI,
+            vacana = Vacana.EKAVACANA, purusha = Purusha.MADHYAMA,
+            lakara = Lakara.LOT, pada = PadaType.PARASMAIPADA,
+            sanadiPratyayas = listOf("णिच्"),
+        ))
+        assertEquals("स्थापय", result.final.surface)
+        assertTrue(result.applications.any { it.sutra == "3.1.26" })
+        val introduction = result.applications.first { it.sutra == "7.3.36" }
+        val augment = introduction.after.terms.first { it.createdBySutra == "7.3.36" }
+        assertEquals(ItProcessingPhase.RAW_UPADESHA, augment.itProcessingPhase)
+        assertEquals(TermKind.AGAMA, augment.kind)
+        assertTrue(result.applications.any { it.sutra == "1.1.46" })
+        result.final.requireCompleteItProcessing()
+    }
+
+    @Test
+    fun `tudadi kship imperative derives from root and ting ending`() {
+        val result = TingantaEngine().derive(
+            TingantaDerivationRequest(
+                dhatu = "क्षिप्",
+                gana = DhatuGana.TUDADI,
+                vacana = Vacana.EKAVACANA,
+                purusha = Purusha.MADHYAMA,
+                lakara = Lakara.LOT,
+                pada = PadaType.PARASMAIPADA,
+            ),
+        )
+        assertEquals("क्षिप", result.final.surface)
+        assertTrue(result.applications.any { it.sutra == "3.4.78" })
+        result.final.requireCompleteItProcessing()
+    }
+
+    @Test
+    fun `explicit gana distinguishes homonymous kship derivations`() {
+        val request = TingantaDerivationRequest(
+            dhatu = "क्षिप्", purusha = Purusha.MADHYAMA, lakara = Lakara.LOT,
+            pada = PadaType.PARASMAIPADA, gana = DhatuGana.DIVADI,
+        )
+        assertEquals("क्षिप्य", TingantaEngine().derive(request).final.surface)
+        assertEquals("क्षिप", TingantaEngine().derive(request.copy(gana = DhatuGana.TUDADI)).final.surface)
+        assertFailsWith<IllegalArgumentException> {
+            TingantaEngine().derive(request.copy(gana = DhatuGana.TANADI))
+        }
+    }
 
     @Test
     fun `da madhyama singular imperative derives dehi`() {

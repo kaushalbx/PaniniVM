@@ -2,7 +2,7 @@
 # Generates grammatical summary of text input (भावविवरणम्)
 
 # Step 1: Summarize input sentence (भावया/सु)
-वाक्यं सु ।
+वाक्यं सु+णिच्+लोट्+सिप् ।
 
 # Step 2: Print generated summary
 मुद्रय फलम् ।

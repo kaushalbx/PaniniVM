@@ -21,7 +21,12 @@ data class PrakriyaDiagnostic(
 
 /** Performs declaration and call checks without executing the script. */
 object PrakriyaScriptValidator {
-    fun validate(source: String): List<PrakriyaDiagnostic> {
+    fun validate(source: String): List<PrakriyaDiagnostic> = validateWith(source, PvmScript::parse)
+
+    /** Inspects old block syntax to produce migration diagnostics; never used by execution. */
+    fun validateLegacy(source: String): List<PrakriyaDiagnostic> = validateWith(source, PvmScript::parseLegacy)
+
+    private fun validateWith(source: String, parseSource: (String) -> List<PvmScriptStatement>): List<PrakriyaDiagnostic> {
         val diagnostics = CanonicalNumeralStem.suggestions(source).mapTo(mutableListOf()) { suggestion ->
             PrakriyaDiagnostic(
                 offset = suggestion.offset,
@@ -40,15 +45,35 @@ object PrakriyaScriptValidator {
                 replacement = suggestion.replacement,
             )
         }
-        val statements = runCatching { PvmScript.parse(source) }.getOrElse { error ->
+        val statements = runCatching { parseSource(source) }.getOrElse { error ->
             diagnostics += PrakriyaDiagnostic(
                 offset = 0,
                 length = source.length.coerceAtLeast(1),
-                message = error.message ?: "The reusable प्रक्रिया body is not valid Sanskrit.",
+                message = "Source contains invalid Sanskrit: ${error.message.orEmpty()}",
             )
             return diagnostics
         }
         val registry = PrakriyaRegistry()
+
+        val sourceMap = SourceTextMap(source)
+        var headerSearchFrom = 0
+        statements.filterIsInstance<PvmScriptStatement.PrakriyaDefinition>().forEach { definition ->
+            if (definition.body.isEmpty()) return@forEach
+            val header = definition.headerSource?.trim()?.trimEnd('।', '॥', '.')?.trimEnd()
+                ?: return@forEach
+            val located = sourceMap.locate(header, headerSearchFrom) ?: return@forEach
+            headerSearchFrom = located.nextCompactOffset
+            if (!PrakriyaDefinitionMarkerParser.hasExplicitMarker(header)) {
+                diagnostics += PrakriyaDiagnostic(
+                    offset = located.span.start,
+                    length = located.span.length,
+                    message = "A bare action noun is a compatibility header; declare reusable code explicitly with 'इति प्रक्रिया अस्ति'.",
+                    severity = PrakriyaDiagnosticSeverity.WARNING,
+                    replacement = header.trim().trimEnd('।', '॥', '.').trimEnd() +
+                        " इति प्रक्रिया + सुँ असँ + लट् + तिप्",
+                )
+            }
+        }
 
         legacySamjnaMarkers(source, statements).forEach { legacy ->
             diagnostics += PrakriyaDiagnostic(

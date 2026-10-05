@@ -190,14 +190,19 @@ internal data class AnalyzedPaniniModule(
 )
 
 internal object PaniniModuleAnalyzer {
-    fun analyze(descriptor: PaniniModuleDescriptor): AnalyzedPaniniModule {
-        val statements = descriptor.sources.associateWith { PvmScript.parse(it.content) }
+    fun analyze(descriptor: PaniniModuleDescriptor,
+        parseSource: (String) -> List<PvmScriptStatement> = PvmScript::parse): AnalyzedPaniniModule {
+        val statements = descriptor.sources.associateWith { parseSource(it.content) }
         val procedures = statements.flatMap { (source, unitStatements) ->
-            val fallbackDomain = unitStatements.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>()
-                .firstOrNull()?.scope?.domainIdentity
-            unitStatements.filterIsInstance<PvmScriptStatement.PrakriyaDefinition>().map { definition ->
+            var activeDomain: String? = null
+            unitStatements.mapNotNull { statement ->
+                if (statement is PvmScriptStatement.AdhikaraDefinition) {
+                    activeDomain = statement.scope.domainIdentity
+                    return@mapNotNull null
+                }
+                val definition = statement as? PvmScriptStatement.PrakriyaDefinition ?: return@mapNotNull null
                 val symbol = definition.prakriya.nameIdentity
-                val domain = definition.prakriya.domainIdentity ?: fallbackDomain
+                val domain = definition.prakriya.domainIdentity ?: activeDomain
                 val signature = inferSignature(definition)
                 AnalyzedProcedure(
                     source, definition, symbol, symbol, domain,

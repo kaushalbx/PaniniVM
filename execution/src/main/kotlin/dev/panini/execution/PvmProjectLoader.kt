@@ -19,10 +19,14 @@ internal class PvmProjectLoader(private val metrics: ExecutionMetrics? = null) {
         sourceFile: String?,
         includeExecutionModifiers: Boolean = true,
     ) {
-        val fallbackDomain = statements.filterIsInstance<PvmScriptStatement.AdhikaraDefinition>()
-            .firstOrNull()?.scope?.domainIdentity
+        var activeDomain: String? = null
         registerInheritances(registry, statements)
-        statements.filterIsInstance<PvmScriptStatement.PrakriyaDefinition>().forEach { definition ->
+        statements.forEach { statement ->
+            if (statement is PvmScriptStatement.AdhikaraDefinition) {
+                activeDomain = statement.scope.domainIdentity
+                return@forEach
+            }
+            val definition = statement as? PvmScriptStatement.PrakriyaDefinition ?: return@forEach
             val prakriya = definition.prakriya
             registry.register(
                 Prakriya(
@@ -30,7 +34,7 @@ internal class PvmProjectLoader(private val metrics: ExecutionMetrics? = null) {
                     nameStem = prakriya.nameIdentity,
                     body = definition.body,
                     sourceFile = sourceFile,
-                    domainStem = prakriya.domainIdentity ?: fallbackDomain,
+                    domainStem = prakriya.domainIdentity ?: activeDomain,
                     visibility = prakriya.modifiers.visibility,
                     precedence = if (includeExecutionModifiers) {
                         prakriya.modifiers.precedence

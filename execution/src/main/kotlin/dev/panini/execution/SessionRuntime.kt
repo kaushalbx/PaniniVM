@@ -167,6 +167,18 @@ internal class SessionRuntime(
     fun value(sessionKey: String, name: String): SanskritValue? =
         sessions[sessionKey]?.previousTypedResults?.get(name)
 
+    /** Retains a typed result produced by a structured AST operation outside the action pipeline. */
+    fun retainStructuredResult(sessionKey: String, value: SanskritValue, speaker: String, listener: String,
+        persistSession: Boolean) {
+        val context = sessions[sessionKey] ?: SambhashanaContext(speaker, listener)
+        val values = mapOf(dev.panini.execution.binding.PhalaReference.RUNTIME_KEY to value)
+        recordSuccessfulTurn(sessionKey, context.copy(
+            previousResults = context.previousResults + values.mapValues { it.value.toDisplayText() },
+            previousResultSamjnas = context.previousResultSamjnas + values.mapValues { it.value.samjnas },
+            previousTypedResults = context.previousTypedResults + values,
+        ), persistSession)
+    }
+
     fun save(sessionKey: String) {
         sessions[sessionKey]?.let { store.save(sessionKey, it) }
     }

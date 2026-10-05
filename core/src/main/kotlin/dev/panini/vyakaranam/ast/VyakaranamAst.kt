@@ -8,6 +8,29 @@ sealed interface VyakaranamNode {
     val sourceText: String
 }
 
+/** Native source-order document; declaration processing must not reorder its items. */
+data class ProgramDocument(
+    override val sourceText: String,
+    val items: List<VyakaranamNode>,
+    val itemSpans: List<DocumentSourceSpan> = emptyList(),
+    val prakriyaHeaderSpans: Map<Int, DocumentSourceSpan> = emptyMap(),
+    val prakriyaBodySpans: Map<Int, List<DocumentSourceSpan>> = emptyMap(),
+    val prakriyaNameSpans: Map<Int, DocumentSourceSpan> = emptyMap(),
+    val scopeDomainSpans: Map<Int, DocumentSourceSpan> = emptyMap(),
+) : VyakaranamNode
+
+/** Half-open character offsets into the original document, including terminators. */
+data class DocumentSourceSpan(val start: Int, val endExclusive: Int) {
+    init { require(start >= 0 && endExclusive >= start) }
+}
+
+/** A named सीमा declaration retains its morphological bounds, not evaluated numbers. */
+data class RangeDeclaration(
+    override val sourceText: String,
+    val boundary: ParyantaRangePada,
+    val marker: SubantaPada,
+) : VyakaranamNode
+
 data class Ukti(
     override val sourceText: String,
     val sambodhana: Sambodhana? = null,
@@ -189,7 +212,7 @@ data class TingantaPada(
     val lakara: Lakara,
     val ting: TingPratyaya,
     /** Explicit gaṇa-vikaraṇa when the upadeśa alone is lexically ambiguous. */
-    val vikarana: String? = null,
+    val vikarana: Vikarana? = null,
 ) : Pada
 
 data class AvyayaPada(
