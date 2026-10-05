@@ -13,6 +13,10 @@ enum class Karaka(val pratipadikas: Set<String>) {
     ANIRDHARITA(emptySet()),
     ;
 
+    /** Traditional Sanskrit label used in grammatical diagnostics. */
+    val sanskritName: String
+        get() = pratipadikas.firstOrNull() ?: "अनिर्धारितकारक"
+
     companion object {
         fun fromPratipadika(text: String): Karaka? =
             entries.firstOrNull { text.trim() in it.pratipadikas }

@@ -128,6 +128,10 @@ class KrdantaEngineTest {
     fun `source affixes resolve through typed krdanta capability`() {
         assertEquals("योग", engine.deriveSourceStem("युज्", "घञ्").surface)
         assertEquals("योजन", engine.deriveSourceStem("युज्", "ल्युट्").surface)
+        assertEquals(
+            "वियोजन",
+            engine.deriveSourceStem("युज्", "ल्युट्", listOf("णिच्"), listOf("वि")).surface,
+        )
         assertEquals("धरण", engine.deriveSourceStem("धृ", "अन").surface)
         assertEquals("हार", engine.deriveSourceStem("हृ", "घञ्").surface)
         assertTrue(assertIs<KrdantaSourceStem.Productive>(engine.deriveSourceStem("युज्", "घञ्")).supportsAStemDeclension)

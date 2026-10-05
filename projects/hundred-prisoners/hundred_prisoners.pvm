@@ -1,0 +1,55 @@
+# One Hundred Prisoners Riddle — one random trial of cycle-following.
+#
+# In the standard puzzle, the setup supplies a uniformly random permutation;
+# the prisoners do not construct or alter it. This program models that setup by
+# drawing every number from 1..100 exactly once in random order, then runs the
+# prisoners' cycle-following strategy on the resulting permutation.
+#
+# पेटिकाक्रम is the random permutation. बन्दिसङ्ख्या is the current prisoner's
+# number, and पेटिकाक्रमाङ्क is the next box to open. Each prisoner follows the
+# values as pointers and may inspect at most 50 boxes. सर्वजय remains true only
+# when every prisoner finds their own number.
+
+# Open the box named by पेटिकाक्रमाङ्क, read its slip, follow that pointer, and record
+# whether the prisoner's own number was found.
+पेटिकादर्शन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+पेटिकाक्रम + ङसिँ पेटिकाक्रमाङ्क + ङि मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।
+फल + अम् पेटिकाक्रमाङ्क + ङि स्था + णिच् + लोट् + सिप् ।
+यदि पेटिकाक्रमाङ्क + सुँ बन्दिसङ्ख्या + टा सम + सुँ असँ + लट् + तिप्
+    तर्हि सत्य + अम् स्वसङ्ख्याप्राप्ति + ङि स्था + णिच् + लोट् + सिप्
+    अन्यथा असत्य + अम् स्वसङ्ख्याप्राप्ति + ङि स्था + णिच् + लोट् + सिप् ॥
+
+# Run the complete strategy for one prisoner.
+बन्दीप्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+बन्दिसङ्ख्या + अम् पेटिकाक्रमाङ्क + ङि स्था + णिच् + लोट् + सिप् ।
+असत्य + अम् स्वसङ्ख्याप्राप्ति + ङि स्था + णिच् + लोट् + सिप् ।
+पञ्चाशत् + कृत्वसुच् यावत् स्वसङ्ख्याप्राप्ति + सुँ न असँ + लट् + तिप् तावत् पेटिकादर्शन + टा डुकृञ् + उ + लोट् + सिप् ।
+यदि स्वसङ्ख्याप्राप्ति + सुँ असँ + लट् + तिप्
+    तर्हि सत्य + अम् स्वसङ्ख्याप्राप्ति + ङि स्था + णिच् + लोट् + सिप्
+    अन्यथा असत्य + अम् सर्वजय + ङि स्था + णिच् + लोट् + सिप् ।
+बन्दिसङ्ख्या + अम् एक + अम् च युज् + णिच् + लोट् + सिप्
+    ततः फल + अम् बन्दिसङ्ख्या + ङि स्था + णिच् + लोट् + सिप् ॥
+
+# Construct one uniformly random permutation by drawing all values from 1..100
+# without replacement. The exclusion list makes every permutation equally likely.
+एक + ङसिँ शत + शस् परि + अन्त + अम् इति सीमा + सुँ ।
+पेटिकाक्रमनिर्माण + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+चिञ् + श्नु + लोट् + सिप् ततः फल + अम् चितसङ्ख्या + ङि स्था + णिच् + लोट् + सिप् ।
+चितसङ्ख्या + अम् सम् + ग्रहँ + श्ना + लोट् + सिप्
+    ततः फल + अम् पेटिकाक्रम + ङि स्था + णिच् + लोट् + सिप् ।
+नवन् + नवति + कृत्वसुच् पेटिकाक्रम + अम् वृज् + णिच् + क्त्वा चिञ् + श्नु + लोट् + सिप्
+    ततः फल + अम् चितसङ्ख्या + ङि स्था + णिच् + लोट् + सिप्
+    ततः चितसङ्ख्या + अम् पेटिकाक्रम + ङि नि + क्षिप् + लोट् + सिप्
+    ततः फल + अम् पेटिकाक्रम + ङि स्था + णिच् + लोट् + सिप् ॥
+पेटिकाक्रमनिर्माण + टा डुकृञ् + उ + लोट् + सिप् ।
+
+# Execute the pointer-following strategy for all 100 prisoners.
+एक + अम् बन्दिसङ्ख्या + ङि स्था + णिच् + लोट् + सिप् ।
+सत्य + अम् सर्वजय + ङि स्था + णिच् + लोट् + सिप् ।
+शत + कृत्वसुच् यावत् सर्वजय + सुँ असँ + लट् + तिप्
+    तावत् बन्दीप्रयत्न + टा डुकृञ् + उ + लोट् + सिप् ।
+
+# Report whether this random permutation has a cycle longer than 50.
+यदि सर्वजय + सुँ असँ + लट् + तिप्
+    तर्हि जय + अम् मुद्र् + लोट् + सिप्
+    अन्यथा पराजय + अम् मुद्र् + लोट् + सिप् ।

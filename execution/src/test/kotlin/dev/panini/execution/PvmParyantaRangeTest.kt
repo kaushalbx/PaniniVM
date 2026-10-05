@@ -18,10 +18,10 @@ class PvmParyantaRangeTest {
     @Test
     fun `readable boundary sandhi does not voice final t before an unvoiced consonant`() {
         val rendered = PvmUktiSadhaka().sadhayaLine(
-            "त्रिंशत् + अम् च सम् + गण् + णिच् + लोट् + सिप् ।",
+            "त्रिंशत् + सुँ च सम् + गण् + णिच् + लोट् + सिप् ।",
         )
 
-        assertEquals("त्रिंशत् च गण् ।", rendered)
+        assertEquals("त्रिंशत् च सङ्गणय ।", rendered)
     }
 
     @Test

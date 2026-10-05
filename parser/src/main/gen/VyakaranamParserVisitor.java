@@ -1,4 +1,4 @@
-// Generated from /Users/kaushalbx/StudioProjects/AshtadhyayiSandhi/parser/src/main/antlr/dev/panini/vyakaranam/VyakaranamParser.g4 by ANTLR 4.13.2
+// Generated from C:/Users/User/Documents/SanskritSandhi/parser/src/main/antlr/dev/panini/vyakaranam/VyakaranamParser.g4 by ANTLR 4.13.2
 
 package dev.panini.parser;
 
@@ -19,17 +19,83 @@ public interface VyakaranamParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitUkti(VyakaranamParser.UktiContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link VyakaranamParser#quotationClause}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitQuotationClause(VyakaranamParser.QuotationClauseContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link VyakaranamParser#conditionalPipelineClause}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitConditionalPipelineClause(VyakaranamParser.ConditionalPipelineClauseContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link VyakaranamParser#attributePipelineClause}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAttributePipelineClause(VyakaranamParser.AttributePipelineClauseContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link VyakaranamParser#whileClause}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitWhileClause(VyakaranamParser.WhileClauseContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link VyakaranamParser#whileExhausted}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitWhileExhausted(VyakaranamParser.WhileExhaustedContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link VyakaranamParser#ordinalAttemptBoundary}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitOrdinalAttemptBoundary(VyakaranamParser.OrdinalAttemptBoundaryContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link VyakaranamParser#pipelineClause}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPipelineClause(VyakaranamParser.PipelineClauseContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link VyakaranamParser#pipelineStage}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPipelineStage(VyakaranamParser.PipelineStageContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link VyakaranamParser#purvaparaDirective}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPurvaparaDirective(VyakaranamParser.PurvaparaDirectiveContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link VyakaranamParser#pipelineResult}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPipelineResult(VyakaranamParser.PipelineResultContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link VyakaranamParser#conditionalClause}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitConditionalClause(VyakaranamParser.ConditionalClauseContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link VyakaranamParser#loopClause}.
+	 * Visit a parse tree produced by {@link VyakaranamParser#conditionalExpression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitLoopClause(VyakaranamParser.LoopClauseContext ctx);
+	T visitConditionalExpression(VyakaranamParser.ConditionalExpressionContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link VyakaranamParser#conditionalArm}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitConditionalArm(VyakaranamParser.ConditionalArmContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link VyakaranamParser#vakya}.
 	 * @param ctx the parse tree
@@ -66,6 +132,36 @@ public interface VyakaranamParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitVakyaPada(VyakaranamParser.VakyaPadaContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link VyakaranamParser#paryantaRange}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitParyantaRange(VyakaranamParser.ParyantaRangeContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link VyakaranamParser#ablativeNumeral}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAblativeNumeral(VyakaranamParser.AblativeNumeralContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link VyakaranamParser#accusativeNumeral}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAccusativeNumeral(VyakaranamParser.AccusativeNumeralContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link VyakaranamParser#ablativeSup}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAblativeSup(VyakaranamParser.AblativeSupContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link VyakaranamParser#accusativeSup}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAccusativeSup(VyakaranamParser.AccusativeSupContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link VyakaranamParser#subantaVakyaPada}.
 	 * @param ctx the parse tree
@@ -139,18 +235,6 @@ public interface VyakaranamParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitBhutasamkhyaPada(VyakaranamParser.BhutasamkhyaPadaContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link VyakaranamParser#sankhyaBhinnaPada}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitSankhyaBhinnaPada(VyakaranamParser.SankhyaBhinnaPadaContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link VyakaranamParser#sankhyaMathPada}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitSankhyaMathPada(VyakaranamParser.SankhyaMathPadaContext ctx);
-	/**
 	 * Visit a parse tree produced by {@link VyakaranamParser#sankhyaStem}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -186,6 +270,12 @@ public interface VyakaranamParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitMulaPratipadika(VyakaranamParser.MulaPratipadikaContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link VyakaranamParser#samjnaQualifierPratipadika}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitSamjnaQualifierPratipadika(VyakaranamParser.SamjnaQualifierPratipadikaContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link VyakaranamParser#kridantaPratipadika}.
 	 * @param ctx the parse tree

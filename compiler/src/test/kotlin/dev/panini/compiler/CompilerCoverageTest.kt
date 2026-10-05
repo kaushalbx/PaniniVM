@@ -8,6 +8,40 @@ import dev.panini.execution.SanskritValue
 
 class CompilerCoverageTest {
     @Test
+    fun `compiled procedure choices observe sequential range declarations`() {
+        val source = """
+            चयन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            सङ्ख्या + अम् चिञ् + श्नु + लोट् + सिप् ॥
+            एक + ङसिँ एक + अम् परि + अन्त + अम् इति सीमा + सुँ ।
+            चयन + टा डुकृञ् + उ + लोट् + सिप् ततः पूर्व + ङे दा + लोट् + सिप् ।
+            द्वि + ङसिँ द्वि + औट् परि + अन्त + अम् इति सीमा + सुँ ।
+            चयन + टा डुकृञ् + उ + लोट् + सिप् ततः उत्तर + ङे दा + लोट् + सिप् ।
+        """.trimIndent()
+        val generated = BytecodeCompiler.compileAndLoad(source, "SequentialRangeChoice")
+        @Suppress("UNCHECKED_CAST")
+        val values = generated.getMethod("execute").invoke(null) as Map<String, SanskritValue>
+        assertEquals(1L, (values.getValue("पूर्व") as SanskritValue.Sankhya).value)
+        assertEquals(2L, (values.getValue("उत्तर") as SanskritValue.Sankhya).value)
+    }
+
+    @Test
+    fun `native compiled control flow executes with the same result as the default backend`() {
+        val source = File("examples/control_flow/two_counter_machine.pvm").readText()
+        val name = "NativeCounterParity"
+        val descriptor = PaniniModuleDescriptor(name, listOf(PaniniModuleSource("counter.pvm", source)))
+        val program = CompilerFrontend.lowerModule(descriptor, name, dev.panini.execution.PvmScript::parseNative)
+        val bytes = GeneratedBytecodeVerifier.verify(CompilerProgramJvmEmitter.emit(program))
+        val generated = BytecodeCompiler.PaniniClassLoader(javaClass.classLoader).loadFromBytes(name, bytes)
+        @Suppress("UNCHECKED_CAST")
+        val native = generated.getMethod("execute").invoke(null) as Map<String, SanskritValue>
+        val legacyClass = BytecodeCompiler.compileAndLoad(source, "LegacyCounterParity")
+        @Suppress("UNCHECKED_CAST")
+        val legacy = legacyClass.getMethod("execute").invoke(null) as Map<String, SanskritValue>
+        assertEquals(legacy, native)
+        assertEquals("त्रीणि", native.getValue("LastResult").toDisplayText())
+    }
+
+    @Test
     fun `remaining examples compile with module semantics and explicit absent-field IR`() {
         val modules = listOf(
             listOf("projects/list_operations/samavaya_lib.pvm", "projects/list_operations/samavaya_mukhya.pvm"),
@@ -51,14 +85,15 @@ class CompilerCoverageTest {
                     (file.nameWithoutExtension.endsWith("_lib") || file.nameWithoutExtension == "ganita")
             }.sortedBy(File::getPath).toList()
             runCatching {
-                CompilerFrontend.lowerModule(
-                    PaniniModuleDescriptor(
+                val descriptor = PaniniModuleDescriptor(
                         entry.nameWithoutExtension,
                         libraries.map { PaniniModuleSource(it.path, it.readText(), false) } +
                             PaniniModuleSource(entry.path, entry.readText(), true),
-                    ),
-                    "Coverage_$index",
-                )
+                    )
+                CompilerFrontend.lowerModule(descriptor, "Coverage_$index")
+                val native = CompilerFrontend.lowerModule(descriptor, "NativeCoverage_$index",
+                    dev.panini.execution.PvmScript::parseNative)
+                GeneratedBytecodeVerifier.verify(CompilerProgramJvmEmitter.emit(native))
             }.exceptionOrNull()?.let { entry to it }
         }
 

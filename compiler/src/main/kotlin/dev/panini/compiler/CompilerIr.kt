@@ -5,7 +5,10 @@ import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.ExecutionPlan
 import dev.panini.execution.SanskritValue
 import dev.panini.execution.PrakriyaValueType
+import dev.panini.execution.NaturalOperation
+import dev.panini.execution.NaturalOperationResolver
 import dev.panini.execution.bindingName
+import dev.panini.shiksha.Samjna
 
 /** A complete backend-neutral compilation unit. */
 internal data class CompilerProgram(
@@ -188,7 +191,14 @@ internal sealed interface CompilerInstruction {
 
     data object IsEven : CompilerInstruction
 
-    data class RandomRange(val minimum: Long, val maximum: Long) : CompilerInstruction
+    /** Produces a random number in the inclusive range, optionally consuming a collection to exclude. */
+    data class RandomActiveRange(val excludeCollection: Boolean = false) : CompilerInstruction
+
+    data class RandomRange(
+        val minimum: Long,
+        val maximum: Long,
+        val excludeCollection: Boolean = false,
+    ) : CompilerInstruction
 
     data class Collection(val operator: CollectionOperator) : CompilerInstruction
 
@@ -516,6 +526,14 @@ internal object CompilerIrLowering {
 
     /** Lowers a numeric comparison into operand loads followed by a boolean comparison. */
     fun lowerCondition(plan: ExecutionPlan): List<CompilerInstruction> {
+        if (plan.resolved.operation.name == "न्यूनता") {
+            val operator = copularOrderOperator(plan)
+            val subject = plan.resolved.context.bindings[Karaka.KARTR]?.let(::lowerOperands)
+            val standard = plan.resolved.context.bindings[Karaka.APADANA]?.let(::lowerOperands)
+            if (operator != null && subject?.size == 1 && standard?.size == 1) {
+                return subject.single() + standard.single() + CompilerInstruction.Compare(operator)
+            }
+        }
         if (plan.resolved.operation.name != "सङ्ख्यातुलना") {
             return lowerGenericCondition(plan)
         }
@@ -535,16 +553,27 @@ internal object CompilerIrLowering {
         }
     }
 
-    private fun lowerGenericCondition(plan: ExecutionPlan): List<CompilerInstruction> = listOf(
-        lowerLeaf(plan),
-        CompilerInstruction.Duplicate,
-        CompilerInstruction.Store("LastResult"),
-        CompilerInstruction.Booleanize,
-    )
+    private fun copularOrderOperator(plan: ExecutionPlan): ComparisonOperator? =
+        when (dev.panini.execution.CopularPredicate.from(plan.resolved.context.bindings[Karaka.KARMAN])) {
+            dev.panini.execution.CopularPredicate.LESS_THAN -> ComparisonOperator.LESS_THAN
+            dev.panini.execution.CopularPredicate.GREATER_THAN -> ComparisonOperator.GREATER_THAN
+            else -> null
+        }
+
+    private fun lowerGenericCondition(plan: ExecutionPlan): List<CompilerInstruction> =
+        lowerPrimitiveLeafValues(plan)?.let { primitive ->
+            primitive + CompilerInstruction.LoadLastResult + CompilerInstruction.Booleanize
+        } ?: listOf(
+            lowerLeaf(plan),
+            CompilerInstruction.Duplicate,
+            CompilerInstruction.Store("LastResult"),
+            CompilerInstruction.Booleanize,
+        )
 
     /** Lowers primitive numeric folds and single-value assignment without action dispatch. */
     private fun lowerPrimitiveLeafValues(plan: ExecutionPlan): List<CompilerInstruction>? {
         val operation = plan.resolved.operation.name
+        val naturalOperation = NaturalOperationResolver.resolve(plan.resolved)
         val arithmetic = when (operation) {
             "सङ्ख्यायोजनम्" -> ArithmeticOperator.ADD
             "सङ्ख्यावियोगः" -> ArithmeticOperator.SUBTRACT
@@ -556,8 +585,9 @@ internal object CompilerIrLowering {
             "कर्णसाधनम्" -> ArithmeticOperator.HYPOTENUSE
             else -> null
         }
-        val collection = when (operation) {
-            "सूच्याकारः" -> CollectionOperator.LENGTH
+        val collection = when {
+            naturalOperation is NaturalOperation.CollectionCardinality -> CollectionOperator.LENGTH
+            else -> when (operation) {
             "सूचीविलोमः" -> CollectionOperator.REVERSE
             "सूचीसंयोगः" -> CollectionOperator.CONCAT
             "सूचीस्थानम्" -> CollectionOperator.INDEX
@@ -567,11 +597,25 @@ internal object CompilerIrLowering {
             "सूचीविभागः" -> CollectionOperator.SLICE
             "सूचीप्रसारणम्" -> CollectionOperator.FLATTEN
             else -> null
+            }
         }
         val operands = plan.resolved.context.bindings[Karaka.KARMAN]
             ?.let(::lowerOperands)
-            ?: return null
+            .orEmpty()
         val valueInstructions = when {
+            operation == "न्यूनता" -> {
+                val operator = copularOrderOperator(plan) ?: return null
+                val subject = plan.resolved.context.bindings[Karaka.KARTR]?.let(::lowerOperands)
+                val standard = plan.resolved.context.bindings[Karaka.APADANA]?.let(::lowerOperands)
+                if (subject?.size != 1 || standard?.size != 1) return null
+                subject.single() + standard.single() + CompilerInstruction.Compare(operator)
+            }
+            operation == "सूचीसङ्ग्रहः" &&
+                naturalOperation is NaturalOperation.CollectionFormation &&
+                operands.isNotEmpty() -> buildList {
+                operands.forEach(::addAll)
+                add(CompilerInstruction.BuildList(operands.size))
+            }
             operation == "प्रदर्शनम्" -> {
                 val expression = plan.resolved.context.bindings[Karaka.KARMAN]
                     ?: plan.resolved.context.bindings[Karaka.KARTR]
@@ -609,6 +653,10 @@ internal object CompilerIrLowering {
                     add(CompilerInstruction.Arithmetic(arithmetic))
                 }
             }
+            naturalOperation is NaturalOperation.CollectionCardinality -> {
+                val list = lowerSingleCollectionValue(naturalOperation.collection) ?: return null
+                list + CompilerInstruction.Collection(CollectionOperator.LENGTH)
+            }
             collection in setOf(
                 CollectionOperator.LENGTH,
                 CollectionOperator.REVERSE,
@@ -616,10 +664,13 @@ internal object CompilerIrLowering {
             ) && operands.size == 1 -> operands.single() +
                 CompilerInstruction.Collection(requireNotNull(collection))
             collection == CollectionOperator.CONCAT -> {
-                val separateRight = plan.resolved.context.bindings[Karaka.SAMPRADANA]
+                val naturalFrame = naturalOperation as? NaturalOperation.CollectionConcatenation
+                val separateRight = (naturalFrame?.companion
+                    ?: plan.resolved.context.bindings[Karaka.SAMPRADANA])
                     ?.let(::lowerSingleCollectionValue)
                 val (left, right) = if (separateRight != null) {
-                    val separateLeft = plan.resolved.context.bindings[Karaka.KARMAN]
+                    val separateLeft = (naturalFrame?.collection
+                        ?: plan.resolved.context.bindings[Karaka.KARMAN])
                         ?.let(::lowerSingleCollectionValue)
                         ?: return null
                     separateLeft to separateRight
@@ -630,52 +681,72 @@ internal object CompilerIrLowering {
                 left + right + CompilerInstruction.Collection(CollectionOperator.CONCAT)
             }
             collection == CollectionOperator.INDEX -> {
-                val list = plan.resolved.context.bindings[Karaka.KARMAN]
+                val naturalFrame = naturalOperation as? NaturalOperation.IndexedRetrieval
+                val listExpression = naturalFrame?.collection
+                    ?: plan.resolved.context.bindings[Karaka.KARMAN]
+                val indexExpression = naturalFrame?.index
+                    ?: plan.resolved.context.bindings[Karaka.KARANA]
+                val list = listExpression
                     ?.let(::lowerSingleCollectionValue)
                     ?: return null
-                val index = plan.resolved.context.bindings[Karaka.KARANA]
-                    ?.let(::lowerOperand)
+                val index = indexExpression
+                    ?.let(::lowerNumericOperand)
                     ?: return null
                 list + index + CompilerInstruction.Collection(CollectionOperator.INDEX)
             }
             collection == CollectionOperator.CONTAINS -> {
-                val list = plan.resolved.context.bindings[Karaka.KARMAN]
+                val naturalFrame = naturalOperation as? NaturalOperation.CollectionMembership
+                val list = (naturalFrame?.collection
+                    ?: plan.resolved.context.bindings[Karaka.KARMAN])
                     ?.let(::lowerSingleCollectionValue)
                     ?: return null
-                val query = (plan.resolved.context.bindings[Karaka.KARANA]
+                val query = (naturalFrame?.item
+                    ?: plan.resolved.context.bindings[Karaka.KARANA]
                     ?: plan.resolved.context.bindings[Karaka.KARTR])
                     ?.let(::lowerOperand)
                     ?: return null
                 list + query + CompilerInstruction.Collection(CollectionOperator.CONTAINS)
             }
             collection == CollectionOperator.APPEND -> {
-                val expression = plan.resolved.context.bindings[Karaka.KARMAN]
-                    ?: plan.resolved.context.bindings[Karaka.ADHIKARANA]
-                    ?: return null
-                val members = (expression as? ExecutionExpression.Coordination)?.members ?: return null
-                if (members.size != 2) return null
-                val list = lowerSingleCollectionValue(members[0]) ?: return null
-                val item = lowerOperand(members[1]) ?: return null
+                val naturalFrame = naturalOperation as? NaturalOperation.CollectionInsertion
+                val (list, item) = if (naturalFrame != null) {
+                    val destination = lowerSingleCollectionValue(naturalFrame.collection) ?: return null
+                    val inserted = lowerOperand(naturalFrame.item) ?: return null
+                    destination to inserted
+                } else {
+                    val expression = plan.resolved.context.bindings[Karaka.KARMAN] ?: return null
+                    val members = (expression as? ExecutionExpression.Coordination)?.members ?: return null
+                    if (members.size != 2) return null
+                    val destination = lowerSingleCollectionValue(members[0]) ?: return null
+                    val inserted = lowerOperand(members[1]) ?: return null
+                    destination to inserted
+                }
                 list + item + CompilerInstruction.Collection(CollectionOperator.APPEND)
             }
             collection == CollectionOperator.POP -> {
-                val list = plan.resolved.context.bindings[Karaka.KARMAN]
+                val frame = naturalOperation as? NaturalOperation.CollectionExtraction
+                if (frame != null && plan.resolved.context.resolve(frame.member) != listOf("अन्तिम")) return null
+                val list = (frame?.collection ?: plan.resolved.context.bindings[Karaka.KARMAN])
                     ?.let(::lowerSingleCollectionValue)
                     ?: return null
                 list + CompilerInstruction.Collection(CollectionOperator.POP)
             }
             collection == CollectionOperator.SLICE -> {
-                val list = plan.resolved.context.bindings[Karaka.KARMAN]
+                val naturalFrame = naturalOperation as? NaturalOperation.CollectionSlice
+                val list = (naturalFrame?.collection ?: plan.resolved.context.bindings[Karaka.KARMAN])
                     ?.let(::lowerSingleCollectionValue)
                     ?: return null
-                val start = plan.resolved.context.bindings[Karaka.KARANA]
-                    ?.let(::lowerOperand)
+                val start = (naturalFrame?.start ?: plan.resolved.context.bindings[Karaka.KARANA])
+                    ?.let(::lowerNumericOperand)
                     ?: return null
-                val end = plan.resolved.context.bindings[Karaka.SAMPRADANA]
-                    ?.let(::lowerOperand)
+                val end = (naturalFrame?.endInclusive ?: plan.resolved.context.bindings[Karaka.SAMPRADANA])
+                    ?.let(::lowerNumericOperand)
                     ?: return null
                 list + start + end + CompilerInstruction.Collection(CollectionOperator.SLICE)
             }
+            naturalOperation is NaturalOperation.StatePlacement -> naturalOperation.value
+                .let(::lowerAssignmentOperand)
+                ?: return null
             operation == "मूल्यदानम्" -> plan.resolved.context.bindings[Karaka.KARMAN]
                 ?.let(::lowerAssignmentOperand)
                 ?: return null
@@ -711,11 +782,11 @@ internal object CompilerIrLowering {
     }
 
     private fun lowerDisplayOperand(expression: ExecutionExpression): List<CompilerInstruction>? = when (expression) {
-        is ExecutionExpression.Pada -> expression.value?.let {
-            listOf(CompilerInstruction.Constant(it))
-        }
+        is ExecutionExpression.Pada -> if (Samjna.REFERENCE in expression.samjnas) {
+            listOf(CompilerInstruction.LoadLastResult)
+        } else expression.value?.let { listOf(CompilerInstruction.Constant(it)) }
         is ExecutionExpression.TypedOperand -> listOf(CompilerInstruction.Constant(expression.value))
-        is ExecutionExpression.Reference -> if (expression.name == "फल") {
+        is ExecutionExpression.Reference -> if (expression.name == "LastResult") {
             listOf(CompilerInstruction.LoadLastResult)
         } else {
             null
@@ -724,12 +795,35 @@ internal object CompilerIrLowering {
     }
 
     private fun lowerOperand(expression: ExecutionExpression): List<CompilerInstruction>? = when (expression) {
-        is ExecutionExpression.Pada -> expression.value?.let {
+        is ExecutionExpression.Pada -> if (Samjna.REFERENCE in expression.samjnas) {
+            listOf(CompilerInstruction.LoadLastResult)
+        } else expression.value?.let {
             listOf(CompilerInstruction.Constant(it))
         } ?: listOf(CompilerInstruction.Load(expression.prakriti))
         is ExecutionExpression.TypedOperand -> listOf(CompilerInstruction.Constant(expression.value))
         is ExecutionExpression.Reference -> listOf(
-            if (expression.name == "फल") CompilerInstruction.LoadLastResult
+            if (expression.name == "LastResult") CompilerInstruction.LoadLastResult
+            else CompilerInstruction.Load(expression.name),
+        )
+        is ExecutionExpression.Coordination -> null
+    }
+
+    /** A collection position is numeric: unresolved/self-form padas are state references, not text literals. */
+    private fun lowerNumericOperand(expression: ExecutionExpression): List<CompilerInstruction>? = when (expression) {
+        is ExecutionExpression.Pada -> if (Samjna.REFERENCE in expression.samjnas) {
+            listOf(CompilerInstruction.LoadLastResult)
+        } else when (val value = expression.value) {
+                is SanskritValue.Sankhya -> listOf(CompilerInstruction.Constant(value))
+                null, is SanskritValue.Shabda -> listOf(CompilerInstruction.Load(expression.prakriti))
+                else -> null
+            }
+        is ExecutionExpression.TypedOperand -> when (val value = expression.value) {
+            is SanskritValue.Sankhya -> listOf(CompilerInstruction.Constant(value))
+            is SanskritValue.Shabda -> listOf(CompilerInstruction.Load(value.text))
+            else -> null
+        }
+        is ExecutionExpression.Reference -> listOf(
+            if (expression.name == "LastResult") CompilerInstruction.LoadLastResult
             else CompilerInstruction.Load(expression.name),
         )
         is ExecutionExpression.Coordination -> null
@@ -737,18 +831,22 @@ internal object CompilerIrLowering {
 
     private fun lowerSingleCollectionValue(expression: ExecutionExpression): List<CompilerInstruction>? = when (expression) {
         is ExecutionExpression.Reference -> lowerOperand(expression)
-        is ExecutionExpression.Pada -> when (val value = expression.value) {
-            null -> listOf(CompilerInstruction.Load(expression.prakriti))
+        is ExecutionExpression.Pada -> if (Samjna.REFERENCE in expression.samjnas) {
+            listOf(CompilerInstruction.LoadLastResult)
+        } else when (val value = expression.value) {
+                null -> listOf(CompilerInstruction.Load(expression.prakriti))
+                is SanskritValue.Suchi, is SanskritValue.Gana -> listOf(CompilerInstruction.Constant(value))
+                is SanskritValue.Sankhya -> value.takeIf { it.word == expression.prakriti }
+                    ?.let { listOf(CompilerInstruction.Load(expression.prakriti)) }
+                is SanskritValue.Shabda -> value.takeIf { it.text == expression.prakriti }
+                    ?.let { listOf(CompilerInstruction.Load(expression.prakriti)) }
+                else -> null
+            }
+        is ExecutionExpression.TypedOperand -> when (val value = expression.value) {
             is SanskritValue.Suchi, is SanskritValue.Gana -> listOf(CompilerInstruction.Constant(value))
-            is SanskritValue.Sankhya -> value.takeIf { it.word == expression.prakriti }
-                ?.let { listOf(CompilerInstruction.Load(expression.prakriti)) }
-            is SanskritValue.Shabda -> value.takeIf { it.text == expression.prakriti }
-                ?.let { listOf(CompilerInstruction.Load(expression.prakriti)) }
+            is SanskritValue.Shabda -> listOf(CompilerInstruction.Load(value.text))
             else -> null
         }
-        is ExecutionExpression.TypedOperand -> expression.value
-            .takeIf { it is SanskritValue.Suchi || it is SanskritValue.Gana }
-            ?.let { listOf(CompilerInstruction.Constant(it)) }
         is ExecutionExpression.Coordination -> null
     }
 
@@ -934,7 +1032,16 @@ internal object CompilerIrVerifier {
                 require(instruction.minimum <= instruction.maximum) {
                     "IR random range minimum exceeds maximum at instruction $index"
                 }
-                before + ValueKind.NUMBER
+                if (instruction.excludeCollection) {
+                    pop(ValueKind.LIST).first + ValueKind.NUMBER
+                } else {
+                    before + ValueKind.NUMBER
+                }
+            }
+            is CompilerInstruction.RandomActiveRange -> {
+                val afterExclusion = if (instruction.excludeCollection) pop(ValueKind.LIST).first else before
+                require(afterExclusion.isNotEmpty()) { "IR active range operand missing at instruction $index" }
+                afterExclusion.dropLast(1) + ValueKind.NUMBER
             }
             is CompilerInstruction.Collection -> {
                 val arity = when (instruction.operator) {
@@ -958,7 +1065,7 @@ internal object CompilerIrVerifier {
                 fun requireKind(position: Int, expected: ValueKind) {
                     val actual = operands[position]
                     require(actual == expected || actual == ValueKind.UNKNOWN) {
-                        "IR collection operation requires $expected at instruction $index: $instruction"
+                        "IR collection operation requires $expected but found $actual at instruction $index: $instruction"
                     }
                 }
                 requireKind(0, ValueKind.LIST)

@@ -8,6 +8,7 @@ import dev.panini.vyakaranam.ast.KridantaLexicalIdentity
 import dev.panini.vyakaranam.ast.KridantaPratipadika
 import dev.panini.vyakaranam.ast.MulaPratipadika
 import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
+import dev.panini.vyakaranam.ast.Pada
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.Quotation
 import dev.panini.vyakaranam.ast.invocations
@@ -22,6 +23,7 @@ enum class PrakriyaDefinitionQualifier {
 
 data class ParsedPrakriyaQualifiers(
     val declarationSource: String,
+    val declarationPadas: List<Pada>,
     val qualifiers: Set<PrakriyaDefinitionQualifier>,
 )
 
@@ -76,11 +78,13 @@ object PrakriyaDefinitionMarkerParser {
         val quotation = ukti.body as? Quotation
         if (quotation != null) {
             val qualifierPadas = quotation.reporting.invocations().flatMap { it.vakya.padas }
-            val declarationSource = quotation.quoted.vakya.padas
+            val declarationPadas = quotation.quoted.vakya.padas
+            val declarationSource = declarationPadas
                 .joinToString(" ") { PrakriyaInvocationMatcher.normalizeIdentity(it.sourceText) }
                 .ifBlank { return null }
             return ParsedPrakriyaQualifiers(
                 declarationSource = declarationSource,
+                declarationPadas = declarationPadas,
                 qualifiers = qualifierPadas.filterIsInstance<SubantaPada>()
                     .mapNotNull { it.definitionQualifier() }.toSet(),
             )
@@ -96,6 +100,7 @@ object PrakriyaDefinitionMarkerParser {
             .ifBlank { return null }
         return ParsedPrakriyaQualifiers(
             declarationSource = declarationSource,
+            declarationPadas = declarationPadas,
             qualifiers = qualifierPadas
                 .filterIsInstance<SubantaPada>()
                 .mapNotNull { it.definitionQualifier() }

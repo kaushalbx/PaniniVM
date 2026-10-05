@@ -45,6 +45,7 @@ import dev.panini.vyakaranam.ast.Quotation
 import dev.panini.vyakaranam.ast.Repeat
 import dev.panini.vyakaranam.ast.SankhyaAbhyasaPada
 import dev.panini.vyakaranam.ast.Sequence
+import dev.panini.vyakaranam.ast.SequenceConnector
 import dev.panini.vyakaranam.ast.Scope
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.TingantaPada
@@ -59,6 +60,8 @@ import dev.panini.vyakaranam.lexicon.VyakaranamLexicon
 import dev.panini.vyakaranam.parser.PaniniParseException
 import dev.panini.vyakaranam.parser.PaniniParser
 import kotlin.collections.plusAssign
+import java.util.Collections
+import java.util.WeakHashMap
 
 /**
  * Thin bridge from canonical vyākaraṇa analysis to execution semantics.
@@ -72,6 +75,7 @@ import kotlin.collections.plusAssign
  */
 object VyakaranamExecutionAdapter {
     private val parser = PaniniParser()
+    private val analysisCache = Collections.synchronizedMap(WeakHashMap<Ukti, UktiAnalysis>())
 
     internal fun analyzeForMemory(text: String): UktiAnalysis? {
         val ukti = try {
@@ -92,7 +96,12 @@ object VyakaranamExecutionAdapter {
         return analyze(ukti)
     }
 
-    private fun analyze(ukti: Ukti): UktiAnalysis = UktiAnalyzer { vakya, frameId ->
+    private fun analyze(ukti: Ukti): UktiAnalysis = analysisCache.getOrPut(ukti) {
+        analyzeUncached(ukti)
+    }
+
+    /** Performs grammar-only analysis; callers reuse it across dynamic executions of the same AST. */
+    private fun analyzeUncached(ukti: Ukti): UktiAnalysis = UktiAnalyzer { vakya, frameId ->
         val akhyata = vakya as? AkhyataVakya
         if (akhyata == null) {
             VakyaAnalyzer(
@@ -494,7 +503,7 @@ object VyakaranamExecutionAdapter {
             is Sequence -> {
                 val shapes = node.statements.map(::visit)
                 shapes.zipWithNext().forEachIndexed { boundary, (before, after) ->
-                    if (node.connectors.getOrNull(boundary) == "ततः" &&
+                    if (node.connectorKinds.getOrNull(boundary) == SequenceConnector.ANANTARYA &&
                         before.exits.size == 1 && after.entries.size == 1
                     ) {
                         sources[after.entries.single()] = before.exits.single()

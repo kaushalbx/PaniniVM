@@ -1,8 +1,12 @@
 package dev.panini.derivation
 
 import dev.panini.ashtadhyayi.Ashtadhyayi
+import dev.panini.ashtadhyayi.adhyaya6.pada1.SavarnaDirghaSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada2.JhalamJashonteSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada3.MonusvarahSutra
+import dev.panini.ashtadhyayi.adhyaya8.pada4.JhayoHonyatarasyamSutra
+import dev.panini.ashtadhyayi.adhyaya8.pada4.AnusvarasyaYayiParasavarnahSutra
+import dev.panini.shiksha.Varnamala
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Samjna
 
@@ -10,6 +14,29 @@ import dev.panini.shiksha.Samjna
 class SandhiEngine(
     private val engine: DerivationEngine = DerivationEngine(Ashtadhyayi.executableSutras)
 ) {
+    /** Apply savarṇa vowel and consonant prefix-boundary sandhi.
+     * Completed verbal forms must not undergo a new full derivation. This
+     * boundary helper does not yet implement the full vowel-sandhi inventory.
+     */
+    fun joinPrefix(left: String, right: String): String {
+        var state = padaBoundaryState(left, right)
+        if (SavarnaDirghaSutra.matches(state)) {
+            state = SavarnaDirghaSutra.apply(state).state
+        }
+        if (MonusvarahSutra.matches(state)) state = MonusvarahSutra.apply(state).state
+        // Select a written homorganic nasal before a varga consonant. Keep
+        // anusvāra before semivowels; the general rule's fallback is not a
+        // representation of their nasalized phonetic variants.
+        if (right.firstOrNull()?.let { Varnamala.getVargaInfo(it) } != null &&
+            AnusvarasyaYayiParasavarnahSutra.matches(state)) {
+            state = AnusvarasyaYayiParasavarnahSutra.apply(state).state
+        }
+        if (JhayoHonyatarasyamSutra.matches(state)) {
+            state = JhayoHonyatarasyamSutra.apply(state).state
+        }
+        return state.terms.joinToString("") { it.surface }
+    }
+
     fun join(
         left: String,
         right: String,

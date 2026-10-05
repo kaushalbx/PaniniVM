@@ -2,7 +2,10 @@ package dev.panini.execution
 
 import dev.panini.execution.binding.baseText
 import dev.panini.vyakaranam.ast.AvyayaPada
+import dev.panini.vyakaranam.ast.AvyayaFunction
 import dev.panini.vyakaranam.ast.ProgramNode
+import dev.panini.vyakaranam.ast.MulaPratipadika
+import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.WhileLoop
 
@@ -17,6 +20,7 @@ internal class PvmLoopExecutor {
         val executeNode: (ProgramNode, ExecutionScope, Boolean) -> List<ExecutionResult>,
         val evaluateCondition: (dev.panini.vyakaranam.ast.Invocation, ExecutionScope) -> ExecutionResult,
         val resolveCondition: (dev.panini.vyakaranam.ast.Invocation) -> StructuredValueExecutor.ResolvedInvocation?,
+        val resolveValue: (String) -> SanskritValue? = { null },
         val onResult: ((ExecutionResult) -> Unit)?,
     )
 
@@ -30,13 +34,22 @@ internal class PvmLoopExecutor {
             )
             value
         }
-        val usesLatestResult = loop.condition.vakya.padas.any {
-            it is SubantaPada && it.pratipadika.baseText() in setOf("फल", "विजय")
+        val normalizedCondition = NaturalSemanticNormalizer.normalize(loop.condition)
+        val reportedOutcome = normalizedCondition as? NaturalSemanticNormalizer.Operation.ReportedOutcomeTest
+        val usesLatestResult = reportedOutcome != null || loop.condition.vakya.padas.any {
+            it is SubantaPada && NaturalSemanticNormalizer.isPriorResult(it)
         }
-        val isNegated = loop.condition.vakya.padas.any {
-            (it is AvyayaPada && it.form == "न") ||
-                (it is SubantaPada && it.pratipadika.baseText() == "असत्य")
+        val hasExplicitNegation = loop.condition.vakya.padas.any {
+            it is AvyayaPada && it.function == AvyayaFunction.NISHEDHA
         }
+        val isNegated = reportedOutcome?.negated ?: (hasExplicitNegation || loop.condition.vakya.padas.any {
+                it is SubantaPada &&
+                    (it.pratipadika as? MulaPratipadika)?.lexicalIdentity == MulaPratipadikaIdentity.ASATYA
+        })
+        val truthStateName = loop.condition.vakya.padas.filterIsInstance<SubantaPada>()
+            .singleOrNull()
+            ?.pratipadika
+            ?.baseText()
         var latestConditionValue = false
         var iterationCount = 0L
 
@@ -92,16 +105,23 @@ internal class PvmLoopExecutor {
             val conditionHolds = if (usesLatestResult) {
                 if (isNegated) !latestConditionValue else latestConditionValue
             } else {
-                val resolved = request.resolveCondition(loop.condition) ?: return results + ExecutionResult.Failure(
-                    ExecutionError.INVALID_VALUE,
-                    "A structured attribute used by the loop condition could not be resolved.",
-                )
-                val conditionResult = request.evaluateCondition(
-                    resolved.invocation,
-                    request.scope.copy(environment = request.scope.environment.mergedWith(resolved.environment)),
-                )
-                val success = conditionResult as? ExecutionResult.Success
-                (success?.conditionValue ?: (success?.typedValue as? SanskritValue.Satya)?.boolean) == true
+                val truthState = truthStateName
+                    ?.let { request.scope.environment.values[it] ?: request.resolveValue(it) }
+                    as? SanskritValue.Satya
+                if (truthState != null) {
+                    if (hasExplicitNegation) !truthState.boolean else truthState.boolean
+                } else {
+                    val resolved = request.resolveCondition(loop.condition) ?: return results + ExecutionResult.Failure(
+                        ExecutionError.INVALID_VALUE,
+                        "A structured attribute used by the loop condition could not be resolved.",
+                    )
+                    val conditionResult = request.evaluateCondition(
+                        resolved.invocation,
+                        request.scope.copy(environment = request.scope.environment.mergedWith(resolved.environment)),
+                    )
+                    val success = conditionResult as? ExecutionResult.Success
+                    (success?.conditionValue ?: (success?.typedValue as? SanskritValue.Satya)?.boolean) == true
+                }
             }
             if (!conditionHolds) return complete(ExecutionResult.LoopOutcome.VIJAYA)
 
@@ -128,4 +148,5 @@ internal class PvmLoopExecutor {
     private companion object {
         const val LOOP_RESULT_NAME = "परिणाम"
     }
+
 }

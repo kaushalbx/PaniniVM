@@ -18,6 +18,7 @@ object PurvaparaPipelineEngine {
         listener: String,
         registry: PrakriyaRegistry,
         callerSourceFile: String? = null,
+        persistSession: Boolean = true,
     ): List<ExecutionResult> {
         if (pipeline.stages.size < 2) {
             return listOf(
@@ -28,18 +29,23 @@ object PurvaparaPipelineEngine {
             )
         }
 
-        var currentArguments = pipeline.arguments
-        var currentValues: List<SanskritValue?> = List(currentArguments.size) { null }
+        val originalArguments = pipeline.arguments.mapIndexed { index, term ->
+            PrakriyaArgument(
+                term = term,
+                pada = pipeline.argumentPadas.getOrNull(index),
+                origin = PrakriyaArgumentOrigin.WRITTEN,
+            )
+        }
+        var currentArguments = originalArguments
         var lastSuccess: ExecutionResult.Success? = null
 
         for (stage in pipeline.stages) {
             val invocation = registry.resolveStructuredInvocation(
                 operationStem = stage.operationStem,
                 domainStem = stage.domainStem,
-                argumentTerms = currentArguments,
+                arguments = currentArguments,
                 sourceText = pipeline.sourceText,
                 callerSourceFile = callerSourceFile,
-                argumentValues = currentValues,
             )
             if (invocation == null) {
                 return listOf(
@@ -52,6 +58,7 @@ object PurvaparaPipelineEngine {
 
             val stageResults = vm.executePrakriyaInvocation(
                 invocation, sessionKey, scope, speaker, listener, registry, callerSourceFile = callerSourceFile,
+                persistSession = persistSession,
             )
             val stageSuccess = stageResults.filterIsInstance<ExecutionResult.Success>().lastOrNull()
 
@@ -65,14 +72,13 @@ object PurvaparaPipelineEngine {
             }
 
             lastSuccess = stageSuccess
-            val stageVal = stageSuccess.value
-            val nextArgs = mutableListOf(stageVal)
-            if (pipeline.arguments.size > 1) {
-                nextArgs.addAll(pipeline.arguments.drop(1))
-            }
-            currentArguments = nextArgs
-            currentValues = listOf(stageSuccess.typedValue) +
-                List((pipeline.arguments.size - 1).coerceAtLeast(0)) { null }
+            currentArguments = listOf(
+                PrakriyaArgument(
+                    term = "फल",
+                    value = stageSuccess.typedValue,
+                    origin = PrakriyaArgumentOrigin.PIPE,
+                ),
+            ) + originalArguments.drop(1)
         }
 
         return listOf(

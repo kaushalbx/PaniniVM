@@ -7,6 +7,28 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class PronominalStemsTest {
+    @Test
+    fun `ami purvah preserves vowels but does not delete am after consonants`() {
+        val engine = SubantaEngine()
+        for ((stem, expected) in listOf("सरित्" to "सरितम्", "त्रिंशत्" to "त्रिंशतम्")) {
+            val result = engine.derive(SubantaDerivationRequest(stem, Vibhakti.DVITIYA, Vacana.EKAVACANA, Linga.STRI))
+            assertEquals(expected, result.final.surface)
+            kotlin.test.assertFalse(result.applications.any { it.sutra == "6.1.107" })
+        }
+        val vowel = engine.derive(SubantaDerivationRequest("मति", Vibhakti.DVITIYA, Vacana.EKAVACANA, Linga.STRI))
+        assertEquals("मतिम्", vowel.final.surface)
+        kotlin.test.assertTrue(vowel.applications.any { it.sutra == "6.1.107" })
+    }
+    @Test
+    fun `neuter accusative plural tri receives natva while final masculine nasal stays dental`() {
+        val engine = SubantaEngine()
+        val neuter = engine.derive(SubantaDerivationRequest("त्रि", Vibhakti.DVITIYA, Vacana.BAHUVACANA, Linga.NAPUMSAKA))
+        assertEquals("त्रीणि", neuter.final.surface)
+        kotlin.test.assertTrue(neuter.applications.any { it.sutra == "8.4.2" })
+        val masculine = engine.derive(SubantaDerivationRequest("राम", Vibhakti.DVITIYA, Vacana.BAHUVACANA, Linga.PUMS))
+        assertEquals("रामान्", masculine.final.surface)
+    }
+
 
     private val engine = SubantaEngine()
 

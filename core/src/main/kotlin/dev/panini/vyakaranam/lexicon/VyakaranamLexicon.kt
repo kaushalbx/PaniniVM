@@ -33,6 +33,9 @@ object StandardPratipadikaLexicon : PratipadikaLexicon {
                 ),
             )
         }
+        listOf("मूल्य", "परिमाण", "मान", "फल").forEach { text ->
+            put(text, PratipadikaEntry(text = text, linga = setOf(Linga.NAPUMSAKA)))
+        }
     }
 
     override fun findPratipadika(text: String): PratipadikaEntry? = entries[text.trim()]

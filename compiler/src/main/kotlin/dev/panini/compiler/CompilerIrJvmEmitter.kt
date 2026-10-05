@@ -66,10 +66,20 @@ internal class CompilerIrJvmEmitter(
                     mv.visitMethodInsn(
                         INVOKESTATIC,
                         "dev/panini/compiler/PaniniRuntime",
-                        "randomRange",
-                        "(JJ)Ldev/panini/execution/SanskritValue;",
+                        if (instruction.excludeCollection) "randomRangeExcluding" else "randomRange",
+                        if (instruction.excludeCollection) {
+                            "(Ldev/panini/execution/SanskritValue;JJ)Ldev/panini/execution/SanskritValue;"
+                        } else {
+                            "(JJ)Ldev/panini/execution/SanskritValue;"
+                        },
                         false,
                     )
+                }
+                is CompilerInstruction.RandomActiveRange -> {
+                    if (!instruction.excludeCollection) mv.visitInsn(ACONST_NULL)
+                    mv.visitMethodInsn(INVOKESTATIC, "dev/panini/compiler/CompilerValueOperations",
+                        "randomActiveRange",
+                        "(Ldev/panini/execution/SanskritValue;Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;", false)
                 }
                 is CompilerInstruction.Collection -> emitCollection(instruction.operator)
                 is CompilerInstruction.Compare -> emitComparison(instruction.operator)

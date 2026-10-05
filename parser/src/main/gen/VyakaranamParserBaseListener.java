@@ -1,4 +1,4 @@
-// Generated from /Users/kaushalbx/StudioProjects/AshtadhyayiSandhi/parser/src/main/antlr/dev/panini/vyakaranam/VyakaranamParser.g4 by ANTLR 4.13.2
+// Generated from C:/Users/User/Documents/SanskritSandhi/parser/src/main/antlr/dev/panini/vyakaranam/VyakaranamParser.g4 by ANTLR 4.13.2
 
 package dev.panini.parser;
 
@@ -31,6 +31,126 @@ public class VyakaranamParserBaseListener implements VyakaranamParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterQuotationClause(VyakaranamParser.QuotationClauseContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitQuotationClause(VyakaranamParser.QuotationClauseContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterConditionalPipelineClause(VyakaranamParser.ConditionalPipelineClauseContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitConditionalPipelineClause(VyakaranamParser.ConditionalPipelineClauseContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterAttributePipelineClause(VyakaranamParser.AttributePipelineClauseContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAttributePipelineClause(VyakaranamParser.AttributePipelineClauseContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterWhileClause(VyakaranamParser.WhileClauseContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitWhileClause(VyakaranamParser.WhileClauseContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterWhileExhausted(VyakaranamParser.WhileExhaustedContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitWhileExhausted(VyakaranamParser.WhileExhaustedContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterOrdinalAttemptBoundary(VyakaranamParser.OrdinalAttemptBoundaryContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitOrdinalAttemptBoundary(VyakaranamParser.OrdinalAttemptBoundaryContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterPipelineClause(VyakaranamParser.PipelineClauseContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitPipelineClause(VyakaranamParser.PipelineClauseContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterPipelineStage(VyakaranamParser.PipelineStageContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitPipelineStage(VyakaranamParser.PipelineStageContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterPurvaparaDirective(VyakaranamParser.PurvaparaDirectiveContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitPurvaparaDirective(VyakaranamParser.PurvaparaDirectiveContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterPipelineResult(VyakaranamParser.PipelineResultContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitPipelineResult(VyakaranamParser.PipelineResultContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterConditionalClause(VyakaranamParser.ConditionalClauseContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -43,13 +163,25 @@ public class VyakaranamParserBaseListener implements VyakaranamParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterLoopClause(VyakaranamParser.LoopClauseContext ctx) { }
+	@Override public void enterConditionalExpression(VyakaranamParser.ConditionalExpressionContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitLoopClause(VyakaranamParser.LoopClauseContext ctx) { }
+	@Override public void exitConditionalExpression(VyakaranamParser.ConditionalExpressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterConditionalArm(VyakaranamParser.ConditionalArmContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitConditionalArm(VyakaranamParser.ConditionalArmContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -122,6 +254,66 @@ public class VyakaranamParserBaseListener implements VyakaranamParserListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitVakyaPada(VyakaranamParser.VakyaPadaContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterParyantaRange(VyakaranamParser.ParyantaRangeContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitParyantaRange(VyakaranamParser.ParyantaRangeContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterAblativeNumeral(VyakaranamParser.AblativeNumeralContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAblativeNumeral(VyakaranamParser.AblativeNumeralContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterAccusativeNumeral(VyakaranamParser.AccusativeNumeralContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAccusativeNumeral(VyakaranamParser.AccusativeNumeralContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterAblativeSup(VyakaranamParser.AblativeSupContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAblativeSup(VyakaranamParser.AblativeSupContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterAccusativeSup(VyakaranamParser.AccusativeSupContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAccusativeSup(VyakaranamParser.AccusativeSupContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -271,30 +463,6 @@ public class VyakaranamParserBaseListener implements VyakaranamParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterSankhyaBhinnaPada(VyakaranamParser.SankhyaBhinnaPadaContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitSankhyaBhinnaPada(VyakaranamParser.SankhyaBhinnaPadaContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterSankhyaMathPada(VyakaranamParser.SankhyaMathPadaContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitSankhyaMathPada(VyakaranamParser.SankhyaMathPadaContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterSankhyaStem(VyakaranamParser.SankhyaStemContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -362,6 +530,18 @@ public class VyakaranamParserBaseListener implements VyakaranamParserListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitMulaPratipadika(VyakaranamParser.MulaPratipadikaContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterSamjnaQualifierPratipadika(VyakaranamParser.SamjnaQualifierPratipadikaContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitSamjnaQualifierPratipadika(VyakaranamParser.SamjnaQualifierPratipadikaContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

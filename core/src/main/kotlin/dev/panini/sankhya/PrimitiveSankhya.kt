@@ -63,4 +63,14 @@ enum class PrimitiveSankhya(
     }
 }
 
-enum class SankhyaInflectionClass { SPECIAL, COUNT_FIVE_TO_NINETEEN, FEMININE_I, FEMININE_T, NEUTER_A }
+enum class SankhyaInflectionClass {
+    SPECIAL, COUNT_FIVE_TO_NINETEEN, FEMININE_I, FEMININE_T, NEUTER_A;
+
+    /** Nominal quantities keep their lexical gender rather than referent gender. */
+    val intrinsicLinga: dev.panini.core.Linga?
+        get() = when (this) {
+            FEMININE_I, FEMININE_T -> dev.panini.core.Linga.STRI
+            NEUTER_A -> dev.panini.core.Linga.NAPUMSAKA
+            else -> null
+        }
+}

@@ -7,9 +7,13 @@ import dev.panini.vyakaranam.ast.NamaVakya
 import dev.panini.vyakaranam.ast.Pipeline
 import dev.panini.vyakaranam.ast.ParyantaRangePada
 import dev.panini.vyakaranam.ast.MulaPratipadika
+import dev.panini.vyakaranam.ast.SubantaPada
+import dev.panini.vyakaranam.ast.semanticKey
 import dev.panini.vyakaranam.ast.Quotation
 import dev.panini.vyakaranam.ast.WhileLoop
 import dev.panini.vyakaranam.ast.Sequence
+import dev.panini.vyakaranam.ast.SequenceConnector
+import dev.panini.vyakaranam.ast.SankhyaPuranaPada
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -17,7 +21,78 @@ import kotlin.test.assertIs
 import kotlin.test.assertNull
 
 class ProgramAstTest {
+    @Test
+    fun `amach is parsed as first ordinal morphology`() {
+        val invocation = assertIs<Invocation>(
+            PaniniParser().parse("प्रथ् + अमच् + अम् मुद्र् + लोट् + सिप् ।").body,
+        )
+        val ordinal = assertIs<SankhyaPuranaPada>(invocation.vakya.padas.first())
+        assertEquals(listOf("प्रथ्", "अमच्"), ordinal.stems)
+    }
     private val parser = PaniniParser()
+
+    @Test
+    fun `kryadi affix uses shna and rejects the unsupported alias`() {
+        val verb = assertIs<AkhyataVakya>(assertIs<Invocation>(parser.parse(
+            "ग्रहँ + श्ना + लोट् + सिप् ।",
+        ).body).vakya).tinganta
+        assertEquals(dev.panini.vyakaranam.ast.Vikarana.SHNA, verb.vikarana)
+        assertFailsWith<PaniniParseException> {
+            parser.parse("ग्रहँ + श्नाम् + लोट् + सिप् ।")
+        }
+    }
+
+    @Test
+    fun `block terminator has a distinct token without changing utterance acceptance`() {
+        val lexer = dev.panini.parser.VyakaranamLexer(
+            org.antlr.v4.kotlinruntime.CharStreams.fromString("। ॥ ."),
+        )
+        assertEquals(dev.panini.parser.VyakaranamLexer.Tokens.DANDA, lexer.nextToken().type)
+        assertEquals(dev.panini.parser.VyakaranamLexer.Tokens.DOUBLE_DANDA, lexer.nextToken().type)
+        assertEquals(dev.panini.parser.VyakaranamLexer.Tokens.DANDA, lexer.nextToken().type)
+        for (terminator in listOf("।", "॥", ".", "")) {
+            assertIs<Invocation>(parser.parse("एक + अम् मुद्र् + णिच् + लोट् + सिप् $terminator").body)
+        }
+        assertFailsWith<PaniniParseException> {
+            parser.parse("एक + अम् मुद्र् + णिच् + लोट् + सिप् ॥ द्वि + औट् मुद्र् + णिच् + लोट् + सिप् ।")
+        }
+    }
+
+    @Test
+    fun `clause rules can build adjacent native AST nodes without consuming document EOF`() {
+        val tokens = org.antlr.v4.kotlinruntime.CommonTokenStream(
+            dev.panini.parser.VyakaranamLexer(org.antlr.v4.kotlinruntime.CharStreams.fromString(
+                "एक + अम् मुद्र् + णिच् + लोट् + सिप् । " +
+                    "द्वि + औट् मुद्र् + णिच् + लोट् + सिप् ।",
+            )),
+        )
+        val grammar = dev.panini.parser.VyakaranamParser(tokens)
+        val builder = VyakaranamAstBuilder()
+        val first = builder.build(grammar.utterance())
+        assertIs<Invocation>(first.body)
+        assertEquals(dev.panini.parser.VyakaranamLexer.Tokens.DANDA, tokens.LA(1))
+        tokens.consume()
+        val second = builder.build(grammar.utterance())
+        assertIs<Invocation>(second.body)
+        assertEquals(dev.panini.parser.VyakaranamLexer.Tokens.DANDA, tokens.LA(1))
+        tokens.consume()
+        assertEquals(org.antlr.v4.kotlinruntime.Token.EOF, tokens.LA(1))
+        assertEquals(false, first.sourceText.contains("<EOF>"))
+        assertEquals(false, second.sourceText.contains("<EOF>"))
+    }
+
+    @Test
+    fun `every grammar vikarana retains typed upadesha identity`() {
+        for (affix in dev.panini.vyakaranam.ast.Vikarana.entries) {
+            val invocation = assertIs<Invocation>(
+                parser.parse("भू + ${affix.upadesha} + लट् + तिप् ।").body,
+            )
+            assertEquals(affix, assertIs<AkhyataVakya>(invocation.vakya).tinganta.vikarana)
+        }
+        assertFailsWith<IllegalStateException> {
+            dev.panini.vyakaranam.ast.Vikarana.fromUpadesha("ना")
+        }
+    }
 
     @Test
     fun `segmented paryanta construction becomes a typed inclusive range`() {
@@ -33,7 +108,23 @@ class ProgramAstTest {
         assertEquals(listOf("दशन्"), range.upperLimit.stems)
         assertEquals("शस्", range.upperLimit.sup.text)
         assertEquals("पर्यन्त", assertIs<MulaPratipadika>(range.marker.pratipadika).text)
-        assertEquals("श्नु", assertIs<AkhyataVakya>(invocation.vakya).tinganta.vikarana)
+        assertEquals(dev.panini.vyakaranam.ast.Vikarana.SHNU, assertIs<AkhyataVakya>(invocation.vakya).tinganta.vikarana)
+    }
+
+    @Test
+    fun `paryanta construction retains ordinal boundary morphology`() {
+        val invocation = assertIs<Invocation>(
+            parser.parse(
+                "सूची + ङस् द्वि + तीय + ङसिँ त्रि + तीय + शस् परि + अन्त + अम् " +
+                    "अंश + अम् ग्रहँ + श्ना + लोट् + सिप् ।",
+            ).body,
+        )
+
+        val range = assertIs<ParyantaRangePada>(invocation.vakya.padas[1])
+        assertEquals(listOf("द्वि", "तीय"), assertIs<SankhyaPuranaPada>(range.lowerLimit).stems)
+        assertEquals("ङसिँ", range.lowerLimit.sup.text)
+        assertEquals(listOf("त्रि", "तीय"), assertIs<SankhyaPuranaPada>(range.upperLimit).stems)
+        assertEquals("शस्", range.upperLimit.sup.text)
     }
 
     @Test
@@ -45,8 +136,28 @@ class ProgramAstTest {
         val sequence = assertIs<Sequence>(ukti.body)
         assertEquals(2, sequence.statements.size)
         assertEquals(listOf("च"), sequence.connectors)
+        assertEquals(listOf(SequenceConnector.SAMUCCAYA), sequence.connectorKinds)
         sequence.statements.forEach { assertIs<Invocation>(it) }
         assertEquals(2, ukti.grammaticalVakyas().size)
+    }
+
+    @Test
+    fun `tatah starts a new clause with its pre-verbal operands`() {
+        val sequence = assertIs<Sequence>(
+            parser.parse(
+                "फल + अम् सङ्ख्या + ङि स्था + णिच् + लोट् + सिप् " +
+                    "ततः एक + अम् गुणक + अम् च युज् + णिच् + लोट् + सिप् ।",
+            ).body,
+        )
+
+        assertEquals(listOf("ततः"), sequence.connectors)
+        assertEquals(listOf(SequenceConnector.ANANTARYA), sequence.connectorKinds)
+        val second = assertIs<Invocation>(sequence.statements[1])
+        assertEquals(4, second.vakya.padas.size)
+        assertEquals(
+            listOf("एक+अम्", "गुणक+अम्"),
+            second.vakya.padas.take(2).map { it.sourceText },
+        )
     }
 
     @Test
@@ -230,6 +341,10 @@ class ProgramAstTest {
 
         assertIs<Sequence>(conditional.consequent)
         assertIs<Sequence>(conditional.alternate)
+        val alternateValue = assertIs<Invocation>(
+            assertIs<Sequence>(conditional.alternate).statements.first(),
+        )
+        assertEquals("गुरु", assertIs<SubantaPada>(alternateValue.implicitValuePada).pratipadika.semanticKey())
     }
 
     @Test
@@ -253,5 +368,31 @@ class ProgramAstTest {
 
         assertEquals(listOf("पञ्च", "द्वि"), pipeline.arguments)
         assertEquals(listOf("गुण् + ल्युट्", "रन्ध्र + ल्युट्"), pipeline.stages.map { it.operationStem })
+    }
+
+    @Test
+    fun `instrumental stages joined by tatah build a pipeline directly`() {
+        val source =
+            "पञ्च + अम् द्वि + अम् च गणित + ङस् गण + ल्युट् + टा ततः " +
+                "गणित + ङस् वि + युज् + णिच् + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।"
+
+        val pipeline = assertIs<Pipeline>(parser.parse(source).body)
+
+        assertEquals(listOf("पञ्च", "द्वि"), pipeline.arguments)
+        assertEquals(
+            listOf("पञ्च", "द्वि"),
+            pipeline.argumentPadas.map { assertIs<SubantaPada>(it).pratipadika.semanticKey() },
+        )
+        assertEquals(listOf("गण + ल्युट्", "वि + युज् + णिच् + ल्युट्"), pipeline.stages.map { it.operationStem })
+    }
+
+    @Test
+    fun `sequential pipeline stages require instrumental operations`() {
+        assertFailsWith<IllegalArgumentException> {
+            parser.parse(
+                "पञ्च + अम् द्वि + अम् च गणित + ङस् गण + ल्युट् + ङस् ततः " +
+                    "गणित + ङस् वि + युज् + णिच् + ल्युट् + ङस् डुकृञ् + उ + लोट् + सिप् ।",
+            )
+        }
     }
 }

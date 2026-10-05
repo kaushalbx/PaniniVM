@@ -7,29 +7,24 @@ import dev.panini.execution.ExecutionContext
 import dev.panini.execution.ExecutionError
 import dev.panini.execution.ExecutionResult
 import dev.panini.execution.SanskritValue
+import dev.panini.execution.semanticallyEquals
 
 /** Evaluates the grammatical predicate "X Y-टा समम् अस्ति". */
 object CopularEqualityAction : DhatuAction("समता", "समतापरीक्षणम्") {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
-        val predicate = context.bindings[Karaka.KARMAN]?.let(context::resolveValues).orEmpty()
-        val predicateText = predicate.singleOrNull()?.toDisplayText()
-            ?.removeSuffix("म्")
-            ?.removeSuffix("ं")
-        if (predicateText != "सम") {
-            return ExecutionResult.Failure(
-                ExecutionError.INVALID_VALUE,
-                "Copular equality requires समम् as its predicate.",
-            )
+        if (dev.panini.execution.CopularPredicate.from(context.bindings[Karaka.KARMAN]) !=
+            dev.panini.execution.CopularPredicate.EQUAL) {
+            return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Equality requires the predicate सम.")
         }
         val subjects = context.bindings[Karaka.KARTR]?.let(context::resolveValues).orEmpty()
         val standards = context.bindings[Karaka.KARANA]?.let(context::resolveValues).orEmpty()
-        if (subjects.isEmpty() || standards.isEmpty()) {
+        if (subjects.size != 1 || standards.size != 1) {
             return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
-                "Copular equality requires a subject and an instrumental comparison standard.",
+                "Copular equality requires exactly one subject value and one instrumental standard value.",
             )
         }
-        val equal = subjects.any { subject -> standards.any { standard -> subject.equivalentTo(standard) } }
+        val equal = subjects.single().semanticallyEquals(standards.single())
         return ExecutionResult.Success(
             value = if (equal) "सत्यम्" else "असत्यम्",
             operation = operation.name,
@@ -39,7 +34,4 @@ object CopularEqualityAction : DhatuAction("समता", "समतापर�
         )
     }
 
-    private fun SanskritValue.equivalentTo(other: SanskritValue): Boolean =
-        if (this is SanskritValue.Sankhya && other is SanskritValue.Sankhya) value == other.value
-        else toDisplayText() == other.toDisplayText()
 }

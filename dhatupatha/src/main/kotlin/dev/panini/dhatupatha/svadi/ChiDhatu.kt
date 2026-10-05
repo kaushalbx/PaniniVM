@@ -27,9 +27,9 @@ class ChiDhatu : Dhatu(
     svara = Accent.ANUDATTA,
     operations = listOf(
         RandomChoiceAction.op {
-            requires(Karaka.APADANA)
-            requires(Karaka.ADHIKARANA)
-            requires(Karaka.KARMAN)
+            // An enclosing सीमा supplies the source interval discourse-wide;
+            // explicit operands refine it or provide an exclusion collection.
+            optional(Karaka.APADANA, Karaka.ADHIKARANA, Karaka.KARMAN)
             returns(Samjna.SANKHYA)
         },
     ),

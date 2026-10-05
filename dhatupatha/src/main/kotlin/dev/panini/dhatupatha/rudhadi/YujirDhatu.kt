@@ -3,11 +3,14 @@ package dev.panini.dhatupatha.rudhadi
 import dev.panini.actions.numeric.AdditionAction
 import dev.panini.actions.numeric.ComparisonAction
 import dev.panini.actions.numeric.SubtractionAction
+import dev.panini.actions.collection.ListConcatAction
 import dev.panini.core.DhatuGana
+import dev.panini.core.Karaka
 import dev.panini.core.PadaType
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.shiksha.Samjna
 import dev.panini.execution.numericOp
+import dev.panini.execution.op
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
@@ -28,6 +31,12 @@ open class YujirDhatu : Dhatu(
     karmatva = Karmatva.SAKARMAKA,
     svara = Accent.ANUDATTA,
     operations = listOf(
+        ListConcatAction.op {
+            requires(Karaka.KARMAN) // the collection being joined
+            requires(Karaka.KARTR) // instrumental secondary agent; resolved dynamically as a collection
+            triggeredBy(requiredUpasargas = setOf("सम्"), requiredSanadi = setOf("णिच्"))
+            returns(Samjna.GANA)
+        },
         AdditionAction.numericOp {
             triggeredBy(forbiddenUpasargas = setOf("वि", "तुल्"))
             returns(Samjna.SANKHYA, Samjna.SHABDA)

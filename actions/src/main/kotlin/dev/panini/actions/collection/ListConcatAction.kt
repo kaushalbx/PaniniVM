@@ -6,25 +6,35 @@ import dev.panini.execution.DhatuOperation
 import dev.panini.execution.ExecutionContext
 import dev.panini.execution.ExecutionError
 import dev.panini.execution.ExecutionResult
+import dev.panini.execution.NaturalOperation
+import dev.panini.execution.NaturalOperationResolver
 import dev.panini.execution.SanskritValue
 
 /** Concatenate two lists (triggered by सृज् / संयोजन / संयोग). */
 object ListConcatAction : DhatuAction("सूचीसंयोगः", "सूच्योः परस्पर-संयोजनम्") {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
-        // Resolve first list operand from KARMAN
-        val karmanExpr = context.bindings[Karaka.KARMAN]
+        val naturalFrame = NaturalOperationResolver.resolve(operation, context)
+            as? NaturalOperation.CollectionConcatenation
+
+        // The semantic frame is primary. Direct kāraka lookup retains the old
+        // सृज् construction during its compatibility window.
+        val karmanExpr = naturalFrame?.collection ?: context.bindings[Karaka.KARMAN]
             ?: return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
-                "List concatenation requires a list in KARMAN."
+                "सूचीसंयोगे संयोज्या सूची कर्मरूपेण अपेक्षिता।"
             )
 
         val karmanValues = context.resolveValues(karmanExpr)
 
-        // Resolve second list operand from SAMPRADANA
-        val sampradanaExpr = context.bindings[Karaka.SAMPRADANA]
-        val (list1, list2) = if (sampradanaExpr != null) {
-            val sampradanaValues = context.resolveValues(sampradanaExpr)
-            karmanValues to sampradanaValues
+        // In the natural युज् frame, the second collection is the instrument/
+        // co-participant of joining. SAMPRADANA remains a legacy सृज् frame.
+        val companionExpr = naturalFrame?.companion
+            ?: context.bindings[Karaka.KARTR]
+            ?: context.bindings[Karaka.KARANA]
+            ?: context.bindings[Karaka.SAMPRADANA]
+        val (list1, list2) = if (companionExpr != null) {
+            val companionValues = context.resolveValues(companionExpr)
+            karmanValues to companionValues
         } else {
             // If SAMPRADANA is absent, check if KARMAN is a Coordination of multiple lists
             if (karmanValues.size >= 2) {
@@ -42,7 +52,7 @@ object ListConcatAction : DhatuAction("सूचीसंयोगः", "सू�
             } else {
                 return ExecutionResult.Failure(
                     ExecutionError.INVALID_VALUE,
-                    "List concatenation requires a second list in SAMPRADANA or as a coordinated KARMAN."
+                    "सूचीसंयोगे द्वितीया सूची करणरूपेण अपेक्षिता।"
                 )
             }
         }

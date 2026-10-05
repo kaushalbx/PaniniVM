@@ -177,6 +177,7 @@ object AmiPurvahSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean =
         context.stage == DerivationStage.PRATYAYA_SELECTED &&
             context.effectiveContext.rupa.linga != Linga.NAPUMSAKA &&
+            context.terms.getOrNull(context.terms.size - 2)?.varnas?.lastOrNull() is Svara &&
             context.terms.lastOrNull()?.id == "sup-am"
 
     override fun apply(context: DerivationState): DerivationChange {

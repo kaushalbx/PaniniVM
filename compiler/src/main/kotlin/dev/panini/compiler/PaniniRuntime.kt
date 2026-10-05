@@ -66,6 +66,21 @@ object PaniniRuntime {
     }
 
     @JvmStatic
+    fun randomRangeExcluding(excluded: SanskritValue, minimum: Long, maximum: Long): SanskritValue {
+        require(minimum <= maximum) { "Random range minimum must not exceed its maximum." }
+        val excludedNumbers = when (excluded) {
+            is SanskritValue.Suchi -> excluded.items
+            is SanskritValue.Gana -> excluded.elements
+            else -> error("Random range exclusion requires a collection.")
+        }.mapNotNull { (it as? SanskritValue.Sankhya)?.value }.toHashSet()
+        val candidates = (minimum..maximum).filterNot(excludedNumbers::contains)
+        require(candidates.isNotEmpty()) { "Random range has no value outside the exclusion collection." }
+        val value = candidates.random()
+        val word = dev.panini.sankhya.SankhyaGenerator().cardinal(value).final.surface
+        return SanskritValue.Sankhya(value, word)
+    }
+
+    @JvmStatic
     fun rational(numerator: Long, denominator: Long, word: String): SanskritValue =
         SanskritValue.Rational(numerator, denominator, word)
 

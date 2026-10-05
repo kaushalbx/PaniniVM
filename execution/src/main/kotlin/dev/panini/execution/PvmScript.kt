@@ -10,8 +10,11 @@ import dev.panini.vyakaranam.ast.ProgramNode
 import dev.panini.vyakaranam.ast.Scope
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.MulaPratipadika
+import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
 import dev.panini.vyakaranam.ast.ParyantaRangePada
 import dev.panini.vyakaranam.ast.SankhyaPada
+import dev.panini.vyakaranam.ast.SankhyaBoundaryPada
+import dev.panini.vyakaranam.ast.SankhyaPuranaPada
 import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
 
@@ -32,8 +35,7 @@ sealed interface PvmScriptStatement {
      * A named reusable prakriyā declaration:
      *
      *     गुण् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
-     *         संख्या + अम् संख्या + अम् च गुण् + णिच् + लोट् + सिप् ।
-     *     इति ॥
+     *         सङ्ख्या + अम् सङ्ख्या + अम् च गण् + णिच् + लोट् + सिप् ॥
      *
      * [nameSegmented] is the segmented prātipadika form (e.g. "गुण् + ल्युट् + सुँ").
      * [body] contains the vākya sentences that form the prakriyā.
@@ -41,6 +43,8 @@ sealed interface PvmScriptStatement {
     data class PrakriyaDefinition(
         val prakriya: Prakriya,
         val body: List<Sentence>,
+        /** Parsed declaration header, before normalization into the operation name. */
+        val headerSource: String? = null,
     ) : PvmScriptStatement {
         override val text: String get() = prakriya.sourceText
         val nameSegmented: String get() = prakriya.name
@@ -54,7 +58,7 @@ sealed interface PvmScriptStatement {
     /**
      * An अधिकार-सूत्र (governing domain scope declaration):
      *
-     *     गणित + अम् इति अधिकारः ।
+     *     गणित + सुँ इति अधि + कृ + घञ् + सुँ ।
      */
     data class AdhikaraDefinition(
         val scope: Scope,
@@ -96,7 +100,10 @@ object PvmScript {
     private fun hasExplicitDefinitionMarker(source: String): Boolean =
         PrakriyaDefinitionMarkerParser.hasExplicitMarker(source)
 
-    fun parse(source: String): List<PvmScriptStatement> {
+    fun parse(source: String): List<PvmScriptStatement> = parseNative(source)
+
+    /** Explicit migration-only parser for old physical-line block syntax. */
+    fun parseLegacy(source: String): List<PvmScriptStatement> {
         val rawLines = source.lines()
 
         val prakriyaDefinitions = mutableListOf<PvmScriptStatement.PrakriyaDefinition>()
@@ -157,14 +164,15 @@ object PvmScript {
         nonPrakriyaLines.forEach { line ->
             val stripped = PvmSourceScanner.stripComment(line).trim()
             val range = extractRangeDefinition(stripped)
-            val adhikaraDomain = extractAdhikaraDomain(stripped)
+            val adhikaraHeader = AdhikaraHeaderParser.parse(stripped)
             if (range != null) {
                 rangeDefinitions += PvmScriptStatement.RangeDefinition(range, line)
-            } else if (adhikaraDomain != null) {
+            } else if (adhikaraHeader != null) {
                 adhikaraDefinitions += PvmScriptStatement.AdhikaraDefinition(
                     scope = Scope(
                         sourceText = line,
-                        domain = adhikaraDomain,
+                        domain = adhikaraHeader.domainSource,
+                        domainIdentity = adhikaraHeader.domainIdentity,
                     ),
                 )
             } else {
@@ -185,6 +193,69 @@ object PvmScript {
         return prakriyaDefinitions + adhikaraDefinitions + rangeDefinitions + sentences
     }
 
+    /** Native document adapter. No declaration or body is serialized and reparsed. */
+    fun fromDocument(document: dev.panini.vyakaranam.ast.ProgramDocument): List<PvmScriptStatement> =
+        document.items.mapIndexed { index, node ->
+            val originalText = document.itemSpans.getOrNull(index)?.let { span ->
+                document.sourceText.substring(span.start, span.endExclusive)
+            } ?: node.sourceText
+            when (node) {
+                is Prakriya -> {
+                    val body = node.body.mapIndexed { bodyIndex, program ->
+                        val text = document.prakriyaBodySpans[index]?.getOrNull(bodyIndex)?.let { span ->
+                            document.sourceText.substring(span.start, span.endExclusive)
+                        } ?: program.sourceText
+                        nativeSentence(dev.panini.vyakaranam.ast.Ukti(text, body = program))
+                    }
+                    val headerText = document.prakriyaHeaderSpans[index]?.let { span ->
+                        document.sourceText.substring(span.start, span.endExclusive)
+                    }
+                    val nameText = document.prakriyaNameSpans[index]?.let { span ->
+                        document.sourceText.substring(span.start, span.endExclusive)
+                    } ?: node.name
+                    PvmScriptStatement.PrakriyaDefinition(
+                        node.copy(sourceText = originalText, name = nameText,
+                            body = body.map { requireNotNull(it.program) }), body,
+                        headerSource = headerText,
+                    )
+                }
+                is Scope -> PvmScriptStatement.AdhikaraDefinition(node.copy(sourceText = originalText,
+                    domain = document.scopeDomainSpans[index]?.let { span ->
+                        document.sourceText.substring(span.start, span.endExclusive)
+                    } ?: node.domain))
+                is dev.panini.vyakaranam.ast.RangeDeclaration -> PvmScriptStatement.RangeDefinition(
+                    evaluateRange(node.boundary), originalText,
+                )
+                is dev.panini.vyakaranam.ast.Ukti -> nativeSentence(node.copy(sourceText = originalText))
+                else -> error("Unsupported native document item: ${node::class.simpleName}")
+            }
+        }
+
+    fun parseNative(source: String): List<PvmScriptStatement> {
+        return fromDocument(parser.parseDocument(source))
+    }
+
+    private fun nativeSentence(original: dev.panini.vyakaranam.ast.Ukti): PvmScriptStatement.Sentence {
+        val ukti = VyakaranamExecutionAdapter.normalizeFrequencyAst(original)
+        val isNishedha = ukti.grammaticalVakyas().any { vakya ->
+            vakya.padas.filterIsInstance<dev.panini.vyakaranam.ast.AvyayaPada>()
+                .any { it.function == dev.panini.vyakaranam.ast.AvyayaFunction.NISHEDHA }
+        }
+        val sentence = PvmScriptStatement.Sentence(original.sourceText, ukti, isNishedha)
+        return sentence.copy(semantics = PvmSentenceClassifier.classify(sentence))
+    }
+
+    private fun evaluateRange(explicitRange: ParyantaRangePada): SanskritValue.Range {
+        val generator = SankhyaGenerator()
+        fun value(pada: SankhyaBoundaryPada): SanskritValue.Sankhya {
+            val numericValue = requireNotNull(NaturalSemanticNormalizer.boundaryValue(pada)) {
+                "A सीमा bound must be a numeric cardinal or ordinal."
+            }
+            return SanskritValue.Sankhya(numericValue, generator.cardinal(numericValue).final.surface.removeSuffix("न्"))
+        }
+        return SanskritValue.Range(value(explicitRange.lowerLimit), value(explicitRange.upperLimit))
+    }
+
     private fun isRangeDefinitionLine(line: String): Boolean = extractRangeDefinition(line) != null
 
     private fun extractRangeDefinition(line: String): SanskritValue.Range? {
@@ -192,21 +263,11 @@ object PvmScript {
         val declaration = ItiDeclarationAnalyzer.analyze(ukti) ?: return null
         val rangePadas = declaration.declaredPadas
         val marker = declaration.nominativeMarker ?: return null
-        if ((marker.pratipadika as? MulaPratipadika)?.text != "सीमा" ||
+        if ((marker.pratipadika as? MulaPratipadika)?.lexicalIdentity != MulaPratipadikaIdentity.SIMA ||
             SupAffix.fromUpadesha(marker.sup.text)?.vibhakti != Vibhakti.PRATHAMA
         ) return null
-        val evaluator = dev.panini.sankhya.SankhyaEvaluator()
-        val generator = SankhyaGenerator()
-        fun value(pada: dev.panini.vyakaranam.ast.SankhyaPada): SanskritValue.Sankhya {
-            val evaluated = evaluator.evaluateStems(pada.stems)
-            val numericValue = pada.value ?: evaluated.value
-            val compoundStem = generator.cardinal(numericValue).final.surface.removeSuffix("न्")
-            return SanskritValue.Sankhya(numericValue, compoundStem)
-        }
         val explicitRange = rangePadas.filterIsInstance<ParyantaRangePada>().singleOrNull() ?: return null
-        val minimum = value(explicitRange.lowerLimit)
-        val maximum = value(explicitRange.upperLimit)
-        return runCatching { SanskritValue.Range(minimum, maximum) }.getOrNull()
+        return runCatching { evaluateRange(explicitRange) }.getOrNull()
     }
 
     private fun prakriyaDefinition(
@@ -220,8 +281,25 @@ object PvmScript {
         }
         val parsed = PrakriyaDefinitionMarkerParser.qualifiers(header)
         val declarationSource = parsed?.declarationSource ?: header
-        val methodHeader = TaddhitaStructEngine.detectMethodHeader(declarationSource)
-        val cleanName = methodHeader?.second ?: declarationSource
+        val parsedMethodHeader = parsed?.declarationPadas
+            ?.let(TaddhitaStructEngine::detectMethodHeader)
+        val legacyMethodHeader = if (parsedMethodHeader == null) {
+            TaddhitaStructEngine.detectMethodHeader(declarationSource)
+        } else null
+        val methodDomain = parsedMethodHeader?.first ?: legacyMethodHeader?.first
+        val cleanName = parsedMethodHeader?.second?.sourceText
+            ?.let(PrakriyaInvocationMatcher::normalizeIdentity)
+            ?: legacyMethodHeader?.second
+            ?: declarationSource
+        val headerIdentity = parsedMethodHeader?.let { (domain, method) ->
+            PrakriyaHeaderIdentity(
+                operationStem = method.pratipadika.prakriyaIdentity(),
+                domainStem = domain,
+            )
+        } ?: parsed?.declarationPadas?.let(PrakriyaHeaderIdentityParser::parse)
+            ?: requireNotNull(PrakriyaHeaderIdentityParser.parse(cleanName)) {
+            "A reusable प्रक्रिया header must retain its parsed morphological identity."
+        }
         val qualifiers = parsed?.qualifiers.orEmpty()
         val isInternalProcedure =
             PrakriyaDefinitionQualifier.PRAKRIYA in qualifiers &&
@@ -233,11 +311,14 @@ object PvmScript {
             else -> PrakriyaPrecedence.DEFAULT
         }
         return PvmScriptStatement.PrakriyaDefinition(
+            headerSource = header,
             prakriya = Prakriya(
                 sourceText = blockText.joinToString("\n"),
                 name = cleanName,
-                domain = methodHeader?.first,
+                domain = methodDomain,
                 body = body.mapNotNull(PvmScriptStatement.Sentence::program),
+                nameIdentity = headerIdentity.operationStem,
+                domainIdentity = methodDomain ?: headerIdentity.domainStem,
                 modifiers = PrakriyaModifiers(
                     visibility = if (isInternalProcedure) {
                         PrakriyaVisibility.INTERNAL

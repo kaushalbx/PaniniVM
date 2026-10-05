@@ -8,6 +8,29 @@ sealed interface VyakaranamNode {
     val sourceText: String
 }
 
+/** Native source-order document; declaration processing must not reorder its items. */
+data class ProgramDocument(
+    override val sourceText: String,
+    val items: List<VyakaranamNode>,
+    val itemSpans: List<DocumentSourceSpan> = emptyList(),
+    val prakriyaHeaderSpans: Map<Int, DocumentSourceSpan> = emptyMap(),
+    val prakriyaBodySpans: Map<Int, List<DocumentSourceSpan>> = emptyMap(),
+    val prakriyaNameSpans: Map<Int, DocumentSourceSpan> = emptyMap(),
+    val scopeDomainSpans: Map<Int, DocumentSourceSpan> = emptyMap(),
+) : VyakaranamNode
+
+/** Half-open character offsets into the original document, including terminators. */
+data class DocumentSourceSpan(val start: Int, val endExclusive: Int) {
+    init { require(start >= 0 && endExclusive >= start) }
+}
+
+/** A named सीमा declaration retains its morphological bounds, not evaluated numbers. */
+data class RangeDeclaration(
+    override val sourceText: String,
+    val boundary: ParyantaRangePada,
+    val marker: SubantaPada,
+) : VyakaranamNode
+
 data class Ukti(
     override val sourceText: String,
     val sambodhana: Sambodhana? = null,
@@ -29,6 +52,8 @@ data class Invocation(
     val vakya: Vakya,
     /** Source-level nominal result whose understood return verb was lowered into [vakya]. */
     val implicitValue: String? = null,
+    /** Parsed source nominal retained so renderers need not reconstruct it from text. */
+    val implicitValuePada: Pada? = null,
 ) : ProgramNode {
     override val sourceText: String = vakya.sourceText
 }
@@ -38,11 +63,26 @@ data class Sequence(
     val statements: List<ProgramNode>,
     val connectors: List<String> = emptyList(),
 ) : ProgramNode {
+    val connectorKinds: List<SequenceConnector> = connectors.map(SequenceConnector::fromSurface)
+
     init {
         require(statements.isNotEmpty()) { "A sequence must contain at least one statement." }
         require(connectors.size <= statements.size - 1) {
             "A sequence cannot have more connectors than statement boundaries."
         }
+    }
+}
+
+/** Typed discourse relation between adjacent executable clauses. */
+enum class SequenceConnector(val surface: String) {
+    SAMUCCAYA("च"),
+    ANANTARYA("ततः"),
+    ;
+
+    companion object {
+        fun fromSurface(surface: String): SequenceConnector = entries.singleOrNull {
+            it.surface == surface.trim()
+        } ?: error("Unsupported executable sequence connector: '$surface'.")
     }
 }
 
@@ -91,8 +131,11 @@ data class PipelineStage(
 
 data class Pipeline(
     override val sourceText: String,
+    /** Compatibility projection; new consumers should use [argumentPadas]. */
     val arguments: List<String>,
     val stages: List<PipelineStage>,
+    /** Parsed arguments retain nominal identity independently of their case endings. */
+    val argumentPadas: List<Pada> = emptyList(),
     val renderPadas: List<Pada> = emptyList(),
 ) : ProgramNode
 
@@ -110,12 +153,19 @@ data class Prakriya(
     val name: String,
     val domain: String? = null,
     val body: List<ProgramNode>,
+    /** Case-independent operation identity built from the parsed header. */
+    val nameIdentity: String = name,
+    /** Case-independent governing domain identity, when explicitly declared. */
+    val domainIdentity: String? = domain,
     val modifiers: PrakriyaModifiers = PrakriyaModifiers(),
 ) : ProgramNode
 
 data class Scope(
     override val sourceText: String,
+    /** Segmented declared nominal, retained for morphology such as taddhita inheritance. */
     val domain: String,
+    /** Case-independent referent identity rebuilt from the parsed prātipadika. */
+    val domainIdentity: String = domain,
     val body: List<ProgramNode> = emptyList(),
 ) : ProgramNode
 
@@ -162,7 +212,7 @@ data class TingantaPada(
     val lakara: Lakara,
     val ting: TingPratyaya,
     /** Explicit gaṇa-vikaraṇa when the upadeśa alone is lexically ambiguous. */
-    val vikarana: String? = null,
+    val vikarana: Vikarana? = null,
 ) : Pada
 
 data class AvyayaPada(
@@ -197,12 +247,54 @@ data class SamuccitaSubanta(
 /** The inclusive सीमा licensed by an ablative source and segmented पर्यन्तम्. */
 data class ParyantaRangePada(
     override val sourceText: String,
-    val lowerLimit: SankhyaPada,
-    val upperLimit: SankhyaPada,
+    val lowerLimit: SankhyaBoundaryPada,
+    val upperLimit: SankhyaBoundaryPada,
     val marker: SubantaPada,
 ) : Pada
 
 sealed interface Pratipadika : VyakaranamNode
+
+/** Case-independent semantic identity retained from parsed nominal morphology. */
+fun Pratipadika.semanticKey(): String = when (this) {
+    is SankhyaPratipadika -> sourceText
+    is MulaPratipadika -> text
+    is KridantaPratipadika -> buildList {
+        addAll(upasargas)
+        add(dhatu.mulaDhatu)
+        addAll(dhatu.sanadiPratyayas)
+        add(krtPratyaya)
+    }.joinToString("+")
+    is UnadyantaPratipadika -> sourceText
+    is SamasaPratipadika -> angas.joinToString("-") { it.pratipadika.semanticKey() }
+}
+
+/** Canonical segmented morphology rebuilt from parsed fields, never [sourceText]. */
+fun Pratipadika.morphologicalKey(includeTaddhita: Boolean = true): String {
+    fun List<PratipadikaVikara>.suffixes(): List<String> = mapNotNull { vikara ->
+        when (vikara) {
+            is TaddhitaVikara -> vikara.pratyaya.takeIf { includeTaddhita }
+            is StriVikara -> vikara.pratyaya
+        }
+    }
+    fun List<String>.segmented(): String = joinToString(" + ")
+
+    return when (this) {
+        is MulaPratipadika -> (listOf(text) + vikaras.suffixes()).segmented()
+        is KridantaPratipadika -> (
+            upasargas + dhatu.mulaDhatu + dhatu.sanadiPratyayas +
+                krtPratyaya + vikaras.suffixes()
+            ).segmented()
+        is UnadyantaPratipadika -> (
+            upasargas + dhatu.mulaDhatu + dhatu.sanadiPratyayas +
+                unadiPratyaya + vikaras.suffixes()
+            ).segmented()
+        is SamasaPratipadika -> {
+            val base = angas.joinToString("-") { it.pratipadika.morphologicalKey(includeTaddhita) }
+            (listOf(base) + vikaras.suffixes()).segmented()
+        }
+        is SankhyaPratipadika -> (listOf(semanticValue.word) + vikaras.suffixes()).segmented()
+    }
+}
 
 data class MulaPratipadika(
     override val sourceText: String,
@@ -215,30 +307,80 @@ data class MulaPratipadika(
 enum class MulaPratipadikaIdentity {
     ADHIKARA,
     ANTARANGA,
+    ANTA,
     APAVADA,
+    ADHIKA,
+    ASATYA,
+    GUPTA,
+    KSHETRA,
+    MANA,
     NITYA,
+    NYUNA,
+    PHALA,
+    PARINAMA,
     PURVA,
+    ORDINAL_FIRST,
+    ORDINAL_SECOND,
+    ORDINAL_THIRD,
     PRAKRIYA,
+    PRAYATNA,
     SAMJNA,
+    SAMA,
     SAMAVAYA,
+    SAMAPTA,
+    SATYA,
+    SANKHYA,
+    SHABDA,
+    SIMA,
+    SUCHI,
+    VIJAYA,
     ;
 
     companion object {
         fun fromText(text: String): MulaPratipadikaIdentity? = when (normalize(text)) {
             "अधिकार" -> ADHIKARA
             "अन्तरङ्ग", "अन्तरङ्गा", "अन्तर् + अङ्ग" -> ANTARANGA
+            "अन्त" -> ANTA
             "अपवाद" -> APAVADA
+            "अधिक" -> ADHIKA
+            "असत्य" -> ASATYA
+            "गुप्त" -> GUPTA
+            "क्षेत्र" -> KSHETRA
+            "मान" -> MANA
             "नित्य", "नि + त्य" -> NITYA
+            "न्यून" -> NYUNA
+            "फल" -> PHALA
+            "परिणाम" -> PARINAMA
             "पूर्व" -> PURVA
+            "प्रथम", "प्रथमा" -> ORDINAL_FIRST
+            "द्वितीय", "द्वितीया" -> ORDINAL_SECOND
+            "तृतीय", "तृतीया" -> ORDINAL_THIRD
             "प्रक्रिया" -> PRAKRIYA
+            "प्रयत्न" -> PRAYATNA
             "संज्ञा" -> SAMJNA
+            "सम" -> SAMA
             "समवाय" -> SAMAVAYA
+            "समाप्त" -> SAMAPTA
+            "सत्य" -> SATYA
+            "सङ्ख्या" -> SANKHYA
+            "शब्द" -> SHABDA
+            "सीमा" -> SIMA
+            "सूची" -> SUCHI
+            "विजय" -> VIJAYA
             else -> null
         }
 
         private fun normalize(text: String): String =
             text.split('+').joinToString(" + ") { it.trim() }.trim()
     }
+
+    val ordinalValue: Long?
+        get() = when (this) {
+            ORDINAL_FIRST -> 1L
+            ORDINAL_SECOND -> 2L
+            ORDINAL_THIRD -> 3L
+            else -> null
+        }
 }
 
 data class KridantaPratipadika(
@@ -326,19 +468,25 @@ data class SankhyaPratipadika(
     )
 }
 
+sealed interface SankhyaBoundaryPada : Pada {
+    val stems: List<String>
+    val value: Long?
+    val sup: SupPratyaya
+}
+
 data class SankhyaPada(
     override val sourceText: String,
-    val stems: List<String>,
-    val value: Long? = null,
-    val sup: SupPratyaya,
-) : Pada
+    override val stems: List<String>,
+    override val value: Long? = null,
+    override val sup: SupPratyaya,
+) : SankhyaBoundaryPada
 
 data class SankhyaPuranaPada(
     override val sourceText: String,
-    val stems: List<String>,
-    val value: Long? = null,
-    val sup: SupPratyaya,
-) : Pada
+    override val stems: List<String>,
+    override val value: Long? = null,
+    override val sup: SupPratyaya,
+) : SankhyaBoundaryPada
 
 data class SankhyaAbhyasaPada(
     override val sourceText: String,
@@ -379,12 +527,14 @@ sealed interface PratipadikaVikara : VyakaranamNode
 enum class TaddhitaPratyayaClass {
     POSSESSIVE,
     APATYA,
+    BHAVA,
     ;
 
     companion object {
         fun fromUpadesha(upadesha: String): TaddhitaPratyayaClass? = when (upadesha.trim()) {
             "मतुप्", "वतुप्", "मत्", "वत्" -> POSSESSIVE
             "अण्", "इञ्" -> APATYA
+            "त्व", "तल्" -> BHAVA
             else -> null
         }
     }

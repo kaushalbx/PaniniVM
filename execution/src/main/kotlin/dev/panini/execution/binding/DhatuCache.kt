@@ -1,9 +1,34 @@
 package dev.panini.execution.binding
 
-import dev.panini.core.DhatuGana
 import dev.panini.dhatupatha.Dhatu
 import dev.panini.dhatupatha.DhatuPatha
+import dev.panini.vyakaranam.ast.DhatuPrakriti
 import dev.panini.vyakaranam.ast.TingantaPada
+
+/** Stable lexical identities for dhātus that carry language-level syntax. */
+internal enum class CanonicalDhatuIdentity(val dhatupathaId: String) {
+    AS("02.0060"),
+    BHU("01.9904"),
+    CHI("05.0005"),
+    VRJ("02.0022"),
+    MUDR("10.0510"),
+    YUJ("07.0007"),
+    GAN("10.0391"),
+    BHAJ("01.1153"),
+    DA("03.0010"),
+    KRU("08.0010"),
+    GRAH("09.0071"),
+    KSHIP("06.0005"),
+    STHA("01.9901"),
+    ;
+
+    companion object {
+        private val byDhatupathaId = entries.associateBy(CanonicalDhatuIdentity::dhatupathaId)
+
+        internal fun from(dhatu: Dhatu?): CanonicalDhatuIdentity? =
+            dhatu?.id?.let(byDhatupathaId::get)
+    }
+}
 
 /**
  * Centralized dhātu lookup caches and surface/root resolution helpers.
@@ -39,6 +64,15 @@ internal object DhatuCache {
             }
         }
         map
+    }
+
+    /** Source derivations accept roots, not inflected or nominal surface aliases. */
+    private val sourceRootCache: Map<String, List<Dhatu>> by lazy {
+        DhatuPatha.all.filter { it.operations.isNotEmpty() }.flatMap { dhatu ->
+            listOf(dhatu.upadesha, dhatu.sourceSurface, dhatu.derivationalSurface)
+                .flatMap { root -> listOf(root, root.normalizeDhatuSurface()) }
+                .distinct().map { root -> root to dhatu }
+        }.groupBy({ it.first }, { it.second })
     }
 
     /**
@@ -88,27 +122,28 @@ internal object DhatuCache {
      */
     internal fun resolve(tinganta: TingantaPada): Dhatu? {
         val text = tinganta.dhatu.mulaDhatu
-        val requiredGana = when (tinganta.vikarana) {
-            "शप्" -> DhatuGana.BHVADI
-            "श्यन्" -> DhatuGana.DIVADI
-            "श्नु" -> DhatuGana.SVADI
-            "श्नम्" -> DhatuGana.RUDHADI
-            "श्ना" -> DhatuGana.KRYADI
-            "उ" -> DhatuGana.TANADI
-            "श्नाम्" -> DhatuGana.KRYADI
-            "श" -> DhatuGana.TUDADI
-            else -> null
-        }
+        val requiredGana = tinganta.vikarana?.gana
         if (requiredGana != null) {
-            return DhatuPatha.all.singleOrNull { candidate ->
+            val candidates = DhatuPatha.all.filter { candidate ->
                 candidate.gana == requiredGana &&
                     (candidate.upadesha == text || candidate.sourceSurface == text || candidate.derivationalSurface == text)
             }
+            // A gaṇapāṭha row and its executable specialization may share one
+            // lexical identity. Explicit vikaraṇa resolves the gaṇa; execution
+            // then prefers the single operation-bearing entry within that gaṇa.
+            return candidates.filter { it.operations.isNotEmpty() }.singleOrNull()
+                ?: candidates.singleOrNull()
         }
-        val cached = dhatuCacheMap[text]
-        if (cached != null) return cached
-        return dhatuCacheMap[text.normalizeDhatuSurface()]
+        return sourceCandidates(text).singleOrNull()
     }
+
+    /** Resolves a non-finite derivation through the same canonical lexicon. */
+    internal fun resolve(prakriti: DhatuPrakriti): Dhatu? =
+        sourceCandidates(prakriti.mulaDhatu).singleOrNull()
+
+    private fun sourceCandidates(text: String): List<Dhatu> =
+        (sourceRootCache[text] ?: sourceRootCache[text.normalizeDhatuSurface()]).orEmpty()
+            .distinctBy { it.id }
 
     /**
      * Returns the canonical root string for an action [stem] (e.g. an operation name
@@ -133,3 +168,13 @@ internal object DhatuCache {
             ?: clean
     }
 }
+
+
+internal fun TingantaPada.canonicalDhatuIdentity(): CanonicalDhatuIdentity? =
+    CanonicalDhatuIdentity.from(DhatuCache.resolve(this))
+
+internal fun DhatuPrakriti.canonicalDhatuIdentity(): CanonicalDhatuIdentity? =
+    CanonicalDhatuIdentity.from(DhatuCache.resolve(this))
+
+internal fun Dhatu.canonicalDhatuIdentity(): CanonicalDhatuIdentity? =
+    CanonicalDhatuIdentity.from(this)

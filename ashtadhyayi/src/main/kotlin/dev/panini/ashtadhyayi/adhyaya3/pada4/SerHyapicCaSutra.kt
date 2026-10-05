@@ -33,6 +33,7 @@ object SerHyapicCaSutra : Sutra<DerivationState, DerivationChange>(
         val replacement = if (context.hasSanadyantaDhatu()) "" else when (context.terms.firstOrNull { it.kind == TermKind.DHATU && it.id != "abhyasa" }?.gana) {
             DhatuGana.ADADI, DhatuGana.JUHOTYADI, DhatuGana.RUDHADI -> "धि"
             DhatuGana.KRYADI -> "हि"
+            DhatuGana.TANADI -> "हि"
             else -> ""
         }
         val replaced = context.replaceWholeAffix(

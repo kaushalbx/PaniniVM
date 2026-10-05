@@ -1,6 +1,8 @@
 package dev.panini.execution.planning
 
 import dev.panini.core.Karaka
+import dev.panini.core.SupAffix
+import dev.panini.core.Vibhakti
 import dev.panini.execution.ExecutionBindingResult
 import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.ExecutionPlan
@@ -12,10 +14,21 @@ import dev.panini.execution.SanskritValue
 import dev.panini.execution.ValueEnvironment
 import dev.panini.execution.bindingName
 import dev.panini.execution.binding.VyakaranamExecutionAdapter
+import dev.panini.execution.binding.canonicalDhatuIdentity
+import dev.panini.execution.binding.CanonicalDhatuIdentity
+import dev.panini.vyakaranam.ast.TingantaPada
 import dev.panini.execution.sutra.ExecutableUktiSutraCompiler
 import dev.panini.execution.sutra.ProgramBlueprintContext
 import dev.panini.execution.sutra.ProgramBlueprintGranthaPlanner
 import dev.panini.execution.sutra.ProgramGranthaPlanning
+import dev.panini.vyakaranam.ast.Invocation
+import dev.panini.vyakaranam.ast.ProgramNode
+import dev.panini.vyakaranam.ast.SubantaPada
+import dev.panini.vyakaranam.ast.SamuccitaSubanta
+import dev.panini.vyakaranam.ast.Ukti
+import dev.panini.vyakaranam.ast.semanticKey
+import dev.panini.vyakaranam.ast.MulaPratipadika
+import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
 
 /** Shared resolved-leaf planning boundary for interpreters, compilers, and tooling. */
 object ResolvedLeafPlanner {
@@ -32,6 +45,7 @@ object ResolvedLeafPlanner {
         "सूचीसंयोजनम्",
         "सूचीसङ्क्षेपः",
         "सूचीनिक्षेपणम्",
+        "सूचीसङ्ग्रहः",
         "सूचीस्थानम्",
         "सूचीविभागः",
         "सूचीविलोमः",
@@ -49,6 +63,59 @@ object ResolvedLeafPlanner {
         environment: ValueEnvironment = ValueEnvironment(),
         allowStore: Boolean = false,
     ): ExecutionPlan? = plans(source, environment, allowStore)?.singleOrNull()
+
+    /** Plans an already parsed leaf without serializing and reparsing its Sanskrit. */
+    fun plan(
+        invocation: Invocation,
+        environment: ValueEnvironment = ValueEnvironment(),
+        allowStore: Boolean = false,
+        injectedBindings: Map<Karaka, ExecutionExpression> = emptyMap(),
+    ): ExecutionPlan? = plans(invocation, environment, allowStore, injectedBindings)?.singleOrNull()
+
+    fun plans(
+        invocation: Invocation,
+        environment: ValueEnvironment = ValueEnvironment(),
+        allowStore: Boolean = false,
+        injectedBindings: Map<Karaka, ExecutionExpression> = emptyMap(),
+    ): List<ExecutionPlan>? {
+        val ukti = Ukti(invocation.sourceText, body = invocation)
+        val plans = candidatePlans(ukti, environment, injectedBindings) ?: return null
+        return plans.takeIf { candidates -> candidates.isNotEmpty() && candidates.all { plan ->
+            isSupported(plan, environment, allowStore)
+        } }
+    }
+
+    fun planAny(
+        invocation: Invocation,
+        environment: ValueEnvironment = ValueEnvironment(),
+        injectedBindings: Map<Karaka, ExecutionExpression> = emptyMap(),
+    ): ExecutionPlan? = plansAny(invocation, environment, injectedBindings)?.singleOrNull()
+
+    fun plansAny(
+        invocation: Invocation,
+        environment: ValueEnvironment = ValueEnvironment(),
+        injectedBindings: Map<Karaka, ExecutionExpression> = emptyMap(),
+    ): List<ExecutionPlan>? {
+        val ukti = Ukti(invocation.sourceText, body = invocation)
+        return candidatePlans(ukti, environment, injectedBindings)?.takeIf { plans ->
+            plans.isNotEmpty() && plans.all { plan ->
+                plan.resolved.context.bindings.values.all(::isMaterializable)
+            }
+        }
+    }
+
+    /** Plans a compound parsed node while preserving its sequence/quotation AST. */
+    fun plansAny(
+        node: ProgramNode,
+        environment: ValueEnvironment = ValueEnvironment(),
+    ): List<ExecutionPlan>? {
+        val ukti = Ukti(node.sourceText, body = node)
+        return candidatePlans(ukti, environment, emptyMap())?.takeIf { plans ->
+            plans.isNotEmpty() && plans.all { plan ->
+                plan.resolved.context.bindings.values.all(::isMaterializable)
+            }
+        }
+    }
 
     fun resultBindingName(source: String): String? {
         val segmentedSource = source.replace("+", " + ").replace(Regex("\\s+"), " ").trim()
@@ -75,18 +142,7 @@ object ResolvedLeafPlanner {
     ): List<ExecutionPlan>? {
         val plans = candidatePlans(source, environment) ?: return null
         return plans.takeIf { candidates -> candidates.isNotEmpty() && candidates.all { plan ->
-            (plan.resolved.operation.name in supportedOperations ||
-                (allowStore && plan.resolved.operation.name == "मूल्यदानम्")) &&
-                (plan.resolved.operation.name != "सङ्ख्यातुलना" ||
-                    (plan.resolved.operation.trigger.requiredUpasargas.isEmpty() &&
-                        plan.resolved.operation.trigger.requiredAvyayas.isEmpty())) &&
-                (plan.resolved.operation.name != "विजयः" ||
-                    plan.resolved.operation.trigger.requiredUpasargas == setOf("वि")) &&
-                (plan.resolved.operation.name != "प्रदर्शनम्" ||
-                    plan.resolved.context.bindings
-                        .filterKeys { it in setOf(Karaka.KARMAN, Karaka.APADANA, Karaka.ADHIKARANA) }
-                        .values.all { isConcrete(it, environment) }) &&
-                plan.resolved.context.bindings.values.all { isEmbeddable(it, environment) }
+            isSupported(plan, environment, allowStore)
         } }
     }
 
@@ -112,39 +168,65 @@ object ResolvedLeafPlanner {
         { _ -> SanskritValue.Suchi(emptyList()) },
         { name -> SanskritValue.Shabda(name) },
     ).firstNotNullOfOrNull { placeholder ->
-        candidatePlans(source, environment, placeholder)
+        val ukti = parser.parseOrNull(source) ?: return@firstNotNullOfOrNull null
+        candidatePlans(ukti, environment, emptyMap(), placeholder)
     }
 
     private fun candidatePlans(
-        source: String,
+        ukti: Ukti,
         environment: ValueEnvironment,
+        injectedBindings: Map<Karaka, ExecutionExpression>,
+    ): List<ExecutionPlan>? = listOf<(String) -> SanskritValue>(
+        { name -> SanskritValue.Sankhya(1L, name) },
+        { _ -> SanskritValue.Suchi(emptyList()) },
+        { name -> SanskritValue.Shabda(name) },
+    ).firstNotNullOfOrNull { placeholder ->
+        candidatePlans(ukti, environment, injectedBindings, placeholder)
+    }
+
+    private fun candidatePlans(
+        parsedUkti: Ukti,
+        environment: ValueEnvironment,
+        injectedBindings: Map<Karaka, ExecutionExpression>,
         placeholder: (String) -> SanskritValue,
     ): List<ExecutionPlan>? {
-        val parsedSubantas = parser.parseOrNull(source)?.grammaticalVakyas()
-            ?.flatMap { vakya -> vakya.padas }
-            ?.flatMap { pada ->
+        val parsedSubantas = parsedUkti.grammaticalVakyas()
+            .flatMap { vakya -> vakya.padas }
+            .flatMap { pada ->
                 when (pada) {
-                    is dev.panini.vyakaranam.ast.SubantaPada -> listOf(pada)
-                    is dev.panini.vyakaranam.ast.SamuccitaSubanta -> pada.members
+                    is SubantaPada -> listOf(pada)
+                    is SamuccitaSubanta -> pada.members
                     else -> emptyList()
                 }
             }
             .orEmpty()
-        val symbolicOperands = parsedSubantas.asSequence()
-            .filter { it.sup.text in setOf("अम्", "औट्", "शस्") }
-            .flatMap { pada ->
-                val fullName = pada.pratipadika.sourceText.trim()
-                sequenceOf(fullName, fullName.substringBefore('+').trim())
+        val truthConstants = parsedSubantas.mapNotNull { pada ->
+            val identity = (pada.pratipadika as? MulaPratipadika)?.lexicalIdentity
+            pada.pratipadika.semanticKey().takeIf {
+                identity in setOf(MulaPratipadikaIdentity.SATYA, MulaPratipadikaIdentity.ASATYA)
             }
-            .filterNot { it in environment.values || isSankhyaStem(it) }
+        }.toSet()
+        val symbolicOperands = parsedSubantas.asSequence()
+            .filter { pada ->
+                isCopularOrderParticipant(parsedUkti, pada) || pada.vibhakti() == Vibhakti.DVITIYA
+            }
+            .flatMap { pada ->
+                sequenceOf(
+                    pada.pratipadika.sourceText.trim(),
+                    pada.pratipadika.semanticKey(),
+                ).distinct()
+            }
+            .filterNot { candidate ->
+                candidate in environment.values || isSankhyaStem(candidate) || candidate in truthConstants
+            }
             .associateWith(placeholder)
         val symbolicInstruments = parsedSubantas.asSequence()
-            .filter { it.sup.text in setOf("टा", "भ्याम्", "भिस्") }
-            .map { it.pratipadika.sourceText.substringBefore('+').trim() }
+            .filter { it.vibhakti() == Vibhakti.TRTIYA }
+            .map { it.pratipadika.semanticKey() }
             .filterNot { it in environment.values || isSankhyaStem(it) }
             .associateWith(SanskritValue::Shabda)
         val bindingEnvironment = ValueEnvironment(environment.values + symbolicOperands + symbolicInstruments)
-        val segmentedSource = source.replace("+", " + ").replace(Regex("\\s+"), " ").trim()
+        val segmentedSource = parsedUkti.sourceText.replace("+", " + ").replace(Regex("\\s+"), " ").trim()
         val conversation = SambhashanaContext(
             "प्रयोक्ता",
             "यन्त्रम्",
@@ -158,10 +240,16 @@ object ResolvedLeafPlanner {
             listener = conversation.listener,
             text = segmentedSource,
         )
-        val ukti = (runCatching {
-            VyakaranamExecutionAdapter.bind(input, conversation, environment = bindingEnvironment)
+        val bindingResult = runCatching {
+            VyakaranamExecutionAdapter.bind(
+                input,
+                parsedUkti,
+                conversation,
+                environment = bindingEnvironment,
+                injectedBindings = injectedBindings,
+            )
         }.getOrNull()
-            as? ExecutionBindingResult.Bound)?.ukti ?: return null
+        val ukti = (bindingResult as? ExecutionBindingResult.Bound)?.ukti ?: return null
         val program = when (val planned = ProgramBlueprintGranthaPlanner.plan(
             ExecutableUktiSutraCompiler.compileBlueprintGrantha(ukti),
             ProgramBlueprintContext(
@@ -217,9 +305,42 @@ object ResolvedLeafPlanner {
             ?: return null
     }
 
+    private fun isCopularOrderParticipant(ukti: Ukti, pada: SubantaPada): Boolean =
+        pada.vibhakti() in setOf(Vibhakti.PRATHAMA, Vibhakti.PANCHAMI) &&
+            (pada.pratipadika as? MulaPratipadika)?.lexicalIdentity !in setOf(MulaPratipadikaIdentity.NYUNA, MulaPratipadikaIdentity.ADHIKA) &&
+            ukti.grammaticalVakyas().any { vakya ->
+                pada in vakya.padas &&
+                    vakya.padas.filterIsInstance<TingantaPada>().any { it.canonicalDhatuIdentity() == CanonicalDhatuIdentity.AS } &&
+                    vakya.padas.filterIsInstance<SubantaPada>().any {
+                        it.vibhakti() == Vibhakti.PRATHAMA &&
+                            (it.pratipadika as? MulaPratipadika)?.lexicalIdentity in setOf(MulaPratipadikaIdentity.NYUNA, MulaPratipadikaIdentity.ADHIKA)
+                    }
+            }
+
+    private fun isSupported(
+        plan: ExecutionPlan,
+        environment: ValueEnvironment,
+        allowStore: Boolean,
+    ): Boolean =
+        (plan.resolved.operation.name in supportedOperations ||
+            (allowStore && plan.resolved.operation.name == "मूल्यदानम्")) &&
+            (plan.resolved.operation.name != "सङ्ख्यातुलना" ||
+                (plan.resolved.operation.trigger.requiredUpasargas.isEmpty() &&
+                    plan.resolved.operation.trigger.requiredAvyayas.isEmpty())) &&
+            (plan.resolved.operation.name != "विजयः" ||
+                plan.resolved.operation.trigger.requiredUpasargas == setOf("वि")) &&
+            (plan.resolved.operation.name != "प्रदर्शनम्" ||
+                plan.resolved.context.bindings
+                    .filterKeys { it in setOf(Karaka.KARMAN, Karaka.APADANA, Karaka.ADHIKARANA) }
+                    .values.all { isConcrete(it, environment) }) &&
+            plan.resolved.context.bindings.values.all { isEmbeddable(it, environment) }
+
     private fun isSankhyaStem(stem: String): Boolean = runCatching {
         dev.panini.sankhya.SankhyaEvaluator().evaluateStems(listOf(stem))
     }.isSuccess
+
+    private fun SubantaPada.vibhakti(): Vibhakti? =
+        SupAffix.fromUpadesha(sup.text)?.vibhakti
 
     private fun ExecutionExpression.references(): List<String> = when (this) {
         is ExecutionExpression.Reference -> listOf(name)

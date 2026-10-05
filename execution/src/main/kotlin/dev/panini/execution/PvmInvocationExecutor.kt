@@ -15,6 +15,7 @@ internal class PvmInvocationExecutor(private val vm: PaniniVM) {
         val registry: PrakriyaRegistry,
         val sourceFile: String?,
         val conditionEvaluation: Boolean,
+        val persistSession: Boolean,
         val injectedKarman: InjectedKarmanBinding?,
         val onResult: ((ExecutionResult) -> Unit)?,
         val executePrakriya: (PrakriyaInvocation) -> List<ExecutionResult>,
@@ -38,6 +39,7 @@ internal class PvmInvocationExecutor(private val vm: PaniniVM) {
                 request.speaker,
                 request.listener,
                 evaluateCondition = request.conditionEvaluation,
+                persistSession = request.persistSession,
                 injectedBindings = request.injectedKarman?.let {
                     mapOf(Karaka.KARMAN to ExecutionExpression.Reference(it.reference))
                 }.orEmpty(),

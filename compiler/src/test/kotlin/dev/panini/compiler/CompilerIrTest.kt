@@ -2,15 +2,91 @@ package dev.panini.compiler
 
 import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.SanskritValue
+import dev.panini.execution.ValueEnvironment
 import dev.panini.execution.renderSankhyaResult
 import dev.panini.execution.planning.ResolvedLeafPlanner
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class CompilerIrTest {
+    @Test
+    fun `compiled membership compares typed structured members`() {
+        val number = SanskritValue.Sankhya(2, "द्वि")
+        val list = SanskritValue.Gana(listOf(number))
+        assertEquals(SanskritValue.Satya(true), CompilerValueOperations.listContains(list, number.copy(word = "द्वे")))
+        assertEquals(SanskritValue.Satya(false), CompilerValueOperations.listContains(list, SanskritValue.Shabda("द्वि")))
+        val record = SanskritValue.Rupa("बिन्दु", mapOf("मान" to number))
+        assertEquals(SanskritValue.Satya(false), CompilerValueOperations.listContains(
+            SanskritValue.Suchi(listOf(record)), record.copy(fields = mapOf("मान" to SanskritValue.Sankhya(3, "त्रि"))),
+        ))
+    }
+
+    @Test
+    fun `compiled equality uses typed payloads rather than rendering`() {
+        val number = SanskritValue.Sankhya(2, "द्वि")
+        assertTrue(CompilerValueOperations.equal(number, number.copy(word = "द्वे")))
+        assertFalse(CompilerValueOperations.notEqual(number, number.copy(word = "द्वे")))
+        assertFalse(CompilerValueOperations.equal(number, SanskritValue.Shabda("द्वि")))
+    }
+
+    @Test
+    fun `copular numeric order lowers karaka values without loading its adjective`() {
+        val plan = requireNotNull(ResolvedLeafPlanner.planAny(
+            "शून्य + सुँ एक + ङसिँ न्यून + सुँ असँ + लट् + तिप् ।",
+        ))
+        val instructions = CompilerIrLowering.lowerCondition(plan)
+        assertTrue(CompilerInstruction.Compare(ComparisonOperator.LESS_THAN) in instructions,
+            "${plan.resolved.operation.name}: $instructions")
+        assertFalse(CompilerInstruction.Load("न्यून") in CompilerIrLowering.lowerLeafValues(plan))
+        val dynamic = requireNotNull(ResolvedLeafPlanner.planAny(
+            "शून्य + सुँ अवस्था + ङसिँ न्यून + सुँ असँ + लट् + तिप् ।",
+        ))
+        assertEquals("न्यूनता", dynamic.resolved.operation.name, dynamic.resolved.toString())
+        val greater = requireNotNull(ResolvedLeafPlanner.planAny(
+            "द्वि + सुँ अवस्था + ङसिँ अधिक + सुँ असँ + लट् + तिप् ।",
+        ))
+        assertTrue(CompilerInstruction.Compare(ComparisonOperator.GREATER_THAN) in CompilerIrLowering.lowerCondition(greater))
+    }
+
+    @Test
+    fun `slice lower boundary does not overflow before clipping`() {
+        val list = SanskritValue.Suchi(listOf(SanskritValue.Sankhya(7, "सप्त")))
+        assertEquals(list, CompilerValueOperations.listSlice(
+            list, SanskritValue.Sankhya(Int.MIN_VALUE.toLong(), "न्यूनतम"), SanskritValue.Sankhya(1, "एक"),
+        ))
+    }
+
+    @Test
+    fun `compiled final member extraction reports invalid scalar and empty operands`() {
+        for (value in listOf(SanskritValue.Sankhya(2, "द्वि"), SanskritValue.Suchi(emptyList()))) {
+            val failure = assertFailsWith<CompiledPaniniExecutionException> {
+                CompilerValueOperations.listPop(value)
+            }
+            assertTrue(failure.message.orEmpty().isNotBlank())
+        }
+    }
+
+    @Test
+    fun `phala morphology is canonicalized before runtime load IR`() {
+        val program = CompilerFrontend.lower(
+            """
+            द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ।
+            फल + अम् अवस्था + ङे दा + लोट् + सिप् ।
+            """.trimIndent(),
+            "CanonicalPhalaIr",
+        )
+
+        assertFalse(
+            program.entryPoint.any { it == CompilerInstruction.Load("फल") },
+            program.entryPoint.toString(),
+        )
+        assertTrue(CompilerInstruction.LoadLastResult in program.entryPoint, program.entryPoint.toString())
+    }
+
     @Test
     fun `whole-program IR verifies procedure targets`() {
         val call = CompilerInstruction.InvokeProcedure("prakriya_0", 0)
@@ -751,6 +827,30 @@ class CompilerIrTest {
         assertEquals(CompilerInstruction.Compare(ComparisonOperator.LESS_THAN), lessInstructions.last())
         assertTrue(greaterInstructions.none { it is CompilerInstruction.Call })
         assertTrue(lessInstructions.none { it is CompilerInstruction.Call })
+    }
+
+    @Test
+    fun `locative collection membership lowers from its karaka frame`() {
+        val plan = requireNotNull(
+            ResolvedLeafPlanner.planAny(
+                "द्वि + सुँ सूची + ङि असँ + लट् + तिप् ।",
+                ValueEnvironment(
+                    mapOf(
+                        "सूची" to SanskritValue.Suchi(
+                            listOf(SanskritValue.Sankhya(2, "द्वि")),
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        val instructions = CompilerIrLowering.lowerCondition(plan)
+
+        assertTrue(
+            CompilerInstruction.Collection(CollectionOperator.CONTAINS) in instructions,
+            instructions.toString(),
+        )
+        assertTrue(instructions.none { it is CompilerInstruction.Call }, instructions.toString())
     }
 
     @Test

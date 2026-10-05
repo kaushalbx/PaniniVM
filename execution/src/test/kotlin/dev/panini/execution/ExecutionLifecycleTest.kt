@@ -18,6 +18,7 @@ import dev.panini.shiksha.Samjna
 import java.nio.file.Path
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
@@ -58,6 +59,20 @@ class ExecutionLifecycleTest {
         val script = "युज् + णिच् + लोट् + सिप् ।"
         val derived = sadhaka.sadhayaScript(script)
         assertTrue(derived.contains("योजय") || derived.contains("युज्"))
+    }
+
+    @Test
+    fun `PvmUktiSadhaka declines productive kta procedure names`() {
+        val sadhaka = PvmUktiSadhaka()
+
+        assertEquals(
+            "भूतः इति प्रक्रिया अस्ति ।",
+            sadhaka.sadhayaLine("भू + क्त + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।"),
+        )
+        assertEquals(
+            "गणितस्य भूतेन कुरु ।",
+            sadhaka.sadhayaLine("गणित + ङस् भू + क्त + टा डुकृञ् + उ + लोट् + सिप् ।"),
+        )
     }
 
     @TempDir
@@ -467,6 +482,22 @@ class ExecutionLifecycleTest {
 
         val ambiguous = assertIs<OperationResolution.Ambiguous>(resolution)
         assertEquals(setOf("first-overload", "second-overload"), ambiguous.operations.toSet())
+    }
+
+    @Test
+    fun `operation resolver names a missing karaka in Sanskrit`() {
+        val required = DhatuOperation(
+            signature = OperationSignature(listOf(KarakaRequirement(Karaka.KARMAN))),
+            action = operation("required-karman").action,
+        )
+
+        val missing = assertIs<OperationResolution.MissingInput>(
+            OperationResolver.resolve(DhatuInvocation("missing", dhatu(listOf(required)), emptyMap()), emptyMap()),
+        )
+
+        assertTrue("कारकाभावः" in missing.message, missing.message)
+        assertTrue("कर्मन्" in missing.message, missing.message)
+        assertFalse("KARMAN" in missing.message, missing.message)
     }
 
     @Test

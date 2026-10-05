@@ -32,6 +32,7 @@ class HrDhatu : Dhatu(
         ListPopAction.op {
             triggeredBy(requiredUpasargas = setOf("उद्"))
             requires(Karaka.KARMAN)
+            optional(Karaka.SAMBANDHA)
             returns(Samjna.SHABDA)
         },
     ),

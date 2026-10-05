@@ -20,6 +20,121 @@ import kotlin.test.assertFailsWith
 
 class StructuredBytecodeCompilerTest {
     @Test
+    fun `una and adhika numeral constructions preserve values in both backends`() {
+        for ((construction, expected) in listOf(
+            "एक + ऊन + विंशति" to 19L,
+            "द्वि + विंशति + अधिक + शत" to 122L,
+        )) {
+            val source = "$construction + अम् परिणाम + ङि स्था + णिच् + लोट् + सिप् ।"
+            val compiled = compileAndInspect(source, "CompiledConstructedNumeral$expected")
+            assertEquals(expected, (compiled.values.getValue("परिणाम") as SanskritValue.Sankhya).value)
+            val interpreted = PaniniVM().evalScript(source)
+            assertTrue(interpreted.none { it is ExecutionResult.Failure }, interpreted.toString())
+            assertEquals(expected, ((interpreted.last() as ExecutionResult.Success).typedValue as SanskritValue.Sankhya).value)
+            assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
+        }
+    }
+    @Test
+    fun `natural membership uses locative collection in compiled and interpreted execution`() {
+        val source = """
+            एक + अम् त्रि + शस् च सम् + ग्रहँ + श्ना + लोट् + सिप्
+                ततः फल + अम् सूची + ङि स्था + णिच् + लोट् + सिप् ।
+            यदि एक + सुँ सूची + ङि असँ + लट् + तिप् तर्हि सत्य + सुँ अन्यथा असत्य + सुँ
+                ततः फल + अम् उपस्थित + ङि स्था + णिच् + लोट् + सिप् ।
+            यदि शून्य + सुँ सूची + ङि असँ + लट् + तिप् तर्हि सत्य + सुँ अन्यथा असत्य + सुँ ।
+        """.trimIndent()
+        val compiled = compileAndInspect(source, "CompiledNaturalMembership")
+        assertEquals(SanskritValue.Satya(true), compiled.values.getValue("उपस्थित"))
+        assertEquals(SanskritValue.Satya(false), compiled.values.getValue("LastResult"))
+        val interpreted = PaniniVM().evalScript(source)
+        assertTrue(interpreted.none { it is ExecutionResult.Failure }, interpreted.toString())
+        assertEquals(SanskritValue.Satya(false), (interpreted.last() as ExecutionResult.Success).typedValue)
+        assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
+    }
+
+    @Test
+    fun `locative ordinal lowers to a direct one based collection index`() {
+        val source = """
+            एक + अम् द्वि + अम् त्रि + अम् च सम् + ग्रहँ + श्ना + लोट् + सिप्
+                ततः फल + अम् सूची + ङि स्था + णिच् + लोट् + सिप् ।
+            सूची + ङसिँ द्वि + तीय + ङि मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।
+        """.trimIndent()
+        val compiled = compileAndInspect(source, "CompiledOrdinalCollectionIndex")
+        assertEquals(2L, (compiled.values.getValue("LastResult") as SanskritValue.Sankhya).value)
+        assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
+    }
+
+    @Test
+    fun `bare numeric conditional values remain typed compiler constants`() {
+        val source =
+            "यदि एक + अम् एक + अम् च विद् + लोट् + सिप् " +
+                "तर्हि द्वि अन्यथा त्रि ।"
+
+        val compiled = compileAndInspect(source, "CompiledBareNumericConditional")
+
+        assertEquals(3L, (compiled.values.getValue("LastResult") as SanskritValue.Sankhya).value)
+        assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
+    }
+
+    @Test
+    fun `natural indexed retrieval lowers source and position to index IR`() {
+        val source = """
+            एक + अम् क्षिप् + णिच् + लोट् + सिप् ततः क्षिप् + घञ् + ङस् फल + अम् क्रम + ङि स्था + णिच् + लोट् + सिप् ।
+            द्वि + अम् क्रम + ङि नि + क्षिप् + लोट् + सिप् ततः क्षिप् + घञ् + ङस् फल + अम् क्रम + ङि स्था + णिच् + लोट् + सिप् ।
+            द्वि + अम् क्रमाङ्क + ङि स्था + णिच् + लोट् + सिप् ।
+            क्रम + ङसिँ क्रमाङ्क + ङि मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।
+        """.trimIndent()
+
+        val compiled = compileAndInspect(source, "CompiledNaturalIndexedRetrieval")
+
+        assertEquals(2L, (compiled.values.getValue("LastResult") as SanskritValue.Sankhya).value)
+        assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
+    }
+
+    @Test
+    fun `existential clause branches directly on a named truth state`() {
+        val source = """
+            सत्य + अम् अवस्था + ङि स्था + णिच् + लोट् + सिप् ।
+            यदि अवस्था + सुँ असँ + लट् + तिप्
+                तर्हि सत्य + अम् परिणाम + ङि स्था + णिच् + लोट् + सिप्
+                अन्यथा असत्य + अम् परिणाम + ङि स्था + णिच् + लोट् + सिप् ।
+        """.trimIndent()
+
+        val compiled = compileAndInspect(source, "CompiledExistentialTruthClause")
+
+        assertEquals(true, (compiled.values.getValue("परिणाम") as SanskritValue.Satya).boolean)
+        assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
+    }
+
+    @Test
+    fun `natural locative insertion appends through explicit compiler IR`() {
+        val source = """
+            एक + अम् क्षिप् + णिच् + लोट् + सिप् ततः क्षिप् + घञ् + ङस् फल + अम् क्रम + ङि स्था + णिच् + लोट् + सिप् ।
+            द्वि + अम् क्रम + ङि नि + क्षिप् + लोट् + सिप् ततः क्षिप् + घञ् + ङस् फल + अम् नवीनक्रम + ङि स्था + णिच् + लोट् + सिप् ।
+        """.trimIndent()
+
+        val compiled = compileAndInspect(source, "CompiledNaturalLocativeInsertion")
+        val result = requireNotNull(compiled.values["नवीनक्रम"]) { compiled.values.toString() } as SanskritValue.Suchi
+
+        assertEquals(listOf(1L, 2L), result.items.map { (it as SanskritValue.Sankhya).value })
+        assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
+    }
+
+    @Test
+    fun `natural range choice excludes values in ablative collection`() {
+        val source = """
+            एक + ङसिँ द्वि + शस् परि + अन्त + अम् इति सीमा + सुँ ।
+            एक + अम् क्षिप् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् क्षिप् + घञ् + ङस् फल + अम् क्रम + ङे ।
+            क्रम + अम् वृज् + णिच् + क्त्वा चिञ् + श्नु + लोट् + सिप् ततः चयन + ङे दा + लोट् + सिप् ।
+        """.trimIndent()
+
+        val compiled = compileAndInspect(source, "CompiledNaturalExcludedChoice")
+
+        assertEquals(2L, (compiled.values.getValue("चयन") as SanskritValue.Sankhya).value)
+        assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
+    }
+
+    @Test
     fun `compiled execution preserves interpreter failure details`() {
         val source = collectionProgram("सूची + अम् चतुर् + टा स्था + लोट् + सिप्")
         val interpreted = PaniniVM().evalScript(source).filterIsInstance<ExecutionResult.Failure>().last()
@@ -121,7 +236,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `nested stored lists flatten directly`() {
         val source = """
-            परिचय + ल्युट् + सुँ ।
+            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             एक + अम् द्वि + अम् च प्रथमा + ङे दा + लोट् + सिप् ।
@@ -159,7 +274,7 @@ class StructuredBytecodeCompilerTest {
             ),
             CollectionCase(
                 name = "Slice",
-                operation = "सूची + अम् द्वि + टा त्रि + ङे भज् + लोट् + सिप्",
+                operation = "सूची + ङस् द्वि + तीय + ङसिँ त्रि + तीय + शस् परि + अन्त + अम् अंश + अम् ग्रहँ + श्ना + लोट् + सिप्",
                 expected = listOf(2L, 3L),
             ),
         )
@@ -181,7 +296,7 @@ class StructuredBytecodeCompilerTest {
 
     @Test
     fun `state backed list pop executes directly`() {
-        val source = collectionProgram("सूची + अम् उद् + हृ + लोट् + सिप्")
+        val source = collectionProgram("सूची + ङस् अन्तिम + अम् उद् + हृ + लोट् + सिप्")
         val interpretedResults = PaniniVM().evalScript(source)
         assertTrue(interpretedResults.none { it is ExecutionResult.Failure }, interpretedResults.toString())
         val interpreted = interpretedResults.filterIsInstance<ExecutionResult.Success>().last().typedValue
@@ -189,6 +304,7 @@ class StructuredBytecodeCompilerTest {
 
         assertEquals(interpreted, compiled.values.getValue("LastResult"))
         assertEquals(3L, (compiled.values.getValue("LastResult") as SanskritValue.Sankhya).value)
+        assertEquals(listOf(1L, 2L, 3L), (compiled.values.getValue("सूची") as SanskritValue.Suchi).items.map { (it as SanskritValue.Sankhya).value })
         assertEquals(1, compiled.runtimeCalls.count { it == "executeDirectValue" })
         assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
     }
@@ -196,12 +312,14 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `two stored lists concatenate directly`() {
         val source = """
-            परिचय + ल्युट् + सुँ ।
+            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
-            एक + अम् द्वि + अम् च प्रथमा + ङे दा + लोट् + सिप् ।
-            त्रि + अम् चतुर् + अम् च द्वितीया + ङे दा + लोट् + सिप् ।
-            प्रथमा + अम् द्वितीया + ङे सृज् + लोट् + सिप् ।
+            एक + अम् द्वि + अम् च सम् + ग्रहँ + श्ना + लोट् + सिप्
+                ततः फल + अम् पूर्वसूची + ङि स्था + णिच् + लोट् + सिप् ।
+            त्रि + अम् चतुर् + अम् च सम् + ग्रहँ + श्ना + लोट् + सिप्
+                ततः फल + अम् उत्तरसूची + ङि स्था + णिच् + लोट् + सिप् ।
+            पूर्वसूची + अम् उत्तरसूची + टा सम् + युज् + णिच् + लोट् + सिप् ।
         """.trimIndent()
         val interpretedResults = PaniniVM().evalScript(source)
         assertTrue(interpretedResults.none { it is ExecutionResult.Failure }, interpretedResults.toString())
@@ -211,18 +329,18 @@ class StructuredBytecodeCompilerTest {
         assertEquals(interpreted, compiled.values.getValue("LastResult"))
         val result = compiled.values.getValue("LastResult") as SanskritValue.Suchi
         assertEquals(listOf(1L, 2L, 3L, 4L), result.items.map { (it as SanskritValue.Sankhya).value })
-        assertEquals(2, compiled.runtimeCalls.count { it == "executeDirectValue" })
+        assertTrue("executeDirectValue" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
         assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
     }
 
     @Test
     fun `constructed list and length execute directly`() {
         val source = """
-            परिचय + ल्युट् + सुँ ।
+            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             एक + अम् द्वि + अम् त्रि + अम् च सूची + ङे दा + लोट् + सिप् ।
-            सूची + अम् गण् + लोट् + सिप् ।
+            सूची + अम् गण् + णिच् + लोट् + सिप् ।
         """.trimIndent()
         val interpretedResults = PaniniVM().evalScript(source)
         assertTrue(interpretedResults.none { it is ExecutionResult.Failure }, interpretedResults.toString())
@@ -241,7 +359,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `state backed list indexing executes directly`() {
         val source = """
-            परिचय + ल्युट् + सुँ ।
+            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             दशन् + अम् विंशति + अम् त्रिंशत् + अम् च सूची + ङे दा + लोट् + सिप् ।
@@ -259,13 +377,34 @@ class StructuredBytecodeCompilerTest {
     }
 
     @Test
+    fun `state backed list indexing accepts a numeric index stored under a symbolic name`() {
+        val source = """
+            दशन् + अम् विंशति + अम् त्रिंशत् + अम् च सूची + ङे दा + लोट् + सिप् ।
+            द्वि + अम् क्रमाङ्क + ङे दा + लोट् + सिप् ।
+            सूची + अम् क्रमाङ्क + टा स्था + लोट् + सिप् ।
+        """.trimIndent()
+        val interpretedResults = PaniniVM().evalScript(source)
+        assertTrue(interpretedResults.none { it is ExecutionResult.Failure }, interpretedResults.toString())
+        val interpreted = interpretedResults.filterIsInstance<ExecutionResult.Success>().last().typedValue
+        val compiled = compileAndInspect(source, "CompiledDirectNamedListIndex")
+
+        assertEquals(interpreted, compiled.values.getValue("LastResult"))
+        assertEquals(20L, (compiled.values.getValue("LastResult") as SanskritValue.Sankhya).value)
+        assertEquals(2, compiled.runtimeCalls.count { it == "executeDirectValue" })
+        assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
+    }
+
+    @Test
     fun `state backed list containment executes directly`() {
         val source = """
-            परिचय + ल्युट् + सुँ ।
+            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
-            एक + अम् द्वि + अम् त्रि + अम् च सूची + ङे दा + लोट् + सिप् ।
-            सूची + अम् द्वि + टा अस् + लोट् + सिप् ।
+            एक + अम् द्वि + अम् त्रि + अम् च सम् + ग्रहँ + श्ना + लोट् + सिप्
+                ततः फल + अम् सूची + ङि स्था + णिच् + लोट् + सिप् ।
+            यदि द्वि + सुँ सूची + ङि असँ + लट् + तिप्
+                तर्हि सत्य + अम् सदस्यता + ङि स्था + णिच् + लोट् + सिप्
+                अन्यथा असत्य + अम् सदस्यता + ङि स्था + णिच् + लोट् + सिप् ।
         """.trimIndent()
         val interpretedResults = PaniniVM().evalScript(source)
         assertTrue(interpretedResults.none { it is ExecutionResult.Failure }, interpretedResults.toString())
@@ -274,14 +413,13 @@ class StructuredBytecodeCompilerTest {
 
         assertEquals(interpreted, compiled.values.getValue("LastResult"))
         assertEquals(true, (compiled.values.getValue("LastResult") as SanskritValue.Satya).boolean)
-        assertEquals(1, compiled.runtimeCalls.count { it == "executeDirectValue" })
         assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
     }
 
     @Test
     fun `implicit tatah print consumes the direct numeric result`() {
         val source = """
-            परिचय + ल्युट् + सुँ ।
+            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥
 
             द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ततः मुद्र् + णिच् + लोट् + सिप् ।
@@ -331,7 +469,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `print leaf loads previously compiled state directly`() {
         val source = """
-            परिचय + ल्युट् + सुँ ।
+            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥
 
             सप्त + अम् अवस्था + ङे दा + लोट् + सिप् ।
@@ -390,7 +528,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `simple print leaf executes directly without the interpreter bridge`() {
         val source = """
-            परिचय + ल्युट् + सुँ ।
+            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥
 
             पञ्च + अम् मुद्र् + लोट् + सिप् ।
@@ -439,7 +577,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `tatah numeric pipeline stores its result without the interpreter bridge`() {
         val source = """
-            परिचय + ल्युट् + सुँ ।
+            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् अवस्था + ङे ।
@@ -491,7 +629,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `explicit phala stores the previous direct result without the interpreter bridge`() {
         val source = """
-            परिचय + ल्युट् + सुँ ।
+            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् ।
@@ -550,7 +688,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `fixed repetition loads compiled state directly on every iteration`() {
         val source = """
-            परिचय + ल्युट् + सुँ ।
+            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             द्वि + अम् अवस्था + ङे दा + लोट् + सिप् ।
@@ -603,7 +741,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `simple loop result target executes without the interpreter bridge`() {
         val source = """
-            परिचय + ल्युट् + सुँ ।
+            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             द्वि + अम् अवस्था + ङे दा + लोट् + सिप् ।
@@ -657,7 +795,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `bounded direct state loop lowers its exhaustion leaf directly`() {
         val source = """
-            परिचय + ल्युट् + सुँ ।
+            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             द्वि + अम् अवस्था + ङे दा + लोट् + सिप् ।
@@ -712,9 +850,30 @@ class StructuredBytecodeCompilerTest {
     }
 
     @Test
+    fun `bounded loop reads a negated named truth state directly`() {
+        val source = """
+            शून्य + अम् एक + अम् च विद् + लोट् + सिप् ।
+            फल + अम् अवस्था + ङे दा + लोट् + सिप् ।
+            त्रि + कृत्वसुच् यावत् अवस्था + सुँ न भू + लट् + तिप् तावत् एक + अम् मुद्र् + लोट् + सिप् ।
+        """.trimIndent()
+        val interpretedResults = PaniniVM().evalScript(source)
+        assertTrue(interpretedResults.none { it is ExecutionResult.Failure }, interpretedResults.toString())
+        val interpreted = interpretedResults.filterIsInstance<ExecutionResult.Success>().last().typedValue
+        val compiled = compileAndInspect(source, "CompiledNegatedNamedTruthLoop")
+
+        assertEquals(interpreted, compiled.values.getValue("LastResult"))
+        assertEquals(false, (compiled.values.getValue("अवस्था") as SanskritValue.Satya).boolean)
+        val outcome = compiled.values.getValue("LastResult") as SanskritValue.Rupa
+        assertEquals("समाप्ति", outcome.fields.getValue("अवस्था").toDisplayText())
+        assertEquals(3L, (outcome.fields.getValue("प्रयत्नसङ्ख्या") as SanskritValue.Sankhya).value)
+        assertTrue("evaluateBoolean" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
+        assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
+    }
+
+    @Test
     fun `bounded state loop loads and stores directly`() {
         val source = """
-            परिचय + ल्युट् + सुँ ।
+            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             द्वि + अम् अवस्था + ङे दा + लोट् + सिप् ।
@@ -770,7 +929,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `assigned state feeds a directly compiled final conditional`() {
         val source = """
-            परिचय + ल्युट् + सुँ ।
+            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             द्वि + अम् अवस्था + ङे दा + लोट् + सिप् ।
@@ -831,7 +990,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `straight line assignment is loaded directly by a later numeric leaf`() {
         val source = """
-            परिचय + ल्युट् + सुँ ।
+            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             त्रि + अम् अवस्था + ङे दा + लोट् + सिप् ।
@@ -891,7 +1050,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `terminal literal assignment stores compiled state directly`() {
         val source = """
-            परिचय + ल्युट् + सुँ ।
+            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             त्रि + अम् अवस्था + ङे दा + लोट् + सिप् ।
@@ -941,7 +1100,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `literal numeric condition branches without the interpreter bridge`() {
         val source = """
-            परिचय + ल्युट् + सुँ ।
+            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             यदि द्वि + अम् एक + अम् च विद् + लोट् + सिप् तर्हि द्वि + अम् त्रि + अम् च युज् + णिच् + लोट् + सिप् अन्यथा शून्य + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ।
@@ -993,7 +1152,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `pure numeric leaves execute directly without the interpreter bridge`() {
         val source = """
-            परिचय + ल्युट् + सुँ ।
+            परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् मुद्र् + लोट् + सिप् ॥
 
             एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ।
@@ -1135,22 +1294,22 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `nested compiled loops preserve interpreter state parity`() {
         val source = """
-            हृ + ल्युट् + सुँ ।
+            हृ + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             अन्तरावस्था + अम् एक + अम् च वि + युज् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् अन्तरावस्था + ङे ॥
 
-            क्षि + ल्युट् + सुँ ।
+            क्षि + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             बाह्यावस्था + अम् एक + अम् च वि + युज् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् बाह्यावस्था + ङे ॥
 
-            अन्तरचक्र + ल्युट् + सुँ ।
+            अन्तरचक्र + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             द्वि + अम् अन्तरावस्था + ङे दा + लोट् + सिप् ।
             यावत् अन्तरावस्था + अम् शून्य + अम् च विद् + लोट् + सिप् तावत् हृ + ल्युट् + टा कृ + लोट् + सिप् ॥
 
-            बाह्यचक्र + ल्युट् + सुँ ।
-            अन्तरचक्र + ल्युट् + टा कृ + लोट् + सिप् ।
+            बाह्यचक्र + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            अन्तरचक्र + टा कृ + लोट् + सिप् ।
             क्षि + ल्युट् + टा कृ + लोट् + सिप् ॥
 
             द्वि + अम् बाह्यावस्था + ङे दा + लोट् + सिप् ।
-            यावत् बाह्यावस्था + अम् शून्य + अम् च विद् + लोट् + सिप् तावत् बाह्यचक्र + ल्युट् + टा कृ + लोट् + सिप् ।
+            यावत् बाह्यावस्था + अम् शून्य + अम् च विद् + लोट् + सिप् तावत् बाह्यचक्र + टा कृ + लोट् + सिप् ।
             मुद्र् + णिच् + लोट् + सिप् बाह्यावस्था + अम् ।
         """.trimIndent()
         val interpreted = PaniniVM().evalScript(source)
@@ -1167,11 +1326,11 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `recursive generated samjna calls unwind and resume top-level execution`() {
         val source = """
-            हृ + ल्युट् + सुँ ।
+            हृ + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             अवस्था + अम् एक + अम् च वि + युज् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् अवस्था + ङे ।
             गण् + ल्युट् + टा कृ + लोट् + सिप् ॥
 
-            गण् + ल्युट् + सुँ ।
+            गण् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             यदि अवस्था + अम् शून्य + अम् च विद् + लोट् + सिप् तर्हि हृ + ल्युट् + टा कृ + लोट् + सिप् अन्यथा वि + स्था + लोट् + सिप् ॥
 
             त्रि + अम् अवस्था + ङे दा + लोट् + सिप् ।
@@ -1192,16 +1351,16 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `compiled named calls enforce signatures and prohibitions`() {
         val wrongType = """
-            द्विगुणन + ल्युट् + सुँ ।
+            गण + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
             सङ्ख्या + सुँ इति परिणाम + सुँ ।
             मान + अम् द्वि + अम् च गुण् + णिच् + लोट् + सिप् ॥
-            राम + अम् द्विगुणन + ल्युट् + टा कृ + लोट् + सिप् ।
+            राम + अम् गण + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
         val prohibited = """
-            विभाज् + ल्युट् + सुँ ।
+            विभाज् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             न द्वितीय + अम् शून्य + अम् ।
-            प्रथम + अम् द्वितीय + अम् च भाज् + णिच् + लोट् + सिप् ॥
+            प्रथम + अम् द्वितीय + अम् च भज् + णिच् + लोट् + सिप् ॥
             दश + अम् शून्य + अम् च विभाज् + ल्युट् + टा कृ + लोट् + सिप् ।
         """.trimIndent()
 
@@ -1229,14 +1388,14 @@ class StructuredBytecodeCompilerTest {
         }
 
         val exhausted = """
-            प्रयत्न + ल्युट् + सुँ ।
+            प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् द्वि + अम् च विद् + लोट् + सिप् ॥
-            द्वि + कृत्वसुच् यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
+            द्वि + कृत्वसुच् यावत् फल + सुँ न तावत् प्रयत्न + टा कृ + लोट् + सिप् ।
         """.trimIndent()
         val victory = """
-            प्रयत्न + ल्युट् + सुँ ।
+            प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             द्वि + अम् एक + अम् च विद् + लोट् + सिप् ॥
-            पञ्च + कृत्वसुच् यावत् फल + सुँ न तावत् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
+            पञ्च + कृत्वसुच् यावत् फल + सुँ न तावत् प्रयत्न + टा कृ + लोट् + सिप् ।
         """.trimIndent()
 
         val exhaustedResults = execute(exhausted, "CompiledPhalaExhaustion")
@@ -1256,7 +1415,7 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `bounded compiled loop publishes and pipes its exhaustion outcome`() {
         val source = """
-            हृ + ल्युट् + सुँ ।
+            हृ + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             अवस्था + अम् एक + अम् च वि + युज् + णिच् + लोट् + सिप् ततः दा + लोट् + सिप् फल + अम् अवस्था + ङे ॥
 
             त्रि + अम् अवस्था + ङे दा + लोट् + सिप् ।
@@ -1277,10 +1436,10 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `break signal exits the nearest compiled repetition`() {
         val source = """
-            प्रयत्न + ल्युट् + सुँ ।
+            प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             वि + स्था + लोट् + सिप् ॥
 
-            पञ्च + कृत्वसुच् प्रयत्न + ल्युट् + टा कृ + लोट् + सिप् ।
+            पञ्च + कृत्वसुच् प्रयत्न + टा कृ + लोट् + सिप् ।
         """.trimIndent()
         val interpreted = PaniniVM().evalScript(source)
             .filterIsInstance<ExecutionResult.Success>()
@@ -1342,13 +1501,13 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `parameterized named operation has interpreter compiler parity`() {
         val source = """
-            व्यवकलन + ल्युट् + सुँ ।
+            व्यवकलन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             वाम + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
             दक्षिण + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
             सङ्ख्या + सुँ इति परिणाम + सुँ ।
             वाम + अम् दक्षिण + अम् च वि + युज् + णिच् + लोट् + सिप् ॥
 
-            दक्षिण + ङस् द्वि + अम् वाम + ङस् पञ्च + अम् व्यवकलन + ल्युट् + टा कृ + लोट् + सिप् ।
+            दक्षिण + ङस् द्वि + अम् वाम + ङस् पञ्च + अम् व्यवकलन + टा कृ + लोट् + सिप् ।
         """.trimIndent()
         val interpreted = PaniniVM().evalScript(source)
             .filterIsInstance<ExecutionResult.Success>().last().typedValue
@@ -1364,12 +1523,12 @@ class StructuredBytecodeCompilerTest {
     @Test
     fun `pipeline result enters a typed generated samjna operation`() {
         val source = """
-            वर्धन + ल्युट् + सुँ ।
+            वर्धन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
             सङ्ख्या + सुँ इति परिणाम + सुँ ।
             मान + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥
 
-            एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ततः वर्धन + ल्युट् + टा कृ + लोट् + सिप् ।
+            एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ततः वर्धन + टा कृ + लोट् + सिप् ।
         """.trimIndent()
         val interpretedResults = PaniniVM().evalScript(source)
         assertTrue(
@@ -1496,7 +1655,7 @@ class StructuredBytecodeCompilerTest {
     )
 
     private fun collectionProgram(operation: String): String = """
-        परिचय + ल्युट् + सुँ ।
+        परिचय + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
         एक + अम् मुद्र् + लोट् + सिप् ॥
 
         एक + अम् द्वि + अम् त्रि + अम् च सूची + ङे दा + लोट् + सिप् ।

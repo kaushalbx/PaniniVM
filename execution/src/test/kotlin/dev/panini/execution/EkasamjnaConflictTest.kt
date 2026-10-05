@@ -14,7 +14,8 @@ class EkasamjnaConflictTest {
         assertTrue(statements.isNotEmpty(), "Expected non-empty script statements for Nitya header line")
         val defn = statements.first() as PvmScriptStatement.PrakriyaDefinition
         assertTrue(defn.isNitya, "Expected isNitya to be true for Nitya header definition")
-        assertEquals("गणित + ङस् गुण् + ल्युट् + सुँ", defn.nameSegmented)
+        assertEquals("गुण् + ल्युट् + सुँ", defn.nameSegmented)
+        assertEquals("गणित", defn.prakriya.domainIdentity)
     }
 
     @Test
@@ -27,9 +28,11 @@ class EkasamjnaConflictTest {
         ).single() as PvmScriptStatement.PrakriyaDefinition
 
         assertTrue(antaranga.isAntaranga)
-        assertEquals("गणित + ङस् गुण् + ल्युट् + सुँ", antaranga.nameSegmented)
+        assertEquals("गुण् + ल्युट् + सुँ", antaranga.nameSegmented)
+        assertEquals("गणित", antaranga.prakriya.domainIdentity)
         assertTrue(apavada.isApavada)
-        assertEquals("गणित + ङस् गुण् + ल्युट् + सुँ", apavada.nameSegmented)
+        assertEquals("गुण् + ल्युट् + सुँ", apavada.nameSegmented)
+        assertEquals("गणित", apavada.prakriya.domainIdentity)
     }
 
     @Test

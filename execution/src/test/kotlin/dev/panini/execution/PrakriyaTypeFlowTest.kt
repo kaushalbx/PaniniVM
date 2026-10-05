@@ -8,6 +8,23 @@ import kotlin.test.assertFailsWith
 
 class PrakriyaTypeFlowTest {
     @Test
+    fun `legacy reusable header receives a precise explicit declaration suggestion`() {
+        val source = "वृध् + ल्युट् + सुँ ।\nएक + अम् मुद्र् + णिच् + लोट् + सिप् ॥"
+        val warning = PrakriyaScriptValidator.validateLegacy(source).single()
+        assertEquals(PrakriyaDiagnosticSeverity.WARNING, warning.severity)
+        assertEquals("वृध् + ल्युट् + सुँ", source.substring(warning.offset, warning.offset + warning.length))
+        assertEquals("वृध् + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप्", warning.replacement)
+        val migrated = source.replaceRange(warning.offset, warning.offset + warning.length, warning.replacement!!)
+        assertTrue(PrakriyaScriptValidator.validate(migrated).isEmpty())
+        assertIs<PvmScriptStatement.PrakriyaDefinition>(PvmScript.parse(migrated).single())
+    }
+
+    @Test
+    fun `ordinary nominal sentences are not warned as compatibility headers`() {
+        assertTrue(PrakriyaScriptValidator.validate("वृध् + ल्युट् + सुँ ।").isEmpty())
+    }
+
+    @Test
     fun `invalid prakriya bodies are rejected before execution`() {
         val source = """
             प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
@@ -41,26 +58,26 @@ class PrakriyaTypeFlowTest {
     @Test
     fun `validator reports duplicate parameters and bad call arity`() {
         val source = """
-            योजन + ल्युट् + सुँ ।
+            योजन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
             मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
             सङ्ख्या + सुँ इति परिणाम + सुँ ।
             मान + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ॥
 
-            त्रि + अम् योजन + ल्युट् + टा कृ + लोट् + सिप् ।
+            त्रि + अम् योजन + टा कृ + लोट् + सिप् ।
         """.trimIndent()
 
         val messages = PrakriyaScriptValidator.validate(source).map(PrakriyaDiagnostic::message)
 
         assertTrue(messages.any { it.contains("declared more than once") }, messages.toString())
-        assertTrue(messages.any { it.contains("expects 2 arguments") }, messages.toString())
+        assertTrue(messages.any { it.contains("2 मानानि अपेक्षितानि") }, messages.toString())
     }
 
     @Test
     fun `custom structured result declaration resolves its schema`() {
         val source = """
-            अवस्था + अम् प्रयत्नसङ्ख्या + अम् अनुमानपरिणाम + मतुप् + सुँ ।
-            अनुमान + ल्युट् + सुँ ।
+            अवस्था + सुँ प्रयत्नसङ्ख्या + सुँ च अनुमानपरिणाम + ङस् क्षेत्र + जस् असँ + लट् + झि ।
+            अनुमान + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             अनुमानपरिणाम + सुँ इति परिणाम + सुँ ।
             विजय + अम् दा + लोट् + सिप् ॥
         """.trimIndent()
@@ -80,19 +97,19 @@ class PrakriyaTypeFlowTest {
             """
             गणित + सुँ इति अधिकार + सुँ ।
 
-            प्रथमक्रिया + ल्युट् + सुँ ।
+            प्रथमक्रिया + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             वाम + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
             दक्षिण + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
             सङ्ख्या + सुँ इति परिणाम + सुँ ।
             वाम + अम् दक्षिण + अम् च युज् + णिच् + लोट् + सिप् ॥
 
-            द्वितीयक्रिया + ल्युट् + सुँ ।
+            द्वितीयक्रिया + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             फलमान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
             दक्षिण + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
             सङ्ख्या + सुँ इति परिणाम + सुँ ।
             फलमान + अम् दक्षिण + अम् च गण् + णिच् + लोट् + सिप् ॥
 
-            द्वि + अम् त्रि + अम् च गणित + ङस् प्रथमक्रिया + ल्युट् + ङस् गणित + ङस् द्वितीयक्रिया + ल्युट् + ङस् पूर्व + ङस् पर + ङस् एका + सुँ कृ + लोट् + सिप् ।
+            द्वि + अम् त्रि + अम् च गणित + ङस् प्रथमक्रिया + ङस् गणित + ङस् द्वितीयक्रिया + ङस् पूर्व + ङस् पर + ङस् एका + सुँ कृ + लोट् + सिप् ।
             """.trimIndent(),
         )
 

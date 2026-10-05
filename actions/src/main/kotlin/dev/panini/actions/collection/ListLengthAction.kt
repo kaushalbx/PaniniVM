@@ -6,6 +6,8 @@ import dev.panini.execution.DhatuOperation
 import dev.panini.execution.ExecutionContext
 import dev.panini.execution.ExecutionError
 import dev.panini.execution.ExecutionResult
+import dev.panini.execution.NaturalOperation
+import dev.panini.execution.NaturalOperationResolver
 import dev.panini.execution.SanskritValue
 import dev.panini.execution.DevanagariDigits
 import dev.panini.execution.renderSankhyaResult
@@ -13,10 +15,12 @@ import dev.panini.execution.renderSankhyaResult
 /** Count the size/length of a list (triggered by गण / सङ्ख्यान). */
 object ListLengthAction : DhatuAction("सूच्याकारः", "सूच्याः दीर्घता-सङ्ख्यानम्") {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
-        val expression = context.bindings[Karaka.KARMAN]
+        val naturalFrame = NaturalOperationResolver.resolve(operation, context)
+            as? NaturalOperation.CollectionCardinality
+        val expression = naturalFrame?.collection ?: context.bindings[Karaka.KARMAN]
             ?: return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
-                "List length execution requires a list in KARMAN."
+                "सूचीगणने सूची कर्मरूपेण अपेक्षिता।"
             )
 
         val listValues = context.resolveValues(expression)

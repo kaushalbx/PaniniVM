@@ -3,11 +3,12 @@ package dev.panini.execution
 import dev.panini.vyakaranam.ast.Conditional
 import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.Sequence
+import dev.panini.vyakaranam.ast.SequenceConnector
 
 /** Semantic classification computed once when a script sentence is parsed. */
 sealed interface PvmSentenceSemantics {
     data class SchemaDeclaration(val schema: TaddhitaStructSchema) : PvmSentenceSemantics
-    data class StructConstruction(val struct: TaddhitaStruct) : PvmSentenceSemantics
+    data class StructFieldAssertion(val assertion: TaddhitaFieldAssertion) : PvmSentenceSemantics
     data class AttributeAccess(val access: TaddhitaAttributeAccess) : PvmSentenceSemantics
     data class AttributePipeline(val access: TaddhitaAttributeAccess, val targets: List<Invocation>) :
         PvmSentenceSemantics
@@ -21,8 +22,8 @@ internal object PvmSentenceClassifier {
         TaddhitaStructEngine.detectResultSchema(sentence.text, sentence.ukti)?.let {
             return PvmSentenceSemantics.SchemaDeclaration(it)
         }
-        TaddhitaStructEngine.detectStructConstruction(sentence.text, sentence.ukti)?.let {
-            return PvmSentenceSemantics.StructConstruction(it)
+        TaddhitaStructEngine.detectFieldAssertion(sentence.text, sentence.ukti)?.let {
+            return PvmSentenceSemantics.StructFieldAssertion(it)
         }
         sentence.ukti?.grammaticalVakyas()?.singleOrNull()
             ?.let(TaddhitaStructEngine::detectAttributeAccess)?.let {
@@ -45,7 +46,9 @@ internal object PvmSentenceClassifier {
     private fun detectAttributePipeline(program: dev.panini.vyakaranam.ast.ProgramNode?):
         PvmSentenceSemantics.AttributePipeline? {
         val sequence = program as? Sequence ?: return null
-        if (sequence.statements.size < 2 || sequence.connectors.any { it != "ततः" }) return null
+        if (sequence.statements.size < 2 ||
+            sequence.connectorKinds.any { it != SequenceConnector.ANANTARYA }
+        ) return null
         val source = sequence.statements.first() as? Invocation ?: return null
         val targets = sequence.statements.drop(1).map { it as? Invocation ?: return null }
         val access = TaddhitaStructEngine.detectAttributeAccess(source.vakya) ?: return null

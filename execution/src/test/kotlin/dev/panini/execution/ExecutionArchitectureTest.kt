@@ -100,6 +100,23 @@ class ExecutionArchitectureTest {
     }
 
     @Test
+    fun `checked in programs use explicit natural range choice constructions`() {
+        val sources = sequenceOf(File("examples"), File("projects"))
+            .flatMap { root -> root.walkTopDown().filter { it.isFile && it.extension == "pvm" } }
+            .toList()
+
+        sources.forEach { source ->
+            val executableLines = source.readLines().filterNot { it.trimStart().startsWith("#") }
+            val program = executableLines.joinToString("\n")
+            assertFalse("दिव् + णिच्" in program, "${source.path} uses causative दिव् for selection.")
+            assertFalse(
+                Regex("ङसिँ\\s+दिव्").containsMatchIn(program),
+                "${source.path} uses implicit ablative exclusion.",
+            )
+        }
+    }
+
+    @Test
     fun `readable Sanskrit derives segmented state names and PVM imperatives`() {
         val source = """
             एक + अम् धृ + ल्युट् + ङे दा + लोट् + सिप् ।
@@ -145,7 +162,9 @@ class ExecutionArchitectureTest {
             "examples/algorithms/pythagorean_triplet.pvm" to "पञ्च",
             "examples/algorithms/vector_dot_product.pvm" to "त्रयोविंशतिः",
             "examples/arithmetic/cumulative_sum.pvm" to "पञ्चदश",
+            "examples/arithmetic/factorial.pvm" to "विंशत्यधिकशतम्",
             "examples/arithmetic/gcd.pvm" to "षट्",
+            "examples/arithmetic/sum_recursive.pvm" to "पञ्चदश",
             "examples/control_flow/two_counter_machine.pvm" to "त्रीणि",
         )
         val vm = PaniniVM()

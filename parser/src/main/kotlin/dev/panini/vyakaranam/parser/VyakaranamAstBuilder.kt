@@ -1,14 +1,203 @@
 package dev.panini.vyakaranam.parser
 
 import dev.panini.core.Lakara
+import dev.panini.core.SupAffix
+import dev.panini.core.Vibhakti
 import dev.panini.core.SupLopa
 import dev.panini.vyakaranam.ast.*
 import dev.panini.parser.VyakaranamParser as PaniniyaVyakaranamParser
 
 class VyakaranamAstBuilder {
 
+    fun buildDocument(context: PaniniyaVyakaranamParser.DocumentContext): ProgramDocument {
+        val spans = context.documentItem().mapTo(mutableListOf()) { item ->
+            DocumentSourceSpan(requireNotNull(item.start).startIndex, requireNotNull(item.stop).stopIndex + 1)
+        }
+        val items = context.documentItem().mapTo(mutableListOf<VyakaranamNode>()) { item ->
+            item.prakriyaBlock()?.let(::buildPrakriya)
+                ?: item.prakriyaHeader()?.let { buildPrakriyaHeader(it, item.text, emptyList()) }
+                ?: classifyDocumentUtterance(build(requireNotNull(item.utterance())))
+        }
+        context.trailing?.let {
+            items += classifyDocumentUtterance(build(it))
+            spans += DocumentSourceSpan(requireNotNull(it.start).startIndex, requireNotNull(it.stop).stopIndex + 1)
+        }
+        context.trailingHeader?.let {
+            items += buildPrakriyaHeader(it, it.text, emptyList())
+            spans += DocumentSourceSpan(requireNotNull(it.start).startIndex, requireNotNull(it.stop).stopIndex + 1)
+        }
+        val headers = context.documentItem().mapIndexedNotNull { index, item ->
+            (item.prakriyaBlock()?.prakriyaHeader() ?: item.prakriyaHeader())?.let { header ->
+                index to DocumentSourceSpan(requireNotNull(header.start).startIndex,
+                    requireNotNull(header.stop).stopIndex + 1)
+            }
+        }.toMap().toMutableMap()
+        context.trailingHeader?.let {
+            headers[items.lastIndex] = DocumentSourceSpan(requireNotNull(it.start).startIndex,
+                requireNotNull(it.stop).stopIndex + 1)
+        }
+        val bodies = context.documentItem().mapIndexedNotNull { index, item ->
+            item.prakriyaBlock()?.let { block ->
+                index to block.body.mapIndexed { bodyIndex, body ->
+                    val terminator = if (bodyIndex == block.body.lastIndex) requireNotNull(block.stop)
+                        else block.DANDA()[bodyIndex + 1].symbol
+                    DocumentSourceSpan(requireNotNull(body.start).startIndex, terminator.stopIndex + 1)
+                }
+            }
+        }.toMap()
+        val names = context.documentItem().mapIndexedNotNull { index, item ->
+            (item.prakriyaBlock()?.prakriyaHeader() ?: item.prakriyaHeader())?.names?.lastOrNull()?.let {
+                index to DocumentSourceSpan(requireNotNull(it.start).startIndex, requireNotNull(it.stop).stopIndex + 1)
+            }
+        }.toMap().toMutableMap()
+        context.trailingHeader?.names?.lastOrNull()?.let {
+            names[items.lastIndex] = DocumentSourceSpan(requireNotNull(it.start).startIndex,
+                requireNotNull(it.stop).stopIndex + 1)
+        }
+        fun scopeSpan(utterance: PaniniyaVyakaranamParser.UtteranceContext): DocumentSourceSpan? {
+            val domain = utterance.vakya().firstOrNull()?.namaVakya()?.vakyaPada()?.firstOrNull()
+                ?: return null
+            return DocumentSourceSpan(requireNotNull(domain.start).startIndex, requireNotNull(domain.stop).stopIndex + 1)
+        }
+        val domains = context.documentItem().mapIndexedNotNull { index, item ->
+            if (items[index] is Scope) item.utterance()?.let(::scopeSpan)?.let { index to it } else null
+        }.toMap().toMutableMap()
+        context.trailing?.let { if (items.last() is Scope) scopeSpan(it)?.let { span -> domains[items.lastIndex] = span } }
+        return ProgramDocument(context.text, items, spans, headers, bodies, names, domains)
+    }
+
+    private fun classifyDocumentUtterance(ukti: Ukti): VyakaranamNode {
+        val quotation = ukti.body as? Quotation
+        if (quotation != null && quotation.quoted.vakya is NamaVakya &&
+            quotation.reporting.invocations().flatMap { it.vakya.padas }.filterIsInstance<SubantaPada>()
+                .any { (it.pratipadika as? MulaPratipadika)?.lexicalIdentity == MulaPratipadikaIdentity.PRAKRIYA }) {
+            error("A prakriyā declaration requires a body ending in ॥.")
+        }
+        val padas = ((ukti.body as? Invocation)?.vakya as? NamaVakya)?.padas ?: return ukti
+        if (padas.none { (it as? AvyayaPada)?.function == AvyayaFunction.QUOTATIVE }) return ukti
+        val marker = padas.lastOrNull() as? SubantaPada ?: return ukti
+        val identity = (marker.pratipadika as? MulaPratipadika)?.lexicalIdentity
+        if (identity == MulaPratipadikaIdentity.SIMA) {
+            require(padas.size == 3 && padas.first() is ParyantaRangePada &&
+                SupAffix.fromUpadesha(marker.sup.text)?.vibhakti == Vibhakti.PRATHAMA) {
+                "A सीमा declaration requires ablative and पर्यन्त bounds and nominative सीमा."
+            }
+            return RangeDeclaration(ukti.sourceText, padas.first() as ParyantaRangePada, marker)
+        }
+        val isScope = identity == MulaPratipadikaIdentity.ADHIKARA ||
+            (marker.pratipadika as? KridantaPratipadika)?.lexicalIdentity == KridantaLexicalIdentity.ADHIKARA
+        if (isScope) {
+            val domain = padas.first() as? SubantaPada
+            require(padas.size == 3 && domain != null &&
+                SupAffix.fromUpadesha(domain.sup.text)?.vibhakti == Vibhakti.PRATHAMA &&
+                SupAffix.fromUpadesha(marker.sup.text)?.vibhakti == Vibhakti.PRATHAMA) {
+                "An अधिकार declaration requires a nominative domain and marker."
+            }
+            return Scope(ukti.sourceText, domain.sourceText, domain.pratipadika.morphologicalKey())
+        }
+        return ukti
+    }
+
+    fun buildScopeDeclaration(context: PaniniyaVyakaranamParser.ScopeDeclarationContext): Scope {
+        val domain = buildSubanta(requireNotNull(context.domain))
+        val marker = buildSubanta(requireNotNull(context.marker))
+        require(SupAffix.fromUpadesha(domain.sup.text)?.vibhakti == Vibhakti.PRATHAMA &&
+            SupAffix.fromUpadesha(marker.sup.text)?.vibhakti == Vibhakti.PRATHAMA) {
+            "An अधिकार declaration requires nominative domain and marker."
+        }
+        require(when (val stem = marker.pratipadika) {
+            is MulaPratipadika -> stem.lexicalIdentity == MulaPratipadikaIdentity.ADHIKARA
+            is KridantaPratipadika -> stem.lexicalIdentity == KridantaLexicalIdentity.ADHIKARA
+            else -> false
+        }) { "A scope declaration requires अधिकार." }
+        return Scope(context.text, domain.sourceText, domain.pratipadika.morphologicalKey())
+    }
+
+    fun buildRangeDeclaration(context: PaniniyaVyakaranamParser.RangeDeclarationContext): RangeDeclaration {
+        val marker = buildSubanta(requireNotNull(context.marker))
+        require((marker.pratipadika as? MulaPratipadika)?.lexicalIdentity == MulaPratipadikaIdentity.SIMA &&
+            SupAffix.fromUpadesha(marker.sup.text)?.vibhakti == Vibhakti.PRATHAMA) {
+            "An inclusive range declaration requires nominative सीमा."
+        }
+        return RangeDeclaration(context.text, buildParyantaRange(requireNotNull(context.boundary)), marker)
+    }
+
+    fun buildPrakriya(context: PaniniyaVyakaranamParser.PrakriyaBlockContext): Prakriya {
+        return buildPrakriyaHeader(context.prakriyaHeader(), context.text, context.body.map { build(it).body })
+    }
+
+    private fun buildPrakriyaHeader(
+        context: PaniniyaVyakaranamParser.PrakriyaHeaderContext,
+        sourceText: String,
+        body: List<ProgramNode>,
+    ): Prakriya {
+        val names = context.names.map(::buildSubanta)
+        require(names.size in 1..2) { "A prakriyā declaration names one operation and optionally one domain." }
+        val operation = names.last()
+        require(SupAffix.fromUpadesha(operation.sup.text)?.vibhakti == Vibhakti.PRATHAMA) {
+            "A prakriyā name requires the nominative case."
+        }
+        val domain = names.dropLast(1).singleOrNull()
+        require(domain == null || SupAffix.fromUpadesha(domain.sup.text)?.vibhakti == Vibhakti.SASTHI) {
+            "A prakriyā domain requires the genitive case."
+        }
+        val declarationContext = requireNotNull(context.declaration)
+        val marker = SubantaPada(
+            "प्रक्रिया+${declarationContext.markerSup!!.text}",
+            MulaPratipadika("प्रक्रिया", "प्रक्रिया"),
+            SupPratyaya(declarationContext.markerSup!!.text, declarationContext.markerSup!!.text),
+        )
+        val copula = buildTinganta(requireNotNull(declarationContext.copula))
+        val declaration = AkhyataVakya(declarationContext.text,
+            declarationContext.qualifiers.map(::buildSubanta) + marker + copula, copula)
+        require(declaration.tinganta.dhatu.mulaDhatu in setOf("असँ", "अस्") &&
+            declaration.tinganta.dhatu.sanadiPratyayas.isEmpty() &&
+            declaration.tinganta.upasargas.isEmpty() &&
+            declaration.tinganta.lakara == Lakara.LAT && declaration.tinganta.ting.text == "तिप्") {
+            "A prakriyā declaration requires अस्ति."
+        }
+        val qualifiers = declaration.padas.filterIsInstance<SubantaPada>().map { pada ->
+            require(SupAffix.fromUpadesha(pada.sup.text)?.vibhakti == Vibhakti.PRATHAMA) {
+                "Prakriyā qualifiers require the nominative case."
+            }
+            when (val stem = pada.pratipadika) {
+                is MulaPratipadika -> stem.lexicalIdentity
+                is KridantaPratipadika -> MulaPratipadikaIdentity.APAVADA.takeIf {
+                    stem.lexicalIdentity == KridantaLexicalIdentity.APAVADA
+                }
+                else -> null
+            }
+        }
+        require(MulaPratipadikaIdentity.PRAKRIYA in qualifiers) { "A reusable declaration requires प्रक्रिया." }
+        require(qualifiers.all { it in setOf(MulaPratipadikaIdentity.PRAKRIYA,
+            MulaPratipadikaIdentity.ANTARANGA, MulaPratipadikaIdentity.NITYA, MulaPratipadikaIdentity.APAVADA) }) {
+            "Unsupported prakriyā qualifier."
+        }
+        return Prakriya(
+            sourceText = sourceText,
+            name = operation.sourceText,
+            domain = domain?.pratipadika?.morphologicalKey(includeTaddhita = false),
+            nameIdentity = operation.pratipadika.morphologicalKey(),
+            domainIdentity = domain?.pratipadika?.morphologicalKey(includeTaddhita = false),
+            body = body,
+            modifiers = PrakriyaModifiers(
+                visibility = if (MulaPratipadikaIdentity.ANTARANGA in qualifiers) PrakriyaVisibility.INTERNAL else PrakriyaVisibility.PUBLIC,
+                precedence = when {
+                    MulaPratipadikaIdentity.APAVADA in qualifiers -> PrakriyaPrecedence.APAVADA
+                    MulaPratipadikaIdentity.NITYA in qualifiers -> PrakriyaPrecedence.NITYA
+                    MulaPratipadikaIdentity.ANTARANGA in qualifiers -> PrakriyaPrecedence.ANTARANGA
+                    else -> PrakriyaPrecedence.DEFAULT
+                },
+            ),
+        )
+    }
+
     fun build(
         context: PaniniyaVyakaranamParser.UktiContext,
+    ): Ukti = build(context.utterance())
+
+    fun build(
+        context: PaniniyaVyakaranamParser.UtteranceContext,
     ): Ukti {
         val body = context.quotationClause()?.let { quotation ->
             Quotation(
@@ -21,10 +210,18 @@ class VyakaranamAstBuilder {
             val boundary = loop.boundary?.let { boundaryContext ->
                 val ordinal = buildSankhyaPuranaPada(boundaryContext.ordinal!!)
                 val attempt = buildSubanta(boundaryContext.attempt!!)
-                require((attempt.pratipadika as? MulaPratipadika)?.text == "प्रयत्न") {
+                require(
+                    (attempt.pratipadika as? MulaPratipadika)?.lexicalIdentity ==
+                        MulaPratipadikaIdentity.PRAYATNA,
+                ) {
                     "A bounded attempt loop requires प्रयत्नस्य as its boundary noun."
                 }
-                require(requireNotNull(boundaryContext.limitBase).text == "अन्त") {
+                require(
+                    MulaPratipadikaIdentity.fromText(
+                        requireNotNull(requireNotNull(boundaryContext.limitBase).text),
+                    ) ==
+                        MulaPratipadikaIdentity.ANTA,
+                ) {
                     "Only अन्त licenses the पर्यन्त boundary relation."
                 }
                 listOf<Pada>(
@@ -132,17 +329,22 @@ class VyakaranamAstBuilder {
         val nominal = (vakya as? NamaVakya)?.padas?.singleOrNull() as? SubantaPada
         if (nominal != null) implicitSubantaReturn(nominal) else Invocation(vakya)
     }
-        ?: implicitValueReturn(requireNotNull(context.value).text)
+        ?: implicitPratipadikaReturn(buildPratipadika(requireNotNull(context.value)))
 
     /** A one-word nominative branch is a Sanskrit zero-copula value clause. */
     private fun implicitSubantaReturn(value: SubantaPada): ProgramNode =
         (PaniniParser().parse("${value.pratipadika.sourceText} + अम् दा + लोट् + सिप् ।").body as Invocation)
-            .copy(implicitValue = value.sourceText)
+            .copy(implicitValue = value.sourceText, implicitValuePada = value)
 
-    /** A nominal branch has an understood return verb, just as a nāma-vākya has an understood copula. */
-    private fun implicitValueReturn(value: String): ProgramNode =
-        (PaniniParser().parse("$value + अम् दा + लोट् + सिप् ।").body as Invocation)
-            .copy(implicitValue = value)
+    /** A bare nominal branch has an understood nominative ending and return verb. */
+    private fun implicitPratipadikaReturn(value: Pratipadika): ProgramNode =
+        implicitSubantaReturn(
+            SubantaPada(
+                sourceText = "${value.sourceText} + सुँ",
+                pratipadika = value,
+                sup = SupPratyaya(sourceText = "सुँ", text = "सुँ"),
+            ),
+        )
 
     /** Lowers one written pipeline target into each mutually exclusive branch. */
     private fun pipeConditionalResult(
@@ -174,9 +376,18 @@ class VyakaranamAstBuilder {
         context: PaniniyaVyakaranamParser.PipelineClauseContext,
     ): Pipeline {
         val arguments = context.arguments.map(::buildSubanta)
+        val isNaturalSequence = context.purvaparaDirective() == null
         val stagePadas = context.stages.map { stage ->
             val domain = buildSubanta(stage.domain!!)
             val operation = buildSubanta(stage.operation!!)
+            if (isNaturalSequence) {
+                require(SupAffix.fromUpadesha(domain.sup.text)?.vibhakti == Vibhakti.SASTHI) {
+                    "A sequential procedure stage requires its domain in ṣaṣṭhī."
+                }
+                require(SupAffix.fromUpadesha(operation.sup.text)?.vibhakti == Vibhakti.TRTIYA) {
+                    "A sequential procedure stage requires its operation in tṛtīyā."
+                }
+            }
             Triple(
                 PipelineStage(
                     sourceText = "${canonicalSegmented(domain.sourceText)} ${canonicalSegmented(operation.pratipadika.sourceText)}",
@@ -187,17 +398,30 @@ class VyakaranamAstBuilder {
                 operation,
             )
         }
-        val purvaPada = buildSubanta(context.purvaparaDirective()!!.purva!!)
-        val paraPada = buildSubanta(context.purvaparaDirective()!!.para!!)
+        val legacyDirective = context.purvaparaDirective()
+        val renderedStages = if (isNaturalSequence) {
+            stagePadas.flatMapIndexed { index, (_, domain, operation) ->
+                buildList<Pada> {
+                    if (index > 0) add(AvyayaPada(sourceText = "ततः", form = "ततः"))
+                    add(domain)
+                    add(operation)
+                }
+            }
+        } else {
+            val purvaPada = buildSubanta(requireNotNull(legacyDirective).purva!!)
+            val paraPada = buildSubanta(legacyDirective.para!!)
+            stagePadas.flatMap { listOf(it.second, it.third) } +
+                listOf(purvaPada, paraPada) +
+                buildSubanta(context.pipelineResult()!!.subantaPada()!!)
+        }
         return Pipeline(
             sourceText = context.text,
             arguments = arguments.map { it.pratipadika.sourceText },
             stages = stagePadas.map { it.first },
+            argumentPadas = arguments,
             renderPadas = arguments +
                 AvyayaPada(sourceText = "च", form = "च") +
-                stagePadas.flatMap { listOf(it.second, it.third) } +
-                listOf(purvaPada, paraPada) +
-                buildSubanta(context.pipelineResult()!!.subantaPada()!!) +
+                renderedStages +
                 buildTinganta(context.tingantaPada()!!),
         )
     }
@@ -267,20 +491,48 @@ class VyakaranamAstBuilder {
     private fun buildParyantaRange(
         context: PaniniyaVyakaranamParser.ParyantaRangeContext,
     ): ParyantaRangePada {
-        require(context.limitBase!!.text == "अन्त") {
+        require(
+            MulaPratipadikaIdentity.fromText(requireNotNull(context.limitBase!!.text)) ==
+                MulaPratipadikaIdentity.ANTA,
+        ) {
             "पर्यन्त-range marker requires परि + अन्त + अम्."
         }
-        fun numeral(stems: List<String>, sup: String, source: String) = SankhyaPada(
-            sourceText = source,
-            stems = stems,
-            sup = SupPratyaya(sourceText = sup, text = sup),
-        )
         val lower = context.lower!!
         val upper = context.upper!!
+        fun lowerBoundary(): SankhyaBoundaryPada {
+            lower.ablativeNumeral()?.let { numeral ->
+                return SankhyaPada(
+                    sourceText = numeral.text,
+                    stems = numeral.sankhyaStem().map { it.text },
+                    sup = SupPratyaya(numeral.ablativeSup().text, numeral.ablativeSup().text),
+                )
+            }
+            val ordinal = requireNotNull(lower.ablativeOrdinal())
+            return SankhyaPuranaPada(
+                sourceText = ordinal.text,
+                stems = ordinal.sankhyaStem().map { it.text } + ordinal.puranaPratyaya().text,
+                sup = SupPratyaya(ordinal.ablativeSup().text, ordinal.ablativeSup().text),
+            )
+        }
+        fun upperBoundary(): SankhyaBoundaryPada {
+            upper.accusativeNumeral()?.let { numeral ->
+                return SankhyaPada(
+                    sourceText = numeral.text,
+                    stems = numeral.sankhyaStem().map { it.text },
+                    sup = SupPratyaya(numeral.accusativeSup().text, numeral.accusativeSup().text),
+                )
+            }
+            val ordinal = requireNotNull(upper.accusativeOrdinal())
+            return SankhyaPuranaPada(
+                sourceText = ordinal.text,
+                stems = ordinal.sankhyaStem().map { it.text } + ordinal.puranaPratyaya().text,
+                sup = SupPratyaya(ordinal.accusativeSup().text, ordinal.accusativeSup().text),
+            )
+        }
         return ParyantaRangePada(
             sourceText = context.text,
-            lowerLimit = numeral(lower.sankhyaStem().map { it.text }, lower.ablativeSup().text, lower.text),
-            upperLimit = numeral(upper.sankhyaStem().map { it.text }, upper.accusativeSup().text, upper.text),
+            lowerLimit = lowerBoundary(),
+            upperLimit = upperBoundary(),
             marker = SubantaPada(
                 sourceText = "परि+अन्त+अम्",
                 pratipadika = MulaPratipadika(sourceText = "परि+अन्त", text = "पर्यन्त"),
@@ -586,7 +838,7 @@ class VyakaranamAstBuilder {
                 sourceText = context.tingPratyaya()!!.text,
                 text = context.tingPratyaya()!!.text,
             ),
-            vikarana = context.vikarana()?.text,
+            vikarana = context.vikarana()?.text?.let(dev.panini.vyakaranam.ast.Vikarana::fromUpadesha),
         )
 
     private fun buildDhatu(

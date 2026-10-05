@@ -20,7 +20,8 @@ The example demonstrates:
 - equality-style membership testing with the existing `अस्` operation;
 - numeric ordering with `विद्` for greater-than and `नि + विद्` for less-than;
 - nested conditionals with `यदि … तर्हि … अन्यथा यदि …`;
-- bare branch values in `यदि … तर्हि लघु अन्यथा गुरु ततः मुद्र्`, with one print action;
+- branch values in `यदि … तर्हि लघु अन्यथा गुरु`, followed by the explicit
+  result anaphor in `ततः फलम् मुद्रय`, with one print action;
 - dynamic `लघु` and `गुरु` feedback for low and high guesses;
 - a final equality test in the reusable attempt, whose truth value controls the loop;
 - a reusable prakriyā declared by `प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप्`;

@@ -1,10 +1,20 @@
 package dev.panini.compiler
 
+import dev.panini.execution.semanticallyEquals
+
 import dev.panini.execution.ExecutionError
 import dev.panini.execution.SanskritValue
 
 /** Backend helper for explicit value IR comparisons. */
 internal object CompilerValueOperations {
+    @JvmStatic
+    fun randomActiveRange(value: SanskritValue, excluded: SanskritValue?): SanskritValue {
+        val range = value as? SanskritValue.Range ?: throw CompiledPaniniExecutionException(
+            ExecutionError.INVALID_VALUE, "Choice requires a preceding सीमा declaration.")
+        return if (excluded == null) PaniniRuntime.randomRange(range.minimum.value, range.maximum.value)
+            else PaniniRuntime.randomRangeExcluding(excluded, range.minimum.value, range.maximum.value)
+    }
+
     @JvmStatic
     fun listSum(value: SanskritValue): SanskritValue =
         numeric(collectionItems(value).sumOf(::number))
@@ -92,10 +102,10 @@ internal object CompilerValueOperations {
     }
 
     @JvmStatic
-    fun equal(left: SanskritValue, right: SanskritValue): Boolean = left == right
+    fun equal(left: SanskritValue, right: SanskritValue): Boolean = left.semanticallyEquals(right)
 
     @JvmStatic
-    fun notEqual(left: SanskritValue, right: SanskritValue): Boolean = left != right
+    fun notEqual(left: SanskritValue, right: SanskritValue): Boolean = !left.semanticallyEquals(right)
 
     @JvmStatic
     fun lessThan(left: SanskritValue, right: SanskritValue): Boolean = number(left) < number(right)
@@ -145,7 +155,7 @@ internal object CompilerValueOperations {
 
     @JvmStatic
     fun listContains(list: SanskritValue, query: SanskritValue): SanskritValue = SanskritValue.Satya(
-        collectionItems(list).any { item -> equivalent(item, query) },
+        collectionItems(list).any { item -> item.semanticallyEquals(query) },
     )
 
     @JvmStatic
@@ -155,6 +165,11 @@ internal object CompilerValueOperations {
 
     @JvmStatic
     fun listPop(list: SanskritValue): SanskritValue {
+        if (list !is SanskritValue.Suchi && list !is SanskritValue.Gana) {
+            throw CompiledPaniniExecutionException(
+                ExecutionError.INVALID_VALUE, "Collection extraction requires a collection value.",
+            )
+        }
         val items = collectionItems(list)
         if (items.isEmpty()) {
             throw CompiledPaniniExecutionException(
@@ -177,7 +192,7 @@ internal object CompilerValueOperations {
         ) {
             throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE, "Slice indices are outside the supported range.")
         }
-        val from = (startLong.toInt() - 1).coerceAtLeast(0)
+        val from = (startLong - 1L).coerceAtLeast(0L).toInt()
         val to = endLong.toInt().coerceAtMost(items.size)
         return if (from > to || from >= items.size) {
             SanskritValue.Suchi(emptyList())
@@ -217,14 +232,10 @@ internal object CompilerValueOperations {
     private fun collectionItems(value: SanskritValue): List<SanskritValue> = when (value) {
         is SanskritValue.Suchi -> value.items
         is SanskritValue.Gana -> value.elements
-        else -> error("Compiler collection operation requires a list value, but received ${value::class.simpleName}.")
+        else -> throw CompiledPaniniExecutionException(
+            ExecutionError.INVALID_VALUE,
+            "Compiler collection operation requires a collection value, but received ${value::class.simpleName}.",
+        )
     }
-
-    private fun equivalent(left: SanskritValue, right: SanskritValue): Boolean =
-        if (left is SanskritValue.Sankhya && right is SanskritValue.Sankhya) {
-            left.value == right.value
-        } else {
-            left.toDisplayText() == right.toDisplayText()
-        }
 
 }

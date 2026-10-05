@@ -18,13 +18,16 @@ object IfAction : DhatuAction("निर्णयः", "यदि-तर्ह�
                 "If condition predicate action must be bound in APADANA."
             )
 
-        val condResult = context.resolve(condExpr).firstOrNull()?.trim()
+        val condition = context.resolveValues(condExpr).singleOrNull()
             ?: return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
                 "Condition predicate cannot be resolved to a value."
             )
-
-        val isTrue = condResult == "सत्यम्" || condResult == "सत्य"
+        val isTrue = (condition as? SanskritValue.Satya)?.boolean
+            ?: return ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                "Condition predicate must produce a typed truth value.",
+            )
 
         val targetExpr = if (isTrue) {
             context.bindings[Karaka.KARANA]

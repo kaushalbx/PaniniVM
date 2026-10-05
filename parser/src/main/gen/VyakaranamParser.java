@@ -1,4 +1,4 @@
-// Generated from /Users/kaushalbx/StudioProjects/AshtadhyayiSandhi/parser/src/main/antlr/dev/panini/vyakaranam/VyakaranamParser.g4 by ANTLR 4.13.2
+// Generated from C:/Users/User/Documents/SanskritSandhi/parser/src/main/antlr/dev/panini/vyakaranam/VyakaranamParser.g4 by ANTLR 4.13.2
 
 package dev.panini.parser;
 
@@ -25,75 +25,82 @@ public class VyakaranamParser extends Parser {
 		KHALU=24, NANU=25, YATHA=26, TATHA=27, YADA=28, TADA=29, YATRA=30, TATRA=31, 
 		KADA=32, KUTRA=33, SARVATRA=34, KATHAM=35, KUTAH=36, KRPAYA=37, SAHASAA=38, 
 		SHANAIH=39, PUNAH=40, NYUNATAYA=41, ADYA=42, SHVAH=43, HYAH=44, ADHIKA=45, 
-		UNA=46, SAKRIT=47, DVIH=48, TRIH=49, CHATUH=50, KRITVAS=51, KATAPAYADI=52, 
-		ARYABHATIYA=53, BHUTASAMKHYA=54, SAARDHA=55, SAPAADA=56, PAADONA=57, ARDHA=58, 
-		PAADA=59, AMSHA=60, GUNITA=61, BHAKTA=62, VARGA=63, GHANA=64, MOOLA=65, 
-		KRITA=66, SAHITA=67, RAHITA=68, TEEYA=69, PURANA_THA=70, PURANA_MA=71, 
-		INTERJECTION=72, PRA=73, PARAA=74, SAM=75, ANUU=76, AVA=77, NIS=78, DUS=79, 
-		VI=80, AANG=81, NI=82, ADHI=83, ATI=84, SU=85, UD=86, ABHI=87, PRATI=88, 
-		PARI=89, UPA=90, SAN=91, KYACH=92, KAAMYACH=93, KYANG=94, KYASH=95, NIC=96, 
-		YAN=97, YUK_SAN=98, LAT=99, LIT=100, LUT=101, LRT=102, LET=103, LOT=104, 
-		LANG=105, LIN=106, LUNG=107, LRNG=108, TIP=109, TAS=110, JHI=111, SIP=112, 
-		THAS=113, THA=114, MIP=115, VAS=116, MAS=117, TA=118, ATAAM=119, JHA=120, 
-		THAS_A=121, ATHAAM=122, DHVAM=123, IT=124, VAHI=125, MAHING=126, SUP_SU=127, 
-		SUP_AU=128, SUP_JAS=129, SUP_AM=130, SUP_AUT=131, SUP_SHAS=132, SUP_TA=133, 
-		SUP_BHYAM=134, SUP_BHIS=135, SUP_NGE=136, SUP_BHYAS=137, SUP_NGASI=138, 
-		SUP_NGAS=139, SUP_OS=140, SUP_AAM=141, SUP_NGI=142, SUP_SUP=143, SHAP=144, 
-		SHYAN=145, SHNU=146, SHNAM=147, SHNA=148, U_VIKARANA=149, SHNAAM=150, 
-		YAK=151, SHAH=152, SYA=153, TAS_VIKARANA=154, CLI=155, SIC=156, ANG=157, 
-		CHANG=158, KSA=159, AT=160, IIT_AGAMA=161, NUM=162, TUK=163, MUT=164, 
-		NUT=165, YASUT=166, SIYUT=167, SUK=168, RUK=169, RIK=170, PUK=171, YUK=172, 
-		VUK=173, KTA=174, KTAVATU=175, TAVYAT=176, ANIYAR=177, YAT=178, NYAT=179, 
-		KYAP=180, SHATR=181, SHANACH=182, GHANJ=183, LYUT=184, NVUL=185, TRICH=186, 
-		ANIN=187, KHAL=188, KWIP=189, KTIN=190, AC=191, AP=192, KA=193, NIN=194, 
-		NINI=195, IN_KRT=196, TI_KRT=197, TRA=198, ITRA=199, ISHNUCH=200, UK=201, 
-		KTVA=202, LYAP=203, TUMUN=204, NAMUL=205, KASUN=206, KTVOS=207, MATUP=208, 
-		VATUP=209, INI=210, TVA=211, TAL=212, TARAP=213, TAMAP=214, MAYAT=215, 
-		PRATYAYA_TIYA=216, PRATYAYA_MA=217, PRATYAYA_TAMA=218, TASIL=219, AN=220, 
-		INJ=221, DHAK=222, THAJ=223, CHHA=224, KAN=225, AYANA=226, IYA=227, INA=228, 
-		HA=229, DAA=230, THAAL=231, THAMU=232, VAT=233, DHAA=234, TAAP=235, DAAP=236, 
-		CHAAP=237, NEEP=238, NEESH=239, NEEN=240, UUNG=241, TICH=242, LUK=243, 
-		SHLU=244, LUP=245, ALUK=246, ABHYASA=247, ADESHA=248, UNADI=249, YADI=250, 
-		TARHI=251, ANYATHA=252, YAVAT=253, TAVAT=254, IDENTIFIER=255, WS=256;
+		UNA=46, SAKRIT=47, DVIH=48, TRIH=49, CHATUH=50, KRITVAS=51, SUC=52, KATAPAYADI=53, 
+		ARYABHATIYA=54, BHUTASAMKHYA=55, INTERJECTION=56, PRA=57, PARAA=58, APA=59, 
+		SAM=60, ANUU=61, AVA=62, NIS=63, DUS=64, VI=65, AANG=66, NI=67, ADHI=68, 
+		ATI=69, SU=70, UD=71, ABHI=72, PRATI=73, PARI=74, UPA=75, ANTAR=76, SAN=77, 
+		KYACH=78, KAAMYACH=79, KYANG=80, KYASH=81, NIC=82, YAN=83, YUK_SAN=84, 
+		LAT=85, LIT=86, LUT=87, LRT=88, LET=89, LOT=90, LANG=91, LIN=92, LUNG=93, 
+		LRNG=94, TIP=95, TAS=96, JHI=97, SIP=98, THAS=99, THA=100, MIP=101, VAS=102, 
+		MAS=103, TA=104, ATAAM=105, JHA=106, THAS_A=107, ATHAAM=108, DHVAM=109, 
+		IT=110, VAHI=111, MAHING=112, SUP_SU=113, SUP_AU=114, SUP_JAS=115, SUP_AM=116, 
+		SUP_AUT=117, SUP_SHAS=118, SUP_TA=119, SUP_BHYAM=120, SUP_BHIS=121, SUP_NGE=122, 
+		SUP_BHYAS=123, SUP_NGASI=124, SUP_NGAS=125, SUP_OS=126, SUP_AAM=127, SUP_NGI=128, 
+		SUP_SUP=129, SHAP=130, SHYAN=131, SHNU=132, SHNAM=133, SHNA=134, U_VIKARANA=135, 
+		SHNAAM=136, YAK=137, SHAH=138, SYA=139, TAS_VIKARANA=140, CLI=141, SIC=142, 
+		ANG=143, CHANG=144, KSA=145, AT=146, IIT_AGAMA=147, NUM=148, TUK=149, 
+		MUT=150, NUT=151, YASUT=152, SIYUT=153, SUK=154, RUK=155, RIK=156, PUK=157, 
+		YUK=158, VUK=159, KTA=160, KTAVATU=161, TAVYAT=162, ANIYAR=163, YAT=164, 
+		NYAT=165, KYAP=166, SHATR=167, SHANACH=168, GHANJ=169, LYUT=170, NVUL=171, 
+		TRICH=172, ANIN=173, KHAL=174, KWIP=175, KTIN=176, AC=177, AP=178, KA=179, 
+		NIN=180, NINI=181, IN_KRT=182, TI_KRT=183, TRA=184, ITRA=185, ISHNUCH=186, 
+		UK=187, KTVA=188, LYAP=189, TUMUN=190, NAMUL=191, KASUN=192, KTVOS=193, 
+		MATUP=194, VATUP=195, MAT=196, INI=197, TVA=198, TAL=199, TARAP=200, TAMAP=201, 
+		MAYAT=202, PRATYAYA_MA=203, PRATYAYA_TAMA=204, PRATYAYA_TIYA=205, TASIL=206, 
+		AN=207, INJ=208, DHAK=209, THAJ=210, CHHA=211, KAN=212, AYANA=213, IYA=214, 
+		INA=215, TYAP=216, TYA=217, HA=218, DAA=219, THAAL=220, THAMU=221, VAT=222, 
+		DHAA=223, TAAP=224, DAAP=225, CHAAP=226, NEEP=227, NEESH=228, NEEN=229, 
+		UUNG=230, TICH=231, LUK=232, SHLU=233, LUP=234, ALUK=235, ABHYASA=236, 
+		ADESHA=237, UNADI=238, YADI=239, TARHI=240, ANYATHA=241, YAVAT=242, TAVAT=243, 
+		IDENTIFIER=244, LINE_COMMENT=245, WS=246;
 	public static final int
-		RULE_ukti = 0, RULE_conditionalClause = 1, RULE_loopClause = 2, RULE_vakya = 3, 
-		RULE_akhyataVakya = 4, RULE_purvaVakyaPada = 5, RULE_uttaraVakyaPada = 6, 
-		RULE_namaVakya = 7, RULE_vakyaPada = 8, RULE_subantaVakyaPada = 9, RULE_vakyaSambandha = 10, 
-		RULE_sambodhana = 11, RULE_sambodhanaSuchaka = 12, RULE_pada = 13, RULE_sankhyaPada = 14, 
-		RULE_sankhyaPuranaPada = 15, RULE_puranaPratyaya = 16, RULE_sankhyaAbhyasaPada = 17, 
-		RULE_katapayadiPada = 18, RULE_aryabhatiyaPada = 19, RULE_bhutasamkhyaPada = 20, 
-		RULE_sankhyaBhinnaPada = 21, RULE_sankhyaMathPada = 22, RULE_sankhyaStem = 23, 
-		RULE_subantaPada = 24, RULE_pratipadika = 25, RULE_pratipadikaMula = 26, 
-		RULE_pratipadikaVikara = 27, RULE_mulaPratipadika = 28, RULE_kridantaPratipadika = 29, 
-		RULE_unadyantaPratipadika = 30, RULE_unadiPratyaya = 31, RULE_taddhitaPratyaya = 32, 
-		RULE_striPratyaya = 33, RULE_samasaPratipadika = 34, RULE_samasaAnga = 35, 
-		RULE_samasaSupAvastha = 36, RULE_supAvastha = 37, RULE_asamasikaPratipadika = 38, 
-		RULE_asamasikaPratipadikaMula = 39, RULE_samuccitaSubanta = 40, RULE_dhatuPrakriti = 41, 
-		RULE_dhatuMula = 42, RULE_sanadiPratyaya = 43, RULE_upasargaKrama = 44, 
-		RULE_upasarga = 45, RULE_tingantaPada = 46, RULE_vyutpattiTinganta = 47, 
-		RULE_vyutpattiAnga = 48, RULE_vyutpattiAvayava = 49, RULE_abhyasa = 50, 
-		RULE_adesham = 51, RULE_lakara = 52, RULE_tingPratyaya = 53, RULE_supPratyaya = 54, 
-		RULE_vikarana = 55, RULE_agama = 56, RULE_krtPratyaya = 57, RULE_avyayaKrtPratyaya = 58, 
-		RULE_avyayaKridanta = 59, RULE_avyayaPada = 60, RULE_sankhyaAvyaya = 61, 
-		RULE_mulaAvyaya = 62, RULE_avyayaTaddhitanta = 63, RULE_avyayaTaddhitaPratyaya = 64, 
-		RULE_avyayibhavaPada = 65;
+		RULE_ukti = 0, RULE_quotationClause = 1, RULE_conditionalPipelineClause = 2, 
+		RULE_attributePipelineClause = 3, RULE_whileClause = 4, RULE_whileExhausted = 5, 
+		RULE_ordinalAttemptBoundary = 6, RULE_pipelineClause = 7, RULE_pipelineStage = 8, 
+		RULE_purvaparaDirective = 9, RULE_pipelineResult = 10, RULE_conditionalClause = 11, 
+		RULE_conditionalExpression = 12, RULE_conditionalArm = 13, RULE_vakya = 14, 
+		RULE_akhyataVakya = 15, RULE_purvaVakyaPada = 16, RULE_uttaraVakyaPada = 17, 
+		RULE_namaVakya = 18, RULE_vakyaPada = 19, RULE_paryantaRange = 20, RULE_ablativeNumeral = 21, 
+		RULE_accusativeNumeral = 22, RULE_ablativeSup = 23, RULE_accusativeSup = 24, 
+		RULE_subantaVakyaPada = 25, RULE_vakyaSambandha = 26, RULE_sambodhana = 27, 
+		RULE_sambodhanaSuchaka = 28, RULE_pada = 29, RULE_sankhyaPada = 30, RULE_sankhyaPuranaPada = 31, 
+		RULE_puranaPratyaya = 32, RULE_sankhyaAbhyasaPada = 33, RULE_katapayadiPada = 34, 
+		RULE_aryabhatiyaPada = 35, RULE_bhutasamkhyaPada = 36, RULE_sankhyaStem = 37, 
+		RULE_subantaPada = 38, RULE_pratipadika = 39, RULE_pratipadikaMula = 40, 
+		RULE_pratipadikaVikara = 41, RULE_mulaPratipadika = 42, RULE_samjnaQualifierPratipadika = 43, 
+		RULE_kridantaPratipadika = 44, RULE_unadyantaPratipadika = 45, RULE_unadiPratyaya = 46, 
+		RULE_taddhitaPratyaya = 47, RULE_striPratyaya = 48, RULE_samasaPratipadika = 49, 
+		RULE_samasaAnga = 50, RULE_samasaSupAvastha = 51, RULE_supAvastha = 52, 
+		RULE_asamasikaPratipadika = 53, RULE_asamasikaPratipadikaMula = 54, RULE_samuccitaSubanta = 55, 
+		RULE_dhatuPrakriti = 56, RULE_dhatuMula = 57, RULE_sanadiPratyaya = 58, 
+		RULE_upasargaKrama = 59, RULE_upasarga = 60, RULE_tingantaPada = 61, RULE_vyutpattiTinganta = 62, 
+		RULE_vyutpattiAnga = 63, RULE_vyutpattiAvayava = 64, RULE_abhyasa = 65, 
+		RULE_adesham = 66, RULE_lakara = 67, RULE_tingPratyaya = 68, RULE_supPratyaya = 69, 
+		RULE_vikarana = 70, RULE_agama = 71, RULE_krtPratyaya = 72, RULE_avyayaKrtPratyaya = 73, 
+		RULE_avyayaKridanta = 74, RULE_avyayaPada = 75, RULE_sankhyaAvyaya = 76, 
+		RULE_mulaAvyaya = 77, RULE_avyayaTaddhitanta = 78, RULE_avyayaTaddhitaPratyaya = 79, 
+		RULE_avyayibhavaPada = 80;
 	private static String[] makeRuleNames() {
 		return new String[] {
-			"ukti", "conditionalClause", "loopClause", "vakya", "akhyataVakya", "purvaVakyaPada", 
-			"uttaraVakyaPada", "namaVakya", "vakyaPada", "subantaVakyaPada", "vakyaSambandha", 
-			"sambodhana", "sambodhanaSuchaka", "pada", "sankhyaPada", "sankhyaPuranaPada", 
-			"puranaPratyaya", "sankhyaAbhyasaPada", "katapayadiPada", "aryabhatiyaPada", 
-			"bhutasamkhyaPada", "sankhyaBhinnaPada", "sankhyaMathPada", "sankhyaStem", 
-			"subantaPada", "pratipadika", "pratipadikaMula", "pratipadikaVikara", 
-			"mulaPratipadika", "kridantaPratipadika", "unadyantaPratipadika", "unadiPratyaya", 
-			"taddhitaPratyaya", "striPratyaya", "samasaPratipadika", "samasaAnga", 
-			"samasaSupAvastha", "supAvastha", "asamasikaPratipadika", "asamasikaPratipadikaMula", 
-			"samuccitaSubanta", "dhatuPrakriti", "dhatuMula", "sanadiPratyaya", "upasargaKrama", 
-			"upasarga", "tingantaPada", "vyutpattiTinganta", "vyutpattiAnga", "vyutpattiAvayava", 
-			"abhyasa", "adesham", "lakara", "tingPratyaya", "supPratyaya", "vikarana", 
-			"agama", "krtPratyaya", "avyayaKrtPratyaya", "avyayaKridanta", "avyayaPada", 
-			"sankhyaAvyaya", "mulaAvyaya", "avyayaTaddhitanta", "avyayaTaddhitaPratyaya", 
-			"avyayibhavaPada"
+			"ukti", "quotationClause", "conditionalPipelineClause", "attributePipelineClause", 
+			"whileClause", "whileExhausted", "ordinalAttemptBoundary", "pipelineClause", 
+			"pipelineStage", "purvaparaDirective", "pipelineResult", "conditionalClause", 
+			"conditionalExpression", "conditionalArm", "vakya", "akhyataVakya", "purvaVakyaPada", 
+			"uttaraVakyaPada", "namaVakya", "vakyaPada", "paryantaRange", "ablativeNumeral", 
+			"accusativeNumeral", "ablativeSup", "accusativeSup", "subantaVakyaPada", 
+			"vakyaSambandha", "sambodhana", "sambodhanaSuchaka", "pada", "sankhyaPada", 
+			"sankhyaPuranaPada", "puranaPratyaya", "sankhyaAbhyasaPada", "katapayadiPada", 
+			"aryabhatiyaPada", "bhutasamkhyaPada", "sankhyaStem", "subantaPada", 
+			"pratipadika", "pratipadikaMula", "pratipadikaVikara", "mulaPratipadika", 
+			"samjnaQualifierPratipadika", "kridantaPratipadika", "unadyantaPratipadika", 
+			"unadiPratyaya", "taddhitaPratyaya", "striPratyaya", "samasaPratipadika", 
+			"samasaAnga", "samasaSupAvastha", "supAvastha", "asamasikaPratipadika", 
+			"asamasikaPratipadikaMula", "samuccitaSubanta", "dhatuPrakriti", "dhatuMula", 
+			"sanadiPratyaya", "upasargaKrama", "upasarga", "tingantaPada", "vyutpattiTinganta", 
+			"vyutpattiAnga", "vyutpattiAvayava", "abhyasa", "adesham", "lakara", 
+			"tingPratyaya", "supPratyaya", "vikarana", "agama", "krtPratyaya", "avyayaKrtPratyaya", 
+			"avyayaKridanta", "avyayaPada", "sankhyaAvyaya", "mulaAvyaya", "avyayaTaddhitanta", 
+			"avyayaTaddhitaPratyaya", "avyayibhavaPada"
 		};
 	}
 	public static final String[] ruleNames = makeRuleNames();
@@ -112,24 +119,21 @@ public class VyakaranamParser extends Parser {
 			"'\\u0915\\u0925\\u092E\\u094D'", "'\\u0915\\u0941\\u0924\\u0903'", "'\\u0915\\u0943\\u092A\\u092F\\u093E'", 
 			"'\\u0938\\u0939\\u0938\\u093E'", "'\\u0936\\u0928\\u0948\\u0903'", "'\\u092A\\u0941\\u0928\\u0903'", 
 			"'\\u0928\\u094D\\u092F\\u0942\\u0928\\u0924\\u092F\\u093E'", "'\\u0905\\u0926\\u094D\\u092F'", 
-			"'\\u0936\\u094D\\u0935\\u0903'", "'\\u0939\\u094D\\u092F\\u0903'", null, 
+			"'\\u0936\\u094D\\u0935\\u0903'", "'\\u0939\\u094D\\u092F\\u0903'", "'\\u0905\\u0927\\u093F\\u0915'", 
 			null, "'\\u0938\\u0915\\u0943\\u0924\\u094D'", "'\\u0926\\u094D\\u0935\\u093F\\u0903'", 
 			"'\\u0924\\u094D\\u0930\\u093F\\u0903'", "'\\u091A\\u0924\\u0941\\u0903'", 
-			null, null, null, "'\\u092D\\u0942\\u0924\\u0938\\u0919\\u094D\\u0916\\u094D\\u092F\\u093E'", 
-			"'\\u0938\\u093E\\u0930\\u094D\\u0927'", "'\\u0938\\u092A\\u093E\\u0926'", 
-			"'\\u092A\\u093E\\u0926\\u094B\\u0928'", "'\\u0905\\u0930\\u094D\\u0927'", 
-			"'\\u092A\\u093E\\u0926'", null, null, null, "'\\u0935\\u0930\\u094D\\u0917'", 
-			"'\\u0918\\u0928'", null, "'\\u0915\\u0943\\u0924'", null, null, null, 
-			null, null, null, "'\\u092A\\u094D\\u0930'", "'\\u092A\\u0930\\u093E'", 
+			"'\\u0915\\u0943\\u0924\\u094D\\u0935\\u0938\\u0941\\u091A\\u094D'", 
+			"'\\u0938\\u0941\\u091A\\u094D'", null, null, "'\\u092D\\u0942\\u0924\\u0938\\u0919\\u094D\\u0916\\u094D\\u092F\\u093E'", 
+			null, "'\\u092A\\u094D\\u0930'", "'\\u092A\\u0930\\u093E'", "'\\u0905\\u092A'", 
 			"'\\u0938\\u092E\\u094D'", "'\\u0905\\u0928\\u0941'", "'\\u0905\\u0935'", 
 			"'\\u0928\\u093F\\u0938\\u094D'", "'\\u0926\\u0941\\u0938\\u094D'", "'\\u0935\\u093F'", 
 			"'\\u0906\\u0919\\u094D'", "'\\u0928\\u093F'", "'\\u0905\\u0927\\u093F'", 
 			"'\\u0905\\u0924\\u093F'", "'\\u0938\\u0941'", "'\\u0909\\u0926\\u094D'", 
 			"'\\u0905\\u092D\\u093F'", "'\\u092A\\u094D\\u0930\\u0924\\u093F'", "'\\u092A\\u0930\\u093F'", 
-			"'\\u0909\\u092A'", "'\\u0938\\u0928\\u094D'", "'\\u0915\\u094D\\u092F\\u091A\\u094D'", 
-			"'\\u0915\\u093E\\u092E\\u094D\\u092F\\u091A\\u094D'", "'\\u0915\\u094D\\u092F\\u0919\\u094D'", 
-			"'\\u0915\\u094D\\u092F\\u0937\\u094D'", "'\\u0923\\u093F\\u091A\\u094D'", 
-			"'\\u092F\\u0919\\u094D'", "'\\u092F\\u0919\\u094D\\u0932\\u0941\\u0915\\u094D'", 
+			"'\\u0909\\u092A'", "'\\u0905\\u0928\\u094D\\u0924\\u0930\\u094D'", "'\\u0938\\u0928\\u094D'", 
+			"'\\u0915\\u094D\\u092F\\u091A\\u094D'", "'\\u0915\\u093E\\u092E\\u094D\\u092F\\u091A\\u094D'", 
+			"'\\u0915\\u094D\\u092F\\u0919\\u094D'", "'\\u0915\\u094D\\u092F\\u0937\\u094D'", 
+			"'\\u0923\\u093F\\u091A\\u094D'", "'\\u092F\\u0919\\u094D'", "'\\u092F\\u0919\\u094D\\u0932\\u0941\\u0915\\u094D'", 
 			"'\\u0932\\u091F\\u094D'", "'\\u0932\\u093F\\u091F\\u094D'", "'\\u0932\\u0941\\u091F\\u094D'", 
 			"'\\u0932\\u0943\\u091F\\u094D'", "'\\u0932\\u0947\\u091F\\u094D'", "'\\u0932\\u094B\\u091F\\u094D'", 
 			"'\\u0932\\u0919\\u094D'", "'\\u0932\\u093F\\u0919\\u094D'", "'\\u0932\\u0941\\u0919\\u094D'", 
@@ -171,18 +175,19 @@ public class VyakaranamParser extends Parser {
 			"'\\u0932\\u094D\\u092F\\u092A\\u094D'", "'\\u0924\\u0941\\u092E\\u0941\\u0928\\u094D'", 
 			"'\\u0923\\u092E\\u0941\\u0932\\u094D'", "'\\u0915\\u0938\\u0941\\u0928\\u094D'", 
 			"'\\u0915\\u094D\\u0924\\u094D\\u0935\\u094B\\u0938\\u094D'", "'\\u092E\\u0924\\u0941\\u092A\\u094D'", 
-			"'\\u0935\\u0924\\u0941\\u092A\\u094D'", "'\\u0907\\u0928\\u093F'", "'\\u0924\\u094D\\u0935'", 
-			"'\\u0924\\u0932\\u094D'", "'\\u0924\\u0930\\u092A\\u094D'", "'\\u0924\\u092E\\u092A\\u094D'", 
-			"'\\u092E\\u092F\\u091F\\u094D'", null, "'\\u092E'", "'\\u0924\\u092E'", 
-			"'\\u0924\\u0938\\u093F\\u0932\\u094D'", "'\\u0905\\u0923\\u094D'", "'\\u0907\\u091E\\u094D'", 
-			"'\\u0922\\u0915\\u094D'", "'\\u0920\\u091E\\u094D'", "'\\u091B'", "'\\u0915\\u0928\\u094D'", 
-			"'\\u0906\\u092F\\u0928'", "'\\u0908\\u092F'", "'\\u0907\\u0928'", "'\\u0939'", 
-			"'\\u0926\\u093E'", "'\\u0925\\u093E\\u0932\\u094D'", "'\\u0925\\u092E\\u0941'", 
-			"'\\u0935\\u0924\\u094D'", "'\\u0927\\u093E'", "'\\u091F\\u093E\\u092A\\u094D'", 
-			"'\\u0921\\u093E\\u092A\\u094D'", "'\\u091A\\u093E\\u092A\\u094D'", "'\\u0919\\u0940\\u092A\\u094D'", 
-			"'\\u0919\\u0940\\u0937\\u094D'", "'\\u0919\\u0940\\u0928\\u094D'", "'\\u090A\\u0919\\u094D'", 
-			"'\\u0924\\u093F\\u091A\\u094D'", "'\\u0932\\u0941\\u0915\\u094D'", "'\\u0936\\u094D\\u0932\\u0941'", 
-			"'\\u0932\\u0941\\u092A\\u094D'", "'\\u0905\\u0932\\u0941\\u0915\\u094D'", 
+			"'\\u0935\\u0924\\u0941\\u092A\\u094D'", "'\\u092E\\u0924\\u094D'", "'\\u0907\\u0928\\u093F'", 
+			"'\\u0924\\u094D\\u0935'", "'\\u0924\\u0932\\u094D'", "'\\u0924\\u0930\\u092A\\u094D'", 
+			"'\\u0924\\u092E\\u092A\\u094D'", "'\\u092E\\u092F\\u091F\\u094D'", "'\\u092E'", 
+			"'\\u0924\\u092E'", "'\\u0924\\u0940\\u092F'", "'\\u0924\\u0938\\u093F\\u0932\\u094D'", 
+			"'\\u0905\\u0923\\u094D'", "'\\u0907\\u091E\\u094D'", "'\\u0922\\u0915\\u094D'", 
+			"'\\u0920\\u091E\\u094D'", "'\\u091B'", "'\\u0915\\u0928\\u094D'", "'\\u0906\\u092F\\u0928'", 
+			"'\\u0908\\u092F'", "'\\u0907\\u0928'", "'\\u0924\\u094D\\u092F\\u092A\\u094D'", 
+			"'\\u0924\\u094D\\u092F'", "'\\u0939'", "'\\u0926\\u093E'", "'\\u0925\\u093E\\u0932\\u094D'", 
+			"'\\u0925\\u092E\\u0941'", "'\\u0935\\u0924\\u094D'", "'\\u0927\\u093E'", 
+			"'\\u091F\\u093E\\u092A\\u094D'", "'\\u0921\\u093E\\u092A\\u094D'", "'\\u091A\\u093E\\u092A\\u094D'", 
+			"'\\u0919\\u0940\\u092A\\u094D'", "'\\u0919\\u0940\\u0937\\u094D'", "'\\u0919\\u0940\\u0928\\u094D'", 
+			"'\\u090A\\u0919\\u094D'", "'\\u0924\\u093F\\u091A\\u094D'", "'\\u0932\\u0941\\u0915\\u094D'", 
+			"'\\u0936\\u094D\\u0932\\u0941'", "'\\u0932\\u0941\\u092A\\u094D'", "'\\u0905\\u0932\\u0941\\u0915\\u094D'", 
 			"'\\u0905\\u092D\\u094D\\u092F\\u093E\\u0938\\u0903'", "'\\u0906\\u0926\\u0947\\u0936\\u0903'", 
 			"'\\u0909\\u0923\\u093E\\u0926\\u093F'", "'\\u092F\\u0926\\u093F'", "'\\u0924\\u0930\\u094D\\u0939\\u093F'", 
 			"'\\u0905\\u0928\\u094D\\u092F\\u0925\\u093E'", "'\\u092F\\u093E\\u0935\\u0924\\u094D'", 
@@ -198,31 +203,30 @@ public class VyakaranamParser extends Parser {
 			"NANU", "YATHA", "TATHA", "YADA", "TADA", "YATRA", "TATRA", "KADA", "KUTRA", 
 			"SARVATRA", "KATHAM", "KUTAH", "KRPAYA", "SAHASAA", "SHANAIH", "PUNAH", 
 			"NYUNATAYA", "ADYA", "SHVAH", "HYAH", "ADHIKA", "UNA", "SAKRIT", "DVIH", 
-			"TRIH", "CHATUH", "KRITVAS", "KATAPAYADI", "ARYABHATIYA", "BHUTASAMKHYA", 
-			"SAARDHA", "SAPAADA", "PAADONA", "ARDHA", "PAADA", "AMSHA", "GUNITA", 
-			"BHAKTA", "VARGA", "GHANA", "MOOLA", "KRITA", "SAHITA", "RAHITA", "TEEYA", 
-			"PURANA_THA", "PURANA_MA", "INTERJECTION", "PRA", "PARAA", "SAM", "ANUU", 
-			"AVA", "NIS", "DUS", "VI", "AANG", "NI", "ADHI", "ATI", "SU", "UD", "ABHI", 
-			"PRATI", "PARI", "UPA", "SAN", "KYACH", "KAAMYACH", "KYANG", "KYASH", 
-			"NIC", "YAN", "YUK_SAN", "LAT", "LIT", "LUT", "LRT", "LET", "LOT", "LANG", 
-			"LIN", "LUNG", "LRNG", "TIP", "TAS", "JHI", "SIP", "THAS", "THA", "MIP", 
-			"VAS", "MAS", "TA", "ATAAM", "JHA", "THAS_A", "ATHAAM", "DHVAM", "IT", 
-			"VAHI", "MAHING", "SUP_SU", "SUP_AU", "SUP_JAS", "SUP_AM", "SUP_AUT", 
-			"SUP_SHAS", "SUP_TA", "SUP_BHYAM", "SUP_BHIS", "SUP_NGE", "SUP_BHYAS", 
-			"SUP_NGASI", "SUP_NGAS", "SUP_OS", "SUP_AAM", "SUP_NGI", "SUP_SUP", "SHAP", 
-			"SHYAN", "SHNU", "SHNAM", "SHNA", "U_VIKARANA", "SHNAAM", "YAK", "SHAH", 
-			"SYA", "TAS_VIKARANA", "CLI", "SIC", "ANG", "CHANG", "KSA", "AT", "IIT_AGAMA", 
+			"TRIH", "CHATUH", "KRITVAS", "SUC", "KATAPAYADI", "ARYABHATIYA", "BHUTASAMKHYA", 
+			"INTERJECTION", "PRA", "PARAA", "APA", "SAM", "ANUU", "AVA", "NIS", "DUS", 
+			"VI", "AANG", "NI", "ADHI", "ATI", "SU", "UD", "ABHI", "PRATI", "PARI", 
+			"UPA", "ANTAR", "SAN", "KYACH", "KAAMYACH", "KYANG", "KYASH", "NIC", 
+			"YAN", "YUK_SAN", "LAT", "LIT", "LUT", "LRT", "LET", "LOT", "LANG", "LIN", 
+			"LUNG", "LRNG", "TIP", "TAS", "JHI", "SIP", "THAS", "THA", "MIP", "VAS", 
+			"MAS", "TA", "ATAAM", "JHA", "THAS_A", "ATHAAM", "DHVAM", "IT", "VAHI", 
+			"MAHING", "SUP_SU", "SUP_AU", "SUP_JAS", "SUP_AM", "SUP_AUT", "SUP_SHAS", 
+			"SUP_TA", "SUP_BHYAM", "SUP_BHIS", "SUP_NGE", "SUP_BHYAS", "SUP_NGASI", 
+			"SUP_NGAS", "SUP_OS", "SUP_AAM", "SUP_NGI", "SUP_SUP", "SHAP", "SHYAN", 
+			"SHNU", "SHNAM", "SHNA", "U_VIKARANA", "SHNAAM", "YAK", "SHAH", "SYA", 
+			"TAS_VIKARANA", "CLI", "SIC", "ANG", "CHANG", "KSA", "AT", "IIT_AGAMA", 
 			"NUM", "TUK", "MUT", "NUT", "YASUT", "SIYUT", "SUK", "RUK", "RIK", "PUK", 
 			"YUK", "VUK", "KTA", "KTAVATU", "TAVYAT", "ANIYAR", "YAT", "NYAT", "KYAP", 
 			"SHATR", "SHANACH", "GHANJ", "LYUT", "NVUL", "TRICH", "ANIN", "KHAL", 
 			"KWIP", "KTIN", "AC", "AP", "KA", "NIN", "NINI", "IN_KRT", "TI_KRT", 
 			"TRA", "ITRA", "ISHNUCH", "UK", "KTVA", "LYAP", "TUMUN", "NAMUL", "KASUN", 
-			"KTVOS", "MATUP", "VATUP", "INI", "TVA", "TAL", "TARAP", "TAMAP", "MAYAT", 
-			"PRATYAYA_TIYA", "PRATYAYA_MA", "PRATYAYA_TAMA", "TASIL", "AN", "INJ", 
-			"DHAK", "THAJ", "CHHA", "KAN", "AYANA", "IYA", "INA", "HA", "DAA", "THAAL", 
-			"THAMU", "VAT", "DHAA", "TAAP", "DAAP", "CHAAP", "NEEP", "NEESH", "NEEN", 
-			"UUNG", "TICH", "LUK", "SHLU", "LUP", "ALUK", "ABHYASA", "ADESHA", "UNADI", 
-			"YADI", "TARHI", "ANYATHA", "YAVAT", "TAVAT", "IDENTIFIER", "WS"
+			"KTVOS", "MATUP", "VATUP", "MAT", "INI", "TVA", "TAL", "TARAP", "TAMAP", 
+			"MAYAT", "PRATYAYA_MA", "PRATYAYA_TAMA", "PRATYAYA_TIYA", "TASIL", "AN", 
+			"INJ", "DHAK", "THAJ", "CHHA", "KAN", "AYANA", "IYA", "INA", "TYAP", 
+			"TYA", "HA", "DAA", "THAAL", "THAMU", "VAT", "DHAA", "TAAP", "DAAP", 
+			"CHAAP", "NEEP", "NEESH", "NEEN", "UUNG", "TICH", "LUK", "SHLU", "LUP", 
+			"ALUK", "ABHYASA", "ADESHA", "UNADI", "YADI", "TARHI", "ANYATHA", "YAVAT", 
+			"TAVAT", "IDENTIFIER", "LINE_COMMENT", "WS"
 		};
 	}
 	private static final String[] _SYMBOLIC_NAMES = makeSymbolicNames();
@@ -278,11 +282,23 @@ public class VyakaranamParser extends Parser {
 
 	@SuppressWarnings("CheckReturnValue")
 	public static class UktiContext extends ParserRuleContext {
+		public QuotationClauseContext quotationClause() {
+			return getRuleContext(QuotationClauseContext.class,0);
+		}
+		public WhileClauseContext whileClause() {
+			return getRuleContext(WhileClauseContext.class,0);
+		}
+		public ConditionalPipelineClauseContext conditionalPipelineClause() {
+			return getRuleContext(ConditionalPipelineClauseContext.class,0);
+		}
+		public AttributePipelineClauseContext attributePipelineClause() {
+			return getRuleContext(AttributePipelineClauseContext.class,0);
+		}
+		public PipelineClauseContext pipelineClause() {
+			return getRuleContext(PipelineClauseContext.class,0);
+		}
 		public ConditionalClauseContext conditionalClause() {
 			return getRuleContext(ConditionalClauseContext.class,0);
-		}
-		public LoopClauseContext loopClause() {
-			return getRuleContext(LoopClauseContext.class,0);
 		}
 		public List<VakyaContext> vakya() {
 			return getRuleContexts(VakyaContext.class);
@@ -326,154 +342,946 @@ public class VyakaranamParser extends Parser {
 		int _la;
 		try {
 			int _alt;
-			setState(151);
+			setState(185);
 			_errHandler.sync(this);
-			switch (_input.LA(1)) {
-			case YADI:
+			switch ( getInterpreter().adaptivePredict(_input,3,_ctx) ) {
+			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(132);
+				setState(162);
+				quotationClause();
+				}
+				break;
+			case 2:
+				enterOuterAlt(_localctx, 2);
+				{
+				setState(163);
+				whileClause();
+				}
+				break;
+			case 3:
+				enterOuterAlt(_localctx, 3);
+				{
+				setState(164);
+				conditionalPipelineClause();
+				}
+				break;
+			case 4:
+				enterOuterAlt(_localctx, 4);
+				{
+				setState(165);
+				attributePipelineClause();
+				}
+				break;
+			case 5:
+				enterOuterAlt(_localctx, 5);
+				{
+				setState(166);
+				pipelineClause();
+				}
+				break;
+			case 6:
+				enterOuterAlt(_localctx, 6);
+				{
+				setState(167);
 				conditionalClause();
 				}
 				break;
-			case YAVAT:
-				enterOuterAlt(_localctx, 2);
+			case 7:
+				enterOuterAlt(_localctx, 7);
 				{
-				setState(133);
-				loopClause();
-				}
-				break;
-			case LPAREN:
-			case HE:
-			case BHOH:
-			case CHA:
-			case VAA:
-			case ATHA:
-			case TATAH:
-			case ANANTARAM:
-			case KINTU:
-			case ATAH:
-			case YATAH:
-			case MAA:
-			case NA:
-			case ITI:
-			case API:
-			case EVA:
-			case TU_AVYAYA:
-			case HI:
-			case KHALU:
-			case NANU:
-			case YATHA:
-			case TATHA:
-			case YADA:
-			case TADA:
-			case YATRA:
-			case TATRA:
-			case KADA:
-			case KUTRA:
-			case SARVATRA:
-			case KATHAM:
-			case KUTAH:
-			case KRPAYA:
-			case SAHASAA:
-			case SHANAIH:
-			case PUNAH:
-			case NYUNATAYA:
-			case ADYA:
-			case SHVAH:
-			case HYAH:
-			case ADHIKA:
-			case UNA:
-			case SAKRIT:
-			case DVIH:
-			case TRIH:
-			case CHATUH:
-			case KATAPAYADI:
-			case ARYABHATIYA:
-			case BHUTASAMKHYA:
-			case SAARDHA:
-			case SAPAADA:
-			case PAADONA:
-			case ARDHA:
-			case PAADA:
-			case AMSHA:
-			case GUNITA:
-			case BHAKTA:
-			case VARGA:
-			case GHANA:
-			case MOOLA:
-			case SAHITA:
-			case RAHITA:
-			case INTERJECTION:
-			case PRA:
-			case PARAA:
-			case SAM:
-			case ANUU:
-			case AVA:
-			case NIS:
-			case DUS:
-			case VI:
-			case AANG:
-			case NI:
-			case ADHI:
-			case ATI:
-			case SU:
-			case UD:
-			case ABHI:
-			case PRATI:
-			case PARI:
-			case UPA:
-			case DAA:
-			case DHAA:
-			case IDENTIFIER:
-				enterOuterAlt(_localctx, 3);
-				{
-				setState(135);
+				setState(169);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==HE || _la==BHOH) {
 					{
-					setState(134);
+					setState(168);
 					sambodhana();
 					}
 				}
 
-				setState(137);
+				setState(171);
 				vakya();
-				setState(143);
+				setState(177);
 				_errHandler.sync(this);
 				_alt = getInterpreter().adaptivePredict(_input,1,_ctx);
 				while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
 					if ( _alt==1 ) {
 						{
 						{
-						setState(138);
+						setState(172);
 						vakyaSambandha();
-						setState(139);
+						setState(173);
 						vakya();
 						}
 						} 
 					}
-					setState(145);
+					setState(179);
 					_errHandler.sync(this);
 					_alt = getInterpreter().adaptivePredict(_input,1,_ctx);
 				}
-				setState(147);
+				setState(181);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==DANDA) {
 					{
-					setState(146);
+					setState(180);
 					match(DANDA);
 					}
 				}
 
-				setState(149);
+				setState(183);
 				match(EOF);
 				}
 				break;
-			default:
-				throw new NoViableAltException(this);
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	@SuppressWarnings("CheckReturnValue")
+	public static class QuotationClauseContext extends ParserRuleContext {
+		public VakyaContext quoted;
+		public AkhyataVakyaContext reporting;
+		public TerminalNode ITI() { return getToken(VyakaranamParser.ITI, 0); }
+		public TerminalNode EOF() { return getToken(VyakaranamParser.EOF, 0); }
+		public VakyaContext vakya() {
+			return getRuleContext(VakyaContext.class,0);
+		}
+		public AkhyataVakyaContext akhyataVakya() {
+			return getRuleContext(AkhyataVakyaContext.class,0);
+		}
+		public TerminalNode DANDA() { return getToken(VyakaranamParser.DANDA, 0); }
+		public QuotationClauseContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_quotationClause; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).enterQuotationClause(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).exitQuotationClause(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof VyakaranamParserVisitor ) return ((VyakaranamParserVisitor<? extends T>)visitor).visitQuotationClause(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final QuotationClauseContext quotationClause() throws RecognitionException {
+		QuotationClauseContext _localctx = new QuotationClauseContext(_ctx, getState());
+		enterRule(_localctx, 2, RULE_quotationClause);
+		int _la;
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(187);
+			((QuotationClauseContext)_localctx).quoted = vakya();
+			setState(188);
+			match(ITI);
+			setState(189);
+			((QuotationClauseContext)_localctx).reporting = akhyataVakya();
+			setState(191);
+			_errHandler.sync(this);
+			_la = _input.LA(1);
+			if (_la==DANDA) {
+				{
+				setState(190);
+				match(DANDA);
+				}
+			}
+
+			setState(193);
+			match(EOF);
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	@SuppressWarnings("CheckReturnValue")
+	public static class ConditionalPipelineClauseContext extends ParserRuleContext {
+		public AkhyataVakyaContext source;
+		public AkhyataVakyaContext akhyataVakya;
+		public List<AkhyataVakyaContext> stages = new ArrayList<AkhyataVakyaContext>();
+		public ConditionalExpressionContext conditional;
+		public List<TerminalNode> TATAH() { return getTokens(VyakaranamParser.TATAH); }
+		public TerminalNode TATAH(int i) {
+			return getToken(VyakaranamParser.TATAH, i);
+		}
+		public TerminalNode EOF() { return getToken(VyakaranamParser.EOF, 0); }
+		public List<AkhyataVakyaContext> akhyataVakya() {
+			return getRuleContexts(AkhyataVakyaContext.class);
+		}
+		public AkhyataVakyaContext akhyataVakya(int i) {
+			return getRuleContext(AkhyataVakyaContext.class,i);
+		}
+		public ConditionalExpressionContext conditionalExpression() {
+			return getRuleContext(ConditionalExpressionContext.class,0);
+		}
+		public TerminalNode DANDA() { return getToken(VyakaranamParser.DANDA, 0); }
+		public ConditionalPipelineClauseContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_conditionalPipelineClause; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).enterConditionalPipelineClause(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).exitConditionalPipelineClause(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof VyakaranamParserVisitor ) return ((VyakaranamParserVisitor<? extends T>)visitor).visitConditionalPipelineClause(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final ConditionalPipelineClauseContext conditionalPipelineClause() throws RecognitionException {
+		ConditionalPipelineClauseContext _localctx = new ConditionalPipelineClauseContext(_ctx, getState());
+		enterRule(_localctx, 4, RULE_conditionalPipelineClause);
+		int _la;
+		try {
+			int _alt;
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(195);
+			((ConditionalPipelineClauseContext)_localctx).source = akhyataVakya();
+			setState(200);
+			_errHandler.sync(this);
+			_alt = getInterpreter().adaptivePredict(_input,5,_ctx);
+			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
+				if ( _alt==1 ) {
+					{
+					{
+					setState(196);
+					match(TATAH);
+					setState(197);
+					((ConditionalPipelineClauseContext)_localctx).akhyataVakya = akhyataVakya();
+					((ConditionalPipelineClauseContext)_localctx).stages.add(((ConditionalPipelineClauseContext)_localctx).akhyataVakya);
+					}
+					} 
+				}
+				setState(202);
+				_errHandler.sync(this);
+				_alt = getInterpreter().adaptivePredict(_input,5,_ctx);
+			}
+			setState(203);
+			match(TATAH);
+			setState(204);
+			((ConditionalPipelineClauseContext)_localctx).conditional = conditionalExpression();
+			setState(206);
+			_errHandler.sync(this);
+			_la = _input.LA(1);
+			if (_la==DANDA) {
+				{
+				setState(205);
+				match(DANDA);
+				}
+			}
+
+			setState(208);
+			match(EOF);
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	@SuppressWarnings("CheckReturnValue")
+	public static class AttributePipelineClauseContext extends ParserRuleContext {
+		public SubantaPadaContext subantaPada;
+		public List<SubantaPadaContext> source = new ArrayList<SubantaPadaContext>();
+		public AkhyataVakyaContext akhyataVakya;
+		public List<AkhyataVakyaContext> targets = new ArrayList<AkhyataVakyaContext>();
+		public List<TerminalNode> TATAH() { return getTokens(VyakaranamParser.TATAH); }
+		public TerminalNode TATAH(int i) {
+			return getToken(VyakaranamParser.TATAH, i);
+		}
+		public TerminalNode EOF() { return getToken(VyakaranamParser.EOF, 0); }
+		public List<SubantaPadaContext> subantaPada() {
+			return getRuleContexts(SubantaPadaContext.class);
+		}
+		public SubantaPadaContext subantaPada(int i) {
+			return getRuleContext(SubantaPadaContext.class,i);
+		}
+		public List<AkhyataVakyaContext> akhyataVakya() {
+			return getRuleContexts(AkhyataVakyaContext.class);
+		}
+		public AkhyataVakyaContext akhyataVakya(int i) {
+			return getRuleContext(AkhyataVakyaContext.class,i);
+		}
+		public TerminalNode DANDA() { return getToken(VyakaranamParser.DANDA, 0); }
+		public AttributePipelineClauseContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_attributePipelineClause; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).enterAttributePipelineClause(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).exitAttributePipelineClause(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof VyakaranamParserVisitor ) return ((VyakaranamParserVisitor<? extends T>)visitor).visitAttributePipelineClause(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final AttributePipelineClauseContext attributePipelineClause() throws RecognitionException {
+		AttributePipelineClauseContext _localctx = new AttributePipelineClauseContext(_ctx, getState());
+		enterRule(_localctx, 6, RULE_attributePipelineClause);
+		int _la;
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(210);
+			((AttributePipelineClauseContext)_localctx).subantaPada = subantaPada();
+			((AttributePipelineClauseContext)_localctx).source.add(((AttributePipelineClauseContext)_localctx).subantaPada);
+			setState(212); 
+			_errHandler.sync(this);
+			_la = _input.LA(1);
+			do {
+				{
+				{
+				setState(211);
+				((AttributePipelineClauseContext)_localctx).subantaPada = subantaPada();
+				((AttributePipelineClauseContext)_localctx).source.add(((AttributePipelineClauseContext)_localctx).subantaPada);
+				}
+				}
+				setState(214); 
+				_errHandler.sync(this);
+				_la = _input.LA(1);
+			} while ( (((_la) & ~0x3f) == 0 && ((1L << _la) & -144009634958539744L) != 0) || ((((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 8191L) != 0) || ((((_la - 219)) & ~0x3f) == 0 && ((1L << (_la - 219)) & 33554449L) != 0) );
+			setState(216);
+			match(TATAH);
+			setState(217);
+			((AttributePipelineClauseContext)_localctx).akhyataVakya = akhyataVakya();
+			((AttributePipelineClauseContext)_localctx).targets.add(((AttributePipelineClauseContext)_localctx).akhyataVakya);
+			setState(222);
+			_errHandler.sync(this);
+			_la = _input.LA(1);
+			while (_la==TATAH) {
+				{
+				{
+				setState(218);
+				match(TATAH);
+				setState(219);
+				((AttributePipelineClauseContext)_localctx).akhyataVakya = akhyataVakya();
+				((AttributePipelineClauseContext)_localctx).targets.add(((AttributePipelineClauseContext)_localctx).akhyataVakya);
+				}
+				}
+				setState(224);
+				_errHandler.sync(this);
+				_la = _input.LA(1);
+			}
+			setState(226);
+			_errHandler.sync(this);
+			_la = _input.LA(1);
+			if (_la==DANDA) {
+				{
+				setState(225);
+				match(DANDA);
+				}
+			}
+
+			setState(228);
+			match(EOF);
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	@SuppressWarnings("CheckReturnValue")
+	public static class WhileClauseContext extends ParserRuleContext {
+		public SankhyaAbhyasaPadaContext limit;
+		public VakyaContext condition;
+		public VakyaContext body;
+		public OrdinalAttemptBoundaryContext boundary;
+		public WhileExhaustedContext exhausted;
+		public VakyaContext target;
+		public TerminalNode EOF() { return getToken(VyakaranamParser.EOF, 0); }
+		public TerminalNode YAVAT() { return getToken(VyakaranamParser.YAVAT, 0); }
+		public TerminalNode TAVAT() { return getToken(VyakaranamParser.TAVAT, 0); }
+		public SankhyaAbhyasaPadaContext sankhyaAbhyasaPada() {
+			return getRuleContext(SankhyaAbhyasaPadaContext.class,0);
+		}
+		public List<VakyaContext> vakya() {
+			return getRuleContexts(VakyaContext.class);
+		}
+		public VakyaContext vakya(int i) {
+			return getRuleContext(VakyaContext.class,i);
+		}
+		public OrdinalAttemptBoundaryContext ordinalAttemptBoundary() {
+			return getRuleContext(OrdinalAttemptBoundaryContext.class,0);
+		}
+		public TerminalNode ANYATHA() { return getToken(VyakaranamParser.ANYATHA, 0); }
+		public TerminalNode TATAH() { return getToken(VyakaranamParser.TATAH, 0); }
+		public TerminalNode DANDA() { return getToken(VyakaranamParser.DANDA, 0); }
+		public WhileExhaustedContext whileExhausted() {
+			return getRuleContext(WhileExhaustedContext.class,0);
+		}
+		public WhileClauseContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_whileClause; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).enterWhileClause(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).exitWhileClause(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof VyakaranamParserVisitor ) return ((VyakaranamParserVisitor<? extends T>)visitor).visitWhileClause(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final WhileClauseContext whileClause() throws RecognitionException {
+		WhileClauseContext _localctx = new WhileClauseContext(_ctx, getState());
+		enterRule(_localctx, 8, RULE_whileClause);
+		int _la;
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(247);
+			_errHandler.sync(this);
+			switch ( getInterpreter().adaptivePredict(_input,10,_ctx) ) {
+			case 1:
+				{
+				setState(230);
+				((WhileClauseContext)_localctx).limit = sankhyaAbhyasaPada();
+				setState(231);
+				match(YAVAT);
+				setState(232);
+				((WhileClauseContext)_localctx).condition = vakya();
+				setState(233);
+				match(TAVAT);
+				setState(234);
+				((WhileClauseContext)_localctx).body = vakya();
+				}
+				break;
+			case 2:
+				{
+				setState(236);
+				match(YAVAT);
+				setState(237);
+				((WhileClauseContext)_localctx).condition = vakya();
+				setState(238);
+				match(TAVAT);
+				setState(239);
+				((WhileClauseContext)_localctx).boundary = ordinalAttemptBoundary();
+				setState(240);
+				((WhileClauseContext)_localctx).body = vakya();
+				}
+				break;
+			case 3:
+				{
+				setState(242);
+				match(YAVAT);
+				setState(243);
+				((WhileClauseContext)_localctx).condition = vakya();
+				setState(244);
+				match(TAVAT);
+				setState(245);
+				((WhileClauseContext)_localctx).body = vakya();
+				}
+				break;
+			}
+			setState(251);
+			_errHandler.sync(this);
+			_la = _input.LA(1);
+			if (_la==ANYATHA) {
+				{
+				setState(249);
+				match(ANYATHA);
+				setState(250);
+				((WhileClauseContext)_localctx).exhausted = whileExhausted();
+				}
+			}
+
+			setState(255);
+			_errHandler.sync(this);
+			_la = _input.LA(1);
+			if (_la==TATAH) {
+				{
+				setState(253);
+				match(TATAH);
+				setState(254);
+				((WhileClauseContext)_localctx).target = vakya();
+				}
+			}
+
+			setState(258);
+			_errHandler.sync(this);
+			_la = _input.LA(1);
+			if (_la==DANDA) {
+				{
+				setState(257);
+				match(DANDA);
+				}
+			}
+
+			setState(260);
+			match(EOF);
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	@SuppressWarnings("CheckReturnValue")
+	public static class WhileExhaustedContext extends ParserRuleContext {
+		public VakyaContext quoted;
+		public VakyaContext reporting;
+		public VakyaContext plain;
+		public TerminalNode ITI() { return getToken(VyakaranamParser.ITI, 0); }
+		public List<VakyaContext> vakya() {
+			return getRuleContexts(VakyaContext.class);
+		}
+		public VakyaContext vakya(int i) {
+			return getRuleContext(VakyaContext.class,i);
+		}
+		public WhileExhaustedContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_whileExhausted; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).enterWhileExhausted(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).exitWhileExhausted(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof VyakaranamParserVisitor ) return ((VyakaranamParserVisitor<? extends T>)visitor).visitWhileExhausted(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final WhileExhaustedContext whileExhausted() throws RecognitionException {
+		WhileExhaustedContext _localctx = new WhileExhaustedContext(_ctx, getState());
+		enterRule(_localctx, 10, RULE_whileExhausted);
+		try {
+			setState(267);
+			_errHandler.sync(this);
+			switch ( getInterpreter().adaptivePredict(_input,14,_ctx) ) {
+			case 1:
+				enterOuterAlt(_localctx, 1);
+				{
+				setState(262);
+				((WhileExhaustedContext)_localctx).quoted = vakya();
+				setState(263);
+				match(ITI);
+				setState(264);
+				((WhileExhaustedContext)_localctx).reporting = vakya();
+				}
+				break;
+			case 2:
+				enterOuterAlt(_localctx, 2);
+				{
+				setState(266);
+				((WhileExhaustedContext)_localctx).plain = vakya();
+				}
+				break;
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	@SuppressWarnings("CheckReturnValue")
+	public static class OrdinalAttemptBoundaryContext extends ParserRuleContext {
+		public SankhyaPuranaPadaContext ordinal;
+		public SubantaPadaContext attempt;
+		public Token limitBase;
+		public TerminalNode PARI() { return getToken(VyakaranamParser.PARI, 0); }
+		public List<TerminalNode> PLUS() { return getTokens(VyakaranamParser.PLUS); }
+		public TerminalNode PLUS(int i) {
+			return getToken(VyakaranamParser.PLUS, i);
+		}
+		public TerminalNode SUP_AM() { return getToken(VyakaranamParser.SUP_AM, 0); }
+		public SankhyaPuranaPadaContext sankhyaPuranaPada() {
+			return getRuleContext(SankhyaPuranaPadaContext.class,0);
+		}
+		public SubantaPadaContext subantaPada() {
+			return getRuleContext(SubantaPadaContext.class,0);
+		}
+		public TerminalNode IDENTIFIER() { return getToken(VyakaranamParser.IDENTIFIER, 0); }
+		public OrdinalAttemptBoundaryContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_ordinalAttemptBoundary; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).enterOrdinalAttemptBoundary(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).exitOrdinalAttemptBoundary(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof VyakaranamParserVisitor ) return ((VyakaranamParserVisitor<? extends T>)visitor).visitOrdinalAttemptBoundary(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final OrdinalAttemptBoundaryContext ordinalAttemptBoundary() throws RecognitionException {
+		OrdinalAttemptBoundaryContext _localctx = new OrdinalAttemptBoundaryContext(_ctx, getState());
+		enterRule(_localctx, 12, RULE_ordinalAttemptBoundary);
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(269);
+			((OrdinalAttemptBoundaryContext)_localctx).ordinal = sankhyaPuranaPada();
+			setState(270);
+			((OrdinalAttemptBoundaryContext)_localctx).attempt = subantaPada();
+			setState(271);
+			match(PARI);
+			setState(272);
+			match(PLUS);
+			setState(273);
+			((OrdinalAttemptBoundaryContext)_localctx).limitBase = match(IDENTIFIER);
+			setState(274);
+			match(PLUS);
+			setState(275);
+			match(SUP_AM);
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	@SuppressWarnings("CheckReturnValue")
+	public static class PipelineClauseContext extends ParserRuleContext {
+		public SubantaPadaContext subantaPada;
+		public List<SubantaPadaContext> arguments = new ArrayList<SubantaPadaContext>();
+		public PipelineStageContext pipelineStage;
+		public List<PipelineStageContext> stages = new ArrayList<PipelineStageContext>();
+		public TerminalNode CHA() { return getToken(VyakaranamParser.CHA, 0); }
+		public PurvaparaDirectiveContext purvaparaDirective() {
+			return getRuleContext(PurvaparaDirectiveContext.class,0);
+		}
+		public PipelineResultContext pipelineResult() {
+			return getRuleContext(PipelineResultContext.class,0);
+		}
+		public TingantaPadaContext tingantaPada() {
+			return getRuleContext(TingantaPadaContext.class,0);
+		}
+		public TerminalNode EOF() { return getToken(VyakaranamParser.EOF, 0); }
+		public List<PipelineStageContext> pipelineStage() {
+			return getRuleContexts(PipelineStageContext.class);
+		}
+		public PipelineStageContext pipelineStage(int i) {
+			return getRuleContext(PipelineStageContext.class,i);
+		}
+		public TerminalNode DANDA() { return getToken(VyakaranamParser.DANDA, 0); }
+		public List<SubantaPadaContext> subantaPada() {
+			return getRuleContexts(SubantaPadaContext.class);
+		}
+		public SubantaPadaContext subantaPada(int i) {
+			return getRuleContext(SubantaPadaContext.class,i);
+		}
+		public PipelineClauseContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_pipelineClause; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).enterPipelineClause(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).exitPipelineClause(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof VyakaranamParserVisitor ) return ((VyakaranamParserVisitor<? extends T>)visitor).visitPipelineClause(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final PipelineClauseContext pipelineClause() throws RecognitionException {
+		PipelineClauseContext _localctx = new PipelineClauseContext(_ctx, getState());
+		enterRule(_localctx, 14, RULE_pipelineClause);
+		int _la;
+		try {
+			int _alt;
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(278); 
+			_errHandler.sync(this);
+			_la = _input.LA(1);
+			do {
+				{
+				{
+				setState(277);
+				((PipelineClauseContext)_localctx).subantaPada = subantaPada();
+				((PipelineClauseContext)_localctx).arguments.add(((PipelineClauseContext)_localctx).subantaPada);
+				}
+				}
+				setState(280); 
+				_errHandler.sync(this);
+				_la = _input.LA(1);
+			} while ( (((_la) & ~0x3f) == 0 && ((1L << _la) & -144009634958539744L) != 0) || ((((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 8191L) != 0) || ((((_la - 219)) & ~0x3f) == 0 && ((1L << (_la - 219)) & 33554449L) != 0) );
+			setState(282);
+			match(CHA);
+			setState(283);
+			((PipelineClauseContext)_localctx).pipelineStage = pipelineStage();
+			((PipelineClauseContext)_localctx).stages.add(((PipelineClauseContext)_localctx).pipelineStage);
+			setState(285); 
+			_errHandler.sync(this);
+			_alt = 1;
+			do {
+				switch (_alt) {
+				case 1:
+					{
+					{
+					setState(284);
+					((PipelineClauseContext)_localctx).pipelineStage = pipelineStage();
+					((PipelineClauseContext)_localctx).stages.add(((PipelineClauseContext)_localctx).pipelineStage);
+					}
+					}
+					break;
+				default:
+					throw new NoViableAltException(this);
+				}
+				setState(287); 
+				_errHandler.sync(this);
+				_alt = getInterpreter().adaptivePredict(_input,16,_ctx);
+			} while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER );
+			setState(289);
+			purvaparaDirective();
+			setState(290);
+			pipelineResult();
+			setState(291);
+			tingantaPada();
+			setState(293);
+			_errHandler.sync(this);
+			_la = _input.LA(1);
+			if (_la==DANDA) {
+				{
+				setState(292);
+				match(DANDA);
+				}
+			}
+
+			setState(295);
+			match(EOF);
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	@SuppressWarnings("CheckReturnValue")
+	public static class PipelineStageContext extends ParserRuleContext {
+		public SubantaPadaContext domain;
+		public SubantaPadaContext operation;
+		public List<SubantaPadaContext> subantaPada() {
+			return getRuleContexts(SubantaPadaContext.class);
+		}
+		public SubantaPadaContext subantaPada(int i) {
+			return getRuleContext(SubantaPadaContext.class,i);
+		}
+		public PipelineStageContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_pipelineStage; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).enterPipelineStage(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).exitPipelineStage(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof VyakaranamParserVisitor ) return ((VyakaranamParserVisitor<? extends T>)visitor).visitPipelineStage(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final PipelineStageContext pipelineStage() throws RecognitionException {
+		PipelineStageContext _localctx = new PipelineStageContext(_ctx, getState());
+		enterRule(_localctx, 16, RULE_pipelineStage);
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(297);
+			((PipelineStageContext)_localctx).domain = subantaPada();
+			setState(298);
+			((PipelineStageContext)_localctx).operation = subantaPada();
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	@SuppressWarnings("CheckReturnValue")
+	public static class PurvaparaDirectiveContext extends ParserRuleContext {
+		public SubantaPadaContext purva;
+		public SubantaPadaContext para;
+		public List<SubantaPadaContext> subantaPada() {
+			return getRuleContexts(SubantaPadaContext.class);
+		}
+		public SubantaPadaContext subantaPada(int i) {
+			return getRuleContext(SubantaPadaContext.class,i);
+		}
+		public PurvaparaDirectiveContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_purvaparaDirective; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).enterPurvaparaDirective(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).exitPurvaparaDirective(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof VyakaranamParserVisitor ) return ((VyakaranamParserVisitor<? extends T>)visitor).visitPurvaparaDirective(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final PurvaparaDirectiveContext purvaparaDirective() throws RecognitionException {
+		PurvaparaDirectiveContext _localctx = new PurvaparaDirectiveContext(_ctx, getState());
+		enterRule(_localctx, 18, RULE_purvaparaDirective);
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(300);
+			((PurvaparaDirectiveContext)_localctx).purva = subantaPada();
+			setState(301);
+			((PurvaparaDirectiveContext)_localctx).para = subantaPada();
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	@SuppressWarnings("CheckReturnValue")
+	public static class PipelineResultContext extends ParserRuleContext {
+		public SubantaPadaContext subantaPada() {
+			return getRuleContext(SubantaPadaContext.class,0);
+		}
+		public PipelineResultContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_pipelineResult; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).enterPipelineResult(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).exitPipelineResult(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof VyakaranamParserVisitor ) return ((VyakaranamParserVisitor<? extends T>)visitor).visitPipelineResult(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final PipelineResultContext pipelineResult() throws RecognitionException {
+		PipelineResultContext _localctx = new PipelineResultContext(_ctx, getState());
+		enterRule(_localctx, 20, RULE_pipelineResult);
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(303);
+			subantaPada();
 			}
 		}
 		catch (RecognitionException re) {
@@ -489,20 +1297,16 @@ public class VyakaranamParser extends Parser {
 
 	@SuppressWarnings("CheckReturnValue")
 	public static class ConditionalClauseContext extends ParserRuleContext {
-		public VakyaContext condition;
-		public VakyaContext consequent;
-		public VakyaContext alternate;
-		public TerminalNode YADI() { return getToken(VyakaranamParser.YADI, 0); }
-		public TerminalNode TARHI() { return getToken(VyakaranamParser.TARHI, 0); }
+		public VakyaContext target;
+		public ConditionalExpressionContext conditionalExpression() {
+			return getRuleContext(ConditionalExpressionContext.class,0);
+		}
 		public TerminalNode EOF() { return getToken(VyakaranamParser.EOF, 0); }
-		public List<VakyaContext> vakya() {
-			return getRuleContexts(VakyaContext.class);
-		}
-		public VakyaContext vakya(int i) {
-			return getRuleContext(VakyaContext.class,i);
-		}
-		public TerminalNode ANYATHA() { return getToken(VyakaranamParser.ANYATHA, 0); }
+		public TerminalNode TATAH() { return getToken(VyakaranamParser.TATAH, 0); }
 		public TerminalNode DANDA() { return getToken(VyakaranamParser.DANDA, 0); }
+		public VakyaContext vakya() {
+			return getRuleContext(VakyaContext.class,0);
+		}
 		public ConditionalClauseContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -524,42 +1328,36 @@ public class VyakaranamParser extends Parser {
 
 	public final ConditionalClauseContext conditionalClause() throws RecognitionException {
 		ConditionalClauseContext _localctx = new ConditionalClauseContext(_ctx, getState());
-		enterRule(_localctx, 2, RULE_conditionalClause);
+		enterRule(_localctx, 22, RULE_conditionalClause);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(153);
-			match(YADI);
-			setState(154);
-			((ConditionalClauseContext)_localctx).condition = vakya();
-			setState(155);
-			match(TARHI);
-			setState(156);
-			((ConditionalClauseContext)_localctx).consequent = vakya();
-			setState(159);
+			setState(305);
+			conditionalExpression();
+			setState(308);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if (_la==ANYATHA) {
+			if (_la==TATAH) {
 				{
-				setState(157);
-				match(ANYATHA);
-				setState(158);
-				((ConditionalClauseContext)_localctx).alternate = vakya();
+				setState(306);
+				match(TATAH);
+				setState(307);
+				((ConditionalClauseContext)_localctx).target = vakya();
 				}
 			}
 
-			setState(162);
+			setState(311);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			if (_la==DANDA) {
 				{
-				setState(161);
+				setState(310);
 				match(DANDA);
 				}
 			}
 
-			setState(164);
+			setState(313);
 			match(EOF);
 			}
 		}
@@ -575,65 +1373,221 @@ public class VyakaranamParser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class LoopClauseContext extends ParserRuleContext {
+	public static class ConditionalExpressionContext extends ParserRuleContext {
 		public VakyaContext condition;
-		public VakyaContext body;
-		public TerminalNode YAVAT() { return getToken(VyakaranamParser.YAVAT, 0); }
-		public TerminalNode TAVAT() { return getToken(VyakaranamParser.TAVAT, 0); }
-		public TerminalNode EOF() { return getToken(VyakaranamParser.EOF, 0); }
-		public List<VakyaContext> vakya() {
-			return getRuleContexts(VakyaContext.class);
+		public ConditionalArmContext consequent;
+		public ConditionalExpressionContext nested;
+		public ConditionalArmContext alternate;
+		public TerminalNode YADI() { return getToken(VyakaranamParser.YADI, 0); }
+		public TerminalNode TARHI() { return getToken(VyakaranamParser.TARHI, 0); }
+		public VakyaContext vakya() {
+			return getRuleContext(VakyaContext.class,0);
 		}
-		public VakyaContext vakya(int i) {
-			return getRuleContext(VakyaContext.class,i);
+		public List<ConditionalArmContext> conditionalArm() {
+			return getRuleContexts(ConditionalArmContext.class);
 		}
-		public TerminalNode DANDA() { return getToken(VyakaranamParser.DANDA, 0); }
-		public LoopClauseContext(ParserRuleContext parent, int invokingState) {
+		public ConditionalArmContext conditionalArm(int i) {
+			return getRuleContext(ConditionalArmContext.class,i);
+		}
+		public TerminalNode ANYATHA() { return getToken(VyakaranamParser.ANYATHA, 0); }
+		public ConditionalExpressionContext conditionalExpression() {
+			return getRuleContext(ConditionalExpressionContext.class,0);
+		}
+		public ConditionalExpressionContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
-		@Override public int getRuleIndex() { return RULE_loopClause; }
+		@Override public int getRuleIndex() { return RULE_conditionalExpression; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).enterLoopClause(this);
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).enterConditionalExpression(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).exitLoopClause(this);
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).exitConditionalExpression(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof VyakaranamParserVisitor ) return ((VyakaranamParserVisitor<? extends T>)visitor).visitLoopClause(this);
+			if ( visitor instanceof VyakaranamParserVisitor ) return ((VyakaranamParserVisitor<? extends T>)visitor).visitConditionalExpression(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	public final LoopClauseContext loopClause() throws RecognitionException {
-		LoopClauseContext _localctx = new LoopClauseContext(_ctx, getState());
-		enterRule(_localctx, 4, RULE_loopClause);
+	public final ConditionalExpressionContext conditionalExpression() throws RecognitionException {
+		ConditionalExpressionContext _localctx = new ConditionalExpressionContext(_ctx, getState());
+		enterRule(_localctx, 24, RULE_conditionalExpression);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(166);
-			match(YAVAT);
-			setState(167);
-			((LoopClauseContext)_localctx).condition = vakya();
-			setState(168);
-			match(TAVAT);
-			setState(169);
-			((LoopClauseContext)_localctx).body = vakya();
-			setState(171);
+			setState(315);
+			match(YADI);
+			setState(316);
+			((ConditionalExpressionContext)_localctx).condition = vakya();
+			setState(317);
+			match(TARHI);
+			setState(318);
+			((ConditionalExpressionContext)_localctx).consequent = conditionalArm();
+			setState(324);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if (_la==DANDA) {
+			if (_la==ANYATHA) {
 				{
-				setState(170);
-				match(DANDA);
+				setState(319);
+				match(ANYATHA);
+				setState(322);
+				_errHandler.sync(this);
+				switch (_input.LA(1)) {
+				case YADI:
+					{
+					setState(320);
+					((ConditionalExpressionContext)_localctx).nested = conditionalExpression();
+					}
+					break;
+				case LPAREN:
+				case CHA:
+				case VAA:
+				case ATHA:
+				case TATAH:
+				case ANANTARAM:
+				case KINTU:
+				case ATAH:
+				case YATAH:
+				case MAA:
+				case NA:
+				case ITI:
+				case API:
+				case EVA:
+				case TU_AVYAYA:
+				case HI:
+				case KHALU:
+				case NANU:
+				case YATHA:
+				case TATHA:
+				case YADA:
+				case TADA:
+				case YATRA:
+				case TATRA:
+				case KADA:
+				case KUTRA:
+				case SARVATRA:
+				case KATHAM:
+				case KUTAH:
+				case KRPAYA:
+				case SAHASAA:
+				case SHANAIH:
+				case PUNAH:
+				case NYUNATAYA:
+				case ADYA:
+				case SHVAH:
+				case HYAH:
+				case ADHIKA:
+				case UNA:
+				case SAKRIT:
+				case DVIH:
+				case TRIH:
+				case CHATUH:
+				case KATAPAYADI:
+				case ARYABHATIYA:
+				case BHUTASAMKHYA:
+				case INTERJECTION:
+				case PRA:
+				case PARAA:
+				case APA:
+				case SAM:
+				case ANUU:
+				case AVA:
+				case NIS:
+				case DUS:
+				case VI:
+				case AANG:
+				case NI:
+				case ADHI:
+				case ATI:
+				case SU:
+				case UD:
+				case ABHI:
+				case PRATI:
+				case PARI:
+				case UPA:
+				case ANTAR:
+				case DAA:
+				case DHAA:
+				case YAVAT:
+				case TAVAT:
+				case IDENTIFIER:
+					{
+					setState(321);
+					((ConditionalExpressionContext)_localctx).alternate = conditionalArm();
+					}
+					break;
+				default:
+					throw new NoViableAltException(this);
+				}
 				}
 			}
 
-			setState(173);
-			match(EOF);
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	@SuppressWarnings("CheckReturnValue")
+	public static class ConditionalArmContext extends ParserRuleContext {
+		public PratipadikaContext value;
+		public PratipadikaContext pratipadika() {
+			return getRuleContext(PratipadikaContext.class,0);
+		}
+		public VakyaContext vakya() {
+			return getRuleContext(VakyaContext.class,0);
+		}
+		public ConditionalArmContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_conditionalArm; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).enterConditionalArm(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).exitConditionalArm(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof VyakaranamParserVisitor ) return ((VyakaranamParserVisitor<? extends T>)visitor).visitConditionalArm(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final ConditionalArmContext conditionalArm() throws RecognitionException {
+		ConditionalArmContext _localctx = new ConditionalArmContext(_ctx, getState());
+		enterRule(_localctx, 26, RULE_conditionalArm);
+		try {
+			setState(328);
+			_errHandler.sync(this);
+			switch ( getInterpreter().adaptivePredict(_input,22,_ctx) ) {
+			case 1:
+				enterOuterAlt(_localctx, 1);
+				{
+				setState(326);
+				((ConditionalArmContext)_localctx).value = pratipadika();
+				}
+				break;
+			case 2:
+				enterOuterAlt(_localctx, 2);
+				{
+				setState(327);
+				vakya();
+				}
+				break;
 			}
 		}
 		catch (RecognitionException re) {
@@ -676,22 +1630,22 @@ public class VyakaranamParser extends Parser {
 
 	public final VakyaContext vakya() throws RecognitionException {
 		VakyaContext _localctx = new VakyaContext(_ctx, getState());
-		enterRule(_localctx, 6, RULE_vakya);
+		enterRule(_localctx, 28, RULE_vakya);
 		try {
-			setState(177);
+			setState(332);
 			_errHandler.sync(this);
-			switch ( getInterpreter().adaptivePredict(_input,7,_ctx) ) {
+			switch ( getInterpreter().adaptivePredict(_input,23,_ctx) ) {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(175);
+				setState(330);
 				akhyataVakya();
 				}
 				break;
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(176);
+				setState(331);
 				namaVakya();
 				}
 				break;
@@ -746,44 +1700,44 @@ public class VyakaranamParser extends Parser {
 
 	public final AkhyataVakyaContext akhyataVakya() throws RecognitionException {
 		AkhyataVakyaContext _localctx = new AkhyataVakyaContext(_ctx, getState());
-		enterRule(_localctx, 8, RULE_akhyataVakya);
+		enterRule(_localctx, 30, RULE_akhyataVakya);
 		try {
 			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(182);
+			setState(337);
 			_errHandler.sync(this);
-			_alt = getInterpreter().adaptivePredict(_input,8,_ctx);
+			_alt = getInterpreter().adaptivePredict(_input,24,_ctx);
 			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
 				if ( _alt==1 ) {
 					{
 					{
-					setState(179);
+					setState(334);
 					purvaVakyaPada();
 					}
 					} 
 				}
-				setState(184);
+				setState(339);
 				_errHandler.sync(this);
-				_alt = getInterpreter().adaptivePredict(_input,8,_ctx);
+				_alt = getInterpreter().adaptivePredict(_input,24,_ctx);
 			}
-			setState(185);
+			setState(340);
 			tingantaPada();
-			setState(189);
+			setState(344);
 			_errHandler.sync(this);
-			_alt = getInterpreter().adaptivePredict(_input,9,_ctx);
+			_alt = getInterpreter().adaptivePredict(_input,25,_ctx);
 			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
 				if ( _alt==1 ) {
 					{
 					{
-					setState(186);
+					setState(341);
 					uttaraVakyaPada();
 					}
 					} 
 				}
-				setState(191);
+				setState(346);
 				_errHandler.sync(this);
-				_alt = getInterpreter().adaptivePredict(_input,9,_ctx);
+				_alt = getInterpreter().adaptivePredict(_input,25,_ctx);
 			}
 			}
 		}
@@ -824,11 +1778,11 @@ public class VyakaranamParser extends Parser {
 
 	public final PurvaVakyaPadaContext purvaVakyaPada() throws RecognitionException {
 		PurvaVakyaPadaContext _localctx = new PurvaVakyaPadaContext(_ctx, getState());
-		enterRule(_localctx, 10, RULE_purvaVakyaPada);
+		enterRule(_localctx, 32, RULE_purvaVakyaPada);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(192);
+			setState(347);
 			vakyaPada();
 			}
 		}
@@ -869,11 +1823,11 @@ public class VyakaranamParser extends Parser {
 
 	public final UttaraVakyaPadaContext uttaraVakyaPada() throws RecognitionException {
 		UttaraVakyaPadaContext _localctx = new UttaraVakyaPadaContext(_ctx, getState());
-		enterRule(_localctx, 12, RULE_uttaraVakyaPada);
+		enterRule(_localctx, 34, RULE_uttaraVakyaPada);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(194);
+			setState(349);
 			vakyaPada();
 			}
 		}
@@ -917,12 +1871,12 @@ public class VyakaranamParser extends Parser {
 
 	public final NamaVakyaContext namaVakya() throws RecognitionException {
 		NamaVakyaContext _localctx = new NamaVakyaContext(_ctx, getState());
-		enterRule(_localctx, 14, RULE_namaVakya);
+		enterRule(_localctx, 36, RULE_namaVakya);
 		try {
 			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(197); 
+			setState(352); 
 			_errHandler.sync(this);
 			_alt = 1;
 			do {
@@ -930,7 +1884,7 @@ public class VyakaranamParser extends Parser {
 				case 1:
 					{
 					{
-					setState(196);
+					setState(351);
 					vakyaPada();
 					}
 					}
@@ -938,9 +1892,9 @@ public class VyakaranamParser extends Parser {
 				default:
 					throw new NoViableAltException(this);
 				}
-				setState(199); 
+				setState(354); 
 				_errHandler.sync(this);
-				_alt = getInterpreter().adaptivePredict(_input,10,_ctx);
+				_alt = getInterpreter().adaptivePredict(_input,26,_ctx);
 			} while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER );
 			}
 		}
@@ -957,6 +1911,9 @@ public class VyakaranamParser extends Parser {
 
 	@SuppressWarnings("CheckReturnValue")
 	public static class VakyaPadaContext extends ParserRuleContext {
+		public ParyantaRangeContext paryantaRange() {
+			return getRuleContext(ParyantaRangeContext.class,0);
+		}
 		public SubantaVakyaPadaContext subantaVakyaPada() {
 			return getRuleContext(SubantaVakyaPadaContext.class,0);
 		}
@@ -984,25 +1941,354 @@ public class VyakaranamParser extends Parser {
 
 	public final VakyaPadaContext vakyaPada() throws RecognitionException {
 		VakyaPadaContext _localctx = new VakyaPadaContext(_ctx, getState());
-		enterRule(_localctx, 16, RULE_vakyaPada);
+		enterRule(_localctx, 38, RULE_vakyaPada);
 		try {
-			setState(203);
+			setState(359);
 			_errHandler.sync(this);
-			switch ( getInterpreter().adaptivePredict(_input,11,_ctx) ) {
+			switch ( getInterpreter().adaptivePredict(_input,27,_ctx) ) {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(201);
-				subantaVakyaPada();
+				setState(356);
+				paryantaRange();
 				}
 				break;
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(202);
+				setState(357);
+				subantaVakyaPada();
+				}
+				break;
+			case 3:
+				enterOuterAlt(_localctx, 3);
+				{
+				setState(358);
 				avyayaPada();
 				}
 				break;
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	@SuppressWarnings("CheckReturnValue")
+	public static class ParyantaRangeContext extends ParserRuleContext {
+		public AblativeNumeralContext lower;
+		public AccusativeNumeralContext upper;
+		public Token limitBase;
+		public TerminalNode PARI() { return getToken(VyakaranamParser.PARI, 0); }
+		public List<TerminalNode> PLUS() { return getTokens(VyakaranamParser.PLUS); }
+		public TerminalNode PLUS(int i) {
+			return getToken(VyakaranamParser.PLUS, i);
+		}
+		public TerminalNode SUP_AM() { return getToken(VyakaranamParser.SUP_AM, 0); }
+		public AblativeNumeralContext ablativeNumeral() {
+			return getRuleContext(AblativeNumeralContext.class,0);
+		}
+		public AccusativeNumeralContext accusativeNumeral() {
+			return getRuleContext(AccusativeNumeralContext.class,0);
+		}
+		public TerminalNode IDENTIFIER() { return getToken(VyakaranamParser.IDENTIFIER, 0); }
+		public ParyantaRangeContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_paryantaRange; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).enterParyantaRange(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).exitParyantaRange(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof VyakaranamParserVisitor ) return ((VyakaranamParserVisitor<? extends T>)visitor).visitParyantaRange(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final ParyantaRangeContext paryantaRange() throws RecognitionException {
+		ParyantaRangeContext _localctx = new ParyantaRangeContext(_ctx, getState());
+		enterRule(_localctx, 40, RULE_paryantaRange);
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(361);
+			((ParyantaRangeContext)_localctx).lower = ablativeNumeral();
+			setState(362);
+			((ParyantaRangeContext)_localctx).upper = accusativeNumeral();
+			setState(363);
+			match(PARI);
+			setState(364);
+			match(PLUS);
+			setState(365);
+			((ParyantaRangeContext)_localctx).limitBase = match(IDENTIFIER);
+			setState(366);
+			match(PLUS);
+			setState(367);
+			match(SUP_AM);
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	@SuppressWarnings("CheckReturnValue")
+	public static class AblativeNumeralContext extends ParserRuleContext {
+		public AblativeSupContext ablativeSup() {
+			return getRuleContext(AblativeSupContext.class,0);
+		}
+		public List<SankhyaStemContext> sankhyaStem() {
+			return getRuleContexts(SankhyaStemContext.class);
+		}
+		public SankhyaStemContext sankhyaStem(int i) {
+			return getRuleContext(SankhyaStemContext.class,i);
+		}
+		public List<TerminalNode> PLUS() { return getTokens(VyakaranamParser.PLUS); }
+		public TerminalNode PLUS(int i) {
+			return getToken(VyakaranamParser.PLUS, i);
+		}
+		public AblativeNumeralContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_ablativeNumeral; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).enterAblativeNumeral(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).exitAblativeNumeral(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof VyakaranamParserVisitor ) return ((VyakaranamParserVisitor<? extends T>)visitor).visitAblativeNumeral(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final AblativeNumeralContext ablativeNumeral() throws RecognitionException {
+		AblativeNumeralContext _localctx = new AblativeNumeralContext(_ctx, getState());
+		enterRule(_localctx, 42, RULE_ablativeNumeral);
+		int _la;
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(372); 
+			_errHandler.sync(this);
+			_la = _input.LA(1);
+			do {
+				{
+				{
+				setState(369);
+				sankhyaStem();
+				setState(370);
+				match(PLUS);
+				}
+				}
+				setState(374); 
+				_errHandler.sync(this);
+				_la = _input.LA(1);
+			} while ( _la==IDENTIFIER );
+			setState(376);
+			ablativeSup();
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	@SuppressWarnings("CheckReturnValue")
+	public static class AccusativeNumeralContext extends ParserRuleContext {
+		public AccusativeSupContext accusativeSup() {
+			return getRuleContext(AccusativeSupContext.class,0);
+		}
+		public List<SankhyaStemContext> sankhyaStem() {
+			return getRuleContexts(SankhyaStemContext.class);
+		}
+		public SankhyaStemContext sankhyaStem(int i) {
+			return getRuleContext(SankhyaStemContext.class,i);
+		}
+		public List<TerminalNode> PLUS() { return getTokens(VyakaranamParser.PLUS); }
+		public TerminalNode PLUS(int i) {
+			return getToken(VyakaranamParser.PLUS, i);
+		}
+		public AccusativeNumeralContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_accusativeNumeral; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).enterAccusativeNumeral(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).exitAccusativeNumeral(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof VyakaranamParserVisitor ) return ((VyakaranamParserVisitor<? extends T>)visitor).visitAccusativeNumeral(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final AccusativeNumeralContext accusativeNumeral() throws RecognitionException {
+		AccusativeNumeralContext _localctx = new AccusativeNumeralContext(_ctx, getState());
+		enterRule(_localctx, 44, RULE_accusativeNumeral);
+		int _la;
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(381); 
+			_errHandler.sync(this);
+			_la = _input.LA(1);
+			do {
+				{
+				{
+				setState(378);
+				sankhyaStem();
+				setState(379);
+				match(PLUS);
+				}
+				}
+				setState(383); 
+				_errHandler.sync(this);
+				_la = _input.LA(1);
+			} while ( _la==IDENTIFIER );
+			setState(385);
+			accusativeSup();
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	@SuppressWarnings("CheckReturnValue")
+	public static class AblativeSupContext extends ParserRuleContext {
+		public TerminalNode SUP_NGASI() { return getToken(VyakaranamParser.SUP_NGASI, 0); }
+		public TerminalNode SUP_BHYAM() { return getToken(VyakaranamParser.SUP_BHYAM, 0); }
+		public TerminalNode SUP_BHYAS() { return getToken(VyakaranamParser.SUP_BHYAS, 0); }
+		public AblativeSupContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_ablativeSup; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).enterAblativeSup(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).exitAblativeSup(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof VyakaranamParserVisitor ) return ((VyakaranamParserVisitor<? extends T>)visitor).visitAblativeSup(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final AblativeSupContext ablativeSup() throws RecognitionException {
+		AblativeSupContext _localctx = new AblativeSupContext(_ctx, getState());
+		enterRule(_localctx, 46, RULE_ablativeSup);
+		int _la;
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(387);
+			_la = _input.LA(1);
+			if ( !(((((_la - 120)) & ~0x3f) == 0 && ((1L << (_la - 120)) & 25L) != 0)) ) {
+			_errHandler.recoverInline(this);
+			}
+			else {
+				if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+				_errHandler.reportMatch(this);
+				consume();
+			}
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	@SuppressWarnings("CheckReturnValue")
+	public static class AccusativeSupContext extends ParserRuleContext {
+		public TerminalNode SUP_AM() { return getToken(VyakaranamParser.SUP_AM, 0); }
+		public TerminalNode SUP_AUT() { return getToken(VyakaranamParser.SUP_AUT, 0); }
+		public TerminalNode SUP_SHAS() { return getToken(VyakaranamParser.SUP_SHAS, 0); }
+		public AccusativeSupContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_accusativeSup; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).enterAccusativeSup(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).exitAccusativeSup(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof VyakaranamParserVisitor ) return ((VyakaranamParserVisitor<? extends T>)visitor).visitAccusativeSup(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final AccusativeSupContext accusativeSup() throws RecognitionException {
+		AccusativeSupContext _localctx = new AccusativeSupContext(_ctx, getState());
+		enterRule(_localctx, 48, RULE_accusativeSup);
+		int _la;
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(389);
+			_la = _input.LA(1);
+			if ( !(((((_la - 116)) & ~0x3f) == 0 && ((1L << (_la - 116)) & 7L) != 0)) ) {
+			_errHandler.recoverInline(this);
+			}
+			else {
+				if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+				_errHandler.reportMatch(this);
+				consume();
+			}
 			}
 		}
 		catch (RecognitionException re) {
@@ -1042,12 +2328,6 @@ public class VyakaranamParser extends Parser {
 		public BhutasamkhyaPadaContext bhutasamkhyaPada() {
 			return getRuleContext(BhutasamkhyaPadaContext.class,0);
 		}
-		public SankhyaBhinnaPadaContext sankhyaBhinnaPada() {
-			return getRuleContext(SankhyaBhinnaPadaContext.class,0);
-		}
-		public SankhyaMathPadaContext sankhyaMathPada() {
-			return getRuleContext(SankhyaMathPadaContext.class,0);
-		}
 		public SubantaVakyaPadaContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -1069,79 +2349,65 @@ public class VyakaranamParser extends Parser {
 
 	public final SubantaVakyaPadaContext subantaVakyaPada() throws RecognitionException {
 		SubantaVakyaPadaContext _localctx = new SubantaVakyaPadaContext(_ctx, getState());
-		enterRule(_localctx, 18, RULE_subantaVakyaPada);
+		enterRule(_localctx, 50, RULE_subantaVakyaPada);
 		try {
-			setState(215);
+			setState(399);
 			_errHandler.sync(this);
-			switch ( getInterpreter().adaptivePredict(_input,12,_ctx) ) {
+			switch ( getInterpreter().adaptivePredict(_input,30,_ctx) ) {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(205);
+				setState(391);
 				subantaPada();
 				}
 				break;
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(206);
+				setState(392);
 				samuccitaSubanta();
 				}
 				break;
 			case 3:
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(207);
+				setState(393);
 				sankhyaPada();
 				}
 				break;
 			case 4:
 				enterOuterAlt(_localctx, 4);
 				{
-				setState(208);
+				setState(394);
 				sankhyaPuranaPada();
 				}
 				break;
 			case 5:
 				enterOuterAlt(_localctx, 5);
 				{
-				setState(209);
+				setState(395);
 				sankhyaAbhyasaPada();
 				}
 				break;
 			case 6:
 				enterOuterAlt(_localctx, 6);
 				{
-				setState(210);
+				setState(396);
 				katapayadiPada();
 				}
 				break;
 			case 7:
 				enterOuterAlt(_localctx, 7);
 				{
-				setState(211);
+				setState(397);
 				aryabhatiyaPada();
 				}
 				break;
 			case 8:
 				enterOuterAlt(_localctx, 8);
 				{
-				setState(212);
+				setState(398);
 				bhutasamkhyaPada();
-				}
-				break;
-			case 9:
-				enterOuterAlt(_localctx, 9);
-				{
-				setState(213);
-				sankhyaBhinnaPada();
-				}
-				break;
-			case 10:
-				enterOuterAlt(_localctx, 10);
-				{
-				setState(214);
-				sankhyaMathPada();
 				}
 				break;
 			}
@@ -1161,6 +2427,7 @@ public class VyakaranamParser extends Parser {
 	public static class VakyaSambandhaContext extends ParserRuleContext {
 		public TerminalNode CHA() { return getToken(VyakaranamParser.CHA, 0); }
 		public TerminalNode VAA() { return getToken(VyakaranamParser.VAA, 0); }
+		public TerminalNode ITI() { return getToken(VyakaranamParser.ITI, 0); }
 		public TerminalNode ATHA() { return getToken(VyakaranamParser.ATHA, 0); }
 		public TerminalNode TATAH() { return getToken(VyakaranamParser.TATAH, 0); }
 		public TerminalNode ANANTARAM() { return getToken(VyakaranamParser.ANANTARAM, 0); }
@@ -1189,14 +2456,14 @@ public class VyakaranamParser extends Parser {
 
 	public final VakyaSambandhaContext vakyaSambandha() throws RecognitionException {
 		VakyaSambandhaContext _localctx = new VakyaSambandhaContext(_ctx, getState());
-		enterRule(_localctx, 20, RULE_vakyaSambandha);
+		enterRule(_localctx, 52, RULE_vakyaSambandha);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(217);
+			setState(401);
 			_la = _input.LA(1);
-			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 130576L) != 0)) ) {
+			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 654864L) != 0)) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -1247,21 +2514,21 @@ public class VyakaranamParser extends Parser {
 
 	public final SambodhanaContext sambodhana() throws RecognitionException {
 		SambodhanaContext _localctx = new SambodhanaContext(_ctx, getState());
-		enterRule(_localctx, 22, RULE_sambodhana);
+		enterRule(_localctx, 54, RULE_sambodhana);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(219);
+			setState(403);
 			sambodhanaSuchaka();
-			setState(220);
+			setState(404);
 			subantaPada();
-			setState(222);
+			setState(406);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			if (_la==COMMA) {
 				{
-				setState(221);
+				setState(405);
 				match(COMMA);
 				}
 			}
@@ -1304,12 +2571,12 @@ public class VyakaranamParser extends Parser {
 
 	public final SambodhanaSuchakaContext sambodhanaSuchaka() throws RecognitionException {
 		SambodhanaSuchakaContext _localctx = new SambodhanaSuchakaContext(_ctx, getState());
-		enterRule(_localctx, 24, RULE_sambodhanaSuchaka);
+		enterRule(_localctx, 56, RULE_sambodhanaSuchaka);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(224);
+			setState(408);
 			_la = _input.LA(1);
 			if ( !(_la==HE || _la==BHOH) ) {
 			_errHandler.recoverInline(this);
@@ -1367,36 +2634,36 @@ public class VyakaranamParser extends Parser {
 
 	public final PadaContext pada() throws RecognitionException {
 		PadaContext _localctx = new PadaContext(_ctx, getState());
-		enterRule(_localctx, 26, RULE_pada);
+		enterRule(_localctx, 58, RULE_pada);
 		try {
-			setState(230);
+			setState(414);
 			_errHandler.sync(this);
-			switch ( getInterpreter().adaptivePredict(_input,14,_ctx) ) {
+			switch ( getInterpreter().adaptivePredict(_input,32,_ctx) ) {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(226);
+				setState(410);
 				subantaPada();
 				}
 				break;
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(227);
+				setState(411);
 				tingantaPada();
 				}
 				break;
 			case 3:
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(228);
+				setState(412);
 				avyayaPada();
 				}
 				break;
 			case 4:
 				enterOuterAlt(_localctx, 4);
 				{
-				setState(229);
+				setState(413);
 				sankhyaPada();
 				}
 				break;
@@ -1449,28 +2716,28 @@ public class VyakaranamParser extends Parser {
 
 	public final SankhyaPadaContext sankhyaPada() throws RecognitionException {
 		SankhyaPadaContext _localctx = new SankhyaPadaContext(_ctx, getState());
-		enterRule(_localctx, 28, RULE_sankhyaPada);
+		enterRule(_localctx, 60, RULE_sankhyaPada);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(235); 
+			setState(419); 
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			do {
 				{
 				{
-				setState(232);
+				setState(416);
 				sankhyaStem();
-				setState(233);
+				setState(417);
 				match(PLUS);
 				}
 				}
-				setState(237); 
+				setState(421); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			} while ( _la==IDENTIFIER );
-			setState(239);
+			setState(423);
 			supPratyaya();
 			}
 		}
@@ -1524,32 +2791,32 @@ public class VyakaranamParser extends Parser {
 
 	public final SankhyaPuranaPadaContext sankhyaPuranaPada() throws RecognitionException {
 		SankhyaPuranaPadaContext _localctx = new SankhyaPuranaPadaContext(_ctx, getState());
-		enterRule(_localctx, 30, RULE_sankhyaPuranaPada);
+		enterRule(_localctx, 62, RULE_sankhyaPuranaPada);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(244); 
+			setState(428); 
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			do {
 				{
 				{
-				setState(241);
+				setState(425);
 				sankhyaStem();
-				setState(242);
+				setState(426);
 				match(PLUS);
 				}
 				}
-				setState(246); 
+				setState(430); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			} while ( _la==IDENTIFIER );
-			setState(248);
+			setState(432);
 			puranaPratyaya();
-			setState(249);
+			setState(433);
 			match(PLUS);
-			setState(250);
+			setState(434);
 			supPratyaya();
 			}
 		}
@@ -1566,10 +2833,10 @@ public class VyakaranamParser extends Parser {
 
 	@SuppressWarnings("CheckReturnValue")
 	public static class PuranaPratyayaContext extends ParserRuleContext {
-		public TerminalNode TEEYA() { return getToken(VyakaranamParser.TEEYA, 0); }
-		public TerminalNode PURANA_THA() { return getToken(VyakaranamParser.PURANA_THA, 0); }
-		public TerminalNode PURANA_MA() { return getToken(VyakaranamParser.PURANA_MA, 0); }
 		public TerminalNode THA() { return getToken(VyakaranamParser.THA, 0); }
+		public TerminalNode PRATYAYA_MA() { return getToken(VyakaranamParser.PRATYAYA_MA, 0); }
+		public TerminalNode PRATYAYA_TAMA() { return getToken(VyakaranamParser.PRATYAYA_TAMA, 0); }
+		public TerminalNode PRATYAYA_TIYA() { return getToken(VyakaranamParser.PRATYAYA_TIYA, 0); }
 		public PuranaPratyayaContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -1591,14 +2858,14 @@ public class VyakaranamParser extends Parser {
 
 	public final PuranaPratyayaContext puranaPratyaya() throws RecognitionException {
 		PuranaPratyayaContext _localctx = new PuranaPratyayaContext(_ctx, getState());
-		enterRule(_localctx, 32, RULE_puranaPratyaya);
+		enterRule(_localctx, 64, RULE_puranaPratyaya);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(252);
+			setState(436);
 			_la = _input.LA(1);
-			if ( !(((((_la - 69)) & ~0x3f) == 0 && ((1L << (_la - 69)) & 35184372088839L) != 0)) ) {
+			if ( !(_la==THA || ((((_la - 203)) & ~0x3f) == 0 && ((1L << (_la - 203)) & 7L) != 0)) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -1632,6 +2899,7 @@ public class VyakaranamParser extends Parser {
 		public TerminalNode PLUS(int i) {
 			return getToken(VyakaranamParser.PLUS, i);
 		}
+		public TerminalNode SUC() { return getToken(VyakaranamParser.SUC, 0); }
 		public TerminalNode DHAA() { return getToken(VyakaranamParser.DHAA, 0); }
 		public SankhyaAbhyasaPadaContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -1654,55 +2922,78 @@ public class VyakaranamParser extends Parser {
 
 	public final SankhyaAbhyasaPadaContext sankhyaAbhyasaPada() throws RecognitionException {
 		SankhyaAbhyasaPadaContext _localctx = new SankhyaAbhyasaPadaContext(_ctx, getState());
-		enterRule(_localctx, 34, RULE_sankhyaAbhyasaPada);
+		enterRule(_localctx, 66, RULE_sankhyaAbhyasaPada);
 		int _la;
 		try {
-			setState(272);
+			setState(465);
 			_errHandler.sync(this);
-			switch ( getInterpreter().adaptivePredict(_input,19,_ctx) ) {
+			switch ( getInterpreter().adaptivePredict(_input,38,_ctx) ) {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(257); 
+				setState(441); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				do {
 					{
 					{
-					setState(254);
+					setState(438);
 					sankhyaStem();
-					setState(255);
+					setState(439);
 					match(PLUS);
 					}
 					}
-					setState(259); 
+					setState(443); 
 					_errHandler.sync(this);
 					_la = _input.LA(1);
 				} while ( _la==IDENTIFIER );
-				setState(261);
+				setState(445);
 				match(KRITVAS);
 				}
 				break;
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(266); 
+				setState(450); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				do {
 					{
 					{
-					setState(263);
+					setState(447);
 					sankhyaStem();
-					setState(264);
+					setState(448);
 					match(PLUS);
 					}
 					}
-					setState(268); 
+					setState(452); 
 					_errHandler.sync(this);
 					_la = _input.LA(1);
 				} while ( _la==IDENTIFIER );
-				setState(270);
+				setState(454);
+				match(SUC);
+				}
+				break;
+			case 3:
+				enterOuterAlt(_localctx, 3);
+				{
+				setState(459); 
+				_errHandler.sync(this);
+				_la = _input.LA(1);
+				do {
+					{
+					{
+					setState(456);
+					sankhyaStem();
+					setState(457);
+					match(PLUS);
+					}
+					}
+					setState(461); 
+					_errHandler.sync(this);
+					_la = _input.LA(1);
+				} while ( _la==IDENTIFIER );
+				setState(463);
 				match(DHAA);
 				}
 				break;
@@ -1748,17 +3039,17 @@ public class VyakaranamParser extends Parser {
 
 	public final KatapayadiPadaContext katapayadiPada() throws RecognitionException {
 		KatapayadiPadaContext _localctx = new KatapayadiPadaContext(_ctx, getState());
-		enterRule(_localctx, 36, RULE_katapayadiPada);
+		enterRule(_localctx, 68, RULE_katapayadiPada);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(274);
+			setState(467);
 			match(KATAPAYADI);
-			setState(275);
+			setState(468);
 			match(IDENTIFIER);
-			setState(276);
+			setState(469);
 			match(PLUS);
-			setState(277);
+			setState(470);
 			supPratyaya();
 			}
 		}
@@ -1802,17 +3093,17 @@ public class VyakaranamParser extends Parser {
 
 	public final AryabhatiyaPadaContext aryabhatiyaPada() throws RecognitionException {
 		AryabhatiyaPadaContext _localctx = new AryabhatiyaPadaContext(_ctx, getState());
-		enterRule(_localctx, 38, RULE_aryabhatiyaPada);
+		enterRule(_localctx, 70, RULE_aryabhatiyaPada);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(279);
+			setState(472);
 			match(ARYABHATIYA);
-			setState(280);
+			setState(473);
 			match(IDENTIFIER);
-			setState(281);
+			setState(474);
 			match(PLUS);
-			setState(282);
+			setState(475);
 			supPratyaya();
 			}
 		}
@@ -1862,373 +3153,31 @@ public class VyakaranamParser extends Parser {
 
 	public final BhutasamkhyaPadaContext bhutasamkhyaPada() throws RecognitionException {
 		BhutasamkhyaPadaContext _localctx = new BhutasamkhyaPadaContext(_ctx, getState());
-		enterRule(_localctx, 40, RULE_bhutasamkhyaPada);
+		enterRule(_localctx, 72, RULE_bhutasamkhyaPada);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(284);
+			setState(477);
 			match(BHUTASAMKHYA);
-			setState(287); 
+			setState(480); 
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			do {
 				{
 				{
-				setState(285);
+				setState(478);
 				match(IDENTIFIER);
-				setState(286);
+				setState(479);
 				match(PLUS);
 				}
 				}
-				setState(289); 
+				setState(482); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			} while ( _la==IDENTIFIER );
-			setState(291);
+			setState(484);
 			supPratyaya();
-			}
-		}
-		catch (RecognitionException re) {
-			_localctx.exception = re;
-			_errHandler.reportError(this, re);
-			_errHandler.recover(this, re);
-		}
-		finally {
-			exitRule();
-		}
-		return _localctx;
-	}
-
-	@SuppressWarnings("CheckReturnValue")
-	public static class SankhyaBhinnaPadaContext extends ParserRuleContext {
-		public List<TerminalNode> PLUS() { return getTokens(VyakaranamParser.PLUS); }
-		public TerminalNode PLUS(int i) {
-			return getToken(VyakaranamParser.PLUS, i);
-		}
-		public List<SankhyaStemContext> sankhyaStem() {
-			return getRuleContexts(SankhyaStemContext.class);
-		}
-		public SankhyaStemContext sankhyaStem(int i) {
-			return getRuleContext(SankhyaStemContext.class,i);
-		}
-		public SupPratyayaContext supPratyaya() {
-			return getRuleContext(SupPratyayaContext.class,0);
-		}
-		public TerminalNode SAARDHA() { return getToken(VyakaranamParser.SAARDHA, 0); }
-		public TerminalNode SAPAADA() { return getToken(VyakaranamParser.SAPAADA, 0); }
-		public TerminalNode PAADONA() { return getToken(VyakaranamParser.PAADONA, 0); }
-		public TerminalNode ARDHA() { return getToken(VyakaranamParser.ARDHA, 0); }
-		public List<TerminalNode> PAADA() { return getTokens(VyakaranamParser.PAADA); }
-		public TerminalNode PAADA(int i) {
-			return getToken(VyakaranamParser.PAADA, i);
-		}
-		public TerminalNode AMSHA() { return getToken(VyakaranamParser.AMSHA, 0); }
-		public PuranaPratyayaContext puranaPratyaya() {
-			return getRuleContext(PuranaPratyayaContext.class,0);
-		}
-		public SankhyaBhinnaPadaContext(ParserRuleContext parent, int invokingState) {
-			super(parent, invokingState);
-		}
-		@Override public int getRuleIndex() { return RULE_sankhyaBhinnaPada; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).enterSankhyaBhinnaPada(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).exitSankhyaBhinnaPada(this);
-		}
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof VyakaranamParserVisitor ) return ((VyakaranamParserVisitor<? extends T>)visitor).visitSankhyaBhinnaPada(this);
-			else return visitor.visitChildren(this);
-		}
-	}
-
-	public final SankhyaBhinnaPadaContext sankhyaBhinnaPada() throws RecognitionException {
-		SankhyaBhinnaPadaContext _localctx = new SankhyaBhinnaPadaContext(_ctx, getState());
-		enterRule(_localctx, 42, RULE_sankhyaBhinnaPada);
-		int _la;
-		try {
-			setState(318);
-			_errHandler.sync(this);
-			switch (_input.LA(1)) {
-			case SAARDHA:
-			case SAPAADA:
-			case PAADONA:
-				enterOuterAlt(_localctx, 1);
-				{
-				setState(293);
-				_la = _input.LA(1);
-				if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 252201579132747776L) != 0)) ) {
-				_errHandler.recoverInline(this);
-				}
-				else {
-					if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
-					_errHandler.reportMatch(this);
-					consume();
-				}
-				setState(294);
-				match(PLUS);
-				setState(295);
-				sankhyaStem();
-				setState(296);
-				match(PLUS);
-				setState(297);
-				supPratyaya();
-				}
-				break;
-			case ARDHA:
-			case PAADA:
-			case AMSHA:
-			case IDENTIFIER:
-				enterOuterAlt(_localctx, 2);
-				{
-				setState(302);
-				_errHandler.sync(this);
-				switch ( getInterpreter().adaptivePredict(_input,21,_ctx) ) {
-				case 1:
-					{
-					setState(299);
-					sankhyaStem();
-					setState(300);
-					match(PLUS);
-					}
-					break;
-				}
-				setState(313);
-				_errHandler.sync(this);
-				switch ( getInterpreter().adaptivePredict(_input,23,_ctx) ) {
-				case 1:
-					{
-					setState(304);
-					sankhyaStem();
-					setState(305);
-					match(PLUS);
-					setState(309);
-					_errHandler.sync(this);
-					_la = _input.LA(1);
-					if (((((_la - 69)) & ~0x3f) == 0 && ((1L << (_la - 69)) & 35184372088839L) != 0)) {
-						{
-						setState(306);
-						puranaPratyaya();
-						setState(307);
-						match(PLUS);
-						}
-					}
-
-					}
-					break;
-				case 2:
-					{
-					setState(311);
-					match(PAADA);
-					setState(312);
-					match(PLUS);
-					}
-					break;
-				}
-				setState(315);
-				_la = _input.LA(1);
-				if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 2017612633061982208L) != 0)) ) {
-				_errHandler.recoverInline(this);
-				}
-				else {
-					if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
-					_errHandler.reportMatch(this);
-					consume();
-				}
-				setState(316);
-				match(PLUS);
-				setState(317);
-				supPratyaya();
-				}
-				break;
-			default:
-				throw new NoViableAltException(this);
-			}
-		}
-		catch (RecognitionException re) {
-			_localctx.exception = re;
-			_errHandler.reportError(this, re);
-			_errHandler.recover(this, re);
-		}
-		finally {
-			exitRule();
-		}
-		return _localctx;
-	}
-
-	@SuppressWarnings("CheckReturnValue")
-	public static class SankhyaMathPadaContext extends ParserRuleContext {
-		public TerminalNode GUNITA() { return getToken(VyakaranamParser.GUNITA, 0); }
-		public List<TerminalNode> PLUS() { return getTokens(VyakaranamParser.PLUS); }
-		public TerminalNode PLUS(int i) {
-			return getToken(VyakaranamParser.PLUS, i);
-		}
-		public SupPratyayaContext supPratyaya() {
-			return getRuleContext(SupPratyayaContext.class,0);
-		}
-		public SankhyaStemContext sankhyaStem() {
-			return getRuleContext(SankhyaStemContext.class,0);
-		}
-		public TerminalNode BHAKTA() { return getToken(VyakaranamParser.BHAKTA, 0); }
-		public TerminalNode VARGA() { return getToken(VyakaranamParser.VARGA, 0); }
-		public TerminalNode KRITA() { return getToken(VyakaranamParser.KRITA, 0); }
-		public TerminalNode GHANA() { return getToken(VyakaranamParser.GHANA, 0); }
-		public TerminalNode MOOLA() { return getToken(VyakaranamParser.MOOLA, 0); }
-		public TerminalNode SAHITA() { return getToken(VyakaranamParser.SAHITA, 0); }
-		public TerminalNode RAHITA() { return getToken(VyakaranamParser.RAHITA, 0); }
-		public SankhyaMathPadaContext(ParserRuleContext parent, int invokingState) {
-			super(parent, invokingState);
-		}
-		@Override public int getRuleIndex() { return RULE_sankhyaMathPada; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).enterSankhyaMathPada(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).exitSankhyaMathPada(this);
-		}
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof VyakaranamParserVisitor ) return ((VyakaranamParserVisitor<? extends T>)visitor).visitSankhyaMathPada(this);
-			else return visitor.visitChildren(this);
-		}
-	}
-
-	public final SankhyaMathPadaContext sankhyaMathPada() throws RecognitionException {
-		SankhyaMathPadaContext _localctx = new SankhyaMathPadaContext(_ctx, getState());
-		enterRule(_localctx, 44, RULE_sankhyaMathPada);
-		int _la;
-		try {
-			setState(356);
-			_errHandler.sync(this);
-			switch ( getInterpreter().adaptivePredict(_input,29,_ctx) ) {
-			case 1:
-				enterOuterAlt(_localctx, 1);
-				{
-				setState(323);
-				_errHandler.sync(this);
-				_la = _input.LA(1);
-				if (_la==IDENTIFIER) {
-					{
-					setState(320);
-					sankhyaStem();
-					setState(321);
-					match(PLUS);
-					}
-				}
-
-				setState(325);
-				match(GUNITA);
-				setState(326);
-				match(PLUS);
-				setState(327);
-				supPratyaya();
-				}
-				break;
-			case 2:
-				enterOuterAlt(_localctx, 2);
-				{
-				setState(331);
-				_errHandler.sync(this);
-				_la = _input.LA(1);
-				if (_la==IDENTIFIER) {
-					{
-					setState(328);
-					sankhyaStem();
-					setState(329);
-					match(PLUS);
-					}
-				}
-
-				setState(333);
-				match(BHAKTA);
-				setState(334);
-				match(PLUS);
-				setState(335);
-				supPratyaya();
-				}
-				break;
-			case 3:
-				enterOuterAlt(_localctx, 3);
-				{
-				setState(336);
-				match(VARGA);
-				setState(339);
-				_errHandler.sync(this);
-				switch ( getInterpreter().adaptivePredict(_input,27,_ctx) ) {
-				case 1:
-					{
-					setState(337);
-					match(PLUS);
-					setState(338);
-					match(KRITA);
-					}
-					break;
-				}
-				setState(341);
-				match(PLUS);
-				setState(342);
-				supPratyaya();
-				}
-				break;
-			case 4:
-				enterOuterAlt(_localctx, 4);
-				{
-				setState(343);
-				match(GHANA);
-				setState(346);
-				_errHandler.sync(this);
-				switch ( getInterpreter().adaptivePredict(_input,28,_ctx) ) {
-				case 1:
-					{
-					setState(344);
-					match(PLUS);
-					setState(345);
-					match(KRITA);
-					}
-					break;
-				}
-				setState(348);
-				match(PLUS);
-				setState(349);
-				supPratyaya();
-				}
-				break;
-			case 5:
-				enterOuterAlt(_localctx, 5);
-				{
-				setState(350);
-				match(MOOLA);
-				setState(351);
-				match(PLUS);
-				setState(352);
-				supPratyaya();
-				}
-				break;
-			case 6:
-				enterOuterAlt(_localctx, 6);
-				{
-				setState(353);
-				_la = _input.LA(1);
-				if ( !(_la==SAHITA || _la==RAHITA) ) {
-				_errHandler.recoverInline(this);
-				}
-				else {
-					if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
-					_errHandler.reportMatch(this);
-					consume();
-				}
-				setState(354);
-				match(PLUS);
-				setState(355);
-				supPratyaya();
-				}
-				break;
 			}
 		}
 		catch (RecognitionException re) {
@@ -2266,11 +3215,11 @@ public class VyakaranamParser extends Parser {
 
 	public final SankhyaStemContext sankhyaStem() throws RecognitionException {
 		SankhyaStemContext _localctx = new SankhyaStemContext(_ctx, getState());
-		enterRule(_localctx, 46, RULE_sankhyaStem);
+		enterRule(_localctx, 74, RULE_sankhyaStem);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(358);
+			setState(486);
 			match(IDENTIFIER);
 			}
 		}
@@ -2315,15 +3264,15 @@ public class VyakaranamParser extends Parser {
 
 	public final SubantaPadaContext subantaPada() throws RecognitionException {
 		SubantaPadaContext _localctx = new SubantaPadaContext(_ctx, getState());
-		enterRule(_localctx, 48, RULE_subantaPada);
+		enterRule(_localctx, 76, RULE_subantaPada);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(360);
+			setState(488);
 			pratipadika();
-			setState(361);
+			setState(489);
 			match(PLUS);
-			setState(362);
+			setState(490);
 			supPratyaya();
 			}
 		}
@@ -2370,28 +3319,28 @@ public class VyakaranamParser extends Parser {
 
 	public final PratipadikaContext pratipadika() throws RecognitionException {
 		PratipadikaContext _localctx = new PratipadikaContext(_ctx, getState());
-		enterRule(_localctx, 50, RULE_pratipadika);
+		enterRule(_localctx, 78, RULE_pratipadika);
 		try {
 			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(364);
+			setState(492);
 			pratipadikaMula();
-			setState(368);
+			setState(496);
 			_errHandler.sync(this);
-			_alt = getInterpreter().adaptivePredict(_input,30,_ctx);
+			_alt = getInterpreter().adaptivePredict(_input,40,_ctx);
 			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
 				if ( _alt==1 ) {
 					{
 					{
-					setState(365);
+					setState(493);
 					pratipadikaVikara();
 					}
 					} 
 				}
-				setState(370);
+				setState(498);
 				_errHandler.sync(this);
-				_alt = getInterpreter().adaptivePredict(_input,30,_ctx);
+				_alt = getInterpreter().adaptivePredict(_input,40,_ctx);
 			}
 			}
 		}
@@ -2410,6 +3359,9 @@ public class VyakaranamParser extends Parser {
 	public static class PratipadikaMulaContext extends ParserRuleContext {
 		public MulaPratipadikaContext mulaPratipadika() {
 			return getRuleContext(MulaPratipadikaContext.class,0);
+		}
+		public SamjnaQualifierPratipadikaContext samjnaQualifierPratipadika() {
+			return getRuleContext(SamjnaQualifierPratipadikaContext.class,0);
 		}
 		public KridantaPratipadikaContext kridantaPratipadika() {
 			return getRuleContext(KridantaPratipadikaContext.class,0);
@@ -2446,47 +3398,54 @@ public class VyakaranamParser extends Parser {
 
 	public final PratipadikaMulaContext pratipadikaMula() throws RecognitionException {
 		PratipadikaMulaContext _localctx = new PratipadikaMulaContext(_ctx, getState());
-		enterRule(_localctx, 52, RULE_pratipadikaMula);
+		enterRule(_localctx, 80, RULE_pratipadikaMula);
 		try {
-			setState(379);
+			setState(508);
 			_errHandler.sync(this);
-			switch ( getInterpreter().adaptivePredict(_input,31,_ctx) ) {
+			switch ( getInterpreter().adaptivePredict(_input,41,_ctx) ) {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(371);
+				setState(499);
 				mulaPratipadika();
 				}
 				break;
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(372);
-				kridantaPratipadika();
+				setState(500);
+				samjnaQualifierPratipadika();
 				}
 				break;
 			case 3:
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(373);
-				unadyantaPratipadika();
+				setState(501);
+				kridantaPratipadika();
 				}
 				break;
 			case 4:
 				enterOuterAlt(_localctx, 4);
 				{
-				setState(374);
-				samasaPratipadika();
+				setState(502);
+				unadyantaPratipadika();
 				}
 				break;
 			case 5:
 				enterOuterAlt(_localctx, 5);
 				{
-				setState(375);
+				setState(503);
+				samasaPratipadika();
+				}
+				break;
+			case 6:
+				enterOuterAlt(_localctx, 6);
+				{
+				setState(504);
 				match(LPAREN);
-				setState(376);
+				setState(505);
 				pratipadika();
-				setState(377);
+				setState(506);
 				match(RPAREN);
 				}
 				break;
@@ -2533,26 +3492,26 @@ public class VyakaranamParser extends Parser {
 
 	public final PratipadikaVikaraContext pratipadikaVikara() throws RecognitionException {
 		PratipadikaVikaraContext _localctx = new PratipadikaVikaraContext(_ctx, getState());
-		enterRule(_localctx, 54, RULE_pratipadikaVikara);
+		enterRule(_localctx, 82, RULE_pratipadikaVikara);
 		try {
-			setState(385);
+			setState(514);
 			_errHandler.sync(this);
-			switch ( getInterpreter().adaptivePredict(_input,32,_ctx) ) {
+			switch ( getInterpreter().adaptivePredict(_input,42,_ctx) ) {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(381);
+				setState(510);
 				match(PLUS);
-				setState(382);
+				setState(511);
 				taddhitaPratyaya();
 				}
 				break;
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(383);
+				setState(512);
 				match(PLUS);
-				setState(384);
+				setState(513);
 				striPratyaya();
 				}
 				break;
@@ -2572,6 +3531,8 @@ public class VyakaranamParser extends Parser {
 	@SuppressWarnings("CheckReturnValue")
 	public static class MulaPratipadikaContext extends ParserRuleContext {
 		public TerminalNode IDENTIFIER() { return getToken(VyakaranamParser.IDENTIFIER, 0); }
+		public TerminalNode ADHIKA() { return getToken(VyakaranamParser.ADHIKA, 0); }
+		public TerminalNode UNA() { return getToken(VyakaranamParser.UNA, 0); }
 		public MulaPratipadikaContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -2593,12 +3554,91 @@ public class VyakaranamParser extends Parser {
 
 	public final MulaPratipadikaContext mulaPratipadika() throws RecognitionException {
 		MulaPratipadikaContext _localctx = new MulaPratipadikaContext(_ctx, getState());
-		enterRule(_localctx, 56, RULE_mulaPratipadika);
+		enterRule(_localctx, 84, RULE_mulaPratipadika);
+		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(387);
-			match(IDENTIFIER);
+			setState(516);
+			_la = _input.LA(1);
+			if ( !(_la==ADHIKA || _la==UNA || _la==IDENTIFIER) ) {
+			_errHandler.recoverInline(this);
+			}
+			else {
+				if ( _input.LA(1)==Token.EOF ) matchedEOF = true;
+				_errHandler.reportMatch(this);
+				consume();
+			}
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	@SuppressWarnings("CheckReturnValue")
+	public static class SamjnaQualifierPratipadikaContext extends ParserRuleContext {
+		public TerminalNode NI() { return getToken(VyakaranamParser.NI, 0); }
+		public TerminalNode PLUS() { return getToken(VyakaranamParser.PLUS, 0); }
+		public TerminalNode TYA() { return getToken(VyakaranamParser.TYA, 0); }
+		public TerminalNode ANTAR() { return getToken(VyakaranamParser.ANTAR, 0); }
+		public TerminalNode IDENTIFIER() { return getToken(VyakaranamParser.IDENTIFIER, 0); }
+		public SamjnaQualifierPratipadikaContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_samjnaQualifierPratipadika; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).enterSamjnaQualifierPratipadika(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof VyakaranamParserListener ) ((VyakaranamParserListener)listener).exitSamjnaQualifierPratipadika(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof VyakaranamParserVisitor ) return ((VyakaranamParserVisitor<? extends T>)visitor).visitSamjnaQualifierPratipadika(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+
+	public final SamjnaQualifierPratipadikaContext samjnaQualifierPratipadika() throws RecognitionException {
+		SamjnaQualifierPratipadikaContext _localctx = new SamjnaQualifierPratipadikaContext(_ctx, getState());
+		enterRule(_localctx, 86, RULE_samjnaQualifierPratipadika);
+		try {
+			setState(524);
+			_errHandler.sync(this);
+			switch (_input.LA(1)) {
+			case NI:
+				enterOuterAlt(_localctx, 1);
+				{
+				setState(518);
+				match(NI);
+				setState(519);
+				match(PLUS);
+				setState(520);
+				match(TYA);
+				}
+				break;
+			case ANTAR:
+				enterOuterAlt(_localctx, 2);
+				{
+				setState(521);
+				match(ANTAR);
+				setState(522);
+				match(PLUS);
+				setState(523);
+				match(IDENTIFIER);
+				}
+				break;
+			default:
+				throw new NoViableAltException(this);
 			}
 		}
 		catch (RecognitionException re) {
@@ -2645,25 +3685,25 @@ public class VyakaranamParser extends Parser {
 
 	public final KridantaPratipadikaContext kridantaPratipadika() throws RecognitionException {
 		KridantaPratipadikaContext _localctx = new KridantaPratipadikaContext(_ctx, getState());
-		enterRule(_localctx, 58, RULE_kridantaPratipadika);
+		enterRule(_localctx, 88, RULE_kridantaPratipadika);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(390);
+			setState(527);
 			_errHandler.sync(this);
-			switch ( getInterpreter().adaptivePredict(_input,33,_ctx) ) {
+			switch ( getInterpreter().adaptivePredict(_input,44,_ctx) ) {
 			case 1:
 				{
-				setState(389);
+				setState(526);
 				upasargaKrama();
 				}
 				break;
 			}
-			setState(392);
+			setState(529);
 			dhatuPrakriti();
-			setState(393);
+			setState(530);
 			match(PLUS);
-			setState(394);
+			setState(531);
 			krtPratyaya();
 			}
 		}
@@ -2711,25 +3751,25 @@ public class VyakaranamParser extends Parser {
 
 	public final UnadyantaPratipadikaContext unadyantaPratipadika() throws RecognitionException {
 		UnadyantaPratipadikaContext _localctx = new UnadyantaPratipadikaContext(_ctx, getState());
-		enterRule(_localctx, 60, RULE_unadyantaPratipadika);
+		enterRule(_localctx, 90, RULE_unadyantaPratipadika);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(397);
+			setState(534);
 			_errHandler.sync(this);
-			switch ( getInterpreter().adaptivePredict(_input,34,_ctx) ) {
+			switch ( getInterpreter().adaptivePredict(_input,45,_ctx) ) {
 			case 1:
 				{
-				setState(396);
+				setState(533);
 				upasargaKrama();
 				}
 				break;
 			}
-			setState(399);
+			setState(536);
 			dhatuPrakriti();
-			setState(400);
+			setState(537);
 			match(PLUS);
-			setState(401);
+			setState(538);
 			unadiPratyaya();
 			}
 		}
@@ -2771,17 +3811,17 @@ public class VyakaranamParser extends Parser {
 
 	public final UnadiPratyayaContext unadiPratyaya() throws RecognitionException {
 		UnadiPratyayaContext _localctx = new UnadiPratyayaContext(_ctx, getState());
-		enterRule(_localctx, 62, RULE_unadiPratyaya);
+		enterRule(_localctx, 92, RULE_unadiPratyaya);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(403);
+			setState(540);
 			match(UNADI);
-			setState(404);
+			setState(541);
 			match(LPAREN);
-			setState(405);
+			setState(542);
 			match(IDENTIFIER);
-			setState(406);
+			setState(543);
 			match(RPAREN);
 			}
 		}
@@ -2800,6 +3840,8 @@ public class VyakaranamParser extends Parser {
 	public static class TaddhitaPratyayaContext extends ParserRuleContext {
 		public TerminalNode MATUP() { return getToken(VyakaranamParser.MATUP, 0); }
 		public TerminalNode VATUP() { return getToken(VyakaranamParser.VATUP, 0); }
+		public TerminalNode MAT() { return getToken(VyakaranamParser.MAT, 0); }
+		public TerminalNode VAT() { return getToken(VyakaranamParser.VAT, 0); }
 		public TerminalNode INI() { return getToken(VyakaranamParser.INI, 0); }
 		public TerminalNode TVA() { return getToken(VyakaranamParser.TVA, 0); }
 		public TerminalNode TAL() { return getToken(VyakaranamParser.TAL, 0); }
@@ -2820,7 +3862,8 @@ public class VyakaranamParser extends Parser {
 		public TerminalNode INA() { return getToken(VyakaranamParser.INA, 0); }
 		public TerminalNode DAA() { return getToken(VyakaranamParser.DAA, 0); }
 		public TerminalNode DHAA() { return getToken(VyakaranamParser.DHAA, 0); }
-		public TerminalNode TRA() { return getToken(VyakaranamParser.TRA, 0); }
+		public TerminalNode TYAP() { return getToken(VyakaranamParser.TYAP, 0); }
+		public TerminalNode TYA() { return getToken(VyakaranamParser.TYA, 0); }
 		public TaddhitaPratyayaContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -2842,14 +3885,14 @@ public class VyakaranamParser extends Parser {
 
 	public final TaddhitaPratyayaContext taddhitaPratyaya() throws RecognitionException {
 		TaddhitaPratyayaContext _localctx = new TaddhitaPratyayaContext(_ctx, getState());
-		enterRule(_localctx, 64, RULE_taddhitaPratyaya);
+		enterRule(_localctx, 94, RULE_taddhitaPratyaya);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(408);
+			setState(545);
 			_la = _input.LA(1);
-			if ( !(((((_la - 178)) & ~0x3f) == 0 && ((1L << (_la - 178)) & 78811068260974593L) != 0)) ) {
+			if ( !(((((_la - 164)) & ~0x3f) == 0 && ((1L << (_la - 164)) & 918730474619174913L) != 0)) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -2901,14 +3944,14 @@ public class VyakaranamParser extends Parser {
 
 	public final StriPratyayaContext striPratyaya() throws RecognitionException {
 		StriPratyayaContext _localctx = new StriPratyayaContext(_ctx, getState());
-		enterRule(_localctx, 66, RULE_striPratyaya);
+		enterRule(_localctx, 96, RULE_striPratyaya);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(410);
+			setState(547);
 			_la = _input.LA(1);
-			if ( !(((((_la - 235)) & ~0x3f) == 0 && ((1L << (_la - 235)) & 255L) != 0)) ) {
+			if ( !(((((_la - 224)) & ~0x3f) == 0 && ((1L << (_la - 224)) & 255L) != 0)) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -2962,26 +4005,26 @@ public class VyakaranamParser extends Parser {
 
 	public final SamasaPratipadikaContext samasaPratipadika() throws RecognitionException {
 		SamasaPratipadikaContext _localctx = new SamasaPratipadikaContext(_ctx, getState());
-		enterRule(_localctx, 68, RULE_samasaPratipadika);
+		enterRule(_localctx, 98, RULE_samasaPratipadika);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(412);
+			setState(549);
 			samasaAnga();
-			setState(415); 
+			setState(552); 
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			do {
 				{
 				{
-				setState(413);
+				setState(550);
 				match(SAMASA_SEPARATOR);
-				setState(414);
+				setState(551);
 				samasaAnga();
 				}
 				}
-				setState(417); 
+				setState(554); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			} while ( _la==SAMASA_SEPARATOR );
@@ -3027,18 +4070,18 @@ public class VyakaranamParser extends Parser {
 
 	public final SamasaAngaContext samasaAnga() throws RecognitionException {
 		SamasaAngaContext _localctx = new SamasaAngaContext(_ctx, getState());
-		enterRule(_localctx, 70, RULE_samasaAnga);
+		enterRule(_localctx, 100, RULE_samasaAnga);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(419);
+			setState(556);
 			asamasikaPratipadika();
-			setState(421);
+			setState(558);
 			_errHandler.sync(this);
-			switch ( getInterpreter().adaptivePredict(_input,36,_ctx) ) {
+			switch ( getInterpreter().adaptivePredict(_input,47,_ctx) ) {
 			case 1:
 				{
-				setState(420);
+				setState(557);
 				samasaSupAvastha();
 				}
 				break;
@@ -3089,17 +4132,17 @@ public class VyakaranamParser extends Parser {
 
 	public final SamasaSupAvasthaContext samasaSupAvastha() throws RecognitionException {
 		SamasaSupAvasthaContext _localctx = new SamasaSupAvasthaContext(_ctx, getState());
-		enterRule(_localctx, 72, RULE_samasaSupAvastha);
+		enterRule(_localctx, 102, RULE_samasaSupAvastha);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(423);
+			setState(560);
 			match(PLUS);
-			setState(424);
+			setState(561);
 			supPratyaya();
-			setState(425);
+			setState(562);
 			match(PLUS);
-			setState(426);
+			setState(563);
 			supAvastha();
 			}
 		}
@@ -3141,14 +4184,14 @@ public class VyakaranamParser extends Parser {
 
 	public final SupAvasthaContext supAvastha() throws RecognitionException {
 		SupAvasthaContext _localctx = new SupAvasthaContext(_ctx, getState());
-		enterRule(_localctx, 74, RULE_supAvastha);
+		enterRule(_localctx, 104, RULE_supAvastha);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(428);
+			setState(565);
 			_la = _input.LA(1);
-			if ( !(((((_la - 243)) & ~0x3f) == 0 && ((1L << (_la - 243)) & 15L) != 0)) ) {
+			if ( !(((((_la - 232)) & ~0x3f) == 0 && ((1L << (_la - 232)) & 15L) != 0)) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -3201,28 +4244,28 @@ public class VyakaranamParser extends Parser {
 
 	public final AsamasikaPratipadikaContext asamasikaPratipadika() throws RecognitionException {
 		AsamasikaPratipadikaContext _localctx = new AsamasikaPratipadikaContext(_ctx, getState());
-		enterRule(_localctx, 76, RULE_asamasikaPratipadika);
+		enterRule(_localctx, 106, RULE_asamasikaPratipadika);
 		try {
 			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(430);
+			setState(567);
 			asamasikaPratipadikaMula();
-			setState(434);
+			setState(571);
 			_errHandler.sync(this);
-			_alt = getInterpreter().adaptivePredict(_input,37,_ctx);
+			_alt = getInterpreter().adaptivePredict(_input,48,_ctx);
 			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
 				if ( _alt==1 ) {
 					{
 					{
-					setState(431);
+					setState(568);
 					pratipadikaVikara();
 					}
 					} 
 				}
-				setState(436);
+				setState(573);
 				_errHandler.sync(this);
-				_alt = getInterpreter().adaptivePredict(_input,37,_ctx);
+				_alt = getInterpreter().adaptivePredict(_input,48,_ctx);
 			}
 			}
 		}
@@ -3241,6 +4284,9 @@ public class VyakaranamParser extends Parser {
 	public static class AsamasikaPratipadikaMulaContext extends ParserRuleContext {
 		public MulaPratipadikaContext mulaPratipadika() {
 			return getRuleContext(MulaPratipadikaContext.class,0);
+		}
+		public SamjnaQualifierPratipadikaContext samjnaQualifierPratipadika() {
+			return getRuleContext(SamjnaQualifierPratipadikaContext.class,0);
 		}
 		public KridantaPratipadikaContext kridantaPratipadika() {
 			return getRuleContext(KridantaPratipadikaContext.class,0);
@@ -3274,40 +4320,47 @@ public class VyakaranamParser extends Parser {
 
 	public final AsamasikaPratipadikaMulaContext asamasikaPratipadikaMula() throws RecognitionException {
 		AsamasikaPratipadikaMulaContext _localctx = new AsamasikaPratipadikaMulaContext(_ctx, getState());
-		enterRule(_localctx, 78, RULE_asamasikaPratipadikaMula);
+		enterRule(_localctx, 108, RULE_asamasikaPratipadikaMula);
 		try {
-			setState(444);
+			setState(582);
 			_errHandler.sync(this);
-			switch ( getInterpreter().adaptivePredict(_input,38,_ctx) ) {
+			switch ( getInterpreter().adaptivePredict(_input,49,_ctx) ) {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(437);
+				setState(574);
 				mulaPratipadika();
 				}
 				break;
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(438);
-				kridantaPratipadika();
+				setState(575);
+				samjnaQualifierPratipadika();
 				}
 				break;
 			case 3:
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(439);
-				unadyantaPratipadika();
+				setState(576);
+				kridantaPratipadika();
 				}
 				break;
 			case 4:
 				enterOuterAlt(_localctx, 4);
 				{
-				setState(440);
+				setState(577);
+				unadyantaPratipadika();
+				}
+				break;
+			case 5:
+				enterOuterAlt(_localctx, 5);
+				{
+				setState(578);
 				match(LPAREN);
-				setState(441);
+				setState(579);
 				samasaPratipadika();
-				setState(442);
+				setState(580);
 				match(RPAREN);
 				}
 				break;
@@ -3358,38 +4411,38 @@ public class VyakaranamParser extends Parser {
 
 	public final SamuccitaSubantaContext samuccitaSubanta() throws RecognitionException {
 		SamuccitaSubantaContext _localctx = new SamuccitaSubantaContext(_ctx, getState());
-		enterRule(_localctx, 80, RULE_samuccitaSubanta);
+		enterRule(_localctx, 110, RULE_samuccitaSubanta);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(446);
+			setState(584);
 			subantaPada();
-			setState(451); 
+			setState(589); 
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			do {
 				{
 				{
-				setState(448);
+				setState(586);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==COMMA) {
 					{
-					setState(447);
+					setState(585);
 					match(COMMA);
 					}
 				}
 
-				setState(450);
+				setState(588);
 				subantaPada();
 				}
 				}
-				setState(453); 
+				setState(591); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-			} while ( (((_la) & ~0x3f) == 0 && ((1L << _la) & 1048616L) != 0) || ((((_la - 73)) & ~0x3f) == 0 && ((1L << (_la - 73)) & 262143L) != 0) || ((((_la - 230)) & ~0x3f) == 0 && ((1L << (_la - 230)) & 33554449L) != 0) );
-			setState(455);
+			} while ( (((_la) & ~0x3f) == 0 && ((1L << _la) & -144009634958539736L) != 0) || ((((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 8191L) != 0) || ((((_la - 219)) & ~0x3f) == 0 && ((1L << (_la - 219)) & 33554449L) != 0) );
+			setState(593);
 			match(CHA);
 			}
 		}
@@ -3440,30 +4493,30 @@ public class VyakaranamParser extends Parser {
 
 	public final DhatuPrakritiContext dhatuPrakriti() throws RecognitionException {
 		DhatuPrakritiContext _localctx = new DhatuPrakritiContext(_ctx, getState());
-		enterRule(_localctx, 82, RULE_dhatuPrakriti);
+		enterRule(_localctx, 112, RULE_dhatuPrakriti);
 		try {
 			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(457);
+			setState(595);
 			dhatuMula();
-			setState(462);
+			setState(600);
 			_errHandler.sync(this);
-			_alt = getInterpreter().adaptivePredict(_input,41,_ctx);
+			_alt = getInterpreter().adaptivePredict(_input,52,_ctx);
 			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
 				if ( _alt==1 ) {
 					{
 					{
-					setState(458);
+					setState(596);
 					match(PLUS);
-					setState(459);
+					setState(597);
 					sanadiPratyaya();
 					}
 					} 
 				}
-				setState(464);
+				setState(602);
 				_errHandler.sync(this);
-				_alt = getInterpreter().adaptivePredict(_input,41,_ctx);
+				_alt = getInterpreter().adaptivePredict(_input,52,_ctx);
 			}
 			}
 		}
@@ -3484,6 +4537,7 @@ public class VyakaranamParser extends Parser {
 		public TerminalNode DAA() { return getToken(VyakaranamParser.DAA, 0); }
 		public TerminalNode DHAA() { return getToken(VyakaranamParser.DHAA, 0); }
 		public TerminalNode SU() { return getToken(VyakaranamParser.SU, 0); }
+		public TerminalNode VAA() { return getToken(VyakaranamParser.VAA, 0); }
 		public DhatuMulaContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -3505,14 +4559,14 @@ public class VyakaranamParser extends Parser {
 
 	public final DhatuMulaContext dhatuMula() throws RecognitionException {
 		DhatuMulaContext _localctx = new DhatuMulaContext(_ctx, getState());
-		enterRule(_localctx, 84, RULE_dhatuMula);
+		enterRule(_localctx, 114, RULE_dhatuMula);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(465);
+			setState(603);
 			_la = _input.LA(1);
-			if ( !(_la==SU || ((((_la - 230)) & ~0x3f) == 0 && ((1L << (_la - 230)) & 33554449L) != 0)) ) {
+			if ( !(_la==VAA || _la==SU || ((((_la - 219)) & ~0x3f) == 0 && ((1L << (_la - 219)) & 33554449L) != 0)) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -3564,14 +4618,14 @@ public class VyakaranamParser extends Parser {
 
 	public final SanadiPratyayaContext sanadiPratyaya() throws RecognitionException {
 		SanadiPratyayaContext _localctx = new SanadiPratyayaContext(_ctx, getState());
-		enterRule(_localctx, 86, RULE_sanadiPratyaya);
+		enterRule(_localctx, 116, RULE_sanadiPratyaya);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(467);
+			setState(605);
 			_la = _input.LA(1);
-			if ( !(((((_la - 91)) & ~0x3f) == 0 && ((1L << (_la - 91)) & 255L) != 0)) ) {
+			if ( !(((((_la - 77)) & ~0x3f) == 0 && ((1L << (_la - 77)) & 255L) != 0)) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -3625,32 +4679,32 @@ public class VyakaranamParser extends Parser {
 
 	public final UpasargaKramaContext upasargaKrama() throws RecognitionException {
 		UpasargaKramaContext _localctx = new UpasargaKramaContext(_ctx, getState());
-		enterRule(_localctx, 88, RULE_upasargaKrama);
+		enterRule(_localctx, 118, RULE_upasargaKrama);
 		try {
 			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(469);
+			setState(607);
 			upasarga();
-			setState(470);
+			setState(608);
 			match(PLUS);
-			setState(476);
+			setState(614);
 			_errHandler.sync(this);
-			_alt = getInterpreter().adaptivePredict(_input,42,_ctx);
+			_alt = getInterpreter().adaptivePredict(_input,53,_ctx);
 			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
 				if ( _alt==1 ) {
 					{
 					{
-					setState(471);
+					setState(609);
 					upasarga();
-					setState(472);
+					setState(610);
 					match(PLUS);
 					}
 					} 
 				}
-				setState(478);
+				setState(616);
 				_errHandler.sync(this);
-				_alt = getInterpreter().adaptivePredict(_input,42,_ctx);
+				_alt = getInterpreter().adaptivePredict(_input,53,_ctx);
 			}
 			}
 		}
@@ -3669,6 +4723,7 @@ public class VyakaranamParser extends Parser {
 	public static class UpasargaContext extends ParserRuleContext {
 		public TerminalNode PRA() { return getToken(VyakaranamParser.PRA, 0); }
 		public TerminalNode PARAA() { return getToken(VyakaranamParser.PARAA, 0); }
+		public TerminalNode APA() { return getToken(VyakaranamParser.APA, 0); }
 		public TerminalNode SAM() { return getToken(VyakaranamParser.SAM, 0); }
 		public TerminalNode ANUU() { return getToken(VyakaranamParser.ANUU, 0); }
 		public TerminalNode AVA() { return getToken(VyakaranamParser.AVA, 0); }
@@ -3686,6 +4741,7 @@ public class VyakaranamParser extends Parser {
 		public TerminalNode PRATI() { return getToken(VyakaranamParser.PRATI, 0); }
 		public TerminalNode PARI() { return getToken(VyakaranamParser.PARI, 0); }
 		public TerminalNode UPA() { return getToken(VyakaranamParser.UPA, 0); }
+		public TerminalNode ANTAR() { return getToken(VyakaranamParser.ANTAR, 0); }
 		public UpasargaContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -3707,14 +4763,14 @@ public class VyakaranamParser extends Parser {
 
 	public final UpasargaContext upasarga() throws RecognitionException {
 		UpasargaContext _localctx = new UpasargaContext(_ctx, getState());
-		enterRule(_localctx, 90, RULE_upasarga);
+		enterRule(_localctx, 120, RULE_upasarga);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(479);
+			setState(617);
 			_la = _input.LA(1);
-			if ( !(_la==API || ((((_la - 73)) & ~0x3f) == 0 && ((1L << (_la - 73)) & 262143L) != 0)) ) {
+			if ( !(((((_la - 20)) & ~0x3f) == 0 && ((1L << (_la - 20)) & 144115050636902401L) != 0)) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -3753,6 +4809,9 @@ public class VyakaranamParser extends Parser {
 		public UpasargaKramaContext upasargaKrama() {
 			return getRuleContext(UpasargaKramaContext.class,0);
 		}
+		public VikaranaContext vikarana() {
+			return getRuleContext(VikaranaContext.class,0);
+		}
 		public TingantaPadaContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -3774,29 +4833,41 @@ public class VyakaranamParser extends Parser {
 
 	public final TingantaPadaContext tingantaPada() throws RecognitionException {
 		TingantaPadaContext _localctx = new TingantaPadaContext(_ctx, getState());
-		enterRule(_localctx, 92, RULE_tingantaPada);
+		enterRule(_localctx, 122, RULE_tingantaPada);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(482);
+			setState(620);
 			_errHandler.sync(this);
-			switch ( getInterpreter().adaptivePredict(_input,43,_ctx) ) {
+			switch ( getInterpreter().adaptivePredict(_input,54,_ctx) ) {
 			case 1:
 				{
-				setState(481);
+				setState(619);
 				upasargaKrama();
 				}
 				break;
 			}
-			setState(484);
+			setState(622);
 			dhatuPrakriti();
-			setState(485);
+			setState(625);
+			_errHandler.sync(this);
+			switch ( getInterpreter().adaptivePredict(_input,55,_ctx) ) {
+			case 1:
+				{
+				setState(623);
+				match(PLUS);
+				setState(624);
+				vikarana();
+				}
+				break;
+			}
+			setState(627);
 			match(PLUS);
-			setState(486);
+			setState(628);
 			lakara();
-			setState(487);
+			setState(629);
 			match(PLUS);
-			setState(488);
+			setState(630);
 			tingPratyaya();
 			}
 		}
@@ -3848,21 +4919,21 @@ public class VyakaranamParser extends Parser {
 
 	public final VyutpattiTingantaContext vyutpattiTinganta() throws RecognitionException {
 		VyutpattiTingantaContext _localctx = new VyutpattiTingantaContext(_ctx, getState());
-		enterRule(_localctx, 94, RULE_vyutpattiTinganta);
+		enterRule(_localctx, 124, RULE_vyutpattiTinganta);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(490);
+			setState(632);
 			vyutpattiAnga();
-			setState(491);
+			setState(633);
 			match(PLUS);
-			setState(492);
+			setState(634);
 			lakara();
-			setState(493);
+			setState(635);
 			match(PLUS);
-			setState(494);
+			setState(636);
 			tingPratyaya();
-			setState(495);
+			setState(637);
 			match(EOF);
 			}
 		}
@@ -3910,30 +4981,30 @@ public class VyakaranamParser extends Parser {
 
 	public final VyutpattiAngaContext vyutpattiAnga() throws RecognitionException {
 		VyutpattiAngaContext _localctx = new VyutpattiAngaContext(_ctx, getState());
-		enterRule(_localctx, 96, RULE_vyutpattiAnga);
+		enterRule(_localctx, 126, RULE_vyutpattiAnga);
 		try {
 			int _alt;
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(497);
+			setState(639);
 			vyutpattiAvayava();
-			setState(502);
+			setState(644);
 			_errHandler.sync(this);
-			_alt = getInterpreter().adaptivePredict(_input,44,_ctx);
+			_alt = getInterpreter().adaptivePredict(_input,56,_ctx);
 			while ( _alt!=2 && _alt!=org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER ) {
 				if ( _alt==1 ) {
 					{
 					{
-					setState(498);
+					setState(640);
 					match(PLUS);
-					setState(499);
+					setState(641);
 					vyutpattiAvayava();
 					}
 					} 
 				}
-				setState(504);
+				setState(646);
 				_errHandler.sync(this);
-				_alt = getInterpreter().adaptivePredict(_input,44,_ctx);
+				_alt = getInterpreter().adaptivePredict(_input,56,_ctx);
 			}
 			}
 		}
@@ -3989,50 +5060,50 @@ public class VyakaranamParser extends Parser {
 
 	public final VyutpattiAvayavaContext vyutpattiAvayava() throws RecognitionException {
 		VyutpattiAvayavaContext _localctx = new VyutpattiAvayavaContext(_ctx, getState());
-		enterRule(_localctx, 98, RULE_vyutpattiAvayava);
+		enterRule(_localctx, 128, RULE_vyutpattiAvayava);
 		try {
-			setState(511);
+			setState(653);
 			_errHandler.sync(this);
-			switch ( getInterpreter().adaptivePredict(_input,45,_ctx) ) {
+			switch ( getInterpreter().adaptivePredict(_input,57,_ctx) ) {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(505);
+				setState(647);
 				upasarga();
 				}
 				break;
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(506);
+				setState(648);
 				dhatuPrakriti();
 				}
 				break;
 			case 3:
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(507);
+				setState(649);
 				agama();
 				}
 				break;
 			case 4:
 				enterOuterAlt(_localctx, 4);
 				{
-				setState(508);
+				setState(650);
 				vikarana();
 				}
 				break;
 			case 5:
 				enterOuterAlt(_localctx, 5);
 				{
-				setState(509);
+				setState(651);
 				abhyasa();
 				}
 				break;
 			case 6:
 				enterOuterAlt(_localctx, 6);
 				{
-				setState(510);
+				setState(652);
 				adesham();
 				}
 				break;
@@ -4076,17 +5147,17 @@ public class VyakaranamParser extends Parser {
 
 	public final AbhyasaContext abhyasa() throws RecognitionException {
 		AbhyasaContext _localctx = new AbhyasaContext(_ctx, getState());
-		enterRule(_localctx, 100, RULE_abhyasa);
+		enterRule(_localctx, 130, RULE_abhyasa);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(513);
+			setState(655);
 			match(ABHYASA);
-			setState(514);
+			setState(656);
 			match(LPAREN);
-			setState(515);
+			setState(657);
 			match(IDENTIFIER);
-			setState(516);
+			setState(658);
 			match(RPAREN);
 			}
 		}
@@ -4128,17 +5199,17 @@ public class VyakaranamParser extends Parser {
 
 	public final AdeshamContext adesham() throws RecognitionException {
 		AdeshamContext _localctx = new AdeshamContext(_ctx, getState());
-		enterRule(_localctx, 102, RULE_adesham);
+		enterRule(_localctx, 132, RULE_adesham);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(518);
+			setState(660);
 			match(ADESHA);
-			setState(519);
+			setState(661);
 			match(LPAREN);
-			setState(520);
+			setState(662);
 			match(IDENTIFIER);
-			setState(521);
+			setState(663);
 			match(RPAREN);
 			}
 		}
@@ -4186,14 +5257,14 @@ public class VyakaranamParser extends Parser {
 
 	public final LakaraContext lakara() throws RecognitionException {
 		LakaraContext _localctx = new LakaraContext(_ctx, getState());
-		enterRule(_localctx, 104, RULE_lakara);
+		enterRule(_localctx, 134, RULE_lakara);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(523);
+			setState(665);
 			_la = _input.LA(1);
-			if ( !(((((_la - 99)) & ~0x3f) == 0 && ((1L << (_la - 99)) & 1023L) != 0)) ) {
+			if ( !(((((_la - 85)) & ~0x3f) == 0 && ((1L << (_la - 85)) & 1023L) != 0)) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -4255,14 +5326,14 @@ public class VyakaranamParser extends Parser {
 
 	public final TingPratyayaContext tingPratyaya() throws RecognitionException {
 		TingPratyayaContext _localctx = new TingPratyayaContext(_ctx, getState());
-		enterRule(_localctx, 106, RULE_tingPratyaya);
+		enterRule(_localctx, 136, RULE_tingPratyaya);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(525);
+			setState(667);
 			_la = _input.LA(1);
-			if ( !(((((_la - 109)) & ~0x3f) == 0 && ((1L << (_la - 109)) & 262143L) != 0)) ) {
+			if ( !(((((_la - 95)) & ~0x3f) == 0 && ((1L << (_la - 95)) & 262143L) != 0)) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -4323,14 +5394,14 @@ public class VyakaranamParser extends Parser {
 
 	public final SupPratyayaContext supPratyaya() throws RecognitionException {
 		SupPratyayaContext _localctx = new SupPratyayaContext(_ctx, getState());
-		enterRule(_localctx, 108, RULE_supPratyaya);
+		enterRule(_localctx, 138, RULE_supPratyaya);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(527);
+			setState(669);
 			_la = _input.LA(1);
-			if ( !(((((_la - 127)) & ~0x3f) == 0 && ((1L << (_la - 127)) & 131071L) != 0)) ) {
+			if ( !(((((_la - 113)) & ~0x3f) == 0 && ((1L << (_la - 113)) & 131071L) != 0)) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -4390,14 +5461,14 @@ public class VyakaranamParser extends Parser {
 
 	public final VikaranaContext vikarana() throws RecognitionException {
 		VikaranaContext _localctx = new VikaranaContext(_ctx, getState());
-		enterRule(_localctx, 110, RULE_vikarana);
+		enterRule(_localctx, 140, RULE_vikarana);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(529);
+			setState(671);
 			_la = _input.LA(1);
-			if ( !(((((_la - 144)) & ~0x3f) == 0 && ((1L << (_la - 144)) & 65535L) != 0)) ) {
+			if ( !(((((_la - 130)) & ~0x3f) == 0 && ((1L << (_la - 130)) & 65535L) != 0)) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -4456,14 +5527,14 @@ public class VyakaranamParser extends Parser {
 
 	public final AgamaContext agama() throws RecognitionException {
 		AgamaContext _localctx = new AgamaContext(_ctx, getState());
-		enterRule(_localctx, 112, RULE_agama);
+		enterRule(_localctx, 142, RULE_agama);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(531);
+			setState(673);
 			_la = _input.LA(1);
-			if ( !(((((_la - 124)) & ~0x3f) == 0 && ((1L << (_la - 124)) & 1125831187365889L) != 0)) ) {
+			if ( !(((((_la - 110)) & ~0x3f) == 0 && ((1L << (_la - 110)) & 1125831187365889L) != 0)) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -4535,14 +5606,14 @@ public class VyakaranamParser extends Parser {
 
 	public final KrtPratyayaContext krtPratyaya() throws RecognitionException {
 		KrtPratyayaContext _localctx = new KrtPratyayaContext(_ctx, getState());
-		enterRule(_localctx, 114, RULE_krtPratyaya);
+		enterRule(_localctx, 144, RULE_krtPratyaya);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(533);
+			setState(675);
 			_la = _input.LA(1);
-			if ( !(((((_la - 174)) & ~0x3f) == 0 && ((1L << (_la - 174)) & 268435455L) != 0)) ) {
+			if ( !(((((_la - 160)) & ~0x3f) == 0 && ((1L << (_la - 160)) & 268435455L) != 0)) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -4592,14 +5663,14 @@ public class VyakaranamParser extends Parser {
 
 	public final AvyayaKrtPratyayaContext avyayaKrtPratyaya() throws RecognitionException {
 		AvyayaKrtPratyayaContext _localctx = new AvyayaKrtPratyayaContext(_ctx, getState());
-		enterRule(_localctx, 116, RULE_avyayaKrtPratyaya);
+		enterRule(_localctx, 146, RULE_avyayaKrtPratyaya);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(535);
+			setState(677);
 			_la = _input.LA(1);
-			if ( !(((((_la - 202)) & ~0x3f) == 0 && ((1L << (_la - 202)) & 63L) != 0)) ) {
+			if ( !(((((_la - 188)) & ~0x3f) == 0 && ((1L << (_la - 188)) & 63L) != 0)) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -4653,25 +5724,25 @@ public class VyakaranamParser extends Parser {
 
 	public final AvyayaKridantaContext avyayaKridanta() throws RecognitionException {
 		AvyayaKridantaContext _localctx = new AvyayaKridantaContext(_ctx, getState());
-		enterRule(_localctx, 118, RULE_avyayaKridanta);
+		enterRule(_localctx, 148, RULE_avyayaKridanta);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(538);
+			setState(680);
 			_errHandler.sync(this);
-			switch ( getInterpreter().adaptivePredict(_input,46,_ctx) ) {
+			switch ( getInterpreter().adaptivePredict(_input,58,_ctx) ) {
 			case 1:
 				{
-				setState(537);
+				setState(679);
 				upasargaKrama();
 				}
 				break;
 			}
-			setState(540);
+			setState(682);
 			dhatuPrakriti();
-			setState(541);
+			setState(683);
 			match(PLUS);
-			setState(542);
+			setState(684);
 			avyayaKrtPratyaya();
 			}
 		}
@@ -4724,43 +5795,43 @@ public class VyakaranamParser extends Parser {
 
 	public final AvyayaPadaContext avyayaPada() throws RecognitionException {
 		AvyayaPadaContext _localctx = new AvyayaPadaContext(_ctx, getState());
-		enterRule(_localctx, 120, RULE_avyayaPada);
+		enterRule(_localctx, 150, RULE_avyayaPada);
 		try {
-			setState(549);
+			setState(691);
 			_errHandler.sync(this);
-			switch ( getInterpreter().adaptivePredict(_input,47,_ctx) ) {
+			switch ( getInterpreter().adaptivePredict(_input,59,_ctx) ) {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(544);
+				setState(686);
 				mulaAvyaya();
 				}
 				break;
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(545);
+				setState(687);
 				avyayaKridanta();
 				}
 				break;
 			case 3:
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(546);
+				setState(688);
 				avyayaTaddhitanta();
 				}
 				break;
 			case 4:
 				enterOuterAlt(_localctx, 4);
 				{
-				setState(547);
+				setState(689);
 				avyayibhavaPada();
 				}
 				break;
 			case 5:
 				enterOuterAlt(_localctx, 5);
 				{
-				setState(548);
+				setState(690);
 				sankhyaAvyaya();
 				}
 				break;
@@ -4810,77 +5881,77 @@ public class VyakaranamParser extends Parser {
 
 	public final SankhyaAvyayaContext sankhyaAvyaya() throws RecognitionException {
 		SankhyaAvyayaContext _localctx = new SankhyaAvyayaContext(_ctx, getState());
-		enterRule(_localctx, 122, RULE_sankhyaAvyaya);
+		enterRule(_localctx, 152, RULE_sankhyaAvyaya);
 		try {
-			setState(563);
+			setState(705);
 			_errHandler.sync(this);
-			switch ( getInterpreter().adaptivePredict(_input,48,_ctx) ) {
+			switch ( getInterpreter().adaptivePredict(_input,60,_ctx) ) {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(551);
+				setState(693);
 				match(ADHIKA);
 				}
 				break;
 			case 2:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(552);
+				setState(694);
 				match(UNA);
 				}
 				break;
 			case 3:
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(553);
+				setState(695);
 				match(SAKRIT);
 				}
 				break;
 			case 4:
 				enterOuterAlt(_localctx, 4);
 				{
-				setState(554);
+				setState(696);
 				match(DVIH);
 				}
 				break;
 			case 5:
 				enterOuterAlt(_localctx, 5);
 				{
-				setState(555);
+				setState(697);
 				match(TRIH);
 				}
 				break;
 			case 6:
 				enterOuterAlt(_localctx, 6);
 				{
-				setState(556);
+				setState(698);
 				match(CHATUH);
 				}
 				break;
 			case 7:
 				enterOuterAlt(_localctx, 7);
 				{
-				setState(557);
+				setState(699);
 				match(IDENTIFIER);
-				setState(558);
+				setState(700);
 				match(KRITVAS);
 				}
 				break;
 			case 8:
 				enterOuterAlt(_localctx, 8);
 				{
-				setState(559);
+				setState(701);
 				match(IDENTIFIER);
-				setState(560);
+				setState(702);
 				match(DHAA);
 				}
 				break;
 			case 9:
 				enterOuterAlt(_localctx, 9);
 				{
-				setState(561);
+				setState(703);
 				match(IDENTIFIER);
-				setState(562);
+				setState(704);
 				match(SHAH);
 				}
 				break;
@@ -4900,9 +5971,12 @@ public class VyakaranamParser extends Parser {
 	@SuppressWarnings("CheckReturnValue")
 	public static class MulaAvyayaContext extends ParserRuleContext {
 		public TerminalNode MAA() { return getToken(VyakaranamParser.MAA, 0); }
+		public TerminalNode YAVAT() { return getToken(VyakaranamParser.YAVAT, 0); }
+		public TerminalNode TAVAT() { return getToken(VyakaranamParser.TAVAT, 0); }
 		public TerminalNode NA() { return getToken(VyakaranamParser.NA, 0); }
 		public TerminalNode ITI() { return getToken(VyakaranamParser.ITI, 0); }
 		public TerminalNode API() { return getToken(VyakaranamParser.API, 0); }
+		public TerminalNode NI() { return getToken(VyakaranamParser.NI, 0); }
 		public TerminalNode EVA() { return getToken(VyakaranamParser.EVA, 0); }
 		public TerminalNode CHA() { return getToken(VyakaranamParser.CHA, 0); }
 		public TerminalNode VAA() { return getToken(VyakaranamParser.VAA, 0); }
@@ -4957,14 +6031,14 @@ public class VyakaranamParser extends Parser {
 
 	public final MulaAvyayaContext mulaAvyaya() throws RecognitionException {
 		MulaAvyayaContext _localctx = new MulaAvyayaContext(_ctx, getState());
-		enterRule(_localctx, 124, RULE_mulaAvyaya);
+		enterRule(_localctx, 154, RULE_mulaAvyaya);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(565);
+			setState(707);
 			_la = _input.LA(1);
-			if ( !(((((_la - 9)) & ~0x3f) == 0 && ((1L << (_la - 9)) & -9223371968135299073L) != 0)) ) {
+			if ( !(((((_la - 9)) & ~0x3f) == 0 && ((1L << (_la - 9)) & 288371182359543807L) != 0) || _la==YAVAT || _la==TAVAT) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -5015,15 +6089,15 @@ public class VyakaranamParser extends Parser {
 
 	public final AvyayaTaddhitantaContext avyayaTaddhitanta() throws RecognitionException {
 		AvyayaTaddhitantaContext _localctx = new AvyayaTaddhitantaContext(_ctx, getState());
-		enterRule(_localctx, 126, RULE_avyayaTaddhitanta);
+		enterRule(_localctx, 156, RULE_avyayaTaddhitanta);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(567);
+			setState(709);
 			mulaPratipadika();
-			setState(568);
+			setState(710);
 			match(PLUS);
-			setState(569);
+			setState(711);
 			avyayaTaddhitaPratyaya();
 			}
 		}
@@ -5069,14 +6143,14 @@ public class VyakaranamParser extends Parser {
 
 	public final AvyayaTaddhitaPratyayaContext avyayaTaddhitaPratyaya() throws RecognitionException {
 		AvyayaTaddhitaPratyayaContext _localctx = new AvyayaTaddhitaPratyayaContext(_ctx, getState());
-		enterRule(_localctx, 128, RULE_avyayaTaddhitaPratyaya);
+		enterRule(_localctx, 158, RULE_avyayaTaddhitaPratyaya);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(571);
+			setState(713);
 			_la = _input.LA(1);
-			if ( !(((((_la - 198)) & ~0x3f) == 0 && ((1L << (_la - 198)) & 135293566977L) != 0)) ) {
+			if ( !(((((_la - 184)) & ~0x3f) == 0 && ((1L << (_la - 184)) & 1082335952897L) != 0)) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -5123,11 +6197,11 @@ public class VyakaranamParser extends Parser {
 
 	public final AvyayibhavaPadaContext avyayibhavaPada() throws RecognitionException {
 		AvyayibhavaPadaContext _localctx = new AvyayibhavaPadaContext(_ctx, getState());
-		enterRule(_localctx, 130, RULE_avyayibhavaPada);
+		enterRule(_localctx, 160, RULE_avyayibhavaPada);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(573);
+			setState(715);
 			samasaPratipadika();
 			}
 		}
@@ -5143,7 +6217,7 @@ public class VyakaranamParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\u0004\u0001\u0100\u0240\u0002\u0000\u0007\u0000\u0002\u0001\u0007\u0001"+
+		"\u0004\u0001\u00f6\u02ce\u0002\u0000\u0007\u0000\u0002\u0001\u0007\u0001"+
 		"\u0002\u0002\u0007\u0002\u0002\u0003\u0007\u0003\u0002\u0004\u0007\u0004"+
 		"\u0002\u0005\u0007\u0005\u0002\u0006\u0007\u0006\u0002\u0007\u0007\u0007"+
 		"\u0002\b\u0007\b\u0002\t\u0007\t\u0002\n\u0007\n\u0002\u000b\u0007\u000b"+
@@ -5160,359 +6234,443 @@ public class VyakaranamParser extends Parser {
 		"1\u00022\u00072\u00023\u00073\u00024\u00074\u00025\u00075\u00026\u0007"+
 		"6\u00027\u00077\u00028\u00078\u00029\u00079\u0002:\u0007:\u0002;\u0007"+
 		";\u0002<\u0007<\u0002=\u0007=\u0002>\u0007>\u0002?\u0007?\u0002@\u0007"+
-		"@\u0002A\u0007A\u0001\u0000\u0001\u0000\u0001\u0000\u0003\u0000\u0088"+
-		"\b\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0005\u0000\u008e"+
-		"\b\u0000\n\u0000\f\u0000\u0091\t\u0000\u0001\u0000\u0003\u0000\u0094\b"+
-		"\u0000\u0001\u0000\u0001\u0000\u0003\u0000\u0098\b\u0000\u0001\u0001\u0001"+
-		"\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0003\u0001\u00a0"+
-		"\b\u0001\u0001\u0001\u0003\u0001\u00a3\b\u0001\u0001\u0001\u0001\u0001"+
-		"\u0001\u0002\u0001\u0002\u0001\u0002\u0001\u0002\u0001\u0002\u0003\u0002"+
-		"\u00ac\b\u0002\u0001\u0002\u0001\u0002\u0001\u0003\u0001\u0003\u0003\u0003"+
-		"\u00b2\b\u0003\u0001\u0004\u0005\u0004\u00b5\b\u0004\n\u0004\f\u0004\u00b8"+
-		"\t\u0004\u0001\u0004\u0001\u0004\u0005\u0004\u00bc\b\u0004\n\u0004\f\u0004"+
-		"\u00bf\t\u0004\u0001\u0005\u0001\u0005\u0001\u0006\u0001\u0006\u0001\u0007"+
-		"\u0004\u0007\u00c6\b\u0007\u000b\u0007\f\u0007\u00c7\u0001\b\u0001\b\u0003"+
-		"\b\u00cc\b\b\u0001\t\u0001\t\u0001\t\u0001\t\u0001\t\u0001\t\u0001\t\u0001"+
-		"\t\u0001\t\u0001\t\u0003\t\u00d8\b\t\u0001\n\u0001\n\u0001\u000b\u0001"+
-		"\u000b\u0001\u000b\u0003\u000b\u00df\b\u000b\u0001\f\u0001\f\u0001\r\u0001"+
-		"\r\u0001\r\u0001\r\u0003\r\u00e7\b\r\u0001\u000e\u0001\u000e\u0001\u000e"+
-		"\u0004\u000e\u00ec\b\u000e\u000b\u000e\f\u000e\u00ed\u0001\u000e\u0001"+
-		"\u000e\u0001\u000f\u0001\u000f\u0001\u000f\u0004\u000f\u00f5\b\u000f\u000b"+
-		"\u000f\f\u000f\u00f6\u0001\u000f\u0001\u000f\u0001\u000f\u0001\u000f\u0001"+
-		"\u0010\u0001\u0010\u0001\u0011\u0001\u0011\u0001\u0011\u0004\u0011\u0102"+
-		"\b\u0011\u000b\u0011\f\u0011\u0103\u0001\u0011\u0001\u0011\u0001\u0011"+
-		"\u0001\u0011\u0001\u0011\u0004\u0011\u010b\b\u0011\u000b\u0011\f\u0011"+
-		"\u010c\u0001\u0011\u0001\u0011\u0003\u0011\u0111\b\u0011\u0001\u0012\u0001"+
-		"\u0012\u0001\u0012\u0001\u0012\u0001\u0012\u0001\u0013\u0001\u0013\u0001"+
-		"\u0013\u0001\u0013\u0001\u0013\u0001\u0014\u0001\u0014\u0001\u0014\u0004"+
-		"\u0014\u0120\b\u0014\u000b\u0014\f\u0014\u0121\u0001\u0014\u0001\u0014"+
-		"\u0001\u0015\u0001\u0015\u0001\u0015\u0001\u0015\u0001\u0015\u0001\u0015"+
-		"\u0001\u0015\u0001\u0015\u0001\u0015\u0003\u0015\u012f\b\u0015\u0001\u0015"+
-		"\u0001\u0015\u0001\u0015\u0001\u0015\u0001\u0015\u0003\u0015\u0136\b\u0015"+
-		"\u0001\u0015\u0001\u0015\u0003\u0015\u013a\b\u0015\u0001\u0015\u0001\u0015"+
-		"\u0001\u0015\u0003\u0015\u013f\b\u0015\u0001\u0016\u0001\u0016\u0001\u0016"+
-		"\u0003\u0016\u0144\b\u0016\u0001\u0016\u0001\u0016\u0001\u0016\u0001\u0016"+
-		"\u0001\u0016\u0001\u0016\u0003\u0016\u014c\b\u0016\u0001\u0016\u0001\u0016"+
-		"\u0001\u0016\u0001\u0016\u0001\u0016\u0001\u0016\u0003\u0016\u0154\b\u0016"+
-		"\u0001\u0016\u0001\u0016\u0001\u0016\u0001\u0016\u0001\u0016\u0003\u0016"+
-		"\u015b\b\u0016\u0001\u0016\u0001\u0016\u0001\u0016\u0001\u0016\u0001\u0016"+
-		"\u0001\u0016\u0001\u0016\u0001\u0016\u0003\u0016\u0165\b\u0016\u0001\u0017"+
-		"\u0001\u0017\u0001\u0018\u0001\u0018\u0001\u0018\u0001\u0018\u0001\u0019"+
-		"\u0001\u0019\u0005\u0019\u016f\b\u0019\n\u0019\f\u0019\u0172\t\u0019\u0001"+
-		"\u001a\u0001\u001a\u0001\u001a\u0001\u001a\u0001\u001a\u0001\u001a\u0001"+
-		"\u001a\u0001\u001a\u0003\u001a\u017c\b\u001a\u0001\u001b\u0001\u001b\u0001"+
-		"\u001b\u0001\u001b\u0003\u001b\u0182\b\u001b\u0001\u001c\u0001\u001c\u0001"+
-		"\u001d\u0003\u001d\u0187\b\u001d\u0001\u001d\u0001\u001d\u0001\u001d\u0001"+
-		"\u001d\u0001\u001e\u0003\u001e\u018e\b\u001e\u0001\u001e\u0001\u001e\u0001"+
-		"\u001e\u0001\u001e\u0001\u001f\u0001\u001f\u0001\u001f\u0001\u001f\u0001"+
-		"\u001f\u0001 \u0001 \u0001!\u0001!\u0001\"\u0001\"\u0001\"\u0004\"\u01a0"+
-		"\b\"\u000b\"\f\"\u01a1\u0001#\u0001#\u0003#\u01a6\b#\u0001$\u0001$\u0001"+
-		"$\u0001$\u0001$\u0001%\u0001%\u0001&\u0001&\u0005&\u01b1\b&\n&\f&\u01b4"+
-		"\t&\u0001\'\u0001\'\u0001\'\u0001\'\u0001\'\u0001\'\u0001\'\u0003\'\u01bd"+
-		"\b\'\u0001(\u0001(\u0003(\u01c1\b(\u0001(\u0004(\u01c4\b(\u000b(\f(\u01c5"+
-		"\u0001(\u0001(\u0001)\u0001)\u0001)\u0005)\u01cd\b)\n)\f)\u01d0\t)\u0001"+
-		"*\u0001*\u0001+\u0001+\u0001,\u0001,\u0001,\u0001,\u0001,\u0005,\u01db"+
-		"\b,\n,\f,\u01de\t,\u0001-\u0001-\u0001.\u0003.\u01e3\b.\u0001.\u0001."+
-		"\u0001.\u0001.\u0001.\u0001.\u0001/\u0001/\u0001/\u0001/\u0001/\u0001"+
-		"/\u0001/\u00010\u00010\u00010\u00050\u01f5\b0\n0\f0\u01f8\t0\u00011\u0001"+
-		"1\u00011\u00011\u00011\u00011\u00031\u0200\b1\u00012\u00012\u00012\u0001"+
-		"2\u00012\u00013\u00013\u00013\u00013\u00013\u00014\u00014\u00015\u0001"+
-		"5\u00016\u00016\u00017\u00017\u00018\u00018\u00019\u00019\u0001:\u0001"+
-		":\u0001;\u0003;\u021b\b;\u0001;\u0001;\u0001;\u0001;\u0001<\u0001<\u0001"+
-		"<\u0001<\u0001<\u0003<\u0226\b<\u0001=\u0001=\u0001=\u0001=\u0001=\u0001"+
-		"=\u0001=\u0001=\u0001=\u0001=\u0001=\u0001=\u0003=\u0234\b=\u0001>\u0001"+
-		">\u0001?\u0001?\u0001?\u0001?\u0001@\u0001@\u0001A\u0001A\u0001A\u0000"+
-		"\u0000B\u0000\u0002\u0004\u0006\b\n\f\u000e\u0010\u0012\u0014\u0016\u0018"+
-		"\u001a\u001c\u001e \"$&(*,.02468:<>@BDFHJLNPRTVXZ\\^`bdfhjlnprtvxz|~\u0080"+
-		"\u0082\u0000\u0015\u0002\u0000\u0004\u0004\t\u0010\u0001\u0000\u0007\b"+
-		"\u0002\u0000EGrr\u0001\u000079\u0001\u0000:<\u0001\u0000CD\u0007\u0000"+
-		"\u00b2\u00b2\u00c1\u00c1\u00c6\u00c6\u00d0\u00d7\u00db\u00e4\u00e6\u00e6"+
-		"\u00ea\u00ea\u0001\u0000\u00eb\u00f2\u0001\u0000\u00f3\u00f6\u0004\u0000"+
-		"UU\u00e6\u00e6\u00ea\u00ea\u00ff\u00ff\u0001\u0000[b\u0002\u0000\u0014"+
-		"\u0014IZ\u0001\u0000cl\u0001\u0000m~\u0001\u0000\u007f\u008f\u0001\u0000"+
-		"\u0090\u009f\u0002\u0000||\u00a0\u00ad\u0001\u0000\u00ae\u00c9\u0001\u0000"+
-		"\u00ca\u00cf\u0002\u0000\t,HH\u0003\u0000\u00c6\u00c6\u00db\u00db\u00e5"+
-		"\u00ea\u0251\u0000\u0097\u0001\u0000\u0000\u0000\u0002\u0099\u0001\u0000"+
-		"\u0000\u0000\u0004\u00a6\u0001\u0000\u0000\u0000\u0006\u00b1\u0001\u0000"+
-		"\u0000\u0000\b\u00b6\u0001\u0000\u0000\u0000\n\u00c0\u0001\u0000\u0000"+
-		"\u0000\f\u00c2\u0001\u0000\u0000\u0000\u000e\u00c5\u0001\u0000\u0000\u0000"+
-		"\u0010\u00cb\u0001\u0000\u0000\u0000\u0012\u00d7\u0001\u0000\u0000\u0000"+
-		"\u0014\u00d9\u0001\u0000\u0000\u0000\u0016\u00db\u0001\u0000\u0000\u0000"+
-		"\u0018\u00e0\u0001\u0000\u0000\u0000\u001a\u00e6\u0001\u0000\u0000\u0000"+
-		"\u001c\u00eb\u0001\u0000\u0000\u0000\u001e\u00f4\u0001\u0000\u0000\u0000"+
-		" \u00fc\u0001\u0000\u0000\u0000\"\u0110\u0001\u0000\u0000\u0000$\u0112"+
-		"\u0001\u0000\u0000\u0000&\u0117\u0001\u0000\u0000\u0000(\u011c\u0001\u0000"+
-		"\u0000\u0000*\u013e\u0001\u0000\u0000\u0000,\u0164\u0001\u0000\u0000\u0000"+
-		".\u0166\u0001\u0000\u0000\u00000\u0168\u0001\u0000\u0000\u00002\u016c"+
-		"\u0001\u0000\u0000\u00004\u017b\u0001\u0000\u0000\u00006\u0181\u0001\u0000"+
-		"\u0000\u00008\u0183\u0001\u0000\u0000\u0000:\u0186\u0001\u0000\u0000\u0000"+
-		"<\u018d\u0001\u0000\u0000\u0000>\u0193\u0001\u0000\u0000\u0000@\u0198"+
-		"\u0001\u0000\u0000\u0000B\u019a\u0001\u0000\u0000\u0000D\u019c\u0001\u0000"+
-		"\u0000\u0000F\u01a3\u0001\u0000\u0000\u0000H\u01a7\u0001\u0000\u0000\u0000"+
-		"J\u01ac\u0001\u0000\u0000\u0000L\u01ae\u0001\u0000\u0000\u0000N\u01bc"+
-		"\u0001\u0000\u0000\u0000P\u01be\u0001\u0000\u0000\u0000R\u01c9\u0001\u0000"+
-		"\u0000\u0000T\u01d1\u0001\u0000\u0000\u0000V\u01d3\u0001\u0000\u0000\u0000"+
-		"X\u01d5\u0001\u0000\u0000\u0000Z\u01df\u0001\u0000\u0000\u0000\\\u01e2"+
-		"\u0001\u0000\u0000\u0000^\u01ea\u0001\u0000\u0000\u0000`\u01f1\u0001\u0000"+
-		"\u0000\u0000b\u01ff\u0001\u0000\u0000\u0000d\u0201\u0001\u0000\u0000\u0000"+
-		"f\u0206\u0001\u0000\u0000\u0000h\u020b\u0001\u0000\u0000\u0000j\u020d"+
-		"\u0001\u0000\u0000\u0000l\u020f\u0001\u0000\u0000\u0000n\u0211\u0001\u0000"+
-		"\u0000\u0000p\u0213\u0001\u0000\u0000\u0000r\u0215\u0001\u0000\u0000\u0000"+
-		"t\u0217\u0001\u0000\u0000\u0000v\u021a\u0001\u0000\u0000\u0000x\u0225"+
-		"\u0001\u0000\u0000\u0000z\u0233\u0001\u0000\u0000\u0000|\u0235\u0001\u0000"+
-		"\u0000\u0000~\u0237\u0001\u0000\u0000\u0000\u0080\u023b\u0001\u0000\u0000"+
-		"\u0000\u0082\u023d\u0001\u0000\u0000\u0000\u0084\u0098\u0003\u0002\u0001"+
-		"\u0000\u0085\u0098\u0003\u0004\u0002\u0000\u0086\u0088\u0003\u0016\u000b"+
-		"\u0000\u0087\u0086\u0001\u0000\u0000\u0000\u0087\u0088\u0001\u0000\u0000"+
-		"\u0000\u0088\u0089\u0001\u0000\u0000\u0000\u0089\u008f\u0003\u0006\u0003"+
-		"\u0000\u008a\u008b\u0003\u0014\n\u0000\u008b\u008c\u0003\u0006\u0003\u0000"+
-		"\u008c\u008e\u0001\u0000\u0000\u0000\u008d\u008a\u0001\u0000\u0000\u0000"+
-		"\u008e\u0091\u0001\u0000\u0000\u0000\u008f\u008d\u0001\u0000\u0000\u0000"+
-		"\u008f\u0090\u0001\u0000\u0000\u0000\u0090\u0093\u0001\u0000\u0000\u0000"+
-		"\u0091\u008f\u0001\u0000\u0000\u0000\u0092\u0094\u0005\u0004\u0000\u0000"+
-		"\u0093\u0092\u0001\u0000\u0000\u0000\u0093\u0094\u0001\u0000\u0000\u0000"+
-		"\u0094\u0095\u0001\u0000\u0000\u0000\u0095\u0096\u0005\u0000\u0000\u0001"+
-		"\u0096\u0098\u0001\u0000\u0000\u0000\u0097\u0084\u0001\u0000\u0000\u0000"+
-		"\u0097\u0085\u0001\u0000\u0000\u0000\u0097\u0087\u0001\u0000\u0000\u0000"+
-		"\u0098\u0001\u0001\u0000\u0000\u0000\u0099\u009a\u0005\u00fa\u0000\u0000"+
-		"\u009a\u009b\u0003\u0006\u0003\u0000\u009b\u009c\u0005\u00fb\u0000\u0000"+
-		"\u009c\u009f\u0003\u0006\u0003\u0000\u009d\u009e\u0005\u00fc\u0000\u0000"+
-		"\u009e\u00a0\u0003\u0006\u0003\u0000\u009f\u009d\u0001\u0000\u0000\u0000"+
-		"\u009f\u00a0\u0001\u0000\u0000\u0000\u00a0\u00a2\u0001\u0000\u0000\u0000"+
-		"\u00a1\u00a3\u0005\u0004\u0000\u0000\u00a2\u00a1\u0001\u0000\u0000\u0000"+
-		"\u00a2\u00a3\u0001\u0000\u0000\u0000\u00a3\u00a4\u0001\u0000\u0000\u0000"+
-		"\u00a4\u00a5\u0005\u0000\u0000\u0001\u00a5\u0003\u0001\u0000\u0000\u0000"+
-		"\u00a6\u00a7\u0005\u00fd\u0000\u0000\u00a7\u00a8\u0003\u0006\u0003\u0000"+
-		"\u00a8\u00a9\u0005\u00fe\u0000\u0000\u00a9\u00ab\u0003\u0006\u0003\u0000"+
-		"\u00aa\u00ac\u0005\u0004\u0000\u0000\u00ab\u00aa\u0001\u0000\u0000\u0000"+
-		"\u00ab\u00ac\u0001\u0000\u0000\u0000\u00ac\u00ad\u0001\u0000\u0000\u0000"+
-		"\u00ad\u00ae\u0005\u0000\u0000\u0001\u00ae\u0005\u0001\u0000\u0000\u0000"+
-		"\u00af\u00b2\u0003\b\u0004\u0000\u00b0\u00b2\u0003\u000e\u0007\u0000\u00b1"+
-		"\u00af\u0001\u0000\u0000\u0000\u00b1\u00b0\u0001\u0000\u0000\u0000\u00b2"+
-		"\u0007\u0001\u0000\u0000\u0000\u00b3\u00b5\u0003\n\u0005\u0000\u00b4\u00b3"+
-		"\u0001\u0000\u0000\u0000\u00b5\u00b8\u0001\u0000\u0000\u0000\u00b6\u00b4"+
-		"\u0001\u0000\u0000\u0000\u00b6\u00b7\u0001\u0000\u0000\u0000\u00b7\u00b9"+
-		"\u0001\u0000\u0000\u0000\u00b8\u00b6\u0001\u0000\u0000\u0000\u00b9\u00bd"+
-		"\u0003\\.\u0000\u00ba\u00bc\u0003\f\u0006\u0000\u00bb\u00ba\u0001\u0000"+
-		"\u0000\u0000\u00bc\u00bf\u0001\u0000\u0000\u0000\u00bd\u00bb\u0001\u0000"+
-		"\u0000\u0000\u00bd\u00be\u0001\u0000\u0000\u0000\u00be\t\u0001\u0000\u0000"+
-		"\u0000\u00bf\u00bd\u0001\u0000\u0000\u0000\u00c0\u00c1\u0003\u0010\b\u0000"+
-		"\u00c1\u000b\u0001\u0000\u0000\u0000\u00c2\u00c3\u0003\u0010\b\u0000\u00c3"+
-		"\r\u0001\u0000\u0000\u0000\u00c4\u00c6\u0003\u0010\b\u0000\u00c5\u00c4"+
-		"\u0001\u0000\u0000\u0000\u00c6\u00c7\u0001\u0000\u0000\u0000\u00c7\u00c5"+
-		"\u0001\u0000\u0000\u0000\u00c7\u00c8\u0001\u0000\u0000\u0000\u00c8\u000f"+
-		"\u0001\u0000\u0000\u0000\u00c9\u00cc\u0003\u0012\t\u0000\u00ca\u00cc\u0003"+
-		"x<\u0000\u00cb\u00c9\u0001\u0000\u0000\u0000\u00cb\u00ca\u0001\u0000\u0000"+
-		"\u0000\u00cc\u0011\u0001\u0000\u0000\u0000\u00cd\u00d8\u00030\u0018\u0000"+
-		"\u00ce\u00d8\u0003P(\u0000\u00cf\u00d8\u0003\u001c\u000e\u0000\u00d0\u00d8"+
-		"\u0003\u001e\u000f\u0000\u00d1\u00d8\u0003\"\u0011\u0000\u00d2\u00d8\u0003"+
-		"$\u0012\u0000\u00d3\u00d8\u0003&\u0013\u0000\u00d4\u00d8\u0003(\u0014"+
-		"\u0000\u00d5\u00d8\u0003*\u0015\u0000\u00d6\u00d8\u0003,\u0016\u0000\u00d7"+
-		"\u00cd\u0001\u0000\u0000\u0000\u00d7\u00ce\u0001\u0000\u0000\u0000\u00d7"+
-		"\u00cf\u0001\u0000\u0000\u0000\u00d7\u00d0\u0001\u0000\u0000\u0000\u00d7"+
-		"\u00d1\u0001\u0000\u0000\u0000\u00d7\u00d2\u0001\u0000\u0000\u0000\u00d7"+
-		"\u00d3\u0001\u0000\u0000\u0000\u00d7\u00d4\u0001\u0000\u0000\u0000\u00d7"+
-		"\u00d5\u0001\u0000\u0000\u0000\u00d7\u00d6\u0001\u0000\u0000\u0000\u00d8"+
-		"\u0013\u0001\u0000\u0000\u0000\u00d9\u00da\u0007\u0000\u0000\u0000\u00da"+
-		"\u0015\u0001\u0000\u0000\u0000\u00db\u00dc\u0003\u0018\f\u0000\u00dc\u00de"+
-		"\u00030\u0018\u0000\u00dd\u00df\u0005\u0003\u0000\u0000\u00de\u00dd\u0001"+
-		"\u0000\u0000\u0000\u00de\u00df\u0001\u0000\u0000\u0000\u00df\u0017\u0001"+
-		"\u0000\u0000\u0000\u00e0\u00e1\u0007\u0001\u0000\u0000\u00e1\u0019\u0001"+
-		"\u0000\u0000\u0000\u00e2\u00e7\u00030\u0018\u0000\u00e3\u00e7\u0003\\"+
-		".\u0000\u00e4\u00e7\u0003x<\u0000\u00e5\u00e7\u0003\u001c\u000e\u0000"+
-		"\u00e6\u00e2\u0001\u0000\u0000\u0000\u00e6\u00e3\u0001\u0000\u0000\u0000"+
-		"\u00e6\u00e4\u0001\u0000\u0000\u0000\u00e6\u00e5\u0001\u0000\u0000\u0000"+
-		"\u00e7\u001b\u0001\u0000\u0000\u0000\u00e8\u00e9\u0003.\u0017\u0000\u00e9"+
-		"\u00ea\u0005\u0001\u0000\u0000\u00ea\u00ec\u0001\u0000\u0000\u0000\u00eb"+
-		"\u00e8\u0001\u0000\u0000\u0000\u00ec\u00ed\u0001\u0000\u0000\u0000\u00ed"+
-		"\u00eb\u0001\u0000\u0000\u0000\u00ed\u00ee\u0001\u0000\u0000\u0000\u00ee"+
-		"\u00ef\u0001\u0000\u0000\u0000\u00ef\u00f0\u0003l6\u0000\u00f0\u001d\u0001"+
-		"\u0000\u0000\u0000\u00f1\u00f2\u0003.\u0017\u0000\u00f2\u00f3\u0005\u0001"+
-		"\u0000\u0000\u00f3\u00f5\u0001\u0000\u0000\u0000\u00f4\u00f1\u0001\u0000"+
-		"\u0000\u0000\u00f5\u00f6\u0001\u0000\u0000\u0000\u00f6\u00f4\u0001\u0000"+
-		"\u0000\u0000\u00f6\u00f7\u0001\u0000\u0000\u0000\u00f7\u00f8\u0001\u0000"+
-		"\u0000\u0000\u00f8\u00f9\u0003 \u0010\u0000\u00f9\u00fa\u0005\u0001\u0000"+
-		"\u0000\u00fa\u00fb\u0003l6\u0000\u00fb\u001f\u0001\u0000\u0000\u0000\u00fc"+
-		"\u00fd\u0007\u0002\u0000\u0000\u00fd!\u0001\u0000\u0000\u0000\u00fe\u00ff"+
-		"\u0003.\u0017\u0000\u00ff\u0100\u0005\u0001\u0000\u0000\u0100\u0102\u0001"+
-		"\u0000\u0000\u0000\u0101\u00fe\u0001\u0000\u0000\u0000\u0102\u0103\u0001"+
-		"\u0000\u0000\u0000\u0103\u0101\u0001\u0000\u0000\u0000\u0103\u0104\u0001"+
-		"\u0000\u0000\u0000\u0104\u0105\u0001\u0000\u0000\u0000\u0105\u0106\u0005"+
-		"3\u0000\u0000\u0106\u0111\u0001\u0000\u0000\u0000\u0107\u0108\u0003.\u0017"+
-		"\u0000\u0108\u0109\u0005\u0001\u0000\u0000\u0109\u010b\u0001\u0000\u0000"+
-		"\u0000\u010a\u0107\u0001\u0000\u0000\u0000\u010b\u010c\u0001\u0000\u0000"+
-		"\u0000\u010c\u010a\u0001\u0000\u0000\u0000\u010c\u010d\u0001\u0000\u0000"+
-		"\u0000\u010d\u010e\u0001\u0000\u0000\u0000\u010e\u010f\u0005\u00ea\u0000"+
-		"\u0000\u010f\u0111\u0001\u0000\u0000\u0000\u0110\u0101\u0001\u0000\u0000"+
-		"\u0000\u0110\u010a\u0001\u0000\u0000\u0000\u0111#\u0001\u0000\u0000\u0000"+
-		"\u0112\u0113\u00054\u0000\u0000\u0113\u0114\u0005\u00ff\u0000\u0000\u0114"+
-		"\u0115\u0005\u0001\u0000\u0000\u0115\u0116\u0003l6\u0000\u0116%\u0001"+
-		"\u0000\u0000\u0000\u0117\u0118\u00055\u0000\u0000\u0118\u0119\u0005\u00ff"+
-		"\u0000\u0000\u0119\u011a\u0005\u0001\u0000\u0000\u011a\u011b\u0003l6\u0000"+
-		"\u011b\'\u0001\u0000\u0000\u0000\u011c\u011f\u00056\u0000\u0000\u011d"+
-		"\u011e\u0005\u00ff\u0000\u0000\u011e\u0120\u0005\u0001\u0000\u0000\u011f"+
-		"\u011d\u0001\u0000\u0000\u0000\u0120\u0121\u0001\u0000\u0000\u0000\u0121"+
-		"\u011f\u0001\u0000\u0000\u0000\u0121\u0122\u0001\u0000\u0000\u0000\u0122"+
-		"\u0123\u0001\u0000\u0000\u0000\u0123\u0124\u0003l6\u0000\u0124)\u0001"+
-		"\u0000\u0000\u0000\u0125\u0126\u0007\u0003\u0000\u0000\u0126\u0127\u0005"+
-		"\u0001\u0000\u0000\u0127\u0128\u0003.\u0017\u0000\u0128\u0129\u0005\u0001"+
-		"\u0000\u0000\u0129\u012a\u0003l6\u0000\u012a\u013f\u0001\u0000\u0000\u0000"+
-		"\u012b\u012c\u0003.\u0017\u0000\u012c\u012d\u0005\u0001\u0000\u0000\u012d"+
-		"\u012f\u0001\u0000\u0000\u0000\u012e\u012b\u0001\u0000\u0000\u0000\u012e"+
-		"\u012f\u0001\u0000\u0000\u0000\u012f\u0139\u0001\u0000\u0000\u0000\u0130"+
-		"\u0131\u0003.\u0017\u0000\u0131\u0135\u0005\u0001\u0000\u0000\u0132\u0133"+
-		"\u0003 \u0010\u0000\u0133\u0134\u0005\u0001\u0000\u0000\u0134\u0136\u0001"+
-		"\u0000\u0000\u0000\u0135\u0132\u0001\u0000\u0000\u0000\u0135\u0136\u0001"+
-		"\u0000\u0000\u0000\u0136\u013a\u0001\u0000\u0000\u0000\u0137\u0138\u0005"+
-		";\u0000\u0000\u0138\u013a\u0005\u0001\u0000\u0000\u0139\u0130\u0001\u0000"+
-		"\u0000\u0000\u0139\u0137\u0001\u0000\u0000\u0000\u0139\u013a\u0001\u0000"+
-		"\u0000\u0000\u013a\u013b\u0001\u0000\u0000\u0000\u013b\u013c\u0007\u0004"+
-		"\u0000\u0000\u013c\u013d\u0005\u0001\u0000\u0000\u013d\u013f\u0003l6\u0000"+
-		"\u013e\u0125\u0001\u0000\u0000\u0000\u013e\u012e\u0001\u0000\u0000\u0000"+
-		"\u013f+\u0001\u0000\u0000\u0000\u0140\u0141\u0003.\u0017\u0000\u0141\u0142"+
-		"\u0005\u0001\u0000\u0000\u0142\u0144\u0001\u0000\u0000\u0000\u0143\u0140"+
-		"\u0001\u0000\u0000\u0000\u0143\u0144\u0001\u0000\u0000\u0000\u0144\u0145"+
-		"\u0001\u0000\u0000\u0000\u0145\u0146\u0005=\u0000\u0000\u0146\u0147\u0005"+
-		"\u0001\u0000\u0000\u0147\u0165\u0003l6\u0000\u0148\u0149\u0003.\u0017"+
-		"\u0000\u0149\u014a\u0005\u0001\u0000\u0000\u014a\u014c\u0001\u0000\u0000"+
-		"\u0000\u014b\u0148\u0001\u0000\u0000\u0000\u014b\u014c\u0001\u0000\u0000"+
-		"\u0000\u014c\u014d\u0001\u0000\u0000\u0000\u014d\u014e\u0005>\u0000\u0000"+
-		"\u014e\u014f\u0005\u0001\u0000\u0000\u014f\u0165\u0003l6\u0000\u0150\u0153"+
-		"\u0005?\u0000\u0000\u0151\u0152\u0005\u0001\u0000\u0000\u0152\u0154\u0005"+
-		"B\u0000\u0000\u0153\u0151\u0001\u0000\u0000\u0000\u0153\u0154\u0001\u0000"+
-		"\u0000\u0000\u0154\u0155\u0001\u0000\u0000\u0000\u0155\u0156\u0005\u0001"+
-		"\u0000\u0000\u0156\u0165\u0003l6\u0000\u0157\u015a\u0005@\u0000\u0000"+
-		"\u0158\u0159\u0005\u0001\u0000\u0000\u0159\u015b\u0005B\u0000\u0000\u015a"+
-		"\u0158\u0001\u0000\u0000\u0000\u015a\u015b\u0001\u0000\u0000\u0000\u015b"+
-		"\u015c\u0001\u0000\u0000\u0000\u015c\u015d\u0005\u0001\u0000\u0000\u015d"+
-		"\u0165\u0003l6\u0000\u015e\u015f\u0005A\u0000\u0000\u015f\u0160\u0005"+
-		"\u0001\u0000\u0000\u0160\u0165\u0003l6\u0000\u0161\u0162\u0007\u0005\u0000"+
-		"\u0000\u0162\u0163\u0005\u0001\u0000\u0000\u0163\u0165\u0003l6\u0000\u0164"+
-		"\u0143\u0001\u0000\u0000\u0000\u0164\u014b\u0001\u0000\u0000\u0000\u0164"+
-		"\u0150\u0001\u0000\u0000\u0000\u0164\u0157\u0001\u0000\u0000\u0000\u0164"+
-		"\u015e\u0001\u0000\u0000\u0000\u0164\u0161\u0001\u0000\u0000\u0000\u0165"+
-		"-\u0001\u0000\u0000\u0000\u0166\u0167\u0005\u00ff\u0000\u0000\u0167/\u0001"+
-		"\u0000\u0000\u0000\u0168\u0169\u00032\u0019\u0000\u0169\u016a\u0005\u0001"+
-		"\u0000\u0000\u016a\u016b\u0003l6\u0000\u016b1\u0001\u0000\u0000\u0000"+
-		"\u016c\u0170\u00034\u001a\u0000\u016d\u016f\u00036\u001b\u0000\u016e\u016d"+
-		"\u0001\u0000\u0000\u0000\u016f\u0172\u0001\u0000\u0000\u0000\u0170\u016e"+
-		"\u0001\u0000\u0000\u0000\u0170\u0171\u0001\u0000\u0000\u0000\u01713\u0001"+
-		"\u0000\u0000\u0000\u0172\u0170\u0001\u0000\u0000\u0000\u0173\u017c\u0003"+
-		"8\u001c\u0000\u0174\u017c\u0003:\u001d\u0000\u0175\u017c\u0003<\u001e"+
-		"\u0000\u0176\u017c\u0003D\"\u0000\u0177\u0178\u0005\u0005\u0000\u0000"+
-		"\u0178\u0179\u00032\u0019\u0000\u0179\u017a\u0005\u0006\u0000\u0000\u017a"+
-		"\u017c\u0001\u0000\u0000\u0000\u017b\u0173\u0001\u0000\u0000\u0000\u017b"+
-		"\u0174\u0001\u0000\u0000\u0000\u017b\u0175\u0001\u0000\u0000\u0000\u017b"+
-		"\u0176\u0001\u0000\u0000\u0000\u017b\u0177\u0001\u0000\u0000\u0000\u017c"+
-		"5\u0001\u0000\u0000\u0000\u017d\u017e\u0005\u0001\u0000\u0000\u017e\u0182"+
-		"\u0003@ \u0000\u017f\u0180\u0005\u0001\u0000\u0000\u0180\u0182\u0003B"+
-		"!\u0000\u0181\u017d\u0001\u0000\u0000\u0000\u0181\u017f\u0001\u0000\u0000"+
-		"\u0000\u01827\u0001\u0000\u0000\u0000\u0183\u0184\u0005\u00ff\u0000\u0000"+
-		"\u01849\u0001\u0000\u0000\u0000\u0185\u0187\u0003X,\u0000\u0186\u0185"+
-		"\u0001\u0000\u0000\u0000\u0186\u0187\u0001\u0000\u0000\u0000\u0187\u0188"+
-		"\u0001\u0000\u0000\u0000\u0188\u0189\u0003R)\u0000\u0189\u018a\u0005\u0001"+
-		"\u0000\u0000\u018a\u018b\u0003r9\u0000\u018b;\u0001\u0000\u0000\u0000"+
-		"\u018c\u018e\u0003X,\u0000\u018d\u018c\u0001\u0000\u0000\u0000\u018d\u018e"+
-		"\u0001\u0000\u0000\u0000\u018e\u018f\u0001\u0000\u0000\u0000\u018f\u0190"+
-		"\u0003R)\u0000\u0190\u0191\u0005\u0001\u0000\u0000\u0191\u0192\u0003>"+
-		"\u001f\u0000\u0192=\u0001\u0000\u0000\u0000\u0193\u0194\u0005\u00f9\u0000"+
-		"\u0000\u0194\u0195\u0005\u0005\u0000\u0000\u0195\u0196\u0005\u00ff\u0000"+
-		"\u0000\u0196\u0197\u0005\u0006\u0000\u0000\u0197?\u0001\u0000\u0000\u0000"+
-		"\u0198\u0199\u0007\u0006\u0000\u0000\u0199A\u0001\u0000\u0000\u0000\u019a"+
-		"\u019b\u0007\u0007\u0000\u0000\u019bC\u0001\u0000\u0000\u0000\u019c\u019f"+
-		"\u0003F#\u0000\u019d\u019e\u0005\u0002\u0000\u0000\u019e\u01a0\u0003F"+
-		"#\u0000\u019f\u019d\u0001\u0000\u0000\u0000\u01a0\u01a1\u0001\u0000\u0000"+
-		"\u0000\u01a1\u019f\u0001\u0000\u0000\u0000\u01a1\u01a2\u0001\u0000\u0000"+
-		"\u0000\u01a2E\u0001\u0000\u0000\u0000\u01a3\u01a5\u0003L&\u0000\u01a4"+
-		"\u01a6\u0003H$\u0000\u01a5\u01a4\u0001\u0000\u0000\u0000\u01a5\u01a6\u0001"+
-		"\u0000\u0000\u0000\u01a6G\u0001\u0000\u0000\u0000\u01a7\u01a8\u0005\u0001"+
-		"\u0000\u0000\u01a8\u01a9\u0003l6\u0000\u01a9\u01aa\u0005\u0001\u0000\u0000"+
-		"\u01aa\u01ab\u0003J%\u0000\u01abI\u0001\u0000\u0000\u0000\u01ac\u01ad"+
-		"\u0007\b\u0000\u0000\u01adK\u0001\u0000\u0000\u0000\u01ae\u01b2\u0003"+
-		"N\'\u0000\u01af\u01b1\u00036\u001b\u0000\u01b0\u01af\u0001\u0000\u0000"+
-		"\u0000\u01b1\u01b4\u0001\u0000\u0000\u0000\u01b2\u01b0\u0001\u0000\u0000"+
-		"\u0000\u01b2\u01b3\u0001\u0000\u0000\u0000\u01b3M\u0001\u0000\u0000\u0000"+
-		"\u01b4\u01b2\u0001\u0000\u0000\u0000\u01b5\u01bd\u00038\u001c\u0000\u01b6"+
-		"\u01bd\u0003:\u001d\u0000\u01b7\u01bd\u0003<\u001e\u0000\u01b8\u01b9\u0005"+
-		"\u0005\u0000\u0000\u01b9\u01ba\u0003D\"\u0000\u01ba\u01bb\u0005\u0006"+
-		"\u0000\u0000\u01bb\u01bd\u0001\u0000\u0000\u0000\u01bc\u01b5\u0001\u0000"+
-		"\u0000\u0000\u01bc\u01b6\u0001\u0000\u0000\u0000\u01bc\u01b7\u0001\u0000"+
-		"\u0000\u0000\u01bc\u01b8\u0001\u0000\u0000\u0000\u01bdO\u0001\u0000\u0000"+
-		"\u0000\u01be\u01c3\u00030\u0018\u0000\u01bf\u01c1\u0005\u0003\u0000\u0000"+
-		"\u01c0\u01bf\u0001\u0000\u0000\u0000\u01c0\u01c1\u0001\u0000\u0000\u0000"+
-		"\u01c1\u01c2\u0001\u0000\u0000\u0000\u01c2\u01c4\u00030\u0018\u0000\u01c3"+
-		"\u01c0\u0001\u0000\u0000\u0000\u01c4\u01c5\u0001\u0000\u0000\u0000\u01c5"+
-		"\u01c3\u0001\u0000\u0000\u0000\u01c5\u01c6\u0001\u0000\u0000\u0000\u01c6"+
-		"\u01c7\u0001\u0000\u0000\u0000\u01c7\u01c8\u0005\t\u0000\u0000\u01c8Q"+
-		"\u0001\u0000\u0000\u0000\u01c9\u01ce\u0003T*\u0000\u01ca\u01cb\u0005\u0001"+
-		"\u0000\u0000\u01cb\u01cd\u0003V+\u0000\u01cc\u01ca\u0001\u0000\u0000\u0000"+
-		"\u01cd\u01d0\u0001\u0000\u0000\u0000\u01ce\u01cc\u0001\u0000\u0000\u0000"+
-		"\u01ce\u01cf\u0001\u0000\u0000\u0000\u01cfS\u0001\u0000\u0000\u0000\u01d0"+
-		"\u01ce\u0001\u0000\u0000\u0000\u01d1\u01d2\u0007\t\u0000\u0000\u01d2U"+
-		"\u0001\u0000\u0000\u0000\u01d3\u01d4\u0007\n\u0000\u0000\u01d4W\u0001"+
-		"\u0000\u0000\u0000\u01d5\u01d6\u0003Z-\u0000\u01d6\u01dc\u0005\u0001\u0000"+
-		"\u0000\u01d7\u01d8\u0003Z-\u0000\u01d8\u01d9\u0005\u0001\u0000\u0000\u01d9"+
-		"\u01db\u0001\u0000\u0000\u0000\u01da\u01d7\u0001\u0000\u0000\u0000\u01db"+
-		"\u01de\u0001\u0000\u0000\u0000\u01dc\u01da\u0001\u0000\u0000\u0000\u01dc"+
-		"\u01dd\u0001\u0000\u0000\u0000\u01ddY\u0001\u0000\u0000\u0000\u01de\u01dc"+
-		"\u0001\u0000\u0000\u0000\u01df\u01e0\u0007\u000b\u0000\u0000\u01e0[\u0001"+
-		"\u0000\u0000\u0000\u01e1\u01e3\u0003X,\u0000\u01e2\u01e1\u0001\u0000\u0000"+
-		"\u0000\u01e2\u01e3\u0001\u0000\u0000\u0000\u01e3\u01e4\u0001\u0000\u0000"+
-		"\u0000\u01e4\u01e5\u0003R)\u0000\u01e5\u01e6\u0005\u0001\u0000\u0000\u01e6"+
-		"\u01e7\u0003h4\u0000\u01e7\u01e8\u0005\u0001\u0000\u0000\u01e8\u01e9\u0003"+
-		"j5\u0000\u01e9]\u0001\u0000\u0000\u0000\u01ea\u01eb\u0003`0\u0000\u01eb"+
-		"\u01ec\u0005\u0001\u0000\u0000\u01ec\u01ed\u0003h4\u0000\u01ed\u01ee\u0005"+
-		"\u0001\u0000\u0000\u01ee\u01ef\u0003j5\u0000\u01ef\u01f0\u0005\u0000\u0000"+
-		"\u0001\u01f0_\u0001\u0000\u0000\u0000\u01f1\u01f6\u0003b1\u0000\u01f2"+
-		"\u01f3\u0005\u0001\u0000\u0000\u01f3\u01f5\u0003b1\u0000\u01f4\u01f2\u0001"+
-		"\u0000\u0000\u0000\u01f5\u01f8\u0001\u0000\u0000\u0000\u01f6\u01f4\u0001"+
-		"\u0000\u0000\u0000\u01f6\u01f7\u0001\u0000\u0000\u0000\u01f7a\u0001\u0000"+
-		"\u0000\u0000\u01f8\u01f6\u0001\u0000\u0000\u0000\u01f9\u0200\u0003Z-\u0000"+
-		"\u01fa\u0200\u0003R)\u0000\u01fb\u0200\u0003p8\u0000\u01fc\u0200\u0003"+
-		"n7\u0000\u01fd\u0200\u0003d2\u0000\u01fe\u0200\u0003f3\u0000\u01ff\u01f9"+
-		"\u0001\u0000\u0000\u0000\u01ff\u01fa\u0001\u0000\u0000\u0000\u01ff\u01fb"+
-		"\u0001\u0000\u0000\u0000\u01ff\u01fc\u0001\u0000\u0000\u0000\u01ff\u01fd"+
-		"\u0001\u0000\u0000\u0000\u01ff\u01fe\u0001\u0000\u0000\u0000\u0200c\u0001"+
-		"\u0000\u0000\u0000\u0201\u0202\u0005\u00f7\u0000\u0000\u0202\u0203\u0005"+
-		"\u0005\u0000\u0000\u0203\u0204\u0005\u00ff\u0000\u0000\u0204\u0205\u0005"+
-		"\u0006\u0000\u0000\u0205e\u0001\u0000\u0000\u0000\u0206\u0207\u0005\u00f8"+
-		"\u0000\u0000\u0207\u0208\u0005\u0005\u0000\u0000\u0208\u0209\u0005\u00ff"+
-		"\u0000\u0000\u0209\u020a\u0005\u0006\u0000\u0000\u020ag\u0001\u0000\u0000"+
-		"\u0000\u020b\u020c\u0007\f\u0000\u0000\u020ci\u0001\u0000\u0000\u0000"+
-		"\u020d\u020e\u0007\r\u0000\u0000\u020ek\u0001\u0000\u0000\u0000\u020f"+
-		"\u0210\u0007\u000e\u0000\u0000\u0210m\u0001\u0000\u0000\u0000\u0211\u0212"+
-		"\u0007\u000f\u0000\u0000\u0212o\u0001\u0000\u0000\u0000\u0213\u0214\u0007"+
-		"\u0010\u0000\u0000\u0214q\u0001\u0000\u0000\u0000\u0215\u0216\u0007\u0011"+
-		"\u0000\u0000\u0216s\u0001\u0000\u0000\u0000\u0217\u0218\u0007\u0012\u0000"+
-		"\u0000\u0218u\u0001\u0000\u0000\u0000\u0219\u021b\u0003X,\u0000\u021a"+
-		"\u0219\u0001\u0000\u0000\u0000\u021a\u021b\u0001\u0000\u0000\u0000\u021b"+
-		"\u021c\u0001\u0000\u0000\u0000\u021c\u021d\u0003R)\u0000\u021d\u021e\u0005"+
-		"\u0001\u0000\u0000\u021e\u021f\u0003t:\u0000\u021fw\u0001\u0000\u0000"+
-		"\u0000\u0220\u0226\u0003|>\u0000\u0221\u0226\u0003v;\u0000\u0222\u0226"+
-		"\u0003~?\u0000\u0223\u0226\u0003\u0082A\u0000\u0224\u0226\u0003z=\u0000"+
-		"\u0225\u0220\u0001\u0000\u0000\u0000\u0225\u0221\u0001\u0000\u0000\u0000"+
-		"\u0225\u0222\u0001\u0000\u0000\u0000\u0225\u0223\u0001\u0000\u0000\u0000"+
-		"\u0225\u0224\u0001\u0000\u0000\u0000\u0226y\u0001\u0000\u0000\u0000\u0227"+
-		"\u0234\u0005-\u0000\u0000\u0228\u0234\u0005.\u0000\u0000\u0229\u0234\u0005"+
-		"/\u0000\u0000\u022a\u0234\u00050\u0000\u0000\u022b\u0234\u00051\u0000"+
-		"\u0000\u022c\u0234\u00052\u0000\u0000\u022d\u022e\u0005\u00ff\u0000\u0000"+
-		"\u022e\u0234\u00053\u0000\u0000\u022f\u0230\u0005\u00ff\u0000\u0000\u0230"+
-		"\u0234\u0005\u00ea\u0000\u0000\u0231\u0232\u0005\u00ff\u0000\u0000\u0232"+
-		"\u0234\u0005\u0098\u0000\u0000\u0233\u0227\u0001\u0000\u0000\u0000\u0233"+
-		"\u0228\u0001\u0000\u0000\u0000\u0233\u0229\u0001\u0000\u0000\u0000\u0233"+
-		"\u022a\u0001\u0000\u0000\u0000\u0233\u022b\u0001\u0000\u0000\u0000\u0233"+
-		"\u022c\u0001\u0000\u0000\u0000\u0233\u022d\u0001\u0000\u0000\u0000\u0233"+
-		"\u022f\u0001\u0000\u0000\u0000\u0233\u0231\u0001\u0000\u0000\u0000\u0234"+
-		"{\u0001\u0000\u0000\u0000\u0235\u0236\u0007\u0013\u0000\u0000\u0236}\u0001"+
-		"\u0000\u0000\u0000\u0237\u0238\u00038\u001c\u0000\u0238\u0239\u0005\u0001"+
-		"\u0000\u0000\u0239\u023a\u0003\u0080@\u0000\u023a\u007f\u0001\u0000\u0000"+
-		"\u0000\u023b\u023c\u0007\u0014\u0000\u0000\u023c\u0081\u0001\u0000\u0000"+
-		"\u0000\u023d\u023e\u0003D\"\u0000\u023e\u0083\u0001\u0000\u0000\u0000"+
-		"1\u0087\u008f\u0093\u0097\u009f\u00a2\u00ab\u00b1\u00b6\u00bd\u00c7\u00cb"+
-		"\u00d7\u00de\u00e6\u00ed\u00f6\u0103\u010c\u0110\u0121\u012e\u0135\u0139"+
-		"\u013e\u0143\u014b\u0153\u015a\u0164\u0170\u017b\u0181\u0186\u018d\u01a1"+
-		"\u01a5\u01b2\u01bc\u01c0\u01c5\u01ce\u01dc\u01e2\u01f6\u01ff\u021a\u0225"+
-		"\u0233";
+		"@\u0002A\u0007A\u0002B\u0007B\u0002C\u0007C\u0002D\u0007D\u0002E\u0007"+
+		"E\u0002F\u0007F\u0002G\u0007G\u0002H\u0007H\u0002I\u0007I\u0002J\u0007"+
+		"J\u0002K\u0007K\u0002L\u0007L\u0002M\u0007M\u0002N\u0007N\u0002O\u0007"+
+		"O\u0002P\u0007P\u0001\u0000\u0001\u0000\u0001\u0000\u0001\u0000\u0001"+
+		"\u0000\u0001\u0000\u0001\u0000\u0003\u0000\u00aa\b\u0000\u0001\u0000\u0001"+
+		"\u0000\u0001\u0000\u0001\u0000\u0005\u0000\u00b0\b\u0000\n\u0000\f\u0000"+
+		"\u00b3\t\u0000\u0001\u0000\u0003\u0000\u00b6\b\u0000\u0001\u0000\u0001"+
+		"\u0000\u0003\u0000\u00ba\b\u0000\u0001\u0001\u0001\u0001\u0001\u0001\u0001"+
+		"\u0001\u0003\u0001\u00c0\b\u0001\u0001\u0001\u0001\u0001\u0001\u0002\u0001"+
+		"\u0002\u0001\u0002\u0005\u0002\u00c7\b\u0002\n\u0002\f\u0002\u00ca\t\u0002"+
+		"\u0001\u0002\u0001\u0002\u0001\u0002\u0003\u0002\u00cf\b\u0002\u0001\u0002"+
+		"\u0001\u0002\u0001\u0003\u0001\u0003\u0004\u0003\u00d5\b\u0003\u000b\u0003"+
+		"\f\u0003\u00d6\u0001\u0003\u0001\u0003\u0001\u0003\u0001\u0003\u0005\u0003"+
+		"\u00dd\b\u0003\n\u0003\f\u0003\u00e0\t\u0003\u0001\u0003\u0003\u0003\u00e3"+
+		"\b\u0003\u0001\u0003\u0001\u0003\u0001\u0004\u0001\u0004\u0001\u0004\u0001"+
+		"\u0004\u0001\u0004\u0001\u0004\u0001\u0004\u0001\u0004\u0001\u0004\u0001"+
+		"\u0004\u0001\u0004\u0001\u0004\u0001\u0004\u0001\u0004\u0001\u0004\u0001"+
+		"\u0004\u0001\u0004\u0003\u0004\u00f8\b\u0004\u0001\u0004\u0001\u0004\u0003"+
+		"\u0004\u00fc\b\u0004\u0001\u0004\u0001\u0004\u0003\u0004\u0100\b\u0004"+
+		"\u0001\u0004\u0003\u0004\u0103\b\u0004\u0001\u0004\u0001\u0004\u0001\u0005"+
+		"\u0001\u0005\u0001\u0005\u0001\u0005\u0001\u0005\u0003\u0005\u010c\b\u0005"+
+		"\u0001\u0006\u0001\u0006\u0001\u0006\u0001\u0006\u0001\u0006\u0001\u0006"+
+		"\u0001\u0006\u0001\u0006\u0001\u0007\u0004\u0007\u0117\b\u0007\u000b\u0007"+
+		"\f\u0007\u0118\u0001\u0007\u0001\u0007\u0001\u0007\u0004\u0007\u011e\b"+
+		"\u0007\u000b\u0007\f\u0007\u011f\u0001\u0007\u0001\u0007\u0001\u0007\u0001"+
+		"\u0007\u0003\u0007\u0126\b\u0007\u0001\u0007\u0001\u0007\u0001\b\u0001"+
+		"\b\u0001\b\u0001\t\u0001\t\u0001\t\u0001\n\u0001\n\u0001\u000b\u0001\u000b"+
+		"\u0001\u000b\u0003\u000b\u0135\b\u000b\u0001\u000b\u0003\u000b\u0138\b"+
+		"\u000b\u0001\u000b\u0001\u000b\u0001\f\u0001\f\u0001\f\u0001\f\u0001\f"+
+		"\u0001\f\u0001\f\u0003\f\u0143\b\f\u0003\f\u0145\b\f\u0001\r\u0001\r\u0003"+
+		"\r\u0149\b\r\u0001\u000e\u0001\u000e\u0003\u000e\u014d\b\u000e\u0001\u000f"+
+		"\u0005\u000f\u0150\b\u000f\n\u000f\f\u000f\u0153\t\u000f\u0001\u000f\u0001"+
+		"\u000f\u0005\u000f\u0157\b\u000f\n\u000f\f\u000f\u015a\t\u000f\u0001\u0010"+
+		"\u0001\u0010\u0001\u0011\u0001\u0011\u0001\u0012\u0004\u0012\u0161\b\u0012"+
+		"\u000b\u0012\f\u0012\u0162\u0001\u0013\u0001\u0013\u0001\u0013\u0003\u0013"+
+		"\u0168\b\u0013\u0001\u0014\u0001\u0014\u0001\u0014\u0001\u0014\u0001\u0014"+
+		"\u0001\u0014\u0001\u0014\u0001\u0014\u0001\u0015\u0001\u0015\u0001\u0015"+
+		"\u0004\u0015\u0175\b\u0015\u000b\u0015\f\u0015\u0176\u0001\u0015\u0001"+
+		"\u0015\u0001\u0016\u0001\u0016\u0001\u0016\u0004\u0016\u017e\b\u0016\u000b"+
+		"\u0016\f\u0016\u017f\u0001\u0016\u0001\u0016\u0001\u0017\u0001\u0017\u0001"+
+		"\u0018\u0001\u0018\u0001\u0019\u0001\u0019\u0001\u0019\u0001\u0019\u0001"+
+		"\u0019\u0001\u0019\u0001\u0019\u0001\u0019\u0003\u0019\u0190\b\u0019\u0001"+
+		"\u001a\u0001\u001a\u0001\u001b\u0001\u001b\u0001\u001b\u0003\u001b\u0197"+
+		"\b\u001b\u0001\u001c\u0001\u001c\u0001\u001d\u0001\u001d\u0001\u001d\u0001"+
+		"\u001d\u0003\u001d\u019f\b\u001d\u0001\u001e\u0001\u001e\u0001\u001e\u0004"+
+		"\u001e\u01a4\b\u001e\u000b\u001e\f\u001e\u01a5\u0001\u001e\u0001\u001e"+
+		"\u0001\u001f\u0001\u001f\u0001\u001f\u0004\u001f\u01ad\b\u001f\u000b\u001f"+
+		"\f\u001f\u01ae\u0001\u001f\u0001\u001f\u0001\u001f\u0001\u001f\u0001 "+
+		"\u0001 \u0001!\u0001!\u0001!\u0004!\u01ba\b!\u000b!\f!\u01bb\u0001!\u0001"+
+		"!\u0001!\u0001!\u0001!\u0004!\u01c3\b!\u000b!\f!\u01c4\u0001!\u0001!\u0001"+
+		"!\u0001!\u0001!\u0004!\u01cc\b!\u000b!\f!\u01cd\u0001!\u0001!\u0003!\u01d2"+
+		"\b!\u0001\"\u0001\"\u0001\"\u0001\"\u0001\"\u0001#\u0001#\u0001#\u0001"+
+		"#\u0001#\u0001$\u0001$\u0001$\u0004$\u01e1\b$\u000b$\f$\u01e2\u0001$\u0001"+
+		"$\u0001%\u0001%\u0001&\u0001&\u0001&\u0001&\u0001\'\u0001\'\u0005\'\u01ef"+
+		"\b\'\n\'\f\'\u01f2\t\'\u0001(\u0001(\u0001(\u0001(\u0001(\u0001(\u0001"+
+		"(\u0001(\u0001(\u0003(\u01fd\b(\u0001)\u0001)\u0001)\u0001)\u0003)\u0203"+
+		"\b)\u0001*\u0001*\u0001+\u0001+\u0001+\u0001+\u0001+\u0001+\u0003+\u020d"+
+		"\b+\u0001,\u0003,\u0210\b,\u0001,\u0001,\u0001,\u0001,\u0001-\u0003-\u0217"+
+		"\b-\u0001-\u0001-\u0001-\u0001-\u0001.\u0001.\u0001.\u0001.\u0001.\u0001"+
+		"/\u0001/\u00010\u00010\u00011\u00011\u00011\u00041\u0229\b1\u000b1\f1"+
+		"\u022a\u00012\u00012\u00032\u022f\b2\u00013\u00013\u00013\u00013\u0001"+
+		"3\u00014\u00014\u00015\u00015\u00055\u023a\b5\n5\f5\u023d\t5\u00016\u0001"+
+		"6\u00016\u00016\u00016\u00016\u00016\u00016\u00036\u0247\b6\u00017\u0001"+
+		"7\u00037\u024b\b7\u00017\u00047\u024e\b7\u000b7\f7\u024f\u00017\u0001"+
+		"7\u00018\u00018\u00018\u00058\u0257\b8\n8\f8\u025a\t8\u00019\u00019\u0001"+
+		":\u0001:\u0001;\u0001;\u0001;\u0001;\u0001;\u0005;\u0265\b;\n;\f;\u0268"+
+		"\t;\u0001<\u0001<\u0001=\u0003=\u026d\b=\u0001=\u0001=\u0001=\u0003=\u0272"+
+		"\b=\u0001=\u0001=\u0001=\u0001=\u0001=\u0001>\u0001>\u0001>\u0001>\u0001"+
+		">\u0001>\u0001>\u0001?\u0001?\u0001?\u0005?\u0283\b?\n?\f?\u0286\t?\u0001"+
+		"@\u0001@\u0001@\u0001@\u0001@\u0001@\u0003@\u028e\b@\u0001A\u0001A\u0001"+
+		"A\u0001A\u0001A\u0001B\u0001B\u0001B\u0001B\u0001B\u0001C\u0001C\u0001"+
+		"D\u0001D\u0001E\u0001E\u0001F\u0001F\u0001G\u0001G\u0001H\u0001H\u0001"+
+		"I\u0001I\u0001J\u0003J\u02a9\bJ\u0001J\u0001J\u0001J\u0001J\u0001K\u0001"+
+		"K\u0001K\u0001K\u0001K\u0003K\u02b4\bK\u0001L\u0001L\u0001L\u0001L\u0001"+
+		"L\u0001L\u0001L\u0001L\u0001L\u0001L\u0001L\u0001L\u0003L\u02c2\bL\u0001"+
+		"M\u0001M\u0001N\u0001N\u0001N\u0001N\u0001O\u0001O\u0001P\u0001P\u0001"+
+		"P\u0000\u0000Q\u0000\u0002\u0004\u0006\b\n\f\u000e\u0010\u0012\u0014\u0016"+
+		"\u0018\u001a\u001c\u001e \"$&(*,.02468:<>@BDFHJLNPRTVXZ\\^`bdfhjlnprt"+
+		"vxz|~\u0080\u0082\u0084\u0086\u0088\u008a\u008c\u008e\u0090\u0092\u0094"+
+		"\u0096\u0098\u009a\u009c\u009e\u00a0\u0000\u0015\u0002\u0000xx{|\u0001"+
+		"\u0000tv\u0003\u0000\u0004\u0004\t\u0010\u0013\u0013\u0001\u0000\u0007"+
+		"\b\u0002\u0000dd\u00cb\u00cd\u0002\u0000-.\u00f4\u00f4\u0006\u0000\u00a4"+
+		"\u00a4\u00b3\u00b3\u00c2\u00ca\u00ce\u00d9\u00db\u00db\u00de\u00df\u0001"+
+		"\u0000\u00e0\u00e7\u0001\u0000\u00e8\u00eb\u0005\u0000\n\nFF\u00db\u00db"+
+		"\u00df\u00df\u00f4\u00f4\u0001\u0000MT\u0002\u0000\u0014\u00149L\u0001"+
+		"\u0000U^\u0001\u0000_p\u0001\u0000q\u0081\u0001\u0000\u0082\u0091\u0002"+
+		"\u0000nn\u0092\u009f\u0001\u0000\u00a0\u00bb\u0001\u0000\u00bc\u00c1\u0004"+
+		"\u0000\t,88CC\u00f2\u00f3\u0003\u0000\u00b8\u00b8\u00ce\u00ce\u00da\u00df"+
+		"\u02de\u0000\u00b9\u0001\u0000\u0000\u0000\u0002\u00bb\u0001\u0000\u0000"+
+		"\u0000\u0004\u00c3\u0001\u0000\u0000\u0000\u0006\u00d2\u0001\u0000\u0000"+
+		"\u0000\b\u00f7\u0001\u0000\u0000\u0000\n\u010b\u0001\u0000\u0000\u0000"+
+		"\f\u010d\u0001\u0000\u0000\u0000\u000e\u0116\u0001\u0000\u0000\u0000\u0010"+
+		"\u0129\u0001\u0000\u0000\u0000\u0012\u012c\u0001\u0000\u0000\u0000\u0014"+
+		"\u012f\u0001\u0000\u0000\u0000\u0016\u0131\u0001\u0000\u0000\u0000\u0018"+
+		"\u013b\u0001\u0000\u0000\u0000\u001a\u0148\u0001\u0000\u0000\u0000\u001c"+
+		"\u014c\u0001\u0000\u0000\u0000\u001e\u0151\u0001\u0000\u0000\u0000 \u015b"+
+		"\u0001\u0000\u0000\u0000\"\u015d\u0001\u0000\u0000\u0000$\u0160\u0001"+
+		"\u0000\u0000\u0000&\u0167\u0001\u0000\u0000\u0000(\u0169\u0001\u0000\u0000"+
+		"\u0000*\u0174\u0001\u0000\u0000\u0000,\u017d\u0001\u0000\u0000\u0000."+
+		"\u0183\u0001\u0000\u0000\u00000\u0185\u0001\u0000\u0000\u00002\u018f\u0001"+
+		"\u0000\u0000\u00004\u0191\u0001\u0000\u0000\u00006\u0193\u0001\u0000\u0000"+
+		"\u00008\u0198\u0001\u0000\u0000\u0000:\u019e\u0001\u0000\u0000\u0000<"+
+		"\u01a3\u0001\u0000\u0000\u0000>\u01ac\u0001\u0000\u0000\u0000@\u01b4\u0001"+
+		"\u0000\u0000\u0000B\u01d1\u0001\u0000\u0000\u0000D\u01d3\u0001\u0000\u0000"+
+		"\u0000F\u01d8\u0001\u0000\u0000\u0000H\u01dd\u0001\u0000\u0000\u0000J"+
+		"\u01e6\u0001\u0000\u0000\u0000L\u01e8\u0001\u0000\u0000\u0000N\u01ec\u0001"+
+		"\u0000\u0000\u0000P\u01fc\u0001\u0000\u0000\u0000R\u0202\u0001\u0000\u0000"+
+		"\u0000T\u0204\u0001\u0000\u0000\u0000V\u020c\u0001\u0000\u0000\u0000X"+
+		"\u020f\u0001\u0000\u0000\u0000Z\u0216\u0001\u0000\u0000\u0000\\\u021c"+
+		"\u0001\u0000\u0000\u0000^\u0221\u0001\u0000\u0000\u0000`\u0223\u0001\u0000"+
+		"\u0000\u0000b\u0225\u0001\u0000\u0000\u0000d\u022c\u0001\u0000\u0000\u0000"+
+		"f\u0230\u0001\u0000\u0000\u0000h\u0235\u0001\u0000\u0000\u0000j\u0237"+
+		"\u0001\u0000\u0000\u0000l\u0246\u0001\u0000\u0000\u0000n\u0248\u0001\u0000"+
+		"\u0000\u0000p\u0253\u0001\u0000\u0000\u0000r\u025b\u0001\u0000\u0000\u0000"+
+		"t\u025d\u0001\u0000\u0000\u0000v\u025f\u0001\u0000\u0000\u0000x\u0269"+
+		"\u0001\u0000\u0000\u0000z\u026c\u0001\u0000\u0000\u0000|\u0278\u0001\u0000"+
+		"\u0000\u0000~\u027f\u0001\u0000\u0000\u0000\u0080\u028d\u0001\u0000\u0000"+
+		"\u0000\u0082\u028f\u0001\u0000\u0000\u0000\u0084\u0294\u0001\u0000\u0000"+
+		"\u0000\u0086\u0299\u0001\u0000\u0000\u0000\u0088\u029b\u0001\u0000\u0000"+
+		"\u0000\u008a\u029d\u0001\u0000\u0000\u0000\u008c\u029f\u0001\u0000\u0000"+
+		"\u0000\u008e\u02a1\u0001\u0000\u0000\u0000\u0090\u02a3\u0001\u0000\u0000"+
+		"\u0000\u0092\u02a5\u0001\u0000\u0000\u0000\u0094\u02a8\u0001\u0000\u0000"+
+		"\u0000\u0096\u02b3\u0001\u0000\u0000\u0000\u0098\u02c1\u0001\u0000\u0000"+
+		"\u0000\u009a\u02c3\u0001\u0000\u0000\u0000\u009c\u02c5\u0001\u0000\u0000"+
+		"\u0000\u009e\u02c9\u0001\u0000\u0000\u0000\u00a0\u02cb\u0001\u0000\u0000"+
+		"\u0000\u00a2\u00ba\u0003\u0002\u0001\u0000\u00a3\u00ba\u0003\b\u0004\u0000"+
+		"\u00a4\u00ba\u0003\u0004\u0002\u0000\u00a5\u00ba\u0003\u0006\u0003\u0000"+
+		"\u00a6\u00ba\u0003\u000e\u0007\u0000\u00a7\u00ba\u0003\u0016\u000b\u0000"+
+		"\u00a8\u00aa\u00036\u001b\u0000\u00a9\u00a8\u0001\u0000\u0000\u0000\u00a9"+
+		"\u00aa\u0001\u0000\u0000\u0000\u00aa\u00ab\u0001\u0000\u0000\u0000\u00ab"+
+		"\u00b1\u0003\u001c\u000e\u0000\u00ac\u00ad\u00034\u001a\u0000\u00ad\u00ae"+
+		"\u0003\u001c\u000e\u0000\u00ae\u00b0\u0001\u0000\u0000\u0000\u00af\u00ac"+
+		"\u0001\u0000\u0000\u0000\u00b0\u00b3\u0001\u0000\u0000\u0000\u00b1\u00af"+
+		"\u0001\u0000\u0000\u0000\u00b1\u00b2\u0001\u0000\u0000\u0000\u00b2\u00b5"+
+		"\u0001\u0000\u0000\u0000\u00b3\u00b1\u0001\u0000\u0000\u0000\u00b4\u00b6"+
+		"\u0005\u0004\u0000\u0000\u00b5\u00b4\u0001\u0000\u0000\u0000\u00b5\u00b6"+
+		"\u0001\u0000\u0000\u0000\u00b6\u00b7\u0001\u0000\u0000\u0000\u00b7\u00b8"+
+		"\u0005\u0000\u0000\u0001\u00b8\u00ba\u0001\u0000\u0000\u0000\u00b9\u00a2"+
+		"\u0001\u0000\u0000\u0000\u00b9\u00a3\u0001\u0000\u0000\u0000\u00b9\u00a4"+
+		"\u0001\u0000\u0000\u0000\u00b9\u00a5\u0001\u0000\u0000\u0000\u00b9\u00a6"+
+		"\u0001\u0000\u0000\u0000\u00b9\u00a7\u0001\u0000\u0000\u0000\u00b9\u00a9"+
+		"\u0001\u0000\u0000\u0000\u00ba\u0001\u0001\u0000\u0000\u0000\u00bb\u00bc"+
+		"\u0003\u001c\u000e\u0000\u00bc\u00bd\u0005\u0013\u0000\u0000\u00bd\u00bf"+
+		"\u0003\u001e\u000f\u0000\u00be\u00c0\u0005\u0004\u0000\u0000\u00bf\u00be"+
+		"\u0001\u0000\u0000\u0000\u00bf\u00c0\u0001\u0000\u0000\u0000\u00c0\u00c1"+
+		"\u0001\u0000\u0000\u0000\u00c1\u00c2\u0005\u0000\u0000\u0001\u00c2\u0003"+
+		"\u0001\u0000\u0000\u0000\u00c3\u00c8\u0003\u001e\u000f\u0000\u00c4\u00c5"+
+		"\u0005\f\u0000\u0000\u00c5\u00c7\u0003\u001e\u000f\u0000\u00c6\u00c4\u0001"+
+		"\u0000\u0000\u0000\u00c7\u00ca\u0001\u0000\u0000\u0000\u00c8\u00c6\u0001"+
+		"\u0000\u0000\u0000\u00c8\u00c9\u0001\u0000\u0000\u0000\u00c9\u00cb\u0001"+
+		"\u0000\u0000\u0000\u00ca\u00c8\u0001\u0000\u0000\u0000\u00cb\u00cc\u0005"+
+		"\f\u0000\u0000\u00cc\u00ce\u0003\u0018\f\u0000\u00cd\u00cf\u0005\u0004"+
+		"\u0000\u0000\u00ce\u00cd\u0001\u0000\u0000\u0000\u00ce\u00cf\u0001\u0000"+
+		"\u0000\u0000\u00cf\u00d0\u0001\u0000\u0000\u0000\u00d0\u00d1\u0005\u0000"+
+		"\u0000\u0001\u00d1\u0005\u0001\u0000\u0000\u0000\u00d2\u00d4\u0003L&\u0000"+
+		"\u00d3\u00d5\u0003L&\u0000\u00d4\u00d3\u0001\u0000\u0000\u0000\u00d5\u00d6"+
+		"\u0001\u0000\u0000\u0000\u00d6\u00d4\u0001\u0000\u0000\u0000\u00d6\u00d7"+
+		"\u0001\u0000\u0000\u0000\u00d7\u00d8\u0001\u0000\u0000\u0000\u00d8\u00d9"+
+		"\u0005\f\u0000\u0000\u00d9\u00de\u0003\u001e\u000f\u0000\u00da\u00db\u0005"+
+		"\f\u0000\u0000\u00db\u00dd\u0003\u001e\u000f\u0000\u00dc\u00da\u0001\u0000"+
+		"\u0000\u0000\u00dd\u00e0\u0001\u0000\u0000\u0000\u00de\u00dc\u0001\u0000"+
+		"\u0000\u0000\u00de\u00df\u0001\u0000\u0000\u0000\u00df\u00e2\u0001\u0000"+
+		"\u0000\u0000\u00e0\u00de\u0001\u0000\u0000\u0000\u00e1\u00e3\u0005\u0004"+
+		"\u0000\u0000\u00e2\u00e1\u0001\u0000\u0000\u0000\u00e2\u00e3\u0001\u0000"+
+		"\u0000\u0000\u00e3\u00e4\u0001\u0000\u0000\u0000\u00e4\u00e5\u0005\u0000"+
+		"\u0000\u0001\u00e5\u0007\u0001\u0000\u0000\u0000\u00e6\u00e7\u0003B!\u0000"+
+		"\u00e7\u00e8\u0005\u00f2\u0000\u0000\u00e8\u00e9\u0003\u001c\u000e\u0000"+
+		"\u00e9\u00ea\u0005\u00f3\u0000\u0000\u00ea\u00eb\u0003\u001c\u000e\u0000"+
+		"\u00eb\u00f8\u0001\u0000\u0000\u0000\u00ec\u00ed\u0005\u00f2\u0000\u0000"+
+		"\u00ed\u00ee\u0003\u001c\u000e\u0000\u00ee\u00ef\u0005\u00f3\u0000\u0000"+
+		"\u00ef\u00f0\u0003\f\u0006\u0000\u00f0\u00f1\u0003\u001c\u000e\u0000\u00f1"+
+		"\u00f8\u0001\u0000\u0000\u0000\u00f2\u00f3\u0005\u00f2\u0000\u0000\u00f3"+
+		"\u00f4\u0003\u001c\u000e\u0000\u00f4\u00f5\u0005\u00f3\u0000\u0000\u00f5"+
+		"\u00f6\u0003\u001c\u000e\u0000\u00f6\u00f8\u0001\u0000\u0000\u0000\u00f7"+
+		"\u00e6\u0001\u0000\u0000\u0000\u00f7\u00ec\u0001\u0000\u0000\u0000\u00f7"+
+		"\u00f2\u0001\u0000\u0000\u0000\u00f8\u00fb\u0001\u0000\u0000\u0000\u00f9"+
+		"\u00fa\u0005\u00f1\u0000\u0000\u00fa\u00fc\u0003\n\u0005\u0000\u00fb\u00f9"+
+		"\u0001\u0000\u0000\u0000\u00fb\u00fc\u0001\u0000\u0000\u0000\u00fc\u00ff"+
+		"\u0001\u0000\u0000\u0000\u00fd\u00fe\u0005\f\u0000\u0000\u00fe\u0100\u0003"+
+		"\u001c\u000e\u0000\u00ff\u00fd\u0001\u0000\u0000\u0000\u00ff\u0100\u0001"+
+		"\u0000\u0000\u0000\u0100\u0102\u0001\u0000\u0000\u0000\u0101\u0103\u0005"+
+		"\u0004\u0000\u0000\u0102\u0101\u0001\u0000\u0000\u0000\u0102\u0103\u0001"+
+		"\u0000\u0000\u0000\u0103\u0104\u0001\u0000\u0000\u0000\u0104\u0105\u0005"+
+		"\u0000\u0000\u0001\u0105\t\u0001\u0000\u0000\u0000\u0106\u0107\u0003\u001c"+
+		"\u000e\u0000\u0107\u0108\u0005\u0013\u0000\u0000\u0108\u0109\u0003\u001c"+
+		"\u000e\u0000\u0109\u010c\u0001\u0000\u0000\u0000\u010a\u010c\u0003\u001c"+
+		"\u000e\u0000\u010b\u0106\u0001\u0000\u0000\u0000\u010b\u010a\u0001\u0000"+
+		"\u0000\u0000\u010c\u000b\u0001\u0000\u0000\u0000\u010d\u010e\u0003>\u001f"+
+		"\u0000\u010e\u010f\u0003L&\u0000\u010f\u0110\u0005J\u0000\u0000\u0110"+
+		"\u0111\u0005\u0001\u0000\u0000\u0111\u0112\u0005\u00f4\u0000\u0000\u0112"+
+		"\u0113\u0005\u0001\u0000\u0000\u0113\u0114\u0005t\u0000\u0000\u0114\r"+
+		"\u0001\u0000\u0000\u0000\u0115\u0117\u0003L&\u0000\u0116\u0115\u0001\u0000"+
+		"\u0000\u0000\u0117\u0118\u0001\u0000\u0000\u0000\u0118\u0116\u0001\u0000"+
+		"\u0000\u0000\u0118\u0119\u0001\u0000\u0000\u0000\u0119\u011a\u0001\u0000"+
+		"\u0000\u0000\u011a\u011b\u0005\t\u0000\u0000\u011b\u011d\u0003\u0010\b"+
+		"\u0000\u011c\u011e\u0003\u0010\b\u0000\u011d\u011c\u0001\u0000\u0000\u0000"+
+		"\u011e\u011f\u0001\u0000\u0000\u0000\u011f\u011d\u0001\u0000\u0000\u0000"+
+		"\u011f\u0120\u0001\u0000\u0000\u0000\u0120\u0121\u0001\u0000\u0000\u0000"+
+		"\u0121\u0122\u0003\u0012\t\u0000\u0122\u0123\u0003\u0014\n\u0000\u0123"+
+		"\u0125\u0003z=\u0000\u0124\u0126\u0005\u0004\u0000\u0000\u0125\u0124\u0001"+
+		"\u0000\u0000\u0000\u0125\u0126\u0001\u0000\u0000\u0000\u0126\u0127\u0001"+
+		"\u0000\u0000\u0000\u0127\u0128\u0005\u0000\u0000\u0001\u0128\u000f\u0001"+
+		"\u0000\u0000\u0000\u0129\u012a\u0003L&\u0000\u012a\u012b\u0003L&\u0000"+
+		"\u012b\u0011\u0001\u0000\u0000\u0000\u012c\u012d\u0003L&\u0000\u012d\u012e"+
+		"\u0003L&\u0000\u012e\u0013\u0001\u0000\u0000\u0000\u012f\u0130\u0003L"+
+		"&\u0000\u0130\u0015\u0001\u0000\u0000\u0000\u0131\u0134\u0003\u0018\f"+
+		"\u0000\u0132\u0133\u0005\f\u0000\u0000\u0133\u0135\u0003\u001c\u000e\u0000"+
+		"\u0134\u0132\u0001\u0000\u0000\u0000\u0134\u0135\u0001\u0000\u0000\u0000"+
+		"\u0135\u0137\u0001\u0000\u0000\u0000\u0136\u0138\u0005\u0004\u0000\u0000"+
+		"\u0137\u0136\u0001\u0000\u0000\u0000\u0137\u0138\u0001\u0000\u0000\u0000"+
+		"\u0138\u0139\u0001\u0000\u0000\u0000\u0139\u013a\u0005\u0000\u0000\u0001"+
+		"\u013a\u0017\u0001\u0000\u0000\u0000\u013b\u013c\u0005\u00ef\u0000\u0000"+
+		"\u013c\u013d\u0003\u001c\u000e\u0000\u013d\u013e\u0005\u00f0\u0000\u0000"+
+		"\u013e\u0144\u0003\u001a\r\u0000\u013f\u0142\u0005\u00f1\u0000\u0000\u0140"+
+		"\u0143\u0003\u0018\f\u0000\u0141\u0143\u0003\u001a\r\u0000\u0142\u0140"+
+		"\u0001\u0000\u0000\u0000\u0142\u0141\u0001\u0000\u0000\u0000\u0143\u0145"+
+		"\u0001\u0000\u0000\u0000\u0144\u013f\u0001\u0000\u0000\u0000\u0144\u0145"+
+		"\u0001\u0000\u0000\u0000\u0145\u0019\u0001\u0000\u0000\u0000\u0146\u0149"+
+		"\u0003N\'\u0000\u0147\u0149\u0003\u001c\u000e\u0000\u0148\u0146\u0001"+
+		"\u0000\u0000\u0000\u0148\u0147\u0001\u0000\u0000\u0000\u0149\u001b\u0001"+
+		"\u0000\u0000\u0000\u014a\u014d\u0003\u001e\u000f\u0000\u014b\u014d\u0003"+
+		"$\u0012\u0000\u014c\u014a\u0001\u0000\u0000\u0000\u014c\u014b\u0001\u0000"+
+		"\u0000\u0000\u014d\u001d\u0001\u0000\u0000\u0000\u014e\u0150\u0003 \u0010"+
+		"\u0000\u014f\u014e\u0001\u0000\u0000\u0000\u0150\u0153\u0001\u0000\u0000"+
+		"\u0000\u0151\u014f\u0001\u0000\u0000\u0000\u0151\u0152\u0001\u0000\u0000"+
+		"\u0000\u0152\u0154\u0001\u0000\u0000\u0000\u0153\u0151\u0001\u0000\u0000"+
+		"\u0000\u0154\u0158\u0003z=\u0000\u0155\u0157\u0003\"\u0011\u0000\u0156"+
+		"\u0155\u0001\u0000\u0000\u0000\u0157\u015a\u0001\u0000\u0000\u0000\u0158"+
+		"\u0156\u0001\u0000\u0000\u0000\u0158\u0159\u0001\u0000\u0000\u0000\u0159"+
+		"\u001f\u0001\u0000\u0000\u0000\u015a\u0158\u0001\u0000\u0000\u0000\u015b"+
+		"\u015c\u0003&\u0013\u0000\u015c!\u0001\u0000\u0000\u0000\u015d\u015e\u0003"+
+		"&\u0013\u0000\u015e#\u0001\u0000\u0000\u0000\u015f\u0161\u0003&\u0013"+
+		"\u0000\u0160\u015f\u0001\u0000\u0000\u0000\u0161\u0162\u0001\u0000\u0000"+
+		"\u0000\u0162\u0160\u0001\u0000\u0000\u0000\u0162\u0163\u0001\u0000\u0000"+
+		"\u0000\u0163%\u0001\u0000\u0000\u0000\u0164\u0168\u0003(\u0014\u0000\u0165"+
+		"\u0168\u00032\u0019\u0000\u0166\u0168\u0003\u0096K\u0000\u0167\u0164\u0001"+
+		"\u0000\u0000\u0000\u0167\u0165\u0001\u0000\u0000\u0000\u0167\u0166\u0001"+
+		"\u0000\u0000\u0000\u0168\'\u0001\u0000\u0000\u0000\u0169\u016a\u0003*"+
+		"\u0015\u0000\u016a\u016b\u0003,\u0016\u0000\u016b\u016c\u0005J\u0000\u0000"+
+		"\u016c\u016d\u0005\u0001\u0000\u0000\u016d\u016e\u0005\u00f4\u0000\u0000"+
+		"\u016e\u016f\u0005\u0001\u0000\u0000\u016f\u0170\u0005t\u0000\u0000\u0170"+
+		")\u0001\u0000\u0000\u0000\u0171\u0172\u0003J%\u0000\u0172\u0173\u0005"+
+		"\u0001\u0000\u0000\u0173\u0175\u0001\u0000\u0000\u0000\u0174\u0171\u0001"+
+		"\u0000\u0000\u0000\u0175\u0176\u0001\u0000\u0000\u0000\u0176\u0174\u0001"+
+		"\u0000\u0000\u0000\u0176\u0177\u0001\u0000\u0000\u0000\u0177\u0178\u0001"+
+		"\u0000\u0000\u0000\u0178\u0179\u0003.\u0017\u0000\u0179+\u0001\u0000\u0000"+
+		"\u0000\u017a\u017b\u0003J%\u0000\u017b\u017c\u0005\u0001\u0000\u0000\u017c"+
+		"\u017e\u0001\u0000\u0000\u0000\u017d\u017a\u0001\u0000\u0000\u0000\u017e"+
+		"\u017f\u0001\u0000\u0000\u0000\u017f\u017d\u0001\u0000\u0000\u0000\u017f"+
+		"\u0180\u0001\u0000\u0000\u0000\u0180\u0181\u0001\u0000\u0000\u0000\u0181"+
+		"\u0182\u00030\u0018\u0000\u0182-\u0001\u0000\u0000\u0000\u0183\u0184\u0007"+
+		"\u0000\u0000\u0000\u0184/\u0001\u0000\u0000\u0000\u0185\u0186\u0007\u0001"+
+		"\u0000\u0000\u01861\u0001\u0000\u0000\u0000\u0187\u0190\u0003L&\u0000"+
+		"\u0188\u0190\u0003n7\u0000\u0189\u0190\u0003<\u001e\u0000\u018a\u0190"+
+		"\u0003>\u001f\u0000\u018b\u0190\u0003B!\u0000\u018c\u0190\u0003D\"\u0000"+
+		"\u018d\u0190\u0003F#\u0000\u018e\u0190\u0003H$\u0000\u018f\u0187\u0001"+
+		"\u0000\u0000\u0000\u018f\u0188\u0001\u0000\u0000\u0000\u018f\u0189\u0001"+
+		"\u0000\u0000\u0000\u018f\u018a\u0001\u0000\u0000\u0000\u018f\u018b\u0001"+
+		"\u0000\u0000\u0000\u018f\u018c\u0001\u0000\u0000\u0000\u018f\u018d\u0001"+
+		"\u0000\u0000\u0000\u018f\u018e\u0001\u0000\u0000\u0000\u01903\u0001\u0000"+
+		"\u0000\u0000\u0191\u0192\u0007\u0002\u0000\u0000\u01925\u0001\u0000\u0000"+
+		"\u0000\u0193\u0194\u00038\u001c\u0000\u0194\u0196\u0003L&\u0000\u0195"+
+		"\u0197\u0005\u0003\u0000\u0000\u0196\u0195\u0001\u0000\u0000\u0000\u0196"+
+		"\u0197\u0001\u0000\u0000\u0000\u01977\u0001\u0000\u0000\u0000\u0198\u0199"+
+		"\u0007\u0003\u0000\u0000\u01999\u0001\u0000\u0000\u0000\u019a\u019f\u0003"+
+		"L&\u0000\u019b\u019f\u0003z=\u0000\u019c\u019f\u0003\u0096K\u0000\u019d"+
+		"\u019f\u0003<\u001e\u0000\u019e\u019a\u0001\u0000\u0000\u0000\u019e\u019b"+
+		"\u0001\u0000\u0000\u0000\u019e\u019c\u0001\u0000\u0000\u0000\u019e\u019d"+
+		"\u0001\u0000\u0000\u0000\u019f;\u0001\u0000\u0000\u0000\u01a0\u01a1\u0003"+
+		"J%\u0000\u01a1\u01a2\u0005\u0001\u0000\u0000\u01a2\u01a4\u0001\u0000\u0000"+
+		"\u0000\u01a3\u01a0\u0001\u0000\u0000\u0000\u01a4\u01a5\u0001\u0000\u0000"+
+		"\u0000\u01a5\u01a3\u0001\u0000\u0000\u0000\u01a5\u01a6\u0001\u0000\u0000"+
+		"\u0000\u01a6\u01a7\u0001\u0000\u0000\u0000\u01a7\u01a8\u0003\u008aE\u0000"+
+		"\u01a8=\u0001\u0000\u0000\u0000\u01a9\u01aa\u0003J%\u0000\u01aa\u01ab"+
+		"\u0005\u0001\u0000\u0000\u01ab\u01ad\u0001\u0000\u0000\u0000\u01ac\u01a9"+
+		"\u0001\u0000\u0000\u0000\u01ad\u01ae\u0001\u0000\u0000\u0000\u01ae\u01ac"+
+		"\u0001\u0000\u0000\u0000\u01ae\u01af\u0001\u0000\u0000\u0000\u01af\u01b0"+
+		"\u0001\u0000\u0000\u0000\u01b0\u01b1\u0003@ \u0000\u01b1\u01b2\u0005\u0001"+
+		"\u0000\u0000\u01b2\u01b3\u0003\u008aE\u0000\u01b3?\u0001\u0000\u0000\u0000"+
+		"\u01b4\u01b5\u0007\u0004\u0000\u0000\u01b5A\u0001\u0000\u0000\u0000\u01b6"+
+		"\u01b7\u0003J%\u0000\u01b7\u01b8\u0005\u0001\u0000\u0000\u01b8\u01ba\u0001"+
+		"\u0000\u0000\u0000\u01b9\u01b6\u0001\u0000\u0000\u0000\u01ba\u01bb\u0001"+
+		"\u0000\u0000\u0000\u01bb\u01b9\u0001\u0000\u0000\u0000\u01bb\u01bc\u0001"+
+		"\u0000\u0000\u0000\u01bc\u01bd\u0001\u0000\u0000\u0000\u01bd\u01be\u0005"+
+		"3\u0000\u0000\u01be\u01d2\u0001\u0000\u0000\u0000\u01bf\u01c0\u0003J%"+
+		"\u0000\u01c0\u01c1\u0005\u0001\u0000\u0000\u01c1\u01c3\u0001\u0000\u0000"+
+		"\u0000\u01c2\u01bf\u0001\u0000\u0000\u0000\u01c3\u01c4\u0001\u0000\u0000"+
+		"\u0000\u01c4\u01c2\u0001\u0000\u0000\u0000\u01c4\u01c5\u0001\u0000\u0000"+
+		"\u0000\u01c5\u01c6\u0001\u0000\u0000\u0000\u01c6\u01c7\u00054\u0000\u0000"+
+		"\u01c7\u01d2\u0001\u0000\u0000\u0000\u01c8\u01c9\u0003J%\u0000\u01c9\u01ca"+
+		"\u0005\u0001\u0000\u0000\u01ca\u01cc\u0001\u0000\u0000\u0000\u01cb\u01c8"+
+		"\u0001\u0000\u0000\u0000\u01cc\u01cd\u0001\u0000\u0000\u0000\u01cd\u01cb"+
+		"\u0001\u0000\u0000\u0000\u01cd\u01ce\u0001\u0000\u0000\u0000\u01ce\u01cf"+
+		"\u0001\u0000\u0000\u0000\u01cf\u01d0\u0005\u00df\u0000\u0000\u01d0\u01d2"+
+		"\u0001\u0000\u0000\u0000\u01d1\u01b9\u0001\u0000\u0000\u0000\u01d1\u01c2"+
+		"\u0001\u0000\u0000\u0000\u01d1\u01cb\u0001\u0000\u0000\u0000\u01d2C\u0001"+
+		"\u0000\u0000\u0000\u01d3\u01d4\u00055\u0000\u0000\u01d4\u01d5\u0005\u00f4"+
+		"\u0000\u0000\u01d5\u01d6\u0005\u0001\u0000\u0000\u01d6\u01d7\u0003\u008a"+
+		"E\u0000\u01d7E\u0001\u0000\u0000\u0000\u01d8\u01d9\u00056\u0000\u0000"+
+		"\u01d9\u01da\u0005\u00f4\u0000\u0000\u01da\u01db\u0005\u0001\u0000\u0000"+
+		"\u01db\u01dc\u0003\u008aE\u0000\u01dcG\u0001\u0000\u0000\u0000\u01dd\u01e0"+
+		"\u00057\u0000\u0000\u01de\u01df\u0005\u00f4\u0000\u0000\u01df\u01e1\u0005"+
+		"\u0001\u0000\u0000\u01e0\u01de\u0001\u0000\u0000\u0000\u01e1\u01e2\u0001"+
+		"\u0000\u0000\u0000\u01e2\u01e0\u0001\u0000\u0000\u0000\u01e2\u01e3\u0001"+
+		"\u0000\u0000\u0000\u01e3\u01e4\u0001\u0000\u0000\u0000\u01e4\u01e5\u0003"+
+		"\u008aE\u0000\u01e5I\u0001\u0000\u0000\u0000\u01e6\u01e7\u0005\u00f4\u0000"+
+		"\u0000\u01e7K\u0001\u0000\u0000\u0000\u01e8\u01e9\u0003N\'\u0000\u01e9"+
+		"\u01ea\u0005\u0001\u0000\u0000\u01ea\u01eb\u0003\u008aE\u0000\u01ebM\u0001"+
+		"\u0000\u0000\u0000\u01ec\u01f0\u0003P(\u0000\u01ed\u01ef\u0003R)\u0000"+
+		"\u01ee\u01ed\u0001\u0000\u0000\u0000\u01ef\u01f2\u0001\u0000\u0000\u0000"+
+		"\u01f0\u01ee\u0001\u0000\u0000\u0000\u01f0\u01f1\u0001\u0000\u0000\u0000"+
+		"\u01f1O\u0001\u0000\u0000\u0000\u01f2\u01f0\u0001\u0000\u0000\u0000\u01f3"+
+		"\u01fd\u0003T*\u0000\u01f4\u01fd\u0003V+\u0000\u01f5\u01fd\u0003X,\u0000"+
+		"\u01f6\u01fd\u0003Z-\u0000\u01f7\u01fd\u0003b1\u0000\u01f8\u01f9\u0005"+
+		"\u0005\u0000\u0000\u01f9\u01fa\u0003N\'\u0000\u01fa\u01fb\u0005\u0006"+
+		"\u0000\u0000\u01fb\u01fd\u0001\u0000\u0000\u0000\u01fc\u01f3\u0001\u0000"+
+		"\u0000\u0000\u01fc\u01f4\u0001\u0000\u0000\u0000\u01fc\u01f5\u0001\u0000"+
+		"\u0000\u0000\u01fc\u01f6\u0001\u0000\u0000\u0000\u01fc\u01f7\u0001\u0000"+
+		"\u0000\u0000\u01fc\u01f8\u0001\u0000\u0000\u0000\u01fdQ\u0001\u0000\u0000"+
+		"\u0000\u01fe\u01ff\u0005\u0001\u0000\u0000\u01ff\u0203\u0003^/\u0000\u0200"+
+		"\u0201\u0005\u0001\u0000\u0000\u0201\u0203\u0003`0\u0000\u0202\u01fe\u0001"+
+		"\u0000\u0000\u0000\u0202\u0200\u0001\u0000\u0000\u0000\u0203S\u0001\u0000"+
+		"\u0000\u0000\u0204\u0205\u0007\u0005\u0000\u0000\u0205U\u0001\u0000\u0000"+
+		"\u0000\u0206\u0207\u0005C\u0000\u0000\u0207\u0208\u0005\u0001\u0000\u0000"+
+		"\u0208\u020d\u0005\u00d9\u0000\u0000\u0209\u020a\u0005L\u0000\u0000\u020a"+
+		"\u020b\u0005\u0001\u0000\u0000\u020b\u020d\u0005\u00f4\u0000\u0000\u020c"+
+		"\u0206\u0001\u0000\u0000\u0000\u020c\u0209\u0001\u0000\u0000\u0000\u020d"+
+		"W\u0001\u0000\u0000\u0000\u020e\u0210\u0003v;\u0000\u020f\u020e\u0001"+
+		"\u0000\u0000\u0000\u020f\u0210\u0001\u0000\u0000\u0000\u0210\u0211\u0001"+
+		"\u0000\u0000\u0000\u0211\u0212\u0003p8\u0000\u0212\u0213\u0005\u0001\u0000"+
+		"\u0000\u0213\u0214\u0003\u0090H\u0000\u0214Y\u0001\u0000\u0000\u0000\u0215"+
+		"\u0217\u0003v;\u0000\u0216\u0215\u0001\u0000\u0000\u0000\u0216\u0217\u0001"+
+		"\u0000\u0000\u0000\u0217\u0218\u0001\u0000\u0000\u0000\u0218\u0219\u0003"+
+		"p8\u0000\u0219\u021a\u0005\u0001\u0000\u0000\u021a\u021b\u0003\\.\u0000"+
+		"\u021b[\u0001\u0000\u0000\u0000\u021c\u021d\u0005\u00ee\u0000\u0000\u021d"+
+		"\u021e\u0005\u0005\u0000\u0000\u021e\u021f\u0005\u00f4\u0000\u0000\u021f"+
+		"\u0220\u0005\u0006\u0000\u0000\u0220]\u0001\u0000\u0000\u0000\u0221\u0222"+
+		"\u0007\u0006\u0000\u0000\u0222_\u0001\u0000\u0000\u0000\u0223\u0224\u0007"+
+		"\u0007\u0000\u0000\u0224a\u0001\u0000\u0000\u0000\u0225\u0228\u0003d2"+
+		"\u0000\u0226\u0227\u0005\u0002\u0000\u0000\u0227\u0229\u0003d2\u0000\u0228"+
+		"\u0226\u0001\u0000\u0000\u0000\u0229\u022a\u0001\u0000\u0000\u0000\u022a"+
+		"\u0228\u0001\u0000\u0000\u0000\u022a\u022b\u0001\u0000\u0000\u0000\u022b"+
+		"c\u0001\u0000\u0000\u0000\u022c\u022e\u0003j5\u0000\u022d\u022f\u0003"+
+		"f3\u0000\u022e\u022d\u0001\u0000\u0000\u0000\u022e\u022f\u0001\u0000\u0000"+
+		"\u0000\u022fe\u0001\u0000\u0000\u0000\u0230\u0231\u0005\u0001\u0000\u0000"+
+		"\u0231\u0232\u0003\u008aE\u0000\u0232\u0233\u0005\u0001\u0000\u0000\u0233"+
+		"\u0234\u0003h4\u0000\u0234g\u0001\u0000\u0000\u0000\u0235\u0236\u0007"+
+		"\b\u0000\u0000\u0236i\u0001\u0000\u0000\u0000\u0237\u023b\u0003l6\u0000"+
+		"\u0238\u023a\u0003R)\u0000\u0239\u0238\u0001\u0000\u0000\u0000\u023a\u023d"+
+		"\u0001\u0000\u0000\u0000\u023b\u0239\u0001\u0000\u0000\u0000\u023b\u023c"+
+		"\u0001\u0000\u0000\u0000\u023ck\u0001\u0000\u0000\u0000\u023d\u023b\u0001"+
+		"\u0000\u0000\u0000\u023e\u0247\u0003T*\u0000\u023f\u0247\u0003V+\u0000"+
+		"\u0240\u0247\u0003X,\u0000\u0241\u0247\u0003Z-\u0000\u0242\u0243\u0005"+
+		"\u0005\u0000\u0000\u0243\u0244\u0003b1\u0000\u0244\u0245\u0005\u0006\u0000"+
+		"\u0000\u0245\u0247\u0001\u0000\u0000\u0000\u0246\u023e\u0001\u0000\u0000"+
+		"\u0000\u0246\u023f\u0001\u0000\u0000\u0000\u0246\u0240\u0001\u0000\u0000"+
+		"\u0000\u0246\u0241\u0001\u0000\u0000\u0000\u0246\u0242\u0001\u0000\u0000"+
+		"\u0000\u0247m\u0001\u0000\u0000\u0000\u0248\u024d\u0003L&\u0000\u0249"+
+		"\u024b\u0005\u0003\u0000\u0000\u024a\u0249\u0001\u0000\u0000\u0000\u024a"+
+		"\u024b\u0001\u0000\u0000\u0000\u024b\u024c\u0001\u0000\u0000\u0000\u024c"+
+		"\u024e\u0003L&\u0000\u024d\u024a\u0001\u0000\u0000\u0000\u024e\u024f\u0001"+
+		"\u0000\u0000\u0000\u024f\u024d\u0001\u0000\u0000\u0000\u024f\u0250\u0001"+
+		"\u0000\u0000\u0000\u0250\u0251\u0001\u0000\u0000\u0000\u0251\u0252\u0005"+
+		"\t\u0000\u0000\u0252o\u0001\u0000\u0000\u0000\u0253\u0258\u0003r9\u0000"+
+		"\u0254\u0255\u0005\u0001\u0000\u0000\u0255\u0257\u0003t:\u0000\u0256\u0254"+
+		"\u0001\u0000\u0000\u0000\u0257\u025a\u0001\u0000\u0000\u0000\u0258\u0256"+
+		"\u0001\u0000\u0000\u0000\u0258\u0259\u0001\u0000\u0000\u0000\u0259q\u0001"+
+		"\u0000\u0000\u0000\u025a\u0258\u0001\u0000\u0000\u0000\u025b\u025c\u0007"+
+		"\t\u0000\u0000\u025cs\u0001\u0000\u0000\u0000\u025d\u025e\u0007\n\u0000"+
+		"\u0000\u025eu\u0001\u0000\u0000\u0000\u025f\u0260\u0003x<\u0000\u0260"+
+		"\u0266\u0005\u0001\u0000\u0000\u0261\u0262\u0003x<\u0000\u0262\u0263\u0005"+
+		"\u0001\u0000\u0000\u0263\u0265\u0001\u0000\u0000\u0000\u0264\u0261\u0001"+
+		"\u0000\u0000\u0000\u0265\u0268\u0001\u0000\u0000\u0000\u0266\u0264\u0001"+
+		"\u0000\u0000\u0000\u0266\u0267\u0001\u0000\u0000\u0000\u0267w\u0001\u0000"+
+		"\u0000\u0000\u0268\u0266\u0001\u0000\u0000\u0000\u0269\u026a\u0007\u000b"+
+		"\u0000\u0000\u026ay\u0001\u0000\u0000\u0000\u026b\u026d\u0003v;\u0000"+
+		"\u026c\u026b\u0001\u0000\u0000\u0000\u026c\u026d\u0001\u0000\u0000\u0000"+
+		"\u026d\u026e\u0001\u0000\u0000\u0000\u026e\u0271\u0003p8\u0000\u026f\u0270"+
+		"\u0005\u0001\u0000\u0000\u0270\u0272\u0003\u008cF\u0000\u0271\u026f\u0001"+
+		"\u0000\u0000\u0000\u0271\u0272\u0001\u0000\u0000\u0000\u0272\u0273\u0001"+
+		"\u0000\u0000\u0000\u0273\u0274\u0005\u0001\u0000\u0000\u0274\u0275\u0003"+
+		"\u0086C\u0000\u0275\u0276\u0005\u0001\u0000\u0000\u0276\u0277\u0003\u0088"+
+		"D\u0000\u0277{\u0001\u0000\u0000\u0000\u0278\u0279\u0003~?\u0000\u0279"+
+		"\u027a\u0005\u0001\u0000\u0000\u027a\u027b\u0003\u0086C\u0000\u027b\u027c"+
+		"\u0005\u0001\u0000\u0000\u027c\u027d\u0003\u0088D\u0000\u027d\u027e\u0005"+
+		"\u0000\u0000\u0001\u027e}\u0001\u0000\u0000\u0000\u027f\u0284\u0003\u0080"+
+		"@\u0000\u0280\u0281\u0005\u0001\u0000\u0000\u0281\u0283\u0003\u0080@\u0000"+
+		"\u0282\u0280\u0001\u0000\u0000\u0000\u0283\u0286\u0001\u0000\u0000\u0000"+
+		"\u0284\u0282\u0001\u0000\u0000\u0000\u0284\u0285\u0001\u0000\u0000\u0000"+
+		"\u0285\u007f\u0001\u0000\u0000\u0000\u0286\u0284\u0001\u0000\u0000\u0000"+
+		"\u0287\u028e\u0003x<\u0000\u0288\u028e\u0003p8\u0000\u0289\u028e\u0003"+
+		"\u008eG\u0000\u028a\u028e\u0003\u008cF\u0000\u028b\u028e\u0003\u0082A"+
+		"\u0000\u028c\u028e\u0003\u0084B\u0000\u028d\u0287\u0001\u0000\u0000\u0000"+
+		"\u028d\u0288\u0001\u0000\u0000\u0000\u028d\u0289\u0001\u0000\u0000\u0000"+
+		"\u028d\u028a\u0001\u0000\u0000\u0000\u028d\u028b\u0001\u0000\u0000\u0000"+
+		"\u028d\u028c\u0001\u0000\u0000\u0000\u028e\u0081\u0001\u0000\u0000\u0000"+
+		"\u028f\u0290\u0005\u00ec\u0000\u0000\u0290\u0291\u0005\u0005\u0000\u0000"+
+		"\u0291\u0292\u0005\u00f4\u0000\u0000\u0292\u0293\u0005\u0006\u0000\u0000"+
+		"\u0293\u0083\u0001\u0000\u0000\u0000\u0294\u0295\u0005\u00ed\u0000\u0000"+
+		"\u0295\u0296\u0005\u0005\u0000\u0000\u0296\u0297\u0005\u00f4\u0000\u0000"+
+		"\u0297\u0298\u0005\u0006\u0000\u0000\u0298\u0085\u0001\u0000\u0000\u0000"+
+		"\u0299\u029a\u0007\f\u0000\u0000\u029a\u0087\u0001\u0000\u0000\u0000\u029b"+
+		"\u029c\u0007\r\u0000\u0000\u029c\u0089\u0001\u0000\u0000\u0000\u029d\u029e"+
+		"\u0007\u000e\u0000\u0000\u029e\u008b\u0001\u0000\u0000\u0000\u029f\u02a0"+
+		"\u0007\u000f\u0000\u0000\u02a0\u008d\u0001\u0000\u0000\u0000\u02a1\u02a2"+
+		"\u0007\u0010\u0000\u0000\u02a2\u008f\u0001\u0000\u0000\u0000\u02a3\u02a4"+
+		"\u0007\u0011\u0000\u0000\u02a4\u0091\u0001\u0000\u0000\u0000\u02a5\u02a6"+
+		"\u0007\u0012\u0000\u0000\u02a6\u0093\u0001\u0000\u0000\u0000\u02a7\u02a9"+
+		"\u0003v;\u0000\u02a8\u02a7\u0001\u0000\u0000\u0000\u02a8\u02a9\u0001\u0000"+
+		"\u0000\u0000\u02a9\u02aa\u0001\u0000\u0000\u0000\u02aa\u02ab\u0003p8\u0000"+
+		"\u02ab\u02ac\u0005\u0001\u0000\u0000\u02ac\u02ad\u0003\u0092I\u0000\u02ad"+
+		"\u0095\u0001\u0000\u0000\u0000\u02ae\u02b4\u0003\u009aM\u0000\u02af\u02b4"+
+		"\u0003\u0094J\u0000\u02b0\u02b4\u0003\u009cN\u0000\u02b1\u02b4\u0003\u00a0"+
+		"P\u0000\u02b2\u02b4\u0003\u0098L\u0000\u02b3\u02ae\u0001\u0000\u0000\u0000"+
+		"\u02b3\u02af\u0001\u0000\u0000\u0000\u02b3\u02b0\u0001\u0000\u0000\u0000"+
+		"\u02b3\u02b1\u0001\u0000\u0000\u0000\u02b3\u02b2\u0001\u0000\u0000\u0000"+
+		"\u02b4\u0097\u0001\u0000\u0000\u0000\u02b5\u02c2\u0005-\u0000\u0000\u02b6"+
+		"\u02c2\u0005.\u0000\u0000\u02b7\u02c2\u0005/\u0000\u0000\u02b8\u02c2\u0005"+
+		"0\u0000\u0000\u02b9\u02c2\u00051\u0000\u0000\u02ba\u02c2\u00052\u0000"+
+		"\u0000\u02bb\u02bc\u0005\u00f4\u0000\u0000\u02bc\u02c2\u00053\u0000\u0000"+
+		"\u02bd\u02be\u0005\u00f4\u0000\u0000\u02be\u02c2\u0005\u00df\u0000\u0000"+
+		"\u02bf\u02c0\u0005\u00f4\u0000\u0000\u02c0\u02c2\u0005\u008a\u0000\u0000"+
+		"\u02c1\u02b5\u0001\u0000\u0000\u0000\u02c1\u02b6\u0001\u0000\u0000\u0000"+
+		"\u02c1\u02b7\u0001\u0000\u0000\u0000\u02c1\u02b8\u0001\u0000\u0000\u0000"+
+		"\u02c1\u02b9\u0001\u0000\u0000\u0000\u02c1\u02ba\u0001\u0000\u0000\u0000"+
+		"\u02c1\u02bb\u0001\u0000\u0000\u0000\u02c1\u02bd\u0001\u0000\u0000\u0000"+
+		"\u02c1\u02bf\u0001\u0000\u0000\u0000\u02c2\u0099\u0001\u0000\u0000\u0000"+
+		"\u02c3\u02c4\u0007\u0013\u0000\u0000\u02c4\u009b\u0001\u0000\u0000\u0000"+
+		"\u02c5\u02c6\u0003T*\u0000\u02c6\u02c7\u0005\u0001\u0000\u0000\u02c7\u02c8"+
+		"\u0003\u009eO\u0000\u02c8\u009d\u0001\u0000\u0000\u0000\u02c9\u02ca\u0007"+
+		"\u0014\u0000\u0000\u02ca\u009f\u0001\u0000\u0000\u0000\u02cb\u02cc\u0003"+
+		"b1\u0000\u02cc\u00a1\u0001\u0000\u0000\u0000=\u00a9\u00b1\u00b5\u00b9"+
+		"\u00bf\u00c8\u00ce\u00d6\u00de\u00e2\u00f7\u00fb\u00ff\u0102\u010b\u0118"+
+		"\u011f\u0125\u0134\u0137\u0142\u0144\u0148\u014c\u0151\u0158\u0162\u0167"+
+		"\u0176\u017f\u018f\u0196\u019e\u01a5\u01ae\u01bb\u01c4\u01cd\u01d1\u01e2"+
+		"\u01f0\u01fc\u0202\u020c\u020f\u0216\u022a\u022e\u023b\u0246\u024a\u024f"+
+		"\u0258\u0266\u026c\u0271\u0284\u028d\u02a8\u02b3\u02c1";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

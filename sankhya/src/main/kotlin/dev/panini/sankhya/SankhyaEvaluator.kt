@@ -33,8 +33,12 @@ class SankhyaEvaluator {
 
         // Split by "अधिक" if present as an internal marker (handling optional preceding "अभि" upasarga)
         val adhikaIndex = stems.indexOf("अधिक")
-        if (adhikaIndex > 0 && adhikaIndex < stems.size - 1) {
+        if (adhikaIndex >= 0) {
+            require(adhikaIndex > 0 && adhikaIndex < stems.size - 1) {
+                "अधिक requires a preceding remainder and a following base numeral."
+            }
             val remStems = if (stems[adhikaIndex - 1] == "अभि") stems.subList(0, adhikaIndex - 1) else stems.subList(0, adhikaIndex)
+            require(remStems.isNotEmpty()) { "अभि + अधिक requires a preceding remainder numeral." }
             val rem = evaluateStems(remStems)
             val base = evaluateStems(stems.subList(adhikaIndex + 1, stems.size))
             return SankhyaExpression.Adhika(remainder = rem, base = base)
@@ -42,7 +46,10 @@ class SankhyaEvaluator {
 
         // Split by "ऊन" or "न्यून" if present as an internal marker
         val unaIndex = stems.indexOfFirst { it == "ऊन" || it == "न्यून" }
-        if (unaIndex > 0 && unaIndex < stems.size - 1) {
+        if (unaIndex >= 0) {
+            require(unaIndex > 0 && unaIndex < stems.size - 1) {
+                "${stems[unaIndex]} requires a preceding subtrahend and a following base numeral."
+            }
             val sub = evaluateStems(stems.subList(0, unaIndex))
             val base = evaluateStems(stems.subList(unaIndex + 1, stems.size))
             return SankhyaExpression.Una(subtrahend = sub, base = base)

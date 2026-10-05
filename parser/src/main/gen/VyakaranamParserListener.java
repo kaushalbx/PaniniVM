@@ -1,4 +1,4 @@
-// Generated from /Users/kaushalbx/StudioProjects/AshtadhyayiSandhi/parser/src/main/antlr/dev/panini/vyakaranam/VyakaranamParser.g4 by ANTLR 4.13.2
+// Generated from C:/Users/User/Documents/SanskritSandhi/parser/src/main/antlr/dev/panini/vyakaranam/VyakaranamParser.g4 by ANTLR 4.13.2
 
 package dev.panini.parser;
 
@@ -20,6 +20,106 @@ public interface VyakaranamParserListener extends ParseTreeListener {
 	 */
 	void exitUkti(VyakaranamParser.UktiContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link VyakaranamParser#quotationClause}.
+	 * @param ctx the parse tree
+	 */
+	void enterQuotationClause(VyakaranamParser.QuotationClauseContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link VyakaranamParser#quotationClause}.
+	 * @param ctx the parse tree
+	 */
+	void exitQuotationClause(VyakaranamParser.QuotationClauseContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link VyakaranamParser#conditionalPipelineClause}.
+	 * @param ctx the parse tree
+	 */
+	void enterConditionalPipelineClause(VyakaranamParser.ConditionalPipelineClauseContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link VyakaranamParser#conditionalPipelineClause}.
+	 * @param ctx the parse tree
+	 */
+	void exitConditionalPipelineClause(VyakaranamParser.ConditionalPipelineClauseContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link VyakaranamParser#attributePipelineClause}.
+	 * @param ctx the parse tree
+	 */
+	void enterAttributePipelineClause(VyakaranamParser.AttributePipelineClauseContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link VyakaranamParser#attributePipelineClause}.
+	 * @param ctx the parse tree
+	 */
+	void exitAttributePipelineClause(VyakaranamParser.AttributePipelineClauseContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link VyakaranamParser#whileClause}.
+	 * @param ctx the parse tree
+	 */
+	void enterWhileClause(VyakaranamParser.WhileClauseContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link VyakaranamParser#whileClause}.
+	 * @param ctx the parse tree
+	 */
+	void exitWhileClause(VyakaranamParser.WhileClauseContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link VyakaranamParser#whileExhausted}.
+	 * @param ctx the parse tree
+	 */
+	void enterWhileExhausted(VyakaranamParser.WhileExhaustedContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link VyakaranamParser#whileExhausted}.
+	 * @param ctx the parse tree
+	 */
+	void exitWhileExhausted(VyakaranamParser.WhileExhaustedContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link VyakaranamParser#ordinalAttemptBoundary}.
+	 * @param ctx the parse tree
+	 */
+	void enterOrdinalAttemptBoundary(VyakaranamParser.OrdinalAttemptBoundaryContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link VyakaranamParser#ordinalAttemptBoundary}.
+	 * @param ctx the parse tree
+	 */
+	void exitOrdinalAttemptBoundary(VyakaranamParser.OrdinalAttemptBoundaryContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link VyakaranamParser#pipelineClause}.
+	 * @param ctx the parse tree
+	 */
+	void enterPipelineClause(VyakaranamParser.PipelineClauseContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link VyakaranamParser#pipelineClause}.
+	 * @param ctx the parse tree
+	 */
+	void exitPipelineClause(VyakaranamParser.PipelineClauseContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link VyakaranamParser#pipelineStage}.
+	 * @param ctx the parse tree
+	 */
+	void enterPipelineStage(VyakaranamParser.PipelineStageContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link VyakaranamParser#pipelineStage}.
+	 * @param ctx the parse tree
+	 */
+	void exitPipelineStage(VyakaranamParser.PipelineStageContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link VyakaranamParser#purvaparaDirective}.
+	 * @param ctx the parse tree
+	 */
+	void enterPurvaparaDirective(VyakaranamParser.PurvaparaDirectiveContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link VyakaranamParser#purvaparaDirective}.
+	 * @param ctx the parse tree
+	 */
+	void exitPurvaparaDirective(VyakaranamParser.PurvaparaDirectiveContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link VyakaranamParser#pipelineResult}.
+	 * @param ctx the parse tree
+	 */
+	void enterPipelineResult(VyakaranamParser.PipelineResultContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link VyakaranamParser#pipelineResult}.
+	 * @param ctx the parse tree
+	 */
+	void exitPipelineResult(VyakaranamParser.PipelineResultContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link VyakaranamParser#conditionalClause}.
 	 * @param ctx the parse tree
 	 */
@@ -30,15 +130,25 @@ public interface VyakaranamParserListener extends ParseTreeListener {
 	 */
 	void exitConditionalClause(VyakaranamParser.ConditionalClauseContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link VyakaranamParser#loopClause}.
+	 * Enter a parse tree produced by {@link VyakaranamParser#conditionalExpression}.
 	 * @param ctx the parse tree
 	 */
-	void enterLoopClause(VyakaranamParser.LoopClauseContext ctx);
+	void enterConditionalExpression(VyakaranamParser.ConditionalExpressionContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link VyakaranamParser#loopClause}.
+	 * Exit a parse tree produced by {@link VyakaranamParser#conditionalExpression}.
 	 * @param ctx the parse tree
 	 */
-	void exitLoopClause(VyakaranamParser.LoopClauseContext ctx);
+	void exitConditionalExpression(VyakaranamParser.ConditionalExpressionContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link VyakaranamParser#conditionalArm}.
+	 * @param ctx the parse tree
+	 */
+	void enterConditionalArm(VyakaranamParser.ConditionalArmContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link VyakaranamParser#conditionalArm}.
+	 * @param ctx the parse tree
+	 */
+	void exitConditionalArm(VyakaranamParser.ConditionalArmContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link VyakaranamParser#vakya}.
 	 * @param ctx the parse tree
@@ -99,6 +209,56 @@ public interface VyakaranamParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitVakyaPada(VyakaranamParser.VakyaPadaContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link VyakaranamParser#paryantaRange}.
+	 * @param ctx the parse tree
+	 */
+	void enterParyantaRange(VyakaranamParser.ParyantaRangeContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link VyakaranamParser#paryantaRange}.
+	 * @param ctx the parse tree
+	 */
+	void exitParyantaRange(VyakaranamParser.ParyantaRangeContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link VyakaranamParser#ablativeNumeral}.
+	 * @param ctx the parse tree
+	 */
+	void enterAblativeNumeral(VyakaranamParser.AblativeNumeralContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link VyakaranamParser#ablativeNumeral}.
+	 * @param ctx the parse tree
+	 */
+	void exitAblativeNumeral(VyakaranamParser.AblativeNumeralContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link VyakaranamParser#accusativeNumeral}.
+	 * @param ctx the parse tree
+	 */
+	void enterAccusativeNumeral(VyakaranamParser.AccusativeNumeralContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link VyakaranamParser#accusativeNumeral}.
+	 * @param ctx the parse tree
+	 */
+	void exitAccusativeNumeral(VyakaranamParser.AccusativeNumeralContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link VyakaranamParser#ablativeSup}.
+	 * @param ctx the parse tree
+	 */
+	void enterAblativeSup(VyakaranamParser.AblativeSupContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link VyakaranamParser#ablativeSup}.
+	 * @param ctx the parse tree
+	 */
+	void exitAblativeSup(VyakaranamParser.AblativeSupContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link VyakaranamParser#accusativeSup}.
+	 * @param ctx the parse tree
+	 */
+	void enterAccusativeSup(VyakaranamParser.AccusativeSupContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link VyakaranamParser#accusativeSup}.
+	 * @param ctx the parse tree
+	 */
+	void exitAccusativeSup(VyakaranamParser.AccusativeSupContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link VyakaranamParser#subantaVakyaPada}.
 	 * @param ctx the parse tree
@@ -220,26 +380,6 @@ public interface VyakaranamParserListener extends ParseTreeListener {
 	 */
 	void exitBhutasamkhyaPada(VyakaranamParser.BhutasamkhyaPadaContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link VyakaranamParser#sankhyaBhinnaPada}.
-	 * @param ctx the parse tree
-	 */
-	void enterSankhyaBhinnaPada(VyakaranamParser.SankhyaBhinnaPadaContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link VyakaranamParser#sankhyaBhinnaPada}.
-	 * @param ctx the parse tree
-	 */
-	void exitSankhyaBhinnaPada(VyakaranamParser.SankhyaBhinnaPadaContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link VyakaranamParser#sankhyaMathPada}.
-	 * @param ctx the parse tree
-	 */
-	void enterSankhyaMathPada(VyakaranamParser.SankhyaMathPadaContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link VyakaranamParser#sankhyaMathPada}.
-	 * @param ctx the parse tree
-	 */
-	void exitSankhyaMathPada(VyakaranamParser.SankhyaMathPadaContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link VyakaranamParser#sankhyaStem}.
 	 * @param ctx the parse tree
 	 */
@@ -299,6 +439,16 @@ public interface VyakaranamParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitMulaPratipadika(VyakaranamParser.MulaPratipadikaContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link VyakaranamParser#samjnaQualifierPratipadika}.
+	 * @param ctx the parse tree
+	 */
+	void enterSamjnaQualifierPratipadika(VyakaranamParser.SamjnaQualifierPratipadikaContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link VyakaranamParser#samjnaQualifierPratipadika}.
+	 * @param ctx the parse tree
+	 */
+	void exitSamjnaQualifierPratipadika(VyakaranamParser.SamjnaQualifierPratipadikaContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link VyakaranamParser#kridantaPratipadika}.
 	 * @param ctx the parse tree

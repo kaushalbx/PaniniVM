@@ -12,24 +12,21 @@ data class PrakriyaCallFrame(
     companion object {
         private val sankhyaEvaluator = SankhyaEvaluator()
 
-        fun create(
+        /** Builds a call frame directly from grammar-resolved arguments without matching source fragments. */
+        fun createResolved(
             invocation: PrakriyaInvocation,
-            orderedTerms: List<String>,
+            resolvedArguments: List<ResolvedPrakriyaArgument>,
             callerScope: ExecutionScope,
         ): PrakriyaCallFrame {
-            val remaining = invocation.arguments.toMutableList()
-            val values = orderedTerms.map { term ->
-                val normalized = term.substringBefore('+').trim()
-                val matchIndex = remaining.indexOfFirst {
-                    it.term.substringBefore('+').trim() == normalized
-                }
-                val argument = if (matchIndex >= 0) remaining.removeAt(matchIndex) else null
-                argument?.value
-                    ?: callerScope.environment.values[normalized]
-                    ?: argument?.pada?.let(NumeralPadaBinder::resolveSemanticValue)
-                    ?: runCatching { sankhyaEvaluator.evaluateStems(listOf(normalized)) }
-                        .getOrNull()?.let { SanskritValue.Sankhya(it.value, normalized) }
-                    ?: SanskritValue.Shabda(term)
+            val values = resolvedArguments.map { resolved ->
+                val argument = resolved.argument
+                val referenceName = resolved.referenceName
+                argument.value
+                    ?: callerScope.environment.values[referenceName]
+                    ?: argument.pada?.let(NumeralPadaBinder::resolveSemanticValue)
+                    ?: runCatching { sankhyaEvaluator.evaluateStems(listOf(referenceName)) }
+                        .getOrNull()?.let { SanskritValue.Sankhya(it.value, referenceName) }
+                    ?: SanskritValue.Shabda(argument.term)
             }
             val bindings = invocation.kriya.signature.parameters
                 .zip(values)

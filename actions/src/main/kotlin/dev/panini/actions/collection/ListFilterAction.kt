@@ -103,10 +103,12 @@ object ListFilterAction : DhatuAction("सूचीशोधनम्", "सू�
             when (val result = targetOp.action.execute(innerContext, targetOp)) {
                 is ExecutionResult.Success -> {
                     val resultTyped = result.typedValue ?: SanskritValue.of(result.value, targetOp.resultSamjnas)
-                    val keep = when (resultTyped) {
-                        is SanskritValue.Satya -> resultTyped.boolean
-                        else -> result.value == "सत्यम्"
-                    }
+                    val keep = (resultTyped as? SanskritValue.Satya)?.boolean
+                        ?: return ExecutionResult.Failure(
+                            ExecutionError.INVALID_VALUE,
+                            "Filter predicate must produce a typed truth value at element $i.",
+                            trace + result.trace,
+                        )
                     if (keep) {
                         results += element
                         trace += "Element $i ('${element.toDisplayText()}') kept (matched)."

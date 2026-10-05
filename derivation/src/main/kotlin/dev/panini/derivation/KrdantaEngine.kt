@@ -45,16 +45,24 @@ class KrdantaEngine(
         dhatu: String,
         pratyaya: String,
         sanadiPratyayas: List<String> = emptyList(),
+        upasargas: List<String> = emptyList(),
     ): KrdantaSourceStem {
         val samjna = sourceAffixSamjna(pratyaya)
         val hasDhatu = DhatuPatha.all.any { it.matchesSurface(dhatu) }
         if (samjna == null) return KrdantaSourceStem.Unresolved(dhatu, KrdantaSourceStem.Unresolved.Reason.UNKNOWN_KRT_AFFIX)
         if (!hasDhatu) return KrdantaSourceStem.Unresolved(dhatu, KrdantaSourceStem.Unresolved.Reason.UNKNOWN_DHATU)
 
-        val result = derive(KrdantaDerivationRequest(dhatu, samjna, sanadiPratyayas = sanadiPratyayas))
+        val result = derive(
+            KrdantaDerivationRequest(
+                dhatu = dhatu,
+                samjna = samjna,
+                upasarga = upasargas.joinToString("").ifBlank { null },
+                sanadiPratyayas = sanadiPratyayas,
+            ),
+        )
         return KrdantaSourceStem.Productive(
             surface = result.final.surface,
-            supportsAStemDeclension = samjna in setOf(Samjna.GHAN, Samjna.LYUT),
+            supportsAStemDeclension = samjna in setOf(Samjna.KTA, Samjna.GHAN, Samjna.LYUT),
             derivation = result,
         )
     }

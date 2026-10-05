@@ -14,7 +14,7 @@ class ExecutionMetricsTest {
             """
             योग + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             एक + अम् द्वि + अम् च युज् + णिच् + लोट् + सिप् ॥
-            योग + अम् डुकृञ् + उ + लोट् + सिप् ।
+            योग + टा डुकृञ् + उ + लोट् + सिप् ।
             """.trimIndent(),
         )
 
@@ -47,7 +47,7 @@ class ExecutionMetricsTest {
         val entry = File(directory, "main.pvm")
         val library = File(directory, "library.pvm")
         try {
-            entry.writeText("योग + अम् डुकृञ् + उ + लोट् + सिप् ।")
+            entry.writeText("योग + टा डुकृञ् + उ + लोट् + सिप् ।")
             library.writeText(
                 """
                 योग + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।

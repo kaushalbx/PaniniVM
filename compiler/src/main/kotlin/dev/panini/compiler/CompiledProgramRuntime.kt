@@ -110,7 +110,6 @@ class CompiledProgramRuntime private constructor(
     private fun runtimeValue(name: String): SanskritValue? =
         parameterFrames.reversed().firstNotNullOfOrNull { it.parameterValues[name] }
             ?: values[name]
-            ?: if (name == "फल") values["LastResult"] else null
 
     fun snapshot(): Map<String, SanskritValue> = LinkedHashMap(values)
 

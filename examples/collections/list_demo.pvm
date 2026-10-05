@@ -1,11 +1,12 @@
 # List & Collection Operations Demo in PaniniVM Script (.pvm)
-# Appends items to collection and extracts values
+# Gathers items into a collection and extracts values
 
-# Step 1: Append elements 'राम' and 'फल' into collection (क्षिप्य)
-राम + अम् फल + अम् च क्षिप् + णिच् + लोट् + सिप् ।
+# Step 1: Gather Rama and Sita into an ordered collection and store it.
+राम + अम् सीता + अम् च सम् + ग्रहँ + श्ना + लोट् + सिप्
+    ततः फल + अम् सूची + ङि स्था + णिच् + लोट् + सिप् ।
 
-# Step 2: Fetch element 'राम' from collection (नय)
-राम + अम् नी + णिच् + लोट् + सिप् ।
+# Step 2: Extract the final member of the list; the stored list stays intact.
+सूची + ङस् अन्तिम + अम् उद् + हृ + लोट् + सिप् ।
 
 # Step 3: Print result of collection operation
-मुद्र् + णिच् + लोट् + सिप् फल + अम् ।
+फल + अम् मुद्र् + णिच् + लोट् + सिप् ।

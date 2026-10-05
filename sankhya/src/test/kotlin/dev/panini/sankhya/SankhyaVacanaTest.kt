@@ -11,7 +11,9 @@ class SankhyaVacanaTest {
         assertEquals(Vacana.EKAVACANA, SankhyaVacana.requiredFor(1))
         assertEquals(Vacana.DVIVACANA, SankhyaVacana.requiredFor(2))
         assertEquals(Vacana.BAHUVACANA, SankhyaVacana.requiredFor(3))
-        assertEquals(Vacana.BAHUVACANA, SankhyaVacana.requiredFor(100))
+        assertEquals(Vacana.EKAVACANA, SankhyaVacana.requiredFor(20))
+        assertEquals(Vacana.EKAVACANA, SankhyaVacana.requiredFor(100))
+        SankhyaVacana.requireCompatible(100, Vacana.BAHUVACANA)
         assertFailsWith<IllegalArgumentException> {
             SankhyaVacana.requireCompatible(2, Vacana.EKAVACANA)
         }

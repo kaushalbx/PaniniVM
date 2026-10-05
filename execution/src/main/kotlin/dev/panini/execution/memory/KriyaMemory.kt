@@ -6,6 +6,7 @@ import dev.panini.analysis.FrameKarakaResolution
 import dev.panini.analysis.KarakaRelation
 import dev.panini.core.Karaka
 import dev.panini.execution.SanskritValue
+import dev.panini.execution.appendedPersistently
 import dev.panini.shiksha.Samjna
 
 /** One completed kriyā and the value it produced. */
@@ -18,10 +19,13 @@ data class RememberedKriya(
 /** Chronological, kriyā-centred discourse memory for one VM session. */
 data class KriyaMemory(
     val entries: List<RememberedKriya> = emptyList(),
+    private val knownIds: Set<KriyaId> = entries.mapTo(mutableSetOf()) { it.frame.id },
 ) {
     fun remember(values: List<RememberedKriya>): KriyaMemory {
-        val knownIds = entries.mapTo(mutableSetOf()) { it.frame.id }
-        return copy(entries = entries + values.filter { knownIds.add(it.frame.id) })
+        if (values.isEmpty()) return this
+        val updatedIds = knownIds.toMutableSet()
+        val additions = values.filter { updatedIds.add(it.frame.id) }
+        return if (additions.isEmpty()) this else KriyaMemory(entries.appendedPersistently(additions), updatedIds)
     }
 
     fun frame(id: KriyaId): KriyaFrame? = entries.lastOrNull { it.frame.id == id }?.frame

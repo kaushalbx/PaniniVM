@@ -12,6 +12,46 @@ class PaniniParser(
     private val astBuilder: VyakaranamAstBuilder = VyakaranamAstBuilder(),
 ) {
 
+    fun parseDocument(source: String): dev.panini.vyakaranam.ast.ProgramDocument {
+        if (source.isBlank()) return dev.panini.vyakaranam.ast.ProgramDocument(source, emptyList())
+        val context = parseNative(source) { it.document() }
+        return astBuilder.buildDocument(context).copy(sourceText = source)
+    }
+
+    /** Parses one complete explicit block, independently of physical lines. */
+    fun parsePrakriya(source: String): dev.panini.vyakaranam.ast.Prakriya {
+        val context = parseNative(source) { it.prakriyaEntry() }
+        return astBuilder.buildPrakriya(context.prakriyaBlock()).copy(sourceText = source)
+    }
+
+    fun parseRangeDeclaration(source: String): dev.panini.vyakaranam.ast.RangeDeclaration {
+        val context = parseNative(source) { it.rangeDeclarationEntry() }
+        return astBuilder.buildRangeDeclaration(context.rangeDeclaration()).copy(sourceText = source)
+    }
+
+    fun parseScopeDeclaration(source: String): dev.panini.vyakaranam.ast.Scope {
+        val context = parseNative(source) { it.scopeDeclarationEntry() }
+        return astBuilder.buildScopeDeclaration(context.scopeDeclaration()).copy(sourceText = source)
+    }
+
+    private fun <C : ParserRuleContext> parseNative(source: String, entry: (VyakaranamParser) -> C): C {
+        require(source.isNotBlank()) { "A declaration cannot be empty." }
+        val errors = PaniniSyntaxErrorListener()
+        val lexer = VyakaranamLexer(CharStreams.fromString(normalize(source))).apply {
+            removeErrorListeners()
+            addErrorListener(errors)
+        }
+        val grammar = VyakaranamParser(CommonTokenStream(lexer)).apply {
+            removeErrorListeners()
+            addErrorListener(errors)
+            interpreter.predictionMode = PredictionMode.LL
+        }
+        val context = entry(grammar)
+        errors.throwIfAny()
+        ensureCompletelyParsed(context, grammar)
+        return context
+    }
+
     fun parse(source: String): Ukti {
         require(source.isNotBlank()) {
             "उक्तिः रिक्ता न भवितुमर्हति।"
@@ -71,7 +111,6 @@ class PaniniParser(
         source
             .replace('\u00A0', ' ')
             .replace("−", "-")
-            .trim()
 
     private fun ensureCompletelyParsed(
         context: ParserRuleContext,
