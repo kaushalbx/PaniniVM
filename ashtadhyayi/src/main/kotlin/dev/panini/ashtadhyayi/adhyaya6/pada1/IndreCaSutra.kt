@@ -1,0 +1,41 @@
+package dev.panini.ashtadhyayi.adhyaya6.pada1
+
+import dev.panini.derivation.*
+import dev.panini.shiksha.*
+import dev.panini.sutra.*
+
+/** 6.1.124: compulsory avaṅ for pada-final go before Indra. */
+object IndreCaSutra : Sutra<DerivationState, DerivationChange>(
+    number = "6.1.124", text = "इन्द्रे च",
+    hindiExplanation = "इन्द्र शब्द परे पदान्त गो के ओकार के स्थान पर नित्य अवङ् आदेश होता है।",
+    type = SutraType.NITYA, chapter = 6, pada = 1, optional = false,
+    kramaValue = 610124, role = SutraRole.Apavada, action = SutraAction.ADESHA,
+    scope = SutraScope.VARNA, stage = SutraStage.SANDHI,
+    priority = SutraPriority.APAVADA, blocks = setOf("6.1.78"),
+), DerivationSutra {
+    private val go: List<Varna> = listOf(Vyanjana.GA, Svara.O)
+    private val indra: List<Varna> = listOf(Svara.I, Vyanjana.NA, Vyanjana.DA, Vyanjana.RA, Svara.A)
+    private val ava: List<Varna> = listOf(Svara.A, Vyanjana.VA, Svara.A)
+
+    private fun boundary(context: DerivationState): Int? =
+        (0 until context.terms.lastIndex).firstOrNull { index ->
+            val left = context.terms[index]
+            val right = context.terms[index + 1]
+            left.varnas == go &&
+                context.samjnas.any { it.targetId == left.id && it.samjna == Samjna.PADA } &&
+                (right.upadeshaVarnas == indra || right.varnas == indra ||
+                    right.varnas == indra + Ayogavaha.VISARGA ||
+                    right.varnas == indra + Vyanjana.MA ||
+                    right.varnas == indra + Ayogavaha.ANUSVARA)
+        }
+
+    override fun matches(context: DerivationState): Boolean = boundary(context) != null
+
+    override fun apply(context: DerivationState): DerivationChange {
+        val left = context.terms[requireNotNull(boundary(context))]
+        return DerivationChange(
+            context.substituteTermVarnas(left.id, left.varnas.dropLast(1) + ava, Svara.O, ava, sutra),
+            "6.1.124 substitutes अव for the final ओ of गो before इन्द्र; the resulting vowel boundary undergoes गुण.",
+        )
+    }
+}
