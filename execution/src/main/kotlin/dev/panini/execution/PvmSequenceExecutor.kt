@@ -16,16 +16,17 @@ internal class PvmSequenceExecutor {
         executeNode: (dev.panini.vyakaranam.ast.ProgramNode) -> List<ExecutionResult>,
         executePipedInvocation: (Invocation, ExecutionScope, InjectedKarmanBinding) -> List<ExecutionResult>,
     ): List<ExecutionResult> {
-        val hasNamedStage = node.statements.drop(1).any { stage ->
+        val hasNamedStage = node.statements.drop(1).withIndex().any { (index, stage) ->
             stage is Invocation && registry.detectInvocation(
                 Ukti(sourceText = stage.sourceText, body = stage),
                 callerSourceFile = sourceFile,
-                injectedKarman = InjectedKarmanBinding(PIPE_OPERAND, null),
+                injectedKarman = if (node.connectorKinds.getOrNull(index) == SequenceConnector.ANANTARYA)
+                    InjectedKarmanBinding(PIPE_OPERAND, null) else null,
             ) != null
         }
         val startsWithImplicitValue = (node.statements.firstOrNull() as? Invocation)?.implicitValue != null
         if (node.statements.size < 2 ||
-            node.connectorKinds.any { it != SequenceConnector.ANANTARYA } ||
+            node.connectorKinds.any { it !in setOf(SequenceConnector.ANANTARYA, SequenceConnector.PURVAKALA) } ||
             (!hasNamedStage && !startsWithImplicitValue)
         ) return evaluateWhole()
 
@@ -33,10 +34,12 @@ internal class PvmSequenceExecutor {
         var stageResults = executeNode(node.statements.first())
         results += stageResults
         var pipedValue = stageResults.filterIsInstance<ExecutionResult.Success>().lastOrNull()?.typedValue
-        for (stage in node.statements.drop(1)) {
-            if (stageResults.any { it is ExecutionResult.Failure }) break
+        for ((index, stage) in node.statements.drop(1).withIndex()) {
+            if (stageResults.any { it !is ExecutionResult.Success ||
+                    it.controlSignal == ExecutionControlSignal.BREAK_LOOP }) break
             val invocation = stage as? Invocation
-            stageResults = if (invocation != null && pipedValue != null) {
+            stageResults = if (invocation != null && pipedValue != null &&
+                node.connectorKinds.getOrNull(index) == SequenceConnector.ANANTARYA) {
                 val stageScope = scope.copy(
                     environment = scope.environment.mergedWith(
                         ValueEnvironment(mapOf(PIPE_OPERAND to requireNotNull(pipedValue))),

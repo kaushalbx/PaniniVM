@@ -244,7 +244,8 @@ accusativeSup
     ;
 
 subantaVakyaPada
-    : subantaPada
+    : explicitSamuccitaSubanta
+    | subantaPada
     | samuccitaSubanta
     | sankhyaPada
     | sankhyaPuranaPada
@@ -500,6 +501,10 @@ samuccitaSubanta
     : subantaPada
       (COMMA? subantaPada)+
       CHA
+    ;
+
+explicitSamuccitaSubanta
+    : subantaPada CHA (subantaPada CHA)+
     ;
 
 // ============================================================================

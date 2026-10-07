@@ -225,7 +225,10 @@ internal object CompilerValueOperations {
         ?: error("Compiler comparison requires numeric values, but received ${value::class.simpleName}.")
 
     private fun numeric(value: Long): SanskritValue.Sankhya {
-        val word = dev.panini.execution.renderSankhyaResult(value) ?: value.toString()
+        val word = dev.panini.execution.renderSankhyaResult(value) ?: throw CompiledPaniniExecutionException(
+            ExecutionError.INVALID_VALUE,
+            "The result $value is outside the supported Sanskrit number vocabulary.",
+        )
         return SanskritValue.Sankhya(value, word)
     }
 

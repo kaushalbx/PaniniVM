@@ -20,6 +20,82 @@ import kotlin.test.assertFailsWith
 
 class StructuredBytecodeCompilerTest {
     @Test
+    fun `conditional prior actions execute only the selected branch in both backends`() {
+        for ((index, condition) in listOf("एक" to 3L, "द्वि" to 7L).withIndex()) {
+            val (operand, expected) = condition
+            val source = "यदि एक + सुँ $operand + टा सम + सुँ असँ + लट् + तिप् तर्हि " +
+                "एक + अम् द्वि + औट् च युज् + णिच् + क्त्वा " +
+                "फल + अम् परिणाम + ङि स्था + णिच् + लोट् + सिप् अन्यथा " +
+                "त्रि + शस् चतुर् + शस् च युज् + णिच् + क्त्वा " +
+                "फल + अम् परिणाम + ङि स्था + णिच् + लोट् + सिप् ।"
+            val interpreted = PaniniVM().evalScript(source)
+            assertTrue(interpreted.none { it is ExecutionResult.Failure }, interpreted.toString())
+            assertEquals(expected, ((interpreted.last() as ExecutionResult.Success).typedValue as SanskritValue.Sankhya).value)
+            val compiled = compileAndInspect(source, "CompiledConditionalPrior$index")
+            assertEquals(expected, (compiled.values.getValue("परिणाम") as SanskritValue.Sankhya).value)
+            assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
+        }
+        val unselectedFailure = "यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् तर्हि " +
+            "एक + अम् द्वि + औट् च युज् + णिच् + क्त्वा " +
+            "फल + अम् परिणाम + ङि स्था + णिच् + लोट् + सिप् अन्यथा " +
+            "एक + अम् द्वि + औट् च वि + युज् + णिच् + ल्यप् " +
+            "फल + अम् परिणाम + ङि स्था + णिच् + लोट् + सिप् ।"
+        val interpreted = PaniniVM().evalScript(unselectedFailure)
+        assertTrue(interpreted.none { it is ExecutionResult.Failure }, interpreted.toString())
+        val compiled = compileAndInspect(unselectedFailure, "CompiledUnselectedPriorFailure")
+        assertEquals(3L, (compiled.values.getValue("परिणाम") as SanskritValue.Sankhya).value)
+    }
+
+    @Test
+    fun `failed compiled prior action stops before the reusable main command`() {
+        val source = """
+            प्रदर्शन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            नवन् + शस् मुद्र् + णिच् + लोट् + सिप् ॥
+            एक + अम् द्वि + औट् च वि + युज् + णिच् + ल्यप्
+            प्रदर्शन + टा डुकृञ् + उ + लोट् + सिप् ।
+        """.trimIndent()
+        val failure = assertFailsWith<InvocationTargetException> {
+            compileAndInspect(source, "CompiledFailedPriorProcedure")
+        }
+        assertTrue(failure.cause?.message.orEmpty().contains("-1"), failure.cause.toString())
+    }
+
+    @Test
+    fun `prior action executes before a compiled reusable procedure call`() {
+        val source = """
+            प्रदर्शन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            फल + अम् मुद्र् + णिच् + लोट् + सिप् ॥
+            एक + अम् द्वि + औट् च युज् + णिच् + क्त्वा
+            प्रदर्शन + टा डुकृञ् + उ + लोट् + सिप् ।
+        """.trimIndent()
+        val compiled = compileAndInspect(source, "CompiledPriorProcedure")
+        assertEquals("त्रीणि", compiled.values.getValue("LastResult").toDisplayText())
+    }
+
+    @Test
+    fun `multiple prior actions preserve explicit result flow in compiler IR`() {
+        val source = "एक + अम् द्वि + औट् च युज् + णिच् + क्त्वा " +
+            "फल + अम् त्रि + शस् च युज् + णिच् + क्त्वा " +
+            "फल + अम् परिणाम + ङि स्था + णिच् + लोट् + सिप् ।"
+        val compiled = compileAndInspect(source, "CompiledMultiplePriorActions")
+        assertEquals(6L, (compiled.values.getValue("परिणाम") as SanskritValue.Sankhya).value)
+    }
+
+    @Test
+    fun `prior action morphology shares primitive lowering with tatah`() {
+        for ((index, item) in listOf("युज् + णिच् + क्त्वा" to 3L,
+            "वि + युज् + णिच् + ल्यप्" to 1L,
+            "युज् + णिच् + लोट् + सिप् ततः" to 3L).withIndex()) {
+            val (addition, expected) = item
+            val source = "द्वि + औट् एक + अम् च $addition फल + अम् परिणाम + ङि स्था + णिच् + लोट् + सिप् " +
+                "ततः फल + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+            val compiled = compileAndInspect(source, "CompiledPriorAction$index")
+            assertEquals(expected, (compiled.values.getValue("परिणाम") as SanskritValue.Sankhya).value)
+            assertTrue("evaluate" !in compiled.runtimeCalls, compiled.runtimeCalls.toString())
+        }
+    }
+
+    @Test
     fun `una and adhika numeral constructions preserve values in both backends`() {
         for ((construction, expected) in listOf(
             "एक + ऊन + विंशति" to 19L,

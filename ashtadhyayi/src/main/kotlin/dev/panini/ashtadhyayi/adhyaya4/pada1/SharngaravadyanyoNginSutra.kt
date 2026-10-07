@@ -36,7 +36,6 @@ object SharngaravadyanyoNginSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean =
         HasMorphosyntax(linga = Linga.STRI).matches(context) &&
             (context.terms.any { it.kind == TermKind.PRATIPADIKA && it.varnas in nrForms } ||
-                context.samjnas.any { it.samjna == Samjna.NIN } ||
                 context.terms.any { it.kind == TermKind.PRATIPADIKA && GanaPatha.isEligibleMember(51, it.surface, it.lexicalUses) }) &&
             context.allEffectiveTerms.none { it.upadesha == "ङीन्" }
 

@@ -235,7 +235,7 @@ internal object CompilerFrontend {
         }
 
         private fun lowerSequence(node: Sequence, exactSource: String?): List<CompilerInstruction> {
-            if (node.connectorKinds.any { it != SequenceConnector.ANANTARYA } ||
+            if (node.connectorKinds.any { it !in setOf(SequenceConnector.ANANTARYA, SequenceConnector.PURVAKALA) } ||
                 node.statements.any { it !is Invocation }
             ) {
                 return lowerPlannedNode(node)
@@ -244,7 +244,8 @@ internal object CompilerFrontend {
                 if (index == 0) {
                     lower(statement)
                 } else if (statement is Invocation) {
-                    lowerInvocation(statement, exactSource = null, piped = true)
+                    lowerInvocation(statement, exactSource = null,
+                        piped = node.connectorKinds.getOrNull(index - 1) == SequenceConnector.ANANTARYA)
                 } else {
                     lower(statement)
                 }
@@ -257,6 +258,7 @@ internal object CompilerFrontend {
             piped: Boolean = false,
             allowDirectStore: Boolean = false,
         ): List<CompilerInstruction> {
+            dev.panini.execution.PriorActionLowering.expand(node)?.let { return lowerSequence(it, null) }
             val rendered = exactSource ?: render(node)
             val alreadyReferencesResult = node.vakya.padas.any { pada ->
                 pada is dev.panini.vyakaranam.ast.SubantaPada &&

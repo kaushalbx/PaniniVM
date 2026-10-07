@@ -43,6 +43,7 @@ internal enum class CompilerValueKind {
     TEXT,
     LIST,
     RECORD,
+    RANGE,
 }
 
 internal fun PrakriyaValueType.toCompilerValueKind(): CompilerValueKind = when (this) {
@@ -990,6 +991,7 @@ internal object CompilerIrVerifier {
                 is SanskritValue.Shabda -> ValueKind.TEXT
                 is SanskritValue.Suchi, is SanskritValue.Gana -> ValueKind.LIST
                 is SanskritValue.Rupa -> ValueKind.RECORD
+                is SanskritValue.Range -> ValueKind.RANGE
                 else -> ValueKind.VALUE
             }
             is CompilerInstruction.Load -> before + (state.values[instruction.name] ?: ValueKind.UNKNOWN)
@@ -1041,6 +1043,10 @@ internal object CompilerIrVerifier {
             is CompilerInstruction.RandomActiveRange -> {
                 val afterExclusion = if (instruction.excludeCollection) pop(ValueKind.LIST).first else before
                 require(afterExclusion.isNotEmpty()) { "IR active range operand missing at instruction $index" }
+                val rangeKind = afterExclusion.last()
+                require(rangeKind == ValueKind.RANGE || rangeKind == ValueKind.UNKNOWN) {
+                    "IR active range requires RANGE but found $rangeKind at instruction $index"
+                }
                 afterExclusion.dropLast(1) + ValueKind.NUMBER
             }
             is CompilerInstruction.Collection -> {

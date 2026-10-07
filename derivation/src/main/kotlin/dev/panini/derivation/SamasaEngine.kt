@@ -48,6 +48,7 @@ data class SamasaDerivationRequest(
     val outputVacana: Vacana? = null,
     val semanticRelations: Set<SamasaSemanticRelation> = emptySet(),
     val strictSemantics: Boolean = false,
+    val outputVibhakti: Vibhakti? = null,
 )
 
 /**
@@ -69,7 +70,8 @@ class SamasaEngine(
     private val samasaSutras: List<SamasaSutra> = Ashtadhyayi.cataloguedSutras.filterIsInstance<SamasaSutra>(),
 ) {
     fun derive(request: SamasaDerivationRequest): DerivationResult =
-        derive(request.padas, request.type, request.outputLinga, request.outputVacana, request.semanticRelations, request.strictSemantics)
+        derive(request.padas, request.type, request.outputLinga, request.outputVacana,
+            request.semanticRelations, request.strictSemantics, request.outputVibhakti)
 
     fun derive(
         padas: List<SamasaPada>,
@@ -78,6 +80,7 @@ class SamasaEngine(
         outputVacana: Vacana? = null,
         semanticRelations: Set<SamasaSemanticRelation> = emptySet(),
         strictSemantics: Boolean = false,
+        outputVibhakti: Vibhakti? = null,
     ): DerivationResult {
         require(padas.isNotEmpty()) { "At least one pada is required for Samāsa derivation." }
 
@@ -222,7 +225,7 @@ class SamasaEngine(
 
         // 9. Decline the compound Prātipadika via SubantaEngine (Pāṇinian Subanta pipeline)
         val collectiveByRule = postClassificationSutras.any { it.number == "2.4.2" || it.number == "2.4.6" }
-        val (vibhakti, vacana, linga) = subantaParams(
+        val (defaultVibhakti, vacana, linga) = subantaParams(
             type,
             padas,
             outputLinga,
@@ -231,6 +234,7 @@ class SamasaEngine(
             semanticRelations,
             collectiveByRule,
         )
+        val vibhakti = outputVibhakti ?: defaultVibhakti
         val subantaResult = subantaEngine.derive(
             SubantaDerivationRequest(
                 normalizedStem,
@@ -302,7 +306,8 @@ class SamasaEngine(
 
     /**
      * Returns the (Vibhakti, Vacana, Linga) triple for the final Subanta declension of a compound.
-     * Pāṇinian: After Sup-lopa the compound Prātipadika takes a fresh Prathama ending.
+     * These are API defaults, not a restriction to nominative compound usage.
+     * An explicit output case is applied by the caller after these defaults.
      * - Avyayibhāva: invariable — Prathama Ekavacana Napumsaka (ends in म्)
      * - Tatpuruṣa / Bahuvrihi: Prathama Ekavacana Pumliṅga (ends in ः)
      * - Dvandva: Prathama Dvivacana for 2 members (ौ), Bahuvacana for 3+ (ाः)

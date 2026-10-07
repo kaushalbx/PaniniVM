@@ -7,10 +7,78 @@ import dev.panini.shiksha.Samjna
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.test.assertFalse
 
 class SamasaEngineTest {
 
     private val engine = SamasaEngine()
+
+    @Test
+    fun `non a final indeclinable compound remains stable across outer cases`() {
+        for (case in Vibhakti.entries) {
+            val result = engine.derive(SamasaDerivationRequest(
+                listOf(SamasaPada("अधि", samjnas = setOf(Samjna.AVYAYA)), SamasaPada("हरि")),
+                SamasaType.AVYAYIBHAVA,
+                outputVibhakti = case,
+            ))
+            assertEquals("अधिहरि", result.final.surface, "Outer case: $case")
+            assertTrue(result.applications.any { it.sutra == "2.4.82" })
+        }
+    }
+
+    @Test
+    fun `non a final avyayibhava deletes sup rather than substituting am`() {
+        val result = engine.derive(SamasaDerivationRequest(
+            listOf(SamasaPada("अधि", samjnas = setOf(Samjna.AVYAYA)), SamasaPada("हरि")),
+            SamasaType.AVYAYIBHAVA,
+            outputVibhakti = Vibhakti.SASTHI,
+        ))
+        assertEquals("अधिहरि", result.final.surface)
+        assertFalse(result.applications.any { it.sutra == "7.3.111" })
+        assertTrue(result.applications.any { it.sutra == "2.4.82" })
+        assertFalse(result.applications.any { it.sutra == "2.4.83" })
+    }
+
+    @Test
+    fun `a final avyayibhava retains ablative without am substitution or sup lopa`() {
+        val result = engine.derive(SamasaDerivationRequest(
+            listOf(SamasaPada("उप", samjnas = setOf(Samjna.AVYAYA)), SamasaPada("कुम्भ")),
+            SamasaType.AVYAYIBHAVA,
+            outputVibhakti = Vibhakti.PANCHAMI,
+        ))
+        assertEquals("उपकुम्भात्", result.final.surface)
+        assertTrue(result.applications.any { it.sutra == "7.1.12" })
+        assertFalse(result.applications.any { it.sutra == "2.4.83" || it.sutra == "2.4.82" })
+    }
+
+    @Test
+    fun `outer case does not turn avyayibhava into an ordinary genitive noun`() {
+        val request = SamasaDerivationRequest(
+            listOf(SamasaPada("उप", samjnas = setOf(Samjna.AVYAYA)), SamasaPada("कृष्ण")),
+            SamasaType.AVYAYIBHAVA,
+            outputVibhakti = Vibhakti.SASTHI,
+        )
+        val result = engine.derive(request)
+        assertEquals("उपकृष्णम्", result.final.surface)
+        assertTrue(result.applications.any { it.sutra == "2.4.83" })
+    }
+
+    @Test
+    fun `typed compound request retains outer case number and rule provenance`() {
+        val request = SamasaDerivationRequest(
+            listOf(SamasaPada("राज", Vibhakti.SASTHI), SamasaPada("पुरुष")),
+            SamasaType.TATPURUSA,
+            outputVibhakti = Vibhakti.SASTHI,
+        )
+        val genitive = engine.derive(request)
+        assertEquals("राजपुरुषस्य", genitive.final.surface)
+        assertTrue(genitive.applications.any { it.sutra == "2.2.8" })
+        assertTrue(genitive.applications.any { it.sutra == "7.1.12" })
+        assertEquals("राजपुरुषौ", engine.derive(request.copy(
+            outputVibhakti = Vibhakti.PRATHAMA,
+            outputVacana = dev.panini.core.Vacana.DVIVACANA,
+        )).final.surface)
+    }
 
     @Test
     fun `derives Avyayibhava compound upakrsnam`() {

@@ -3,6 +3,7 @@ package dev.panini.cli
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.Executors
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -74,17 +75,33 @@ class PaniniCliProcessTest {
             .redirectErrorStream(true)
             .start()
 
+        // Drain output while the child runs: waiting before reading can fill
+        // the OS pipe and block the child, disguising an output deadlock as slow startup.
+        val outputReader = Executors.newSingleThreadExecutor { task ->
+            Thread(task, "panini-cli-test-output").apply { isDaemon = true }
+        }
+        val output = outputReader.submit<String> {
+            process.inputStream.use { it.readBytes().toString(StandardCharsets.UTF_8) }
+        }
+
         return try {
             process.outputStream.use { stream ->
                 stream.write(input.toByteArray(StandardCharsets.UTF_8))
             }
-            assertTrue(process.waitFor(30, TimeUnit.SECONDS), "CLI process did not finish within 30 seconds")
+            val finished = process.waitFor(30, TimeUnit.SECONDS)
+            if (!finished) {
+                process.destroyForcibly()
+                process.waitFor(5, TimeUnit.SECONDS)
+            }
+            val capturedOutput = output.get(5, TimeUnit.SECONDS)
+            assertTrue(finished, "CLI process did not finish within 30 seconds. Output:\n$capturedOutput")
             ProcessResult(
                 exitCode = process.exitValue(),
-                output = process.inputStream.readBytes().toString(StandardCharsets.UTF_8),
+                output = capturedOutput,
             )
         } finally {
             if (process.isAlive) process.destroyForcibly()
+            outputReader.shutdownNow()
         }
     }
 

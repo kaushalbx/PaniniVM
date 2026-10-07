@@ -194,7 +194,9 @@ class GanaPathaTest {
 
     @Test
     fun `instruction members match their licensed suffix patterns`() {
-        assertTrue(GanaPatha.contains(2, "ब्राह्मणवत्"))
+        assertFalse(GanaPatha.contains(2, "ब्राह्मणवत्"))
+        assertTrue(GanaPatha.isEligibleMember(2, "ब्राह्मणवत्", suffixUpadeshas = setOf("वति")))
+        assertFalse(GanaPatha.isEligibleMember(2, "सङ्ख्यावत्", suffixUpadeshas = setOf("मतुँप्")))
         assertTrue(GanaPatha.contains(2, "कृत्वा"))
         assertTrue(GanaPatha.isEligibleMember(2, "कृत्वा"))
         assertTrue(

@@ -8,10 +8,9 @@ import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
 import dev.panini.core.Vacana
 import dev.panini.core.TingAffix
-import dev.panini.core.KrtAffix
-import dev.panini.core.SanadiAffix
 import dev.panini.derivation.DerivationEngine
 import dev.panini.derivation.KrdantaEngine
+import dev.panini.derivation.KrdantaSourceStem
 import dev.panini.derivation.NominalStemFormation
 import dev.panini.derivation.SamasaEngine
 import dev.panini.derivation.SandhiEngine
@@ -34,7 +33,6 @@ import dev.panini.sankhya.SankhyaGenerator
 import dev.panini.sankhya.SankhyaVacana
 import dev.panini.sankhya.PrimitiveSankhya
 import dev.panini.vyakaranam.ast.AvyayaPada
-import dev.panini.vyakaranam.ast.Vikarana
 import dev.panini.vyakaranam.ast.AvyayaKridantaDerivation
 import dev.panini.vyakaranam.ast.KridantaPratipadika
 import dev.panini.vyakaranam.ast.AryabhatiyaPada
@@ -339,7 +337,7 @@ class PvmUktiSadhaka(
     fun sadhayaPada(pada: Pada, linga: Linga? = null): String = when (pada) {
         is ParyantaRangePada -> sadhayaParyantaRange(pada)
         is SubantaPada -> sadhayaSubanta(pada, linga)
-        is SamuccitaSubanta -> pada.members.joinToString(" ") { sadhayaSubanta(it) } + " च"
+        is SamuccitaSubanta -> pada.members.joinToString(" ") { sadhayaSubanta(it, linga) } + " च"
         is TingantaPada -> sadhayaTinganta(pada)
         is AvyayaPada -> sadhayaAvyaya(pada)
         is SankhyaPada -> sadhayaSankhya(pada, linga)
@@ -360,15 +358,17 @@ class PvmUktiSadhaka(
 
     private fun sadhayaAvyaya(pada: AvyayaPada): String {
         val derivation = pada.derivation as? AvyayaKridantaDerivation ?: return pada.form
-        if (KrtAffix.fromUpadesha(derivation.pratyaya) == KrtAffix.KTVA &&
-            derivation.dhatu.canonicalDhatuIdentity() == CanonicalDhatuIdentity.VRJ &&
-            derivation.dhatu.sanadiPratyayas.any {
-                SanadiAffix.fromUpadesha(it) == SanadiAffix.NIC
+        return runCatching {
+            when (val stem = krdantaEngine.deriveSourceStem(
+                derivation.dhatu.mulaDhatu,
+                derivation.pratyaya,
+                derivation.dhatu.sanadiPratyayas,
+                derivation.upasargas,
+            )) {
+                is KrdantaSourceStem.Productive -> stem.surface
+                is KrdantaSourceStem.Unresolved -> pada.form
             }
-        ) {
-            return derivation.upasargas.joinToString("") + "वर्जयित्वा"
-        }
-        return pada.form
+        }.getOrDefault(pada.form)
     }
 
     private fun sadhayaParyantaRange(range: ParyantaRangePada): String {
@@ -449,9 +449,16 @@ class PvmUktiSadhaka(
                         ?: Vibhakti.PRATHAMA
                     anga.pratipadika.toSamasaPada(anga.pratipadika.baseText(), vibhakti)
                 }
-                samasaEngine.derive(padas, SamasaType.TATPURUSA).final.surface
+                val outerAffix = SupAffix.fromUpadesha(normalized.sup.text)
+                    ?: return subanta.sourceText
+                samasaEngine.derive(
+                    padas, SamasaType.TATPURUSA,
+                    outputLinga = lingaOverride,
+                    outputVacana = outerAffix.vacana,
+                    outputVibhakti = outerAffix.vibhakti,
+                ).final.surface
             } catch (_: Exception) {
-                samasa.baseText()
+                subanta.sourceText
             }
         }
         val kridanta = normalized.pratipadika as? KridantaPratipadika
@@ -464,25 +471,22 @@ class PvmUktiSadhaka(
             )
         }
         val mula = normalized.pratipadika as? MulaPratipadika
-        val possessiveTaddhita = mula?.vikaras?.filterIsInstance<TaddhitaVikara>()?.lastOrNull {
+        val possessiveTaddhitas = mula?.vikaras?.filterIsInstance<TaddhitaVikara>()?.filter {
             it.pratyayaClass == TaddhitaPratyayaClass.POSSESSIVE
-        }
-        val taddhitaBase = possessiveTaddhita?.let {
+        }.orEmpty()
+        if (possessiveTaddhitas.size > 1) return subanta.sourceText
+        val possessiveTaddhita = possessiveTaddhitas.singleOrNull()
+        val taddhitaDerivation = possessiveTaddhita?.let {
             val source = requireNotNull(mula).text
-            // Feminine ā-stems preserve ā and select वत्:
-            // सङ्ख्या + मतुप् -> सङ्ख्यावत्, not सङ्ख्यामत् or सङ्ख्यवत्.
-            if (source.endsWith("ा")) {
-                "${source}वत्"
-            } else {
-                runCatching { taddhitaEngine.derive(source, dev.panini.shiksha.Samjna.MATUP) }
+            runCatching { taddhitaEngine.derive(source, dev.panini.shiksha.Samjna.MATUP) }
                     .getOrNull()
-                    ?.final
-                    ?.surface
-            }
         }
+        val taddhitaBase = taddhitaDerivation?.final?.surface
+        val sourceAffixItMarkers = taddhitaDerivation?.final?.allEffectiveTerms
+            ?.filter { it.kind == dev.panini.derivation.TermKind.PRATYAYA }
+            ?.flatMap { it.itMarkers + it.sthaniProps?.itMarkers.orEmpty() }?.toSet().orEmpty()
+        if (possessiveTaddhita != null && taddhitaBase == null) return subanta.sourceText
         val baseText = when {
-            kridanta?.dhatu?.canonicalDhatuIdentity() == CanonicalDhatuIdentity.CHI &&
-                KrtAffix.fromUpadesha(kridanta.krtPratyaya) == KrtAffix.LYUT -> "चयन"
             taddhitaBase != null -> taddhitaBase
             else -> sourceStem?.surface ?: normalized.pratipadika.baseText()
         }
@@ -500,42 +504,33 @@ class PvmUktiSadhaka(
                 "ङीन्" -> dev.panini.shiksha.Samjna.NIN
                 else -> return subanta.sourceText
             }
-            striPratyayaEngine.derive(StriPratyayaRequest(baseText, samjna)).final.surface
+            runCatching { striPratyayaEngine.derive(StriPratyayaRequest(baseText, samjna, sourceAffixItMarkers)).final.surface }
+                .getOrNull() ?: return subanta.sourceText
         }
-        val lexicalSurface = (normalized.pratipadika as? MulaPratipadika)?.text ?: baseText
+        val lexicalSurface = taddhitaBase ?: (normalized.pratipadika as? MulaPratipadika)?.text ?: baseText
         val feminineAaBase = when {
             lexicalSurface.endsWith("ा") || lexicalSurface.endsWith("आ") -> lexicalSurface
-            baseText.endsWith("सङ्ख्य") -> "${baseText}ा"
             else -> null
         }
         val hasFeminineAaSurface = feminineAaBase != null
         val supAffix = SupAffix.fromUpadesha(normalized.sup.text) ?: return baseText
-        if (taddhitaBase != null) {
-            pvmMatupSurface(taddhitaBase, supAffix)?.let { return it }
-        }
-        if (baseText == "सङ्ख्या" && supAffix == SupAffix.TA) return "सङ्ख्यया"
         when (sourceStem) {
-            is dev.panini.derivation.KrdantaSourceStem.Productive -> if (sourceStem.supportsAStemDeclension) {
-                pvmKridantaSurface(
-                    baseText,
-                    supAffix,
-                    neuter = kridanta.krtPratyaya == "ल्युट्",
-                )?.let { return it }
-            }
-            is dev.panini.derivation.KrdantaSourceStem.Unresolved -> return baseText
+            is dev.panini.derivation.KrdantaSourceStem.Productive -> Unit
+            is dev.panini.derivation.KrdantaSourceStem.Unresolved -> return subanta.sourceText
             null -> Unit
         }
         val sankhya = normalized.pratipadika as? SankhyaPratipadika
         val intrinsicNumeralLinga = sankhya?.semanticValue?.value
             ?.let { sankhyaGenerator.intrinsicLinga(it) }
+        val lexicalLinga = pratipadikaLexicon.findPratipadika(baseText)?.linga?.singleOrNull()
         val linga = when {
             explicitStri != null -> Linga.STRI
             intrinsicNumeralLinga != null -> intrinsicNumeralLinga
             lingaOverride != null -> lingaOverride
             sankhya != null -> Linga.NAPUMSAKA
             kridanta?.krtPratyaya == "ल्युट्" -> Linga.NAPUMSAKA
-            else -> pratipadikaLexicon.findPratipadika(baseText)?.linga?.singleOrNull()
-                ?: if (baseText == "सङ्ख्या" || baseText.endsWith("आ") || hasFeminineAaSurface) Linga.STRI else Linga.PUMS
+            else -> lexicalLinga
+                ?: if (hasFeminineAaSurface) Linga.STRI else Linga.PUMS
         }
         return try {
             if (sankhya?.semanticValue != null) {
@@ -544,8 +539,11 @@ class PvmUktiSadhaka(
             }
             val derivationBase = explicitlyFeminineBase
                 ?: feminineAaBase
-                ?: (if (lingaOverride == Linga.STRI && explicitStri == null) {
-                    striPratyayaEngine.derive(StriPratyayaRequest(baseText, dev.panini.shiksha.Samjna.TAP)).final.surface
+                ?: (if (lingaOverride == Linga.STRI && explicitStri == null && lexicalLinga != Linga.STRI) {
+                    val feminineAffix = if (dev.panini.core.ItMarker.U in sourceAffixItMarkers) {
+                        dev.panini.shiksha.Samjna.NIP
+                    } else dev.panini.shiksha.Samjna.TAP
+                    striPratyayaEngine.derive(StriPratyayaRequest(baseText, feminineAffix, sourceAffixItMarkers)).final.surface
                 } else null)
                 ?: baseText
             val stemFormation = if (
@@ -561,6 +559,16 @@ class PvmUktiSadhaka(
                 supAffix.vacana,
                 linga,
                 stemFormation,
+                sourceSuffixUpadeshas = buildSet {
+                    kridanta?.krtPratyaya?.let(::add)
+                    mula?.vikaras?.forEach { vikara ->
+                        when (vikara) {
+                            is TaddhitaVikara -> add(vikara.pratyaya)
+                            is StriVikara -> add(vikara.pratyaya)
+                            else -> Unit
+                        }
+                    }
+                },
             )
             subantaEngine.derive(req).final.surface
         } catch (e: Exception) {
@@ -568,49 +576,12 @@ class PvmUktiSadhaka(
         }
     }
 
-    /** Stable consonant-stem forms for possessive मतुप्/वतुप् derivations. */
-    private fun pvmMatupSurface(stem: String, affix: SupAffix): String? {
-        if (!stem.endsWith("त्")) return null
-        val base = stem.removeSuffix("त्")
-        return when (affix.vacana) {
-            Vacana.EKAVACANA -> when (affix.vibhakti) {
-                Vibhakti.PRATHAMA -> "${base}ान्"
-                Vibhakti.DVITIYA -> "${base}न्तम्"
-                Vibhakti.TRTIYA -> "${base}ता"
-                Vibhakti.CHATURTHI -> "${base}ते"
-                Vibhakti.PANCHAMI, Vibhakti.SASTHI -> "${base}तः"
-                Vibhakti.SAPTAMI -> "${base}ति"
-            }
-            Vacana.DVIVACANA -> when (affix.vibhakti) {
-                Vibhakti.PRATHAMA, Vibhakti.DVITIYA -> "${base}न्तौ"
-                Vibhakti.TRTIYA, Vibhakti.CHATURTHI, Vibhakti.PANCHAMI -> "${base}द्भ्याम्"
-                Vibhakti.SASTHI, Vibhakti.SAPTAMI -> "${base}तोः"
-            }
-            Vacana.BAHUVACANA -> when (affix.vibhakti) {
-                Vibhakti.PRATHAMA -> "${base}न्तः"
-                Vibhakti.DVITIYA -> "${base}तः"
-                Vibhakti.TRTIYA -> "${base}द्भिः"
-                Vibhakti.CHATURTHI, Vibhakti.PANCHAMI -> "${base}द्भ्यः"
-                Vibhakti.SASTHI -> "${base}ताम्"
-                Vibhakti.SAPTAMI -> "${base}त्सु"
-            }
-        }
-    }
-
-    /** Stable a-stem forms for the PVM's action/state krdantas. */
-    private fun pvmKridantaSurface(stem: String, affix: SupAffix, neuter: Boolean): String? {
-        return when (affix) {
-            SupAffix.SU -> if (neuter) "${stem}म्" else "${stem}ः"
-            SupAffix.AM -> "${stem}म्"
-            SupAffix.TA -> "${stem}ेन"
-            SupAffix.NGE -> "${stem}ाय"
-            SupAffix.NGAS -> "${stem}स्य"
-            SupAffix.NGI -> "${stem}े"
-            else -> null
-        }
-    }
-
     fun sadhayaTinganta(tinganta: TingantaPada): String {
+        tinganta.priorAction?.let { derivation ->
+            val source = (derivation.upasargas + derivation.dhatu.sourceText + derivation.pratyaya)
+                .joinToString(" + ")
+            return sadhayaPada(AvyayaPada(source, source, derivation))
+        }
         val rawDhatu = tinganta.dhatu.mulaDhatu
         val explicitGana = tinganta.vikarana?.gana
         val matchingDhatus = DhatuPatha.all.filter { candidate ->
@@ -631,9 +602,10 @@ class PvmUktiSadhaka(
         val tingAffix = TingAffix.fromUpadesha(tinganta.ting.text) ?: return tinganta.sourceText
         val dhatuIdentity = tinganta.canonicalDhatuIdentity()
         val specialSurface = when {
-            dhatuIdentity == CanonicalDhatuIdentity.KRU && tinganta.vikarana == Vikarana.U &&
-                tinganta.lakara == Lakara.LOT && tingAffix == TingAffix.SIP -> "कुरु"
-            dhatuIdentity == CanonicalDhatuIdentity.AS && tinganta.lakara == Lakara.LAT -> when (tingAffix) {
+            dhatuIdentity == CanonicalDhatuIdentity.AS &&
+                derivationEntry?.gana == DhatuGana.ADADI &&
+                tinganta.dhatu.sanadiPratyayas.isEmpty() &&
+                tinganta.lakara == Lakara.LAT -> when (tingAffix) {
                 TingAffix.TIP -> "अस्ति"
                 TingAffix.TAS -> "स्तः"
                 TingAffix.JHI -> "सन्ति"
@@ -645,8 +617,6 @@ class PvmUktiSadhaka(
                 TingAffix.MAS -> "स्मः"
                 else -> null
             }
-            dhatuIdentity == CanonicalDhatuIdentity.GRAH && tinganta.vikarana == Vikarana.SHNA &&
-                tinganta.lakara == Lakara.LOT && tingAffix == TingAffix.SIP -> "गृहाण"
             else -> null
         }
         if (specialSurface != null) {
@@ -663,10 +633,7 @@ class PvmUktiSadhaka(
                 gana = derivationEntry?.gana,
             )
             val engineSurface = tingantaEngine.derive(req).final.surface
-            // 8.2.79 and the तनादि stem alternation yield कुरु, not the
-            // mechanically concatenated intermediate कृउ.
-            val derived = engineSurface
-            joinUpasargas(tinganta.upasargas, derived)
+            joinUpasargas(tinganta.upasargas, engineSurface)
         } catch (e: Exception) {
             tinganta.sourceText
         }

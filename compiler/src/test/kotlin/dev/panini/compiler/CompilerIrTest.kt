@@ -14,6 +14,31 @@ import kotlin.test.assertTrue
 
 class CompilerIrTest {
     @Test
+    fun `active range choice verifies its typed range and exclusion operands`() {
+        val one = SanskritValue.Sankhya(1, "एक")
+        val range = SanskritValue.Range(one, one)
+        CompilerIrVerifier.verify(listOf(CompilerInstruction.Constant(range),
+            CompilerInstruction.Store("सीमा"), CompilerInstruction.Load("सीमा"),
+            CompilerInstruction.RandomActiveRange(), CompilerInstruction.Pop))
+        CompilerIrVerifier.verify(listOf(CompilerInstruction.Constant(range),
+            CompilerInstruction.Constant(SanskritValue.Suchi(emptyList())),
+            CompilerInstruction.RandomActiveRange(true), CompilerInstruction.Pop))
+        for (invalid in listOf(one, SanskritValue.Shabda("सीमा"), SanskritValue.Suchi(emptyList()))) {
+            assertFailsWith<IllegalArgumentException> {
+                CompilerIrVerifier.verify(listOf(CompilerInstruction.Constant(invalid),
+                    CompilerInstruction.RandomActiveRange(), CompilerInstruction.Pop))
+            }
+        }
+        assertFailsWith<IllegalArgumentException> {
+            CompilerIrVerifier.verify(listOf(CompilerInstruction.Constant(range),
+                CompilerInstruction.Constant(one), CompilerInstruction.RandomActiveRange(true), CompilerInstruction.Pop))
+        }
+        assertFailsWith<IllegalArgumentException> {
+            CompilerIrVerifier.verify(listOf(CompilerInstruction.RandomActiveRange(), CompilerInstruction.Pop))
+        }
+    }
+
+    @Test
     fun `compiled membership compares typed structured members`() {
         val number = SanskritValue.Sankhya(2, "द्वि")
         val list = SanskritValue.Gana(listOf(number))

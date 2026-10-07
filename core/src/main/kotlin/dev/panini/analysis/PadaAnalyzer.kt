@@ -193,8 +193,15 @@ class PadaAnalyzer(
             "तिङ्प्रत्ययस्य विवरणं न प्राप्तम्: ${pada.ting.text}"
         }
 
+        val passive = pada.vikarana == dev.panini.vyakaranam.ast.Vikarana.YAK
+        require(!validatePadaCompatibility || !passive || tingAffix.pada == PadaType.ATMANEPADA) {
+            "भावकर्मणोः आत्मनेपदम् अपेक्षितम्: ${pada.ting.text}।"
+        }
+
         require(
             !validatePadaCompatibility ||
+                pada.priorAction != null ||
+                passive ||
                 pada.dhatu.sanadiPratyayas.isNotEmpty() ||
                 dhatu.pada == null ||
                 dhatu.pada == PadaType.UBHAYAPADA ||

@@ -22,8 +22,154 @@ import dev.panini.vyakaranam.lexicon.InMemoryVyakaranamLexicon
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertFailsWith
 
 class KriyaFrameAnalyzerTest {
+    @Test
+    fun `yak selects passive voice on causatives of transitive and intransitive roots`() {
+        for (karmatva in listOf(Karmatva.SAKARMAKA, Karmatva.AKARMAKA)) {
+            val localAnalyzer = VakyaAnalyzer(PadaAnalyzer(InMemoryVyakaranamLexicon(
+                emptyList(), listOf(Dhatu(
+                    id = "test.causative", krama = 1, upadesha = "फ्रेम्", sourceSurface = "फ्रेम्",
+                    artha = "परीक्षणे", arthaHindi = "परीक्षण", arthaEnglish = "test",
+                    gana = DhatuGana.BHVADI, pada = PadaType.PARASMAIPADA, karmatva = karmatva,
+                )),
+            )))
+            val agent = subanta("राम + टा", "राम", "टा")
+            val objectPada = subanta("बाल + औ", "बाल", "औ")
+            val original = akhyata(agent, objectPada)
+            val verb = original.tinganta.copy(
+                dhatu = original.tinganta.dhatu.copy(sanadiPratyayas = listOf("णिच्")),
+                vikarana = dev.panini.vyakaranam.ast.Vikarana.YAK,
+                ting = TingPratyaya("आताम्", "आताम्"),
+            )
+            val frame = localAnalyzer.analyze(original.copy(padas = listOf(agent, objectPada, verb), tinganta = verb))
+            assertEquals(dev.panini.core.Prayoga.KARMANI, frame.prayoga)
+            assertEquals(listOf(Karaka.KARTR, Karaka.KARMAN), frame.relations.map {
+                assertIs<FrameKarakaResolution.Resolved>(it.resolution).karaka
+            })
+            assertEquals(0, frame.diagnostics.count { it.code == FrameDiagnosticCode.AGREEMENT_MISMATCH })
+        }
+    }
+
+    @Test
+    fun `bhave requires impersonal singular third person independent of agents`() {
+        val bhaveAnalyzer = VakyaAnalyzer(PadaAnalyzer(InMemoryVyakaranamLexicon(
+            emptyList(), listOf(Dhatu(
+                id = "test.bhave", krama = 1, upadesha = "फ्रेम्", sourceSurface = "फ्रेम्",
+                artha = "परीक्षणे", arthaHindi = "होना", arthaEnglish = "to be",
+                gana = DhatuGana.BHVADI, pada = PadaType.PARASMAIPADA,
+                karmatva = Karmatva.AKARMAKA,
+            )),
+        )))
+        fun mismatches(ending: String, vararg participants: dev.panini.vyakaranam.ast.Pada): Int {
+            val original = akhyata(*participants)
+            val verb = original.tinganta.copy(
+                ting = TingPratyaya(ending, ending),
+                vikarana = dev.panini.vyakaranam.ast.Vikarana.YAK,
+            )
+            val frame = bhaveAnalyzer.analyze(original.copy(
+                padas = participants.toList() + verb, tinganta = verb,
+            ))
+            assertEquals(dev.panini.core.Prayoga.BHAVE, frame.prayoga)
+            return frame.diagnostics.count { it.code == FrameDiagnosticCode.AGREEMENT_MISMATCH }
+        }
+        val dualAgent = subanta("राम + भ्याम्", "राम", "भ्याम्")
+        val pluralAgent = subanta("राम + भिस्", "राम", "भिस्")
+        assertEquals(0, mismatches("त"))
+        assertEquals(0, mismatches("त", dualAgent))
+        assertEquals(0, mismatches("त", pluralAgent))
+        assertEquals(1, mismatches("आताम्", dualAgent))
+        assertEquals(1, mismatches("झ", pluralAgent))
+        assertEquals(1, mismatches("थास्"))
+        assertEquals(1, mismatches("इट्"))
+    }
+
+    @Test
+    fun `yak requires atmanepada even for a parasmaipada lexical root`() {
+        val original = akhyata()
+        val verb = original.tinganta.copy(vikarana = dev.panini.vyakaranam.ast.Vikarana.YAK)
+        assertFailsWith<IllegalArgumentException> {
+            analyzer.analyze(original.copy(padas = listOf(verb), tinganta = verb))
+        }
+    }
+
+    @Test
+    fun `passive agreement follows nominative object not instrumental agent`() {
+        val agent = subanta("राम + टा", "राम", "टा")
+        val dualAgent = subanta("राम + भ्याम्", "राम", "भ्याम्")
+        val singularObject = subanta("फल + सुँ", "फल", "सुँ")
+        val dualObject = subanta("फल + औ", "फल", "औ")
+        fun mismatches(ending: String, vararg participants: dev.panini.vyakaranam.ast.Pada): Int {
+            val original = akhyata(*participants)
+            val verb = original.tinganta.copy(
+                ting = TingPratyaya(ending, ending),
+                vikarana = dev.panini.vyakaranam.ast.Vikarana.YAK,
+            )
+            val frame = analyzer.analyze(original.copy(padas = participants.toList() + verb, tinganta = verb))
+            assertEquals(dev.panini.core.Prayoga.KARMANI, frame.prayoga)
+            return frame.diagnostics.count { it.code == FrameDiagnosticCode.AGREEMENT_MISMATCH }
+        }
+        assertEquals(0, mismatches("आताम्", agent, dualObject))
+        assertEquals(1, mismatches("त", agent, dualObject))
+        assertEquals(0, mismatches("त", dualAgent, singularObject))
+        assertEquals(1, mismatches("आताम्", dualAgent, singularObject))
+        assertEquals(0, mismatches("आताम्", dualObject))
+        assertEquals(0, mismatches("आताम्", agent,
+            subanta("पुष्प + अम्", "पुष्प", "अम्"), dualObject))
+        assertEquals(0, mismatches("त", dualAgent)) // No expressed object: do not use the agent.
+        val group = dev.panini.vyakaranam.ast.SamuccitaSubanta("coordination", listOf(
+            singularObject, subanta("पुष्प + सुँ", "पुष्प", "सुँ"),
+        ))
+        assertEquals(0, mismatches("आताम्", agent, group))
+        assertEquals(1, mismatches("त", agent, group))
+    }
+
+    @Test
+    fun `explicit coordinated agents agree by combined grammatical number`() {
+        val rama = subanta("राम + सुँ", "राम", "सुँ")
+        val shyama = subanta("श्याम + सुँ", "श्याम", "सुँ")
+        val hari = subanta("हरि + सुँ", "हरि", "सुँ")
+        fun mismatches(members: List<SubantaPada>, ending: String): Int {
+            val group = dev.panini.vyakaranam.ast.SamuccitaSubanta("coordination", members)
+            val original = akhyata(group)
+            val verb = original.tinganta.copy(ting = TingPratyaya(ending, ending))
+            return analyzer.analyze(original.copy(padas = listOf(group, verb), tinganta = verb))
+                .diagnostics.count { it.code == FrameDiagnosticCode.AGREEMENT_MISMATCH }
+        }
+        assertEquals(0, mismatches(listOf(rama, shyama), "तस्"))
+        assertEquals(1, mismatches(listOf(rama, shyama), "तिप्"))
+        assertEquals(0, mismatches(listOf(rama, shyama, hari), "झि"))
+        assertEquals(1, mismatches(listOf(rama, shyama, hari), "तस्"))
+        assertEquals(0, mismatches(listOf(subanta("बाल + औ", "बाल", "औ"), rama), "झि"))
+        assertEquals(0, mismatches(listOf(subanta("बाल + जस्", "बाल", "जस्"), rama), "झि"))
+        // A coordinated recipient must not increase the agent's grammatical number.
+        assertEquals(0, mismatches(listOf(rama, subanta("श्याम + ङे", "श्याम", "ङे")), "तिप्"))
+        assertEquals(0, analyzer.analyze(akhyata(rama, shyama)).diagnostics.count {
+            it.code == FrameDiagnosticCode.AGREEMENT_MISMATCH
+        })
+    }
+
+    @Test
+    fun `voice follows parsed morphology rather than display source`() {
+        val ordinary = akhyata()
+        val misleading = ordinary.tinganta.copy(sourceText = "इ यि णिच् यक् चिण्")
+        assertEquals(dev.panini.core.Prayoga.KARTARI, analyzer.analyze(
+            ordinary.copy(padas = listOf(misleading), tinganta = misleading),
+        ).prayoga)
+        val causative = ordinary.tinganta.copy(sourceText = "presentation only",
+            dhatu = ordinary.tinganta.dhatu.copy(sanadiPratyayas = listOf("णिच्")))
+        assertEquals(dev.panini.core.Prayoga.CAUSATIVE, analyzer.analyze(
+            ordinary.copy(padas = listOf(causative), tinganta = causative),
+        ).prayoga)
+        val passive = ordinary.tinganta.copy(sourceText = "presentation only",
+            ting = TingPratyaya("त", "त"),
+            vikarana = dev.panini.vyakaranam.ast.Vikarana.YAK)
+        assertEquals(dev.panini.core.Prayoga.KARMANI, analyzer.analyze(
+            ordinary.copy(padas = listOf(passive), tinganta = passive),
+        ).prayoga)
+    }
+
     private val dhatu = Dhatu(
         id = "test.1",
         krama = 1,

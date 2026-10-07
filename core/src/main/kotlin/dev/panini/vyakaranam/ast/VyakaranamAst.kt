@@ -78,6 +78,8 @@ data class Sequence(
 enum class SequenceConnector(val surface: String) {
     SAMUCCAYA("च"),
     ANANTARYA("ततः"),
+    /** Ordering supplied by prior-action morphology, not a source connector word. */
+    PURVAKALA(""),
     ;
 
     companion object {
@@ -214,6 +216,8 @@ data class TingantaPada(
     val ting: TingPratyaya,
     /** Explicit gaṇa-vikaraṇa when the upadeśa alone is lexically ambiguous. */
     val vikarana: Vikarana? = null,
+    /** Nonfinite source retained when this head is an execution-binding projection. */
+    val priorAction: AvyayaKridantaDerivation? = null,
 ) : Pada
 
 data class AvyayaPada(

@@ -289,6 +289,38 @@ This renders as “पञ्च द्वे च गणितस्य गणन
 stages, while `ततः` determines their execution order. The older
 `पूर्वस्य परस्य एका कुरु` directive remains accepted only for compatibility.
 
+### 6.1 Prior-action clauses: क्त्वा and ल्यप्
+
+An earlier action with the same agent can precede the main finite command:
+
+```pvm
+एक + अम् द्वि + औट् च युज् + णिच् + क्त्वा
+फल + अम् मुद्र् + णिच् + लोट् + सिप् ।
+```
+
+This renders with `योजयित्वा … मुद्रय`: having combined one and two,
+print the result. The earlier action owns the operands before its derived
+verb; the main action owns the following operands. Multiple prior actions
+are executed in source order. `फल` explicitly refers to the preceding result;
+क्त्वा itself does not inject an operand into the following action.
+
+For a prefixed prior action, use ल्यप्. For example, subtract one from two,
+then print the result:
+
+```pvm
+द्वि + औट् एक + अम् च वि + युज् + णिच् + ल्यप्
+फल + अम् मुद्र् + णिच् + लोट् + सिप् ।
+```
+
+ततः remains supported and can follow a main command in the same utterance.
+Both interpreter and compiler share prior-action lowering. Different explicit
+agents are rejected; passive/bhāve main clauses are not yet supported in this
+construction. The existing range-exclusion construction remains specialized.
+The main command can invoke a reusable प्रक्रिया; prior actions execute before
+that call, without supplying an implicit procedure argument through क्त्वा.
+सम् + युज् currently has numeric/collection overload ambiguity and should not
+be assumed to resolve as numeric addition.
+
 ## 7. Assignment and variables
 
 Use causative `स्था` with a locative destination to retain a result:

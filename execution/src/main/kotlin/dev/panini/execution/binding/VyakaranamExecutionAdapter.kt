@@ -222,7 +222,12 @@ object VyakaranamExecutionAdapter {
         if (input.text.isBlank()) {
             return AnalyzedExecutionBinding(ExecutionBindingResult.Invalid("The Sanskrit utterance is empty."))
         }
-        val executableUkti = normalizeFrequencyAst(ukti)
+        val loweredUkti = try {
+            ukti.copy(body = dev.panini.execution.PriorActionLowering.lower(ukti.body))
+        } catch (error: IllegalArgumentException) {
+            return AnalyzedExecutionBinding(ExecutionBindingResult.Invalid(error.message ?: "Invalid prior-action construction."))
+        }
+        val executableUkti = normalizeFrequencyAst(loweredUkti)
         val quotations = quotationBindings(executableUkti.body)
 
         var listener = input.listener

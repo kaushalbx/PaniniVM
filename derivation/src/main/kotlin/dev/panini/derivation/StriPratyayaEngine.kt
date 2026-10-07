@@ -2,12 +2,15 @@ package dev.panini.derivation
 
 import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.core.Linga
+import dev.panini.core.ItMarker
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.SutraStage
 
 data class StriPratyayaRequest(
     val stem: String,
     val samjna: Samjna = Samjna.TAP,
+    /** Markers established by the actual stem-forming affix derivation. */
+    val sourceAffixItMarkers: Set<ItMarker> = emptySet(),
 )
 
 class StriPratyayaEngine(
@@ -19,7 +22,19 @@ class StriPratyayaEngine(
 ) {
     fun derive(request: StriPratyayaRequest): DerivationResult {
         val initial = buildInitialState(request)
-        return pipeline.derive(initial).completeSvara()
+        val result = pipeline.derive(initial)
+        val requestedUpadesha = when (request.samjna) {
+            Samjna.TAP -> "टाप्"
+            Samjna.NIP -> "ङीप्"
+            Samjna.NIS -> "ङीष्"
+            Samjna.NIN -> "ङीन्"
+            Samjna.TI_PRATYAYA -> "ति"
+            else -> throw IllegalArgumentException("Unsupported feminine affix: ${request.samjna}")
+        }
+        require(result.applications.any { application ->
+            application.delta.addedTerms.any { it.upadesha == requestedUpadesha }
+        }) { "No supported rule licenses $requestedUpadesha after ${request.stem}." }
+        return result.completeSvara()
     }
 
     private fun buildInitialState(request: StriPratyayaRequest): DerivationState {
@@ -28,6 +43,7 @@ class StriPratyayaEngine(
             surface = request.stem,
             kind = TermKind.PRATIPADIKA,
             upadesha = request.stem,
+            itMarkers = request.sourceAffixItMarkers,
         )
         val samjnas = setOf(
             SamjnaAssignment(stemTerm.id, Samjna.PRATIPADIKA),

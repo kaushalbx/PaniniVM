@@ -288,7 +288,14 @@ class DerivationState(
         } else {
             substituteTermSurface(survivorId, surface, source, replacement, sutra)
         }
-        val removed = substituted.removeTerm(consumedId, sutra)
+        val withAffixProvenance = if (consumed.kind == TermKind.PRATYAYA) {
+            val currentSurvivor = substituted.terms.single { it.id == survivorId }
+            substituted.replaceTerm(survivorId, currentSurvivor.copy(
+                sourceSuffixUpadeshas = currentSurvivor.sourceSuffixUpadeshas +
+                    consumed.sourceSuffixUpadeshas + consumed.upadesha,
+            ))
+        } else substituted
+        val removed = withAffixProvenance.removeTerm(consumedId, sutra)
         val survivingLocus = consumedAffixVowelIndex?.let { oldIndex ->
             val wordIndex = DevanagariVowelLoci.positions(removed.surface).indices.lastOrNull()
                 ?.let(oldIndex::coerceAtMost) ?: return@let null
@@ -680,6 +687,8 @@ data class DerivationTerm(
     val mergedAffixVowelFromEnd: Int? = null,
     /** Non-phonological written signs anchored to boundaries in [varnas]. */
     val orthographicSigns: List<OrthographicSignPlacement> = emptyList(),
+    /** Affixes that produced an already-formed stem; never inferred from its spelling. */
+    val sourceSuffixUpadeshas: Set<String> = emptySet(),
 ) {
     /**
      * Cached phonological form of [surface]. During the transition [surface]

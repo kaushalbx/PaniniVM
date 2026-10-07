@@ -117,7 +117,15 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
     ): List<ExecutionResult> {
         vm.executionMetrics.recordAstNode()
         return when (node) {
-        is Invocation -> executeInvocationNode(node, context)
+        is Invocation -> {
+            val expanded = try {
+                PriorActionLowering.expand(node)
+            } catch (error: IllegalArgumentException) {
+                // Binding owns the public typed diagnostic for invalid morphology.
+                return executeEvaluatorNode(node, context)
+            }
+            expanded?.let { executeSequenceNode(it, context) } ?: executeInvocationNode(node, context)
+        }
         is Sequence -> executeSequenceNode(node, context)
         is Conditional -> executeConditionalNode(node, context)
         is Repeat -> buildList {
