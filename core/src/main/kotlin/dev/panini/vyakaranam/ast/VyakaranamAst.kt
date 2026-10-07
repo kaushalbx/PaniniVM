@@ -1,6 +1,7 @@
 package dev.panini.vyakaranam.ast
 
 import dev.panini.core.Lakara
+import dev.panini.core.KrtAffix
 import dev.panini.core.SupLopa
 import dev.panini.execution.SanskritValue
 
@@ -391,6 +392,8 @@ data class KridantaPratipadika(
     val vikaras: List<PratipadikaVikara> = emptyList(),
 ) : Pratipadika {
     val krtPratyayaIdentity: KrtPratyayaIdentity? = KrtPratyayaIdentity.fromUpadesha(krtPratyaya)
+    /** Shared grammatical identity, independent of the derived stem's ending. */
+    val krtAffix: KrtAffix? = KrtAffix.fromUpadesha(krtPratyaya)
     val lexicalIdentity: KridantaLexicalIdentity? = KridantaLexicalIdentity.fromStructure(
         upasargas = upasargas,
         mulaDhatu = dhatu.mulaDhatu,

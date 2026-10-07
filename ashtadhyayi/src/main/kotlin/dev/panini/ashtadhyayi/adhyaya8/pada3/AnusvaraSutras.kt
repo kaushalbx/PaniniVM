@@ -8,6 +8,8 @@ import dev.panini.derivation.TermKind
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Ayogavaha
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.replaceVarna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -39,21 +41,21 @@ object MonusvarahSutra : Sutra<DerivationState, DerivationChange>(
             val isBoundaryTerm = context.samjnas.any {
                 it.targetId == left.id && it.samjna in setOf(Samjna.PADA, Samjna.UPASARGA)
             }
-            isBoundaryTerm && left.surface.endsWith("म्") &&
-                right.surface.firstOrNull()?.let { Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, it) } == true
+            isBoundaryTerm && left.varnas.lastOrNull() == Vyanjana.MA &&
+                right.varnas.firstOrNull()?.let { Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, it) } == true
         }
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val left = context.terms.zipWithNext().first { (candidate, right) ->
             context.samjnas.any { it.targetId == candidate.id && it.samjna in setOf(Samjna.PADA, Samjna.UPASARGA) } &&
-                candidate.surface.endsWith("म्") &&
-                right.surface.firstOrNull()?.let { Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, it) } == true
+                candidate.varnas.lastOrNull() == Vyanjana.MA &&
+                right.varnas.firstOrNull()?.let { Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, it) } == true
         }.first
-        val newSurface = left.surface.removeSuffix("म्") + Ayogavaha.ANUSVARA.devanagari
+        val replacement = listOf(Ayogavaha.ANUSVARA)
 
         return DerivationChange(
-            state = context.substituteTermSurface(left.id, newSurface, 'म', Ayogavaha.ANUSVARA.devanagari, sutra),
+            state = context.substituteTermVarnas(left.id, left.varnas.dropLast(1) + replacement, Vyanjana.MA, replacement, sutra),
             explanation = "8.3.23: Final 'm' became Anusvāra before consonant."
         )
     }
@@ -78,51 +80,39 @@ object NashcapadantasyaSutra : Sutra<DerivationState, DerivationChange>(
     stage = SutraStage.SANDHI,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        if (context.terms.any { it.kind == TermKind.PRATYAYA }) return false
-        val surface = context.surface
-        val nIndex = surface.indexOfAny(setOf('न', 'म'))
-        if (nIndex == -1 || nIndex == surface.length - 1) return false
-        // A bare consonant carries its inherent vowel; only a halanta nasal is
-        // immediately followed by the next consonant for this sandhi rule.
-        if (surface.getOrNull(nIndex + 1) != '्') return false
-
-        val nextChar = surface.getOrNull(nIndex + 2) ?: return false
-        return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAL, nextChar)
+        return target(context) != null
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val surface = context.surface
-        val index = surface.indexOfAny(setOf('न', 'म'))
-
-        var offset = 0
-        val targetTerm = context.terms.find {
-            val start = offset
-            offset += it.surface.length
-            index in start until offset
-        } ?: return DerivationChange(context, "8.3.24: Target not found.")
-
-        val charAt = surface[index]
-        val termStart = offset - targetTerm.surface.length
-        val localIndex = index - termStart
-        val hasViramaInTerm = localIndex + 1 < targetTerm.surface.length && targetTerm.surface[localIndex + 1] == '्'
-        val newSurface = if (hasViramaInTerm) {
-            targetTerm.surface.substring(0, localIndex) + "ं" + targetTerm.surface.substring(localIndex + 2)
-        } else {
-            targetTerm.surface.substring(0, localIndex) + "ं" + targetTerm.surface.substring(localIndex + 1)
-        }
+        val (termIndex, localIndex) = requireNotNull(target(context))
+        val targetTerm = context.terms[termIndex]
+        val source = targetTerm.varnas[localIndex]
+        val replacement = listOf(Ayogavaha.ANUSVARA)
 
         return DerivationChange(
-            state = context.substituteTermSurface(
-                targetTerm.id, newSurface, charAt, Ayogavaha.ANUSVARA.devanagari, sutra,
+            state = context.substituteTermVarnas(
+                targetTerm.id, targetTerm.varnas.replaceVarna(localIndex, replacement), source, replacement, sutra,
             ),
-            explanation = "8.3.24: Internal '$charAt' became Anusvāra before jhal."
+            explanation = "8.3.24: Internal $source became Anusvāra before jhal."
         )
     }
 
-    private fun String.indexOfAny(chars: Set<Char>): Int {
-        for (i in indices) {
-            if (this[i] in chars) return i
+    private fun target(context: DerivationState): Pair<Int, Int>? {
+        if (context.terms.any { it.kind == TermKind.PRATYAYA }) return null
+        context.terms.forEachIndexed { termIndex, term ->
+            term.varnas.forEachIndexed { index, varna ->
+                if (varna in setOf(Vyanjana.NA, Vyanjana.MA)) {
+                    val padaFinal = index == term.varnas.lastIndex && context.samjnas.any {
+                        it.targetId == term.id && it.samjna in setOf(Samjna.PADA, Samjna.UPASARGA)
+                    }
+                    val next = term.varnas.getOrNull(index + 1)
+                        ?: context.terms.getOrNull(termIndex + 1)?.varnas?.firstOrNull()
+                    if (!padaFinal && next != null && Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAL, next)) {
+                        return termIndex to index
+                    }
+                }
+            }
         }
-        return -1
+        return null
     }
 }

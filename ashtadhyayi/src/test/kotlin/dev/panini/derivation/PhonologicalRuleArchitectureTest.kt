@@ -33,7 +33,8 @@ class PhonologicalRuleArchitectureTest {
         )
 
         val sutraPaths = Files.walk(sourceRoot).use { paths ->
-            paths.filter { it.extension == "kt" && it.fileName.toString().endsWith("Sutra.kt") }
+            // Grouped canonical rules and shared transformations are also sūtra implementations.
+            paths.filter { it.extension == "kt" }
                 .filter { it.fileName.toString() !in orthographicLifecycleOwners }
                 .toList()
         }

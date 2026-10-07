@@ -4,7 +4,11 @@ import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
 import dev.panini.analysis.SamasaSemanticRelation
 import dev.panini.core.SamasaType
+import dev.panini.core.SamasantaAffix
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -33,16 +37,31 @@ abstract class ActiveSamasantaSutra(
     samasaType = samasaType,
     samasaPriority = priority,
 ), SamasaSutra {
-    protected fun formed(context: SamasaRuleContext, stem: String): SamasaRuleResult.Formed {
-        val members=context.padas.map { it.upadesha }
-        val base=members.joinToString("")
-        val leading=members.dropLast(1).joinToString("")
-        return when {
-            stem.startsWith(base) -> SamasaRuleResult.Formed(stem,"$number forms samāsānta stem '$stem'.",samasantaSuffix=stem.removePrefix(base))
-            stem.startsWith(leading) -> SamasaRuleResult.Formed(stem,"$number forms samāsānta stem '$stem'.",memberEdits=mapOf(members.lastIndex to stem.removePrefix(leading)))
-            else -> SamasaRuleResult.Formed(stem,"$number forms irregular samāsānta stem '$stem'.",wholeStemOverride=true)
-        }
+    protected fun formedWithAffix(context: SamasaRuleContext, affix: SamasantaAffix): SamasaRuleResult.Formed =
+        formedWithSuffix(context, affix.varnas).copy(samasantaAffix = affix)
+
+    /** Explicit suffix selection; no written-prefix inference of grammatical operations. */
+    protected fun formedWithSuffix(context: SamasaRuleContext, suffix: List<Varna>): SamasaRuleResult.Formed =
+        SamasaRuleResult.Formed(
+            (context.padas.flatMap { it.varnas } + suffix).toDevanagari(),
+            "$number selects the prescribed samāsānta suffix.",
+            samasantaSuffix = suffix.toDevanagari(),
+        )
+
+    /** Exact final-member substitution, retaining the earlier members as separately editable terms. */
+    protected fun formedWithFinalMember(context: SamasaRuleContext, replacement: List<Varna>): SamasaRuleResult.Formed =
+        formedWithMembers(context, mapOf(context.padas.lastIndex to replacement))
+
+    /** Prescribed multi-member substitutions, without collapsing their grammatical identities. */
+    protected fun formedWithMembers(context: SamasaRuleContext, replacements: Map<Int, List<Varna>>): SamasaRuleResult.Formed {
+        require(replacements.keys.all { it in context.padas.indices })
+        return SamasaRuleResult.Formed(
+            context.padas.flatMapIndexed { index, pada -> replacements[index] ?: pada.varnas }.toDevanagari(),
+            "$number substitutes the prescribed compound members.",
+            memberEdits = replacements.mapValues { (_, varnas) -> varnas.toDevanagari() },
+        )
     }
+
 }
 
 /** 5.4.71 blocks the following samāsānta affixes in a nañ-tatpuruṣa. */
@@ -60,7 +79,8 @@ object NanjastatpurusatSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
 /** 5.4.72 optionally restores the a-affix for nañ + pathin. */
 object PathoVibhasaSutra : ActiveSamasantaSutra(72, "पथो विभाषा", true, SamasaType.NAN_TATPURUSA, 40) {
     override fun matches(context: SamasaRuleContext) = context.padas.size >= 2 && context.uttaraPada.upadesha == "पथिन्"
-    override fun apply(context: SamasaRuleContext) = formed(context,"अपथ")
+    override fun apply(context: SamasaRuleContext) =
+        formedWithFinalMember(context, context.uttaraPada.varnas.dropLast(2) + Svara.A)
 }
 
 /** 5.4.73 requires a genuinely numerical external referent; lexical shape alone is insufficient. */
@@ -68,22 +88,20 @@ object BahuvrihauSankhyeyeDajabahuganatSutra : ActiveSamasantaSutra(73, "बह�
     override fun matches(context: SamasaRuleContext) =
         context.padas.size >= 2 && SamasaSemanticRelation.NUMERICAL_REFERENT in context.semanticRelations &&
             context.purvaPada.upadesha !in setOf("बहु", "गण")
-    override fun apply(context: SamasaRuleContext) = formed(context,context.padas.joinToString("") { it.upadesha } + "अ")
+    override fun apply(context: SamasaRuleContext) = formedWithSuffix(context, listOf(Svara.A))
 }
 
 object AcPratyanvavapurvatSamalomnahSutra : ActiveSamasantaSutra(75, "अच् प्रत्यन्ववपूर्वात् सामलोम्नः", samasaType = SamasaType.TATPURUSA) {
     override fun matches(context: SamasaRuleContext) = context.padas.size >= 2 &&
         context.purvaPada.upadesha in setOf("प्रति", "अनु", "अव") && context.uttaraPada.upadesha in setOf("सामन्", "लोमन्")
-    override fun apply(context: SamasaRuleContext) = formed(context,context.purvaPada.upadesha + context.uttaraPada.upadesha.removeSuffix("न्"))
+    override fun apply(context: SamasaRuleContext) = formedWithFinalMember(context, context.uttaraPada.varnas.dropLast(1))
 }
 
 object UpasargadAdhvanahSutra : ActiveSamasantaSutra(85, "उपसर्गादध्वनः", samasaType = SamasaType.TATPURUSA) {
     override fun matches(context: SamasaRuleContext) = context.padas.size >= 2 && context.uttaraPada.upadesha == "अध्वन्" &&
         Samjna.UPASARGA in context.purvaPada.samjnas
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
-        val prefix = context.purvaPada.upadesha
-        val stem = if (prefix == "प्र") "प्राध्व" else prefix + "अध्व"
-        return formed(context,stem)
+        return formedWithFinalMember(context, context.uttaraPada.varnas.dropLast(1))
     }
 }
 
@@ -92,7 +110,6 @@ object TatpurusasyangulehSankhyavyayadehSutra : ActiveSamasantaSutra(86, "तत
     override fun matches(context: SamasaRuleContext) = context.padas.size >= 2 && context.uttaraPada.upadesha == "अङ्गुलि" &&
         (context.purvaPada.upadesha in numerals || Samjna.AVYAYA in context.purvaPada.samjnas)
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
-        val prefix = if (context.purvaPada.upadesha == "द्वि") "द्व्य" else context.purvaPada.upadesha
-        return formed(context,prefix + "ङ्गुल")
+        return formedWithFinalMember(context, context.uttaraPada.varnas.dropLast(1) + Svara.A)
     }
 }

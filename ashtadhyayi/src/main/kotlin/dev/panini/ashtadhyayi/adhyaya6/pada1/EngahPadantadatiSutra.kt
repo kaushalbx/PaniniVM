@@ -41,6 +41,7 @@ object EngahPadantadatiSutra : Sutra<DerivationState, DerivationChange>(
         if (context.terms.size < 2) return false
         val left = context.terms[context.terms.size - 2]
         val right = context.terms.last()
+        if (context.isBlockedAtBoundary(sutra, left.id, right.id)) return false
         if (context.effectiveContext.rupa.lakara in setOf(
                 Lakara.LANG,
                 Lakara.LRNG,

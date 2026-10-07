@@ -3,6 +3,9 @@ package dev.panini.ashtadhyayi.adhyaya2.pada2
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
 import dev.panini.core.SamasaType
+import dev.panini.core.KrtAffix
+import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -13,7 +16,7 @@ import dev.panini.sutra.SutraType
 object AmaivavyayenaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "2.2.20",
     text = "अमैवाव्ययेन",
-    hindiExplanation = "अम् तथा एव अव्ययान्त उपपद का समर्थ अव्यय के साथ नित्य समास होता है।",
+    hindiExplanation = "केवल णमुल् के साथ तुल्यविधान उपपद का णमुलन्त अव्यय से समास होता है।",
     type = SutraType.NITYA,
     chapter = 2,
     pada = 2,
@@ -28,11 +31,12 @@ object AmaivavyayenaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         return (context.samasaType == SamasaType.UPAPADA_TATPURUSA || context.samasaType == SamasaType.TATPURUSA) &&
-            context.padas.any { it.upadesha.contains("स्वाहा") || it.upadesha.endsWith("अम्") }
+            context.purvaPada.upapadaAffixPrescription?.affixes == setOf(KrtAffix.NAMUL) &&
+            context.uttaraPada.krtAffix == KrtAffix.NAMUL && Samjna.AVYAYA in context.uttaraPada.samjnas
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
-        val compoundStem = context.padas.joinToString("") { it.upadesha }
+        val compoundStem = context.padas.flatMap { it.varnas }.toDevanagari()
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "2.2.20 forms mandatory Upapada compound '$compoundStem'.",

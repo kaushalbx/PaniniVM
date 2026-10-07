@@ -3,6 +3,9 @@ package dev.panini.ashtadhyayi.adhyaya6.pada3
 import dev.panini.analysis.*
 import dev.panini.core.Linga
 import dev.panini.core.SamasaType
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.toHrasva
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.*
 
 private fun pumvadEligible(c: SamasaRuleContext): Boolean {
@@ -21,10 +24,13 @@ private fun masculineStem(c: SamasaRuleContext, rule: String) = SamasaRuleResult
     memberEdits=mapOf(0 to requireNotNull(c.purvaPada.masculineCounterpart)),
 )
 private fun shortenFeminine(c: SamasaRuleContext, rule: String): SamasaRuleResult {
-    val p = c.purvaPada.upadesha
-    val short = when { p.endsWith("ी") -> p.dropLast(1) + "ि"; p.endsWith("ई") -> p.dropLast(1) + "इ"; else -> p }
-    return SamasaRuleResult.Formed(short + c.padas.drop(1).joinToString("") { it.upadesha }, "$rule shortens the feminine final vowel.", memberEdits=mapOf(0 to short))
+    val p = c.purvaPada.varnas
+    val final = p.last() as Svara
+    val short = p.dropLast(1) + final.toHrasva()
+    return SamasaRuleResult.Formed((short + c.padas.drop(1).flatMap { it.varnas }).toDevanagari(), "$rule shortens the feminine final vowel.", memberEdits=mapOf(0 to short.toDevanagari()))
 }
+private fun nadiFinal(c: SamasaRuleContext) = c.purvaPada.varnas.lastOrNull() in setOf(Svara.II, Svara.UU)
+private fun vowelCount(c: SamasaRuleContext) = c.purvaPada.varnas.count { it is Svara }
 private val ghaClass = setOf("तर", "तम", "रूप", "कल्प", "चेल", "ब्रुव", "गोत्र", "मत", "हत")
 
 /** 6.3.34: स्त्रियाः पुंवद्भाषितपुंस्कादनूङ् समानाधिकरणे स्त्रियामपूरणीप्रियादिषु. */
@@ -53,7 +59,7 @@ object GharupaKalpaCeladBruvaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number="6.3.43", text="घरूपकल्पचेलडब्रुवगोत्रमतहतेषु ङ्योऽनेकाचो ह्रस्वः", hindiExplanation="निर्दिष्ट उत्तरपदों से पहले अनेकाच् ङी-अन्त स्त्री का अन्त्य स्वर ह्रस्व होता है।",
     type=SutraType.NITYA, chapter=6, pada=3, optional=false, kramaValue=630043, role=SutraRole.Vidhi, action=SutraAction.ADESHA, scope=SutraScope.DERIVATION, samasaPriority=20,
 ), SamasaSutra, UniversalSamasaTransformation {
-    override fun matches(context: SamasaRuleContext)=context.padas.size>=2 && SamasaMorphologicalFeature.FEMININE_NGI in context.purvaPada.morphologicalFeatures && context.uttaraPada.upadesha in ghaClass
+    override fun matches(context: SamasaRuleContext)=context.padas.size>=2 && SamasaMorphologicalFeature.FEMININE_NGI in context.purvaPada.morphologicalFeatures && context.purvaPada.masculineCounterpart != null && context.purvaPada.varnas.lastOrNull()==Svara.II && vowelCount(context)>1 && context.uttaraPada.upadesha in ghaClass
     override fun apply(context: SamasaRuleContext)=shortenFeminine(context,"6.3.43")
 }
 
@@ -62,7 +68,7 @@ object NadyahSesasyanyatarasyamSutra : Sutra<SamasaRuleContext, SamasaRuleResult
     number="6.3.44", text="नद्याः शेषस्यान्यतरस्याम्", hindiExplanation="शेष नदी-संज्ञक स्त्री का निर्दिष्ट उत्तरपदों से पहले विकल्प से ह्रस्व होता है।",
     type=SutraType.VIBHASHA, chapter=6, pada=3, optional=true, kramaValue=630044, role=SutraRole.Vidhi, action=SutraAction.ADESHA, scope=SutraScope.DERIVATION, samasaPriority=10,
 ), SamasaSutra, UniversalSamasaTransformation {
-    override fun matches(context: SamasaRuleContext)=context.padas.size>=2 && SamasaMorphologicalFeature.NADI in context.purvaPada.morphologicalFeatures && context.uttaraPada.upadesha in ghaClass
+    override fun matches(context: SamasaRuleContext)=context.padas.size>=2 && SamasaMorphologicalFeature.NADI in context.purvaPada.morphologicalFeatures && SamasaMorphologicalFeature.KRIT_DERIVED !in context.purvaPada.morphologicalFeatures && (SamasaMorphologicalFeature.FEMININE_NGI !in context.purvaPada.morphologicalFeatures || vowelCount(context)==1) && nadiFinal(context) && context.uttaraPada.upadesha in ghaClass
     override fun apply(context: SamasaRuleContext)=shortenFeminine(context,"6.3.44")
 }
 
@@ -71,6 +77,6 @@ object UgitashCaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number="6.3.45", text="उगितश्च", hindiExplanation="उगित्-व्युत्पन्न नदी का निर्दिष्ट उत्तरपदों से पहले विकल्प से ह्रस्व होता है।",
     type=SutraType.VIBHASHA, chapter=6, pada=3, optional=true, kramaValue=630045, role=SutraRole.Vidhi, action=SutraAction.ADESHA, scope=SutraScope.DERIVATION, samasaPriority=30,
 ), SamasaSutra, UniversalSamasaTransformation {
-    override fun matches(context: SamasaRuleContext)=context.padas.size>=2 && SamasaMorphologicalFeature.UGIT_DERIVED in context.purvaPada.morphologicalFeatures && context.uttaraPada.upadesha in ghaClass
+    override fun matches(context: SamasaRuleContext)=context.padas.size>=2 && SamasaMorphologicalFeature.UGIT_DERIVED in context.purvaPada.morphologicalFeatures && SamasaMorphologicalFeature.NADI in context.purvaPada.morphologicalFeatures && nadiFinal(context) && context.uttaraPada.upadesha in ghaClass
     override fun apply(context: SamasaRuleContext)=shortenFeminine(context,"6.3.45")
 }

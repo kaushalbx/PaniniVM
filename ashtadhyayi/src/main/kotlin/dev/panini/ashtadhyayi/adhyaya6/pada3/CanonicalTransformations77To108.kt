@@ -4,16 +4,17 @@ import dev.panini.analysis.*
 import dev.panini.core.SamasaType
 import dev.panini.core.Vibhakti
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.*
 
 private fun joinedWith(c: SamasaRuleContext, first: String) = first + c.padas.drop(1).joinToString("") { it.upadesha }
 private fun substitution(c: SamasaRuleContext, first: String, rule: String): SamasaRuleResult {
     val remainder=c.padas.drop(1).joinToString(""){it.upadesha}
-    val stem=if(remainder.firstOrNull() in initialVowels) "$first $remainder" else first+remainder
+    val stem=if(c.padas.drop(1).firstOrNull { it.varnas.isNotEmpty() }?.varnas?.firstOrNull() is Svara) "$first $remainder" else first+remainder
     return SamasaRuleResult.Formed(stem, "$rule supplies the prescribed pūrvapada form.", memberEdits=mapOf(0 to first))
 }
 private fun atLeastTwo(c: SamasaRuleContext)=c.padas.size>=2
-private val initialVowels=setOf('अ','आ','इ','ई','उ','ऊ','ऋ','ॠ','ऌ','ए','ऐ','ओ','औ')
 
 /** 6.3.77: नगोऽप्राणिष्वन्यतरस्याम्. */
 object NagoApranisuAnyatarasyamSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
@@ -85,7 +86,7 @@ object AaSarvanamnahSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     type=SutraType.NITYA, chapter=6, pada=3, optional=false, kramaValue=630091, role=SutraRole.Vidhi, action=SutraAction.ADESHA, scope=SutraScope.DERIVATION, samasaPriority=30,
 ), SamasaSutra, UniversalSamasaTransformation {
     override fun matches(context: SamasaRuleContext)=atLeastTwo(context) && SamasaMorphologicalFeature.PRONOUN in context.purvaPada.morphologicalFeatures && context.uttaraPada.upadesha in setOf("दृक्","दृश")
-    override fun apply(context: SamasaRuleContext)=substitution(context,context.purvaPada.upadesha.dropLast(1)+"ा","6.3.91")
+    override fun apply(context: SamasaRuleContext)=substitution(context,(context.purvaPada.varnas.dropLast(1)+Svara.AA).toDevanagari(),"6.3.91")
 }
 
 /** 6.3.93: समः समि. */
@@ -166,7 +167,7 @@ object KohKatTatpuruseAciSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number="6.3.101", text="कोः कत्तत्पुरुषेऽचि", hindiExplanation="अजादि उत्तरपद वाले तत्पुरुष में कु के स्थान पर कत् होता है।",
     type=SutraType.NITYA, chapter=6, pada=3, optional=false, kramaValue=630101, role=SutraRole.Vidhi, action=SutraAction.ADESHA, scope=SutraScope.DERIVATION, samasaType=SamasaType.TATPURUSA, samasaPriority=30,
 ), SamasaSutra {
-    override fun matches(context: SamasaRuleContext)=atLeastTwo(context) && context.samasaType==SamasaType.TATPURUSA && context.purvaPada.upadesha=="कु" && context.uttaraPada.upadesha.firstOrNull() in initialVowels
+    override fun matches(context: SamasaRuleContext)=atLeastTwo(context) && context.samasaType==SamasaType.TATPURUSA && context.purvaPada.upadesha=="कु" && context.uttaraPada.varnas.firstOrNull() is Svara
     override fun apply(context: SamasaRuleContext)=substitution(context,"कत्","6.3.101")
 }
 

@@ -7,6 +7,8 @@ import dev.panini.execution.DhatuOperation
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Karmatva
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.toVarnas
 
 /** One source entry from the Pāṇinian Dhātupāṭha. */
 open class Dhatu(
@@ -30,6 +32,9 @@ open class Dhatu(
     open val semanticRelations: Set<SemanticRelation> = emptySet(),
     open val surfaceAliases: Set<String> = emptySet(),
 ) {
+    /** Cached phonological form of the source root, separate from its raw upadeśa. */
+    val sourceVarnas: List<Varna> by lazy(LazyThreadSafetyMode.PUBLICATION) { sourceSurface.toVarnas() }
+
     /** Normalized root spelling used only by the derivation engine. */
     val derivationalSurface: String get() = sourceSurface
 }

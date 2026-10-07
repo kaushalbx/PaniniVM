@@ -19,6 +19,8 @@ object Adhyaya6Pada1 {
         IkoYanAciSutra,
         EcoYavayavahSutra,
         IndreCaSutra,
+        AvangSphotayanasyaSutra,
+        SarvatraVibhashaGohSutra,
         VantoYiPratyayeSutra,
         VrddhirEciSutra,
         EngiPararupamSutra,

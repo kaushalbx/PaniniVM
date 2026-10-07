@@ -17,10 +17,10 @@ object VopasarjanasyaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number = "6.3.82",
     text = "वोपसर्जनस्य",
     hindiExplanation = "सहस्य सादेशः स्याद् बहुव्रीहौ।",
-    type = SutraType.NITYA,
+    type = SutraType.VIBHASHA,
     chapter = 6,
     pada = 3,
-    optional = false,
+    optional = true,
     kramaValue = 630082,
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
@@ -30,22 +30,10 @@ object VopasarjanasyaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val purva = context.purvaPada.upadesha
-        return purva == "सह"
+        return context.samasaType == SamasaType.BAHUVRIHI && purva == "सह"
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
-        val uttara = context.uttaraPada.upadesha
-        val compoundStem = when {
-            uttara.startsWith("अ") || uttara.startsWith("आ") -> "सा" + uttara.drop(1)
-            uttara.startsWith("इ") || uttara.startsWith("ई") -> "से" + uttara.drop(1)
-            uttara.startsWith("उ") || uttara.startsWith("ऊ") -> "सो" + uttara.drop(1)
-            else -> "स" + uttara
-        }
-
-        return SamasaRuleResult.Formed(
-            compoundStem = compoundStem,
-            explanation = "6.3.82: Replaced 'saha' with 'sa' in Bahuvrīhi ($compoundStem).",
-            memberEdits = mapOf(0 to "स"),
-        )
+        return saStem(context, number)
     }
 }

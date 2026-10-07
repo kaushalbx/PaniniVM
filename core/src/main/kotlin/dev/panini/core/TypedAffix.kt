@@ -34,6 +34,7 @@ enum class KrtAffix(
     KTA("क्त"),
     KTAVATU("क्तवतुँ"),
     KTVA("क्त्वा"),
+    NAMUL("णमुल्"),
     LYAP("ल्यप्"),
     TUMUN("तुमुँन्"),
     TAVYAT("तव्यत्"),

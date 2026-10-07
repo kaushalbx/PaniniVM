@@ -5,6 +5,7 @@ import dev.panini.analysis.SamasaRuleResult
 import dev.panini.analysis.SamasaSemanticRelation
 import dev.panini.core.SamasaType
 import dev.panini.core.Vibhakti
+import dev.panini.shiksha.Svara
 import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -32,7 +33,7 @@ object RtoVidyaYoniSambandhebhyahSutra : Sutra<SamasaRuleContext, SamasaRuleResu
         context.padas.size >= 2 &&
             context.samasaType == SamasaType.ALUK_TATPURUSA &&
             context.purvaPada.vibhakti == Vibhakti.SASTHI &&
-            (context.purvaPada.upadesha.endsWith("ऋ") || context.purvaPada.upadesha.endsWith("ृ")) &&
+            context.purvaPada.varnas.lastOrNull() == Svara.R &&
             context.semanticRelations.any {
                 it == SamasaSemanticRelation.STUDY_RELATION || it == SamasaSemanticRelation.BLOOD_RELATION
             }

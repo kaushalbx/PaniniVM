@@ -26,6 +26,7 @@ class SamasantaAffixTest {
         )
         assertEquals("महाराजः", result.final.surface)
         assertTrue(result.applications.any { it.sutra == "5.4.91" })
+        assertTrue(result.applications.any { it.sutra == "6.3.46" })
     }
 
     @Test

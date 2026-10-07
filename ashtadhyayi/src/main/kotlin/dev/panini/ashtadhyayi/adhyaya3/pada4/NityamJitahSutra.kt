@@ -44,7 +44,7 @@ object NityamJitahSutra : Sutra<DerivationState, DerivationChange>(
             "ting-vas",
             "ting-mas",
         )
-        val isUpadeshaS = lastTerm.upadesha?.endsWith("स्") == true
+        val isUpadeshaS = lastTerm.upadeshaVarnas.lastOrNull() == Vyanjana.SA
         val endsWithS = lastTerm.varnas.lastOrNull() == Vyanjana.SA
 
         return isNit && isParasmaipadaEnding && isUpadeshaS && endsWithS

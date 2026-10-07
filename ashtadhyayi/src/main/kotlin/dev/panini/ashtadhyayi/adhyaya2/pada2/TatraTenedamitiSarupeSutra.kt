@@ -3,6 +3,7 @@ package dev.panini.ashtadhyayi.adhyaya2.pada2
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
 import dev.panini.core.SamasaType
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -42,9 +43,8 @@ object TatraTenedamitiSarupeSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
-        val purvaStem = context.purvaPada.upadesha.dropLast(1) + "ा"
-        val uttaraStem = context.uttaraPada.upadesha.dropLast(1) + "ि"
-        val compoundStem = purvaStem + uttaraStem
+        // Classification does not perform the separate 6.3.137 and 5.4.127 operations.
+        val compoundStem = context.padas.flatMap { it.varnas }.toDevanagari()
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "2.2.27 forms Combat Bahuvrīhi compound '$compoundStem'.",

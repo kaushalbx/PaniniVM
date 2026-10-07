@@ -26,7 +26,7 @@ class Samasanta114To160EvidenceTest {
             BahuprajasChandasiSutra to c("बहु", "प्रजा", semantics = setOf(SamasaSemanticRelation.VEDIC_REGISTER)),
             DharmadAnicKevalatSutra to c("सु", "धर्म"),
             JambhaSuharitaTrnaSomebhyahSutra to c("सोम", "जम्भ"),
-            DaksinerMaLubdhayogeSutra to c("दक्षिण", "हस्त", semantics = setOf(SamasaSemanticRelation.HUNTER_ASSOCIATION)),
+            DaksinerMaLubdhayogeSutra to c("दक्षिण", "ईर्म", semantics = setOf(SamasaSemanticRelation.HUNTER_ASSOCIATION)),
             IcKarmavyatihareSutra to c("केश", "केश", semantics = setOf(SamasaSemanticRelation.RECIPROCAL_ACTION)),
             DvidandyadibhyasCaSutra to c("द्वि", "दण्ड", semantics = setOf(SamasaSemanticRelation.LEXICAL_GANA_MEMBERSHIP)),
             PrasambhyamJanunorJnuhSutra to c("प्र", "जानु"),

@@ -1,5 +1,7 @@
 package dev.panini.analysis
 
+import dev.panini.core.SamasantaAffix
+
 /**
  * The result returned by every Samāsa Sūtra after application.
  *
@@ -24,6 +26,7 @@ sealed interface SamasaRuleResult {
         val memberEdits: Map<Int, String> = emptyMap(),
         val samasantaSuffix: String? = null,
         val wholeStemOverride: Boolean = false,
+        val samasantaAffix: SamasantaAffix? = null,
     ) : SamasaRuleResult
 
     /**

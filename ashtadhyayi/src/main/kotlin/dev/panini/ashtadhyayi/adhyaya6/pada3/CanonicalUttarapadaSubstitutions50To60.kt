@@ -1,12 +1,14 @@
 package dev.panini.ashtadhyayi.adhyaya6.pada3
 
 import dev.panini.analysis.*
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.*
 
 private fun hasFirst(c: SamasaRuleContext, word: String) = c.padas.size >= 2 && c.purvaPada.upadesha == word
 private fun replaceFirst(c: SamasaRuleContext, replacement: String, rule: String): SamasaRuleResult {
     val remainder=c.padas.drop(1).joinToString(""){it.upadesha}
-    val stem=if(remainder.firstOrNull() in setOf('अ','आ','इ','ई','उ','ऊ','ऋ','ॠ','ऌ','ए','ऐ','ओ','औ')) "$replacement $remainder" else replacement+remainder
+    val stem=if(c.padas.drop(1).firstOrNull { it.varnas.isNotEmpty() }?.varnas?.firstOrNull() is Svara) "$replacement $remainder" else replacement+remainder
     return SamasaRuleResult.Formed(stem,"$rule substitutes $replacement for the pūrvapada.",memberEdits=mapOf(0 to replacement))
 }
 
@@ -78,7 +80,7 @@ object EkahaladauPurayitavyeAnyatarasyamSutra : Sutra<SamasaRuleContext, SamasaR
     number="6.3.59", text="एकहलादौ पूरयितव्येऽन्यतरस्याम्", hindiExplanation="जल से भरे जाने योग्य एक-हलादि उत्तरपद पर उदक के स्थान पर विकल्प से उद् होता है।",
     type=SutraType.VIBHASHA, chapter=6, pada=3, optional=true, kramaValue=630059, role=SutraRole.Vidhi, action=SutraAction.ADESHA, scope=SutraScope.DERIVATION, samasaPriority=20,
 ), SamasaSutra, UniversalSamasaTransformation {
-    override fun matches(context: SamasaRuleContext)=hasFirst(context,"उदक") && SamasaSemanticRelation.WATER_FILLED in context.semanticRelations && context.uttaraPada.upadesha.firstOrNull() !in setOf('अ','आ','इ','ई','उ','ऊ','ऋ','ए','ऐ','ओ','औ')
+    override fun matches(context: SamasaRuleContext)=hasFirst(context,"उदक") && SamasaSemanticRelation.WATER_FILLED in context.semanticRelations && context.uttaraPada.varnas.firstOrNull() is Vyanjana && context.uttaraPada.varnas.getOrNull(1) is Svara
     override fun apply(context: SamasaRuleContext)=replaceFirst(context,"उद्","6.3.59")
 }
 

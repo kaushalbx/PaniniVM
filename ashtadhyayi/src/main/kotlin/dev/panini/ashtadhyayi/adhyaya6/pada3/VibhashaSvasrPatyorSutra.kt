@@ -4,6 +4,7 @@ import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
 import dev.panini.analysis.SamasaSemanticRelation
 import dev.panini.core.SamasaType
+import dev.panini.shiksha.Svara
 import dev.panini.sutra.*
 
 /** 6.3.24: विभाषा स्वसृपत्योः. */
@@ -16,7 +17,7 @@ object VibhashaSvasrPatyorSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
 ), SamasaSutra {
     override fun matches(context: SamasaRuleContext): Boolean = context.padas.size >= 2 &&
         context.samasaType == SamasaType.ALUK_TATPURUSA &&
-        (context.purvaPada.upadesha.endsWith("ऋ") || context.purvaPada.upadesha.endsWith("ृ")) && context.uttaraPada.upadesha in setOf("स्वसृ", "पति") &&
+        context.purvaPada.varnas.lastOrNull() == Svara.R && context.uttaraPada.upadesha in setOf("स्वसृ", "पति") &&
         context.semanticRelations.any { it == SamasaSemanticRelation.STUDY_RELATION || it == SamasaSemanticRelation.BLOOD_RELATION }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult = SamasaRuleResult.Formed(

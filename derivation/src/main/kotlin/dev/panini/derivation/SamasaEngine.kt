@@ -15,10 +15,16 @@ import dev.panini.ashtadhyayi.adhyaya5.pada4.*
 import dev.panini.ashtadhyayi.adhyaya6.pada3.*
 import dev.panini.core.Linga
 import dev.panini.core.SamasaType
+import dev.panini.core.SamasantaAffix
 import dev.panini.core.Vacana
 import dev.panini.core.Vibhakti
 import dev.panini.derivation.SubantaDerivationRequest
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.Ayogavaha
+import dev.panini.shiksha.toVarnas
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.UniversalSamasaTransformation
 import dev.panini.sutra.SamasaRulePhase
@@ -97,6 +103,7 @@ class SamasaEngine(
         val transformedMembers = padas.map { it.upadesha }.toMutableList()
         classificationResult.memberEdits.forEach { (index,replacement) -> transformedMembers[index]=replacement }
         var samasantaSuffix=classificationResult.samasantaSuffix.orEmpty()
+        var samasantaAffix=classificationResult.samasantaAffix
         var wholeStem: String?=classificationResult.compoundStem.takeIf { classificationResult.wholeStemOverride }
         val transformationResults = transformationSutras.map { sutra ->
             val result = sutra.apply(context) as? SamasaRuleResult.Formed ?: return@map sutra to null
@@ -104,7 +111,7 @@ class SamasaEngine(
                 require(index in transformedMembers.indices) { "${(sutra as Sutra<*, *>).number} edits absent samāsa member $index." }
                 transformedMembers[index] = replacement
             }
-            result.samasantaSuffix?.let { samasantaSuffix=it }
+            result.samasantaSuffix?.let { samasantaSuffix=it; samasantaAffix=result.samasantaAffix }
             val composedStem = when {
                 result.wholeStemOverride -> result.compoundStem.also { wholeStem=it }
                 result.memberEdits.isNotEmpty() -> transformedMembers.joinToString("")+samasantaSuffix
@@ -197,9 +204,6 @@ class SamasaEngine(
             }
 
         val rawStem = wholeStem?.plus(samasantaSuffix) ?: transformedMembers.joinToString(" ")+samasantaSuffix
-        val padasList = padas.map { it.upadesha }
-        val rawPadasConcat = padasList.joinToString("")
-        val hasSamasantaKap = rawStem.endsWith("क") && !rawPadasConcat.endsWith("क")
         val hasPriorStemTransformation = transformationSutras.any { it.samasaPhase == SamasaRulePhase.STEM_TRANSFORMATION }
         if (type != SamasaType.ALUK_TATPURUSA) {
             val nLopa = Ashtadhyayi.registry.require("8.2.7") as DerivationSutra
@@ -211,7 +215,8 @@ class SamasaEngine(
             .filter { it.id.startsWith("pada_") }
             .map { it.surface }
 
-        val sandhiRes = materializeSamasaStem(rawStem, padas, type, hasPriorStemTransformation, applications, effectiveMembers)
+        val sandhiRes = materializeSamasaStem(rawStem, padas, type, hasPriorStemTransformation, applications, effectiveMembers,
+            samasantaAffix == SamasantaAffix.KAP)
 
         val normalizedStem = normalizeCompoundPhonology(sandhiRes, currentState, applications)
 
@@ -278,6 +283,7 @@ class SamasaEngine(
                     sutra=(sutra as Sutra<*,*>).number,
                     memberEdits=it.memberEdits,
                     samasantaSuffix=it.samasantaSuffix,
+                    samasantaAffix=it.samasantaAffix,
                     wholeStemOverride=it.compoundStem.takeIf { _ -> it.wholeStemOverride },
                 )
             } },
@@ -355,18 +361,19 @@ class SamasaEngine(
         val nonEmptyMembers=members.filter { it.isNotEmpty() }
         if(nonEmptyMembers.isEmpty()) return ""
         var result = nonEmptyMembers.first()
+        var resultVarnas = result.toVarnas()
         for (next in nonEmptyMembers.drop(1)) {
-            // A written Devanagari consonant already includes its inherent /a/.
-            // External sandhi is therefore relevant here only before an explicit
-            // independent vowel; running it before another consonant corrupts the
-            // interior of words (सर्प + भय must remain सर्पभय, not सर्भय).
-            if (next.firstOrNull() in independentVowels || result.endsWith("स्")) {
+            val nextVarnas = next.toVarnas()
+            // Preserve the established boundary domain: vowel-initial members
+            // and s-final left members. Interior consonants are not boundaries.
+            if (nextVarnas.firstOrNull() is Svara || resultVarnas.lastOrNull() == Vyanjana.SA) {
                 val joined = sandhiEngine.join(result, next)
-                val surface = joined.final.surface
-                result = if (surface.isNotBlank() && surface.length >= result.length + next.length - 1) surface else result + next
+                result = joined.final.surface
+                resultVarnas = joined.final.terms.flatMap { it.varnas }
                 applications.addAll(joined.applications)
             } else {
-                result += next
+                resultVarnas = resultVarnas + nextVarnas
+                result = resultVarnas.toDevanagari()
             }
         }
         return result
@@ -379,19 +386,31 @@ class SamasaEngine(
         hasPriorStemTransformation: Boolean,
         applications: MutableList<DerivationApplication>,
         effectiveMembers: List<String>? = null,
+        hasSamasantaKap: Boolean = false,
     ): String {
         val rawPadasConcat=padas.joinToString(""){it.upadesha}
-        val hasSamasantaKap=rawStem.endsWith("क") && !rawPadasConcat.endsWith("क")
         val members=(effectiveMembers ?: padas.map { it.upadesha }).mapIndexed { index,surface ->
-            if(index<padas.lastIndex && type!=SamasaType.ALUK_TATPURUSA && surface.endsWith("न्")) surface.dropLast(2) else surface
+            val varnas=surface.toVarnas()
+            if(index<padas.lastIndex && type!=SamasaType.ALUK_TATPURUSA && varnas.lastOrNull()==Vyanjana.NA)
+                varnas.dropLast(1).toDevanagari() else surface
         }
         return if(rawStem.contains(" ")) {
             val parts=rawStem.split(" ").mapIndexed { index, part ->
-                if(index<padas.lastIndex && type!=SamasaType.ALUK_TATPURUSA && part.endsWith("न्")) part.dropLast(2) else part
+                val varnas=part.toVarnas()
+                if(index<padas.lastIndex && type!=SamasaType.ALUK_TATPURUSA && varnas.lastOrNull()==Vyanjana.NA)
+                    varnas.dropLast(1).toDevanagari() else part
             }
             joinCompoundMembers(parts,applications)
         } else if(hasSamasantaKap && hasPriorStemTransformation) rawStem
-        else if(rawStem==rawPadasConcat || hasSamasantaKap){ val res=joinCompoundMembers(members,applications); if(hasSamasantaKap){if(res.endsWith("ः"))res.dropLast(1)+"स्क" else res+"क"}else res }
+        else if(rawStem==rawPadasConcat || hasSamasantaKap){
+            val res=joinCompoundMembers(members,applications)
+            if(hasSamasantaKap){
+                val varnas=res.toVarnas()
+                (if(varnas.lastOrNull()==Ayogavaha.VISARGA)
+                    varnas.dropLast(1)+listOf(Vyanjana.SA,Vyanjana.KA,Svara.A)
+                else varnas+listOf(Vyanjana.KA,Svara.A)).toDevanagari()
+            }else res
+        }
         else rawStem
     }
 
@@ -437,7 +456,8 @@ class SamasaEngine(
             val id = "samasanta-$sutra"
             if (changed.terms.none { it.id == id }) {
                 changed = changed.addTerm(
-                    DerivationTerm(id, suffix, TermKind.PRATYAYA, upadesha = suffix, createdBySutra = sutra),
+                    result.samasantaAffix?.term(id)?.copy(createdBySutra = sutra)
+                        ?: DerivationTerm(id, suffix, TermKind.PRATYAYA, upadesha = suffix, createdBySutra = sutra),
                 )
             }
         }
@@ -475,11 +495,12 @@ class SamasaEngine(
             var formed=classificationResult
             val branchMembers=padas.map { it.upadesha }.toMutableList()
             var branchSuffix=""
+            var branchAffix: SamasantaAffix?=null
             var branchWhole: String?=null
             retained.forEach { rule ->
                 val next=rule.apply(context) as? SamasaRuleResult.Formed ?: return@forEach
                 next.memberEdits.forEach { (index,replacement) -> branchMembers[index]=replacement }
-                next.samasantaSuffix?.let { branchSuffix=it }
+                next.samasantaSuffix?.let { branchSuffix=it; branchAffix=next.samasantaAffix }
                 val composed=when {
                     next.wholeStemOverride -> next.compoundStem.also { branchWhole=it }
                     next.memberEdits.isNotEmpty() -> branchMembers.joinToString("")+branchSuffix
@@ -496,6 +517,7 @@ class SamasaEngine(
                 type,
                 retained.any { it.samasaPhase == SamasaRulePhase.STEM_TRANSFORMATION },
                 scratch,
+                hasSamasantaKap = branchAffix == SamasantaAffix.KAP,
             )
             val stem = normalizeCompoundPhonology(
                 materialized,
@@ -548,7 +570,6 @@ class SamasaEngine(
     }
 
     private companion object {
-        val independentVowels = setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ऌ', 'ए', 'ऐ', 'ओ', 'औ')
         /** Missing entries are general prohibitions; listed entries have explicit targets. */
         val samasantaProhibitionTargets = (155..159).associate { number ->
             "5.4.$number" to setOf("5.4.151", "5.4.152", "5.4.153", "5.4.154")

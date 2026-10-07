@@ -4,6 +4,7 @@ import dev.panini.core.SamasaType
 import dev.panini.core.Vibhakti
 import dev.panini.core.Linga
 import dev.panini.core.Vacana
+import dev.panini.core.KrtAffix
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Varna
 import dev.panini.shiksha.toVarnas
@@ -24,8 +25,19 @@ data class SamasaPada(
     /** Explicit masculine counterpart used by puṃvadbhāva rules; never guessed lexically. */
     val masculineCounterpart: String? = null,
     val morphologicalFeatures: Set<SamasaMorphologicalFeature> = emptySet(),
+    /** Affix that actually produced this member; never inferred from its final spelling. */
+    val krtAffix: KrtAffix? = null,
+    /** The affixes licensed together by the prescription establishing this member as upapada. */
+    val upapadaAffixPrescription: UpapadaAffixPrescription? = null,
 ) {
     val varnas: List<Varna> by lazy(LazyThreadSafetyMode.PUBLICATION) { upadesha.toVarnas() }
+}
+
+data class UpapadaAffixPrescription(val sutra: String, val affixes: Set<KrtAffix>) {
+    init {
+        require(sutra.isNotBlank()) { "An upapada affix prescription requires its source sūtra." }
+        require(affixes.isNotEmpty()) { "An upapada affix prescription must license at least one affix." }
+    }
 }
 
 /** Phonological lexical domain of 8.2.72, kept outside the sūtra implementation. */
@@ -68,6 +80,8 @@ enum class SamasaMorphologicalFeature {
 
 /** Semantic facts supplied by the vigraha, rather than guessed from its words. */
 enum class SamasaSemanticRelation {
+    /** Ṛṇa in 2.1.43: a debt or prescribed obligation, not merely a payable object. */
+    DEBT_OR_OBLIGATION,
     SAMARTHYA,
     CASE_RELATION,
     QUALIFIER_QUALIFIED,
@@ -87,6 +101,8 @@ enum class SamasaSemanticRelation {
     CENSURE,
     /** The vigraha expresses a measure or spatial dimension. */
     MEASURE_DIMENSION,
+    /** 5.4.84: an altar twice or thrice the size of the corresponding original altar. */
+    ALTAR_RELATIVE_DIMENSION,
     /** The members are related through teaching or study (vidyā-sambandha). */
     STUDY_RELATION,
     /** The members are related by descent or blood (yoni-sambandha). */

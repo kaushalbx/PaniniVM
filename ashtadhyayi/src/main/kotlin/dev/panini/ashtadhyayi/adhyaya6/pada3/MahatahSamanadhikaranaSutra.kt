@@ -3,6 +3,9 @@ package dev.panini.ashtadhyayi.adhyaya6.pada3
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
 import dev.panini.core.SamasaType
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -38,16 +41,12 @@ object MahatahSamanadhikaranaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
-        val last = context.padas.last().upadesha
-        val compoundStem = when {
-            last.startsWith("आ") -> "महा" + last.drop(1)
-            last.startsWith("अ") -> "महा" + last.drop(1)
-            else -> "महा" + last
-        }
+        val replacement = listOf(Vyanjana.MA, Svara.A, Vyanjana.HA, Svara.AA)
+        val compoundStem = (replacement + context.padas.drop(1).flatMap { it.varnas }).toDevanagari()
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "6.3.46 substitutes mahā for mahat in '$compoundStem'.",
-            memberEdits = mapOf(0 to "महा"),
+            memberEdits = mapOf(0 to replacement.toDevanagari()),
         )
     }
 }

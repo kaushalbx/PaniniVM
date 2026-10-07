@@ -11,11 +11,10 @@ object IndreCaSutra : Sutra<DerivationState, DerivationChange>(
     type = SutraType.NITYA, chapter = 6, pada = 1, optional = false,
     kramaValue = 610124, role = SutraRole.Apavada, action = SutraAction.ADESHA,
     scope = SutraScope.VARNA, stage = SutraStage.SANDHI,
-    priority = SutraPriority.APAVADA, blocks = setOf("6.1.78"),
+    priority = SutraPriority.APAVADA, blocks = setOf("6.1.78", "6.1.123"),
 ), DerivationSutra {
     private val go: List<Varna> = listOf(Vyanjana.GA, Svara.O)
     private val indra: List<Varna> = listOf(Svara.I, Vyanjana.NA, Vyanjana.DA, Vyanjana.RA, Svara.A)
-    private val ava: List<Varna> = listOf(Svara.A, Vyanjana.VA, Svara.A)
 
     private fun boundary(context: DerivationState): Int? =
         (0 until context.terms.lastIndex).firstOrNull { index ->
@@ -32,10 +31,6 @@ object IndreCaSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean = boundary(context) != null
 
     override fun apply(context: DerivationState): DerivationChange {
-        val left = context.terms[requireNotNull(boundary(context))]
-        return DerivationChange(
-            context.substituteTermVarnas(left.id, left.varnas.dropLast(1) + ava, Svara.O, ava, sutra),
-            "6.1.124 substitutes अव for the final ओ of गो before इन्द्र; the resulting vowel boundary undergoes गुण.",
-        )
+        return applyAvang(context, requireNotNull(boundary(context)), sutra)
     }
 }

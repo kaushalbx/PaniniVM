@@ -1,5 +1,6 @@
 package dev.panini.execution.binding
 
+import dev.panini.analysis.SamasaPada
 import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
 import dev.panini.vyakaranam.ast.KridantaPratipadika
@@ -10,6 +11,14 @@ import dev.panini.vyakaranam.ast.SankhyaPratipadika
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.UnadyantaPratipadika
 import dev.panini.vyakaranam.ast.semanticKey
+
+/** Carry derivational identity from the AST into compound rules; never infer it from a stem. */
+internal fun Pratipadika.toSamasaPada(derivedStem: String, vibhakti: Vibhakti): SamasaPada =
+    SamasaPada(
+        derivedStem,
+        vibhakti,
+        krtAffix = (this as? KridantaPratipadika)?.krtAffix,
+    )
 
 internal fun SubantaPada.hasVibhakti(vibhakti: Vibhakti): Boolean =
     SupAffix.candidates(sup.text).any { it.vibhakti == vibhakti }

@@ -25,6 +25,7 @@ import dev.panini.derivation.TaddhitaEngine
 import dev.panini.dhatupatha.DhatuPatha
 import dev.panini.analysis.SamasaPada
 import dev.panini.execution.binding.NumeralAstNormalizer
+import dev.panini.execution.binding.toSamasaPada
 import dev.panini.execution.binding.CanonicalDhatuIdentity
 import dev.panini.execution.binding.canonicalDhatuIdentity
 import dev.panini.sankhya.SankhyaAbhyasaRenderer
@@ -171,7 +172,13 @@ class PvmUktiSadhaka(
         val rendered = mutableListOf(words.first())
         words.drop(1).forEach { right ->
             val left = rendered.removeLast()
-            rendered += sandhiEngine.joinPadas(left, right)
+            // The readable renderer retains segmented PVM notation when a
+            // pada has not been derived. Source operators and punctuation
+            // are syntax boundaries, not phonological padas.
+            val hasSourceSyntax = listOf(left, right).any { word ->
+                word.any { it in "+।॥,():={}[]" }
+            }
+            rendered += (if (hasSourceSyntax) "$left $right" else sandhiEngine.joinPadas(left, right))
                 .split(' ')
                 .filter { it.isNotBlank() }
         }
@@ -440,7 +447,7 @@ class PvmUktiSadhaka(
                     val vibhakti = anga.sup?.text
                         ?.let { SupAffix.fromUpadesha(it)?.vibhakti }
                         ?: Vibhakti.PRATHAMA
-                    SamasaPada(anga.pratipadika.baseText(), vibhakti)
+                    anga.pratipadika.toSamasaPada(anga.pratipadika.baseText(), vibhakti)
                 }
                 samasaEngine.derive(padas, SamasaType.TATPURUSA).final.surface
             } catch (_: Exception) {

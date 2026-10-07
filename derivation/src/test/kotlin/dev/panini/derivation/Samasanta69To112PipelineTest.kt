@@ -34,7 +34,7 @@ class Samasanta69To112PipelineTest {
                 SamasaType.NAN_TATPURUSA,
             ).samasaResolution,
         ).alternatives
-        assertTrue(alternatives.any { "5.4.72" in it.transformationSutras })
+        assertTrue(alternatives.any { "5.4.72" in it.transformationSutras && it.compoundStem == "अपथ" })
         assertTrue(alternatives.any { "5.4.72" !in it.transformationSutras })
     }
 

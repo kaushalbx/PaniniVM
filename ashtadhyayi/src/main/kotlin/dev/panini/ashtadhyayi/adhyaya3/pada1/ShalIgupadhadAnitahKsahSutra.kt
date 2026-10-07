@@ -5,6 +5,10 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.WholeAffixDesignationPolicy
+import dev.panini.derivation.TermKind
+import dev.panini.shiksha.ItStatus
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -25,13 +29,19 @@ object ShalIgupadhadAnitahKsahSutra : Sutra<DerivationState, DerivationChange>(
     action = SutraAction.ADESHA,
     scope = SutraScope.PRATYAYA,
 ), DerivationSutra {
-    private val ksaRoots = setOf("दिश्", "दृश्", "लिख्", "विष्", "कृष्", "द्विष्")
+    private val shal = setOf(Vyanjana.SHA, Vyanjana.SSA, Vyanjana.SA, Vyanjana.HA)
+    private val ik = setOf(Svara.I, Svara.II, Svara.U, Svara.UU, Svara.R, Svara.RR, Svara.L, Svara.LL)
 
     override fun matches(context: DerivationState): Boolean {
-        val cli = context.terms.firstOrNull { it.upadesha == "च्लि" } ?: return false
-        return context.allEffectiveTerms.any { term ->
-            term.surface in ksaRoots || ksaRoots.any { root -> term.upadesha.startsWith(root) }
-        }
+        val cliIndex = context.terms.indexOfFirst { it.kind == TermKind.PRATYAYA && it.upadesha == "च्लि" }
+        if (cliIndex < 0) return false
+        val rootIndex = context.terms.take(cliIndex).indexOfLast { it.kind == TermKind.DHATU }
+        if (rootIndex < 0) return false
+        // A surviving derivational suffix changes the aṅga; do not inspect its bare parent root.
+        if (context.terms.subList(rootIndex + 1, cliIndex).any { it.kind == TermKind.PRATYAYA }) return false
+        val root = context.terms[rootIndex]
+        return root.itStatus == ItStatus.ANIT && root.varnas.lastOrNull() in shal &&
+            root.varnas.getOrNull(root.varnas.lastIndex - 1) in ik
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -39,7 +49,7 @@ object ShalIgupadhadAnitahKsahSutra : Sutra<DerivationState, DerivationChange>(
         return DerivationChange(
             context.replaceWholeAffix(
                 id = cli.id,
-                surface = "क्स",
+                varnas = listOf(Vyanjana.KA, Vyanjana.SA, Svara.A),
                 sutra = sutra,
                 policy = WholeAffixDesignationPolicy.Consume,
                 upadesha = "क्स",

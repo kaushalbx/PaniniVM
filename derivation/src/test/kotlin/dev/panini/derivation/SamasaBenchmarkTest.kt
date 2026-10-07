@@ -32,6 +32,7 @@ class SamasaBenchmarkTest {
             assertEquals(case.classificationSutra, resolution.classificationSutra, "classification rule")
             assertEquals(case.transformationSutras, resolution.transformationSutras, "transformation rules")
             val appliedRules = result.applications.mapTo(mutableSetOf()) { it.sutra }
+            assertTrue(case.requiredAppliedSutras.all { it in appliedRules }, "required rule missing: ${case.requiredAppliedSutras - appliedRules}")
             assertTrue(case.forbiddenSutras.none { it in appliedRules }, "forbidden rule applied: ${case.forbiddenSutras intersect appliedRules}")
             assertTrue("2.4.71" in resolution.supLopaSutras, "internal sup-lopa must be recorded")
             assertTrue(result.final.stage == DerivationStage.FINAL, "samasa derivation must be terminal")
@@ -59,7 +60,11 @@ class SamasaBenchmarkTest {
         fun optionalField(name: String): String? = raw[name] as? String
         val padas = (raw["padas"] as? List<*>)?.map { item ->
             val pada = item as? Map<*, *> ?: error("Pada must be an object: $item")
-            SamasaPada(pada["upadesha"] as String, Vibhakti.valueOf(pada["vibhakti"] as String))
+            SamasaPada(
+                pada["upadesha"] as String,
+                Vibhakti.valueOf(pada["vibhakti"] as String),
+                krtAffix=(pada["krtAffix"] as? String)?.let(dev.panini.core.KrtAffix::valueOf),
+            )
         } ?: error("Missing padas in benchmark case: $raw")
         val transformations = field("transformationSutras").split(',').filter { it.isNotBlank() }
         val forbidden = field("forbiddenSutras").split(',').filter { it.isNotBlank() }
@@ -81,6 +86,7 @@ class SamasaBenchmarkTest {
             outputVacana = optionalField("outputVacana")?.let(dev.panini.core.Vacana::valueOf),
             semanticRelations = semanticRelations,
             strictSemantics = raw["strictSemantics"] as? Boolean ?: false,
+            requiredAppliedSutras = (raw["requiredAppliedSutras"] as? List<*>)?.map { it as String } ?: emptyList(),
         )
     }
 
@@ -98,5 +104,6 @@ class SamasaBenchmarkTest {
         val outputVacana: dev.panini.core.Vacana?,
         val semanticRelations: Set<SamasaSemanticRelation>,
         val strictSemantics: Boolean,
+        val requiredAppliedSutras: List<String>,
     )
 }

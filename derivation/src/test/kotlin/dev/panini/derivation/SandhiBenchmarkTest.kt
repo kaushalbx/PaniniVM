@@ -11,7 +11,10 @@ class SandhiBenchmarkTest {
     @TestFactory
     fun `canonical sandhi benchmark`(): List<DynamicTest> = loadCases().map { case ->
         DynamicTest.dynamicTest("${case.id}: ${case.name}") {
-            val result = sandhiEngine.join(case.left, case.right)
+            val result = sandhiEngine.join(case.left, case.right, DerivationConfig(
+                optionalRulePolicy = OptionalRulePolicy.CUSTOM,
+                optionalRuleSelector = { it !in case.skippedSutras },
+            ))
             val appliedSutras = result.applications.mapTo(mutableSetOf()) { it.sutra }
 
             assertEquals(case.expected, result.final.surface, "final surface")
@@ -50,6 +53,7 @@ class SandhiBenchmarkTest {
             expected = field("expected"),
             requiredSutras = sutras("requiredSutras"),
             forbiddenSutras = sutras("forbiddenSutras"),
+            skippedSutras = (raw["skippedSutras"] as? String).orEmpty().split(',').filterTo(mutableSetOf()) { it.isNotBlank() },
         )
     }
 
@@ -61,5 +65,6 @@ class SandhiBenchmarkTest {
         val expected: String,
         val requiredSutras: Set<String>,
         val forbiddenSutras: Set<String>,
+        val skippedSutras: Set<String>,
     )
 }
