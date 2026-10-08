@@ -387,7 +387,7 @@ class PvmUktiSadhaka(
         val boundary = range.marker.pratipadika.baseText()
         val upperBoundary = samasaEngine.derive(
             padas = listOf(
-                SamasaPada(upper, Vibhakti.PRATHAMA),
+                SamasaPada(upper, Vibhakti.PRATHAMA, samjnas = setOf(dev.panini.shiksha.Samjna.SANKHYA)),
                 SamasaPada(boundary, Vibhakti.PRATHAMA, linga = Linga.NAPUMSAKA),
             ),
             type = SamasaType.KARMADHARAYA,

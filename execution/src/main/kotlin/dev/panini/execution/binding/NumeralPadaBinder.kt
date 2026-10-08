@@ -71,6 +71,10 @@ internal object NumeralPadaBinder {
 
     /** Extracts an ordinal value only when numeric morphology evaluates to pūraṇa. */
     internal fun extractOrdinalValue(pada: Pada): Long? {
+        // A typed pūraṇa node already owns its semantic value. All clients of
+        // ordinal extraction (memory, kāraka queries, and parameters) share this
+        // precedence instead of evaluating source stems before inspecting it.
+        dev.panini.execution.PuranaPratyayaResolver.ordinalValue(pada)?.let { return it }
         val expression = when (pada) {
             is SankhyaPuranaPada -> runCatching { sharedSankhyaEvaluator.evaluateStems(pada.stems) }.getOrNull()
             is SubantaPada -> runCatching {

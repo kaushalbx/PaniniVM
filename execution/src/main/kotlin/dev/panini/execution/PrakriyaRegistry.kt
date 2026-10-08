@@ -134,6 +134,7 @@ class PrakriyaRegistry {
         ukti: dev.panini.vyakaranam.ast.Ukti,
         callerSourceFile: String? = null,
         injectedKarman: InjectedKarmanBinding? = null,
+        resolveActionResult: ((dev.panini.execution.binding.NamedActionResultReference) -> SanskritValue?)? = null,
     ): PrakriyaInvocation? {
         if (registry.isEmpty()) return null
 
@@ -144,24 +145,34 @@ class PrakriyaRegistry {
         val karmaText = listOf(injectedText, shape.karmaText)
             .filter(String::isNotBlank)
             .joinToString(" ")
-        val writtenPadas = shape.argumentPadas.filter(Pada::isAccusative)
+        val resultReferences = dev.panini.execution.binding.NamedActionResultReferenceResolver.resolve(shape.argumentPadas)
+        val resultValues = java.util.IdentityHashMap<Pada, SanskritValue>()
+        resultReferences.forEach { reference ->
+            if (reference.orderingAgrees) {
+                resolveActionResult?.invoke(reference)?.let { resultValues[reference.result] = it }
+            }
+        }
+        fun argumentType(pada: Pada): PrakriyaValueType = resultValues[pada]
+            ?.let(PrakriyaValueClassifier::classifyValue) ?: PrakriyaValueClassifier.classifyPada(pada)
+        val operandPadas = dev.panini.execution.binding.NamedActionResultReferenceResolver.operandPadas(shape.argumentPadas)
+        val writtenPadas = operandPadas.filter(Pada::isAccusative)
         val writtenTerms = writtenPadas.map(Pada::argumentTerm)
         val argumentTerms = listOfNotNull(injectedKarman?.reference) + writtenTerms
         val argumentTypes = listOfNotNull(
             injectedKarman?.value?.let(PrakriyaValueClassifier::classifyValue)
                 ?: injectedKarman?.let { PrakriyaValueType.SHABDA },
-        ) + writtenPadas.map(PrakriyaValueClassifier::classifyPada)
+        ) + writtenPadas.map(::argumentType)
         val candidates = allKriyas.sortedWith(
             compareByDescending<Prakriya> { it.precedence.rank }
                 .thenByDescending {
                     val orderedTypes = if (injectedKarman == null) {
                         val resolved = NamedPrakriyaArgumentResolver.resolve(
-                            shape.argumentPadas.filterIsInstance<SubantaPada>(),
+                            operandPadas.filterIsInstance<SubantaPada>(),
                             it.signature,
                         )
                         (resolved as? PrakriyaArgumentResolution.Success)?.arguments?.map { argument ->
                             argument.argument.value?.let(PrakriyaValueClassifier::classifyValue)
-                                ?: argument.argument.pada?.let(PrakriyaValueClassifier::classifyPada)
+                                ?: argument.argument.pada?.let(::argumentType)
                                 ?: PrakriyaValueType.SHABDA
                         } ?: argumentTypes
                     } else {
@@ -182,7 +193,7 @@ class PrakriyaRegistry {
             ukti = ukti,
             argumentValues =
                 (if (injectedKarman != null) listOf(injectedKarman.value) else emptyList()) +
-                    List(writtenTerms.size) { null },
+                    writtenPadas.map { resultValues[it] },
             arguments =
                 listOfNotNull(injectedKarman?.let { injected ->
                     PrakriyaArgument(injected.reference, value = injected.value, origin = PrakriyaArgumentOrigin.PIPE)
@@ -191,9 +202,11 @@ class PrakriyaRegistry {
                         term = pada.argumentTerm(),
                         pada = pada,
                         origin = PrakriyaArgumentOrigin.WRITTEN,
+                        actionResult = resultReferences.singleOrNull { it.result === pada },
+                        value = resultValues[pada],
                     )
                 },
-            argumentSyntax = shape.argumentPadas,
+            argumentSyntax = operandPadas,
         )
     }
 
@@ -223,6 +236,7 @@ data class PrakriyaArgument(
     val pada: Pada? = null,
     val value: SanskritValue? = null,
     val origin: PrakriyaArgumentOrigin,
+    val actionResult: dev.panini.execution.binding.NamedActionResultReference? = null,
 )
 
 private fun Pada.isAccusative(): Boolean {

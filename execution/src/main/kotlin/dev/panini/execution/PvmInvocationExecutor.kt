@@ -28,8 +28,31 @@ internal class PvmInvocationExecutor(private val vm: PaniniVM) {
             parsedUkti,
             callerSourceFile = request.sourceFile,
             injectedKarman = request.injectedKarman,
+            resolveActionResult = { reference ->
+                val memory = vm.kriyaMemory(request.sessionKey)
+                if (reference.ordinalFromOldest != null) {
+                    memory.ordinalKriya(reference.ordinalFromOldest, reference.dhatuUpadesha)?.phala
+                } else memory.latestKriya(reference.dhatuUpadesha, if (reference.previous) 1 else 0)?.phala
+            },
         )
-        if (invocation != null) return request.executePrakriya(invocation)
+        if (invocation != null) {
+            if (invocation.arguments.any { it.actionResult?.orderingAgrees == false }) return listOf(
+                ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
+                    "The ordering qualifier and फल must agree in case and number."),
+            )
+            val memory = vm.kriyaMemory(request.sessionKey)
+            val arguments = invocation.arguments.map { argument ->
+                val reference = argument.actionResult ?: return@map argument
+                val result = if (reference.ordinalFromOldest != null) {
+                    memory.ordinalKriya(reference.ordinalFromOldest, reference.dhatuUpadesha)
+                } else memory.latestKriya(reference.dhatuUpadesha, if (reference.previous) 1 else 0)
+                val value = result?.phala ?: return listOf(ExecutionResult.Failure(
+                    ExecutionError.INVALID_VALUE, "No completed named action result is available for this procedure argument.",
+                ))
+                argument.copy(value = value)
+            }
+            return request.executePrakriya(invocation.copy(arguments = arguments, argumentValues = arguments.map { it.value }))
+        }
 
         return listOf(
             vm.evalParsed(

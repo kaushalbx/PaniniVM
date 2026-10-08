@@ -169,6 +169,37 @@ internal sealed interface CompilerInstruction {
 
     data class Store(val name: String) : CompilerInstruction
 
+    /** Consumes a successful result; the identity is canonical dhātu upadeśa. */
+    data class RecordActionResult(val dhatuUpadesha: String) : CompilerInstruction {
+        init { require(dhatuUpadesha.isNotBlank()) }
+    }
+
+    /** Consumes ordered participant values followed by the successful result. */
+    data class RecordActionFrame(val dhatuUpadesha: String, val participantRoles: List<dev.panini.core.Karaka>) : CompilerInstruction {
+        init { require(dhatuUpadesha.isNotBlank() && dev.panini.core.Karaka.ANIRDHARITA !in participantRoles) }
+    }
+
+    data class LoadActionResult(val dhatuUpadesha: String, val occurrenceFromLatest: Int = 1) : CompilerInstruction {
+        init { require(dhatuUpadesha.isNotBlank() && occurrenceFromLatest > 0) }
+    }
+
+    /** One-based chronological ordinal within the named action's completed results. */
+    data class LoadOrdinalActionResult(val dhatuUpadesha: String, val ordinalFromOldest: Long) : CompilerInstruction {
+        init { require(dhatuUpadesha.isNotBlank() && ordinalFromOldest > 0) }
+    }
+
+    data class LoadActionParticipants(
+        val dhatuUpadesha: String, val karaka: dev.panini.core.Karaka, val occurrenceFromLatest: Int = 1,
+    ) : CompilerInstruction {
+        init { require(dhatuUpadesha.isNotBlank() && occurrenceFromLatest > 0 && karaka != dev.panini.core.Karaka.ANIRDHARITA) }
+    }
+
+    data class LoadOrdinalActionParticipants(
+        val dhatuUpadesha: String, val karaka: dev.panini.core.Karaka, val ordinalFromOldest: Long,
+    ) : CompilerInstruction {
+        init { require(dhatuUpadesha.isNotBlank() && ordinalFromOldest > 0 && karaka != dev.panini.core.Karaka.ANIRDHARITA) }
+    }
+
     data class LoadLocal(val name: String) : CompilerInstruction
 
     data class StoreLocal(val name: String) : CompilerInstruction
@@ -308,6 +339,15 @@ internal enum class CollectionOperator {
 
 /** Converts resolved grammatical leaves into a stable compiler representation. */
 internal object CompilerIrLowering {
+    /** Converts the shared morphological relation into a typed history value load. */
+    fun lowerKarakaHistory(reference: dev.panini.execution.binding.KarakaHistoryReference): CompilerInstruction {
+        require(reference.orderingValid) { "The kāraka ordering qualifier must resolve and agree in case and number." }
+        val identity = requireNotNull(reference.dhatuUpadesha) { "A kāraka history query requires a resolved dhātu identity." }
+        return reference.ordinalFromOldest?.let {
+            CompilerInstruction.LoadOrdinalActionParticipants(identity, reference.karaka, it)
+        } ?: CompilerInstruction.LoadActionParticipants(identity, reference.karaka, if (reference.previous) 2 else 1)
+    }
+
     /** Lowers condition-controlled loops, including bounds and reported-result conditions. */
     fun lowerWhileInstructions(
         condition: List<CompilerInstruction>?,
@@ -767,6 +807,17 @@ internal object CompilerIrLowering {
         }.also(CompilerIrVerifier::verify)
     }
 
+    internal fun lowerParticipantOperands(expression: ExecutionExpression): List<List<CompilerInstruction>> = when (expression) {
+        is ExecutionExpression.Coordination -> expression.members.flatMap(::lowerParticipantOperands)
+        is ExecutionExpression.TypedOperand -> listOf(listOf(CompilerInstruction.Constant(expression.value)))
+        is ExecutionExpression.Reference -> listOf(listOf(
+            if (expression.name == "LastResult") CompilerInstruction.LoadLastResult
+            else CompilerInstruction.ResolveArgument(expression.name, SanskritValue.Shabda(expression.name))))
+        is ExecutionExpression.Pada -> listOf(listOf(
+            if (Samjna.REFERENCE in expression.samjnas) CompilerInstruction.LoadLastResult
+            else CompilerInstruction.ResolveArgument(expression.prakriti, expression.value ?: SanskritValue.Shabda(expression.prakriti))))
+    }
+
     private fun lowerOperands(expression: ExecutionExpression): List<List<CompilerInstruction>>? = when (expression) {
         is ExecutionExpression.Coordination -> expression.members.map { member ->
             lowerOperand(member) ?: return null
@@ -787,11 +838,10 @@ internal object CompilerIrLowering {
             listOf(CompilerInstruction.LoadLastResult)
         } else expression.value?.let { listOf(CompilerInstruction.Constant(it)) }
         is ExecutionExpression.TypedOperand -> listOf(CompilerInstruction.Constant(expression.value))
-        is ExecutionExpression.Reference -> if (expression.name == "LastResult") {
-            listOf(CompilerInstruction.LoadLastResult)
-        } else {
-            null
-        }
+        is ExecutionExpression.Reference -> listOf(
+            if (expression.name == "LastResult") CompilerInstruction.LoadLastResult
+            else CompilerInstruction.ResolveArgument(expression.name, SanskritValue.Shabda(expression.name)),
+        )
         is ExecutionExpression.Coordination -> null
     }
 
@@ -995,6 +1045,10 @@ internal object CompilerIrVerifier {
                 else -> ValueKind.VALUE
             }
             is CompilerInstruction.Load -> before + (state.values[instruction.name] ?: ValueKind.UNKNOWN)
+            is CompilerInstruction.LoadActionResult -> before + ValueKind.UNKNOWN
+            is CompilerInstruction.LoadOrdinalActionResult -> before + ValueKind.UNKNOWN
+            is CompilerInstruction.LoadActionParticipants -> before + ValueKind.UNKNOWN
+            is CompilerInstruction.LoadOrdinalActionParticipants -> before + ValueKind.UNKNOWN
             is CompilerInstruction.LoadLocal -> before + (state.locals[instruction.name] ?: ValueKind.UNKNOWN)
             is CompilerInstruction.ResolveArgument -> before + ValueKind.UNKNOWN
             CompilerInstruction.LoadLastResult -> before + (state.values["LastResult"] ?: ValueKind.UNKNOWN)
@@ -1091,7 +1145,13 @@ internal object CompilerIrVerifier {
                     else -> ValueKind.LIST
                 }
             }
-            is CompilerInstruction.Store, is CompilerInstruction.StoreLocal -> pop().first
+            is CompilerInstruction.Store, is CompilerInstruction.StoreLocal,
+            is CompilerInstruction.RecordActionResult -> pop().first
+            is CompilerInstruction.RecordActionFrame -> {
+                val count = instruction.participantRoles.size + 1
+                require(before.size >= count) { "IR value stack underflow at instruction $index: $instruction" }
+                before.dropLast(count)
+            }
             is CompilerInstruction.EnterFrame -> {
                 require(before.size >= instruction.parameterNames.size) {
                     "IR value stack underflow at instruction $index: $instruction"

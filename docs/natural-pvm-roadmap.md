@@ -1,6 +1,6 @@
 # Natural PVM language roadmap
 
-Updated: 2026-10-07.
+Updated: 2026-10-08.
 
 PVM source is morphologically segmented Sanskrit. Computational meaning must
 derive from morphology, kāraka relations, verbal valency, and discourse context.
@@ -11,6 +11,143 @@ This document tracks current capabilities and remaining work, not individual
 implementation attempts. Detailed usage belongs in [the language guide](pvm-language-guide.md).
 
 ## Goal scope: natural multi-action sentences
+
+Objectless display commands within prior-action chains resolve the preceding
+result in shared lowering; explicit operands are preserved in both backends.
+Simple unqualified kṛdanta-genitive फल references now load the latest completed
+result for their canonical dhātu, rather than aliasing LastResult. Tests cover
+intervening printing, repeated matching actions, and whole dice compilation.
+पूर्व-qualified references now select the previous completed action for the named
+dhātu in ordinary leaves, conditionals, and loop conditions. Ordinals such as
+प्रथम and द्वि + तीय select matching completed results chronologically from one.
+Executed parity tests cover intervening prints, copular comparisons, changing
+latest/previous results in loops, and stable ordinal selection in bounded loops.
+Ordering modifiers are consumed as qualifiers, not extra action operands.
+Interpreter binding applies ordering once across earlier discourse and preceding
+clauses of the current utterance. Direct parsed-utterance tests distinguish first,
+previous, second, and latest across that boundary instead of relying only on
+script execution, which already splits clauses into individual turns.
+Lexically typed ordinals such as तृतीय now use the shared pūraṇa resolver in
+memory queries. Tests cover a missing third result across two discourse scopes
+and executed grantha emission selecting the first earlier result across turns.
+Ordinal positions remain 64-bit through shared binding and JVM IR. Bounds checks
+precede list-index conversion, preventing large numerals from wrapping into a
+different valid result; tests include positions above the 32-bit range.
+Positional procedure AST rebinding likewise checks the full ordinal against the
+argument count before narrowing. A wide typed ordinal remains its own operand
+instead of impersonating the first parameter.
+Inside procedure bodies, a named-result relation protects its genitive, ordinal
+qualifier, and फल from positional/name-based parameter rebinding. AST and
+executed parity tests distinguish selecting the first historical result from
+using the first procedure argument.
+Procedure pipeline argument and render padas use the same relation-aware binding
+as ordinary invocations. Named-result genitives, ordinals, and फल remain history
+references even when their spelling matches a procedure parameter; the legacy
+string argument view follows the bound AST rather than rebinding independently.
+Kāraka history relations receive the same procedure-rebinding protection as फल:
+their genitive, role noun, and ordering qualifier remain discourse references.
+Tests cover invocation and pipeline ASTs and an executed procedure whose first
+remembered कर्म participants differ from its first parameter.
+Compiled kāraka history uses typed participant-frame recording and selection IR,
+not just result-history loads. Display commands containing accusative history
+references now use shared relation analysis and ordinary typed leaf planning;
+parity tests cover first and second referents in the same command. Mixed
+ordinary/history display operands use the existing grammatical binder and retain
+written order; parity tests cover ordinary values before and after history
+participants. Other verbs and condition queries remain explicitly
+unsupported rather than treating role nouns as literal operands.
+Source-level display regressions also verify ordinary coordination, missing
+previous/ordinal actions, absent participant roles, and modifier case/number
+disagreement. Missing references return `INVALID_VALUE` in both backends.
+Executed parity tests verify participant-history displays inside procedure call
+frames and lazy evaluation in conditional bodies: a skipped display does not
+attempt its unavailable lookup. History ordinals in procedure bodies remain
+discourse selectors rather than positional parameters.
+The compiled runtime now has an atomic completed-action record containing the
+typed result and kāraka participant lists, with ordinal and recency selection on
+one shared chronology. Tests cover input/result separation, copied binding
+containers, absent roles, result-only records, wide ordinals, and execution
+isolation.
+Structured history values are recursively snapshotted on recording and reading,
+including nested lists, coordination, records, and text classification sets.
+Tests verify caller mutation cannot rewrite completed results or participants;
+cyclic values fail with `INVALID_VALUE` before any frame is published.
+Participant loads have ordinal and recency IR instructions and
+JVM emission, returning a single typed member or typed coordination. Executed
+bytecode tests verify selection, missing wide ordinals, and invalid-role/index
+validation. Atomic frame-recording IR now consumes ordered typed participant
+values and the successful result together; JVM tests verify ordering and result
+alignment, and the verifier checks stack arity and resolved roles. Source
+Resolved ordinary leaves now capture typed participants for every resolved
+kāraka binding before executing
+the action and publish them with its successful result. Capture uses typed
+binding resolution with literal fallback and flattens grammatical coordination;
+source-bytecode tests distinguish arithmetic inputs from its result across a
+later print, and agent/object roles in the same frame. Specialized paths and source history-query lowering
+remain pending;
+Kāraka-history source analysis now exposes a memory-independent typed relation
+containing the referent occurrence, genitive, canonical dhātu, role, and validated
+ordering. Interpreter selection and procedure protection share this analysis;
+compiler query lowering can consume it without recreating Sanskrit heuristics.
+That relation now lowers directly to ordinal or recency participant-load IR,
+with agreement and canonical-identity validation. Source-generated action
+frames plus parsed query relations execute through JVM tests for first, previous,
+second, and latest selection. Full invocation/condition integration remains
+pending beyond the verified display path.
+Shared ordinal extraction consults typed pūraṇa semantics before attempting
+stem evaluation, preserving already-resolved values consistently across memory,
+kāraka queries, and positional binding.
+An unresolved typed pūraṇa modifier remains an explicit ordering request: it
+cannot fall back to the latest result. Shared selection returns no match and
+named-result validation rejects the unresolved qualifier; regression tests cover
+both list and memory selection.
+Procedure argument projection retains explicit ordering even when an ordinal
+has no resolved numeric position. Such modifiers are consumed with their result
+reference rather than becoming extra arguments or positional parameters, and
+invalid ordering references are not evaluated during overload ranking.
+Ordered kāraka references also validate modifier case and number before memory
+selection and resolve derived dhātus through canonical identity. Executed tests
+cover a valid पूर्व-qualified कर्म reference and case/number disagreement.
+Unavailable named kāraka references and absent participant relations return
+`INVALID_VALUE` instead of becoming literal operands. Tests distinguish previous
+participants from latest participants, not merely successful execution.
+Repeated identical-looking kāraka words retain source-occurrence identity during
+binding. A regression with first and second कर्म references in one command
+reproduced structural-map overwriting and now verifies both participant groups.
+Typed ordinal positions must be positive before memory selection. Zero and
+negative positions, including the smallest 64-bit value, are rejected by shared
+validation; parsed-AST execution tests verify `INVALID_VALUE` rather than an
+uncaught memory API precondition failure.
+Named-history procedure arguments now preserve their grammatical reference
+through argument ordering and call frames. Parity tests cover positional and
+locative named slots, latest/previous/ordinal selection, intervening printing,
+and missing results before body execution. Two named-result operands in one
+procedure call are tested independently, including equal-looking फल occurrences
+with different ordering qualifiers. Multiple results in ordinary leaves and
+conditions remain guarded;
+Interpreter overload ranking now uses the resolved named result's value type,
+not the spelling फल; a numeric-versus-text overload regression verifies this.
+Compiled overload selection still needs dedicated type-aware dispatch and parity.
+Module analysis currently rejects duplicate procedure identities; enabling it
+requires signature-aware symbols, distinct JVM targets, and linker metadata,
+not just changing the call-site ranking.
+Ordering qualifiers are checked against फल for case and number using typed sup
+candidates; mismatches fail rather than silently selecting a historical value.
+Missing named histories now report INVALID_VALUE instead of aliasing unrelated
+latest results; tests cover missing latest/previous/ordinal references and loop
+condition error propagation. Static grantha emission retains canonical identities
+for earlier planned turns, allowing valid cross-turn references without execution.
+History publication by all specialized operations still needs verification.
+The compiled runtime now has separate typed per-dhātu history with one-based
+recency lookup, independent of LastResult and user-variable snapshots. Unit tests
+cover nested call-frame lifetime, execution isolation, and missing-reference
+errors. RecordActionResult, LoadActionResult, and LoadOrdinalActionResult IR have stack validation and
+JVM emission; generated-fixture tests cover typed round trips and skipped branches.
+Source lowering now records successful resolved leaves and range choices under
+canonical dhātu identities. Generated-source tests cover preservation across later
+printing and absence of records after failure. Other specialized lowering paths
+still need integration. Source-level history loads are integrated for simple
+resolved leaves; broader history queries require further executed-path tests.
 
 Continue improving shared-agent क्त्वा/ल्यप् constructions alongside ततः chains.
 This is part of the language goal, not complete merely because the initial
@@ -137,6 +274,13 @@ successfully generated Sanskrit form.
   avyayībhāva cases respect sup deletion and the a-final ablative exception.
 
 ## Remaining work
+
+- Broaden compound-boundary phonology beyond the verified numeral domain while
+  preserving prior transformations and nipātana. Numeral-marked consonant
+  boundaries now apply traced 8.2.39 and 8.4.55; the dice range renders
+  `षट्पर्यन्तं`, with its readable artifact regenerated through the CLI. Tests
+  distinguish voiceless and voiced followers. Do not reopen already transformed
+  members indiscriminately or introduce word-specific renderer replacements.
 
 ### 1. Grammatical derivation and agreement
 

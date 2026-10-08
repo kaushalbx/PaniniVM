@@ -306,7 +306,7 @@ object VyakaranamExecutionAdapter {
                 localVariableInvocationIds = localVariableInvocationIds,
                 environment = environment,
             )
-            val invocation = buildDhatuInvocation(
+            val invocation = try { buildDhatuInvocation(
                 index = index,
                 padas = padas,
                 ctx = ctx,
@@ -317,7 +317,9 @@ object VyakaranamExecutionAdapter {
                 pipelineKarmanSource = pipelineKarmanSources[index + 1],
                 quotedVakya = quotations[vakya],
                 injectedBindings = injectedBindings,
-            )
+            ) } catch (error: MissingActionResultException) {
+                return AnalyzedExecutionBinding(ExecutionBindingResult.Invalid(error.message ?: "Missing action result."), utteranceAnalysis)
+            }
             invocations += invocation
             val bindingKaraka = dhatu.operations.firstOrNull { it.resultBindingKaraka != null }?.resultBindingKaraka
             val bindingName = bindingKaraka?.let { invocation.bindings[it] }?.bindingName()

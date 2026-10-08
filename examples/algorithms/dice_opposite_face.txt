@@ -2,5 +2,5 @@
 # Assumption: a standard die, whose opposite faces sum to seven.
 # Randomly choose a face from one through six; print it and its opposite.
 
-एकस्मात् षष्पर्यन्तं सङ्ख्यां चित्वा फलं मुद्रय ।
+एकस्मात् षट्पर्यन्तं सङ्ख्यां चित्वा मुद्रय ।
 सप्त चयनस्य फलं च वियोज्य फलं मुद्रय ।

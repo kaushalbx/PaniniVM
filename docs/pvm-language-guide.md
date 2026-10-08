@@ -304,6 +304,52 @@ verb; the main action owns the following operands. Multiple prior actions
 are executed in source order. `फल` explicitly refers to the preceding result;
 क्त्वा itself does not inject an operand into the following action.
 
+Within a prior-action chain, an otherwise objectless मुद्र् command resolves its
+omitted object to the immediately preceding result. Thus `चिञ् + क्त्वा मुद्र् +
+णिच् + लोट् + सिप्` can mean “having chosen, print it.” Explicit objects take
+precedence; independent verbs do not acquire an operand merely from क्त्वा.
+
+A kṛdanta genitive names the action whose result is wanted. In supported compiler
+leaves, conditionals, and loop conditions, `युज् + ल्युट् + ङस् फल + अम्` selects the latest completed
+युज् action, while `युज् + ल्युट् + ङस् पूर्व + अम् फल + अम्` selects the preceding
+matching action. Intervening printing does not change this selection. The
+ordinal `प्रथम + अम्` selects the first matching result and `द्वि + तीय + अम्`
+the second, in chronological order. Typed lexical ordinals such as `तृतीय + अम्`
+also select the corresponding chronological result. An ordinal reference stays
+fixed even when newer matching actions execute. Selection includes earlier discourse and preceding clauses in the
+current utterance, rather than restarting the ordinal at each sentence boundary.
+In conditions the qualifier agrees with the case of फल, for example
+`प्रथम + सुँ फल + सुँ`.
+Case or number disagreement between an ordering qualifier and फल is rejected.
+Named-history references can also supply a प्रक्रिया argument, positionally or
+after a locative parameter slot: `मान + ङि युज् + ल्युट् + ङस् फल + अम्`.
+The genitive qualifies फल; it is not a parameter label. Several procedure
+arguments may each carry their own named-result reference and ordering qualifier.
+Inside a procedure body, an ordinal qualifying a named फल remains a history
+selector; it is not rebound as a positional procedure parameter.
+Interpreted procedure overloads rank named-result arguments by their resolved
+value type. Equivalent compiled overload dispatch remains incomplete.
+Multiple named results in ordinary action leaves and conditions are not yet
+supported by the compiler. Named history conditions are
+reevaluated before each loop iteration; they are not the bare फल truth shorthand.
+An unavailable named result is an error: a missing previous or ordinal result
+does not fall back to the latest result of another action.
+
+Interpreted discourse can also refer to a remembered action's participants:
+`युज् + ल्युट् + ङस् पूर्व + अम् कर्मन् + अम्` selects the previous matching
+action's object participants, not its computed result. Ordering modifiers must
+agree with the kāraka reference in case and number. A missing action or absent
+participant relation is an error, not a literal value named कर्मन्.
+Inside a procedure, the ordinal in this construction still selects
+the remembered action; it does not refer to the procedure's positional argument.
+Compiled display commands support accusative kāraka-history references, including
+multiple ordered references and mixed ordinary/history object operands in written
+order. Other verbs and condition queries remain explicitly unsupported. Participant
+history is recorded for resolved ordinary leaves; specialized action paths are
+still incomplete.
+The supported compiled display form also works inside procedure bodies and
+conditional branches; unexecuted branches do not evaluate their history loads.
+
 For a prefixed prior action, use ल्यप्. For example, subtract one from two,
 then print the result:
 

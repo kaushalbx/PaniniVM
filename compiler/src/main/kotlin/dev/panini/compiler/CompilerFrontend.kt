@@ -1,5 +1,7 @@
 package dev.panini.compiler
 
+import dev.panini.vyakaranam.ast.AkhyataVakya
+
 import dev.panini.core.Karaka
 import dev.panini.execution.ExecutionExpression
 import dev.panini.execution.PvmScript
@@ -180,6 +182,11 @@ internal object CompilerFrontend {
         private val methodsByStem: Map<String, ProcedureTarget>,
     ) {
         private var nextLabel = 0
+        private val resultLexicon by lazy {
+            dev.panini.vyakaranam.lexicon.InMemoryVyakaranamLexicon(
+                emptyList(), dev.panini.dhatupatha.DhatuPatha.all,
+            )
+        }
         private val assertedStructFields =
             mutableMapOf<String, LinkedHashMap<String, dev.panini.execution.TaddhitaFieldAssertion>>()
 
@@ -259,13 +266,37 @@ internal object CompilerFrontend {
             allowDirectStore: Boolean = false,
         ): List<CompilerInstruction> {
             dev.panini.execution.PriorActionLowering.expand(node)?.let { return lowerSequence(it, null) }
+            lowerKarakaHistoryInvocation(node)?.let { return it }
+            rejectUnsupportedKarakaHistory(node)
             val rendered = exactSource ?: render(node)
+            val nominalPadas = node.vakya.padas.filterIsInstance<SubantaPada>()
+            val hasNamedActionResult = nominalPadas.withIndex().any { (index, pada) ->
+                NaturalSemanticNormalizer.isPriorResult(pada) && nominalPadas.take(index).lastOrNull { modifier ->
+                    dev.panini.core.SupAffix.candidates(modifier.sup.text).any {
+                        it.vibhakti == dev.panini.core.Vibhakti.SASTHI
+                    }
+                }?.pratipadika is dev.panini.vyakaranam.ast.KridantaPratipadika
+            }
+            val namedReferences = dev.panini.execution.binding.NamedActionResultReferenceResolver.resolve(node.vakya.padas)
+            require(namedReferences.all { it.orderingAgrees }) { "The ordering qualifier and फल must agree in case and number." }
+            val historyReference = namedReferences.singleOrNull()
+            lowerProcedureCall(node, piped)?.let { return it }
+            if (hasNamedActionResult && (historyReference == null ||
+                    nominalPadas.count(NaturalSemanticNormalizer::isPriorResult) != 1)) throw CompilerUnsupportedException(
+                CompilerUnsupportedKind.INVOCATION, rendered,
+                "Multiple named results in ordinary leaves require dedicated operand lowering.",
+            )
             val alreadyReferencesResult = node.vakya.padas.any { pada ->
                 pada is dev.panini.vyakaranam.ast.SubantaPada &&
                     NaturalSemanticNormalizer.isPriorResult(pada)
             }
             val source = normalized(rendered)
             val naturalSemantic = NaturalSemanticNormalizer.normalize(node)
+            if (historyReference != null && naturalSemantic != null &&
+                naturalSemantic != NaturalSemanticNormalizer.Operation.DisplayPriorResult) {
+                throw CompilerUnsupportedException(CompilerUnsupportedKind.INVOCATION, source,
+                    "Named history references are not yet supported in this specialized operation.")
+            }
             lowerRangeChoice(node)?.let { return it }
             if (naturalSemantic == NaturalSemanticNormalizer.Operation.CollectionParameterSum) {
                 return listOf(
@@ -277,7 +308,6 @@ internal object CompilerFrontend {
             (naturalSemantic as? NaturalSemanticNormalizer.Operation.ProcedureParameterArithmetic)
                 ?.let(::lowerImplicitParameterOperation)
                 ?.let { return it }
-            lowerProcedureCall(node, piped)?.let { return it }
             val consumesPriorResult = piped && !alreadyReferencesResult ||
                 naturalSemantic ==
                 NaturalSemanticNormalizer.Operation.DisplayPriorResult
@@ -286,17 +316,31 @@ internal object CompilerFrontend {
             } else {
                 emptyMap()
             }
+            // History selection has been resolved above. Do not let its grammatical
+            // qualifier become a second runtime operand in memory-free leaf planning.
+            val plannedNode = historyOperandProjection(node)
             return (ResolvedLeafPlanner.plan(
-                node,
+                plannedNode,
                 allowStore = allowDirectStore,
                 injectedBindings = injectedBindings,
             ) ?: ResolvedLeafPlanner.planAny(
-                node,
+                plannedNode,
                 injectedBindings = injectedBindings,
-            ))?.let(::lowerDirect)
+            ))?.let { lowerDirect(it, historyReference) }
                 ?: throw CompilerUnsupportedException(
                     CompilerUnsupportedKind.INVOCATION, source, "Cannot resolve invocation as a compiler leaf.",
                 )
+        }
+
+        private fun historyOperandProjection(node: Invocation): Invocation {
+            val history = dev.panini.execution.binding.NamedActionResultReferenceResolver.resolve(node.vakya.padas)
+                .singleOrNull() ?: return node
+            val sentence = node.vakya as? AkhyataVakya ?: return node
+            val qualifierIndex = if (history.previous || history.ordinalFromOldest != null)
+                sentence.padas.indexOf(history.result) - 1 else -1
+            return node.copy(vakya = sentence.copy(padas = sentence.padas.filterIndexed { index, pada ->
+                index != qualifierIndex && pada != history.modifier
+            }))
         }
 
         private fun lowerRangeChoice(node: Invocation): List<CompilerInstruction>? {
@@ -323,6 +367,10 @@ internal object CompilerFrontend {
                 if (astBounds.size >= 2) add(CompilerInstruction.RandomRange(astBounds[0], astBounds[1], exclusionName != null))
                 else add(CompilerInstruction.RandomActiveRange(exclusionName != null))
                 add(CompilerInstruction.Store("LastResult"))
+                val head = node.vakya.padas.filterIsInstance<TingantaPada>().single()
+                val dhatu = requireNotNull(resultLexicon.findDhatu(head.dhatu.mulaDhatu))
+                add(CompilerInstruction.LoadLastResult)
+                add(CompilerInstruction.RecordActionResult(dhatu.upadesha))
             }
         }
 
@@ -414,6 +462,7 @@ internal object CompilerFrontend {
             val value = argument.argument.value ?: fallbackValue
             val name = argument.referenceName
             return when {
+                argument.argument.actionResult != null -> historyLoad(requireNotNull(argument.argument.actionResult))
                 argument.isPriorResult -> CompilerInstruction.LoadLastResult
                 value != null -> CompilerInstruction.Constant(value)
                 else -> CompilerInstruction.ResolveArgument(name, null)
@@ -470,8 +519,82 @@ internal object CompilerFrontend {
             }
         }
 
-        private fun lowerDirect(plan: ExecutionPlan): List<CompilerInstruction> =
-            CompilerIrLowering.lowerLeafValues(plan)
+        private fun lowerDirect(plan: ExecutionPlan): List<CompilerInstruction> = lowerDirect(plan, null)
+
+        private fun lowerKarakaHistoryInvocation(node: Invocation): List<CompilerInstruction>? {
+            val references = dev.panini.execution.binding.KarakaReferenceResolver.references(node.vakya.padas)
+            if (references.isEmpty()) return null
+            references.forEach(CompilerIrLowering::lowerKarakaHistory)
+            if (references.any { reference -> dev.panini.core.SupAffix.candidates(reference.referent.sup.text).none {
+                it.vibhakti == dev.panini.core.Vibhakti.DVITIYA
+            } }) return null
+            val protected = dev.panini.execution.binding.KarakaReferenceResolver.protectedPadas(node.vakya.padas)
+            val remaining = node.vakya.padas.filter { it !in protected }
+            val sentence = node.vakya as? dev.panini.vyakaranam.ast.AkhyataVakya ?: return null
+            val heads = remaining.filter { it is TingantaPada || it is dev.panini.vyakaranam.ast.AvyayaPada }
+            val projected = node.copy(vakya = sentence.copy(padas = heads))
+            val loads = references.mapIndexed { index, reference ->
+                "__history_operand_${nextLabel++}_$index" to CompilerIrLowering.lowerKarakaHistory(reference)
+            }.toMap()
+            val names = loads.keys.toList()
+            val operands = node.vakya.padas.mapNotNull { pada ->
+                val referenceIndex = references.indexOfFirst { it.referent === pada }
+                if (referenceIndex >= 0) return@mapNotNull ExecutionExpression.Reference(names[referenceIndex])
+                if (pada in protected || pada is TingantaPada || pada is dev.panini.vyakaranam.ast.AvyayaPada) return@mapNotNull null
+                // Ordinary operands retain the same grammatical binder as other leaves.
+                val ordinary = ResolvedLeafPlanner.planAny(node.copy(vakya = sentence.copy(padas = listOf(pada) + heads)))
+                    ?: return null
+                ordinary.resolved.context.bindings[Karaka.KARMAN] ?: return null
+            }
+            val expression = if (operands.size == 1) operands.single() else ExecutionExpression.Coordination(operands)
+            val plan = ResolvedLeafPlanner.planAny(projected, injectedBindings = mapOf(Karaka.KARMAN to expression)) ?: return null
+            // Other operations need participant-group expansion according to their valency.
+            if (plan.resolved.operation.name != "प्रदर्शनम्") return null
+            return lowerDirect(plan).map { instruction ->
+                when (instruction) {
+                    is CompilerInstruction.Load -> loads[instruction.name] ?: instruction
+                    is CompilerInstruction.ResolveArgument -> loads[instruction.name] ?: instruction
+                    else -> instruction
+                }
+            }
+        }
+
+        private fun rejectUnsupportedKarakaHistory(node: Invocation) {
+            if (dev.panini.execution.binding.KarakaReferenceResolver.protectedPadas(node.vakya.padas).isNotEmpty()) {
+                throw CompilerUnsupportedException(CompilerUnsupportedKind.INVOCATION, render(node),
+                    "Kāraka history references require participant-frame IR lowering; literal operand lowering would change their meaning.")
+            }
+        }
+
+        private fun historyLoad(history: dev.panini.execution.binding.NamedActionResultReference): CompilerInstruction =
+            history.ordinalFromOldest?.let { CompilerInstruction.LoadOrdinalActionResult(history.dhatuUpadesha, it) }
+                ?: CompilerInstruction.LoadActionResult(history.dhatuUpadesha, if (history.previous) 2 else 1)
+
+        private fun lowerDirect(plan: ExecutionPlan,
+            history: dev.panini.execution.binding.NamedActionResultReference?): List<CompilerInstruction> {
+            fun project(instructions: List<CompilerInstruction>) = instructions.map { instruction ->
+                if (history != null && instruction == CompilerInstruction.LoadLastResult)
+                    historyLoad(history)
+                else instruction
+            }
+            val participants = plan.resolved.context.bindings.entries
+                .filter { it.key != dev.panini.core.Karaka.ANIRDHARITA }
+                .flatMap { (role, expression) ->
+                    CompilerIrLowering.lowerParticipantOperands(expression).map { role to it }
+                }
+            val locals = participants.indices.map { "action_input_${nextLabel++}_$it" }
+            return buildList {
+                participants.forEachIndexed { index, (_, instructions) ->
+                    addAll(project(instructions))
+                    add(CompilerInstruction.StoreLocal(locals[index]))
+                }
+                addAll(project(CompilerIrLowering.lowerLeafValues(plan)))
+                locals.forEach { add(CompilerInstruction.LoadLocal(it)) }
+                add(CompilerInstruction.LoadLastResult)
+                val identity = plan.resolved.invocation.dhatu.upadesha
+                add(CompilerInstruction.RecordActionFrame(identity, participants.map { it.first }))
+            }
+        }
 
         /**
          * Produces complete IR for conditionals whose leaves are primitive plans.
@@ -487,10 +610,8 @@ internal object CompilerFrontend {
                     CompilerInstruction.Constant(dev.panini.execution.SanskritValue.Satya(!truthTest.negated)),
                     CompilerInstruction.Compare(ComparisonOperator.EQUAL),
                 )
-            } else (node.condition as? Invocation)?.let(ResolvedLeafPlanner::planAny)
-                ?.takeIf { dev.panini.shiksha.Samjna.SATYA in it.resolved.operation.resultSamjnas }
-                ?.let(CompilerIrLowering::lowerCondition)
-                ?: (lower(node.condition) + CompilerInstruction.Booleanize)
+            } else (node.condition as? Invocation)?.let(::lowerResolvedCondition)
+                ?: (lower(node.condition) + CompilerInstruction.LoadLastResult + CompilerInstruction.Booleanize)
             val consequent = lowerPrimitiveBranchIr(node.consequent) ?: throw CompilerUnsupportedException(
                 CompilerUnsupportedKind.CONDITIONAL,
                 render(node.consequent),
@@ -509,6 +630,28 @@ internal object CompilerFrontend {
                 alternate = alternate,
                 labelPrefix = "conditional_${nextLabel++}",
             )
+        }
+
+        private fun lowerResolvedCondition(node: Invocation): List<CompilerInstruction>? {
+            rejectUnsupportedKarakaHistory(node)
+            val references = dev.panini.execution.binding.NamedActionResultReferenceResolver.resolve(node.vakya.padas)
+            require(references.all { it.orderingAgrees }) { "The ordering qualifier and फल must agree in case and number." }
+            if (references.size > 1) {
+                throw CompilerUnsupportedException(CompilerUnsupportedKind.CONDITIONAL, render(node),
+                    "Ordered or multiple named action results require additional binding support.")
+            }
+            val plan = ResolvedLeafPlanner.planAny(historyOperandProjection(node))
+                ?.takeIf { dev.panini.shiksha.Samjna.SATYA in it.resolved.operation.resultSamjnas } ?: return null
+            val history = references.singleOrNull()
+            val lowered = CompilerIrLowering.lowerCondition(plan)
+            return if (history != null && lowered.any { it is CompilerInstruction.Call }) {
+                // Generic calls materialize their prior-result operand from runtime state.
+                listOf(historyLoad(history), CompilerInstruction.Store("LastResult")) + lowered
+            } else lowered.map { instruction ->
+                if (history != null && instruction == CompilerInstruction.LoadLastResult)
+                    historyLoad(history)
+                else instruction
+            }
         }
 
         private fun lowerPrimitiveBranchIr(node: ProgramNode): List<CompilerInstruction>? = when (node) {
@@ -568,7 +711,9 @@ internal object CompilerFrontend {
         }
 
         private fun lowerWhileIr(node: WhileLoop): List<CompilerInstruction>? {
-            val usesLatestResult = node.condition.vakya.padas.any { pada ->
+            val hasNamedResult = dev.panini.execution.binding.NamedActionResultReferenceResolver
+                .resolve(node.condition.vakya.padas).isNotEmpty()
+            val usesLatestResult = !hasNamedResult && node.condition.vakya.padas.any { pada ->
                 pada is dev.panini.vyakaranam.ast.SubantaPada &&
                     NaturalSemanticNormalizer.isPriorResult(pada)
             }
@@ -589,9 +734,7 @@ internal object CompilerFrontend {
                         CompilerInstruction.Compare(ComparisonOperator.EQUAL),
                     )
                 } else {
-                    ResolvedLeafPlanner.planAny(node.condition)
-                        ?.takeIf { dev.panini.shiksha.Samjna.SATYA in it.resolved.operation.resultSamjnas }
-                        ?.let(CompilerIrLowering::lowerCondition)
+                    lowerResolvedCondition(node.condition)
                         ?: normalizedTruth?.let { truth ->
                             listOf(
                                 CompilerInstruction.Load(truth.stateName),

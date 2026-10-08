@@ -362,17 +362,23 @@ class SamasaEngine(
     private fun joinCompoundMembers(
         members: List<String>,
         applications: MutableList<DerivationApplication>,
+        numeralBoundaries: Set<Int> = emptySet(),
     ): String {
         val nonEmptyMembers=members.filter { it.isNotEmpty() }
         if(nonEmptyMembers.isEmpty()) return ""
         var result = nonEmptyMembers.first()
         var resultVarnas = result.toVarnas()
-        for (next in nonEmptyMembers.drop(1)) {
+        for ((index, next) in nonEmptyMembers.drop(1).withIndex()) {
             val nextVarnas = next.toVarnas()
-            // Preserve the established boundary domain: vowel-initial members
-            // and s-final left members. Interior consonants are not boundaries.
+            // Preserve vowel/s-final processing; expand consonant boundaries
+            // only where the member's grammatical numeral designation licenses it.
             if (nextVarnas.firstOrNull() is Svara || resultVarnas.lastOrNull() == Vyanjana.SA) {
                 val joined = sandhiEngine.join(result, next)
+                result = joined.final.surface
+                resultVarnas = joined.final.terms.flatMap { it.varnas }
+                applications.addAll(joined.applications)
+            } else if (index in numeralBoundaries && resultVarnas.lastOrNull() is Vyanjana && nextVarnas.firstOrNull() is Vyanjana) {
+                val joined = sandhiEngine.joinConsonantBoundary(result, next)
                 result = joined.final.surface
                 resultVarnas = joined.final.terms.flatMap { it.varnas }
                 applications.addAll(joined.applications)
@@ -405,10 +411,10 @@ class SamasaEngine(
                 if(index<padas.lastIndex && type!=SamasaType.ALUK_TATPURUSA && varnas.lastOrNull()==Vyanjana.NA)
                     varnas.dropLast(1).toDevanagari() else part
             }
-            joinCompoundMembers(parts,applications)
+            joinCompoundMembers(parts,applications, padas.indices.filter { Samjna.SANKHYA in padas[it].samjnas }.toSet())
         } else if(hasSamasantaKap && hasPriorStemTransformation) rawStem
         else if(rawStem==rawPadasConcat || hasSamasantaKap){
-            val res=joinCompoundMembers(members,applications)
+            val res=joinCompoundMembers(members,applications, padas.indices.filter { Samjna.SANKHYA in padas[it].samjnas }.toSet())
             if(hasSamasantaKap){
                 val varnas=res.toVarnas()
                 (if(varnas.lastOrNull()==Ayogavaha.VISARGA)

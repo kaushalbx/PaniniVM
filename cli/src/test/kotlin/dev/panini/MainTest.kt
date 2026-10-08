@@ -133,6 +133,28 @@ class MainTest {
     }
 
     @Test
+    fun `emitted grantha orders results across prior turns and local clauses`() {
+        val directory = Files.createTempDirectory("grantha-ordering")
+        val input = directory.resolve("turns.pvm")
+        val output = directory.resolve("turns.sutra")
+        try {
+            Files.writeString(input, """
+                एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।
+                द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ततः
+                युज् + ल्युट् + ङस् प्रथम + अम् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।
+            """.trimIndent())
+            val emitted = runCli(arrayOf("--emit-grantha", input.toString(), output.toString()))
+            assertTrue(emitted.any { it.contains("✓ Emitted 3 sūtra(s)") }, emitted.toString())
+            val executed = runCli(arrayOf("--grantha", output.toString()))
+            assertTrue(executed.any { it.contains("✓ उक्ति-२/योग-2: त्रीणि") }, executed.toString())
+        } finally {
+            Files.deleteIfExists(output)
+            Files.deleteIfExists(input)
+            Files.deleteIfExists(directory)
+        }
+    }
+
+    @Test
     fun `derive command returns the form and its sutra trace`() {
         val output = runCli(arrayOf("--derive", "राम", "SASTHI", "BAHUVACANA"))
         val sanskritLabels = runCli(arrayOf("--derive", "राम", "षष्ठी", "बहुवचन"))

@@ -37,8 +37,13 @@ data class KriyaMemory(
 
     /** Selects the 1-based prathama, dvitīya, ... kriyā in chronological order. */
     fun ordinalKriya(number: Int, dhatuUpadesha: String? = null): RememberedKriya? {
+        return ordinalKriya(number.toLong(), dhatuUpadesha)
+    }
+
+    fun ordinalKriya(number: Long, dhatuUpadesha: String? = null): RememberedKriya? {
         require(number > 0) { "A memory ordinal must be positive." }
-        return matchingKriyas(dhatuUpadesha).getOrNull(number - 1)
+        val matches = matchingKriyas(dhatuUpadesha)
+        return if (number <= matches.size.toLong()) matches[(number - 1).toInt()] else null
     }
 
     /** Selects the latest kriyā; offset 1 is upāntima, 2 is the one before it, and so on. */

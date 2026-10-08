@@ -134,7 +134,7 @@ object NaturalSemanticNormalizer {
         val tinganta = padas.filterIsInstance<TingantaPada>().singleOrNull() ?: return null
         if (tinganta.canonicalDhatuIdentity() != CanonicalDhatuIdentity.MUDR) return null
         if (padas.filterIsInstance<SubantaPada>().any(::isPriorResult)) return null
-        if (padas.filterIsInstance<SubantaPada>().isNotEmpty()) return null
+        if (padas.any { it !is TingantaPada && it !is AvyayaPada }) return null
         return Operation.DisplayPriorResult
     }
 

@@ -12,6 +12,20 @@ import kotlin.test.*
 
 class PriorActionTest {
     @Test
+    fun `objectless display resolves the preceding prior action result`() {
+        val source = "एक + अम् द्वि + औट् च युज् + णिच् + क्त्वा मुद्र् + णिच् + लोट् + सिप् ।"
+        assertEquals("त्रीणि", assertIs<ExecutionResult.Success>(PaniniVM().evalScript(source).last()).value)
+        val sequence = assertIs<Sequence>(PriorActionLowering.lower(PaniniParser().parse(source).body))
+        val main = assertIs<Invocation>(sequence.statements.last())
+        assertTrue(main.vakya.padas.filterIsInstance<SubantaPada>().any(NaturalSemanticNormalizer::isPriorResult))
+    }
+
+    @Test
+    fun `explicit display objects are not replaced by prior action results`() {
+        val source = "एक + अम् द्वि + औट् च युज् + णिच् + क्त्वा नवन् + शस् मुद्र् + णिच् + लोट् + सिप् ।"
+        assertEquals("नवन्", assertIs<ExecutionResult.Success>(PaniniVM().evalScript(source).last()).value)
+    }
+    @Test
     fun `explicit prefixed lyap renders through derivation rather than raw source`() {
         val source = "द्वि + औट् एक + अम् च वि + युज् + णिच् + ल्यप् " +
             "फल + अम् मुद्र् + णिच् + लोट् + सिप् ।"

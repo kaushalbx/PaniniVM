@@ -370,6 +370,15 @@ class ExecutionLifecycleTest {
     }
 
     @Test
+    fun `script result ordering ignores intervening print actions`() {
+        val source = "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "नवन् + शस् मुद्र् + णिच् + लोट् + सिप् ।\n" +
+            "युज् + ल्युट् + ङस् पूर्व + अम् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+        assertEquals("त्रीणि", assertIs<ExecutionResult.Success>(PaniniVM().evalScript(source).last()).value)
+    }
+
+    @Test
     fun `kriya memory distinguishes ordinal previous and latest results`() {
         val vm = PaniniVM(storageDir.resolve("ordered-memory").toFile())
         assertIs<ExecutionResult.Success>(

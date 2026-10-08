@@ -36,7 +36,9 @@ internal class PvmLoopExecutor {
         }
         val normalizedCondition = NaturalSemanticNormalizer.normalize(loop.condition)
         val reportedOutcome = normalizedCondition as? NaturalSemanticNormalizer.Operation.ReportedOutcomeTest
-        val usesLatestResult = reportedOutcome != null || loop.condition.vakya.padas.any {
+        val hasNamedResult = dev.panini.execution.binding.NamedActionResultReferenceResolver
+            .resolve(loop.condition.vakya.padas).isNotEmpty()
+        val usesLatestResult = reportedOutcome != null || !hasNamedResult && loop.condition.vakya.padas.any {
             it is SubantaPada && NaturalSemanticNormalizer.isPriorResult(it)
         }
         val hasExplicitNegation = loop.condition.vakya.padas.any {
@@ -119,8 +121,8 @@ internal class PvmLoopExecutor {
                         resolved.invocation,
                         request.scope.copy(environment = request.scope.environment.mergedWith(resolved.environment)),
                     )
-                    val success = conditionResult as? ExecutionResult.Success
-                    (success?.conditionValue ?: (success?.typedValue as? SanskritValue.Satya)?.boolean) == true
+                    val success = conditionResult as? ExecutionResult.Success ?: return results + conditionResult
+                    (success.conditionValue ?: (success.typedValue as? SanskritValue.Satya)?.boolean) == true
                 }
             }
             if (!conditionHolds) return complete(ExecutionResult.LoopOutcome.VIJAYA)

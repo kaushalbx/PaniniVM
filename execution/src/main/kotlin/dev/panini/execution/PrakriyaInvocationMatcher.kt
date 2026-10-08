@@ -33,9 +33,11 @@ object PrakriyaInvocationMatcher {
                 pada.pratipadika.prakriyaIdentity() in knownOperationStems
         } ?: return null
         val operationPada = instrumental.value as SubantaPada
+        val resultModifiers = dev.panini.execution.binding.NamedActionResultReferenceResolver.resolve(padas)
+            .map { it.modifier }.toSet()
         val domainEntry = padas.withIndex().take(instrumental.index)
             .lastOrNull { (index, pada) ->
-                pada is SubantaPada && pada.vibhakti() == Vibhakti.SASTHI &&
+                pada is SubantaPada && pada !in resultModifiers && pada.vibhakti() == Vibhakti.SASTHI &&
                     (padas.getOrNull(index + 1) as? SubantaPada)?.vibhakti() != Vibhakti.DVITIYA
             }
         val domainPada = domainEntry?.value as? SubantaPada

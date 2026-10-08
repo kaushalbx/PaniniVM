@@ -6,6 +6,7 @@ import dev.panini.ashtadhyayi.adhyaya8.pada2.JhalamJashonteSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada3.MonusvarahSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada4.JhayoHonyatarasyamSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada4.AnusvarasyaYayiParasavarnahSutra
+import dev.panini.ashtadhyayi.adhyaya8.pada4.KhariCaSutra
 import dev.panini.shiksha.Varnamala
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Samjna
@@ -46,6 +47,35 @@ class SandhiEngine(
 
         val initial = padaBoundaryState(left, right)
         return engine.derive(initial, config)
+    }
+
+    /** Completed consonant-final compound members: apply only boundary phonology. */
+    fun joinConsonantBoundary(left: String, right: String): DerivationResult {
+        val initial = padaBoundaryState(left, right)
+        var state = initial
+        val applications = mutableListOf<DerivationApplication>()
+        fun record(rule: dev.panini.sutra.Sutra<*, *>, after: DerivationState, explanation: String) {
+            val recorded = after.copy(appliedSutras = state.appliedSutras + rule.number)
+            applications.add(DerivationApplication(rule.number, rule.role, rule.action, rule.scope,
+                rule.text, state, recorded, explanation))
+            state = recorded
+        }
+        val isolated = singlePadaState(left)
+        if (JhalamJashonteSutra.matches(isolated)) {
+            val change = JhalamJashonteSutra.apply(isolated)
+            val beforeTerm = state.terms.first()
+            val afterTerm = change.state.terms.single()
+            val after = state.substituteTermVarnas(beforeTerm.id, afterTerm.varnas,
+                beforeTerm.varnas.last(), listOf(afterTerm.varnas.last()), JhalamJashonteSutra.sutra)
+            record(JhalamJashonteSutra, after, change.explanation)
+        }
+        if (KhariCaSutra.matches(state)) {
+            val change = KhariCaSutra.apply(state)
+            record(KhariCaSutra, change.state, change.explanation)
+        }
+        return DerivationResult(initial, state, applications,
+            applications.map { DerivationEvent.RuleApplied(it.sutra, it.before, it.after, it.explanation) } +
+                DerivationEvent.Completed(state, applications.size))
     }
 
     /**

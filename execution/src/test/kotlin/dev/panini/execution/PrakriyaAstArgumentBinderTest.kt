@@ -12,6 +12,57 @@ import java.io.File
 
 class PrakriyaAstArgumentBinderTest {
     @Test
+    fun `karaka history qualifiers are protected from procedure parameter rebinding`() {
+        val original = assertIs<Invocation>(dev.panini.vyakaranam.parser.PaniniParser()
+            .parse("युज् + ल्युट् + ङस् प्रथम + अम् कर्मन् + अम् मुद्र् + णिच् + लोट् + सिप् ।").body)
+        val parameters = listOf(PrakriyaParameter("कर्मन्", PrakriyaValueType.SANKHYA))
+        val bound = assertIs<Invocation>(PrakriyaAstArgumentBinder.bind(original, parameters, 1))
+        assertEquals(original.vakya.padas, bound.vakya.padas)
+        val padas = original.vakya.padas.dropLast(1)
+        val pipeline = Pipeline(sourceText = "typed karaka history pipeline", stages = emptyList(),
+            arguments = padas.map { it.sourceText }, argumentPadas = padas, renderPadas = padas)
+        val boundPipeline = assertIs<Pipeline>(PrakriyaAstArgumentBinder.bind(pipeline, parameters, 1))
+        assertEquals(pipeline.arguments, boundPipeline.arguments)
+        assertEquals(padas, boundPipeline.argumentPadas)
+        assertEquals(padas, boundPipeline.renderPadas)
+    }
+    @Test
+    fun `pipeline history modifiers cannot become positional or named parameters`() {
+        val invocation = assertIs<Invocation>(dev.panini.vyakaranam.parser.PaniniParser()
+            .parse("युज् + ल्युट् + ङस् प्रथम + अम् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।").body)
+        val padas = invocation.vakya.padas.dropLast(1)
+        val pipeline = Pipeline(
+            sourceText = "typed history pipeline", arguments = padas.map { it.sourceText },
+            stages = emptyList(), argumentPadas = padas, renderPadas = padas,
+        )
+        val bound = assertIs<Pipeline>(PrakriyaAstArgumentBinder.bind(pipeline,
+            listOf(PrakriyaParameter("फल", PrakriyaValueType.SANKHYA)), 1))
+        assertEquals(pipeline.arguments, bound.arguments)
+        assertEquals(padas, bound.argumentPadas)
+        assertEquals(padas, bound.renderPadas)
+    }
+    @Test
+    fun `history ordinal qualifier is not a procedure positional placeholder`() {
+        val original = assertIs<Invocation>(dev.panini.vyakaranam.parser.PaniniParser()
+            .parse("युज् + ल्युट् + ङस् प्रथम + अम् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।").body)
+        val bound = assertIs<Invocation>(PrakriyaAstArgumentBinder.bind(original,
+            listOf(PrakriyaParameter("मान", PrakriyaValueType.SANKHYA)), 1))
+        assertEquals(original.vakya.padas, bound.vakya.padas)
+    }
+    @Test
+    fun `wide typed ordinal cannot impersonate a positional parameter`() {
+        val original = assertIs<Invocation>(dev.panini.vyakaranam.parser.PaniniParser()
+            .parse("प्रथ् + अमच् + अम् मुद्र् + णिच् + लोट् + सिप् ।").body)
+        val sentence = assertIs<dev.panini.vyakaranam.ast.AkhyataVakya>(original.vakya)
+        val operand = dev.panini.vyakaranam.ast.SankhyaPuranaPada(
+            sourceText = "typed ordinal", stems = emptyList(), value = 4_294_967_297L,
+            sup = dev.panini.vyakaranam.ast.SupPratyaya("अम्", "अम्"),
+        )
+        val node = original.copy(vakya = sentence.copy(padas = listOf(operand, sentence.tinganta)))
+        val bound = assertIs<Invocation>(PrakriyaAstArgumentBinder.bind(node, emptyList(), 1))
+        assertEquals(operand, bound.vakya.padas.first())
+    }
+    @Test
     fun `string only pipeline arguments cannot impersonate parsed parameters`() {
         val pipeline = Pipeline(
             sourceText = "legacy compatibility node",

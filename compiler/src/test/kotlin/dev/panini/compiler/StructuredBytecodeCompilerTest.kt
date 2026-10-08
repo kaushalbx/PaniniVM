@@ -20,6 +20,316 @@ import kotlin.test.assertFailsWith
 
 class StructuredBytecodeCompilerTest {
     @Test
+    fun `skipped compiled history display does not evaluate missing participants`() {
+        val source = "यदि एक + सुँ द्वि + टा सम + सुँ असँ + लट् + तिप् तर्हि " +
+            "युज् + ल्युट् + ङस् कर्मन् + अम् मुद्र् + णिच् + लोट् + सिप् " +
+            "अन्यथा नवन् + शस् मुद्र् + णिच् + लोट् + सिप् ।"
+        assertEquals("नवन्", (PaniniVM().evalScript(source).last() as ExecutionResult.Success).value)
+        assertEquals("नवन्", compileAndInspect(source, "CompiledSkippedParticipantHistory")
+            .values.getValue("LastResult").toDisplayText())
+    }
+    @Test
+    fun `compiled procedure body selects participant history instead of argument one`() {
+        val source = "वाचन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+            "मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+            "युज् + ल्युट् + ङस् प्रथम + अम् कर्मन् + अम् मुद्र् + णिच् + लोट् + सिप् ॥\n" +
+            "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "नवन् + शस् वाचन + टा कृ + लोट् + सिप् ।"
+        assertEquals("एक द्वि", (PaniniVM().evalScript(source).last() as ExecutionResult.Success).value)
+        assertEquals("एक द्वि", compileAndInspect(source, "CompiledParticipantHistoryProcedure")
+            .values.getValue("LastResult").toDisplayText())
+    }
+    @Test
+    fun `compiled history display validates ordering modifier agreement`() {
+        for (sup in listOf("सुँ", "शस्")) {
+            assertFailsWith<IllegalArgumentException> {
+                CompilerFrontend.lower("युज् + ल्युट् + ङस् पूर्व + $sup कर्मन् + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+                    "InvalidKarakaDisplayAgreement")
+            }
+        }
+    }
+    @Test
+    fun `mixed history display retains coordinated ordinary operands`() {
+        val source = "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "नवन् + शस् दशन् + शस् च युज् + ल्युट् + ङस् प्रथम + अम् कर्मन् + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+        val interpreted = (PaniniVM().evalScript(source).last() as ExecutionResult.Success).value
+        assertEquals("नवन् दशन् एक द्वि", interpreted)
+        assertEquals(interpreted, compileAndInspect(source, "CompiledCoordinatedHistoryDisplay")
+            .values.getValue("LastResult").toDisplayText())
+    }
+    @Test
+    fun `compiled history display rejects unavailable action or participant relation`() {
+        for (query in listOf(
+            "युज् + ल्युट् + ङस् पूर्व + अम् कर्मन् + अम्",
+            "युज् + ल्युट् + ङस् तृतीय + अम् कर्मन् + अम्",
+            "युज् + ल्युट् + ङस् करण + अम्",
+        )) {
+            val source = "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
+                query + " मुद्र् + णिच् + लोट् + सिप् ।"
+            assertEquals(dev.panini.execution.ExecutionError.INVALID_VALUE,
+                (PaniniVM().evalScript(source).last() as ExecutionResult.Failure).error)
+            val failure = assertFailsWith<InvocationTargetException> {
+                compileAndInspect(source, "CompiledMissingParticipantDisplay")
+            }
+            assertEquals(dev.panini.execution.ExecutionError.INVALID_VALUE,
+                (failure.cause as CompiledPaniniExecutionException).error)
+        }
+    }
+    @Test
+    fun `compiled mixed ordinary and history display retains written operand order`() {
+        val setup = "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n"
+        for ((operands, expected) in listOf(
+            "नवन् + शस् युज् + ल्युट् + ङस् प्रथम + अम् कर्मन् + अम्" to "नवन् एक द्वि",
+            "युज् + ल्युट् + ङस् प्रथम + अम् कर्मन् + अम् नवन् + शस्" to "एक द्वि नवन्",
+        )) {
+            val source = setup + operands + " मुद्र् + णिच् + लोट् + सिप् ।"
+            assertEquals(expected, (PaniniVM().evalScript(source).last() as ExecutionResult.Success).value)
+            assertEquals(expected, compileAndInspect(source, "CompiledMixedKarakaDisplay")
+                .values.getValue("LastResult").toDisplayText())
+        }
+    }
+    @Test
+    fun `compiled display keeps distinct ordered karaka occurrences`() {
+        val source = "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "युज् + ल्युट् + ङस् प्रथम + अम् कर्मन् + अम् " +
+            "युज् + ल्युट् + ङस् द्वि + तीय + अम् कर्मन् + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+        assertEquals("एक द्वि द्वि त्रि", (PaniniVM().evalScript(source).last() as ExecutionResult.Success).value)
+        assertEquals("एक द्वि द्वि त्रि", compileAndInspect(source, "CompiledOrderedKarakaDisplay")
+            .values.getValue("LastResult").toDisplayText())
+    }
+    @Test
+    fun `karaka history display compiles with participant semantics`() {
+        val source = "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "युज् + ल्युट् + ङस् प्रथम + अम् कर्मन् + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+        assertEquals("एक द्वि", (PaniniVM().evalScript(source).last() as ExecutionResult.Success).value)
+        assertEquals("एक द्वि", compileAndInspect(source, "CompiledKarakaHistory").values.getValue("LastResult").toDisplayText())
+    }
+    @Test
+    fun `procedure body preserves history ordinal rather than rebinding it as argument one`() {
+        val source = "वाचन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+            "मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+            "युज् + ल्युट् + ङस् प्रथम + अम् फल + अम् मुद्र् + णिच् + लोट् + सिप् ॥\n" +
+            "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "नवन् + शस् वाचन + टा कृ + लोट् + सिप् ।"
+        val results = PaniniVM().evalScript(source)
+        assertTrue(results.none { it is ExecutionResult.Failure }, results.toString())
+        assertEquals("त्रीणि", (results.last() as ExecutionResult.Success).value)
+        assertEquals("त्रीणि", compileAndInspect(source, "CompiledHistoryInsideProcedure")
+            .values.getValue("LastResult").toDisplayText())
+    }
+    @Test
+    fun `lexical third result selects the third completed matching action`() {
+        val source = "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "त्रि + शस् चतुर् + शस् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "नवन् + शस् मुद्र् + णिच् + लोट् + सिप् ।\n" +
+            "युज् + ल्युट् + ङस् तृतीय + अम् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+        assertEquals("सप्त", (PaniniVM().evalScript(source).last() as ExecutionResult.Success).value)
+        assertEquals("सप्त", compileAndInspect(source, "CompiledLexicalThirdHistory")
+            .values.getValue("LastResult").toDisplayText())
+    }
+    @Test
+    fun `compiler rejects result ordering with mismatched case or number`() {
+        for (sup in listOf("सुँ", "शस्")) {
+            val source = "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
+                "द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।\n" +
+                "युज् + ल्युट् + ङस् पूर्व + $sup फल + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+            assertFailsWith<IllegalArgumentException> { CompilerFrontend.lower(source, "InvalidResultAgreement") }
+        }
+    }
+    @Test
+    fun `two procedure operands retain distinct named result occurrences`() {
+        val source = "संयोजन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+            "वाम + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+            "दक्षिण + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+            "सङ्ख्या + सुँ इति परिणाम + सुँ ।\n" +
+            "वाम + अम् दक्षिण + अम् च युज् + णिच् + लोट् + सिप् ॥\n" +
+            "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "नवन् + शस् मुद्र् + णिच् + लोट् + सिप् ।\n" +
+            "वाम + ङि युज् + ल्युट् + ङस् पूर्व + अम् फल + अम् " +
+            "दक्षिण + ङि युज् + ल्युट् + ङस् फल + अम् संयोजन + टा कृ + लोट् + सिप् ।"
+        val results = PaniniVM().evalScript(source)
+        assertTrue(results.none { it is ExecutionResult.Failure }, results.toString())
+        assertEquals(8L, ((results.last() as ExecutionResult.Success).typedValue as SanskritValue.Sankhya).value)
+        assertEquals(8L, (compileAndInspect(source, "CompiledTwoHistoryArguments")
+            .values.getValue("LastResult") as SanskritValue.Sankhya).value)
+    }
+
+    @Test
+    fun `procedure arguments select named action history in both backends`() {
+        val definition = "वर्धन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+            "मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+            "सङ्ख्या + सुँ इति परिणाम + सुँ ।\n" +
+            "मान + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥\n"
+        for ((index, fixture) in listOf("" to 6L, "पूर्व + अम् " to 4L, "प्रथम + अम् " to 4L).withIndex()) {
+            val (qualifier, expected) = fixture
+            for ((namedIndex, slot) in listOf("", "मान + ङि ").withIndex()) {
+                val source = definition +
+                    "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
+                    "द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।\n" +
+                    "नवन् + शस् मुद्र् + णिच् + लोट् + सिप् ।\n" +
+                    "${slot}युज् + ल्युट् + ङस् ${qualifier}फल + अम् वर्धन + टा कृ + लोट् + सिप् ।"
+                val results = PaniniVM().evalScript(source)
+                assertTrue(results.none { it is ExecutionResult.Failure }, results.toString())
+                assertEquals(expected, ((results.last() as ExecutionResult.Success).typedValue as SanskritValue.Sankhya).value)
+                assertEquals(expected, (compileAndInspect(source, "CompiledHistoryArgument${index}_$namedIndex")
+                    .values.getValue("LastResult") as SanskritValue.Sankhya).value)
+            }
+        }
+    }
+
+    @Test
+    fun `missing named procedure argument fails before executing its body`() {
+        val source = "वर्धन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+            "मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+            "मान + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥\n" +
+            "नवन् + शस् मुद्र् + णिच् + लोट् + सिप् ।\n" +
+            "युज् + ल्युट् + ङस् फल + अम् वर्धन + टा कृ + लोट् + सिप् ।"
+        val results = PaniniVM().evalScript(source)
+        assertTrue(results.last() is ExecutionResult.Failure, results.toString())
+        val failure = assertFailsWith<InvocationTargetException> {
+            compileAndInspect(source, "CompiledMissingHistoryArgument")
+        }
+        assertEquals(dev.panini.execution.ExecutionError.INVALID_VALUE,
+            (failure.cause as CompiledPaniniExecutionException).error)
+    }
+
+    @Test
+    fun `missing named history fails at execution in both backends`() {
+        for ((index, qualifier) in listOf("", "पूर्व + अम् ", "द्वि + तीय + अम् ").withIndex()) {
+            val source = "नवन् + शस् मुद्र् + णिच् + लोट् + सिप् ।\n" +
+                "युज् + ल्युट् + ङस् ${qualifier}फल + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+            assertTrue(PaniniVM().evalScript(source).last() is ExecutionResult.Failure)
+            val failure = assertFailsWith<InvocationTargetException> {
+                compileAndInspect(source, "CompiledMissingHistory$index")
+            }
+            assertEquals(dev.panini.execution.ExecutionError.INVALID_VALUE,
+                (failure.cause as CompiledPaniniExecutionException).error)
+        }
+    }
+
+    @Test
+    fun `named history loads select the latest matching completed action`() {
+        val prefix = "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "नवन् + शस् मुद्र् + णिच् + लोट् + सिप् ।\n"
+        val source = prefix + "युज् + ल्युट् + ङस् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+        assertEquals("पञ्च", (PaniniVM().evalScript(source).last() as ExecutionResult.Success).value)
+        assertEquals("पञ्च", compileAndInspect(source, "CompiledLatestHistory").values.getValue("LastResult").toDisplayText())
+    }
+
+    @Test
+    fun `previous named result ignores intervening actions in both backends`() {
+        val source = "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "नवन् + शस् मुद्र् + णिच् + लोट् + सिप् ।\n" +
+            "युज् + ल्युट् + ङस् पूर्व + अम् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+        val vm = PaniniVM()
+        val results = vm.evalScript(source)
+        assertEquals("त्रीणि", (results.last() as ExecutionResult.Success).value, results.toString())
+        assertEquals("त्रीणि", compileAndInspect(source, "CompiledPreviousHistory").values.getValue("LastResult").toDisplayText())
+    }
+
+    @Test
+    fun `condition can compare a previous named result`() {
+        val source = "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "यदि युज् + ल्युट् + ङस् पूर्व + सुँ फल + सुँ त्रि + भिस् सम + सुँ असँ + लट् + तिप् तर्हि " +
+            "एक + अम् मुद्र् + णिच् + लोट् + सिप् अन्यथा द्वि + औट् मुद्र् + णिच् + लोट् + सिप् ।"
+        val results = PaniniVM().evalScript(source)
+        val interpreted = (results.last() as ExecutionResult.Success).value
+        assertEquals("एक", interpreted, results.toString())
+        assertEquals(interpreted, compileAndInspect(source, "CompiledPreviousHistoryCondition")
+            .values.getValue("LastResult").toDisplayText())
+    }
+
+    @Test
+    fun `loop reevaluates named action history rather than body truth`() {
+        for ((index, qualifier) in listOf("", "पूर्व + सुँ ").withIndex()) {
+            val initial = if (qualifier.isEmpty()) "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n"
+                else "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
+                    "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n"
+            val source = initial +
+                "पञ्च + कृत्वसुच् यावत् युज् + ल्युट् + ङस् ${qualifier}फल + सुँ त्रि + भिस् सम + सुँ असँ + लट् + तिप् तावत् " +
+                "द्वि + औट् त्रि + शस् च युज् + णिच् + क्त्वा नवन् + शस् मुद्र् + णिच् + लोट् + सिप् ।"
+            val results = PaniniVM().evalScript(source)
+            assertTrue(results.none { it is ExecutionResult.Failure }, results.toString())
+            val completion = results.filterIsInstance<ExecutionResult.Success>().last { it.operation == "pvm.while" }
+            val expectedIterations = if (qualifier.isEmpty()) 1L else 2L
+            assertEquals(expectedIterations, completion.iterationCount)
+            val compiled = compileAndInspect(source, "CompiledNamedLoop$index")
+            val outcome = compiled.values.getValue("परिणाम") as SanskritValue.Rupa
+            assertEquals(expectedIterations, (outcome.fields.getValue("प्रयत्नसङ्ख्या") as SanskritValue.Sankhya).value)
+        }
+    }
+
+    @Test
+    fun `ordinal named results preserve chronological order in both backends`() {
+        for ((index, fixture) in listOf("प्रथम + अम्" to "त्रीणि", "द्वि + तीय + अम्" to "पञ्च").withIndex()) {
+            val (qualifier, expected) = fixture
+            val source = "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
+                "द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।\n" +
+                "नवन् + शस् मुद्र् + णिच् + लोट् + सिप् ।\n" +
+                "युज् + ल्युट् + ङस् $qualifier फल + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+            assertEquals(expected, (PaniniVM().evalScript(source).last() as ExecutionResult.Success).value)
+            assertEquals(expected, compileAndInspect(source, "CompiledOrdinalHistory$index")
+                .values.getValue("LastResult").toDisplayText())
+        }
+    }
+
+    @Test
+    fun `ordinal references work in conditions and bounded loops`() {
+        val prefix = "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।\n"
+        val condition = "युज् + ल्युट् + ङस् प्रथम + सुँ फल + सुँ त्रि + भिस् सम + सुँ असँ + लट् + तिप्"
+        val branch = prefix + "यदि $condition तर्हि एक + अम् मुद्र् + णिच् + लोट् + सिप् " +
+            "अन्यथा द्वि + औट् मुद्र् + णिच् + लोट् + सिप् ।"
+        assertEquals("एक", (PaniniVM().evalScript(branch).last() as ExecutionResult.Success).value)
+        assertEquals("एक", compileAndInspect(branch, "CompiledOrdinalCondition").values.getValue("LastResult").toDisplayText())
+        val loop = prefix + "द्वि + कृत्वसुच् यावत् $condition तावत् नवन् + शस् मुद्र् + णिच् + लोट् + सिप् ।"
+        val results = PaniniVM().evalScript(loop)
+        assertTrue(results.none { it is ExecutionResult.Failure }, results.toString())
+        val completion = results.filterIsInstance<ExecutionResult.Success>().last { it.operation == "pvm.while" }
+        assertEquals(2L, completion.iterationCount)
+        val outcome = compileAndInspect(loop, "CompiledOrdinalLoop").values.getValue("परिणाम") as SanskritValue.Rupa
+        assertEquals(2L, (outcome.fields.getValue("प्रयत्नसङ्ख्या") as SanskritValue.Sankhya).value)
+    }
+
+    @Test
+    fun `dice named choice result retains its number after printing`() {
+        val source = File("examples/algorithms/dice_opposite_face.pvm").readText()
+        val program = CompilerFrontend.lower(source, "DiceNamedHistory")
+        assertTrue(program.entryPoint.any { it is CompilerInstruction.LoadActionResult && it.dhatuUpadesha == "चिञ्" })
+        compileAndInspect(source, "CompiledDiceNamedHistory")
+    }
+    @Test
+    fun `historical action results never silently alias the latest print result`() {
+        val source = "एक + अम् द्वि + औट् च युज् + णिच् + क्त्वा मुद्र् + णिच् + लोट् + सिप् ।\n" +
+            "नवन् + शस् मुद्र् + णिच् + लोट् + सिप् ।\n" +
+            "युज् + ल्युट् + ङस् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+        val results = PaniniVM().evalScript(source)
+        assertEquals("त्रीणि", (results.last() as ExecutionResult.Success).value)
+        val compiled = compileAndInspect(source, "CompiledHistoricalActionResult")
+        assertEquals("त्रीणि", compiled.values.getValue("LastResult").toDisplayText())
+    }
+    @Test
+    fun `objectless prior action display resolves context in both backends`() {
+        for ((index, target) in listOf("" to "त्रीणि", "नवन् + शस् " to "नवन्").withIndex()) {
+            val (objectSource, expected) = target
+            val source = "एक + अम् द्वि + औट् च युज् + णिच् + क्त्वा " +
+                objectSource + "मुद्र् + णिच् + लोट् + सिप् ।"
+            val interpreted = PaniniVM().evalScript(source)
+            assertEquals(expected,
+                (interpreted.last() as ExecutionResult.Success).value)
+            val compiled = compileAndInspect(source, "CompiledEllipticalPriorDisplay$index")
+            assertEquals(expected, compiled.values.getValue("LastResult").toDisplayText())
+        }
+    }
+    @Test
     fun `conditional prior actions execute only the selected branch in both backends`() {
         for ((index, condition) in listOf("एक" to 3L, "द्वि" to 7L).withIndex()) {
             val (operand, expected) = condition

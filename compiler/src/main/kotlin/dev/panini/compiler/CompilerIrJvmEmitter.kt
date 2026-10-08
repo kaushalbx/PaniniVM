@@ -36,6 +36,38 @@ internal class CompilerIrJvmEmitter(
                 is CompilerInstruction.Constant -> StructuredValueBytecodeEmitter.emit(mv, instruction.value)
                 is CompilerInstruction.Load -> emitLoad(instruction.name)
                 is CompilerInstruction.Store -> emitStore(instruction.name)
+                is CompilerInstruction.RecordActionResult -> emitStore(instruction.dhatuUpadesha, "recordActionResult")
+                is CompilerInstruction.RecordActionFrame -> emitRecordActionFrame(instruction)
+                is CompilerInstruction.LoadActionResult -> {
+                    mv.visitVarInsn(ALOAD, 0)
+                    mv.visitLdcInsn(instruction.dhatuUpadesha)
+                    mv.visitLdcInsn(instruction.occurrenceFromLatest)
+                    mv.visitMethodInsn(INVOKEVIRTUAL, RUNTIME, "loadActionResult",
+                        "(Ljava/lang/String;I)Ldev/panini/execution/SanskritValue;", false)
+                }
+                is CompilerInstruction.LoadOrdinalActionResult -> {
+                    mv.visitVarInsn(ALOAD, 0)
+                    mv.visitLdcInsn(instruction.dhatuUpadesha)
+                    mv.visitLdcInsn(instruction.ordinalFromOldest)
+                    mv.visitMethodInsn(INVOKEVIRTUAL, RUNTIME, "loadOrdinalActionResult",
+                        "(Ljava/lang/String;J)Ldev/panini/execution/SanskritValue;", false)
+                }
+                is CompilerInstruction.LoadActionParticipants -> {
+                    mv.visitVarInsn(ALOAD, 0)
+                    mv.visitLdcInsn(instruction.dhatuUpadesha)
+                    mv.visitLdcInsn(instruction.occurrenceFromLatest)
+                    mv.visitFieldInsn(GETSTATIC, "dev/panini/core/Karaka", instruction.karaka.name, "Ldev/panini/core/Karaka;")
+                    mv.visitMethodInsn(INVOKEVIRTUAL, RUNTIME, "loadActionParticipantValue",
+                        "(Ljava/lang/String;ILdev/panini/core/Karaka;)Ldev/panini/execution/SanskritValue;", false)
+                }
+                is CompilerInstruction.LoadOrdinalActionParticipants -> {
+                    mv.visitVarInsn(ALOAD, 0)
+                    mv.visitLdcInsn(instruction.dhatuUpadesha)
+                    mv.visitLdcInsn(instruction.ordinalFromOldest)
+                    mv.visitFieldInsn(GETSTATIC, "dev/panini/core/Karaka", instruction.karaka.name, "Ldev/panini/core/Karaka;")
+                    mv.visitMethodInsn(INVOKEVIRTUAL, RUNTIME, "loadOrdinalActionParticipantValue",
+                        "(Ljava/lang/String;JLdev/panini/core/Karaka;)Ldev/panini/execution/SanskritValue;", false)
+                }
                 is CompilerInstruction.LoadLocal -> mv.visitVarInsn(
                     ALOAD,
                     requireNotNull(locals[instruction.name]),
@@ -296,7 +328,7 @@ internal class CompilerIrJvmEmitter(
         )
     }
 
-    private fun emitStore(name: String) {
+    private fun emitStore(name: String, method: String = "storeValue") {
         val value = allocateLocal(1)
         mv.visitVarInsn(ASTORE, value)
         mv.visitVarInsn(ALOAD, 0)
@@ -305,7 +337,7 @@ internal class CompilerIrJvmEmitter(
         mv.visitMethodInsn(
             INVOKEVIRTUAL,
             RUNTIME,
-            "storeValue",
+            method,
             "(Ljava/lang/String;Ldev/panini/execution/SanskritValue;)V",
             false,
         )
@@ -424,6 +456,34 @@ internal class CompilerIrJvmEmitter(
             "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Ldev/panini/execution/SanskritValue;",
             false,
         )
+    }
+
+    private fun emitRecordActionFrame(instruction: CompilerInstruction.RecordActionFrame) {
+        val result = allocateLocal(1)
+        mv.visitVarInsn(ASTORE, result)
+        val values = List(instruction.participantRoles.size) { allocateLocal(1) }
+        values.asReversed().forEach { mv.visitVarInsn(ASTORE, it) }
+        mv.visitVarInsn(ALOAD, 0)
+        mv.visitLdcInsn(instruction.dhatuUpadesha)
+        mv.visitVarInsn(ALOAD, result)
+        mv.visitLdcInsn(values.size)
+        mv.visitTypeInsn(ANEWARRAY, "dev/panini/core/Karaka")
+        instruction.participantRoles.forEachIndexed { index, role ->
+            mv.visitInsn(DUP)
+            mv.visitLdcInsn(index)
+            mv.visitFieldInsn(GETSTATIC, "dev/panini/core/Karaka", role.name, "Ldev/panini/core/Karaka;")
+            mv.visitInsn(AASTORE)
+        }
+        mv.visitLdcInsn(values.size)
+        mv.visitTypeInsn(ANEWARRAY, "dev/panini/execution/SanskritValue")
+        values.forEachIndexed { index, local ->
+            mv.visitInsn(DUP)
+            mv.visitLdcInsn(index)
+            mv.visitVarInsn(ALOAD, local)
+            mv.visitInsn(AASTORE)
+        }
+        mv.visitMethodInsn(INVOKEVIRTUAL, RUNTIME, "recordActionFrameValues",
+            "(Ljava/lang/String;Ldev/panini/execution/SanskritValue;[Ldev/panini/core/Karaka;[Ldev/panini/execution/SanskritValue;)V", false)
     }
 
     private fun emitEnterFrame(call: CompilerInstruction.EnterFrame) {

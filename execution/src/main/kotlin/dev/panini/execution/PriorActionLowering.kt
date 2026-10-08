@@ -3,6 +3,8 @@ package dev.panini.execution
 import dev.panini.core.KrtAffix
 import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
+import dev.panini.execution.binding.CanonicalDhatuIdentity
+import dev.panini.execution.binding.canonicalDhatuIdentity
 import dev.panini.vyakaranam.ast.*
 
 /** Shares prior-action ordering between interpreter binding and compiler lowering.
@@ -83,7 +85,15 @@ object PriorActionLowering {
                     vikarana = null, priorAction = derivation,
                 )
             }
-            val operands = if (index == groups.lastIndex) group else group.dropLast(1) + head
+            val writtenOperands = if (index == groups.lastIndex) group else group.dropLast(1) + head
+            // A display verb needs an object. Within this prior-action discourse,
+            // an otherwise objectless display refers to the immediately preceding
+            // result. This does not make every prior-action connector a pipeline.
+            val omittedDisplayObject = index > 0 && head.canonicalDhatuIdentity() == CanonicalDhatuIdentity.MUDR &&
+                writtenOperands.all { it is TingantaPada || it is AvyayaPada || it in subjects(group) }
+            val operands = if (omittedDisplayObject) writtenOperands.dropLast(1) + SubantaPada(
+                "", MulaPratipadika("फल", "फल"), SupPratyaya("अम्", "अम्"),
+            ) + head else writtenOperands
             val boundPadas = if (subjects(group).isEmpty()) sharedSubjects + operands else operands
             Invocation(AkhyataVakya(group.joinToString(" ") { it.sourceText }, boundPadas, head))
         }
