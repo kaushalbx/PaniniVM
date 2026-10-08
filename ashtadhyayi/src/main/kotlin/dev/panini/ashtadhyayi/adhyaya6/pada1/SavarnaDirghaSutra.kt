@@ -44,6 +44,7 @@ object SavarnaDirghaSutra : Sutra<DerivationState, DerivationChange>(
         if (context.stage == DerivationStage.INITIAL || context.stage == DerivationStage.PRATYAYA_SELECTED) return false
         if (context.terms.size < 2) return false
         val (leftIndex, rightIndex) = targetPair(context) ?: return false
+        if (context.isBlockedAtBoundary(sutra, context.terms[leftIndex].id, context.terms[rightIndex].id)) return false
         val leftTerm = context.terms[leftIndex]
         if (leftIndex > 0 && leftTerm.id == "shap") {
             val previous = context.terms[leftIndex - 1]

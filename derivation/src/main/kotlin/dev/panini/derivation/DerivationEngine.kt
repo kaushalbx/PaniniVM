@@ -532,6 +532,7 @@ class DerivationEngine(
         val isPadaBoundaryDerivation = state.samjnas.count { it.samjna == Samjna.PADA } >= 2 &&
             state.allEffectiveTerms.none { it.kind == TermKind.DHATU || it.kind == TermKind.PRATYAYA }
         if (isPadaBoundaryDerivation && sutra.stage !in SutraStage.sandhiPhases &&
+            sutra.sutra != "1.1.11" && // Pragṛhya designation is a prerequisite of external sandhi.
             !(sutra.stage == SutraStage.IT_PROCESSING && state.terms.any { it.itProcessingPending })
         ) return false
         if (!isPadaBoundaryDerivation && sutra.scope == SutraScope.PADA_BOUNDARY) return false

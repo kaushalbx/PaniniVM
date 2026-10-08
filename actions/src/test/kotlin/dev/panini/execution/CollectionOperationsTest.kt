@@ -12,6 +12,86 @@ import kotlin.test.assertTrue
 
 class CollectionOperationsTest {
     @Test
+    fun `joining does not mistake partly resolved coordination for one collection`() {
+        val operation = dev.panini.actions.collection.ListConcatAction.op()
+        val whole = ExecutionExpression.TypedOperand(SanskritValue.Suchi(emptyList()), dev.panini.core.SupAffix.AM)
+        val partial = ExecutionExpression.Coordination(whole, ExecutionExpression.Reference("missing"))
+        for ((left, right) in listOf(partial to whole, whole to partial)) {
+            val result = operation.action.execute(ExecutionContext(bindings = mapOf(
+                Karaka.KARMAN to left, Karaka.KARTR to right,
+            )), operation)
+            assertEquals(ExecutionError.INVALID_VALUE, assertIs<ExecutionResult.Failure>(result).error)
+        }
+    }
+    @Test
+    fun `gathering and insertion do not silently discard missing coordinated objects`() {
+        val number = ExecutionExpression.sankhya(1, "एक")
+        for (action in listOf(dev.panini.actions.collection.ListCollectAction,
+            dev.panini.actions.collection.ListPushAction)) {
+            val operation = action.op()
+            for (objects in listOf(ExecutionExpression.Reference("missing"),
+                ExecutionExpression.Coordination(number, ExecutionExpression.Reference("missing")))) {
+                val result = action.execute(ExecutionContext(bindings = mapOf(
+                    Karaka.KARMAN to objects,
+                    Karaka.ADHIKARANA to ExecutionExpression.TypedOperand(
+                        SanskritValue.Suchi(emptyList(), ListMemberType.NUMBER), dev.panini.core.SupAffix.NGI),
+                )), operation)
+                assertEquals(ExecutionError.INVALID_VALUE, assertIs<ExecutionResult.Failure>(result).error)
+            }
+        }
+    }
+    @Test
+    fun `natural joining rejects scalar participants and incompatible empty lists`() {
+        val operation = dev.panini.actions.collection.ListConcatAction.op()
+        val number = SanskritValue.Sankhya(1, "एक")
+        val list = SanskritValue.Suchi(listOf(number), ListMemberType.NUMBER)
+        for ((left, right) in listOf(
+            number to list,
+            list to number,
+            SanskritValue.Suchi(emptyList(), ListMemberType.NUMBER) to SanskritValue.Suchi(emptyList(), ListMemberType.TEXT),
+        )) {
+            val result = operation.action.execute(ExecutionContext(bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.TypedOperand(left, dev.panini.core.SupAffix.AM),
+                Karaka.KARTR to ExecutionExpression.TypedOperand(right, dev.panini.core.SupAffix.TA),
+            )), operation)
+            assertEquals(ExecutionError.INVALID_VALUE, assertIs<ExecutionResult.Failure>(result).error)
+        }
+    }
+
+    @Test
+    fun `compatibility joining retains all coordinated collections and their type`() {
+        val operation = dev.panini.actions.collection.ListConcatAction.op()
+        val lists = (1L..3L).map { value -> SanskritValue.Suchi(
+            listOf(SanskritValue.Sankhya(value, value.toString())), ListMemberType.NUMBER,
+        ) }
+        for (input in listOf(lists.take(1), lists)) {
+            val result = operation.action.execute(ExecutionContext(bindings = mapOf(
+                Karaka.KARMAN to ExecutionExpression.Coordination(input.map {
+                    ExecutionExpression.TypedOperand(it, dev.panini.core.SupAffix.AM)
+                }),
+            )), operation)
+            val value = assertIs<SanskritValue.Suchi>(assertIs<ExecutionResult.Success>(result).typedValue)
+            assertEquals(ListMemberType.NUMBER, value.memberType)
+            assertEquals(input.flatMap { it.items }, value.items)
+        }
+    }
+
+    @Test
+    fun `compatibility joining validates every coordinated member type`() {
+        val operation = dev.panini.actions.collection.ListConcatAction.op()
+        val lists = listOf(
+            SanskritValue.Suchi(emptyList(), ListMemberType.NUMBER),
+            SanskritValue.Suchi(emptyList(), ListMemberType.NUMBER),
+            SanskritValue.Suchi(emptyList(), ListMemberType.TEXT),
+        )
+        val result = operation.action.execute(ExecutionContext(bindings = mapOf(
+            Karaka.KARMAN to ExecutionExpression.Coordination(lists.map {
+                ExecutionExpression.TypedOperand(it, dev.panini.core.SupAffix.AM)
+            }),
+        )), operation)
+        assertEquals(ExecutionError.INVALID_VALUE, assertIs<ExecutionResult.Failure>(result).error)
+    }
+    @Test
     fun `natural membership uses typed structural equality and unpacks groups`() {
         val operation = dev.panini.actions.collection.ListContainsAction.op()
         val number = SanskritValue.Sankhya(2, "द्वि")

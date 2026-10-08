@@ -689,6 +689,8 @@ data class DerivationTerm(
     val orthographicSigns: List<OrthographicSignPlacement> = emptyList(),
     /** Affixes that produced an already-formed stem; never inferred from its spelling. */
     val sourceSuffixUpadeshas: Set<String> = emptySet(),
+    /** Morphosyntax of a completed external pada, not the whole sandhi expression. */
+    val formedPadaRupa: Rupa? = null,
 ) {
     /**
      * Cached phonological form of [surface]. During the transition [surface]

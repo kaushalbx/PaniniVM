@@ -19,11 +19,11 @@ object VariableAssignAction : DhatuAction("मूल्यदानम्", "म
             as? NaturalOperation.StatePlacement
         val expression = naturalFrame?.value ?: context.bindings[Karaka.KARMAN]
             ?: return missingKaraka(operation, Karaka.KARMAN)
-        val values = context.resolveValues(expression)
-        if (values.isEmpty()) {
+        val values = context.resolveCompleteValues(expression)
+        if (values == null || values.isEmpty()) {
             return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
-                "Variable assignment requires a value operand in KARMAN.",
+                "Variable assignment requires a resolved value for every operand in KARMAN.",
                 listOf("Selected operation ${operation.name}."),
             )
         }

@@ -1,5 +1,5 @@
 # Membership: a nominative subject exists in a locative collection.
-एकं त्रीणि च सङ्गृहाण ततः फलं सूच्यां स्थापय ।
+एकस्य त्रयाणां च सङ्ख्यानां सूची अस्ति ।
 
 # One is present; zero is absent. Print the computed truth values.
 यदि एकं सूच्याम् अस्ति तर्हि सत्यः अन्यथा असत्यः ततः फलं मुद्रय ।

@@ -29,6 +29,7 @@ object PlutaPragrhyahSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.VARNA,
+    stage = dev.panini.sutra.SutraStage.SANDHI,
     blocks = setOf("6.1.77", "6.1.78", "6.1.87", "6.1.88", "6.1.101")
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
@@ -46,10 +47,14 @@ object PlutaPragrhyahSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
+        val left = context.terms[context.terms.size - 2]
+        val right = context.terms.last()
+        var protected = context
+        for (rule in blocks) protected = protected.blockAtBoundary(rule, left.id, right.id, sutra)
         // Prakṛtibhāva means the state remains unchanged, but we move the stage forward
         // to indicate that sandhi has been "processed" (or rather, bypassed).
         return DerivationChange(
-            state = context.copy(stage = DerivationStage.FINAL),
+            state = protected.copy(stage = DerivationStage.FINAL),
             explanation = "6.1.125: Pragṛhya status prevents sandhi (prakṛtibhāva)."
         )
     }

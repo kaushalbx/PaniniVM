@@ -79,7 +79,7 @@ internal class CompilerIrJvmEmitter(
                 CompilerInstruction.LoadLastResult -> emitLoad("LastResult")
                 CompilerInstruction.Duplicate -> mv.visitInsn(DUP)
                 CompilerInstruction.Pop -> mv.visitInsn(POP)
-                is CompilerInstruction.BuildList -> emitBuildList(instruction.size)
+                is CompilerInstruction.BuildList -> emitBuildList(instruction.size, instruction.memberType)
                 is CompilerInstruction.BuildRecord -> emitBuildRecord(instruction.schema, instruction.fields)
                 is CompilerInstruction.LoadField -> emitLoadField(instruction.name)
                 is CompilerInstruction.LoadFieldOrLopa -> emitLoadFieldOrLopa(instruction.name)
@@ -207,7 +207,7 @@ internal class CompilerIrJvmEmitter(
         )
     }
 
-    private fun emitBuildList(size: Int) {
+    private fun emitBuildList(size: Int, memberType: dev.panini.execution.ListMemberType? = null) {
         val values = List(size) { allocateLocal(1) }
         values.asReversed().forEach { local -> mv.visitVarInsn(ASTORE, local) }
         mv.visitLdcInsn(size)
@@ -218,11 +218,13 @@ internal class CompilerIrJvmEmitter(
             mv.visitVarInsn(ALOAD, local)
             mv.visitInsn(AASTORE)
         }
+        memberType?.let { mv.visitLdcInsn(it.name) }
         mv.visitMethodInsn(
             INVOKESTATIC,
             "dev/panini/compiler/PaniniRuntime",
-            "suchi",
-            "([Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;",
+            if (memberType == null) "suchi" else "typedSuchi",
+            if (memberType == null) "([Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;"
+            else "([Ldev/panini/execution/SanskritValue;Ljava/lang/String;)Ldev/panini/execution/SanskritValue;",
             false,
         )
     }

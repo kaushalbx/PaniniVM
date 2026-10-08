@@ -255,6 +255,104 @@ rather than executed:
 
 ## 6. Direct result pipelines
 
+An ordered list can also be declared directly by naming its members in ṣaṣṭhī:
+
+```pvm
+एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।
+```
+
+“एकस्य द्वयोः त्रयाणां च सूची अस्ति।” This creates and stores `[1, 2, 3]`
+under `सूची`, preserving member order and duplicates. A single member still
+produces a list. The interpreter and JVM compiler share the same typed AST
+lowering; no rendered Sanskrit is reparsed to recover the members. `च` only
+coordinates members: the explicit `सूची … अस्ति` construction creates the list.
+Use `सम् + ग्रहँ` when gathering is itself the requested action. Existing indexing,
+printing, and collection operations can consume the declared list.
+
+To explicitly constrain the members to numbers, add the genitive plural type
+qualifier `सङ्ख्या + आम्`:
+
+```pvm
+एक + ङस् द्वि + ओस् त्रि + आम् चतुर् + आम् च
+सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।
+```
+
+PVM reads the coordinated numerals as named values and `सङ्ख्यानाम्` as their
+member-type qualifier. This construction creates `[1, 2, 3, 4]`, not four
+unspecified numbers. That disambiguation is part of PVM semantics. Word members
+are rejected; numeric values retain their actual types rather than being parsed
+from display text. The constraint travels with the list through storage, history,
+semantic codecs, persistence, reverse, slicing, filtering, flattening, insertion,
+and concatenation. Incompatible insertion or concatenation fails. Mapping creates
+a new general list because the mapped result may have a different member type.
+The constraint belongs to the list value, not a permanently typed variable slot.
+A bare `सङ्ख्यानां सूची अस्ति` does not silently create an empty list.
+
+The same grammatical construction supports a word/text member type:
+
+```pvm
+राम + ङस् सीता + ङस् च शब्द + आम् सूची + सुँ असँ + लट् + तिप् ।
+```
+
+`शब्दानाम्` requires actual word/text values, not numbers whose display happens
+to be a word. Declared values still resolve existing bindings before falling
+back to literal words. The shared typed-list backend handles both member types;
+conflicting declared types cannot be concatenated, even for empty lists.
+The currently supported declaration uses present third-person singular `अस्ति`
+to agree with singular `सूची`. Disagreeing verbs and duplicate or conflicting
+member-type qualifiers are diagnosed rather than silently reinterpreted.
+
+A nominal `इति` naming clause can give the declared list its own referent:
+
+```pvm
+क्रम + सुँ इति एक + ङस् द्वि + ओस् च
+सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।
+क्रम + ङसिँ द्वि + तीय + ङि मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।
+```
+
+The quoted name is one nominative singular nominal. The list is stored as `क्रम`;
+subsequent inflected references retain the same nominal identity.
+Both backends share this structural lowering. This does not convert quoted
+commands into names or reinterpret arbitrary reporting clauses as assignments.
+Declared referent gender/agreement beyond this form and “सूच्याः सर्वाः सङ्ख्याः”
+quantification remain pending.
+
+To select an ordinal member, express the collection as a genitive whole and
+make the ordinal agree with the singular accusative object:
+
+```text
+क्रम + ङस् प्रथम + अम् मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।
+```
+
+Here `प्रथमम्` modifies `मूल्यम्`; it is not a second object or a locative
+programming index. The same construction accepts `द्वि + तीय + अम्`. This
+currently supports the singular मूल्य object with ग्रह्; it is not a general
+adjective-agreement implementation.
+Within this single-object construction, the relation does not depend on
+adjacency: `मूल्य + अम् क्रम + ङस् प्रथम + अम् ग्रहँ + श्ना + लोट् + सिप्`
+selects the same member. Multiple ordinal modifiers are an ambiguous request
+and are rejected rather than resolved by nearest-word order.
+Feminine ordinal stems such as `प्रथमा` and explicit feminine affixes such as
+`प्रथम + टाप्` cannot qualify neuter `मूल्य` in this construction, even when
+their case and number endings otherwise match.
+
+Prefer the indeclinable naming particle `नाम` when the name belongs after the
+members, within the declaration itself:
+
+```pvm
+एक + ङस् द्वि + ओस् त्रि + आम् च क्रम + सुँ नाम
+सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।
+```
+
+`नाम` follows a nominative singular name; it is an avyaya, not a shortened form
+of the inflected noun `नामन्`. The members and their type qualifier retain their
+existing grammatical roles. A declaration supplies one name, not both an इति
+name and a नाम name. Both forms retain the most recently declared list under
+the discourse noun `सूची`, so `क्रमस्य` and a later `सूच्याः` can access that
+declaration after intervening printing or arithmetic. A subsequent declaration
+updates `सूची` while preserving earlier explicit names. This is a retained list
+value, not a permanent alias that follows later unrelated reassignment of a name.
+
 `ततः` sends the typed result of one stage into the missing कर्मन् of the next
 stage:
 
@@ -272,6 +370,8 @@ Pipelines may contain multiple stages:
 
 The runtime transports semantic values rather than rendering and re-parsing
 strings between stages.
+If a stage explicitly names `फल`, that reference supplies the preceding result
+once; an additional implicit copy is not injected, including after a conditional.
 
 Reusable procedures can form the same ordered pipeline. Put every procedure's
 domain in ṣaṣṭhī, put the action noun in tṛtīyā to mark the means, and use
@@ -321,6 +421,18 @@ current utterance, rather than restarting the ordinal at each sentence boundary.
 In conditions the qualifier agrees with the case of फल, for example
 `प्रथम + सुँ फल + सुँ`.
 Case or number disagreement between an ordering qualifier and फल is rejected.
+For a single named-result reference, a unique ordering modifier need not be
+immediately before फल. For example, these select the same first completed
+युज् result:
+
+```text
+प्रथम + अम् युज् + ल्युट् + ङस् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।
+युज् + ल्युट् + ङस् फल + अम् प्रथम + अम् मुद्र् + णिच् + लोट् + सिप् ।
+```
+
+This applies to the unambiguous single-reference frame. It does not infer
+arbitrary attachment among multiple objects or named results.
+
 Named-history references can also supply a प्रक्रिया argument, positionally or
 after a locative parameter slot: `मान + ङि युज् + ल्युट् + ङस् फल + अम्`.
 The genitive qualifies फल; it is not a parameter label. Several procedure
@@ -417,6 +529,20 @@ is resolved as the expressed secondary agent of the causative construction;
 the runtime and compiler consume that kāraka binding rather than its position.
 The older `सृज्` frame with a dative second collection remains accepted only
 for compatibility.
+
+The natural joining frame requires exactly one collection in each role; a scalar
+is not silently wrapped into a singleton list. Declared member constraints are
+retained and validated, including when a collection is empty. Compatibility
+coordination preserves every supplied collection in order rather than discarding
+later operands, and cannot bypass those constraints.
+Gathering, insertion, and joining require every supplied coordinated participant
+to resolve. A missing reference is an error, not an omitted member or a successful
+no-op insertion. An explicitly supplied empty list is still a valid collection.
+Assignment uses the same complete-resolution rule: every coordinated value must
+resolve before a result is produced. This also applies to nested coordination;
+an explicitly supplied empty typed list remains a valid value to store.
+Display also requires every supplied object reference to resolve; it does not
+silently omit missing objects and print only the remaining coordinated values.
 
 ### 7.3 Collection cardinality
 

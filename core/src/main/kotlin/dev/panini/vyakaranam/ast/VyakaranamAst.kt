@@ -218,6 +218,8 @@ data class TingantaPada(
     val vikarana: Vikarana? = null,
     /** Nonfinite source retained when this head is an execution-binding projection. */
     val priorAction: AvyayaKridantaDerivation? = null,
+    /** Constraint retained by internal collection-declaration lowering. */
+    val listMemberType: dev.panini.execution.ListMemberType? = null,
 ) : Pada
 
 data class AvyayaPada(
@@ -231,6 +233,7 @@ data class AvyayaPada(
 enum class AvyayaFunction {
     NISHEDHA,
     QUOTATIVE,
+    NAMING,
     REPETITION,
     ;
 
@@ -238,6 +241,7 @@ enum class AvyayaFunction {
         fun fromForm(form: String): AvyayaFunction? = when (form.trim()) {
             "न", "मा" -> NISHEDHA
             "इति" -> QUOTATIVE
+            "नाम" -> NAMING
             "पुनः", "पुनर्" -> REPETITION
             else -> null
         }
@@ -307,6 +311,9 @@ data class MulaPratipadika(
     val vikaras: List<PratipadikaVikara> = emptyList(),
 ) : Pratipadika {
     val lexicalIdentity: MulaPratipadikaIdentity? = MulaPratipadikaIdentity.fromText(text)
+    /** Gender formation preserves ordinal rank; other derivation needs its own semantics. */
+    val lexicalOrdinalValue: Long?
+        get() = lexicalIdentity?.ordinalValue?.takeIf { vikaras.all { it is StriVikara } }
 }
 
 enum class MulaPratipadikaIdentity {
@@ -319,6 +326,7 @@ enum class MulaPratipadikaIdentity {
     GUPTA,
     KSHETRA,
     MANA,
+    MULYA,
     NITYA,
     NYUNA,
     PHALA,
@@ -352,6 +360,7 @@ enum class MulaPratipadikaIdentity {
             "गुप्त" -> GUPTA
             "क्षेत्र" -> KSHETRA
             "मान" -> MANA
+            "मूल्य" -> MULYA
             "नित्य", "नि + त्य" -> NITYA
             "न्यून" -> NYUNA
             "फल" -> PHALA

@@ -20,6 +20,166 @@ import kotlin.test.assertFailsWith
 
 class StructuredBytecodeCompilerTest {
     @Test
+    fun `compiler cannot reinterpret derived list nouns as plain declarations`() {
+        for (source in listOf(
+            "एक + ङस् सूची + मतुप् + सुँ असँ + लट् + तिप् ।",
+            "एक + ङस् सङ्ख्या + मतुप् + आम् सूची + सुँ असँ + लट् + तिप् ।",
+            "राम + ङस् शब्द + मतुप् + आम् सूची + सुँ असँ + लट् + तिप् ।",
+        )) assertFailsWith<IllegalArgumentException>(source) {
+            CompilerFrontend.lower(source, "InvalidDerivedListDeclaration")
+        }
+    }
+
+    @Test
+    fun `compiled procedure rejects competing history selectors before rebinding`() {
+        val source = "वाचन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+            "मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+            "युज् + ल्युट् + ङस् प्रथम + अम् प्रथम + अम् फल + अम् मुद्र् + णिच् + लोट् + सिप् ॥\n" +
+            "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "नवन् + शस् वाचन + टा कृ + लोट् + सिप् ।"
+        assertFailsWith<IllegalArgumentException> {
+            CompilerFrontend.lower(source, "InvalidProcedureHistorySelectors")
+        }
+    }
+
+    @Test
+    fun `procedure bodies preserve reordered history selectors across backends`() {
+        for ((index, phrase) in listOf(
+            "प्रथम + अम् युज् + ल्युट् + ङस् फल + अम्",
+            "युज् + ल्युट् + ङस् फल + अम् प्रथम + अम्",
+            "फल + अम् युज् + ल्युट् + ङस् प्रथम + अम्",
+        ).withIndex()) {
+            val source = "वाचन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+                "मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+                "$phrase मुद्र् + णिच् + लोट् + सिप् ॥\n" +
+                "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
+                "द्वि + औट् त्रि + शस् च युज् + णिच् + लोट् + सिप् ।\n" +
+                "नवन् + शस् वाचन + टा कृ + लोट् + सिप् ।"
+            val results = PaniniVM().evalScript(source)
+            assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
+            assertEquals("त्रीणि", (results.last() as ExecutionResult.Success).value)
+            assertEquals("त्रीणि", compileAndInspect(source, "CompiledProcedureHistoryOrder$index")
+                .values.getValue("LastResult").toDisplayText())
+        }
+    }
+
+    @Test
+    fun `compiled single result relation selects first history without adjacency`() {
+        for ((index, phrase) in listOf(
+            "प्रथम + अम् युज् + ल्युट् + ङस् फल + अम्",
+            "युज् + ल्युट् + ङस् फल + अम् प्रथम + अम्",
+            "फल + अम् युज् + ल्युट् + ङस् प्रथम + अम्",
+        ).withIndex()) {
+            val source = "एक + अम् द्वि + अम् च युज् + लोट् + सिप् ।\n" +
+                "त्रि + अम् चतुर् + अम् च युज् + लोट् + सिप् ।\n" +
+                "$phrase मुद्र् + णिच् + लोट् + सिप् ।"
+            val result = compileAndInspect(source, "CompiledHistoryWordOrder$index")
+            assertEquals("त्रीणि", result.values.getValue("LastResult").toDisplayText())
+        }
+    }
+
+    @Test
+    fun `compiled history rejects feminine modifier of neuter result`() {
+        val source = "एक + अम् द्वि + अम् च युज् + लोट् + सिप् ।\n" +
+            "युज् + ल्युट् + ङस् प्रथमा + अम् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+        assertFailsWith<IllegalArgumentException> {
+            CompilerFrontend.lower(source, "InvalidHistoryGender")
+        }
+    }
+
+    @Test
+    fun `compiled history reference rejects unresolved derived ordinal`() {
+        val source = "एक + अम् द्वि + अम् च युज् + लोट् + सिप् ।\n" +
+            "युज् + ल्युट् + ङस् प्रथम + तरप् + अम् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+        assertFailsWith<IllegalArgumentException> {
+            CompilerFrontend.lower(source, "InvalidDerivedHistoryOrdinal")
+        }
+    }
+
+    @Test
+    fun `compiler rejects feminine ordinal attached to neuter value object`() {
+        for (ordinal in listOf("प्रथमा", "द्वितीया", "तृतीया", "प्रथम + टाप्")) {
+            val source = "एक + ङस् सूची + सुँ असँ + लट् + तिप् ।\n" +
+                "सूची + ङस् $ordinal + अम् मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।"
+            assertFailsWith<IllegalArgumentException>(ordinal) {
+                CompilerFrontend.lower(source, "InvalidOrdinalGender")
+            }
+        }
+    }
+
+    @Test
+    fun `compiled ordinal object relation does not depend on adjacency`() {
+        for ((index, phrase) in listOf(
+            "मूल्य + अम् सूची + ङस् द्वितीय + अम्",
+            "द्वि + तीय + अम् सूची + ङस् मूल्य + अम्",
+        ).withIndex()) {
+            val source = "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।\n" +
+                "$phrase ग्रहँ + श्ना + लोट् + सिप् ।"
+            val result = compileAndInspect(source, "CompiledOrdinalWordOrder$index")
+            assertEquals(2L, (result.values.getValue("LastResult") as SanskritValue.Sankhya).value)
+        }
+    }
+
+    @Test
+    fun `compiled nama declaration and bare list reference follow the requested discourse`() {
+        val source = "एक + ङस् द्वि + ओस् त्रि + आम् च क्रम + सुँ नाम सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।\n" +
+            "क्रम + ङस् प्रथम + अम् मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ततः मुद्र् + णिच् + लोट् + सिप् ।\n" +
+            "सूची + ङस् अन्तिम + अम् उद् + हृ + लोट् + सिप् ततः मुद्र् + णिच् + लोट् + सिप् ।"
+        val result = compileAndInspect(source, "CompiledNamaListDiscourse")
+        assertEquals("त्रि", result.values.getValue("LastResult").toDisplayText())
+        assertEquals(result.values.getValue("क्रम"), result.values.getValue("सूची"))
+        assertEquals(listOf(1L, 2L, 3L), (result.values.getValue("क्रम") as SanskritValue.Suchi).items
+            .map { (it as SanskritValue.Sankhya).value })
+    }
+    @Test
+    fun `compiled nominal iti naming retains list identity across cases`() {
+        val source = "क्रम + सुँ इति एक + ङस् द्वि + ओस् च सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।\n" +
+            "क्रम + ङसिँ द्वि + तीय + ङि मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।"
+        val result = compileAndInspect(source, "CompiledNamedNaturalList")
+        assertEquals(2L, (result.values.getValue("LastResult") as SanskritValue.Sankhya).value)
+        assertEquals(dev.panini.execution.ListMemberType.NUMBER,
+            (result.values.getValue("क्रम") as SanskritValue.Suchi).memberType)
+        assertEquals(result.values.getValue("क्रम"), result.values.getValue("सूची"))
+    }
+    @Test
+    fun `migrated natural list examples retain typed values and backend parity`() {
+        for ((index, name) in listOf("membership", "ordinal_index").withIndex()) {
+            val source = File("examples/collections/$name.pvm").readText()
+            val interpreted = PaniniVM().evalScript(source)
+            assertTrue(interpreted.all { it is ExecutionResult.Success }, "$name: $interpreted")
+            val compiled = compileAndInspect(source, "CompiledNaturalListExample$index")
+            assertEquals((interpreted.last() as ExecutionResult.Success).value,
+                compiled.values.getValue("LastResult").toDisplayText(), name)
+            val list = compiled.values.getValue("सूची") as SanskritValue.Suchi
+            assertEquals(dev.panini.execution.ListMemberType.NUMBER, list.memberType, name)
+            val expected = if (name == "membership") listOf(1L, 3L) else listOf(1L, 2L, 3L)
+            assertEquals(expected, list.items.map { (it as SanskritValue.Sankhya).value }, name)
+            val expectedOutput = if (name == "membership") "असत्यम्" else list.items[1].toDisplayText()
+            assertEquals(expectedOutput, compiled.values.getValue("LastResult").toDisplayText(), name)
+        }
+    }
+    @Test
+    fun `compiled word qualifier creates a typed word list`() {
+        val source = "राम + ङस् सीता + ङस् च शब्द + आम् सूची + सुँ असँ + लट् + तिप् ।"
+        val value = compileAndInspect(source, "CompiledWordList").values.getValue("सूची") as SanskritValue.Suchi
+        assertEquals(dev.panini.execution.ListMemberType.TEXT, value.memberType)
+        assertEquals(listOf("राम", "सीता"), value.items.map { (it as SanskritValue.Shabda).text })
+    }
+    @Test
+    fun `compiled genitive number qualifier constrains list members`() {
+        val source = "एक + ङस् द्वि + ओस् त्रि + आम् चतुर् + आम् च " +
+            "सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।"
+        val value = compileAndInspect(source, "CompiledTypedNaturalList").values.getValue("सूची") as SanskritValue.Suchi
+        assertEquals(dev.panini.execution.ListMemberType.NUMBER, value.memberType)
+        assertEquals(listOf(1L, 2L, 3L, 4L), value.items.map { (it as SanskritValue.Sankhya).value })
+    }
+    @Test
+    fun `compiled genitive declaration creates an ordered list`() {
+        val source = "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।"
+        val value = compileAndInspect(source, "CompiledNaturalList").values.getValue("सूची") as SanskritValue.Suchi
+        assertEquals(listOf(1L, 2L, 3L), value.items.map { (it as SanskritValue.Sankhya).value })
+    }
+    @Test
     fun `skipped compiled history display does not evaluate missing participants`() {
         val source = "यदि एक + सुँ द्वि + टा सम + सुँ असँ + लट् + तिप् तर्हि " +
             "युज् + ल्युट् + ङस् कर्मन् + अम् मुद्र् + णिच् + लोट् + सिप् " +

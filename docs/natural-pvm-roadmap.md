@@ -12,6 +12,75 @@ implementation attempts. Detailed usage belongs in [the language guide](pvm-lang
 
 ## Goal scope: natural multi-action sentences
 
+Genitive member declarations such as `एकस्य द्वयोः त्रयाणां च सूची अस्ति`
+now create an ordered typed सूची under the name `सूची` in both backends.
+Shared AST lowering preserves duplicates and singleton lists, supports existing
+one-based selection, and rejects non-genitive members. `च` remains coordination,
+not a universal list constructor; `सम् + ग्रहँ` remains the gathering command.
+The genitive plural qualifier `सङ्ख्यानाम्` now declares a numeric member
+constraint retained in typed सूची values, both backends, history, and codecs.
+Insertion and concatenation reject incompatible values; subset/order-preserving
+operations retain the constraint. Mapping intentionally produces a general list.
+`शब्दानाम्` now supplies a word/text member constraint through the same typed
+path. The compiler resolves collection members as values/references rather than
+requiring every unbound word to be a variable. Declaration checks require
+plain सूची and plain member-type nouns: affixed derivatives of सूची, सङ्ख्या,
+or शब्द do not silently inherit their base nouns' declaration semantics.
+Those derived constructions need a separate grammatical/semantic analysis.
+Declaration checks also require
+singular present `अस्ति` and one unambiguous type qualifier. Empty lists with
+incompatible declared types cannot be concatenated.
+Natural joining now requires exactly one collection in each participant role,
+matching the compiler instead of silently promoting scalars. Compatibility
+joining preserves all coordinated collections and checks every declared type,
+including singleton and empty collections, without dropping later operands.
+Gathering, insertion, and joining now use complete operand resolution: unresolved
+references inside coordination cannot silently disappear, become successful
+no-op insertions, or disguise a multi-participant role as one resolved collection.
+Assignment likewise requires complete coordinated operands, including nested
+coordination; a missing reference cannot silently change the stored value or its
+shape. An explicitly supplied empty typed list remains a valid assignment value.
+Display likewise rejects missing supplied objects inside coordination rather
+than reporting successful partial output.
+Membership and ordinal-index examples now use typed natural list declarations;
+the gathering demo remains an explicit illustration of `सम् + ग्रहँ` as an action.
+Parity tests cover native/legacy parsing and compiled execution of migrated examples.
+Explicit फल in a stage following a conditional now consumes that result once;
+the interpreter no longer duplicates it by also injecting the same pipeline value.
+Nominal `इति` naming now gives list declarations an independent referent in both
+backends: a nominative singular name can later be referenced in the ablative for
+indexing. The indeclinable नाम particle now also introduces a name after the
+members within the declaration, using the existing grammatical AST. Both naming
+forms retain the most recently declared list as the discourse referent सूची;
+intervening arithmetic/printing does not replace it, while a new declaration does.
+This retained value is not a live alias to later unrelated assignment. Only quoted nominals with
+a recognized list-declaration reporting clause become bindings; quoted commands
+remain quotations. Tests cover invalid name case/number and native parsing.
+Further declared-name agreement, further member types, explicit numeral modifiers on the list noun,
+and quantified member phrases such as `सूच्याः सर्वाः सङ्ख्याः` remain pending.
+Sentence-level audit is tracked in [the list grammar audit](natural-list-grammar-audit.md).
+Shared ordinal-object lowering now recognizes a genitive whole and an agreeing
+singular accusative ordinal modifying मूल्य with ग्रह्. It projects this relation
+onto the existing retrieval frame internally; source need not encode an index
+slot as an unrelated locative adjective. Modifier recognition no longer requires
+adjacency: unique ordinal/object relations survive reordered participants, and
+competing ordinal modifiers are rejected instead of guessed. Named-list and ordinal-index examples
+use this form. Shared checks now reject feminine lexical ordinal stems and
+explicit स्त्री affixes modifying neuter मूल्य. First/second/third lexical
+ordinal gender metadata is independent of numeric identity. Full gender
+analysis and broader object/verb vocabulary remain pending.
+Lexical ordinal rank now survives only unmodified or feminine stem formation;
+additional derivational affixes cannot silently inherit the base rank. Shared
+ordinal resolution, numeric normalization, and ordinal binding enforce this
+instead of stripping morphology before evaluation. Derived forms need their
+own semantic analysis before they can serve as positions or history selectors.
+Cardinal binding likewise preserves additional derivation: एक + मतुप् is not
+silently treated as the literal one. Numeric normalization and primitive-number
+fallback both check parsed affixes, including already typed numeric stems.
+Derived ordinal history qualifiers remain explicit unresolved selectors; they
+cannot disappear into the default latest-result behavior. Agreement validation
+rejects them before either backend selects or emits a history load.
+
 Objectless display commands within prior-action chains resolve the preceding
 result in shared lowering; explicit operands are preserved in both backends.
 Simple unqualified kṛdanta-genitive फल references now load the latest completed
@@ -318,6 +387,18 @@ successfully generated Sanskrit form.
 
 - Give इति-named referents stable declared gender, number, and value types;
   later references must use declared morphology rather than spelling heuristics.
+  List declarations now support nominal इति names as independent referents,
+  rather than requiring the fixed सूची slot. Compound-headed naming must not be implemented by joining
+  adjacent stems: `samasaPratipadika` currently requires SAMASA_SEPARATOR, and
+  nested compound members use parentheses. Both need a natural-source design
+  consistent with the no-symbols requirement before compound-headed list names
+  become the naming mechanism. Existing इति quotation rules quote a vakya and
+  supply a reporting vakya; they are not by themselves a general value-binding
+  rule. A naming construction needs a typed declared referent, grammatical
+  agreement, and shared interpreter/compiler lowering, rather than routing every
+  quoted statement into variable storage. Preserve quotation/reporting semantics
+  while extending nominal naming; test later inflected references independently
+  of the declaration's source spelling.
 - Extend shared typed semantic nodes across remaining procedure/control-flow
   conventions and collection frames; remove residual legacy surface aliases.
 - Complete grammatical participant declarations, typed local references, returns,
@@ -362,6 +443,28 @@ successfully generated Sanskrit form.
   अभ्यासः/आदेशः source constructors are not restored.
 
 ## Grammatical references
+
+Shared partial lexical gender agreement now checks ordering modifiers in
+result/kāraka history as well as ordinal retrieval. A feminine ordinal cannot
+qualify neuter फल merely because its case and number match. Unknown genders
+remain unresolved; this is not a complete gender-inference system.
+Numeric normalization retains lexical feminine ordinal gender and explicit
+स्त्री affixes for shared agreement checks; converting to a typed numeric
+prātipadika cannot turn a known mismatch into unknown gender.
+Single named-result references now attach a unique ordering modifier without
+adjacency requirements, including a genitive action nominal after फल. Shared
+operand projection and procedure-parameter protection retain the actual
+modifier identity rather than assuming the preceding source position. Interpreter
+and compiler tests select the first of two results across three word orders.
+Multiple-object/reference attachment remains limited; this is not unrestricted
+sentence-level dependency analysis.
+Executed procedure-body and invocation/pipeline AST tests verify that reordered
+history qualifiers remain protected from positional or named parameter binding.
+Competing qualifiers are retained as ambiguous relation members, not rewritten
+into arguments that could erase the original validation failure.
+
+Readable rendering preserves lexical ordinal adjectives instead of declining
+their numeric reference as a cardinal (for example, प्रथम + ङि → प्रथमे).
 
 - [Bhāva/karman derivation — लघुसिद्धान्तकौमुदी](https://ashtadhyayi.com/laghukaumudi/30)
 - [1.3.13 — भावकर्मणोः](https://ashtadhyayi.com/sutraani/1/3/13)

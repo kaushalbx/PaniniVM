@@ -20,6 +20,7 @@ internal data class MemoryOrderQualifier(
     fun agreesWith(target: Pada): Boolean {
         if (invalidOrdinal) return false
         if (!isExplicit) return true
+        if (!NominalGenderAgreement.compatible(pada, target)) return false
         fun sup(pada: Pada?): String? = when (pada) {
             is SubantaPada -> pada.sup.text
             is dev.panini.vyakaranam.ast.SankhyaPada -> pada.sup.text
@@ -49,14 +50,22 @@ internal data class MemoryOrderQualifier(
 internal object MemoryOrderQualifierResolver {
     fun before(target: Pada, padas: List<Pada>): MemoryOrderQualifier {
         val pada = padas.getOrNull(padas.indexOfFirst { it === target } - 1)
+        return from(pada)
+    }
+
+    fun from(pada: Pada?): MemoryOrderQualifier {
         val ordinalNumber = pada?.let {
             NumeralPadaBinder.extractOrdinalValue(it) ?: dev.panini.execution.PuranaPratyayaResolver.ordinalValue(it)
         }
         val previous = ((pada as? SubantaPada)?.pratipadika as? MulaPratipadika)
             ?.lexicalIdentity == MulaPratipadikaIdentity.PURVA
+        val nominal = (pada as? SubantaPada)?.pratipadika as? MulaPratipadika
+        val derivedOrdinal = nominal?.lexicalIdentity?.ordinalValue != null &&
+            nominal.lexicalOrdinalValue == null
         return MemoryOrderQualifier(
             pada, ordinalNumber, previous,
-            unresolvedOrdinal = pada is dev.panini.vyakaranam.ast.SankhyaPuranaPada && ordinalNumber == null,
+            unresolvedOrdinal = derivedOrdinal ||
+                (pada is dev.panini.vyakaranam.ast.SankhyaPuranaPada && ordinalNumber == null),
         )
     }
 }

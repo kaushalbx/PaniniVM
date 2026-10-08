@@ -227,7 +227,8 @@ internal object CompilerFrontend {
             is Invocation -> lowerInvocation(node, exactSource, allowDirectStore = allowDirectStore)
             is Sequence -> lowerSequence(node, exactSource)
             is Pipeline -> lowerPipeline(node)
-            is Quotation -> lowerPlannedNode(node)
+            is Quotation -> dev.panini.execution.ListDeclarationLowering.expand(node)
+                ?.let { lowerSequence(it, null) } ?: lowerPlannedNode(node)
             is Conditional -> lowerConditionalIr(node) ?: throw CompilerUnsupportedException(
                 CompilerUnsupportedKind.CONDITIONAL, render(node), "Cannot lower conditional to compiler IR.",
             )
@@ -265,6 +266,8 @@ internal object CompilerFrontend {
             piped: Boolean = false,
             allowDirectStore: Boolean = false,
         ): List<CompilerInstruction> {
+            dev.panini.execution.ListDeclarationLowering.expand(node)?.let { return lowerSequence(it, null) }
+            dev.panini.execution.OrdinalObjectLowering.expand(node)?.let { return lowerSequence(it, null) }
             dev.panini.execution.PriorActionLowering.expand(node)?.let { return lowerSequence(it, null) }
             lowerKarakaHistoryInvocation(node)?.let { return it }
             rejectUnsupportedKarakaHistory(node)
@@ -336,11 +339,8 @@ internal object CompilerFrontend {
             val history = dev.panini.execution.binding.NamedActionResultReferenceResolver.resolve(node.vakya.padas)
                 .singleOrNull() ?: return node
             val sentence = node.vakya as? AkhyataVakya ?: return node
-            val qualifierIndex = if (history.previous || history.ordinalFromOldest != null)
-                sentence.padas.indexOf(history.result) - 1 else -1
-            return node.copy(vakya = sentence.copy(padas = sentence.padas.filterIndexed { index, pada ->
-                index != qualifierIndex && pada != history.modifier
-            }))
+            return node.copy(vakya = sentence.copy(padas =
+                dev.panini.execution.binding.NamedActionResultReferenceResolver.operandPadas(sentence.padas)))
         }
 
         private fun lowerRangeChoice(node: Invocation): List<CompilerInstruction>? {

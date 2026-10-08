@@ -439,7 +439,10 @@ class PvmUktiSadhaka(
     }
 
     fun sadhayaSubanta(subanta: SubantaPada, lingaOverride: Linga? = null): String {
-        val normalized = NumeralAstNormalizer.normalize(subanta)
+        // An ordinal adjective has numeric reference, but is not a cardinal
+        // stem: preserving its nominal morphology is essential for rendering.
+        val normalized = if (PuranaPratyayaResolver.ordinalValue(subanta) != null) subanta
+            else NumeralAstNormalizer.normalize(subanta)
         val samasa = normalized.pratipadika as? SamasaPratipadika
         if (samasa != null) {
             return try {

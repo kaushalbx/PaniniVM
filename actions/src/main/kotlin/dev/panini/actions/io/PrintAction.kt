@@ -14,7 +14,12 @@ import dev.panini.execution.RENDER_ACTIVE_RANGE_METADATA
 object PrintAction : dev.panini.execution.DhatuAction("प्रदर्शनम्", "वाक्यस्य वा सङ्ख्यायाः प्रदर्शनम्") {
     override fun execute(context: dev.panini.execution.ExecutionContext, operation: dev.panini.execution.DhatuOperation): dev.panini.execution.ExecutionResult {
         val expression = context.bindings[Karaka.KARMAN] ?: context.bindings[Karaka.KARTR]
-        val operands = if (expression != null) context.resolve(expression) else emptyList()
+        val operands = if (expression != null) {
+            val values = context.resolveCompleteValues(expression)
+                ?: return ExecutionResult.Failure(dev.panini.execution.ExecutionError.INVALID_VALUE,
+                    "Display requires a resolved value for every supplied object.")
+            values.map { it.toDisplayText() }
+        } else emptyList()
         val range = context.renderRange()
         val textToPrint = (range + operands).joinToString(" ")
 

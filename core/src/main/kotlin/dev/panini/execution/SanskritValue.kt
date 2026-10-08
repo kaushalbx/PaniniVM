@@ -2,6 +2,16 @@ package dev.panini.execution
 
 import dev.panini.shiksha.Samjna
 
+/** An explicit constraint on list members, independent of their rendered words. */
+enum class ListMemberType {
+    NUMBER, TEXT;
+
+    fun accepts(value: SanskritValue): Boolean = when (this) {
+        NUMBER -> value is SanskritValue.Sankhya || value is SanskritValue.Rational
+        TEXT -> value is SanskritValue.Shabda
+    }
+}
+
 /** Strongly-typed value hierarchy for the Pāṇinian execution runtime. */
 sealed interface SanskritValue {
     val samjnas: Set<Samjna>
@@ -53,7 +63,13 @@ sealed interface SanskritValue {
 
     data class Suchi(
         val items: List<SanskritValue>,
+        val memberType: ListMemberType? = null,
     ) : SanskritValue {
+        init {
+            require(memberType == null || items.all(memberType::accepts)) {
+                "List members must satisfy the declared $memberType type."
+            }
+        }
         override val samjnas: Set<Samjna> = items.flatMap { it.samjnas }.toSet() + Samjna.GANA
         override fun toDisplayText(): String = "[${items.joinToString(", ") { it.toDisplayText() }}]"
     }

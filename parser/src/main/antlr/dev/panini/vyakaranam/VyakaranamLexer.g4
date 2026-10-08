@@ -61,6 +61,7 @@ YATAH       : 'यतः';
 MAA         : 'मा';
 NA          : 'न';
 ITI         : 'इति';
+NAAMA       : 'नाम';
 API         : 'अपि';
 EVA         : 'एव';
 TU_AVYAYA   : 'तु';

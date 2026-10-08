@@ -50,12 +50,19 @@ internal object PhalaResolver {
         val phalaMap = java.util.IdentityHashMap<SubantaPada, String>()
 
         phalaPadas.forEach { phalaPada ->
-            val explicitOrder = MemoryOrderQualifierResolver.before(phalaPada, padas)
+            val namedReference = NamedActionResultReferenceResolver.resolve(padas)
+                .singleOrNull { it.result === phalaPada }
+            if (namedReference?.orderingAgrees == false) throw MissingActionResultException(
+                "The ordering qualifier of फल is ambiguous or does not agree.",
+            )
+            val explicitOrder = if (namedReference != null)
+                MemoryOrderQualifierResolver.from(namedReference.orderingQualifier)
+                else MemoryOrderQualifierResolver.before(phalaPada, padas)
             if (!explicitOrder.agreesWith(phalaPada)) throw MissingActionResultException(
                 "The ordering qualifier and फल must agree in case and number.",
             )
             val idx = subantas.indexOfFirst { it === phalaPada }
-            val genitiveModifier = subantas.take(idx)
+            val genitiveModifier = namedReference?.modifier ?: subantas.take(idx)
                 .lastOrNull { it.hasVibhakti(Vibhakti.SASTHI) && it !in resolvedGenitives }
                 ?: return@forEach
 

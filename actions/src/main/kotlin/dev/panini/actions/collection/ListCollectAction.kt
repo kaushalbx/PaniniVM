@@ -18,8 +18,14 @@ object ListCollectAction : DhatuAction("सूचीसङ्ग्रहः", "
                 ExecutionError.INVALID_VALUE,
                 "Collection with सम् + ग्रह् requires one or more objects in KARMAN.",
             )
-        val items = context.resolveValues(frame.items)
-        val list = SanskritValue.Suchi(items)
+        val items = context.resolveCompleteValues(frame.items)?.takeIf { it.isNotEmpty() }
+            ?: return ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
+                "Collection gathering requires a resolved value for every object.")
+        val memberType = context.metadata["listMemberType"]?.let(dev.panini.execution.ListMemberType::valueOf)
+        if (memberType != null && items.any { !memberType.accepts(it) }) return ExecutionResult.Failure(
+            ExecutionError.INVALID_VALUE, "List members must satisfy the declared $memberType type.",
+        )
+        val list = SanskritValue.Suchi(items, memberType)
         return ExecutionResult.Success(
             list.toDisplayText(),
             operation.name,

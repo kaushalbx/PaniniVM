@@ -210,7 +210,7 @@ internal sealed interface CompilerInstruction {
 
     data object Pop : CompilerInstruction
 
-    data class BuildList(val size: Int) : CompilerInstruction
+    data class BuildList(val size: Int, val memberType: dev.panini.execution.ListMemberType? = null) : CompilerInstruction
 
     data class BuildRecord(val schema: String, val fields: List<String>) : CompilerInstruction
 
@@ -654,8 +654,10 @@ internal object CompilerIrLowering {
             operation == "सूचीसङ्ग्रहः" &&
                 naturalOperation is NaturalOperation.CollectionFormation &&
                 operands.isNotEmpty() -> buildList {
-                operands.forEach(::addAll)
-                add(CompilerInstruction.BuildList(operands.size))
+                val members = lowerParticipantOperands(naturalOperation.items)
+                members.forEach(::addAll)
+                add(CompilerInstruction.BuildList(members.size,
+                    plan.resolved.context.metadata["listMemberType"]?.let(dev.panini.execution.ListMemberType::valueOf)))
             }
             operation == "प्रदर्शनम्" -> {
                 val expression = plan.resolved.context.bindings[Karaka.KARMAN]

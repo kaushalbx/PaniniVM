@@ -15,6 +15,36 @@ import dev.panini.shiksha.Samjna
 class SandhiEngine(
     private val engine: DerivationEngine = DerivationEngine(Ashtadhyayi.executableSutras)
 ) {
+    /** Explicit completed-word input; spelling alone cannot identify a dual or a vocative. */
+    data class Pada(val term: DerivationTerm, val rupa: Rupa = Rupa(), val samjnas: Set<Samjna> = emptySet())
+
+    fun join(left: Pada, right: Pada, config: DerivationConfig = DerivationConfig()): DerivationResult =
+        engine.derive(padaBoundaryState(left, right), config)
+
+    fun joinAll(left: Pada, right: Pada): List<DerivationResult> =
+        engine.deriveAll(padaBoundaryState(left, right))
+
+    /** Hiatus is rendered as a word boundary, not as an invented phonological sign. */
+    fun render(result: DerivationResult): String = render(result.final)
+
+    /** The same orthographic rendering applies to a completed step and the final result. */
+    fun render(state: DerivationState): String =
+        if (state.boundaryRuleBlocks.values.any { it in setOf("6.1.125", "8.3.19") })
+            state.terms.filter { it.surface.isNotEmpty() }.joinToString(" ") { it.surface }
+        else state.surface
+
+    private fun padaBoundaryState(left: Pada, right: Pada): DerivationState {
+        require(left.term.id != right.term.id) { "External padas must have distinct term identities." }
+        require(left.term.surface.isNotBlank() && right.term.surface.isNotBlank())
+        val padas = listOf(left, right)
+        return DerivationState(
+            terms = padas.map { it.term.copy(formedPadaRupa = it.rupa) },
+            samjnas = padas.flatMap { pada ->
+                (pada.samjnas + Samjna.PADA).map { SamjnaAssignment(pada.term.id, it) }
+            }.toSet(),
+            stage = DerivationStage.PADA_FORMED,
+        )
+    }
     /** Apply savarṇa vowel and consonant prefix-boundary sandhi.
      * Completed verbal forms must not undergo a new full derivation. This
      * boundary helper does not yet implement the full vowel-sandhi inventory.

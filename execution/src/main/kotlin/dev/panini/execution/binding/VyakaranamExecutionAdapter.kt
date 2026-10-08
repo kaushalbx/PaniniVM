@@ -223,7 +223,14 @@ object VyakaranamExecutionAdapter {
             return AnalyzedExecutionBinding(ExecutionBindingResult.Invalid("The Sanskrit utterance is empty."))
         }
         val loweredUkti = try {
-            ukti.copy(body = dev.panini.execution.PriorActionLowering.lower(ukti.body))
+            val declarations = object : ProgramNodeTransformer() {
+                override fun visitQuotation(node: Quotation): ProgramNode =
+                    dev.panini.execution.ListDeclarationLowering.expand(node) ?: node
+                override fun visitInvocation(node: Invocation): ProgramNode =
+                    dev.panini.execution.ListDeclarationLowering.expand(node)
+                        ?: dev.panini.execution.OrdinalObjectLowering.expand(node) ?: node
+            }.transform(ukti.body)
+            ukti.copy(body = dev.panini.execution.PriorActionLowering.lower(declarations))
         } catch (error: IllegalArgumentException) {
             return AnalyzedExecutionBinding(ExecutionBindingResult.Invalid(error.message ?: "Invalid prior-action construction."))
         }
@@ -428,6 +435,7 @@ object VyakaranamExecutionAdapter {
             bindings[Karaka.KARTR] = ExecutionExpression.Pada(listener)
         }
         val metadataMap = buildMap {
+            tinganta?.listMemberType?.let { put("listMemberType", it.name) }
             put(dev.panini.execution.ExecutionMetadata.DEFAULT_DHATU, dhatu.upadesha)
             put(dev.panini.execution.ExecutionMetadata.dhatu(KriyaInvocationId.of(index + 1)), dhatu.upadesha)
             if (quotedVakya != null) {

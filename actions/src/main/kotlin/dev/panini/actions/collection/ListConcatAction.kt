@@ -24,7 +24,9 @@ object ListConcatAction : DhatuAction("सूचीसंयोगः", "सू�
                 "सूचीसंयोगे संयोज्या सूची कर्मरूपेण अपेक्षिता।"
             )
 
-        val karmanValues = context.resolveValues(karmanExpr)
+        val karmanValues = context.resolveCompleteValues(karmanExpr)
+            ?: return ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
+                "Collection joining requires a resolved value for every object.")
 
         // In the natural युज् frame, the second collection is the instrument/
         // co-participant of joining. SAMPRADANA remains a legacy सृज् frame.
@@ -33,7 +35,15 @@ object ListConcatAction : DhatuAction("सूचीसंयोगः", "सू�
             ?: context.bindings[Karaka.KARANA]
             ?: context.bindings[Karaka.SAMPRADANA]
         val (list1, list2) = if (companionExpr != null) {
-            val companionValues = context.resolveValues(companionExpr)
+            val companionValues = context.resolveCompleteValues(companionExpr)
+                ?: return ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
+                    "Collection joining requires a resolved value for every companion.")
+            if (naturalFrame != null && listOf(karmanValues, companionValues).any { values ->
+                values.size != 1 || values.single().let { it !is SanskritValue.Suchi && it !is SanskritValue.Gana }
+            }) return ExecutionResult.Failure(
+                ExecutionError.INVALID_VALUE,
+                "Natural collection joining requires exactly one collection in each participant role.",
+            )
             karmanValues to companionValues
         } else {
             // If SAMPRADANA is absent, check if KARMAN is a Coordination of multiple lists
@@ -42,13 +52,7 @@ object ListConcatAction : DhatuAction("सूचीसंयोगः", "सू�
                 val second = karmanValues.drop(1)
                 listOf(first) to second
             } else if (karmanValues.size == 1) {
-                val singleVal = karmanValues.first()
-                val listItems = when (singleVal) {
-                    is SanskritValue.Suchi -> singleVal.items
-                    is SanskritValue.Gana -> singleVal.elements
-                    else -> listOf(singleVal)
-                }
-                listItems to emptyList()
+                karmanValues to emptyList()
             } else {
                 return ExecutionResult.Failure(
                     ExecutionError.INVALID_VALUE,
@@ -58,15 +62,26 @@ object ListConcatAction : DhatuAction("सूचीसंयोगः", "सू�
         }
 
         // Unpack list items (Suchi, Gana, or simple list)
-        fun unpack(values: List<SanskritValue>): List<SanskritValue> = when (val first = values.firstOrNull()) {
-            is SanskritValue.Suchi -> first.items
-            is SanskritValue.Gana -> first.elements
-            else -> values
+        fun unpack(values: List<SanskritValue>): List<SanskritValue> = values.flatMap { value ->
+            when (value) {
+                is SanskritValue.Suchi -> value.items
+                is SanskritValue.Gana -> value.elements
+                else -> listOf(value)
+            }
         }
 
         val items1 = unpack(list1)
         val items2 = unpack(list2)
-        val combined = SanskritValue.Suchi(items1 + items2)
+        val declaredTypes = (list1 + list2).filterIsInstance<SanskritValue.Suchi>()
+            .mapNotNull { it.memberType }.distinct()
+        if (declaredTypes.size > 1) return ExecutionResult.Failure(
+            ExecutionError.INVALID_VALUE, "Cannot concatenate lists with incompatible declared member types.",
+        )
+        val memberType = declaredTypes.singleOrNull()
+        if (memberType != null && (items1 + items2).any { !memberType.accepts(it) }) return ExecutionResult.Failure(
+            ExecutionError.INVALID_VALUE, "List members must satisfy the declared $memberType type.",
+        )
+        val combined = SanskritValue.Suchi(items1 + items2, memberType)
 
         return ExecutionResult.Success(
             combined.toDisplayText(),

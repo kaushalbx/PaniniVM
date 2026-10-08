@@ -10,6 +10,67 @@ import kotlin.test.assertEquals
 
 class MemoryOrderQualifierTest {
     @Test
+    fun `single named result relation selects first history across word orders`() {
+        for (phrase in listOf(
+            "प्रथम + अम् युज् + ल्युट् + ङस् फल + अम्",
+            "युज् + ल्युट् + ङस् फल + अम् प्रथम + अम्",
+            "फल + अम् युज् + ल्युट् + ङस् प्रथम + अम्",
+        )) {
+            val results = dev.panini.execution.PaniniVM().evalScript(
+                "एक + अम् द्वि + अम् च युज् + लोट् + सिप् ।\n" +
+                    "त्रि + अम् चतुर् + अम् च युज् + लोट् + सिप् ।\n" +
+                    "$phrase मुद्र् + णिच् + लोट् + सिप् ।",
+            )
+            assertTrue(results.all { it is dev.panini.execution.ExecutionResult.Success }, "$phrase: $results")
+            assertEquals("त्रीणि", kotlin.test.assertIs<dev.panini.execution.ExecutionResult.Success>(results.last()).value)
+        }
+    }
+
+    @Test
+    fun `typed ordinal normalization retains gender for agreement`() {
+        val target = subanta("फल", "अम्")
+        val parser = dev.panini.vyakaranam.parser.PaniniParser()
+        for (form in listOf("प्रथमा", "प्रथम + टाप्", "प्रथम")) {
+            val original = parser.parse("$form + अम् ।").grammaticalVakyas().single().padas.single() as SubantaPada
+            val normalized = NumeralAstNormalizer.normalize(original)
+            kotlin.test.assertIs<dev.panini.vyakaranam.ast.SankhyaPratipadika>(normalized.pratipadika)
+            val order = MemoryOrderQualifier(pada = normalized, ordinalNumber = 1L)
+            assertEquals(form == "प्रथम", order.agreesWith(target), form)
+        }
+    }
+
+    @Test
+    fun `executed result history rejects feminine ordering modifier`() {
+        val results = dev.panini.execution.PaniniVM().evalScript(
+            "एक + अम् द्वि + अम् च युज् + लोट् + सिप् ।\n" +
+                "युज् + ल्युट् + ङस् प्रथमा + अम् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+        )
+        kotlin.test.assertIs<dev.panini.execution.ExecutionResult.Success>(results.first())
+        kotlin.test.assertIs<dev.panini.execution.ExecutionResult.Failure>(results.last())
+    }
+
+    @Test
+    fun `feminine ordinal cannot agree with neuter result noun`() {
+        val parsed = dev.panini.vyakaranam.parser.PaniniParser().parse(
+            "युज् + ल्युट् + ङस् प्रथमा + अम् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+        )
+        val padas = (parsed.body as dev.panini.vyakaranam.ast.Invocation).vakya.padas
+        val reference = NamedActionResultReferenceResolver.resolve(padas).single()
+        assertFalse(reference.orderingAgrees)
+        assertTrue(reference.hasOrderingQualifier)
+    }
+
+    @kotlin.test.Test
+    fun `derived ordinal result reference cannot silently select latest history`() {
+        val results = dev.panini.execution.PaniniVM().evalScript(
+            "एक + अम् द्वि + अम् च युज् + लोट् + सिप् ।\n" +
+                "युज् + ल्युट् + ङस् प्रथम + तरप् + अम् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+        )
+        kotlin.test.assertIs<dev.panini.execution.ExecutionResult.Success>(results.first())
+        kotlin.test.assertIs<dev.panini.execution.ExecutionResult.Failure>(results.last())
+    }
+
+    @Test
     fun `karaka history analysis exposes canonical action role and ordering without memory`() {
         val invocation = dev.panini.vyakaranam.parser.PaniniParser().parse(
             "युज् + ल्युट् + ङस् प्रथम + अम् कर्मन् + अम् मुद्र् + णिच् + लोट् + सिप् ।",

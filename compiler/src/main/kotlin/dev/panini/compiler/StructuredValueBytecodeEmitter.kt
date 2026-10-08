@@ -42,7 +42,10 @@ internal object StructuredValueBytecodeEmitter {
             }
             is SanskritValue.Suchi -> {
                 emitValueArray(mv, value.items)
-                call(mv, "suchi", "([Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;")
+                value.memberType?.let { mv.visitLdcInsn(it.name) }
+                call(mv, if (value.memberType == null) "suchi" else "typedSuchi",
+                    if (value.memberType == null) "([Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;"
+                    else "([Ldev/panini/execution/SanskritValue;Ljava/lang/String;)Ldev/panini/execution/SanskritValue;")
             }
             is SanskritValue.Rupa -> {
                 mv.visitLdcInsn(value.schema)

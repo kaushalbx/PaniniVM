@@ -16,8 +16,12 @@ object ListPushAction : dev.panini.execution.DhatuAction("सूचीनिक�
             as? NaturalOperation.CollectionInsertion
         val objectExpression = naturalFrame?.item ?: context.bindings[Karaka.KARMAN]
         val locationExpression = naturalFrame?.collection
-        val objects = objectExpression?.let(context::resolveValues).orEmpty()
+        val objects = objectExpression?.let(context::resolveCompleteValues)?.takeIf { it.isNotEmpty() }
+            ?: return ExecutionResult.Failure(dev.panini.execution.ExecutionError.INVALID_VALUE,
+                "Collection insertion requires a resolved value for every object.")
         val locations = locationExpression?.let(context::resolveValues).orEmpty()
+        val memberType = ((if (locationExpression != null) locations.singleOrNull() else objects.firstOrNull())
+            as? SanskritValue.Suchi)?.memberType
         val appendedItems = if (locationExpression != null) {
             val collection = locations.singleOrNull() as? SanskritValue.Suchi
                 ?: return dev.panini.execution.ExecutionResult.Failure(
@@ -32,7 +36,11 @@ object ListPushAction : dev.panini.execution.DhatuAction("सूचीनिक�
                 else -> objects
             }
         }
-        val listValue = SanskritValue.Suchi(appendedItems)
+        if (memberType != null && appendedItems.any { !memberType.accepts(it) }) return ExecutionResult.Failure(
+            dev.panini.execution.ExecutionError.INVALID_VALUE,
+            "List members must satisfy the declared $memberType type.",
+        )
+        val listValue = SanskritValue.Suchi(appendedItems, memberType)
 
         return dev.panini.execution.ExecutionResult.Success(
             listValue.toDisplayText(),

@@ -123,6 +123,7 @@ object ProgramSutraArthaCodec {
         is SanskritValue.Suchi -> record(
             "suchi",
             "items" to SutraArthaValue.Sequence(value.items.map(::encodeValue)),
+            "memberType" to SutraArthaValue.Text(value.memberType?.name.orEmpty()),
         )
         is SanskritValue.Rupa -> record(
             "rupa",
@@ -163,6 +164,8 @@ object ProgramSutraArthaCodec {
             )
             "suchi" -> SanskritValue.Suchi(
                 fields.sequence("items").map(::decodeValue),
+                (fields["memberType"] as? SutraArthaValue.Text)?.value?.takeIf { it.isNotEmpty() }
+                    ?.let(dev.panini.execution.ListMemberType::valueOf),
             )
             "rupa" -> SanskritValue.Rupa(
                 fields.text("schema"),

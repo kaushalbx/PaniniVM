@@ -7,6 +7,16 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 
 class PrintActionTest {
+    @kotlin.test.Test
+    fun `display rejects partly resolved objects rather than printing partial output`() {
+        val context = ExecutionContext(bindings = mapOf(
+            dev.panini.core.Karaka.KARMAN to ExecutionExpression.Coordination(
+                ExecutionExpression.sankhya(1, "एक"), ExecutionExpression.Reference("missing")),
+        ))
+        val result = PrintAction.execute(context, PrintAction.op())
+        kotlin.test.assertEquals(ExecutionError.INVALID_VALUE,
+            kotlin.test.assertIs<ExecutionResult.Failure>(result).error)
+    }
     @Test
     fun `prints a semantic range before its instruction operands`() {
         val context = ExecutionContext(

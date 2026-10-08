@@ -12,6 +12,51 @@ import java.io.File
 
 class PrakriyaAstArgumentBinderTest {
     @Test
+    fun `procedure execution preserves ambiguous history failure`() {
+        val source = "वाचन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+            "मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+            "युज् + ल्युट् + ङस् प्रथम + अम् प्रथम + अम् फल + अम् मुद्र् + णिच् + लोट् + सिप् ॥\n" +
+            "एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।\n" +
+            "नवन् + शस् वाचन + टा कृ + लोट् + सिप् ।"
+        assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(source).last())
+    }
+
+    @Test
+    fun `ambiguous history qualifiers cannot disappear into positional rebinding`() {
+        val original = assertIs<Invocation>(dev.panini.vyakaranam.parser.PaniniParser().parse(
+            "युज् + ल्युट् + ङस् प्रथम + अम् प्रथम + अम् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।",
+        ).body)
+        val bound = assertIs<Invocation>(PrakriyaAstArgumentBinder.bind(original,
+            listOf(PrakriyaParameter("मान", PrakriyaValueType.SANKHYA)), 1))
+        assertEquals(original.vakya.padas, bound.vakya.padas)
+        val reference = dev.panini.execution.binding.NamedActionResultReferenceResolver.resolve(bound.vakya.padas).single()
+        assertFalse(reference.orderingAgrees)
+        assertEquals(2, reference.orderingQualifiers.size)
+    }
+
+    @Test
+    fun `reordered history relations survive invocation and pipeline parameter binding`() {
+        for (phrase in listOf(
+            "प्रथम + अम् युज् + ल्युट् + ङस् फल + अम्",
+            "युज् + ल्युट् + ङस् फल + अम् प्रथम + अम्",
+            "फल + अम् युज् + ल्युट् + ङस् प्रथम + अम्",
+        )) {
+            val invocation = assertIs<Invocation>(dev.panini.vyakaranam.parser.PaniniParser()
+                .parse("$phrase मुद्र् + णिच् + लोट् + सिप् ।").body)
+            val parameters = listOf(PrakriyaParameter("फल", PrakriyaValueType.SANKHYA))
+            assertEquals(invocation.vakya.padas,
+                assertIs<Invocation>(PrakriyaAstArgumentBinder.bind(invocation, parameters, 1)).vakya.padas)
+            val padas = invocation.vakya.padas.dropLast(1)
+            val pipeline = Pipeline(sourceText = phrase, arguments = padas.map { it.sourceText },
+                stages = emptyList(), argumentPadas = padas, renderPadas = padas)
+            val bound = assertIs<Pipeline>(PrakriyaAstArgumentBinder.bind(pipeline, parameters, 1))
+            assertEquals(padas, bound.argumentPadas)
+            assertEquals(padas, bound.renderPadas)
+            assertEquals(pipeline.arguments, bound.arguments)
+        }
+    }
+
+    @Test
     fun `karaka history qualifiers are protected from procedure parameter rebinding`() {
         val original = assertIs<Invocation>(dev.panini.vyakaranam.parser.PaniniParser()
             .parse("युज् + ल्युट् + ङस् प्रथम + अम् कर्मन् + अम् मुद्र् + णिच् + लोट् + सिप् ।").body)

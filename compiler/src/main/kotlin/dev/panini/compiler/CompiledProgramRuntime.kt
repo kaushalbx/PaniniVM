@@ -210,7 +210,7 @@ class CompiledProgramRuntime private constructor(
             return try {
                 when (current) {
                     is SanskritValue.Gana -> SanskritValue.Gana(current.elements.map(::copy))
-                    is SanskritValue.Suchi -> SanskritValue.Suchi(current.items.map(::copy))
+                    is SanskritValue.Suchi -> current.copy(items = current.items.map(::copy))
                     is SanskritValue.Rupa -> SanskritValue.Rupa(current.schema, current.fields.mapValues { copy(it.value) })
                     is SanskritValue.Shabda -> current.copy(samjnas = current.samjnas.toSet())
                     else -> current

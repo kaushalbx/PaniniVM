@@ -94,8 +94,7 @@ object PrakriyaAstArgumentBinder {
                 protected.add(reference.result)
                 protected.add(reference.modifier)
                 if (reference.hasOrderingQualifier) {
-                    originalPadas.getOrNull(originalPadas.indexOfFirst { it === reference.result } - 1)
-                        ?.let(protected::add)
+                    protected.addAll(reference.orderingQualifiers)
                 }
             }
             return originalPadas.map { if (it in protected) it else bindPada(it) }

@@ -22,12 +22,22 @@ internal class PvmInvocationExecutor(private val vm: PaniniVM) {
     )
 
     fun execute(request: Request): List<ExecutionResult> {
+        // An explicit फल already names the preceding result. It must not also
+        // arrive as an injected operand, including after a conditional branch.
+        val explicitResult = request.node.vakya.padas.any { pada ->
+            when (pada) {
+                is dev.panini.vyakaranam.ast.SubantaPada -> NaturalSemanticNormalizer.isPriorResult(pada)
+                is dev.panini.vyakaranam.ast.SamuccitaSubanta -> pada.members.any(NaturalSemanticNormalizer::isPriorResult)
+                else -> false
+            }
+        }
+        val injectedKarman = request.injectedKarman.takeUnless { explicitResult }
         val text = request.node.vakya.sourceText.trim().trimEnd('।', '॥').trim() + " ।"
         val parsedUkti = Ukti(sourceText = text, body = request.node)
         val invocation = request.registry.detectInvocation(
             parsedUkti,
             callerSourceFile = request.sourceFile,
-            injectedKarman = request.injectedKarman,
+            injectedKarman = injectedKarman,
             resolveActionResult = { reference ->
                 val memory = vm.kriyaMemory(request.sessionKey)
                 if (reference.ordinalFromOldest != null) {
@@ -63,7 +73,7 @@ internal class PvmInvocationExecutor(private val vm: PaniniVM) {
                 request.listener,
                 evaluateCondition = request.conditionEvaluation,
                 persistSession = request.persistSession,
-                injectedBindings = request.injectedKarman?.let {
+                injectedBindings = injectedKarman?.let {
                     mapOf(Karaka.KARMAN to ExecutionExpression.Reference(it.reference))
                 }.orEmpty(),
             ),

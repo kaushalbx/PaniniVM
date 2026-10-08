@@ -372,6 +372,7 @@ pratipadikaVikara
 
 mulaPratipadika
     : IDENTIFIER
+    | NAAMA
     | PRAKRIYA_NOUN
     | ADHIKA
     | UNA
@@ -791,6 +792,7 @@ mulaAvyaya
     | NA
     | ITI
     | API
+    | NAAMA
     | NI
     | EVA
     | CHA

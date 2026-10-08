@@ -119,7 +119,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
         return when (node) {
         is Invocation -> {
             val expanded = try {
-                PriorActionLowering.expand(node)
+                ListDeclarationLowering.expand(node) ?: OrdinalObjectLowering.expand(node) ?: PriorActionLowering.expand(node)
             } catch (error: IllegalArgumentException) {
                 // Binding owns the public typed diagnostic for invalid morphology.
                 return executeEvaluatorNode(node, context)
@@ -141,7 +141,11 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             context.registry, callerSourceFile = context.sourceFile,
             persistSession = context.persistSession,
         ).also(context::publish)
-        is Quotation -> executeEvaluatorNode(node, context)
+        is Quotation -> {
+            val expanded = try { ListDeclarationLowering.expand(node) }
+                catch (_: IllegalArgumentException) { return executeEvaluatorNode(node, context) }
+            expanded?.let { executeSequenceNode(it, context) } ?: executeEvaluatorNode(node, context)
+        }
         is Prakriya -> node.body.flatMap {
             executeProgramNode(it, context)
         }

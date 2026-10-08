@@ -20,7 +20,9 @@ internal object PersistedSanskritValueCodec {
                     writeByte(4); writeInt(value.elements.size); value.elements.forEach { write(output, it) }
                 }
                 is SanskritValue.Suchi -> {
-                    writeByte(5); writeInt(value.items.size); value.items.forEach { write(output, it) }
+                    writeByte(if (value.memberType == null) 5 else 10)
+                    value.memberType?.let { writeUTF(it.name) }
+                    writeInt(value.items.size); value.items.forEach { write(output, it) }
                 }
                 is SanskritValue.Satya -> { writeByte(6); writeBoolean(value.boolean) }
                 SanskritValue.Lopa -> writeByte(7)
@@ -45,6 +47,10 @@ internal object PersistedSanskritValueCodec {
             )
             4 -> SanskritValue.Gana(buildList { repeat(readInt()) { add(read(input)) } })
             5 -> SanskritValue.Suchi(buildList { repeat(readInt()) { add(read(input)) } })
+            10 -> {
+                val memberType = ListMemberType.valueOf(readUTF())
+                SanskritValue.Suchi(buildList { repeat(readInt()) { add(read(input)) } }, memberType)
+            }
             6 -> SanskritValue.Satya(readBoolean())
             7 -> SanskritValue.Lopa
             8 -> SanskritValue.Range(

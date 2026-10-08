@@ -17,6 +17,10 @@ class StructuredValueBytecodeEmitterTest {
         val expected = SanskritValue.Rupa(
             schema = "परीक्षा",
             fields = linkedMapOf(
+                "शब्दसूची" to SanskritValue.Suchi(listOf(SanskritValue.Shabda("राम")),
+                    dev.panini.execution.ListMemberType.TEXT),
+                "सङ्ख्यासूची" to SanskritValue.Suchi(listOf(SanskritValue.Sankhya(1, "एक")),
+                    dev.panini.execution.ListMemberType.NUMBER),
                 "सूची" to SanskritValue.Suchi(
                     listOf(
                         SanskritValue.Sankhya(2L, "द्वे"),

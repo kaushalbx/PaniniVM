@@ -7,6 +7,13 @@ import kotlin.test.assertTrue
 
 class PvmUktiSadhakaConnectorTest {
     @Test
+    fun `lexical ordinal renders as an adjective rather than a cardinal`() {
+        val renderer = PvmUktiSadhaka()
+        assertEquals("प्रथमे ।", renderer.sadhayaLine("प्रथम + ङि ।"))
+        assertEquals("प्रथमम् ।", renderer.sadhayaLine("प्रथम + अम् ।"))
+    }
+
+    @Test
     fun `feminine agreement does not affix an already feminine lexical noun again`() {
         val parser = dev.panini.vyakaranam.parser.PaniniParser()
         val renderer = PvmUktiSadhaka()

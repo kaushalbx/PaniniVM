@@ -42,6 +42,16 @@ object PaniniRuntime {
     fun suchi(items: Array<SanskritValue>): SanskritValue = SanskritValue.Suchi(items.toList())
 
     @JvmStatic
+    fun typedSuchi(items: Array<SanskritValue>, typeName: String): SanskritValue {
+        val memberType = dev.panini.execution.ListMemberType.valueOf(typeName)
+        if (items.any { !memberType.accepts(it) }) {
+            throw CompiledPaniniExecutionException(dev.panini.execution.ExecutionError.INVALID_VALUE,
+                "List members must satisfy the declared $memberType type.")
+        }
+        return SanskritValue.Suchi(items.toList(), memberType)
+    }
+
+    @JvmStatic
     fun gana(elements: Array<SanskritValue>): SanskritValue = SanskritValue.Gana(elements.toList())
 
     @JvmStatic
