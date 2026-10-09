@@ -43,9 +43,9 @@ object UpapadamAtingSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
-        val purva = context.purvaPada.upadesha.removeSuffix("न्").removeSuffix("न").removeSuffix("म्")
-        val uttara = context.uttaraPada.upadesha
-        val stem = "$purva$uttara"
+        // Classification licenses the member relation, not phonological deletion.
+        // The engine applies 8.2.7 to canonical member varnas after internal sup-lopa.
+        val stem = context.padas.joinToString("") { it.upadesha }
         return SamasaRuleResult.Formed(
             compoundStem = stem,
             explanation = "2.2.19 (उपपदमतिङ्) forms Upapada Tatpuruṣa compound '$stem'.",

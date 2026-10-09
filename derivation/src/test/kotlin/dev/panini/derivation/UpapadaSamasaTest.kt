@@ -15,6 +15,24 @@ class UpapadaSamasaTest {
     private val engine = SamasaEngine()
 
     @Test
+    fun `canonical saman loses final n through its own sutra after classification`() {
+        val result = engine.derive(
+            listOf(SamasaPada("सामन्", Vibhakti.DVITIYA), SamasaPada("ग")),
+            SamasaType.UPAPADA_TATPURUSA,
+        )
+        assertEquals("सामगः", result.final.surface)
+        val classification = result.applications.first { it.sutra == "2.2.19" }
+        assertEquals(classification.before, classification.after)
+        assertEquals("सामन्", classification.after.terms.first().surface)
+        val lopa = result.applications.first { it.sutra == "8.2.7" }
+        assertEquals("सामन्", lopa.before.terms.first().surface)
+        assertEquals("साम", lopa.after.terms.first().surface)
+        assertEquals(lopa.before.terms.first().id, lopa.after.terms.first().id)
+        assertEquals(lopa.before.terms.first().upadesha, lopa.after.terms.first().upadesha)
+        assertTrue(result.applications.indexOf(classification) < result.applications.indexOf(lopa))
+    }
+
+    @Test
     fun `test kumbhakarah derivation`() {
         val result = engine.derive(
             listOf(

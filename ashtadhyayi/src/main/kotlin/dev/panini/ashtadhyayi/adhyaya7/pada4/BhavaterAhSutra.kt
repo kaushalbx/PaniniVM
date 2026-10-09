@@ -7,7 +7,6 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Svara
-import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -31,9 +30,9 @@ object BhavaterAhSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val abhyasa = context.terms.first { it.id == "abhyasa" }
-        val substituted = (abhyasa.varnas.dropLast(1) + Svara.A).toDevanagari()
+        val substituted = abhyasa.varnas.dropLast(1) + Svara.A
         return DerivationChange(
-            context.substituteTermSurface(abhyasa.id, substituted, Svara.U, listOf(Svara.A), sutra),
+            context.substituteTermVarnas(abhyasa.id, substituted, Svara.U, listOf(Svara.A), sutra),
             "7.4.73 replaces the final उ of the भू abhyāsa ${abhyasa.surface} with inherent अ in लिट्.",
         )
     }

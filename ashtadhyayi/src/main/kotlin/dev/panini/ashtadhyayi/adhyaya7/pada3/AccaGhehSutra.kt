@@ -1,13 +1,12 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada3
 
+import dev.panini.core.SupAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Svara
-import dev.panini.shiksha.toDevanagari
-import dev.panini.shiksha.toVarnas
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -44,7 +43,8 @@ object AccaGhehSutra : Sutra<DerivationState, DerivationChange>(
         val isGhi = context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.GHI }
         if (!isGhi) return false
 
-        return affix.upadesha == "ङि"
+        // This operation consumes the current ṅi; retained sthānin identity must not reapply it.
+        return affix.upadesha == SupAffix.NGI.upadesha
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -53,12 +53,12 @@ object AccaGhehSutra : Sutra<DerivationState, DerivationChange>(
 
         val stemVarnas = stem.varnas
         val sourceVowel = stemVarnas.last() as Svara
-        val newStemSurface = (stemVarnas.dropLast(1) + Svara.A).toDevanagari()
-        val newAffixSurface = "औ"
+        val newStemVarnas = stemVarnas.dropLast(1) + Svara.A
+        val newAffixVarnas = listOf(Svara.AU)
 
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, newStemSurface, sourceVowel, listOf(Svara.A), sutra)
-                .replaceWholeAffix(affix.id, newAffixSurface, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume, upadesha = "औ")
+            state = context.substituteTermVarnas(stem.id, newStemVarnas, sourceVowel, listOf(Svara.A), sutra)
+                .replaceWholeAffix(affix.id, newAffixVarnas, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume, upadesha = "औ")
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.119: Substituted 'a' for ghi-stem vowel and 'au' for 'ṅi'."
         )

@@ -7,9 +7,10 @@ import dev.panini.ashtadhyayi.adhyaya8.pada3.MonusvarahSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada4.JhayoHonyatarasyamSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada4.AnusvarasyaYayiParasavarnahSutra
 import dev.panini.ashtadhyayi.adhyaya8.pada4.KhariCaSutra
-import dev.panini.shiksha.Varnamala
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.AbhyantaraPrayatna
+import dev.panini.shiksha.Vyanjana
 
 /** Applies the implemented external-sandhi rules to two fully formed padas. */
 class SandhiEngine(
@@ -51,6 +52,7 @@ class SandhiEngine(
      */
     fun joinPrefix(left: String, right: String): String {
         var state = padaBoundaryState(left, right)
+        val initialRight = state.terms.last().varnas.firstOrNull()
         if (SavarnaDirghaSutra.matches(state)) {
             state = SavarnaDirghaSutra.apply(state).state
         }
@@ -58,7 +60,7 @@ class SandhiEngine(
         // Select a written homorganic nasal before a varga consonant. Keep
         // anusvāra before semivowels; the general rule's fallback is not a
         // representation of their nasalized phonetic variants.
-        if (right.firstOrNull()?.let { Varnamala.getVargaInfo(it) } != null &&
+        if (initialRight is Vyanjana && initialRight.abhyantaraPrayatna == AbhyantaraPrayatna.SPRSTA &&
             AnusvarasyaYayiParasavarnahSutra.matches(state)) {
             state = AnusvarasyaYayiParasavarnahSutra.apply(state).state
         }
@@ -115,16 +117,18 @@ class SandhiEngine(
      */
     fun joinPadas(left: String, right: String): String {
         var leftState = singlePadaState(left)
+        var state = padaBoundaryState(left, right)
         // Readable sentence rendering currently licenses these two mandatory
         // external operations. Applying the whole derivational catalogue here
         // would reopen the already completed internal phonology of each pada.
-        val follower = right.trim().firstOrNull()
+        val follower = state.terms.last().varnas.firstOrNull()
         val jashEnvironment = follower != null &&
             Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.ASH, follower)
-        if (left.trim().endsWith("त्") && jashEnvironment && JhalamJashonteSutra.matches(leftState)) {
+        if (leftState.terms.single().varnas.lastOrNull() == Vyanjana.TA &&
+            jashEnvironment && JhalamJashonteSutra.matches(leftState)) {
             leftState = JhalamJashonteSutra.apply(leftState).state
         }
-        var state = padaBoundaryState(leftState.terms.single().surface, right)
+        state = state.replaceTerm(leftState.terms.single().id, leftState.terms.single())
         if (MonusvarahSutra.matches(state)) state = MonusvarahSutra.apply(state).state
         return state.terms
             .map { it.surface }

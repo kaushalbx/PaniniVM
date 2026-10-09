@@ -615,10 +615,11 @@ class SamasaEngineTest {
 
     @Test
     fun `test Karmadharaya KtenaNanjVisistena (2 1 60)`() {
+        val krta = SamasaPada("कृत", Vibhakti.PRATHAMA, krtAffix = dev.panini.core.KrtAffix.KTA)
         val result = engine.derive(
             listOf(
-                SamasaPada("कृत", Vibhakti.PRATHAMA),
-                SamasaPada("अकृत", Vibhakti.PRATHAMA),
+                krta,
+                SamasaPada("अकृत", Vibhakti.PRATHAMA, nanjBase = krta),
             ),
             SamasaType.KARMADHARAYA,
             outputLinga = dev.panini.core.Linga.NAPUMSAKA,

@@ -25,6 +25,10 @@ class PhonologicalRuleArchitectureTest {
             "UpadesheAjanunasikaItSutra.kt",
         )
         val forbidden = listOf(
+            Regex("""Sutra\s*<\s*String\b"""),
+            Regex("""\.text\.startsWith\s*\("""),
+            Regex("""\.(?:removeSuffix|removePrefix)\s*\(\s*"[\u0900-\u097F]"""),
+            Regex("""\.devanagari\.single\s*\("""),
             Regex("""contains\s*\(\s*Pratyahara\.\w+\s*,[^)]*\.devanagari"""),
             Regex("""\.surface\??\.(?:startsWith|endsWith|last|dropLast|substring|take|drop|contains|replace|indexOf|removeSuffix|removePrefix|trimEnd|dropWhile)\s*\("""),
             Regex("""\.surface\s*\["""),

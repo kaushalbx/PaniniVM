@@ -29,6 +29,8 @@ data class SamasaPada(
     val krtAffix: KrtAffix? = null,
     /** The affixes licensed together by the prescription establishing this member as upapada. */
     val upapadaAffixPrescription: UpapadaAffixPrescription? = null,
+    /** Base explicitly qualified by nañ; not inferred from an initial अ/अन or surface spelling. */
+    val nanjBase: SamasaPada? = null,
 ) {
     val varnas: List<Varna> by lazy(LazyThreadSafetyMode.PUBLICATION) { upadesha.toVarnas() }
 }

@@ -3,6 +3,7 @@ package dev.panini.ashtadhyayi.adhyaya2.pada1
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
 import dev.panini.core.SamasaType
+import dev.panini.core.KrtAffix
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -31,13 +32,17 @@ object KtenaNanjVisistenaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     samasaType = SamasaType.KARMADHARAYA,
 ), SamasaSutra {
     override fun matches(context: SamasaRuleContext): Boolean {
-        if (context.padas.size < 2) return false
-        val purva = context.purvaPada.upadesha
-        val uttara = context.uttaraPada.upadesha
-        return uttara.startsWith("अ") && uttara.drop(1) == purva
+        if (context.padas.size != 2) return false
+        val purva = context.purvaPada
+        val uttara = context.uttaraPada
+        val base = uttara.nanjBase ?: return false
+        return purva.nanjBase == null && base.nanjBase == null &&
+            purva.krtAffix == KrtAffix.KTA && base.krtAffix == KrtAffix.KTA &&
+            purva.varnas == base.varnas && purva.vibhakti == uttara.vibhakti
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
+        // Classification changes no member sounds; preserve spelling/signs for the engine's boundary renderer.
         val compoundStem = context.padas.joinToString("") { it.upadesha }
 
         return SamasaRuleResult.Formed(

@@ -3,6 +3,8 @@ package dev.panini.ganapatha
 import dev.panini.shiksha.Accent
 import dev.panini.shiksha.LexicalUse
 import dev.panini.shiksha.Recension
+import dev.panini.shiksha.Varna
+import dev.panini.shiksha.toVarnas
 
 /** A machine-readable restriction on when a gaṇa member is eligible. */
 sealed interface GanaCondition {
@@ -61,6 +63,7 @@ data class GanaMember(
     val text: String,
     val hindiArtha: String = "",
     val englishArtha: String = "",
+    /** Explicit grammatical identity (including a stem for an inflected list entry); source text remains untouched. */
     val upadesha: String? = null,
     val condition: String? = null,
     val ganaCondition: GanaCondition? = null,
@@ -71,6 +74,8 @@ data class GanaMember(
     val examples: List<String> = emptyList(),
 ) {
     val normalized: String = GanaNormalizer.normalize(text)
+    val varnas: List<Varna> by lazy(LazyThreadSafetyMode.PUBLICATION) { text.toVarnas() }
+    val upadeshaVarnas: List<Varna>? by lazy(LazyThreadSafetyMode.PUBLICATION) { upadesha?.toVarnas() }
 
     init {
         require(condition == null || ganaCondition == null || condition == ganaCondition.sourceText) {
