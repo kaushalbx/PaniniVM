@@ -19,6 +19,9 @@ object OrdinalObjectLowering {
         } ?: return null
         val ordinals = sentence.padas.filter { PuranaPratyayaResolver.ordinalValue(it) != null }
         if (ordinals.isEmpty()) return null
+        require((head.pratipadika as MulaPratipadika).vikaras.isEmpty()) {
+            "Ordinal retrieval requires an underived value object; derived nominals need their own semantics."
+        }
         require(ordinals.size == 1) { "Ordinal retrieval requires one unambiguous ordinal modifier." }
         val ordinal = ordinals.single()
         val sup = when (ordinal) {

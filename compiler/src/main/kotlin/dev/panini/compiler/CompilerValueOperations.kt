@@ -8,6 +8,29 @@ import dev.panini.execution.SanskritValue
 /** Backend helper for explicit value IR comparisons. */
 internal object CompilerValueOperations {
     @JvmStatic
+    fun checkNumericProhibition(left: SanskritValue, right: SanskritValue) {
+        if (left is SanskritValue.Sankhya && right is SanskritValue.Sankhya && left.value == right.value) {
+            throw CompiledPaniniExecutionException(ExecutionError.ACTION_FAILED,
+                "निषेध-प्रतिषेधः: Numeric procedure prohibition triggered.")
+        }
+    }
+
+    @JvmStatic
+    fun requireArgumentKind(value: SanskritValue, kind: String) {
+        val valid = when (CompilerValueKind.valueOf(kind)) {
+            CompilerValueKind.VALUE, CompilerValueKind.UNKNOWN -> true
+            CompilerValueKind.NUMBER -> value is SanskritValue.Sankhya
+            CompilerValueKind.BOOLEAN -> value is SanskritValue.Satya
+            CompilerValueKind.TEXT -> value is SanskritValue.Shabda
+            CompilerValueKind.LIST -> value is SanskritValue.Suchi
+            CompilerValueKind.RECORD -> value is SanskritValue.Rupa
+            CompilerValueKind.RANGE -> value is SanskritValue.Range
+        }
+        if (!valid) throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE,
+            "Procedure argument requires $kind, not ${value::class.simpleName}.")
+    }
+
+    @JvmStatic
     fun randomActiveRange(value: SanskritValue, excluded: SanskritValue?): SanskritValue {
         val range = value as? SanskritValue.Range ?: throw CompiledPaniniExecutionException(
             ExecutionError.INVALID_VALUE, "Choice requires a preceding सीमा declaration.")
@@ -16,8 +39,22 @@ internal object CompilerValueOperations {
     }
 
     @JvmStatic
-    fun listSum(value: SanskritValue): SanskritValue =
-        numeric(collectionItems(value).sumOf(::number))
+    fun listSum(value: SanskritValue): SanskritValue {
+        val members = dev.panini.execution.numericCollectionMembers(value)
+            ?: throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE,
+                "Number-member summation requires a numeric collection.")
+        val sum = try { members.fold(0L, Math::addExact) } catch (_: ArithmeticException) {
+            throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE, "Numeric overflow during member summation.")
+        }
+        return numeric(sum)
+    }
+
+    @JvmStatic
+    fun listNumberMemberSum(value: SanskritValue): SanskritValue {
+        if (value !is SanskritValue.Suchi) throw CompiledPaniniExecutionException(
+            ExecutionError.INVALID_VALUE, "Member summation requires one list as its genitive whole.")
+        return listSum(value)
+    }
 
     @JvmStatic
     fun renderText(values: Array<SanskritValue>): SanskritValue =

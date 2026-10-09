@@ -95,7 +95,9 @@ object PriorActionLowering {
                 "", MulaPratipadika("फल", "फल"), SupPratyaya("अम्", "अम्"),
             ) + head else writtenOperands
             val boundPadas = if (subjects(group).isEmpty()) sharedSubjects + operands else operands
-            Invocation(AkhyataVakya(group.joinToString(" ") { it.sourceText }, boundPadas, head))
+            Invocation(AkhyataVakya(group.joinToString(" ") { it.sourceText }, boundPadas, head)).also {
+                CollectionMemberMorphology.validate(it)
+            }
         }
         return Sequence(node.sourceText, statements, List(statements.size - 1) { SequenceConnector.PURVAKALA.surface })
     }

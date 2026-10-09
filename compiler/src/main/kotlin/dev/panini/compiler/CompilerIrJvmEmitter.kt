@@ -79,6 +79,9 @@ internal class CompilerIrJvmEmitter(
                 CompilerInstruction.LoadLastResult -> emitLoad("LastResult")
                 CompilerInstruction.Duplicate -> mv.visitInsn(DUP)
                 CompilerInstruction.Pop -> mv.visitInsn(POP)
+                CompilerInstruction.CheckNumericProhibition -> mv.visitMethodInsn(INVOKESTATIC,
+                    "dev/panini/compiler/CompilerValueOperations", "checkNumericProhibition",
+                    "(Ldev/panini/execution/SanskritValue;Ldev/panini/execution/SanskritValue;)V", false)
                 is CompilerInstruction.BuildList -> emitBuildList(instruction.size, instruction.memberType)
                 is CompilerInstruction.BuildRecord -> emitBuildRecord(instruction.schema, instruction.fields)
                 is CompilerInstruction.LoadField -> emitLoadField(instruction.name)
@@ -296,6 +299,7 @@ internal class CompilerIrJvmEmitter(
     private fun emitCollection(operator: CollectionOperator) {
         val method = when (operator) {
             CollectionOperator.SUM -> "listSum"
+            CollectionOperator.SUM_NUMBER_MEMBERS -> "listNumberMemberSum"
             CollectionOperator.LENGTH -> "listLength"
             CollectionOperator.REVERSE -> "listReverse"
             CollectionOperator.CONCAT -> "listConcat"
@@ -316,6 +320,7 @@ internal class CompilerIrJvmEmitter(
             CollectionOperator.SLICE -> "($value$value$value)$value"
             CollectionOperator.LENGTH,
             CollectionOperator.SUM,
+            CollectionOperator.SUM_NUMBER_MEMBERS,
             CollectionOperator.REVERSE,
             CollectionOperator.POP,
             CollectionOperator.FLATTEN,
@@ -492,6 +497,12 @@ internal class CompilerIrJvmEmitter(
         val parameterNames = allocateLocal(1)
         val values = List(call.parameterNames.size) { allocateLocal(1) }
         values.asReversed().forEach { local -> mv.visitVarInsn(ASTORE, local) }
+        call.parameterKinds.forEachIndexed { index, kind ->
+            mv.visitVarInsn(ALOAD, values[index])
+            mv.visitLdcInsn(kind.name)
+            mv.visitMethodInsn(INVOKESTATIC, "dev/panini/compiler/CompilerValueOperations",
+                "requireArgumentKind", "(Ldev/panini/execution/SanskritValue;Ljava/lang/String;)V", false)
+        }
         emitStringArray(call.parameterNames)
         mv.visitVarInsn(ASTORE, parameterNames)
         mv.visitVarInsn(ALOAD, 0)

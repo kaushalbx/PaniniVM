@@ -1,5 +1,7 @@
 package dev.panini.execution
 
+import dev.panini.vyakaranam.ast.morphologicalKey
+
 import dev.panini.core.SupAffix
 import dev.panini.core.Vibhakti
 import dev.panini.core.KrtAffix
@@ -83,7 +85,8 @@ object NaturalSemanticNormalizer {
         if (tinganta.canonicalDhatuIdentity() !in COPULAR_DHATUS) return null
         val subject = padas.filterIsInstance<SubantaPada>().singleOrNull() ?: return null
         if (SupAffix.fromUpadesha(subject.sup.text)?.vibhakti != Vibhakti.PRATHAMA) return null
-        if ((subject.pratipadika as? MulaPratipadika)?.lexicalIdentity != MulaPratipadikaIdentity.VIJAYA) {
+        val nominal = subject.pratipadika as? MulaPratipadika
+        if (nominal?.lexicalIdentity != MulaPratipadikaIdentity.VIJAYA || nominal.vikaras.isNotEmpty()) {
             return null
         }
         return Operation.ReportedOutcomeTest(
@@ -104,7 +107,9 @@ object NaturalSemanticNormalizer {
         val subject = padas.filterIsInstance<SubantaPada>().singleOrNull() ?: return null
         if (SupAffix.fromUpadesha(subject.sup.text)?.vibhakti != Vibhakti.PRATHAMA) return null
         return Operation.TruthTest(
-            stateName = subject.referenceName(),
+            stateName = (subject.pratipadika as? MulaPratipadika)
+                ?.takeIf { it.vikaras.isNotEmpty() }?.morphologicalKey()
+                ?: subject.referenceName(),
             negated = padas.filterIsInstance<AvyayaPada>().any {
                 it.function == AvyayaFunction.NISHEDHA
             },
@@ -163,10 +168,13 @@ object NaturalSemanticNormalizer {
         val padas = invocation.vakya.padas
         val tinganta = padas.filterIsInstance<TingantaPada>().singleOrNull() ?: return null
         if (tinganta.canonicalDhatuIdentity() != CanonicalDhatuIdentity.YUJ) return null
-        val hasCollectionParameter = padas.filterIsInstance<SubantaPada>().any { pada ->
-            (pada.pratipadika as? MulaPratipadika)?.lexicalIdentity == MulaPratipadikaIdentity.SAMAVAYA
-        }
-        return Operation.CollectionParameterSum.takeIf { hasCollectionParameter }
+        // This compatibility slot denotes the procedure's collected arguments,
+        // not every nominal derived from समवाय or every kāraka containing it.
+        val parameter = padas.filterIsInstance<SubantaPada>().singleOrNull() ?: return null
+        val nominal = parameter.pratipadika as? MulaPratipadika ?: return null
+        if (nominal.lexicalIdentity != MulaPratipadikaIdentity.SAMAVAYA ||
+            nominal.vikaras.isNotEmpty() || parameter.sup.text != SupAffix.AM.upadesha) return null
+        return Operation.CollectionParameterSum
     }
 
     private fun SubantaPada.referenceName(): String =

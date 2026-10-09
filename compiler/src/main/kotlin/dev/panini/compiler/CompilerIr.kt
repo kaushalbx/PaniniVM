@@ -209,6 +209,8 @@ internal sealed interface CompilerInstruction {
     data object Duplicate : CompilerInstruction
 
     data object Pop : CompilerInstruction
+    /** Reject numeric equality without coercing words or structured values. */
+    data object CheckNumericProhibition : CompilerInstruction
 
     data class BuildList(val size: Int, val memberType: dev.panini.execution.ListMemberType? = null) : CompilerInstruction
 
@@ -326,6 +328,7 @@ internal enum class NumericUnaryOperator {
 
 internal enum class CollectionOperator {
     SUM,
+    SUM_NUMBER_MEMBERS,
     LENGTH,
     REVERSE,
     CONCAT,
@@ -644,6 +647,9 @@ internal object CompilerIrLowering {
             ?.let(::lowerOperands)
             .orEmpty()
         val valueInstructions = when {
+            naturalOperation is NaturalOperation.CollectionSummation ->
+                (lowerSingleCollectionValue(naturalOperation.collection) ?: return null) +
+                    CompilerInstruction.Collection(CollectionOperator.SUM_NUMBER_MEMBERS)
             operation == "न्यूनता" -> {
                 val operator = copularOrderOperator(plan) ?: return null
                 val subject = plan.resolved.context.bindings[Karaka.KARTR]?.let(::lowerOperands)
@@ -768,7 +774,8 @@ internal object CompilerIrLowering {
             }
             collection == CollectionOperator.POP -> {
                 val frame = naturalOperation as? NaturalOperation.CollectionExtraction
-                if (frame != null && plan.resolved.context.resolve(frame.member) != listOf("अन्तिम")) return null
+                if (frame != null && (frame.member as? ExecutionExpression.Pada)?.memberSelection !=
+                    dev.panini.execution.CollectionMemberSelection.FINAL) return null
                 val list = (frame?.collection ?: plan.resolved.context.bindings[Karaka.KARMAN])
                     ?.let(::lowerSingleCollectionValue)
                     ?: return null
@@ -1059,6 +1066,10 @@ internal object CompilerIrVerifier {
                 before + value
             }
             CompilerInstruction.Pop -> pop().first
+            CompilerInstruction.CheckNumericProhibition -> {
+                require(before.size >= 2) { "IR numeric prohibition stack underflow at instruction $index" }
+                before.dropLast(2)
+            }
             is CompilerInstruction.BuildList -> {
                 require(instruction.size >= 0) { "IR list size must not be negative at instruction $index" }
                 require(before.size >= instruction.size) {
@@ -1115,6 +1126,7 @@ internal object CompilerIrVerifier {
                     CollectionOperator.SLICE -> 3
                     CollectionOperator.LENGTH,
                     CollectionOperator.SUM,
+                    CollectionOperator.SUM_NUMBER_MEMBERS,
                     CollectionOperator.REVERSE,
                     CollectionOperator.POP,
                     CollectionOperator.FLATTEN,
@@ -1142,7 +1154,7 @@ internal object CompilerIrVerifier {
                 }
                 val remaining = before.dropLast(arity)
                 remaining + when (instruction.operator) {
-                    CollectionOperator.LENGTH, CollectionOperator.SUM -> ValueKind.NUMBER
+                    CollectionOperator.LENGTH, CollectionOperator.SUM, CollectionOperator.SUM_NUMBER_MEMBERS -> ValueKind.NUMBER
                     CollectionOperator.INDEX, CollectionOperator.CONTAINS, CollectionOperator.POP -> ValueKind.VALUE
                     else -> ValueKind.LIST
                 }

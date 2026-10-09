@@ -20,6 +20,265 @@ import kotlin.test.assertFailsWith
 
 class StructuredBytecodeCompilerTest {
     @Test
+    fun `unsupported prohibition is rejected rather than silently ignored`() {
+        val source = "वाचन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+            "न शून्य + अम् राम + अम् शून्य + अम् ।\n" +
+            "एक + अम् मुद्र् + णिच् + लोट् + सिप् ॥\n" +
+            "वाचन + टा डुकृञ् + उ + लोट् + सिप् ।"
+        assertEquals(dev.panini.execution.ExecutionError.INVALID_VALUE,
+            (PaniniVM().evalScript(source).last() as ExecutionResult.Failure).error)
+        assertTrue(assertFailsWith<IllegalArgumentException> {
+            BytecodeCompiler.compile(source, "RejectedUnsupportedProhibition")
+        }.message.orEmpty().contains("Unsupported procedure prohibition"))
+    }
+
+    @Test
+    fun `assignment and lookup keep derived referents separate from base names`() {
+        for ((index, suffix) in listOf("मतुप्", "तरप्", "टाप्").withIndex()) {
+            val source = "नवन् + शस् मान + ङे दा + लोट् + सिप् ।\n" +
+                "एक + अम् मान + $suffix + ङे दा + लोट् + सिप् ।\n" +
+                "द्वि + औट् मान + $suffix + ङे दा + लोट् + सिप् ।\n" +
+                "मान + $suffix + अम् मुद्र् + णिच् + लोट् + सिप् ।\n" +
+                "मान + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+            val results = PaniniVM().evalScript(source)
+            assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
+            assertEquals("द्वि", (results[3] as ExecutionResult.Success).value)
+            assertEquals("नवन्", (results.last() as ExecutionResult.Success).value)
+            val compiled = compileAndInspect(source, "CompiledDerivedReferent$index")
+            assertEquals(9L, (compiled.values.getValue("मान") as SanskritValue.Sankhya).value)
+            assertEquals(2L, (compiled.values.getValue("मान + $suffix") as SanskritValue.Sankhya).value)
+            assertEquals((results.last() as ExecutionResult.Success).value,
+                compiled.values.getValue("LastResult").toDisplayText())
+        }
+    }
+
+    @Test
+    fun `nested procedure prohibition compares resolved parameter values`() {
+        for ((index, second) in listOf("एक", "द्वि").withIndex()) {
+            val source = "वाचन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+                "पूर्व + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+                "उत्तर + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+                "न पूर्व + अम् उत्तर + अम् ।\n" +
+                "पूर्व + अम् मुद्र् + णिच् + लोट् + सिप् ॥\n" +
+                "प्रेषण + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+                "आदि + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+                "अन्त + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+                "आदि + अम् अन्त + अम् च वाचन + टा डुकृञ् + उ + लोट् + सिप् ॥\n" +
+                "एक + अम् निवेश + ङे दा + लोट् + सिप् ।\n" +
+                "$second + अम् मान + ङे दा + लोट् + सिप् ।\n" +
+                "निवेश + अम् मान + अम् च प्रेषण + टा डुकृञ् + उ + लोट् + सिप् ।"
+            val result = PaniniVM().evalScript(source).last()
+            if (index == 0) {
+                assertEquals(dev.panini.execution.ExecutionError.ACTION_FAILED, (result as ExecutionResult.Failure).error)
+                val failure = assertFailsWith<InvocationTargetException> {
+                    compileAndInspect(source, "CompiledNestedProhibition$index")
+                }
+                assertEquals(dev.panini.execution.ExecutionError.ACTION_FAILED,
+                    (failure.cause as CompiledPaniniExecutionException).error)
+            } else assertEquals((result as ExecutionResult.Success).value,
+                compileAndInspect(source, "CompiledNestedProhibition$index").values.getValue("LastResult").toDisplayText())
+        }
+    }
+
+    @Test
+    fun `numeric prohibition checks named runtime values before procedure body`() {
+        for ((index, number) in listOf("शून्य", "एक").withIndex()) {
+            val source = "वाचन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+                "मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+                "न मान + अम् शून्य + अम् ।\n" +
+                "मान + अम् मुद्र् + णिच् + लोट् + सिप् ॥\n" +
+                "$number + अम् निवेश + ङे दा + लोट् + सिप् ।\n" +
+                "निवेश + अम् वाचन + टा डुकृञ् + उ + लोट् + सिप् ।"
+            val interpreted = PaniniVM().evalScript(source).last()
+            if (index == 0) {
+                assertEquals(dev.panini.execution.ExecutionError.ACTION_FAILED,
+                    (interpreted as ExecutionResult.Failure).error)
+                val failure = assertFailsWith<InvocationTargetException> {
+                    compileAndInspect(source, "CompiledDynamicProhibition$index")
+                }
+                assertEquals(dev.panini.execution.ExecutionError.ACTION_FAILED,
+                    (failure.cause as CompiledPaniniExecutionException).error)
+            } else {
+                assertEquals((interpreted as ExecutionResult.Success).value,
+                    compileAndInspect(source, "CompiledDynamicProhibition$index")
+                        .values.getValue("LastResult").toDisplayText())
+            }
+        }
+    }
+
+    @Test
+    fun `procedure prior action member role and same named display argument have parity`() {
+        for ((index, specification) in listOf(
+            "अन्तिम" to "मान + ङस् अन्तिम + अम् उद् + हृ + ल्यप्",
+            "सङ्ख्या" to "मान + ङस् सङ्ख्या + शस् युज् + णिच् + क्त्वा",
+        ).withIndex()) {
+            val (name, prior) = specification
+            val source = "वाचन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+                "मान + सुँ सूची + सुँ इति मान + सुँ ।\n" +
+                "$name + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+                "$prior $name + अम् मुद्र् + णिच् + लोट् + सिप् ॥\n" +
+                "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।\n" +
+                "सूची + अम् नवन् + शस् च वाचन + टा डुकृञ् + उ + लोट् + सिप् ।"
+            val results = PaniniVM().evalScript(source)
+            assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
+            assertEquals("नवन्", (results.last() as ExecutionResult.Success).value)
+            assertEquals("नवन्", compileAndInspect(source, "CompiledMemberRoleParameter$index")
+                .values.getValue("LastResult").toDisplayText())
+        }
+    }
+
+    @Test
+    fun `single scalar cannot masquerade as a declared list parameter`() {
+        val source = "योजन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+            "मान + सुँ सूची + सुँ इति मान + सुँ ।\n" +
+            "मान + ङस् सङ्ख्या + शस् युज् + णिच् + लोट् + सिप् ॥\n" +
+            "एक + अम् योजन + टा डुकृञ् + उ + लोट् + सिप् ।"
+        assertTrue(PaniniVM().evalScript(source).last() is ExecutionResult.Failure)
+        assertFailsWith<InvocationTargetException> {
+            compileAndInspect(source, "CompiledInvalidScalarListParameter")
+        }
+    }
+
+    @Test
+    fun `typed procedure list parameter uses natural member sum rather than reserved slot`() {
+        val source = "योजन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+            "मान + सुँ सूची + सुँ इति मान + सुँ ।\n" +
+            "सङ्ख्या + सुँ इति परिणाम + सुँ ।\n" +
+            "मान + ङस् सङ्ख्या + शस् युज् + णिच् + लोट् + सिप् ॥\n" +
+            "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।\n" +
+            "सूची + अम् योजन + टा डुकृञ् + उ + लोट् + सिप् ।"
+        val results = PaniniVM().evalScript(source)
+        assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
+        assertEquals(6L, (compileAndInspect(source, "CompiledListParameterMemberSum")
+            .values.getValue("LastResult") as SanskritValue.Sankhya).value)
+    }
+
+    @Test
+    fun `nonfinite member sum prints through shared typed collection lowering`() {
+        val source = "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।\n" +
+            "सूची + ङस् सङ्ख्या + शस् युज् + णिच् + क्त्वा मुद्र् + णिच् + लोट् + सिप् ।"
+        val results = PaniniVM().evalScript(source)
+        assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
+        assertEquals((results.last() as ExecutionResult.Success).value,
+            compileAndInspect(source, "CompiledNonfiniteMemberSum").values.getValue("LastResult").toDisplayText())
+    }
+
+    @Test
+    fun `genitive list number members sum through typed collection IR`() {
+        for ((index, phrase) in listOf("सूची + ङस् सङ्ख्या + शस्", "सङ्ख्या + शस् सूची + ङस्").withIndex()) {
+            val source = "एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।\n" +
+                "$phrase युज् + णिच् + लोट् + सिप् ।"
+            assertEquals(6L, (compileAndInspect(source, "CompiledMemberSum$index")
+                .values.getValue("LastResult") as SanskritValue.Sankhya).value)
+        }
+    }
+
+    @Test
+    fun `compiled derived truth subject cannot read plain base state`() {
+        val source = "सत्य + अम् विजय + ङे दा + लोट् + सिप् ।\n" +
+            "यदि विजय + मतुप् + सुँ भू + लट् + तिप् तर्हि " +
+            "एक + अम् मुद्र् + णिच् + लोट् + सिप् अन्यथा " +
+            "द्वि + औट् मुद्र् + णिच् + लोट् + सिप् ।"
+        val failure = assertFailsWith<InvocationTargetException> {
+            compileAndInspect(source, "CompiledDistinctDerivedTruthSubject")
+        }
+        assertTrue(failure.cause?.message.orEmpty().contains("विजय"), failure.cause.toString())
+    }
+
+    @Test
+    fun `derived truth branch remains a nominal rather than a boolean`() {
+        for ((index, affix) in listOf("मतुप्", "तरप्").withIndex()) {
+            val source = "यदि एक + सुँ एक + टा सम + सुँ असँ + लट् + तिप् तर्हि " +
+                "सत्य + $affix + अम् मुद्र् + णिच् + लोट् + सिप् अन्यथा " +
+                "असत्य + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+            val results = PaniniVM().evalScript(source)
+            assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
+            val compiled = compileAndInspect(source, "CompiledDerivedTruth$index").values.getValue("LastResult")
+            assertTrue(compiled is SanskritValue.Shabda, compiled.toString())
+            assertEquals((results.last() as ExecutionResult.Success).value, compiled.toDisplayText())
+        }
+    }
+
+    @Test
+    fun `named list example with nonfinite extraction has backend parity`() {
+        val source = File("examples/collections/named_list_declaration.pvm").readText()
+        val results = PaniniVM().evalScript(source)
+        assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
+        assertEquals((results.last() as ExecutionResult.Success).value,
+            compileAndInspect(source, "CompiledNamedListExample").values.getValue("LastResult").toDisplayText())
+    }
+
+    @Test
+    fun `compiled nonfinite extraction preserves selector morphology`() {
+        for (selector in listOf("अन्तिम + मतुप् + अम्", "अन्तिम + तरप् + अम्", "अन्तिम + शस्")) {
+            assertFailsWith<IllegalArgumentException>(selector) {
+                CompilerFrontend.lower(
+                    "सूची + ङस् $selector उद् + हृ + ल्यप् मुद्र् + णिच् + लोट् + सिप् ।",
+                    "InvalidNonfiniteFinalMember")
+            }
+        }
+        val source = "एक + ङस् द्वि + ओस् च सूची + सुँ असँ + लट् + तिप् ।\n" +
+            "सूची + ङस् अन्तिम + अम् उद् + हृ + ल्यप् मुद्र् + णिच् + लोट् + सिप् ।"
+        assertEquals("द्वि", compileAndInspect(source, "CompiledNonfiniteFinalMember")
+            .values.getValue("LastResult").toDisplayText())
+    }
+
+    @Test
+    fun `compiler preserves final member selector morphology`() {
+        for (selector in listOf("अन्तिम + मतुप् + अम्", "अन्तिम + तरप् + अम्",
+            "अन्तिम + टाप् + अम्", "अन्तिम + शस्", "अन्तिम + अम् अन्तिम + अम्")) {
+            assertFailsWith<IllegalArgumentException>(selector) {
+                CompilerFrontend.lower("सूची + ङस् $selector उद् + हृ + लोट् + सिप् ।",
+                    "InvalidFinalMemberMorphology")
+            }
+        }
+        for ((index, phrase) in listOf("सूची + ङस् अन्तिम + अम्", "अन्तिम + अम् सूची + ङस्").withIndex()) {
+            val source = "एक + ङस् द्वि + ओस् च सूची + सुँ असँ + लट् + तिप् ।\n" +
+                "$phrase उद् + हृ + लोट् + सिप् ।"
+            assertEquals(2L, (compileAndInspect(source, "CompiledFinalMemberOrder$index")
+                .values.getValue("LastResult") as SanskritValue.Sankhya).value)
+        }
+    }
+
+    @Test
+    fun `compiler rejects derived purva rather than selecting previous history`() {
+        for (affix in listOf("तरप्", "मतुप्")) {
+            val source = "एक + अम् द्वि + अम् च युज् + लोट् + सिप् ।\n" +
+                "त्रि + अम् चतुर् + अम् च युज् + लोट् + सिप् ।\n" +
+                "युज् + ल्युट् + ङस् पूर्व + $affix + अम् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+            assertFailsWith<IllegalArgumentException>(affix) {
+                CompilerFrontend.lower(source, "InvalidDerivedPreviousSelector")
+            }
+        }
+    }
+
+    @Test
+    fun `compiler cannot erase affixes from an ordinal value object`() {
+        for (affix in listOf("मतुप्", "तरप्", "टाप्")) {
+            val source = "एक + ङस् सूची + सुँ असँ + लट् + तिप् ।\n" +
+                "सूची + ङस् प्रथम + अम् मूल्य + $affix + अम् ग्रहँ + श्ना + लोट् + सिप् ।"
+            assertFailsWith<IllegalArgumentException>(affix) {
+                CompilerFrontend.lower(source, "InvalidDerivedOrdinalObject")
+            }
+        }
+    }
+
+    @Test
+    fun `nama procedure declaration executes like iti in both backends`() {
+        for ((index, marker) in listOf("नाम", "इति").withIndex()) {
+            val source = "गणन + सुँ $marker प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+                "मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।\n" +
+                "मान + अम् मुद्र् + णिच् + लोट् + सिप् ॥\n" +
+                "नवन् + शस् गणन + टा डुकृञ् + उ + लोट् + सिप् ।"
+            val results = PaniniVM().evalScript(source)
+            assertTrue(results.all { it is ExecutionResult.Success }, results.toString())
+            val compiled = compileAndInspect(source, "CompiledNamaProcedure$index")
+            assertEquals((results.last() as ExecutionResult.Success).value,
+                compiled.values.getValue("LastResult").toDisplayText())
+        }
+    }
+
+    @Test
     fun `compiler cannot reinterpret derived list nouns as plain declarations`() {
         for (source in listOf(
             "एक + ङस् सूची + मतुप् + सुँ असँ + लट् + तिप् ।",
@@ -1899,8 +2158,7 @@ class StructuredBytecodeCompilerTest {
         val wrongType = """
             गण + ल्युट् + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
             मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
-            सङ्ख्या + सुँ इति परिणाम + सुँ ।
-            मान + अम् द्वि + अम् च गुण् + णिच् + लोट् + सिप् ॥
+            मान + अम् मुद्र् + णिच् + लोट् + सिप् ॥
             राम + अम् गण + ल्युट् + टा डुकृञ् + उ + लोट् + सिप् ।
         """.trimIndent()
         val prohibited = """
@@ -1910,14 +2168,15 @@ class StructuredBytecodeCompilerTest {
             दश + अम् शून्य + अम् च विभाज् + ल्युट् + टा कृ + लोट् + सिप् ।
         """.trimIndent()
 
-        val typeFailure = assertFailsWith<IllegalArgumentException> {
-            BytecodeCompiler.compile(wrongType, "RejectedCompiledType")
+        val typeFailure = assertFailsWith<InvocationTargetException> {
+            compileAndInspect(wrongType, "RejectedCompiledType")
         }
         val prohibitionFailure = assertFailsWith<IllegalArgumentException> {
             BytecodeCompiler.compile(prohibited, "RejectedCompiledProhibition")
         }
 
-        assertTrue(typeFailure.message.orEmpty().contains("मानप्रकार"))
+        assertEquals(dev.panini.execution.ExecutionError.INVALID_VALUE,
+            (typeFailure.cause as CompiledPaniniExecutionException).error)
         assertTrue(prohibitionFailure.message.orEmpty().contains("निषेध-प्रतिषेध"))
     }
 

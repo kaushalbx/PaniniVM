@@ -14,6 +14,30 @@ import kotlin.test.assertIs
 
 class TypedOperandBindingTest {
     @Test
+    fun `derived nouns use morphology retaining reference keys`() {
+        val parser = dev.panini.vyakaranam.parser.PaniniParser()
+        for (stem in listOf("मान", "युज् + ल्युट्")) {
+            val plain = parser.parse("$stem + अम् मुद्र् + णिच् + लोट् + सिप् ।")
+                .grammaticalVakyas().single().padas.filterIsInstance<dev.panini.vyakaranam.ast.SubantaPada>().single()
+            val value = SanskritValue.Sankhya(6, "षट्")
+            for (suffix in listOf("मतुप्", "तरप्", "टाप्")) {
+                val source = "$stem + $suffix + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+                val derived = parser.parse(source).grammaticalVakyas().single().padas
+                    .filterIsInstance<dev.panini.vyakaranam.ast.SubantaPada>().single()
+                kotlin.test.assertNotEquals(plain.pratipadika.referenceKey(), derived.pratipadika.referenceKey())
+                fun bind(environment: ValueEnvironment) = assertIs<ExecutionBindingResult.Bound>(
+                    VyakaranamExecutionAdapter.bind(SanskritUktiInput("प्रयोक्ता", "यन्त्रम्", source),
+                        SambhashanaContext("प्रयोक्ता", "यन्त्रम्"), environment = environment))
+                    .ukti.invocations.single().bindings.getValue(Karaka.KARMAN)
+                kotlin.test.assertFalse(bind(ValueEnvironment(mapOf(plain.pratipadika.referenceKey() to value)))
+                    is ExecutionExpression.TypedOperand)
+                assertEquals(value, assertIs<ExecutionExpression.TypedOperand>(bind(
+                    ValueEnvironment(mapOf(derived.pratipadika.referenceKey() to value)))).value)
+            }
+        }
+    }
+
+    @Test
     fun `coordination cannot union different member roles into one operand`() {
         val parser = dev.panini.vyakaranam.parser.PaniniParser()
         val members = listOf("मूल्य + अम् ।", "राम + ङे ।").map { source ->

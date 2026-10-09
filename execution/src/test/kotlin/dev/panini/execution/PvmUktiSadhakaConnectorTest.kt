@@ -7,6 +7,16 @@ import kotlin.test.assertTrue
 
 class PvmUktiSadhakaConnectorTest {
     @Test
+    fun `prefixed nonfinite rendering preserves an optional h assimilation branch`() {
+        val rendered = PvmUktiSadhaka().sadhayaLine(
+            "सूची + ङस् अन्तिम + अम् उद् + हृ + ल्यप् मुद्र् + णिच् + लोट् + सिप् ।",
+        )
+        assertTrue(rendered.contains("उद्हृत्य") || rendered.contains("उद्धृत्य"), rendered)
+        assertFalse(rendered.contains("ल्यप्"), rendered)
+        assertEquals("उद्धृत्य", dev.panini.derivation.SandhiEngine().joinPrefix("उद्", "हृत्य"))
+    }
+
+    @Test
     fun `lexical ordinal renders as an adjective rather than a cardinal`() {
         val renderer = PvmUktiSadhaka()
         assertEquals("प्रथमे ।", renderer.sadhayaLine("प्रथम + ङि ।"))

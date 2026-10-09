@@ -5,7 +5,7 @@
 # next instruction, while the unbounded यावत् loop supplies repeated execution.
 
 # INC(C2); goto instruction 2.
-वर्धनम् इति प्रक्रिया अस्ति ।
+वर्धनं नाम प्रक्रिया अस्ति ।
 योगम् एकं च योजय ततः फलं योगे स्थापय ।
 द्वे अवस्थायां स्थापय ॥
 

@@ -53,6 +53,10 @@ Derivation is not transparent to ordinal meaning: for example, a parsed
 `प्रथम + तरप्` is not automatically the numeric position one. Shared binding
 retains the derived nominal rather than erasing its affix and using the base
 stem's rank. Feminine formation preserves rank but remains subject to agreement.
+The object head also retains its derivation: `मूल्य + मतुप्`,
+`मूल्य + तरप्`, and `मूल्य + टाप्` are not silently projected onto the plain
+neuter मूल्य retrieval frame. This is a semantic eligibility boundary, not a
+claim that every derived form is grammatically invalid Sanskrit.
 
 Remaining implementation work:
 
@@ -60,6 +64,13 @@ Remaining implementation work:
   including lexical gender and ambiguous modifier attachment.
 - Decide and document the verbal valency of `ग्रह्` and `उद् + हृ` for this
   construction; the latter currently permits only the final member.
+
+The supported substantival `अन्तिम + अम्` extraction phrase now has a shared
+AST-level morphology guard: a single underived singular accusative selector is
+required, independently of nominal word order. Derived or plural forms no
+longer reach the plain final-member path after their morphology is erased.
+The runtime's later spelling-based selector check remains a compatibility
+boundary, not a complete typed member relation or a valency justification.
 
 The renderer now preserves lexical ordinals instead of converting their numeric
 reference into a cardinal stem. This repairs `प्रथम + ङि` → `प्रथमे`, but does

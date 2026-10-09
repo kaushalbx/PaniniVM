@@ -17,12 +17,14 @@ data class PrakriyaCallFrame(
             invocation: PrakriyaInvocation,
             resolvedArguments: List<ResolvedPrakriyaArgument>,
             callerScope: ExecutionScope,
+            resolveValue: (String) -> SanskritValue? = { null },
         ): PrakriyaCallFrame {
             val values = resolvedArguments.map { resolved ->
                 val argument = resolved.argument
                 val referenceName = resolved.referenceName
                 argument.value
                     ?: callerScope.environment.values[referenceName]
+                    ?: resolveValue(referenceName)
                     ?: argument.pada?.let(NumeralPadaBinder::resolveSemanticValue)
                     ?: runCatching { sankhyaEvaluator.evaluateStems(listOf(referenceName)) }
                         .getOrNull()?.let { SanskritValue.Sankhya(it.value, referenceName) }

@@ -20,6 +20,7 @@ class NativeExecutionParityTest {
             "examples/collections/numeric_list_declaration.pvm",
             "examples/collections/word_list_declaration.pvm",
             "examples/collections/named_list_declaration.pvm",
+            "examples/collections/member_sum.pvm",
             "examples/arithmetic/factorial.pvm",
             "examples/algorithms/fibonacci.pvm",
             "projects/taddhita_inheritance/nested_genitive_struct.pvm",

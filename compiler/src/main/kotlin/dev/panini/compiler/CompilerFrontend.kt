@@ -266,6 +266,7 @@ internal object CompilerFrontend {
             piped: Boolean = false,
             allowDirectStore: Boolean = false,
         ): List<CompilerInstruction> {
+            dev.panini.execution.CollectionMemberMorphology.validate(node)
             dev.panini.execution.ListDeclarationLowering.expand(node)?.let { return lowerSequence(it, null) }
             dev.panini.execution.OrdinalObjectLowering.expand(node)?.let { return lowerSequence(it, null) }
             dev.panini.execution.PriorActionLowering.expand(node)?.let { return lowerSequence(it, null) }
@@ -429,10 +430,23 @@ internal object CompilerFrontend {
                     arguments.forEachIndexed { index, argument ->
                         add(lowerCallArgument(argument, invocation.argumentValues.getOrNull(index)))
                     }
-                    add(CompilerInstruction.BuildList(arguments.size))
+                    if (arguments.size != 1) add(CompilerInstruction.BuildList(arguments.size))
                 } else {
                     arguments.take(parameterNames.size).forEachIndexed { index, argument ->
                         add(lowerCallArgument(argument, invocation.argumentValues.getOrNull(index)))
+                    }
+                }
+                invocation.kriya.nishedhaGuards.forEach { guard ->
+                    NishedhaGuardEvaluator.numericProhibition(guard, signature.parameters, arguments.size)?.let { prohibition ->
+                        fun operand(value: NishedhaGuardEvaluator.NumericOperand): CompilerInstruction = when (value) {
+                            is NishedhaGuardEvaluator.NumericOperand.Argument -> lowerCallArgument(
+                                arguments[value.index], invocation.argumentValues.getOrNull(value.index))
+                            is NishedhaGuardEvaluator.NumericOperand.Literal -> CompilerInstruction.Constant(
+                                dev.panini.execution.SanskritValue.Sankhya(value.value, value.value.toString()))
+                        }
+                        add(operand(prohibition.left))
+                        add(operand(prohibition.right))
+                        add(CompilerInstruction.CheckNumericProhibition)
                     }
                 }
                 add(CompilerInstruction.EnterFrame(parameterNames, parameterKinds))
@@ -662,13 +676,8 @@ internal object CompilerFrontend {
                         ?: return null
                     val value = when (pratipadika) {
                         is SankhyaPratipadika -> pratipadika.semanticValue
-                        is MulaPratipadika -> when (pratipadika.lexicalIdentity) {
-                            MulaPratipadikaIdentity.SATYA ->
-                                dev.panini.execution.SanskritValue.Satya(true, pratipadika.text)
-                            MulaPratipadikaIdentity.ASATYA ->
-                                dev.panini.execution.SanskritValue.Satya(false, pratipadika.text)
-                            else -> dev.panini.execution.SanskritValue.Shabda(pratipadika.semanticKey())
-                        }
+                        is MulaPratipadika -> dev.panini.execution.nominalTruthValue(pratipadika)
+                            ?: dev.panini.execution.SanskritValue.Shabda(pratipadika.semanticKey())
                         else -> dev.panini.execution.SanskritValue.Shabda(pratipadika.semanticKey())
                     }
                     listOf(
@@ -823,13 +832,22 @@ internal object CompilerFrontend {
             }
             signature.parameters.zip(arguments).takeUnless { acceptsCollection }.orEmpty()
                 .forEachIndexed { index, (parameter, argument) ->
-                val actual = invocation.argumentValues.getOrNull(index)?.let(PrakriyaValueClassifier::classifyValue)
-                    ?: PrakriyaValueClassifier.classifyTerm(argument)
-                require(resolvedArguments[index].isPriorResult || actual == parameter.type) {
+                val suppliedValue = resolvedArguments[index].argument.value ?: invocation.argumentValues.getOrNull(index)
+                // An unresolved nominal can name a runtime collection or record;
+                // its spelling is not evidence that the argument has word type.
+                // ResolveArgument and EnterFrame enforce the actual value type.
+                val actual = suppliedValue?.let(PrakriyaValueClassifier::classifyValue)
+                    ?: PrakriyaValueClassifier.classifyTerm(argument).takeIf { it == PrakriyaValueType.SANKHYA }
+                require(resolvedArguments[index].isPriorResult || actual == null || actual == parameter.type) {
                     dev.panini.execution.PrakriyaDiagnostics.parameterType(parameter)
                 }
             }
             invocation.kriya.nishedhaGuards.forEach { guard ->
+                require(NishedhaGuardEvaluator.numericProhibition(guard, signature.parameters,
+                    resolvedArguments.size) != null ||
+                    dev.panini.execution.PrakriyaSignatureCompiler.inferGuardType(guard) != null) {
+                    "Unsupported procedure prohibition: '${guard.text.trim()}'"
+                }
                 val prohibited = NishedhaGuardEvaluator.isProhibitedResolved(
                     guard,
                     signature.parameters,

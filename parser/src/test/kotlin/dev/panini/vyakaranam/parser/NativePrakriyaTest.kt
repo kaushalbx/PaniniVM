@@ -8,6 +8,29 @@ import kotlin.test.assertIs
 
 class NativePrakriyaTest {
     private val parser = PaniniParser()
+    @Test
+    fun `nama and iti introduce the same native procedure identity`() {
+        for (marker in listOf("नाम", "इति")) {
+            val header = "गणन + सुँ $marker प्रक्रिया + सुँ असँ + लट् + तिप्"
+            val source = "$header ।\nएक + अम् मुद्र् + णिच् + लोट् + सिप् ॥"
+            val document = parser.parseDocument(source)
+            val procedure = assertIs<Prakriya>(document.items.single())
+            assertEquals("गणन", procedure.nameIdentity)
+            assertEquals(1, procedure.body.size)
+            val span = document.prakriyaHeaderSpans.getValue(0)
+            assertEquals(header, source.substring(span.start, span.endExclusive))
+        }
+    }
+
+    @Test
+    fun `nama procedure still requires nominative name and an asti declaration`() {
+        for (header in listOf(
+            "गणन + अम् नाम प्रक्रिया + सुँ असँ + लट् + तिप्",
+            "गणन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तस्",
+        )) assertFailsWith<IllegalArgumentException> {
+            parser.parseDocument("$header ।\nएक + अम् मुद्र् + णिच् + लोट् + सिप् ॥")
+        }
+    }
 
     @Test
     fun `double danda terminates ordinary passages without creating a procedure`() {

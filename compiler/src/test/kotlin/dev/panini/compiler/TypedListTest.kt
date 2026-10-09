@@ -6,6 +6,31 @@ import dev.panini.execution.sutra.ProgramSutraArthaCodec
 import kotlin.test.*
 
 class TypedListTest {
+    @Test
+    fun `natural number member sum requires a list whole`() {
+        val number = SanskritValue.Sankhya(1, "एक")
+        assertEquals(1L, assertIs<SanskritValue.Sankhya>(
+            CompilerValueOperations.listNumberMemberSum(SanskritValue.Suchi(listOf(number)))).value)
+        assertEquals(dev.panini.execution.ExecutionError.INVALID_VALUE,
+            assertFailsWith<CompiledPaniniExecutionException> {
+                CompilerValueOperations.listNumberMemberSum(SanskritValue.Gana(listOf(number)))
+            }.error)
+        assertEquals(1L, assertIs<SanskritValue.Sankhya>(
+            CompilerValueOperations.listSum(SanskritValue.Gana(listOf(number)))).value)
+    }
+
+    @Test
+    fun `sum checks empty declared type nesting and overflow`() {
+        assertEquals(0L, assertIs<SanskritValue.Sankhya>(CompilerValueOperations.listSum(
+            SanskritValue.Suchi(emptyList(), ListMemberType.NUMBER))).value)
+        for (value in listOf(
+            SanskritValue.Suchi(emptyList(), ListMemberType.TEXT),
+            SanskritValue.Suchi(listOf(SanskritValue.Suchi(emptyList()))),
+            SanskritValue.Suchi(listOf(SanskritValue.Sankhya(Long.MAX_VALUE, "maximum"), SanskritValue.Sankhya(1, "एक"))),
+        )) assertEquals(dev.panini.execution.ExecutionError.INVALID_VALUE,
+            assertFailsWith<CompiledPaniniExecutionException> { CompilerValueOperations.listSum(value) }.error)
+    }
+
     private val numeric = SanskritValue.Suchi(listOf(SanskritValue.Sankhya(1, "एक")), ListMemberType.NUMBER)
 
     @Test

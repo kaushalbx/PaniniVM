@@ -48,6 +48,7 @@ object ProgramSutraArthaCodec {
                     SutraArthaValue.Sequence(expression.samjnas.map(::encodeSamjna)),
                 )
                 expression.value?.let { put("value", encodeValue(it)) }
+                expression.memberSelection?.let { put("memberSelection", SutraArthaValue.Symbol(it.name)) }
             },
         )
         is ExecutionExpression.Coordination -> SutraArthaValue.Record(
@@ -81,6 +82,8 @@ object ProgramSutraArthaCodec {
                 prakriti = fields.text("prakriti"),
                 samjnas = fields.sequence("samjnas").mapTo(linkedSetOf(), ::decodeSamjna),
                 value = fields["value"]?.let(::decodeValue),
+                memberSelection = (fields["memberSelection"] as? SutraArthaValue.Symbol)?.name
+                    ?.let(dev.panini.execution.CollectionMemberSelection::valueOf),
             )
             "coordination" -> ExecutionExpression.Coordination(
                 fields.sequence("members").map(::decodeExpression),

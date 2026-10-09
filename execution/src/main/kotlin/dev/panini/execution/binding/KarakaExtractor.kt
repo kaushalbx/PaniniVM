@@ -118,9 +118,17 @@ internal object KarakaExtractor {
 
         fun add(subanta: SubantaPada, overridePhalaId: String? = null) {
             val phalaId = overridePhalaId ?: phalaResolution.phalaMap[subanta]
+            val candidates = inferKarakas(subanta)
+            val collectionMemberFrame = candidates == setOf(Karaka.KARMAN) &&
+                ctx.dhatu.operations.any { it.name in setOf("सङ्ख्यायोजनम्", "सूच्युद्धरणम्") } &&
+                subantas.any {
+                    it.sup.text == SupAffix.NGAS.upadesha &&
+                        it !in phalaResolution.resolvedGenitives &&
+                        it !in karakaReferenceResolution.consumedGenitives
+                }
             addBinding(
-                ExpressionBuilder.build(subanta, ctx, phalaId),
-                inferKarakas(subanta),
+                ExpressionBuilder.build(subanta, ctx, phalaId, collectionMemberFrame),
+                candidates,
             )
         }
 

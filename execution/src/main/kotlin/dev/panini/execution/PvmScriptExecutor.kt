@@ -387,6 +387,7 @@ internal class PvmScriptExecutor(private val vm: PaniniVM) {
             scope = context.scope,
             registry = context.registry,
             callerSourceFile = context.sourceFile,
+            resolveValue = { vm.runtimeValue(context.sessionKey, it) },
             executeBody = { program, scope, sourceFile ->
                 executeProgramNode(
                     program,

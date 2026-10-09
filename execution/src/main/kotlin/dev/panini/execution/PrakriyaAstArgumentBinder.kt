@@ -1,6 +1,7 @@
 package dev.panini.execution
 
 import dev.panini.execution.binding.NumeralPadaBinder
+import dev.panini.execution.binding.hasAdditionalDerivation
 import dev.panini.vyakaranam.ast.AkhyataVakya
 import dev.panini.vyakaranam.ast.Conditional
 import dev.panini.vyakaranam.ast.Invocation
@@ -32,7 +33,8 @@ object PrakriyaAstArgumentBinder {
                 ?.takeIf { it in 1L..argumentCount.toLong() }?.let { (it - 1).toInt() }
         fun parameterIndex(pada: SubantaPada): Int? {
             val stem = pada.pratipadika.semanticKey()
-            return names[stem] ?: ordinalIndex(pada)
+            val named = names[stem].takeUnless { pada.pratipadika.hasAdditionalDerivation() }
+            return named ?: ordinalIndex(pada)
         }
         fun reference(pada: SubantaPada, index: Int): SubantaPada {
             val key = referenceKey(index)
@@ -67,9 +69,11 @@ object PrakriyaAstArgumentBinder {
                 index?.let { reference(pada, it) } ?: pada
             }
             is SubantaPada -> {
+                val nominal = pada.pratipadika as? MulaPratipadika
                 if (
-                    (pada.pratipadika as? MulaPratipadika)?.lexicalIdentity ==
-                    MulaPratipadikaIdentity.SAMAVAYA && argumentCount > 0
+                    nominal?.lexicalIdentity == MulaPratipadikaIdentity.SAMAVAYA &&
+                    nominal.vikaras.isEmpty() && pada.sup.text == dev.panini.core.SupAffix.AM.upadesha &&
+                    pada.pratipadika.semanticKey() !in names && argumentCount > 0
                 ) {
                     val members = (0 until argumentCount).map { reference(pada, it) }
                     SamuccitaSubanta(members.joinToString(" ") { it.sourceText }, members)
@@ -89,6 +93,7 @@ object PrakriyaAstArgumentBinder {
             // An ordinal modifying a named फल or kāraka selects discourse history, not
             // the corresponding procedure parameter. Preserve that whole relation.
             val protected = java.util.Collections.newSetFromMap(java.util.IdentityHashMap<Pada, Boolean>())
+            protected.addAll(CollectionMemberMorphology.protectedPadas(originalPadas))
             protected.addAll(dev.panini.execution.binding.KarakaReferenceResolver.protectedPadas(originalPadas))
             dev.panini.execution.binding.NamedActionResultReferenceResolver.resolve(originalPadas).forEach { reference ->
                 protected.add(reference.result)

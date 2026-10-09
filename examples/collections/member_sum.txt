@@ -1,0 +1,3 @@
+# Add the number members belonging to the list; do not implicitly flatten list arguments.
+एकस्य द्वयोः त्रयाणां च सङ्ख्यानां सूची अस्ति ।
+सूच्याः सङ्ख्याः योजयित्वा मुद्रय ।

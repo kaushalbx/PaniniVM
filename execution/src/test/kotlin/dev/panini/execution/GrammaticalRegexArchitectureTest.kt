@@ -244,8 +244,12 @@ class GrammaticalRegexArchitectureTest {
             "execution/src/main/kotlin/dev/panini/execution/binding/ExpressionBuilder.kt",
         ).readText()
         assertFalse("when (baseText)" in expressionBuilder)
-        assertTrue("MulaPratipadikaIdentity.SATYA" in expressionBuilder)
-        assertTrue("MulaPratipadikaIdentity.ASATYA" in expressionBuilder)
+        assertTrue("nominalTruthValue(normalized.pratipadika)" in expressionBuilder)
+        val truthValue = File(repository,
+            "execution/src/main/kotlin/dev/panini/execution/NominalTruthValue.kt").readText()
+        assertTrue("MulaPratipadikaIdentity.SATYA" in truthValue)
+        assertTrue("MulaPratipadikaIdentity.ASATYA" in truthValue)
+        assertTrue("nominal.vikaras.isNotEmpty()" in truthValue)
         assertTrue("SvamRupamEngine.evaluate(normalized.pratipadika)" in expressionBuilder)
 
         val svamRupamEngine = File(
@@ -444,8 +448,7 @@ class GrammaticalRegexArchitectureTest {
         }
 
         assertFalse("setOf(\"सत्य\", \"असत्य\")" in leafPlanner)
-        assertTrue("MulaPratipadikaIdentity.SATYA" in leafPlanner)
-        assertTrue("MulaPratipadikaIdentity.ASATYA" in leafPlanner)
+        assertTrue("nominalTruthValue(pada.pratipadika)" in leafPlanner)
         assertFalse("it.sup.text in setOf" in leafPlanner)
         assertTrue("pada.vibhakti() == Vibhakti.DVITIYA" in leafPlanner)
         assertTrue("isCopularOrderParticipant(parsedUkti, pada)" in leafPlanner)

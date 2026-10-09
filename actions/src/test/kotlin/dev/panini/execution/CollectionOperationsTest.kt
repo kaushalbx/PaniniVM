@@ -12,6 +12,22 @@ import kotlin.test.assertTrue
 
 class CollectionOperationsTest {
     @Test
+    fun `member sum checks empty declared type nesting and overflow`() {
+        val operation = dev.panini.actions.numeric.AdditionAction.numericOp()
+        fun execute(value: SanskritValue): ExecutionResult = operation.action.execute(ExecutionContext(bindings = mapOf(
+            Karaka.KARMAN to ExecutionExpression.Pada("सङ्ख्या", memberSelection = CollectionMemberSelection.NUMBERS),
+            Karaka.SAMBANDHA to ExecutionExpression.TypedOperand(value, dev.panini.core.SupAffix.NGAS),
+        )), operation)
+        assertEquals(0L, assertIs<SanskritValue.Sankhya>(assertIs<ExecutionResult.Success>(execute(
+            SanskritValue.Suchi(emptyList(), ListMemberType.NUMBER))).typedValue).value)
+        for (value in listOf(
+            SanskritValue.Suchi(emptyList(), ListMemberType.TEXT),
+            SanskritValue.Suchi(listOf(SanskritValue.Suchi(emptyList()))),
+            SanskritValue.Suchi(listOf(SanskritValue.Sankhya(Long.MAX_VALUE, "maximum"), SanskritValue.Sankhya(1, "एक"))),
+        )) assertEquals(ExecutionError.INVALID_VALUE, assertIs<ExecutionResult.Failure>(execute(value)).error)
+    }
+
+    @Test
     fun `joining does not mistake partly resolved coordination for one collection`() {
         val operation = dev.panini.actions.collection.ListConcatAction.op()
         val whole = ExecutionExpression.TypedOperand(SanskritValue.Suchi(emptyList()), dev.panini.core.SupAffix.AM)
@@ -179,11 +195,25 @@ class CollectionOperationsTest {
         val operation = DhatuPatha.all.first { it.upadesha == "हृञ्" }.operations.first { it.name == "सूच्युद्धरणम्" }
         for (value in listOf(SanskritValue.Sankhya(2, "द्वि"), SanskritValue.Suchi(emptyList()))) {
             val context = ExecutionContext(bindings = mapOf(
-                Karaka.KARMAN to ExecutionExpression.Pada("अन्तिम"),
+                Karaka.KARMAN to ExecutionExpression.Pada("अन्तिम", memberSelection = CollectionMemberSelection.FINAL),
                 Karaka.SAMBANDHA to ExecutionExpression.TypedOperand(value, dev.panini.core.SupAffix.NGAS),
             ))
             assertIs<ExecutionResult.Failure>(operation.action.execute(context, operation))
         }
+    }
+
+    @Test
+    fun `natural extraction consumes typed selection not display spelling`() {
+        DhatuPathaRegistration.ensureRegistered()
+        val operation = DhatuPatha.all.first { it.upadesha == "हृञ्" }.operations.first { it.name == "सूच्युद्धरणम्" }
+        val whole = ExecutionExpression.TypedOperand(
+            SanskritValue.Suchi(listOf(SanskritValue.Sankhya(2, "द्वि"))), dev.panini.core.SupAffix.NGAS)
+        fun context(member: ExecutionExpression) = ExecutionContext(bindings = mapOf(
+            Karaka.KARMAN to member, Karaka.SAMBANDHA to whole))
+        assertIs<ExecutionResult.Success>(operation.action.execute(context(
+            ExecutionExpression.Pada("selector", memberSelection = CollectionMemberSelection.FINAL)), operation))
+        assertIs<ExecutionResult.Failure>(operation.action.execute(context(
+            ExecutionExpression.Pada("अन्तिम")), operation))
     }
 
     @Test

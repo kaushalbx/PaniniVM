@@ -57,14 +57,17 @@ internal object MemoryOrderQualifierResolver {
         val ordinalNumber = pada?.let {
             NumeralPadaBinder.extractOrdinalValue(it) ?: dev.panini.execution.PuranaPratyayaResolver.ordinalValue(it)
         }
-        val previous = ((pada as? SubantaPada)?.pratipadika as? MulaPratipadika)
-            ?.lexicalIdentity == MulaPratipadikaIdentity.PURVA
         val nominal = (pada as? SubantaPada)?.pratipadika as? MulaPratipadika
+        val purva = nominal?.lexicalIdentity == MulaPratipadikaIdentity.PURVA
+        val derivedPurva = purva && nominal.vikaras.any {
+            it !is dev.panini.vyakaranam.ast.StriVikara
+        }
+        val previous = purva && !derivedPurva
         val derivedOrdinal = nominal?.lexicalIdentity?.ordinalValue != null &&
             nominal.lexicalOrdinalValue == null
         return MemoryOrderQualifier(
             pada, ordinalNumber, previous,
-            unresolvedOrdinal = derivedOrdinal ||
+            unresolvedOrdinal = derivedOrdinal || derivedPurva ||
                 (pada is dev.panini.vyakaranam.ast.SankhyaPuranaPada && ordinalNumber == null),
         )
     }

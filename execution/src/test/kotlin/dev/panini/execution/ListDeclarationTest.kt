@@ -4,6 +4,18 @@ import kotlin.test.*
 
 class ListDeclarationTest {
     @Test
+    fun `ordinal retrieval does not erase derivation from the value object`() {
+        for (affix in listOf("मतुप्", "तरप्", "टाप्")) {
+            val source = "सूची + ङस् प्रथम + अम् मूल्य + $affix + अम् ग्रहँ + श्ना + लोट् + सिप् ।"
+            val node = dev.panini.vyakaranam.parser.PaniniParser().parse(source).body
+                as dev.panini.vyakaranam.ast.Invocation
+            assertFailsWith<IllegalArgumentException>(affix) { OrdinalObjectLowering.expand(node) }
+            val program = "एक + ङस् सूची + सुँ असँ + लट् + तिप् ।\n$source"
+            assertIs<ExecutionResult.Failure>(PaniniVM().evalScript(program).last(), affix)
+        }
+    }
+
+    @Test
     fun `list declaration does not erase derivation from its head or type qualifier`() {
         for (source in listOf(
             "एक + ङस् सूची + मतुप् + सुँ असँ + लट् + तिप् ।",

@@ -14,6 +14,47 @@ import kotlin.test.assertTrue
 
 class CompilerIrTest {
     @Test
+    fun `numeric prohibition consumes two values without coercion`() {
+        CompilerIrVerifier.verify(listOf(
+            CompilerInstruction.Constant(SanskritValue.Shabda("शून्य")),
+            CompilerInstruction.Constant(SanskritValue.Sankhya(0, "शून्य")),
+            CompilerInstruction.CheckNumericProhibition))
+        assertFailsWith<IllegalArgumentException> {
+            CompilerIrVerifier.verify(listOf(CompilerInstruction.CheckNumericProhibition))
+        }
+        CompilerValueOperations.checkNumericProhibition(SanskritValue.Shabda("शून्य"),
+            SanskritValue.Sankhya(0, "शून्य"))
+        assertEquals(dev.panini.execution.ExecutionError.ACTION_FAILED,
+            assertFailsWith<CompiledPaniniExecutionException> {
+                CompilerValueOperations.checkNumericProhibition(SanskritValue.Sankhya(0, "०"),
+                    SanskritValue.Sankhya(0, "शून्य"))
+            }.error)
+    }
+
+    @Test
+    fun `natural member frame lowers to its own numeric collection instruction`() {
+        for (phrase in listOf("सूची + ङस् सङ्ख्या + शस्", "सङ्ख्या + शस् सूची + ङस्")) {
+            val plan = requireNotNull(ResolvedLeafPlanner.planAny(
+                "$phrase युज् + णिच् + लोट् + सिप् ।"))
+            val instructions = CompilerIrLowering.lowerLeafValues(plan)
+            assertTrue(CompilerInstruction.Collection(CollectionOperator.SUM_NUMBER_MEMBERS) in instructions)
+            assertFalse(CompilerInstruction.Collection(CollectionOperator.SUM) in instructions)
+        }
+        CompilerIrVerifier.verify(listOf(
+            CompilerInstruction.Constant(SanskritValue.Suchi(emptyList())),
+            CompilerInstruction.Collection(CollectionOperator.SUM_NUMBER_MEMBERS),
+            CompilerInstruction.Constant(SanskritValue.Sankhya(1, "एक")),
+            CompilerInstruction.Compare(ComparisonOperator.LESS_THAN),
+            CompilerInstruction.Pop))
+        assertFailsWith<IllegalArgumentException> {
+            CompilerIrVerifier.verify(listOf(
+                CompilerInstruction.Constant(SanskritValue.Sankhya(1, "एक")),
+                CompilerInstruction.Collection(CollectionOperator.SUM_NUMBER_MEMBERS),
+                CompilerInstruction.Pop))
+        }
+    }
+
+    @Test
     fun `active range choice verifies its typed range and exclusion operands`() {
         val one = SanskritValue.Sankhya(1, "एक")
         val range = SanskritValue.Range(one, one)

@@ -8,7 +8,12 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 
+// Each method launches a fresh JVM; avoid overlapping these startup-sensitive
+// checks while retaining the same deadline for every individual process.
+@Execution(ExecutionMode.SAME_THREAD)
 class PaniniCliProcessTest {
     @Test
     fun `launcher reads two values and exits successfully`() {

@@ -38,6 +38,7 @@ open class YujirDhatu : Dhatu(
             returns(Samjna.GANA)
         },
         AdditionAction.numericOp {
+            optional(Karaka.SAMBANDHA)
             triggeredBy(forbiddenUpasargas = setOf("वि", "तुल्"))
             returns(Samjna.SANKHYA, Samjna.SHABDA)
         },

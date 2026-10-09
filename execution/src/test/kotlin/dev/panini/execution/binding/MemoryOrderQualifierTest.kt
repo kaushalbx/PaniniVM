@@ -10,6 +10,23 @@ import kotlin.test.assertEquals
 
 class MemoryOrderQualifierTest {
     @Test
+    fun `derived purva is retained as an invalid selector rather than previous or latest`() {
+        for (affix in listOf("तरप्", "मतुप्")) {
+            val source = "युज् + ल्युट् + ङस् पूर्व + $affix + अम् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।"
+            val invocation = dev.panini.vyakaranam.parser.PaniniParser().parse(source).body
+                as dev.panini.vyakaranam.ast.Invocation
+            val reference = NamedActionResultReferenceResolver.resolve(invocation.vakya.padas).single()
+            assertTrue(reference.hasOrderingQualifier, affix)
+            assertFalse(reference.orderingAgrees, affix)
+            val results = dev.panini.execution.PaniniVM().evalScript(
+                "एक + अम् द्वि + अम् च युज् + लोट् + सिप् ।\n" +
+                    "त्रि + अम् चतुर् + अम् च युज् + लोट् + सिप् ।\n$source",
+            )
+            kotlin.test.assertIs<dev.panini.execution.ExecutionResult.Failure>(results.last(), affix)
+        }
+    }
+
+    @Test
     fun `single named result relation selects first history across word orders`() {
         for (phrase in listOf(
             "प्रथम + अम् युज् + ल्युट् + ङस् फल + अम्",

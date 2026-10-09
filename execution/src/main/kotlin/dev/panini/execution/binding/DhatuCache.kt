@@ -18,6 +18,7 @@ internal enum class CanonicalDhatuIdentity(val dhatupathaId: String) {
     DA("03.0010"),
     KRU("08.0010"),
     GRAH("09.0071"),
+    HR("01.1046"),
     KSHIP("06.0005"),
     STHA("01.9901"),
     ;

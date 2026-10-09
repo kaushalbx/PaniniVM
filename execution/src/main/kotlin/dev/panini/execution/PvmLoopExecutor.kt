@@ -1,11 +1,9 @@
 package dev.panini.execution
 
-import dev.panini.execution.binding.baseText
+import dev.panini.execution.binding.referenceKey
 import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.AvyayaFunction
 import dev.panini.vyakaranam.ast.ProgramNode
-import dev.panini.vyakaranam.ast.MulaPratipadika
-import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.WhileLoop
 
@@ -46,12 +44,13 @@ internal class PvmLoopExecutor {
         }
         val isNegated = reportedOutcome?.negated ?: (hasExplicitNegation || loop.condition.vakya.padas.any {
                 it is SubantaPada &&
-                    (it.pratipadika as? MulaPratipadika)?.lexicalIdentity == MulaPratipadikaIdentity.ASATYA
+                    nominalTruthValue(it.pratipadika)?.boolean == false
         })
-        val truthStateName = loop.condition.vakya.padas.filterIsInstance<SubantaPada>()
+        val truthStateName = (normalizedCondition as? NaturalSemanticNormalizer.Operation.TruthTest)?.stateName
+            ?: loop.condition.vakya.padas.filterIsInstance<SubantaPada>()
             .singleOrNull()
             ?.pratipadika
-            ?.baseText()
+            ?.referenceKey()
         var latestConditionValue = false
         var iterationCount = 0L
 

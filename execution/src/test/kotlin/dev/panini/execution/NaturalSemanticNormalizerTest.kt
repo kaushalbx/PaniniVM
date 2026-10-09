@@ -120,6 +120,16 @@ class NaturalSemanticNormalizerTest {
         )
     }
 
+    @Test
+    fun `collection parameter compatibility slot retains derivation and object case`() {
+        for (phrase in listOf("समवाय + मतुप् + अम्", "समवाय + तरप् + अम्",
+            "समवाय + टा", "समवाय + ङस्", "समवाय + शस्",
+            "समवाय + अम् एक + अम् च")) {
+            kotlin.test.assertNotEquals(NaturalSemanticNormalizer.Operation.CollectionParameterSum,
+                NaturalSemanticNormalizer.normalize(invocation("$phrase युज् + णिच् + लोट् + सिप् ।")), phrase)
+        }
+    }
+
     private fun invocation(source: String): Invocation =
         assertIs(assertIs<Ukti>(parser.parse(source)).body)
 

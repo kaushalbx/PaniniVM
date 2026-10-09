@@ -54,7 +54,7 @@ prakriyaBlock
     ;
 
 prakriyaHeader
-    : names+=subantaPada+ ITI declaration=prakriyaDeclaration
+    : names+=subantaPada+ (ITI | NAAMA) declaration=prakriyaDeclaration
     ;
 
 prakriyaDeclaration

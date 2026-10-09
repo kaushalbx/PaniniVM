@@ -3,6 +3,7 @@ package dev.panini.execution
 import dev.panini.vyakaranam.ast.Invocation
 import dev.panini.vyakaranam.ast.Pipeline
 import dev.panini.vyakaranam.ast.depthFirst
+import dev.panini.vyakaranam.ast.semanticKey
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -11,6 +12,115 @@ import kotlin.test.assertTrue
 import java.io.File
 
 class PrakriyaAstArgumentBinderTest {
+    @Test
+    fun `additional kridanta derivation does not disappear into parameter binding`() {
+        val parser = dev.panini.vyakaranam.parser.PaniniParser()
+        val plain = assertIs<Invocation>(parser.parse("युज् + ल्युट् + अम् मुद्र् + णिच् + लोट् + सिप् ।").body)
+        val nominal = assertIs<dev.panini.vyakaranam.ast.SubantaPada>(plain.vakya.padas.first())
+        val parameters = listOf(PrakriyaParameter(nominal.pratipadika.semanticKey(), PrakriyaValueType.SHABDA))
+        for (suffix in listOf("मतुप्", "तरप्", "टाप्")) {
+            val original = assertIs<Invocation>(parser.parse(
+                "युज् + ल्युट् + $suffix + अम् मुद्र् + णिच् + लोट् + सिप् ।").body)
+            assertEquals(original.vakya.padas,
+                assertIs<Invocation>(PrakriyaAstArgumentBinder.bind(original, parameters, 1)).vakya.padas)
+        }
+        val bound = assertIs<Invocation>(PrakriyaAstArgumentBinder.bind(plain, parameters, 1))
+        assertEquals(PrakriyaAstArgumentBinder.referenceKey(0),
+            assertIs<dev.panini.vyakaranam.ast.SubantaPada>(bound.vakya.padas.first()).pratipadika.sourceText)
+    }
+
+    @Test
+    fun `derived nominal cannot impersonate a plain named parameter`() {
+        val parser = dev.panini.vyakaranam.parser.PaniniParser()
+        val parameters = listOf(PrakriyaParameter("मान", PrakriyaValueType.SANKHYA))
+        for (suffix in listOf("मतुप्", "तरप्", "टाप्")) {
+            val original = assertIs<Invocation>(parser.parse(
+                "मान + $suffix + अम् मुद्र् + णिच् + लोट् + सिप् ।").body)
+            val bound = assertIs<Invocation>(PrakriyaAstArgumentBinder.bind(original, parameters, 1))
+            assertEquals(original.vakya.padas, bound.vakya.padas)
+        }
+        val plain = assertIs<Invocation>(parser.parse("मान + अम् मुद्र् + णिच् + लोट् + सिप् ।").body)
+        val bound = assertIs<Invocation>(PrakriyaAstArgumentBinder.bind(plain, parameters, 1))
+        assertEquals(PrakriyaAstArgumentBinder.referenceKey(0),
+            assertIs<dev.panini.vyakaranam.ast.SubantaPada>(bound.vakya.padas.first()).pratipadika.sourceText)
+    }
+
+    @Test
+    fun `numeric prohibition does not drop an unresolved extra operand`() {
+        val definition = PvmScript.parse(
+            "वाचन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
+                "न शून्य + अम् राम + अम् शून्य + अम् ।\n" +
+                "एक + अम् मुद्र् + णिच् + लोट् + सिप् ॥"
+        ).single() as PvmScriptStatement.PrakriyaDefinition
+        val guard = definition.body.single { it.isNishedha }
+        assertEquals(null, NishedhaGuardEvaluator.numericProhibition(guard, emptyList(), 0))
+        assertFalse(NishedhaGuardEvaluator.isProhibited(guard, emptyList(), emptyList()))
+    }
+
+    @Test
+    fun `prior action member protection respects clause boundaries`() {
+        val parser = dev.panini.vyakaranam.parser.PaniniParser()
+        for ((name, phrase) in listOf(
+            "अन्तिम" to "मान + ङस् अन्तिम + अम् उद् + हृ + ल्यप्",
+            "सङ्ख्या" to "मान + ङस् सङ्ख्या + शस् युज् + णिच् + क्त्वा",
+        )) {
+            val original = assertIs<Invocation>(parser.parse(
+                "$phrase $name + अम् मुद्र् + णिच् + लोट् + सिप् ।").body)
+            val bound = assertIs<Invocation>(PrakriyaAstArgumentBinder.bind(original,
+                listOf(PrakriyaParameter(name, PrakriyaValueType.SANKHYA),
+                    PrakriyaParameter("मान", PrakriyaValueType.SUCHI)), 2))
+            val nominals = bound.vakya.padas.filterIsInstance<dev.panini.vyakaranam.ast.SubantaPada>()
+            assertEquals(PrakriyaAstArgumentBinder.referenceKey(1), nominals[0].pratipadika.sourceText)
+            assertEquals(name, nominals[1].pratipadika.sourceText)
+            assertEquals(PrakriyaAstArgumentBinder.referenceKey(0), nominals[2].pratipadika.sourceText)
+            val clauses = requireNotNull(PriorActionLowering.expand(bound)).statements
+            assertEquals(2, clauses.size)
+        }
+    }
+
+    @Test
+    fun `collection member roles survive same named procedure parameters`() {
+        val parser = dev.panini.vyakaranam.parser.PaniniParser()
+        for ((name, phrase) in listOf(
+            "अन्तिम" to "मान + ङस् अन्तिम + अम् उद् + हृ + लोट् + सिप्",
+            "अन्तिम" to "अन्तिम + मतुप् + अम् मान + ङस् उद् + हृ + लोट् + सिप्",
+            "सङ्ख्या" to "मान + ङस् सङ्ख्या + शस् युज् + णिच् + लोट् + सिप्",
+        )) {
+            val original = assertIs<Invocation>(parser.parse("$phrase ।").body)
+            val bound = assertIs<Invocation>(PrakriyaAstArgumentBinder.bind(original,
+                listOf(PrakriyaParameter(name, PrakriyaValueType.SANKHYA),
+                    PrakriyaParameter("मान", PrakriyaValueType.SUCHI)), 2))
+            val originals = original.vakya.padas.filterIsInstance<dev.panini.vyakaranam.ast.SubantaPada>()
+            val rebound = bound.vakya.padas.filterIsInstance<dev.panini.vyakaranam.ast.SubantaPada>()
+            originals.zip(rebound).forEach { (before, after) ->
+                if (before.pratipadika.sourceText.startsWith(name)) assertEquals(before, after)
+                else assertEquals(PrakriyaAstArgumentBinder.referenceKey(1), after.pratipadika.sourceText)
+            }
+        }
+        val ordinary = assertIs<Invocation>(parser.parse("अन्तिम + अम् मुद्र् + णिच् + लोट् + सिप् ।").body)
+        val bound = assertIs<Invocation>(PrakriyaAstArgumentBinder.bind(ordinary,
+            listOf(PrakriyaParameter("अन्तिम", PrakriyaValueType.SANKHYA)), 1))
+        assertEquals(PrakriyaAstArgumentBinder.referenceKey(0),
+            assertIs<dev.panini.vyakaranam.ast.SubantaPada>(bound.vakya.padas.first()).pratipadika.sourceText)
+    }
+
+    @Test
+    fun `collection argument shortcut preserves derivation case and declared parameter identity`() {
+        val parser = dev.panini.vyakaranam.parser.PaniniParser()
+        for (phrase in listOf("समवाय + मतुप् + अम्", "समवाय + तरप् + अम्", "समवाय + ङस्")) {
+            val original = assertIs<Invocation>(parser.parse("$phrase युज् + णिच् + लोट् + सिप् ।").body)
+            val bound = assertIs<Invocation>(PrakriyaAstArgumentBinder.bind(original, emptyList(), 2))
+            assertEquals(original.vakya.padas, bound.vakya.padas, phrase)
+        }
+        val plain = assertIs<Invocation>(parser.parse("समवाय + अम् युज् + णिच् + लोट् + सिप् ।").body)
+        val legacy = assertIs<Invocation>(PrakriyaAstArgumentBinder.bind(plain, emptyList(), 2))
+        assertIs<dev.panini.vyakaranam.ast.SamuccitaSubanta>(legacy.vakya.padas.first())
+        val named = assertIs<Invocation>(PrakriyaAstArgumentBinder.bind(plain,
+            listOf(PrakriyaParameter("समवाय", PrakriyaValueType.SUCHI)), 1))
+        val parameter = assertIs<dev.panini.vyakaranam.ast.SubantaPada>(named.vakya.padas.first())
+        assertEquals(PrakriyaAstArgumentBinder.referenceKey(0), parameter.pratipadika.sourceText)
+    }
+
     @Test
     fun `procedure execution preserves ambiguous history failure`() {
         val source = "वाचन + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।\n" +
@@ -305,6 +415,11 @@ class PrakriyaAstArgumentBinderTest {
             """.trimIndent(),
         ).single() as PvmScriptStatement.PrakriyaDefinition
         val guard = definition.body.single { it.isNishedha }
+
+        assertEquals(NishedhaGuardEvaluator.NumericProhibition(
+            NishedhaGuardEvaluator.NumericOperand.Argument(1),
+            NishedhaGuardEvaluator.NumericOperand.Literal(0)),
+            NishedhaGuardEvaluator.numericProhibition(guard, emptyList(), 2))
 
         assertTrue(
             NishedhaGuardEvaluator.isProhibited(

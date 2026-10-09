@@ -73,13 +73,21 @@ abstract class NumericFoldDhatuAction(
         val expression = context.bindings[operandKaraka]
             ?: return missingKaraka(operation, operandKaraka)
         val operands = context.resolve(expression)
-        val values = context.resolveSankhyaValues(expression) ?: return ExecutionResult.Failure(
+        val memberFrame = dev.panini.execution.NaturalOperationResolver.resolve(operation, context)
+            as? dev.panini.execution.NaturalOperation.CollectionSummation
+        val values = if (memberFrame != null) {
+            val collection = context.resolveValues(memberFrame.collection).singleOrNull() as? SanskritValue.Suchi
+                ?: return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Member summation requires one list as its genitive whole.")
+            dev.panini.execution.numericCollectionMembers(collection)
+                ?: return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Number-member summation requires numeric members.")
+        } else context.resolveSankhyaValues(expression)
+        if (values == null) return ExecutionResult.Failure(
             ExecutionError.INVALID_VALUE,
             "The operand is not an annotated saṅkhyā value.",
             listOf("Selected action sūtra ${blueprint.id}."),
         )
         val minimumOperands = (fields["minimumOperands"] as SutraArthaValue.Number).value.toInt()
-        if (values.size < minimumOperands) {
+        if (values.size < minimumOperands && memberFrame == null) {
             return ExecutionResult.Failure(
                 ExecutionError.INVALID_VALUE,
                 "$name requires at least $minimumOperands number operands.",

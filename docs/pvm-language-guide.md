@@ -627,6 +627,29 @@ boundary it chooses the assimilated variant licensed by
 `ह्` after a stop may take the corresponding fourth consonant of that class.
 The underlying segmented source remains `उद् + हृ`.
 
+### 7.5 Summing number members
+
+For member summation, make the collection/member relation explicit:
+
+```text
+सूची + ङस् सङ्ख्या + शस् युज् + णिच् + लोट् + सिप् ।
+```
+
+The genitive supplies the list; plural accusative सङ्ख्या denotes its number
+members. This produces their sum, not collection concatenation. Both backends
+require numeric members and preserve the list. Derived member nouns are not
+silently interpreted as the plain सङ्ख्या selector. See
+`examples/collections/member_sum.pvm` for a declaration and display chain.
+The same member frame works before a display verb in a prior-action chain:
+
+```text
+सूची + ङस् सङ्ख्या + शस् युज् + णिच् + क्त्वा
+मुद्र् + णिच् + लोट् + सिप् ।
+```
+
+Here the omitted display object refers to the preceding sum. The explicit
+finite `ततः` form remains supported too.
+
 ## 8. Input and validation
 
 Use `ग्रह्` to request input. A typed number request places the `सङ्ख्या`
@@ -742,13 +765,24 @@ A grammatical `प्रक्रिया` declaration opens a reusable prakriy
 with `॥`:
 
 ```pvm
-प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+प्रयत्न + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
 निवेश + अम् सङ्ख्या + टा ग्रहँ + श्ना + लोट् + सिप् ।
 फल + अम् मुद्र् + णिच् + लोट् + सिप् ॥
 ```
 
 Invoke the declared name in the instrumental with `कृ`. An ordinary noun
 name takes its case suffix directly; do not add `ल्युट्` to it:
+
+`नाम` is the naming particle. The existing `इति प्रक्रिया … अस्ति` form remains
+supported and produces the same native procedure identity. For a neuter name
+such as गणनम्, use nominative `गणन + सुँ`, not accusative `गणन + अम्`:
+
+```pvm
+गणन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+```
+
+This is a header example; a complete procedure needs its body ending in `॥`.
+The “this” pronoun is not part of this new construction.
 
 ```pvm
 प्रयत्न + टा डुकृञ् + उ + लोट् + सिप् ।
@@ -759,7 +793,7 @@ Derived action nouns still use `ल्युट्` on a verbal root, for exampl
 matching call `गण + ल्युट् + टा डुकृञ् + उ + लोट् + सिप्`.
 Keep the same nominal identity in the declaration and call. A bare
 `… + ल्युट् + सुँ ।` is a nominal statement, not a procedure declaration in
-the default native document parser. Use the explicit `इति प्रक्रिया … अस्ति`
+the default native document parser. Use an explicit `नाम प्रक्रिया … अस्ति` or `इति प्रक्रिया … अस्ति`
 declaration. Parsing follows grammatical statement delimiters, not physical
 lines, so a declaration or body statement may span several lines.
 For migration tooling only, `PvmScript.parseLegacy` and
@@ -783,11 +817,27 @@ Signature declarations describe the kriyā and are not executed. Parameter
 names can be used directly in the body. The last successful body result is the
 function result and is checked against the declaration.
 
+A list parameter can serve as the genitive whole in a member sum:
+
+```text
+मान + ङस् सङ्ख्या + शस् युज् + णिच् + लोट् + सिप् ।
+```
+
+Pass one list-valued argument to that declared parameter. It remains a single
+collection value rather than becoming a nested list or a series of scalar
+arguments.
+
 Supported declared parameter/result types are:
 
 ```text
 सङ्ख्या   शब्द   सूची
 ```
+
+Argument types belong to resolved values, not to the spelling of a name. A
+nominal argument can refer to a list declared earlier. Compiled calls check
+known values statically and validate unresolved arguments against the declared
+parameter types after resolving their values, before entering the procedure.
+A word or scalar does not become a list merely because the parameter expects one.
 
 ### 11.3 Positional call
 

@@ -320,6 +320,7 @@ enum class MulaPratipadikaIdentity {
     ADHIKARA,
     ANTARANGA,
     ANTA,
+    ANTIMA,
     APAVADA,
     ADHIKA,
     ASATYA,
@@ -354,6 +355,7 @@ enum class MulaPratipadikaIdentity {
             "अधिकार" -> ADHIKARA
             "अन्तरङ्ग", "अन्तरङ्गा", "अन्तर् + अङ्ग" -> ANTARANGA
             "अन्त" -> ANTA
+            "अन्तिम" -> ANTIMA
             "अपवाद" -> APAVADA
             "अधिक" -> ADHIKA
             "असत्य" -> ASATYA

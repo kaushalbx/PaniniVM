@@ -226,9 +226,11 @@ object VyakaranamExecutionAdapter {
             val declarations = object : ProgramNodeTransformer() {
                 override fun visitQuotation(node: Quotation): ProgramNode =
                     dev.panini.execution.ListDeclarationLowering.expand(node) ?: node
-                override fun visitInvocation(node: Invocation): ProgramNode =
-                    dev.panini.execution.ListDeclarationLowering.expand(node)
+                override fun visitInvocation(node: Invocation): ProgramNode {
+                    dev.panini.execution.CollectionMemberMorphology.validate(node)
+                    return dev.panini.execution.ListDeclarationLowering.expand(node)
                         ?: dev.panini.execution.OrdinalObjectLowering.expand(node) ?: node
+                }
             }.transform(ukti.body)
             ukti.copy(body = dev.panini.execution.PriorActionLowering.lower(declarations))
         } catch (error: IllegalArgumentException) {
