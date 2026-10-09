@@ -40,7 +40,7 @@ object SupiCaSutra : Sutra<DerivationState, DerivationChange>(
         val isAEnding = stem.varnas.lastOrNull() == Svara.A
         val firstVarna = affix.varnas.firstOrNull() ?: return false
 
-        val isSupEnvironment = affix.id.startsWith("sup-") && context.samjnas.any { it.targetId == affix.id && it.samjna == Samjna.PRATYAYA }
+        val isSupEnvironment = affix.sourceSupAffix != null && context.samjnas.any { it.targetId == affix.id && it.samjna == Samjna.PRATYAYA }
         return isAEnding && affix.upadesha !in setOf("टा", "ओस्", "अम्", "सुँ", "सु") && isSupEnvironment &&
             (isYan(firstVarna) || affix.upadesha in completePadaAffixes)
     }

@@ -62,6 +62,7 @@ object JhalamJashonteSutra : Sutra<DerivationState, DerivationChange>(
                 ItDesignationRemap(
                     designation.start, designation.endExclusive,
                     designation.start, designation.endExclusive,
+                    newVarnaIndices = designation.varnaIndices,
                 )
             }
             context.replaceWholeAffix(

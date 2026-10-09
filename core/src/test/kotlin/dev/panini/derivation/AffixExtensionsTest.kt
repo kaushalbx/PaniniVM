@@ -10,6 +10,19 @@ import kotlin.test.assertTrue
 
 class AffixExtensionsTest {
     @Test
+    fun `every sup and ting constructor records its exact originating slot`() {
+        for (affix in SupAffix.entries) {
+            assertEquals(affix, affix.term().sourceSupAffix)
+            assertEquals(affix, (affix as dev.panini.core.TypedAffix).term("custom").sourceSupAffix)
+            assertEquals(affix, affix.term().replaceWholeAffix("शि", "शि", "test", WholeAffixDesignationPolicy.Consume).sourceSupAffix)
+        }
+        for (affix in TingAffix.entries) {
+            assertEquals(affix, affix.term().sourceTingAffix)
+            assertEquals(affix, (affix as dev.panini.core.TypedAffix).term("custom").sourceTingAffix)
+        }
+    }
+
+    @Test
     fun `typed sup matching recognizes direct and retained sthani identity`() {
         assertTrue(SupAffix.JAS.term().matchesSupAffix(SupAffix.JAS))
         assertTrue(

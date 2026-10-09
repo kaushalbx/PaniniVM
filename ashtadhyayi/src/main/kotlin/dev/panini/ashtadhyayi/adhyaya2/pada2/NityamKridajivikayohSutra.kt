@@ -2,6 +2,9 @@ package dev.panini.ashtadhyayi.adhyaya2.pada2
 
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
+import dev.panini.analysis.SamasaSemanticRelation
+import dev.panini.core.KrtAffix
+import dev.panini.core.Vibhakti
 import dev.panini.core.SamasaType
 import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
@@ -30,13 +33,14 @@ object NityamKridajivikayohSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     samasaType = SamasaType.TATPURUSA,
     samasaPriority = 10,
 ), SamasaSutra {
-    private val professionOrSportSuffixes = setOf("लेखक", "भञ्जिका", "पालक", "नर्तक", "कारक")
-
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
-        val uttara = context.uttaraPada.upadesha
         return context.samasaType == SamasaType.TATPURUSA &&
-            professionOrSportSuffixes.any { uttara.endsWith(it) }
+            context.purvaPadaVibhakti == Vibhakti.SASTHI &&
+            context.uttaraPada.krtAffix == KrtAffix.NVUL &&
+            context.semanticRelations.any {
+                it == SamasaSemanticRelation.SPORT_OR_PLAY || it == SamasaSemanticRelation.LIVELIHOOD
+            }
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {

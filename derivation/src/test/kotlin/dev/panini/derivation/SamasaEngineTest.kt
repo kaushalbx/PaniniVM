@@ -865,9 +865,10 @@ class SamasaEngineTest {
         val result = engine.derive(
             listOf(
                 SamasaPada("दन्त", Vibhakti.SASTHI),
-                SamasaPada("लेखक", Vibhakti.PRATHAMA),
+                SamasaPada("लेखक", Vibhakti.PRATHAMA, krtAffix = dev.panini.core.KrtAffix.NVUL),
             ),
             SamasaType.TATPURUSA,
+            semanticRelations = setOf(dev.panini.analysis.SamasaSemanticRelation.LIVELIHOOD),
         )
         assertTrue(result.applications.any { it.sutra == "2.2.17" })
     }

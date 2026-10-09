@@ -46,7 +46,7 @@ class RemainingAffixLifecycleTest {
             upadesha = "अप्",
             itProcessingPhase = ItProcessingPhase.DESIGNATED,
             deferredItDesignations = listOf(
-                ItDesignation(1, 3, marker = ItMarker.P, sutra = "1.3.3", designatedText = "प्"),
+                ItDesignation(1, 3, marker = ItMarker.P, sutra = "1.3.3", designatedText = "प्", varnaIndices = setOf(1)),
             ),
         )
         var state = JhalamJashonteSutra.apply(DerivationState(listOf(affix))).state

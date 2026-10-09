@@ -75,17 +75,11 @@ object AdyantauTakitauSutra : Sutra<DerivationState, DerivationChange>(
                                     "retaining the boundary for subsequent operations.",
                             )
                         }
-                        val targetOffset = if (isTit) term.surface.length else 0
-                        val augmentOffset = if (isTit) 0 else target.surface.length
-                        val merged = target.copy(
-                            surface = if (isTit) term.surface + target.surface else target.surface + term.surface,
+                        val merged = target.insertDesignatedTerm(term,
+                            if (isTit) 0 else target.varnas.size, preserveMemberBoundary = true).copy(
                             establishedBySutras = target.establishedBySutras +
                                 listOfNotNull(term.createdBySutra),
                             itMarkers = target.itMarkers + term.itMarkers,
-                            itDesignations = target.itDesignations.shiftedBy(targetOffset) +
-                                term.itDesignations.shiftedBy(augmentOffset),
-                            deferredItDesignations = target.deferredItDesignations.shiftedBy(targetOffset) +
-                                term.deferredItDesignations.shiftedBy(augmentOffset),
                             itProcessingPhase = when {
                                 target.itDesignations.isNotEmpty() || term.itDesignations.isNotEmpty() ->
                                     ItProcessingPhase.DESIGNATED
@@ -114,19 +108,16 @@ object AdyantauTakitauSutra : Sutra<DerivationState, DerivationChange>(
     private fun placementFromDesignation(agama: DerivationTerm): AugmentPlacement? {
         val terminalDesignation = (agama.itDesignations + agama.deferredItDesignations).singleOrNull {
             it.sutra == "1.3.3" &&
-                it.endExclusive == agama.surface.length &&
-                it.designatedText in setOf("ट्", "क्")
+                it.varnaIndices == setOf(agama.varnas.lastIndex) &&
+                agama.varnas.lastOrNull() in setOf(dev.panini.shiksha.Vyanjana.TTA, dev.panini.shiksha.Vyanjana.KA)
         } ?: return null
-        return if (terminalDesignation.designatedText == "ट्") {
+        return if (agama.varnas.last() == dev.panini.shiksha.Vyanjana.TTA) {
             AugmentPlacement.BEGINNING
         } else {
             AugmentPlacement.END
         }
     }
 
-    private fun List<ItDesignation>.shiftedBy(offset: Int): List<ItDesignation> = map {
-        it.copy(start = it.start + offset, endExclusive = it.endExclusive + offset)
-    }
 
     private enum class AugmentPlacement { BEGINNING, END }
 }

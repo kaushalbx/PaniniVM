@@ -48,10 +48,12 @@ object ShahPratyayasyaSutra : Sutra<DerivationState, DerivationChange>(
                 val designation = ItDesignation(
                     start = 0,
                     endExclusive = end,
-                    replacementAfterLopa = if (end == 1) "अ" else "",
                     marker = ItMarker.SH,
                     sutra = sutra,
                     designatedText = term.orthographicDesignationText(0, end),
+                    // Preserve the current rule's scope: its dependent vowel is consumed too.
+                    varnaIndices = if (term.varnas.getOrNull(1) is dev.panini.shiksha.Svara &&
+                        term.varnas[1] != dev.panini.shiksha.Svara.A) setOf(0, 1) else setOf(0),
                 )
                 term.copy(
                     itMarkers = term.itMarkers + ItMarker.SH,

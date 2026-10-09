@@ -42,7 +42,7 @@ object YusmadAsmadSutra : Sutra<DerivationState, DerivationChange>(
         val isYusmadOrAsmad = stem.upadesha in setOf("युष्मद्", "अस्मद्") || stem.surface in setOf("युष्मद्", "अस्मद्")
         if (!isYusmadOrAsmad) return false
 
-        return affix.id.startsWith("sup-")
+        return affix.sourceSupAffix != null
     }
 
     override fun apply(context: DerivationState): DerivationChange {

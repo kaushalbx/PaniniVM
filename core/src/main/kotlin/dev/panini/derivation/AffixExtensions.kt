@@ -4,13 +4,15 @@ import dev.panini.core.SupAffix
 import dev.panini.core.TingAffix
 import dev.panini.core.TypedAffix
 
-fun SupAffix.term(): DerivationTerm = DerivationTerm(id, initialSurface, TermKind.PRATYAYA, itMarkers, upadesha)
+fun SupAffix.term(): DerivationTerm = DerivationTerm(id, initialSurface, TermKind.PRATYAYA, itMarkers, upadesha,
+    sourceSupAffix = this)
 
 /** Matches a typed sup identity, including identity retained through sthānin substitution. */
 fun DerivationTerm.matchesSupAffix(affix: SupAffix): Boolean = matchesUpadesha(affix.upadesha)
 
 fun TypedAffix.term(id: String): DerivationTerm =
-    DerivationTerm(id, initialSurface, TermKind.PRATYAYA, itMarkers, upadesha)
+    DerivationTerm(id, initialSurface, TermKind.PRATYAYA, itMarkers, upadesha,
+        sourceSupAffix = this as? SupAffix, sourceTingAffix = this as? TingAffix)
 
 fun DerivationTerm.matchesAffix(affix: TypedAffix): Boolean =
     matchesUpadesha(affix.upadesha) || affix.alternateUpadeshas.any(::matchesUpadesha)
@@ -25,4 +27,5 @@ fun SupAffix.Companion.fromContext(context: DerivationalContext): SupAffix? {
     return SupAffix.entries.singleOrNull { it.vibhakti == vibhakti && it.vacana == vacana }
 }
 
-fun TingAffix.term(): DerivationTerm = DerivationTerm(termId, upadesha, TermKind.PRATYAYA, upadesha = upadesha)
+fun TingAffix.term(): DerivationTerm = DerivationTerm(termId, upadesha, TermKind.PRATYAYA, upadesha = upadesha,
+    sourceTingAffix = this)

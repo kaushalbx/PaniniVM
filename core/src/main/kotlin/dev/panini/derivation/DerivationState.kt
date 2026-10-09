@@ -15,6 +15,7 @@ import dev.panini.shiksha.OrthographicSignPlacement
 import dev.panini.shiksha.SanskritText
 import dev.panini.shiksha.toVarnas
 import dev.panini.shiksha.toSanskritText
+import dev.panini.shiksha.renderWithOrthographicSigns
 
 /**
  * The shared state passed through an Ashtadhyayi derivation.
@@ -179,6 +180,16 @@ class DerivationState(
                 surface.substring(designation.start, designation.endExclusive) == designation.designatedText
         }) {
             "$sutra would invalidate a deferred it-designation on $id; use replaceWholeAffix with an explicit policy."
+        }
+        val designations = term.itDesignations + term.deferredItDesignations
+        if (designations.isNotEmpty()) {
+            val oldTokens = term.phonologicalText.effectiveVarnas
+            val newTokens = surface.toSanskritText().effectiveVarnas
+            require(designations.flatMap { it.varnaIndices }.all { index ->
+                index in oldTokens.indices && index in newTokens.indices &&
+                    oldTokens[index].varna == newTokens[index].varna &&
+                    oldTokens[index].sourceSpan == newTokens[index].sourceSpan
+            }) { "$sutra would shift a designated varṇa on $id; use an explicit designation remap." }
         }
         return replaceTerm(id, term.copy(surface = surface))
             .addSubstitution(
@@ -692,6 +703,10 @@ data class DerivationTerm(
     val sourceSuffixUpadeshas: Set<String> = emptySet(),
     /** Morphosyntax of a completed external pada, not the whole sandhi expression. */
     val formedPadaRupa: Rupa? = null,
+    /** Original sup slot; survives ādeśa/lopa and is never inferred from a term ID or spelling. */
+    val sourceSupAffix: dev.panini.core.SupAffix? = null,
+    /** Original tiṅ slot, distinct from the current substitute's upadeśa. */
+    val sourceTingAffix: dev.panini.core.TingAffix? = null,
 ) {
     /**
      * Cached phonological form of [surface]. During the transition [surface]
@@ -711,6 +726,124 @@ data class DerivationTerm(
     /** Exact written text for इत् provenance; this is orthographic bookkeeping, not phonological reasoning. */
     fun orthographicDesignationText(start: Int, endExclusive: Int): String =
         surface.substring(start, endExclusive)
+
+    /** Projects an already-selected phonological occurrence into the legacy written इत् ledger.
+     * Selection belongs to the rule; spelling repair and exact provenance belong to this boundary.
+     */
+    fun designateVarnaIt(index: Int, marker: ItMarker, sutra: String): ItDesignation {
+        val token = phonologicalText.effectiveVarnas[index]
+        val span = requireNotNull(token.sourceSpan) { "A parsed source span is required on $id." }
+        return ItDesignation(
+            start = span.start,
+            endExclusive = span.endExclusive,
+            marker = marker,
+            sutra = sutra,
+            designatedText = orthographicDesignationText(span.start, span.endExclusive),
+            varnaIndices = setOf(index),
+        )
+    }
+
+    /** Whole-affix substitution with an explicit map of surviving old occurrences to new positions.
+     * Written spans are projected from the replacement parser, never shifted by character counts.
+     */
+    fun replaceWholeAffixWithVarnaMapping(
+        replacementVarnas: List<Varna>,
+        survivingPositions: Map<Int, Int>,
+        consumedDesignations: Set<ItDesignation>,
+        sutra: String,
+    ): DerivationTerm {
+        val replacementSurface = replacementVarnas.toDevanagari()
+        val replacementTokens = replacementSurface.toSanskritText().effectiveVarnas
+        val all = itDesignations + deferredItDesignations
+        require(consumedDesignations.all { it in all }) { "$sutra cannot consume an unknown designation on $id." }
+        val remaps = all.filterNot { it in consumedDesignations }.map { designation ->
+            val indices = designation.varnaIndices.mapTo(mutableSetOf()) {
+                requireNotNull(survivingPositions[it]) { "$sutra must remap or consume designated varṇa $it on $id." }
+            }
+            val spans = indices.map { requireNotNull(replacementTokens[it].sourceSpan) }
+            ItDesignationRemap(designation.start, designation.endExclusive,
+                spans.minOf { it.start }, spans.maxOf { it.endExclusive }, indices)
+        }
+        return replaceWholeAffix(replacementSurface, upadesha, sutra,
+            WholeAffixDesignationPolicy.PreserveAndRemap(remaps,
+                consumedDesignations.map { ItDesignationConsumption(it.start, it.endExclusive) }))
+    }
+
+    /** Inserts an annotated term at a phonological boundary and reprojects both इत् ledgers.
+     * [preserveMemberBoundary] retains existing written member forms for an outer insertion;
+     * it is a rendering choice, never an insertion-point calculation.
+     */
+    fun insertDesignatedTerm(
+        insertion: DerivationTerm,
+        beforeVarnaIndex: Int,
+        preserveMemberBoundary: Boolean = false,
+    ): DerivationTerm {
+        val targetTokens = phonologicalText.effectiveVarnas
+        val insertedTokens = insertion.phonologicalText.effectiveVarnas
+        require(beforeVarnaIndex in 0..targetTokens.size)
+        val combined = targetTokens.take(beforeVarnaIndex) + insertedTokens + targetTokens.drop(beforeVarnaIndex)
+        val signs = ((orthographicSigns + phonologicalText.sourceOrthographicSigns).distinct().map {
+            it.copy(afterVarnaCount = if (it.afterVarnaCount > beforeVarnaIndex)
+                it.afterVarnaCount + insertedTokens.size else it.afterVarnaCount)
+        } + (insertion.orthographicSigns + insertion.phonologicalText.sourceOrthographicSigns).distinct().map {
+            it.copy(afterVarnaCount = it.afterVarnaCount + beforeVarnaIndex)
+        }).distinct()
+        val rendered = if (preserveMemberBoundary) {
+            require(beforeVarnaIndex == 0 || beforeVarnaIndex == targetTokens.size)
+            if (beforeVarnaIndex == 0) insertion.surface + surface else surface + insertion.surface
+        } else SanskritText(combined).renderWithOrthographicSigns(signs)
+        val parsed = rendered.toSanskritText().effectiveVarnas
+        require(parsed.map { it.varna } == combined.map { it.varna }) { "Insertion must preserve the exact varṇa sequence on $id." }
+        fun project(designations: List<ItDesignation>, position: (Int) -> Int) = designations.map { designation ->
+            val indices = designation.varnaIndices.mapTo(mutableSetOf(), position)
+            val spans = indices.map { requireNotNull(parsed[it].sourceSpan) }
+            val start = spans.minOf { it.start }
+            val end = spans.maxOf { it.endExclusive }
+            designation.copy(start = start, endExclusive = end,
+                designatedText = rendered.substring(start, end), varnaIndices = indices)
+        }
+        fun targetPosition(index: Int) = if (index >= beforeVarnaIndex) index + insertedTokens.size else index
+        fun insertedPosition(index: Int) = index + beforeVarnaIndex
+        return copy(
+            surface = rendered,
+            orthographicSigns = signs,
+            itDesignations = project(itDesignations, ::targetPosition) + project(insertion.itDesignations, ::insertedPosition),
+            deferredItDesignations = project(deferredItDesignations, ::targetPosition) + project(insertion.deferredItDesignations, ::insertedPosition),
+        )
+    }
+
+    /** Deletes exactly the designated phonological occurrences, validating written provenance first. */
+    fun lopaOfDesignatedVarnas(designations: List<ItDesignation>): DerivationTerm {
+        designations.forEach { designation ->
+            require(designation.start >= 0 && designation.endExclusive <= surface.length &&
+                orthographicDesignationText(designation.start, designation.endExclusive) == designation.designatedText) {
+                "1.3.9 cannot delete stale designation ${designation.start}..${designation.endExclusive} " +
+                    "(${designation.designatedText}) on $id:$surface; the substituting rule must remap or consume it."
+            }
+        }
+        val tokens = phonologicalText.effectiveVarnas
+        val deleted = designations.flatMapTo(mutableSetOf()) { it.varnaIndices }
+        require(deleted.all { it in tokens.indices }) { "1.3.9 has an out-of-range varṇa designation on $id." }
+        val surviving = tokens.filterIndexed { index, _ -> index !in deleted }
+        val signs = (orthographicSigns + phonologicalText.sourceOrthographicSigns).distinct().mapNotNull { placement ->
+            if (placement.sign == dev.panini.shiksha.OrthographicSign.CHANDRABINDU &&
+                placement.afterVarnaCount - 1 in deleted) null
+            else placement.copy(afterVarnaCount = placement.afterVarnaCount - deleted.count { it < placement.afterVarnaCount })
+        }
+        // Nasalization is already carried by surviving vowel tokens, not emitted twice as a sign.
+        val renderedSigns = signs.filterNot { it.sign == dev.panini.shiksha.OrthographicSign.CHANDRABINDU &&
+            surviving.getOrNull(it.afterVarnaCount - 1)?.nasalized == true }
+        val rendered = buildString {
+            var start = 0
+            renderedSigns.sortedBy { it.afterVarnaCount }.groupBy { it.afterVarnaCount }.forEach { (boundary, placements) ->
+                append(SanskritText(surviving.subList(start, boundary)).render())
+                placements.forEach { append(it.sign.devanagari) }
+                start = boundary
+            }
+            append(SanskritText(surviving.subList(start, surviving.size)).render())
+        }
+        return copy(surface = rendered, orthographicSigns = signs)
+    }
 
     /** UTF-16 boundary after the first phonological varṇa in the written upadeśa. */
     fun orthographicEndAfterInitialVarna(): Int {
@@ -801,7 +934,8 @@ data class DerivationTerm(
                     val remap = matchingRemaps.single()
                     require(remap.newStart >= 0 && remap.newEndExclusive <= replacementSurface.length && remap.newStart < remap.newEndExclusive)
                     val newText = replacementSurface.substring(remap.newStart, remap.newEndExclusive)
-                    return designation.copy(start = remap.newStart, endExclusive = remap.newEndExclusive, designatedText = newText)
+                    return designation.copy(start = remap.newStart, endExclusive = remap.newEndExclusive,
+                        designatedText = newText, varnaIndices = remap.newVarnaIndices)
                 }
                 val remappedActive = itDesignations.mapNotNull(::remap)
                 val remappedDeferred = deferredItDesignations.mapNotNull(::remap)
@@ -893,6 +1027,7 @@ data class ItDesignationRemap(
     val oldEndExclusive: Int,
     val newStart: Int,
     val newEndExclusive: Int,
+    val newVarnaIndices: Set<Int>,
 )
 
 data class ItDesignationConsumption(val oldStart: Int, val oldEndExclusive: Int)
@@ -911,12 +1046,17 @@ enum class ItProcessingPhase {
 data class ItDesignation(
     val start: Int,
     val endExclusive: Int,
-    val replacementAfterLopa: String = "",
     val marker: ItMarker,
     val sutra: String,
     /** Original designated segment; detects a designation consumed by a later whole-term substitution. */
     val designatedText: String,
-)
+    /** Exact phonological occurrences designated for lopa; written spans are provenance only. */
+    val varnaIndices: Set<Int>,
+) {
+    init {
+        require(varnaIndices.isNotEmpty() && varnaIndices.all { it >= 0 })
+    }
+}
 
 data class ItMarkerProvenance(
     val marker: ItMarker,

@@ -47,11 +47,7 @@ object MidacoAntyatParahSutra : Sutra<DerivationState, DerivationChange>(
         require(finalVowelIndex >= 0) {
             "1.1.47 requires a vowel in ${target.surface}."
         }
-        val insertionIndex = target.orthographicBoundaryAfterVarna(finalVowelIndex)
-        val merged = target.copy(
-            surface = (target.varnas.take(finalVowelIndex + 1) + insertion.varnas + target.varnas.drop(finalVowelIndex + 1)).toDevanagari(),
-            itDesignations = target.itDesignations + insertion.itDesignations.shiftedBy(insertionIndex),
-            deferredItDesignations = target.deferredItDesignations + insertion.deferredItDesignations.shiftedBy(insertionIndex),
+        val merged = target.insertDesignatedTerm(insertion, finalVowelIndex + 1).copy(
             itProcessingPhase = ItProcessingPhase.DESIGNATED,
             establishedBySutras = target.establishedBySutras + sutra,
         )
@@ -75,10 +71,8 @@ object MidacoAntyatParahSutra : Sutra<DerivationState, DerivationChange>(
 
     private fun terminalMitDesignation(term: dev.panini.derivation.DerivationTerm): ItDesignation? =
         (term.itDesignations + term.deferredItDesignations).singleOrNull {
-            it.sutra == "1.3.3" && it.endExclusive == term.surface.length && it.designatedText == "म्"
+            it.sutra == "1.3.3" && it.varnaIndices == setOf(term.varnas.lastIndex) &&
+                term.varnas.lastOrNull() == dev.panini.shiksha.Vyanjana.MA
         }
 
-    private fun List<ItDesignation>.shiftedBy(offset: Int): List<ItDesignation> = map {
-        it.copy(start = it.start + offset, endExclusive = it.endExclusive + offset)
-    }
 }

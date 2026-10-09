@@ -38,7 +38,8 @@ object KartariChaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
             context.purvaPadaVibhakti == Vibhakti.SASTHI &&
             context.padas.size >= 2 &&
             SamasaSemanticRelation.AGENT_RELATION in context.semanticRelations &&
-            SamasaMorphologicalFeature.KRIT_DERIVED in context.uttaraPada.morphologicalFeatures
+            SamasaMorphologicalFeature.KRIT_DERIVED in context.uttaraPada.morphologicalFeatures &&
+            !NityamKridajivikayohSutra.matches(context)
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {

@@ -42,7 +42,7 @@ object NaloPratipadikantasyaSutra : Sutra<DerivationState, DerivationChange>(
             val insideSamasa = affix != null && context.samjnas.any { it.targetId == stem.id && it.samjna == Samjna.SAMASA } &&
                 context.samjnas.any { it.targetId == affix.id && it.samjna == Samjna.SAMASA }
 
-            val hasDroppedSup = context.droppedTerms.any { it.id.startsWith("sup-") }
+            val hasDroppedSup = context.droppedTerms.any { it.sourceSupAffix != null }
 
             // A compound's non-final pada may acquire n through a substitute such as ānaṅ.
             // Do not extend this early compound operation to a newly n-final compound head:

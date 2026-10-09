@@ -9,13 +9,13 @@ class WholeAffixReplacementTest {
     private val designated = DerivationTerm(
         id = "affix", surface = "अप्", kind = TermKind.PRATYAYA, upadesha = "अप्",
         itMarkers = setOf(ItMarker.P), itProcessingPhase = ItProcessingPhase.DESIGNATED,
-        itDesignations = listOf(ItDesignation(1, 3, marker = ItMarker.P, sutra = "1.3.3", designatedText = "प्")),
+        itDesignations = listOf(ItDesignation(1, 3, marker = ItMarker.P, sutra = "1.3.3", designatedText = "प्", varnaIndices = setOf(1))),
     )
 
     @Test fun `preserve policy remaps the exact surviving segment`() {
         val result = designated.replaceWholeAffix(
             "इप्", "इप्", "x", WholeAffixDesignationPolicy.PreserveAndRemap(
-                listOf(ItDesignationRemap(1, 3, 1, 3)),
+                listOf(ItDesignationRemap(1, 3, 1, 3, setOf(1))),
             ),
         )
         assertEquals("प्", result.itDesignations.single().designatedText)
@@ -41,8 +41,8 @@ class WholeAffixReplacementTest {
             surface = "फक्",
             upadesha = "फक्",
             itDesignations = listOf(
-                ItDesignation(0, 1, marker = ItMarker.T, sutra = "1.3.7", designatedText = "फ"),
-                ItDesignation(1, 3, marker = ItMarker.KIT, sutra = "1.3.3", designatedText = "क्"),
+                ItDesignation(0, 1, marker = ItMarker.T, sutra = "1.3.7", designatedText = "फ", varnaIndices = setOf(0)),
+                ItDesignation(1, 3, marker = ItMarker.KIT, sutra = "1.3.3", designatedText = "क्", varnaIndices = setOf(2)),
             ),
         )
         val result = term.replaceWholeAffix(
@@ -50,7 +50,7 @@ class WholeAffixReplacementTest {
             "फक्",
             "7.1.2",
             WholeAffixDesignationPolicy.PreserveAndRemap(
-                remaps = listOf(ItDesignationRemap(1, 3, 4, 6)),
+                remaps = listOf(ItDesignationRemap(1, 3, 4, 6, setOf(4))),
                 consumed = listOf(ItDesignationConsumption(0, 1)),
             ),
         )

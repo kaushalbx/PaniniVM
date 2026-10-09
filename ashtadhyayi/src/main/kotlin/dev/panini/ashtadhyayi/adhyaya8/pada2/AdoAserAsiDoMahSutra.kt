@@ -38,7 +38,7 @@ object AdoAserAsiDoMahSutra : Sutra<DerivationState, DerivationChange>(
 
         if (completedForms.any { form -> stem.varnas.take(form.size) == form }) return false
 
-        val hasSup = context.terms.size >= 2 || context.droppedTerms.any { it.id.startsWith("sup-") }
+        val hasSup = context.terms.size >= 2 || context.droppedTerms.any { it.sourceSupAffix != null }
         return hasSup
     }
 

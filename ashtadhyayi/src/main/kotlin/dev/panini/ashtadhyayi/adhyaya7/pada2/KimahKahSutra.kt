@@ -32,7 +32,7 @@ object KimahKahSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         if (context.terms.size < 2) return false
         val stem = context.terms[context.terms.size - 2]
-        val hasSup = context.terms.last().id.startsWith("sup-") || context.droppedTerms.any { it.id.startsWith("sup-") }
+        val hasSup = context.terms.last().sourceSupAffix != null || context.droppedTerms.any { it.sourceSupAffix != null }
         return hasSup && stem.upadesha == "किम्" && stem.surface == "किम्"
     }
 

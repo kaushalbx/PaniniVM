@@ -46,7 +46,7 @@ object HalantyamSutra : Sutra<DerivationState, DerivationChange>(
             // their surviving final consonants are not new it-markers.
             if (!term.itProcessingPending && term.id in setOf("siyut", "yasut", "vuk", "nic")) return@any false
             term.varnas.lastOrNull() is Vyanjana &&
-                (term.itDesignations + term.deferredItDesignations).none { it.endExclusive == term.surface.length }
+                (term.itDesignations + term.deferredItDesignations).none { term.varnas.lastIndex in it.varnaIndices }
         }
     }
 
@@ -61,7 +61,7 @@ object HalantyamSutra : Sutra<DerivationState, DerivationChange>(
             if (!term.itProcessingPending && term.id in setOf("siyut", "yasut", "vuk", "nic")) return@map term
             val last = term.varnas.lastOrNull()
             if (last is Vyanjana) {
-                val isUndesignated = (term.itDesignations + term.deferredItDesignations).none { it.endExclusive == term.surface.length }
+                val isUndesignated = (term.itDesignations + term.deferredItDesignations).none { term.varnas.lastIndex in it.varnaIndices }
                 if (isUndesignated) {
                     val marker = when (last) {
                         Vyanjana.KA -> ItMarker.KIT
@@ -72,14 +72,7 @@ object HalantyamSutra : Sutra<DerivationState, DerivationChange>(
                         Vyanjana.SHA, Vyanjana.SSA -> ItMarker.SH
                         else -> ItMarker.GENERIC
                     }
-                    val start = term.orthographicStartOfFinalVarna()
-                    val designation = ItDesignation(
-                        start,
-                        term.surface.length,
-                        marker = marker,
-                        sutra = sutra,
-                        designatedText = term.orthographicDesignationText(start, term.surface.length),
-                    )
+                    val designation = term.designateVarnaIt(term.varnas.lastIndex, marker, sutra)
                     term.copy(
                         itMarkers = term.itMarkers + marker,
                         itProcessingPhase = if (term.itProcessingPending) dev.panini.derivation.ItProcessingPhase.DESIGNATED else term.itProcessingPhase,

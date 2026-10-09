@@ -79,6 +79,7 @@ object ItasCaSutra : Sutra<DerivationState, DerivationChange>(
                     oldEndExclusive = designation.endExclusive,
                     newStart = designation.start,
                     newEndExclusive = designation.endExclusive,
+                    newVarnaIndices = designation.varnaIndices,
                 )
             }
             context.replaceWholeAffix(

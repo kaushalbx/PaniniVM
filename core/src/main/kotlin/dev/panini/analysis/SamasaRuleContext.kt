@@ -165,6 +165,10 @@ enum class SamasaSemanticRelation {
     OBJECT_RELATION,
     /** The genitive member is construed as the agent of a derivative. */
     AGENT_RELATION,
+    /** The compound names a sport/play activity, as required by 2.2.17. */
+    SPORT_OR_PLAY,
+    /** The compound names the activity by which someone earns a livelihood (2.2.17). */
+    LIVELIHOOD,
 }
 
 /**

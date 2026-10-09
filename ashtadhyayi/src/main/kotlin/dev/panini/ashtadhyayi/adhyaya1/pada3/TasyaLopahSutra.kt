@@ -5,8 +5,6 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.ItMarkerProvenance
-import dev.panini.shiksha.OrthographicSign
-import dev.panini.shiksha.joinDevanagariVowelBoundary
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -16,7 +14,7 @@ import dev.panini.sutra.SutraType
 /**
  * 1.3.9: tasya lopaḥ.
  * The sound designated as 'it' disappears.
- * This implementation generalizes the removal of characters marked by preceding rules.
+ * Deletes the phonological occurrences selected by preceding designation rules.
  */
 object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
     number = "1.3.9",
@@ -49,35 +47,13 @@ object TasyaLopahSutra : Sutra<DerivationState, DerivationChange>(
             ) emptyList() else term.deferredItDesignations
             if (exactDesignations.isNotEmpty()) {
                 val designatedMarkers = exactDesignations.mapTo(mutableSetOf()) { it.marker }
-                val processed = exactDesignations.sortedByDescending { it.start }.fold(term.surface) { surface, designation ->
-                    require(designation.start >= 0 && designation.endExclusive <= surface.length &&
-                        surface.regionMatches(
-                            designation.start,
-                            designation.designatedText,
-                            0,
-                            designation.designatedText.length,
-                        )
-                    ) {
-                        "1.3.9 cannot delete stale designation ${designation.start}..${designation.endExclusive} " +
-                            "(${designation.designatedText}) on ${term.id}:${term.surface}; the substituting rule must remap or consume it."
-                    }
-                    surface.replaceRange(designation.start, designation.endExclusive, designation.replacementAfterLopa)
-                }.joinDevanagariVowelBoundary()
-                return@map term.copy(
-                    surface = processed,
+                return@map term.lopaOfDesignatedVarnas(exactDesignations).copy(
                     itMarkers = emptySet(),
                     itMarkerProvenance = term.itMarkerProvenance + exactDesignations.map { designation ->
                         ItMarkerProvenance(designation.marker, designation.sutra, designation.designatedText)
                     },
                     itDesignations = emptyList(),
                     deferredItDesignations = emptyList(),
-                    orthographicSigns = if (exactDesignations.any {
-                            OrthographicSign.CHANDRABINDU.devanagari in it.designatedText
-                        }) {
-                        term.orthographicSigns.filterNot { it.sign == OrthographicSign.CHANDRABINDU }
-                    } else {
-                        term.orthographicSigns
-                    },
                     itProcessingPhase = dev.panini.derivation.ItProcessingPhase.PROCESSED,
                     sthaniProps = dev.panini.derivation.SthaniProperties(
                         upadesha = term.sthaniProps?.upadesha ?: term.upadesha,
