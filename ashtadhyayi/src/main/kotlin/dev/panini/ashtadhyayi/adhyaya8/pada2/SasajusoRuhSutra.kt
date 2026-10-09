@@ -5,7 +5,6 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.derivation.WholeAffixDesignationPolicy
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.OrthographicSign
@@ -71,7 +70,8 @@ object SasajusoRuhSutra : Sutra<DerivationState, DerivationChange>(
                 .let(::withFreshRutva)
         )
         return DerivationChange(
-            changed.addSubstitution(VarnaSubstitution(target.id, source.devanagari.single(), "रुँ", number)),
+            changed.addVarnaSubstitution(target.id, source, listOf(Vyanjana.RA, Svara.U), number,
+                listOf(OrthographicSignPlacement(OrthographicSign.CHANDRABINDU, 2))),
             "8.2.66 substitutes रुँ for पद-final ${source}्.",
         )
     }

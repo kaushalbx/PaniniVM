@@ -8,7 +8,6 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.ItDesignationRemap
 import dev.panini.derivation.TermKind
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.derivation.WholeAffixDesignationPolicy
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Samjna
@@ -47,7 +46,7 @@ object JhalamJashonteSutra : Sutra<DerivationState, DerivationChange>(
         if (finalConsonant == Vyanjana.SA) return false
         if (finalConsonant in jash) return false
         val engine = Ashtadhyayi.pratyaharaEngine
-        return engine.contains(Pratyahara.JHAL, finalConsonant.devanagari.single())
+        return engine.contains(Pratyahara.JHAL, finalConsonant)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -55,9 +54,7 @@ object JhalamJashonteSutra : Sutra<DerivationState, DerivationChange>(
         val finalConsonant = requireNotNull(getFinalConsonant(lastTerm))
 
         // Use 1.1.50 logic to pick the best voiced substitute
-        val potentialSubstitutes = setOf("ज", "ब", "ग", "ड", "द")
-        val substituteText = SthaneAntaratamahSutra.selectBest(finalConsonant.devanagari.single(), potentialSubstitutes)
-        val substitute = requireNotNull(Vyanjana.fromDevanagari(substituteText.single()))
+        val substitute = requireNotNull(SthaneAntaratamahSutra.selectBest(finalConsonant, jash))
         val result = lastTerm.varnas.dropLast(1) + substitute
 
         val changed = if (lastTerm.kind in setOf(TermKind.PRATYAYA, TermKind.AGAMA, TermKind.AUGMENT)) {
@@ -72,7 +69,7 @@ object JhalamJashonteSutra : Sutra<DerivationState, DerivationChange>(
                 varnas = result,
                 sutra = sutra,
                 policy = WholeAffixDesignationPolicy.PreserveAndRemap(remaps),
-            ).addSubstitution(VarnaSubstitution(lastTerm.id, finalConsonant.devanagari.single(), substitute.devanagari, sutra))
+            ).addVarnaSubstitution(lastTerm.id, finalConsonant, listOf(substitute), sutra)
         } else {
             context.substituteTermVarnas(lastTerm.id, result, finalConsonant, listOf(substitute), sutra)
         }

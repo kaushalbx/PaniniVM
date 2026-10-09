@@ -36,7 +36,7 @@ object VisarjaniyasyaSahSutra : Sutra<DerivationState, DerivationChange>(
         val left = context.terms[context.terms.size - 2]
         val next = context.terms.last().varnas.firstOrNull() as? Vyanjana ?: return false
         return left.varnas.lastOrNull() == Ayogavaha.VISARGA &&
-            Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.KHAR, next.devanagari.single())
+            Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.KHAR, next)
     }
 
     override fun apply(context: DerivationState): DerivationChange {

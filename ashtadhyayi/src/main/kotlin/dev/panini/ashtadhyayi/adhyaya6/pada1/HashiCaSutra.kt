@@ -48,7 +48,7 @@ object HashiCaSutra : Sutra<DerivationState, DerivationChange>(
 
         // 2. Followed by a voiced consonant (haś)
         val first = right.varnas.firstOrNull() as? Vyanjana ?: return false
-        return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAS, first.devanagari.single())
+        return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAS, first)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
@@ -68,7 +68,7 @@ object HashiCaSutra : Sutra<DerivationState, DerivationChange>(
             context.samjnas.any { it.targetId == context.terms[index].id && it.samjna == Samjna.SANKHYA } &&
             context.samjnas.any { it.targetId == context.terms[index + 1].id && it.samjna == Samjna.SANKHYA } &&
             (context.terms[index + 1].varnas.firstOrNull() as? Vyanjana)?.let {
-                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAS, it.devanagari.single())
+                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAS, it)
             } == true
     } ?: -1
 }

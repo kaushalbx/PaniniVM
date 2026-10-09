@@ -41,7 +41,7 @@ object HaliSarveshamSutra : Sutra<DerivationState, DerivationChange>(
             val curr = context.terms[i].varnas
             val next = context.terms[i + 1].varnas.firstOrNull() ?: return@any false
             eligibleFinal(curr) != null && next is Vyanjana &&
-                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, next.devanagari.single())
+                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, next)
         }
     }
 
@@ -50,7 +50,7 @@ object HaliSarveshamSutra : Sutra<DerivationState, DerivationChange>(
             val curr = context.terms[i].varnas
             val next = context.terms[i + 1].varnas.firstOrNull() ?: return@first false
             eligibleFinal(curr) != null && next is Vyanjana &&
-                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, next.devanagari.single())
+                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, next)
         }
 
         val targetTerm = context.terms[targetIndex]

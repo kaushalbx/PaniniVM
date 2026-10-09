@@ -48,7 +48,7 @@ object BhoBhagoSutra : Sutra<DerivationState, DerivationChange>(
 
         // 2. Check if followed by Aś (vowels + voiced consonants)
         val next = right.varnas.firstOrNull() ?: return false
-        return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.ASH, next.devanagari.single())
+        return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.ASH, next)
     }
 
     override fun apply(context: DerivationState): DerivationChange {

@@ -39,7 +39,7 @@ object BhoBhagoAghoApurvasyaYoshiSutra : Sutra<DerivationState, DerivationChange
         return (0 until context.terms.size - 1).any { i ->
             val curr = context.terms[i].varnas
             val next = context.terms[i + 1].varnas.firstOrNull() ?: return@any false
-            ruSpan(curr) != null && Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.ASH, next.devanagari.single())
+            ruSpan(curr) != null && Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.ASH, next)
         }
     }
 
@@ -47,7 +47,7 @@ object BhoBhagoAghoApurvasyaYoshiSutra : Sutra<DerivationState, DerivationChange
         val targetIndex = (0 until context.terms.size - 1).first { i ->
             val curr = context.terms[i].varnas
             val next = context.terms[i + 1].varnas.firstOrNull() ?: return@first false
-            ruSpan(curr) != null && Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.ASH, next.devanagari.single())
+            ruSpan(curr) != null && Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.ASH, next)
         }
 
         val targetTerm = context.terms[targetIndex]

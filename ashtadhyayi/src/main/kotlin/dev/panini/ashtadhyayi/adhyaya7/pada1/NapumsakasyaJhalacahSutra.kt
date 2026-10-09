@@ -53,7 +53,7 @@ object NapumsakasyaJhalacahSutra : Sutra<DerivationState, DerivationChange>(
         val final = stem.varnas.lastOrNull() ?: return false
         val engine = Ashtadhyayi.pratyaharaEngine
         val endsInAcOrJhal = final is Svara ||
-            final is Vyanjana && engine.contains(Pratyahara.JHAL, final.devanagari.single())
+            final is Vyanjana && engine.contains(Pratyahara.JHAL, final)
 
         return endsInAcOrJhal && context.substitutions.none { it.sutra == sutra }
     }

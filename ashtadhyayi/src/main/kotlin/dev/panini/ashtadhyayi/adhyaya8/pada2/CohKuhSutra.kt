@@ -60,7 +60,7 @@ object CohKuhSutra : Sutra<DerivationState, DerivationChange>(
             val final = target.varnas.lastOrNull()
             val initial = following.varnas.firstOrNull()
             if (final in kuSubstitutes.keys && target.id !in abhyasaIds && initial is Vyanjana &&
-                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAL, initial.devanagari.single())
+                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAL, initial)
             ) {
                 return Match(termIndex, target.varnas.lastIndex)
             }

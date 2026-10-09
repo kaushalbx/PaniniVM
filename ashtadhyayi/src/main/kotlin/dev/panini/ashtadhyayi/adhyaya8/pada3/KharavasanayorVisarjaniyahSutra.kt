@@ -41,7 +41,7 @@ object KharavasanayorVisarjaniyahSutra : Sutra<DerivationState, DerivationChange
         if (index == context.terms.lastIndex) return true
 
         val next = context.terms[index + 1].varnas.firstOrNull() as? Vyanjana ?: return false
-        return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.KHAR, next.devanagari.single())
+        return Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.KHAR, next)
     }
 
     override fun apply(context: DerivationState): DerivationChange {

@@ -6,7 +6,6 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
-import dev.panini.derivation.VarnaSubstitution
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Varna
 import dev.panini.shiksha.Vyanjana
@@ -58,8 +57,8 @@ object TasasthamipamTantantamahSutra : Sutra<DerivationState, DerivationChange>(
         val affix = requireNotNull(eligibleEndings.singleOrNull { lastTerm.matchesUpadesha(it.upadesha) })
         val substitute = requireNotNull(replacements[affix])
         return DerivationChange(
-            state = context.replaceWholeAffix(lastTerm.id, substitute.toDevanagari(), sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume)
-                .addSubstitution(VarnaSubstitution(lastTerm.id, lastTerm.varnas.first().devanagari.single(), substitute.toDevanagari(), sutra))
+            state = context.replaceWholeAffix(lastTerm.id, substitute, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume)
+                .addVarnaSubstitution(lastTerm.id, lastTerm.varnas.first(), substitute, sutra)
                 .copy(stage = DerivationStage.PADA_FORMED),
             explanation = "3.4.101: Replaced ending ${lastTerm.upadesha} with ${substitute.toDevanagari()}."
         )

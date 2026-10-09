@@ -59,7 +59,7 @@ object LopoVyorValiSutra : Sutra<DerivationState, DerivationChange>(
             ) continue
             val right = rightTerm.varnas.firstOrNull() as? Vyanjana ?: continue
             if (leftTerm.varnas.lastOrNull() in setOf(Vyanjana.VA, Vyanjana.YA) &&
-                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, right.devanagari.single())
+                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, right)
             ) return true
         }
         return false
@@ -92,7 +92,7 @@ object LopoVyorValiSutra : Sutra<DerivationState, DerivationChange>(
             val right = rightTerm.varnas.firstOrNull() as? Vyanjana ?: continue
             val source = left.varnas.lastOrNull()
             if (source in setOf(Vyanjana.VA, Vyanjana.YA) &&
-                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, right.devanagari.single())
+                Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, right)
             ) {
                 return DerivationChange(
                     context.substituteTermSurface(

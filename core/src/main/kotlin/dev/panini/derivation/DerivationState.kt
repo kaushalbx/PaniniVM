@@ -505,8 +505,9 @@ class DerivationState(
         source: Varna,
         replacement: List<Varna>,
         sutra: String,
+        orthographicSigns: List<OrthographicSignPlacement> = emptyList(),
     ): DerivationState = addSubstitution(
-        VarnaSubstitution(targetId, source.devanagari.single(), replacement.toDevanagari(), sutra),
+        VarnaSubstitution(targetId, source.devanagari.single(), replacement.toDevanagari(orthographicSigns), sutra),
     )
 
     fun recordAppliedSutra(sutraNumber: String): DerivationState =

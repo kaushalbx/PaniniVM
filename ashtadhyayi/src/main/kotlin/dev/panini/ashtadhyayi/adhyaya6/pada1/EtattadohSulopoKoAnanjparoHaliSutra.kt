@@ -45,7 +45,7 @@ object EtattadohSulopoKoAnanjparoHaliSutra : Sutra<DerivationState, DerivationCh
 
             val isSaOrEsha = isSaOrEsha(curr.varnas)
             val first = next.varnas.firstOrNull() as? Vyanjana
-            val nextStartsWithHal = first != null && Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, first.devanagari.single())
+            val nextStartsWithHal = first != null && Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, first)
 
             isSaOrEsha && nextStartsWithHal
         }
@@ -58,7 +58,7 @@ object EtattadohSulopoKoAnanjparoHaliSutra : Sutra<DerivationState, DerivationCh
 
             val isSaOrEsha = isSaOrEsha(curr.varnas)
             val first = next.varnas.firstOrNull() as? Vyanjana
-            val nextStartsWithHal = first != null && Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, first.devanagari.single())
+            val nextStartsWithHal = first != null && Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.HAL, first)
 
             isSaOrEsha && nextStartsWithHal
         }
