@@ -1,6 +1,7 @@
 package dev.panini.ashtadhyayi.adhyaya1.pada2
 
 import dev.panini.core.Lakara
+import dev.panini.core.TingAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
@@ -30,9 +31,9 @@ object AsamyogallitKitSutra : Sutra<DerivationState, DerivationChange>(
         if (context.effectiveContext.rupa.lakara != Lakara.LIT) return false
         val dhatu = context.terms.firstOrNull { it.kind == TermKind.DHATU && it.id != "abhyasa" } ?: return false
         val affix = context.terms.lastOrNull()?.takeIf { it.kind == TermKind.PRATYAYA } ?: return false
-        val isPit = affix.id in setOf("ting-tip", "ting-sip", "ting-mip")
+        val isPit = affix.sourceTingAffix in setOf(TingAffix.TIP, TingAffix.SIP, TingAffix.MIP)
         return !endsInConsonantCluster(dhatu.varnas) &&
-            affix.id.startsWith("ting-") &&
+            affix.sourceTingAffix != null &&
             !isPit &&
             sutra !in affix.establishedBySutras
     }

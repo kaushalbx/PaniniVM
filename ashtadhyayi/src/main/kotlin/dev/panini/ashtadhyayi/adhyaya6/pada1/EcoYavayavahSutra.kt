@@ -78,8 +78,7 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
                 // Completed external padas retain their boundary for Tripadi y/v-lopa.
                 if (leftTerm.formedPadaRupa != null && rightTerm.formedPadaRupa != null) {
                     return DerivationChange(
-                        context.substituteTermVarnas(leftTerm.id,
-                            leftTerm.varnas.dropLast(1) + replacement, leftVarna, replacement, sutra),
+                        context.replaceTermVarna(leftTerm.id, leftTerm.varnas.lastIndex, replacement, sutra),
                         "6.1.78: substituted ${replacement.toDevanagari()} at the external pada boundary.",
                     )
                 }

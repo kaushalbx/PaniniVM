@@ -255,6 +255,35 @@ class DerivationState(
         return substituted.replaceTerm(id, term.copy(orthographicSigns = adjustedSigns))
     }
 
+    /** Replaces one exact occurrence, retaining unaffected annotations and remapping written signs. */
+    fun replaceTermVarna(id: String, index: Int, replacement: List<Varna>, sutra: String): DerivationState {
+        val original = terms.single { it.id == id }
+        val tokens = original.phonologicalText.effectiveVarnas
+        require(index in tokens.indices) { "$sutra requires an existing varṇa occurrence on $id." }
+        val source = tokens[index]
+        val nasalVowel = replacement.indexOfFirst { it is dev.panini.shiksha.Svara }
+        val inserted = replacement.mapIndexed { position, varna ->
+            dev.panini.shiksha.VarnaToken(id = dev.panini.shiksha.VarnaTokenId("replacement:$id:$index:$sutra:$position"), varna = varna,
+                accent = source.accent.takeIf { position == nasalVowel },
+                nasalized = source.nasalized && position == nasalVowel)
+        }
+        val result = tokens.take(index) + inserted + tokens.drop(index + 1)
+        val signs = (original.orthographicSigns + original.phonologicalText.sourceOrthographicSigns).distinct().mapNotNull { placement ->
+            if (placement.sign == dev.panini.shiksha.OrthographicSign.CHANDRABINDU &&
+                placement.afterVarnaCount == index + 1 && nasalVowel < 0) null
+            else placement.copy(afterVarnaCount = when {
+                placement.sign == dev.panini.shiksha.OrthographicSign.CHANDRABINDU && placement.afterVarnaCount == index + 1 ->
+                    index + nasalVowel + 1
+                placement.afterVarnaCount > index -> placement.afterVarnaCount + replacement.size - 1
+                else -> placement.afterVarnaCount
+            })
+        }
+        val rendered = SanskritText(result).renderWithOrthographicSigns(signs)
+        val substituted = substituteTermSurface(id, rendered, source.varna, replacement, sutra)
+        val term = substituted.terms.single { it.id == id }
+        return substituted.replaceTerm(id, term.copy(orthographicSigns = signs))
+    }
+
     /** Inserts phonological material at a varṇa boundary and records the āgama without exposing text offsets. */
     fun insertTermVarnas(
         id: String,
@@ -264,8 +293,22 @@ class DerivationState(
     ): DerivationState {
         val term = terms.single { it.id == id }
         require(beforeVarnaIndex in 0..term.varnas.size)
-        val result = term.varnas.take(beforeVarnaIndex) + insertion + term.varnas.drop(beforeVarnaIndex)
-        return substituteTermSurface(id, result.toDevanagari(), '∅', insertion.toDevanagari(), sutra)
+        val tokens = term.phonologicalText.effectiveVarnas
+        val inserted = insertion.mapIndexed { position, varna ->
+            dev.panini.shiksha.VarnaToken(
+                dev.panini.shiksha.VarnaTokenId("insertion:$id:$beforeVarnaIndex:$sutra:$position"), varna,
+            )
+        }
+        val result = tokens.take(beforeVarnaIndex) + inserted + tokens.drop(beforeVarnaIndex)
+        // A sign exactly at the boundary belongs to the preceding material.
+        val signs = (term.orthographicSigns + term.phonologicalText.sourceOrthographicSigns).distinct().map {
+            if (it.afterVarnaCount > beforeVarnaIndex) it.copy(afterVarnaCount = it.afterVarnaCount + insertion.size)
+            else it
+        }
+        val rendered = SanskritText(result).renderWithOrthographicSigns(signs)
+        val substituted = substituteTermSurface(id, rendered, '∅', insertion.toDevanagari(), sutra)
+        val current = substituted.terms.single { it.id == id }
+        return substituted.replaceTerm(id, current.copy(orthographicSigns = signs))
     }
 
     /** Merges two adjacent terms while preserving the survivor and lifecycle-dropping the consumed term. */
@@ -656,6 +699,9 @@ data class VarnaSubstitution(
     }
 }
 
+/** Explicit construction domain; never inferred from a term identifier. */
+enum class TermCompositionDomain { SANKHYA }
+
 data class DerivationTerm(
     val id: String,
     val surface: String,
@@ -707,6 +753,7 @@ data class DerivationTerm(
     val sourceSupAffix: dev.panini.core.SupAffix? = null,
     /** Original tiṅ slot, distinct from the current substitute's upadeśa. */
     val sourceTingAffix: dev.panini.core.TingAffix? = null,
+    val compositionDomain: TermCompositionDomain? = null,
 ) {
     /**
      * Cached phonological form of [surface]. During the transition [surface]

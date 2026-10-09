@@ -26,7 +26,7 @@ object SibbahulamLetiSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean =
         context.effectiveContext.rupa.lakara == Lakara.LET &&
             context.effectiveContext.letFormation == LetFormation.SIP_AORIST &&
-            context.terms.lastOrNull()?.id?.startsWith("ting-") == true &&
+            context.terms.lastOrNull()?.sourceTingAffix != null &&
             context.allEffectiveTerms.none { it.id == "sip-aorist" }
 
     override fun apply(context: DerivationState): DerivationChange {

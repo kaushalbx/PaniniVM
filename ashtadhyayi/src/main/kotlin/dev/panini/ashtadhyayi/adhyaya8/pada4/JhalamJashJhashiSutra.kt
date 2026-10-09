@@ -51,10 +51,9 @@ object JhalamJashJhashiSutra : Sutra<DerivationState, DerivationChange>(
         val rightTerm = terms.last()
         val source = leftTerm.varnas.last()
         val substitute = substituteFor(source)
-        val result = leftTerm.varnas.dropLast(1) + substitute
 
         return DerivationChange(
-            state = context.substituteTermVarnas(leftTerm.id, result, source, listOf(substitute), sutra),
+            state = context.replaceTermVarna(leftTerm.id, leftTerm.varnas.lastIndex, listOf(substitute), sutra),
             explanation = "8.4.53: Substituted voiced ${substitute.devanagari} before ${rightTerm.varnas.first().devanagari}."
         )
     }

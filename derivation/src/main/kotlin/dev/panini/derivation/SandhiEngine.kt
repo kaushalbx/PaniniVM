@@ -25,6 +25,15 @@ class SandhiEngine(
     fun joinAll(left: Pada, right: Pada): List<DerivationResult> =
         engine.deriveAll(padaBoundaryState(left, right))
 
+    /** Completed padas with unspecified morphology still license external boundary rules. */
+    fun joinAll(left: String, right: String): List<DerivationResult> =
+        joinAll(unspecifiedPada("sandhi_left", left), unspecifiedPada("sandhi_right", right))
+
+    private fun unspecifiedPada(id: String, surface: String): Pada {
+        require(surface.isNotBlank()) { "Two words are required for sandhi." }
+        return Pada(DerivationTerm(id, surface.trim(), TermKind.PRATIPADIKA, upadesha = surface.trim()))
+    }
+
     /** Hiatus is rendered as a word boundary, not as an invented phonological sign. */
     fun render(result: DerivationResult): String = render(result.final)
 
@@ -77,8 +86,7 @@ class SandhiEngine(
     ): DerivationResult {
         require(left.isNotBlank() && right.isNotBlank()) { "Two words are required for sandhi." }
 
-        val initial = padaBoundaryState(left, right)
-        return engine.derive(initial, config)
+        return join(unspecifiedPada("sandhi_left", left), unspecifiedPada("sandhi_right", right), config)
     }
 
     /** Completed consonant-final compound members: apply only boundary phonology. */

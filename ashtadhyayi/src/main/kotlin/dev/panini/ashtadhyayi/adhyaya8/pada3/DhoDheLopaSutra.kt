@@ -46,7 +46,7 @@ object DhoDheLopaSutra : Sutra<DerivationState, DerivationChange>(
 
         val targetTerm = context.terms[targetIndex]
         return DerivationChange(
-            state = context.substituteTermVarnas(targetTerm.id, targetTerm.varnas.dropLast(1), Vyanjana.DDHA, emptyList(), sutra),
+            state = context.replaceTermVarna(targetTerm.id, targetTerm.varnas.lastIndex, emptyList(), sutra),
             explanation = "8.3.14: Elided 'ḍh' before another 'ḍh'."
         )
     }

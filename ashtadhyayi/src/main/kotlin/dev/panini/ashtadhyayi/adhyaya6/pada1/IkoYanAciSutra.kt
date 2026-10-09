@@ -9,6 +9,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.TermCompositionDomain
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Svara
@@ -111,7 +112,7 @@ object IkoYanAciSutra : Sutra<DerivationState, DerivationChange>(
         val siyutIndex = context.terms.indexOfFirst { it.id == "siyut" && it.surface.isNotEmpty() }
         if (siyutIndex > 0) return (siyutIndex - 1) to siyutIndex
         if (context.terms.size < 2) return null
-        if (context.terms.size > 2 && context.terms.all { it.id.startsWith("sankhya_") }) {
+        if (context.terms.size > 2 && context.terms.all { it.compositionDomain == TermCompositionDomain.SANKHYA }) {
             return (0 until context.terms.lastIndex).firstOrNull { index ->
                 context.terms[index].varnas.lastOrNull() in yan &&
                     context.terms[index + 1].varnas.firstOrNull() is Svara

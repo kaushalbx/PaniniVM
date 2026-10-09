@@ -7,6 +7,7 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.TermCompositionDomain
 import dev.panini.core.SanadiAffix
 import dev.panini.derivation.matchesAffix
 import dev.panini.derivation.TermKind
@@ -106,7 +107,7 @@ object SavarnaDirghaSutra : Sutra<DerivationState, DerivationChange>(
                 "1.1.46" in augment.establishedBySutras &&
                 augment.varnas.firstOrNull() == Svara.AA
         }?.let { return it to it + 1 }
-        if (context.terms.size > 2 && context.terms.all { it.id.startsWith("sankhya_") }) {
+        if (context.terms.size > 2 && context.terms.all { it.compositionDomain == TermCompositionDomain.SANKHYA }) {
             return (0 until context.terms.lastIndex).firstOrNull { index ->
                 val left = context.terms[index].varnas.lastOrNull() ?: return@firstOrNull false
                 val right = context.terms[index + 1].varnas.firstOrNull() ?: return@firstOrNull false

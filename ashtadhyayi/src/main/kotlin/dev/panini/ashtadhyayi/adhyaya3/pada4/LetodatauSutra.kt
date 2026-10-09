@@ -51,7 +51,7 @@ object LetodatauSutra : Sutra<DerivationState, DerivationChange>(
         if (ending.upadesha in setOf("आताम्", "आथाम्") && ending.surface !in setOf("ऐते", "ऐथे")) return false
         if (context.effectiveContext.letEOption == LetEOption.AI &&
             ending.upadesha in atmanepadaUpadeshas && ending.varnas.lastOrNull() == Svara.E) return false
-        return ending.id.startsWith("ting-")
+        return ending.sourceTingAffix != null
     }
 
     override fun apply(context: DerivationState): DerivationChange {

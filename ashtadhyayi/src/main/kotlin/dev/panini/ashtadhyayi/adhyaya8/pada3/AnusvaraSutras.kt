@@ -9,7 +9,6 @@ import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Ayogavaha
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Vyanjana
-import dev.panini.shiksha.replaceVarna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -55,7 +54,7 @@ object MonusvarahSutra : Sutra<DerivationState, DerivationChange>(
         val replacement = listOf(Ayogavaha.ANUSVARA)
 
         return DerivationChange(
-            state = context.substituteTermVarnas(left.id, left.varnas.dropLast(1) + replacement, Vyanjana.MA, replacement, sutra),
+            state = context.replaceTermVarna(left.id, left.varnas.lastIndex, replacement, sutra),
             explanation = "8.3.23: Final 'm' became Anusvāra before consonant."
         )
     }
@@ -90,8 +89,8 @@ object NashcapadantasyaSutra : Sutra<DerivationState, DerivationChange>(
         val replacement = listOf(Ayogavaha.ANUSVARA)
 
         return DerivationChange(
-            state = context.substituteTermVarnas(
-                targetTerm.id, targetTerm.varnas.replaceVarna(localIndex, replacement), source, replacement, sutra,
+            state = context.replaceTermVarna(
+                targetTerm.id, localIndex, replacement, sutra,
             ),
             explanation = "8.3.24: Internal $source became Anusvāra before jhal."
         )

@@ -38,6 +38,7 @@ object JhalamJashonteSutra : Sutra<DerivationState, DerivationChange>(
     stage = dev.panini.sutra.SutraStage.FINAL_CONSONANT_SANDHI,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
+        if (externalPadaTarget(context) != null) return true
         // Must be a Pada (per 1.4.14)
         val internal = internalSankhyaTerm(context)
         if (isSankhyaCompound(context) && internal == null) return false
@@ -50,7 +51,7 @@ object JhalamJashonteSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val lastTerm = internalSankhyaTerm(context) ?: context.terms.last()
+        val lastTerm = externalPadaTarget(context) ?: internalSankhyaTerm(context) ?: context.terms.last()
         val finalConsonant = requireNotNull(getFinalConsonant(lastTerm))
 
         // Use 1.1.50 logic to pick the best voiced substitute
@@ -72,7 +73,7 @@ object JhalamJashonteSutra : Sutra<DerivationState, DerivationChange>(
                 policy = WholeAffixDesignationPolicy.PreserveAndRemap(remaps),
             ).addVarnaSubstitution(lastTerm.id, finalConsonant, listOf(substitute), sutra)
         } else {
-            context.substituteTermVarnas(lastTerm.id, result, finalConsonant, listOf(substitute), sutra)
+            context.replaceTermVarna(lastTerm.id, lastTerm.varnas.lastIndex, listOf(substitute), sutra)
         }
 
         return DerivationChange(
@@ -82,6 +83,16 @@ object JhalamJashonteSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     private fun getFinalConsonant(term: dev.panini.derivation.DerivationTerm): Vyanjana? = term.varnas.lastOrNull() as? Vyanjana
+
+    /** Completed external padas before aś; khar environments are resolved by 8.4.55. */
+    private fun externalPadaTarget(context: DerivationState) = context.terms.zipWithNext().firstOrNull { (left, right) ->
+        val final = getFinalConsonant(left)
+        left.formedPadaRupa != null && right.formedPadaRupa != null &&
+            context.samjnas.any { it.targetId == left.id && it.samjna == Samjna.PADA } &&
+            final != null && final != Vyanjana.SA && final !in jash &&
+            Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.JHAL, final) &&
+            right.varnas.firstOrNull()?.let { Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.ASH, it) } == true
+    }?.first
 
     private fun internalSankhyaTerm(context: DerivationState) = context.terms.firstOrNull { term ->
         term != context.terms.last() && context.samjnas.any { it.targetId == term.id && it.samjna == Samjna.SANKHYA } &&

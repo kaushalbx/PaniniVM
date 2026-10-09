@@ -31,6 +31,10 @@ class IndraSandhiTest {
 
     @Test
     fun `other o endings retain ordinary ec sandhi`() {
-        assertEquals("नविन्द्रः", SandhiEngine().join("नो", "इन्द्रः").final.surface)
+        val engine = SandhiEngine()
+        val results = engine.joinAll("नो", "इन्द्रः")
+        assertEquals(setOf("नविंद्रः", "न इंद्रः"), results.map(engine::render).toSet())
+        assertTrue(results.all { it.applications.any { a -> a.sutra == "6.1.78" } })
+        assertTrue(results.none { it.applications.any { a -> a.sutra == "6.1.124" } })
     }
 }

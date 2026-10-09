@@ -17,6 +17,9 @@ class PhonologicalRuleArchitectureTest {
             Path.of("src", "main", "kotlin"),
         ).first { it.isDirectory() }
         val forbidden = listOf(
+            Regex("""\.id\.startsWith\s*\(\s*"upasarga"\s*\)"""),
+            Regex("""\.id\.startsWith\s*\(\s*"sankhya_"\s*\)"""),
+            Regex("""\.id\??\.startsWith\s*\(\s*"ting-"\s*\)"""),
             Regex("""\.id\.startsWith\s*\(\s*"sup-"\s*\)"""),
             Regex("""Sutra\s*<\s*String\b"""),
             Regex("""\.text\.startsWith\s*\("""),

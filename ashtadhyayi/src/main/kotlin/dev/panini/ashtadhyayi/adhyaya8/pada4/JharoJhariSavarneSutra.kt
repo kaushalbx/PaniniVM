@@ -72,10 +72,9 @@ object JharoJhariSavarneSutra : Sutra<DerivationState, DerivationChange>(
         }
 
         val targetTerm = context.terms[targetIndex]
-        val source = targetTerm.varnas.last()
 
         return DerivationChange(
-            state = context.substituteTermVarnas(targetTerm.id, targetTerm.varnas.dropLast(1), source, emptyList(), sutra),
+            state = context.replaceTermVarna(targetTerm.id, targetTerm.varnas.lastIndex, emptyList(), sutra),
             explanation = "8.4.65: Elided redundant jhar consonant before savarṇa jhar."
         )
     }

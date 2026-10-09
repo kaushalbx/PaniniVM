@@ -52,15 +52,17 @@ object TiptasjhiSutra : Sutra<DerivationState, DerivationChange>(
         val baseTerm = context.effectiveContext.rupa.let { morphology ->
             requireNotNull(TingAffix.select(requireNotNull(morphology.purusha), requireNotNull(morphology.vacana), targetPada)).term()
         }
-        return DerivationChange(
-            context.replaceWholeAffix(
+        val selected = context.replaceWholeAffix(
                 id = lastTerm.id,
                 surface = baseTerm.surface,
                 sutra = sutra,
                 policy = WholeAffixDesignationPolicy.FreshUpadesha,
                 upadesha = baseTerm.upadesha,
                 replacementId = baseTerm.id,
-            ),
+            )
+        val ending = selected.terms.first { it.id == baseTerm.id }
+        return DerivationChange(
+            selected.replaceTerm(ending.id, ending.copy(sourceTingAffix = baseTerm.sourceTingAffix)),
             "3.4.78 substitutes the requested tiṅ termination for ${lastTerm.surface}.",
         )
     }

@@ -47,7 +47,7 @@ object AtoDirghoYaniSutra : Sutra<DerivationState, DerivationChange>(
         if (context.effectiveContext.rupa.lakara in setOf(Lakara.LANG, Lakara.LRNG, Lakara.LUNG, Lakara.LING) &&
             affix.upadesha == "मिप्" && "3.4.101" !in context.appliedSutras
         ) return false
-        if (!affix.id.startsWith("ting-")) return false
+        if (affix.sourceTingAffix == null) return false
         if (affix.upadesha == "ङि") return false
 
         val isAEnding = stem.varnas.lastOrNull() == Svara.A

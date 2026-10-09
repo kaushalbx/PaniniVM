@@ -37,10 +37,9 @@ object AnusvarasyaYayiParasavarnahSutra : Sutra<DerivationState, DerivationChang
     override fun apply(context: DerivationState): DerivationChange {
         val target = findTarget(context) ?: return DerivationChange(context, "8.4.58: Target anusvāra not found.")
         val substitute = nasalFor(target.follower)
-        val result = target.term.varnas.toMutableList().also { it[target.varnaIndex] = substitute }
 
         return DerivationChange(
-            state = context.substituteTermVarnas(target.term.id, result, Ayogavaha.ANUSVARA, listOf(substitute), sutra),
+            state = context.replaceTermVarna(target.term.id, target.varnaIndex, listOf(substitute), sutra),
             explanation = "8.4.58: Replaced Anusvāra with nasal parasavarṇa '${substitute.devanagari}'."
         )
     }

@@ -29,8 +29,7 @@ object LopahShakalyasyaSutra : Sutra<DerivationState, DerivationChange>(
         val index = requireNotNull(boundary(context))
         val left = context.terms[index]
         val right = context.terms[index + 1]
-        var state = context.substituteTermVarnas(left.id, left.varnas.dropLast(1),
-            left.varnas.last(), emptyList(), sutra)
+        var state = context.replaceTermVarna(left.id, left.varnas.lastIndex, emptyList(), sutra)
         // Tripadi lopa cannot reopen earlier vowel sandhi at this same boundary.
         for (rule in listOf("6.1.77", "6.1.78", "6.1.87", "6.1.88", "6.1.101"))
             state = state.blockAtBoundary(rule, left.id, right.id, sutra)

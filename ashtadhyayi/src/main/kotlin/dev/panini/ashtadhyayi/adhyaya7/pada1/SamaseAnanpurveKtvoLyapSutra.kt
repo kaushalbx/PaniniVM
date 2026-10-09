@@ -1,11 +1,11 @@
 package dev.panini.ashtadhyayi.adhyaya7.pada1
 
-import dev.panini.core.ItMarker
+import dev.panini.core.KrtAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
-import dev.panini.derivation.TermKind
+import dev.panini.derivation.hasCurrentAffix
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -33,19 +33,25 @@ object SamaseAnanpurveKtvoLyapSutra : Sutra<DerivationState, DerivationChange>(
     blocks = setOf("3.4.21"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        val hasUpasarga = context.samjnas.any { it.samjna == Samjna.UPASARGA } || context.terms.any { it.kind == TermKind.PRATIPADIKA && it.id.startsWith("upasarga") }
-        val ktvaTerm = context.terms.lastOrNull { it.upadesha == "क्त्वा" || it.id == "ktva_pratyaya" || it.surface == "त्वा" }
-        return hasUpasarga && ktvaTerm != null
+        if (target(context) == null) return false
+        // The executable preverb construction supplies UPASARGA explicitly.
+        // An orphan assignment or an identifier resembling a preverb is not grammar.
+        return context.terms.dropLast(1).any { term ->
+            context.samjnas.any { it.targetId == term.id && it.samjna == Samjna.UPASARGA }
+        }
     }
 
+    private fun target(context: DerivationState): DerivationTerm? =
+        context.terms.lastOrNull()?.takeIf { it.hasCurrentAffix(KrtAffix.KTVA) }
+
     override fun apply(context: DerivationState): DerivationChange {
-        val ktvaTerm = context.terms.last { it.upadesha == "क्त्वा" || it.id == "ktva_pratyaya" }
+        val ktvaTerm = requireNotNull(target(context))
         return DerivationChange(
             state = context.replaceWholeAffix(
                 id = ktvaTerm.id,
                 replacementId = "lyap_pratyaya",
-                surface = "ल्यप्",
-                upadesha = "ल्यप्",
+                surface = KrtAffix.LYAP.initialSurface,
+                upadesha = KrtAffix.LYAP.upadesha,
                 sutra = sutra,
                 policy = dev.panini.derivation.WholeAffixDesignationPolicy.FreshUpadesha,
             ),

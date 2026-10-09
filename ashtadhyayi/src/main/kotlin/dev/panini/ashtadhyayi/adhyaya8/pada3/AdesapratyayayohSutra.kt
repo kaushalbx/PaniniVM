@@ -41,12 +41,10 @@ object AdesapratyayayohSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val target = findRetroflexTarget(context) ?: return DerivationChange(context, "8.3.59: No match found")
-        val result = target.term.varnas.toMutableList().also { it[target.varnaIndex] = Vyanjana.SSA }
         return DerivationChange(
-            state = context.substituteTermVarnas(
+            state = context.replaceTermVarna(
                 target.term.id,
-                result,
-                Vyanjana.SA,
+                target.varnaIndex,
                 listOf(Vyanjana.SSA),
                 sutra,
             )

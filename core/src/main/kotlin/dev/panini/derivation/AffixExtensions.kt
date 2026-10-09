@@ -17,6 +17,10 @@ fun TypedAffix.term(id: String): DerivationTerm =
 fun DerivationTerm.matchesAffix(affix: TypedAffix): Boolean =
     matchesUpadesha(affix.upadesha) || affix.alternateUpadeshas.any(::matchesUpadesha)
 
+/** Current affix only: unlike sthānin-aware matching, this cannot reselect a replaced affix. */
+fun DerivationTerm.hasCurrentAffix(affix: TypedAffix): Boolean =
+    kind == TermKind.PRATYAYA && (upadesha == affix.upadesha || upadesha in affix.alternateUpadeshas)
+
 fun DerivationTerm.matchesAnyAffix(vararg affixes: TypedAffix): Boolean = affixes.any(::matchesAffix)
 
 fun DerivationTerm.matchesAnyAffix(affixes: Iterable<TypedAffix>): Boolean = affixes.any(::matchesAffix)

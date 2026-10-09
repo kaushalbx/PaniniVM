@@ -37,10 +37,9 @@ object CohKuhSutra : Sutra<DerivationState, DerivationChange>(
         val targetTerm = context.terms[match.termIndex]
         val source = targetTerm.varnas[match.varnaIndex] as Vyanjana
         val replacement = kuSubstitutes.getValue(source)
-        val result = targetTerm.varnas.take(match.varnaIndex) + replacement + targetTerm.varnas.drop(match.varnaIndex + 1)
 
         return DerivationChange(
-            state = context.substituteTermVarnas(targetTerm.id, result, source, listOf(replacement), sutra),
+            state = context.replaceTermVarna(targetTerm.id, match.varnaIndex, listOf(replacement), sutra),
             explanation = "8.2.30 substitutes ka-varga $replacement for ca-varga $source."
         )
     }
