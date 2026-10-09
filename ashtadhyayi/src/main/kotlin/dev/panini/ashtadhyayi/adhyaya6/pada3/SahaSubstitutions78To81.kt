@@ -2,18 +2,17 @@ package dev.panini.ashtadhyayi.adhyaya6.pada3
 
 import dev.panini.analysis.*
 import dev.panini.core.SamasaType
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.*
 
 private fun isSaha(c: SamasaRuleContext) = c.padas.size >= 2 && c.purvaPada.upadesha == "सह"
-private fun saStem(c: SamasaRuleContext, rule: String): SamasaRuleResult {
-    val u = c.padas.drop(1).joinToString("") { it.upadesha }
-    val stem = when {
-        u.startsWith("अ") || u.startsWith("आ") -> "सा${u.drop(1)}"
-        u.startsWith("इ") || u.startsWith("ई") -> "से${u.drop(1)}"
-        u.startsWith("उ") || u.startsWith("ऊ") -> "सो${u.drop(1)}"
-        else -> "स$u"
-    }
-    return SamasaRuleResult.Formed(stem, "$rule substitutes स for सह.", memberEdits=mapOf(0 to "स"))
+internal fun saStem(c: SamasaRuleContext, rule: String): SamasaRuleResult {
+    val replacement = listOf(Vyanjana.SA, Svara.A)
+    // Joining sandhi belongs to the boundary engine, not the saha substitution.
+    val stem = (replacement + c.padas.drop(1).flatMap { it.varnas }).toDevanagari()
+    return SamasaRuleResult.Formed(stem, "$rule substitutes स for सह.", memberEdits=mapOf(0 to replacement.toDevanagari()))
 }
 
 /** 6.3.78: सहस्य सः संज्ञायाम्. */

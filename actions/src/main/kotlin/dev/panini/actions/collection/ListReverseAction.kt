@@ -33,7 +33,7 @@ object ListReverseAction : DhatuAction("सूचीविलोमः", "सू
                 "Selected operation ${operation.name}.",
                 "Reversed the list."
             ),
-            SanskritValue.Suchi(reversed)
+            SanskritValue.Suchi(reversed, (list.singleOrNull() as? SanskritValue.Suchi)?.memberType)
         )
     }
 }

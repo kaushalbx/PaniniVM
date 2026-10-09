@@ -201,12 +201,16 @@ object ResolvedLeafPlanner {
             }
             .orEmpty()
         val truthConstants = parsedSubantas.mapNotNull { pada ->
-            val identity = (pada.pratipadika as? MulaPratipadika)?.lexicalIdentity
             pada.pratipadika.semanticKey().takeIf {
-                identity in setOf(MulaPratipadikaIdentity.SATYA, MulaPratipadikaIdentity.ASATYA)
+                dev.panini.execution.nominalTruthValue(pada.pratipadika) != null
             }
         }.toSet()
         val symbolicOperands = parsedSubantas.asSequence()
+            .filterNot { pada ->
+                val nominal = pada.pratipadika as? MulaPratipadika
+                nominal?.lexicalIdentity == MulaPratipadikaIdentity.SANKHYA &&
+                    nominal.vikaras.isEmpty() && pada.sup.text == SupAffix.SAS.upadesha
+            }
             .filter { pada ->
                 isCopularOrderParticipant(parsedUkti, pada) || pada.vibhakti() == Vibhakti.DVITIYA
             }

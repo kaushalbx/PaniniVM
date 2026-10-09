@@ -99,7 +99,7 @@
   },
   {
     "id": "SANDHI_018", "name": "nara plus indra", "left": "नर", "right": "इन्द्रः",
-    "expected": "नरेन्द्रः", "requiredSutras": "6.1.87", "forbiddenSutras": "6.1.101"
+    "expected": "नरेंद्रः", "requiredSutras": "6.1.87,8.3.24", "forbiddenSutras": "6.1.101"
   },
   {
     "id": "SANDHI_019", "name": "deva plus isha", "left": "देव", "right": "ईशः",
@@ -243,7 +243,7 @@
   },
   {
     "id": "SANDHI_054", "name": "daya plus ananda", "left": "दया", "right": "आनन्दः",
-    "expected": "दयानन्दः", "requiredSutras": "6.1.101", "forbiddenSutras": "6.1.87"
+    "expected": "दयानंदः", "requiredSutras": "6.1.101,8.3.24", "forbiddenSutras": "6.1.87"
   },
   {
     "id": "SANDHI_055", "name": "vidya plus arthi", "left": "विद्या", "right": "अर्थी",
@@ -527,7 +527,7 @@
   { "id": "SANDHI_196", "name": "yatha plus ekam", "left": "यथा", "right": "एकम्", "expected": "यथैकम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
   { "id": "SANDHI_197", "name": "dharma plus aishvarya", "left": "धर्म", "right": "ऐश्वर्यम्", "expected": "धर्मैश्वर्यम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
   { "id": "SANDHI_198", "name": "rajya plus aishvarya", "left": "राज्य", "right": "ऐश्वर्यम्", "expected": "राज्यैश्वर्यम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
-  { "id": "SANDHI_199", "name": "maha plus aikantika", "left": "महा", "right": "ऐकान्तिकम्", "expected": "महैकान्तिकम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
+  { "id": "SANDHI_199", "name": "maha plus aikantika", "left": "महा", "right": "ऐकान्तिकम्", "expected": "महैकांतिकम्", "requiredSutras": "6.1.88,8.3.24", "forbiddenSutras": "6.1.87" },
   { "id": "SANDHI_200", "name": "jana plus aikya", "left": "जन", "right": "ऐक्यम्", "expected": "जनैक्यम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
   { "id": "SANDHI_201", "name": "shabda plus aikya", "left": "शब्द", "right": "ऐक्यम्", "expected": "शब्दैक्यम्", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
   { "id": "SANDHI_202", "name": "maha plus ojasvi", "left": "महा", "right": "ओजस्वी", "expected": "महौजस्वी", "requiredSutras": "6.1.88", "forbiddenSutras": "6.1.87" },
@@ -578,5 +578,12 @@
   { "id": "SANDHI_247", "name": "sadho plus atra", "left": "साधो", "right": "अत्र", "expected": "साधोऽत्र", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
   { "id": "SANDHI_248", "name": "sadho plus asti", "left": "साधो", "right": "अस्ति", "expected": "साधोऽस्ति", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
   { "id": "SANDHI_249", "name": "aho plus atra", "left": "अहो", "right": "अत्र", "expected": "अहोऽत्र", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
-  { "id": "SANDHI_250", "name": "aho plus api", "left": "अहो", "right": "अपि", "expected": "अहोऽपि", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" }
+  { "id": "SANDHI_250", "name": "aho plus api", "left": "अहो", "right": "अपि", "expected": "अहोऽपि", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.101" },
+  { "id": "SANDHI_251", "name": "go plus Indra compulsory avang then guna", "left": "गो", "right": "इन्द्रः", "expected": "गवेंद्रः", "requiredSutras": "6.1.124,6.1.87", "forbiddenSutras": "6.1.78,6.1.123", "source": "https://ashtadhyayi.com/sutraani/6/1/124", "note": "गवेन्द्रः after guna; existing nasal rules render गवेंद्रः." },
+  { "id": "SANDHI_252", "name": "go agra with optional avang", "left": "गो", "right": "अग्रम्", "expected": "गवाग्रम्", "requiredSutras": "6.1.123,6.1.101", "forbiddenSutras": "6.1.78,6.1.109,6.1.124", "source": "https://ashtadhyayi.com/sutraani/6/1/123" },
+  { "id": "SANDHI_253", "name": "go agra without avang or prakrtibhava", "left": "गो", "right": "अग्रम्", "expected": "गोऽग्रम्", "requiredSutras": "6.1.109", "forbiddenSutras": "6.1.122,6.1.123,6.1.124", "skippedSutras": "6.1.122,6.1.123", "source": "https://ashtadhyayi.com/sutraani/6/1/123" },
+  { "id": "SANDHI_254", "name": "go odana with optional avang and vrddhi", "left": "गो", "right": "ओदनम्", "expected": "गवौदनम्", "requiredSutras": "6.1.123,6.1.88", "forbiddenSutras": "6.1.78,6.1.124", "source": "https://ashtadhyayi.com/sutraani/6/1/123" },
+  { "id": "SANDHI_255", "name": "go agra optional prakrtibhava", "left": "गो", "right": "अग्रम्", "expected": "गोअग्रम्", "requiredSutras": "6.1.122", "forbiddenSutras": "6.1.78,6.1.109,6.1.123,6.1.124", "skippedSutras": "6.1.123", "source": "https://ashtadhyayi.com/sutraani/6.1.122" },
+  { "id": "SANDHI_256", "name": "go ajina optional prakrtibhava", "left": "गो", "right": "अजिनम्", "expected": "गोअजिनम्", "requiredSutras": "6.1.122", "forbiddenSutras": "6.1.78,6.1.109,6.1.123", "skippedSutras": "6.1.123", "source": "https://ashtadhyayi.com/sutraani/6/1/123" },
+  { "id": "SANDHI_257", "name": "go before long a does not receive short-a prakrtibhava", "left": "गो", "right": "आगमः", "expected": "गवागमः", "requiredSutras": "6.1.78", "forbiddenSutras": "6.1.122,6.1.123", "skippedSutras": "6.1.123", "source": "https://ashtadhyayi.com/sutraani/6.1.122" }
 ]

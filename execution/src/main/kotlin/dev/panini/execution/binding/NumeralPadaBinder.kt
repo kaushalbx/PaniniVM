@@ -61,8 +61,9 @@ internal object NumeralPadaBinder {
      */
     internal fun extractNumeralValue(pada: Pada): Long? = when (pada) {
         is SankhyaPada -> pada.value ?: sharedSankhyaEvaluator.evaluateStems(pada.stems).value
-        is SubantaPada -> NumeralAstNormalizer.resolve(pada.pratipadika)?.semanticValue?.value
-            ?: PrimitiveSankhya.fromAnnotatedPratipadika(pada.pratipadika.sourceText)?.value
+        is SubantaPada -> if (NumeralAstNormalizer.hasNonGenderDerivation(pada.pratipadika)) null
+            else NumeralAstNormalizer.resolve(pada.pratipadika)?.semanticValue?.value
+                ?: PrimitiveSankhya.fromAnnotatedPratipadika(pada.pratipadika.sourceText)?.value
         is KatapayadiPada -> pada.value ?: katapayadiDecoder.decode(pada.word)
         is AryabhatiyaPada -> pada.value ?: aryabhatiyaDecoder.decode(pada.word)
         is BhutasamkhyaPada -> pada.value ?: bhutasamkhyaDecoder.decodeTerms(pada.terms)
@@ -71,6 +72,12 @@ internal object NumeralPadaBinder {
 
     /** Extracts an ordinal value only when numeric morphology evaluates to pūraṇa. */
     internal fun extractOrdinalValue(pada: Pada): Long? {
+        val lexical = (pada as? SubantaPada)?.pratipadika as? dev.panini.vyakaranam.ast.MulaPratipadika
+        if (lexical?.lexicalIdentity?.ordinalValue != null && lexical.lexicalOrdinalValue == null) return null
+        // A typed pūraṇa node already owns its semantic value. All clients of
+        // ordinal extraction (memory, kāraka queries, and parameters) share this
+        // precedence instead of evaluating source stems before inspecting it.
+        dev.panini.execution.PuranaPratyayaResolver.ordinalValue(pada)?.let { return it }
         val expression = when (pada) {
             is SankhyaPuranaPada -> runCatching { sharedSankhyaEvaluator.evaluateStems(pada.stems) }.getOrNull()
             is SubantaPada -> runCatching {

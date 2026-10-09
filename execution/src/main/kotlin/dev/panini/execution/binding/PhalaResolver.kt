@@ -23,13 +23,15 @@ internal data class PhalaResolution(
     val resolvedQualifiers: Set<Pada>,
 )
 
+internal class MissingActionResultException(message: String) : IllegalArgumentException(message)
+
 /**
  * Resolves "फल" (result-reference) pādas to concrete invocation ids.
  *
- * Handles three resolution scopes in priority order:
- * 1. **Within-utterance** — a genitive modifier names a prior clause's dhātu action.
- * 2. **Kriyā memory** — the named action matches a remembered frame by exact dhātu upadeśa.
- * 3. **Conversation compatibility** — older contexts still resolve through result history.
+ * Builds chronological candidates from earlier discourse followed by preceding
+ * clauses in the current utterance. Kriyā memory is authoritative for earlier
+ * discourse; conversation history supplies compatibility when memory is absent.
+ * Ordering is applied once to the combined candidates, not once per scope.
  * Ordering is expressed by an independent qualifier of फल, such as पूर्वम् or प्रथमम्.
  *
  * Remembered kriyās are matched by their canonical Dhātupāṭha upadeśa, never by result aliases.
@@ -42,60 +44,51 @@ internal object PhalaResolver {
         subantas: List<SubantaPada>,
         ctx: BindingContext,
     ): PhalaResolution {
-        val resolvedGenitives = mutableSetOf<SubantaPada>()
-        val resolvedQualifiers = mutableSetOf<Pada>()
-        val phalaMap = mutableMapOf<SubantaPada, String>()
+        val resolvedGenitives = java.util.Collections.newSetFromMap(java.util.IdentityHashMap<SubantaPada, Boolean>())
+        val resolvedQualifiers = java.util.Collections.newSetFromMap(java.util.IdentityHashMap<Pada, Boolean>())
+        // Equal-looking फल padas are distinct occurrences in the source sentence.
+        val phalaMap = java.util.IdentityHashMap<SubantaPada, String>()
 
         phalaPadas.forEach { phalaPada ->
-            val explicitOrder = MemoryOrderQualifierResolver.before(phalaPada, padas)
-            val idx = subantas.indexOf(phalaPada)
-            val genitiveModifier = subantas.take(idx)
+            val namedReference = NamedActionResultReferenceResolver.resolve(padas)
+                .singleOrNull { it.result === phalaPada }
+            if (namedReference?.orderingAgrees == false) throw MissingActionResultException(
+                "The ordering qualifier of फल is ambiguous or does not agree.",
+            )
+            val explicitOrder = if (namedReference != null)
+                MemoryOrderQualifierResolver.from(namedReference.orderingQualifier)
+                else MemoryOrderQualifierResolver.before(phalaPada, padas)
+            if (!explicitOrder.agreesWith(phalaPada)) throw MissingActionResultException(
+                "The ordering qualifier and फल must agree in case and number.",
+            )
+            val idx = subantas.indexOfFirst { it === phalaPada }
+            val genitiveModifier = namedReference?.modifier ?: subantas.take(idx)
                 .lastOrNull { it.hasVibhakti(Vibhakti.SASTHI) && it !in resolvedGenitives }
                 ?: return@forEach
 
             val base = genitiveModifier.pratipadika.baseText()
             val order = explicitOrder
             val root = DhatuCache.getActionRoot(base)
+            val referencedDhatu = (genitiveModifier.pratipadika as? KridantaPratipadika)
+                ?.dhatu?.let(DhatuCache::resolve)?.upadesha
 
             // ---- 1. Resolve against earlier clauses in this utterance ----------------
             val matchingIndices = (0 until ctx.clauseIndex).filter { i ->
                 val prevDhatu = ctx.previousDhatus.getOrNull(i) ?: return@filter false
+                if (referencedDhatu != null) return@filter prevDhatu.upadesha == referencedDhatu
                 val prevRoot = DhatuCache.getDhatuRoot(prevDhatu.upadesha)
                 val prevActionRoots = prevDhatu.operations.mapTo(mutableSetOf()) {
                     DhatuCache.getActionRoot(it.name)
                 }
                 root == prevRoot || root in prevActionRoots
             }
-            val withinUtteranceMatch = order.select(matchingIndices)
-
-            if (withinUtteranceMatch != null) {
-                phalaMap[phalaPada] = KriyaInvocationId.of(withinUtteranceMatch + 1)
-                resolvedGenitives.add(genitiveModifier)
-                if (explicitOrder.isExplicit && explicitOrder.pada != null) {
-                    resolvedQualifiers.add(explicitOrder.pada)
-                }
-                return@forEach
-            }
-
-            // ---- 2. Resolve against kriyā-centred memory -----------------------------
-            val referencedDhatu = (genitiveModifier.pratipadika as? KridantaPratipadika)
-                ?.dhatu?.mulaDhatu?.let(DhatuCache::get)?.upadesha
-            val rememberedKriya = referencedDhatu?.let { order.select(ctx.memory, it) }
-            if (rememberedKriya != null) {
-                phalaMap[phalaPada] = rememberedKriya.frame.id.value
-                resolvedGenitives.add(genitiveModifier)
-                if (explicitOrder.isExplicit && explicitOrder.pada != null) {
-                    resolvedQualifiers.add(explicitOrder.pada)
-                }
-                return@forEach
-            }
-
             // ---- 3. Compatibility fallback to conversation result history -----------
             val historicalResults = ctx.conversation?.resultHistory?.filter { result ->
-                val dhatuUpadesha = ctx.conversation.metadata[ExecutionMetadata.dhatu(result.invocationId)]
-                    ?: ctx.conversation.metadata[ExecutionMetadata.dhatu(result.id)]
+                val dhatuUpadesha = ctx.conversation.metadata[ExecutionMetadata.dhatu(result.id)]
+                    ?: ctx.conversation.metadata[ExecutionMetadata.dhatu(result.invocationId)]
                 val prevDhatu = dhatuUpadesha?.let { DhatuCache.upadeshaDhatuCache[it] }
                     ?: return@filter false
+                if (referencedDhatu != null) return@filter prevDhatu.upadesha == referencedDhatu
                 val prevRoot = DhatuCache.getDhatuRoot(prevDhatu.upadesha)
                 val prevActionRoots = prevDhatu.operations.mapTo(mutableSetOf()) {
                     DhatuCache.getActionRoot(it.name)
@@ -103,14 +96,24 @@ internal object PhalaResolver {
                 root == prevRoot || root in prevActionRoots
             } ?: emptyList()
 
-            val historicalResult = order.select(historicalResults)
+            val rememberedIds = if (referencedDhatu == null) emptyList() else ctx.memory.entries
+                .filter { it.phala != null && it.frame.kriya?.dhatu?.upadesha == referencedDhatu }
+                .map { it.frame.id.value }
+            // Memory and compatibility history describe the same earlier discourse;
+            // use one representation, then append preceding local clauses once.
+            val earlierIds = rememberedIds.ifEmpty { historicalResults.map { it.id } }
+            val selectedId = order.select(earlierIds + matchingIndices.map { KriyaInvocationId.of(it + 1) })
 
-            if (historicalResult != null) {
-                phalaMap[phalaPada] = historicalResult.id
+            if (selectedId != null) {
+                phalaMap[phalaPada] = selectedId
                 resolvedGenitives.add(genitiveModifier)
                 if (explicitOrder.isExplicit && explicitOrder.pada != null) {
                     resolvedQualifiers.add(explicitOrder.pada)
                 }
+            } else if (genitiveModifier.pratipadika is KridantaPratipadika) {
+                throw MissingActionResultException(
+                    "No completed result matching '${genitiveModifier.sourceText}' and its ordering qualifier is available.",
+                )
             }
         }
 

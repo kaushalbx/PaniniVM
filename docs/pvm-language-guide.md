@@ -255,6 +255,104 @@ rather than executed:
 
 ## 6. Direct result pipelines
 
+An ordered list can also be declared directly by naming its members in ṣaṣṭhī:
+
+```pvm
+एक + ङस् द्वि + ओस् त्रि + आम् च सूची + सुँ असँ + लट् + तिप् ।
+```
+
+“एकस्य द्वयोः त्रयाणां च सूची अस्ति।” This creates and stores `[1, 2, 3]`
+under `सूची`, preserving member order and duplicates. A single member still
+produces a list. The interpreter and JVM compiler share the same typed AST
+lowering; no rendered Sanskrit is reparsed to recover the members. `च` only
+coordinates members: the explicit `सूची … अस्ति` construction creates the list.
+Use `सम् + ग्रहँ` when gathering is itself the requested action. Existing indexing,
+printing, and collection operations can consume the declared list.
+
+To explicitly constrain the members to numbers, add the genitive plural type
+qualifier `सङ्ख्या + आम्`:
+
+```pvm
+एक + ङस् द्वि + ओस् त्रि + आम् चतुर् + आम् च
+सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।
+```
+
+PVM reads the coordinated numerals as named values and `सङ्ख्यानाम्` as their
+member-type qualifier. This construction creates `[1, 2, 3, 4]`, not four
+unspecified numbers. That disambiguation is part of PVM semantics. Word members
+are rejected; numeric values retain their actual types rather than being parsed
+from display text. The constraint travels with the list through storage, history,
+semantic codecs, persistence, reverse, slicing, filtering, flattening, insertion,
+and concatenation. Incompatible insertion or concatenation fails. Mapping creates
+a new general list because the mapped result may have a different member type.
+The constraint belongs to the list value, not a permanently typed variable slot.
+A bare `सङ्ख्यानां सूची अस्ति` does not silently create an empty list.
+
+The same grammatical construction supports a word/text member type:
+
+```pvm
+राम + ङस् सीता + ङस् च शब्द + आम् सूची + सुँ असँ + लट् + तिप् ।
+```
+
+`शब्दानाम्` requires actual word/text values, not numbers whose display happens
+to be a word. Declared values still resolve existing bindings before falling
+back to literal words. The shared typed-list backend handles both member types;
+conflicting declared types cannot be concatenated, even for empty lists.
+The currently supported declaration uses present third-person singular `अस्ति`
+to agree with singular `सूची`. Disagreeing verbs and duplicate or conflicting
+member-type qualifiers are diagnosed rather than silently reinterpreted.
+
+A nominal `इति` naming clause can give the declared list its own referent:
+
+```pvm
+क्रम + सुँ इति एक + ङस् द्वि + ओस् च
+सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।
+क्रम + ङसिँ द्वि + तीय + ङि मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।
+```
+
+The quoted name is one nominative singular nominal. The list is stored as `क्रम`;
+subsequent inflected references retain the same nominal identity.
+Both backends share this structural lowering. This does not convert quoted
+commands into names or reinterpret arbitrary reporting clauses as assignments.
+Declared referent gender/agreement beyond this form and “सूच्याः सर्वाः सङ्ख्याः”
+quantification remain pending.
+
+To select an ordinal member, express the collection as a genitive whole and
+make the ordinal agree with the singular accusative object:
+
+```text
+क्रम + ङस् प्रथम + अम् मूल्य + अम् ग्रहँ + श्ना + लोट् + सिप् ।
+```
+
+Here `प्रथमम्` modifies `मूल्यम्`; it is not a second object or a locative
+programming index. The same construction accepts `द्वि + तीय + अम्`. This
+currently supports the singular मूल्य object with ग्रह्; it is not a general
+adjective-agreement implementation.
+Within this single-object construction, the relation does not depend on
+adjacency: `मूल्य + अम् क्रम + ङस् प्रथम + अम् ग्रहँ + श्ना + लोट् + सिप्`
+selects the same member. Multiple ordinal modifiers are an ambiguous request
+and are rejected rather than resolved by nearest-word order.
+Feminine ordinal stems such as `प्रथमा` and explicit feminine affixes such as
+`प्रथम + टाप्` cannot qualify neuter `मूल्य` in this construction, even when
+their case and number endings otherwise match.
+
+Prefer the indeclinable naming particle `नाम` when the name belongs after the
+members, within the declaration itself:
+
+```pvm
+एक + ङस् द्वि + ओस् त्रि + आम् च क्रम + सुँ नाम
+सङ्ख्या + आम् सूची + सुँ असँ + लट् + तिप् ।
+```
+
+`नाम` follows a nominative singular name; it is an avyaya, not a shortened form
+of the inflected noun `नामन्`. The members and their type qualifier retain their
+existing grammatical roles. A declaration supplies one name, not both an इति
+name and a नाम name. Both forms retain the most recently declared list under
+the discourse noun `सूची`, so `क्रमस्य` and a later `सूच्याः` can access that
+declaration after intervening printing or arithmetic. A subsequent declaration
+updates `सूची` while preserving earlier explicit names. This is a retained list
+value, not a permanent alias that follows later unrelated reassignment of a name.
+
 `ततः` sends the typed result of one stage into the missing कर्मन् of the next
 stage:
 
@@ -272,6 +370,8 @@ Pipelines may contain multiple stages:
 
 The runtime transports semantic values rather than rendering and re-parsing
 strings between stages.
+If a stage explicitly names `फल`, that reference supplies the preceding result
+once; an additional implicit copy is not injected, including after a conditional.
 
 Reusable procedures can form the same ordered pipeline. Put every procedure's
 domain in ṣaṣṭhī, put the action noun in tṛtīyā to mark the means, and use
@@ -288,6 +388,96 @@ This renders as “पञ्च द्वे च गणितस्य गणन
 कुरु।” The instrumental endings are semantic: they identify the procedure
 stages, while `ततः` determines their execution order. The older
 `पूर्वस्य परस्य एका कुरु` directive remains accepted only for compatibility.
+
+### 6.1 Prior-action clauses: क्त्वा and ल्यप्
+
+An earlier action with the same agent can precede the main finite command:
+
+```pvm
+एक + अम् द्वि + औट् च युज् + णिच् + क्त्वा
+फल + अम् मुद्र् + णिच् + लोट् + सिप् ।
+```
+
+This renders with `योजयित्वा … मुद्रय`: having combined one and two,
+print the result. The earlier action owns the operands before its derived
+verb; the main action owns the following operands. Multiple prior actions
+are executed in source order. `फल` explicitly refers to the preceding result;
+क्त्वा itself does not inject an operand into the following action.
+
+Within a prior-action chain, an otherwise objectless मुद्र् command resolves its
+omitted object to the immediately preceding result. Thus `चिञ् + क्त्वा मुद्र् +
+णिच् + लोट् + सिप्` can mean “having chosen, print it.” Explicit objects take
+precedence; independent verbs do not acquire an operand merely from क्त्वा.
+
+A kṛdanta genitive names the action whose result is wanted. In supported compiler
+leaves, conditionals, and loop conditions, `युज् + ल्युट् + ङस् फल + अम्` selects the latest completed
+युज् action, while `युज् + ल्युट् + ङस् पूर्व + अम् फल + अम्` selects the preceding
+matching action. Intervening printing does not change this selection. The
+ordinal `प्रथम + अम्` selects the first matching result and `द्वि + तीय + अम्`
+the second, in chronological order. Typed lexical ordinals such as `तृतीय + अम्`
+also select the corresponding chronological result. An ordinal reference stays
+fixed even when newer matching actions execute. Selection includes earlier discourse and preceding clauses in the
+current utterance, rather than restarting the ordinal at each sentence boundary.
+In conditions the qualifier agrees with the case of फल, for example
+`प्रथम + सुँ फल + सुँ`.
+Case or number disagreement between an ordering qualifier and फल is rejected.
+For a single named-result reference, a unique ordering modifier need not be
+immediately before फल. For example, these select the same first completed
+युज् result:
+
+```text
+प्रथम + अम् युज् + ल्युट् + ङस् फल + अम् मुद्र् + णिच् + लोट् + सिप् ।
+युज् + ल्युट् + ङस् फल + अम् प्रथम + अम् मुद्र् + णिच् + लोट् + सिप् ।
+```
+
+This applies to the unambiguous single-reference frame. It does not infer
+arbitrary attachment among multiple objects or named results.
+
+Named-history references can also supply a प्रक्रिया argument, positionally or
+after a locative parameter slot: `मान + ङि युज् + ल्युट् + ङस् फल + अम्`.
+The genitive qualifies फल; it is not a parameter label. Several procedure
+arguments may each carry their own named-result reference and ordering qualifier.
+Inside a procedure body, an ordinal qualifying a named फल remains a history
+selector; it is not rebound as a positional procedure parameter.
+Interpreted procedure overloads rank named-result arguments by their resolved
+value type. Equivalent compiled overload dispatch remains incomplete.
+Multiple named results in ordinary action leaves and conditions are not yet
+supported by the compiler. Named history conditions are
+reevaluated before each loop iteration; they are not the bare फल truth shorthand.
+An unavailable named result is an error: a missing previous or ordinal result
+does not fall back to the latest result of another action.
+
+Interpreted discourse can also refer to a remembered action's participants:
+`युज् + ल्युट् + ङस् पूर्व + अम् कर्मन् + अम्` selects the previous matching
+action's object participants, not its computed result. Ordering modifiers must
+agree with the kāraka reference in case and number. A missing action or absent
+participant relation is an error, not a literal value named कर्मन्.
+Inside a procedure, the ordinal in this construction still selects
+the remembered action; it does not refer to the procedure's positional argument.
+Compiled display commands support accusative kāraka-history references, including
+multiple ordered references and mixed ordinary/history object operands in written
+order. Other verbs and condition queries remain explicitly unsupported. Participant
+history is recorded for resolved ordinary leaves; specialized action paths are
+still incomplete.
+The supported compiled display form also works inside procedure bodies and
+conditional branches; unexecuted branches do not evaluate their history loads.
+
+For a prefixed prior action, use ल्यप्. For example, subtract one from two,
+then print the result:
+
+```pvm
+द्वि + औट् एक + अम् च वि + युज् + णिच् + ल्यप्
+फल + अम् मुद्र् + णिच् + लोट् + सिप् ।
+```
+
+ततः remains supported and can follow a main command in the same utterance.
+Both interpreter and compiler share prior-action lowering. Different explicit
+agents are rejected; passive/bhāve main clauses are not yet supported in this
+construction. The existing range-exclusion construction remains specialized.
+The main command can invoke a reusable प्रक्रिया; prior actions execute before
+that call, without supplying an implicit procedure argument through क्त्वा.
+सम् + युज् currently has numeric/collection overload ambiguity and should not
+be assumed to resolve as numeric addition.
 
 ## 7. Assignment and variables
 
@@ -339,6 +529,20 @@ is resolved as the expressed secondary agent of the causative construction;
 the runtime and compiler consume that kāraka binding rather than its position.
 The older `सृज्` frame with a dative second collection remains accepted only
 for compatibility.
+
+The natural joining frame requires exactly one collection in each role; a scalar
+is not silently wrapped into a singleton list. Declared member constraints are
+retained and validated, including when a collection is empty. Compatibility
+coordination preserves every supplied collection in order rather than discarding
+later operands, and cannot bypass those constraints.
+Gathering, insertion, and joining require every supplied coordinated participant
+to resolve. A missing reference is an error, not an omitted member or a successful
+no-op insertion. An explicitly supplied empty list is still a valid collection.
+Assignment uses the same complete-resolution rule: every coordinated value must
+resolve before a result is produced. This also applies to nested coordination;
+an explicitly supplied empty typed list remains a valid value to store.
+Display also requires every supplied object reference to resolve; it does not
+silently omit missing objects and print only the remaining coordinated values.
 
 ### 7.3 Collection cardinality
 
@@ -422,6 +626,29 @@ boundary it chooses the assimilated variant licensed by
 [Aṣṭādhyāyī 8.4.62](https://sanskritlibrary.org/grammatical/data/A.8.4.62.html):
 `ह्` after a stop may take the corresponding fourth consonant of that class.
 The underlying segmented source remains `उद् + हृ`.
+
+### 7.5 Summing number members
+
+For member summation, make the collection/member relation explicit:
+
+```text
+सूची + ङस् सङ्ख्या + शस् युज् + णिच् + लोट् + सिप् ।
+```
+
+The genitive supplies the list; plural accusative सङ्ख्या denotes its number
+members. This produces their sum, not collection concatenation. Both backends
+require numeric members and preserve the list. Derived member nouns are not
+silently interpreted as the plain सङ्ख्या selector. See
+`examples/collections/member_sum.pvm` for a declaration and display chain.
+The same member frame works before a display verb in a prior-action chain:
+
+```text
+सूची + ङस् सङ्ख्या + शस् युज् + णिच् + क्त्वा
+मुद्र् + णिच् + लोट् + सिप् ।
+```
+
+Here the omitted display object refers to the preceding sum. The explicit
+finite `ततः` form remains supported too.
 
 ## 8. Input and validation
 
@@ -538,13 +765,24 @@ A grammatical `प्रक्रिया` declaration opens a reusable prakriy
 with `॥`:
 
 ```pvm
-प्रयत्न + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+प्रयत्न + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
 निवेश + अम् सङ्ख्या + टा ग्रहँ + श्ना + लोट् + सिप् ।
 फल + अम् मुद्र् + णिच् + लोट् + सिप् ॥
 ```
 
 Invoke the declared name in the instrumental with `कृ`. An ordinary noun
 name takes its case suffix directly; do not add `ल्युट्` to it:
+
+`नाम` is the naming particle. The existing `इति प्रक्रिया … अस्ति` form remains
+supported and produces the same native procedure identity. For a neuter name
+such as गणनम्, use nominative `गणन + सुँ`, not accusative `गणन + अम्`:
+
+```pvm
+गणन + सुँ नाम प्रक्रिया + सुँ असँ + लट् + तिप् ।
+```
+
+This is a header example; a complete procedure needs its body ending in `॥`.
+The “this” pronoun is not part of this new construction.
 
 ```pvm
 प्रयत्न + टा डुकृञ् + उ + लोट् + सिप् ।
@@ -555,7 +793,7 @@ Derived action nouns still use `ल्युट्` on a verbal root, for exampl
 matching call `गण + ल्युट् + टा डुकृञ् + उ + लोट् + सिप्`.
 Keep the same nominal identity in the declaration and call. A bare
 `… + ल्युट् + सुँ ।` is a nominal statement, not a procedure declaration in
-the default native document parser. Use the explicit `इति प्रक्रिया … अस्ति`
+the default native document parser. Use an explicit `नाम प्रक्रिया … अस्ति` or `इति प्रक्रिया … अस्ति`
 declaration. Parsing follows grammatical statement delimiters, not physical
 lines, so a declaration or body statement may span several lines.
 For migration tooling only, `PvmScript.parseLegacy` and
@@ -579,11 +817,27 @@ Signature declarations describe the kriyā and are not executed. Parameter
 names can be used directly in the body. The last successful body result is the
 function result and is checked against the declaration.
 
+A list parameter can serve as the genitive whole in a member sum:
+
+```text
+मान + ङस् सङ्ख्या + शस् युज् + णिच् + लोट् + सिप् ।
+```
+
+Pass one list-valued argument to that declared parameter. It remains a single
+collection value rather than becoming a nested list or a series of scalar
+arguments.
+
 Supported declared parameter/result types are:
 
 ```text
 सङ्ख्या   शब्द   सूची
 ```
+
+Argument types belong to resolved values, not to the spelling of a name. A
+nominal argument can refer to a list declared earlier. Compiled calls check
+known values statically and validate unresolved arguments against the declared
+parameter types after resolving their values, before entering the procedure.
+A word or scalar does not become a list merely because the parameter expects one.
 
 ### 11.3 Positional call
 

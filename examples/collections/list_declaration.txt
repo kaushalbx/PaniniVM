@@ -1,0 +1,4 @@
+# Declare an ordered list through genitive membership, then select its first value.
+एकस्य द्वयोः त्रयाणां च सूची अस्ति ।
+सूचीं मुद्रय ।
+सूच्याः प्रथमं मूल्यं गृहाण ततः मुद्रय ।

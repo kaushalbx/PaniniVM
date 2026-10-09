@@ -36,6 +36,13 @@ object StandardPratipadikaLexicon : PratipadikaLexicon {
         listOf("मूल्य", "परिमाण", "मान", "फल").forEach { text ->
             put(text, PratipadikaEntry(text = text, linga = setOf(Linga.NAPUMSAKA)))
         }
+        // Ordinal adjective stems retain gender independently of numeric identity.
+        listOf("प्रथम", "द्वितीय", "तृतीय").forEach { text ->
+            put(text, PratipadikaEntry(text, setOf(Linga.PUMS, Linga.NAPUMSAKA)))
+        }
+        listOf("प्रथमा", "द्वितीया", "तृतीया").forEach { text ->
+            put(text, PratipadikaEntry(text, setOf(Linga.STRI)))
+        }
     }
 
     override fun findPratipadika(text: String): PratipadikaEntry? = entries[text.trim()]

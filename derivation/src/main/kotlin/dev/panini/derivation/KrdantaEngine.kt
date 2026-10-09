@@ -7,6 +7,7 @@ import dev.panini.core.KrtAffix
 import dev.panini.core.SanadiAffix
 import dev.panini.shiksha.Samjna
 import dev.panini.sutra.SutraStage
+import dev.panini.derivation.matchesAffix
 import dev.panini.shiksha.Varnamala
 
 data class KrdantaDerivationRequest(
@@ -29,7 +30,7 @@ sealed interface KrdantaSourceStem {
         override val surface: String,
         val reason: Reason,
     ) : KrdantaSourceStem {
-        enum class Reason { UNKNOWN_DHATU, UNKNOWN_KRT_AFFIX }
+        enum class Reason { UNKNOWN_DHATU, UNKNOWN_KRT_AFFIX, INVALID_AFFIX_CONTEXT, INCOMPLETE_DERIVATION }
     }
 }
 
@@ -47,6 +48,11 @@ class KrdantaEngine(
         sanadiPratyayas: List<String> = emptyList(),
         upasargas: List<String> = emptyList(),
     ): KrdantaSourceStem {
+        // ल्यप् is the contextual replacement of क्त्वा, not an independently
+        // selected suffix. Use the existing 3.4.21 -> 7.1.37 derivation path.
+        if (KrtAffix.fromUpadesha(pratyaya) == KrtAffix.LYAP && upasargas.isEmpty()) {
+            return KrdantaSourceStem.Unresolved(dhatu, KrdantaSourceStem.Unresolved.Reason.INVALID_AFFIX_CONTEXT)
+        }
         val samjna = sourceAffixSamjna(pratyaya)
         val hasDhatu = DhatuPatha.all.any { it.matchesSurface(dhatu) }
         if (samjna == null) return KrdantaSourceStem.Unresolved(dhatu, KrdantaSourceStem.Unresolved.Reason.UNKNOWN_KRT_AFFIX)
@@ -60,6 +66,13 @@ class KrdantaEngine(
                 sanadiPratyayas = sanadiPratyayas,
             ),
         )
+        if (result.final.terms.any { it.matchesAffix(KrtAffix.LYAP) } &&
+            result.final.terms.any { it.matchesAffix(SanadiAffix.NIC) }
+        ) {
+            // The remaining णिच् requires an additional context-sensitive rule
+            // (notably 6.4.56). Do not advertise mechanical sandhi as a form.
+            return KrdantaSourceStem.Unresolved(dhatu, KrdantaSourceStem.Unresolved.Reason.INCOMPLETE_DERIVATION)
+        }
         return KrdantaSourceStem.Productive(
             surface = result.final.surface,
             supportsAStemDeclension = samjna in setOf(Samjna.KTA, Samjna.GHAN, Samjna.LYUT),
@@ -70,7 +83,7 @@ class KrdantaEngine(
     private fun sourceAffixSamjna(pratyaya: String): Samjna? = when (KrtAffix.fromUpadesha(pratyaya)) {
         KrtAffix.KTA -> Samjna.KTA
         KrtAffix.KTAVATU -> Samjna.KTAVATU
-        KrtAffix.KTVA -> Samjna.KTVA
+        KrtAffix.KTVA, KrtAffix.LYAP -> Samjna.KTVA
         KrtAffix.TUMUN -> Samjna.TUMUN
         KrtAffix.TAVYAT -> Samjna.TAVYA
         KrtAffix.ANIYAR -> Samjna.ANIYAR
@@ -90,7 +103,7 @@ class KrdantaEngine(
             "A sanādi affix may be introduced only once in one kṛdanta request."
         }
         val entry = findDhatu(request.dhatu)
-        val initial = buildInitialState(request, entry, request.dhatu)
+        val initial = buildInitialState(request, entry)
         val selection = canonicalSelectionSutra(request)
         require(selection.matches(initial)) {
             "Canonical sutra ${selection.sutra} cannot select ${request.samjna} for ${request.dhatu}."
@@ -123,8 +136,13 @@ class KrdantaEngine(
 
     private fun canonicalSutra(number: String) = Ashtadhyayi.requireExecutable(number)
 
-    private fun findDhatu(dhatu: String): Dhatu = DhatuPatha.all.firstOrNull { it.matchesSurface(dhatu) }
-        ?: DhatuPatha.all.first()
+    private fun findDhatu(dhatu: String): Dhatu {
+        val candidates = DhatuPatha.all.filter { it.matchesSurface(dhatu) }
+        return candidates.firstOrNull { it.preferredForSourceDerivation }
+            ?: candidates.firstOrNull { it.derivationalSurface.removeSuffix("्") == dhatu.removeSuffix("्") }
+            ?: candidates.firstOrNull()
+            ?: throw IllegalArgumentException("Unknown dhātu in kṛdanta derivation: $dhatu")
+    }
 
     private fun Dhatu.matchesSurface(value: String): Boolean {
         val normalized = value.removeSuffix("्")
@@ -133,7 +151,7 @@ class KrdantaEngine(
         }
     }
 
-    private fun buildInitialState(request: KrdantaDerivationRequest, entry: Dhatu, requested: String): DerivationState {
+    private fun buildInitialState(request: KrdantaDerivationRequest, entry: Dhatu): DerivationState {
         val terms = mutableListOf<DerivationTerm>()
         val samjnas = mutableSetOf<SamjnaAssignment>()
         request.upasarga?.takeIf(String::isNotBlank)?.let { value ->
@@ -141,7 +159,9 @@ class KrdantaEngine(
             terms += term
             samjnas += SamjnaAssignment(term.id, Samjna.UPASARGA)
         }
-        val lexicalSurface = if (DhatuPatha.all.any { it.derivationalSurface == requested || it.sourceSurface == requested }) entry.derivationalSurface else requested
+        // The selected lexicon entry supplies the marker-free derivational root;
+        // source upadeśas such as चिञ् must not retain their it letters here.
+        val lexicalSurface = entry.derivationalSurface
         val surface = if (lexicalSurface.lastOrNull()?.let(Varnamala::isConsonant) == true) "$lexicalSurface्" else lexicalSurface
         val dhatu = DerivationTerm("dhatu_1", surface, TermKind.DHATU, upadesha = surface, itStatus = entry.itStatus)
         terms += dhatu

@@ -36,6 +36,38 @@ internal class CompilerIrJvmEmitter(
                 is CompilerInstruction.Constant -> StructuredValueBytecodeEmitter.emit(mv, instruction.value)
                 is CompilerInstruction.Load -> emitLoad(instruction.name)
                 is CompilerInstruction.Store -> emitStore(instruction.name)
+                is CompilerInstruction.RecordActionResult -> emitStore(instruction.dhatuUpadesha, "recordActionResult")
+                is CompilerInstruction.RecordActionFrame -> emitRecordActionFrame(instruction)
+                is CompilerInstruction.LoadActionResult -> {
+                    mv.visitVarInsn(ALOAD, 0)
+                    mv.visitLdcInsn(instruction.dhatuUpadesha)
+                    mv.visitLdcInsn(instruction.occurrenceFromLatest)
+                    mv.visitMethodInsn(INVOKEVIRTUAL, RUNTIME, "loadActionResult",
+                        "(Ljava/lang/String;I)Ldev/panini/execution/SanskritValue;", false)
+                }
+                is CompilerInstruction.LoadOrdinalActionResult -> {
+                    mv.visitVarInsn(ALOAD, 0)
+                    mv.visitLdcInsn(instruction.dhatuUpadesha)
+                    mv.visitLdcInsn(instruction.ordinalFromOldest)
+                    mv.visitMethodInsn(INVOKEVIRTUAL, RUNTIME, "loadOrdinalActionResult",
+                        "(Ljava/lang/String;J)Ldev/panini/execution/SanskritValue;", false)
+                }
+                is CompilerInstruction.LoadActionParticipants -> {
+                    mv.visitVarInsn(ALOAD, 0)
+                    mv.visitLdcInsn(instruction.dhatuUpadesha)
+                    mv.visitLdcInsn(instruction.occurrenceFromLatest)
+                    mv.visitFieldInsn(GETSTATIC, "dev/panini/core/Karaka", instruction.karaka.name, "Ldev/panini/core/Karaka;")
+                    mv.visitMethodInsn(INVOKEVIRTUAL, RUNTIME, "loadActionParticipantValue",
+                        "(Ljava/lang/String;ILdev/panini/core/Karaka;)Ldev/panini/execution/SanskritValue;", false)
+                }
+                is CompilerInstruction.LoadOrdinalActionParticipants -> {
+                    mv.visitVarInsn(ALOAD, 0)
+                    mv.visitLdcInsn(instruction.dhatuUpadesha)
+                    mv.visitLdcInsn(instruction.ordinalFromOldest)
+                    mv.visitFieldInsn(GETSTATIC, "dev/panini/core/Karaka", instruction.karaka.name, "Ldev/panini/core/Karaka;")
+                    mv.visitMethodInsn(INVOKEVIRTUAL, RUNTIME, "loadOrdinalActionParticipantValue",
+                        "(Ljava/lang/String;JLdev/panini/core/Karaka;)Ldev/panini/execution/SanskritValue;", false)
+                }
                 is CompilerInstruction.LoadLocal -> mv.visitVarInsn(
                     ALOAD,
                     requireNotNull(locals[instruction.name]),
@@ -47,7 +79,10 @@ internal class CompilerIrJvmEmitter(
                 CompilerInstruction.LoadLastResult -> emitLoad("LastResult")
                 CompilerInstruction.Duplicate -> mv.visitInsn(DUP)
                 CompilerInstruction.Pop -> mv.visitInsn(POP)
-                is CompilerInstruction.BuildList -> emitBuildList(instruction.size)
+                CompilerInstruction.CheckNumericProhibition -> mv.visitMethodInsn(INVOKESTATIC,
+                    "dev/panini/compiler/CompilerValueOperations", "checkNumericProhibition",
+                    "(Ldev/panini/execution/SanskritValue;Ldev/panini/execution/SanskritValue;)V", false)
+                is CompilerInstruction.BuildList -> emitBuildList(instruction.size, instruction.memberType)
                 is CompilerInstruction.BuildRecord -> emitBuildRecord(instruction.schema, instruction.fields)
                 is CompilerInstruction.LoadField -> emitLoadField(instruction.name)
                 is CompilerInstruction.LoadFieldOrLopa -> emitLoadFieldOrLopa(instruction.name)
@@ -175,7 +210,7 @@ internal class CompilerIrJvmEmitter(
         )
     }
 
-    private fun emitBuildList(size: Int) {
+    private fun emitBuildList(size: Int, memberType: dev.panini.execution.ListMemberType? = null) {
         val values = List(size) { allocateLocal(1) }
         values.asReversed().forEach { local -> mv.visitVarInsn(ASTORE, local) }
         mv.visitLdcInsn(size)
@@ -186,11 +221,13 @@ internal class CompilerIrJvmEmitter(
             mv.visitVarInsn(ALOAD, local)
             mv.visitInsn(AASTORE)
         }
+        memberType?.let { mv.visitLdcInsn(it.name) }
         mv.visitMethodInsn(
             INVOKESTATIC,
             "dev/panini/compiler/PaniniRuntime",
-            "suchi",
-            "([Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;",
+            if (memberType == null) "suchi" else "typedSuchi",
+            if (memberType == null) "([Ldev/panini/execution/SanskritValue;)Ldev/panini/execution/SanskritValue;"
+            else "([Ldev/panini/execution/SanskritValue;Ljava/lang/String;)Ldev/panini/execution/SanskritValue;",
             false,
         )
     }
@@ -262,6 +299,7 @@ internal class CompilerIrJvmEmitter(
     private fun emitCollection(operator: CollectionOperator) {
         val method = when (operator) {
             CollectionOperator.SUM -> "listSum"
+            CollectionOperator.SUM_NUMBER_MEMBERS -> "listNumberMemberSum"
             CollectionOperator.LENGTH -> "listLength"
             CollectionOperator.REVERSE -> "listReverse"
             CollectionOperator.CONCAT -> "listConcat"
@@ -282,6 +320,7 @@ internal class CompilerIrJvmEmitter(
             CollectionOperator.SLICE -> "($value$value$value)$value"
             CollectionOperator.LENGTH,
             CollectionOperator.SUM,
+            CollectionOperator.SUM_NUMBER_MEMBERS,
             CollectionOperator.REVERSE,
             CollectionOperator.POP,
             CollectionOperator.FLATTEN,
@@ -296,7 +335,7 @@ internal class CompilerIrJvmEmitter(
         )
     }
 
-    private fun emitStore(name: String) {
+    private fun emitStore(name: String, method: String = "storeValue") {
         val value = allocateLocal(1)
         mv.visitVarInsn(ASTORE, value)
         mv.visitVarInsn(ALOAD, 0)
@@ -305,7 +344,7 @@ internal class CompilerIrJvmEmitter(
         mv.visitMethodInsn(
             INVOKEVIRTUAL,
             RUNTIME,
-            "storeValue",
+            method,
             "(Ljava/lang/String;Ldev/panini/execution/SanskritValue;)V",
             false,
         )
@@ -426,10 +465,44 @@ internal class CompilerIrJvmEmitter(
         )
     }
 
+    private fun emitRecordActionFrame(instruction: CompilerInstruction.RecordActionFrame) {
+        val result = allocateLocal(1)
+        mv.visitVarInsn(ASTORE, result)
+        val values = List(instruction.participantRoles.size) { allocateLocal(1) }
+        values.asReversed().forEach { mv.visitVarInsn(ASTORE, it) }
+        mv.visitVarInsn(ALOAD, 0)
+        mv.visitLdcInsn(instruction.dhatuUpadesha)
+        mv.visitVarInsn(ALOAD, result)
+        mv.visitLdcInsn(values.size)
+        mv.visitTypeInsn(ANEWARRAY, "dev/panini/core/Karaka")
+        instruction.participantRoles.forEachIndexed { index, role ->
+            mv.visitInsn(DUP)
+            mv.visitLdcInsn(index)
+            mv.visitFieldInsn(GETSTATIC, "dev/panini/core/Karaka", role.name, "Ldev/panini/core/Karaka;")
+            mv.visitInsn(AASTORE)
+        }
+        mv.visitLdcInsn(values.size)
+        mv.visitTypeInsn(ANEWARRAY, "dev/panini/execution/SanskritValue")
+        values.forEachIndexed { index, local ->
+            mv.visitInsn(DUP)
+            mv.visitLdcInsn(index)
+            mv.visitVarInsn(ALOAD, local)
+            mv.visitInsn(AASTORE)
+        }
+        mv.visitMethodInsn(INVOKEVIRTUAL, RUNTIME, "recordActionFrameValues",
+            "(Ljava/lang/String;Ldev/panini/execution/SanskritValue;[Ldev/panini/core/Karaka;[Ldev/panini/execution/SanskritValue;)V", false)
+    }
+
     private fun emitEnterFrame(call: CompilerInstruction.EnterFrame) {
         val parameterNames = allocateLocal(1)
         val values = List(call.parameterNames.size) { allocateLocal(1) }
         values.asReversed().forEach { local -> mv.visitVarInsn(ASTORE, local) }
+        call.parameterKinds.forEachIndexed { index, kind ->
+            mv.visitVarInsn(ALOAD, values[index])
+            mv.visitLdcInsn(kind.name)
+            mv.visitMethodInsn(INVOKESTATIC, "dev/panini/compiler/CompilerValueOperations",
+                "requireArgumentKind", "(Ldev/panini/execution/SanskritValue;Ljava/lang/String;)V", false)
+        }
         emitStringArray(call.parameterNames)
         mv.visitVarInsn(ASTORE, parameterNames)
         mv.visitVarInsn(ALOAD, 0)

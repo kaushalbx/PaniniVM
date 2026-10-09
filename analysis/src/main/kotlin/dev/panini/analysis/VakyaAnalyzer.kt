@@ -2,6 +2,11 @@ package dev.panini.analysis
 
 import dev.panini.core.Karaka
 import dev.panini.core.Prayoga
+import dev.panini.core.SanadiAffix
+import dev.panini.core.Vacana
+import dev.panini.core.Vibhakti
+import dev.panini.core.Purusha
+import dev.panini.vyakaranam.ast.Vikarana
 import dev.panini.shiksha.Karmatva
 import dev.panini.vyakaranam.ast.AkhyataVakya
 import dev.panini.vyakaranam.ast.NamaVakya
@@ -51,7 +56,8 @@ class VakyaAnalyzer(
             prayoga = prayoga,
         )
         val warnings = agreementWarnings(
-            subantas = subantas,
+            prayoga = prayoga,
+            coordinations = padaAnalyses.filterIsInstance<AnalyzedSamuccita>(),
             tinganta = tingantaAnalysis,
             relations = relations,
         )
@@ -136,15 +142,18 @@ class VakyaAnalyzer(
     private fun inferPrayoga(
         tinganta: TingantaAnalysis,
     ): Prayoga {
-        val text = tinganta.pada.sourceText
-        val isCausative = text.contains("णिच्") || text.contains("इ") || text.contains("यि")
-        if (isCausative) return Prayoga.CAUSATIVE
-
-        val isKarmaniOrBhave = text.contains("यक्") || text.contains("चिण्")
+        val isCausative = tinganta.pada.dhatu.sanadiPratyayas.any {
+            SanadiAffix.fromUpadesha(it) == SanadiAffix.NIC
+        }
+        val isKarmaniOrBhave = tinganta.pada.vikarana == Vikarana.YAK
         if (isKarmaniOrBhave) {
-            val isAkarmaka = tinganta.lexicalEntry?.karmatva == Karmatva.AKARMAKA
+            // A causative introduces an object even when its base root is
+            // intransitive. Sanadi morphology remains on the verb AST; it must
+            // not override the passive voice selected by yak.
+            val isAkarmaka = !isCausative && tinganta.lexicalEntry?.karmatva == Karmatva.AKARMAKA
             return if (isAkarmaka) Prayoga.BHAVE else Prayoga.KARMANI
         }
+        if (isCausative) return Prayoga.CAUSATIVE
 
         return Prayoga.KARTARI
     }
@@ -239,21 +248,63 @@ class VakyaAnalyzer(
         }
 
     private fun agreementWarnings(
-        subantas: List<SubantaAnalysis>,
+        prayoga: Prayoga,
+        coordinations: List<AnalyzedSamuccita>,
         tinganta: TingantaAnalysis,
         relations: List<KarakaRelation>,
     ): List<String> {
-        val kartaRelation = relations.firstOrNull {
-            (it.resolution as? FrameKarakaResolution.Resolved)?.karaka == Karaka.KARTR
-        } ?: return emptyList()
+        if (tinganta.pada.priorAction != null) return emptyList()
+        if (prayoga == Prayoga.BHAVE) {
+            return if (tinganta.ting.vacana == Vacana.EKAVACANA &&
+                tinganta.ting.purusha == Purusha.PRATHAMA
+            ) emptyList() else listOf(
+                "भावे प्रथमपुरुषैकवचनम् अपेक्षितम्: क्रिया ${tinganta.ting.purusha}, ${tinganta.ting.vacana}।",
+            )
+        }
+        // In karmani, the expressed nominative object controls agreement, not
+        // the instrumental agent or an accusative secondary object.
+        val controllerKaraka = when (prayoga) {
+            Prayoga.KARMANI -> Karaka.KARMAN
+            Prayoga.KARTARI, Prayoga.CAUSATIVE -> Karaka.KARTR
+            else -> return emptyList()
+        }
+        fun controlsAgreement(relation: KarakaRelation): Boolean =
+            (relation.resolution as? FrameKarakaResolution.Resolved)?.karaka == controllerKaraka &&
+                (prayoga != Prayoga.KARMANI ||
+                    relation.participant.supCandidates.map { it.vibhakti }.toSet() == setOf(Vibhakti.PRATHAMA))
+        val controllerRelation = relations.firstOrNull(::controlsAgreement) ?: return emptyList()
 
-        val kartaAnalysis = kartaRelation.participant
+        val controllerAnalysis = controllerRelation.participant
+        val coordination = coordinations.firstOrNull { group ->
+            controllerAnalysis in group.members && group.members.all { member ->
+                relations.any { relation ->
+                    relation.participant == member &&
+                        controlsAgreement(relation)
+                }
+            }
+        }
+        // Count only an explicit, fully resolved coordination, not adjacent nouns
+        // which may instead be appositions or have different grammatical roles.
+        val expectedVacana = coordination?.members?.sumOf { member ->
+            when (member.sup.vacana) {
+                Vacana.EKAVACANA -> 1
+                Vacana.DVIVACANA -> 2
+                Vacana.BAHUVACANA -> 3
+            }
+        }?.let { count ->
+            when (count) {
+                1 -> Vacana.EKAVACANA
+                2 -> Vacana.DVIVACANA
+                else -> Vacana.BAHUVACANA
+            }
+        } ?: controllerAnalysis.sup.vacana
 
-        if (kartaAnalysis.sup.vacana != tinganta.ting.vacana) {
+        if (expectedVacana != tinganta.ting.vacana) {
             return listOf(
                 buildString {
-                    append("कर्तृक्रियावचनयोः विरोधः: कर्ता ")
-                    append(kartaAnalysis.sup.vacana)
+                    append(if (controllerKaraka == Karaka.KARMAN)
+                        "कर्मक्रियावचनयोः विरोधः: कर्म " else "कर्तृक्रियावचनयोः विरोधः: कर्ता ")
+                    append(expectedVacana)
                     append(", क्रिया ")
                     append(tinganta.ting.vacana)
                     append('।')

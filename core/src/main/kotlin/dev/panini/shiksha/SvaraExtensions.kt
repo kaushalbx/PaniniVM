@@ -25,6 +25,12 @@ fun Svara.toDirgha(): Svara = when (this) {
     else -> this
 }
 
+/** Lengthen the actual final phonological vowel, without altering preceding consonants. */
+fun List<Varna>.withFinalDirgha(): List<Varna> {
+    val final = requireNotNull(lastOrNull() as? Svara) { "Final-vowel lengthening requires a vowel-final sequence." }
+    return dropLast(1) + final.toDirgha()
+}
+
 /** The exact phonological guṇa substitute prescribed for an ik vowel. */
 fun Svara.toGunaVarnas(): List<Varna> = when (this) {
     Svara.I, Svara.II -> listOf(Svara.E)

@@ -44,8 +44,10 @@ object NaloPratipadikantasyaSutra : Sutra<DerivationState, DerivationChange>(
 
             val hasDroppedSup = context.droppedTerms.any { it.id.startsWith("sup-") }
 
-            val isPratipadikaNanta = stem.upadeshaVarnas.lastOrNull() == Vyanjana.NA ||
-                stem.upadesha in setOf("पञ्चन्", "सप्तन्", "अष्टन्", "नवन्", "दशन्")
+            // A compound's non-final pada may acquire n through a substitute such as ānaṅ.
+            // Do not extend this early compound operation to a newly n-final compound head:
+            // that member still has its own inflectional lifecycle (e.g. vidvas -> vidvān).
+            val isPratipadikaNanta = stem.upadeshaVarnas.lastOrNull() == Vyanjana.NA || insideSamasa
 
             stem.takeIf {
                 isPratipadikaNanta && stem.kind == TermKind.PRATIPADIKA && stem.varnas.lastOrNull() == Vyanjana.NA &&

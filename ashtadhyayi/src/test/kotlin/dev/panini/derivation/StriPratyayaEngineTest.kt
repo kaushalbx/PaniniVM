@@ -23,9 +23,55 @@ class StriPratyayaEngineTest {
         ).initialState()
         kotlin.test.assertFalse(StriyamSutra.matches(masculine))
         kotlin.test.assertFalse(AjadyatasTapSutra.matches(masculine.copy(activeAdhikaras = setOf("4.1.3"))))
+        val rStem = masculine.copy(
+            terms = listOf(DerivationTerm("stem", "कर्तृ", TermKind.PRATIPADIKA)),
+            samjnas = setOf(SamjnaAssignment("stem", Samjna.NIP)),
+        )
+        kotlin.test.assertFalse(dev.panini.ashtadhyayi.adhyaya4.pada1.RnnebyoNipSutra.matches(rStem))
     }
 
     private val engine = StriPratyayaEngine()
+
+    @Test
+    fun `requested tap cannot override a noneligible final vowel or consonant`() {
+        for (stem in listOf("कर्तृ", "दण्डिन्", "धनवत्", "लता")) {
+            kotlin.test.assertFailsWith<IllegalArgumentException>(stem) {
+                engine.derive(StriPratyayaRequest(stem, Samjna.TAP))
+            }
+        }
+    }
+
+    @Test
+    fun `requested nin cannot replace lexical eligibility`() {
+        kotlin.test.assertFailsWith<IllegalArgumentException> {
+            engine.derive(StriPratyayaRequest("बाल", Samjna.NIN))
+        }
+        val result = engine.derive(StriPratyayaRequest("ब्राह्मण", Samjna.NIN))
+        assertEquals("ब्राह्मणी", result.final.surface)
+        assertTrue(result.applications.any { it.sutra == "4.1.73" })
+    }
+
+    @Test
+    fun `possessive feminine nip is licensed by derived u marker`() {
+        val possessive = TaddhitaEngine().derive("धन", Samjna.MATUP)
+        val markers = possessive.final.allEffectiveTerms
+            .filter { it.kind == TermKind.PRATYAYA }
+            .flatMap { it.itMarkers + it.sthaniProps?.itMarkers.orEmpty() }.toSet()
+        assertTrue(dev.panini.core.ItMarker.U in markers)
+        val result = engine.derive(StriPratyayaRequest(possessive.final.surface, Samjna.NIP, markers))
+        assertEquals("धनवती", result.final.surface)
+        assertTrue(result.applications.any { it.sutra == "4.1.6" })
+        assertTrue(result.applications.none { it.sutra == "4.1.5" })
+    }
+
+    @Test
+    fun `requested nip requires a supported licensing rule and cannot silently substitute tap`() {
+        for (stem in listOf("बाल", "लता", "धनवत्")) {
+            kotlin.test.assertFailsWith<IllegalArgumentException>(stem) {
+                engine.derive(StriPratyayaRequest(stem, Samjna.NIP))
+            }
+        }
+    }
 
     @Test
     fun `tap derives aja and bala`() {

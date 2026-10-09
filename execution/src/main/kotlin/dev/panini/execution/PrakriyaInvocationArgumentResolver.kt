@@ -7,6 +7,9 @@ import dev.panini.vyakaranam.ast.SubantaPada
 /** Shared AST-first argument ordering for interpreted and compiled prakriyā calls. */
 object PrakriyaInvocationArgumentResolver {
     fun resolve(invocation: PrakriyaInvocation): PrakriyaArgumentResolution {
+        if (invocation.arguments.any { it.actionResult?.orderingAgrees == false }) {
+            return PrakriyaArgumentResolution.Failure("The ordering qualifier and फल must agree in case and number.")
+        }
         val signature = invocation.kriya.signature
         val syntax = invocation.argumentSyntax.filterIsInstance<SubantaPada>()
         val hasNamedSyntax = syntax.any {

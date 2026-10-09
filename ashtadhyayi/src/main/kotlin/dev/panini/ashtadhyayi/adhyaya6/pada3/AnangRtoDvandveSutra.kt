@@ -2,6 +2,7 @@ package dev.panini.ashtadhyayi.adhyaya6.pada3
 
 import dev.panini.analysis.*
 import dev.panini.core.SamasaType
+import dev.panini.shiksha.Svara
 import dev.panini.sutra.*
 
 /** 6.3.25: आनङ् ऋतो द्वन्द्वे. */
@@ -13,12 +14,8 @@ object AnangRtoDvandveSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     samasaType = SamasaType.DVANDVA, samasaPriority = 10,
 ), SamasaSutra {
     override fun matches(context: SamasaRuleContext): Boolean = context.padas.size >= 2 &&
-        context.samasaType == SamasaType.DVANDVA && (context.purvaPada.upadesha.endsWith("ऋ") || context.purvaPada.upadesha.endsWith("ृ")) &&
+        context.samasaType == SamasaType.DVANDVA && context.purvaPada.varnas.lastOrNull() == Svara.R &&
         context.semanticRelations.any { it == SamasaSemanticRelation.STUDY_RELATION || it == SamasaSemanticRelation.BLOOD_RELATION }
 
-    override fun apply(context: SamasaRuleContext): SamasaRuleResult { val first=context.purvaPada.upadesha.removeSuffix("ऋ").removeSuffix("ृ")+"ा"; return SamasaRuleResult.Formed(
-        first + context.padas.drop(1).joinToString("") { it.upadesha },
-        "6.3.25 substitutes ānaṅ for the first member's final ṛ.",
-        memberEdits=mapOf(0 to first),
-    ) }
+    override fun apply(context: SamasaRuleContext): SamasaRuleResult = anangFirstMember(context, number)
 }

@@ -911,8 +911,8 @@
     "samasaType": "AVYAYIBHAVA",
     "outputLinga": "NAPUMSAKA",
     "outputVacana": "EKAVACANA",
-    "expectedStem": "उपनदी",
-    "expectedSurface": "उपनदि",
+    "expectedStem": "उपनद",
+    "expectedSurface": "उपनदम्",
     "classificationSutra": "2.1.6",
     "transformationSutras": "5.4.110",
     "forbiddenSutras": "2.1.97"
@@ -1899,8 +1899,8 @@
     "expectedStem": "सकृत",
     "expectedSurface": "सकृतम्",
     "classificationSutra": "2.1.6",
-    "transformationSutras": "6.3.81,5.4.111",
-    "forbiddenSutras": "6.3.82"
+    "transformationSutras": "6.3.81",
+    "forbiddenSutras": "6.3.82,5.4.111"
   },
   {
     "id": "BENCH_089",
@@ -3268,10 +3268,10 @@
     "padas": [{"upadesha": "केश", "vibhakti": "PRATHAMA"}, {"upadesha": "केश", "vibhakti": "PRATHAMA"}],
     "samasaType": "BAHUVRIHI",
     "outputLinga": "PUMS",
-    "expectedStem": "केशकेशि",
-    "expectedSurface": "केशकेशिः",
+    "expectedStem": "केशाकेशि",
+    "expectedSurface": "केशाकेशिः",
     "classificationSutra": "2.2.27",
-    "transformationSutras": "5.4.127",
+    "transformationSutras": "6.3.137,5.4.127",
     "forbiddenSutras": "",
     "semanticRelations": ["RECIPROCAL_ACTION"]
   },
@@ -3396,5 +3396,74 @@
     "classificationSutra": "2.2.9",
     "transformationSutras": "",
     "forbiddenSutras": ""
+  },
+  {
+    "id": "BENCH_161",
+    "name": "6.3.26 Indra Varuna with separate anang n-lopa",
+    "padas": [{"upadesha": "इन्द्र", "vibhakti": "PRATHAMA"}, {"upadesha": "वरुण", "vibhakti": "PRATHAMA"}],
+    "samasaType": "DVANDVA",
+    "outputLinga": "PUMS",
+    "semanticRelations": ["DEVATA_COORDINATION"],
+    "expectedStem": "इन्द्रावरुण",
+    "expectedSurface": "इन्द्रावरुणौ",
+    "classificationSutra": "2.2.29",
+    "transformationSutras": "6.3.26",
+    "requiredAppliedSutras": ["6.3.26", "8.2.7"],
+    "forbiddenSutras": "6.3.27"
+  },
+  {
+    "id": "BENCH_162",
+    "name": "6.3.80 inferred fire with separately traced vowel sandhi",
+    "padas": [{"upadesha": "सह", "vibhakti": "PRATHAMA"}, {"upadesha": "अग्नि", "vibhakti": "PRATHAMA"}],
+    "samasaType": "BAHUVRIHI",
+    "outputLinga": "PUMS",
+    "semanticRelations": ["INDIRECT_SECOND"],
+    "expectedStem": "साग्नि",
+    "expectedSurface": "साग्निः",
+    "classificationSutra": "2.2.28",
+    "transformationSutras": "6.3.80",
+    "requiredAppliedSutras": ["6.3.80", "6.1.101"],
+    "forbiddenSutras": ""
+  },
+  {
+    "id": "BENCH_163",
+    "name": "2.1.43 locative debt compound with typed yat",
+    "padas": [{"upadesha": "मास", "vibhakti": "SAPTAMI"}, {"upadesha": "देय", "vibhakti": "PRATHAMA", "krtAffix": "YAT"}],
+    "samasaType": "TATPURUSA",
+    "outputLinga": "NAPUMSAKA",
+    "semanticRelations": ["DEBT_OR_OBLIGATION"],
+    "expectedStem": "मासदेय",
+    "expectedSurface": "मासदेयम्",
+    "classificationSutra": "2.1.43",
+    "transformationSutras": "",
+    "requiredAppliedSutras": ["2.1.43"],
+    "forbiddenSutras": ""
+  },
+  {
+    "id": "BENCH_164",
+    "name": "5.4.126 hunter-related wound nipatana with independently traced guna",
+    "padas": [{"upadesha": "दक्षिण", "vibhakti": "PRATHAMA"}, {"upadesha": "ईर्म", "vibhakti": "PRATHAMA"}],
+    "samasaType": "BAHUVRIHI",
+    "outputLinga": "PUMS",
+    "semanticRelations": ["HUNTER_ASSOCIATION"],
+    "expectedStem": "दक्षिणेर्मन्",
+    "expectedSurface": "दक्षिणेर्मा",
+    "classificationSutra": "2.2.24",
+    "transformationSutras": "5.4.126",
+    "requiredAppliedSutras": ["5.4.126", "6.1.87"],
+    "forbiddenSutras": ""
+  },
+  {
+    "id": "BENCH_165",
+    "name": "5.4.107 mandatory sarat group suffix before avyayibhava inflection",
+    "padas": [{"upadesha": "उप", "vibhakti": "PRATHAMA"}, {"upadesha": "शरद्", "vibhakti": "PRATHAMA"}],
+    "samasaType": "AVYAYIBHAVA",
+    "outputLinga": "NAPUMSAKA",
+    "expectedStem": "उपशरद",
+    "expectedSurface": "उपशरदम्",
+    "classificationSutra": "2.1.6",
+    "transformationSutras": "5.4.107",
+    "requiredAppliedSutras": ["5.4.107"],
+    "forbiddenSutras": "5.4.111"
   }
 ]

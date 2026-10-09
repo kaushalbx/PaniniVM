@@ -7,8 +7,51 @@ import dev.panini.core.Vibhakti
 import dev.panini.analysis.SemanticRelation
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class SubantaKarakaDerivationTest {
+    @Test
+    fun `comparative vati provenance reaches indeclinable classification`() {
+        val result = SubantaEngine().derive(SubantaDerivationRequest(
+            "ब्राह्मणवत्", Vibhakti.SASTHI, Vacana.EKAVACANA,
+            sourceSuffixUpadeshas = setOf("वति"),
+        ))
+        assertEquals("ब्राह्मणवत्", result.final.surface)
+        assertTrue(result.applications.any { it.sutra == "1.1.37" })
+        assertTrue(result.applications.any { it.sutra == "2.4.82" })
+    }
+    @Test
+    fun `possessive consonant stem retains instrumental and locative endings`() {
+        for ((case, expected) in listOf(
+            Vibhakti.TRTIYA to "सङ्ख्यावता",
+            Vibhakti.SAPTAMI to "सङ्ख्यावति",
+        )) {
+            val result = SubantaEngine().derive(SubantaDerivationRequest(
+                "सङ्ख्यावत्", case, Vacana.EKAVACANA,
+            ))
+            assertEquals(expected, result.final.surface)
+            assertTrue(result.applications.none { it.sutra == "2.4.82" })
+        }
+    }
+    @Test
+    fun `possessive consonant stem retains its genitive ending`() {
+        val result = SubantaEngine().derive(SubantaDerivationRequest(
+            "सङ्ख्यावत्", Vibhakti.SASTHI, Vacana.EKAVACANA,
+        ))
+        assertEquals("सङ्ख्यावतः", result.final.surface,
+            result.applications.joinToString("\n") { "${it.sutra}: ${it.after.surface}" })
+        assertTrue(result.applications.none { it.sutra == "2.4.82" })
+    }
+    @Test
+    fun `a stems ending in na retain instrumental guna`() {
+        val result = SubantaEngine().derive(SubantaDerivationRequest(
+            "गणन", Vibhakti.TRTIYA, Vacana.EKAVACANA, dev.panini.core.Linga.NAPUMSAKA,
+        ))
+        assertEquals("गणनेन", result.final.surface)
+        assertTrue(result.applications.any { it.sutra == "7.1.12" })
+        assertTrue(result.applications.any { it.sutra == "6.1.87" })
+    }
+
 
     @Test
     fun `derives correct subanta for recipient`() {

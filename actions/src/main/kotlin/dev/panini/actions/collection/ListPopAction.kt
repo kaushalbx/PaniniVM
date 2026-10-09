@@ -14,7 +14,8 @@ import dev.panini.execution.NaturalOperationResolver
 object ListPopAction : DhatuAction("सूच्युद्धरणम्", "सूच्याः अन्तिमांशानाम् उद्धरणम्") {
     override fun execute(context: ExecutionContext, operation: DhatuOperation): ExecutionResult {
         val frame = NaturalOperationResolver.resolve(operation, context) as? NaturalOperation.CollectionExtraction
-        if (frame != null && context.resolve(frame.member) != listOf("अन्तिम")) {
+        if (frame != null && (frame.member as? dev.panini.execution.ExecutionExpression.Pada)?.memberSelection !=
+            dev.panini.execution.CollectionMemberSelection.FINAL) {
             return ExecutionResult.Failure(ExecutionError.INVALID_VALUE, "Collection extraction requires the final member (अन्तिमम्).")
         }
         val expression = frame?.collection ?: context.bindings[Karaka.KARMAN]

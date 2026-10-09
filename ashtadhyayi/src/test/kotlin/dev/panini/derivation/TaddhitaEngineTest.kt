@@ -10,6 +10,12 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class TaddhitaEngineTest {
+    @Test
+    fun `aa final possessive stem preserves its vowel and derives vat`() {
+        val result = TaddhitaEngine().derive("सङ्ख्या", dev.panini.shiksha.Samjna.MATUP)
+        assertEquals("सङ्ख्यावत्", result.final.surface)
+        assertTrue(result.applications.any { it.sutra == "8.2.9" })
+    }
 
     @Test
     fun `derives Vasudeva stem through registered apatya rules`() {

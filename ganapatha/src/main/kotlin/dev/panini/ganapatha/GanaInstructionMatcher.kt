@@ -13,7 +13,7 @@ object GanaInstructionMatcher {
         val value = GanaNormalizer.normalize(context.text)
         val suffixes = context.suffixUpadeshas.map { GanaNormalizer.normalize(it) }.toSet()
         return when (GanaNormalizer.normalize(instruction)) {
-            "वत्" -> value.endsWith("वत्")
+            "वत्" -> value.endsWith("वत्") && "वति" in suffixes
             "क्तवातोसुन्कसुनः" -> value.matches(Regex(".*(त्वा|तोसुन्|कसुन्)$"))
             "तसिलादयस्तद्धित एधाच्चपर्यन्ताः" -> "तसिल्" in suffixes
             "कृन्मकारसन्ध्यक्षरान्तोऽव्ययीभावश्च" ->

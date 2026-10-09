@@ -15,12 +15,12 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 
 /**
- * 8.2.9: मादुपधायाश्च मतोर्वोऽध्यादिभ्यः.
+ * 8.2.9: मादुपधायाश्च मतोर्वोऽयवादिभ्यः.
  * Replaces 'म' of 'मतुप्' with 'व' (vatup -> वत्) after stems ending in 'm' or 'a' or having 'a'/'m' in penult.
  */
 object MatorVahSutra : Sutra<DerivationState, DerivationChange>(
     number = "8.2.9",
-    text = "मादुपधायाश्च मतोर्वोऽध्यादिभ्यः",
+    text = "मादुपधायाश्च मतोर्वोऽयवादिभ्यः",
     hindiExplanation = "मकारान्त, अकारान्त तथा म-कार उपधा वाले अङ्ग से परे मतुप् के मकार को वकार होता है।",
     type = SutraType.NITYA,
     chapter = 8,
@@ -34,7 +34,7 @@ object MatorVahSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         val matupTerm = context.terms.firstOrNull { it.upadesha == "मतुँप्" } ?: return false
         val stemTerm = context.terms.firstOrNull { it.kind == TermKind.PRATIPADIKA } ?: return false
-        return matupTerm.varnas == matVarnas && stemTerm.varnas.lastOrNull() in setOf(Svara.A, Vyanjana.MA)
+        return matupTerm.varnas == matVarnas && stemTerm.varnas.lastOrNull() in setOf(Svara.A, Svara.AA, Vyanjana.MA)
     }
 
     private val matVarnas = listOf(Vyanjana.MA, Svara.A, Vyanjana.TA)

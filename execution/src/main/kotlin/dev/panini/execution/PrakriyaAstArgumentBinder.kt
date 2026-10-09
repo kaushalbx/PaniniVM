@@ -1,6 +1,7 @@
 package dev.panini.execution
 
 import dev.panini.execution.binding.NumeralPadaBinder
+import dev.panini.execution.binding.hasAdditionalDerivation
 import dev.panini.vyakaranam.ast.AkhyataVakya
 import dev.panini.vyakaranam.ast.Conditional
 import dev.panini.vyakaranam.ast.Invocation
@@ -27,11 +28,13 @@ object PrakriyaAstArgumentBinder {
 
     fun bind(node: ProgramNode, parameters: List<PrakriyaParameter>, argumentCount: Int): ProgramNode {
         val names = parameters.mapIndexed { index, parameter -> parameter.nameStem to index }.toMap()
+        fun ordinalIndex(pada: Pada): Int? =
+            (PuranaPratyayaResolver.ordinalValue(pada) ?: NumeralPadaBinder.extractOrdinalValue(pada))
+                ?.takeIf { it in 1L..argumentCount.toLong() }?.let { (it - 1).toInt() }
         fun parameterIndex(pada: SubantaPada): Int? {
             val stem = pada.pratipadika.semanticKey()
-            return names[stem] ?: (NumeralPadaBinder.extractOrdinalValue(pada)
-                ?: PuranaPratyayaResolver.ordinalValue(pada))
-                ?.toInt()?.minus(1)?.takeIf { it in 0 until argumentCount }
+            val named = names[stem].takeUnless { pada.pratipadika.hasAdditionalDerivation() }
+            return named ?: ordinalIndex(pada)
         }
         fun reference(pada: SubantaPada, index: Int): SubantaPada {
             val key = referenceKey(index)
@@ -58,20 +61,19 @@ object PrakriyaAstArgumentBinder {
         }
         fun bindPada(pada: Pada): Pada = when (pada) {
             is SankhyaPada -> {
-                val index = PuranaPratyayaResolver.ordinalValue(pada)
-                    ?.toInt()?.minus(1)?.takeIf { it in 0 until argumentCount }
+                val index = ordinalIndex(pada)
                 index?.let { reference(pada, it) } ?: pada
             }
             is SankhyaPuranaPada -> {
-                val index = (NumeralPadaBinder.extractOrdinalValue(pada)
-                    ?: PuranaPratyayaResolver.ordinalValue(pada))
-                    ?.toInt()?.minus(1)?.takeIf { it in 0 until argumentCount }
+                val index = ordinalIndex(pada)
                 index?.let { reference(pada, it) } ?: pada
             }
             is SubantaPada -> {
+                val nominal = pada.pratipadika as? MulaPratipadika
                 if (
-                    (pada.pratipadika as? MulaPratipadika)?.lexicalIdentity ==
-                    MulaPratipadikaIdentity.SAMAVAYA && argumentCount > 0
+                    nominal?.lexicalIdentity == MulaPratipadikaIdentity.SAMAVAYA &&
+                    nominal.vikaras.isEmpty() && pada.sup.text == dev.panini.core.SupAffix.AM.upadesha &&
+                    pada.pratipadika.semanticKey() !in names && argumentCount > 0
                 ) {
                     val members = (0 until argumentCount).map { reference(pada, it) }
                     SamuccitaSubanta(members.joinToString(" ") { it.sourceText }, members)
@@ -87,8 +89,23 @@ object PrakriyaAstArgumentBinder {
             }
             else -> pada
         }
+        fun bindPadas(originalPadas: List<Pada>): List<Pada> {
+            // An ordinal modifying a named फल or kāraka selects discourse history, not
+            // the corresponding procedure parameter. Preserve that whole relation.
+            val protected = java.util.Collections.newSetFromMap(java.util.IdentityHashMap<Pada, Boolean>())
+            protected.addAll(CollectionMemberMorphology.protectedPadas(originalPadas))
+            protected.addAll(dev.panini.execution.binding.KarakaReferenceResolver.protectedPadas(originalPadas))
+            dev.panini.execution.binding.NamedActionResultReferenceResolver.resolve(originalPadas).forEach { reference ->
+                protected.add(reference.result)
+                protected.add(reference.modifier)
+                if (reference.hasOrderingQualifier) {
+                    protected.addAll(reference.orderingQualifiers)
+                }
+            }
+            return originalPadas.map { if (it in protected) it else bindPada(it) }
+        }
         fun bindInvocation(node: Invocation): Invocation {
-            val padas = node.vakya.padas.map(::bindPada)
+            val padas = bindPadas(node.vakya.padas)
             val source = padas.joinToString(" ") { it.sourceText }
             val vakya = when (val original = node.vakya) {
                 is AkhyataVakya -> original.copy(sourceText = source, padas = padas)
@@ -118,16 +135,19 @@ object PrakriyaAstArgumentBinder {
                 resultTarget = node.resultTarget?.let(::transform),
             )
 
-            override fun visitPipeline(node: Pipeline): ProgramNode = node.copy(
-                arguments = node.arguments.mapIndexed { index, argument ->
-                    val identity = (node.argumentPadas.getOrNull(index) as? SubantaPada)
-                        ?.pratipadika?.semanticKey()
-                        ?: return@mapIndexed argument
-                    names[identity]?.let(::referenceKey) ?: argument
-                },
-                argumentPadas = node.argumentPadas.map(::bindPada),
-                renderPadas = node.renderPadas.map(::bindPada),
-            )
+            override fun visitPipeline(node: Pipeline): ProgramNode {
+                val boundPadas = bindPadas(node.argumentPadas)
+                return node.copy(
+                    arguments = node.arguments.mapIndexed { index, argument ->
+                        val original = node.argumentPadas.getOrNull(index)
+                        val bound = boundPadas.getOrNull(index)
+                        if (bound === original) argument
+                        else (bound as? SubantaPada)?.pratipadika?.semanticKey() ?: argument
+                    },
+                    argumentPadas = boundPadas,
+                    renderPadas = bindPadas(node.renderPadas),
+                )
+            }
         }.transform(node)
     }
 }

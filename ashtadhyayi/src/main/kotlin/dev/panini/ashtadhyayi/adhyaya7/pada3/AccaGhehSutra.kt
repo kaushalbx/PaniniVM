@@ -34,6 +34,7 @@ object AccaGhehSutra : Sutra<DerivationState, DerivationChange>(
     dependencies = setOf("6.4.1", "1.4.7")
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
+        if (dev.panini.ashtadhyayi.adhyaya2.pada4.AvyayadApsupahSutra.matches(context)) return false
         if ("6.4.1" !in context.activeAdhikaras) return false
         if (context.terms.size < 2) return false
 

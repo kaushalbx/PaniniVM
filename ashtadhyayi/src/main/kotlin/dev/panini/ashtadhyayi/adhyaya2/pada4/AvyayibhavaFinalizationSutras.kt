@@ -3,11 +3,11 @@ package dev.panini.ashtadhyayi.adhyaya2.pada4
 import dev.panini.core.Linga
 import dev.panini.core.SamasaType
 import dev.panini.core.Vibhakti
+import dev.panini.core.SupAffix
 import dev.panini.derivation.*
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Svara
-import dev.panini.shiksha.endsWithVarna
-import dev.panini.shiksha.lastSvara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.*
 
 /** 2.4.18 अव्ययीभावश्च — the compound is neuter. */
@@ -43,9 +43,9 @@ object AvyayadApsupahSutra : Sutra<DerivationState, DerivationChange>(
         val sup = context.terms.lastOrNull { it.kind == TermKind.PRATYAYA } ?: return false
         val isAvyaya = SamjnaAssignment(stem.id, Samjna.AVYAYA) in context.samjnas
         val neuterHrasvaPending = context.effectiveContext.rupa.linga == Linga.NAPUMSAKA &&
-            stem.surface.lastSvara() in setOf(Svara.AA, Svara.II, Svara.UU, Svara.RR, Svara.LL)
+            stem.varnas.lastOrNull { it is Svara } in setOf(Svara.AA, Svara.II, Svara.UU, Svara.RR, Svara.LL)
         return isAvyaya && !neuterHrasvaPending &&
-            !(context.context.samasaType == SamasaType.AVYAYIBHAVA && isAdanta(stem.surface)) &&
+            !(context.context.samasaType == SamasaType.AVYAYIBHAVA && stem.varnas.lastOrNull() == Svara.A) &&
             sup.droppedBySutra == null
     }
 
@@ -57,7 +57,6 @@ object AvyayadApsupahSutra : Sutra<DerivationState, DerivationChange>(
         )
     }
 
-    private fun isAdanta(surface: String): Boolean = surface.endsWithVarna(Svara.A)
 }
 
 /** 2.4.83 नाव्ययीभावादतोऽम्त्वपञ्चम्याः. */
@@ -71,17 +70,16 @@ object NavyayibhavadAtoAmtvapancamyahSutra : Sutra<DerivationState, DerivationCh
     override fun matches(context: DerivationState): Boolean {
         val stem = context.terms.firstOrNull { it.kind == TermKind.PRATIPADIKA } ?: return false
         val sup = context.terms.lastOrNull { it.kind == TermKind.PRATYAYA } ?: return false
-        return context.context.samasaType == SamasaType.AVYAYIBHAVA && isAdanta(stem.surface) &&
-            context.context.rupa.vibhakti != Vibhakti.PANCHAMI && sup.upadesha != "अम्"
+        return context.context.samasaType == SamasaType.AVYAYIBHAVA && stem.varnas.lastOrNull() == Svara.A &&
+            context.context.rupa.vibhakti != Vibhakti.PANCHAMI && !sup.matchesAffix(SupAffix.AM)
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val sup = context.terms.last { it.kind == TermKind.PRATYAYA }
         return DerivationChange(
-            context.replaceWholeAffix(sup.id, "अम्", sutra, WholeAffixDesignationPolicy.Consume, upadesha = "अम्"),
+            context.replaceWholeAffix(sup.id, listOf(Svara.A, Vyanjana.MA), sutra, WholeAffixDesignationPolicy.Consume, upadesha = SupAffix.AM.upadesha),
             "2.4.83 substitutes अम् for sup after an a-final avyayībhāva.",
         )
     }
 
-    private fun isAdanta(surface: String): Boolean = surface.endsWithVarna(Svara.A)
 }

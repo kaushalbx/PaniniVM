@@ -45,7 +45,7 @@ class SamasaPada2PipelineTest {
         val examples = listOf(
             Triple("2.2.31", listOf(SamasaPada("राज"), SamasaPada("दन्त")), SamasaType.TATPURUSA),
             Triple("2.2.35", listOf(SamasaPada("कण्ठ", Vibhakti.SAPTAMI), SamasaPada("काल")), SamasaType.BAHUVRIHI),
-            Triple("2.2.36", listOf(SamasaPada("कृत"), SamasaPada("कृत्य")), SamasaType.BAHUVRIHI),
+            Triple("2.2.36", listOf(SamasaPada("कृत", krtAffix=dev.panini.core.KrtAffix.KTA), SamasaPada("कृत्य")), SamasaType.BAHUVRIHI),
         )
         examples.forEach { (rule, padas, type) -> assertApplied(rule, padas, type) }
     }

@@ -8,6 +8,61 @@ import dev.panini.core.Vibhakti
 import kotlin.test.*
 
 class SamasaPada3SemanticTransformationTest {
+    @Test fun `mahat substitution preserves every later member and vowel boundary`() {
+        val input = SamasaRuleContext(listOf(SamasaPada("महत्"), SamasaPada("आत्मन्"), SamasaPada("देव")), SamasaType.KARMADHARAYA)
+        assertTrue(MahatahSamanadhikaranaSutra.matches(input))
+        val result = MahatahSamanadhikaranaSutra.apply(input) as SamasaRuleResult.Formed
+        assertEquals(mapOf(0 to "महा"), result.memberEdits)
+        assertEquals("महाआत्मन्देव", result.compoundStem)
+        assertFalse(result.wholeStemOverride)
+    }
+
+    @Test fun `saha substitutions retain vowel boundary for separate sandhi`() {
+        val rules = listOf(SahasyaSahSamjnayamSutra, GranthantadhikeCaSutra, DvitiyeCanupakhyeSutra, AvyayibhaveCakaleSutra, VopasarjanasyaSutra)
+        for (rule in rules) {
+            for (last in listOf("अश्वत्थ", "इन्द्र", "उदक", "ऋद्धि", "पुत्र")) {
+                val input=context("सह", last, SamasaType.BAHUVRIHI)
+                val result=rule.apply(input) as SamasaRuleResult.Formed
+                assertEquals(mapOf(0 to "स"), result.memberEdits)
+                assertEquals("स" + last, result.compoundStem)
+                assertFalse(result.wholeStemOverride)
+            }
+        }
+        assertTrue(VopasarjanasyaSutra.optional)
+        assertFalse(VopasarjanasyaSutra.matches(context("सह", "पुत्र", SamasaType.TATPURUSA)))
+    }
+
+    @Test fun `feminine shortening observes phonological syllable count and residual nadi domain`() {
+        val ngi = setOf(SamasaMorphologicalFeature.FEMININE_NGI)
+        val multiple = context("कुमारी", "रूप", masculine="कुमार", features=ngi)
+        assertTrue(GharupaKalpaCeladBruvaSutra.matches(multiple))
+        assertFalse(GharupaKalpaCeladBruvaSutra.matches(context("स्त्री", "रूप", masculine="स्त्री", features=ngi)))
+        assertFalse(GharupaKalpaCeladBruvaSutra.matches(context("कुमारी", "रूप", features=ngi)))
+        val nadi = setOf(SamasaMorphologicalFeature.NADI)
+        for ((stem, shortened) in listOf("ई" to "इ", "ऊ" to "उ", "ब्रह्मबन्धू" to "ब्रह्मबन्धु")) {
+            val input=context(stem, "रूप", features=nadi)
+            assertTrue(NadyahSesasyanyatarasyamSutra.matches(input))
+            assertEquals(mapOf(0 to shortened), (NadyahSesasyanyatarasyamSutra.apply(input) as SamasaRuleResult.Formed).memberEdits)
+        }
+        assertFalse(NadyahSesasyanyatarasyamSutra.matches(context("कुमारी", "रूप", features=nadi+ngi)))
+        assertFalse(NadyahSesasyanyatarasyamSutra.matches(context("लक्ष्मी", "रूप", features=nadi+SamasaMorphologicalFeature.KRIT_DERIVED)))
+        assertFalse(NadyahSesasyanyatarasyamSutra.matches(context("कुमारि", "रूप", features=nadi)))
+        val ugit = context("श्रेयसी", "रूप", features=nadi+SamasaMorphologicalFeature.UGIT_DERIVED)
+        assertTrue(UgitashCaSutra.matches(ugit))
+        assertEquals(mapOf(0 to "श्रेयसि"), (UgitashCaSutra.apply(ugit) as SamasaRuleResult.Formed).memberEdits)
+        assertFalse(UgitashCaSutra.matches(context("श्रेयसी", "रूप", features=setOf(SamasaMorphologicalFeature.UGIT_DERIVED))))
+    }
+
+    @Test fun `devata anang replaces final varna and excludes vayu on either side`() {
+        fun c(first: String, last: String) = context(first, last, SamasaType.DVANDVA, setOf(SamasaSemanticRelation.DEVATA_COORDINATION))
+        val input = c("इन्द्र", "वरुण")
+        assertTrue(DevataDvandveCaSutra.matches(input))
+        assertEquals(mapOf(0 to "इन्द्रान्"), (DevataDvandveCaSutra.apply(input) as SamasaRuleResult.Formed).memberEdits)
+        assertFalse(DevataDvandveCaSutra.matches(c("वायु", "अग्नि")))
+        assertFalse(DevataDvandveCaSutra.matches(c("इन्द्र", "वायु")))
+        assertFalse(DevataDvandveCaSutra.matches(input.copy(semanticRelations = emptySet())))
+    }
+
     private fun context(
         first: String,
         second: String,
@@ -31,7 +86,7 @@ class SamasaPada3SemanticTransformationTest {
     @Test fun `6 3 25 and 29 perform canonical dvandva substitutions`() {
         val relation=setOf(SamasaSemanticRelation.BLOOD_RELATION)
         val r=context("मातृ","पितृ",SamasaType.DVANDVA,relation)
-        assertEquals("मातापितृ",(AnangRtoDvandveSutra.apply(r) as SamasaRuleResult.Formed).compoundStem)
+        assertEquals("मातान्पितृ",(AnangRtoDvandveSutra.apply(r) as SamasaRuleResult.Formed).compoundStem)
         val d=context("दिव्","देव",SamasaType.DVANDVA,setOf(SamasaSemanticRelation.DEVATA_COORDINATION))
         assertEquals("द्यावादेव",(DivoDyavaSutra.apply(d) as SamasaRuleResult.Formed).compoundStem)
     }
@@ -51,7 +106,7 @@ class SamasaPada3SemanticTransformationTest {
     }
 
     @Test fun `6 3 43 shortens explicit ngi feminine`() {
-        val c=context("कुमारी","रूप",features=setOf(SamasaMorphologicalFeature.FEMININE_NGI))
+        val c=context("कुमारी","रूप",masculine="कुमार",features=setOf(SamasaMorphologicalFeature.FEMININE_NGI))
         assertTrue(GharupaKalpaCeladBruvaSutra.matches(c))
         assertEquals("कुमारिरूप",(GharupaKalpaCeladBruvaSutra.apply(c) as SamasaRuleResult.Formed).compoundStem)
     }
@@ -75,7 +130,7 @@ class SamasaPada3SemanticTransformationTest {
 
     @Test fun `dvandva substitutions retain independently addressable members`() {
         val cases=listOf(
-            AnangRtoDvandveSutra.apply(context("मातृ","पितृ",SamasaType.DVANDVA)) to mapOf(0 to "माता"),
+            AnangRtoDvandveSutra.apply(context("मातृ","पितृ",SamasaType.DVANDVA)) to mapOf(0 to "मातान्"),
             IdAgnehSomavarunayohSutra.apply(context("अग्नि","सोम",SamasaType.DVANDVA)) to mapOf(0 to "अग्नी"),
             DivoDyavaSutra.apply(context("दिव्","पृथ्वी",SamasaType.DVANDVA)) to mapOf(0 to "द्यावा"),
             MatariPitariChaSutra.apply(context("मातृ","पितृ",SamasaType.DVANDVA)) to mapOf(0 to "मातर",1 to "पितृ"),

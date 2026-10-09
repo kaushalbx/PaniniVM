@@ -11,6 +11,33 @@ import kotlin.test.assertIs
 
 class NumeralAstNormalizerTest {
     @Test
+    fun `cardinal derivation is not an unchanged numeric literal`() {
+        val parsed = dev.panini.vyakaranam.parser.PaniniParser().parse("एक + मतुप् + अम् ।")
+        val pada = parsed.grammaticalVakyas().single().padas.single() as SubantaPada
+        kotlin.test.assertNull(NumeralAstNormalizer.resolve(pada.pratipadika))
+        kotlin.test.assertNull(NumeralPadaBinder.resolveSemanticValue(pada))
+        assertEquals(pada, NumeralAstNormalizer.normalize(pada))
+        val vikaras = (pada.pratipadika as dev.panini.vyakaranam.ast.MulaPratipadika).vikaras
+        val typed = SankhyaPratipadika("एक + मतुप्", SanskritValue.Sankhya(1L, "एक"), vikaras)
+        kotlin.test.assertNull(NumeralAstNormalizer.resolve(typed))
+    }
+
+    @Test
+    fun `derived ordinal does not inherit an unmodified numeric rank`() {
+        val parsed = dev.panini.vyakaranam.parser.PaniniParser().parse("प्रथम + तरप् + अम् ।")
+        val pada = parsed.grammaticalVakyas().single().padas.single() as SubantaPada
+        kotlin.test.assertNull(dev.panini.execution.PuranaPratyayaResolver.ordinalValue(pada))
+        kotlin.test.assertNull(NumeralPadaBinder.extractOrdinalValue(pada))
+        kotlin.test.assertNull(NumeralAstNormalizer.resolve(pada.pratipadika))
+        assertEquals(pada, NumeralAstNormalizer.normalize(pada))
+        val target = SubantaPada("फल + अम्", MulaPratipadika("फल", "फल"), SupPratyaya("अम्", "अम्"))
+        val order = MemoryOrderQualifierResolver.before(target, listOf(pada, target))
+        kotlin.test.assertTrue(order.isExplicit)
+        kotlin.test.assertFalse(order.agreesWith(target))
+        kotlin.test.assertNull(order.select(listOf(10, 20)))
+    }
+
+    @Test
     fun `generic numeral stem gains a first class Sanskrit value`() {
         val source = SubantaPada(
             sourceText = "द्वि + औट्",

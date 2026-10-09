@@ -5,7 +5,7 @@
 अन्नम् अद्+णिच्+लोट्+सिप् ।
 
 # Step 2: Consume water resource unit (जलम् पायय)
-जलं पा+णिच्+लोट्+सिप् ।
+जलम् पा+णिच्+लोट्+सिप् ।
 
 # Step 3: Print final resource state
 मुद्रय फलम् ।

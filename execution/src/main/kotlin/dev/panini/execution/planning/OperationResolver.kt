@@ -38,7 +38,7 @@ object OperationResolver {
 
         val evaluations = named.map { operation ->
             val context = contextFor(invocation, operation, variables)
-            Triple(operation, context, evaluate(operation.signature, context))
+            Triple(operation, context, evaluate(operation, context))
         }
         val compatible = evaluations.filter { it.third == SignatureEvaluation.Compatible }
         if (compatible.isEmpty()) {
@@ -124,11 +124,19 @@ object OperationResolver {
         return strictlyStronger
     }
 
-    private fun evaluate(signature: OperationSignature, context: ExecutionContext): SignatureEvaluation {
+    private fun evaluate(operation: DhatuOperation, context: ExecutionContext): SignatureEvaluation {
+        val signature = operation.signature
+        val memberSum = dev.panini.execution.NaturalOperationResolver.resolve(operation, context)
+            as? dev.panini.execution.NaturalOperation.CollectionSummation
         val missing = signature.requirements.map { it.karaka }.filterNot { it in context.bindings }
         if (missing.isNotEmpty()) return SignatureEvaluation.Missing(missing.toSet())
 
         signature.requirements.forEach { requirement ->
+            if (memberSum != null && requirement.karaka == dev.panini.core.Karaka.KARMAN) {
+                // The plural object denotes members through its genitive whole,
+                // not a written coordination of unrelated scalar operands.
+                return@forEach
+            }
             val expression = requireNotNull(context.bindings[requirement.karaka])
             val shape = when (expression) {
                 is ExecutionExpression.Pada -> ExpressionShape.LITERAL

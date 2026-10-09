@@ -3,6 +3,8 @@ package dev.panini.ashtadhyayi.adhyaya2.pada2
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
 import dev.panini.core.SamasaType
+import dev.panini.core.KrtAffix
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -32,13 +34,12 @@ object NisthaBahuvrihauSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
 ), SamasaSutra {
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
-        val purva = context.purvaPada.upadesha
         return context.samasaType == SamasaType.BAHUVRIHI &&
-            (purva.endsWith("त") || purva.endsWith("तः") || purva.endsWith("तम्"))
+            context.purvaPada.krtAffix in setOf(KrtAffix.KTA, KrtAffix.KTAVATU)
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
-        val compoundStem = context.padas.joinToString("") { it.upadesha }
+        val compoundStem = context.padas.flatMap { it.varnas }.toDevanagari()
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "2.2.36 places Niṣṭhā member first in Bahuvrīhi '$compoundStem'.",

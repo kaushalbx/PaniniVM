@@ -2,9 +2,11 @@ package dev.panini.ashtadhyayi.adhyaya6.pada3
 
 import dev.panini.analysis.*
 import dev.panini.core.SamasaType
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.*
 
-private val vowels = setOf('अ', 'आ', 'इ', 'ई', 'उ', 'ऊ', 'ऋ', 'ॠ', 'ऌ', 'ए', 'ऐ', 'ओ', 'औ')
 private val prakrtiUttara = setOf("भ्राज्", "पात्", "वेदस्", "असत्या", "मुचि", "कुल", "ख", "पुंसक", "क्षत्र", "क्र", "आक")
 private fun nanContext(c: SamasaRuleContext) = c.padas.size >= 2 && c.samasaType == SamasaType.NAN_TATPURUSA && c.purvaPada.upadesha in setOf("न", "नञ्")
 private fun prefixed(prefix: String, c: SamasaRuleContext) = prefix + c.padas.drop(1).joinToString("") { it.upadesha }
@@ -16,7 +18,7 @@ object NalopoNanjahSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role=SutraRole.Vidhi, action=SutraAction.LOPA, scope=SutraScope.DERIVATION,
     samasaType=SamasaType.NAN_TATPURUSA, samasaPriority=10,
 ), SamasaSutra {
-    override fun matches(context: SamasaRuleContext) = nanContext(context) && context.uttaraPada.upadesha.firstOrNull() !in vowels && context.uttaraPada.upadesha !in prakrtiUttara
+    override fun matches(context: SamasaRuleContext) = nanContext(context) && context.uttaraPada.varnas.firstOrNull() !is Svara && context.uttaraPada.upadesha !in prakrtiUttara
     override fun apply(context: SamasaRuleContext) = SamasaRuleResult.Formed(prefixed("अ", context), "6.3.73 deletes न् of नञ्.", memberEdits=mapOf(0 to "अ"))
 }
 
@@ -27,11 +29,9 @@ object TasmanNudAciSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     role=SutraRole.Vidhi, action=SutraAction.AGAMA, scope=SutraScope.DERIVATION,
     samasaType=SamasaType.NAN_TATPURUSA, samasaPriority=20,
 ), SamasaSutra {
-    override fun matches(context: SamasaRuleContext) = nanContext(context) && context.uttaraPada.upadesha.firstOrNull() in vowels && context.uttaraPada.upadesha !in prakrtiUttara
+    override fun matches(context: SamasaRuleContext) = nanContext(context) && context.uttaraPada.varnas.firstOrNull() is Svara && context.uttaraPada.upadesha !in prakrtiUttara
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
-        val u = context.uttaraPada.upadesha
-        val matra = mapOf('अ' to "", 'आ' to "ा", 'इ' to "ि", 'ई' to "ी", 'उ' to "ु", 'ऊ' to "ू", 'ऋ' to "ृ", 'ए' to "े", 'ऐ' to "ै", 'ओ' to "ो", 'औ' to "ौ")[u.first()]
-        val stem = if (matra == null) "अन्$u" else "अन$matra${u.drop(1)}"
+        val stem = (listOf(Svara.A, Vyanjana.NA) + context.uttaraPada.varnas).toDevanagari()
         return SamasaRuleResult.Formed(stem, "6.3.73 and 6.3.74 yield नुट् before a vowel-initial uttarapada.", memberEdits=mapOf(0 to stem,1 to ""))
     }
 }

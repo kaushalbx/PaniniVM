@@ -24,6 +24,7 @@ data class SubantaDerivationRequest(
     /** Underlying lexical head when [pratipadika] is a compound surface. */
     val compoundHeadUpadesha: String? = null,
     val samasaType: SamasaType? = null,
+    val sourceSuffixUpadeshas: Set<String> = emptySet(),
 ) {
     init {
         require(pratipadika.isNotBlank()) { "A prātipadika is required." }
@@ -38,6 +39,7 @@ data class SubantaDerivationRequest(
                 itMarkers = stemFormation.retainedItMarkers,
                 establishedBySutras = stemFormation.establishedBySutras,
                 compoundHeadUpadesha = compoundHeadUpadesha,
+                sourceSuffixUpadeshas = sourceSuffixUpadeshas,
             ),
         ),
         context = DerivationalContext(

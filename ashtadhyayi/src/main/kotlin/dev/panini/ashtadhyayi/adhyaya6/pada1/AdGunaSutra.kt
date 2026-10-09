@@ -63,7 +63,8 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
             val isFutureSya = leftTerm.upadesha == "स्य" &&
                 context.effectiveContext.rupa.lakara in setOf(Lakara.LRT, Lakara.LRNG)
             val isAdadiShap = leftTerm.id == "shap" && context.terms.any { it.kind == TermKind.DHATU && it.gana == DhatuGana.ADADI }
-            !isAdadiShap && (!previousEndsInEc || isFutureSya) && leftVarnas.getOrNull(leftVarnas.lastIndex - 1) != Vyanjana.NA &&
+            !isAdadiShap && (!previousEndsInEc || isFutureSya) &&
+                (leftTerm.kind == TermKind.PRATIPADIKA || leftVarnas.getOrNull(leftVarnas.lastIndex - 1) != Vyanjana.NA) &&
                 isA && engine.contains(Pratyahara.AC, right)
         }
     }
@@ -88,7 +89,8 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
                 !(terms[position + 1].upadesha == "इट्" && terms[position + 1].varnas.lastOrNull() == Vyanjana.TTA) &&
                 !("4.1.76" in context.activeAdhikaras ||
                     terms[position + 1].upadesha in setOf("अण्", "इञ्", "यञ्", "फक्", "ढक्", "वत्", "तसिल्", "त्रल्")) &&
-                terms[position].varnas.let { it.getOrNull(it.lastIndex - 1) != Vyanjana.NA } &&
+                (terms[position].kind == TermKind.PRATIPADIKA ||
+                    terms[position].varnas.let { it.getOrNull(it.lastIndex - 1) != Vyanjana.NA }) &&
                 (position == 0 ||
                     terms[position - 1].varnas.lastOrNull()?.let {
                         !Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.EC, it)

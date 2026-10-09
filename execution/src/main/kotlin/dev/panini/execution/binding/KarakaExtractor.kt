@@ -72,27 +72,20 @@ internal object KarakaExtractor {
                 it.participant.pada === pada
             }
             if (relation == null) {
-                val supAffix = SupAffix.fromUpadesha(pada.sup.text)
-                if (supAffix != null) {
-                    val effectivePrayoga = if (ctx.frame.prayoga == Prayoga.ANIRDHARITA) {
-                        Prayoga.KARTARI
-                    } else {
-                        ctx.frame.prayoga
-                    }
-                    val inferred = KarakaInference.infer(
-                        supAffix.vibhakti,
-                        effectivePrayoga,
-                        ctx.dhatu.karmatva != Karmatva.AKARMAKA,
-                    )
-                    if (inferred != null) return setOf(inferred)
-                }
-                return emptySet()
+                val effectivePrayoga = if (ctx.frame.prayoga == Prayoga.ANIRDHARITA) {
+                    Prayoga.KARTARI
+                } else ctx.frame.prayoga
+                val candidates = KarakaInference.candidates(
+                    pada.sup.text, effectivePrayoga, ctx.dhatu.karmatva != Karmatva.AKARMAKA,
+                )
+                val compatible = candidates intersect requiredKarakas
+                return compatible.takeIf { it.size == 1 } ?: candidates
             }
             trace += relation.evidence.map { "${it.sutra} ${it.text}: ${it.reason}" }
             val candidates = when (val resolution = relation.resolution) {
                 is FrameKarakaResolution.Resolved -> {
-                    if (resolution.karaka in requiredKarakas) return setOf(resolution.karaka)
-                    setOf(resolution.karaka)
+                    // Operation compatibility cannot overturn an established grammatical relation.
+                    return setOf(resolution.karaka)
                 }
                 is FrameKarakaResolution.Ambiguous -> resolution.candidates
                 is FrameKarakaResolution.Unassigned -> emptySet()
@@ -125,9 +118,17 @@ internal object KarakaExtractor {
 
         fun add(subanta: SubantaPada, overridePhalaId: String? = null) {
             val phalaId = overridePhalaId ?: phalaResolution.phalaMap[subanta]
+            val candidates = inferKarakas(subanta)
+            val collectionMemberFrame = candidates == setOf(Karaka.KARMAN) &&
+                ctx.dhatu.operations.any { it.name in setOf("सङ्ख्यायोजनम्", "सूच्युद्धरणम्") } &&
+                subantas.any {
+                    it.sup.text == SupAffix.NGAS.upadesha &&
+                        it !in phalaResolution.resolvedGenitives &&
+                        it !in karakaReferenceResolution.consumedGenitives
+                }
             addBinding(
-                ExpressionBuilder.build(subanta, ctx, phalaId),
-                inferKarakas(subanta),
+                ExpressionBuilder.build(subanta, ctx, phalaId, collectionMemberFrame),
+                candidates,
             )
         }
 
@@ -228,10 +229,9 @@ internal object KarakaExtractor {
                 is AryabhatiyaPada   -> NumeralPadaBinder.bind(pada, ::inferKarakas, ::addBinding)
                 is BhutasamkhyaPada  -> NumeralPadaBinder.bind(pada, ::inferKarakas, ::addBinding)
                 is SamuccitaSubanta -> {
-                    val members = pada.members.map { ExpressionBuilder.build(it, ctx) }
-                    val allCandidates = pada.members.flatMapTo(mutableSetOf()) { inferKarakas(it) }
-                    val candidates = (allCandidates intersect requiredKarakas).ifEmpty { allCandidates }
-                    addBinding(ExecutionExpression.Coordination(members), candidates)
+                    // Each member retains its grammatical relation. The final grouping
+                    // combines only members that actually resolve to the same kāraka.
+                    pada.members.forEach { add(it) }
                 }
                 else -> Unit
             }

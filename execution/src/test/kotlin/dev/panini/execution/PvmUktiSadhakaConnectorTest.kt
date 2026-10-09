@@ -7,6 +7,235 @@ import kotlin.test.assertTrue
 
 class PvmUktiSadhakaConnectorTest {
     @Test
+    fun `prefixed nonfinite rendering preserves an optional h assimilation branch`() {
+        val rendered = PvmUktiSadhaka().sadhayaLine(
+            "सूची + ङस् अन्तिम + अम् उद् + हृ + ल्यप् मुद्र् + णिच् + लोट् + सिप् ।",
+        )
+        assertTrue(rendered.contains("उद्हृत्य") || rendered.contains("उद्धृत्य"), rendered)
+        assertFalse(rendered.contains("ल्यप्"), rendered)
+        assertEquals("उद्धृत्य", dev.panini.derivation.SandhiEngine().joinPrefix("उद्", "हृत्य"))
+    }
+
+    @Test
+    fun `lexical ordinal renders as an adjective rather than a cardinal`() {
+        val renderer = PvmUktiSadhaka()
+        assertEquals("प्रथमे ।", renderer.sadhayaLine("प्रथम + ङि ।"))
+        assertEquals("प्रथमम् ।", renderer.sadhayaLine("प्रथम + अम् ।"))
+    }
+
+    @Test
+    fun `feminine agreement does not affix an already feminine lexical noun again`() {
+        val parser = dev.panini.vyakaranam.parser.PaniniParser()
+        val renderer = PvmUktiSadhaka()
+        for ((source, expected) in listOf(
+            "नदी + अम् ।" to "नदीम्",
+            "नदी + टा ।" to "नद्या",
+            "देवी + ङस् ।" to "देव्याः",
+        )) {
+            val noun = parser.parse(source).grammaticalVakyas().single().padas
+                .filterIsInstance<dev.panini.vyakaranam.ast.SubantaPada>().single()
+            assertEquals(expected, renderer.sadhayaSubanta(noun, dev.panini.core.Linga.STRI), source)
+        }
+        assertEquals("एका नदी गुप्ता अस्ति ।", renderer.sadhayaLine(
+            "एक + सुँ नदी + सुँ गुप्त + सुँ असँ + लट् + तिप् ।",
+        ))
+    }
+
+    @Test
+    fun `unlicensed explicit tap retains complete source`() {
+        val parser = dev.panini.vyakaranam.parser.PaniniParser()
+        val renderer = PvmUktiSadhaka()
+        for (source in listOf("कर्तृ + टाप् + ङस् ।", "लता + टाप् + सुँ ।", "धन + मतुप् + टाप् + सुँ ।")) {
+            val noun = parser.parse(source).grammaticalVakyas().single().padas
+                .filterIsInstance<dev.panini.vyakaranam.ast.SubantaPada>().single()
+            assertEquals(noun.sourceText, renderer.sadhayaSubanta(noun), source)
+        }
+    }
+
+    @Test
+    fun `possessive feminine source retains the full case and number paradigm`() {
+        val expected = """
+            धनवती धनवत्यौ धनवत्यः धनवतीम् धनवत्यौ धनवतीः
+            धनवत्या धनवतीभ्याम् धनवतीभिः धनवत्यै धनवतीभ्याम् धनवतीभ्यः
+            धनवत्याः धनवतीभ्याम् धनवतीभ्यः धनवत्याः धनवत्योः धनवतीनाम्
+            धनवत्याम् धनवत्योः धनवतीषु
+        """.trim().split(Regex("\\s+"))
+        val renderer = PvmUktiSadhaka()
+        val slots = dev.panini.core.SupAffix.entries
+        assertEquals(slots.size, expected.size)
+        slots.zip(expected).forEach { (slot, surface) ->
+            val sourceAffix = if (slot == dev.panini.core.SupAffix.NGASI) "ङसिँ" else slot.upadesha
+            assertEquals("$surface ।", renderer.sadhayaLine("धन + मतुप् + ङीप् + $sourceAffix ।"), slot.name)
+        }
+    }
+
+    @Test
+    fun `nin source requires supported lexical licensing`() {
+        val parser = dev.panini.vyakaranam.parser.PaniniParser()
+        val unsupported = parser.parse("बाल + ङीन् + सुँ ।").grammaticalVakyas().single().padas
+            .filterIsInstance<dev.panini.vyakaranam.ast.SubantaPada>().single()
+        val renderer = PvmUktiSadhaka()
+        assertEquals(unsupported.sourceText, renderer.sadhayaSubanta(unsupported))
+        assertEquals("ब्राह्मणी ।", renderer.sadhayaLine("ब्राह्मण + ङीन् + सुँ ।"))
+    }
+
+    @Test
+    fun `explicit possessive feminine affix retains licensing provenance`() {
+        val renderer = PvmUktiSadhaka()
+        assertEquals("धनवती ।", renderer.sadhayaLine("धन + मतुप् + ङीप् + सुँ ।"))
+        assertEquals("सङ्ख्यावती ।", renderer.sadhayaLine("सङ्ख्या + मतुप् + ङीप् + सुँ ।"))
+        val noun = dev.panini.vyakaranam.parser.PaniniParser()
+            .parse("धन + मतुप् + सुँ ।").grammaticalVakyas().single().padas
+            .filterIsInstance<dev.panini.vyakaranam.ast.SubantaPada>().single()
+        assertEquals("धनवती", renderer.sadhayaSubanta(noun, dev.panini.core.Linga.STRI))
+    }
+
+    @Test
+    fun `aa final noun case rendering does not require sankhya spelling repairs`() {
+        val renderer = PvmUktiSadhaka()
+        for ((stem, genitive, locative) in listOf(
+            Triple("सङ्ख्या", "सङ्ख्यायाः", "सङ्ख्यायाम्"),
+            Triple("लता", "लतायाः", "लतायाम्"),
+            Triple("बन्दिसङ्ख्या", "बन्दिसङ्ख्यायाः", "बन्दिसङ्ख्यायाम्"),
+        )) {
+            assertEquals("$genitive ।", renderer.sadhayaLine("$stem + ङस् ।"))
+            assertEquals("$locative ।", renderer.sadhayaLine("$stem + ङि ।"))
+        }
+    }
+
+    @Test
+    fun `aa final noun instrumental uses nominal derivation`() {
+        val renderer = PvmUktiSadhaka()
+        assertEquals("सङ्ख्यया ।", renderer.sadhayaLine("सङ्ख्या + टा ।"))
+        assertEquals("लतया ।", renderer.sadhayaLine("लता + टा ।"))
+    }
+
+    @Test
+    fun `copular fallback does not override an explicit homonymous gana`() {
+        val renderer = PvmUktiSadhaka()
+        assertEquals("अस्ति ।", renderer.sadhayaLine("असँ + लट् + तिप् ।"))
+        assertFalse(renderer.sadhayaLine("असँ + शप् + लट् + तिप् ।") == "अस्ति ।")
+        assertFalse(renderer.sadhayaLine("असुँ + श्यन् + लट् + तिप् ।") == "अस्ति ।")
+    }
+
+    @Test
+    fun `possessive source renders instrumental and locative through the engine`() {
+        val renderer = PvmUktiSadhaka()
+        assertEquals("सङ्ख्यावता ।", renderer.sadhayaLine("सङ्ख्या + मतुप् + टा ।"))
+        assertEquals("सङ्ख्यावति ।", renderer.sadhayaLine("सङ्ख्या + मतुप् + ङि ।"))
+    }
+
+    @Test
+    fun `renderer does not silently collapse repeated possessive affixes`() {
+        val noun = dev.panini.vyakaranam.parser.PaniniParser()
+            .parse("धन + मतुप् + मतुप् + ङस् ।").grammaticalVakyas().single().padas
+            .filterIsInstance<dev.panini.vyakaranam.ast.SubantaPada>().single()
+        assertEquals(noun.sourceText, PvmUktiSadhaka().sadhayaSubanta(noun))
+    }
+
+    @Test
+    fun `compound rendering retains its outer case and number`() {
+        val renderer = PvmUktiSadhaka()
+        val parser = dev.panini.vyakaranam.parser.PaniniParser()
+        val members = listOf("राज + ङस् ।", "पुरुष + सुँ ।").map { source ->
+            val noun = parser.parse(source).grammaticalVakyas().single().padas
+                .filterIsInstance<dev.panini.vyakaranam.ast.SubantaPada>().single()
+            dev.panini.vyakaranam.ast.SamasaAnga(noun.sourceText, noun.pratipadika, noun.sup)
+        }
+        val compound = dev.panini.vyakaranam.ast.SamasaPratipadika("", members)
+        val noun = dev.panini.vyakaranam.ast.SubantaPada("", compound,
+            dev.panini.vyakaranam.ast.SupPratyaya("ङस्", "ङस्"))
+        assertEquals("राजपुरुषस्य", renderer.sadhayaSubanta(noun))
+        assertEquals("राजपुरुषौ", renderer.sadhayaSubanta(noun.copy(
+            sup = dev.panini.vyakaranam.ast.SupPratyaya("औ", "औ"))))
+    }
+
+    @Test
+    fun `failed compound derivation retains the complete source pada`() {
+        val source = "अज्ञातसमास + ङस्"
+        val noun = dev.panini.vyakaranam.ast.SubantaPada(
+            source,
+            dev.panini.vyakaranam.ast.SamasaPratipadika("अज्ञातसमास", emptyList()),
+            dev.panini.vyakaranam.ast.SupPratyaya("ङस्", "ङस्"),
+        )
+        assertEquals(source, PvmUktiSadhaka().sadhayaSubanta(noun))
+    }
+
+    @Test
+    fun `unresolved derived nouns retain root affixes prefixes and case ending`() {
+        val parser = dev.panini.vyakaranam.parser.PaniniParser()
+        val renderer = PvmUktiSadhaka()
+        for (source in listOf(
+            "सम् + अज्ञातधातु + णिच् + ल्युट् + ङस् ।",
+            "भू + शतृ + सुँ ।",
+        )) {
+            val noun = parser.parse(source).grammaticalVakyas().single().padas
+                .filterIsInstance<dev.panini.vyakaranam.ast.SubantaPada>().single()
+            assertEquals(noun.sourceText, renderer.sadhayaSubanta(noun))
+        }
+    }
+
+    @Test
+    fun `coordinated derived nouns retain the supplied gender`() {
+        val parser = dev.panini.vyakaranam.parser.PaniniParser()
+        val members = listOf("भू", "कृ").map { root ->
+            parser.parse("$root + क्त + सुँ ।").grammaticalVakyas().single().padas
+                .filterIsInstance<dev.panini.vyakaranam.ast.SubantaPada>().single()
+        }
+        val coordinated = dev.panini.vyakaranam.ast.SamuccitaSubanta("", members)
+        assertEquals("भूता कृता च", PvmUktiSadhaka().sadhayaPada(coordinated, dev.panini.core.Linga.STRI))
+    }
+
+    @Test
+    fun `derived participles preserve requested gender and grammatical number`() {
+        val parser = dev.panini.vyakaranam.parser.PaniniParser()
+        val renderer = PvmUktiSadhaka()
+        fun render(ending: String, gender: dev.panini.core.Linga): String {
+            val noun = parser.parse("भू + क्त + $ending ।")
+                .grammaticalVakyas().single().padas
+                .filterIsInstance<dev.panini.vyakaranam.ast.SubantaPada>().single()
+            return renderer.sadhayaSubanta(noun, gender)
+        }
+        assertEquals("भूतः", render("सुँ", dev.panini.core.Linga.PUMS))
+        assertEquals("भूतम्", render("सुँ", dev.panini.core.Linga.NAPUMSAKA))
+        assertEquals("भूता", render("सुँ", dev.panini.core.Linga.STRI))
+        assertEquals("भूते", render("औ", dev.panini.core.Linga.NAPUMSAKA))
+        assertEquals("भूतानि", render("जस्", dev.panini.core.Linga.NAPUMSAKA))
+    }
+
+    @Test
+    fun `selection noun derives its stem and retains case morphology`() {
+        val renderer = PvmUktiSadhaka()
+        assertEquals("चयनम् ।", renderer.sadhayaLine("चिञ् + ल्युट् + सुँ ।"))
+        assertEquals("चयनस्य ।", renderer.sadhayaLine("चिञ् + ल्युट् + ङस् ।"))
+    }
+
+    @Test
+    fun `derived indeclinables use the krdanta engine for every root`() {
+        val renderer = PvmUktiSadhaka()
+        val engine = dev.panini.derivation.KrdantaEngine()
+        for (root in listOf("वृज्", "पच्")) {
+            val expected = engine.deriveSourceStem(root, "क्त्वा", listOf("णिच्")).surface
+            assertEquals("$expected ।", renderer.sadhayaLine("$root + णिच् + क्त्वा ।"))
+        }
+    }
+
+    @Test
+    fun `copular fallback does not erase a derivational affix`() {
+        val renderer = PvmUktiSadhaka()
+        assertEquals("अस्ति ।", renderer.sadhayaLine("असँ + लट् + तिप् ।"))
+        assertFalse(renderer.sadhayaLine("असँ + णिच् + लट् + तिप् ।") == "अस्ति ।")
+    }
+
+    @Test
+    fun `imperatives use derived forms with and without prefixes`() {
+        val renderer = PvmUktiSadhaka()
+        assertEquals("कुरु ।", renderer.sadhayaLine("कृ + उ + लोट् + सिप् ।"))
+        assertEquals("गृहाण ।", renderer.sadhayaLine("ग्रहँ + श्ना + लोट् + सिप् ।"))
+        assertEquals("सङ्गृहाण ।", renderer.sadhayaLine("सम् + ग्रहँ + श्ना + लोट् + सिप् ।"))
+    }
+
+    @Test
     fun `ordinary verbs retain explicit atmanepada ending`() {
         val renderer = PvmUktiSadhaka()
         assertEquals("पचते ।", renderer.sadhayaLine("डुपचँष् + लट् + त ।"))
@@ -78,7 +307,7 @@ class PvmUktiSadhakaConnectorTest {
 
     @Test
     fun `unsupported feminine suffixes retain their segmented provenance`() {
-        for (suffix in listOf("डाप्", "चाप्", "ऊङ्", "तिच्", "टाप् + ङीप्")) {
+        for (suffix in listOf("डाप्", "चाप्", "ऊङ्", "तिच्", "ङीप्", "टाप् + ङीप्")) {
             val noun = dev.panini.vyakaranam.parser.PaniniParser()
                 .parse("बाल + $suffix + सुँ ।").grammaticalVakyas().single().padas
                 .filterIsInstance<dev.panini.vyakaranam.ast.SubantaPada>().single()

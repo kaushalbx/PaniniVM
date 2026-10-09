@@ -1,0 +1,2 @@
+# Add one and two, having done so print the result.
+एकं द्वे च योजयित्वा फलं मुद्रय ।

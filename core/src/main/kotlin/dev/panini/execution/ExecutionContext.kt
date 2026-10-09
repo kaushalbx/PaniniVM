@@ -35,6 +35,21 @@ data class ExecutionContext(
     fun resolve(expression: ExecutionExpression): List<String> =
         resolveValues(expression).map { it.toDisplayText() }
 
+    /** Resolves every coordinated participant, without dropping missing references. */
+    fun resolveCompleteValues(expression: ExecutionExpression): List<SanskritValue>? = when (expression) {
+        is ExecutionExpression.Reference -> variables[expression.name]?.let(::listOf)
+        is ExecutionExpression.Coordination -> {
+            val values = mutableListOf<SanskritValue>()
+            for (member in expression.members) {
+                val resolved = resolveCompleteValues(member) ?: return null
+                if (resolved.isEmpty()) return null
+                values.addAll(resolved)
+            }
+            values
+        }
+        else -> resolveValues(expression)
+    }
+
     fun literals(expression: ExecutionExpression): List<ExecutionExpression.Pada>? = when (expression) {
         is ExecutionExpression.Pada -> listOf(expression)
         is ExecutionExpression.Coordination -> expression.members.fold(emptyList()) { accumulated, member ->

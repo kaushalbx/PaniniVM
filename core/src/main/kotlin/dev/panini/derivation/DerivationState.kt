@@ -36,7 +36,15 @@ class DerivationState(
     val appliedSutras: List<String> = emptyList(),
     val svaraNimittas: List<SvaraNimitta> = emptyList(),
     val svaraAssignments: List<SvaraAssignment> = emptyList(),
+    /** Prohibitions scoped to a particular adjacent pair, not the whole derivation. */
+    val boundaryRuleBlocks: Map<BoundaryRuleKey, String> = emptyMap(),
 ) {
+
+    fun isBlockedAtBoundary(sutra: String, leftId: String, rightId: String): Boolean =
+        BoundaryRuleKey(sutra, leftId, rightId) in boundaryRuleBlocks
+
+    fun blockAtBoundary(sutra: String, leftId: String, rightId: String, blocker: String): DerivationState =
+        copy(boundaryRuleBlocks = boundaryRuleBlocks + (BoundaryRuleKey(sutra, leftId, rightId) to blocker))
 
     init {
         require(terms.isNotEmpty()) { "A derivation requires at least one term." }
@@ -280,7 +288,14 @@ class DerivationState(
         } else {
             substituteTermSurface(survivorId, surface, source, replacement, sutra)
         }
-        val removed = substituted.removeTerm(consumedId, sutra)
+        val withAffixProvenance = if (consumed.kind == TermKind.PRATYAYA) {
+            val currentSurvivor = substituted.terms.single { it.id == survivorId }
+            substituted.replaceTerm(survivorId, currentSurvivor.copy(
+                sourceSuffixUpadeshas = currentSurvivor.sourceSuffixUpadeshas +
+                    consumed.sourceSuffixUpadeshas + consumed.upadesha,
+            ))
+        } else substituted
+        val removed = withAffixProvenance.removeTerm(consumedId, sutra)
         val survivingLocus = consumedAffixVowelIndex?.let { oldIndex ->
             val wordIndex = DevanagariVowelLoci.positions(removed.surface).indices.lastOrNull()
                 ?.let(oldIndex::coerceAtMost) ?: return@let null
@@ -516,6 +531,7 @@ class DerivationState(
         appliedSutras: List<String> = this.appliedSutras,
         svaraNimittas: List<SvaraNimitta> = this.svaraNimittas,
         svaraAssignments: List<SvaraAssignment> = this.svaraAssignments,
+        boundaryRuleBlocks: Map<BoundaryRuleKey, String> = this.boundaryRuleBlocks,
     ): DerivationState {
         return DerivationState(
             terms = terms,
@@ -533,6 +549,7 @@ class DerivationState(
             appliedSutras = appliedSutras,
             svaraNimittas = svaraNimittas,
             svaraAssignments = svaraAssignments,
+            boundaryRuleBlocks = boundaryRuleBlocks,
         )
     }
 
@@ -553,7 +570,7 @@ class DerivationState(
             substitutions == other.substitutions
             && appliedSutras == other.appliedSutras &&
             svaraNimittas == other.svaraNimittas &&
-            svaraAssignments == other.svaraAssignments
+            svaraAssignments == other.svaraAssignments && boundaryRuleBlocks == other.boundaryRuleBlocks
     }
 
     override fun hashCode(): Int {
@@ -572,6 +589,7 @@ class DerivationState(
         result = 31 * result + appliedSutras.hashCode()
         result = 31 * result + svaraNimittas.hashCode()
         result = 31 * result + svaraAssignments.hashCode()
+        result = 31 * result + boundaryRuleBlocks.hashCode()
         return result
     }
 
@@ -581,6 +599,8 @@ class DerivationState(
 }
 
 enum class BlockedOperationDomain { STRI_PRATYAYA_SELECTION }
+
+data class BoundaryRuleKey(val sutra: String, val leftId: String, val rightId: String)
 
 enum class AccentType { UDATTA, ANUDATTA, SVARITA }
 enum class SvaraNimittaKind { PRATYAYA, NIT_OR_NGIT, PIT_OR_SUP, EXPLICIT_UDATTA }
@@ -667,6 +687,10 @@ data class DerivationTerm(
     val mergedAffixVowelFromEnd: Int? = null,
     /** Non-phonological written signs anchored to boundaries in [varnas]. */
     val orthographicSigns: List<OrthographicSignPlacement> = emptyList(),
+    /** Affixes that produced an already-formed stem; never inferred from its spelling. */
+    val sourceSuffixUpadeshas: Set<String> = emptySet(),
+    /** Morphosyntax of a completed external pada, not the whole sandhi expression. */
+    val formedPadaRupa: Rupa? = null,
 ) {
     /**
      * Cached phonological form of [surface]. During the transition [surface]

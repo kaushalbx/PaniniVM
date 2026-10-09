@@ -11,6 +11,7 @@ internal class PrakriyaExecutor {
         val scope: ExecutionScope,
         val registry: PrakriyaRegistry,
         val callerSourceFile: String?,
+        val resolveValue: (String) -> SanskritValue? = { null },
         val executeBody: (
             program: ProgramNode,
             scope: ExecutionScope,
@@ -31,15 +32,16 @@ internal class PrakriyaExecutor {
             invocation,
             resolvedArguments,
             request.scope,
+            request.resolveValue,
         )
 
         validateArguments(invocation, signature, argTerms, callFrame)?.let { return listOf(it) }
+        validateGuards(invocation, argTerms, callFrame)?.let { return listOf(it) }
         if (invocation.kriya.isMemoized) {
             request.registry.getCachedResult(invocation.kriya.nameStem, invocation.karmaText)?.let {
                 return listOf(it)
             }
         }
-        validateGuards(invocation, argTerms, callFrame)?.let { return listOf(it) }
 
         val results = mutableListOf<ExecutionResult>()
         val repetitionCount = (invocation.ukti?.body as? Repeat)?.count
@@ -101,6 +103,12 @@ internal class PrakriyaExecutor {
         frame: PrakriyaCallFrame,
     ): ExecutionResult.Failure? {
         invocation.kriya.nishedhaGuards.forEach { guard ->
+            if (NishedhaGuardEvaluator.numericProhibition(guard,
+                    invocation.kriya.signature.parameters, frame.arguments.size) == null &&
+                PrakriyaSignatureCompiler.inferGuardType(guard) == null) {
+                return ExecutionResult.Failure(ExecutionError.INVALID_VALUE,
+                    "Unsupported procedure prohibition: '${guard.text.trim()}'")
+            }
             val requiredType = invocation.kriya.signature.argumentType
             if (NishedhaGuardEvaluator.isProhibited(
                     guard,

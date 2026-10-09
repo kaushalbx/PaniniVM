@@ -12,6 +12,7 @@ sealed interface ExecutionExpression {
         val prakriti: String,
         val samjnas: Set<Samjna> = emptySet(),
         val value: SanskritValue? = null,
+        val memberSelection: CollectionMemberSelection? = null,
     ) : ExecutionExpression {
         init {
             require(prakriti.isNotBlank()) { "An execution prakriti cannot be blank." }
@@ -46,6 +47,9 @@ sealed interface ExecutionExpression {
         val sup: SupAffix,
     ) : ExecutionExpression
 }
+
+/** Meaning of a morphologically licensed member noun, not a reserved variable name. */
+enum class CollectionMemberSelection { NUMBERS, FINAL }
 
 /** A literal name suitable for a local result binding. */
 fun ExecutionExpression.bindingName(): String? = when (this) {

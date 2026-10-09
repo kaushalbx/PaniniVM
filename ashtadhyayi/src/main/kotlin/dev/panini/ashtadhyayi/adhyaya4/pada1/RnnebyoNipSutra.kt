@@ -1,6 +1,6 @@
 package dev.panini.ashtadhyayi.adhyaya4.pada1
 
-import dev.panini.core.ItMarker
+import dev.panini.core.Linga
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
@@ -8,6 +8,8 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationTerm
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -34,6 +36,9 @@ object RnnebyoNipSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.stage != DerivationStage.INITIAL && context.stage != DerivationStage.PRATYAYA_SELECTED) return false
+        if (context.effectiveContext.rupa.linga != Linga.STRI) return false
+        val stem = context.terms.firstOrNull { it.kind == TermKind.PRATIPADIKA } ?: return false
+        if (stem.varnas.lastOrNull() !in setOf(Svara.R, Vyanjana.NA)) return false
         val isNipRequested = context.samjnas.any { it.samjna == Samjna.NIP }
         val hasPratyaya = context.terms.any { it.kind == TermKind.PRATYAYA }
         return isNipRequested && !hasPratyaya

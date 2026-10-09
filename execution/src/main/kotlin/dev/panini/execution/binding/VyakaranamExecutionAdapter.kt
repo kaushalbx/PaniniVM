@@ -222,7 +222,21 @@ object VyakaranamExecutionAdapter {
         if (input.text.isBlank()) {
             return AnalyzedExecutionBinding(ExecutionBindingResult.Invalid("The Sanskrit utterance is empty."))
         }
-        val executableUkti = normalizeFrequencyAst(ukti)
+        val loweredUkti = try {
+            val declarations = object : ProgramNodeTransformer() {
+                override fun visitQuotation(node: Quotation): ProgramNode =
+                    dev.panini.execution.ListDeclarationLowering.expand(node) ?: node
+                override fun visitInvocation(node: Invocation): ProgramNode {
+                    dev.panini.execution.CollectionMemberMorphology.validate(node)
+                    return dev.panini.execution.ListDeclarationLowering.expand(node)
+                        ?: dev.panini.execution.OrdinalObjectLowering.expand(node) ?: node
+                }
+            }.transform(ukti.body)
+            ukti.copy(body = dev.panini.execution.PriorActionLowering.lower(declarations))
+        } catch (error: IllegalArgumentException) {
+            return AnalyzedExecutionBinding(ExecutionBindingResult.Invalid(error.message ?: "Invalid prior-action construction."))
+        }
+        val executableUkti = normalizeFrequencyAst(loweredUkti)
         val quotations = quotationBindings(executableUkti.body)
 
         var listener = input.listener
@@ -301,7 +315,7 @@ object VyakaranamExecutionAdapter {
                 localVariableInvocationIds = localVariableInvocationIds,
                 environment = environment,
             )
-            val invocation = buildDhatuInvocation(
+            val invocation = try { buildDhatuInvocation(
                 index = index,
                 padas = padas,
                 ctx = ctx,
@@ -312,7 +326,9 @@ object VyakaranamExecutionAdapter {
                 pipelineKarmanSource = pipelineKarmanSources[index + 1],
                 quotedVakya = quotations[vakya],
                 injectedBindings = injectedBindings,
-            )
+            ) } catch (error: MissingActionResultException) {
+                return AnalyzedExecutionBinding(ExecutionBindingResult.Invalid(error.message ?: "Missing action result."), utteranceAnalysis)
+            }
             invocations += invocation
             val bindingKaraka = dhatu.operations.firstOrNull { it.resultBindingKaraka != null }?.resultBindingKaraka
             val bindingName = bindingKaraka?.let { invocation.bindings[it] }?.bindingName()
@@ -421,6 +437,7 @@ object VyakaranamExecutionAdapter {
             bindings[Karaka.KARTR] = ExecutionExpression.Pada(listener)
         }
         val metadataMap = buildMap {
+            tinganta?.listMemberType?.let { put("listMemberType", it.name) }
             put(dev.panini.execution.ExecutionMetadata.DEFAULT_DHATU, dhatu.upadesha)
             put(dev.panini.execution.ExecutionMetadata.dhatu(KriyaInvocationId.of(index + 1)), dhatu.upadesha)
             if (quotedVakya != null) {

@@ -3,6 +3,9 @@ package dev.panini.ashtadhyayi.adhyaya5.pada4
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
 import dev.panini.core.SamasaType
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -29,20 +32,23 @@ object UrahPrabhrtibhyahKapSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     samasaType = SamasaType.BAHUVRIHI,
 ), SamasaSutra {
     private val urahPrabhrti = setOf("उरस्", "सर्पिस्", "पुमान्", "अनडुह्", "उरस्क")
+    private val uras = listOf(Svara.U, Vyanjana.RA, Svara.A, Vyanjana.SA)
 
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
         val uttara = context.uttaraPada.upadesha
-        return context.samasaType == SamasaType.BAHUVRIHI && (uttara in urahPrabhrti || uttara.endsWith("उरस्"))
+        return context.samasaType == SamasaType.BAHUVRIHI && (uttara in urahPrabhrti || context.uttaraPada.varnas.takeLast(uras.size) == uras)
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
-        val compoundStem = context.padas.joinToString("") { it.upadesha } + "क"
+        val suffix = listOf(Vyanjana.KA, Svara.A)
+        val compoundStem = (context.padas.flatMap { it.varnas } + suffix).toDevanagari()
 
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "5.4.151: Added samāsānta kap-pratyaya after uraḥprabhṛti stem ($compoundStem).",
-            samasantaSuffix = "क",
+            samasantaSuffix = suffix.toDevanagari(),
+            samasantaAffix = dev.panini.core.SamasantaAffix.KAP,
         )
     }
 }

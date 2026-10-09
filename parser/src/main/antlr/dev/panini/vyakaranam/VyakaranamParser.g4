@@ -54,7 +54,7 @@ prakriyaBlock
     ;
 
 prakriyaHeader
-    : names+=subantaPada+ ITI declaration=prakriyaDeclaration
+    : names+=subantaPada+ (ITI | NAAMA) declaration=prakriyaDeclaration
     ;
 
 prakriyaDeclaration
@@ -244,7 +244,8 @@ accusativeSup
     ;
 
 subantaVakyaPada
-    : subantaPada
+    : explicitSamuccitaSubanta
+    | subantaPada
     | samuccitaSubanta
     | sankhyaPada
     | sankhyaPuranaPada
@@ -371,6 +372,7 @@ pratipadikaVikara
 
 mulaPratipadika
     : IDENTIFIER
+    | NAAMA
     | PRAKRIYA_NOUN
     | ADHIKA
     | UNA
@@ -500,6 +502,10 @@ samuccitaSubanta
     : subantaPada
       (COMMA? subantaPada)+
       CHA
+    ;
+
+explicitSamuccitaSubanta
+    : subantaPada CHA (subantaPada CHA)+
     ;
 
 // ============================================================================
@@ -786,6 +792,7 @@ mulaAvyaya
     | NA
     | ITI
     | API
+    | NAAMA
     | NI
     | EVA
     | CHA

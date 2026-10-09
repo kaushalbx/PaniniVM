@@ -32,5 +32,5 @@ object ArtihriPukSutra : Sutra<DerivationState, DerivationChange>(
 
     private fun eligibleRoot(term: DerivationTerm): Boolean =
         term.kind == TermKind.DHATU && term.varnas.lastOrNull() == Svara.AA &&
-            DhatuPatha.all.any { it.upadesha == term.upadesha && it.sourceSurface.endsWith("ा") }
+            DhatuPatha.all.any { it.upadesha == term.upadesha && it.sourceVarnas.lastOrNull() == Svara.AA }
 }

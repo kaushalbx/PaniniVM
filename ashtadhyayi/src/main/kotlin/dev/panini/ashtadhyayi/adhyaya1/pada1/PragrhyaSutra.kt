@@ -34,11 +34,13 @@ object PragrhyaSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         // Must be in a dual context
-        if (!HasMorphosyntax(vacana = Vacana.DVIVACANA).matches(context)) return false
 
         return context.terms.any { term ->
+            if (!isDual(context, term)) return@any false
+            if (term.kind == TermKind.PRATYAYA && !isInflectionalEnding(term)) return@any false
             val isNonNadiStem = term.kind == TermKind.PRATIPADIKA &&
-                context.samjnas.none { it.targetId == term.id && it.samjna == Samjna.NADI }
+                (term.formedPadaRupa != null || context.terms.none { it.kind == TermKind.PRATYAYA }) &&
+                (term.formedPadaRupa != null || context.samjnas.none { it.targetId == term.id && it.samjna == Samjna.NADI })
             if (term.kind != TermKind.PRATYAYA && !isNonNadiStem) return@any false
             val isEligibleVowel = term.varnas.lastOrNull() in setOf(Svara.II, Svara.UU, Svara.E)
 
@@ -48,8 +50,11 @@ object PragrhyaSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val assignments = context.terms.filter { term ->
+            if (!isDual(context, term)) return@filter false
+            if (term.kind == TermKind.PRATYAYA && !isInflectionalEnding(term)) return@filter false
             val isNonNadiStem = term.kind == TermKind.PRATIPADIKA &&
-                context.samjnas.none { it.targetId == term.id && it.samjna == Samjna.NADI }
+                (term.formedPadaRupa != null || context.terms.none { it.kind == TermKind.PRATYAYA }) &&
+                (term.formedPadaRupa != null || context.samjnas.none { it.targetId == term.id && it.samjna == Samjna.NADI })
             if (term.kind != TermKind.PRATYAYA && !isNonNadiStem) return@filter false
             term.varnas.lastOrNull() in setOf(Svara.II, Svara.UU, Svara.E)
         }.map { SamjnaAssignment(it.id, Samjna.PRAGRHYA) }.toSet()
@@ -59,4 +64,12 @@ object PragrhyaSutra : Sutra<DerivationState, DerivationChange>(
             explanation = "1.1.11 identifies pragṛhya vowels in dual forms."
         )
     }
+
+    private fun isDual(context: DerivationState, term: dev.panini.derivation.DerivationTerm): Boolean =
+        term.formedPadaRupa?.let { it.vacana == Vacana.DVIVACANA }
+            ?: HasMorphosyntax(vacana = Vacana.DVIVACANA).matches(context)
+
+    private fun isInflectionalEnding(term: dev.panini.derivation.DerivationTerm): Boolean =
+        dev.panini.core.SupAffix.fromUpadesha(term.upadesha) != null ||
+            dev.panini.core.TingAffix.fromUpadesha(term.upadesha) != null
 }

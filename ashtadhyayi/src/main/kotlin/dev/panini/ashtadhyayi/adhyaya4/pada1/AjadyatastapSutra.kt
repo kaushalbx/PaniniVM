@@ -49,7 +49,6 @@ object AjadyatasTapSutra : Sutra<DerivationState, DerivationChange>(
 
         val feminineRequested = context.effectiveContext.rupa.linga == Linga.STRI
         val isTapRequested = feminineRequested && (
-            context.samjnas.any { it.samjna == Samjna.TAP } ||
                 (context.activeAdhikaras.contains("4.1.3") && (isAjadiMember || endsInA)) ||
                 processedAng != null
             )

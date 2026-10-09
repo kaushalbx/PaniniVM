@@ -1,0 +1,5 @@
+# नाम follows the declared nominal; सूची retains the most recent declared list.
+एकस्य द्वयोः त्रयाणां च क्रमः नाम सङ्ख्यानां सूची अस्ति ।
+क्रमस्य प्रथमं मूल्यं गृहाण ततः मुद्रय ।
+# The prefixed prior action uses ल्यप्; omitted printing object refers to its result.
+सूच्याः अन्तिमम् उद्हृत्य मुद्रय ।

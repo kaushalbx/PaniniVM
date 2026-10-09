@@ -1,0 +1,3 @@
+# Genitive numerals name values; सङ्ख्यानाम् declares their member type.
+एकस्य द्वयोः त्रयाणां चतुर्णां च सङ्ख्यानां सूची अस्ति ।
+सूचीं मुद्रय ।

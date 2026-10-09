@@ -349,7 +349,9 @@ object PvmScript {
         val ukti = parser.parseOrNull(trimmed.trimEnd('।', '॥', ' ')) ?: return null
         if (ukti.grammaticalVakyas().flatMap { it.padas }
                 .any { (it as? dev.panini.vyakaranam.ast.AvyayaPada)?.function ==
-                    dev.panini.vyakaranam.ast.AvyayaFunction.QUOTATIVE }
+                    dev.panini.vyakaranam.ast.AvyayaFunction.QUOTATIVE ||
+                    (it as? dev.panini.vyakaranam.ast.AvyayaPada)?.function ==
+                    dev.panini.vyakaranam.ast.AvyayaFunction.NAMING }
         ) return null
         if (PrakriyaHeaderIdentityParser.parse(trimmed) == null) return null
         if (ukti.grammaticalVakyas().flatMap { it.padas }

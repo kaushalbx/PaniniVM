@@ -32,6 +32,20 @@ fun ExecutionContext.resolveSankhyaValues(expression: ExecutionExpression): List
     return values.map { (it as SanskritValue.Sankhya).value }
 }
 
+/** Numeric members retain declared collection type and are not recursively flattened. */
+fun numericCollectionMembers(value: SanskritValue): List<Long>? {
+    val items = when (value) {
+        is SanskritValue.Suchi -> {
+            if (value.memberType == ListMemberType.TEXT) return null
+            value.items
+        }
+        is SanskritValue.Gana -> value.elements
+        else -> return null
+    }
+    if (items.any { it !is SanskritValue.Sankhya }) return null
+    return items.map { (it as SanskritValue.Sankhya).value }
+}
+
 fun numericOverflow(operation: DhatuOperation): ExecutionResult.Failure = ExecutionResult.Failure(
     ExecutionError.INVALID_VALUE,
     "Numeric overflow while executing ${operation.name}.",

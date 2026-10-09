@@ -5,12 +5,39 @@ import dev.panini.shiksha.Samjna
 import dev.panini.sutra.SutraStage
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class KrdantaEngineTest {
 
     private val engine = KrdantaEngine()
+
+    @Test
+    fun `marker free root does not select a prederived causative homonym`() {
+        assertEquals("चरण", engine.derive(KrdantaDerivationRequest("चर्", Samjna.LYUT)).final.surface)
+    }
+
+    @Test
+    fun `source upadesha and marker free root derive the same selection noun`() {
+        for (root in listOf("चिञ्", "चि")) {
+            val result = engine.derive(KrdantaDerivationRequest(root, Samjna.LYUT))
+            assertEquals("चयन", result.final.surface)
+            assertTrue(result.applications.any { it.sutra == "7.1.1" })
+        }
+    }
+
+    @Test
+    fun `unknown roots are not replaced with the first lexical entry`() {
+        assertFailsWith<IllegalArgumentException> {
+            engine.derive(KrdantaDerivationRequest("अज्ञातधातु", Samjna.LYUT))
+        }
+        val unresolved = assertIs<KrdantaSourceStem.Unresolved>(
+            engine.deriveSourceStem("अज्ञातधातु", "ल्युट्"),
+        )
+        assertEquals(KrdantaSourceStem.Unresolved.Reason.UNKNOWN_DHATU, unresolved.reason)
+        assertEquals("अज्ञातधातु", unresolved.surface)
+    }
 
     @Test
     fun `ktva generates bhutva and krtva`() {

@@ -39,7 +39,9 @@ class CanonicalSamasantaSemanticTest {
     @Test fun `5 4 72 restores optional pathin branch`() {
         val licensed = context(SamasaPada("न"), SamasaPada("पथिन्"), SamasaType.NAN_TATPURUSA)
         assertTrue(PathoVibhasaSutra.matches(licensed))
-        assertEquals("अपथ", (PathoVibhasaSutra.apply(licensed) as SamasaRuleResult.Formed).compoundStem)
+        val result = PathoVibhasaSutra.apply(licensed) as SamasaRuleResult.Formed
+        assertEquals(mapOf(1 to "पथ"), result.memberEdits)
+        assertFalse(result.wholeStemOverride)
         assertFalse(PathoVibhasaSutra.matches(context(SamasaPada("न"), SamasaPada("राजन्"), SamasaType.NAN_TATPURUSA)))
     }
 

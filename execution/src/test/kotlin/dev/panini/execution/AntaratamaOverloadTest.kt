@@ -6,6 +6,23 @@ import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 class AntaratamaOverloadTest {
+    @Test
+    fun `named action result type participates in overload selection`() {
+        val source = """
+            परीक्षण + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मान + सुँ शब्द + सुँ इति मान + सुँ ।
+            राम + अम् मुद्र् + णिच् + लोट् + सिप् ॥
+            परीक्षण + सुँ इति प्रक्रिया + सुँ असँ + लट् + तिप् ।
+            मान + सुँ सङ्ख्या + सुँ इति मान + सुँ ।
+            मान + अम् एक + अम् च युज् + णिच् + लोट् + सिप् ॥
+            एक + अम् द्वि + औट् च युज् + णिच् + लोट् + सिप् ।
+            नवन् + शस् मुद्र् + णिच् + लोट् + सिप् ।
+            युज् + ल्युट् + ङस् फल + अम् परीक्षण + टा कृ + लोट् + सिप् ।
+        """.trimIndent()
+        val results = PaniniVM().evalScript(source)
+        assertTrue(results.none { it is ExecutionResult.Failure }, results.toString())
+        assertEquals(4L, ((results.last() as ExecutionResult.Success).typedValue as SanskritValue.Sankhya).value)
+    }
 
     private val vm = PaniniVM()
 

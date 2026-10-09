@@ -3,6 +3,8 @@ package dev.panini.ashtadhyayi.adhyaya5.pada4
 import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
 import dev.panini.core.SamasaType
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.SamasaSutra
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -38,24 +40,17 @@ object RajahahSakhibhyasTacSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
-        val lastPada = context.padas.last().upadesha
-        val convertedLast = when {
-            lastPada == "राजन्" || lastPada == "राजन" || lastPada == "rajan" -> "राज"
-            lastPada == "अहन्" || lastPada == "अहन" || lastPada == "ahan" -> "अह"
-            lastPada == "सखि" || lastPada == "sakhi" -> "सख"
-            else -> if (lastPada.endsWith("न्")) lastPada.dropLast(2) + "अ" else lastPada + "अ"
-        }
-        val leadingPadas = context.padas.dropLast(1).joinToString("") { pada ->
-            if (pada.upadesha == "महत्") "महा" else pada.upadesha
-        }
-        val compoundStem = leadingPadas + convertedLast
+        val lastPada = context.uttaraPada
+        require(lastPada.upadesha in setOf("राजन्", "अहन्", "सखि"))
+        val replacement = lastPada.varnas.dropLast(1) +
+            if (lastPada.varnas.lastOrNull() == Svara.I) listOf(Svara.A) else emptyList()
+        val convertedLast = replacement.toDevanagari()
+        // 6.3.46 owns mahat -> mahā; this rule edits only its samāsānta member.
+        val compoundStem = (context.padas.dropLast(1).flatMap { it.varnas } + replacement).toDevanagari()
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "5.4.91 adds Samāsānta ṭac ('a') suffix after rājan/ahan/sakhi yielding stem '$compoundStem'.",
-            memberEdits = buildMap {
-                if(context.purvaPada.upadesha=="महत्") put(0,"महा")
-                put(context.padas.lastIndex,convertedLast)
-            },
+            memberEdits = mapOf(context.padas.lastIndex to convertedLast),
         )
     }
 }

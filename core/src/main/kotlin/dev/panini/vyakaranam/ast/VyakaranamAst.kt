@@ -1,6 +1,7 @@
 package dev.panini.vyakaranam.ast
 
 import dev.panini.core.Lakara
+import dev.panini.core.KrtAffix
 import dev.panini.core.SupLopa
 import dev.panini.execution.SanskritValue
 
@@ -77,6 +78,8 @@ data class Sequence(
 enum class SequenceConnector(val surface: String) {
     SAMUCCAYA("च"),
     ANANTARYA("ततः"),
+    /** Ordering supplied by prior-action morphology, not a source connector word. */
+    PURVAKALA(""),
     ;
 
     companion object {
@@ -213,6 +216,10 @@ data class TingantaPada(
     val ting: TingPratyaya,
     /** Explicit gaṇa-vikaraṇa when the upadeśa alone is lexically ambiguous. */
     val vikarana: Vikarana? = null,
+    /** Nonfinite source retained when this head is an execution-binding projection. */
+    val priorAction: AvyayaKridantaDerivation? = null,
+    /** Constraint retained by internal collection-declaration lowering. */
+    val listMemberType: dev.panini.execution.ListMemberType? = null,
 ) : Pada
 
 data class AvyayaPada(
@@ -226,6 +233,7 @@ data class AvyayaPada(
 enum class AvyayaFunction {
     NISHEDHA,
     QUOTATIVE,
+    NAMING,
     REPETITION,
     ;
 
@@ -233,6 +241,7 @@ enum class AvyayaFunction {
         fun fromForm(form: String): AvyayaFunction? = when (form.trim()) {
             "न", "मा" -> NISHEDHA
             "इति" -> QUOTATIVE
+            "नाम" -> NAMING
             "पुनः", "पुनर्" -> REPETITION
             else -> null
         }
@@ -302,18 +311,23 @@ data class MulaPratipadika(
     val vikaras: List<PratipadikaVikara> = emptyList(),
 ) : Pratipadika {
     val lexicalIdentity: MulaPratipadikaIdentity? = MulaPratipadikaIdentity.fromText(text)
+    /** Gender formation preserves ordinal rank; other derivation needs its own semantics. */
+    val lexicalOrdinalValue: Long?
+        get() = lexicalIdentity?.ordinalValue?.takeIf { vikaras.all { it is StriVikara } }
 }
 
 enum class MulaPratipadikaIdentity {
     ADHIKARA,
     ANTARANGA,
     ANTA,
+    ANTIMA,
     APAVADA,
     ADHIKA,
     ASATYA,
     GUPTA,
     KSHETRA,
     MANA,
+    MULYA,
     NITYA,
     NYUNA,
     PHALA,
@@ -341,12 +355,14 @@ enum class MulaPratipadikaIdentity {
             "अधिकार" -> ADHIKARA
             "अन्तरङ्ग", "अन्तरङ्गा", "अन्तर् + अङ्ग" -> ANTARANGA
             "अन्त" -> ANTA
+            "अन्तिम" -> ANTIMA
             "अपवाद" -> APAVADA
             "अधिक" -> ADHIKA
             "असत्य" -> ASATYA
             "गुप्त" -> GUPTA
             "क्षेत्र" -> KSHETRA
             "मान" -> MANA
+            "मूल्य" -> MULYA
             "नित्य", "नि + त्य" -> NITYA
             "न्यून" -> NYUNA
             "फल" -> PHALA
@@ -391,6 +407,8 @@ data class KridantaPratipadika(
     val vikaras: List<PratipadikaVikara> = emptyList(),
 ) : Pratipadika {
     val krtPratyayaIdentity: KrtPratyayaIdentity? = KrtPratyayaIdentity.fromUpadesha(krtPratyaya)
+    /** Shared grammatical identity, independent of the derived stem's ending. */
+    val krtAffix: KrtAffix? = KrtAffix.fromUpadesha(krtPratyaya)
     val lexicalIdentity: KridantaLexicalIdentity? = KridantaLexicalIdentity.fromStructure(
         upasargas = upasargas,
         mulaDhatu = dhatu.mulaDhatu,

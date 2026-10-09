@@ -70,9 +70,9 @@ class SamasaEngineTest {
     }
 
     @Test
-    fun `optional samasanta keeps applied and omitted trace branches even when surface is identical`() {
+    fun `optional samasanta keeps applied and omitted trace branches for a jhay ending`() {
         val result=engine.derive(
-            listOf(SamasaPada("सह"),SamasaPada("कृत")),
+            listOf(SamasaPada("उप"),SamasaPada("समिध्")),
             SamasaType.AVYAYIBHAVA,
             outputLinga=dev.panini.core.Linga.NAPUMSAKA,
         )
@@ -887,10 +887,11 @@ class SamasaEngineTest {
     fun `test KrtyairRne Tatpurusha (2 1 43)`() {
         val result = engine.derive(
             listOf(
-                SamasaPada("कुशाग्र", Vibhakti.TRTIYA),
-                SamasaPada("छेद्य", Vibhakti.PRATHAMA),
+                SamasaPada("मास", Vibhakti.SAPTAMI),
+                SamasaPada("देय", Vibhakti.PRATHAMA, krtAffix=dev.panini.core.KrtAffix.YAT),
             ),
             SamasaType.TATPURUSA,
+            semanticRelations=setOf(SamasaSemanticRelation.DEBT_OR_OBLIGATION),
         )
         assertTrue(result.applications.any { it.sutra == "2.1.43" })
     }
@@ -1067,8 +1068,9 @@ class SamasaEngineTest {
     fun `test Amaivavyayena Tatpurusha (2 2 20)`() {
         val result = engine.derive(
             listOf(
-                SamasaPada("स्वाहाकृतम्", Vibhakti.PRATHAMA),
-                SamasaPada("कृ", Vibhakti.PRATHAMA),
+                SamasaPada("स्वादुम्", Vibhakti.PRATHAMA,
+                    upapadaAffixPrescription = dev.panini.analysis.UpapadaAffixPrescription("3.4.26", setOf(dev.panini.core.KrtAffix.NAMUL))),
+                SamasaPada("कारम्", Vibhakti.PRATHAMA, samjnas = setOf(Samjna.AVYAYA), krtAffix = dev.panini.core.KrtAffix.NAMUL),
             ),
             SamasaType.TATPURUSA,
         )
@@ -1322,7 +1324,7 @@ class SamasaEngineTest {
         val sutra = dev.panini.ashtadhyayi.adhyaya2.pada2.NisthaBahuvrihauSutra
         val context = dev.panini.analysis.SamasaRuleContext(
             padas = listOf(
-                SamasaPada("कृत", Vibhakti.PRATHAMA),
+                SamasaPada("कृत", Vibhakti.PRATHAMA, krtAffix=dev.panini.core.KrtAffix.KTA),
                 SamasaPada("कृत्य", Vibhakti.PRATHAMA),
             ),
             samasaType = SamasaType.BAHUVRIHI,

@@ -36,6 +36,9 @@ object GherNitiSutra : Sutra<DerivationState, DerivationChange>(
     dependencies = setOf("6.4.1", "1.4.7")
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
+        // A sup licensed for luk cannot trigger external aṅga guṇa before
+        // the later deletion phase (1.1.63 न लुमताङ्गस्य).
+        if (dev.panini.ashtadhyayi.adhyaya2.pada4.AvyayadApsupahSutra.matches(context)) return false
         if ("6.4.1" !in context.activeAdhikaras) return false
         if (context.terms.size < 2) return false
 

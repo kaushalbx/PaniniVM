@@ -8,6 +8,29 @@ import dev.panini.execution.SanskritValue
 /** Backend helper for explicit value IR comparisons. */
 internal object CompilerValueOperations {
     @JvmStatic
+    fun checkNumericProhibition(left: SanskritValue, right: SanskritValue) {
+        if (left is SanskritValue.Sankhya && right is SanskritValue.Sankhya && left.value == right.value) {
+            throw CompiledPaniniExecutionException(ExecutionError.ACTION_FAILED,
+                "निषेध-प्रतिषेधः: Numeric procedure prohibition triggered.")
+        }
+    }
+
+    @JvmStatic
+    fun requireArgumentKind(value: SanskritValue, kind: String) {
+        val valid = when (CompilerValueKind.valueOf(kind)) {
+            CompilerValueKind.VALUE, CompilerValueKind.UNKNOWN -> true
+            CompilerValueKind.NUMBER -> value is SanskritValue.Sankhya
+            CompilerValueKind.BOOLEAN -> value is SanskritValue.Satya
+            CompilerValueKind.TEXT -> value is SanskritValue.Shabda
+            CompilerValueKind.LIST -> value is SanskritValue.Suchi
+            CompilerValueKind.RECORD -> value is SanskritValue.Rupa
+            CompilerValueKind.RANGE -> value is SanskritValue.Range
+        }
+        if (!valid) throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE,
+            "Procedure argument requires $kind, not ${value::class.simpleName}.")
+    }
+
+    @JvmStatic
     fun randomActiveRange(value: SanskritValue, excluded: SanskritValue?): SanskritValue {
         val range = value as? SanskritValue.Range ?: throw CompiledPaniniExecutionException(
             ExecutionError.INVALID_VALUE, "Choice requires a preceding सीमा declaration.")
@@ -16,8 +39,22 @@ internal object CompilerValueOperations {
     }
 
     @JvmStatic
-    fun listSum(value: SanskritValue): SanskritValue =
-        numeric(collectionItems(value).sumOf(::number))
+    fun listSum(value: SanskritValue): SanskritValue {
+        val members = dev.panini.execution.numericCollectionMembers(value)
+            ?: throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE,
+                "Number-member summation requires a numeric collection.")
+        val sum = try { members.fold(0L, Math::addExact) } catch (_: ArithmeticException) {
+            throw CompiledPaniniExecutionException(ExecutionError.INVALID_VALUE, "Numeric overflow during member summation.")
+        }
+        return numeric(sum)
+    }
+
+    @JvmStatic
+    fun listNumberMemberSum(value: SanskritValue): SanskritValue {
+        if (value !is SanskritValue.Suchi) throw CompiledPaniniExecutionException(
+            ExecutionError.INVALID_VALUE, "Member summation requires one list as its genitive whole.")
+        return listSum(value)
+    }
 
     @JvmStatic
     fun renderText(values: Array<SanskritValue>): SanskritValue =
@@ -123,18 +160,24 @@ internal object CompilerValueOperations {
     fun listLength(value: SanskritValue): SanskritValue = numeric(collectionItems(value).size.toLong())
 
     @JvmStatic
-    fun listReverse(value: SanskritValue): SanskritValue = SanskritValue.Suchi(collectionItems(value).reversed())
+    fun listReverse(value: SanskritValue): SanskritValue = typedList(collectionItems(value).reversed(), value)
 
     @JvmStatic
-    fun listFlatten(value: SanskritValue): SanskritValue = SanskritValue.Suchi(
+    fun listFlatten(value: SanskritValue): SanskritValue = typedList(
         collectionItems(value).flatMap { item ->
             if (item is SanskritValue.Suchi) item.items else listOf(item)
-        },
+        }, value,
     )
 
     @JvmStatic
-    fun listConcat(left: SanskritValue, right: SanskritValue): SanskritValue =
-        SanskritValue.Suchi(collectionItems(left) + collectionItems(right))
+    fun listConcat(left: SanskritValue, right: SanskritValue): SanskritValue {
+        val leftType = (left as? SanskritValue.Suchi)?.memberType
+        val rightType = (right as? SanskritValue.Suchi)?.memberType
+        if (leftType != null && rightType != null && leftType != rightType) throw CompiledPaniniExecutionException(
+            ExecutionError.INVALID_VALUE, "Cannot concatenate lists with incompatible declared member types.",
+        )
+        return typedList(collectionItems(left) + collectionItems(right), if (leftType != null) left else right)
+    }
 
     @JvmStatic
     fun listIndex(list: SanskritValue, index: SanskritValue): SanskritValue {
@@ -159,8 +202,8 @@ internal object CompilerValueOperations {
     )
 
     @JvmStatic
-    fun listAppend(list: SanskritValue, item: SanskritValue): SanskritValue = SanskritValue.Suchi(
-        collectionItems(list) + item,
+    fun listAppend(list: SanskritValue, item: SanskritValue): SanskritValue = typedList(
+        collectionItems(list) + item, list,
     )
 
     @JvmStatic
@@ -195,9 +238,9 @@ internal object CompilerValueOperations {
         val from = (startLong - 1L).coerceAtLeast(0L).toInt()
         val to = endLong.toInt().coerceAtMost(items.size)
         return if (from > to || from >= items.size) {
-            SanskritValue.Suchi(emptyList())
+            typedList(emptyList(), list)
         } else {
-            SanskritValue.Suchi(items.subList(from, to))
+            typedList(items.subList(from, to), list)
         }
     }
 
@@ -209,6 +252,14 @@ internal object CompilerValueOperations {
                 "Field access requires a structured value.",
             )
         return structured.fields[name] ?: SanskritValue.Lopa
+    }
+
+    private fun typedList(items: List<SanskritValue>, source: SanskritValue): SanskritValue.Suchi {
+        val type = (source as? SanskritValue.Suchi)?.memberType
+        if (type != null && items.any { !type.accepts(it) }) throw CompiledPaniniExecutionException(
+            ExecutionError.INVALID_VALUE, "List members must satisfy the declared $type type.",
+        )
+        return SanskritValue.Suchi(items, type)
     }
 
     @JvmStatic
@@ -225,7 +276,10 @@ internal object CompilerValueOperations {
         ?: error("Compiler comparison requires numeric values, but received ${value::class.simpleName}.")
 
     private fun numeric(value: Long): SanskritValue.Sankhya {
-        val word = dev.panini.execution.renderSankhyaResult(value) ?: value.toString()
+        val word = dev.panini.execution.renderSankhyaResult(value) ?: throw CompiledPaniniExecutionException(
+            ExecutionError.INVALID_VALUE,
+            "The result $value is outside the supported Sanskrit number vocabulary.",
+        )
         return SanskritValue.Sankhya(value, word)
     }
 

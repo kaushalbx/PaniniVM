@@ -1,6 +1,7 @@
 package dev.panini.analysis
 
 import dev.panini.core.SamasaType
+import dev.panini.core.SamasantaAffix
 
 /**
  * Encapsulates high-level grammatical resolution metadata for nominal compounds (Samāsa).
@@ -28,6 +29,7 @@ data class SamasaTransformationOperation(
     val memberEdits: Map<Int,String> = emptyMap(),
     val samasantaSuffix: String? = null,
     val wholeStemOverride: String? = null,
+    val samasantaAffix: SamasantaAffix? = null,
 )
 
 data class SamasaAlternative(

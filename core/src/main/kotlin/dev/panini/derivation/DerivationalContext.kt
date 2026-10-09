@@ -37,6 +37,8 @@ data class Rupa(
     val prayoga: Prayoga? = null,
     val lakara: Lakara? = null,
     val pada: PadaType? = null,
+    /** Sambodhana is not one of the seven sup-vibhakti axes. */
+    val isVocative: Boolean = false,
 )
 
 data class DerivationalContext(

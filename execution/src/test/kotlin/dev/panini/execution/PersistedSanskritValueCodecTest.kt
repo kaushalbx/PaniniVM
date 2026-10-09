@@ -18,6 +18,9 @@ class PersistedSanskritValueCodecTest {
             SanskritValue.Shabda("विशेष", setOf(Samjna.Rudhi("विशेष"))),
             SanskritValue.Gana(listOf(SanskritValue.Satya(true))),
             SanskritValue.Suchi(listOf(SanskritValue.Lopa)),
+            SanskritValue.Suchi(listOf(SanskritValue.Sankhya(1, "एक")), ListMemberType.NUMBER),
+            SanskritValue.Suchi(emptyList(), ListMemberType.NUMBER),
+            SanskritValue.Suchi(listOf(SanskritValue.Shabda("राम")), ListMemberType.TEXT),
             SanskritValue.Satya(false),
             SanskritValue.Lopa,
         )

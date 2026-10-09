@@ -87,8 +87,7 @@ class TaddhitaEngine(
             Samjna.MATUP -> {
                 val change1 = TadasyastyasminnitiMatupSutra.apply(state)
                 val processed = processIt(change1.state)
-                val isAdantaOrM = isAdantaOrM(pratipadika)
-                if (isAdantaOrM && MatorVahSutra.matches(processed.final)) {
+                if (MatorVahSutra.matches(processed.final)) {
                     val change2 = MatorVahSutra.apply(processed.final)
                     buildResult(state, change2.state, listOf(
                         app(TadasyastyasminnitiMatupSutra, state, change1.state, change1.explanation)
@@ -136,12 +135,5 @@ class TaddhitaEngine(
             sutra = sutra.sutra, role = sutra.role, action = sutra.action, scope = sutra.scope,
             trace = sutra.renderTrace(), before = before, after = after, explanation = explanation
         )
-
-    private fun isAdantaOrM(stem: String): Boolean {
-        if (stem.isEmpty()) return false
-        if (stem.endsWith("म्") || stem.endsWith("म")) return true
-        val matras = setOf('ा', 'ि', 'ी', 'ु', 'ू', 'ृ', 'े', 'ै', 'ो', 'ौ', 'ं', 'ः', '्')
-        return stem.last() !in matras
-    }
 
 }

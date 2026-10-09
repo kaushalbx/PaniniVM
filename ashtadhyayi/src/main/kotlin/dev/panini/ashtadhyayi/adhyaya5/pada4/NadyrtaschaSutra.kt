@@ -4,6 +4,9 @@ import dev.panini.analysis.SamasaRuleContext
 import dev.panini.analysis.SamasaRuleResult
 import dev.panini.core.SamasaType
 import dev.panini.shiksha.Samjna
+import dev.panini.shiksha.Svara
+import dev.panini.shiksha.Vyanjana
+import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -31,21 +34,19 @@ object NadyrtaschaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
 ), SamasaSutra {
     override fun matches(context: SamasaRuleContext): Boolean {
         if (context.padas.size < 2) return false
-        val uttara = context.uttaraPada.upadesha
         return context.samasaType == SamasaType.BAHUVRIHI &&
-            (Samjna.NADI in context.uttaraPada.samjnas || uttara.endsWith("ऋ") || uttara.endsWith("ृ"))
+            (Samjna.NADI in context.uttaraPada.samjnas || context.uttaraPada.varnas.lastOrNull() == Svara.R)
     }
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
-        val purva = context.purvaPada.upadesha
-        val uttara = context.uttaraPada.upadesha
-        val base = purva + uttara
-        val compoundStem = base + "क"
+        val suffix = listOf(Vyanjana.KA, Svara.A)
+        val compoundStem = (context.padas.flatMap { it.varnas } + suffix).toDevanagari()
 
         return SamasaRuleResult.Formed(
             compoundStem = compoundStem,
             explanation = "5.4.153: Added samāsānta kap-pratyaya after Nadī/ṛ-ending stem ($compoundStem).",
-            samasantaSuffix = "क",
+            samasantaSuffix = suffix.toDevanagari(),
+            samasantaAffix = dev.panini.core.SamasantaAffix.KAP,
         )
     }
 }

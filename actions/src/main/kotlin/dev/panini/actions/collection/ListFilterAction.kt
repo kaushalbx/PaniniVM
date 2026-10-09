@@ -133,7 +133,7 @@ object ListFilterAction : DhatuAction("सूचीशोधनम्", "सू�
             }
         }
 
-        val filteredList = SanskritValue.Suchi(results)
+        val filteredList = SanskritValue.Suchi(results, (firstVal as? SanskritValue.Suchi)?.memberType)
         return ExecutionResult.Success(
             filteredList.toDisplayText(),
             operation.name,

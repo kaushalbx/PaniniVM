@@ -1,0 +1,3 @@
+# Genitive members supply the values; शब्दानाम् constrains them to words.
+रामस्य सीतायाः च शब्दानां सूची अस्ति ।
+सूचीं मुद्रय ।

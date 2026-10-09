@@ -46,6 +46,7 @@ object IkoYanAciSutra : Sutra<DerivationState, DerivationChange>(
 
         val terms = context.terms
         val (leftIndex, rightIndex) = targetPair(context) ?: return false
+        if (context.isBlockedAtBoundary(sutra, context.terms[leftIndex].id, context.terms[rightIndex].id)) return false
         val rightTerm = terms[rightIndex]
         val isPresentSystemTing = context.effectiveContext.rupa.lakara in setOf(
             Lakara.LAT, Lakara.LOT, Lakara.LANG, Lakara.LING,

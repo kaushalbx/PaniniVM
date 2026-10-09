@@ -244,8 +244,12 @@ class GrammaticalRegexArchitectureTest {
             "execution/src/main/kotlin/dev/panini/execution/binding/ExpressionBuilder.kt",
         ).readText()
         assertFalse("when (baseText)" in expressionBuilder)
-        assertTrue("MulaPratipadikaIdentity.SATYA" in expressionBuilder)
-        assertTrue("MulaPratipadikaIdentity.ASATYA" in expressionBuilder)
+        assertTrue("nominalTruthValue(normalized.pratipadika)" in expressionBuilder)
+        val truthValue = File(repository,
+            "execution/src/main/kotlin/dev/panini/execution/NominalTruthValue.kt").readText()
+        assertTrue("MulaPratipadikaIdentity.SATYA" in truthValue)
+        assertTrue("MulaPratipadikaIdentity.ASATYA" in truthValue)
+        assertTrue("nominal.vikaras.isNotEmpty()" in truthValue)
         assertTrue("SvamRupamEngine.evaluate(normalized.pratipadika)" in expressionBuilder)
 
         val svamRupamEngine = File(
@@ -283,10 +287,21 @@ class GrammaticalRegexArchitectureTest {
         ).readText()
         assertFalse("dhatu.mulaDhatu in setOf" in uktiRenderer)
         assertFalse("rawDhatu in setOf" in uktiRenderer)
-        assertTrue("CanonicalDhatuIdentity.CHI" in uktiRenderer)
-        assertTrue("CanonicalDhatuIdentity.VRJ" in uktiRenderer)
-        assertTrue("KrtAffix.KTVA" in uktiRenderer)
-        assertTrue("SanadiAffix.NIC" in uktiRenderer)
+        assertFalse("pvmMatupSurface" in uktiRenderer)
+        assertFalse("pvmKridantaSurface" in uktiRenderer)
+        assertFalse("baseText.endsWith(\"सङ्ख्य\")" in uktiRenderer)
+        assertFalse("baseText == \"सङ्ख्या\"" in uktiRenderer)
+        assertFalse("\"सङ्ख्यया\"" in uktiRenderer)
+        assertTrue("sourceSuffixUpadeshas = buildSet" in uktiRenderer)
+        assertTrue("kridanta?.krtPratyaya" in uktiRenderer)
+        assertTrue("add(vikara.pratyaya)" in uktiRenderer)
+        assertFalse("CanonicalDhatuIdentity.CHI" in uktiRenderer)
+        assertFalse("\"चयन\"" in uktiRenderer)
+        assertFalse("CanonicalDhatuIdentity.VRJ" in uktiRenderer)
+        assertFalse("\"वर्जयित्वा\"" in uktiRenderer)
+        assertTrue("krdantaEngine.deriveSourceStem(" in uktiRenderer)
+        assertTrue("derivation.dhatu.sanadiPratyayas" in uktiRenderer)
+        assertTrue("derivation.upasargas" in uktiRenderer)
 
         val structuredValueExecutor = File(
             repository,
@@ -433,8 +448,7 @@ class GrammaticalRegexArchitectureTest {
         }
 
         assertFalse("setOf(\"सत्य\", \"असत्य\")" in leafPlanner)
-        assertTrue("MulaPratipadikaIdentity.SATYA" in leafPlanner)
-        assertTrue("MulaPratipadikaIdentity.ASATYA" in leafPlanner)
+        assertTrue("nominalTruthValue(pada.pratipadika)" in leafPlanner)
         assertFalse("it.sup.text in setOf" in leafPlanner)
         assertTrue("pada.vibhakti() == Vibhakti.DVITIYA" in leafPlanner)
         assertTrue("isCopularOrderParticipant(parsedUkti, pada)" in leafPlanner)

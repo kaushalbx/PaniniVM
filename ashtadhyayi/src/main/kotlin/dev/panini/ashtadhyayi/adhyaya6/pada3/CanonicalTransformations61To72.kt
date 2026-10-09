@@ -1,23 +1,24 @@
 package dev.panini.ashtadhyayi.adhyaya6.pada3
 
 import dev.panini.analysis.*
+import dev.panini.shiksha.*
 import dev.panini.sutra.*
 
 private fun firstAndRest(c: SamasaRuleContext, first: String) = first + c.padas.drop(1).joinToString("") { it.upadesha }
-private fun shortIk(word: String) = when {
-    word.endsWith("ी") -> word.dropLast(1) + "ि"
-    word.endsWith("ू") -> word.dropLast(1) + "ु"
-    word.endsWith("ॄ") -> word.dropLast(1) + "ृ"
-    word.endsWith("ई") -> word.dropLast(1) + "इ"
-    word.endsWith("ऊ") -> word.dropLast(1) + "उ"
-    word.endsWith("ॠ") -> word.dropLast(1) + "ऋ"
-    else -> word
+private val longIk = setOf(Svara.II, Svara.UU, Svara.RR)
+private fun shortIk(pada: SamasaPada): String {
+    val final = pada.varnas.lastOrNull()
+    return (if (final in longIk) pada.varnas.dropLast(1) + (final as Svara).toHrasva() else pada.varnas).toDevanagari()
 }
-private fun longIkFinal(word: String) = word.lastOrNull() in setOf('ी','ू','ॄ','ई','ऊ','ॠ')
-private fun vowelFinal(word: String) = word.lastOrNull() in setOf('अ','आ','इ','ई','उ','ऊ','ऋ','ॠ','ऌ','ए','ऐ','ओ','औ','ा','ि','ी','ु','ू','ृ','ॄ','े','ै','ो','ौ')
+private fun longIkFinal(pada: SamasaPada) = pada.varnas.lastOrNull() in longIk
+private fun vowelFinal(pada: SamasaPada) = pada.varnas.lastOrNull() is Svara
+private fun shortFeminine(pada: SamasaPada): String =
+    if (pada.varnas.lastOrNull() == Svara.AA)
+        (pada.varnas.dropLast(1) + Svara.A).toDevanagari()
+    else shortIk(pada)
 private fun mum(c: SamasaRuleContext, rule: String) = SamasaRuleResult.Formed(
-    c.purvaPada.upadesha + "म्" + c.padas.drop(1).joinToString("") { it.upadesha }, "$rule adds the canonical मुम् augment.",
-    memberEdits=mapOf(0 to c.purvaPada.upadesha+"म्"),
+    (c.purvaPada.varnas + Vyanjana.MA + c.padas.drop(1).flatMap { it.varnas }).toDevanagari(), "$rule adds the canonical मुम् augment.",
+    memberEdits=mapOf(0 to (c.purvaPada.varnas + Vyanjana.MA).toDevanagari()),
 )
 
 /** 6.3.61: इको ह्रस्वोऽङ्यो गालवस्य. */
@@ -25,8 +26,8 @@ object IkoHrasvoAnyyoGalavasyaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>
     number="6.3.61", text="इको ह्रस्वोऽङ्यो गालवस्य", hindiExplanation="गालव के मत में ङी को छोड़कर दीर्घ इक् का समास में ह्रस्व होता है।",
     type=SutraType.VIBHASHA, chapter=6, pada=3, optional=true, kramaValue=630061, role=SutraRole.Vidhi, action=SutraAction.ADESHA, scope=SutraScope.DERIVATION, samasaPriority=5,
 ), SamasaSutra, UniversalSamasaTransformation {
-    override fun matches(context: SamasaRuleContext)=context.padas.size>=2 && SamasaSemanticRelation.GALAVA_OPINION in context.semanticRelations && longIkFinal(context.purvaPada.upadesha) && SamasaMorphologicalFeature.FEMININE_NGI !in context.purvaPada.morphologicalFeatures
-    override fun apply(context: SamasaRuleContext): SamasaRuleResult { val first=shortIk(context.purvaPada.upadesha); return SamasaRuleResult.Formed(firstAndRest(context,first),"6.3.61 optionally shortens the final long ik vowel.",memberEdits=mapOf(0 to first)) }
+    override fun matches(context: SamasaRuleContext)=context.padas.size>=2 && SamasaSemanticRelation.GALAVA_OPINION in context.semanticRelations && longIkFinal(context.purvaPada) && SamasaMorphologicalFeature.FEMININE_NGI !in context.purvaPada.morphologicalFeatures
+    override fun apply(context: SamasaRuleContext): SamasaRuleResult { val first=shortIk(context.purvaPada); return SamasaRuleResult.Formed(firstAndRest(context,first),"6.3.61 optionally shortens the final long ik vowel.",memberEdits=mapOf(0 to first)) }
 }
 
 /** 6.3.62: एक तद्धिते च (compound portion). */
@@ -44,7 +45,7 @@ object NgyapohSamjnaChandasorBahulamSutra : Sutra<SamasaRuleContext, SamasaRuleR
     type=SutraType.VIBHASHA, chapter=6, pada=3, optional=true, kramaValue=630063, role=SutraRole.Vidhi, action=SutraAction.ADESHA, scope=SutraScope.DERIVATION, samasaPriority=30,
 ), SamasaSutra, UniversalSamasaTransformation {
     override fun matches(context: SamasaRuleContext)=context.padas.size>=2 && context.purvaPada.morphologicalFeatures.any { it==SamasaMorphologicalFeature.FEMININE_NGI || it==SamasaMorphologicalFeature.FEMININE_AAP } && context.semanticRelations.any { it==SamasaSemanticRelation.PROPER_NAME || it==SamasaSemanticRelation.VEDIC_REGISTER }
-    override fun apply(context: SamasaRuleContext): SamasaRuleResult { val p=context.purvaPada.upadesha; val s=when { p.endsWith("ा")->p.dropLast(1); else->shortIk(p) }; return SamasaRuleResult.Formed(firstAndRest(context,s),"6.3.63 optionally shortens a feminine ending in its licensed register.",memberEdits=mapOf(0 to s)) }
+    override fun apply(context: SamasaRuleContext): SamasaRuleResult { val s=shortFeminine(context.purvaPada); return SamasaRuleResult.Formed(firstAndRest(context,s),"6.3.63 optionally shortens a feminine ending in its licensed register.",memberEdits=mapOf(0 to s)) }
 }
 
 /** 6.3.65: इष्टकेषीकामालानां चिततूलभारिषु. */
@@ -54,7 +55,7 @@ object IstakesikaMalanamCitaTulaBharisuSutra : Sutra<SamasaRuleContext, SamasaRu
 ), SamasaSutra, UniversalSamasaTransformation {
     private val pairs=mapOf("इष्टका" to "चित","इषीका" to "तूल","माला" to "भारिन्")
     override fun matches(context: SamasaRuleContext)=context.padas.size>=2 && pairs[context.purvaPada.upadesha]==context.uttaraPada.upadesha
-    override fun apply(context: SamasaRuleContext): SamasaRuleResult { val p=context.purvaPada.upadesha; val s=if(p.endsWith("ा"))p.dropLast(1) else shortIk(p); return SamasaRuleResult.Formed(firstAndRest(context,s),"6.3.65 shortens the listed pūrvapada.",memberEdits=mapOf(0 to s)) }
+    override fun apply(context: SamasaRuleContext): SamasaRuleResult { val s=shortFeminine(context.purvaPada); return SamasaRuleResult.Formed(firstAndRest(context,s),"6.3.65 shortens the listed pūrvapada.",memberEdits=mapOf(0 to s)) }
 }
 
 /** 6.3.66: खित्यनव्ययस्य. */
@@ -62,8 +63,8 @@ object KhityAnavyayasyaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number="6.3.66", text="खित्यनव्ययस्य", hindiExplanation="खित्-व्युत्पन्न उत्तरपद से पहले अनव्यय पूर्वपद का अन्त्य स्वर ह्रस्व होता है।",
     type=SutraType.NITYA, chapter=6, pada=3, optional=false, kramaValue=630066, role=SutraRole.Vidhi, action=SutraAction.ADESHA, scope=SutraScope.DERIVATION, samasaPriority=10,
 ), SamasaSutra, UniversalSamasaTransformation {
-    override fun matches(context: SamasaRuleContext)=context.padas.size>=2 && SamasaMorphologicalFeature.KHIT_DERIVED in context.uttaraPada.morphologicalFeatures && SamasaMorphologicalFeature.INDECLINABLE !in context.purvaPada.morphologicalFeatures && longIkFinal(context.purvaPada.upadesha)
-    override fun apply(context: SamasaRuleContext): SamasaRuleResult { val first=shortIk(context.purvaPada.upadesha); return SamasaRuleResult.Formed(firstAndRest(context,first),"6.3.66 shortens the final before a khit-derived uttarapada.",memberEdits=mapOf(0 to first)) }
+    override fun matches(context: SamasaRuleContext)=context.padas.size>=2 && SamasaMorphologicalFeature.KHIT_DERIVED in context.uttaraPada.morphologicalFeatures && SamasaMorphologicalFeature.INDECLINABLE !in context.purvaPada.morphologicalFeatures && longIkFinal(context.purvaPada)
+    override fun apply(context: SamasaRuleContext): SamasaRuleResult { val first=shortIk(context.purvaPada); return SamasaRuleResult.Formed(firstAndRest(context,first),"6.3.66 shortens the final before a khit-derived uttarapada.",memberEdits=mapOf(0 to first)) }
 }
 
 /** 6.3.67: अरुर्द्विषदजन्तस्य मुम्. */
@@ -71,7 +72,7 @@ object ArurDvisadAjantasyaMumSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
     number="6.3.67", text="अरुर्द्विषदजन्तस्य मुम्", hindiExplanation="खित् उत्तरपद से पहले अरुस्, द्विषत् और अजन्त अनव्यय को मुम् आगम होता है।",
     type=SutraType.NITYA, chapter=6, pada=3, optional=false, kramaValue=630067, role=SutraRole.Vidhi, action=SutraAction.AGAMA, scope=SutraScope.DERIVATION, samasaPriority=20,
 ), SamasaSutra, UniversalSamasaTransformation {
-    override fun matches(context: SamasaRuleContext)=context.padas.size>=2 && SamasaMorphologicalFeature.KHIT_DERIVED in context.uttaraPada.morphologicalFeatures && SamasaMorphologicalFeature.INDECLINABLE !in context.purvaPada.morphologicalFeatures && (context.purvaPada.upadesha in setOf("अरुस्","द्विषत्") || vowelFinal(context.purvaPada.upadesha))
+    override fun matches(context: SamasaRuleContext)=context.padas.size>=2 && SamasaMorphologicalFeature.KHIT_DERIVED in context.uttaraPada.morphologicalFeatures && SamasaMorphologicalFeature.INDECLINABLE !in context.purvaPada.morphologicalFeatures && (context.purvaPada.upadesha in setOf("अरुस्","द्विषत्") || vowelFinal(context.purvaPada))
     override fun apply(context: SamasaRuleContext)=mum(context,"6.3.67")
 }
 
@@ -80,7 +81,7 @@ object IcaEkacoAmPratyayavacCaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>
     number="6.3.68", text="इच एकाचोऽम्प्रत्ययवच्च", hindiExplanation="खित् उत्तरपद से पहले इकन्त एकाच् पूर्वपद को अम् आगम होता है।",
     type=SutraType.NITYA, chapter=6, pada=3, optional=false, kramaValue=630068, role=SutraRole.Vidhi, action=SutraAction.AGAMA, scope=SutraScope.DERIVATION, samasaPriority=30,
 ), SamasaSutra, UniversalSamasaTransformation {
-    override fun matches(context: SamasaRuleContext)=context.padas.size>=2 && SamasaMorphologicalFeature.KHIT_DERIVED in context.uttaraPada.morphologicalFeatures && SamasaMorphologicalFeature.MONOSYLLABIC in context.purvaPada.morphologicalFeatures && context.purvaPada.upadesha.lastOrNull() in setOf('इ','ई','उ','ऊ','ऋ','ॠ','ि','ी','ु','ू','ृ','ॄ')
+    override fun matches(context: SamasaRuleContext)=context.padas.size>=2 && SamasaMorphologicalFeature.KHIT_DERIVED in context.uttaraPada.morphologicalFeatures && SamasaMorphologicalFeature.MONOSYLLABIC in context.purvaPada.morphologicalFeatures && context.purvaPada.varnas.lastOrNull() in setOf(Svara.I, Svara.II, Svara.U, Svara.UU, Svara.R, Svara.RR)
     override fun apply(context: SamasaRuleContext)=mum(context,"6.3.68")
 }
 

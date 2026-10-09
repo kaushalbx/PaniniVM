@@ -48,6 +48,7 @@ object ProgramSutraArthaCodec {
                     SutraArthaValue.Sequence(expression.samjnas.map(::encodeSamjna)),
                 )
                 expression.value?.let { put("value", encodeValue(it)) }
+                expression.memberSelection?.let { put("memberSelection", SutraArthaValue.Symbol(it.name)) }
             },
         )
         is ExecutionExpression.Coordination -> SutraArthaValue.Record(
@@ -81,6 +82,8 @@ object ProgramSutraArthaCodec {
                 prakriti = fields.text("prakriti"),
                 samjnas = fields.sequence("samjnas").mapTo(linkedSetOf(), ::decodeSamjna),
                 value = fields["value"]?.let(::decodeValue),
+                memberSelection = (fields["memberSelection"] as? SutraArthaValue.Symbol)?.name
+                    ?.let(dev.panini.execution.CollectionMemberSelection::valueOf),
             )
             "coordination" -> ExecutionExpression.Coordination(
                 fields.sequence("members").map(::decodeExpression),
@@ -123,6 +126,7 @@ object ProgramSutraArthaCodec {
         is SanskritValue.Suchi -> record(
             "suchi",
             "items" to SutraArthaValue.Sequence(value.items.map(::encodeValue)),
+            "memberType" to SutraArthaValue.Text(value.memberType?.name.orEmpty()),
         )
         is SanskritValue.Rupa -> record(
             "rupa",
@@ -163,6 +167,8 @@ object ProgramSutraArthaCodec {
             )
             "suchi" -> SanskritValue.Suchi(
                 fields.sequence("items").map(::decodeValue),
+                (fields["memberType"] as? SutraArthaValue.Text)?.value?.takeIf { it.isNotEmpty() }
+                    ?.let(dev.panini.execution.ListMemberType::valueOf),
             )
             "rupa" -> SanskritValue.Rupa(
                 fields.text("schema"),

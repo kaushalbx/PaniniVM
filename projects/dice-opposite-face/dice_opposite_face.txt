@@ -1,0 +1,6 @@
+# The Dice Problem — interactive version.
+# Enter a face from 1 to 6. Standard opposite faces sum to seven.
+
+एकस्मात् षष्पर्यन्तम् इति सीमा ।
+निवेशं सङ्ख्यया गृहाण ।
+सप्त ग्रहणस्य फलं च वियोज्य फलं मुद्रय ।

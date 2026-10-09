@@ -77,6 +77,7 @@ class KarmadharayaSamasaTest {
             SamasaType.KARMADHARAYA,
         )
         assertEquals("महात्मा", result.final.surface)
-        assertTrue(result.applications.isNotEmpty())
+        assertTrue(result.applications.any { it.sutra == "6.3.46" })
+        assertTrue(result.applications.any { it.sutra == "6.1.101" })
     }
 }

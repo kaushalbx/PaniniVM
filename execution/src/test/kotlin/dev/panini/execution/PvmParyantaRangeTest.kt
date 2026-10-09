@@ -7,6 +7,11 @@ import kotlin.test.assertTrue
 
 class PvmParyantaRangeTest {
     @Test
+    fun `six boundary derives consonant sandhi before paryanta`() {
+        assertEquals("एकस्मात् षट्पर्यन्तं सङ्ख्यां चित्वा मुद्रय ।", PvmUktiSadhaka().sadhayaLine(
+            "एक + ङसिँ षष् + शस् परि + अन्त + अम् सङ्ख्या + अम् चिञ् + क्त्वा मुद्र् + णिच् + लोट् + सिप् ।"))
+    }
+    @Test
     fun `segmented paryanta range renders as grammatical Sanskrit`() {
         val rendered = PvmUktiSadhaka().sadhayaLine(
             "एक + ङसिँ दशन् + शस् परि + अन्त + अम् सङ्ख्या + अम् चिञ् + श्नु + लोट् + सिप् ।",

@@ -93,11 +93,8 @@ object TaddhitaStructEngine {
     fun assertionValue(assertion: TaddhitaFieldAssertion): SanskritValue = when (val pada = assertion.valuePada) {
         is SubantaPada -> NumeralAstNormalizer.resolve(pada.pratipadika)?.semanticValue
             ?: when (val pratipadika = pada.pratipadika) {
-                is MulaPratipadika -> when (pratipadika.lexicalIdentity) {
-                    MulaPratipadikaIdentity.SATYA -> SanskritValue.Satya(true, pratipadika.text)
-                    MulaPratipadikaIdentity.ASATYA -> SanskritValue.Satya(false, pratipadika.text)
-                    else -> SanskritValue.Shabda(pratipadika.semanticKey())
-                }
+                is MulaPratipadika -> nominalTruthValue(pratipadika)
+                    ?: SanskritValue.Shabda(pratipadika.semanticKey())
                 else -> SanskritValue.Shabda(pratipadika.semanticKey())
             }
         is SankhyaPada -> {

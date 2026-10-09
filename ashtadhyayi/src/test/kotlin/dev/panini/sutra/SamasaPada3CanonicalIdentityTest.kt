@@ -95,6 +95,7 @@ class SamasaPada3CanonicalIdentityTest {
             "6.3.129" to "नरे संज्ञायाम्",
             "6.3.130" to "मित्रे चर्षौ",
             "6.3.139" to "सम्प्रसारणस्य",
+            "6.3.137" to "अन्येषामपि दृश्यते",
         )
         val actual = Adhyaya6Pada3.sutras
             .filterIsInstance<SamasaSutra>()

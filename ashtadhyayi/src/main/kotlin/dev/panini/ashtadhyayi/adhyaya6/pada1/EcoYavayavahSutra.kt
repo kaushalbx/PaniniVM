@@ -43,6 +43,7 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
 
         val engine = Ashtadhyayi.pratyaharaEngine
         for (i in 0 until context.terms.size - 1) {
+            if (context.isBlockedAtBoundary(sutra, context.terms[i].id, context.terms[i + 1].id)) continue
             val rightTerm = context.terms[i + 1]
             if (nicGradeStillPending(context, rightTerm.id)) continue
             if (context.effectiveContext.rupa.lakara == Lakara.LET &&
@@ -62,6 +63,7 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
         if (futureStemPending(context)) return DerivationChange(context, "6.1.78: future stem formation is still pending")
         val engine = Ashtadhyayi.pratyaharaEngine
         for (i in 0 until context.terms.size - 1) {
+            if (context.isBlockedAtBoundary(sutra, context.terms[i].id, context.terms[i + 1].id)) continue
             val leftTerm = context.terms[i]
             val rightTerm = context.terms[i+1]
             if (nicGradeStillPending(context, rightTerm.id)) continue
@@ -73,6 +75,14 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
             val rightVarna = rightTerm.varnas.firstOrNull() ?: continue
             if (engine.contains(Pratyahara.EC, leftVarna) && engine.contains(Pratyahara.AC, rightVarna)) {
                 val replacement = requireNotNull(adesha[leftVarna])
+                // Completed external padas retain their boundary for Tripadi y/v-lopa.
+                if (leftTerm.formedPadaRupa != null && rightTerm.formedPadaRupa != null) {
+                    return DerivationChange(
+                        context.substituteTermVarnas(leftTerm.id,
+                            leftTerm.varnas.dropLast(1) + replacement, leftVarna, replacement, sutra),
+                        "6.1.78: substituted ${replacement.toDevanagari()} at the external pada boundary.",
+                    )
+                }
                 val newSurface = (
                     leftTerm.varnas.dropLast(1) + replacement + rightTerm.varnas
                 ).toDevanagari()

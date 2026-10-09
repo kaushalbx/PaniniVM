@@ -625,6 +625,13 @@ class VyakaranamAstBuilder {
         context: PaniniyaVyakaranamParser.SubantaVakyaPadaContext,
     ): List<Pada> =
         when {
+            context.explicitSamuccitaSubanta() != null -> {
+                val coordination = context.explicitSamuccitaSubanta()!!
+                listOf(SamuccitaSubanta(
+                    sourceText = coordination.text,
+                    members = coordination.subantaPada().map(::buildSubanta),
+                ))
+            }
             context.subantaPada() != null ->
                 listOf(buildSubanta(context.subantaPada()!!))
 

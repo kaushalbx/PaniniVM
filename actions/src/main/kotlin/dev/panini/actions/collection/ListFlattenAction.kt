@@ -41,7 +41,7 @@ object ListFlattenAction : DhatuAction("सूचीप्रसारणम्"
                 "Selected operation ${operation.name}.",
                 "Flattened the list."
             ),
-            SanskritValue.Suchi(flatItems)
+            SanskritValue.Suchi(flatItems, (list.singleOrNull() as? SanskritValue.Suchi)?.memberType)
         )
     }
 }

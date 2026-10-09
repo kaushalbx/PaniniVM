@@ -222,6 +222,10 @@ object SanskritGranthaSourceCompiler {
                 plans.associate { it.invocationId to it.resolved.operation.resultSamjnas },
             previousTypedResults = conversation.previousTypedResults + mockResults + localBindings,
             resultHistory = conversation.resultHistory + remembered,
+            metadata = conversation.metadata + plans.associate { plan ->
+                dev.panini.execution.ExecutionMetadata.dhatu(SmrtaPhalaId.of(nextTurn, plan.invocationId)) to
+                    plan.resolved.invocation.dhatu.upadesha
+            },
             turnNumber = nextTurn,
         )
     }

@@ -9,6 +9,14 @@ import java.util.concurrent.ConcurrentHashMap
 
 /** Gives recognized numeral stems one stable typed identity before execution uses them. */
 internal object NumeralAstNormalizer {
+    fun hasNonGenderDerivation(pratipadika: Pratipadika): Boolean {
+        val vikaras = when (pratipadika) {
+            is MulaPratipadika -> pratipadika.vikaras
+            is SankhyaPratipadika -> pratipadika.vikaras
+            else -> return false
+        }
+        return vikaras.any { it !is dev.panini.vyakaranam.ast.StriVikara }
+    }
     private val recognized = ConcurrentHashMap<String, SanskritValue.Sankhya>()
     private val rejected = ConcurrentHashMap.newKeySet<String>()
 
@@ -18,9 +26,11 @@ internal object NumeralAstNormalizer {
     }
 
     fun resolve(pratipadika: Pratipadika): SankhyaPratipadika? = when (pratipadika) {
-        is SankhyaPratipadika -> pratipadika
+        is SankhyaPratipadika -> pratipadika.takeUnless(::hasNonGenderDerivation)
 
-        is MulaPratipadika -> recognize(pratipadika.text)?.let {
+        is MulaPratipadika -> if (hasNonGenderDerivation(pratipadika)) null else (pratipadika.lexicalOrdinalValue?.let {
+            SanskritValue.Sankhya(it, pratipadika.text)
+        } ?: recognize(pratipadika.text))?.let {
             SankhyaPratipadika(
                 sourceText = pratipadika.sourceText,
                 semanticValue = it,

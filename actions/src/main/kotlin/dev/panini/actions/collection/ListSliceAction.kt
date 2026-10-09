@@ -72,7 +72,7 @@ object ListSliceAction : DhatuAction("सूचीविभागः", "सू�
                     "Selected operation ${operation.name}.",
                     "Slice boundaries out of range or empty: $startVal to $endVal."
                 ),
-                SanskritValue.Suchi(emptyList())
+                SanskritValue.Suchi(emptyList(), (list.singleOrNull() as? SanskritValue.Suchi)?.memberType)
             )
         }
 
@@ -85,7 +85,7 @@ object ListSliceAction : DhatuAction("सूचीविभागः", "सू�
                 "Selected operation ${operation.name}.",
                 "Sliced list from index $startVal to $endVal."
             ),
-            SanskritValue.Suchi(sliced)
+            SanskritValue.Suchi(sliced, (list.singleOrNull() as? SanskritValue.Suchi)?.memberType)
         )
     }
 }

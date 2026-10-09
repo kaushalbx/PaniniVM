@@ -14,8 +14,7 @@ object PuranaPratyayaResolver {
         return when (pada) {
             is SankhyaPuranaPada -> pada.value ?: typedOrdinalValue(pada.stems)
             is SubantaPada -> (pada.pratipadika as? MulaPratipadika)
-                ?.lexicalIdentity
-                ?.ordinalValue
+                ?.lexicalOrdinalValue
             else -> null
         }
     }

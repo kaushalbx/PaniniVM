@@ -14,11 +14,11 @@ object DevataDvandveCaSutra : Sutra<SamasaRuleContext, SamasaRuleResult>(
 ), SamasaSutra {
     override fun matches(context: SamasaRuleContext): Boolean = context.padas.size >= 2 &&
         context.samasaType == SamasaType.DVANDVA && SamasaSemanticRelation.DEVATA_COORDINATION in context.semanticRelations &&
-        context.purvaPada.upadesha != "अग्नि" && context.purvaPada.upadesha != "दिव्" && context.purvaPada.upadesha != "उषस्"
+        context.purvaPada.varnas.isNotEmpty() &&
+        context.purvaPada.upadesha !in setOf("अग्नि", "दिव्", "उषस्", "वायु") &&
+        context.uttaraPada.upadesha != "वायु"
 
     override fun apply(context: SamasaRuleContext): SamasaRuleResult {
-        val first = context.purvaPada.upadesha
-        val anang = if (first.endsWith("अ")) first.dropLast(1) + "ा" else first + "ा"
-        return SamasaRuleResult.Formed(anang + context.padas.drop(1).joinToString("") { it.upadesha }, "6.3.26 applies ānaṅ in a devatā-dvandva.",memberEdits=mapOf(0 to anang))
+        return anangFirstMember(context, number)
     }
 }

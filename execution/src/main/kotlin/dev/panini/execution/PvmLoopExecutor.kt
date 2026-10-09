@@ -1,11 +1,9 @@
 package dev.panini.execution
 
-import dev.panini.execution.binding.baseText
+import dev.panini.execution.binding.referenceKey
 import dev.panini.vyakaranam.ast.AvyayaPada
 import dev.panini.vyakaranam.ast.AvyayaFunction
 import dev.panini.vyakaranam.ast.ProgramNode
-import dev.panini.vyakaranam.ast.MulaPratipadika
-import dev.panini.vyakaranam.ast.MulaPratipadikaIdentity
 import dev.panini.vyakaranam.ast.SubantaPada
 import dev.panini.vyakaranam.ast.WhileLoop
 
@@ -36,7 +34,9 @@ internal class PvmLoopExecutor {
         }
         val normalizedCondition = NaturalSemanticNormalizer.normalize(loop.condition)
         val reportedOutcome = normalizedCondition as? NaturalSemanticNormalizer.Operation.ReportedOutcomeTest
-        val usesLatestResult = reportedOutcome != null || loop.condition.vakya.padas.any {
+        val hasNamedResult = dev.panini.execution.binding.NamedActionResultReferenceResolver
+            .resolve(loop.condition.vakya.padas).isNotEmpty()
+        val usesLatestResult = reportedOutcome != null || !hasNamedResult && loop.condition.vakya.padas.any {
             it is SubantaPada && NaturalSemanticNormalizer.isPriorResult(it)
         }
         val hasExplicitNegation = loop.condition.vakya.padas.any {
@@ -44,12 +44,13 @@ internal class PvmLoopExecutor {
         }
         val isNegated = reportedOutcome?.negated ?: (hasExplicitNegation || loop.condition.vakya.padas.any {
                 it is SubantaPada &&
-                    (it.pratipadika as? MulaPratipadika)?.lexicalIdentity == MulaPratipadikaIdentity.ASATYA
+                    nominalTruthValue(it.pratipadika)?.boolean == false
         })
-        val truthStateName = loop.condition.vakya.padas.filterIsInstance<SubantaPada>()
+        val truthStateName = (normalizedCondition as? NaturalSemanticNormalizer.Operation.TruthTest)?.stateName
+            ?: loop.condition.vakya.padas.filterIsInstance<SubantaPada>()
             .singleOrNull()
             ?.pratipadika
-            ?.baseText()
+            ?.referenceKey()
         var latestConditionValue = false
         var iterationCount = 0L
 
@@ -119,8 +120,8 @@ internal class PvmLoopExecutor {
                         resolved.invocation,
                         request.scope.copy(environment = request.scope.environment.mergedWith(resolved.environment)),
                     )
-                    val success = conditionResult as? ExecutionResult.Success
-                    (success?.conditionValue ?: (success?.typedValue as? SanskritValue.Satya)?.boolean) == true
+                    val success = conditionResult as? ExecutionResult.Success ?: return results + conditionResult
+                    (success.conditionValue ?: (success.typedValue as? SanskritValue.Satya)?.boolean) == true
                 }
             }
             if (!conditionHolds) return complete(ExecutionResult.LoopOutcome.VIJAYA)

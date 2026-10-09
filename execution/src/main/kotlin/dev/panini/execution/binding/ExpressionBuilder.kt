@@ -35,9 +35,21 @@ internal object ExpressionBuilder {
         pada: SubantaPada,
         ctx: BindingContext,
         overridePhalaId: String? = null,
+        collectionMemberFrame: Boolean = false,
     ): ExecutionExpression {
         val normalized = NumeralAstNormalizer.normalize(pada)
         val text = normalized.pratipadika.referenceKey()
+        val nominal = normalized.pratipadika as? MulaPratipadika
+        val selection = if (nominal?.vikaras?.isEmpty() == true) when {
+            nominal.lexicalIdentity == MulaPratipadikaIdentity.SANKHYA &&
+                normalized.sup.text == SupAffix.SAS.upadesha -> dev.panini.execution.CollectionMemberSelection.NUMBERS
+            nominal.lexicalIdentity == MulaPratipadikaIdentity.ANTIMA &&
+                normalized.sup.text == SupAffix.AM.upadesha -> dev.panini.execution.CollectionMemberSelection.FINAL
+            else -> null
+        } else null
+        if (collectionMemberFrame && selection != null) {
+            return ExecutionExpression.Pada(text, setOf(Samjna.SHABDA), memberSelection = selection)
+        }
         val isPhalaReference = PhalaReference.isReference(normalized)
         if (!isPhalaReference) ctx.environment.values[text]?.let { value ->
             val sup = SupAffix.fromUpadesha(normalized.sup.text) ?: SupAffix.AM
@@ -77,13 +89,9 @@ internal object ExpressionBuilder {
         return if (sankhyaValue != null) {
             ExecutionExpression.sankhya(sankhyaValue.value, sankhyaValue.word)
         } else {
-            val lexicalIdentity = (normalized.pratipadika as? MulaPratipadika)?.lexicalIdentity
-            val svamRupamValue = when (lexicalIdentity) {
-                MulaPratipadikaIdentity.SATYA -> SanskritValue.Satya(true)
-                MulaPratipadikaIdentity.ASATYA -> SanskritValue.Satya(false)
-                else -> SvamRupamEngine.evaluate(normalized.pratipadika)
-            }
-            ExecutionExpression.Pada(text, samjnas, value = svamRupamValue)
+            val svamRupamValue = dev.panini.execution.nominalTruthValue(normalized.pratipadika)
+                ?: SvamRupamEngine.evaluate(normalized.pratipadika)
+            ExecutionExpression.Pada(text, samjnas, value = svamRupamValue, memberSelection = selection)
         }
     }
 }

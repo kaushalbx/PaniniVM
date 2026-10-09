@@ -27,7 +27,7 @@ data class ParsedPrakriyaQualifiers(
     val qualifiers: Set<PrakriyaDefinitionQualifier>,
 )
 
-/** Recognizes explicit prakriyā-definition qualifiers following इति. */
+/** Recognizes explicit prakriyā-definition qualifiers following इति or नाम. */
 object PrakriyaDefinitionMarkerParser {
     private val parser = PaniniParser()
 
@@ -41,7 +41,7 @@ object PrakriyaDefinitionMarkerParser {
         }
         val padas = ukti.grammaticalVakyas().flatMap { it.padas }
         val itiIndices = padas.indices.filter { index ->
-            (padas[index] as? AvyayaPada)?.function == AvyayaFunction.QUOTATIVE
+            (padas[index] as? AvyayaPada)?.function in setOf(AvyayaFunction.QUOTATIVE, AvyayaFunction.NAMING)
         }
         return itiIndices.any { itiIndex ->
             padas.drop(itiIndex + 1).filterIsInstance<SubantaPada>()
@@ -66,7 +66,7 @@ object PrakriyaDefinitionMarkerParser {
             (padas[index] as? SubantaPada)?.definitionQualifier() == PrakriyaDefinitionQualifier.PRAKRIYA
         } ?: return null
         val itiIndex = (0 until markerIndex).lastOrNull { index ->
-            (padas[index] as? AvyayaPada)?.function == AvyayaFunction.QUOTATIVE
+            (padas[index] as? AvyayaPada)?.function in setOf(AvyayaFunction.QUOTATIVE, AvyayaFunction.NAMING)
         } ?: return null
         return padas.take(itiIndex)
             .joinToString(" ") { PrakriyaInvocationMatcher.normalizeIdentity(it.sourceText) }
@@ -91,7 +91,7 @@ object PrakriyaDefinitionMarkerParser {
         }
         val padas = ukti.grammaticalVakyas().flatMap { it.padas }
         val firstItiIndex = padas.indexOfFirst {
-            (it as? AvyayaPada)?.function == AvyayaFunction.QUOTATIVE
+            (it as? AvyayaPada)?.function in setOf(AvyayaFunction.QUOTATIVE, AvyayaFunction.NAMING)
         }
         val declarationPadas = if (firstItiIndex >= 0) padas.take(firstItiIndex) else padas
         val qualifierPadas = if (firstItiIndex >= 0) padas.drop(firstItiIndex + 1) else emptyList()
