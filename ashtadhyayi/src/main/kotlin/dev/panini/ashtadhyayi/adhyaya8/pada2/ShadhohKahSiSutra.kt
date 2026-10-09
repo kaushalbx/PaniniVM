@@ -30,9 +30,8 @@ object ShadhohKahSiSutra : Sutra<DerivationState, DerivationChange>(
         val index = targetIndex(context)
         val target = context.terms[index]
         val source = target.varnas.last()
-        val replacement = target.varnas.dropLast(1) + Vyanjana.KA
         return DerivationChange(
-            context.substituteTermVarnas(target.id, replacement, source, listOf(Vyanjana.KA), sutra),
+            context.replaceTermVarna(target.id, target.varnas.lastIndex, listOf(Vyanjana.KA), sutra),
             "8.2.41 substitutes क् for $source before स्.",
         )
     }

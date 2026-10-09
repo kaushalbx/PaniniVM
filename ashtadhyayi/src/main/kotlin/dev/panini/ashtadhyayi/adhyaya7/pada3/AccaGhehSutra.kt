@@ -51,13 +51,10 @@ object AccaGhehSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        val stemVarnas = stem.varnas
-        val sourceVowel = stemVarnas.last() as Svara
-        val newStemVarnas = stemVarnas.dropLast(1) + Svara.A
         val newAffixVarnas = listOf(Svara.AU)
 
         return DerivationChange(
-            state = context.substituteTermVarnas(stem.id, newStemVarnas, sourceVowel, listOf(Svara.A), sutra)
+            state = context.replaceTermVarna(stem.id, stem.varnas.lastIndex, listOf(Svara.A), sutra)
                 .replaceWholeAffix(affix.id, newAffixVarnas, sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume, upadesha = "औ")
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.119: Substituted 'a' for ghi-stem vowel and 'au' for 'ṅi'."

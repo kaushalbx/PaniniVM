@@ -59,10 +59,9 @@ object NamiSutra : Sutra<DerivationState, DerivationChange>(
         val final = stem.varnas.last()
         val source = final as Svara
         val replacement = source.toDirgha()
-        val result = stem.varnas.dropLast(1) + replacement
 
         return DerivationChange(
-            state = context.substituteTermVarnas(stem.id, result, source, listOf(replacement), sutra)
+            state = context.replaceTermVarna(stem.id, stem.varnas.lastIndex, listOf(replacement), sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "6.4.3: Lengthened stem vowel before 'nām'."
         )

@@ -6,7 +6,6 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Varna
 import dev.panini.shiksha.Vyanjana
-import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -28,17 +27,9 @@ object HaladisSeshahSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val abhyasa = context.terms.first { it.id == "abhyasa" }
-        val shortenedVarnas = shortenedAbhyasa(abhyasa.varnas)
-        val retainedInitialCount = if (abhyasa.varnas.firstOrNull() is Vyanjana) 1 else 0
-        val firstRemovedConsonant = abhyasa.varnas.drop(retainedInitialCount).first { it is Vyanjana }
+        val removed = abhyasa.varnas.indices.filter { it > 0 && abhyasa.varnas[it] is Vyanjana }.toSet()
         return DerivationChange(
-            context.substituteTermSurface(
-                abhyasa.id,
-                shortenedVarnas.toDevanagari(),
-                firstRemovedConsonant,
-                emptyList(),
-                sutra,
-            ),
+            context.deleteTermVarnaOccurrences(abhyasa.id, removed, sutra),
             "7.4.60 retains only the initial consonant of the abhyāsa ${abhyasa.surface}.",
         )
     }

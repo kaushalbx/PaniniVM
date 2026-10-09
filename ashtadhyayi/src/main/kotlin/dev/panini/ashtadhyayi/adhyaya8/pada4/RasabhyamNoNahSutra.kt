@@ -45,10 +45,9 @@ object RasabhyamNoNahSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val target = findTarget(context) ?: return DerivationChange(context, "8.4.1: Target 'n' not found.")
-        val result = target.term.varnas.toMutableList().also { it[target.varnaIndex] = Vyanjana.NNA }
 
         return DerivationChange(
-            state = context.substituteTermVarnas(target.term.id, result, Vyanjana.NA, listOf(Vyanjana.NNA), sutra)
+            state = context.replaceTermVarna(target.term.id, target.varnaIndex, listOf(Vyanjana.NNA), sutra)
                 .copy(stage = DerivationStage.FINAL),
             explanation = "8.4.1: Retroflexed 'n' to 'ṇ' immediately following '${target.trigger.devanagari}'."
         )

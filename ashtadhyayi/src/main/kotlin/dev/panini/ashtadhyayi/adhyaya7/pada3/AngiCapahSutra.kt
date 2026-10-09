@@ -52,10 +52,9 @@ object AngiCapahSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         val replacement = listOf(Svara.E)
-        val newVarnas = stem.varnas.dropLast(1) + replacement
 
         return DerivationChange(
-            state = context.substituteTermVarnas(stem.id, newVarnas, Svara.AA, replacement, sutra)
+            state = context.replaceTermVarna(stem.id, stem.varnas.lastIndex, replacement, sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.105: Replaced final 'ā' with 'e' before 'āṅ/os'."
         )

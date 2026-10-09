@@ -7,7 +7,6 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Varnamala
 import dev.panini.shiksha.Svara
-import dev.panini.shiksha.replaceVarna
 import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -45,9 +44,8 @@ object GunoYangiSutra : Sutra<DerivationState, DerivationChange>(
         require(vowelIndex >= 0) { "7.4.82 requires an ik vowel in the abhyāsa." }
         val source = abhyasa.varnas[vowelIndex] as Svara
         val replacement = requireNotNull(Varnamala.getGuna(source))
-        val surface = abhyasa.varnas.replaceVarna(vowelIndex, replacement).toDevanagari()
         return DerivationChange(
-            state = context.substituteTermSurface(abhyasa.id, surface, source, replacement, sutra),
+            state = context.replaceTermVarna(abhyasa.id, vowelIndex, replacement, sutra),
             explanation = "7.4.82 substitutes guṇa ${replacement.toDevanagari()} for $source in the abhyāsa before Yaṅ."
         )
     }

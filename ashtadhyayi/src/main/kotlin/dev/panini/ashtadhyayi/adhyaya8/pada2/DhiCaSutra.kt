@@ -34,7 +34,7 @@ object DhiCaSutra : Sutra<DerivationState, DerivationChange>(
         val nextState = if (target.upadesha == "सिँच्") {
             context.removeTerm(target.id, sutra).copy(stage = DerivationStage.PADA_FORMED)
         } else {
-            context.substituteTermVarnas(target.id, target.varnas.dropLast(1), Vyanjana.SA, emptyList(), sutra)
+            context.deleteTermVarnas(target.id, target.varnas.lastIndex, 1, sutra)
         }
         return DerivationChange(
             nextState,

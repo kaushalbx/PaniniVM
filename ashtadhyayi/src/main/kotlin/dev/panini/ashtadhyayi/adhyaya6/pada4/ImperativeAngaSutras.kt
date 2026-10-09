@@ -14,7 +14,7 @@ object AtoHehSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean =
         context.effectiveContext.rupa.lakara == Lakara.LOT &&
-            context.terms.lastOrNull()?.surface == "हि" &&
+            context.terms.lastOrNull()?.varnas == hiVarnas &&
             context.terms.dropLast(1).lastOrNull { it.varnas.isNotEmpty() }?.varnas?.lastOrNull() == Svara.A
 
     override fun apply(context: DerivationState) = DerivationChange(
@@ -30,7 +30,7 @@ object UtashCaPratyayadAsamyogapurvatSutra : Sutra<DerivationState, DerivationCh
     role = SutraRole.Vidhi, action = SutraAction.LOPA, scope = SutraScope.PRATYAYA,
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
-        if (context.effectiveContext.rupa.lakara != Lakara.LOT || context.terms.lastOrNull()?.surface != "हि") return false
+        if (context.effectiveContext.rupa.lakara != Lakara.LOT || context.terms.lastOrNull()?.varnas != hiVarnas) return false
         val preceding = context.terms.dropLast(1).filter { it.varnas.isNotEmpty() }
         val suffix = preceding.lastOrNull() ?: return false
         if (suffix.kind != TermKind.PRATYAYA || suffix.varnas.lastOrNull() != Svara.U) return false
@@ -51,14 +51,15 @@ object AtaUtSarvadhatukeSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         val root = context.terms.firstOrNull { it.kind == TermKind.DHATU } ?: return false
-        return root.surface == "कर्" && context.terms.any { it.kind == TermKind.PRATYAYA && it.upadesha == "उ" } &&
+        return root.varnas == listOf(Vyanjana.KA, Svara.A, Vyanjana.RA) && context.terms.any { it.kind == TermKind.PRATYAYA && it.upadesha == "उ" } &&
             context.effectiveContext.rupa.lakara == Lakara.LOT &&
             "3.4.87" in context.appliedSutras && "6.4.110" !in context.appliedSutras
     }
     override fun apply(context: DerivationState): DerivationChange {
         val root = context.terms.first { it.kind == TermKind.DHATU }
-        return DerivationChange(context.substituteTermVarnas(root.id,
-            root.varnas.map { if (it == Svara.A) Svara.U else it }, Svara.A, listOf(Svara.U), sutra),
+        return DerivationChange(context.replaceTermVarna(root.id, 1, listOf(Svara.U), sutra),
             "6.4.110 substitutes u in the kṛ aṅga before the apit hi ending.")
     }
 }
+
+private val hiVarnas = listOf(Vyanjana.HA, Svara.I)

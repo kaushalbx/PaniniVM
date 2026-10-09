@@ -40,12 +40,11 @@ object HaliCaSutra : Sutra<DerivationState, DerivationChange>(
             it.kind == TermKind.DHATU && it.matchesUpadesha("दिवुँ") && it.varnas == divVarnas
         }
         return DerivationChange(
-            state = context.substituteTermVarnas(root.id, diivVarnas, Svara.I, listOf(Svara.II), sutra)
+            state = context.replaceTermVarna(root.id, 1, listOf(Svara.II), sutra)
                 .copy(stage = DerivationStage.FINAL),
             explanation = "8.2.77 lengthens the vowel of दिव् before the consonantal श्यन् remainder.",
         )
     }
 
     private val divVarnas: List<Varna> = listOf(Vyanjana.DA, Svara.I, Vyanjana.VA)
-    private val diivVarnas: List<Varna> = listOf(Vyanjana.DA, Svara.II, Vyanjana.VA)
 }

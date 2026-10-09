@@ -19,6 +19,15 @@ object DevanagariParser {
         }
 
         fun nasalizeLastVowel(index: Int) {
+            // Explicit dead-semivowel spelling (ल्ँ, य्ँ, व्ँ) qualifies that
+            // consonant, never an earlier vowel. The sign is not a separate varṇa.
+            val last = tokens.lastOrNull()
+            if (last?.varna in VarnaToken.nasalizableSemivowels &&
+                normalized.getOrNull(index - 1) == Vyanjana.VIRAMA) {
+                tokens[tokens.lastIndex] = requireNotNull(last).copy(nasalized = true,
+                    sourceSpan = last.sourceSpan?.copy(endExclusive = index + 1))
+                return
+            }
             val tokenIndex = tokens.indexOfLast { it.varna is Svara }
             require(tokenIndex >= 0 && tokens.drop(tokenIndex + 1).none { it.varna is Svara || it.varna is Vyanjana }) {
                 "Anunāsika mark at Unicode index $index has no vowel to qualify in '$text'."
@@ -105,6 +114,14 @@ object DevanagariRenderer {
             when (val varna = token.varna) {
                 is Vyanjana -> {
                     append(varna.devanagari)
+                    if (token.nasalized) {
+                        // Keep consonantal nasalization unambiguous on round trip;
+                        // a following vowel is rendered independently.
+                        append(Vyanjana.VIRAMA)
+                        append(CHANDRABINDU)
+                        index++
+                        continue
+                    }
                     val vowel = tokens.getOrNull(index + 1)?.takeIf { it.varna is Svara }
                     if (vowel == null) {
                         append(Vyanjana.VIRAMA)

@@ -54,10 +54,9 @@ object BhoBhagoSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val leftTerm = context.terms[context.terms.size - 2]
         val next = context.terms.last().varnas.first()
-        val result = leftTerm.varnas.dropLast(1) + Vyanjana.YA
 
         return DerivationChange(
-            state = context.substituteTermVarnas(leftTerm.id, result, Vyanjana.RA, listOf(Vyanjana.YA), sutra),
+            state = context.replaceTermVarna(leftTerm.id, leftTerm.varnas.lastIndex, listOf(Vyanjana.YA), sutra),
             explanation = "8.3.17 replaces ru with y before voiced sound $next."
         )
     }

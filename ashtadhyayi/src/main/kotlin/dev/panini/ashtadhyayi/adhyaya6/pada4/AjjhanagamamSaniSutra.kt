@@ -44,9 +44,8 @@ object AjjhanagamamSaniSutra : Sutra<DerivationState, DerivationChange>(
         val anga = context.terms.first { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         val source = anga.varnas.last() as Svara
         val replacement = source.toDirgha()
-        val result = anga.varnas.dropLast(1) + replacement
         return DerivationChange(
-            state = context.substituteTermVarnas(anga.id, result, source, listOf(replacement), sutra)
+            state = context.replaceTermVarna(anga.id, anga.varnas.lastIndex, listOf(replacement), sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "6.4.16 lengthens the final vowel of ${anga.surface} before सन्.",
         )

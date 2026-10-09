@@ -57,10 +57,12 @@ object BhoBhagoAghoApurvasyaYoshiSutra : Sutra<DerivationState, DerivationChange
         } else {
             listOf(Vyanjana.YA)
         }
-        val result = targetTerm.varnas.dropLast(dropCount) + replacement
 
         return DerivationChange(
-            state = context.substituteTermVarnas(targetTerm.id, result, source, replacement, sutra),
+            state = context.replaceTermVarnaRange(
+                targetTerm.id, targetTerm.varnas.size - dropCount, dropCount, replacement,
+                if (dropCount == 2) mapOf(0 to 0, 1 to 1) else mapOf(0 to 0), sutra,
+            ),
             explanation = "8.3.17: Replaced ru/visarga with 'y' before aś sound."
         )
     }

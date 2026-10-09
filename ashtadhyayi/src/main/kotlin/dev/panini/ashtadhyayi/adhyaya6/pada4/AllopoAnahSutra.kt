@@ -60,10 +60,9 @@ object AllopoAnahSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
-        val result = stem.varnas.dropLast(2) + Vyanjana.NA
 
         return DerivationChange(
-            state = context.substituteTermVarnas(stem.id, result, Svara.A, emptyList(), sutra)
+            state = context.deleteTermVarnas(stem.id, stem.varnas.lastIndex - 1, 1, sutra)
                 .copy(stage = DerivationStage.PADA_FORMED),
             explanation = "6.4.134: Elided the vowel 'a' of an-stem before weak vowel affix."
         )

@@ -262,10 +262,13 @@ class DerivationState(
         require(index in tokens.indices) { "$sutra requires an existing varṇa occurrence on $id." }
         val source = tokens[index]
         val nasalVowel = replacement.indexOfFirst { it is dev.panini.shiksha.Svara }
+        val nasalTarget = if (source.varna in dev.panini.shiksha.VarnaToken.nasalizableSemivowels) {
+            replacement.indexOfFirst { it in dev.panini.shiksha.VarnaToken.nasalizableSemivowels }
+        } else nasalVowel
         val inserted = replacement.mapIndexed { position, varna ->
             dev.panini.shiksha.VarnaToken(id = dev.panini.shiksha.VarnaTokenId("replacement:$id:$index:$sutra:$position"), varna = varna,
                 accent = source.accent.takeIf { position == nasalVowel },
-                nasalized = source.nasalized && position == nasalVowel)
+                nasalized = source.nasalized && position == nasalTarget)
         }
         val result = tokens.take(index) + inserted + tokens.drop(index + 1)
         val signs = (original.orthographicSigns + original.phonologicalText.sourceOrthographicSigns).distinct().mapNotNull { placement ->
@@ -282,6 +285,100 @@ class DerivationState(
         val substituted = substituteTermSurface(id, rendered, source.varna, replacement, sutra)
         val term = substituted.terms.single { it.id == id }
         return substituted.replaceTerm(id, term.copy(orthographicSigns = signs))
+    }
+
+    /** One-to-one replacements at exact occurrences, with a single grammatical
+     * trace summarized by the first changed occurrence (as in grouped abhyāsa rules).
+     * Token annotations and all written-sign boundaries remain attached to their positions.
+     */
+    fun replaceTermVarnaOccurrences(id: String, replacements: Map<Int, Varna>, sutra: String): DerivationState {
+        val original = terms.single { it.id == id }
+        val tokens = original.phonologicalText.effectiveVarnas
+        require(replacements.isNotEmpty() && replacements.keys.all { it in tokens.indices })
+        val changed = tokens.mapIndexed { index, token ->
+            replacements[index]?.let { token.copy(varna = it) } ?: token
+        }
+        val signs = (original.orthographicSigns + original.phonologicalText.sourceOrthographicSigns).distinct()
+        val first = replacements.keys.min()
+        val rendered = SanskritText(changed).renderWithOrthographicSigns(signs)
+        val substituted = substituteTermSurface(id, rendered, tokens[first].varna, listOf(replacements.getValue(first)), sutra)
+        return substituted.replaceTerm(id, substituted.terms.single { it.id == id }.copy(orthographicSigns = signs))
+    }
+
+    /** Replaces an exact range. Mapping keys are replacement positions and values
+     * are source positions relative to the consumed range; only mapped annotations survive.
+     */
+    fun replaceTermVarnaRange(
+        id: String, fromIndex: Int, count: Int, replacement: List<Varna>,
+        annotationSources: Map<Int, Int>, sutra: String,
+    ): DerivationState {
+        val original = terms.single { it.id == id }
+        val tokens = original.phonologicalText.effectiveVarnas
+        require(count > 0 && fromIndex >= 0 && fromIndex <= tokens.size - count)
+        require(annotationSources.all { (target, source) -> target in replacement.indices && source in 0 until count })
+        require(annotationSources.values.distinct().size == annotationSources.size)
+        val inserted = replacement.mapIndexed { position, varna ->
+            val source = annotationSources[position]?.let { tokens[fromIndex + it] }
+            dev.panini.shiksha.VarnaToken(
+                dev.panini.shiksha.VarnaTokenId("range:$id:$fromIndex:$sutra:$position"), varna,
+                accent = source?.accent, nasalized = source?.nasalized == true,
+            )
+        }
+        val end = fromIndex + count
+        val signs = (original.orthographicSigns + original.phonologicalText.sourceOrthographicSigns).distinct().mapNotNull { sign ->
+            val mapped = annotationSources.entries.singleOrNull { it.value == sign.afterVarnaCount - fromIndex - 1 }?.key
+            if (sign.sign == dev.panini.shiksha.OrthographicSign.CHANDRABINDU &&
+                sign.afterVarnaCount in (fromIndex + 1)..end && mapped == null) null
+            else sign.copy(afterVarnaCount = when {
+                sign.afterVarnaCount <= fromIndex -> sign.afterVarnaCount
+                sign.sign == dev.panini.shiksha.OrthographicSign.CHANDRABINDU && mapped != null -> fromIndex + mapped + 1
+                sign.afterVarnaCount >= end -> sign.afterVarnaCount + replacement.size - count
+                mapped != null -> fromIndex + mapped + 1
+                else -> fromIndex + replacement.size
+            })
+        }
+        val rendered = SanskritText(tokens.take(fromIndex) + inserted + tokens.drop(end)).renderWithOrthographicSigns(signs)
+        val substituted = substituteTermSurface(id, rendered, tokens[fromIndex].varna, replacement, sutra)
+        return substituted.replaceTerm(id, substituted.terms.single { it.id == id }.copy(orthographicSigns = signs))
+    }
+
+    /** Deletes selected occurrences together, retaining surviving token annotations.
+     * Every sign is projected onto the boundary after its surviving prefix.
+     */
+    fun deleteTermVarnaOccurrences(id: String, indices: Set<Int>, sutra: String): DerivationState {
+        val original = terms.single { it.id == id }
+        val tokens = original.phonologicalText.effectiveVarnas
+        require(indices.isNotEmpty() && indices.all { it in tokens.indices })
+        val signs = (original.orthographicSigns + original.phonologicalText.sourceOrthographicSigns).distinct().mapNotNull { sign ->
+            if (sign.sign == dev.panini.shiksha.OrthographicSign.CHANDRABINDU && sign.afterVarnaCount - 1 in indices) null
+            else sign.copy(afterVarnaCount = sign.afterVarnaCount - indices.count { it < sign.afterVarnaCount })
+        }
+        val rendered = SanskritText(tokens.filterIndexed { index, _ -> index !in indices }).renderWithOrthographicSigns(signs)
+        val substituted = substituteTermSurface(id, rendered, tokens[indices.min()].varna, emptyList(), sutra)
+        return substituted.replaceTerm(id, substituted.terms.single { it.id == id }.copy(orthographicSigns = signs))
+    }
+
+    /** Deletes one exact phonological range in a single trace entry.
+     * Signs inside the deleted range collapse onto its surviving left boundary.
+     */
+    fun deleteTermVarnas(id: String, fromIndex: Int, count: Int, sutra: String): DerivationState {
+        val original = terms.single { it.id == id }
+        val tokens = original.phonologicalText.effectiveVarnas
+        require(count > 0 && fromIndex >= 0 && fromIndex <= tokens.size - count) {
+            "$sutra requires an existing nonempty varṇa range on $id."
+        }
+        val end = fromIndex + count
+        val signs = (original.orthographicSigns + original.phonologicalText.sourceOrthographicSigns).distinct().mapNotNull {
+            if (it.sign == dev.panini.shiksha.OrthographicSign.CHANDRABINDU && it.afterVarnaCount in (fromIndex + 1)..end) null
+            else it.copy(afterVarnaCount = when {
+                it.afterVarnaCount >= end -> it.afterVarnaCount - count
+                it.afterVarnaCount > fromIndex -> fromIndex
+                else -> it.afterVarnaCount
+            })
+        }
+        val rendered = SanskritText(tokens.take(fromIndex) + tokens.drop(end)).renderWithOrthographicSigns(signs)
+        val substituted = substituteTermSurface(id, rendered, tokens[fromIndex].varna, emptyList(), sutra)
+        return substituted.replaceTerm(id, substituted.terms.single { it.id == id }.copy(orthographicSigns = signs))
     }
 
     /** Inserts phonological material at a varṇa boundary and records the āgama without exposing text offsets. */

@@ -60,7 +60,7 @@ object NaloPratipadikantasyaSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val stem = requireNotNull(findTarget(context))
         return DerivationChange(
-            state = context.substituteTermVarnas(stem.id, stem.varnas.dropLast(1), Vyanjana.NA, emptyList(), sutra),
+            state = context.deleteTermVarnas(stem.id, stem.varnas.lastIndex, 1, sutra),
             explanation = "8.2.7: Deleted final न् of the prātipadika.",
         )
     }

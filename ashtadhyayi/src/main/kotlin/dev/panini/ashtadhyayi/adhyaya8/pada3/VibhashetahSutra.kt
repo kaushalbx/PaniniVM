@@ -29,10 +29,7 @@ object VibhashetahSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val ending = context.terms.last()
         return DerivationChange(
-            context.substituteTermVarnas(
-                ending.id, listOf(Vyanjana.DDHA) + ending.varnas.drop(1),
-                Vyanjana.DHA, listOf(Vyanjana.DDHA), sutra,
-            ),
+            context.replaceTermVarna(ending.id, 0, listOf(Vyanjana.DDHA), sutra),
             "8.3.79 optionally substitutes ढ् for the LUNG ending's ध् after इट्.",
         )
     }

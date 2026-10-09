@@ -55,10 +55,9 @@ object ShashChoAtiSutra : Sutra<DerivationState, DerivationChange>(
         } + 1
 
         val targetTerm = context.terms[targetIndex]
-        val result = listOf(Vyanjana.CHA) + targetTerm.varnas.drop(1)
 
         return DerivationChange(
-            state = context.substituteTermVarnas(targetTerm.id, result, Vyanjana.SHA, listOf(Vyanjana.CHA), sutra),
+            state = context.replaceTermVarna(targetTerm.id, 0, listOf(Vyanjana.CHA), sutra),
             explanation = "8.4.63: Substituted 'ś' with 'ch' after jhay stop."
         )
     }

@@ -30,9 +30,8 @@ object BhavaterAhSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val abhyasa = context.terms.first { it.id == "abhyasa" }
-        val substituted = abhyasa.varnas.dropLast(1) + Svara.A
         return DerivationChange(
-            context.substituteTermVarnas(abhyasa.id, substituted, Svara.U, listOf(Svara.A), sutra),
+            context.replaceTermVarna(abhyasa.id, abhyasa.varnas.lastIndex, listOf(Svara.A), sutra),
             "7.4.73 replaces the final उ of the भू abhyāsa ${abhyasa.surface} with inherent अ in लिट्.",
         )
     }

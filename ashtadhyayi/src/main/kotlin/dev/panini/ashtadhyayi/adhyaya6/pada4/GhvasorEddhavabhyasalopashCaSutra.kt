@@ -34,15 +34,15 @@ object GhvasorEddhavabhyasalopashCaSutra : Sutra<DerivationState, DerivationChan
         // reduplication be introduced before this rule consumes it.
         if (dhatu.gana == dev.panini.core.DhatuGana.JUHOTYADI && context.terms.none { it.id == "abhyasa" }) return false
         val ending = context.terms.lastOrNull { it.kind != TermKind.DHATU }
-        val dhiEnvironment = ending?.surface == "धि" ||
-            context.allEffectiveTerms.any { it.upadesha == "सिप्" && it.surface.isEmpty() }
-        return dhatu.upadesha == "डुदाञ्" && dhatu.surface !in setOf("दे", "देहि") && dhiEnvironment
+        val dhiEnvironment = ending?.varnas == dhi ||
+            context.allEffectiveTerms.any { it.upadesha == "सिप्" && it.varnas.isEmpty() }
+        return dhatu.upadesha == "डुदाञ्" && dhatu.varnas !in completedForms && dhiEnvironment
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val dhatu = context.terms.first { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         val ending = context.terms.lastOrNull { it.kind != TermKind.DHATU }
-        val endingSurvives = ending?.surface == "धि"
+        val endingSurvives = ending?.varnas == dhi
         var state = context.substituteTermVarnas(
             dhatu.id,
             if (endingSurvives) listOf(Vyanjana.DA, Svara.E) else listOf(Vyanjana.DA, Svara.E, Vyanjana.HA, Svara.I),
@@ -62,4 +62,10 @@ object GhvasorEddhavabhyasalopashCaSutra : Sutra<DerivationState, DerivationChan
         if (state.terms.any { it.id == "abhyasa" }) state = state.removeTerm("abhyasa", sutra = sutra)
         return DerivationChange(state, "6.4.119 forms देहि from the ghu root दा before धि.")
     }
+
+    private val dhi = listOf(Vyanjana.DHA, Svara.I)
+    private val completedForms = setOf(
+        listOf(Vyanjana.DA, Svara.E),
+        listOf(Vyanjana.DA, Svara.E, Vyanjana.HA, Svara.I),
+    )
 }

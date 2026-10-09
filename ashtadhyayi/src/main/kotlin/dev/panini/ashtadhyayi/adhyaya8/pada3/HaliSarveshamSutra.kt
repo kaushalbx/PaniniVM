@@ -54,10 +54,10 @@ object HaliSarveshamSutra : Sutra<DerivationState, DerivationChange>(
         }
 
         val targetTerm = context.terms[targetIndex]
-        val (dropCount, source) = requireNotNull(eligibleFinal(targetTerm.varnas))
+        val dropCount = requireNotNull(eligibleFinal(targetTerm.varnas)).first
 
         return DerivationChange(
-            state = context.substituteTermVarnas(targetTerm.id, targetTerm.varnas.dropLast(dropCount), source, emptyList(), sutra),
+            state = context.deleteTermVarnas(targetTerm.id, targetTerm.varnas.size - dropCount, dropCount, sutra),
             explanation = "8.3.22: Elided 'y' (hali sarveṣām) before hal consonant."
         )
     }

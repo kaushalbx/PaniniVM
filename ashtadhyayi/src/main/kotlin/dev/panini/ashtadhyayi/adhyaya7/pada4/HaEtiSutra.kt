@@ -38,8 +38,8 @@ object HaEtiSutra : Sutra<DerivationState, DerivationChange>(
         val ending = context.terms[tasiIndex + 1]
         return DerivationChange(
             context
-                .substituteTermVarnas(tasi.id, tasi.varnas.dropLast(1), Vyanjana.SA, emptyList(), sutra)
-                .substituteTermVarnas(ending.id, listOf(Vyanjana.HA, Svara.E), Svara.E, listOf(Vyanjana.HA, Svara.E), sutra),
+                .deleteTermVarnas(tasi.id, tasi.varnas.lastIndex, 1, sutra)
+                .replaceTermVarna(ending.id, 0, listOf(Vyanjana.HA, Svara.E), sutra),
             "7.4.52 replaces the final स of तास् with ह before the e-ending.",
         )
     }

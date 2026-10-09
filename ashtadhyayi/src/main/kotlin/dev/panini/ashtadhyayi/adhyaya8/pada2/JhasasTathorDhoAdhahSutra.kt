@@ -39,9 +39,8 @@ object JhasasTathorDhoAdhahSutra : Sutra<DerivationState, DerivationChange>(
         val dhatuIndex = context.terms.indexOfFirst { it.kind == TermKind.DHATU }
         val affix = context.terms[dhatuIndex + 1]
         val source = affix.varnas.first()
-        val result = listOf(Vyanjana.DHA) + affix.varnas.drop(1)
         return DerivationChange(
-            context.substituteTermVarnas(affix.id, result, source, listOf(Vyanjana.DHA), sutra),
+            context.replaceTermVarna(affix.id, 0, listOf(Vyanjana.DHA), sutra),
             "8.2.40 substitutes ध for $source after a jhaṣ-final root.",
         )
     }

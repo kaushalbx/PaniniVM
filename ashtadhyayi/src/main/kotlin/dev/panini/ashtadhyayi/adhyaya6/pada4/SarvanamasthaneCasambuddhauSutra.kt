@@ -60,10 +60,9 @@ object SarvanamasthaneCasambuddhauSutra : Sutra<DerivationState, DerivationChang
         val index = stem.varnas.indexOfLast { it is Svara }
         val source = stem.varnas[index] as Svara
         val replacement = source.toDirgha()
-        val result = stem.varnas.toMutableList().also { it[index] = replacement }
 
         return DerivationChange(
-            state = context.substituteTermVarnas(stem.id, result, source, listOf(replacement), sutra)
+            state = context.replaceTermVarna(stem.id, index, listOf(replacement), sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "6.4.8: Lengthened the penultimate vowel of the 'n'-ending stem before Sarvanāmasthāna."
         )
