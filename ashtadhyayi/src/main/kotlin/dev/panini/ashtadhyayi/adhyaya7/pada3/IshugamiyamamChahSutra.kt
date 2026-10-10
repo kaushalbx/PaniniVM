@@ -6,7 +6,6 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Vyanjana
-import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -42,11 +41,9 @@ object IshugamiyamamChahSutra : Sutra<DerivationState, DerivationChange>(
 
     override fun apply(context: DerivationState): DerivationChange {
         val dhatu = context.terms.first { it.kind == TermKind.DHATU }
-        val source = dhatu.varnas.last() as Vyanjana
         val replacement = listOf(Vyanjana.CHA)
-        val surface = (dhatu.varnas.dropLast(1) + replacement).toDevanagari()
         return DerivationChange(
-            state = context.substituteTermSurface(dhatu.id, surface, source, replacement, sutra)
+            state = context.replaceTermVarna(dhatu.id, dhatu.varnas.lastIndex, replacement, sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.77 replaces the final of ${dhatu.surface} with छ् before the śit stem-forming affix.",
         )

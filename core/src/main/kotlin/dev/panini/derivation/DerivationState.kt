@@ -344,7 +344,8 @@ class DerivationState(
             })
         }
         val rendered = SanskritText(tokens.take(fromIndex) + inserted + tokens.drop(end)).renderWithOrthographicSigns(signs)
-        val substituted = substituteTermSurface(id, rendered, tokens[fromIndex].varna, replacement, sutra)
+        val substituted = substituteTermSurface(id, rendered, tokens[fromIndex].varna, replacement, sutra,
+            sourceVarnaIndex = fromIndex)
         return substituted.replaceTerm(id, substituted.terms.single { it.id == id }.copy(orthographicSigns = signs))
     }
 
@@ -412,6 +413,35 @@ class DerivationState(
         val substituted = substituteTermSurface(id, rendered, '∅', insertion.toDevanagari(), sutra)
         val current = substituted.terms.single { it.id == id }
         return substituted.replaceTerm(id, current.copy(orthographicSigns = signs))
+    }
+
+    /** Concatenates an already transformed stem and its following processed term.
+     * This is composition, not another substitution: the caller records its exact mutation.
+     * Token annotations and signs are retained, and the consumed affix stays in the lifecycle ledger.
+     */
+    fun concatenateFollowingTerm(survivorId: String, consumedId: String, sutra: String): DerivationState {
+        val index = terms.indexOfFirst { it.id == survivorId }
+        require(index >= 0 && index < terms.lastIndex && terms[index + 1].id == consumedId) {
+            "$sutra requires an ordered adjacent pair $survivorId and $consumedId."
+        }
+        val survivor = terms[index]
+        val consumed = terms[index + 1]
+        require(consumed.itProcessingPhase == ItProcessingPhase.PROCESSED &&
+            consumed.itDesignations.isEmpty() && consumed.deferredItDesignations.isEmpty()) {
+            "$sutra cannot compose an affix before its exact it-processing is complete."
+        }
+        val composed = survivor.insertDesignatedTerm(consumed, survivor.varnas.size).copy(
+            sourceSuffixUpadeshas = survivor.sourceSuffixUpadeshas + if (consumed.kind == TermKind.PRATYAYA)
+                consumed.sourceSuffixUpadeshas + consumed.upadesha else emptySet(),
+        )
+        val removed = replaceTerm(survivorId, composed).removeTerm(consumedId, sutra)
+        val suffixVowels = consumed.varnas.count { it is dev.panini.shiksha.Svara }
+        return if (consumed.kind != TermKind.PRATYAYA || suffixVowels == 0) removed else removed.copy(
+            droppedTerms = removed.droppedTerms.map { term ->
+                if (term.id == consumedId) term.copy(mergedIntoTermId = survivorId,
+                    mergedAffixVowelFromEnd = suffixVowels - 1) else term
+            },
+        )
     }
 
     /** Merges two adjacent terms while preserving the survivor and lifecycle-dropping the consumed term. */

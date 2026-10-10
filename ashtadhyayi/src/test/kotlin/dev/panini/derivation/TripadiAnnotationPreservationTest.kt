@@ -27,7 +27,7 @@ class TripadiAnnotationPreservationTest {
             Triple(SamyogantasyaLopaSutra, state("अँक्त्ऽ"), listOf(Svara.A, Vyanjana.KA)),
             Triple(HaliSarveshamSutra, state("आँयऽ", "ह"), listOf(Svara.AA)),
             Triple(VisarjaniyasyaSahSutra, state("अँःऽ", "त"), listOf(Svara.A, Vyanjana.SA)),
-            Triple(BhoBhagoSutra, state("अँर्ऽ", "इ"), listOf(Svara.A, Vyanjana.YA)),
+            Triple(BhoBhagoSutra, state("अँर्ऽ", "इ").addVarnaSubstitution("left", Vyanjana.SA, listOf(Vyanjana.RA), "8.2.66"), listOf(Svara.A, Vyanjana.YA)),
             Triple(StosShcunaShcuhSutra, state("अँत्श्ऽ"), listOf(Svara.A, Vyanjana.CA, Vyanjana.SHA)),
             Triple(StunaShtuhSutra, state("अँत्ष्ऽ"), listOf(Svara.A, Vyanjana.TTA, Vyanjana.SSA)),
             Triple(DhoDheLopaSutra, state("अँढ्ऽ", "ढ"), listOf(Svara.A)),
@@ -131,13 +131,13 @@ class TripadiAnnotationPreservationTest {
 
     @Test
     fun `active ru replacement preserves annotations on both sides of its range`() {
-        val original = state("अँसँऽ", "इ")
+        val original = state("अँस्ऽ", "इ")
         assertTrue(BhoBhagoAghoApurvasyaYoshiSutra.matches(original))
         val result = BhoBhagoAghoApurvasyaYoshiSutra.apply(original).state
         val term = result.terms.first()
-        assertEquals(listOf(Svara.A, Vyanjana.YA, Svara.A), term.varnas)
-        assertEquals(listOf(true, false, true), term.phonologicalText.effectiveVarnas.map { it.nasalized })
-        assertEquals(listOf(OrthographicSignPlacement(OrthographicSign.AVAGRAHA, 3)), term.orthographicSigns)
+        assertEquals(listOf(Svara.A, Vyanjana.YA), term.varnas)
+        assertEquals(listOf(true, false), term.phonologicalText.effectiveVarnas.map { it.nasalized })
+        assertEquals(listOf(OrthographicSignPlacement(OrthographicSign.AVAGRAHA, 2)), term.orthographicSigns)
         assertEquals(1, result.substitutions.size)
         assertEquals(original.terms.last(), result.terms.last())
         assertEquals(original.terms.first().formedPadaRupa, term.formedPadaRupa)

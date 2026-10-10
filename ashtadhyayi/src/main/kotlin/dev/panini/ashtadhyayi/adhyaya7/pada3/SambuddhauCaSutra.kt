@@ -6,7 +6,6 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Svara
-import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -52,10 +51,9 @@ object SambuddhauCaSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         val replacement = listOf(Svara.E)
-        val newSurface = (stem.varnas.dropLast(1) + replacement).toDevanagari()
 
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, newSurface, Svara.AA, replacement, sutra)
+            state = context.replaceTermVarna(stem.id, stem.varnas.lastIndex, replacement, sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.106: Replaced final 'ā' with 'e' before Sambuddhi."
         )

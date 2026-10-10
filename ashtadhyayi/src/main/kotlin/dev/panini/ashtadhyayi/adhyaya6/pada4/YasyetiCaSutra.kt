@@ -5,11 +5,11 @@ import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermKind
+import dev.panini.derivation.ItProcessingPhase
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Varna
 import dev.panini.shiksha.Vyanjana
-import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -55,26 +55,36 @@ object YasyetiCaSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
-        val source = requireNotNull(stem.varnas.lastOrNull() as? Svara)
-        val stemBase = stem.varnas.dropLast(1)
-        val mergedVarnas = when (affix.upadesha) {
-            "अण्" -> stemBase + affix.varnas
-            "इञ्" -> stemBase + Svara.I
-            "आयन्" -> stemBase + ayan
-            "एय्" -> stemBase + eya
-            "यञ्" -> stemBase + ya
+        val replacement = when (affix.upadesha) {
+            "अण्" -> affix.varnas
+            "इञ्" -> listOf(Svara.I)
+            "आयन्" -> ayan
+            "एय्" -> eya
+            "यञ्" -> ya
             else -> when (affix.varnas) {
-                ayanWithInherentA -> stemBase + ayan
-                eyaWithInherentA -> stemBase + eya
-                yaWithInherentA -> stemBase + ya
-                else -> stemBase + affix.varnas
+                ayanWithInherentA -> ayan
+                eyaWithInherentA -> eya
+                yaWithInherentA -> ya
+                else -> affix.varnas
             }
         }
+        // Existing affix normalizations only retain same-position occurrences;
+        // changed or removed occurrences must not donate their annotations.
+        val surviving = affix.varnas.indices.filter { index ->
+            affix.varnas[index] == replacement.getOrNull(index)
+        }.associateWith { it }
+        val normalized = affix.replaceWholeAffixWithVarnaMapping(replacement, surviving,
+            (affix.itDesignations + affix.deferredItDesignations).toSet(), sutra)
+            .copy(itProcessingPhase = ItProcessingPhase.PROCESSED)
 
+        val composed = context.replaceTermVarna(stem.id, stem.varnas.lastIndex, emptyList(), sutra)
+                .replaceTerm(affix.id, normalized)
+                .concatenateFollowingTerm(stem.id, affix.id, sutra)
         return DerivationChange(
-            state = context.mergeTermsByVarnaSubstitution(
-                stem.id, affix.id, mergedVarnas.toDevanagari(), source, emptyList(), sutra,
-            ).copy(stage = DerivationStage.PADA_FORMED),
+            state = composed.copy(stage = DerivationStage.PADA_FORMED,
+                droppedTerms = composed.droppedTerms.map {
+                    if (it.id == affix.id) it.copy(originalSurfaceBeforeDrop = affix.surface) else it
+                }),
             explanation = "6.4.148: Deleted the final stem vowel before the Taddhita affix.",
         )
     }

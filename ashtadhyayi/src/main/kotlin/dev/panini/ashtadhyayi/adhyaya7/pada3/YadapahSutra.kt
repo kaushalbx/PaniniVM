@@ -10,7 +10,6 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Ayogavaha
 import dev.panini.shiksha.Vyanjana
-import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.NimittaScope
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
@@ -79,10 +78,7 @@ object YadapahSutra : Sutra<DerivationState, DerivationChange>(
         val affix = context.terms.last()
         if (affix.upadesha == "टा") {
             return DerivationChange(
-                state = context.substituteTermSurface(
-                    stem.id, (stem.varnas.dropLast(1) + Svara.A).toDevanagari(),
-                    Svara.AA, listOf(Svara.A), sutra,
-                )
+                state = context.replaceTermVarna(stem.id, stem.varnas.lastIndex, listOf(Svara.A), sutra)
                     .replaceWholeAffix(affix.id, listOf(Vyanjana.YA, Svara.AA), sutra, dev.panini.derivation.WholeAffixDesignationPolicy.Consume)
                     .blockSutra(sutra, sutra)
                     .copy(stage = DerivationStage.PADA_FORMED),

@@ -7,19 +7,19 @@ import dev.panini.core.ItMarker
 import dev.panini.core.Lakara
 import dev.panini.core.PadaType
 import dev.panini.core.TingAffix
+import dev.panini.core.SanadiAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.DerivationalEnvironment
 import dev.panini.derivation.HasDerivationalEnvironment
+import dev.panini.derivation.matchesAffix
 import dev.panini.derivation.TermKind
-import dev.panini.derivation.WholeAffixDesignationPolicy
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.ItStatus
 import dev.panini.shiksha.Varnamala
 import dev.panini.shiksha.Svara
-import dev.panini.shiksha.replaceVarna
 import dev.panini.shiksha.toDevanagari
 import dev.panini.shiksha.toGunaVarnas
 import dev.panini.sutra.Sutra
@@ -52,7 +52,7 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
         // Jurisdictional check: Must be in the Aṅga section
         if ("6.4.1" !in context.activeAdhikaras) return false
 
-        val nic = context.terms.firstOrNull { it.matchesUpadesha("णिच्") && it.varnas == listOf(Svara.I) }
+        val nic = context.terms.firstOrNull { it.matchesAffix(SanadiAffix.NIC) && it.varnas == listOf(Svara.I) }
         if (nic != null && gradesNicEnding(context, nic.id)) return true
 
         val strongUGrade = strongUGrade(context)
@@ -98,17 +98,11 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        val nic = context.terms.firstOrNull { it.matchesUpadesha("णिच्") && it.varnas == listOf(Svara.I) }
+        val nic = context.terms.firstOrNull { it.matchesAffix(SanadiAffix.NIC) && it.varnas == listOf(Svara.I) }
         if (nic != null && gradesNicEnding(context, nic.id)) {
             return DerivationChange(
-                state = context.replaceWholeAffix(
-                    nic.id,
-                    listOf(Svara.E),
-                    sutra,
-                    WholeAffixDesignationPolicy.PreserveAndRemap(emptyList()),
-                )
-                    .copy(stage = DerivationStage.ANGAKARYA)
-                    .addVarnaSubstitution(nic.id, Svara.I, listOf(Svara.E), sutra),
+                state = context.replaceTermVarna(nic.id, 0, listOf(Svara.E), sutra)
+                    .copy(stage = DerivationStage.ANGAKARYA),
                 explanation = "7.3.84 applies guṇa to the final इ of the ṇic-ending aṅga before a sārvadhātuka or ārdhadhātuka suffix.",
             )
         }
@@ -116,10 +110,9 @@ object SarvadhatukardhadhatukayohSutra : Sutra<DerivationState, DerivationChange
             ?: context.terms.first { it.kind == TermKind.DHATU && it.id != "abhyasa" }
         val source = stem.varnas.last() as Svara
         val replacement = source.toGunaVarnas()
-        val newSurface = stem.varnas.replaceVarna(stem.varnas.lastIndex, replacement).toDevanagari()
 
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, newSurface, source, replacement, sutra)
+            state = context.replaceTermVarna(stem.id, stem.varnas.lastIndex, replacement, sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.84: Applied guṇa (${replacement.toDevanagari()}) within Aṅgasya jurisdiction."
         )

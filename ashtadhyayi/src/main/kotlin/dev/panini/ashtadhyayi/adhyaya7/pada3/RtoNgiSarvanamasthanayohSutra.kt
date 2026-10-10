@@ -12,8 +12,6 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraType
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Vyanjana
-import dev.panini.shiksha.replaceVarna
-import dev.panini.shiksha.toDevanagari
 
 /**
  * 7.3.110: ṛto ṅi-sarvanāmasthānayoḥ.
@@ -51,13 +49,12 @@ object RtoNgiSarvanamasthanayohSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         val guna = listOf(Svara.A, Vyanjana.RA)
-        val newVarnas = stem.varnas.replaceVarna(stem.varnas.lastIndex, guna)
-        val newSurface = newVarnas.toDevanagari()
+        val result = context.replaceTermVarna(stem.id, stem.varnas.lastIndex, guna, sutra)
 
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, newSurface, Svara.R, guna, sutra)
+            state = result
                 .copy(stage = DerivationStage.ANGAKARYA),
-            explanation = "7.3.110: Applied guṇa 'ar' to ṛ-stem '${stem.surface}' before sarvanāmasthāna/ṅi (becoming $newSurface)."
+            explanation = "7.3.110: Applied guṇa 'ar' to ṛ-stem '${stem.surface}' before sarvanāmasthāna/ṅi (becoming ${result.terms.first { it.id == stem.id }.surface})."
         )
     }
 }

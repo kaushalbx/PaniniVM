@@ -8,8 +8,6 @@ import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Varna
 import dev.panini.shiksha.Vyanjana
-import dev.panini.shiksha.replaceVarna
-import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -50,16 +48,12 @@ object SupiCaSutra : Sutra<DerivationState, DerivationChange>(
         val stem = terms[terms.size - 2]
         val affix = terms.last()
         val replacement = if (affix.upadesha == "ङि") Svara.E else Svara.AA
-        val newVarnas = stem.varnas.replaceVarna(stem.varnas.lastIndex, listOf(replacement))
-        val newSurface = newVarnas.toDevanagari()
+        val transformed = context.replaceTermVarna(stem.id, stem.varnas.lastIndex, listOf(replacement), sutra)
         val changedState = if (affix.upadesha in completePadaAffixes) {
-            val completedSurface = if (affix.upadesha == "ङि") newSurface else (newVarnas + affix.varnas).toDevanagari()
-            context.mergeTermsByVarnaSubstitution(
-                stem.id, affix.id, completedSurface, Svara.A, listOf(replacement), sutra,
-            ).copy(stage = DerivationStage.PADA_FORMED)
+            transformed.concatenateFollowingTerm(stem.id, affix.id, sutra)
+                .copy(stage = DerivationStage.PADA_FORMED)
         } else {
-            context.substituteTermSurface(stem.id, newSurface, Svara.A, listOf(replacement), sutra)
-                .copy(stage = DerivationStage.ANGAKARYA)
+            transformed.copy(stage = DerivationStage.ANGAKARYA)
         }
 
         return DerivationChange(

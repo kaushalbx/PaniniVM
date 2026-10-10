@@ -5,6 +5,30 @@ import dev.panini.ashtadhyayi.adhyaya6.pada3.DhralopePurvasyaDirghonahSutra
 import kotlin.test.*
 
 class RoRiTest {
+    @Test fun `preceding an vowel can belong to the previous morphological term`() {
+        for ((vowel, expected) in listOf("अँऽ" to "आँऽ", "इँऽ" to "ईँऽ", "उँऽ" to "ऊँऽ")) {
+            val original = DerivationState(listOf(
+                DerivationTerm("stem", vowel, TermKind.PRATIPADIKA),
+                DerivationTerm("empty", "", TermKind.PRATYAYA),
+                DerivationTerm("suffix", "र्", TermKind.PRATYAYA),
+                DerivationTerm("next", "रथः", TermKind.PRATIPADIKA),
+            ))
+            val deleted = RoRiSutra.apply(original).state
+            assertEquals(0, deleted.substitutions.single().sourceVarnaIndex)
+            assertTrue(DhralopePurvasyaDirghonahSutra.matches(deleted))
+            val result = DhralopePurvasyaDirghonahSutra.apply(deleted).state
+            assertEquals(expected, result.terms.first().surface)
+            assertEquals("stem", result.substitutions.last().targetId)
+            assertEquals(original.terms.map { it.id }, result.terms.map { it.id })
+            assertFalse(DhralopePurvasyaDirghonahSutra.matches(result))
+        }
+        for (surface in listOf("ऋ", "ए", "क्")) {
+            val original = DerivationState(listOf(DerivationTerm("stem", surface, TermKind.PRATIPADIKA),
+                DerivationTerm("suffix", "र्", TermKind.PRATYAYA), DerivationTerm("next", "रथः", TermKind.PRATIPADIKA)))
+            assertFalse(DhralopePurvasyaDirghonahSutra.matches(RoRiSutra.apply(original).state))
+        }
+    }
+
     @Test fun `r lopa records the exact internal or boundary occurrence`() {
         for ((surfaces, expected) in listOf(
             listOf("निर्रक्तम्") to "नीरक्तम्",

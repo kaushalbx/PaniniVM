@@ -8,6 +8,23 @@ sealed interface TypedAffix {
     val alternateUpadeshas: Set<String> get() = emptySet()
 }
 
+/** Source identities currently supported by the initial-vrddhi taddhita rules. */
+enum class TaddhitaAffix(override val upadesha: String) : TypedAffix {
+    AN("अण्"), INY("इञ्"), YANY("यञ्"), PHAK("फक्"), DHAK("ढक्"),
+    VAT("वत्"), TASIL("तसिल्"), TRAL("त्रल्");
+
+    override val initialSurface: String get() = upadesha
+    override val itMarkers: Set<ItMarker> get() = emptySet()
+}
+
+/** Current substitute identities, not additional original taddhita affixes. */
+enum class TaddhitaAdesha(override val upadesha: String) : TypedAffix {
+    AYAN("आयन्"), EY("एय्"), IN("ईन्"), IY("ईय्"), IYA("इय्");
+
+    override val initialSurface: String get() = upadesha
+    override val itMarkers: Set<ItMarker> get() = emptySet()
+}
+
 /** Frequency affixes; their pronunciation-only vowels are excluded at term construction. */
 enum class FrequencyAffix(
     override val upadesha: String,

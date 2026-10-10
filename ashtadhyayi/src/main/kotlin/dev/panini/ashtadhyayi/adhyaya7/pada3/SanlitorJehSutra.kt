@@ -11,8 +11,8 @@ import dev.panini.sutra.SutraScope
 import dev.panini.sutra.SutraStage
 import dev.panini.sutra.SutraType
 import dev.panini.shiksha.Vyanjana
-import dev.panini.shiksha.replaceVarna
-import dev.panini.shiksha.toDevanagari
+import dev.panini.core.SanadiAffix
+import dev.panini.derivation.hasCurrentAffix
 
 /** 7.3.57: सन्लिटोर्जेः — the non-abhyāsa ज् of जि receives its guttural substitute before सन् or लिट्. */
 object SanlitorJehSutra : Sutra<DerivationState, DerivationChange>(
@@ -32,15 +32,14 @@ object SanlitorJehSutra : Sutra<DerivationState, DerivationChange>(
     override fun matches(context: DerivationState): Boolean {
         if (context.terms.none { it.id == "abhyasa" }) return false
         val anga = context.terms.firstOrNull { it.kind == TermKind.DHATU && it.id != "abhyasa" } ?: return false
-        val san = context.terms.any { it.kind == TermKind.PRATYAYA && it.upadesha == "सन्" }
+        val san = context.terms.any { it.hasCurrentAffix(SanadiAffix.SAN) }
         return san && anga.upadesha == "जि" && anga.varnas.firstOrNull() == Vyanjana.JA
     }
 
     override fun apply(context: DerivationState): DerivationChange {
         val anga = context.terms.first { it.kind == TermKind.DHATU && it.id != "abhyasa" }
-        val surface = anga.varnas.replaceVarna(0, listOf(Vyanjana.GA)).toDevanagari()
         return DerivationChange(
-            context.substituteTermSurface(anga.id, surface, Vyanjana.JA, listOf(Vyanjana.GA), sutra),
+            context.replaceTermVarna(anga.id, 0, listOf(Vyanjana.GA), sutra),
             "7.3.57 substitutes guttural ग for the non-abhyāsa ज of जि before सन्.",
         )
     }

@@ -62,10 +62,9 @@ object GherNitiSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val source = stem.varnas.last() as Svara
         val replacement = requireNotNull(Varnamala.getGuna(source))
-        val newSurface = (stem.varnas.dropLast(1) + replacement).toDevanagari()
 
         return DerivationChange(
-            state = context.substituteTermSurface(stem.id, newSurface, source, replacement, sutra)
+            state = context.replaceTermVarna(stem.id, stem.varnas.lastIndex, replacement, sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "7.3.111: Applied guna (${replacement.toDevanagari()}) to 'ghi' stem before ṅit affix."
         )

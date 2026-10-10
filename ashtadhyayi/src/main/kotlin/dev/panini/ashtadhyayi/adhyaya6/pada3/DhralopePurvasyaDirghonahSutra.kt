@@ -51,8 +51,12 @@ object DhralopePurvasyaDirghonahSutra : Sutra<DerivationState, DerivationChange>
     private fun target(context: DerivationState) = context.substitutions.asReversed()
         .filter { it.sutra in setOf("8.3.13", "8.3.14") && it.replacement.isEmpty() }
         .firstNotNullOfOrNull { deletion ->
-            val index = deletion.sourceVarnaIndex?.minus(1) ?: return@firstNotNullOfOrNull null
-            context.terms.firstOrNull { it.id == deletion.targetId && it.varnas.getOrNull(index) in anVowels }
-                ?.let { it to index }
+            val deletedIndex = deletion.sourceVarnaIndex ?: return@firstNotNullOfOrNull null
+            val termIndex = context.terms.indexOfFirst { it.id == deletion.targetId }
+            if (termIndex < 0) return@firstNotNullOfOrNull null
+            val preceding = if (deletedIndex > 0) context.terms[termIndex] to (deletedIndex - 1)
+            else context.terms.take(termIndex).lastOrNull { it.varnas.isNotEmpty() }
+                ?.let { it to it.varnas.lastIndex }
+            preceding?.takeIf { (term, index) -> term.varnas.getOrNull(index) in anVowels }
         }
 }

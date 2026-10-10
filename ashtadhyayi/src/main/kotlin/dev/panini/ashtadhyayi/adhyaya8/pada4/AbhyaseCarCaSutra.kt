@@ -5,8 +5,6 @@ import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
 import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Vyanjana
-import dev.panini.shiksha.replaceVarna
-import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -49,9 +47,8 @@ object AbhyaseCarCaSutra : Sutra<DerivationState, DerivationChange>(
         val abhyasa = context.terms.first { it.id == "abhyasa" }
         val source = abhyasa.varnas.first() as Vyanjana
         val substitute = carOrJash.getValue(source)
-        val newSurface = abhyasa.varnas.replaceVarna(0, listOf(substitute)).toDevanagari()
         return DerivationChange(
-            state = context.substituteTermSurface(abhyasa.id, newSurface, source, listOf(substitute), sutra),
+            state = context.replaceTermVarna(abhyasa.id, 0, listOf(substitute), sutra),
             explanation = "8.4.54 changes $source to its nearest $substitute substitute in the abhyāsa.",
         )
     }

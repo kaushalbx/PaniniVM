@@ -253,7 +253,7 @@ class SandhiPhonologicalTransformationTest {
         )
         assertTrue(BhoBhagoAghoApurvasyaYoshiSutra.matches(state))
         val change = BhoBhagoAghoApurvasyaYoshiSutra.apply(state)
-        assertEquals("देवय", change.state.terms[0].surface)
+        assertEquals("देवय्", change.state.terms[0].surface)
     }
 
     @Test

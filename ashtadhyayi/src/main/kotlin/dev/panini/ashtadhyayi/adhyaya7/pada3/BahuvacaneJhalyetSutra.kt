@@ -10,8 +10,6 @@ import dev.panini.shiksha.Samjna
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Varna
 import dev.panini.shiksha.Vyanjana
-import dev.panini.shiksha.replaceVarna
-import dev.panini.shiksha.toDevanagari
 import dev.panini.sutra.Sutra
 import dev.panini.sutra.SutraAction
 import dev.panini.sutra.SutraRole
@@ -53,17 +51,14 @@ object BahuvacaneJhalyetSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val terms = context.terms
         val stem = terms[terms.size - 2]
-        val newVarnas = stem.varnas.replaceVarna(stem.varnas.lastIndex, listOf(Svara.E))
-        val newSurface = newVarnas.toDevanagari()
+        val transformed = context.replaceTermVarna(stem.id, stem.varnas.lastIndex, listOf(Svara.E), sutra)
 
         val affix = terms.last()
         val changedState = if (affix.upadesha == "भ्यस्") {
-            context.mergeTermsByVarnaSubstitution(
-                stem.id, affix.id, (newVarnas + affix.varnas).toDevanagari(), Svara.A, listOf(Svara.E), sutra,
-            ).copy(stage = DerivationStage.PADA_FORMED)
+            transformed.concatenateFollowingTerm(stem.id, affix.id, sutra)
+                .copy(stage = DerivationStage.PADA_FORMED)
         } else {
-            context.substituteTermSurface(stem.id, newSurface, Svara.A, listOf(Svara.E), sutra)
-                .copy(stage = DerivationStage.ANGAKARYA)
+            transformed.copy(stage = DerivationStage.ANGAKARYA)
         }
 
         return DerivationChange(
