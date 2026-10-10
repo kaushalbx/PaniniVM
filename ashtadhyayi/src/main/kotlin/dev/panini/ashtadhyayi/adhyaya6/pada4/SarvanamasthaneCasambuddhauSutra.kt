@@ -4,6 +4,8 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.hasSarvanamasthanaSupIdentity
+import dev.panini.derivation.TermKind
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Vyanjana
 import dev.panini.shiksha.isHrasva
@@ -47,7 +49,8 @@ object SarvanamasthaneCasambuddhauSutra : Sutra<DerivationState, DerivationChang
         if (!isNStemOrNum) return false
 
         // 2. Affix must be Sarvanāmasthāna
-        val isSarvanamasthana = affix.upadesha == "शि" || affix.id in setOf("sup-su", "sup-au", "sup-jas", "sup-am", "sup-aut")
+        val isSarvanamasthana = (affix.kind == TermKind.PRATYAYA && affix.upadesha == "शि") ||
+            affix.hasSarvanamasthanaSupIdentity()
 
         // 3. The upadhā may be an explicit vowel or a consonant carrying an
         // inherent a (फलन्/फलन).

@@ -2,6 +2,13 @@ package dev.panini.ashtadhyayi.adhyaya6.pada1
 
 import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.core.Lakara
+import dev.panini.core.SanadiAffix
+import dev.panini.core.KrtAffix
+import dev.panini.derivation.matchesAffix
+import dev.panini.derivation.hasCurrentAffix
+import dev.panini.derivation.TermKind
+import dev.panini.core.TingAffix
+import dev.panini.vyakaranam.ast.Vikarana
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
@@ -47,9 +54,9 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
             val rightTerm = context.terms[i + 1]
             if (nicGradeStillPending(context, rightTerm.id)) continue
             if (context.effectiveContext.rupa.lakara == Lakara.LET &&
-                rightTerm.upadesha == "झि" && "3.4.94" !in context.appliedSutras
+                rightTerm.hasCurrentAffix(TingAffix.JHI) && "3.4.94" !in context.appliedSutras
             ) continue
-            if (lotEndingReplacementPending(context, rightTerm.surface)) continue
+            if (lotEndingReplacementPending(context, rightTerm.varnas)) continue
             val left = context.terms[i].varnas.lastOrNull() ?: continue
             val right = rightTerm.varnas.firstOrNull() ?: continue
             if (engine.contains(Pratyahara.EC, left) && engine.contains(Pratyahara.AC, right)) {
@@ -68,9 +75,9 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
             val rightTerm = context.terms[i+1]
             if (nicGradeStillPending(context, rightTerm.id)) continue
             if (context.effectiveContext.rupa.lakara == Lakara.LET &&
-                rightTerm.upadesha == "झि" && "3.4.94" !in context.appliedSutras
+                rightTerm.hasCurrentAffix(TingAffix.JHI) && "3.4.94" !in context.appliedSutras
             ) continue
-            if (lotEndingReplacementPending(context, rightTerm.surface)) continue
+            if (lotEndingReplacementPending(context, rightTerm.varnas)) continue
             val leftVarna = leftTerm.varnas.lastOrNull() ?: continue
             val rightVarna = rightTerm.varnas.firstOrNull() ?: continue
             if (engine.contains(Pratyahara.EC, leftVarna) && engine.contains(Pratyahara.AC, rightVarna)) {
@@ -82,15 +89,12 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
                         "6.1.78: substituted ${replacement.toDevanagari()} at the external pada boundary.",
                     )
                 }
-                val newSurface = (
-                    leftTerm.varnas.dropLast(1) + replacement + rightTerm.varnas
-                ).toDevanagari()
                 val newSamjnas = context.samjnas.map {
                     if (it.targetId == rightTerm.id && it.samjna != Samjna.PRATYAYA) it.copy(targetId = leftTerm.id) else it
                 }.toSet()
-                val merged = context.mergeTermsByVarnaSubstitution(
-                    leftTerm.id, rightTerm.id, newSurface, leftVarna, replacement, sutra,
-                ).copy(stage = DerivationStage.PADA_FORMED, samjnas = newSamjnas)
+                val merged = context.replaceTermVarna(leftTerm.id, leftTerm.varnas.lastIndex, replacement, sutra)
+                    .concatenateFollowingTerm(leftTerm.id, rightTerm.id, sutra)
+                    .copy(stage = DerivationStage.PADA_FORMED, samjnas = newSamjnas)
                 val survivor = merged.terms.single { it.id == leftTerm.id }
 
                 return DerivationChange(
@@ -111,21 +115,40 @@ object EcoYavayavahSutra : Sutra<DerivationState, DerivationChange>(
         Svara.AU to listOf(Svara.AA, Vyanjana.VA),
     )
 
-    private fun lotEndingReplacementPending(context: DerivationState, surface: String): Boolean =
+    private fun lotEndingReplacementPending(context: DerivationState, varnas: List<Varna>): Boolean =
         context.effectiveContext.rupa.lakara == Lakara.LOT &&
-            surface in setOf("ते", "एते", "आते", "न्ते", "अन्ते", "अते", "एथे", "आथे") &&
+            varnas in pendingLotEndings &&
             "3.4.90" !in context.appliedSutras
+
+    private val pendingLotEndings: Set<List<Varna>> = setOf(
+        listOf(Vyanjana.TA, Svara.E),
+        listOf(Svara.E, Vyanjana.TA, Svara.E),
+        listOf(Svara.AA, Vyanjana.TA, Svara.E),
+        listOf(Vyanjana.NA, Vyanjana.TA, Svara.E),
+        listOf(Svara.A, Vyanjana.NA, Vyanjana.TA, Svara.E),
+        listOf(Svara.A, Vyanjana.TA, Svara.E),
+        listOf(Svara.E, Vyanjana.THA, Svara.E),
+        listOf(Svara.AA, Vyanjana.THA, Svara.E),
+    )
 
     private fun futureStemPending(context: DerivationState): Boolean =
         context.effectiveContext.rupa.lakara in setOf(Lakara.LRT, Lakara.LRNG) &&
-            context.allEffectiveTerms.none { it.upadesha == "स्य" }
+            context.allEffectiveTerms.none {
+                it.kind == TermKind.PRATYAYA && it.upadesha == Vikarana.SYA.upadesha
+            }
 
     private fun nicGradeStillPending(context: DerivationState, rightTermId: String): Boolean {
-        val nic = context.terms.firstOrNull { it.id == rightTermId && it.matchesUpadesha("णिच्") && it.surface == "इ" }
+        val nic = context.terms.firstOrNull {
+            it.id == rightTermId && it.matchesAffix(SanadiAffix.NIC) && it.varnas == listOf(Svara.I)
+        }
             ?: return false
         return context.allEffectiveTerms.none { it.id == "shap" } &&
             context.terms.dropWhile { it.id != nic.id }.drop(1).none { affix ->
-                affix.upadesha in setOf("क्त", "क्तवतुँ", "क्त्वा", "ल्यप्", "तुमुँन्", "तव्यत्", "अनीयर्", "ण्यत्", "ण्वुल्", "तृच्", "घञ्", "ल्युट्")
+                krtAfterNic.any(affix::matchesAffix)
             }
     }
+
+    private val krtAfterNic = listOf(KrtAffix.KTA, KrtAffix.KTAVATU, KrtAffix.KTVA,
+        KrtAffix.LYAP, KrtAffix.TUMUN, KrtAffix.TAVYAT, KrtAffix.ANIYAR,
+        KrtAffix.NYAT, KrtAffix.NVUL, KrtAffix.TRC, KrtAffix.GHAN, KrtAffix.LYUT)
 }

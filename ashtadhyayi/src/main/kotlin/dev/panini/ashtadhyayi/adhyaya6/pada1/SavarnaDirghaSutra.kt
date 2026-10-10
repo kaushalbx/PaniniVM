@@ -10,6 +10,7 @@ import dev.panini.derivation.DerivationSutra
 import dev.panini.derivation.TermCompositionDomain
 import dev.panini.core.SanadiAffix
 import dev.panini.derivation.matchesAffix
+import dev.panini.derivation.hasCurrentAffix
 import dev.panini.derivation.TermKind
 import dev.panini.pratyahara.Pratyahara
 import dev.panini.shiksha.Svara
@@ -55,7 +56,8 @@ object SavarnaDirghaSutra : Sutra<DerivationState, DerivationChange>(
             ) return false
         }
         if (leftTerm.id == "shap" && context.terms.any { it.kind == TermKind.DHATU && it.gana == DhatuGana.ADADI }) return false
-        if (context.effectiveContext.rupa.lakara == Lakara.LOT && context.terms.last().upadesha == "झि") return false
+        if (context.effectiveContext.rupa.lakara == Lakara.LOT &&
+            context.terms.last().hasCurrentAffix(dev.panini.core.TingAffix.JHI)) return false
         val left = leftTerm.varnas.lastOrNull() ?: return false
         val right = context.terms[rightIndex].varnas.firstOrNull() ?: return false
 
@@ -79,18 +81,23 @@ object SavarnaDirghaSutra : Sutra<DerivationState, DerivationChange>(
             "1.1.46" in leftTerm.establishedBySutras
 
         val rightVarnas = rightTerm.varnas
-        val newSurface = if (isBeginningAugment) {
-            (substitute + rightVarnas.drop(1)).toDevanagari()
-        } else {
-            (leftTerm.varnas.dropLast(1) + substitute + rightVarnas.drop(1)).toDevanagari()
+        if (!isBeginningAugment) {
+            val lengthened = if (substitute.single() == leftVowel) context else
+                context.replaceTermVarna(leftTerm.id, leftTerm.varnas.lastIndex, substitute, sutra)
+            val composed = lengthened.deleteTermVarnas(rightTerm.id, 0, 1, sutra)
+                .concatenateAfterInitialVowelCoalescence(leftTerm.id, rightTerm, sutra)
+            return DerivationChange(
+                state = composed.copy(stage = DerivationStage.PADA_FORMED),
+                explanation = "6.1.101: Savarṇa Dīrgha substitution (${substitute.toDevanagari()}) for $leftVowel + ${rightVarnas.first()}.",
+            )
         }
-        val survivor = if (isBeginningAugment) rightTerm else leftTerm
-        val consumedTerm = if (isBeginningAugment) leftTerm else rightTerm
+        val lengthened = if (substitute.single() == leftVowel) context else
+            context.replaceTermVarna(leftTerm.id, leftTerm.varnas.lastIndex, substitute, sutra)
+        val composed = lengthened.deleteTermVarnas(rightTerm.id, 0, 1, sutra)
+            .concatenatePrecedingAugment(rightTerm.id, leftTerm.id, sutra)
 
         return DerivationChange(
-            state = context.mergeTermsByVarnaSubstitution(
-                survivor.id, consumedTerm.id, newSurface, leftVowel, substitute, sutra,
-            ).copy(stage = DerivationStage.PADA_FORMED),
+            state = composed.copy(stage = DerivationStage.PADA_FORMED),
             explanation = "6.1.101: Savarṇa Dīrgha substitution (${substitute.toDevanagari()}) " +
                 "for $leftVowel + ${rightVarnas.first()}."
         )

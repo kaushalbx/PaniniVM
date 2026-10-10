@@ -7,6 +7,14 @@ import dev.panini.shiksha.*
 import kotlin.test.*
 
 class YasyetiAnnotationTest {
+    @Test fun `affix spelling alone does not license a non-affix term`() {
+        val state = DerivationState(listOf(
+            DerivationTerm("stem", "गर्ग", TermKind.PRATIPADIKA),
+            DerivationTerm("not-affix", "इञ्", TermKind.PRATIPADIKA, upadesha = "इञ्"),
+        ), activeAdhikaras = setOf("6.4.1"))
+        assertFalse(YasyetiCaSutra.matches(state))
+    }
+
     @Test fun `all existing normalizations preserve surviving annotations and original dropped affix`() {
         for ((upadesha, surface, normalized) in listOf(
             Triple("अण्", "अँऽ", "अँ"),

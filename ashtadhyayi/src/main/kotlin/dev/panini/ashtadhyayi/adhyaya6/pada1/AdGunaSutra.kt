@@ -3,6 +3,10 @@ package dev.panini.ashtadhyayi.adhyaya6.pada1
 import dev.panini.ashtadhyayi.Ashtadhyayi
 import dev.panini.core.DhatuGana
 import dev.panini.core.Lakara
+import dev.panini.core.TaddhitaAffix
+import dev.panini.core.TingAffix
+import dev.panini.derivation.hasCurrentAffix
+import dev.panini.vyakaranam.ast.Vikarana
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
@@ -41,10 +45,10 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.stage == DerivationStage.INITIAL || context.stage == DerivationStage.PRATYAYA_SELECTED) return false
-        val rutvaFollowUp = context.substitutions.lastOrNull()?.takeIf { it.sutra == "6.1.114" }
-        if (rutvaFollowUp != null && context.terms.any { it.id == rutvaFollowUp.targetId && it.varnas.lastOrNull() == Svara.U }) return true
+        val rutvaFollowUp = context.substitutions.lastOrNull()?.takeIf { it.sutra in setOf("6.1.113", "6.1.114") }
+        if (rutvaFollowUp != null && context.terms.any { it.id == rutvaFollowUp.targetId && it.varnas.takeLast(2) == listOf(Svara.A, Svara.U) }) return true
         if (context.terms.size < 2) return false
-        if (context.effectiveContext.rupa.lakara == Lakara.LOT && context.terms.last().upadesha == "झि") return false
+        if (context.effectiveContext.rupa.lakara == Lakara.LOT && context.terms.last().hasCurrentAffix(TingAffix.JHI)) return false
         val engine = Ashtadhyayi.pratyaharaEngine
         return context.terms.indices.any { index ->
             if (index == context.terms.lastIndex) return@any false
@@ -52,7 +56,7 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
             val rightTerm = context.terms[index + 1]
             if (rightTerm.upadesha == "इट्" && rightTerm.varnas.lastOrNull() == Vyanjana.TTA) return@any false
             val isTaddhita = "4.1.76" in context.activeAdhikaras ||
-                rightTerm.upadesha in setOf("अण्", "इञ्", "यञ्", "फक्", "ढक्", "वत्", "तसिल्", "त्रल्")
+                TaddhitaAffix.entries.any(rightTerm::hasCurrentAffix)
             if (isTaddhita) return@any false
             val right = rightTerm.varnas.firstOrNull() ?: return@any false
             val leftVarnas = leftTerm.varnas
@@ -60,7 +64,7 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
             val previousEndsInEc = index > 0 && context.terms[index - 1].varnas.lastOrNull()?.let {
                 engine.contains(Pratyahara.EC, it)
             } == true
-            val isFutureSya = leftTerm.upadesha == "स्य" &&
+            val isFutureSya = leftTerm.kind == TermKind.PRATYAYA && leftTerm.upadesha == Vikarana.SYA.upadesha &&
                 context.effectiveContext.rupa.lakara in setOf(Lakara.LRT, Lakara.LRNG)
             val isAdadiShap = leftTerm.id == "shap" && context.terms.any { it.kind == TermKind.DHATU && it.gana == DhatuGana.ADADI }
             !isAdadiShap && (!previousEndsInEc || isFutureSya) &&
@@ -70,14 +74,13 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
     }
 
     override fun apply(context: DerivationState): DerivationChange {
-        if (context.substitutions.lastOrNull()?.sutra == "6.1.114") {
+        if (context.substitutions.lastOrNull()?.sutra in setOf("6.1.113", "6.1.114")) {
             val targetId = context.substitutions.last().targetId
-            val target = context.terms.firstOrNull { it.id == targetId && it.varnas.lastOrNull() == Svara.U }
+            val target = context.terms.firstOrNull { it.id == targetId && it.varnas.takeLast(2) == listOf(Svara.A, Svara.U) }
             if (target != null) return DerivationChange(
-                state = context.substituteTermVarnas(
-                    target.id, target.varnas.dropLast(1) + Svara.O,
-                    Svara.U, listOf(Svara.O), sutra,
-                ),
+                state = context.replaceTermVarnaRange(target.id, target.varnas.size - 2, 2,
+                    listOf(Svara.O), annotationSources = mapOf(0 to 0), sutra = sutra)
+                    .copy(stage = DerivationStage.PADA_FORMED),
                 explanation = "6.1.87: Guṇa substitution ओ for अ + उ from रुँ."
             )
         }
@@ -88,14 +91,15 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
                 !(terms[position].id == "shap" && terms.any { it.kind == TermKind.DHATU && it.gana == DhatuGana.ADADI }) &&
                 !(terms[position + 1].upadesha == "इट्" && terms[position + 1].varnas.lastOrNull() == Vyanjana.TTA) &&
                 !("4.1.76" in context.activeAdhikaras ||
-                    terms[position + 1].upadesha in setOf("अण्", "इञ्", "यञ्", "फक्", "ढक्", "वत्", "तसिल्", "त्रल्")) &&
+                    TaddhitaAffix.entries.any(terms[position + 1]::hasCurrentAffix)) &&
                 (terms[position].kind == TermKind.PRATIPADIKA ||
                     terms[position].varnas.let { it.getOrNull(it.lastIndex - 1) != Vyanjana.NA }) &&
                 (position == 0 ||
                     terms[position - 1].varnas.lastOrNull()?.let {
                         !Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.EC, it)
                     } != false ||
-                    (terms[position].upadesha == "स्य" && context.effectiveContext.rupa.lakara in setOf(Lakara.LRT, Lakara.LRNG))) &&
+                    (terms[position].kind == TermKind.PRATYAYA && terms[position].upadesha == Vikarana.SYA.upadesha &&
+                        context.effectiveContext.rupa.lakara in setOf(Lakara.LRT, Lakara.LRNG))) &&
                 terms[position + 1].varnas.firstOrNull()?.let {
                     Ashtadhyayi.pratyaharaEngine.contains(Pratyahara.AC, it)
                 } == true
@@ -113,18 +117,24 @@ object AdGunaSutra : Sutra<DerivationState, DerivationChange>(
             leftTerm.augmentTargetId == rightTerm.id &&
             "1.1.46" in leftTerm.establishedBySutras
 
-        val newSurface = (if (isBeginningAugment) {
-            substitute + rightVarnas.drop(1)
-        } else {
-            leftVarnas.dropLast(1) + substitute + rightVarnas.drop(1)
-        }).toDevanagari()
-        val survivor = if (isBeginningAugment) rightTerm else leftTerm
-        val consumedTerm = if (isBeginningAugment) leftTerm else rightTerm
+        if (isBeginningAugment) {
+            val replaced = if (substitute == listOf(leftVowel)) context else
+                context.replaceTermVarna(leftTerm.id, leftVarnas.lastIndex, substitute, sutra)
+            val composed = replaced.deleteTermVarnas(rightTerm.id, 0, 1, sutra)
+                .concatenatePrecedingAugment(rightTerm.id, leftTerm.id, sutra)
+            return DerivationChange(
+                state = composed.copy(stage = DerivationStage.PADA_FORMED),
+                explanation = "6.1.87: Guṇa substitution (${substitute.toDevanagari()}) for ${leftVowel.devanagari} + ${rightVowel.devanagari}.",
+            )
+        }
+        val replaced = if (substitute == listOf(leftVowel)) context else
+            context.replaceTermVarna(leftTerm.id, leftVarnas.lastIndex, substitute, sutra)
+        val composed = replaced.deleteTermVarnas(rightTerm.id, 0, 1, sutra)
+            .concatenateAfterInitialVowelCoalescence(leftTerm.id, rightTerm, sutra,
+                transferDeferredDesignations = true)
 
         return DerivationChange(
-            state = context.mergeTermsByVarnaSubstitution(
-                survivor.id, consumedTerm.id, newSurface, leftVowel, substitute, sutra,
-            ).copy(stage = DerivationStage.PADA_FORMED),
+            state = composed.copy(stage = DerivationStage.PADA_FORMED),
             explanation = "6.1.87: Guṇa substitution (${substitute.toDevanagari()}) for ${leftVowel.devanagari} + ${rightVowel.devanagari}."
         )
     }

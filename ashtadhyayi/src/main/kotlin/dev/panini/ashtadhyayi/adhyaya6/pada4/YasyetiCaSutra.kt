@@ -1,5 +1,8 @@
 package dev.panini.ashtadhyayi.adhyaya6.pada4
 
+import dev.panini.core.TaddhitaAffix
+import dev.panini.core.TaddhitaAdesha
+import dev.panini.derivation.hasCurrentAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
@@ -41,6 +44,7 @@ object YasyetiCaSutra : Sutra<DerivationState, DerivationChange>(
 
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
+        if (affix.kind != TermKind.PRATYAYA) return false
 
         val isTaddhita = "4.1.76" in context.activeAdhikaras ||
             affix.upadesha in setOf("अण्", "इञ्", "यञ्", "फक्", "ढक्", "वत्", "तसिल्", "त्रल्", "आयन्", "एय्", "ईन्", "ईय्", "इय्", "डट्", "तमट्", "तीयै", "टीयै", "डँ", "मयट्")
@@ -55,12 +59,12 @@ object YasyetiCaSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
-        val replacement = when (affix.upadesha) {
-            "अण्" -> affix.varnas
-            "इञ्" -> listOf(Svara.I)
-            "आयन्" -> ayan
-            "एय्" -> eya
-            "यञ्" -> ya
+        val replacement = when {
+            affix.hasCurrentAffix(TaddhitaAffix.AN) -> affix.varnas
+            affix.hasCurrentAffix(TaddhitaAffix.INY) -> listOf(Svara.I)
+            affix.hasCurrentAffix(TaddhitaAdesha.AYAN) -> ayan
+            affix.hasCurrentAffix(TaddhitaAdesha.EY) -> eya
+            affix.hasCurrentAffix(TaddhitaAffix.YANY) -> ya
             else -> when (affix.varnas) {
                 ayanWithInherentA -> ayan
                 eyaWithInherentA -> eya

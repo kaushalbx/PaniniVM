@@ -55,10 +55,9 @@ object HashiCaSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val internalIndex = internalSankhyaIndex(context)
         val left = if (internalIndex >= 0) context.terms[internalIndex] else context.terms[context.terms.size - 2]
-        val newSurface = (left.varnas.dropLast(2) + Svara.U).toDevanagari()
 
         return DerivationChange(
-            state = context.substituteTermSurface(left.id, newSurface, Vyanjana.RA, listOf(Svara.U), sutra)
+            state = context.replaceTermVarna(left.id, left.varnas.lastIndex, listOf(Svara.U), sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "6.1.114: Substituted 'u' for 'ru' before a voiced consonant."
         )

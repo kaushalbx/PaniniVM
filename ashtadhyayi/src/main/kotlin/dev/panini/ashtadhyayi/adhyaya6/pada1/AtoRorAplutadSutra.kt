@@ -52,10 +52,9 @@ object AtoRorAplutadSutra : Sutra<DerivationState, DerivationChange>(
     override fun apply(context: DerivationState): DerivationChange {
         val left = context.terms[context.terms.size - 2]
         // Replace 'r' with 'u'
-        val newSurface = (left.varnas.dropLast(2) + Svara.U).toDevanagari()
 
         return DerivationChange(
-            state = context.substituteTermSurface(left.id, newSurface, Vyanjana.RA, listOf(Svara.U), sutra)
+            state = context.replaceTermVarna(left.id, left.varnas.lastIndex, listOf(Svara.U), sutra)
                 .copy(stage = DerivationStage.ANGAKARYA),
             explanation = "6.1.113: Substituted 'u' for 'ru' between two short 'a's."
         )

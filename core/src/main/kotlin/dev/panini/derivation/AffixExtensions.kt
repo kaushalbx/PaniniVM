@@ -44,6 +44,16 @@ fun DerivationTerm.matchesAnyAffix(vararg affixes: TypedAffix): Boolean = affixe
 
 fun DerivationTerm.matchesAnyAffix(affixes: Iterable<TypedAffix>): Boolean = affixes.any(::matchesAffix)
 
+/** The five sup identities used by the non-neuter sarvanāmasthāna rules.
+ * Separate śi and gender/vocative conditions remain the responsibility of each rule.
+ */
+fun DerivationTerm.hasSarvanamasthanaSupIdentity(): Boolean =
+    kind == TermKind.PRATYAYA && sarvanamasthanaSupIdentities.any {
+        sourceSupAffix == it || matchesAffix(it)
+    }
+
+private val sarvanamasthanaSupIdentities = setOf(SupAffix.SU, SupAffix.AU, SupAffix.JAS, SupAffix.AM, SupAffix.AUT)
+
 fun SupAffix.Companion.fromContext(context: DerivationalContext): SupAffix? {
     val vibhakti = context.rupa.vibhakti ?: return null
     val vacana = context.rupa.vacana ?: return null

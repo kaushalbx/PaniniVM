@@ -1,6 +1,8 @@
 package dev.panini.ashtadhyayi.adhyaya6.pada1
 
 import dev.panini.ashtadhyayi.Ashtadhyayi
+import dev.panini.core.SupAffix
+import dev.panini.derivation.hasCurrentAffix
 import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
@@ -35,6 +37,7 @@ object PrathamayohPurvaSavarnahSutra : Sutra<DerivationState, DerivationChange>(
     role = SutraRole.Vidhi,
     action = SutraAction.ADESHA,
     scope = SutraScope.DERIVATION,
+    blocks = setOf("6.1.77"),
 ), DerivationSutra {
     override fun matches(context: DerivationState): Boolean {
         if (context.stage != DerivationStage.IT_PROCESSED && context.stage != DerivationStage.PADA_FORMED) return false
@@ -43,14 +46,15 @@ object PrathamayohPurvaSavarnahSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val suffix = context.terms.last()
 
-        val suffixId = suffix.id
-        if (suffixId !in setOf("sup-au", "sup-jas", "sup-aut", "sup-sas")) return false
+        if (listOf(SupAffix.AU, SupAffix.JAS, SupAffix.AUT, SupAffix.SAS).none(suffix::hasCurrentAffix)) return false
 
         val leftPhoneme = stem.varnas.lastOrNull() as? Svara ?: return false
 
-        // The implemented scope of 6.1.102 is a/ā + vowel.  Ik-final
-        // aṅgas take their own यण् path under 6.1.77.
-        if (leftPhoneme !in setOf(Svara.A, Svara.AA)) return false
+        // Short i/u duals take purvasavarna, not yan. Other ik domains
+        // require their own exceptions and are not broadened here.
+        val shortIkDual = leftPhoneme in setOf(Svara.I, Svara.U) &&
+            listOf(SupAffix.AU, SupAffix.AUT).any(suffix::hasCurrentAffix)
+        if (leftPhoneme !in setOf(Svara.A, Svara.AA) && !shortIkDual) return false
 
         val engine = Ashtadhyayi.pratyaharaEngine
         if (!engine.contains(Pratyahara.AK, leftPhoneme)) return false
@@ -60,7 +64,7 @@ object PrathamayohPurvaSavarnahSutra : Sutra<DerivationState, DerivationChange>(
 
         // Ami Purvah (6.1.107) has precedence for sup-am.
         // Nadici (6.1.104) block:
-        if (engine.contains(Pratyahara.IC, rightChar)) {
+        if (leftPhoneme in setOf(Svara.A, Svara.AA) && engine.contains(Pratyahara.IC, rightChar)) {
             return false
         }
 
@@ -75,12 +79,13 @@ object PrathamayohPurvaSavarnahSutra : Sutra<DerivationState, DerivationChange>(
         val suffixVarnas = suffix.varnas
         val leftPhoneme = stemVarnas.last() as Svara
         val substitute = listOf(leftPhoneme.toDirgha())
-        val newSurface = (stemVarnas.dropLast(1) + substitute + suffixVarnas.drop(1)).toDevanagari()
-
+        val withLongVowel = if (substitute.single() == leftPhoneme) context
+            else context.replaceTermVarna(stem.id, stemVarnas.lastIndex, substitute, sutra)
         return DerivationChange(
-            state = context.mergeTermsByVarnaSubstitution(
-                stem.id, suffix.id, newSurface, leftPhoneme, substitute, sutra,
-            ).copy(stage = DerivationStage.PADA_FORMED),
+            state = withLongVowel
+                .deleteTermVarnas(suffix.id, 0, 1, sutra)
+                .concatenateAfterInitialVowelCoalescence(stem.id, suffix, sutra)
+                .copy(stage = DerivationStage.PADA_FORMED),
             explanation = "6.1.102: Combined $leftPhoneme + ${suffixVarnas.first()} into long ${substitute.toDevanagari()}."
         )
     }

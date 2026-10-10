@@ -4,6 +4,9 @@ import dev.panini.derivation.DerivationChange
 import dev.panini.derivation.DerivationStage
 import dev.panini.derivation.DerivationState
 import dev.panini.derivation.DerivationSutra
+import dev.panini.derivation.hasSarvanamasthanaSupIdentity
+import dev.panini.derivation.matchesAffix
+import dev.panini.core.SupAffix
 import dev.panini.shiksha.Svara
 import dev.panini.shiksha.Varna
 import dev.panini.shiksha.Vyanjana
@@ -45,8 +48,7 @@ object SantamahatahSamyogasyaSutra : Sutra<DerivationState, DerivationChange>(
             eligibleCurrentForms.any { stem.varnas.takeLast(it.size) == it }
         if (!isEligibleStem) return false
 
-        val isSarvanamasthana = affix.id in setOf("sup-su", "sup-au", "sup-jas", "sup-am", "sup-aut") ||
-            affix.upadesha in setOf("सुँ", "औ", "जस्", "अम्", "औट्")
+        val isSarvanamasthana = affix.hasSarvanamasthanaSupIdentity()
         return isSarvanamasthana
     }
 
@@ -54,7 +56,7 @@ object SantamahatahSamyogasyaSutra : Sutra<DerivationState, DerivationChange>(
         val stem = context.terms[context.terms.size - 2]
         val affix = context.terms.last()
 
-        val isSu = affix.id == "sup-su" || affix.upadesha == "सुँ"
+        val isSu = affix.sourceSupAffix == SupAffix.SU || affix.matchesAffix(SupAffix.SU)
         var state = when {
             stem.varnas.takeLast(mahat.size) == mahat -> context.replaceTermVarnaRange(
                 stem.id, stem.varnas.size - 2, 2,

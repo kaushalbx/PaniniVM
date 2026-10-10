@@ -4,6 +4,21 @@ import dev.panini.shiksha.*
 import kotlin.test.*
 
 class ExactVarnaReplacementTest {
+    @Test fun `nasal vowel to semivowel replacement keeps nasality on that consonant`() {
+        for ((vowel, semivowel) in listOf(Svara.I to Vyanjana.YA, Svara.U to Vyanjana.VA)) {
+            val original = DerivationTerm("term", "${vowel.devanagari}ँऽअ", TermKind.PRATIPADIKA,
+                formedPadaRupa = Rupa())
+            val after = DerivationState(listOf(original)).replaceTermVarna("term", 0, listOf(semivowel), "test")
+            val changed = after.terms.single()
+            assertEquals(listOf(semivowel, Svara.A), changed.varnas)
+            assertEquals(listOf(true, false), changed.phonologicalText.effectiveVarnas.map { it.nasalized })
+            assertEquals(listOf(OrthographicSignPlacement(OrthographicSign.AVAGRAHA, 1)), changed.orthographicSigns)
+            assertEquals(original.formedPadaRupa, changed.formedPadaRupa)
+            assertEquals(original.upadesha, changed.upadesha)
+            assertEquals(0, after.substitutions.single().sourceVarnaIndex)
+        }
+    }
+
     @Test
     fun `range replacement maps annotations of each consumed token explicitly`() {
         val original = DerivationTerm("term", "असँऽइ", TermKind.PRATIPADIKA, formedPadaRupa = Rupa())
